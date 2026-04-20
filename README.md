@@ -62,6 +62,55 @@ When Cavalry updates, the app bundle is replaced and translations are reset. The
 
 ## Developer Guide
 
+### External Bundle Patcher (Experimental)
+
+If you want to patch a Cavalry bundle **outside** the in-app Script UI runtime, use:
+
+```bash
+python3 tools/patch_cavalry_bundle.py \
+  --app /Applications/Cavalry.app \
+  --output-app ~/Applications/Cavalry-zh-Hans.app \
+  --lang zh-Hans \
+  --refresh-en \
+  --english-output /tmp/cavalry-en \
+  --qm-target resources
+```
+
+What it does:
+
+1. Extracts current English originals from the installed app bundle
+2. Clones the source app to a writable output bundle if `--output-app` is provided
+3. Applies the selected JSON language pack to the target bundle
+4. Optionally installs `.qm` files to an experimental target directory
+
+If you point `--app` at `/Applications/Cavalry.app`, prefer `--output-app` so the helper patches a writable copy instead of failing on macOS app-bundle permissions.
+
+### Electron Desktop Patcher (Experimental)
+
+If you want a local desktop UI instead of the raw CLI:
+
+```bash
+npm install
+npm run desktop
+```
+
+The Electron app can:
+
+1. auto-detect a local `Cavalry.app`
+2. inspect whether the selected bundle actually contains `assets`, plugin strings, and translation directories
+3. invoke `tools/patch_cavalry_bundle.py` with the selected language / QM target
+4. optionally patch to a separate writable output bundle instead of editing the source app in place
+
+### Reverse-Engineering Notes From the Local Install
+
+Observed on the installed `Cavalry.app` used during development:
+
+1. Cavalry 2.7.0 links Qt 6.6.3 frameworks, so Qt translation infrastructure is present in the process.
+2. The shipped bundle still has **no bundled `translations/` directory** and no shipped `.qm` files.
+3. App-specific menu labels like `New Scene`, `Import Assets...`, `Project Settings`, `Preferences`, and `About Cavalry` are compiled into `Contents/Frameworks/libExtensionLayer.dylib`, not stored in the JSON translation assets.
+4. `strings` / `nm` / `otool` inspection still did **not** surface an obvious app-owned translator-loading path or bundled `cavalry_xx.qm` references.
+5. A writable copied bundle was successfully patched with translated JSON files and experimental `.qm` files under `Contents/Resources/translations/`.
+
 ### Adding a New Language
 
 1. Create a new directory under `LanguageSwitcher_assets/languages/` (e.g., `LanguageSwitcher_assets/languages/ko_KR/`)
@@ -94,14 +143,22 @@ Cavalry-i18n/
 │       ├── zh-Hans/             # Simplified Chinese translations
 │       ├── zh-Hant/             # Traditional Chinese translations
 │       └── ja_JP/               # Japanese translations
+├── desktop-patcher/
+│   ├── main.js                  # Electron main process
+│   ├── preload.js               # Safe renderer bridge
+│   ├── lib/patcher-config.js    # Shared path/language helpers
+│   └── renderer/                # External patcher UI
 ├── tools/
 │   ├── extract_strings.py       # Extract English strings from Cavalry
+│   ├── patch_cavalry_bundle.py  # External experimental bundle patcher
+│   ├── check_electron_patcher_ui.js # Electron patcher contract test
 │   ├── validate_translations.py # Translation quality gates + runlog/report output
 │   ├── zh-Hans.ts / zh-Hant.ts / ja_JP.ts  # Qt Linguist source files
 ├── doc/
 │   ├── cavalry-glossary.md      # 94-term four-language glossary
 │   └── translation-whitelist.json
-└── .github/workflows/build.yml  # CI: validate translations + compile .qm + release
+├── package.json                 # Electron desktop patcher scripts
+└── .github/workflows/build.yml  # CI: validate translations + desktop patcher + compile .qm + release
 ```
 
 ## Credits

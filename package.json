@@ -1,0 +1,14 @@
+{
+  "name": "cavalry-i18n",
+  "private": true,
+  "version": "0.1.0",
+  "description": "External Electron patcher for Cavalry-i18n",
+  "scripts": {
+    "desktop": "electron desktop-patcher/main.js",
+    "test:desktop": "node --test tools/check_electron_patcher_ui.js",
+    "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/patcher-config.js && node --check desktop-patcher/renderer/app.js"
+  },
+  "devDependencies": {
+    "electron": "^35.5.1"
+  }
+}

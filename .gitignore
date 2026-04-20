@@ -9,3 +9,7 @@ doc/
 CLAUDE.md
 **/CLAUDE.md
 __pycache__
+node_modules/
+dist/
+build/
+*.log

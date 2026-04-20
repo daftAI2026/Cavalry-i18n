@@ -15,6 +15,21 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install desktop patcher dependencies
+        run: npm install
+
+      - name: Validate desktop patcher contract
+        run: npm run test:desktop
+
+      - name: Validate desktop patcher syntax
+        run: npm run check:desktop
+
       - name: Prepare translation gate outputs
         run: mkdir -p "$RUNNER_TEMP/translation-gates"
 
