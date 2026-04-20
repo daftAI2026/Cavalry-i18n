@@ -2,43 +2,43 @@
   {
     "type": "layerStrings",
     "value": {
-      "language": "en",
+      "language": "zh_TW",
       "author": "sceneGroup",
       "layerType": "rectToPolarFilter",
-      "niceName": "Polar Coordinates",
-      "layerInfo": "Remap layers into polar space.",
+      "niceName": "極座標",
+      "layerInfo": "將圖層重新映射到極座標空間。",
       "attributes": {
         "centre": [
-          "Centre",
-          "Set the polar origin in pixels where 0,0 is the layer centre."
+          "中心",
+          "以像素為單位設定極座標原點，其中 0,0 為圖層中心。"
         ],
         "radius": [
           "半徑",
-          "Set the outer radius as a percentage of the shortest layer dimension."
+          "以圖層最短邊的百分比設定外半徑。"
         ],
         "innerRadius": [
-          "Inner半徑",
-          "Offset the mapping away from the pole by skipping a given percentage of the radius."
+          "內半徑",
+          "透過跳過給定百分比的半徑，將映射偏移遠離極點。"
         ],
         "angleOffset": [
           "旋轉",
-          "Rotate the polar conversion in degrees."
+          "以度為單位旋轉極座標轉換。"
         ],
         "angularRange": [
-          "Angular範圍",
-          "Limit the conversion to a wedge of the circle in degrees."
+          "角度範圍",
+          "以度為單位將轉換限制為圓的一個扇區。"
         ],
         "invertRadius": [
-          "Inside Out",
-          "Flip the mapping so the bottom of the source becomes the outer edge and the top maps to the pole."
+          "內外翻轉",
+          "翻轉映射，使來源影像底部變為外邊緣，頂部映射到極點。"
         ],
         "edgeFeather": [
-          "边羽化",
-          "Feather width in pixels applied to the inner and outer circular edges."
+          "邊緣羽化",
+          "應用於內外圓形邊緣的羽化寬度（像素）。"
         ],
         "seamFeather": [
-          "Seam羽化",
-          "Feather width in degrees applied to the angular seam."
+          "接縫羽化",
+          "應用於角度接縫的羽化寬度（度）。"
         ]
       }
     }

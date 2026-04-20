@@ -4,37 +4,37 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "bulgeFilter",
-      "niceName": "凸起",
-      "layerInfo": "Distort a Shape by wrapping it onto a spherical surface, creating a bulge or pinch effect.",
-      "language": "en",
+      "niceName": "凸出",
+      "layerInfo": "透過將形狀映射到球面上來產生扭曲，建立凸出或收縮效果。",
+      "language": "zh_TW",
       "attributes": {
         "passthroughBackground": [
-          "Passthrough背景",
-          "When checked, the background outside the bulge will be rendered when Blend Mode is set to Replace."
+          "直通背景",
+          "勾選後，當混合模式設為替換時，凸出區域外的背景將被算繪。"
         ],
         "amount": [
-          "數量",
-          "Determine the strength of the spherical distortion where positive values create a bulge effect and negative values create a pinch effect."
+          "強度",
+          "設定球面扭曲的強度，正值產生凸出效果，負值產生收縮效果。"
         ],
         "centre": [
-          "Centre",
-          "Set the centre point of the spherical effect in pixels where 0,0 is the centre of the image."
+          "中心",
+          "以像素為單位設定球面效果的中心點，其中 0,0 為圖像中心。"
         ],
         "radius": [
           "半徑",
-          "Set the radius of the spherical effect as a percentage of the Shape's size."
+          "以形狀尺寸的百分比設定球面效果的半徑。"
         ],
         "enableRefraction": [
-          "Refraction",
-          "When unchecked, the effect becomes a simple height-map distortion without optical effects."
+          "折射",
+          "取消勾選後，效果將變為無光學效果的簡單高度圖扭曲。"
         ],
         "refractiveIndex": [
-          "Refractive索引",
-          "Set the material's refractive index to control how much light bends. Common values include 1.33 (water), 1.5 (glass) and 2.4 (diamond)."
+          "折射率",
+          "設定材質的折射率以控制光線彎曲程度。常見值包括 1.33 （水）、1.5 （玻璃）和 2.4 （鑽石）。"
         ],
         "chromaticAberration": [
           "色差",
-          "When 'Refraction' is checked, set the amount of color separation in pixels at the sphere's edges to simulate light dispersion through glass."
+          "當「折射」被勾選時，設定球體邊緣處的顏色分離像素數量，以模擬光線通過玻璃時的色散。"
         ]
       },
       "enums": {}

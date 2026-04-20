@@ -4,59 +4,59 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "lightSweepFilter",
-      "niceName": "Light Sweep",
-      "layerInfo": "Simulate a light source moving across a Layer.",
-      "language": "en",
+      "niceName": "光扫描",
+      "layerInfo": "模拟光源在图层上移动的效果。",
+      "language": "zh_CN",
       "attributes": {
         "sweepIntensity": [
-          "Sweep Intensity",
-          "Set the light's brightness."
+          "扫描强度",
+          "设置灯光的亮度。"
         ],
         "direction": [
           "方向",
-          "Set the angle the sweep moves across a Layer in degrees."
+          "设置扫描在图层上移动的角度，以度为单位。"
         ],
         "shape": [
           "形状",
-          "Select a shape for the sweep."
+          "选择扫描的形状。"
         ],
         "centre": [
-          "Centre",
-          "Set the light sweep's centre point."
+          "中心",
+          "设置光扫描的中心点。"
         ],
         "coneWidth": [
-          "Cone宽度",
-          "Set the width of the light beam."
+          "锥体宽度",
+          "设置光束的宽度。"
         ],
         "conePercentage": [
-          "Cone百分比",
-          "Set the distance the light beam's opacity begins to falloff as a percentage from its centre to its edge."
+          "锥体百分比",
+          "设置从中心到边缘开始不透明度衰减的光束距离百分比。"
         ],
         "useFalloff": [
-          "Use衰减",
-          "When the Shape is set to Line, limit the light sweep's distance from the Centre along its Y axis."
+          "使用衰减",
+          "当形状设为线条时，沿 Y 轴限制光扫描距中心的距离。"
         ],
         "falloffDistance": [
           "衰减距离",
-          "Set the distance over which the light falls off after passing the Centre."
+          "设置光线经过中心后衰减的距离。"
         ],
         "edgeIntensity": [
-          "边Intensity",
-          "Set the intensity of an additional glow at the edges of the light sweep."
+          "边缘强度",
+          "设置光扫描边缘处附加发光的强度。"
         ],
         "edgeThickness": [
-          "边Thickness",
-          "Set the thickness of the light sweep's edges."
+          "边缘厚度",
+          "设置光扫描边缘的厚度。"
         ],
         "lightColor": [
-          "Light颜色",
-          "Set the color of the light."
+          "灯光颜色",
+          "设置灯光的颜色。"
         ]
       },
       "enums": {
         "shape": {
-          "0": "Line",
-          "1": "Circle"
+          "0": "线条",
+          "1": "圆形"
         }
       }
     }

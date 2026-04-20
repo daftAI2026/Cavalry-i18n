@@ -4,17 +4,17 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "directionalBlurFilter",
-      "niceName": "Directional模糊",
-      "layerInfo": "Blur a Shape along an axis to create a streaking effect or simulate motion blur.",
-      "language": "en",
+      "niceName": "方向性模糊",
+      "layerInfo": "沿轴线模糊形状以创建拖尾效果或模拟运动模糊。",
+      "language": "zh_CN",
       "attributes": {
         "angle": [
           "角度",
-          "The direction of the blur in degrees."
+          "模糊的方向，以度为单位。"
         ],
         "blurAmount": [
-          "模糊数量",
-          "The distance/strength of the directional blur effect. Higher values create more pronounced blur streaks."
+          "模糊强度",
+          "方向性模糊效果的距离/强度。较高的值会产生更明显的模糊拖尾。"
         ]
       },
       "enums": {}

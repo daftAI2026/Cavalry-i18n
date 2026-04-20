@@ -1,13 +1,13 @@
 [
   {
-    "title": "Drawaシェイプ",
+    "title": "シェイプを描く",
     "images": [
       "createShape1.png",
       "createShape2.png"
     ]
   },
   {
-    "title": "Set keyframes",
+    "title": "キーフレームを設定",
     "images": [
       "setKeyframes1.png",
       "setKeyframes2.png",
@@ -16,7 +16,7 @@
     ]
   },
   {
-    "title": "Make connections",
+    "title": "接続を作成",
     "images": [
       "connections1.png",
       "connections2.png",
@@ -25,7 +25,7 @@
     ]
   },
   {
-    "title": "Set a color",
+    "title": "カラーを設定",
     "images": [
       "setColor1.png",
       "setColor2.png",
@@ -33,7 +33,7 @@
     ]
   },
   {
-    "title": "Quick connections",
+    "title": "クイック接続",
     "images": [
       "quickConnect1.png",
       "quickConnect2.png",
@@ -42,7 +42,7 @@
     ]
   },
   {
-    "title": "Set the resolution",
+    "title": "解像度を設定",
     "images": [
       [
         "resolution1-mac.png",
@@ -54,7 +54,7 @@
     ]
   },
   {
-    "title": "Start with a Demo Scene",
+    "title": "デモシーンから開始",
     "images": [
       [
         "preset1-mac.png",

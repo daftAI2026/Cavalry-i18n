@@ -4,97 +4,97 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "spheriseFilter",
-      "niceName": "Spherise",
-      "layerInfo": "Map an input Shape onto a sphere that can be rotated.",
-      "language": "en",
+      "niceName": "球面化",
+      "layerInfo": "將輸入形狀映射到可旋轉的球體上。",
+      "language": "zh_TW",
       "attributes": {
         "centre": [
-          "Centre",
-          "Set the position of the sphere."
+          "中心",
+          "設定球體的位置。"
         ],
         "radius": [
           "半徑",
-          "Set the radius of the sphere as a percentage of the Shape's size."
+          "以形狀尺寸的百分比設定球體的半徑。"
         ],
         "visibility": [
-          "可见性",
-          "Determine which sides of the sphere are visible when using images that contain transparency."
+          "可見性",
+          "當使用包含透明度的影像時，設定球體的哪些面可見。"
         ],
         "rotation": [
           "旋轉",
-          "Rotate the sphere around its X, Y or Z axis in degrees."
+          "圍繞 X、Y 或 Z 軸旋轉球體，以度為單位。"
         ],
         "enableLighting": [
-          "啟用Lighting",
-          "When checked, diffuse lighting is added to the sphere's surface."
+          "啟用光照",
+          "勾選後，球體表面將新增漫反射光照。"
         ],
         "lightPosition": [
-          "Light位置",
-          "Set the 3D position of the light source."
+          "燈光位置",
+          "設定光源的 3D 位置。"
         ],
         "lightIntensity": [
-          "Light Intensity",
-          "Set the brightness of the light source."
+          "燈光強度",
+          "設定光源的亮度。"
         ],
         "lightColor": [
-          "Light顏色",
-          "Set the color of the light source."
+          "燈光顏色",
+          "設定光源的顏色。"
         ],
         "ambientStrength": [
-          "Ambient強度",
-          "Set the amount of ambient light (base illumination)."
+          "環境光強度",
+          "設定環境光（基礎照明）的量。"
         ],
         "ambientColor": [
-          "Ambient顏色",
-          "Set the color of the ambient light."
+          "環境光顏色",
+          "設定環境光的顏色。"
         ],
         "specularStrength": [
-          "Specular強度",
-          "Set the intensity of the specular highlights."
+          "高光強度",
+          "設定高光反射的強度。"
         ],
         "specularColor": [
-          "Specular顏色",
-          "Set the color of the specular highlights."
+          "高光顏色",
+          "設定高光反射的顏色。"
         ],
         "shininess": [
-          "Shininess",
-          "Set the size and sharpness of the specular highlights. Higher values will create smaller, sharper highlights."
+          "光澤度",
+          "設定高光的大小和銳利度。較高的值會產生更小、更銳利的高光。"
         ],
         "useAsBumpMap": [
-          "Use as Bump Map",
-          "When checked, the Shape's material is used as a bump map to add surface detail lighting."
+          "用作凹凸貼圖",
+          "勾選後，形狀的材質將用作凹凸貼圖以新增表面細節光照。"
         ],
         "bumpMapStrength": [
-          "BumpMap強度",
-          "Increase/decrease the affect the bump map has on the surface lighting."
+          "凹凸貼圖強度",
+          "增加/減少凹凸貼圖對表面光照的影響。"
         ],
         "enableSelfShadowing": [
-          "啟用SelfShadowing",
-          "When checked, shadows are added to the back of the sphere."
+          "啟用自陰影",
+          "勾選後，球體背面將新增陰影。"
         ],
         "shadowIntensity": [
-          "阴影Intensity",
-          "Determine how dark the shadowed areas become."
+          "陰影強度",
+          "設定陰影區域變暗的程度。"
         ],
         "shadowSoftness": [
-          "阴影柔和度",
-          "Determine the softness of the shadow's transition from dark to light"
+          "陰影柔和度",
+          "設定陰影從暗到亮過渡的柔和程度"
         ],
         "backExposure": [
-          "后曝光",
-          "Set the brightness of the back/interior surfaces of the sphere."
+          "背面曝光",
+          "設定球體背面/內部表面的亮度。"
         ]
       },
       "enums": {
         "visibility": {
-          "0": "Both",
-          "1": "Front",
-          "2": "Back"
+          "0": "兩面",
+          "1": "正面",
+          "2": "背面"
         }
       },
       "tabs": {
-        "filter": "Settings",
-        "lighting": "Lighting"
+        "filter": "設定",
+        "lighting": "光照"
       }
     }
   }

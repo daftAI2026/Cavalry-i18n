@@ -4,90 +4,90 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "grainFilter",
-      "niceName": "Grain",
-      "layerInfo": "Add grain to images to emulate the visual appearance of film stock",
-      "language": "en",
+      "niceName": "グレイン",
+      "layerInfo": "画像にグレインを追加してフィルムの質感をエミュレートします",
+      "language": "ja_JP",
       "attributes": {
         "time": [
           "時間"
         ],
         "sharpen": [
-          "Sharpen",
-          "Sharpen the image before the noise is added. Higher values create more defined edges and details."
+          "シャープン",
+          "ノイズを追加する前に画像をシャープにします。高い値ほどエッジとディテールがより明確になります。"
         ],
         "sharpenEdgesOnly": [
-          "Sharpen Edges Only",
-          "When checked, sharpening is only applied to image regions with a sharp contrast between light and dark areas."
+          "エッジのみシャープン",
+          "チェックすると、明暗のコントラストが鮮明な画像領域のみにシャープニングが適用されます。"
         ],
         "grainAmount": [
-          "Grain量",
-          "Set how much grain to apply to the image. Higher values create a more visible noise texture."
+          "グレイン量",
+          "画像に適用するグレインの量を設定します。高い値ほどより目立つノイズテクスチャが生成されます。"
         ],
         "grainSize": [
           "サイズ",
-          "Determine the size of the grain. Larger values will create coarser noise."
+          "グレインのサイズを設定します。大きい値ほど粗いノイズが生成されます。"
         ],
         "grainTexture": [
           "テクスチャ",
-          "Determine how much of the original image influences grain placement. Higher values make the grain follow the image structure."
+          "元の画像がグレインの配置にどの程度影響するかを設定します。高い値ほどグレインが画像の構造に沿います。"
         ],
         "logGrain": [
-          "Log Grain",
-          "Control the color space in which the grain is generated. 'Log' space will create more film-like grain characteristics."
+          "ログ グレイン",
+          "グレインが生成される色空間を制御します。「ログ」空間はよりフィルムに近いグレイン特性を生成します。"
         ],
         "monochromeGrain": [
-          "Grainタイプ",
-          "Determine if the grain is colorised or black and white. Monochrome creates uniform grain across all channels."
+          "グレインタイプ",
+          "グレインをカラーにするかモノクロにするかを設定します。モノクロはすべてのチャンネルで均一なグレインを生成します。"
         ],
         "redAmount": [
-          "Red量",
-          "Set the amount of grain in the red channel. Use for color-specific noise control."
+          "赤チャンネル量",
+          "赤チャンネルのグレイン量を設定します。チャンネルごとのノイズ制御に使用します。"
         ],
         "greenAmount": [
-          "Green量",
-          "Set the amount of grain in the green channel. Use for color-specific noise control."
+          "緑チャンネル量",
+          "緑チャンネルのグレイン量を設定します。チャンネルごとのノイズ制御に使用します。"
         ],
         "blueAmount": [
-          "Blue量",
-          "Set the amount of grain in the blue channel. Use for color-specific noise control."
+          "青チャンネル量",
+          "青チャンネルのグレイン量を設定します。チャンネルごとのノイズ制御に使用します。"
         ],
         "redSize": [
-          "Redサイズ",
-          "Set the size of grain in the red channel. Use for per-channel grain size variation."
+          "赤チャンネルサイズ",
+          "赤チャンネルのグレインサイズを設定します。チャンネルごとのグレインサイズ調整に使用します。"
         ],
         "greenSize": [
-          "Greenサイズ",
-          "Set the size of grain in the green channel. Use for per-channel grain size variation."
+          "緑チャンネルサイズ",
+          "緑チャンネルのグレインサイズを設定します。チャンネルごとのグレインサイズ調整に使用します。"
         ],
         "blueSize": [
-          "Blueサイズ",
-          "Set the size of grain in the blue channel. Use for per-channel grain size variation."
+          "青チャンネルサイズ",
+          "青チャンネルのグレインサイズを設定します。チャンネルごとのグレインサイズ調整に使用します。"
         ],
         "highlight": [
-          "Highlight",
-          "Set how much grain appears in image highlights. Lower values reduce grain in bright areas."
+          "ハイライト",
+          "画像のハイライト部分のグレイン表示量を設定します。低い値ほど明るい領域のグレインが減少します。"
         ],
         "midtone": [
-          "Midtone",
-          "Set how much grain appears in image midtones. Controls grain in the middle luminance range."
+          "ミッドトーン",
+          "画像のミッドトーンのグレイン表示量を設定します。中間輝度範囲のグレインを制御します。"
         ],
         "shadow": [
           "シャドウ",
-          "Set how much grain appears in image shadows. Higher values add more grain to dark areas."
+          "画像のシャドウ部分のグレイン表示量を設定します。高い値ほど暗い領域にグレインが多く追加されます。"
         ]
       },
       "enums": {
         "sharpenEdgesOnly": {
-          "0": "Disabled",
-          "1": "Enabled"
+          "0": "無効",
+          "1": "有効"
         },
         "logGrain": {
-          "0": "Linear",
-          "1": "Log"
+          "0": "リニア",
+          "1": "ログ"
         },
         "monochromeGrain": {
-          "0": "Color",
-          "1": "Monochrome"
+          "0": "カラー",
+          "1": "モノクロ"
         }
       }
     }

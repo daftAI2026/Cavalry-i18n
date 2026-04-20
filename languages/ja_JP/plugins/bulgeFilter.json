@@ -4,37 +4,37 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "bulgeFilter",
-      "niceName": "Bulge",
-      "layerInfo": "Distort a Shape by wrapping it onto a spherical surface, creating a bulge or pinch effect.",
-      "language": "en",
+      "niceName": "バルジ",
+      "layerInfo": "シェイプを球面にマッピングして歪ませ、膨張またはピンチ効果を作成します。",
+      "language": "ja_JP",
       "attributes": {
         "passthroughBackground": [
-          "Passthrough Background",
-          "When checked, the background outside the bulge will be rendered when Blend Mode is set to Replace."
+          "背景パススルー",
+          "チェックすると、ブレンドモードが「置換」に設定されている場合、バルジ範囲外の背景がレンダリングされます。"
         ],
         "amount": [
           "量",
-          "Determine the strength of the spherical distortion where positive values create a bulge effect and negative values create a pinch effect."
+          "球面歪みの強さを設定します。正の値は膨張効果、負の値はピンチ効果を生成します。"
         ],
         "centre": [
-          "Centre",
-          "Set the centre point of the spherical effect in pixels where 0,0 is the centre of the image."
+          "中心",
+          "球面効果の中心点をピクセル単位で設定します。0,0 が画像の中心です。"
         ],
         "radius": [
           "半径",
-          "Set the radius of the spherical effect as a percentage of the Shape's size."
+          "シェイプのサイズに対する割合で球面効果の半径を設定します。"
         ],
         "enableRefraction": [
-          "Refraction",
-          "When unchecked, the effect becomes a simple height-map distortion without optical effects."
+          "屈折",
+          "チェックを外すと、光学効果のない単純なハイトマップ歪みになります。"
         ],
         "refractiveIndex": [
-          "Refractiveインデックス",
-          "Set the material's refractive index to control how much light bends. Common values include 1.33 (water), 1.5 (glass) and 2.4 (diamond)."
+          "屈折率",
+          "素材の屈折率を設定して光の曲がり具合を制御します。一般的な値は 1.33 （水）、1.5 （ガラス）、2.4 （ダイヤモンド）です。"
         ],
         "chromaticAberration": [
-          "Chromatic Aberration",
-          "When 'Refraction' is checked, set the amount of color separation in pixels at the sphere's edges to simulate light dispersion through glass."
+          "色収差",
+          "「屈折」がチェックされている場合、ガラスを通過する光の分散をシミュレートするために、球体のエッジでの色分離のピクセル数を設定します。"
         ]
       },
       "enums": {}

@@ -4,21 +4,21 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "zoomBlurFilter",
-      "niceName": "Zoomブラー",
-      "layerInfo": "Blur a Shape outwards from a central point with customisable attenuation.",
-      "language": "en",
+      "niceName": "ズームブラー",
+      "layerInfo": "中心点からシェイプを外側に向かってぼかし、カスタマイズ可能な減衰を備えています。",
+      "language": "ja_JP",
       "attributes": {
         "origin": [
-          "Origin",
-          "Set the centre point of the blur where 0,0 is the centre of the Shape."
+          "原点",
+          "ブラーの中心点を設定します。0,0 がシェイプの中心です。"
         ],
         "amount": [
           "量",
-          "Set the distance/strength of the blur."
+          "ブラーの距離/強さを設定します。"
         ],
         "attenuationMultiplier": [
-          "Attenuation Multiplier",
-          "Multiply the blur based on the distance from the 'Origin'. A lower value will create a harder transition."
+          "減衰乗数",
+          "「原点」からの距離に基づいてブラーを乗算します。低い値ほどより硬い遷移が生成されます。"
         ]
       }
     }

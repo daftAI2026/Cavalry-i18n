@@ -4,13 +4,13 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "boxBlurFilter",
-      "niceName": "Boxブラー",
-      "layerInfo": "Add a fast box blur to Shapes and Shaders.",
-      "language": "en",
+      "niceName": "ボックスブラー",
+      "layerInfo": "シェイプとシェーダーに高速なボックスブラーを追加します。",
+      "language": "ja_JP",
       "attributes": {
         "amount": [
           "量",
-          "Set the amount of blur in pixels to apply to the Shape."
+          "シェイプに適用するブラーのピクセル数を設定します。"
         ]
       }
     }

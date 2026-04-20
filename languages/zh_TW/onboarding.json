@@ -1,13 +1,13 @@
 [
   {
-    "title": "Drawa形狀",
+    "title": "繪製形狀",
     "images": [
       "createShape1.png",
       "createShape2.png"
     ]
   },
   {
-    "title": "Set keyframes",
+    "title": "設定關鍵幀",
     "images": [
       "setKeyframes1.png",
       "setKeyframes2.png",
@@ -16,7 +16,7 @@
     ]
   },
   {
-    "title": "Make connections",
+    "title": "建立連接",
     "images": [
       "connections1.png",
       "connections2.png",
@@ -25,7 +25,7 @@
     ]
   },
   {
-    "title": "Set a color",
+    "title": "設定顏色",
     "images": [
       "setColor1.png",
       "setColor2.png",
@@ -33,7 +33,7 @@
     ]
   },
   {
-    "title": "Quick connections",
+    "title": "快速連接",
     "images": [
       "quickConnect1.png",
       "quickConnect2.png",
@@ -42,7 +42,7 @@
     ]
   },
   {
-    "title": "Set the resolution",
+    "title": "設定解析度",
     "images": [
       [
         "resolution1-mac.png",
@@ -54,7 +54,7 @@
     ]
   },
   {
-    "title": "Start with a Demo Scene",
+    "title": "從示範場景開始",
     "images": [
       [
         "preset1-mac.png",

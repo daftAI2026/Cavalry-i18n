@@ -4,13 +4,13 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "gaussianBlurFilter",
-      "niceName": "Gaussian模糊",
-      "layerInfo": "Add high-quality Gaussian blur to Shapes and Shaders.",
-      "language": "en",
+      "niceName": "高斯模糊",
+      "layerInfo": "為形狀和著色器新增高品質的高斯模糊。",
+      "language": "zh_TW",
       "attributes": {
         "amount": [
-          "數量",
-          "Set the amount of blur in pixels to apply to the Shape."
+          "強度",
+          "設定應用到形狀上的模糊像素數量。"
         ]
       }
     }

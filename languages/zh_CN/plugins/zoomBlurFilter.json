@@ -5,20 +5,20 @@
       "author": "sceneGroup",
       "layerType": "zoomBlurFilter",
       "niceName": "缩放模糊",
-      "layerInfo": "Blur a Shape outwards from a central point with customisable attenuation.",
-      "language": "en",
+      "layerInfo": "从中心点向外模糊形状，支持自定义衰减。",
+      "language": "zh_CN",
       "attributes": {
         "origin": [
           "原点",
-          "Set the centre point of the blur where 0,0 is the centre of the Shape."
+          "设置模糊的中心点，其中 0,0 为形状的中心。"
         ],
         "amount": [
-          "数量",
-          "Set the distance/strength of the blur."
+          "强度",
+          "设置模糊的距离/强度。"
         ],
         "attenuationMultiplier": [
-          "Attenuation乘数",
-          "Multiply the blur based on the distance from the 'Origin'. A lower value will create a harder transition."
+          "衰减乘数",
+          "根据与「原点」的距离乘以模糊程度。较低的值将产生更生硬的过渡。"
         ]
       }
     }

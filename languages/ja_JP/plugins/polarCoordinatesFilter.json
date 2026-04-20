@@ -2,43 +2,43 @@
   {
     "type": "layerStrings",
     "value": {
-      "language": "en",
+      "language": "ja_JP",
       "author": "sceneGroup",
       "layerType": "rectToPolarFilter",
-      "niceName": "Polar Coordinates",
-      "layerInfo": "Remap layers into polar space.",
+      "niceName": "極座標",
+      "layerInfo": "レイヤーを極座標空間にリマップします。",
       "attributes": {
         "centre": [
-          "Centre",
-          "Set the polar origin in pixels where 0,0 is the layer centre."
+          "中心",
+          "極座標の原点をピクセル単位で設定します。0,0 がレイヤーの中心です。"
         ],
         "radius": [
           "半径",
-          "Set the outer radius as a percentage of the shortest layer dimension."
+          "レイヤーの最短辺に対する割合で外側の半径を設定します。"
         ],
         "innerRadius": [
-          "Inner半径",
-          "Offset the mapping away from the pole by skipping a given percentage of the radius."
+          "内側の半径",
+          "半径の指定した割合をスキップして、マッピングを極から離します。"
         ],
         "angleOffset": [
           "回転",
-          "Rotate the polar conversion in degrees."
+          "極座標変換を度単位で回転させます。"
         ],
         "angularRange": [
-          "Angular範囲",
-          "Limit the conversion to a wedge of the circle in degrees."
+          "角度範囲",
+          "変換を度単位で円の扇形に制限します。"
         ],
         "invertRadius": [
-          "Inside Out",
-          "Flip the mapping so the bottom of the source becomes the outer edge and the top maps to the pole."
+          "内外反転",
+          "マッピングを反転し、ソース画像の下部が外側のエッジに、上部が極にマッピングされます。"
         ],
         "edgeFeather": [
           "エッジフェザー",
-          "Feather width in pixels applied to the inner and outer circular edges."
+          "内側と外側の円形エッジに適用するフェザー幅（ピクセル単位）。"
         ],
         "seamFeather": [
-          "Seamフェザー",
-          "Feather width in degrees applied to the angular seam."
+          "シームフェザー",
+          "角度のシームに適用するフェザー幅（度単位）。"
         ]
       }
     }

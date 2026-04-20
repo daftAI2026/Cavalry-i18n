@@ -4,36 +4,36 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "erosionFilter",
-      "niceName": "Erosion",
-      "layerInfo": "Erode layer alpha for transitions and matte adjustments",
-      "language": "en",
+      "niceName": "エロージョン",
+      "layerInfo": "トランジションやマット調整のためにレイヤーの Alpha を侵食します",
+      "language": "ja_JP",
       "attributes": {
         "amount": [
           "量",
-          "Set the erosion amount in pixels."
+          "侵食量をピクセル単位で設定します。"
         ],
         "directionMode": [
           "方向モード",
-          "Choose between uniform erosion in all directions or directional erosion biased toward a specific angle."
+          "全方向の均一な侵食と、特定の角度に偏った方向性侵食を切り替えます。"
         ],
         "angle": [
           "角度",
-          "Set the angle for directional erosion bias."
+          "方向性侵食のバイアス角度を設定します。"
         ],
         "directionStrength": [
           "方向強度",
-          "Control how strongly the erosion is biased toward the specified direction."
+          "指定した方向への侵食バイアスの強さを制御します。"
         ]
       },
       "enums": {
         "directionMode": {
-          "0": "Uniform",
-          "1": "Directional"
+          "0": "均一",
+          "1": "方向"
         },
         "edgeTint": {
-          "0": "None",
-          "1": "Darken",
-          "2": "Custom Colour"
+          "0": "なし",
+          "1": "暗く",
+          "2": "カスタムカラー"
         }
       }
     }

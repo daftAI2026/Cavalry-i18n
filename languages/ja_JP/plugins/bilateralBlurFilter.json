@@ -4,21 +4,21 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "bilateralBlurFilter",
-      "niceName": "Bilateralブラー",
-      "layerInfo": "An edge-preserving blur that smooths areas of similar color while maintaining sharp edges.",
-      "language": "en",
+      "niceName": "バイラテラルブラー",
+      "layerInfo": "エッジを保持しながら、似た色の領域を滑らかにするブラーです。",
+      "language": "ja_JP",
       "attributes": {
         "amount": [
           "量",
-          "Set the amount of blur in pixels to apply to the Shape."
+          "シェイプに適用するブラーのピクセル数を設定します。"
         ],
         "edgeThreshold": [
           "エッジしきい値",
-          "Set the edge detection sensitivity. A lower value will preserve more edges."
+          "エッジ検出の感度を設定します。低い値ほど多くのエッジが保持されます。"
         ],
         "colorSigma": [
           "カラー許容値",
-          "Set a tolerance to combine similar colors within. A higher value will result in a wider range of colors being combined."
+          "似た色を統合する許容範囲を設定します。高い値ほどより広い範囲の色が統合されます。"
         ]
       }
     }

@@ -242,7 +242,7 @@
     </message>
     <message>
       <source>Paste</source>
-      <translation>貼り付け</translation>
+      <translation>ペースト</translation>
     </message>
     <message>
       <source>Select All</source>

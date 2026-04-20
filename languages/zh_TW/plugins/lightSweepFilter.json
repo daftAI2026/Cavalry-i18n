@@ -4,59 +4,59 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "lightSweepFilter",
-      "niceName": "Light Sweep",
-      "layerInfo": "Simulate a light source moving across a Layer.",
-      "language": "en",
+      "niceName": "光掃描",
+      "layerInfo": "模擬光源在圖層上移動的效果。",
+      "language": "zh_TW",
       "attributes": {
         "sweepIntensity": [
-          "Sweep Intensity",
-          "Set the light's brightness."
+          "掃描強度",
+          "設定燈光的亮度。"
         ],
         "direction": [
           "方向",
-          "Set the angle the sweep moves across a Layer in degrees."
+          "設定掃描在圖層上移動的角度，以度為單位。"
         ],
         "shape": [
           "形狀",
-          "Select a shape for the sweep."
+          "選擇掃描的形狀。"
         ],
         "centre": [
-          "Centre",
-          "Set the light sweep's centre point."
+          "中心",
+          "設定光掃描的中心點。"
         ],
         "coneWidth": [
-          "Cone寬度",
-          "Set the width of the light beam."
+          "錐體寬度",
+          "設定光束的寬度。"
         ],
         "conePercentage": [
-          "Cone百分比",
-          "Set the distance the light beam's opacity begins to falloff as a percentage from its centre to its edge."
+          "錐體百分比",
+          "設定從中心到邊緣開始不透明度衰減的光束距離百分比。"
         ],
         "useFalloff": [
-          "Use衰减",
-          "When the Shape is set to Line, limit the light sweep's distance from the Centre along its Y axis."
+          "使用衰減",
+          "當形狀設為線條時，沿 Y 軸限制光掃描距中心的距離。"
         ],
         "falloffDistance": [
-          "衰减距離",
-          "Set the distance over which the light falls off after passing the Centre."
+          "衰減距離",
+          "設定光線經過中心後衰減的距離。"
         ],
         "edgeIntensity": [
-          "边Intensity",
-          "Set the intensity of an additional glow at the edges of the light sweep."
+          "邊緣強度",
+          "設定光掃描邊緣處附加發光的強度。"
         ],
         "edgeThickness": [
-          "边Thickness",
-          "Set the thickness of the light sweep's edges."
+          "邊緣厚度",
+          "設定光掃描邊緣的厚度。"
         ],
         "lightColor": [
-          "Light顏色",
-          "Set the color of the light."
+          "燈光顏色",
+          "設定燈光的顏色。"
         ]
       },
       "enums": {
         "shape": {
-          "0": "Line",
-          "1": "Circle"
+          "0": "線條",
+          "1": "圓形"
         }
       }
     }

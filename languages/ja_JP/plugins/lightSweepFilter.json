@@ -4,59 +4,59 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "lightSweepFilter",
-      "niceName": "Light Sweep",
-      "layerInfo": "Simulate a light source moving across a Layer.",
-      "language": "en",
+      "niceName": "ライトスイープ",
+      "layerInfo": "光源がレイヤー上を移動する効果をシミュレートします。",
+      "language": "ja_JP",
       "attributes": {
         "sweepIntensity": [
-          "Sweep Intensity",
-          "Set the light's brightness."
+          "スイープ強度",
+          "ライトの明るさを設定します。"
         ],
         "direction": [
           "方向",
-          "Set the angle the sweep moves across a Layer in degrees."
+          "スイープがレイヤー上を移動する角度を度単位で設定します。"
         ],
         "shape": [
           "シェイプ",
-          "Select a shape for the sweep."
+          "スイープのシェイプを選択します。"
         ],
         "centre": [
-          "Centre",
-          "Set the light sweep's centre point."
+          "中心",
+          "ライトスイープの中心点を設定します。"
         ],
         "coneWidth": [
-          "Cone幅",
-          "Set the width of the light beam."
+          "コーン幅",
+          "光線の幅を設定します。"
         ],
         "conePercentage": [
-          "Cone Percentage",
-          "Set the distance the light beam's opacity begins to falloff as a percentage from its centre to its edge."
+          "コーン比率",
+          "中心からエッジまでの不透明度フォールオフが始まる光線距離の割合を設定します。"
         ],
         "useFalloff": [
-          "Use Falloff",
-          "When the Shape is set to Line, limit the light sweep's distance from the Centre along its Y axis."
+          "フォールオフを使用",
+          "シェイプがラインに設定されている場合、Y 軸に沿った中心からのライトスイープ距離を制限します。"
         ],
         "falloffDistance": [
-          "Falloff距離",
-          "Set the distance over which the light falls off after passing the Centre."
+          "フォールオフ距離",
+          "中心を通過した後の光が減衰する距離を設定します。"
         ],
         "edgeIntensity": [
-          "エッジIntensity",
-          "Set the intensity of an additional glow at the edges of the light sweep."
+          "エッジ強度",
+          "ライトスイープのエッジに追加されるグローの強度を設定します。"
         ],
         "edgeThickness": [
-          "エッジThickness",
-          "Set the thickness of the light sweep's edges."
+          "エッジの厚み",
+          "ライトスイープのエッジの厚みを設定します。"
         ],
         "lightColor": [
-          "Lightカラー",
-          "Set the color of the light."
+          "ライトカラー",
+          "ライトの色を設定します。"
         ]
       },
       "enums": {
         "shape": {
-          "0": "Line",
-          "1": "Circle"
+          "0": "ライン",
+          "1": "円"
         }
       }
     }

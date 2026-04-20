@@ -4,13 +4,13 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "gaussianBlurFilter",
-      "niceName": "Gaussianブラー",
-      "layerInfo": "Add high-quality Gaussian blur to Shapes and Shaders.",
-      "language": "en",
+      "niceName": "ガウシアンブラー",
+      "layerInfo": "シェイプとシェーダーに高品質なガウシアンブラーを追加します。",
+      "language": "ja_JP",
       "attributes": {
         "amount": [
           "量",
-          "Set the amount of blur in pixels to apply to the Shape."
+          "シェイプに適用するブラーのピクセル数を設定します。"
         ]
       }
     }

@@ -1,10 +1,10 @@
 [
   {
     "type": "strings",
-    "language": "en",
+    "language": "ja_JP",
     "value": {
-      "auth.error.accessDenied": "認証が拒否されました。もう一度ログインしてください。",
-      "auth.error.generic": "ログイン中にエラーが発生しました。もう一度お試しください。"
+      "auth.error.accessDenied": "認証が拒否されました。再度サインインしてください。",
+      "auth.error.generic": "サインイン中に問題が発生しました。もう一度お試しください。"
     }
   }
 ]

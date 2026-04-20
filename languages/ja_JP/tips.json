@@ -1,7 +1,7 @@
 [
   {
-    "title": "Create a Color Array from a Palette",
-    "text": "Quickly create a Color Array from a Library Palette via the options in the Color Window.",
+    "title": "パレットからカラー配列を作成",
+    "text": "カラーウィンドウのオプションから、ライブラリパレットのカラー配列をすばやく作成できます。",
     "images": [
       "arrayFromPalette1.png",
       "arrayFromPalette2.png",
@@ -10,8 +10,8 @@
     "beginner": true
   },
   {
-    "title": "Quickly add backgrounds",
-    "text": "Add a background to any Shape by right clicking on it in the Viewport. You can then round corners and change the colour of the Rectangle that this creates.",
+    "title": "背景をすばやく追加",
+    "text": "ビューポートでシェイプを右クリックすると背景を追加できます。作成された矩形の角を丸めたり、色を変更できます。",
     "images": [
       "addBackground1.png",
       "addBackground2.png",
@@ -20,8 +20,8 @@
     "beginner": true
   },
   {
-    "title": "Drag to close open contours",
-    "text": "Drag and drop end points to interactively close contours in the Viewport.",
+    "title": "ドラッグで開いた輪郭を閉じる",
+    "text": "端点をドラッグ＆ドロップして、ビューポートでインタラクティブに輪郭を閉じます。",
     "images": [
       "closePath1.png",
       "closePath2.png",
@@ -30,8 +30,8 @@
     "beginner": true
   },
   {
-    "title": "Alt/option drag attributes",
-    "text": "Scrubbing attributes with the alt/option key held will update both values at the same time.",
+    "title": "Alt/Option を押しながら属性をドラッグ",
+    "text": "Alt/Option キーを押しながら属性をドラッグすると、両方の値を同時に更新できます。",
     "images": [
       "altScrub1.png",
       "altScrub2.png",
@@ -40,8 +40,8 @@
     "beginner": true
   },
   {
-    "title": "Precisely distribute Gradient Stops with ease",
-    "text": "Quickly distribute gradient stops to create smooth color transitions along gradients.",
+    "title": "グラデーションストップを正確に分布",
+    "text": "グラデーションストップをすばやく均等に配置し、滑らかな色の遷移を作成します。",
     "images": [
       "distributeGradient1.png",
       "distributeGradient2.png",
@@ -50,8 +50,8 @@
     "beginner": true
   },
   {
-    "title": "Jump to the next keyframe",
-    "text": "Use hot keys to move the playhead to the next or previous keyframe.",
+    "title": "次のキーフレームにジャンプ",
+    "text": "ショートカットキーで再生ヘッドを次または前のキーフレームに移動できます。",
     "images": [
       [
         "nextKeyframe1.png",
@@ -69,8 +69,8 @@
     "beginner": true
   },
   {
-    "title": "Remove bezier handles",
-    "text": "Hold the X key to remove bezier handles in the Graph Editor.",
+    "title": "ベジェハンドルを削除",
+    "text": "グラフエディターで X キーを押しながらベジェハンドルを削除できます。",
     "images": [
       "deleteBezierHandle1.png",
       "deleteBezierHandle2.png",
@@ -79,8 +79,8 @@
     "beginner": true
   },
   {
-    "title": "Hold S to add new points to Paths",
-    "text": "Hold S when in the Edit Shape tool to create new points along edges.",
+    "title": "S を押してパスに新しいポイントを追加",
+    "text": "シェイプ編集ツールで S キーを押しながらエッジに沿って新しいポイントを作成できます。",
     "images": [
       "splitPath1.png",
       "splitPath2.png",

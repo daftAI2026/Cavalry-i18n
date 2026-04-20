@@ -4,97 +4,97 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "spheriseFilter",
-      "niceName": "Spherise",
-      "layerInfo": "Map an input Shape onto a sphere that can be rotated.",
-      "language": "en",
+      "niceName": "球面化",
+      "layerInfo": "入力シェイプを回転可能な球体にマッピングします。",
+      "language": "ja_JP",
       "attributes": {
         "centre": [
-          "Centre",
-          "Set the position of the sphere."
+          "中心",
+          "球体の位置を設定します。"
         ],
         "radius": [
           "半径",
-          "Set the radius of the sphere as a percentage of the Shape's size."
+          "シェイプのサイズに対する割合で球体の半径を設定します。"
         ],
         "visibility": [
-          "Visibility",
-          "Determine which sides of the sphere are visible when using images that contain transparency."
+          "可視性",
+          "透明度を含む画像を使用する際に、球体のどの面を表示するかを設定します。"
         ],
         "rotation": [
           "回転",
-          "Rotate the sphere around its X, Y or Z axis in degrees."
+          "X、Y、Z 軸を中心に球体を度単位で回転させます。"
         ],
         "enableLighting": [
-          "有効化Lighting",
-          "When checked, diffuse lighting is added to the sphere's surface."
+          "ライティングを有効化",
+          "チェックすると、球体の表面にディフューズライティングが追加されます。"
         ],
         "lightPosition": [
-          "Light位置",
-          "Set the 3D position of the light source."
+          "ライト位置",
+          "光源の 3D 位置を設定します。"
         ],
         "lightIntensity": [
-          "Light Intensity",
-          "Set the brightness of the light source."
+          "ライト強度",
+          "光源の明るさを設定します。"
         ],
         "lightColor": [
-          "Lightカラー",
-          "Set the color of the light source."
+          "ライトカラー",
+          "光源の色を設定します。"
         ],
         "ambientStrength": [
-          "Ambient強度",
-          "Set the amount of ambient light (base illumination)."
+          "アンビエント強度",
+          "アンビエントライト（基本照明）の量を設定します。"
         ],
         "ambientColor": [
-          "Ambientカラー",
-          "Set the color of the ambient light."
+          "アンビエントカラー",
+          "アンビエントライトの色を設定します。"
         ],
         "specularStrength": [
-          "Specular強度",
-          "Set the intensity of the specular highlights."
+          "スペキュラー強度",
+          "スペキュラーハイライトの強度を設定します。"
         ],
         "specularColor": [
-          "Specularカラー",
-          "Set the color of the specular highlights."
+          "スペキュラーカラー",
+          "スペキュラーハイライトの色を設定します。"
         ],
         "shininess": [
-          "Shininess",
-          "Set the size and sharpness of the specular highlights. Higher values will create smaller, sharper highlights."
+          "光沢度",
+          "スペキュラーハイライトのサイズとシャープさを設定します。高い値ほどより小さく鮮明なハイライトが生成されます。"
         ],
         "useAsBumpMap": [
-          "Use as Bump Map",
-          "When checked, the Shape's material is used as a bump map to add surface detail lighting."
+          "バンプマップとして使用",
+          "チェックすると、シェイプのマテリアルがバンプマップとして使用され、表面のディテールライティングが追加されます。"
         ],
         "bumpMapStrength": [
-          "BumpMap強度",
-          "Increase/decrease the affect the bump map has on the surface lighting."
+          "バンプマップ強度",
+          "バンプマップが表面ライティングに与える影響を増減します。"
         ],
         "enableSelfShadowing": [
-          "有効化SelfShadowing",
-          "When checked, shadows are added to the back of the sphere."
+          "セルフシャドウを有効化",
+          "チェックすると、球体の背面にシャドウが追加されます。"
         ],
         "shadowIntensity": [
-          "シャドウIntensity",
-          "Determine how dark the shadowed areas become."
+          "シャドウ強度",
+          "シャドウ領域がどの程度暗くなるかを設定します。"
         ],
         "shadowSoftness": [
-          "シャドウSoftness",
-          "Determine the softness of the shadow's transition from dark to light"
+          "シャドウソフトネス",
+          "シャドウの暗から明への遷移のソフトネスを設定します"
         ],
         "backExposure": [
-          "Back Exposure",
-          "Set the brightness of the back/interior surfaces of the sphere."
+          "背面露出",
+          "球体の背面/内部表面の明るさを設定します。"
         ]
       },
       "enums": {
         "visibility": {
-          "0": "Both",
-          "1": "Front",
-          "2": "Back"
+          "0": "両面",
+          "1": "前面",
+          "2": "背面"
         }
       },
       "tabs": {
-        "filter": "Settings",
-        "lighting": "Lighting"
+        "filter": "設定",
+        "lighting": "ライティング"
       }
     }
   }

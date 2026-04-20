@@ -4,97 +4,97 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "spheriseFilter",
-      "niceName": "Spherise",
-      "layerInfo": "Map an input Shape onto a sphere that can be rotated.",
-      "language": "en",
+      "niceName": "球面化",
+      "layerInfo": "将输入形状映射到可旋转的球体上。",
+      "language": "zh_CN",
       "attributes": {
         "centre": [
-          "Centre",
-          "Set the position of the sphere."
+          "中心",
+          "设置球体的位置。"
         ],
         "radius": [
           "半径",
-          "Set the radius of the sphere as a percentage of the Shape's size."
+          "以形状尺寸的百分比设置球体的半径。"
         ],
         "visibility": [
           "可见性",
-          "Determine which sides of the sphere are visible when using images that contain transparency."
+          "当使用包含透明度的图像时，设定球体的哪些面可见。"
         ],
         "rotation": [
           "旋转",
-          "Rotate the sphere around its X, Y or Z axis in degrees."
+          "围绕 X、Y 或 Z 轴旋转球体，以度为单位。"
         ],
         "enableLighting": [
-          "启用Lighting",
-          "When checked, diffuse lighting is added to the sphere's surface."
+          "启用光照",
+          "勾选后，球体表面将添加漫反射光照。"
         ],
         "lightPosition": [
-          "Light位置",
-          "Set the 3D position of the light source."
+          "灯光位置",
+          "设置光源的 3D 位置。"
         ],
         "lightIntensity": [
-          "Light Intensity",
-          "Set the brightness of the light source."
+          "灯光强度",
+          "设置光源的亮度。"
         ],
         "lightColor": [
-          "Light颜色",
-          "Set the color of the light source."
+          "灯光颜色",
+          "设置光源的颜色。"
         ],
         "ambientStrength": [
-          "Ambient强度",
-          "Set the amount of ambient light (base illumination)."
+          "环境光强度",
+          "设置环境光（基础照明）的量。"
         ],
         "ambientColor": [
-          "Ambient颜色",
-          "Set the color of the ambient light."
+          "环境光颜色",
+          "设置环境光的颜色。"
         ],
         "specularStrength": [
-          "Specular强度",
-          "Set the intensity of the specular highlights."
+          "高光强度",
+          "设置高光反射的强度。"
         ],
         "specularColor": [
-          "Specular颜色",
-          "Set the color of the specular highlights."
+          "高光颜色",
+          "设置高光反射的颜色。"
         ],
         "shininess": [
-          "Shininess",
-          "Set the size and sharpness of the specular highlights. Higher values will create smaller, sharper highlights."
+          "光泽度",
+          "设置高光的大小和锐利度。较高的值会产生更小、更锐利的高光。"
         ],
         "useAsBumpMap": [
-          "Use as Bump Map",
-          "When checked, the Shape's material is used as a bump map to add surface detail lighting."
+          "用作凹凸贴图",
+          "勾选后，形状的材质将用作凹凸贴图以添加表面细节光照。"
         ],
         "bumpMapStrength": [
-          "BumpMap强度",
-          "Increase/decrease the affect the bump map has on the surface lighting."
+          "凹凸贴图强度",
+          "增加/减少凹凸贴图对表面光照的影响。"
         ],
         "enableSelfShadowing": [
-          "启用SelfShadowing",
-          "When checked, shadows are added to the back of the sphere."
+          "启用自阴影",
+          "勾选后，球体背面将添加阴影。"
         ],
         "shadowIntensity": [
-          "阴影Intensity",
-          "Determine how dark the shadowed areas become."
+          "阴影强度",
+          "设定阴影区域变暗的程度。"
         ],
         "shadowSoftness": [
           "阴影柔和度",
-          "Determine the softness of the shadow's transition from dark to light"
+          "设定阴影从暗到亮过渡的柔和程度"
         ],
         "backExposure": [
-          "后曝光",
-          "Set the brightness of the back/interior surfaces of the sphere."
+          "背面曝光",
+          "设置球体背面/内部表面的亮度。"
         ]
       },
       "enums": {
         "visibility": {
-          "0": "Both",
-          "1": "Front",
-          "2": "Back"
+          "0": "两面",
+          "1": "正面",
+          "2": "背面"
         }
       },
       "tabs": {
-        "filter": "Settings",
-        "lighting": "Lighting"
+        "filter": "设置",
+        "lighting": "光照"
       }
     }
   }

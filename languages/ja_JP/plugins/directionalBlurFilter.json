@@ -4,17 +4,17 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "directionalBlurFilter",
-      "niceName": "Directionalブラー",
-      "layerInfo": "Blur a Shape along an axis to create a streaking effect or simulate motion blur.",
-      "language": "en",
+      "niceName": "方向ブラー",
+      "layerInfo": "軸に沿ってシェイプをぼかし、ストリーク効果やモーションブラーをシミュレートします。",
+      "language": "ja_JP",
       "attributes": {
         "angle": [
           "角度",
-          "The direction of the blur in degrees."
+          "ブラーの方向（度単位）。"
         ],
         "blurAmount": [
           "ブラー量",
-          "The distance/strength of the directional blur effect. Higher values create more pronounced blur streaks."
+          "方向ブラー効果の距離/強さ。高い値ほどより顕著なブラーストリークが生成されます。"
         ]
       },
       "enums": {}

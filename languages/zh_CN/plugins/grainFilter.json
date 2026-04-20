@@ -4,90 +4,90 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "grainFilter",
-      "niceName": "Grain",
-      "layerInfo": "Add grain to images to emulate the visual appearance of film stock",
-      "language": "en",
+      "niceName": "颗粒",
+      "layerInfo": "为图像添加颗粒以模拟胶片质感",
+      "language": "zh_CN",
       "attributes": {
         "time": [
           "时间"
         ],
         "sharpen": [
           "锐化",
-          "Sharpen the image before the noise is added. Higher values create more defined edges and details."
+          "在添加噪点之前锐化图像。较高的值会使边缘和细节更加清晰。"
         ],
         "sharpenEdgesOnly": [
-          "锐化EdgesOnly",
-          "When checked, sharpening is only applied to image regions with a sharp contrast between light and dark areas."
+          "仅锐化边缘",
+          "勾选后，仅对明暗对比鲜明的图像区域进行锐化。"
         ],
         "grainAmount": [
-          "Grain数量",
-          "Set how much grain to apply to the image. Higher values create a more visible noise texture."
+          "颗粒数量",
+          "设置应用到图像上的颗粒数量。较高的值会产生更明显的噪点纹理。"
         ],
         "grainSize": [
-          "大小",
-          "Determine the size of the grain. Larger values will create coarser noise."
+          "尺寸",
+          "设定颗粒的大小。较大的值会产生更粗糙的噪点。"
         ],
         "grainTexture": [
           "纹理",
-          "Determine how much of the original image influences grain placement. Higher values make the grain follow the image structure."
+          "设定原始图像对颗粒位置的影响程度。较高的值使颗粒更贴合图像结构。"
         ],
         "logGrain": [
-          "Log Grain",
-          "Control the color space in which the grain is generated. 'Log' space will create more film-like grain characteristics."
+          "对数颗粒",
+          "控制颗粒生成的色彩空间。「对数」空间将产生更接近胶片的颗粒特性。"
         ],
         "monochromeGrain": [
-          "Grain类型",
-          "Determine if the grain is colorised or black and white. Monochrome creates uniform grain across all channels."
+          "颗粒类型",
+          "设定颗粒是彩色还是黑白。单色模式在所有通道上生成均匀的颗粒。"
         ],
         "redAmount": [
-          "Red数量",
-          "Set the amount of grain in the red channel. Use for color-specific noise control."
+          "红色数量",
+          "设置红色通道中的颗粒数量。用于按通道控制噪点。"
         ],
         "greenAmount": [
-          "Green数量",
-          "Set the amount of grain in the green channel. Use for color-specific noise control."
+          "绿色数量",
+          "设置绿色通道中的颗粒数量。用于按通道控制噪点。"
         ],
         "blueAmount": [
-          "Blue数量",
-          "Set the amount of grain in the blue channel. Use for color-specific noise control."
+          "蓝色数量",
+          "设置蓝色通道中的颗粒数量。用于按通道控制噪点。"
         ],
         "redSize": [
-          "Red大小",
-          "Set the size of grain in the red channel. Use for per-channel grain size variation."
+          "红色尺寸",
+          "设置红色通道中的颗粒大小。用于按通道调整颗粒尺寸。"
         ],
         "greenSize": [
-          "Green大小",
-          "Set the size of grain in the green channel. Use for per-channel grain size variation."
+          "绿色尺寸",
+          "设置绿色通道中的颗粒大小。用于按通道调整颗粒尺寸。"
         ],
         "blueSize": [
-          "Blue大小",
-          "Set the size of grain in the blue channel. Use for per-channel grain size variation."
+          "蓝色尺寸",
+          "设置蓝色通道中的颗粒大小。用于按通道调整颗粒尺寸。"
         ],
         "highlight": [
-          "Highlight",
-          "Set how much grain appears in image highlights. Lower values reduce grain in bright areas."
+          "高光",
+          "设置图像高光区域中颗粒的显示程度。较低的值会减少明亮区域中的颗粒。"
         ],
         "midtone": [
-          "Midtone",
-          "Set how much grain appears in image midtones. Controls grain in the middle luminance range."
+          "中间调",
+          "设置图像中间调中颗粒的显示程度。控制中等亮度范围内的颗粒。"
         ],
         "shadow": [
           "阴影",
-          "Set how much grain appears in image shadows. Higher values add more grain to dark areas."
+          "设置图像阴影中颗粒的显示程度。较高的值会在暗部区域添加更多颗粒。"
         ]
       },
       "enums": {
         "sharpenEdgesOnly": {
-          "0": "Disabled",
-          "1": "Enabled"
+          "0": "禁用",
+          "1": "启用"
         },
         "logGrain": {
-          "0": "Linear",
-          "1": "Log"
+          "0": "线性",
+          "1": "对数"
         },
         "monochromeGrain": {
-          "0": "Color",
-          "1": "Monochrome"
+          "0": "彩色",
+          "1": "单色"
         }
       }
     }

@@ -4,36 +4,36 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "erosionFilter",
-      "niceName": "Erosion",
-      "layerInfo": "Erode layer alpha for transitions and matte adjustments",
-      "language": "en",
+      "niceName": "侵蝕",
+      "layerInfo": "侵蝕圖層 Alpha 以用於過渡和遮罩調整",
+      "language": "zh_TW",
       "attributes": {
         "amount": [
-          "數量",
-          "Set the erosion amount in pixels."
+          "強度",
+          "以像素為單位設定侵蝕量。"
         ],
         "directionMode": [
           "方向模式",
-          "Choose between uniform erosion in all directions or directional erosion biased toward a specific angle."
+          "在所有方向的均勻侵蝕和偏向特定角度的方向性侵蝕之間選擇。"
         ],
         "angle": [
           "角度",
-          "Set the angle for directional erosion bias."
+          "設定方向性侵蝕的偏向角度。"
         ],
         "directionStrength": [
           "方向強度",
-          "Control how strongly the erosion is biased toward the specified direction."
+          "控制侵蝕向指定方向偏移的強度。"
         ]
       },
       "enums": {
         "directionMode": {
-          "0": "Uniform",
-          "1": "Directional"
+          "0": "均勻",
+          "1": "方向性"
         },
         "edgeTint": {
-          "0": "None",
-          "1": "Darken",
-          "2": "Custom Colour"
+          "0": "無",
+          "1": "變暗",
+          "2": "自訂顏色"
         }
       }
     }

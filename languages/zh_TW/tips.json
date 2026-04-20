@@ -1,7 +1,7 @@
 [
   {
-    "title": "Create a Color Array from a Palette",
-    "text": "Quickly create a Color Array from a Library Palette via the options in the Color Window.",
+    "title": "從調色盤建立顏色陣列",
+    "text": "透過顏色視窗的選項，快速從資料庫調色盤建立顏色陣列。",
     "images": [
       "arrayFromPalette1.png",
       "arrayFromPalette2.png",
@@ -10,8 +10,8 @@
     "beginner": true
   },
   {
-    "title": "Quickly add backgrounds",
-    "text": "Add a background to any Shape by right clicking on it in the Viewport. You can then round corners and change the colour of the Rectangle that this creates.",
+    "title": "快速新增背景",
+    "text": "在檢視區中右鍵點擊任意形狀即可新增背景。然後可以對建立的矩形進行圓角處理和變更顏色。",
     "images": [
       "addBackground1.png",
       "addBackground2.png",
@@ -20,8 +20,8 @@
     "beginner": true
   },
   {
-    "title": "Drag to close open contours",
-    "text": "Drag and drop end points to interactively close contours in the Viewport.",
+    "title": "拖曳閉合開放輪廓",
+    "text": "拖放端點即可在檢視區中互動式地閉合輪廓。",
     "images": [
       "closePath1.png",
       "closePath2.png",
@@ -30,8 +30,8 @@
     "beginner": true
   },
   {
-    "title": "Alt/option drag attributes",
-    "text": "Scrubbing attributes with the alt/option key held will update both values at the same time.",
+    "title": "按住 Alt/Option 拖曳屬性",
+    "text": "按住 Alt/Option 鍵拖曳屬性時，將同時更新兩個值。",
     "images": [
       "altScrub1.png",
       "altScrub2.png",
@@ -40,8 +40,8 @@
     "beginner": true
   },
   {
-    "title": "Precisely distribute Gradient Stops with ease",
-    "text": "Quickly distribute gradient stops to create smooth color transitions along gradients.",
+    "title": "精確分佈漸層色標",
+    "text": "快速分佈漸層色標，沿漸層建立平滑的顏色過渡。",
     "images": [
       "distributeGradient1.png",
       "distributeGradient2.png",
@@ -50,8 +50,8 @@
     "beginner": true
   },
   {
-    "title": "Jump to the next keyframe",
-    "text": "Use hot keys to move the playhead to the next or previous keyframe.",
+    "title": "跳至下一個關鍵幀",
+    "text": "使用快速鍵將播放頭移動到下一個或上一個關鍵幀。",
     "images": [
       [
         "nextKeyframe1.png",
@@ -69,8 +69,8 @@
     "beginner": true
   },
   {
-    "title": "Remove bezier handles",
-    "text": "Hold the X key to remove bezier handles in the Graph Editor.",
+    "title": "移除貝茲手柄",
+    "text": "在圖形編輯器中按住 X 鍵可移除貝茲手柄。",
     "images": [
       "deleteBezierHandle1.png",
       "deleteBezierHandle2.png",
@@ -79,8 +79,8 @@
     "beginner": true
   },
   {
-    "title": "Hold S to add new points to Paths",
-    "text": "Hold S when in the Edit Shape tool to create new points along edges.",
+    "title": "按住 S 在路徑上新增點",
+    "text": "在編輯形狀工具中按住 S 鍵，即可沿邊緣建立新點。",
     "images": [
       "splitPath1.png",
       "splitPath2.png",
