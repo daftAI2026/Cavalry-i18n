@@ -1,0 +1,26 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "bilateralBlurFilter",
+      "niceName": "双边模糊",
+      "layerInfo": "一種保留邊緣的模糊效果，可平滑顏色相近的區域，同時保持清晰的邊緣。",
+      "language": "zh-Hant",
+      "attributes": {
+        "amount": [
+          "數量",
+          "設定應用於形狀的模糊像素量。"
+        ],
+        "edgeThreshold": [
+          "邊緣閾值",
+          "設定邊緣偵測靈敏度。較低的值會保留更多邊緣。"
+        ],
+        "colorSigma": [
+          "顏色容差",
+          "設定合並相似顏色的容差。較高的值會導致更多顏色被合並。"
+        ]
+      }
+    }
+  }
+]

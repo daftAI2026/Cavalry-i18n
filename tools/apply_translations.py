@@ -9,7 +9,7 @@ Handles translate/no_translate/locale_sync per translation-whitelist.json.
 import json, os, sys, glob, copy, re
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-LANGS = ['zh_CN', 'zh_TW', 'ja_JP']
+LANGS = ['zh-Hans', 'zh-Hant', 'ja_JP']
 
 def load_json(path):
     with open(path, 'r', encoding='utf-8') as f:

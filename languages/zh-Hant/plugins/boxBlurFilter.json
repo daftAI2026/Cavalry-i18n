@@ -1,0 +1,18 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "boxBlurFilter",
+      "niceName": "方框模糊",
+      "layerInfo": "為形狀和著色器新增快速方框模糊。",
+      "language": "zh-Hant",
+      "attributes": {
+        "amount": [
+          "數量",
+          "設定應用於形狀的模糊像素量。"
+        ]
+      }
+    }
+  }
+]

@@ -1,19 +1,19 @@
 // LanguageSwitcher.js — Cavalry Multi-Language Switcher
 // Third-party i18n tool for Cavalry (Qt 6.6.3 2D animation software)
-// Supports: English, 简体中文 (zh_CN), 繁體中文 (zh_TW), 日本語 (ja_JP)
+// Supports: English, 简体中文 (zh-Hans), 繁體中文 (zh-Hant), 日本語 (ja_JP)
 
 (function () {
     "use strict";
 
     // ── Language definitions ─────────────────────────────────────────────
     var LANGUAGES = {
-        en:    "English",
-        zh_CN: "简体中文",
-        zh_TW: "繁體中文",
-        ja_JP: "日本語"
+        "en":      "English",
+        "zh-Hans": "简体中文",
+        "zh-Hant": "繁體中文",
+        "ja_JP":   "日本語"
     };
 
-    var LANG_KEYS = ["en", "zh_CN", "zh_TW", "ja_JP"];
+    var LANG_KEYS = ["en", "zh-Hans", "zh-Hant", "ja_JP"];
 
     // ── Plugin mapping: camelCase filename → Cavalry folder name ─────────
     var PLUGIN_MAP = {

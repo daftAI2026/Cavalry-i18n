@@ -1,0 +1,41 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "erosionFilter",
+      "niceName": "侵蚀",
+      "layerInfo": "侵蚀图层 Alpha 以用于过渡和蒙版调整",
+      "language": "zh-Hans",
+      "attributes": {
+        "amount": [
+          "数量",
+          "设置侵蚀量（像素）。"
+        ],
+        "directionMode": [
+          "方向模式",
+          "选择各方向均匀侵蚀或向特定角度偏移的方向性侵蚀。"
+        ],
+        "angle": [
+          "角度",
+          "设置方向性侵蚀偏移的角度。"
+        ],
+        "directionStrength": [
+          "方向强度",
+          "控制侵蚀向指定方向偏移的强度。"
+        ]
+      },
+      "enums": {
+        "directionMode": {
+          "0": "均匀",
+          "1": "方向性"
+        },
+        "edgeTint": {
+          "0": "无",
+          "1": "变暗",
+          "2": "自定义颜色"
+        }
+      }
+    }
+  }
+]

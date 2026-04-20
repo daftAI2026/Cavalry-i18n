@@ -14,8 +14,8 @@ from typing import Any
 
 REPORT_LANGUAGE_ALIASES = {
     "en": "en",
-    "zh_Hans": "zh_CN",
-    "zh_Hant": "zh_TW",
+    "zh_Hans": "zh-Hans",
+    "zh_Hant": "zh-Hant",
     "ja": "ja_JP",
 }
 
@@ -206,7 +206,7 @@ ALLOWED_EMBEDDED_ENGLISH = {
 
 VALID_SINGLE_LETTER_TOKENS = {"x", "y", "z", "X", "Y", "Z", "W", "R", "G", "B", "A", "N", "V", "S", "a", "b"}
 
-ZH_CN_TRADITIONAL_PATTERNS = {
+ZH_HANS_TRADITIONAL_PATTERNS = {
     "檔案": "文件",
     "儲存": "保存",
     "預設": "默认",
@@ -228,7 +228,7 @@ ZH_CN_TRADITIONAL_PATTERNS = {
     "關閉": "关闭",
 }
 
-ZH_TW_SIMPLIFIED_PATTERNS = {
+ZH_HANT_SIMPLIFIED_PATTERNS = {
     "开": "開/開啟",
     "关": "關/關閉",
     "图层": "圖層",
@@ -276,8 +276,8 @@ JA_JP_CHINESE_PATTERNS = {
 }
 
 LANGUAGE_PURITY_PATTERNS = {
-    "zh_CN": ZH_CN_TRADITIONAL_PATTERNS,
-    "zh_TW": ZH_TW_SIMPLIFIED_PATTERNS,
+    "zh-Hans": ZH_HANS_TRADITIONAL_PATTERNS,
+    "zh-Hant": ZH_HANT_SIMPLIFIED_PATTERNS,
     "ja_JP": JA_JP_CHINESE_PATTERNS,
 }
 

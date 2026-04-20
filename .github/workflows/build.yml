@@ -65,7 +65,7 @@ jobs:
 
       - name: Verify .qm files
         run: |
-          for LANG in zh_CN zh_TW ja_JP; do
+          for LANG in zh-Hans zh-Hant ja_JP; do
             for QM in \
               "languages/$LANG/cavalry_${LANG}.qm" \
               "languages/$LANG/qtbase_${LANG}.qm"; do
@@ -113,7 +113,7 @@ jobs:
 
       - name: Verify .qm files
         run: |
-          for LANG in zh_CN zh_TW ja_JP; do
+          for LANG in zh-Hans zh-Hant ja_JP; do
             for QM in \
               "languages/$LANG/cavalry_${LANG}.qm" \
               "languages/$LANG/qtbase_${LANG}.qm"; do

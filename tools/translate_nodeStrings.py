@@ -11,7 +11,7 @@ os.chdir(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, 'tools')
 from trans_data import TRANS
 
-LANG_IDX = {'zh_CN': 0, 'zh_TW': 1, 'ja_JP': 2}
+LANG_IDX = {'zh-Hans': 0, 'zh-Hant': 1, 'ja_JP': 2}
 warnings = set()
 
 def translate(s, lang):
@@ -44,7 +44,7 @@ def translate_node(node_val, lang):
 with open('languages/en/nodeStrings.json', encoding='utf-8') as f:
     en_data = json.load(f)
 
-for lang in ['zh_CN', 'zh_TW', 'ja_JP']:
+for lang in ['zh-Hans', 'zh-Hant', 'ja_JP']:
     warnings.clear()
     data = copy.deepcopy(en_data)
     for item in data:

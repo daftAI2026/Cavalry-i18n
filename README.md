@@ -9,8 +9,8 @@ Switch Cavalry's UI language with one click — no terminal, no external tools, 
 | Language | Code | Status |
 |----------|------|--------|
 | English | `en` | ✅ Built-in (restore original) |
-| 简体中文 (Simplified Chinese) | `zh_CN` | ✅ |
-| 繁體中文 (Traditional Chinese) | `zh_TW` | ✅ |
+| 简体中文 (Simplified Chinese) | `zh-Hans` | ✅ |
+| 繁體中文 (Traditional Chinese) | `zh-Hant` | ✅ |
 | 日本語 (Japanese) | `ja_JP` | ✅ |
 
 ## Installation
@@ -76,8 +76,8 @@ When Cavalry updates, the app bundle is replaced and translations are reset. The
 # macOS: brew install qt
 # Ubuntu: sudo apt-get install qttools5-dev-tools
 
-lrelease tools/zh_CN.ts -qm languages/zh_CN/cavalry_zh_CN.qm
-lrelease tools/zh_TW.ts -qm languages/zh_TW/cavalry_zh_TW.qm
+lrelease tools/zh-Hans.ts -qm languages/zh-Hans/cavalry_zh-Hans.qm
+lrelease tools/zh-Hant.ts -qm languages/zh-Hant/cavalry_zh-Hant.qm
 lrelease tools/ja_JP.ts -qm languages/ja_JP/cavalry_ja_JP.qm
 ```
 
@@ -88,13 +88,13 @@ Cavalry-i18n/
 ├── LanguageSwitcher.js          # Main script (install this)
 ├── languages/
 │   ├── en/                      # English originals (extracted from Cavalry)
-│   ├── zh_CN/                   # Simplified Chinese translations
-│   ├── zh_TW/                   # Traditional Chinese translations
+│   ├── zh-Hans/                   # Simplified Chinese translations
+│   ├── zh-Hant/                   # Traditional Chinese translations
 │   └── ja_JP/                   # Japanese translations
 ├── tools/
 │   ├── extract_strings.py       # Extract English strings from Cavalry
 │   ├── validate_translations.py # Translation quality gates + runlog/report output
-│   ├── zh_CN.ts / zh_TW.ts / ja_JP.ts  # Qt Linguist source files
+│   ├── zh-Hans.ts / zh-Hant.ts / ja_JP.ts  # Qt Linguist source files
 ├── doc/
 │   ├── cavalry-glossary.md      # 94-term four-language glossary
 │   └── translation-whitelist.json

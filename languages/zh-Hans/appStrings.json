@@ -1,0 +1,10 @@
+[
+  {
+    "type": "strings",
+    "language": "zh-Hans",
+    "value": {
+      "auth.error.accessDenied": "授权被拒绝。请重新登录。",
+      "auth.error.generic": "登录过程中出现问题。请重试。"
+    }
+  }
+]
