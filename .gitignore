@@ -8,3 +8,4 @@ doc/
 # ── 分形文档（本地维护） ──
 CLAUDE.md
 **/CLAUDE.md
+__pycache__

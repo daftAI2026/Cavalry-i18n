@@ -4,13 +4,13 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "gaussianBlurFilter",
-      "niceName": "ガウシアンブラー",
+      "niceName": "ガウスブラー",
       "layerInfo": "シェイプとシェーダーに高品質なガウシアンブラーを追加します。",
       "language": "ja_JP",
       "attributes": {
         "amount": [
           "量",
-          "シェイプに適用するブラーのピクセル数を設定します。"
+          "シェイプに適用するブラーのピクセル量を設定します。"
         ]
       }
     }
