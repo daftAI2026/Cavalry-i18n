@@ -46,6 +46,21 @@ assert.ok(
 );
 
 assert.ok(
+  !scriptSource.includes('api.confirm'),
+  'LanguageSwitcher.js must not call unsupported api.confirm'
+);
+
+assert.ok(
+  !scriptSource.includes('api.alert'),
+  'LanguageSwitcher.js must not call unsupported api.alert'
+);
+
+assert.ok(
+  /new\s+ui\.Modal\s*\(/.test(scriptSource),
+  'LanguageSwitcher.js should use ui.Modal for confirmation dialogs'
+);
+
+assert.ok(
   /new\s+ui\.DropDown\s*\(/.test(scriptSource),
   'LanguageSwitcher.js should create the selector with ui.DropDown'
 );
@@ -58,6 +73,26 @@ assert.ok(
 assert.ok(
   !/getScriptsFolder\s*\(/.test(scriptSource),
   'LanguageSwitcher.js should not assume a fixed global Scripts folder path'
+);
+
+assert.ok(
+  /filePathExists\s*\(/.test(scriptSource),
+  'LanguageSwitcher.js should use api.filePathExists for config existence checks'
+);
+
+assert.ok(
+  /writeToFile\s*\([^)]*,[^)]*,\s*true\s*\)/.test(scriptSource),
+  'LanguageSwitcher.js should explicitly overwrite existing files for intentional writes'
+);
+
+assert.ok(
+  scriptSource.includes('JSON-only translation layer'),
+  'LanguageSwitcher.js should document the JSON-only runtime fallback'
+);
+
+assert.ok(
+  /ui\.setFixedSize\s*\(/.test(scriptSource),
+  'LanguageSwitcher.js should set an explicit window size to avoid scrollbars in the default layout'
 );
 
 console.log('PASS: language switcher runtime layout and Script UI contract');

@@ -13,6 +13,7 @@
     };
 
     var LANG_KEYS = ["en", "zh-Hans", "zh-Hant", "ja_JP"];
+    var JSON_ONLY_RUNTIME = true; // JSON-only translation layer: Cavalry exposes no documented runtime QM loader.
 
     var JSON_TARGETS = [
         { relativePath: "nodeStrings.json", destinationPath: "Definitions/nodeStrings.json", label: "node strings" },
@@ -71,14 +72,34 @@
         };
     }
 
-    function ensureConfigFile() {
-        api.writeToFile(getConfigPath(), JSON.stringify(getDefaultConfig(), null, 2), false);
+    function showMessage(message) {
+        var modal = new ui.Modal();
+        modal.showMessage(message);
+    }
+
+    function showError(message) {
+        console.error(message);
+        showMessage(message);
+    }
+
+    function formatWriteError(filePath) {
+        return (
+            "Write failed.\n\n" +
+            "File:\n" + filePath + "\n\n" +
+            "Possible cause:\n" +
+            "No write permission to the Cavalry installation directory.\n\n" +
+            "Try running Cavalry with sufficient permissions,\n" +
+            "or install Cavalry to a user-writable directory."
+        );
     }
 
     function readConfig() {
-        ensureConfigFile();
+        var configPath = getConfigPath();
+        if (!api.filePathExists(configPath)) {
+            return getDefaultConfig();
+        }
 
-        var content = api.readFromFile(getConfigPath());
+        var content = api.readFromFile(configPath);
         if (!content) {
             return getDefaultConfig();
         }
@@ -93,7 +114,7 @@
             }
             return parsed;
         } catch (e) {
-            api.alert(
+            showError(
                 "Could not parse cavalry-i18n.json.\n" +
                 "The configuration will be reset to English."
             );
@@ -108,24 +129,20 @@
             cavalryVersion: api.getCavalryVersion()
         };
 
-        var result = api.writeToFile(getConfigPath(), JSON.stringify(config, null, 2));
+        var result = api.writeToFile(getConfigPath(), JSON.stringify(config, null, 2), true);
         if (!result) {
-            api.alert(
-                "Write failed: " + getConfigPath() +
-                "\nCould not save language configuration."
+            showError(
+                "Could not save cavalry-i18n.json.\n\n" +
+                "File:\n" + getConfigPath()
             );
         }
         return result;
     }
 
     function safeWriteToFile(filePath, content) {
-        var result = api.writeToFile(filePath, content);
+        var result = api.writeToFile(filePath, content, true);
         if (!result) {
-            api.alert(
-                "Write failed: " + filePath +
-                "\n\nPossible cause: No write permission to the Cavalry installation directory." +
-                "\nPlease try running as administrator, or install Cavalry to a user directory."
-            );
+            showError(formatWriteError(filePath));
             return false;
         }
         return true;
@@ -136,7 +153,7 @@
         var content = api.readFromFile(fullPath);
 
         if (!content) {
-            api.alert(
+            showError(
                 "Missing language asset: " + label +
                 "\n" + fullPath +
                 "\n\nMake sure LanguageSwitcher_assets was copied together with LanguageSwitcher.js."
@@ -194,7 +211,7 @@
                 if (!expectFilesToExist) {
                     continue;
                 }
-                api.alert(
+                showError(
                     "Could not remove translation file:\n" + qmFiles[i] +
                     "\n\nPlease check write permissions to the Cavalry installation directory."
                 );
@@ -205,7 +222,36 @@
         return true;
     }
 
+    function cleanupExperimentalQMFiles() {
+        var translationsPath = getTranslationsPath();
+        for (var i = 0; i < LANG_KEYS.length; i++) {
+            var lang = LANG_KEYS[i];
+            if (lang === "en") {
+                continue;
+            }
+
+            var qmFiles = [
+                translationsPath + "cavalry_" + lang + ".qm",
+                translationsPath + "qtbase_" + lang + ".qm"
+            ];
+
+            for (var j = 0; j < qmFiles.length; j++) {
+                if (api.filePathExists(qmFiles[j]) && !api.deleteFilePath(qmFiles[j])) {
+                    console.warn("Could not remove experimental QM file: " + qmFiles[j]);
+                }
+            }
+        }
+    }
+
     function overwriteQM(lang, previousLang, expectFilesToExist) {
+        if (JSON_ONLY_RUNTIME) {
+            cleanupExperimentalQMFiles();
+            console.info(
+                "JSON-only translation layer active; skipping experimental QM install for " + lang + "."
+            );
+            return true;
+        }
+
         if (lang === "en") {
             return deleteQMFiles(previousLang, expectFilesToExist);
         }
@@ -273,6 +319,27 @@
         return true;
     }
 
+    function confirmAction(title, message) {
+        var modal = new ui.Modal();
+        return modal.showConfirmation(title, message);
+    }
+
+    function makeValueBadge(text) {
+        var badge = new ui.Label(text);
+        badge.setFixedWidth(220);
+        badge.setAlignment(1);
+        badge.setBackgroundColor(ui.getThemeColor("AlternateBase"));
+        badge.setContentsMargins(10, 6, 10, 6);
+        badge.setCornerRounding(4);
+        return badge;
+    }
+
+    function makeFieldLabel(text) {
+        var label = new ui.Label(text);
+        label.setFixedWidth(130);
+        return label;
+    }
+
     function buildUI() {
         var config = readConfig();
         var currentLang = config.language || "en";
@@ -281,16 +348,17 @@
         var mismatch = checkVersionMismatch(config);
         if (mismatch && mismatch.language !== "en") {
             var langLabel = LANGUAGES[mismatch.language] || mismatch.language;
-            var reapply = api.confirm(
+            var reapply = confirmAction(
+                "Re-apply Language Pack",
                 "Cavalry has been updated from " + mismatch.oldVersion +
                 " to " + mismatch.newVersion + ".\n" +
                 "Your language (" + langLabel + ") has been reset.\n\n" +
-                "Click OK to re-apply " + langLabel + "."
+                "Re-apply " + langLabel + " now?"
             );
 
             if (reapply) {
                 if (applyLanguage(mismatch.language)) {
-                    api.alert("Language re-applied successfully.\nCavalry will restart now.");
+                    showMessage("Language re-applied successfully.\nCavalry will restart now.");
                     restartCavalry();
                     return;
                 }
@@ -298,21 +366,23 @@
         }
 
         ui.setTitle("Cavalry Language Switcher");
-        ui.setMinimumWidth(340);
+        ui.setFixedSize(448, 150);
+        ui.setMargins(12, 12, 12, 12);
+        ui.setSpaceBetween(10);
 
-        var currentTitle = new ui.Label("Current Language");
-        var currentValue = new ui.Label(currentLabel);
-        currentValue.setBackgroundColor(ui.getThemeColor("AlternateBase"));
-        currentValue.setContentsMargins(8, 4, 8, 4);
+        var currentTitle = makeFieldLabel("Current Language");
+        var currentValue = makeValueBadge(currentLabel);
+        currentValue.setFixedHeight(32);
 
         var currentRow = new ui.HLayout();
+        currentRow.setSpaceBetween(12);
         currentRow.add(currentTitle);
-        currentRow.addStretch();
         currentRow.add(currentValue);
 
-        var selectorTitle = new ui.Label("Switch To");
+        var selectorTitle = makeFieldLabel("Switch To");
         var languageDropDown = new ui.DropDown();
-        languageDropDown.setMinimumWidth(180);
+        languageDropDown.setFixedWidth(220);
+        languageDropDown.setFixedHeight(32);
 
         for (var i = 0; i < LANG_KEYS.length; i++) {
             languageDropDown.addEntry(LANGUAGES[LANG_KEYS[i]]);
@@ -322,17 +392,20 @@
         languageDropDown.setValue(currentIndex < 0 ? 0 : currentIndex);
 
         var selectorRow = new ui.HLayout();
+        selectorRow.setSpaceBetween(12);
         selectorRow.add(selectorTitle);
-        selectorRow.addStretch();
         selectorRow.add(languageDropDown);
 
         var applyButton = new ui.Button("Apply & Restart");
+        applyButton.setFixedWidth(220);
+        applyButton.setFixedHeight(32);
         applyButton.onClick = function () {
             var selectedIndex = languageDropDown.getValue();
             var selectedLang = LANG_KEYS[selectedIndex];
             var selectedLabel = LANGUAGES[selectedLang];
 
-            var confirmed = api.confirm(
+            var confirmed = confirmAction(
+                "Apply Language",
                 "Switch language to " + selectedLabel + "?\n" +
                 "Cavalry will restart after applying."
             );
@@ -342,15 +415,23 @@
             }
 
             if (applyLanguage(selectedLang)) {
-                api.alert("Language switched to " + selectedLabel + ".\nCavalry will restart now.");
+                showMessage(
+                    "Language switched to " + selectedLabel + ".\n" +
+                    "Cavalry will restart now.\n\n" +
+                    "This runtime currently applies the JSON-only translation layer."
+                );
                 restartCavalry();
             }
         };
 
+        var buttonRow = new ui.HLayout();
+        buttonRow.setSpaceBetween(12);
+        buttonRow.add(makeFieldLabel(""));
+        buttonRow.add(applyButton);
+
         ui.add(currentRow);
         ui.add(selectorRow);
-        ui.addSpacing(6);
-        ui.add(applyButton);
+        ui.add(buttonRow);
         ui.show();
     }
 

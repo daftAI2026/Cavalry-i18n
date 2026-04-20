@@ -50,6 +50,8 @@ Covers Qt standard UI elements (menus, dialogs, buttons):
 - `cavalry_xx.qm` — Custom Qt translations for Cavalry-specific menus
 - `qtbase_xx.qm` — Official Qt translations (OK, Cancel, File, Edit, etc.)
 
+**Current runtime note:** the repository still stores and validates `.qm` files, but the shipping `LanguageSwitcher.js` currently runs in **JSON-only mode**. Cavalry's public docs do not expose a supported runtime translator-loading API or a documented language preference key, and standard macOS installs also do not ship with a writable `translations/` directory in the app bundle. For now, the switcher applies the JSON string layer only.
+
 ## Update Detection
 
 When Cavalry updates, the app bundle is replaced and translations are reset. The switcher detects this automatically:
