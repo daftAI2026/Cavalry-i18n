@@ -65,8 +65,9 @@ When Cavalry updates, the app bundle is replaced and translations are reset. The
 1. Create a new directory under `languages/` (e.g., `languages/ko_KR/`)
 2. Copy all JSON files from `languages/en/` and translate the whitelisted fields (see `doc/translation-whitelist.json`)
 3. Create a `.ts` file in `tools/` for Qt menu translations
-4. Compile with `lrelease tools/ko_KR.ts -qm languages/ko_KR/cavalry_ko_KR.qm`
-5. Add the language to `LANGUAGES` and `LANG_KEYS` in `LanguageSwitcher.js`
+4. Validate the translated JSON with `python3 tools/validate_translations.py --json-report /tmp/cavalry-i18n-report.json --markdown-summary /tmp/cavalry-i18n-runlog.md`
+5. Compile with `lrelease tools/ko_KR.ts -qm languages/ko_KR/cavalry_ko_KR.qm`
+6. Add the language to `LANGUAGES` and `LANG_KEYS` in `LanguageSwitcher.js`
 
 ### Compiling .qm Files
 
@@ -92,11 +93,12 @@ Cavalry-i18n/
 │   └── ja_JP/                   # Japanese translations
 ├── tools/
 │   ├── extract_strings.py       # Extract English strings from Cavalry
+│   ├── validate_translations.py # Translation quality gates + runlog/report output
 │   ├── zh_CN.ts / zh_TW.ts / ja_JP.ts  # Qt Linguist source files
 ├── doc/
 │   ├── cavalry-glossary.md      # 94-term four-language glossary
 │   └── translation-whitelist.json
-└── .github/workflows/build.yml  # CI: compile .qm + release
+└── .github/workflows/build.yml  # CI: validate translations + compile .qm + release
 ```
 
 ## Credits
