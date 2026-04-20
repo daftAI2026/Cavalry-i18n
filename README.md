@@ -16,7 +16,7 @@ Switch Cavalry's UI language with one click — no terminal, no external tools, 
 ## Installation
 
 1. Download the latest release from [GitHub Releases](https://github.com/nicedoc/Cavalry-i18n/releases), or clone this repository.
-2. Copy `LanguageSwitcher.js` and the `languages/` folder into your Cavalry Scripts directory (in Cavalry, go to **Window → Scripts → Show Scripts Folder**).
+2. Copy `LanguageSwitcher.js` and the `LanguageSwitcher_assets/` folder into your Cavalry Scripts directory (in Cavalry, go to **Window → Scripts → Show Scripts Folder**).
 3. In Cavalry, open **Window → Scripts → LanguageSwitcher**.
 4. Select your preferred language from the dropdown and click **Apply & Restart**.
 5. Cavalry will restart automatically with the new language applied.
@@ -56,17 +56,17 @@ When Cavalry updates, the app bundle is replaced and translations are reset. The
 
 - On script startup, it compares the saved Cavalry version with the current version
 - If a mismatch is detected, it prompts you to re-apply your language pack
-- Your language preference and language packs are stored in the Scripts directory, safe from updates
+- Your language preference is stored in Cavalry's app data folder, and the language packs live in the script's hidden `_assets` directory, both safe from app updates
 
 ## Developer Guide
 
 ### Adding a New Language
 
-1. Create a new directory under `languages/` (e.g., `languages/ko_KR/`)
-2. Copy all JSON files from `languages/en/` and translate the whitelisted fields (see `doc/translation-whitelist.json`)
+1. Create a new directory under `LanguageSwitcher_assets/languages/` (e.g., `LanguageSwitcher_assets/languages/ko_KR/`)
+2. Copy all JSON files from `LanguageSwitcher_assets/languages/en/` and translate the whitelisted fields (see `doc/translation-whitelist.json`)
 3. Create a `.ts` file in `tools/` for Qt menu translations
 4. Validate the translated JSON with `python3 tools/validate_translations.py --json-report /tmp/cavalry-i18n-report.json --markdown-summary /tmp/cavalry-i18n-runlog.md`
-5. Compile with `lrelease tools/ko_KR.ts -qm languages/ko_KR/cavalry_ko_KR.qm`
+5. Compile with `lrelease tools/ko_KR.ts -qm LanguageSwitcher_assets/languages/ko_KR/cavalry_ko_KR.qm`
 6. Add the language to `LANGUAGES` and `LANG_KEYS` in `LanguageSwitcher.js`
 
 ### Compiling .qm Files
@@ -76,9 +76,9 @@ When Cavalry updates, the app bundle is replaced and translations are reset. The
 # macOS: brew install qt
 # Ubuntu: sudo apt-get install qttools5-dev-tools
 
-lrelease tools/zh-Hans.ts -qm languages/zh-Hans/cavalry_zh-Hans.qm
-lrelease tools/zh-Hant.ts -qm languages/zh-Hant/cavalry_zh-Hant.qm
-lrelease tools/ja_JP.ts -qm languages/ja_JP/cavalry_ja_JP.qm
+lrelease tools/zh-Hans.ts -qm LanguageSwitcher_assets/languages/zh-Hans/cavalry_zh-Hans.qm
+lrelease tools/zh-Hant.ts -qm LanguageSwitcher_assets/languages/zh-Hant/cavalry_zh-Hant.qm
+lrelease tools/ja_JP.ts -qm LanguageSwitcher_assets/languages/ja_JP/cavalry_ja_JP.qm
 ```
 
 ### Project Structure
@@ -86,11 +86,12 @@ lrelease tools/ja_JP.ts -qm languages/ja_JP/cavalry_ja_JP.qm
 ```
 Cavalry-i18n/
 ├── LanguageSwitcher.js          # Main script (install this)
-├── languages/
-│   ├── en/                      # English originals (extracted from Cavalry)
-│   ├── zh-Hans/                   # Simplified Chinese translations
-│   ├── zh-Hant/                   # Traditional Chinese translations
-│   └── ja_JP/                   # Japanese translations
+├── LanguageSwitcher_assets/     # Hidden at runtime in Cavalry Scripts menu
+│   └── languages/
+│       ├── en/                  # English originals (extracted from Cavalry)
+│       ├── zh-Hans/             # Simplified Chinese translations
+│       ├── zh-Hant/             # Traditional Chinese translations
+│       └── ja_JP/               # Japanese translations
 ├── tools/
 │   ├── extract_strings.py       # Extract English strings from Cavalry
 │   ├── validate_translations.py # Translation quality gates + runlog/report output

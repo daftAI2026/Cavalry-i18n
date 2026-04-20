@@ -23,6 +23,8 @@ VALIDATION_TARGETS = {
     alias: code for alias, code in REPORT_LANGUAGE_ALIASES.items() if alias != "en"
 }
 
+LANGUAGE_PACK_ROOT = Path("LanguageSwitcher_assets") / "languages"
+
 FILE_GROUPS = {
     "nodeStrings": ["nodeStrings.json"],
     "appStrings": ["appStrings.json"],
@@ -344,7 +346,7 @@ def load_json(path: Path) -> Any:
 
 
 def plugin_paths(root: Path, lang_code: str) -> list[Path]:
-    return sorted((root / "languages" / lang_code / "plugins").glob("*.json"))
+    return sorted((root / LANGUAGE_PACK_ROOT / lang_code / "plugins").glob("*.json"))
 
 
 def file_paths(root: Path, lang_code: str) -> list[tuple[str, Path, Path]]:
@@ -354,17 +356,17 @@ def file_paths(root: Path, lang_code: str) -> list[tuple[str, Path, Path]]:
             paths.append(
                 (
                     group_name,
-                    root / "languages" / "en" / filename,
-                    root / "languages" / lang_code / filename,
+                    root / LANGUAGE_PACK_ROOT / "en" / filename,
+                    root / LANGUAGE_PACK_ROOT / lang_code / filename,
                 )
             )
     for source_path in plugin_paths(root, "en"):
-        relative = source_path.relative_to(root / "languages" / "en")
+        relative = source_path.relative_to(root / LANGUAGE_PACK_ROOT / "en")
         paths.append(
             (
                 "plugins",
                 source_path,
-                root / "languages" / lang_code / relative,
+                root / LANGUAGE_PACK_ROOT / lang_code / relative,
             )
         )
     return paths
@@ -647,10 +649,10 @@ def evaluate_language(
                     )
 
     extra_plugin_files = {
-        path.relative_to(root / "languages" / repo_code / "plugins").as_posix()
+        path.relative_to(root / LANGUAGE_PACK_ROOT / repo_code / "plugins").as_posix()
         for path in plugin_paths(root, repo_code)
     } - {
-        path.relative_to(root / "languages" / "en" / "plugins").as_posix()
+        path.relative_to(root / LANGUAGE_PACK_ROOT / "en" / "plugins").as_posix()
         for path in plugin_paths(root, "en")
     }
     for relative_path in sorted(extra_plugin_files):
@@ -660,7 +662,7 @@ def evaluate_language(
             {
                 "language": language_alias,
                 "repo_code": repo_code,
-                "file": (root / "languages" / repo_code / "plugins" / relative_path).as_posix(),
+                "file": (root / LANGUAGE_PACK_ROOT / repo_code / "plugins" / relative_path).as_posix(),
                 "detail": "Unexpected extra plugin file in target language.",
             },
         )

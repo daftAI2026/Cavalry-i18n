@@ -41,7 +41,7 @@ def translate_node(node_val, lang):
     for tab_key in list(node_val.get('tabs', {}).keys()):
         node_val['tabs'][tab_key] = translate(node_val['tabs'][tab_key], lang)
 
-with open('languages/en/nodeStrings.json', encoding='utf-8') as f:
+with open('LanguageSwitcher_assets/languages/en/nodeStrings.json', encoding='utf-8') as f:
     en_data = json.load(f)
 
 for lang in ['zh-Hans', 'zh-Hant', 'ja_JP']:
@@ -54,7 +54,7 @@ for lang in ['zh-Hans', 'zh-Hant', 'ja_JP']:
             for v in item['values']:
                 translate_node(v, lang)
     
-    output_path = f'languages/{lang}/nodeStrings.json'
+    output_path = f'LanguageSwitcher_assets/languages/{lang}/nodeStrings.json'
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
         f.write('\n')
@@ -69,4 +69,3 @@ for lang in ['zh-Hans', 'zh-Hant', 'ja_JP']:
             print(f"  {w}", file=sys.stderr)
         if len(warnings) > 5:
             print(f"  ... and {len(warnings)-5} more", file=sys.stderr)
-

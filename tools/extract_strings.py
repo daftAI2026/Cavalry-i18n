@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Extract English strings from Cavalry app bundle into languages/en/."""
+"""Extract English strings from Cavalry app bundle into LanguageSwitcher_assets/languages/en/."""
 
 import json
 import os
@@ -38,7 +38,7 @@ def main() -> None:
         sys.exit(1)
 
     repo = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    en_dir = os.path.join(repo, "languages", "en")
+    en_dir = os.path.join(repo, "LanguageSwitcher_assets", "languages", "en")
     plugins_dir = os.path.join(en_dir, "plugins")
     os.makedirs(plugins_dir, exist_ok=True)
 

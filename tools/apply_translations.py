@@ -10,6 +10,7 @@ import json, os, sys, glob, copy, re
 
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 LANGS = ['zh-Hans', 'zh-Hant', 'ja_JP']
+LANG_ROOT = os.path.join(REPO, 'LanguageSwitcher_assets', 'languages')
 
 def load_json(path):
     with open(path, 'r', encoding='utf-8') as f:
@@ -97,8 +98,8 @@ def translate_subtree(en_obj, lang_obj, trans_dict):
 
 def process_file(en_path, lang, trans_dict, whitelist, file_type):
     """Process a single JSON file."""
-    rel = os.path.relpath(en_path, os.path.join(REPO, 'languages', 'en'))
-    lang_path = os.path.join(REPO, 'languages', lang, rel)
+    rel = os.path.relpath(en_path, os.path.join(LANG_ROOT, 'en'))
+    lang_path = os.path.join(LANG_ROOT, lang, rel)
 
     en_data = load_json(en_path)
     if os.path.exists(lang_path):
@@ -124,27 +125,27 @@ def main():
         print(f'  Dictionary: {len(trans_dict)} entries')
 
         # nodeStrings
-        en_path = os.path.join(REPO, 'languages', 'en', 'nodeStrings.json')
+        en_path = os.path.join(LANG_ROOT, 'en', 'nodeStrings.json')
         out = process_file(en_path, lang, trans_dict, whitelist, 'nodeStrings')
         print(f'  Written: {out}')
 
         # appStrings
-        en_path = os.path.join(REPO, 'languages', 'en', 'appStrings.json')
+        en_path = os.path.join(LANG_ROOT, 'en', 'appStrings.json')
         out = process_file(en_path, lang, trans_dict, whitelist, 'appStrings')
         print(f'  Written: {out}')
 
         # tips
-        en_path = os.path.join(REPO, 'languages', 'en', 'tips.json')
+        en_path = os.path.join(LANG_ROOT, 'en', 'tips.json')
         out = process_file(en_path, lang, trans_dict, whitelist, 'tips')
         print(f'  Written: {out}')
 
         # onboarding
-        en_path = os.path.join(REPO, 'languages', 'en', 'onboarding.json')
+        en_path = os.path.join(LANG_ROOT, 'en', 'onboarding.json')
         out = process_file(en_path, lang, trans_dict, whitelist, 'onboarding')
         print(f'  Written: {out}')
 
         # plugins
-        for en_path in sorted(glob.glob(os.path.join(REPO, 'languages', 'en', 'plugins', '*.json'))):
+        for en_path in sorted(glob.glob(os.path.join(LANG_ROOT, 'en', 'plugins', '*.json'))):
             out = process_file(en_path, lang, trans_dict, whitelist, 'plugins')
             print(f'  Written: {out}')
 
