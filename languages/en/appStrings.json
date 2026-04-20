@@ -1,0 +1,10 @@
+[
+  {
+    "type": "strings",
+    "language": "en",
+    "value": {
+      "auth.error.accessDenied": "Authorisation was denied. Please try signing in again.",
+      "auth.error.generic": "Something went wrong during sign in. Please try again."
+    }
+  }
+]

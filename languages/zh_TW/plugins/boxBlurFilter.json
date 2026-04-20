@@ -1,0 +1,18 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "boxBlurFilter",
+      "niceName": "Box模糊",
+      "layerInfo": "Add a fast box blur to Shapes and Shaders.",
+      "language": "en",
+      "attributes": {
+        "amount": [
+          "數量",
+          "Set the amount of blur in pixels to apply to the Shape."
+        ]
+      }
+    }
+  }
+]

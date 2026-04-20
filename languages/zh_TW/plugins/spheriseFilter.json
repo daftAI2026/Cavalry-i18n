@@ -1,0 +1,101 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "spheriseFilter",
+      "niceName": "Spherise",
+      "layerInfo": "Map an input Shape onto a sphere that can be rotated.",
+      "language": "en",
+      "attributes": {
+        "centre": [
+          "Centre",
+          "Set the position of the sphere."
+        ],
+        "radius": [
+          "半徑",
+          "Set the radius of the sphere as a percentage of the Shape's size."
+        ],
+        "visibility": [
+          "可见性",
+          "Determine which sides of the sphere are visible when using images that contain transparency."
+        ],
+        "rotation": [
+          "旋轉",
+          "Rotate the sphere around its X, Y or Z axis in degrees."
+        ],
+        "enableLighting": [
+          "啟用Lighting",
+          "When checked, diffuse lighting is added to the sphere's surface."
+        ],
+        "lightPosition": [
+          "Light位置",
+          "Set the 3D position of the light source."
+        ],
+        "lightIntensity": [
+          "Light Intensity",
+          "Set the brightness of the light source."
+        ],
+        "lightColor": [
+          "Light顏色",
+          "Set the color of the light source."
+        ],
+        "ambientStrength": [
+          "Ambient強度",
+          "Set the amount of ambient light (base illumination)."
+        ],
+        "ambientColor": [
+          "Ambient顏色",
+          "Set the color of the ambient light."
+        ],
+        "specularStrength": [
+          "Specular強度",
+          "Set the intensity of the specular highlights."
+        ],
+        "specularColor": [
+          "Specular顏色",
+          "Set the color of the specular highlights."
+        ],
+        "shininess": [
+          "Shininess",
+          "Set the size and sharpness of the specular highlights. Higher values will create smaller, sharper highlights."
+        ],
+        "useAsBumpMap": [
+          "Use as Bump Map",
+          "When checked, the Shape's material is used as a bump map to add surface detail lighting."
+        ],
+        "bumpMapStrength": [
+          "BumpMap強度",
+          "Increase/decrease the affect the bump map has on the surface lighting."
+        ],
+        "enableSelfShadowing": [
+          "啟用SelfShadowing",
+          "When checked, shadows are added to the back of the sphere."
+        ],
+        "shadowIntensity": [
+          "阴影Intensity",
+          "Determine how dark the shadowed areas become."
+        ],
+        "shadowSoftness": [
+          "阴影柔和度",
+          "Determine the softness of the shadow's transition from dark to light"
+        ],
+        "backExposure": [
+          "后曝光",
+          "Set the brightness of the back/interior surfaces of the sphere."
+        ]
+      },
+      "enums": {
+        "visibility": {
+          "0": "Both",
+          "1": "Front",
+          "2": "Back"
+        }
+      },
+      "tabs": {
+        "filter": "Settings",
+        "lighting": "Lighting"
+      }
+    }
+  }
+]

@@ -1,0 +1,43 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "bulgeFilter",
+      "niceName": "凸起",
+      "layerInfo": "Distort a Shape by wrapping it onto a spherical surface, creating a bulge or pinch effect.",
+      "language": "en",
+      "attributes": {
+        "passthroughBackground": [
+          "Passthrough背景",
+          "When checked, the background outside the bulge will be rendered when Blend Mode is set to Replace."
+        ],
+        "amount": [
+          "数量",
+          "Determine the strength of the spherical distortion where positive values create a bulge effect and negative values create a pinch effect."
+        ],
+        "centre": [
+          "Centre",
+          "Set the centre point of the spherical effect in pixels where 0,0 is the centre of the image."
+        ],
+        "radius": [
+          "半径",
+          "Set the radius of the spherical effect as a percentage of the Shape's size."
+        ],
+        "enableRefraction": [
+          "Refraction",
+          "When unchecked, the effect becomes a simple height-map distortion without optical effects."
+        ],
+        "refractiveIndex": [
+          "Refractive索引",
+          "Set the material's refractive index to control how much light bends. Common values include 1.33 (water), 1.5 (glass) and 2.4 (diamond)."
+        ],
+        "chromaticAberration": [
+          "色差",
+          "When 'Refraction' is checked, set the amount of color separation in pixels at the sphere's edges to simulate light dispersion through glass."
+        ]
+      },
+      "enums": {}
+    }
+  }
+]

@@ -1,0 +1,83 @@
+name: Build Language Pack
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Qt tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qttools5-dev-tools
+
+      - name: Compile .ts to .qm with lrelease
+        run: |
+          for TS in tools/*.ts; do
+            LANG=$(basename "$TS" .ts)
+            lrelease "$TS" -qm "languages/$LANG/cavalry_${LANG}.qm"
+          done
+
+      - name: Verify .qm files
+        run: |
+          for LANG in zh_CN zh_TW ja_JP; do
+            QM="languages/$LANG/cavalry_${LANG}.qm"
+            if [ ! -f "$QM" ]; then
+              echo "FAIL: $QM not found"; exit 1
+            fi
+            SIZE=$(wc -c < "$QM" | tr -d ' ')
+            echo "$QM: ${SIZE} bytes"
+          done
+
+      - name: Upload language pack artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cavalry-language-pack
+          path: |
+            languages/
+            LanguageSwitcher.js
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Qt tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y qttools5-dev-tools
+
+      - name: Compile .ts to .qm with lrelease
+        run: |
+          for TS in tools/*.ts; do
+            LANG=$(basename "$TS" .ts)
+            lrelease "$TS" -qm "languages/$LANG/cavalry_${LANG}.qm"
+          done
+
+      - name: Package release
+        run: |
+          mkdir -p release-pack
+          cp LanguageSwitcher.js release-pack/
+          cp -r languages release-pack/
+          cd release-pack && zip -r ../cavalry-i18n-${{ github.ref_name }}.zip .
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: cavalry-i18n-${{ github.ref_name }}.zip
+          generate_release_notes: true

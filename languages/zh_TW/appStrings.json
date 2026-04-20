@@ -1,0 +1,10 @@
+[
+  {
+    "type": "strings",
+    "language": "en",
+    "value": {
+      "auth.error.accessDenied": "授權遭拒。請重新登入。",
+      "auth.error.generic": "登入過程中發生錯誤。請重試。"
+    }
+  }
+]

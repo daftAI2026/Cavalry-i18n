@@ -1,0 +1,26 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "zoomBlurFilter",
+      "niceName": "缩放模糊",
+      "layerInfo": "Blur a Shape outwards from a central point with customisable attenuation.",
+      "language": "en",
+      "attributes": {
+        "origin": [
+          "原点",
+          "Set the centre point of the blur where 0,0 is the centre of the Shape."
+        ],
+        "amount": [
+          "数量",
+          "Set the distance/strength of the blur."
+        ],
+        "attenuationMultiplier": [
+          "Attenuation乘数",
+          "Multiply the blur based on the distance from the 'Origin'. A lower value will create a harder transition."
+        ]
+      }
+    }
+  }
+]

@@ -1,0 +1,23 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "directionalBlurFilter",
+      "niceName": "Directionalブラー",
+      "layerInfo": "Blur a Shape along an axis to create a streaking effect or simulate motion blur.",
+      "language": "en",
+      "attributes": {
+        "angle": [
+          "角度",
+          "The direction of the blur in degrees."
+        ],
+        "blurAmount": [
+          "ブラー量",
+          "The distance/strength of the directional blur effect. Higher values create more pronounced blur streaks."
+        ]
+      },
+      "enums": {}
+    }
+  }
+]

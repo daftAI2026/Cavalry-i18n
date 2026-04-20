@@ -1,0 +1,26 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "bilateralBlurFilter",
+      "niceName": "Bilateral模糊",
+      "layerInfo": "An edge-preserving blur that smooths areas of similar color while maintaining sharp edges.",
+      "language": "en",
+      "attributes": {
+        "amount": [
+          "數量",
+          "Set the amount of blur in pixels to apply to the Shape."
+        ],
+        "edgeThreshold": [
+          "边閾值",
+          "Set the edge detection sensitivity. A lower value will preserve more edges."
+        ],
+        "colorSigma": [
+          "顏色容差",
+          "Set a tolerance to combine similar colors within. A higher value will result in a wider range of colors being combined."
+        ]
+      }
+    }
+  }
+]

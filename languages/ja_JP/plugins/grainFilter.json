@@ -1,0 +1,95 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "grainFilter",
+      "niceName": "Grain",
+      "layerInfo": "Add grain to images to emulate the visual appearance of film stock",
+      "language": "en",
+      "attributes": {
+        "time": [
+          "時間"
+        ],
+        "sharpen": [
+          "Sharpen",
+          "Sharpen the image before the noise is added. Higher values create more defined edges and details."
+        ],
+        "sharpenEdgesOnly": [
+          "Sharpen Edges Only",
+          "When checked, sharpening is only applied to image regions with a sharp contrast between light and dark areas."
+        ],
+        "grainAmount": [
+          "Grain量",
+          "Set how much grain to apply to the image. Higher values create a more visible noise texture."
+        ],
+        "grainSize": [
+          "サイズ",
+          "Determine the size of the grain. Larger values will create coarser noise."
+        ],
+        "grainTexture": [
+          "テクスチャ",
+          "Determine how much of the original image influences grain placement. Higher values make the grain follow the image structure."
+        ],
+        "logGrain": [
+          "Log Grain",
+          "Control the color space in which the grain is generated. 'Log' space will create more film-like grain characteristics."
+        ],
+        "monochromeGrain": [
+          "Grainタイプ",
+          "Determine if the grain is colorised or black and white. Monochrome creates uniform grain across all channels."
+        ],
+        "redAmount": [
+          "Red量",
+          "Set the amount of grain in the red channel. Use for color-specific noise control."
+        ],
+        "greenAmount": [
+          "Green量",
+          "Set the amount of grain in the green channel. Use for color-specific noise control."
+        ],
+        "blueAmount": [
+          "Blue量",
+          "Set the amount of grain in the blue channel. Use for color-specific noise control."
+        ],
+        "redSize": [
+          "Redサイズ",
+          "Set the size of grain in the red channel. Use for per-channel grain size variation."
+        ],
+        "greenSize": [
+          "Greenサイズ",
+          "Set the size of grain in the green channel. Use for per-channel grain size variation."
+        ],
+        "blueSize": [
+          "Blueサイズ",
+          "Set the size of grain in the blue channel. Use for per-channel grain size variation."
+        ],
+        "highlight": [
+          "Highlight",
+          "Set how much grain appears in image highlights. Lower values reduce grain in bright areas."
+        ],
+        "midtone": [
+          "Midtone",
+          "Set how much grain appears in image midtones. Controls grain in the middle luminance range."
+        ],
+        "shadow": [
+          "シャドウ",
+          "Set how much grain appears in image shadows. Higher values add more grain to dark areas."
+        ]
+      },
+      "enums": {
+        "sharpenEdgesOnly": {
+          "0": "Disabled",
+          "1": "Enabled"
+        },
+        "logGrain": {
+          "0": "Linear",
+          "1": "Log"
+        },
+        "monochromeGrain": {
+          "0": "Color",
+          "1": "Monochrome"
+        }
+      }
+    }
+  }
+]

@@ -1,0 +1,46 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "language": "en",
+      "author": "sceneGroup",
+      "layerType": "rectToPolarFilter",
+      "niceName": "Polar Coordinates",
+      "layerInfo": "Remap layers into polar space.",
+      "attributes": {
+        "centre": [
+          "Centre",
+          "Set the polar origin in pixels where 0,0 is the layer centre."
+        ],
+        "radius": [
+          "半径",
+          "Set the outer radius as a percentage of the shortest layer dimension."
+        ],
+        "innerRadius": [
+          "Inner半径",
+          "Offset the mapping away from the pole by skipping a given percentage of the radius."
+        ],
+        "angleOffset": [
+          "回転",
+          "Rotate the polar conversion in degrees."
+        ],
+        "angularRange": [
+          "Angular範囲",
+          "Limit the conversion to a wedge of the circle in degrees."
+        ],
+        "invertRadius": [
+          "Inside Out",
+          "Flip the mapping so the bottom of the source becomes the outer edge and the top maps to the pole."
+        ],
+        "edgeFeather": [
+          "エッジフェザー",
+          "Feather width in pixels applied to the inner and outer circular edges."
+        ],
+        "seamFeather": [
+          "Seamフェザー",
+          "Feather width in degrees applied to the angular seam."
+        ]
+      }
+    }
+  }
+]

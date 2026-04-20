@@ -1,0 +1,10 @@
+# ── 系统垃圾 ──
+.DS_Store
+
+# ── 内部规划 & 工具链 ──
+doc/
+.baoyu-skills/
+
+# ── 分形文档（本地维护） ──
+CLAUDE.md
+**/CLAUDE.md
