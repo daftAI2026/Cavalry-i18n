@@ -8,6 +8,7 @@
     "desktop": "electron .",
     "test:desktop": "node --test tools/check_electron_patcher_ui.js",
     "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/detect.js && node --check desktop-patcher/lib/patch.js && node --check desktop-patcher/lib/sudo.js && node --check desktop-patcher/renderer/app.js",
+    "check:ui-coverage": "node tools/check_runtime_ui_coverage.js --inventory \"$HOME/Library/Caches/Cavalry-i18n/menu-inventory.json\" --allowlist tools/runtime_ui_allowlist.json --threshold 99",
     "extract:compiled-ui": "node tools/extract_compiled_ui_strings.js --app /Applications/Cavalry.app --output doc/compiled-ui-source-map.json",
     "build:injector": "CAVALRY_QT_VERSION=6.6.3 bash tools/build_translator_injector.sh desktop-patcher/injector/libCavalryTranslatorInjector.dylib",
     "build": "npm run build:injector && electron-builder -m",

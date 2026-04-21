@@ -534,6 +534,22 @@ test('embedded injector normalizes real runtime menu text before lookup', () => 
   );
 });
 
+test('package.json exposes a runtime UI coverage gate with a 99% threshold', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+  const scripts = packageJson.scripts || {};
+
+  assert.match(
+    scripts['check:ui-coverage'] || '',
+    /tools\/check_runtime_ui_coverage\.js/,
+    'package.json should expose a dedicated runtime UI coverage checker instead of relying on ad hoc screenshot inspection'
+  );
+  assert.match(
+    scripts['check:ui-coverage'] || '',
+    /--threshold 99/,
+    'runtime UI localization should use a hard 99% completion gate, with any retained English terms handled through an explicit allowlist'
+  );
+});
+
 test('package.json exposes a compiled UI extraction workflow for non-JSON text', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   const scripts = packageJson.scripts || {};
@@ -647,6 +663,84 @@ test('embedded injector exports the real runtime menu tree from Cavalry itself',
     injectorSource,
     /failed to serialize runtime menu inventory|failed to write runtime menu inventory|menu inventory export deferred/,
     'injector should log why runtime menu inventory export failed so real-app verification does not stall on silent errors'
+  );
+  assert.match(
+    injectorSource,
+    /windowTitle|placeholderText|toolTip|widgetTexts|serializeWidget/,
+    'runtime inventory should cover broader visible UI text beyond menus so completion can be measured across the real app surface'
+  );
+});
+
+test('runtime UI coverage tool enforces thresholded untranslated-string reporting', () => {
+  const tempRoot = makeTempDir();
+  const inventoryPath = path.join(tempRoot, 'runtime-ui-inventory.json');
+  const allowlistPath = path.join(tempRoot, 'allowlist.json');
+  const checkerPath = path.join(repoRoot, 'tools', 'check_runtime_ui_coverage.js');
+
+  writeJson(inventoryPath, {
+    formatVersion: 2,
+    language: 'ja_JP',
+    menuBars: [
+      {
+        items: [
+          { text: '編集', separator: false },
+          { text: 'Show Guides', separator: false },
+          { text: 'SVG', separator: false },
+          { text: 'Google スプレッドシートを読み込み...', separator: false },
+          { text: 'Copy as SVG', separator: false },
+        ],
+      },
+    ],
+    widgetTexts: [
+      { className: 'QLabel', strings: { text: '保存' } },
+      { className: 'QLabel', strings: { text: 'Scene Window' } },
+    ],
+  });
+  writeJson(allowlistPath, {
+    exact: ['SVG'],
+    contains: ['Google', 'SVG'],
+  });
+
+  const failing = spawnSync(
+    process.execPath,
+    [checkerPath, '--inventory', inventoryPath, '--allowlist', allowlistPath, '--threshold', '99'],
+    { encoding: 'utf8' }
+  );
+  assert.equal(
+    failing.status,
+    1,
+    'coverage checker should fail when untranslated runtime UI strings exceed the threshold'
+  );
+  assert.match(
+    `${failing.stdout}\n${failing.stderr}`,
+    /Copy as SVG/,
+    'coverage checker should keep blocking strings that still contain untranslated English after stripping allowlisted retained terms'
+  );
+  assert.match(
+    `${failing.stdout}\n${failing.stderr}`,
+    /Show Guides|Scene Window/,
+    'coverage checker should report the real untranslated runtime strings that block completion'
+  );
+  assert.doesNotMatch(
+    `${failing.stdout}\n${failing.stderr}`,
+    /Google スプレッドシートを読み込み/,
+    'coverage checker should not flag strings that are translated except for explicitly allowlisted retained terms'
+  );
+  assert.match(
+    `${failing.stdout}\n${failing.stderr}`,
+    /99/,
+    'coverage checker output should include the configured completion threshold'
+  );
+
+  const passing = spawnSync(
+    process.execPath,
+    [checkerPath, '--inventory', inventoryPath, '--allowlist', allowlistPath, '--threshold', '40'],
+    { encoding: 'utf8' }
+  );
+  assert.equal(
+    passing.status,
+    0,
+    passing.stderr || passing.stdout || 'coverage checker should pass when the runtime inventory clears the threshold'
   );
 });
 

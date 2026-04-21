@@ -12,10 +12,12 @@
 #include <QtWidgets/qapplication.h>
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qmenubar.h>
+#include <QtWidgets/qtabbar.h>
 #include <QtWidgets/qwidget.h>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qtranslator.h>
+#include <qvariant.h>
 
 namespace {
 
@@ -136,6 +138,7 @@ NSString *runtimeMenuInventoryPath()
 }
 
 id serializeQtAction(QAction *action);
+id serializeWidget(QWidget *widget);
 
 id serializeQtMenu(QMenu *menu)
 {
@@ -173,6 +176,79 @@ id serializeQtAction(QAction *action)
     return payload;
 }
 
+bool addStringValue(NSMutableDictionary *strings, NSString *key, const QString &value)
+{
+    const QString normalized = normalizeMenuText(value);
+    if (normalized.isEmpty()) {
+        return false;
+    }
+
+    strings[key] = toNSString(normalized);
+    return true;
+}
+
+void addWidgetPropertyString(NSMutableDictionary *strings, QWidget *widget, const char *propertyName)
+{
+    const QVariant propertyValue = widget->property(propertyName);
+    if (!propertyValue.isValid()) {
+        return;
+    }
+
+    const QString value = normalizeMenuText(propertyValue.toString());
+    if (value.isEmpty()) {
+        return;
+    }
+
+    strings[[NSString stringWithUTF8String:propertyName]] = toNSString(value);
+}
+
+id serializeWidget(QWidget *widget)
+{
+    if (widget == nullptr || !widget->isVisible()) {
+        return [NSNull null];
+    }
+
+    NSMutableDictionary *payload = [NSMutableDictionary dictionary];
+    payload[@"className"] = [NSString stringWithUTF8String:widget->metaObject()->className()];
+    if (!widget->objectName().isEmpty()) {
+        payload[@"objectName"] = toNSString(widget->objectName());
+    }
+
+    NSMutableDictionary *strings = [NSMutableDictionary dictionary];
+    addStringValue(strings, @"windowTitle", widget->windowTitle());
+    addStringValue(strings, @"toolTip", widget->toolTip());
+    addStringValue(strings, @"statusTip", widget->statusTip());
+    addStringValue(strings, @"whatsThis", widget->whatsThis());
+    addWidgetPropertyString(strings, widget, "text");
+    addWidgetPropertyString(strings, widget, "title");
+    addWidgetPropertyString(strings, widget, "placeholderText");
+    addWidgetPropertyString(strings, widget, "currentText");
+
+    if ([strings count] > 0) {
+        payload[@"strings"] = strings;
+    }
+
+    QTabBar *tabBar = qobject_cast<QTabBar *>(widget);
+    if (tabBar != nullptr && tabBar->count() > 0) {
+        NSMutableArray *tabTexts = [NSMutableArray array];
+        for (int index = 0; index < tabBar->count(); ++index) {
+            const QString tabText = normalizeMenuText(tabBar->tabText(index));
+            if (!tabText.isEmpty()) {
+                [tabTexts addObject:toNSString(tabText)];
+            }
+        }
+        if ([tabTexts count] > 0) {
+            payload[@"tabTexts"] = tabTexts;
+        }
+    }
+
+    if (payload[@"strings"] == nil && payload[@"tabTexts"] == nil) {
+        return [NSNull null];
+    }
+
+    return payload;
+}
+
 bool dumpQtMenuInventory(const QString &lang)
 {
     if (qobject_cast<QApplication *>(QCoreApplication::instance()) == nullptr) {
@@ -180,35 +256,41 @@ bool dumpQtMenuInventory(const QString &lang)
     }
 
     NSMutableArray *menuBars = [NSMutableArray array];
+    NSMutableArray *widgetTexts = [NSMutableArray array];
     const auto widgets = QApplication::allWidgets();
     for (QWidget *widget : widgets) {
         QMenuBar *menuBar = qobject_cast<QMenuBar *>(widget);
-        if (menuBar == nullptr || menuBar->actions().isEmpty()) {
-            continue;
+        if (menuBar != nullptr && !menuBar->actions().isEmpty()) {
+            NSMutableArray *items = [NSMutableArray array];
+            for (QAction *action : menuBar->actions()) {
+                [items addObject:serializeQtAction(action)];
+            }
+
+            [menuBars addObject:@{
+                @"items" : items,
+            }];
         }
 
-        NSMutableArray *items = [NSMutableArray array];
-        for (QAction *action : menuBar->actions()) {
-            [items addObject:serializeQtAction(action)];
+        id serializedWidget = serializeWidget(widget);
+        if (serializedWidget != [NSNull null]) {
+            [widgetTexts addObject:serializedWidget];
         }
-
-        [menuBars addObject:@{
-            @"items" : items,
-        }];
     }
 
-    if ([menuBars count] == 0) {
-        fprintf(stderr, "[cavalry-i18n] menu inventory export deferred: no populated Qt menu bar yet\n");
+    if ([menuBars count] == 0 && [widgetTexts count] == 0) {
+        fprintf(stderr,
+                "[cavalry-i18n] menu inventory export deferred: no populated Qt menu bar or visible widget text yet\n");
         return false;
     }
 
     NSError *jsonError = nil;
     NSString *inventoryPath = runtimeMenuInventoryPath();
     NSData *payload = [NSJSONSerialization dataWithJSONObject:@{
-        @"formatVersion" : @1,
+        @"formatVersion" : @2,
         @"language" : toNSString(lang),
         @"inventoryPath" : inventoryPath,
         @"menuBars" : menuBars,
+        @"widgetTexts" : widgetTexts,
     }
                                                        options:NSJSONWritingPrettyPrinted
                                                           error:&jsonError];

@@ -107,6 +107,106 @@
       <translation>新增場景</translation>
     </message>
     <message>
+      <source>New Composition</source>
+      <translation>新增合成</translation>
+    </message>
+    <message>
+      <source>New Composition from Preset</source>
+      <translation>從預設新增合成</translation>
+    </message>
+    <message>
+      <source>Composition Settings...</source>
+      <translation>合成設定...</translation>
+    </message>
+    <message>
+      <source>Pre-Compose</source>
+      <translation>預合成</translation>
+    </message>
+    <message>
+      <source>Pre-Compose Based on Selection Bounds</source>
+      <translation>根據所選邊界預合成</translation>
+    </message>
+    <message>
+      <source>Close Composition</source>
+      <translation>關閉合成</translation>
+    </message>
+    <message>
+      <source>Close Other Compositions</source>
+      <translation>關閉其他合成</translation>
+    </message>
+    <message>
+      <source>Set Composition to Playback Range</source>
+      <translation>將合成設為播放範圍</translation>
+    </message>
+    <message>
+      <source>Set Playback Area to Selection</source>
+      <translation>將播放範圍設為所選內容</translation>
+    </message>
+    <message>
+      <source>Set Playback Start to Current Frame</source>
+      <translation>將播放開始設為目前影格</translation>
+    </message>
+    <message>
+      <source>Set Playback End to Current Frame</source>
+      <translation>將播放結束設為目前影格</translation>
+    </message>
+    <message>
+      <source>Go to Playback Start</source>
+      <translation>前往播放開始</translation>
+    </message>
+    <message>
+      <source>Go to Playback End</source>
+      <translation>前往播放結束</translation>
+    </message>
+    <message>
+      <source>Go to Composition Start</source>
+      <translation>前往合成開始</translation>
+    </message>
+    <message>
+      <source>Go to Composition End</source>
+      <translation>前往合成結束</translation>
+    </message>
+    <message>
+      <source>Go to Previous Time Marker</source>
+      <translation>前往上一個時間標記</translation>
+    </message>
+    <message>
+      <source>Go to Next Time Marker</source>
+      <translation>前往下一個時間標記</translation>
+    </message>
+    <message>
+      <source>Move Forward</source>
+      <translation>向前移動</translation>
+    </message>
+    <message>
+      <source>Jump Forward</source>
+      <translation>向前跳轉</translation>
+    </message>
+    <message>
+      <source>Move Backward</source>
+      <translation>向後移動</translation>
+    </message>
+    <message>
+      <source>Jump Backward</source>
+      <translation>向後跳轉</translation>
+    </message>
+    <message>
+      <source>Solo Selection in Viewport</source>
+      <translation>在視埠中單獨顯示所選內容</translation>
+    </message>
+    <message>
+      <source>Clear Quicklist</source>
+      <translation>清除快速清單</translation>
+    </message>
+    <message>
+      <source>Enable Time Remapping</source>
+      <translation>啟用時間重映射</translation>
+    </message>
+    <message>
+      <source>Toggle Background Alpha</source>
+      <translation>切換背景 Alpha</translation>
+    </message>
+    <message>
       <source>Open...</source>
       <translation>開啟...</translation>
     </message>

@@ -50,7 +50,7 @@ There are **two** translation surfaces in this project:
 The repo tracks the compiled UI surface in two forms:
 
 1. `doc/compiled-ui-source-map.json` — a checked-in ownership map for what lives in JSON assets vs compiled UI binaries
-2. `~/Library/Caches/Cavalry-i18n/menu-inventory.json` — the authoritative runtime menu tree dumped from the live app
+2. `~/Library/Caches/Cavalry-i18n/menu-inventory.json` — the authoritative runtime UI inventory dumped from the live app
 
 Refresh the compiled binary inventory from a clean local install with:
 
@@ -66,22 +66,30 @@ That command reads `/Applications/Cavalry.app`, inventories likely user-visible 
 
 and rewrites `doc/compiled-ui-source-map.json`.
 
-On translated macOS launches, the injector also exports the **real runtime Qt menu tree** from Cavalry itself to:
+On translated macOS launches, the injector also exports the **real runtime Qt UI inventory** from Cavalry itself to:
 
 ```text
 ~/Library/Caches/Cavalry-i18n/menu-inventory.json
 ```
 
-That file is the authoritative runtime structure for menus and actions. It comes from the live `QMenuBar` / `QMenu` / `QAction` tree inside Cavalry after launch, not from a handwritten repo file.
+That file is the authoritative runtime structure for menus, actions, and visible widget text. It comes from the live `QMenuBar` / `QMenu` / `QAction` tree plus visible `QWidget` text surfaces inside Cavalry after launch, not from a handwritten repo file.
+
+Hard completion gate for compiled UI work:
+
+1. Run a real translated launch to refresh `~/Library/Caches/Cavalry-i18n/menu-inventory.json`
+2. Run `npm run check:ui-coverage`
+3. Do **not** call the task complete until runtime coverage is **>= 99%**
+4. Any retained English/proper nouns must be listed explicitly in `tools/runtime_ui_allowlist.json`
 
 Recommended workflow for full UI coverage:
 
 1. Refresh the English JSON snapshot as before
 2. Refresh the compiled UI source map with `npm run extract:compiled-ui`
-3. Launch Cavalry once and inspect `~/Library/Caches/Cavalry-i18n/menu-inventory.json` for the exact runtime menu tree
+3. Launch Cavalry once and inspect `~/Library/Caches/Cavalry-i18n/menu-inventory.json` for the exact runtime UI inventory
 4. Curate translations for any newly surfaced compiled UI strings
-5. Regenerate embedded injector tables from the curated translation sources
-6. Walk the actual UI and verify menus, submenus, dialogs, onboarding, tips, and plugin names against the source map and runtime inventory
+5. Run `npm run check:ui-coverage` and treat any remaining untranslated strings as blockers until they are either translated or allowlisted
+6. Regenerate embedded injector tables from the curated translation sources
+7. Walk the actual UI and verify menus, submenus, dialogs, onboarding, tips, plugin names, and visible panel/widget text against the source map and runtime inventory
 
 This split is important because the existing JSON asset pipeline does **not** own the full menu bar or all Qt actions.
 

@@ -1,0 +1,19 @@
+{
+  "exact": [
+    "Cavalry",
+    "SVG",
+    "Lottie",
+    "Google",
+    "JavaScript",
+    "RGBA",
+    "RGB",
+    "dummy"
+  ],
+  "contains": [
+    "Cavalry",
+    "SVG",
+    "Lottie",
+    "Google",
+    "JavaScript"
+  ]
+}
