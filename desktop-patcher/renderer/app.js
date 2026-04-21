@@ -134,7 +134,10 @@ applyButton.addEventListener('click', async () => {
     }
 
     const warningSuffix = result.warning ? ` ${result.warning}` : '';
-    setStatus(`Applied ${languageLabel(nextLanguage)} and restarted Cavalry.${warningSuffix}`, 'success');
+    setStatus(
+      `Applied ${languageLabel(nextLanguage)} and restarted Cavalry.${warningSuffix}`,
+      result.warning ? 'warning' : 'success'
+    );
   } finally {
     setBusy(false);
   }

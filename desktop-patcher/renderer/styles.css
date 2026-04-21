@@ -192,12 +192,6 @@ button.secondary {
   color: #ff9b9b;
 }
 
-.risk-note {
-  margin-top: 12px;
-  color: #8f9cad;
-  line-height: 1.5;
-}
-
 @media (max-width: 820px) {
   .app-shell {
     width: calc(100vw - 24px);

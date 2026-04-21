@@ -11,7 +11,7 @@ The desktop patcher works against the original installed app:
 
 On Windows, the patcher still applies the selected JSON files directly to the chosen install.
 
-The automatic patch flow only replaces the language files it needs. It does not recursively rewrite bundle metadata or clear xattrs across the whole app bundle.
+The automatic patch flow only replaces the language files it needs. On macOS it re-signs the modified bundle and clears the `com.apple.quarantine` attribute recursively so Gatekeeper is less likely to block the patched app on relaunch.
 On macOS, if direct shell copy into `/Applications/...app` is blocked while restoring English, the patcher retries with a Finder-style replacement flow. Approve Finder control if macOS prompts for it.
 
 ## Supported languages
@@ -58,7 +58,7 @@ Electron stores runtime data under `app.getPath('userData')`.
 
 At runtime, restoring English uses the extracted snapshot from the selected install, not a bundled repo copy.
 On macOS, the patcher also reads the bundle-local `cavalry-i18n-lang.txt` marker so it can recover the real installed language even if `state.json` goes stale.
-On macOS, translated launches keep using the original `Cavalry.app` path. The patcher writes a bundle-local language marker, installs the injector into `Contents/Frameworks`, switches `CFBundleExecutable` to a launcher wrapper, re-signs nested Mach-O files such as `crashpad_handler` and injected dylibs first, and then re-signs the modified bundle. Packaged Electron builds read the precompiled injector from `Contents/Resources/injector/` instead of trying to rebuild it inside `app.asar` at runtime.
+On macOS, translated launches keep using the original `Cavalry.app` path. The patcher writes a bundle-local language marker, installs the injector into `Contents/Frameworks`, switches `CFBundleExecutable` to a launcher wrapper, re-signs nested Mach-O files such as `crashpad_handler` and injected dylibs first, re-signs the modified bundle, and then clears `com.apple.quarantine` from the app tree. If macOS still reports the patched app as blocked, run `sudo xattr -dr com.apple.quarantine /Applications/Cavalry.app` manually and try launching again. Packaged Electron builds read the precompiled injector from `Contents/Resources/injector/` instead of trying to rebuild it inside `app.asar` at runtime.
 
 ## Repository layout
 

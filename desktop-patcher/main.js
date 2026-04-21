@@ -329,6 +329,33 @@ function resignPatchedBundle(appPath) {
   }
 }
 
+function buildManualQuarantineClearCommand(appPath) {
+  return `sudo xattr -dr com.apple.quarantine ${shellQuote(appPath)}`;
+}
+
+function clearGatekeeperQuarantine(appPath) {
+  if (process.platform !== 'darwin') {
+    return;
+  }
+
+  const result = runCommandMaybeWithAdmin('xattr', ['-dr', 'com.apple.quarantine', appPath]);
+  if (result.status === 0) {
+    return;
+  }
+
+  const detail = (result.stderr || result.stdout || '').trim();
+  if (/no such xattr|does not have an attribute named com\.apple\.quarantine/i.test(detail)) {
+    return;
+  }
+
+  const fallbackCommand = buildManualQuarantineClearCommand(appPath);
+  throw new Error(
+    `${
+      detail || 'Could not remove the macOS quarantine attribute from the patched app bundle.'
+    } Run this in Terminal and try again: ${fallbackCommand}`
+  );
+}
+
 function quitCavalryBundle(appPath) {
   const appName = path.basename(appPath, '.app');
   spawnSync('osascript', ['-e', `tell application "${appName.replace(/"/g, '\\"')}" to quit`], {
@@ -601,6 +628,7 @@ ipcMain.handle('i18n:apply-language', async (_event, payload) => {
       copyMode = copyWithSudo(stagedPairs);
       if (process.platform === 'darwin') {
         resignPatchedBundle(appPath);
+        clearGatekeeperQuarantine(appPath);
       }
     } finally {
       fs.rmSync(stagingRoot, { recursive: true, force: true });

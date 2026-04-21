@@ -175,19 +175,39 @@ test('renderer and preload expose the simplified JSON-only desktop flow', () => 
   assert.match(html, /Current:/);
   assert.match(html, /Apply &amp; Restart|Apply & Restart/);
   assert.match(html, /id="statusText"/);
+  assert.doesNotMatch(
+    html,
+    /Editing files inside Cavalry\.app may change how macOS code-signature verification reports this install\./,
+    'desktop UI should not show a stale always-on code-signature warning when no warning was reported'
+  );
   assert.doesNotMatch(html, /id="outputAppPath"/);
   assert.doesNotMatch(html, /id="qmTarget"/);
   assert.doesNotMatch(html, /id="inspectButton"/);
   assert.doesNotMatch(html, /id="diagnosticsGrid"/);
 });
 
-test('macOS sudo script does not recursively clear xattrs on the whole app bundle', () => {
+test('renderer only switches status to warning when the patch flow reports a real warning', () => {
+  const rendererSource = fs.readFileSync(path.join(desktopRoot, 'renderer', 'app.js'), 'utf8');
+
+  assert.match(
+    rendererSource,
+    /result\.warning/,
+    'renderer should branch on applyLanguage warnings instead of showing a permanent warning note'
+  );
+  assert.match(
+    rendererSource,
+    /result\.warning\s*\?\s*'warning'\s*:\s*'success'/,
+    'renderer should downgrade the status tone only when applyLanguage returns a warning'
+  );
+});
+
+test('macOS copy helper does not perform blanket xattr cleanup during file replacement', () => {
   const sudoSource = fs.readFileSync(path.join(desktopRoot, 'lib', 'sudo.js'), 'utf8');
 
   assert.doesNotMatch(
     sudoSource,
     /xattr\s+-cr/,
-    'automatic JSON patching should not run recursive xattr cleanup on the entire .app bundle'
+    'file-copy escalation should not silently run blanket xattr cleanup; targeted quarantine removal is handled separately in the main macOS patch flow'
   );
 });
 
@@ -314,6 +334,21 @@ test('macOS signing path handles crashpad_handler before re-signing the original
     mainSource,
     /collectNestedCodePaths|isMachOBinary/,
     'macOS signing path should enumerate nested Mach-O code objects instead of relying on outer bundle signing alone'
+  );
+});
+
+test('macOS patch flow clears Gatekeeper quarantine from the patched app bundle', () => {
+  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+
+  assert.match(
+    mainSource,
+    /xattr', \['-dr', 'com\.apple\.quarantine', appPath\]/,
+    'patched macOS apps should remove the quarantine attribute so Gatekeeper does not block the modified bundle on relaunch'
+  );
+  assert.match(
+    mainSource,
+    /sudo xattr -dr com\.apple\.quarantine/,
+    'failure guidance should include the exact terminal fallback command for clearing quarantine manually'
   );
 });
 
