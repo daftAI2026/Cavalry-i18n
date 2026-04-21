@@ -5,6 +5,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
 const desktopRoot = path.join(repoRoot, 'desktop-patcher');
@@ -56,10 +57,12 @@ test('desktop patcher workspace matches the JSON-only refactor layout', () => {
     path.join(desktopRoot, 'lib', 'patch.js'),
     path.join(desktopRoot, 'lib', 'sudo.js'),
     path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(desktopRoot, 'injector', 'generated_translations.inc'),
     path.join(repoRoot, 'languages', 'zh-Hans', 'nodeStrings.json'),
     path.join(repoRoot, 'languages', 'zh-Hant', 'nodeStrings.json'),
     path.join(repoRoot, 'languages', 'ja_JP', 'nodeStrings.json'),
     path.join(repoRoot, 'tools', 'build_translator_injector.sh'),
+    path.join(repoRoot, 'tools', 'generate_embedded_translations.js'),
     path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'),
     path.join(repoRoot, 'tools', 'zh-Hans.ts'),
     path.join(repoRoot, 'tools', 'zh-Hant.ts'),
@@ -243,6 +246,21 @@ test('desktop main process can recover current language from the patched app bun
   );
 });
 
+test('packaged desktop app prefers a bundled injector resource over rebuilding from source at runtime', () => {
+  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+
+  assert.match(
+    mainSource,
+    /process\.resourcesPath/,
+    'packaged Electron app should look for a prebuilt injector under process.resourcesPath'
+  );
+  assert.match(
+    mainSource,
+    /resources.*injector|path\.join\(process\.resourcesPath, 'injector'/,
+    'packaged Electron app should read the injector from a packaged resource directory'
+  );
+});
+
 test('embedded injector does not depend on runtime qm files', () => {
   const injectorSource = fs.readFileSync(
     path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
@@ -312,6 +330,52 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     /QT_FRAMEWORKS\/QtCore\.framework\/Versions\/A\/QtCore/,
     'injector build should support linking against a standalone Qt install for CI prebuilds'
   );
+  assert.match(
+    buildScript,
+    /QtGui QtWidgets/,
+    'injector build should keep the same QtGui/QtWidgets link surface as the historical working injector where available'
+  );
+  assert.match(
+    buildScript,
+    /CAVALRY_QT_VERSION|CFBundleVersion/,
+    'injector build should verify that the build-time Qt version matches the target Cavalry Qt runtime branch'
+  );
+});
+
+test('embedded injector source is generated from ts translation files', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /generated_translations\.inc/,
+    'injector source should include generated translation tables rather than hand-maintained copies'
+  );
+  assert.match(
+    injectorSource,
+    /qVersion|QT_VERSION_STR/,
+    'injector should verify the runtime Qt version before installing translations'
+  );
+});
+
+test('checked-in generated translation table matches the ts sources', () => {
+  const tempRoot = makeTempDir();
+  const generatedPath = path.join(tempRoot, 'generated_translations.inc');
+  const generatorPath = path.join(repoRoot, 'tools', 'generate_embedded_translations.js');
+  const checkedInPath = path.join(desktopRoot, 'injector', 'generated_translations.inc');
+
+  const result = spawnSync(process.execPath, [generatorPath, generatedPath], { encoding: 'utf8' });
+  assert.equal(result.status, 0, result.stderr || result.stdout || 'generator should exit cleanly');
+
+  const generated = fs.readFileSync(generatedPath, 'utf8');
+  const checkedIn = fs.readFileSync(checkedInPath, 'utf8');
+  assert.equal(
+    generated,
+    checkedIn,
+    'generated_translations.inc should be regenerated from tools/*.ts whenever translation sources change'
+  );
 });
 
 test('release workflow prebuilds and packages the injector dylib on macOS', () => {
@@ -324,6 +388,16 @@ test('release workflow prebuilds and packages the injector dylib on macOS', () =
   );
   assert.match(
     workflow,
+    /install-qt-action@v4/,
+    'release pipeline should install a pinned Qt runtime instead of whichever Homebrew Qt happens to be latest'
+  );
+  assert.match(
+    workflow,
+    /version:\s*['"]6\.6\.3['"]/,
+    'release pipeline should pin Qt 6.6.3 to match the current Cavalry runtime frameworks'
+  );
+  assert.match(
+    workflow,
     /build_translator_injector\.sh/,
     'release pipeline should invoke the injector build script'
   );
@@ -331,5 +405,44 @@ test('release workflow prebuilds and packages the injector dylib on macOS', () =
     workflow,
     /libCavalryTranslatorInjector\.dylib/,
     'release packaging should include the prebuilt injector dylib'
+  );
+  assert.match(
+    workflow,
+    /npm run build/,
+    'release pipeline should build the packaged macOS patcher app, not just zip the source tree'
+  );
+  assert.match(
+    workflow,
+    /dist\/\*\.dmg|dist\/\*\.zip/,
+    'release pipeline should publish electron-builder macOS artifacts for end users'
+  );
+});
+
+test('local macOS packaging prebuilds and bundles the injector dylib', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+  const scripts = packageJson.scripts || {};
+  const buildConfig = packageJson.build || {};
+
+  assert.match(
+    scripts.build || '',
+    /build:injector/,
+    'local packaging should prebuild the injector before running electron-builder'
+  );
+  assert.match(
+    scripts['build:dir'] || '',
+    /build:injector/,
+    'directory packaging should also prebuild the injector before running electron-builder'
+  );
+  assert.ok(
+    Array.isArray(buildConfig.extraResources) &&
+      buildConfig.extraResources.some((entry) =>
+        JSON.stringify(entry).includes('libCavalryTranslatorInjector.dylib')
+      ),
+    'electron-builder config should copy the prebuilt injector dylib into packaged app resources'
+  );
+  assert.match(
+    scripts['build:injector'] || '',
+    /CAVALRY_QT_VERSION=6\.6\.3/,
+    'local injector prebuild should pin the current target Cavalry Qt branch even when a local app bundle is unavailable'
   );
 });

@@ -30,6 +30,16 @@ npm install
 npm run desktop
 ```
 
+To build the distributable macOS patcher app itself:
+
+```bash
+npm run build
+```
+
+The injector must be built against the same Qt minor branch that Cavalry ships. The current Cavalry.app bundle uses **Qt 6.6.3**, so local injector builds should use **Qt 6.6.x** as well. The build script now refuses to compile if the build-time Qt branch does not match the target Cavalry Qt branch, and the injector also checks the runtime Qt branch before installing translations. `npm run build` now pins `CAVALRY_QT_VERSION=6.6.3` by default, and you can override the Qt install root with `CAVALRY_QT_PREFIX` or `QT_ROOT_DIR` if needed.
+
+The exact Qt string table that gets compiled into `libCavalryTranslatorInjector.dylib` is checked into `desktop-patcher/injector/generated_translations.inc`, and `npm run test:desktop` regenerates it from `tools/*.ts` to make sure the checked-in file stays in sync.
+
 The app will try these paths automatically:
 
 1. the last path saved in `state.json`
@@ -48,7 +58,7 @@ Electron stores runtime data under `app.getPath('userData')`.
 
 At runtime, restoring English uses the extracted snapshot from the selected install, not a bundled repo copy.
 On macOS, the patcher also reads the bundle-local `cavalry-i18n-lang.txt` marker so it can recover the real installed language even if `state.json` goes stale.
-On macOS, translated launches keep using the original `Cavalry.app` path. The patcher writes a bundle-local language marker, installs the injector into `Contents/Frameworks`, switches `CFBundleExecutable` to a launcher wrapper, and then re-signs the modified bundle.
+On macOS, translated launches keep using the original `Cavalry.app` path. The patcher writes a bundle-local language marker, installs the injector into `Contents/Frameworks`, switches `CFBundleExecutable` to a launcher wrapper, and then re-signs the modified bundle. Packaged Electron builds read the precompiled injector from `Contents/Resources/injector/` instead of trying to rebuild it inside `app.asar` at runtime.
 
 ## Repository layout
 
@@ -75,6 +85,7 @@ Cavalry-i18n/
 └── tools/
     ├── build_translator_injector.sh
     ├── check_electron_patcher_ui.js
+    ├── generate_embedded_translations.js
     ├── ja_JP.ts
     ├── launch_cavalry_with_injector.sh
     ├── validate_translations.py
@@ -97,4 +108,4 @@ Validation rules are defined in `doc/translation-whitelist.json`.
 
 ## macOS release note
 
-End users should keep launching the original `Cavalry.app`. Tagged releases now prebuild `desktop-patcher/injector/libCavalryTranslatorInjector.dylib` on macOS and package it into the release zip, so users do not need Qt or any external launcher script. The `tools/build_translator_injector.sh` fallback is for local development when that prebuilt dylib is missing, and `tools/launch_cavalry_with_injector.sh` is now only a manual debug utility rather than part of the normal patch flow.
+End users should keep launching the original `Cavalry.app`. Tagged releases now build the packaged macOS patcher on macOS, prebuild `desktop-patcher/injector/libCavalryTranslatorInjector.dylib`, and publish the electron-builder DMG/ZIP so users do not need Qt or any external launcher script. The `tools/build_translator_injector.sh` fallback is for local development when that prebuilt dylib is missing, `tools/generate_embedded_translations.js` regenerates the embedded translation table directly from `tools/*.ts`, and `tools/launch_cavalry_with_injector.sh` is now only a manual debug utility rather than part of the normal patch flow.

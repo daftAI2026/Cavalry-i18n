@@ -8,8 +8,9 @@
     "desktop": "electron .",
     "test:desktop": "node --test tools/check_electron_patcher_ui.js",
     "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/detect.js && node --check desktop-patcher/lib/patch.js && node --check desktop-patcher/lib/sudo.js && node --check desktop-patcher/renderer/app.js",
-    "build": "electron-builder -m",
-    "build:dir": "electron-builder -m --dir"
+    "build:injector": "CAVALRY_QT_VERSION=6.6.3 bash tools/build_translator_injector.sh desktop-patcher/injector/libCavalryTranslatorInjector.dylib",
+    "build": "npm run build:injector && electron-builder -m",
+    "build:dir": "npm run build:injector && electron-builder -m --dir"
   },
   "build": {
     "appId": "com.daftai.cavalry-i18n",
@@ -21,6 +22,12 @@
       "desktop-patcher/**/*",
       "languages/**/*",
       "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "desktop-patcher/injector/libCavalryTranslatorInjector.dylib",
+        "to": "injector/libCavalryTranslatorInjector.dylib"
+      }
     ],
     "mac": {
       "category": "public.app-category.developer-tools",

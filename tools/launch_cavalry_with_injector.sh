@@ -87,7 +87,7 @@ if [ -z "$INJECTOR_PATH" ]; then
   INJECTOR_PATH="$CACHE_ROOT/libCavalryTranslatorInjector.dylib"
 fi
 
-"$REPO_ROOT/tools/build_translator_injector.sh" "$INJECTOR_PATH" "$APP_PATH/Contents/Frameworks"
+/bin/bash "$REPO_ROOT/tools/build_translator_injector.sh" "$INJECTOR_PATH" "$APP_PATH/Contents/Frameworks"
 
 if [ "$RESIGN_APP" -eq 1 ]; then
   while IFS= read -r crashpad_path; do

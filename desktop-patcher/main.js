@@ -107,6 +107,10 @@ function getInstalledInjectorPath(appPath) {
   return path.join(appPath, 'Contents', 'Frameworks', INJECTOR_DYLIB_NAME);
 }
 
+function getPackagedInjectorPath() {
+  return path.join(process.resourcesPath, 'injector', INJECTOR_DYLIB_NAME);
+}
+
 function readInstalledLanguage(appPath, fallback = 'en') {
   if (!appPath || process.platform !== 'darwin') {
     return fallback;
@@ -164,9 +168,20 @@ function buildWrappedInfoPlist(appPath) {
 }
 
 function getBundledInjectorSourcePath(appPath) {
+  const packagedPath = getPackagedInjectorPath();
+  if (app.isPackaged && fs.existsSync(packagedPath)) {
+    return packagedPath;
+  }
+
   const prebuiltPath = path.join(repoRoot, 'desktop-patcher', 'injector', INJECTOR_DYLIB_NAME);
   if (fs.existsSync(prebuiltPath)) {
     return prebuiltPath;
+  }
+
+  if (app.isPackaged) {
+    throw new Error(
+      `Packaged injector missing: ${packagedPath}. This Cavalry Patcher build does not include libCavalryTranslatorInjector.dylib in Resources/injector. Rebuild or replace it with a newer packaged build.`
+    );
   }
 
   const buildScriptPath = path.join(repoRoot, 'tools', 'build_translator_injector.sh');
