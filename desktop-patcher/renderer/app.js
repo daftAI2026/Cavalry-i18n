@@ -79,7 +79,6 @@ browseButton.addEventListener('click', async () => {
   }
 
   await bootstrap();
-  setStatus(`Selected ${result.appPath}`, 'success');
 });
 
 extractButton.addEventListener('click', async () => {

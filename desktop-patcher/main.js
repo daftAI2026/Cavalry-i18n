@@ -51,6 +51,46 @@ function getEnglishSnapshotDir() {
   return path.join(getStateDir(), 'en');
 }
 
+function getTranslatedAppsDir() {
+  return path.join(getStateDir(), 'translated-apps');
+}
+
+function sanitizePathSegment(value, fallback = 'unknown') {
+  const normalized = String(value || '')
+    .trim()
+    .replace(/[^A-Za-z0-9._-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+  return normalized || fallback;
+}
+
+function getTranslatedAppPath(appPath, version, lang) {
+  return path.join(
+    getTranslatedAppsDir(),
+    sanitizePathSegment(version),
+    sanitizePathSegment(lang, 'en'),
+    path.basename(appPath)
+  );
+}
+
+function prepareTranslatedApp(appPath, version, lang) {
+  const translatedAppPath = getTranslatedAppPath(appPath, version, lang);
+  fs.rmSync(translatedAppPath, { recursive: true, force: true });
+  fs.mkdirSync(path.dirname(translatedAppPath), { recursive: true });
+  const result = spawnSync('ditto', [appPath, translatedAppPath], { encoding: 'utf8' });
+  if (result.status !== 0) {
+    const detail = (result.stderr || result.stdout || '').trim() || 'Could not create translated app copy.';
+    throw new Error(detail);
+  }
+  return translatedAppPath;
+}
+
+function quitCavalryBundle(appPath) {
+  const appName = path.basename(appPath, '.app');
+  spawnSync('osascript', ['-e', `tell application "${appName.replace(/"/g, '\\"')}" to quit`], {
+    stdio: 'ignore',
+  });
+}
+
 function normalizeState(value = {}) {
   return {
     appPath: typeof value.appPath === 'string' ? value.appPath : '',
@@ -147,16 +187,40 @@ function extractEnglishSnapshotOrThrow(state, appPath, version) {
   };
 }
 
-function restartCavalryBundle(appPath) {
+function launchTranslatedCavalry(appPath, version, lang) {
+  const translatedAppPath = getTranslatedAppPath(appPath, version, lang);
+  if (!fs.existsSync(translatedAppPath)) {
+    throw new Error('Translated app copy is missing. Apply the language again before restarting.');
+  }
+
+  const launcherPath = path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh');
+  if (!fs.existsSync(launcherPath)) {
+    throw new Error('Translated launcher is missing from tools/launch_cavalry_with_injector.sh.');
+  }
+
+  quitCavalryBundle(appPath);
+
+  const result = spawnSync('/bin/bash', [launcherPath, '--app', translatedAppPath, '--lang', lang], {
+    encoding: 'utf8',
+  });
+  if (result.status !== 0) {
+    const detail = (result.stderr || result.stdout || '').trim() || 'Translated launcher failed.';
+    throw new Error(detail);
+  }
+}
+
+function restartCavalryBundle(appPath, version, lang) {
   if (!appPath) {
     throw new Error('Select a Cavalry.app first.');
   }
 
   if (process.platform === 'darwin') {
-    const appName = path.basename(appPath, '.app');
-    spawnSync('osascript', ['-e', `tell application "${appName.replace(/"/g, '\\"')}" to quit`], {
-      stdio: 'ignore',
-    });
+    if (lang && lang !== 'en') {
+      launchTranslatedCavalry(appPath, version, lang);
+      return;
+    }
+
+    quitCavalryBundle(appPath);
 
     const child = spawn('open', ['-n', appPath], {
       detached: true,
@@ -271,26 +335,39 @@ ipcMain.handle('i18n:apply-language', async (_event, payload) => {
       lang === 'en'
         ? { count: 0, state: currentState }
         : extractEnglishSnapshotOrThrow(currentState, appPath, version);
+    const targetAppPath =
+      process.platform === 'darwin' && lang !== 'en'
+        ? prepareTranslatedApp(appPath, version, lang)
+        : appPath;
 
     const sourceDir = lang === 'en' ? getEnglishSnapshotDir() : path.join(languagesDir, lang);
     if (!fs.existsSync(sourceDir)) {
+      if (lang === 'en') {
+        return {
+          ok: false,
+          error:
+            'English snapshot not found. Point the app picker to a clean Cavalry.app and refresh English first.',
+        };
+      }
       return { ok: false, error: `Language files not found for ${lang}.` };
     }
 
-    const pairs = buildCopyPairs(sourceDir, appPath);
+    const pairs = buildCopyPairs(sourceDir, targetAppPath);
     if (pairs.length === 0) {
       return { ok: false, error: `No JSON assets found for ${lang}.` };
     }
 
     const stagingDir = path.join(os.tmpdir(), `cavalry-i18n-staging-${Date.now()}-${process.pid}`);
+    let copyMode = 'shell';
     try {
       const stagedPairs = stageFiles(pairs, stagingDir);
-      copyWithSudo(stagedPairs);
+      copyMode = copyWithSudo(stagedPairs);
     } finally {
       fs.rmSync(stagingDir, { recursive: true, force: true });
     }
 
-    const signature = verifyCodeSignature(appPath);
+    const signature =
+      targetAppPath === appPath ? verifyCodeSignature(appPath) : { ok: true, message: '' };
     const nextState = writeState({
       ...snapshotResult.state,
       appPath,
@@ -302,7 +379,17 @@ ipcMain.handle('i18n:apply-language', async (_event, payload) => {
     return {
       ok: true,
       currentLang: nextState.currentLang,
-      warning: signature.ok ? '' : signature.message,
+      warning: [
+        targetAppPath !== appPath
+          ? `Using managed translated app copy: ${targetAppPath}`
+          : '',
+        copyMode === 'finder'
+          ? 'macOS blocked direct shell copy, so Finder-style replacement was used.'
+          : '',
+        signature.ok ? '' : signature.message,
+      ]
+        .filter(Boolean)
+        .join(' '),
     };
   } catch (error) {
     return { ok: false, error: error.message };
@@ -310,9 +397,15 @@ ipcMain.handle('i18n:apply-language', async (_event, payload) => {
 });
 
 ipcMain.handle('i18n:restart-cavalry', async (_event, payload) => {
-  const appPath = payload?.appPath || '';
   try {
-    restartCavalryBundle(appPath);
+    const currentState = readState() || normalizeState();
+    const appPath = payload?.appPath || findCavalryApp(currentState.appPath);
+    if (!appPath) {
+      return { ok: false, error: 'Select a Cavalry.app first.' };
+    }
+
+    const version = readBundleVersion(appPath) || currentState.cavalryVersion;
+    restartCavalryBundle(appPath, version, currentState.currentLang);
     return { ok: true };
   } catch (error) {
     return { ok: false, error: error.message };

@@ -12,12 +12,69 @@ function powershellQuote(value) {
 }
 
 function buildMacScript(pairs) {
-  return [
-    '#!/bin/sh',
-    'set -eu',
-    ...pairs.map(({ src, dst }) => `cp ${shellQuote(src)} ${shellQuote(dst)}`),
-    '',
+  const lines = ['#!/bin/sh', 'set -eu'];
+  lines.push(...pairs.map(({ src, dst }) => `cp ${shellQuote(src)} ${shellQuote(dst)}`));
+  lines.push('');
+  return lines.join('\n');
+}
+
+function isPermissionError(detail) {
+  return /operation not permitted|permission denied|eacces|eperm/i.test(detail);
+}
+
+function runDirectCopy(pairs) {
+  for (const { src, dst } of pairs) {
+    fs.mkdirSync(path.dirname(dst), { recursive: true });
+    fs.copyFileSync(src, dst);
+  }
+  return 'direct';
+}
+
+function shouldRetryWithFinder(detail, pairs) {
+  return (
+    detail.includes('Operation not permitted') &&
+    pairs.some(({ dst }) => dst.startsWith('/Applications/') && dst.includes('.app/'))
+  );
+}
+
+function runFinderFallback(pairs) {
+  const appleScript = [
+    'on run argv',
+    '  tell application "Finder"',
+    '    set argCount to count of argv',
+    '    repeat with i from 1 to argCount by 2',
+    '      set srcPath to item i of argv',
+    '      set dstPath to item (i + 1) of argv',
+    '      set dstFolderPath to do shell script "dirname " & quoted form of dstPath',
+    '      set dstFileName to do shell script "basename " & quoted form of dstPath',
+    '      set destinationFolder to POSIX file dstFolderPath as alias',
+    '      if exists file dstFileName of destinationFolder then',
+    '        delete file dstFileName of destinationFolder',
+    '      end if',
+    '      set duplicatedItem to duplicate (POSIX file srcPath as alias) to destinationFolder',
+    '      if class of duplicatedItem is list then',
+    '        set duplicatedItem to item 1 of duplicatedItem',
+    '      end if',
+    '      set name of duplicatedItem to dstFileName',
+    '    end repeat',
+    '  end tell',
+    'end run',
   ].join('\n');
+
+  const result = spawnSync(
+    'osascript',
+    ['-e', appleScript, ...pairs.flatMap(({ src, dst }) => [src, dst])],
+    { encoding: 'utf8' }
+  );
+
+  if (result.status !== 0) {
+    const detail =
+      (result.stderr || result.stdout || '').trim() ||
+      'Finder fallback failed. Allow the app to control Finder if macOS prompts.';
+    throw new Error(detail);
+  }
+
+  return 'finder';
 }
 
 function buildWindowsScript(pairs) {
@@ -46,8 +103,12 @@ function runMacCopy(pairs) {
     const result = spawnSync('osascript', ['-e', appleScript, scriptPath], { encoding: 'utf8' });
     if (result.status !== 0) {
       const detail = (result.stderr || result.stdout || '').trim() || 'Administrator copy failed.';
+      if (shouldRetryWithFinder(detail, pairs)) {
+        return runFinderFallback(pairs);
+      }
       throw new Error(detail);
     }
+    return 'shell';
   } finally {
     fs.rmSync(scriptPath, { force: true });
   }
@@ -74,6 +135,7 @@ function runWindowsCopy(pairs) {
       const detail = (result.stderr || result.stdout || '').trim() || 'Administrator copy failed.';
       throw new Error(detail);
     }
+    return 'shell';
   } finally {
     fs.rmSync(scriptPath, { force: true });
   }
@@ -81,17 +143,24 @@ function runWindowsCopy(pairs) {
 
 function copyWithSudo(pairs) {
   if (pairs.length === 0) {
-    return;
+    return 'noop';
+  }
+
+  try {
+    return runDirectCopy(pairs);
+  } catch (error) {
+    const detail = error && error.message ? error.message : String(error);
+    if (!isPermissionError(detail)) {
+      throw error;
+    }
   }
 
   if (process.platform === 'darwin') {
-    runMacCopy(pairs);
-    return;
+    return runMacCopy(pairs);
   }
 
   if (process.platform === 'win32') {
-    runWindowsCopy(pairs);
-    return;
+    return runWindowsCopy(pairs);
   }
 
   throw new Error(`Unsupported platform: ${process.platform}`);

@@ -55,9 +55,15 @@ test('desktop patcher workspace matches the JSON-only refactor layout', () => {
     path.join(desktopRoot, 'lib', 'detect.js'),
     path.join(desktopRoot, 'lib', 'patch.js'),
     path.join(desktopRoot, 'lib', 'sudo.js'),
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
     path.join(repoRoot, 'languages', 'zh-Hans', 'nodeStrings.json'),
     path.join(repoRoot, 'languages', 'zh-Hant', 'nodeStrings.json'),
     path.join(repoRoot, 'languages', 'ja_JP', 'nodeStrings.json'),
+    path.join(repoRoot, 'tools', 'build_translator_injector.sh'),
+    path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'),
+    path.join(repoRoot, 'tools', 'zh-Hans.ts'),
+    path.join(repoRoot, 'tools', 'zh-Hant.ts'),
+    path.join(repoRoot, 'tools', 'ja_JP.ts'),
   ];
 
   for (const filePath of expectedFiles) {
@@ -67,7 +73,6 @@ test('desktop patcher workspace matches the JSON-only refactor layout', () => {
   const removedPaths = [
     path.join(repoRoot, 'LanguageSwitcher.js'),
     path.join(repoRoot, 'LanguageSwitcher_assets'),
-    path.join(desktopRoot, 'injector'),
     path.join(desktopRoot, 'lib', 'patcher-config.js'),
     path.join(repoRoot, 'tools', 'patch_cavalry_bundle.py'),
     path.join(repoRoot, 'tools', 'check_language_switcher_runtime.js'),
@@ -171,4 +176,77 @@ test('renderer and preload expose the simplified JSON-only desktop flow', () => 
   assert.doesNotMatch(html, /id="qmTarget"/);
   assert.doesNotMatch(html, /id="inspectButton"/);
   assert.doesNotMatch(html, /id="diagnosticsGrid"/);
+});
+
+test('macOS sudo script does not recursively clear xattrs on the whole app bundle', () => {
+  const sudoSource = fs.readFileSync(path.join(desktopRoot, 'lib', 'sudo.js'), 'utf8');
+
+  assert.doesNotMatch(
+    sudoSource,
+    /xattr\s+-cr/,
+    'automatic JSON patching should not run recursive xattr cleanup on the entire .app bundle'
+  );
+});
+
+test('macOS patch helper can fall back to Finder-style replacement without re-signing the whole app bundle', () => {
+  const sudoSource = fs.readFileSync(path.join(desktopRoot, 'lib', 'sudo.js'), 'utf8');
+
+  assert.match(
+    sudoSource,
+    /tell application "Finder"/,
+    'macOS helper should include a Finder fallback when shell copy is denied'
+  );
+  assert.match(
+    sudoSource,
+    /duplicate .* to /,
+    'Finder fallback should duplicate the staged JSON into the target folder'
+  );
+  assert.match(
+    sudoSource,
+    /set name of .* to /,
+    'Finder fallback should rename the staged file to the exact destination filename'
+  );
+  assert.doesNotMatch(
+    sudoSource,
+    /set destinationItem to POSIX file dstPath/,
+    'Finder fallback should not directly resolve the destination POSIX file object before checking existence'
+  );
+  assert.doesNotMatch(
+    sudoSource,
+    /codesign --force --deep --sign -/,
+    'automatic JSON patching should not re-sign the entire Cavalry.app bundle after replacing language files'
+  );
+});
+
+test('desktop main process keeps injector-based launch support for translated macOS sessions', () => {
+  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+
+  assert.match(
+    mainSource,
+    /launch_cavalry_with_injector\.sh/,
+    'translated macOS launches should go through the injector launcher so compiled UI strings can change'
+  );
+  assert.match(
+    mainSource,
+    /translated-apps|translatedApp/,
+    'desktop patcher should manage a writable translated app copy instead of editing the signed /Applications bundle in place'
+  );
+});
+
+test('translated launcher handles crashpad_handler before re-signing the macOS app copy', () => {
+  const launcherSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'),
+    'utf8'
+  );
+
+  assert.match(
+    launcherSource,
+    /crashpad_handler/,
+    'launcher should explicitly account for crashpad_handler when preparing the translated app copy'
+  );
+  assert.match(
+    launcherSource,
+    /codesign --remove-signature/,
+    'launcher should strip stale nested signatures before re-signing the translated app copy'
+  );
 });

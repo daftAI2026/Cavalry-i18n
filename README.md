@@ -1,15 +1,18 @@
 # Cavalry i18n
 
-Desktop-only JSON patcher for [Cavalry](https://cavalry.scenegroup.co/).
+Desktop patcher for [Cavalry](https://cavalry.scenegroup.co/).
 
-The project now has a single supported path:
+The project now uses two layers on macOS:
 
 1. Detect a local `Cavalry.app`
 2. Extract the current English JSON assets into the app-specific state directory
-3. Copy a selected language pack back into `Contents/assets/...`
-4. Relaunch Cavalry
+3. Patch a selected language pack into a managed translated app copy
+4. Relaunch Cavalry through the translator injector so compiled Qt menus can switch too
 
-Qt `.qm` loading, DYLD injector experiments, and the old Script UI entrypoint are removed.
+On Windows, the patcher still applies the selected JSON files directly to the chosen install.
+
+The automatic patch flow only replaces the language files it needs. It does not recursively rewrite bundle metadata or clear xattrs across the whole app bundle.
+On macOS, if direct shell copy into `/Applications/...app` is blocked while restoring English, the patcher retries with a Finder-style replacement flow. Approve Finder control if macOS prompts for it.
 
 ## Supported languages
 
@@ -27,6 +30,12 @@ npm install
 npm run desktop
 ```
 
+On macOS, translated launches also need Qt tools available for `lrelease`:
+
+```bash
+brew install qt
+```
+
 The app will try these paths automatically:
 
 1. the last path saved in `state.json`
@@ -41,8 +50,10 @@ Electron stores runtime data under `app.getPath('userData')`.
 
 - `state.json` tracks the selected app path, the last patched Cavalry version, the active language, and the last patch timestamp
 - `en/` stores the extracted English JSON snapshot for the selected Cavalry version
+- `translated-apps/<version>/<lang>/Cavalry.app` stores managed macOS app copies for translated launches
 
 At runtime, restoring English uses the extracted snapshot from the selected install, not a bundled repo copy.
+On macOS, translated launches also compile `tools/<lang>.ts` into a cache-local `.qm` and inject it at startup.
 
 ## Repository layout
 
@@ -50,6 +61,7 @@ At runtime, restoring English uses the extracted snapshot from the selected inst
 Cavalry-i18n/
 ├── desktop-patcher/
 │   ├── main.js
+│   ├── injector/
 │   ├── preload.js
 │   ├── lib/
 │   │   ├── detect.js
@@ -66,8 +78,13 @@ Cavalry-i18n/
 │   ├── translation-guidelines.md
 │   └── translation-whitelist.json
 └── tools/
+    ├── build_translator_injector.sh
     ├── check_electron_patcher_ui.js
-    └── validate_translations.py
+    ├── ja_JP.ts
+    ├── launch_cavalry_with_injector.sh
+    ├── validate_translations.py
+    ├── zh-Hans.ts
+    └── zh-Hant.ts
 ```
 
 `languages/en` stays in git for translation validation and review, but the running patcher does not depend on it for restore operations.
@@ -85,4 +102,4 @@ Validation rules are defined in `doc/translation-whitelist.json`.
 
 ## Risk note
 
-Patching files inside `Cavalry.app` can affect how macOS code-signature verification reports the app bundle. The patcher surfaces that warning after apply, but it does not block the language switch.
+If you translated an install in place with an older version of this project, macOS may still report code-signature warnings on that original bundle until you restore English. The current macOS flow avoids patching `/Applications/Cavalry.app` for non-English launches by using managed translated copies.
