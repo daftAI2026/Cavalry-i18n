@@ -4,6 +4,7 @@
 #include <dispatch/dispatch.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <qcoreapplication.h>
 #include <qstring.h>
@@ -14,8 +15,312 @@ namespace {
 constexpr int kMaxInstallAttempts = 20;
 constexpr int kRetryDelayMs = 250;
 
-QTranslator *gAppTranslator = nullptr;
-QTranslator *gQtTranslator = nullptr;
+struct TranslationEntry {
+    const char *context;
+    const char *sourceText;
+    const char *translation;
+};
+
+const TranslationEntry kZhHansEntries[] = {
+    {"QMenuBar", "File", "文件"},
+    {"QMenuBar", "Edit", "编辑"},
+    {"QMenuBar", "View", "视图"},
+    {"QMenuBar", "Window", "窗口"},
+    {"QMenuBar", "Help", "帮助"},
+    {"MenuBarManager", "File", "文件"},
+    {"MenuBarManager", "Edit", "编辑"},
+    {"MenuBarManager", "View", "视图"},
+    {"MenuBarManager", "Window", "窗口"},
+    {"MenuBarManager", "&Help", "&帮助"},
+    {"MenuBarManager", "New Scene", "新建场景"},
+    {"MenuBarManager", "Import Assets...", "导入资源..."},
+    {"MenuBarManager", "Import Assets", "导入资源"},
+    {"MenuBarManager", "Save Scene", "保存场景"},
+    {"MenuBarManager", "Project Settings", "项目设置"},
+    {"MenuBarManager", "Open Project Settings", "打开项目设置"},
+    {"MenuBarManager", "Preferences", "偏好设置"},
+    {"MenuBarManager", "Show Preferences Folder", "显示偏好设置文件夹"},
+    {"MenuBarManager", "Override Preferences", "覆盖偏好设置"},
+    {"MenuBarManager", "About Cavalry", "关于 Cavalry"},
+    {"QFileDialog", "Open", "打开"},
+    {"QFileDialog", "Save", "保存"},
+    {"QFileDialog", "Save As", "另存为"},
+    {"QFileDialog", "Close", "关闭"},
+    {"QFileDialog", "File", "文件"},
+    {"QFileDialog", "Folder", "文件夹"},
+    {"QFileDialog", "Files of type:", "文件类型:"},
+    {"QFileDialog", "Look in:", "查找位置:"},
+    {"QFileDialog", "File name:", "文件名:"},
+    {"QFileDialog", "Back", "后退"},
+    {"QFileDialog", "Forward", "前进"},
+    {"QFileDialog", "Parent Directory", "上级目录"},
+    {"QFileDialog", "Create New Folder", "新建文件夹"},
+    {"QFileDialog", "List View", "列表视图"},
+    {"QFileDialog", "Detail View", "详细视图"},
+    {"QDialog", "OK", "确定"},
+    {"QDialog", "Cancel", "取消"},
+    {"QDialog", "Apply", "应用"},
+    {"QDialog", "Yes", "是"},
+    {"QDialog", "No", "否"},
+    {"QDialog", "Close", "关闭"},
+    {"QDialog", "Help", "帮助"},
+    {"QDialog", "Reset", "重置"},
+    {"QDialog", "Retry", "重试"},
+    {"QDialog", "Ignore", "忽略"},
+    {"QDialog", "Abort", "中止"},
+    {"QMessageBox", "OK", "确定"},
+    {"QMessageBox", "Cancel", "取消"},
+    {"QMessageBox", "Yes", "是"},
+    {"QMessageBox", "No", "否"},
+    {"QMessageBox", "Yes to All", "全部是"},
+    {"QMessageBox", "No to All", "全部否"},
+    {"QMessageBox", "Save", "保存"},
+    {"QMessageBox", "Discard", "放弃"},
+    {"QMessageBox", "Don't Save", "不保存"},
+    {"QMessageBox", "Close", "关闭"},
+    {"QMessageBox", "Help", "帮助"},
+    {"QUndoStack", "Undo", "撤销"},
+    {"QUndoStack", "Redo", "重做"},
+    {"QUndoStack", "Undo %1", "撤销 %1"},
+    {"QUndoStack", "Redo %1", "重做 %1"},
+    {"QShortcut", "Ctrl", "Ctrl"},
+    {"QShortcut", "Shift", "Shift"},
+    {"QShortcut", "Alt", "Alt"},
+    {"QTabBar", "Close", "关闭"},
+    {"QTabBar", "Close Tab", "关闭标签页"},
+    {"QTabBar", "Close Other Tabs", "关闭其他标签页"},
+    {"QLineEdit", "Cut", "剪切"},
+    {"QLineEdit", "Copy", "复制"},
+    {"QLineEdit", "Paste", "粘贴"},
+    {"QLineEdit", "Select All", "全选"},
+    {"QLineEdit", "Undo", "撤销"},
+    {"QLineEdit", "Redo", "重做"},
+    {"QLineEdit", "Delete", "删除"},
+    {"QPrintDialog", "Print", "打印"},
+    {"QPrintDialog", "Printer", "打印机"},
+    {"QPrintDialog", "Print to File", "打印到文件"},
+};
+
+const TranslationEntry kZhHantEntries[] = {
+    {"QMenuBar", "File", "檔案"},
+    {"QMenuBar", "Edit", "編輯"},
+    {"QMenuBar", "View", "檢視"},
+    {"QMenuBar", "Window", "視窗"},
+    {"QMenuBar", "Help", "說明"},
+    {"MenuBarManager", "File", "檔案"},
+    {"MenuBarManager", "Edit", "編輯"},
+    {"MenuBarManager", "View", "檢視"},
+    {"MenuBarManager", "Window", "視窗"},
+    {"MenuBarManager", "&Help", "&說明"},
+    {"MenuBarManager", "New Scene", "新增場景"},
+    {"MenuBarManager", "Import Assets...", "匯入素材..."},
+    {"MenuBarManager", "Import Assets", "匯入素材"},
+    {"MenuBarManager", "Save Scene", "儲存場景"},
+    {"MenuBarManager", "Project Settings", "專案設定"},
+    {"MenuBarManager", "Open Project Settings", "打開專案設定"},
+    {"MenuBarManager", "Preferences", "偏好設定"},
+    {"MenuBarManager", "Show Preferences Folder", "顯示偏好設定資料夾"},
+    {"MenuBarManager", "Override Preferences", "覆寫偏好設定"},
+    {"MenuBarManager", "About Cavalry", "關於 Cavalry"},
+    {"QFileDialog", "Open", "開啟"},
+    {"QFileDialog", "Save", "儲存"},
+    {"QFileDialog", "Save As", "另存新檔"},
+    {"QFileDialog", "Close", "關閉"},
+    {"QFileDialog", "File", "檔案"},
+    {"QFileDialog", "Folder", "資料夾"},
+    {"QFileDialog", "Files of type:", "檔案類型:"},
+    {"QFileDialog", "Look in:", "查詢位置:"},
+    {"QFileDialog", "File name:", "檔案名稱:"},
+    {"QFileDialog", "Back", "上一步"},
+    {"QFileDialog", "Forward", "下一步"},
+    {"QFileDialog", "Parent Directory", "上層目錄"},
+    {"QFileDialog", "Create New Folder", "建立新資料夾"},
+    {"QFileDialog", "List View", "清單檢視"},
+    {"QFileDialog", "Detail View", "詳細檢視"},
+    {"QDialog", "OK", "確定"},
+    {"QDialog", "Cancel", "取消"},
+    {"QDialog", "Apply", "套用"},
+    {"QDialog", "Yes", "是"},
+    {"QDialog", "No", "否"},
+    {"QDialog", "Close", "關閉"},
+    {"QDialog", "Help", "說明"},
+    {"QDialog", "Reset", "重設"},
+    {"QDialog", "Retry", "重試"},
+    {"QDialog", "Ignore", "略過"},
+    {"QDialog", "Abort", "中止"},
+    {"QMessageBox", "OK", "確定"},
+    {"QMessageBox", "Cancel", "取消"},
+    {"QMessageBox", "Yes", "是"},
+    {"QMessageBox", "No", "否"},
+    {"QMessageBox", "Yes to All", "全部皆是"},
+    {"QMessageBox", "No to All", "全部皆否"},
+    {"QMessageBox", "Save", "儲存"},
+    {"QMessageBox", "Discard", "捨棄"},
+    {"QMessageBox", "Don't Save", "不要儲存"},
+    {"QMessageBox", "Close", "關閉"},
+    {"QMessageBox", "Help", "說明"},
+    {"QUndoStack", "Undo", "復原"},
+    {"QUndoStack", "Redo", "重做"},
+    {"QUndoStack", "Undo %1", "復原 %1"},
+    {"QUndoStack", "Redo %1", "重做 %1"},
+    {"QShortcut", "Ctrl", "Ctrl"},
+    {"QShortcut", "Shift", "Shift"},
+    {"QShortcut", "Alt", "Alt"},
+    {"QTabBar", "Close", "關閉"},
+    {"QTabBar", "Close Tab", "關閉索引標籤"},
+    {"QTabBar", "Close Other Tabs", "關閉其他索引標籤"},
+    {"QLineEdit", "Cut", "剪下"},
+    {"QLineEdit", "Copy", "複製"},
+    {"QLineEdit", "Paste", "貼上"},
+    {"QLineEdit", "Select All", "全選"},
+    {"QLineEdit", "Undo", "復原"},
+    {"QLineEdit", "Redo", "重做"},
+    {"QLineEdit", "Delete", "刪除"},
+    {"QPrintDialog", "Print", "列印"},
+    {"QPrintDialog", "Printer", "印表機"},
+    {"QPrintDialog", "Print to File", "列印至檔案"},
+};
+
+const TranslationEntry kJaEntries[] = {
+    {"QMenuBar", "File", "ファイル"},
+    {"QMenuBar", "Edit", "編集"},
+    {"QMenuBar", "View", "表示"},
+    {"QMenuBar", "Window", "ウィンドウ"},
+    {"QMenuBar", "Help", "ヘルプ"},
+    {"MenuBarManager", "File", "ファイル"},
+    {"MenuBarManager", "Edit", "編集"},
+    {"MenuBarManager", "View", "表示"},
+    {"MenuBarManager", "Window", "ウィンドウ"},
+    {"MenuBarManager", "&Help", "&ヘルプ"},
+    {"MenuBarManager", "New Scene", "新規シーン"},
+    {"MenuBarManager", "Import Assets...", "アセットを読み込み..."},
+    {"MenuBarManager", "Import Assets", "アセットを読み込み"},
+    {"MenuBarManager", "Save Scene", "シーンを保存"},
+    {"MenuBarManager", "Project Settings", "プロジェクト設定"},
+    {"MenuBarManager", "Open Project Settings", "プロジェクト設定を開く"},
+    {"MenuBarManager", "Preferences", "環境設定"},
+    {"MenuBarManager", "Show Preferences Folder", "Preferences フォルダを表示"},
+    {"MenuBarManager", "Override Preferences", "環境設定を上書き"},
+    {"MenuBarManager", "About Cavalry", "Cavalry について"},
+    {"QFileDialog", "Open", "開く"},
+    {"QFileDialog", "Save", "保存"},
+    {"QFileDialog", "Save As", "名前を付けて保存"},
+    {"QFileDialog", "Close", "閉じる"},
+    {"QFileDialog", "File", "ファイル"},
+    {"QFileDialog", "Folder", "フォルダー"},
+    {"QFileDialog", "Files of type:", "ファイルの種類:"},
+    {"QFileDialog", "Look in:", "検索場所:"},
+    {"QFileDialog", "File name:", "ファイル名:"},
+    {"QFileDialog", "Back", "戻る"},
+    {"QFileDialog", "Forward", "進む"},
+    {"QFileDialog", "Parent Directory", "親ディレクトリ"},
+    {"QFileDialog", "Create New Folder", "新しいフォルダーの作成"},
+    {"QFileDialog", "List View", "リスト表示"},
+    {"QFileDialog", "Detail View", "詳細表示"},
+    {"QDialog", "OK", "OK"},
+    {"QDialog", "Cancel", "キャンセル"},
+    {"QDialog", "Apply", "適用"},
+    {"QDialog", "Yes", "はい"},
+    {"QDialog", "No", "いいえ"},
+    {"QDialog", "Close", "閉じる"},
+    {"QDialog", "Help", "ヘルプ"},
+    {"QDialog", "Reset", "リセット"},
+    {"QDialog", "Retry", "再試行"},
+    {"QDialog", "Ignore", "無視"},
+    {"QDialog", "Abort", "中止"},
+    {"QMessageBox", "OK", "OK"},
+    {"QMessageBox", "Cancel", "キャンセル"},
+    {"QMessageBox", "Yes", "はい"},
+    {"QMessageBox", "No", "いいえ"},
+    {"QMessageBox", "Yes to All", "すべてはい"},
+    {"QMessageBox", "No to All", "すべていいえ"},
+    {"QMessageBox", "Save", "保存"},
+    {"QMessageBox", "Discard", "破棄"},
+    {"QMessageBox", "Don't Save", "保存しない"},
+    {"QMessageBox", "Close", "閉じる"},
+    {"QMessageBox", "Help", "ヘルプ"},
+    {"QUndoStack", "Undo", "元に戻す"},
+    {"QUndoStack", "Redo", "やり直し"},
+    {"QUndoStack", "Undo %1", "%1を元に戻す"},
+    {"QUndoStack", "Redo %1", "%1をやり直し"},
+    {"QShortcut", "Ctrl", "Ctrl"},
+    {"QShortcut", "Shift", "Shift"},
+    {"QShortcut", "Alt", "Alt"},
+    {"QTabBar", "Close", "閉じる"},
+    {"QTabBar", "Close Tab", "タブを閉じる"},
+    {"QTabBar", "Close Other Tabs", "他のタブを閉じる"},
+    {"QLineEdit", "Cut", "切り取り"},
+    {"QLineEdit", "Copy", "コピー"},
+    {"QLineEdit", "Paste", "ペースト"},
+    {"QLineEdit", "Select All", "すべて選択"},
+    {"QLineEdit", "Undo", "元に戻す"},
+    {"QLineEdit", "Redo", "やり直し"},
+    {"QLineEdit", "Delete", "削除"},
+    {"QPrintDialog", "Print", "印刷"},
+    {"QPrintDialog", "Printer", "プリンター"},
+    {"QPrintDialog", "Print to File", "ファイルに出力"},
+};
+
+const TranslationEntry *entriesForLanguage(const QString &lang, int *count)
+{
+    if (lang == QStringLiteral("zh-Hans")) {
+        *count = static_cast<int>(sizeof(kZhHansEntries) / sizeof(kZhHansEntries[0]));
+        return kZhHansEntries;
+    }
+    if (lang == QStringLiteral("zh-Hant")) {
+        *count = static_cast<int>(sizeof(kZhHantEntries) / sizeof(kZhHantEntries[0]));
+        return kZhHantEntries;
+    }
+    if (lang == QStringLiteral("ja_JP")) {
+        *count = static_cast<int>(sizeof(kJaEntries) / sizeof(kJaEntries[0]));
+        return kJaEntries;
+    }
+
+    *count = 0;
+    return nullptr;
+}
+
+class EmbeddedTranslator final : public QTranslator {
+public:
+    explicit EmbeddedTranslator(const QString &lang, QObject *parent = nullptr)
+        : QTranslator(parent), m_lang(lang)
+    {
+    }
+
+    QString translate(
+        const char *context,
+        const char *sourceText,
+        const char *disambiguation = nullptr,
+        int n = -1) const override
+    {
+        (void) disambiguation;
+        (void) n;
+
+        if (context == nullptr || sourceText == nullptr) {
+            return QString();
+        }
+
+        int count = 0;
+        const TranslationEntry *entries = entriesForLanguage(m_lang, &count);
+        if (entries == nullptr) {
+            return QString();
+        }
+
+        for (int index = 0; index < count; ++index) {
+            if (strcmp(entries[index].context, context) == 0 &&
+                strcmp(entries[index].sourceText, sourceText) == 0) {
+                return QString::fromUtf8(entries[index].translation);
+            }
+        }
+
+        return QString();
+    }
+
+private:
+    QString m_lang;
+};
+
+EmbeddedTranslator *gTranslator = nullptr;
 bool gInstallAttempted = false;
 
 QString readEnvVar(const char *name)
@@ -24,25 +329,7 @@ QString readEnvVar(const char *name)
     return value ? QString::fromUtf8(value) : QString();
 }
 
-QString defaultTranslationsDir()
-{
-    @autoreleasepool {
-        NSBundle *bundle = [NSBundle mainBundle];
-        if (bundle == nil) {
-            return QString();
-        }
-
-        NSString *resourcesPath = bundle.resourcePath;
-        if (resourcesPath == nil) {
-            return QString();
-        }
-
-        NSString *translationsPath = [resourcesPath stringByAppendingPathComponent:@"translations"];
-        return QString::fromUtf8(translationsPath.UTF8String);
-    }
-}
-
-bool installTranslators()
+bool installTranslator()
 {
     QCoreApplication *app = QCoreApplication::instance();
     if (app == nullptr) {
@@ -56,36 +343,21 @@ bool installTranslators()
         return true;
     }
 
-    QString translationsDir = readEnvVar("CAVALRY_I18N_QM_DIR");
-    if (translationsDir.isEmpty()) {
-        translationsDir = defaultTranslationsDir();
+    int count = 0;
+    if (entriesForLanguage(lang, &count) == nullptr) {
+        fprintf(stderr, "[cavalry-i18n] unsupported language: %s\n", lang.toUtf8().constData());
+        gInstallAttempted = true;
+        return true;
     }
 
-    gAppTranslator = new QTranslator(app);
-    const bool appLoaded = gAppTranslator->load(QString("cavalry_") + lang, translationsDir);
-    if (appLoaded) {
-        app->installTranslator(gAppTranslator);
-    } else {
-        delete gAppTranslator;
-        gAppTranslator = nullptr;
-    }
-
-    gQtTranslator = new QTranslator(app);
-    const bool qtLoaded = gQtTranslator->load(QString("qtbase_") + lang, translationsDir);
-    if (qtLoaded) {
-        app->installTranslator(gQtTranslator);
-    } else {
-        delete gQtTranslator;
-        gQtTranslator = nullptr;
-    }
+    gTranslator = new EmbeddedTranslator(lang, app);
+    app->installTranslator(gTranslator);
 
     fprintf(
         stderr,
-        "[cavalry-i18n] install attempt lang=%s dir=%s app_qm=%s qt_qm=%s\n",
+        "[cavalry-i18n] embedded translator installed lang=%s entries=%d\n",
         lang.toUtf8().constData(),
-        translationsDir.toUtf8().constData(),
-        appLoaded ? "loaded" : "missing",
-        qtLoaded ? "loaded" : "missing"
+        count
     );
 
     gInstallAttempted = true;
@@ -102,7 +374,7 @@ void scheduleInstallAttempt(int attempt)
                 return;
             }
 
-            if (installTranslators()) {
+            if (installTranslator()) {
                 return;
             }
 

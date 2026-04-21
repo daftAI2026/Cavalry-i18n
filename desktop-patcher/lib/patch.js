@@ -105,6 +105,7 @@ function stageFiles(pairs, stagingDir) {
   return pairs.map(({ src, dst }, index) => {
     const stagedPath = path.join(stagingDir, `${index}-${path.basename(src)}`);
     fs.copyFileSync(src, stagedPath);
+    fs.chmodSync(stagedPath, fs.statSync(src).mode);
     return { src: stagedPath, dst };
   });
 }
@@ -114,7 +115,9 @@ function verifyCodeSignature(appPath) {
     return { ok: true, message: '' };
   }
 
-  const result = spawnSync('codesign', ['--verify', appPath], { encoding: 'utf8' });
+  const result = spawnSync('codesign', ['--verify', '--deep', '--strict', appPath], {
+    encoding: 'utf8',
+  });
   if (result.status === 0) {
     return { ok: true, message: '' };
   }

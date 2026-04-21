@@ -2,12 +2,12 @@
 
 Desktop patcher for [Cavalry](https://cavalry.scenegroup.co/).
 
-The project now uses two layers on macOS:
+The desktop patcher works against the original installed app:
 
 1. Detect a local `Cavalry.app`
 2. Extract the current English JSON assets into the app-specific state directory
-3. Patch a selected language pack into a managed translated app copy
-4. Relaunch Cavalry through the translator injector so compiled Qt menus can switch too
+3. Patch the selected language files back into that same app bundle
+4. On macOS, install a small launcher wrapper plus the translator injector inside the same `Cavalry.app` so the original app path opens in the target language
 
 On Windows, the patcher still applies the selected JSON files directly to the chosen install.
 
@@ -30,12 +30,6 @@ npm install
 npm run desktop
 ```
 
-On macOS, translated launches also need Qt tools available for `lrelease`:
-
-```bash
-brew install qt
-```
-
 The app will try these paths automatically:
 
 1. the last path saved in `state.json`
@@ -50,10 +44,11 @@ Electron stores runtime data under `app.getPath('userData')`.
 
 - `state.json` tracks the selected app path, the last patched Cavalry version, the active language, and the last patch timestamp
 - `en/` stores the extracted English JSON snapshot for the selected Cavalry version
-- `translated-apps/<version>/<lang>/Cavalry.app` stores managed macOS app copies for translated launches
+- `libCavalryTranslatorInjector.dylib` may be cached here for local developer builds when the repo does not already include a prebuilt injector binary
 
 At runtime, restoring English uses the extracted snapshot from the selected install, not a bundled repo copy.
-On macOS, translated launches also compile `tools/<lang>.ts` into a cache-local `.qm` and inject it at startup.
+On macOS, the patcher also reads the bundle-local `cavalry-i18n-lang.txt` marker so it can recover the real installed language even if `state.json` goes stale.
+On macOS, translated launches keep using the original `Cavalry.app` path. The patcher writes a bundle-local language marker, installs the injector into `Contents/Frameworks`, switches `CFBundleExecutable` to a launcher wrapper, and then re-signs the modified bundle.
 
 ## Repository layout
 
@@ -100,6 +95,6 @@ python3 tools/validate_translations.py \
 
 Validation rules are defined in `doc/translation-whitelist.json`.
 
-## Risk note
+## macOS release note
 
-If you translated an install in place with an older version of this project, macOS may still report code-signature warnings on that original bundle until you restore English. The current macOS flow avoids patching `/Applications/Cavalry.app` for non-English launches by using managed translated copies.
+End users should keep launching the original `Cavalry.app`. Tagged releases now prebuild `desktop-patcher/injector/libCavalryTranslatorInjector.dylib` on macOS and package it into the release zip, so users do not need Qt or any external launcher script. The `tools/build_translator_injector.sh` fallback is for local development when that prebuilt dylib is missing, and `tools/launch_cavalry_with_injector.sh` is now only a manual debug utility rather than part of the normal patch flow.

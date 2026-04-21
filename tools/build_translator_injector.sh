@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
-  echo "usage: $0 <output-dylib> [cavalry-frameworks-dir]" >&2
+  echo "usage: $0 <output-dylib> [frameworks-dir]" >&2
   exit 1
 fi
 
@@ -32,18 +32,13 @@ find_qt_prefix() {
 }
 
 OUTPUT="$1"
-APP_FRAMEWORKS="${2:-/Applications/Cavalry.app/Contents/Frameworks}"
+LINK_FRAMEWORKS="${2:-/Applications/Cavalry.app/Contents/Frameworks}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE="$REPO_ROOT/desktop-patcher/injector/CavalryTranslatorInjector.mm"
 QT_PREFIX="$(find_qt_prefix || true)"
 
 if [ ! -f "$SOURCE" ]; then
   echo "injector source not found: $SOURCE" >&2
-  exit 1
-fi
-
-if [ ! -d "$APP_FRAMEWORKS" ]; then
-  echo "Cavalry frameworks not found: $APP_FRAMEWORKS" >&2
   exit 1
 fi
 
@@ -54,10 +49,19 @@ fi
 
 QT_FRAMEWORKS="$QT_PREFIX/lib"
 QT_CORE_HEADERS="$(ls -d "$QT_FRAMEWORKS/QtCore.framework/Versions/"*/Headers 2>/dev/null | head -n 1)"
-QT_CORE_PRIVATE_HEADERS="$(ls -d "$QT_CORE_HEADERS"/*/QtCore 2>/dev/null | head -n 1)"
+QT_CORE_LINK=""
 
-if [ -z "$QT_CORE_HEADERS" ] || [ -z "$QT_CORE_PRIVATE_HEADERS" ]; then
+if [ -z "$QT_CORE_HEADERS" ]; then
   echo "QtCore headers not found under $QT_PREFIX" >&2
+  exit 1
+fi
+
+if [ -f "$LINK_FRAMEWORKS/QtCore.framework/Versions/A/QtCore" ]; then
+  QT_CORE_LINK="$LINK_FRAMEWORKS/QtCore.framework/Versions/A/QtCore"
+elif [ -f "$QT_FRAMEWORKS/QtCore.framework/Versions/A/QtCore" ]; then
+  QT_CORE_LINK="$QT_FRAMEWORKS/QtCore.framework/Versions/A/QtCore"
+else
+  echo "QtCore framework binary not found under $LINK_FRAMEWORKS or $QT_FRAMEWORKS" >&2
   exit 1
 fi
 
@@ -72,11 +76,8 @@ clang++ \
   -o "$OUTPUT" \
   -I"$QT_FRAMEWORKS" \
   -I"$QT_CORE_HEADERS" \
-  -I"$QT_CORE_PRIVATE_HEADERS" \
   -F"$QT_FRAMEWORKS" \
-  "$APP_FRAMEWORKS/QtCore.framework/Versions/A/QtCore" \
-  "$APP_FRAMEWORKS/QtGui.framework/Versions/A/QtGui" \
-  "$APP_FRAMEWORKS/QtWidgets.framework/Versions/A/QtWidgets" \
+  "$QT_CORE_LINK" \
   -framework Foundation \
   -framework AppKit
 

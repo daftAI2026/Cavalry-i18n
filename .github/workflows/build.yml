@@ -78,11 +78,39 @@ jobs:
             LICENSE
             package.json
             package-lock.json
+            tools/build_translator_injector.sh
             tools/check_electron_patcher_ui.js
+            tools/ja_JP.ts
+            tools/launch_cavalry_with_injector.sh
             tools/validate_translations.py
+            tools/zh-Hans.ts
+            tools/zh-Hant.ts
+
+  build_injector:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install Qt for injector build
+        run: brew install qt
+
+      - name: Build precompiled injector dylib
+        run: |
+          mkdir -p desktop-patcher/injector
+          tools/build_translator_injector.sh "$RUNNER_TEMP/libCavalryTranslatorInjector.dylib"
+          cp "$RUNNER_TEMP/libCavalryTranslatorInjector.dylib" \
+            desktop-patcher/injector/libCavalryTranslatorInjector.dylib
+
+      - name: Upload injector artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cavalry-i18n-injector
+          path: desktop-patcher/injector/libCavalryTranslatorInjector.dylib
 
   release:
-    needs: build
+    needs: [build, build_injector]
     if: startsWith(github.ref, 'refs/tags/v')
     runs-on: ubuntu-latest
     permissions:
@@ -92,18 +120,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Download precompiled injector
+        uses: actions/download-artifact@v4
+        with:
+          name: cavalry-i18n-injector
+          path: desktop-patcher/injector
+
       - name: Package release
         run: |
           zip -r "cavalry-i18n-${{ github.ref_name }}.zip" \
             desktop-patcher \
             languages \
+            tools \
             doc/translation-whitelist.json \
             README.md \
             LICENSE \
             package.json \
-            package-lock.json \
-            tools/check_electron_patcher_ui.js \
-            tools/validate_translations.py
+            package-lock.json
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

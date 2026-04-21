@@ -218,35 +218,118 @@ test('macOS patch helper can fall back to Finder-style replacement without re-si
   );
 });
 
-test('desktop main process keeps injector-based launch support for translated macOS sessions', () => {
+test('desktop main process patches the original macOS app for direct translated launches', () => {
   const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
 
   assert.match(
     mainSource,
-    /launch_cavalry_with_injector\.sh/,
-    'translated macOS launches should go through the injector launcher so compiled UI strings can change'
+    /Cavalry\.i18n-original|cavalry-i18n-lang\.txt|libCavalryTranslatorInjector\.dylib/,
+    'translated macOS installs should patch the original app bundle so it can launch directly in the target language'
   );
-  assert.match(
+  assert.doesNotMatch(
     mainSource,
-    /translated-apps|translatedApp/,
-    'desktop patcher should manage a writable translated app copy instead of editing the signed /Applications bundle in place'
+    /translated-apps|translatedApp|launch_cavalry_with_injector\.sh/,
+    'desktop patcher should not depend on translated app copies or an external launcher for normal macOS usage'
   );
 });
 
-test('translated launcher handles crashpad_handler before re-signing the macOS app copy', () => {
+test('desktop main process can recover current language from the patched app bundle itself', () => {
+  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+
+  assert.match(
+    mainSource,
+    /readFileSync\(getLangMarkerPath\(appPath\)/,
+    'desktop patcher should prefer the bundle-local language marker over stale state.json when detecting the current macOS language'
+  );
+});
+
+test('embedded injector does not depend on runtime qm files', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /translate\s*\(/,
+    'injector should provide in-memory translation logic for compiled UI strings'
+  );
+  assert.doesNotMatch(
+    injectorSource,
+    /qtbase_|cavalry_.*\.qm|CAVALRY_I18N_QM_DIR/,
+    'release translation path should not require runtime qm files or user-installed Qt tools'
+  );
+});
+
+test('manual debug launcher follows the embedded-injector flow', () => {
   const launcherSource = fs.readFileSync(
     path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'),
     'utf8'
   );
 
-  assert.match(
+  assert.doesNotMatch(
     launcherSource,
-    /crashpad_handler/,
-    'launcher should explicitly account for crashpad_handler when preparing the translated app copy'
+    /lrelease|CAVALRY_I18N_QM_DIR|qtbase_.*\.qm|cavalry_.*\.qm/,
+    'manual launcher should match the embedded-injector runtime and not rebuild qm files'
   );
   assert.match(
     launcherSource,
-    /codesign --remove-signature/,
-    'launcher should strip stale nested signatures before re-signing the translated app copy'
+    /CAVALRY_I18N_LANG/,
+    'manual launcher should pass the selected language directly to the embedded injector'
+  );
+});
+
+test('macOS signing path handles crashpad_handler before re-signing the original app bundle', () => {
+  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+
+  assert.match(
+    mainSource,
+    /crashpad_handler/,
+    'macOS signing path should explicitly account for crashpad_handler'
+  );
+  assert.match(
+    mainSource,
+    /remove-signature/,
+    'macOS signing path should strip stale crashpad signatures before re-signing the app bundle'
+  );
+});
+
+test('code-signature diagnostics use deep verification for patched app bundles', () => {
+  const patchSource = fs.readFileSync(path.join(desktopRoot, 'lib', 'patch.js'), 'utf8');
+
+  assert.match(
+    patchSource,
+    /codesign', \['--verify', '--deep', '--strict', appPath\]/,
+    'signature diagnostics should verify the whole patched bundle tree, not only the top-level app node'
+  );
+});
+
+test('injector build script can fall back to Qt frameworks when Cavalry app frameworks are unavailable', () => {
+  const buildScript = fs.readFileSync(path.join(repoRoot, 'tools', 'build_translator_injector.sh'), 'utf8');
+
+  assert.match(
+    buildScript,
+    /QT_FRAMEWORKS\/QtCore\.framework\/Versions\/A\/QtCore/,
+    'injector build should support linking against a standalone Qt install for CI prebuilds'
+  );
+});
+
+test('release workflow prebuilds and packages the injector dylib on macOS', () => {
+  const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
+
+  assert.match(
+    workflow,
+    /runs-on:\s*macos-latest/,
+    'release pipeline should build the injector on macOS so end users do not need Qt locally'
+  );
+  assert.match(
+    workflow,
+    /build_translator_injector\.sh/,
+    'release pipeline should invoke the injector build script'
+  );
+  assert.match(
+    workflow,
+    /libCavalryTranslatorInjector\.dylib/,
+    'release packaging should include the prebuilt injector dylib'
   );
 });

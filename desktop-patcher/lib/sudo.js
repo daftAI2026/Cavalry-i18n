@@ -13,7 +13,12 @@ function powershellQuote(value) {
 
 function buildMacScript(pairs) {
   const lines = ['#!/bin/sh', 'set -eu'];
-  lines.push(...pairs.map(({ src, dst }) => `cp ${shellQuote(src)} ${shellQuote(dst)}`));
+  lines.push(
+    ...pairs.flatMap(({ src, dst }) => [
+      `cp ${shellQuote(src)} ${shellQuote(dst)}`,
+      `chmod "$(stat -f %Lp ${shellQuote(src)})" ${shellQuote(dst)}`,
+    ])
+  );
   lines.push('');
   return lines.join('\n');
 }
@@ -26,6 +31,7 @@ function runDirectCopy(pairs) {
   for (const { src, dst } of pairs) {
     fs.mkdirSync(path.dirname(dst), { recursive: true });
     fs.copyFileSync(src, dst);
+    fs.chmodSync(dst, fs.statSync(src).mode);
   }
   return 'direct';
 }
