@@ -238,25 +238,88 @@ function removeSignatureIfPresent(targetPath) {
   throw new Error(detail || `Could not remove existing signature from ${targetPath}.`);
 }
 
+function isMachOBinary(targetPath) {
+  if (!fs.existsSync(targetPath) || !fs.statSync(targetPath).isFile()) {
+    return false;
+  }
+
+  const header = Buffer.alloc(4);
+  const fd = fs.openSync(targetPath, 'r');
+  try {
+    const bytesRead = fs.readSync(fd, header, 0, header.length, 0);
+    if (bytesRead < header.length) {
+      return false;
+    }
+  } finally {
+    fs.closeSync(fd);
+  }
+
+  const be = header.readUInt32BE(0);
+  const le = header.readUInt32LE(0);
+  return [
+    0xfeedface,
+    0xfeedfacf,
+    0xcafebabe,
+    0xbebafeca,
+    0xcefaedfe,
+    0xcffaedfe,
+  ].includes(be) || [0xfeedface, 0xfeedfacf, 0xcafebabe, 0xbebafeca].includes(le);
+}
+
+function walkFiles(rootPath) {
+  if (!fs.existsSync(rootPath)) {
+    return [];
+  }
+
+  const stat = fs.statSync(rootPath);
+  if (!stat.isDirectory()) {
+    return [rootPath];
+  }
+
+  const results = [];
+  for (const entry of fs.readdirSync(rootPath, { withFileTypes: true })) {
+    if (entry.name.startsWith('.')) {
+      continue;
+    }
+
+    const nextPath = path.join(rootPath, entry.name);
+    if (entry.isDirectory()) {
+      results.push(...walkFiles(nextPath));
+    } else if (entry.isFile()) {
+      results.push(nextPath);
+    }
+  }
+  return results;
+}
+
+function collectNestedCodePaths(appPath) {
+  const candidateRoots = [
+    path.join(appPath, 'Contents', 'MacOS'),
+    path.join(appPath, 'Contents', 'Frameworks'),
+  ];
+
+  return candidateRoots
+    .flatMap((rootPath) => walkFiles(rootPath))
+    .filter((targetPath) => isMachOBinary(targetPath))
+    .sort((left, right) => right.length - left.length);
+}
+
+function signCodeObject(targetPath) {
+  removeSignatureIfPresent(targetPath);
+  const signResult = runCommandMaybeWithAdmin('codesign', ['--force', '--sign', '-', targetPath]);
+  if (signResult.status !== 0) {
+    const detail = (signResult.stderr || signResult.stdout || '').trim();
+    throw new Error(detail || `Could not re-sign ${targetPath}.`);
+  }
+}
+
 function resignPatchedBundle(appPath) {
   if (process.platform !== 'darwin') {
     return;
   }
 
-  const crashpadPath = path.join(appPath, 'Contents', 'MacOS', 'crashpad_handler');
-  if (fs.existsSync(crashpadPath)) {
-    removeSignatureIfPresent(crashpadPath);
-
-    const crashpadSign = runCommandMaybeWithAdmin('codesign', [
-      '--force',
-      '--sign',
-      '-',
-      crashpadPath,
-    ]);
-    if (crashpadSign.status !== 0) {
-      const detail = (crashpadSign.stderr || crashpadSign.stdout || '').trim();
-      throw new Error(detail || 'Could not re-sign crashpad_handler.');
-    }
+  for (const codePath of collectNestedCodePaths(appPath)) {
+    signCodeObject(codePath);
   }
 
   const result = runCommandMaybeWithAdmin('codesign', ['--force', '--deep', '--sign', '-', appPath]);

@@ -310,6 +310,11 @@ test('macOS signing path handles crashpad_handler before re-signing the original
     /remove-signature/,
     'macOS signing path should strip stale crashpad signatures before re-signing the app bundle'
   );
+  assert.match(
+    mainSource,
+    /collectNestedCodePaths|isMachOBinary/,
+    'macOS signing path should enumerate nested Mach-O code objects instead of relying on outer bundle signing alone'
+  );
 });
 
 test('code-signature diagnostics use deep verification for patched app bundles', () => {

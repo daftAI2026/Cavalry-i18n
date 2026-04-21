@@ -58,7 +58,7 @@ Electron stores runtime data under `app.getPath('userData')`.
 
 At runtime, restoring English uses the extracted snapshot from the selected install, not a bundled repo copy.
 On macOS, the patcher also reads the bundle-local `cavalry-i18n-lang.txt` marker so it can recover the real installed language even if `state.json` goes stale.
-On macOS, translated launches keep using the original `Cavalry.app` path. The patcher writes a bundle-local language marker, installs the injector into `Contents/Frameworks`, switches `CFBundleExecutable` to a launcher wrapper, and then re-signs the modified bundle. Packaged Electron builds read the precompiled injector from `Contents/Resources/injector/` instead of trying to rebuild it inside `app.asar` at runtime.
+On macOS, translated launches keep using the original `Cavalry.app` path. The patcher writes a bundle-local language marker, installs the injector into `Contents/Frameworks`, switches `CFBundleExecutable` to a launcher wrapper, re-signs nested Mach-O files such as `crashpad_handler` and injected dylibs first, and then re-signs the modified bundle. Packaged Electron builds read the precompiled injector from `Contents/Resources/injector/` instead of trying to rebuild it inside `app.asar` at runtime.
 
 ## Repository layout
 
