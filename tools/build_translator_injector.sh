@@ -100,11 +100,10 @@ if [ -z "$BUILD_QT_VERSION" ]; then
   exit 1
 fi
 
-# if [ "$(major_minor_version "$BUILD_QT_VERSION")" != "$(major_minor_version "$TARGET_QT_VERSION")" ]; then
-#   echo "Qt version mismatch: build Qt $BUILD_QT_VERSION does not match target Cavalry Qt $TARGET_QT_VERSION" >&2
-#   exit 1
-# fi
-echo "Note: Proceeding with building injecting using Qt $BUILD_QT_VERSION for target Cavalry Qt $TARGET_QT_VERSION (Version check bypassed)"
+if [ "$(major_minor_version "$BUILD_QT_VERSION")" != "$(major_minor_version "$TARGET_QT_VERSION")" ]; then
+  echo "Qt version mismatch: build Qt $BUILD_QT_VERSION does not match target Cavalry Qt $TARGET_QT_VERSION" >&2
+  exit 1
+fi
 
 if [ -f "$LINK_FRAMEWORKS/QtCore.framework/Versions/A/QtCore" ]; then
   QT_CORE_LINK="$LINK_FRAMEWORKS/QtCore.framework/Versions/A/QtCore"

@@ -167,15 +167,27 @@ function buildWrappedInfoPlist(appPath) {
   return next;
 }
 
+function buildInjectorFromSource(appPath, buildScriptPath, outputPath) {
+  const result = spawnSync(
+    '/bin/bash',
+    [buildScriptPath, outputPath, path.join(appPath, 'Contents', 'Frameworks')],
+    { encoding: 'utf8' }
+  );
+  if (result.status !== 0) {
+    const detail =
+      (result.stderr || result.stdout || '').trim() ||
+      'Could not build the translator injector from source.';
+    throw new Error(
+      `${detail} Local desktop runs need a Qt install that matches the target Cavalry Qt branch (currently 6.6.x), or you should use a packaged Cavalry Patcher build.`
+    );
+  }
+  return outputPath;
+}
+
 function getBundledInjectorSourcePath(appPath) {
   const packagedPath = getPackagedInjectorPath();
   if (app.isPackaged && fs.existsSync(packagedPath)) {
     return packagedPath;
-  }
-
-  const prebuiltPath = path.join(repoRoot, 'desktop-patcher', 'injector', INJECTOR_DYLIB_NAME);
-  if (fs.existsSync(prebuiltPath)) {
-    return prebuiltPath;
   }
 
   if (app.isPackaged) {
@@ -189,19 +201,7 @@ function getBundledInjectorSourcePath(appPath) {
     throw new Error(`Injector build script missing: ${buildScriptPath}`);
   }
 
-  const outputPath = getInjectorBuildCachePath();
-  const result = spawnSync(
-    '/bin/bash',
-    [buildScriptPath, outputPath, path.join(appPath, 'Contents', 'Frameworks')],
-    { encoding: 'utf8' }
-  );
-  if (result.status !== 0) {
-    const detail =
-      (result.stderr || result.stdout || '').trim() ||
-      'Could not build the translator injector from source.';
-    throw new Error(detail);
-  }
-  return outputPath;
+  return buildInjectorFromSource(appPath, buildScriptPath, getInjectorBuildCachePath());
 }
 
 function buildMacRuntimePairs(appPath, lang, stagingDir) {

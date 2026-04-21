@@ -74,6 +74,62 @@ QString readEnvVar(const char *name)
     return value ? QString::fromUtf8(value) : QString();
 }
 
+QString normalizeMenuText(const QString &text)
+{
+    QString normalized = text;
+    normalized.replace(QChar('&'), QString());
+    normalized.replace(QString::fromUtf8("…"), QStringLiteral("..."));
+    return normalized.trimmed();
+}
+
+QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText)
+{
+    int count = 0;
+    const TranslationEntry *entries = entriesForLanguage(lang, &count);
+    if (entries == nullptr) {
+        return QString();
+    }
+
+    const QString normalizedSource = normalizeMenuText(sourceText);
+    for (int index = 0; index < count; ++index) {
+        const QString candidate = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
+        if (candidate == normalizedSource) {
+            return QString::fromUtf8(entries[index].translation);
+        }
+    }
+
+    return QString();
+}
+
+void translateNativeMenu(NSMenu *menu, const QString &lang)
+{
+    if (menu == nil) {
+        return;
+    }
+
+    for (NSMenuItem *item in [menu itemArray]) {
+        const QString title = QString::fromUtf8([[item title] UTF8String]);
+        const QString translated = lookupEmbeddedTranslation(lang, title);
+        if (!translated.isEmpty() && translated != title) {
+            const QByteArray utf8 = translated.toUtf8();
+            [item setTitle:[NSString stringWithUTF8String:utf8.constData()]];
+        }
+
+        translateNativeMenu([item submenu], lang);
+    }
+}
+
+void refreshNativeMenuBar(const QString &lang)
+{
+    if (lang.isEmpty()) {
+        return;
+    }
+
+    @autoreleasepool {
+        translateNativeMenu([NSApp mainMenu], lang);
+    }
+}
+
 QString majorMinorVersion(const QString &version)
 {
     const QStringList parts = version.split('.');
@@ -119,6 +175,7 @@ bool installTranslator()
 
     gTranslator = new EmbeddedTranslator(lang, app);
     app->installTranslator(gTranslator);
+    refreshNativeMenuBar(lang);
 
     fprintf(
         stderr,
@@ -168,6 +225,14 @@ void bootstrapInjector()
                              queue:[NSOperationQueue mainQueue]
                         usingBlock:^(__unused NSNotification *note) {
                             scheduleInstallAttempt(0);
+                            refreshNativeMenuBar(readEnvVar("CAVALRY_I18N_LANG"));
+                            dispatch_after(
+                                dispatch_time(DISPATCH_TIME_NOW, 250 * NSEC_PER_MSEC),
+                                dispatch_get_main_queue(),
+                                ^{
+                                    refreshNativeMenuBar(readEnvVar("CAVALRY_I18N_LANG"));
+                                }
+                            );
                         }];
         }
     });

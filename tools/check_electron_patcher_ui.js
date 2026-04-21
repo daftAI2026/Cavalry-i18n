@@ -279,6 +279,11 @@ test('packaged desktop app prefers a bundled injector resource over rebuilding f
     /resources.*injector|path\.join\(process\.resourcesPath, 'injector'/,
     'packaged Electron app should read the injector from a packaged resource directory'
   );
+  assert.match(
+    mainSource,
+    /buildInjectorFromSource\(appPath, buildScriptPath, getInjectorBuildCachePath\(\)\)/,
+    'local desktop runs should rebuild the injector from source instead of blindly trusting a checked-in dylib that may target the wrong Qt branch'
+  );
 });
 
 test('embedded injector does not depend on runtime qm files', () => {
@@ -296,6 +301,24 @@ test('embedded injector does not depend on runtime qm files', () => {
     injectorSource,
     /qtbase_|cavalry_.*\.qm|CAVALRY_I18N_QM_DIR/,
     'release translation path should not require runtime qm files or user-installed Qt tools'
+  );
+});
+
+test('embedded injector refreshes the native macOS menu bar after installing translations', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /\[NSApp mainMenu\]|\[NSApplication sharedApplication\]/,
+    'injector should touch the native AppKit menu bar because late-installed Qt translators do not automatically retranslate existing macOS menus'
+  );
+  assert.match(
+    injectorSource,
+    /NSMenuItem|submenu/,
+    'injector should walk native menu items recursively to refresh existing menu labels after launch'
   );
 });
 
@@ -363,8 +386,14 @@ test('code-signature diagnostics use deep verification for patched app bundles',
 });
 
 test('injector build script can fall back to Qt frameworks when Cavalry app frameworks are unavailable', () => {
+  const packageJson = fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8');
   const buildScript = fs.readFileSync(path.join(repoRoot, 'tools', 'build_translator_injector.sh'), 'utf8');
 
+  assert.match(
+    packageJson,
+    /"build:injector": "CAVALRY_QT_VERSION=6\.6\.3 bash tools\/build_translator_injector\.sh/,
+    'default injector builds should target Cavalry Qt 6.6.3 instead of a newer incompatible branch'
+  );
   assert.match(
     buildScript,
     /QT_FRAMEWORKS\/QtCore\.framework\/Versions\/A\/QtCore/,
@@ -379,6 +408,16 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     buildScript,
     /CAVALRY_QT_VERSION|CFBundleVersion/,
     'injector build should verify that the build-time Qt version matches the target Cavalry Qt runtime branch'
+  );
+  assert.doesNotMatch(
+    buildScript,
+    /Version check bypassed|Proceeding with building injecting/,
+    'injector build should not silently bypass the Qt branch compatibility check'
+  );
+  assert.match(
+    buildScript,
+    /major_minor_version "\$BUILD_QT_VERSION".*major_minor_version "\$TARGET_QT_VERSION"[\s\S]*exit 1/,
+    'injector build should fail fast when the build-time Qt branch does not match the target Cavalry Qt branch'
   );
 });
 
