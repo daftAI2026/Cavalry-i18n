@@ -1,213 +1,88 @@
-# 🌐 Cavalry i18n — Multi-Language Switcher
+# Cavalry i18n
 
-Third-party multi-language switcher for [Cavalry](https://cavalry.scenegroup.co/) (Qt 6.6.3 2D animation software by Canva).
+Desktop-only JSON patcher for [Cavalry](https://cavalry.scenegroup.co/).
 
-Switch Cavalry's UI language with one click — no terminal, no external tools, no admin privileges required.
+The project now has a single supported path:
 
-## Supported Languages
+1. Detect a local `Cavalry.app`
+2. Extract the current English JSON assets into the app-specific state directory
+3. Copy a selected language pack back into `Contents/assets/...`
+4. Relaunch Cavalry
 
-| Language | Code | Status |
-|----------|------|--------|
-| English | `en` | ✅ Built-in (restore original) |
-| 简体中文 (Simplified Chinese) | `zh-Hans` | ✅ |
-| 繁體中文 (Traditional Chinese) | `zh-Hant` | ✅ |
-| 日本語 (Japanese) | `ja_JP` | ✅ |
+Qt `.qm` loading, DYLD injector experiments, and the old Script UI entrypoint are removed.
 
-## Installation
+## Supported languages
 
-1. Download the latest release from [GitHub Releases](https://github.com/nicedoc/Cavalry-i18n/releases), or clone this repository.
-2. Copy `LanguageSwitcher.js` and the `LanguageSwitcher_assets/` folder into your Cavalry Scripts directory (in Cavalry, go to **Window → Scripts → Show Scripts Folder**).
-3. In Cavalry, open **Window → Scripts → LanguageSwitcher**.
-4. Select your preferred language from the dropdown and click **Apply & Restart**.
-5. Cavalry will restart automatically with the new language applied.
+| Language | Code |
+| --- | --- |
+| English | `en` |
+| 简体中文 | `zh-Hans` |
+| 繁體中文 | `zh-Hant` |
+| 日本語 | `ja_JP` |
 
-## Usage
-
-1. Open the LanguageSwitcher script from Cavalry's Window → Scripts menu.
-2. Select a language from the dropdown.
-3. Click **Apply & Restart** — the script will overwrite Cavalry's UI strings and restart the application.
-
-To switch back to English, simply select "English" and click Apply & Restart.
-
-## Translation Coverage
-
-The switcher applies two layers of translation:
-
-### Layer 1: JSON String Override
-
-Covers all node names, attributes, descriptions, tips, onboarding text, and plugin strings:
-
-- `nodeStrings.json` — Node types, attributes, enums, tabs (591+ strings)
-- `appStrings.json` — Application-level strings
-- `tips.json` — Learning tips
-- `onboarding.json` — First-run onboarding screens
-- 12 plugin files — Filter and effect names
-
-### Layer 2: Qt .qm Translation
-
-Covers Qt standard UI elements (menus, dialogs, buttons):
-
-- `cavalry_xx.qm` — Custom Qt translations for Cavalry-specific menus
-- `qtbase_xx.qm` — Official Qt translations (OK, Cancel, File, Edit, etc.)
-
-**Current runtime note:** the repository still stores and validates `.qm` files, but the shipping `LanguageSwitcher.js` currently runs in **JSON-only mode**. Cavalry's public docs do not expose a supported runtime translator-loading API or a documented language preference key, and standard macOS installs also do not ship with a writable `translations/` directory in the app bundle. For now, the switcher applies the JSON string layer only.
-
-## Update Detection
-
-When Cavalry updates, the app bundle is replaced and translations are reset. The switcher detects this automatically:
-
-- On script startup, it compares the saved Cavalry version with the current version
-- If a mismatch is detected, it prompts you to re-apply your language pack
-- Your language preference is stored in Cavalry's app data folder, and the language packs live in the script's hidden `_assets` directory, both safe from app updates
-
-## Developer Guide
-
-### External Bundle Patcher (Experimental)
-
-If you want to patch a Cavalry bundle **outside** the in-app Script UI runtime, use:
-
-```bash
-python3 tools/patch_cavalry_bundle.py \
-  --app /Applications/Cavalry.app \
-  --output-app ~/Applications/Cavalry-zh-Hans.app \
-  --lang zh-Hans \
-  --refresh-en \
-  --english-output /tmp/cavalry-en \
-  --qm-target resources
-```
-
-What it does:
-
-1. Extracts current English originals from the installed app bundle
-2. Clones the source app to a writable output bundle if `--output-app` is provided
-3. Applies the selected JSON language pack to the target bundle
-4. Optionally installs `.qm` files to an experimental target directory
-
-If you point `--app` at `/Applications/Cavalry.app`, prefer `--output-app` so the helper patches a writable copy instead of failing on macOS app-bundle permissions.
-
-### Electron Desktop Patcher (Experimental)
-
-If you want a local desktop UI instead of the raw CLI:
+## Run the desktop patcher
 
 ```bash
 npm install
 npm run desktop
 ```
 
-The Electron app can:
+The app will try these paths automatically:
 
-1. auto-detect a local `Cavalry.app`
-2. inspect whether the selected bundle actually contains `assets`, plugin strings, and translation directories
-3. invoke `tools/patch_cavalry_bundle.py` with the selected language / QM target
-4. optionally patch to a separate writable output bundle instead of editing the source app in place
+1. the last path saved in `state.json`
+2. `/Applications/Cavalry.app`
+3. `~/Applications/Cavalry.app`
 
-### Injector Launcher For Compiled Menus (Experimental)
+If none are found, use the folder button to browse manually.
 
-Compiled menu strings are not all in JSON. A real subset lives inside:
+## Runtime state
 
-- `Contents/Frameworks/libExtensionLayer.dylib`
+Electron stores runtime data under `app.getPath('userData')`.
 
-This repository now includes:
+- `state.json` tracks the selected app path, the last patched Cavalry version, the active language, and the last patch timestamp
+- `en/` stores the extracted English JSON snapshot for the selected Cavalry version
 
-- `doc/compiled-menu-contexts.json`
-- `tools/build_translator_injector.sh`
-- `tools/launch_cavalry_with_injector.sh`
+At runtime, restoring English uses the extracted snapshot from the selected install, not a bundled repo copy.
 
-Current flow:
+## Repository layout
 
-1. Patch a writable app bundle so it contains the translated JSON and `.qm` files
-2. Launch that patched app with the translator injector
-3. The injector installs `cavalry_<lang>.qm` and `qtbase_<lang>.qm` into the running Qt app
-
-Example:
-
-```bash
-tools/launch_cavalry_with_injector.sh \
-  --app ~/Applications/Cavalry-zh-Hans.app \
-  --lang zh-Hans
-```
-
-Important notes:
-
-1. The shipped Developer ID build uses hardened runtime, so `DYLD_INSERT_LIBRARIES` does not reliably work until the target bundle is re-signed. The launcher script ad-hoc signs the target app before launch.
-2. If you still want to patch `/Applications/Cavalry.app` in place, macOS write permissions still apply. You need sufficient permissions to modify that bundle.
-
-### Reverse-Engineering Notes From the Local Install
-
-Observed on the installed `Cavalry.app` used during development:
-
-1. Cavalry 2.7.0 links Qt 6.6.3 frameworks, so Qt translation infrastructure is present in the process.
-2. The shipped bundle still has **no bundled `translations/` directory** and no shipped `.qm` files.
-3. App-specific menu labels like `New Scene`, `Import Assets...`, `Project Settings`, `Preferences`, and `About Cavalry` are compiled into `Contents/Frameworks/libExtensionLayer.dylib`, not stored in the JSON translation assets.
-4. `libExtensionLayer.dylib` imports `QMetaObject::tr(...)`, so these compiled menu strings do flow through Qt translation calls.
-5. App-wide symbol inspection still did **not** surface `installTranslator` / `QTranslator::load` imports in the shipped binaries, which explains why menus do not change just by dropping `.qm` files into the bundle.
-6. A writable copied bundle was successfully patched with translated JSON files and experimental `.qm` files under `Contents/Resources/translations/`.
-7. An external injector prototype now loads those `.qm` files into the running app, and a launcher script wraps the required ad-hoc re-sign + injected launch flow for patched bundles.
-
-### Adding a New Language
-
-1. Create a new directory under `LanguageSwitcher_assets/languages/` (e.g., `LanguageSwitcher_assets/languages/ko_KR/`)
-2. Copy all JSON files from `LanguageSwitcher_assets/languages/en/` and translate the whitelisted fields (see `doc/translation-whitelist.json`)
-3. Create a `.ts` file in `tools/` for Qt menu translations
-4. Validate the translated JSON with `python3 tools/validate_translations.py --json-report /tmp/cavalry-i18n-report.json --markdown-summary /tmp/cavalry-i18n-runlog.md`
-5. Compile with `lrelease tools/ko_KR.ts -qm LanguageSwitcher_assets/languages/ko_KR/cavalry_ko_KR.qm`
-6. Add the language to `LANGUAGES` and `LANG_KEYS` in `LanguageSwitcher.js`
-
-### Compiling .qm Files
-
-```bash
-# Requires Qt tools (lrelease)
-# macOS: brew install qt
-# Ubuntu: sudo apt-get install qttools5-dev-tools
-
-lrelease tools/zh-Hans.ts -qm LanguageSwitcher_assets/languages/zh-Hans/cavalry_zh-Hans.qm
-lrelease tools/zh-Hant.ts -qm LanguageSwitcher_assets/languages/zh-Hant/cavalry_zh-Hant.qm
-lrelease tools/ja_JP.ts -qm LanguageSwitcher_assets/languages/ja_JP/cavalry_ja_JP.qm
-```
-
-### Project Structure
-
-```
+```text
 Cavalry-i18n/
-├── LanguageSwitcher.js          # Main script (install this)
-├── LanguageSwitcher_assets/     # Hidden at runtime in Cavalry Scripts menu
-│   └── languages/
-│       ├── en/                  # English originals (extracted from Cavalry)
-│       ├── zh-Hans/             # Simplified Chinese translations
-│       ├── zh-Hant/             # Traditional Chinese translations
-│       └── ja_JP/               # Japanese translations
 ├── desktop-patcher/
-│   ├── main.js                  # Electron main process
-│   ├── preload.js               # Safe renderer bridge
-│   ├── lib/patcher-config.js    # Shared path/language helpers
-│   └── renderer/                # External patcher UI
-├── tools/
-│   ├── extract_strings.py       # Extract English strings from Cavalry
-│   ├── patch_cavalry_bundle.py  # External experimental bundle patcher
-│   ├── check_electron_patcher_ui.js # Electron patcher contract test
-│   ├── check_compiled_menu_contexts.py # Compiled-menu manifest contract
-│   ├── check_translator_injector.py # Injector build contract
-│   ├── check_translated_launcher.py # Injector launcher contract
-│   ├── build_translator_injector.sh # Build the Qt translator injector dylib
-│   ├── launch_cavalry_with_injector.sh # Re-sign + launch patched app with injected translator
-│   ├── validate_translations.py # Translation quality gates + runlog/report output
-│   ├── zh-Hans.ts / zh-Hant.ts / ja_JP.ts  # Qt Linguist source files
+│   ├── main.js
+│   ├── preload.js
+│   ├── lib/
+│   │   ├── detect.js
+│   │   ├── patch.js
+│   │   └── sudo.js
+│   └── renderer/
+├── languages/
+│   ├── en/          # tracked English baseline for translation QA
+│   ├── zh-Hans/
+│   ├── zh-Hant/
+│   └── ja_JP/
 ├── doc/
-│   ├── cavalry-glossary.md      # 94-term four-language glossary
-│   ├── compiled-menu-contexts.json # Compiled menu/action strings discovered in libExtensionLayer
+│   ├── cavalry-glossary.md
+│   ├── translation-guidelines.md
 │   └── translation-whitelist.json
-├── package.json                 # Electron desktop patcher scripts
-└── .github/workflows/build.yml  # CI: validate translations + desktop patcher + compile .qm + release
+└── tools/
+    ├── check_electron_patcher_ui.js
+    └── validate_translations.py
 ```
 
-## Credits
+`languages/en` stays in git for translation validation and review, but the running patcher does not depend on it for restore operations.
 
-- [Cavalry](https://cavalry.scenegroup.co/) by Scene Group (Canva) — the 2D animation software
-- Qt translation files from the [Qt Project](https://www.qt.io/)
-- Glossary based on Cavalry's official documentation and community conventions
+## Translation validation
 
-## License
+```bash
+python3 tools/validate_translations.py \
+  --root . \
+  --json-report /tmp/cavalry-i18n-report.json \
+  --markdown-summary /tmp/cavalry-i18n-runlog.md
+```
 
-This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
+Validation rules are defined in `doc/translation-whitelist.json`.
 
-This is a third-party community project and is not affiliated with or endorsed by Scene Group or Canva.
+## Risk note
+
+Patching files inside `Cavalry.app` can affect how macOS code-signature verification reports the app bundle. The patcher surfaces that warning after apply, but it does not block the language switch.

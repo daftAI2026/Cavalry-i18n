@@ -1,130 +1,146 @@
-const appPathInput = document.querySelector('#appPath');
-const outputAppPathInput = document.querySelector('#outputAppPath');
-const languageSelect = document.querySelector('#language');
-const qmTargetSelect = document.querySelector('#qmTarget');
-const refreshEnglishInput = document.querySelector('#refreshEnglish');
-const outputLog = document.querySelector('#outputLog');
-const diagnosticsGrid = document.querySelector('#diagnosticsGrid');
+const appVersion = document.querySelector('#appVersion');
+const appPathText = document.querySelector('#appPath');
+const currentLanguage = document.querySelector('#currentLanguage');
+const languageSelect = document.querySelector('#languageSelect');
 const browseButton = document.querySelector('#browseButton');
-const inspectButton = document.querySelector('#inspectButton');
+const extractButton = document.querySelector('#extractButton');
 const applyButton = document.querySelector('#applyButton');
+const statusText = document.querySelector('#statusText');
 
-function renderDiagnostics(diagnostics) {
-  if (!diagnostics) {
-    diagnosticsGrid.innerHTML = '<div class="diagnostic-empty">No bundle selected yet.</div>';
-    return;
-  }
+const api = window.cavalryI18n;
+const state = {
+  appPath: '',
+  currentLang: 'en',
+  languages: [],
+  needsExtract: false,
+};
 
-  const items = [
-    ['Bundle exists', diagnostics.exists ? 'Yes' : 'No'],
-    ['Version', diagnostics.version || 'Unknown'],
-    ['Assets root', diagnostics.hasAssetsRoot ? 'Present' : 'Missing'],
-    ['Definitions', diagnostics.hasDefinitions ? 'Present' : 'Missing'],
-    ['Learn', diagnostics.hasLearn ? 'Present' : 'Missing'],
-    ['Plugins', diagnostics.hasPlugins ? 'Present' : 'Missing'],
-    ['MacOS translations dir', diagnostics.macOSTranslationsExists ? 'Present' : 'Missing'],
-    ['Resources translations dir', diagnostics.resourcesTranslationsExists ? 'Present' : 'Missing'],
-    ['MacOS translations path', diagnostics.macOSTranslationsDir],
-    ['Resources translations path', diagnostics.resourcesTranslationsDir],
-  ];
+function setStatus(message, tone = 'neutral') {
+  statusText.textContent = message;
+  statusText.dataset.tone = tone;
+}
 
-  diagnosticsGrid.innerHTML = items
-    .map(
-      ([label, value]) =>
-        `<div class="diagnostic-item"><dt>${label}</dt><dd>${String(value)
-          .replaceAll('&', '&amp;')
-          .replaceAll('<', '&lt;')
-          .replaceAll('>', '&gt;')}</dd></div>`
-    )
+function setBusy(isBusy) {
+  browseButton.disabled = isBusy;
+  extractButton.disabled = isBusy;
+  applyButton.disabled = isBusy;
+  languageSelect.disabled = isBusy;
+}
+
+function updateLanguageOptions(languages) {
+  languageSelect.innerHTML = languages
+    .map((language) => `<option value="${language.value}">${language.label}</option>`)
     .join('');
 }
 
-function setOutput(text) {
-  outputLog.textContent = text;
-}
-
-async function refreshDiagnostics() {
-  const appPath = appPathInput.value.trim();
-  if (!appPath) {
-    renderDiagnostics(null);
-    setOutput('Select a Cavalry.app first.');
-    return;
-  }
-
-  const diagnostics = await window.desktopPatcher.inspectApp(appPath);
-  renderDiagnostics(diagnostics);
-  setOutput(`Inspected: ${appPath}`);
+function languageLabel(code) {
+  const match = state.languages.find((language) => language.value === code);
+  return match ? match.label : code;
 }
 
 async function bootstrap() {
-  const bootstrapState = await window.desktopPatcher.getBootstrap();
-  appPathInput.value = bootstrapState.appPath || bootstrapState.defaultAppCandidates[0] || '';
+  const bootstrapState = await api.getStatus();
+  state.appPath = bootstrapState.appPath || '';
+  state.currentLang = bootstrapState.currentLang || 'en';
+  state.languages = bootstrapState.languages || [];
+  state.needsExtract = Boolean(bootstrapState.needsExtract);
 
-  languageSelect.innerHTML = bootstrapState.languages
-    .map((language) => `<option value="${language.value}">${language.label}</option>`)
-    .join('');
-  languageSelect.value = bootstrapState.languages.some((language) => language.value === 'zh-Hans')
-    ? 'zh-Hans'
-    : bootstrapState.languages[0]?.value || '';
+  updateLanguageOptions(state.languages);
+  languageSelect.value = state.currentLang;
+  currentLanguage.textContent = languageLabel(state.currentLang);
 
-  renderDiagnostics(bootstrapState.diagnostics);
-  if (bootstrapState.appPath) {
-    setOutput(`Discovered installed app: ${bootstrapState.appPath}`);
+  if (state.appPath) {
+    appVersion.textContent = bootstrapState.version
+      ? `Cavalry ${bootstrapState.version}`
+      : 'Cavalry found';
+    appPathText.textContent = state.appPath;
   } else {
-    setOutput(
-      `No default Cavalry.app found. Tried:\n${bootstrapState.defaultAppCandidates.join('\n')}`
-    );
+    appVersion.textContent = 'Cavalry not found';
+    appPathText.textContent = `Tried:\n${bootstrapState.defaultAppCandidates.join('\n')}`;
   }
+
+  if (!state.appPath) {
+    setStatus('Choose a Cavalry.app to continue.', 'warning');
+    return;
+  }
+
+  if (state.needsExtract) {
+    setStatus('English source files need to be refreshed before the next patch.', 'warning');
+    return;
+  }
+
+  setStatus('Ready.', 'success');
 }
 
 browseButton.addEventListener('click', async () => {
-  const result = await window.desktopPatcher.chooseApp();
+  const result = await api.browseApp();
   if (result.canceled) {
     return;
   }
 
-  appPathInput.value = result.appPath;
-  renderDiagnostics(result.diagnostics);
-  setOutput(`Selected app bundle:\n${result.appPath}`);
+  await bootstrap();
+  setStatus(`Selected ${result.appPath}`, 'success');
 });
 
-inspectButton.addEventListener('click', async () => {
-  await refreshDiagnostics();
+extractButton.addEventListener('click', async () => {
+  if (!state.appPath) {
+    setStatus('Choose a Cavalry.app first.', 'warning');
+    return;
+  }
+
+  setBusy(true);
+  setStatus('Refreshing the English snapshot…');
+
+  try {
+    const result = await api.extractEnglish(state.appPath);
+    if (!result.ok) {
+      setStatus(result.error || 'Could not refresh the English snapshot.', 'error');
+      return;
+    }
+
+    await bootstrap();
+    setStatus(`English snapshot refreshed (${result.count} files).`, 'success');
+  } finally {
+    setBusy(false);
+  }
 });
 
 applyButton.addEventListener('click', async () => {
-  const appPath = appPathInput.value.trim();
-  if (!appPath) {
-    setOutput('Select a Cavalry.app before patching.');
+  if (!state.appPath) {
+    setStatus('Choose a Cavalry.app first.', 'warning');
     return;
   }
   if (!languageSelect.value) {
-    setOutput('No language pack is available.');
+    setStatus('No language pack is available.', 'warning');
     return;
   }
 
-  setOutput('Running external patcher…');
-  const result = await window.desktopPatcher.runPatch({
-    appPath,
-    outputAppPath: outputAppPathInput.value.trim(),
-    language: languageSelect.value,
-    qmTarget: qmTargetSelect.value,
-    refreshEnglish: refreshEnglishInput.checked,
-  });
+  const nextLanguage = languageSelect.value;
+  setBusy(true);
+  setStatus(`Applying ${languageLabel(nextLanguage)}…`);
 
-  await refreshDiagnostics();
-  setOutput(
-    [
-      `$ ${result.command}`,
-      '',
-      result.stdout || '(no stdout)',
-      result.stderr ? `\n[stderr]\n${result.stderr}` : '',
-      `\nExit code: ${result.code}`,
-      result.ok ? '\nPatch finished.' : '\nPatch failed.',
-    ].join('\n')
-  );
+  try {
+    const result = await api.applyLanguage(state.appPath, nextLanguage);
+    if (!result.ok) {
+      setStatus(result.error || 'Patch failed.', 'error');
+      return;
+    }
+
+    const restart = await api.restartCavalry(state.appPath);
+    await bootstrap();
+
+    if (!restart.ok) {
+      setStatus(restart.error || 'Language applied, but Cavalry could not be restarted.', 'warning');
+      return;
+    }
+
+    const warningSuffix = result.warning ? ` ${result.warning}` : '';
+    setStatus(`Applied ${languageLabel(nextLanguage)} and restarted Cavalry.${warningSuffix}`, 'success');
+  } finally {
+    setBusy(false);
+  }
 });
 
 bootstrap().catch((error) => {
-  setOutput(`Bootstrap failed:\n${error.stack || error.message}`);
+  setStatus(`Bootstrap failed: ${error.stack || error.message}`, 'error');
 });

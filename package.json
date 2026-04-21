@@ -6,7 +6,7 @@
   "scripts": {
     "desktop": "electron desktop-patcher/main.js",
     "test:desktop": "node --test tools/check_electron_patcher_ui.js",
-    "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/patcher-config.js && node --check desktop-patcher/renderer/app.js"
+    "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/detect.js && node --check desktop-patcher/lib/patch.js && node --check desktop-patcher/lib/sudo.js && node --check desktop-patcher/renderer/app.js"
   },
   "devDependencies": {
     "electron": "^35.5.1"

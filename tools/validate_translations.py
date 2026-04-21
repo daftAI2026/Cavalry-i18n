@@ -23,7 +23,7 @@ VALIDATION_TARGETS = {
     alias: code for alias, code in REPORT_LANGUAGE_ALIASES.items() if alias != "en"
 }
 
-LANGUAGE_PACK_ROOT = Path("LanguageSwitcher_assets") / "languages"
+LANGUAGE_PACK_ROOT = Path("languages")
 
 FILE_GROUPS = {
     "nodeStrings": ["nodeStrings.json"],
@@ -455,7 +455,6 @@ def evaluate_language(
         "no_translate_issue_count": 0,
         "locale_sync_issue_count": 0,
         "purity_issue_count": 0,
-        "ts_unfinished_count": 0,
         "issues": {
             "structure": [],
             "no_translate": [],
@@ -463,7 +462,6 @@ def evaluate_language(
             "placeholder": [],
             "english_residue": [],
             "purity": [],
-            "ts_unfinished": [],
         },
     }
 
@@ -667,20 +665,6 @@ def evaluate_language(
             },
         )
 
-    ts_path = root / "tools" / f"{repo_code}.ts"
-    unfinished_count = len(re.findall(r'type="unfinished"', ts_path.read_text(encoding="utf-8")))
-    result["ts_unfinished_count"] = unfinished_count
-    if unfinished_count:
-        limited_append(
-            result["issues"]["ts_unfinished"],
-            {
-                "language": language_alias,
-                "repo_code": repo_code,
-                "file": ts_path.as_posix(),
-                "detail": f"Found {unfinished_count} Qt unfinished translation marker(s).",
-            },
-        )
-
     translate_leaves = result["translate_leaves"]
     result["coverage"] = (
         result["changed_translate_leaves"] / translate_leaves if translate_leaves else 1.0
@@ -706,8 +690,6 @@ def build_report(root: Path) -> dict[str, Any]:
     b10_ok = all(language["coverage"] >= 0.90 for language in languages.values())
     b11_ok = all(language["locale_sync_issue_count"] == 0 for language in languages.values())
     b12_ok = all(language["purity_issue_count"] == 0 for language in languages.values())
-    ts_ok = all(language["ts_unfinished_count"] == 0 for language in languages.values())
-
     gates = {
         "B2": {
             "name": "Structure parity",
@@ -743,11 +725,6 @@ def build_report(root: Path) -> dict[str, Any]:
             "name": "Language purity",
             "status": gate_status(b12_ok),
             "detail": "Each target language must reject known off-script or off-locale UI terms.",
-        },
-        "TS": {
-            "name": "Qt unfinished",
-            "status": gate_status(ts_ok),
-            "detail": '.ts sources must not contain type="unfinished".',
         },
     }
 
@@ -822,7 +799,6 @@ def render_summary(report: dict[str, Any]) -> str:
             "english_residue",
             "purity",
             "locale_sync",
-            "ts_unfinished",
         ]:
             for issue in language["issues"][issue_type][:3]:
                 detail = issue["detail"]

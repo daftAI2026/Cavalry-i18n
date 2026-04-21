@@ -1,4 +1,4 @@
-name: Build Language Pack
+name: Build Desktop Patcher
 
 on:
   push:
@@ -41,9 +41,6 @@ jobs:
             --json-report "$RUNNER_TEMP/translation-gates/report.json" \
             --markdown-summary "$RUNNER_TEMP/translation-gates/runlog.md"
 
-      - name: Validate Script UI runtime layout
-        run: node tools/check_language_switcher_runtime.js
-
       - name: Publish translation gate summary
         if: ${{ always() }}
         run: |
@@ -69,42 +66,20 @@ jobs:
             ${{ runner.temp }}/translation-gates/report.json
             ${{ runner.temp }}/translation-gates/runlog.md
 
-      - name: Install Qt tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qttools5-dev-tools
-
-      - name: Compile .ts to .qm with lrelease
-        run: |
-          for TS in tools/*.ts; do
-            LANG=$(basename "$TS" .ts)
-            lrelease "$TS" -qm "LanguageSwitcher_assets/languages/$LANG/cavalry_${LANG}.qm"
-          done
-
-      - name: Verify .qm files
-        run: |
-          for LANG in zh-Hans zh-Hant ja_JP; do
-            for QM in \
-              "LanguageSwitcher_assets/languages/$LANG/cavalry_${LANG}.qm" \
-              "LanguageSwitcher_assets/languages/$LANG/qtbase_${LANG}.qm"; do
-              if [ ! -f "$QM" ]; then
-                echo "FAIL: $QM not found"; exit 1
-              fi
-              SIZE=$(wc -c < "$QM" | tr -d ' ')
-              if [ "$SIZE" -le 0 ]; then
-                echo "FAIL: $QM is empty"; exit 1
-              fi
-              echo "$QM: ${SIZE} bytes"
-            done
-          done
-
-      - name: Upload language pack artifact
+      - name: Upload desktop patcher source artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cavalry-language-pack
+          name: cavalry-i18n-desktop-source
           path: |
-            LanguageSwitcher_assets/
-            LanguageSwitcher.js
+            desktop-patcher/
+            languages/
+            doc/translation-whitelist.json
+            README.md
+            LICENSE
+            package.json
+            package-lock.json
+            tools/check_electron_patcher_ui.js
+            tools/validate_translations.py
 
   release:
     needs: build
@@ -117,41 +92,18 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Qt tools
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y qttools5-dev-tools
-
-      - name: Compile .ts to .qm with lrelease
-        run: |
-          for TS in tools/*.ts; do
-            LANG=$(basename "$TS" .ts)
-            lrelease "$TS" -qm "LanguageSwitcher_assets/languages/$LANG/cavalry_${LANG}.qm"
-          done
-
-      - name: Verify .qm files
-        run: |
-          for LANG in zh-Hans zh-Hant ja_JP; do
-            for QM in \
-              "LanguageSwitcher_assets/languages/$LANG/cavalry_${LANG}.qm" \
-              "LanguageSwitcher_assets/languages/$LANG/qtbase_${LANG}.qm"; do
-              if [ ! -f "$QM" ]; then
-                echo "FAIL: $QM not found"; exit 1
-              fi
-              SIZE=$(wc -c < "$QM" | tr -d ' ')
-              if [ "$SIZE" -le 0 ]; then
-                echo "FAIL: $QM is empty"; exit 1
-              fi
-              echo "$QM: ${SIZE} bytes"
-            done
-          done
-
       - name: Package release
         run: |
-          mkdir -p release-pack
-          cp LanguageSwitcher.js release-pack/
-          cp -r LanguageSwitcher_assets release-pack/
-          cd release-pack && zip -r ../cavalry-i18n-${{ github.ref_name }}.zip .
+          zip -r "cavalry-i18n-${{ github.ref_name }}.zip" \
+            desktop-patcher \
+            languages \
+            doc/translation-whitelist.json \
+            README.md \
+            LICENSE \
+            package.json \
+            package-lock.json \
+            tools/check_electron_patcher_ui.js \
+            tools/validate_translations.py
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

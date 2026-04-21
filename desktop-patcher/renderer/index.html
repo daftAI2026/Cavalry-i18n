@@ -3,77 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cavalry i18n Patcher</title>
+    <title>Cavalry Language Switcher</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <main class="app-shell">
       <header class="hero">
-        <div>
-          <p class="eyebrow">External Bundle Patcher</p>
-          <h1>Cavalry i18n Desktop Patcher</h1>
-          <p class="subcopy">
-            Patch a local Cavalry.app from outside the Script UI runtime, refresh the current English
-            snapshot, and try experimental QM targets on a writable bundle.
-          </p>
-        </div>
+        <p class="eyebrow">Desktop-only JSON patcher</p>
+        <h1>🌐 Cavalry Language Switcher</h1>
+        <p class="subcopy">Pick a language, patch the installed JSON assets, and relaunch Cavalry.</p>
       </header>
 
       <section class="panel">
-        <div class="field-grid">
-          <label class="field field-path">
-            <span>Cavalry app path</span>
-            <div class="inline-input">
-              <input id="appPath" type="text" spellcheck="false" />
-              <button id="browseButton" type="button">Browse…</button>
-              <button id="inspectButton" type="button" class="secondary">Inspect</button>
-            </div>
-          </label>
-
-          <label class="field field-path">
-            <span>Output app path (optional writable clone)</span>
-            <input id="outputAppPath" type="text" spellcheck="false" placeholder="Leave blank to patch in place" />
-          </label>
-
-          <label class="field">
-            <span>Language</span>
-            <select id="language"></select>
-          </label>
-
-          <label class="field">
-            <span>QM target</span>
-            <select id="qmTarget">
-              <option value="none">none (JSON only)</option>
-              <option value="macos">Contents/MacOS/translations</option>
-              <option value="resources">Contents/Resources/translations</option>
-            </select>
-          </label>
-
-          <label class="field checkbox-row">
-            <input id="refreshEnglish" type="checkbox" checked />
-            <span>Refresh English snapshot from the selected app before patching</span>
-          </label>
+        <div class="app-card">
+          <div>
+            <p id="appVersion" class="app-version">Cavalry not found</p>
+            <p id="appPath" class="app-path">Choose a Cavalry.app to begin.</p>
+          </div>
+          <button id="browseButton" type="button" class="icon-button" aria-label="Choose Cavalry app">
+            📁
+          </button>
         </div>
+
+        <p class="current-row">Current: <strong id="currentLanguage">English</strong></p>
+
+        <label class="field">
+          <span>Language</span>
+          <select id="languageSelect"></select>
+        </label>
 
         <div class="actions">
-          <button id="applyButton" type="button" class="primary">Patch selected app</button>
+          <button id="applyButton" type="button" class="primary">Apply &amp; Restart</button>
+          <button id="extractButton" type="button" class="secondary">Refresh English snapshot</button>
         </div>
-      </section>
 
-      <section class="panel diagnostics">
-        <div class="section-head">
-          <h2>Bundle diagnostics</h2>
-          <p>Shows what the selected install actually contains.</p>
-        </div>
-        <dl id="diagnosticsGrid" class="diagnostics-grid"></dl>
-      </section>
-
-      <section class="panel output">
-        <div class="section-head">
-          <h2>Patch output</h2>
-          <p>Full stdout/stderr from the Python bundle patcher.</p>
-        </div>
-        <pre id="outputLog" class="output-log">Waiting for local Cavalry bundle inspection…</pre>
+        <section class="status-panel">
+          <p class="status-label">Status</p>
+          <p id="statusText" class="status-text">Ready.</p>
+          <p class="risk-note">
+            Editing files inside Cavalry.app may change how macOS code-signature verification reports this install.
+          </p>
+        </section>
       </section>
     </main>
 
