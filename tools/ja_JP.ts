@@ -20,6 +20,34 @@
       <translation>ウィンドウ</translation>
     </message>
     <message>
+      <source>Composition</source>
+      <translation>コンポジション</translation>
+    </message>
+    <message>
+      <source>Create</source>
+      <translation>作成</translation>
+    </message>
+    <message>
+      <source>Animation</source>
+      <translation>アニメーション</translation>
+    </message>
+    <message>
+      <source>Shape</source>
+      <translation>シェイプ</translation>
+    </message>
+    <message>
+      <source>Tool</source>
+      <translation>ツール</translation>
+    </message>
+    <message>
+      <source>Dynamics</source>
+      <translation>ダイナミクス</translation>
+    </message>
+    <message>
+      <source>Scripts</source>
+      <translation>スクリプト</translation>
+    </message>
+    <message>
       <source>Help</source>
       <translation>ヘルプ</translation>
     </message>
@@ -43,12 +71,60 @@
       <translation>ウィンドウ</translation>
     </message>
     <message>
+      <source>Composition</source>
+      <translation>コンポジション</translation>
+    </message>
+    <message>
+      <source>Create</source>
+      <translation>作成</translation>
+    </message>
+    <message>
+      <source>Animation</source>
+      <translation>アニメーション</translation>
+    </message>
+    <message>
+      <source>Shape</source>
+      <translation>シェイプ</translation>
+    </message>
+    <message>
+      <source>Tool</source>
+      <translation>ツール</translation>
+    </message>
+    <message>
+      <source>Dynamics</source>
+      <translation>ダイナミクス</translation>
+    </message>
+    <message>
+      <source>Scripts</source>
+      <translation>スクリプト</translation>
+    </message>
+    <message>
       <source>&amp;Help</source>
       <translation>&amp;ヘルプ</translation>
     </message>
     <message>
       <source>New Scene</source>
       <translation>新規シーン</translation>
+    </message>
+    <message>
+      <source>Open...</source>
+      <translation>開く...</translation>
+    </message>
+    <message>
+      <source>Open Recent</source>
+      <translation>最近使った項目を開く</translation>
+    </message>
+    <message>
+      <source>Restore Autosave</source>
+      <translation>自動保存を復元</translation>
+    </message>
+    <message>
+      <source>Save As...</source>
+      <translation>名前を付けて保存...</translation>
+    </message>
+    <message>
+      <source>Increment and Save</source>
+      <translation>連番保存</translation>
     </message>
     <message>
       <source>Import Assets...</source>
@@ -59,12 +135,72 @@
       <translation>アセットを読み込み</translation>
     </message>
     <message>
+      <source>Import Reference...</source>
+      <translation>参照を読み込み...</translation>
+    </message>
+    <message>
+      <source>Import Scene...</source>
+      <translation>シーンを読み込み...</translation>
+    </message>
+    <message>
+      <source>Import Google Sheet...</source>
+      <translation>Google スプレッドシートを読み込み...</translation>
+    </message>
+    <message>
+      <source>Import Image Smart Folder...</source>
+      <translation>画像スマートフォルダーを読み込み...</translation>
+    </message>
+    <message>
+      <source>Import Audio Smart Folder...</source>
+      <translation>オーディオスマートフォルダーを読み込み...</translation>
+    </message>
+    <message>
       <source>Save Scene</source>
       <translation>シーンを保存</translation>
     </message>
     <message>
+      <source>Export Selected...</source>
+      <translation>選択項目を書き出し...</translation>
+    </message>
+    <message>
+      <source>Export Lottie...</source>
+      <translation>Lottie を書き出し...</translation>
+    </message>
+    <message>
+      <source>Export as Project...</source>
+      <translation>プロジェクトとして書き出し...</translation>
+    </message>
+    <message>
       <source>Project Settings</source>
       <translation>プロジェクト設定</translation>
+    </message>
+    <message>
+      <source>Set Project...</source>
+      <translation>プロジェクトを設定...</translation>
+    </message>
+    <message>
+      <source>Set Project</source>
+      <translation>プロジェクトを設定</translation>
+    </message>
+    <message>
+      <source>Show Project Folder</source>
+      <translation>プロジェクトフォルダーを表示</translation>
+    </message>
+    <message>
+      <source>Render Manager</source>
+      <translation>レンダーマネージャー</translation>
+    </message>
+    <message>
+      <source>Render Current Frame...</source>
+      <translation>現在のフレームをレンダリング...</translation>
+    </message>
+    <message>
+      <source>Render Current Frame to SVG...</source>
+      <translation>現在のフレームを SVG にレンダリング...</translation>
+    </message>
+    <message>
+      <source>Reduce Scene</source>
+      <translation>シーンを軽量化</translation>
     </message>
     <message>
       <source>Open Project Settings</source>

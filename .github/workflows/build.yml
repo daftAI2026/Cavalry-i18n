@@ -73,6 +73,7 @@ jobs:
           path: |
             desktop-patcher/
             languages/
+            doc/compiled-ui-source-map.json
             doc/translation-whitelist.json
             README.md
             LICENSE
@@ -80,6 +81,7 @@ jobs:
             package-lock.json
             tools/build_translator_injector.sh
             tools/check_electron_patcher_ui.js
+            tools/extract_compiled_ui_strings.js
             tools/generate_embedded_translations.js
             tools/ja_JP.ts
             tools/launch_cavalry_with_injector.sh

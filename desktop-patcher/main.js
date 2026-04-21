@@ -24,6 +24,7 @@ const LANGUAGE_LABELS = {
 const INJECTOR_DYLIB_NAME = 'libCavalryTranslatorInjector.dylib';
 const WRAPPER_EXECUTABLE_NAME = 'CavalryLauncher';
 const LANG_MARKER_NAME = 'cavalry-i18n-lang.txt';
+const CRASHPAD_HELPER_NAME = 'crashpad_handler';
 
 function shellQuote(value) {
   return `'${String(value).replace(/'/g, `'\\''`)}'`;
@@ -301,7 +302,14 @@ function collectNestedCodePaths(appPath) {
   return candidateRoots
     .flatMap((rootPath) => walkFiles(rootPath))
     .filter((targetPath) => isMachOBinary(targetPath))
-    .sort((left, right) => right.length - left.length);
+    .sort((left, right) => {
+      const leftIsCrashpad = path.basename(left) === CRASHPAD_HELPER_NAME;
+      const rightIsCrashpad = path.basename(right) === CRASHPAD_HELPER_NAME;
+      if (leftIsCrashpad !== rightIsCrashpad) {
+        return leftIsCrashpad ? -1 : 1;
+      }
+      return right.length - left.length;
+    });
 }
 
 function signCodeObject(targetPath) {

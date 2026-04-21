@@ -12,10 +12,10 @@
 #include <QtWidgets/qapplication.h>
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qmenubar.h>
+#include <QtWidgets/qwidget.h>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qtranslator.h>
-#include <QtWidgets/qwidget.h>
 
 namespace {
 
@@ -84,7 +84,17 @@ QString normalizeMenuText(const QString &text)
     QString normalized = text;
     normalized.replace(QChar('&'), QString());
     normalized.replace(QString::fromUtf8("…"), QStringLiteral("..."));
-    return normalized.trimmed();
+
+    QString cleaned;
+    cleaned.reserve(normalized.size());
+    for (QChar ch : normalized) {
+        if (ch.category() == QChar::Other_Format || ch.unicode() == 0xFEFF) {
+            continue;
+        }
+        cleaned.append(ch);
+    }
+
+    return cleaned.trimmed();
 }
 
 QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText)
@@ -104,6 +114,126 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
     }
 
     return QString();
+}
+
+NSString *toNSString(const QString &value)
+{
+    const QByteArray utf8 = value.toUtf8();
+    return [NSString stringWithUTF8String:utf8.constData()];
+}
+
+NSString *runtimeMenuInventoryPath()
+{
+    @autoreleasepool {
+        NSString *cacheRoot =
+            [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/Cavalry-i18n"];
+        [[NSFileManager defaultManager] createDirectoryAtPath:cacheRoot
+                                  withIntermediateDirectories:YES
+                                                   attributes:nil
+                                                        error:nil];
+        return [cacheRoot stringByAppendingPathComponent:@"menu-inventory.json"];
+    }
+}
+
+id serializeQtAction(QAction *action);
+
+id serializeQtMenu(QMenu *menu)
+{
+    if (menu == nullptr) {
+        return [NSNull null];
+    }
+
+    NSMutableArray *items = [NSMutableArray array];
+    for (QAction *action : menu->actions()) {
+        [items addObject:serializeQtAction(action)];
+    }
+
+    return @{
+        @"title" : toNSString(menu->title()),
+        @"items" : items,
+    };
+}
+
+id serializeQtAction(QAction *action)
+{
+    if (action == nullptr) {
+        return [NSNull null];
+    }
+
+    NSMutableDictionary *payload = [NSMutableDictionary dictionary];
+    payload[@"text"] = toNSString(action->text());
+    payload[@"enabled"] = @(action->isEnabled());
+    payload[@"separator"] = @(action->isSeparator());
+
+    QMenu *submenu = action->menu();
+    if (submenu != nullptr) {
+        payload[@"submenu"] = serializeQtMenu(submenu);
+    }
+
+    return payload;
+}
+
+bool dumpQtMenuInventory(const QString &lang)
+{
+    if (qobject_cast<QApplication *>(QCoreApplication::instance()) == nullptr) {
+        return false;
+    }
+
+    NSMutableArray *menuBars = [NSMutableArray array];
+    const auto widgets = QApplication::allWidgets();
+    for (QWidget *widget : widgets) {
+        QMenuBar *menuBar = qobject_cast<QMenuBar *>(widget);
+        if (menuBar == nullptr || menuBar->actions().isEmpty()) {
+            continue;
+        }
+
+        NSMutableArray *items = [NSMutableArray array];
+        for (QAction *action : menuBar->actions()) {
+            [items addObject:serializeQtAction(action)];
+        }
+
+        [menuBars addObject:@{
+            @"items" : items,
+        }];
+    }
+
+    if ([menuBars count] == 0) {
+        fprintf(stderr, "[cavalry-i18n] menu inventory export deferred: no populated Qt menu bar yet\n");
+        return false;
+    }
+
+    NSError *jsonError = nil;
+    NSString *inventoryPath = runtimeMenuInventoryPath();
+    NSData *payload = [NSJSONSerialization dataWithJSONObject:@{
+        @"formatVersion" : @1,
+        @"language" : toNSString(lang),
+        @"inventoryPath" : inventoryPath,
+        @"menuBars" : menuBars,
+    }
+                                                       options:NSJSONWritingPrettyPrinted
+                                                          error:&jsonError];
+    if (payload == nil) {
+        fprintf(stderr,
+                "[cavalry-i18n] failed to serialize runtime menu inventory: %s\n",
+                jsonError != nil ? [[jsonError localizedDescription] UTF8String] : "unknown error");
+        return false;
+    }
+
+    NSError *writeError = nil;
+    const bool wrote = [payload writeToFile:inventoryPath
+                                    options:NSDataWritingAtomic
+                                      error:&writeError];
+    if (wrote) {
+        fprintf(stderr,
+                "[cavalry-i18n] exported runtime menu inventory -> %s\n",
+                [inventoryPath UTF8String]);
+    } else {
+        fprintf(stderr,
+                "[cavalry-i18n] failed to write runtime menu inventory: %s (%s)\n",
+                [inventoryPath UTF8String],
+                writeError != nil ? [[writeError localizedDescription] UTF8String] : "unknown error");
+    }
+    return wrote;
 }
 
 void translateQtAction(QAction *action, const QString &lang);
@@ -248,6 +378,7 @@ bool installTranslator()
         return false;
     }
 
+    dumpQtMenuInventory(lang);
     refreshNativeMenuBar(lang);
 
     fprintf(

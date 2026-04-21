@@ -40,6 +40,51 @@ The injector must be built against the same Qt minor branch that Cavalry ships. 
 
 The exact Qt string table that gets compiled into `libCavalryTranslatorInjector.dylib` is checked into `desktop-patcher/injector/generated_translations.inc`, and `npm run test:desktop` regenerates it from `tools/*.ts` to make sure the checked-in file stays in sync.
 
+## UI text workflow
+
+There are **two** translation surfaces in this project:
+
+1. **JSON-backed assets** — `nodeStrings`, `appStrings`, `tips`, `onboarding`, and plugin `strings.json`
+2. **Compiled Qt/UI text** — menu labels, actions, panel titles, and other strings that live in `Cavalry.app` binaries/frameworks rather than JSON files
+
+The repo tracks the compiled UI surface in two forms:
+
+1. `doc/compiled-ui-source-map.json` — a checked-in ownership map for what lives in JSON assets vs compiled UI binaries
+2. `~/Library/Caches/Cavalry-i18n/menu-inventory.json` — the authoritative runtime menu tree dumped from the live app
+
+Refresh the compiled binary inventory from a clean local install with:
+
+```bash
+npm run extract:compiled-ui
+```
+
+That command reads `/Applications/Cavalry.app`, inventories likely user-visible strings from:
+
+- `Contents/MacOS/Cavalry`
+- `Contents/Frameworks/libCavalryUI.dylib`
+- `Contents/Frameworks/libCavalryFramework.dylib`
+
+and rewrites `doc/compiled-ui-source-map.json`.
+
+On translated macOS launches, the injector also exports the **real runtime Qt menu tree** from Cavalry itself to:
+
+```text
+~/Library/Caches/Cavalry-i18n/menu-inventory.json
+```
+
+That file is the authoritative runtime structure for menus and actions. It comes from the live `QMenuBar` / `QMenu` / `QAction` tree inside Cavalry after launch, not from a handwritten repo file.
+
+Recommended workflow for full UI coverage:
+
+1. Refresh the English JSON snapshot as before
+2. Refresh the compiled UI source map with `npm run extract:compiled-ui`
+3. Launch Cavalry once and inspect `~/Library/Caches/Cavalry-i18n/menu-inventory.json` for the exact runtime menu tree
+4. Curate translations for any newly surfaced compiled UI strings
+5. Regenerate embedded injector tables from the curated translation sources
+6. Walk the actual UI and verify menus, submenus, dialogs, onboarding, tips, and plugin names against the source map and runtime inventory
+
+This split is important because the existing JSON asset pipeline does **not** own the full menu bar or all Qt actions.
+
 The app will try these paths automatically:
 
 1. the last path saved in `state.json`
@@ -79,12 +124,14 @@ Cavalry-i18n/
 │   ├── zh-Hant/
 │   └── ja_JP/
 ├── doc/
+│   ├── compiled-ui-source-map.json
 │   ├── cavalry-glossary.md
 │   ├── translation-guidelines.md
 │   └── translation-whitelist.json
 └── tools/
     ├── build_translator_injector.sh
     ├── check_electron_patcher_ui.js
+    ├── extract_compiled_ui_strings.js
     ├── generate_embedded_translations.js
     ├── ja_JP.ts
     ├── launch_cavalry_with_injector.sh

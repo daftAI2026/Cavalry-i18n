@@ -45,7 +45,7 @@ function makeFakeBundle(rootDir) {
   return appPath;
 }
 
-test('desktop patcher workspace matches the JSON-only refactor layout', () => {
+test('desktop patcher workspace includes the compiled UI workflow files', () => {
   const expectedFiles = [
     path.join(repoRoot, 'package.json'),
     path.join(desktopRoot, 'main.js'),
@@ -62,11 +62,13 @@ test('desktop patcher workspace matches the JSON-only refactor layout', () => {
     path.join(repoRoot, 'languages', 'zh-Hant', 'nodeStrings.json'),
     path.join(repoRoot, 'languages', 'ja_JP', 'nodeStrings.json'),
     path.join(repoRoot, 'tools', 'build_translator_injector.sh'),
+    path.join(repoRoot, 'tools', 'extract_compiled_ui_strings.js'),
     path.join(repoRoot, 'tools', 'generate_embedded_translations.js'),
     path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'),
     path.join(repoRoot, 'tools', 'zh-Hans.ts'),
     path.join(repoRoot, 'tools', 'zh-Hant.ts'),
     path.join(repoRoot, 'tools', 'ja_JP.ts'),
+    path.join(repoRoot, 'doc', 'compiled-ui-source-map.json'),
   ];
 
   for (const filePath of expectedFiles) {
@@ -497,6 +499,154 @@ test('embedded injector source is generated from ts translation files', () => {
     injectorSource,
     /qVersion|QT_VERSION_STR/,
     'injector should verify the runtime Qt version before installing translations'
+  );
+});
+
+test('embedded injector normalizes real runtime menu text before lookup', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+  const generated = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'generated_translations.inc'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /normalizeMenuText/,
+    'injector should normalize live menu text before matching embedded translations'
+  );
+  assert.match(
+    injectorSource,
+    /QChar::Other_Format|category\(\)\s*==\s*QChar::Other_Format/,
+    'normalization should strip zero-width or format characters that appear in the real runtime menu inventory'
+  );
+  assert.match(
+    injectorSource,
+    /replace\(QChar\('&'\)/,
+    'normalization should ignore Qt mnemonic markers so runtime menu text can match ts source strings'
+  );
+  assert.match(
+    generated,
+    /"MenuBarManager", "Set Project", ".*"/,
+    'embedded translations should include the real Set Project menu label captured from the runtime inventory'
+  );
+});
+
+test('package.json exposes a compiled UI extraction workflow for non-JSON text', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+  const scripts = packageJson.scripts || {};
+
+  assert.match(
+    scripts['extract:compiled-ui'] || '',
+    /tools\/extract_compiled_ui_strings\.js/,
+    'package.json should expose a compiled UI extractor script instead of relying only on handwritten menu entries'
+  );
+  assert.match(
+    scripts['extract:compiled-ui'] || '',
+    /doc\/compiled-ui-source-map\.json/,
+    'compiled UI extraction should write to a checked-in source map JSON file'
+  );
+});
+
+test('repo tracks a compiled UI source map alongside JSON-backed translation assets', () => {
+  const sourceMapPath = path.join(repoRoot, 'doc', 'compiled-ui-source-map.json');
+  assert.ok(fs.existsSync(sourceMapPath), 'compiled UI source map should be checked into doc/');
+
+  const sourceMap = JSON.parse(fs.readFileSync(sourceMapPath, 'utf8'));
+  assert.equal(sourceMap.kind, 'ownership-map');
+  assert.equal(sourceMap.bundleVersion, '2.7.0');
+  assert.match(sourceMap.bundleId || '', /com\.scenegroup\.cavalry/);
+  assert.match(
+    sourceMap.authoritativeRuntimeInventory || '',
+    /menu-inventory\.json$/,
+    'source map should point to the authoritative runtime menu inventory path'
+  );
+  assert.ok(
+    Array.isArray(sourceMap.jsonAssetRoots) &&
+      sourceMap.jsonAssetRoots.some((entry) => entry.includes('languages')) &&
+      sourceMap.jsonAssetRoots.some((entry) => entry.includes('Contents/assets/Definitions')),
+    'source map should document the existing JSON asset pipeline'
+  );
+  assert.ok(
+    Array.isArray(sourceMap.compiledUiTargets) &&
+      sourceMap.compiledUiTargets.some((entry) => entry.endsWith('Contents/MacOS/Cavalry')) &&
+      sourceMap.compiledUiTargets.some((entry) => entry.endsWith('Frameworks/libCavalryUI.dylib')),
+    'source map should document the compiled UI binaries that own menu/action text'
+  );
+  assert.ok(
+    Array.isArray(sourceMap.surfaces) &&
+      sourceMap.surfaces.some((entry) => entry.id === 'json-assets') &&
+      sourceMap.surfaces.some((entry) => entry.id === 'compiled-ui') &&
+      sourceMap.surfaces.some((entry) => entry.id === 'qt-builtins'),
+    'source map should classify UI text ownership into JSON assets, compiled UI code, and Qt built-ins'
+  );
+});
+
+test('compiled UI extractor inventories strings from Cavalry binaries and frameworks', () => {
+  const extractorSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'extract_compiled_ui_strings.js'),
+    'utf8'
+  );
+
+  assert.match(
+    extractorSource,
+    /spawnSync/,
+    'compiled UI extractor should invoke platform tools to inventory bundled binary strings'
+  );
+  assert.match(
+    extractorSource,
+    /\/usr\/bin\/strings|strings'/,
+    'compiled UI extractor should use the macOS strings tool to inspect compiled UI binaries'
+  );
+  assert.match(
+    extractorSource,
+    /Contents', 'MacOS', 'Cavalry'|Contents\/MacOS\/Cavalry/,
+    'compiled UI extractor should inspect the main Cavalry executable'
+  );
+  assert.match(
+    extractorSource,
+    /libCavalryUI\.dylib/,
+    'compiled UI extractor should inspect the Cavalry UI framework where menu/action text likely lives'
+  );
+  assert.match(
+    extractorSource,
+    /Could not find compiled UI targets/,
+    'compiled UI extractor should fail loudly instead of emitting an empty source map when the target binaries are missing'
+  );
+  assert.match(
+    extractorSource,
+    /JSON\.stringify|writeFileSync/,
+    'compiled UI extractor should emit a deterministic JSON inventory that can become the repo source of truth'
+  );
+});
+
+test('embedded injector exports the real runtime menu tree from Cavalry itself', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /NSJSONSerialization|writeToFile/,
+    'injector should serialize the real runtime menu tree to JSON instead of relying only on handwritten menu entries'
+  );
+  assert.match(
+    injectorSource,
+    /Library\/Caches\/Cavalry-i18n|menu-inventory\.json/,
+    'injector should write the runtime menu inventory to a stable cache path that can be inspected after launch'
+  );
+  assert.match(
+    injectorSource,
+    /dumpQtMenuInventory|serializeQtMenu|serializeQtAction/,
+    'injector should walk the Qt-owned menu model and export its exact runtime structure'
+  );
+  assert.match(
+    injectorSource,
+    /failed to serialize runtime menu inventory|failed to write runtime menu inventory|menu inventory export deferred/,
+    'injector should log why runtime menu inventory export failed so real-app verification does not stall on silent errors'
   );
 });
 

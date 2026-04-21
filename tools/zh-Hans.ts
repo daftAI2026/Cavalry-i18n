@@ -20,6 +20,34 @@
       <translation>窗口</translation>
     </message>
     <message>
+      <source>Composition</source>
+      <translation>合成</translation>
+    </message>
+    <message>
+      <source>Create</source>
+      <translation>创建</translation>
+    </message>
+    <message>
+      <source>Animation</source>
+      <translation>动画</translation>
+    </message>
+    <message>
+      <source>Shape</source>
+      <translation>形状</translation>
+    </message>
+    <message>
+      <source>Tool</source>
+      <translation>工具</translation>
+    </message>
+    <message>
+      <source>Dynamics</source>
+      <translation>动力学</translation>
+    </message>
+    <message>
+      <source>Scripts</source>
+      <translation>脚本</translation>
+    </message>
+    <message>
       <source>Help</source>
       <translation>帮助</translation>
     </message>
@@ -43,12 +71,60 @@
       <translation>窗口</translation>
     </message>
     <message>
+      <source>Composition</source>
+      <translation>合成</translation>
+    </message>
+    <message>
+      <source>Create</source>
+      <translation>创建</translation>
+    </message>
+    <message>
+      <source>Animation</source>
+      <translation>动画</translation>
+    </message>
+    <message>
+      <source>Shape</source>
+      <translation>形状</translation>
+    </message>
+    <message>
+      <source>Tool</source>
+      <translation>工具</translation>
+    </message>
+    <message>
+      <source>Dynamics</source>
+      <translation>动力学</translation>
+    </message>
+    <message>
+      <source>Scripts</source>
+      <translation>脚本</translation>
+    </message>
+    <message>
       <source>&amp;Help</source>
       <translation>&amp;帮助</translation>
     </message>
     <message>
       <source>New Scene</source>
       <translation>新建场景</translation>
+    </message>
+    <message>
+      <source>Open...</source>
+      <translation>打开...</translation>
+    </message>
+    <message>
+      <source>Open Recent</source>
+      <translation>打开最近</translation>
+    </message>
+    <message>
+      <source>Restore Autosave</source>
+      <translation>恢复自动保存</translation>
+    </message>
+    <message>
+      <source>Save As...</source>
+      <translation>另存为...</translation>
+    </message>
+    <message>
+      <source>Increment and Save</source>
+      <translation>递增并保存</translation>
     </message>
     <message>
       <source>Import Assets...</source>
@@ -59,12 +135,72 @@
       <translation>导入资源</translation>
     </message>
     <message>
+      <source>Import Reference...</source>
+      <translation>导入引用...</translation>
+    </message>
+    <message>
+      <source>Import Scene...</source>
+      <translation>导入场景...</translation>
+    </message>
+    <message>
+      <source>Import Google Sheet...</source>
+      <translation>导入 Google 表格...</translation>
+    </message>
+    <message>
+      <source>Import Image Smart Folder...</source>
+      <translation>导入图像智能文件夹...</translation>
+    </message>
+    <message>
+      <source>Import Audio Smart Folder...</source>
+      <translation>导入音频智能文件夹...</translation>
+    </message>
+    <message>
       <source>Save Scene</source>
       <translation>保存场景</translation>
     </message>
     <message>
+      <source>Export Selected...</source>
+      <translation>导出所选内容...</translation>
+    </message>
+    <message>
+      <source>Export Lottie...</source>
+      <translation>导出 Lottie...</translation>
+    </message>
+    <message>
+      <source>Export as Project...</source>
+      <translation>导出为项目...</translation>
+    </message>
+    <message>
       <source>Project Settings</source>
       <translation>项目设置</translation>
+    </message>
+    <message>
+      <source>Set Project...</source>
+      <translation>设置项目...</translation>
+    </message>
+    <message>
+      <source>Set Project</source>
+      <translation>设置项目</translation>
+    </message>
+    <message>
+      <source>Show Project Folder</source>
+      <translation>显示项目文件夹</translation>
+    </message>
+    <message>
+      <source>Render Manager</source>
+      <translation>渲染管理器</translation>
+    </message>
+    <message>
+      <source>Render Current Frame...</source>
+      <translation>渲染当前帧...</translation>
+    </message>
+    <message>
+      <source>Render Current Frame to SVG...</source>
+      <translation>将当前帧渲染为 SVG...</translation>
+    </message>
+    <message>
+      <source>Reduce Scene</source>
+      <translation>精简场景</translation>
     </message>
     <message>
       <source>Open Project Settings</source>
