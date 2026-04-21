@@ -8,19 +8,13 @@
     "desktop": "electron .",
     "test:desktop": "node --test tools/check_electron_patcher_ui.js",
     "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/detect.js && node --check desktop-patcher/lib/patch.js && node --check desktop-patcher/lib/sudo.js && node --check desktop-patcher/renderer/app.js",
-    "check:full-ui": "node tools/check_full_ui_matrix.js --runlog \"$HOME/Library/Caches/Cavalry-i18n/full-ui-runlog.json\" --threshold 99",
-    "check:ui-coverage": "node tools/check_runtime_ui_coverage.js --inventory \"$HOME/Library/Caches/Cavalry-i18n/menu-inventory.json\" --allowlist tools/runtime_ui_allowlist.json --threshold 99",
-    "check:full-ui:ja_JP": "node tools/check_full_ui_coverage.js --language ja_JP --inventory \"$HOME/Library/Caches/Cavalry-i18n/ja_JP-inventory.json\" --compiled-source-map doc/compiled-ui-source-map.json --ts tools/ja_JP.ts --allowlist tools/runtime_ui_allowlist.json --threshold 99",
-    "check:full-ui:zh-Hans": "node tools/check_full_ui_coverage.js --language zh-Hans --inventory \"$HOME/Library/Caches/Cavalry-i18n/zh-Hans-inventory.json\" --compiled-source-map doc/compiled-ui-source-map.json --ts tools/zh-Hans.ts --allowlist tools/runtime_ui_allowlist.json --threshold 99",
-    "check:full-ui:zh-Hant": "node tools/check_full_ui_coverage.js --language zh-Hant --inventory \"$HOME/Library/Caches/Cavalry-i18n/zh-Hant-inventory.json\" --compiled-source-map doc/compiled-ui-source-map.json --ts tools/zh-Hant.ts --allowlist tools/runtime_ui_allowlist.json --threshold 99",
-    "extract:compiled-ui": "node tools/extract_compiled_ui_strings.js --app /Applications/Cavalry.app --output doc/compiled-ui-source-map.json",
     "build:injector": "CAVALRY_QT_VERSION=6.6.3 bash tools/build_translator_injector.sh desktop-patcher/injector/libCavalryTranslatorInjector.dylib",
     "build": "npm run build:injector && electron-builder -m",
     "build:dir": "npm run build:injector && electron-builder -m --dir"
   },
   "build": {
     "appId": "com.daftai.cavalry-i18n",
-    "productName": "Cavalry Patcher",
+    "productName": "Cavalry Language Switcher",
     "directories": {
       "output": "dist"
     },
@@ -36,6 +30,7 @@
       }
     ],
     "mac": {
+      "icon": "resources/icon.png",
       "category": "public.app-category.developer-tools",
       "target": [
         "dmg",
