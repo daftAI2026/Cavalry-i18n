@@ -322,6 +322,67 @@ test('embedded injector refreshes the native macOS menu bar after installing tra
   );
 });
 
+test('embedded injector translates Qt-owned menus before AppKit sync can overwrite them', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /qapplication\.h|QApplication/,
+    'injector should use QApplication so it can modify the Qt-owned menu state instead of relying only on NSMenuItem titles'
+  );
+  assert.match(
+    injectorSource,
+    /qmenubar\.h|QMenuBar/,
+    'injector should look for QMenuBar instances because Qt owns the menu bar model'
+  );
+  assert.match(
+    injectorSource,
+    /qmenu\.h|QMenu/,
+    'injector should traverse QMenu objects so submenu titles stay translated'
+  );
+  assert.match(
+    injectorSource,
+    /qaction\.h|QAction/,
+    'injector should update QAction text because Qt syncs native menu labels from action text'
+  );
+  assert.match(
+    injectorSource,
+    /menu->setTitle|action->setText/,
+    'injector should write translated menu text back through Qt APIs before refreshing the native menu'
+  );
+});
+
+test('embedded injector keeps retrying until a Qt menu surface exists', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /translateQtMenuBar/,
+    'injector should separate Qt menu translation from translator installation so menu readiness can be retried'
+  );
+  assert.match(
+    injectorSource,
+    /if\s*\(\s*gTranslator\s*==\s*nullptr\s*\)|if\s*\(\s*!gTranslator\s*\)/,
+    'injector should install the translator only once while continuing to retry menu translation'
+  );
+  assert.match(
+    injectorSource,
+    /if\s*\(\s*!translateQtMenuBar\(lang\)\s*\)\s*\{\s*return false;\s*\}/,
+    'injector should keep retrying until a Qt menu bar exists instead of stopping as soon as QCoreApplication appears'
+  );
+  assert.match(
+    injectorSource,
+    /actions\(\)|isEmpty\(\)/,
+    'injector should treat an empty QMenuBar as not-ready so retries continue until menu actions exist'
+  );
+});
+
 test('manual debug launcher follows the embedded-injector flow', () => {
   const launcherSource = fs.readFileSync(
     path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'),

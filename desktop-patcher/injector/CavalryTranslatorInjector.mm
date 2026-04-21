@@ -8,9 +8,14 @@
 
 #include <qcoreapplication.h>
 #include <qglobal.h>
+#include <QtGui/qaction.h>
+#include <QtWidgets/qapplication.h>
+#include <QtWidgets/qmenu.h>
+#include <QtWidgets/qmenubar.h>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qtranslator.h>
+#include <QtWidgets/qwidget.h>
 
 namespace {
 
@@ -101,6 +106,67 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
     return QString();
 }
 
+void translateQtAction(QAction *action, const QString &lang);
+
+void translateQtMenu(QMenu *menu, const QString &lang)
+{
+    if (menu == nullptr) {
+        return;
+    }
+
+    const QString title = menu->title();
+    const QString translatedTitle = lookupEmbeddedTranslation(lang, title);
+    if (!translatedTitle.isEmpty() && translatedTitle != title) {
+        menu->setTitle(translatedTitle);
+    }
+
+    for (QAction *action : menu->actions()) {
+        translateQtAction(action, lang);
+    }
+}
+
+void translateQtAction(QAction *action, const QString &lang)
+{
+    if (action == nullptr) {
+        return;
+    }
+
+    const QString text = action->text();
+    const QString translatedText = lookupEmbeddedTranslation(lang, text);
+    if (!translatedText.isEmpty() && translatedText != text) {
+        action->setText(translatedText);
+    }
+
+    translateQtMenu(action->menu(), lang);
+}
+
+bool translateQtMenuBar(const QString &lang)
+{
+    if (qobject_cast<QApplication *>(QCoreApplication::instance()) == nullptr) {
+        return false;
+    }
+
+    bool foundMenuSurface = false;
+    const auto widgets = QApplication::allWidgets();
+    for (QWidget *widget : widgets) {
+        QMenuBar *menuBar = qobject_cast<QMenuBar *>(widget);
+        if (menuBar == nullptr) {
+            continue;
+        }
+
+        const auto actions = menuBar->actions();
+        if (!actions.isEmpty()) {
+            foundMenuSurface = true;
+        }
+
+        for (QAction *action : actions) {
+            translateQtAction(action, lang);
+        }
+    }
+
+    return foundMenuSurface;
+}
+
 void translateNativeMenu(NSMenu *menu, const QString &lang)
 {
     if (menu == nil) {
@@ -173,8 +239,15 @@ bool installTranslator()
         return true;
     }
 
-    gTranslator = new EmbeddedTranslator(lang, app);
-    app->installTranslator(gTranslator);
+    if (gTranslator == nullptr) {
+        gTranslator = new EmbeddedTranslator(lang, app);
+        app->installTranslator(gTranslator);
+    }
+
+    if (!translateQtMenuBar(lang)) {
+        return false;
+    }
+
     refreshNativeMenuBar(lang);
 
     fprintf(
