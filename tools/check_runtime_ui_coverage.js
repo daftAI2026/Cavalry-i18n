@@ -154,6 +154,8 @@ function buildCoverage(inventory, allowlist) {
     language: inventory.language || '',
     formatVersion: inventory.formatVersion || 0,
     totalCandidates: uniqueCandidates.length,
+    candidates: uniqueCandidates,
+    translated: uniqueCandidates.filter((value) => !untranslated.includes(value)),
     untranslatedCount: untranslated.length,
     coveragePct,
     untranslated,
@@ -183,4 +185,17 @@ function main() {
   }
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  buildCoverage,
+  collectMenuStrings,
+  collectWidgetStrings,
+  normalizeText,
+  parseArgs,
+  readJson,
+  shouldIgnore,
+  stripAllowedFragments,
+};

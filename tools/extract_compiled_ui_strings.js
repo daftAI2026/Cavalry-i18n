@@ -80,6 +80,58 @@ function normalizeCandidate(value) {
   return value.replace(/\s+/g, ' ').trim();
 }
 
+function isReviewableCharacterSet(value) {
+  return /^[\p{L}\p{N}\s&/.,:;()'"%+\-?![\]]+$/u.test(value);
+}
+
+function isSingleUiWord(value) {
+  return /^[A-Z][a-z]+(?:['-][A-Za-z]+)?$/.test(value);
+}
+
+function hasMeaningfulAlphaToken(value) {
+  return /[A-Za-z]{3,}/.test(value);
+}
+
+function isKnownNonUiString(value) {
+  return /^(?:Accept|Accepted|Already Reported|Bad Gateway|Bad Request|Content-Type|Content-Range|Forbidden|Gateway Timeout|Internal Server Error|Keep-Alive|Auth callback missing code or state|Auth has no pending auth flow|Concurrent task failed with unknown exception|cannot create object from initializer list|I'm a teapot)$/.test(
+    value
+  );
+}
+
+function tokensLookUiLike(value) {
+  const tokens = value
+    .split(/\s+/)
+    .map((token) => token.replace(/^[()[\].,!?:;"']+|[()[\].,!?:;"']+$/g, ''))
+    .filter(Boolean);
+
+  if (tokens.length === 0) {
+    return false;
+  }
+
+  return tokens.every((token) => {
+    if (/^\d+(?:%|[A-Z])?$/.test(token)) {
+      return true;
+    }
+
+    if (/^[A-Z]{2,5}$/.test(token)) {
+      return true;
+    }
+
+    if (/[a-z][A-Z]/.test(token)) {
+      return false;
+    }
+
+    if (token.includes('-')) {
+      const segments = token.split('-');
+      if (segments.some((segment) => segment.length <= 1)) {
+        return false;
+      }
+    }
+
+    return /^[A-Za-z]+(?:['-][A-Za-z]+)*$/.test(token);
+  });
+}
+
 function isLikelyUiString(value) {
   if (!value) {
     return false;
@@ -93,7 +145,31 @@ function isLikelyUiString(value) {
     return false;
   }
 
+  if (!/^[A-Za-z0-9]/.test(value) || !/[A-Za-z0-9.)!?]$/.test(value)) {
+    return false;
+  }
+
+  if (!isReviewableCharacterSet(value)) {
+    return false;
+  }
+
+  if (!hasMeaningfulAlphaToken(value)) {
+    return false;
+  }
+
+  if (isKnownNonUiString(value)) {
+    return false;
+  }
+
+  if (!tokensLookUiLike(value)) {
+    return false;
+  }
+
   if (/[@/\\]/.test(value)) {
+    return false;
+  }
+
+  if (/[{}_=<>#]/.test(value)) {
     return false;
   }
 
@@ -106,6 +182,22 @@ function isLikelyUiString(value) {
   }
 
   if (/^(?:https?:|com\.|org\.|Qt\d|objc_|std::|Q[A-Z][A-Za-z]+)/.test(value)) {
+    return false;
+  }
+
+  if (
+    /(?:::|%[svd]|(?:nonce|cnonce|qop|realm|algorithm|filename|multipart|boundary|spdlog|nlohmann|allocator|shared_ptr|mutex|border-radius|QPushButton|Accept-Encoding|Accept-Ranges|Content-Encoding|Content-Length|Transfer-Encoding|Authorization|bytes))/i.test(
+      value
+    )
+  ) {
+    return false;
+  }
+
+  if (/\b[A-Z][a-z]+[A-Z][A-Za-z]+\b/.test(value) && !/\s/.test(value)) {
+    return false;
+  }
+
+  if (!/\s/.test(value) && !isSingleUiWord(value)) {
     return false;
   }
 
@@ -138,31 +230,39 @@ function runStrings(binaryPath) {
   return result.stdout.split(/\r?\n/);
 }
 
-function extractInventory(appPath) {
-  const targets = getCompiledUiTargets(appPath);
+function extractEntriesFromLines(sourcePath, rawLines) {
   const seen = new Set();
   const entries = [];
 
-  for (const targetPath of targets) {
-    for (const rawLine of runStrings(targetPath)) {
-      const text = normalizeCandidate(rawLine);
-      if (!isLikelyUiString(text)) {
-        continue;
-      }
-
-      const dedupeKey = `${targetPath}\u0000${text}`;
-      if (seen.has(dedupeKey)) {
-        continue;
-      }
-      seen.add(dedupeKey);
-
-      entries.push({
-        source: targetPath,
-        text,
-        normalizedText: text,
-        surfaceHint: getSurfaceHint(text),
-      });
+  for (const rawLine of rawLines) {
+    const text = normalizeCandidate(rawLine);
+    if (!isLikelyUiString(text)) {
+      continue;
     }
+
+    const dedupeKey = `${sourcePath}\u0000${text}`;
+    if (seen.has(dedupeKey)) {
+      continue;
+    }
+    seen.add(dedupeKey);
+
+    entries.push({
+      source: sourcePath,
+      text,
+      normalizedText: text,
+      surfaceHint: getSurfaceHint(text),
+    });
+  }
+
+  return entries;
+}
+
+function extractInventory(appPath) {
+  const targets = getCompiledUiTargets(appPath);
+  const entries = [];
+
+  for (const targetPath of targets) {
+    entries.push(...extractEntriesFromLines(targetPath, runStrings(targetPath)));
   }
 
   return entries.sort((left, right) => {
@@ -238,4 +338,18 @@ function main() {
   fs.writeFileSync(outputPath, `${JSON.stringify(sourceMap, null, 2)}\n`);
 }
 
-main();
+if (require.main === module) {
+  main();
+}
+
+module.exports = {
+  buildSourceMap,
+  extractEntriesFromLines,
+  extractInventory,
+  getCompiledUiTargets,
+  getSurfaceHint,
+  isLikelyUiString,
+  normalizeCandidate,
+  parseArgs,
+  runStrings,
+};

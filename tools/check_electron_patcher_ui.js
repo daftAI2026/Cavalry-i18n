@@ -566,6 +566,35 @@ test('package.json exposes a compiled UI extraction workflow for non-JSON text',
   );
 });
 
+test('package.json exposes per-language full UI blocker scripts', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+  const scripts = packageJson.scripts || {};
+
+  for (const language of ['ja_JP', 'zh-Hans', 'zh-Hant']) {
+    assert.match(
+      scripts[`check:full-ui:${language}`] || '',
+      /tools\/check_full_ui_coverage\.js/,
+      `package.json should expose a full-UI coverage blocker for ${language}`
+    );
+  }
+});
+
+test('package.json exposes a matrix full UI blocker script with a runlog path', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+  const scripts = packageJson.scripts || {};
+
+  assert.match(
+    scripts['check:full-ui'] || '',
+    /tools\/check_full_ui_matrix\.js/,
+    'package.json should expose one matrix full-UI blocker script instead of requiring manual per-language command assembly'
+  );
+  assert.match(
+    scripts['check:full-ui'] || '',
+    /full-ui-runlog\.json/,
+    'matrix full-UI blocker should write a stable runlog file so progress can be measured across repeated real-app runs'
+  );
+});
+
 test('repo tracks a compiled UI source map alongside JSON-backed translation assets', () => {
   const sourceMapPath = path.join(repoRoot, 'doc', 'compiled-ui-source-map.json');
   assert.ok(fs.existsSync(sourceMapPath), 'compiled UI source map should be checked into doc/');
@@ -635,6 +664,140 @@ test('compiled UI extractor inventories strings from Cavalry binaries and framew
     extractorSource,
     /JSON\.stringify|writeFileSync/,
     'compiled UI extractor should emit a deterministic JSON inventory that can become the repo source of truth'
+  );
+});
+
+test('full UI coverage checker composes runtime, compiled, and JSON-backed validation', () => {
+  const checkerSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'check_full_ui_coverage.js'),
+    'utf8'
+  );
+
+  assert.match(
+    checkerSource,
+    /check_runtime_ui_coverage|buildCoverage/,
+    'full UI checker should reuse the runtime UI coverage logic instead of inventing a second incompatible runtime gate'
+  );
+  assert.match(
+    checkerSource,
+    /compiled-ui-source-map|compiledSourceMap|buildCompiledCoverage/,
+    'full UI checker should include compiled UI inventory coverage instead of only the currently visible runtime surface'
+  );
+  assert.match(
+    checkerSource,
+    /validate_translations\.py|python3/,
+    'full UI checker should incorporate the existing JSON translation validator so JSON-backed surfaces stay inside the blocker'
+  );
+  assert.match(
+    checkerSource,
+    /ja_JP|zh-Hans|zh-Hant/,
+    'full UI checker should support all three target languages under the same workflow'
+  );
+});
+
+test('full UI matrix checker runs all languages and writes a structured runlog', () => {
+  const checkerSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'check_full_ui_matrix.js'),
+    'utf8'
+  );
+
+  assert.match(
+    checkerSource,
+    /ja_JP[\s\S]*zh-Hans[\s\S]*zh-Hant|zh-Hans[\s\S]*zh-Hant[\s\S]*ja_JP/,
+    'matrix full-UI checker should run all three target languages in one pass'
+  );
+  assert.match(
+    checkerSource,
+    /full-ui-runlog\.json|runlog/,
+    'matrix full-UI checker should persist a runlog so the latest blocker state is not lost between iterations'
+  );
+  assert.match(
+    checkerSource,
+    /startedAt|finishedAt/,
+    'matrix full-UI checker should timestamp the runlog'
+  );
+  assert.match(
+    checkerSource,
+    /runtime[\s\S]*compiled[\s\S]*jsonValidation|jsonValidation[\s\S]*runtime[\s\S]*compiled/,
+    'matrix full-UI checker runlog should retain the runtime, compiled, and JSON blocker details for each language'
+  );
+  assert.match(
+    checkerSource,
+    /process\.exitCode\s*=\s*1|process\.exit\(1\)/,
+    'matrix full-UI checker should fail the run when any language stays below the hard gate'
+  );
+});
+
+test('compiled UI extractor filters obvious binary noise while keeping UI labels', () => {
+  const extractorPath = path.join(repoRoot, 'tools', 'extract_compiled_ui_strings.js');
+  const { extractEntriesFromLines } = require(extractorPath);
+
+  assert.equal(
+    typeof extractEntriesFromLines,
+    'function',
+    'compiled UI extractor should expose a reusable line-filtering helper so tests can lock the noise filter down'
+  );
+
+  const entries = extractEntriesFromLines('/tmp/Cavalry', [
+    'Group',
+    'Window',
+    'Open Scene...',
+    '_16VisualDesignDark',
+    '--cpp-httplib-multipart-data-',
+    '", nonce="',
+    '; border-radius: 4px;}QPushButton:disabled { border-color:',
+    '#NSt3__120__shared_ptr_emplaceIN6spdlog5sinks21ansicolor_stdout_sinkINS1_7details13console_mutexEEENS_9allocatorIS6_EEEE',
+  ]);
+
+  assert.deepEqual(
+    entries.map((entry) => entry.text),
+    ['Group', 'Window', 'Open Scene...'],
+    'compiled UI extractor should keep reviewable UI copy and drop obvious binary junk before the full-UI blocker consumes the inventory'
+  );
+});
+
+test('compiled UI extractor rejects HTTP and exception strings that are not UI copy', () => {
+  const extractorPath = path.join(repoRoot, 'tools', 'extract_compiled_ui_strings.js');
+  const { extractEntriesFromLines } = require(extractorPath);
+
+  const entries = extractEntriesFromLines('/tmp/Cavalry', [
+    'Accept',
+    'Accepted',
+    'Bad Gateway',
+    'Content-Type',
+    'Auth has no pending auth flow',
+    'Close Others',
+    'Delete Script Tab?',
+  ]);
+
+  assert.deepEqual(
+    entries.map((entry) => entry.text),
+    ['Close Others', 'Delete Script Tab?'],
+    'compiled UI extractor should reject protocol and exception text so the hard gate only blocks real UI strings'
+  );
+});
+
+test('compiled UI extractor rejects HTTP status labels and debug errors that are not product UI', () => {
+  const extractorPath = path.join(repoRoot, 'tools', 'extract_compiled_ui_strings.js');
+  const { extractEntriesFromLines } = require(extractorPath);
+
+  const entries = extractEntriesFromLines('/tmp/Cavalry', [
+    'Already Reported',
+    'Forbidden',
+    'Gateway Timeout',
+    "I'm a teapot",
+    'Internal Server Error',
+    'Keep-Alive',
+    'Concurrent task failed with unknown exception',
+    'cannot create object from initializer list',
+    'Install Plugin?',
+    'Close Others',
+  ]);
+
+  assert.deepEqual(
+    entries.map((entry) => entry.text),
+    ['Install Plugin?', 'Close Others'],
+    'compiled UI extractor should drop HTTP status labels and debug-only failure strings before they reach the full-UI blocker'
   );
 });
 

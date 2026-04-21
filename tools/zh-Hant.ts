@@ -575,4 +575,268 @@
       <translation>列印至檔案</translation>
     </message>
   </context>
+  <context>
+    <name>MenuBarManager</name>
+    <message><source>Copy as SVG</source><translation>複製為 SVG</translation></message>
+    <message><source>Group</source><translation>群組</translation></message>
+    <message><source>Group and Flatten</source><translation>群組並展平</translation></message>
+    <message><source>Un-Group</source><translation>取消群組</translation></message>
+    <message><source>Add to Group</source><translation>加入群組</translation></message>
+    <message><source>Connect to Frame Range</source><translation>連接到幀範圍</translation></message>
+    <message><source>Show/Hide Selected</source><translation>顯示/隱藏所選</translation></message>
+    <message><source>Show/Hide Animation</source><translation>顯示/隱藏動畫</translation></message>
+    <message><source>Duplicate</source><translation>複製</translation></message>
+    <message><source>Duplicate (Options)...</source><translation>複製（選項）...</translation></message>
+    <message><source>Duplicate and Split</source><translation>複製並拆分</translation></message>
+    <message><source>Arrange</source><translation>排列</translation></message>
+    <message><source>Bring to Front</source><translation>置於最前</translation></message>
+    <message><source>Bring Forward</source><translation>上移一層</translation></message>
+    <message><source>Send Backward</source><translation>下移一層</translation></message>
+    <message><source>Send to Back</source><translation>置於最後</translation></message>
+    <message><source>Invert Selection</source><translation>反向選取</translation></message>
+    <message><source>Clear Selection</source><translation>清除選取</translation></message>
+    <message><source>Select by Label Color</source><translation>依標籤顏色選取</translation></message>
+    <message><source>Select by Type</source><translation>依類型選取</translation></message>
+    <message><source>Select by Tag</source><translation>依標籤選取</translation></message>
+    <message><source>Show in Attribute Editor</source><translation>在屬性編輯器中顯示</translation></message>
+    <message><source>Show in Scene Window</source><translation>在場景視窗中顯示</translation></message>
+    <message><source>Emoji Symbols</source><translation>表情符號</translation></message>
+    <message><source>Show Rulers</source><translation>顯示尺規</translation></message>
+    <message><source>Show Guides</source><translation>顯示參考線</translation></message>
+    <message><source>Ruler Options</source><translation>尺規選項</translation></message>
+    <message><source>Origin In Centre</source><translation>原點在中央</translation></message>
+    <message><source>Origin In Bottom Left</source><translation>原點在左下角</translation></message>
+    <message><source>Use Pixels</source><translation>使用像素</translation></message>
+    <message><source>Use Percentage</source><translation>使用百分比</translation></message>
+    <message><source>Show 2D Grid</source><translation>顯示 2D 網格</translation></message>
+    <message><source>Show Pixel Grid</source><translation>顯示像素網格</translation></message>
+    <message><source>Show Composition Boundary</source><translation>顯示合成邊界</translation></message>
+    <message><source>Show Layer Names on Hover</source><translation>懸停時顯示圖層名稱</translation></message>
+    <message><source>Show Viewport Tool Help</source><translation>顯示視埠工具說明</translation></message>
+    <message><source>Show Layer Tools</source><translation>顯示圖層工具</translation></message>
+    <message><source>Viewport Quality</source><translation>視埠品質</translation></message>
+    <message><source>High</source><translation>高</translation></message>
+    <message><source>Balanced</source><translation>平衡</translation></message>
+    <message><source>Low</source><translation>低</translation></message>
+    <message><source>Lowest</source><translation>最低</translation></message>
+    <message><source>Draw Outside Composition Boundary</source><translation>繪製合成邊界外內容</translation></message>
+    <message><source>Draw Debug Information</source><translation>繪製除錯資訊</translation></message>
+    <message><source>Snapping</source><translation>吸附</translation></message>
+    <message><source>Show Snapshot</source><translation>顯示快照</translation></message>
+    <message><source>Slot 1</source><translation>插槽 1</translation></message>
+    <message><source>Slot 2</source><translation>插槽 2</translation></message>
+    <message><source>Slot 3</source><translation>插槽 3</translation></message>
+    <message><source>Slot 4</source><translation>插槽 4</translation></message>
+    <message><source>Show All</source><translation>全部顯示</translation></message>
+    <message><source>Save Snapshot</source><translation>儲存快照</translation></message>
+    <message><source>Remove Snapshot</source><translation>移除快照</translation></message>
+    <message><source>Clear All Snapshots</source><translation>清除所有快照</translation></message>
+    <message><source>Zoom In</source><translation>放大</translation></message>
+    <message><source>Zoom Out</source><translation>縮小</translation></message>
+    <message><source>Zoom</source><translation>縮放</translation></message>
+    <message><source>Zoom 10%</source><translation>縮放 10%</translation></message>
+    <message><source>Zoom 25%</source><translation>縮放 25%</translation></message>
+    <message><source>Zoom 50%</source><translation>縮放 50%</translation></message>
+    <message><source>Zoom 75%</source><translation>縮放 75%</translation></message>
+    <message><source>Zoom 100%</source><translation>縮放 100%</translation></message>
+    <message><source>Zoom 200%</source><translation>縮放 200%</translation></message>
+    <message><source>Zoom 400%</source><translation>縮放 400%</translation></message>
+    <message><source>Zoom 800%</source><translation>縮放 800%</translation></message>
+    <message><source>Add Layers Popover...</source><translation>加入圖層彈出面板...</translation></message>
+    <message><source>Create Editable Primitives</source><translation>建立可編輯圖元</translation></message>
+    <message><source>Primitives</source><translation>圖元</translation></message>
+    <message><source>Arc</source><translation>圓弧</translation></message>
+    <message><source>Arrow</source><translation>箭頭</translation></message>
+    <message><source>Capsule</source><translation>膠囊</translation></message>
+    <message><source>Cogwheel</source><translation>齒輪</translation></message>
+    <message><source>Ellipse</source><translation>橢圓</translation></message>
+    <message><source>Polygon</source><translation>多邊形</translation></message>
+    <message><source>Rectangle</source><translation>矩形</translation></message>
+    <message><source>Ring</source><translation>圓環</translation></message>
+    <message><source>Star</source><translation>星形</translation></message>
+    <message><source>Super Ellipse</source><translation>超級橢圓</translation></message>
+    <message><source>Super Shape</source><translation>超級形狀</translation></message>
+    <message><source>Text</source><translation>文字</translation></message>
+    <message><source>Background</source><translation>背景</translation></message>
+    <message><source>Camera</source><translation>攝影機</translation></message>
+    <message><source>Shapes</source><translation>形狀</translation></message>
+    <message><source>Behaviours</source><translation>行為</translation></message>
+    <message><source>Effects</source><translation>效果</translation></message>
+    <message><source>Utilities</source><translation>實用工具</translation></message>
+    <message><source>Layout</source><translation>版面配置</translation></message>
+    <message><source>Embed selected in Horizontal Layout</source><translation>將所選嵌入水平版面配置</translation></message>
+    <message><source>Embed selected in Vertical Layout</source><translation>將所選嵌入垂直版面配置</translation></message>
+    <message><source>Embed selected in Grid Layout</source><translation>將所選嵌入網格版面配置</translation></message>
+    <message><source>Text Animation Presets</source><translation>文字動畫預設</translation></message>
+    <message><source>Demo Scenes</source><translation>示範場景</translation></message>
+    <message><source>Set Transform Keyframes</source><translation>設定變換關鍵影格</translation></message>
+    <message><source>Position</source><translation>位置</translation></message>
+    <message><source>Rotation</source><translation>旋轉</translation></message>
+    <message><source>Scale</source><translation>縮放</translation></message>
+    <message><source>All</source><translation>全部</translation></message>
+    <message><source>Magic Easing</source><translation>魔法緩動</translation></message>
+    <message><source>Slow In, Slow Out</source><translation>慢入慢出</translation></message>
+    <message><source>Very Slow In, Very Slow Out</source><translation>非常慢入慢出</translation></message>
+    <message><source>Spring Out</source><translation>彈簧緩出</translation></message>
+    <message><source>Bounce Out</source><translation>彈跳緩出</translation></message>
+    <message><source>None</source><translation>無</translation></message>
+    <message><source>Constraints</source><translation>約束</translation></message>
+    <message><source>Transform Constraint</source><translation>變換約束</translation></message>
+    <message><source>Transform Constraint Tools</source><translation>變換約束工具</translation></message>
+    <message><source>Pick Up</source><translation>拾取</translation></message>
+    <message><source>Drop</source><translation>放下</translation></message>
+    <message><source>Point Constraint</source><translation>點約束</translation></message>
+    <message><source>Edge Constraint</source><translation>邊緣約束</translation></message>
+    <message><source>Composition Constraint</source><translation>合成約束</translation></message>
+    <message><source>Bounding Box Constraint</source><translation>邊界框約束</translation></message>
+    <message><source>Add Null</source><translation>新增空物件</translation></message>
+    <message><source>Create Rubber Hose Limb</source><translation>建立橡皮管肢體</translation></message>
+    <message><source>Attach Rubber Hose Limb</source><translation>附加橡皮管肢體</translation></message>
+    <message><source>Add Animation Control</source><translation>新增動畫控制</translation></message>
+    <message><source>Add Rig Control (Joystick)</source><translation>新增綁定控制（搖桿）</translation></message>
+    <message><source>Add Look At</source><translation>新增注視</translation></message>
+    <message><source>Add Time Marker</source><translation>新增時間標記</translation></message>
+    <message><source>Animate Along Path</source><translation>沿路徑製作動畫</translation></message>
+    <message><source>Move Along Path</source><translation>沿路徑移動</translation></message>
+    <message><source>Deform Along Path</source><translation>沿路徑變形</translation></message>
+    <message><source>Nudge Backward</source><translation>向後微移</translation></message>
+    <message><source>Nudge Forward</source><translation>向前微移</translation></message>
+    <message><source>Go to Next Keyframe</source><translation>前往下一個關鍵影格</translation></message>
+    <message><source>Go to Previous Keyframe</source><translation>前往上一個關鍵影格</translation></message>
+    <message><source>Move Layer Start to Current Frame</source><translation>將圖層起點移到目前影格</translation></message>
+    <message><source>Move Layer End to Current Frame</source><translation>將圖層終點移到目前影格</translation></message>
+    <message><source>Set Layer In Point to Current Frame</source><translation>將圖層入點設為目前影格</translation></message>
+    <message><source>Set Layer Out Point to Current Frame</source><translation>將圖層出點設為目前影格</translation></message>
+    <message><source>Bake Animation</source><translation>烘焙動畫</translation></message>
+    <message><source>Reverse Animation</source><translation>反轉動畫</translation></message>
+    <message><source>Delete Animation</source><translation>刪除動畫</translation></message>
+    <message><source>Align Keyframes</source><translation>對齊關鍵影格</translation></message>
+    <message><source>Align Left</source><translation>靠左對齊</translation></message>
+    <message><source>Align Centre</source><translation>置中對齊</translation></message>
+    <message><source>Align Right</source><translation>靠右對齊</translation></message>
+    <message><source>Make Editable</source><translation>轉為可編輯</translation></message>
+    <message><source>Make Editable Copy</source><translation>建立可編輯副本</translation></message>
+    <message><source>Bake Selected Shape</source><translation>烘焙所選形狀</translation></message>
+    <message><source>Separate</source><translation>分離</translation></message>
+    <message><source>Separate to Editable</source><translation>分離為可編輯</translation></message>
+    <message><source>Merge</source><translation>合併</translation></message>
+    <message><source>Merge to Editable</source><translation>合併為可編輯</translation></message>
+    <message><source>Centre Pivot</source><translation>置中軸心</translation></message>
+    <message><source>Centre Pivot (Centroid)</source><translation>置中軸心（質心）</translation></message>
+    <message><source>Freeze Transform</source><translation>凍結變換</translation></message>
+    <message><source>Reset Transform</source><translation>重設變換</translation></message>
+    <message><source>Add Background to Selected</source><translation>為所選加入背景</translation></message>
+    <message><source>Swap Fill/Stroke</source><translation>交換填滿/描邊</translation></message>
+    <message><source>Close Contour</source><translation>閉合輪廓</translation></message>
+    <message><source>Open Contour</source><translation>打開輪廓</translation></message>
+    <message><source>Join Contours</source><translation>連接輪廓</translation></message>
+    <message><source>Split Path At Selection</source><translation>在所選處分割路徑</translation></message>
+    <message><source>Reverse Contour(s)</source><translation>反轉輪廓</translation></message>
+    <message><source>Set First Point</source><translation>設定第一個點</translation></message>
+    <message><source>Join Bézier Handle</source><translation>連接 Bézier 手柄</translation></message>
+    <message><source>Break Bézier Handle</source><translation>斷開 Bézier 手柄</translation></message>
+    <message><source>Convert to Corner Point</source><translation>轉換為角點</translation></message>
+    <message><source>Convert to Bézier Point</source><translation>轉換為 Bézier 點</translation></message>
+    <message><source>Delete Selected Points</source><translation>刪除所選點</translation></message>
+    <message><source>Delete Selected Point and Split Path</source><translation>刪除所選點並拆分路徑</translation></message>
+    <message><source>Boolean (Union)</source><translation>布林（聯集）</translation></message>
+    <message><source>Boolean (Subtract)</source><translation>布林（差集）</translation></message>
+    <message><source>Boolean (Intersection)</source><translation>布林（交集）</translation></message>
+    <message><source>Boolean (Exclude)</source><translation>布林（排除）</translation></message>
+    <message><source>Edit Shape</source><translation>編輯形狀</translation></message>
+    <message><source>Line</source><translation>直線</translation></message>
+    <message><source>Mesh</source><translation>網格</translation></message>
+    <message><source>Pen</source><translation>鋼筆</translation></message>
+    <message><source>Pencil</source><translation>鉛筆</translation></message>
+    <message><source>Pivot</source><translation>軸心</translation></message>
+    <message><source>Select</source><translation>選取</translation></message>
+    <message><source>Tracking</source><translation>追蹤</translation></message>
+    <message><source>Make Dynamic</source><translation>設為動態</translation></message>
+    <message><source>Active Forge Solver</source><translation>啟用 Forge 求解器</translation></message>
+    <message><source>Add Field</source><translation>新增場</translation></message>
+    <message><source>Attractor Field</source><translation>吸引場</translation></message>
+    <message><source>Buoyancy Field</source><translation>浮力場</translation></message>
+    <message><source>Direction Field</source><translation>方向場</translation></message>
+    <message><source>Drag Field</source><translation>阻力場</translation></message>
+    <message><source>Path Field</source><translation>路徑場</translation></message>
+    <message><source>Vortex Field</source><translation>渦旋場</translation></message>
+    <message><source>Add Collision Event</source><translation>新增碰撞事件</translation></message>
+    <message><source>Body Settings Collision Event</source><translation>剛體設定碰撞事件</translation></message>
+    <message><source>Color Collision Event</source><translation>顏色碰撞事件</translation></message>
+    <message><source>Impulse Collision Event</source><translation>衝量碰撞事件</translation></message>
+    <message><source>Sticky Collision Event</source><translation>黏附碰撞事件</translation></message>
+    <message><source>Visibility Collision Event</source><translation>可見性碰撞事件</translation></message>
+    <message><source>Cache Solver</source><translation>快取求解器</translation></message>
+    <message><source>Workspaces</source><translation>工作區</translation></message>
+    <message><source>Save Workspace...</source><translation>儲存工作區...</translation></message>
+    <message><source>Reset to Default Workspace</source><translation>重設為預設工作區</translation></message>
+    <message><source>Add Layers</source><translation>加入圖層</translation></message>
+    <message><source>Align Window</source><translation>對齊視窗</translation></message>
+    <message><source>Animation Utilities</source><translation>動畫工具</translation></message>
+    <message><source>Assets Window</source><translation>素材視窗</translation></message>
+    <message><source>Attribute Editor</source><translation>屬性編輯器</translation></message>
+    <message><source>Audio Monitor</source><translation>音訊監視器</translation></message>
+    <message><source>Color Window</source><translation>顏色視窗</translation></message>
+    <message><source>Control Centre</source><translation>控制中心</translation></message>
+    <message><source>Dependency Graph</source><translation>相依圖</translation></message>
+    <message><source>Glyph Browser</source><translation>字形瀏覽器</translation></message>
+    <message><source>Graph Editor</source><translation>曲線編輯器</translation></message>
+    <message><source>JavaScript Console</source><translation>JavaScript 主控台</translation></message>
+    <message><source>JavaScript Editor</source><translation>JavaScript 編輯器</translation></message>
+    <message><source>Mesh Explorer</source><translation>網格瀏覽器</translation></message>
+    <message><source>Message Bar</source><translation>訊息列</translation></message>
+    <message><source>Scene Statistics</source><translation>場景統計</translation></message>
+    <message><source>Scene Window (Time Editor)</source><translation>場景視窗（時間編輯器）</translation></message>
+    <message><source>Shelf</source><translation>工具架</translation></message>
+    <message><source>Tag Window (Experimental)</source><translation>標籤視窗（實驗性）</translation></message>
+    <message><source>Tool Settings</source><translation>工具設定</translation></message>
+    <message><source>Toolbar</source><translation>工具列</translation></message>
+    <message><source>Upload Preset Manager</source><translation>上傳預設管理器</translation></message>
+    <message><source>Shortcut Manager</source><translation>快捷鍵管理器</translation></message>
+    <message><source>Command Search</source><translation>指令搜尋</translation></message>
+    <message><source>Command Search (Quick Actions Only)</source><translation>指令搜尋（僅快速操作）</translation></message>
+    <message><source>Toggle Time/Graph Editor</source><translation>切換時間/曲線編輯器</translation></message>
+    <message><source>Add Viewport</source><translation>新增視埠</translation></message>
+    <message><source>Focus Mode</source><translation>專注模式</translation></message>
+    <message><source>Show Scripts Folder</source><translation>顯示腳本資料夾</translation></message>
+    <message><source>About</source><translation>關於</translation></message>
+    <message><source>Getting Started Guides</source><translation>入門指南</translation></message>
+    <message><source>Documentation</source><translation>文件</translation></message>
+    <message><source>Tips and Tricks</source><translation>提示與技巧</translation></message>
+    <message><source>Video Tutorials</source><translation>影片教學</translation></message>
+    <message><source>System Diagnostics</source><translation>系統診斷</translation></message>
+    <message><source>Send Anonymised Analytics</source><translation>傳送匿名分析資料</translation></message>
+    <message><source>Send Anonymised Crash Reports</source><translation>傳送匿名當機報告</translation></message>
+    <message><source>Show Plugins Folder</source><translation>顯示外掛資料夾</translation></message>
+    <message><source>Show Logs Folder</source><translation>顯示日誌資料夾</translation></message>
+    <message><source>View Account...</source><translation>檢視帳戶...</translation></message>
+    <message><source>Sign Out...</source><translation>登出...</translation></message>
+    <message><source>Add Point</source><translation>新增點</translation></message>
+    <message><source>Add Tab</source><translation>新增分頁</translation></message>
+    <message><source>All Shapes</source><translation>所有形狀</translation></message>
+    <message><source>Click and drag to start making a connection.</source><translation>點擊並拖曳以開始建立連接。</translation></message>
+    <message><source>Click to see any connections.</source><translation>點擊以查看所有連接。</translation></message>
+    <message><source>Click to set a Keyframe.</source><translation>點擊以設定關鍵影格。</translation></message>
+    <message><source>Close Others</source><translation>關閉其他項目</translation></message>
+    <message><source>Close Tabs to the Left</source><translation>關閉左側分頁</translation></message>
+    <message><source>Close Tabs to the Right</source><translation>關閉右側分頁</translation></message>
+    <message><source>Curve Type</source><translation>曲線類型</translation></message>
+    <message><source>Delete Point</source><translation>刪除點</translation></message>
+    <message><source>Delete Points</source><translation>刪除點</translation></message>
+    <message><source>Delete Script Tab?</source><translation>刪除腳本分頁？</translation></message>
+    <message><source>Don't Match Color</source><translation>不匹配顏色</translation></message>
+    <message><source>Format All</source><translation>格式化全部</translation></message>
+    <message><source>Format Selection</source><translation>格式化所選內容</translation></message>
+    <message><source>Include File Name and Path</source><translation>包含檔名和路徑</translation></message>
+    <message><source>Include Path</source><translation>包含路徑</translation></message>
+    <message><source>Include Primitive Type</source><translation>包含圖元類型</translation></message>
+    <message><source>Include the File Name and Folder Path in the Preset.</source><translation>在預設中包含檔名和資料夾路徑。</translation></message>
+    <message><source>Include the path in the Preset.</source><translation>在預設中包含路徑。</translation></message>
+    <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset.</source><translation>在預設中包含圖元類型（如 Rectangle 或 Ellipse）。</translation></message>
+    <message><source>Include transform Attributes such as Position and Scale in the Preset.</source><translation>在預設中包含 Position 和 Scale 等變換屬性。</translation></message>
+    <message><source>Include Transforms</source><translation>包含變換</translation></message>
+    <message><source>Install Plugin?</source><translation>安裝外掛？</translation></message>
+    <message><source>Match Color</source><translation>匹配顏色</translation></message>
+    <message><source>Match Color to layer</source><translation>匹配到圖層顏色</translation></message>
+  </context>
 </TS>

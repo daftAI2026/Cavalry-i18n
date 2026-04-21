@@ -899,6 +899,114 @@
       <translation>サインアウト...</translation>
     </message>
     <message>
+      <source>Add Point</source>
+      <translation>ポイントを追加</translation>
+    </message>
+    <message>
+      <source>Add Tab</source>
+      <translation>タブを追加</translation>
+    </message>
+    <message>
+      <source>All Shapes</source>
+      <translation>すべてのシェイプ</translation>
+    </message>
+    <message>
+      <source>Click and drag to start making a connection.</source>
+      <translation>クリックしてドラッグし、接続を開始します。</translation>
+    </message>
+    <message>
+      <source>Click to see any connections.</source>
+      <translation>クリックして接続を表示します。</translation>
+    </message>
+    <message>
+      <source>Click to set a Keyframe.</source>
+      <translation>クリックしてキーフレームを設定します。</translation>
+    </message>
+    <message>
+      <source>Close Others</source>
+      <translation>他を閉じる</translation>
+    </message>
+    <message>
+      <source>Close Tabs to the Left</source>
+      <translation>左側のタブを閉じる</translation>
+    </message>
+    <message>
+      <source>Close Tabs to the Right</source>
+      <translation>右側のタブを閉じる</translation>
+    </message>
+    <message>
+      <source>Curve Type</source>
+      <translation>カーブタイプ</translation>
+    </message>
+    <message>
+      <source>Delete Point</source>
+      <translation>ポイントを削除</translation>
+    </message>
+    <message>
+      <source>Delete Points</source>
+      <translation>ポイントを削除</translation>
+    </message>
+    <message>
+      <source>Delete Script Tab?</source>
+      <translation>スクリプトタブを削除しますか？</translation>
+    </message>
+    <message>
+      <source>Don't Match Color</source>
+      <translation>色を一致させない</translation>
+    </message>
+    <message>
+      <source>Format All</source>
+      <translation>すべてを整形</translation>
+    </message>
+    <message>
+      <source>Format Selection</source>
+      <translation>選択範囲を整形</translation>
+    </message>
+    <message>
+      <source>Include File Name and Path</source>
+      <translation>ファイル名とパスを含める</translation>
+    </message>
+    <message>
+      <source>Include Path</source>
+      <translation>パスを含める</translation>
+    </message>
+    <message>
+      <source>Include Primitive Type</source>
+      <translation>プリミティブタイプを含める</translation>
+    </message>
+    <message>
+      <source>Include the File Name and Folder Path in the Preset.</source>
+      <translation>プリセットにファイル名とフォルダーパスを含めます。</translation>
+    </message>
+    <message>
+      <source>Include the path in the Preset.</source>
+      <translation>プリセットにパスを含めます。</translation>
+    </message>
+    <message>
+      <source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset.</source>
+      <translation>プリセットにプリミティブタイプ（Rectangle や Ellipse など）を含めます。</translation>
+    </message>
+    <message>
+      <source>Include transform Attributes such as Position and Scale in the Preset.</source>
+      <translation>プリセットに Position や Scale などの変換属性を含めます。</translation>
+    </message>
+    <message>
+      <source>Include Transforms</source>
+      <translation>変換を含める</translation>
+    </message>
+    <message>
+      <source>Install Plugin?</source>
+      <translation>プラグインをインストールしますか？</translation>
+    </message>
+    <message>
+      <source>Match Color</source>
+      <translation>色を一致させる</translation>
+    </message>
+    <message>
+      <source>Match Color to layer</source>
+      <translation>レイヤーの色に一致させる</translation>
+    </message>
+    <message>
       <source>Make Dynamic</source>
       <translation>ダイナミック化</translation>
     </message>
