@@ -10,6 +10,12 @@ CLAUDE.md
 **/CLAUDE.md
 __pycache__
 node_modules/
+# ── 编译产物 & SDK ──
 dist/
 build/
+qt_sdk/
+qt_663_sdk/
+*.dylib
+*.inc
+aqtrace.log
 *.log
