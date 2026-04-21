@@ -25,6 +25,69 @@
     </message>
   </context>
   <context>
+    <name>MenuBarManager</name>
+    <message>
+      <source>File</source>
+      <translation>ファイル</translation>
+    </message>
+    <message>
+      <source>Edit</source>
+      <translation>編集</translation>
+    </message>
+    <message>
+      <source>View</source>
+      <translation>表示</translation>
+    </message>
+    <message>
+      <source>Window</source>
+      <translation>ウィンドウ</translation>
+    </message>
+    <message>
+      <source>&amp;Help</source>
+      <translation>&amp;ヘルプ</translation>
+    </message>
+    <message>
+      <source>New Scene</source>
+      <translation>新規シーン</translation>
+    </message>
+    <message>
+      <source>Import Assets...</source>
+      <translation>アセットを読み込み...</translation>
+    </message>
+    <message>
+      <source>Import Assets</source>
+      <translation>アセットを読み込み</translation>
+    </message>
+    <message>
+      <source>Save Scene</source>
+      <translation>シーンを保存</translation>
+    </message>
+    <message>
+      <source>Project Settings</source>
+      <translation>プロジェクト設定</translation>
+    </message>
+    <message>
+      <source>Open Project Settings</source>
+      <translation>プロジェクト設定を開く</translation>
+    </message>
+    <message>
+      <source>Preferences</source>
+      <translation>環境設定</translation>
+    </message>
+    <message>
+      <source>Show Preferences Folder</source>
+      <translation>Preferences フォルダを表示</translation>
+    </message>
+    <message>
+      <source>Override Preferences</source>
+      <translation>環境設定を上書き</translation>
+    </message>
+    <message>
+      <source>About Cavalry</source>
+      <translation>Cavalry について</translation>
+    </message>
+  </context>
+  <context>
     <name>QFileDialog</name>
     <message>
       <source>Open</source>

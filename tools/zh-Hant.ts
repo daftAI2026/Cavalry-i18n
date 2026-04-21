@@ -25,6 +25,69 @@
     </message>
   </context>
   <context>
+    <name>MenuBarManager</name>
+    <message>
+      <source>File</source>
+      <translation>檔案</translation>
+    </message>
+    <message>
+      <source>Edit</source>
+      <translation>編輯</translation>
+    </message>
+    <message>
+      <source>View</source>
+      <translation>檢視</translation>
+    </message>
+    <message>
+      <source>Window</source>
+      <translation>視窗</translation>
+    </message>
+    <message>
+      <source>&amp;Help</source>
+      <translation>&amp;說明</translation>
+    </message>
+    <message>
+      <source>New Scene</source>
+      <translation>新增場景</translation>
+    </message>
+    <message>
+      <source>Import Assets...</source>
+      <translation>匯入素材...</translation>
+    </message>
+    <message>
+      <source>Import Assets</source>
+      <translation>匯入素材</translation>
+    </message>
+    <message>
+      <source>Save Scene</source>
+      <translation>儲存場景</translation>
+    </message>
+    <message>
+      <source>Project Settings</source>
+      <translation>專案設定</translation>
+    </message>
+    <message>
+      <source>Open Project Settings</source>
+      <translation>打開專案設定</translation>
+    </message>
+    <message>
+      <source>Preferences</source>
+      <translation>偏好設定</translation>
+    </message>
+    <message>
+      <source>Show Preferences Folder</source>
+      <translation>顯示偏好設定資料夾</translation>
+    </message>
+    <message>
+      <source>Override Preferences</source>
+      <translation>覆寫偏好設定</translation>
+    </message>
+    <message>
+      <source>About Cavalry</source>
+      <translation>關於 Cavalry</translation>
+    </message>
+  </context>
+  <context>
     <name>QFileDialog</name>
     <message>
       <source>Open</source>

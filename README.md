@@ -101,6 +101,37 @@ The Electron app can:
 3. invoke `tools/patch_cavalry_bundle.py` with the selected language / QM target
 4. optionally patch to a separate writable output bundle instead of editing the source app in place
 
+### Injector Launcher For Compiled Menus (Experimental)
+
+Compiled menu strings are not all in JSON. A real subset lives inside:
+
+- `Contents/Frameworks/libExtensionLayer.dylib`
+
+This repository now includes:
+
+- `doc/compiled-menu-contexts.json`
+- `tools/build_translator_injector.sh`
+- `tools/launch_cavalry_with_injector.sh`
+
+Current flow:
+
+1. Patch a writable app bundle so it contains the translated JSON and `.qm` files
+2. Launch that patched app with the translator injector
+3. The injector installs `cavalry_<lang>.qm` and `qtbase_<lang>.qm` into the running Qt app
+
+Example:
+
+```bash
+tools/launch_cavalry_with_injector.sh \
+  --app ~/Applications/Cavalry-zh-Hans.app \
+  --lang zh-Hans
+```
+
+Important notes:
+
+1. The shipped Developer ID build uses hardened runtime, so `DYLD_INSERT_LIBRARIES` does not reliably work until the target bundle is re-signed. The launcher script ad-hoc signs the target app before launch.
+2. If you still want to patch `/Applications/Cavalry.app` in place, macOS write permissions still apply. You need sufficient permissions to modify that bundle.
+
 ### Reverse-Engineering Notes From the Local Install
 
 Observed on the installed `Cavalry.app` used during development:
@@ -108,8 +139,10 @@ Observed on the installed `Cavalry.app` used during development:
 1. Cavalry 2.7.0 links Qt 6.6.3 frameworks, so Qt translation infrastructure is present in the process.
 2. The shipped bundle still has **no bundled `translations/` directory** and no shipped `.qm` files.
 3. App-specific menu labels like `New Scene`, `Import Assets...`, `Project Settings`, `Preferences`, and `About Cavalry` are compiled into `Contents/Frameworks/libExtensionLayer.dylib`, not stored in the JSON translation assets.
-4. `strings` / `nm` / `otool` inspection still did **not** surface an obvious app-owned translator-loading path or bundled `cavalry_xx.qm` references.
-5. A writable copied bundle was successfully patched with translated JSON files and experimental `.qm` files under `Contents/Resources/translations/`.
+4. `libExtensionLayer.dylib` imports `QMetaObject::tr(...)`, so these compiled menu strings do flow through Qt translation calls.
+5. App-wide symbol inspection still did **not** surface `installTranslator` / `QTranslator::load` imports in the shipped binaries, which explains why menus do not change just by dropping `.qm` files into the bundle.
+6. A writable copied bundle was successfully patched with translated JSON files and experimental `.qm` files under `Contents/Resources/translations/`.
+7. An external injector prototype now loads those `.qm` files into the running app, and a launcher script wraps the required ad-hoc re-sign + injected launch flow for patched bundles.
 
 ### Adding a New Language
 
@@ -152,10 +185,16 @@ Cavalry-i18n/
 │   ├── extract_strings.py       # Extract English strings from Cavalry
 │   ├── patch_cavalry_bundle.py  # External experimental bundle patcher
 │   ├── check_electron_patcher_ui.js # Electron patcher contract test
+│   ├── check_compiled_menu_contexts.py # Compiled-menu manifest contract
+│   ├── check_translator_injector.py # Injector build contract
+│   ├── check_translated_launcher.py # Injector launcher contract
+│   ├── build_translator_injector.sh # Build the Qt translator injector dylib
+│   ├── launch_cavalry_with_injector.sh # Re-sign + launch patched app with injected translator
 │   ├── validate_translations.py # Translation quality gates + runlog/report output
 │   ├── zh-Hans.ts / zh-Hant.ts / ja_JP.ts  # Qt Linguist source files
 ├── doc/
 │   ├── cavalry-glossary.md      # 94-term four-language glossary
+│   ├── compiled-menu-contexts.json # Compiled menu/action strings discovered in libExtensionLayer
 │   └── translation-whitelist.json
 ├── package.json                 # Electron desktop patcher scripts
 └── .github/workflows/build.yml  # CI: validate translations + desktop patcher + compile .qm + release
