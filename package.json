@@ -30,7 +30,7 @@
       }
     ],
     "mac": {
-      "icon": "resources/icon.png",
+      "icon": "desktop-patcher/resources/icon.png",
       "category": "public.app-category.developer-tools",
       "target": [
         "dmg",
