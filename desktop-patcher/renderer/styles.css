@@ -16,6 +16,12 @@
   75%      { transform: translate(-1%, -2%); }
 }
 
+/*
+ * [INPUT]: 依赖 renderer/index.html 的 class/id 结构与 Google Fonts 字体族
+ * [OUTPUT]: 对外提供桌面补丁器完整视觉样式、布局、状态色、按钮和自定义 select 样式
+ * [POS]: desktop-patcher/renderer 的唯一样式源，被 Electron 与 Tauri 同一 HTML 入口复用
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 :root {
   color-scheme: light;
 

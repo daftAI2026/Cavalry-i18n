@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 node fs/os/path 与 PlistBuddy 读取 Cavalry.app 候选路径和版本信息
+ * [OUTPUT]: 对外提供 findCavalryApp、getDefaultAppCandidates、inspectBundle、listLanguageOptions、readBundleVersion
+ * [POS]: desktop-patcher/lib 的探测模块，被 i18n-handlers 用于状态解析和界面诊断
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');

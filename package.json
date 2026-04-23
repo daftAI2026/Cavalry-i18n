@@ -6,8 +6,20 @@
   "main": "desktop-patcher/main.js",
   "scripts": {
     "desktop": "electron .",
-    "test:desktop": "node --test tools/check_electron_patcher_ui.js",
-    "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/detect.js && node --check desktop-patcher/lib/patch.js && node --check desktop-patcher/lib/sudo.js && node --check desktop-patcher/renderer/app.js",
+    "test:desktop": "node --test tools/check_electron_patcher_ui.js tools/check_renderer_contract.js tools/check_electron_contract_snapshots.js tools/check_tauri_build_sop.js",
+    "check:ui-coverage": "node tools/check_runtime_ui_coverage.js --threshold 99",
+    "extract:compiled-ui": "node tools/extract_compiled_ui_strings.js --output doc/compiled-ui-source-map.json",
+    "check:full-ui:ja_JP": "node tools/check_full_ui_coverage.js --lang ja_JP",
+    "check:full-ui:zh-Hans": "node tools/check_full_ui_coverage.js --lang zh-Hans",
+    "check:full-ui:zh-Hant": "node tools/check_full_ui_coverage.js --lang zh-Hant",
+    "check:full-ui": "node tools/check_full_ui_matrix.js --runlog full-ui-runlog.json",
+    "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/i18n-handlers.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/detect.js && node --check desktop-patcher/lib/patch.js && node --check desktop-patcher/lib/sudo.js && node --check desktop-patcher/renderer/app.js && node --check tools/check_renderer_contract.js && node --check tools/electron_harness.js && node --check tools/capture_electron_contract.js && node --check tools/check_electron_contract_snapshots.js && node --check tools/check_tauri_build_sop.js && node --check tools/check_tauri_packaged_app.js && node --check tools/fixtures/make_fake_cavalry_bundle.js",
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "check:tauri": "cd src-tauri && cargo check",
+    "test:tauri": "cd src-tauri && cargo test",
+    "test:tauri:packaged": "node --test tools/check_tauri_packaged_app.js",
     "build:injector": "CAVALRY_QT_VERSION=6.6.3 bash tools/build_translator_injector.sh desktop-patcher/injector/libCavalryTranslatorInjector.dylib",
     "build": "npm run build:injector && electron-builder -m && bash tools/stamp_dmg_icon.sh",
     "build:dir": "npm run build:injector && electron-builder -m --dir"
@@ -43,6 +55,8 @@
     }
   },
   "devDependencies": {
+    "@tauri-apps/api": "2.10.1",
+    "@tauri-apps/cli": "2.10.1",
     "electron": "^35.5.1",
     "electron-builder": "^26.8.1"
   }

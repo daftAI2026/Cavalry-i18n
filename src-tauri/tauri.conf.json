@@ -1,0 +1,47 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "productName": "Cavalry Language Switcher",
+  "version": "0.1.0",
+  "identifier": "com.daftai.cavalry-i18n",
+  "build": {
+    "frontendDist": "../desktop-patcher/renderer",
+    "beforeBuildCommand": "npm run build:injector"
+  },
+  "app": {
+    "withGlobalTauri": true,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Cavalry Language Switcher",
+        "url": "index.html",
+        "useHttpsScheme": false,
+        "width": 480,
+        "height": 500,
+        "minWidth": 420,
+        "minHeight": 500,
+        "resizable": true,
+        "center": true
+      }
+    ],
+    "security": {
+      "csp": null,
+      "capabilities": [
+        "default"
+      ]
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": [
+      "dmg",
+      "app"
+    ],
+    "icon": [
+      "../desktop-patcher/resources/icon.icns"
+    ],
+    "resources": {
+      "../languages": "languages",
+      "../desktop-patcher/injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
+    }
+  }
+}

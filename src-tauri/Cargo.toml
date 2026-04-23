@@ -1,0 +1,22 @@
+[package]
+name = "cavalry-i18n-tauri"
+version = "0.1.0"
+description = "Tauri shell for Cavalry-i18n"
+edition = "2021"
+
+[lib]
+name = "cavalry_i18n_tauri"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "=2.5.6", features = [] }
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock"] }
+rfd = "=0.17.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "=2.10.3", features = [] }
+
+[dev-dependencies]
+tempfile = "3"

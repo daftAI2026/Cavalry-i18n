@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Electron patcher、语言资源、工具脚本和 package 脚本契约
+ * [OUTPUT]: 对外提供 npm run test:desktop 的 Node 测试集合，冻结桌面补丁器行为与迁移前置条件
+ * [POS]: tools 的 Electron baseline 守门测试，被 Tauri 迁移 Phase -1 作为旧世界可信度检查
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const test = require('node:test');
 const assert = require('node:assert/strict');
@@ -11,6 +17,13 @@ const repoRoot = path.resolve(__dirname, '..');
 const desktopRoot = path.join(repoRoot, 'desktop-patcher');
 const detectModulePath = path.join(desktopRoot, 'lib', 'detect.js');
 const patchModulePath = path.join(desktopRoot, 'lib', 'patch.js');
+
+function readDesktopBackendSource() {
+  return [
+    fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8'),
+    fs.readFileSync(path.join(desktopRoot, 'i18n-handlers.js'), 'utf8'),
+  ].join('\n');
+}
 
 function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-i18n-test-'));
@@ -49,6 +62,7 @@ test('desktop patcher workspace includes the compiled UI workflow files', () => 
   const expectedFiles = [
     path.join(repoRoot, 'package.json'),
     path.join(desktopRoot, 'main.js'),
+    path.join(desktopRoot, 'i18n-handlers.js'),
     path.join(desktopRoot, 'preload.js'),
     path.join(desktopRoot, 'renderer', 'index.html'),
     path.join(desktopRoot, 'renderer', 'app.js'),
@@ -174,7 +188,7 @@ test('renderer and preload expose the simplified JSON-only desktop flow', () => 
   assert.match(preload, /applyLanguage/);
   assert.match(preload, /restartCavalry/);
 
-  assert.match(html, /Current:/);
+  assert.match(html, /Current\s+—/);
   assert.match(html, /Apply &amp; Restart|Apply & Restart/);
   assert.match(html, /id="statusText"/);
   assert.doesNotMatch(
@@ -244,7 +258,7 @@ test('macOS patch helper can fall back to Finder-style replacement without re-si
 });
 
 test('desktop main process patches the original macOS app for direct translated launches', () => {
-  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+  const mainSource = readDesktopBackendSource();
 
   assert.match(
     mainSource,
@@ -259,7 +273,7 @@ test('desktop main process patches the original macOS app for direct translated 
 });
 
 test('desktop main process can recover current language from the patched app bundle itself', () => {
-  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+  const mainSource = readDesktopBackendSource();
 
   assert.match(
     mainSource,
@@ -269,7 +283,7 @@ test('desktop main process can recover current language from the patched app bun
 });
 
 test('packaged desktop app prefers a bundled injector resource over rebuilding from source at runtime', () => {
-  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+  const mainSource = readDesktopBackendSource();
 
   assert.match(
     mainSource,
@@ -404,7 +418,7 @@ test('manual debug launcher follows the embedded-injector flow', () => {
 });
 
 test('macOS signing path handles crashpad_handler before re-signing the original app bundle', () => {
-  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+  const mainSource = readDesktopBackendSource();
 
   assert.match(
     mainSource,
@@ -424,7 +438,7 @@ test('macOS signing path handles crashpad_handler before re-signing the original
 });
 
 test('macOS patch flow clears Gatekeeper quarantine from the patched app bundle', () => {
-  const mainSource = fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8');
+  const mainSource = readDesktopBackendSource();
 
   assert.match(
     mainSource,

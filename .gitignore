@@ -13,6 +13,8 @@ node_modules/
 # ── 编译产物 & SDK ──
 dist/
 build/
+src-tauri/target/
+src-tauri/gen/
 qt_sdk/
 qt_663_sdk/
 *.dylib

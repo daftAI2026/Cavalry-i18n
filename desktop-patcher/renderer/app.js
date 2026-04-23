@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 window.cavalryI18n 的 5 个 Promise API 与 renderer/index.html 的固定控件 id
+ * [OUTPUT]: 对外提供桌面补丁器的状态渲染、语言选择、英文刷新、应用并重启交互
+ * [POS]: desktop-patcher/renderer 的唯一交互源，被 index.html 直接加载，UI 迁移时必须保持行为契约
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 const appVersion = document.querySelector('#appVersion');
 const appPathText = document.querySelector('#appPath');
 const currentLanguage = document.querySelector('#currentLanguage');

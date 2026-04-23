@@ -1,0 +1,12 @@
+{
+  "identifier": "default",
+  "description": "Allow the bundled renderer to call the Cavalry-i18n compatibility commands.",
+  "windows": [
+    "main"
+  ],
+  "permissions": [
+    "core:default",
+    "core:window:default",
+    "core:webview:default"
+  ]
+}

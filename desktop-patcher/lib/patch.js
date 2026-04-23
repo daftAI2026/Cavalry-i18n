@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 node fs/path 与 codesign 验证命令，读取 Cavalry JSON 资产和插件目录
+ * [OUTPUT]: 对外提供 CORE_MAP、extractEnglish、discoverPlugins、buildCopyPairs、stageFiles、verifyCodeSignature
+ * [POS]: desktop-patcher/lib 的文件映射模块，被 Electron 与 Tauri 等价实现共同对照
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');

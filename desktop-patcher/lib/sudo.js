@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 node fs/os/path 与系统提权命令，接收已 staging 的文件复制对
+ * [OUTPUT]: 对外提供 copyWithSudo，在直接复制、osascript/Finder、PowerShell 提权之间统一返回 copy mode
+ * [POS]: desktop-patcher/lib 的提权复制模块，被 i18n-handlers 的 apply-language 流程调用
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
