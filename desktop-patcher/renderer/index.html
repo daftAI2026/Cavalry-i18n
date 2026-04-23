@@ -37,7 +37,14 @@
 
         <label class="field">
           <span>Switch to</span>
-          <select id="languageSelect"></select>
+          <div class="custom-select-wrap">
+            <select id="languageSelect"></select>
+            <button type="button" class="select-trigger" id="selectTrigger" aria-haspopup="listbox">
+              <span class="select-trigger-text"></span>
+              <svg class="select-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <ul class="select-popup" id="selectPopup" role="listbox"></ul>
+          </div>
         </label>
 
         <div class="actions">

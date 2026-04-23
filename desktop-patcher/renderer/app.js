@@ -146,3 +146,107 @@ applyButton.addEventListener('click', async () => {
 bootstrap().catch((error) => {
   setStatus(`Bootstrap failed: ${error.stack || error.message}`, 'error');
 });
+
+/* ── Custom Select: sync with native <select> ── */
+(function initCustomSelect() {
+  const trigger = document.querySelector('#selectTrigger');
+  const popup = document.querySelector('#selectPopup');
+  const triggerText = trigger.querySelector('.select-trigger-text');
+  let focusedIndex = -1;
+
+  function syncPopup() {
+    const options = Array.from(languageSelect.options);
+    popup.innerHTML = options
+      .map(
+        (opt, i) =>
+          `<li class="select-option" role="option" data-value="${opt.value}" aria-selected="${opt.value === languageSelect.value}" data-index="${i}">${opt.textContent}</li>`
+      )
+      .join('');
+    triggerText.textContent =
+      options.find((o) => o.value === languageSelect.value)?.textContent || '';
+    focusedIndex = -1;
+  }
+
+  function open() {
+    if (trigger.disabled) return;
+    syncPopup();
+    popup.setAttribute('data-open', '');
+    trigger.setAttribute('aria-expanded', 'true');
+    focusedIndex = Array.from(languageSelect.options).findIndex(
+      (o) => o.value === languageSelect.value
+    );
+    updateFocus();
+  }
+
+  function close() {
+    popup.removeAttribute('data-open');
+    trigger.setAttribute('aria-expanded', 'false');
+    focusedIndex = -1;
+  }
+
+  function isOpen() {
+    return popup.hasAttribute('data-open');
+  }
+
+  function pick(value) {
+    languageSelect.value = value;
+    syncPopup();
+    close();
+  }
+
+  function updateFocus() {
+    popup.querySelectorAll('.select-option').forEach((el, i) => {
+      if (i === focusedIndex) el.setAttribute('data-focused', '');
+      else el.removeAttribute('data-focused');
+    });
+    const focused = popup.querySelector('[data-focused]');
+    if (focused) focused.scrollIntoView({ block: 'nearest' });
+  }
+
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    isOpen() ? close() : open();
+  });
+
+  popup.addEventListener('click', (e) => {
+    const option = e.target.closest('.select-option');
+    if (option) pick(option.dataset.value);
+  });
+
+  document.addEventListener('click', (e) => {
+    if (isOpen() && !trigger.contains(e.target) && !popup.contains(e.target)) close();
+  });
+
+  trigger.addEventListener('keydown', (e) => {
+    const items = popup.querySelectorAll('.select-option');
+    if (!isOpen()) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        open();
+      }
+      return;
+    }
+    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
+    if (e.key === 'ArrowDown') { e.preventDefault(); focusedIndex = Math.min(focusedIndex + 1, items.length - 1); updateFocus(); return; }
+    if (e.key === 'ArrowUp') { e.preventDefault(); focusedIndex = Math.max(focusedIndex - 1, 0); updateFocus(); return; }
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      if (focusedIndex >= 0 && items[focusedIndex]) pick(items[focusedIndex].dataset.value);
+    }
+  });
+
+  new MutationObserver(syncPopup).observe(languageSelect, { childList: true, attributes: true });
+  languageSelect.addEventListener('change', syncPopup);
+
+  const origDisabledDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'disabled');
+  Object.defineProperty(languageSelect, 'disabled', {
+    get() { return origDisabledDesc.get.call(this); },
+    set(v) {
+      origDisabledDesc.set.call(this, v);
+      trigger.disabled = v;
+    },
+  });
+
+  syncPopup();
+})();
