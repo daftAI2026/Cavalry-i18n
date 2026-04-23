@@ -42,6 +42,23 @@
     "resources": {
       "../languages": "languages",
       "../desktop-patcher/injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
+    },
+    "macOS": {
+      "dmg": {
+        "background": "icons/background.png",
+        "windowSize": {
+          "width": 800,
+          "height": 476
+        },
+        "appPosition": {
+          "x": 212,
+          "y": 170
+        },
+        "applicationFolderPosition": {
+          "x": 592,
+          "y": 170
+        }
+      }
     }
   }
 }
