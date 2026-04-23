@@ -91,12 +91,7 @@ body {
 
 /* ── Shell ── */
 .app-shell {
-  min-height: 100vh;
-  padding: 32px 28px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 24px;
+  padding: 28px;
   animation: fade-up 600ms ease both;
 }
 
@@ -115,7 +110,7 @@ body {
 .divider {
   height: 1px;
   background: var(--kumo-hairline);
-  /* margin replaced by shell gap */
+  margin: 22px 0;
 }
 
 /* ── App card ── */
@@ -183,7 +178,7 @@ body {
 .current-row {
   font-size: 14px;
   color: var(--text-strong);
-  /* margin replaced by shell gap */
+  margin-bottom: 16px;
 }
 
 .current-row strong {
@@ -405,7 +400,7 @@ button.secondary:hover {
 
 /* ── Actions ── */
 .actions {
-  /* margin replaced by shell gap */
+  margin-top: 18px;
   display: flex;
   gap: 10px;
 }

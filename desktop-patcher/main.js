@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 electron 的窗口与 IPC 能力，依赖 ./lib/* 完成应用探测、补丁复制与提权写入
+ * [OUTPUT]: 对外提供桌面补丁器主进程窗口创建、状态读取与语言切换流程
+ * [POS]: desktop-patcher 的主控入口，连接原生窗口、业务逻辑与 renderer
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -61,10 +67,11 @@ function runCommandMaybeWithAdmin(command, args) {
 
 function createWindow() {
   const window = new BrowserWindow({
+    useContentSize: true,
     width: 720,
-    height: 760,
+    height: 520,
     minWidth: 640,
-    minHeight: 680,
+    minHeight: 520,
     backgroundColor: '#f8f8fa',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
