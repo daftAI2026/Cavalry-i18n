@@ -9,11 +9,6 @@
   to   { opacity: 1; transform: translateY(0); }
 }
 
-@keyframes rule-grow {
-  from { transform: scaleX(0); }
-  to   { transform: scaleX(1); }
-}
-
 @keyframes grain-drift {
   0%, 100% { transform: translate(0, 0); }
   25%      { transform: translate(-2%, 3%); }
@@ -58,8 +53,10 @@
   --tone-warning: oklch(47.6% 0.114 61.907);
   --tone-error: oklch(50.5% 0.213 27.518);
 
-  /* ── Accent line ── */
-  --accent-rule: oklch(57.72% 0.2324 260);
+  /* ── Contrast (Kumo inverted) ── */
+  --kumo-contrast: oklch(8.5% 0 0);
+  --kumo-contrast-hover: oklch(18% 0 0);
+  --text-inverse: oklch(97% 0 0);
 }
 
 * {
@@ -96,41 +93,21 @@ body {
 .app-shell {
   width: min(560px, calc(100vw - 48px));
   margin: 0 auto;
-  padding: 40px 0 48px;
+  padding: clamp(20px, 5vh, 48px) 0 clamp(24px, 5vh, 48px);
 }
 
 /* ── Hero ── */
 .hero {
-  padding: 0 0 36px;
+  padding: 0 0 28px;
   animation: fade-up 600ms ease both;
-}
-
-.hero-rule {
-  width: 48px;
-  height: 3px;
-  background: var(--accent-rule);
-  border-radius: 2px;
-  margin-bottom: 20px;
-  transform-origin: left;
-  animation: rule-grow 500ms ease 200ms both;
-}
-
-.eyebrow {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-  color: var(--text-subtle);
-  margin-bottom: 12px;
 }
 
 h1 {
   font-family: var(--font-display);
-  font-size: 42px;
+  font-size: 26px;
   font-weight: 700;
-  line-height: 1.0;
-  letter-spacing: -0.035em;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
   color: var(--text-default);
 }
 
@@ -224,7 +201,7 @@ h1 {
 .icon-button:hover {
   background: var(--kumo-tint);
   transform: translateY(-1px);
-  outline-color: var(--kumo-brand);
+  outline-color: var(--kumo-contrast);
 }
 
 .icon-button:active {
@@ -282,7 +259,7 @@ select {
 }
 
 select:focus {
-  outline: 1.5px solid var(--kumo-brand);
+  outline: 1.5px solid var(--kumo-contrast);
 }
 
 /* ── Buttons ── */
@@ -301,7 +278,7 @@ button {
 }
 
 button:focus-visible {
-  outline: 2px solid var(--kumo-brand);
+  outline: 2px solid var(--kumo-contrast);
   outline-offset: 2px;
 }
 
@@ -315,13 +292,13 @@ button:active:not(:disabled) {
 }
 
 button.primary {
-  background: var(--kumo-brand);
-  color: #fff;
+  background: var(--kumo-contrast);
+  color: var(--text-inverse, #fff);
   outline: none;
 }
 
 button.primary:hover {
-  background: var(--kumo-brand-hover);
+  background: var(--kumo-contrast-hover);
   transform: translateY(-1px);
 }
 
