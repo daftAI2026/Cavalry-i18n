@@ -29,6 +29,10 @@
         "to": "injector/libCavalryTranslatorInjector.dylib"
       }
     ],
+    "dmg": {
+      "icon": "desktop-patcher/resources/icon.icns",
+      "title": "Cavalry Language Switcher"
+    },
     "mac": {
       "icon": "desktop-patcher/resources/icon.icns",
       "category": "public.app-category.developer-tools",
