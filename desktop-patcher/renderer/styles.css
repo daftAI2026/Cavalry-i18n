@@ -91,42 +91,8 @@ body {
 
 /* ── Shell ── */
 .app-shell {
-  width: min(560px, calc(100vw - 48px));
-  margin: 0 auto;
-  padding: clamp(20px, 5vh, 48px) 0 clamp(24px, 5vh, 48px);
-}
-
-/* ── Hero ── */
-.hero {
-  padding: 0 0 28px;
+  padding: 28px;
   animation: fade-up 600ms ease both;
-}
-
-h1 {
-  font-family: var(--font-display);
-  font-size: 26px;
-  font-weight: 700;
-  line-height: 1.15;
-  letter-spacing: -0.025em;
-  color: var(--text-default);
-}
-
-.subcopy {
-  margin-top: 14px;
-  font-size: 15px;
-  font-weight: 300;
-  color: var(--text-strong);
-  letter-spacing: 0;
-}
-
-/* ── Panel ── */
-.panel {
-  background: var(--kumo-base);
-  border-radius: 12px;
-  outline: 1px solid var(--kumo-line);
-  box-shadow: var(--kumo-shadow-md);
-  padding: 28px 28px 24px;
-  animation: fade-up 600ms ease 150ms both;
 }
 
 /* ── Section labels ── */
@@ -484,16 +450,7 @@ button.secondary:hover {
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .app-shell {
-    width: calc(100vw - 24px);
-    padding: 20px 0 32px;
-  }
-
-  h1 {
-    font-size: 32px;
-  }
-
-  .panel {
-    padding: 20px 18px 18px;
+    padding: 20px;
   }
 
   .app-card {
