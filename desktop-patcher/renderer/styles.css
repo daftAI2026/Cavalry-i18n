@@ -453,7 +453,7 @@ button.secondary:hover {
 }
 
 /* ── Responsive ── */
-@media (max-width: 640px) {
+@media (max-width: 420px) {
   body {
     padding: 20px;
   }
