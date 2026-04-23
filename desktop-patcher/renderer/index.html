@@ -6,59 +6,70 @@
 -->
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cavalry Language Switcher</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="./styles.css" />
-  </head>
-  <body>
-    <div class="grain"></div>
 
-    <main class="app-shell">
-        <div class="app-card">
-          <div>
-            <p id="appVersion" class="app-version">Cavalry not found</p>
-            <p id="appPath" class="app-path">Choose a Cavalry.app to begin.</p>
-          </div>
-          <button id="browseButton" type="button" class="icon-button" aria-label="Choose Cavalry app">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-          </button>
-        </div>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cavalry Language Switcher</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap"
+    rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css" />
+</head>
 
-        <div class="divider"></div>
+<body>
+  <div class="grain"></div>
 
-        <div class="section-label">Language</div>
-        <p class="current-row">Active — <strong id="currentLanguage">English</strong></p>
+  <main class="app-shell">
+    <div class="app-card">
+      <div>
+        <p id="appVersion" class="app-version">Cavalry not found</p>
+        <p id="appPath" class="app-path">Choose a Cavalry.app to begin.</p>
+      </div>
+      <button id="browseButton" type="button" class="icon-button" aria-label="Choose Cavalry app">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
+        </svg>
+      </button>
+    </div>
 
-        <label class="field">
-          <span>Switch to</span>
-          <div class="custom-select-wrap">
-            <select id="languageSelect"></select>
-            <button type="button" class="select-trigger" id="selectTrigger" aria-haspopup="listbox">
-              <span class="select-trigger-text"></span>
-              <svg class="select-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
-            <ul class="select-popup" id="selectPopup" role="listbox"></ul>
-          </div>
-        </label>
+    <div class="divider"></div>
 
-        <div class="actions">
-          <button id="applyButton" type="button" class="primary">Apply & Restart</button>
-          <button id="extractButton" type="button" class="secondary">Refresh English</button>
-        </div>
+    <div class="section-label">Language</div>
+    <p class="current-row">Current — <strong id="currentLanguage">English</strong></p>
 
-        <div class="divider"></div>
+    <label class="field">
+      <span>Switch to</span>
+      <div class="custom-select-wrap">
+        <select id="languageSelect"></select>
+        <button type="button" class="select-trigger" id="selectTrigger" aria-haspopup="listbox">
+          <span class="select-trigger-text"></span>
+          <svg class="select-chevron" width="12" height="8" viewBox="0 0 12 8" fill="none">
+            <path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round" />
+          </svg>
+        </button>
+        <ul class="select-popup" id="selectPopup" role="listbox"></ul>
+      </div>
+    </label>
 
-        <section class="status-panel">
-          <p class="status-label">sys.out</p>
-          <p id="statusText" class="status-text">Ready.</p>
-        </section>
-    </main>
+    <div class="actions">
+      <button id="applyButton" type="button" class="primary">Apply & Restart</button>
+      <button id="extractButton" type="button" class="secondary">Refresh English</button>
+    </div>
 
-    <script src="./app.js"></script>
-  </body>
+    <div class="divider"></div>
+
+    <section class="status-panel">
+      <p class="status-label">sys.out</p>
+      <p id="statusText" class="status-text">Ready.</p>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+
 </html>

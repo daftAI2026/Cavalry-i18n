@@ -69,9 +69,9 @@ function createWindow() {
   const window = new BrowserWindow({
     useContentSize: true,
     width: 480,
-    height: 520,
+    height: 500,
     minWidth: 420,
-    minHeight: 520,
+    minHeight: 500,
     backgroundColor: '#f8f8fa',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -365,8 +365,7 @@ function clearGatekeeperQuarantine(appPath) {
 
   const fallbackCommand = buildManualQuarantineClearCommand(appPath);
   throw new Error(
-    `${
-      detail || 'Could not remove the macOS quarantine attribute from the patched app bundle.'
+    `${detail || 'Could not remove the macOS quarantine attribute from the patched app bundle.'
     } Run this in Terminal and try again: ${fallbackCommand}`
   );
 }
