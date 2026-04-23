@@ -1,122 +1,173 @@
 /* ============================================================
-   Cavalry Language Switcher — Kumo Design System Tokens
-   Light mode, following Cloudflare Kumo UI visual language.
+   Cavalry Language Switcher
+   Aesthetic: Swiss Instrument — precision, geometry, restraint
+   Tokens: Cloudflare Kumo Design System (light mode)
    ============================================================ */
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes rule-grow {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+
+@keyframes grain-drift {
+  0%, 100% { transform: translate(0, 0); }
+  25%      { transform: translate(-2%, 3%); }
+  50%      { transform: translate(3%, -1%); }
+  75%      { transform: translate(-1%, -2%); }
+}
 
 :root {
   color-scheme: light;
 
   /* ── Typography ── */
-  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* ── Radius (Kumo component radii) ── */
-  --radius-lg: 8px;
-  --radius-md: 6px;
-  --radius-sm: 4px;
-
-  /* ── Surfaces ── */
+  /* ── Kumo Surfaces ── */
   --kumo-canvas: oklch(98.75% 0 0);
   --kumo-base: #ffffff;
-  --kumo-elevated: oklch(98% 0 0);
   --kumo-recessed: oklch(96% 0 0);
   --kumo-tint: oklch(97% 0 0);
   --kumo-control: #ffffff;
-  --kumo-fill: oklch(92.2% 0 0);
 
-  /* ── Brand ── */
+  /* ── Kumo Brand ── */
   --kumo-brand: oklch(57.72% 0.2324 260);
   --kumo-brand-hover: oklch(48.8% 0.243 264.376);
 
-  /* ── Borders ── */
-  --kumo-line: oklch(14.5% 0 0 / 0.1);
+  /* ── Kumo Borders ── */
+  --kumo-line: oklch(14.5% 0 0 / 0.08);
   --kumo-hairline: oklch(93.5% 0 0);
-  --kumo-focus: oklch(15% 0 0);
 
-  /* ── Shadows ── */
-  --kumo-shadow-xs: 0 1px 2px oklch(0% 0 0 / 0.05);
-  --kumo-shadow-drop: 0 4px 16px oklch(0% 0 0 / 0.08);
+  /* ── Kumo Shadows ── */
+  --kumo-shadow-xs: 0 1px 3px oklch(0% 0 0 / 0.04);
+  --kumo-shadow-md: 0 8px 32px oklch(0% 0 0 / 0.06);
 
-  /* ── Text ── */
+  /* ── Kumo Text ── */
   --text-default: oklch(21% 0.006 285.885);
   --text-strong: oklch(43.9% 0 0);
   --text-subtle: oklch(55.6% 0 0);
   --text-inactive: oklch(70.8% 0 0);
-  --text-inverse: oklch(97% 0 0);
 
   /* ── Status ── */
   --tone-success: oklch(43.2% 0.095 166.913);
   --tone-warning: oklch(47.6% 0.114 61.907);
   --tone-error: oklch(50.5% 0.213 27.518);
+
+  /* ── Accent line ── */
+  --accent-rule: oklch(57.72% 0.2324 260);
 }
 
 * {
   box-sizing: border-box;
+  margin: 0;
 }
 
 body {
-  margin: 0;
   min-height: 100vh;
-  font-family: var(--font-sans);
+  font-family: var(--font-display);
   font-size: 14px;
   line-height: 1.5;
   letter-spacing: -0.01em;
-  font-feature-settings: "cv02", "cv03", "cv04", "calt";
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
   background: var(--kumo-canvas);
   color: var(--text-default);
+  overflow-x: hidden;
 }
 
+/* ── Grain overlay ── */
+.grain {
+  position: fixed;
+  inset: -50%;
+  width: 200%;
+  height: 200%;
+  pointer-events: none;
+  z-index: 999;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  animation: grain-drift 6s ease-in-out infinite;
+}
+
+/* ── Shell ── */
 .app-shell {
-  width: min(640px, calc(100vw - 32px));
+  width: min(560px, calc(100vw - 48px));
   margin: 0 auto;
-  padding: 28px 0 32px;
+  padding: 40px 0 48px;
 }
 
-/* ── Panels ── */
-.hero,
-.panel {
-  background: var(--kumo-base);
-  border-radius: var(--radius-lg);
-  outline: 1px solid var(--kumo-line);
-  box-shadow: var(--kumo-shadow-xs);
-}
-
+/* ── Hero ── */
 .hero {
-  padding: 24px 24px 22px;
-  margin-bottom: 18px;
+  padding: 0 0 36px;
+  animation: fade-up 600ms ease both;
+}
+
+.hero-rule {
+  width: 48px;
+  height: 3px;
+  background: var(--accent-rule);
+  border-radius: 2px;
+  margin-bottom: 20px;
+  transform-origin: left;
+  animation: rule-grow 500ms ease 200ms both;
 }
 
 .eyebrow {
-  margin: 0 0 8px;
-  color: var(--text-subtle);
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 500;
-}
-
-h1,
-h2,
-p {
-  margin: 0;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+  margin-bottom: 12px;
 }
 
 h1 {
-  font-size: 22px;
-  line-height: 1.25;
-  font-weight: 600;
-  letter-spacing: -0.01em;
+  font-family: var(--font-display);
+  font-size: 42px;
+  font-weight: 700;
+  line-height: 1.0;
+  letter-spacing: -0.035em;
+  color: var(--text-default);
 }
 
 .subcopy {
+  margin-top: 14px;
+  font-size: 15px;
+  font-weight: 300;
   color: var(--text-strong);
-  line-height: 1.5;
-  margin-top: 10px;
+  letter-spacing: 0;
 }
 
+/* ── Panel ── */
 .panel {
-  padding: 22px 22px 20px;
+  background: var(--kumo-base);
+  border-radius: 12px;
+  outline: 1px solid var(--kumo-line);
+  box-shadow: var(--kumo-shadow-md);
+  padding: 28px 28px 24px;
+  animation: fade-up 600ms ease 150ms both;
+}
+
+/* ── Section labels ── */
+.section-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-inactive);
+  margin-bottom: 12px;
+}
+
+/* ── Divider ── */
+.divider {
+  height: 1px;
+  background: var(--kumo-hairline);
+  margin: 22px 0;
 }
 
 /* ── App card ── */
@@ -125,39 +176,71 @@ h1 {
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 16px;
   align-items: center;
-  padding: 16px;
-  border-radius: var(--radius-lg);
+  padding: 16px 18px;
+  border-radius: 10px;
   background: var(--kumo-recessed);
   outline: 1px solid var(--kumo-line);
+  transition: outline-color 200ms ease;
+}
+
+.app-card:hover {
+  outline-color: oklch(14.5% 0 0 / 0.14);
 }
 
 .app-version {
-  font-size: 18px;
+  font-family: var(--font-display);
+  font-size: 17px;
   font-weight: 600;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 .app-path {
   margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 11px;
   color: var(--text-subtle);
-  line-height: 1.5;
-  font-size: 13px;
+  line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
 }
 
 .icon-button {
-  width: 36px;
-  min-height: 36px;
+  width: 40px;
+  min-height: 40px;
   padding: 0;
-  font-size: 18px;
-  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: none;
+  outline: 1px solid var(--kumo-line);
+  background: var(--kumo-base);
+  color: var(--text-strong);
+  cursor: pointer;
+  box-shadow: var(--kumo-shadow-xs);
+  transition: background 150ms ease, transform 150ms ease, outline-color 150ms ease;
 }
 
+.icon-button:hover {
+  background: var(--kumo-tint);
+  transform: translateY(-1px);
+  outline-color: var(--kumo-brand);
+}
+
+.icon-button:active {
+  transform: translateY(0);
+}
+
+/* ── Current language ── */
 .current-row {
-  margin-top: 16px;
-  color: var(--text-strong);
   font-size: 14px;
+  color: var(--text-strong);
+  margin-bottom: 16px;
+}
+
+.current-row strong {
+  color: var(--text-default);
+  font-weight: 600;
 }
 
 /* ── Form elements ── */
@@ -165,72 +248,93 @@ h1 {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 16px;
 }
 
 .field > span {
+  font-family: var(--font-mono);
+  font-size: 11px;
   font-weight: 500;
-  font-size: 13px;
-  color: var(--text-default);
-}
-
-select,
-button {
-  min-height: 36px;
-  border-radius: var(--radius-lg);
-  border: none;
-  outline: 1px solid var(--kumo-line);
-  background: var(--kumo-control);
-  color: var(--text-default);
-  font: inherit;
-  font-size: 14px;
-  box-shadow: var(--kumo-shadow-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
 }
 
 select {
   width: 100%;
-  padding: 0 12px;
-}
-
-button {
-  padding: 0 12px;
+  min-height: 40px;
+  padding: 0 14px;
+  border-radius: 10px;
+  border: none;
+  outline: 1px solid var(--kumo-line);
+  background: var(--kumo-control);
+  color: var(--text-default);
+  font-family: var(--font-display);
+  font-size: 14px;
   font-weight: 500;
+  box-shadow: var(--kumo-shadow-xs);
   cursor: pointer;
-  transition: background 100ms ease, outline-color 100ms ease;
+  transition: outline-color 150ms ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%239a9a9a' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  background-size: 12px;
 }
 
-button:hover {
-  background: var(--kumo-tint);
+select:focus {
+  outline: 1.5px solid var(--kumo-brand);
+}
+
+/* ── Buttons ── */
+button {
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: none;
+  font-family: var(--font-display);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  box-shadow: var(--kumo-shadow-xs);
+  transition: background 150ms ease, transform 150ms ease, outline-color 150ms ease, opacity 150ms ease;
 }
 
 button:focus-visible {
   outline: 2px solid var(--kumo-brand);
-  outline-offset: 0;
+  outline-offset: 2px;
 }
 
 button:disabled {
-  opacity: 0.5;
+  opacity: 0.4;
   pointer-events: none;
+}
+
+button:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 button.primary {
   background: var(--kumo-brand);
-  outline-color: transparent;
   color: #fff;
-  font-weight: 500;
+  outline: none;
 }
 
 button.primary:hover {
   background: var(--kumo-brand-hover);
+  transform: translateY(-1px);
 }
 
 button.secondary {
   background: var(--kumo-base);
+  color: var(--text-default);
   outline: 1px solid var(--kumo-hairline);
 }
 
 button.secondary:hover {
   background: var(--kumo-tint);
+  outline-color: oklch(14.5% 0 0 / 0.14);
+  transform: translateY(-1px);
 }
 
 /* ── Actions ── */
@@ -246,24 +350,28 @@ button.secondary:hover {
 
 /* ── Status ── */
 .status-panel {
-  margin-top: 18px;
   padding: 14px 16px;
-  border-radius: var(--radius-lg);
+  border-radius: 10px;
   background: var(--kumo-recessed);
   outline: 1px solid var(--kumo-line);
 }
 
 .status-label {
-  color: var(--text-subtle);
-  font-size: 12px;
+  font-family: var(--font-mono);
+  font-size: 10px;
   font-weight: 500;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  color: var(--text-inactive);
 }
 
 .status-text {
   margin-top: 6px;
-  line-height: 1.5;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--text-strong);
+  transition: color 200ms ease;
 }
 
 .status-text[data-tone="success"] {
@@ -279,10 +387,18 @@ button.secondary:hover {
 }
 
 /* ── Responsive ── */
-@media (max-width: 820px) {
+@media (max-width: 640px) {
   .app-shell {
     width: calc(100vw - 24px);
-    padding-top: 12px;
+    padding: 20px 0 32px;
+  }
+
+  h1 {
+    font-size: 32px;
+  }
+
+  .panel {
+    padding: 20px 18px 18px;
   }
 
   .app-card {
