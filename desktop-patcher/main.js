@@ -68,9 +68,9 @@ function runCommandMaybeWithAdmin(command, args) {
 function createWindow() {
   const window = new BrowserWindow({
     useContentSize: true,
-    width: 720,
+    width: 480,
     height: 520,
-    minWidth: 640,
+    minWidth: 420,
     minHeight: 520,
     backgroundColor: '#f8f8fa',
     webPreferences: {

@@ -66,6 +66,10 @@
 
 body {
   min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 28px;
   font-family: var(--font-display);
   font-size: 14px;
   line-height: 1.5;
@@ -73,7 +77,7 @@ body {
   -webkit-font-smoothing: antialiased;
   background: var(--kumo-canvas);
   color: var(--text-default);
-  overflow-x: hidden;
+  overflow: auto;
 }
 
 /* ── Grain overlay ── */
@@ -91,7 +95,8 @@ body {
 
 /* ── Shell ── */
 .app-shell {
-  padding: 28px;
+  width: min(100%, 480px);
+  padding: 0;
   animation: fade-up 600ms ease both;
 }
 
@@ -449,8 +454,12 @@ button.secondary:hover {
 
 /* ── Responsive ── */
 @media (max-width: 640px) {
-  .app-shell {
+  body {
     padding: 20px;
+  }
+
+  .app-shell {
+    width: 100%;
   }
 
   .app-card {
