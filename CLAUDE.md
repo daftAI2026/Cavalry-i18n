@@ -25,4 +25,4 @@ UI 真相源只在 `desktop-patcher/renderer/` 三文件；迁移不得改 DOM�
 
 变更日志:
 2026-04-23 - 为 Tauri 迁移 Phase -1/1 播种 L1，记录 Electron 壳层与 handler 分离，并新增 `src-tauri/` 迁移壳。
-2026-04-24 - 完成 Tauri 默认构建切换；更新全套高清图标资产并播种 resources L2 文档。
+2026-04-24 - 完成 Tauri 默认构建切换；更新高清图标资产并播种 resources L2 文档；整合打包与静默校验脚本并补齐 Tauri DMG 盖章流程。
