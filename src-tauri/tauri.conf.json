@@ -16,9 +16,9 @@
         "url": "index.html",
         "useHttpsScheme": false,
         "width": 480,
-        "height": 500,
+        "height": 528,
         "minWidth": 420,
-        "minHeight": 500,
+        "minHeight": 528,
         "resizable": true,
         "center": true
       }

@@ -27,6 +27,12 @@ On macOS, if direct shell copy into `/Applications/...app` is blocked while rest
 
 ```bash
 npm install
+npm run tauri:dev
+```
+
+Electron shell remains available as an explicit fallback during the rollback window:
+
+```bash
 npm run desktop
 ```
 
@@ -34,6 +40,12 @@ To build the distributable macOS patcher app itself:
 
 ```bash
 npm run build
+```
+
+The Electron release pipeline is still available behind an explicit fallback command:
+
+```bash
+npm run build:electron
 ```
 
 The injector must be built against the same Qt minor branch that Cavalry ships. The current Cavalry.app bundle uses **Qt 6.6.3**, so local injector builds should use **Qt 6.6.x** as well. The build script now refuses to compile if the build-time Qt branch does not match the target Cavalry Qt branch, and the injector also checks the runtime Qt branch before installing translations. `npm run build` now pins `CAVALRY_QT_VERSION=6.6.3` by default, and you can override the Qt install root with `CAVALRY_QT_PREFIX` or `QT_ROOT_DIR` if needed.
@@ -103,7 +115,11 @@ If none are found, use the folder button to browse manually.
 
 ## Runtime state
 
-Electron stores runtime data under `app.getPath('userData')`.
+Both desktop shells keep runtime data in an app-specific state directory.
+
+- Electron uses `app.getPath('userData')`.
+- Tauri uses `app.path().app_data_dir()`.
+- Test and smoke flows can force both shells onto the same directory with `CAVALRY_I18N_STATE_DIR`.
 
 - `state.json` tracks the selected app path, the last patched Cavalry version, the active language, and the last patch timestamp
 - `en/` stores the extracted English JSON snapshot for the selected Cavalry version
@@ -163,4 +179,4 @@ Validation rules are defined in `doc/translation-whitelist.json`.
 
 ## macOS release note
 
-End users should keep launching the original `Cavalry.app`. Tagged releases now build the packaged macOS patcher on macOS, prebuild `desktop-patcher/injector/libCavalryTranslatorInjector.dylib`, and publish the electron-builder DMG/ZIP so users do not need Qt or any external launcher script. The `tools/build_translator_injector.sh` fallback is for local development when that prebuilt dylib is missing, `tools/generate_embedded_translations.js` regenerates the embedded translation table directly from `tools/*.ts`, and `tools/launch_cavalry_with_injector.sh` is now only a manual debug utility rather than part of the normal patch flow.
+End users should keep launching the original `Cavalry.app`. Tagged releases now build the packaged macOS patcher through Tauri on macOS, prebuild `desktop-patcher/injector/libCavalryTranslatorInjector.dylib`, and publish the Tauri DMG so users do not need Qt or any external launcher script. The `tools/build_translator_injector.sh` fallback is for local development when that prebuilt dylib is missing, `tools/generate_embedded_translations.js` regenerates the embedded translation table directly from `tools/*.ts`, and `tools/launch_cavalry_with_injector.sh` is now only a manual debug utility rather than part of the normal patch flow.

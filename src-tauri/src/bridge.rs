@@ -5,22 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 pub fn script() -> &'static str {
-    r#"
-(() => {
-  const core = window.__TAURI__ && window.__TAURI__.core;
-  const invoke = core && core.invoke;
-  if (!invoke) {
-    return;
-  }
-  window.cavalryI18n = {
-    getStatus: () => invoke('get_status'),
-    browseApp: () => invoke('browse_app'),
-    extractEnglish: (appPath) => invoke('extract_english', { appPath }),
-    applyLanguage: (appPath, lang) => invoke('apply_language', { appPath, lang }),
-    restartCavalry: (appPath) => invoke('restart_cavalry', { appPath }),
-  };
-})();
-"#
+    include_str!("../../desktop-patcher/renderer/tauri-bridge.js")
 }
 
 #[cfg(test)]

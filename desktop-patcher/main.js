@@ -11,6 +11,11 @@ const { spawn, spawnSync } = require('node:child_process');
 const { app, BrowserWindow, dialog, ipcMain } = require('electron');
 const { registerI18nHandlers } = require('./i18n-handlers');
 
+const stateDirOverride = process.env.CAVALRY_I18N_STATE_DIR;
+if (stateDirOverride) {
+  app.setPath('userData', stateDirOverride);
+}
+
 function createWindow() {
   const window = new BrowserWindow({
     useContentSize: true,

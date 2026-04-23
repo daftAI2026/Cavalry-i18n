@@ -40,6 +40,8 @@ test('tauri build scripts and config describe one injector and resource pipeline
   const resources = config.bundle.resources;
 
   assert.equal(pkg.scripts['tauri:build'], 'tauri build');
+  assert.equal(pkg.scripts.build, 'npm run tauri:build');
+  assert.match(pkg.scripts['build:electron'], /electron-builder -m/);
   assert.match(pkg.scripts['build:injector'], /CAVALRY_QT_VERSION=6\.6\.3/);
   assert.equal(config.build.beforeBuildCommand, 'npm run build:injector');
   assert.equal(config.build.frontendDist, '../desktop-patcher/renderer');
@@ -58,9 +60,9 @@ test('tauri bundle config preserves the Electron window contract', () => {
   assert.ok(window, 'main window missing');
   assert.equal(window.url, 'index.html');
   assert.equal(window.width, 480);
-  assert.equal(window.height, 500);
+  assert.equal(window.height, 528);
   assert.equal(window.minWidth, 420);
-  assert.equal(window.minHeight, 500);
+  assert.equal(window.minHeight, 528);
   assert.deepEqual(config.bundle.targets, ['dmg', 'app']);
 });
 

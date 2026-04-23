@@ -28,9 +28,9 @@ fn tauri_window_size_matches_electron() {
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let window = &config["app"]["windows"][0];
     assert_eq!(window["width"], 480);
-    assert_eq!(window["height"], 500);
+    assert_eq!(window["height"], 528);
     assert_eq!(window["minWidth"], 420);
-    assert_eq!(window["minHeight"], 500);
+    assert_eq!(window["minHeight"], 528);
     assert_eq!(window["url"], "index.html");
 }
 

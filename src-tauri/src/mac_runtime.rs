@@ -8,6 +8,9 @@ use std::{fs, path::Path};
 
 use crate::patch::CopyPair;
 
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
+
 pub const INJECTOR_DYLIB_NAME: &str = "libCavalryTranslatorInjector.dylib";
 pub const WRAPPER_EXECUTABLE_NAME: &str = "CavalryLauncher";
 pub const LANG_MARKER_NAME: &str = "cavalry-i18n-lang.txt";
@@ -78,6 +81,9 @@ pub fn build_runtime_pairs(
     let info_plist = fs::read_to_string(app_path.join("Contents/Info.plist"))
         .map_err(|error| error.to_string())?;
     fs::write(&wrapper_source, build_launch_wrapper()).map_err(|error| error.to_string())?;
+    #[cfg(unix)]
+    fs::set_permissions(&wrapper_source, fs::Permissions::from_mode(0o755))
+        .map_err(|error| error.to_string())?;
     fs::write(&info_source, build_wrapped_info_plist(&info_plist)?)
         .map_err(|error| error.to_string())?;
     fs::write(

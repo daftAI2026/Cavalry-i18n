@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 desktop-patcher/renderer 三文件与 preload.js，读取 hash、DOM id 和 API method 锚点
+ * [INPUT]: 依赖 desktop-patcher/renderer 视图文件与 preload.js，读取 hash、DOM id 和 API method 锚点
  * [OUTPUT]: 对外提供 renderer contract 测试，冻结 UI 真相源和 window.cavalryI18n 需求面
  * [POS]: tools 的 Phase 0 UI 冻结测试，被 Tauri bridge 迁移用作不可漂移基准
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -16,9 +16,10 @@ const desktopRoot = path.join(repoRoot, 'desktop-patcher');
 const rendererRoot = path.join(desktopRoot, 'renderer');
 
 const EXPECTED_HASHES = {
-  'index.html': '742b7ee509208c4fda6d57f10638f343b6d26c30ca8e4009142953b73d648139',
+  'index.html': 'e8435c589e06ed5bcc17d45b805e3d011050a79d297513ba7e20226b2fc45748',
   'styles.css': '45ef58de89573b77504bc4b1db3b7145f03694dd3c60cfd6c9c8c282cfb397a3',
   'app.js': 'e5cfd6253bc3019c81a6cb07dac30ca81ef3429633367f89dba82a28ac040648',
+  'tauri-bridge.js': '2ad87893150899fa03c62d0105a231603293a61232d160a945015fdf1e4d138e',
 };
 
 const REQUIRED_IDS = [

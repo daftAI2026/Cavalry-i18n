@@ -468,8 +468,8 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
 
   assert.match(
     packageJson,
-    /"build:injector": "CAVALRY_QT_VERSION=6\.6\.3 bash tools\/build_translator_injector\.sh/,
-    'default injector builds should target Cavalry Qt 6.6.3 instead of a newer incompatible branch'
+    /"build:injector": "CAVALRY_QT_PREFIX=\$\{CAVALRY_QT_PREFIX:-\$PWD\/qt_sdk\/6\.6\.3\/macos\} CAVALRY_QT_VERSION=6\.6\.3 bash tools\/build_translator_injector\.sh/,
+    'default injector builds should prefer the repo-local Qt 6.6.3 SDK before falling back to a newer incompatible system Qt'
   );
   assert.match(
     buildScript,
@@ -939,7 +939,7 @@ test('checked-in generated translation table matches the ts sources', () => {
   );
 });
 
-test('release workflow prebuilds and packages the injector dylib on macOS', () => {
+test('release workflow prebuilds the injector and publishes Tauri macOS artifacts', () => {
   const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
 
   assert.match(
@@ -970,36 +970,41 @@ test('release workflow prebuilds and packages the injector dylib on macOS', () =
   assert.match(
     workflow,
     /npm run build/,
-    'release pipeline should build the packaged macOS patcher app, not just zip the source tree'
+    'release pipeline should build the packaged macOS patcher app through the default Tauri path'
   );
   assert.match(
     workflow,
-    /dist\/\*\.dmg|dist\/\*\.zip/,
-    'release pipeline should publish electron-builder macOS artifacts for end users'
+    /src-tauri\/target\/release\/bundle\/dmg\/\*\.dmg|src-tauri\/target\/release\/bundle\/macos/,
+    'release pipeline should publish Tauri macOS artifacts for end users'
   );
 });
 
-test('local macOS packaging prebuilds and bundles the injector dylib', () => {
+test('local macOS packaging defaults to Tauri while keeping the Electron fallback explicit', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   const scripts = packageJson.scripts || {};
   const buildConfig = packageJson.build || {};
 
-  assert.match(
-    scripts.build || '',
-    /build:injector/,
-    'local packaging should prebuild the injector before running electron-builder'
+  assert.equal(
+    scripts.build,
+    'npm run tauri:build',
+    'local packaging should default to the Tauri release path'
   );
   assert.match(
-    scripts['build:dir'] || '',
+    scripts['build:electron'] || '',
     /build:injector/,
-    'directory packaging should also prebuild the injector before running electron-builder'
+    'Electron fallback packaging should still prebuild the injector before running electron-builder'
+  );
+  assert.match(
+    scripts['build:electron:dir'] || '',
+    /build:injector/,
+    'Electron fallback directory packaging should also prebuild the injector before running electron-builder'
   );
   assert.ok(
     Array.isArray(buildConfig.extraResources) &&
       buildConfig.extraResources.some((entry) =>
         JSON.stringify(entry).includes('libCavalryTranslatorInjector.dylib')
       ),
-    'electron-builder config should copy the prebuilt injector dylib into packaged app resources'
+    'Electron fallback config should still copy the prebuilt injector dylib into packaged app resources'
   );
   assert.match(
     scripts['build:injector'] || '',
