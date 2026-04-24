@@ -400,8 +400,9 @@ pub fn apply_language_inner<R: CommandRunner>(
             .map_err(|error| format!("Could not copy patch files into Cavalry.app: {error}"))?;
         if cfg!(target_os = "macos") {
             if lang != "en" {
-                privilege::patch_keychain_access_group(app_path)
-                    .map_err(|error| format!("Could not patch Keychain access group: {error}"))?;
+                privilege::patch_keychain_query_attributes(app_path).map_err(|error| {
+                    format!("Could not patch Keychain query attributes: {error}")
+                })?;
             }
             privilege::resign_patched_bundle(app_path, runner)
                 .map_err(|error| format!("Could not re-sign patched Cavalry.app: {error}"))?;
@@ -554,8 +555,6 @@ mod tests {
     use crate::privilege::RecordingRunner;
     use std::{fs, path::Path};
 
-    const ACCESS_GROUP: &[u8] = b"TB4YVNQHVC.com.scenegroup.cavalry.apps";
-
     #[test]
     fn registers_five_commands() {
         assert_eq!(
@@ -576,13 +575,8 @@ mod tests {
         fs::write(path, value).unwrap();
     }
 
-    fn write_keychain_dylib(app: &Path, occurrences: usize) {
-        let mut bytes = Vec::new();
-        for index in 0..occurrences {
-            bytes.extend_from_slice(format!("slice-{index}:").as_bytes());
-            bytes.extend_from_slice(ACCESS_GROUP);
-            bytes.extend_from_slice(b":end\n");
-        }
+    fn write_keychain_dylib(app: &Path) {
+        let bytes = crate::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false);
         write(
             &app.join("Contents/Frameworks/libExtensionLayer.dylib"),
             bytes,
@@ -622,7 +616,7 @@ mod tests {
             &app.join("Contents/Frameworks/libCavalryFramework.dylib"),
             [0xcf, 0xfa, 0xed, 0xfe],
         );
-        write_keychain_dylib(&app, 2);
+        write_keychain_dylib(&app);
         fs::create_dir_all(app.join("Contents/Resources")).unwrap();
         app
     }
@@ -683,12 +677,11 @@ mod tests {
         assert!(fs::read_to_string(app.join("Contents/Info.plist"))
             .unwrap()
             .contains("<string>CavalryLauncher</string>"));
-        assert!(
-            !fs::read(app.join("Contents/Frameworks/libExtensionLayer.dylib"))
-                .unwrap()
-                .windows(ACCESS_GROUP.len())
-                .any(|window| window == ACCESS_GROUP)
-        );
+        let (_, keychain_report) = crate::keychain_patch::patch_keychain_query_attributes_bytes(
+            &fs::read(app.join("Contents/Frameworks/libExtensionLayer.dylib")).unwrap(),
+        )
+        .unwrap();
+        assert_eq!(keychain_report.already_patched_callsites, 8);
         if cfg!(target_os = "macos") {
             assert!(runner
                 .commands

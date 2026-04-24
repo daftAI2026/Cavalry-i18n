@@ -7,6 +7,7 @@
 pub mod bridge;
 pub mod commands;
 pub mod detect;
+pub mod keychain_patch;
 pub mod mac_runtime;
 pub mod patch;
 pub mod privilege;
