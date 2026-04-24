@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 src-tauri bridge.rs、renderer app.js 与一个最小 fake DOM/runtime
- * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 preload 替代层足以驱动原 renderer
+ * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 preload 替代层足以驱动原 renderer 和权限等待态
  * [POS]: tools 的 Phase 1 bridge 守门，把字符串级断言升级为实际脚本执行
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -173,7 +173,7 @@ class FakeDocument {
   }
 }
 
-function createRuntime() {
+function createRuntime(options = {}) {
   const appVersion = new FakeElement('#appVersion');
   const appPath = new FakeElement('#appPath');
   const currentLanguage = new FakeElement('#currentLanguage');
@@ -181,6 +181,8 @@ function createRuntime() {
   const browseButton = new FakeElement('#browseButton');
   const extractButton = new FakeElement('#extractButton');
   const applyButton = new FakeElement('#applyButton');
+  const permissionButton = new FakeElement('#permissionButton');
+  permissionButton.hidden = true;
   const statusText = new FakeElement('#statusText');
   const triggerText = new FakeElement('.select-trigger-text');
   const selectTrigger = new FakeElement('#selectTrigger');
@@ -195,12 +197,14 @@ function createRuntime() {
     '#browseButton': browseButton,
     '#extractButton': extractButton,
     '#applyButton': applyButton,
+    '#permissionButton': permissionButton,
     '#statusText': statusText,
     '#selectTrigger': selectTrigger,
     '#selectPopup': selectPopup,
   });
 
   const invokeCalls = [];
+  const applyResponses = [...(options.applyResponses || [])];
   const window = {
     __TAURI__: {
       core: {
@@ -218,6 +222,9 @@ function createRuntime() {
               defaultAppCandidates: ['/Applications/Cavalry.app'],
               version: '2.3.4',
             });
+          }
+          if (command === 'apply_language' && applyResponses.length > 0) {
+            return Promise.resolve(applyResponses.shift());
           }
           return Promise.resolve({ ok: true });
         },
@@ -251,6 +258,8 @@ function createRuntime() {
     currentLanguage,
     invokeCalls,
     languageSelect,
+    permissionButton,
+    applyButton,
     selectTrigger,
     statusText,
     triggerText,
@@ -278,7 +287,10 @@ test('tauri bridge boots the original renderer app without Electron preload', as
   assert.equal(runtime.appVersion.textContent, 'Cavalry 2.3.4');
   assert.equal(runtime.appPath.textContent, '/Applications/Cavalry.app');
   assert.equal(runtime.currentLanguage.textContent, '简体中文');
-  assert.equal(runtime.statusText.textContent, 'Ready.');
+  assert.equal(
+    runtime.statusText.textContent,
+    'Apply will require macOS permission to modify Cavalry.app.'
+  );
   assert.equal(runtime.triggerText.textContent, '简体中文');
   assert.deepEqual(runtime.invokeCalls[0], { command: 'get_status', payload: undefined });
 
@@ -287,4 +299,63 @@ test('tauri bridge boots the original renderer app without Electron preload', as
     command: 'apply_language',
     payload: { appPath: '/Applications/Cavalry.app', lang: 'ja_JP' },
   });
+});
+
+test('renderer enters macOS permission wait state and retries the same selection', async () => {
+  const bridgeScript = readText('desktop-patcher/renderer/tauri-bridge.js');
+  const appScript = readText('desktop-patcher/renderer/app.js');
+  const runtime = createRuntime({
+    applyResponses: [
+      {
+        ok: false,
+        permissionRequired: true,
+        error: 'Operation not permitted while modifying /Applications/Cavalry.app',
+      },
+      { ok: true, currentLang: 'zh-Hans' },
+    ],
+  });
+
+  vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
+  vm.runInNewContext(appScript, runtime.context, { filename: 'app.js' });
+  await flush();
+
+  await runtime.applyButton.listeners.get('click')[0]();
+  await flush();
+
+  assert.equal(runtime.statusText.dataset.tone, 'warning');
+  assert.equal(runtime.statusText.textContent, 'Waiting for permission.');
+  assert.equal(runtime.applyButton.textContent, 'Retry Apply');
+  assert.equal(runtime.permissionButton.hidden, false);
+  assert.deepEqual(JSON.parse(JSON.stringify(runtime.invokeCalls.at(-1))), {
+    command: 'apply_language',
+    payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
+  });
+
+  await runtime.permissionButton.listeners.get('click')[0]();
+  assert.deepEqual(JSON.parse(JSON.stringify(runtime.invokeCalls.at(-1))), {
+    command: 'open_privacy_security',
+  });
+
+  await runtime.applyButton.listeners.get('click')[0]();
+  await flush();
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(runtime.invokeCalls.filter((call) => call.command === 'browse_app'))),
+    []
+  );
+  assert.deepEqual(
+    JSON.parse(
+      JSON.stringify(runtime.invokeCalls.filter((call) => call.command === 'apply_language'))
+    ),
+    [
+      {
+        command: 'apply_language',
+        payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
+      },
+      {
+        command: 'apply_language',
+        payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
+      },
+    ]
+  );
 });

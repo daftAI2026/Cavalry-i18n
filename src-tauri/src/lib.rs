@@ -21,6 +21,7 @@ pub fn run() {
             commands::browse_app,
             commands::extract_english,
             commands::apply_language,
+            commands::open_privacy_security,
             commands::restart_cavalry
         ])
         .run(tauri::generate_context!())

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块、chrono/serde 与原子计数 staging id
- * [OUTPUT]: 对外提供 get_status、browse_app、extract_english、apply_language、restart_cavalry 5 个 Tauri command
+ * [OUTPUT]: 对外提供 get_status、browse_app、extract_english、apply_language、open_privacy_security、restart_cavalry 6 个 Tauri command
  * [POS]: src-tauri/src 的 renderer API 等价层，返回 Electron preload 兼容 JSON shape
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,11 +18,12 @@ use crate::{
     state::{self, State},
 };
 
-pub const COMMAND_NAMES: [&str; 5] = [
+pub const COMMAND_NAMES: [&str; 6] = [
     "get_status",
     "browse_app",
     "extract_english",
     "apply_language",
+    "open_privacy_security",
     "restart_cavalry",
 ];
 static STAGING_COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -78,6 +79,8 @@ pub struct ActionPayload {
     pub current_lang: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub warning: Option<String>,
+    #[serde(skip_serializing_if = "is_false")]
+    pub permission_required: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
 }
@@ -273,6 +276,16 @@ pub fn apply_language(app: tauri::AppHandle, app_path: String, lang: String) -> 
         &now_iso(),
     ) {
         Ok(payload) => payload,
+        Err(error) if is_app_management_error(&error) => ActionPayload::permission_error(&error),
+        Err(error) => ActionPayload::error(&error),
+    }
+}
+
+#[tauri::command]
+pub fn open_privacy_security() -> ActionPayload {
+    let mut runner = RealCommandRunner;
+    match privilege::open_privacy_security(&mut runner) {
+        Ok(()) => ActionPayload::ok(),
         Err(error) => ActionPayload::error(&error),
     }
 }
@@ -295,6 +308,18 @@ pub fn restart_cavalry(app: tauri::AppHandle, app_path: String) -> ActionPayload
 
 fn now_iso() -> String {
     Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true)
+}
+
+fn is_false(value: &bool) -> bool {
+    !*value
+}
+
+fn is_app_management_error(error: &str) -> bool {
+    let lower = error.to_ascii_lowercase();
+    lower.contains("not authorized to send apple events")
+        || lower.contains("app management")
+        || ((lower.contains("operation not permitted") || lower.contains("privacy"))
+            && (error.contains(".app") || error.contains("/Applications/")))
 }
 
 fn unique_staging_root() -> PathBuf {
@@ -515,6 +540,7 @@ impl ActionPayload {
             count: None,
             current_lang: None,
             warning: None,
+            permission_required: false,
             error: None,
         }
     }
@@ -525,6 +551,7 @@ impl ActionPayload {
             count: Some(count),
             current_lang: None,
             warning: None,
+            permission_required: false,
             error: None,
         }
     }
@@ -535,6 +562,7 @@ impl ActionPayload {
             count: None,
             current_lang: Some(lang.to_string()),
             warning: Some(warning.to_string()),
+            permission_required: false,
             error: None,
         }
     }
@@ -545,6 +573,18 @@ impl ActionPayload {
             count: None,
             current_lang: None,
             warning: None,
+            permission_required: false,
+            error: Some(message.to_string()),
+        }
+    }
+
+    fn permission_error(message: &str) -> Self {
+        Self {
+            ok: false,
+            count: None,
+            current_lang: None,
+            warning: None,
+            permission_required: true,
             error: Some(message.to_string()),
         }
     }
@@ -559,7 +599,7 @@ mod tests {
     use std::{fs, path::Path};
 
     #[test]
-    fn registers_five_commands() {
+    fn registers_six_commands() {
         assert_eq!(
             registered_command_names(),
             &[
@@ -567,10 +607,11 @@ mod tests {
                 "browse_app",
                 "extract_english",
                 "apply_language",
+                "open_privacy_security",
                 "restart_cavalry"
             ]
         );
-        assert_eq!(COMMAND_NAMES.len(), 5);
+        assert_eq!(COMMAND_NAMES.len(), 6);
     }
 
     fn write(path: &Path, value: impl AsRef<[u8]>) {
@@ -684,7 +725,7 @@ mod tests {
             &fs::read(app.join("Contents/Frameworks/libExtensionLayer.dylib")).unwrap(),
         )
         .unwrap();
-        assert_eq!(keychain_report.already_patched_callsites, 8);
+        assert_eq!(keychain_report.already_patched_callsites, 10);
         if cfg!(target_os = "macos") {
             assert!(runner
                 .commands

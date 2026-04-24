@@ -21,6 +21,7 @@ mod tests {
             "browseApp",
             "extractEnglish",
             "applyLanguage",
+            "openPrivacySecurity",
             "restartCavalry",
             "invoke('get_status')",
         ] {

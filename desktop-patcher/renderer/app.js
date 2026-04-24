@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 window.cavalryI18n 的 5 个 Promise API 与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供桌面补丁器的状态渲染、语言选择、英文刷新、应用并重启交互
+ * [INPUT]: 依赖 window.cavalryI18n 的 Promise API 与 renderer/index.html 的固定控件 id
+ * [OUTPUT]: 对外提供桌面补丁器的状态渲染、语言选择、英文刷新、应用并重启交互、权限申请交互
  * [POS]: desktop-patcher/renderer 的唯一交互源，被 index.html 直接加载，UI 迁移时必须保持行为契约
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,6 +11,7 @@ const languageSelect = document.querySelector('#languageSelect');
 const browseButton = document.querySelector('#browseButton');
 const extractButton = document.querySelector('#extractButton');
 const applyButton = document.querySelector('#applyButton');
+const permissionButton = document.querySelector('#permissionButton');
 const statusText = document.querySelector('#statusText');
 
 const api = window.cavalryI18n;
@@ -20,6 +21,11 @@ const state = {
   languages: [],
   needsExtract: false,
 };
+
+function setPermissionWait(isWaiting) {
+  permissionButton.hidden = !isWaiting;
+  applyButton.textContent = isWaiting ? 'Retry Apply' : 'Apply & Restart';
+}
 
 function setStatus(message, tone = 'neutral') {
   statusText.textContent = message;
@@ -54,6 +60,7 @@ async function bootstrap() {
   updateLanguageOptions(state.languages);
   languageSelect.value = state.currentLang;
   currentLanguage.textContent = languageLabel(state.currentLang);
+  setPermissionWait(false);
 
   if (state.appPath) {
     appVersion.textContent = bootstrapState.version
@@ -75,7 +82,7 @@ async function bootstrap() {
     return;
   }
 
-  setStatus('Ready.', 'success');
+  setStatus('Apply will require macOS permission to modify Cavalry.app.', 'warning');
 }
 
 browseButton.addEventListener('click', async () => {
@@ -94,6 +101,7 @@ extractButton.addEventListener('click', async () => {
   }
 
   setBusy(true);
+  setPermissionWait(false);
   setStatus('Refreshing the English snapshot…');
 
   try {
@@ -122,11 +130,17 @@ applyButton.addEventListener('click', async () => {
 
   const nextLanguage = languageSelect.value;
   setBusy(true);
+  setPermissionWait(false);
   setStatus(`Applying ${languageLabel(nextLanguage)}…`);
 
   try {
     const result = await api.applyLanguage(state.appPath, nextLanguage);
     if (!result.ok) {
+      if (result.permissionRequired) {
+        setStatus('Waiting for permission.', 'warning');
+        setPermissionWait(true);
+        return;
+      }
       setStatus(result.error || 'Patch failed.', 'error');
       return;
     }
@@ -146,6 +160,18 @@ applyButton.addEventListener('click', async () => {
     );
   } finally {
     setBusy(false);
+  }
+});
+
+permissionButton.addEventListener('click', async () => {
+  if (!api.openPrivacySecurity) {
+    window.open('x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles');
+    return;
+  }
+
+  const result = await api.openPrivacySecurity();
+  if (!result.ok) {
+    setStatus(result.error || 'Could not open Privacy & Security.', 'error');
   }
 });
 

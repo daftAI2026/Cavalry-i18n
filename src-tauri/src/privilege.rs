@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 std fs/process/path 与 patch::CopyPair，接收已 staging 的复制计划和 app bundle 路径
- * [OUTPUT]: 对外提供 CommandRunner、copy_with_privilege、patch_keychain_query_attributes、patch_keychain_query_attributes_with_privilege、resign_patched_bundle、clear_quarantine、restart_cavalry
+ * [OUTPUT]: 对外提供 CommandRunner、copy_with_privilege、patch_keychain_query_attributes、patch_keychain_query_attributes_with_privilege、resign_patched_bundle、clear_quarantine、open_privacy_security、restart_cavalry
  * [POS]: src-tauri/src 的系统命令边界，集中 osascript/codesign/xattr/open 等真实调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -419,6 +419,19 @@ pub fn restart_commands(app_path: &Path) -> Vec<RecordedCommand> {
             args: vec!["-n".to_string(), app_path.to_string_lossy().to_string()],
         },
     ]
+}
+
+pub fn open_privacy_security<R: CommandRunner>(runner: &mut R) -> Result<(), String> {
+    if cfg!(not(target_os = "macos")) {
+        return Ok(());
+    }
+    runner.spawn_detached(
+        "open",
+        &[
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles"
+                .to_string(),
+        ],
+    )
 }
 
 pub fn restart_cavalry<R: CommandRunner>(app_path: &Path, runner: &mut R) -> Result<(), String> {

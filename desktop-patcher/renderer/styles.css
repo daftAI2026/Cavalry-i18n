@@ -18,7 +18,7 @@
 
 /*
  * [INPUT]: 依赖 renderer/index.html 的 class/id 结构与 Google Fonts 字体族
- * [OUTPUT]: 对外提供桌面补丁器完整视觉样式、布局、状态色、按钮和自定义 select 样式
+ * [OUTPUT]: 对外提供桌面补丁器完整视觉样式、布局、状态色、按钮、权限入口和自定义 select 样式
  * [POS]: desktop-patcher/renderer 的唯一样式源，被 Electron 与 Tauri 同一 HTML 入口复用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -456,6 +456,18 @@ button.secondary:hover {
 
 .status-text[data-tone="error"] {
   color: var(--tone-error);
+}
+
+.permission-button {
+  margin-top: 10px;
+  width: 100%;
+  background: var(--kumo-base);
+  color: var(--text-default);
+  outline: 1px solid var(--kumo-hairline);
+}
+
+.permission-button[hidden] {
+  display: none;
 }
 
 /* ── Responsive ── */

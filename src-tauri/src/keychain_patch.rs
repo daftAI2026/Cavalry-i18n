@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 std fs/path，读取 Mach-O fat/thin dylib 的符号表、间接符号表与指令字节
- * [OUTPUT]: 对外提供 patch_keychain_query_attributes、patch_keychain_query_attributes_bytes、build_synthetic_keychain_dylib
+ * [OUTPUT]: 对外提供 patch_keychain_query_attributes、patch_keychain_query_attributes_bytes、build_synthetic_keychain_dylib 和 per-function 补丁报告
  * [POS]: src-tauri/src 的 Keychain 二进制补丁核心，被 privilege 系统边界调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,8 +18,9 @@ const CPU_TYPE_ARM64: u32 = 0x0100000c;
 const ARM64_NOP_WORD: u32 = 0xd503201f;
 const ARM64_NOP: [u8; 4] = [0x1f, 0x20, 0x03, 0xd5];
 
-const TARGETS: [(&str, &str); 4] = [
+const TARGETS: [(&str, &str); 5] = [
     ("createQuery", "__ZN7cavalry8keychain11createQuery"),
+    ("valueExists", "__ZN7cavalry8keychain11valueExists"),
     ("setValue", "__ZN7cavalry8keychain8setValue"),
     ("getValue", "__ZN7cavalry8keychain8getValue"),
     ("eraseValue", "__ZN7cavalry8keychain10eraseValue"),
@@ -32,6 +33,15 @@ const ATTRS: [(&str, &str); 2] = [
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct KeychainPatchReport {
     pub functions: usize,
+    pub patched_callsites: usize,
+    pub already_patched_callsites: usize,
+    pub details: Vec<KeychainPatchDetail>,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct KeychainPatchDetail {
+    pub function: String,
+    pub attribute: String,
     pub patched_callsites: usize,
     pub already_patched_callsites: usize,
 }
@@ -105,18 +115,31 @@ pub fn patch_keychain_query_attributes_bytes(
     input: &[u8],
 ) -> Result<(Vec<u8>, KeychainPatchReport), String> {
     let mut bytes = input.to_vec();
-    let mut report = KeychainPatchReport {
+    let mut report = empty_report();
+    for slice in parse_slices(&bytes)? {
+        let macho = parse_macho(&bytes, &slice)?;
+        patch_slice(&mut bytes, &macho, &mut report)?;
+    }
+    Ok((bytes, report))
+}
+
+fn empty_report() -> KeychainPatchReport {
+    KeychainPatchReport {
         functions: TARGETS.len(),
         patched_callsites: 0,
         already_patched_callsites: 0,
-    };
-    for slice in parse_slices(&bytes)? {
-        let macho = parse_macho(&bytes, &slice)?;
-        let (patched, already) = patch_slice(&mut bytes, &macho)?;
-        report.patched_callsites += patched;
-        report.already_patched_callsites += already;
+        details: TARGETS
+            .iter()
+            .flat_map(|(function, _)| {
+                ATTRS.iter().map(move |(attribute, _)| KeychainPatchDetail {
+                    function: (*function).to_string(),
+                    attribute: (*attribute).to_string(),
+                    patched_callsites: 0,
+                    already_patched_callsites: 0,
+                })
+            })
+            .collect(),
     }
-    Ok((bytes, report))
 }
 
 fn parse_slices(bytes: &[u8]) -> Result<Vec<Slice>, String> {
@@ -230,11 +253,13 @@ fn parse_macho(bytes: &[u8], slice: &Slice) -> Result<MachO, String> {
     })
 }
 
-fn patch_slice(bytes: &mut [u8], macho: &MachO) -> Result<(usize, usize), String> {
+fn patch_slice(
+    bytes: &mut [u8],
+    macho: &MachO,
+    report: &mut KeychainPatchReport,
+) -> Result<(), String> {
     let pointers = pointer_symbols(macho);
     let functions = function_bounds(macho)?;
-    let mut patched = 0;
-    let mut already = 0;
 
     for function in functions {
         for (label, symbol) in ATTRS {
@@ -248,19 +273,39 @@ fn patch_slice(bytes: &mut [u8], macho: &MachO) -> Result<(usize, usize), String
                 find_x86_callsite(bytes, macho, &function, pointer, label)?
             };
             if callsite.2 {
-                already += 1;
+                record_callsite(report, function.name, label, false);
             } else if macho.arch == "arm64" {
                 bytes[callsite.0..callsite.0 + 4].copy_from_slice(&ARM64_NOP);
-                patched += 1;
+                record_callsite(report, function.name, label, true);
             } else {
                 for byte in &mut bytes[callsite.0..callsite.0 + callsite.1] {
                     *byte = 0x90;
                 }
-                patched += 1;
+                record_callsite(report, function.name, label, true);
             }
         }
     }
-    Ok((patched, already))
+    Ok(())
+}
+
+fn record_callsite(
+    report: &mut KeychainPatchReport,
+    function: &str,
+    attribute: &str,
+    patched: bool,
+) {
+    let detail = report
+        .details
+        .iter_mut()
+        .find(|detail| detail.function == function && detail.attribute == attribute)
+        .expect("patch detail target must exist");
+    if patched {
+        report.patched_callsites += 1;
+        detail.patched_callsites += 1;
+    } else {
+        report.already_patched_callsites += 1;
+        detail.already_patched_callsites += 1;
+    }
 }
 
 fn pointer_symbols(macho: &MachO) -> Vec<(&str, u64)> {

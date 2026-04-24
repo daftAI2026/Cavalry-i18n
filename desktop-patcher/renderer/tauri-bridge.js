@@ -70,6 +70,7 @@
       count: pick(result.count, null),
       currentLang: pick(result.currentLang, result.current_lang || null),
       warning: pick(result.warning, null),
+      permissionRequired: pick(result.permissionRequired, result.permission_required || false),
       error: pick(result.error, null),
     };
   }
@@ -81,6 +82,8 @@
       invoke('extract_english', { appPath }).then(normalizeAction),
     applyLanguage: (appPath, lang) =>
       invoke('apply_language', { appPath, lang }).then(normalizeAction),
+    openPrivacySecurity: () =>
+      invoke('open_privacy_security').then(normalizeAction),
     restartCavalry: (appPath) =>
       invoke('restart_cavalry', { appPath }).then(normalizeAction),
   };

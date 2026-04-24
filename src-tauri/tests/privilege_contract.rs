@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::privilege 的复制、重签、quarantine 与 restart 边界
- * [OUTPUT]: 对外提供命令顺序与权限回退 contract tests
+ * [OUTPUT]: 对外提供命令顺序、权限回退、Keychain 明细报告 contract tests
  * [POS]: src-tauri/tests 的系统边界守门，确保 fake runner 能完整断言 macOS 命令流
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,6 +14,19 @@ use std::{
     fs,
     path::{Path, PathBuf},
 };
+
+fn report_count(
+    report: &cavalry_i18n_tauri::keychain_patch::KeychainPatchReport,
+    function: &str,
+    attribute: &str,
+) -> (usize, usize) {
+    let detail = report
+        .details
+        .iter()
+        .find(|detail| detail.function == function && detail.attribute == attribute)
+        .unwrap_or_else(|| panic!("missing report detail for {function}/{attribute}"));
+    (detail.patched_callsites, detail.already_patched_callsites)
+}
 
 fn write(path: &Path, value: &[u8]) {
     fs::create_dir_all(path.parent().unwrap()).unwrap();
@@ -61,8 +74,16 @@ fn patch_keychain_query_attributes_patches_two_callsites_per_function() {
 
     let report = patch_keychain_query_attributes(&app).unwrap();
 
-    assert_eq!(report.functions, 4);
-    assert_eq!(report.patched_callsites, 8);
+    assert_eq!(report.functions, 5);
+    assert_eq!(report.patched_callsites, 10);
+    assert_eq!(
+        report_count(&report, "valueExists", "kSecAttrAccessGroup"),
+        (1, 0)
+    );
+    assert_eq!(
+        report_count(&report, "valueExists", "kSecAttrSynchronizable"),
+        (1, 0)
+    );
     assert_eq!(fs::metadata(&target).unwrap().len(), before_len);
 }
 
@@ -78,8 +99,12 @@ fn patch_keychain_query_attributes_x86_64_replaces_target_call_with_nop_sequence
     let report = patch_keychain_query_attributes(&app).unwrap();
     let second = patch_keychain_query_attributes(&app).unwrap();
 
-    assert_eq!(report.patched_callsites, 8);
-    assert_eq!(second.already_patched_callsites, 8);
+    assert_eq!(report.patched_callsites, 10);
+    assert_eq!(second.already_patched_callsites, 10);
+    assert_eq!(
+        report_count(&second, "valueExists", "kSecAttrSynchronizable"),
+        (0, 1)
+    );
 }
 
 #[test]
@@ -93,7 +118,11 @@ fn patch_keychain_query_attributes_patches_fat_arm64_and_x86_64() {
 
     let report = patch_keychain_query_attributes(&app).unwrap();
 
-    assert_eq!(report.patched_callsites, 16);
+    assert_eq!(report.patched_callsites, 20);
+    assert_eq!(
+        report_count(&report, "valueExists", "kSecAttrAccessGroup"),
+        (2, 0)
+    );
 }
 
 #[test]
@@ -109,13 +138,13 @@ fn patch_keychain_query_attributes_is_idempotent_rs() {
         patch_keychain_query_attributes(&app)
             .unwrap()
             .patched_callsites,
-        8
+        10
     );
     let second = patch_keychain_query_attributes(&app).unwrap();
 
     assert_eq!(
         (second.patched_callsites, second.already_patched_callsites),
-        (0, 8)
+        (0, 10)
     );
 }
 
@@ -143,8 +172,8 @@ fn patch_keychain_query_attributes_with_privilege_copies_staged_dylib() {
     )
     .unwrap();
 
-    assert_eq!(report.patched_callsites, 8);
-    assert_eq!(second.already_patched_callsites, 8);
+    assert_eq!(report.patched_callsites, 10);
+    assert_eq!(second.already_patched_callsites, 10);
     assert_eq!(fs::metadata(&target).unwrap().len(), before_len);
     assert!(runner.commands.is_empty());
 }
