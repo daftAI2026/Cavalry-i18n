@@ -101,6 +101,7 @@ tell application "System Events"
       repeat with win in windows of proc
         if (name of win) is equal to "${title}" ${processFilter} then
           set frontmost of proc to true
+          perform action "AXRaise" of win
           return "ok"
         end if
       end repeat
