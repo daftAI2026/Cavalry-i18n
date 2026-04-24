@@ -400,9 +400,12 @@ pub fn apply_language_inner<R: CommandRunner>(
             .map_err(|error| format!("Could not copy patch files into Cavalry.app: {error}"))?;
         if cfg!(target_os = "macos") {
             if lang != "en" {
-                privilege::patch_keychain_query_attributes(app_path).map_err(|error| {
-                    format!("Could not patch Keychain query attributes: {error}")
-                })?;
+                privilege::patch_keychain_query_attributes_with_privilege(
+                    app_path,
+                    &staging_root.join("keychain"),
+                    runner,
+                )
+                .map_err(|error| format!("Could not patch Keychain query attributes: {error}"))?;
             }
             privilege::resign_patched_bundle(app_path, runner)
                 .map_err(|error| format!("Could not re-sign patched Cavalry.app: {error}"))?;

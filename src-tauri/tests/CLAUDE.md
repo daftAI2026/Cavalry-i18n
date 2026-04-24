@@ -9,7 +9,7 @@ bridge_webview_contract.rs: 断言 bridge 预注入到 Tauri builder，并暴露
 detect_contract.rs: 断言默认路径、Info.plist 版本读取与 bundle-local 语言 marker 恢复。
 patch_contract.rs: 断言 English 提取、插件 camelCase、copy pair 与 staging mode 保留。
 mac_runtime_contract.rs: 断言 wrapper、Info.plist 改写和 runtime pair 目标路径。
-privilege_contract.rs: 断言复制回退、Keychain query attribute callsite 补丁、双架构幂等、重签、quarantine 与 restart 命令顺序。
+privilege_contract.rs: 断言复制回退、Keychain query attribute callsite 直写/提权补丁、双架构幂等、重签、quarantine 与 restart 命令顺序。
 state_contract.rs: 断言 Electron 兼容 state.json schema 的 normalize 与读写。
 manual_macos_smoke.rs: 真实 macOS ignored smoke test，跑三语 apply/restart 与 English 恢复。
 

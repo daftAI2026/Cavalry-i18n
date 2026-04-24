@@ -10,7 +10,7 @@ detect.rs: Cavalry.app 探测模块，读取候选路径、Info.plist 版本、�
 patch.rs: JSON 资产映射模块，提取 English、发现插件、构建 copy pairs、staging 文件。
 mac_runtime.rs: macOS runtime patch 模块，生成 launcher wrapper、Info.plist rewrite、lang marker 与 injector copy pairs。
 keychain_patch.rs: Mach-O Keychain query callsite 补丁模块，解析 fat/thin slice、符号表与间接符号指针，将 accessGroup/synchronizable 写入调用替换为 NOP。
-privilege.rs: 系统命令边界，定义 command runner、提权复制、Keychain query attribute 补丁入口、重签与 restart 命令顺序。
+privilege.rs: 系统命令边界，定义 command runner、提权复制、Keychain query attribute 直写/提权补丁入口、重签与 restart 命令顺序。
 state.rs: Electron 兼容 state.json schema、normalize、读写函数。
 
 依赖边界:

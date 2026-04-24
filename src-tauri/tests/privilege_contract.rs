@@ -7,7 +7,8 @@
 use cavalry_i18n_tauri::patch::CopyPair;
 use cavalry_i18n_tauri::privilege::{
     clear_gatekeeper_quarantine, copy_with_privilege, patch_keychain_query_attributes,
-    resign_patched_bundle, restart_commands, RecordedCommand, RecordingRunner,
+    patch_keychain_query_attributes_with_privilege, resign_patched_bundle, restart_commands,
+    RecordedCommand, RecordingRunner,
 };
 use std::{
     fs,
@@ -116,6 +117,36 @@ fn patch_keychain_query_attributes_is_idempotent_rs() {
         (second.patched_callsites, second.already_patched_callsites),
         (0, 8)
     );
+}
+
+#[test]
+fn patch_keychain_query_attributes_with_privilege_copies_staged_dylib() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Cavalry.app");
+    let target = write_keychain_dylib(
+        &app,
+        &cavalry_i18n_tauri::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false),
+    );
+    let before_len = fs::metadata(&target).unwrap().len();
+    let mut runner = RecordingRunner::default();
+
+    let report = patch_keychain_query_attributes_with_privilege(
+        &app,
+        &temp.path().join("keychain-stage"),
+        &mut runner,
+    )
+    .unwrap();
+    let second = patch_keychain_query_attributes_with_privilege(
+        &app,
+        &temp.path().join("keychain-stage-2"),
+        &mut runner,
+    )
+    .unwrap();
+
+    assert_eq!(report.patched_callsites, 8);
+    assert_eq!(second.already_patched_callsites, 8);
+    assert_eq!(fs::metadata(&target).unwrap().len(), before_len);
+    assert!(runner.commands.is_empty());
 }
 
 #[test]
