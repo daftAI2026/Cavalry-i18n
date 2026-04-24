@@ -1,36 +1,54 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.1.2] - 2026-04-25
 
 ### Added
-- **Core (Tauri)**:
-  - Granular Mach-O Keychain patch reporting with `KeychainPatchDetail`.
-  - Added support for patching `valueExists` symbol in `libExtensionLayer.dylib`.
-  - Integrated `open_privacy_security` command to guide users through macOS App Management permissions.
-- **UI/Renderer**:
-  - Full i18n support with runtime language detection for English, Simplified Chinese, Traditional Chinese, and Japanese.
-  - Implemented a custom Modal interaction system for application confirmations and permission guidance.
-  - Added visual feedback for "App Management" permission status (Retry Apply flow).
-- **Tooling**:
-  - `stamp_dmg_icon.sh` for embedding custom volume icons into DMG files.
-  - Comprehensive contract tests for bridge commands and packaged resource integrity.
+- **Tauri v2**: Primary distribution shell with Rust business logic, replacing Electron as the default build path.
+  - `commands.rs`: 6 Tauri IPC commands (`get_status`, `browse_app`, `extract_english`, `apply_language`, `restart_cavalry`, `open_privacy_security`).
+  - `detect.rs` / `patch.rs` / `mac_runtime.rs` / `state.rs`: Rust ports of Electron patcher modules.
+  - `keychain_patch.rs`: Mach-O binary patching for Keychain login persistence — NOP-patches `kSecAttrAccessGroup` and `kSecAttrSynchronizable` attribute writes in `libExtensionLayer.dylib` to prevent credential loss after patching. Supports arm64 and x86_64. Returns granular per-function `KeychainPatchDetail` reports.
+  - `privilege.rs`: `CommandRunner` trait abstracting system calls (copy, resign, quarantine clear, restart) with `RecordingRunner` for test isolation.
+  - `bridge.rs`: Pre-page-load JS bridge injection (`tauri-bridge.js` compiled via `include_str!`).
+  - 10 Rust contract tests covering commands, detection, patch mapping, Mac runtime, privileges, state, Tauri config, bridge, and window regression.
+- **Renderer**: Full i18n support with runtime locale detection (English, zh-Hans, zh-Hant, ja_JP). Modal interaction system for confirmations and permission guidance. "App Management" permission status feedback with retry flow.
+- **UI text workflow**: Compiled Qt/UI translation surface with `compiled-ui-source-map.json`, runtime `menu-inventory.json`, and `runtime_ui_allowlist.json`. Coverage gate at ≥99%.
+- **Tooling**: `stamp_dmg_icon.sh` for DMG volume icon embedding. `check_full_ui_coverage.js` and `check_full_ui_matrix.js` for per-language gate runs. `resolve_cavalry_qt_sdk.js` with `cavalry_qt_target.json` for centralized Cavalry/Qt SDK resolution.
+- **CI/CD**: 3-job GitHub Actions pipeline (ubuntu contract validation, macos packaging, tag-triggered release). Translation quality gates in CI with markdown summary.
 
 ### Changed
-- **Infrastructure**:
-  - Finalized the transition from Electron to Tauri v2 as the primary distribution channel.
-  - Refactored `app.js` into a state-driven localization and modal architecture.
-- **Documentation**:
-  - Seeded GEB Fractal Documentation System (L1/L2/L3) across the repository.
+- **Build system**: `npm run build` now defaults to `npm run tauri:build`. `npm run build:electron` is the explicit Electron fallback.
+- **Window size**: Tauri window is 480×528 (vs Electron's 480×500 content area) to compensate for macOS titlebar height.
+- **Renderer**: Refactored `app.js` into state-driven localization and modal architecture. `tauri-bridge.js` normalizes Tauri snake_case responses to camelCase for `app.js` compatibility.
+- **Dependencies**: Pinned `tauri` to 2.10.3, `@tauri-apps/api` and `@tauri-apps/cli` to 2.10.1, `tauri-build` to 2.5.6.
+- **CI**: macOS packaging uses `npm run prepare:qt-sdk` instead of inline Qt version in workflow YAML.
 
 ### Fixed
-- Fixed a potential race condition during the "Apply & Restart" sequence by ensuring permission check-ins occur before file operations.
-- Resolved incorrect symbol offset calculations for ARM64/x86_64 fat binaries in `keychain_patch.rs`.
+- Race condition during "Apply & Restart" — permission check-ins now occur before file operations.
+- Incorrect symbol offset calculations for ARM64/x86_64 fat binaries in `keychain_patch.rs`.
+- Added support for patching the `valueExists` Keychain symbol in `libExtensionLayer.dylib`.
+
+### Removed
+- Electron as default build target (retained as explicit fallback via `build:electron` / `desktop`).
 
 ---
 
-[PROTOCOL]: 变更时更新此文件，确保与 L1 项目宪法同步。
+## [0.1.0] - 2026-04-23
+
+### Added
+- Initial release: Electron-based desktop patcher for Cavalry i18n.
+- JSON language pack patching for `nodeStrings`, `appStrings`, `tips`, `onboarding`, and plugin files.
+- macOS runtime injection via `libCavalryTranslatorInjector.dylib` loaded through `DYLD_INSERT_LIBRARIES`.
+- Launcher wrapper + `CFBundleExecutable` patching for transparent translated launches.
+- Bundle re-signing and Gatekeeper quarantine clearing.
+- Finder fallback for privileged copy operations.
+- 4-language support: English, Simplified Chinese, Traditional Chinese, Japanese.
+- Translation validation pipeline with `validate_translations.py`.
+- Electron-builder DMG packaging with custom icon.
+
+[0.1.2]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.0...v0.1.2
+[0.1.0]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.0

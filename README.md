@@ -1,170 +1,163 @@
-# Cavalry i18n
+<div align="center">
+  <img src="./src-tauri/icons/icon.png" width="120" />
+  <h1>Cavalry-i18n</h1>
+  <p>Switch <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.0 between English, Simplified Chinese, Traditional Chinese, and Japanese — right from the original app.</p>
+  <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
+  <a href="https://github.com/daftAI2026/Cavalry-i18n/releases"><img src="https://img.shields.io/github/v/tag/daftAI2026/Cavalry-i18n?label=version&style=flat-square" alt="Version" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
+</div>
 
-Desktop patcher for [Cavalry](https://cavalry.scenegroup.co/).
+## Architecture
 
-The desktop patcher works against the original installed app:
+Tauri v2 desktop app (Rust + Tauri 2.10) with a vanilla HTML/CSS/JS renderer at `desktop-patcher/renderer/`. The renderer communicates with the Rust backend through `window.cavalryI18n` — a 6-method Promise API defined by `tauri-bridge.js`.
 
-1. Detect a local `Cavalry.app`
-2. Extract the current English JSON assets into the app-specific state directory
-3. Patch the selected language files back into that same app bundle
-4. On macOS, install a small launcher wrapper plus the translator injector inside the same `Cavalry.app` so the original app path opens in the target language
+An Electron shell still exists in the repo but is being phased out (`npm run desktop`).
 
-On Windows, the patcher still applies the selected JSON files directly to the chosen install.
+## How it works
 
-The automatic patch flow only replaces the language files it needs. On macOS it re-signs the modified bundle and clears the `com.apple.quarantine` attribute recursively so Gatekeeper is less likely to block the patched app on relaunch.
-On macOS, if direct shell copy into `/Applications/...app` is blocked while restoring English, the patcher retries with a Finder-style replacement flow. Approve Finder control if macOS prompts for it.
+1. Detect a local `Cavalry.app` installation
+2. Extract the current English JSON assets into an app-specific state directory
+3. Patch translated JSON files from `languages/` back into the app bundle
+4. Install a launcher wrapper + runtime injector (`libCavalryTranslatorInjector.dylib`) + language marker inside the app
+5. Re-sign the modified bundle and clear Gatekeeper quarantine
+
+On macOS the original `Cavalry.app` path continues to work — the launcher wrapper sets `DYLD_INSERT_LIBRARIES` so the injector loads translations at runtime. English restoration uses the extracted snapshot from the selected install, not a bundled copy.
+
+On Windows: direct JSON file replacement only (no runtime injection).
 
 ## Supported languages
 
 | Language | Code |
-| --- | --- |
+|----------|------|
 | English | `en` |
 | 简体中文 | `zh-Hans` |
 | 繁體中文 | `zh-Hant` |
 | 日本語 | `ja_JP` |
 
-## Run the desktop patcher
+## Quick start
 
 ```bash
 npm install
-npm run tauri:dev
+npm run tauri:dev        # dev mode
+npm run build            # production DMG
 ```
 
-Electron shell remains available as an explicit fallback during the rollback window:
-
-```bash
-npm run desktop
-```
-
-To build the distributable macOS patcher app itself:
-
-```bash
-npm run build
-```
-
-The Electron release pipeline is still available behind an explicit fallback command:
-
-```bash
-npm run build:electron
-```
-
-The injector must be built against the same Qt minor branch that Cavalry ships. The current Cavalry.app bundle uses **Qt 6.6.3**, so local injector builds should use **Qt 6.6.x** as well. The build script now refuses to compile if the build-time Qt branch does not match the target Cavalry Qt branch, and the injector also checks the runtime Qt branch before installing translations. `npm run build` now pins `CAVALRY_QT_VERSION=6.6.3` by default, and you can override the Qt install root with `CAVALRY_QT_PREFIX` or `QT_ROOT_DIR` if needed.
-
-The exact Qt string table that gets compiled into `libCavalryTranslatorInjector.dylib` is checked into `desktop-patcher/injector/generated_translations.inc`, and `npm run test:desktop` regenerates it from `tools/*.ts` to make sure the checked-in file stays in sync.
-
-## UI text workflow
-
-There are **two** translation surfaces in this project:
-
-1. **JSON-backed assets** — `nodeStrings`, `appStrings`, `tips`, `onboarding`, and plugin `strings.json`
-2. **Compiled Qt/UI text** — menu labels, actions, panel titles, and other strings that live in `Cavalry.app` binaries/frameworks rather than JSON files
-
-The repo tracks the compiled UI surface in two forms:
-
-1. `doc/compiled-ui-source-map.json` — a checked-in ownership map for what lives in JSON assets vs compiled UI binaries
-2. `~/Library/Caches/Cavalry-i18n/menu-inventory.json` — the authoritative runtime UI inventory dumped from the live app
-
-Refresh the compiled binary inventory from a clean local install with:
-
-```bash
-npm run extract:compiled-ui
-```
-
-That command reads `/Applications/Cavalry.app`, inventories likely user-visible strings from:
-
-- `Contents/MacOS/Cavalry`
-- `Contents/Frameworks/libCavalryUI.dylib`
-- `Contents/Frameworks/libCavalryFramework.dylib`
-
-and rewrites `doc/compiled-ui-source-map.json`.
-
-On translated macOS launches, the injector also exports the **real runtime Qt UI inventory** from Cavalry itself to:
-
-```text
-~/Library/Caches/Cavalry-i18n/menu-inventory.json
-```
-
-That file is the authoritative runtime structure for menus, actions, and visible widget text. It comes from the live `QMenuBar` / `QMenu` / `QAction` tree plus visible `QWidget` text surfaces inside Cavalry after launch, not from a handwritten repo file.
-
-Hard completion gate for compiled UI work:
-
-1. Run a real translated launch to refresh `~/Library/Caches/Cavalry-i18n/menu-inventory.json`
-2. Run `npm run check:ui-coverage`
-3. Do **not** call the task complete until runtime coverage is **>= 99%**
-4. Any retained English/proper nouns must be listed explicitly in `tools/runtime_ui_allowlist.json`
-
-Recommended workflow for full UI coverage:
-
-1. Refresh the English JSON snapshot as before
-2. Refresh the compiled UI source map with `npm run extract:compiled-ui`
-3. Launch Cavalry once and inspect `~/Library/Caches/Cavalry-i18n/menu-inventory.json` for the exact runtime UI inventory
-4. Curate translations for any newly surfaced compiled UI strings
-5. Run `npm run check:ui-coverage` and treat any remaining untranslated strings as blockers until they are either translated or allowlisted
-6. Regenerate embedded injector tables from the curated translation sources
-7. Walk the actual UI and verify menus, submenus, dialogs, onboarding, tips, plugin names, and visible panel/widget text against the source map and runtime inventory
-
-This split is important because the existing JSON asset pipeline does **not** own the full menu bar or all Qt actions.
-
-The app will try these paths automatically:
-
-1. the last path saved in `state.json`
-2. `/Applications/Cavalry.app`
-3. `~/Applications/Cavalry.app`
-
-If none are found, use the folder button to browse manually.
-
-## Runtime state
-
-Both desktop shells keep runtime data in an app-specific state directory.
-
-- Electron uses `app.getPath('userData')`.
-- Tauri uses `app.path().app_data_dir()`.
-- Test and smoke flows can force both shells onto the same directory with `CAVALRY_I18N_STATE_DIR`.
-
-- `state.json` tracks the selected app path, the last patched Cavalry version, the active language, and the last patch timestamp
-- `en/` stores the extracted English JSON snapshot for the selected Cavalry version
-- `libCavalryTranslatorInjector.dylib` may be cached here for local developer builds when the repo does not already include a prebuilt injector binary
-
-At runtime, restoring English uses the extracted snapshot from the selected install, not a bundled repo copy.
-On macOS, the patcher also reads the bundle-local `cavalry-i18n-lang.txt` marker so it can recover the real installed language even if `state.json` goes stale.
-On macOS, translated launches keep using the original `Cavalry.app` path. The patcher writes a bundle-local language marker, installs the injector into `Contents/Frameworks`, switches `CFBundleExecutable` to a launcher wrapper, re-signs nested Mach-O files such as `crashpad_handler` and injected dylibs first, re-signs the modified bundle, clears `com.apple.quarantine` from the app tree, updates the Qt-owned menu model after installing embedded translations, and then refreshes the native macOS menu bar so existing menus do not stay stuck in English. If macOS still reports the patched app as blocked, run `sudo xattr -dr com.apple.quarantine /Applications/Cavalry.app` manually and try launching again. Packaged Electron builds read the precompiled injector from `Contents/Resources/injector/`, while local unpackaged desktop runs rebuild the injector from source against the selected Cavalry frameworks so a stale checked-in dylib cannot silently target the wrong Qt branch.
+The injector must be built against Qt 6.6.3 (Cavalry's shipped Qt branch). CI and local builds pin `CAVALRY_QT_VERSION=6.6.3` via `tools/cavalry_qt_target.json`. Override with `CAVALRY_QT_PREFIX` or `QT_ROOT_DIR`.
 
 ## Repository layout
 
-```text
+```
 Cavalry-i18n/
-├── desktop-patcher/
-│   ├── main.js
+├── desktop-patcher/              # Shared patcher core
+│   ├── main.js                   # Electron entry (legacy)
+│   ├── i18n-handlers.js          # 5 IPC handlers (business logic)
+│   ├── preload.js                # Electron IPC bridge (legacy)
 │   ├── injector/
-│   ├── preload.js
+│   │   ├── CavalryTranslatorInjector.mm  # Obj-C++ runtime injector
+│   │   └── generated_translations.inc    # Compiled translation table
 │   ├── lib/
-│   │   ├── detect.js
-│   │   ├── patch.js
-│   │   └── sudo.js
-│   └── renderer/
-├── languages/
-│   ├── en/          # tracked English baseline for translation QA
+│   │   ├── detect.js             # Cavalry.app detection
+│   │   ├── patch.js              # JSON file mapping & extraction
+│   │   └── sudo.js               # Privileged copy (admin shell / Finder fallback)
+│   ├── renderer/                 # UI truth source
+│   │   ├── index.html
+│   │   ├── styles.css
+│   │   ├── app.js                # State-driven UI with i18n & modal system
+│   │   └── tauri-bridge.js       # Tauri invoke() → window.cavalryI18n adapter
+│   └── resources/                # Icons & DMG assets
+│
+├── src-tauri/                    # Tauri v2 shell
+│   ├── Cargo.toml
+│   ├── tauri.conf.json           # Window 480×528, DMG bundle, resources
+│   ├── src/
+│   │   ├── lib.rs                # Builder assembly
+│   │   ├── commands.rs           # 6 Tauri commands (business core)
+│   │   ├── detect.rs             # Cavalry detection (Rust)
+│   │   ├── patch.rs              # JSON file mapping (Rust)
+│   │   ├── mac_runtime.rs        # Launcher wrapper, marker, injector staging
+│   │   ├── keychain_patch.rs     # Mach-O binary patching for Keychain login persistence
+│   │   ├── privilege.rs          # System command boundary (copy, resign, quarantine)
+│   │   ├── state.rs              # Electron-compatible state.json
+│   │   └── bridge.rs             # Pre-page-load JS bridge injection
+│   ├── capabilities/             # Tauri v2 permission model
+│   └── tests/                    # Rust contract tests
+│
+├── languages/                    # JSON language packs
+│   ├── en/                       # English baseline (git-tracked)
 │   ├── zh-Hans/
 │   ├── zh-Hant/
 │   └── ja_JP/
-├── doc/
-│   ├── compiled-ui-source-map.json
-│   ├── cavalry-glossary.md
-│   ├── translation-guidelines.md
-│   └── translation-whitelist.json
-└── tools/
-    ├── build_translator_injector.sh
-    ├── check_electron_patcher_ui.js
-    ├── extract_compiled_ui_strings.js
-    ├── generate_embedded_translations.js
-    ├── ja_JP.ts
-    ├── launch_cavalry_with_injector.sh
-    ├── validate_translations.py
-    ├── zh-Hans.ts
-    └── zh-Hant.ts
+│
+├── tools/                        # Build, test, coverage, & debug scripts
+│   ├── cavalry_qt_target.json    # Cavalry 2.7.0 / Qt 6.6.3 version truth
+│   ├── resolve_cavalry_qt_sdk.js # Qt SDK resolver (local + aqt download)
+│   ├── build_translator_injector.sh
+│   ├── generate_embedded_translations.js
+│   ├── validate_translations.py  # Translation quality gates
+│   ├── extract_compiled_ui_strings.js
+│   ├── stamp_dmg_icon.sh         # DMG volume icon embedding
+│   ├── *.ts                      # Qt Linguist translation sources (3 files)
+│   ├── check_*.js                # Contract & coverage tests (15+)
+│   └── fixtures/                 # Test fixtures
+│
+├── doc/                          # Migration plans, build SOP, glossary, source maps
+└── .github/workflows/build.yml   # CI: contract validation → macOS packaging → release
 ```
 
-`languages/en` stays in git for translation validation and review, but the running patcher does not depend on it for restore operations.
+## Build & test
+
+```bash
+# Build
+npm run build                  # Tauri production DMG
+npm run build:tauri            # Full pipeline: build + stamp DMG + packaged check
+npm run build:injector         # Compile libCavalryTranslatorInjector.dylib
+npm run prepare:qt-sdk         # Download/resolve Qt 6.6.3 SDK
+
+# Dev
+npm run tauri:dev              # Tauri dev server
+npm run check:tauri            # Rust type-check
+
+# Test
+npm run test:desktop           # Node: patcher UI, renderer contract, snapshots
+npm run test:tauri             # cargo test (all Rust unit + contract tests)
+npm run test:tauri:packaged    # Post-build resource integrity check
+npm run test:tauri:ui          # Tauri window regression
+npm run check:desktop          # Syntax-check all JS
+npm run check:ui-coverage      # Runtime UI translation coverage gate (≥99%)
+```
+
+## Translation surfaces
+
+There are **two** translation surfaces:
+
+1. **JSON-backed assets** — `nodeStrings`, `appStrings`, `tips`, `onboarding`, and plugin `strings.json` files. Patched directly into the app bundle.
+2. **Compiled Qt/UI text** — menu labels, actions, panel titles, and widget text embedded in Cavalry binaries. Translated at runtime by the injector dylib using a compiled C translation table.
+
+The repo tracks surface 2 in three forms:
+- `doc/compiled-ui-source-map.json` — static ownership map (JSON asset vs compiled binary)
+- `tools/*.ts` — Qt Linguist XML translation sources
+- `~/Library/Caches/Cavalry-i18n/menu-inventory.json` — authoritative runtime UI inventory dumped by the injector on translated launch
+
+## UI coverage workflow
+
+```bash
+npm run extract:compiled-ui                         # Refresh source map from Cavalry.app binaries
+# Launch Cavalry once in target language            # Generates menu-inventory.json at runtime
+npm run check:ui-coverage                           # Gate: must be ≥99%
+npm run check:full-ui                               # Full matrix across all 3 target languages
+```
+
+Strings that intentionally stay in English (e.g. proper nouns) must be listed in `tools/runtime_ui_allowlist.json`.
+
+## Runtime state
+
+The app stores runtime data in an app-specific directory (`CAVALRY_I18N_STATE_DIR` overrides it):
+
+- `state.json` — selected app path, Cavalry version, active language, patch timestamp
+- `en/` — extracted English JSON snapshot (used for English restoration)
+- The injector dylib may be cached here for local dev builds
+
+On macOS the patcher also reads a bundle-local `cavalry-i18n-lang.txt` marker so the real language is recoverable even if `state.json` goes stale.
 
 ## Translation validation
 
@@ -175,8 +168,22 @@ python3 tools/validate_translations.py \
   --markdown-summary /tmp/cavalry-i18n-runlog.md
 ```
 
-Validation rules are defined in `doc/translation-whitelist.json`.
+Rules are defined in `doc/translation-whitelist.json`.
 
-## macOS release note
+## CI/CD
 
-End users should keep launching the original `Cavalry.app`. Tagged releases now build the packaged macOS patcher through Tauri on macOS, prebuild `desktop-patcher/injector/libCavalryTranslatorInjector.dylib`, and publish the Tauri DMG so users do not need Qt or any external launcher script. The `tools/build_translator_injector.sh` fallback is for local development when that prebuilt dylib is missing, `tools/generate_embedded_translations.js` regenerates the embedded translation table directly from `tools/*.ts`, and `tools/launch_cavalry_with_injector.sh` is now only a manual debug utility rather than part of the normal patch flow.
+| Job | Runner | What |
+|-----|--------|------|
+| **build** | ubuntu | Syntax check, contract tests, translation validation |
+| **package_macos** | macos | Qt SDK prepare, Tauri build, Rust contracts, packaged checks |
+| **release** | ubuntu | Triggered on `v*` tags — publishes DMG to GitHub Releases |
+
+## macOS release notes
+
+End users launch the original `Cavalry.app` — the patcher modifies it in-place with a launcher wrapper that activates the injector. Tagged releases ship a prebuilt `libCavalryTranslatorInjector.dylib` inside the Tauri DMG; users do not need Qt or any external scripts.
+
+The `tools/launch_cavalry_with_injector.sh` script is a manual debug utility only — not part of the normal patch flow.
+
+## License
+
+MIT © 2026 daftAI

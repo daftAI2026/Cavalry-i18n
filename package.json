@@ -1,7 +1,7 @@
 {
   "name": "cavalry-i18n",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "External Electron patcher for Cavalry-i18n",
   "main": "desktop-patcher/main.js",
   "scripts": {
