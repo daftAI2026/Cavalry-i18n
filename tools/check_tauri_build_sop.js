@@ -26,7 +26,8 @@ test('tauri local build SOP replaces the Electron builder release path', () => {
 
   assert.match(localSop, /Tauri/i);
   assert.match(localSop, /npm run tauri:build/);
-  assert.match(localSop, /CAVALRY_QT_PREFIX/);
+  assert.match(localSop, /npm run prepare:qt-sdk/);
+  assert.match(localSop, /tools\/cavalry_qt_target\.json/);
   assert.match(localSop, /6\.6\.3/);
   assert.doesNotMatch(localSop, /electron-builder\s+-m/);
 
@@ -38,11 +39,15 @@ test('tauri build scripts and config describe one injector and resource pipeline
   const pkg = readJson('package.json');
   const config = readJson('src-tauri/tauri.conf.json');
   const resources = config.bundle.resources;
+  const qtTarget = readJson('tools/cavalry_qt_target.json');
 
   assert.equal(pkg.scripts['tauri:build'], 'tauri build');
   assert.equal(pkg.scripts.build, 'npm run tauri:build');
   assert.match(pkg.scripts['build:electron'], /electron-builder -m/);
-  assert.match(pkg.scripts['build:injector'], /CAVALRY_QT_VERSION=6\.6\.3/);
+  assert.equal(pkg.scripts['prepare:qt-sdk'], 'node tools/resolve_cavalry_qt_sdk.js --ensure');
+  assert.match(pkg.scripts['build:injector'], /resolve_cavalry_qt_sdk\.js --print-env --ensure/);
+  assert.equal(qtTarget.qtVersion, '6.6.3');
+  assert.equal(qtTarget.sdkPath, 'qt_sdk/6.6.3/macos');
   assert.equal(config.build.beforeBuildCommand, 'npm run build:injector');
   assert.equal(config.build.frontendDist, '../desktop-patcher/renderer');
   assert.equal(config.app.withGlobalTauri, true);

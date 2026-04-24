@@ -465,11 +465,33 @@ test('code-signature diagnostics use deep verification for patched app bundles',
 test('injector build script can fall back to Qt frameworks when Cavalry app frameworks are unavailable', () => {
   const packageJson = fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8');
   const buildScript = fs.readFileSync(path.join(repoRoot, 'tools', 'build_translator_injector.sh'), 'utf8');
+  const resolverPath = path.join(repoRoot, 'tools', 'resolve_cavalry_qt_sdk.js');
+  const targetPath = path.join(repoRoot, 'tools', 'cavalry_qt_target.json');
+  const target = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
+  const resolver = fs.readFileSync(resolverPath, 'utf8');
 
   assert.match(
     packageJson,
-    /"build:injector": "CAVALRY_QT_PREFIX=\$\{CAVALRY_QT_PREFIX:-\$PWD\/qt_sdk\/6\.6\.3\/macos\} CAVALRY_QT_VERSION=6\.6\.3 bash tools\/build_translator_injector\.sh/,
-    'default injector builds should prefer the repo-local Qt 6.6.3 SDK before falling back to a newer incompatible system Qt'
+    /"prepare:qt-sdk": "node tools\/resolve_cavalry_qt_sdk\.js --ensure"/,
+    'package.json should expose an explicit SDK preparation command for CI and clean machines'
+  );
+  assert.match(
+    JSON.parse(packageJson).scripts['build:injector'] || '',
+    /resolve_cavalry_qt_sdk\.js --print-env --ensure.*build_translator_injector\.sh/,
+    'default injector builds should resolve the target SDK from the project contract instead of scattering 6.6.3 inline'
+  );
+  assert.equal(target.qtVersion, '6.6.3');
+  assert.equal(target.cavalryVersion, '2.7.0');
+  assert.equal(target.sdkPath, 'qt_sdk/6.6.3/macos');
+  assert.match(
+    resolver,
+    /install-qt[\s\S]*target\.aqt\.host[\s\S]*target\.aqt\.target[\s\S]*target\.qtVersion[\s\S]*target\.aqt\.arch/,
+    'resolver should be able to download exactly the target Qt SDK for CI'
+  );
+  assert.match(
+    resolver,
+    /QtCore\.framework[\s\S]*Resources[\s\S]*Info\.plist/,
+    'resolver should probe an installed Cavalry.app when present before selecting the SDK'
   );
   assert.match(
     buildScript,
@@ -949,13 +971,13 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
   );
   assert.match(
     workflow,
-    /install-qt-action@v4/,
-    'release pipeline should install a pinned Qt runtime instead of whichever Homebrew Qt happens to be latest'
+    /npm run prepare:qt-sdk/,
+    'release pipeline should prepare the Qt SDK through the same project target resolver used by local builds'
   );
   assert.match(
     workflow,
-    /version:\s*['"]6\.6\.3['"]/,
-    'release pipeline should pin Qt 6.6.3 to match the current Cavalry runtime frameworks'
+    /tools\/cavalry_qt_target\.json/,
+    'release pipeline should upload the single Cavalry/Qt target contract with the source artifact'
   );
   assert.match(
     workflow,
@@ -1008,7 +1030,7 @@ test('local macOS packaging defaults to Tauri while keeping the Electron fallbac
   );
   assert.match(
     scripts['build:injector'] || '',
-    /CAVALRY_QT_VERSION=6\.6\.3/,
-    'local injector prebuild should pin the current target Cavalry Qt branch even when a local app bundle is unavailable'
+    /resolve_cavalry_qt_sdk\.js --print-env --ensure/,
+    'local injector prebuild should resolve and prepare the current target Cavalry Qt SDK even when a local app bundle is unavailable'
   );
 });

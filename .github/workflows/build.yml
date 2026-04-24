@@ -80,11 +80,13 @@ jobs:
             package.json
             package-lock.json
             tools/build_translator_injector.sh
+            tools/cavalry_qt_target.json
             tools/check_electron_patcher_ui.js
             tools/extract_compiled_ui_strings.js
             tools/generate_embedded_translations.js
             tools/ja_JP.ts
             tools/launch_cavalry_with_injector.sh
+            tools/resolve_cavalry_qt_sdk.js
             tools/validate_translations.py
             tools/zh-Hans.ts
             tools/zh-Hant.ts
@@ -108,10 +110,8 @@ jobs:
       - name: Install desktop patcher dependencies
         run: npm install
 
-      - name: Install Qt 6.6.3 for injector build
-        uses: jurplel/install-qt-action@v4
-        with:
-          version: '6.6.3'
+      - name: Prepare target Qt SDK for injector build
+        run: npm run prepare:qt-sdk
 
       - name: Build packaged macOS patcher
         run: npm run build
