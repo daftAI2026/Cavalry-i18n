@@ -23,6 +23,7 @@ Tauri v2 现已接管默认打包路径；窗口配置按 macOS titlebar 高度�
 
 开发规范:
 UI 真相源只在 `desktop-patcher/renderer/` 三文件；迁移不得改 DOM、class、文案、布局。外部命令必须经可替换 runner 或 handler 依赖注入，测试不得触发真实 `osascript`、`codesign`、`xattr`、`open`。
+打包必须使用 `npm run build:tauri`（含 DMG 卷宗图标盖章与产物验证），不要用 `npm run build` 或裸 `tauri build`，否则会漏掉盖章步骤。
 
 变更日志:
 2026-04-23 - 为 Tauri 迁移 Phase -1/1 播种 L1，记录 Electron 壳层与 handler 分离，并新增 `src-tauri/` 迁移壳。
