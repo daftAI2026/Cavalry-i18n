@@ -152,9 +152,17 @@ pub fn stage_files(pairs: &[CopyPair], staging_dir: &Path) -> Result<Vec<CopyPai
                 .ok_or_else(|| format!("Missing file name: {}", pair.src.display()))?;
             let staged_path =
                 staging_dir.join(format!("{}-{}", index, file_name.to_string_lossy()));
-            fs::copy(&pair.src, &staged_path).map_err(|error| error.to_string())?;
+            fs::copy(&pair.src, &staged_path).map_err(|error| {
+                format!(
+                    "could not copy {} to {}: {error}",
+                    pair.src.display(),
+                    staged_path.display()
+                )
+            })?;
             let mode = fs::metadata(&pair.src)
-                .map_err(|error| error.to_string())?
+                .map_err(|error| {
+                    format!("could not read mode from {}: {error}", pair.src.display())
+                })?
                 .permissions();
             fs::set_permissions(&staged_path, mode).map_err(|error| error.to_string())?;
             Ok(CopyPair {

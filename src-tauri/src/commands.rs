@@ -1,12 +1,15 @@
 /**
- * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块和 serde 序列化
+ * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块、chrono/serde 与原子计数 staging id
  * [OUTPUT]: 对外提供 get_status、browse_app、extract_english、apply_language、restart_cavalry 5 个 Tauri command
  * [POS]: src-tauri/src 的 renderer API 等价层，返回 Electron preload 兼容 JSON shape
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::{SecondsFormat, Utc};
 use serde::Serialize;
-use std::path::{Path, PathBuf};
+use std::{
+    path::{Path, PathBuf},
+    sync::atomic::{AtomicU64, Ordering},
+};
 use tauri::Manager;
 
 use crate::{
@@ -22,6 +25,7 @@ pub const COMMAND_NAMES: [&str; 5] = [
     "apply_language",
     "restart_cavalry",
 ];
+static STAGING_COUNTER: AtomicU64 = AtomicU64::new(0);
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
 pub struct LanguageChoice {
@@ -293,6 +297,15 @@ fn now_iso() -> String {
     Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true)
 }
 
+fn unique_staging_root() -> PathBuf {
+    std::env::temp_dir().join(format!(
+        "cavalry-i18n-tauri-staging-{}-{}-{}",
+        std::process::id(),
+        Utc::now().timestamp_millis(),
+        STAGING_COUNTER.fetch_add(1, Ordering::Relaxed)
+    ))
+}
+
 pub fn extract_english_inner(app_path: &Path, state_dir: &Path) -> Result<usize, String> {
     let version = detect::read_bundle_version(app_path).unwrap_or_default();
     let current_state = sync_state_with_bundle(
@@ -368,25 +381,32 @@ pub fn apply_language_inner<R: CommandRunner>(
         return Err(format!("No JSON assets found for {lang}."));
     }
 
-    let staging_root = std::env::temp_dir().join(format!(
-        "cavalry-i18n-tauri-staging-{}-{}",
-        std::process::id(),
-        Utc::now().timestamp_millis()
-    ));
+    let staging_root = unique_staging_root();
     let copy_mode = (|| {
         if cfg!(target_os = "macos") {
-            pairs.extend(mac_runtime::build_runtime_pairs(
-                app_path,
-                lang,
-                &staging_root.join("runtime"),
-                &injector_source_path(repo_root, resource_dir)?,
-            )?);
+            pairs.extend(
+                mac_runtime::build_runtime_pairs(
+                    app_path,
+                    lang,
+                    &staging_root.join("runtime"),
+                    &injector_source_path(repo_root, resource_dir)?,
+                )
+                .map_err(|error| format!("Could not build macOS runtime patch files: {error}"))?,
+            );
         }
-        let staged_pairs = patch::stage_files(&pairs, &staging_root.join("staged"))?;
-        let mode = privilege::copy_with_privilege(&staged_pairs, runner)?;
+        let staged_pairs = patch::stage_files(&pairs, &staging_root.join("staged"))
+            .map_err(|error| format!("Could not stage patch files: {error}"))?;
+        let mode = privilege::copy_with_privilege(&staged_pairs, runner)
+            .map_err(|error| format!("Could not copy patch files into Cavalry.app: {error}"))?;
         if cfg!(target_os = "macos") {
-            privilege::resign_patched_bundle(app_path, runner)?;
-            privilege::clear_gatekeeper_quarantine(app_path, runner)?;
+            if lang != "en" {
+                privilege::patch_keychain_access_group(app_path)
+                    .map_err(|error| format!("Could not patch Keychain access group: {error}"))?;
+            }
+            privilege::resign_patched_bundle(app_path, runner)
+                .map_err(|error| format!("Could not re-sign patched Cavalry.app: {error}"))?;
+            privilege::clear_gatekeeper_quarantine(app_path, runner)
+                .map_err(|error| format!("Could not clear Gatekeeper quarantine: {error}"))?;
         }
         Ok::<String, String>(mode)
     })();
@@ -534,6 +554,8 @@ mod tests {
     use crate::privilege::RecordingRunner;
     use std::{fs, path::Path};
 
+    const ACCESS_GROUP: &[u8] = b"TB4YVNQHVC.com.scenegroup.cavalry.apps";
+
     #[test]
     fn registers_five_commands() {
         assert_eq!(
@@ -552,6 +574,19 @@ mod tests {
     fn write(path: &Path, value: impl AsRef<[u8]>) {
         fs::create_dir_all(path.parent().unwrap()).unwrap();
         fs::write(path, value).unwrap();
+    }
+
+    fn write_keychain_dylib(app: &Path, occurrences: usize) {
+        let mut bytes = Vec::new();
+        for index in 0..occurrences {
+            bytes.extend_from_slice(format!("slice-{index}:").as_bytes());
+            bytes.extend_from_slice(ACCESS_GROUP);
+            bytes.extend_from_slice(b":end\n");
+        }
+        write(
+            &app.join("Contents/Frameworks/libExtensionLayer.dylib"),
+            bytes,
+        );
     }
 
     fn make_bundle(root: &Path) -> std::path::PathBuf {
@@ -587,6 +622,7 @@ mod tests {
             &app.join("Contents/Frameworks/libCavalryFramework.dylib"),
             [0xcf, 0xfa, 0xed, 0xfe],
         );
+        write_keychain_dylib(&app, 2);
         fs::create_dir_all(app.join("Contents/Resources")).unwrap();
         app
     }
@@ -599,6 +635,17 @@ mod tests {
         write(
             &base.join("plugins/gaussianBlurFilter.json"),
             br#"{"value":"translated plugin"}"#,
+        );
+    }
+
+    fn make_english_snapshot(state: &Path) {
+        let base = state.join("en");
+        for (file, _) in crate::patch::CORE_MAP {
+            write(&base.join(file), br#"{"value":"en"}"#);
+        }
+        write(
+            &base.join("plugins/gaussianBlurFilter.json"),
+            br#"{"value":"en plugin"}"#,
         );
     }
 
@@ -636,6 +683,12 @@ mod tests {
         assert!(fs::read_to_string(app.join("Contents/Info.plist"))
             .unwrap()
             .contains("<string>CavalryLauncher</string>"));
+        assert!(
+            !fs::read(app.join("Contents/Frameworks/libExtensionLayer.dylib"))
+                .unwrap()
+                .windows(ACCESS_GROUP.len())
+                .any(|window| window == ACCESS_GROUP)
+        );
         if cfg!(target_os = "macos") {
             assert!(runner
                 .commands
@@ -646,6 +699,82 @@ mod tests {
                 .iter()
                 .any(|command| command.program == "xattr"));
         }
+    }
+
+    #[test]
+    fn apply_language_english_skips_keychain_patch() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("repo");
+        let state = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        let app = make_bundle(temp.path());
+        make_language(&repo, "zh-Hans");
+        make_english_snapshot(&state);
+        write(
+            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+            b"injector",
+        );
+        fs::create_dir_all(&state).unwrap();
+        fs::write(
+            state.join("state.json"),
+            format!(
+                "{{\"appPath\":\"{}\",\"cavalryVersion\":\"2.3.4\",\"currentLang\":\"zh-Hans\",\"lastPatchedAt\":\"old\"}}\n",
+                app.to_string_lossy()
+            ),
+        )
+        .unwrap();
+        fs::remove_file(app.join("Contents/Frameworks/libExtensionLayer.dylib")).unwrap();
+
+        let mut runner = RecordingRunner::default();
+        let result = apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "en",
+            &mut runner,
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap();
+
+        assert!(result.ok);
+        assert_eq!(result.current_lang.as_deref(), Some("en"));
+    }
+
+    #[test]
+    fn apply_language_patch_failure_aborts_resign() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("repo");
+        let state = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        let app = make_bundle(temp.path());
+        make_language(&repo, "zh-Hans");
+        write(
+            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+            b"injector",
+        );
+        fs::remove_file(app.join("Contents/Frameworks/libExtensionLayer.dylib")).unwrap();
+
+        let mut runner = RecordingRunner::default();
+        let error = apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "zh-Hans",
+            &mut runner,
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap_err();
+
+        assert!(
+            error.contains("libExtensionLayer.dylib not found"),
+            "{error}"
+        );
+        assert!(!runner
+            .commands
+            .iter()
+            .any(|command| command.program == "codesign"));
     }
 
     #[test]
