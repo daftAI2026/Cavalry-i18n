@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 std fs/process/path 与 patch::CopyPair，接收已 staging 的复制计划和 app bundle 路径
- * [OUTPUT]: 对外提供 CommandRunner、copy_with_privilege、patch_keychain_access_group、resign_patched_bundle、clear_quarantine、restart_cavalry
+ * [OUTPUT]: 对外提供 CommandRunner、copy_with_privilege、patch_keychain_query_attributes、patch_keychain_query_attributes_with_privilege、resign_patched_bundle、clear_quarantine、open_privacy_security、restart_cavalry
  * [POS]: src-tauri/src 的系统命令边界，集中 osascript/codesign/xattr/open 等真实调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,16 +11,8 @@ use std::{
     process::Command,
 };
 
-use crate::patch::CopyPair;
-
-const KEYCHAIN_ACCESS_GROUP: &[u8] = b"TB4YVNQHVC.com.scenegroup.cavalry.apps";
-const PATCHED_KEYCHAIN_ACCESS_GROUP: &[u8] = b"\0B4YVNQHVC.com.scenegroup.cavalry.apps";
-
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum KeychainPatchStatus {
-    Patched { count: usize },
-    AlreadyPatched,
-}
+use crate::{keychain_patch, patch::CopyPair};
+pub use keychain_patch::KeychainPatchReport;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecordedCommand {
@@ -91,64 +83,52 @@ pub fn copy_with_privilege<R: CommandRunner>(
     }
 }
 
-pub fn patch_keychain_access_group(app_path: &Path) -> Result<KeychainPatchStatus, String> {
-    let target_path = app_path
-        .join("Contents")
-        .join("Frameworks")
-        .join("libExtensionLayer.dylib");
-    if !target_path.exists() {
-        return Err(format!(
-            "libExtensionLayer.dylib not found at {}",
-            target_path.display()
-        ));
-    }
-
-    let mut bytes = fs::read(&target_path).map_err(|error| {
-        if error.kind() == std::io::ErrorKind::NotFound {
-            format!(
-                "libExtensionLayer.dylib not found at {}",
-                target_path.display()
-            )
-        } else {
-            error.to_string()
-        }
-    })?;
-    let offsets = find_all(&bytes, KEYCHAIN_ACCESS_GROUP);
-    if offsets.is_empty() {
-        let patched_offsets = find_all(&bytes, PATCHED_KEYCHAIN_ACCESS_GROUP);
-        return if patched_offsets.len() == 2 {
-            Ok(KeychainPatchStatus::AlreadyPatched)
-        } else {
-            Err("access group string not found in libExtensionLayer.dylib".to_string())
-        };
-    }
-    if offsets.len() != 2 {
-        return Err(format!(
-            "Expected 2 occurrences of access group in libExtensionLayer.dylib, found {}",
-            offsets.len()
-        ));
-    }
-
-    for offset in &offsets {
-        bytes[*offset] = 0;
-    }
-    fs::write(&target_path, &bytes).map_err(|error| error.to_string())?;
-
-    let verify = fs::read(&target_path).map_err(|error| error.to_string())?;
-    if !find_all(&verify, KEYCHAIN_ACCESS_GROUP).is_empty() {
-        return Err("Access group string still present after patching".to_string());
-    }
-    Ok(KeychainPatchStatus::Patched {
-        count: offsets.len(),
-    })
+pub fn patch_keychain_query_attributes(app_path: &Path) -> Result<KeychainPatchReport, String> {
+    keychain_patch::patch_keychain_query_attributes(app_path)
 }
 
-fn find_all(bytes: &[u8], needle: &[u8]) -> Vec<usize> {
-    bytes
-        .windows(needle.len())
-        .enumerate()
-        .filter_map(|(index, window)| (window == needle).then_some(index))
-        .collect()
+pub fn patch_keychain_query_attributes_with_privilege<R: CommandRunner>(
+    app_path: &Path,
+    staging_dir: &Path,
+    runner: &mut R,
+) -> Result<KeychainPatchReport, String> {
+    let target = keychain_target_path(app_path);
+    if !target.exists() {
+        return Err(format!(
+            "libExtensionLayer.dylib not found at {}",
+            target.display()
+        ));
+    }
+
+    let bytes = fs::read(&target).map_err(|error| error.to_string())?;
+    let (patched, report) = keychain_patch::patch_keychain_query_attributes_bytes(&bytes)?;
+    if report.patched_callsites == 0 {
+        return Ok(report);
+    }
+
+    fs::create_dir_all(staging_dir).map_err(|error| error.to_string())?;
+    let staged = staging_dir.join("libExtensionLayer.dylib");
+    fs::write(&staged, patched).map_err(|error| error.to_string())?;
+    let permissions = fs::metadata(&target)
+        .map_err(|error| error.to_string())?
+        .permissions();
+    fs::set_permissions(&staged, permissions).map_err(|error| error.to_string())?;
+
+    copy_with_privilege(
+        &[CopyPair {
+            src: staged,
+            dst: target,
+        }],
+        runner,
+    )?;
+    Ok(report)
+}
+
+fn keychain_target_path(app_path: &Path) -> PathBuf {
+    app_path
+        .join("Contents")
+        .join("Frameworks")
+        .join("libExtensionLayer.dylib")
 }
 
 fn run_direct_copy(pairs: &[CopyPair]) -> Result<(), String> {
@@ -439,6 +419,19 @@ pub fn restart_commands(app_path: &Path) -> Vec<RecordedCommand> {
             args: vec!["-n".to_string(), app_path.to_string_lossy().to_string()],
         },
     ]
+}
+
+pub fn open_privacy_security<R: CommandRunner>(runner: &mut R) -> Result<(), String> {
+    if cfg!(not(target_os = "macos")) {
+        return Ok(());
+    }
+    runner.spawn_detached(
+        "open",
+        &[
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles"
+                .to_string(),
+        ],
+    )
 }
 
 pub fn restart_cavalry<R: CommandRunner>(app_path: &Path, runner: &mut R) -> Result<(), String> {

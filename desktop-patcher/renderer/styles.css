@@ -18,7 +18,7 @@
 
 /*
  * [INPUT]: 依赖 renderer/index.html 的 class/id 结构与 Google Fonts 字体族
- * [OUTPUT]: 对外提供桌面补丁器完整视觉样式、布局、状态色、按钮和自定义 select 样式
+ * [OUTPUT]: 对外提供桌面补丁器完整视觉样式、布局、状态色、按钮、权限弹窗和自定义 select 样式
  * [POS]: desktop-patcher/renderer 的唯一样式源，被 Electron 与 Tauri 同一 HTML 入口复用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -458,6 +458,82 @@ button.secondary:hover {
   color: var(--tone-error);
 }
 
+.permission-button {
+  margin-top: 10px;
+  width: 100%;
+  background: var(--kumo-base);
+  color: var(--text-default);
+  outline: 1px solid var(--kumo-hairline);
+}
+
+.permission-button[hidden] {
+  display: none;
+}
+
+/* ── Modal ── */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: oklch(14.5% 0 0 / 0.28);
+}
+
+.modal-backdrop[hidden] {
+  display: none;
+}
+
+.modal-dialog {
+  position: relative;
+  width: min(100%, 380px);
+  padding: 22px;
+  border-radius: 10px;
+  background: var(--kumo-base);
+  box-shadow: 0 24px 70px oklch(14.5% 0 0 / 0.18);
+  outline: 1px solid var(--kumo-line);
+}
+
+.modal-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 20px;
+  line-height: 1;
+}
+
+.modal-title {
+  padding-right: 28px;
+  font-size: 20px;
+  font-weight: 650;
+  line-height: 1.2;
+  color: var(--text-strong);
+}
+
+.modal-body {
+  margin-top: 10px;
+  font-size: 13px;
+  line-height: 1.65;
+  color: var(--text-muted);
+}
+
+.modal-actions {
+  margin-top: 18px;
+  display: flex;
+  gap: 10px;
+}
+
+.modal-actions > * {
+  flex: 1 1 0;
+}
+
 /* ── Responsive ── */
 @media (max-width: 420px) {
   body {
@@ -474,5 +550,9 @@ button.secondary:hover {
 
   .actions {
     flex-direction: column;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
   }
 }

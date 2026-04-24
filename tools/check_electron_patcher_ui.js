@@ -188,7 +188,7 @@ test('renderer and preload expose the simplified JSON-only desktop flow', () => 
   assert.match(preload, /applyLanguage/);
   assert.match(preload, /restartCavalry/);
 
-  assert.match(html, /Current\s+—/);
+  assert.match(html, /id="currentLabel">Current<\/span>\s+—/);
   assert.match(html, /Apply &amp; Restart|Apply & Restart/);
   assert.match(html, /id="statusText"/);
   assert.doesNotMatch(

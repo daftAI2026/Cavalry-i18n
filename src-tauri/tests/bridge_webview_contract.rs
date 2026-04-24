@@ -17,6 +17,7 @@ fn bridge_exposes_cavalry_i18n_api() {
         "browseApp",
         "extractEnglish",
         "applyLanguage",
+        "openPrivacySecurity",
         "restartCavalry",
         "invoke('get_status')",
     ] {

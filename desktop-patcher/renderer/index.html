@@ -1,6 +1,6 @@
 <!--
   [INPUT]: 依赖 ./styles.css 提供布局样式，依赖 ./app.js 绑定界面行为与状态同步
-  [OUTPUT]: 对外提供桌面补丁器渲染层的静态 DOM 结构与控件锚点
+  [OUTPUT]: 对外提供桌面补丁器渲染层的静态 DOM 结构、权限弹窗与控件锚点
   [POS]: desktop-patcher/renderer 的视图骨架，被 Electron BrowserWindow 直接加载
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -38,11 +38,11 @@
 
     <div class="divider"></div>
 
-    <div class="section-label">Language</div>
-    <p class="current-row">Current — <strong id="currentLanguage">English</strong></p>
+    <div id="languageSectionLabel" class="section-label">Language</div>
+    <p class="current-row"><span id="currentLabel">Current</span> — <strong id="currentLanguage">English</strong></p>
 
     <label class="field">
-      <span>Switch to</span>
+      <span id="switchToLabel">Switch to</span>
       <div class="custom-select-wrap">
         <select id="languageSelect"></select>
         <button type="button" class="select-trigger" id="selectTrigger" aria-haspopup="listbox">
@@ -66,8 +66,21 @@
     <section class="status-panel">
       <p class="status-label">sys.out</p>
       <p id="statusText" class="status-text">Ready.</p>
+      <button id="permissionButton" type="button" class="permission-button" hidden>Open Privacy &amp; Security</button>
     </section>
   </main>
+
+  <div id="modalBackdrop" class="modal-backdrop" hidden>
+    <section class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <button id="modalCloseButton" type="button" class="modal-close" aria-label="Close">×</button>
+      <h2 id="modalTitle" class="modal-title"></h2>
+      <p id="modalBody" class="modal-body"></p>
+      <div class="modal-actions">
+        <button id="modalSecondaryButton" type="button" class="secondary"></button>
+        <button id="modalPrimaryButton" type="button" class="primary"></button>
+      </div>
+    </section>
+  </div>
 
   <script src="./tauri-bridge.js"></script>
   <script src="./app.js"></script>

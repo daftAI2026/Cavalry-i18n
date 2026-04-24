@@ -1,38 +1,44 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::privilege 的复制、重签、quarantine 与 restart 边界
- * [OUTPUT]: 对外提供命令顺序与权限回退 contract tests
+ * [OUTPUT]: 对外提供命令顺序、权限回退、Keychain 明细报告 contract tests
  * [POS]: src-tauri/tests 的系统边界守门，确保 fake runner 能完整断言 macOS 命令流
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::patch::CopyPair;
 use cavalry_i18n_tauri::privilege::{
-    clear_gatekeeper_quarantine, copy_with_privilege, patch_keychain_access_group,
-    resign_patched_bundle, restart_commands, KeychainPatchStatus, RecordedCommand, RecordingRunner,
+    clear_gatekeeper_quarantine, copy_with_privilege, patch_keychain_query_attributes,
+    patch_keychain_query_attributes_with_privilege, resign_patched_bundle, restart_commands,
+    RecordedCommand, RecordingRunner,
 };
 use std::{
     fs,
     path::{Path, PathBuf},
 };
 
-const ACCESS_GROUP: &[u8] = b"TB4YVNQHVC.com.scenegroup.cavalry.apps";
+fn report_count(
+    report: &cavalry_i18n_tauri::keychain_patch::KeychainPatchReport,
+    function: &str,
+    attribute: &str,
+) -> (usize, usize) {
+    let detail = report
+        .details
+        .iter()
+        .find(|detail| detail.function == function && detail.attribute == attribute)
+        .unwrap_or_else(|| panic!("missing report detail for {function}/{attribute}"));
+    (detail.patched_callsites, detail.already_patched_callsites)
+}
 
 fn write(path: &Path, value: &[u8]) {
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, value).unwrap();
 }
 
-fn write_keychain_dylib(app: &Path, occurrences: usize) -> PathBuf {
+fn write_keychain_dylib(app: &Path, bytes: &[u8]) -> PathBuf {
     let target = app
         .join("Contents")
         .join("Frameworks")
         .join("libExtensionLayer.dylib");
-    let mut bytes = Vec::new();
-    for index in 0..occurrences {
-        bytes.extend_from_slice(format!("slice-{index}:").as_bytes());
-        bytes.extend_from_slice(ACCESS_GROUP);
-        bytes.extend_from_slice(b":end\n");
-    }
-    write(&target, &bytes);
+    write(&target, bytes);
     target
 }
 
@@ -57,64 +63,135 @@ fn copy_tries_direct_then_admin_on_permission_error() {
 }
 
 #[test]
-fn patch_keychain_access_group_nullifies_first_byte_rs() {
+fn patch_keychain_query_attributes_patches_two_callsites_per_function() {
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().join("Cavalry.app");
-    let target = write_keychain_dylib(&app, 2);
-    let before = fs::read(&target).unwrap();
-
-    assert_eq!(
-        patch_keychain_access_group(&app).unwrap(),
-        KeychainPatchStatus::Patched { count: 2 }
+    let target = write_keychain_dylib(
+        &app,
+        &cavalry_i18n_tauri::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false),
     );
+    let before_len = fs::metadata(&target).unwrap().len();
 
-    let after = fs::read(&target).unwrap();
-    assert_eq!(after.len(), before.len());
-    let mut search_from = 0;
-    for _ in 0..2 {
-        let offset = before[search_from..]
-            .windows(ACCESS_GROUP.len())
-            .position(|window| window == ACCESS_GROUP)
-            .map(|index| index + search_from)
-            .unwrap();
-        assert_eq!(after[offset], 0);
-        assert_eq!(
-            &after[offset + 1..offset + ACCESS_GROUP.len()],
-            &before[offset + 1..offset + ACCESS_GROUP.len()]
-        );
-        search_from = offset + ACCESS_GROUP.len();
-    }
+    let report = patch_keychain_query_attributes(&app).unwrap();
+
+    assert_eq!(report.functions, 5);
+    assert_eq!(report.patched_callsites, 10);
+    assert_eq!(
+        report_count(&report, "valueExists", "kSecAttrAccessGroup"),
+        (1, 0)
+    );
+    assert_eq!(
+        report_count(&report, "valueExists", "kSecAttrSynchronizable"),
+        (1, 0)
+    );
+    assert_eq!(fs::metadata(&target).unwrap().len(), before_len);
 }
 
 #[test]
-fn patch_keychain_requires_exactly_two_occurrences_rs() {
+fn patch_keychain_query_attributes_x86_64_replaces_target_call_with_nop_sequence() {
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().join("Cavalry.app");
+    write_keychain_dylib(
+        &app,
+        &cavalry_i18n_tauri::keychain_patch::build_synthetic_keychain_dylib(Some("x86_64"), false),
+    );
 
-    write_keychain_dylib(&app, 1);
-    let error = patch_keychain_access_group(&app).unwrap_err();
-    assert!(error
-        .contains("Expected 2 occurrences of access group in libExtensionLayer.dylib, found 1"));
+    let report = patch_keychain_query_attributes(&app).unwrap();
+    let second = patch_keychain_query_attributes(&app).unwrap();
 
-    write_keychain_dylib(&app, 3);
-    let error = patch_keychain_access_group(&app).unwrap_err();
-    assert!(error
-        .contains("Expected 2 occurrences of access group in libExtensionLayer.dylib, found 3"));
+    assert_eq!(report.patched_callsites, 10);
+    assert_eq!(second.already_patched_callsites, 10);
+    assert_eq!(
+        report_count(&second, "valueExists", "kSecAttrSynchronizable"),
+        (0, 1)
+    );
 }
 
 #[test]
-fn patch_keychain_idempotent_rs() {
+fn patch_keychain_query_attributes_patches_fat_arm64_and_x86_64() {
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().join("Cavalry.app");
-    let target = write_keychain_dylib(&app, 2);
-
-    patch_keychain_access_group(&app).unwrap();
-    let patched = fs::read(&target).unwrap();
-    assert_eq!(
-        patch_keychain_access_group(&app).unwrap(),
-        KeychainPatchStatus::AlreadyPatched
+    write_keychain_dylib(
+        &app,
+        &cavalry_i18n_tauri::keychain_patch::build_synthetic_keychain_dylib(None, true),
     );
-    assert_eq!(fs::read(&target).unwrap(), patched);
+
+    let report = patch_keychain_query_attributes(&app).unwrap();
+
+    assert_eq!(report.patched_callsites, 20);
+    assert_eq!(
+        report_count(&report, "valueExists", "kSecAttrAccessGroup"),
+        (2, 0)
+    );
+}
+
+#[test]
+fn patch_keychain_query_attributes_is_idempotent_rs() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Cavalry.app");
+    write_keychain_dylib(
+        &app,
+        &cavalry_i18n_tauri::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false),
+    );
+
+    assert_eq!(
+        patch_keychain_query_attributes(&app)
+            .unwrap()
+            .patched_callsites,
+        10
+    );
+    let second = patch_keychain_query_attributes(&app).unwrap();
+
+    assert_eq!(
+        (second.patched_callsites, second.already_patched_callsites),
+        (0, 10)
+    );
+}
+
+#[test]
+fn patch_keychain_query_attributes_with_privilege_copies_staged_dylib() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Cavalry.app");
+    let target = write_keychain_dylib(
+        &app,
+        &cavalry_i18n_tauri::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false),
+    );
+    let before_len = fs::metadata(&target).unwrap().len();
+    let mut runner = RecordingRunner::default();
+
+    let report = patch_keychain_query_attributes_with_privilege(
+        &app,
+        &temp.path().join("keychain-stage"),
+        &mut runner,
+    )
+    .unwrap();
+    let second = patch_keychain_query_attributes_with_privilege(
+        &app,
+        &temp.path().join("keychain-stage-2"),
+        &mut runner,
+    )
+    .unwrap();
+
+    assert_eq!(report.patched_callsites, 10);
+    assert_eq!(second.already_patched_callsites, 10);
+    assert_eq!(fs::metadata(&target).unwrap().len(), before_len);
+    assert!(runner.commands.is_empty());
+}
+
+#[test]
+fn patch_keychain_query_attributes_errors_when_expected_pattern_missing() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Cavalry.app");
+    write_keychain_dylib(
+        &app,
+        &cavalry_i18n_tauri::keychain_patch::build_synthetic_keychain_dylib_missing_sync_get_value(
+        ),
+    );
+
+    let error = patch_keychain_query_attributes(&app).unwrap_err();
+
+    assert!(error.contains("getValue kSecAttrSynchronizable"), "{error}");
+    assert!(error.contains("callsite"), "{error}");
 }
 
 #[test]
@@ -122,13 +199,12 @@ fn patch_keychain_missing_target_and_missing_string_are_distinct() {
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().join("Cavalry.app");
 
-    let error = patch_keychain_access_group(&app).unwrap_err();
+    let error = patch_keychain_query_attributes(&app).unwrap_err();
     assert!(error.contains("libExtensionLayer.dylib not found"));
 
-    let target = write_keychain_dylib(&app, 0);
-    fs::write(target, b"no keychain string here").unwrap();
-    let error = patch_keychain_access_group(&app).unwrap_err();
-    assert!(error.contains("access group string not found"));
+    write_keychain_dylib(&app, b"no keychain pattern here");
+    let error = patch_keychain_query_attributes(&app).unwrap_err();
+    assert!(error.contains("supported 64-bit Mach-O"));
 }
 
 #[test]

@@ -16,20 +16,30 @@ const desktopRoot = path.join(repoRoot, 'desktop-patcher');
 const rendererRoot = path.join(desktopRoot, 'renderer');
 
 const EXPECTED_HASHES = {
-  'index.html': 'e8435c589e06ed5bcc17d45b805e3d011050a79d297513ba7e20226b2fc45748',
-  'styles.css': '45ef58de89573b77504bc4b1db3b7145f03694dd3c60cfd6c9c8c282cfb397a3',
-  'app.js': 'e5cfd6253bc3019c81a6cb07dac30ca81ef3429633367f89dba82a28ac040648',
-  'tauri-bridge.js': '2ad87893150899fa03c62d0105a231603293a61232d160a945015fdf1e4d138e',
+  'index.html': '4696182c839d011035b3436854c1fa742921825a3d61de974ddb4183d9bdd330',
+  'styles.css': '7c194a12a2ead446bf86f382bec97e4e94c5586205d18902c49ef81bd63722ee',
+  'app.js': '59b8f69c1b11663b324c36441174dbe3b54fe281596af312db080b4b27f14bf5',
+  'tauri-bridge.js': '9b6603bafa5129be0dddcfafcef27182439b0ebeed464be0fe7fb47d2ba01f22',
 };
 
 const REQUIRED_IDS = [
   'appVersion',
   'appPath',
+  'languageSectionLabel',
+  'currentLabel',
   'currentLanguage',
+  'switchToLabel',
   'languageSelect',
   'browseButton',
   'extractButton',
   'applyButton',
+  'permissionButton',
+  'modalBackdrop',
+  'modalTitle',
+  'modalBody',
+  'modalPrimaryButton',
+  'modalSecondaryButton',
+  'modalCloseButton',
   'statusText',
 ];
 

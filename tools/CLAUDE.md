@@ -7,7 +7,7 @@ check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash�
 electron_harness.js: 无副作用 Electron handler harness，注入 fake app、dialog、userData、resourcesPath、spawn/spawnSync 与路径归一化。
 capture_electron_contract.js: Electron 行为 snapshot 捕获器，通过 harness 跑完 5 个 IPC 并输出规范化 JSON。
 check_electron_contract_snapshots.js: Electron 行为 snapshot 回归测试，对比 `fixtures/electron_contract_snapshot.json`。
-check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge.rs 和 renderer/app.js。
+check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge.rs 和 renderer/app.js，覆盖系统语言本土化、Apply 确认、App Management 权限等待与原地重试。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸与 bridge 能力。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后检查 renderer、languages、injector 与 bundle size report。
 window_contract_lib.js: 窗口回归公共库，封装 macOS 窗口探测、内容区截图与像素 diff。
