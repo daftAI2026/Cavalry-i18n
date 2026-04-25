@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Permission Pre-check**: Implemented macOS App Management (TCC) write access probe in Rust backend.
+  - Added `appManagementGranted` to Tauri/Electron status payload.
+  - Frontend UI now dynamically hides permission warnings if access is already granted.
+  - Added contract tests for App Management probe status in `command_contract.rs` and `check_tauri_bridge_runtime.js`.
+
 ### Changed
 - **Documentation**: 
   - Streamlined `README.md` to focus on Tauri v2 architecture and key technical features (Keychain safety, Runtime injection).
