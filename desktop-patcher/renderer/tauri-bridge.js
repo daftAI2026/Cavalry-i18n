@@ -41,7 +41,9 @@
   }
 
   function normalizeStatus(result) {
+    const granted = pick(result.appManagementGranted, result.app_management_granted);
     return {
+      appManagementGranted: typeof granted === 'boolean' ? granted : null,
       appPath: pick(result.appPath, result.app_path || ''),
       currentLang: pick(result.currentLang, result.current_lang || 'en'),
       defaultAppCandidates: pick(

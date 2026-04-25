@@ -1,10 +1,10 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限提示和 JSON shape contract tests
+ * [OUTPUT]: 对外提供 command 名称、权限提示、App Management 预检状态和 JSON shape contract tests
  * [POS]: src-tauri/tests 的 renderer API 守门，确保 bridge 映射目标稳定
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-use cavalry_i18n_tauri::commands::{registered_command_names, ActionPayload};
+use cavalry_i18n_tauri::commands::{registered_command_names, ActionPayload, StatusPayload};
 
 #[test]
 fn registers_six_commands_for_renderer_bridge() {
@@ -37,4 +37,22 @@ fn command_payload_uses_electron_compatible_camel_case() {
     assert_eq!(value["permissionRequired"], true);
     assert!(value.get("current_lang").is_none());
     assert!(value.get("permission_required").is_none());
+}
+
+#[test]
+fn status_payload_exposes_app_management_probe_result() {
+    let payload = StatusPayload {
+        app_management_granted: Some(true),
+        app_path: "/Applications/Cavalry.app".into(),
+        current_lang: "en".into(),
+        default_app_candidates: Vec::new(),
+        diagnostics: None,
+        languages: Vec::new(),
+        needs_extract: false,
+        repo_root: "/repo".into(),
+        version: "2.3.4".into(),
+    };
+    let value = serde_json::to_value(payload).unwrap();
+    assert_eq!(value["appManagementGranted"], true);
+    assert!(value.get("app_management_granted").is_none());
 }

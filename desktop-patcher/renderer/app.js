@@ -29,6 +29,7 @@ const state = {
   currentLang: 'en',
   languages: [],
   needsExtract: false,
+  appManagementGranted: null,
 };
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
@@ -50,6 +51,7 @@ const UI_TEXT = {
     openPrivacySecurity: 'Open Privacy & Security',
     close: 'Close',
     readyPermission: 'Apply will require macOS permission to modify Cavalry.app.',
+    readyToApply: 'Ready to apply a language pack.',
     chooseAppToContinue: 'Choose a Cavalry.app to continue.',
     needsExtract: 'English source files need to be refreshed before the next patch.',
     chooseAppFirst: 'Choose a Cavalry.app first.',
@@ -90,6 +92,7 @@ const UI_TEXT = {
     openPrivacySecurity: '打开隐私与安全性',
     close: '关闭',
     readyPermission: '应用语言包需要 macOS 授权修改 Cavalry.app。',
+    readyToApply: '可以开始应用语言包。',
     chooseAppToContinue: '请选择 Cavalry.app 后继续。',
     needsExtract: '下次补丁前需要先刷新英文源文件。',
     chooseAppFirst: '请先选择 Cavalry.app。',
@@ -129,6 +132,7 @@ const UI_TEXT = {
     openPrivacySecurity: '打開隱私權與安全性',
     close: '關閉',
     readyPermission: '套用語言包需要 macOS 授權修改 Cavalry.app。',
+    readyToApply: '可以開始套用語言包。',
     chooseAppToContinue: '請先選擇 Cavalry.app 再繼續。',
     needsExtract: '下次補丁前需要先重新整理英文來源檔案。',
     chooseAppFirst: '請先選擇 Cavalry.app。',
@@ -168,6 +172,7 @@ const UI_TEXT = {
     openPrivacySecurity: 'プライバシーとセキュリティを開く',
     close: '閉じる',
     readyPermission: '言語パックの適用には Cavalry.app を変更する macOS 権限が必要です。',
+    readyToApply: '言語パックを適用できます。',
     chooseAppToContinue: '続行するには Cavalry.app を選択してください。',
     needsExtract: '次のパッチの前に英語ソースファイルを更新する必要があります。',
     chooseAppFirst: '先に Cavalry.app を選択してください。',
@@ -322,6 +327,10 @@ async function bootstrap() {
   state.currentLang = bootstrapState.currentLang || 'en';
   state.languages = bootstrapState.languages || [];
   state.needsExtract = Boolean(bootstrapState.needsExtract);
+  state.appManagementGranted =
+    typeof bootstrapState.appManagementGranted === 'boolean'
+      ? bootstrapState.appManagementGranted
+      : null;
 
   updateLanguageOptions(state.languages);
   languageSelect.value = state.currentLang;
@@ -347,6 +356,11 @@ async function bootstrap() {
 
   if (state.needsExtract) {
     setStatus(t('needsExtract'), 'warning');
+    return;
+  }
+
+  if (state.appManagementGranted === true) {
+    setStatus(t('readyToApply'), 'success');
     return;
   }
 

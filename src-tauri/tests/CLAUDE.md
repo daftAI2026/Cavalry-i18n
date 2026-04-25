@@ -4,7 +4,7 @@
 成员清单
 tauri_version_contract.rs: 断言 npm 与 Cargo Tauri 依赖 exact pin 到同一个 v2 minor。
 tauri_config_contract.rs: 断言 renderer 路径、withGlobalTauri、窗口尺寸、bundle resources、capabilities。
-command_contract.rs: 断言 6 个 command 注册名、权限提示字段和 Electron 兼容 camelCase JSON shape。
+command_contract.rs: 断言 6 个 command 注册名、权限提示字段、App Management 预检字段和 Electron 兼容 camelCase JSON shape。
 bridge_webview_contract.rs: 断言 bridge 预注入到 Tauri builder，并暴露 `window.cavalryI18n` 兼容 API 与 Privacy & Security 入口。
 detect_contract.rs: 断言默认路径、Info.plist 版本读取与 bundle-local 语言 marker 恢复。
 patch_contract.rs: 断言 English 提取、插件 camelCase、copy pair 与 staging mode 保留。

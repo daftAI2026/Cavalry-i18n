@@ -3,6 +3,7 @@
     {
       "channel": "i18n:get-status",
       "result": {
+        "appManagementGranted": true,
         "appPath": "<fixture>/Cavalry.app",
         "currentLang": "en",
         "defaultAppCandidates": [

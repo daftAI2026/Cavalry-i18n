@@ -3,7 +3,7 @@
 
 成员清单
 main.js: Electron 原生壳层，创建 480x500 BrowserWindow，装配 dialog、userData、resourcesPath、command runner 后注册 i18n handler。
-i18n-handlers.js: 5 个 renderer API 的业务入口，集中状态读写、JSON patch、runtime wrapper、重签、quarantine、restart，可被测试 harness 注入 fake 依赖。
+i18n-handlers.js: 5 个 renderer API 的业务入口，集中状态读写、App Management 授权预检、JSON patch、runtime wrapper、重签、quarantine、restart，可被测试 harness 注入 fake 依赖。
 preload.js: Electron renderer 兼容桥，把 `window.cavalryI18n` 映射到 `i18n:*` IPC。
 lib/: 纯 Node 辅助模块，负责探测、JSON 文件映射、提权复制。
 renderer/: UI 真相源，`index.html`、`styles.css`、`app.js` 原样驱动桌面界面。

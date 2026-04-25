@@ -547,10 +547,49 @@ function restartCavalryBundle(appPath) {
   throw new Error(`Unsupported platform: ${platform}`);
 }
 
+function probeAppManagementPermission(appPath) {
+  if (!appPath || platform !== 'darwin') {
+    return null;
+  }
+  const probeDir = path.join(appPath, 'Contents', 'Resources');
+  let dirExists = false;
+  try {
+    dirExists = fs.statSync(probeDir).isDirectory();
+  } catch (_) {
+    dirExists = false;
+  }
+  if (!dirExists) {
+    return null;
+  }
+  const probePath = path.join(
+    probeDir,
+    `.cavalry-i18n-probe-${process.pid}-${Date.now()}`
+  );
+  let granted = null;
+  try {
+    fs.writeFileSync(probePath, '');
+    granted = true;
+  } catch (error) {
+    if (error && (error.code === 'EPERM' || error.code === 'EACCES')) {
+      granted = false;
+    } else {
+      granted = null;
+    }
+  } finally {
+    try {
+      fs.unlinkSync(probePath);
+    } catch (_) {
+      /* probe file already cleaned or never created */
+    }
+  }
+  return granted;
+}
+
 async function getStatusHandler() {
   const { appPath, state, version } = getResolvedState();
 
   return {
+    appManagementGranted: probeAppManagementPermission(appPath),
     appPath,
     currentLang: state.currentLang,
     defaultAppCandidates: getDefaultAppCandidates(),

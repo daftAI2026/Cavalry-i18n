@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 src-tauri bridge.rs、renderer app.js 与一个最小 fake DOM/runtime
- * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 preload 替代层足以驱动原 renderer、本土化和权限等待态
+ * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 preload 替代层足以驱动原 renderer、本土化、授权预检状态和权限等待态
  * [POS]: tools 的 Phase 1 bridge 守门，把字符串级断言升级为实际脚本执行
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -245,6 +245,7 @@ function createRuntime(options = {}) {
               needsExtract: false,
               defaultAppCandidates: ['/Applications/Cavalry.app'],
               version: '2.3.4',
+              ...(options.status || {}),
             });
           }
           if (command === 'apply_language' && applyResponses.length > 0) {
@@ -354,6 +355,18 @@ test('renderer localizes visible UI from the system language', async () => {
   assert.equal(runtime.applyButton.textContent, '应用并重启');
   assert.equal(runtime.extractButton.textContent, '刷新英文');
   assert.equal(runtime.statusText.textContent, '应用语言包需要 macOS 授权修改 Cavalry.app。');
+});
+
+test('renderer hides the permission warning when app management is already granted', async () => {
+  const bridgeScript = readText('desktop-patcher/renderer/tauri-bridge.js');
+  const appScript = readText('desktop-patcher/renderer/app.js');
+  const runtime = createRuntime({ status: { appManagementGranted: true } });
+
+  vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
+  vm.runInNewContext(appScript, runtime.context, { filename: 'app.js' });
+  await flush();
+
+  assert.equal(runtime.statusText.textContent, 'Ready to apply a language pack.');
 });
 
 test('renderer asks for confirmation before applying a language pack', async () => {

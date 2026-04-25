@@ -18,8 +18,8 @@ const rendererRoot = path.join(desktopRoot, 'renderer');
 const EXPECTED_HASHES = {
   'index.html': '4696182c839d011035b3436854c1fa742921825a3d61de974ddb4183d9bdd330',
   'styles.css': '7c194a12a2ead446bf86f382bec97e4e94c5586205d18902c49ef81bd63722ee',
-  'app.js': '59b8f69c1b11663b324c36441174dbe3b54fe281596af312db080b4b27f14bf5',
-  'tauri-bridge.js': '9b6603bafa5129be0dddcfafcef27182439b0ebeed464be0fe7fb47d2ba01f22',
+  'app.js': '1893469d364d1544ad941e180887a2169885e362e5eaf9932deea48c9ef40182',
+  'tauri-bridge.js': '86ec8ce69fcd0fdc59fd52f7a871bac2d0c2f3b4c4b446f5f9d652a47e0c9693',
 };
 
 const REQUIRED_IDS = [

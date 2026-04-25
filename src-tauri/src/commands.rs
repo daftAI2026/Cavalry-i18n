@@ -7,7 +7,10 @@
 use chrono::{SecondsFormat, Utc};
 use serde::Serialize;
 use std::{
+    fs,
+    io::ErrorKind,
     path::{Path, PathBuf},
+    process,
     sync::atomic::{AtomicU64, Ordering},
 };
 use tauri::Manager;
@@ -49,6 +52,7 @@ pub struct BundleDiagnostics {
 #[derive(Debug, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct StatusPayload {
+    pub app_management_granted: Option<bool>,
     pub app_path: String,
     pub current_lang: String,
     pub default_app_candidates: Vec<String>,
@@ -190,6 +194,7 @@ fn status_for_paths(repo_root: &Path, state_dir: &Path) -> StatusPayload {
     };
 
     StatusPayload {
+        app_management_granted: probe_app_management_permission(&app_path),
         app_path: app_path.to_string_lossy().to_string(),
         current_lang,
         default_app_candidates: detect::default_app_candidates()
@@ -320,6 +325,30 @@ fn is_app_management_error(error: &str) -> bool {
         || lower.contains("app management")
         || ((lower.contains("operation not permitted") || lower.contains("privacy"))
             && (error.contains(".app") || error.contains("/Applications/")))
+}
+
+fn probe_app_management_permission(app_path: &Path) -> Option<bool> {
+    if !cfg!(target_os = "macos") || app_path.as_os_str().is_empty() {
+        return None;
+    }
+    let probe_dir = app_path.join("Contents").join("Resources");
+    if !probe_dir.is_dir() {
+        return None;
+    }
+
+    let probe_path = probe_dir.join(format!(
+        ".cavalry-i18n-probe-{}-{}-{}",
+        process::id(),
+        Utc::now().timestamp_millis(),
+        STAGING_COUNTER.fetch_add(1, Ordering::Relaxed)
+    ));
+    let granted = match fs::write(&probe_path, []) {
+        Ok(()) => Some(true),
+        Err(error) if error.kind() == ErrorKind::PermissionDenied => Some(false),
+        Err(_) => None,
+    };
+    let _ = fs::remove_file(&probe_path);
+    granted
 }
 
 fn unique_staging_root() -> PathBuf {
