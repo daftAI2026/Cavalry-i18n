@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **Documentation**: 
+  - Added "Safety & Permissions" section to `README.md` to guide users through macOS App Management authorization.
   - Streamlined `README.md` to focus on Tauri v2 architecture and key technical features (Keychain safety, Runtime injection).
   - Replaced static version badges with dynamic GitHub tag and stars badges for real-time repository status.
 

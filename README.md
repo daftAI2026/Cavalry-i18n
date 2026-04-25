@@ -16,6 +16,18 @@
 - 🔐 **Resigned & quarantine-cleared**: Re-signs the patched bundle and clears Gatekeeper flags so macOS doesn't block it
 - 🌐 **Four languages**: English, 简体中文, 繁體中文, 日本語
 
+## Safety & Permissions
+
+Cavalry-i18n is an independent community tool. It is not made by, endorsed by, or affiliated with Scene Group, Cavalry, or Canva.
+
+This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can launch with translated resources. On macOS, that requires **App Management** permission:
+
+1. Open **System Settings → Privacy & Security → App Management**
+2. Enable **Cavalry Language Switcher**
+3. Return to the app and apply the language pack again
+
+macOS asks for this permission because changing another `.app` bundle is a protected operation. Only grant it if you trust this build and understand that the tool will patch, re-sign, and relaunch your local Cavalry installation. Keep a clean Cavalry installer or backup available; reinstalling Cavalry is the safest way to return to an untouched official bundle.
+
 ## Quick Start
 
 ```bash
@@ -117,4 +129,3 @@ Cavalry-i18n/
 ## License
 
 MIT License. Feel free to use Cavalry-i18n and contribute.
-
