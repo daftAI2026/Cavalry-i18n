@@ -82,7 +82,7 @@ test('desktop patcher workspace includes the compiled UI workflow files', () => 
     path.join(repoRoot, 'tools', 'zh-Hans.ts'),
     path.join(repoRoot, 'tools', 'zh-Hant.ts'),
     path.join(repoRoot, 'tools', 'ja_JP.ts'),
-    path.join(repoRoot, 'doc', 'compiled-ui-source-map.json'),
+    path.join(repoRoot, 'tools', 'translation-whitelist.json'),
   ];
 
   for (const filePath of expectedFiles) {
@@ -597,8 +597,8 @@ test('package.json exposes a compiled UI extraction workflow for non-JSON text',
   );
   assert.match(
     scripts['extract:compiled-ui'] || '',
-    /doc\/compiled-ui-source-map\.json/,
-    'compiled UI extraction should write to a checked-in source map JSON file'
+    /Library\/Caches\/Cavalry-i18n\/compiled-ui-source-map\.json/,
+    'compiled UI extraction should write to a generated cache source map JSON file'
   );
 });
 
@@ -631,37 +631,24 @@ test('package.json exposes a matrix full UI blocker script with a runlog path', 
   );
 });
 
-test('repo tracks a compiled UI source map alongside JSON-backed translation assets', () => {
-  const sourceMapPath = path.join(repoRoot, 'doc', 'compiled-ui-source-map.json');
-  assert.ok(fs.existsSync(sourceMapPath), 'compiled UI source map should be checked into doc/');
+test('compiled UI source map is generated in the local cache, not tracked under doc', () => {
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
+  const scripts = packageJson.scripts || {};
 
-  const sourceMap = JSON.parse(fs.readFileSync(sourceMapPath, 'utf8'));
-  assert.equal(sourceMap.kind, 'ownership-map');
-  assert.equal(sourceMap.bundleVersion, '2.7.0');
-  assert.match(sourceMap.bundleId || '', /com\.scenegroup\.cavalry/);
+  assert.equal(
+    fs.existsSync(path.join(repoRoot, 'doc', 'compiled-ui-source-map.json')),
+    false,
+    'compiled UI source map should be regenerated from the local Cavalry.app instead of tracked under doc/'
+  );
   assert.match(
-    sourceMap.authoritativeRuntimeInventory || '',
-    /menu-inventory\.json$/,
-    'source map should point to the authoritative runtime menu inventory path'
+    scripts['extract:compiled-ui'] || '',
+    /--app \/Applications\/Cavalry\.app/,
+    'compiled UI extraction should bind to the local Cavalry.app owner binary'
   );
-  assert.ok(
-    Array.isArray(sourceMap.jsonAssetRoots) &&
-      sourceMap.jsonAssetRoots.some((entry) => entry.includes('languages')) &&
-      sourceMap.jsonAssetRoots.some((entry) => entry.includes('Contents/assets/Definitions')),
-    'source map should document the existing JSON asset pipeline'
-  );
-  assert.ok(
-    Array.isArray(sourceMap.compiledUiTargets) &&
-      sourceMap.compiledUiTargets.some((entry) => entry.endsWith('Contents/MacOS/Cavalry')) &&
-      sourceMap.compiledUiTargets.some((entry) => entry.endsWith('Frameworks/libCavalryUI.dylib')),
-    'source map should document the compiled UI binaries that own menu/action text'
-  );
-  assert.ok(
-    Array.isArray(sourceMap.surfaces) &&
-      sourceMap.surfaces.some((entry) => entry.id === 'json-assets') &&
-      sourceMap.surfaces.some((entry) => entry.id === 'compiled-ui') &&
-      sourceMap.surfaces.some((entry) => entry.id === 'qt-builtins'),
-    'source map should classify UI text ownership into JSON assets, compiled UI code, and Qt built-ins'
+  assert.match(
+    scripts['extract:compiled-ui'] || '',
+    /\$HOME\/Library\/Caches\/Cavalry-i18n\/compiled-ui-source-map\.json/,
+    'compiled UI extraction should write the generated source map to the local cache'
   );
 });
 

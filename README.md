@@ -86,7 +86,7 @@ There are **two** translation surfaces in this project:
 2. **Compiled Qt/UI text** — menu labels, actions, panel titles, and widget text embedded in Cavalry binaries. Translated at runtime by the injector dylib.
 
 Surface 2 is tracked in three forms:
-- `doc/compiled-ui-source-map.json` — static ownership map (JSON vs compiled binary)
+- `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` — generated ownership map (JSON vs compiled binary)
 - `tools/*.ts` — Qt Linguist XML translation sources
 - `~/Library/Caches/Cavalry-i18n/menu-inventory.json` — runtime UI inventory dumped by the injector
 
@@ -108,8 +108,8 @@ Cavalry-i18n/
 │       ├── privilege.rs          # System command boundary
 │       └── ...
 ├── languages/                    # JSON language packs (en, zh-Hans, zh-Hant, ja_JP)
-├── tools/                        # Build, test, coverage scripts
-├── doc/                          # Migration plans, glossary, source maps
+├── tools/                        # Build, test, coverage scripts and gate contracts
+├── doc/                          # Local migration plans and glossary notes
 └── .github/workflows/            # CI: contract → packaging → release
 ```
 

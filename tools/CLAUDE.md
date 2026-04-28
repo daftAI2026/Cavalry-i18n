@@ -23,6 +23,7 @@ cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.0、Qt 6.6.3、r
 build_translator_injector.sh: 构建 `libCavalryTranslatorInjector.dylib`，校验 Qt minor 与目标 Cavalry 匹配。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
 validate_translations.py: JSON 翻译质量检查脚本，输出报告与摘要。
+translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界，被 validate_translations.py 读取。
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。

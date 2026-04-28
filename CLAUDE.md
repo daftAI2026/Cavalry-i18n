@@ -5,14 +5,15 @@ Electron + Node.js + Objective-C++ injector + JSON 语言资源；Tauri 迁移�
 desktop-patcher/ - 桌面补丁器主程序，Electron 壳层与可注入 i18n handler 分离 (4子目录: lib, renderer, injector, resources)
 src-tauri/ - Tauri v2 壳层与 Rust command 实现，复用原 renderer 并逐步追平 Electron handler
 languages/ - JSON 语言包与英文基线，按语言代码组织翻译资产
-tools/ - 构建、测试、覆盖率、翻译表生成与手动调试脚本
-doc/ - 迁移方案、构建 SOP、术语表与 UI 字符串来源地图
+tools/ - 构建、测试、覆盖率、翻译表生成、翻译检测契约与手动调试脚本
+doc/ - 本地迁移方案、构建 SOP、术语表与 workflow 草案；按仓库策略保持本地忽略
 </directory>
 
 <config>
 package.json - npm 脚本、Electron 构建配置与 Tauri 迁移前置检查入口
 package-lock.json - Node 依赖锁定
 tools/cavalry_qt_target.json - 当前发布目标 Cavalry/Qt/SDK 映射，CI 无 Cavalry.app 时的唯一版本真相源
+tools/translation-whitelist.json - JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界
 .gitignore - 忽略本地文档、Node/Rust 构建产物、dist 与 SDK 缓存
 .github/workflows/build.yml - macOS release 构建与 injector 预构建流水线
 </config>
@@ -32,3 +33,4 @@ UI 真相源只在 `desktop-patcher/renderer/` 三文件；迁移不得改 DOM�
 2026-04-24 - 修正 full UI 覆盖脚本入口，显式绑定 runtime inventory、compiled source map 与对应 `.ts` 翻译源。
 2026-04-24 - 将 Cavalry 2.7.0 / Qt 6.6.3 目标收敛到 `tools/cavalry_qt_target.json`，由 resolver 在本机校验、在 CI 补齐 SDK。
 2026-04-24 - CI macOS 打包改用 `npm run prepare:qt-sdk`，不再在 workflow 内写第二份 Qt 版本。
+2026-04-28 - 将 `translation-whitelist.json` 移入 `tools/` 作为版本化 gate 契约；compiled source map 改为 `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` 生成物，`doc/` 回归本地文档目录。

@@ -13,11 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Frontend UI now dynamically hides permission warnings if access is already granted.
   - Added contract tests for App Management probe status in `command_contract.rs` and `check_tauri_bridge_runtime.js`.
 
-### Changed
-- **Documentation**: 
-  - Added "Safety & Permissions" section to `README.md` to guide users through macOS App Management authorization.
-  - Streamlined `README.md` to focus on Tauri v2 architecture and key technical features (Keychain safety, Runtime injection).
-  - Replaced static version badges with dynamic GitHub tag and stars badges for real-time repository status.
+### Infrastructure & Misc
+- **Test Integrity**: Refactored testing tools to use local generated caches instead of checked-in fixtures.
+  - Moved `compiled-ui-source-map.json` from `doc/` to local `~/Library/Caches/Cavalry-i18n/` to ensure live Cavalry.app validation.
+  - Relocated `translation-whitelist.json` from `doc/` to `tools/` to align with logic ownership.
+  - Updated `check_electron_patcher_ui.js` and validation scripts to enforce dynamic path resolution.
+- **Documentation**: Updated `README.md` with dynamic GitHub badges and streamlined architecture overview.
 
 ## [0.1.2] - 2026-04-25
 
@@ -30,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - `bridge.rs`: Pre-page-load JS bridge injection (`tauri-bridge.js` compiled via `include_str!`).
   - 10 Rust contract tests covering commands, detection, patch mapping, Mac runtime, privileges, state, Tauri config, bridge, and window regression.
 - **Renderer**: Full i18n support with runtime locale detection (English, zh-Hans, zh-Hant, ja_JP). Modal interaction system for confirmations and permission guidance. "App Management" permission status feedback with retry flow.
-- **UI text workflow**: Compiled Qt/UI translation surface with `compiled-ui-source-map.json`, runtime `menu-inventory.json`, and `runtime_ui_allowlist.json`. Coverage gate at ≥99%.
+- **UI text workflow**: Compiled Qt/UI translation surface with generated cache `compiled-ui-source-map.json`, runtime `menu-inventory.json`, and `runtime_ui_allowlist.json`. Coverage gate at ≥99%.
 - **Tooling**: `stamp_dmg_icon.sh` for DMG volume icon embedding. `check_full_ui_coverage.js` and `check_full_ui_matrix.js` for per-language gate runs. `resolve_cavalry_qt_sdk.js` with `cavalry_qt_target.json` for centralized Cavalry/Qt SDK resolution.
 - **CI/CD**: 3-job GitHub Actions pipeline (ubuntu contract validation, macos packaging, tag-triggered release). Translation quality gates in CI with markdown summary.
 

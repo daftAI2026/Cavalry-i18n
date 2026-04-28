@@ -677,7 +677,7 @@ def gate_status(condition: bool) -> str:
 
 
 def build_report(root: Path) -> dict[str, Any]:
-    whitelist = load_json(root / "doc" / "translation-whitelist.json")
+    whitelist = load_json(root / "tools" / "translation-whitelist.json")
 
     languages: dict[str, Any] = {}
     for alias, repo_code in VALIDATION_TARGETS.items():

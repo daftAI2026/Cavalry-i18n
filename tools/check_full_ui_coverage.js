@@ -18,6 +18,8 @@ const VALIDATOR_ALIASES = {
   'zh-Hans': 'zh_Hans',
   'zh-Hant': 'zh_Hant',
 };
+const CACHE_ROOT = path.join(process.env.HOME || '', 'Library', 'Caches', 'Cavalry-i18n');
+const COMPILED_SOURCE_MAP_PATH = path.join(CACHE_ROOT, 'compiled-ui-source-map.json');
 
 function fail(message) {
   throw new Error(message);
@@ -27,7 +29,7 @@ function parseArgs(argv) {
   const options = {
     language: '',
     inventory: '',
-    compiledSourceMap: path.join(__dirname, '..', 'doc', 'compiled-ui-source-map.json'),
+    compiledSourceMap: COMPILED_SOURCE_MAP_PATH,
     ts: '',
     allowlist: path.join(__dirname, 'runtime_ui_allowlist.json'),
     threshold: 99,

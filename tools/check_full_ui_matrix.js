@@ -9,6 +9,8 @@ const LANGUAGES = [
   { language: 'zh-Hans', inventory: 'zh-Hans-inventory.json', ts: 'tools/zh-Hans.ts' },
   { language: 'zh-Hant', inventory: 'zh-Hant-inventory.json', ts: 'tools/zh-Hant.ts' },
 ];
+const CACHE_ROOT = path.join(process.env.HOME || '', 'Library', 'Caches', 'Cavalry-i18n');
+const COMPILED_SOURCE_MAP_PATH = path.join(CACHE_ROOT, 'compiled-ui-source-map.json');
 
 function fail(message) {
   throw new Error(message);
@@ -44,7 +46,7 @@ function parseArgs(argv) {
 }
 
 function runLanguage(repoRoot, threshold, config) {
-  const inventoryPath = path.join(process.env.HOME || '', 'Library', 'Caches', 'Cavalry-i18n', config.inventory);
+  const inventoryPath = path.join(CACHE_ROOT, config.inventory);
   const args = [
     path.join(repoRoot, 'tools', 'check_full_ui_coverage.js'),
     '--language',
@@ -52,7 +54,7 @@ function runLanguage(repoRoot, threshold, config) {
     '--inventory',
     inventoryPath,
     '--compiled-source-map',
-    path.join(repoRoot, 'doc', 'compiled-ui-source-map.json'),
+    COMPILED_SOURCE_MAP_PATH,
     '--ts',
     path.join(repoRoot, config.ts),
     '--allowlist',

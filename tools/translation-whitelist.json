@@ -1,0 +1,31 @@
+{
+  "nodeStrings": {
+    "translate": ["niceName", "attributes", "enums", "nodeInfo", "tabs"],
+    "no_translate": ["type", "nodeType"],
+    "locale_sync": ["language"]
+  },
+  "appStrings": {
+    "translate": ["value"],
+    "no_translate": ["type"],
+    "locale_sync": ["language"]
+  },
+  "tips": {
+    "translate": ["title", "text"],
+    "no_translate": ["images", "beginner"]
+  },
+  "onboarding": {
+    "translate": ["title"],
+    "no_translate": ["images"]
+  },
+  "plugins": {
+    "translate": ["niceName", "layerInfo", "attributes", "enums"],
+    "no_translate": ["type", "author", "layerType"],
+    "locale_sync": ["language"]
+  },
+
+  "_schema": {
+    "translate": "值包含面向用户的自然语言，必须完整翻译为目标语言",
+    "no_translate": "值是程序标识符，必须与 en/ 原文完全一致",
+    "locale_sync": "值必须改为目标语言代码（如 zh-Hans / zh-Hant / ja_JP）"
+  }
+}
