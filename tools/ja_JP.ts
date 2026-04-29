@@ -1622,5 +1622,325 @@
       <source>Print to File</source>
       <translation>ファイルに出力</translation>
     </message>
+    <message>
+      <source>Acce</source>
+      <translation>Acce</translation>
+    </message>
+    <message>
+      <source>Acutesmall</source>
+      <translation>Acutesmall</translation>
+    </message>
+    <message>
+      <source>ahk ISK bhk DBX khk GNM nhk</source>
+      <translation>ahk ISK bhk DBX khk GNM nhk</translation>
+    </message>
+    <message>
+      <source>ams MSS dms NBM jms MSL lms</source>
+      <translation>ams MSS dms NBM jms MSL lms</translation>
+    </message>
+    <message>
+      <source>appears to be a Version 4 MAT-file, which is not currently supported</source>
+      <translation>バージョン 4 MAT ファイルのようですが、現在はサポートされていません</translation>
+    </message>
+    <message>
+      <source>appears to be a Version 4 MAT-file, which is not currently supported.</source>
+      <translation>バージョン 4 MAT ファイルのようですが、現在はサポートされていません。</translation>
+    </message>
+    <message>
+      <source>Apple Color Emoji</source>
+      <translation>Apple カラー絵文字</translation>
+    </message>
+    <message>
+      <source>Arial</source>
+      <translation>Arial</translation>
+    </message>
+    <message>
+      <source>Asmall</source>
+      <translation>Asmall</translation>
+    </message>
+    <message>
+      <source>Asse</source>
+      <translation>Asse</translation>
+    </message>
+    <message>
+      <source>Atlantis</source>
+      <translation>アトランティス</translation>
+    </message>
+    <message>
+      <source>Atoll</source>
+      <translation>環礁</translation>
+    </message>
+    <message>
+      <source>Atomic</source>
+      <translation>原子</translation>
+    </message>
+    <message>
+      <source>Atomic Tangerine</source>
+      <translation>アトミックタンジェリン</translation>
+    </message>
+    <message>
+      <source>ats PPC vts GIS qus RUS rus</source>
+      <translation>ats PPC vts GIS qus RUS rus</translation>
+    </message>
+    <message>
+      <source>Attach Nulls</source>
+      <translation>ヌル値を接続</translation>
+    </message>
+    <message>
+      <source>Attempting to attach list UI to non list Attribute</source>
+      <translation>リストでない属性にリスト UI を接続しようとしています</translation>
+    </message>
+    <message>
+      <source>Attempting to attach list UI to non list Attribute.</source>
+      <translation>リストでない属性にリスト UI を接続しようとしています。</translation>
+    </message>
+    <message>
+      <source>Attr</source>
+      <translation>属性</translation>
+    </message>
+    <message>
+      <source>Attribute</source>
+      <translation>属性</translation>
+    </message>
+    <message>
+      <source>Attribute Expressions cannot be set on Attributes of this type</source>
+      <translation>このタイプの属性に属性式を設定できません</translation>
+    </message>
+    <message>
+      <source>Attribute Expressions cannot be set on Attributes of this type.</source>
+      <translation>このタイプの属性に属性式を設定できません。</translation>
+    </message>
+    <message>
+      <source>Attribute is already connected</source>
+      <translation>属性は既に接続されています</translation>
+    </message>
+    <message>
+      <source>Attribute is already connected.</source>
+      <translation>属性は既に接続されています。</translation>
+    </message>
+    <message>
+      <source>Attributes</source>
+      <translation>属性</translation>
+    </message>
+    <message>
+      <source>Au Chico</source>
+      <translation>オーチコ</translation>
+    </message>
+    <message>
+      <source>Aubergine</source>
+      <translation>ナス</translation>
+    </message>
+    <message>
+      <source>Audif</source>
+      <translation>Audif</translation>
+    </message>
+    <message>
+      <source>Audio</source>
+      <translation>オーディオ</translation>
+    </message>
+    <message>
+      <source>Audio could not be loaded</source>
+      <translation>オーディオを読み込めません</translation>
+    </message>
+    <message>
+      <source>Audio could not be loaded.</source>
+      <translation>オーディオを読み込めません。</translation>
+    </message>
+    <message>
+      <source>Audio Device</source>
+      <translation>オーディオデバイス</translation>
+    </message>
+    <message>
+      <source>Audio Folder</source>
+      <translation>オーディオフォルダ</translation>
+    </message>
+    <message>
+      <source>Audio Settings</source>
+      <translation>オーディオ設定</translation>
+    </message>
+    <message>
+      <source>Australian Mint</source>
+      <translation>オーストラリアンミント</translation>
+    </message>
+    <message>
+      <source>Authentication Type</source>
+      <translation>認証タイプ</translation>
+    </message>
+    <message>
+      <source>Auto</source>
+      <translation>自動</translation>
+    </message>
+    <message>
+      <source>Auto (Monitor)</source>
+      <translation>自動（モニター）</translation>
+    </message>
+    <message>
+      <source>Auto Animate</source>
+      <translation>自動アニメート</translation>
+    </message>
+    <message>
+      <source>Auto Height</source>
+      <translation>自動高さ</translation>
+    </message>
+    <message>
+      <source>Auto Width</source>
+      <translation>自動幅</translation>
+    </message>
+    <message>
+      <source>Auto-Animate</source>
+      <translation>自動アニメート</translation>
+    </message>
+    <message>
+      <source>Auto-Save Failed</source>
+      <translation>自動保存に失敗しました</translation>
+    </message>
+    <message>
+      <source>Automatic</source>
+      <translation>自動</translation>
+    </message>
+    <message>
+      <source>Automatic MIME types</source>
+      <translation>自動 MIME タイプ</translation>
+    </message>
+    <message>
+      <source>Automatically add selected layers to the Attribute Editor</source>
+      <translation>選択したレイヤーを属性エディタに自動的に追加</translation>
+    </message>
+    <message>
+      <source>Automatically add selected layers to the Attribute Editor.</source>
+      <translation>選択したレイヤーを属性エディタに自動的に追加。</translation>
+    </message>
+    <message>
+      <source>Autosave</source>
+      <translation>自動保存</translation>
+    </message>
+    <message>
+      <source>Autosave Folders</source>
+      <translation>自動保存フォルダ</translation>
+    </message>
+    <message>
+      <source>Autosave Interval</source>
+      <translation>自動保存間隔</translation>
+    </message>
+    <message>
+      <source>Autosave is off</source>
+      <translation>自動保存がオフです</translation>
+    </message>
+    <message>
+      <source>Autosave is off.</source>
+      <translation>自動保存がオフです。</translation>
+    </message>
+    <message>
+      <source>Autosave Limit</source>
+      <translation>自動保存制限</translation>
+    </message>
+    <message>
+      <source>Autosave not possible as features requiring a Professional Licence were found</source>
+      <translation>プロフェッショナルライセンスが必要な機能が見つかりました。自動保存はできません</translation>
+    </message>
+    <message>
+      <source>Autosave not possible as features requiring a Professional Licence were found.</source>
+      <translation>プロフェッショナルライセンスが必要な機能が見つかりました。自動保存はできません。</translation>
+    </message>
+    <message>
+      <source>Availability</source>
+      <translation>可用性</translation>
+    </message>
+    <message>
+      <source>Avestan</source>
+      <translation>アヴェスター語</translation>
+    </message>
+    <message>
+      <source>Avocado</source>
+      <translation>アボカド</translation>
+    </message>
+    <message>
+      <source>Axolotl</source>
+      <translation>アホロートル</translation>
+    </message>
+    <message>
+      <source>Ayhb</source>
+      <translation>Ayhb</translation>
+    </message>
+    <message>
+      <source>Azalea</source>
+      <translation>ツツジ</translation>
+    </message>
+    <message>
+      <source>Aztec</source>
+      <translation>アステカ</translation>
+    </message>
+    <message>
+      <source>Azure</source>
+      <translation>アズール</translation>
+    </message>
+    <message>
+      <source>Azure Radiance</source>
+      <translation>アズールラディアンス</translation>
+    </message>
+    <message>
+      <source>B ffff.</source>
+      <translation>B ffff.</translation>
+    </message>
+    <message>
+      <source>Baby Blue</source>
+      <translation>ベビーブルー</translation>
+    </message>
+    <message>
+      <source>Backdrop Settings</source>
+      <translation>背景設定</translation>
+    </message>
+    <message>
+      <source>Background Render.</source>
+      <translation>背景レンダー。</translation>
+    </message>
+    <message>
+      <source>Bahama Blue</source>
+      <translation>バハマブルー</translation>
+    </message>
+    <message>
+      <source>Bahia</source>
+      <translation>バイア</translation>
+    </message>
+    <message>
+      <source>Baja White</source>
+      <translation>バハホワイト</translation>
+    </message>
+    <message>
+      <source>Bake Accuracy</source>
+      <translation>ベイク精度</translation>
+    </message>
+    <message>
+      <source>Bake Animation: Baking Path Animation is not currently supported</source>
+      <translation>ベイクアニメーション：パスアニメーションのベイクは現在サポートされていません</translation>
+    </message>
+    <message>
+      <source>Bake Animation: Baking Path Animation is not currently supported.</source>
+      <translation>ベイクアニメーション：パスアニメーションのベイクは現在サポートされていません。</translation>
+    </message>
+    <message>
+      <source>Bake Animation: Unable to further simplify this animation</source>
+      <translation>ベイクアニメーション：このアニメーションをさらに簡略化できません</translation>
+    </message>
+    <message>
+      <source>Bake Animation: Unable to further simplify this animation.</source>
+      <translation>ベイクアニメーション：このアニメーションをさらに簡略化できません。</translation>
+    </message>
+    <message>
+      <source>Baked</source>
+      <translation>ベイク済み</translation>
+    </message>
+    <message>
+      <source>Bali Hai</source>
+      <translation>バリハイ</translation>
+    </message>
+    <message>
+      <source>Balinese</source>
+      <translation>バリ語</translation>
+    </message>
+    <message>
+      <source>Baltic Sea</source>
+      <translation>バルト海</translation>
+    </message>
   </context>
 </TS>
