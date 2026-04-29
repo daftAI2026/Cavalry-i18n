@@ -832,11 +832,210 @@
     <message><source>Include Primitive Type</source><translation>包含图元类型</translation></message>
     <message><source>Include the File Name and Folder Path in the Preset.</source><translation>在预设中包含文件名和文件夹路径。</translation></message>
     <message><source>Include the path in the Preset.</source><translation>在预设中包含路径。</translation></message>
-    <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset.</source><translation>在预设中包含图元类型（如 Rectangle 或 Ellipse）。</translation></message>
-    <message><source>Include transform Attributes such as Position and Scale in the Preset.</source><translation>在预设中包含 Position 和 Scale 等变换属性。</translation></message>
+    <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset.</source><translation>在预设中包含图元类型（如矩形或椭圆）。</translation></message>
+    <message><source>Include transform Attributes such as Position and Scale in the Preset.</source><translation>在预设中包含位置和缩放等变换属性。</translation></message>
     <message><source>Include Transforms</source><translation>包含变换</translation></message>
     <message><source>Install Plugin?</source><translation>安装插件？</translation></message>
     <message><source>Match Color</source><translation>匹配颜色</translation></message>
     <message><source>Match Color to layer</source><translation>匹配到图层颜色</translation></message>
+    <message><source>This feature requires a Project.</source><translation>此功能需要项目。</translation></message>
+    <message><source>No Groups in this Composition.</source><translation>此合成中没有编组。</translation></message>
+    <message><source>Quicklist</source><translation>快速列表</translation></message>
+    <message><source>No Presets.</source><translation>没有预设。</translation></message>
+    <message><source>Set Playback Range to Composition</source><translation>将播放范围设为合成</translation></message>
+    <message><source>Basic Line</source><translation>基本线条</translation></message>
+    <message><source>Basic Shape</source><translation>基本形状</translation></message>
+    <message><source>Component</source><translation>组件</translation></message>
+    <message><source>Connect Shape</source><translation>连接形状</translation></message>
+    <message><source>Convex Hull</source><translation>凸包</translation></message>
+    <message><source>Custom Shape</source><translation>自定义形状</translation></message>
+    <message><source>Duplicator</source><translation>复制器</translation></message>
+    <message><source>Footage Shape</source><translation>素材形状</translation></message>
+    <message><source>Grid Layout Group</source><translation>网格布局组</translation></message>
+    <message><source>Grid Layout Row</source><translation>网格布局行</translation></message>
+    <message><source>Image To Shapes</source><translation>图像转形状</translation></message>
+    <message><source>Layout Group</source><translation>布局组</translation></message>
+    <message><source>Mesh Shape</source><translation>网格形状</translation></message>
+    <message><source>Outline</source><translation>轮廓</translation></message>
+    <message><source>Quad Tree Shape</source><translation>四叉树形状</translation></message>
+    <message><source>Shortest Path</source><translation>最短路径</translation></message>
+    <message><source>3D Matrix</source><translation>3D 矩阵</translation></message>
+    <message><source>Add Divisions</source><translation>添加细分</translation></message>
+    <message><source>Behaviour Mixer</source><translation>行为混合器</translation></message>
+    <message><source>Bend</source><translation>弯曲</translation></message>
+    <message><source>Bevel</source><translation>斜面</translation></message>
+    <message><source>Blend Shape</source><translation>混合形状</translation></message>
+    <message><source>Boolean</source><translation>布尔</translation></message>
+    <message><source>Clean Up</source><translation>清理</translation></message>
+    <message><source>Color Blend</source><translation>颜色混合</translation></message>
+    <message><source>Curves To Lines</source><translation>曲线转线条</translation></message>
+    <message><source>Distance</source><translation>距离</translation></message>
+    <message><source>Extend Open Paths</source><translation>延伸开放路径</translation></message>
+    <message><source>Fill Rule</source><translation>填充规则</translation></message>
+    <message><source>Flare</source><translation>光晕</translation></message>
+    <message><source>Flatten Shape Layers</source><translation>扁平化形状图层</translation></message>
+    <message><source>Four Point Warp</source><translation>四点扭曲</translation></message>
+    <message><source>Frame</source><translation>帧</translation></message>
+    <message><source>Get Vector</source><translation>获取向量</translation></message>
+    <message><source>Is Within</source><translation>位于内部</translation></message>
+    <message><source>Lattice</source><translation>晶格</translation></message>
+    <message><source>Look At</source><translation>朝向</translation></message>
+    <message><source>Manipulator</source><translation>操纵器</translation></message>
+    <message><source>Material Sampler</source><translation>材质采样器</translation></message>
+    <message><source>Morph</source><translation>形变</translation></message>
+    <message><source>Noise</source><translation>噪波</translation></message>
+    <message><source>Number Range</source><translation>数值范围</translation></message>
+    <message><source>Number Range To Color</source><translation>数值范围转颜色</translation></message>
+    <message><source>Oscillator</source><translation>振荡器</translation></message>
+    <message><source>Pathfinder</source><translation>路径查找器</translation></message>
+    <message><source>Pinch</source><translation>挤压</translation></message>
+    <message><source>Position Blend</source><translation>位置混合</translation></message>
+    <message><source>Push Along Vector</source><translation>沿向量推送</translation></message>
+    <message><source>Random</source><translation>随机</translation></message>
+    <message><source>Resample Path</source><translation>重采样路径</translation></message>
+    <message><source>Round</source><translation>四舍五入</translation></message>
+    <message><source>Rubber Hose Limb</source><translation>橡皮管肢体</translation></message>
+    <message><source>Skew</source><translation>倾斜</translation></message>
+    <message><source>Sound</source><translation>声音</translation></message>
+    <message><source>Stagger</source><translation>错开</translation></message>
+    <message><source>Value</source><translation>值</translation></message>
+    <message><source>Value Blend</source><translation>数值混合</translation></message>
+    <message><source>Value2</source><translation>二维数值</translation></message>
+    <message><source>Value2 Blend</source><translation>二维数值混合</translation></message>
+    <message><source>Value2 Solver</source><translation>二维数值求解器</translation></message>
+    <message><source>Value3</source><translation>三维数值</translation></message>
+    <message><source>Value3 Blend</source><translation>三维数值混合</translation></message>
+    <message><source>Voxelize</source><translation>体素化</translation></message>
+    <message><source>Animation Control</source><translation>动画控制</translation></message>
+    <message><source>Asset Array</source><translation>资源数组</translation></message>
+    <message><source>Bounding Box</source><translation>边界框</translation></message>
+    <message><source>Bounding Box Constraint</source><translation>边界框约束</translation></message>
+    <message><source>Camera Guide</source><translation>相机参考线</translation></message>
+    <message><source>Color Array</source><translation>颜色数组</translation></message>
+    <message><source>Comparison</source><translation>比较</translation></message>
+    <message><source>Drag Field</source><translation>阻力场</translation></message>
+    <message><source>Falloff</source><translation>衰减</translation></message>
+    <message><source>Gamma Correction</source><translation>伽马校正</translation></message>
+    <message><source>A new tab has been opened in your default browser so you can log in to Canva there</source><translation>已在默认浏览器中打开新标签页，方便你在其中登录 Canva。</translation></message>
+    <message><source>A new tab has been opened in your default browser so you can log in to Canva there.</source><translation>已在默认浏览器中打开新标签页，方便你在其中登录 Canva。</translation></message>
+    <message><source>A Professional licence is required for Dynamic Rendering</source><translation>动态渲染需要专业版许可证。</translation></message>
+    <message><source>A Professional licence is required for Dynamic Rendering.</source><translation>动态渲染需要专业版许可证。</translation></message>
+    <message><source>Action not allowed. Adding composition would create a cycle</source><translation>不允许此操作。添加该合成会形成循环。</translation></message>
+    <message><source>Action not allowed. Adding composition would create a cycle.</source><translation>不允许此操作。添加该合成会形成循环。</translation></message>
+    <message><source>A selection of two points from two different contours on the same shape is required to join contours</source><translation>要连接轮廓，需要在同一形状上的两个不同轮廓中各选择一个点。</translation></message>
+    <message><source>A selection of two points from two different contours on the same shape is required to join contours.</source><translation>要连接轮廓，需要在同一形状上的两个不同轮廓中各选择一个点。</translation></message>
+    <message><source>Active</source><translation>活动</translation></message>
+    <message><source>Active Camera</source><translation>活动相机</translation></message>
+    <message><source>Active Camera: Layer Tools Disabled</source><translation>活动相机：图层工具已禁用</translation></message>
+    <message><source>Active Camera: Layer Tools Disabled.</source><translation>活动相机：图层工具已禁用。</translation></message>
+    <message><source>Active Tags.</source><translation>活动标签。</translation></message>
+    <message><source>Active Composition</source><translation>活动合成</translation></message>
+    <message><source>Account</source><translation>账户</translation></message>
+    <message><source>Add</source><translation>添加</translation></message>
+    <message><source>Add a bone at the top of the hierarchy</source><translation>在层级顶部添加骨骼</translation></message>
+    <message><source>Add a bone at the top of the hierarchy.</source><translation>在层级顶部添加骨骼。</translation></message>
+    <message><source>Add a bone parented to this one</source><translation>添加一个以此骨骼为父级的骨骼</translation></message>
+    <message><source>Add a bone parented to this one.</source><translation>添加一个以此骨骼为父级的骨骼。</translation></message>
+    <message><source>Add a new Attribute variable which can be used in your script</source><translation>添加可在脚本中使用的新属性变量</translation></message>
+    <message><source>Add a new Attribute variable which can be used in your script.</source><translation>添加可在脚本中使用的新属性变量。</translation></message>
+    <message><source>Add a Placement Utility</source><translation>添加放置实用工具</translation></message>
+    <message><source>Add a Rig Control</source><translation>添加绑定控制器</translation></message>
+    <message><source>Add a Tag</source><translation>添加标签</translation></message>
+    <message><source>Add a Text Background</source><translation>添加文本背景</translation></message>
+    <message><source>Add a tracker (4 required)</source><translation>添加跟踪点（需要 4 个）</translation></message>
+    <message><source>Add a tracker (4 required).</source><translation>添加跟踪点（需要 4 个）。</translation></message>
+    <message><source>Add an Animation Control</source><translation>添加动画控制器</translation></message>
+    <message><source>Add an Auto-Animate Deformer</source><translation>添加自动动画变形器</translation></message>
+    <message><source>Add an IK Control using this Bone as End Effector</source><translation>使用此骨骼作为末端执行器添加 IK 控制器</translation></message>
+    <message><source>Add an IK Control using this Bone as End Effector.</source><translation>使用此骨骼作为末端执行器添加 IK 控制器。</translation></message>
+    <message><source>Add Array</source><translation>添加数组</translation></message>
+    <message><source>Add Asset</source><translation>添加资源</translation></message>
+    <message><source>Add Asset To Scene</source><translation>将资源添加到场景</translation></message>
+    <message><source>Add Background</source><translation>添加背景</translation></message>
+    <message><source>Add Behaviour</source><translation>添加行为</translation></message>
+    <message><source>Add Bool</source><translation>添加布尔值</translation></message>
+    <message><source>Add Camera</source><translation>添加相机</translation></message>
+    <message><source>Add Clip</source><translation>添加片段</translation></message>
+    <message><source>Add Clip to End</source><translation>将片段添加到末尾</translation></message>
+    <message><source>Add Clip to Start</source><translation>将片段添加到开头</translation></message>
+    <message><source>Add Color</source><translation>添加颜色</translation></message>
+    <message><source>Add Color Stop</source><translation>添加色标</translation></message>
+    <message><source>Add Colors from Selection</source><translation>从所选内容添加颜色</translation></message>
+    <message><source>Add Colors from Selection and Connect</source><translation>从所选内容添加颜色并连接</translation></message>
+    <message><source>Add connections</source><translation>添加连接</translation></message>
+    <message><source>Add Distribution</source><translation>添加分布</translation></message>
+    <message><source>Add Double</source><translation>添加双精度数值</translation></message>
+    <message><source>Add Double (float)</source><translation>添加双精度数值（浮点）</translation></message>
+    <message><source>Add Expression...</source><translation>添加表达式...</translation></message>
+    <message><source>Add Falloff</source><translation>添加衰减</translation></message>
+    <message><source>Add Header</source><translation>添加标题</translation></message>
+    <message><source>Add IK Control</source><translation>添加 IK 控制器</translation></message>
+    <message><source>Add Int</source><translation>添加整数</translation></message>
+    <message><source>Add Keyframe</source><translation>添加关键帧</translation></message>
+    <message><source>Add Layer</source><translation>添加图层</translation></message>
+    <message><source>Add Layers Popover</source><translation>添加图层弹出面板</translation></message>
+    <message><source>Add List Attribute</source><translation>添加列表属性</translation></message>
+    <message><source>Add Mesh</source><translation>添加网格</translation></message>
+    <message><source>Add New Layers to Selected Tags</source><translation>将新图层添加到所选标签</translation></message>
+    <message><source>Add new snippet</source><translation>添加新代码片段</translation></message>
+    <message><source>Add or edit Bind positions</source><translation>添加或编辑绑定位置</translation></message>
+    <message><source>Add Point Data (Distribution)</source><translation>添加点数据（分布）</translation></message>
+    <message><source>Add Pre-Comp Override</source><translation>添加预合成覆盖</translation></message>
+    <message><source>Add Pre-Comp Overrides</source><translation>添加预合成覆盖</translation></message>
+    <message><source>Add Preset</source><translation>添加预设</translation></message>
+    <message><source>Add selected layers to the Attribute Editor</source><translation>将所选图层添加到属性编辑器</translation></message>
+    <message><source>Add selected layers to the Attribute Editor.</source><translation>将所选图层添加到属性编辑器。</translation></message>
+    <message><source>Add Shader</source><translation>添加着色器</translation></message>
+    <message><source>Add Shader (shader)</source><translation>添加着色器（着色器）</translation></message>
+    <message><source>Add Spacer</source><translation>添加间隔器</translation></message>
+    <message><source>Add String</source><translation>添加字符串</translation></message>
+    <message><source>Add Sub Bone</source><translation>添加子骨骼</translation></message>
+    <message><source>Add Top Bone</source><translation>添加顶部骨骼</translation></message>
+    <message><source>Add Utility</source><translation>添加实用工具</translation></message>
+    <message><source>Add SVG to Composition</source><translation>将 SVG 添加到合成</translation></message>
+    <message><source>Add SVG to Scene</source><translation>将 SVG 添加到场景</translation></message>
+    <message><source>Add SVG to Scene.</source><translation>将 SVG 添加到场景。</translation></message>
+    <message><source>Add Text</source><translation>添加文本</translation></message>
+    <message><source>Add Text Shape</source><translation>添加文本形状</translation></message>
+    <message><source>Add to Composition as Footage</source><translation>作为素材添加到合成</translation></message>
+    <message><source>Add to Composition as Mesh</source><translation>作为网格添加到合成</translation></message>
+    <message><source>Add to Control Centre</source><translation>添加到控制中心</translation></message>
+    <message><source>Add to Duplicator</source><translation>添加到复制器</translation></message>
+    <message><source>Add to GH</source><translation>添加到 GH</translation></message>
+    <message><source>Add Viewport (Pro)</source><translation>添加视口（专业版）</translation></message>
+    <message><source>Add Visibility Bar</source><translation>添加可见性栏</translation></message>
+    <message><source>Add your own Presets and you'll be able to delete and rename them here</source><translation>在此添加你自己的预设，之后就可以在这里删除和重命名它们。</translation></message>
+    <message><source>Add your own Presets and you'll be able to delete and rename them here.</source><translation>在此添加你自己的预设，之后就可以在这里删除和重命名它们。</translation></message>
+    <message><source>Address</source><translation>地址</translation></message>
+    <message><source>Adjust Colors (HSV)</source><translation>调整颜色（HSV）</translation></message>
+    <message><source>Advanced</source><translation>高级</translation></message>
+    <message><source>Advanced Tracking Settings</source><translation>高级跟踪设置</translation></message>
+    <message><source>Adobe RGB</source><translation>Adobe RGB</translation></message>
+    <message><source>Adobe RGB (1998)</source><translation>Adobe RGB (1998)</translation></message>
+    <message><source>Adlam</source><translation>Adlam</translation></message>
+    <message><source>Access All Alternates</source><translation>访问所有替代字形</translation></message>
+    <message><source>Align</source><translation>对齐</translation></message>
+    <message><source>Align Behaviour</source><translation>对齐行为</translation></message>
+    <message><source>Align Bottom</source><translation>底部对齐</translation></message>
+    <message><source>Align keyframe values</source><translation>对齐关键帧值</translation></message>
+    <message><source>Align Middle</source><translation>中间对齐</translation></message>
+    <message><source>Align Points</source><translation>对齐点</translation></message>
+    <message><source>Align Top</source><translation>顶部对齐</translation></message>
+    <message><source>Alignment</source><translation>对齐</translation></message>
+    <message><source>All Attributes will be reset before applying the Preset</source><translation>应用预设前将重置所有属性</translation></message>
+    <message><source>All Attributes will be reset before applying the Preset.</source><translation>应用预设前将重置所有属性。</translation></message>
+    <message><source>All Caps</source><translation>全部大写</translation></message>
+    <message><source>All Inputs</source><translation>所有输入</translation></message>
+    <message><source>All Shortcuts</source><translation>所有快捷键</translation></message>
+    <message><source>allow you to correct the tracking marker positions before continuing</source><translation>让你在继续之前先修正跟踪标记的位置</translation></message>
+    <message><source>allow you to correct the tracking marker positions before continuing.</source><translation>让你在继续之前先修正跟踪标记的位置。</translation></message>
+    <message><source>already exists.</source><translation>已存在。</translation></message>
+    <message><source>Alternate Annotation Forms</source><translation>替代注释形式</translation></message>
+    <message><source>Alternate Half Widths</source><translation>替代半宽形式</translation></message>
+    <message><source>Alternate Vertical Half Metrics</source><translation>替代垂直半宽度量</translation></message>
+    <message><source>Alternate Vertical Metrics</source><translation>替代垂直度量</translation></message>
+    <message><source>Alternative Fractions</source><translation>替代分数形式</translation></message>
+    <message><source>Always</source><translation>始终</translation></message>
+    <message><source>Always Visible</source><translation>始终可见</translation></message>
   </context>
 </TS>

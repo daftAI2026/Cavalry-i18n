@@ -1,4 +1,5 @@
 #import <AppKit/AppKit.h>
+#import <CommonCrypto/CommonDigest.h>
 #import <Foundation/Foundation.h>
 
 #include <dispatch/dispatch.h>
@@ -6,7 +7,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <qdatetime.h>
 #include <qcoreapplication.h>
+#include <qfileinfo.h>
 #include <qglobal.h>
 #include <QtGui/qaction.h>
 #include <QtWidgets/qapplication.h>
@@ -81,6 +84,96 @@ QString readEnvVar(const char *name)
     return value ? QString::fromUtf8(value) : QString();
 }
 
+NSString *toNSString(const QString &value);
+
+NSString *runtimeCacheRoot()
+{
+    @autoreleasepool {
+        const QString configured = readEnvVar("CAVALRY_I18N_CACHE_ROOT");
+        if (!configured.isEmpty()) {
+            return toNSString(configured);
+        }
+        return [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/Cavalry-i18n"];
+    }
+}
+
+QString sessionUuidValue()
+{
+    const QString explicitSessionUuid = readEnvVar("CAVALRY_I18N_SESSION_UUID");
+    if (!explicitSessionUuid.isEmpty()) {
+        return explicitSessionUuid;
+    }
+
+    const QString sessionDir = readEnvVar("CAVALRY_I18N_SESSION_DIR");
+    if (!sessionDir.isEmpty()) {
+        return QFileInfo(sessionDir).fileName();
+    }
+
+    return QString();
+}
+
+NSString *runtimeSessionDir()
+{
+    @autoreleasepool {
+        const QString configured = readEnvVar("CAVALRY_I18N_SESSION_DIR");
+        if (!configured.isEmpty()) {
+            NSString *sessionDir = toNSString(configured);
+            [[NSFileManager defaultManager] createDirectoryAtPath:sessionDir
+                                      withIntermediateDirectories:YES
+                                                       attributes:nil
+                                                            error:nil];
+            return sessionDir;
+        }
+
+        NSString *cacheRoot = runtimeCacheRoot();
+        NSString *sessionUuid = toNSString(sessionUuidValue());
+        if ([sessionUuid length] == 0) {
+            sessionUuid = [[NSUUID UUID] UUIDString];
+        }
+        NSString *sessionDir = [[cacheRoot stringByAppendingPathComponent:@"sessions"] stringByAppendingPathComponent:sessionUuid];
+        [[NSFileManager defaultManager] createDirectoryAtPath:sessionDir
+                                  withIntermediateDirectories:YES
+                                                   attributes:nil
+                                                        error:nil];
+        return sessionDir;
+    }
+}
+
+NSString *runtimeInventoryDir()
+{
+    @autoreleasepool {
+        NSString *runtimeDir = [runtimeSessionDir() stringByAppendingPathComponent:@"runtime"];
+        [[NSFileManager defaultManager] createDirectoryAtPath:runtimeDir
+                                  withIntermediateDirectories:YES
+                                                   attributes:nil
+                                                        error:nil];
+        return runtimeDir;
+    }
+}
+
+NSString *bundleExecutableHash()
+{
+    @autoreleasepool {
+        NSString *executablePath = [[NSBundle mainBundle] executablePath];
+        if (executablePath == nil) {
+            return @"";
+        }
+
+        NSData *data = [NSData dataWithContentsOfFile:executablePath];
+        if (data == nil) {
+            return @"";
+        }
+
+        unsigned char digest[CC_SHA256_DIGEST_LENGTH];
+        CC_SHA256([data bytes], static_cast<CC_LONG>([data length]), digest);
+        NSMutableString *hash = [NSMutableString stringWithCapacity:CC_SHA256_DIGEST_LENGTH * 2];
+        for (int index = 0; index < CC_SHA256_DIGEST_LENGTH; ++index) {
+            [hash appendFormat:@"%02x", digest[index]];
+        }
+        return hash;
+    }
+}
+
 QString normalizeMenuText(const QString &text)
 {
     QString normalized = text;
@@ -124,16 +217,12 @@ NSString *toNSString(const QString &value)
     return [NSString stringWithUTF8String:utf8.constData()];
 }
 
-NSString *runtimeMenuInventoryPath()
+NSString *runtimeMenuInventoryPath(const QString &lang)
 {
     @autoreleasepool {
-        NSString *cacheRoot =
-            [NSHomeDirectory() stringByAppendingPathComponent:@"Library/Caches/Cavalry-i18n"];
-        [[NSFileManager defaultManager] createDirectoryAtPath:cacheRoot
-                                  withIntermediateDirectories:YES
-                                                   attributes:nil
-                                                        error:nil];
-        return [cacheRoot stringByAppendingPathComponent:@"menu-inventory.json"];
+        NSString *runtimeDir = runtimeInventoryDir();
+        NSString *fileName = [NSString stringWithFormat:@"%s-injector-inventory.json", lang.toUtf8().constData()];
+        return [runtimeDir stringByAppendingPathComponent:fileName];
     }
 }
 
@@ -284,11 +373,19 @@ bool dumpQtMenuInventory(const QString &lang)
     }
 
     NSError *jsonError = nil;
-    NSString *inventoryPath = runtimeMenuInventoryPath();
+    NSString *inventoryPath = runtimeMenuInventoryPath(lang);
     NSData *payload = [NSJSONSerialization dataWithJSONObject:@{
-        @"formatVersion" : @2,
+        @"formatVersion" : @3,
         @"language" : toNSString(lang),
+        @"source" : @"live-injector",
         @"inventoryPath" : inventoryPath,
+        @"capture" : @{
+            @"pid" : @([[NSProcessInfo processInfo] processIdentifier]),
+            @"bundleHash" : bundleExecutableHash(),
+            @"sessionUuid" : toNSString(sessionUuidValue()),
+            @"wallclockUtc" : toNSString(QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs)),
+            @"source" : @"live-injector",
+        },
         @"menuBars" : menuBars,
         @"widgetTexts" : widgetTexts,
     }
@@ -431,8 +528,9 @@ bool installTranslator()
         return true;
     }
 
+    const bool dumpOnlyEnglish = lang == QStringLiteral("en");
     int count = 0;
-    if (entriesForLanguage(lang, &count) == nullptr) {
+    if (!dumpOnlyEnglish && entriesForLanguage(lang, &count) == nullptr) {
         fprintf(stderr, "[cavalry-i18n] unsupported language: %s\n", lang.toUtf8().constData());
         gInstallAttempted = true;
         return true;
@@ -452,8 +550,20 @@ bool installTranslator()
     }
 
     if (gTranslator == nullptr) {
-        gTranslator = new EmbeddedTranslator(lang, app);
-        app->installTranslator(gTranslator);
+        if (!dumpOnlyEnglish) {
+            gTranslator = new EmbeddedTranslator(lang, app);
+            app->installTranslator(gTranslator);
+        }
+    }
+
+    if (dumpOnlyEnglish) {
+        if (!dumpQtMenuInventory(lang)) {
+            return false;
+        }
+
+        fprintf(stderr, "[cavalry-i18n] english dump-only inventory exported\n");
+        gInstallAttempted = true;
+        return true;
     }
 
     if (!translateQtMenuBar(lang)) {

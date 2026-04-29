@@ -66,6 +66,16 @@ jobs:
             ${{ runner.temp }}/translation-gates/report.json
             ${{ runner.temp }}/translation-gates/runlog.md
 
+      - name: Record full-ui gate status
+        if: ${{ always() }}
+        run: |
+          {
+            echo "# Full UI gate"
+            echo
+            echo "- BLOCKED-NO-LIVE-CAVALRY"
+            echo "- GitHub Actions does not run live Cavalry capture; use a session-scoped local run before translation."
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: Upload desktop patcher source artifact
         uses: actions/upload-artifact@v4
         with:
@@ -73,8 +83,6 @@ jobs:
           path: |
             desktop-patcher/
             languages/
-            doc/compiled-ui-source-map.json
-            doc/translation-whitelist.json
             README.md
             LICENSE
             package.json
@@ -87,6 +95,7 @@ jobs:
             tools/ja_JP.ts
             tools/launch_cavalry_with_injector.sh
             tools/resolve_cavalry_qt_sdk.js
+            tools/translation-whitelist.json
             tools/validate_translations.py
             tools/zh-Hans.ts
             tools/zh-Hant.ts
@@ -114,7 +123,7 @@ jobs:
         run: npm run prepare:qt-sdk
 
       - name: Build packaged macOS patcher
-        run: npm run build
+        run: npm run build:tauri
 
       - name: Validate Tauri Rust contracts and packaged resources
         run: |

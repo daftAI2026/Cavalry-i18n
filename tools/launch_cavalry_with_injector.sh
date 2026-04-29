@@ -9,6 +9,12 @@ Options:
   --app <path>       Target Cavalry.app bundle to launch
   --lang <code>      Language code, e.g. zh-Hant
   --injector <path>  Injector dylib path to use or build into
+  --session-dir <path>
+                     Session directory that will own runtime/audit artifacts
+  --session-uuid <value>
+                     Explicit session UUID for provenance metadata
+  --cache-root <path>
+                     Shared cache root for source-map and injector build outputs
   --no-resign        Skip ad-hoc re-signing before launch
   --help             Show this help text
 EOF
@@ -36,6 +42,9 @@ remove_signature_if_present() {
 APP_PATH=""
 LANG_CODE=""
 INJECTOR_PATH=""
+SESSION_DIR=""
+SESSION_UUID=""
+CACHE_ROOT="${HOME}/Library/Caches/Cavalry-i18n"
 RESIGN_APP=1
 
 while [ "$#" -gt 0 ]; do
@@ -50,6 +59,18 @@ while [ "$#" -gt 0 ]; do
       ;;
     --injector)
       INJECTOR_PATH="${2:-}"
+      shift 2
+      ;;
+    --session-dir)
+      SESSION_DIR="${2:-}"
+      shift 2
+      ;;
+    --session-uuid)
+      SESSION_UUID="${2:-}"
+      shift 2
+      ;;
+    --cache-root)
+      CACHE_ROOT="${2:-}"
       shift 2
       ;;
     --no-resign)
@@ -82,11 +103,21 @@ if [ ! -x "$APP_BIN" ]; then
   exit 1
 fi
 
+if [ -z "$SESSION_UUID" ]; then
+  SESSION_UUID="$(uuidgen)"
+fi
+
+if [ -z "$SESSION_DIR" ]; then
+  SESSION_DIR="$CACHE_ROOT/sessions/$SESSION_UUID"
+fi
+
+mkdir -p "$SESSION_DIR/runtime" "$SESSION_DIR/audit"
+
 if [ -z "$INJECTOR_PATH" ]; then
-  CACHE_ROOT="${HOME}/Library/Caches/Cavalry-i18n"
   INJECTOR_PATH="$CACHE_ROOT/libCavalryTranslatorInjector.dylib"
 fi
 
+eval "$(node "$REPO_ROOT/tools/resolve_cavalry_qt_sdk.js" --app "$APP_PATH" --ensure --print-env)"
 /bin/bash "$REPO_ROOT/tools/build_translator_injector.sh" "$INJECTOR_PATH" "$APP_PATH/Contents/Frameworks"
 
 if [ "$RESIGN_APP" -eq 1 ]; then
@@ -101,9 +132,13 @@ if [ "$RESIGN_APP" -eq 1 ]; then
 fi
 
 echo "Launching $APP_PATH with embedded translator for $LANG_CODE"
-LAUNCH_LOG="${HOME}/Library/Caches/Cavalry-i18n/launcher.log"
+LAUNCH_LOG="$SESSION_DIR/audit/${LANG_CODE}-injector-launch.log"
 mkdir -p "$(dirname "$LAUNCH_LOG")"
 nohup env \
   DYLD_INSERT_LIBRARIES="$INJECTOR_PATH" \
   CAVALRY_I18N_LANG="$LANG_CODE" \
+  CAVALRY_I18N_CACHE_ROOT="$CACHE_ROOT" \
+  CAVALRY_I18N_SESSION_DIR="$SESSION_DIR" \
+  CAVALRY_I18N_SESSION_UUID="$SESSION_UUID" \
   "$APP_BIN" >>"$LAUNCH_LOG" 2>&1 &
+echo "$!"

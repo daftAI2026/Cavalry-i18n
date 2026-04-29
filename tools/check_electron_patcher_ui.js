@@ -38,6 +38,97 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function sha256(filePath) {
+  return require('node:crypto').createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+function sha256JsonWithoutHash(value) {
+  const copy = JSON.parse(JSON.stringify(value));
+  delete copy.hash;
+  return require('node:crypto').createHash('sha256').update(JSON.stringify(copy)).digest('hex');
+}
+
+function copyTool(tempRoot, toolName) {
+  const sourcePath = path.join(repoRoot, 'tools', toolName);
+  const targetPath = path.join(tempRoot, 'tools', toolName);
+  fs.mkdirSync(path.dirname(targetPath), { recursive: true });
+  fs.copyFileSync(sourcePath, targetPath);
+}
+
+function writeLanguageFixture(rootDir, languageCode, values) {
+  const languageRoot = path.join(rootDir, 'languages', languageCode);
+  writeJson(path.join(languageRoot, 'appStrings.json'), [{ value: { label: values.appLabel } }]);
+  writeJson(path.join(languageRoot, 'nodeStrings.json'), [{ value: { label: values.nodeLabel } }]);
+  writeJson(path.join(languageRoot, 'onboarding.json'), [{ value: { label: values.onboardingLabel } }]);
+  writeJson(path.join(languageRoot, 'tips.json'), [{ value: { label: values.tipLabel } }]);
+}
+
+function writeFrozenExtractionInventory(rootDir, extractionPath) {
+  writeJson(extractionPath, {
+    surfaces: {
+      'languages/en/appStrings.json': {
+        englishLeaves: [{ path: '$[0].value.label', value: 'Frozen App Label', valueType: 'string' }],
+      },
+      'languages/en/nodeStrings.json': {
+        englishLeaves: [{ path: '$[0].value.label', value: 'Frozen Node Label', valueType: 'string' }],
+      },
+      'languages/en/onboarding.json': {
+        englishLeaves: [{ path: '$[0].value.label', value: 'Frozen Onboarding Label', valueType: 'string' }],
+      },
+      'languages/en/tips.json': {
+        englishLeaves: [{ path: '$[0].value.label', value: 'Frozen Tip Label', valueType: 'string' }],
+      },
+    },
+  });
+}
+
+function makeValidatorFixtureRepo() {
+  const tempRoot = makeTempDir();
+  copyTool(tempRoot, 'validate_translations.py');
+  copyTool(tempRoot, 'forbidden_translation_patterns.py');
+  copyTool(tempRoot, 'forbidden_translation_patterns.json');
+
+  writeJson(path.join(tempRoot, 'tools', 'translation-whitelist.json'), {
+    appStrings: { translate: ['label'], no_translate: [], locale_sync: [] },
+    nodeStrings: { translate: ['label'], no_translate: [], locale_sync: [] },
+    onboarding: { translate: ['label'], no_translate: [], locale_sync: [] },
+    tips: { translate: ['label'], no_translate: [], locale_sync: [] },
+    plugins: { translate: ['label'], no_translate: [], locale_sync: [] },
+  });
+
+  writeJson(path.join(tempRoot, 'languages', 'en', 'appStrings.json'), [
+    { value: { label: 'Current App Label', extra: 'Current Extra Leaf' } },
+  ]);
+  writeJson(path.join(tempRoot, 'languages', 'en', 'nodeStrings.json'), [{ value: { label: 'Current Node Label' } }]);
+  writeJson(path.join(tempRoot, 'languages', 'en', 'onboarding.json'), [
+    { value: { label: 'Current Onboarding Label' } },
+  ]);
+  writeJson(path.join(tempRoot, 'languages', 'en', 'tips.json'), [{ value: { label: 'Current Tip Label' } }]);
+
+  writeLanguageFixture(tempRoot, 'zh-Hans', {
+    appLabel: 'Current App Label',
+    nodeLabel: '节点标签',
+    onboardingLabel: '欢迎',
+    tipLabel: '提示',
+  });
+  writeLanguageFixture(tempRoot, 'zh-Hant', {
+    appLabel: '目前的應用標籤',
+    nodeLabel: '節點標籤',
+    onboardingLabel: '歡迎',
+    tipLabel: '提示',
+  });
+  writeLanguageFixture(tempRoot, 'ja_JP', {
+    appLabel: '現在のアプリラベル',
+    nodeLabel: 'ノードラベル',
+    onboardingLabel: 'ようこそ',
+    tipLabel: 'ヒント',
+  });
+
+  const extractionPath = path.join(tempRoot, 'session', 'extraction-inventory.json');
+  writeFrozenExtractionInventory(tempRoot, extractionPath);
+  return { tempRoot, extractionPath };
+}
+
 function makeFakeBundle(rootDir) {
   const appPath = path.join(rootDir, 'Cavalry.app');
   const assetsRoot = path.join(appPath, 'Contents', 'assets');
@@ -649,8 +740,8 @@ test('package.json exposes a matrix full UI blocker script with a runlog path', 
   );
   assert.match(
     scripts['check:full-ui'] || '',
-    /full-ui-runlog\.json/,
-    'matrix full-UI blocker should write a stable runlog file so progress can be measured across repeated real-app runs'
+    /full-ui-run-record\.json/,
+    'matrix full-UI blocker should write the run record under SESSION_DIR so progress is tied to the live capture session'
   );
 });
 
@@ -675,6 +766,95 @@ test('verify gate inputs fails on known bypass artifacts before matrix execution
   assert.match(`${result.stdout}\n${result.stderr}`, /prepare:full-ui-gate/);
   assert.match(`${result.stdout}\n${result.stderr}`, /full_ui_inventory_fixtures/);
   assert.match(`${result.stdout}\n${result.stderr}`, /libExtensionLayer-curated-ui\.txt/);
+});
+
+test('verify gate inputs rejects curated source maps and non-whitelisted live capture sources', () => {
+  const tempRoot = makeTempDir();
+  const preflightPath = path.join(repoRoot, 'tools', 'verify_gate_inputs.js');
+  const cacheRoot = path.join(tempRoot, 'cache');
+  const sessionDir = path.join(cacheRoot, 'sessions', 'ABC123');
+  const runtimeDir = path.join(sessionDir, 'runtime');
+  const sourceMapPath = path.join(cacheRoot, 'compiled-ui-source-map.json');
+
+  writeJson(path.join(tempRoot, 'package.json'), { scripts: {} });
+  fs.mkdirSync(runtimeDir, { recursive: true });
+  writeJson(path.join(runtimeDir, 'zh-Hans-merged-inventory.json'), {
+    capture: {
+      pid: 123,
+      bundleHash: 'abc',
+      sessionUuid: 'ABC123',
+      wallclockUtc: '2026-04-29T12:00:00.000Z',
+      source: 'live-dump',
+    },
+  });
+  writeJson(sourceMapPath, {
+    kind: 'curated',
+    entries: [],
+  });
+
+  const result = spawnSync(
+    process.execPath,
+    [
+      preflightPath,
+      '--repo-root',
+      tempRoot,
+      '--cache-root',
+      cacheRoot,
+      '--session-dir',
+      sessionDir,
+      '--compiled-source-map',
+      sourceMapPath,
+    ],
+    {
+      encoding: 'utf8',
+    }
+  );
+
+  assert.equal(result.status, 1, 'preflight should fail when source-map/runtime provenance is not live');
+  assert.match(`${result.stdout}\n${result.stderr}`, /compiled source map kind/i);
+  assert.match(`${result.stdout}\n${result.stderr}`, /live-dump/);
+});
+
+test('verify gate inputs rejects runtime inventories outside SESSION_DIR/runtime', () => {
+  const tempRoot = makeTempDir();
+  const preflightPath = path.join(repoRoot, 'tools', 'verify_gate_inputs.js');
+  const cacheRoot = path.join(tempRoot, 'cache');
+  const sessionDir = path.join(cacheRoot, 'sessions', 'ABC123');
+
+  writeJson(path.join(tempRoot, 'package.json'), { scripts: {} });
+  fs.mkdirSync(sessionDir, { recursive: true });
+  writeJson(path.join(cacheRoot, 'compiled-ui-source-map.json'), {
+    kind: 'generated',
+    entries: [],
+  });
+  writeJson(path.join(sessionDir, 'zh-Hans-merged-inventory.json'), {
+    capture: {
+      pid: 123,
+      bundleHash: 'abc',
+      sessionUuid: 'ABC123',
+      wallclockUtc: '2026-04-29T12:00:00.000Z',
+      source: 'live-merged',
+    },
+  });
+
+  const result = spawnSync(
+    process.execPath,
+    [
+      preflightPath,
+      '--repo-root',
+      tempRoot,
+      '--cache-root',
+      cacheRoot,
+      '--session-dir',
+      sessionDir,
+    ],
+    {
+      encoding: 'utf8',
+    }
+  );
+
+  assert.equal(result.status, 1, 'preflight should fail when runtime inventory escapes SESSION_DIR/runtime');
+  assert.match(`${result.stdout}\n${result.stderr}`, /SESSION_DIR\/runtime|runtime artifact outside/i);
 });
 
 test('compiled UI source map is generated in the local cache, not tracked under doc', () => {
@@ -769,6 +949,227 @@ test('full UI coverage checker composes runtime, compiled, and JSON-backed valid
   );
 });
 
+test('runtime UI coverage can lock its denominator to frozen extraction candidates', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_runtime_ui_coverage.js');
+  const { buildCoverage } = require(checkerPath);
+
+  const report = buildCoverage(
+    {
+      language: 'ja_JP',
+      menuBars: [
+        {
+          items: [
+            { text: '編集', separator: false },
+            { text: 'Scene Window', separator: false },
+          ],
+        },
+      ],
+      widgetTexts: [],
+    },
+    { exact: [], contains: [] },
+    {
+      englishLeaves: [{ value: 'File' }, { value: 'Edit' }, { value: 'Scene Window' }],
+    }
+  );
+
+  assert.equal(
+    report.totalCandidates,
+    3,
+    'runtime coverage should use the frozen extraction candidate count instead of shrinking the denominator to the current translated inventory'
+  );
+  assert.equal(report.denominatorSource, 'extraction-inventory');
+  assert.equal(report.untranslatedCount, 1);
+  assert.equal(report.coveragePct, 66.67);
+});
+
+test('compiled coverage can lock its denominator to frozen extraction entries', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
+  const { buildCompiledCoverage } = require(checkerPath);
+
+  const report = buildCompiledCoverage(
+    {
+      entries: [{ normalizedText: 'Scene Window', surfaceHint: 'menu-or-action-like' }],
+    },
+    new Map([['Scene Window', 'シーンウィンドウ']]),
+    { exact: [], contains: [] },
+    {
+      englishLeaves: [
+        { value: 'Scene Window', surfaceHint: 'menu-or-action-like' },
+        { value: 'Render Queue', surfaceHint: 'menu-or-action-like' },
+      ],
+    }
+  );
+
+  assert.equal(
+    report.totalCandidates,
+    2,
+    'compiled coverage should use the frozen extraction entry set instead of shrinking the denominator to the current source-map subset'
+  );
+  assert.equal(report.denominatorSource, 'extraction-inventory');
+  assert.deepEqual(report.untranslated, ['Render Queue']);
+  assert.equal(report.coveragePct, 50);
+});
+
+test('compiled coverage reuses punctuation-normalized TS translations for aliased source-map entries', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
+  const { buildCompiledCoverage } = require(checkerPath);
+
+  const report = buildCompiledCoverage(
+    {
+      entries: [
+        { normalizedText: 'Action not allowed. Adding composition would create a cycle.', surfaceHint: 'sentence-like' },
+      ],
+    },
+    new Map([['Action not allowed. Adding composition would create a cycle', '不允许此操作。添加该合成会形成循环。']]),
+    { exact: [], contains: [] },
+    {
+      englishLeaves: [
+        {
+          value: 'Action not allowed. Adding composition would create a cycle.',
+          surfaceHint: 'sentence-like',
+        },
+      ],
+    }
+  );
+
+  assert.equal(
+    report.untranslatedCount,
+    0,
+    'compiled coverage should honor punctuation-normalized aliases instead of requiring duplicate TS entries for every dotted variant'
+  );
+  assert.equal(report.coveragePct, 100);
+});
+
+test('compiled coverage filter rejects debug labels, copyright strings, glyph names, and shaping-engine internals', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
+  const { shouldCountCompiledCandidate } = require(checkerPath);
+  const allowlist = { exact: [], contains: [] };
+
+  assert.equal(shouldCountCompiledCandidate('0: Root', 'label-like', allowlist), false);
+  assert.equal(shouldCountCompiledCandidate('2026 Scene Group Ltd', 'label-like', allowlist), false);
+  assert.equal(shouldCountCompiledCandidate('2026 Scene Group Ltd.', 'label-like', allowlist), false);
+  assert.equal(shouldCountCompiledCandidate('Aacute', 'menu-or-action-like', allowlist), false);
+  assert.equal(shouldCountCompiledCandidate('Acircumflexsmall', 'menu-or-action-like', allowlist), false);
+  assert.equal(shouldCountCompiledCandidate('Above-base Forms', 'label-like', allowlist), false);
+  assert.equal(shouldCountCompiledCandidate('Above-base Mark Positioning', 'label-like', allowlist), false);
+  assert.equal(shouldCountCompiledCandidate('Above-base Substitutions', 'label-like', allowlist), false);
+  assert.equal(shouldCountCompiledCandidate('About Cavalry', 'menu-or-action-like', allowlist), true);
+  assert.equal(shouldCountCompiledCandidate('Access All Alternates', 'label-like', allowlist), true);
+});
+
+test('JSON validator can read frozen extraction leaves and still return structured blocker data on failure', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
+  const { runJsonValidator } = require(checkerPath);
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+
+  const report = runJsonValidator(tempRoot, 'zh-Hans', extractionPath);
+
+  assert.equal(
+    report.structureIssueCount,
+    0,
+    'validator should trust the frozen extraction leaf set instead of failing on new English leaves that were added after freeze'
+  );
+  assert.equal(
+    report.coveragePct,
+    100,
+    'validator should measure translated-leaf coverage against the frozen extraction source values'
+  );
+  assert.equal(report.englishResidueCount, 1);
+  assert.equal(
+    report.pass,
+    false,
+    'validator should still return a structured failing report when the language contains blockers'
+  );
+});
+
+test('JSON validator falls back to live English plugin files when extraction only freezes core JSON surfaces', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
+  const { runJsonValidator } = require(checkerPath);
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+
+  writeJson(path.join(tempRoot, 'languages', 'en', 'plugins', 'testPlugin.json'), {
+    label: 'English Plugin Label',
+  });
+  writeJson(path.join(tempRoot, 'languages', 'zh-Hans', 'plugins', 'testPlugin.json'), {
+    label: '中文插件标签',
+  });
+  writeJson(path.join(tempRoot, 'languages', 'zh-Hant', 'plugins', 'testPlugin.json'), {
+    label: '中文外掛標籤',
+  });
+  writeJson(path.join(tempRoot, 'languages', 'ja_JP', 'plugins', 'testPlugin.json'), {
+    label: 'プラグインラベル',
+  });
+
+  const report = runJsonValidator(tempRoot, 'zh-Hant', extractionPath);
+
+  assert.equal(
+    report.structureIssueCount,
+    0,
+    'plugin validation should keep using the live English source files instead of crashing on missing plugin surfaces in extraction'
+  );
+  assert.equal(report.pass, true);
+});
+
+test('JSON validator allows exact-English translate leaves when they are pure allowlisted technical tokens', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
+  const { runJsonValidator } = require(checkerPath);
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+
+  const extraction = readJson(extractionPath);
+  extraction.surfaces['languages/en/appStrings.json'].englishLeaves[0].value = 'CPU';
+  writeJson(extractionPath, extraction);
+  writeJson(path.join(tempRoot, 'languages', 'zh-Hant', 'appStrings.json'), [{ value: { label: 'CPU' } }]);
+
+  const report = runJsonValidator(tempRoot, 'zh-Hant', extractionPath);
+
+  assert.equal(report.coveragePct, 100);
+  assert.equal(
+    report.pass,
+    true,
+    'G1 should not fail when a translate leaf remains exactly equal to the frozen English source if that value is a pure allowlisted technical token'
+  );
+});
+
+test('JSON validator allows exact translate leaves when they are numeric or empty technical values', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
+  const { runJsonValidator } = require(checkerPath);
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+
+  const extraction = readJson(extractionPath);
+  extraction.surfaces['languages/en/appStrings.json'].englishLeaves[0].value = '3:1';
+  writeJson(extractionPath, extraction);
+  writeJson(path.join(tempRoot, 'languages', 'zh-Hant', 'appStrings.json'), [{ value: { label: '3:1' } }]);
+
+  const report = runJsonValidator(tempRoot, 'zh-Hant', extractionPath);
+
+  assert.equal(report.coveragePct, 100);
+  assert.equal(
+    report.pass,
+    true,
+    'G1 should not fail when a translate leaf remains exactly equal to the frozen English source if that value is purely numeric or symbolic'
+  );
+});
+
+test('JSON validator hard-fails when frozen translate leaves stay equal to untranslated English copy', () => {
+  const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
+  const { runJsonValidator } = require(checkerPath);
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+
+  const extraction = readJson(extractionPath);
+  extraction.surfaces['languages/en/appStrings.json'].englishLeaves[0].value = 'English Label';
+  writeJson(extractionPath, extraction);
+  writeJson(path.join(tempRoot, 'languages', 'zh-Hant', 'appStrings.json'), [{ value: { label: 'English Label' } }]);
+
+  const report = runJsonValidator(tempRoot, 'zh-Hant', extractionPath);
+
+  assert.equal(report.coveragePct, 75);
+  assert.equal(
+    report.pass,
+    false,
+    'G1 should still fail when a translate leaf remains exactly equal to natural-language English source text'
+  );
+});
+
 test('translation validator rejects the legacy 0.90 coverage threshold', () => {
   const validatorSource = fs.readFileSync(
     path.join(repoRoot, 'tools', 'validate_translations.py'),
@@ -812,6 +1213,66 @@ test('full UI matrix checker runs all languages and writes a structured runlog',
     checkerSource,
     /runtime[\s\S]*compiled[\s\S]*jsonValidation|jsonValidation[\s\S]*runtime[\s\S]*compiled/,
     'matrix full-UI checker runlog should retain the runtime, compiled, and JSON blocker details for each language'
+  );
+  assert.match(
+    checkerSource,
+    /forbiddenPatterns/,
+    'matrix full-UI checker run record should preserve per-language forbidden-pattern summaries'
+  );
+  assert.match(
+    checkerSource,
+    /provenance/,
+    'matrix full-UI checker run record should preserve per-language provenance details'
+  );
+  assert.match(
+    checkerSource,
+    /sessionUuid/,
+    'matrix full-UI checker run record should bind the current session UUID'
+  );
+  assert.match(
+    checkerSource,
+    /runtimeDir/,
+    'matrix full-UI checker run record should record the current runtime directory'
+  );
+  assert.match(
+    checkerSource,
+    /--session-dir|sessionDir/,
+    'matrix full-UI checker should require an explicit session dir instead of discovering runtime inputs from cache root'
+  );
+  assert.match(
+    checkerSource,
+    /runtime[\s\S]*-merged-inventory\.json|-merged-inventory\.json[\s\S]*runtime/,
+    'matrix full-UI checker should read merged runtime artifacts from SESSION_DIR/runtime'
+  );
+  assert.match(
+    checkerSource,
+    /sourceMap[\s\S]*hash|hash[\s\S]*sourceMap/,
+    'matrix full-UI checker run record should preserve source-map hash provenance'
+  );
+  assert.match(
+    checkerSource,
+    /sourceMap[\s\S]*mtime|mtime[\s\S]*sourceMap/,
+    'matrix full-UI checker run record should preserve source-map mtime provenance'
+  );
+  assert.match(
+    checkerSource,
+    /extractionInventory/,
+    'matrix full-UI checker run record should preserve frozen extraction inventory provenance'
+  );
+  assert.match(
+    checkerSource,
+    /frozenBaselines/,
+    'matrix full-UI checker run record should preserve the whitelist and allowlist provenance used for the gate run'
+  );
+  assert.match(
+    checkerSource,
+    /blockedReason/,
+    'matrix full-UI checker should keep a structured blocked reason in the run record when a language run crashes or produces no report'
+  );
+  assert.doesNotMatch(
+    checkerSource,
+    /inventoryPath\s*=\s*path\.join\(CACHE_ROOT,/,
+    'matrix full-UI checker should not hardcode root-cache runtime inventory discovery'
   );
   assert.match(
     checkerSource,
@@ -893,6 +1354,21 @@ test('compiled UI extractor rejects HTTP status labels and debug errors that are
   );
 });
 
+test('compiled UI extractor emits punctuation-normalized label aliases for raw UI strings', () => {
+  const extractorPath = path.join(repoRoot, 'tools', 'extract_compiled_ui_strings.js');
+  const { extractEntriesFromLines } = require(extractorPath);
+
+  const entries = extractEntriesFromLines('/tmp/Cavalry', ['No Project Set.', 'No Project Set...']);
+  const texts = entries.map((entry) => entry.text);
+
+  assert.ok(texts.includes('No Project Set.'), 'extractor should keep the raw compiled string');
+  assert.ok(texts.includes('No Project Set...'), 'extractor should keep ellipsis variants from raw extraction');
+  assert.ok(
+    texts.includes('No Project Set'),
+    'extractor should also emit the punctuation-normalized label form for downstream denominator checks'
+  );
+});
+
 test('embedded injector exports the real runtime menu tree from Cavalry itself', () => {
   const injectorSource = fs.readFileSync(
     path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
@@ -924,6 +1400,371 @@ test('embedded injector exports the real runtime menu tree from Cavalry itself',
     /windowTitle|placeholderText|toolTip|widgetTexts|serializeWidget/,
     'runtime inventory should cover broader visible UI text beyond menus so completion can be measured across the real app surface'
   );
+});
+
+test('injector supports English dump-only and session-scoped runtime inventory output', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /CAVALRY_I18N_LANG/,
+    'injector should continue to read the target language from the environment'
+  );
+  assert.match(
+    injectorSource,
+    /lang\s*==\s*QStringLiteral\("en"\)|dump-only|english/i,
+    'injector should special-case English dump-only capture instead of rejecting en as an unsupported language'
+  );
+  assert.match(
+    injectorSource,
+    /sessionUuid|bundleHash|wallclockUtc|source/,
+    'injector runtime inventory should write full provenance metadata for G-CAPTURE and G-P'
+  );
+  assert.match(
+    injectorSource,
+    /runtime\/.*-injector-inventory\.json|-injector-inventory\.json/,
+    'injector should write session-scoped injector inventories instead of cache-root menu-inventory.json'
+  );
+});
+
+test('launcher passes session-scoped capture environment into the injector process', () => {
+  const launcherSource = fs.readFileSync(path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'), 'utf8');
+
+  assert.match(
+    launcherSource,
+    /--session-dir|SESSION_DIR|CAVALRY_I18N_SESSION_DIR/,
+    'launcher should accept and forward the session dir for runtime capture artifacts'
+  );
+  assert.match(
+    launcherSource,
+    /--session-uuid|SESSION_UUID|CAVALRY_I18N_SESSION_UUID/,
+    'launcher should accept and forward the session UUID for provenance'
+  );
+  assert.match(
+    launcherSource,
+    /--cache-root|CACHE_ROOT|CAVALRY_I18N_CACHE_ROOT/,
+    'launcher should accept and forward the cache root for shared toolchain inputs'
+  );
+});
+
+test('runtime merge tool preserves live provenance and rejects non-live inputs', () => {
+  const mergePath = path.join(repoRoot, 'tools', 'merge_runtime_inventory.js');
+  const { mergeRuntimeInventories } = require(mergePath);
+
+  const merged = mergeRuntimeInventories({
+    language: 'zh-Hans',
+    injectorInventory: {
+      language: 'zh-Hans',
+      capture: {
+        pid: 101,
+        bundleHash: 'bundle-hash',
+        sessionUuid: 'ABC123',
+        wallclockUtc: '2026-04-29T12:00:00.000Z',
+        source: 'live-injector',
+      },
+      menuBars: [{ items: [{ text: 'File' }] }],
+      widgetTexts: [],
+    },
+    accessibilityInventory: {
+      language: 'zh-Hans',
+      capture: {
+        pid: 101,
+        bundleHash: 'bundle-hash',
+        sessionUuid: 'ABC123',
+        wallclockUtc: '2026-04-29T12:00:01.000Z',
+        source: 'live-accessibility',
+      },
+      menuBars: [],
+      widgetTexts: [{ className: 'AXWindow', strings: { windowTitle: 'Library' } }],
+    },
+  });
+
+  assert.equal(merged.capture.source, 'live-merged');
+  assert.equal(merged.capture.sessionUuid, 'ABC123');
+  assert.equal(merged.capture.bundleHash, 'bundle-hash');
+  assert.equal(merged.menuBars.length, 1);
+  assert.equal(merged.widgetTexts.length, 1);
+  assert.throws(
+    () =>
+      mergeRuntimeInventories({
+        language: 'zh-Hans',
+        injectorInventory: {
+          language: 'zh-Hans',
+          capture: { source: 'repo-fixture' },
+          menuBars: [],
+          widgetTexts: [],
+        },
+        accessibilityInventory: {
+          language: 'zh-Hans',
+          capture: { source: 'live-accessibility' },
+          menuBars: [],
+          widgetTexts: [],
+        },
+      }),
+    /live-injector|live-accessibility/,
+    'merge tool should reject fixture or curated runtime inputs'
+  );
+});
+
+test('live full UI matrix orchestrator owns session runtime and audit artifacts', () => {
+  const orchestratorSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'run_live_full_ui_matrix.js'),
+    'utf8'
+  );
+
+  assert.match(
+    orchestratorSource,
+    /full-ui-run-record\.json/,
+    'live matrix orchestrator should own the session run record'
+  );
+  assert.match(
+    orchestratorSource,
+    /runtime\/.*-injector-inventory\.json|runtime\/.*-ax-inventory\.json|runtime\/.*-merged-inventory\.json/,
+    'live matrix orchestrator should write injector, accessibility, and merged runtime artifacts under SESSION_DIR/runtime'
+  );
+  assert.match(
+    orchestratorSource,
+    /audit\/.*-injector-capture\.json|audit\/.*-ax-capture\.json|audit\/.*-merge\.json/,
+    'live matrix orchestrator should write capture audit artifacts under SESSION_DIR/audit'
+  );
+  assert.match(
+    orchestratorSource,
+    /launch_cavalry_with_injector|capture_accessibility_inventory|merge_runtime_inventory/,
+    'live matrix orchestrator should explicitly chain launcher, AX capture, and merge steps'
+  );
+});
+
+test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and packages with build:tauri', () => {
+  const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
+
+  assert.match(
+    workflowSource,
+    /BLOCKED-NO-LIVE-CAVALRY/,
+    'CI workflow should emit BLOCKED-NO-LIVE-CAVALRY when no live Cavalry session can run full-ui gates'
+  );
+  assert.match(
+    workflowSource,
+    /run: npm run build:tauri/,
+    'macOS packaging workflow should use npm run build:tauri'
+  );
+  assert.doesNotMatch(
+    workflowSource,
+    /run: npm run build$|doc\/compiled-ui-source-map\.json|doc\/translation-whitelist\.json/,
+    'workflow should not keep the legacy build command or doc-scoped gate artifacts'
+  );
+});
+
+test('check:full-ui binds SESSION_DIR and frozen compiled source map explicitly', () => {
+  const packageJson = readJson(path.join(repoRoot, 'package.json'));
+  const script = packageJson.scripts['check:full-ui'] || '';
+
+  assert.match(script, /SESSION_DIR|session-dir/, 'check:full-ui should bind the current SESSION_DIR explicitly');
+  assert.match(
+    script,
+    /compiled-ui-source-map\.json/,
+    'check:full-ui should bind the authoritative compiled source map explicitly'
+  );
+  assert.doesNotMatch(script, /full-ui-runlog\.json/, 'check:full-ui should stop writing runlogs outside SESSION_DIR');
+});
+
+test('accessibility capture uses menu scripting that can see real submenu items', () => {
+  const captureSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'capture_accessibility_inventory.js'),
+    'utf8'
+  );
+
+  assert.match(
+    captureSource,
+    /menu 1 of menu bar item|tell application \"System Events\"|menu bar item \"/,
+    'AX capture should use a submenu traversal strategy that can see real menu items, not only top-level menu bar labels'
+  );
+});
+
+test('accessibility capture activates and opens menus before enumerating submenu items', () => {
+  const captureSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'capture_accessibility_inventory.js'),
+    'utf8'
+  );
+
+  assert.match(
+    captureSource,
+    /click menu bar item|perform action \"AXPress\"/,
+    'AX capture should explicitly open a menu before reading its submenu contents'
+  );
+  assert.match(
+    captureSource,
+    /activate|frontmost/,
+    'AX capture should bring the target app to the foreground before walking the menu tree'
+  );
+});
+
+test('accessibility capture returns submenu paths from recursive AppleScript traversal', () => {
+  const captureSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'capture_accessibility_inventory.js'),
+    'utf8'
+  );
+
+  assert.match(
+    captureSource,
+    /return nestedLines|set outputLines to outputLines & my collectMenuItems/,
+    'AX capture should return submenu path lines from recursive handlers instead of relying on pass-by-value list mutation'
+  );
+});
+
+test('accessibility capture runs recursive submenu enumeration inside System Events context', () => {
+  const captureSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'capture_accessibility_inventory.js'),
+    'utf8'
+  );
+
+  assert.match(
+    captureSource,
+    /on collectMenuItems[\s\S]*tell application \"System Events\"/,
+    'AX capture should keep recursive menu enumeration inside System Events so submenu references stay live'
+  );
+});
+
+test('freeze extraction inventory writes frozen denominator surfaces and run-record provenance', () => {
+  const tempRoot = makeTempDir();
+  const sessionDir = path.join(tempRoot, 'session');
+  const runtimeDir = path.join(sessionDir, 'runtime');
+  const runRecordPath = path.join(sessionDir, 'full-ui-run-record.json');
+  const extractionPath = path.join(sessionDir, 'extraction-inventory.json');
+  const sourceMapPath = path.join(tempRoot, 'compiled-ui-source-map.json');
+  const freezePath = path.join(repoRoot, 'tools', 'freeze_extraction_inventory.js');
+
+  writeJson(path.join(tempRoot, 'package.json'), { version: '0.1.2' });
+  writeJson(path.join(tempRoot, 'tools', 'translation-whitelist.json'), {
+    nodeStrings: { translate: ['title', 'description'], no_translate: [], locale_sync: [] },
+    appStrings: { translate: ['title', 'cta'], no_translate: [], locale_sync: [] },
+    tips: { translate: ['title'], no_translate: [], locale_sync: [] },
+    onboarding: { translate: ['title'], no_translate: [], locale_sync: [] },
+  });
+  writeJson(path.join(tempRoot, 'tools', 'runtime_ui_allowlist.json'), {
+    exact: [],
+    contains: [],
+  });
+  writeJson(path.join(tempRoot, 'languages', 'en', 'nodeStrings.json'), {
+    title: 'Node Title',
+    description: 'Node Description',
+  });
+  writeJson(path.join(tempRoot, 'languages', 'en', 'appStrings.json'), {
+    title: 'App Title',
+    cta: 'Open Scene',
+  });
+  writeJson(path.join(tempRoot, 'languages', 'en', 'tips.json'), { title: 'Tip Title' });
+  writeJson(path.join(tempRoot, 'languages', 'en', 'onboarding.json'), { title: 'Welcome' });
+  writeJson(sourceMapPath, {
+    entries: [
+      { text: 'Scene Window', normalizedText: 'Scene Window', surfaceHint: 'menu-or-action-like' },
+      { text: 'Render Queue', normalizedText: 'Render Queue', surfaceHint: 'menu-or-action-like' },
+    ],
+  });
+  writeJson(path.join(runtimeDir, 'en-merged-inventory.json'), {
+    formatVersion: 3,
+    language: 'en',
+    capture: {
+      pid: 123,
+      bundleHash: 'bundle-hash',
+      sessionUuid: path.basename(sessionDir),
+      wallclockUtc: '2026-04-29T00:00:00.000Z',
+      source: 'live-merged',
+    },
+    menuBars: [
+      {
+        items: [
+          { text: 'File', submenu: { title: 'File', items: [{ text: 'Open...' }, { text: 'Render Queue' }] } },
+        ],
+      },
+    ],
+    widgetTexts: [{ className: 'AXWindow', strings: { windowTitle: 'Scene Window' } }],
+  });
+  writeJson(runRecordPath, {
+    sessionUuid: path.basename(sessionDir),
+    sessionDir,
+  });
+
+  const result = spawnSync(
+    process.execPath,
+    [freezePath, '--repo-root', tempRoot, '--session-dir', sessionDir, '--compiled-source-map', sourceMapPath],
+    { encoding: 'utf8' }
+  );
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const extraction = readJson(extractionPath);
+  assert.deepEqual(
+    Object.keys(extraction.surfaces).sort(),
+    [
+      'compiled-source-map',
+      'json-total',
+      'languages/en/appStrings.json',
+      'languages/en/nodeStrings.json',
+      'languages/en/onboarding.json',
+      'languages/en/tips.json',
+      'runtime-candidates',
+      'runtime-menuLeaves',
+    ].sort()
+  );
+  assert.equal(extraction.surfaces['languages/en/nodeStrings.json'].count, 2);
+  assert.equal(extraction.surfaces['json-total'].count, 6);
+  assert.equal(extraction.surfaces['compiled-source-map'].count, 2);
+  assert.equal(extraction.surfaces['runtime-candidates'].count, 4);
+  assert.equal(extraction.surfaces['runtime-menuLeaves'].count, 4);
+  assert.ok(Array.isArray(extraction.englishLeaves['compiled-source-map']));
+  assert.equal(extraction.englishLeaves['compiled-source-map'].length, 2);
+  assert.equal(extraction.hash, sha256JsonWithoutHash(extraction));
+
+  const runRecord = readJson(runRecordPath);
+  assert.equal(runRecord.extractionInventory.path, extractionPath);
+  assert.equal(runRecord.extractionInventory.hash, extraction.hash);
+  assert.ok(runRecord.extractionInventory.mtime);
+});
+
+test('verify gate inputs accepts extraction inventory runtime candidates and menuLeaves bounds', () => {
+  const tempRoot = makeTempDir();
+  const sessionDir = path.join(tempRoot, 'session');
+  const sourceMapPath = path.join(tempRoot, 'compiled-ui-source-map.json');
+  const extractionPath = path.join(sessionDir, 'extraction-inventory.json');
+  const verifierPath = path.join(repoRoot, 'tools', 'verify_gate_inputs.js');
+
+  fs.mkdirSync(sessionDir, { recursive: true });
+  writeJson(path.join(tempRoot, 'package.json'), { scripts: {} });
+  writeJson(sourceMapPath, {
+    entries: new Array(4743).fill({ normalizedText: 'Scene Window' }),
+  });
+  writeJson(extractionPath, {
+    surfaces: {
+      'languages/en/appStrings.json': { count: 4 },
+      'languages/en/nodeStrings.json': { count: 6320 },
+      'languages/en/onboarding.json': { count: 34 },
+      'languages/en/tips.json': { count: 51 },
+      'json-total': { count: 6409 },
+      'compiled-source-map': { count: 4743 },
+      'runtime-candidates': { count: 613 },
+      'runtime-menuLeaves': { count: 666 },
+    },
+  });
+
+  const result = spawnSync(
+    process.execPath,
+    [
+      verifierPath,
+      '--repo-root',
+      tempRoot,
+      '--session-dir',
+      sessionDir,
+      '--compiled-source-map',
+      sourceMapPath,
+      '--extraction-inventory',
+      extractionPath,
+    ],
+    { encoding: 'utf8' }
+  );
+
+  assert.equal(result.status, 0, result.stderr || result.stdout);
 });
 
 test('runtime UI coverage tool enforces thresholded untranslated-string reporting', () => {
@@ -1034,6 +1875,84 @@ test('runtime UI coverage tool fails forbidden translation patterns even without
   assert.match(`${result.stdout}\n${result.stderr}`, /保存（訳）/);
   assert.match(`${result.stdout}\n${result.stderr}`, /Ａｌｐｈａ/);
   assert.match(`${result.stdout}\n${result.stderr}`, /ページ:1/);
+});
+
+test('runtime allowlist keeps glossary-preserved brands and acronyms out of blocker counts', () => {
+  const allowlist = readJson(path.join(repoRoot, 'tools', 'runtime_ui_allowlist.json'));
+
+  assert.ok(
+    allowlist.contains.includes('Canva'),
+    'compiled/runtime coverage should allow the Canva brand name inside otherwise translated strings'
+  );
+  assert.ok(
+    allowlist.contains.includes('IK'),
+    'compiled/runtime coverage should allow the IK rigging acronym inside otherwise translated strings'
+  );
+});
+
+test('shared forbidden translation detector covers FP-1 through FP-6', () => {
+  const detectorPath = path.join(repoRoot, 'tools', 'forbidden_translation_patterns.js');
+  const { detectForbiddenTranslationPatterns } = require(detectorPath);
+
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({ language: 'zh-Hans', value: '上传预设管理器（译）' }).map((hit) => hit.id),
+    ['FP-1']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({ language: 'zh-Hans', value: 'ＲＧＢ' }).map((hit) => hit.id),
+    ['FP-2']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({ language: 'ja_JP', value: 'ページ3' }).map((hit) => hit.id),
+    ['FP-3']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({ language: 'zh-Hant', value: '图层' }).map((hit) => hit.id),
+    ['FP-4']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({ language: 'zh-Hans', value: '圖層' }).map((hit) => hit.id),
+    ['FP-5']
+  );
+  assert.match(
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hans',
+      sourceText: 'Upload Preset Manager',
+      value: 'Upload Preset Manager（译）',
+    })
+      .map((hit) => hit.id)
+      .join(','),
+    /FP-1[\s\S]*FP-6|FP-6[\s\S]*FP-1/,
+    'shared detector should treat source-recursive pseudo entries as a dedicated hard-fail pattern'
+  );
+  assert.equal(
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hans',
+      sourceText: 'CPU',
+      value: 'CPU',
+    }).some((hit) => hit.id === 'FP-6'),
+    false,
+    'shared detector should not label legitimate glossary-preserved terms as source-recursive pseudo translations'
+  );
+});
+
+test('runtime and JSON validators import the shared forbidden translation detector', () => {
+  const runtimeSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'check_runtime_ui_coverage.js'),
+    'utf8'
+  );
+  const validatorSource = fs.readFileSync(path.join(repoRoot, 'tools', 'validate_translations.py'), 'utf8');
+
+  assert.match(
+    runtimeSource,
+    /forbidden_translation_patterns/,
+    'runtime detector should call the shared forbidden-translation module instead of keeping a private regex copy'
+  );
+  assert.match(
+    validatorSource,
+    /forbidden_translation_patterns/,
+    'JSON validator should call the shared forbidden-translation module instead of keeping purity rules private'
+  );
 });
 
 test('checked-in generated translation table matches the ts sources', () => {

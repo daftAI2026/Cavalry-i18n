@@ -2,24 +2,75 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 
 const LANGUAGES = [
-  { language: 'ja_JP', inventory: 'ja_JP-inventory.json', ts: 'tools/ja_JP.ts' },
-  { language: 'zh-Hans', inventory: 'zh-Hans-inventory.json', ts: 'tools/zh-Hans.ts' },
-  { language: 'zh-Hant', inventory: 'zh-Hant-inventory.json', ts: 'tools/zh-Hant.ts' },
+  { language: 'ja_JP', ts: 'tools/ja_JP.ts' },
+  { language: 'zh-Hans', ts: 'tools/zh-Hans.ts' },
+  { language: 'zh-Hant', ts: 'tools/zh-Hant.ts' },
 ];
 const CACHE_ROOT = path.join(process.env.HOME || '', 'Library', 'Caches', 'Cavalry-i18n');
 const COMPILED_SOURCE_MAP_PATH = path.join(CACHE_ROOT, 'compiled-ui-source-map.json');
+const RUNTIME_ALLOWLIST_PATH = path.join('tools', 'runtime_ui_allowlist.json');
+const TRANSLATION_WHITELIST_PATH = path.join('tools', 'translation-whitelist.json');
 
 function fail(message) {
   throw new Error(message);
 }
 
+function readFileMetadata(filePath) {
+  const resolvedPath = path.resolve(filePath);
+  const contents = fs.readFileSync(resolvedPath);
+  const stats = fs.statSync(resolvedPath);
+  return {
+    path: resolvedPath,
+    hash: crypto.createHash('sha256').update(contents).digest('hex'),
+    mtime: stats.mtime.toISOString(),
+  };
+}
+
+function readJson(filePath) {
+  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function emptyForbiddenPatterns() {
+  return { total: 0, byPattern: {}, samples: [] };
+}
+
+function emptyJsonForbiddenPatterns() {
+  return { total: 0, by_pattern: {}, samples: [] };
+}
+
+function buildLanguageFailure({ config, inventoryPath, inventory, threshold, blockedReason, exitCode }) {
+  return {
+    language: config.language,
+    threshold,
+    inventoryPath,
+    runtime: null,
+    compiled: null,
+    jsonValidation: null,
+    forbiddenPatterns: {
+      runtime: emptyForbiddenPatterns(),
+      jsonValidation: emptyJsonForbiddenPatterns(),
+    },
+    provenance: {
+      inventoryPath,
+      capture: inventory?.capture || {},
+    },
+    exitCode,
+    pass: false,
+    blockedReason,
+  };
+}
+
 function parseArgs(argv) {
   const options = {
     threshold: 100,
-    runlog: path.join(process.env.HOME || '', 'Library', 'Caches', 'Cavalry-i18n', 'full-ui-runlog.json'),
+    runlog: '',
+    sessionDir: '',
+    compiledSourceMap: COMPILED_SOURCE_MAP_PATH,
+    extractionInventory: '',
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -32,21 +83,56 @@ function parseArgs(argv) {
     if (arg === '--runlog') {
       options.runlog = argv[index + 1] || '';
       index += 1;
+      continue;
+    }
+    if (arg === '--session-dir') {
+      options.sessionDir = argv[index + 1] || '';
+      index += 1;
+      continue;
+    }
+    if (arg === '--compiled-source-map') {
+      options.compiledSourceMap = argv[index + 1] || '';
+      index += 1;
+      continue;
+    }
+    if (arg === '--extraction-inventory') {
+      options.extractionInventory = argv[index + 1] || '';
+      index += 1;
     }
   }
 
   if (!Number.isFinite(options.threshold) || options.threshold < 0 || options.threshold > 100) {
     fail('Threshold must be a number between 0 and 100.');
   }
+  if (!options.sessionDir) {
+    fail('Missing required --session-dir <path> argument.');
+  }
+  if (!options.compiledSourceMap) {
+    fail('Missing required --compiled-source-map <path> argument.');
+  }
   if (!options.runlog) {
-    fail('Missing required --runlog <path> argument.');
+    options.runlog = path.join(path.resolve(options.sessionDir), 'full-ui-run-record.json');
+  }
+  if (!options.extractionInventory) {
+    options.extractionInventory = path.join(path.resolve(options.sessionDir), 'extraction-inventory.json');
   }
 
   return options;
 }
 
-function runLanguage(repoRoot, threshold, config) {
-  const inventoryPath = path.join(CACHE_ROOT, config.inventory);
+function runLanguage(repoRoot, options, config) {
+  const inventoryPath = path.join(options.sessionDir, 'runtime', `${config.language}-merged-inventory.json`);
+  if (!fs.existsSync(inventoryPath)) {
+    return buildLanguageFailure({
+      config,
+      inventoryPath,
+      inventory: null,
+      threshold: options.threshold,
+      blockedReason: `Missing runtime inventory: ${inventoryPath}`,
+      exitCode: 1,
+    });
+  }
+  const inventory = readJson(inventoryPath);
   const args = [
     path.join(repoRoot, 'tools', 'check_full_ui_coverage.js'),
     '--language',
@@ -54,13 +140,15 @@ function runLanguage(repoRoot, threshold, config) {
     '--inventory',
     inventoryPath,
     '--compiled-source-map',
-    COMPILED_SOURCE_MAP_PATH,
+    path.resolve(options.compiledSourceMap),
     '--ts',
     path.join(repoRoot, config.ts),
     '--allowlist',
-    path.join(repoRoot, 'tools', 'runtime_ui_allowlist.json'),
+    path.join(repoRoot, RUNTIME_ALLOWLIST_PATH),
     '--threshold',
-    String(threshold),
+    String(options.threshold),
+    '--extraction-inventory',
+    path.resolve(options.extractionInventory),
   ];
   const result = spawnSync(process.execPath, args, {
     cwd: repoRoot,
@@ -69,33 +157,82 @@ function runLanguage(repoRoot, threshold, config) {
 
   const stdout = (result.stdout || '').trim();
   if (!stdout) {
-    fail(`No report produced for ${config.language}. ${result.stderr || ''}`.trim());
+    return buildLanguageFailure({
+      config,
+      inventoryPath,
+      inventory,
+      threshold: options.threshold,
+      blockedReason: `No report produced for ${config.language}. ${(result.stderr || '').trim()}`.trim(),
+      exitCode: result.status ?? 1,
+    });
   }
 
-  const report = JSON.parse(stdout);
+  let report;
+  try {
+    report = JSON.parse(stdout);
+  } catch (error) {
+    return buildLanguageFailure({
+      config,
+      inventoryPath,
+      inventory,
+      threshold: options.threshold,
+      blockedReason: `Invalid report produced for ${config.language}: ${error.message}`,
+      exitCode: result.status ?? 1,
+    });
+  }
   return {
     language: config.language,
     threshold: report.threshold,
+    inventoryPath,
     runtime: report.runtime,
     compiled: report.compiled,
     jsonValidation: report.jsonValidation,
+    forbiddenPatterns: {
+      runtime: report.runtime?.forbiddenPatterns || { total: 0, byPattern: {}, samples: [] },
+      jsonValidation: report.jsonValidation?.forbiddenPatterns || {
+        total: 0,
+        by_pattern: {},
+        samples: [],
+      },
+    },
+    provenance: {
+      inventoryPath,
+      capture: inventory.capture || {},
+    },
     exitCode: result.status ?? 1,
     pass: result.status === 0 && report.pass === true,
+    blockedReason: result.status === 0 && report.pass === true ? null : 'One or more surface gates failed.',
   };
 }
 
 function main() {
   const options = parseArgs(process.argv.slice(2));
   const repoRoot = path.resolve(__dirname, '..');
+  const sessionDir = path.resolve(options.sessionDir);
+  const sourceMap = readFileMetadata(options.compiledSourceMap);
+  const extractionInventory = fs.existsSync(options.extractionInventory)
+    ? readFileMetadata(options.extractionInventory)
+    : null;
+  const frozenBaselines = {
+    runtimeAllowlist: readFileMetadata(path.join(repoRoot, RUNTIME_ALLOWLIST_PATH)),
+    translationWhitelist: readFileMetadata(path.join(repoRoot, TRANSLATION_WHITELIST_PATH)),
+  };
   const startedAt = new Date().toISOString();
-  const languages = LANGUAGES.map((config) => runLanguage(repoRoot, options.threshold, config));
+  const languages = LANGUAGES.map((config) => runLanguage(repoRoot, options, config));
   const finishedAt = new Date().toISOString();
   const overallPass = languages.every((language) => language.pass);
   const runlog = {
     startedAt,
     finishedAt,
     threshold: options.threshold,
+    sessionDir,
+    sessionUuid: path.basename(sessionDir),
+    runtimeDir: path.join(sessionDir, 'runtime'),
+    sourceMap,
+    extractionInventory,
+    frozenBaselines,
     overallPass,
+    blockedReason: overallPass ? null : 'One or more language runs failed.',
     languages,
   };
 

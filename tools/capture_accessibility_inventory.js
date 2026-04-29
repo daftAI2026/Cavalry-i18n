@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 
 function fail(message) {
@@ -13,8 +14,10 @@ function parseArgs(argv) {
     appName: 'Cavalry',
     language: '',
     output: '',
+    auditLog: '',
     pid: '',
     sessionUuid: '',
+    bundleHash: '',
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -34,6 +37,11 @@ function parseArgs(argv) {
       index += 1;
       continue;
     }
+    if (arg === '--audit-log') {
+      options.auditLog = argv[index + 1] || '';
+      index += 1;
+      continue;
+    }
     if (arg === '--pid') {
       options.pid = argv[index + 1] || '';
       index += 1;
@@ -41,6 +49,11 @@ function parseArgs(argv) {
     }
     if (arg === '--session-uuid') {
       options.sessionUuid = argv[index + 1] || '';
+      index += 1;
+      continue;
+    }
+    if (arg === '--bundle-hash') {
+      options.bundleHash = argv[index + 1] || '';
       index += 1;
     }
   }
@@ -87,6 +100,47 @@ function buildMenuItem(rawItem) {
   return payload;
 }
 
+function insertMenuPath(items, segments) {
+  if (!Array.isArray(segments) || segments.length === 0) {
+    return;
+  }
+
+  const [head, ...rest] = segments.map((value) => normalizeText(value)).filter(Boolean);
+  if (!head) {
+    return;
+  }
+
+  let item = items.find((candidate) => candidate.text === head);
+  if (!item) {
+    item = { text: head };
+    items.push(item);
+  }
+
+  if (rest.length === 0) {
+    return;
+  }
+
+  if (!item.submenu) {
+    item.submenu = {
+      title: head,
+      items: [],
+    };
+  }
+  insertMenuPath(item.submenu.items, rest);
+}
+
+function buildMenuItemsFromLines(lines) {
+  const items = [];
+  for (const line of lines || []) {
+    const segments = String(line || '')
+      .split('\t')
+      .map((value) => normalizeText(value))
+      .filter(Boolean);
+    insertMenuPath(items, segments);
+  }
+  return items;
+}
+
 function buildWidgetTexts(windows) {
   const widgetTexts = [];
   for (const window of windows || []) {
@@ -128,6 +182,7 @@ function buildAccessibilityInventory({ language, capture }) {
     source: 'live-accessibility',
     capture: {
       pid: Number(capture?.pid || 0),
+      bundleHash: capture?.bundleHash || '',
       source: 'live-accessibility',
       wallclockUtc: capture?.wallclockUtc || new Date().toISOString(),
       sessionUuid: capture?.sessionUuid || '',
@@ -141,11 +196,103 @@ function buildAccessibilityInventory({ language, capture }) {
   };
 }
 
-function runJxaCapture(options) {
+function runMenuCapture(options) {
+  const targetClause = options.pid
+    ? `first process whose unix id is ${Number(options.pid)}`
+    : `process "${String(options.appName || '').replace(/"/g, '\\"')}"`;
+  const escapedAppName = String(options.appName || '').replace(/"/g, '\\"');
+  const script = `
+on normalizeText(valueText)
+  if valueText is missing value then return ""
+  return valueText as text
+end normalizeText
+
+on collectMenuItems(targetMenu, prefixList)
+  set nestedLines to {}
+  tell application "System Events"
+    repeat with menuItemRef in every menu item of targetMenu
+      try
+        set itemName to my normalizeText(name of menuItemRef)
+      on error
+        set itemName to ""
+      end try
+      if itemName is not "" then
+        set end of nestedLines to (prefixList & {itemName}) as text
+      end if
+      try
+        set nestedLines to nestedLines & my collectMenuItems(menu 1 of menuItemRef, prefixList & {itemName})
+      end try
+    end repeat
+  end tell
+  return nestedLines
+end collectMenuItems
+
+set AppleScript's text item delimiters to tab
+set outputLines to {}
+tell application "${escapedAppName}" to activate
+tell application "System Events"
+  set targetProcess to ${targetClause}
+  tell targetProcess
+    set appMenuName to my normalizeText(name)
+    try
+      set frontmost to true
+    end try
+    repeat with menuBarItemRef in every menu bar item of menu bar 1
+      try
+        set menuBarName to my normalizeText(name of menuBarItemRef)
+      on error
+        set menuBarName to ""
+      end try
+      if menuBarName is not "" and menuBarName is not "Apple" and menuBarName is not appMenuName then
+        try
+          set frontmost to true
+        end try
+        try
+          click menuBarItemRef
+        on error
+          try
+            perform action "AXPress" of menuBarItemRef
+          end try
+        end try
+        delay 0.15
+        set end of outputLines to menuBarName
+        try
+          set outputLines to outputLines & my collectMenuItems(menu 1 of menuBarItemRef, {menuBarName})
+        end try
+        try
+          click menuBarItemRef
+        end try
+      end if
+    end repeat
+  end tell
+end tell
+set AppleScript's text item delimiters to linefeed
+return outputLines as text
+`;
+
+  const result = spawnSync('osascript', {
+    input: script,
+    encoding: 'utf8',
+  });
+
+  if (result.status !== 0) {
+    fail(result.stderr || result.stdout || 'Accessibility menu capture failed.');
+  }
+
+  return buildMenuItemsFromLines(
+    String(result.stdout || '')
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean)
+  );
+}
+
+function runWindowCapture(options) {
   const jxaPayload = JSON.stringify({
     appName: options.appName,
     pid: options.pid || '',
     sessionUuid: options.sessionUuid || '',
+    bundleHash: options.bundleHash || '',
   });
 
   const script = `
@@ -202,7 +349,6 @@ function resolveProcess(systemEvents) {
 function run() {
   const systemEvents = Application('System Events');
   const process = resolveProcess(systemEvents);
-  const menuBarItems = safeCall(() => process.menuBars[0].menuBarItems(), []).map(readMenuItem).filter(Boolean);
   const windows = safeCall(() => process.windows(), []).map((window) => {
     const textNodes = [];
     collectTextNodes(window, textNodes, 0);
@@ -216,8 +362,8 @@ function run() {
   return JSON.stringify({
     pid: config.pid || 0,
     sessionUuid: config.sessionUuid || '',
+    bundleHash: config.bundleHash || '',
     wallclockUtc: new Date().toISOString(),
-    menuBarItems,
     windows,
   });
 }
@@ -240,15 +386,31 @@ function writeJson(filePath, value) {
   fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
+function sha256(filePath) {
+  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
-  const capture = runJxaCapture(options);
+  const capture = runWindowCapture(options);
+  capture.menuBarItems = runMenuCapture(options);
   const inventory = buildAccessibilityInventory({
     language: options.language,
     capture,
   });
   const outputPath = path.resolve(options.output);
   writeJson(outputPath, inventory);
+  if (options.auditLog) {
+    writeJson(path.resolve(options.auditLog), {
+      output: outputPath,
+      outputHash: sha256(outputPath),
+      capture,
+      summary: {
+        menuBars: inventory.menuBars.length,
+        widgetTexts: inventory.widgetTexts.length,
+      },
+    });
+  }
   console.log(
     JSON.stringify(
       {
@@ -274,6 +436,7 @@ module.exports = {
   buildWidgetTexts,
   normalizeText,
   parseArgs,
-  runJxaCapture,
+  runMenuCapture,
+  runWindowCapture,
   writeJson,
 };

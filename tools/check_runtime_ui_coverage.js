@@ -2,6 +2,7 @@
 
 const fs = require('node:fs');
 const path = require('node:path');
+const { detectForbiddenTranslationPatterns } = require('./forbidden_translation_patterns.js');
 
 function fail(message) {
   throw new Error(message);
@@ -13,6 +14,7 @@ function parseArgs(argv) {
     allowlist: path.join(__dirname, 'runtime_ui_allowlist.json'),
     threshold: 100,
     maxReport: 80,
+    extractionInventory: '',
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -35,6 +37,11 @@ function parseArgs(argv) {
     if (arg === '--max-report') {
       options.maxReport = Number(argv[index + 1] || '');
       index += 1;
+      continue;
+    }
+    if (arg === '--extraction-inventory') {
+      options.extractionInventory = argv[index + 1] || '';
+      index += 1;
     }
   }
 
@@ -47,12 +54,26 @@ function parseArgs(argv) {
   if (!Number.isFinite(options.maxReport) || options.maxReport < 1) {
     fail('max-report must be a positive integer.');
   }
+  if (!options.extractionInventory) {
+    options.extractionInventory = inferExtractionInventoryPath(options.inventory);
+  }
 
   return options;
 }
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+}
+
+function inferExtractionInventoryPath(inventoryPath) {
+  const resolvedInventoryPath = path.resolve(inventoryPath);
+  const runtimeDir = path.dirname(resolvedInventoryPath);
+  if (path.basename(runtimeDir) !== 'runtime') {
+    return '';
+  }
+
+  const extractionPath = path.join(path.dirname(runtimeDir), 'extraction-inventory.json');
+  return fs.existsSync(extractionPath) ? extractionPath : '';
 }
 
 function normalizeText(value) {
@@ -92,12 +113,8 @@ function stripAllowedFragments(value, allowlist) {
   return normalizeText(stripped);
 }
 
-function hasForbiddenTranslationPattern(value) {
-  return (
-    /（译）|（訳）|（譯）/.test(value) ||
-    /[Ａ-Ｚａ-ｚ]/.test(value) ||
-    /^(?:页|頁|ページ):?\d+$/.test(value)
-  );
+function hasForbiddenTranslationPattern(value, language, sourceText = '') {
+  return detectForbiddenTranslationPatterns({ language, value, sourceText }).length > 0;
 }
 
 function collectMenuStrings(menu, bucket) {
@@ -140,7 +157,7 @@ function collectWidgetStrings(widgetTexts, bucket) {
   }
 }
 
-function buildCoverage(inventory, allowlist) {
+function buildCoverage(inventory, allowlist, extractionSurface = null) {
   const collected = [];
   for (const menuBar of inventory.menuBars || []) {
     collectMenuStrings(menuBar, collected);
@@ -150,24 +167,63 @@ function buildCoverage(inventory, allowlist) {
   const uniqueCandidates = [...new Set(collected.map(normalizeText))].filter(
     (value) => !shouldIgnore(value, allowlist)
   );
+  const frozenCandidates = Array.isArray(extractionSurface?.englishLeaves)
+    ? [
+        ...new Set(
+          extractionSurface.englishLeaves
+            .map((leaf) => normalizeText(leaf?.value || ''))
+            .filter(Boolean)
+            .filter((value) => !shouldIgnore(value, allowlist))
+        ),
+      ]
+    : null;
+  const denominatorCandidates = frozenCandidates && frozenCandidates.length > 0 ? frozenCandidates : uniqueCandidates;
+  const forbiddenSamples = [];
+  const forbiddenPatternCounts = {};
   const untranslated = uniqueCandidates.filter((value) => {
     const stripped = stripAllowedFragments(value, allowlist);
-    return hasForbiddenTranslationPattern(value) || /[A-Za-z]/.test(stripped);
+    const forbiddenHits = detectForbiddenTranslationPatterns({
+      language: inventory.language || '',
+      value,
+    });
+    for (const hit of forbiddenHits) {
+      forbiddenPatternCounts[hit.id] = (forbiddenPatternCounts[hit.id] || 0) + 1;
+    }
+    if (forbiddenHits.length > 0 && forbiddenSamples.length < 20) {
+      forbiddenSamples.push({
+        value,
+        ids: forbiddenHits.map((hit) => hit.id),
+      });
+    }
+    return forbiddenHits.length > 0 || /[A-Za-z]/.test(stripped);
   });
   const coveragePct =
-    uniqueCandidates.length === 0
+    denominatorCandidates.length === 0
       ? 100
-      : Number((((uniqueCandidates.length - untranslated.length) / uniqueCandidates.length) * 100).toFixed(2));
+      : Number(
+          (
+            (Math.max(0, denominatorCandidates.length - untranslated.length) / denominatorCandidates.length) *
+            100
+          ).toFixed(2)
+        );
 
   return {
     language: inventory.language || '',
     formatVersion: inventory.formatVersion || 0,
-    totalCandidates: uniqueCandidates.length,
-    candidates: uniqueCandidates,
+    denominatorSource: denominatorCandidates === uniqueCandidates ? 'inventory' : 'extraction-inventory',
+    totalCandidates: denominatorCandidates.length,
+    candidates: denominatorCandidates,
+    observedCandidateCount: uniqueCandidates.length,
+    observedCandidates: uniqueCandidates,
     translated: uniqueCandidates.filter((value) => !untranslated.includes(value)),
     untranslatedCount: untranslated.length,
     coveragePct,
     untranslated,
+    forbiddenPatterns: {
+      total: Object.values(forbiddenPatternCounts).reduce((sum, count) => sum + count, 0),
+      byPattern: forbiddenPatternCounts,
+      samples: forbiddenSamples,
+    },
   };
 }
 
@@ -175,16 +231,23 @@ function main() {
   const options = parseArgs(process.argv.slice(2));
   const inventory = readJson(path.resolve(options.inventory));
   const allowlist = readJson(path.resolve(options.allowlist));
-  const summary = buildCoverage(inventory, allowlist);
+  const extractionInventory =
+    options.extractionInventory && fs.existsSync(path.resolve(options.extractionInventory))
+      ? readJson(path.resolve(options.extractionInventory))
+      : null;
+  const summary = buildCoverage(inventory, allowlist, extractionInventory?.surfaces?.['runtime-candidates'] || null);
 
   const report = {
     language: summary.language,
     formatVersion: summary.formatVersion,
     threshold: options.threshold,
+    denominatorSource: summary.denominatorSource,
     coveragePct: summary.coveragePct,
     totalCandidates: summary.totalCandidates,
+    observedCandidateCount: summary.observedCandidateCount,
     untranslatedCount: summary.untranslatedCount,
     untranslated: summary.untranslated.slice(0, options.maxReport),
+    forbiddenPatterns: summary.forbiddenPatterns,
   };
 
   console.log(JSON.stringify(report, null, 2));
@@ -205,6 +268,7 @@ module.exports = {
   normalizeText,
   parseArgs,
   readJson,
+  inferExtractionInventoryPath,
   hasForbiddenTranslationPattern,
   shouldIgnore,
   stripAllowedFragments,
