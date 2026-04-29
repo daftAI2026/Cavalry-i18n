@@ -687,7 +687,7 @@ def build_report(root: Path) -> dict[str, Any]:
     b3_ok = all(language["no_translate_issue_count"] == 0 for language in languages.values())
     b4_ok = all(language["placeholder_issue_count"] == 0 for language in languages.values())
     b9_ok = all(language["english_residue_count"] == 0 for language in languages.values())
-    b10_ok = all(language["coverage"] >= 0.90 for language in languages.values())
+    b10_ok = all(language["coverage"] >= 1.00 for language in languages.values())
     b11_ok = all(language["locale_sync_issue_count"] == 0 for language in languages.values())
     b12_ok = all(language["purity_issue_count"] == 0 for language in languages.values())
     gates = {
@@ -714,7 +714,7 @@ def build_report(root: Path) -> dict[str, Any]:
         "B10": {
             "name": "Leaf coverage",
             "status": gate_status(b10_ok),
-            "detail": "translate leaves must reach 90% non-English coverage.",
+            "detail": "translate leaves must reach 100% non-English coverage.",
         },
         "B11": {
             "name": "locale_sync",
@@ -732,7 +732,7 @@ def build_report(root: Path) -> dict[str, Any]:
     return {
         "overall_status": gate_status(overall_ok),
         "aliases": REPORT_LANGUAGE_ALIASES,
-        "coverage_threshold": 0.90,
+        "coverage_threshold": 1.00,
         "gates": gates,
         "languages": languages,
     }
@@ -838,7 +838,7 @@ def crash_report(message: str) -> dict[str, Any]:
     return {
         "overall_status": "FAIL",
         "aliases": REPORT_LANGUAGE_ALIASES,
-        "coverage_threshold": 0.90,
+        "coverage_threshold": 1.00,
         "gates": {
             "CRASH": {
                 "name": "Validator crash",

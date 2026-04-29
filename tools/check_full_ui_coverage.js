@@ -32,7 +32,7 @@ function parseArgs(argv) {
     compiledSourceMap: COMPILED_SOURCE_MAP_PATH,
     ts: '',
     allowlist: path.join(__dirname, 'runtime_ui_allowlist.json'),
-    threshold: 99,
+    threshold: 100,
     maxReport: 80,
   };
 

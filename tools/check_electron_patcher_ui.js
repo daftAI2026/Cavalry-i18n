@@ -570,9 +570,15 @@ test('embedded injector normalizes real runtime menu text before lookup', () => 
   );
 });
 
-test('package.json exposes a runtime UI coverage gate with a 99% threshold', () => {
+test('active full-ui scripts reject the legacy 99% threshold', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   const scripts = packageJson.scripts || {};
+  const runtimeChecker = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'check_runtime_ui_coverage.js'),
+    'utf8'
+  );
+  const fullUiChecker = fs.readFileSync(path.join(repoRoot, 'tools', 'check_full_ui_coverage.js'), 'utf8');
+  const matrixChecker = fs.readFileSync(path.join(repoRoot, 'tools', 'check_full_ui_matrix.js'), 'utf8');
 
   assert.match(
     scripts['check:ui-coverage'] || '',
@@ -581,9 +587,21 @@ test('package.json exposes a runtime UI coverage gate with a 99% threshold', () 
   );
   assert.match(
     scripts['check:ui-coverage'] || '',
-    /--threshold 99/,
-    'runtime UI localization should use a hard 99% completion gate, with any retained English terms handled through an explicit allowlist'
+    /--threshold 100/,
+    'runtime UI localization should use a hard 100% completion gate, with any retained English terms handled through an explicit allowlist'
   );
+
+  for (const language of ['ja_JP', 'zh-Hans', 'zh-Hant']) {
+    assert.match(
+      scripts[`check:full-ui:${language}`] || '',
+      /--threshold 100/,
+      `package.json should gate ${language} against a hard 100% full-ui threshold`
+    );
+  }
+
+  assert.doesNotMatch(runtimeChecker, /threshold:\s*99/);
+  assert.doesNotMatch(fullUiChecker, /threshold:\s*99/);
+  assert.doesNotMatch(matrixChecker, /threshold:\s*99/);
 });
 
 test('package.json exposes a compiled UI extraction workflow for non-JSON text', () => {
@@ -626,9 +644,37 @@ test('package.json exposes a matrix full UI blocker script with a runlog path', 
   );
   assert.match(
     scripts['check:full-ui'] || '',
+    /verify_gate_inputs\.js/,
+    'matrix full-UI blocker should run a gate-input preflight before the matrix so known bypass inputs fail fast'
+  );
+  assert.match(
+    scripts['check:full-ui'] || '',
     /full-ui-runlog\.json/,
     'matrix full-UI blocker should write a stable runlog file so progress can be measured across repeated real-app runs'
   );
+});
+
+test('verify gate inputs fails on known bypass artifacts before matrix execution', () => {
+  const tempRoot = makeTempDir();
+  const preflightPath = path.join(repoRoot, 'tools', 'verify_gate_inputs.js');
+
+  writeJson(path.join(tempRoot, 'package.json'), {
+    scripts: {
+      'prepare:full-ui-gate': 'node tools/prepare_full_ui_gate_inputs.js',
+    },
+  });
+  fs.mkdirSync(path.join(tempRoot, 'tools', 'full_ui_inventory_fixtures'), { recursive: true });
+  fs.mkdirSync(path.join(tempRoot, 'doc'), { recursive: true });
+  fs.writeFileSync(path.join(tempRoot, 'doc', 'libExtensionLayer-curated-ui.txt'), 'curated\n');
+
+  const result = spawnSync(process.execPath, [preflightPath, '--repo-root', tempRoot], {
+    encoding: 'utf8',
+  });
+
+  assert.equal(result.status, 1, 'preflight should fail when known bypass artifacts are present');
+  assert.match(`${result.stdout}\n${result.stderr}`, /prepare:full-ui-gate/);
+  assert.match(`${result.stdout}\n${result.stderr}`, /full_ui_inventory_fixtures/);
+  assert.match(`${result.stdout}\n${result.stderr}`, /libExtensionLayer-curated-ui\.txt/);
 });
 
 test('compiled UI source map is generated in the local cache, not tracked under doc', () => {
@@ -680,6 +726,11 @@ test('compiled UI extractor inventories strings from Cavalry binaries and framew
   );
   assert.match(
     extractorSource,
+    /libExtensionLayer\.dylib/,
+    'compiled UI extractor should include libExtensionLayer.dylib so Extension Layer UI strings enter the owner map'
+  );
+  assert.match(
+    extractorSource,
     /Could not find compiled UI targets/,
     'compiled UI extractor should fail loudly instead of emitting an empty source map when the target binaries are missing'
   );
@@ -715,6 +766,24 @@ test('full UI coverage checker composes runtime, compiled, and JSON-backed valid
     checkerSource,
     /ja_JP|zh-Hans|zh-Hant/,
     'full UI checker should support all three target languages under the same workflow'
+  );
+});
+
+test('translation validator rejects the legacy 0.90 coverage threshold', () => {
+  const validatorSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'validate_translations.py'),
+    'utf8'
+  );
+
+  assert.doesNotMatch(
+    validatorSource,
+    /0\.90/,
+    'translation validator should not retain the legacy 0.90 weak-threshold gate'
+  );
+  assert.match(
+    validatorSource,
+    /1\.00/,
+    'translation validator should record a strict 1.00 coverage threshold'
   );
 });
 
@@ -928,6 +997,43 @@ test('runtime UI coverage tool enforces thresholded untranslated-string reportin
     0,
     passing.stderr || passing.stdout || 'coverage checker should pass when the runtime inventory clears the threshold'
   );
+});
+
+test('runtime UI coverage tool fails forbidden translation patterns even without ASCII residue', () => {
+  const tempRoot = makeTempDir();
+  const inventoryPath = path.join(tempRoot, 'runtime-ui-inventory.json');
+  const allowlistPath = path.join(tempRoot, 'allowlist.json');
+  const checkerPath = path.join(repoRoot, 'tools', 'check_runtime_ui_coverage.js');
+
+  writeJson(inventoryPath, {
+    formatVersion: 2,
+    language: 'ja_JP',
+    menuBars: [
+      {
+        items: [
+          { text: '保存（訳）', separator: false },
+          { text: 'Ａｌｐｈａ', separator: false },
+          { text: 'ページ:1', separator: false },
+        ],
+      },
+    ],
+    widgetTexts: [],
+  });
+  writeJson(allowlistPath, {
+    exact: [],
+    contains: [],
+  });
+
+  const result = spawnSync(
+    process.execPath,
+    [checkerPath, '--inventory', inventoryPath, '--allowlist', allowlistPath, '--threshold', '100'],
+    { encoding: 'utf8' }
+  );
+
+  assert.equal(result.status, 1, 'coverage checker should fail on forbidden pseudo-translations');
+  assert.match(`${result.stdout}\n${result.stderr}`, /保存（訳）/);
+  assert.match(`${result.stdout}\n${result.stderr}`, /Ａｌｐｈａ/);
+  assert.match(`${result.stdout}\n${result.stderr}`, /ページ:1/);
 });
 
 test('checked-in generated translation table matches the ts sources', () => {

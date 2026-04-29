@@ -67,6 +67,7 @@ function getCompiledUiTargets(appPath) {
     path.join(appPath, 'Contents', 'MacOS', 'Cavalry'),
     path.join(appPath, 'Contents', 'Frameworks', 'libCavalryUI.dylib'),
     path.join(appPath, 'Contents', 'Frameworks', 'libCavalryFramework.dylib'),
+    path.join(appPath, 'Contents', 'Frameworks', 'libExtensionLayer.dylib'),
   ].filter((targetPath) => fs.existsSync(targetPath));
 
   if (targets.length === 0) {

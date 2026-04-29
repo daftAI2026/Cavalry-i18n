@@ -18,7 +18,7 @@ function fail(message) {
 
 function parseArgs(argv) {
   const options = {
-    threshold: 99,
+    threshold: 100,
     runlog: path.join(process.env.HOME || '', 'Library', 'Caches', 'Cavalry-i18n', 'full-ui-runlog.json'),
   };
 

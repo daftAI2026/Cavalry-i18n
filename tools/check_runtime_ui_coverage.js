@@ -11,7 +11,7 @@ function parseArgs(argv) {
   const options = {
     inventory: '',
     allowlist: path.join(__dirname, 'runtime_ui_allowlist.json'),
-    threshold: 99,
+    threshold: 100,
     maxReport: 80,
   };
 
@@ -92,6 +92,14 @@ function stripAllowedFragments(value, allowlist) {
   return normalizeText(stripped);
 }
 
+function hasForbiddenTranslationPattern(value) {
+  return (
+    /（译）|（訳）|（譯）/.test(value) ||
+    /[Ａ-Ｚａ-ｚ]/.test(value) ||
+    /^(?:页|頁|ページ):?\d+$/.test(value)
+  );
+}
+
 function collectMenuStrings(menu, bucket) {
   if (!menu || !Array.isArray(menu.items)) {
     return;
@@ -142,9 +150,10 @@ function buildCoverage(inventory, allowlist) {
   const uniqueCandidates = [...new Set(collected.map(normalizeText))].filter(
     (value) => !shouldIgnore(value, allowlist)
   );
-  const untranslated = uniqueCandidates.filter((value) =>
-    /[A-Za-z]/.test(stripAllowedFragments(value, allowlist))
-  );
+  const untranslated = uniqueCandidates.filter((value) => {
+    const stripped = stripAllowedFragments(value, allowlist);
+    return hasForbiddenTranslationPattern(value) || /[A-Za-z]/.test(stripped);
+  });
   const coveragePct =
     uniqueCandidates.length === 0
       ? 100
@@ -196,6 +205,7 @@ module.exports = {
   normalizeText,
   parseArgs,
   readJson,
+  hasForbiddenTranslationPattern,
   shouldIgnore,
   stripAllowedFragments,
 };
