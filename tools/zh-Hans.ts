@@ -1164,5 +1164,83 @@
     <message><source>at line</source><translation>在行</translation></message>
     <message><source>Athens Gray</source><translation>雅典灰</translation></message>
     <message><source>Aths Special</source><translation>雅典特殊</translation></message>
+    <message><source>Acce</source><translation>Acce</translation></message>
+    <message><source>Acutesmall</source><translation>Acutesmall</translation></message>
+    <message><source>ahk ISK bhk DBX khk GNM nhk</source><translation>ahk ISK bhk DBX khk GNM nhk</translation></message>
+    <message><source>ams MSS dms NBM jms MSL lms</source><translation>ams MSS dms NBM jms MSL lms</translation></message>
+    <message><source>Apple Color Emoji</source><translation>Apple 彩色表情符号</translation></message>
+    <message><source>Arial</source><translation>Arial</translation></message>
+    <message><source>Asmall</source><translation>Asmall</translation></message>
+    <message><source>Asse</source><translation>Asse</translation></message>
+    <message><source>Atlantis</source><translation>大西洲</translation></message>
+    <message><source>Atoll</source><translation>环礁</translation></message>
+    <message><source>Atomic</source><translation>原子</translation></message>
+    <message><source>Atomic Tangerine</source><translation>原子橘</translation></message>
+    <message><source>ats PPC vts GIS qus RUS rus</source><translation>ats PPC vts GIS qus RUS rus</translation></message>
+    <message><source>Attach Nulls</source><translation>附加空值</translation></message>
+    <message><source>Attempting to attach list UI to non list Attribute</source><translation>试图将列表 UI 附加到非列表属性</translation></message>
+    <message><source>Attempting to attach list UI to non list Attribute.</source><translation>试图将列表 UI 附加到非列表属性。</translation></message>
+    <message><source>Attr</source><translation>属性</translation></message>
+    <message><source>Attribute</source><translation>属性</translation></message>
+    <message><source>Attribute Expressions cannot be set on Attributes of this type</source><translation>无法对此类型的属性设置属性表达式</translation></message>
+    <message><source>Attribute Expressions cannot be set on Attributes of this type.</source><translation>无法对此类型的属性设置属性表达式。</translation></message>
+    <message><source>Attribute is already connected</source><translation>属性已连接</translation></message>
+    <message><source>Attribute is already connected.</source><translation>属性已连接。</translation></message>
+    <message><source>Attributes</source><translation>属性</translation></message>
+    <message><source>Au Chico</source><translation>奥基科</translation></message>
+    <message><source>Aubergine</source><translation>茄紫</translation></message>
+    <message><source>Audif</source><translation>Audif</translation></message>
+    <message><source>Audio</source><translation>音频</translation></message>
+    <message><source>Audio could not be loaded</source><translation>无法加载音频</translation></message>
+    <message><source>Audio could not be loaded.</source><translation>无法加载音频。</translation></message>
+    <message><source>Audio Device</source><translation>音频设备</translation></message>
+    <message><source>Audio Folder</source><translation>音频文件夹</translation></message>
+    <message><source>Audio Settings</source><translation>音频设置</translation></message>
+    <message><source>Australian Mint</source><translation>澳洲薄荷</translation></message>
+    <message><source>Authentication Type</source><translation>认证类型</translation></message>
+    <message><source>Auto</source><translation>自动</translation></message>
+    <message><source>Auto (Monitor)</source><translation>自动（监视器）</translation></message>
+    <message><source>Auto Animate</source><translation>自动动画</translation></message>
+    <message><source>Auto Height</source><translation>自动高度</translation></message>
+    <message><source>Auto Width</source><translation>自动宽度</translation></message>
+    <message><source>Auto-Animate</source><translation>自动动画</translation></message>
+    <message><source>Auto-Save Failed</source><translation>自动保存失败</translation></message>
+    <message><source>Automatic</source><translation>自动</translation></message>
+    <message><source>Automatic MIME types</source><translation>自动 MIME 类型</translation></message>
+    <message><source>Automatically add selected layers to the Attribute Editor</source><translation>自动将选定的图层添加到属性编辑器</translation></message>
+    <message><source>Automatically add selected layers to the Attribute Editor.</source><translation>自动将选定的图层添加到属性编辑器。</translation></message>
+    <message><source>Autosave</source><translation>自动保存</translation></message>
+    <message><source>Autosave Folders</source><translation>自动保存文件夹</translation></message>
+    <message><source>Autosave Interval</source><translation>自动保存间隔</translation></message>
+    <message><source>Autosave is off</source><translation>自动保存已关闭</translation></message>
+    <message><source>Autosave is off.</source><translation>自动保存已关闭。</translation></message>
+    <message><source>Autosave Limit</source><translation>自动保存限制</translation></message>
+    <message><source>Autosave not possible as features requiring a Professional Licence were found</source><translation>找到需要专业许可证的功能，无法自动保存</translation></message>
+    <message><source>Autosave not possible as features requiring a Professional Licence were found.</source><translation>找到需要专业许可证的功能，无法自动保存。</translation></message>
+    <message><source>Availability</source><translation>可用性</translation></message>
+    <message><source>Avestan</source><translation>阿维斯陀语</translation></message>
+    <message><source>Avocado</source><translation>鳄梨</translation></message>
+    <message><source>Axolotl</source><translation>美西螈</translation></message>
+    <message><source>Ayhb</source><translation>Ayhb</translation></message>
+    <message><source>Azalea</source><translation>杜鹃</translation></message>
+    <message><source>Aztec</source><translation>阿兹特克</translation></message>
+    <message><source>Azure</source><translation>天蓝</translation></message>
+    <message><source>Azure Radiance</source><translation>天蓝光彩</translation></message>
+    <message><source>B ffff.</source><translation>B ffff.</translation></message>
+    <message><source>Baby Blue</source><translation>婴儿蓝</translation></message>
+    <message><source>Backdrop Settings</source><translation>背景设置</translation></message>
+    <message><source>Background Render.</source><translation>背景渲染。</translation></message>
+    <message><source>Bahama Blue</source><translation>巴哈马蓝</translation></message>
+    <message><source>Bahia</source><translation>巴伊亚</translation></message>
+    <message><source>Baja White</source><translation>下加州白</translation></message>
+    <message><source>Bake Accuracy</source><translation>烘烤精度</translation></message>
+    <message><source>Bake Animation: Baking Path Animation is not currently supported</source><translation>烘烤动画：目前不支持烘烤路径动画</translation></message>
+    <message><source>Bake Animation: Baking Path Animation is not currently supported.</source><translation>烘烤动画：目前不支持烘烤路径动画。</translation></message>
+    <message><source>Bake Animation: Unable to further simplify this animation</source><translation>烘烤动画：无法进一步简化此动画</translation></message>
+    <message><source>Bake Animation: Unable to further simplify this animation.</source><translation>烘烤动画：无法进一步简化此动画。</translation></message>
+    <message><source>Baked</source><translation>烘烤的</translation></message>
+    <message><source>Bali Hai</source><translation>巴厘海</translation></message>
+    <message><source>Balinese</source><translation>巴厘岛语</translation></message>
+    <message><source>Baltic Sea</source><translation>波罗的海</translation></message>
   </context>
 </TS>
