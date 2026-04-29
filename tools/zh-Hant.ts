@@ -322,7 +322,384 @@
       <source>About Cavalry</source>
       <translation>關於 Cavalry</translation>
     </message>
-  </context>
+      <message><source>File</source><translation>文件</translation></message>
+    <message><source>Edit</source><translation>編輯</translation></message>
+    <message><source>View</source><translation>視圖</translation></message>
+    <message><source>Window</source><translation>窗口</translation></message>
+    <message><source>Composition</source><translation>合成</translation></message>
+    <message><source>Create</source><translation>創建</translation></message>
+    <message><source>Animation</source><translation>動畫</translation></message>
+    <message><source>Shape</source><translation>形狀</translation></message>
+    <message><source>Tool</source><translation>工具</translation></message>
+    <message><source>Dynamics</source><translation>動力學</translation></message>
+    <message><source>Scripts</source><translation>腳本</translation></message>
+    <message><source>&amp;Help</source><translation>&amp;幫助</translation></message>
+    <message><source>New Scene</source><translation>新建場景</translation></message>
+    <message><source>New Composition</source><translation>新建合成</translation></message>
+    <message><source>New Composition from Preset</source><translation>從預設新建合成</translation></message>
+    <message><source>Composition Settings...</source><translation>合成設置...</translation></message>
+    <message><source>Pre-Compose</source><translation>預合成</translation></message>
+    <message><source>Pre-Compose Based on Selection Bounds</source><translation>基於所選邊界預合成</translation></message>
+    <message><source>Close Composition</source><translation>關閉合成</translation></message>
+    <message><source>Close Other Compositions</source><translation>關閉其他合成</translation></message>
+    <message><source>Set Composition to Playback Range</source><translation>將合成設爲播放範圍</translation></message>
+    <message><source>Set Playback Area to Selection</source><translation>將播放範圍設爲所選內容</translation></message>
+    <message><source>Set Playback Start to Current Frame</source><translation>將播放開始設爲當前幀</translation></message>
+    <message><source>Set Playback End to Current Frame</source><translation>將播放結束設爲當前幀</translation></message>
+    <message><source>Go to Playback Start</source><translation>轉到播放開始</translation></message>
+    <message><source>Go to Playback End</source><translation>轉到播放結束</translation></message>
+    <message><source>Go to Composition Start</source><translation>轉到合成開始</translation></message>
+    <message><source>Go to Composition End</source><translation>轉到合成結束</translation></message>
+    <message><source>Go to Previous Time Marker</source><translation>轉到上一個時間標記</translation></message>
+    <message><source>Go to Next Time Marker</source><translation>轉到下一個時間標記</translation></message>
+    <message><source>Move Forward</source><translation>向前移動</translation></message>
+    <message><source>Jump Forward</source><translation>向前跳轉</translation></message>
+    <message><source>Move Backward</source><translation>向後移動</translation></message>
+    <message><source>Jump Backward</source><translation>向後跳轉</translation></message>
+    <message><source>Solo Selection in Viewport</source><translation>在視口中單獨顯示所選內容</translation></message>
+    <message><source>Clear Quicklist</source><translation>清除快速列表</translation></message>
+    <message><source>Enable Time Remapping</source><translation>啓用時間重映射</translation></message>
+    <message><source>Toggle Background Alpha</source><translation>切換背景 Alpha</translation></message>
+    <message><source>Open...</source><translation>打開...</translation></message>
+    <message><source>Open Recent</source><translation>打開最近</translation></message>
+    <message><source>Restore Autosave</source><translation>恢復自動保存</translation></message>
+    <message><source>Save As...</source><translation>另存爲...</translation></message>
+    <message><source>Increment and Save</source><translation>遞增並保存</translation></message>
+    <message><source>Import Assets...</source><translation>導入資源...</translation></message>
+    <message><source>Import Assets</source><translation>導入資源</translation></message>
+    <message><source>Import Reference...</source><translation>導入引用...</translation></message>
+    <message><source>Import Scene...</source><translation>導入場景...</translation></message>
+    <message><source>Import Google Sheet...</source><translation>導入 Google 表格...</translation></message>
+    <message><source>Import Image Smart Folder...</source><translation>導入圖像智能文件夾...</translation></message>
+    <message><source>Import Audio Smart Folder...</source><translation>導入音頻智能文件夾...</translation></message>
+    <message><source>Save Scene</source><translation>保存場景</translation></message>
+    <message><source>Export Selected...</source><translation>導出所選內容...</translation></message>
+    <message><source>Export Lottie...</source><translation>導出 Lottie...</translation></message>
+    <message><source>Export as Project...</source><translation>導出爲項目...</translation></message>
+    <message><source>Project Settings</source><translation>項目設置</translation></message>
+    <message><source>Set Project...</source><translation>設置項目...</translation></message>
+    <message><source>Set Project</source><translation>設置項目</translation></message>
+    <message><source>Show Project Folder</source><translation>顯示項目文件夾</translation></message>
+    <message><source>Render Manager</source><translation>渲染管理器</translation></message>
+    <message><source>Render Current Frame...</source><translation>渲染當前幀...</translation></message>
+    <message><source>Render Current Frame to SVG...</source><translation>將當前幀渲染爲 SVG...</translation></message>
+    <message><source>Reduce Scene</source><translation>精簡場景</translation></message>
+    <message><source>Open Project Settings</source><translation>打開項目設置</translation></message>
+    <message><source>Preferences</source><translation>偏好設置</translation></message>
+    <message><source>Show Preferences Folder</source><translation>顯示偏好設置文件夾</translation></message>
+    <message><source>Override Preferences</source><translation>覆蓋偏好設置</translation></message>
+    <message><source>About Cavalry</source><translation>關於 Cavalry</translation></message>
+    <message><source>This feature requires a Project.</source><translation>此功能需要項目。</translation></message>
+    <message><source>No Groups in this Composition.</source><translation>此合成中沒有編組。</translation></message>
+    <message><source>Quicklist</source><translation>快速列表</translation></message>
+    <message><source>No Presets.</source><translation>沒有預設。</translation></message>
+    <message><source>Set Playback Range to Composition</source><translation>將播放範圍設爲合成</translation></message>
+    <message><source>Basic Line</source><translation>基本線條</translation></message>
+    <message><source>Basic Shape</source><translation>基本形狀</translation></message>
+    <message><source>Component</source><translation>組件</translation></message>
+    <message><source>Connect Shape</source><translation>連接形狀</translation></message>
+    <message><source>Convex Hull</source><translation>凸包</translation></message>
+    <message><source>Custom Shape</source><translation>自定義形狀</translation></message>
+    <message><source>Duplicator</source><translation>複製器</translation></message>
+    <message><source>Footage Shape</source><translation>素材形狀</translation></message>
+    <message><source>Grid Layout Group</source><translation>網格佈局組</translation></message>
+    <message><source>Grid Layout Row</source><translation>網格佈局行</translation></message>
+    <message><source>Image To Shapes</source><translation>圖像轉形狀</translation></message>
+    <message><source>Layout Group</source><translation>佈局組</translation></message>
+    <message><source>Mesh Shape</source><translation>網格形狀</translation></message>
+    <message><source>Outline</source><translation>輪廓</translation></message>
+    <message><source>Quad Tree Shape</source><translation>四叉樹形狀</translation></message>
+    <message><source>Shortest Path</source><translation>最短路徑</translation></message>
+    <message><source>3D Matrix</source><translation>3D 矩陣</translation></message>
+    <message><source>Add Divisions</source><translation>添加細分</translation></message>
+    <message><source>Behaviour Mixer</source><translation>行爲混合器</translation></message>
+    <message><source>Bend</source><translation>彎曲</translation></message>
+    <message><source>Bevel</source><translation>斜面</translation></message>
+    <message><source>Blend Shape</source><translation>混合形狀</translation></message>
+    <message><source>Boolean</source><translation>布爾</translation></message>
+    <message><source>Clean Up</source><translation>清理</translation></message>
+    <message><source>Color Blend</source><translation>顏色混合</translation></message>
+    <message><source>Curves To Lines</source><translation>曲線轉線條</translation></message>
+    <message><source>Distance</source><translation>距離</translation></message>
+    <message><source>Extend Open Paths</source><translation>延伸開放路徑</translation></message>
+    <message><source>Fill Rule</source><translation>填充規則</translation></message>
+    <message><source>Flare</source><translation>光暈</translation></message>
+    <message><source>Flatten Shape Layers</source><translation>扁平化形狀圖層</translation></message>
+    <message><source>Four Point Warp</source><translation>四點扭曲</translation></message>
+    <message><source>Frame</source><translation>幀</translation></message>
+    <message><source>Get Vector</source><translation>獲取向量</translation></message>
+    <message><source>Is Within</source><translation>位於內部</translation></message>
+    <message><source>Lattice</source><translation>晶格</translation></message>
+    <message><source>Look At</source><translation>朝向</translation></message>
+    <message><source>Manipulator</source><translation>操縱器</translation></message>
+    <message><source>Material Sampler</source><translation>材質採樣器</translation></message>
+    <message><source>Morph</source><translation>形變</translation></message>
+    <message><source>Noise</source><translation>噪波</translation></message>
+    <message><source>Number Range</source><translation>數值範圍</translation></message>
+    <message><source>Number Range To Color</source><translation>數值範圍轉顏色</translation></message>
+    <message><source>Oscillator</source><translation>振盪器</translation></message>
+    <message><source>Pathfinder</source><translation>路徑查找器</translation></message>
+    <message><source>Pinch</source><translation>擠壓</translation></message>
+    <message><source>Position Blend</source><translation>位置混合</translation></message>
+    <message><source>Push Along Vector</source><translation>沿向量推送</translation></message>
+    <message><source>Random</source><translation>隨機</translation></message>
+    <message><source>Resample Path</source><translation>重採樣路徑</translation></message>
+    <message><source>Round</source><translation>四捨五入</translation></message>
+    <message><source>Rubber Hose Limb</source><translation>橡皮管肢體</translation></message>
+    <message><source>Skew</source><translation>傾斜</translation></message>
+    <message><source>Sound</source><translation>聲音</translation></message>
+    <message><source>Stagger</source><translation>錯開</translation></message>
+    <message><source>Value</source><translation>值</translation></message>
+    <message><source>Value Blend</source><translation>數值混合</translation></message>
+    <message><source>Value2</source><translation>二維數值</translation></message>
+    <message><source>Value2 Blend</source><translation>二維數值混合</translation></message>
+    <message><source>Value2 Solver</source><translation>二維數值求解器</translation></message>
+    <message><source>Value3</source><translation>三維數值</translation></message>
+    <message><source>Value3 Blend</source><translation>三維數值混合</translation></message>
+    <message><source>Voxelize</source><translation>體素化</translation></message>
+    <message><source>Animation Control</source><translation>動畫控制</translation></message>
+    <message><source>Asset Array</source><translation>資源數組</translation></message>
+    <message><source>Bounding Box</source><translation>邊界框</translation></message>
+    <message><source>Camera Guide</source><translation>相機參考線</translation></message>
+    <message><source>Color Array</source><translation>顏色數組</translation></message>
+    <message><source>Comparison</source><translation>比較</translation></message>
+    <message><source>Falloff</source><translation>衰減</translation></message>
+    <message><source>Gamma Correction</source><translation>伽馬校正</translation></message>
+    <message><source>A new tab has been opened in your default browser so you can log in to Canva there</source><translation>已在默認瀏覽器中打開新標籤頁，方便你在其中登錄 Canva。</translation></message>
+    <message><source>A new tab has been opened in your default browser so you can log in to Canva there.</source><translation>已在默認瀏覽器中打開新標籤頁，方便你在其中登錄 Canva。</translation></message>
+    <message><source>A Professional licence is required for Dynamic Rendering</source><translation>動態渲染需要專業版許可證。</translation></message>
+    <message><source>A Professional licence is required for Dynamic Rendering.</source><translation>動態渲染需要專業版許可證。</translation></message>
+    <message><source>Action not allowed. Adding composition would create a cycle</source><translation>不允許此操作。添加該合成會形成循環。</translation></message>
+    <message><source>Action not allowed. Adding composition would create a cycle.</source><translation>不允許此操作。添加該合成會形成循環。</translation></message>
+    <message><source>A selection of two points from two different contours on the same shape is required to join contours</source><translation>要連接輪廓，需要在同一形狀上的兩個不同輪廓中各選擇一個點。</translation></message>
+    <message><source>A selection of two points from two different contours on the same shape is required to join contours.</source><translation>要連接輪廓，需要在同一形狀上的兩個不同輪廓中各選擇一個點。</translation></message>
+    <message><source>Active</source><translation>活動</translation></message>
+    <message><source>Active Camera</source><translation>活動相機</translation></message>
+    <message><source>Active Camera: Layer Tools Disabled</source><translation>活動相機：圖層工具已禁用</translation></message>
+    <message><source>Active Camera: Layer Tools Disabled.</source><translation>活動相機：圖層工具已禁用。</translation></message>
+    <message><source>Active Tags.</source><translation>活動標籤。</translation></message>
+    <message><source>Active Composition</source><translation>活動合成</translation></message>
+    <message><source>Account</source><translation>賬戶</translation></message>
+    <message><source>Add</source><translation>添加</translation></message>
+    <message><source>Add a bone at the top of the hierarchy</source><translation>在層級頂部添加骨骼</translation></message>
+    <message><source>Add a bone at the top of the hierarchy.</source><translation>在層級頂部添加骨骼。</translation></message>
+    <message><source>Add a bone parented to this one</source><translation>添加一個以此骨骼爲父級的骨骼</translation></message>
+    <message><source>Add a bone parented to this one.</source><translation>添加一個以此骨骼爲父級的骨骼。</translation></message>
+    <message><source>Add a new Attribute variable which can be used in your script</source><translation>添加可在腳本中使用的新屬性變量</translation></message>
+    <message><source>Add a new Attribute variable which can be used in your script.</source><translation>添加可在腳本中使用的新屬性變量。</translation></message>
+    <message><source>Add a Placement Utility</source><translation>添加放置實用工具</translation></message>
+    <message><source>Add a Rig Control</source><translation>添加綁定控制器</translation></message>
+    <message><source>Add a Tag</source><translation>添加標籤</translation></message>
+    <message><source>Add a Text Background</source><translation>添加文本背景</translation></message>
+    <message><source>Add a tracker (4 required)</source><translation>添加跟蹤點（需要 4 個）</translation></message>
+    <message><source>Add a tracker (4 required).</source><translation>添加跟蹤點（需要 4 個）。</translation></message>
+    <message><source>Add an Animation Control</source><translation>添加動畫控制器</translation></message>
+    <message><source>Add an Auto-Animate Deformer</source><translation>添加自動動畫變形器</translation></message>
+    <message><source>Add an IK Control using this Bone as End Effector</source><translation>使用此骨骼作爲末端執行器添加 IK 控制器</translation></message>
+    <message><source>Add an IK Control using this Bone as End Effector.</source><translation>使用此骨骼作爲末端執行器添加 IK 控制器。</translation></message>
+    <message><source>Add Array</source><translation>添加數組</translation></message>
+    <message><source>Add Asset</source><translation>添加資源</translation></message>
+    <message><source>Add Asset To Scene</source><translation>將資源添加到場景</translation></message>
+    <message><source>Add Background</source><translation>添加背景</translation></message>
+    <message><source>Add Behaviour</source><translation>添加行爲</translation></message>
+    <message><source>Add Bool</source><translation>添加布爾值</translation></message>
+    <message><source>Add Camera</source><translation>添加相機</translation></message>
+    <message><source>Add Clip</source><translation>添加片段</translation></message>
+    <message><source>Add Clip to End</source><translation>將片段添加到末尾</translation></message>
+    <message><source>Add Clip to Start</source><translation>將片段添加到開頭</translation></message>
+    <message><source>Add Color</source><translation>添加顏色</translation></message>
+    <message><source>Add Color Stop</source><translation>添加色標</translation></message>
+    <message><source>Add Colors from Selection</source><translation>從所選內容添加顏色</translation></message>
+    <message><source>Add Colors from Selection and Connect</source><translation>從所選內容添加顏色並連接</translation></message>
+    <message><source>Add connections</source><translation>添加連接</translation></message>
+    <message><source>Add Distribution</source><translation>添加分佈</translation></message>
+    <message><source>Add Double</source><translation>添加雙精度數值</translation></message>
+    <message><source>Add Double (float)</source><translation>添加雙精度數值（浮點）</translation></message>
+    <message><source>Add Expression...</source><translation>添加表達式...</translation></message>
+    <message><source>Add Falloff</source><translation>添加衰減</translation></message>
+    <message><source>Add Header</source><translation>添加標題</translation></message>
+    <message><source>Add IK Control</source><translation>添加 IK 控制器</translation></message>
+    <message><source>Add Int</source><translation>添加整數</translation></message>
+    <message><source>Add Keyframe</source><translation>添加關鍵幀</translation></message>
+    <message><source>Add Layer</source><translation>添加圖層</translation></message>
+    <message><source>Add Layers Popover</source><translation>添加圖層彈出面板</translation></message>
+    <message><source>Add List Attribute</source><translation>添加列表屬性</translation></message>
+    <message><source>Add Mesh</source><translation>添加網格</translation></message>
+    <message><source>Add New Layers to Selected Tags</source><translation>將新圖層添加到所選標籤</translation></message>
+    <message><source>Add new snippet</source><translation>添加新代碼片段</translation></message>
+    <message><source>Add or edit Bind positions</source><translation>添加或編輯綁定位置</translation></message>
+    <message><source>Add Point Data (Distribution)</source><translation>添加點數據（分佈）</translation></message>
+    <message><source>Add Pre-Comp Override</source><translation>添加預合成覆蓋</translation></message>
+    <message><source>Add Pre-Comp Overrides</source><translation>添加預合成覆蓋</translation></message>
+    <message><source>Add Preset</source><translation>添加預設</translation></message>
+    <message><source>Add selected layers to the Attribute Editor</source><translation>將所選圖層添加到屬性編輯器</translation></message>
+    <message><source>Add selected layers to the Attribute Editor.</source><translation>將所選圖層添加到屬性編輯器。</translation></message>
+    <message><source>Add Shader</source><translation>添加着色器</translation></message>
+    <message><source>Add Shader (shader)</source><translation>添加着色器（着色器）</translation></message>
+    <message><source>Add Spacer</source><translation>添加間隔器</translation></message>
+    <message><source>Add String</source><translation>添加字符串</translation></message>
+    <message><source>Add Sub Bone</source><translation>添加子骨骼</translation></message>
+    <message><source>Add Top Bone</source><translation>添加頂部骨骼</translation></message>
+    <message><source>Add Utility</source><translation>添加實用工具</translation></message>
+    <message><source>Add SVG to Composition</source><translation>將 SVG 添加到合成</translation></message>
+    <message><source>Add SVG to Scene</source><translation>將 SVG 添加到場景</translation></message>
+    <message><source>Add SVG to Scene.</source><translation>將 SVG 添加到場景。</translation></message>
+    <message><source>Add Text</source><translation>添加文本</translation></message>
+    <message><source>Add Text Shape</source><translation>添加文本形狀</translation></message>
+    <message><source>Add to Composition as Footage</source><translation>作爲素材添加到合成</translation></message>
+    <message><source>Add to Composition as Mesh</source><translation>作爲網格添加到合成</translation></message>
+    <message><source>Add to Control Centre</source><translation>添加到控制中心</translation></message>
+    <message><source>Add to Duplicator</source><translation>添加到複製器</translation></message>
+    <message><source>Add to GH</source><translation>添加到 GH</translation></message>
+    <message><source>Add Viewport (Pro)</source><translation>添加視口（專業版）</translation></message>
+    <message><source>Add Visibility Bar</source><translation>添加可見性欄</translation></message>
+    <message><source>Add your own Presets and you'll be able to delete and rename them here</source><translation>在此添加你自己的預設，之後就可以在這裏刪除和重命名它們。</translation></message>
+    <message><source>Add your own Presets and you'll be able to delete and rename them here.</source><translation>在此添加你自己的預設，之後就可以在這裏刪除和重命名它們。</translation></message>
+    <message><source>Address</source><translation>地址</translation></message>
+    <message><source>Adjust Colors (HSV)</source><translation>調整顏色（HSV）</translation></message>
+    <message><source>Advanced</source><translation>高級</translation></message>
+    <message><source>Advanced Tracking Settings</source><translation>高級跟蹤設置</translation></message>
+    <message><source>Adobe RGB</source><translation>Adobe RGB</translation></message>
+    <message><source>Adobe RGB (1998)</source><translation>Adobe RGB (1998)</translation></message>
+    <message><source>Adlam</source><translation>Adlam</translation></message>
+    <message><source>Access All Alternates</source><translation>訪問所有替代字形</translation></message>
+    <message><source>Align</source><translation>對齊</translation></message>
+    <message><source>Align Behaviour</source><translation>對齊行爲</translation></message>
+    <message><source>Align Bottom</source><translation>底部對齊</translation></message>
+    <message><source>Align keyframe values</source><translation>對齊關鍵幀值</translation></message>
+    <message><source>Align Middle</source><translation>中間對齊</translation></message>
+    <message><source>Align Points</source><translation>對齊點</translation></message>
+    <message><source>Align Top</source><translation>頂部對齊</translation></message>
+    <message><source>Alignment</source><translation>對齊</translation></message>
+    <message><source>All Attributes will be reset before applying the Preset</source><translation>應用預設前將重置所有屬性</translation></message>
+    <message><source>All Attributes will be reset before applying the Preset.</source><translation>應用預設前將重置所有屬性。</translation></message>
+    <message><source>All Caps</source><translation>全部大寫</translation></message>
+    <message><source>All Inputs</source><translation>所有輸入</translation></message>
+    <message><source>All Shortcuts</source><translation>所有快捷鍵</translation></message>
+    <message><source>allow you to correct the tracking marker positions before continuing</source><translation>讓你在繼續之前先修正跟蹤標記的位置</translation></message>
+    <message><source>allow you to correct the tracking marker positions before continuing.</source><translation>讓你在繼續之前先修正跟蹤標記的位置。</translation></message>
+    <message><source>already exists.</source><translation>已存在。</translation></message>
+    <message><source>Alternate Annotation Forms</source><translation>替代註釋形式</translation></message>
+    <message><source>Alternate Half Widths</source><translation>替代半寬形式</translation></message>
+    <message><source>Alternate Vertical Half Metrics</source><translation>替代垂直半寬度量</translation></message>
+    <message><source>Alternate Vertical Metrics</source><translation>替代垂直度量</translation></message>
+    <message><source>Alternative Fractions</source><translation>替代分數形式</translation></message>
+    <message><source>Always</source><translation>始終</translation></message>
+    <message><source>Always Visible</source><translation>始終可見</translation></message>
+    <message><source>Abbey</source><translation>艾比</translation></message>
+    <message><source>Acadia</source><translation>阿卡迪亞</translation></message>
+    <message><source>Acapulco</source><translation>阿卡普爾科</translation></message>
+    <message><source>Aero Blue</source><translation>航空藍</translation></message>
+    <message><source>Affair</source><translation>風流韻事</translation></message>
+    <message><source>Ahom</source><translation>阿洪</translation></message>
+    <message><source>Akaroa</source><translation>阿卡羅亞</translation></message>
+    <message><source>Akhand</source><translation>阿克漢德</translation></message>
+    <message><source>Alabaster</source><translation>雪花石膏</translation></message>
+    <message><source>Albescent White</source><translation>微白</translation></message>
+    <message><source>Algae Green</source><translation>藻綠</translation></message>
+    <message><source>alice blue</source><translation>愛麗絲藍</translation></message>
+    <message><source>Alice Blue</source><translation>愛麗絲藍</translation></message>
+    <message><source>Alizarin Crimson</source><translation>茜素紅</translation></message>
+    <message><source>Allports</source><translation>港口</translation></message>
+    <message><source>Almond</source><translation>杏仁</translation></message>
+    <message><source>Almond Frost</source><translation>杏仁霜</translation></message>
+    <message><source>Alpine</source><translation>阿爾卑斯</translation></message>
+    <message><source>Alto</source><translation>中音</translation></message>
+    <message><source>Aluminium</source><translation>鋁</translation></message>
+    <message><source>Amaranth</source><translation>莧菜紅</translation></message>
+    <message><source>Amazon</source><translation>亞馬遜</translation></message>
+    <message><source>Amber</source><translation>琥珀</translation></message>
+    <message><source>Americano</source><translation>美式濃縮咖啡</translation></message>
+    <message><source>Amethyst</source><translation>紫水晶</translation></message>
+    <message><source>Amethyst Smoke</source><translation>紫水晶煙</translation></message>
+    <message><source>Amour</source><translation>愛好</translation></message>
+    <message><source>Amulet</source><translation>護身符</translation></message>
+    <message><source>Anakiwa</source><translation>阿納基瓦</translation></message>
+    <message><source>Analogous</source><translation>類似的</translation></message>
+    <message><source>Anatolian Hieroglyphs</source><translation>安那託利亞象形文字</translation></message>
+    <message><source>and restricted Assets found</source><translation>找到受限資源</translation></message>
+    <message><source>and restricted Assets found.</source><translation>找到受限資源。</translation></message>
+    <message><source>Angle Locking</source><translation>角度鎖定</translation></message>
+    <message><source>Animate Path</source><translation>動畫路徑</translation></message>
+    <message><source>Animated</source><translation>動畫的</translation></message>
+    <message><source>Animated Attribute</source><translation>動畫屬性</translation></message>
+    <message><source>Animated Attributes</source><translation>動畫屬性</translation></message>
+    <message><source>Animation Layer Filter is off</source><translation>動畫圖層過濾器已關閉</translation></message>
+    <message><source>Animation Layer Filter is off.</source><translation>動畫圖層過濾器已關閉。</translation></message>
+    <message><source>Animation Layer Filter is on</source><translation>動畫圖層過濾器已打開</translation></message>
+    <message><source>Animation Layer Filter is on.</source><translation>動畫圖層過濾器已打開。</translation></message>
+    <message><source>Animation Offset Value</source><translation>動畫偏移值</translation></message>
+    <message><source>Animation Offset Value.</source><translation>動畫偏移值。</translation></message>
+    <message><source>Animators</source><translation>動畫器</translation></message>
+    <message><source>Anticipate In</source><translation>預期進入</translation></message>
+    <message><source>Anticipate In, Overshoot Out</source><translation>預期進入，超過退出</translation></message>
+    <message><source>Antique Brass</source><translation>古銅</translation></message>
+    <message><source>Antique Bronze</source><translation>古青銅</translation></message>
+    <message><source>antique white</source><translation>古董白</translation></message>
+    <message><source>Any 3</source><translation>任何 3</translation></message>
+    <message><source>Any other comments?</source><translation>還有其他評論嗎？</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes</source><translation>選中的任何形狀都將自動添加爲輸入形狀</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator</source><translation>選中的任何形狀都將自動添加爲複製器的輸入形狀</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator.</source><translation>選中的任何形狀都將自動添加爲複製器的輸入形狀。</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude</source><translation>選中的任何形狀都將自動添加爲拉伸的輸入形狀</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude.</source><translation>選中的任何形狀都將自動添加爲拉伸的輸入形狀。</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes.</source><translation>選中的任何形狀都將自動添加爲輸入形狀。</translation></message>
+    <message><source>Anzac</source><translation>澳新軍團</translation></message>
+    <message><source>Apache</source><translation>阿帕奇</translation></message>
+    <message><source>Append</source><translation>追加</translation></message>
+    <message><source>Apple</source><translation>蘋果</translation></message>
+    <message><source>Apple Blossom</source><translation>蘋果花</translation></message>
+    <message><source>Apple Green</source><translation>蘋果綠</translation></message>
+    <message><source>Application</source><translation>應用程序</translation></message>
+    <message><source>Apply Track</source><translation>應用跟蹤</translation></message>
+    <message><source>Apricot</source><translation>杏色</translation></message>
+    <message><source>Apricot Peach</source><translation>杏桃</translation></message>
+    <message><source>Apricot White</source><translation>杏白</translation></message>
+    <message><source>Aqua Deep</source><translation>深水</translation></message>
+    <message><source>Aqua Forest</source><translation>水森林</translation></message>
+    <message><source>Aqua Haze</source><translation>水霧</translation></message>
+    <message><source>Aqua Island</source><translation>水島</translation></message>
+    <message><source>aqua marine</source><translation>淺海藍</translation></message>
+    <message><source>Aqua Spring</source><translation>水泉</translation></message>
+    <message><source>Aqua Squeeze</source><translation>水榨</translation></message>
+    <message><source>Aquamarine</source><translation>綠玉</translation></message>
+    <message><source>Aquamarine Blue</source><translation>淺海藍</translation></message>
+    <message><source>Arabic</source><translation>阿拉伯語</translation></message>
+    <message><source>Arapawa</source><translation>阿拉帕瓦</translation></message>
+    <message><source>Are you sure you want to delete all Render Queue Items?</source><translation>確定要刪除所有渲染隊列項嗎？</translation></message>
+    <message><source>Are you sure you want to delete this palette? This cannot be undone</source><translation>確定要刪除此調色板嗎？無法撤銷</translation></message>
+    <message><source>Are you sure you want to delete this palette? This cannot be undone.</source><translation>確定要刪除此調色板嗎？無法撤銷。</translation></message>
+    <message><source>Are you sure you want to delete this preset?</source><translation>確定要刪除此預設嗎？</translation></message>
+    <message><source>Are you sure you want to delete this Preset?</source><translation>確定要刪除此預設嗎？</translation></message>
+    <message><source>Are you sure you want to delete this Swatch?</source><translation>確定要刪除此樣本嗎？</translation></message>
+    <message><source>Are you sure you want to quit? Unsaved changes will be lost</source><translation>確定要退出嗎？未保存的更改將丟失</translation></message>
+    <message><source>Are you sure you want to quit? Unsaved changes will be lost.</source><translation>確定要退出嗎？未保存的更改將丟失。</translation></message>
+    <message><source>Are you sure? This action cannot be undone</source><translation>確定嗎？此操作無法撤銷</translation></message>
+    <message><source>Are you sure? This action cannot be undone.</source><translation>確定嗎？此操作無法撤銷。</translation></message>
+    <message><source>Argument count does not match function definition. Expected</source><translation>參數計數與函數定義不匹配。預期</translation></message>
+    <message><source>argument not found</source><translation>未找到參數</translation></message>
+    <message><source>Armadillo</source><translation>犰狳</translation></message>
+    <message><source>Armenian</source><translation>亞美尼亞語</translation></message>
+    <message><source>Array</source><translation>數組</translation></message>
+    <message><source>Arrow Keys Control Hierarchy</source><translation>箭頭鍵控制層次</translation></message>
+    <message><source>Arrowtown</source><translation>箭鎮</translation></message>
+    <message><source>Ascender Height</source><translation>上升體高度</translation></message>
+    <message><source>Asparagus</source><translation>蘆筍</translation></message>
+    <message><source>Asphalt</source><translation>瀝青</translation></message>
+    <message><source>Asset Files Path</source><translation>資源文件路徑</translation></message>
+    <message><source>Asset Layer</source><translation>資源圖層</translation></message>
+    <message><source>Assets</source><translation>資源</translation></message>
+    <message><source>Assign Control Points</source><translation>分配控制點</translation></message>
+    <message><source>Assign Tag</source><translation>分配標籤</translation></message>
+    <message><source>Astra</source><translation>星</translation></message>
+    <message><source>Astral</source><translation>星體的</translation></message>
+    <message><source>Astronaut</source><translation>宇航員</translation></message>
+    <message><source>Astronaut Blue</source><translation>宇航員藍</translation></message>
+    <message><source>asynchronous entity</source><translation>異步實體</translation></message>
+    <message><source>at line</source><translation>在行</translation></message>
+    <message><source>Athens Gray</source><translation>雅典灰</translation></message>
+    <message><source>Aths Special</source><translation>雅典特殊</translation></message>
+    </context>
   <context>
     <name>QFileDialog</name>
     <message>
