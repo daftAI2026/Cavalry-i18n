@@ -6,11 +6,14 @@ usage() {
 Usage: launch_cavalry_with_injector.sh --app <Cavalry.app> --lang <lang> [options]
 
 Options:
-  --app <path>       Target Cavalry.app bundle to launch
-  --lang <code>      Language code, e.g. zh-Hant
-  --injector <path>  Injector dylib path to use or build into
-  --no-resign        Skip ad-hoc re-signing before launch
-  --help             Show this help text
+  --app <path>           Target Cavalry.app bundle to launch
+  --lang <code>          Language code, e.g. zh-Hant, en
+  --session-dir <path>   Session directory for runtime capture artifacts
+  --session-uuid <uuid>  Session UUID (used if --session-dir not provided)
+  --cache-root <path>    Cache root directory (default: ~/Library/Caches/Cavalry-i18n)
+  --injector <path>      Injector dylib path to use or build into
+  --no-resign            Skip ad-hoc re-signing before launch
+  --help                 Show this help text
 EOF
 }
 
@@ -36,6 +39,9 @@ remove_signature_if_present() {
 APP_PATH=""
 LANG_CODE=""
 INJECTOR_PATH=""
+SESSION_DIR=""
+SESSION_UUID=""
+CACHE_ROOT=""
 RESIGN_APP=1
 
 while [ "$#" -gt 0 ]; do
@@ -46,6 +52,18 @@ while [ "$#" -gt 0 ]; do
       ;;
     --lang)
       LANG_CODE="${2:-}"
+      shift 2
+      ;;
+    --session-dir)
+      SESSION_DIR="${2:-}"
+      shift 2
+      ;;
+    --session-uuid)
+      SESSION_UUID="${2:-}"
+      shift 2
+      ;;
+    --cache-root)
+      CACHE_ROOT="${2:-}"
       shift 2
       ;;
     --injector)
@@ -82,8 +100,11 @@ if [ ! -x "$APP_BIN" ]; then
   exit 1
 fi
 
-if [ -z "$INJECTOR_PATH" ]; then
+if [ -z "$CACHE_ROOT" ]; then
   CACHE_ROOT="${HOME}/Library/Caches/Cavalry-i18n"
+fi
+
+if [ -z "$INJECTOR_PATH" ]; then
   INJECTOR_PATH="$CACHE_ROOT/libCavalryTranslatorInjector.dylib"
 fi
 
@@ -100,10 +121,29 @@ if [ "$RESIGN_APP" -eq 1 ]; then
   /usr/bin/codesign --force --deep --sign - "$APP_PATH"
 fi
 
+mkdir -p "$CACHE_ROOT"
+LAUNCH_LOG="$CACHE_ROOT/launcher.log"
+
+# Build environment variables for injector
+declare -a ENV_VARS
+ENV_VARS+=("DYLD_INSERT_LIBRARIES=$INJECTOR_PATH")
+ENV_VARS+=("CAVALRY_I18N_LANG=$LANG_CODE")
+ENV_VARS+=("CAVALRY_I18N_CACHE_ROOT=$CACHE_ROOT")
+
+if [ -n "$SESSION_DIR" ]; then
+  ENV_VARS+=("CAVALRY_I18N_SESSION_DIR=$SESSION_DIR")
+fi
+
+if [ -n "$SESSION_UUID" ]; then
+  ENV_VARS+=("CAVALRY_I18N_SESSION_UUID=$SESSION_UUID")
+fi
+
 echo "Launching $APP_PATH with embedded translator for $LANG_CODE"
-LAUNCH_LOG="${HOME}/Library/Caches/Cavalry-i18n/launcher.log"
-mkdir -p "$(dirname "$LAUNCH_LOG")"
-nohup env \
-  DYLD_INSERT_LIBRARIES="$INJECTOR_PATH" \
-  CAVALRY_I18N_LANG="$LANG_CODE" \
-  "$APP_BIN" >>"$LAUNCH_LOG" 2>&1 &
+echo "  Cache root: $CACHE_ROOT"
+if [ -n "$SESSION_DIR" ]; then
+  echo "  Session dir: $SESSION_DIR"
+fi
+
+nohup env "${ENV_VARS[@]}" "$APP_BIN" >>"$LAUNCH_LOG" 2>&1 &
+LAUNCHED_PID=$!
+echo "✓ Launched with PID $LAUNCHED_PID"
