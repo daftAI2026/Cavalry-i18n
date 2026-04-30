@@ -1582,5 +1582,377 @@
       <source>Rotate View</source>
       <translation>旋轉檢視</translation>
     </message>
+      <message>
+      <source>Add Array</source>
+      <translation>新增Array</translation>
+    </message>
+    <message>
+      <source>Add Asset</source>
+      <translation>新增Asset</translation>
+    </message>
+    <message>
+      <source>Add Background</source>
+      <translation>新增Background</translation>
+    </message>
+    <message>
+      <source>Add Behaviour</source>
+      <translation>新增Behaviour</translation>
+    </message>
+    <message>
+      <source>Add Bool</source>
+      <translation>新增Bool</translation>
+    </message>
+    <message>
+      <source>Add Camera</source>
+      <translation>新增Camera</translation>
+    </message>
+    <message>
+      <source>Add Clip</source>
+      <translation>新增Clip</translation>
+    </message>
+    <message>
+      <source>Add Color</source>
+      <translation>新增Color</translation>
+    </message>
+    <message>
+      <source>Add Distribution</source>
+      <translation>新增Distribution</translation>
+    </message>
+    <message>
+      <source>Add Double</source>
+      <translation>新增Double</translation>
+    </message>
+    <message>
+      <source>Add Expression...</source>
+      <translation>新增Expression...</translation>
+    </message>
+    <message>
+      <source>Add Falloff</source>
+      <translation>新增Falloff</translation>
+    </message>
+    <message>
+      <source>Add Header</source>
+      <translation>新增Header</translation>
+    </message>
+    <message>
+      <source>Add Int</source>
+      <translation>新增Int</translation>
+    </message>
+    <message>
+      <source>Add Keyframe</source>
+      <translation>新增Keyframe</translation>
+    </message>
+    <message>
+      <source>Add Layer</source>
+      <translation>新增Layer</translation>
+    </message>
+    <message>
+      <source>Add Mesh</source>
+      <translation>新增Mesh</translation>
+    </message>
+    <message>
+      <source>Add Preset</source>
+      <translation>新增Preset</translation>
+    </message>
+    <message>
+      <source>Add Shader</source>
+      <translation>新增Shader</translation>
+    </message>
+    <message>
+      <source>Add Spacer</source>
+      <translation>新增Spacer</translation>
+    </message>
+    <message>
+      <source>Add String</source>
+      <translation>新增String</translation>
+    </message>
+    <message>
+      <source>Copy B</source>
+      <translation>複製B</translation>
+    </message>
+    <message>
+      <source>Copy Easing</source>
+      <translation>複製Easing</translation>
+    </message>
+    <message>
+      <source>Copy Gradient</source>
+      <translation>複製Gradient</translation>
+    </message>
+    <message>
+      <source>Copy Graph</source>
+      <translation>複製Graph</translation>
+    </message>
+    <message>
+      <source>Copy Grid</source>
+      <translation>複製Grid</translation>
+    </message>
+    <message>
+      <source>Copy Path</source>
+      <translation>複製Path</translation>
+    </message>
+    <message>
+      <source>Copy Unicode</source>
+      <translation>複製Unicode</translation>
+    </message>
+    <message>
+      <source>Copy Value</source>
+      <translation>複製Value</translation>
+    </message>
+    <message>
+      <source>Create Arc</source>
+      <translation>建立Arc</translation>
+    </message>
+    <message>
+      <source>Create Array</source>
+      <translation>建立Array</translation>
+    </message>
+    <message>
+      <source>Create Arrow</source>
+      <translation>建立Arrow</translation>
+    </message>
+    <message>
+      <source>Create Cache</source>
+      <translation>建立Cache</translation>
+    </message>
+    <message>
+      <source>Create Camera</source>
+      <translation>建立Camera</translation>
+    </message>
+    <message>
+      <source>Create Capsule</source>
+      <translation>建立Capsule</translation>
+    </message>
+    <message>
+      <source>Create Cog</source>
+      <translation>建立Cog</translation>
+    </message>
+    <message>
+      <source>Create Composition</source>
+      <translation>建立Composition</translation>
+    </message>
+    <message>
+      <source>Create Ellipse</source>
+      <translation>建立Ellipse</translation>
+    </message>
+    <message>
+      <source>Create Layers</source>
+      <translation>建立Layers</translation>
+    </message>
+    <message>
+      <source>Create Line</source>
+      <translation>建立Line</translation>
+    </message>
+    <message>
+      <source>Create Path</source>
+      <translation>建立Path</translation>
+    </message>
+    <message>
+      <source>Create Polygon</source>
+      <translation>建立Polygon</translation>
+    </message>
+    <message>
+      <source>Create Rectangle</source>
+      <translation>建立Rectangle</translation>
+    </message>
+    <message>
+      <source>Create Spacer</source>
+      <translation>建立Spacer</translation>
+    </message>
+    <message>
+      <source>Create Star</source>
+      <translation>建立Star</translation>
+    </message>
+    <message>
+      <source>Create Text</source>
+      <translation>建立Text</translation>
+    </message>
+    <message>
+      <source>Delete All</source>
+      <translation>刪除All</translation>
+    </message>
+    <message>
+      <source>Delete Assets</source>
+      <translation>刪除Assets</translation>
+    </message>
+    <message>
+      <source>Delete Attributes</source>
+      <translation>刪除Attributes</translation>
+    </message>
+    <message>
+      <source>Delete B</source>
+      <translation>刪除B</translation>
+    </message>
+    <message>
+      <source>Delete Backdrop</source>
+      <translation>刪除Backdrop</translation>
+    </message>
+    <message>
+      <source>Delete Keyframe</source>
+      <translation>刪除Keyframe</translation>
+    </message>
+    <message>
+      <source>Delete Keyframes</source>
+      <translation>刪除Keyframes</translation>
+    </message>
+    <message>
+      <source>Delete Layers</source>
+      <translation>刪除Layers</translation>
+    </message>
+    <message>
+      <source>Delete Palette</source>
+      <translation>刪除Palette</translation>
+    </message>
+    <message>
+      <source>Delete Row</source>
+      <translation>刪除Row</translation>
+    </message>
+    <message>
+      <source>Delete Selected</source>
+      <translation>刪除Selected</translation>
+    </message>
+    <message>
+      <source>Delete Selection</source>
+      <translation>刪除Selection</translation>
+    </message>
+    <message>
+      <source>Delete Stops</source>
+      <translation>刪除Stops</translation>
+    </message>
+    <message>
+      <source>Delete Tag</source>
+      <translation>刪除Tag</translation>
+    </message>
+    <message>
+      <source>Delete Track?</source>
+      <translation>刪除Track?</translation>
+    </message>
+    <message>
+      <source>Delete VH</source>
+      <translation>刪除VH</translation>
+    </message>
+    <message>
+      <source>Delete Vertex</source>
+      <translation>刪除Vertex</translation>
+    </message>
+    <message>
+      <source>Edit Backdrop...</source>
+      <translation>編輯Backdrop...</translation>
+    </message>
+    <message>
+      <source>Edit Component</source>
+      <translation>編輯Component</translation>
+    </message>
+    <message>
+      <source>Edit Expression...</source>
+      <translation>編輯Expression...</translation>
+    </message>
+    <message>
+      <source>Edit Limits...</source>
+      <translation>編輯Limits...</translation>
+    </message>
+    <message>
+      <source>Get Info</source>
+      <translation>取得Info</translation>
+    </message>
+    <message>
+      <source>Insert Keyframe</source>
+      <translation>插入Keyframe</translation>
+    </message>
+    <message>
+      <source>Paste Color</source>
+      <translation>貼上Color</translation>
+    </message>
+    <message>
+      <source>Paste Gradient</source>
+      <translation>貼上Gradient</translation>
+    </message>
+    <message>
+      <source>Paste Graph</source>
+      <translation>貼上Graph</translation>
+    </message>
+    <message>
+      <source>Paste Grid</source>
+      <translation>貼上Grid</translation>
+    </message>
+    <message>
+      <source>Paste Path</source>
+      <translation>貼上Path</translation>
+    </message>
+    <message>
+      <source>Paste SVG</source>
+      <translation>貼上SVG</translation>
+    </message>
+    <message>
+      <source>Paste Text</source>
+      <translation>貼上Text</translation>
+    </message>
+    <message>
+      <source>Paste Value</source>
+      <translation>貼上Value</translation>
+    </message>
+    <message>
+      <source>Remove Cache</source>
+      <translation>移除Cache</translation>
+    </message>
+    <message>
+      <source>Remove Expression</source>
+      <translation>移除Expression</translation>
+    </message>
+    <message>
+      <source>Remove Preset</source>
+      <translation>移除Preset</translation>
+    </message>
+    <message>
+      <source>Remove Tag</source>
+      <translation>移除Tag</translation>
+    </message>
+    <message>
+      <source>Set All</source>
+      <translation>設置All</translation>
+    </message>
+    <message>
+      <source>Set Asset</source>
+      <translation>設置Asset</translation>
+    </message>
+    <message>
+      <source>Set B</source>
+      <translation>設置B</translation>
+    </message>
+    <message>
+      <source>Set Color</source>
+      <translation>設置Color</translation>
+    </message>
+    <message>
+      <source>Set Interpolation</source>
+      <translation>設置Interpolation</translation>
+    </message>
+    <message>
+      <source>Set Keyframe</source>
+      <translation>設置Keyframe</translation>
+    </message>
+    <message>
+      <source>Set Keyframes</source>
+      <translation>設置Keyframes</translation>
+    </message>
+    <message>
+      <source>Set Looping</source>
+      <translation>設置Looping</translation>
+    </message>
+    <message>
+      <source>Set Notes</source>
+      <translation>設置Notes</translation>
+    </message>
+    <message>
+      <source>Set Preset</source>
+      <translation>設置Preset</translation>
+    </message>
+    <message>
+      <source>Set Selected</source>
+      <translation>設置Selected</translation>
+    </message>
+    <message>
+      <source>Set Speed</source>
+      <translation>設置Speed</translation>
+    </message>
   </context>
 </TS>

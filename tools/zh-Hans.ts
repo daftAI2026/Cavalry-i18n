@@ -1902,5 +1902,293 @@
       <source>Rotate View</source>
       <translation>旋转视图</translation>
     </message>
+      <message>
+      <source>Copy B</source>
+      <translation>复制B</translation>
+    </message>
+    <message>
+      <source>Copy Easing</source>
+      <translation>复制Easing</translation>
+    </message>
+    <message>
+      <source>Copy Gradient</source>
+      <translation>复制Gradient</translation>
+    </message>
+    <message>
+      <source>Copy Graph</source>
+      <translation>复制Graph</translation>
+    </message>
+    <message>
+      <source>Copy Grid</source>
+      <translation>复制Grid</translation>
+    </message>
+    <message>
+      <source>Copy Path</source>
+      <translation>复制Path</translation>
+    </message>
+    <message>
+      <source>Copy Unicode</source>
+      <translation>复制Unicode</translation>
+    </message>
+    <message>
+      <source>Copy Value</source>
+      <translation>复制Value</translation>
+    </message>
+    <message>
+      <source>Create Arc</source>
+      <translation>创建Arc</translation>
+    </message>
+    <message>
+      <source>Create Array</source>
+      <translation>创建Array</translation>
+    </message>
+    <message>
+      <source>Create Arrow</source>
+      <translation>创建Arrow</translation>
+    </message>
+    <message>
+      <source>Create Cache</source>
+      <translation>创建Cache</translation>
+    </message>
+    <message>
+      <source>Create Camera</source>
+      <translation>创建Camera</translation>
+    </message>
+    <message>
+      <source>Create Capsule</source>
+      <translation>创建Capsule</translation>
+    </message>
+    <message>
+      <source>Create Cog</source>
+      <translation>创建Cog</translation>
+    </message>
+    <message>
+      <source>Create Composition</source>
+      <translation>创建Composition</translation>
+    </message>
+    <message>
+      <source>Create Ellipse</source>
+      <translation>创建Ellipse</translation>
+    </message>
+    <message>
+      <source>Create Layers</source>
+      <translation>创建Layers</translation>
+    </message>
+    <message>
+      <source>Create Line</source>
+      <translation>创建Line</translation>
+    </message>
+    <message>
+      <source>Create Path</source>
+      <translation>创建Path</translation>
+    </message>
+    <message>
+      <source>Create Polygon</source>
+      <translation>创建Polygon</translation>
+    </message>
+    <message>
+      <source>Create Rectangle</source>
+      <translation>创建Rectangle</translation>
+    </message>
+    <message>
+      <source>Create Spacer</source>
+      <translation>创建Spacer</translation>
+    </message>
+    <message>
+      <source>Create Star</source>
+      <translation>创建Star</translation>
+    </message>
+    <message>
+      <source>Create Text</source>
+      <translation>创建Text</translation>
+    </message>
+    <message>
+      <source>Delete All</source>
+      <translation>删除All</translation>
+    </message>
+    <message>
+      <source>Delete Assets</source>
+      <translation>删除Assets</translation>
+    </message>
+    <message>
+      <source>Delete Attributes</source>
+      <translation>删除Attributes</translation>
+    </message>
+    <message>
+      <source>Delete B</source>
+      <translation>删除B</translation>
+    </message>
+    <message>
+      <source>Delete Backdrop</source>
+      <translation>删除Backdrop</translation>
+    </message>
+    <message>
+      <source>Delete Keyframe</source>
+      <translation>删除Keyframe</translation>
+    </message>
+    <message>
+      <source>Delete Keyframes</source>
+      <translation>删除Keyframes</translation>
+    </message>
+    <message>
+      <source>Delete Layers</source>
+      <translation>删除Layers</translation>
+    </message>
+    <message>
+      <source>Delete Palette</source>
+      <translation>删除Palette</translation>
+    </message>
+    <message>
+      <source>Delete Row</source>
+      <translation>删除Row</translation>
+    </message>
+    <message>
+      <source>Delete Selected</source>
+      <translation>删除Selected</translation>
+    </message>
+    <message>
+      <source>Delete Selection</source>
+      <translation>删除Selection</translation>
+    </message>
+    <message>
+      <source>Delete Stops</source>
+      <translation>删除Stops</translation>
+    </message>
+    <message>
+      <source>Delete Tag</source>
+      <translation>删除Tag</translation>
+    </message>
+    <message>
+      <source>Delete Track?</source>
+      <translation>删除Track?</translation>
+    </message>
+    <message>
+      <source>Delete VH</source>
+      <translation>删除VH</translation>
+    </message>
+    <message>
+      <source>Delete Vertex</source>
+      <translation>删除Vertex</translation>
+    </message>
+    <message>
+      <source>Edit Backdrop...</source>
+      <translation>编辑Backdrop...</translation>
+    </message>
+    <message>
+      <source>Edit Component</source>
+      <translation>编辑Component</translation>
+    </message>
+    <message>
+      <source>Edit Expression...</source>
+      <translation>编辑Expression...</translation>
+    </message>
+    <message>
+      <source>Edit Limits...</source>
+      <translation>编辑Limits...</translation>
+    </message>
+    <message>
+      <source>Get Info</source>
+      <translation>获取Info</translation>
+    </message>
+    <message>
+      <source>Insert Keyframe</source>
+      <translation>插入Keyframe</translation>
+    </message>
+    <message>
+      <source>Paste Color</source>
+      <translation>粘贴Color</translation>
+    </message>
+    <message>
+      <source>Paste Gradient</source>
+      <translation>粘贴Gradient</translation>
+    </message>
+    <message>
+      <source>Paste Graph</source>
+      <translation>粘贴Graph</translation>
+    </message>
+    <message>
+      <source>Paste Grid</source>
+      <translation>粘贴Grid</translation>
+    </message>
+    <message>
+      <source>Paste Path</source>
+      <translation>粘贴Path</translation>
+    </message>
+    <message>
+      <source>Paste SVG</source>
+      <translation>粘贴SVG</translation>
+    </message>
+    <message>
+      <source>Paste Text</source>
+      <translation>粘贴Text</translation>
+    </message>
+    <message>
+      <source>Paste Value</source>
+      <translation>粘贴Value</translation>
+    </message>
+    <message>
+      <source>Remove Cache</source>
+      <translation>移除Cache</translation>
+    </message>
+    <message>
+      <source>Remove Expression</source>
+      <translation>移除Expression</translation>
+    </message>
+    <message>
+      <source>Remove Preset</source>
+      <translation>移除Preset</translation>
+    </message>
+    <message>
+      <source>Remove Tag</source>
+      <translation>移除Tag</translation>
+    </message>
+    <message>
+      <source>Set All</source>
+      <translation>设置All</translation>
+    </message>
+    <message>
+      <source>Set Asset</source>
+      <translation>设置Asset</translation>
+    </message>
+    <message>
+      <source>Set B</source>
+      <translation>设置B</translation>
+    </message>
+    <message>
+      <source>Set Color</source>
+      <translation>设置Color</translation>
+    </message>
+    <message>
+      <source>Set Interpolation</source>
+      <translation>设置Interpolation</translation>
+    </message>
+    <message>
+      <source>Set Keyframe</source>
+      <translation>设置Keyframe</translation>
+    </message>
+    <message>
+      <source>Set Keyframes</source>
+      <translation>设置Keyframes</translation>
+    </message>
+    <message>
+      <source>Set Looping</source>
+      <translation>设置Looping</translation>
+    </message>
+    <message>
+      <source>Set Notes</source>
+      <translation>设置Notes</translation>
+    </message>
+    <message>
+      <source>Set Preset</source>
+      <translation>设置Preset</translation>
+    </message>
+    <message>
+      <source>Set Selected</source>
+      <translation>设置Selected</translation>
+    </message>
+    <message>
+      <source>Set Speed</source>
+      <translation>设置Speed</translation>
+    </message>
   </context>
 </TS>

@@ -2606,5 +2606,1989 @@
       <source>Rotate View</source>
       <translation>ビューを回転</translation>
     </message>
+      <message>
+      <source>Active</source>
+      <translation>アクティブ</translation>
+    </message>
+    <message>
+      <source>Active Camera</source>
+      <translation>アクティブ Camera</translation>
+    </message>
+    <message>
+      <source>Active Camera: Layer Tools Disabled</source>
+      <translation>Active Cameraは無効です</translation>
+    </message>
+    <message>
+      <source>Active Camera: Layer Tools Disabled.</source>
+      <translation>Active Cameraは無効です</translation>
+    </message>
+    <message>
+      <source>Active Composition</source>
+      <translation>アクティブ Composition</translation>
+    </message>
+    <message>
+      <source>Active Tags.</source>
+      <translation>アクティブ Tags.</translation>
+    </message>
+    <message>
+      <source>Add Array</source>
+      <translation>Arrayを追加</translation>
+    </message>
+    <message>
+      <source>Add Asset</source>
+      <translation>Assetを追加</translation>
+    </message>
+    <message>
+      <source>Add Asset To Scene</source>
+      <translation>Asset To Sceneを追加</translation>
+    </message>
+    <message>
+      <source>Add Background</source>
+      <translation>Backgroundを追加</translation>
+    </message>
+    <message>
+      <source>Add Behaviour</source>
+      <translation>Behaviourを追加</translation>
+    </message>
+    <message>
+      <source>Add Bool</source>
+      <translation>Boolを追加</translation>
+    </message>
+    <message>
+      <source>Add Camera</source>
+      <translation>Cameraを追加</translation>
+    </message>
+    <message>
+      <source>Add Clip</source>
+      <translation>Clipを追加</translation>
+    </message>
+    <message>
+      <source>Add Clip to End</source>
+      <translation>Clip to Endを追加</translation>
+    </message>
+    <message>
+      <source>Add Clip to Start</source>
+      <translation>Clip to Startを追加</translation>
+    </message>
+    <message>
+      <source>Add Color</source>
+      <translation>Colorを追加</translation>
+    </message>
+    <message>
+      <source>Add Color Stop</source>
+      <translation>Color Stopを追加</translation>
+    </message>
+    <message>
+      <source>Add Colors from Selection</source>
+      <translation>Colors from Selectionを追加</translation>
+    </message>
+    <message>
+      <source>Add Colors from Selection and Connect</source>
+      <translation>Colors from Selection and Connectを追加</translation>
+    </message>
+    <message>
+      <source>Add Distribution</source>
+      <translation>Distributionを追加</translation>
+    </message>
+    <message>
+      <source>Add Double</source>
+      <translation>Doubleを追加</translation>
+    </message>
+    <message>
+      <source>Add Double (float)</source>
+      <translation>Double (float)を追加</translation>
+    </message>
+    <message>
+      <source>Add Expression...</source>
+      <translation>Expression...を追加</translation>
+    </message>
+    <message>
+      <source>Add Falloff</source>
+      <translation>Falloffを追加</translation>
+    </message>
+    <message>
+      <source>Add Header</source>
+      <translation>Headerを追加</translation>
+    </message>
+    <message>
+      <source>Add IK Control</source>
+      <translation>IK Controlを追加</translation>
+    </message>
+    <message>
+      <source>Add Int</source>
+      <translation>Intを追加</translation>
+    </message>
+    <message>
+      <source>Add Keyframe</source>
+      <translation>Keyframeを追加</translation>
+    </message>
+    <message>
+      <source>Add Layer</source>
+      <translation>Layerを追加</translation>
+    </message>
+    <message>
+      <source>Add Layers Popover</source>
+      <translation>Layers Popoverを追加</translation>
+    </message>
+    <message>
+      <source>Add List Attribute</source>
+      <translation>List Attributeを追加</translation>
+    </message>
+    <message>
+      <source>Add Mesh</source>
+      <translation>Meshを追加</translation>
+    </message>
+    <message>
+      <source>Add New Layers to Selected Tags</source>
+      <translation>New Layers to Selected Tagsを追加</translation>
+    </message>
+    <message>
+      <source>Add Point Data (Distribution)</source>
+      <translation>Point Data (Distribution)を追加</translation>
+    </message>
+    <message>
+      <source>Add Pre-Comp Override</source>
+      <translation>Pre-Comp Overrideを追加</translation>
+    </message>
+    <message>
+      <source>Add Pre-Comp Overrides</source>
+      <translation>Pre-Comp Overridesを追加</translation>
+    </message>
+    <message>
+      <source>Add Preset</source>
+      <translation>Presetを追加</translation>
+    </message>
+    <message>
+      <source>Add SVG to Composition</source>
+      <translation>SVG to Compositionを追加</translation>
+    </message>
+    <message>
+      <source>Add Shader</source>
+      <translation>Shaderを追加</translation>
+    </message>
+    <message>
+      <source>Add Shader (shader)</source>
+      <translation>Shader (shader)を追加</translation>
+    </message>
+    <message>
+      <source>Add Spacer</source>
+      <translation>Spacerを追加</translation>
+    </message>
+    <message>
+      <source>Add String</source>
+      <translation>Stringを追加</translation>
+    </message>
+    <message>
+      <source>Add Sub Bone</source>
+      <translation>Sub Boneを追加</translation>
+    </message>
+    <message>
+      <source>Add a Placement Utility</source>
+      <translation>a Placement Utilityを追加</translation>
+    </message>
+    <message>
+      <source>Add a Rig Control</source>
+      <translation>a Rig Controlを追加</translation>
+    </message>
+    <message>
+      <source>Add a Tag</source>
+      <translation>a Tagを追加</translation>
+    </message>
+    <message>
+      <source>Add a Text Background</source>
+      <translation>a Text Backgroundを追加</translation>
+    </message>
+    <message>
+      <source>Add a bone at the top of the hierarchy</source>
+      <translation>a bone at the top of the hierarchyを追加</translation>
+    </message>
+    <message>
+      <source>Add a bone at the top of the hierarchy.</source>
+      <translation>a bone at the top of the hierarchy.を追加</translation>
+    </message>
+    <message>
+      <source>Add a bone parented to this one</source>
+      <translation>a bone parented to this oneを追加</translation>
+    </message>
+    <message>
+      <source>Add a bone parented to this one.</source>
+      <translation>a bone parented to this one.を追加</translation>
+    </message>
+    <message>
+      <source>Add a new Attribute variable which can be used in your script</source>
+      <translation>a new Attribute variable which can be used in your scriptを追加</translation>
+    </message>
+    <message>
+      <source>Add a new Attribute variable which can be used in your script.</source>
+      <translation>a new Attribute variable which can be used in your script.を追加</translation>
+    </message>
+    <message>
+      <source>Add a tracker (4 required)</source>
+      <translation>a tracker (4 required)を追加</translation>
+    </message>
+    <message>
+      <source>Add a tracker (4 required).</source>
+      <translation>a tracker (4 required).を追加</translation>
+    </message>
+    <message>
+      <source>Add an Animation Control</source>
+      <translation>an Animation Controlを追加</translation>
+    </message>
+    <message>
+      <source>Add an Auto-Animate Deformer</source>
+      <translation>an Auto-Animate Deformerを追加</translation>
+    </message>
+    <message>
+      <source>Add an IK Control using this Bone as End Effector</source>
+      <translation>an IK Control using this Bone as End Effectorを追加</translation>
+    </message>
+    <message>
+      <source>Add an IK Control using this Bone as End Effector.</source>
+      <translation>an IK Control using this Bone as End Effector.を追加</translation>
+    </message>
+    <message>
+      <source>Add connections</source>
+      <translation>connectionsを追加</translation>
+    </message>
+    <message>
+      <source>Add new snippet</source>
+      <translation>new snippetを追加</translation>
+    </message>
+    <message>
+      <source>Add or edit Bind positions</source>
+      <translation>or edit Bind positionsを追加</translation>
+    </message>
+    <message>
+      <source>Add selected layers to the Attribute Editor</source>
+      <translation>selected layers to the Attribute Editorを追加</translation>
+    </message>
+    <message>
+      <source>Add selected layers to the Attribute Editor.</source>
+      <translation>selected layers to the Attribute Editor.を追加</translation>
+    </message>
+    <message>
+      <source>Add your own Presets and you&apos;ll be able to delete and rename them here</source>
+      <translation>your own Presets and you&apos;ll be able to delete and rename them hereを追加</translation>
+    </message>
+    <message>
+      <source>Add your own Presets and you&apos;ll be able to delete and rename them here.</source>
+      <translation>your own Presets and you&apos;ll be able to delete and rename them here.を追加</translation>
+    </message>
+    <message>
+      <source>Aero Blue</source>
+      <translation>Aero Blue</translation>
+    </message>
+    <message>
+      <source>Albescent White</source>
+      <translation>Albescent White</translation>
+    </message>
+    <message>
+      <source>Algae Green</source>
+      <translation>Algae Green</translation>
+    </message>
+    <message>
+      <source>Alice Blue</source>
+      <translation>Alice Blue</translation>
+    </message>
+    <message>
+      <source>Apple Green</source>
+      <translation>Apple Green</translation>
+    </message>
+    <message>
+      <source>Apricot White</source>
+      <translation>Apricot White</translation>
+    </message>
+    <message>
+      <source>Aquamarine Blue</source>
+      <translation>Aquamarine Blue</translation>
+    </message>
+    <message>
+      <source>Astronaut Blue</source>
+      <translation>Astronaut Blue</translation>
+    </message>
+    <message>
+      <source>Barley White</source>
+      <translation>Barley White</translation>
+    </message>
+    <message>
+      <source>Beryl Green</source>
+      <translation>Beryl Green</translation>
+    </message>
+    <message>
+      <source>Black</source>
+      <translation>Black</translation>
+    </message>
+    <message>
+      <source>Black White</source>
+      <translation>Black White</translation>
+    </message>
+    <message>
+      <source>Blaze Orange</source>
+      <translation>Blaze Orange</translation>
+    </message>
+    <message>
+      <source>Bleach White</source>
+      <translation>Bleach White</translation>
+    </message>
+    <message>
+      <source>Blizzard Blue</source>
+      <translation>Blizzard Blue</translation>
+    </message>
+    <message>
+      <source>Blue</source>
+      <translation>Blue</translation>
+    </message>
+    <message>
+      <source>Blue Green</source>
+      <translation>Blue Green</translation>
+    </message>
+    <message>
+      <source>Blush Pink</source>
+      <translation>Blush Pink</translation>
+    </message>
+    <message>
+      <source>Bondi Blue</source>
+      <translation>Bondi Blue</translation>
+    </message>
+    <message>
+      <source>Boston Blue</source>
+      <translation>Boston Blue</translation>
+    </message>
+    <message>
+      <source>Bottle Green</source>
+      <translation>Bottle Green</translation>
+    </message>
+    <message>
+      <source>Brick Red</source>
+      <translation>Brick Red</translation>
+    </message>
+    <message>
+      <source>Bright Green</source>
+      <translation>Bright Green</translation>
+    </message>
+    <message>
+      <source>Bright Red</source>
+      <translation>Bright Red</translation>
+    </message>
+    <message>
+      <source>Brink Pink</source>
+      <translation>Brink Pink</translation>
+    </message>
+    <message>
+      <source>Brown</source>
+      <translation>Brown</translation>
+    </message>
+    <message>
+      <source>Burning Orange</source>
+      <translation>Burning Orange</translation>
+    </message>
+    <message>
+      <source>Burnt Orange</source>
+      <translation>Burnt Orange</translation>
+    </message>
+    <message>
+      <source>Buttery White</source>
+      <translation>Buttery White</translation>
+    </message>
+    <message>
+      <source>Cadet Blue</source>
+      <translation>Cadet Blue</translation>
+    </message>
+    <message>
+      <source>Camouflage Green</source>
+      <translation>Camouflage Green</translation>
+    </message>
+    <message>
+      <source>Cannon Black</source>
+      <translation>Cannon Black</translation>
+    </message>
+    <message>
+      <source>Cannon Pink</source>
+      <translation>Cannon Pink</translation>
+    </message>
+    <message>
+      <source>Cardin Green</source>
+      <translation>Cardin Green</translation>
+    </message>
+    <message>
+      <source>Cardinal Pink</source>
+      <translation>Cardinal Pink</translation>
+    </message>
+    <message>
+      <source>Careys Pink</source>
+      <translation>Careys Pink</translation>
+    </message>
+    <message>
+      <source>Caribbean Green</source>
+      <translation>Caribbean Green</translation>
+    </message>
+    <message>
+      <source>Carnation Pink</source>
+      <translation>Carnation Pink</translation>
+    </message>
+    <message>
+      <source>Carousel Pink</source>
+      <translation>Carousel Pink</translation>
+    </message>
+    <message>
+      <source>Carrot Orange</source>
+      <translation>Carrot Orange</translation>
+    </message>
+    <message>
+      <source>Catalina Blue</source>
+      <translation>Catalina Blue</translation>
+    </message>
+    <message>
+      <source>Catskill White</source>
+      <translation>Catskill White</translation>
+    </message>
+    <message>
+      <source>Cavern Pink</source>
+      <translation>Cavern Pink</translation>
+    </message>
+    <message>
+      <source>Cerise Red</source>
+      <translation>Cerise Red</translation>
+    </message>
+    <message>
+      <source>Cerulean Blue</source>
+      <translation>Cerulean Blue</translation>
+    </message>
+    <message>
+      <source>Chalet Green</source>
+      <translation>Chalet Green</translation>
+    </message>
+    <message>
+      <source>Chartreuse Yellow</source>
+      <translation>Chartreuse Yellow</translation>
+    </message>
+    <message>
+      <source>Chateau Green</source>
+      <translation>Chateau Green</translation>
+    </message>
+    <message>
+      <source>Chathams Blue</source>
+      <translation>Chathams Blue</translation>
+    </message>
+    <message>
+      <source>Chetwode Blue</source>
+      <translation>Chetwode Blue</translation>
+    </message>
+    <message>
+      <source>Chrome White</source>
+      <translation>Chrome White</translation>
+    </message>
+    <message>
+      <source>Citrine White</source>
+      <translation>Citrine White</translation>
+    </message>
+    <message>
+      <source>Clear All</source>
+      <translation>クリア All</translation>
+    </message>
+    <message>
+      <source>Clear Control Centre</source>
+      <translation>クリア Control Centre</translation>
+    </message>
+    <message>
+      <source>Clear Day</source>
+      <translation>クリア Day</translation>
+    </message>
+    <message>
+      <source>Clear Generator</source>
+      <translation>クリア Generator</translation>
+    </message>
+    <message>
+      <source>Clear Key</source>
+      <translation>クリア Key</translation>
+    </message>
+    <message>
+      <source>Clear Palette</source>
+      <translation>クリア Palette</translation>
+    </message>
+    <message>
+      <source>Clear Path</source>
+      <translation>クリア Path</translation>
+    </message>
+    <message>
+      <source>Clear Script</source>
+      <translation>クリア Script</translation>
+    </message>
+    <message>
+      <source>Clear Script?</source>
+      <translation>クリア Script?</translation>
+    </message>
+    <message>
+      <source>Clear Selected</source>
+      <translation>クリア Selected</translation>
+    </message>
+    <message>
+      <source>Clear Settings</source>
+      <translation>クリア Settings</translation>
+    </message>
+    <message>
+      <source>Clear Shortcut.</source>
+      <translation>クリア Shortcut.</translation>
+    </message>
+    <message>
+      <source>Clear Tag</source>
+      <translation>クリア Tag</translation>
+    </message>
+    <message>
+      <source>Clear Tag Selection</source>
+      <translation>クリア Tag Selection</translation>
+    </message>
+    <message>
+      <source>Clear palette</source>
+      <translation>クリア palette</translation>
+    </message>
+    <message>
+      <source>Clear the Quicklist</source>
+      <translation>クリア the Quicklist</translation>
+    </message>
+    <message>
+      <source>Clear the Tracking data for the selected layer</source>
+      <translation>クリア the Tracking data for the selected layer</translation>
+    </message>
+    <message>
+      <source>Clear the Tracking data for the selected layer.</source>
+      <translation>クリア the Tracking data for the selected layer.</translation>
+    </message>
+    <message>
+      <source>Clear the log</source>
+      <translation>クリア the log</translation>
+    </message>
+    <message>
+      <source>Clear the log window</source>
+      <translation>クリア the log window</translation>
+    </message>
+    <message>
+      <source>Clear the log window.</source>
+      <translation>クリア the log window.</translation>
+    </message>
+    <message>
+      <source>Clear the log.</source>
+      <translation>クリア the log.</translation>
+    </message>
+    <message>
+      <source>Cleared Snapshots.</source>
+      <translation>クリアed Snapshots.</translation>
+    </message>
+    <message>
+      <source>Clears Focus</source>
+      <translation>クリアs Focus</translation>
+    </message>
+    <message>
+      <source>Clears all mixed styling from this text</source>
+      <translation>クリアs all mixed styling from this text</translation>
+    </message>
+    <message>
+      <source>Clears all mixed styling from this text.</source>
+      <translation>クリアs all mixed styling from this text.</translation>
+    </message>
+    <message>
+      <source>Cocoa Brown</source>
+      <translation>Cocoa Brown</translation>
+    </message>
+    <message>
+      <source>Cold Purple</source>
+      <translation>Cold Purple</translation>
+    </message>
+    <message>
+      <source>Colonial White</source>
+      <translation>Colonial White</translation>
+    </message>
+    <message>
+      <source>Congo Brown</source>
+      <translation>Congo Brown</translation>
+    </message>
+    <message>
+      <source>Congress Blue</source>
+      <translation>Congress Blue</translation>
+    </message>
+    <message>
+      <source>Copy Asset Id</source>
+      <translation>コピー Asset Id</translation>
+    </message>
+    <message>
+      <source>Copy B</source>
+      <translation>コピー B</translation>
+    </message>
+    <message>
+      <source>Copy Composition Id</source>
+      <translation>コピー Composition Id</translation>
+    </message>
+    <message>
+      <source>Copy Easing</source>
+      <translation>コピー Easing</translation>
+    </message>
+    <message>
+      <source>Copy Generator Type</source>
+      <translation>コピー Generator Type</translation>
+    </message>
+    <message>
+      <source>Copy Gradient</source>
+      <translation>コピー Gradient</translation>
+    </message>
+    <message>
+      <source>Copy Graph</source>
+      <translation>コピー Graph</translation>
+    </message>
+    <message>
+      <source>Copy Grid</source>
+      <translation>コピー Grid</translation>
+    </message>
+    <message>
+      <source>Copy Group Id</source>
+      <translation>コピー Group Id</translation>
+    </message>
+    <message>
+      <source>Copy Hex Color Value</source>
+      <translation>コピー Hex Color Value</translation>
+    </message>
+    <message>
+      <source>Copy Internal Attribute path</source>
+      <translation>コピー Internal Attribute path</translation>
+    </message>
+    <message>
+      <source>Copy Layer Id</source>
+      <translation>コピー Layer Id</translation>
+    </message>
+    <message>
+      <source>Copy Path</source>
+      <translation>コピー Path</translation>
+    </message>
+    <message>
+      <source>Copy Render Queue Item Id</source>
+      <translation>コピー Render Queue Item Id</translation>
+    </message>
+    <message>
+      <source>Copy Scripting Path</source>
+      <translation>コピー Scripting Path</translation>
+    </message>
+    <message>
+      <source>Copy Unicode</source>
+      <translation>コピー Unicode</translation>
+    </message>
+    <message>
+      <source>Copy Value</source>
+      <translation>コピー Value</translation>
+    </message>
+    <message>
+      <source>Copy and send this information to support for troubleshooting</source>
+      <translation>コピー and send this information to support for troubleshooting</translation>
+    </message>
+    <message>
+      <source>Copy and send this information to support for troubleshooting.</source>
+      <translation>コピー and send this information to support for troubleshooting.</translation>
+    </message>
+    <message>
+      <source>Copy serialised value</source>
+      <translation>コピー serialised value</translation>
+    </message>
+    <message>
+      <source>Copy to Clipboard</source>
+      <translation>コピー to Clipboard</translation>
+    </message>
+    <message>
+      <source>Copy to Next</source>
+      <translation>コピー to Next</translation>
+    </message>
+    <message>
+      <source>Coral Red</source>
+      <translation>Coral Red</translation>
+    </message>
+    <message>
+      <source>Cornflower Blue</source>
+      <translation>Cornflower Blue</translation>
+    </message>
+    <message>
+      <source>County Green</source>
+      <translation>County Green</translation>
+    </message>
+    <message>
+      <source>Crater Brown</source>
+      <translation>Crater Brown</translation>
+    </message>
+    <message>
+      <source>Curious Blue</source>
+      <translation>Curious Blue</translation>
+    </message>
+    <message>
+      <source>Custom</source>
+      <translation>カスタム</translation>
+    </message>
+    <message>
+      <source>Custom Presets</source>
+      <translation>カスタム Presets</translation>
+    </message>
+    <message>
+      <source>Cut Path</source>
+      <translation>切り取り Path</translation>
+    </message>
+    <message>
+      <source>Cut Path Tool</source>
+      <translation>切り取り Path Tool</translation>
+    </message>
+    <message>
+      <source>Cut Points</source>
+      <translation>切り取り Points</translation>
+    </message>
+    <message>
+      <source>Cutty Sark</source>
+      <translation>切り取りty Sark</translation>
+    </message>
+    <message>
+      <source>Dark Blue</source>
+      <translation>Dark Blue</translation>
+    </message>
+    <message>
+      <source>Dawn Pink</source>
+      <translation>Dawn Pink</translation>
+    </message>
+    <message>
+      <source>Deep Blue</source>
+      <translation>Deep Blue</translation>
+    </message>
+    <message>
+      <source>Deep Forest Green</source>
+      <translation>Deep Forest Green</translation>
+    </message>
+    <message>
+      <source>Deep Sea Green</source>
+      <translation>Deep Sea Green</translation>
+    </message>
+    <message>
+      <source>Default</source>
+      <translation>デフォルト</translation>
+    </message>
+    <message>
+      <source>Default Ease (33%)</source>
+      <translation>デフォルト Ease (33%)</translation>
+    </message>
+    <message>
+      <source>Default Keyframe Layer</source>
+      <translation>デフォルト Keyframe Layer</translation>
+    </message>
+    <message>
+      <source>Default Preset for this Layer Type</source>
+      <translation>デフォルト Preset for this Layer Type</translation>
+    </message>
+    <message>
+      <source>Default Renderer</source>
+      <translation>デフォルト Renderer</translation>
+    </message>
+    <message>
+      <source>Default Velocity Presets</source>
+      <translation>デフォルト Velocity Presets</translation>
+    </message>
+    <message>
+      <source>Delete All</source>
+      <translation>削除 All</translation>
+    </message>
+    <message>
+      <source>Delete All Markers</source>
+      <translation>削除 All Markers</translation>
+    </message>
+    <message>
+      <source>Delete All Time Markers</source>
+      <translation>削除 All Time Markers</translation>
+    </message>
+    <message>
+      <source>Delete Animation Layers</source>
+      <translation>削除 Animation Layers</translation>
+    </message>
+    <message>
+      <source>Delete Animation for layer</source>
+      <translation>削除 Animation for layer</translation>
+    </message>
+    <message>
+      <source>Delete Assets</source>
+      <translation>削除 Assets</translation>
+    </message>
+    <message>
+      <source>Delete Attributes</source>
+      <translation>削除 Attributes</translation>
+    </message>
+    <message>
+      <source>Delete B</source>
+      <translation>削除 B</translation>
+    </message>
+    <message>
+      <source>Delete Backdrop</source>
+      <translation>削除 Backdrop</translation>
+    </message>
+    <message>
+      <source>Delete Keyframe</source>
+      <translation>削除 Keyframe</translation>
+    </message>
+    <message>
+      <source>Delete Keyframe Command: attribute flag required</source>
+      <translation>削除 Keyframe Command: attribute flag required</translation>
+    </message>
+    <message>
+      <source>Delete Keyframe Command: attribute flag required.</source>
+      <translation>削除 Keyframe Command: attribute flag required.</translation>
+    </message>
+    <message>
+      <source>Delete Keyframes</source>
+      <translation>削除 Keyframes</translation>
+    </message>
+    <message>
+      <source>Delete Layers</source>
+      <translation>削除 Layers</translation>
+    </message>
+    <message>
+      <source>Delete Motion Path Keyframe</source>
+      <translation>削除 Motion Path Keyframe</translation>
+    </message>
+    <message>
+      <source>Delete Palette</source>
+      <translation>削除 Palette</translation>
+    </message>
+    <message>
+      <source>Delete Path Animation</source>
+      <translation>削除 Path Animation</translation>
+    </message>
+    <message>
+      <source>Delete Path Animation on this Shape</source>
+      <translation>削除 Path Animation on this Shape</translation>
+    </message>
+    <message>
+      <source>Delete Path Animation on this Shape.</source>
+      <translation>削除 Path Animation on this Shape.</translation>
+    </message>
+    <message>
+      <source>Delete Row</source>
+      <translation>削除 Row</translation>
+    </message>
+    <message>
+      <source>Delete Selected</source>
+      <translation>削除 Selected</translation>
+    </message>
+    <message>
+      <source>Delete Selection</source>
+      <translation>削除 Selection</translation>
+    </message>
+    <message>
+      <source>Delete Stops</source>
+      <translation>削除 Stops</translation>
+    </message>
+    <message>
+      <source>Delete Tag</source>
+      <translation>削除 Tag</translation>
+    </message>
+    <message>
+      <source>Delete Track?</source>
+      <translation>削除 Track?</translation>
+    </message>
+    <message>
+      <source>Delete Unused Colours</source>
+      <translation>削除 Unused Colours</translation>
+    </message>
+    <message>
+      <source>Delete VH</source>
+      <translation>削除 VH</translation>
+    </message>
+    <message>
+      <source>Delete Vertex</source>
+      <translation>削除 Vertex</translation>
+    </message>
+    <message>
+      <source>Delete all Animation</source>
+      <translation>削除 all Animation</translation>
+    </message>
+    <message>
+      <source>Delete this bookmark?</source>
+      <translation>削除 this bookmark?</translation>
+    </message>
+    <message>
+      <source>Delete this preset?</source>
+      <translation>削除 this preset?</translation>
+    </message>
+    <message>
+      <source>Dodger Blue</source>
+      <translation>Dodger Blue</translation>
+    </message>
+    <message>
+      <source>Donkey Brown</source>
+      <translation>Donkey Brown</translation>
+    </message>
+    <message>
+      <source>Double Colonial White</source>
+      <translation>Double Colonial White</translation>
+    </message>
+    <message>
+      <source>Double Spanish White</source>
+      <translation>Double Spanish White</translation>
+    </message>
+    <message>
+      <source>Duplicate Composition</source>
+      <translation>複製 Composition</translation>
+    </message>
+    <message>
+      <source>Duplicate Options</source>
+      <translation>複製 Options</translation>
+    </message>
+    <message>
+      <source>Earls Green</source>
+      <translation>Earls Green</translation>
+    </message>
+    <message>
+      <source>Eastern Blue</source>
+      <translation>Eastern Blue</translation>
+    </message>
+    <message>
+      <source>Ecru White</source>
+      <translation>Ecru White</translation>
+    </message>
+    <message>
+      <source>Edit Backdrop...</source>
+      <translation>編集 Backdrop...</translation>
+    </message>
+    <message>
+      <source>Edit Component</source>
+      <translation>編集 Component</translation>
+    </message>
+    <message>
+      <source>Edit Custom Expression</source>
+      <translation>編集 Custom Expression</translation>
+    </message>
+    <message>
+      <source>Edit Custom Expression...</source>
+      <translation>編集 Custom Expression...</translation>
+    </message>
+    <message>
+      <source>Edit End Point</source>
+      <translation>編集 End Point</translation>
+    </message>
+    <message>
+      <source>Edit Expression...</source>
+      <translation>編集 Expression...</translation>
+    </message>
+    <message>
+      <source>Edit Limits...</source>
+      <translation>編集 Limits...</translation>
+    </message>
+    <message>
+      <source>Edit Limits... (Set from Origin Attribute)</source>
+      <translation>編集 Limits... (Set from Origin Attribute)</translation>
+    </message>
+    <message>
+      <source>Edit Points Tool</source>
+      <translation>編集 Points Tool</translation>
+    </message>
+    <message>
+      <source>Edit Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor</source>
+      <translation>編集 Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor</translation>
+    </message>
+    <message>
+      <source>Edit Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor.</source>
+      <translation>編集 Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor.</translation>
+    </message>
+    <message>
+      <source>Edit Velocity Curve</source>
+      <translation>編集 Velocity Curve</translation>
+    </message>
+    <message>
+      <source>Edit Velocity Curve...</source>
+      <translation>編集 Velocity Curve...</translation>
+    </message>
+    <message>
+      <source>Edit the Control Name and Notes</source>
+      <translation>編集 the Control Name and Notes</translation>
+    </message>
+    <message>
+      <source>Editable</source>
+      <translation>編集able</translation>
+    </message>
+    <message>
+      <source>Editable Shape Cut</source>
+      <translation>編集able Shape Cut</translation>
+    </message>
+    <message>
+      <source>Egg White</source>
+      <translation>Egg White</translation>
+    </message>
+    <message>
+      <source>Elf Green</source>
+      <translation>Elf Green</translation>
+    </message>
+    <message>
+      <source>Energy Yellow</source>
+      <translation>Energy Yellow</translation>
+    </message>
+    <message>
+      <source>Fair Pink</source>
+      <translation>Fair Pink</translation>
+    </message>
+    <message>
+      <source>Fall Green</source>
+      <translation>Fall Green</translation>
+    </message>
+    <message>
+      <source>Falu Red</source>
+      <translation>Falu Red</translation>
+    </message>
+    <message>
+      <source>Fern Green</source>
+      <translation>Fern Green</translation>
+    </message>
+    <message>
+      <source>Fiery Orange</source>
+      <translation>Fiery Orange</translation>
+    </message>
+    <message>
+      <source>File autosaved.</source>
+      <translation>ファイル autosaved.</translation>
+    </message>
+    <message>
+      <source>File buffer is empty</source>
+      <translation>ファイル buffer is empty</translation>
+    </message>
+    <message>
+      <source>File buffer is empty.</source>
+      <translation>ファイル buffer is empty.</translation>
+    </message>
+    <message>
+      <source>File created in a newer version</source>
+      <translation>ファイル created in a newer version</translation>
+    </message>
+    <message>
+      <source>File created in a newer version.</source>
+      <translation>ファイル created in a newer version.</translation>
+    </message>
+    <message>
+      <source>Find</source>
+      <translation>検索</translation>
+    </message>
+    <message>
+      <source>Flush Orange</source>
+      <translation>Flush Orange</translation>
+    </message>
+    <message>
+      <source>Forest Green</source>
+      <translation>Forest Green</translation>
+    </message>
+    <message>
+      <source>Fountain Blue</source>
+      <translation>Fountain Blue</translation>
+    </message>
+    <message>
+      <source>Fuchsia Blue</source>
+      <translation>Fuchsia Blue</translation>
+    </message>
+    <message>
+      <source>Fuchsia Pink</source>
+      <translation>Fuchsia Pink</translation>
+    </message>
+    <message>
+      <source>Fuel Yellow</source>
+      <translation>Fuel Yellow</translation>
+    </message>
+    <message>
+      <source>Fun Blue</source>
+      <translation>Fun Blue</translation>
+    </message>
+    <message>
+      <source>Fun Green</source>
+      <translation>Fun Green</translation>
+    </message>
+    <message>
+      <source>Fuzzy Wuzzy Brown</source>
+      <translation>Fuzzy Wuzzy Brown</translation>
+    </message>
+    <message>
+      <source>Gable Green</source>
+      <translation>Gable Green</translation>
+    </message>
+    <message>
+      <source>Glade Green</source>
+      <translation>Glade Green</translation>
+    </message>
+    <message>
+      <source>Gordons Green</source>
+      <translation>Gordons Green</translation>
+    </message>
+    <message>
+      <source>Grain Brown</source>
+      <translation>Grain Brown</translation>
+    </message>
+    <message>
+      <source>Granite Green</source>
+      <translation>Granite Green</translation>
+    </message>
+    <message>
+      <source>Green</source>
+      <translation>Green</translation>
+    </message>
+    <message>
+      <source>Green White</source>
+      <translation>Green White</translation>
+    </message>
+    <message>
+      <source>Green Yellow</source>
+      <translation>Green Yellow</translation>
+    </message>
+    <message>
+      <source>Guardsman Red</source>
+      <translation>Guardsman Red</translation>
+    </message>
+    <message>
+      <source>Gulf Blue</source>
+      <translation>Gulf Blue</translation>
+    </message>
+    <message>
+      <source>Half Colonial White</source>
+      <translation>Half Colonial White</translation>
+    </message>
+    <message>
+      <source>Half Dutch White</source>
+      <translation>Half Dutch White</translation>
+    </message>
+    <message>
+      <source>Half Spanish White</source>
+      <translation>Half Spanish White</translation>
+    </message>
+    <message>
+      <source>Havelock Blue</source>
+      <translation>Havelock Blue</translation>
+    </message>
+    <message>
+      <source>Hawkes Blue</source>
+      <translation>Hawkes Blue</translation>
+    </message>
+    <message>
+      <source>Hint of Green</source>
+      <translation>Hint of Green</translation>
+    </message>
+    <message>
+      <source>Hint of Red</source>
+      <translation>Hint of Red</translation>
+    </message>
+    <message>
+      <source>Hint of Yellow</source>
+      <translation>Hint of Yellow</translation>
+    </message>
+    <message>
+      <source>Hippie Blue</source>
+      <translation>Hippie Blue</translation>
+    </message>
+    <message>
+      <source>Hippie Green</source>
+      <translation>Hippie Green</translation>
+    </message>
+    <message>
+      <source>Hippie Pink</source>
+      <translation>Hippie Pink</translation>
+    </message>
+    <message>
+      <source>Hit Pink</source>
+      <translation>Hit Pink</translation>
+    </message>
+    <message>
+      <source>Hot Pink</source>
+      <translation>Hot Pink</translation>
+    </message>
+    <message>
+      <source>Hunter Green</source>
+      <translation>Hunter Green</translation>
+    </message>
+    <message>
+      <source>Insert Keyframe</source>
+      <translation>挿入 Keyframe</translation>
+    </message>
+    <message>
+      <source>International Klein Blue</source>
+      <translation>International Klein Blue</translation>
+    </message>
+    <message>
+      <source>International Orange</source>
+      <translation>International Orange</translation>
+    </message>
+    <message>
+      <source>Jacksons Purple</source>
+      <translation>Jacksons Purple</translation>
+    </message>
+    <message>
+      <source>Jordy Blue</source>
+      <translation>Jordy Blue</translation>
+    </message>
+    <message>
+      <source>Jungle Green</source>
+      <translation>Jungle Green</translation>
+    </message>
+    <message>
+      <source>Kaitoke Green</source>
+      <translation>Kaitoke Green</translation>
+    </message>
+    <message>
+      <source>Kashmir Blue</source>
+      <translation>Kashmir Blue</translation>
+    </message>
+    <message>
+      <source>Lavender Pink</source>
+      <translation>Lavender Pink</translation>
+    </message>
+    <message>
+      <source>Lavender Purple</source>
+      <translation>Lavender Purple</translation>
+    </message>
+    <message>
+      <source>Lightning Yellow</source>
+      <translation>Lightning Yellow</translation>
+    </message>
+    <message>
+      <source>Lily White</source>
+      <translation>Lily White</translation>
+    </message>
+    <message>
+      <source>Lisbon Brown</source>
+      <translation>Lisbon Brown</translation>
+    </message>
+    <message>
+      <source>Livid Brown</source>
+      <translation>Livid Brown</translation>
+    </message>
+    <message>
+      <source>Lunar Green</source>
+      <translation>Lunar Green</translation>
+    </message>
+    <message>
+      <source>Mandys Pink</source>
+      <translation>Mandys Pink</translation>
+    </message>
+    <message>
+      <source>Marigold Yellow</source>
+      <translation>Marigold Yellow</translation>
+    </message>
+    <message>
+      <source>Medium Purple</source>
+      <translation>Medium Purple</translation>
+    </message>
+    <message>
+      <source>Mexican Red</source>
+      <translation>Mexican Red</translation>
+    </message>
+    <message>
+      <source>Midnight Blue</source>
+      <translation>Midnight Blue</translation>
+    </message>
+    <message>
+      <source>Milano Red</source>
+      <translation>Milano Red</translation>
+    </message>
+    <message>
+      <source>Mineral Green</source>
+      <translation>Mineral Green</translation>
+    </message>
+    <message>
+      <source>Mint Green</source>
+      <translation>Mint Green</translation>
+    </message>
+    <message>
+      <source>Moody Blue</source>
+      <translation>Moody Blue</translation>
+    </message>
+    <message>
+      <source>Morocco Brown</source>
+      <translation>Morocco Brown</translation>
+    </message>
+    <message>
+      <source>Moss Green</source>
+      <translation>Moss Green</translation>
+    </message>
+    <message>
+      <source>Mountbatten Pink</source>
+      <translation>Mountbatten Pink</translation>
+    </message>
+    <message>
+      <source>My Pink</source>
+      <translation>My Pink</translation>
+    </message>
+    <message>
+      <source>Navajo White</source>
+      <translation>Navajo White</translation>
+    </message>
+    <message>
+      <source>Navy Blue</source>
+      <translation>Navy Blue</translation>
+    </message>
+    <message>
+      <source>New York Pink</source>
+      <translation>New York Pink</translation>
+    </message>
+    <message>
+      <source>Nile Blue</source>
+      <translation>Nile Blue</translation>
+    </message>
+    <message>
+      <source>Ocean Green</source>
+      <translation>Ocean Green</translation>
+    </message>
+    <message>
+      <source>Off Green</source>
+      <translation>Off Green</translation>
+    </message>
+    <message>
+      <source>Off Yellow</source>
+      <translation>Off Yellow</translation>
+    </message>
+    <message>
+      <source>Olive Green</source>
+      <translation>Olive Green</translation>
+    </message>
+    <message>
+      <source>Orange</source>
+      <translation>Orange</translation>
+    </message>
+    <message>
+      <source>Orange White</source>
+      <translation>Orange White</translation>
+    </message>
+    <message>
+      <source>Orchid White</source>
+      <translation>Orchid White</translation>
+    </message>
+    <message>
+      <source>Oriental Pink</source>
+      <translation>Oriental Pink</translation>
+    </message>
+    <message>
+      <source>Outrageous Orange</source>
+      <translation>Outrageous Orange</translation>
+    </message>
+    <message>
+      <source>Oxford Blue</source>
+      <translation>Oxford Blue</translation>
+    </message>
+    <message>
+      <source>Oyster Pink</source>
+      <translation>Oyster Pink</translation>
+    </message>
+    <message>
+      <source>Pacific Blue</source>
+      <translation>Pacific Blue</translation>
+    </message>
+    <message>
+      <source>Palm Green</source>
+      <translation>Palm Green</translation>
+    </message>
+    <message>
+      <source>Paris White</source>
+      <translation>Paris White</translation>
+    </message>
+    <message>
+      <source>Paste Color</source>
+      <translation>貼り付け Color</translation>
+    </message>
+    <message>
+      <source>Paste Gradient</source>
+      <translation>貼り付け Gradient</translation>
+    </message>
+    <message>
+      <source>Paste Graph</source>
+      <translation>貼り付け Graph</translation>
+    </message>
+    <message>
+      <source>Paste Grid</source>
+      <translation>貼り付け Grid</translation>
+    </message>
+    <message>
+      <source>Paste Path</source>
+      <translation>貼り付け Path</translation>
+    </message>
+    <message>
+      <source>Paste SVG</source>
+      <translation>貼り付け SVG</translation>
+    </message>
+    <message>
+      <source>Paste Text</source>
+      <translation>貼り付け Text</translation>
+    </message>
+    <message>
+      <source>Paste Value</source>
+      <translation>貼り付け Value</translation>
+    </message>
+    <message>
+      <source>Paste and import image</source>
+      <translation>貼り付け and import image</translation>
+    </message>
+    <message>
+      <source>Paste attribute value</source>
+      <translation>貼り付け attribute value</translation>
+    </message>
+    <message>
+      <source>Pasted Animation</source>
+      <translation>貼り付けd Animation</translation>
+    </message>
+    <message>
+      <source>Pasted Gradient</source>
+      <translation>貼り付けd Gradient</translation>
+    </message>
+    <message>
+      <source>Pasted Graph</source>
+      <translation>貼り付けd Graph</translation>
+    </message>
+    <message>
+      <source>Pasted Grid.</source>
+      <translation>貼り付けd Grid.</translation>
+    </message>
+    <message>
+      <source>Pasted SVG</source>
+      <translation>貼り付けd SVG</translation>
+    </message>
+    <message>
+      <source>Pasted Shape</source>
+      <translation>貼り付けd Shape</translation>
+    </message>
+    <message>
+      <source>Pasted attribute value</source>
+      <translation>貼り付けd attribute value</translation>
+    </message>
+    <message>
+      <source>Pasted attribute value.</source>
+      <translation>貼り付けd attribute value.</translation>
+    </message>
+    <message>
+      <source>Pasted layers</source>
+      <translation>貼り付けd layers</translation>
+    </message>
+    <message>
+      <source>Pasted time markers</source>
+      <translation>貼り付けd time markers</translation>
+    </message>
+    <message>
+      <source>Pastel</source>
+      <translation>貼り付けl</translation>
+    </message>
+    <message>
+      <source>Pastel Green</source>
+      <translation>Pastel Green</translation>
+    </message>
+    <message>
+      <source>Pastel Pink</source>
+      <translation>Pastel Pink</translation>
+    </message>
+    <message>
+      <source>Pattens Blue</source>
+      <translation>Pattens Blue</translation>
+    </message>
+    <message>
+      <source>Peach Orange</source>
+      <translation>Peach Orange</translation>
+    </message>
+    <message>
+      <source>Peach Yellow</source>
+      <translation>Peach Yellow</translation>
+    </message>
+    <message>
+      <source>Periglacial Blue</source>
+      <translation>Periglacial Blue</translation>
+    </message>
+    <message>
+      <source>Persian Blue</source>
+      <translation>Persian Blue</translation>
+    </message>
+    <message>
+      <source>Persian Green</source>
+      <translation>Persian Green</translation>
+    </message>
+    <message>
+      <source>Persian Pink</source>
+      <translation>Persian Pink</translation>
+    </message>
+    <message>
+      <source>Persian Red</source>
+      <translation>Persian Red</translation>
+    </message>
+    <message>
+      <source>Picton Blue</source>
+      <translation>Picton Blue</translation>
+    </message>
+    <message>
+      <source>Pig Pink</source>
+      <translation>Pig Pink</translation>
+    </message>
+    <message>
+      <source>Piggy Pink</source>
+      <translation>Piggy Pink</translation>
+    </message>
+    <message>
+      <source>Pine Green</source>
+      <translation>Pine Green</translation>
+    </message>
+    <message>
+      <source>Pink</source>
+      <translation>Pink</translation>
+    </message>
+    <message>
+      <source>Pixie Green</source>
+      <translation>Pixie Green</translation>
+    </message>
+    <message>
+      <source>Polo Blue</source>
+      <translation>Polo Blue</translation>
+    </message>
+    <message>
+      <source>Powder Blue</source>
+      <translation>Powder Blue</translation>
+    </message>
+    <message>
+      <source>Provincial Pink</source>
+      <translation>Provincial Pink</translation>
+    </message>
+    <message>
+      <source>Prussian Blue</source>
+      <translation>Prussian Blue</translation>
+    </message>
+    <message>
+      <source>Purple</source>
+      <translation>Purple</translation>
+    </message>
+    <message>
+      <source>Quarter Spanish White</source>
+      <translation>Quarter Spanish White</translation>
+    </message>
+    <message>
+      <source>Racing Green</source>
+      <translation>Racing Green</translation>
+    </message>
+    <message>
+      <source>Radical Red</source>
+      <translation>Radical Red</translation>
+    </message>
+    <message>
+      <source>Rangoon Green</source>
+      <translation>Rangoon Green</translation>
+    </message>
+    <message>
+      <source>Red Orange</source>
+      <translation>Red Orange</translation>
+    </message>
+    <message>
+      <source>Redo (Text Editing)</source>
+      <translation>やり直す (Text Editing)</translation>
+    </message>
+    <message>
+      <source>Regal Blue</source>
+      <translation>Regal Blue</translation>
+    </message>
+    <message>
+      <source>Regent St Blue</source>
+      <translation>Regent St Blue</translation>
+    </message>
+    <message>
+      <source>Replace</source>
+      <translation>置換</translation>
+    </message>
+    <message>
+      <source>Replace All</source>
+      <translation>置換 All</translation>
+    </message>
+    <message>
+      <source>Replace Asset...</source>
+      <translation>置換 Asset...</translation>
+    </message>
+    <message>
+      <source>Replace Connection</source>
+      <translation>置換 Connection</translation>
+    </message>
+    <message>
+      <source>Replace Current</source>
+      <translation>置換 Current</translation>
+    </message>
+    <message>
+      <source>Replace Fill</source>
+      <translation>置換 Fill</translation>
+    </message>
+    <message>
+      <source>Replace Google Sheet</source>
+      <translation>置換 Google Sheet</translation>
+    </message>
+    <message>
+      <source>Replace Google Sheet...</source>
+      <translation>置換 Google Sheet...</translation>
+    </message>
+    <message>
+      <source>Replace H</source>
+      <translation>置換 H</translation>
+    </message>
+    <message>
+      <source>Replace Script or Create New Tab?</source>
+      <translation>置換 Script or Create New Tab?</translation>
+    </message>
+    <message>
+      <source>Replace Stroke</source>
+      <translation>置換 Stroke</translation>
+    </message>
+    <message>
+      <source>Replace and reconnect</source>
+      <translation>置換 and reconnect</translation>
+    </message>
+    <message>
+      <source>Replaced Connection</source>
+      <translation>置換d Connection</translation>
+    </message>
+    <message>
+      <source>Resolution Blue</source>
+      <translation>Resolution Blue</translation>
+    </message>
+    <message>
+      <source>Robin Egg Blue</source>
+      <translation>Robin Egg Blue</translation>
+    </message>
+    <message>
+      <source>Robin&apos;s Egg Blue</source>
+      <translation>Robin&apos;s Egg Blue</translation>
+    </message>
+    <message>
+      <source>Rock Blue</source>
+      <translation>Rock Blue</translation>
+    </message>
+    <message>
+      <source>Rose White</source>
+      <translation>Rose White</translation>
+    </message>
+    <message>
+      <source>Royal Blue</source>
+      <translation>Royal Blue</translation>
+    </message>
+    <message>
+      <source>Royal Purple</source>
+      <translation>Royal Purple</translation>
+    </message>
+    <message>
+      <source>Rustic Red</source>
+      <translation>Rustic Red</translation>
+    </message>
+    <message>
+      <source>Saddle Brown</source>
+      <translation>Saddle Brown</translation>
+    </message>
+    <message>
+      <source>Sanguine Brown</source>
+      <translation>Sanguine Brown</translation>
+    </message>
+    <message>
+      <source>School bus Yellow</source>
+      <translation>School bus Yellow</translation>
+    </message>
+    <message>
+      <source>Science Blue</source>
+      <translation>Science Blue</translation>
+    </message>
+    <message>
+      <source>Screamin Green</source>
+      <translation>Screamin Green</translation>
+    </message>
+    <message>
+      <source>Screamin&apos; Green</source>
+      <translation>Screamin&apos; Green</translation>
+    </message>
+    <message>
+      <source>Sea Green</source>
+      <translation>Sea Green</translation>
+    </message>
+    <message>
+      <source>Sea Pink</source>
+      <translation>Sea Pink</translation>
+    </message>
+    <message>
+      <source>Selection Soloed in Viewport (Selection added to Quicklist and Filter Viewport mode set)</source>
+      <translation>選択 Soloed in Viewport (Selection added to Quicklist and Filter Viewport mode set)</translation>
+    </message>
+    <message>
+      <source>Selective Yellow</source>
+      <translation>Selective Yellow</translation>
+    </message>
+    <message>
+      <source>Sepia Black</source>
+      <translation>Sepia Black</translation>
+    </message>
+    <message>
+      <source>Shadow Green</source>
+      <translation>Shadow Green</translation>
+    </message>
+    <message>
+      <source>Sherpa Blue</source>
+      <translation>Sherpa Blue</translation>
+    </message>
+    <message>
+      <source>Sherwood Green</source>
+      <translation>Sherwood Green</translation>
+    </message>
+    <message>
+      <source>Shocking Pink</source>
+      <translation>Shocking Pink</translation>
+    </message>
+    <message>
+      <source>Sky Blue</source>
+      <translation>Sky Blue</translation>
+    </message>
+    <message>
+      <source>Smalt Blue</source>
+      <translation>Smalt Blue</translation>
+    </message>
+    <message>
+      <source>Solid Pink</source>
+      <translation>Solid Pink</translation>
+    </message>
+    <message>
+      <source>Sorrell Brown</source>
+      <translation>Sorrell Brown</translation>
+    </message>
+    <message>
+      <source>Spanish Green</source>
+      <translation>Spanish Green</translation>
+    </message>
+    <message>
+      <source>Spicy Pink</source>
+      <translation>Spicy Pink</translation>
+    </message>
+    <message>
+      <source>Spring Green</source>
+      <translation>Spring Green</translation>
+    </message>
+    <message>
+      <source>Stark White</source>
+      <translation>Stark White</translation>
+    </message>
+    <message>
+      <source>Steel Blue</source>
+      <translation>Steel Blue</translation>
+    </message>
+    <message>
+      <source>Summer Green</source>
+      <translation>Summer Green</translation>
+    </message>
+    <message>
+      <source>Sunset Orange</source>
+      <translation>Sunset Orange</translation>
+    </message>
+    <message>
+      <source>Surfie Green</source>
+      <translation>Surfie Green</translation>
+    </message>
+    <message>
+      <source>Swamp Green</source>
+      <translation>Swamp Green</translation>
+    </message>
+    <message>
+      <source>Sweet Pink</source>
+      <translation>Sweet Pink</translation>
+    </message>
+    <message>
+      <source>Te Papa Green</source>
+      <translation>Te Papa Green</translation>
+    </message>
+    <message>
+      <source>Tea Green</source>
+      <translation>Tea Green</translation>
+    </message>
+    <message>
+      <source>Teal Blue</source>
+      <translation>Teal Blue</translation>
+    </message>
+    <message>
+      <source>Thatch Green</source>
+      <translation>Thatch Green</translation>
+    </message>
+    <message>
+      <source>Thistle Green</source>
+      <translation>Thistle Green</translation>
+    </message>
+    <message>
+      <source>Tickle Me Pink</source>
+      <translation>Tickle Me Pink</translation>
+    </message>
+    <message>
+      <source>Timber Green</source>
+      <translation>Timber Green</translation>
+    </message>
+    <message>
+      <source>Titan White</source>
+      <translation>Titan White</translation>
+    </message>
+    <message>
+      <source>Tobacco Brown</source>
+      <translation>Tobacco Brown</translation>
+    </message>
+    <message>
+      <source>Tonys Pink</source>
+      <translation>Tonys Pink</translation>
+    </message>
+    <message>
+      <source>Tools</source>
+      <translation>ツール</translation>
+    </message>
+    <message>
+      <source>Torch Red</source>
+      <translation>Torch Red</translation>
+    </message>
+    <message>
+      <source>Tory Blue</source>
+      <translation>Tory Blue</translation>
+    </message>
+    <message>
+      <source>Trendy Green</source>
+      <translation>Trendy Green</translation>
+    </message>
+    <message>
+      <source>Trendy Pink</source>
+      <translation>Trendy Pink</translation>
+    </message>
+    <message>
+      <source>Tropical Blue</source>
+      <translation>Tropical Blue</translation>
+    </message>
+    <message>
+      <source>Turquoise Blue</source>
+      <translation>Turquoise Blue</translation>
+    </message>
+    <message>
+      <source>Turtle Green</source>
+      <translation>Turtle Green</translation>
+    </message>
+    <message>
+      <source>Twilight Blue</source>
+      <translation>Twilight Blue</translation>
+    </message>
+    <message>
+      <source>Tyrian Purple</source>
+      <translation>Tyrian Purple</translation>
+    </message>
+    <message>
+      <source>Undo (Text Editing)</source>
+      <translation>戻す (Text Editing)</translation>
+    </message>
+    <message>
+      <source>Undock</source>
+      <translation>戻すck</translation>
+    </message>
+    <message>
+      <source>Unmellow Yellow</source>
+      <translation>Unmellow Yellow</translation>
+    </message>
+    <message>
+      <source>Venetian Red</source>
+      <translation>Venetian Red</translation>
+    </message>
+    <message>
+      <source>Venice Blue</source>
+      <translation>Venice Blue</translation>
+    </message>
+    <message>
+      <source>Verdun Green</source>
+      <translation>Verdun Green</translation>
+    </message>
+    <message>
+      <source>View Bookmarks</source>
+      <translation>表示 Bookmarks</translation>
+    </message>
+    <message>
+      <source>View File Paths</source>
+      <translation>表示 File Paths</translation>
+    </message>
+    <message>
+      <source>View File Paths...</source>
+      <translation>表示 File Paths...</translation>
+    </message>
+    <message>
+      <source>Viewport</source>
+      <translation>表示port</translation>
+    </message>
+    <message>
+      <source>Viewport Canvas Color</source>
+      <translation>表示port Canvas Color</translation>
+    </message>
+    <message>
+      <source>Viewport Quality: Balanced</source>
+      <translation>表示port Quality: Balanced</translation>
+    </message>
+    <message>
+      <source>Viewport Quality: High</source>
+      <translation>表示port Quality: High</translation>
+    </message>
+    <message>
+      <source>Viewport Quality: Low</source>
+      <translation>表示port Quality: Low</translation>
+    </message>
+    <message>
+      <source>Viewport Quality: Lowest</source>
+      <translation>表示port Quality: Lowest</translation>
+    </message>
+    <message>
+      <source>Viewport Settings</source>
+      <translation>表示port Settings</translation>
+    </message>
+    <message>
+      <source>Viewport Soloing Cleared (Quicklist deselected)</source>
+      <translation>表示port Soloing Cleared (Quicklist deselected)</translation>
+    </message>
+    <message>
+      <source>Viewport Tool Help</source>
+      <translation>表示port Tool Help</translation>
+    </message>
+    <message>
+      <source>Viewport setting to preview</source>
+      <translation>表示port setting to preview</translation>
+    </message>
+    <message>
+      <source>Viewport setting to preview.</source>
+      <translation>表示port setting to preview.</translation>
+    </message>
+    <message>
+      <source>Violet Red</source>
+      <translation>Violet Red</translation>
+    </message>
+    <message>
+      <source>Viridian Green</source>
+      <translation>Viridian Green</translation>
+    </message>
+    <message>
+      <source>Vista Blue</source>
+      <translation>Vista Blue</translation>
+    </message>
+    <message>
+      <source>Vista White</source>
+      <translation>Vista White</translation>
+    </message>
+    <message>
+      <source>Web Orange</source>
+      <translation>Web Orange</translation>
+    </message>
+    <message>
+      <source>White</source>
+      <translation>White</translation>
+    </message>
+    <message>
+      <source>Windows</source>
+      <translation>ウィンドウs</translation>
+    </message>
+    <message>
+      <source>Wisp Pink</source>
+      <translation>Wisp Pink</translation>
+    </message>
+    <message>
+      <source>Woody Brown</source>
+      <translation>Woody Brown</translation>
+    </message>
+    <message>
+      <source>Yellow</source>
+      <translation>Yellow</translation>
+    </message>
+    <message>
+      <source>Yellow Green</source>
+      <translation>Yellow Green</translation>
+    </message>
+    <message>
+      <source>Yellow Orange</source>
+      <translation>Yellow Orange</translation>
+    </message>
+    <message>
+      <source>Your Pink</source>
+      <translation>Your Pink</translation>
+    </message>
   </context>
 </TS>
