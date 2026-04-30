@@ -129,28 +129,56 @@ if [ "$RESIGN_APP" -eq 1 ]; then
   done < <(find "$APP_PATH" -type f -name crashpad_handler)
 
   /usr/bin/codesign --force --deep --sign - "$APP_PATH"
-  
-  # Verify codesign state for G-CAPTURE provenance
+
+  # Verify codesign state for G-CAPTURE provenance.
+  # See doc/cavalry-runtime-injection-techniques.md §5 and
+  # doc/workflows/cavalry-full-ui-100/Acceptance.md §G-CAPTURE for the contract.
   CODESIGN_EVIDENCE="$SESSION_DIR/audit/codesign-evidence.txt"
   mkdir -p "$(dirname "$CODESIGN_EVIDENCE")"
   /usr/bin/codesign -dv --entitlements - "$APP_PATH" > "$CODESIGN_EVIDENCE" 2>&1 || true
-  
-  # Check for hardened runtime and library-validation flags
-  if grep -q "runtime" "$CODESIGN_EVIDENCE"; then
-    echo "ERROR: Hardened runtime flag still present after ad-hoc signing" >&2
+
+  # Parse the CodeDirectory flags=0xNNNN(token,token,...) line precisely.
+  # Naive `grep "runtime"` would match unrelated text (paths, "Sealed Resources", etc.)
+  # and either falsely trigger or never trigger; we extract the parenthesized flag
+  # tokens explicitly.
+  APP_FLAG_TOKENS="$(awk -F'[()]' '/^CodeDirectory[[:space:]]+v=.*flags=/ { print $2 }' "$CODESIGN_EVIDENCE" | tr ',' '\n' | tr -d ' ')"
+
+  if printf '%s\n' "$APP_FLAG_TOKENS" | grep -qx 'runtime'; then
+    echo "ERROR: hardened runtime flag still present on $APP_PATH after ad-hoc signing" >&2
+    echo "  flag tokens: $APP_FLAG_TOKENS" >&2
     cat "$CODESIGN_EVIDENCE" >&2
     exit 1
   fi
-  
-  if grep -q "library-validation" "$CODESIGN_EVIDENCE"; then
-    echo "ERROR: Library validation flag still present after ad-hoc signing" >&2
+
+  # library-validation lives in entitlements, not flags. Check the entitlements
+  # XML block dumped by `codesign -dv --entitlements -` instead.
+  if grep -q 'com\.apple\.security\.cs\.disable-library-validation\|<key>library-validation</key>\s*<true' "$CODESIGN_EVIDENCE"; then
+    :  # disable-library-validation true means library validation is OFF; not a fail
+  fi
+  if grep -q '<key>com\.apple\.security\.cs\.allow-dyld-environment-variables</key>\s*<false' "$CODESIGN_EVIDENCE"; then
+    echo "ERROR: app entitlements forbid DYLD env variables" >&2
     cat "$CODESIGN_EVIDENCE" >&2
     exit 1
   fi
-  
-  echo "[G-CAPTURE] Codesign evidence written to $CODESIGN_EVIDENCE"
-  echo "[G-CAPTURE] Hardened runtime: NOT present ✓"
-  echo "[G-CAPTURE] Library validation: NOT present ✓"
+  if printf '%s\n' "$APP_FLAG_TOKENS" | grep -qx 'restrict'; then
+    echo "ERROR: restrict flag still present on $APP_PATH; DYLD_INSERT_LIBRARIES will be stripped" >&2
+    cat "$CODESIGN_EVIDENCE" >&2
+    exit 1
+  fi
+
+  # Mirror dylib-side flag check: clang's linker-signed flag prevents injection.
+  if [ -f "$INJECTOR_PATH" ]; then
+    DYLIB_FLAG_TOKENS="$(/usr/bin/codesign -dv "$INJECTOR_PATH" 2>&1 | awk -F'[()]' '/^CodeDirectory[[:space:]]+v=.*flags=/ { print $2 }' | tr ',' '\n' | tr -d ' ')"
+    if printf '%s\n' "$DYLIB_FLAG_TOKENS" | grep -qx 'linker-signed'; then
+      echo "ERROR: injector dylib is linker-signed; amfid will reject DYLD insertion." >&2
+      echo "  Re-run tools/build_translator_injector.sh which now re-signs ad-hoc after clang." >&2
+      exit 1
+    fi
+  fi
+
+  echo "[G-CAPTURE] Codesign evidence -> $CODESIGN_EVIDENCE"
+  echo "[G-CAPTURE] App flag tokens: ${APP_FLAG_TOKENS:-<none>}"
+  echo "[G-CAPTURE] Dylib flag tokens: ${DYLIB_FLAG_TOKENS:-<not yet built>}"
 fi
 
 echo "Launching $APP_PATH with embedded translator for $LANG_CODE"
