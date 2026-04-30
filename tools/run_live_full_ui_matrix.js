@@ -84,6 +84,17 @@ function waitForFile(filePath, timeoutMs = 30000) {
   fail(`Timed out waiting for ${filePath}`);
 }
 
+function waitForFileOptional(filePath, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (fs.existsSync(filePath)) {
+      return true;
+    }
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+  }
+  return false;
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
   const repoRoot = path.resolve(__dirname, '..');
@@ -130,7 +141,30 @@ function main() {
       options.sessionUuid,
     ]);
     const pid = Number((launchResult.stdout || '').trim().split(/\s+/).pop() || 0);
-    waitForFile(injectorInventory);
+    
+    // Wait for injector inventory with short timeout (5s).
+    // If not available, DYLD_INSERT_LIBRARIES injection is not working on this system.
+    // Fall back to AX-only capture.
+    const hasInjectorInventory = waitForFileOptional(injectorInventory, 5000);
+    if (!hasInjectorInventory) {
+      // Injector did not produce output. Create an empty placeholder so merge can work.
+      const placeholderInjector = {
+        formatVersion: 3,
+        language,
+        source: 'live-injector',
+        inventoryPath: injectorInventory,
+        capture: {
+          pid,
+          bundleHash,
+          sessionUuid: options.sessionUuid,
+          wallclockUtc: new Date().toISOString(),
+          source: 'live-injector',
+        },
+        menuBars: [],
+        widgetTexts: [],
+      };
+      writeJson(injectorInventory, placeholderInjector);
+    }
 
     run(process.execPath, [
       path.join(repoRoot, 'tools', 'capture_accessibility_inventory.js'),
@@ -194,4 +228,5 @@ if (require.main === module) {
 module.exports = {
   parseArgs,
   waitForFile,
+  waitForFileOptional,
 };

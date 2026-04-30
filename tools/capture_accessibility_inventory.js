@@ -197,8 +197,9 @@ function buildAccessibilityInventory({ language, capture }) {
 }
 
 function runMenuCapture(options) {
-  const targetClause = options.pid
-    ? `first process whose unix id is ${Number(options.pid)}`
+  const pidNum = options.pid ? parseInt(options.pid, 10) : 0;
+  const targetClause = pidNum > 0
+    ? `first process whose unix id is ${pidNum}`
     : `process "${String(options.appName || '').replace(/"/g, '\\"')}"`;
   const escapedAppName = String(options.appName || '').replace(/"/g, '\\"');
   const script = `
@@ -339,9 +340,16 @@ function collectTextNodes(element, bucket, depth) {
 }
 
 function resolveProcess(systemEvents) {
-  if (config.pid) {
-    const matches = systemEvents.processes.whose({ unixId: Number(config.pid) })();
-    if (matches.length > 0) return matches[0];
+  if (config.pid && config.pid !== '0' && config.pid !== '') {
+    const pidNum = parseInt(config.pid, 10);
+    if (Number.isInteger(pidNum) && pidNum > 0) {
+      try {
+        const matches = systemEvents.processes.whose({ unixId: pidNum })();
+        if (matches.length > 0) return matches[0];
+      } catch (e) {
+        // Fall back to byName if pid matching fails
+      }
+    }
   }
   return systemEvents.processes.byName(config.appName);
 }
