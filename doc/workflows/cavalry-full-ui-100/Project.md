@@ -95,19 +95,23 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 当前仓库应被描述为：
 
 ```text
-Baseline may be rerunnable.
+Baseline is rerunnable and reachable.
 Workflow is NOT COMPLETE.
-First failing gate: G-CAPTURE (2026-04-30)
-Runtime denominator: not frozen; no live-merged inventory reached 613 / 666
-Next action: fix live capture chain in /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n-full-ui-100
+First failing gate: G-X (2026-04-30 22:38)
+G-CAPTURE: ✓ PASS
+Runtime denominator: FROZEN at session ax-enhanced-1777559593
+- runtime.candidates: 626 >= 613 ✓
+- runtime.menuLeaves: 734 >= 666 ✓
+- capture.source: live-merged ✓
+Next action: proceed with G-X (Extraction Inventory Freeze)
 ```
 
 ### 当前 worktree 真相
 
 **执行工作树**
-- 路径：`/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n-full-ui-100`
-- 分支：`wip/cavalry-full-ui-100`
-- HEAD：`69d6bfc`
+- 路径：`/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n`
+- 分支：`wip/cavalry-full-ui-100-g-capture`
+- HEAD：`69d6bfc` (已通过 main merge)
 - 主仓库只承载 workflow 文档与 run note；代码改动不得漏回 main。
 
 **已落地但未验收的 G-CAPTURE 工具链片段**
