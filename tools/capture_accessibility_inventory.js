@@ -328,11 +328,8 @@ function collectTextNodes(element, bucket, depth) {
     value: normalize(safeCall(() => element.value(), '')),
     title: normalize(safeCall(() => element.title(), '')),
     description: normalize(safeCall(() => element.description(), '')),
-    help: normalize(safeCall(() => element.help(), '')),
-    placeholder: normalize(safeCall(() => element.placeholderValue?.() || '', '')),
-    subrole: normalize(safeCall(() => element.subrole(), '')),
   };
-  if (node.name || node.value || node.title || node.description || node.help || node.placeholder) {
+  if (node.name || node.value || node.title || node.description) {
     bucket.push(node);
   }
   const children = safeCall(() => element.uiElements(), []);
