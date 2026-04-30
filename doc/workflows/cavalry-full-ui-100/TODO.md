@@ -59,10 +59,10 @@ Current repo state    = NOT COMPLETE
 - [ ] `tools/check_full_ui_coverage.js` 仍未把 JSON `coveragePct == 100` 与 `exact_english_translate_leaves == 0` 设为硬条件
 - [ ] `tools/check_full_ui_matrix.js` 仍未成为 `--session-dir` 驱动的 matrix reader / session-run-record owner
 - [ ] `tools/validate_translations.py` 已升到 `1.00`，但 G1 下游 hard gate 仍未与 frozen denominator 对齐
-- [ ] `desktop-patcher/injector/CavalryTranslatorInjector.mm` 仍输出 root-cache `menu-inventory.json`
-- [ ] `tools/launch_cavalry_with_injector.sh` 仍未携带 `sessionDir/sessionUuid/cacheRoot`
-- [ ] live injector English probe 仍会在 dump 前命中 `unsupported language: en`，还不能充当 G-X runtime denominator
-- [ ] `tools/merge_runtime_inventory.js` / `tools/run_live_full_ui_matrix.js` 仍不存在
+- [ ] `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已改为 session-scoped inventory 路径，但缺 live artifact 证明
+- [ ] `tools/launch_cavalry_with_injector.sh` 已携带 `sessionDir/sessionUuid/cacheRoot`，但本轮仍未证明 injector constructor 执行
+- [ ] live injector English probe 已有 dump-only 分支，但 session `21B1048E-963E-43B1-975B-0C506902E0EB` 没有产出 `en-injector-inventory.json`
+- [ ] `tools/merge_runtime_inventory.js` / `tools/run_live_full_ui_matrix.js` 已存在，但 matrix 当前使用 `--no-resign` 且不能产出合格 `live-merged`
 - [ ] `.github/workflows/build.yml` 若接入 full-ui matrix，必须使用 session-dir / provenance / blocked 语义，且不得引用旧 `doc/...` artifact 路径
 - [ ] `.github/workflows/build.yml` 的实际打包步骤必须使用 `npm run build:tauri`，而不是裸 `npm run build`
 - [ ] Electron 专属 test/build/harness 仍有历史残留；本 workflow 只迁移仍有价值的断言，不修旧 Electron 壳
@@ -118,21 +118,27 @@ SOURCE_MAP  = ~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json
 
 ### W-CAPTURE
 
-**BLOCKED**: Dylib injection not loading despite correct code signing and @rpath configuration.
-See runs/2026-04-30-G-CAPTURE-DYLIB-INJECTION-INVESTIGATION.md.
+**FAIL**: live runtime denominator not established in the current worktree.
+See runs/2026-04-30-G-CAPTURE-WORKTREE-STATE-CORRECTION.md.
 
 Technical status:
 - [x] App code signing: flags=0x2(adhoc), no hardened runtime
 - [x] Dylib code signing: flags=0x2(adhoc), no linker-signed
 - [x] Dylib @rpath entries: correctly configured for Qt framework resolution
-- [ ] Dylib constructor: ✗ never executes (blocker)
-- [ ] Runtime inventory: ✗ never created
+- [x] Injector code has English dump-only branch and session-scoped output path
+- [x] Launch script passes `sessionDir/sessionUuid/cacheRoot`
+- [x] `merge_runtime_inventory.js` exists and rejects non-live sources
+- [x] `run_live_full_ui_matrix.js` exists
+- [ ] Dylib constructor execution: not proven by current session artifact
+- [ ] Runtime inventory: absent in session `21B1048E-963E-43B1-975B-0C506902E0EB`
+- [ ] Matrix launcher discipline: current `run_live_full_ui_matrix.js` uses `--no-resign`; must be removed
+- [ ] Runtime lower bound: candidates >= 613 and menuLeaves >= 666 not met
 
-Tasks blocked by dylib injection failure:
-- [ ] injector 支持 `CAVALRY_I18N_LANG=en` dump-only，不再因缺翻译表退出
-- [ ] launch 脚本传递 `sessionDir/sessionUuid/cacheRoot`
-- [ ] `merge_runtime_inventory.js` 合并 live injector 与 live AX inventory
-- [ ] `run_live_full_ui_matrix.js` 统一创建 session、抓取、合并、写 run record
+Remaining tasks:
+- [ ] 重新实跑 launcher，禁止 `--no-resign`，保留 codesign evidence
+- [ ] 若仍无 injector inventory，检查 `lipo` / `otool -L` / `otool -l` / `codesign -dv` / amfid log
+- [ ] `merge_runtime_inventory.js` 用真实 injector + AX inventory 合并出 `capture.source = live-merged`
+- [ ] `run_live_full_ui_matrix.js` 统一创建 session、抓取、合并、写 run record，且不绕过重签
 - [ ] `RUN_RECORD.target` 记录 Cavalry version / Qt version / bundle hash / app path
 - [ ] AX audit 输出 `menuDepthMax` 与 submenu path samples，证明二级/三级菜单实际被抓到
 - [ ] runtime lower bound 使用 A9B11073 provenance：`candidates >= 613`、`menuLeaves >= 666`

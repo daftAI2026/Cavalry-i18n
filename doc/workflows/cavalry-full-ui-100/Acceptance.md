@@ -127,24 +127,28 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 
 ### 当前状态
 
-**`BLOCKED-SIP`** (2026-04-30)
+**`NOT COMPLETE` — first failing gate: `G-CAPTURE`** (2026-04-30)
 
-macOS System Integrity Protection (SIP) 启用状态下，`DYLD_INSERT_LIBRARIES` 无法向代码签名的应用注入 dylib。
+当前事实以 worktree `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n-full-ui-100` 的 `wip/cavalry-full-ui-100@69d6bfc` 与 session `21B1048E-963E-43B1-975B-0C506902E0EB` 为准：
 
 已验证：
-- SIP 确实阻止了所有注入尝试（codesign、app copy 都无效）
-- Accessibility 框架独立工作，但仅获取 ~8 个 widgets（远低于 613 基线）
-- AX-only 方案不足以满足 G-CAPTURE 通过条件
+- `tools/build_translator_injector.sh` 已加入 `@rpath`、ad-hoc 重签与 `linker-signed` 检查。
+- `tools/launch_cavalry_with_injector.sh` 已支持 `sessionDir/sessionUuid/cacheRoot`，并写出 `audit/codesign-evidence.txt`。
+- `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已包含 `CAVALRY_I18N_LANG=en` dump-only 分支与 session-scoped runtime inventory 路径。
+- `tools/capture_accessibility_inventory.js`、`tools/merge_runtime_inventory.js`、`tools/run_live_full_ui_matrix.js` 已存在，但尚未证明能产出合格 `live-merged` 分母。
+- session `21B1048E-963E-43B1-975B-0C506902E0EB` 只留下 codesign evidence，没有生成 `runtime/en-injector-inventory.json`；`en-injector-launch.log` 为空。
+- 未发现 amfid / kernel 拒绝证据；当前不能声明 SIP 阻塞，也不能建议 `csrutil disable`。
 
 见：
-- `runs/2026-04-30-G-CAPTURE-SIP-blocker.md` - 初始诊断
-- `runs/2026-04-30-G-CAPTURE-SIP-final-analysis.md` - 三路径分析
-- `runs/2026-04-30-G-CAPTURE-SIP-final-decision.md` - 最终确认与建议
+- `runs/2026-04-30-G-CAPTURE-DYLIB-INJECTION-INVESTIGATION.md`
+- `runs/2026-04-30-G-CAPTURE-TECHNICAL-BLOCKER-ANALYSIS.md`
+- `runs/2026-04-30-G-CAPTURE-WORKTREE-STATE-CORRECTION.md`
 
-**后续行动**：用户必须选择以下之一：
-1. 禁用 SIP（推荐）：Recovery Mode → `csrutil disable` → reboot
-2. 实现增强 AX 管道：脚本交互打开所有 panel，再 capture
-3. 混合方案：尝试注入，失败则降级到增强 AX
+后续行动：
+1. 继续查 dylib / dyld 自身：`lipo`、`otool -L`、`otool -l`、`codesign -dv`、launch log 与 amfid log 必须形成闭环。
+2. 修正 live matrix 编排：不得用 `--no-resign` 绕过 launcher 证据链，`RUN_RECORD.target` 必须记录 Cavalry / Qt / bundle hash / app path。
+3. 若走 AX 兜底，必须实现真实交互展开 panel/menu/submenu，并在本轮 artifact 中留下 `menuDepthMax` 与 5 条 submenu path samples。
+4. 在 `runtime.candidates >= 613`、`runtime.menuLeaves >= 666`、`capture.source = live-merged` 同时成立前，不得进入 G-X。
 
 ### 通过条件
 
@@ -167,8 +171,9 @@ macOS System Integrity Protection (SIP) 启用状态下，`DYLD_INSERT_LIBRARIES
 
 ### 失败条件
 
-- English runtime dump 仍因 `unsupported language: en` 提前退出
+- English dump-only 代码存在，但本轮 artifact 仍没有 `RUNTIME_DIR/en-injector-inventory.json`
 - runtime 产物仍写入 cache 根目录
+- live matrix 使用 `--no-resign` 跳过 launcher 重签与 codesign evidence
 - AX-only 弱抓取低于已知 A9B11073 基线却继续进入 G-X
 - 用 fixture / curated 数据补足 runtime 数量
 - 只证明脚本里存在递归代码，却没有在本轮 capture artifact 中留下 submenu 深度与路径证据

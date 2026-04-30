@@ -1,23 +1,27 @@
 # ── 系统垃圾 ──
 .DS_Store
+**/.DS_Store
+Thumbs.db
 
-# ── 内部规划 & 工具链 ──
-doc/
-.baoyu-skills/
-
-# ── 分形文档（本地维护） ──
-CLAUDE.md
-**/CLAUDE.md
-__pycache__
+# ── 依赖与语言运行时缓存 ──
 node_modules/
-# ── 编译产物 & SDK ──
-dist/
-build/
-src-tauri/target/
-src-tauri/gen/
+__pycache__/
+**/__pycache__/
+
+# ── SDK / 工具链缓存 ──
 qt_sdk/
 qt_663_sdk/
+
+# ── 构建与运行产物 ──
+dist/
+build/
+output/
+src-tauri/target/
+src-tauri/gen/
 *.dylib
 *.inc
-aqtrace.log
+
+# ── 日志 ──
 *.log
+aqtinstall.log
+aqtrace.log

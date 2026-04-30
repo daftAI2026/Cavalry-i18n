@@ -97,26 +97,36 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 ```text
 Baseline may be rerunnable.
 Workflow is NOT COMPLETE.
-G-CAPTURE gate: BLOCKED-SIP (2026-04-30)
-Next action: Disable SIP or run app from non-system location
+First failing gate: G-CAPTURE (2026-04-30)
+Runtime denominator: not frozen; no live-merged inventory reached 613 / 666
+Next action: fix live capture chain in /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n-full-ui-100
 ```
 
-### 已验证的外部阻塞
+### 当前 worktree 真相
 
-**SIP（System Integrity Protection）阻塞注入**
-- 已排除所有可能绕过方案（app copy, codesign, ad-hoc signing）
-- 这是 macOS 内核级别保护，无法通过代码改进绕过
-- 最终解决方案：用户选择禁用 SIP 或支持 AX-only 方案
+**执行工作树**
+- 路径：`/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n-full-ui-100`
+- 分支：`wip/cavalry-full-ui-100`
+- HEAD：`69d6bfc`
+- 主仓库只承载 workflow 文档与 run note；代码改动不得漏回 main。
 
-**SIP-Aware 编排脚本已实现**
-- 新脚本：`tools/run_live_full_ui_matrix_sip_aware.js`
-- 测试结果：全 4 语言成功，仅得 8 widgets（低于 613 基线要求）
-- 结论：AX-only 不足以满足 G-CAPTURE pass 条件
+**已落地但未验收的 G-CAPTURE 工具链片段**
+- `tools/build_translator_injector.sh` 已加入 `@rpath`、ad-hoc 重签与 `linker-signed` 检查。
+- `tools/launch_cavalry_with_injector.sh` 已支持 `sessionDir/sessionUuid/cacheRoot`，并生成 `audit/codesign-evidence.txt`。
+- `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已支持 `CAVALRY_I18N_LANG=en` dump-only，并写 `SESSION_DIR/runtime/<lang>-injector-inventory.json`。
+- `tools/capture_accessibility_inventory.js`、`tools/merge_runtime_inventory.js`、`tools/run_live_full_ui_matrix.js` 已存在。
+
+**仍然失败的 live evidence**
+- session `21B1048E-963E-43B1-975B-0C506902E0EB` 只有 codesign evidence，没有 `runtime/en-injector-inventory.json`。
+- `audit/en-injector-launch.log` 为空，未看到 injector bootstrap。
+- 没有 amfid / kernel 拒绝证据；不得写 `BLOCKED-SIP`，不得建议 `csrutil disable`。
+- AX-only 抓取低于 `613 candidates / 666 menuLeaves`，不能进入 G-X。
+- `tools/run_live_full_ui_matrix.js` 当前使用 `--no-resign`，违反 G-CAPTURE launcher 证据链要求；即使脚本存在，也不能算通过条件满足。
 
 详见：
-- `runs/2026-04-30-G-CAPTURE-SIP-blocker.md`
-- `runs/2026-04-30-G-CAPTURE-SIP-final-analysis.md`
-- `runs/2026-04-30-G-CAPTURE-SIP-final-decision.md`
+- `runs/2026-04-30-G-CAPTURE-DYLIB-INJECTION-INVESTIGATION.md`
+- `runs/2026-04-30-G-CAPTURE-TECHNICAL-BLOCKER-ANALYSIS.md`
+- `runs/2026-04-30-G-CAPTURE-WORKTREE-STATE-CORRECTION.md`
 
 ### 已确认的实现缺口
 
@@ -126,14 +136,15 @@ Next action: Disable SIP or run app from non-system location
    - 新顺序为 `W-AUDIT -> G-P -> §P5 -> G-CAPTURE -> G-X -> G0 -> G2 -> G3 -> G1 -> 翻译 backlog -> G4`
 
 1. **session-scoped runtime isolation 还没有在代码层完整落地**
-   - injector / launch / matrix / runtime reader 仍有 root-cache 设计残留
+   - injector / launch 已有 session 参数，但 live matrix 编排仍不合格
+   - `tools/run_live_full_ui_matrix.js` 使用 `--no-resign`，跳过了 launcher 重签与 codesign evidence
    - runtime capture metadata 仍不完整
    - `RUN_RECORD.target`、`EXTRACTION.target`、`SOURCE_MAP.target` 尚未形成同一 target identity contract
 
 2. **extraction inventory freeze 还没有在代码层落地**
     - JSON / compiled / runtime 完整英文分母尚未冻结到 `SESSION_DIR/extraction-inventory.json`
     - G1/G2/G3/G4 仍缺统一 denominator contract
-    - 当前 live English AX 探测只拿到标题栏级窗口元素；`/Users/luo/Library/Caches/Cavalry-i18n/sessions/099C88C6-F1A2-4F63-944B-97F7EC47EB3D/runtime/en-ax-inventory.json` 仅含 `widgetTexts = 7`，低于 A9B11073 基线，G-CAPTURE 当前被 `WEAK-CAPTURE` 阻塞
+    - 当前 live English session `21B1048E-963E-43B1-975B-0C506902E0EB` 没有 injector inventory；AX-only 弱抓取低于 A9B11073 基线，G-CAPTURE 当前失败
     - Cavalry 2.7.1 目标已确认，2.7.0 的 source-map / extraction / runtime run record 只能作为历史证据
     - Cavalry 2.7.1 app bundle 的 `Contents/assets/Definitions/appStrings.json` 含 10 个 JSON leaves；仓库 `languages/en/appStrings.json` 仍为 4 个 leaves，旧 JSON 100 不代表 current app JSON 100
 
@@ -173,13 +184,14 @@ Next action: Disable SIP or run app from non-system location
    - `tools/validate_translations.py` 已升到 `1.00`；G1 downstream 仍缺 frozen denominator / exact-English contract 闭环
 
 4. **injector / launch chain**
-    - `desktop-patcher/injector/CavalryTranslatorInjector.mm` 仍写 `menu-inventory.json`
-    - `tools/launch_cavalry_with_injector.sh` 仍未传递 `sessionDir/sessionUuid/cacheRoot`
-    - live injector English probe 目前也无法提供 runtime denominator：`CAVALRY_I18N_LANG=en` 会在 dump 前命中 `unsupported language: en`
+    - `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已写 session-scoped `<lang>-injector-inventory.json`，但本轮 launch 没产出该文件
+    - `tools/launch_cavalry_with_injector.sh` 已传递 `sessionDir/sessionUuid/cacheRoot`，但仍需证明 injector constructor 实际执行
+    - `tools/run_live_full_ui_matrix.js` 当前传 `--no-resign`，必须改为走完整 launcher 重签与证据链
+    - live injector English probe 代码上已有 dump-only 分支，但还没有被本轮 artifact 证明
 
-5. **缺失工具**
-   - `tools/merge_runtime_inventory.js`
-   - `tools/run_live_full_ui_matrix.js`
+5. **runtime merge / matrix 工具**
+   - `tools/merge_runtime_inventory.js` 已存在，但只有 injector 与 AX 两份 live inventory 都存在时才可形成 `live-merged`
+   - `tools/run_live_full_ui_matrix.js` 已存在，但 run record 缺完整 `target` 对象，且 `--no-resign` 违反 G-CAPTURE 纪律
 
 6. **CI 执行入口**
     - `.github/workflows/build.yml` 若接入 full-ui gate，必须使用 session-dir / provenance / blocked 语义
