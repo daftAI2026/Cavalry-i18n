@@ -1739,7 +1739,7 @@ test('verify gate inputs accepts extraction inventory runtime candidates and men
   fs.mkdirSync(sessionDir, { recursive: true });
   writeJson(path.join(tempRoot, 'package.json'), { scripts: {} });
   writeJson(sourceMapPath, {
-    entries: new Array(4743).fill({ normalizedText: 'Scene Window' }),
+    entries: new Array(5195).fill({ normalizedText: 'Scene Window' }),
   });
   writeJson(extractionPath, {
     surfaces: {
@@ -1748,7 +1748,7 @@ test('verify gate inputs accepts extraction inventory runtime candidates and men
       'languages/en/onboarding.json': { count: 34 },
       'languages/en/tips.json': { count: 51 },
       'json-total': { count: 6415 },
-      'compiled-source-map': { count: 4743 },
+      'compiled-source-map': { count: 5195 },
       'runtime-candidates': { count: 613 },
       'runtime-menuLeaves': { count: 666 },
     },

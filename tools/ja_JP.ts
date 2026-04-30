@@ -51,6 +51,206 @@
       <source>Help</source>
       <translation>ヘルプ</translation>
     </message>
+  <message>
+    <source>0: Root</source>
+    <translation>0: ルート</translation>
+  </message>
+  <message>
+    <source>2026 Scene Group Ltd</source>
+    <translation>2026 Scene Group Ltd</translation>
+  </message>
+  <message>
+    <source>2026 Scene Group Ltd.</source>
+    <translation>2026 Scene Group Ltd.</translation>
+  </message>
+  <message>
+    <source>A new tab has been opened in your default browser so you can log in to Canva there</source>
+    <translation>デフォルトブラウザで新しいタブが開きました。ここで Canva にログインできます</translation>
+  </message>
+  <message>
+    <source>A new tab has been opened in your default browser so you can log in to Canva there.</source>
+    <translation>デフォルトブラウザで新しいタブが開きました。ここで Canva にログインできます。</translation>
+  </message>
+  <message>
+    <source>A Professional licence is required for Dynamic Rendering</source>
+    <translation>動的レンダリングには Professional ライセンスが必要です</translation>
+  </message>
+  <message>
+    <source>A Professional licence is required for Dynamic Rendering.</source>
+    <translation>動的レンダリングには Professional ライセンスが必要です。</translation>
+  </message>
+  <message>
+    <source>A selection of two points from two different contours on the same shape is required to join contours</source>
+    <translation>同じ図形の2つの異なる輪郭から各々1つのポイントを選択して、輪郭を結合する必要があります</translation>
+  </message>
+  <message>
+    <source>A selection of two points from two different contours on the same shape is required to join contours.</source>
+    <translation>同じ図形の2つの異なる輪郭から各々1つのポイントを選択して、輪郭を結合する必要があります。</translation>
+  </message>
+  <message>
+    <source>Aacute</source>
+    <translation>Aacute</translation>
+  </message>
+  <message>
+    <source>Aacutesmall</source>
+    <translation>Aacutesmall</translation>
+  </message>
+  <message>
+    <source>Abbey</source>
+    <translation>Abbey</translation>
+  </message>
+  <message>
+    <source>About Cavalry</source>
+    <translation>Cavalry について</translation>
+  </message>
+  <message>
+    <source>Above-base Forms</source>
+    <translation>基線上方の形式</translation>
+  </message>
+  <message>
+    <source>Above-base Mark Positioning</source>
+    <translation>基線上方マーク配置</translation>
+  </message>
+  <message>
+    <source>Above-base Substitutions</source>
+    <translation>基線上方の置換</translation>
+  </message>
+  <message>
+    <source>Acadia</source>
+    <translation>Acadia</translation>
+  </message>
+  <message>
+    <source>Acapulco</source>
+    <translation>Acapulco</translation>
+  </message>
+  <message>
+    <source>Acce</source>
+    <translation>Acce</translation>
+  </message>
+  <message>
+    <source>Access All Alternates</source>
+    <translation>すべての代替項目にアクセス</translation>
+  </message>
+  <message>
+    <source>Account</source>
+    <translation>アカウント</translation>
+  </message>
+  <message>
+    <source>Acircumflex</source>
+    <translation>Acircumflex</translation>
+  </message>
+  <message>
+    <source>Acircumflexsmall</source>
+    <translation>Acircumflexsmall</translation>
+  </message>
+  <message>
+    <source>Action not allowed. Adding composition would create a cycle</source>
+    <translation>アクションは許可されません。コンポジションを追加するとサイクルが作成されます</translation>
+  </message>
+  <message>
+    <source>Action not allowed. Adding composition would create a cycle.</source>
+    <translation>アクションは許可されません。コンポジションを追加するとサイクルが作成されます。</translation>
+  </message>
+  <message>
+    <source>Active</source>
+    <translation>アクティブ</translation>
+  </message>
+  <message>
+    <source>Active Camera</source>
+    <translation>アクティブカメラ</translation>
+  </message>
+  <message>
+    <source>Active Camera: Layer Tools Disabled</source>
+    <translation>アクティブカメラ：レイヤーツールが無効になっています</translation>
+  </message>
+  <message>
+    <source>Active Camera: Layer Tools Disabled.</source>
+    <translation>アクティブカメラ：レイヤーツールが無効になっています。</translation>
+  </message>
+  <message>
+    <source>Active Composition</source>
+    <translation>アクティブコンポジション</translation>
+  </message>
+  <message>
+    <source>Active Forge Solver</source>
+    <translation>アクティブ Forge ソルバー</translation>
+  </message>
+  <message>
+    <source>Active Tags.</source>
+    <translation>アクティブタグ。</translation>
+  </message>
+  <message>
+    <source>Acutesmall</source>
+    <translation>Acutesmall</translation>
+  </message>
+  <message>
+    <source>Add</source>
+    <translation>追加</translation>
+  </message>
+  <message>
+    <source>Add a bone at the top of the hierarchy</source>
+    <translation>階層の上部にボーンを追加</translation>
+  </message>
+  <message>
+    <source>Add a bone at the top of the hierarchy.</source>
+    <translation>階層の上部にボーンを追加。</translation>
+  </message>
+  <message>
+    <source>Add a bone parented to this one</source>
+    <translation>親ボーンを追加</translation>
+  </message>
+  <message>
+    <source>Add a bone parented to this one.</source>
+    <translation>親ボーンを追加。</translation>
+  </message>
+  <message>
+    <source>Add a new Attribute variable which can be used in your script</source>
+    <translation>スクリプトで使用できる新しい属性変数を追加</translation>
+  </message>
+  <message>
+    <source>Add a new Attribute variable which can be used in your script.</source>
+    <translation>スクリプトで使用できる新しい属性変数を追加。</translation>
+  </message>
+  <message>
+    <source>Add a Placement Utility</source>
+    <translation>配置ユーティリティを追加</translation>
+  </message>
+  <message>
+    <source>Add a Rig Control</source>
+    <translation>リグコントロールを追加</translation>
+  </message>
+  <message>
+    <source>Add a Tag</source>
+    <translation>タグを追加</translation>
+  </message>
+  <message>
+    <source>Add a Text Background</source>
+    <translation>テキスト背景を追加</translation>
+  </message>
+  <message>
+    <source>Add a tracker (4 required)</source>
+    <translation>トラッカーを追加（4 個必要）</translation>
+  </message>
+  <message>
+    <source>Add a tracker (4 required).</source>
+    <translation>トラッカーを追加（4 個必要）。</translation>
+  </message>
+  <message>
+    <source>Add an Animation Control</source>
+    <translation>アニメーションコントロールを追加</translation>
+  </message>
+  <message>
+    <source>Add an Auto-Animate Deformer</source>
+    <translation>自動アニメートデフォーマを追加</translation>
+  </message>
+  <message>
+    <source>Add an IK Control using this Bone as End Effector</source>
+    <translation>このボーンを末端エフェクタとして使用して IK コントロールを追加</translation>
+  </message>
+  <message>
+    <source>Add an IK Control using this Bone as End Effector.</source>
+    <translation>このボーンを末端エフェクタとして使用して IK コントロールを追加。</translation>
+  </message>
   </context>
   <context>
     <name>MenuBarManager</name>

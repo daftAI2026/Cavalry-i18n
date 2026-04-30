@@ -51,6 +51,206 @@
       <source>Help</source>
       <translation>說明</translation>
     </message>
+  <message>
+    <source>0: Root</source>
+    <translation>0: 根目錄</translation>
+  </message>
+  <message>
+    <source>2026 Scene Group Ltd</source>
+    <translation>2026 Scene Group Ltd</translation>
+  </message>
+  <message>
+    <source>2026 Scene Group Ltd.</source>
+    <translation>2026 Scene Group Ltd.</translation>
+  </message>
+  <message>
+    <source>A new tab has been opened in your default browser so you can log in to Canva there</source>
+    <translation>已在您的預設瀏覽器中打開新標籤頁，您可以在此登錄 Canva</translation>
+  </message>
+  <message>
+    <source>A new tab has been opened in your default browser so you can log in to Canva there.</source>
+    <translation>已在您的預設瀏覽器中打開新標籤頁，您可以在此登錄 Canva。</translation>
+  </message>
+  <message>
+    <source>A Professional licence is required for Dynamic Rendering</source>
+    <translation>動態渲染需要 Professional 授權版本</translation>
+  </message>
+  <message>
+    <source>A Professional licence is required for Dynamic Rendering.</source>
+    <translation>動態渲染需要 Professional 授權版本。</translation>
+  </message>
+  <message>
+    <source>A selection of two points from two different contours on the same shape is required to join contours</source>
+    <translation>需要從同一形狀的兩個不同輪廓上各選擇一個點才能連接輪廓</translation>
+  </message>
+  <message>
+    <source>A selection of two points from two different contours on the same shape is required to join contours.</source>
+    <translation>需要從同一形狀的兩個不同輪廓上各選擇一個點才能連接輪廓。</translation>
+  </message>
+  <message>
+    <source>Aacute</source>
+    <translation>Aacute</translation>
+  </message>
+  <message>
+    <source>Aacutesmall</source>
+    <translation>Aacutesmall</translation>
+  </message>
+  <message>
+    <source>Abbey</source>
+    <translation>Abbey</translation>
+  </message>
+  <message>
+    <source>About Cavalry</source>
+    <translation>關於 Cavalry</translation>
+  </message>
+  <message>
+    <source>Above-base Forms</source>
+    <translation>基線上方形式</translation>
+  </message>
+  <message>
+    <source>Above-base Mark Positioning</source>
+    <translation>基線上方標記定位</translation>
+  </message>
+  <message>
+    <source>Above-base Substitutions</source>
+    <translation>基線上方替換</translation>
+  </message>
+  <message>
+    <source>Acadia</source>
+    <translation>Acadia</translation>
+  </message>
+  <message>
+    <source>Acapulco</source>
+    <translation>Acapulco</translation>
+  </message>
+  <message>
+    <source>Acce</source>
+    <translation>Acce</translation>
+  </message>
+  <message>
+    <source>Access All Alternates</source>
+    <translation>存取所有替代項</translation>
+  </message>
+  <message>
+    <source>Account</source>
+    <translation>帳戶</translation>
+  </message>
+  <message>
+    <source>Acircumflex</source>
+    <translation>Acircumflex</translation>
+  </message>
+  <message>
+    <source>Acircumflexsmall</source>
+    <translation>Acircumflexsmall</translation>
+  </message>
+  <message>
+    <source>Action not allowed. Adding composition would create a cycle</source>
+    <translation>不允許此操作。新增合成會建立循環</translation>
+  </message>
+  <message>
+    <source>Action not allowed. Adding composition would create a cycle.</source>
+    <translation>不允許此操作。新增合成會建立循環。</translation>
+  </message>
+  <message>
+    <source>Active</source>
+    <translation>啟用</translation>
+  </message>
+  <message>
+    <source>Active Camera</source>
+    <translation>啟用攝影機</translation>
+  </message>
+  <message>
+    <source>Active Camera: Layer Tools Disabled</source>
+    <translation>啟用攝影機：圖層工具已停用</translation>
+  </message>
+  <message>
+    <source>Active Camera: Layer Tools Disabled.</source>
+    <translation>啟用攝影機：圖層工具已停用。</translation>
+  </message>
+  <message>
+    <source>Active Composition</source>
+    <translation>啟用合成</translation>
+  </message>
+  <message>
+    <source>Active Forge Solver</source>
+    <translation>啟用 Forge 求解器</translation>
+  </message>
+  <message>
+    <source>Active Tags.</source>
+    <translation>啟用標籤。</translation>
+  </message>
+  <message>
+    <source>Acutesmall</source>
+    <translation>Acutesmall</translation>
+  </message>
+  <message>
+    <source>Add</source>
+    <translation>新增</translation>
+  </message>
+  <message>
+    <source>Add a bone at the top of the hierarchy</source>
+    <translation>在階層結構頂部新增骨骼</translation>
+  </message>
+  <message>
+    <source>Add a bone at the top of the hierarchy.</source>
+    <translation>在階層結構頂部新增骨骼。</translation>
+  </message>
+  <message>
+    <source>Add a bone parented to this one</source>
+    <translation>新增子骨骼</translation>
+  </message>
+  <message>
+    <source>Add a bone parented to this one.</source>
+    <translation>新增子骨骼。</translation>
+  </message>
+  <message>
+    <source>Add a new Attribute variable which can be used in your script</source>
+    <translation>新增屬性變數，可在您的指令碼中使用</translation>
+  </message>
+  <message>
+    <source>Add a new Attribute variable which can be used in your script.</source>
+    <translation>新增屬性變數，可在您的指令碼中使用。</translation>
+  </message>
+  <message>
+    <source>Add a Placement Utility</source>
+    <translation>新增配置公用程式</translation>
+  </message>
+  <message>
+    <source>Add a Rig Control</source>
+    <translation>新增綁定控制</translation>
+  </message>
+  <message>
+    <source>Add a Tag</source>
+    <translation>新增標籤</translation>
+  </message>
+  <message>
+    <source>Add a Text Background</source>
+    <translation>新增文字背景</translation>
+  </message>
+  <message>
+    <source>Add a tracker (4 required)</source>
+    <translation>新增追蹤器（需要 4 個）</translation>
+  </message>
+  <message>
+    <source>Add a tracker (4 required).</source>
+    <translation>新增追蹤器（需要 4 個）。</translation>
+  </message>
+  <message>
+    <source>Add an Animation Control</source>
+    <translation>新增動畫控制</translation>
+  </message>
+  <message>
+    <source>Add an Auto-Animate Deformer</source>
+    <translation>新增自動動畫變形器</translation>
+  </message>
+  <message>
+    <source>Add an IK Control using this Bone as End Effector</source>
+    <translation>使用此骨骼作為末端執行器新增反向運動控制</translation>
+  </message>
+  <message>
+    <source>Add an IK Control using this Bone as End Effector.</source>
+    <translation>使用此骨骼作為末端執行器新增反向運動控制。</translation>
+  </message>
   </context>
   <context>
     <name>MenuBarManager</name>
