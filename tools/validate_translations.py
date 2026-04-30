@@ -217,6 +217,8 @@ ALLOWED_EMBEDDED_ENGLISH = {
     "XML",
     "XYZ",
     "YUV",
+    "AMD",
+    "NVIDIA",
 }
 
 VALID_SINGLE_LETTER_TOKENS = {"x", "y", "z", "X", "Y", "Z", "W", "R", "G", "B", "A", "N", "V", "S", "a", "b"}
