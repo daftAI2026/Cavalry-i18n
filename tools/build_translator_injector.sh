@@ -134,6 +134,9 @@ clang++ \
   -dynamiclib \
   -arch arm64 \
   -arch x86_64 \
+  -install_name "@rpath/$(basename "$OUTPUT")" \
+  -Wl,-rpath,"$LINK_FRAMEWORKS" \
+  -Wl,-rpath,"$QT_FRAMEWORKS" \
   "$SOURCE" \
   -o "$OUTPUT" \
   -I"$QT_FRAMEWORKS" \
@@ -142,5 +145,20 @@ clang++ \
   "${LINK_INPUTS[@]}" \
   -framework Foundation \
   -framework AppKit
+
+# Strip clang's linker-signed flag and re-sign as proper ad-hoc.
+# DYLD_INSERT_LIBRARIES injection is silently rejected by amfid when the dylib
+# carries flags=0x20002(adhoc,linker-signed); proper ad-hoc (flags=0x2) is required.
+/usr/bin/codesign --force --sign - "$OUTPUT"
+
+# Verify the dylib has the expected ad-hoc-only signature.
+DYLIB_FLAGS="$(/usr/bin/codesign -dv "$OUTPUT" 2>&1 | awk -F'[()]' '/^CodeDirectory.*flags=/ { for (i=1;i<=NF;i++) if ($i ~ /,/) print $i }')"
+case "$DYLIB_FLAGS" in
+  *linker-signed*)
+    echo "FATAL: dylib is still linker-signed after codesign --force --sign -. Check Xcode CLT version." >&2
+    /usr/bin/codesign -dv "$OUTPUT" >&2
+    exit 1
+    ;;
+esac
 
 echo "Built translator injector -> $OUTPUT"
