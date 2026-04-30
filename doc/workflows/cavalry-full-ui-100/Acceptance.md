@@ -371,13 +371,14 @@ runtime 抽取必须主动覆盖：
 
 ### 当前状态
 
-**✓ PASS** (2026-05-XX)
+**✓ PASS** (2026-04-30 16:06 UTC)
 
 All measurement integrity requirements satisfied:
-- All 82 tests in `npm run test:desktop` passing
-- Runtime coverage denominator test fixed with proper translation Map handling
-- Full-ui thresholds locked at 100
-- Gate definitions frozen and verified
+- All 82 tests in `npm run test:desktop` passing ✓
+- Full-ui thresholds locked at 100 ✓
+- Runtime gate correctly enforces provenance ✓
+- Matrix reads from explicit SESSION_DIR ✓
+- `RUN_RECORD` includes complete blocker state and provenance ✓
 
 ### 通过条件
 
@@ -451,17 +452,19 @@ JSON Surface 100% Gate verification complete with all validation gates passing.
 
 ### 当前状态
 
-**⏸ BLOCKED — G2** (requires compiled UI translations)
+**⏳ BLOCKED — G2** (2026-04-30 16:06 UTC)
 
-Compiled surface coverage currently at 7.36% for ja_JP (4919 candidates, 4557 untranslated).
-Similar metrics for zh_Hans and zh_Hant. Requires translations for:
-- `Contents/MacOS/Cavalry`
-- `Contents/Frameworks/libCavalryUI.dylib`
-- `Contents/Frameworks/libCavalryFramework.dylib`
-- `Contents/Frameworks/libExtensionLayer.dylib`
+**Blocking issue:** Compiled surface coverage significantly below 100% threshold.
 
-**Blocking issue:**
-- [ ] Compiled UI strings from Cavalry app binaries need translation (~4900+ strings per language)
+**Current metrics (session 6C24D9C7-8342-41CA-BBE5-182E97B0BDD8):**
+- ja_JP: 399 / 4919 = 8.11% coverage (4520 untranslated)
+- zh-Hans: 399 / 4919 = 8.11% coverage (4520 untranslated)
+- zh-Hant: 396 / 4919 = 8.05% coverage (4523 untranslated)
+
+**Translation resource needed:**
+- ~4500+ additional compiled UI strings per language
+- Sources: `Contents/MacOS/Cavalry`, `libCavalryUI.dylib`, `libCavalryFramework.dylib`, `libExtensionLayer.dylib`
+- This is an external resource dependency; tooling and provenance are correct
 
 ### 通过条件
 
@@ -488,12 +491,19 @@ Similar metrics for zh_Hans and zh_Hant. Requires translations for:
 
 ### 当前状态
 
-**⏸ BLOCKED — G3** (requires runtime UI translations)
+**⏳ BLOCKED — G3** (2026-04-30 16:06 UTC)
 
-Runtime surface coverage currently low (<50% for target languages). Requires translations for runtime inventory entries.
+**Blocking issue:** Runtime surface coverage below 100% threshold.
 
-**Blocking issue:**
-- [ ] Runtime UI strings need translation (runtime.candidates 626)
+**Current metrics (session 6C24D9C7-8342-41CA-BBE5-182E97B0BDD8):**
+- ja_JP: 387 / 626 = 61.82% coverage (239 untranslated)
+- zh-Hans: 387 / 626 = 61.82% coverage (239 untranslated)
+- zh-Hant: 387 / 626 = 61.82% coverage (239 untranslated)
+
+**Translation resource needed:**
+- ~239 additional runtime UI strings per language
+- These include animation nodes, shader nodes, and interactive UI elements
+- This is an external resource dependency; tooling and provenance are correct
 
 ### 通过条件
 
@@ -518,7 +528,20 @@ Runtime surface coverage currently low (<50% for target languages). Requires tra
 
 ## G4 — Three-Language Matrix 100 Gate
 
-### 通过条件
+### 当前状态
+
+**⏳ BLOCKED — G4** (2026-04-30 16:06 UTC)
+
+**Blocking issue:** Depends on G2 and G3 completion.
+
+**Current run record:**
+- Session: `6C24D9C7-8342-41CA-BBE5-182E97B0BDD8`
+- Threshold: 100
+- Extraction inventory: ✓ Frozen
+- JSON validation: ✓ PASS (all 3 languages 100%)
+- Runtime coverage: ✗ BLOCKED (61.82% - needs 239 translations per language)
+- Compiled coverage: ✗ BLOCKED (8.11% - needs 4500+ translations per language)
+- Overall pass: false (blocked by G2/G3)
 
 - [ ] `node tools/check_full_ui_matrix.js --threshold 100 ...` exit `0`
 - [ ] `RUN_RECORD.overallPass = true`
