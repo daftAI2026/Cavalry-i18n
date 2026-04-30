@@ -128,7 +128,6 @@ function main() {
       sessionDir,
       '--session-uuid',
       options.sessionUuid,
-      '--no-resign',
     ]);
     const pid = Number((launchResult.stdout || '').trim().split(/\s+/).pop() || 0);
     waitForFile(injectorInventory);
