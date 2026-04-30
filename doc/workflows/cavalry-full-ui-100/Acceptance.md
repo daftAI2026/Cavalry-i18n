@@ -131,7 +131,20 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 
 macOS System Integrity Protection (SIP) 启用状态下，`DYLD_INSERT_LIBRARIES` 无法向代码签名的应用注入 dylib。
 
-见：`runs/2026-04-30-G-CAPTURE-SIP-blocker.md`
+已验证：
+- SIP 确实阻止了所有注入尝试（codesign、app copy 都无效）
+- Accessibility 框架独立工作，但仅获取 ~8 个 widgets（远低于 613 基线）
+- AX-only 方案不足以满足 G-CAPTURE 通过条件
+
+见：
+- `runs/2026-04-30-G-CAPTURE-SIP-blocker.md` - 初始诊断
+- `runs/2026-04-30-G-CAPTURE-SIP-final-analysis.md` - 三路径分析
+- `runs/2026-04-30-G-CAPTURE-SIP-final-decision.md` - 最终确认与建议
+
+**后续行动**：用户必须选择以下之一：
+1. 禁用 SIP（推荐）：Recovery Mode → `csrutil disable` → reboot
+2. 实现增强 AX 管道：脚本交互打开所有 panel，再 capture
+3. 混合方案：尝试注入，失败则降级到增强 AX
 
 ### 通过条件
 
@@ -237,11 +250,11 @@ runtime 抽取必须主动覆盖：
 
 ### 通过条件
 
-- [ ] 仓库内不存在 `tools/full_ui_inventory_fixtures/`
-- [ ] 仓库内不存在 `doc/libExtensionLayer-curated-ui.txt`
-- [ ] `package.json` 中不存在 `prepare:full-ui-gate`
-- [ ] `tools/verify_gate_inputs.js` 存在，并由 `check:full-ui` / matrix 前置调用
-- [ ] `SOURCE_MAP.kind` 不为 `curated` / `whitelisted` / `gated`
+- [x] 仓库内不存在 `tools/full_ui_inventory_fixtures/`
+- [x] 仓库内不存在 `doc/libExtensionLayer-curated-ui.txt`
+- [x] `package.json` 中不存在 `prepare:full-ui-gate`
+- [x] `tools/verify_gate_inputs.js` 存在，并由 `check:full-ui` / matrix 前置调用
+- [x] `SOURCE_MAP.kind` 不为 `curated` / `whitelisted` / `gated`
 - [ ] 每份 merged runtime inventory 都包含：
   - [ ] `capture.pid`
   - [ ] `capture.bundleHash`

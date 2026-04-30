@@ -838,5 +838,217 @@
     <message><source>Install Plugin?</source><translation>安装插件？</translation></message>
     <message><source>Match Color</source><translation>匹配颜色</translation></message>
     <message><source>Match Color to layer</source><translation>匹配到图层颜色</translation></message>
+      <message><source>Abbey</source><translation>艾比</translation></message>
+    <message><source>Acadia</source><translation>阿卡迪亚</translation></message>
+    <message><source>Acapulco</source><translation>阿卡普尔科</translation></message>
+    <message><source>Acce</source><translation>Acce</translation></message>
+    <message><source>Acutesmall</source><translation>Acutesmall</translation></message>
+    <message><source>Aero Blue</source><translation>航空蓝</translation></message>
+    <message><source>Affair</source><translation>风流韵事</translation></message>
+    <message><source>ahk ISK bhk DBX khk GNM nhk</source><translation>ahk ISK bhk DBX khk GNM nhk</translation></message>
+    <message><source>Ahom</source><translation>阿洪</translation></message>
+    <message><source>Akaroa</source><translation>阿卡罗亚</translation></message>
+    <message><source>Akhand</source><translation>阿克汉德</translation></message>
+    <message><source>Alabaster</source><translation>雪花石膏</translation></message>
+    <message><source>Albescent White</source><translation>微白</translation></message>
+    <message><source>Algae Green</source><translation>藻绿</translation></message>
+    <message><source>alice blue</source><translation>爱丽丝蓝</translation></message>
+    <message><source>Alice Blue</source><translation>爱丽丝蓝</translation></message>
+    <message><source>Alizarin Crimson</source><translation>茜素红</translation></message>
+    <message><source>Allports</source><translation>港口</translation></message>
+    <message><source>Almond</source><translation>杏仁</translation></message>
+    <message><source>Almond Frost</source><translation>杏仁霜</translation></message>
+    <message><source>Alpine</source><translation>阿尔卑斯</translation></message>
+    <message><source>Alto</source><translation>中音</translation></message>
+    <message><source>Aluminium</source><translation>铝</translation></message>
+    <message><source>Amaranth</source><translation>苋菜红</translation></message>
+    <message><source>Amazon</source><translation>亚马逊</translation></message>
+    <message><source>Amber</source><translation>琥珀</translation></message>
+    <message><source>Americano</source><translation>美式浓缩咖啡</translation></message>
+    <message><source>Amethyst</source><translation>紫水晶</translation></message>
+    <message><source>Amethyst Smoke</source><translation>紫水晶烟</translation></message>
+    <message><source>Amour</source><translation>爱好</translation></message>
+    <message><source>ams MSS dms NBM jms MSL lms</source><translation>ams MSS dms NBM jms MSL lms</translation></message>
+    <message><source>Amulet</source><translation>护身符</translation></message>
+    <message><source>Anakiwa</source><translation>阿纳基瓦</translation></message>
+    <message><source>Analogous</source><translation>类似的</translation></message>
+    <message><source>Anatolian Hieroglyphs</source><translation>安那托利亚象形文字</translation></message>
+    <message><source>and restricted Assets found</source><translation>找到受限资源</translation></message>
+    <message><source>and restricted Assets found.</source><translation>找到受限资源。</translation></message>
+    <message><source>Angle Locking</source><translation>角度锁定</translation></message>
+    <message><source>Animate Path</source><translation>动画路径</translation></message>
+    <message><source>Animated</source><translation>动画的</translation></message>
+    <message><source>Animated Attribute</source><translation>动画属性</translation></message>
+    <message><source>Animated Attributes</source><translation>动画属性</translation></message>
+    <message><source>Animation Layer Filter is off</source><translation>动画图层过滤器已关闭</translation></message>
+    <message><source>Animation Layer Filter is off.</source><translation>动画图层过滤器已关闭。</translation></message>
+    <message><source>Animation Layer Filter is on</source><translation>动画图层过滤器已打开</translation></message>
+    <message><source>Animation Layer Filter is on.</source><translation>动画图层过滤器已打开。</translation></message>
+    <message><source>Animation Offset Value</source><translation>动画偏移值</translation></message>
+    <message><source>Animation Offset Value.</source><translation>动画偏移值。</translation></message>
+    <message><source>Animators</source><translation>动画器</translation></message>
+    <message><source>Anticipate In</source><translation>预期进入</translation></message>
+    <message><source>Anticipate In, Overshoot Out</source><translation>预期进入，超过退出</translation></message>
+    <message><source>Antique Brass</source><translation>古铜</translation></message>
+    <message><source>Antique Bronze</source><translation>古青铜</translation></message>
+    <message><source>antique white</source><translation>古董白</translation></message>
+    <message><source>Any 3</source><translation>任何 3</translation></message>
+    <message><source>Any other comments?</source><translation>还有其他评论吗？</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes</source><translation>选中的任何形状都将自动添加为输入形状</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator</source><translation>选中的任何形状都将自动添加为复制器的输入形状</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator.</source><translation>选中的任何形状都将自动添加为复制器的输入形状。</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude</source><translation>选中的任何形状都将自动添加为拉伸的输入形状</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude.</source><translation>选中的任何形状都将自动添加为拉伸的输入形状。</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes.</source><translation>选中的任何形状都将自动添加为输入形状。</translation></message>
+    <message><source>Anzac</source><translation>澳新军团</translation></message>
+    <message><source>Apache</source><translation>阿帕奇</translation></message>
+    <message><source>appears to be a Version 4 MAT-file, which is not currently supported</source><translation>似乎是一个版本 4 MAT 文件，目前不支持</translation></message>
+    <message><source>appears to be a Version 4 MAT-file, which is not currently supported.</source><translation>似乎是一个版本 4 MAT 文件，目前不支持。</translation></message>
+    <message><source>Append</source><translation>追加</translation></message>
+    <message><source>Apple</source><translation>苹果</translation></message>
+    <message><source>Apple Blossom</source><translation>苹果花</translation></message>
+    <message><source>Apple Color Emoji</source><translation>Apple 彩色表情符号</translation></message>
+    <message><source>Apple Green</source><translation>苹果绿</translation></message>
+    <message><source>Application</source><translation>应用程序</translation></message>
+    <message><source>Apply Track</source><translation>应用跟踪</translation></message>
+    <message><source>Apricot</source><translation>杏色</translation></message>
+    <message><source>Apricot Peach</source><translation>杏桃</translation></message>
+    <message><source>Apricot White</source><translation>杏白</translation></message>
+    <message><source>Aqua Deep</source><translation>深水</translation></message>
+    <message><source>Aqua Forest</source><translation>水森林</translation></message>
+    <message><source>Aqua Haze</source><translation>水雾</translation></message>
+    <message><source>Aqua Island</source><translation>水岛</translation></message>
+    <message><source>Acce</source><translation>Acce</translation></message>
+    <message><source>Acutesmall</source><translation>Acutesmall</translation></message>
+    <message><source>ahk ISK bhk DBX khk GNM nhk</source><translation>ahk ISK bhk DBX khk GNM nhk</translation></message>
+    <message><source>ams MSS dms NBM jms MSL lms</source><translation>ams MSS dms NBM jms MSL lms</translation></message>
+    <message><source>appears to be a Version 4 MAT-file, which is not currently supported</source><translation>似乎是一个版本 4 MAT 文件，目前不支持</translation></message>
+    <message><source>appears to be a Version 4 MAT-file, which is not currently supported.</source><translation>似乎是一个版本 4 MAT 文件，目前不支持。</translation></message>
+    <message><source>Apple Color Emoji</source><translation>Apple 彩色表情符号</translation></message>
+    <message><source>aqua marine</source><translation>浅海蓝</translation></message>
+    <message><source>Aqua Spring</source><translation>水泉</translation></message>
+    <message><source>Aqua Squeeze</source><translation>水榨</translation></message>
+    <message><source>Aquamarine</source><translation>绿玉</translation></message>
+    <message><source>Aquamarine Blue</source><translation>浅海蓝</translation></message>
+    <message><source>Arabic</source><translation>阿拉伯语</translation></message>
+    <message><source>Arapawa</source><translation>阿拉帕瓦</translation></message>
+    <message><source>Are you sure you want to delete all Render Queue Items?</source><translation>确定要删除所有渲染队列项吗？</translation></message>
+    <message><source>Are you sure you want to delete this palette? This cannot be undone</source><translation>确定要删除此调色板吗？无法撤销</translation></message>
+    <message><source>Are you sure you want to delete this palette? This cannot be undone.</source><translation>确定要删除此调色板吗？无法撤销。</translation></message>
+    <message><source>Are you sure you want to delete this preset?</source><translation>确定要删除此预设吗？</translation></message>
+    <message><source>Are you sure you want to delete this Preset?</source><translation>确定要删除此预设吗？</translation></message>
+    <message><source>Are you sure you want to delete this Swatch?</source><translation>确定要删除此样本吗？</translation></message>
+    <message><source>Are you sure you want to quit? Unsaved changes will be lost</source><translation>确定要退出吗？未保存的更改将丢失</translation></message>
+    <message><source>Are you sure you want to quit? Unsaved changes will be lost.</source><translation>确定要退出吗？未保存的更改将丢失。</translation></message>
+    <message><source>Are you sure? This action cannot be undone</source><translation>确定吗？此操作无法撤销</translation></message>
+    <message><source>Are you sure? This action cannot be undone.</source><translation>确定吗？此操作无法撤销。</translation></message>
+    <message><source>Argument count does not match function definition. Expected</source><translation>参数计数与函数定义不匹配。预期</translation></message>
+    <message><source>argument not found</source><translation>未找到参数</translation></message>
+    <message><source>Arial</source><translation>Arial</translation></message>
+    <message><source>Armadillo</source><translation>犰狳</translation></message>
+    <message><source>Armenian</source><translation>亚美尼亚语</translation></message>
+    <message><source>Array</source><translation>数组</translation></message>
+    <message><source>Arrow Keys Control Hierarchy</source><translation>箭头键控制层次</translation></message>
+    <message><source>Arrowtown</source><translation>箭镇</translation></message>
+    <message><source>Ascender Height</source><translation>上升体高度</translation></message>
+    <message><source>Asmall</source><translation>Asmall</translation></message>
+    <message><source>Asparagus</source><translation>芦笋</translation></message>
+    <message><source>Asphalt</source><translation>沥青</translation></message>
+    <message><source>Asse</source><translation>Asse</translation></message>
+    <message><source>Asset Files Path</source><translation>资源文件路径</translation></message>
+    <message><source>Asset Layer</source><translation>资源图层</translation></message>
+    <message><source>Assets</source><translation>资源</translation></message>
+    <message><source>Assign Control Points</source><translation>分配控制点</translation></message>
+    <message><source>Assign Tag</source><translation>分配标签</translation></message>
+    <message><source>Astra</source><translation>星</translation></message>
+    <message><source>Astral</source><translation>星体的</translation></message>
+    <message><source>Astronaut</source><translation>宇航员</translation></message>
+    <message><source>Astronaut Blue</source><translation>宇航员蓝</translation></message>
+    <message><source>asynchronous entity</source><translation>异步实体</translation></message>
+    <message><source>at line</source><translation>在行</translation></message>
+    <message><source>Athens Gray</source><translation>雅典灰</translation></message>
+    <message><source>Aths Special</source><translation>雅典特殊</translation></message>
+
+    <message><source>Abbey</source><translation>艾比</translation></message>
+    <message><source>Acadia</source><translation>阿卡迪亚</translation></message>
+    <message><source>Acapulco</source><translation>阿卡普尔科</translation></message>
+    <message><source>Acce</source><translation>Acce</translation></message>
+    <message><source>Acutesmall</source><translation>Acutesmall</translation></message>
+    <message><source>Aero Blue</source><translation>航空蓝</translation></message>
+    <message><source>Affair</source><translation>风流韵事</translation></message>
+    <message><source>ahk ISK bhk DBX khk GNM nhk</source><translation>ahk ISK bhk DBX khk GNM nhk</translation></message>
+    <message><source>Ahom</source><translation>阿洪</translation></message>
+    <message><source>Akaroa</source><translation>阿卡罗亚</translation></message>
+    <message><source>Akhand</source><translation>阿克汉德</translation></message>
+    <message><source>Alabaster</source><translation>雪花石膏</translation></message>
+    <message><source>Albescent White</source><translation>微白</translation></message>
+    <message><source>Algae Green</source><translation>藻绿</translation></message>
+    <message><source>alice blue</source><translation>爱丽丝蓝</translation></message>
+    <message><source>Alice Blue</source><translation>爱丽丝蓝</translation></message>
+    <message><source>Alizarin Crimson</source><translation>茜素红</translation></message>
+    <message><source>Allports</source><translation>港口</translation></message>
+    <message><source>Almond</source><translation>杏仁</translation></message>
+    <message><source>Almond Frost</source><translation>杏仁霜</translation></message>
+    <message><source>Alpine</source><translation>阿尔卑斯</translation></message>
+    <message><source>Alto</source><translation>中音</translation></message>
+    <message><source>Aluminium</source><translation>铝</translation></message>
+    <message><source>Amaranth</source><translation>苋菜红</translation></message>
+    <message><source>Amazon</source><translation>亚马逊</translation></message>
+    <message><source>Amber</source><translation>琥珀</translation></message>
+    <message><source>Americano</source><translation>美式浓缩咖啡</translation></message>
+    <message><source>Amethyst</source><translation>紫水晶</translation></message>
+    <message><source>Amethyst Smoke</source><translation>紫水晶烟</translation></message>
+    <message><source>Amour</source><translation>爱好</translation></message>
+    <message><source>ams MSS dms NBM jms MSL lms</source><translation>ams MSS dms NBM jms MSL lms</translation></message>
+    <message><source>Amulet</source><translation>护身符</translation></message>
+    <message><source>Anakiwa</source><translation>阿纳基瓦</translation></message>
+    <message><source>Analogous</source><translation>类似的</translation></message>
+    <message><source>Anatolian Hieroglyphs</source><translation>安那托利亚象形文字</translation></message>
+    <message><source>and restricted Assets found</source><translation>找到受限资源</translation></message>
+    <message><source>and restricted Assets found.</source><translation>找到受限资源。</translation></message>
+    <message><source>Angle Locking</source><translation>角度锁定</translation></message>
+    <message><source>Animate Path</source><translation>动画路径</translation></message>
+    <message><source>Animated</source><translation>动画的</translation></message>
+    <message><source>Animated Attribute</source><translation>动画属性</translation></message>
+    <message><source>Animated Attributes</source><translation>动画属性</translation></message>
+    <message><source>Animation Layer Filter is off</source><translation>动画图层过滤器已关闭</translation></message>
+    <message><source>Animation Layer Filter is off.</source><translation>动画图层过滤器已关闭。</translation></message>
+    <message><source>Animation Layer Filter is on</source><translation>动画图层过滤器已打开</translation></message>
+    <message><source>Animation Layer Filter is on.</source><translation>动画图层过滤器已打开。</translation></message>
+    <message><source>Animation Offset Value</source><translation>动画偏移值</translation></message>
+    <message><source>Animation Offset Value.</source><translation>动画偏移值。</translation></message>
+    <message><source>Animators</source><translation>动画器</translation></message>
+    <message><source>Anticipate In</source><translation>预期进入</translation></message>
+    <message><source>Anticipate In, Overshoot Out</source><translation>预期进入，超过退出</translation></message>
+    <message><source>Antique Brass</source><translation>古铜</translation></message>
+    <message><source>Antique Bronze</source><translation>古青铜</translation></message>
+    <message><source>antique white</source><translation>古董白</translation></message>
+    <message><source>Any 3</source><translation>任何 3</translation></message>
+    <message><source>Any other comments?</source><translation>还有其他评论吗？</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes</source><translation>选中的任何形状都将自动添加为输入形状</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator</source><translation>选中的任何形状都将自动添加为复制器的输入形状</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator.</source><translation>选中的任何形状都将自动添加为复制器的输入形状。</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude</source><translation>选中的任何形状都将自动添加为拉伸的输入形状</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude.</source><translation>选中的任何形状都将自动添加为拉伸的输入形状。</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes.</source><translation>选中的任何形状都将自动添加为输入形状。</translation></message>
+    <message><source>Anzac</source><translation>澳新军团</translation></message>
+    <message><source>Apache</source><translation>阿帕奇</translation></message>
+    <message><source>appears to be a Version 4 MAT-file, which is not currently supported</source><translation>似乎是一个版本 4 MAT 文件，目前不支持</translation></message>
+    <message><source>appears to be a Version 4 MAT-file, which is not currently supported.</source><translation>似乎是一个版本 4 MAT 文件，目前不支持。</translation></message>
+    <message><source>Append</source><translation>追加</translation></message>
+    <message><source>Apple</source><translation>苹果</translation></message>
+    <message><source>Apple Blossom</source><translation>苹果花</translation></message>
+    <message><source>Apple Color Emoji</source><translation>Apple 彩色表情符号</translation></message>
+    <message><source>Apple Green</source><translation>苹果绿</translation></message>
+    <message><source>Application</source><translation>应用程序</translation></message>
+    <message><source>Apply Track</source><translation>应用跟踪</translation></message>
+    <message><source>Apricot</source><translation>杏色</translation></message>
+    <message><source>Apricot Peach</source><translation>杏桃</translation></message>
+    <message><source>Apricot White</source><translation>杏白</translation></message>
+    <message><source>Aqua Deep</source><translation>深水</translation></message>
+    <message><source>Aqua Forest</source><translation>水森林</translation></message>
+    <message><source>Aqua Haze</source><translation>水雾</translation></message>
+    <message><source>Aqua Island</source><translation>水岛</translation></message>
+
   </context>
 </TS>

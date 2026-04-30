@@ -31,6 +31,8 @@ UI 真相源只在 `desktop-patcher/renderer/` 三文件；迁移不得改 DOM�
 2026-04-24 - 完成 Tauri 默认构建切换；更新高清图标资产并播种 resources L2 文档；整合打包与静默校验脚本并补齐 Tauri DMG 盖章流程。
 2026-04-24 - 收敛默认 `build` 为 `npm run tauri:build`，保留 `build:tauri` 承担 DMG 盖章与 packaged 校验。
 2026-04-24 - 修正 full UI 覆盖脚本入口，显式绑定 runtime inventory、compiled source map 与对应 `.ts` 翻译源。
-2026-04-24 - 将 Cavalry 2.7.0 / Qt 6.6.3 目标收敛到 `tools/cavalry_qt_target.json`，由 resolver 在本机校验、在 CI 补齐 SDK。
+2026-04-24 - 将 Cavalry/Qt 发布目标收敛到 `tools/cavalry_qt_target.json`，由 resolver 在本机校验、在 CI 补齐 SDK。
 2026-04-24 - CI macOS 打包改用 `npm run prepare:qt-sdk`，不再在 workflow 内写第二份 Qt 版本。
 2026-04-28 - 将 `translation-whitelist.json` 移入 `tools/` 作为版本化 gate 契约；compiled source map 改为 `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` 生成物，`doc/` 回归本地文档目录。
+2026-04-30 - 当前 Cavalry 目标升级到 2.7.1，Qt 仍为 6.6.3；full-ui 分母需重新抽取、捕获与冻结。
+2026-04-30 - Cavalry 2.7.1 app bundle 新增 6 条 `appStrings` GPU 文案；JSON lower bound 提升到 10 / 6320 / 34 / 51 / total 6415。

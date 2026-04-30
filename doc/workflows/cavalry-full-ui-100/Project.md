@@ -101,6 +101,23 @@ G-CAPTURE gate: BLOCKED-SIP (2026-04-30)
 Next action: Disable SIP or run app from non-system location
 ```
 
+### 已验证的外部阻塞
+
+**SIP（System Integrity Protection）阻塞注入**
+- 已排除所有可能绕过方案（app copy, codesign, ad-hoc signing）
+- 这是 macOS 内核级别保护，无法通过代码改进绕过
+- 最终解决方案：用户选择禁用 SIP 或支持 AX-only 方案
+
+**SIP-Aware 编排脚本已实现**
+- 新脚本：`tools/run_live_full_ui_matrix_sip_aware.js`
+- 测试结果：全 4 语言成功，仅得 8 widgets（低于 613 基线要求）
+- 结论：AX-only 不足以满足 G-CAPTURE pass 条件
+
+详见：
+- `runs/2026-04-30-G-CAPTURE-SIP-blocker.md`
+- `runs/2026-04-30-G-CAPTURE-SIP-final-analysis.md`
+- `runs/2026-04-30-G-CAPTURE-SIP-final-decision.md`
+
 ### 已确认的实现缺口
 
 0. **workflow 顺序存在依赖倒置，已改为先 capture 后 freeze**

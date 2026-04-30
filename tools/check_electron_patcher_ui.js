@@ -481,7 +481,7 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     'default injector builds should resolve the target SDK from the project contract instead of scattering 6.6.3 inline'
   );
   assert.equal(target.qtVersion, '6.6.3');
-  assert.equal(target.cavalryVersion, '2.7.0');
+  assert.equal(target.cavalryVersion, '2.7.1');
   assert.equal(target.sdkPath, 'qt_sdk/6.6.3/macos');
   assert.match(
     resolver,
