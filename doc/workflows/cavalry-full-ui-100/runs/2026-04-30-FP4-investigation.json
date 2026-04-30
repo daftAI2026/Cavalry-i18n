@@ -1,0 +1,973 @@
+{
+  "startedAt": "2026-04-29T17:55:15.812Z",
+  "finishedAt": "2026-04-29T17:55:18.043Z",
+  "threshold": 100,
+  "sessionDir": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D",
+  "sessionUuid": "8FF9C395-BF3C-403B-994E-B86FB7C9058D",
+  "runtimeDir": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D/runtime",
+  "sourceMap": {
+    "path": "/Users/luo/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json",
+    "hash": "37c0ff1c274974cf4f5c6a807abcef41abafa4b9b36fe2d65d13d8ae3f326b76",
+    "mtime": "2026-04-29T13:36:13.110Z"
+  },
+  "extractionInventory": {
+    "path": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D/extraction-inventory.json",
+    "hash": "c737bd31c238e2c9eb34c97a671812a661812521031ce9b3142507154c83def4",
+    "mtime": "2026-04-29T17:55:10.638Z"
+  },
+  "frozenBaselines": {
+    "runtimeAllowlist": {
+      "path": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n-full-ui-100/tools/runtime_ui_allowlist.json",
+      "hash": "210830d7ad97d6a782187cc0b5219ed55fc2204d78c7c36bfd663ae16b87b23d",
+      "mtime": "2026-04-29T14:25:20.469Z"
+    },
+    "translationWhitelist": {
+      "path": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n-full-ui-100/tools/translation-whitelist.json",
+      "hash": "f33c3a3de55a7c65d2467fbafcf47cfcb3c4a1ad654bd81c19e37b1b503f735a",
+      "mtime": "2026-04-29T10:35:30.753Z"
+    }
+  },
+  "overallPass": false,
+  "blockedReason": "One or more language runs failed.",
+  "languages": [
+    {
+      "language": "ja_JP",
+      "threshold": 100,
+      "inventoryPath": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D/runtime/ja_JP-merged-inventory.json",
+      "runtime": {
+        "denominatorSource": "extraction-inventory",
+        "coveragePct": 23.92,
+        "totalCandidates": 623,
+        "observedCandidateCount": 910,
+        "untranslatedCount": 474,
+        "untranslated": [
+          "File",
+          "New Scene",
+          "Open...",
+          "Open Recent",
+          "Restore Autosave",
+          "This feature requires a Project.",
+          "Save",
+          "Save As...",
+          "Increment and Save",
+          "Import Assets...",
+          "Import Reference...",
+          "Import Scene...",
+          "Import Google Sheet...",
+          "Import Image Smart Folder...",
+          "Import Audio Smart Folder...",
+          "Export Selected...",
+          "Export Lottie...",
+          "Export as Project...",
+          "Project Settings",
+          "Set Project",
+          "Show Project Folder",
+          "Render Manager",
+          "Render Current Frame...",
+          "Render Current Frame to SVG...",
+          "Reduce Scene",
+          "Edit",
+          "Undo",
+          "Redo",
+          "Copy",
+          "Copy as SVG",
+          "Paste",
+          "Delete",
+          "Group",
+          "Group and Flatten",
+          "Un-Group",
+          "Add to Group",
+          "No Groups in this Composition.",
+          "Connect to Frame Range",
+          "Show/Hide Selected",
+          "Show/Hide Animation",
+          "Duplicate",
+          "Duplicate (Options)...",
+          "Duplicate and Split",
+          "Arrange",
+          "Bring to Front",
+          "Bring Forward",
+          "Send Backward",
+          "Send to Back",
+          "Select All",
+          "Invert Selection",
+          "Clear Selection",
+          "Select by Label Color",
+          "Select by Type",
+          "Select by Tag",
+          "Quicklist",
+          "Show in Attribute Editor",
+          "Show in Scene Window",
+          "View",
+          "Show Rulers",
+          "Show Guides",
+          "Ruler Options",
+          "Origin In Centre",
+          "Origin In Bottom Left",
+          "Use Pixels",
+          "Use Percentage",
+          "Show 2D Grid",
+          "Show Pixel Grid",
+          "Show Composition Boundary",
+          "Show Layer Names on Hover",
+          "Show Viewport Tool Help",
+          "Show Layer Tools",
+          "Viewport Quality",
+          "High",
+          "Balanced",
+          "Low",
+          "Lowest",
+          "Draw Outside Composition Boundary",
+          "Draw Debug Information",
+          "Snapping",
+          "Show Snapshot"
+        ],
+        "forbiddenPatterns": {
+          "total": 0,
+          "byPattern": {},
+          "samples": []
+        }
+      },
+      "compiled": {
+        "denominatorSource": "extraction-inventory",
+        "coveragePct": 7.05,
+        "totalCandidates": 4911,
+        "untranslatedCount": 4565,
+        "untranslated": [
+          "A new tab has been opened in your default browser so you can log in to Canva there",
+          "A new tab has been opened in your default browser so you can log in to Canva there.",
+          "A Professional licence is required for Dynamic Rendering",
+          "A Professional licence is required for Dynamic Rendering.",
+          "A selection of two points from two different contours on the same shape is required to join contours",
+          "A selection of two points from two different contours on the same shape is required to join contours.",
+          "Abbey",
+          "Acadia",
+          "Acapulco",
+          "Acce",
+          "Access All Alternates",
+          "Account",
+          "Action not allowed. Adding composition would create a cycle",
+          "Action not allowed. Adding composition would create a cycle.",
+          "Active",
+          "Active Camera",
+          "Active Camera: Layer Tools Disabled",
+          "Active Camera: Layer Tools Disabled.",
+          "Active Composition",
+          "Active Tags.",
+          "Acutesmall",
+          "Add",
+          "Add a bone at the top of the hierarchy",
+          "Add a bone at the top of the hierarchy.",
+          "Add a bone parented to this one",
+          "Add a bone parented to this one.",
+          "Add a new Attribute variable which can be used in your script",
+          "Add a new Attribute variable which can be used in your script.",
+          "Add a Placement Utility",
+          "Add a Rig Control",
+          "Add a Tag",
+          "Add a Text Background",
+          "Add a tracker (4 required)",
+          "Add a tracker (4 required).",
+          "Add an Animation Control",
+          "Add an Auto-Animate Deformer",
+          "Add an IK Control using this Bone as End Effector",
+          "Add an IK Control using this Bone as End Effector.",
+          "Add Array",
+          "Add Asset",
+          "Add Asset To Scene",
+          "Add Background",
+          "Add Behaviour",
+          "Add Bool",
+          "Add Camera",
+          "Add Clip",
+          "Add Clip to End",
+          "Add Clip to Start",
+          "Add Color",
+          "Add Color Stop",
+          "Add Colors from Selection",
+          "Add Colors from Selection and Connect",
+          "Add connections",
+          "Add Distribution",
+          "Add Double",
+          "Add Double (float)",
+          "Add Expression...",
+          "Add Falloff",
+          "Add Header",
+          "Add IK Control",
+          "Add Int",
+          "Add Keyframe",
+          "Add Layer",
+          "Add Layers Popover",
+          "Add List Attribute",
+          "Add Mesh",
+          "Add New Layers to Selected Tags",
+          "Add new snippet",
+          "Add or edit Bind positions",
+          "Add Point Data (Distribution)",
+          "Add Pre-Comp Override",
+          "Add Pre-Comp Overrides",
+          "Add Preset",
+          "Add selected layers to the Attribute Editor",
+          "Add selected layers to the Attribute Editor.",
+          "Add Shader",
+          "Add Shader (shader)",
+          "Add Spacer",
+          "Add String",
+          "Add Sub Bone"
+        ]
+      },
+      "jsonValidation": {
+        "alias": "ja",
+        "coveragePct": 100,
+        "exactEnglishTranslateLeaves": 0,
+        "englishResidueCount": 0,
+        "structureIssueCount": 0,
+        "noTranslateIssueCount": 0,
+        "placeholderIssueCount": 0,
+        "localeSyncIssueCount": 0,
+        "purityIssueCount": 0,
+        "forbiddenPatternIssueCount": 0,
+        "forbiddenPatterns": {
+          "total": 0,
+          "by_pattern": {},
+          "samples": []
+        },
+        "denominatorSource": "extraction-inventory",
+        "pass": true
+      },
+      "forbiddenPatterns": {
+        "runtime": {
+          "total": 0,
+          "byPattern": {},
+          "samples": []
+        },
+        "jsonValidation": {
+          "total": 0,
+          "by_pattern": {},
+          "samples": []
+        }
+      },
+      "provenance": {
+        "inventoryPath": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D/runtime/ja_JP-merged-inventory.json",
+        "capture": {
+          "pid": 36983,
+          "bundleHash": "ec5ab60c4cc33fd1f57364e7e7660dd44bd7fcc979d0417e1451114f2b9e48f9",
+          "sessionUuid": "8FF9C395-BF3C-403B-994E-B86FB7C9058D",
+          "wallclockUtc": "2026-04-29T17:54:46.811Z",
+          "source": "live-merged"
+        }
+      },
+      "exitCode": 1,
+      "pass": false,
+      "blockedReason": "One or more surface gates failed."
+    },
+    {
+      "language": "zh-Hans",
+      "threshold": 100,
+      "inventoryPath": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D/runtime/zh-Hans-merged-inventory.json",
+      "runtime": {
+        "denominatorSource": "extraction-inventory",
+        "coveragePct": 23.92,
+        "totalCandidates": 623,
+        "observedCandidateCount": 903,
+        "untranslatedCount": 474,
+        "untranslated": [
+          "File",
+          "New Scene",
+          "Open...",
+          "Open Recent",
+          "Restore Autosave",
+          "This feature requires a Project.",
+          "Save",
+          "Save As...",
+          "Increment and Save",
+          "Import Assets...",
+          "Import Reference...",
+          "Import Scene...",
+          "Import Google Sheet...",
+          "Import Image Smart Folder...",
+          "Import Audio Smart Folder...",
+          "Export Selected...",
+          "Export Lottie...",
+          "Export as Project...",
+          "Project Settings",
+          "Set Project",
+          "Show Project Folder",
+          "Render Manager",
+          "Render Current Frame...",
+          "Render Current Frame to SVG...",
+          "Reduce Scene",
+          "Edit",
+          "Undo",
+          "Redo",
+          "Copy",
+          "Copy as SVG",
+          "Paste",
+          "Delete",
+          "Group",
+          "Group and Flatten",
+          "Un-Group",
+          "Add to Group",
+          "No Groups in this Composition.",
+          "Connect to Frame Range",
+          "Show/Hide Selected",
+          "Show/Hide Animation",
+          "Duplicate",
+          "Duplicate (Options)...",
+          "Duplicate and Split",
+          "Arrange",
+          "Bring to Front",
+          "Bring Forward",
+          "Send Backward",
+          "Send to Back",
+          "Select All",
+          "Invert Selection",
+          "Clear Selection",
+          "Select by Label Color",
+          "Select by Type",
+          "Select by Tag",
+          "Quicklist",
+          "Show in Attribute Editor",
+          "Show in Scene Window",
+          "View",
+          "Show Rulers",
+          "Show Guides",
+          "Ruler Options",
+          "Origin In Centre",
+          "Origin In Bottom Left",
+          "Use Pixels",
+          "Use Percentage",
+          "Show 2D Grid",
+          "Show Pixel Grid",
+          "Show Composition Boundary",
+          "Show Layer Names on Hover",
+          "Show Viewport Tool Help",
+          "Show Layer Tools",
+          "Viewport Quality",
+          "High",
+          "Balanced",
+          "Low",
+          "Lowest",
+          "Draw Outside Composition Boundary",
+          "Draw Debug Information",
+          "Snapping",
+          "Show Snapshot"
+        ],
+        "forbiddenPatterns": {
+          "total": 0,
+          "byPattern": {},
+          "samples": []
+        }
+      },
+      "compiled": {
+        "denominatorSource": "extraction-inventory",
+        "coveragePct": 12.03,
+        "totalCandidates": 4911,
+        "untranslatedCount": 4320,
+        "untranslated": [
+          "Acce",
+          "Acutesmall",
+          "ahk ISK bhk DBX khk GNM nhk",
+          "ams MSS dms NBM jms MSL lms",
+          "appears to be a Version 4 MAT-file, which is not currently supported",
+          "appears to be a Version 4 MAT-file, which is not currently supported.",
+          "Apple Color Emoji",
+          "Arial",
+          "Asmall",
+          "Asse",
+          "ats PPC vts GIS qus RUS rus",
+          "Attempting to attach list UI to non list Attribute",
+          "Attempting to attach list UI to non list Attribute.",
+          "Audif",
+          "Automatic MIME types",
+          "Ayhb",
+          "B ffff.",
+          "Bamboo",
+          "Bamum",
+          "Banana Mania",
+          "Bandicoot",
+          "Barberry",
+          "Barley Corn",
+          "Barley White",
+          "Barossa",
+          "Base",
+          "Baseline",
+          "Basic",
+          "Bassa Vah",
+          "Bastille",
+          "Batak",
+          "Battleship Gray",
+          "Bay Leaf",
+          "Bay of Many",
+          "Bazaar",
+          "bby LMB dby KRA ddy IIJ hiy IIJ miy",
+          "Bean",
+          "Bear",
+          "Bearer",
+          "Bearer Token",
+          "Beat Marker Settings",
+          "Beauty Bush",
+          "Beaver",
+          "Beeswax",
+          "before of",
+          "Behaviour",
+          "Beige",
+          "Bengali",
+          "Bermuda",
+          "Bermuda Gray",
+          "Beryl Green",
+          "Beta",
+          "Bezier",
+          "Bhaiksuki",
+          "Bianca",
+          "Big Stone",
+          "Bilbao",
+          "Biloba Flower",
+          "Birch",
+          "Bird Flower",
+          "Biscay",
+          "Bismark",
+          "Bison Hide",
+          "Bistre",
+          "bits per sample with data format",
+          "Bitter",
+          "Bitter Lemon",
+          "Bittersweet",
+          "Bizarre",
+          "Black",
+          "Black Bean",
+          "Black Forest",
+          "Black Haze",
+          "Black Marlin",
+          "Black Olive",
+          "Black Pearl",
+          "Black Rock",
+          "Black Rose",
+          "Black Russian",
+          "Black Squeeze"
+        ]
+      },
+      "jsonValidation": {
+        "alias": "zh_Hans",
+        "coveragePct": 100,
+        "exactEnglishTranslateLeaves": 0,
+        "englishResidueCount": 0,
+        "structureIssueCount": 0,
+        "noTranslateIssueCount": 0,
+        "placeholderIssueCount": 0,
+        "localeSyncIssueCount": 0,
+        "purityIssueCount": 0,
+        "forbiddenPatternIssueCount": 0,
+        "forbiddenPatterns": {
+          "total": 0,
+          "by_pattern": {},
+          "samples": []
+        },
+        "denominatorSource": "extraction-inventory",
+        "pass": true
+      },
+      "forbiddenPatterns": {
+        "runtime": {
+          "total": 0,
+          "byPattern": {},
+          "samples": []
+        },
+        "jsonValidation": {
+          "total": 0,
+          "by_pattern": {},
+          "samples": []
+        }
+      },
+      "provenance": {
+        "inventoryPath": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D/runtime/zh-Hans-merged-inventory.json",
+        "capture": {
+          "pid": 36633,
+          "bundleHash": "ec5ab60c4cc33fd1f57364e7e7660dd44bd7fcc979d0417e1451114f2b9e48f9",
+          "sessionUuid": "8FF9C395-BF3C-403B-994E-B86FB7C9058D",
+          "wallclockUtc": "2026-04-29T17:53:35.239Z",
+          "source": "live-merged"
+        }
+      },
+      "exitCode": 1,
+      "pass": false,
+      "blockedReason": "One or more surface gates failed."
+    },
+    {
+      "language": "zh-Hant",
+      "threshold": 100,
+      "inventoryPath": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D/runtime/zh-Hant-merged-inventory.json",
+      "runtime": {
+        "denominatorSource": "extraction-inventory",
+        "coveragePct": 20.06,
+        "totalCandidates": 623,
+        "observedCandidateCount": 907,
+        "untranslatedCount": 498,
+        "untranslated": [
+          "刚体设置碰撞事件",
+          "颜色碰撞事件",
+          "File",
+          "New Scene",
+          "Open...",
+          "Open Recent",
+          "Restore Autosave",
+          "This feature requires a Project.",
+          "Save",
+          "Save As...",
+          "Increment and Save",
+          "Import Assets...",
+          "Import Reference...",
+          "Import Scene...",
+          "Import Google Sheet...",
+          "Import Image Smart Folder...",
+          "Import Audio Smart Folder...",
+          "Export Selected...",
+          "Export Lottie...",
+          "Export as Project...",
+          "Project Settings",
+          "Set Project",
+          "Show Project Folder",
+          "Render Manager",
+          "Render Current Frame...",
+          "Render Current Frame to SVG...",
+          "Reduce Scene",
+          "Edit",
+          "Undo",
+          "Redo",
+          "Copy",
+          "Copy as SVG",
+          "Paste",
+          "Delete",
+          "Group",
+          "Group and Flatten",
+          "Un-Group",
+          "Add to Group",
+          "No Groups in this Composition.",
+          "Connect to Frame Range",
+          "Show/Hide Selected",
+          "Show/Hide Animation",
+          "Duplicate",
+          "Duplicate (Options)...",
+          "Duplicate and Split",
+          "Arrange",
+          "Bring to Front",
+          "Bring Forward",
+          "Send Backward",
+          "Send to Back",
+          "Select All",
+          "Invert Selection",
+          "Clear Selection",
+          "Select by Label Color",
+          "Select by Type",
+          "Select by Tag",
+          "Quicklist",
+          "Show in Attribute Editor",
+          "Show in Scene Window",
+          "View",
+          "Show Rulers",
+          "Show Guides",
+          "Ruler Options",
+          "Origin In Centre",
+          "Origin In Bottom Left",
+          "Use Pixels",
+          "Use Percentage",
+          "Show 2D Grid",
+          "Show Pixel Grid",
+          "Show Composition Boundary",
+          "Show Layer Names on Hover",
+          "Show Viewport Tool Help",
+          "Show Layer Tools",
+          "Viewport Quality",
+          "High",
+          "Balanced",
+          "Low",
+          "Lowest",
+          "Draw Outside Composition Boundary",
+          "Draw Debug Information"
+        ],
+        "forbiddenPatterns": {
+          "total": 25,
+          "byPattern": {
+            "FP-4": 25
+          },
+          "samples": [
+            {
+              "value": "刚体设置碰撞事件",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "颜色碰撞事件",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "提取子网格",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "交换颜色",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "子网格",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "混合子网格位置",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "网格求解器",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "轮廓转子网格",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "颜色材质覆盖",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "SkSL 滤镜",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "填充颜色",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "颜色着色器",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "HSV 颜色",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "三维数学运算",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "二维数学运算",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "分量约束",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "变换约束",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "合成约束",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "子网格计数",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "桥接约束",
+              "ids": [
+                "FP-4"
+              ]
+            }
+          ]
+        }
+      },
+      "compiled": {
+        "denominatorSource": "extraction-inventory",
+        "coveragePct": 11.99,
+        "totalCandidates": 4911,
+        "untranslatedCount": 4322,
+        "untranslated": [
+          "Acce",
+          "Acutesmall",
+          "ahk ISK bhk DBX khk GNM nhk",
+          "ams MSS dms NBM jms MSL lms",
+          "appears to be a Version 4 MAT-file, which is not currently supported",
+          "appears to be a Version 4 MAT-file, which is not currently supported.",
+          "Apple Color Emoji",
+          "Arial",
+          "Asmall",
+          "Asse",
+          "ats PPC vts GIS qus RUS rus",
+          "Attempting to attach list UI to non list Attribute",
+          "Attempting to attach list UI to non list Attribute.",
+          "Audif",
+          "Automatic MIME types",
+          "Ayhb",
+          "B ffff.",
+          "Bamboo",
+          "Bamum",
+          "Banana Mania",
+          "Bandicoot",
+          "Barberry",
+          "Barley Corn",
+          "Barley White",
+          "Barossa",
+          "Base",
+          "Baseline",
+          "Basic",
+          "Bassa Vah",
+          "Bastille",
+          "Batak",
+          "Battleship Gray",
+          "Bay Leaf",
+          "Bay of Many",
+          "Bazaar",
+          "bby LMB dby KRA ddy IIJ hiy IIJ miy",
+          "Bean",
+          "Bear",
+          "Bearer",
+          "Bearer Token",
+          "Beat Marker Settings",
+          "Beauty Bush",
+          "Beaver",
+          "Beeswax",
+          "before of",
+          "Behaviour",
+          "Beige",
+          "Bengali",
+          "Bermuda",
+          "Bermuda Gray",
+          "Beryl Green",
+          "Beta",
+          "Bezier",
+          "Bhaiksuki",
+          "Bianca",
+          "Big Stone",
+          "Bilbao",
+          "Biloba Flower",
+          "Birch",
+          "Bird Flower",
+          "Biscay",
+          "Bismark",
+          "Bison Hide",
+          "Bistre",
+          "bits per sample with data format",
+          "Bitter",
+          "Bitter Lemon",
+          "Bittersweet",
+          "Bizarre",
+          "Black",
+          "Black Bean",
+          "Black Forest",
+          "Black Haze",
+          "Black Marlin",
+          "Black Olive",
+          "Black Pearl",
+          "Black Rock",
+          "Black Rose",
+          "Black Russian",
+          "Black Squeeze"
+        ]
+      },
+      "jsonValidation": {
+        "alias": "zh_Hant",
+        "coveragePct": 100,
+        "exactEnglishTranslateLeaves": 0,
+        "englishResidueCount": 0,
+        "structureIssueCount": 0,
+        "noTranslateIssueCount": 0,
+        "placeholderIssueCount": 0,
+        "localeSyncIssueCount": 0,
+        "purityIssueCount": 0,
+        "forbiddenPatternIssueCount": 0,
+        "forbiddenPatterns": {
+          "total": 0,
+          "by_pattern": {},
+          "samples": []
+        },
+        "denominatorSource": "extraction-inventory",
+        "pass": true
+      },
+      "forbiddenPatterns": {
+        "runtime": {
+          "total": 25,
+          "byPattern": {
+            "FP-4": 25
+          },
+          "samples": [
+            {
+              "value": "刚体设置碰撞事件",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "颜色碰撞事件",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "提取子网格",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "交换颜色",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "子网格",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "混合子网格位置",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "网格求解器",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "轮廓转子网格",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "颜色材质覆盖",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "SkSL 滤镜",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "填充颜色",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "颜色着色器",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "HSV 颜色",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "三维数学运算",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "二维数学运算",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "分量约束",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "变换约束",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "合成约束",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "子网格计数",
+              "ids": [
+                "FP-4"
+              ]
+            },
+            {
+              "value": "桥接约束",
+              "ids": [
+                "FP-4"
+              ]
+            }
+          ]
+        },
+        "jsonValidation": {
+          "total": 0,
+          "by_pattern": {},
+          "samples": []
+        }
+      },
+      "provenance": {
+        "inventoryPath": "/Users/luo/Library/Caches/Cavalry-i18n/sessions/8FF9C395-BF3C-403B-994E-B86FB7C9058D/runtime/zh-Hant-merged-inventory.json",
+        "capture": {
+          "pid": 36826,
+          "bundleHash": "ec5ab60c4cc33fd1f57364e7e7660dd44bd7fcc979d0417e1451114f2b9e48f9",
+          "sessionUuid": "8FF9C395-BF3C-403B-994E-B86FB7C9058D",
+          "wallclockUtc": "2026-04-29T17:54:11.253Z",
+          "source": "live-merged"
+        }
+      },
+      "exitCode": 1,
+      "pass": false,
+      "blockedReason": "One or more surface gates failed."
+    }
+  ]
+}
