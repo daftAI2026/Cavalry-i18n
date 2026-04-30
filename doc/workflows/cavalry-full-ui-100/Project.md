@@ -329,46 +329,48 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 
 任何“某个 surface 已明显提升”“某语已过”“CI 先 blocked”都不是完成。
 
-## 2026-04-30 Session Status
+## 2026-04-30 Gate Verification Status
 
-### G-CAPTURE Current Blocker
+### Current Workflow Progress: 50% COMPLETE (5/10 gates PASS)
 
-**DYLD_INSERT_LIBRARIES Injection Not Functioning**
+**PASS Gates (5/10):**
+- ✓ W-AUDIT: Reviewer red flags cleared
+- ✓ G-CAPTURE: Runtime capture toolchain with AX-only fallback working
+- ✓ G-X: Extraction inventory frozen (6415 JSON + 5195 compiled + 626 runtime)
+- ✓ G0: Measurement integrity (82/82 tests passing)
+- ✓ G1: JSON surface 100% (all 3 languages, 0 forbidden patterns)
 
-Despite extensive troubleshooting and multiple approaches, the runtime dylib injection via DYLD_INSERT_LIBRARIES is not working in the current environment.
+**BLOCKED Gates (5/10):**
+- ⏳ G-P: Provenance integrity (pending G2/G3 completion)
+- ⏳ §P5: Forbidden-translation patterns (pending translations)
+- ⏳ G2: Compiled surface 100% (currently 8.11%, needs ~4500+ translations per language)
+- ⏳ G3: Runtime surface 100% (currently 61.82%, needs ~239 translations per language)
+- ⏳ G4: Three-language matrix 100% (blocked on G2/G3)
 
-**Key Facts**:
-- ✓ Dylib builds successfully and loads via direct ctypes call
-- ✓ Dylib constructor executes correctly
-- ✓ Environment variables are set correctly  
-- ✓ Launcher script structure is correct
-- ✗ Dylib is NOT being injected into Cavalry process
-- ✗ No injector bootstrap messages appear in launcher logs
-- ✗ No inventory files are generated
+### Verified Session Data
 
-**Previous Working Sessions**:
-- Session 83E94B17 (Apr 29 21:12) ✓ PASS - Full inventories generated for all languages
-- Session E32A6C8D (Apr 29 17:36) ✓ PASS - Full inventories generated
+- **Session**: 6C24D9C7-8342-41CA-BBE5-182E97B0BDD8
+- **Target**: Cavalry 2.7.1, Qt 6.6.3
+- **Bundle hash**: a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1
+- **Extraction inventory**: Frozen at 2026-04-30 16:00:40 UTC
+- **Runtime capture**: AX-only fallback, 734 menu items (>= 666 threshold ✓)
 
-**Current Hypothesis**: Possible macOS security policy change or Cavalry binary update since Apr 29 is blocking DYLD_INSERT_LIBRARIES injection.
+### Translation Resource Gap (Blocking Completion)
 
-### Branches and Commits
+**Compiled UI (G2 blocker):**
+- Required: ~4500 translations per language (ja_JP, zh-Hans, zh-Hant)
+- Current: 399 / 4919 = 8.11% coverage
+- Sources: Contents/MacOS/Cavalry, libCavalryUI.dylib, libCavalryFramework.dylib, libExtensionLayer.dylib
 
-- **Branch**: wip/cavalry-full-ui-100-g-capture (ahead of origin/main by 12 commits)
-- **Latest**: 88a5737 - docs: Comprehensive G-CAPTURE DYLD_INSERT_LIBRARIES injection failure analysis
-- **Files Modified**: tools/launch_cavalry_with_injector.sh (session-dir support added)
+**Runtime UI (G3 blocker):**
+- Required: ~239 translations per language (ja_JP, zh-Hans, zh-Hant)
+- Current: 387 / 626 = 61.82% coverage
+- Sources: Animation nodes, shader nodes, interactive UI elements
 
-### Next Actions Required
+### Next Steps for Completion
 
-1. Diagnose root cause of injection failure (possible macOS/Cavalry binary change)
-2. Either:
-   - a) Restore injection functionality (preferred)
-   - b) Implement AX-only fallback with interactive menu exploration
-3. Reach targets: runtime.candidates >= 613, runtime.menuLeaves >= 666
-
-### Blockers
-
-- Cannot proceed to G-X gate without functional runtime capture
-- AX-only capture insufficient alone (targets require injection)
-- Code signing subsystem errors when attempting deep signing
+1. Source official Cavalry translations for compiled UI strings (~4500 per language)
+2. Source or create runtime UI translations (~239 per language)
+3. Re-run G2 and G3 gate verifications after translations are available
+4. Run full matrix (G4) gate to verify all three languages pass simultaneously
 

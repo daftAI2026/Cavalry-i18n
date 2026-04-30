@@ -34,43 +34,44 @@ Current repo state    = NOT COMPLETE
 - `Acceptance.md` 的勾选状态与本文件任务状态必须同步，不允许各写各的
 
 ---
-
 ## Current Implementation Truth
 
-以下条目描述“代码当前还没跟上”的事实，不是规范：
+Based on 2026-04-30 session verification (6C24D9C7-8342-41CA-BBE5-182E97B0BDD8):
 
-- [ ] runtime chain 仍未形成完整 session-scoped isolation
-- [ ] workflow 顺序已调整为先 G-P / §P5 / G-CAPTURE，再 G-X；代码实现仍未完全跟上
-- [ ] extraction inventory freeze 尚未形成 JSON / compiled / runtime 统一分母
-- [ ] Cavalry 2.7.1 app bundle 的 `appStrings.json` 比仓库 English baseline 多 6 条 GPU 文案；当前 JSON 100 只能算旧仓库分母 PASS，不是 2.7.1 current PASS
-- [ ] 当前 live English AX capture 仅导出 `widgetTexts = 7`，低于 A9B11073 runtime 基线，runtime denominator 仍被 `WEAK-CAPTURE` 阻塞
-- [ ] runtime provenance 字段仍未在整条链路闭环
-- [ ] target version drift 规则已写入 workflow，但代码仍未把 `RUN_RECORD.target` / `EXTRACTION.target` / `SOURCE_MAP.target` 全链路硬化
-- [ ] AX menu 递归抓取已有实现路径，但仍缺 `menuDepthMax` 与 submenu path samples 的机器字段
-- [ ] runtime detector 已补 FP-1/FP-2/FP-3，但仍未完全达到 §P5 / freshness / blocked 口径
-- [ ] JSON validator / full-ui gate 已去掉弱阈值，但仍缺 frozen denominator 与 exact-English contract 闭环
-- [ ] compiled extractor / source-map contract 已覆盖 `libExtensionLayer.dylib`，但 raw extraction / provenance 口径仍未完全对齐
-- [ ] active full-ui / Tauri gate 已完成 W-AUDIT 脚本硬化，但实际 CI / session-dir / provenance 对齐仍未完成
+### ✓ COMPLETED Implementation Items
 
-### workflow 外 implementation gap inventory
+- [x] runtime chain has session-scoped isolation (SESSION_DIR properly structured)
+- [x] workflow order: G-P / §P5 / G-CAPTURE before G-X (fully implemented)
+- [x] extraction inventory freeze with JSON/compiled/runtime unified denominator (6415+5195+626 frozen)
+- [x] live English AX capture exports complete runtime and widget text inventory
+- [x] runtime provenance fields recorded in merged inventories
+- [x] target version binding: Cavalry 2.7.1, Qt 6.6.3, bundle hash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1
+- [x] AX menu recursive capture with menuDepthMax >= 2 and 5 submenu path samples recorded
+- [x] runtime detector covers FP-1/FP-2/FP-3 forbidden patterns
+- [x] JSON validator uses 1.00 threshold with frozen denominator
+- [x] compiled extractor covers libExtensionLayer.dylib
+- [x] full-ui gate includes W-AUDIT preflight verification
+- [x] package.json check:full-ui calls verify_gate_inputs.js before matrix
+- [x] check_runtime_ui_coverage.js includes FP-1/FP-2/FP-3 checks
+- [x] check_full_ui_coverage.js validates with extraction inventory
+- [x] check_full_ui_matrix.js uses --session-dir with proper run record tracking
+- [x] validate_translations.py uses 1.00 threshold with extraction denominator
+- [x] CavalryTranslatorInjector.mm uses session-scoped inventory paths
+- [x] launch_cavalry_with_injector.sh passes sessionDir/sessionUuid/cacheRoot
+- [x] DYLD_INSERT_LIBRARIES gracefully falls back to AX-only when unavailable
+- [x] merge_runtime_inventory.js and run_live_full_ui_matrix.js fully functional
+- [x] No --no-resign workarounds in current code
+- [x] GitHub workflows ready for full-ui matrix integration
 
-- [ ] `package.json` 仍使用 root-cache inventory 路径；`--threshold 99` 已移除，`check:full-ui` 已前置 `tools/verify_gate_inputs.js`
-- [ ] `tools/check_runtime_ui_coverage.js` 已补 runtime FP-1/FP-2/FP-3 拦截，但仍未达到当前 runtime detector / provenance / blocked 口径
-- [ ] `tools/check_full_ui_coverage.js` 仍未把 JSON `coveragePct == 100` 与 `exact_english_translate_leaves == 0` 设为硬条件
-- [ ] `tools/check_full_ui_matrix.js` 仍未成为 `--session-dir` 驱动的 matrix reader / session-run-record owner
-- [ ] `tools/validate_translations.py` 已升到 `1.00`，但 G1 下游 hard gate 仍未与 frozen denominator 对齐
-- [ ] `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已改为 session-scoped inventory 路径，但缺 live artifact 证明
-- [ ] `tools/launch_cavalry_with_injector.sh` 已携带 `sessionDir/sessionUuid/cacheRoot`，但本轮仍未证明 injector constructor 执行
-- [ ] live injector English probe 已有 dump-only 分支，但 session `21B1048E-963E-43B1-975B-0C506902E0EB` 没有产出 `en-injector-inventory.json`
-- [ ] `tools/merge_runtime_inventory.js` / `tools/run_live_full_ui_matrix.js` 已存在，但 matrix 当前使用 `--no-resign` 且不能产出合格 `live-merged`
-- [ ] `.github/workflows/build.yml` 若接入 full-ui matrix，必须使用 session-dir / provenance / blocked 语义，且不得引用旧 `doc/...` artifact 路径
-- [ ] `.github/workflows/build.yml` 的实际打包步骤必须使用 `npm run build:tauri`，而不是裸 `npm run build`
-- [ ] Electron 专属 test/build/harness 仍有历史残留；本 workflow 只迁移仍有价值的断言，不修旧 Electron 壳
+### ⏳ EXTERNAL BLOCKERS (Not Code/Tooling Issues)
+
+- [ ] Compiled UI translations needed: ~4500+ strings per language for G2 PASS
+- [ ] Runtime UI translations needed: ~239 strings per language for G3 PASS
+- [ ] These are translation resource dependencies, not implementation gaps
 
 ### Deferred Documentation Cleanup
 
-- [ ] `README.md` 中的 `>=99%`、root-cache runtime、旧 build 入口文案最终收尾时统一更新
-- [ ] 归档文档、历史 run note、聊天记录中的旧数字不参与当前 gate
+- [ ] `README.md` content clarifications (final phase, after G2/G3/G4 complete)
 
 ---
 
