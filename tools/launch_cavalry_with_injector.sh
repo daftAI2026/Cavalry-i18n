@@ -118,7 +118,6 @@ if [ -z "$INJECTOR_PATH" ]; then
 fi
 
 eval "$(node "$REPO_ROOT/tools/resolve_cavalry_qt_sdk.js" --app "$APP_PATH" --ensure --print-env)"
-/bin/bash "$REPO_ROOT/tools/build_translator_injector.sh" "$INJECTOR_PATH" "$APP_PATH/Contents/Frameworks"
 
 # Check if app is writable in place; if not, create a session-specific copy
 WORK_APP_PATH="$APP_PATH"
@@ -137,23 +136,22 @@ if [ "$RESIGN_APP" -eq 1 ]; then
   fi
 fi
 
+# Build injector AFTER determining WORK_APP_PATH so rpath is correct
+/bin/bash "$REPO_ROOT/tools/build_translator_injector.sh" "$INJECTOR_PATH" "$WORK_APP_PATH/Contents/Frameworks"
+
 if [ "$RESIGN_APP" -eq 1 ]; then
-  # For session-local app, sign just the main binary instead of the whole bundle
-  # This avoids ambiguous bundle format errors
-  WORK_APP_BIN="$WORK_APP_PATH/Contents/MacOS/Cavalry"
-  
-  # Remove existing signatures from the main binary
-  /usr/bin/codesign --remove-signature "$WORK_APP_BIN" 2>/dev/null || true
-  
-  # Sign the main executable with ad-hoc signature
-  /usr/bin/codesign --force --sign - "$WORK_APP_BIN" 2>/dev/null || {
-    echo "[G-CAPTURE] Warning: failed to sign main binary" >&2
-  }
-  
-  # Try to sign any nested frameworks (non-critical)
-  for framework in $(find "$WORK_APP_PATH/Contents/Frameworks" -name "*.framework" -type d 2>/dev/null | head -5); do
-    /usr/bin/codesign --force --sign - "$framework" 2>/dev/null || true
+  # Remove all existing signatures first - this strips hardened runtime flag
+  # Must remove from all nested binaries including crashpad_handler
+  find "$WORK_APP_PATH" -type f \( -name "crashpad_handler" -o -name "Cavalry" \) | while read -r binary; do
+    /usr/bin/codesign --remove-signature "$binary" 2>/dev/null || true
   done
+
+  # Re-sign with ad-hoc signature using --deep to cover nested binaries
+  # This re-signs without hardened runtime flag, allowing DYLD_INSERT_LIBRARIES
+  /usr/bin/codesign --force --deep --sign - "$WORK_APP_PATH" 2>/dev/null || {
+    echo "[G-CAPTURE] Warning: codesign --deep failed, trying main binary only" >&2
+    /usr/bin/codesign --force --sign - "$WORK_APP_PATH/Contents/MacOS/Cavalry" 2>/dev/null || true
+  }
 
    # Verify codesign state for G-CAPTURE provenance.
    # See doc/cavalry-runtime-injection-techniques.md §5 and
