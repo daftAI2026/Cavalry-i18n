@@ -15,11 +15,8 @@ qt_663_sdk/
 # ── 构建与运行产物 ──
 dist/
 build/
-output/
 src-tauri/target/
 src-tauri/gen/
-*.dylib
-*.inc
 
 # ── 日志 ──
 *.log
