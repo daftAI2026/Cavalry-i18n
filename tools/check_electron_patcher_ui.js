@@ -953,6 +953,11 @@ test('runtime UI coverage can lock its denominator to frozen extraction candidat
   const checkerPath = path.join(repoRoot, 'tools', 'check_runtime_ui_coverage.js');
   const { buildCoverage } = require(checkerPath);
 
+  // Create a Map of English to Japanese translations
+  const translations = new Map([
+    ['Edit', '編集'],  // Edit in Japanese
+  ]);
+
   const report = buildCoverage(
     {
       language: 'ja_JP',
@@ -967,9 +972,10 @@ test('runtime UI coverage can lock its denominator to frozen extraction candidat
       widgetTexts: [],
     },
     { exact: [], contains: [] },
+    translations,  // Pass translations as third parameter
     {
       englishLeaves: [{ value: 'File' }, { value: 'Edit' }, { value: 'Scene Window' }],
-    }
+    }  // Pass extraction surface as fourth parameter
   );
 
   assert.equal(
@@ -978,8 +984,8 @@ test('runtime UI coverage can lock its denominator to frozen extraction candidat
     'runtime coverage should use the frozen extraction candidate count instead of shrinking the denominator to the current translated inventory'
   );
   assert.equal(report.denominatorSource, 'extraction-inventory');
-  assert.equal(report.untranslatedCount, 1);
-  assert.equal(report.coveragePct, 66.67);
+  assert.equal(report.untranslatedCount, 2);  // File and Scene Window are untranslated
+  assert.equal(report.coveragePct, 33.33);  // Only Edit is translated (1/3 = 33.33%)
 });
 
 test('compiled coverage can lock its denominator to frozen extraction entries', () => {
