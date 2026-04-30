@@ -121,14 +121,14 @@ G1 (JSON Surfaces): ✓ PASS (2026-05-XX)
   - AMD/NVIDIA properly allowlisted as embedded English
 
 G2 (Compiled Surfaces): ⏸ BLOCKED — Translation resource required
-  - Current coverage: ja_JP 7.36%, zh-Hans 12.32%, zh-Hant 7.36%
+  - Current coverage: ja_JP 8.01%, zh-Hans 12.44%, zh-Hant 8.05%
   - Need: ~4,900 translated compiled UI strings per language
   - Sources: libCavalryUI.dylib, libCavalryFramework.dylib, libExtensionLayer.dylib
-  - Current .ts translation files: ja_JP (511), zh-Hans (833), zh-Hant (510) entries
+  - Current .ts translation files: ja_JP (629), zh-Hans (801), zh-Hant (693) entries
   - Gap analysis: Missing ~4,300-4,400 translations per language
 
 G3 (Runtime Surfaces): ⏸ BLOCKED — Translation resource required
-  - Current coverage: ja_JP 48.88%, zh-Hans 61.18%, zh-Hant 48.88%
+  - Current coverage: ja_JP 61.82%, zh-Hans 65.65%, zh-Hant 61.82%
   - Need: Translation of ~626 runtime UI strings (widgets, placeholders, tooltips, tabs, help)
   - Current coverage from existing .ts + merged inventory
   - Gap: ~300-400 untranslated runtime strings per language
