@@ -119,6 +119,9 @@ fi
 
 eval "$(node "$REPO_ROOT/tools/resolve_cavalry_qt_sdk.js" --app "$APP_PATH" --ensure --print-env)"
 
+# Calculate bundle hash for provenance
+BUNDLE_HASH="${CAVALRY_I18N_BUNDLE_HASH:-$(/usr/bin/shasum -a 256 "$APP_BIN" | awk '{print $1}')}"
+
 # Check if app is writable in place; if not, create a session-specific copy
 WORK_APP_PATH="$APP_PATH"
 if [ "$RESIGN_APP" -eq 1 ]; then
@@ -214,5 +217,6 @@ nohup env \
   CAVALRY_I18N_CACHE_ROOT="$CACHE_ROOT" \
   CAVALRY_I18N_SESSION_DIR="$SESSION_DIR" \
   CAVALRY_I18N_SESSION_UUID="$SESSION_UUID" \
+  CAVALRY_I18N_BUNDLE_HASH="$BUNDLE_HASH" \
   "$WORK_APP_BIN" >>"$LAUNCH_LOG" 2>&1 &
-echo "$!"
+echo "PID=$!"
