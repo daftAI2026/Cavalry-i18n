@@ -142,7 +142,10 @@ clang++ \
   -I"$QT_FRAMEWORKS" \
   -I"$QT_CORE_HEADERS" \
   -F"$QT_FRAMEWORKS" \
-  "${LINK_INPUTS[@]}" \
+  -F"$LINK_FRAMEWORKS" \
+  -framework QtCore \
+  -framework QtGui \
+  -framework QtWidgets \
   -framework Foundation \
   -framework AppKit
 
