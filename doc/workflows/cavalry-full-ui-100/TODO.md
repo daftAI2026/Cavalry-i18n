@@ -118,8 +118,17 @@ SOURCE_MAP  = ~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json
 
 ### W-CAPTURE
 
-**BLOCKED-SIP**: 系统完全性保护阻止 DYLD_INSERT_LIBRARIES 注入。见 runs/2026-04-30-G-CAPTURE-SIP-blocker.md
+**BLOCKED**: Dylib injection not loading despite correct code signing and @rpath configuration.
+See runs/2026-04-30-G-CAPTURE-DYLIB-INJECTION-INVESTIGATION.md.
 
+Technical status:
+- [x] App code signing: flags=0x2(adhoc), no hardened runtime
+- [x] Dylib code signing: flags=0x2(adhoc), no linker-signed
+- [x] Dylib @rpath entries: correctly configured for Qt framework resolution
+- [ ] Dylib constructor: ✗ never executes (blocker)
+- [ ] Runtime inventory: ✗ never created
+
+Tasks blocked by dylib injection failure:
 - [ ] injector 支持 `CAVALRY_I18N_LANG=en` dump-only，不再因缺翻译表退出
 - [ ] launch 脚本传递 `sessionDir/sessionUuid/cacheRoot`
 - [ ] `merge_runtime_inventory.js` 合并 live injector 与 live AX inventory
