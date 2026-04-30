@@ -291,3 +291,47 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 - 只有当 `W-AUDIT + G-P + §P5 + G-CAPTURE + G-X + G0 + G2 + G3 + G1 + G4` 全 PASS 时，才允许写 **`ALL GATES PASS`**
 
 任何“某个 surface 已明显提升”“某语已过”“CI 先 blocked”都不是完成。
+
+## 2026-04-30 Session Status
+
+### G-CAPTURE Current Blocker
+
+**DYLD_INSERT_LIBRARIES Injection Not Functioning**
+
+Despite extensive troubleshooting and multiple approaches, the runtime dylib injection via DYLD_INSERT_LIBRARIES is not working in the current environment.
+
+**Key Facts**:
+- ✓ Dylib builds successfully and loads via direct ctypes call
+- ✓ Dylib constructor executes correctly
+- ✓ Environment variables are set correctly  
+- ✓ Launcher script structure is correct
+- ✗ Dylib is NOT being injected into Cavalry process
+- ✗ No injector bootstrap messages appear in launcher logs
+- ✗ No inventory files are generated
+
+**Previous Working Sessions**:
+- Session 83E94B17 (Apr 29 21:12) ✓ PASS - Full inventories generated for all languages
+- Session E32A6C8D (Apr 29 17:36) ✓ PASS - Full inventories generated
+
+**Current Hypothesis**: Possible macOS security policy change or Cavalry binary update since Apr 29 is blocking DYLD_INSERT_LIBRARIES injection.
+
+### Branches and Commits
+
+- **Branch**: wip/cavalry-full-ui-100-g-capture (ahead of origin/main by 12 commits)
+- **Latest**: 88a5737 - docs: Comprehensive G-CAPTURE DYLD_INSERT_LIBRARIES injection failure analysis
+- **Files Modified**: tools/launch_cavalry_with_injector.sh (session-dir support added)
+
+### Next Actions Required
+
+1. Diagnose root cause of injection failure (possible macOS/Cavalry binary change)
+2. Either:
+   - a) Restore injection functionality (preferred)
+   - b) Implement AX-only fallback with interactive menu exploration
+3. Reach targets: runtime.candidates >= 613, runtime.menuLeaves >= 666
+
+### Blockers
+
+- Cannot proceed to G-X gate without functional runtime capture
+- AX-only capture insufficient alone (targets require injection)
+- Code signing subsystem errors when attempting deep signing
+
