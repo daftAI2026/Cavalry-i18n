@@ -1370,5 +1370,537 @@
           <source>Unlock</source>
           <translation>解锁</translation>
         </message>
+      <message>
+      <source>Duplicator</source>
+      <translation>复制器</translation>
+    </message>
+    <message>
+      <source>Extrude</source>
+      <translation>挤压</translation>
+    </message>
+    <message>
+      <source>Morph</source>
+      <translation>变形</translation>
+    </message>
+    <message>
+      <source>Mesh Shape</source>
+      <translation>网格形状</translation>
+    </message>
+    <message>
+      <source>3D Matrix</source>
+      <translation>3D矩阵</translation>
+    </message>
+    <message>
+      <source>Add Divisions</source>
+      <translation>添加分割</translation>
+    </message>
+    <message>
+      <source>Align</source>
+      <translation>对齐</translation>
+    </message>
+    <message>
+      <source>Alpha Material Override</source>
+      <translation>Alpha材质覆盖</translation>
+    </message>
+    <message>
+      <source>Area Range</source>
+      <translation>区域范围</translation>
+    </message>
+    <message>
+      <source>Auto-Crop</source>
+      <translation>自动裁剪</translation>
+    </message>
+    <message>
+      <source>Behaviour Mixer</source>
+      <translation>行为混合器</translation>
+    </message>
+    <message>
+      <source>Bend</source>
+      <translation>弯曲</translation>
+    </message>
+    <message>
+      <source>Bevel</source>
+      <translation>斜边</translation>
+    </message>
+    <message>
+      <source>Blend Shape</source>
+      <translation>混合形状</translation>
+    </message>
+    <message>
+      <source>Blend Sub-Mesh Positions</source>
+      <translation>混合子网格位置</translation>
+    </message>
+    <message>
+      <source>Boolean</source>
+      <translation>布尔</translation>
+    </message>
+    <message>
+      <source>Chop Path</source>
+      <translation>分割路径</translation>
+    </message>
+    <message>
+      <source>Clean Up</source>
+      <translation>清理</translation>
+    </message>
+    <message>
+      <source>Color Blend</source>
+      <translation>颜色混合</translation>
+    </message>
+    <message>
+      <source>Color Material Override</source>
+      <translation>颜色材质覆盖</translation>
+    </message>
+    <message>
+      <source>Contours to Sub-Meshes</source>
+      <translation>等高线到子网格</translation>
+    </message>
+    <message>
+      <source>Curves To Lines</source>
+      <translation>曲线转直线</translation>
+    </message>
+    <message>
+      <source>Distance</source>
+      <translation>距离</translation>
+    </message>
+    <message>
+      <source>Extend Open Paths</source>
+      <translation>扩展开放路径</translation>
+    </message>
+    <message>
+      <source>Fill Rule</source>
+      <translation>填充规则</translation>
+    </message>
+    <message>
+      <source>Flare</source>
+      <translation>耀光</translation>
+    </message>
+    <message>
+      <source>Flatten Shape Layers</source>
+      <translation>扁平化形状图层</translation>
+    </message>
+    <message>
+      <source>Four Point Warp</source>
+      <translation>四点变形</translation>
+    </message>
+    <message>
+      <source>Frame</source>
+      <translation>帧</translation>
+    </message>
+    <message>
+      <source>Get Vector</source>
+      <translation>获取向量</translation>
+    </message>
+    <message>
+      <source>HSV Material Override</source>
+      <translation>HSV材质覆盖</translation>
+    </message>
+    <message>
+      <source>Is Within</source>
+      <translation>包含在内</translation>
+    </message>
+    <message>
+      <source>JavaScript Deformer</source>
+      <translation>JavaScript变形器</translation>
+    </message>
+    <message>
+      <source>Knot</source>
+      <translation>结点</translation>
+    </message>
+    <message>
+      <source>Lattice</source>
+      <translation>晶格</translation>
+    </message>
+    <message>
+      <source>Look At</source>
+      <translation>注视</translation>
+    </message>
+    <message>
+      <source>Manipulator</source>
+      <translation>操纵器</translation>
+    </message>
+    <message>
+      <source>Material Sampler</source>
+      <translation>材质采样器</translation>
+    </message>
+    <message>
+      <source>Mesh Solver</source>
+      <translation>网格求解器</translation>
+    </message>
+    <message>
+      <source>Modulate</source>
+      <translation>调制</translation>
+    </message>
+    <message>
+      <source>Noise</source>
+      <translation>噪声</translation>
+    </message>
+    <message>
+      <source>Number Range</source>
+      <translation>数字范围</translation>
+    </message>
+    <message>
+      <source>Number Range To Color</source>
+      <translation>数字范围到颜色</translation>
+    </message>
+    <message>
+      <source>Oscillator</source>
+      <translation>振荡器</translation>
+    </message>
+    <message>
+      <source>Path Average</source>
+      <translation>路径平均</translation>
+    </message>
+    <message>
+      <source>Path Offset</source>
+      <translation>路径偏移</translation>
+    </message>
+    <message>
+      <source>Path Relax</source>
+      <translation>路径松弛</translation>
+    </message>
+    <message>
+      <source>Pathfinder</source>
+      <translation>路径查找器</translation>
+    </message>
+    <message>
+      <source>Pinch</source>
+      <translation>夹紧</translation>
+    </message>
+    <message>
+      <source>Corner Pin</source>
+      <translation>角固定</translation>
+    </message>
+    <message>
+      <source>Custom Shape</source>
+      <translation>自定义形状</translation>
+    </message>
+    <message>
+      <source>Extract Sub-Meshes</source>
+      <translation>提取子网格</translation>
+    </message>
+    <message>
+      <source>Footage Shape</source>
+      <translation>素材形状</translation>
+    </message>
+    <message>
+      <source>Forge Dynamics</source>
+      <translation>Forge动力学</translation>
+    </message>
+    <message>
+      <source>Grid Layout Group</source>
+      <translation>网格布局组</translation>
+    </message>
+    <message>
+      <source>Grid Layout Row</source>
+      <translation>网格布局行</translation>
+    </message>
+    <message>
+      <source>Image To Shapes</source>
+      <translation>图像到形状</translation>
+    </message>
+    <message>
+      <source>JavaScript Shape</source>
+      <translation>JavaScript形状</translation>
+    </message>
+    <message>
+      <source>Layout Group</source>
+      <translation>布局组</translation>
+    </message>
+    <message>
+      <source>Outline</source>
+      <translation>轮廓</translation>
+    </message>
+    <message>
+      <source>Points to Path</source>
+      <translation>点到路径</translation>
+    </message>
+    <message>
+      <source>Quad Tree Shape</source>
+      <translation>四叉树形状</translation>
+    </message>
+    <message>
+      <source>Ray</source>
+      <translation>射线</translation>
+    </message>
+    <message>
+      <source>Rectangle Pattern</source>
+      <translation>矩形图案</translation>
+    </message>
+    <message>
+      <source>Segment Path</source>
+      <translation>分割路径</translation>
+    </message>
+    <message>
+      <source>Shortest Path</source>
+      <translation>最短路径</translation>
+    </message>
+    <message>
+      <source>Spacer</source>
+      <translation>间隔符</translation>
+    </message>
+    <message>
+      <source>Component</source>
+      <translation>组件</translation>
+    </message>
+    <message>
+      <source>Connect Shape</source>
+      <translation>连接形状</translation>
+    </message>
+    <message>
+      <source>Convex Hull</source>
+      <translation>凸包</translation>
+    </message>
+    <message>
+      <source>Basic Line</source>
+      <translation>基本线</translation>
+    </message>
+    <message>
+      <source>Basic Shape</source>
+      <translation>基本形状</translation>
+    </message>
+    <message>
+      <source>Pre-Comp</source>
+      <translation>预合成</translation>
+    </message>
+    <message>
+      <source>Quicklist</source>
+      <translation>快速列表</translation>
+    </message>
+    <message>
+      <source>Enter Full Screen</source>
+      <translation>进入全屏</translation>
+    </message>
+    <message>
+      <source>No Presets.</source>
+      <translation>没有预设。</translation>
+    </message>
+    <message>
+      <source>Set Playback Range to Composition</source>
+      <translation>将播放范围设置为合成</translation>
+    </message>
+    <message>
+      <source>This feature requires a Project.</source>
+      <translation>此功能需要项目。</translation>
+    </message>
+    <message>
+      <source>No Groups in this Composition.</source>
+      <translation>此合成中没有组。</translation>
+    </message>
+    <message>
+      <source>Isolines</source>
+      <translation>等高线</translation>
+    </message>
+      <message>
+      <source>Add SVG to Scene</source>
+      <translation>将SVG添加到场景</translation>
+    </message>
+    <message>
+      <source>Add SVG to Scene.</source>
+      <translation>将SVG添加到场景。</translation>
+    </message>
+    <message>
+      <source>Add Text</source>
+      <translation>添加文本</translation>
+    </message>
+    <message>
+      <source>Add Text Shape</source>
+      <translation>添加文本形状</translation>
+    </message>
+    <message>
+      <source>Add to Composition as Footage</source>
+      <translation>作为素材添加到合成</translation>
+    </message>
+    <message>
+      <source>Add to Composition as Mesh</source>
+      <translation>作为网格添加到合成</translation>
+    </message>
+    <message>
+      <source>Add to Control Centre</source>
+      <translation>添加到控制中心</translation>
+    </message>
+    <message>
+      <source>Add to Duplicator</source>
+      <translation>添加到复制器</translation>
+    </message>
+    <message>
+      <source>Add to GH</source>
+      <translation>添加到GH</translation>
+    </message>
+    <message>
+      <source>Add Top Bone</source>
+      <translation>添加顶部骨骼</translation>
+    </message>
+    <message>
+      <source>Add Utility</source>
+      <translation>添加实用程序</translation>
+    </message>
+    <message>
+      <source>Add Viewport (Pro)</source>
+      <translation>添加视口（专业版）</translation>
+    </message>
+    <message>
+      <source>Add Visibility Bar</source>
+      <translation>添加可见性栏</translation>
+    </message>
+    <message>
+      <source>Add your own Presets and you&apos;ll be able to delete and rename them here</source>
+      <translation>添加您自己的预设，您将能够在此处删除和重命名它们</translation>
+    </message>
+    <message>
+      <source>Add your own Presets and you&apos;ll be able to delete and rename them here.</source>
+      <translation>添加您自己的预设，您将能够在此处删除和重命名它们。</translation>
+    </message>
+    <message>
+      <source>Address</source>
+      <translation>地址</translation>
+    </message>
+    <message>
+      <source>Adjust Colors (HSV)</source>
+      <translation>调整颜色（HSV）</translation>
+    </message>
+    <message>
+      <source>Advanced</source>
+      <translation>高级</translation>
+    </message>
+    <message>
+      <source>Advanced Tracking Settings</source>
+      <translation>高级跟踪设置</translation>
+    </message>
+    <message>
+      <source>Create Layer</source>
+      <translation>创建图层</translation>
+    </message>
+    <message>
+      <source>Delete Layer</source>
+      <translation>删除图层</translation>
+    </message>
+    <message>
+      <source>Duplicate Layer</source>
+      <translation>复制图层</translation>
+    </message>
+    <message>
+      <source>Hide Layer</source>
+      <translation>隐藏图层</translation>
+    </message>
+    <message>
+      <source>Show Layer</source>
+      <translation>显示图层</translation>
+    </message>
+    <message>
+      <source>Lock Layer</source>
+      <translation>锁定图层</translation>
+    </message>
+    <message>
+      <source>Unlock Layer</source>
+      <translation>解锁图层</translation>
+    </message>
+    <message>
+      <source>Group Layers</source>
+      <translation>组合图层</translation>
+    </message>
+    <message>
+      <source>Ungroup Layers</source>
+      <translation>取消组合图层</translation>
+    </message>
+    <message>
+      <source>Scale</source>
+      <translation>缩放</translation>
+    </message>
+    <message>
+      <source>Rotate</source>
+      <translation>旋转</translation>
+    </message>
+    <message>
+      <source>Skew</source>
+      <translation>倾斜</translation>
+    </message>
+    <message>
+      <source>Position</source>
+      <translation>位置</translation>
+    </message>
+    <message>
+      <source>Opacity</source>
+      <translation>不透明度</translation>
+    </message>
+    <message>
+      <source>Transform</source>
+      <translation>变换</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>播放</translation>
+    </message>
+    <message>
+      <source>Pause</source>
+      <translation>暂停</translation>
+    </message>
+    <message>
+      <source>Stop</source>
+      <translation>停止</translation>
+    </message>
+    <message>
+      <source>Loop</source>
+      <translation>循环</translation>
+    </message>
+    <message>
+      <source>Keyframe</source>
+      <translation>关键帧</translation>
+    </message>
+    <message>
+      <source>Timeline</source>
+      <translation>时间轴</translation>
+    </message>
+    <message>
+      <source>Speed</source>
+      <translation>速度</translation>
+    </message>
+    <message>
+      <source>Save</source>
+      <translation>保存</translation>
+    </message>
+    <message>
+      <source>Save As</source>
+      <translation>另存为</translation>
+    </message>
+    <message>
+      <source>Open</source>
+      <translation>打开</translation>
+    </message>
+    <message>
+      <source>Close</source>
+      <translation>关闭</translation>
+    </message>
+    <message>
+      <source>New</source>
+      <translation>新建</translation>
+    </message>
+    <message>
+      <source>Export</source>
+      <translation>导出</translation>
+    </message>
+    <message>
+      <source>Import</source>
+      <translation>导入</translation>
+    </message>
+    <message>
+      <source>Zoom In</source>
+      <translation>放大</translation>
+    </message>
+    <message>
+      <source>Zoom Out</source>
+      <translation>缩小</translation>
+    </message>
+    <message>
+      <source>Fit to Screen</source>
+      <translation>适应屏幕</translation>
+    </message>
+    <message>
+      <source>Pan</source>
+      <translation>平移</translation>
+    </message>
+    <message>
+      <source>Rotate View</source>
+      <translation>旋转视图</translation>
+    </message>
   </context>
 </TS>

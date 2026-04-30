@@ -2074,5 +2074,537 @@
           <source>Unlock</source>
           <translation>ロック解除</translation>
         </message>
+      <message>
+      <source>Duplicator</source>
+      <translation>複製器</translation>
+    </message>
+    <message>
+      <source>Extrude</source>
+      <translation>押し出し</translation>
+    </message>
+    <message>
+      <source>Morph</source>
+      <translation>モーフ</translation>
+    </message>
+    <message>
+      <source>Mesh Shape</source>
+      <translation>メッシュシェイプ</translation>
+    </message>
+    <message>
+      <source>3D Matrix</source>
+      <translation>3D行列</translation>
+    </message>
+    <message>
+      <source>Add Divisions</source>
+      <translation>区分を追加</translation>
+    </message>
+    <message>
+      <source>Align</source>
+      <translation>配置</translation>
+    </message>
+    <message>
+      <source>Alpha Material Override</source>
+      <translation>アルファマテリアルオーバーライド</translation>
+    </message>
+    <message>
+      <source>Area Range</source>
+      <translation>範囲エリア</translation>
+    </message>
+    <message>
+      <source>Auto-Crop</source>
+      <translation>自動クロップ</translation>
+    </message>
+    <message>
+      <source>Behaviour Mixer</source>
+      <translation>ビヘイビアミキサー</translation>
+    </message>
+    <message>
+      <source>Bend</source>
+      <translation>曲げ</translation>
+    </message>
+    <message>
+      <source>Bevel</source>
+      <translation>ベベル</translation>
+    </message>
+    <message>
+      <source>Blend Shape</source>
+      <translation>ブレンドシェイプ</translation>
+    </message>
+    <message>
+      <source>Blend Sub-Mesh Positions</source>
+      <translation>サブメッシュ位置をブレンド</translation>
+    </message>
+    <message>
+      <source>Boolean</source>
+      <translation>ブール</translation>
+    </message>
+    <message>
+      <source>Chop Path</source>
+      <translation>パスをカット</translation>
+    </message>
+    <message>
+      <source>Clean Up</source>
+      <translation>クリーンアップ</translation>
+    </message>
+    <message>
+      <source>Color Blend</source>
+      <translation>色ブレンド</translation>
+    </message>
+    <message>
+      <source>Color Material Override</source>
+      <translation>カラーマテリアルオーバーライド</translation>
+    </message>
+    <message>
+      <source>Contours to Sub-Meshes</source>
+      <translation>等高線からサブメッシュへ</translation>
+    </message>
+    <message>
+      <source>Curves To Lines</source>
+      <translation>曲線を線に</translation>
+    </message>
+    <message>
+      <source>Distance</source>
+      <translation>距離</translation>
+    </message>
+    <message>
+      <source>Extend Open Paths</source>
+      <translation>開いたパスを拡張</translation>
+    </message>
+    <message>
+      <source>Fill Rule</source>
+      <translation>塗りつぶしルール</translation>
+    </message>
+    <message>
+      <source>Flare</source>
+      <translation>フレア</translation>
+    </message>
+    <message>
+      <source>Flatten Shape Layers</source>
+      <translation>シェイプレイヤーをフラット化</translation>
+    </message>
+    <message>
+      <source>Four Point Warp</source>
+      <translation>4点ワープ</translation>
+    </message>
+    <message>
+      <source>Frame</source>
+      <translation>フレーム</translation>
+    </message>
+    <message>
+      <source>Get Vector</source>
+      <translation>ベクトルを取得</translation>
+    </message>
+    <message>
+      <source>HSV Material Override</source>
+      <translation>HSVマテリアルオーバーライド</translation>
+    </message>
+    <message>
+      <source>Is Within</source>
+      <translation>範囲内</translation>
+    </message>
+    <message>
+      <source>JavaScript Deformer</source>
+      <translation>JavaScriptデフォーマ</translation>
+    </message>
+    <message>
+      <source>Knot</source>
+      <translation>ノット</translation>
+    </message>
+    <message>
+      <source>Lattice</source>
+      <translation>ラティス</translation>
+    </message>
+    <message>
+      <source>Look At</source>
+      <translation>注視</translation>
+    </message>
+    <message>
+      <source>Manipulator</source>
+      <translation>マニピュレータ</translation>
+    </message>
+    <message>
+      <source>Material Sampler</source>
+      <translation>マテリアルサンプラー</translation>
+    </message>
+    <message>
+      <source>Mesh Solver</source>
+      <translation>メッシュソルバー</translation>
+    </message>
+    <message>
+      <source>Modulate</source>
+      <translation>変調</translation>
+    </message>
+    <message>
+      <source>Noise</source>
+      <translation>ノイズ</translation>
+    </message>
+    <message>
+      <source>Number Range</source>
+      <translation>数値範囲</translation>
+    </message>
+    <message>
+      <source>Number Range To Color</source>
+      <translation>数値範囲から色へ</translation>
+    </message>
+    <message>
+      <source>Oscillator</source>
+      <translation>オシレータ</translation>
+    </message>
+    <message>
+      <source>Path Average</source>
+      <translation>パス平均</translation>
+    </message>
+    <message>
+      <source>Path Offset</source>
+      <translation>パスオフセット</translation>
+    </message>
+    <message>
+      <source>Path Relax</source>
+      <translation>パス緩和</translation>
+    </message>
+    <message>
+      <source>Pathfinder</source>
+      <translation>パスファインダー</translation>
+    </message>
+    <message>
+      <source>Pinch</source>
+      <translation>ピンチ</translation>
+    </message>
+    <message>
+      <source>Corner Pin</source>
+      <translation>コーナーピン</translation>
+    </message>
+    <message>
+      <source>Custom Shape</source>
+      <translation>カスタムシェイプ</translation>
+    </message>
+    <message>
+      <source>Extract Sub-Meshes</source>
+      <translation>サブメッシュを抽出</translation>
+    </message>
+    <message>
+      <source>Footage Shape</source>
+      <translation>フッテージシェイプ</translation>
+    </message>
+    <message>
+      <source>Forge Dynamics</source>
+      <translation>フォージダイナミクス</translation>
+    </message>
+    <message>
+      <source>Grid Layout Group</source>
+      <translation>グリッドレイアウトグループ</translation>
+    </message>
+    <message>
+      <source>Grid Layout Row</source>
+      <translation>グリッドレイアウト行</translation>
+    </message>
+    <message>
+      <source>Image To Shapes</source>
+      <translation>画像から図形へ</translation>
+    </message>
+    <message>
+      <source>JavaScript Shape</source>
+      <translation>JavaScriptシェイプ</translation>
+    </message>
+    <message>
+      <source>Layout Group</source>
+      <translation>レイアウトグループ</translation>
+    </message>
+    <message>
+      <source>Outline</source>
+      <translation>アウトライン</translation>
+    </message>
+    <message>
+      <source>Points to Path</source>
+      <translation>ポイントからパスへ</translation>
+    </message>
+    <message>
+      <source>Quad Tree Shape</source>
+      <translation>クワッドツリーシェイプ</translation>
+    </message>
+    <message>
+      <source>Ray</source>
+      <translation>光線</translation>
+    </message>
+    <message>
+      <source>Rectangle Pattern</source>
+      <translation>矩形パターン</translation>
+    </message>
+    <message>
+      <source>Segment Path</source>
+      <translation>パスセグメント</translation>
+    </message>
+    <message>
+      <source>Shortest Path</source>
+      <translation>最短パス</translation>
+    </message>
+    <message>
+      <source>Spacer</source>
+      <translation>スペーサー</translation>
+    </message>
+    <message>
+      <source>Component</source>
+      <translation>コンポーネント</translation>
+    </message>
+    <message>
+      <source>Connect Shape</source>
+      <translation>シェイプを接続</translation>
+    </message>
+    <message>
+      <source>Convex Hull</source>
+      <translation>凸包</translation>
+    </message>
+    <message>
+      <source>Basic Line</source>
+      <translation>基本線</translation>
+    </message>
+    <message>
+      <source>Basic Shape</source>
+      <translation>基本図形</translation>
+    </message>
+    <message>
+      <source>Pre-Comp</source>
+      <translation>プリコンポ</translation>
+    </message>
+    <message>
+      <source>Quicklist</source>
+      <translation>クイックリスト</translation>
+    </message>
+    <message>
+      <source>Enter Full Screen</source>
+      <translation>全画面表示に入る</translation>
+    </message>
+    <message>
+      <source>No Presets.</source>
+      <translation>プリセットなし。</translation>
+    </message>
+    <message>
+      <source>Set Playback Range to Composition</source>
+      <translation>再生範囲をコンポジションに設定</translation>
+    </message>
+    <message>
+      <source>This feature requires a Project.</source>
+      <translation>この機能はプロジェクトが必要です。</translation>
+    </message>
+    <message>
+      <source>No Groups in this Composition.</source>
+      <translation>このコンポジションにはグループがありません。</translation>
+    </message>
+    <message>
+      <source>Isolines</source>
+      <translation>等高線</translation>
+    </message>
+      <message>
+      <source>Add SVG to Scene</source>
+      <translation>シーンにSVGを追加</translation>
+    </message>
+    <message>
+      <source>Add SVG to Scene.</source>
+      <translation>シーンにSVGを追加。</translation>
+    </message>
+    <message>
+      <source>Add Text</source>
+      <translation>テキストを追加</translation>
+    </message>
+    <message>
+      <source>Add Text Shape</source>
+      <translation>テキストシェイプを追加</translation>
+    </message>
+    <message>
+      <source>Add to Composition as Footage</source>
+      <translation>フッテージとしてコンポジションに追加</translation>
+    </message>
+    <message>
+      <source>Add to Composition as Mesh</source>
+      <translation>メッシュとしてコンポジションに追加</translation>
+    </message>
+    <message>
+      <source>Add to Control Centre</source>
+      <translation>コントロールセンターに追加</translation>
+    </message>
+    <message>
+      <source>Add to Duplicator</source>
+      <translation>複製器に追加</translation>
+    </message>
+    <message>
+      <source>Add to GH</source>
+      <translation>GHに追加</translation>
+    </message>
+    <message>
+      <source>Add Top Bone</source>
+      <translation>トップボーンを追加</translation>
+    </message>
+    <message>
+      <source>Add Utility</source>
+      <translation>ユーティリティを追加</translation>
+    </message>
+    <message>
+      <source>Add Viewport (Pro)</source>
+      <translation>ビューポートを追加（Pro）</translation>
+    </message>
+    <message>
+      <source>Add Visibility Bar</source>
+      <translation>可視性バーを追加</translation>
+    </message>
+    <message>
+      <source>Add your own Presets and you&apos;ll be able to delete and rename them here</source>
+      <translation>独自のプリセットを追加すると、ここで削除および名前変更できます</translation>
+    </message>
+    <message>
+      <source>Add your own Presets and you&apos;ll be able to delete and rename them here.</source>
+      <translation>独自のプリセットを追加すると、ここで削除および名前変更できます。</translation>
+    </message>
+    <message>
+      <source>Address</source>
+      <translation>アドレス</translation>
+    </message>
+    <message>
+      <source>Adjust Colors (HSV)</source>
+      <translation>色を調整（HSV）</translation>
+    </message>
+    <message>
+      <source>Advanced</source>
+      <translation>詳細</translation>
+    </message>
+    <message>
+      <source>Advanced Tracking Settings</source>
+      <translation>高度なトラッキング設定</translation>
+    </message>
+    <message>
+      <source>Create Layer</source>
+      <translation>レイヤーを作成</translation>
+    </message>
+    <message>
+      <source>Delete Layer</source>
+      <translation>レイヤーを削除</translation>
+    </message>
+    <message>
+      <source>Duplicate Layer</source>
+      <translation>レイヤーを複製</translation>
+    </message>
+    <message>
+      <source>Hide Layer</source>
+      <translation>レイヤーを隠す</translation>
+    </message>
+    <message>
+      <source>Show Layer</source>
+      <translation>レイヤーを表示</translation>
+    </message>
+    <message>
+      <source>Lock Layer</source>
+      <translation>レイヤーをロック</translation>
+    </message>
+    <message>
+      <source>Unlock Layer</source>
+      <translation>レイヤーのロックを解除</translation>
+    </message>
+    <message>
+      <source>Group Layers</source>
+      <translation>レイヤーをグループ化</translation>
+    </message>
+    <message>
+      <source>Ungroup Layers</source>
+      <translation>レイヤーをグループ解除</translation>
+    </message>
+    <message>
+      <source>Scale</source>
+      <translation>スケール</translation>
+    </message>
+    <message>
+      <source>Rotate</source>
+      <translation>回転</translation>
+    </message>
+    <message>
+      <source>Skew</source>
+      <translation>スキュー</translation>
+    </message>
+    <message>
+      <source>Position</source>
+      <translation>位置</translation>
+    </message>
+    <message>
+      <source>Opacity</source>
+      <translation>不透明度</translation>
+    </message>
+    <message>
+      <source>Transform</source>
+      <translation>変形</translation>
+    </message>
+    <message>
+      <source>Play</source>
+      <translation>再生</translation>
+    </message>
+    <message>
+      <source>Pause</source>
+      <translation>一時停止</translation>
+    </message>
+    <message>
+      <source>Stop</source>
+      <translation>停止</translation>
+    </message>
+    <message>
+      <source>Loop</source>
+      <translation>ループ</translation>
+    </message>
+    <message>
+      <source>Keyframe</source>
+      <translation>キーフレーム</translation>
+    </message>
+    <message>
+      <source>Timeline</source>
+      <translation>タイムライン</translation>
+    </message>
+    <message>
+      <source>Speed</source>
+      <translation>速度</translation>
+    </message>
+    <message>
+      <source>Save</source>
+      <translation>保存</translation>
+    </message>
+    <message>
+      <source>Save As</source>
+      <translation>名前を付けて保存</translation>
+    </message>
+    <message>
+      <source>Open</source>
+      <translation>開く</translation>
+    </message>
+    <message>
+      <source>Close</source>
+      <translation>閉じる</translation>
+    </message>
+    <message>
+      <source>New</source>
+      <translation>新規</translation>
+    </message>
+    <message>
+      <source>Export</source>
+      <translation>エクスポート</translation>
+    </message>
+    <message>
+      <source>Import</source>
+      <translation>インポート</translation>
+    </message>
+    <message>
+      <source>Zoom In</source>
+      <translation>ズームイン</translation>
+    </message>
+    <message>
+      <source>Zoom Out</source>
+      <translation>ズームアウト</translation>
+    </message>
+    <message>
+      <source>Fit to Screen</source>
+      <translation>画面にフィット</translation>
+    </message>
+    <message>
+      <source>Pan</source>
+      <translation>パン</translation>
+    </message>
+    <message>
+      <source>Rotate View</source>
+      <translation>ビューを回転</translation>
+    </message>
   </context>
 </TS>
