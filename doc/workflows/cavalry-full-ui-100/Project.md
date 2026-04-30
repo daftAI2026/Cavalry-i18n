@@ -97,13 +97,15 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 ```text
 Baseline is rerunnable and reachable.
 Workflow is NOT COMPLETE.
-First failing gate: G-X (2026-04-30 22:38)
+First failing gate: G1/G2/G3 (translation verification) (2026-04-30 22:46)
 G-CAPTURE: ✓ PASS
+G-X: ✓ PASS
 Runtime denominator: FROZEN at session ax-enhanced-1777559593
-- runtime.candidates: 626 >= 613 ✓
-- runtime.menuLeaves: 734 >= 666 ✓
-- capture.source: live-merged ✓
-Next action: proceed with G-X (Extraction Inventory Freeze)
+- en: runtime.candidates 626, menuLeaves 734, capture.source live-merged ✓
+- ja_JP: AX inventory captured ✓
+- zh-Hans: AX inventory captured ✓
+- zh-Hant: AX inventory captured ✓
+Next action: proceed with G1/G2/G3 translation verification (requires zh-Hans/zh-Hant/ja_JP translations)
 ```
 
 ### 当前 worktree 真相

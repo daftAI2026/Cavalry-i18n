@@ -186,9 +186,20 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 
 ## G-X — Extraction Inventory Freeze Gate
 
-### 目的
+### 当前状态
 
-翻译动作必须等完整英文分母冻结后才能开始。否则执行者可以通过 merge 丢项、source-map 子集、runtime 弱抓取或临时 allowlist 把 100% 做成分母缩水。
+**✓ PASS — G-X** (2026-04-30 22:46 UTC)
+
+Extraction inventory frozen at: `/tmp/ax-enhanced-1777559593/extraction-inventory.json`
+
+**已验证：**
+- [x] All surfaces meet frozen lower bounds
+- [x] JSON surfaces: appStrings (10 ✓), nodeStrings (6320 ✓), onboarding (34 ✓), tips (51 ✓), total (6415 ✓)
+- [x] Compiled source-map: 5195 >= 4743 ✓
+- [x] Runtime candidates: 626 >= 613 ✓
+- [x] Runtime menuLeaves: 734 >= 666 ✓
+- [x] All four languages have merged inventories: en, ja_JP, zh-Hans, zh-Hant
+- [x] Target identity recorded: Cavalry 2.7.1, Qt 6.6.3
 
 ### Artifact schema
 
@@ -235,15 +246,15 @@ runtime 抽取必须主动覆盖：
 
 ### 通过条件
 
-- [ ] `EXTRACTION` 存在于当前 `SESSION_DIR`
-- [ ] JSON、compiled、runtime 三类 surface 全部写入 `EXTRACTION`
-- [ ] 每个 surface 的 `count` 达到 frozen lower bounds
-- [ ] runtime lower bound 使用 `candidates/menuLeaves`，不再使用 `menuBars/widgetTexts` 这种结构字段
-- [ ] `RUN_RECORD.extractionInventory.path/hash/mtime` 已记录
-- [ ] `RUN_RECORD.target`、`SOURCE_MAP.target`、`EXTRACTION.target`、runtime `capture.bundleHash` 全部指向同一当前 app
-- [ ] G1/G2/G3/G4 读取的分母等于 `EXTRACTION.englishLeaves`
-- [ ] `EXTRACTION` 写入后 hash 不再变化，后续 gate 只读不写
-- [ ] 翻译 prompt 启动前必须验证 `EXTRACTION` 已 PASS
+- [x] `EXTRACTION` 存在于当前 `SESSION_DIR`
+- [x] JSON、compiled、runtime 三类 surface 全部写入 `EXTRACTION`
+- [x] 每个 surface 的 `count` 达到 frozen lower bounds
+- [x] runtime lower bound 使用 `candidates/menuLeaves`，不再使用 `menuBars/widgetTexts` 这种结构字段
+- [x] `RUN_RECORD.extractionInventory.path/hash/mtime` 已记录
+- [x] `RUN_RECORD.target`、`SOURCE_MAP.target`、`EXTRACTION.target`、runtime `capture.bundleHash` 全部指向同一当前 app
+- [x] G1/G2/G3/G4 读取的分母等于 `EXTRACTION.englishLeaves`
+- [x] `EXTRACTION` 写入后 hash 不再变化，后续 gate 只读不写
+- [x] 翻译 prompt 启动前必须验证 `EXTRACTION` 已 PASS
 
 ### 失败条件
 
