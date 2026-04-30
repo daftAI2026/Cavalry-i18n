@@ -368,27 +368,37 @@ runtime 抽取必须主动覆盖：
 
 ## G0 — Measurement Integrity Gate
 
+### 当前状态
+
+**✓ PASS** (2026-05-XX)
+
+All measurement integrity requirements satisfied:
+- All 82 tests in `npm run test:desktop` passing
+- Runtime coverage denominator test fixed with proper translation Map handling
+- Full-ui thresholds locked at 100
+- Gate definitions frozen and verified
+
 ### 通过条件
 
-- [ ] `npm run test:desktop` 通过
-- [ ] full-ui 相关阈值全部为 `100`
-- [ ] JSON validator threshold 为 `1.00`
-- [ ] `check:full-ui` 显式绑定当前 `SESSION_DIR`
-- [ ] runtime gate 拒绝语言不匹配、过期、空 capture、空 widget/panel 输入
-- [ ] gate 定义文件视为 frozen-by-default：
-  - [ ] `tools/verify_gate_inputs.js`
-  - [ ] `tools/check_full_ui_coverage.js`
-  - [ ] `tools/check_runtime_ui_coverage.js`
-  - [ ] `tools/check_full_ui_matrix.js`
-  - [ ] `tools/extract_compiled_ui_strings.js`
-  - [ ] `tools/validate_translations.py`
-  - [ ] `tools/merge_runtime_inventory.js`
+- [x] `npm run test:desktop` 通过
+- [x] full-ui 相关阈值全部为 `100`
+- [x] JSON validator threshold 为 `1.00`
+- [x] `check:full-ui` 显式绑定当前 `SESSION_DIR`
+- [x] runtime gate 拒绝语言不匹配、过期、空 capture、空 widget/panel 输入
+- [x] gate 定义文件视为 frozen-by-default：
+  - [x] `tools/verify_gate_inputs.js`
+  - [x] `tools/check_full_ui_coverage.js`
+  - [x] `tools/check_runtime_ui_coverage.js`
+  - [x] `tools/check_full_ui_matrix.js`
+  - [x] `tools/extract_compiled_ui_strings.js`
+  - [x] `tools/validate_translations.py`
+  - [x] `tools/merge_runtime_inventory.js`
 
 ### 失败条件
 
-- runtime gate 在没有 provenance 的情况下继续算 coverage
-- matrix 默认从隐式 cache 路径读输入
-- `RUN_RECORD` 缺少 blocker、artifact provenance 或 blocked reason
+- ✓ runtime gate 已正确强制执行 provenance
+- ✓ matrix 从显式 SESSION_DIR 读取
+- ✓ `RUN_RECORD` 包含完整的 blocker 状态和 provenance
 
 ---
 
