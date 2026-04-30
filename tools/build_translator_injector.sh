@@ -132,6 +132,8 @@ clang++ \
   -fobjc-arc \
   -DQT_NO_VERSION_TAGGING \
   -dynamiclib \
+  -arch arm64 \
+  -arch x86_64 \
   "$SOURCE" \
   -o "$OUTPUT" \
   -I"$QT_FRAMEWORKS" \
