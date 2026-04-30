@@ -129,6 +129,28 @@ if [ "$RESIGN_APP" -eq 1 ]; then
   done < <(find "$APP_PATH" -type f -name crashpad_handler)
 
   /usr/bin/codesign --force --deep --sign - "$APP_PATH"
+  
+  # Verify codesign state for G-CAPTURE provenance
+  CODESIGN_EVIDENCE="$SESSION_DIR/audit/codesign-evidence.txt"
+  mkdir -p "$(dirname "$CODESIGN_EVIDENCE")"
+  /usr/bin/codesign -dv --entitlements - "$APP_PATH" > "$CODESIGN_EVIDENCE" 2>&1 || true
+  
+  # Check for hardened runtime and library-validation flags
+  if grep -q "runtime" "$CODESIGN_EVIDENCE"; then
+    echo "ERROR: Hardened runtime flag still present after ad-hoc signing" >&2
+    cat "$CODESIGN_EVIDENCE" >&2
+    exit 1
+  fi
+  
+  if grep -q "library-validation" "$CODESIGN_EVIDENCE"; then
+    echo "ERROR: Library validation flag still present after ad-hoc signing" >&2
+    cat "$CODESIGN_EVIDENCE" >&2
+    exit 1
+  fi
+  
+  echo "[G-CAPTURE] Codesign evidence written to $CODESIGN_EVIDENCE"
+  echo "[G-CAPTURE] Hardened runtime: NOT present ✓"
+  echo "[G-CAPTURE] Library validation: NOT present ✓"
 fi
 
 echo "Launching $APP_PATH with embedded translator for $LANG_CODE"
