@@ -251,6 +251,206 @@
     <source>Add an IK Control using this Bone as End Effector.</source>
     <translation>使用此骨骼作為末端執行器新增反向運動控制。</translation>
   </message>
+  <message>
+    <source>Add Animation Control</source>
+    <translation>新增動畫控制</translation>
+  </message>
+  <message>
+    <source>Add Array</source>
+    <translation>新增陣列</translation>
+  </message>
+  <message>
+    <source>Add Asset</source>
+    <translation>新增資源</translation>
+  </message>
+  <message>
+    <source>Add Asset To Scene</source>
+    <translation>新增資源到場景</translation>
+  </message>
+  <message>
+    <source>Add Background</source>
+    <translation>新增背景</translation>
+  </message>
+  <message>
+    <source>Add Background to Selected</source>
+    <translation>新增背景到所選項</translation>
+  </message>
+  <message>
+    <source>Add Behaviour</source>
+    <translation>新增行為</translation>
+  </message>
+  <message>
+    <source>Add Bool</source>
+    <translation>新增布林值</translation>
+  </message>
+  <message>
+    <source>Add Camera</source>
+    <translation>新增攝影機</translation>
+  </message>
+  <message>
+    <source>Add Clip</source>
+    <translation>新增片段</translation>
+  </message>
+  <message>
+    <source>Add Clip to End</source>
+    <translation>新增片段到末尾</translation>
+  </message>
+  <message>
+    <source>Add Clip to Start</source>
+    <translation>新增片段到開始</translation>
+  </message>
+  <message>
+    <source>Add Collision Event</source>
+    <translation>新增碰撞事件</translation>
+  </message>
+  <message>
+    <source>Add Color</source>
+    <translation>新增顏色</translation>
+  </message>
+  <message>
+    <source>Add Color Stop</source>
+    <translation>新增顏色停止點</translation>
+  </message>
+  <message>
+    <source>Add Colors from Selection</source>
+    <translation>從所選項新增顏色</translation>
+  </message>
+  <message>
+    <source>Add Colors from Selection and Connect</source>
+    <translation>從所選項新增顏色並連接</translation>
+  </message>
+  <message>
+    <source>Add connections</source>
+    <translation>新增連接</translation>
+  </message>
+  <message>
+    <source>Add Distribution</source>
+    <translation>新增分佈</translation>
+  </message>
+  <message>
+    <source>Add Double</source>
+    <translation>新增雙精度浮點數</translation>
+  </message>
+  <message>
+    <source>Add Double (float)</source>
+    <translation>新增浮點數</translation>
+  </message>
+  <message>
+    <source>Add Expression...</source>
+    <translation>新增運算式...</translation>
+  </message>
+  <message>
+    <source>Add Falloff</source>
+    <translation>新增衰減</translation>
+  </message>
+  <message>
+    <source>Add Field</source>
+    <translation>新增欄位</translation>
+  </message>
+  <message>
+    <source>Add Header</source>
+    <translation>新增標題</translation>
+  </message>
+  <message>
+    <source>Add IK Handle</source>
+    <translation>新增反向運動句柄</translation>
+  </message>
+  <message>
+    <source>Add Images</source>
+    <translation>新增圖像</translation>
+  </message>
+  <message>
+    <source>Add Import Settings</source>
+    <translation>新增匯入設定</translation>
+  </message>
+  <message>
+    <source>Add In</source>
+    <translation>新增進行</translation>
+  </message>
+  <message>
+    <source>Add Indexed Position</source>
+    <translation>新增索引位置</translation>
+  </message>
+  <message>
+    <source>Add Input to Behavior</source>
+    <translation>新增輸入到行為</translation>
+  </message>
+  <message>
+    <source>Add Instance</source>
+    <translation>新增執行個體</translation>
+  </message>
+  <message>
+    <source>Add Interaction</source>
+    <translation>新增互動</translation>
+  </message>
+  <message>
+    <source>Add Int</source>
+    <translation>新增整數</translation>
+  </message>
+  <message>
+    <source>Add Interface from Behaviour Clone</source>
+    <translation>從行為複製新增介面</translation>
+  </message>
+  <message>
+    <source>Add Keyframe</source>
+    <translation>新增關鍵幀</translation>
+  </message>
+  <message>
+    <source>Add Layer</source>
+    <translation>新增圖層</translation>
+  </message>
+  <message>
+    <source>Add Layers Popover</source>
+    <translation>新增圖層彈出式功能表</translation>
+  </message>
+  <message>
+    <source>Add List Attribute</source>
+    <translation>新增列表屬性</translation>
+  </message>
+  <message>
+    <source>Add Mesh</source>
+    <translation>新增網格</translation>
+  </message>
+  <message>
+    <source>Add New Layers to Selected Tags</source>
+    <translation>新增新圖層到所選標籤</translation>
+  </message>
+  <message>
+    <source>Add new snippet</source>
+    <translation>新增新程式碼片段</translation>
+  </message>
+  <message>
+    <source>Add or edit Bind positions</source>
+    <translation>新增或編輯綁定位置</translation>
+  </message>
+  <message>
+    <source>Add Point Data (Distribution)</source>
+    <translation>新增點資料（分佈）</translation>
+  </message>
+  <message>
+    <source>Add Pre-Comp Override</source>
+    <translation>新增預合成覆蓋</translation>
+  </message>
+  <message>
+    <source>Add Pre-Comp Overrides</source>
+    <translation>新增預合成覆蓋</translation>
+  </message>
+  <message>
+    <source>Add Preset</source>
+    <translation>新增預設</translation>
+  </message>
+  <message>
+    <source>Add selected layers to the Attribute Editor</source>
+    <translation>新增所選圖層到屬性編輯器</translation>
+  </message>
+  <message>
+    <source>Add selected layers to the Attribute Editor.</source>
+    <translation>新增所選圖層到屬性編輯器。</translation>
+  </message>
+  <message>
+    <source>Add Shader</source>
+    <translation>新增著色器</translation>
+  </message>
   </context>
   <context>
     <name>MenuBarManager</name>

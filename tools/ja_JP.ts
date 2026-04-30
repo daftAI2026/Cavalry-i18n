@@ -251,6 +251,206 @@
     <source>Add an IK Control using this Bone as End Effector.</source>
     <translation>このボーンを末端エフェクタとして使用して IK コントロールを追加。</translation>
   </message>
+  <message>
+    <source>Add Animation Control</source>
+    <translation>アニメーションコントロールを追加</translation>
+  </message>
+  <message>
+    <source>Add Array</source>
+    <translation>配列を追加</translation>
+  </message>
+  <message>
+    <source>Add Asset</source>
+    <translation>アセットを追加</translation>
+  </message>
+  <message>
+    <source>Add Asset To Scene</source>
+    <translation>シーンにアセットを追加</translation>
+  </message>
+  <message>
+    <source>Add Background</source>
+    <translation>背景を追加</translation>
+  </message>
+  <message>
+    <source>Add Background to Selected</source>
+    <translation>選択したものに背景を追加</translation>
+  </message>
+  <message>
+    <source>Add Behaviour</source>
+    <translation>ビヘイビアを追加</translation>
+  </message>
+  <message>
+    <source>Add Bool</source>
+    <translation>ブール値を追加</translation>
+  </message>
+  <message>
+    <source>Add Camera</source>
+    <translation>カメラを追加</translation>
+  </message>
+  <message>
+    <source>Add Clip</source>
+    <translation>クリップを追加</translation>
+  </message>
+  <message>
+    <source>Add Clip to End</source>
+    <translation>クリップを終端に追加</translation>
+  </message>
+  <message>
+    <source>Add Clip to Start</source>
+    <translation>クリップを開始に追加</translation>
+  </message>
+  <message>
+    <source>Add Collision Event</source>
+    <translation>衝突イベントを追加</translation>
+  </message>
+  <message>
+    <source>Add Color</source>
+    <translation>色を追加</translation>
+  </message>
+  <message>
+    <source>Add Color Stop</source>
+    <translation>色を停止を追加</translation>
+  </message>
+  <message>
+    <source>Add Colors from Selection</source>
+    <translation>選択から色を追加</translation>
+  </message>
+  <message>
+    <source>Add Colors from Selection and Connect</source>
+    <translation>選択から色を追加して接続</translation>
+  </message>
+  <message>
+    <source>Add connections</source>
+    <translation>接続を追加</translation>
+  </message>
+  <message>
+    <source>Add Distribution</source>
+    <translation>分布を追加</translation>
+  </message>
+  <message>
+    <source>Add Double</source>
+    <translation>ダブル値を追加</translation>
+  </message>
+  <message>
+    <source>Add Double (float)</source>
+    <translation>浮動小数点数を追加</translation>
+  </message>
+  <message>
+    <source>Add Expression...</source>
+    <translation>式を追加...</translation>
+  </message>
+  <message>
+    <source>Add Falloff</source>
+    <translation>フォールオフを追加</translation>
+  </message>
+  <message>
+    <source>Add Field</source>
+    <translation>フィールドを追加</translation>
+  </message>
+  <message>
+    <source>Add Header</source>
+    <translation>ヘッダーを追加</translation>
+  </message>
+  <message>
+    <source>Add IK Handle</source>
+    <translation>IK ハンドルを追加</translation>
+  </message>
+  <message>
+    <source>Add Images</source>
+    <translation>画像を追加</translation>
+  </message>
+  <message>
+    <source>Add Import Settings</source>
+    <translation>インポート設定を追加</translation>
+  </message>
+  <message>
+    <source>Add In</source>
+    <translation>入力を追加</translation>
+  </message>
+  <message>
+    <source>Add Indexed Position</source>
+    <translation>インデックス位置を追加</translation>
+  </message>
+  <message>
+    <source>Add Input to Behavior</source>
+    <translation>ビヘイビアに入力を追加</translation>
+  </message>
+  <message>
+    <source>Add Instance</source>
+    <translation>インスタンスを追加</translation>
+  </message>
+  <message>
+    <source>Add Interaction</source>
+    <translation>インタラクションを追加</translation>
+  </message>
+  <message>
+    <source>Add Int</source>
+    <translation>整数を追加</translation>
+  </message>
+  <message>
+    <source>Add Interface from Behaviour Clone</source>
+    <translation>ビヘイビアクローンからインターフェースを追加</translation>
+  </message>
+  <message>
+    <source>Add Keyframe</source>
+    <translation>キーフレームを追加</translation>
+  </message>
+  <message>
+    <source>Add Layer</source>
+    <translation>レイヤーを追加</translation>
+  </message>
+  <message>
+    <source>Add Layers Popover</source>
+    <translation>レイヤーポップオーバーを追加</translation>
+  </message>
+  <message>
+    <source>Add List Attribute</source>
+    <translation>リスト属性を追加</translation>
+  </message>
+  <message>
+    <source>Add Mesh</source>
+    <translation>メッシュを追加</translation>
+  </message>
+  <message>
+    <source>Add New Layers to Selected Tags</source>
+    <translation>選択されたタグに新しいレイヤーを追加</translation>
+  </message>
+  <message>
+    <source>Add new snippet</source>
+    <translation>新しいスニペットを追加</translation>
+  </message>
+  <message>
+    <source>Add or edit Bind positions</source>
+    <translation>バインド位置を追加または編集</translation>
+  </message>
+  <message>
+    <source>Add Point Data (Distribution)</source>
+    <translation>ポイント データを追加（分布）</translation>
+  </message>
+  <message>
+    <source>Add Pre-Comp Override</source>
+    <translation>プリコンポーバーライドを追加</translation>
+  </message>
+  <message>
+    <source>Add Pre-Comp Overrides</source>
+    <translation>プリコンポーバーライドを追加</translation>
+  </message>
+  <message>
+    <source>Add Preset</source>
+    <translation>プリセットを追加</translation>
+  </message>
+  <message>
+    <source>Add selected layers to the Attribute Editor</source>
+    <translation>選択されたレイヤーを属性エディターに追加</translation>
+  </message>
+  <message>
+    <source>Add selected layers to the Attribute Editor.</source>
+    <translation>選択されたレイヤーを属性エディターに追加。</translation>
+  </message>
+  <message>
+    <source>Add Shader</source>
+    <translation>シェーダーを追加</translation>
+  </message>
   </context>
   <context>
     <name>MenuBarManager</name>
