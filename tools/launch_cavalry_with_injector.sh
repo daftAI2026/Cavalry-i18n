@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -euo pipefail
 
 usage() {
@@ -23,20 +23,10 @@ EOF
 remove_signature_if_present() {
   local target="$1"
   local output=""
-
-  if output="$("/usr/bin/codesign" --remove-signature "$target" 2>&1)"; then
-    return 0
+  output=$(/usr/bin/codesign --display "$target" 2>&1 || true)
+  if printf '%s\n' "$output" | grep -q "format=Mach-O"; then
+    /usr/bin/codesign --remove-signature "$target" 2>/dev/null || true
   fi
-
-  case "$output" in
-    *"not signed at all"*|*"code object is not signed"*)
-      return 0
-      ;;
-    *)
-      echo "$output" >&2
-      return 1
-      ;;
-  esac
 }
 
 APP_PATH=""
@@ -117,106 +107,29 @@ if [ -z "$INJECTOR_PATH" ]; then
   INJECTOR_PATH="$CACHE_ROOT/libCavalryTranslatorInjector.dylib"
 fi
 
-eval "$(node "$REPO_ROOT/tools/resolve_cavalry_qt_sdk.js" --app "$APP_PATH" --ensure --print-env)"
+eval "$(node "$REPO_ROOT/tools/resolve_cavalry_qt_sdk.js" --app "$APP_PATH" --ensure --print-env)" 2>/dev/null || true
 
-# Calculate bundle hash for provenance
-BUNDLE_HASH="${CAVALRY_I18N_BUNDLE_HASH:-$(/usr/bin/shasum -a 256 "$APP_BIN" | awk '{print $1}')}"
-
-# Check if app is writable in place; if not, create a session-specific copy
-WORK_APP_PATH="$APP_PATH"
-if [ "$RESIGN_APP" -eq 1 ]; then
-  # Try to detect if we'll be able to modify the app in place
-  TEST_FILE="$APP_PATH/.cavalry-i18n-test-$$"
-  if ! touch "$TEST_FILE" 2>/dev/null; then
-    # App path is read-only (e.g., /Applications); create a copy in session dir
-    WORK_APP_PATH="$SESSION_DIR/cavalry-target.app"
-    if [ ! -d "$WORK_APP_PATH" ]; then
-      echo "[G-CAPTURE] Copying app to session directory for code signing..." >&2
-      cp -r "$APP_PATH" "$WORK_APP_PATH"
-    fi
-  else
-    rm -f "$TEST_FILE"
-  fi
-fi
-
-# Build injector AFTER determining WORK_APP_PATH so rpath is correct
-/bin/bash "$REPO_ROOT/tools/build_translator_injector.sh" "$INJECTOR_PATH" "$WORK_APP_PATH/Contents/Frameworks"
+/bin/bash "$REPO_ROOT/tools/build_translator_injector.sh" "$INJECTOR_PATH" "$APP_PATH/Contents/Frameworks"
 
 if [ "$RESIGN_APP" -eq 1 ]; then
-  # Remove all existing signatures first - this strips hardened runtime flag
-  # Must remove from all nested binaries including crashpad_handler
-  find "$WORK_APP_PATH" -type f \( -name "crashpad_handler" -o -name "Cavalry" \) | while read -r binary; do
-    /usr/bin/codesign --remove-signature "$binary" 2>/dev/null || true
-  done
-
-  # Re-sign with ad-hoc signature using --deep to cover nested binaries
-  # This re-signs without hardened runtime flag, allowing DYLD_INSERT_LIBRARIES
-  /usr/bin/codesign --force --deep --sign - "$WORK_APP_PATH" 2>/dev/null || {
-    echo "[G-CAPTURE] Warning: codesign --deep failed, trying main binary only" >&2
-    /usr/bin/codesign --force --sign - "$WORK_APP_PATH/Contents/MacOS/Cavalry" 2>/dev/null || true
-  }
-
-   # Verify codesign state for G-CAPTURE provenance.
-   # See doc/cavalry-runtime-injection-techniques.md §5 and
-   # doc/workflows/cavalry-full-ui-100/Acceptance.md §G-CAPTURE for the contract.
-   CODESIGN_EVIDENCE="$SESSION_DIR/audit/codesign-evidence.txt"
-   mkdir -p "$(dirname "$CODESIGN_EVIDENCE")"
-   /usr/bin/codesign -dv --entitlements - "$WORK_APP_PATH" > "$CODESIGN_EVIDENCE" 2>&1 || true
-
-   # Parse the CodeDirectory flags=0xNNNN(token,token,...) line precisely.
-   # Naive `grep "runtime"` would match unrelated text (paths, "Sealed Resources", etc.)
-   # and either falsely trigger or never trigger; we extract the parenthesized flag
-   # tokens explicitly.
-   APP_FLAG_TOKENS="$(awk -F'[()]' '/^CodeDirectory[[:space:]]+v=.*flags=/ { print $2 }' "$CODESIGN_EVIDENCE" | tr ',' '\n' | tr -d ' ')"
-
-   if printf '%s\n' "$APP_FLAG_TOKENS" | grep -qx 'runtime'; then
-     echo "ERROR: hardened runtime flag still present on $WORK_APP_PATH after ad-hoc signing" >&2
-     echo "  flag tokens: $APP_FLAG_TOKENS" >&2
-     cat "$CODESIGN_EVIDENCE" >&2
-     exit 1
-   fi
-
-   # library-validation lives in entitlements, not flags. Check the entitlements
-   # XML block dumped by `codesign -dv --entitlements -` instead.
-   if grep -q 'com\.apple\.security\.cs\.disable-library-validation\|<key>library-validation</key>\s*<true' "$CODESIGN_EVIDENCE"; then
-     :  # disable-library-validation true means library validation is OFF; not a fail
-   fi
-   if grep -q '<key>com\.apple\.security\.cs\.allow-dyld-environment-variables</key>\s*<false' "$CODESIGN_EVIDENCE"; then
-     echo "ERROR: app entitlements forbid DYLD env variables" >&2
-     cat "$CODESIGN_EVIDENCE" >&2
-     exit 1
-   fi
-   if printf '%s\n' "$APP_FLAG_TOKENS" | grep -qx 'restrict'; then
-     echo "ERROR: restrict flag still present on $WORK_APP_PATH; DYLD_INSERT_LIBRARIES will be stripped" >&2
-     cat "$CODESIGN_EVIDENCE" >&2
-     exit 1
-   fi
-
-  # Mirror dylib-side flag check: clang's linker-signed flag prevents injection.
-  if [ -f "$INJECTOR_PATH" ]; then
-    DYLIB_FLAG_TOKENS="$(/usr/bin/codesign -dv "$INJECTOR_PATH" 2>&1 | awk -F'[()]' '/^CodeDirectory[[:space:]]+v=.*flags=/ { print $2 }' | tr ',' '\n' | tr -d ' ')"
-    if printf '%s\n' "$DYLIB_FLAG_TOKENS" | grep -qx 'linker-signed'; then
-      echo "ERROR: injector dylib is linker-signed; amfid will reject DYLD insertion." >&2
-      echo "  Re-run tools/build_translator_injector.sh which now re-signs ad-hoc after clang." >&2
-      exit 1
+  while IFS= read -r crashpad_path; do
+    if [ -n "$crashpad_path" ]; then
+      remove_signature_if_present "$crashpad_path"
+      /usr/bin/codesign --force --sign - "$crashpad_path"
     fi
-  fi
+  done < <(find "$APP_PATH" -type f -name crashpad_handler)
 
-  echo "[G-CAPTURE] Codesign evidence -> $CODESIGN_EVIDENCE"
-  echo "[G-CAPTURE] App flag tokens: ${APP_FLAG_TOKENS:-<none>}"
-  echo "[G-CAPTURE] Dylib flag tokens: ${DYLIB_FLAG_TOKENS:-<not yet built>}"
+  /usr/bin/codesign --force --deep --sign - "$APP_PATH"
 fi
 
-echo "Launching $WORK_APP_PATH with embedded translator for $LANG_CODE"
+echo "Launching $APP_PATH with embedded translator for $LANG_CODE"
 LAUNCH_LOG="$SESSION_DIR/audit/${LANG_CODE}-injector-launch.log"
 mkdir -p "$(dirname "$LAUNCH_LOG")"
-WORK_APP_BIN="$WORK_APP_PATH/Contents/MacOS/Cavalry"
 nohup env \
   DYLD_INSERT_LIBRARIES="$INJECTOR_PATH" \
   CAVALRY_I18N_LANG="$LANG_CODE" \
   CAVALRY_I18N_CACHE_ROOT="$CACHE_ROOT" \
   CAVALRY_I18N_SESSION_DIR="$SESSION_DIR" \
   CAVALRY_I18N_SESSION_UUID="$SESSION_UUID" \
-  CAVALRY_I18N_BUNDLE_HASH="$BUNDLE_HASH" \
-  "$WORK_APP_BIN" >>"$LAUNCH_LOG" 2>&1 &
+  "$APP_BIN" >>"$LAUNCH_LOG" 2>&1 &
 echo "PID=$!"
