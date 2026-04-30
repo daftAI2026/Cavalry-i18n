@@ -321,15 +321,18 @@ function readMenuItem(item) {
 }
 
 function collectTextNodes(element, bucket, depth) {
-  if (!element || depth > 8) return;
+  if (!element || depth > 25) return;
   const node = {
     role: normalize(safeCall(() => element.role(), '')),
     name: normalize(safeCall(() => element.name(), '')),
     value: normalize(safeCall(() => element.value(), '')),
     title: normalize(safeCall(() => element.title(), '')),
     description: normalize(safeCall(() => element.description(), '')),
+    help: normalize(safeCall(() => element.help(), '')),
+    placeholder: normalize(safeCall(() => element.placeholderValue?.() || '', '')),
+    subrole: normalize(safeCall(() => element.subrole(), '')),
   };
-  if (node.name || node.value || node.title || node.description) {
+  if (node.name || node.value || node.title || node.description || node.help || node.placeholder) {
     bucket.push(node);
   }
   const children = safeCall(() => element.uiElements(), []);

@@ -4,7 +4,13 @@
     "language": "en",
     "value": {
       "auth.error.accessDenied": "Authorisation was denied. Please try signing in again.",
-      "auth.error.generic": "Something went wrong during sign in. Please try again."
+      "auth.error.generic": "Something went wrong during sign in. Please try again.",
+      "gpu.unsupported.title": "GPU Not Supported",
+      "gpu.unsupported.intro": "Cavalry was unable to initialise GPU rendering on this computer.",
+      "gpu.unsupported.thingsToTry": "Things to try:",
+      "gpu.unsupported.updateDrivers": "Update your GPU drivers to the latest version.",
+      "gpu.unsupported.discreteGPU": "If you have a discrete GPU (NVIDIA or AMD), ensure Cavalry is using it instead of integrated graphics.",
+      "gpu.unsupported.contactSupport": "If you believe this message is being shown in error, please contact support and include a copy of your System Diagnostics (Help > System Diagnostics > Copy to Clipboard)."
     }
   }
 ]
