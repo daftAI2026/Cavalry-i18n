@@ -3,9 +3,6 @@
 **/.DS_Store
 Thumbs.db
 
-# ── 本机私有配置 ──
-.baoyu-skills/
-
 # ── 依赖与语言运行时缓存 ──
 node_modules/
 __pycache__/
@@ -18,11 +15,8 @@ qt_663_sdk/
 # ── 构建与运行产物 ──
 dist/
 build/
-output/
 src-tauri/target/
 src-tauri/gen/
-*.dylib
-*.inc
 
 # ── 日志 ──
 *.log
