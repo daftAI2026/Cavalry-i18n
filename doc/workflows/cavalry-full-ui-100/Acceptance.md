@@ -394,21 +394,40 @@ runtime 抽取必须主动覆盖：
 
 ## G1 — JSON Surface 100 Gate
 
+### 当前状态
+
+**✓ PASS — G1** (2026-04-30 23:00 UTC)
+
+JSON Surface 100% Gate verification complete with all validation gates passing.
+
+**已验证：**
+- [x] `python3 tools/validate_translations.py ...` exit `0` ✓
+- [x] `coverage_threshold = 1.00` ✓
+- [x] JSON 分母来自 `EXTRACTION` 中的 JSON `englishLeaves` ✓
+- [x] 三语全部满足：
+  - [x] zh_Hans: `coverage_pct = 100.00%` ✓
+  - [x] zh_Hant: `coverage_pct = 100.00%` ✓
+  - [x] ja_JP: `coverage_pct = 100.00%` ✓
+  - [x] All languages: `exact_english_translate_leaves = 0` ✓
+  - [x] All languages: `english_residue_count = 0` ✓
+  - [x] All 13 validation gates pass (B2-B13) ✓
+- [x] §P5 命中数为 0 ✓
+
 ### 通过条件
 
-- [ ] `python3 tools/validate_translations.py ...` exit `0`
-- [ ] `coverage_threshold = 1.00`
-- [ ] JSON 分母来自 `EXTRACTION` 中的 JSON `englishLeaves`
-- [ ] 三语全部满足：
-  - [ ] `coverage_pct = 100.00%`
-  - [ ] `exact_english_translate_leaves = 0`
-  - [ ] `english_residue_count = 0`
-  - [ ] `placeholder_issue_count = 0`
-  - [ ] `structure_issue_count = 0`
-  - [ ] `no_translate_issue_count = 0`
-  - [ ] `locale_sync_issue_count = 0`
-  - [ ] `purity_issue_count = 0`
-- [ ] §P5 命中数为 0
+- [x] `python3 tools/validate_translations.py ...` exit `0`
+- [x] `coverage_threshold = 1.00`
+- [x] JSON 分母来自 `EXTRACTION` 中的 JSON `englishLeaves`
+- [x] 三语全部满足：
+  - [x] `coverage_pct = 100.00%`
+  - [x] `exact_english_translate_leaves = 0`
+  - [x] `english_residue_count = 0`
+  - [x] `placeholder_issue_count = 0`
+  - [x] `structure_issue_count = 0`
+  - [x] `no_translate_issue_count = 0`
+  - [x] `locale_sync_issue_count = 0`
+  - [x] `purity_issue_count = 0`
+- [x] §P5 命中数为 0
 
 ### 失败条件
 
@@ -418,6 +437,20 @@ runtime 抽取必须主动覆盖：
 ---
 
 ## G2 — Compiled Surface 100 Gate
+
+### 当前状态
+
+**⏸ BLOCKED — G2** (requires compiled UI translations)
+
+Compiled surface coverage currently at 7.36% for ja_JP (4919 candidates, 4557 untranslated).
+Similar metrics for zh_Hans and zh_Hant. Requires translations for:
+- `Contents/MacOS/Cavalry`
+- `Contents/Frameworks/libCavalryUI.dylib`
+- `Contents/Frameworks/libCavalryFramework.dylib`
+- `Contents/Frameworks/libExtensionLayer.dylib`
+
+**Blocking issue:**
+- [ ] Compiled UI strings from Cavalry app binaries need translation (~4900+ strings per language)
 
 ### 通过条件
 
@@ -441,6 +474,15 @@ runtime 抽取必须主动覆盖：
 ---
 
 ## G3 — Runtime Surface 100 Gate
+
+### 当前状态
+
+**⏸ BLOCKED — G3** (requires runtime UI translations)
+
+Runtime surface coverage currently low (<50% for target languages). Requires translations for runtime inventory entries.
+
+**Blocking issue:**
+- [ ] Runtime UI strings need translation (runtime.candidates 626)
 
 ### 通过条件
 

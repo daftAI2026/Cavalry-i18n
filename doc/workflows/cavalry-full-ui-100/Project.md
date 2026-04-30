@@ -97,15 +97,32 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 ```text
 Baseline is rerunnable and reachable.
 Workflow is NOT COMPLETE.
-First failing gate: G1/G2/G3 (translation verification) (2026-04-30 22:46)
+First failing gate: G2 (compiled surface translations) (2026-04-30 23:00)
+
 G-CAPTURE: ✓ PASS
 G-X: ✓ PASS
+G1 (JSON Surfaces): ✓ PASS (all languages 100%)
+G2 (Compiled Surfaces): ⏸ BLOCKED (requires translations)
+G3 (Runtime Surfaces): ⏸ BLOCKED (requires translations)
+
 Runtime denominator: FROZEN at session ax-enhanced-1777559593
 - en: runtime.candidates 626, menuLeaves 734, capture.source live-merged ✓
-- ja_JP: AX inventory captured ✓
-- zh-Hans: AX inventory captured ✓
-- zh-Hant: AX inventory captured ✓
-Next action: proceed with G1/G2/G3 translation verification (requires zh-Hans/zh-Hant/ja_JP translations)
+- ja_JP: AX inventory + merged ✓
+- zh-Hans: AX inventory + merged ✓
+- zh-Hant: AX inventory + merged ✓
+
+Completed work:
+- Runtime inventory capture via Accessibility API ✓
+- Extraction inventory frozen with all surfaces ✓
+- JSON translations complete (G1) ✓
+- GPU string translations added for all languages ✓
+
+Remaining work:
+- Compile translations for ja_JP, zh-Hans, zh-Hant (~4900 strings each)
+- Runtime UI string translations
+- Run G2 and G3 gates after translations available
+
+Next action: determine translation source/strategy for compiled and runtime surfaces
 ```
 
 ### 当前 worktree 真相
