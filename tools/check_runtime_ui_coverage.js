@@ -157,7 +157,9 @@ function collectWidgetStrings(widgetTexts, bucket) {
   }
 }
 
-function buildCoverage(inventory, allowlist, extractionSurface = null) {
+function buildCoverage(inventory, allowlist, translationsOrExtraction = null, extractionSurface = null) {
+  const translations = translationsOrExtraction instanceof Map ? translationsOrExtraction : null;
+  const resolvedExtractionSurface = translations ? extractionSurface : translationsOrExtraction;
   const collected = [];
   for (const menuBar of inventory.menuBars || []) {
     collectMenuStrings(menuBar, collected);
@@ -167,10 +169,10 @@ function buildCoverage(inventory, allowlist, extractionSurface = null) {
   const uniqueCandidates = [...new Set(collected.map(normalizeText))].filter(
     (value) => !shouldIgnore(value, allowlist)
   );
-  const frozenCandidates = Array.isArray(extractionSurface?.englishLeaves)
+  const frozenCandidates = Array.isArray(resolvedExtractionSurface?.englishLeaves)
     ? [
         ...new Set(
-          extractionSurface.englishLeaves
+          resolvedExtractionSurface.englishLeaves
             .map((leaf) => normalizeText(leaf?.value || ''))
             .filter(Boolean)
             .filter((value) => !shouldIgnore(value, allowlist))
@@ -180,22 +182,33 @@ function buildCoverage(inventory, allowlist, extractionSurface = null) {
   const denominatorCandidates = frozenCandidates && frozenCandidates.length > 0 ? frozenCandidates : uniqueCandidates;
   const forbiddenSamples = [];
   const forbiddenPatternCounts = {};
-  const untranslated = uniqueCandidates.filter((value) => {
+  const untranslated = denominatorCandidates.filter((value) => {
     const stripped = stripAllowedFragments(value, allowlist);
+    const translation = normalizeText(translations?.get(value) || '');
+    const valueToCheck = translation || value;
     const forbiddenHits = detectForbiddenTranslationPatterns({
       language: inventory.language || '',
-      value,
+      value: valueToCheck,
     });
     for (const hit of forbiddenHits) {
       forbiddenPatternCounts[hit.id] = (forbiddenPatternCounts[hit.id] || 0) + 1;
     }
     if (forbiddenHits.length > 0 && forbiddenSamples.length < 20) {
       forbiddenSamples.push({
-        value,
+        value: valueToCheck,
         ids: forbiddenHits.map((hit) => hit.id),
       });
     }
-    return forbiddenHits.length > 0 || /[A-Za-z]/.test(stripped);
+    if (forbiddenHits.length > 0) {
+      return true;
+    }
+    if (!/[A-Za-z]/.test(stripped)) {
+      return false;
+    }
+    if (translations) {
+      return !translation || translation === value;
+    }
+    return /[A-Za-z]/.test(stripped);
   });
   const coveragePct =
     denominatorCandidates.length === 0

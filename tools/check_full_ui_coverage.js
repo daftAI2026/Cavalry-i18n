@@ -277,7 +277,12 @@ function main() {
       ? readJson(path.resolve(options.extractionInventory))
       : null;
 
-  const runtime = buildCoverage(inventory, allowlist, extractionInventory?.surfaces?.['runtime-candidates'] || null);
+  const runtime = buildCoverage(
+    inventory,
+    allowlist,
+    translations,
+    extractionInventory?.surfaces?.['runtime-candidates'] || null
+  );
   const compiled = buildCompiledCoverage(
     sourceMap,
     translations,

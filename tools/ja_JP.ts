@@ -1942,5 +1942,137 @@
       <source>Baltic Sea</source>
       <translation>バルト海</translation>
     </message>
+    <message>
+          <source>Welcome to Cavalry</source>
+          <translation>Cavalry へようこそ</translation>
+        </message>
+    <message>
+          <source>Project: None - Scene: Untitled</source>
+          <translation>プロジェクト: なし - シーン: 無題</translation>
+        </message>
+    <message>
+          <source>dialog</source>
+          <translation>ダイアログ</translation>
+        </message>
+    <message>
+          <source>close button</source>
+          <translation>閉じるボタン</translation>
+        </message>
+    <message>
+          <source>zoom button</source>
+          <translation>ズームボタン</translation>
+        </message>
+    <message>
+          <source>group</source>
+          <translation>グループ</translation>
+        </message>
+    <message>
+          <source>minimize button</source>
+          <translation>最小化ボタン</translation>
+        </message>
+    <message>
+          <source>standard window</source>
+          <translation>標準ウィンドウ</translation>
+        </message>
+    <message>
+          <source>text</source>
+          <translation>テキスト</translation>
+        </message>
+    <message>
+          <source>Add</source>
+          <translation>追加</translation>
+        </message>
+    <message>
+          <source>Deselect</source>
+          <translation>選択解除</translation>
+        </message>
+    <message>
+          <source>Export</source>
+          <translation>エクスポート</translation>
+        </message>
+    <message>
+          <source>Finish</source>
+          <translation>完了</translation>
+        </message>
+    <message>
+          <source>Fit to Screen</source>
+          <translation>画面に合わせる</translation>
+        </message>
+    <message>
+          <source>Hide</source>
+          <translation>非表示</translation>
+        </message>
+    <message>
+          <source>Import</source>
+          <translation>インポート</translation>
+        </message>
+    <message>
+          <source>Inspector</source>
+          <translation>インスペクター</translation>
+        </message>
+    <message>
+          <source>Keyframe</source>
+          <translation>キーフレーム</translation>
+        </message>
+    <message>
+          <source>Layers</source>
+          <translation>レイヤー</translation>
+        </message>
+    <message>
+          <source>Lock</source>
+          <translation>ロック</translation>
+        </message>
+    <message>
+          <source>New</source>
+          <translation>新規</translation>
+        </message>
+    <message>
+          <source>Next</source>
+          <translation>次へ</translation>
+        </message>
+    <message>
+          <source>Properties</source>
+          <translation>プロパティ</translation>
+        </message>
+    <message>
+          <source>Quit</source>
+          <translation>終了</translation>
+        </message>
+    <message>
+          <source>Remove</source>
+          <translation>削除</translation>
+        </message>
+    <message>
+          <source>Rename</source>
+          <translation>名前変更</translation>
+        </message>
+    <message>
+          <source>Render</source>
+          <translation>レンダー</translation>
+        </message>
+    <message>
+          <source>Reset View</source>
+          <translation>ビューをリセット</translation>
+        </message>
+    <message>
+          <source>Settings</source>
+          <translation>設定</translation>
+        </message>
+    <message>
+          <source>Show</source>
+          <translation>表示</translation>
+        </message>
+    <message>
+          <source>Timeline</source>
+          <translation>タイムライン</translation>
+        </message>
+    <message>
+          <source>Ungroup</source>
+          <translation>グループ化を解除</translation>
+        </message>
+    <message>
+          <source>Unlock</source>
+          <translation>ロック解除</translation>
+        </message>
   </context>
 </TS>

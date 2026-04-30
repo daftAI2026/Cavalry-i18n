@@ -918,5 +918,137 @@
     <message><source>Bali Hai</source><translation>巴厘海</translation></message>
     <message><source>Balinese</source><translation>巴厘島語</translation></message>
     <message><source>Baltic Sea</source><translation>波羅的海</translation></message>
+    <message>
+          <source>Welcome to Cavalry</source>
+          <translation>歡迎使用 Cavalry</translation>
+        </message>
+    <message>
+          <source>Project: None - Scene: Untitled</source>
+          <translation>項目：無 - 場景：未命名</translation>
+        </message>
+    <message>
+          <source>dialog</source>
+          <translation>對話方塊</translation>
+        </message>
+    <message>
+          <source>close button</source>
+          <translation>關閉按鈕</translation>
+        </message>
+    <message>
+          <source>zoom button</source>
+          <translation>縮放按鈕</translation>
+        </message>
+    <message>
+          <source>group</source>
+          <translation>群組</translation>
+        </message>
+    <message>
+          <source>minimize button</source>
+          <translation>最小化按鈕</translation>
+        </message>
+    <message>
+          <source>standard window</source>
+          <translation>標準視窗</translation>
+        </message>
+    <message>
+          <source>text</source>
+          <translation>文字</translation>
+        </message>
+    <message>
+          <source>Add</source>
+          <translation>新增</translation>
+        </message>
+    <message>
+          <source>Deselect</source>
+          <translation>取消選取</translation>
+        </message>
+    <message>
+          <source>Export</source>
+          <translation>匯出</translation>
+        </message>
+    <message>
+          <source>Finish</source>
+          <translation>完成</translation>
+        </message>
+    <message>
+          <source>Fit to Screen</source>
+          <translation>符合螢幕</translation>
+        </message>
+    <message>
+          <source>Hide</source>
+          <translation>隱藏</translation>
+        </message>
+    <message>
+          <source>Import</source>
+          <translation>匯入</translation>
+        </message>
+    <message>
+          <source>Inspector</source>
+          <translation>檢查器</translation>
+        </message>
+    <message>
+          <source>Keyframe</source>
+          <translation>關鍵影格</translation>
+        </message>
+    <message>
+          <source>Layers</source>
+          <translation>圖層</translation>
+        </message>
+    <message>
+          <source>Lock</source>
+          <translation>鎖定</translation>
+        </message>
+    <message>
+          <source>New</source>
+          <translation>新增</translation>
+        </message>
+    <message>
+          <source>Next</source>
+          <translation>下一步</translation>
+        </message>
+    <message>
+          <source>Properties</source>
+          <translation>屬性</translation>
+        </message>
+    <message>
+          <source>Quit</source>
+          <translation>結束</translation>
+        </message>
+    <message>
+          <source>Remove</source>
+          <translation>移除</translation>
+        </message>
+    <message>
+          <source>Rename</source>
+          <translation>重新命名</translation>
+        </message>
+    <message>
+          <source>Render</source>
+          <translation>轉譯</translation>
+        </message>
+    <message>
+          <source>Reset View</source>
+          <translation>重設檢視</translation>
+        </message>
+    <message>
+          <source>Settings</source>
+          <translation>設定</translation>
+        </message>
+    <message>
+          <source>Show</source>
+          <translation>顯示</translation>
+        </message>
+    <message>
+          <source>Timeline</source>
+          <translation>時間軸</translation>
+        </message>
+    <message>
+          <source>Ungroup</source>
+          <translation>取消群組</translation>
+        </message>
+    <message>
+          <source>Unlock</source>
+          <translation>解除鎖定</translation>
+        </message>
   </context>
 </TS>
