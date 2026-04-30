@@ -557,11 +557,33 @@ bool installTranslator()
     }
 
     if (dumpOnlyEnglish) {
-        if (!dumpQtMenuInventory(lang)) {
-            return false;
+        bool inventoryExported = false;
+        for (int attempt = 0; attempt < kMaxInstallAttempts; ++attempt) {
+            if (dumpQtMenuInventory(lang)) {
+                inventoryExported = true;
+                break;
+            }
+            if (attempt < kMaxInstallAttempts - 1) {
+                fprintf(stderr, "[cavalry-i18n] english dump-only export deferred, retrying... (attempt %d/%d)\n",
+                        attempt + 1, kMaxInstallAttempts);
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(kRetryDelayMs * NSEC_PER_MSEC)),
+                               dispatch_get_main_queue(),
+                               ^{
+                                   QCoreApplication::processEvents(QEventLoop::AllEvents);
+                               });
+                QCoreApplication::processEvents(QEventLoop::AllEvents);
+                usleep(kRetryDelayMs * 1000);
+            }
         }
 
-        fprintf(stderr, "[cavalry-i18n] english dump-only inventory exported\n");
+        if (inventoryExported) {
+            fprintf(stderr, "[cavalry-i18n] english dump-only inventory exported\n");
+            gInstallAttempted = true;
+            return true;
+        }
+
+        fprintf(stderr, "[cavalry-i18n] failed to export english dump-only inventory after %d attempts\n",
+                kMaxInstallAttempts);
         gInstallAttempted = true;
         return true;
     }

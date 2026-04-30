@@ -16,10 +16,11 @@ check_tauri_window_regression.js: packaged Tauri 主窗口回归测试，比较 
 check_runtime_ui_coverage.js: runtime UI 覆盖率守门脚本，读取真实菜单 inventory 并按阈值阻塞未翻译文本。
 check_full_ui_coverage.js: 单语言全 UI 覆盖检查，组合 runtime、compiled、JSON-backed 校验。
 check_full_ui_matrix.js: 多语言矩阵覆盖检查，写出稳定 runlog 便于连续追踪。
+verify_gate_inputs.js: full-ui 前置输入守门器，冻结 session artifact、2.7.1 JSON lower bound、source-map 与 runtime provenance 合法性。
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
 generate_embedded_translations.js: 从 `tools/*.ts` 生成 injector 编译期翻译表。
 resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时按配置下载。
-cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.0、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。
+cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.1、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。
 build_translator_injector.sh: 构建 `libCavalryTranslatorInjector.dylib`，校验 Qt minor 与目标 Cavalry 匹配。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
 validate_translations.py: JSON 翻译质量检查脚本，输出报告与摘要。

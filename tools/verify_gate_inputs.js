@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 SESSION_DIR runtime/extraction artifacts、compiled source-map、package scripts 与当前 Cavalry 2.7.1 JSON 下界
+ * [OUTPUT]: 对外提供 full-ui gate 输入验证，拒绝旧分母、root-cache runtime、弱 lower bound 与伪翻译输入
+ * [POS]: tools 的 G-P/G-X 前置守门器，被 package.json check:full-ui 在 matrix 前调用
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -6,11 +12,11 @@ const { collectMenuStrings, collectWidgetStrings } = require('./check_runtime_ui
 const { detectForbiddenTranslationPatterns } = require('./forbidden_translation_patterns.js');
 
 const EXTRACTION_LOWER_BOUNDS = {
-  'languages/en/appStrings.json': 4,
+  'languages/en/appStrings.json': 10,
   'languages/en/nodeStrings.json': 6320,
   'languages/en/onboarding.json': 34,
   'languages/en/tips.json': 51,
-  'json-total': 6409,
+  'json-total': 6415,
   'compiled-source-map': 4743,
   'runtime-candidates': 613,
   'runtime-menuLeaves': 666,

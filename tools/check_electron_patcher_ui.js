@@ -572,7 +572,7 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     'default injector builds should resolve the target SDK from the project contract instead of scattering 6.6.3 inline'
   );
   assert.equal(target.qtVersion, '6.6.3');
-  assert.equal(target.cavalryVersion, '2.7.0');
+  assert.equal(target.cavalryVersion, '2.7.1');
   assert.equal(target.sdkPath, 'qt_sdk/6.6.3/macos');
   assert.match(
     resolver,
@@ -1737,11 +1737,11 @@ test('verify gate inputs accepts extraction inventory runtime candidates and men
   });
   writeJson(extractionPath, {
     surfaces: {
-      'languages/en/appStrings.json': { count: 4 },
+      'languages/en/appStrings.json': { count: 10 },
       'languages/en/nodeStrings.json': { count: 6320 },
       'languages/en/onboarding.json': { count: 34 },
       'languages/en/tips.json': { count: 51 },
-      'json-total': { count: 6409 },
+      'json-total': { count: 6415 },
       'compiled-source-map': { count: 4743 },
       'runtime-candidates': { count: 613 },
       'runtime-menuLeaves': { count: 666 },
