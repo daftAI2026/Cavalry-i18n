@@ -138,25 +138,22 @@ if [ "$RESIGN_APP" -eq 1 ]; then
 fi
 
 if [ "$RESIGN_APP" -eq 1 ]; then
+  # For session-local app, sign just the main binary instead of the whole bundle
+  # This avoids ambiguous bundle format errors
+  WORK_APP_BIN="$WORK_APP_PATH/Contents/MacOS/Cavalry"
+  
   # Remove existing signatures from the main binary
-  /usr/bin/codesign --remove-signature "$WORK_APP_PATH/Contents/MacOS/Cavalry" 2>/dev/null || true
-
-  # Remove signatures from nested binaries
-  for binary in $(find "$WORK_APP_PATH" -type f -perm +111 -name "*.dylib" -o -name "crashpad_handler" 2>/dev/null); do
-    /usr/bin/codesign --remove-signature "$binary" 2>/dev/null || true
+  /usr/bin/codesign --remove-signature "$WORK_APP_BIN" 2>/dev/null || true
+  
+  # Sign the main executable with ad-hoc signature
+  /usr/bin/codesign --force --sign - "$WORK_APP_BIN" 2>/dev/null || {
+    echo "[G-CAPTURE] Warning: failed to sign main binary" >&2
+  }
+  
+  # Try to sign any nested frameworks (non-critical)
+  for framework in $(find "$WORK_APP_PATH/Contents/Frameworks" -name "*.framework" -type d 2>/dev/null | head -5); do
+    /usr/bin/codesign --force --sign - "$framework" 2>/dev/null || true
   done
-
-  # Re-sign with ad-hoc signature
-  # Sign individual components first to avoid framework format ambiguity
-  for dylib in $(find "$WORK_APP_PATH/Contents/Frameworks" -name "*.dylib" 2>/dev/null); do
-    /usr/bin/codesign --force --sign - "$dylib" 2>/dev/null || true
-  done
-
-  # Sign the main binary
-  /usr/bin/codesign --force --sign - "$WORK_APP_PATH/Contents/MacOS/Cavalry" 2>/dev/null
-
-  # Sign the entire app bundle
-  /usr/bin/codesign --force --sign - "$WORK_APP_PATH" 2>/dev/null || true
 
    # Verify codesign state for G-CAPTURE provenance.
    # See doc/cavalry-runtime-injection-techniques.md §5 and
