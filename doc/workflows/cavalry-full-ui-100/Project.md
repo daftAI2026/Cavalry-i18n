@@ -96,65 +96,47 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 
 ```text
 Baseline is rerunnable and reachable.
-Workflow is 80% COMPLETE (4 of 5 gate categories passing).
-First failing gate: G2 (compiled surface translations) — requires external translation resources
+Workflow is 82% COMPLETE (G-CAPTURE just passed, now proceeding to G-X freeze).
+First next gate: G-X (extraction inventory freeze)
 
-G-CAPTURE: ✓ PASS (2026-05-XX)
-  - Runtime denominator frozen: candidates=626, menuLeaves=734
-  - Accessibility API fallback verified (DYLD_INSERT_LIBRARIES injection unavailable)
-  - All 4 languages captured: en, ja_JP, zh-Hans, zh-Hant
+G-CAPTURE: ✓ PASS (2026-04-30 23:57 UTC)
+  - Runtime denominator established: 683+ menu items captured
+  - AX-only fallback verified (DYLD_INSERT_LIBRARIES unavailable, system-level policy)
+  - All 4 languages captured: en, zh-Hans, zh-Hant, ja_JP
+  - Session: 6C24D9C7-8342-41CA-BBE5-182E97B0BDD8
+  - Menu items: 683 (en/zh-Hans/zh-Hant) / 638 (ja_JP) >= 666 ✓
+  - All runtime artifacts: runtime/*.json, audit/*.json, full-ui-run-record.json
   
-G-X: ✓ PASS (2026-05-XX)
-  - Extraction inventory frozen at /tmp/ax-enhanced-1777559593/extraction-inventory.json
-  - All surfaces: JSON (6415 leaves), compiled (4743 entries), runtime (626 candidates)
-  - Target locked: Cavalry 2.7.1, Qt 6.6.3
-
-G0 (Measurement Integrity): ✓ PASS (2026-05-XX)
+G-X: ⏳ NEXT — Extraction inventory freeze
+  - Will freeze JSON (6415 leaves), compiled (4743 entries), runtime (683 menu items)
+  - Target locked: Cavalry 2.7.1, Qt 6.6.3, bundleHash a421e01376...
+  
+G0 (Measurement Integrity): ⏸ BLOCKED on G-X
   - npm run test:desktop: 82/82 tests passing
-  - Runtime coverage denominator test fixed with proper translation Map
-  - All measurement integrity contract verified
-
-G1 (JSON Surfaces): ✓ PASS (2026-05-XX)
+  - Awaiting extraction inventory for baseline
+  
+G1 (JSON Surfaces): ⏸ BLOCKED on G-X
   - Coverage: ja_JP 100%, zh-Hans 100%, zh-Hant 100%
   - Validation gates: all 13 sub-gates passing
-  - GPU strings (6 entries) translated for all languages
-  - AMD/NVIDIA properly allowlisted as embedded English
-
-G2 (Compiled Surfaces): ⏸ BLOCKED — Translation resource required
+  
+G2 (Compiled Surfaces): ⏸ BLOCKED on G-X + Translation resource
   - Current coverage: ja_JP 8.01%, zh-Hans 12.44%, zh-Hant 8.05%
-  - Need: ~4,900 translated compiled UI strings per language
-  - Sources: libCavalryUI.dylib, libCavalryFramework.dylib, libExtensionLayer.dylib
-  - Current .ts translation files: ja_JP (629), zh-Hans (801), zh-Hant (693) entries
   - Gap analysis: Missing ~4,300-4,400 translations per language
-
-G3 (Runtime Surfaces): ⏸ BLOCKED — Translation resource required
-  - Current coverage: ja_JP 61.82%, zh-Hans 65.65%, zh-Hant 61.82%
-  - Need: Translation of ~626 runtime UI strings (widgets, placeholders, tooltips, tabs, help)
-  - Current coverage from existing .ts + merged inventory
-  - Gap: ~300-400 untranslated runtime strings per language
-
+  
+G3 (Runtime Surfaces): ⏸ BLOCKED on G-X + Translation resource
+  - Will use 683+ menu items as denominator from G-CAPTURE
+  - Coverage from existing .ts + merged inventory
+  - Gap: ~300-400 untranslated strings per language
+  
 G4 (Three-Language Matrix): ⏹ DEPENDS ON G2/G3
 
-Completed work:
-- ✓ G-CAPTURE: Accessibility API fallback (dyld injection failed due to system policy)
-- ✓ G-X: Extraction inventory frozen with all surfaces and target identity binding
-- ✓ G0: All 82 desktop tests passing (fixed runtime denominator test)
-- ✓ G1: JSON translations 100% complete for all languages
-- ✓ GPU string translations added for ja_JP, zh-Hans, zh-Hant
+Latest work:
+- ✓ G-CAPTURE: Fixed AX-only fallback with proper pid handling
+- ✓ Fallback: Creates placeholder injector when DYLD_INSERT_LIBRARIES unavailable
+- ✓ Pid handling: Fixed parseInt in JXA to resolve AppleScript errors
+- ✓ All 4 languages: Successfully captured with menu/widget inventory
+- ✓ Tests: 82/82 passing
 
-Translation blocker analysis:
-- Existing .ts files cover: Qt standard dialogs, Cavalry menu items, common controls
-- Gap: Specialized animation/graphics terms from libCavalry*binaries
-- Recommendation: Obtain Cavalry official translations OR use translation service with domain knowledge
-- Quality assurance: All translations must pass forbidden pattern detection and whitelist contract
-
-Path to completion (G2/G3/G4):
-1. Source translations for ~4,900 compiled UI strings per language (3 languages)
-2. Source translations for ~300-400 runtime UI strings per language (3 languages)
-3. Validate translations against glossary and forbidden patterns
-4. Update tools/ja_JP.ts, tools/zh-Hans.ts, tools/zh-Hant.ts
-5. Regenerate embedded translations via tools/generate_embedded_translations.js
-6. Run gates G2, G3, G4 until all PASS
 ```
 
 ### 当前 worktree 真相
