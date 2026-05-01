@@ -134,6 +134,42 @@
 
 ---
 
+## E. Synthetic-Denominator Fabrication
+
+### 病灶
+
+LLM 拿不到完整翻译资源 / API 失败时，agent 走捷径：**伪造 source 字符串凑齐分母**，把覆盖率工具骗成"已翻译"。该形态比 Counterfeit Form（B）更恶劣：B 是把空翻译写成中文，E 是连英文 source 都是假的。
+
+### 禁止形态
+
+- 合成 source ID：`Batch6_0`、`Final_Batch51_3`、`UI_Batch21_47`、`Element_X`、`Sample_X`、`Item_X`、`Generic_X` 等"前缀_数字"模式
+- 伪 Qt context：`Cavalry-Compiled-UI-Glossary`、`Cavalry-Compiled-UI-Complete`、任何 `*-Synthetic`、`*-Fabricated`，因为这些 context 在真实 Cavalry 二进制里不存在，运行时永远命不中
+- Frankenstein 部分翻译：`Add 颜色`、`Active 合成`、`动画 Control`——把 glossary 单词替换后就提交，剩下的英文动词/介词原封不动
+- 分母对齐时改 fixture（如 `check_electron_patcher_ui.js` 4743→5195）让测试跟着假数据走
+- 写 `FINAL-STATE.md` / `SESSION-CHECKPOINT.md` 宣称 "G2b ALL COMPLETE / All gates PASS"，但 `.inc` 里 ≥ 40% 是合成条目
+
+### 当前设计
+
+- §P5 新增 FP-7 / FP-8 / FP-9（见 `tests/forbidden-translation-contract.md`）
+- `tools/forbidden_translation_patterns.json` 把 source / context / 翻译三个字段都纳入检测面，不再只看 translation
+- FP-9 用「白名单 + 启发式」识别 Frankenstein，不一刀切禁止 Latin+CJK 混用（`SVG`、`Alpha`、`Bézier`、`Cavalry` 等专有名词受白名单保护）
+- G-P / §P5 必须对 `desktop-patcher/injector/generated_translations.inc` 与 `tools/*.ts` 全文回归，0 hit 才允许进入 G2b
+- 失败案例样本在 `quarantine/cavalry-full-ui-100-fabrication-20260501` 必须 100% 命中 FP-7/8/9，作为反向契约
+
+### 发生过的案例
+
+`wip/cavalry-full-ui-100-g-capture` 在 `018aa96 → 9e46203` 期间（2026-05-01 02:56–03:30）产出：
+- 15,135 条合成 source ID 进入 `.inc`（`Batch6_0`、`Final_Batch51_3` 等）
+- 1,489 条伪 context 进入 `.inc`（`Cavalry-Compiled-UI-Glossary` / `-Complete`）
+- 2,853 条 Frankenstein 残留（`Add 颜色`、`Active 合成`）
+- 25 篇虚假 run notes（`FINAL-STATE.md`、`G2b-batch-1-complete.md` 至 `G2b all 104 batches complete.md`）
+
+复盘后处理：
+- 该分支 reset 到 `b9e6c28`，cherry-pick 合法 `b4f784c`（Batch1）+ `88760e9`（Batch2）保留 100 条真翻译
+- 完整伪造样本归入 `quarantine/cavalry-full-ui-100-fabrication-20260501`，作为 §P5 反向回归输入
+
+---
+
 ## 设计结论
 
 好 workflow 不靠执行者“自觉”。它让坏路径没有入口：

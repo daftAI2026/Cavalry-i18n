@@ -3,19 +3,67 @@
     {
       "id": "FP-1",
       "description": "placeholder marker",
-      "regex": "（译）|（訳）|（譯）"
+      "regex": "（译）|（訳）|（譯）",
+      "appliesTo": "translation"
     },
     {
       "id": "FP-2",
       "description": "fullwidth Latin letters",
-      "regex": "[\\uFF21-\\uFF3A\\uFF41-\\uFF5A]"
+      "regex": "[\\uFF21-\\uFF3A\\uFF41-\\uFF5A]",
+      "appliesTo": "translation"
     },
     {
       "id": "FP-3",
       "description": "misaligned page filler",
-      "regex": "^(?:页|頁|ページ):?\\d+$"
+      "regex": "^(?:页|頁|ページ):?\\d+$",
+      "appliesTo": "translation"
     }
   ],
+  "sourcePatterns": [
+    {
+      "id": "FP-7",
+      "description": "synthetic source id (fabricated denominator filler)",
+      "regex": "^([A-Za-z]+_)?Batch\\d+_\\d+$|^(Element|Sample|Item|Generic|Final|Placeholder|Filler|Test|Dummy|String|Token|Entry)_\\d+$"
+    }
+  ],
+  "contextPatterns": [
+    {
+      "id": "FP-8",
+      "description": "fake Qt context not present in real Cavalry binary",
+      "regex": "^Cavalry-(Compiled|Runtime)-UI-(Glossary|Complete|Generic|Synthetic)$|-Synthetic$|-Fabricated$"
+    }
+  ],
+  "latinResidue": {
+    "id": "FP-9",
+    "description": "ordinary English word residue in translation (Frankenstein)",
+    "appliesToLanguages": ["zh-Hans", "zh-Hant", "ja_JP"],
+    "minTokenLength": 2,
+    "reservedTokens": [
+      "SVG", "PNG", "JPG", "JPEG", "GIF", "WEBP", "BMP", "TIFF", "ICO",
+      "PDF", "EPS", "AI", "PSD",
+      "JSON", "XML", "YAML", "TOML", "CSV", "TSV", "HTML", "CSS",
+      "RGB", "RGBA", "HSL", "HSV", "HSB", "CMYK", "LAB", "YUV",
+      "Alpha", "Beta", "Gamma", "Delta", "Theta", "Lambda", "Sigma",
+      "UV", "UVs", "IK", "FK", "FBX", "OBJ", "GLB", "GLTF", "USD", "USDZ",
+      "2D", "3D", "FPS", "DPI", "PPI",
+      "Cavalry", "Canva", "Adobe", "Houdini", "Maya", "Blender",
+      "GPU", "CPU", "RAM", "OS", "macOS", "iOS", "API", "SDK", "CLI", "GUI",
+      "OK", "ID", "URL", "URI", "UUID", "GUID",
+      "AABB", "NaN", "BPM", "OSC", "MIDI",
+      "x", "y", "z", "w", "X", "Y", "Z", "W", "u", "v", "U", "V",
+      "A", "B", "C", "D", "R", "G", "H", "L", "N", "S", "T",
+      "Bezier", "Bézier", "Catmull", "Hermite", "NURBS", "Voronoi", "Perlin", "Simplex",
+      "Apple", "Google", "Microsoft", "Samsung", "Unicode", "ASCII", "UTF",
+      "Professional", "Pro", "Lite", "Standard", "Enterprise", "Studio", "Plus",
+      "Tauri", "Electron", "Qt", "WebGL", "WebGPU", "OpenGL", "Vulkan", "Metal",
+      "MP4", "MOV", "WEBM", "GIF", "PRORES", "H264", "H265", "HEVC",
+      "Lottie", "Rive", "Spine"
+    ],
+    "extraReservedFromAllowlist": "tools/runtime_ui_allowlist.json",
+    "ignoreAllUppercaseAcronyms": true,
+    "ignoreSingleLetters": true,
+    "ignoreNumeric": true
+  },
   "recursiveSuffixes": ["（译）", "（訳）", "（譯）"],
   "languageTermPatterns": {
     "zh-Hans": {

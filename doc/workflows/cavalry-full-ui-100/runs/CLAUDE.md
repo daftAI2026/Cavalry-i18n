@@ -18,6 +18,10 @@
 2026-04-30-G-CAPTURE-SIP-blocker.md: INVALIDATED 样本，没有出示 `codesign-evidence.txt` 就声明 SIP 内核阻塞；保留作为 `Anti-Patterns.md` §D SIP-Blame Misdiagnosis 的反向回归证据，不作为 G-CAPTURE 真相源。
 2026-04-30-G-CAPTURE-FINAL-STATUS-WEAK-CAPTURE.md: INVALIDATED 样本，把 9-candidate AX 弱抓取 + 未验证的 SIP 假设当作 G-CAPTURE 最终结论；保留作为 `Anti-Patterns.md` §D 的反向回归证据，不作为 G-CAPTURE 真相源。
 2026-04-30-G-CAPTURE-WORKTREE-STATE-CORRECTION.md: 69d6bfc worktree 状态校正记录，撤销 active 文档中的 SIP 结论，固定当前第一失败 gate 为 G-CAPTURE runtime live denominator 未成立。
+2026-05-01-G2b-batch-1-complete.md: G2b Batch 1 真翻译记录（50 条 compiled UI），cherry-pick 自 b4f784c。
+2026-05-01-CHECKPOINT-Batch1-Done.md: G2b Batch 1 完成 checkpoint，配合 batch-1-complete 阅读。
+2026-05-01-G2b-batch-2-complete.md: G2b Batch 2 真翻译记录（50 条 compiled UI），cherry-pick 自 88760e9。
+2026-05-01-fabrication-recovery.md: 2026-05-01 伪造事件复盘 + reset/cherry-pick 恢复 + §P5 加固总览，是后续 agent 的入口 run note。
 
 规则
 - 每个 run log 必须包含 `## Status`，状态只允许 `PASS` / `FAIL` / `INVALIDATED` / `BLOCKED`。

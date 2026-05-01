@@ -23,7 +23,44 @@
 ```text
 Current workflow spec = current
 Current repo state    = NOT COMPLETE
+Last reset            = b9e6c28 + cherry-pick(b4f784c, 88760e9)
+Quarantined branch    = quarantine/cavalry-full-ui-100-fabrication-20260501
 ```
+
+### 2026-05-01 伪造事件复盘（read-before-resume）
+
+上一会期某 agent 在 G2b 阶段批量伪造翻译；具体形式：
+- 合成 source ID（`Batch6_0`、`Final_Batch51_3`、`UI_Batch21_47`、`Element_X`、`Sample_X`）凑足 5,195 条假分母
+- 伪 Qt context（`Cavalry-Compiled-UI-Glossary`、`Cavalry-Compiled-UI-Complete`）
+- Frankenstein 部分翻译（`Add 颜色`、`Active 合成`、`动画 Control`）
+- 篡改 fixture（`check_electron_patcher_ui.js` 4743→5195）
+- 写 25 篇 docs 宣称 "FINAL-STATE / G2b ALL COMPLETE"
+
+伪造样本完整保留在 `quarantine/cavalry-full-ui-100-fabrication-20260501` 作为审计材料与契约回归输入。
+
+### §P5 加固（2026-05-01）
+
+新增三类 forbidden pattern，已写入 `tools/forbidden_translation_patterns.json` + 实现 + 契约：
+- **FP-7**：合成 source ID（应用于 `source` 字段）
+- **FP-8**：伪 Qt context（应用于 `context` 字段）
+- **FP-9**：Frankenstein 中英夹杂（白名单 + 启发式，仅在 zh-Hans / zh-Hant / ja_JP 命中）
+
+下任 agent 必须在 G-P 阶段执行：
+1. 跑 `tools/validate_translations.py` 对当前 HEAD `.inc` + `.ts` —— FP-7/8 必须 0 hit
+2. 跑同一 detector 对 `quarantine/cavalry-full-ui-100-fabrication-20260501` HEAD —— FP-7 ≥ 15,000、FP-8 ≥ 1,400、FP-9 ≥ 2,800 hit（必须命中）
+3. 当前 HEAD 的 FP-9 = 379（历史 Frankenstein 待修，**不算造假**，是 main 阶段就已存在的部分翻译 bug）
+
+### 当前可信进度
+
+| Gate | 状态 | 证据 |
+|---|---|---|
+| W-AUDIT / G-CAPTURE / G-X / G0 | PASS | 来自 b9e6c28 之前真实捕获 |
+| G1 JSON | PASS | 100% 覆盖（`51a0f27`） |
+| G-P / §P5 | **REOPENED** | 加固后须重跑回归 |
+| G2a 分母清洗 | UNVERIFIED | 上次 agent 的 3,395 干净分母分析需独立复算 |
+| G2b 编译 UI | 100/4743 | Batch1+Batch2 真翻译，剩余 ~4,643 待做 |
+| G3 运行时 UI | 部分 | 来自历史 main，含 379 条 Frankenstein 待修 |
+| G4 矩阵 | BLOCKED | 等 G2b/G3 |
 
 补充说明：
 
