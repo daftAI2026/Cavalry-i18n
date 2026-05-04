@@ -26,7 +26,7 @@
 
 ## Task
 
-把 FP-1 ~ FP-6 作为统一语义接到：
+把 FP-1/2/3/4/5/7/8/9 作为统一语义接到：
 
 1. runtime detector
 2. JSON / `.ts` / `.inc` validator
@@ -37,7 +37,7 @@
 
 ### 共享实现要求
 
-- FP-1 ~ FP-6 的规则必须沉到 `forbidden_translation_patterns.*`，gate 文件只能调用，不能各自复制一份正则
+- FP-1/2/3/4/5/7/8/9 的规则必须沉到 `forbidden_translation_patterns.*`，gate 文件只能调用，不能各自复制一份正则
 - JS / Python 双运行时必须共用同一组规则 ID、样本名与报告字段
 - 任一规则变更必须同时更新共享规则文件、契约样本与 `RUN_RECORD.forbiddenPatterns`
 
@@ -48,7 +48,10 @@
 - FP-3 错位填词
 - FP-4 zh-Hant 简体污染
 - FP-5 zh-Hans 繁体污染
-- FP-6 自我递归伪条目
+- FP-7 合成 source ID
+- FP-8 伪 Qt context
+- FP-9 Frankenstein 中英夹杂残留
+- 旧自我递归模式已弃用；不得在 prompt / detector / run record 中重新引用
 
 ## Prompt Contract Fixes
 

@@ -54,11 +54,11 @@ Quarantined branch    = quarantine/cavalry-full-ui-100-fabrication-20260501
 
 | Gate | 状态 | 证据 |
 |---|---|---|
-| W-AUDIT / G-CAPTURE / G-X / G0 | PASS | 来自 b9e6c28 之前真实捕获 |
-| G1 JSON | PASS | 100% 覆盖（`51a0f27`） |
-| G-P / §P5 | **REOPENED** | 加固后须重跑回归 |
+| W-AUDIT | PASS | 弱阈值 / preflight / libExtensionLayer 红灯已收紧 |
+| G-P / §P5 | **REOPENED** | FP-7/8/9 加固后须重跑回归；这是当前第一失败 gate |
+| G-CAPTURE / G-X / G0 / G1 | EVIDENCE-HELD | session 6C24D9C7 与 `51a0f27` 有历史可用证据，但须在 G-P / §P5 后 reverify |
 | G2a 分母清洗 | UNVERIFIED | 上次 agent 的 3,395 干净分母分析需独立复算 |
-| G2b 编译 UI | 100/4743 | Batch1+Batch2 真翻译，剩余 ~4,643 待做 |
+| G2b 编译 UI | 100/5195 | Batch1+Batch2 真翻译，剩余约 5,095 待做 |
 | G3 运行时 UI | 部分 | 来自历史 main，含 379 条 Frankenstein 待修 |
 | G4 矩阵 | BLOCKED | 等 G2b/G3 |
 
@@ -150,7 +150,7 @@ SOURCE_MAP  = ~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json
 
 ### W-P5
 
-- [ ] 固定 6 类 forbidden patterns
+- [ ] 固定 FP-1/2/3/4/5/7/8/9 forbidden patterns（无旧自我递归 ID）
 - [ ] 让 preflight / runtime / JSON gate 共用同一 detector 语义
 - [ ] `RUN_RECORD` 输出 `forbiddenPatterns`
 
@@ -170,7 +170,7 @@ Technical status:
 - [x] `run_live_full_ui_matrix.js` exists with AX-only fallback support
 - [x] Dylib injection: DYLD_INSERT_LIBRARIES unavailable (system-level dyld policy, not SIP)
 - [x] Fallback mechanism: AX capture produces full menu/widget inventory
-- [x] Menu items captured: 683 (en/zh-Hans/zh-Hant), 638 (ja_JP) >= 666 threshold ✓
+- [x] Raw capture produced all language inventories; frozen merged runtime denominator `menuLeaves = 734 >= 666`
 - [x] All 4 languages: en, zh-Hans, zh-Hant, ja_JP captured successfully
 - [x] Runtime inventory: present for all languages under session/runtime/
 - [x] Merged inventory: `capture.source = live-merged` and properly structured
@@ -180,11 +180,13 @@ Next step: Proceed to G-X (extraction inventory freeze)
 
 ### W-X
 
-- [ ] 产出 `SESSION_DIR/extraction-inventory.json`
+- [x] 产出 `SESSION_DIR/extraction-inventory.json`（session 6C24D9C7，5,880,554 bytes，frozen 2026-04-30T16:00:40Z）
+- [ ] `extraction-inventory.json` 顶层补齐 `target` 对象（当前缺失，仅 surface 级 metadata 已写）
 - [ ] version drift 后重新抽取 compiled source-map、runtime capture 与 extraction inventory，不复用旧分母
-- [ ] 固定 JSON lower bounds：10 / 6320 / 34 / 51 / total 6415
-- [ ] 固定 compiled source-map lower bound：entries >= 4743
-- [ ] 固定 runtime lower bounds：candidates >= 613、menuLeaves >= 666
+- [x] 固定 JSON lower bounds：10 / 6320 / 34 / 51 / total 6415
+- [x] 固定 compiled source-map lower bound：entries >= 5195（Cavalry 2.7.1；2.7.0 时为 4743）
+- [x] `tools/verify_gate_inputs.js` 已使用 `'compiled-source-map': 5195`
+- [x] 固定 runtime lower bounds：candidates >= 613、menuLeaves >= 666
 - [ ] G1/G2/G3/G4 统一读取 frozen denominator
 
 ### W0

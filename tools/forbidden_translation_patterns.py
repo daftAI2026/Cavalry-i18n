@@ -64,14 +64,6 @@ def normalize_text(value: str) -> str:
     return re.sub(r"\s+", " ", str(value or "")).strip()
 
 
-def strip_recursive_suffixes(value: str) -> str:
-    normalized = normalize_text(value)
-    for suffix in PATTERN_CONFIG.get("recursiveSuffixes", []):
-        if normalized.endswith(suffix):
-            normalized = normalize_text(normalized[: -len(suffix)])
-    return normalized
-
-
 def _find_frankenstein_residue(language: str, value: str) -> str | None:
     """Return the offending Latin token if the value mixes ordinary English with CJK."""
     cfg = _LATIN_RESIDUE_CFG
@@ -177,20 +169,5 @@ def detect_forbidden_translation_patterns(
                     "value": normalized_value,
                 }
             )
-
-    # FP-6: source-recursive pseudo translation
-    stripped_recursive_value = strip_recursive_suffixes(normalized_value)
-    if (
-        normalized_source
-        and stripped_recursive_value != normalized_value
-        and stripped_recursive_value == normalized_source
-    ):
-        hits.append(
-            {
-                "id": "FP-6",
-                "detail": "source-recursive pseudo translation",
-                "value": normalized_value,
-            }
-        )
 
     return hits

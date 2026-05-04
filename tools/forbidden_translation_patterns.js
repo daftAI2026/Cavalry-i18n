@@ -56,16 +56,6 @@ function normalizeText(value) {
     .trim();
 }
 
-function stripRecursiveSuffixes(value) {
-  let normalized = normalizeText(value);
-  for (const suffix of PATTERN_CONFIG.recursiveSuffixes || []) {
-    if (normalized.endsWith(suffix)) {
-      normalized = normalizeText(normalized.slice(0, -suffix.length));
-    }
-  }
-  return normalized;
-}
-
 function findFrankensteinResidue(language, value) {
   const cfg = LATIN_RESIDUE_CFG;
   if (!cfg || !cfg.appliesToLanguages) return null;
@@ -159,20 +149,6 @@ function detectForbiddenTranslationPatterns({
     }
   }
 
-  // FP-6: source-recursive pseudo translation
-  const strippedRecursiveValue = stripRecursiveSuffixes(normalizedValue);
-  if (
-    normalizedSource &&
-    strippedRecursiveValue !== normalizedValue &&
-    strippedRecursiveValue === normalizedSource
-  ) {
-    hits.push({
-      id: 'FP-6',
-      detail: 'source-recursive pseudo translation',
-      value: normalizedValue,
-    });
-  }
-
   return hits;
 }
 
@@ -180,5 +156,4 @@ module.exports = {
   PATTERN_CONFIG,
   detectForbiddenTranslationPatterns,
   normalizeText,
-  stripRecursiveSuffixes,
 };

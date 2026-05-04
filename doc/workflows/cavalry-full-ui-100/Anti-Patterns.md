@@ -96,7 +96,7 @@
 | `languages/en/onboarding.json` | 34 leaves |
 | `languages/en/tips.json` | 51 leaves |
 | JSON total | 6415 leaves |
-| compiled source-map | 4743 entries |
+| compiled source-map | 5195 entries（Cavalry 2.7.1；2.7.0 时为 4743） |
 | runtime AX menuBars | >= 500 |
 | runtime AX widgetTexts | >= 200 |
 

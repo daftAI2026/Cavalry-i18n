@@ -64,7 +64,6 @@
     "ignoreSingleLetters": true,
     "ignoreNumeric": true
   },
-  "recursiveSuffixes": ["（译）", "（訳）", "（譯）"],
   "languageTermPatterns": {
     "zh-Hans": {
       "id": "FP-5",

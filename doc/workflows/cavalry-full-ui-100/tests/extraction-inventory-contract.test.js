@@ -100,3 +100,48 @@ test('G-X preflight emits WEAK-CAPTURE when runtime counts miss frozen lower bou
   assert.match(`${result.stdout}\n${result.stderr}`, /runtime-candidates/);
   assert.match(`${result.stdout}\n${result.stderr}`, /runtime-menuLeaves/);
 });
+
+test('G-X preflight rejects Cavalry 2.7.1 compiled source maps below 5195 entries', () => {
+  const tempRoot = makeTempDir();
+  const sessionDir = path.join(tempRoot, 'session');
+  const sourceMapPath = path.join(tempRoot, 'compiled-ui-source-map.json');
+  const extractionPath = path.join(sessionDir, 'extraction-inventory.json');
+
+  fs.mkdirSync(sessionDir, { recursive: true });
+  writeJson(path.join(tempRoot, 'package.json'), { scripts: {} });
+  writeJson(sourceMapPath, {
+    entries: new Array(5194).fill({ normalizedText: 'Scene Window' }),
+  });
+  writeJson(extractionPath, {
+    surfaces: {
+      'languages/en/appStrings.json': { count: 10 },
+      'languages/en/nodeStrings.json': { count: 6320 },
+      'languages/en/onboarding.json': { count: 34 },
+      'languages/en/tips.json': { count: 51 },
+      'json-total': { count: 6415 },
+      'compiled-source-map': { count: 5194 },
+      'runtime-candidates': { count: 613 },
+      'runtime-menuLeaves': { count: 666 },
+    },
+  });
+
+  const result = spawnSync(
+    process.execPath,
+    [
+      verifyGateInputsPath,
+      '--repo-root',
+      tempRoot,
+      '--session-dir',
+      sessionDir,
+      '--compiled-source-map',
+      sourceMapPath,
+      '--extraction-inventory',
+      extractionPath,
+    ],
+    { encoding: 'utf8' }
+  );
+
+  assert.equal(result.status, 1, 'preflight should fail below the Cavalry 2.7.1 compiled lower bound');
+  assert.match(`${result.stdout}\n${result.stderr}`, /compiled-source-map/);
+  assert.match(`${result.stdout}\n${result.stderr}`, /5194 < 5195/);
+});

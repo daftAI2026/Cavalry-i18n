@@ -48,7 +48,7 @@ PASS 条件：
 
 - JSON / compiled / runtime 三类 surface 全部存在
 - JSON lower bounds 达到 `10 / 6320 / 34 / 51 / total 6415`
-- compiled source-map entries `>= 4743`
+- compiled source-map entries `>= 5195`（Cavalry 2.7.1 raw extraction；2.7.0 时为 4743）
 - runtime candidates `>= 613` 且 menu leaves `>= 666`，下界来自 A9B11073 合格基线
 - `RUN_RECORD.extractionInventory.path/hash/mtime` 已记录
 
@@ -95,7 +95,7 @@ PASS 条件：
 
 - `tools/verify_gate_inputs.js --section P5` 在干净 main 上通过
 - `archive/cavalry-full-ui-100-v2-invalidated-20260428` 污染样本全部失败
-- runtime / compiled / `.ts` / `.inc` / JSON 任意命中 `（译）`、全角拉丁、`页:N`、简繁串味、source==translation 自我递归时，gate exit 非 `0`
+- runtime / compiled / `.ts` / `.inc` / JSON 任意命中 FP-1/2/3/4/5/7/8/9 时，gate exit 非 `0`
 
 ---
 

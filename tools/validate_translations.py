@@ -926,7 +926,7 @@ def build_report(root: Path, extraction_inventory_path: Path | None = None) -> d
         "B13": {
             "name": "Forbidden patterns",
             "status": gate_status(b13_ok),
-            "detail": "FP-1 through FP-6 must hard-fail across JSON, TS, and generated injector outputs.",
+            "detail": "FP-1/2/3/4/5/7/8/9 must hard-fail across JSON, TS, and generated injector outputs.",
         },
     }
 

@@ -17,7 +17,7 @@ const EXTRACTION_LOWER_BOUNDS = {
   'languages/en/onboarding.json': 34,
   'languages/en/tips.json': 51,
   'json-total': 6415,
-  'compiled-source-map': 4743,
+  'compiled-source-map': 5195,
   'runtime-candidates': 613,
   'runtime-menuLeaves': 666,
 };

@@ -1896,7 +1896,7 @@ test('runtime allowlist keeps glossary-preserved brands and acronyms out of bloc
   );
 });
 
-test('shared forbidden translation detector covers FP-1 through FP-6', () => {
+test('shared forbidden translation detector covers the current FP set without legacy FP-6', () => {
   const detectorPath = path.join(repoRoot, 'tools', 'forbidden_translation_patterns.js');
   const { detectForbiddenTranslationPatterns } = require(detectorPath);
 
@@ -1920,26 +1920,14 @@ test('shared forbidden translation detector covers FP-1 through FP-6', () => {
     detectForbiddenTranslationPatterns({ language: 'zh-Hans', value: '圖層' }).map((hit) => hit.id),
     ['FP-5']
   );
-  assert.match(
-    detectForbiddenTranslationPatterns({
-      language: 'zh-Hans',
-      sourceText: 'Upload Preset Manager',
-      value: 'Upload Preset Manager（译）',
-    })
-      .map((hit) => hit.id)
-      .join(','),
-    /FP-1[\s\S]*FP-6|FP-6[\s\S]*FP-1/,
-    'shared detector should treat source-recursive pseudo entries as a dedicated hard-fail pattern'
-  );
-  assert.equal(
-    detectForbiddenTranslationPatterns({
-      language: 'zh-Hans',
-      sourceText: 'CPU',
-      value: 'CPU',
-    }).some((hit) => hit.id === 'FP-6'),
-    false,
-    'shared detector should not label legitimate glossary-preserved terms as source-recursive pseudo translations'
-  );
+  const placeholderHits = detectForbiddenTranslationPatterns({
+    language: 'zh-Hans',
+    sourceText: 'Upload Preset Manager',
+    value: 'Upload Preset Manager（译）',
+  }).map((hit) => hit.id);
+  assert.ok(placeholderHits.includes('FP-1'));
+  assert.ok(placeholderHits.includes('FP-9'));
+  assert.equal(placeholderHits.includes('FP-6'), false, 'legacy FP-6 must not be emitted');
 });
 
 test('runtime and JSON validators import the shared forbidden translation detector', () => {

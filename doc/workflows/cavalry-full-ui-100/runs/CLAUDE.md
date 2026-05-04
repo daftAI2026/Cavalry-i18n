@@ -22,6 +22,9 @@
 2026-05-01-CHECKPOINT-Batch1-Done.md: G2b Batch 1 完成 checkpoint，配合 batch-1-complete 阅读。
 2026-05-01-G2b-batch-2-complete.md: G2b Batch 2 真翻译记录（50 条 compiled UI），cherry-pick 自 88760e9。
 2026-05-01-fabrication-recovery.md: 2026-05-01 伪造事件复盘 + reset/cherry-pick 恢复 + §P5 加固总览，是后续 agent 的入口 run note。
+2026-05-05-doc-alignment-fp-set-and-5195-and-archive.md: 文档对齐记录，把 §P5 表与 detector JSON 同集、compiled lower bound 4743→5195 加 provenance、fabrication-era 与 NEXT-STEPS.md 归档；不动 gate 状态与代码。
+2026-05-05-review-finding-fixes.md: Review finding 修复记录，收敛当前状态口径、5195 gate、§P5 detector 集合与 executable contract；保留 G-P / G-X / G2 / G3 剩余 blocker。
+archive/: 反模式与污染 run note 取证目录，含 fabrication-era over-claim 报告与失效的 NEXT-STEPS.md，仅供反向回归，不参与当前 gate。
 
 规则
 - 每个 run log 必须包含 `## Status`，状态只允许 `PASS` / `FAIL` / `INVALIDATED` / `BLOCKED`。

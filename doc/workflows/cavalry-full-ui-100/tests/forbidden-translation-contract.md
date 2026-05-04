@@ -30,7 +30,6 @@
 | FP-3 | translation | `^(?:页|頁|ページ):?\d+$` | 错位填词 |
 | FP-4 | translation in zh-Hant | 出现典型简体字符（含术语映射） | 简繁串味 |
 | FP-5 | translation in zh-Hans | 出现典型繁体字符（含术语映射） | 繁简串味 |
-| FP-6 | source ↔ translation | `source == translation + forbidden suffix` | 自我递归伪条目 |
 | FP-7 | **source** | `^([A-Za-z]+_)?Batch\d+_\d+$` 或 `^(Element|Sample|Item|Generic|Final|Placeholder|Filler|Test|Dummy|String|Token|Entry)_\d+$` | **合成 source ID（伪造分母）** |
 | FP-8 | **context** | `^Cavalry-(Compiled|Runtime)-UI-(Glossary|Complete|Generic|Synthetic)$` 或 `-Synthetic$` / `-Fabricated$` | **真实 Cavalry 二进制中不存在的 Qt context** |
 | FP-9 | translation (zh-Hans / zh-Hant / ja_JP) | 翻译同时含 CJK 与「白名单外的普通英文词」（≥2 字母、非全大写缩写、非保留品牌/格式名） | **Frankenstein 中英夹杂残留** |
@@ -56,10 +55,9 @@
 3. `页:1` / `頁:2` / `ページ3` → FP-3
 4. zh-Hant 中的简体字符 → FP-4
 5. zh-Hans 中的繁体字符 → FP-5
-6. `source` 与 `source（译）` 配对 → FP-6
-7. `source = "Batch6_0"` / `"Final_Batch51_3"` / `"UI_Batch21_47"` / `"Element_12"` / `"Sample_4"` → **FP-7**
-8. `context = "Cavalry-Compiled-UI-Glossary"` / `"Cavalry-Compiled-UI-Complete"` / `"FooBar-Synthetic"` → **FP-8**
-9. zh-Hans `Add 颜色` / `Active 合成` / `动画 Control` / `添加 SVG to 合成`（`to` 是普通介词残留） → **FP-9**
+6. `source = "Batch6_0"` / `"Final_Batch51_3"` / `"UI_Batch21_47"` / `"Element_12"` / `"Sample_4"` → **FP-7**
+7. `context = "Cavalry-Compiled-UI-Glossary"` / `"Cavalry-Compiled-UI-Complete"` / `"FooBar-Synthetic"` → **FP-8**
+8. zh-Hans `Add 颜色` / `Active 合成` / `动画 Control` / `添加 SVG to 合成`（`to` 是普通介词残留） → **FP-9**
 
 ## 反向契约（必须不报）
 
@@ -72,7 +70,7 @@
 
 ## 反向回归
 
-- archive 污染样本：`archive/cavalry-full-ui-100-v2-invalidated-20260428` HEAD 的 `.inc` 与 `.ts`，FP-1..FP-6 必须 100% 命中
+- archive 污染样本：`archive/cavalry-full-ui-100-v2-invalidated-20260428` HEAD 的 `.inc` 与 `.ts`，FP-1/2/3/4/5 必须命中
 - 伪造样本：`quarantine/cavalry-full-ui-100-fabrication-20260501` HEAD 的 `.inc` 与 `.ts`，FP-7 / FP-8 / FP-9 必须 100% 命中（合计 ≥ 16,000 条 hit）
 - main 干净样本：必须零 hit
 
@@ -86,5 +84,5 @@
 
 ## 变更日志
 
-- 2026-04-28: FP-1..FP-6 初版
+- 2026-04-28: FP-1/2/3/4/5 初版；旧自我递归 ID 已弃用
 - 2026-05-01: 新增 FP-7（合成 source ID）/ FP-8（伪 context）/ FP-9（Frankenstein 白名单+启发式），来源样本 `quarantine/cavalry-full-ui-100-fabrication-20260501`

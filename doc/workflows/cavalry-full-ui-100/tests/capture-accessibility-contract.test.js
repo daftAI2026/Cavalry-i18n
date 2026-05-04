@@ -1,3 +1,10 @@
+/**
+ * [INPUT]: 依赖 tools/capture_accessibility_inventory.js 的 buildAccessibilityInventory 递归构造能力
+ * [OUTPUT]: 对外提供 AX submenu 与 visible widget text 保真契约测试
+ * [POS]: full-ui-100 tests 的 G-CAPTURE executable contract，防止递归菜单证据退化
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const path = require('node:path');

@@ -27,7 +27,7 @@
 先读 [`Anti-Patterns.md`](./Anti-Patterns.md)。它只保留三类反模式，不把历史版本号当成当前设计：
 
 - **Out-of-Band Truth**：fixture / curated / cache 残留替代真实输入
-- **Counterfeit Form**：占位标记 / 全角拉丁 / 错位填词 / 自我递归伪翻译
+- **Counterfeit Form**：占位标记 / 全角拉丁 / 错位填词 / 简繁串味 / 合成 source / 伪 context / Frankenstein 残留
 - **Denominator Shrink**：merge 丢项、source-map 子集、allowlist 污染导致分母缩水
 
 当前第一任务不是继续翻译，而是先确认 target identity。Cavalry / Qt / bundle hash 变化时，旧分母立即作废，必须先重新抽取 compiled source map、重新 live runtime capture、重新执行 G-CAPTURE + G-X freeze。之后才继续处理 legacy weak threshold、0.90 JSON gate、缺 G-P preflight、缺 §P5 runtime detector、缺 `libExtensionLayer.dylib` owner 等 RED/GREEN 项。
@@ -87,7 +87,7 @@
 - ❌ 不允许写一段 JS / Python / shell 代码，对英文字符串"自动翻译"，不论是查词表、查 glossary、查 dict、走 IME 还是任何离线方案
 - ❌ 不允许把英文字符全角化（U+FF21-U+FF3A / U+FF41-U+FF5A）冒充翻译（`Alpha → Ａｌｐｈａ`、`RGB → ＲＧＢ`）
 - ❌ 不允许给已翻译的字符串再加 `（译）/（訳）/（譯）` 占位标记
-- ❌ 不允许在 source == translation 仅末尾差一个标记的伪条目（自我递归）
+- ❌ 不允许保留白名单外普通英文 token 与 CJK 混写的 Frankenstein 部分翻译
 - ❌ 不允许把不该翻译的品牌名 / 缩写 / 技术术语 / 变量名 / 视频格式名"伪翻译"
 - ✅ 翻译引擎**只允许 LLM**，输入必须是：
   - [`doc/translation-guidelines.md`](../../translation-guidelines.md)
@@ -102,7 +102,7 @@
 - ❌ 不允许把全角拉丁字母（U+FF21-U+FF3A / U+FF41-U+FF5A）从 forbidden set 移除
 - ❌ 不允许把 `^(?:页|頁|ページ):?\d+$` 错位填词模式从 forbidden set 移除
 - ❌ 不允许把简繁串味检测改成 warn-only
-- ❌ 不允许把 source==translation 自我递归检测改成 warn-only
+- ❌ 不允许把 FP-7 / FP-8 / FP-9 fabrication 检测改成 warn-only
 - ❌ 不允许在 detector 上游加"如果 string 全是中文/日文就跳过 §P5"这种短路
 - ✅ §P5 命中只允许有一种处理：**hard-fail 整轮**
 
@@ -311,7 +311,7 @@ if [ "$CACHE_POLLUTED" -eq 1 ]; then
 fi
 
 # 5b. §P5 Forbidden-Translation pre-check
-#     译标记 / 全角拉丁 / 错位填词 / 简繁串味 / 自我递归
+#     译标记 / 全角拉丁 / 错位填词 / 简繁串味 / 合成 source / 伪 context / Frankenstein 残留
 #     任意命中说明 worktree 带历史污染或新污染，必须先清
 echo "=== §P5 forbidden-translation scan (repo assets) ==="
 rg -n '（译）|（訳）|（譯）' \
@@ -371,7 +371,7 @@ cat .github/workflows/build.yml
 | [`00-bootstrap-context`](./prompts/00-bootstrap-context.md) | bootstrap | 冷启动阅读，建立全局认知 | — |
 | [`01-audit-and-gate-hardening`](./prompts/01-audit-and-gate-hardening.md) | W-AUDIT | whitelist-filtered 100、legacy weak-threshold 拒绝、preflight hard-fail contract | W-AUDIT |
 | [`03-provenance-gate`](./prompts/03-provenance-gate.md) | W-P | verify_gate_inputs.js + session-dir / provenance contract | G-P |
-| [`04-forbidden-translation-detector`](./prompts/04-forbidden-translation-detector.md) | W-P5 | §P5 6 类 FP 实装 + detector wiring（在 G-P 之后） | §P5 |
+| [`04-forbidden-translation-detector`](./prompts/04-forbidden-translation-detector.md) | W-P5 | §P5 FP-1/2/3/4/5/7/8/9 实装 + detector wiring（在 G-P 之后） | §P5 |
 | [`07-runtime-capture-toolchain`](./prompts/07-runtime-capture-toolchain.md) | W-CAPTURE | English dump-only + AX 抓取 + 合并 + live matrix 编排 | G-CAPTURE |
 | [`02-extraction-inventory-freeze`](./prompts/02-extraction-inventory-freeze.md) | W-X | 冻结 JSON + compiled + runtime 完整英文分母 | G-X |
 | [`05-measurement-integrity`](./prompts/05-measurement-integrity.md) | W0 | 默认阈值冻结 + runtime metadata + CI 接线 | G0 |

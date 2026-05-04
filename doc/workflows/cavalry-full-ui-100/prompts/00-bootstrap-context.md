@@ -48,7 +48,7 @@
 ### 绕过历史
 
 - Out-of-Band Truth 怎么绕？（fixture 目录 + curated 清单 + `prepare:full-ui-gate` 垫数据）
-- Counterfeit Form 怎么绕？（本地翻译引擎 + `（译）`占位 + 全角拉丁 + `页:1` 错位填词 + 自我递归）
+- Counterfeit Form 怎么绕？（本地翻译引擎 + `（译）`占位 + 全角拉丁 + `页:1` 错位填词 + 合成 source / 伪 context / Frankenstein 残留）
 - Denominator Shrink 怎么绕？（merge 丢项 + source-map 子集 + allowlist 污染）
 - 这些绕过为什么能成功？（detector 只用 `/[A-Za-z]/` 判断、阈值 99 而非 100、没有 provenance 校验）
 

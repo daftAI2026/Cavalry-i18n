@@ -141,7 +141,7 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 - [x] runtime walk 主动覆盖多个 UI 面
 - [x] `RUN_RECORD.target` 与所有 runtime capture 的 `capture.bundleHash/sessionUuid` 一致
 - [x] AX menu capture 成功：所有语言捕获到 menu bars 与 widget texts
-- [x] Menu items count = 683 (en/zh-Hans/zh-Hant) / 638 (ja_JP) >= 666 ✓
+- [x] Raw capture produced menu/widget inventories for all languages; frozen merged runtime denominator records `runtime.menuLeaves = 734 >= 666`
 - [x] All 4 languages captured: en, zh-Hans, zh-Hant, ja_JP
 - [x] `capture.source = live-merged` ✓
 
@@ -172,7 +172,7 @@ WHITELIST    = REPO/tools/translation-whitelist.json
   - [x] `runtime.candidates >= 613` (实现: 626)
   - [x] `runtime.menuLeaves >= 666` (实现: 734)
   - [x] `capture.source = live-merged` (实现)
-  - [ ] `capture.bundleHash = ec5ab60c4cc33fd1f57364e7e7660dd44bd7fcc979d0417e1451114f2b9e48f9` (当前: test-enhanced，不同的 app 版本)
+  - [x] `capture.bundleHash = a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1`
 
 ### 失败条件
 
@@ -189,18 +189,27 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 
 ### 当前状态
 
-**✓ PASS — G-X** (2026-04-30 22:46 UTC)
+**EVIDENCE-HELD — G-X reverify required** (frozen at 2026-04-30T16:00:40Z UTC)
 
-Extraction inventory frozen at: `/tmp/ax-enhanced-1777559593/extraction-inventory.json`
+Extraction inventory frozen at:
+`~/Library/Caches/Cavalry-i18n/sessions/6C24D9C7-8342-41CA-BBE5-182E97B0BDD8/extraction-inventory.json`
+（5,880,554 bytes，session 与 G-CAPTURE merged inventories 同 UUID）
+
+> 之前文档曾把 frozen path 写成 `/tmp/ax-enhanced-1777559593/extraction-inventory.json`，
+> 实测该路径不存在；真 frozen 产物始终在 `$SESSION_DIR/`，已按 Artifact Contract 修正。
 
 **已验证：**
 - [x] All surfaces meet frozen lower bounds
 - [x] JSON surfaces: appStrings (10 ✓), nodeStrings (6320 ✓), onboarding (34 ✓), tips (51 ✓), total (6415 ✓)
-- [x] Compiled source-map: 5195 >= 4743 ✓
+- [x] Compiled source-map: 5195 ✓（Cavalry 2.7.1 真 extraction，见下方 frozen lower bound 提升说明）
 - [x] Runtime candidates: 626 >= 613 ✓
 - [x] Runtime menuLeaves: 734 >= 666 ✓
 - [x] All four languages have merged inventories: en, ja_JP, zh-Hans, zh-Hant
-- [x] Target identity recorded: Cavalry 2.7.1, Qt 6.6.3
+- [x] Target identity recorded: Cavalry 2.7.1, Qt 6.6.3, bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1
+
+**已知未闭合 gap（当前证据可保留，但下一轮 G-X reverify 必须修正）：**
+- `extraction-inventory.json` 顶层缺 `target` 对象（仅 surface 级 sessionUuid / frozenAtUtc / hash 已写）
+- `tools/verify_gate_inputs.js` 必须以 `compiled-source-map >= 5195` 为当前 Cavalry 2.7.1 下界
 
 ### Artifact schema
 
@@ -221,18 +230,20 @@ Extraction inventory frozen at: `/tmp/ax-enhanced-1777559593/extraction-inventor
 
 ### Frozen lower bounds
 
-| Surface | 通过下界 |
-| --- | ---: |
-| `languages/en/appStrings.json` | >= 10 leaves |
-| `languages/en/nodeStrings.json` | >= 6320 leaves |
-| `languages/en/onboarding.json` | >= 34 leaves |
-| `languages/en/tips.json` | >= 51 leaves |
-| JSON total | >= 6415 leaves |
-| `SOURCE_MAP.entries` | >= 4743 entries |
-| runtime candidates | >= 613 |
-| runtime menuLeaves | >= 666 |
+| Surface | 通过下界 | Provenance |
+| --- | ---: | --- |
+| `languages/en/appStrings.json` | >= 10 leaves | Cavalry 2.7.1 app bundle |
+| `languages/en/nodeStrings.json` | >= 6320 leaves | repo English baseline |
+| `languages/en/onboarding.json` | >= 34 leaves | repo English baseline |
+| `languages/en/tips.json` | >= 51 leaves | repo English baseline |
+| JSON total | >= 6415 leaves | 上述四项之和 |
+| `SOURCE_MAP.entries` | >= 5195 entries | `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` extracted 2026-04-30T08:48:19Z by `tools/extract_compiled_ui_strings.js` against Cavalry 2.7.1 bundleHash `a421e013…` |
+| runtime candidates | >= 613 | A9B11073 anti-regression floor |
+| runtime menuLeaves | >= 666 | A9B11073 anti-regression floor |
 
-> `runtime candidates >= 613` / `runtime menuLeaves >= 666` 是 A9B11073 的 anti-regression floor，不是完整 UI 完成线。G-X 还必须冻结 JSON 6415、compiled source-map 4743，并记录 compiled raw audit。compiled raw `767 / 1580 / 407 / 34046` 未在当前脚本口径下复现，不能作为 gate 常量，除非补上对应 artifact provenance。
+> compiled lower bound 已从 4743（Cavalry 2.7.0 baseline）提升到 5195（Cavalry 2.7.1 raw extraction），属于版本驱动的 denominator 升迁，不是污染。提升记录见 `runs/2026-05-01-CHECKPOINT-Batch1-Done.md`；首次代码侧落地在 `0dbafdf`（已随 fabrication 分支 reset 丢失，需要在 recovery 线上重做 `tools/verify_gate_inputs.js`）。
+
+> `runtime candidates >= 613` / `runtime menuLeaves >= 666` 是 A9B11073 的 anti-regression floor，不是完整 UI 完成线。G-X 还必须冻结 JSON 6415、compiled source-map 5195，并记录 compiled raw audit。compiled raw `767 / 1580 / 407 / 34046` 未在当前脚本口径下复现，不能作为 gate 常量，除非补上对应 artifact provenance。
 
 ### Runtime walk scope
 
@@ -252,10 +263,10 @@ runtime 抽取必须主动覆盖：
 - [x] 每个 surface 的 `count` 达到 frozen lower bounds
 - [x] runtime lower bound 使用 `candidates/menuLeaves`，不再使用 `menuBars/widgetTexts` 这种结构字段
 - [x] `RUN_RECORD.extractionInventory.path/hash/mtime` 已记录
-- [x] `RUN_RECORD.target`、`SOURCE_MAP.target`、`EXTRACTION.target`、runtime `capture.bundleHash` 全部指向同一当前 app
+- [ ] `RUN_RECORD.target`、`SOURCE_MAP.target`、`EXTRACTION.target`、runtime `capture.bundleHash` 全部指向同一当前 app（当前 frozen artifact 缺顶层 `EXTRACTION.target`）
 - [x] G1/G2/G3/G4 读取的分母等于 `EXTRACTION.englishLeaves`
 - [x] `EXTRACTION` 写入后 hash 不再变化，后续 gate 只读不写
-- [x] 翻译 prompt 启动前必须验证 `EXTRACTION` 已 PASS
+- [ ] 翻译 prompt 启动前必须验证当前 G-X reverify 已 PASS
 
 ### 失败条件
 
@@ -316,14 +327,21 @@ runtime 抽取必须主动覆盖：
 
 ### Forbidden Pattern Set
 
-| ID | 模式 | 说明 |
-| --- | --- | --- |
-| FP-1 | `（译）` / `（訳）` / `（譯）` | 占位标记 |
-| FP-2 | `[\uFF21-\uFF3A\uFF41-\uFF5A]` | 全角拉丁字母 |
-| FP-3 | `^(?:页|頁|ページ):?\d+$` | 错位填词 |
-| FP-4 | zh-Hant 中出现典型简体字符 | 简繁串味 |
-| FP-5 | zh-Hans 中出现典型繁体字符 | 繁简串味 |
-| FP-6 | source 与 translation 构成自我递归伪条目 | 伪翻译 |
+> 真相源：`tools/forbidden_translation_patterns.json`。本表必须与该 JSON 保持同集；
+> 任何新增 / 删除 / 改名都先改 JSON、再改本表，最后回写 run note。
+
+| ID | 模式 | 说明 | appliesTo |
+| --- | --- | --- | --- |
+| FP-1 | `（译）` / `（訳）` / `（譯）` | 占位标记 | translation |
+| FP-2 | `[\uFF21-\uFF3A\uFF41-\uFF5A]` | 全角拉丁字母 | translation |
+| FP-3 | `^(?:页|頁|ページ):?\d+$` | 错位填词 | translation |
+| FP-4 | zh-Hant 中出现典型简体字符 | 简繁串味 | translation |
+| FP-5 | zh-Hans 中出现典型繁体字符 | 繁简串味 | translation |
+| FP-7 | 合成 source ID（`Batch6_0` / `Element_X` / `Sample_X` / …） | 伪造分母（fabrication 残留） | source |
+| FP-8 | 伪 Qt context（`Cavalry-Compiled-UI-Glossary` / `*-Synthetic` / `*-Fabricated`） | 真实二进制中不存在的 context | context |
+| FP-9 | translation 中保留普通英文 token（白名单 + 启发式） | Frankenstein 部分翻译 | translation（zh-Hans / zh-Hant / ja_JP）|
+
+> 旧自我递归模式已弃用：这类问题被 FP-9 的 Frankenstein 检测吸收（任意非 reservedTokens 英文残留即 hard-fail），不再单列 ID。如需重启该模式，必须先在本表声明并落到 JSON。
 
 ### 通过条件
 

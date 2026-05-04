@@ -39,7 +39,7 @@ Cavalry version、Qt version、bundle hash 是 denominator 的组成部分；任
 | `languages/en/onboarding.json` | >= 34 leaves |
 | `languages/en/tips.json` | >= 51 leaves |
 | JSON total | >= 6415 leaves |
-| `SOURCE_MAP.entries` | >= 4743 entries |
+| `SOURCE_MAP.entries` | >= 5195 entries（Cavalry 2.7.1；2.7.0 时为 4743） |
 | runtime candidates | >= 613 |
 | runtime menuLeaves | >= 666 |
 
@@ -62,7 +62,7 @@ Runtime 下界来自本机合格基线 session `A9B11073-A9E6-4E1C-A6B2-59BBEA94
 
 1. 缺 `extraction-inventory.json` 时，translation prompt preflight 必须 fail。
 2. 任一 JSON lower bound 不足时，G-X 必须 fail。
-3. `SOURCE_MAP.entries < 4743` 时，G-X 必须 fail。
+3. `SOURCE_MAP.entries < 5195` 时，G-X 必须 fail（Cavalry 2.7.1 frozen lower bound；2.7.0 时为 4743）。
 4. runtime candidates/menuLeaves 下界不足时，G-X 必须输出 `WEAK-CAPTURE` 并 fail。
 5. G1/G2/G3/G4 若使用非 frozen denominator，必须 fail。
 6. `extraction-inventory.json` hash 在后续 gate 中变化，必须 invalidate 当前 run。
