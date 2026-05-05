@@ -36,3 +36,6 @@ UI 真相源只在 `desktop-patcher/renderer/` 三文件；迁移不得改 DOM�
 2026-04-28 - 将 `translation-whitelist.json` 移入 `tools/` 作为版本化 gate 契约；compiled source map 改为 `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` 生成物，`doc/` 回归本地文档目录。
 2026-04-30 - 当前 Cavalry 目标升级到 2.7.1，Qt 仍为 6.6.3；full-ui 分母需重新抽取、捕获与冻结。
 2026-04-30 - Cavalry 2.7.1 app bundle 新增 6 条 `appStrings` GPU 文案；JSON lower bound 提升到 10 / 6320 / 34 / 51 / total 6415。
+2026-05-05 - full-ui G-P/§P5 reverify：npm runtime/full-ui scripts 改为 `SESSION_DIR/runtime/*` 输入，validator 保留 TS/generated context 以命中 FP-8。
+2026-05-05 - 播种 `languages/CLAUDE.md`，记录 JSON 语言包结构同构边界；清理三语 JSON/TS FP-9 半翻译残留并同步 generated injector 表。
+2026-05-05 - G-CAPTURE/G-X reverify：runtime 编排器解析真实 launcher PID 并拒绝弱抓取，AX audit 记录 submenu 证据，extraction inventory 写顶层 target。

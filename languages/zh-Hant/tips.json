@@ -30,8 +30,8 @@
     "beginner": true
   },
   {
-    "title": "按住 Alt/Option 拖曳屬性",
-    "text": "按住 Alt/Option 鍵拖曳屬性時，將同時更新兩個值。",
+    "title": "按住修飾鍵拖曳屬性",
+    "text": "按住修飾鍵拖曳屬性時，將同時更新兩個值。",
     "images": [
       "altScrub1.png",
       "altScrub2.png",

@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 languages/en JSON、compiled source-map、live runtime inventory、cavalry_qt_target.json 与 runtime allowlist
+ * [OUTPUT]: 对外提供 SESSION_DIR/extraction-inventory.json，并把 frozen denominator provenance 写回 RUN_RECORD
+ * [POS]: tools 的 G-X freeze 器，统一 JSON/compiled/runtime 英文分母供 G1/G2/G3/G4 只读消费
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -268,6 +274,41 @@ function buildRuntimeSurfaces(runtimeInventoryPath, allowlistPath, extractor, fr
   };
 }
 
+function inferAppPathFromSourceMap(sourceMap) {
+  const candidates = [
+    ...(sourceMap.compiledUiTargets || []),
+    ...(sourceMap.entries || []).map((entry) => entry.source || entry.sourcePath || ''),
+  ];
+
+  for (const candidate of candidates) {
+    const marker = '.app';
+    const markerIndex = String(candidate).indexOf(marker);
+    if (markerIndex === -1) {
+      continue;
+    }
+    return String(candidate).slice(0, markerIndex + marker.length);
+  }
+
+  return '';
+}
+
+function buildTargetIdentity({ repoRoot, compiledSourceMapPath, runtimeInventoryPath }) {
+  const sourceMap = readJson(compiledSourceMapPath);
+  const runtimeInventory = readJson(runtimeInventoryPath);
+  const targetConfigPath = path.join(repoRoot, 'tools', 'cavalry_qt_target.json');
+  const targetConfig = fs.existsSync(targetConfigPath) ? readJson(targetConfigPath) : {};
+  const sourceTarget = sourceMap.target || {};
+  const capture = runtimeInventory.capture || {};
+
+  return {
+    cavalryVersion:
+      String(sourceTarget.cavalryVersion || sourceMap.bundleVersion || targetConfig.cavalryVersion || ''),
+    qtVersion: String(sourceTarget.qtVersion || targetConfig.qtVersion || ''),
+    bundleHash: String(sourceTarget.bundleHash || capture.bundleHash || ''),
+    appPath: String(sourceTarget.appPath || inferAppPathFromSourceMap(sourceMap)),
+  };
+}
+
 function buildExtractionInventory(options) {
   const frozenAtUtc = new Date().toISOString();
   const extractor = {
@@ -284,10 +325,16 @@ function buildExtractionInventory(options) {
       frozenAtUtc
     ),
   };
+  const target = buildTargetIdentity({
+    repoRoot: options.repoRoot,
+    compiledSourceMapPath: options.compiledSourceMap,
+    runtimeInventoryPath: options.runtimeInventory,
+  });
 
   const extraction = {
     formatVersion: 1,
     sessionUuid: path.basename(options.sessionDir),
+    target,
     frozenAtUtc,
     extractor,
     surfaces,
@@ -299,8 +346,9 @@ function buildExtractionInventory(options) {
   return extraction;
 }
 
-function updateRunRecord(runRecordPath, extractionPath, extractionHash) {
+function updateRunRecord(runRecordPath, extractionPath, extractionHash, target) {
   const runRecord = fs.existsSync(runRecordPath) ? readJson(runRecordPath) : {};
+  runRecord.target = target;
   runRecord.extractionInventory = {
     path: extractionPath,
     hash: extractionHash,
@@ -316,7 +364,7 @@ function main() {
   const extraction = buildExtractionInventory(options);
   fs.mkdirSync(path.dirname(options.output), { recursive: true });
   fs.writeFileSync(options.output, `${JSON.stringify(extraction, null, 2)}\n`);
-  updateRunRecord(path.resolve(options.runRecord), path.resolve(options.output), extraction.hash);
+  updateRunRecord(path.resolve(options.runRecord), path.resolve(options.output), extraction.hash, extraction.target);
   console.log(
     JSON.stringify(
       {

@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 macOS Accessibility / osascript 输出、目标 Cavalry PID 与 session metadata
+ * [OUTPUT]: 对外提供 RUNTIME_DIR/<lang>-ax-inventory.json 与 audit summary，包含 menuDepthMax/submenuPathSamples
+ * [POS]: tools 的 AX runtime 抓取器，作为 injector 不可用时的 live-accessibility 分母来源
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');
@@ -173,6 +179,42 @@ function buildWidgetTexts(windows) {
   }
 
   return widgetTexts;
+}
+
+function summarizeMenuEvidence(menuBars) {
+  let menuDepthMax = 0;
+  const submenuPathSamples = [];
+
+  function visit(item, pathSegments) {
+    const text = normalizeText(item?.text || item?.title || '');
+    const nextPath = text ? [...pathSegments, text] : pathSegments;
+    if (nextPath.length > menuDepthMax) {
+      menuDepthMax = nextPath.length;
+    }
+
+    const children = item?.submenu?.items || [];
+    if (children.length === 0) {
+      if (nextPath.length >= 3 && submenuPathSamples.length < 5) {
+        submenuPathSamples.push(nextPath.join(' > '));
+      }
+      return;
+    }
+
+    for (const child of children) {
+      visit(child, nextPath);
+    }
+  }
+
+  for (const menuBar of menuBars || []) {
+    for (const item of menuBar.items || []) {
+      visit(item, []);
+    }
+  }
+
+  return {
+    menuDepthMax,
+    submenuPathSamples,
+  };
 }
 
 function buildAccessibilityInventory({ language, capture }) {
@@ -409,6 +451,7 @@ function main() {
   const outputPath = path.resolve(options.output);
   writeJson(outputPath, inventory);
   if (options.auditLog) {
+    const menuEvidence = summarizeMenuEvidence(inventory.menuBars);
     writeJson(path.resolve(options.auditLog), {
       output: outputPath,
       outputHash: sha256(outputPath),
@@ -416,6 +459,8 @@ function main() {
       summary: {
         menuBars: inventory.menuBars.length,
         widgetTexts: inventory.widgetTexts.length,
+        menuDepthMax: menuEvidence.menuDepthMax,
+        submenuPathSamples: menuEvidence.submenuPathSamples,
       },
     });
   }
@@ -446,5 +491,6 @@ module.exports = {
   parseArgs,
   runMenuCapture,
   runWindowCapture,
+  summarizeMenuEvidence,
   writeJson,
 };

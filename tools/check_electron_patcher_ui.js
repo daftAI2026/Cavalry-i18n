@@ -1543,6 +1543,27 @@ test('live full UI matrix orchestrator owns session runtime and audit artifacts'
   );
 });
 
+test('live full UI matrix orchestrator parses launcher PID and rejects missing PID output', () => {
+  const { assertRuntimeCaptureStrength, parseLaunchPid } = require(
+    path.join(repoRoot, 'tools', 'run_live_full_ui_matrix.js')
+  );
+
+  assert.equal(
+    parseLaunchPid('Launching /Applications/Cavalry.app with embedded translator for ja_JP\nPID=12345\n'),
+    12345
+  );
+  assert.throws(
+    () => parseLaunchPid('Launching /Applications/Cavalry.app with embedded translator for ja_JP\n'),
+    /launcher PID/,
+    'orchestrator must not continue into AX capture with pid NaN/0'
+  );
+  assert.throws(
+    () => assertRuntimeCaptureStrength({ language: 'en', totalCandidates: 0, menuLeaves: 0 }),
+    /WEAK-CAPTURE/,
+    'orchestrator must reject live artifacts that miss runtime lower bounds'
+  );
+});
+
 test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and packages with build:tauri', () => {
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
 
@@ -1573,7 +1594,33 @@ test('check:full-ui binds SESSION_DIR and frozen compiled source map explicitly'
     /compiled-ui-source-map\.json/,
     'check:full-ui should bind the authoritative compiled source map explicitly'
   );
+  assert.match(
+    script,
+    /--cache-root/,
+    'check:full-ui should make root-cache pollution checks part of the default preflight path'
+  );
   assert.doesNotMatch(script, /full-ui-runlog\.json/, 'check:full-ui should stop writing runlogs outside SESSION_DIR');
+});
+
+test('package full-ui scripts do not read root-cache runtime inventories', () => {
+  const packageJson = readJson(path.join(repoRoot, 'package.json'));
+  const scripts = packageJson.scripts || {};
+  const runtimeScripts = [
+    'check:ui-coverage',
+    'check:full-ui:ja_JP',
+    'check:full-ui:zh-Hans',
+    'check:full-ui:zh-Hant',
+    'check:full-ui',
+  ];
+
+  for (const name of runtimeScripts) {
+    const script = scripts[name] || '';
+    assert.doesNotMatch(
+      script,
+      /Cavalry-i18n\/(?:menu|ja_JP|zh-Hans|zh-Hant)-inventory\.json/,
+      `${name} must not read root-cache runtime inventory artifacts`
+    );
+  }
 });
 
 test('accessibility capture uses menu scripting that can see real submenu items', () => {
@@ -1928,6 +1975,62 @@ test('shared forbidden translation detector covers the current FP set without le
   assert.ok(placeholderHits.includes('FP-1'));
   assert.ok(placeholderHits.includes('FP-9'));
   assert.equal(placeholderHits.includes('FP-6'), false, 'legacy FP-6 must not be emitted');
+});
+
+test('translation validator preserves TS and generated table context for FP-8', () => {
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+  const validatorPath = path.join(tempRoot, 'tools', 'validate_translations.py');
+  const reportPath = path.join(tempRoot, 'p5-report.json');
+  const summaryPath = path.join(tempRoot, 'p5-summary.md');
+  const tsPath = path.join(tempRoot, 'tools', 'zh-Hans.ts');
+  const generatedPath = path.join(tempRoot, 'desktop-patcher', 'injector', 'generated_translations.inc');
+
+  fs.writeFileSync(
+    tsPath,
+    [
+      '<?xml version="1.0" encoding="utf-8"?>',
+      '<TS version="2.1" language="zh-Hans">',
+      '<context>',
+      '<name>Cavalry-Compiled-UI-Glossary</name>',
+      '<message><source>Open</source><translation>打开</translation></message>',
+      '</context>',
+      '</TS>',
+    ].join('\n')
+  );
+  fs.mkdirSync(path.dirname(generatedPath), { recursive: true });
+  fs.writeFileSync(
+    generatedPath,
+    [
+      'const TranslationEntry kZhHansEntries[] = {',
+      '  {"Foo-Synthetic", "Close", "关闭"},',
+      '};',
+      'const TranslationEntry kZhHantEntries[] = {',
+      '};',
+      'const TranslationEntry kJaEntries[] = {',
+      '};',
+    ].join('\n')
+  );
+
+  const result = spawnSync(
+    'python3',
+    [
+      validatorPath,
+      '--root',
+      tempRoot,
+      '--extraction-inventory',
+      extractionPath,
+      '--json-report',
+      reportPath,
+      '--markdown-summary',
+      summaryPath,
+    ],
+    { encoding: 'utf8' }
+  );
+  const report = readJson(reportPath);
+
+  assert.equal(result.status, 1, 'validator should hard-fail fake Qt contexts');
+  assert.equal(report.gates.B13.status, 'FAIL');
+  assert.equal(report.languages.zh_Hans.forbidden_patterns.by_pattern['FP-8'], 2);
 });
 
 test('runtime and JSON validators import the shared forbidden translation detector', () => {

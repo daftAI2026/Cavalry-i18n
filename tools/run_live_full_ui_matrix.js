@@ -1,9 +1,19 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 launch_cavalry_with_injector.sh、capture_accessibility_inventory.js、merge_runtime_inventory.js 与 runtime coverage 工具
+ * [OUTPUT]: 对外提供 live full-ui matrix session、SESSION_DIR/runtime/* inventories 与 full-ui-run-record.json
+ * [POS]: tools 的 G-CAPTURE 编排器，负责启动真实 Cavalry、拒绝弱抓取并留下 session-scoped provenance
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
+const { buildCoverage, collectMenuStrings, readJson } = require('./check_runtime_ui_coverage.js');
+
+const RUNTIME_CANDIDATE_FLOOR = 613;
+const RUNTIME_MENU_LEAF_FLOOR = 666;
 
 function fail(message) {
   throw new Error(message);
@@ -95,6 +105,40 @@ function waitForFileOptional(filePath, timeoutMs = 5000) {
   return false;
 }
 
+function sleep(ms) {
+  Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
+}
+
+function parseLaunchPid(stdout) {
+  const match = String(stdout || '').match(/(?:^|\n)PID=(\d+)(?:\n|$)/);
+  if (!match) {
+    fail('Missing launcher PID in launch_cavalry_with_injector.sh output.');
+  }
+
+  const pid = Number(match[1]);
+  if (!Number.isInteger(pid) || pid <= 0) {
+    fail(`Invalid launcher PID: ${match[1]}`);
+  }
+  return pid;
+}
+
+function countMenuLeaves(inventory) {
+  const leaves = [];
+  for (const menuBar of inventory.menuBars || []) {
+    collectMenuStrings(menuBar, leaves);
+  }
+  return leaves.length;
+}
+
+function assertRuntimeCaptureStrength({ language, totalCandidates, menuLeaves }) {
+  if (totalCandidates < RUNTIME_CANDIDATE_FLOOR || menuLeaves < RUNTIME_MENU_LEAF_FLOOR) {
+    fail(
+      `WEAK-CAPTURE ${language}: runtime.candidates=${totalCandidates} ` +
+        `< ${RUNTIME_CANDIDATE_FLOOR} or runtime.menuLeaves=${menuLeaves} < ${RUNTIME_MENU_LEAF_FLOOR}`
+    );
+  }
+}
+
 function main() {
   const options = parseArgs(process.argv.slice(2));
   const repoRoot = path.resolve(__dirname, '..');
@@ -140,7 +184,7 @@ function main() {
       '--session-uuid',
       options.sessionUuid,
     ]);
-    const pid = Number((launchResult.stdout || '').trim().split(/\s+/).pop() || 0);
+    const pid = parseLaunchPid(launchResult.stdout);
     
     // Wait for injector inventory with short timeout (5s).
     // If not available, DYLD_INSERT_LIBRARIES injection is not working on this system.
@@ -165,6 +209,10 @@ function main() {
       };
       writeJson(injectorInventory, placeholderInjector);
     }
+
+    // Cavalry may create its process before the menu/window AX tree is populated.
+    // Give the live app a short readiness window; weak captures still hard-fail below.
+    sleep(8000);
 
     run(process.execPath, [
       path.join(repoRoot, 'tools', 'capture_accessibility_inventory.js'),
@@ -193,6 +241,15 @@ function main() {
       '--audit-log',
       mergeAudit,
     ]);
+
+    const merged = readJson(mergedInventory);
+    const allowlist = readJson(path.join(repoRoot, 'tools', 'runtime_ui_allowlist.json'));
+    const coverage = buildCoverage(merged, allowlist);
+    assertRuntimeCaptureStrength({
+      language,
+      totalCandidates: coverage.totalCandidates,
+      menuLeaves: countMenuLeaves(merged),
+    });
 
     runRecord.languages.push({
       language,
@@ -226,6 +283,8 @@ if (require.main === module) {
 }
 
 module.exports = {
+  assertRuntimeCaptureStrength,
+  parseLaunchPid,
   parseArgs,
   waitForFile,
   waitForFileOptional,

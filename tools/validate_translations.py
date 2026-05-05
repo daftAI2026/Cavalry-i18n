@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Validate translation quality gates for Cavalry i18n assets."""
+"""
+[INPUT]: 依赖 languages/* JSON、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
+[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 FP-1/2/3/4/5/7/8/9 与弱覆盖率
+[POS]: tools 的 G1 / §P5 validator，被 full-ui gate 用来审判翻译资产与生成表
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+"""
 
 from __future__ import annotations
 
@@ -45,6 +50,7 @@ HTML_TAG_RE = re.compile(r"<[^>]+>")
 TS_MESSAGE_RE = re.compile(
     r"<message\b[\s\S]*?<source>([\s\S]*?)</source>[\s\S]*?<translation(?:\s+[^>]*)?>([\s\S]*?)</translation>[\s\S]*?</message>"
 )
+TS_CONTEXT_RE = re.compile(r"<context\b[\s\S]*?<name>([\s\S]*?)</name>([\s\S]*?)</context>")
 INC_ENTRY_RE = re.compile(r'\{"([^"]*)", "([^"]*)", "([^"]*)"\}')
 ENGLISH_TOKEN_RE = re.compile(
     r"(?<![A-Za-z0-9])[A-Za-z0-9.+/-]*[A-Za-z][A-Za-z0-9.+/-]*(?![A-Za-z0-9])"
@@ -377,15 +383,36 @@ def decode_xml_entities(value: str) -> str:
     )
 
 
-def parse_ts_messages(file_path: Path) -> list[tuple[str, str]]:
+def parse_ts_message_records(file_path: Path) -> list[dict[str, str]]:
     xml = file_path.read_text(encoding="utf-8")
-    pairs: list[tuple[str, str]] = []
-    for source, translation in TS_MESSAGE_RE.findall(xml):
-        pairs.append((normalize_string(decode_xml_entities(source)), normalize_string(decode_xml_entities(translation))))
-    return pairs
+    records: list[dict[str, str]] = []
+    for context, block in TS_CONTEXT_RE.findall(xml):
+        normalized_context = normalize_string(decode_xml_entities(context))
+        for source, translation in TS_MESSAGE_RE.findall(block):
+            records.append(
+                {
+                    "context": normalized_context,
+                    "source": normalize_string(decode_xml_entities(source)),
+                    "translation": normalize_string(decode_xml_entities(translation)),
+                }
+            )
+    if records:
+        return records
+    return [
+        {
+            "context": "",
+            "source": normalize_string(decode_xml_entities(source)),
+            "translation": normalize_string(decode_xml_entities(translation)),
+        }
+        for source, translation in TS_MESSAGE_RE.findall(xml)
+    ]
 
 
-def parse_generated_translation_entries(file_path: Path, repo_code: str) -> list[tuple[str, str]]:
+def parse_ts_messages(file_path: Path) -> list[tuple[str, str]]:
+    return [(record["source"], record["translation"]) for record in parse_ts_message_records(file_path)]
+
+
+def parse_generated_translation_entry_records(file_path: Path, repo_code: str) -> list[dict[str, str]]:
     array_names = {
         "zh-Hans": "kZhHansEntries",
         "zh-Hant": "kZhHantEntries",
@@ -401,8 +428,19 @@ def parse_generated_translation_entries(file_path: Path, repo_code: str) -> list
         return []
     block = text[start:end]
     return [
-        (normalize_string(source), normalize_string(translation))
-        for _, source, translation in INC_ENTRY_RE.findall(block)
+        {
+            "context": normalize_string(context),
+            "source": normalize_string(source),
+            "translation": normalize_string(translation),
+        }
+        for context, source, translation in INC_ENTRY_RE.findall(block)
+    ]
+
+
+def parse_generated_translation_entries(file_path: Path, repo_code: str) -> list[tuple[str, str]]:
+    return [
+        (record["source"], record["translation"])
+        for record in parse_generated_translation_entry_records(file_path, repo_code)
     ]
 
 
@@ -822,9 +860,11 @@ def evaluate_language(
 
     ts_path = root / "tools" / f"{repo_code}.ts"
     if ts_path.exists():
-        for index, (source_value, target_value) in enumerate(parse_ts_messages(ts_path), start=1):
+        for index, record in enumerate(parse_ts_message_records(ts_path), start=1):
+            source_value = record["source"]
+            target_value = record["translation"]
             forbidden_hits = detect_forbidden_translation_patterns(
-                repo_code, visible_text(target_value), source_value
+                repo_code, visible_text(target_value), source_value, record["context"]
             )
             if not forbidden_hits:
                 continue
@@ -841,11 +881,13 @@ def evaluate_language(
 
     generated_path = root / "desktop-patcher" / "injector" / "generated_translations.inc"
     if generated_path.exists():
-        for index, (source_value, target_value) in enumerate(
-            parse_generated_translation_entries(generated_path, repo_code), start=1
+        for index, record in enumerate(
+            parse_generated_translation_entry_records(generated_path, repo_code), start=1
         ):
+            source_value = record["source"]
+            target_value = record["translation"]
             forbidden_hits = detect_forbidden_translation_patterns(
-                repo_code, visible_text(target_value), source_value
+                repo_code, visible_text(target_value), source_value, record["context"]
             )
             if not forbidden_hits:
                 continue

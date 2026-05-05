@@ -97,17 +97,15 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 ```text
 Baseline is rerunnable and reachable.
 Current repo state: NOT COMPLETE.
-First next gate: G-P / §P5 regression after 2026-05-01 fabrication recovery.
+First next gate: G2 compiled translation backlog after G-P/§P5/G-CAPTURE/G-X/G3 reverify.
 
 Historical verified evidence retained:
-  - G-CAPTURE / G-X / G0 / G1 have usable evidence from session 6C24D9C7-8342-41CA-BBE5-182E97B0BDD8.
+  - G-P / §P5 / G-CAPTURE / G-X have current evidence from session B897FF97-D3E1-419C-94BC-38F1158F3BB7.
   - The frozen denominator is JSON 6415 + compiled 5195 + runtime candidates 626 / menuLeaves 734.
   - Target identity is Cavalry 2.7.1 / Qt 6.6.3 / bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1.
 
 Current blockers:
-  - G-P / §P5 must be rerun against the current detector set FP-1/2/3/4/5/7/8/9.
-  - extraction-inventory.json lacks a top-level target object; next freeze must write it.
-  - G2 compiled UI and G3 runtime UI still need real translations; G4 remains blocked.
+  - G2 compiled UI still needs real translations; G4 remains blocked.
 ```
 
 ### 当前 worktree 真相
@@ -123,12 +121,14 @@ Current blockers:
 - `tools/launch_cavalry_with_injector.sh` 已支持 `sessionDir/sessionUuid/cacheRoot`，并生成 `audit/codesign-evidence.txt`。
 - `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已支持 `CAVALRY_I18N_LANG=en` dump-only，并写 `SESSION_DIR/runtime/<lang>-injector-inventory.json`。
 - `tools/capture_accessibility_inventory.js`、`tools/merge_runtime_inventory.js`、`tools/run_live_full_ui_matrix.js` 已存在。
+- `package.json` 的 full-ui/runtime npm scripts 已收敛到 `SESSION_DIR/runtime/*-merged-inventory.json`，不再读取 root-cache runtime inventory。
+- `tools/validate_translations.py` 在 `.ts` 与 `generated_translations.inc` 扫描中保留 context，FP-8 fake Qt context 不再被解析层丢弃。
 
 **历史失败证据（仅作反向回归，不再描述当前状态）**
 - session `21B1048E-963E-43B1-975B-0C506902E0EB` 只有 codesign evidence，没有 `runtime/en-injector-inventory.json`。
 - `audit/en-injector-launch.log` 为空，未看到 injector bootstrap。
 - 没有 amfid / kernel 拒绝证据；不得写 `BLOCKED-SIP`，不得建议 `csrutil disable`。
-- 这些记录说明弱 capture 不能冻结分母；当前可引用的 capture/freeze 证据以 session `6C24D9C7-8342-41CA-BBE5-182E97B0BDD8` 为准。
+- 这些记录说明弱 capture 不能冻结分母；当前可引用的 capture/freeze 证据以 session `B897FF97-D3E1-419C-94BC-38F1158F3BB7` 为准。
 
 详见：
 - `runs/2026-04-30-G-CAPTURE-DYLIB-INJECTION-INVESTIGATION.md`
@@ -142,27 +142,28 @@ Current blockers:
    - 原顺序把 G-X 放在 runtime capture toolchain 前，导致 `WEAK-CAPTURE` 被误当成外部阻塞
    - 新顺序为 `W-AUDIT -> G-P -> §P5 -> G-CAPTURE -> G-X -> G0 -> G2 -> G3 -> G1 -> 翻译 backlog -> G4`
 
-1. **provenance / §P5 recovery 需要重跑**
+1. **provenance / §P5 recovery 已重跑**
    - 2026-05-01 之后 detector 集合升级为 FP-1/2/3/4/5/7/8/9
-   - 当前第一任务是重跑 G-P / §P5，证明 main 干净样本零误报、quarantine 伪造样本必命中
+   - 2026-05-05 已证明 current HEAD FP-7/8/9 = 0，quarantine 伪造样本必命中 FP-7/8/9
+   - 历史 Frankenstein FP-9 残留已在 JSON / TS / generated assets 中清零，不是 2026-05-01 伪造分母回流
 
-2. **extraction inventory schema 仍需下一轮 freeze 补齐**
+2. **extraction inventory schema 已补齐，后续只剩版本漂移重抽纪律**
     - `SESSION_DIR/extraction-inventory.json` 已冻结 JSON / compiled / runtime 分母
-    - 现有 artifact 顶层缺 `target` 对象；下一轮 freeze 必须补齐 `target.cavalryVersion` / `target.qtVersion` / `target.bundleHash`
+    - 当前 artifact 顶层已有 `target.cavalryVersion` / `target.qtVersion` / `target.bundleHash` / `target.appPath`
     - Cavalry 2.7.1 目标已确认，2.7.0 的 source-map / extraction / runtime run record 只能作为历史证据
 
-3. **runtime detector 仍未完全达到规范**
+3. **runtime capture 弱输入已硬失败**
    - active runtime gate 已不再只依赖 `/[A-Za-z]/`；`（译）/（訳）/（譯）`、全角拉丁与 `页:1/頁:1/ページ:1` 现在会进入 blocker
-   - §P5、freshness、provenance、blocked semantics 尚未形成闭环
-   - AX 菜单抓取脚本有递归 submenu 实现，但 gate 仍缺 `menuDepthMax` 与 submenu path samples 的机器化证据
+   - `run_live_full_ui_matrix.js` 会解析 launcher `PID=<number>`，缺 PID 或 candidates/menuLeaves 低于下界时 hard-fail `WEAK-CAPTURE`
+   - AX 菜单抓取 audit 已记录 `menuDepthMax` 与 submenu path samples 的机器化证据
 
-4. **JSON / full-ui gate 仍未完全达到规范**
+4. **JSON / full-ui gate 当前真实 blocker 是 compiled 翻译覆盖**
    - active threshold 已冻结到 full-ui `100` / JSON `1.00`
-   - `coverage_pct = 100` 与 `exact_english_translate_leaves = 0` 尚未被 workflow 外的实现完全冻结
+   - G1 JSON validator 当前 PASS，G3 runtime 当前 PASS，G2 compiled 未达 100，所以 G4 失败
 
-5. **compiled owner map contract 仍未完全跟上规范**
+5. **compiled owner map contract 当前下界已重新验证**
    - `libExtensionLayer.dylib` 已并入 compiled target contract
-   - raw extraction 与 source-map provenance 仍是明确 gap
+   - 当前 Cavalry 2.7.1 compiled source-map lower bound 是 5195
 
 6. **active gate / CI 执行路径仍有后续 gap**
     - `check:full-ui` 已前置 `tools/verify_gate_inputs.js`，W-AUDIT 红旗已转为脚本/测试约束
@@ -175,7 +176,7 @@ Current blockers:
 以下是当前已知、仍停在旧口径的 workflow 外实现缺口：
 
 1. **脚本入口**
-   - `package.json` 仍使用 root-cache inventory 路径
+   - `package.json` 的 active full-ui/runtime coverage scripts 已使用 `SESSION_DIR/runtime/*`
    - `package.json` 已移除 `--threshold 99`，并让 `check:full-ui` 前置 `tools/verify_gate_inputs.js`
 
 2. **runtime / full-ui gate**
@@ -184,17 +185,17 @@ Current blockers:
    - `tools/check_full_ui_matrix.js` 仍是 root-cache reader / 弱 session-run-record schema
 
 3. **JSON validator**
-   - `tools/validate_translations.py` 已升到 `1.00`；G1 downstream 仍缺 frozen denominator / exact-English contract 闭环
+   - `tools/validate_translations.py` 已升到 `1.00`；G1 当前以 frozen denominator / exact-English / forbiddenPatterns=0 通过
 
 4. **injector / launch chain**
     - `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已写 session-scoped `<lang>-injector-inventory.json`，但本轮 launch 没产出该文件
     - `tools/launch_cavalry_with_injector.sh` 已传递 `sessionDir/sessionUuid/cacheRoot`，但仍需证明 injector constructor 实际执行
-    - `tools/run_live_full_ui_matrix.js` 当前传 `--no-resign`，必须改为走完整 launcher 重签与证据链
+    - `tools/run_live_full_ui_matrix.js` 通过 launcher 捕获真实 PID，缺 PID 或弱抓取会失败
     - live injector English probe 代码上已有 dump-only 分支，但还没有被本轮 artifact 证明
 
 5. **runtime merge / matrix 工具**
    - `tools/merge_runtime_inventory.js` 已存在，但只有 injector 与 AX 两份 live inventory 都存在时才可形成 `live-merged`
-   - `tools/run_live_full_ui_matrix.js` 已存在，但 run record 缺完整 `target` 对象，且 `--no-resign` 违反 G-CAPTURE 纪律
+   - `tools/run_live_full_ui_matrix.js` 已存在，run record 由 G-X freeze 补齐 target / extraction provenance
 
 6. **CI 执行入口**
     - `.github/workflows/build.yml` 若接入 full-ui gate，必须使用 session-dir / provenance / blocked 语义
@@ -302,34 +303,33 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 | Gate | Current status | Why |
 | --- | --- | --- |
 | W-AUDIT | PASS | weak threshold / preflight / libExtensionLayer red flags have code evidence |
-| G-P | REOPENED | must rerun after FP-7/8/9 detector hardening |
-| §P5 | REOPENED | detector set is FP-1/2/3/4/5/7/8/9; old self-recursive wording is invalid |
-| G-CAPTURE | EVIDENCE-HELD | session 6C24D9C7 has valid capture evidence, but downstream gates still require reverify |
-| G-X | EVIDENCE-HELD | denominator exists, but next freeze must add top-level `target` |
-| G0 | EVIDENCE-HELD | measurement evidence exists, but must be rerun after G-P / §P5 |
-| G1 | EVIDENCE-HELD | JSON 100 evidence exists, but must be rerun after G-P / §P5 |
-| G2 | BLOCKED | compiled translations incomplete |
-| G3 | BLOCKED | runtime translations incomplete |
-| G4 | BLOCKED | depends on G2/G3 |
+| G-P | PASS | session B897FF97 runtime artifacts are session-scoped and preflight rejects root-cache / fixture / curated inputs |
+| §P5 | PASS | current HEAD validator reports FP-7/8/9 = 0; quarantine still hits FP-7=30270, FP-8=2978, FP-9=5833 |
+| G-CAPTURE | PASS | session B897FF97 live AX capture has 626 candidates, 734 menu leaves, menuDepthMax 4, 5 submenu path samples |
+| G-X | PASS | session B897FF97 extraction inventory freezes JSON 6415 + compiled 5195 + runtime 626/734 with top-level target |
+| G0 | PASS | `npm run test:desktop` 85/85 and workflow contracts 5/5 pass after reverify |
+| G1 | PASS | JSON validator exits 0 with 100% coverage and forbiddenPatterns total 0 for all three languages |
+| G2 | FAIL | compiled translations incomplete |
+| G3 | PASS | runtime coverage is 100% for zh-Hans / zh-Hant / ja_JP on session B897FF97 |
+| G4 | FAIL | depends on G2 |
 
 ### Verified Session Data
 
-- **Session**: 6C24D9C7-8342-41CA-BBE5-182E97B0BDD8
+- **Session**: B897FF97-D3E1-419C-94BC-38F1158F3BB7
 - **Target**: Cavalry 2.7.1, Qt 6.6.3
 - **Bundle hash**: a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1
-- **Extraction inventory**: Frozen at 2026-04-30 16:00:40 UTC
-- **Runtime capture**: AX-only fallback, 734 menu items (>= 666 threshold ✓)
+- **Extraction inventory**: Frozen at 2026-05-05 05:12:45 UTC with top-level `target`
+- **Runtime capture**: AX-only fallback, 626 candidates / 734 menu leaves, menuDepthMax 4, 5 submenu path samples
 
 ### Translation Resource Gap (Blocking Completion)
 
 **Compiled UI (G2 blocker):**
-- Required: ~4500 translations per language (ja_JP, zh-Hans, zh-Hant)
-- Current: 399 / 4919 = 8.11% coverage
+- Required: 4026-4156 translations per language (ja_JP, zh-Hans, zh-Hant)
+- Current matrix: ja_JP 17.22%, zh-Hans 18.15%, zh-Hant 15.51% compiled coverage
 - Sources: Contents/MacOS/Cavalry, libCavalryUI.dylib, libCavalryFramework.dylib, libExtensionLayer.dylib
 
-**Runtime UI (G3 blocker):**
-- Required: ~239 translations per language (ja_JP, zh-Hans, zh-Hant)
-- Current: 387 / 626 = 61.82% coverage
+**Runtime UI (G3):**
+- Current matrix: ja_JP 100%, zh-Hans 100%, zh-Hant 100% runtime coverage
 - Sources: Animation nodes, shader nodes, interactive UI elements
 
 ### Next Steps for Completion

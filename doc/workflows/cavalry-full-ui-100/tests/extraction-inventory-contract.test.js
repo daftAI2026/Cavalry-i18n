@@ -14,6 +14,7 @@ const { spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..', '..', '..', '..');
 const verifyGateInputsPath = path.join(repoRoot, 'tools', 'verify_gate_inputs.js');
+const { buildExtractionInventory } = require(path.join(repoRoot, 'tools', 'freeze_extraction_inventory.js'));
 
 function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-i18n-gx-'));
@@ -22,6 +23,18 @@ function makeTempDir() {
 function writeJson(filePath, value) {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   fs.writeFileSync(filePath, JSON.stringify(value, null, 2));
+}
+
+function writeMinimalLanguageTree(root) {
+  for (const lang of ['en']) {
+    const langDir = path.join(root, 'languages', lang);
+    writeJson(path.join(langDir, 'appStrings.json'), [{ value: 'App Label', type: 'label' }]);
+    writeJson(path.join(langDir, 'nodeStrings.json'), [
+      { value: { niceName: 'Node Label', type: 'node', language: 'en' } },
+    ]);
+    writeJson(path.join(langDir, 'onboarding.json'), [{ title: 'Welcome' }]);
+    writeJson(path.join(langDir, 'tips.json'), [{ title: 'Tip', text: 'Use the tool', images: [] }]);
+  }
 }
 
 test('G-X preflight fails when extraction inventory is missing', () => {
@@ -144,4 +157,53 @@ test('G-X preflight rejects Cavalry 2.7.1 compiled source maps below 5195 entrie
   assert.equal(result.status, 1, 'preflight should fail below the Cavalry 2.7.1 compiled lower bound');
   assert.match(`${result.stdout}\n${result.stderr}`, /compiled-source-map/);
   assert.match(`${result.stdout}\n${result.stderr}`, /5194 < 5195/);
+});
+
+test('freeze extraction inventory writes a top-level target identity', () => {
+  const tempRoot = makeTempDir();
+  const sessionDir = path.join(tempRoot, 'sessions', 'TARGET-SESSION');
+  const runtimeInventory = path.join(sessionDir, 'runtime', 'en-merged-inventory.json');
+  const sourceMapPath = path.join(tempRoot, 'compiled-ui-source-map.json');
+
+  writeMinimalLanguageTree(tempRoot);
+  writeJson(path.join(tempRoot, 'package.json'), { version: '0.1.2' });
+  writeJson(path.join(tempRoot, 'tools', 'runtime_ui_allowlist.json'), {});
+  writeJson(path.join(tempRoot, 'tools', 'cavalry_qt_target.json'), {
+    cavalryVersion: '2.7.1',
+    qtVersion: '6.6.3',
+  });
+  writeJson(sourceMapPath, {
+    bundleVersion: '2.7.1',
+    compiledUiTargets: [
+      '/Applications/Cavalry.app/Contents/MacOS/Cavalry',
+      '/Applications/Cavalry.app/Contents/Frameworks/libCavalryUI.dylib',
+    ],
+    entries: [{ normalizedText: 'Scene Window', source: '/Applications/Cavalry.app/Contents/MacOS/Cavalry' }],
+  });
+  writeJson(runtimeInventory, {
+    language: 'en',
+    capture: {
+      pid: 1234,
+      bundleHash: 'bundle-hash',
+      sessionUuid: 'TARGET-SESSION',
+      wallclockUtc: '2026-05-05T00:00:00.000Z',
+      source: 'live-merged',
+    },
+    menuBars: [],
+    widgetTexts: [{ text: 'Scene Window' }],
+  });
+
+  const extraction = buildExtractionInventory({
+    repoRoot: tempRoot,
+    sessionDir,
+    compiledSourceMap: sourceMapPath,
+    runtimeInventory,
+  });
+
+  assert.deepEqual(extraction.target, {
+    cavalryVersion: '2.7.1',
+    qtVersion: '6.6.3',
+    bundleHash: 'bundle-hash',
+    appPath: '/Applications/Cavalry.app',
+  });
 });

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
+<!--
+[INPUT]: 依赖 Cavalry compiled/runtime 英文 source、doc/translation-guidelines.md、doc/cavalry-glossary*.md 与 tools/translation-whitelist.json
+[OUTPUT]: 对外提供 ja_JP Qt TS 翻译目录，被 generate_embedded_translations.js 编译进 injector 表
+[POS]: tools 编译期 UI 翻译源，和 zh-Hans.ts / zh-Hant.ts 共同覆盖 compiled/runtime 菜单文本
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
 <TS version="2.1" language="ja_JP">
   <context>
     <name>QMenuBar</name>
@@ -161,11 +167,11 @@
   </message>
   <message>
     <source>Active Camera: Layer Tools Disabled</source>
-    <translation>アクティブカメラ：レイヤーツールが無効になっています</translation>
+    <translation>アクティブカメラ: レイヤーツールは無効</translation>
   </message>
   <message>
     <source>Active Camera: Layer Tools Disabled.</source>
-    <translation>アクティブカメラ：レイヤーツールが無効になっています。</translation>
+    <translation>アクティブカメラ: レイヤーツールは無効です。</translation>
   </message>
   <message>
     <source>Active Composition</source>
@@ -189,19 +195,19 @@
   </message>
   <message>
     <source>Add a bone at the top of the hierarchy</source>
-    <translation>階層の上部にボーンを追加</translation>
+    <translation>階層の最上位にボーンを追加</translation>
   </message>
   <message>
     <source>Add a bone at the top of the hierarchy.</source>
-    <translation>階層の上部にボーンを追加。</translation>
+    <translation>階層の最上位にボーンを追加します。</translation>
   </message>
   <message>
     <source>Add a bone parented to this one</source>
-    <translation>親ボーンを追加</translation>
+    <translation>このボーンを親にしたボーンを追加</translation>
   </message>
   <message>
     <source>Add a bone parented to this one.</source>
-    <translation>親ボーンを追加。</translation>
+    <translation>このボーンを親にしたボーンを追加します。</translation>
   </message>
   <message>
     <source>Add a new Attribute variable which can be used in your script</source>
@@ -209,7 +215,7 @@
   </message>
   <message>
     <source>Add a new Attribute variable which can be used in your script.</source>
-    <translation>スクリプトで使用できる新しい属性変数を追加。</translation>
+    <translation>スクリプトで使用できる新しい属性変数を追加します。</translation>
   </message>
   <message>
     <source>Add a Placement Utility</source>
@@ -233,7 +239,7 @@
   </message>
   <message>
     <source>Add a tracker (4 required).</source>
-    <translation>トラッカーを追加（4 個必要）。</translation>
+    <translation>トラッカーを追加します（4 個必要）。</translation>
   </message>
   <message>
     <source>Add an Animation Control</source>
@@ -241,15 +247,15 @@
   </message>
   <message>
     <source>Add an Auto-Animate Deformer</source>
-    <translation>自動アニメートデフォーマを追加</translation>
+    <translation>自動アニメーションデフォーマを追加</translation>
   </message>
   <message>
     <source>Add an IK Control using this Bone as End Effector</source>
-    <translation>このボーンを末端エフェクタとして使用して IK コントロールを追加</translation>
+    <translation>このボーンをエンドエフェクターとして IK コントロールを追加</translation>
   </message>
   <message>
     <source>Add an IK Control using this Bone as End Effector.</source>
-    <translation>このボーンを末端エフェクタとして使用して IK コントロールを追加。</translation>
+    <translation>このボーンをエンドエフェクターとして IK コントロールを追加します。</translation>
   </message>
   <message>
     <source>Add Animation Control</source>
@@ -265,7 +271,7 @@
   </message>
   <message>
     <source>Add Asset To Scene</source>
-    <translation>シーンにアセットを追加</translation>
+    <translation>アセットをシーンに追加</translation>
   </message>
   <message>
     <source>Add Background</source>
@@ -293,11 +299,11 @@
   </message>
   <message>
     <source>Add Clip to End</source>
-    <translation>クリップを終端に追加</translation>
+    <translation>クリップを末尾に追加</translation>
   </message>
   <message>
     <source>Add Clip to Start</source>
-    <translation>クリップを開始に追加</translation>
+    <translation>クリップを先頭に追加</translation>
   </message>
   <message>
     <source>Add Collision Event</source>
@@ -305,19 +311,19 @@
   </message>
   <message>
     <source>Add Color</source>
-    <translation>色を追加</translation>
+    <translation>カラーを追加</translation>
   </message>
   <message>
     <source>Add Color Stop</source>
-    <translation>色を停止を追加</translation>
+    <translation>カラーストップを追加</translation>
   </message>
   <message>
     <source>Add Colors from Selection</source>
-    <translation>選択から色を追加</translation>
+    <translation>選択範囲からカラーを追加</translation>
   </message>
   <message>
     <source>Add Colors from Selection and Connect</source>
-    <translation>選択から色を追加して接続</translation>
+    <translation>選択範囲からカラーを追加して接続</translation>
   </message>
   <message>
     <source>Add connections</source>
@@ -329,15 +335,15 @@
   </message>
   <message>
     <source>Add Double</source>
-    <translation>ダブル値を追加</translation>
+    <translation>倍精度値を追加</translation>
   </message>
   <message>
     <source>Add Double (float)</source>
-    <translation>浮動小数点数を追加</translation>
+    <translation>倍精度値（浮動小数）を追加</translation>
   </message>
   <message>
     <source>Add Expression...</source>
-    <translation>式を追加...</translation>
+    <translation>エクスプレッションを追加...</translation>
   </message>
   <message>
     <source>Add Falloff</source>
@@ -413,7 +419,7 @@
   </message>
   <message>
     <source>Add New Layers to Selected Tags</source>
-    <translation>選択されたタグに新しいレイヤーを追加</translation>
+    <translation>選択したタグに新規レイヤーを追加</translation>
   </message>
   <message>
     <source>Add new snippet</source>
@@ -425,15 +431,15 @@
   </message>
   <message>
     <source>Add Point Data (Distribution)</source>
-    <translation>ポイント データを追加（分布）</translation>
+    <translation>ポイントデータ（分布）を追加</translation>
   </message>
   <message>
     <source>Add Pre-Comp Override</source>
-    <translation>プリコンポーバーライドを追加</translation>
+    <translation>プリコンポーズ上書きを追加</translation>
   </message>
   <message>
     <source>Add Pre-Comp Overrides</source>
-    <translation>プリコンポーバーライドを追加</translation>
+    <translation>プリコンポーズ上書きを追加</translation>
   </message>
   <message>
     <source>Add Preset</source>
@@ -441,11 +447,11 @@
   </message>
   <message>
     <source>Add selected layers to the Attribute Editor</source>
-    <translation>選択されたレイヤーを属性エディターに追加</translation>
+    <translation>選択したレイヤーを属性エディターに追加</translation>
   </message>
   <message>
     <source>Add selected layers to the Attribute Editor.</source>
-    <translation>選択されたレイヤーを属性エディターに追加。</translation>
+    <translation>選択したレイヤーを属性エディターに追加します。</translation>
   </message>
   <message>
     <source>Add Shader</source>
@@ -1384,11 +1390,11 @@
     </message>
     <message>
       <source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset.</source>
-      <translation>プリセットにプリミティブタイプ（Rectangle や Ellipse など）を含めます。</translation>
+      <translation>プリセットにプリミティブタイプ（矩形や楕円など）を含めます。</translation>
     </message>
     <message>
       <source>Include transform Attributes such as Position and Scale in the Preset.</source>
-      <translation>プリセットに Position や Scale などの変換属性を含めます。</translation>
+      <translation>プリセットに位置やスケールなどのトランスフォーム属性を含めます。</translation>
     </message>
     <message>
       <source>Include Transforms</source>
@@ -2848,11 +2854,11 @@
     </message>
     <message>
       <source>Add your own Presets and you&apos;ll be able to delete and rename them here</source>
-      <translation>独自のプリセットを追加すると、ここで削除および名前変更できます</translation>
+      <translation>独自のプリセットを追加すると、ここで削除や名前変更ができます</translation>
     </message>
     <message>
       <source>Add your own Presets and you&apos;ll be able to delete and rename them here.</source>
-      <translation>独自のプリセットを追加すると、ここで削除および名前変更できます。</translation>
+      <translation>独自のプリセットを追加すると、ここで削除や名前変更ができます。</translation>
     </message>
     <message>
       <source>Address</source>
@@ -3012,267 +3018,267 @@
     </message>
     <message>
       <source>Active Camera</source>
-      <translation>アクティブ Camera</translation>
+      <translation>アクティブカメラ</translation>
     </message>
     <message>
       <source>Active Camera: Layer Tools Disabled</source>
-      <translation>Active Cameraは無効です</translation>
+      <translation>アクティブカメラ: レイヤーツールは無効</translation>
     </message>
     <message>
       <source>Active Camera: Layer Tools Disabled.</source>
-      <translation>Active Cameraは無効です</translation>
+      <translation>アクティブカメラ: レイヤーツールは無効です。</translation>
     </message>
     <message>
       <source>Active Composition</source>
-      <translation>アクティブ Composition</translation>
+      <translation>アクティブコンポジション</translation>
     </message>
     <message>
       <source>Active Tags.</source>
-      <translation>アクティブ Tags.</translation>
+      <translation>アクティブタグ。</translation>
     </message>
     <message>
       <source>Add Array</source>
-      <translation>Arrayを追加</translation>
+      <translation>配列を追加</translation>
     </message>
     <message>
       <source>Add Asset</source>
-      <translation>Assetを追加</translation>
+      <translation>アセットを追加</translation>
     </message>
     <message>
       <source>Add Asset To Scene</source>
-      <translation>Asset To Sceneを追加</translation>
+      <translation>アセットをシーンに追加</translation>
     </message>
     <message>
       <source>Add Background</source>
-      <translation>Backgroundを追加</translation>
+      <translation>背景を追加</translation>
     </message>
     <message>
       <source>Add Behaviour</source>
-      <translation>Behaviourを追加</translation>
+      <translation>ビヘイビアを追加</translation>
     </message>
     <message>
       <source>Add Bool</source>
-      <translation>Boolを追加</translation>
+      <translation>ブール値を追加</translation>
     </message>
     <message>
       <source>Add Camera</source>
-      <translation>Cameraを追加</translation>
+      <translation>カメラを追加</translation>
     </message>
     <message>
       <source>Add Clip</source>
-      <translation>Clipを追加</translation>
+      <translation>クリップを追加</translation>
     </message>
     <message>
       <source>Add Clip to End</source>
-      <translation>Clip to Endを追加</translation>
+      <translation>クリップを末尾に追加</translation>
     </message>
     <message>
       <source>Add Clip to Start</source>
-      <translation>Clip to Startを追加</translation>
+      <translation>クリップを先頭に追加</translation>
     </message>
     <message>
       <source>Add Color</source>
-      <translation>Colorを追加</translation>
+      <translation>カラーを追加</translation>
     </message>
     <message>
       <source>Add Color Stop</source>
-      <translation>Color Stopを追加</translation>
+      <translation>カラーストップを追加</translation>
     </message>
     <message>
       <source>Add Colors from Selection</source>
-      <translation>Colors from Selectionを追加</translation>
+      <translation>選択範囲からカラーを追加</translation>
     </message>
     <message>
       <source>Add Colors from Selection and Connect</source>
-      <translation>Colors from Selection and Connectを追加</translation>
+      <translation>選択範囲からカラーを追加して接続</translation>
     </message>
     <message>
       <source>Add Distribution</source>
-      <translation>Distributionを追加</translation>
+      <translation>分布を追加</translation>
     </message>
     <message>
       <source>Add Double</source>
-      <translation>Doubleを追加</translation>
+      <translation>倍精度値を追加</translation>
     </message>
     <message>
       <source>Add Double (float)</source>
-      <translation>Double (float)を追加</translation>
+      <translation>倍精度値（浮動小数）を追加</translation>
     </message>
     <message>
       <source>Add Expression...</source>
-      <translation>Expression...を追加</translation>
+      <translation>エクスプレッションを追加...</translation>
     </message>
     <message>
       <source>Add Falloff</source>
-      <translation>Falloffを追加</translation>
+      <translation>フォールオフを追加</translation>
     </message>
     <message>
       <source>Add Header</source>
-      <translation>Headerを追加</translation>
+      <translation>ヘッダーを追加</translation>
     </message>
     <message>
       <source>Add IK Control</source>
-      <translation>IK Controlを追加</translation>
+      <translation>IK コントロールを追加</translation>
     </message>
     <message>
       <source>Add Int</source>
-      <translation>Intを追加</translation>
+      <translation>整数を追加</translation>
     </message>
     <message>
       <source>Add Keyframe</source>
-      <translation>Keyframeを追加</translation>
+      <translation>キーフレームを追加</translation>
     </message>
     <message>
       <source>Add Layer</source>
-      <translation>Layerを追加</translation>
+      <translation>レイヤーを追加</translation>
     </message>
     <message>
       <source>Add Layers Popover</source>
-      <translation>Layers Popoverを追加</translation>
+      <translation>レイヤーポップオーバーを追加</translation>
     </message>
     <message>
       <source>Add List Attribute</source>
-      <translation>List Attributeを追加</translation>
+      <translation>リスト属性を追加</translation>
     </message>
     <message>
       <source>Add Mesh</source>
-      <translation>Meshを追加</translation>
+      <translation>メッシュを追加</translation>
     </message>
     <message>
       <source>Add New Layers to Selected Tags</source>
-      <translation>New Layers to Selected Tagsを追加</translation>
+      <translation>選択したタグに新規レイヤーを追加</translation>
     </message>
     <message>
       <source>Add Point Data (Distribution)</source>
-      <translation>Point Data (Distribution)を追加</translation>
+      <translation>ポイントデータ（分布）を追加</translation>
     </message>
     <message>
       <source>Add Pre-Comp Override</source>
-      <translation>Pre-Comp Overrideを追加</translation>
+      <translation>プリコンポーズ上書きを追加</translation>
     </message>
     <message>
       <source>Add Pre-Comp Overrides</source>
-      <translation>Pre-Comp Overridesを追加</translation>
+      <translation>プリコンポーズ上書きを追加</translation>
     </message>
     <message>
       <source>Add Preset</source>
-      <translation>Presetを追加</translation>
+      <translation>プリセットを追加</translation>
     </message>
     <message>
       <source>Add SVG to Composition</source>
-      <translation>SVG to Compositionを追加</translation>
+      <translation>SVG をコンポジションに追加</translation>
     </message>
     <message>
       <source>Add Shader</source>
-      <translation>Shaderを追加</translation>
+      <translation>シェーダーを追加</translation>
     </message>
     <message>
       <source>Add Shader (shader)</source>
-      <translation>Shader (shader)を追加</translation>
+      <translation>シェーダーを追加</translation>
     </message>
     <message>
       <source>Add Spacer</source>
-      <translation>Spacerを追加</translation>
+      <translation>スペーサーを追加</translation>
     </message>
     <message>
       <source>Add String</source>
-      <translation>Stringを追加</translation>
+      <translation>文字列を追加</translation>
     </message>
     <message>
       <source>Add Sub Bone</source>
-      <translation>Sub Boneを追加</translation>
+      <translation>子ボーンを追加</translation>
     </message>
     <message>
       <source>Add a Placement Utility</source>
-      <translation>a Placement Utilityを追加</translation>
+      <translation>配置ユーティリティを追加</translation>
     </message>
     <message>
       <source>Add a Rig Control</source>
-      <translation>a Rig Controlを追加</translation>
+      <translation>リグコントロールを追加</translation>
     </message>
     <message>
       <source>Add a Tag</source>
-      <translation>a Tagを追加</translation>
+      <translation>タグを追加</translation>
     </message>
     <message>
       <source>Add a Text Background</source>
-      <translation>a Text Backgroundを追加</translation>
+      <translation>テキスト背景を追加</translation>
     </message>
     <message>
       <source>Add a bone at the top of the hierarchy</source>
-      <translation>a bone at the top of the hierarchyを追加</translation>
+      <translation>階層の最上位にボーンを追加</translation>
     </message>
     <message>
       <source>Add a bone at the top of the hierarchy.</source>
-      <translation>a bone at the top of the hierarchy.を追加</translation>
+      <translation>階層の最上位にボーンを追加します。</translation>
     </message>
     <message>
       <source>Add a bone parented to this one</source>
-      <translation>a bone parented to this oneを追加</translation>
+      <translation>このボーンを親にしたボーンを追加</translation>
     </message>
     <message>
       <source>Add a bone parented to this one.</source>
-      <translation>a bone parented to this one.を追加</translation>
+      <translation>このボーンを親にしたボーンを追加します。</translation>
     </message>
     <message>
       <source>Add a new Attribute variable which can be used in your script</source>
-      <translation>a new Attribute variable which can be used in your scriptを追加</translation>
+      <translation>スクリプトで使用できる新しい属性変数を追加</translation>
     </message>
     <message>
       <source>Add a new Attribute variable which can be used in your script.</source>
-      <translation>a new Attribute variable which can be used in your script.を追加</translation>
+      <translation>スクリプトで使用できる新しい属性変数を追加します。</translation>
     </message>
     <message>
       <source>Add a tracker (4 required)</source>
-      <translation>a tracker (4 required)を追加</translation>
+      <translation>トラッカーを追加（4 個必要）</translation>
     </message>
     <message>
       <source>Add a tracker (4 required).</source>
-      <translation>a tracker (4 required).を追加</translation>
+      <translation>トラッカーを追加します（4 個必要）。</translation>
     </message>
     <message>
       <source>Add an Animation Control</source>
-      <translation>an Animation Controlを追加</translation>
+      <translation>アニメーションコントロールを追加</translation>
     </message>
     <message>
       <source>Add an Auto-Animate Deformer</source>
-      <translation>an Auto-Animate Deformerを追加</translation>
+      <translation>自動アニメーションデフォーマを追加</translation>
     </message>
     <message>
       <source>Add an IK Control using this Bone as End Effector</source>
-      <translation>an IK Control using this Bone as End Effectorを追加</translation>
+      <translation>このボーンをエンドエフェクターとして IK コントロールを追加</translation>
     </message>
     <message>
       <source>Add an IK Control using this Bone as End Effector.</source>
-      <translation>an IK Control using this Bone as End Effector.を追加</translation>
+      <translation>このボーンをエンドエフェクターとして IK コントロールを追加します。</translation>
     </message>
     <message>
       <source>Add connections</source>
-      <translation>connectionsを追加</translation>
+      <translation>接続を追加</translation>
     </message>
     <message>
       <source>Add new snippet</source>
-      <translation>new snippetを追加</translation>
+      <translation>新しいスニペットを追加</translation>
     </message>
     <message>
       <source>Add or edit Bind positions</source>
-      <translation>or edit Bind positionsを追加</translation>
+      <translation>バインド位置を追加または編集</translation>
     </message>
     <message>
       <source>Add selected layers to the Attribute Editor</source>
-      <translation>selected layers to the Attribute Editorを追加</translation>
+      <translation>選択したレイヤーを属性エディターに追加</translation>
     </message>
     <message>
       <source>Add selected layers to the Attribute Editor.</source>
-      <translation>selected layers to the Attribute Editor.を追加</translation>
+      <translation>選択したレイヤーを属性エディターに追加します。</translation>
     </message>
     <message>
       <source>Add your own Presets and you&apos;ll be able to delete and rename them here</source>
-      <translation>your own Presets and you&apos;ll be able to delete and rename them hereを追加</translation>
+      <translation>独自のプリセットを追加すると、ここで削除や名前変更ができます</translation>
     </message>
     <message>
       <source>Add your own Presets and you&apos;ll be able to delete and rename them here.</source>
-      <translation>your own Presets and you&apos;ll be able to delete and rename them here.を追加</translation>
+      <translation>独自のプリセットを追加すると、ここで削除や名前変更ができます。</translation>
     </message>
     <message>
       <source>Aero Blue</source>
@@ -3484,107 +3490,107 @@
     </message>
     <message>
       <source>Clear All</source>
-      <translation>クリア All</translation>
+      <translation>すべて消去</translation>
     </message>
     <message>
       <source>Clear Control Centre</source>
-      <translation>クリア Control Centre</translation>
+      <translation>コントロールセンターを消去</translation>
     </message>
     <message>
       <source>Clear Day</source>
-      <translation>クリア Day</translation>
+      <translation>日を消去</translation>
     </message>
     <message>
       <source>Clear Generator</source>
-      <translation>クリア Generator</translation>
+      <translation>ジェネレーターを消去</translation>
     </message>
     <message>
       <source>Clear Key</source>
-      <translation>クリア Key</translation>
+      <translation>キーを消去</translation>
     </message>
     <message>
       <source>Clear Palette</source>
-      <translation>クリア Palette</translation>
+      <translation>パレットを消去</translation>
     </message>
     <message>
       <source>Clear Path</source>
-      <translation>クリア Path</translation>
+      <translation>パスを消去</translation>
     </message>
     <message>
       <source>Clear Script</source>
-      <translation>クリア Script</translation>
+      <translation>スクリプトを消去</translation>
     </message>
     <message>
       <source>Clear Script?</source>
-      <translation>クリア Script?</translation>
+      <translation>スクリプトを消去しますか？</translation>
     </message>
     <message>
       <source>Clear Selected</source>
-      <translation>クリア Selected</translation>
+      <translation>選択項目を消去</translation>
     </message>
     <message>
       <source>Clear Settings</source>
-      <translation>クリア Settings</translation>
+      <translation>設定を消去</translation>
     </message>
     <message>
       <source>Clear Shortcut.</source>
-      <translation>クリア Shortcut.</translation>
+      <translation>ショートカットを消去しました。</translation>
     </message>
     <message>
       <source>Clear Tag</source>
-      <translation>クリア Tag</translation>
+      <translation>タグを消去</translation>
     </message>
     <message>
       <source>Clear Tag Selection</source>
-      <translation>クリア Tag Selection</translation>
+      <translation>タグ選択を消去</translation>
     </message>
     <message>
       <source>Clear palette</source>
-      <translation>クリア palette</translation>
+      <translation>パレットを消去</translation>
     </message>
     <message>
       <source>Clear the Quicklist</source>
-      <translation>クリア the Quicklist</translation>
+      <translation>クイックリストを消去</translation>
     </message>
     <message>
       <source>Clear the Tracking data for the selected layer</source>
-      <translation>クリア the Tracking data for the selected layer</translation>
+      <translation>選択したレイヤーのトラッキングデータを消去</translation>
     </message>
     <message>
       <source>Clear the Tracking data for the selected layer.</source>
-      <translation>クリア the Tracking data for the selected layer.</translation>
+      <translation>選択したレイヤーのトラッキングデータを消去します。</translation>
     </message>
     <message>
       <source>Clear the log</source>
-      <translation>クリア the log</translation>
+      <translation>ログを消去</translation>
     </message>
     <message>
       <source>Clear the log window</source>
-      <translation>クリア the log window</translation>
+      <translation>ログウィンドウを消去</translation>
     </message>
     <message>
       <source>Clear the log window.</source>
-      <translation>クリア the log window.</translation>
+      <translation>ログウィンドウを消去します。</translation>
     </message>
     <message>
       <source>Clear the log.</source>
-      <translation>クリア the log.</translation>
+      <translation>ログを消去します。</translation>
     </message>
     <message>
       <source>Cleared Snapshots.</source>
-      <translation>クリアed Snapshots.</translation>
+      <translation>スナップショットを消去しました。</translation>
     </message>
     <message>
       <source>Clears Focus</source>
-      <translation>クリアs Focus</translation>
+      <translation>フォーカスを消去</translation>
     </message>
     <message>
       <source>Clears all mixed styling from this text</source>
-      <translation>クリアs all mixed styling from this text</translation>
+      <translation>このテキストから混在するすべてのスタイルを消去</translation>
     </message>
     <message>
       <source>Clears all mixed styling from this text.</source>
-      <translation>クリアs all mixed styling from this text.</translation>
+      <translation>このテキストから混在するすべてのスタイルを消去します。</translation>
     </message>
     <message>
       <source>Cocoa Brown</source>
@@ -3608,7 +3614,7 @@
     </message>
     <message>
       <source>Copy Asset Id</source>
-      <translation>コピー Asset Id</translation>
+      <translation>アセット ID をコピー</translation>
     </message>
     <message>
       <source>Copy B</source>
@@ -3616,55 +3622,55 @@
     </message>
     <message>
       <source>Copy Composition Id</source>
-      <translation>コピー Composition Id</translation>
+      <translation>コンポジション ID をコピー</translation>
     </message>
     <message>
       <source>Copy Easing</source>
-      <translation>コピー Easing</translation>
+      <translation>イージングをコピー</translation>
     </message>
     <message>
       <source>Copy Generator Type</source>
-      <translation>コピー Generator Type</translation>
+      <translation>ジェネレータータイプをコピー</translation>
     </message>
     <message>
       <source>Copy Gradient</source>
-      <translation>コピー Gradient</translation>
+      <translation>グラデーションをコピー</translation>
     </message>
     <message>
       <source>Copy Graph</source>
-      <translation>コピー Graph</translation>
+      <translation>グラフをコピー</translation>
     </message>
     <message>
       <source>Copy Grid</source>
-      <translation>コピー Grid</translation>
+      <translation>グリッドをコピー</translation>
     </message>
     <message>
       <source>Copy Group Id</source>
-      <translation>コピー Group Id</translation>
+      <translation>グループ ID をコピー</translation>
     </message>
     <message>
       <source>Copy Hex Color Value</source>
-      <translation>コピー Hex Color Value</translation>
+      <translation>16 進カラー値をコピー</translation>
     </message>
     <message>
       <source>Copy Internal Attribute path</source>
-      <translation>コピー Internal Attribute path</translation>
+      <translation>内部属性パスをコピー</translation>
     </message>
     <message>
       <source>Copy Layer Id</source>
-      <translation>コピー Layer Id</translation>
+      <translation>レイヤー ID をコピー</translation>
     </message>
     <message>
       <source>Copy Path</source>
-      <translation>コピー Path</translation>
+      <translation>パスをコピー</translation>
     </message>
     <message>
       <source>Copy Render Queue Item Id</source>
-      <translation>コピー Render Queue Item Id</translation>
+      <translation>レンダーキュー項目 ID をコピー</translation>
     </message>
     <message>
       <source>Copy Scripting Path</source>
-      <translation>コピー Scripting Path</translation>
+      <translation>スクリプトパスをコピー</translation>
     </message>
     <message>
       <source>Copy Unicode</source>
@@ -3672,27 +3678,27 @@
     </message>
     <message>
       <source>Copy Value</source>
-      <translation>コピー Value</translation>
+      <translation>値をコピー</translation>
     </message>
     <message>
       <source>Copy and send this information to support for troubleshooting</source>
-      <translation>コピー and send this information to support for troubleshooting</translation>
+      <translation>トラブルシューティング用にこの情報をコピーしてサポートへ送信</translation>
     </message>
     <message>
       <source>Copy and send this information to support for troubleshooting.</source>
-      <translation>コピー and send this information to support for troubleshooting.</translation>
+      <translation>トラブルシューティング用にこの情報をコピーしてサポートへ送信します。</translation>
     </message>
     <message>
       <source>Copy serialised value</source>
-      <translation>コピー serialised value</translation>
+      <translation>シリアライズ値をコピー</translation>
     </message>
     <message>
       <source>Copy to Clipboard</source>
-      <translation>コピー to Clipboard</translation>
+      <translation>クリップボードにコピー</translation>
     </message>
     <message>
       <source>Copy to Next</source>
-      <translation>コピー to Next</translation>
+      <translation>次へコピー</translation>
     </message>
     <message>
       <source>Coral Red</source>
@@ -3720,23 +3726,23 @@
     </message>
     <message>
       <source>Custom Presets</source>
-      <translation>カスタム Presets</translation>
+      <translation>カスタムプリセット</translation>
     </message>
     <message>
       <source>Cut Path</source>
-      <translation>切り取り Path</translation>
+      <translation>パスをカット</translation>
     </message>
     <message>
       <source>Cut Path Tool</source>
-      <translation>切り取り Path Tool</translation>
+      <translation>パスカットツール</translation>
     </message>
     <message>
       <source>Cut Points</source>
-      <translation>切り取り Points</translation>
+      <translation>ポイントをカット</translation>
     </message>
     <message>
       <source>Cutty Sark</source>
-      <translation>切り取りty Sark</translation>
+      <translation>Cutty Sark</translation>
     </message>
     <message>
       <source>Dark Blue</source>
@@ -3764,51 +3770,51 @@
     </message>
     <message>
       <source>Default Ease (33%)</source>
-      <translation>デフォルト Ease (33%)</translation>
+      <translation>デフォルトイーズ（33%）</translation>
     </message>
     <message>
       <source>Default Keyframe Layer</source>
-      <translation>デフォルト Keyframe Layer</translation>
+      <translation>デフォルトキーフレームレイヤー</translation>
     </message>
     <message>
       <source>Default Preset for this Layer Type</source>
-      <translation>デフォルト Preset for this Layer Type</translation>
+      <translation>このレイヤータイプのデフォルトプリセット</translation>
     </message>
     <message>
       <source>Default Renderer</source>
-      <translation>デフォルト Renderer</translation>
+      <translation>デフォルトレンダラー</translation>
     </message>
     <message>
       <source>Default Velocity Presets</source>
-      <translation>デフォルト Velocity Presets</translation>
+      <translation>デフォルト速度プリセット</translation>
     </message>
     <message>
       <source>Delete All</source>
-      <translation>削除 All</translation>
+      <translation>すべて削除</translation>
     </message>
     <message>
       <source>Delete All Markers</source>
-      <translation>削除 All Markers</translation>
+      <translation>すべてのマーカーを削除</translation>
     </message>
     <message>
       <source>Delete All Time Markers</source>
-      <translation>削除 All Time Markers</translation>
+      <translation>すべての時間マーカーを削除</translation>
     </message>
     <message>
       <source>Delete Animation Layers</source>
-      <translation>削除 Animation Layers</translation>
+      <translation>アニメーションレイヤーを削除</translation>
     </message>
     <message>
       <source>Delete Animation for layer</source>
-      <translation>削除 Animation for layer</translation>
+      <translation>レイヤーのアニメーションを削除</translation>
     </message>
     <message>
       <source>Delete Assets</source>
-      <translation>削除 Assets</translation>
+      <translation>アセットを削除</translation>
     </message>
     <message>
       <source>Delete Attributes</source>
-      <translation>削除 Attributes</translation>
+      <translation>属性を削除</translation>
     </message>
     <message>
       <source>Delete B</source>
@@ -3816,75 +3822,75 @@
     </message>
     <message>
       <source>Delete Backdrop</source>
-      <translation>削除 Backdrop</translation>
+      <translation>背景板を削除</translation>
     </message>
     <message>
       <source>Delete Keyframe</source>
-      <translation>削除 Keyframe</translation>
+      <translation>キーフレームを削除</translation>
     </message>
     <message>
       <source>Delete Keyframe Command: attribute flag required</source>
-      <translation>削除 Keyframe Command: attribute flag required</translation>
+      <translation>キーフレーム削除コマンド: 属性フラグが必要</translation>
     </message>
     <message>
       <source>Delete Keyframe Command: attribute flag required.</source>
-      <translation>削除 Keyframe Command: attribute flag required.</translation>
+      <translation>キーフレーム削除コマンド: 属性フラグが必要です。</translation>
     </message>
     <message>
       <source>Delete Keyframes</source>
-      <translation>削除 Keyframes</translation>
+      <translation>キーフレームを削除</translation>
     </message>
     <message>
       <source>Delete Layers</source>
-      <translation>削除 Layers</translation>
+      <translation>レイヤーを削除</translation>
     </message>
     <message>
       <source>Delete Motion Path Keyframe</source>
-      <translation>削除 Motion Path Keyframe</translation>
+      <translation>モーションパスキーフレームを削除</translation>
     </message>
     <message>
       <source>Delete Palette</source>
-      <translation>削除 Palette</translation>
+      <translation>パレットを削除</translation>
     </message>
     <message>
       <source>Delete Path Animation</source>
-      <translation>削除 Path Animation</translation>
+      <translation>パスアニメーションを削除</translation>
     </message>
     <message>
       <source>Delete Path Animation on this Shape</source>
-      <translation>削除 Path Animation on this Shape</translation>
+      <translation>このシェイプのパスアニメーションを削除</translation>
     </message>
     <message>
       <source>Delete Path Animation on this Shape.</source>
-      <translation>削除 Path Animation on this Shape.</translation>
+      <translation>このシェイプのパスアニメーションを削除します。</translation>
     </message>
     <message>
       <source>Delete Row</source>
-      <translation>削除 Row</translation>
+      <translation>行を削除</translation>
     </message>
     <message>
       <source>Delete Selected</source>
-      <translation>削除 Selected</translation>
+      <translation>選択項目を削除</translation>
     </message>
     <message>
       <source>Delete Selection</source>
-      <translation>削除 Selection</translation>
+      <translation>選択範囲を削除</translation>
     </message>
     <message>
       <source>Delete Stops</source>
-      <translation>削除 Stops</translation>
+      <translation>ストップを削除</translation>
     </message>
     <message>
       <source>Delete Tag</source>
-      <translation>削除 Tag</translation>
+      <translation>タグを削除</translation>
     </message>
     <message>
       <source>Delete Track?</source>
-      <translation>削除 Track?</translation>
+      <translation>トラックを削除しますか？</translation>
     </message>
     <message>
       <source>Delete Unused Colours</source>
-      <translation>削除 Unused Colours</translation>
+      <translation>未使用カラーを削除</translation>
     </message>
     <message>
       <source>Delete VH</source>
@@ -3892,19 +3898,19 @@
     </message>
     <message>
       <source>Delete Vertex</source>
-      <translation>削除 Vertex</translation>
+      <translation>頂点を削除</translation>
     </message>
     <message>
       <source>Delete all Animation</source>
-      <translation>削除 all Animation</translation>
+      <translation>すべてのアニメーションを削除</translation>
     </message>
     <message>
       <source>Delete this bookmark?</source>
-      <translation>削除 this bookmark?</translation>
+      <translation>このブックマークを削除しますか？</translation>
     </message>
     <message>
       <source>Delete this preset?</source>
-      <translation>削除 this preset?</translation>
+      <translation>このプリセットを削除しますか？</translation>
     </message>
     <message>
       <source>Dodger Blue</source>
@@ -3924,11 +3930,11 @@
     </message>
     <message>
       <source>Duplicate Composition</source>
-      <translation>複製 Composition</translation>
+      <translation>コンポジションを複製</translation>
     </message>
     <message>
       <source>Duplicate Options</source>
-      <translation>複製 Options</translation>
+      <translation>オプションを複製</translation>
     </message>
     <message>
       <source>Earls Green</source>
@@ -3944,67 +3950,67 @@
     </message>
     <message>
       <source>Edit Backdrop...</source>
-      <translation>編集 Backdrop...</translation>
+      <translation>背景板を編集...</translation>
     </message>
     <message>
       <source>Edit Component</source>
-      <translation>編集 Component</translation>
+      <translation>コンポーネントを編集</translation>
     </message>
     <message>
       <source>Edit Custom Expression</source>
-      <translation>編集 Custom Expression</translation>
+      <translation>カスタムエクスプレッションを編集</translation>
     </message>
     <message>
       <source>Edit Custom Expression...</source>
-      <translation>編集 Custom Expression...</translation>
+      <translation>カスタムエクスプレッションを編集...</translation>
     </message>
     <message>
       <source>Edit End Point</source>
-      <translation>編集 End Point</translation>
+      <translation>終点を編集</translation>
     </message>
     <message>
       <source>Edit Expression...</source>
-      <translation>編集 Expression...</translation>
+      <translation>エクスプレッションを編集...</translation>
     </message>
     <message>
       <source>Edit Limits...</source>
-      <translation>編集 Limits...</translation>
+      <translation>制限を編集...</translation>
     </message>
     <message>
       <source>Edit Limits... (Set from Origin Attribute)</source>
-      <translation>編集 Limits... (Set from Origin Attribute)</translation>
+      <translation>制限を編集...（原点属性から設定）</translation>
     </message>
     <message>
       <source>Edit Points Tool</source>
-      <translation>編集 Points Tool</translation>
+      <translation>ポイント編集ツール</translation>
     </message>
     <message>
       <source>Edit Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor</source>
-      <translation>編集 Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor</translation>
+      <translation>プリコンポジションを属性エディターにドラッグしてプリコンポーズ上書きを編集</translation>
     </message>
     <message>
       <source>Edit Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor.</source>
-      <translation>編集 Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor.</translation>
+      <translation>プリコンポジションを属性エディターにドラッグしてプリコンポーズ上書きを編集します。</translation>
     </message>
     <message>
       <source>Edit Velocity Curve</source>
-      <translation>編集 Velocity Curve</translation>
+      <translation>速度カーブを編集</translation>
     </message>
     <message>
       <source>Edit Velocity Curve...</source>
-      <translation>編集 Velocity Curve...</translation>
+      <translation>速度カーブを編集...</translation>
     </message>
     <message>
       <source>Edit the Control Name and Notes</source>
-      <translation>編集 the Control Name and Notes</translation>
+      <translation>コントロール名とメモを編集</translation>
     </message>
     <message>
       <source>Editable</source>
-      <translation>編集able</translation>
+      <translation>編集可能</translation>
     </message>
     <message>
       <source>Editable Shape Cut</source>
-      <translation>編集able Shape Cut</translation>
+      <translation>編集可能なシェイプカット</translation>
     </message>
     <message>
       <source>Egg White</source>
@@ -4040,23 +4046,23 @@
     </message>
     <message>
       <source>File autosaved.</source>
-      <translation>ファイル autosaved.</translation>
+      <translation>ファイルを自動保存しました。</translation>
     </message>
     <message>
       <source>File buffer is empty</source>
-      <translation>ファイル buffer is empty</translation>
+      <translation>ファイルバッファーが空です</translation>
     </message>
     <message>
       <source>File buffer is empty.</source>
-      <translation>ファイル buffer is empty.</translation>
+      <translation>ファイルバッファーが空です。</translation>
     </message>
     <message>
       <source>File created in a newer version</source>
-      <translation>ファイル created in a newer version</translation>
+      <translation>新しいバージョンで作成されたファイル</translation>
     </message>
     <message>
       <source>File created in a newer version.</source>
-      <translation>ファイル created in a newer version.</translation>
+      <translation>新しいバージョンで作成されたファイルです。</translation>
     </message>
     <message>
       <source>Find</source>
@@ -4196,7 +4202,7 @@
     </message>
     <message>
       <source>Insert Keyframe</source>
-      <translation>挿入 Keyframe</translation>
+      <translation>キーフレームを挿入</translation>
     </message>
     <message>
       <source>International Klein Blue</source>
@@ -4380,23 +4386,23 @@
     </message>
     <message>
       <source>Paste Color</source>
-      <translation>貼り付け Color</translation>
+      <translation>カラーを貼り付け</translation>
     </message>
     <message>
       <source>Paste Gradient</source>
-      <translation>貼り付け Gradient</translation>
+      <translation>グラデーションを貼り付け</translation>
     </message>
     <message>
       <source>Paste Graph</source>
-      <translation>貼り付け Graph</translation>
+      <translation>グラフを貼り付け</translation>
     </message>
     <message>
       <source>Paste Grid</source>
-      <translation>貼り付け Grid</translation>
+      <translation>グリッドを貼り付け</translation>
     </message>
     <message>
       <source>Paste Path</source>
-      <translation>貼り付け Path</translation>
+      <translation>パスを貼り付け</translation>
     </message>
     <message>
       <source>Paste SVG</source>
@@ -4404,35 +4410,35 @@
     </message>
     <message>
       <source>Paste Text</source>
-      <translation>貼り付け Text</translation>
+      <translation>テキストを貼り付け</translation>
     </message>
     <message>
       <source>Paste Value</source>
-      <translation>貼り付け Value</translation>
+      <translation>値を貼り付け</translation>
     </message>
     <message>
       <source>Paste and import image</source>
-      <translation>貼り付け and import image</translation>
+      <translation>画像を貼り付けて読み込み</translation>
     </message>
     <message>
       <source>Paste attribute value</source>
-      <translation>貼り付け attribute value</translation>
+      <translation>属性値を貼り付け</translation>
     </message>
     <message>
       <source>Pasted Animation</source>
-      <translation>貼り付けd Animation</translation>
+      <translation>アニメーションを貼り付けました</translation>
     </message>
     <message>
       <source>Pasted Gradient</source>
-      <translation>貼り付けd Gradient</translation>
+      <translation>グラデーションを貼り付けました</translation>
     </message>
     <message>
       <source>Pasted Graph</source>
-      <translation>貼り付けd Graph</translation>
+      <translation>グラフを貼り付けました</translation>
     </message>
     <message>
       <source>Pasted Grid.</source>
-      <translation>貼り付けd Grid.</translation>
+      <translation>グリッドを貼り付けました。</translation>
     </message>
     <message>
       <source>Pasted SVG</source>
@@ -4440,23 +4446,23 @@
     </message>
     <message>
       <source>Pasted Shape</source>
-      <translation>貼り付けd Shape</translation>
+      <translation>シェイプを貼り付けました</translation>
     </message>
     <message>
       <source>Pasted attribute value</source>
-      <translation>貼り付けd attribute value</translation>
+      <translation>属性値を貼り付けました</translation>
     </message>
     <message>
       <source>Pasted attribute value.</source>
-      <translation>貼り付けd attribute value.</translation>
+      <translation>属性値を貼り付けました。</translation>
     </message>
     <message>
       <source>Pasted layers</source>
-      <translation>貼り付けd layers</translation>
+      <translation>レイヤーを貼り付けました</translation>
     </message>
     <message>
       <source>Pasted time markers</source>
-      <translation>貼り付けd time markers</translation>
+      <translation>時間マーカーを貼り付けました</translation>
     </message>
     <message>
       <source>Pastel</source>
@@ -4568,7 +4574,7 @@
     </message>
     <message>
       <source>Redo (Text Editing)</source>
-      <translation>やり直す (Text Editing)</translation>
+      <translation>やり直す（テキスト編集）</translation>
     </message>
     <message>
       <source>Regal Blue</source>
@@ -4584,31 +4590,31 @@
     </message>
     <message>
       <source>Replace All</source>
-      <translation>置換 All</translation>
+      <translation>すべて置換</translation>
     </message>
     <message>
       <source>Replace Asset...</source>
-      <translation>置換 Asset...</translation>
+      <translation>アセットを置換...</translation>
     </message>
     <message>
       <source>Replace Connection</source>
-      <translation>置換 Connection</translation>
+      <translation>接続を置換</translation>
     </message>
     <message>
       <source>Replace Current</source>
-      <translation>置換 Current</translation>
+      <translation>現在の項目を置換</translation>
     </message>
     <message>
       <source>Replace Fill</source>
-      <translation>置換 Fill</translation>
+      <translation>塗りを置換</translation>
     </message>
     <message>
       <source>Replace Google Sheet</source>
-      <translation>置換 Google Sheet</translation>
+      <translation>Google スプレッドシートを置換</translation>
     </message>
     <message>
       <source>Replace Google Sheet...</source>
-      <translation>置換 Google Sheet...</translation>
+      <translation>Google スプレッドシートを置換...</translation>
     </message>
     <message>
       <source>Replace H</source>
@@ -4616,19 +4622,19 @@
     </message>
     <message>
       <source>Replace Script or Create New Tab?</source>
-      <translation>置換 Script or Create New Tab?</translation>
+      <translation>スクリプトを置換しますか、新規タブを作成しますか？</translation>
     </message>
     <message>
       <source>Replace Stroke</source>
-      <translation>置換 Stroke</translation>
+      <translation>ストロークを置換</translation>
     </message>
     <message>
       <source>Replace and reconnect</source>
-      <translation>置換 and reconnect</translation>
+      <translation>置換して再接続</translation>
     </message>
     <message>
       <source>Replaced Connection</source>
-      <translation>置換d Connection</translation>
+      <translation>接続を置換しました</translation>
     </message>
     <message>
       <source>Resolution Blue</source>
@@ -4696,7 +4702,7 @@
     </message>
     <message>
       <source>Selection Soloed in Viewport (Selection added to Quicklist and Filter Viewport mode set)</source>
-      <translation>選択 Soloed in Viewport (Selection added to Quicklist and Filter Viewport mode set)</translation>
+      <translation>選択項目をビューポートでソロ表示しました（選択項目をクイックリストに追加し、ビューポートフィルターモードを設定）</translation>
     </message>
     <message>
       <source>Selective Yellow</source>
@@ -4860,11 +4866,11 @@
     </message>
     <message>
       <source>Undo (Text Editing)</source>
-      <translation>戻す (Text Editing)</translation>
+      <translation>元に戻す（テキスト編集）</translation>
     </message>
     <message>
       <source>Undock</source>
-      <translation>戻すck</translation>
+      <translation>ドック解除</translation>
     </message>
     <message>
       <source>Unmellow Yellow</source>
@@ -4884,59 +4890,59 @@
     </message>
     <message>
       <source>View Bookmarks</source>
-      <translation>表示 Bookmarks</translation>
+      <translation>ブックマークを表示</translation>
     </message>
     <message>
       <source>View File Paths</source>
-      <translation>表示 File Paths</translation>
+      <translation>ファイルパスを表示</translation>
     </message>
     <message>
       <source>View File Paths...</source>
-      <translation>表示 File Paths...</translation>
+      <translation>ファイルパスを表示...</translation>
     </message>
     <message>
       <source>Viewport</source>
-      <translation>表示port</translation>
+      <translation>ビューポート</translation>
     </message>
     <message>
       <source>Viewport Canvas Color</source>
-      <translation>表示port Canvas Color</translation>
+      <translation>ビューポートキャンバスカラー</translation>
     </message>
     <message>
       <source>Viewport Quality: Balanced</source>
-      <translation>表示port Quality: Balanced</translation>
+      <translation>ビューポート品質: バランス</translation>
     </message>
     <message>
       <source>Viewport Quality: High</source>
-      <translation>表示port Quality: High</translation>
+      <translation>ビューポート品質: 高</translation>
     </message>
     <message>
       <source>Viewport Quality: Low</source>
-      <translation>表示port Quality: Low</translation>
+      <translation>ビューポート品質: 低</translation>
     </message>
     <message>
       <source>Viewport Quality: Lowest</source>
-      <translation>表示port Quality: Lowest</translation>
+      <translation>ビューポート品質: 最低</translation>
     </message>
     <message>
       <source>Viewport Settings</source>
-      <translation>表示port Settings</translation>
+      <translation>ビューポート設定</translation>
     </message>
     <message>
       <source>Viewport Soloing Cleared (Quicklist deselected)</source>
-      <translation>表示port Soloing Cleared (Quicklist deselected)</translation>
+      <translation>ビューポートのソロ表示を解除しました（クイックリストの選択解除）</translation>
     </message>
     <message>
       <source>Viewport Tool Help</source>
-      <translation>表示port Tool Help</translation>
+      <translation>ビューポートツールヘルプ</translation>
     </message>
     <message>
       <source>Viewport setting to preview</source>
-      <translation>表示port setting to preview</translation>
+      <translation>ビューポート設定をプレビュー</translation>
     </message>
     <message>
       <source>Viewport setting to preview.</source>
-      <translation>表示port setting to preview.</translation>
+      <translation>ビューポート設定をプレビューします。</translation>
     </message>
     <message>
       <source>Violet Red</source>
@@ -4989,6 +4995,1794 @@
     <message>
       <source>Your Pink</source>
       <translation>Your Pink</translation>
+    </message>
+    <message>
+      <source>Accumulator</source>
+      <translation>アキュムレーター</translation>
+    </message>
+    <message>
+      <source>Akhand</source>
+      <translation>アカンドリガチャ</translation>
+    </message>
+    <message>
+      <source>Alignment</source>
+      <translation>整列</translation>
+    </message>
+    <message>
+      <source>All Caps</source>
+      <translation>すべて大文字</translation>
+    </message>
+    <message>
+      <source>Alternate Annotation Forms</source>
+      <translation>代替注釈形式</translation>
+    </message>
+    <message>
+      <source>Alternate Half Widths</source>
+      <translation>代替半角</translation>
+    </message>
+    <message>
+      <source>Alternate Vertical Half Metrics</source>
+      <translation>替代垂直半幅量</translation>
+    </message>
+    <message>
+      <source>Alternate Vertical Metrics</source>
+      <translation>代替垂直メトリクス</translation>
+    </message>
+    <message>
+      <source>Alternative Fractions</source>
+      <translation>代替分数</translation>
+    </message>
+    <message>
+      <source>Always</source>
+      <translation>常に</translation>
+    </message>
+    <message>
+      <source>Animate Path</source>
+      <translation>パスアニメーション</translation>
+    </message>
+    <message>
+      <source>Apply Character Spacing</source>
+      <translation>文字間隔を適用</translation>
+    </message>
+    <message>
+      <source>Apply Font Size</source>
+      <translation>フォントサイズを適用</translation>
+    </message>
+    <message>
+      <source>Apply Font Style</source>
+      <translation>フォントスタイルを適用</translation>
+    </message>
+    <message>
+      <source>Apply OpenType</source>
+      <translation>オープンタイプを適用</translation>
+    </message>
+    <message>
+      <source>Apply Text Material</source>
+      <translation>テキストマテリアルを適用</translation>
+    </message>
+    <message>
+      <source>Apply Typeface</source>
+      <translation>書体を適用</translation>
+    </message>
+    <message>
+      <source>Array</source>
+      <translation>配列</translation>
+    </message>
+    <message>
+      <source>Asset From Smart Folder</source>
+      <translation>スマートフォルダーからアセット</translation>
+    </message>
+    <message>
+      <source>Background Blur</source>
+      <translation>背景ブラー</translation>
+    </message>
+    <message>
+      <source>Baseline</source>
+      <translation>ベースライン</translation>
+    </message>
+    <message>
+      <source>Basic</source>
+      <translation>基本</translation>
+    </message>
+    <message>
+      <source>Behaviour</source>
+      <translation>ビヘイビア</translation>
+    </message>
+    <message>
+      <source>Black and White</source>
+      <translation>白黒</translation>
+    </message>
+    <message>
+      <source>Blend Shader</source>
+      <translation>ブレンドシェーダー</translation>
+    </message>
+    <message>
+      <source>Bone</source>
+      <translation>ボーン</translation>
+    </message>
+    <message>
+      <source>Bottom</source>
+      <translation>下</translation>
+    </message>
+    <message>
+      <source>Bottom Left</source>
+      <translation>左下</translation>
+    </message>
+    <message>
+      <source>Bottom Right</source>
+      <translation>右下</translation>
+    </message>
+    <message>
+      <source>Bounce</source>
+      <translation>バウンス</translation>
+    </message>
+    <message>
+      <source>Bounding Box</source>
+      <translation>バウンディングボックス</translation>
+    </message>
+    <message>
+      <source>Bridge Constraint</source>
+      <translation>ブリッジコンストレイント</translation>
+    </message>
+    <message>
+      <source>Brightness And Contrast</source>
+      <translation>明るさとコントラスト</translation>
+    </message>
+    <message>
+      <source>Bubbles</source>
+      <translation>バブル</translation>
+    </message>
+    <message>
+      <source>Bulge</source>
+      <translation>バルジ</translation>
+    </message>
+    <message>
+      <source>Capital Spacing</source>
+      <translation>大文字字距</translation>
+    </message>
+    <message>
+      <source>Case-Sensitive Forms</source>
+      <translation>サイズ写敏感形式</translation>
+    </message>
+    <message>
+      <source>Centered CJK Punctuation</source>
+      <translation>中央揃えCJK句読点</translation>
+    </message>
+    <message>
+      <source>Centre</source>
+      <translation>中心</translation>
+    </message>
+    <message>
+      <source>Checkerboard Shader</source>
+      <translation>チェッカーボードシェーダー</translation>
+    </message>
+    <message>
+      <source>Chromatic Aberration</source>
+      <translation>色収差</translation>
+    </message>
+    <message>
+      <source>Color</source>
+      <translation>カラー</translation>
+    </message>
+    <message>
+      <source>Color Info</source>
+      <translation>カラー情報</translation>
+    </message>
+    <message>
+      <source>Color Shader</source>
+      <translation>カラーシェーダー</translation>
+    </message>
+    <message>
+      <source>Component Constraint</source>
+      <translation>コンポーネントコンストレイント</translation>
+    </message>
+    <message>
+      <source>Compositions</source>
+      <translation>コンポジション</translation>
+    </message>
+    <message>
+      <source>Conjunct Form After Ro</source>
+      <translation>ロー後接続形式</translation>
+    </message>
+    <message>
+      <source>Conjunct Forms</source>
+      <translation>接続形式</translation>
+    </message>
+    <message>
+      <source>Container</source>
+      <translation>コンテナ</translation>
+    </message>
+    <message>
+      <source>Contextual Alternates</source>
+      <translation>文脈依存代替字形</translation>
+    </message>
+    <message>
+      <source>Contextual Half-width Spacing</source>
+      <translation>上下文半宽間隔</translation>
+    </message>
+    <message>
+      <source>Contextual Ligatures</source>
+      <translation>上下文合字</translation>
+    </message>
+    <message>
+      <source>Contextual Swash</source>
+      <translation>上下文スワッシュ</translation>
+    </message>
+    <message>
+      <source>Contrast</source>
+      <translation>コントラスト</translation>
+    </message>
+    <message>
+      <source>Contrasting Color</source>
+      <translation>コントラストカラー</translation>
+    </message>
+    <message>
+      <source>Control</source>
+      <translation>コントロール</translation>
+    </message>
+    <message>
+      <source>Controls</source>
+      <translation>コントロール</translation>
+    </message>
+    <message>
+      <source>Count Sub-Meshes</source>
+      <translation>サブメッシュ数をカウント</translation>
+    </message>
+    <message>
+      <source>Current Frame</source>
+      <translation>現在のフレーム</translation>
+    </message>
+    <message>
+      <source>Cursive Positioning</source>
+      <translation>连笔定ビット</translation>
+    </message>
+    <message>
+      <source>Curve Interpolation</source>
+      <translation>カーブ補間</translation>
+    </message>
+    <message>
+      <source>Data</source>
+      <translation>データ</translation>
+    </message>
+    <message>
+      <source>Decimal Separator</source>
+      <translation>小数区切り文字</translation>
+    </message>
+    <message>
+      <source>Deformer</source>
+      <translation>デフォーマ</translation>
+    </message>
+    <message>
+      <source>Delimiter</source>
+      <translation>区切り文字</translation>
+    </message>
+    <message>
+      <source>Denominators</source>
+      <translation>分母</translation>
+    </message>
+    <message>
+      <source>Discretionary Ligatures</source>
+      <translation>任意リガチャ</translation>
+    </message>
+    <message>
+      <source>Distance Constraint</source>
+      <translation>ディスタンスコンストレイント</translation>
+    </message>
+    <message>
+      <source>Distances</source>
+      <translation>距離</translation>
+    </message>
+    <message>
+      <source>Distort Edges</source>
+      <translation>エッジを歪める</translation>
+    </message>
+    <message>
+      <source>Distortion</source>
+      <translation>ディストーション</translation>
+    </message>
+    <message>
+      <source>Distribution</source>
+      <translation>配分</translation>
+    </message>
+    <message>
+      <source>Dithering</source>
+      <translation>ディザリング</translation>
+    </message>
+    <message>
+      <source>Divisions</source>
+      <translation>サブディビジョン</translation>
+    </message>
+    <message>
+      <source>Dotless Forms</source>
+      <translation>ドットなし形式</translation>
+    </message>
+    <message>
+      <source>Drag</source>
+      <translation>ドラッグ</translation>
+    </message>
+    <message>
+      <source>Drop Shadow</source>
+      <translation>ドロップシャドウ</translation>
+    </message>
+    <message>
+      <source>Edge Detection</source>
+      <translation>エッジ検出</translation>
+    </message>
+    <message>
+      <source>Enabled</source>
+      <translation>有効</translation>
+    </message>
+    <message>
+      <source>End</source>
+      <translation>終了</translation>
+    </message>
+    <message>
+      <source>Expert Forms</source>
+      <translation>エキスパート形式</translation>
+    </message>
+    <message>
+      <source>Falloff</source>
+      <translation>フォールオフ</translation>
+    </message>
+    <message>
+      <source>Fast Blur</source>
+      <translation>ファストブラー</translation>
+    </message>
+    <message>
+      <source>Features</source>
+      <translation>特性</translation>
+    </message>
+    <message>
+      <source>Fill</source>
+      <translation>塗り</translation>
+    </message>
+    <message>
+      <source>Fill Color</source>
+      <translation>塗りカラー</translation>
+    </message>
+    <message>
+      <source>Final Glyph on Line Alternates</source>
+      <translation>行末グリフ代替</translation>
+    </message>
+    <message>
+      <source>Flat</source>
+      <translation>フラット</translation>
+    </message>
+    <message>
+      <source>Flattened Accent Forms</source>
+      <translation>平坦アクセント形式</translation>
+    </message>
+    <message>
+      <source>Font</source>
+      <translation>フォント</translation>
+    </message>
+    <message>
+      <source>Fractions</source>
+      <translation>分数</translation>
+    </message>
+    <message>
+      <source>Full</source>
+      <translation>フル</translation>
+    </message>
+    <message>
+      <source>Full Widths</source>
+      <translation>全角</translation>
+    </message>
+    <message>
+      <source>Gamma Correction</source>
+      <translation>ガンマ補正</translation>
+    </message>
+    <message>
+      <source>Gaussian Blur</source>
+      <translation>ガウスブラー</translation>
+    </message>
+    <message>
+      <source>Generator</source>
+      <translation>ジェネレーター</translation>
+    </message>
+    <message>
+      <source>Get Name</source>
+      <translation>名前を取得</translation>
+    </message>
+    <message>
+      <source>Get Sub-Mesh Transform</source>
+      <translation>サブメッシュトランスフォームを取得</translation>
+    </message>
+    <message>
+      <source>Glow</source>
+      <translation>グロー</translation>
+    </message>
+    <message>
+      <source>Gradient Map</source>
+      <translation>グラデーションマップ</translation>
+    </message>
+    <message>
+      <source>Gradient Shader</source>
+      <translation>グラデーションシェーダー</translation>
+    </message>
+    <message>
+      <source>Grain</source>
+      <translation>グレイン</translation>
+    </message>
+    <message>
+      <source>Grid</source>
+      <translation>グリッド</translation>
+    </message>
+    <message>
+      <source>Grid Layout</source>
+      <translation>グリッドレイアウト</translation>
+    </message>
+    <message>
+      <source>Grid Size</source>
+      <translation>グリッドサイズ</translation>
+    </message>
+    <message>
+      <source>Halant Forms</source>
+      <translation>ハラントフォーム</translation>
+    </message>
+    <message>
+      <source>Half Forms</source>
+      <translation>半形</translation>
+    </message>
+    <message>
+      <source>Half Widths</source>
+      <translation>半角</translation>
+    </message>
+    <message>
+      <source>Halftone</source>
+      <translation>ハーフトーン</translation>
+    </message>
+    <message>
+      <source>Hangul</source>
+      <translation>ハングル</translation>
+    </message>
+    <message>
+      <source>Height</source>
+      <translation>高さ</translation>
+    </message>
+    <message>
+      <source>Historical Forms</source>
+      <translation>歴史的形式</translation>
+    </message>
+    <message>
+      <source>Historical Ligatures</source>
+      <translation>歴史的リガチャ</translation>
+    </message>
+    <message>
+      <source>Horizontal Kana Alternates</source>
+      <translation>横書き仮名代替</translation>
+    </message>
+    <message>
+      <source>Horizontal Layout</source>
+      <translation>水平レイアウト</translation>
+    </message>
+    <message>
+      <source>HSV Adjustment</source>
+      <translation>HSV 調整</translation>
+    </message>
+    <message>
+      <source>HSV Color</source>
+      <translation>HSV カラー</translation>
+    </message>
+    <message>
+      <source>Image</source>
+      <translation>画像</translation>
+    </message>
+    <message>
+      <source>Image Sampler</source>
+      <translation>イメージサンプラー</translation>
+    </message>
+    <message>
+      <source>Image Shader</source>
+      <translation>画像シェーダー</translation>
+    </message>
+    <message>
+      <source>Index Context</source>
+      <translation>インデックスコンテキスト</translation>
+    </message>
+    <message>
+      <source>Individual</source>
+      <translation>個別</translation>
+    </message>
+    <message>
+      <source>Influence</source>
+      <translation>影響</translation>
+    </message>
+    <message>
+      <source>Initial Forms</source>
+      <translation>初期形式</translation>
+    </message>
+    <message>
+      <source>Inner Shadow</source>
+      <translation>内側シャドウ</translation>
+    </message>
+    <message>
+      <source>Interpolation</source>
+      <translation>補間</translation>
+    </message>
+    <message>
+      <source>Intersections</source>
+      <translation>交差</translation>
+    </message>
+    <message>
+      <source>Invert</source>
+      <translation>反転</translation>
+    </message>
+    <message>
+      <source>Isolated Forms</source>
+      <translation>個別形式</translation>
+    </message>
+    <message>
+      <source>Italics</source>
+      <translation>イタリック</translation>
+    </message>
+    <message>
+      <source>JavaScript Utility</source>
+      <translation>JavaScript ユーティリティ</translation>
+    </message>
+    <message>
+      <source>Justification Alternates</source>
+      <translation>两端整列替代</translation>
+    </message>
+    <message>
+      <source>Kerning</source>
+      <translation>カーニング</translation>
+    </message>
+    <message>
+      <source>Kerning for Alternate Proportional Vertical Metrics</source>
+      <translation>代替プロポーショナル垂直メトリクスのカーニング</translation>
+    </message>
+    <message>
+      <source>Kerning for Alternate Proportional Widths</source>
+      <translation>替代比例幅字距</translation>
+    </message>
+    <message>
+      <source>Label</source>
+      <translation>ラベル</translation>
+    </message>
+    <message>
+      <source>Label Color</source>
+      <translation>ラベルカラー</translation>
+    </message>
+    <message>
+      <source>Lattice Controller</source>
+      <translation>ラティスコントローラー</translation>
+    </message>
+    <message>
+      <source>Leading Jamo Forms</source>
+      <translation>先頭字母形式</translation>
+    </message>
+    <message>
+      <source>Left</source>
+      <translation>左</translation>
+    </message>
+    <message>
+      <source>Left Bounds</source>
+      <translation>左境界</translation>
+    </message>
+    <message>
+      <source>Left-to-right Alternates</source>
+      <translation>左から右の代替</translation>
+    </message>
+    <message>
+      <source>Left-to-right Mirrored Forms</source>
+      <translation>左から右のミラー形式</translation>
+    </message>
+    <message>
+      <source>Length</source>
+      <translation>長さ</translation>
+    </message>
+    <message>
+      <source>Levels</source>
+      <translation>レベル</translation>
+    </message>
+    <message>
+      <source>Line Chart</source>
+      <translation>ラインチャート</translation>
+    </message>
+    <message>
+      <source>Linear</source>
+      <translation>リニア</translation>
+    </message>
+    <message>
+      <source>Linear Wipe</source>
+      <translation>リニアワイプ</translation>
+    </message>
+    <message>
+      <source>Lining Figures</source>
+      <translation>ライニング数字</translation>
+    </message>
+    <message>
+      <source>Localized Forms</source>
+      <translation>ローカライズ形式</translation>
+    </message>
+    <message>
+      <source>Location</source>
+      <translation>ロケーション</translation>
+    </message>
+    <message>
+      <source>Looping</source>
+      <translation>ループ中</translation>
+    </message>
+    <message>
+      <source>Lottie Export</source>
+      <translation>Lottie エクスポート</translation>
+    </message>
+    <message>
+      <source>Luminance Blur</source>
+      <translation>輝度ブラー</translation>
+    </message>
+    <message>
+      <source>Manhattan</source>
+      <translation>マンハッタン</translation>
+    </message>
+    <message>
+      <source>Margins</source>
+      <translation>マージン</translation>
+    </message>
+    <message>
+      <source>Mark Positioning</source>
+      <translation>マーカー定ビット</translation>
+    </message>
+    <message>
+      <source>Mark Positioning via Substitution</source>
+      <translation>通过置換进行マーカー定ビット</translation>
+    </message>
+    <message>
+      <source>Mark to Mark Positioning</source>
+      <translation>マーカー到マーカー定ビット</translation>
+    </message>
+    <message>
+      <source>Mask</source>
+      <translation>マスク</translation>
+    </message>
+    <message>
+      <source>Math</source>
+      <translation>数学</translation>
+    </message>
+    <message>
+      <source>Math Script-style Alternates</source>
+      <translation>数学脚本スタイル替代</translation>
+    </message>
+    <message>
+      <source>Mathematical Greek</source>
+      <translation>数学ギリシャ文字</translation>
+    </message>
+    <message>
+      <source>Measure Text</source>
+      <translation>テキスト計測</translation>
+    </message>
+    <message>
+      <source>Medial Forms</source>
+      <translation>中間形式</translation>
+    </message>
+    <message>
+      <source>Medium</source>
+      <translation>中</translation>
+    </message>
+    <message>
+      <source>Metadata</source>
+      <translation>メタデータ</translation>
+    </message>
+    <message>
+      <source>Mirror</source>
+      <translation>ミラー</translation>
+    </message>
+    <message>
+      <source>Mode</source>
+      <translation>モード</translation>
+    </message>
+    <message>
+      <source>Multi-Point Gradient Shader</source>
+      <translation>マルチポイントグラデーションシェーダー</translation>
+    </message>
+    <message>
+      <source>Name</source>
+      <translation>名前</translation>
+    </message>
+    <message>
+      <source>NLC Kanji Forms</source>
+      <translation>NLC 漢字形式</translation>
+    </message>
+    <message>
+      <source>Noise Shader</source>
+      <translation>ノイズシェーダー</translation>
+    </message>
+    <message>
+      <source>Normal</source>
+      <translation>通常</translation>
+    </message>
+    <message>
+      <source>Nukta Forms</source>
+      <translation>ヌクタフォーム</translation>
+    </message>
+    <message>
+      <source>Number</source>
+      <translation>数値</translation>
+    </message>
+    <message>
+      <source>Numerators</source>
+      <translation>分子</translation>
+    </message>
+    <message>
+      <source>Oldstyle Figures</source>
+      <translation>オールドスタイル数字</translation>
+    </message>
+    <message>
+      <source>Onion Skinning</source>
+      <translation>オニオンスキン</translation>
+    </message>
+    <message>
+      <source>Optical Bounds</source>
+      <translation>光学境界</translation>
+    </message>
+    <message>
+      <source>Optical Size</source>
+      <translation>视觉サイズ</translation>
+    </message>
+    <message>
+      <source>Ordinals</source>
+      <translation>序数</translation>
+    </message>
+    <message>
+      <source>Ornaments</source>
+      <translation>装飾</translation>
+    </message>
+    <message>
+      <source>Particle</source>
+      <translation>パーティクル</translation>
+    </message>
+    <message>
+      <source>Path</source>
+      <translation>パス</translation>
+    </message>
+    <message>
+      <source>Petite Capitals</source>
+      <translation>小型大文字字母</translation>
+    </message>
+    <message>
+      <source>Petite Capitals From Capitals</source>
+      <translation>从大文字到小型大文字</translation>
+    </message>
+    <message>
+      <source>Pin Constraint</source>
+      <translation>ピンコンストレイント</translation>
+    </message>
+    <message>
+      <source>Pixel Sorting</source>
+      <translation>ピクセルソート</translation>
+    </message>
+    <message>
+      <source>Pixelate</source>
+      <translation>ピクセレート</translation>
+    </message>
+    <message>
+      <source>Playback End</source>
+      <translation>再生終了</translation>
+    </message>
+    <message>
+      <source>Playback Range</source>
+      <translation>再生範囲</translation>
+    </message>
+    <message>
+      <source>Plus</source>
+      <translation>プラス</translation>
+    </message>
+    <message>
+      <source>Point</source>
+      <translation>ポイント</translation>
+    </message>
+    <message>
+      <source>Posterize</source>
+      <translation>ポスタリゼーション</translation>
+    </message>
+    <message>
+      <source>Projecting</source>
+      <translation>投影</translation>
+    </message>
+    <message>
+      <source>Proportional Alternate Vertical Metrics</source>
+      <translation>プロポーショナル代替垂直メトリクス</translation>
+    </message>
+    <message>
+      <source>Proportional Alternate Widths</source>
+      <translation>比例替代幅</translation>
+    </message>
+    <message>
+      <source>Proportional Figures</source>
+      <translation>プロポーショナル数字</translation>
+    </message>
+    <message>
+      <source>Proportional Kana</source>
+      <translation>プロポーショナル仮名</translation>
+    </message>
+    <message>
+      <source>Proportional Widths</source>
+      <translation>比例幅</translation>
+    </message>
+    <message>
+      <source>Quarter Widths</source>
+      <translation>4分の1幅</translation>
+    </message>
+    <message>
+      <source>Radial Wipe</source>
+      <translation>ラジアルワイプ</translation>
+    </message>
+    <message>
+      <source>Radius</source>
+      <translation>半径</translation>
+    </message>
+    <message>
+      <source>Rakar Forms</source>
+      <translation>ラカールフォーム</translation>
+    </message>
+    <message>
+      <source>Random</source>
+      <translation>ランダム</translation>
+    </message>
+    <message>
+      <source>Randomize</source>
+      <translation>ランダム化</translation>
+    </message>
+    <message>
+      <source>Range</source>
+      <translation>範囲</translation>
+    </message>
+    <message>
+      <source>Rate</source>
+      <translation>レート</translation>
+    </message>
+    <message>
+      <source>Reph Form</source>
+      <translation>レフフォーム</translation>
+    </message>
+    <message>
+      <source>Required Contextual Alternates</source>
+      <translation>必須文脈代替</translation>
+    </message>
+    <message>
+      <source>Required Ligatures</source>
+      <translation>必需合字</translation>
+    </message>
+    <message>
+      <source>Required Variation Alternates</source>
+      <translation>必須バリエーション代替</translation>
+    </message>
+    <message>
+      <source>Reverse Path</source>
+      <translation>パス反転</translation>
+    </message>
+    <message>
+      <source>RGB Split</source>
+      <translation>RGB スプリット</translation>
+    </message>
+    <message>
+      <source>Right</source>
+      <translation>右</translation>
+    </message>
+    <message>
+      <source>Right Bounds</source>
+      <translation>右境界</translation>
+    </message>
+    <message>
+      <source>Right-to-left Alternates</source>
+      <translation>右から左の代替</translation>
+    </message>
+    <message>
+      <source>Right-to-left Mirrored Forms</source>
+      <translation>右から左のミラー形式</translation>
+    </message>
+    <message>
+      <source>Rose</source>
+      <translation>ローズ</translation>
+    </message>
+    <message>
+      <source>Round</source>
+      <translation>四捨五入</translation>
+    </message>
+    <message>
+      <source>Roundness</source>
+      <translation>丸み</translation>
+    </message>
+    <message>
+      <source>Ruby Notation Forms</source>
+      <translation>ルビ表記形式</translation>
+    </message>
+    <message>
+      <source>Saturation</source>
+      <translation>彩度</translation>
+    </message>
+    <message>
+      <source>Scan Lines</source>
+      <translation>走査線</translation>
+    </message>
+    <message>
+      <source>Scheduling Group</source>
+      <translation>スケジューリンググループ</translation>
+    </message>
+    <message>
+      <source>Scientific Inferiors</source>
+      <translation>科学下付き</translation>
+    </message>
+    <message>
+      <source>Scrape</source>
+      <translation>スクレイプ</translation>
+    </message>
+    <message>
+      <source>Sequence</source>
+      <translation>シーケンス</translation>
+    </message>
+    <message>
+      <source>Shader</source>
+      <translation>シェーダー</translation>
+    </message>
+    <message>
+      <source>Shaders</source>
+      <translation>シェーダー</translation>
+    </message>
+    <message>
+      <source>Shape Array</source>
+      <translation>シェイプ配列</translation>
+    </message>
+    <message>
+      <source>Shape to Shader</source>
+      <translation>シェイプからシェーダー</translation>
+    </message>
+    <message>
+      <source>Sharpen</source>
+      <translation>シャープ</translation>
+    </message>
+    <message>
+      <source>Shift Channels</source>
+      <translation>チャンネルシフト</translation>
+    </message>
+    <message>
+      <source>Simplified Forms</source>
+      <translation>簡略化形式</translation>
+    </message>
+    <message>
+      <source>Size</source>
+      <translation>サイズ</translation>
+    </message>
+    <message>
+      <source>Size Mode</source>
+      <translation>サイズモード</translation>
+    </message>
+    <message>
+      <source>SkSL Filter</source>
+      <translation>スキアシェーディング言語フィルター</translation>
+    </message>
+    <message>
+      <source>SkSL Shader</source>
+      <translation>スキアシェーディング言語シェーダー</translation>
+    </message>
+    <message>
+      <source>SLA Shader</source>
+      <translation>SLA シェーダー</translation>
+    </message>
+    <message>
+      <source>Slashed Zero</source>
+      <translation>スラッシュ付きゼロ</translation>
+    </message>
+    <message>
+      <source>Slit Scan</source>
+      <translation>スリットスキャン</translation>
+    </message>
+    <message>
+      <source>Slow</source>
+      <translation>低速</translation>
+    </message>
+    <message>
+      <source>Small Capitals</source>
+      <translation>小型大文字</translation>
+    </message>
+    <message>
+      <source>Small Capitals From Capitals</source>
+      <translation>从大文字到小型大文字</translation>
+    </message>
+    <message>
+      <source>Smooth</source>
+      <translation>スムーズ</translation>
+    </message>
+    <message>
+      <source>Something went wrong during sign in. Please try again.</source>
+      <translation>サインイン中に問題が発生しました。もう一度お試しください。</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>ソート</translation>
+    </message>
+    <message>
+      <source>Spacing</source>
+      <translation>間隔</translation>
+    </message>
+    <message>
+      <source>Spreadsheet</source>
+      <translation>スプレッドシート</translation>
+    </message>
+    <message>
+      <source>Spreadsheet Lookup</source>
+      <translation>スプレッドシート検索</translation>
+    </message>
+    <message>
+      <source>Square</source>
+      <translation>正方形</translation>
+    </message>
+    <message>
+      <source>Squash and Stretch</source>
+      <translation>スカッシュ＆ストレッチ</translation>
+    </message>
+    <message>
+      <source>Stagger</source>
+      <translation>スタッガー</translation>
+    </message>
+    <message>
+      <source>Standard Ligatures</source>
+      <translation>標準リガチャ</translation>
+    </message>
+    <message>
+      <source>Start</source>
+      <translation>開始</translation>
+    </message>
+    <message>
+      <source>Static</source>
+      <translation>静的</translation>
+    </message>
+    <message>
+      <source>Step</source>
+      <translation>ステップ</translation>
+    </message>
+    <message>
+      <source>Stepped</source>
+      <translation>ステップ</translation>
+    </message>
+    <message>
+      <source>Stitches</source>
+      <translation>ステッチ</translation>
+    </message>
+    <message>
+      <source>Stretching Glyph Decomposition</source>
+      <translation>ストレッチ字形分解</translation>
+    </message>
+    <message>
+      <source>Strikethrough</source>
+      <translation>取り消し線</translation>
+    </message>
+    <message>
+      <source>String</source>
+      <translation>文字列</translation>
+    </message>
+    <message>
+      <source>String Length</source>
+      <translation>文字列長</translation>
+    </message>
+    <message>
+      <source>String Manipulator</source>
+      <translation>文字列マニピュレーター</translation>
+    </message>
+    <message>
+      <source>Stroke</source>
+      <translation>ストローク</translation>
+    </message>
+    <message>
+      <source>Stroke Duplicator</source>
+      <translation>ストロークデュプリケーター</translation>
+    </message>
+    <message>
+      <source>Stylistic Alternates</source>
+      <translation>スタイル代替字形</translation>
+    </message>
+    <message>
+      <source>Sub-Mesh</source>
+      <translation>サブメッシュ</translation>
+    </message>
+    <message>
+      <source>Subdivide</source>
+      <translation>サブディバイド</translation>
+    </message>
+    <message>
+      <source>Subscript</source>
+      <translation>下付き</translation>
+    </message>
+    <message>
+      <source>Subtract</source>
+      <translation>減算</translation>
+    </message>
+    <message>
+      <source>Superscript</source>
+      <translation>上付き</translation>
+    </message>
+    <message>
+      <source>Swap Color</source>
+      <translation>カラースワップ</translation>
+    </message>
+    <message>
+      <source>Swash</source>
+      <translation>スワッシュ</translation>
+    </message>
+    <message>
+      <source>Tabular Figures</source>
+      <translation>等幅数字</translation>
+    </message>
+    <message>
+      <source>Target</source>
+      <translation>ターゲット</translation>
+    </message>
+    <message>
+      <source>Terminal Forms</source>
+      <translation>終端形式</translation>
+    </message>
+    <message>
+      <source>Third Widths</source>
+      <translation>3分の1幅</translation>
+    </message>
+    <message>
+      <source>Threshold</source>
+      <translation>しきい値</translation>
+    </message>
+    <message>
+      <source>Time</source>
+      <translation>時間</translation>
+    </message>
+    <message>
+      <source>Time Markers</source>
+      <translation>タイムマーカー</translation>
+    </message>
+    <message>
+      <source>Timeline Counter</source>
+      <translation>タイムラインカウンター</translation>
+    </message>
+    <message>
+      <source>Titling</source>
+      <translation>タイトリング</translation>
+    </message>
+    <message>
+      <source>Top Left</source>
+      <translation>左上</translation>
+    </message>
+    <message>
+      <source>Top Right</source>
+      <translation>右上</translation>
+    </message>
+    <message>
+      <source>Traditional Forms</source>
+      <translation>伝統的形式</translation>
+    </message>
+    <message>
+      <source>Traditional Name Forms</source>
+      <translation>传统名前形式</translation>
+    </message>
+    <message>
+      <source>Trailing Jamo Forms</source>
+      <translation>末尾字母形式</translation>
+    </message>
+    <message>
+      <source>Travel</source>
+      <translation>トラベル</translation>
+    </message>
+    <message>
+      <source>TriTone</source>
+      <translation>トライトーン</translation>
+    </message>
+    <message>
+      <source>Type</source>
+      <translation>タイプ</translation>
+    </message>
+    <message>
+      <source>Typeface</source>
+      <translation>書体</translation>
+    </message>
+    <message>
+      <source>Underline</source>
+      <translation>下線</translation>
+    </message>
+    <message>
+      <source>Unicase</source>
+      <translation>ユニケース</translation>
+    </message>
+    <message>
+      <source>Union</source>
+      <translation>結合</translation>
+    </message>
+    <message>
+      <source>Utility</source>
+      <translation>ユーティリティ</translation>
+    </message>
+    <message>
+      <source>Value</source>
+      <translation>値</translation>
+    </message>
+    <message>
+      <source>Value Solver</source>
+      <translation>値ソルバー</translation>
+    </message>
+    <message>
+      <source>Value2</source>
+      <translation>値 2</translation>
+    </message>
+    <message>
+      <source>Value2 Array</source>
+      <translation>2値配列</translation>
+    </message>
+    <message>
+      <source>Value2 Blend</source>
+      <translation>2値ブレンド</translation>
+    </message>
+    <message>
+      <source>Value2 Solver</source>
+      <translation>2値ソルバー</translation>
+    </message>
+    <message>
+      <source>Value3 Array</source>
+      <translation>3値配列</translation>
+    </message>
+    <message>
+      <source>Value3 Blend</source>
+      <translation>3値ブレンド</translation>
+    </message>
+    <message>
+      <source>Vattu Variants</source>
+      <translation>ヴァットゥバリアント</translation>
+    </message>
+    <message>
+      <source>Venetian Blinds</source>
+      <translation>ベネチアンブラインド</translation>
+    </message>
+    <message>
+      <source>Vertical Alternates</source>
+      <translation>垂直代替</translation>
+    </message>
+    <message>
+      <source>Vertical Alternates and Rotation</source>
+      <translation>垂直替代和回転</translation>
+    </message>
+    <message>
+      <source>Vertical Alternates for Rotation</source>
+      <translation>垂直回転替代</translation>
+    </message>
+    <message>
+      <source>Vertical Contextual Half-width Spacing</source>
+      <translation>垂直上下文半宽間隔</translation>
+    </message>
+    <message>
+      <source>Vertical Kana Alternates</source>
+      <translation>縦書き仮名代替</translation>
+    </message>
+    <message>
+      <source>Vertical Kerning</source>
+      <translation>垂直カーニング</translation>
+    </message>
+    <message>
+      <source>Vertical Layout</source>
+      <translation>垂直レイアウト</translation>
+    </message>
+    <message>
+      <source>Vignette</source>
+      <translation>ビネット</translation>
+    </message>
+    <message>
+      <source>Visibility</source>
+      <translation>可視性</translation>
+    </message>
+    <message>
+      <source>Visibility Sequence</source>
+      <translation>可視性シーケンス</translation>
+    </message>
+    <message>
+      <source>Voronoi Shader</source>
+      <translation>Voronoi シェーダー</translation>
+    </message>
+    <message>
+      <source>Vowel Jamo Forms</source>
+      <translation>母音字母形式</translation>
+    </message>
+    <message>
+      <source>Voxelize</source>
+      <translation>ボクセル化</translation>
+    </message>
+    <message>
+      <source>Wave</source>
+      <translation>ウェーブ</translation>
+    </message>
+    <message>
+      <source>Width</source>
+      <translation>幅</translation>
+    </message>
+    <message>
+      <source>Wireframe</source>
+      <translation>ワイヤーフレーム</translation>
+    </message>
+    <message>
+      <source>Animation Control</source>
+      <translation>アニメーション制御</translation>
+    </message>
+    <message>
+      <source>Asset Array</source>
+      <translation>アセット配列</translation>
+    </message>
+    <message>
+      <source>Audio Solver</source>
+      <translation>オーディオソルバー</translation>
+    </message>
+    <message>
+      <source>Axonometric</source>
+      <translation>軸測投影</translation>
+    </message>
+    <message>
+      <source>Background Blur Filter</source>
+      <translation>背景ぼかしフィルター</translation>
+    </message>
+    <message>
+      <source>Bilateral Blur</source>
+      <translation>バイラテラルぼかし</translation>
+    </message>
+    <message>
+      <source>Block Eq</source>
+      <translation>ブロック方程式</translation>
+    </message>
+    <message>
+      <source>Box Blur</source>
+      <translation>ボックスぼかし</translation>
+    </message>
+    <message>
+      <source>Camera Guide</source>
+      <translation>カメラガイド</translation>
+    </message>
+    <message>
+      <source>Chain Mail</source>
+      <translation>チェーンメール</translation>
+    </message>
+    <message>
+      <source>Chroma Key</source>
+      <translation>クロマキー</translation>
+    </message>
+    <message>
+      <source>Chroma Key Filter</source>
+      <translation>クロマキーフィルター</translation>
+    </message>
+    <message>
+      <source>Circle Packing with Gradient Descent</source>
+      <translation>勾配降下による円充填</translation>
+    </message>
+    <message>
+      <source>Circular Eq</source>
+      <translation>円形方程式</translation>
+    </message>
+    <message>
+      <source>Closest Point</source>
+      <translation>最近点</translation>
+    </message>
+    <message>
+      <source>Clouds Shader</source>
+      <translation>雲シェーダー</translation>
+    </message>
+    <message>
+      <source>Collision Event</source>
+      <translation>衝突イベント</translation>
+    </message>
+    <message>
+      <source>Color Array</source>
+      <translation>カラー配列</translation>
+    </message>
+    <message>
+      <source>Comparison</source>
+      <translation>比較</translation>
+    </message>
+    <message>
+      <source>Concentric</source>
+      <translation>同心</translation>
+    </message>
+    <message>
+      <source>Contours To Sub-Meshes</source>
+      <translation>輪郭をサブメッシュへ</translation>
+    </message>
+    <message>
+      <source>Countdown</source>
+      <translation>カウントダウン</translation>
+    </message>
+    <message>
+      <source>Custom Shaders and Filters</source>
+      <translation>カスタムシェーダーとフィルター</translation>
+    </message>
+    <message>
+      <source>Data Race</source>
+      <translation>データ競合</translation>
+    </message>
+    <message>
+      <source>Day Suffix</source>
+      <translation>日付接尾辞</translation>
+    </message>
+    <message>
+      <source>Delaunay Triangulation</source>
+      <translation>ドロネー三角形分割</translation>
+    </message>
+    <message>
+      <source>Diagonal Slide Random Characters</source>
+      <translation>ランダム文字の斜めスライド</translation>
+    </message>
+    <message>
+      <source>Diamond</source>
+      <translation>ひし形</translation>
+    </message>
+    <message>
+      <source>Differential Line Growth</source>
+      <translation>差分線成長</translation>
+    </message>
+    <message>
+      <source>Directional Blur</source>
+      <translation>方向ぼかし</translation>
+    </message>
+    <message>
+      <source>Dynamic Text</source>
+      <translation>動的テキスト</translation>
+    </message>
+    <message>
+      <source>Emboss Filter</source>
+      <translation>エンボスフィルター</translation>
+    </message>
+    <message>
+      <source>FBM Noise Shader</source>
+      <translation>フラクタルブラウン運動ノイズシェーダー</translation>
+    </message>
+    <message>
+      <source>Fade Alternate Lines</source>
+      <translation>交互行をフェード</translation>
+    </message>
+    <message>
+      <source>Fade Off Characters</source>
+      <translation>文字をフェードアウト</translation>
+    </message>
+    <message>
+      <source>Flow Field Distribution</source>
+      <translation>フローフィールド分布</translation>
+    </message>
+    <message>
+      <source>Forge Dynamics Shape</source>
+      <translation>動力学形状を生成</translation>
+    </message>
+    <message>
+      <source>Fractal Tree</source>
+      <translation>フラクタルツリー</translation>
+    </message>
+    <message>
+      <source>Generative Art</source>
+      <translation>生成アート</translation>
+    </message>
+    <message>
+      <source>Glow Filter</source>
+      <translation>グローフィルター</translation>
+    </message>
+    <message>
+      <source>Glyph Drawing Machine</source>
+      <translation>グリフ描画機</translation>
+    </message>
+    <message>
+      <source>Gradient along a Path</source>
+      <translation>パスに沿ったグラデーション</translation>
+    </message>
+    <message>
+      <source>Graph Paper</source>
+      <translation>方眼紙</translation>
+    </message>
+    <message>
+      <source>Green Screen Filter</source>
+      <translation>グリーンスクリーンフィルター</translation>
+    </message>
+    <message>
+      <source>Grid Decay</source>
+      <translation>グリッド減衰</translation>
+    </message>
+    <message>
+      <source>Heart Path</source>
+      <translation>ハートパス</translation>
+    </message>
+    <message>
+      <source>Hexagon</source>
+      <translation>六角形</translation>
+    </message>
+    <message>
+      <source>If Else</source>
+      <translation>条件分岐</translation>
+    </message>
+    <message>
+      <source>Illustration</source>
+      <translation>イラストレーション</translation>
+    </message>
+    <message>
+      <source>Index To Color</source>
+      <translation>インデックスをカラーへ</translation>
+    </message>
+    <message>
+      <source>Infrequency</source>
+      <translation>低頻度</translation>
+    </message>
+    <message>
+      <source>Isolines Shape</source>
+      <translation>等値線シェイプ</translation>
+    </message>
+    <message>
+      <source>Jsmath</source>
+      <translation>スクリプト数学</translation>
+    </message>
+    <message>
+      <source>Keyframe Animation</source>
+      <translation>キーフレームアニメーション</translation>
+    </message>
+    <message>
+      <source>Kinetic Type</source>
+      <translation>キネティックタイプ</translation>
+    </message>
+    <message>
+      <source>L-System</source>
+      <translation>リンデンマイヤーシステム</translation>
+    </message>
+    <message>
+      <source>Layer Seed</source>
+      <translation>レイヤーシード</translation>
+    </message>
+    <message>
+      <source>Length Context</source>
+      <translation>長さコンテキスト</translation>
+    </message>
+    <message>
+      <source>Light Sweep</source>
+      <translation>ライトスイープ</translation>
+    </message>
+    <message>
+      <source>Local Time</source>
+      <translation>ローカル時間</translation>
+    </message>
+    <message>
+      <source>Logic</source>
+      <translation>ロジック</translation>
+    </message>
+    <message>
+      <source>Math2</source>
+      <translation>二次元数学</translation>
+    </message>
+    <message>
+      <source>Math3</source>
+      <translation>三次元数学</translation>
+    </message>
+    <message>
+      <source>Measure</source>
+      <translation>測定</translation>
+    </message>
+    <message>
+      <source>No Solvers</source>
+      <translation>ソルバーなし</translation>
+    </message>
+    <message>
+      <source>No Workspaces Saved</source>
+      <translation>保存済みワークスペースなし</translation>
+    </message>
+    <message>
+      <source>Null</source>
+      <translation>ヌル</translation>
+    </message>
+    <message>
+      <source>Open Paths</source>
+      <translation>開いたパス</translation>
+    </message>
+    <message>
+      <source>Oscillating Polygon</source>
+      <translation>振動ポリゴン</translation>
+    </message>
+    <message>
+      <source>Over and Over</source>
+      <translation>繰り返し</translation>
+    </message>
+    <message>
+      <source>Packed Circles</source>
+      <translation>充填円</translation>
+    </message>
+    <message>
+      <source>Path Length</source>
+      <translation>パス長</translation>
+    </message>
+    <message>
+      <source>Pinboard</source>
+      <translation>ピンボード</translation>
+    </message>
+    <message>
+      <source>Pixel Sorting Filter</source>
+      <translation>ピクセルソートフィルター</translation>
+    </message>
+    <message>
+      <source>Pixel Zoom Shader</source>
+      <translation>ピクセルズームシェーダー</translation>
+    </message>
+    <message>
+      <source>Please Select a Text Shape...</source>
+      <translation>テキストシェイプを選択してください...</translation>
+    </message>
+    <message>
+      <source>Position Blend</source>
+      <translation>位置ブレンド</translation>
+    </message>
+    <message>
+      <source>Position to Color</source>
+      <translation>位置をカラーへ</translation>
+    </message>
+    <message>
+      <source>Pre-Comp Override</source>
+      <translation>プリコンポジション上書き</translation>
+    </message>
+    <message>
+      <source>Push Along Vector</source>
+      <translation>ベクトルに沿って押す</translation>
+    </message>
+    <message>
+      <source>Random Dash Pattern</source>
+      <translation>ランダム破線パターン</translation>
+    </message>
+    <message>
+      <source>Random Opacity Grid</source>
+      <translation>ランダム不透明度グリッド</translation>
+    </message>
+    <message>
+      <source>Random Walk</source>
+      <translation>ランダムウォーク</translation>
+    </message>
+    <message>
+      <source>Range Falloff</source>
+      <translation>範囲減衰</translation>
+    </message>
+    <message>
+      <source>Replace Mesh</source>
+      <translation>メッシュを置換</translation>
+    </message>
+    <message>
+      <source>Resample Path</source>
+      <translation>パスを再サンプリング</translation>
+    </message>
+    <message>
+      <source>Rig Control</source>
+      <translation>リグ制御</translation>
+    </message>
+    <message>
+      <source>Rubber Hose Limb</source>
+      <translation>ラバーホースリム</translation>
+    </message>
+    <message>
+      <source>Sample Image Shader</source>
+      <translation>画像サンプルシェーダー</translation>
+    </message>
+    <message>
+      <source>Scale Random Words</source>
+      <translation>ランダム単語を拡大縮小</translation>
+    </message>
+    <message>
+      <source>Scan Lines Filter</source>
+      <translation>走査線フィルター</translation>
+    </message>
+    <message>
+      <source>Scatter Filter</source>
+      <translation>散布フィルター</translation>
+    </message>
+    <message>
+      <source>Scrape Filter</source>
+      <translation>スクレイプフィルター</translation>
+    </message>
+    <message>
+      <source>Seconds To Frames</source>
+      <translation>秒をフレームへ</translation>
+    </message>
+    <message>
+      <source>Shader Array</source>
+      <translation>シェーダー配列</translation>
+    </message>
+    <message>
+      <source>Slide Up Random Characters</source>
+      <translation>ランダム文字を上へスライド</translation>
+    </message>
+    <message>
+      <source>Slit Scan Filter</source>
+      <translation>スリットスキャンフィルター</translation>
+    </message>
+    <message>
+      <source>Solar Wind Shader</source>
+      <translation>太陽風シェーダー</translation>
+    </message>
+    <message>
+      <source>Solver Example</source>
+      <translation>ソルバー例</translation>
+    </message>
+    <message>
+      <source>Sound</source>
+      <translation>サウンド</translation>
+    </message>
+    <message>
+      <source>Spherise</source>
+      <translation>球面化</translation>
+    </message>
+    <message>
+      <source>Spherise Filter</source>
+      <translation>球面化フィルター</translation>
+    </message>
+    <message>
+      <source>Spikes</source>
+      <translation>スパイク</translation>
+    </message>
+    <message>
+      <source>Spirograph Distribution</source>
+      <translation>スピログラフ分布</translation>
+    </message>
+    <message>
+      <source>Spirograph Path</source>
+      <translation>スピログラフパス</translation>
+    </message>
+    <message>
+      <source>Star Nest Shader</source>
+      <translation>スターネストシェーダー</translation>
+    </message>
+    <message>
+      <source>String Array</source>
+      <translation>文字列配列</translation>
+    </message>
+    <message>
+      <source>String From Asset</source>
+      <translation>アセットから文字列</translation>
+    </message>
+    <message>
+      <source>String Generator</source>
+      <translation>文字列ジェネレーター</translation>
+    </message>
+    <message>
+      <source>Swing Line by Line</source>
+      <translation>行ごとにスイング</translation>
+    </message>
+    <message>
+      <source>Swing Random Words</source>
+      <translation>ランダム単語をスイング</translation>
+    </message>
+    <message>
+      <source>Swing Up Characters</source>
+      <translation>文字を上へスイング</translation>
+    </message>
+    <message>
+      <source>Swirls</source>
+      <translation>渦巻き</translation>
+    </message>
+    <message>
+      <source>Text Distribution</source>
+      <translation>テキスト分布</translation>
+    </message>
+    <message>
+      <source>Truchet Tiles Shader</source>
+      <translation>トリュシェタイルシェーダー</translation>
+    </message>
+    <message>
+      <source>Typeface Array</source>
+      <translation>書体配列</translation>
+    </message>
+    <message>
+      <source>Value Array</source>
+      <translation>値配列</translation>
+    </message>
+    <message>
+      <source>Value Blend</source>
+      <translation>値ブレンド</translation>
+    </message>
+    <message>
+      <source>Value3</source>
+      <translation>値 3</translation>
+    </message>
+    <message>
+      <source>Variable Font</source>
+      <translation>可変フォント</translation>
+    </message>
+    <message>
+      <source>Vertical Slide Random Words</source>
+      <translation>ランダム単語を垂直スライド</translation>
+    </message>
+    <message>
+      <source>Zoom Blur</source>
+      <translation>ズームぼかし</translation>
+    </message>
+    <message>
+      <source>Zoom Random Words</source>
+      <translation>ランダム単語をズーム</translation>
     </message>
   </context>
 </TS>

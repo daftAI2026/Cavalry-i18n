@@ -45,22 +45,30 @@ Quarantined branch    = quarantine/cavalry-full-ui-100-fabrication-20260501
 - **FP-8**：伪 Qt context（应用于 `context` 字段）
 - **FP-9**：Frankenstein 中英夹杂（白名单 + 启发式，仅在 zh-Hans / zh-Hant / ja_JP 命中）
 
-下任 agent 必须在 G-P 阶段执行：
+G-P 阶段必须执行：
 1. 跑 `tools/validate_translations.py` 对当前 HEAD `.inc` + `.ts` —— FP-7/8 必须 0 hit
 2. 跑同一 detector 对 `quarantine/cavalry-full-ui-100-fabrication-20260501` HEAD —— FP-7 ≥ 15,000、FP-8 ≥ 1,400、FP-9 ≥ 2,800 hit（必须命中）
-3. 当前 HEAD 的 FP-9 = 379（历史 Frankenstein 待修，**不算造假**，是 main 阶段就已存在的部分翻译 bug）
+3. 若 current HEAD 出现 FP-9，先按真实翻译修复；不得用全角化、占位标记或词表脚本绕过
+
+2026-05-05 reverify:
+- Cleanup 前 current HEAD `.ts` FP-7/8 = 0，FP-9 = 379。
+- Cleanup 前 current HEAD full JSON/TS/generated validator FP-7/8 = 0，FP-9 = 933，B13 FAIL。
+- Quarantine branch FP-7 = 30270，FP-8 = 2978，FP-9 = 5833，detector 能大量命中伪造样本。
+- `package.json` runtime/full-ui scripts 已从 root-cache inventory 改为 `SESSION_DIR/runtime/*-merged-inventory.json`。
+- `validate_translations.py` 已把 `.ts` context 与 generated table context 传入 detector，FP-8 不再被 parser 丢弃。
+- 清理 JSON / TS / generated assets 后 current HEAD validator FP-7/8/9 = 0，B13 PASS。
 
 ### 当前可信进度
 
 | Gate | 状态 | 证据 |
 |---|---|---|
 | W-AUDIT | PASS | 弱阈值 / preflight / libExtensionLayer 红灯已收紧 |
-| G-P / §P5 | **REOPENED** | FP-7/8/9 加固后须重跑回归；这是当前第一失败 gate |
-| G-CAPTURE / G-X / G0 / G1 | EVIDENCE-HELD | session 6C24D9C7 与 `51a0f27` 有历史可用证据，但须在 G-P / §P5 后 reverify |
+| G-P / §P5 | PASS | current HEAD FP-7/8/9 = 0；quarantine 仍命中 FP-7=30270、FP-8=2978、FP-9=5833 |
+| G-CAPTURE / G-X / G0 / G1 | PASS | session B897FF97 live runtime + top-level target extraction + JSON validator / tests 已重新验证 |
 | G2a 分母清洗 | UNVERIFIED | 上次 agent 的 3,395 干净分母分析需独立复算 |
-| G2b 编译 UI | 100/5195 | Batch1+Batch2 真翻译，剩余约 5,095 待做 |
-| G3 运行时 UI | 部分 | 来自历史 main，含 379 条 Frankenstein 待修 |
-| G4 矩阵 | BLOCKED | 等 G2b/G3 |
+| G2b 编译 UI | FAIL | 当前矩阵 ja_JP 17.22%、zh-Hans 18.15%、zh-Hant 15.51%，仍需真实翻译 |
+| G3 运行时 UI | PASS | 当前矩阵三语 runtime 均为 100%，FP-9 保持 0 |
+| G4 矩阵 | FAIL | 同一次三语矩阵未全绿，blockedReason = One or more language runs failed |
 
 补充说明：
 
@@ -73,7 +81,7 @@ Quarantined branch    = quarantine/cavalry-full-ui-100-fabrication-20260501
 ---
 ## Current Implementation Truth
 
-Based on 2026-04-30 session verification (6C24D9C7-8342-41CA-BBE5-182E97B0BDD8):
+Based on 2026-05-05 session verification (B897FF97-D3E1-419C-94BC-38F1158F3BB7):
 
 ### ✓ COMPLETED Implementation Items
 
@@ -100,10 +108,10 @@ Based on 2026-04-30 session verification (6C24D9C7-8342-41CA-BBE5-182E97B0BDD8):
 - [x] No --no-resign workarounds in current code
 - [x] GitHub workflows ready for full-ui matrix integration
 
-### ⏳ EXTERNAL BLOCKERS (Not Code/Tooling Issues)
+### ⏳ Translation Backlog (Current Failing Gates)
 
-- [ ] Compiled UI translations needed: ~4500+ strings per language for G2 PASS
-- [ ] Runtime UI translations needed: ~239 strings per language for G3 PASS
+- [ ] Compiled UI translations needed: zh-Hans 4026、zh-Hant 4156、ja_JP 4072 untranslated compiled candidates
+- [x] Runtime UI translations complete: zh-Hans 0、zh-Hant 0、ja_JP 0 untranslated runtime candidates
 - [ ] These are translation resource dependencies, not implementation gaps
 
 ### Deferred Documentation Cleanup
@@ -145,20 +153,20 @@ SOURCE_MAP  = ~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json
 ### W-P
 
 - [ ] 固定 provenance contract
-- [ ] 固定 session-scoped runtime artifact contract
-- [ ] 拒绝 root-cache runtime inputs
+- [x] 固定 session-scoped runtime artifact contract
+- [x] 拒绝 root-cache runtime inputs
 
 ### W-P5
 
-- [ ] 固定 FP-1/2/3/4/5/7/8/9 forbidden patterns（无旧自我递归 ID）
-- [ ] 让 preflight / runtime / JSON gate 共用同一 detector 语义
-- [ ] `RUN_RECORD` 输出 `forbiddenPatterns`
+- [x] 固定 FP-1/2/3/4/5/7/8/9 forbidden patterns（无旧自我递归 ID）
+- [x] 让 preflight / runtime / JSON gate 共用同一 detector 语义
+- [x] `RUN_RECORD` 输出 `forbiddenPatterns`
 
 ### W-CAPTURE
 
-**PASS**: Live runtime denominator established via AX-only fallback (2026-04-30 23:57 UTC).
+**PASS**: Live runtime denominator established via AX-only fallback (2026-05-05 05:12 UTC).
 
-Session: `6C24D9C7-8342-41CA-BBE5-182E97B0BDD8`
+Session: `B897FF97-D3E1-419C-94BC-38F1158F3BB7`
 
 Technical status:
 - [x] App code signing: flags=0x2(adhoc), hardened runtime present (normal, does not block AX)
@@ -176,38 +184,39 @@ Technical status:
 - [x] Merged inventory: `capture.source = live-merged` and properly structured
 - [x] No amfid/kernel rejection logs; injection failure is system-level policy choice
 
-Next step: Proceed to G-X (extraction inventory freeze)
+Next step: translate G2 compiled real backlog, then rerun G4.
 
 ### W-X
 
-- [x] 产出 `SESSION_DIR/extraction-inventory.json`（session 6C24D9C7，5,880,554 bytes，frozen 2026-04-30T16:00:40Z）
-- [ ] `extraction-inventory.json` 顶层补齐 `target` 对象（当前缺失，仅 surface 级 metadata 已写）
+- [x] 产出 `SESSION_DIR/extraction-inventory.json`（session B897FF97，frozen 2026-05-05T05:12:45Z）
+- [x] `extraction-inventory.json` 顶层补齐 `target` 对象（session B897FF97）
 - [ ] version drift 后重新抽取 compiled source-map、runtime capture 与 extraction inventory，不复用旧分母
 - [x] 固定 JSON lower bounds：10 / 6320 / 34 / 51 / total 6415
 - [x] 固定 compiled source-map lower bound：entries >= 5195（Cavalry 2.7.1；2.7.0 时为 4743）
 - [x] `tools/verify_gate_inputs.js` 已使用 `'compiled-source-map': 5195`
 - [x] 固定 runtime lower bounds：candidates >= 613、menuLeaves >= 666
-- [ ] G1/G2/G3/G4 统一读取 frozen denominator
+- [x] G1/G2/G3/G4 统一读取 frozen denominator
 
 ### W0
 
-- [ ] 固定 measurement threshold / reader / `RUN_RECORD` schema
-- [ ] 固定 blocked semantics
+- [x] 固定 measurement threshold / reader / `RUN_RECORD` schema
+- [x] 固定 blocked semantics
 
 ### W2
 
-- [ ] compiled owner map 对齐 raw extraction 与 `libExtensionLayer.dylib`
-- [ ] source-map provenance 入 `RUN_RECORD`
+- [x] compiled owner map 对齐 raw extraction 与 `libExtensionLayer.dylib`
+- [x] source-map provenance 入 `RUN_RECORD`
 
 ### W3
 
-- [ ] live injector + AX capture + merge toolchain 全部走 session dir
-- [ ] 数量下界不足时输出 `WEAK-CAPTURE`
+- [x] live injector + AX capture + merge toolchain 全部走 session dir
+- [x] 数量下界不足时输出 `WEAK-CAPTURE`
+- [x] G3 runtime 三语覆盖率达到 100%
 
 ### W1
 
-- [ ] JSON validator 真正达到 `1.00`
-- [ ] `coverage_pct = 100` 与 `exact_english_translate_leaves = 0` 成为硬条件
+- [x] JSON validator 真正达到 `1.00`
+- [x] `coverage_pct = 100` 与 `exact_english_translate_leaves = 0` 成为硬条件
 
 ### W5 / W6 / W7
 

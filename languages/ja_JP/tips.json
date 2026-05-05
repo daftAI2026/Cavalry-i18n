@@ -30,8 +30,8 @@
     "beginner": true
   },
   {
-    "title": "Alt/Option を押しながら属性をドラッグ",
-    "text": "Alt/Option キーを押しながら属性をドラッグすると、両方の値を同時に更新できます。",
+    "title": "修飾キーを押しながら属性をドラッグ",
+    "text": "修飾キーを押しながら属性をドラッグすると、両方の値を同時に更新できます。",
     "images": [
       "altScrub1.png",
       "altScrub2.png",

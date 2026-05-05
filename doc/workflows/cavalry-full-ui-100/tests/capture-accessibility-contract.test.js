@@ -13,7 +13,7 @@ const repoRoot = path.resolve(__dirname, '..', '..', '..', '..');
 const captureToolPath = path.join(repoRoot, 'tools', 'capture_accessibility_inventory.js');
 
 test('buildAccessibilityInventory preserves recursive menus and visible text fields', () => {
-  const { buildAccessibilityInventory } = require(captureToolPath);
+  const { buildAccessibilityInventory, summarizeMenuEvidence } = require(captureToolPath);
 
   const inventory = buildAccessibilityInventory({
     language: 'en',
@@ -62,4 +62,8 @@ test('buildAccessibilityInventory preserves recursive menus and visible text fie
   assert.equal(inventory.widgetTexts[0].strings.windowTitle, 'Preferences');
   assert.equal(inventory.widgetTexts[1].strings.name, 'General');
   assert.equal(inventory.widgetTexts[2].strings.value, 'Search Preferences');
+
+  const evidence = summarizeMenuEvidence(inventory.menuBars);
+  assert.equal(evidence.menuDepthMax, 3);
+  assert.deepEqual(evidence.submenuPathSamples, ['File > Import > Import Reference...']);
 });

@@ -1,5 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
+<!--
+[INPUT]: 依赖 Cavalry compiled/runtime 英文 source、doc/translation-guidelines.md、doc/cavalry-glossary*.md 与 tools/translation-whitelist.json
+[OUTPUT]: 对外提供 zh-Hant Qt TS 翻译目录，被 generate_embedded_translations.js 编译进 injector 表
+[POS]: tools 编译期 UI 翻译源，和 zh-Hans.ts / ja_JP.ts 共同覆盖 compiled/runtime 菜单文本
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
 <TS version="2.1" language="zh-Hant">
   <context>
     <name>QMenuBar</name>
@@ -261,7 +267,7 @@
   </message>
   <message>
     <source>Add Asset</source>
-    <translation>新增資源</translation>
+    <translation>新增資產</translation>
   </message>
   <message>
     <source>Add Asset To Scene</source>
@@ -329,7 +335,7 @@
   </message>
   <message>
     <source>Add Double</source>
-    <translation>新增雙精度浮點數</translation>
+    <translation>新增雙精度值</translation>
   </message>
   <message>
     <source>Add Double (float)</source>
@@ -1232,8 +1238,8 @@
     <message><source>Include Primitive Type</source><translation>包含圖元類型</translation></message>
     <message><source>Include the File Name and Folder Path in the Preset.</source><translation>在預設中包含檔名和資料夾路徑。</translation></message>
     <message><source>Include the path in the Preset.</source><translation>在預設中包含路徑。</translation></message>
-    <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset.</source><translation>在預設中包含圖元類型（如 Rectangle 或 Ellipse）。</translation></message>
-    <message><source>Include transform Attributes such as Position and Scale in the Preset.</source><translation>在預設中包含 Position 和 Scale 等變換屬性。</translation></message>
+    <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset.</source><translation>在預設中包含圖元類型（例如矩形或橢圓）。</translation></message>
+    <message><source>Include transform Attributes such as Position and Scale in the Preset.</source><translation>在預設中包含位置和縮放等變換屬性。</translation></message>
     <message><source>Include Transforms</source><translation>包含變換</translation></message>
     <message><source>Install Plugin?</source><translation>安裝外掛？</translation></message>
     <message><source>Match Color</source><translation>匹配顏色</translation></message>
@@ -1984,87 +1990,87 @@
     </message>
       <message>
       <source>Add Array</source>
-      <translation>新增Array</translation>
+      <translation>新增陣列</translation>
     </message>
     <message>
       <source>Add Asset</source>
-      <translation>新增Asset</translation>
+      <translation>新增資產</translation>
     </message>
     <message>
       <source>Add Background</source>
-      <translation>新增Background</translation>
+      <translation>新增背景</translation>
     </message>
     <message>
       <source>Add Behaviour</source>
-      <translation>新增Behaviour</translation>
+      <translation>新增行為</translation>
     </message>
     <message>
       <source>Add Bool</source>
-      <translation>新增Bool</translation>
+      <translation>新增布林值</translation>
     </message>
     <message>
       <source>Add Camera</source>
-      <translation>新增Camera</translation>
+      <translation>新增攝影機</translation>
     </message>
     <message>
       <source>Add Clip</source>
-      <translation>新增Clip</translation>
+      <translation>新增片段</translation>
     </message>
     <message>
       <source>Add Color</source>
-      <translation>新增Color</translation>
+      <translation>新增顏色</translation>
     </message>
     <message>
       <source>Add Distribution</source>
-      <translation>新增Distribution</translation>
+      <translation>新增分佈</translation>
     </message>
     <message>
       <source>Add Double</source>
-      <translation>新增Double</translation>
+      <translation>新增雙精度值</translation>
     </message>
     <message>
       <source>Add Expression...</source>
-      <translation>新增Expression...</translation>
+      <translation>新增運算式...</translation>
     </message>
     <message>
       <source>Add Falloff</source>
-      <translation>新增Falloff</translation>
+      <translation>新增衰減</translation>
     </message>
     <message>
       <source>Add Header</source>
-      <translation>新增Header</translation>
+      <translation>新增標題</translation>
     </message>
     <message>
       <source>Add Int</source>
-      <translation>新增Int</translation>
+      <translation>新增整數</translation>
     </message>
     <message>
       <source>Add Keyframe</source>
-      <translation>新增Keyframe</translation>
+      <translation>新增關鍵幀</translation>
     </message>
     <message>
       <source>Add Layer</source>
-      <translation>新增Layer</translation>
+      <translation>新增圖層</translation>
     </message>
     <message>
       <source>Add Mesh</source>
-      <translation>新增Mesh</translation>
+      <translation>新增網格</translation>
     </message>
     <message>
       <source>Add Preset</source>
-      <translation>新增Preset</translation>
+      <translation>新增預設</translation>
     </message>
     <message>
       <source>Add Shader</source>
-      <translation>新增Shader</translation>
+      <translation>新增著色器</translation>
     </message>
     <message>
       <source>Add Spacer</source>
-      <translation>新增Spacer</translation>
+      <translation>新增間隔</translation>
     </message>
     <message>
       <source>Add String</source>
-      <translation>新增String</translation>
+      <translation>新增字串</translation>
     </message>
     <message>
       <source>Copy B</source>
@@ -2072,23 +2078,23 @@
     </message>
     <message>
       <source>Copy Easing</source>
-      <translation>複製Easing</translation>
+      <translation>複製緩動</translation>
     </message>
     <message>
       <source>Copy Gradient</source>
-      <translation>複製Gradient</translation>
+      <translation>複製漸層</translation>
     </message>
     <message>
       <source>Copy Graph</source>
-      <translation>複製Graph</translation>
+      <translation>複製圖形</translation>
     </message>
     <message>
       <source>Copy Grid</source>
-      <translation>複製Grid</translation>
+      <translation>複製網格</translation>
     </message>
     <message>
       <source>Copy Path</source>
-      <translation>複製Path</translation>
+      <translation>複製路徑</translation>
     </message>
     <message>
       <source>Copy Unicode</source>
@@ -2096,87 +2102,87 @@
     </message>
     <message>
       <source>Copy Value</source>
-      <translation>複製Value</translation>
+      <translation>複製值</translation>
     </message>
     <message>
       <source>Create Arc</source>
-      <translation>建立Arc</translation>
+      <translation>建立弧形</translation>
     </message>
     <message>
       <source>Create Array</source>
-      <translation>建立Array</translation>
+      <translation>建立陣列</translation>
     </message>
     <message>
       <source>Create Arrow</source>
-      <translation>建立Arrow</translation>
+      <translation>建立箭頭</translation>
     </message>
     <message>
       <source>Create Cache</source>
-      <translation>建立Cache</translation>
+      <translation>建立快取</translation>
     </message>
     <message>
       <source>Create Camera</source>
-      <translation>建立Camera</translation>
+      <translation>建立攝影機</translation>
     </message>
     <message>
       <source>Create Capsule</source>
-      <translation>建立Capsule</translation>
+      <translation>建立膠囊</translation>
     </message>
     <message>
       <source>Create Cog</source>
-      <translation>建立Cog</translation>
+      <translation>建立齒輪</translation>
     </message>
     <message>
       <source>Create Composition</source>
-      <translation>建立Composition</translation>
+      <translation>建立合成</translation>
     </message>
     <message>
       <source>Create Ellipse</source>
-      <translation>建立Ellipse</translation>
+      <translation>建立橢圓</translation>
     </message>
     <message>
       <source>Create Layers</source>
-      <translation>建立Layers</translation>
+      <translation>建立圖層</translation>
     </message>
     <message>
       <source>Create Line</source>
-      <translation>建立Line</translation>
+      <translation>建立直線</translation>
     </message>
     <message>
       <source>Create Path</source>
-      <translation>建立Path</translation>
+      <translation>建立路徑</translation>
     </message>
     <message>
       <source>Create Polygon</source>
-      <translation>建立Polygon</translation>
+      <translation>建立多邊形</translation>
     </message>
     <message>
       <source>Create Rectangle</source>
-      <translation>建立Rectangle</translation>
+      <translation>建立矩形</translation>
     </message>
     <message>
       <source>Create Spacer</source>
-      <translation>建立Spacer</translation>
+      <translation>建立間隔</translation>
     </message>
     <message>
       <source>Create Star</source>
-      <translation>建立Star</translation>
+      <translation>建立星形</translation>
     </message>
     <message>
       <source>Create Text</source>
-      <translation>建立Text</translation>
+      <translation>建立文字</translation>
     </message>
     <message>
       <source>Delete All</source>
-      <translation>刪除All</translation>
+      <translation>刪除全部</translation>
     </message>
     <message>
       <source>Delete Assets</source>
-      <translation>刪除Assets</translation>
+      <translation>刪除資產</translation>
     </message>
     <message>
       <source>Delete Attributes</source>
-      <translation>刪除Attributes</translation>
+      <translation>刪除屬性</translation>
     </message>
     <message>
       <source>Delete B</source>
@@ -2184,47 +2190,47 @@
     </message>
     <message>
       <source>Delete Backdrop</source>
-      <translation>刪除Backdrop</translation>
+      <translation>刪除背景板</translation>
     </message>
     <message>
       <source>Delete Keyframe</source>
-      <translation>刪除Keyframe</translation>
+      <translation>刪除關鍵幀</translation>
     </message>
     <message>
       <source>Delete Keyframes</source>
-      <translation>刪除Keyframes</translation>
+      <translation>刪除關鍵幀</translation>
     </message>
     <message>
       <source>Delete Layers</source>
-      <translation>刪除Layers</translation>
+      <translation>刪除圖層</translation>
     </message>
     <message>
       <source>Delete Palette</source>
-      <translation>刪除Palette</translation>
+      <translation>刪除調色盤</translation>
     </message>
     <message>
       <source>Delete Row</source>
-      <translation>刪除Row</translation>
+      <translation>刪除列</translation>
     </message>
     <message>
       <source>Delete Selected</source>
-      <translation>刪除Selected</translation>
+      <translation>刪除所選項</translation>
     </message>
     <message>
       <source>Delete Selection</source>
-      <translation>刪除Selection</translation>
+      <translation>刪除選取項</translation>
     </message>
     <message>
       <source>Delete Stops</source>
-      <translation>刪除Stops</translation>
+      <translation>刪除停止點</translation>
     </message>
     <message>
       <source>Delete Tag</source>
-      <translation>刪除Tag</translation>
+      <translation>刪除標籤</translation>
     </message>
     <message>
       <source>Delete Track?</source>
-      <translation>刪除Track?</translation>
+      <translation>刪除軌道？</translation>
     </message>
     <message>
       <source>Delete VH</source>
@@ -2232,51 +2238,51 @@
     </message>
     <message>
       <source>Delete Vertex</source>
-      <translation>刪除Vertex</translation>
+      <translation>刪除頂點</translation>
     </message>
     <message>
       <source>Edit Backdrop...</source>
-      <translation>編輯Backdrop...</translation>
+      <translation>編輯背景板...</translation>
     </message>
     <message>
       <source>Edit Component</source>
-      <translation>編輯Component</translation>
+      <translation>編輯元件</translation>
     </message>
     <message>
       <source>Edit Expression...</source>
-      <translation>編輯Expression...</translation>
+      <translation>編輯運算式...</translation>
     </message>
     <message>
       <source>Edit Limits...</source>
-      <translation>編輯Limits...</translation>
+      <translation>編輯限制...</translation>
     </message>
     <message>
       <source>Get Info</source>
-      <translation>取得Info</translation>
+      <translation>取得資訊</translation>
     </message>
     <message>
       <source>Insert Keyframe</source>
-      <translation>插入Keyframe</translation>
+      <translation>插入關鍵幀</translation>
     </message>
     <message>
       <source>Paste Color</source>
-      <translation>貼上Color</translation>
+      <translation>貼上顏色</translation>
     </message>
     <message>
       <source>Paste Gradient</source>
-      <translation>貼上Gradient</translation>
+      <translation>貼上漸層</translation>
     </message>
     <message>
       <source>Paste Graph</source>
-      <translation>貼上Graph</translation>
+      <translation>貼上圖形</translation>
     </message>
     <message>
       <source>Paste Grid</source>
-      <translation>貼上Grid</translation>
+      <translation>貼上網格</translation>
     </message>
     <message>
       <source>Paste Path</source>
-      <translation>貼上Path</translation>
+      <translation>貼上路徑</translation>
     </message>
     <message>
       <source>Paste SVG</source>
@@ -2284,35 +2290,35 @@
     </message>
     <message>
       <source>Paste Text</source>
-      <translation>貼上Text</translation>
+      <translation>貼上文字</translation>
     </message>
     <message>
       <source>Paste Value</source>
-      <translation>貼上Value</translation>
+      <translation>貼上值</translation>
     </message>
     <message>
       <source>Remove Cache</source>
-      <translation>移除Cache</translation>
+      <translation>移除快取</translation>
     </message>
     <message>
       <source>Remove Expression</source>
-      <translation>移除Expression</translation>
+      <translation>移除運算式</translation>
     </message>
     <message>
       <source>Remove Preset</source>
-      <translation>移除Preset</translation>
+      <translation>移除預設</translation>
     </message>
     <message>
       <source>Remove Tag</source>
-      <translation>移除Tag</translation>
+      <translation>移除標籤</translation>
     </message>
     <message>
       <source>Set All</source>
-      <translation>設置All</translation>
+      <translation>設定全部</translation>
     </message>
     <message>
       <source>Set Asset</source>
-      <translation>設置Asset</translation>
+      <translation>設定資產</translation>
     </message>
     <message>
       <source>Set B</source>
@@ -2320,39 +2326,1859 @@
     </message>
     <message>
       <source>Set Color</source>
-      <translation>設置Color</translation>
+      <translation>設定顏色</translation>
     </message>
     <message>
       <source>Set Interpolation</source>
-      <translation>設置Interpolation</translation>
+      <translation>設定插值</translation>
     </message>
     <message>
       <source>Set Keyframe</source>
-      <translation>設置Keyframe</translation>
+      <translation>設定關鍵幀</translation>
     </message>
     <message>
       <source>Set Keyframes</source>
-      <translation>設置Keyframes</translation>
+      <translation>設定關鍵幀</translation>
     </message>
     <message>
       <source>Set Looping</source>
-      <translation>設置Looping</translation>
+      <translation>設定循環</translation>
     </message>
     <message>
       <source>Set Notes</source>
-      <translation>設置Notes</translation>
+      <translation>設定備註</translation>
     </message>
     <message>
       <source>Set Preset</source>
-      <translation>設置Preset</translation>
+      <translation>設定預設</translation>
     </message>
     <message>
       <source>Set Selected</source>
-      <translation>設置Selected</translation>
+      <translation>設定所選項</translation>
     </message>
     <message>
       <source>Set Speed</source>
-      <translation>設置Speed</translation>
+      <translation>設定速度</translation>
+    </message>
+    <message>
+      <source>Accumulator</source>
+      <translation>累加器</translation>
+    </message>
+    <message>
+      <source>Akhand</source>
+      <translation>完整連字</translation>
+    </message>
+    <message>
+      <source>Alignment</source>
+      <translation>對齊方式</translation>
+    </message>
+    <message>
+      <source>All Caps</source>
+      <translation>全部大寫</translation>
+    </message>
+    <message>
+      <source>Alternate Annotation Forms</source>
+      <translation>替代注釋形式</translation>
+    </message>
+    <message>
+      <source>Alternate Half Widths</source>
+      <translation>替代半寬</translation>
+    </message>
+    <message>
+      <source>Alternate Vertical Half Metrics</source>
+      <translation>替代垂直半寬度量</translation>
+    </message>
+    <message>
+      <source>Alternate Vertical Metrics</source>
+      <translation>替代垂直度量</translation>
+    </message>
+    <message>
+      <source>Alternative Fractions</source>
+      <translation>替代分數</translation>
+    </message>
+    <message>
+      <source>Always</source>
+      <translation>始終</translation>
+    </message>
+    <message>
+      <source>Animate Path</source>
+      <translation>動畫路徑</translation>
+    </message>
+    <message>
+      <source>Apply Character Spacing</source>
+      <translation>套用字元間距</translation>
+    </message>
+    <message>
+      <source>Apply Font Size</source>
+      <translation>套用字型大小</translation>
+    </message>
+    <message>
+      <source>Apply Font Style</source>
+      <translation>套用字型樣式</translation>
+    </message>
+    <message>
+      <source>Apply OpenType</source>
+      <translation>套用開放字型</translation>
+    </message>
+    <message>
+      <source>Apply Text Material</source>
+      <translation>套用文字材質</translation>
+    </message>
+    <message>
+      <source>Apply Typeface</source>
+      <translation>套用字體</translation>
+    </message>
+    <message>
+      <source>Array</source>
+      <translation>數組</translation>
+    </message>
+    <message>
+      <source>Asset From Smart Folder</source>
+      <translation>智慧資料夾素材</translation>
+    </message>
+    <message>
+      <source>Background Blur</source>
+      <translation>背景模糊</translation>
+    </message>
+    <message>
+      <source>Baseline</source>
+      <translation>基線</translation>
+    </message>
+    <message>
+      <source>Basic</source>
+      <translation>基礎</translation>
+    </message>
+    <message>
+      <source>Behaviour</source>
+      <translation>行為</translation>
+    </message>
+    <message>
+      <source>Black</source>
+      <translation>黑色</translation>
+    </message>
+    <message>
+      <source>Black and White</source>
+      <translation>黑白</translation>
+    </message>
+    <message>
+      <source>Blend Shader</source>
+      <translation>混合著色器</translation>
+    </message>
+    <message>
+      <source>Blue</source>
+      <translation>藍色</translation>
+    </message>
+    <message>
+      <source>Bone</source>
+      <translation>骨骼</translation>
+    </message>
+    <message>
+      <source>Bottom</source>
+      <translation>底部</translation>
+    </message>
+    <message>
+      <source>Bottom Left</source>
+      <translation>左下</translation>
+    </message>
+    <message>
+      <source>Bottom Right</source>
+      <translation>右下</translation>
+    </message>
+    <message>
+      <source>Bounce</source>
+      <translation>彈跳</translation>
+    </message>
+    <message>
+      <source>Bounding Box</source>
+      <translation>邊界框</translation>
+    </message>
+    <message>
+      <source>Bridge Constraint</source>
+      <translation>橋接約束</translation>
+    </message>
+    <message>
+      <source>Brightness And Contrast</source>
+      <translation>亮度與對比</translation>
+    </message>
+    <message>
+      <source>Bubbles</source>
+      <translation>氣泡</translation>
+    </message>
+    <message>
+      <source>Bulge</source>
+      <translation>凸起</translation>
+    </message>
+    <message>
+      <source>Capital Spacing</source>
+      <translation>大寫字距</translation>
+    </message>
+    <message>
+      <source>Case-Sensitive Forms</source>
+      <translation>大小寫敏感形式</translation>
+    </message>
+    <message>
+      <source>Centered CJK Punctuation</source>
+      <translation>居中 CJK 標點</translation>
+    </message>
+    <message>
+      <source>Centre</source>
+      <translation>中心</translation>
+    </message>
+    <message>
+      <source>Checkerboard Shader</source>
+      <translation>棋盤格著色器</translation>
+    </message>
+    <message>
+      <source>Chromatic Aberration</source>
+      <translation>色差</translation>
+    </message>
+    <message>
+      <source>Color</source>
+      <translation>顏色</translation>
+    </message>
+    <message>
+      <source>Color Info</source>
+      <translation>顏色資訊</translation>
+    </message>
+    <message>
+      <source>Color Shader</source>
+      <translation>顏色著色器</translation>
+    </message>
+    <message>
+      <source>Component Constraint</source>
+      <translation>元件約束</translation>
+    </message>
+    <message>
+      <source>Compositions</source>
+      <translation>合成</translation>
+    </message>
+    <message>
+      <source>Conjunct Form After Ro</source>
+      <translation>羅字後連接形式</translation>
+    </message>
+    <message>
+      <source>Conjunct Forms</source>
+      <translation>連接形式</translation>
+    </message>
+    <message>
+      <source>Container</source>
+      <translation>容器</translation>
+    </message>
+    <message>
+      <source>Contextual Alternates</source>
+      <translation>上下文替代字形</translation>
+    </message>
+    <message>
+      <source>Contextual Half-width Spacing</source>
+      <translation>上下文半寬間距</translation>
+    </message>
+    <message>
+      <source>Contextual Ligatures</source>
+      <translation>上下文連字</translation>
+    </message>
+    <message>
+      <source>Contextual Swash</source>
+      <translation>上下文花飾</translation>
+    </message>
+    <message>
+      <source>Contrast</source>
+      <translation>對比度</translation>
+    </message>
+    <message>
+      <source>Contrasting Color</source>
+      <translation>對比色</translation>
+    </message>
+    <message>
+      <source>Control</source>
+      <translation>控制</translation>
+    </message>
+    <message>
+      <source>Controls</source>
+      <translation>控製</translation>
+    </message>
+    <message>
+      <source>Count Sub-Meshes</source>
+      <translation>計算子網格數量</translation>
+    </message>
+    <message>
+      <source>Current Frame</source>
+      <translation>目前幀</translation>
+    </message>
+    <message>
+      <source>Cursive Positioning</source>
+      <translation>連筆定位</translation>
+    </message>
+    <message>
+      <source>Curve Interpolation</source>
+      <translation>曲線插值</translation>
+    </message>
+    <message>
+      <source>Custom</source>
+      <translation>自定義</translation>
+    </message>
+    <message>
+      <source>Data</source>
+      <translation>數據</translation>
+    </message>
+    <message>
+      <source>Decimal Separator</source>
+      <translation>小數分隔符</translation>
+    </message>
+    <message>
+      <source>Deformer</source>
+      <translation>變形器</translation>
+    </message>
+    <message>
+      <source>Delimiter</source>
+      <translation>分隔符</translation>
+    </message>
+    <message>
+      <source>Denominators</source>
+      <translation>分母</translation>
+    </message>
+    <message>
+      <source>Discretionary Ligatures</source>
+      <translation>任意連字</translation>
+    </message>
+    <message>
+      <source>Distance Constraint</source>
+      <translation>距離約束</translation>
+    </message>
+    <message>
+      <source>Distances</source>
+      <translation>距離</translation>
+    </message>
+    <message>
+      <source>Distort Edges</source>
+      <translation>扭曲邊緣</translation>
+    </message>
+    <message>
+      <source>Distortion</source>
+      <translation>扭曲</translation>
+    </message>
+    <message>
+      <source>Distribution</source>
+      <translation>分佈</translation>
+    </message>
+    <message>
+      <source>Dithering</source>
+      <translation>抖色</translation>
+    </message>
+    <message>
+      <source>Divisions</source>
+      <translation>細分</translation>
+    </message>
+    <message>
+      <source>Dotless Forms</source>
+      <translation>無點形式</translation>
+    </message>
+    <message>
+      <source>Drag</source>
+      <translation>拖拽</translation>
+    </message>
+    <message>
+      <source>Drop Shadow</source>
+      <translation>投影</translation>
+    </message>
+    <message>
+      <source>Edge Detection</source>
+      <translation>邊緣檢測</translation>
+    </message>
+    <message>
+      <source>Enabled</source>
+      <translation>已啟用</translation>
+    </message>
+    <message>
+      <source>End</source>
+      <translation>結束</translation>
+    </message>
+    <message>
+      <source>Expert Forms</source>
+      <translation>專家形式</translation>
+    </message>
+    <message>
+      <source>Falloff</source>
+      <translation>衰減</translation>
+    </message>
+    <message>
+      <source>Fast Blur</source>
+      <translation>快速模糊</translation>
+    </message>
+    <message>
+      <source>Features</source>
+      <translation>特性</translation>
+    </message>
+    <message>
+      <source>Fill</source>
+      <translation>填充</translation>
+    </message>
+    <message>
+      <source>Fill Color</source>
+      <translation>填色顏色</translation>
+    </message>
+    <message>
+      <source>Final Glyph on Line Alternates</source>
+      <translation>行尾字形替代</translation>
+    </message>
+    <message>
+      <source>Flat</source>
+      <translation>平面</translation>
+    </message>
+    <message>
+      <source>Flattened Accent Forms</source>
+      <translation>扁平重音形式</translation>
+    </message>
+    <message>
+      <source>Font</source>
+      <translation>字體</translation>
+    </message>
+    <message>
+      <source>Fractions</source>
+      <translation>分數</translation>
+    </message>
+    <message>
+      <source>Full</source>
+      <translation>完整</translation>
+    </message>
+    <message>
+      <source>Full Widths</source>
+      <translation>全寬</translation>
+    </message>
+    <message>
+      <source>Gamma Correction</source>
+      <translation>Gamma 校正</translation>
+    </message>
+    <message>
+      <source>Gaussian Blur</source>
+      <translation>高斯模糊</translation>
+    </message>
+    <message>
+      <source>Generator</source>
+      <translation>生成器</translation>
+    </message>
+    <message>
+      <source>Get Name</source>
+      <translation>取得名稱</translation>
+    </message>
+    <message>
+      <source>Get Sub-Mesh Transform</source>
+      <translation>取得子網格變換</translation>
+    </message>
+    <message>
+      <source>Glow</source>
+      <translation>輝光</translation>
+    </message>
+    <message>
+      <source>Gradient Map</source>
+      <translation>漸層對應</translation>
+    </message>
+    <message>
+      <source>Gradient Shader</source>
+      <translation>漸層著色器</translation>
+    </message>
+    <message>
+      <source>Grain</source>
+      <translation>顆粒</translation>
+    </message>
+    <message>
+      <source>Green</source>
+      <translation>綠色</translation>
+    </message>
+    <message>
+      <source>Grid</source>
+      <translation>網格</translation>
+    </message>
+    <message>
+      <source>Grid Layout</source>
+      <translation>網格佈局</translation>
+    </message>
+    <message>
+      <source>Grid Size</source>
+      <translation>網格大小</translation>
+    </message>
+    <message>
+      <source>Halant Forms</source>
+      <translation>尾音符形式</translation>
+    </message>
+    <message>
+      <source>Half Forms</source>
+      <translation>半形</translation>
+    </message>
+    <message>
+      <source>Half Widths</source>
+      <translation>半寬</translation>
+    </message>
+    <message>
+      <source>Halftone</source>
+      <translation>半色調</translation>
+    </message>
+    <message>
+      <source>Hangul</source>
+      <translation>韓文</translation>
+    </message>
+    <message>
+      <source>Height</source>
+      <translation>高度</translation>
+    </message>
+    <message>
+      <source>Historical Forms</source>
+      <translation>歷史形式</translation>
+    </message>
+    <message>
+      <source>Historical Ligatures</source>
+      <translation>歷史連字</translation>
+    </message>
+    <message>
+      <source>Horizontal Kana Alternates</source>
+      <translation>水平假名替代</translation>
+    </message>
+    <message>
+      <source>Horizontal Layout</source>
+      <translation>水平佈局</translation>
+    </message>
+    <message>
+      <source>HSV Adjustment</source>
+      <translation>HSV 調整</translation>
+    </message>
+    <message>
+      <source>HSV Color</source>
+      <translation>HSV 顏色</translation>
+    </message>
+    <message>
+      <source>Image</source>
+      <translation>圖像</translation>
+    </message>
+    <message>
+      <source>Image Sampler</source>
+      <translation>圖片取樣器</translation>
+    </message>
+    <message>
+      <source>Image Shader</source>
+      <translation>圖像著色器</translation>
+    </message>
+    <message>
+      <source>Index Context</source>
+      <translation>索引上下文</translation>
+    </message>
+    <message>
+      <source>Individual</source>
+      <translation>獨立</translation>
+    </message>
+    <message>
+      <source>Influence</source>
+      <translation>影響</translation>
+    </message>
+    <message>
+      <source>Initial Forms</source>
+      <translation>初始形式</translation>
+    </message>
+    <message>
+      <source>Inner Shadow</source>
+      <translation>內陰影</translation>
+    </message>
+    <message>
+      <source>Interpolation</source>
+      <translation>插值</translation>
+    </message>
+    <message>
+      <source>Intersections</source>
+      <translation>交叉點</translation>
+    </message>
+    <message>
+      <source>Invert</source>
+      <translation>反轉</translation>
+    </message>
+    <message>
+      <source>Isolated Forms</source>
+      <translation>獨立形式</translation>
+    </message>
+    <message>
+      <source>Italics</source>
+      <translation>斜體</translation>
+    </message>
+    <message>
+      <source>JavaScript Utility</source>
+      <translation>JavaScript 工具</translation>
+    </message>
+    <message>
+      <source>Justification Alternates</source>
+      <translation>兩端對齊替代</translation>
+    </message>
+    <message>
+      <source>Kerning</source>
+      <translation>字距調整</translation>
+    </message>
+    <message>
+      <source>Kerning for Alternate Proportional Vertical Metrics</source>
+      <translation>替代比例垂直度量字距</translation>
+    </message>
+    <message>
+      <source>Kerning for Alternate Proportional Widths</source>
+      <translation>替代比例寬度字距</translation>
+    </message>
+    <message>
+      <source>Label</source>
+      <translation>標籤</translation>
+    </message>
+    <message>
+      <source>Label Color</source>
+      <translation>標籤顏色</translation>
+    </message>
+    <message>
+      <source>Lattice Controller</source>
+      <translation>晶格控制器</translation>
+    </message>
+    <message>
+      <source>Leading Jamo Forms</source>
+      <translation>前導字母形式</translation>
+    </message>
+    <message>
+      <source>Left</source>
+      <translation>左</translation>
+    </message>
+    <message>
+      <source>Left Bounds</source>
+      <translation>左邊界</translation>
+    </message>
+    <message>
+      <source>Left-to-right Alternates</source>
+      <translation>從左到右替代</translation>
+    </message>
+    <message>
+      <source>Left-to-right Mirrored Forms</source>
+      <translation>從左到右鏡像形式</translation>
+    </message>
+    <message>
+      <source>Length</source>
+      <translation>長度</translation>
+    </message>
+    <message>
+      <source>Levels</source>
+      <translation>色階</translation>
+    </message>
+    <message>
+      <source>Line Chart</source>
+      <translation>折線圖</translation>
+    </message>
+    <message>
+      <source>Linear</source>
+      <translation>線性</translation>
+    </message>
+    <message>
+      <source>Linear Wipe</source>
+      <translation>線性擦除</translation>
+    </message>
+    <message>
+      <source>Lining Figures</source>
+      <translation>齊線數字</translation>
+    </message>
+    <message>
+      <source>Localized Forms</source>
+      <translation>本地化形式</translation>
+    </message>
+    <message>
+      <source>Location</source>
+      <translation>位置</translation>
+    </message>
+    <message>
+      <source>Looping</source>
+      <translation>循環</translation>
+    </message>
+    <message>
+      <source>Lottie Export</source>
+      <translation>Lottie 匯出</translation>
+    </message>
+    <message>
+      <source>Luminance Blur</source>
+      <translation>亮度模糊</translation>
+    </message>
+    <message>
+      <source>Manhattan</source>
+      <translation>曼哈頓</translation>
+    </message>
+    <message>
+      <source>Margins</source>
+      <translation>邊距</translation>
+    </message>
+    <message>
+      <source>Mark Positioning</source>
+      <translation>標記定位</translation>
+    </message>
+    <message>
+      <source>Mark Positioning via Substitution</source>
+      <translation>通過替換進行標記定位</translation>
+    </message>
+    <message>
+      <source>Mark to Mark Positioning</source>
+      <translation>標記到標記定位</translation>
+    </message>
+    <message>
+      <source>Mask</source>
+      <translation>遮罩</translation>
+    </message>
+    <message>
+      <source>Math</source>
+      <translation>數學</translation>
+    </message>
+    <message>
+      <source>Math Script-style Alternates</source>
+      <translation>數學腳本樣式替代</translation>
+    </message>
+    <message>
+      <source>Math2</source>
+      <translation>數學 2</translation>
+    </message>
+    <message>
+      <source>Math3</source>
+      <translation>數學 3</translation>
+    </message>
+    <message>
+      <source>Mathematical Greek</source>
+      <translation>數學希臘字母</translation>
+    </message>
+    <message>
+      <source>Measure Text</source>
+      <translation>測量文字</translation>
+    </message>
+    <message>
+      <source>Medial Forms</source>
+      <translation>中間形式</translation>
+    </message>
+    <message>
+      <source>Medium</source>
+      <translation>中</translation>
+    </message>
+    <message>
+      <source>Metadata</source>
+      <translation>中繼資料</translation>
+    </message>
+    <message>
+      <source>Mirror</source>
+      <translation>鏡像</translation>
+    </message>
+    <message>
+      <source>Mode</source>
+      <translation>模式</translation>
+    </message>
+    <message>
+      <source>Multi-Point Gradient Shader</source>
+      <translation>多點漸層著色器</translation>
+    </message>
+    <message>
+      <source>Name</source>
+      <translation>名稱</translation>
+    </message>
+    <message>
+      <source>NLC Kanji Forms</source>
+      <translation>NLC 漢字形式</translation>
+    </message>
+    <message>
+      <source>Noise Shader</source>
+      <translation>噪波著色器</translation>
+    </message>
+    <message>
+      <source>Normal</source>
+      <translation>正常</translation>
+    </message>
+    <message>
+      <source>Nukta Forms</source>
+      <translation>點符形式</translation>
+    </message>
+    <message>
+      <source>Number</source>
+      <translation>數字</translation>
+    </message>
+    <message>
+      <source>Numerators</source>
+      <translation>分子</translation>
+    </message>
+    <message>
+      <source>Oldstyle Figures</source>
+      <translation>舊式數字</translation>
+    </message>
+    <message>
+      <source>Onion Skinning</source>
+      <translation>洋蔥皮</translation>
+    </message>
+    <message>
+      <source>Optical Bounds</source>
+      <translation>視覺邊界</translation>
+    </message>
+    <message>
+      <source>Optical Size</source>
+      <translation>視覺大小</translation>
+    </message>
+    <message>
+      <source>Ordinals</source>
+      <translation>序數</translation>
+    </message>
+    <message>
+      <source>Ornaments</source>
+      <translation>裝飾符號</translation>
+    </message>
+    <message>
+      <source>Particle</source>
+      <translation>粒子</translation>
+    </message>
+    <message>
+      <source>Path</source>
+      <translation>路徑</translation>
+    </message>
+    <message>
+      <source>Petite Capitals</source>
+      <translation>小型大寫字母</translation>
+    </message>
+    <message>
+      <source>Petite Capitals From Capitals</source>
+      <translation>從大寫到小型大寫</translation>
+    </message>
+    <message>
+      <source>Pin Constraint</source>
+      <translation>釘選約束</translation>
+    </message>
+    <message>
+      <source>Pixel Sorting</source>
+      <translation>像素排序</translation>
+    </message>
+    <message>
+      <source>Pixelate</source>
+      <translation>像素化</translation>
+    </message>
+    <message>
+      <source>Playback End</source>
+      <translation>播放結束</translation>
+    </message>
+    <message>
+      <source>Playback Range</source>
+      <translation>播放範圍</translation>
+    </message>
+    <message>
+      <source>Plus</source>
+      <translation>加</translation>
+    </message>
+    <message>
+      <source>Point</source>
+      <translation>點</translation>
+    </message>
+    <message>
+      <source>Posterize</source>
+      <translation>色調分離</translation>
+    </message>
+    <message>
+      <source>Projecting</source>
+      <translation>投影</translation>
+    </message>
+    <message>
+      <source>Proportional Alternate Vertical Metrics</source>
+      <translation>比例替代垂直度量</translation>
+    </message>
+    <message>
+      <source>Proportional Alternate Widths</source>
+      <translation>比例替代寬度</translation>
+    </message>
+    <message>
+      <source>Proportional Figures</source>
+      <translation>比例數字</translation>
+    </message>
+    <message>
+      <source>Proportional Kana</source>
+      <translation>比例假名</translation>
+    </message>
+    <message>
+      <source>Proportional Widths</source>
+      <translation>比例寬度</translation>
+    </message>
+    <message>
+      <source>Quarter Widths</source>
+      <translation>四分之一寬</translation>
+    </message>
+    <message>
+      <source>Radial Wipe</source>
+      <translation>徑向擦除</translation>
+    </message>
+    <message>
+      <source>Radius</source>
+      <translation>半徑</translation>
+    </message>
+    <message>
+      <source>Rakar Forms</source>
+      <translation>拉卡爾形式</translation>
+    </message>
+    <message>
+      <source>Random</source>
+      <translation>隨機</translation>
+    </message>
+    <message>
+      <source>Randomize</source>
+      <translation>隨機化</translation>
+    </message>
+    <message>
+      <source>Range</source>
+      <translation>範圍</translation>
+    </message>
+    <message>
+      <source>Rate</source>
+      <translation>速率</translation>
+    </message>
+    <message>
+      <source>Reph Form</source>
+      <translation>雷夫形式</translation>
+    </message>
+    <message>
+      <source>Replace</source>
+      <translation>替換</translation>
+    </message>
+    <message>
+      <source>Replace All</source>
+      <translation>全部替換</translation>
+    </message>
+    <message>
+      <source>Replace Fill</source>
+      <translation>替換填充</translation>
+    </message>
+    <message>
+      <source>Replace Stroke</source>
+      <translation>替換描邊</translation>
+    </message>
+    <message>
+      <source>Required Contextual Alternates</source>
+      <translation>必需上下文替代</translation>
+    </message>
+    <message>
+      <source>Required Ligatures</source>
+      <translation>必需連字</translation>
+    </message>
+    <message>
+      <source>Required Variation Alternates</source>
+      <translation>必需變體替代</translation>
+    </message>
+    <message>
+      <source>Reverse Path</source>
+      <translation>反轉路徑</translation>
+    </message>
+    <message>
+      <source>RGB Split</source>
+      <translation>RGB 分離</translation>
+    </message>
+    <message>
+      <source>Right</source>
+      <translation>右</translation>
+    </message>
+    <message>
+      <source>Right Bounds</source>
+      <translation>右邊界</translation>
+    </message>
+    <message>
+      <source>Right-to-left Alternates</source>
+      <translation>從右到左替代</translation>
+    </message>
+    <message>
+      <source>Right-to-left Mirrored Forms</source>
+      <translation>從右到左鏡像形式</translation>
+    </message>
+    <message>
+      <source>Rose</source>
+      <translation>玫瑰線</translation>
+    </message>
+    <message>
+      <source>Round</source>
+      <translation>四捨五入</translation>
+    </message>
+    <message>
+      <source>Roundness</source>
+      <translation>圓度</translation>
+    </message>
+    <message>
+      <source>Ruby Notation Forms</source>
+      <translation>注音標注形式</translation>
+    </message>
+    <message>
+      <source>Saturation</source>
+      <translation>飽和度</translation>
+    </message>
+    <message>
+      <source>Scan Lines</source>
+      <translation>掃描線</translation>
+    </message>
+    <message>
+      <source>Scheduling Group</source>
+      <translation>排程群組</translation>
+    </message>
+    <message>
+      <source>Scientific Inferiors</source>
+      <translation>科學下標</translation>
+    </message>
+    <message>
+      <source>Scrape</source>
+      <translation>刮擦</translation>
+    </message>
+    <message>
+      <source>Sequence</source>
+      <translation>序列</translation>
+    </message>
+    <message>
+      <source>Shader</source>
+      <translation>著色器</translation>
+    </message>
+    <message>
+      <source>Shaders</source>
+      <translation>著色器</translation>
+    </message>
+    <message>
+      <source>Shape Array</source>
+      <translation>形狀陣列</translation>
+    </message>
+    <message>
+      <source>Shape to Shader</source>
+      <translation>形狀轉著色器</translation>
+    </message>
+    <message>
+      <source>Sharpen</source>
+      <translation>銳化</translation>
+    </message>
+    <message>
+      <source>Shift Channels</source>
+      <translation>位移通道</translation>
+    </message>
+    <message>
+      <source>Simplified Forms</source>
+      <translation>簡化形式</translation>
+    </message>
+    <message>
+      <source>Size</source>
+      <translation>大小</translation>
+    </message>
+    <message>
+      <source>Size Mode</source>
+      <translation>大小模式</translation>
+    </message>
+    <message>
+      <source>SkSL Filter</source>
+      <translation>史奇亞著色語言濾鏡</translation>
+    </message>
+    <message>
+      <source>SkSL Shader</source>
+      <translation>史奇亞著色語言著色器</translation>
+    </message>
+    <message>
+      <source>SLA Shader</source>
+      <translation>SLA 著色器</translation>
+    </message>
+    <message>
+      <source>Slashed Zero</source>
+      <translation>帶斜線零</translation>
+    </message>
+    <message>
+      <source>Slit Scan</source>
+      <translation>狹縫掃描</translation>
+    </message>
+    <message>
+      <source>Slow</source>
+      <translation>慢速</translation>
+    </message>
+    <message>
+      <source>Small Capitals</source>
+      <translation>小型大寫</translation>
+    </message>
+    <message>
+      <source>Small Capitals From Capitals</source>
+      <translation>從大寫到小型大寫</translation>
+    </message>
+    <message>
+      <source>Smooth</source>
+      <translation>平滑</translation>
+    </message>
+    <message>
+      <source>Something went wrong during sign in. Please try again.</source>
+      <translation>登入過程中發生錯誤。請重試。</translation>
+    </message>
+    <message>
+      <source>Sort</source>
+      <translation>排序</translation>
+    </message>
+    <message>
+      <source>Spacing</source>
+      <translation>間距</translation>
+    </message>
+    <message>
+      <source>Spreadsheet</source>
+      <translation>試算表</translation>
+    </message>
+    <message>
+      <source>Spreadsheet Lookup</source>
+      <translation>試算表查找</translation>
+    </message>
+    <message>
+      <source>Square</source>
+      <translation>方形</translation>
+    </message>
+    <message>
+      <source>Squash and Stretch</source>
+      <translation>壓扁與拉伸</translation>
+    </message>
+    <message>
+      <source>Stagger</source>
+      <translation>錯開</translation>
+    </message>
+    <message>
+      <source>Standard Ligatures</source>
+      <translation>標準連字</translation>
+    </message>
+    <message>
+      <source>Start</source>
+      <translation>開始</translation>
+    </message>
+    <message>
+      <source>Static</source>
+      <translation>靜態</translation>
+    </message>
+    <message>
+      <source>Step</source>
+      <translation>步長</translation>
+    </message>
+    <message>
+      <source>Stepped</source>
+      <translation>階梯</translation>
+    </message>
+    <message>
+      <source>Stitches</source>
+      <translation>縫線</translation>
+    </message>
+    <message>
+      <source>Stretching Glyph Decomposition</source>
+      <translation>拉伸字形分解</translation>
+    </message>
+    <message>
+      <source>Strikethrough</source>
+      <translation>刪除線</translation>
+    </message>
+    <message>
+      <source>String</source>
+      <translation>字符串</translation>
+    </message>
+    <message>
+      <source>String Length</source>
+      <translation>字符串長度</translation>
+    </message>
+    <message>
+      <source>String Manipulator</source>
+      <translation>字串操作器</translation>
+    </message>
+    <message>
+      <source>Stroke</source>
+      <translation>描邊</translation>
+    </message>
+    <message>
+      <source>Stroke Duplicator</source>
+      <translation>描邊複製器</translation>
+    </message>
+    <message>
+      <source>Stylistic Alternates</source>
+      <translation>風格替代</translation>
+    </message>
+    <message>
+      <source>Sub-Mesh</source>
+      <translation>子網格</translation>
+    </message>
+    <message>
+      <source>Subdivide</source>
+      <translation>細分</translation>
+    </message>
+    <message>
+      <source>Subscript</source>
+      <translation>下標</translation>
+    </message>
+    <message>
+      <source>Subtract</source>
+      <translation>減法</translation>
+    </message>
+    <message>
+      <source>Superscript</source>
+      <translation>上標</translation>
+    </message>
+    <message>
+      <source>Swap Color</source>
+      <translation>交換顏色</translation>
+    </message>
+    <message>
+      <source>Swash</source>
+      <translation>花飾</translation>
+    </message>
+    <message>
+      <source>Tabular Figures</source>
+      <translation>等寬數字</translation>
+    </message>
+    <message>
+      <source>Target</source>
+      <translation>目標</translation>
+    </message>
+    <message>
+      <source>Terminal Forms</source>
+      <translation>終止形式</translation>
+    </message>
+    <message>
+      <source>Third Widths</source>
+      <translation>三分之一寬</translation>
+    </message>
+    <message>
+      <source>Threshold</source>
+      <translation>閾值</translation>
+    </message>
+    <message>
+      <source>Time</source>
+      <translation>時間</translation>
+    </message>
+    <message>
+      <source>Time Markers</source>
+      <translation>時間標記</translation>
+    </message>
+    <message>
+      <source>Timeline Counter</source>
+      <translation>時間軸計數器</translation>
+    </message>
+    <message>
+      <source>Titling</source>
+      <translation>標題形式</translation>
+    </message>
+    <message>
+      <source>Top Left</source>
+      <translation>左上</translation>
+    </message>
+    <message>
+      <source>Top Right</source>
+      <translation>右上</translation>
+    </message>
+    <message>
+      <source>Traditional Forms</source>
+      <translation>傳統形式</translation>
+    </message>
+    <message>
+      <source>Traditional Name Forms</source>
+      <translation>傳統名稱形式</translation>
+    </message>
+    <message>
+      <source>Trailing Jamo Forms</source>
+      <translation>尾隨字母形式</translation>
+    </message>
+    <message>
+      <source>Travel</source>
+      <translation>行程</translation>
+    </message>
+    <message>
+      <source>TriTone</source>
+      <translation>三色調</translation>
+    </message>
+    <message>
+      <source>Type</source>
+      <translation>類型</translation>
+    </message>
+    <message>
+      <source>Typeface</source>
+      <translation>字體</translation>
+    </message>
+    <message>
+      <source>Underline</source>
+      <translation>下劃線</translation>
+    </message>
+    <message>
+      <source>Unicase</source>
+      <translation>單一大小寫</translation>
+    </message>
+    <message>
+      <source>Union</source>
+      <translation>並集</translation>
+    </message>
+    <message>
+      <source>Utility</source>
+      <translation>實用</translation>
+    </message>
+    <message>
+      <source>Value</source>
+      <translation>值</translation>
+    </message>
+    <message>
+      <source>Value Solver</source>
+      <translation>數值求解器</translation>
+    </message>
+    <message>
+      <source>Value2</source>
+      <translation>數值 2</translation>
+    </message>
+    <message>
+      <source>Value2 Array</source>
+      <translation>數值 2 陣列</translation>
+    </message>
+    <message>
+      <source>Value2 Blend</source>
+      <translation>數值 2 混合</translation>
+    </message>
+    <message>
+      <source>Value2 Solver</source>
+      <translation>數值 2 求解器</translation>
+    </message>
+    <message>
+      <source>Value3</source>
+      <translation>數值 3</translation>
+    </message>
+    <message>
+      <source>Value3 Array</source>
+      <translation>數值 3 陣列</translation>
+    </message>
+    <message>
+      <source>Value3 Blend</source>
+      <translation>數值 3 混合</translation>
+    </message>
+    <message>
+      <source>Vattu Variants</source>
+      <translation>瓦圖變體</translation>
+    </message>
+    <message>
+      <source>Venetian Blinds</source>
+      <translation>百葉窗</translation>
+    </message>
+    <message>
+      <source>Vertical Alternates</source>
+      <translation>垂直替代</translation>
+    </message>
+    <message>
+      <source>Vertical Alternates and Rotation</source>
+      <translation>垂直替代和旋轉</translation>
+    </message>
+    <message>
+      <source>Vertical Alternates for Rotation</source>
+      <translation>垂直旋轉替代</translation>
+    </message>
+    <message>
+      <source>Vertical Contextual Half-width Spacing</source>
+      <translation>垂直上下文半寬間距</translation>
+    </message>
+    <message>
+      <source>Vertical Kana Alternates</source>
+      <translation>垂直假名替代</translation>
+    </message>
+    <message>
+      <source>Vertical Kerning</source>
+      <translation>垂直字距調整</translation>
+    </message>
+    <message>
+      <source>Vertical Layout</source>
+      <translation>垂直佈局</translation>
+    </message>
+    <message>
+      <source>Vignette</source>
+      <translation>暗角</translation>
+    </message>
+    <message>
+      <source>Visibility</source>
+      <translation>可見性</translation>
+    </message>
+    <message>
+      <source>Visibility Sequence</source>
+      <translation>可見性序列</translation>
+    </message>
+    <message>
+      <source>Voronoi Shader</source>
+      <translation>Voronoi 著色器</translation>
+    </message>
+    <message>
+      <source>Vowel Jamo Forms</source>
+      <translation>元音字母形式</translation>
+    </message>
+    <message>
+      <source>Voxelize</source>
+      <translation>體素化</translation>
+    </message>
+    <message>
+      <source>Wave</source>
+      <translation>波浪</translation>
+    </message>
+    <message>
+      <source>Width</source>
+      <translation>寬度</translation>
+    </message>
+    <message>
+      <source>Wireframe</source>
+      <translation>線框</translation>
+    </message>
+    <message>
+      <source>Animation Control</source>
+      <translation>動畫控制</translation>
+    </message>
+    <message>
+      <source>Asset Array</source>
+      <translation>資產陣列</translation>
+    </message>
+    <message>
+      <source>Audio Solver</source>
+      <translation>音訊求解器</translation>
+    </message>
+    <message>
+      <source>Axonometric</source>
+      <translation>軸測</translation>
+    </message>
+    <message>
+      <source>Background Blur Filter</source>
+      <translation>背景模糊濾鏡</translation>
+    </message>
+    <message>
+      <source>Bilateral Blur</source>
+      <translation>雙邊模糊</translation>
+    </message>
+    <message>
+      <source>Block Eq</source>
+      <translation>區塊方程式</translation>
+    </message>
+    <message>
+      <source>Box Blur</source>
+      <translation>盒式模糊</translation>
+    </message>
+    <message>
+      <source>Camera Guide</source>
+      <translation>攝影機參考線</translation>
+    </message>
+    <message>
+      <source>Chain Mail</source>
+      <translation>鎖子甲</translation>
+    </message>
+    <message>
+      <source>Chroma Key</source>
+      <translation>色度鍵</translation>
+    </message>
+    <message>
+      <source>Chroma Key Filter</source>
+      <translation>色度鍵濾鏡</translation>
+    </message>
+    <message>
+      <source>Circle Packing with Gradient Descent</source>
+      <translation>梯度下降圓形填充</translation>
+    </message>
+    <message>
+      <source>Circular Eq</source>
+      <translation>圓形方程式</translation>
+    </message>
+    <message>
+      <source>Closest Point</source>
+      <translation>最近點</translation>
+    </message>
+    <message>
+      <source>Clouds Shader</source>
+      <translation>雲朵著色器</translation>
+    </message>
+    <message>
+      <source>Collision Event</source>
+      <translation>碰撞事件</translation>
+    </message>
+    <message>
+      <source>Color Array</source>
+      <translation>顏色陣列</translation>
+    </message>
+    <message>
+      <source>Comparison</source>
+      <translation>比較</translation>
+    </message>
+    <message>
+      <source>Concentric</source>
+      <translation>同心</translation>
+    </message>
+    <message>
+      <source>Contours To Sub-Meshes</source>
+      <translation>輪廓轉子網格</translation>
+    </message>
+    <message>
+      <source>Countdown</source>
+      <translation>倒數計時</translation>
+    </message>
+    <message>
+      <source>Custom Shaders and Filters</source>
+      <translation>自訂著色器與濾鏡</translation>
+    </message>
+    <message>
+      <source>Data Race</source>
+      <translation>資料競速</translation>
+    </message>
+    <message>
+      <source>Day Suffix</source>
+      <translation>日期後綴</translation>
+    </message>
+    <message>
+      <source>Delaunay Triangulation</source>
+      <translation>德洛內三角剖分</translation>
+    </message>
+    <message>
+      <source>Diagonal Slide Random Characters</source>
+      <translation>隨機字元對角滑動</translation>
+    </message>
+    <message>
+      <source>Diamond</source>
+      <translation>菱形</translation>
+    </message>
+    <message>
+      <source>Differential Line Growth</source>
+      <translation>差分線生長</translation>
+    </message>
+    <message>
+      <source>Directional Blur</source>
+      <translation>方向模糊</translation>
+    </message>
+    <message>
+      <source>Dynamic Text</source>
+      <translation>動態文字</translation>
+    </message>
+    <message>
+      <source>Emboss Filter</source>
+      <translation>浮雕濾鏡</translation>
+    </message>
+    <message>
+      <source>FBM Noise Shader</source>
+      <translation>分形布朗運動噪波著色器</translation>
+    </message>
+    <message>
+      <source>Fade Alternate Lines</source>
+      <translation>交替行淡出</translation>
+    </message>
+    <message>
+      <source>Fade Off Characters</source>
+      <translation>字元淡出</translation>
+    </message>
+    <message>
+      <source>Flow Field Distribution</source>
+      <translation>流場分佈</translation>
+    </message>
+    <message>
+      <source>Forge Dynamics Shape</source>
+      <translation>構造動力學形狀</translation>
+    </message>
+    <message>
+      <source>Fractal Tree</source>
+      <translation>分形樹</translation>
+    </message>
+    <message>
+      <source>Generative Art</source>
+      <translation>生成藝術</translation>
+    </message>
+    <message>
+      <source>Glow Filter</source>
+      <translation>輝光濾鏡</translation>
+    </message>
+    <message>
+      <source>Glyph Drawing Machine</source>
+      <translation>字形繪製機</translation>
+    </message>
+    <message>
+      <source>Gradient along a Path</source>
+      <translation>沿路徑漸層</translation>
+    </message>
+    <message>
+      <source>Graph Paper</source>
+      <translation>方格紙</translation>
+    </message>
+    <message>
+      <source>Green Screen Filter</source>
+      <translation>綠幕濾鏡</translation>
+    </message>
+    <message>
+      <source>Grid Decay</source>
+      <translation>網格衰減</translation>
+    </message>
+    <message>
+      <source>Heart Path</source>
+      <translation>心形路徑</translation>
+    </message>
+    <message>
+      <source>Hexagon</source>
+      <translation>六邊形</translation>
+    </message>
+    <message>
+      <source>If Else</source>
+      <translation>條件分支</translation>
+    </message>
+    <message>
+      <source>Illustration</source>
+      <translation>插畫</translation>
+    </message>
+    <message>
+      <source>Index To Color</source>
+      <translation>索引轉顏色</translation>
+    </message>
+    <message>
+      <source>Infrequency</source>
+      <translation>低頻度</translation>
+    </message>
+    <message>
+      <source>Isolines Shape</source>
+      <translation>等值線形狀</translation>
+    </message>
+    <message>
+      <source>Jsmath</source>
+      <translation>腳本數學</translation>
+    </message>
+    <message>
+      <source>Keyframe Animation</source>
+      <translation>關鍵影格動畫</translation>
+    </message>
+    <message>
+      <source>Kinetic Type</source>
+      <translation>動態排版</translation>
+    </message>
+    <message>
+      <source>L-System</source>
+      <translation>林登邁爾系統</translation>
+    </message>
+    <message>
+      <source>Layer Seed</source>
+      <translation>圖層種子</translation>
+    </message>
+    <message>
+      <source>Length Context</source>
+      <translation>長度上下文</translation>
+    </message>
+    <message>
+      <source>Light Sweep</source>
+      <translation>掃光</translation>
+    </message>
+    <message>
+      <source>Local Time</source>
+      <translation>本地時間</translation>
+    </message>
+    <message>
+      <source>Logic</source>
+      <translation>邏輯</translation>
+    </message>
+    <message>
+      <source>Measure</source>
+      <translation>測量</translation>
+    </message>
+    <message>
+      <source>No Solvers</source>
+      <translation>無求解器</translation>
+    </message>
+    <message>
+      <source>No Workspaces Saved</source>
+      <translation>沒有已儲存的工作區</translation>
+    </message>
+    <message>
+      <source>Null</source>
+      <translation>空物件</translation>
+    </message>
+    <message>
+      <source>Open Paths</source>
+      <translation>開放路徑</translation>
+    </message>
+    <message>
+      <source>Oscillating Polygon</source>
+      <translation>振盪多邊形</translation>
+    </message>
+    <message>
+      <source>Over and Over</source>
+      <translation>反覆</translation>
+    </message>
+    <message>
+      <source>Packed Circles</source>
+      <translation>密排圓形</translation>
+    </message>
+    <message>
+      <source>Path Length</source>
+      <translation>路徑長度</translation>
+    </message>
+    <message>
+      <source>Pinboard</source>
+      <translation>圖釘板</translation>
+    </message>
+    <message>
+      <source>Pixel Sorting Filter</source>
+      <translation>像素排序濾鏡</translation>
+    </message>
+    <message>
+      <source>Pixel Zoom Shader</source>
+      <translation>像素縮放著色器</translation>
+    </message>
+    <message>
+      <source>Please Select a Text Shape...</source>
+      <translation>請選取文字形狀...</translation>
+    </message>
+    <message>
+      <source>Position Blend</source>
+      <translation>位置混合</translation>
+    </message>
+    <message>
+      <source>Position to Color</source>
+      <translation>位置轉顏色</translation>
+    </message>
+    <message>
+      <source>Pre-Comp Override</source>
+      <translation>預合成覆寫</translation>
+    </message>
+    <message>
+      <source>Push Along Vector</source>
+      <translation>沿向量推動</translation>
+    </message>
+    <message>
+      <source>Random Dash Pattern</source>
+      <translation>隨機虛線圖案</translation>
+    </message>
+    <message>
+      <source>Random Opacity Grid</source>
+      <translation>隨機不透明度網格</translation>
+    </message>
+    <message>
+      <source>Random Walk</source>
+      <translation>隨機遊走</translation>
+    </message>
+    <message>
+      <source>Range Falloff</source>
+      <translation>範圍衰減</translation>
+    </message>
+    <message>
+      <source>Replace Mesh</source>
+      <translation>取代網格</translation>
+    </message>
+    <message>
+      <source>Resample Path</source>
+      <translation>重新取樣路徑</translation>
+    </message>
+    <message>
+      <source>Rig Control</source>
+      <translation>綁定控制</translation>
+    </message>
+    <message>
+      <source>Rubber Hose Limb</source>
+      <translation>軟管肢體</translation>
+    </message>
+    <message>
+      <source>Sample Image Shader</source>
+      <translation>取樣圖像著色器</translation>
+    </message>
+    <message>
+      <source>Scale Random Words</source>
+      <translation>隨機縮放單字</translation>
+    </message>
+    <message>
+      <source>Scan Lines Filter</source>
+      <translation>掃描線濾鏡</translation>
+    </message>
+    <message>
+      <source>Scatter Filter</source>
+      <translation>散射濾鏡</translation>
+    </message>
+    <message>
+      <source>Scrape Filter</source>
+      <translation>刮擦濾鏡</translation>
+    </message>
+    <message>
+      <source>Seconds To Frames</source>
+      <translation>秒轉影格</translation>
+    </message>
+    <message>
+      <source>Shader Array</source>
+      <translation>著色器陣列</translation>
+    </message>
+    <message>
+      <source>Slide Up Random Characters</source>
+      <translation>隨機字元上滑</translation>
+    </message>
+    <message>
+      <source>Slit Scan Filter</source>
+      <translation>狹縫掃描濾鏡</translation>
+    </message>
+    <message>
+      <source>Solar Wind Shader</source>
+      <translation>太陽風著色器</translation>
+    </message>
+    <message>
+      <source>Solver Example</source>
+      <translation>求解器範例</translation>
+    </message>
+    <message>
+      <source>Sound</source>
+      <translation>聲音</translation>
+    </message>
+    <message>
+      <source>Spherise</source>
+      <translation>球面化</translation>
+    </message>
+    <message>
+      <source>Spherise Filter</source>
+      <translation>球面化濾鏡</translation>
+    </message>
+    <message>
+      <source>Spikes</source>
+      <translation>尖刺</translation>
+    </message>
+    <message>
+      <source>Spirograph Distribution</source>
+      <translation>螺線圖分佈</translation>
+    </message>
+    <message>
+      <source>Spirograph Path</source>
+      <translation>螺線圖路徑</translation>
+    </message>
+    <message>
+      <source>Star Nest Shader</source>
+      <translation>星巢著色器</translation>
+    </message>
+    <message>
+      <source>String Array</source>
+      <translation>字串陣列</translation>
+    </message>
+    <message>
+      <source>String From Asset</source>
+      <translation>從資產產生字串</translation>
+    </message>
+    <message>
+      <source>String Generator</source>
+      <translation>字串產生器</translation>
+    </message>
+    <message>
+      <source>Swing Line by Line</source>
+      <translation>逐行擺動</translation>
+    </message>
+    <message>
+      <source>Swing Random Words</source>
+      <translation>隨機單字擺動</translation>
+    </message>
+    <message>
+      <source>Swing Up Characters</source>
+      <translation>字元上擺</translation>
+    </message>
+    <message>
+      <source>Swirls</source>
+      <translation>旋渦</translation>
+    </message>
+    <message>
+      <source>Text Distribution</source>
+      <translation>文字分佈</translation>
+    </message>
+    <message>
+      <source>Truchet Tiles Shader</source>
+      <translation>特魯謝瓷磚著色器</translation>
+    </message>
+    <message>
+      <source>Typeface Array</source>
+      <translation>字體陣列</translation>
+    </message>
+    <message>
+      <source>Value Array</source>
+      <translation>數值陣列</translation>
+    </message>
+    <message>
+      <source>Value Blend</source>
+      <translation>數值混合</translation>
+    </message>
+    <message>
+      <source>Variable Font</source>
+      <translation>可變字體</translation>
+    </message>
+    <message>
+      <source>Vertical Slide Random Words</source>
+      <translation>隨機單字垂直滑動</translation>
+    </message>
+    <message>
+      <source>Zoom Blur</source>
+      <translation>縮放模糊</translation>
+    </message>
+    <message>
+      <source>Zoom Random Words</source>
+      <translation>隨機單字縮放</translation>
     </message>
   </context>
 </TS>
