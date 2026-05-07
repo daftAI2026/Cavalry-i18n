@@ -7,7 +7,7 @@
 - full-ui-contract.md: W-AUDIT + G-P + §P5 + G-CAPTURE + G-X + G0-G4 的详细验证契约
 - forbidden-translation-contract.md: §P5 Forbidden-Translation Patterns 的反伪翻译契约
 - capture-accessibility-contract.test.js: AX menu recursion 与 visible widget text 的 executable contract，直接调用 `tools/capture_accessibility_inventory.js`
-- extraction-inventory-contract.test.js: G-X preflight executable contract，验证 missing extraction、weak runtime、compiled 3309 清洗下界与 denominator 噪声清洗
+- extraction-inventory-contract.test.js: G-X preflight executable contract，验证 missing extraction、weak runtime、compiled 3274 清洗下界与 denominator 噪声清洗
 
 规则
 - tests/ 保存契约文档与 executable contract，不保存 workflow 生产实现。

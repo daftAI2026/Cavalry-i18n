@@ -1811,13 +1811,15 @@
       "^[A-Z]\\s+[a-z]{4,}\\.$",
       "^(?:[A-Z](?:acute|grave|caron|tilde|breve|cedilla|ogonek|macron|dieresis|circumflex|dotaccent|hungarumlaut|ring)(?:small)?|[A-Z]small|[A-Z](?:slash|th)small|(?:Acute|Breve|Caron|Cedilla|Circumflex|Dieresis|Dotaccent|Grave|Hungarumlaut|Macron|Ogonek|Ring|Tilde)small)$",
       "^(?:Adlam|Ahom|Arabic|Bamum|Batak|Bhaiksuki|Brahmi|Buhid|Carian|Chakma|Cham|Coptic|Cypriot|Dogra|Duployan|Elbasan|Elymaic|Glagolitic|Grantha|Greek|Gujarati|Gurmukhi|Hangul|Hanunoo|Hatran|Hebrew|Hiragana|Javanese|Kaithi|Kannada|Katakana|Kharoshthi|Khmer|Khojki|Khudawadi|Latin|Lepcha|Limbu|Lisu|Lycian|Lydian|Mahajani|Malayalam|Mandaic|Manichaean|Marchen|Medefaidrin|Miao|Modi|Mongolian|Multani|Myanmar|Nabataean|Odia|Osmanya|Rejang|Runic|Samaritan|Saurashtra|Sharada|Shavian|Siddham|Sinhala|Sogdian|Soyombo|Sundanese|Syriac|Tagalog|Tagbanwa|Takri|Tamil|Telugu|Thaana|Thai|Tibetan|Tifinagh|Tirhuta|Ugaritic)$",
-      "^(?:Aquamarine|Azure|Beige|Black|Blue|Brown|Chartreuse|Chocolate|Coral|Crimson|Fuchsia|Gold|Gray|Green|Grey|Indigo|Ivory|Khaki|Lavender|Lime|Linen|Magenta|Maroon|Olive|Orange|Orchid|Pink|Plum|Purple|Salmon|Silver|Teal|Thistle|Turquoise|Violet|Wheat|White|Yellow)$"
+      "^(?:Aquamarine|Azure|Beige|Black|Blue|Brown|Chartreuse|Chocolate|Coral|Crimson|Fuchsia|Gold|Gray|Green|Grey|Indigo|Ivory|Khaki|Lavender|Lime|Linen|Magenta|Maroon|Olive|Orange|Orchid|Pink|Plum|Purple|Salmon|Silver|Teal|Thistle|Turquoise|Violet|Wheat|White|Yellow)$",
+      "^(?:[A-Z][A-Za-z'()-]+|[a-z]+)(?: (?:[A-Z][A-Za-z'()-]+|[a-z]+)){0,3} (?:Black|Blue|Brown|Cyan|Gray|Grey|Green|Indigo|Ivory|Khaki|Lavender|Lime|Magenta|Maroon|Olive|Orange|Pink|Purple|Red|Rose|Salmon|Tan|Teal|Turquoise|Violet|White|Yellow)$"
     ],
     "generated_exact_values_provenance": {
       "color_names": "color-name-list@14.36.0 dist/colornames.json intersected with compiled-ui-source-map; gray/grey and punctuation-normalized aliases included; runtime-visible strings preserved",
       "unicode_scripts": "Unicode PropertyValueAliases.txt sc aliases intersected with compiled-ui-source-map; ambiguous Common/Inherited/Unknown omitted; runtime-visible strings preserved",
       "generated_at": "2026-05-07",
-      "generated_count": 1701
+      "generated_count": 1701,
+      "color_tail_regex": "Title-case or CSS-lowercase color phrases ending in a color family word are denominator noise per Anti-Patterns.md §F."
     }
   },
   "_schema": {

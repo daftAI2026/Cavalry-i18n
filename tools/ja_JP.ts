@@ -1830,7 +1830,6 @@
     <message><source>Bounce Out Magic Easing set.</source><translation>バウンスアウトマジックイーシングセット。</translation></message>
     <message><source>Break</source><translation>ブレイクアウト</translation></message>
     <message><source>Break B</source><translation>ブレイクB</translation></message>
-    <message><source>Brilliant Rose</source><translation>ブリリアントローズ</translation></message>
     <message><source>Built-in</source><translation>作り付け</translation></message>
     <message><source>Built-in Presets</source><translation>組み込み T0</translation></message>
     <message><source>but got</source><translation>しかし、</translation></message>
@@ -2094,7 +2093,6 @@
     <message><source>dark khaki</source><translation>ダークカーキ</translation></message>
     <message><source>dark olive green</source><translation>ダークオリーブグリーン</translation></message>
     <message><source>dark orchid</source><translation>暗い蘭</translation></message>
-    <message><source>Dark Tan</source><translation>ダークタン</translation></message>
     <message><source>Date and Time</source><translation>日付と時刻</translation></message>
     <message><source>Decorations</source><translation>デコレーション</translation></message>
     <message><source>Deep Oak</source><translation>ディープオーク</translation></message>
@@ -2432,7 +2430,6 @@
     <message><source>Happy World Compliment Day, you&apos;re doing an excellent job!</source><translation>ハッピーワールド・コンプリート 日、優秀な仕事をしています!</translation></message>
     <message><source>has finished rendering</source><translation>レンダリングを終えました</translation></message>
     <message><source>has no constructor</source><translation>コンストラクタがない</translation></message>
-    <message><source>Hawaiian Tan</source><translation>ハワイアンタン</translation></message>
     <message><source>Hbbbbbbbbaaaaaaaa</source><translation>Hbbbbbbbbaaaaaaaaの特長</translation></message>
     <message><source>Headers</source><translation>ヘッダー</translation></message>
     <message><source>Hello, WH</source><translation>こんにちは、WH</translation></message>
@@ -2494,7 +2491,6 @@
     <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset</source><translation>T0 のプリミティブタイプ(長方形や楕円など)を含める</translation></message>
     <message><source>Include transform Attributes such as Position and Scale in the Preset</source><translation>T1 に位置やスケールなどの変換 T0 を含める</translation></message>
     <message><source>incomplete markup in parameter entity</source><translation>パラメーターのエンティティティティエントの不完全なマークアップ</translation></message>
-    <message><source>Indian Tan</source><translation>インディアン タン</translation></message>
     <message><source>Indicates how many UIs you have loaded out of the maximum set in Preferences (plus any pinned UIs)</source><translation>Preferences で最大セットから読み込まれた UI の数を示します(また、任意のピン化された UI)</translation></message>
     <message><source>Indicates how many UIs you have loaded out of the maximum set in Preferences (plus any pinned UIs).</source><translation>Preferences で最大セットから読み込まれた UI の数 (さらに、任意のピンキー) を示す。</translation></message>
     <message><source>Infinite Scrubbing</source><translation>無限スクラブ</translation></message>
@@ -2703,7 +2699,6 @@
     <message><source>Missing hidden folder for materials.</source><translation>素材の隠しフォルダを欠く。</translation></message>
     <message><source>Missing palette information, please restart Cavalry</source><translation>パレット情報が見つからない場合は、 T0 を再起動してください。</translation></message>
     <message><source>Missing palette information, please restart Cavalry.</source><translation>パレット情報を忘れた場合は、 T0 を再起動してください。</translation></message>
-    <message><source>Mist Gray</source><translation>ミストグレー</translation></message>
     <message><source>Moccaccino</source><translation>モッカチーノ</translation></message>
     <message><source>Monitor</source><translation>モニター</translation></message>
     <message><source>Monochromatic</source><translation>モノクロ</translation></message>
@@ -2905,14 +2900,12 @@
     <message><source>Pencil Tool: New Shape Requested.</source><translation>ペンシルツール:新しい T0 リクエスト。</translation></message>
     <message><source>Performance</source><translation>パフォーマンス</translation></message>
     <message><source>Permanent Redirect</source><translation>永久リダイレクト</translation></message>
-    <message><source>Peru Tan</source><translation>ペルータン</translation></message>
     <message><source>Phags-pa</source><translation>パグスパ</translation></message>
     <message><source>Pill</source><translation>ピール</translation></message>
     <message><source>Pin these settings</source><translation>これらの設定ピン</translation></message>
     <message><source>Pin these settings.</source><translation>これらの設定をピン留めします。</translation></message>
     <message><source>Pinch Binder</source><translation>ピンチ バインダー</translation></message>
     <message><source>Pinch Mover</source><translation>ピンチモーバー</translation></message>
-    <message><source>Pink Salmon</source><translation>ピンクサーモン</translation></message>
     <message><source>Pipi</source><translation>ピピピ</translation></message>
     <message><source>Pixel</source><translation>ピクセル</translation></message>
     <message><source>PKKK KKQKe-ff</source><translation>PKKK KKQKe-ffの特長</translation></message>
@@ -5327,34 +5320,6 @@
       <translation>独自のプリセットを追加すると、ここで削除や名前変更ができます。</translation>
     </message>
     <message>
-      <source>Albescent White</source>
-      <translation>Albescent 白</translation>
-    </message>
-    <message>
-      <source>Algae Green</source>
-      <translation>Algae グリーン</translation>
-    </message>
-    <message>
-      <source>Apple Green</source>
-      <translation>アップルグリーン</translation>
-    </message>
-    <message>
-      <source>Blush Pink</source>
-      <translation>ブラッシュピンク</translation>
-    </message>
-    <message>
-      <source>Cannon Pink</source>
-      <translation>キャノンピンク</translation>
-    </message>
-    <message>
-      <source>Carnation Pink</source>
-      <translation>カーネーションピンク</translation>
-    </message>
-    <message>
-      <source>Chartreuse Yellow</source>
-      <translation>チャートリユースイエロー</translation>
-    </message>
-    <message>
       <source>Clear All</source>
       <translation>すべて消去</translation>
     </message>
@@ -5455,10 +5420,6 @@
       <translation>このテキストから混在するすべてのスタイルを消去します。</translation>
     </message>
     <message>
-      <source>Colonial White</source>
-      <translation>コロニアルホワイト</translation>
-    </message>
-    <message>
       <source>Copy Asset Id</source>
       <translation>コピー T0 ログイン</translation>
     </message>
@@ -5547,10 +5508,6 @@
       <translation>次へコピー</translation>
     </message>
     <message>
-      <source>Coral Red</source>
-      <translation>コーラルレッド</translation>
-    </message>
-    <message>
       <source>Custom</source>
       <translation>カスタム</translation>
     </message>
@@ -5569,10 +5526,6 @@
     <message>
       <source>Cut Points</source>
       <translation>ポイントをカット</translation>
-    </message>
-    <message>
-      <source>Deep Forest Green</source>
-      <translation>ディープフォレストグリーン</translation>
     </message>
     <message>
       <source>Default</source>
@@ -5723,10 +5676,6 @@
       <translation>このプリセットを削除しますか？</translation>
     </message>
     <message>
-      <source>Double Colonial White</source>
-      <translation>ダブルコロニアルホワイト</translation>
-    </message>
-    <message>
       <source>Duplicate Composition</source>
       <translation>コンポジションを複製</translation>
     </message>
@@ -5799,10 +5748,6 @@
       <translation>編集可能なシェイプカット</translation>
     </message>
     <message>
-      <source>Elf Green</source>
-      <translation>エルフグリーン</translation>
-    </message>
-    <message>
       <source>File autosaved.</source>
       <translation>ファイルを自動保存しました。</translation>
     </message>
@@ -5827,44 +5772,8 @@
       <translation>検索</translation>
     </message>
     <message>
-      <source>Granite Green</source>
-      <translation>花崗岩グリーン</translation>
-    </message>
-    <message>
-      <source>Half Colonial White</source>
-      <translation>半分のコロニアル白</translation>
-    </message>
-    <message>
       <source>Insert Keyframe</source>
       <translation>キーフレームを挿入</translation>
-    </message>
-    <message>
-      <source>Lavender Pink</source>
-      <translation>ラベンダーピンク</translation>
-    </message>
-    <message>
-      <source>Lily White</source>
-      <translation>リリーホワイト</translation>
-    </message>
-    <message>
-      <source>Moody Blue</source>
-      <translation>ムーディーブルー</translation>
-    </message>
-    <message>
-      <source>Moss Green</source>
-      <translation>モスグリーン</translation>
-    </message>
-    <message>
-      <source>Nile Blue</source>
-      <translation>ナイルブルー</translation>
-    </message>
-    <message>
-      <source>Olive Green</source>
-      <translation>オリーブグリーン</translation>
-    </message>
-    <message>
-      <source>Oriental Pink</source>
-      <translation>オリエンタルピンク</translation>
     </message>
     <message>
       <source>Paste Color</source>
@@ -5951,16 +5860,8 @@
       <translation>パステル</translation>
     </message>
     <message>
-      <source>Piggy Pink</source>
-      <translation>ピギーピンク</translation>
-    </message>
-    <message>
       <source>Redo (Text Editing)</source>
       <translation>やり直す（テキスト編集）</translation>
-    </message>
-    <message>
-      <source>Regal Blue</source>
-      <translation>リーガルブルー</translation>
     </message>
     <message>
       <source>Replace</source>
@@ -6015,24 +5916,8 @@
       <translation>接続を置換しました</translation>
     </message>
     <message>
-      <source>Robin Egg Blue</source>
-      <translation>ロビンエッグブルー</translation>
-    </message>
-    <message>
-      <source>Robin&apos;s Egg Blue</source>
-      <translation>ロビンのエッグブルー</translation>
-    </message>
-    <message>
-      <source>School bus Yellow</source>
-      <translation>学校のバス 黄色</translation>
-    </message>
-    <message>
       <source>Selection Soloed in Viewport (Selection added to Quicklist and Filter Viewport mode set)</source>
       <translation>選択項目をビューポートでソロ表示しました（選択項目をクイックリストに追加し、ビューポートフィルターモードを設定）</translation>
-    </message>
-    <message>
-      <source>Tea Green</source>
-      <translation>ティーグリーン</translation>
     </message>
     <message>
       <source>Tools</source>
@@ -6101,10 +5986,6 @@
     <message>
       <source>Viewport setting to preview.</source>
       <translation>ビューポート設定をプレビューします。</translation>
-    </message>
-    <message>
-      <source>Web Orange</source>
-      <translation>ウェブオレンジ</translation>
     </message>
     <message>
       <source>Windows</source>
@@ -6201,10 +6082,6 @@
     <message>
       <source>Behaviour</source>
       <translation>ビヘイビア</translation>
-    </message>
-    <message>
-      <source>Black and White</source>
-      <translation>白黒</translation>
     </message>
     <message>
       <source>Blend Shader</source>

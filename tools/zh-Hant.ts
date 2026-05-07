@@ -697,8 +697,6 @@
     <message><source>Add Shader (shader)</source><translation>添加 T0 (陰影)</translation></message>
     <message><source>Add Sub Bone</source><translation>添加子塊</translation></message>
     <message><source>Add SVG to Composition</source><translation>將 T1 添加到 T0</translation></message>
-    <message><source>Albescent White</source><translation>白白銀</translation></message>
-    <message><source>Algae Green</source><translation>藻類綠色</translation></message>
     <message><source>Align Behaviour</source><translation>對齊行爲</translation></message>
     <message><source>Align Bottom</source><translation>對齊下方</translation></message>
     <message><source>Align keyframe values</source><translation>對齊密鑰框架值</translation></message>
@@ -741,7 +739,6 @@
     <message><source>Apache</source><translation>阿帕奇語Name</translation></message>
     <message><source>Append</source><translation>附錄</translation></message>
     <message><source>Apple</source><translation>蘋果公司</translation></message>
-    <message><source>Apple Green</source><translation>蘋果綠色</translation></message>
     <message><source>Application</source><translation>應用程序</translation></message>
     <message><source>Apply Track</source><translation>應用音軌</translation></message>
     <message><source>Apricot Peach</source><translation>杏花桃( 杏花桃)</translation></message>
@@ -777,7 +774,6 @@
     <message><source>bits per sample with data format</source><translation>每個帶數據格式的樣本</translation></message>
     <message><source>blocking return</source><translation>屏蔽返回</translation></message>
     <message><source>Blue Bayoux</source><translation>藍色巴約</translation></message>
-    <message><source>Blush Pink</source><translation>模糊的粉紅色</translation></message>
     <message><source>Bold</source><translation>粗體</translation></message>
     <message><source>Bold Angle</source><translation>粗體角度</translation></message>
     <message><source>Bombay</source><translation>孟買</translation></message>
@@ -791,7 +787,6 @@
     <message><source>Bounce Out Magic Easing set.</source><translation>彈出魔法 Easing套裝。</translation></message>
     <message><source>Break</source><translation>中斷</translation></message>
     <message><source>Break B</source><translation>斷開 B</translation></message>
-    <message><source>Brilliant Rose</source><translation>美麗的玫瑰</translation></message>
     <message><source>Built-in</source><translation>內建</translation></message>
     <message><source>Built-in Presets</source><translation>內建 T0</translation></message>
     <message><source>but got</source><translation>卻得到了</translation></message>
@@ -805,7 +800,6 @@
     <message><source>Cancel (esc.)</source><translation>取消(esc.)</translation></message>
     <message><source>Cancel Uploads</source><translation>取消上傳</translation></message>
     <message><source>Cancelled</source><translation>已取消</translation></message>
-    <message><source>Cannon Pink</source><translation>大炮粉紅</translation></message>
     <message><source>cannot change setting once parsing has begun</source><translation>無法在解析開始後更改設置</translation></message>
     <message><source>cannot compare iterators of different containers</source><translation>無法比較不同容器的載體</translation></message>
     <message><source>cannot get value</source><translation>無法獲得值</translation></message>
@@ -828,7 +822,6 @@
     <message><source>Caper</source><translation>開口</translation></message>
     <message><source>Cararra</source><translation>卡拉拉</translation></message>
     <message><source>Carissma</source><translation>卡里斯馬</translation></message>
-    <message><source>Carnation Pink</source><translation>康乃馨粉紅色</translation></message>
     <message><source>Case Features</source><translation>大小寫特性</translation></message>
     <message><source>Cavalry access check failed (HTTP</source><translation>T0 訪問檢查失敗( HTTP)</translation></message>
     <message><source>Cavalry access check failed: could not connect to Canva</source><translation>T0 訪問檢查失敗:無法連接到 T1</translation></message>
@@ -844,7 +837,6 @@
     <message><source>Centre Align Keys</source><translation>中心對齊密鑰</translation></message>
     <message><source>Change Composition</source><translation>更改 T0</translation></message>
     <message><source>Character Variant</source><translation>字符變量</translation></message>
-    <message><source>Chartreuse Yellow</source><translation>黃</translation></message>
     <message><source>Checkbox</source><translation>複選框</translation></message>
     <message><source>Choof</source><translation>Cho</translation></message>
     <message><source>Choose</source><translation>選擇</translation></message>
@@ -903,7 +895,6 @@
     <message><source>Collapsible</source><translation>可摺疊</translation></message>
     <message><source>Collinear Tolerance</source><translation>摺疊容忍</translation></message>
     <message><source>Colof</source><translation>科羅夫</translation></message>
-    <message><source>Colonial White</source><translation>殖民地白人</translation></message>
     <message><source>Color LCD</source><translation>顏色 LCD</translation></message>
     <message><source>Color Management</source><translation>色彩管理</translation></message>
     <message><source>Color picking is already active!</source><translation>顏色選擇已經激活 !</translation></message>
@@ -999,7 +990,6 @@
     <message><source>copy the entire path.</source><translation>複製整個路徑。</translation></message>
     <message><source>Copy to Clipboard</source><translation>複製到剪貼板</translation></message>
     <message><source>Copy to Next</source><translation>複製到下一個</translation></message>
-    <message><source>Coral Red</source><translation>珊瑚紅</translation></message>
     <message><source>Could not compile script (check for syntax errors)</source><translation>無法編譯腳本( 請檢查語法錯誤)</translation></message>
     <message><source>Could not compile script (check for syntax errors).</source><translation>無法編譯腳本( 檢查語法錯誤) 。</translation></message>
     <message><source>could not connect</source><translation>無法連接</translation></message>
@@ -1086,10 +1076,8 @@
     <message><source>dark khaki</source><translation>暗卡其語</translation></message>
     <message><source>dark olive green</source><translation>深橄欖綠色</translation></message>
     <message><source>dark orchid</source><translation>黑蘭花</translation></message>
-    <message><source>Dark Tan</source><translation>暗譚</translation></message>
     <message><source>Date and Time</source><translation>日期和時間</translation></message>
     <message><source>Decorations</source><translation>裝飾</translation></message>
-    <message><source>Deep Forest Green</source><translation>深林綠</translation></message>
     <message><source>Deep Oak</source><translation>深橡樹</translation></message>
     <message><source>deep pink</source><translation>深粉紅色</translation></message>
     <message><source>Defa</source><translation>德華</translation></message>
@@ -1154,7 +1142,6 @@
     <message><source>Double click on a Preset to rename it</source><translation>雙擊 {T0} 重命名它</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>雙擊 T0 重命名.</translation></message>
     <message><source>Double Click on layer</source><translation>雙擊圖層</translation></message>
-    <message><source>Double Colonial White</source><translation>雙殖民地白人</translation></message>
     <message><source>Drag a connection from here</source><translation>從這裏拖動連接</translation></message>
     <message><source>Drag a connection from here.</source><translation>從這裏拖動連接 。</translation></message>
     <message><source>Drag a Shape here</source><translation>在此拖動一個 {T0}</translation></message>
@@ -1207,7 +1194,6 @@
     <message><source>Editable</source><translation>可編輯</translation></message>
     <message><source>Editable Shape Cut</source><translation>可編輯 T0 剪切</translation></message>
     <message><source>Edward</source><translation>愛德華</translation></message>
-    <message><source>Elf Green</source><translation>精靈綠</translation></message>
     <message><source>Embed in layout</source><translation>嵌入佈局</translation></message>
     <message><source>Embed the selected layers to a Grid Layout</source><translation>將選定的層嵌入網格佈局</translation></message>
     <message><source>Embed the selected layers to a Grid Layout.</source><translation>將選中的層嵌入網格佈局 。</translation></message>
@@ -1441,7 +1427,6 @@
     <message><source>Grade</source><translation>職等</translation></message>
     <message><source>Gradient Stop Array Error: Mismatching attribute counts</source><translation>漸變停止矩陣錯誤: 屬性計數不匹配</translation></message>
     <message><source>Gradient Stop Array Error: Mismatching attribute counts.</source><translation>漸變停止矩陣錯誤: 屬性計數不匹配 。</translation></message>
-    <message><source>Granite Green</source><translation>綠地</translation></message>
     <message><source>Graph Attribute</source><translation>圖 T0</translation></message>
     <message><source>Graph Presets</source><translation>圖 T0</translation></message>
     <message><source>Graph Widget</source><translation>圖形部件</translation></message>
@@ -1462,13 +1447,11 @@
     <message><source>Group: The selected combination of layers cannot be grouped.</source><translation>組 : 無法對所選的圖層組合進行分組 。</translation></message>
     <message><source>Gutter</source><translation>蓋特</translation></message>
     <message><source>Half and Half</source><translation>一半和一半</translation></message>
-    <message><source>Half Colonial White</source><translation>半殖民地白人</translation></message>
     <message><source>Happy Holidays!</source><translation>假期快樂!</translation></message>
     <message><source>Happy New Year!</source><translation>新年快樂!</translation></message>
     <message><source>Happy World Compliment Day, you&apos;re doing an excellent job!</source><translation>歡樂世界 一天,你做得很好! ! 一天,你做得很好!</translation></message>
     <message><source>has finished rendering</source><translation>已完成渲染</translation></message>
     <message><source>has no constructor</source><translation>沒有構造器</translation></message>
-    <message><source>Hawaiian Tan</source><translation>夏威夷譚</translation></message>
     <message><source>Hbbbbbbbbaaaaaaaa</source><translation>希伯來語: bb</translation></message>
     <message><source>Headers</source><translation>頁眉</translation></message>
     <message><source>Hello, WH</source><translation>哈羅,WH</translation></message>
@@ -1530,7 +1513,6 @@
     <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset</source><translation>在 T0 中包含原始類型(如矩形或橢圓形)</translation></message>
     <message><source>Include transform Attributes such as Position and Scale in the Preset</source><translation>在 T1 中包含變換 T0 , 如位置和比例</translation></message>
     <message><source>incomplete markup in parameter entity</source><translation>參數實體中的不完全標記</translation></message>
-    <message><source>Indian Tan</source><translation>印度譚</translation></message>
     <message><source>Indicates how many UIs you have loaded out of the maximum set in Preferences (plus any pinned UIs)</source><translation>指示您從首選項中設置的最大值中裝入的 UI 數量( 加上任何固定 UI )</translation></message>
     <message><source>Indicates how many UIs you have loaded out of the maximum set in Preferences (plus any pinned UIs).</source><translation>指定您從首選項中設置的最大值( 加上任何固定的 UI) 中裝入了多少 UI 。</translation></message>
     <message><source>Infinite Scrubbing</source><translation>無限的掃蕩</translation></message>
@@ -1607,7 +1589,6 @@
     <message><source>Lattice: Could not find bounds attribute</source><translation>Lattice: 無法找到邊框屬性</translation></message>
     <message><source>Lattice: Could not find node for interpolation</source><translation>Lattice: 找不到插圖的節點</translation></message>
     <message><source>Lattice: Grid size must be at least 3</source><translation>網格大小必須至少爲 3</translation></message>
-    <message><source>Lavender Pink</source><translation>紫色粉紅色</translation></message>
     <message><source>Layer</source><translation>T0 (英語).</translation></message>
     <message><source>Layer Tools</source><translation>T0 (英語). 工具</translation></message>
     <message><source>Layer Visibility</source><translation>T0 (英語). 可見度</translation></message>
@@ -1633,7 +1614,6 @@
     <message><source>light slate gray</source><translation>淺灰色</translation></message>
     <message><source>Light Wisteria</source><translation>輕懷斯特利亞語Name</translation></message>
     <message><source>Lilx</source><translation>利爾克斯</translation></message>
-    <message><source>Lily White</source><translation>莉莉・懷特</translation></message>
     <message><source>limit on input amplification factor (from DTD and entities) breached</source><translation>對輸入放大係數的限制(來自DTD和實體)</translation></message>
     <message><source>Line Tool</source><translation>線條工具</translation></message>
     <message><source>Linear (No Change)</source><translation>線性( 無更改)</translation></message>
@@ -1741,13 +1721,10 @@
     <message><source>Missing hidden folder for materials.</source><translation>缺少隱藏的材料文件夾 。</translation></message>
     <message><source>Missing palette information, please restart Cavalry</source><translation>缺少調色板信息, 請重新啓動 T0</translation></message>
     <message><source>Missing palette information, please restart Cavalry.</source><translation>缺少調色板信息, 請重新啓動 T0 。</translation></message>
-    <message><source>Mist Gray</source><translation>霧灰色</translation></message>
     <message><source>Moccaccino</source><translation>摩納哥</translation></message>
     <message><source>Monitor</source><translation>監視器</translation></message>
     <message><source>Monochromatic</source><translation>單色</translation></message>
     <message><source>Monospace</source><translation>單位空間</translation></message>
-    <message><source>Moody Blue</source><translation>穆迪藍</translation></message>
-    <message><source>Moss Green</source><translation>摩斯綠</translation></message>
     <message><source>Motion Paths</source><translation>動議 T0</translation></message>
     <message><source>Move</source><translation>移動</translation></message>
     <message><source>Move Input Shapes</source><translation>移動輸入 T0</translation></message>
@@ -1782,7 +1759,6 @@
     <message><source>New Palette...</source><translation>新建 T0 ...</translation></message>
     <message><source>New Shape</source><translation>新建( T)</translation></message>
     <message><source>New Tab</source><translation>新建標籤</translation></message>
-    <message><source>Nile Blue</source><translation>尼羅藍</translation></message>
     <message><source>Ninx</source><translation>陰性</translation></message>
     <message><source>nkm PPC rkm</source><translation>納米PPC 納米</translation></message>
     <message><source>nml MAL wml</source><translation>馬來語 wml</translation></message>
@@ -1873,7 +1849,6 @@
     <message><source>Office 365 Worksheet</source><translation>辦公室365工作表</translation></message>
     <message><source>Oinx</source><translation>牡蠣</translation></message>
     <message><source>Okay</source><translation>還好</translation></message>
-    <message><source>Olive Green</source><translation>橄欖綠</translation></message>
     <message><source>Omega</source><translation>歐米茄</translation></message>
     <message><source>One Line</source><translation>單行</translation></message>
     <message><source>Only</source><translation>僅</translation></message>
@@ -1898,7 +1873,6 @@
     <message><source>Organise Pre-Comp Overrides here</source><translation>在此組織操作前覆蓋</translation></message>
     <message><source>Organise Pre-Comp Overrides here.</source><translation>在此組織控制前覆蓋 。</translation></message>
     <message><source>Orient</source><translation>東方</translation></message>
-    <message><source>Oriental Pink</source><translation>東方粉紅</translation></message>
     <message><source>Origin</source><translation>來源</translation></message>
     <message><source>Orthogonal</source><translation>正弦</translation></message>
     <message><source>Oscillate</source><translation>縮寫</translation></message>
@@ -1961,15 +1935,12 @@
     <message><source>Pencil Tool: New Shape Requested.</source><translation>Pencil 工具: 新建 T0 請求。</translation></message>
     <message><source>Performance</source><translation>業績</translation></message>
     <message><source>Permanent Redirect</source><translation>永久定向</translation></message>
-    <message><source>Peru Tan</source><translation>祕魯 Tan</translation></message>
     <message><source>Phags-pa</source><translation>Pha -pa</translation></message>
-    <message><source>Piggy Pink</source><translation>小豬粉</translation></message>
     <message><source>Pill</source><translation>藥丸</translation></message>
     <message><source>Pin these settings</source><translation>鍵入這些設置</translation></message>
     <message><source>Pin these settings.</source><translation>打開這些設置 。</translation></message>
     <message><source>Pinch Binder</source><translation>鍵賓德</translation></message>
     <message><source>Pinch Mover</source><translation>鍵動器</translation></message>
-    <message><source>Pink Salmon</source><translation>粉紅色沙門</translation></message>
     <message><source>Pipi</source><translation>皮皮爾</translation></message>
     <message><source>Pixel</source><translation>像素</translation></message>
     <message><source>PKKK KKQKe-ff</source><translation>庫爾德工人黨</translation></message>
@@ -2137,7 +2108,6 @@
     <message><source>reference to invalid character number</source><translation>引用無效字符編號</translation></message>
     <message><source>Referencing</source><translation>引用</translation></message>
     <message><source>Refreshing licence...</source><translation>正在刷新許可證...</translation></message>
-    <message><source>Regal Blue</source><translation>藍藻</translation></message>
     <message><source>Regu</source><translation>禮古</translation></message>
     <message><source>Regular</source><translation>經常</translation></message>
     <message><source>Relationship</source><translation>關係</translation></message>
@@ -2264,8 +2234,6 @@
     <message><source>Rli</source><translation>瑞麗</translation></message>
     <message><source>rmk RUK smk</source><translation>rmk RUK smk (英語).</translation></message>
     <message><source>Rmo</source><translation>羅莫</translation></message>
-    <message><source>Robin Egg Blue</source><translation>羅賓蛋藍</translation></message>
-    <message><source>Robin&apos;s Egg Blue</source><translation>羅賓的蛋藍</translation></message>
     <message><source>Robust</source><translation>強壯</translation></message>
     <message><source>Root node not found</source><translation>未找到根節點</translation></message>
     <message><source>Rotate bone</source><translation>旋轉骨頭</translation></message>
@@ -2339,7 +2307,6 @@
     <message><source>Schedule (Sequence)</source><translation>時間表(順序)</translation></message>
     <message><source>Schedule Stagger</source><translation>調度</translation></message>
     <message><source>Scheduling Groups</source><translation>排程組</translation></message>
-    <message><source>School bus Yellow</source><translation>校車黃色</translation></message>
     <message><source>Scrif</source><translation>搖擺</translation></message>
     <message><source>Script</source><translation>腳本</translation></message>
     <message><source>Search Colours...</source><translation>搜索顏色...</translation></message>
@@ -2645,7 +2612,6 @@
     <message><source>Tag Name</source><translation>T0 (英語). 名稱</translation></message>
     <message><source>Tags</source><translation>T0 (英語).</translation></message>
     <message><source>tcm ITB edm</source><translation>tcm ITB 編輯器</translation></message>
-    <message><source>Tea Green</source><translation>茶綠色</translation></message>
     <message><source>Temporary Redirect</source><translation>臨時方向</translation></message>
     <message><source>Test Generic Viewport</source><translation>測試通用 {T0}</translation></message>
     <message><source>Text Along a Path</source><translation>文字沿着 T0</translation></message>
@@ -2930,7 +2896,6 @@
     <message><source>Waiting for frame...</source><translation>正在等待幀...</translation></message>
     <message><source>Warning</source><translation>3⁄4 ̧漯B</translation></message>
     <message><source>Warning: You have run out of disk space!</source><translation>警告: 您已耗盡磁盤空間 !</translation></message>
-    <message><source>Web Orange</source><translation>網絡橙</translation></message>
     <message><source>Web Proxy</source><translation>Web 代理服務器</translation></message>
     <message><source>Weight</source><translation>重量</translation></message>
     <message><source>Weight Locking</source><translation>重量鎖定</translation></message>
@@ -4720,10 +4685,6 @@
     <message>
       <source>Behaviour</source>
       <translation>行為</translation>
-    </message>
-    <message>
-      <source>Black and White</source>
-      <translation>黑白</translation>
     </message>
     <message>
       <source>Blend Shader</source>

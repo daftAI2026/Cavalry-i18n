@@ -12,8 +12,8 @@ const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { buildCoverage, collectMenuStrings, readJson } = require('./check_runtime_ui_coverage.js');
 
-const RUNTIME_CANDIDATE_FLOOR = 620;
-const RUNTIME_MENU_LEAF_FLOOR = 734;
+const RUNTIME_CANDIDATE_FLOOR = 619;
+const RUNTIME_MENU_LEAF_FLOOR = 733;
 
 function fail(message) {
   throw new Error(message);
