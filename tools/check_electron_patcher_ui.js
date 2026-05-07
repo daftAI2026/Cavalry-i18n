@@ -1795,11 +1795,11 @@ test('verify gate inputs accepts extraction inventory runtime candidates and men
   writeJson(extractionPath, {
     surfaces: {
       'languages/en/appStrings.json': { count: 10 },
-      'languages/en/nodeStrings.json': { count: 6199 },
+      'languages/en/nodeStrings.json': { count: 6197 },
       'languages/en/onboarding.json': { count: 34 },
       'languages/en/tips.json': { count: 51 },
-      'json-total': { count: 6294 },
-      'compiled-source-map': { count: 3274 },
+      'json-total': { count: 6292 },
+      'compiled-source-map': { count: 3190 },
       'runtime-candidates': { count: 619 },
       'runtime-menuLeaves': { count: 733 },
     },

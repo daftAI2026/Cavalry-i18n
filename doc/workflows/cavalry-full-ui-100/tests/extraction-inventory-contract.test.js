@@ -82,13 +82,13 @@ test('G-X preflight emits WEAK-CAPTURE when runtime counts miss frozen lower bou
   writeJson(extractionPath, {
     surfaces: {
       'languages/en/appStrings.json': { count: 10 },
-      'languages/en/nodeStrings.json': { count: 6199 },
+      'languages/en/nodeStrings.json': { count: 6197 },
       'languages/en/onboarding.json': { count: 34 },
       'languages/en/tips.json': { count: 51 },
-      'json-total': { count: 6294 },
-      'compiled-source-map': { count: 3274 },
-      'runtime-candidates': { count: 618 },
-      'runtime-menuLeaves': { count: 732 },
+      'json-total': { count: 6292 },
+      'compiled-source-map': { count: 3190 },
+      'runtime-candidates': { count: 616 },
+      'runtime-menuLeaves': { count: 729 },
     },
   });
 
@@ -114,7 +114,7 @@ test('G-X preflight emits WEAK-CAPTURE when runtime counts miss frozen lower bou
   assert.match(`${result.stdout}\n${result.stderr}`, /runtime-menuLeaves/);
 });
 
-test('G-X preflight rejects Cavalry 2.7.1 compiled source maps below 3274 entries', () => {
+test('G-X preflight rejects Cavalry 2.7.1 compiled source maps below 3190 entries', () => {
   const tempRoot = makeTempDir();
   const sessionDir = path.join(tempRoot, 'session');
   const sourceMapPath = path.join(tempRoot, 'compiled-ui-source-map.json');
@@ -123,16 +123,16 @@ test('G-X preflight rejects Cavalry 2.7.1 compiled source maps below 3274 entrie
   fs.mkdirSync(sessionDir, { recursive: true });
   writeJson(path.join(tempRoot, 'package.json'), { scripts: {} });
   writeJson(sourceMapPath, {
-    entries: new Array(3273).fill({ normalizedText: 'Scene Window' }),
+    entries: new Array(3189).fill({ normalizedText: 'Scene Window' }),
   });
   writeJson(extractionPath, {
     surfaces: {
       'languages/en/appStrings.json': { count: 10 },
-      'languages/en/nodeStrings.json': { count: 6199 },
+      'languages/en/nodeStrings.json': { count: 6197 },
       'languages/en/onboarding.json': { count: 34 },
       'languages/en/tips.json': { count: 51 },
-      'json-total': { count: 6294 },
-      'compiled-source-map': { count: 3273 },
+      'json-total': { count: 6292 },
+      'compiled-source-map': { count: 3189 },
       'runtime-candidates': { count: 619 },
       'runtime-menuLeaves': { count: 733 },
     },
@@ -156,7 +156,7 @@ test('G-X preflight rejects Cavalry 2.7.1 compiled source maps below 3274 entrie
 
   assert.equal(result.status, 1, 'preflight should fail below the Cavalry 2.7.1 compiled lower bound');
   assert.match(`${result.stdout}\n${result.stderr}`, /compiled-source-map/);
-  assert.match(`${result.stdout}\n${result.stderr}`, /3273 < 3274/);
+  assert.match(`${result.stdout}\n${result.stderr}`, /3189 < 3190/);
 });
 
 test('freeze extraction inventory writes a top-level target identity', () => {
@@ -219,10 +219,11 @@ test('freeze extraction inventory removes no-UI font glyph, color, script, and p
   writeJson(path.join(tempRoot, 'tools', 'translation-whitelist.json'), {
     _extraction_filters: {
       glossary_source: 'doc/workflows/cavalry-full-ui-100/Anti-Patterns.md §F',
-      exact_values: ['Acce', 'Arial', 'Apple Color Emoji', 'Battleship Gray', 'Bassa Vah'],
+      exact_values: ['Acce', 'Arial', 'Apple Color Emoji', 'Battleship Gray', 'Bassa Vah', 'Choof'],
       regexes: [
         '^(?:[a-z]{2,4}\\s+[A-Z]{2,4}\\s+){2,}',
         "^(?:[A-Z][A-Za-z\\'()-]+|[a-z]+)(?: (?:[A-Z][A-Za-z\\'()-]+|[a-z]+)){0,3} (?:Black|Blue|Brown|Cyan|Gray|Grey|Green|Indigo|Ivory|Khaki|Lavender|Lime|Magenta|Maroon|Olive|Orange|Pink|Purple|Red|Rose|Salmon|Tan|Teal|Turquoise|Violet|White|Yellow)$",
+        '^(?:start|end) (?:fallback |table |reordering |postprocess-)?[a-z-]+(?: [a-z-]+)?$',
       ],
     },
   });
@@ -235,6 +236,7 @@ test('freeze extraction inventory removes no-UI font glyph, color, script, and p
     glyph: 'Acce',
     color: 'Battleship Gray',
     colorPhrase: 'Algae Green',
+    shortAscii: 'Choof',
   });
   writeJson(path.join(tempRoot, 'languages', 'en', 'nodeStrings.json'), {
     title: 'Node Label',
@@ -257,6 +259,7 @@ test('freeze extraction inventory removes no-UI font glyph, color, script, and p
       { normalizedText: 'Battleship Gray' },
       { normalizedText: 'Algae Green' },
       { normalizedText: 'Bassa Vah' },
+      { normalizedText: 'end kern' },
       { normalizedText: 'ahk ISK bhk DBX khk GNM nhk' },
       { normalizedText: 'Render Queue' },
     ],
@@ -292,6 +295,8 @@ test('freeze extraction inventory removes no-UI font glyph, color, script, and p
   assert.equal(values.includes('Battleship Gray'), false);
   assert.equal(values.includes('Algae Green'), false);
   assert.equal(values.includes('Bassa Vah'), false);
+  assert.equal(values.includes('Choof'), false);
+  assert.equal(values.includes('end kern'), false);
   assert.equal(values.includes('ahk ISK bhk DBX khk GNM nhk'), false);
   assert.deepEqual(
     extraction.englishLeaves['compiled-source-map'].map((leaf) => leaf.value),

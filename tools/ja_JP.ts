@@ -1141,10 +1141,6 @@
       <translation>シーンウィンドウ（タイムエディター）</translation>
     </message>
     <message>
-      <source>Shelf</source>
-      <translation>シェルフ</translation>
-    </message>
-    <message>
       <source>Tag Window (Experimental)</source>
       <translation>タグウィンドウ（実験的）</translation>
     </message>
@@ -1861,7 +1857,6 @@
     <message><source>Canva auth has expired.</source><translation>T0 auth が期限切れになりました。</translation></message>
     <message><source>Canva auth offline grace period expired</source><translation>T0 auth オフライン猶予期間満了</translation></message>
     <message><source>Canva auth offline grace period expired.</source><translation>T0 auth オフライン猶予期間満了。</translation></message>
-    <message><source>Canva Sans</source><translation>お問い合わせ サンズ</translation></message>
     <message><source>Caper</source><translation>ケーパー</translation></message>
     <message><source>Cararra</source><translation>カララ</translation></message>
     <message><source>Carissma</source><translation>カリスマ</translation></message>
@@ -1881,7 +1876,6 @@
     <message><source>Change Composition</source><translation>変更 T0</translation></message>
     <message><source>Character Variant</source><translation>キャラクターバリエーション</translation></message>
     <message><source>Checkbox</source><translation>チェックボックス</translation></message>
-    <message><source>Choof</source><translation>チョフ</translation></message>
     <message><source>Choose</source><translation>お問い合わせ</translation></message>
     <message><source>Choose between B</source><translation>Bから選ぶ</translation></message>
     <message><source>Christine</source><translation>クリスティーネ</translation></message>
@@ -1909,11 +1903,8 @@
     <message><source>Click to Zoom In</source><translation>クリックしてズームイン</translation></message>
     <message><source>Clipping Mask</source><translation>クリップマスク</translation></message>
     <message><source>Clips</source><translation>クリップ</translation></message>
-    <message><source>Closf</source><translation>ログイン</translation></message>
     <message><source>Collapsible</source><translation>折りたたみ式</translation></message>
     <message><source>Collinear Tolerance</source><translation>Collinearの許容</translation></message>
-    <message><source>Colof</source><translation>ログイン</translation></message>
-    <message><source>Color LCD</source><translation>色 LCD</translation></message>
     <message><source>Color Management</source><translation>カラーマネジメント</translation></message>
     <message><source>Color picking is already active!</source><translation>カラーピッキングは既に有効です!</translation></message>
     <message><source>Color Settings</source><translation>カラー設定</translation></message>
@@ -2196,27 +2187,10 @@
     <message><source>Enable Snapping</source><translation>スナップを有効にする</translation></message>
     <message><source>Encoding file</source><translation>ファイルのエンコーディング</translation></message>
     <message><source>encoding specified in XML declaration is incorrect</source><translation>XML宣言で指定されたエンコーディングは間違っています</translation></message>
-    <message><source>end fallback kern</source><translation>エンドフォールバックカーン</translation></message>
-    <message><source>end fallback mark</source><translation>エンドフォールバックマーク</translation></message>
-    <message><source>end inserting dotted-circles</source><translation>エンドインサート 点状円</translation></message>
-    <message><source>end kern</source><translation>エンドカーン</translation></message>
-    <message><source>end of input</source><translation>入力終了</translation></message>
     <message><source>End of Render Queue</source><translation>終了 T0</translation></message>
     <message><source>End of Render Queue Item</source><translation>終了 T0 アイテム</translation></message>
-    <message><source>end postprocess-glyphs</source><translation>エンドポストプロセスグリフ</translation></message>
-    <message><source>end preprocess-text</source><translation>エンドプリプロセステキスト</translation></message>
-    <message><source>end reorder</source><translation>エンドリオーダー</translation></message>
-    <message><source>end reordering indic final</source><translation>インデックス最終注文</translation></message>
-    <message><source>end reordering indic initial</source><translation>インデックス初期の再オーダー</translation></message>
-    <message><source>end reordering khmer</source><translation>エンドリオーダークメール</translation></message>
-    <message><source>end reordering myanmar</source><translation>myanmarを注文する終了</translation></message>
     <message><source>end reordering USE</source><translation>エンドリオーダーの使用</translation></message>
     <message><source>End Rotation</source><translation>終わりの回転</translation></message>
-    <message><source>end table kern</source><translation>エンドテーブルカーン</translation></message>
-    <message><source>end table kerx</source><translation>エンドテーブル kerx</translation></message>
-    <message><source>end table mort</source><translation>エンドテーブルモルト</translation></message>
-    <message><source>end table morx</source><translation>エンドテーブルmorx</translation></message>
-    <message><source>end tell</source><translation>端は指示します</translation></message>
     <message><source>Enter a Color Name</source><translation>色名を入力してください</translation></message>
     <message><source>Enter a command or action</source><translation>コマンドまたはアクションを入力する</translation></message>
     <message><source>Enter a command or action...</source><translation>コマンドまたはアクションを入力します。...</translation></message>
@@ -2269,7 +2243,6 @@
     <message><source>Error: You cannot delete the only Composition.</source><translation>エラー: T0 だけを削除できません。</translation></message>
     <message><source>Even Distribution</source><translation>均等分布</translation></message>
     <message><source>exceeds maximal</source><translation>上限を超えた</translation></message>
-    <message><source>Excef</source><translation>エクセフ</translation></message>
     <message><source>Excel</source><translation>メニュー</translation></message>
     <message><source>Except during Playback</source><translation>プレイバック中の例外</translation></message>
     <message><source>Exclude</source><translation>エクスクルード</translation></message>
@@ -2297,7 +2270,6 @@
     <message><source>Exporting script</source><translation>スクリプトのエクスポート</translation></message>
     <message><source>Exporting Selected</source><translation>選択された輸出</translation></message>
     <message><source>Extra Width</source><translation>余分幅</translation></message>
-    <message><source>f fffff.</source><translation>fffffffff.(フフフフフフ)。</translation></message>
     <message><source>Factorize</source><translation>工場化</translation></message>
     <message><source>Failed</source><translation>失敗した</translation></message>
     <message><source>Failed Dependency</source><translation>失敗した依存性</translation></message>
@@ -2354,9 +2326,7 @@
     <message><source>Filter Scene Window</source><translation>フィルター T0 ウィンドウ</translation></message>
     <message><source>Filter Time Offset</source><translation>フィルター時間のオフセット</translation></message>
     <message><source>Filter Viewport</source><translation>フィルター T0</translation></message>
-    <message><source>Fira Code</source><translation>Fira コード</translation></message>
     <message><source>FK Controls</source><translation>FK制御</translation></message>
-    <message><source>Fkgf</source><translation>Fkgfの</translation></message>
     <message><source>Flatten Tangents</source><translation>フラットテンタンジェント</translation></message>
     <message><source>Flesh</source><translation>フレッシュ</translation></message>
     <message><source>Flip Horizontal</source><translation>フリップ横</translation></message>
@@ -2364,7 +2334,6 @@
     <message><source>Flow Columns</source><translation>フローコラム</translation></message>
     <message><source>Flow Graph</source><translation>フローグラフ</translation></message>
     <message><source>Flow Rows</source><translation>フロー列</translation></message>
-    <message><source>Foldf</source><translation>ファルフ</translation></message>
     <message><source>Font Axes</source><translation>フォント軸</translation></message>
     <message><source>Font Not Found</source><translation>フォントが見つかりませんでした</translation></message>
     <message><source>Font Not Found.</source><translation>フォントが見つかりません。</translation></message>
@@ -2381,7 +2350,6 @@
     <message><source>Generate</source><translation>生成する</translation></message>
     <message><source>Get Info</source><translation>情報を入手</translation></message>
     <message><source>Gipng</source><translation>ログイン</translation></message>
-    <message><source>Gisvg</source><translation>ログイン</translation></message>
     <message><source>Glyphs</source><translation>グリフス</translation></message>
     <message><source>Go back to the start frame to move input shapes</source><translation>スタートフレームに戻り、入力形状を移動</translation></message>
     <message><source>Go back to the start frame to move input shapes.</source><translation>スタートフレームに戻り、入力形状を移動します。</translation></message>
@@ -2409,7 +2377,6 @@
     <message><source>Graph Presets</source><translation>グラフ T0</translation></message>
     <message><source>Graph Widget</source><translation>グラフウィジェット</translation></message>
     <message><source>Grapheme Flexibility</source><translation>グラメの柔軟性</translation></message>
-    <message><source>Greef</source><translation>グレフ</translation></message>
     <message><source>Green Spring</source><translation>グリーンスプリング</translation></message>
     <message><source>Grid Color</source><translation>格子色</translation></message>
     <message><source>Grid Settings</source><translation>グリッド設定</translation></message>
@@ -2460,7 +2427,6 @@
     <message><source>Image Sequences must each be placed in separate folders to be detected by the Image Smart Folder.</source><translation>画像シーケンスは、それぞれ別のフォルダに配置され、画像スマートフォルダによって検出される必要があります。</translation></message>
     <message><source>Image SK</source><translation>イメージ SK</translation></message>
     <message><source>Image Smart Folders</source><translation>画像スマートフォルダ</translation></message>
-    <message><source>Imagf</source><translation>イマーフ</translation></message>
     <message><source>Impo</source><translation>トピックス</translation></message>
     <message><source>Import a Reference</source><translation>参照をインポートする</translation></message>
     <message><source>Import an Asset</source><translation>インポート T0</translation></message>
@@ -2531,11 +2497,9 @@
     <message><source>is not registered in isolate</source><translation>isolateに登録されていません</translation></message>
     <message><source>is not supported</source><translation>サポートされていません</translation></message>
     <message><source>is not supported.</source><translation>サポートされていません。</translation></message>
-    <message><source>Italf</source><translation>イタルフ</translation></message>
     <message><source>Italic</source><translation>イタリック</translation></message>
     <message><source>iterator does not fit current value</source><translation>iterator は現在の値に合わない</translation></message>
     <message><source>iterator out of range</source><translation>範囲のイテレータ</translation></message>
-    <message><source>j ffff.</source><translation>j ffff.</translation></message>
     <message><source>Jack</source><translation>ジャック</translation></message>
     <message><source>Japanese Kana</source><translation>ジャパニーズカナ</translation></message>
     <message><source>Join</source><translation>お問い合わせ</translation></message>
@@ -2543,7 +2507,6 @@
     <message><source>JSON Format</source><translation>お問い合わせ フォーマット</translation></message>
     <message><source>junk after document element</source><translation>文書要素の後のジャンク</translation></message>
     <message><source>Justify</source><translation>ログイン</translation></message>
-    <message><source>Jxly</source><translation>ログイン</translation></message>
     <message><source>Keep Connections</source><translation>接続を維持する</translation></message>
     <message><source>Keep going...</source><translation>行く...</translation></message>
     <message><source>Key Interpolation</source><translation>キーの補間</translation></message>
@@ -2556,7 +2519,6 @@
     <message><source>Keys</source><translation>キー</translation></message>
     <message><source>Kilamanjaro</source><translation>キラマンジャロ</translation></message>
     <message><source>KKKK KLMSO</source><translation>KKKKKLMSOの特長</translation></message>
-    <message><source>kramt A</source><translation>クラム A</translation></message>
     <message><source>Label Palette Options</source><translation>ラベル T0 オプション</translation></message>
     <message><source>Labels</source><translation>ラベル</translation></message>
     <message><source>Large</source><translation>大きいサイズ</translation></message>
@@ -2581,7 +2543,6 @@
     <message><source>Licence Data is null</source><translation>ライセンスデータがnull</translation></message>
     <message><source>Licence Data is null.</source><translation>ライセンスデータがnullです。</translation></message>
     <message><source>Ligh</source><translation>リビング</translation></message>
-    <message><source>Lighf</source><translation>リヒフ</translation></message>
     <message><source>Light</source><translation>ライトライト</translation></message>
     <message><source>light coral</source><translation>光サンゴ</translation></message>
     <message><source>light goldenrod yellow</source><translation>ライトゴールデンロッドイエロー</translation></message>
@@ -2712,7 +2673,6 @@
     <message><source>Move Selection</source><translation>選択の移動</translation></message>
     <message><source>Moved Permanently</source><translation>永続的に動く</translation></message>
     <message><source>Movie</source><translation>ムービー</translation></message>
-    <message><source>Movif</source><translation>モビフ</translation></message>
     <message><source>Multi-Status</source><translation>マルチスタタス</translation></message>
     <message><source>Multiple Choice</source><translation>複数の選択肢</translation></message>
     <message><source>multiple Viewports</source><translation>複数の T0 s</translation></message>
@@ -2884,7 +2844,6 @@
     <message><source>Particles</source><translation>粒子</translation></message>
     <message><source>pass skipped.</source><translation>スキップされたパス。</translation></message>
     <message><source>Password</source><translation>パスワード</translation></message>
-    <message><source>Pastf</source><translation>過去の投稿</translation></message>
     <message><source>Path Duration</source><translation>お問い合わせ 期間</translation></message>
     <message><source>Paua</source><translation>パア</translation></message>
     <message><source>Payload Too Large</source><translation>ペイロード東大</translation></message>
@@ -3037,7 +2996,6 @@
     <message><source>Proxy-Authenticate</source><translation>プロキシ認証</translation></message>
     <message><source>Pulse</source><translation>パルス</translation></message>
     <message><source>Pumpkin Skin</source><translation>カボチャの皮</translation></message>
-    <message><source>Purpf</source><translation>パープフ</translation></message>
     <message><source>Purple Mountains</source><translation>紫の山</translation></message>
     <message><source>q )Zzc</source><translation>q ) Zzc</translation></message>
     <message><source>Queued</source><translation>キューイング</translation></message>
@@ -3054,8 +3012,6 @@
     <message><source>Quote</source><translation>インフォメーション</translation></message>
     <message><source>Qxxxxxxxxttttttttttttttt</source><translation>xxxxxxxxxxxxxxx tttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttttt</translation></message>
     <message><source>Range Not Satisfiable</source><translation>範囲 満足できない</translation></message>
-    <message><source>Rangf</source><translation>ログイン</translation></message>
-    <message><source>Rbr</source><translation>ログイン</translation></message>
     <message><source>Read</source><translation>採用情報</translation></message>
     <message><source>Read Zip failed</source><translation>Zipの失敗を読んで下さい</translation></message>
     <message><source>Read Zip failed.</source><translation>Zipの失敗を読んで下さい。</translation></message>
@@ -3197,7 +3153,6 @@
     <message><source>Root node not found</source><translation>ルートノードが見つかりません</translation></message>
     <message><source>Rotate bone</source><translation>骨を回転させる</translation></message>
     <message><source>Rotate Selection</source><translation>回転選択</translation></message>
-    <message><source>Rpq</source><translation>ログイン</translation></message>
     <message><source>Rps</source><translation>フィードバック</translation></message>
     <message><source>Rrn</source><translation>ログイン</translation></message>
     <message><source>Rrp</source><translation>ログイン</translation></message>
@@ -3266,7 +3221,6 @@
     <message><source>Schedule (Sequence)</source><translation>スケジュール(シーケンス)</translation></message>
     <message><source>Schedule Stagger</source><translation>スケジュール Stagger</translation></message>
     <message><source>Scheduling Groups</source><translation>スケジューリンググループ</translation></message>
-    <message><source>Scrif</source><translation>スクリフ</translation></message>
     <message><source>Script</source><translation>スクリプト</translation></message>
     <message><source>Search Colours...</source><translation>色を検索...</translation></message>
     <message><source>Search for a layer to add</source><translation>レイヤーを検索して追加する</translation></message>
@@ -3362,13 +3316,10 @@
     <message><source>Set Speed Strength</source><translation>速度の強さを置いて下さい</translation></message>
     <message><source>Setting up background render</source><translation>背景レンダリングの設定</translation></message>
     <message><source>Shad</source><translation>シェード</translation></message>
-    <message><source>Shadf</source><translation>シャドフ</translation></message>
     <message><source>Shadow</source><translation>シャドー</translation></message>
     <message><source>Shape Depth Debug</source><translation>T0 深さのデバッグ</translation></message>
     <message><source>Shape Editing</source><translation>お問い合わせ 編集する</translation></message>
-    <message><source>Shapf</source><translation>シャプフ</translation></message>
     <message><source>Share usage data to help improve Cavalry</source><translation>利用状況データを共有して、 T0 を改善</translation></message>
-    <message><source>Shif</source><translation>シフ</translation></message>
     <message><source>Shift Stops</source><translation>シフトストップ</translation></message>
     <message><source>Shift Stops Left</source><translation>シフトストップ左</translation></message>
     <message><source>Shift Stops Right</source><translation>シフト停止の権利</translation></message>
@@ -3512,30 +3463,14 @@
     <message><source>SSL error: Unable to verify the first certificate</source><translation>SSLエラー:最初の証明書を検証できません</translation></message>
     <message><source>SSL error: Unable to verify the first certificate.</source><translation>SSLエラー:最初の証明書を検証できません。</translation></message>
     <message><source>Stack trace (most recent call last)</source><translation>スタックトレース(最新コール)</translation></message>
-    <message><source>Staff</source><translation>スタッフ</translation></message>
     <message><source>Stag</source><translation>スタグ</translation></message>
     <message><source>Staging</source><translation>ステージング</translation></message>
     <message><source>Standing End</source><translation>スタンドエンド</translation></message>
     <message><source>Standing Start</source><translation>スタンドスタート</translation></message>
-    <message><source>start fallback kern</source><translation>スタートフォールバックカーン</translation></message>
-    <message><source>start fallback mark</source><translation>スタートフォールバックマーク</translation></message>
-    <message><source>start inserting dotted-circles</source><translation>点状の円を差し込む開始</translation></message>
-    <message><source>start kern</source><translation>スタートカーン</translation></message>
     <message><source>Start New Contour</source><translation>新しいContourを始める</translation></message>
     <message><source>Start New Shape</source><translation>新規登録 T0</translation></message>
-    <message><source>start postprocess-glyphs</source><translation>後処理グリフの開始</translation></message>
-    <message><source>start preprocess-text</source><translation>初期処理テキスト</translation></message>
-    <message><source>start reorder</source><translation>再注文を開始</translation></message>
-    <message><source>start reordering indic final</source><translation>インデックスの最終注文を開始</translation></message>
-    <message><source>start reordering indic initial</source><translation>インデックス初期の再オーダーを開始</translation></message>
-    <message><source>start reordering khmer</source><translation>khmerを再注文する開始</translation></message>
-    <message><source>start reordering myanmar</source><translation>myanmarを再注文する</translation></message>
     <message><source>start reordering USE</source><translation>使用を再注文する開始</translation></message>
     <message><source>Start Rotation</source><translation>回転の開始</translation></message>
-    <message><source>start table kern</source><translation>スタートテーブルカーン</translation></message>
-    <message><source>start table kerx</source><translation>スタートテーブル kerx</translation></message>
-    <message><source>start table mort</source><translation>スタートテーブルモルト</translation></message>
-    <message><source>start table morx</source><translation>スタートテーブルmorx</translation></message>
     <message><source>Starter</source><translation>スターター</translation></message>
     <message><source>State mismatch</source><translation>状態の不一致</translation></message>
     <message><source>Storm Dust</source><translation>嵐の塵</translation></message>
@@ -3574,11 +3509,6 @@
     <message><source>Switching to the Default Keyframe Layer in order to set this keyframe.</source><translation>このキーフレームを設定するためにデフォルト T0 T1 に切り替えます。</translation></message>
     <message><source>syntax error</source><translation>構文エラー</translation></message>
     <message><source>System</source><translation>システム</translation></message>
-    <message><source>Systf</source><translation>シスターフ</translation></message>
-    <message><source>t fff.</source><translation>t fff。</translation></message>
-    <message><source>t ffff.</source><translation>t ffff.</translation></message>
-    <message><source>t fffff.</source><translation>t fffffff .</translation></message>
-    <message><source>t ffffff.</source><translation>t ffffff .</translation></message>
     <message><source>Tag Name</source><translation>お問い合わせ お名前 (必須)</translation></message>
     <message><source>Tags</source><translation>お問い合わせ</translation></message>
     <message><source>tcm ITB edm</source><translation>tcm ITBテーマ</translation></message>
@@ -3662,10 +3592,8 @@
     <message><source>Thorn</source><translation>タホーン</translation></message>
     <message><source>Thornsmall</source><translation>ソーンモール</translation></message>
     <message><source>thread constructor failed</source><translation>スレッドコンストラクタが失敗しました</translation></message>
-    <message><source>Thzh</source><translation>ツジ</translation></message>
     <message><source>Time Editor</source><translation>タイムエディタ</translation></message>
     <message><source>Time Marker Settings</source><translation>タイムマーカーの設定</translation></message>
-    <message><source>Timef</source><translation>タイムフ</translation></message>
     <message><source>Timer</source><translation>タイマー</translation></message>
     <message><source>Title</source><translation>タイトル</translation></message>
     <message><source>to keep this popover open when disconnecting</source><translation>切断時にこのポップアップを開いたままにする</translation></message>
@@ -3725,7 +3653,6 @@
     <message><source>Transform Tool</source><translation>変換ツール</translation></message>
     <message><source>Transparency Style</source><translation>透明スタイル</translation></message>
     <message><source>Tree</source><translation>ツリー</translation></message>
-    <message><source>trevt A</source><translation>trevt A</translation></message>
     <message><source>Triadic</source><translation>トライアドリック</translation></message>
     <message><source>true literal</source><translation>真のリテラル</translation></message>
     <message><source>Trying to nudge non existent key index</source><translation>存在しないキーインデックスをnudgeしようとする</translation></message>
@@ -3744,7 +3671,6 @@
     <message><source>type must be number, but is</source><translation>型は番号でなければなりませんが、</translation></message>
     <message><source>type must be object, but is</source><translation>タイプはオブジェクトでなければなりませんが、</translation></message>
     <message><source>type must be string, but is</source><translation>タイプは文字列でなければなりませんが、</translation></message>
-    <message><source>Typif</source><translation>ティピフ</translation></message>
     <message><source>Typing</source><translation>タイピング</translation></message>
     <message><source>Typography Script</source><translation>Typography スクリプト</translation></message>
     <message><source>UI Font Size</source><translation>UIフォントサイズ</translation></message>
@@ -3790,7 +3716,6 @@
     <message><source>Untitled</source><translation>未定</translation></message>
     <message><source>Untitled Script</source><translation>無題スクリプト</translation></message>
     <message><source>Unused</source><translation>未使用</translation></message>
-    <message><source>Unusf</source><translation>ログイン</translation></message>
     <message><source>Update</source><translation>ニュース</translation></message>
     <message><source>Update Available</source><translation>利用できる更新</translation></message>
     <message><source>Update Cache</source><translation>キャッシュの更新</translation></message>
@@ -3826,7 +3751,6 @@
     <message><source>Uuid</source><translation>ウイド</translation></message>
     <message><source>uut HTA vut</source><translation>uut HTA の vut</translation></message>
     <message><source>Values</source><translation>バリュー</translation></message>
-    <message><source>Valuf</source><translation>バルフ</translation></message>
     <message><source>Variant Also Negotiates</source><translation>変種・交渉</translation></message>
     <message><source>Variation Parameters</source><translation>変化変数</translation></message>
     <message><source>Velocity Curve</source><translation>速度カーブ</translation></message>
@@ -3865,7 +3789,6 @@
     <message><source>width is not integer</source><translation>幅は整数ではありません</translation></message>
     <message><source>Width Variants</source><translation>幅 バリアント</translation></message>
     <message><source>William</source><translation>ウィリアム</translation></message>
-    <message><source>Windf</source><translation>ウィンドフ</translation></message>
     <message><source>Wire Style</source><translation>ワイヤー スタイル</translation></message>
     <message><source>Witch Haze</source><translation>ウィッチヘイズ</translation></message>
     <message><source>wks PPC yks</source><translation>wks PPCのyks</translation></message>
@@ -3902,7 +3825,6 @@
     <message><source>Y Transparent Figures</source><translation>Y 透明な図</translation></message>
     <message><source>Y Transparent Leading</source><translation>Yの透明な鉛</translation></message>
     <message><source>Y Transparent Uppercase</source><translation>Y透明アッパーケース</translation></message>
-    <message><source>Yellf</source><translation>エルフ</translation></message>
     <message><source>yok HTA zok</source><translation>yok HTA ズーム</translation></message>
     <message><source>You are Offline</source><translation>オフライン</translation></message>
     <message><source>You are working in an unsaved scene</source><translation>未保存のシーンで働いています</translation></message>
@@ -3969,9 +3891,7 @@
     <message><source>zier Weight Locked</source><translation>ジッパーの重量は締めました</translation></message>
     <message><source>zier Weight Locking</source><translation>ジッパーの重量の錠</translation></message>
     <message><source>zkk HTA mlk</source><translation>zkkk HTA フォーク</translation></message>
-    <message><source>Zoom to Fit</source><translation>フィットするズーム</translation></message>
-    <message><source>Zqx</source><translation>Zqxの</translation></message>
-    <message><source>Zuccini</source><translation>Zuccini(ツケニ)</translation></message></context>
+    <message><source>Zoom to Fit</source><translation>フィットするズーム</translation></message></context>
   <context>
     <name>QFileDialog</name>
     <message>
@@ -6298,10 +6218,6 @@
     <message>
       <source>Expert Forms</source>
       <translation>エキスパート形式</translation>
-    </message>
-    <message>
-      <source>Falloff</source>
-      <translation>フォールオフ</translation>
     </message>
     <message>
       <source>Fast Blur</source>

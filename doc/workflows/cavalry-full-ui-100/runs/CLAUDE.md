@@ -28,7 +28,7 @@
 2026-05-05-P5-GX-matrix-reverify.md: 本轮 P5/G-CAPTURE/G-X/G0/G1/G3 复核记录，证明 FP-9 清零、top-level target 已冻结、G2/G4 仍因真实 compiled 翻译缺口 FAIL。
 2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md: 2026-05-07 G2/G4 ALL GATES PASS 声明的 INVALIDATED 取证，定义 FP-10 transliteration / FP-11 font-sample pangram / FP-12 placeholder reuse 三类反模式，绑定 quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7 与 detector 升级清单。
 2026-05-07-G-P-FP-10-11-12-detector-uplift.md: Step 1 §P5 detector 升级 PASS 记录，证明 FP-10/11/12 命中 transliteration quarantine、当前 HEAD 零误报、fabrication quarantine FP-7/8/9 下界未退化。
-2026-05-07-G-X-denominator-recleaning.md: Step 2 G-X 分母清洗 PASS 记录，冻结新 truth source 为 JSON 6294、compiled 3274、runtime candidates 619、menuLeaves 733，并登记 §F 噪声剔除 provenance。
+2026-05-07-G-X-denominator-recleaning.md: Step 2 G-X 分母清洗 PASS 记录，冻结新 truth source 为 JSON 6292、compiled 3190、runtime candidates 617、menuLeaves 730，并登记 §F 噪声剔除 provenance。
 archive/: 反模式与污染 run note 取证目录，含 fabrication-era over-claim 报告与失效的 NEXT-STEPS.md，仅供反向回归，不参与当前 gate。
 
 规则

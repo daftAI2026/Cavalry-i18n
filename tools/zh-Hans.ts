@@ -747,7 +747,6 @@
     <message><source>Canva auth has expired.</source><translation>- T0 auth 已经过期 。</translation></message>
     <message><source>Canva auth offline grace period expired</source><translation>T0 auth 离线宽限期已过</translation></message>
     <message><source>Canva auth offline grace period expired.</source><translation>{T0} 自动离线宽限期已过 。</translation></message>
-    <message><source>Canva Sans</source><translation>T0 (英语). 圣诞</translation></message>
     <message><source>Caper</source><translation>开口</translation></message>
     <message><source>Cararra</source><translation>卡拉拉</translation></message>
     <message><source>Carissma</source><translation>卡里斯马</translation></message>
@@ -767,7 +766,6 @@
     <message><source>Change Composition</source><translation>更改 T0</translation></message>
     <message><source>Character Variant</source><translation>字符变量</translation></message>
     <message><source>Checkbox</source><translation>复选框</translation></message>
-    <message><source>Choof</source><translation>Cho</translation></message>
     <message><source>Choose</source><translation>选择</translation></message>
     <message><source>Choose between B</source><translation>选择 B</translation></message>
     <message><source>Christine</source><translation>克莉丝汀</translation></message>
@@ -820,11 +818,8 @@
     <message><source>Click to Zoom In</source><translation>单击以放大</translation></message>
     <message><source>Clipping Mask</source><translation>擦拭面具</translation></message>
     <message><source>Clips</source><translation>剪辑</translation></message>
-    <message><source>Closf</source><translation>克劳斯f</translation></message>
     <message><source>Collapsible</source><translation>可折叠</translation></message>
     <message><source>Collinear Tolerance</source><translation>折叠容忍</translation></message>
-    <message><source>Colof</source><translation>科罗夫</translation></message>
-    <message><source>Color LCD</source><translation>颜色 LCD</translation></message>
     <message><source>Color Management</source><translation>色彩管理</translation></message>
     <message><source>Color picking is already active!</source><translation>颜色选择已经激活 !</translation></message>
     <message><source>Color Settings</source><translation>颜色设置</translation></message>
@@ -1142,27 +1137,10 @@
     <message><source>Enable Snapping</source><translation>启用抓取</translation></message>
     <message><source>Encoding file</source><translation>编码文件</translation></message>
     <message><source>encoding specified in XML declaration is incorrect</source><translation>XML 声明指定的编码不正确</translation></message>
-    <message><source>end fallback kern</source><translation>结束倒转 Kern</translation></message>
-    <message><source>end fallback mark</source><translation>结束后退标记</translation></message>
-    <message><source>end inserting dotted-circles</source><translation>最后插入点圈</translation></message>
-    <message><source>end kern</source><translation>结束 kern</translation></message>
-    <message><source>end of input</source><translation>输入结束</translation></message>
     <message><source>End of Render Queue</source><translation>结束 T0</translation></message>
     <message><source>End of Render Queue Item</source><translation>结束 T0 项目</translation></message>
-    <message><source>end postprocess-glyphs</source><translation>结束后进程- glyphs</translation></message>
-    <message><source>end preprocess-text</source><translation>结束预处理文本</translation></message>
-    <message><source>end reorder</source><translation>结束重排</translation></message>
-    <message><source>end reordering indic final</source><translation>结束顺序调整</translation></message>
-    <message><source>end reordering indic initial</source><translation>结束顺序调整</translation></message>
-    <message><source>end reordering khmer</source><translation>结束重排khmer</translation></message>
-    <message><source>end reordering myanmar</source><translation>结束重排 myanmar</translation></message>
     <message><source>end reordering USE</source><translation>结束重排使用法</translation></message>
     <message><source>End Rotation</source><translation>结束旋转</translation></message>
-    <message><source>end table kern</source><translation>结束表格 kern</translation></message>
-    <message><source>end table kerx</source><translation>结束表格 kex</translation></message>
-    <message><source>end table mort</source><translation>结束表格</translation></message>
-    <message><source>end table morx</source><translation>结束表格</translation></message>
-    <message><source>end tell</source><translation>结束告诉</translation></message>
     <message><source>Enter a Color Name</source><translation>输入颜色名称</translation></message>
     <message><source>Enter a command or action</source><translation>输入命令或动作</translation></message>
     <message><source>Enter a command or action...</source><translation>输入命令或动作...</translation></message>
@@ -1215,7 +1193,6 @@
     <message><source>Error: You cannot delete the only Composition.</source><translation>错误: 您无法删除唯一的 T0 。</translation></message>
     <message><source>Even Distribution</source><translation>甚至是分布</translation></message>
     <message><source>exceeds maximal</source><translation>超过最大值</translation></message>
-    <message><source>Excef</source><translation>远处f</translation></message>
     <message><source>Excel</source><translation>外壳</translation></message>
     <message><source>Except during Playback</source><translation>播放时除外</translation></message>
     <message><source>Exclude</source><translation>不包括</translation></message>
@@ -1243,7 +1220,6 @@
     <message><source>Exporting script</source><translation>导出脚本</translation></message>
     <message><source>Exporting Selected</source><translation>导出选中内容</translation></message>
     <message><source>Extra Width</source><translation>额外宽度</translation></message>
-    <message><source>f fffff.</source><translation>(原始内容存档于2018-09-21). fff.</translation></message>
     <message><source>Factorize</source><translation>系数化</translation></message>
     <message><source>Failed</source><translation>失败</translation></message>
     <message><source>Failed Dependency</source><translation>依赖失败</translation></message>
@@ -1306,9 +1282,7 @@
     <message><source>Filter Time Offset</source><translation>过滤时间偏移</translation></message>
     <message><source>Filter Viewport</source><translation>过滤 {T0}</translation></message>
     <message><source>Find</source><translation>查找</translation></message>
-    <message><source>Fira Code</source><translation>Fira 代码</translation></message>
     <message><source>FK Controls</source><translation>FK 控制器</translation></message>
-    <message><source>Fkgf</source><translation>Fkgf (风力)</translation></message>
     <message><source>Flatten Tangents</source><translation>平整切数</translation></message>
     <message><source>Flesh</source><translation>闪烁</translation></message>
     <message><source>Flip Horizontal</source><translation>水平翻转</translation></message>
@@ -1316,7 +1290,6 @@
     <message><source>Flow Columns</source><translation>流程列</translation></message>
     <message><source>Flow Graph</source><translation>流程图</translation></message>
     <message><source>Flow Rows</source><translation>流动行</translation></message>
-    <message><source>Foldf</source><translation>折叠f</translation></message>
     <message><source>Font Axes</source><translation>字体轴</translation></message>
     <message><source>Font Not Found</source><translation>未找到字体</translation></message>
     <message><source>Font Not Found.</source><translation>字体未找到 。</translation></message>
@@ -1332,7 +1305,6 @@
     <message><source>General Feedback</source><translation>一般反馈</translation></message>
     <message><source>Generate</source><translation>生成</translation></message>
     <message><source>Gipng</source><translation>爷爷</translation></message>
-    <message><source>Gisvg</source><translation>吉斯夫格语Name</translation></message>
     <message><source>Glyphs</source><translation>胶片</translation></message>
     <message><source>Go back to the start frame to move input shapes</source><translation>返回起始框移动输入形状</translation></message>
     <message><source>Go back to the start frame to move input shapes.</source><translation>返回起始框移动输入形状.</translation></message>
@@ -1360,7 +1332,6 @@
     <message><source>Graph Presets</source><translation>图 T0</translation></message>
     <message><source>Graph Widget</source><translation>图形部件</translation></message>
     <message><source>Grapheme Flexibility</source><translation>图表灵活性</translation></message>
-    <message><source>Greef</source><translation>格莱夫</translation></message>
     <message><source>Green Spring</source><translation>绿春</translation></message>
     <message><source>Grid Color</source><translation>网格颜色</translation></message>
     <message><source>Grid Settings</source><translation>网格设置</translation></message>
@@ -1411,7 +1382,6 @@
     <message><source>Image Sequences must each be placed in separate folders to be detected by the Image Smart Folder.</source><translation>图像序列必须分别放在单独的文件夹中,由图像智能文件夹检测.</translation></message>
     <message><source>Image SK</source><translation>图像 SK</translation></message>
     <message><source>Image Smart Folders</source><translation>图像智能文件夹</translation></message>
-    <message><source>Imagf</source><translation>图像</translation></message>
     <message><source>Impo</source><translation>小猪</translation></message>
     <message><source>Import a Reference</source><translation>导入引用</translation></message>
     <message><source>Import an Asset</source><translation>导入 {T0}</translation></message>
@@ -1482,11 +1452,9 @@
     <message><source>is not registered in isolate</source><translation>未在隔离中注册</translation></message>
     <message><source>is not supported</source><translation>不支持</translation></message>
     <message><source>is not supported.</source><translation>不被支持。</translation></message>
-    <message><source>Italf</source><translation>斜体</translation></message>
     <message><source>Italic</source><translation>斜体</translation></message>
     <message><source>iterator does not fit current value</source><translation>执行器不符合当前值</translation></message>
     <message><source>iterator out of range</source><translation>超出范围</translation></message>
-    <message><source>j ffff.</source><translation>页:1。</translation></message>
     <message><source>Jack</source><translation>城</translation></message>
     <message><source>Japanese Kana</source><translation>日本卡纳</translation></message>
     <message><source>Join</source><translation>联合</translation></message>
@@ -1494,7 +1462,6 @@
     <message><source>JSON Format</source><translation>T0 (英语). 格式</translation></message>
     <message><source>junk after document element</source><translation>文档元素后的废件</translation></message>
     <message><source>Justify</source><translation>说明</translation></message>
-    <message><source>Jxly</source><translation>x</translation></message>
     <message><source>Keep Connections</source><translation>保持连接</translation></message>
     <message><source>Keep going...</source><translation>继续...</translation></message>
     <message><source>Key Interpolation</source><translation>密钥内插</translation></message>
@@ -1507,7 +1474,6 @@
     <message><source>Keys</source><translation>键</translation></message>
     <message><source>Kilamanjaro</source><translation>基拉马扎罗</translation></message>
     <message><source>KKKK KLMSO</source><translation>韩国</translation></message>
-    <message><source>kramt A</source><translation>克朗A</translation></message>
     <message><source>Label Palette Options</source><translation>标签 {T0} 选项</translation></message>
     <message><source>Labels</source><translation>标签</translation></message>
     <message><source>Large</source><translation>大块</translation></message>
@@ -1532,7 +1498,6 @@
     <message><source>Licence Data is null</source><translation>许可证数据无效</translation></message>
     <message><source>Licence Data is null.</source><translation>许可证数据无效 。</translation></message>
     <message><source>Ligh</source><translation>亲</translation></message>
-    <message><source>Lighf</source><translation>相邻</translation></message>
     <message><source>Light</source><translation>光线</translation></message>
     <message><source>light coral</source><translation>浅珊瑚</translation></message>
     <message><source>light goldenrod yellow</source><translation>淡金黄色</translation></message>
@@ -1663,7 +1628,6 @@
     <message><source>Move Selection</source><translation>移动选择</translation></message>
     <message><source>Moved Permanently</source><translation>永久移动</translation></message>
     <message><source>Movie</source><translation>电影</translation></message>
-    <message><source>Movif</source><translation>移动</translation></message>
     <message><source>Multi-Status</source><translation>多态</translation></message>
     <message><source>Multiple Choice</source><translation>多重选择</translation></message>
     <message><source>multiple Viewports</source><translation>多个 {T0} s</translation></message>
@@ -1848,7 +1812,6 @@
     <message><source>Pasted SVG</source><translation>粘贴 T0</translation></message>
     <message><source>Pasted time markers</source><translation>粘贴时间标记</translation></message>
     <message><source>Pastel</source><translation>粘贴</translation></message>
-    <message><source>Pastf</source><translation>粘贴f</translation></message>
     <message><source>Path Duration</source><translation>T0 (英语). 会期</translation></message>
     <message><source>Paua</source><translation>包亚</translation></message>
     <message><source>Payload Too Large</source><translation>有效载荷太大</translation></message>
@@ -2001,7 +1964,6 @@
     <message><source>Proxy-Authenticate</source><translation>代理认证</translation></message>
     <message><source>Pulse</source><translation>脉搏</translation></message>
     <message><source>Pumpkin Skin</source><translation>南瓜皮肤</translation></message>
-    <message><source>Purpf</source><translation>采购</translation></message>
     <message><source>Purple Mountains</source><translation>紫色山脉</translation></message>
     <message><source>q )Zzc</source><translation>q)兹克语</translation></message>
     <message><source>Queued</source><translation>队列</translation></message>
@@ -2018,8 +1980,6 @@
     <message><source>Quote</source><translation>引用</translation></message>
     <message><source>Qxxxxxxxxttttttttttttttt</source><translation>Qxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx</translation></message>
     <message><source>Range Not Satisfiable</source><translation>范围不能满足</translation></message>
-    <message><source>Rangf</source><translation>兰格夫</translation></message>
-    <message><source>Rbr</source><translation>RBr 语录</translation></message>
     <message><source>Read</source><translation>读取</translation></message>
     <message><source>Read Zip failed</source><translation>读取 Zip 失败</translation></message>
     <message><source>Read Zip failed.</source><translation>读取 Zip 失败 。</translation></message>
@@ -2167,7 +2127,6 @@
     <message><source>Root node not found</source><translation>未找到根节点</translation></message>
     <message><source>Rotate bone</source><translation>旋转骨头</translation></message>
     <message><source>Rotate Selection</source><translation>旋转选择</translation></message>
-    <message><source>Rpq</source><translation>里普克语Name</translation></message>
     <message><source>Rps</source><translation>比例</translation></message>
     <message><source>Rrn</source><translation>转</translation></message>
     <message><source>Rrp</source><translation>转动</translation></message>
@@ -2236,7 +2195,6 @@
     <message><source>Schedule (Sequence)</source><translation>时间表(顺序)</translation></message>
     <message><source>Schedule Stagger</source><translation>调度</translation></message>
     <message><source>Scheduling Groups</source><translation>排程组</translation></message>
-    <message><source>Scrif</source><translation>摇摆</translation></message>
     <message><source>Script</source><translation>脚本</translation></message>
     <message><source>Search Colours...</source><translation>搜索颜色...</translation></message>
     <message><source>Search for a layer to add</source><translation>搜索要添加的图层</translation></message>
@@ -2321,13 +2279,10 @@
     <message><source>Set Speed Strength</source><translation>设置速度强度</translation></message>
     <message><source>Setting up background render</source><translation>设置背景</translation></message>
     <message><source>Shad</source><translation>阴影</translation></message>
-    <message><source>Shadf</source><translation>沙德夫语Name</translation></message>
     <message><source>Shadow</source><translation>阴影</translation></message>
     <message><source>Shape Depth Debug</source><translation>T0 深度调试</translation></message>
     <message><source>Shape Editing</source><translation>T0 (英语). 编辑</translation></message>
-    <message><source>Shapf</source><translation>阴影</translation></message>
     <message><source>Share usage data to help improve Cavalry</source><translation>共享使用数据以帮助改进 T0</translation></message>
-    <message><source>Shif</source><translation>师夫</translation></message>
     <message><source>Shift Stops</source><translation>移动停止</translation></message>
     <message><source>Shift Stops Left</source><translation>向左移动</translation></message>
     <message><source>Shift Stops Right</source><translation>向右移动</translation></message>
@@ -2471,30 +2426,14 @@
     <message><source>SSL error: Unable to verify the first certificate</source><translation>SSL 错误: 无法校验第一个证书</translation></message>
     <message><source>SSL error: Unable to verify the first certificate.</source><translation>SSL 错误: 无法验证第一个证书 。</translation></message>
     <message><source>Stack trace (most recent call last)</source><translation>堆栈跟踪( 最近最后一次呼叫)</translation></message>
-    <message><source>Staff</source><translation>工作人员</translation></message>
     <message><source>Stag</source><translation>暂停</translation></message>
     <message><source>Staging</source><translation>粘贴</translation></message>
     <message><source>Standing End</source><translation>状态结束</translation></message>
     <message><source>Standing Start</source><translation>状态启动</translation></message>
-    <message><source>start fallback kern</source><translation>开始后退 Kern</translation></message>
-    <message><source>start fallback mark</source><translation>开始后退标记</translation></message>
-    <message><source>start inserting dotted-circles</source><translation>开始插入点圈</translation></message>
-    <message><source>start kern</source><translation>开始 kern</translation></message>
     <message><source>Start New Contour</source><translation>开始新轮廓</translation></message>
     <message><source>Start New Shape</source><translation>开始新 {T0}</translation></message>
-    <message><source>start postprocess-glyphs</source><translation>启动进程后格子</translation></message>
-    <message><source>start preprocess-text</source><translation>启动预处理文本</translation></message>
-    <message><source>start reorder</source><translation>开始重排</translation></message>
-    <message><source>start reordering indic final</source><translation>开始重排最终索引</translation></message>
-    <message><source>start reordering indic initial</source><translation>开始重排初始索引</translation></message>
-    <message><source>start reordering khmer</source><translation>开始重排 khmer</translation></message>
-    <message><source>start reordering myanmar</source><translation>开始重新排序 myanmar</translation></message>
     <message><source>start reordering USE</source><translation>开始重排 USE</translation></message>
     <message><source>Start Rotation</source><translation>开始旋转</translation></message>
-    <message><source>start table kern</source><translation>开始表格 kern</translation></message>
-    <message><source>start table kerx</source><translation>开始表格 kex</translation></message>
-    <message><source>start table mort</source><translation>开始桌垫</translation></message>
-    <message><source>start table morx</source><translation>开始表格 morx</translation></message>
     <message><source>Starter</source><translation>启动器</translation></message>
     <message><source>State mismatch</source><translation>状态不匹配</translation></message>
     <message><source>Storm Dust</source><translation>风暴尘</translation></message>
@@ -2533,11 +2472,6 @@
     <message><source>Switching to the Default Keyframe Layer in order to set this keyframe.</source><translation>切换到默认 T0 T1 ,以设置此密钥框架.</translation></message>
     <message><source>syntax error</source><translation>语法错误</translation></message>
     <message><source>System</source><translation>系统</translation></message>
-    <message><source>Systf</source><translation>丝绸</translation></message>
-    <message><source>t fff.</source><translation>{\fn黑体\fs22\bord1\shad0\3aHBE\4aH00\fscx67\fscy66\2cHFFFFFF\3cH808080}你觉得呢?。</translation></message>
-    <message><source>t ffff.</source><translation>(原始内容存档于2018-09-31). tff.</translation></message>
-    <message><source>t fffff.</source><translation>{\fn黑体\fs22\bord1\shad0\3aHBE\4aH00\fscx67\fscy66\2cHFFFFFF\3cH808080}你来干什么?。</translation></message>
-    <message><source>t ffffff.</source><translation>tffffff. (原始内容存档于2018-09-21).</translation></message>
     <message><source>Tag Name</source><translation>T0 (英语). 名称</translation></message>
     <message><source>Tags</source><translation>T0 (英语).</translation></message>
     <message><source>tcm ITB edm</source><translation>tcm ITB 编辑器</translation></message>
@@ -2621,10 +2555,8 @@
     <message><source>Thorn</source><translation>索恩语</translation></message>
     <message><source>Thornsmall</source><translation>红小</translation></message>
     <message><source>thread constructor failed</source><translation>线程构造器失败</translation></message>
-    <message><source>Thzh</source><translation>Th</translation></message>
     <message><source>Time Editor</source><translation>时间编辑器</translation></message>
     <message><source>Time Marker Settings</source><translation>时间标记设置</translation></message>
-    <message><source>Timef</source><translation>时间f</translation></message>
     <message><source>Timer</source><translation>计时器</translation></message>
     <message><source>Title</source><translation>标题</translation></message>
     <message><source>to keep this popover open when disconnecting</source><translation>在断开时保持此弹出式打开</translation></message>
@@ -2685,7 +2617,6 @@
     <message><source>Transform Tool</source><translation>变形工具</translation></message>
     <message><source>Transparency Style</source><translation>透明样式</translation></message>
     <message><source>Tree</source><translation>树</translation></message>
-    <message><source>trevt A</source><translation>转动 A</translation></message>
     <message><source>Triadic</source><translation>三进制</translation></message>
     <message><source>true literal</source><translation>真实文字</translation></message>
     <message><source>Trying to nudge non existent key index</source><translation>试图推动不存在的密钥索引</translation></message>
@@ -2704,7 +2635,6 @@
     <message><source>type must be number, but is</source><translation>类型必须是数字,但是</translation></message>
     <message><source>type must be object, but is</source><translation>类型必须是对象,但</translation></message>
     <message><source>type must be string, but is</source><translation>类型必须是字符串,但是</translation></message>
-    <message><source>Typif</source><translation>泰比夫语Name</translation></message>
     <message><source>Typing</source><translation>输入</translation></message>
     <message><source>Typography Script</source><translation>拼写脚本</translation></message>
     <message><source>UI Font Size</source><translation>UI 字体大小</translation></message>
@@ -2752,7 +2682,6 @@
     <message><source>Untitled</source><translation>无标题</translation></message>
     <message><source>Untitled Script</source><translation>无标题脚本</translation></message>
     <message><source>Unused</source><translation>未使用</translation></message>
-    <message><source>Unusf</source><translation>取消执行</translation></message>
     <message><source>Update</source><translation>更新</translation></message>
     <message><source>Update Available</source><translation>更新可用</translation></message>
     <message><source>Update Cache</source><translation>更新缓存</translation></message>
@@ -2788,7 +2717,6 @@
     <message><source>Uuid</source><translation>乌伊德</translation></message>
     <message><source>uut HTA vut</source><translation>uut HTA 声音</translation></message>
     <message><source>Values</source><translation>数值</translation></message>
-    <message><source>Valuf</source><translation>瓦卢夫</translation></message>
     <message><source>Variant Also Negotiates</source><translation>备选案文 谈判</translation></message>
     <message><source>Variation Parameters</source><translation>变化参数</translation></message>
     <message><source>Velocity Curve</source><translation>高速曲线</translation></message>
@@ -2841,7 +2769,6 @@
     <message><source>width is not integer</source><translation>宽度不是整数</translation></message>
     <message><source>Width Variants</source><translation>宽度变量</translation></message>
     <message><source>William</source><translation>威廉 威廉 威廉 威廉</translation></message>
-    <message><source>Windf</source><translation>风向f</translation></message>
     <message><source>Windows</source><translation>窗口</translation></message>
     <message><source>Wire Style</source><translation>线条样式</translation></message>
     <message><source>Witch Haze</source><translation>巫师哈兹</translation></message>
@@ -2879,7 +2806,6 @@
     <message><source>Y Transparent Figures</source><translation>Y 透明数字</translation></message>
     <message><source>Y Transparent Leading</source><translation>Y 透明引导</translation></message>
     <message><source>Y Transparent Uppercase</source><translation>Y 透明大写</translation></message>
-    <message><source>Yellf</source><translation>喊叫声f</translation></message>
     <message><source>yok HTA zok</source><translation>约克 HTA Zok</translation></message>
     <message><source>You are Offline</source><translation>你离线了</translation></message>
     <message><source>You are working in an unsaved scene</source><translation>你在未保存的场景中工作</translation></message>
@@ -2946,9 +2872,7 @@
     <message><source>zier Weight Locked</source><translation>zier 重量锁定</translation></message>
     <message><source>zier Weight Locking</source><translation>zier 重量锁定</translation></message>
     <message><source>zkk HTA mlk</source><translation>Zkk HTA 毫升</translation></message>
-    <message><source>Zoom to Fit</source><translation>缩放以适应</translation></message>
-    <message><source>Zqx</source><translation>齐克克斯</translation></message>
-    <message><source>Zuccini</source><translation>苏奇尼</translation></message></context>
+    <message><source>Zoom to Fit</source><translation>缩放以适应</translation></message></context>
   <context>
     <name>QFileDialog</name>
     <message>
@@ -3413,7 +3337,6 @@
     <message><source>Message Bar</source><translation>消息栏</translation></message>
     <message><source>Scene Statistics</source><translation>场景统计</translation></message>
     <message><source>Scene Window (Time Editor)</source><translation>场景窗口（时间编辑器）</translation></message>
-    <message><source>Shelf</source><translation>工具架</translation></message>
     <message><source>Tag Window (Experimental)</source><translation>标签窗口（实验性）</translation></message>
     <message><source>Tool Settings</source><translation>工具设置</translation></message>
     <message><source>Toolbar</source><translation>工具栏</translation></message>
@@ -3540,7 +3463,6 @@
     <message><source>Color Array</source><translation>颜色数组</translation></message>
     <message><source>Comparison</source><translation>比较</translation></message>
     <message><source>Drag Field</source><translation>阻力场</translation></message>
-    <message><source>Falloff</source><translation>衰减</translation></message>
     <message><source>Gamma Correction</source><translation>伽马校正</translation></message>
     <message><source>A new tab has been opened in your default browser so you can log in to Canva there</source><translation>已在默认浏览器中打开新标签页，方便你在其中登录 Canva。</translation></message>
     <message><source>A new tab has been opened in your default browser so you can log in to Canva there.</source><translation>已在默认浏览器中打开新标签页，方便你在其中登录 Canva。</translation></message>
