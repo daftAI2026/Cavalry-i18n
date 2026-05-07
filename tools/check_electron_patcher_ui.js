@@ -1067,6 +1067,10 @@ test('JSON validator can read frozen extraction leaves and still return structur
   const checkerPath = path.join(repoRoot, 'tools', 'check_full_ui_coverage.js');
   const { runJsonValidator } = require(checkerPath);
   const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+  const zhHansAppPath = path.join(tempRoot, 'languages', 'zh-Hans', 'appStrings.json');
+  const zhHansApp = readJson(zhHansAppPath);
+  zhHansApp.push({ value: { label: '冻结后新增的目标叶' } });
+  writeJson(zhHansAppPath, zhHansApp);
 
   const report = runJsonValidator(tempRoot, 'zh-Hans', extractionPath);
 

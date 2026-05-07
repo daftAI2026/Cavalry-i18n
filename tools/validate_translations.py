@@ -753,6 +753,12 @@ def evaluate_language(
             else collect_leaves(load_json(source_path), rules)
         )
         target_leaves = collect_leaves(target_data, rules)
+        if extraction_inventory is not None and group_name in JSON_SURFACE_KEYS:
+            target_leaves = {
+                json_path: leaf
+                for json_path, leaf in target_leaves.items()
+                if json_path in source_leaves
+            }
 
         source_paths = set(source_leaves)
         target_paths = set(target_leaves)
