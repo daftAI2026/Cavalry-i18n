@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-check_electron_patcher_ui.js: Node baseline 测试，冻结 Electron patcher 文件存在性、renderer/preload 契约、macOS patch 约束、UI 覆盖脚本入口。
+check_electron_patcher_ui.js: Node baseline 测试，冻结 Electron patcher 文件存在性、renderer/preload 契约、macOS patch 约束、UI 覆盖脚本入口与 §P5 FP-10/11/12 契约。
 check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
 electron_harness.js: 无副作用 Electron handler harness，注入 fake app、dialog、userData、resourcesPath、spawn/spawnSync 与路径归一化。
 capture_electron_contract.js: Electron 行为 snapshot 捕获器，通过 harness 跑完 5 个 IPC 并输出规范化 JSON。
@@ -27,8 +27,11 @@ resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalr
 cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.1、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。
 build_translator_injector.sh: 构建 `libCavalryTranslatorInjector.dylib`，校验 Qt minor 与目标 Cavalry 匹配。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
-validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 source/context/translation 三相并输出 §P5 报告与摘要。
-translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界，被 validate_translations.py 读取。
+validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 source/context/translation 三相并输出 §P5 FP-1..12 报告与摘要。
+forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。
+forbidden_translation_patterns.js: Node 共享 forbidden-pattern detector，供 runtime/full-ui gate 与契约测试复用 FP-1/2/3/4/5/7/8/9/10/11。
+forbidden_translation_patterns.json: §P5 detector 配置，集中声明正则、source/context denylist、latin residue、transliteration 与 pangram 规则。
+translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界与 FP-10/11/12 whitelist 契约，被 validate_translations.py 读取。
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。

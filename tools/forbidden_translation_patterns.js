@@ -1,3 +1,10 @@
+/**
+ * [INPUT]: 依赖 forbidden_translation_patterns.json 与 runtime_ui_allowlist.json 的 §P5 规则配置
+ * [OUTPUT]: 对外提供 detectForbiddenTranslationPatterns，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式
+ * [POS]: tools 的 Node 共享 forbidden-pattern detector，被 runtime/full-ui gate 与契约测试复用；FP-12 由 validator 聚合检测
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+
 const fs = require('node:fs');
 const path = require('node:path');
 
@@ -49,6 +56,13 @@ const LATIN_RESERVED = new Set([
 const LATIN_RESERVED_LOWER = new Set([...LATIN_RESERVED].map((t) => t.toLowerCase()));
 const LATIN_TOKEN_RE = /[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u017F]+/g;
 const CJK_RE = /[\u4e00-\u9fff\u3040-\u30ff]/;
+const TRANSLITERATION_CFG = PATTERN_CONFIG.transliterationBan || {};
+const TRANSLITERATION_SOURCE_DENYLIST = new Set(TRANSLITERATION_CFG.sourceDenylist || []);
+const PANGRAM_CFG = PATTERN_CONFIG.pangramNoise || {};
+const PANGRAM_PATTERNS = (PANGRAM_CFG.sourcePatterns || []).map((pattern) => ({
+  ...pattern,
+  expression: new RegExp(pattern.regex),
+}));
 
 function normalizeText(value) {
   return String(value || '')
@@ -75,6 +89,17 @@ function findFrankensteinResidue(language, value) {
     return token;
   }
   return null;
+}
+
+function isTransliterationFabrication(source, value) {
+  if (!source || !value || source === value) return false;
+  if (!CJK_RE.test(value)) return false;
+  return TRANSLITERATION_SOURCE_DENYLIST.has(source);
+}
+
+function isPangramNoiseFabrication(source, value) {
+  if (!source || !value || source === value) return false;
+  return PANGRAM_PATTERNS.some((pattern) => pattern.expression.test(source));
 }
 
 function detectForbiddenTranslationPatterns({
@@ -135,6 +160,24 @@ function detectForbiddenTranslationPatterns({
         value: normalizedContext,
       });
     }
+  }
+
+  // FP-10: transliteration of meaningless/font/glyph source strings
+  if (isTransliterationFabrication(normalizedSource, normalizedValue)) {
+    hits.push({
+      id: TRANSLITERATION_CFG.id || 'FP-10',
+      detail: TRANSLITERATION_CFG.description || 'transliteration of no-translate source string',
+      value: normalizedSource,
+    });
+  }
+
+  // FP-11: font sample/pangram noise translated as UI copy
+  if (isPangramNoiseFabrication(normalizedSource, normalizedValue)) {
+    hits.push({
+      id: PANGRAM_CFG.id || 'FP-11',
+      detail: PANGRAM_CFG.description || 'font sample pangram translated as UI copy',
+      value: normalizedSource,
+    });
   }
 
   // FP-9: Frankenstein Latin residue

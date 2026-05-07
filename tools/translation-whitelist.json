@@ -22,6 +22,23 @@
     "no_translate": ["type", "author", "layerType"],
     "locale_sync": ["language"]
   },
+  "_forbidden_patterns": {
+    "transliteration_ban": {
+      "id": "FP-10",
+      "contract": "字体家族名、颜色品牌内部代号、Unicode glyph 名、错误码碎片、长度 <= 6 的无义 ASCII 短串不得音译；应 no_translate 或 glossary-controlled。"
+    },
+    "pangram_skip": {
+      "id": "FP-11",
+      "contract": "字体样本 pangram / glyph sample 噪声不得翻译；G-X 必须剔除，若进入 TS/inc 则 hard-fail。"
+    },
+    "translation_reuse_cap": {
+      "id": "FP-12",
+      "contract": "同一非受控 translation 不得跨超过 2 个不同 source 复用；controlledVocabulary 之外视为占位复用。",
+      "max_distinct_sources": 2,
+      "min_translation_length": 6,
+      "controlled_vocabulary": ["OK", "取消", "キャンセル", "確定", "确定", "開く", "打开", "关闭", "關閉"]
+    }
+  },
 
   "_schema": {
     "translate": "值包含面向用户的自然语言，必须完整翻译为目标语言",

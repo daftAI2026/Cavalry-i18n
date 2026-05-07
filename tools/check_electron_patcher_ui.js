@@ -1977,6 +1977,53 @@ test('shared forbidden translation detector covers the current FP set without le
   assert.equal(placeholderHits.includes('FP-6'), false, 'legacy FP-6 must not be emitted');
 });
 
+test('shared forbidden translation detector rejects transliteration and pangram fabrication', () => {
+  const detectorPath = path.join(repoRoot, 'tools', 'forbidden_translation_patterns.js');
+  const { detectForbiddenTranslationPatterns } = require(detectorPath);
+
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hans',
+      sourceText: 'Acce',
+      value: '重音符',
+    }).map((hit) => hit.id),
+    ['FP-10']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({
+      language: 'ja_JP',
+      sourceText: 'Arial',
+      value: 'アリアル',
+    }).map((hit) => hit.id),
+    ['FP-10']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hans',
+      sourceText: 'ahk ISK bhk DBX khk GNM nhk',
+      value: '阿赫克 伊斯克 贝赫克 德贝克斯 卡赫克 吉恩姆 恩赫克',
+    }).map((hit) => hit.id),
+    ['FP-11']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hans',
+      sourceText: 'Acce',
+      value: 'Acce',
+    }),
+    []
+  );
+});
+
+test('translation whitelist registers FP-10 FP-11 FP-12 contracts', () => {
+  const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
+  const contracts = whitelist._forbidden_patterns;
+
+  assert.equal(contracts.transliteration_ban.id, 'FP-10');
+  assert.equal(contracts.pangram_skip.id, 'FP-11');
+  assert.equal(contracts.translation_reuse_cap.id, 'FP-12');
+});
+
 test('translation validator preserves TS and generated table context for FP-8', () => {
   const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
   const validatorPath = path.join(tempRoot, 'tools', 'validate_translations.py');
@@ -2031,6 +2078,50 @@ test('translation validator preserves TS and generated table context for FP-8', 
   assert.equal(result.status, 1, 'validator should hard-fail fake Qt contexts');
   assert.equal(report.gates.B13.status, 'FAIL');
   assert.equal(report.languages.zh_Hans.forbidden_patterns.by_pattern['FP-8'], 2);
+});
+
+test('translation validator rejects generic translation reuse across unrelated sources', () => {
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+  const validatorPath = path.join(tempRoot, 'tools', 'validate_translations.py');
+  const reportPath = path.join(tempRoot, 'p5-report.json');
+  const summaryPath = path.join(tempRoot, 'p5-summary.md');
+  const tsPath = path.join(tempRoot, 'tools', 'ja_JP.ts');
+
+  fs.writeFileSync(
+    tsPath,
+    [
+      '<?xml version="1.0" encoding="utf-8"?>',
+      '<TS version="2.1" language="ja_JP">',
+      '<context>',
+      '<name>MenuBarManager</name>',
+      '<message><source>Enable Onion Skin</source><translation>文字列形式が正しくありません</translation></message>',
+      '<message><source>Export Movie</source><translation>文字列形式が正しくありません</translation></message>',
+      '<message><source>Reset Workspace</source><translation>文字列形式が正しくありません</translation></message>',
+      '</context>',
+      '</TS>',
+    ].join('\n')
+  );
+
+  const result = spawnSync(
+    'python3',
+    [
+      validatorPath,
+      '--root',
+      tempRoot,
+      '--extraction-inventory',
+      extractionPath,
+      '--json-report',
+      reportPath,
+      '--markdown-summary',
+      summaryPath,
+    ],
+    { encoding: 'utf8' }
+  );
+  const report = readJson(reportPath);
+
+  assert.equal(result.status, 1, 'validator should hard-fail generic placeholder reuse');
+  assert.equal(report.gates.B13.status, 'FAIL');
+  assert.equal(report.languages.ja.forbidden_patterns.by_pattern['FP-12'], 1);
 });
 
 test('runtime and JSON validators import the shared forbidden translation detector', () => {

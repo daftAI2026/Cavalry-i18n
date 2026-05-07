@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Shared forbidden translation pattern detector for full-ui gates."""
+"""
+[INPUT]: 依赖 forbidden_translation_patterns.json 与 runtime_ui_allowlist.json 的 §P5 规则配置
+[OUTPUT]: 对外提供 detect_forbidden_translation_patterns，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式
+[POS]: tools 的 Python 共享 forbidden-pattern detector，被 validate_translations.py 复用；FP-12 由 validator 聚合检测
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+"""
 
 from __future__ import annotations
 
@@ -58,6 +63,13 @@ _LATIN_RESERVED |= set(
 )
 _LATIN_RESERVED_LOWER = {t.lower() for t in _LATIN_RESERVED}
 _LATIN_TOKEN_RE = re.compile(r"[A-Za-z\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u017F]+")
+_CJK_OR_KANA_RE = re.compile(r"[\u4e00-\u9fff\u3040-\u30ff]")
+_TRANSLITERATION_CFG = PATTERN_CONFIG.get("transliterationBan", {})
+_TRANSLITERATION_SOURCE_DENYLIST = set(
+    _TRANSLITERATION_CFG.get("sourceDenylist", [])
+)
+_PANGRAM_CFG = PATTERN_CONFIG.get("pangramNoise", {})
+_PANGRAM_PATTERNS = _compile_patterns(_PANGRAM_CFG.get("sourcePatterns", []))
 
 
 def normalize_text(value: str) -> str:
@@ -89,6 +101,20 @@ def _find_frankenstein_residue(language: str, value: str) -> str | None:
             continue
         return token
     return None
+
+
+def _is_transliteration_fabrication(source: str, value: str) -> bool:
+    if not source or not value or source == value:
+        return False
+    if not _CJK_OR_KANA_RE.search(value):
+        return False
+    return source in _TRANSLITERATION_SOURCE_DENYLIST
+
+
+def _is_pangram_noise_fabrication(source: str, value: str) -> bool:
+    if not source or not value or source == value:
+        return False
+    return any(pattern["expression"].search(source) for pattern in _PANGRAM_PATTERNS)
 
 
 def detect_forbidden_translation_patterns(
@@ -154,6 +180,32 @@ def detect_forbidden_translation_patterns(
                     "value": normalized_context,
                 }
             )
+
+    # FP-10: transliteration of meaningless/font/glyph source strings
+    if _is_transliteration_fabrication(normalized_source, normalized_value):
+        hits.append(
+            {
+                "id": _TRANSLITERATION_CFG.get("id", "FP-10"),
+                "detail": _TRANSLITERATION_CFG.get(
+                    "description",
+                    "transliteration of no-translate source string",
+                ),
+                "value": normalized_source,
+            }
+        )
+
+    # FP-11: font sample/pangram noise translated as UI copy
+    if _is_pangram_noise_fabrication(normalized_source, normalized_value):
+        hits.append(
+            {
+                "id": _PANGRAM_CFG.get("id", "FP-11"),
+                "detail": _PANGRAM_CFG.get(
+                    "description",
+                    "font sample pangram translated as UI copy",
+                ),
+                "value": normalized_source,
+            }
+        )
 
     # FP-9: Frankenstein Latin residue (whitelist + heuristic)
     if normalized_value:

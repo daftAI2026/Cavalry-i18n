@@ -33,6 +33,30 @@
       "regex": "^Cavalry-(Compiled|Runtime)-UI-(Glossary|Complete|Generic|Synthetic)$|-Synthetic$|-Fabricated$"
     }
   ],
+  "transliterationBan": {
+    "id": "FP-10",
+    "description": "transliteration of meaningless/font/glyph source string",
+    "sourceDenylist": [
+      "Acce",
+      "Acutesmall",
+      "Arial",
+      "Asse",
+      "Audif",
+      "Ayhb"
+    ]
+  },
+  "pangramNoise": {
+    "id": "FP-11",
+    "description": "font sample pangram noise translated as UI copy",
+    "sourcePatterns": [
+      {
+        "regex": "^(?:[a-z]{2,4}\\s+[A-Z]{2,4}\\s+){2,}[a-z]{2,4}(?:\\s+[A-Z]{2,4})*(?:\\s+[a-z]{2,4})*$"
+      },
+      {
+        "regex": "^[A-Z]\\s+[a-z]{4,}\\.$"
+      }
+    ]
+  },
   "latinResidue": {
     "id": "FP-9",
     "description": "ordinary English word residue in translation (Frankenstein)",

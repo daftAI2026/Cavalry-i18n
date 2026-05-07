@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 [INPUT]: 依赖 languages/* JSON、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
-[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 FP-1/2/3/4/5/7/8/9 与弱覆盖率
+[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率
 [POS]: tools 的 G1 / §P5 validator，被 full-ui gate 用来审判翻译资产与生成表
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -56,6 +56,7 @@ ENGLISH_TOKEN_RE = re.compile(
     r"(?<![A-Za-z0-9])[A-Za-z0-9.+/-]*[A-Za-z][A-Za-z0-9.+/-]*(?![A-Za-z0-9])"
 )
 JSON_PATH_KEY_RE = re.compile(r"\.([^.\\[]+)")
+CJK_OR_KANA_RE = re.compile(r"[\u4e00-\u9fff\u3040-\u30ff]")
 
 ALLOWED_EMBEDDED_ENGLISH = {
     ".svg",
@@ -602,6 +603,83 @@ def record_forbidden_pattern_issue(
     limited_append(result["forbidden_patterns"]["samples"], issue)
 
 
+def translation_reuse_contract(whitelist: dict[str, Any]) -> dict[str, Any]:
+    return whitelist.get("_forbidden_patterns", {}).get(
+        "translation_reuse_cap",
+        {
+            "id": "FP-12",
+            "max_distinct_sources": 2,
+            "min_translation_length": 6,
+            "controlled_vocabulary": [],
+        },
+    )
+
+
+def add_reuse_candidate(
+    records: list[dict[str, str]],
+    file_path: Path,
+    item_path: str,
+    source_value: str,
+    target_value: str,
+) -> None:
+    visible_target = visible_text(target_value)
+    if not visible_target or visible_target == visible_text(source_value):
+        return
+    if not CJK_OR_KANA_RE.search(visible_target):
+        return
+    records.append(
+        {
+            "file": file_path.as_posix(),
+            "path": item_path,
+            "source": visible_text(source_value),
+            "target": visible_target,
+        }
+    )
+
+
+def record_translation_reuse_issues(
+    result: dict[str, Any],
+    language_alias: str,
+    repo_code: str,
+    whitelist: dict[str, Any],
+    records: list[dict[str, str]],
+) -> None:
+    contract = translation_reuse_contract(whitelist)
+    pattern_id = contract.get("id", "FP-12")
+    max_distinct_sources = int(contract.get("max_distinct_sources", 2))
+    min_translation_length = int(contract.get("min_translation_length", 6))
+    controlled = set(contract.get("controlled_vocabulary", []))
+
+    by_translation: dict[str, list[dict[str, str]]] = {}
+    for record in records:
+        target = normalize_string(record["target"])
+        if len(target) < min_translation_length:
+            continue
+        if target in controlled:
+            continue
+        by_translation.setdefault(target, []).append(record)
+
+    for target, grouped_records in sorted(by_translation.items()):
+        distinct_sources = sorted({record["source"] for record in grouped_records})
+        if len(distinct_sources) <= max_distinct_sources:
+            continue
+        first = grouped_records[0]
+        detail = (
+            f"{pattern_id} generic translation reuse: {len(distinct_sources)} distinct sources share "
+            f"'{target}'"
+        )
+        record_forbidden_pattern_issue(
+            result,
+            language_alias,
+            repo_code,
+            Path(first["file"]),
+            first["path"],
+            " | ".join(distinct_sources[:5]),
+            target,
+            [{"id": pattern_id, "detail": detail, "value": target}],
+        )
+
+
 def evaluate_language(
     root: Path,
     whitelist: dict[str, Any],
@@ -637,6 +715,7 @@ def evaluate_language(
             "forbidden_patterns": [],
         },
     }
+    reuse_records: list[dict[str, str]] = []
 
     for group_name, source_path, target_path in file_paths(root, repo_code):
         if not source_path.exists():
@@ -767,6 +846,13 @@ def evaluate_language(
                         target_value,
                         forbidden_hits,
                     )
+                add_reuse_candidate(
+                    reuse_records,
+                    target_path,
+                    json_path,
+                    source_value,
+                    target_value,
+                )
 
                 disallowed_tokens = [
                     token
@@ -863,6 +949,13 @@ def evaluate_language(
         for index, record in enumerate(parse_ts_message_records(ts_path), start=1):
             source_value = record["source"]
             target_value = record["translation"]
+            add_reuse_candidate(
+                reuse_records,
+                ts_path,
+                f"ts-message[{index}]",
+                source_value,
+                target_value,
+            )
             forbidden_hits = detect_forbidden_translation_patterns(
                 repo_code, visible_text(target_value), source_value, record["context"]
             )
@@ -886,6 +979,13 @@ def evaluate_language(
         ):
             source_value = record["source"]
             target_value = record["translation"]
+            add_reuse_candidate(
+                reuse_records,
+                generated_path,
+                f"generated-entry[{index}]",
+                source_value,
+                target_value,
+            )
             forbidden_hits = detect_forbidden_translation_patterns(
                 repo_code, visible_text(target_value), source_value, record["context"]
             )
@@ -901,6 +1001,8 @@ def evaluate_language(
                 target_value,
                 forbidden_hits,
             )
+
+    record_translation_reuse_issues(result, language_alias, repo_code, whitelist, reuse_records)
 
     translate_leaves = result["translate_leaves"]
     result["coverage"] = (
@@ -968,7 +1070,7 @@ def build_report(root: Path, extraction_inventory_path: Path | None = None) -> d
         "B13": {
             "name": "Forbidden patterns",
             "status": gate_status(b13_ok),
-            "detail": "FP-1/2/3/4/5/7/8/9 must hard-fail across JSON, TS, and generated injector outputs.",
+            "detail": "FP-1/2/3/4/5/7/8/9/10/11/12 must hard-fail across JSON, TS, and generated injector outputs.",
         },
     }
 
