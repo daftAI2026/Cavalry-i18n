@@ -39,6 +39,32 @@
       "controlled_vocabulary": ["OK", "取消", "キャンセル", "確定", "确定", "開く", "打开", "关闭", "關閉"]
     }
   },
+  "_extraction_filters": {
+    "glossary_source": "doc/workflows/cavalry-full-ui-100/Anti-Patterns.md §F",
+    "exact_values": [
+      "Acce",
+      "Acutesmall",
+      "Apple Color Emoji",
+      "Arial",
+      "Asse",
+      "Audif",
+      "Ayhb",
+      "B ffff.",
+      "close button",
+      "group",
+      "minimize button",
+      "standard window",
+      "text",
+      "zoom button"
+    ],
+    "regexes": [
+      "^(?:[a-z]{2,4}\\s+[A-Z]{2,4}\\s+){2,}",
+      "^[A-Z]\\s+[a-z]{4,}\\.$",
+      "^(?:[A-Z](?:acute|grave|caron|tilde|breve|cedilla|ogonek|macron|dieresis|circumflex|dotaccent|hungarumlaut|ring)(?:small)?|[A-Z]small|[A-Z](?:slash|th)small|(?:Acute|Breve|Caron|Cedilla|Circumflex|Dieresis|Dotaccent|Grave|Hungarumlaut|Macron|Ogonek|Ring|Tilde)small)$",
+      "^(?:Adlam|Ahom|Arabic|Bamum|Batak|Bhaiksuki|Brahmi|Buhid|Carian|Chakma|Cham|Coptic|Cypriot|Dogra|Duployan|Elbasan|Elymaic|Glagolitic|Grantha|Greek|Gujarati|Gurmukhi|Hangul|Hanunoo|Hatran|Hebrew|Hiragana|Javanese|Kaithi|Kannada|Katakana|Kharoshthi|Khmer|Khojki|Khudawadi|Latin|Lepcha|Limbu|Lisu|Lycian|Lydian|Mahajani|Malayalam|Mandaic|Manichaean|Marchen|Medefaidrin|Miao|Modi|Mongolian|Multani|Myanmar|Nabataean|Odia|Osmanya|Rejang|Runic|Samaritan|Saurashtra|Sharada|Shavian|Siddham|Sinhala|Sogdian|Soyombo|Sundanese|Syriac|Tagalog|Tagbanwa|Takri|Tamil|Telugu|Thaana|Thai|Tibetan|Tifinagh|Tirhuta|Ugaritic)$",
+      "^(?:Aquamarine|Azure|Beige|Black|Blue|Brown|Chartreuse|Chocolate|Coral|Crimson|Fuchsia|Gold|Gray|Green|Grey|Indigo|Ivory|Khaki|Lavender|Lime|Linen|Magenta|Maroon|Olive|Orange|Orchid|Pink|Plum|Purple|Salmon|Silver|Teal|Thistle|Turquoise|Violet|Wheat|White|Yellow)$"
+    ]
+  },
 
   "_schema": {
     "translate": "值包含面向用户的自然语言，必须完整翻译为目标语言",

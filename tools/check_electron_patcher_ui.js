@@ -1791,13 +1791,13 @@ test('verify gate inputs accepts extraction inventory runtime candidates and men
   writeJson(extractionPath, {
     surfaces: {
       'languages/en/appStrings.json': { count: 10 },
-      'languages/en/nodeStrings.json': { count: 6320 },
+      'languages/en/nodeStrings.json': { count: 6223 },
       'languages/en/onboarding.json': { count: 34 },
       'languages/en/tips.json': { count: 51 },
-      'json-total': { count: 6415 },
-      'compiled-source-map': { count: 5195 },
-      'runtime-candidates': { count: 613 },
-      'runtime-menuLeaves': { count: 666 },
+      'json-total': { count: 6318 },
+      'compiled-source-map': { count: 4898 },
+      'runtime-candidates': { count: 620 },
+      'runtime-menuLeaves': { count: 734 },
     },
   });
 

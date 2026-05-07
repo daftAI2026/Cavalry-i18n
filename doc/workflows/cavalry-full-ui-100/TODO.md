@@ -85,9 +85,9 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 - 长度 ≤ 6 的无义 ASCII 短串（无 glossary 出处则视为污染）
 
 剔除后必然出现新的 lower bound：
-- jsonTotal 下界以重新跑出来的数为准（不再复用 6415）
-- compiledCandidates 下界以重新跑出来的数为准（不再复用 4919/5195）
-- runtimeCandidates / runtimeMenuLeaves 下界以重新跑出来的数为准（不再复用 626/734）
+- jsonTotal = 6318（不再复用 6415）
+- compiledCandidates = 4898（不再复用 4919/5195）
+- runtimeCandidates / runtimeMenuLeaves = 620 / 734（不再复用 626/734）
 新分母即新真相源，旧分母只作历史。
 
 新一轮 G-P 阶段必须执行：
@@ -101,11 +101,11 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 | Gate | 状态 | 证据 |
 |---|---|---|
 | W-AUDIT | PASS | 弱阈值 / preflight / libExtensionLayer 红灯已收紧 |
-| G-P / §P5 | FAIL | detector 限于 FP-1..FP-9，对 FP-10/11/12 0 命中；quarantine/cavalry-full-ui-100-transliteration-20260507 在当前 detector 下也是 0 hit，这是 detector 盲区 |
+| G-P / §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10=56 / FP-11=398 / FP-12=10 |
 | G-CAPTURE | PASS | session 1D78B1A9 live merged capture 626/734/menuDepthMax 4/5 submenu samples（B897FF97 AX-only 抓取仍可用作历史） |
-| G-X | FAIL | 冻结分母未剔除字体家族 / 颜色品牌 / Unicode glyph / pangram / ≤6 字符 ASCII 短串；6415 + 5195 + 626/734 含污染 |
+| G-X | PASS | runs/2026-05-07-G-X-denominator-recleaning.md；新分母 JSON 6318 / compiled 4898 / runtime 620 / menuLeaves 734 |
 | G0 / G1 | PASS | `npm run test:desktop` 85/85、JSON validator 100% / forbiddenPatterns 0 |
-| G2a 分母清洗 | FAIL | 旧分母被 G-X 缺陷污染，需要在 G-X 修好后重算 |
+| G2a 分母清洗 | PASS | 旧分母已废弃，新 truth source 为 session 1D78B1A9 的 extraction hash 1fd96600690f |
 | G2b 编译 UI | FAIL | 2026-05-07 的 100% 是 FP-10/11/12 fabrication 凑出来的；detector + 分母修好后必须重译 |
 | G3 运行时 UI | FAIL | session 1D78B1A9 runtime 100% 与 G2 同源，需在新分母上重跑；session B897FF97 的 100% 同样建立在污染分母上 |
 | G4 矩阵 | FAIL | 依赖 G-X 重新冻结 + §P5 detector 升级 + G2/G3 在新分母上重译 |

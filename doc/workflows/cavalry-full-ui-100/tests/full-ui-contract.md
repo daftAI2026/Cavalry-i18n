@@ -47,9 +47,9 @@ test -f "$SESSION_DIR/extraction-inventory.json"
 PASS 条件：
 
 - JSON / compiled / runtime 三类 surface 全部存在
-- JSON lower bounds 达到 `10 / 6320 / 34 / 51 / total 6415`
-- compiled source-map entries `>= 5195`（Cavalry 2.7.1 raw extraction；2.7.0 时为 4743）
-- runtime candidates `>= 613` 且 menu leaves `>= 666`，下界来自 A9B11073 合格基线
+- JSON lower bounds 达到 G-X 清洗后 `10 / 6223 / 34 / 51 / total 6318`
+- compiled source-map entries `>= 4898`（Cavalry 2.7.1 raw extraction 经 §F 噪声剔除；2.7.0 时为 4743）
+- runtime candidates `>= 620` 且 menu leaves `>= 734`，下界来自 1D78B1A9 清洗后合格基线
 - `RUN_RECORD.extractionInventory.path/hash/mtime` 已记录
 
 ### BX.2 downstream gates must use frozen denominator

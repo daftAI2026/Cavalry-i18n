@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 languages/en JSON、compiled source-map、live runtime inventory、cavalry_qt_target.json 与 runtime allowlist
+ * [INPUT]: 依赖 languages/en JSON、compiled source-map、live runtime inventory、cavalry_qt_target.json、translation-whitelist.json 与 runtime allowlist
  * [OUTPUT]: 对外提供 SESSION_DIR/extraction-inventory.json，并把 frozen denominator provenance 写回 RUN_RECORD
  * [POS]: tools 的 G-X freeze 器，统一 JSON/compiled/runtime 英文分母供 G1/G2/G3/G4 只读消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -17,6 +17,8 @@ const JSON_SURFACES = [
   { key: 'languages/en/onboarding.json', group: 'onboarding' },
   { key: 'languages/en/tips.json', group: 'tips' },
 ];
+
+const EXTRACTION_FILTER_KEY = '_extraction_filters';
 
 function fail(message) {
   throw new Error(message);
@@ -127,6 +129,97 @@ function readPackageVersion(repoRoot) {
   return String(packageJson.version || '0');
 }
 
+function loadTranslationWhitelist(repoRoot) {
+  const whitelistPath = path.join(repoRoot, 'tools', 'translation-whitelist.json');
+  if (!fs.existsSync(whitelistPath)) {
+    return {};
+  }
+  return readJson(whitelistPath);
+}
+
+function loadExtractionFilters(whitelist) {
+  const config = whitelist[EXTRACTION_FILTER_KEY] || {};
+  const hasRules =
+    (Array.isArray(config.exact_values) && config.exact_values.length > 0) ||
+    (Array.isArray(config.regexes) && config.regexes.length > 0);
+  if (hasRules && !config.glossary_source) {
+    fail(`${EXTRACTION_FILTER_KEY}.glossary_source is required for denominator filters.`);
+  }
+
+  return {
+    glossarySource: String(config.glossary_source || ''),
+    exactValues: new Set((config.exact_values || []).map((value) => normalizeText(value))),
+    regexes: (config.regexes || []).map((regex) => new RegExp(regex)),
+  };
+}
+
+function buildJsonRuleSet(whitelist, group) {
+  const rules = whitelist[group] || {};
+  return {
+    translate: new Set(rules.translate || []),
+    noTranslate: new Set(rules.no_translate || []),
+    localeSync: new Set(rules.locale_sync || []),
+    hasRules:
+      Boolean(rules.translate?.length) ||
+      Boolean(rules.no_translate?.length) ||
+      Boolean(rules.locale_sync?.length),
+  };
+}
+
+function nextJsonMode(key, currentMode, rules) {
+  if (rules.translate.has(key)) {
+    return 'translate';
+  }
+  if (rules.noTranslate.has(key)) {
+    return 'no_translate';
+  }
+  if (rules.localeSync.has(key)) {
+    return 'locale_sync';
+  }
+  return currentMode;
+}
+
+function modeForJsonPath(jsonPath, rules) {
+  if (!rules.hasRules) {
+    return 'raw';
+  }
+  let mode = null;
+  for (const match of jsonPath.matchAll(/\.([^.\\[]+)/g)) {
+    mode = nextJsonMode(match[1], mode, rules);
+  }
+  return mode;
+}
+
+function shouldExcludeValue(value, filters) {
+  if (typeof value !== 'string') {
+    return false;
+  }
+  const normalized = normalizeText(value);
+  if (!normalized) {
+    return false;
+  }
+  if (filters.exactValues.has(normalized)) {
+    return true;
+  }
+  return filters.regexes.some((regex) => regex.test(normalized));
+}
+
+function filterEnglishLeaves(leaves, filters) {
+  const englishLeaves = [];
+  const excludedLeaves = [];
+  for (const leaf of leaves) {
+    if (shouldExcludeValue(leaf.value, filters)) {
+      excludedLeaves.push(leaf);
+      continue;
+    }
+    englishLeaves.push(leaf);
+  }
+  return {
+    englishLeaves,
+    excludedLeaves,
+  };
+}
+
 function collectJsonLeaves(value, jsonPath = '$') {
   const leaves = [];
   if (Array.isArray(value)) {
@@ -166,18 +259,21 @@ function buildSurfaceRecord({ source, surface, count, englishLeaves, extractor, 
   };
 }
 
-function buildJsonSurfaces(repoRoot, extractor, frozenAtUtc) {
+function buildJsonSurfaces(repoRoot, extractor, frozenAtUtc, filters, whitelist = {}) {
   const surfaces = {};
   const aggregatedLeaves = [];
   const filePaths = [];
 
   for (const config of JSON_SURFACES) {
     const sourcePath = path.join(repoRoot, config.key);
-    const leaves = collectJsonLeaves(readJson(sourcePath)).map((leaf) => ({
+    const rules = buildJsonRuleSet(whitelist, config.group);
+    const rawLeaves = collectJsonLeaves(readJson(sourcePath)).map((leaf) => ({
       path: leaf.path,
       value: leaf.value,
       valueType: leaf.valueType,
-    }));
+      mode: modeForJsonPath(leaf.path, rules),
+    })).filter((leaf) => leaf.mode);
+    const { englishLeaves: leaves, excludedLeaves } = filterEnglishLeaves(rawLeaves, filters);
     filePaths.push(sourcePath);
     aggregatedLeaves.push(
       ...leaves.map((leaf) => ({
@@ -192,35 +288,48 @@ function buildJsonSurfaces(repoRoot, extractor, frozenAtUtc) {
       englishLeaves: leaves,
       extractor,
       frozenAtUtc,
+      extra: {
+        excludedCount: excludedLeaves.length,
+        exclusionSource: filters.glossarySource,
+      },
     });
   }
 
+  const { englishLeaves: totalLeaves, excludedLeaves: totalExcludedLeaves } = filterEnglishLeaves(
+    aggregatedLeaves,
+    filters
+  );
   surfaces['json-total'] = buildSurfaceRecord({
     source: aggregateMetadata(filePaths, path.join(repoRoot, 'languages', 'en')),
     surface: 'json',
-    count: aggregatedLeaves.length,
-    englishLeaves: aggregatedLeaves,
+    count: totalLeaves.length,
+    englishLeaves: totalLeaves,
     extractor,
     frozenAtUtc,
+    extra: {
+      excludedCount: totalExcludedLeaves.length,
+      exclusionSource: filters.glossarySource,
+    },
   });
 
   return surfaces;
 }
 
-function buildCompiledSurface(compiledSourceMapPath, extractor, frozenAtUtc) {
+function buildCompiledSurface(compiledSourceMapPath, extractor, frozenAtUtc, filters) {
   const sourceMap = readJson(compiledSourceMapPath);
-  const englishLeaves = (sourceMap.entries || [])
+  const rawLeaves = (sourceMap.entries || [])
     .map((entry) => ({
       value: normalizeText(entry.normalizedText || entry.text || ''),
       sourcePath: entry.sourcePath || entry.path || '',
       surfaceHint: entry.surfaceHint || '',
     }))
     .filter((entry) => entry.value);
+  const { englishLeaves, excludedLeaves } = filterEnglishLeaves(rawLeaves, filters);
 
   return buildSurfaceRecord({
     source: fileMetadata(compiledSourceMapPath),
     surface: 'compiled',
-    count: Array.isArray(sourceMap.entries) ? sourceMap.entries.length : 0,
+    count: englishLeaves.length,
     englishLeaves,
     extractor,
     frozenAtUtc,
@@ -228,11 +337,14 @@ function buildCompiledSurface(compiledSourceMapPath, extractor, frozenAtUtc) {
       kind: sourceMap.kind || '',
       bundleVersion: sourceMap.bundleVersion || '',
       notes: sourceMap.notes || [],
+      rawCount: rawLeaves.length,
+      excludedCount: excludedLeaves.length,
+      exclusionSource: filters.glossarySource,
     },
   });
 }
 
-function buildRuntimeSurfaces(runtimeInventoryPath, allowlistPath, extractor, frozenAtUtc) {
+function buildRuntimeSurfaces(runtimeInventoryPath, allowlistPath, extractor, frozenAtUtc, filters) {
   const inventory = readJson(runtimeInventoryPath);
   const allowlist = readJson(allowlistPath);
   const coverage = buildCoverage(inventory, allowlist);
@@ -246,29 +358,43 @@ function buildRuntimeSurfaces(runtimeInventoryPath, allowlistPath, extractor, fr
     .map((value) => normalizeText(value))
     .filter(Boolean)
     .map((value) => ({ value }));
+  const { englishLeaves: runtimeCandidates, excludedLeaves: excludedRuntimeCandidates } = filterEnglishLeaves(
+    coverage.candidates.map((value) => ({ value })),
+    filters
+  );
+  const { englishLeaves: runtimeMenuLeaves, excludedLeaves: excludedRuntimeMenuLeaves } = filterEnglishLeaves(
+    normalizedMenuLeaves,
+    filters
+  );
 
   const metadata = fileMetadata(runtimeInventoryPath);
   return {
     'runtime-candidates': buildSurfaceRecord({
       source: metadata,
       surface: 'runtime',
-      count: coverage.totalCandidates,
-      englishLeaves: coverage.candidates.map((value) => ({ value })),
+      count: runtimeCandidates.length,
+      englishLeaves: runtimeCandidates,
       extractor,
       frozenAtUtc,
       extra: {
         capture: inventory.capture || {},
+        rawCount: coverage.totalCandidates,
+        excludedCount: excludedRuntimeCandidates.length,
+        exclusionSource: filters.glossarySource,
       },
     }),
     'runtime-menuLeaves': buildSurfaceRecord({
       source: metadata,
       surface: 'runtime',
-      count: normalizedMenuLeaves.length,
-      englishLeaves: normalizedMenuLeaves,
+      count: runtimeMenuLeaves.length,
+      englishLeaves: runtimeMenuLeaves,
       extractor,
       frozenAtUtc,
       extra: {
         capture: inventory.capture || {},
+        rawCount: normalizedMenuLeaves.length,
+        excludedCount: excludedRuntimeMenuLeaves.length,
+        exclusionSource: filters.glossarySource,
       },
     }),
   };
@@ -315,14 +441,17 @@ function buildExtractionInventory(options) {
     name: 'tools/freeze_extraction_inventory.js',
     version: readPackageVersion(options.repoRoot),
   };
+  const whitelist = loadTranslationWhitelist(options.repoRoot);
+  const extractionFilters = loadExtractionFilters(whitelist);
   const surfaces = {
-    ...buildJsonSurfaces(options.repoRoot, extractor, frozenAtUtc),
-    'compiled-source-map': buildCompiledSurface(options.compiledSourceMap, extractor, frozenAtUtc),
+    ...buildJsonSurfaces(options.repoRoot, extractor, frozenAtUtc, extractionFilters, whitelist),
+    'compiled-source-map': buildCompiledSurface(options.compiledSourceMap, extractor, frozenAtUtc, extractionFilters),
     ...buildRuntimeSurfaces(
       options.runtimeInventory,
       path.join(options.repoRoot, 'tools', 'runtime_ui_allowlist.json'),
       extractor,
-      frozenAtUtc
+      frozenAtUtc,
+      extractionFilters
     ),
   };
   const target = buildTargetIdentity({
@@ -337,6 +466,11 @@ function buildExtractionInventory(options) {
     target,
     frozenAtUtc,
     extractor,
+    extractionFilters: {
+      glossarySource: extractionFilters.glossarySource,
+      exactCount: extractionFilters.exactValues.size,
+      regexCount: extractionFilters.regexes.length,
+    },
     surfaces,
     englishLeaves: Object.fromEntries(
       Object.entries(surfaces).map(([surfaceKey, surface]) => [surfaceKey, surface.englishLeaves])

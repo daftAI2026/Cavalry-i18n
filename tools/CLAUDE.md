@@ -20,7 +20,7 @@ verify_gate_inputs.js: full-ui 前置输入守门器，冻结 session artifact�
 capture_accessibility_inventory.js: live AX runtime 抓取器，写 `RUNTIME_DIR/<lang>-ax-inventory.json` 与 menuDepthMax/submenu path audit evidence。
 merge_runtime_inventory.js: runtime inventory 合并器，只接受 live-injector / live-accessibility 输入并产出 `live-merged` session 分母。
 run_live_full_ui_matrix.js: G-CAPTURE 编排器，启动真实 Cavalry、解析 launcher PID、拒绝弱抓取并写 session run record。
-freeze_extraction_inventory.js: G-X freeze 器，冻结 JSON/compiled/runtime 英文分母并写顶层 target identity。
+freeze_extraction_inventory.js: G-X freeze 器，按 whitelist 噪声规则冻结 JSON/compiled/runtime 英文分母并写顶层 target identity。
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
 generate_embedded_translations.js: 从 `tools/*.ts` 生成 injector 编译期翻译表。
 resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时按配置下载。
@@ -31,7 +31,7 @@ validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 sou
 forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。
 forbidden_translation_patterns.js: Node 共享 forbidden-pattern detector，供 runtime/full-ui gate 与契约测试复用 FP-1/2/3/4/5/7/8/9/10/11。
 forbidden_translation_patterns.json: §P5 detector 配置，集中声明正则、source/context denylist、latin residue、transliteration 与 pangram 规则。
-translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界与 FP-10/11/12 whitelist 契约，被 validate_translations.py 读取。
+translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、FP-10/11/12 whitelist 契约与 G-X denominator filter。
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
