@@ -24,9 +24,9 @@ PASS
 ```text
 sessionUuid          = 1D78B1A9-37BE-4360-B61F-A0314766F7D6
 extractionInventory = ~/Library/Caches/Cavalry-i18n/sessions/1D78B1A9-37BE-4360-B61F-A0314766F7D6/extraction-inventory.json
-hash                = 1fd96600690fbbae9ec9d99028e500a8e9baa0bc33bba7c3bc1e5a082dec4844
-jsonTotal           = 6318
-compiledCandidates  = 4898
+hash                = 967f318a831495617b29b1c73f8b2452954b71b7b198bbd999e151701bd12db2
+jsonTotal           = 6301
+compiledCandidates  = 3309
 runtimeCandidates   = 620
 runtimeMenuLeaves   = 734
 ```
@@ -35,7 +35,7 @@ JSON breakdown:
 
 ```text
 appStrings   = 10
-nodeStrings  = 6223
+nodeStrings  = 6206
 onboarding   = 34
 tips         = 51
 ```
@@ -43,10 +43,11 @@ tips         = 51
 Exclusions:
 
 ```text
-compiled-source-map        excluded 297
-languages/en/nodeStrings   excluded 23
+compiled-source-map        excluded 1886
+languages/en/nodeStrings   excluded 40
 runtime-candidates         excluded 6
 filter source              doc/workflows/cavalry-full-ui-100/Anti-Patterns.md §F
+generated exact values     1701 from color-name-list@14.36.0 and Unicode PropertyValueAliases.txt intersections; runtime-visible strings preserved
 ```
 
 ## Verification
@@ -67,4 +68,4 @@ PASS: {"pass": true, "violations": []}
 
 ## Decision
 
-G-X is complete on the cleaned denominator. Old `6415 / 5195 / 626 / 734` and `6415 / 4919 / 626` are historical evidence only; Step 3 must translate against `6318 / 4898 / 620 / 734`.
+G-X is complete on the cleaned denominator. Old `6415 / 5195 / 626 / 734` and `6415 / 4919 / 626` are historical evidence only; Step 3 must translate against `6301 / 3309 / 620 / 734`.

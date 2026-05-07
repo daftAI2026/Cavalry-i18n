@@ -97,12 +97,12 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 ```text
 Baseline is rerunnable and reachable.
 Current repo state: NOT COMPLETE (2026-05-07 ALL-GATES-PASS claim INVALIDATED on detector blind spot).
-First next gate: G2/G3 retranslation on the cleaned 6318 / 4898 / 620 / 734 denominator.
+First next gate: G2/G3 retranslation on the cleaned 6301 / 3309 / 620 / 734 denominator.
 
 Historical verified evidence retained:
   - W-AUDIT / G-P / G-CAPTURE / G-X / G0 / G1 still have current evidence from sessions B897FF97-D3E1-419C-94BC-38F1158F3BB7 and 1D78B1A9-37BE-4360-B61F-A0314766F7D6.
   - Target identity remains Cavalry 2.7.1 / Qt 6.6.3 / bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1.
-  - Cleaned frozen denominator is now JSON 6318 + compiled 4898 + runtime candidates 620 / menuLeaves 734 from session 1D78B1A9; old 6415 / 5195 / 626 / 734 is historical evidence only.
+  - Cleaned frozen denominator is now JSON 6301 + compiled 3309 + runtime candidates 620 / menuLeaves 734 from session 1D78B1A9; old 6415 / 5195 / 626 / 734 is historical evidence only.
 
 Current blockers:
   - G2 / G3 / G4 must be re-translated by LLM on the cleaned denominator; FP-10/11/12 hit count must be 0 across tools/{zh-Hans,zh-Hant,ja_JP}.ts and desktop-patcher/injector/generated_translations.inc before any new ALL GATES PASS claim.
@@ -308,10 +308,10 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 | G-P | PASS | session B897FF97 runtime artifacts are session-scoped and preflight rejects root-cache / fixture / curated inputs |
 | §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10=56 / FP-11=398 / FP-12=10 |
 | G-CAPTURE | PASS | session 1D78B1A9 live merged capture 有 626 candidates / 734 menu leaves / menuDepthMax 4 / 5 submenu path samples（B897FF97 的 AX-only 抓取仍可用作历史） |
-| G-X | PASS | runs/2026-05-07-G-X-denominator-recleaning.md；新分母 JSON 6318 / compiled 4898 / runtime candidates 620 / menuLeaves 734 |
+| G-X | PASS | runs/2026-05-07-G-X-denominator-recleaning.md；新分母 JSON 6301 / compiled 3309 / runtime candidates 620 / menuLeaves 734 |
 | G0 | PASS | `npm run test:desktop` 85/85 and workflow contracts 5/5 pass after reverify |
 | G1 | PASS | JSON validator exits 0 with 100% coverage and forbiddenPatterns total 0 for all three languages |
-| G2 | FAIL | compiled translations 还没在 4898 cleaned denominator 上真合格；2026-05-07 的 100% 是 quarantine FP-10/11/12 fabrication |
+| G2 | FAIL | compiled translations 还没在 3309 cleaned denominator 上真合格；2026-05-07 的 100% 是 quarantine FP-10/11/12 fabrication |
 | G3 | FAIL | runtime UI 需在 620 cleaned denominator 上重跑并证明 FP-1..12 为 0 |
 | G4 | FAIL | 依赖 G2/G3 在新分母上重译并通过矩阵 |
 

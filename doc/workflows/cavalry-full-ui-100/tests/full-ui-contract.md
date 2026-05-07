@@ -47,8 +47,8 @@ test -f "$SESSION_DIR/extraction-inventory.json"
 PASS 条件：
 
 - JSON / compiled / runtime 三类 surface 全部存在
-- JSON lower bounds 达到 G-X 清洗后 `10 / 6223 / 34 / 51 / total 6318`
-- compiled source-map entries `>= 4898`（Cavalry 2.7.1 raw extraction 经 §F 噪声剔除；2.7.0 时为 4743）
+- JSON lower bounds 达到 G-X 清洗后 `10 / 6206 / 34 / 51 / total 6301`
+- compiled source-map entries `>= 3309`（Cavalry 2.7.1 raw extraction 经 §F 噪声剔除；2.7.0 时为 4743）
 - runtime candidates `>= 620` 且 menu leaves `>= 734`，下界来自 1D78B1A9 清洗后合格基线
 - `RUN_RECORD.extractionInventory.path/hash/mtime` 已记录
 

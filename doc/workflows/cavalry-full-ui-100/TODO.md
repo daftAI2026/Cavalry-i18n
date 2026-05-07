@@ -85,8 +85,8 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 - 长度 ≤ 6 的无义 ASCII 短串（无 glossary 出处则视为污染）
 
 剔除后必然出现新的 lower bound：
-- jsonTotal = 6318（不再复用 6415）
-- compiledCandidates = 4898（不再复用 4919/5195）
+- jsonTotal = 6301（不再复用 6415）
+- compiledCandidates = 3309（不再复用 4919/5195）
 - runtimeCandidates / runtimeMenuLeaves = 620 / 734（不再复用 626/734）
 新分母即新真相源，旧分母只作历史。
 
@@ -103,7 +103,7 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 | W-AUDIT | PASS | 弱阈值 / preflight / libExtensionLayer 红灯已收紧 |
 | G-P / §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10=56 / FP-11=398 / FP-12=10 |
 | G-CAPTURE | PASS | session 1D78B1A9 live merged capture 626/734/menuDepthMax 4/5 submenu samples（B897FF97 AX-only 抓取仍可用作历史） |
-| G-X | PASS | runs/2026-05-07-G-X-denominator-recleaning.md；新分母 JSON 6318 / compiled 4898 / runtime 620 / menuLeaves 734 |
+| G-X | PASS | runs/2026-05-07-G-X-denominator-recleaning.md；新分母 JSON 6301 / compiled 3309 / runtime 620 / menuLeaves 734 |
 | G0 / G1 | PASS | `npm run test:desktop` 85/85、JSON validator 100% / forbiddenPatterns 0 |
 | G2a 分母清洗 | PASS | 旧分母已废弃，新 truth source 为 session 1D78B1A9 的 extraction hash 1fd96600690f |
 | G2b 编译 UI | FAIL | 2026-05-07 的 100% 是 FP-10/11/12 fabrication 凑出来的；detector + 分母修好后必须重译 |

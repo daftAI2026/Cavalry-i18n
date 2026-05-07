@@ -13,11 +13,11 @@ const { detectForbiddenTranslationPatterns } = require('./forbidden_translation_
 
 const EXTRACTION_LOWER_BOUNDS = {
   'languages/en/appStrings.json': 10,
-  'languages/en/nodeStrings.json': 6223,
+  'languages/en/nodeStrings.json': 6206,
   'languages/en/onboarding.json': 34,
   'languages/en/tips.json': 51,
-  'json-total': 6318,
-  'compiled-source-map': 4898,
+  'json-total': 6301,
+  'compiled-source-map': 3309,
   'runtime-candidates': 620,
   'runtime-menuLeaves': 734,
 };
