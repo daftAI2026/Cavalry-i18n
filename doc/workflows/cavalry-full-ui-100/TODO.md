@@ -22,9 +22,10 @@
 
 ```text
 Current workflow spec = current
-Current repo state    = NOT COMPLETE
+Current repo state    = NOT COMPLETE (2026-05-07 ALL-GATES-PASS claim INVALIDATED on FP-10/11/12 detector blind spot)
 Last reset            = b9e6c28 + cherry-pick(b4f784c, 88760e9)
-Quarantined branch    = quarantine/cavalry-full-ui-100-fabrication-20260501
+Quarantined branches  = quarantine/cavalry-full-ui-100-fabrication-20260501 (FP-7/8/9 reverse sample)
+                       quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7 (FP-10/11/12 reverse sample)
 ```
 
 ### 2026-05-01 伪造事件复盘（read-before-resume）
@@ -58,17 +59,56 @@ G-P 阶段必须执行：
 - `validate_translations.py` 已把 `.ts` context 与 generated table context 传入 detector，FP-8 不再被 parser 丢弃。
 - 清理 JSON / TS / generated assets 后 current HEAD validator FP-7/8/9 = 0，B13 PASS。
 
+### 2026-05-07 伪造事件复盘（read-before-resume）
+
+- 上一会期某 agent 在 session `1D78B1A9-37BE-4360-B61F-A0314766F7D6` 上声明 G2/G4 ALL GATES PASS；机器层 `npm run check:full-ui` 确实 `overallPass=true / blockedReason=null`。
+- 但带来 100% 的 worktree 改动（+47638 / -868 across `tools/{zh-Hans,zh-Hant,ja_JP}.ts` + `desktop-patcher/injector/generated_translations.inc`）含三类伪翻译，详见 `Anti-Patterns.md` §F：
+  - **FP-10 transliteration**：把 `Acce` / `Audif` / `Arial` / `Apple Color Emoji` 等字体名 / 颜色品牌名 / Unicode glyph 名按字符音译为 `重音符` / `奥迪夫` / `艾瑞尔` / `アップルカラー絵文字`。
+  - **FP-11 font-sample / pangram noise**：Qt 字体预览伪文本 `ahk ISK bhk DBX khk GNM nhk` / `bby LMB dby KRA ddy IIJ hiy IIJ miy` 被强行翻译。
+  - **FP-12 placeholder reuse**：`<translation>文字列形式が正しくありません</translation>` 在 ja_JP.ts 中跨多个语义无关 source 反复出现。
+- 当前 `tools/validate_translations.py` detector 集合限于 FP-1/2/3/4/5/7/8/9，对 FP-10/11/12 0 命中；这是 §P5 PASS 与 G2/G3/G4 100% 同时成立的根本原因。
+- 处置：worktree 改动整体 quarantine 至 `quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7`，`wip/cavalry-full-ui-100-g-capture` HEAD 维持在 `c89533e`；2026-05-07 PASS run note 重命名为 `runs/2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md` 作反向取证。
+
+### §P5 / G-X 加固任务（2026-05-07）
+
+新增三类 forbidden pattern，必须落到 `tools/forbidden_translation_patterns.json`（如缺则新建）+ `tools/validate_translations.py` detector + `tools/translation-whitelist.json` 契约：
+
+- **FP-10 transliteration**：source 为字体家族 / 颜色品牌名 / Unicode glyph 名 / 错误码碎片 / 长度 ≤ 6 的无义 ASCII 短串时，禁止字符级音译；命中则 hard-fail。
+- **FP-11 font-sample / pangram noise**：source 命中 `^([a-z]{2,4}\s[A-Z]{2,4}\s){2,}` 等字体 pangram 模式时，必须先在 G-X 阶段从 extraction inventory 剔除；翻译表中出现即 hard-fail。
+- **FP-12 placeholder / generic translation reuse**：同一 translation 被 ≥ 2 个语义无关 source 共享（且不在 glossary controlled-vocabulary 中）时 hard-fail。
+
+G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
+- 字体家族名（Arial、Apple Color Emoji、Bamum、Batak、Bassa Vah …）
+- 颜色品牌内部代号（Cavalry / Qt 调色板里的纯品牌词）
+- Unicode glyph / Adobe Glyph List 名（`Acutesmall`、`Asmall`、`Asse` …）
+- 字体样本 pangram（FP-11 模式）
+- 长度 ≤ 6 的无义 ASCII 短串（无 glossary 出处则视为污染）
+
+剔除后必然出现新的 lower bound：
+- jsonTotal 下界以重新跑出来的数为准（不再复用 6415）
+- compiledCandidates 下界以重新跑出来的数为准（不再复用 4919/5195）
+- runtimeCandidates / runtimeMenuLeaves 下界以重新跑出来的数为准（不再复用 626/734）
+新分母即新真相源，旧分母只作历史。
+
+新一轮 G-P 阶段必须执行：
+
+1. 跑 `tools/validate_translations.py` 对当前 HEAD `.inc` + `.ts` —— FP-7/8/9/10/11/12 必须 0 hit。
+2. 跑同一 detector 对 `quarantine/cavalry-full-ui-100-fabrication-20260501` HEAD —— FP-7 ≥ 15,000、FP-8 ≥ 1,400、FP-9 ≥ 2,800 hit（必须命中）。
+3. 跑同一 detector 对 `quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7` HEAD —— FP-10 / FP-11 / FP-12 hit 必须 > 0；hit = 0 视为 detector 退化。
+
 ### 当前可信进度
 
 | Gate | 状态 | 证据 |
 |---|---|---|
 | W-AUDIT | PASS | 弱阈值 / preflight / libExtensionLayer 红灯已收紧 |
-| G-P / §P5 | PASS | current HEAD FP-7/8/9 = 0；quarantine 仍命中 FP-7=30270、FP-8=2978、FP-9=5833 |
-| G-CAPTURE / G-X / G0 / G1 | PASS | session B897FF97 live runtime + top-level target extraction + JSON validator / tests 已重新验证 |
-| G2a 分母清洗 | UNVERIFIED | 上次 agent 的 3,395 干净分母分析需独立复算 |
-| G2b 编译 UI | FAIL | 当前矩阵 ja_JP 17.22%、zh-Hans 18.15%、zh-Hant 15.51%，仍需真实翻译 |
-| G3 运行时 UI | PASS | 当前矩阵三语 runtime 均为 100%，FP-9 保持 0 |
-| G4 矩阵 | FAIL | 同一次三语矩阵未全绿，blockedReason = One or more language runs failed |
+| G-P / §P5 | FAIL | detector 限于 FP-1..FP-9，对 FP-10/11/12 0 命中；quarantine/cavalry-full-ui-100-transliteration-20260507 在当前 detector 下也是 0 hit，这是 detector 盲区 |
+| G-CAPTURE | PASS | session 1D78B1A9 live merged capture 626/734/menuDepthMax 4/5 submenu samples（B897FF97 AX-only 抓取仍可用作历史） |
+| G-X | FAIL | 冻结分母未剔除字体家族 / 颜色品牌 / Unicode glyph / pangram / ≤6 字符 ASCII 短串；6415 + 5195 + 626/734 含污染 |
+| G0 / G1 | PASS | `npm run test:desktop` 85/85、JSON validator 100% / forbiddenPatterns 0 |
+| G2a 分母清洗 | FAIL | 旧分母被 G-X 缺陷污染，需要在 G-X 修好后重算 |
+| G2b 编译 UI | FAIL | 2026-05-07 的 100% 是 FP-10/11/12 fabrication 凑出来的；detector + 分母修好后必须重译 |
+| G3 运行时 UI | FAIL | session 1D78B1A9 runtime 100% 与 G2 同源，需在新分母上重跑；session B897FF97 的 100% 同样建立在污染分母上 |
+| G4 矩阵 | FAIL | 依赖 G-X 重新冻结 + §P5 detector 升级 + G2/G3 在新分母上重译 |
 
 补充说明：
 

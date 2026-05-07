@@ -96,16 +96,21 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 
 ```text
 Baseline is rerunnable and reachable.
-Current repo state: NOT COMPLETE.
-First next gate: G2 compiled translation backlog after G-P/§P5/G-CAPTURE/G-X/G3 reverify.
+Current repo state: NOT COMPLETE (2026-05-07 ALL-GATES-PASS claim INVALIDATED on detector blind spot).
+First next gate: §P5 detector must cover FP-10/11/12; G-X must re-clean and re-freeze the denominator before any G2/G3/G4 reclaim.
 
 Historical verified evidence retained:
-  - G-P / §P5 / G-CAPTURE / G-X have current evidence from session B897FF97-D3E1-419C-94BC-38F1158F3BB7.
-  - The frozen denominator is JSON 6415 + compiled 5195 + runtime candidates 626 / menuLeaves 734.
-  - Target identity is Cavalry 2.7.1 / Qt 6.6.3 / bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1.
+  - W-AUDIT / G-P / G-CAPTURE / G-X / G0 / G1 still have current evidence from sessions B897FF97-D3E1-419C-94BC-38F1158F3BB7 and 1D78B1A9-37BE-4360-B61F-A0314766F7D6.
+  - Target identity remains Cavalry 2.7.1 / Qt 6.6.3 / bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1.
+  - Frozen denominator (JSON 6415 + compiled 5195 + runtime candidates 626 / menuLeaves 734) is now suspect: G-X did not exclude font family names, color brand internal codes, Unicode glyph names, font-sample pangrams or short meaningless ASCII tokens. Must be re-cleaned and re-frozen before reuse.
 
 Current blockers:
-  - G2 compiled UI still needs real translations; G4 remains blocked.
+  - §P5 detector must be extended to FP-10 (transliteration of font / color / glyph / short ASCII source), FP-11 (font-sample / pangram noise translated as text) and FP-12 (placeholder / generic translation reuse). Quarantine branch quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7 must light up under the new detector; current detector finds 0 hits there, which proves the blind spot.
+  - tools/translation-whitelist.json must register the three new contracts (transliteration ban / pangram skip / translation-reuse cap).
+  - tools/freeze_extraction_inventory.js must reject the above categories before freezing; new lower bounds (smaller than the current 6415 / 5195 / 626) become the truth source.
+  - G2 / G3 / G4 must be re-translated by LLM on the cleaned denominator; FP-10/11/12 hit count must be 0 across tools/{zh-Hans,zh-Hant,ja_JP}.ts and desktop-patcher/injector/generated_translations.inc before any new ALL GATES PASS claim.
+  - The duplicated `<message>` blocks inside each tools/<lang>.ts (>=3 repeats of the same source) must be normalized as part of the denominator cleanup, not afterwards.
+  - The 2026-05-07 PASS run note has been renamed to runs/2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md and is now reverse-evidence only.
 ```
 
 ### 当前 worktree 真相
@@ -304,14 +309,14 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 | --- | --- | --- |
 | W-AUDIT | PASS | weak threshold / preflight / libExtensionLayer red flags have code evidence |
 | G-P | PASS | session B897FF97 runtime artifacts are session-scoped and preflight rejects root-cache / fixture / curated inputs |
-| §P5 | PASS | current HEAD validator reports FP-7/8/9 = 0; quarantine still hits FP-7=30270, FP-8=2978, FP-9=5833 |
-| G-CAPTURE | PASS | session B897FF97 live AX capture has 626 candidates, 734 menu leaves, menuDepthMax 4, 5 submenu path samples |
-| G-X | PASS | session B897FF97 extraction inventory freezes JSON 6415 + compiled 5195 + runtime 626/734 with top-level target |
+| §P5 | FAIL | detector集合限于 FP-1/2/3/4/5/7/8/9，对 FP-10 transliteration / FP-11 font-sample pangram / FP-12 placeholder reuse 0 命中；2026-05-07 G2/G4 ALL GATES PASS 是该盲区直接产物，已 INVALIDATED |
+| G-CAPTURE | PASS | session 1D78B1A9 live merged capture 有 626 candidates / 734 menu leaves / menuDepthMax 4 / 5 submenu path samples（B897FF97 的 AX-only 抓取仍可用作历史） |
+| G-X | FAIL | extraction inventory 冻结时未剔除字体家族名 / 颜色品牌内部代号 / Unicode glyph 名 / 字体样本 pangram / ≤6 字符无义 ASCII 短串；JSON 6415 + compiled 5195 + runtime 626/734 含污染分母，必须重新清洗后再冻结 |
 | G0 | PASS | `npm run test:desktop` 85/85 and workflow contracts 5/5 pass after reverify |
 | G1 | PASS | JSON validator exits 0 with 100% coverage and forbiddenPatterns total 0 for all three languages |
-| G2 | FAIL | compiled translations incomplete |
-| G3 | PASS | runtime coverage is 100% for zh-Hans / zh-Hant / ja_JP on session B897FF97 |
-| G4 | FAIL | depends on G2 |
+| G2 | FAIL | compiled translations 还没真合格；2026-05-07 的 100% 是 quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7 上 FP-10/11/12 fabrication 凑出来的，detector 修好后必须重译 |
+| G3 | FAIL | session 1D78B1A9 runtime 100% 与 G2 同源，依赖 §P5 detector 与 G-X 分母清洗后重跑；session B897FF97 的 100% 同样建立在污染分母上 |
+| G4 | FAIL | 依赖 G-X 重新冻结 + §P5 detector 升级 + G2/G3 在新分母上重译 |
 
 ### Verified Session Data
 

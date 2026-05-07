@@ -26,6 +26,7 @@
 2026-05-05-review-finding-fixes.md: Review finding 修复记录，收敛当前状态口径、5195 gate、§P5 detector 集合与 executable contract；保留 G-P / G-X / G2 / G3 剩余 blocker。
 2026-05-05-G-P-P5-reverify.md: G-P / §P5 复核记录，证明 root-cache runtime 旁路已封堵、FP-8 context 检测已接通、FP-9 已清零。
 2026-05-05-P5-GX-matrix-reverify.md: 本轮 P5/G-CAPTURE/G-X/G0/G1/G3 复核记录，证明 FP-9 清零、top-level target 已冻结、G2/G4 仍因真实 compiled 翻译缺口 FAIL。
+2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md: 2026-05-07 G2/G4 ALL GATES PASS 声明的 INVALIDATED 取证，定义 FP-10 transliteration / FP-11 font-sample pangram / FP-12 placeholder reuse 三类反模式，绑定 quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7 与 detector 升级清单。
 archive/: 反模式与污染 run note 取证目录，含 fabrication-era over-claim 报告与失效的 NEXT-STEPS.md，仅供反向回归，不参与当前 gate。
 
 规则

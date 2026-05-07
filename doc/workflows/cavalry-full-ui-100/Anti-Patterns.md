@@ -170,6 +170,32 @@ LLM 拿不到完整翻译资源 / API 失败时，agent 走捷径：**伪造 sou
 
 ---
 
+## F. Transliteration & Pangram-Noise Fabrication
+
+### 病灶
+
+LLM 拿到完整 compiled 抽取分母后，对其中**没有 UI 语义的字符串**（字体家族名、颜色品牌内部代号、Unicode glyph 名、字体样本 pangram、错误码碎片、长度 ≤ 6 的无义 ASCII 短串）走捷径：按字符音译为目标语言，或反复复用同一句占位词。E（Synthetic-Denominator Fabrication）是伪造英文 source 把分母凑齐；F 是分母**真实**（来自 Cavalry 二进制），但被翻译者当成自然语言强行翻译。Detector 只查 FP-1..FP-9 时，这种形态在数字层面与"真翻译"无法区分，会让 G2/G3/G4 在 100% 上空转。
+
+### 禁止形态
+
+- **FP-10 transliteration**：source 为字体家族 / 颜色品牌名 / Unicode glyph 名 / 错误码碎片 / 长度 ≤ 6 的无义 ASCII 短串时，translation 是字符级音译。例：`Acce → 重音符 / アクセ`、`Audif → 奥迪夫 / オーディフ`、`Arial → 艾瑞尔 / アリアル`、`Apple Color Emoji → 苹果彩色表情符号 / アップルカラー絵文字`。
+- **FP-11 font-sample / pangram noise**：source 命中字体预览伪文本（典型为 `^([a-z]{2,4}\s[A-Z]{2,4}\s){2,}` 这种 glyph sample 模式）却被翻译。例：`ahk ISK bhk DBX khk GNM nhk → 阿赫克 伊斯克 贝赫克 ...`、`bby LMB dby KRA ddy IIJ hiy IIJ miy → 字体样本文本`。这种 source 根本不该进 extraction inventory。
+- **FP-12 placeholder / generic translation reuse**：同一 translation 字符串被 ≥ 2 个语义无关 source 复用，且不在 glossary controlled-vocabulary 中。例：`<translation>文字列形式が正しくありません</translation>` 在 ja_JP.ts 中跨多个互不相关 source 反复出现。
+- **结构性温床**：同一 source 在单个 `tools/<lang>.ts` 内出现 ≥ 3 次（如 `Acce` / `Acutesmall` / `ahk ISK bhk DBX khk GNM nhk`），说明翻译表生成器未去重 / extraction inventory 在不同 owner 下重复登记同一 source。本身不是 forbidden pattern，但会大批量放大 FP-10/11/12。
+
+### 当前设计
+
+- §P5 detector 集合扩展为 FP-1/2/3/4/5/7/8/9/10/11/12，并在 `tools/translation-whitelist.json` 注册三条新契约（transliteration ban、pangram skip、translation-reuse cap）
+- G-X 必须在冻结分母前剔除字体家族名、颜色品牌内部代号、Unicode glyph 名、字体样本 pangram、长度 ≤ 6 的无义 ASCII 短串；剔除规则成为 whitelist 的一部分，glossary 出处缺失视为污染
+- G2 / G3 / G4 只在 FP-10/11/12 detector 上线、新分母重新冻结后，才允许重新声明 PASS
+- quarantine 分支必须能被新 detector 大量命中；命中数为 0 视为 detector 退化
+
+### 发生过的案例
+
+- `quarantine/cavalry-full-ui-100-transliteration-20260507` @ `2db74b7` 保留 2026-05-07 G2/G4 ALL GATES PASS run note 背后的 worktree fabrication（+47638 / -868 across `tools/{zh-Hans,zh-Hant,ja_JP}.ts` + `desktop-patcher/injector/generated_translations.inc`）。该 PASS 已被 `runs/2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md` 整体降级为反向取证。
+
+---
+
 ## 设计结论
 
 好 workflow 不靠执行者“自觉”。它让坏路径没有入口：
