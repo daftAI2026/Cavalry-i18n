@@ -25,11 +25,11 @@
     "test:contracts": "node --test tools/check_app_contracts.js tools/check_renderer_contract.js tools/check_tauri_build_sop.js tools/check_tauri_bridge_runtime.js",
     "check:app": "node --check renderer/tauri-bridge.js && node --check renderer/app.js && node --check tools/check_renderer_contract.js && node --check tools/check_app_contracts.js && node --check tools/check_tauri_build_sop.js && node --check tools/check_tauri_bridge_runtime.js && node --check tools/check_tauri_packaged_app.js && node --check tools/check_tauri_window_regression.js && node --check tools/window_contract_lib.js && node --check tools/fixtures/make_fake_cavalry_bundle.js"
   },
-  "devDependencies": {
-    "@tauri-apps/api": "2.10.1",
-    "@tauri-apps/cli": "2.10.1"
-  },
   "dependencies": {
+    "@tauri-apps/api": "2.10.1",
     "@paper-design/shaders-react": "^0.0.76"
+  },
+  "devDependencies": {
+    "@tauri-apps/cli": "2.10.1"
   }
 }

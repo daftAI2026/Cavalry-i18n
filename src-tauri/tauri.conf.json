@@ -37,7 +37,7 @@
       "app"
     ],
     "icon": [
-      "../resources/icon.icns"
+      "icons/icon.icns"
     ],
     "resources": {
       "../languages": "languages",

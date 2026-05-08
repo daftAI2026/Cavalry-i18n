@@ -41,7 +41,7 @@ Tauri 原生 DMG 配置（`tauri.conf.json > bundle > macOS > dmg`）已处理�
 bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 ```
 
-该脚本将 `resources/icon.icns` 通过 Rez/SetFile 嵌入 DMG 文件的资源分叉，使 DMG 在 Finder 中显示自定义图标。
+该脚本将 `src-tauri/icons/icon.icns` 通过 Rez/SetFile 嵌入 DMG 文件的资源分叉，使 DMG 在 Finder 中显示自定义图标。
 
 ## 4. 产物验证
 
