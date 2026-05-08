@@ -30,6 +30,7 @@
 2026-05-07-G-P-FP-10-11-12-detector-uplift.md: Step 1 §P5 detector 升级 PASS 记录，证明 FP-10/11/12 命中 transliteration quarantine、当前 HEAD 零误报、fabrication quarantine FP-7/8/9 下界未退化。
 2026-05-07-G-X-denominator-recleaning.md: Step 2 G-X 分母清洗 PASS 记录，冻结新 truth source 为 JSON 6292、compiled 3190、runtime candidates 617、menuLeaves 730，并登记 §F 噪声剔除 provenance。
 2026-05-07-G2-G3-llm-batch-diagnostic-drift.md: Step 3 G2/G3 LLM 批译 BLOCKED 记录，证明同一 LLM batch blocker 两次修复仍复现并固定停止点。
+2026-05-08-ALL-GATES-PASS.md: Step 3/4 最终 PASS 记录，绑定 session BC5BF821、cleaned denominator、三语 FP-1..12=0、check:full-ui overallPass=true / blockedReason=null 与 test:desktop 88/88。
 archive/: 反模式与污染 run note 取证目录，含 fabrication-era over-claim 报告与失效的 NEXT-STEPS.md，仅供反向回归，不参与当前 gate。
 
 规则

@@ -22,7 +22,7 @@
 
 ```text
 Current workflow spec = current
-Current repo state    = NOT COMPLETE (2026-05-07 ALL-GATES-PASS claim INVALIDATED on FP-10/11/12 detector blind spot)
+Current repo state    = ALL GATES PASS (2026-05-08, after FP-10/11/12 detector + cleaned denominator + retranslation)
 Last reset            = b9e6c28 + cherry-pick(b4f784c, 88760e9)
 Quarantined branches  = quarantine/cavalry-full-ui-100-fabrication-20260501 (FP-7/8/9 reverse sample)
                        quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7 (FP-10/11/12 reverse sample)
@@ -101,14 +101,14 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 | Gate | 状态 | 证据 |
 |---|---|---|
 | W-AUDIT | PASS | 弱阈值 / preflight / libExtensionLayer 红灯已收紧 |
-| G-P / §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10=56 / FP-11=398 / FP-12=10 |
-| G-CAPTURE | PASS | session 1D78B1A9 live merged capture 626/734/menuDepthMax 4/5 submenu samples（B897FF97 AX-only 抓取仍可用作历史） |
-| G-X | PASS | runs/2026-05-07-G-X-denominator-recleaning.md；新分母 JSON 6292 / compiled 3190 / runtime 617 / menuLeaves 730 |
-| G0 / G1 | PASS | `npm run test:desktop` 85/85、JSON validator 100% / forbiddenPatterns 0 |
-| G2a 分母清洗 | PASS | 旧分母已废弃，新 truth source 为 session 1D78B1A9 的 extraction hash 1fd96600690f |
-| G2b 编译 UI | FAIL | 2026-05-07 的 100% 是 FP-10/11/12 fabrication 凑出来的；detector + 分母修好后必须重译 |
-| G3 运行时 UI | FAIL | session 1D78B1A9 runtime 100% 与 G2 同源，需在新分母上重跑；session B897FF97 的 100% 同样建立在污染分母上 |
-| G4 矩阵 | FAIL | 依赖 G-X 重新冻结 + §P5 detector 升级 + G2/G3 在新分母上重译 |
+| G-P / §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10/11/12 必命中 |
+| G-CAPTURE | PASS | session BC5BF821 live merged capture 617 denominator candidates / 626 observed candidates / 730 menuLeaves / menuDepthMax 4 / 5 submenu samples |
+| G-X | PASS | runs/2026-05-08-ALL-GATES-PASS.md；新分母 JSON 6292 / compiled 3190 / runtime 617 / menuLeaves 730 |
+| G0 / G1 | PASS | `npm run test:desktop` 88/88、JSON validator 100% / forbiddenPatterns 0 |
+| G2a 分母清洗 | PASS | 旧分母已废弃，新 truth source 为 session BC5BF821 的 extraction hash 4a43db83a14d |
+| G2b 编译 UI | PASS | cleaned denominator 上三语 compiled 100%，0 untranslated，FP-1..12 = 0 |
+| G3 运行时 UI | PASS | cleaned denominator 上三语 runtime 100%，runtime forbiddenPatterns = 0 |
+| G4 矩阵 | PASS | `SESSION_DIR=... npm run check:full-ui` overallPass=true / blockedReason=null |
 
 补充说明：
 
@@ -121,13 +121,13 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 ---
 ## Current Implementation Truth
 
-Based on 2026-05-05 session verification (B897FF97-D3E1-419C-94BC-38F1158F3BB7):
+Based on 2026-05-08 session verification (BC5BF821-F120-469C-A612-7D67A0A70D9E):
 
 ### ✓ COMPLETED Implementation Items
 
 - [x] runtime chain has session-scoped isolation (SESSION_DIR properly structured)
 - [x] workflow order: G-P / §P5 / G-CAPTURE before G-X (fully implemented)
-- [x] extraction inventory freeze with JSON/compiled/runtime unified denominator (6415+5195+626 frozen)
+- [x] extraction inventory freeze with JSON/compiled/runtime unified denominator (6292+3190+617 frozen)
 - [x] live English AX capture exports complete runtime and widget text inventory
 - [x] runtime provenance fields recorded in merged inventories
 - [x] target version binding: Cavalry 2.7.1, Qt 6.6.3, bundle hash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1
@@ -148,11 +148,11 @@ Based on 2026-05-05 session verification (B897FF97-D3E1-419C-94BC-38F1158F3BB7):
 - [x] No --no-resign workarounds in current code
 - [x] GitHub workflows ready for full-ui matrix integration
 
-### ⏳ Translation Backlog (Current Failing Gates)
+### ✓ Translation Backlog (Complete)
 
-- [ ] Compiled UI translations needed: zh-Hans 4026、zh-Hant 4156、ja_JP 4072 untranslated compiled candidates
+- [x] Compiled UI translations complete: zh-Hans 0、zh-Hant 0、ja_JP 0 untranslated compiled candidates
 - [x] Runtime UI translations complete: zh-Hans 0、zh-Hant 0、ja_JP 0 untranslated runtime candidates
-- [ ] These are translation resource dependencies, not implementation gaps
+- [x] JSON validator complete: zh-Hans 100%、zh-Hant 100%、ja_JP 100%，FP-1..12 = 0
 
 ### Deferred Documentation Cleanup
 
@@ -206,7 +206,7 @@ SOURCE_MAP  = ~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json
 
 **PASS**: Live runtime denominator established via AX-only fallback (2026-05-05 05:12 UTC).
 
-Session: `B897FF97-D3E1-419C-94BC-38F1158F3BB7`
+Session: `BC5BF821-F120-469C-A612-7D67A0A70D9E`
 
 Technical status:
 - [x] App code signing: flags=0x2(adhoc), hardened runtime present (normal, does not block AX)
@@ -218,23 +218,23 @@ Technical status:
 - [x] `run_live_full_ui_matrix.js` exists with AX-only fallback support
 - [x] Dylib injection: DYLD_INSERT_LIBRARIES unavailable (system-level dyld policy, not SIP)
 - [x] Fallback mechanism: AX capture produces full menu/widget inventory
-- [x] Raw capture produced all language inventories; frozen merged runtime denominator `menuLeaves = 734 >= 666`
+- [x] Raw capture produced all language inventories; frozen merged runtime denominator `menuLeaves = 730`
 - [x] All 4 languages: en, zh-Hans, zh-Hant, ja_JP captured successfully
 - [x] Runtime inventory: present for all languages under session/runtime/
 - [x] Merged inventory: `capture.source = live-merged` and properly structured
 - [x] No amfid/kernel rejection logs; injection failure is system-level policy choice
 
-Next step: translate G2 compiled real backlog, then rerun G4.
+Next step: none for current target identity; target drift restarts capture/freeze/matrix.
 
 ### W-X
 
-- [x] 产出 `SESSION_DIR/extraction-inventory.json`（session B897FF97，frozen 2026-05-05T05:12:45Z）
-- [x] `extraction-inventory.json` 顶层补齐 `target` 对象（session B897FF97）
-- [ ] version drift 后重新抽取 compiled source-map、runtime capture 与 extraction inventory，不复用旧分母
-- [x] 固定 JSON lower bounds：10 / 6320 / 34 / 51 / total 6415
-- [x] 固定 compiled source-map lower bound：entries >= 5195（Cavalry 2.7.1；2.7.0 时为 4743）
-- [x] `tools/verify_gate_inputs.js` 已使用 `'compiled-source-map': 5195`
-- [x] 固定 runtime lower bounds：candidates >= 613、menuLeaves >= 666
+- [x] 产出 `SESSION_DIR/extraction-inventory.json`（session BC5BF821，frozen 2026-05-08）
+- [x] `extraction-inventory.json` 顶层补齐 `target` 对象（session BC5BF821）
+- [x] version drift 后重新抽取 compiled source-map、runtime capture 与 extraction inventory，不复用旧分母
+- [x] 固定 cleaned JSON lower bounds：10 / 6197 / 34 / 51 / total 6292
+- [x] 固定 cleaned compiled source-map denominator：entries = 3190
+- [x] `tools/verify_gate_inputs.js` 已使用 cleaned denominator floors
+- [x] 固定 cleaned runtime lower bounds：candidates 617、menuLeaves 730
 - [x] G1/G2/G3/G4 统一读取 frozen denominator
 
 ### W0
@@ -260,14 +260,14 @@ Next step: translate G2 compiled real backlog, then rerun G4.
 
 ### W5 / W6 / W7
 
-- [ ] zh-Hans backlog 清零
-- [ ] zh-Hant backlog 清零
-- [ ] ja_JP backlog 清零
+- [x] zh-Hans backlog 清零
+- [x] zh-Hant backlog 清零
+- [x] ja_JP backlog 清零
 
 ### W8
 
-- [ ] 同一次 matrix 三语全绿
-- [ ] `RUN_RECORD` 保留 session / runtime / source-map provenance
+- [x] 同一次 matrix 三语全绿
+- [x] `RUN_RECORD` 保留 session / runtime / source-map provenance
 
 ---
 

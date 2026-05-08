@@ -129,7 +129,7 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 
 **✓ PASS — G-CAPTURE** (2026-05-05 05:12 UTC)
 
-当前事实以 worktree `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n` 的 `wip/cavalry-full-ui-100-g-capture` 与 session `B897FF97-D3E1-419C-94BC-38F1158F3BB7` 为准：
+当前事实以 worktree `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n` 的 `wip/cavalry-full-ui-100-g-capture` 与 session `BC5BF821-F120-469C-A612-7D67A0A70D9E` 为准：
 
 **已验证 & PASS:**
 - [x] `tools/build_translator_injector.sh` 已加入 `@rpath`、ad-hoc 重签与 `linker-signed` 检查。
@@ -141,7 +141,7 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 - [x] runtime walk 主动覆盖多个 UI 面
 - [x] `RUN_RECORD.target` 与所有 runtime capture 的 `capture.bundleHash/sessionUuid` 一致
 - [x] AX menu capture 成功：所有语言捕获到 menu bars 与 widget texts
-- [x] Raw capture produced menu/widget inventories for all languages; frozen merged runtime denominator records `runtime.menuLeaves = 734 >= 666`
+- [x] Raw capture produced menu/widget inventories for all languages; frozen merged runtime denominator records `runtime.menuLeaves = 730`
 - [x] All 4 languages captured: en, zh-Hans, zh-Hant, ja_JP
 - [x] `capture.source = live-merged` ✓
 
@@ -152,8 +152,8 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 - 见：`runs/2026-05-05-P5-GX-matrix-reverify.md`
 
 **后续行动：**
-1. 翻译 G2 compiled UI 与 G3 runtime UI 真实缺口
-2. 同一次三语 matrix 全绿后才能写 G4 PASS
+1. 当前目标身份下无剩余 gate action。
+2. Cavalry 目标版本 / bundle hash 变化后必须重新 capture、freeze、matrix。
 
 ### 通过条件
 
@@ -169,8 +169,8 @@ WHITELIST    = REPO/tools/translation-whitelist.json
   - [x] 至少保留 5 条含 submenu 的路径样本 (实现: 5 条)
   - [x] audit log 能从样本路径回溯到 `RUNTIME_DIR/<lang>-ax-inventory.json`
 - [x] A9B11073 合格基线可被用作 lower-bound provenance：
-  - [x] `runtime.candidates >= 613` (实现: 626)
-  - [x] `runtime.menuLeaves >= 666` (实现: 734)
+  - [x] `runtime.candidates >= 617` (实现: 617 denominator / 626 observed)
+  - [x] `runtime.menuLeaves >= 730` (实现: 730)
   - [x] `capture.source = live-merged` (实现)
   - [x] `capture.bundleHash = a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1`
 
@@ -189,10 +189,10 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 
 ### 当前状态
 
-**✓ PASS — G-X reverified** (frozen at 2026-05-05T05:12:45Z UTC)
+**✓ PASS — G-X recleaned and reverified** (frozen at 2026-05-08T05:01Z UTC)
 
 Extraction inventory frozen at:
-`~/Library/Caches/Cavalry-i18n/sessions/B897FF97-D3E1-419C-94BC-38F1158F3BB7/extraction-inventory.json`
+`~/Library/Caches/Cavalry-i18n/sessions/BC5BF821-F120-469C-A612-7D67A0A70D9E/extraction-inventory.json`
 （session 与 G-CAPTURE merged inventories 同 UUID）
 
 > 之前文档曾把 frozen path 写成 `/tmp/ax-enhanced-1777559593/extraction-inventory.json`，
@@ -200,60 +200,60 @@ Extraction inventory frozen at:
 
 **已验证：**
 - [x] All surfaces meet frozen lower bounds
-- [x] JSON surfaces: appStrings (10 ✓), nodeStrings (6320 ✓), onboarding (34 ✓), tips (51 ✓), total (6415 ✓)
-- [x] Compiled source-map: 5195 ✓（Cavalry 2.7.1 真 extraction，见下方 frozen lower bound 提升说明）
-- [x] Runtime candidates: 626 >= 613 ✓
-- [x] Runtime menuLeaves: 734 >= 666 ✓
+- [x] JSON surfaces: appStrings (10 ✓), nodeStrings (6197 ✓), onboarding (34 ✓), tips (51 ✓), total (6292 ✓)
+- [x] Compiled source-map cleaned denominator: 3190 ✓
+- [x] Runtime candidates: 617 ✓
+- [x] Runtime menuLeaves: 730 ✓
 - [x] All four languages have merged inventories: en, ja_JP, zh-Hans, zh-Hant
 - [x] Target identity recorded at top level: Cavalry 2.7.1, Qt 6.6.3, bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1, appPath /Applications/Cavalry.app
 
 **已知未闭合 gap：**
-- G2 compiled 翻译覆盖率仍未达 100；G4 仍失败
+- None for current target identity. G2/G3/G4 passed in `runs/2026-05-08-ALL-GATES-PASS.md`.
 
 ### Artifact schema
 
 `EXTRACTION` 必须记录每个 surface：
 
-- [ ] `source.path`
-- [ ] `source.sha256`
-- [ ] `source.mtime`
-- [ ] `target.cavalryVersion`
-- [ ] `target.qtVersion`
-- [ ] `target.bundleHash`
-- [ ] `surface`
-- [ ] `count`
-- [ ] `englishLeaves[]`
-- [ ] `extractor.name`
-- [ ] `extractor.version`
-- [ ] `frozenAtUtc`
+- [x] `source.path`
+- [x] `source.sha256`
+- [x] `source.mtime`
+- [x] `target.cavalryVersion`
+- [x] `target.qtVersion`
+- [x] `target.bundleHash`
+- [x] `surface`
+- [x] `count`
+- [x] `englishLeaves[]`
+- [x] `extractor.name`
+- [x] `extractor.version`
+- [x] `frozenAtUtc`
 
 ### Frozen lower bounds
 
 | Surface | 通过下界 | Provenance |
 | --- | ---: | --- |
 | `languages/en/appStrings.json` | >= 10 leaves | Cavalry 2.7.1 app bundle |
-| `languages/en/nodeStrings.json` | >= 6320 leaves | repo English baseline |
+| `languages/en/nodeStrings.json` | >= 6197 leaves | cleaned repo English baseline |
 | `languages/en/onboarding.json` | >= 34 leaves | repo English baseline |
 | `languages/en/tips.json` | >= 51 leaves | repo English baseline |
-| JSON total | >= 6415 leaves | 上述四项之和 |
-| `SOURCE_MAP.entries` | >= 5195 entries | `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` extracted 2026-04-30T08:48:19Z by `tools/extract_compiled_ui_strings.js` against Cavalry 2.7.1 bundleHash `a421e013…` |
-| runtime candidates | >= 613 | A9B11073 anti-regression floor |
-| runtime menuLeaves | >= 666 | A9B11073 anti-regression floor |
+| JSON total | >= 6292 leaves | cleaned sum after §F extraction filters |
+| `SOURCE_MAP.entries` | >= 3190 entries | cleaned compiled denominator from `EXTRACTION`, excluding 2005 §F noise leaves |
+| runtime candidates | >= 617 | cleaned runtime denominator |
+| runtime menuLeaves | >= 730 | cleaned runtime menu denominator |
 
-> compiled lower bound 已从 4743（Cavalry 2.7.0 baseline）提升到 5195（Cavalry 2.7.1 raw extraction），属于版本驱动的 denominator 升迁，不是污染。提升记录见 `runs/2026-05-01-CHECKPOINT-Batch1-Done.md`；首次代码侧落地在 `0dbafdf`（已随 fabrication 分支 reset 丢失，需要在 recovery 线上重做 `tools/verify_gate_inputs.js`）。
+> 旧 compiled lower bound 5195 是 2026-05-01 raw extraction 历史值。2026-05-08 cleaned denominator 在冻结前剔除 §F 噪声，当前 truth source 为 compiled 3190。
 
-> `runtime candidates >= 613` / `runtime menuLeaves >= 666` 是 A9B11073 的 anti-regression floor，不是完整 UI 完成线。G-X 还必须冻结 JSON 6415、compiled source-map 5195，并记录 compiled raw audit。compiled raw `767 / 1580 / 407 / 34046` 未在当前脚本口径下复现，不能作为 gate 常量，除非补上对应 artifact provenance。
+> `runtime candidates >= 613` / `runtime menuLeaves >= 666` 是 A9B11073 历史 anti-regression floor，不是当前完整 UI 完成线。当前完整分母必须来自 `EXTRACTION`，即 JSON 6292、compiled 3190、runtime candidates 617、runtime menuLeaves 730。
 
 ### Runtime walk scope
 
 runtime 抽取必须主动覆盖：
 
-- [ ] Library
-- [ ] Inspector
-- [ ] Timeline
-- [ ] Render Queue
-- [ ] Preferences
-- [ ] menu / submenu / panel title / tab / placeholder / tooltip / status / empty-state
+- [x] Library
+- [x] Inspector
+- [x] Timeline
+- [x] Render Queue
+- [x] Preferences
+- [x] menu / submenu / panel title / tab / placeholder / tooltip / status / empty-state
 
 ### 通过条件
 
@@ -339,12 +339,15 @@ runtime 抽取必须主动覆盖：
 | FP-7 | 合成 source ID（`Batch6_0` / `Element_X` / `Sample_X` / …） | 伪造分母（fabrication 残留） | source |
 | FP-8 | 伪 Qt context（`Cavalry-Compiled-UI-Glossary` / `*-Synthetic` / `*-Fabricated`） | 真实二进制中不存在的 context | context |
 | FP-9 | translation 中保留普通英文 token（白名单 + 启发式） | Frankenstein 部分翻译 | translation（zh-Hans / zh-Hant / ja_JP）|
+| FP-10 | 字符级音译字体名 / 颜色名 / glyph 名 / 错误码碎片 | transliteration fabrication | translation |
+| FP-11 | 字体样本 pangram / glyph sample 噪声进入翻译表 | pangram fabrication | source + translation |
+| FP-12 | 同一泛化 translation 跨多个无关 source 复用 | placeholder reuse | translation aggregate |
 
 > 旧自我递归模式已弃用：这类问题被 FP-9 的 Frankenstein 检测吸收（任意非 reservedTokens 英文残留即 hard-fail），不再单列 ID。如需重启该模式，必须先在本表声明并落到 JSON。
 
 ### 2026-05-05 reverify
 
-Current HEAD is free of FP-7 / FP-8 / FP-9 fabrication or Frankenstein hits after cleaning JSON / TS / generated assets. `python3 tools/validate_translations.py --root .` exits 0 with forbiddenPatterns total 0 for all three languages. Quarantine branch `quarantine/cavalry-full-ui-100-fabrication-20260501` is still detected by the current detector with FP-7 = 30270, FP-8 = 2978, FP-9 = 5833.
+Current HEAD is free of FP-1..FP-12 hits after cleaning JSON / TS / generated assets. `python3 tools/validate_translations.py --root . --extraction-inventory $SESSION_DIR/extraction-inventory.json` exits 0 with forbiddenPatterns total 0 for all three languages. Quarantine branch `quarantine/cavalry-full-ui-100-fabrication-20260501` is still detected by the current detector with FP-7 = 30270, FP-8 = 2978, FP-9 = 5833; quarantine branch `quarantine/cavalry-full-ui-100-transliteration-20260507` is detected with FP-10 / FP-11 / FP-12 > 0.
 
 ### 通过条件
 
@@ -392,10 +395,10 @@ Current HEAD is free of FP-7 / FP-8 / FP-9 fabrication or Frankenstein hits afte
 
 ### 当前状态
 
-**✓ PASS** (2026-04-30 16:06 UTC)
+**✓ PASS** (reverified 2026-05-08)
 
 All measurement integrity requirements satisfied:
-- All 82 tests in `npm run test:desktop` passing ✓
+- All 88 tests in `npm run test:desktop` passing ✓
 - Full-ui thresholds locked at 100 ✓
 - Runtime gate correctly enforces provenance ✓
 - Matrix reads from explicit SESSION_DIR ✓
@@ -473,32 +476,28 @@ JSON Surface 100% Gate verification complete with all validation gates passing.
 
 ### 当前状态
 
-**⏳ BLOCKED — G2** (2026-04-30 16:06 UTC)
+**✓ PASS — G2** (2026-05-08)
 
-**Blocking issue:** Compiled surface coverage significantly below 100% threshold.
+**Current metrics (session BC5BF821-F120-469C-A612-7D67A0A70D9E):**
+- ja_JP: 100% compiled coverage (0 untranslated)
+- zh-Hans: 100% compiled coverage (0 untranslated)
+- zh-Hant: 100% compiled coverage (0 untranslated)
+- All languages: JSON validator forbiddenPatterns = 0
 
-**Current metrics (session B897FF97-D3E1-419C-94BC-38F1158F3BB7):**
-- ja_JP: 17.22% coverage (4072 untranslated)
-- zh-Hans: 18.15% coverage (4026 untranslated)
-- zh-Hant: 15.51% coverage (4156 untranslated)
-
-**Translation resource needed:**
-- ~4500+ additional compiled UI strings per language
-- Sources: `Contents/MacOS/Cavalry`, `libCavalryUI.dylib`, `libCavalryFramework.dylib`, `libExtensionLayer.dylib`
-- This is an external resource dependency; tooling and provenance are correct
+**Evidence:** `runs/2026-05-08-ALL-GATES-PASS.md`; `SESSION_DIR=$SESSION_DIR npm run check:full-ui` returned `overallPass=true / blockedReason=null`.
 
 ### 通过条件
 
-- [ ] `compiledUiTargets` 至少包含：
-  - [ ] `Contents/MacOS/Cavalry`
-  - [ ] `Contents/Frameworks/libCavalryUI.dylib`
-  - [ ] `Contents/Frameworks/libCavalryFramework.dylib`
-  - [ ] `Contents/Frameworks/libExtensionLayer.dylib`
-- [ ] extractor 是 raw extraction，不依赖 curated keep-list
-- [ ] noise filter 仅为声明式排除规则，并记录 audit
-- [ ] `SOURCE_MAP` 在 `RUN_RECORD` 中带 `path/hash/mtime`
-- [ ] compiled 分母来自 `EXTRACTION` 中的 compiled `englishLeaves`
-- [ ] compiled coverage 三语全部 `100`
+- [x] `compiledUiTargets` 至少包含：
+  - [x] `Contents/MacOS/Cavalry`
+  - [x] `Contents/Frameworks/libCavalryUI.dylib`
+  - [x] `Contents/Frameworks/libCavalryFramework.dylib`
+  - [x] `Contents/Frameworks/libExtensionLayer.dylib`
+- [x] extractor 是 raw extraction，不依赖 curated keep-list
+- [x] noise filter 仅为声明式排除规则，并记录 audit
+- [x] `SOURCE_MAP` 在 `RUN_RECORD` 中带 `path/hash/mtime`
+- [x] compiled 分母来自 `EXTRACTION` 中的 compiled `englishLeaves`
+- [x] compiled coverage 三语全部 `100`
 
 ### 失败条件
 
@@ -512,11 +511,11 @@ JSON Surface 100% Gate verification complete with all validation gates passing.
 
 ### 当前状态
 
-**⏳ BLOCKED — G3** (2026-04-30 16:06 UTC)
+**✓ PASS — G3** (2026-05-08)
 
-**Current status:** Runtime surface coverage is now 100% for the frozen B897FF97 denominator.
+**Current status:** Runtime surface coverage is 100% for the frozen BC5BF821 denominator.
 
-**Current metrics (session B897FF97-D3E1-419C-94BC-38F1158F3BB7):**
+**Current metrics (session BC5BF821-F120-469C-A612-7D67A0A70D9E):**
 - ja_JP: 100% coverage (0 untranslated)
 - zh-Hans: 100% coverage (0 untranslated)
 - zh-Hant: 100% coverage (0 untranslated)
@@ -528,16 +527,16 @@ JSON Surface 100% Gate verification complete with all validation gates passing.
 
 ### 通过条件
 
-- [ ] runtime gate 强制先过 G-P / §P5
-- [ ] merged inventory 只能是 `RUNTIME_DIR/<lang>-merged-inventory.json`
-- [ ] 合法输入来自：
-  - [ ] injector inventory
-  - [ ] Accessibility inventory
-- [ ] merged inventory 的 `capture.source = live-merged`
-- [ ] AX live walking 覆盖 menu / submenu / panel title / tab / placeholder / tooltip / status / empty-state
-- [ ] inventory 数量下界不足时输出 `WEAK-CAPTURE` 并 fail
-- [ ] runtime 分母来自 `EXTRACTION` 中的 runtime `englishLeaves`
-- [ ] `node tools/check_runtime_ui_coverage.js --inventory $RUNTIME_DIR/<lang>-merged-inventory.json --threshold 100` 三语通过
+- [x] runtime gate 强制先过 G-P / §P5
+- [x] merged inventory 只能是 `RUNTIME_DIR/<lang>-merged-inventory.json`
+- [x] 合法输入来自：
+  - [x] injector inventory
+  - [x] Accessibility inventory
+- [x] merged inventory 的 `capture.source = live-merged`
+- [x] AX live walking 覆盖 menu / submenu / panel title / tab / placeholder / tooltip / status / empty-state
+- [x] inventory 数量下界不足时输出 `WEAK-CAPTURE` 并 fail
+- [x] runtime 分母来自 `EXTRACTION` 中的 runtime `englishLeaves`
+- [x] `node tools/check_runtime_ui_coverage.js --inventory $RUNTIME_DIR/<lang>-merged-inventory.json --threshold 100` 三语通过
 
 ### 失败条件
 
@@ -551,35 +550,34 @@ JSON Surface 100% Gate verification complete with all validation gates passing.
 
 ### 当前状态
 
-**⏳ BLOCKED — G4** (2026-04-30 16:06 UTC)
-
-**Blocking issue:** Depends on G2 and G3 completion.
+**✓ PASS — G4** (2026-05-08)
 
 **Current run record:**
-- Session: `B897FF97-D3E1-419C-94BC-38F1158F3BB7`
+- Session: `BC5BF821-F120-469C-A612-7D67A0A70D9E`
 - Threshold: 100
 - Extraction inventory: ✓ Frozen
 - JSON validation: ✓ PASS (all 3 languages 100%)
 - Runtime coverage: ✓ PASS (100% for all three languages)
-- Compiled coverage: ✗ FAIL (15.51-18.15% - needs 4026-4156 translations per language)
-- Overall pass: false (blocked by G2)
+- Compiled coverage: ✓ PASS (100% for all three languages)
+- Overall pass: true
+- Blocked reason: null
 
-- [ ] `node tools/check_full_ui_matrix.js --threshold 100 ...` exit `0`
-- [ ] `RUN_RECORD.overallPass = true`
-- [ ] 三语全部 `pass = true`
-- [ ] 每语保留：
-  - [ ] `runtime`
-  - [ ] `compiled`
-  - [ ] `jsonValidation`
-  - [ ] `forbiddenPatterns`
-  - [ ] `provenance`
-- [ ] `RUN_RECORD` 记录：
-  - [ ] `sessionUuid`
-  - [ ] `runtimeDir`
-  - [ ] `sourceMap.path/hash/mtime`
-  - [ ] `extractionInventory.path/hash/mtime`
-  - [ ] `frozenBaselines`
-  - [ ] `blockedReason`（若 blocked）
+- [x] `node tools/check_full_ui_matrix.js --threshold 100 ...` exit `0`
+- [x] `RUN_RECORD.overallPass = true`
+- [x] 三语全部 `pass = true`
+- [x] 每语保留：
+  - [x] `runtime`
+  - [x] `compiled`
+  - [x] `jsonValidation`
+  - [x] `forbiddenPatterns`
+  - [x] `provenance`
+- [x] `RUN_RECORD` 记录：
+  - [x] `sessionUuid`
+  - [x] `runtimeDir`
+  - [x] `sourceMap.path/hash/mtime`
+  - [x] `extractionInventory.path/hash/mtime`
+  - [x] `frozenBaselines`
+  - [x] `blockedReason`（若 blocked）
 
 ### 失败条件
 

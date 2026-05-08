@@ -96,18 +96,18 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 
 ```text
 Baseline is rerunnable and reachable.
-Current repo state: NOT COMPLETE (2026-05-07 ALL-GATES-PASS claim INVALIDATED on detector blind spot).
-First next gate: G2/G3 retranslation on the cleaned 6292 / 3190 / 617 / 730 denominator.
+Current repo state: ALL GATES PASS (2026-05-08).
+First next gate: none for current target identity; version drift requires a new capture/freeze/matrix cycle.
 
 Historical verified evidence retained:
-  - W-AUDIT / G-P / G-CAPTURE / G-X / G0 / G1 still have current evidence from sessions B897FF97-D3E1-419C-94BC-38F1158F3BB7 and 1D78B1A9-37BE-4360-B61F-A0314766F7D6.
+  - W-AUDIT / G-P / G-CAPTURE / G-X / G0 / G1 / G2 / G3 / G4 have current evidence from session BC5BF821-F120-469C-A612-7D67A0A70D9E.
   - Target identity remains Cavalry 2.7.1 / Qt 6.6.3 / bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1.
-  - Cleaned frozen denominator is now JSON 6292 + compiled 3190 + runtime candidates 617 / menuLeaves 730 from session 1D78B1A9; old 6415 / 5195 / 626 / 734 is historical evidence only.
+  - Cleaned frozen denominator is now JSON 6292 + compiled 3190 + runtime candidates 617 / menuLeaves 730 from session BC5BF821; old 6415 / 5195 / 626 / 734 is historical evidence only.
 
 Current blockers:
-  - G2 / G3 / G4 must be re-translated by LLM on the cleaned denominator; FP-10/11/12 hit count must be 0 across tools/{zh-Hans,zh-Hant,ja_JP}.ts and desktop-patcher/injector/generated_translations.inc before any new ALL GATES PASS claim.
-  - The duplicated `<message>` blocks inside each tools/<lang>.ts (>=3 repeats of the same source) must be normalized as part of the denominator cleanup, not afterwards.
-  - The 2026-05-07 PASS run note has been renamed to runs/2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md and is now reverse-evidence only.
+  - None.
+  - The 2026-05-07 PASS run note remains renamed to runs/2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md and is reverse-evidence only.
+  - The current PASS is runs/2026-05-08-ALL-GATES-PASS.md.
 ```
 
 ### 当前 worktree 真相
@@ -115,7 +115,7 @@ Current blockers:
 **执行工作树**
 - 路径：`/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n`
 - 分支：`wip/cavalry-full-ui-100-g-capture`
-- HEAD：`69d6bfc` (已通过 main merge)
+- 关键代码提交：`3882b80 feat(full-ui): translate cleaned full ui denominator`（最终文档提交在其后）
 - 主仓库只承载 workflow 文档与 run note；代码改动不得漏回 main。
 
 **已落地的 G-CAPTURE 工具链片段**
@@ -130,7 +130,7 @@ Current blockers:
 - session `21B1048E-963E-43B1-975B-0C506902E0EB` 只有 codesign evidence，没有 `runtime/en-injector-inventory.json`。
 - `audit/en-injector-launch.log` 为空，未看到 injector bootstrap。
 - 没有 amfid / kernel 拒绝证据；不得写 `BLOCKED-SIP`，不得建议 `csrutil disable`。
-- 这些记录说明弱 capture 不能冻结分母；当前可引用的 capture/freeze 证据以 session `B897FF97-D3E1-419C-94BC-38F1158F3BB7` 为准。
+- 这些记录说明弱 capture 不能冻结分母；当前可引用的 capture/freeze/matrix 证据以 session `BC5BF821-F120-469C-A612-7D67A0A70D9E` 为准。
 
 详见：
 - `runs/2026-04-30-G-CAPTURE-DYLIB-INJECTION-INVESTIGATION.md`
@@ -159,13 +159,13 @@ Current blockers:
    - `run_live_full_ui_matrix.js` 会解析 launcher `PID=<number>`，缺 PID 或 candidates/menuLeaves 低于下界时 hard-fail `WEAK-CAPTURE`
    - AX 菜单抓取 audit 已记录 `menuDepthMax` 与 submenu path samples 的机器化证据
 
-4. **JSON / full-ui gate 当前真实 blocker 是 compiled 翻译覆盖**
+4. **JSON / full-ui gate 当前无 blocker**
    - active threshold 已冻结到 full-ui `100` / JSON `1.00`
-   - G1 JSON validator 当前 PASS，G3 runtime 当前 PASS，G2 compiled 未达 100，所以 G4 失败
+   - G1 JSON validator PASS，G2 compiled PASS，G3 runtime PASS，G4 matrix PASS
 
-5. **compiled owner map contract 当前下界已重新验证**
+5. **compiled owner map contract 当前下界已重新验证并清洗**
    - `libExtensionLayer.dylib` 已并入 compiled target contract
-   - 当前 Cavalry 2.7.1 compiled source-map lower bound 是 5195
+   - 当前 Cavalry 2.7.1 cleaned compiled denominator 是 3190；旧 5195 raw extraction 仅作历史
 
 6. **active gate / CI 执行路径仍有后续 gap**
     - `check:full-ui` 已前置 `tools/verify_gate_inputs.js`，W-AUDIT 红旗已转为脚本/测试约束
@@ -207,25 +207,25 @@ Current blockers:
 
 ### 已核实语言来源
 
-以下数字由 2026-04-29 在本机重新核实。它们是分母来源地图，不是完成状态。
+以下数字由 2026-05-08 在本机重新核实。它们是当前 cleaned denominator 来源地图。
 
 | Surface | Evidence | Count |
 | --- | --- | ---: |
 | JSON `languages/en/appStrings.json` | Cavalry 2.7.1 app bundle lower bound | 10 |
-| JSON `languages/en/nodeStrings.json` | repo English baseline | 6320 |
+| JSON `languages/en/nodeStrings.json` | cleaned repo English baseline | 6197 |
 | JSON `languages/en/onboarding.json` | repo English baseline | 34 |
 | JSON `languages/en/tips.json` | repo English baseline | 51 |
-| JSON total | Cavalry 2.7.1 app bundle lower bound | 6415 |
-| compiled source map | `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json`（Cavalry 2.7.1，extractedAtUtc 2026-04-30T08:48:19Z；2.7.0 时为 4743） | 5195 |
-| compiled source map by current extractor | Cavalry / libCavalryUI / libCavalryFramework / libExtensionLayer | 93 / 77 / 69 / 4504 |
-| compiled raw `strings -a -n 4` lines | Cavalry / libCavalryUI / libCavalryFramework / libExtensionLayer | 3560 / 6943 / 2350 / 129327 |
-| runtime coverage candidates | A9B11073 merged inventories | 614 / 613 / 619 |
-| runtime raw menu leaves | A9B11073 merged inventories | 666 |
-| current `.ts` translation container | `tools/{zh-Hans,zh-Hant,ja_JP}.ts` in main | 397 / 397 / 398 |
+| JSON total | cleaned frozen denominator | 6292 |
+| compiled source map | cleaned frozen denominator from `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` | 3190 |
+| compiled excluded leaves | §F extraction filters | 2005 |
+| runtime observed candidates | session BC5BF821 merged inventories | 626 |
+| runtime denominator candidates | session BC5BF821 extraction inventory | 617 |
+| runtime menuLeaves | session BC5BF821 extraction inventory | 730 |
+| current `.ts` translation container | `tools/{zh-Hans,zh-Hant,ja_JP}.ts` in wip branch | 5979 translate leaves per language |
 
 未复现值：`767 / 1580 / 407 / 34046` 这组 compiled raw 数字不由当前 `extract_compiled_ui_strings.js`、当前 source map、或简单 `strings -a -n 4` 直接产生。若要把这组数字写入 gate，必须先找到对应脚本/过滤口径/历史 artifact。
 
-规则：A9B11073 只能证明 runtime 下界，不可替代当前 `SESSION_DIR/runtime/*`。每轮仍必须重新 live capture、写 provenance、再冻结 `extraction-inventory.json`。`613/666` 是 runtime anti-regression floor，不是完整 UI 分母；完整分母必须同时包含 JSON 6415、compiled source-map 5195（Cavalry 2.7.1；2.7.0 时为 4743）与 runtime live surface。
+规则：A9B11073 只能证明 runtime 历史下界，不可替代当前 `SESSION_DIR/runtime/*`。每轮仍必须重新 live capture、写 provenance、再冻结 `extraction-inventory.json`。当前完整分母必须同时包含 JSON 6292、compiled 3190 与 runtime live surface 617 / 730。
 
 ### Deferred Documentation Cleanup
 
@@ -293,41 +293,40 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 
 ## Completion Semantics
 
-- 当前 workflow 默认结论：**`NOT COMPLETE`**
+- 当前 workflow 当前结论：**`ALL GATES PASS`**
 - 只有当 `W-AUDIT + G-P + §P5 + G-CAPTURE + G-X + G0 + G2 + G3 + G1 + G4` 全 PASS 时，才允许写 **`ALL GATES PASS`**
 
 任何“某个 surface 已明显提升”“某语已过”“CI 先 blocked”都不是完成。
 
 ## Current Gate Status
 
-**Current workflow state: `NOT COMPLETE`**
+**Current workflow state: `ALL GATES PASS`**
 
 | Gate | Current status | Why |
 | --- | --- | --- |
 | W-AUDIT | PASS | weak threshold / preflight / libExtensionLayer red flags have code evidence |
-| G-P | PASS | session B897FF97 runtime artifacts are session-scoped and preflight rejects root-cache / fixture / curated inputs |
+| G-P | PASS | session BC5BF821 runtime artifacts are session-scoped and preflight rejects root-cache / fixture / curated inputs |
 | §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10=56 / FP-11=398 / FP-12=10 |
-| G-CAPTURE | PASS | session 1D78B1A9 live merged capture 有 626 candidates / 734 menu leaves / menuDepthMax 4 / 5 submenu path samples（B897FF97 的 AX-only 抓取仍可用作历史） |
-| G-X | PASS | runs/2026-05-07-G-X-denominator-recleaning.md；新分母 JSON 6292 / compiled 3190 / runtime candidates 617 / menuLeaves 730 |
-| G0 | PASS | `npm run test:desktop` 85/85 and workflow contracts 5/5 pass after reverify |
+| G-CAPTURE | PASS | session BC5BF821 live merged capture 有 626 observed candidates / 730 menu leaves / menuDepthMax 4 / 5 submenu path samples |
+| G-X | PASS | runs/2026-05-08-ALL-GATES-PASS.md；新分母 JSON 6292 / compiled 3190 / runtime candidates 617 / menuLeaves 730 |
+| G0 | PASS | `npm run test:desktop` 88/88 and workflow contracts pass after reverify |
 | G1 | PASS | JSON validator exits 0 with 100% coverage and forbiddenPatterns total 0 for all three languages |
-| G2 | FAIL | compiled translations 还没在 3190 cleaned denominator 上真合格；2026-05-07 的 100% 是 quarantine FP-10/11/12 fabrication |
-| G3 | FAIL | runtime UI 需在 619 cleaned denominator 上重跑并证明 FP-1..12 为 0 |
-| G4 | FAIL | 依赖 G2/G3 在新分母上重译并通过矩阵 |
+| G2 | PASS | compiled coverage 三语 100%，0 untranslated，FP-1..12 = 0 |
+| G3 | PASS | runtime coverage 三语 100%，0 untranslated，runtime forbiddenPatterns = 0 |
+| G4 | PASS | `SESSION_DIR=... npm run check:full-ui` overallPass=true / blockedReason=null |
 
 ### Verified Session Data
 
-- **Session**: B897FF97-D3E1-419C-94BC-38F1158F3BB7
+- **Session**: BC5BF821-F120-469C-A612-7D67A0A70D9E
 - **Target**: Cavalry 2.7.1, Qt 6.6.3
 - **Bundle hash**: a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1
-- **Extraction inventory**: Frozen at 2026-05-05 05:12:45 UTC with top-level `target`
-- **Runtime capture**: AX-only fallback, 626 candidates / 734 menu leaves, menuDepthMax 4, 5 submenu path samples
+- **Extraction inventory**: `4a43db83a14dc0dd35cce0ccd31e2065694a9c73eb76ddf7f79d78286f933dd5`
+- **Runtime capture**: live merged, 617 denominator candidates / 626 observed candidates / 730 menu leaves, menuDepthMax 4, 5 submenu path samples
 
-### Translation Resource Gap (Blocking Completion)
+### Translation Resource Gap
 
-**Compiled UI (G2 blocker):**
-- Required: 4026-4156 translations per language (ja_JP, zh-Hans, zh-Hant)
-- Current matrix: ja_JP 17.22%, zh-Hans 18.15%, zh-Hant 15.51% compiled coverage
+**Compiled UI:**
+- Current matrix: ja_JP 100%, zh-Hans 100%, zh-Hant 100% compiled coverage
 - Sources: Contents/MacOS/Cavalry, libCavalryUI.dylib, libCavalryFramework.dylib, libExtensionLayer.dylib
 
 **Runtime UI (G3):**
@@ -336,7 +335,4 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 
 ### Next Steps for Completion
 
-1. Source official Cavalry translations for compiled UI strings (~4500 per language)
-2. Source or create runtime UI translations (~239 per language)
-3. Re-run G2 and G3 gate verifications after translations are available
-4. Run full matrix (G4) gate to verify all three languages pass simultaneously
+No current completion step remains. On target drift, restart from capture/freeze with a new session and treat old artifacts as history.
