@@ -2,19 +2,14 @@
   "name": "cavalry-i18n",
   "private": true,
   "version": "0.1.2",
-  "description": "External Electron patcher for Cavalry-i18n",
-  "main": "desktop-patcher/main.js",
+  "description": "Tauri desktop language patcher for Cavalry-i18n",
   "scripts": {
-    "desktop": "electron .",
-    "test:desktop": "node --test tools/check_electron_patcher_ui.js tools/check_renderer_contract.js tools/check_electron_contract_snapshots.js tools/check_tauri_build_sop.js tools/check_tauri_bridge_runtime.js",
     "check:ui-coverage": "node tools/check_runtime_ui_coverage.js --inventory \"$SESSION_DIR/runtime/${LANGUAGE:-zh-Hans}-merged-inventory.json\" --threshold 100 --extraction-inventory \"$SESSION_DIR/extraction-inventory.json\"",
     "extract:compiled-ui": "node tools/extract_compiled_ui_strings.js --app /Applications/Cavalry.app --output \"$HOME/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json\"",
     "check:full-ui:ja_JP": "node tools/check_full_ui_coverage.js --language ja_JP --inventory \"$SESSION_DIR/runtime/ja_JP-merged-inventory.json\" --compiled-source-map \"$HOME/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json\" --ts tools/ja_JP.ts --threshold 100 --extraction-inventory \"$SESSION_DIR/extraction-inventory.json\"",
     "check:full-ui:zh-Hans": "node tools/check_full_ui_coverage.js --language zh-Hans --inventory \"$SESSION_DIR/runtime/zh-Hans-merged-inventory.json\" --compiled-source-map \"$HOME/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json\" --ts tools/zh-Hans.ts --threshold 100 --extraction-inventory \"$SESSION_DIR/extraction-inventory.json\"",
     "check:full-ui:zh-Hant": "node tools/check_full_ui_coverage.js --language zh-Hant --inventory \"$SESSION_DIR/runtime/zh-Hant-merged-inventory.json\" --compiled-source-map \"$HOME/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json\" --ts tools/zh-Hant.ts --threshold 100 --extraction-inventory \"$SESSION_DIR/extraction-inventory.json\"",
     "check:full-ui": "node tools/verify_gate_inputs.js --cache-root \"$HOME/Library/Caches/Cavalry-i18n\" --session-dir \"$SESSION_DIR\" --compiled-source-map \"$HOME/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json\" --extraction-inventory \"$SESSION_DIR/extraction-inventory.json\" && node tools/check_full_ui_matrix.js --threshold 100 --session-dir \"$SESSION_DIR\" --compiled-source-map \"$HOME/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json\" --extraction-inventory \"$SESSION_DIR/extraction-inventory.json\" --runlog \"$SESSION_DIR/full-ui-run-record.json\"",
-    "check:desktop": "node --check desktop-patcher/main.js && node --check desktop-patcher/i18n-handlers.js && node --check desktop-patcher/preload.js && node --check desktop-patcher/lib/detect.js && node --check desktop-patcher/lib/patch.js && node --check desktop-patcher/lib/sudo.js && node --check desktop-patcher/renderer/tauri-bridge.js && node --check desktop-patcher/renderer/app.js && node --check tools/check_renderer_contract.js && node --check tools/electron_harness.js && node --check tools/capture_electron_contract.js && node --check tools/check_electron_contract_snapshots.js && node --check tools/check_tauri_build_sop.js && node --check tools/check_tauri_bridge_runtime.js && node --check tools/check_tauri_packaged_app.js && node --check tools/check_tauri_window_regression.js && node --check tools/capture_electron_window_baseline.js && node --check tools/window_contract_lib.js && node --check tools/fixtures/make_fake_cavalry_bundle.js",
-    "capture:electron:window-baseline": "node tools/capture_electron_window_baseline.js",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build",
@@ -24,48 +19,15 @@
     "test:tauri:ui": "node --test tools/check_tauri_window_regression.js",
     "test:tauri:manual-smoke": "cd src-tauri && cargo test --test manual_macos_smoke -- --ignored --nocapture",
     "prepare:qt-sdk": "node tools/resolve_cavalry_qt_sdk.js --ensure",
-    "build:injector": "eval \"$(node tools/resolve_cavalry_qt_sdk.js --print-env --ensure)\" && bash tools/build_translator_injector.sh desktop-patcher/injector/libCavalryTranslatorInjector.dylib",
+    "build:injector": "eval \"$(node tools/resolve_cavalry_qt_sdk.js --print-env --ensure)\" && bash tools/build_translator_injector.sh injector/libCavalryTranslatorInjector.dylib",
     "build": "npm run tauri:build",
-    "build:electron": "npm run build:injector && electron-builder -m && bash tools/stamp_dmg_icon.sh",
-    "build:electron:dir": "npm run build:injector && electron-builder -m --dir",
-    "build:dir": "npm run build:electron:dir",
-    "build:tauri": "npm run tauri:build && bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg && npm run test:tauri:packaged"
-  },
-  "build": {
-    "appId": "com.daftai.cavalry-i18n",
-    "productName": "Cavalry Language Switcher",
-    "directories": {
-      "output": "dist"
-    },
-    "files": [
-      "desktop-patcher/**/*",
-      "languages/**/*",
-      "package.json"
-    ],
-    "extraResources": [
-      {
-        "from": "desktop-patcher/injector/libCavalryTranslatorInjector.dylib",
-        "to": "injector/libCavalryTranslatorInjector.dylib"
-      }
-    ],
-    "dmg": {
-      "icon": "desktop-patcher/resources/icon.icns",
-      "title": "Cavalry Language Switcher"
-    },
-    "mac": {
-      "icon": "desktop-patcher/resources/icon.icns",
-      "category": "public.app-category.developer-tools",
-      "target": [
-        "dmg",
-        "zip"
-      ]
-    }
+    "build:tauri": "npm run tauri:build && bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg && npm run test:tauri:packaged",
+    "test:contracts": "node --test tools/check_app_contracts.js tools/check_renderer_contract.js tools/check_tauri_build_sop.js tools/check_tauri_bridge_runtime.js",
+    "check:app": "node --check renderer/tauri-bridge.js && node --check renderer/app.js && node --check tools/check_renderer_contract.js && node --check tools/check_app_contracts.js && node --check tools/check_tauri_build_sop.js && node --check tools/check_tauri_bridge_runtime.js && node --check tools/check_tauri_packaged_app.js && node --check tools/check_tauri_window_regression.js && node --check tools/window_contract_lib.js && node --check tools/fixtures/make_fake_cavalry_bundle.js"
   },
   "devDependencies": {
     "@tauri-apps/api": "2.10.1",
-    "@tauri-apps/cli": "2.10.1",
-    "electron": "^35.5.1",
-    "electron-builder": "^26.8.1"
+    "@tauri-apps/cli": "2.10.1"
   },
   "dependencies": {
     "@paper-design/shaders-react": "^0.0.76"

@@ -22,7 +22,7 @@ fn registers_six_commands_for_renderer_bridge() {
 }
 
 #[test]
-fn command_payload_uses_electron_compatible_camel_case() {
+fn command_payload_uses_renderer_compatible_camel_case() {
     let payload = ActionPayload {
         ok: true,
         count: None,

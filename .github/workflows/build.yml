@@ -1,4 +1,4 @@
-name: Build Desktop Patcher
+name: Build Tauri App
 
 on:
   push:
@@ -21,14 +21,14 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Install desktop patcher dependencies
+      - name: Install app dependencies
         run: npm install
 
-      - name: Validate desktop patcher contract
-        run: npm run test:desktop
+      - name: Validate app contracts
+        run: npm run test:contracts
 
-      - name: Validate desktop patcher syntax
-        run: npm run check:desktop
+      - name: Validate app syntax
+        run: npm run check:app
 
       - name: Prepare translation gate outputs
         run: mkdir -p "$RUNNER_TEMP/translation-gates"
@@ -76,12 +76,15 @@ jobs:
             echo "- GitHub Actions does not run live Cavalry capture; use a session-scoped local run before translation."
           } >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Upload desktop patcher source artifact
+      - name: Upload app source artifact
         uses: actions/upload-artifact@v4
         with:
-          name: cavalry-i18n-desktop-source
+          name: cavalry-i18n-tauri-source
           path: |
-            desktop-patcher/
+            renderer/
+            injector/
+            resources/
+            src-tauri/
             languages/
             README.md
             LICENSE
@@ -89,7 +92,7 @@ jobs:
             package-lock.json
             tools/build_translator_injector.sh
             tools/cavalry_qt_target.json
-            tools/check_electron_patcher_ui.js
+            tools/check_app_contracts.js
             tools/extract_compiled_ui_strings.js
             tools/generate_embedded_translations.js
             tools/ja_JP.ts
@@ -116,13 +119,13 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install desktop patcher dependencies
+      - name: Install app dependencies
         run: npm install
 
       - name: Prepare target Qt SDK for injector build
         run: npm run prepare:qt-sdk
 
-      - name: Build packaged macOS patcher
+      - name: Build packaged macOS app
         run: npm run build:tauri
 
       - name: Validate Tauri Rust contracts and packaged resources
@@ -139,7 +142,7 @@ jobs:
             src-tauri/target/release/bundle/dmg/*.dmg
             src-tauri/target/release/bundle/macos/Cavalry Language Switcher.app
             src-tauri/target/release/bundle/cavalry-i18n-tauri-size-report.json
-            desktop-patcher/injector/libCavalryTranslatorInjector.dylib
+            injector/libCavalryTranslatorInjector.dylib
 
   release:
     needs: [build, package_macos]

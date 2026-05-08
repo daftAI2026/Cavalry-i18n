@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块、chrono/serde 与原子计数 staging id
  * [OUTPUT]: 对外提供 get_status、browse_app、extract_english、apply_language、open_privacy_security、restart_cavalry 6 个 Tauri command
- * [POS]: src-tauri/src 的 renderer API 等价层，返回 Electron preload 兼容 JSON shape
+ * [POS]: src-tauri/src 的 renderer API 等价层，返回 renderer 兼容 JSON shape
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::{SecondsFormat, Utc};
@@ -546,17 +546,14 @@ fn injector_source_path(repo_root: &Path, resource_dir: &Path) -> Result<PathBuf
             .join("injector")
             .join(mac_runtime::INJECTOR_DYLIB_NAME),
         resource_dir.join(mac_runtime::INJECTOR_DYLIB_NAME),
-        repo_root
-            .join("desktop-patcher")
-            .join("injector")
-            .join(mac_runtime::INJECTOR_DYLIB_NAME),
+        repo_root.join("injector").join(mac_runtime::INJECTOR_DYLIB_NAME),
     ];
     candidates
         .into_iter()
         .find(|candidate| candidate.exists())
         .ok_or_else(|| {
             format!(
-                "Packaged injector missing. Checked Resources/injector and repo desktop-patcher/injector for {}.",
+                "Packaged injector missing. Checked Resources/injector and repo injector/ for {}.",
                 mac_runtime::INJECTOR_DYLIB_NAME
             )
         })

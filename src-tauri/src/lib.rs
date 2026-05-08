@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 tauri Builder、bridge 初始化脚本与 commands 模块
  * [OUTPUT]: 对外提供 run 函数和 Tauri command 注册表
- * [POS]: src-tauri/src 的应用装配层，替代 Electron main 的 command 注册职责
+ * [POS]: src-tauri/src 的应用装配层，承担 Tauri command 注册职责
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 pub mod bridge;

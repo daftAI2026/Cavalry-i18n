@@ -63,7 +63,7 @@
 ## Gate Check
 
 ```bash
-npm run test:desktop
+npm run test:contracts
 python3 tools/validate_translations.py --root . --json-report /tmp/r.json --markdown-summary /tmp/r.md
 node tools/verify_gate_inputs.js --section P5 --session-dir ~/Library/Caches/Cavalry-i18n/sessions/<uuid>
 ```

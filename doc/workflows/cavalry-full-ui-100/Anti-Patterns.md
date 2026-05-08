@@ -108,7 +108,7 @@
 
 ### 病灶
 
-把 `desktop-patcher` 生产路径已经在用的 `codesign --remove-signature` + ad-hoc 重签 + `DYLD_INSERT_LIBRARIES` 注入失败误判为 "macOS SIP 内核阻塞"，然后用 "需要进入 Recovery Mode `csrutil disable`" 当退路，把 G-CAPTURE 锁死在 `WEAK-CAPTURE` / `NOT COMPLETE`。
+把 injector 生产路径已经在用的 `codesign --remove-signature` + ad-hoc 重签 + `DYLD_INSERT_LIBRARIES` 注入失败误判为 "macOS SIP 内核阻塞"，然后用 "需要进入 Recovery Mode `csrutil disable`" 当退路，把 G-CAPTURE 锁死在 `WEAK-CAPTURE` / `NOT COMPLETE`。
 
 这种绕过的危险不是写错根因，而是它会顺手要求**降 Acceptance.md lower bound** 或**改走 AX-only 弱路线**——两件本工作流明令禁止的事。
 
@@ -119,7 +119,7 @@
 - 没有出示 `~/Library/Logs/DiagnosticReports` 中 amfid / kernel 拒绝条目，就声明 SIP 是阻塞源
 - 用 "SIP 阻塞" 当理由要求关闭 SIP、降低 `runtime.candidates` / `runtime.menuLeaves` 下界、或改走 AX-only baseline
 - 把 9–16 个 candidate 的 AX 弱抓取写成 PASS / NEAR-PASS / FUNCTIONAL
-- 完全跳过仓库现成的 `tools/launch_cavalry_with_injector.sh` 与 `desktop-patcher/injector/CavalryTranslatorInjector.mm`，重新发明一条注入路径再宣布失败
+- 完全跳过仓库现成的 `tools/launch_cavalry_with_injector.sh` 与 `injector/CavalryTranslatorInjector.mm`，重新发明一条注入路径再宣布失败
 
 ### 当前设计
 
@@ -145,7 +145,7 @@ LLM 拿不到完整翻译资源 / API 失败时，agent 走捷径：**伪造 sou
 - 合成 source ID：`Batch6_0`、`Final_Batch51_3`、`UI_Batch21_47`、`Element_X`、`Sample_X`、`Item_X`、`Generic_X` 等"前缀_数字"模式
 - 伪 Qt context：`Cavalry-Compiled-UI-Glossary`、`Cavalry-Compiled-UI-Complete`、任何 `*-Synthetic`、`*-Fabricated`，因为这些 context 在真实 Cavalry 二进制里不存在，运行时永远命不中
 - Frankenstein 部分翻译：`Add 颜色`、`Active 合成`、`动画 Control`——把 glossary 单词替换后就提交，剩下的英文动词/介词原封不动
-- 分母对齐时改 fixture（如 `check_electron_patcher_ui.js` 4743→5195）让测试跟着假数据走
+- 分母对齐时改 fixture（如 legacy fixture 4743→5195）让测试跟着假数据走
 - 写 `FINAL-STATE.md` / `SESSION-CHECKPOINT.md` 宣称 "G2b ALL COMPLETE / All gates PASS"，但 `.inc` 里 ≥ 40% 是合成条目
 
 ### 当前设计
@@ -153,7 +153,7 @@ LLM 拿不到完整翻译资源 / API 失败时，agent 走捷径：**伪造 sou
 - §P5 新增 FP-7 / FP-8 / FP-9（见 `tests/forbidden-translation-contract.md`）
 - `tools/forbidden_translation_patterns.json` 把 source / context / 翻译三个字段都纳入检测面，不再只看 translation
 - FP-9 用「白名单 + 启发式」识别 Frankenstein，不一刀切禁止 Latin+CJK 混用（`SVG`、`Alpha`、`Bézier`、`Cavalry` 等专有名词受白名单保护）
-- G-P / §P5 必须对 `desktop-patcher/injector/generated_translations.inc` 与 `tools/*.ts` 全文回归，0 hit 才允许进入 G2b
+- G-P / §P5 必须对 `injector/generated_translations.inc` 与 `tools/*.ts` 全文回归，0 hit 才允许进入 G2b
 - 失败案例样本在 `quarantine/cavalry-full-ui-100-fabrication-20260501` 必须 100% 命中 FP-7/8/9，作为反向契约
 
 ### 发生过的案例
@@ -192,7 +192,7 @@ LLM 拿到完整 compiled 抽取分母后，对其中**没有 UI 语义的字符
 
 ### 发生过的案例
 
-- `quarantine/cavalry-full-ui-100-transliteration-20260507` @ `2db74b7` 保留 2026-05-07 G2/G4 ALL GATES PASS run note 背后的 worktree fabrication（+47638 / -868 across `tools/{zh-Hans,zh-Hant,ja_JP}.ts` + `desktop-patcher/injector/generated_translations.inc`）。该 PASS 已被 `runs/2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md` 整体降级为反向取证。
+- `quarantine/cavalry-full-ui-100-transliteration-20260507` @ `2db74b7` 保留 2026-05-07 G2/G4 ALL GATES PASS run note 背后的 worktree fabrication（+47638 / -868 across `tools/{zh-Hans,zh-Hant,ja_JP}.ts` + `injector/generated_translations.inc`）。该 PASS 已被 `runs/2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md` 整体降级为反向取证。
 
 ---
 

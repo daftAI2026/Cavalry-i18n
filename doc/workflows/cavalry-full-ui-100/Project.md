@@ -76,15 +76,15 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 本 workflow 遵守 `doc/LOCAL_BUILD_SOP.md`：
 
 - 默认发布路径是 **Tauri**。
-- 标准打包入口是 `npm run build:tauri`；不得用裸 `npm run build` 或 Electron build 入口替代。
-- Electron 发布流程已归档，只作为显式 fallback / 历史 baseline 参考。
-- 本 workflow 不新增、不修复、不扩展 Electron 专属壳层、Electron builder、Electron harness。
+- 标准打包入口是 `npm run build:tauri`；不得用裸 `npm run build` 或任何旧壳层 build 入口替代。
+- 旧壳层发布流程只作为历史证据；不再作为 fallback 或 baseline。
+- 本 workflow 不新增、不修复、不扩展旧壳层、builder 或 harness。
 
 允许触碰的边界：
 
-- `desktop-patcher/renderer/`：Tauri 仍复用的 UI 真相源。
-- `desktop-patcher/injector/`：Cavalry runtime 翻译注入链路。
-- 现存 electron-named 测试只可作为历史回归证据；若它阻塞 full-ui 目标，应把断言迁移到 Tauri / full-ui gate，而不是继续加固 Electron。
+- `renderer/`：Tauri 仍复用的 UI 真相源。
+- `injector/`：Cavalry runtime 翻译注入链路。
+- active contract 已使用 Tauri-only 命名；若历史断言仍有 full-ui 价值，只能迁移到 Tauri / full-ui gate。
 
 ---
 
@@ -121,7 +121,7 @@ Current blockers:
 **已落地的 G-CAPTURE 工具链片段**
 - `tools/build_translator_injector.sh` 已加入 `@rpath`、ad-hoc 重签与 `linker-signed` 检查。
 - `tools/launch_cavalry_with_injector.sh` 已支持 `sessionDir/sessionUuid/cacheRoot`，并生成 `audit/codesign-evidence.txt`。
-- `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已支持 `CAVALRY_I18N_LANG=en` dump-only，并写 `SESSION_DIR/runtime/<lang>-injector-inventory.json`。
+- `injector/CavalryTranslatorInjector.mm` 已支持 `CAVALRY_I18N_LANG=en` dump-only，并写 `SESSION_DIR/runtime/<lang>-injector-inventory.json`。
 - `tools/capture_accessibility_inventory.js`、`tools/merge_runtime_inventory.js`、`tools/run_live_full_ui_matrix.js` 已存在。
 - `package.json` 的 full-ui/runtime npm scripts 已收敛到 `SESSION_DIR/runtime/*-merged-inventory.json`，不再读取 root-cache runtime inventory。
 - `tools/validate_translations.py` 在 `.ts` 与 `generated_translations.inc` 扫描中保留 context，FP-8 fake Qt context 不再被解析层丢弃。
@@ -190,7 +190,7 @@ Current blockers:
    - `tools/validate_translations.py` 已升到 `1.00`；G1 当前以 frozen denominator / exact-English / forbiddenPatterns=0 通过
 
 4. **injector / launch chain**
-    - `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已写 session-scoped `<lang>-injector-inventory.json`，但本轮 launch 没产出该文件
+    - `injector/CavalryTranslatorInjector.mm` 已写 session-scoped `<lang>-injector-inventory.json`，但本轮 launch 没产出该文件
     - `tools/launch_cavalry_with_injector.sh` 已传递 `sessionDir/sessionUuid/cacheRoot`，但仍需证明 injector constructor 实际执行
     - `tools/run_live_full_ui_matrix.js` 通过 launcher 捕获真实 PID，缺 PID 或弱抓取会失败
     - live injector English probe 代码上已有 dump-only 分支，但还没有被本轮 artifact 证明
@@ -203,7 +203,7 @@ Current blockers:
     - `.github/workflows/build.yml` 若接入 full-ui gate，必须使用 session-dir / provenance / blocked 语义
     - `.github/workflows/build.yml` 的实际打包步骤必须使用 `npm run build:tauri`，而不是裸 `npm run build`
     - `.github/workflows/build.yml` 若绑定 full-ui artifacts，不得引用不存在的 `doc/compiled-ui-source-map.json` 与 `doc/translation-whitelist.json`
-    - Electron 专属 build / harness 残留不属于本 workflow 修复目标；只允许收敛到 Tauri SOP 或迁移其仍有价值的断言
+    - 旧壳层 build / harness 已删除；只允许收敛到 Tauri SOP 或迁移其仍有价值的断言
 
 ### 已核实语言来源
 
@@ -309,7 +309,7 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 | §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10=56 / FP-11=398 / FP-12=10 |
 | G-CAPTURE | PASS | session BC5BF821 live merged capture 有 626 observed candidates / 730 menu leaves / menuDepthMax 4 / 5 submenu path samples |
 | G-X | PASS | runs/2026-05-08-ALL-GATES-PASS.md；新分母 JSON 6292 / compiled 3190 / runtime candidates 617 / menuLeaves 730 |
-| G0 | PASS | `npm run test:desktop` 88/88 and workflow contracts pass after reverify |
+| G0 | PASS | `npm run test:contracts` 88/88 and workflow contracts pass after reverify |
 | G1 | PASS | JSON validator exits 0 with 100% coverage and forbiddenPatterns total 0 for all three languages |
 | G2 | PASS | compiled coverage 三语 100%，0 untranslated，FP-1..12 = 0 |
 | G3 | PASS | runtime coverage 三语 100%，0 untranslated，runtime forbiddenPatterns = 0 |

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::patch 的 English 提取、插件发现、copy pair 与 staging 能力
  * [OUTPUT]: 对外提供 JSON 资产映射与 staged 文件模式保留 contract tests
- * [POS]: src-tauri/tests 的 patch 守门，确保 Tauri 复制计划与 Electron 文件映射一致
+ * [POS]: src-tauri/tests 的 patch 守门，确保 Tauri 复制计划与 Cavalry JSON 文件映射一致
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::patch::{build_copy_pairs, discover_plugins, extract_english, stage_files};
@@ -39,7 +39,7 @@ fn discover_plugins_to_camel_case() {
 }
 
 #[test]
-fn build_copy_pairs_matches_electron() {
+fn build_copy_pairs_matches_cavalry_assets() {
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().join("Cavalry.app");
     let source = temp.path().join("lang");

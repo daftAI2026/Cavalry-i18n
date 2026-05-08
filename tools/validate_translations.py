@@ -978,7 +978,7 @@ def evaluate_language(
                 forbidden_hits,
             )
 
-    generated_path = root / "desktop-patcher" / "injector" / "generated_translations.inc"
+    generated_path = root / "injector" / "generated_translations.inc"
     if generated_path.exists():
         for index, record in enumerate(
             parse_generated_translation_entry_records(generated_path, repo_code), start=1

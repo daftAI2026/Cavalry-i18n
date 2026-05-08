@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Electron patcher、语言资源、工具脚本和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:desktop 的 Node 测试集合，冻结桌面补丁器行为与迁移前置条件
- * [POS]: tools 的 Electron baseline 守门测试，被 Tauri 迁移 Phase -1 作为旧世界可信度检查
+ * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本和 package 脚本契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui 与翻译质量契约
+ * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -14,16 +14,9 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
-const desktopRoot = path.join(repoRoot, 'desktop-patcher');
-const detectModulePath = path.join(desktopRoot, 'lib', 'detect.js');
-const patchModulePath = path.join(desktopRoot, 'lib', 'patch.js');
+const rendererRoot = path.join(repoRoot, 'renderer');
+const injectorRoot = path.join(repoRoot, 'injector');
 
-function readDesktopBackendSource() {
-  return [
-    fs.readFileSync(path.join(desktopRoot, 'main.js'), 'utf8'),
-    fs.readFileSync(path.join(desktopRoot, 'i18n-handlers.js'), 'utf8'),
-  ].join('\n');
-}
 
 function makeTempDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-i18n-test-'));
@@ -149,152 +142,12 @@ function makeFakeBundle(rootDir) {
   return appPath;
 }
 
-test('desktop patcher workspace includes the compiled UI workflow files', () => {
-  const expectedFiles = [
-    path.join(repoRoot, 'package.json'),
-    path.join(desktopRoot, 'main.js'),
-    path.join(desktopRoot, 'i18n-handlers.js'),
-    path.join(desktopRoot, 'preload.js'),
-    path.join(desktopRoot, 'renderer', 'index.html'),
-    path.join(desktopRoot, 'renderer', 'app.js'),
-    path.join(desktopRoot, 'renderer', 'styles.css'),
-    path.join(desktopRoot, 'lib', 'detect.js'),
-    path.join(desktopRoot, 'lib', 'patch.js'),
-    path.join(desktopRoot, 'lib', 'sudo.js'),
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
-    path.join(desktopRoot, 'injector', 'generated_translations.inc'),
-    path.join(repoRoot, 'languages', 'zh-Hans', 'nodeStrings.json'),
-    path.join(repoRoot, 'languages', 'zh-Hant', 'nodeStrings.json'),
-    path.join(repoRoot, 'languages', 'ja_JP', 'nodeStrings.json'),
-    path.join(repoRoot, 'tools', 'build_translator_injector.sh'),
-    path.join(repoRoot, 'tools', 'extract_compiled_ui_strings.js'),
-    path.join(repoRoot, 'tools', 'generate_embedded_translations.js'),
-    path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'),
-    path.join(repoRoot, 'tools', 'zh-Hans.ts'),
-    path.join(repoRoot, 'tools', 'zh-Hant.ts'),
-    path.join(repoRoot, 'tools', 'ja_JP.ts'),
-    path.join(repoRoot, 'tools', 'translation-whitelist.json'),
-  ];
 
-  for (const filePath of expectedFiles) {
-    assert.ok(fs.existsSync(filePath), `${path.relative(repoRoot, filePath)} missing`);
-  }
 
-  const removedPaths = [
-    path.join(repoRoot, 'LanguageSwitcher.js'),
-    path.join(repoRoot, 'LanguageSwitcher_assets'),
-    path.join(desktopRoot, 'lib', 'patcher-config.js'),
-    path.join(repoRoot, 'tools', 'patch_cavalry_bundle.py'),
-    path.join(repoRoot, 'tools', 'check_language_switcher_runtime.js'),
-  ];
 
-  for (const removedPath of removedPaths) {
-    assert.equal(
-      fs.existsSync(removedPath),
-      false,
-      `${path.relative(repoRoot, removedPath)} should have been removed`
-    );
-  }
-});
-
-test('detect helpers ignore the English baseline and prefer a saved app path', () => {
-  const { findCavalryApp, listLanguageOptions } = require(detectModulePath);
-  const tempRoot = makeTempDir();
-  const languagesDir = path.join(tempRoot, 'languages');
-
-  fs.mkdirSync(path.join(languagesDir, 'en'), { recursive: true });
-  fs.mkdirSync(path.join(languagesDir, 'zh-Hans'), { recursive: true });
-  fs.mkdirSync(path.join(languagesDir, 'ja_JP'), { recursive: true });
-  fs.writeFileSync(path.join(languagesDir, 'README.txt'), 'ignore me');
-
-  const savedAppPath = path.join(tempRoot, 'Saved', 'Cavalry.app');
-  fs.mkdirSync(savedAppPath, { recursive: true });
-
-  assert.deepEqual(listLanguageOptions(languagesDir), ['ja_JP', 'zh-Hans']);
-  assert.equal(findCavalryApp(savedAppPath), savedAppPath);
-});
-
-test('patch helpers extract English files, discover plugins, and stage copy pairs', () => {
-  const { buildCopyPairs, discoverPlugins, extractEnglish, stageFiles } = require(patchModulePath);
-  const tempRoot = makeTempDir();
-  const appPath = makeFakeBundle(tempRoot);
-  const englishDir = path.join(tempRoot, 'state', 'en');
-  const langDir = path.join(tempRoot, 'languages', 'zh-Hans');
-  const stagingDir = path.join(tempRoot, 'staging');
-
-  writeJson(path.join(langDir, 'nodeStrings.json'), { value: 'ZH node' });
-  writeJson(path.join(langDir, 'appStrings.json'), { value: 'ZH app' });
-  writeJson(path.join(langDir, 'tips.json'), { title: 'ZH tip', text: 'ZH text' });
-  writeJson(path.join(langDir, 'onboarding.json'), { title: 'ZH onboarding' });
-  writeJson(path.join(langDir, 'plugins', 'gaussianBlurFilter.json'), {
-    niceName: 'Gaussian Blur Filter',
-    language: 'zh-Hans',
-  });
-
-  assert.deepEqual(discoverPlugins(appPath), [
-    { folderName: 'Bulge Filter', camelName: 'bulgeFilter' },
-    { folderName: 'Gaussian Blur Filter', camelName: 'gaussianBlurFilter' },
-  ]);
-
-  extractEnglish(appPath, englishDir);
-  assert.deepEqual(readJson(path.join(englishDir, 'nodeStrings.json')), { value: 'EN node' });
-  assert.deepEqual(readJson(path.join(englishDir, 'plugins', 'gaussianBlurFilter.json')), {
-    niceName: 'Gaussian Blur Filter',
-    language: 'en',
-  });
-
-  const pairs = buildCopyPairs(langDir, appPath);
-  assert.deepEqual(
-    pairs.map(({ src, dst }) => ({
-      src: path.relative(langDir, src),
-      dst: dst.replace(appPath, '<app>'),
-    })),
-    [
-      { src: 'nodeStrings.json', dst: '<app>/Contents/assets/Definitions/nodeStrings.json' },
-      { src: 'appStrings.json', dst: '<app>/Contents/assets/Definitions/appStrings.json' },
-      { src: 'tips.json', dst: '<app>/Contents/assets/Learn/tips.json' },
-      { src: 'onboarding.json', dst: '<app>/Contents/assets/Learn/onboarding.json' },
-      {
-        src: path.join('plugins', 'gaussianBlurFilter.json'),
-        dst: '<app>/Contents/assets/Plugins/Gaussian Blur Filter/strings.json',
-      },
-    ]
-  );
-
-  const stagedPairs = stageFiles(pairs, stagingDir);
-  assert.equal(stagedPairs.length, 5);
-  for (const pair of stagedPairs) {
-    assert.ok(pair.src.startsWith(stagingDir), 'staged file should live in staging dir');
-    assert.ok(fs.existsSync(pair.src), 'staged file should exist');
-  }
-});
-
-test('renderer and preload expose the simplified JSON-only desktop flow', () => {
-  const preload = fs.readFileSync(path.join(desktopRoot, 'preload.js'), 'utf8');
-  const html = fs.readFileSync(path.join(desktopRoot, 'renderer', 'index.html'), 'utf8');
-
-  assert.match(preload, /getStatus/);
-  assert.match(preload, /browseApp/);
-  assert.match(preload, /extractEnglish/);
-  assert.match(preload, /applyLanguage/);
-  assert.match(preload, /restartCavalry/);
-
-  assert.match(html, /id="currentLabel">Current<\/span>\s+—/);
-  assert.match(html, /Apply &amp; Restart|Apply & Restart/);
-  assert.match(html, /id="statusText"/);
-  assert.doesNotMatch(
-    html,
-    /Editing files inside Cavalry\.app may change how macOS code-signature verification reports this install\./,
-    'desktop UI should not show a stale always-on code-signature warning when no warning was reported'
-  );
-  assert.doesNotMatch(html, /id="outputAppPath"/);
-  assert.doesNotMatch(html, /id="qmTarget"/);
-  assert.doesNotMatch(html, /id="inspectButton"/);
-  assert.doesNotMatch(html, /id="diagnosticsGrid"/);
-});
 
 test('renderer only switches status to warning when the patch flow reports a real warning', () => {
-  const rendererSource = fs.readFileSync(path.join(desktopRoot, 'renderer', 'app.js'), 'utf8');
+  const rendererSource = fs.readFileSync(path.join(rendererRoot, 'app.js'), 'utf8');
 
   assert.match(
     rendererSource,
@@ -308,94 +161,14 @@ test('renderer only switches status to warning when the patch flow reports a rea
   );
 });
 
-test('macOS copy helper does not perform blanket xattr cleanup during file replacement', () => {
-  const sudoSource = fs.readFileSync(path.join(desktopRoot, 'lib', 'sudo.js'), 'utf8');
 
-  assert.doesNotMatch(
-    sudoSource,
-    /xattr\s+-cr/,
-    'file-copy escalation should not silently run blanket xattr cleanup; targeted quarantine removal is handled separately in the main macOS patch flow'
-  );
-});
 
-test('macOS patch helper can fall back to Finder-style replacement without re-signing the whole app bundle', () => {
-  const sudoSource = fs.readFileSync(path.join(desktopRoot, 'lib', 'sudo.js'), 'utf8');
 
-  assert.match(
-    sudoSource,
-    /tell application "Finder"/,
-    'macOS helper should include a Finder fallback when shell copy is denied'
-  );
-  assert.match(
-    sudoSource,
-    /duplicate .* to /,
-    'Finder fallback should duplicate the staged JSON into the target folder'
-  );
-  assert.match(
-    sudoSource,
-    /set name of .* to /,
-    'Finder fallback should rename the staged file to the exact destination filename'
-  );
-  assert.doesNotMatch(
-    sudoSource,
-    /set destinationItem to POSIX file dstPath/,
-    'Finder fallback should not directly resolve the destination POSIX file object before checking existence'
-  );
-  assert.doesNotMatch(
-    sudoSource,
-    /codesign --force --deep --sign -/,
-    'automatic JSON patching should not re-sign the entire Cavalry.app bundle after replacing language files'
-  );
-});
 
-test('desktop main process patches the original macOS app for direct translated launches', () => {
-  const mainSource = readDesktopBackendSource();
-
-  assert.match(
-    mainSource,
-    /Cavalry\.i18n-original|cavalry-i18n-lang\.txt|libCavalryTranslatorInjector\.dylib/,
-    'translated macOS installs should patch the original app bundle so it can launch directly in the target language'
-  );
-  assert.doesNotMatch(
-    mainSource,
-    /translated-apps|translatedApp|launch_cavalry_with_injector\.sh/,
-    'desktop patcher should not depend on translated app copies or an external launcher for normal macOS usage'
-  );
-});
-
-test('desktop main process can recover current language from the patched app bundle itself', () => {
-  const mainSource = readDesktopBackendSource();
-
-  assert.match(
-    mainSource,
-    /readFileSync\(getLangMarkerPath\(appPath\)/,
-    'desktop patcher should prefer the bundle-local language marker over stale state.json when detecting the current macOS language'
-  );
-});
-
-test('packaged desktop app prefers a bundled injector resource over rebuilding from source at runtime', () => {
-  const mainSource = readDesktopBackendSource();
-
-  assert.match(
-    mainSource,
-    /process\.resourcesPath/,
-    'packaged Electron app should look for a prebuilt injector under process.resourcesPath'
-  );
-  assert.match(
-    mainSource,
-    /resources.*injector|path\.join\(process\.resourcesPath, 'injector'/,
-    'packaged Electron app should read the injector from a packaged resource directory'
-  );
-  assert.match(
-    mainSource,
-    /buildInjectorFromSource\(appPath, buildScriptPath, getInjectorBuildCachePath\(\)\)/,
-    'local desktop runs should rebuild the injector from source instead of blindly trusting a checked-in dylib that may target the wrong Qt branch'
-  );
-});
 
 test('embedded injector does not depend on runtime qm files', () => {
   const injectorSource = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
 
@@ -413,7 +186,7 @@ test('embedded injector does not depend on runtime qm files', () => {
 
 test('embedded injector refreshes the native macOS menu bar after installing translations', () => {
   const injectorSource = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
 
@@ -431,7 +204,7 @@ test('embedded injector refreshes the native macOS menu bar after installing tra
 
 test('embedded injector translates Qt-owned menus before AppKit sync can overwrite them', () => {
   const injectorSource = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
 
@@ -464,7 +237,7 @@ test('embedded injector translates Qt-owned menus before AppKit sync can overwri
 
 test('embedded injector keeps retrying until a Qt menu surface exists', () => {
   const injectorSource = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
 
@@ -508,50 +281,7 @@ test('manual debug launcher follows the embedded-injector flow', () => {
   );
 });
 
-test('macOS signing path handles crashpad_handler before re-signing the original app bundle', () => {
-  const mainSource = readDesktopBackendSource();
 
-  assert.match(
-    mainSource,
-    /crashpad_handler/,
-    'macOS signing path should explicitly account for crashpad_handler'
-  );
-  assert.match(
-    mainSource,
-    /remove-signature/,
-    'macOS signing path should strip stale crashpad signatures before re-signing the app bundle'
-  );
-  assert.match(
-    mainSource,
-    /collectNestedCodePaths|isMachOBinary/,
-    'macOS signing path should enumerate nested Mach-O code objects instead of relying on outer bundle signing alone'
-  );
-});
-
-test('macOS patch flow clears Gatekeeper quarantine from the patched app bundle', () => {
-  const mainSource = readDesktopBackendSource();
-
-  assert.match(
-    mainSource,
-    /xattr', \['-dr', 'com\.apple\.quarantine', appPath\]/,
-    'patched macOS apps should remove the quarantine attribute so Gatekeeper does not block the modified bundle on relaunch'
-  );
-  assert.match(
-    mainSource,
-    /sudo xattr -dr com\.apple\.quarantine/,
-    'failure guidance should include the exact terminal fallback command for clearing quarantine manually'
-  );
-});
-
-test('code-signature diagnostics use deep verification for patched app bundles', () => {
-  const patchSource = fs.readFileSync(path.join(desktopRoot, 'lib', 'patch.js'), 'utf8');
-
-  assert.match(
-    patchSource,
-    /codesign', \['--verify', '--deep', '--strict', appPath\]/,
-    'signature diagnostics should verify the whole patched bundle tree, not only the top-level app node'
-  );
-});
 
 test('injector build script can fall back to Qt frameworks when Cavalry app frameworks are unavailable', () => {
   const packageJson = fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8');
@@ -613,7 +343,7 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
 
 test('embedded injector source is generated from ts translation files', () => {
   const injectorSource = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
 
@@ -631,11 +361,11 @@ test('embedded injector source is generated from ts translation files', () => {
 
 test('embedded injector normalizes real runtime menu text before lookup', () => {
   const injectorSource = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
   const generated = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'generated_translations.inc'),
+    path.join(injectorRoot, 'generated_translations.inc'),
     'utf8'
   );
 
@@ -1381,7 +1111,7 @@ test('compiled UI extractor emits punctuation-normalized label aliases for raw U
 
 test('embedded injector exports the real runtime menu tree from Cavalry itself', () => {
   const injectorSource = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
 
@@ -1414,7 +1144,7 @@ test('embedded injector exports the real runtime menu tree from Cavalry itself',
 
 test('injector supports English dump-only and session-scoped runtime inventory output', () => {
   const injectorSource = fs.readFileSync(
-    path.join(desktopRoot, 'injector', 'CavalryTranslatorInjector.mm'),
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
 
@@ -2019,6 +1749,44 @@ test('shared forbidden translation detector rejects transliteration and pangram 
   );
 });
 
+test('shared forbidden translation detector rejects target-language filler and script contamination', () => {
+  const detectorPath = path.join(repoRoot, 'tools', 'forbidden_translation_patterns.js');
+  const { detectForbiddenTranslationPatterns } = require(detectorPath);
+
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hans',
+      sourceText: 'Click to edit or remove the Attribute Expression',
+      value: '单击以编辑项目移除项目属性表达式',
+    }).map((hit) => hit.id),
+    ['FP-13']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({
+      language: 'ja_JP',
+      sourceText: 'and restricted Assets found',
+      value: '并找到受限アセット',
+    }).map((hit) => hit.id),
+    ['FP-14']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hant',
+      sourceText: 'Create Array from Assets in Group',
+      value: '建立陣列从素材項目群組',
+    }).map((hit) => hit.id),
+    ['FP-4', 'FP-13']
+  );
+  assert.deepEqual(
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hans',
+      sourceText: 'This feature requires a Project',
+      value: '此功能需要项目',
+    }),
+    []
+  );
+});
+
 test('translation whitelist registers FP-10 FP-11 FP-12 contracts', () => {
   const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
   const contracts = whitelist._forbidden_patterns;
@@ -2034,7 +1802,7 @@ test('translation validator preserves TS and generated table context for FP-8', 
   const reportPath = path.join(tempRoot, 'p5-report.json');
   const summaryPath = path.join(tempRoot, 'p5-summary.md');
   const tsPath = path.join(tempRoot, 'tools', 'zh-Hans.ts');
-  const generatedPath = path.join(tempRoot, 'desktop-patcher', 'injector', 'generated_translations.inc');
+  const generatedPath = path.join(tempRoot, 'injector', 'generated_translations.inc');
 
   fs.writeFileSync(
     tsPath,
@@ -2151,7 +1919,7 @@ test('checked-in generated translation table matches the ts sources', () => {
   const tempRoot = makeTempDir();
   const generatedPath = path.join(tempRoot, 'generated_translations.inc');
   const generatorPath = path.join(repoRoot, 'tools', 'generate_embedded_translations.js');
-  const checkedInPath = path.join(desktopRoot, 'injector', 'generated_translations.inc');
+  const checkedInPath = path.join(injectorRoot, 'generated_translations.inc');
 
   const result = spawnSync(process.execPath, [generatorPath, generatedPath], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || result.stdout || 'generator should exit cleanly');
@@ -2196,7 +1964,7 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
   assert.match(
     workflow,
     /npm run build/,
-    'release pipeline should build the packaged macOS patcher app through the default Tauri path'
+    'release pipeline should build the packaged macOS Tauri app through the default Tauri path'
   );
   assert.match(
     workflow,
@@ -2205,36 +1973,3 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
   );
 });
 
-test('local macOS packaging defaults to Tauri while keeping the Electron fallback explicit', () => {
-  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
-  const scripts = packageJson.scripts || {};
-  const buildConfig = packageJson.build || {};
-
-  assert.equal(
-    scripts.build,
-    'npm run tauri:build',
-    'local packaging should default to the Tauri release path'
-  );
-  assert.match(
-    scripts['build:electron'] || '',
-    /build:injector/,
-    'Electron fallback packaging should still prebuild the injector before running electron-builder'
-  );
-  assert.match(
-    scripts['build:electron:dir'] || '',
-    /build:injector/,
-    'Electron fallback directory packaging should also prebuild the injector before running electron-builder'
-  );
-  assert.ok(
-    Array.isArray(buildConfig.extraResources) &&
-      buildConfig.extraResources.some((entry) =>
-        JSON.stringify(entry).includes('libCavalryTranslatorInjector.dylib')
-      ),
-    'Electron fallback config should still copy the prebuilt injector dylib into packaged app resources'
-  );
-  assert.match(
-    scripts['build:injector'] || '',
-    /resolve_cavalry_qt_sdk\.js --print-env --ensure/,
-    'local injector prebuild should resolve and prepare the current target Cavalry Qt SDK even when a local app bundle is unavailable'
-  );
-});

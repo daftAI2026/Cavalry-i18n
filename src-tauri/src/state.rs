@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 serde_json 与 state 目录，读取/写入 Electron 兼容 state.json
+ * [INPUT]: 依赖 serde_json 与 state 目录，读取/写入 Tauri state.json
  * [OUTPUT]: 对外提供 State、normalize、read_state、write_state
  * [POS]: src-tauri/src 的状态模块，与 detect/commands 共享单一状态 schema
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

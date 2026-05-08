@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Electron preload 预先暴露的 window.cavalryI18n 或 Tauri 的 __TAURI__/__TAURI_INTERNALS__ invoke 能力
- * [OUTPUT]: 对外提供 window.cavalryI18n 兼容 API，保证 app.js 在两种壳层里都能拿到同名 Promise 接口
- * [POS]: desktop-patcher/renderer 的非视觉迁移 bridge，作为 Tauri 注入时序不可靠时的唯一显式例外
+ * [INPUT]: 依赖 Tauri 的 __TAURI__/__TAURI_INTERNALS__ invoke 能力
+ * [OUTPUT]: 对外提供 window.cavalryI18n 兼容 API，保证 app.js 能拿到同名 Promise 接口
+ * [POS]: renderer 的非视觉 Tauri bridge，作为页面脚本前置兼容层
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (() => {

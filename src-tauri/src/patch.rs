@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 std fs/path，读取 Cavalry Contents/assets JSON 与插件 strings.json
  * [OUTPUT]: 对外提供 CORE_MAP、discover_plugins、extract_english、build_copy_pairs、stage_files、needs_english_snapshot
- * [POS]: src-tauri/src 的 JSON patch 映射模块，对齐 desktop-patcher/lib/patch.js
+ * [POS]: src-tauri/src 的 JSON patch 映射模块，对齐 Cavalry JSON 资产映射需求
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -228,7 +228,7 @@ mod tests {
     }
 
     #[test]
-    fn build_copy_pairs_matches_electron() {
+    fn build_copy_pairs_matches_cavalry_assets() {
         let temp = tempfile::tempdir().unwrap();
         let app = temp.path().join("Cavalry.app");
         let source = temp.path().join("lang");

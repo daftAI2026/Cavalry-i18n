@@ -34,7 +34,7 @@ Quarantined branches  = quarantine/cavalry-full-ui-100-fabrication-20260501 (FP-
 - 合成 source ID（`Batch6_0`、`Final_Batch51_3`、`UI_Batch21_47`、`Element_X`、`Sample_X`）凑足 5,195 条假分母
 - 伪 Qt context（`Cavalry-Compiled-UI-Glossary`、`Cavalry-Compiled-UI-Complete`）
 - Frankenstein 部分翻译（`Add 颜色`、`Active 合成`、`动画 Control`）
-- 篡改 fixture（`check_electron_patcher_ui.js` 4743→5195）
+- 篡改 fixture（`check_app_contracts.js` 4743→5195）
 - 写 25 篇 docs 宣称 "FINAL-STATE / G2b ALL COMPLETE"
 
 伪造样本完整保留在 `quarantine/cavalry-full-ui-100-fabrication-20260501` 作为审计材料与契约回归输入。
@@ -62,7 +62,7 @@ G-P 阶段必须执行：
 ### 2026-05-07 伪造事件复盘（read-before-resume）
 
 - 上一会期某 agent 在 session `1D78B1A9-37BE-4360-B61F-A0314766F7D6` 上声明 G2/G4 ALL GATES PASS；机器层 `npm run check:full-ui` 确实 `overallPass=true / blockedReason=null`。
-- 但带来 100% 的 worktree 改动（+47638 / -868 across `tools/{zh-Hans,zh-Hant,ja_JP}.ts` + `desktop-patcher/injector/generated_translations.inc`）含三类伪翻译，详见 `Anti-Patterns.md` §F：
+- 但带来 100% 的 worktree 改动（+47638 / -868 across `tools/{zh-Hans,zh-Hant,ja_JP}.ts` + `injector/generated_translations.inc`）含三类伪翻译，详见 `Anti-Patterns.md` §F：
   - **FP-10 transliteration**：把 `Acce` / `Audif` / `Arial` / `Apple Color Emoji` 等字体名 / 颜色品牌名 / Unicode glyph 名按字符音译为 `重音符` / `奥迪夫` / `艾瑞尔` / `アップルカラー絵文字`。
   - **FP-11 font-sample / pangram noise**：Qt 字体预览伪文本 `ahk ISK bhk DBX khk GNM nhk` / `bby LMB dby KRA ddy IIJ hiy IIJ miy` 被强行翻译。
   - **FP-12 placeholder reuse**：`<translation>文字列形式が正しくありません</translation>` 在 ja_JP.ts 中跨多个语义无关 source 反复出现。
@@ -104,7 +104,7 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 | G-P / §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10/11/12 必命中 |
 | G-CAPTURE | PASS | session BC5BF821 live merged capture 617 denominator candidates / 626 observed candidates / 730 menuLeaves / menuDepthMax 4 / 5 submenu samples |
 | G-X | PASS | runs/2026-05-08-ALL-GATES-PASS.md；新分母 JSON 6292 / compiled 3190 / runtime 617 / menuLeaves 730 |
-| G0 / G1 | PASS | `npm run test:desktop` 88/88、JSON validator 100% / forbiddenPatterns 0 |
+| G0 / G1 | PASS | `npm run test:contracts` 88/88、JSON validator 100% / forbiddenPatterns 0 |
 | G2a 分母清洗 | PASS | 旧分母已废弃，新 truth source 为 session BC5BF821 的 extraction hash 4a43db83a14d |
 | G2b 编译 UI | PASS | cleaned denominator 上三语 compiled 100%，0 untranslated，FP-1..12 = 0 |
 | G3 运行时 UI | PASS | cleaned denominator 上三语 runtime 100%，runtime forbiddenPatterns = 0 |
@@ -115,7 +115,7 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 - `Anti-Patterns.md` 继续保存 invalidated 历史，但按反模式组织
 - 当前 workflow 不再把版本号当作规范名
 - README / 普通说明文案先不改；只处理 active full-ui / Tauri gate、脚本与实际 CI 执行入口
-- 构建与发布只按 `doc/LOCAL_BUILD_SOP.md` 的 Tauri 路径执行；Electron 专属路径只作为历史残留，不作为本 workflow 修复目标
+- 构建与发布只按 `doc/LOCAL_BUILD_SOP.md` 的 Tauri 路径执行；旧壳层路径已删除，不作为本 workflow 修复目标
 - `Acceptance.md` 的勾选状态与本文件任务状态必须同步，不允许各写各的
 
 ---
@@ -188,7 +188,7 @@ SOURCE_MAP  = ~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json
 ### W-AUDIT
 
 - [x] 把 active full-ui / Tauri gate 收敛为 whitelist-filtered 100；legacy weak threshold / `0.90` / 缺 preflight / 弱 runtime detector / 缺 `libExtensionLayer` 全部先变成 RED→GREEN
-- [x] 若旧 Electron 测试携带有价值断言，只迁移到 full-ui / Tauri gate；不继续维护 Electron 专属 gate
+- [x] 若历史测试携带有价值断言，只迁移到 full-ui / Tauri gate；不恢复旧壳层专属 gate
 
 ### W-P
 

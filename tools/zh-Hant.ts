@@ -746,7 +746,7 @@
     <message><source>Are you sure you want to delete this palette? This cannot be undone</source><translation>您確定要刪除此調色板嗎 ? 無法撤銷</translation></message>
     <message><source>Are you sure you want to delete this palette? This cannot be undone.</source><translation>您確定要刪除此調色板嗎 ? 這一點是無法消除的。</translation></message>
     <message><source>Are you sure you want to delete this preset?</source><translation>您確定要刪除此預設嗎 ?</translation></message>
-    <message><source>Are you sure you want to delete this Preset?</source><translation>確定要刪除此预设嗎？</translation></message>
+    <message><source>Are you sure you want to delete this Preset?</source><translation>確定要刪除此預設嗎？</translation></message>
     <message><source>Are you sure you want to delete this Swatch?</source><translation>確定要刪除此色票嗎？</translation></message>
     <message><source>Are you sure you want to quit? Unsaved changes will be lost</source><translation>你確定要退出嗎? 未保存的更改將丟失</translation></message>
     <message><source>Are you sure you want to quit? Unsaved changes will be lost.</source><translation>你確定要退出嗎? 未保存的更改將丟失 。</translation></message>
@@ -786,7 +786,7 @@
     <message><source>Bounce Out Magic Easing set</source><translation>彈出魔法減速裝置</translation></message>
     <message><source>Bounce Out Magic Easing set.</source><translation>弹跳弹出魔法缓动設定。</translation></message>
     <message><source>Break</source><translation>中斷</translation></message>
-    <message><source>Break B</source><translation>斷開項目</translation></message>
+    <message><source>Break B</source><translation>斷開 B</translation></message>
     <message><source>Built-in</source><translation>內建</translation></message>
     <message><source>Built-in Presets</source><translation>內建預設</translation></message>
     <message><source>but got</source><translation>卻得到了</translation></message>
@@ -838,7 +838,7 @@
     <message><source>Character Variant</source><translation>字符變量</translation></message>
     <message><source>Checkbox</source><translation>複選框</translation></message>
     <message><source>Choose</source><translation>選擇</translation></message>
-    <message><source>Choose between B</source><translation>選取之间項目</translation></message>
+    <message><source>Choose between B</source><translation>在 B 之間選擇</translation></message>
     <message><source>Christine</source><translation>克莉絲汀</translation></message>
     <message><source>Circular</source><translation>圓形</translation></message>
     <message><source>Clear All</source><translation>全部清除</translation></message>
@@ -876,12 +876,12 @@
     <message><source>Click drag a line between two vertices to create an edge.</source><translation>單擊兩個頂點之間拖動一條線以創建邊緣。</translation></message>
     <message><source>Click drag to edit Soft Selection size</source><translation>單擊拖曳以編輯軟選擇大小</translation></message>
     <message><source>Click handle</source><translation>點擊手柄</translation></message>
-    <message><source>Click to edit or remove the Attribute Expression</source><translation>點按以編輯項目移除項目屬性運算式</translation></message>
-    <message><source>Click to edit or remove the Attribute Expression.</source><translation>點按以編輯項目移除項目屬性運算式。</translation></message>
+    <message><source>Click to edit or remove the Attribute Expression</source><translation>點按以編輯或移除屬性運算式</translation></message>
+    <message><source>Click to edit or remove the Attribute Expression.</source><translation>點按以編輯或移除屬性運算式。</translation></message>
     <message><source>Click to isolate layers and reveal any animated attributes</source><translation>單擊以隔離層並顯示任何動畫屬性</translation></message>
     <message><source>Click to isolate layers and reveal any animated attributes.</source><translation>點擊可隔離層並顯示任何動畫屬性.</translation></message>
     <message><source>Click to see any connections</source><translation>單擊以查看任何連接</translation></message>
-    <message><source>Click to set a Keyframe</source><translation>點按以設定項目關鍵影格</translation></message>
+    <message><source>Click to set a Keyframe</source><translation>點按以設定關鍵幀</translation></message>
     <message><source>Click to show all layers</source><translation>單擊以顯示所有層</translation></message>
     <message><source>Click to show all layers.</source><translation>單擊以顯示所有層。</translation></message>
     <message><source>Click to show connections to and from this Attribute</source><translation>點按以顯示此屬性的輸入與輸出連線</translation></message>
@@ -899,8 +899,8 @@
     <message><source>Colour-managed working surface failed, trying without colour space.</source><translation>色彩管理工作表面失敗, 沒有色彩空間 。</translation></message>
     <message><source>Column titles are the first row in each column</source><translation>列標題是每列中的第一行</translation></message>
     <message><source>Column titles are the first row in each column.</source><translation>列標題是每列中的第一行。</translation></message>
-    <message><source>Combined Keyframe Layers value</source><translation>組合關鍵影格圖層項目</translation></message>
-    <message><source>Combined Keyframe Layers value.</source><translation>組合關鍵影格圖層項目。</translation></message>
+    <message><source>Combined Keyframe Layers value</source><translation>組合關鍵幀圖層值</translation></message>
+    <message><source>Combined Keyframe Layers value.</source><translation>組合關鍵幀圖層值。</translation></message>
     <message><source>Comm</source><translation>通訊</translation></message>
     <message><source>Command</source><translation>命令</translation></message>
     <message><source>Command Search (Pro)</source><translation>指令搜尋(專業版)</translation></message>
@@ -917,7 +917,7 @@
     <message><source>Composition Frame. Alt-Click this control to switch to timecode mode</source><translation>合成影格。按住選項鍵點按此控制項可切換到時間碼模式</translation></message>
     <message><source>Composition Frame. Alt-Click this control to switch to timecode mode.</source><translation>合成影格。按住選項鍵點按此控制項可切換到時間碼模式。</translation></message>
     <message><source>Composition Override Settings</source><translation>合成覆寫設定</translation></message>
-    <message><source>Composition Presets</source><translation>合成预设</translation></message>
+    <message><source>Composition Presets</source><translation>合成預設</translation></message>
     <message><source>Composition Settings</source><translation>合成設定</translation></message>
     <message><source>Composition Start</source><translation>合成開始</translation></message>
     <message><source>Composition Timecode. Alt-Click this control to switch to frame mode</source><translation>合成時間碼。按住選項鍵點按此控制項可切換到影格模式</translation></message>
@@ -926,11 +926,11 @@
     <message><source>Connect a Behaviour or Utility here</source><translation>在此連接一個行爲或工具</translation></message>
     <message><source>Connect a Behaviour or Utility here.</source><translation>在此連接一個行爲或工具 。</translation></message>
     <message><source>Connect Deformer</source><translation>連線變形器</translation></message>
-    <message><source>Connect H</source><translation>連線項目</translation></message>
+    <message><source>Connect H</source><translation>連線 H</translation></message>
     <message><source>Connect its output to a keyframed attribute</source><translation>將其輸出連接到密鑰框架屬性</translation></message>
     <message><source>Connect its output to a keyframed attribute.</source><translation>將其輸出連接到密鑰框架屬性 。</translation></message>
     <message><source>Connect time marker to keyframe</source><translation>連接時間標記到密鑰框架</translation></message>
-    <message><source>Connect Time Marker to Keyframe</source><translation>連線項目標記項目關鍵影格</translation></message>
+    <message><source>Connect Time Marker to Keyframe</source><translation>將時間標記連線到關鍵幀</translation></message>
     <message><source>Connect to</source><translation>連接到</translation></message>
     <message><source>Connect Window</source><translation>連接視窗</translation></message>
     <message><source>Connected</source><translation>已連接</translation></message>
@@ -944,29 +944,29 @@
     <message><source>Constant (Linear)</source><translation>常數( 內爾)</translation></message>
     <message><source>Constrain Axis</source><translation>約束軸</translation></message>
     <message><source>Constrain Proportions</source><translation>限制比例</translation></message>
-    <message><source>Constrain the proportions of this Attribute based on the current values</source><translation>約束項目比例項目此屬性基于開啟項目目前值</translation></message>
-    <message><source>Constrain the proportions of this Attribute based on the current values.</source><translation>約束項目比例項目此屬性基于開啟項目目前值。</translation></message>
+    <message><source>Constrain the proportions of this Attribute based on the current values</source><translation>根據目前值約束此屬性的比例</translation></message>
+    <message><source>Constrain the proportions of this Attribute based on the current values.</source><translation>根據目前值約束此屬性的比例。</translation></message>
     <message><source>Context</source><translation>背景情況</translation></message>
     <message><source>Continue</source><translation>繼續</translation></message>
     <message><source>Control Centre (Pro)</source><translation>控制中心(專業版)</translation></message>
-    <message><source>Control H</source><translation>控制項目</translation></message>
+    <message><source>Control H</source><translation>控制 H</translation></message>
     <message><source>Control Layer</source><translation>控制圖層</translation></message>
-    <message><source>Control with Null</source><translation>控制項目空物件</translation></message>
-    <message><source>Convert popover to window</source><translation>轉換彈出視窗項目視窗</translation></message>
-    <message><source>Convert popover to window.</source><translation>轉換彈出視窗項目視窗。</translation></message>
-    <message><source>Convert Quicklist to Tag</source><translation>轉換快速清單項目標籤</translation></message>
+    <message><source>Control with Null</source><translation>使用空物件控制</translation></message>
+    <message><source>Convert popover to window</source><translation>將彈出面板轉換為視窗</translation></message>
+    <message><source>Convert popover to window.</source><translation>將彈出面板轉換為視窗。</translation></message>
+    <message><source>Convert Quicklist to Tag</source><translation>將快速清單轉換為標籤</translation></message>
     <message><source>Convert to B</source><translation>轉換為位元組</translation></message>
     <message><source>Convert to Linear</source><translation>轉換爲線性</translation></message>
-    <message><source>Copied Attribute value</source><translation>已複製屬性項目</translation></message>
-    <message><source>Copied Attribute value.</source><translation>已複製屬性項目。</translation></message>
+    <message><source>Copied Attribute value</source><translation>已複製屬性值</translation></message>
+    <message><source>Copied Attribute value.</source><translation>已複製屬性值。</translation></message>
     <message><source>Copied Gradient</source><translation>複製漸變</translation></message>
     <message><source>Copied Graph</source><translation>複製圖</translation></message>
     <message><source>Copied Grid.</source><translation>已複製網格。</translation></message>
     <message><source>Copied Internal Attribute Path to Clipboard. Not for use with Scripting</source><translation>已將內部屬性路徑複製到剪貼簿。不要用於腳本</translation></message>
     <message><source>Copied Internal Attribute Path to Clipboard. Not for use with Scripting.</source><translation>已將內部屬性路徑複製到剪貼簿。不要用於腳本。</translation></message>
     <message><source>Copied Path</source><translation>已複製路徑</translation></message>
-    <message><source>Copied Path to Clipboard</source><translation>已複製路徑項目剪貼簿</translation></message>
-    <message><source>Copied Path to Clipboard.</source><translation>已複製路徑項目剪貼簿。</translation></message>
+    <message><source>Copied Path to Clipboard</source><translation>已將路徑複製到剪貼簿</translation></message>
+    <message><source>Copied Path to Clipboard.</source><translation>已將路徑複製到剪貼簿。</translation></message>
     <message><source>Copied Selected Animation</source><translation>已複製已選取動畫</translation></message>
     <message><source>Copied Selected Keyframes</source><translation>已複製已選取關鍵影格</translation></message>
     <message><source>Copy and send this information to support for troubleshooting</source><translation>複製併發送此資訊支持排除故障</translation></message>
@@ -976,7 +976,7 @@
     <message><source>Copy Generator Type</source><translation>複製生成器類型</translation></message>
     <message><source>Copy Group Id</source><translation>複製群組識別碼</translation></message>
     <message><source>Copy Hex Color Value</source><translation>複製十六進制顏色值</translation></message>
-    <message><source>Copy Internal Attribute path</source><translation>複製內部屬性項目</translation></message>
+    <message><source>Copy Internal Attribute path</source><translation>複製內部屬性路徑</translation></message>
     <message><source>Copy Layer Id</source><translation>複製圖層識別碼</translation></message>
     <message><source>Copy Render Queue Item Id</source><translation>複製渲染佇列項目識別碼</translation></message>
     <message><source>Copy Scripting Path</source><translation>複製腳本路徑</translation></message>
@@ -988,10 +988,10 @@
     <message><source>Could not compile script (check for syntax errors)</source><translation>無法編譯腳本( 請檢查語法錯誤)</translation></message>
     <message><source>Could not compile script (check for syntax errors).</source><translation>無法編譯腳本( 檢查語法錯誤) 。</translation></message>
     <message><source>could not connect</source><translation>無法連接</translation></message>
-    <message><source>Could not fetch app config: connection failed</source><translation>無法取得項目設定:連線失敗</translation></message>
+    <message><source>Could not fetch app config: connection failed</source><translation>無法取得應用程式設定：連線失敗</translation></message>
     <message><source>Could not find audio stream</source><translation>找不到音頻流</translation></message>
-    <message><source>Could not find or create Lattice Constraint</source><translation>無法找到項目建立晶格約束</translation></message>
-    <message><source>Could not find or create Lattice Constraint.</source><translation>無法找到項目建立晶格約束。</translation></message>
+    <message><source>Could not find or create Lattice Constraint</source><translation>無法找到或建立晶格約束</translation></message>
+    <message><source>Could not find or create Lattice Constraint.</source><translation>無法找到或建立晶格約束。</translation></message>
     <message><source>Could not find stream information</source><translation>找不到流資訊</translation></message>
     <message><source>Could not get client token</source><translation>無法獲得客戶端代號</translation></message>
     <message><source>Could not get client token.</source><translation>無法獲得客戶端代號 。</translation></message>
@@ -1018,8 +1018,8 @@
     <message><source>Create a Camera</source><translation>創建相機</translation></message>
     <message><source>Create a Cel Animation Shape and switch to the Pencil tool</source><translation>建立逐格動畫形狀並切換到鉛筆工具</translation></message>
     <message><source>Create a Cel Animation Shape and switch to the Pencil tool.</source><translation>建立逐格動畫形狀並切換到鉛筆工具。</translation></message>
-    <message><source>Create a Composition</source><translation>建立項目合成</translation></message>
-    <message><source>Create a Duplicator</source><translation>建立項目複製器</translation></message>
+    <message><source>Create a Composition</source><translation>建立合成</translation></message>
+    <message><source>Create a Duplicator</source><translation>建立複製器</translation></message>
     <message><source>Create a Forge Dynamics Solver</source><translation>創建 Forge 動態解析器</translation></message>
     <message><source>Create a Group</source><translation>創建分組</translation></message>
     <message><source>Create a new keyframe</source><translation>創建新密鑰框架</translation></message>
@@ -1032,26 +1032,26 @@
     <message><source>Create an Extrusion</source><translation>創建突變</translation></message>
     <message><source>Create and connect a layer</source><translation>創建和連接層</translation></message>
     <message><source>Create and connect a layer.</source><translation>創建和連接一層 。</translation></message>
-    <message><source>Create Array from Assets in Group</source><translation>建立陣列从素材項目群組</translation></message>
-    <message><source>Create Array from Compositions in Group</source><translation>建立陣列从合成項目群組</translation></message>
-    <message><source>Create Array From Palette</source><translation>建立陣列从調色盤</translation></message>
+    <message><source>Create Array from Assets in Group</source><translation>從群組中的素材建立陣列</translation></message>
+    <message><source>Create Array from Compositions in Group</source><translation>從群組中的合成建立陣列</translation></message>
+    <message><source>Create Array From Palette</source><translation>從調色盤建立陣列</translation></message>
     <message><source>Create as Mask</source><translation>創建爲遮罩</translation></message>
-    <message><source>Create Asset Array from Group</source><translation>建立素材陣列从群組</translation></message>
+    <message><source>Create Asset Array from Group</source><translation>從群組建立素材陣列</translation></message>
     <message><source>Create Backdrop from Selection</source><translation>從選擇區創建後空投</translation></message>
-    <message><source>Create Composition Array from Group</source><translation>建立合成陣列从群組</translation></message>
-    <message><source>Create Composition based on</source><translation>建立合成基于開啟</translation></message>
-    <message><source>Create Custom Preset</source><translation>建立自訂预设</translation></message>
-    <message><source>Create Custom Preset...</source><translation>建立自訂预设...</translation></message>
+    <message><source>Create Composition Array from Group</source><translation>從群組建立合成陣列</translation></message>
+    <message><source>Create Composition based on</source><translation>根據下列內容建立合成</translation></message>
+    <message><source>Create Custom Preset</source><translation>建立自訂預設</translation></message>
+    <message><source>Create Custom Preset...</source><translation>建立自訂預設...</translation></message>
     <message><source>Create from the Centre</source><translation>從中心創建</translation></message>
-    <message><source>Create New Shape</source><translation>建立項目形狀</translation></message>
+    <message><source>Create New Shape</source><translation>建立新形狀</translation></message>
     <message><source>Create Super Ellipse</source><translation>創建超級橢圓</translation></message>
     <message><source>Create Super Shape</source><translation>建立超级形狀</translation></message>
     <message><source>Create Text along a Path. You must have a Shape layer selected. Selecting a Text Shape is optional</source><translation>沿路徑建立文字。必須選取一個形狀圖層，也可以選取文字形狀</translation></message>
     <message><source>Create Text along a Path. You must have a Shape layer selected. Selecting a Text Shape is optional.</source><translation>沿路徑建立文字。必須選取一個形狀圖層，也可以選取文字形狀。</translation></message>
     <message><source>Create Text Background Shape</source><translation>建立文字背景形狀</translation></message>
     <message><source>Created</source><translation>創建</translation></message>
-    <message><source>Created Asset Array from Group</source><translation>已建立素材陣列从群組</translation></message>
-    <message><source>Created Asset Array from Group.</source><translation>已建立素材陣列从群組。</translation></message>
+    <message><source>Created Asset Array from Group</source><translation>已從群組建立素材陣列</translation></message>
+    <message><source>Created Asset Array from Group.</source><translation>已從群組建立素材陣列。</translation></message>
     <message><source>Crete</source><translation>克里特</translation></message>
     <message><source>Crop Animation to Selected Keys</source><translation>裁剪動畫項目已選取鍵</translation></message>
     <message><source>crs DRS krs</source><translation>內部識別一</translation></message>
@@ -1061,7 +1061,7 @@
     <message><source>Cursive Angle</source><translation>曲線角</translation></message>
     <message><source>Curve Ghosting</source><translation>曲線幽靈</translation></message>
     <message><source>Cust</source><translation>凸輪</translation></message>
-    <message><source>Custom Presets</source><translation>自訂预设</translation></message>
+    <message><source>Custom Presets</source><translation>自訂預設</translation></message>
     <message><source>Cut Path</source><translation>切割路徑</translation></message>
     <message><source>Cut Path Tool</source><translation>切割路徑工具</translation></message>
     <message><source>Cut Points</source><translation>切點</translation></message>
@@ -1079,17 +1079,17 @@
     <message><source>Default</source><translation>默認</translation></message>
     <message><source>Default Ease (33%)</source><translation>默認容易( 33%)</translation></message>
     <message><source>Default Keyframe Layer</source><translation>預設關鍵影格圖層</translation></message>
-    <message><source>Default Preset for this Layer Type</source><translation>項目预设用於此圖層項目</translation></message>
+    <message><source>Default Preset for this Layer Type</source><translation>此圖層類型的預設</translation></message>
     <message><source>Default Renderer</source><translation>默認渲染器</translation></message>
     <message><source>Default Velocity Presets</source><translation>預設速度預設</translation></message>
-    <message><source>Delete all Animation</source><translation>刪除項目動畫</translation></message>
+    <message><source>Delete all Animation</source><translation>刪除所有動畫</translation></message>
     <message><source>Delete All Markers</source><translation>刪除所有標記</translation></message>
     <message><source>Delete All Time Markers</source><translation>刪除全部時間標記</translation></message>
-    <message><source>Delete Animation for layer</source><translation>刪除動畫用於項目</translation></message>
+    <message><source>Delete Animation for layer</source><translation>刪除圖層動畫</translation></message>
     <message><source>Delete Animation Layers</source><translation>刪除動畫圖層</translation></message>
     <message><source>Delete Keyframe Command: attribute flag required</source><translation>刪除關鍵影格指令: 需要屬性旗標</translation></message>
     <message><source>Delete Keyframe Command: attribute flag required.</source><translation>刪除關鍵影格指令: 需要屬性旗標。</translation></message>
-    <message><source>Delete Motion Path Keyframe</source><translation>刪除項目路徑關鍵影格</translation></message>
+    <message><source>Delete Motion Path Keyframe</source><translation>刪除運動路徑關鍵幀</translation></message>
     <message><source>Delete Path Animation</source><translation>刪除路徑動畫</translation></message>
     <message><source>Delete Path Animation on this Shape</source><translation>刪除路徑動畫開啟此形狀</translation></message>
     <message><source>Delete Path Animation on this Shape.</source><translation>刪除路徑動畫開啟此形狀</translation></message>
@@ -1122,7 +1122,7 @@
     <message><source>Disconnect Clip Start</source><translation>斷開剪貼板</translation></message>
     <message><source>Disconnect from marker</source><translation>斷開標記</translation></message>
     <message><source>Disconnect Input</source><translation>斷開連接輸入</translation></message>
-    <message><source>Disconnect Keyframe</source><translation>項目關鍵影格</translation></message>
+    <message><source>Disconnect Keyframe</source><translation>斷開關鍵幀</translation></message>
     <message><source>Disconnect time control</source><translation>斷開時間控制</translation></message>
     <message><source>Display Color Space</source><translation>顯示顏色空間</translation></message>
     <message><source>Distribute Stops</source><translation>分發停止</translation></message>
@@ -1139,12 +1139,12 @@
     <message><source>Double Click on layer</source><translation>雙擊圖層</translation></message>
     <message><source>Drag a connection from here</source><translation>從這裏拖動連接</translation></message>
     <message><source>Drag a connection from here.</source><translation>從這裏拖動連接 。</translation></message>
-    <message><source>Drag a Shape here</source><translation>拖入項目形狀項目</translation></message>
+    <message><source>Drag a Shape here</source><translation>將形狀拖到此處</translation></message>
     <message><source>Drag a Shape layer here</source><translation>將形狀圖層拖到這裡</translation></message>
-    <message><source>Drag an Asset here from the Asset Window</source><translation>拖入項目素材項目从項目素材視窗</translation></message>
-    <message><source>Drag an Asset here from the Asset Window.</source><translation>拖入項目素材項目从項目素材視窗。</translation></message>
-    <message><source>Drag an Attribute connection here</source><translation>拖入項目屬性連線項目</translation></message>
-    <message><source>Drag an Attribute connection here.</source><translation>拖入項目屬性連線項目。</translation></message>
+    <message><source>Drag an Asset here from the Asset Window</source><translation>從素材視窗將素材拖到此處</translation></message>
+    <message><source>Drag an Asset here from the Asset Window.</source><translation>從素材視窗將素材拖到此處。</translation></message>
+    <message><source>Drag an Attribute connection here</source><translation>將屬性連線拖到此處</translation></message>
+    <message><source>Drag an Attribute connection here.</source><translation>將屬性連線拖到此處。</translation></message>
     <message><source>Drag at least two Shapes here</source><translation>將至少兩個形狀拖到這裡</translation></message>
     <message><source>Drag colors here</source><translation>在此拖動顏色</translation></message>
     <message><source>Drag colors here.</source><translation>在此拖放顏色 。</translation></message>
@@ -1172,14 +1172,14 @@
     <message><source>During Playback</source><translation>播放時</translation></message>
     <message><source>Dynamic Settings</source><translation>動態設置</translation></message>
     <message><source>Early Hints</source><translation>早期提示</translation></message>
-    <message><source>Easing Expression Editor</source><translation>缓动運算式項目</translation></message>
+    <message><source>Easing Expression Editor</source><translation>緩動運算式編輯器</translation></message>
     <message><source>Easing extent arriving at end (controls handle length)</source><translation>減輕到達終點的程度(控制手柄長度)</translation></message>
     <message><source>Easing extent leaving start (controls handle length)</source><translation>減輕離開起始範圍(控制手柄長度)</translation></message>
     <message><source>Edge Snap</source><translation>邊緣座標</translation></message>
     <message><source>Edit Custom Expression</source><translation>編輯自定義表達式</translation></message>
     <message><source>Edit Custom Expression...</source><translation>編輯自定義表達式...</translation></message>
     <message><source>Edit End Point</source><translation>編輯結束點</translation></message>
-    <message><source>Edit Limits... (Set from Origin Attribute)</source><translation>編輯項目(設定从項目屬性)</translation></message>
+    <message><source>Edit Limits... (Set from Origin Attribute)</source><translation>編輯限制...（從原始屬性設定）</translation></message>
     <message><source>Edit Points Tool</source><translation>編輯點工具</translation></message>
     <message><source>Edit Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor</source><translation>將預合成拖入屬性編輯器來編輯預合成覆寫</translation></message>
     <message><source>Edit Pre-Comp Overrides by Dragging a Pre-Composition into the Attribute Editor.</source><translation>將預合成拖入屬性編輯器來編輯預合成覆寫。</translation></message>
@@ -1187,7 +1187,7 @@
     <message><source>Edit Velocity Curve</source><translation>編輯速度曲線</translation></message>
     <message><source>Edit Velocity Curve...</source><translation>編輯速度曲線...</translation></message>
     <message><source>Editable</source><translation>可編輯</translation></message>
-    <message><source>Editable Shape Cut</source><translation>項目形狀切割</translation></message>
+    <message><source>Editable Shape Cut</source><translation>可編輯形狀切割</translation></message>
     <message><source>Edward</source><translation>愛德華</translation></message>
     <message><source>Embed in layout</source><translation>嵌入佈局</translation></message>
     <message><source>Embed the selected layers to a Grid Layout</source><translation>將選定的層嵌入網格佈局</translation></message>
@@ -1208,7 +1208,7 @@
     <message><source>Enable Snapping</source><translation>啓用抓取</translation></message>
     <message><source>Encoding file</source><translation>編碼檔案</translation></message>
     <message><source>encoding specified in XML declaration is incorrect</source><translation>宣告中指定的編碼不正確</translation></message>
-    <message><source>End of Render Queue</source><translation>結束項目渲染佇列</translation></message>
+    <message><source>End of Render Queue</source><translation>算繪佇列結尾</translation></message>
     <message><source>End of Render Queue Item</source><translation>結束項目渲染佇列項目</translation></message>
     <message><source>end reordering USE</source><translation>結束重排使用法</translation></message>
     <message><source>End Rotation</source><translation>結束旋轉</translation></message>
@@ -1234,7 +1234,7 @@
     <message><source>Enter the share URL here.</source><translation>在此輸入分享網址。</translation></message>
     <message><source>entity declared in parameter entity</source><translation>在參數實體中聲明的實體</translation></message>
     <message><source>epk LPK lpk</source><translation>內部識別四</translation></message>
-    <message><source>Erase List Attribute</source><translation>項目清單屬性</translation></message>
+    <message><source>Erase List Attribute</source><translation>清除清單屬性</translation></message>
     <message><source>Errl</source><translation>錯誤</translation></message>
     <message><source>Error adding Steiner Point</source><translation>新增斯坦納點時發生錯誤</translation></message>
     <message><source>Error adding Steiner Point.</source><translation>新增斯坦納點時發生錯誤。</translation></message>
@@ -1275,13 +1275,13 @@
     <message><source>Experimental Features have been enabled. You can disable them if needed via the Preferences Window.</source><translation>實驗功能已啟用。需要時可在偏好設定視窗中停用。</translation></message>
     <message><source>Experimental features may not work as expected, and may be removed in future versions</source><translation>實驗特徵可能無法如預期的那樣發揮作用,可能在未來版本中被刪除</translation></message>
     <message><source>Experimental features may not work as expected, and may be removed in future versions.</source><translation>實驗特徵可能不能如預期的那樣發揮作用,在未來的版本中可能被移除.</translation></message>
-    <message><source>Export All Velocity Presets</source><translation>項目所有項目预设</translation></message>
+    <message><source>Export All Velocity Presets</source><translation>匯出所有速度預設</translation></message>
     <message><source>Export All...</source><translation>導出全部...</translation></message>
     <message><source>Export as Project</source><translation>匯出為專案</translation></message>
     <message><source>Export as Project... (Pro)</source><translation>匯出為專案...(專業版)</translation></message>
     <message><source>Export Compound Graph Preset</source><translation>匯出複合圖表預設</translation></message>
     <message><source>Export Lottie... (Demo Mode)</source><translation>導出 Lottie... (演示模式)</translation></message>
-    <message><source>Export Preset...</source><translation>項目预设...</translation></message>
+    <message><source>Export Preset...</source><translation>匯出預設...</translation></message>
     <message><source>Export Selected</source><translation>導出選中的</translation></message>
     <message><source>Export Selected Snippets</source><translation>導出所選片段</translation></message>
     <message><source>Export SH</source><translation>匯出形狀控制柄</translation></message>
@@ -1349,9 +1349,9 @@
     <message><source>Filter Both</source><translation>過濾兩個</translation></message>
     <message><source>Filter Index</source><translation>過濾索引</translation></message>
     <message><source>Filter Position</source><translation>過濾位置</translation></message>
-    <message><source>Filter Scene Window</source><translation>篩選器項目視窗</translation></message>
+    <message><source>Filter Scene Window</source><translation>篩選場景視窗</translation></message>
     <message><source>Filter Time Offset</source><translation>過濾時間偏移</translation></message>
-    <message><source>Filter Viewport</source><translation>篩選器項目</translation></message>
+    <message><source>Filter Viewport</source><translation>篩選檢視區</translation></message>
     <message><source>Find</source><translation>查找</translation></message>
     <message><source>FK Controls</source><translation>正向動力學控制</translation></message>
     <message><source>Flatten Tangents</source><translation>平整切數</translation></message>
@@ -1399,7 +1399,7 @@
     <message><source>Grade</source><translation>職等</translation></message>
     <message><source>Gradient Stop Array Error: Mismatching attribute counts</source><translation>漸層色標陣列錯誤: 屬性數量不符</translation></message>
     <message><source>Gradient Stop Array Error: Mismatching attribute counts.</source><translation>漸層色標陣列錯誤: 屬性數量不符。</translation></message>
-    <message><source>Graph Attribute</source><translation>項目屬性</translation></message>
+    <message><source>Graph Attribute</source><translation>圖形屬性</translation></message>
     <message><source>Graph Presets</source><translation>圖表預設</translation></message>
     <message><source>Graph Widget</source><translation>圖形部件</translation></message>
     <message><source>Grapheme Flexibility</source><translation>圖表靈活性</translation></message>
@@ -1423,7 +1423,7 @@
     <message><source>Happy World Compliment Day, you&apos;re doing an excellent job!</source><translation>歡樂世界 一天,你做得很好! ! 一天,你做得很好!</translation></message>
     <message><source>has finished rendering</source><translation>已完成渲染</translation></message>
     <message><source>has no constructor</source><translation>沒有構造器</translation></message>
-    <message><source>Hbbbbbbbbaaaaaaaa</source><translation>項目</translation></message>
+    <message><source>Hbbbbbbbbaaaaaaaa</source><translation>Hbbbbbbbbaaaaaaaa</translation></message>
     <message><source>Headers</source><translation>頁眉</translation></message>
     <message><source>Hello, WH</source><translation>你好，寬度控制柄</translation></message>
     <message><source>Hello, World</source><translation>哈羅,世界</translation></message>
@@ -1455,24 +1455,24 @@
     <message><source>Image Smart Folders</source><translation>圖像智能檔案夾</translation></message>
     <message><source>Impo</source><translation>小豬</translation></message>
     <message><source>Import a Reference</source><translation>導入引用</translation></message>
-    <message><source>Import an Asset</source><translation>匯入項目素材</translation></message>
+    <message><source>Import an Asset</source><translation>匯入素材</translation></message>
     <message><source>Import Audio Smart Folder</source><translation>導入音頻智能檔案夾</translation></message>
     <message><source>Import Audio Smart Folder... (Pro)</source><translation>匯入音訊智慧資料夾...(專業版)</translation></message>
-    <message><source>Import Color Palette</source><translation>匯入項目調色盤</translation></message>
+    <message><source>Import Color Palette</source><translation>匯入調色盤</translation></message>
     <message><source>Import Compound Graph Preset</source><translation>匯入复合图表預設</translation></message>
     <message><source>Import Google Sheet</source><translation>導入谷歌工作表</translation></message>
     <message><source>Import Google Sheet... (Pro)</source><translation>匯入谷歌試算表...(專業版)</translation></message>
     <message><source>Import Image Smart Folder</source><translation>導入圖像智能檔案夾</translation></message>
     <message><source>Import Image Smart Folder... (Pro)</source><translation>匯入影像智慧資料夾...(專業版)</translation></message>
     <message><source>Import PH</source><translation>匯入佔位控制柄</translation></message>
-    <message><source>Import Preset</source><translation>匯入预设</translation></message>
-    <message><source>Import Preset...</source><translation>匯入预设...</translation></message>
+    <message><source>Import Preset</source><translation>匯入預設</translation></message>
+    <message><source>Import Preset...</source><translation>匯入預設...</translation></message>
     <message><source>Import Reference... (Pro)</source><translation>匯入參照...(專業版)</translation></message>
-    <message><source>Import Scene</source><translation>匯入項目</translation></message>
+    <message><source>Import Scene</source><translation>匯入場景</translation></message>
     <message><source>Import SH</source><translation>匯入形狀控制柄</translation></message>
     <message><source>Import Smart Folder</source><translation>導入智能檔案夾</translation></message>
     <message><source>Import Snippets</source><translation>導入片段</translation></message>
-    <message><source>Import Velocity Presets</source><translation>匯入項目预设</translation></message>
+    <message><source>Import Velocity Presets</source><translation>匯入速度預設</translation></message>
     <message><source>Imported preset.</source><translation>導入預設 。</translation></message>
     <message><source>Imported Scene</source><translation>已匯入場景</translation></message>
     <message><source>In Influence</source><translation>影響中</translation></message>
@@ -1488,7 +1488,7 @@
     <message><source>Infinite Scrubbing</source><translation>無限的掃蕩</translation></message>
     <message><source>Influence In</source><translation>影響</translation></message>
     <message><source>Influence Out</source><translation>影響</translation></message>
-    <message><source>Info</source><translation>項目</translation></message>
+    <message><source>Info</source><translation>資訊</translation></message>
     <message><source>Init Context: Failed to create interface</source><translation>初始化上下文: 建立介面失敗</translation></message>
     <message><source>Inside Corners</source><translation>內角</translation></message>
     <message><source>Insufficient Storage</source><translation>儲存不足</translation></message>
@@ -1512,8 +1512,8 @@
     <message><source>invalid precision</source><translation>無效的精度</translation></message>
     <message><source>Invalid Snippet Dictionary</source><translation>無效的片段詞典</translation></message>
     <message><source>Invalid Snippet Dictionary.</source><translation>無效的片段詞典 。</translation></message>
-    <message><source>Invalid Snippet JSON</source><translation>無效項目JSON</translation></message>
-    <message><source>Invalid Snippet JSON.</source><translation>無效項目JSON。</translation></message>
+    <message><source>Invalid Snippet JSON</source><translation>無效的片段 JSON</translation></message>
+    <message><source>Invalid Snippet JSON.</source><translation>無效的片段 JSON。</translation></message>
     <message><source>invalid string: forbidden character after backslash</source><translation>無效字符串: 反斜線後禁止字符</translation></message>
     <message><source>invalid string: missing closing quote</source><translation>無效的字符串: 缺少關閉引用</translation></message>
     <message><source>is already exist in isolate</source><translation>已存在於隔離環境中</translation></message>
@@ -1528,15 +1528,15 @@
     <message><source>iterator out of range</source><translation>超出範圍</translation></message>
     <message><source>Jack</source><translation>城</translation></message>
     <message><source>Japanese Kana</source><translation>日本卡納</translation></message>
-    <message><source>Join</source><translation>項目</translation></message>
+    <message><source>Join</source><translation>連接</translation></message>
     <message><source>Join B</source><translation>連線位元組</translation></message>
-    <message><source>JSON Format</source><translation>JSON項目</translation></message>
+    <message><source>JSON Format</source><translation>JSON 格式</translation></message>
     <message><source>junk after document element</source><translation>文檔元素後的廢件</translation></message>
     <message><source>Justify</source><translation>說明</translation></message>
     <message><source>Keep Connections</source><translation>保持連接</translation></message>
     <message><source>Keep going...</source><translation>繼續...</translation></message>
     <message><source>Key Interpolation</source><translation>密鑰內插</translation></message>
-    <message><source>Keyframe Layer Editor</source><translation>關鍵影格圖層項目</translation></message>
+    <message><source>Keyframe Layer Editor</source><translation>關鍵幀圖層編輯器</translation></message>
     <message><source>Keyframe Layers</source><translation>關鍵影格圖層</translation></message>
     <message><source>Keyframe Path: Path required when creating new keyframes</source><translation>關鍵影格路徑: 建立新關鍵影格时需要路徑</translation></message>
     <message><source>Keyframe Path: Path required when creating new keyframes.</source><translation>關鍵影格路徑: 建立新關鍵影格时需要路徑。</translation></message>
@@ -1545,7 +1545,7 @@
     <message><source>Keys</source><translation>鍵</translation></message>
     <message><source>Kilamanjaro</source><translation>基拉馬紮羅</translation></message>
     <message><source>KKKK KLMSO</source><translation>內部識別壬</translation></message>
-    <message><source>Label Palette Options</source><translation>項目調色盤項目</translation></message>
+    <message><source>Label Palette Options</source><translation>標籤調色盤選項</translation></message>
     <message><source>Labels</source><translation>標籤</translation></message>
     <message><source>Large</source><translation>大塊</translation></message>
     <message><source>Large Previews</source><translation>大預覽</translation></message>
@@ -1557,7 +1557,7 @@
     <message><source>Lattice: Grid size must be at least 3</source><translation>網格大小必須至少爲 3</translation></message>
     <message><source>Layer</source><translation>圖層</translation></message>
     <message><source>Layer Tools</source><translation>圖層工具</translation></message>
-    <message><source>Layer Visibility</source><translation>圖層項目</translation></message>
+    <message><source>Layer Visibility</source><translation>圖層可見性</translation></message>
     <message><source>Layout Groups</source><translation>佈局組</translation></message>
     <message><source>Left Align</source><translation>左對齊</translation></message>
     <message><source>Left Align Keys</source><translation>左鍵對齊</translation></message>
@@ -1583,8 +1583,8 @@
     <message><source>Line Tool</source><translation>線條工具</translation></message>
     <message><source>Linear (No Change)</source><translation>線性( 無更改)</translation></message>
     <message><source>Linearise</source><translation>線性</translation></message>
-    <message><source>Link Canva Account</source><translation>項目Canva項目</translation></message>
-    <message><source>Link Canva Account...</source><translation>項目Canva項目...</translation></message>
+    <message><source>Link Canva Account</source><translation>連結 Canva 帳戶</translation></message>
+    <message><source>Link Canva Account...</source><translation>連結 Canva 帳戶...</translation></message>
     <message><source>List</source><translation>列表</translation></message>
     <message><source>Live Mode</source><translation>直播模式</translation></message>
     <message><source>Load .cv</source><translation>載入專案檔案</translation></message>
@@ -1601,7 +1601,7 @@
     <message><source>Load Script</source><translation>裝入腳本</translation></message>
     <message><source>Load the Dependency Graph to see the nodal representation of this layer</source><translation>載入依赖图以查看此圖層的節點表示</translation></message>
     <message><source>Load the Dependency Graph to see the nodal representation of this layer.</source><translation>載入依赖图以查看此圖層的節點表示。</translation></message>
-    <message><source>Loading Assets</source><translation>項目素材</translation></message>
+    <message><source>Loading Assets</source><translation>正在載入素材</translation></message>
     <message><source>Lock B</source><translation>鎖定位元組</translation></message>
     <message><source>Lock layer</source><translation>鎖層</translation></message>
     <message><source>Lock Selected</source><translation>鎖定選中</translation></message>
@@ -1634,17 +1634,17 @@
     <message><source>Make Harmonic</source><translation>調諧</translation></message>
     <message><source>makes Web API calls</source><translation>執行網路介面呼叫</translation></message>
     <message><source>Manage Bookmarks...</source><translation>管理書籤...</translation></message>
-    <message><source>Manage Custom Presets</source><translation>項目自訂预设</translation></message>
-    <message><source>Manage Custom Presets...</source><translation>項目自訂预设...</translation></message>
+    <message><source>Manage Custom Presets</source><translation>管理自訂預設</translation></message>
+    <message><source>Manage Custom Presets...</source><translation>管理自訂預設...</translation></message>
     <message><source>Manage Presets</source><translation>管理預設</translation></message>
-    <message><source>Manage Presets...</source><translation>項目预设...</translation></message>
+    <message><source>Manage Presets...</source><translation>管理預設...</translation></message>
     <message><source>Manage Velocity Presets</source><translation>管理速度預設</translation></message>
     <message><source>Mask animation detected. Grouping your Shape first may produce more predictable results</source><translation>检测到蒙版动画。先将形狀分群組可能得到更可预测的结果</translation></message>
     <message><source>Mask animation detected. Grouping your Shape first may produce more predictable results.</source><translation>检测到蒙版动画。先将形狀分群組可能得到更可预测的结果。</translation></message>
     <message><source>Mask Settings</source><translation>遮罩設置</translation></message>
     <message><source>Material</source><translation>材料</translation></message>
     <message><source>Matrix</source><translation>矩陣</translation></message>
-    <message><source>Max Attribute Editor UIs</source><translation>項目屬性項目介面</translation></message>
+    <message><source>Max Attribute Editor UIs</source><translation>屬性編輯器介面上限</translation></message>
     <message><source>Maximum offline licence period has elapsed</source><translation>離線許可最長期限已過</translation></message>
     <message><source>Maximum offline licence period has elapsed.</source><translation>離線許可最長期限已過。</translation></message>
     <message><source>mcm PPC rcm</source><translation>內部識別五</translation></message>
@@ -1681,7 +1681,7 @@
     <message><source>Missing &apos;selected&apos; argument.</source><translation>缺少已選取參數。</translation></message>
     <message><source>Missing &apos;tag&apos; argument</source><translation>缺少標籤參數</translation></message>
     <message><source>Missing &apos;tag&apos; argument.</source><translation>缺少標籤參數。</translation></message>
-    <message><source>Missing H</source><translation>遺失項目</translation></message>
+    <message><source>Missing H</source><translation>缺少 H</translation></message>
     <message><source>Missing hidden folder for materials</source><translation>缺少隱藏的材料檔案夾</translation></message>
     <message><source>Missing hidden folder for materials.</source><translation>缺少隱藏的材料檔案夾 。</translation></message>
     <message><source>Missing palette information, please restart Cavalry</source><translation>缺少調色盤資訊，请重新啟動軟體</translation></message>
@@ -1690,9 +1690,9 @@
     <message><source>Monitor</source><translation>監視器</translation></message>
     <message><source>Monochromatic</source><translation>單色</translation></message>
     <message><source>Monospace</source><translation>單位空間</translation></message>
-    <message><source>Motion Paths</source><translation>項目路徑</translation></message>
+    <message><source>Motion Paths</source><translation>運動路徑</translation></message>
     <message><source>Move</source><translation>移動</translation></message>
-    <message><source>Move Input Shapes</source><translation>項目輸入形狀</translation></message>
+    <message><source>Move Input Shapes</source><translation>移動輸入形狀</translation></message>
     <message><source>Move Pivot</source><translation>移動樞軸</translation></message>
     <message><source>Move Pivot (Layer Moves)</source><translation>移动轴心(圖層移动)</translation></message>
     <message><source>Move Pivot (Layer Stays)</source><translation>移动轴心(圖層保持)</translation></message>
@@ -1704,7 +1704,7 @@
     <message><source>multiple Viewports</source><translation>多个檢視區</translation></message>
     <message><source>must not undeclare prefix</source><translation>不得取消宣告前綴</translation></message>
     <message><source>Mute</source><translation>靜音</translation></message>
-    <message><source>Mute Attribute</source><translation>項目屬性</translation></message>
+    <message><source>Mute Attribute</source><translation>靜音屬性</translation></message>
     <message><source>Mute Input</source><translation>靜音輸入</translation></message>
     <message><source>My Preset</source><translation>我的預設</translation></message>
     <message><source>Mykx</source><translation>密克遜</translation></message>
@@ -1718,9 +1718,9 @@
     <message><source>New App Instance</source><translation>新建應用實例</translation></message>
     <message><source>New Beta Available</source><translation>新建可用貝塔</translation></message>
     <message><source>New Keyframe Layer</source><translation>新增關鍵影格圖層</translation></message>
-    <message><source>New Keyframe Layer Default</source><translation>項目關鍵影格圖層項目</translation></message>
+    <message><source>New Keyframe Layer Default</source><translation>新關鍵幀圖層預設值</translation></message>
     <message><source>New Palette</source><translation>新增調色盤</translation></message>
-    <message><source>New Palette...</source><translation>項目調色盤...</translation></message>
+    <message><source>New Palette...</source><translation>新增調色盤...</translation></message>
     <message><source>New Shape</source><translation>新增形狀</translation></message>
     <message><source>New Tab</source><translation>新建標籤</translation></message>
     <message><source>Ninx</source><translation>陰性</translation></message>
@@ -1747,12 +1747,12 @@
     <message><source>No Filter</source><translation>無過濾器</translation></message>
     <message><source>No further messages</source><translation>沒有其他消息</translation></message>
     <message><source>No further messages.</source><translation>沒有其他消息。</translation></message>
-    <message><source>No Groups in this Composition</source><translation>項目群組項目此合成</translation></message>
+    <message><source>No Groups in this Composition</source><translation>此合成中沒有群組</translation></message>
     <message><source>No GSUB (Glyph Substitution) table found</source><translation>找不到字形替換表</translation></message>
     <message><source>No GSUB (Glyph Substitution) table found.</source><translation>找不到字形替換表。</translation></message>
     <message><source>No input connection</source><translation>無輸入連接</translation></message>
     <message><source>No input connection.</source><translation>沒有輸入連接 。</translation></message>
-    <message><source>No Job Id</source><translation>没有任务識別碼</translation></message>
+    <message><source>No Job Id</source><translation>沒有工作識別碼</translation></message>
     <message><source>No Job Id.</source><translation>沒有工作日。</translation></message>
     <message><source>No Job IH</source><translation>沒有工作輸入控制柄</translation></message>
     <message><source>No Keyframe Layers</source><translation>沒有關鍵影格圖層</translation></message>
@@ -1780,7 +1780,7 @@
     <message><source>Node</source><translation>節點</translation></message>
     <message><source>Node Preset dictionary must contain an &apos;id&apos; key</source><translation>節點預設字典必须包含識別碼键</translation></message>
     <message><source>Node Type Counts</source><translation>節點類型數</translation></message>
-    <message><source>Non Editable Path</source><translation>非項目路徑</translation></message>
+    <message><source>Non Editable Path</source><translation>不可編輯路徑</translation></message>
     <message><source>Non fatal Pre-Comp Override syncing error</source><translation>非致命预合成覆盖同步錯誤</translation></message>
     <message><source>Non fatal Pre-Comp Override syncing error.</source><translation>非致命预合成覆盖同步錯誤。</translation></message>
     <message><source>Non-Authoritative Information</source><translation>非認證資訊</translation></message>
@@ -1798,7 +1798,7 @@
     <message><source>Nothing selected to Ungroup</source><translation>未選取要取消分群組的內容</translation></message>
     <message><source>Nudge Frame</source><translation>動畫框架</translation></message>
     <message><source>Nudge Step</source><translation>前進</translation></message>
-    <message><source>Nudge Value</source><translation>項目值</translation></message>
+    <message><source>Nudge Value</source><translation>微移值</translation></message>
     <message><source>null literal</source><translation>空字面量</translation></message>
     <message><source>number is too big</source><translation>數字太大了</translation></message>
     <message><source>number literal</source><translation>數字字元</translation></message>
@@ -1808,7 +1808,7 @@
     <message><source>Object</source><translation>對象</translation></message>
     <message><source>object key</source><translation>對象密鑰</translation></message>
     <message><source>object separator</source><translation>對象分隔符</translation></message>
-    <message><source>of Cavalry.</source><translation>項目Cavalry。</translation></message>
+    <message><source>of Cavalry.</source><translation>Cavalry。</translation></message>
     <message><source>Office 365 Sheet Asset</source><translation>办公表格素材</translation></message>
     <message><source>Office 365 Worksheet</source><translation>辦公套件工作表</translation></message>
     <message><source>Oinx</source><translation>牡蠣</translation></message>
@@ -1872,7 +1872,7 @@
     <message><source>Password</source><translation>密碼</translation></message>
     <message><source>Paste and import image</source><translation>粘貼和導入圖像</translation></message>
     <message><source>Paste attribute value</source><translation>粘貼屬性值</translation></message>
-    <message><source>Pasted Animation</source><translation>項目動畫</translation></message>
+    <message><source>Pasted Animation</source><translation>已貼上動畫</translation></message>
     <message><source>Pasted attribute value</source><translation>粘貼屬性值</translation></message>
     <message><source>Pasted attribute value.</source><translation>粘貼屬性值 。</translation></message>
     <message><source>Pasted Gradient</source><translation>粘貼漸變</translation></message>
@@ -1880,10 +1880,10 @@
     <message><source>Pasted Grid.</source><translation>粘貼網格.</translation></message>
     <message><source>Pasted layers</source><translation>粘貼層</translation></message>
     <message><source>Pasted Shape</source><translation>貼上的形狀</translation></message>
-    <message><source>Pasted SVG</source><translation>項目SVG</translation></message>
+    <message><source>Pasted SVG</source><translation>已貼上 SVG</translation></message>
     <message><source>Pasted time markers</source><translation>粘貼時間標記</translation></message>
     <message><source>Pastel</source><translation>粘貼</translation></message>
-    <message><source>Path Duration</source><translation>路徑項目</translation></message>
+    <message><source>Path Duration</source><translation>路徑持續時間</translation></message>
     <message><source>Paua</source><translation>包亞</translation></message>
     <message><source>Payload Too Large</source><translation>有效載荷太大</translation></message>
     <message><source>Payment Required</source><translation>所需付款</translation></message>
@@ -2012,11 +2012,11 @@
     <message><source>prefix must not be bound to one of the reserved namespace names</source><translation>前綴不得綁定在保留的名稱空間名稱上</translation></message>
     <message><source>Pres</source><translation>預覽</translation></message>
     <message><source>Preserve RGB</source><translation>保留 RGB</translation></message>
-    <message><source>Preset</source><translation>预设</translation></message>
+    <message><source>Preset</source><translation>預設</translation></message>
     <message><source>Preset Authentication Token cannot be empty</source><translation>預設认证權杖不能为空</translation></message>
     <message><source>Preset Authentication Token cannot be empty.</source><translation>預設认证權杖不能为空。</translation></message>
-    <message><source>Preset Name</source><translation>预设項目</translation></message>
-    <message><source>Presets</source><translation>预设</translation></message>
+    <message><source>Preset Name</source><translation>預設名稱</translation></message>
+    <message><source>Presets</source><translation>預設</translation></message>
     <message><source>Presets require a name</source><translation>預設需要名稱</translation></message>
     <message><source>Presets require a name.</source><translation>預設需要名稱。</translation></message>
     <message><source>Pressing Return in an Attribute Field</source><translation>在屬性字段中按回车</translation></message>
@@ -2036,20 +2036,20 @@
     <message><source>Pulse</source><translation>脈搏</translation></message>
     <message><source>Pumpkin Skin</source><translation>南瓜皮膚</translation></message>
     <message><source>Purple Mountains</source><translation>紫色山脈</translation></message>
-    <message><source>q )Zzc</source><translation>項目)項目</translation></message>
+    <message><source>q )Zzc</source><translation>q )Zzc</translation></message>
     <message><source>Queued</source><translation>隊列</translation></message>
     <message><source>Quick Action</source><translation>快速行動</translation></message>
-    <message><source>Quick Assign Tag</source><translation>項目分配標籤</translation></message>
+    <message><source>Quick Assign Tag</source><translation>快速指定標籤</translation></message>
     <message><source>Quick Set Pivot</source><translation>快速設置中樞</translation></message>
-    <message><source>Quick Set Pivot (Layer Moves)</source><translation>項目設定項目(圖層項目)</translation></message>
-    <message><source>Quick Set Pivot (Layer Stays)</source><translation>項目設定項目(圖層項目)</translation></message>
+    <message><source>Quick Set Pivot (Layer Moves)</source><translation>快速設定錨點（圖層移動）</translation></message>
+    <message><source>Quick Set Pivot (Layer Stays)</source><translation>快速設定錨點（圖層保持）</translation></message>
     <message><source>Quicklist (converted)</source><translation>快速列表( 轉換)</translation></message>
     <message><source>Quicklist Cleared.</source><translation>快名單清空.</translation></message>
     <message><source>Quickly create and assign tags</source><translation>快速創建和指定標籤</translation></message>
     <message><source>Quickly create and assign tags.</source><translation>快速創建並指定標籤 。</translation></message>
     <message><source>Quickly create and connect a String Generator</source><translation>快創建並連接字符串生成器</translation></message>
-    <message><source>Quote</source><translation>項目</translation></message>
-    <message><source>Qxxxxxxxxttttttttttttttt</source><translation>項目</translation></message>
+    <message><source>Quote</source><translation>引號</translation></message>
+    <message><source>Qxxxxxxxxttttttttttttttt</source><translation>Qxxxxxxxxttttttttttttttt</translation></message>
     <message><source>Range Not Satisfiable</source><translation>範圍不能滿足</translation></message>
     <message><source>Read</source><translation>讀取</translation></message>
     <message><source>Read Zip failed</source><translation>讀取壓縮包失敗</translation></message>
@@ -2076,20 +2076,20 @@
     <message><source>Reload the current Shape</source><translation>重新載入目前形狀</translation></message>
     <message><source>Reload the current Shape.</source><translation>重新載入目前形狀。</translation></message>
     <message><source>Remember Graph Editor Curve Framing</source><translation>記住圖編輯器曲線線條</translation></message>
-    <message><source>Remember to set motion blur to &apos;Full&apos; for each shape you wish to use this with</source><translation>请记得为要使用此功能的每个形狀将動作模糊設為完整</translation></message>
-    <message><source>Remember to set motion blur to &apos;Full&apos; for each shape you wish to use this with.</source><translation>请记得为要使用此功能的每个形狀将動作模糊設為完整。</translation></message>
+    <message><source>Remember to set motion blur to &apos;Full&apos; for each shape you wish to use this with</source><translation>請記得將每個要使用此功能的形狀的動態模糊設為「完整」</translation></message>
+    <message><source>Remember to set motion blur to &apos;Full&apos; for each shape you wish to use this with.</source><translation>請記得將每個要使用此功能的形狀的動態模糊設為「完整」。</translation></message>
     <message><source>Reminders</source><translation>提醒</translation></message>
-    <message><source>Remove all Attributes from the Control Centre</source><translation>移除項目屬性从項目控制中央</translation></message>
-    <message><source>Remove all Attributes from the Control Centre.</source><translation>移除項目屬性从項目控制中央。</translation></message>
+    <message><source>Remove all Attributes from the Control Centre</source><translation>從控制中心移除所有屬性</translation></message>
+    <message><source>Remove all Attributes from the Control Centre.</source><translation>從控制中心移除所有屬性。</translation></message>
     <message><source>Remove all layers from the Dependency Graph</source><translation>從依賴圖中刪除所有層</translation></message>
     <message><source>Remove all layers from the Dependency Graph.</source><translation>從依賴圖中刪除所有層 。</translation></message>
-    <message><source>Remove all of this Composition&apos;s Attributes from the Control Centre</source><translation>从控制中心移除此合成的所有屬性</translation></message>
-    <message><source>Remove all of this Composition&apos;s Attributes from the Control Centre.</source><translation>从控制中心移除此合成的所有屬性。</translation></message>
-    <message><source>Remove all the layers from the Attribute Editor</source><translation>从屬性編輯器移除所有圖層</translation></message>
-    <message><source>Remove all the layers from the Attribute Editor.</source><translation>从屬性編輯器移除所有圖層。</translation></message>
+    <message><source>Remove all of this Composition&apos;s Attributes from the Control Centre</source><translation>從控制中心移除此合成的所有屬性</translation></message>
+    <message><source>Remove all of this Composition&apos;s Attributes from the Control Centre.</source><translation>從控制中心移除此合成的所有屬性。</translation></message>
+    <message><source>Remove all the layers from the Attribute Editor</source><translation>從屬性編輯器移除所有圖層</translation></message>
+    <message><source>Remove all the layers from the Attribute Editor.</source><translation>從屬性編輯器移除所有圖層。</translation></message>
     <message><source>Remove as Default Settings</source><translation>刪除爲默認設置</translation></message>
     <message><source>Remove Color Stop</source><translation>刪除顏色停止</translation></message>
-    <message><source>Remove Composition from Control Centre</source><translation>移除合成从控制中央</translation></message>
+    <message><source>Remove Composition from Control Centre</source><translation>從控制中心移除合成</translation></message>
     <message><source>Remove from Component</source><translation>從組件中刪除</translation></message>
     <message><source>Remove from Control Centre</source><translation>從控制中心刪除</translation></message>
     <message><source>Remove Pre-Comp Override</source><translation>刪除覆蓋前</translation></message>
@@ -2098,19 +2098,19 @@
     <message><source>Remove Speed Values</source><translation>刪除速度值</translation></message>
     <message><source>Remove the selected tracker</source><translation>刪除選中的跟蹤器</translation></message>
     <message><source>Remove the selected tracker.</source><translation>刪除選中的跟蹤器 。</translation></message>
-    <message><source>Remove this layer&apos;s settings from the Attribute Editor</source><translation>从屬性編輯器移除此圖層的設定</translation></message>
+    <message><source>Remove this layer&apos;s settings from the Attribute Editor</source><translation>從屬性編輯器移除此圖層的設定</translation></message>
     <message><source>Remove this Pre-Comp Override</source><translation>刪除此覆蓋</translation></message>
     <message><source>Remy</source><translation>萊米</translation></message>
     <message><source>Rename attribute</source><translation>重命名屬性</translation></message>
     <message><source>Rename Palette</source><translation>重新命名調色盤</translation></message>
-    <message><source>Rename Palette...</source><translation>項目調色盤...</translation></message>
+    <message><source>Rename Palette...</source><translation>重新命名調色盤...</translation></message>
     <message><source>Rename Tab</source><translation>重命名標籤</translation></message>
     <message><source>Render All</source><translation>全部渲染</translation></message>
     <message><source>Render CH</source><translation>算繪通道控制柄</translation></message>
     <message><source>Render Complete</source><translation>渲染完成</translation></message>
     <message><source>Render Current Frame</source><translation>渲染當前框架</translation></message>
-    <message><source>Render Current Frame as SVG</source><translation>渲染目前幀項目SVG</translation></message>
-    <message><source>Render Current Frame to SVG</source><translation>渲染目前幀項目SVG</translation></message>
+    <message><source>Render Current Frame as SVG</source><translation>將目前幀算繪為 SVG</translation></message>
+    <message><source>Render Current Frame to SVG</source><translation>將目前幀算繪到 SVG</translation></message>
     <message><source>Render Item</source><translation>渲染項目</translation></message>
     <message><source>Render LH</source><translation>算繪左控制柄</translation></message>
     <message><source>Render Log</source><translation>渲染日誌</translation></message>
@@ -2124,7 +2124,7 @@
     <message><source>Renders</source><translation>渲染器</translation></message>
     <message><source>Reorder</source><translation>重排序</translation></message>
     <message><source>Replace and reconnect</source><translation>替換和重新連接</translation></message>
-    <message><source>Replace Asset...</source><translation>項目素材...</translation></message>
+    <message><source>Replace Asset...</source><translation>取代素材...</translation></message>
     <message><source>Replace Connection</source><translation>替換連接</translation></message>
     <message><source>Replace Current</source><translation>替換當前</translation></message>
     <message><source>Replace Google Sheet</source><translation>替換谷歌工作表</translation></message>
@@ -2136,10 +2136,10 @@
     <message><source>Request Timeout</source><translation>請求超時</translation></message>
     <message><source>Request was cancelled</source><translation>請求被取消</translation></message>
     <message><source>Request was cancelled.</source><translation>請求被取消。</translation></message>
-    <message><source>Required</source><translation>項目</translation></message>
+    <message><source>Required</source><translation>必填</translation></message>
     <message><source>reserved prefix (xml) must not be undeclared or bound to another namespace name</source><translation>保留前綴不得取消宣告或綁定到其他命名空間名稱</translation></message>
     <message><source>reserved prefix (xmlns) must not be declared or undeclared</source><translation>保留命名空間前綴不得宣告或取消宣告</translation></message>
-    <message><source>Reset all Attributes</source><translation>重置項目屬性</translation></message>
+    <message><source>Reset all Attributes</source><translation>重置所有屬性</translation></message>
     <message><source>Reset Attribute Value to Default</source><translation>将屬性值重置为預設值</translation></message>
     <message><source>Reset Content</source><translation>重置內容</translation></message>
     <message><source>Reset Layer</source><translation>重置圖層</translation></message>
@@ -2148,7 +2148,7 @@
     <message><source>Reset Shortcuts</source><translation>重置快捷鍵</translation></message>
     <message><source>Reset Shortcuts in progress. Please restart Cavalry to continue</source><translation>正在重置快速鍵。请重新啟動軟體继续</translation></message>
     <message><source>Reset Shortcuts in progress. Please restart Cavalry to continue.</source><translation>正在重置快速鍵。请重新啟動軟體继续。</translation></message>
-    <message><source>Reset Transform Attributes</source><translation>重置項目屬性</translation></message>
+    <message><source>Reset Transform Attributes</source><translation>重置變換屬性</translation></message>
     <message><source>Reset Value to Origin</source><translation>重置值爲原值</translation></message>
     <message><source>Resetting preferences</source><translation>重置偏好</translation></message>
     <message><source>Resize Mesh?</source><translation>调整網格大小?</translation></message>
@@ -2158,14 +2158,14 @@
     <message><source>Restart Cavalry to access all Experimental features</source><translation>重新啟動軟體以访问所有实验功能</translation></message>
     <message><source>Restart Cavalry to access all Experimental features.</source><translation>重新啟動軟體以访问所有实验功能。</translation></message>
     <message><source>Restore Palette</source><translation>還原調色盤</translation></message>
-    <message><source>Restricted Assets found</source><translation>項目素材項目</translation></message>
-    <message><source>Restricted Assets found.</source><translation>項目素材項目。</translation></message>
+    <message><source>Restricted Assets found</source><translation>發現受限素材</translation></message>
+    <message><source>Restricted Assets found.</source><translation>發現受限素材。</translation></message>
     <message><source>Restricted Mode: Professional Features Found</source><translation>限定模式:找到專業特徵</translation></message>
     <message><source>Rethrowing unknown exception in logger</source><translation>在日誌中重寫未知的例外</translation></message>
     <message><source>Revalidation skipped: device appears to be offline. Using offline grace period</source><translation>校正跳過: 設備似乎已下線 。 使用離線寬限期</translation></message>
     <message><source>Revalidation skipped: device appears to be offline. Using offline grace period.</source><translation>校正跳過: 設備似乎已下線 。 使用離線寬限期.</translation></message>
     <message><source>Reveal</source><translation>啓示</translation></message>
-    <message><source>Reveal Composition in Assets Window</source><translation>項目合成項目素材視窗</translation></message>
+    <message><source>Reveal Composition in Assets Window</source><translation>在素材視窗中顯示合成</translation></message>
     <message><source>Reveal Generator</source><translation>視網膜發電機</translation></message>
     <message><source>Reveal in Finder</source><translation>在查找器中揭示</translation></message>
     <message><source>Reveal in Finder...</source><translation>在访达中顯示...</translation></message>
@@ -2252,16 +2252,16 @@
     <message><source>Saving MH</source><translation>正在儲存移動控制柄</translation></message>
     <message><source>Saving Scene</source><translation>正在保存場景</translation></message>
     <message><source>Saving SH</source><translation>正在儲存形狀控制柄</translation></message>
-    <message><source>Saving Shortcuts</source><translation>項目快捷鍵</translation></message>
+    <message><source>Saving Shortcuts</source><translation>正在儲存快捷鍵</translation></message>
     <message><source>Saving Snippets</source><translation>保存片斷</translation></message>
     <message><source>Saving Upload Presets</source><translation>正在儲存上傳預設</translation></message>
     <message><source>Saving workspace</source><translation>保存工作空間</translation></message>
     <message><source>Scale Selection</source><translation>縮放選擇</translation></message>
     <message><source>Scarlett</source><translation>斯嘉麗</translation></message>
     <message><source>Scarpa Flow</source><translation>斯卡帕流動</translation></message>
-    <message><source>Scene</source><translation>項目</translation></message>
-    <message><source>Scene Window</source><translation>項目視窗</translation></message>
-    <message><source>Scenes</source><translation>項目</translation></message>
+    <message><source>Scene</source><translation>場景</translation></message>
+    <message><source>Scene Window</source><translation>場景視窗</translation></message>
+    <message><source>Scenes</source><translation>場景</translation></message>
     <message><source>Schedule (Overlap)</source><translation>附表(重疊)</translation></message>
     <message><source>Schedule (Sequence)</source><translation>時間表(順序)</translation></message>
     <message><source>Schedule Stagger</source><translation>排程錯開</translation></message>
@@ -2281,10 +2281,10 @@
     <message><source>Select a Preset...</source><translation>選取預設...</translation></message>
     <message><source>Select a Shape layer to see its internal mesh structure</source><translation>選取形狀圖層以查看内部網格结构</translation></message>
     <message><source>Select a Shape layer to see its internal mesh structure.</source><translation>選取形狀圖層以查看内部網格结构。</translation></message>
-    <message><source>Select Animation Layers</source><translation>項目動畫圖層</translation></message>
-    <message><source>Select Attribute Keyframes</source><translation>項目屬性關鍵影格</translation></message>
+    <message><source>Select Animation Layers</source><translation>選取動畫圖層</translation></message>
+    <message><source>Select Attribute Keyframes</source><translation>選取屬性關鍵幀</translation></message>
     <message><source>Select by Color</source><translation>按顏色選擇</translation></message>
-    <message><source>Select by Hierarchy</source><translation>項目由項目</translation></message>
+    <message><source>Select by Hierarchy</source><translation>依階層選取</translation></message>
     <message><source>Select Children</source><translation>選擇孩子</translation></message>
     <message><source>Select Folder</source><translation>選擇檔案夾</translation></message>
     <message><source>Select Hierarchy</source><translation>選取层级</translation></message>
@@ -2297,12 +2297,12 @@
     <message><source>Select Siblings</source><translation>選擇兄弟姐妹</translation></message>
     <message><source>Select Transformable Offspring</source><translation>選擇可變換的外傾</translation></message>
     <message><source>Selected Keyframes Required</source><translation>已選取關鍵影格項目</translation></message>
-    <message><source>Selection Soloed in Viewport (Selection added to Quicklist and Filter Viewport mode set)</source><translation>已在檢視區獨顯所选內容(所选內容已加入快速列表并設定筛选檢視區模式)</translation></message>
+    <message><source>Selection Soloed in Viewport (Selection added to Quicklist and Filter Viewport mode set)</source><translation>已在檢視區獨顯所選內容（所選內容已加入快速清單，並設定篩選檢視區模式）</translation></message>
     <message><source>Selects All</source><translation>全部選擇</translation></message>
     <message><source>Semibold</source><translation>半粗體</translation></message>
-    <message><source>Send</source><translation>項目</translation></message>
+    <message><source>Send</source><translation>傳送</translation></message>
     <message><source>Send Feedback</source><translation>發送反饋</translation></message>
-    <message><source>Separate Layers</source><translation>項目圖層</translation></message>
+    <message><source>Separate Layers</source><translation>分離圖層</translation></message>
     <message><source>Separated</source><translation>分離</translation></message>
     <message><source>Sequence the selected layers using a Scheduling Group</source><translation>使用排程組排序選定的層</translation></message>
     <message><source>Sequence the selected layers using a Scheduling Group.</source><translation>使用排程組對選定的層進行排序。</translation></message>
@@ -2311,7 +2311,7 @@
     <message><source>Service Unavailable</source><translation>服務不可用</translation></message>
     <message><source>Set all stops to Linear</source><translation>設定所有站點到線性</translation></message>
     <message><source>Set all stops to Stepped</source><translation>将所有色标設為階梯</translation></message>
-    <message><source>Set Array Index</source><translation>設定陣列項目</translation></message>
+    <message><source>Set Array Index</source><translation>設定陣列索引</translation></message>
     <message><source>Set as Default Settings</source><translation>設爲默認設置</translation></message>
     <message><source>Set as the Fill Color for Selected Shapes</source><translation>設為所选形狀的填充色</translation></message>
     <message><source>Set as the Stroke Color for Selected Shapes</source><translation>設為所选形狀的描邊色</translation></message>
@@ -2321,9 +2321,9 @@
     <message><source>Set Composition Background</source><translation>設定合成背景</translation></message>
     <message><source>Set Control Points</source><translation>設置控制點</translation></message>
     <message><source>Set Gradient from palette</source><translation>從調色板設置漸變</translation></message>
-    <message><source>Set Gradient From Palette</source><translation>設定項目从調色盤</translation></message>
+    <message><source>Set Gradient From Palette</source><translation>從調色盤設定漸層</translation></message>
     <message><source>Set Key Interpolation</source><translation>設置密鑰內插</translation></message>
-    <message><source>Set Keyframe Colors</source><translation>設定關鍵影格項目</translation></message>
+    <message><source>Set Keyframe Colors</source><translation>設定關鍵幀顏色</translation></message>
     <message><source>Set Keyframe Expression</source><translation>設定關鍵影格運算式</translation></message>
     <message><source>Set Keyframe Expression.</source><translation>設定關鍵影格運算式。</translation></message>
     <message><source>Set Label Color</source><translation>設置標籤顏色</translation></message>
@@ -2352,7 +2352,7 @@
     <message><source>Shad</source><translation>陰影</translation></message>
     <message><source>Shadow</source><translation>陰影</translation></message>
     <message><source>Shape Depth Debug</source><translation>形狀深度偵錯</translation></message>
-    <message><source>Shape Editing</source><translation>形狀項目</translation></message>
+    <message><source>Shape Editing</source><translation>形狀編輯</translation></message>
     <message><source>Share usage data to help improve Cavalry</source><translation>共享使用資料以說明改进軟體</translation></message>
     <message><source>Shift Stops</source><translation>移動停止</translation></message>
     <message><source>Shift Stops Left</source><translation>向左移動</translation></message>
@@ -2377,7 +2377,7 @@
     <message><source>Show Mini-Map</source><translation>顯示迷你映射</translation></message>
     <message><source>Show Motion Paths</source><translation>顯示運動路徑</translation></message>
     <message><source>Show Names</source><translation>顯示名稱</translation></message>
-    <message><source>Show Path</source><translation>項目路徑</translation></message>
+    <message><source>Show Path</source><translation>顯示路徑</translation></message>
     <message><source>Show Seconds</source><translation>顯示秒</translation></message>
     <message><source>Show Selected</source><translation>顯示選中的</translation></message>
     <message><source>Show Tips button in Message Bar</source><translation>在信件欄中顯示提示按鈕</translation></message>
@@ -2429,8 +2429,8 @@
     <message><source>Split</source><translation>分開</translation></message>
     <message><source>Split Clip</source><translation>分割剪切</translation></message>
     <message><source>Split Complementary</source><translation>拆分輔助</translation></message>
-    <message><source>Split Path</source><translation>項目路徑</translation></message>
-    <message><source>Split Path (B</source><translation>項目路徑(項目</translation></message>
+    <message><source>Split Path</source><translation>分割路徑</translation></message>
+    <message><source>Split Path (B</source><translation>分割路徑（B</translation></message>
     <message><source>Split Path (Corner)</source><translation>分割路徑(角點)</translation></message>
     <message><source>Split Path command: Final Contour not found</source><translation>分割路徑命令: 找不到最终輪廓</translation></message>
     <message><source>Split Path command: Final Contour not found.</source><translation>分割路徑命令: 找不到最终輪廓。</translation></message>
@@ -2446,7 +2446,7 @@
     <message><source>Spring In, Spring Out</source><translation>春進春出</translation></message>
     <message><source>Spring OH</source><translation>彈簧出控制柄</translation></message>
     <message><source>Spring Out Magic Easing set</source><translation>春出魔法減肥套裝</translation></message>
-    <message><source>Spring Out Magic Easing set.</source><translation>項目弹出魔法缓动設定。</translation></message>
+    <message><source>Spring Out Magic Easing set.</source><translation>已設定彈簧緩出魔法緩動。</translation></message>
     <message><source>src PPC trc</source><translation>內部識別百</translation></message>
     <message><source>SSL error: Certificate chain too long</source><translation>安全連線錯誤: 證書鏈過長</translation></message>
     <message><source>SSL error: Certificate chain too long.</source><translation>安全連線錯誤: 證書鏈過長。</translation></message>
@@ -2502,7 +2502,7 @@
     <message><source>Standing End</source><translation>狀態結束</translation></message>
     <message><source>Standing Start</source><translation>狀態啓動</translation></message>
     <message><source>Start New Contour</source><translation>開始新輪廓</translation></message>
-    <message><source>Start New Shape</source><translation>開始項目形狀</translation></message>
+    <message><source>Start New Shape</source><translation>開始新形狀</translation></message>
     <message><source>start reordering USE</source><translation>開始重新排序使用項</translation></message>
     <message><source>Start Rotation</source><translation>開始旋轉</translation></message>
     <message><source>Starter</source><translation>啓動器</translation></message>
@@ -2529,7 +2529,7 @@
     <message><source>SVG Layer</source><translation>SVG 圖層</translation></message>
     <message><source>Swap Composition</source><translation>交換合成</translation></message>
     <message><source>Swap Fill and Stroke</source><translation>交換填充和中鍵</translation></message>
-    <message><source>Swatches</source><translation>項目</translation></message>
+    <message><source>Swatches</source><translation>色票</translation></message>
     <message><source>Swiss</source><translation>瑞士</translation></message>
     <message><source>Switch Alias State</source><translation>切換別名狀態</translation></message>
     <message><source>Switch Compositions?</source><translation>切換合成？</translation></message>
@@ -2543,12 +2543,12 @@
     <message><source>Switching to the Default Keyframe Layer in order to set this keyframe.</source><translation>正在切换到預設關鍵影格圖層以設定此關鍵影格。</translation></message>
     <message><source>syntax error</source><translation>語法錯誤</translation></message>
     <message><source>System</source><translation>系統</translation></message>
-    <message><source>Tag Name</source><translation>標籤項目</translation></message>
+    <message><source>Tag Name</source><translation>標籤名稱</translation></message>
     <message><source>Tags</source><translation>標籤</translation></message>
     <message><source>tcm ITB edm</source><translation>內部識別千</translation></message>
     <message><source>Temporary Redirect</source><translation>臨時方向</translation></message>
     <message><source>Test Generic Viewport</source><translation>測試通用檢視區</translation></message>
-    <message><source>Text Along a Path</source><translation>文字沿項目路徑</translation></message>
+    <message><source>Text Along a Path</source><translation>沿路徑排列文字</translation></message>
     <message><source>text declaration not well-formed</source><translation>文本聲明格式不完善</translation></message>
     <message><source>Text Style Change</source><translation>文本樣式更改</translation></message>
     <message><source>Text Tool</source><translation>文本工具</translation></message>
@@ -2567,9 +2567,9 @@
     <message><source>The Office 365 Spreadsheet Share settings must be set to &apos;Anyone with the link&apos;.</source><translation>办公表格共享設定必须設為任何擁有連結的人。</translation></message>
     <message><source>The root CA certificate may be missing from your system</source><translation>系統可能缺少根憑證授權單位憑證</translation></message>
     <message><source>The root CA certificate may be missing from your system.</source><translation>系統可能缺少根憑證授權單位憑證。</translation></message>
-    <message><source>the Shortcut Manager</source><translation>項目快捷鍵項目</translation></message>
-    <message><source>There are no active Render Queue Items</source><translation>没有作用中的算繪佇列項目</translation></message>
-    <message><source>There are no active Render Queue Items.</source><translation>没有作用中的算繪佇列項目。</translation></message>
+    <message><source>the Shortcut Manager</source><translation>快捷鍵管理器</translation></message>
+    <message><source>There are no active Render Queue Items</source><translation>沒有作用中的算繪佇列項目</translation></message>
+    <message><source>There are no active Render Queue Items.</source><translation>沒有作用中的算繪佇列項目。</translation></message>
     <message><source>They will not be removed when clearing the Attribute Editor</source><translation>清空屬性編輯器时不会移除它们</translation></message>
     <message><source>They will not be removed when clearing the Attribute Editor.</source><translation>清空屬性編輯器时不会移除它们。</translation></message>
     <message><source>This account does not have access to Cavalry. Please contact your account administrator</source><translation>此帳戶无权访问本軟體。请联系帳戶管理员</translation></message>
@@ -2613,11 +2613,11 @@
     <message><source>This shape is likely too long and thin to create a valid preview.</source><translation>這個形狀可能太長和細,無法創建有效的預覽.</translation></message>
     <message><source>This shape is not editable. You can make it editable with the Make Editable option in the Shapes menu</source><translation>此形狀不可編輯。可在形狀選單中使用設為可編輯選項</translation></message>
     <message><source>This shape is not editable. You can make it editable with the Make Editable option in the Shapes menu.</source><translation>此形狀不可編輯。可在形狀選單中使用設為可編輯選項。</translation></message>
-    <message><source>This shape is not editable. You can use the &quot;Shapes&quot; Menu&apos;s &quot;Make Editable&quot; item</source><translation>此形狀不可編輯。可使用形狀選單中的設為可編輯項目</translation></message>
-    <message><source>This shape is not editable. You can use the &quot;Shapes&quot; Menu&apos;s &quot;Make Editable&quot; item.</source><translation>此形狀不可編輯。可使用形狀選單中的設為可編輯項目。</translation></message>
+    <message><source>This shape is not editable. You can use the &quot;Shapes&quot; Menu&apos;s &quot;Make Editable&quot; item</source><translation>此形狀不可編輯。可使用「形狀」選單中的「設為可編輯」項目</translation></message>
+    <message><source>This shape is not editable. You can use the &quot;Shapes&quot; Menu&apos;s &quot;Make Editable&quot; item.</source><translation>此形狀不可編輯。可使用「形狀」選單中的「設為可編輯」項目。</translation></message>
     <message><source>This Shape it not editable</source><translation>此形狀不可編輯</translation></message>
     <message><source>This Shape it not editable.</source><translation>此形狀不可編輯。</translation></message>
-    <message><source>This Shape Type</source><translation>此形狀項目</translation></message>
+    <message><source>This Shape Type</source><translation>此形狀類型</translation></message>
     <message><source>This will automatically connect to any selected shapes</source><translation>這將自動連接到任何選定的形狀</translation></message>
     <message><source>This will automatically connect to any selected shapes.</source><translation>這將自動連接到任何選定的形狀 。</translation></message>
     <message><source>This works with any Editable Shape including Cel Animation</source><translation>這適用於任何可編輯形狀，包括逐格動畫</translation></message>
@@ -2647,8 +2647,8 @@
     <message><source>Toggle the background grid visibility.</source><translation>切換背景網格可見度 。</translation></message>
     <message><source>Toggle the mini-map overview in the bottom-right corner</source><translation>切換右下角的小地圖概覽</translation></message>
     <message><source>Toggle the mini-map overview in the bottom-right corner.</source><translation>切換右下角的小地圖概覽.</translation></message>
-    <message><source>Toggle this mode with the &apos;U&apos; key</source><translation>使用字母键切换此模式</translation></message>
-    <message><source>Toggle this mode with the &apos;U&apos; key.</source><translation>使用字母键切换此模式。</translation></message>
+    <message><source>Toggle this mode with the &apos;U&apos; key</source><translation>使用 U 鍵切換此模式</translation></message>
+    <message><source>Toggle this mode with the &apos;U&apos; key.</source><translation>使用 U 鍵切換此模式。</translation></message>
     <message><source>Toggle Transform Tool</source><translation>切換變換工具</translation></message>
     <message><source>Toggle Viewport Grid</source><translation>切换檢視區網格</translation></message>
     <message><source>Toggle Viewport Grid.</source><translation>切换檢視區網格。</translation></message>
@@ -2657,10 +2657,10 @@
     <message><source>Token</source><translation>鍵</translation></message>
     <message><source>Token exchange failed (HTTP</source><translation>權杖交換失敗(網路協定</translation></message>
     <message><source>Token exchange failed: could not connect to Canva</source><translation>權杖交換失敗: 無法連線至線上設計服務</translation></message>
-    <message><source>Token exchange failed: invalid JSON response</source><translation>權杖項目失敗:無效JSON回應</translation></message>
+    <message><source>Token exchange failed: invalid JSON response</source><translation>權杖交換失敗：無效的 JSON 回應</translation></message>
     <message><source>Token refresh failed (HTTP</source><translation>權杖重新整理失敗(網路協定</translation></message>
     <message><source>Token refresh failed: could not connect to Canva</source><translation>權杖重新整理失敗: 無法連線至線上設計服務</translation></message>
-    <message><source>Token refresh failed: invalid JSON response</source><translation>權杖項目失敗:無效JSON回應</translation></message>
+    <message><source>Token refresh failed: invalid JSON response</source><translation>權杖重新整理失敗：無效的 JSON 回應</translation></message>
     <message><source>Token revocation failed: could not connect to Canva</source><translation>權杖撤銷失敗: 無法連線至線上設計服務</translation></message>
     <message><source>Tolopea</source><translation>託洛佩亞</translation></message>
     <message><source>Too Early</source><translation>來得太早了</translation></message>
@@ -2697,17 +2697,17 @@
     <message><source>Turn all frequencies on</source><translation>打開所有頻率</translation></message>
     <message><source>Turn on Grid Snapping in the Grid Settings</source><translation>在網格設置中打開網格抓取</translation></message>
     <message><source>Turn on Grid Snapping in the Grid Settings.</source><translation>在網格設置中打開網格抓取。</translation></message>
-    <message><source>Turn on Path Animation for this shape</source><translation>項目開啟路徑動畫用於此形狀</translation></message>
-    <message><source>Turn on Path Animation for this Shape</source><translation>項目開啟路徑動畫用於此形狀</translation></message>
-    <message><source>Turn on Path Animation for this shape.</source><translation>項目開啟路徑動畫用於此形狀。</translation></message>
-    <message><source>Turn on Path Animation for this Shape.</source><translation>項目開啟路徑動畫用於此形狀。</translation></message>
+    <message><source>Turn on Path Animation for this shape</source><translation>為此形狀開啟路徑動畫</translation></message>
+    <message><source>Turn on Path Animation for this Shape</source><translation>為此形狀開啟路徑動畫</translation></message>
+    <message><source>Turn on Path Animation for this shape.</source><translation>為此形狀開啟路徑動畫。</translation></message>
+    <message><source>Turn on Path Animation for this Shape.</source><translation>為此形狀開啟路徑動畫。</translation></message>
     <message><source>Turn on playback caching</source><translation>打開播放緩存</translation></message>
     <message><source>type must be boolean, but is</source><translation>類型必須是布爾的,但是</translation></message>
     <message><source>type must be number, but is</source><translation>類型必須是數字,但是</translation></message>
     <message><source>type must be object, but is</source><translation>類型必須是對象,但</translation></message>
     <message><source>type must be string, but is</source><translation>類型必須是字符串,但是</translation></message>
     <message><source>Typing</source><translation>輸入</translation></message>
-    <message><source>Typography Script</source><translation>項目腳本</translation></message>
+    <message><source>Typography Script</source><translation>排版腳本</translation></message>
     <message><source>UI Font Size</source><translation>介面字型大小</translation></message>
     <message><source>ukm KNM elm</source><translation>內部識別甲</translation></message>
     <message><source>Un-Parent</source><translation>非家長</translation></message>
@@ -2734,7 +2734,7 @@
     <message><source>Undock</source><translation>打開</translation></message>
     <message><source>Unkn</source><translation>無效</translation></message>
     <message><source>Unknown</source><translation>不詳</translation></message>
-    <message><source>Unknown Asset</source><translation>項目素材</translation></message>
+    <message><source>Unknown Asset</source><translation>未知素材</translation></message>
     <message><source>unknown encoding</source><translation>未知編碼</translation></message>
     <message><source>Unknown error</source><translation>未知錯誤</translation></message>
     <message><source>Unknown Error</source><translation>未知錯誤</translation></message>
@@ -2776,15 +2776,15 @@
     <message><source>Use the Create menu to add a layer to your Composition.</source><translation>使用建立選單向合成新增圖層。</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape</source><translation>使用跟踪資料对所选形狀进行角點固定</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>使用跟踪資料对所选形狀进行角點固定。</translation></message>
-    <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>使用此列表自定义控制介面中的屬性顺序</translation></message>
-    <message><source>Use this list to customise the Attribute order in Cavalry Control.</source><translation>使用此列表自定义控制介面中的屬性顺序。</translation></message>
+    <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>使用此清單自訂 Cavalry Control 中的屬性順序</translation></message>
+    <message><source>Use this list to customise the Attribute order in Cavalry Control.</source><translation>使用此清單自訂 Cavalry Control 中的屬性順序。</translation></message>
     <message><source>Used once</source><translation>曾經</translation></message>
-    <message><source>User Palette Options</source><translation>項目調色盤項目</translation></message>
+    <message><source>User Palette Options</source><translation>使用者調色盤選項</translation></message>
     <message><source>User Presets</source><translation>使用者預設</translation></message>
     <message><source>User-Agent</source><translation>用戶代理</translation></message>
     <message><source>Username</source><translation>用戶名</translation></message>
     <message><source>usn HAN otn</source><translation>吳漢</translation></message>
-    <message><source>Util</source><translation>項目</translation></message>
+    <message><source>Util</source><translation>工具</translation></message>
     <message><source>Uuid</source><translation>烏伊德</translation></message>
     <message><source>uut HTA vut</source><translation>內部識別乙</translation></message>
     <message><source>Values</source><translation>數值</translation></message>
@@ -2816,9 +2816,9 @@
     <message><source>Viewport Quality: Lowest</source><translation>質量:最低</translation></message>
     <message><source>Viewport setting to preview</source><translation>檢視區設定為預覽</translation></message>
     <message><source>Viewport setting to preview.</source><translation>檢視區設定为预览。</translation></message>
-    <message><source>Viewport Settings</source><translation>項目設定</translation></message>
+    <message><source>Viewport Settings</source><translation>檢視區設定</translation></message>
     <message><source>Viewport Soloing Cleared (Quicklist deselected)</source><translation>檢視區獨顯已清除(快速列表已取消選取)</translation></message>
-    <message><source>Viewport Tool Help</source><translation>項目工具項目</translation></message>
+    <message><source>Viewport Tool Help</source><translation>檢視區工具說明</translation></message>
     <message><source>W Action</source><translation>宽度动作</translation></message>
     <message><source>Waiting for frame</source><translation>等待幀</translation></message>
     <message><source>Waiting for frame...</source><translation>正在等待幀...</translation></message>
@@ -2850,7 +2850,7 @@
     <message><source>Workbook relationships file not found</source><translation>找不到活頁簿關聯檔案</translation></message>
     <message><source>Workbook relationships file not found.</source><translation>找不到工作簿關係檔案。</translation></message>
     <message><source>Working Color Space</source><translation>工作顏色空間</translation></message>
-    <message><source>Workspace</source><translation>項目</translation></message>
+    <message><source>Workspace</source><translation>工作區</translation></message>
     <message><source>Would you like to add the SVG as a single layer or separate into layers?</source><translation>要将矢量图新增为单个圖層，还是拆分为多个圖層?</translation></message>
     <message><source>Would you like to add the SVG as an Asset layer or separate into layers?</source><translation>要将矢量图新增为素材圖層，还是拆分为多个圖層?</translation></message>
     <message><source>Would you like to Append of Replace the existing Swatches?</source><translation>要追加还是替换现有色板?</translation></message>
@@ -2866,7 +2866,7 @@
     <message><source>Would you like to overwrite it?</source><translation>你想覆蓋它嗎?</translation></message>
     <message><source>Would you like to resize the Mesh Shape to match the Asset size?</source><translation>要调整網格形狀以匹配素材大小吗?</translation></message>
     <message><source>Would you like to save your changes?</source><translation>您想要保存您的更改嗎 ?</translation></message>
-    <message><source>Write Preset Defaults</source><translation>項目预设項目</translation></message>
+    <message><source>Write Preset Defaults</source><translation>寫入預設預設值</translation></message>
     <message><source>X Action</source><translation>横向动作</translation></message>
     <message><source>x error H</source><translation>橫向錯誤高</translation></message>
     <message><source>xcn HAN bdn</source><translation>內部識別戊</translation></message>
@@ -2893,14 +2893,14 @@
     <message><source>You can&apos;t create keyframes during playback at the moment.</source><translation>在目前播放時無法創建鍵框 。</translation></message>
     <message><source>You can&apos;t delete the Default animation layer</source><translation>不能刪除默認動畫層</translation></message>
     <message><source>You can&apos;t delete the Default animation layer.</source><translation>無法刪除默認動畫層 。</translation></message>
-    <message><source>You can&apos;t key a Rig Control in the &apos;Control Layer&apos; Keyframe Layer</source><translation>不能在控制圖層關鍵影格圖層中为綁定控制設定關鍵影格</translation></message>
-    <message><source>You can&apos;t key this attribute at the moment. Switch to the &apos;Control Layer&apos; Keyframe Layer</source><translation>现在不能为此屬性設定關鍵影格。请切换到控制圖層關鍵影格圖層</translation></message>
+    <message><source>You can&apos;t key a Rig Control in the &apos;Control Layer&apos; Keyframe Layer</source><translation>無法在「控制圖層」關鍵幀圖層中為綁定控制設定關鍵幀</translation></message>
+    <message><source>You can&apos;t key this attribute at the moment. Switch to the &apos;Control Layer&apos; Keyframe Layer</source><translation>目前無法為此屬性設定關鍵幀。請切換到「控制圖層」關鍵幀圖層</translation></message>
     <message><source>You cannot add the root path as an Asset Folder</source><translation>不能将根路徑新增为素材檔案夹</translation></message>
     <message><source>You cannot add the root path as an Asset Folder.</source><translation>不能将根路徑新增为素材檔案夹。</translation></message>
     <message><source>You cannot connect an Attribute that is animated, or has an input connection</source><translation>不能連線已有动画或輸入連線的屬性</translation></message>
     <message><source>You cannot connect an Attribute that is animated, or has an input connection.</source><translation>不能連線已有动画或輸入連線的屬性。</translation></message>
-    <message><source>You cannot copy easing from multiple attributes at once</source><translation>不能一次从多个屬性複製缓动</translation></message>
-    <message><source>You cannot copy easing from multiple attributes at once.</source><translation>不能一次从多个屬性複製缓动。</translation></message>
+    <message><source>You cannot copy easing from multiple attributes at once</source><translation>無法一次從多個屬性複製緩動</translation></message>
+    <message><source>You cannot copy easing from multiple attributes at once.</source><translation>無法一次從多個屬性複製緩動。</translation></message>
     <message><source>You cannot delete referenced layers</source><translation>您不能刪除引用的圖層</translation></message>
     <message><source>You cannot delete referenced layers.</source><translation>您無法刪除引用的層 。</translation></message>
     <message><source>You cannot open a new Scene while Cavalry is busy rendering</source><translation>軟體正在算繪时不能開啟新場景</translation></message>
@@ -3283,7 +3283,7 @@
     <message><source>Shapes</source><translation>形狀</translation></message>
     <message><source>Behaviours</source><translation>行為</translation></message>
     <message><source>Effects</source><translation>效果</translation></message>
-    <message><source>Utilities</source><translation>項目</translation></message>
+    <message><source>Utilities</source><translation>工具</translation></message>
     <message><source>Layout</source><translation>版面配置</translation></message>
     <message><source>Embed selected in Horizontal Layout</source><translation>將所選嵌入水平版面配置</translation></message>
     <message><source>Embed selected in Vertical Layout</source><translation>將所選嵌入垂直版面配置</translation></message>
@@ -3437,7 +3437,7 @@
     <message><source>Click and drag to start making a connection.</source><translation>點擊並拖曳以開始建立連接。</translation></message>
     <message><source>Click to see any connections.</source><translation>點擊以查看所有連接。</translation></message>
     <message><source>Click to set a Keyframe.</source><translation>點擊以設定關鍵影格。</translation></message>
-    <message><source>Close Others</source><translation>關閉其他項目</translation></message>
+    <message><source>Close Others</source><translation>關閉其他</translation></message>
     <message><source>Close Tabs to the Left</source><translation>關閉左側分頁</translation></message>
     <message><source>Close Tabs to the Right</source><translation>關閉右側分頁</translation></message>
     <message><source>Curve Type</source><translation>曲線類型</translation></message>
@@ -4230,8 +4230,7 @@
       <translation>新增字串</translation>
     </message>
     <message>
-      <source>Copy B</source>
-      <translation>複製項目</translation>
+      <source>Copy B</source><translation>複製 B</translation>
     </message>
     <message>
       <source>Copy Easing</source>
@@ -4286,8 +4285,7 @@
       <translation>建立膠囊</translation>
     </message>
     <message>
-      <source>Create Cog</source>
-      <translation>建立項目</translation>
+      <source>Create Cog</source><translation>建立齒輪</translation>
     </message>
     <message>
       <source>Create Composition</source>
@@ -4342,8 +4340,7 @@
       <translation>刪除屬性</translation>
     </message>
     <message>
-      <source>Delete B</source>
-      <translation>刪除項目</translation>
+      <source>Delete B</source><translation>刪除 B</translation>
     </message>
     <message>
       <source>Delete Backdrop</source>
@@ -4462,8 +4459,7 @@
       <translation>移除運算式</translation>
     </message>
     <message>
-      <source>Remove Preset</source>
-      <translation>移除预设</translation>
+      <source>Remove Preset</source><translation>移除預設</translation>
     </message>
     <message>
       <source>Remove Tag</source>
@@ -4478,8 +4474,7 @@
       <translation>設定素材</translation>
     </message>
     <message>
-      <source>Set B</source>
-      <translation>設定項目</translation>
+      <source>Set B</source><translation>設定 B</translation>
     </message>
     <message>
       <source>Set Color</source>
@@ -4506,8 +4501,7 @@
       <translation>設定備註</translation>
     </message>
     <message>
-      <source>Set Preset</source>
-      <translation>設定预设</translation>
+      <source>Set Preset</source><translation>設定預設</translation>
     </message>
     <message>
       <source>Set Selected</source>
@@ -5690,8 +5684,7 @@
       <translation>並集</translation>
     </message>
     <message>
-      <source>Utility</source>
-      <translation>項目</translation>
+      <source>Utility</source><translation>工具</translation>
     </message>
     <message>
       <source>Value</source>

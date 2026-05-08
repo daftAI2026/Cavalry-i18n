@@ -57,6 +57,35 @@
       }
     ]
   },
+  "targetFiller": {
+    "id": "FP-13",
+    "description": "generic target-language filler token used as a fake translation",
+    "rules": {
+      "zh-Hans": {
+        "term": "项目",
+        "allowedSourceRegex": "\\b(Project|Item|Items|Recent|Selected|Selection)\\b"
+      },
+      "zh-Hant": {
+        "term": "項目",
+        "allowedSourceRegex": "\\b(Project|Item|Items|Recent|Selected|Selection)\\b"
+      },
+      "ja_JP": {
+        "term": "項目",
+        "allowedSourceRegex": "\\b(Project|Item|Items|Recent|Selected|Selection|Alternate|Alternates)\\b"
+      }
+    }
+  },
+  "scriptContamination": {
+    "id": "FP-14",
+    "description": "wrong target script contamination",
+    "rules": {
+      "ja_JP": {
+        "regex": "[一-龯]",
+        "allowedRegex": "^[一-龯々〆〤ヶヵぁ-んァ-ヶー\\u3000-\\u303f\\s\\dA-Za-z.,:;!?()\\[\\]{}+\\-*/%&<>='\"_]+$",
+        "forbiddenTerms": ["并", "从", "此", "无法", "运行", "队列", "项目", "图层", "设置", "颜色", "文件", "窗口"]
+      }
+    }
+  },
   "latinResidue": {
     "id": "FP-9",
     "description": "ordinary English word residue in translation (Frankenstein)",
@@ -120,6 +149,12 @@
       "terms": {
         "开": "開/開啟",
         "关": "關/關閉",
+        "启": "啟",
+        "从": "從",
+        "之间": "之間",
+        "基于": "基於",
+        "预设": "預設",
+        "没有": "沒有",
         "图层": "圖層",
         "父级": "父級",
         "子级": "子級",

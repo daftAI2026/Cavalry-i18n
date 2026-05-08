@@ -35,7 +35,7 @@ fn bridge_is_injected_before_page_scripts() {
         "Tauri builder must inject the compatibility bridge before renderer scripts execute"
     );
     assert!(
-        bridge_rs.contains("include_str!(\"../../desktop-patcher/renderer/tauri-bridge.js\")"),
+        bridge_rs.contains("include_str!(\"../../renderer/tauri-bridge.js\")"),
         "bridge.rs should reuse the checked-in renderer bridge instead of drifting from the HTML-loaded copy"
     );
 }

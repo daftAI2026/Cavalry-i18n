@@ -7,18 +7,27 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- **Permission Pre-check**: Implemented macOS App Management (TCC) write access probe in Rust backend.
-  - Added `appManagementGranted` to Tauri/Electron status payload.
-  - Frontend UI now dynamically hides permission warnings if access is already granted.
-  - Added contract tests for App Management probe status in `command_contract.rs` and `check_tauri_bridge_runtime.js`.
+## [Unreleased]
 
-### Infrastructure & Misc
-- **Test Integrity**: Refactored testing tools to use local generated caches instead of checked-in fixtures.
-  - Moved `compiled-ui-source-map.json` from `doc/` to local `~/Library/Caches/Cavalry-i18n/` to ensure live Cavalry.app validation.
-  - Relocated `translation-whitelist.json` from `doc/` to `tools/` to align with logic ownership.
-  - Updated `check_electron_patcher_ui.js` and validation scripts to enforce dynamic path resolution.
-- **Documentation**: Updated `README.md` with dynamic GitHub badges and streamlined architecture overview.
+### Added
+- **Qt Translator Injector**: Introduced `injector/` module (Objective-C++) for runtime Qt menu interception.
+  - Implemented `EmbeddedTranslator` (QTranslator subclass) for high-performance string replacement.
+  - Added support for "English dump-only" mode to capture runtime UI inventories.
+  - Integrated GEB Fractal Documentation System (L1/L2/L3) for architectural integrity.
+- **Tauri Native Bridge**: Enhanced Rust-to-JS bridge with better error handling and permission pre-checks.
+
+### Changed
+- **Tauri Transition**: Formally promoted Tauri as the exclusive runtime, completing the migration from Electron.
+- **Test Infrastructure**: Refactored all contract tests to target the Tauri-only architecture.
+  - Updated `check_app_contracts.js` to orchestrate full-stack validation.
+  - Standardized on `~/Library/Caches/Cavalry-i18n/` for runtime session and inventory storage.
+
+### Removed
+- **Electron Deprecation**: Purged all legacy Electron artifacts and dependencies.
+  - Removed `electron-builder`, `electron-rebuild`, and related development scripts.
+  - Deleted legacy Electron testing harness (`electron_harness.js`, `capture_electron_contract.js`, etc.).
+  - Purged Electron-specific UI snapshots and fixtures.
+
 
 ## [0.1.2] - 2026-04-25
 

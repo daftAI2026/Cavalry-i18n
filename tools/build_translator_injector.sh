@@ -54,8 +54,8 @@ major_minor_version() {
 OUTPUT="$1"
 LINK_FRAMEWORKS="${2:-/Applications/Cavalry.app/Contents/Frameworks}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SOURCE="$REPO_ROOT/desktop-patcher/injector/CavalryTranslatorInjector.mm"
-GENERATED="$REPO_ROOT/desktop-patcher/injector/generated_translations.inc"
+SOURCE="$REPO_ROOT/injector/CavalryTranslatorInjector.mm"
+GENERATED="$REPO_ROOT/injector/generated_translations.inc"
 QT_PREFIX="$(find_qt_prefix || true)"
 TARGET_QT_VERSION="${CAVALRY_QT_VERSION:-}"
 

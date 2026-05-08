@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API 与 renderer/index.html 的固定控件 id
  * [OUTPUT]: 对外提供桌面补丁器的系统语言本土化、状态渲染、语言选择、英文刷新、权限弹窗、应用并重启交互
- * [POS]: desktop-patcher/renderer 的唯一交互源，被 index.html 直接加载，UI 迁移时必须保持行为契约
+ * [POS]: renderer 的唯一交互源，被 index.html 直接加载，UI 行为契约必须保持稳定
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');

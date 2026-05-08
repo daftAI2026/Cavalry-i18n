@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::detect 的路径探测、版本读取与 marker 读取能力
  * [OUTPUT]: 对外提供默认路径、版本读取与已安装语言恢复 contract tests
- * [POS]: src-tauri/tests 的探测守门，确保 get_status 与状态恢复语义贴合 Electron
+ * [POS]: src-tauri/tests 的探测守门，确保 get_status 与状态恢复语义贴合 Tauri command 契约
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::detect::{

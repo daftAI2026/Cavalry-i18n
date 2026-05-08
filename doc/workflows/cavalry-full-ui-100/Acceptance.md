@@ -107,14 +107,14 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 - [x] `check:full-ui` 在 matrix 前显式调用 `tools/verify_gate_inputs.js`
 - [x] runtime detector 把 §P5 命中视为 fail，而不是只看 `/[A-Za-z]/`
 - [x] compiled extractor contract 覆盖 `libExtensionLayer.dylib`
-- [x] Electron 专属 test/build/harness 不作为本 workflow 的修复目标；仍有价值的断言已迁移到 full-ui / Tauri gate
+- [x] 旧壳层专属 test/build/harness 已删除；仍有价值的断言已迁移到 full-ui / Tauri gate
 
 ### 失败条件
 
 - active full-ui / Tauri gate 仍把弱阈值冻结成正确行为
 - 仍允许 preflight 缺失时继续跑 matrix
 - 仍把白名单外未达 100 的结果当作“暂时可接受”
-- 为满足本 workflow 而新增、修复或扩展 Electron 专属路径
+- 为满足本 workflow 而恢复旧壳层专属路径
 
 ---
 
@@ -134,7 +134,7 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 **已验证 & PASS:**
 - [x] `tools/build_translator_injector.sh` 已加入 `@rpath`、ad-hoc 重签与 `linker-signed` 检查。
 - [x] `tools/launch_cavalry_with_injector.sh` 已支持 `sessionDir/sessionUuid/cacheRoot`，并写出 `audit/codesign-evidence.txt`。
-- [x] `desktop-patcher/injector/CavalryTranslatorInjector.mm` 已包含 `CAVALRY_I18N_LANG=en` dump-only 分支与 session-scoped runtime inventory 路径。
+- [x] `injector/CavalryTranslatorInjector.mm` 已包含 `CAVALRY_I18N_LANG=en` dump-only 分支与 session-scoped runtime inventory 路径。
 - [x] `tools/capture_accessibility_inventory.js` 生成 `RUNTIME_DIR/<lang>-ax-inventory.json` with menuBars 与 widgetTexts
 - [x] `tools/merge_runtime_inventory.js` 存在，支持 `live-injector` / `live-accessibility` 输入，生成 `live-merged` 分母
 - [x] `tools/run_live_full_ui_matrix.js` 存在，支持 AX-only 兜底当 injector 不可用时
@@ -321,7 +321,7 @@ runtime 抽取必须主动覆盖：
 - runtime inventory
 - compiled source-map / audit result
 - `tools/{zh-Hans,zh-Hant,ja_JP}.ts`
-- derived injector translation output `desktop-patcher/injector/generated_translations.inc`
+- derived injector translation output `injector/generated_translations.inc`
 - `languages/<lang>/**.json`
 
 ### Forbidden Pattern Set
@@ -398,7 +398,7 @@ Current HEAD is free of FP-1..FP-12 hits after cleaning JSON / TS / generated as
 **✓ PASS** (reverified 2026-05-08)
 
 All measurement integrity requirements satisfied:
-- All 88 tests in `npm run test:desktop` passing ✓
+- All 88 tests in `npm run test:contracts` passing ✓
 - Full-ui thresholds locked at 100 ✓
 - Runtime gate correctly enforces provenance ✓
 - Matrix reads from explicit SESSION_DIR ✓
@@ -406,7 +406,7 @@ All measurement integrity requirements satisfied:
 
 ### 通过条件
 
-- [x] `npm run test:desktop` 通过
+- [x] `npm run test:contracts` 通过
 - [x] full-ui 相关阈值全部为 `100`
 - [x] JSON validator threshold 为 `1.00`
 - [x] `check:full-ui` 显式绑定当前 `SESSION_DIR`

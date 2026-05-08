@@ -29,10 +29,10 @@ NOT COMPLETE
 
 - Tauri 是默认发布壳。
 - `npm run build:tauri` 是标准打包入口。
-- Electron 发布流程只保留为归档 fallback，不是本 workflow 的工作面。
-- 不新增、不修复、不扩展 Electron 专属测试、harness、builder 配置；仍有价值的断言必须迁移到 Tauri / full-ui gate。
+- Tauri 是唯一发布壳；旧壳层发布流程不再作为 fallback。
+- 不恢复旧壳层测试、harness、builder 配置；仍有价值的断言必须留在 Tauri / full-ui gate。
 
-本 workflow 可以改 `desktop-patcher/renderer/` 与 `desktop-patcher/injector/`，因为它们仍被 Tauri 发布路径消费；这不是继续维护 Electron 壳。
+本 workflow 可以改 `renderer/` 与 `injector/`，因为它们仍被 Tauri 发布路径消费；这不是继续维护旧壳层。
 
 ---
 

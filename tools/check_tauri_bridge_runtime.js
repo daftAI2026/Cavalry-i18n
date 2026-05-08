@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 src-tauri bridge.rs、renderer app.js 与一个最小 fake DOM/runtime
- * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 preload 替代层足以驱动原 renderer、本土化、授权预检状态和权限等待态
+ * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 Tauri bridge足以驱动原 renderer、本土化、授权预检状态和权限等待态
  * [POS]: tools 的 Phase 1 bridge 守门，把字符串级断言升级为实际脚本执行
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -313,9 +313,9 @@ async function flush() {
   await Promise.resolve();
 }
 
-test('tauri bridge boots the original renderer app without Electron preload', async () => {
-  const bridgeScript = readText('desktop-patcher/renderer/tauri-bridge.js');
-  const appScript = readText('desktop-patcher/renderer/app.js');
+test('tauri bridge boots the original renderer app through invoke', async () => {
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
   const runtime = createRuntime();
 
   vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
@@ -341,8 +341,8 @@ test('tauri bridge boots the original renderer app without Electron preload', as
 });
 
 test('renderer localizes visible UI from the system language', async () => {
-  const bridgeScript = readText('desktop-patcher/renderer/tauri-bridge.js');
-  const appScript = readText('desktop-patcher/renderer/app.js');
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
   const runtime = createRuntime({ language: 'zh-CN' });
 
   vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
@@ -358,8 +358,8 @@ test('renderer localizes visible UI from the system language', async () => {
 });
 
 test('renderer hides the permission warning when app management is already granted', async () => {
-  const bridgeScript = readText('desktop-patcher/renderer/tauri-bridge.js');
-  const appScript = readText('desktop-patcher/renderer/app.js');
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
   const runtime = createRuntime({ status: { appManagementGranted: true } });
 
   vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
@@ -370,8 +370,8 @@ test('renderer hides the permission warning when app management is already grant
 });
 
 test('renderer asks for confirmation before applying a language pack', async () => {
-  const bridgeScript = readText('desktop-patcher/renderer/tauri-bridge.js');
-  const appScript = readText('desktop-patcher/renderer/app.js');
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
   const runtime = createRuntime();
 
   vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
@@ -411,8 +411,8 @@ test('renderer asks for confirmation before applying a language pack', async () 
 });
 
 test('renderer shows localized macOS permission wait dialog and retries the same selection', async () => {
-  const bridgeScript = readText('desktop-patcher/renderer/tauri-bridge.js');
-  const appScript = readText('desktop-patcher/renderer/app.js');
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
   const runtime = createRuntime({
     language: 'zh-CN',
     applyResponses: [
@@ -475,8 +475,8 @@ test('renderer shows localized macOS permission wait dialog and retries the same
 });
 
 test('renderer localizes status failures while preserving backend details', async () => {
-  const bridgeScript = readText('desktop-patcher/renderer/tauri-bridge.js');
-  const appScript = readText('desktop-patcher/renderer/app.js');
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
   const runtime = createRuntime({
     language: 'zh-CN',
     applyResponses: [{ ok: false, error: 'Backend refused the patch' }],

@@ -15,7 +15,7 @@
 | --- | --- | --- |
 | Runtime inventory | `~/Library/Caches/Cavalry-i18n/sessions/<uuid>/runtime/<lang>-merged-inventory.json` | `tools/check_runtime_ui_coverage.js` |
 | Compiled source-map / audit result | `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` 及其审计输出 | `tools/verify_gate_inputs.js` |
-| Derived injector translation output | `desktop-patcher/injector/generated_translations.inc` | `tools/validate_translations.py` |
+| Derived injector translation output | `injector/generated_translations.inc` | `tools/validate_translations.py` |
 | Qt translation source | `tools/zh-Hans.ts` / `tools/zh-Hant.ts` / `tools/ja_JP.ts` | `tools/validate_translations.py` |
 | JSON 资产 | `languages/<lang>/**.json` | `tools/validate_translations.py` |
 | 批次翻译输入 | LLM 批次产出（落盘前） | `tools/validate_batch_translations.js` |

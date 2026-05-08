@@ -1,3 +1,9 @@
+/**
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI (QTranslator/QMenuBar/QAction)、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
+ * [OUTPUT]: 对外提供 EmbeddedTranslator (QTranslator 子类)、Qt 菜单翻译、AppKit 菜单同步、English dump-only runtime inventory 导出
+ * [POS]: injector 的唯一源文件，通过 DYLD_INSERT_LIBRARIES 注入 Cavalry 进程，拦截 Qt 翻译请求并刷新 macOS 原生菜单栏
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 #import <AppKit/AppKit.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <Foundation/Foundation.h>

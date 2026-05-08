@@ -118,7 +118,7 @@
 ### 禁 9：禁止 SIP-blame 误判（详见 `Anti-Patterns.md` §D）
 
 - ❌ 不允许在 `SESSION_DIR/audit/codesign-evidence.txt` 缺失的情况下声明 `BLOCKED-SIP` / `WEAK-CAPTURE due to SIP`
-- ❌ 不允许跳过 `desktop-patcher` 生产链路（`codesign --remove-signature` + `codesign --force --deep --sign -` ad-hoc 重签 + `DYLD_INSERT_LIBRARIES` 注入）就断言 macOS SIP 内核阻塞
+- ❌ 不允许跳过 `injector 生产链路（`codesign --remove-signature` + `codesign --force --deep --sign -` ad-hoc 重签 + `DYLD_INSERT_LIBRARIES` 注入）就断言 macOS SIP 内核阻塞
 - ❌ 不允许用 "SIP 阻塞" 当理由要求关闭 SIP / 降低 `runtime.candidates` / `runtime.menuLeaves` 下界 / 改走 AX-only baseline
 - ❌ 不允许把 9–16 个 candidate 的 AX 弱抓取写成 PASS / NEAR-PASS / FUNCTIONAL
 - ✅ 必须先跑 `tools/launch_cavalry_with_injector.sh`，由 launcher 在 ad-hoc 重签后写 `codesign-evidence.txt`，并在 hardened runtime / library-validation 仍存在时 `exit 1`
@@ -143,11 +143,11 @@ SOURCE_MAP = $CACHE/compiled-ui-source-map.json
 
 本 workflow 按 [`doc/LOCAL_BUILD_SOP.md`](../../LOCAL_BUILD_SOP.md) 执行：
 
-- 默认壳是 Tauri，不是 Electron。
+- 默认壳与唯一发布壳都是 Tauri。
 - 打包入口必须是 `npm run build:tauri`。
-- Electron 发布 SOP 已归档；除非用户显式要求 fallback，不进入 Electron build / electron-builder / Electron harness 修复。
-- `desktop-patcher/renderer/` 和 `desktop-patcher/injector/` 仍可修改，因为 Tauri 发布路径继续消费它们。
-- 如果旧 Electron 测试阻塞本 workflow，只迁移其中仍有价值的断言到 Tauri / full-ui gate；不要继续补 Electron 专属测试。
+- 旧壳层发布 SOP 只作历史证据；不恢复旧 build、builder 或 harness。
+- `renderer/` 和 `injector/` 仍可修改，因为 Tauri 发布路径继续消费它们。
+- 如果旧壳层命名的历史断言仍有价值，只保留在 Tauri / full-ui gate；不要恢复旧壳层专属测试。
 - README / 普通说明文案先不改；旧 `99` 文案最终收尾时统一清理，不参与当前 gate。
 - `.github/workflows/build.yml` 只有实际执行 gate / 打包 / artifact 绑定时才属于本 workflow 工作面。
 
@@ -256,7 +256,7 @@ git rev-parse HEAD
 git status
 
 # 2. 跑测试（旧基线已重置，预期会红）
-npm run test:desktop || true
+npm run test:contracts || true
 
 # 2b. 复审红灯扫描（任一命中都说明 W-AUDIT 未完成）
 echo "=== audit red flags ==="
@@ -316,15 +316,15 @@ fi
 echo "=== §P5 forbidden-translation scan (repo assets) ==="
 rg -n '（译）|（訳）|（譯）' \
   tools/zh-Hans.ts tools/zh-Hant.ts tools/ja_JP.ts \
-  desktop-patcher/injector/generated_translations.inc \
+  injector/generated_translations.inc \
   languages/ 2>/dev/null | wc -l
 rg -n '[Ａ-Ｚａ-ｚ]' \
   tools/zh-Hans.ts tools/zh-Hant.ts tools/ja_JP.ts \
-  desktop-patcher/injector/generated_translations.inc \
+  injector/generated_translations.inc \
   languages/ 2>/dev/null | wc -l
 rg -n '"(?:页|頁|ページ):?[0-9]+"' \
   tools/zh-Hans.ts tools/zh-Hant.ts tools/ja_JP.ts \
-  desktop-patcher/injector/generated_translations.inc \
+  injector/generated_translations.inc \
   languages/ 2>/dev/null | wc -l
 # 三个数字应该都为 0；任意非 0 → 立即停止本轮，回到 main 干净状态再启动
 

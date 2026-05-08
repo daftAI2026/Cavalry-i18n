@@ -5,7 +5,7 @@ const path = require('node:path');
 
 const repoRoot = path.resolve(__dirname, '..');
 const outputPath =
-  process.argv[2] || path.join(repoRoot, 'desktop-patcher', 'injector', 'generated_translations.inc');
+  process.argv[2] || path.join(repoRoot, 'injector', 'generated_translations.inc');
 
 const languages = [
   { code: 'zh-Hans', symbol: 'kZhHansEntries', file: path.join(repoRoot, 'tools', 'zh-Hans.ts') },

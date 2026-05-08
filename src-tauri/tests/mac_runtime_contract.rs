@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::mac_runtime 的 wrapper、Info.plist 改写与 runtime pair 能力
  * [OUTPUT]: 对外提供 launcher、marker 与 injector 目标路径 contract tests
- * [POS]: src-tauri/tests 的 runtime 守门，确保 macOS 补丁副作用路径与 Electron 一致
+ * [POS]: src-tauri/tests 的 runtime 守门，确保 macOS runtime 补丁副作用路径稳定
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::mac_runtime::{
@@ -19,7 +19,7 @@ fn write(path: &Path, value: &str) {
 }
 
 #[test]
-fn build_launch_wrapper_matches_electron() {
+fn build_launch_wrapper_matches_runtime_contract() {
     let wrapper = build_launch_wrapper();
     assert!(wrapper.contains("DYLD_INSERT_LIBRARIES"));
     assert!(wrapper.contains("CAVALRY_I18N_LANG"));

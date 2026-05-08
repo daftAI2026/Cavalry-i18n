@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 forbidden_translation_patterns.json 与 runtime_ui_allowlist.json 的 §P5 规则配置
- * [OUTPUT]: 对外提供 detectForbiddenTranslationPatterns，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式
+ * [OUTPUT]: 对外提供 detectForbiddenTranslationPatterns，检测 FP-1/2/3/4/5/7/8/9/10/11/13/14 单条翻译反模式
  * [POS]: tools 的 Node 共享 forbidden-pattern detector，被 runtime/full-ui gate 与契约测试复用；FP-12 由 validator 聚合检测
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -63,6 +63,27 @@ const PANGRAM_PATTERNS = (PANGRAM_CFG.sourcePatterns || []).map((pattern) => ({
   ...pattern,
   expression: new RegExp(pattern.regex),
 }));
+const TARGET_FILLER_CFG = PATTERN_CONFIG.targetFiller || {};
+const TARGET_FILLER_RULES = Object.fromEntries(
+  Object.entries(TARGET_FILLER_CFG.rules || {}).map(([language, rule]) => [
+    language,
+    {
+      ...rule,
+      allowedSourceExpression: new RegExp(rule.allowedSourceRegex || '$^', 'i'),
+    },
+  ])
+);
+const SCRIPT_CONTAMINATION_CFG = PATTERN_CONFIG.scriptContamination || {};
+const SCRIPT_CONTAMINATION_RULES = Object.fromEntries(
+  Object.entries(SCRIPT_CONTAMINATION_CFG.rules || {}).map(([language, rule]) => [
+    language,
+    {
+      ...rule,
+      expression: new RegExp(rule.regex || '$^'),
+      allowedExpression: rule.allowedRegex ? new RegExp(rule.allowedRegex) : null,
+    },
+  ])
+);
 
 function normalizeText(value) {
   return String(value || '')
@@ -100,6 +121,23 @@ function isTransliterationFabrication(source, value) {
 function isPangramNoiseFabrication(source, value) {
   if (!source || !value || source === value) return false;
   return PANGRAM_PATTERNS.some((pattern) => pattern.expression.test(source));
+}
+
+function findTargetFiller(language, source, value) {
+  const rule = TARGET_FILLER_RULES[language];
+  if (!rule || !rule.term || !value.includes(rule.term)) return null;
+  if (rule.allowedSourceExpression.test(source)) return null;
+  return rule.term;
+}
+
+function findScriptContamination(language, value) {
+  const rule = SCRIPT_CONTAMINATION_RULES[language];
+  if (!rule || !rule.expression.test(value)) return null;
+  for (const term of rule.forbiddenTerms || []) {
+    if (value.includes(term)) return term;
+  }
+  if (rule.allowedExpression && !rule.allowedExpression.test(value)) return null;
+  return null;
 }
 
 function detectForbiddenTranslationPatterns({
@@ -178,6 +216,30 @@ function detectForbiddenTranslationPatterns({
       detail: PANGRAM_CFG.description || 'font sample pangram translated as UI copy',
       value: normalizedSource,
     });
+  }
+
+  // FP-13: generic target-language filler tokens used to satisfy coverage.
+  if (normalizedValue) {
+    const filler = findTargetFiller(language, normalizedSource, normalizedValue);
+    if (filler) {
+      hits.push({
+        id: TARGET_FILLER_CFG.id || 'FP-13',
+        detail: `${TARGET_FILLER_CFG.description || 'generic target-language filler'}: ${filler}`,
+        value: normalizedValue,
+      });
+    }
+  }
+
+  // FP-14: target script contamination that purity checks did not catch.
+  if (normalizedValue) {
+    const contamination = findScriptContamination(language, normalizedValue);
+    if (contamination) {
+      hits.push({
+        id: SCRIPT_CONTAMINATION_CFG.id || 'FP-14',
+        detail: `${SCRIPT_CONTAMINATION_CFG.description || 'wrong target script contamination'}: ${contamination}`,
+        value: normalizedValue,
+      });
+    }
   }
 
   // FP-9: Frankenstein Latin residue

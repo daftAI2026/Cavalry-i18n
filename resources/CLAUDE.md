@@ -1,5 +1,5 @@
-# desktop-patcher/resources/
-> L2 | 父级: ../CLAUDE.md
+# resources/
+> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
 icon.icns: macOS 应用与 DMG 磁盘映像的图标包。由 1024x1024 原图生成的包含 16px 到 1024px 全尺寸的 Apple 图标资源。

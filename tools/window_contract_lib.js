@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 macOS osascript/screencapture、Electron 可执行文件与 packaged Tauri binary
+ * [INPUT]: 依赖 macOS osascript/screencapture 与 packaged Tauri binary
  * [OUTPUT]: 对外提供窗口枚举、截图、内容区域裁剪与图像 diff 辅助函数
- * [POS]: tools 的窗口回归公共层，被 Electron baseline 捕获与 Tauri regression 测试复用
+ * [POS]: tools 的 Tauri 窗口回归公共层
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const fs = require('node:fs');
@@ -188,19 +188,6 @@ function diffImages(leftPath, rightPath) {
   );
 }
 
-function launchElectron(stateDir) {
-  const electronBinary = require('electron');
-  const child = spawn(electronBinary, ['.'], {
-    cwd: repoRoot,
-    env: {
-      ...process.env,
-      CAVALRY_I18N_STATE_DIR: stateDir,
-    },
-    stdio: 'ignore',
-  });
-  return child;
-}
-
 function tauriBundleBinary() {
   const appPath = path.join(
     repoRoot,
@@ -248,7 +235,6 @@ module.exports = {
   diffImages,
   expectedContentSize,
   focusWindow,
-  launchElectron,
   launchTauri,
   listVisibleWindows,
   makeTempDir,

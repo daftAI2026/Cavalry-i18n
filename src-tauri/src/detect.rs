@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 std fs/env/path 读取 Cavalry.app 候选位置和 Info.plist 文本
  * [OUTPUT]: 对外提供 default_app_candidates、find_cavalry_app、read_bundle_version、list_language_options、inspect_bundle
- * [POS]: src-tauri/src 的应用探测模块，对齐 desktop-patcher/lib/detect.js
+ * [POS]: src-tauri/src 的应用探测模块，对齐 Tauri command 状态需求
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{

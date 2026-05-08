@@ -71,10 +71,10 @@ npm run tauri:dev              # Tauri dev server
 npm run check:tauri            # Rust type-check
 
 # Test
-npm run test:desktop           # Node: patcher UI, renderer contract, snapshots
+npm run test:contracts         # Node: app contracts, renderer, bridge, SOP
 npm run test:tauri             # cargo test (Rust unit + contract tests)
 npm run test:tauri:packaged    # Post-build resource integrity
-npm run check:desktop          # Syntax-check all JS
+npm run check:app              # Syntax-check all JS
 npm run check:ui-coverage      # Runtime UI translation coverage gate (≥99%)
 ```
 
@@ -100,7 +100,9 @@ npm run check:ui-coverage                           # Gate: must be ≥99%
 
 ```
 Cavalry-i18n/
-├── desktop-patcher/renderer/     # UI (vanilla HTML/CSS/JS)
+├── renderer/                     # UI (vanilla HTML/CSS/JS + Tauri bridge)
+├── injector/                     # Objective-C++ runtime translator + generated table
+├── resources/                    # App icons and DMG background
 ├── src-tauri/                    # Tauri v2 shell (Rust)
 │   └── src/
 │       ├── commands.rs           # 6 IPC commands (business core)

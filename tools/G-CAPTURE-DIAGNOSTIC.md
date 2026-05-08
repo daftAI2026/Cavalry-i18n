@@ -76,7 +76,7 @@ This will determine if kernel-level injection restriction is the blocker.
 
 ### Option 2: Alternative Capture Method
 ```bash
-npm run test:desktop  # Check if run_live_full_ui_matrix.js has workarounds
+npm run test:contracts  # Check if run_live_full_ui_matrix.js has workarounds
 ```
 
 ### Option 3: Hybrid Approach

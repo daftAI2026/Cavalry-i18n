@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 [INPUT]: 依赖 forbidden_translation_patterns.json 与 runtime_ui_allowlist.json 的 §P5 规则配置
-[OUTPUT]: 对外提供 detect_forbidden_translation_patterns，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式
+[OUTPUT]: 对外提供 detect_forbidden_translation_patterns，检测 FP-1/2/3/4/5/7/8/9/10/11/13/14 单条翻译反模式
 [POS]: tools 的 Python 共享 forbidden-pattern detector，被 validate_translations.py 复用；FP-12 由 validator 聚合检测
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -70,6 +70,27 @@ _TRANSLITERATION_SOURCE_DENYLIST = set(
 )
 _PANGRAM_CFG = PATTERN_CONFIG.get("pangramNoise", {})
 _PANGRAM_PATTERNS = _compile_patterns(_PANGRAM_CFG.get("sourcePatterns", []))
+_TARGET_FILLER_CFG = PATTERN_CONFIG.get("targetFiller", {})
+_TARGET_FILLER_RULES = {
+    language: {
+        **rule,
+        "allowed_source_expression": re.compile(
+            rule.get("allowedSourceRegex", r"$^"), re.IGNORECASE
+        ),
+    }
+    for language, rule in _TARGET_FILLER_CFG.get("rules", {}).items()
+}
+_SCRIPT_CONTAMINATION_CFG = PATTERN_CONFIG.get("scriptContamination", {})
+_SCRIPT_CONTAMINATION_RULES = {
+    language: {
+        **rule,
+        "expression": re.compile(rule.get("regex", r"$^")),
+        "allowed_expression": re.compile(rule["allowedRegex"])
+        if rule.get("allowedRegex")
+        else None,
+    }
+    for language, rule in _SCRIPT_CONTAMINATION_CFG.get("rules", {}).items()
+}
 
 
 def normalize_text(value: str) -> str:
@@ -115,6 +136,28 @@ def _is_pangram_noise_fabrication(source: str, value: str) -> bool:
     if not source or not value or source == value:
         return False
     return any(pattern["expression"].search(source) for pattern in _PANGRAM_PATTERNS)
+
+
+def _find_target_filler(language: str, source: str, value: str) -> str | None:
+    rule = _TARGET_FILLER_RULES.get(language)
+    if not rule:
+        return None
+    term = rule.get("term")
+    if not term or term not in value:
+        return None
+    if rule["allowed_source_expression"].search(source):
+        return None
+    return term
+
+
+def _find_script_contamination(language: str, value: str) -> str | None:
+    rule = _SCRIPT_CONTAMINATION_RULES.get(language)
+    if not rule or not rule["expression"].search(value):
+        return None
+    for term in rule.get("forbiddenTerms", []):
+        if term in value:
+            return term
+    return None
 
 
 def detect_forbidden_translation_patterns(
@@ -206,6 +249,36 @@ def detect_forbidden_translation_patterns(
                 "value": normalized_source,
             }
         )
+
+    # FP-13: generic target-language filler token used to satisfy coverage.
+    if normalized_value:
+        filler = _find_target_filler(language, normalized_source, normalized_value)
+        if filler is not None:
+            hits.append(
+                {
+                    "id": _TARGET_FILLER_CFG.get("id", "FP-13"),
+                    "detail": (
+                        f"{_TARGET_FILLER_CFG.get('description', 'generic target-language filler')}: "
+                        f"{filler}"
+                    ),
+                    "value": normalized_value,
+                }
+            )
+
+    # FP-14: target script contamination that purity checks did not catch.
+    if normalized_value:
+        contamination = _find_script_contamination(language, normalized_value)
+        if contamination is not None:
+            hits.append(
+                {
+                    "id": _SCRIPT_CONTAMINATION_CFG.get("id", "FP-14"),
+                    "detail": (
+                        f"{_SCRIPT_CONTAMINATION_CFG.get('description', 'wrong target script contamination')}: "
+                        f"{contamination}"
+                    ),
+                    "value": normalized_value,
+                }
+            )
 
     # FP-9: Frankenstein Latin residue (whitelist + heuristic)
     if normalized_value:

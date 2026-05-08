@@ -125,7 +125,7 @@ mod tests {
     use super::{build_launch_wrapper, build_wrapped_info_plist, LANG_MARKER_NAME};
 
     #[test]
-    fn build_launch_wrapper_matches_electron() {
+    fn build_launch_wrapper_matches_runtime_contract() {
         let wrapper = build_launch_wrapper();
         assert!(wrapper.contains("DYLD_INSERT_LIBRARIES"));
         assert!(wrapper.contains("CAVALRY_I18N_LANG"));

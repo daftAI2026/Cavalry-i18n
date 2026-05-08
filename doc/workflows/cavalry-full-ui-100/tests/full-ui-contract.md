@@ -22,17 +22,17 @@
 
 PASS 条件：
 
-- active full-ui / Tauri gate 实现 whitelist-filtered 100，并拒绝 legacy weak threshold（如 `--threshold 99`）；不要把 Electron 专属测试当作本 workflow 的修复目标
+- active full-ui / Tauri gate 实现 whitelist-filtered 100，并拒绝 legacy weak threshold（如 `--threshold 99`）；不要把已删除旧壳层测试当作本 workflow 的修复目标
 - `package.json` 的 `check:full-ui` 在 matrix 前调用 `tools/verify_gate_inputs.js`
 - `tools/validate_translations.py` 在 coverage < `1.00` 时 exit 非 `0`
 - `tools/check_runtime_ui_coverage.js` 把 `（译）` / 全角拉丁 / `页:1` 计入 forbidden pattern
 - `tools/extract_compiled_ui_strings.js` 的 target contract 覆盖 `libExtensionLayer.dylib`
 
-Electron 边界：
+Removed legacy shell boundary:
 
-- `tools/check_electron_patcher_ui.js`、`tools/electron_harness.js`、`tools/capture_electron_*` 只可作为历史断言来源。
+- `tools/check_app_contracts.js` 是迁移后的 active contract；旧 harness/capture 工具已删除。
 - 若其中仍有 full-ui 价值，迁移断言到 full-ui / Tauri gate。
-- 不新增、不修复、不扩展 Electron 专属测试来满足本 workflow。
+- 不恢复旧壳层专属测试来满足本 workflow。
 
 ---
 
@@ -104,7 +104,7 @@ PASS 条件：
 ### B0.1 package workflow scripts must exist
 
 ```bash
-npm run test:desktop
+npm run test:contracts
 ```
 
 PASS 条件：

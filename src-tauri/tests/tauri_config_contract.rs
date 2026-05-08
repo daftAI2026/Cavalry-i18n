@@ -16,14 +16,11 @@ fn tauri_config_enables_global_api_for_vanilla_bridge() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     assert_eq!(config["app"]["withGlobalTauri"], true);
-    assert_eq!(
-        config["build"]["frontendDist"],
-        "../desktop-patcher/renderer"
-    );
+    assert_eq!(config["build"]["frontendDist"], "../renderer");
 }
 
 #[test]
-fn tauri_window_size_matches_electron() {
+fn tauri_window_size_matches_frozen_contract() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let window = &config["app"]["windows"][0];
@@ -41,7 +38,7 @@ fn tauri_config_declares_capabilities_and_resource_access() {
     let resources = config["bundle"]["resources"].as_object().unwrap();
     assert_eq!(resources["../languages"], "languages");
     assert_eq!(
-        resources["../desktop-patcher/injector/libCavalryTranslatorInjector.dylib"],
+        resources["../injector/libCavalryTranslatorInjector.dylib"],
         "injector/libCavalryTranslatorInjector.dylib"
     );
 
