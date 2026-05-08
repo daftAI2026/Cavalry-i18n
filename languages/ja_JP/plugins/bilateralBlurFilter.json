@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "bilateralBlurFilter",
-      "niceName": "バイラテラルブラー",
+      "niceName": "バイラテラルぼかし",
       "layerInfo": "エッジを保持しながら、似た色の領域を滑らかにするブラーです。",
       "language": "ja_JP",
       "attributes": {

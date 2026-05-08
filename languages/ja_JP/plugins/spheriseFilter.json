@@ -89,12 +89,12 @@
         "visibility": {
           "0": "両方",
           "1": "前面",
-          "2": "背面"
+          "2": "戻る"
         }
       },
       "tabs": {
-        "filter": "設定",
-        "lighting": "ライティング"
+        "filter": "Settings",
+        "lighting": "Lighting"
       }
     }
   }

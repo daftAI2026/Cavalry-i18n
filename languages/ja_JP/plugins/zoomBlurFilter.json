@@ -4,12 +4,12 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "zoomBlurFilter",
-      "niceName": "ズームブラー",
+      "niceName": "ズームぼかし",
       "layerInfo": "中心点からシェイプを外側に向かってぼかし、カスタマイズ可能な減衰を備えています。",
       "language": "ja_JP",
       "attributes": {
         "origin": [
-          "原点",
+          "起源の場所",
           "ブラーの中心点を設定します。0,0 はシェイプの中心です。"
         ],
         "amount": [

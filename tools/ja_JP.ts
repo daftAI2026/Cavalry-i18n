@@ -2,8 +2,8 @@
 <!DOCTYPE TS>
 <!--
 [INPUT]: 依赖 Cavalry compiled/runtime 英文 source、doc/translation-guidelines.md、doc/cavalry-glossary*.md 与 tools/translation-whitelist.json
-[OUTPUT]: 对外提供 ja_JP Qt TS 翻译目录，被 generate_embedded_translations.js 编译进 injector 表
-[POS]: tools 编译期 UI 翻译源，和 zh-Hans.ts / zh-Hant.ts 共同覆盖 compiled/runtime 菜单文本
+[OUTPUT]: に対して外提供 ja_JP Qt TS 翻译目录，被 generate_embedded_translations.js 编译进 injector 表
+[POS]: tools 编译期 UI 翻译源，と zh-Hans.ts / zh-Hant.ts 共同オーバーライド compiled/runtime 菜单文本
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 <TS version="2.1" language="ja_JP">
@@ -147,7 +147,7 @@
   </message>
   <message>
     <source>Active Forge Solver</source>
-    <translation>アクティブ Forge ソルバー</translation>
+    <translation>使用中のフォージソルバー</translation>
   </message>
   <message>
     <source>Active Tags.</source>
@@ -243,7 +243,7 @@
   </message>
   <message>
     <source>Add Background to Selected</source>
-    <translation>選択したものに背景を追加</translation>
+    <translation>選択項目に背景を追加</translation>
   </message>
   <message>
     <source>Add Behaviour</source>
@@ -910,11 +910,11 @@
     </message>
     <message>
       <source>Zoom In</source>
-      <translation>拡大</translation>
+      <translation>ズームイン</translation>
     </message>
     <message>
       <source>Zoom Out</source>
-      <translation>縮小</translation>
+      <translation>ズームアウト</translation>
     </message>
     <message>
       <source>Zoom</source>
@@ -1786,8 +1786,8 @@
     <message><source>Are you sure you want to delete this preset?</source><translation>このプリセットを削除したいですか?</translation></message>
     <message><source>Are you sure you want to delete this Preset?</source><translation>このプリセットを削除してもよろしいですか？</translation></message>
     <message><source>Are you sure you want to delete this Swatch?</source><translation>このスウォッチを削除してもよろしいですか？</translation></message>
-    <message><source>Are you sure you want to quit? Unsaved changes will be lost</source><translation>いかがですか? 未保存の変更は失われます</translation></message>
-    <message><source>Are you sure you want to quit? Unsaved changes will be lost.</source><translation>いかがですか? 未保存の変更は失われます。</translation></message>
+    <message><source>Are you sure you want to quit? Unsaved changes will be lost</source><translation>終了してもよろしいですか？未保存の変更は失われます</translation></message>
+    <message><source>Are you sure you want to quit? Unsaved changes will be lost.</source><translation>終了してもよろしいですか？未保存の変更は失われます。</translation></message>
     <message><source>Are you sure? This action cannot be undone</source><translation>お問い合わせ このアクションは元に戻すことができません</translation></message>
     <message><source>Are you sure? This action cannot be undone.</source><translation>お問い合わせ このアクションは元に戻すことができません。</translation></message>
     <message><source>Argument count does not match function definition. Expected</source><translation>引数のカウントは関数の定義に一致しません。 期待される</translation></message>
@@ -1852,19 +1852,19 @@
     <message><source>cannot use key() for non-object iterators</source><translation>非オブジェクト反復子にはキー関数を使用できません</translation></message>
     <message><source>cannot use operator[] with a numeric argument with</source><translation>数値引数で演算子[] を使うことはできません。</translation></message>
     <message><source>cannot use operator[] with a string argument with</source><translation>文字列引数で演算子[] を使うことはできません。</translation></message>
-    <message><source>Canva auth has expired</source><translation>Canva認証の有効期限が切れています</translation></message>
-    <message><source>Canva auth has expired.</source><translation>Canva認証の有効期限が切れています。</translation></message>
-    <message><source>Canva auth offline grace period expired</source><translation>Canva認証のオフライン猶予期間が期限切れです</translation></message>
-    <message><source>Canva auth offline grace period expired.</source><translation>Canva認証のオフライン猶予期間が期限切れです。</translation></message>
+    <message><source>Canva auth has expired</source><translation>Canva 認証の有効期限が切れています</translation></message>
+    <message><source>Canva auth has expired.</source><translation>Canva 認証の有効期限が切れています。</translation></message>
+    <message><source>Canva auth offline grace period expired</source><translation>Canva 認証のオフライン猶予期間が期限切れです</translation></message>
+    <message><source>Canva auth offline grace period expired.</source><translation>Canva 認証のオフライン猶予期間が期限切れです。</translation></message>
     <message><source>Caper</source><translation>ケーパー</translation></message>
     <message><source>Cararra</source><translation>カララ</translation></message>
     <message><source>Carissma</source><translation>カリスマ</translation></message>
     <message><source>Case Features</source><translation>ケースの特徴</translation></message>
-    <message><source>Cavalry access check failed (HTTP</source><translation>アクセス確認に失敗(通信</translation></message>
-    <message><source>Cavalry access check failed: could not connect to Canva</source><translation>アクセス確認に失敗: オンラインデザインサービスに接続できません</translation></message>
-    <message><source>Cavalry access check failed: invalid JSON response</source><translation>Cavalryのアクセスチェックに失敗しました：無効JSON応答</translation></message>
-    <message><source>Cavalry by Canva</source><translation>Cavalry提供Canva</translation></message>
-    <message><source>Cavalry Control Header Script</source><translation>Cavalryコントロールヘッダースクリプト</translation></message>
+    <message><source>Cavalry access check failed (HTTP</source><translation>Cavalry アクセス確認に失敗 (HTTP</translation></message>
+    <message><source>Cavalry access check failed: could not connect to Canva</source><translation>Cavalry のアクセス確認に失敗しました: Canva に接続できません</translation></message>
+    <message><source>Cavalry access check failed: invalid JSON response</source><translation>Cavalry のアクセス確認に失敗しました: 無効な JSON 応答</translation></message>
+    <message><source>Cavalry by Canva</source><translation>Canva の Cavalry</translation></message>
+    <message><source>Cavalry Control Header Script</source><translation>制御インターフェイス用ヘッダースクリプト</translation></message>
     <message><source>Cavalry does not know how to import this directory</source><translation>このアプリはこのディレクトリを読み込めません</translation></message>
     <message><source>Cavalry does not know how to import this directory.</source><translation>このアプリはこのディレクトリを読み込めません。</translation></message>
     <message><source>Cel Animation</source><translation>セルアニメーション</translation></message>
@@ -1997,12 +1997,12 @@
     <message><source>Could not get latest version</source><translation>最新のバージョンが入手できません</translation></message>
     <message><source>Could not load Google Sheet. You do not have permission to view</source><translation>Googleシートをロードできません。 閲覧権限がない</translation></message>
     <message><source>Could not load Google Sheet. You do not have permission to view.</source><translation>Googleシートをロードできません。 閲覧の許可はありません。</translation></message>
-    <message><source>Could not obtain Canva access token</source><translation>取得Canvaアクセストークンできませんでした</translation></message>
+    <message><source>Could not obtain Canva access token</source><translation>Canva アクセストークンを取得できませんでした</translation></message>
     <message><source>Could not open file</source><translation>ファイルを開くことができませんでした</translation></message>
     <message><source>Could not open font file</source><translation>フォントファイルを開くことができません</translation></message>
     <message><source>Could not open stream from font file</source><translation>フォントファイルからストリームを開くことができません</translation></message>
-    <message><source>Could not reset Canva tokens</source><translation>リセットCanvaトークンできませんでした</translation></message>
-    <message><source>Could not reset Canva tokens.</source><translation>リセットCanvaトークンできませんでした。</translation></message>
+    <message><source>Could not reset Canva tokens</source><translation>Canva トークンをリセットできませんでした</translation></message>
+    <message><source>Could not reset Canva tokens.</source><translation>Canva トークンをリセットできませんでした。</translation></message>
     <message><source>Could not reset licence</source><translation>ライセンスをリセットできません</translation></message>
     <message><source>Could not reset licence.</source><translation>ライセンスをリセットできません。</translation></message>
     <message><source>Could not retrieve access token</source><translation>アクセストークンを取得できません</translation></message>
@@ -2025,8 +2025,8 @@
     <message><source>Create a new keyframe.</source><translation>新しいキーフレームを作成します。</translation></message>
     <message><source>Create a palette to begin</source><translation>パレットを作成する</translation></message>
     <message><source>Create a palette to begin.</source><translation>パレットを作成する。</translation></message>
-    <message><source>Create a Rubber Hose Limb</source><translation>ゴムホースリムを作成する</translation></message>
-    <message><source>Create a Rubber Hose Limb.</source><translation>ゴムホースリムを作成します。</translation></message>
+    <message><source>Create a Rubber Hose Limb</source><translation>ラバーホースリムを作成</translation></message>
+    <message><source>Create a Rubber Hose Limb.</source><translation>ラバーホースリムを作成します。</translation></message>
     <message><source>Create an Align Behaviour</source><translation>アラインの行動を作成する</translation></message>
     <message><source>Create an Extrusion</source><translation>押出を作成する</translation></message>
     <message><source>Create and connect a layer</source><translation>レイヤーの作成と接続</translation></message>
@@ -2046,7 +2046,7 @@
     <message><source>Create Cog</source><translation>歯車を作成</translation></message>
     <message><source>Create Composition</source><translation>コンポジションを作成</translation></message>
     <message><source>Create Composition Array from Group</source><translation>コンポジション配列からグループを作成</translation></message>
-    <message><source>Create Composition based on</source><translation>コンポジション基準オンを作成</translation></message>
+    <message><source>Create Composition based on</source><translation>次を基にコンポジションを作成</translation></message>
     <message><source>Create Custom Preset</source><translation>カスタムプリセットを作成</translation></message>
     <message><source>Create Custom Preset...</source><translation>カスタムプリセットを作成...</translation></message>
     <message><source>Create Ellipse</source><translation>楕円を作成</translation></message>
@@ -2069,11 +2069,11 @@
     <message><source>Created Asset Array from Group</source><translation>作成済みアセット配列からグループ</translation></message>
     <message><source>Created Asset Array from Group.</source><translation>作成済みアセット配列からグループ。</translation></message>
     <message><source>Crete</source><translation>クレタ</translation></message>
-    <message><source>Crop Animation to Selected Keys</source><translation>切り抜きアニメーション項目選択済みキー</translation></message>
+    <message><source>Crop Animation to Selected Keys</source><translation>アニメーションを選択キーフレームに合わせてトリミング</translation></message>
     <message><source>crs DRS krs</source><translation>内部識別一</translation></message>
     <message><source>Crush</source><translation>クラッシュ</translation></message>
-    <message><source>Current Composition</source><translation>現在コンポジション</translation></message>
-    <message><source>Current Composition Tab Missing</source><translation>現在コンポジションタブ欠落</translation></message>
+    <message><source>Current Composition</source><translation>現在のコンポジション</translation></message>
+    <message><source>Current Composition Tab Missing</source><translation>現在のコンポジションタブがありません</translation></message>
     <message><source>Cursive Angle</source><translation>曲げ角度</translation></message>
     <message><source>Curve Ghosting</source><translation>カーブゴースト</translation></message>
     <message><source>Cust</source><translation>コースト</translation></message>
@@ -2099,7 +2099,7 @@
     <message><source>Di Serria</source><translation>ディセリア</translation></message>
     <message><source>Dialog Title</source><translation>ダイアログタイトル</translation></message>
     <message><source>Digest</source><translation>ダイジェスト</translation></message>
-    <message><source>Direct Layer Selection</source><translation>項目レイヤー選択</translation></message>
+    <message><source>Direct Layer Selection</source><translation>レイヤーを直接選択</translation></message>
     <message><source>Directory outside of project</source><translation>プロジェクト外のディレクトリ</translation></message>
     <message><source>Disable</source><translation>免責事項</translation></message>
     <message><source>Disable B</source><translation>バイトを無効化</translation></message>
@@ -2118,8 +2118,8 @@
     <message><source>Disconnect time control</source><translation>切断時間制御</translation></message>
     <message><source>Display Color Space</source><translation>表示色のスペース</translation></message>
     <message><source>Distribute Stops</source><translation>配布停止</translation></message>
-    <message><source>Distribute: Please select a minimum of 2 shapes</source><translation>配布物:2つの形状の最小値を選択してください。</translation></message>
-    <message><source>Distribute: Please select a minimum of 2 shapes.</source><translation>配布物:2つの形状の最小値を選択してください。</translation></message>
+    <message><source>Distribute: Please select a minimum of 2 shapes</source><translation>分布: 2 つ以上のシェイプを選択してください</translation></message>
+    <message><source>Distribute: Please select a minimum of 2 shapes.</source><translation>分布: 2 つ以上のシェイプを選択してください。</translation></message>
     <message><source>document is not standalone</source><translation>文書は独立していません</translation></message>
     <message><source>doesn&apos;t exist.</source><translation>存在しない。</translation></message>
     <message><source>dom PPC kom</source><translation>内部識別三</translation></message>
@@ -2217,9 +2217,9 @@
     <message><source>Error adding Steiner Point</source><translation>シュタイナー点の追加でエラー</translation></message>
     <message><source>Error adding Steiner Point.</source><translation>シュタイナー点の追加でエラー。</translation></message>
     <message><source>Error deserialising Workspace</source><translation>ワークスペースの復元でエラー</translation></message>
-    <message><source>Error fetching image asset. Please try adding it to the scene again</source><translation>画像資産の取得エラー もう一度シーンに追加してみてください。</translation></message>
-    <message><source>Error fetching image asset. Please try adding it to the scene again.</source><translation>画像資産の取得エラー もう一度シーンに追加してみてください。</translation></message>
-    <message><source>error in processing external entity reference</source><translation>外部団体参照を処理するエラー</translation></message>
+    <message><source>Error fetching image asset. Please try adding it to the scene again</source><translation>画像アセットの取得エラーです。もう一度シーンに追加してください</translation></message>
+    <message><source>Error fetching image asset. Please try adding it to the scene again.</source><translation>画像アセットの取得エラーです。もう一度シーンに追加してください。</translation></message>
+    <message><source>error in processing external entity reference</source><translation>外部エンティティ参照の処理中にエラーが発生しました</translation></message>
     <message><source>Error reading from socket</source><translation>ソケットからの誤読</translation></message>
     <message><source>Error reading from socket.</source><translation>ソケットからの誤読。</translation></message>
     <message><source>Error sending a packet for decoding</source><translation>解読のためのパケットを送信するエラー</translation></message>
@@ -2258,20 +2258,20 @@
     <message><source>Export as Project</source><translation>プロジェクトとして書き出し</translation></message>
     <message><source>Export as Project... (Pro)</source><translation>プロジェクトとして書き出し...(プロ版)</translation></message>
     <message><source>Export Compound Graph Preset</source><translation>複合グラフプリセットを書き出し</translation></message>
-    <message><source>Export Lottie... (Demo Mode)</source><translation>輸出宝くじ... (デモモード)</translation></message>
+    <message><source>Export Lottie... (Demo Mode)</source><translation>Lottie を書き出し...（デモモード）</translation></message>
     <message><source>Export Preset...</source><translation>プリセットを書き出し...</translation></message>
-    <message><source>Export Selected</source><translation>輸出選択</translation></message>
-    <message><source>Export Selected Snippets</source><translation>輸出選択スニペット</translation></message>
+    <message><source>Export Selected</source><translation>選択項目を書き出し</translation></message>
+    <message><source>Export Selected Snippets</source><translation>選択したスニペットを書き出し</translation></message>
     <message><source>Export SH</source><translation>シェイプハンドルを書き出し</translation></message>
     <message><source>Export Velocity Preset</source><translation>速度プリセットを書き出し</translation></message>
-    <message><source>Exporting</source><translation>輸出入</translation></message>
+    <message><source>Exporting</source><translation>書き出し中</translation></message>
     <message><source>Exporting scene to Lottie file</source><translation>Lottieファイルへのシーンのエクスポート</translation></message>
     <message><source>Exporting script</source><translation>スクリプトのエクスポート</translation></message>
-    <message><source>Exporting Selected</source><translation>選択された輸出</translation></message>
+    <message><source>Exporting Selected</source><translation>選択項目を書き出し中</translation></message>
     <message><source>Extra Width</source><translation>余分幅</translation></message>
     <message><source>Factorize</source><translation>工場化</translation></message>
     <message><source>Failed</source><translation>失敗した</translation></message>
-    <message><source>Failed Dependency</source><translation>失敗した依存性</translation></message>
+    <message><source>Failed Dependency</source><translation>依存関係エラー</translation></message>
     <message><source>Failed to allocate memory for output buffers</source><translation>出力バッファのメモリを割り当てる失敗</translation></message>
     <message><source>Failed to allocate memory for output buffers.</source><translation>出力バッファのメモリを割り当てることができません。</translation></message>
     <message><source>Failed to bind to IP address</source><translation>ネットワークアドレスへのバインドに失敗</translation></message>
@@ -2284,10 +2284,10 @@
     <message><source>Failed to create XML parser for relationships.</source><translation>リレーション用解析器を作成できません。</translation></message>
     <message><source>Failed to create XML parser for workbook</source><translation>ワークブック用解析器を作成できません</translation></message>
     <message><source>Failed to create XML parser for workbook.</source><translation>ワークブック用解析器を作成できません。</translation></message>
-    <message><source>Failed to encode image to PNG format</source><translation>画像を可搬ネットワーク画像形式にエンコードできません</translation></message>
-    <message><source>Failed to extract pixels from image</source><translation>画像からピクセルを抽出できない</translation></message>
-    <message><source>Failed to fetch user info (HTTP</source><translation>ユーザー情報の取得に失敗(通信</translation></message>
-    <message><source>Failed to fetch user info: could not connect to Canva</source><translation>ユーザー情報の取得に失敗: オンラインデザインサービスに接続できません</translation></message>
+    <message><source>Failed to encode image to PNG format</source><translation>画像を PNG 形式にエンコードできませんでした</translation></message>
+    <message><source>Failed to extract pixels from image</source><translation>画像からピクセルを抽出できませんでした</translation></message>
+    <message><source>Failed to fetch user info (HTTP</source><translation>ユーザー情報の取得に失敗 (HTTP</translation></message>
+    <message><source>Failed to fetch user info: could not connect to Canva</source><translation>ユーザー情報の取得に失敗しました: Canva に接続できません</translation></message>
     <message><source>Failed to get Motion Blur Filter</source><translation>モーションブラーフィルターを取得する失敗</translation></message>
     <message><source>Failed to get upload preset</source><translation>アップロードプリセットを取得する失敗</translation></message>
     <message><source>Failed to get upload preset.</source><translation>アップロードプリセットを取得することができません。</translation></message>
@@ -2350,11 +2350,11 @@
     <message><source>Get Info</source><translation>情報を入手</translation></message>
     <message><source>Gipng</source><translation>ログイン</translation></message>
     <message><source>Glyphs</source><translation>グリフス</translation></message>
-    <message><source>Go back to the start frame to move input shapes</source><translation>スタートフレームに戻り、入力形状を移動</translation></message>
-    <message><source>Go back to the start frame to move input shapes.</source><translation>スタートフレームに戻り、入力形状を移動します。</translation></message>
+    <message><source>Go back to the start frame to move input shapes</source><translation>入力シェイプを移動するには開始フレームに戻ってください</translation></message>
+    <message><source>Go back to the start frame to move input shapes.</source><translation>入力シェイプを移動するには開始フレームに戻ってください。</translation></message>
     <message><source>Go Pro and enable</source><translation>プロ版にして有効化</translation></message>
-    <message><source>Go to Canva</source><translation>オンラインデザインサービスへ移動</translation></message>
-    <message><source>Go to Canva...</source><translation>オンラインデザインサービスへ移動...</translation></message>
+    <message><source>Go to Canva</source><translation>Canva へ移動</translation></message>
+    <message><source>Go to Canva...</source><translation>Canva へ移動...</translation></message>
     <message><source>Go to the first frame</source><translation>最初のフレームへ</translation></message>
     <message><source>Go to the first frame.</source><translation>最初のフレームに移動します。</translation></message>
     <message><source>Go to the last frame</source><translation>最後のフレームに行く</translation></message>
@@ -2405,9 +2405,9 @@
     <message><source>Hold</source><translation>ホールド</translation></message>
     <message><source>Hold Alt while clicking to hide this help permanently</source><translation>クリック時にオプションキーを押すとこのヘルプを永久に非表示</translation></message>
     <message><source>Hold Alt while clicking to hide this help permanently.</source><translation>クリック時にオプションキーを押すとこのヘルプを永久に非表示。</translation></message>
-    <message><source>Hold S</source><translation>按住保存键</translation></message>
-    <message><source>Hold Shift to Align Handles as well as Points</source><translation>按住上档键同时对齐ハンドル和点</translation></message>
-    <message><source>Hold Shift to Align Handles as well as Points.</source><translation>按住上档键同时对齐ハンドル和点。</translation></message>
+    <message><source>Hold S</source><translation>S キーを押したままにする</translation></message>
+    <message><source>Hold Shift to Align Handles as well as Points</source><translation>按住上档键同时に対して齐ハンドルと点</translation></message>
+    <message><source>Hold Shift to Align Handles as well as Points.</source><translation>按住上档键同时に対して齐ハンドルと点。</translation></message>
     <message><source>Horizontal Distribution</source><translation>水平分布</translation></message>
     <message><source>Horizontal Element Alignment</source><translation>横の要素の直線</translation></message>
     <message><source>Horizontal Layout Group</source><translation>水平レイアウトグループ</translation></message>
@@ -2432,7 +2432,7 @@
     <message><source>Import Audio Smart Folder</source><translation>インポートオーディオスマートフォルダ</translation></message>
     <message><source>Import Audio Smart Folder... (Pro)</source><translation>音声スマートフォルダーを読み込み...(プロ版)</translation></message>
     <message><source>Import Color Palette</source><translation>カラーパレットを読み込み</translation></message>
-    <message><source>Import Compound Graph Preset</source><translation>导入复合图表プリセット</translation></message>
+    <message><source>Import Compound Graph Preset</source><translation>複合グラフプリセットを読み込み</translation></message>
     <message><source>Import Google Sheet</source><translation>インポート Google シート</translation></message>
     <message><source>Import Google Sheet... (Pro)</source><translation>グーグル表計算を読み込み...(プロ版)</translation></message>
     <message><source>Import Image Smart Folder</source><translation>インポートイメージスマートフォルダ</translation></message>
@@ -2447,41 +2447,41 @@
     <message><source>Import Snippets</source><translation>インポートスニペット</translation></message>
     <message><source>Import Velocity Presets</source><translation>速度プリセットを読み込み</translation></message>
     <message><source>Imported preset.</source><translation>インポートされたプリセット。</translation></message>
-    <message><source>Imported Scene</source><translation>已导入シーン</translation></message>
+    <message><source>Imported Scene</source><translation>読み込まれたシーン</translation></message>
     <message><source>In Influence</source><translation>インフルエンス</translation></message>
     <message><source>In Speed</source><translation>速度で</translation></message>
     <message><source>in thread</source><translation>スレッド</translation></message>
-    <message><source>Include the File Name and Folder Path in the Preset</source><translation>在プリセット中包含ファイル名和ファイル夹パス</translation></message>
-    <message><source>Include the path in the Preset</source><translation>在プリセット中包含パス</translation></message>
-    <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset</source><translation>在プリセット中包含基本图形类型(如矩形或椭圆)</translation></message>
-    <message><source>Include transform Attributes such as Position and Scale in the Preset</source><translation>在プリセット中包含位置和缩放等变换属性</translation></message>
+    <message><source>Include the File Name and Folder Path in the Preset</source><translation>プリセットにファイル名とフォルダーパスを含める</translation></message>
+    <message><source>Include the path in the Preset</source><translation>プリセットにパスを含める</translation></message>
+    <message><source>Include the Primitive Type (such as Rectangle or Ellipse) in the Preset</source><translation>プリセットに基本タイプ（矩形や楕円など）を含める</translation></message>
+    <message><source>Include transform Attributes such as Position and Scale in the Preset</source><translation>プリセットに位置やスケールなどのトランスフォーム属性を含める</translation></message>
     <message><source>incomplete markup in parameter entity</source><translation>パラメーターのエンティティティティエントの不完全なマークアップ</translation></message>
-    <message><source>Indicates how many UIs you have loaded out of the maximum set in Preferences (plus any pinned UIs)</source><translation>表示已加载画面数量，相对于環境設定中的最大值(加上固定画面)</translation></message>
-    <message><source>Indicates how many UIs you have loaded out of the maximum set in Preferences (plus any pinned UIs).</source><translation>表示已加载画面数量，相对于環境設定中的最大值(加上固定画面)。</translation></message>
+    <message><source>Indicates how many UIs you have loaded out of the maximum set in Preferences (plus any pinned UIs)</source><translation>環境設定で指定した上限数（固定された UI を含む）のうち、読み込み済みの UI 数を示します</translation></message>
+    <message><source>Indicates how many UIs you have loaded out of the maximum set in Preferences (plus any pinned UIs).</source><translation>環境設定で指定した上限数（固定された UI を含む）のうち、読み込み済みの UI 数を示します。</translation></message>
     <message><source>Infinite Scrubbing</source><translation>無限スクラブ</translation></message>
     <message><source>Influence In</source><translation>影響 で</translation></message>
     <message><source>Influence Out</source><translation>影響 アウト</translation></message>
     <message><source>Info</source><translation>情報</translation></message>
-    <message><source>Init Context: Failed to create interface</source><translation>初始化上下文: 创建画面失敗</translation></message>
+    <message><source>Init Context: Failed to create interface</source><translation>コンテキスト初期化: インターフェイスを作成できませんでした</translation></message>
     <message><source>Inside Corners</source><translation>インサイドコーナー</translation></message>
     <message><source>Insufficient Storage</source><translation>不十分な貯蔵</translation></message>
     <message><source>Interpret As</source><translation>解釈として</translation></message>
     <message><source>Intersect</source><translation>インターセクト</translation></message>
     <message><source>invalid argument</source><translation>無効な引数</translation></message>
     <message><source>Invalid array length: actual</source><translation>無効配列の長さ: 実際の</translation></message>
-    <message><source>Invalid Audio Asset (it contains no files). Please try adding it to the scene again</source><translation>音频アセット无效(不含ファイル)。请尝试重新追加到シーン</translation></message>
-    <message><source>Invalid Audio Asset (it contains no files). Please try adding it to the scene again.</source><translation>音频アセット无效(不含ファイル)。请尝试重新追加到シーン。</translation></message>
-    <message><source>invalid format specifier</source><translation>格式说明符无效</translation></message>
+    <message><source>Invalid Audio Asset (it contains no files). Please try adding it to the scene again</source><translation>無効なオーディオアセットです（ファイルが含まれていません）。もう一度シーンに追加してください</translation></message>
+    <message><source>Invalid Audio Asset (it contains no files). Please try adding it to the scene again.</source><translation>無効なオーディオアセットです（ファイルが含まれていません）。もう一度シーンに追加してください。</translation></message>
+    <message><source>invalid format specifier</source><translation>無効な書式指定子です</translation></message>
     <message><source>invalid format string</source><translation>無効な形式文字列</translation></message>
-    <message><source>Invalid Image Asset (it contains no images). Please try adding it to the scene again</source><translation>图像アセット无效(不含图像)。请尝试重新追加到シーン</translation></message>
-    <message><source>Invalid Image Asset (it contains no images). Please try adding it to the scene again.</source><translation>图像アセット无效(不含图像)。请尝试重新追加到シーン。</translation></message>
-    <message><source>Invalid Keyframe JSON in Clipboard, missing keyframe arrays</source><translation>剪贴板中的キーフレームデータ无效，缺少キーフレーム数グループ</translation></message>
-    <message><source>Invalid Keyframe JSON in Clipboard, missing keyframe arrays.</source><translation>剪贴板中的キーフレームデータ无效，缺少キーフレーム数グループ。</translation></message>
+    <message><source>Invalid Image Asset (it contains no images). Please try adding it to the scene again</source><translation>無効な画像アセットです（画像が含まれていません）。もう一度シーンに追加してください</translation></message>
+    <message><source>Invalid Image Asset (it contains no images). Please try adding it to the scene again.</source><translation>無効な画像アセットです（画像が含まれていません）。もう一度シーンに追加してください。</translation></message>
+    <message><source>Invalid Keyframe JSON in Clipboard, missing keyframe arrays</source><translation>クリップボード内のキーフレーム JSON が無効です。キーフレーム配列がありません</translation></message>
+    <message><source>Invalid Keyframe JSON in Clipboard, missing keyframe arrays.</source><translation>クリップボード内のキーフレーム JSON が無効です。キーフレーム配列がありません。</translation></message>
     <message><source>Invalid List widget</source><translation>無効なリストウィジェット</translation></message>
     <message><source>invalid literal</source><translation>無効な文字</translation></message>
     <message><source>invalid number; expected digit after exponent sign</source><translation>無効な番号; 指数の印の後の予想される数字</translation></message>
-    <message><source>Invalid Path JSON in Clipboard, missing the &apos;path&apos; key</source><translation>剪贴板中的パスデータ无效，缺少パス键</translation></message>
-    <message><source>Invalid Path JSON in Clipboard, missing the &apos;path&apos; key.</source><translation>剪贴板中的パスデータ无效，缺少パス键。</translation></message>
+    <message><source>Invalid Path JSON in Clipboard, missing the &apos;path&apos; key</source><translation>クリップボード内のパス JSON が無効です。'path' キーがありません</translation></message>
+    <message><source>Invalid Path JSON in Clipboard, missing the &apos;path&apos; key.</source><translation>クリップボード内のパス JSON が無効です。'path' キーがありません。</translation></message>
     <message><source>invalid precision</source><translation>無効な精度</translation></message>
     <message><source>Invalid Snippet Dictionary</source><translation>無効なスニペット辞書</translation></message>
     <message><source>Invalid Snippet Dictionary.</source><translation>無効なスニペット辞書。</translation></message>
@@ -2497,7 +2497,7 @@
     <message><source>is not supported</source><translation>サポートされていません</translation></message>
     <message><source>is not supported.</source><translation>サポートされていません。</translation></message>
     <message><source>Italic</source><translation>イタリック</translation></message>
-    <message><source>iterator does not fit current value</source><translation>迭代器不适合当前值</translation></message>
+    <message><source>iterator does not fit current value</source><translation>イテレーターが現在の値に適合しません</translation></message>
     <message><source>iterator out of range</source><translation>範囲のイテレータ</translation></message>
     <message><source>Jack</source><translation>ジャック</translation></message>
     <message><source>Japanese Kana</source><translation>ジャパニーズカナ</translation></message>
@@ -2511,8 +2511,8 @@
     <message><source>Key Interpolation</source><translation>キーの補間</translation></message>
     <message><source>Keyframe Layer Editor</source><translation>キーフレームレイヤーエディター</translation></message>
     <message><source>Keyframe Layers</source><translation>キーフレームレイヤー</translation></message>
-    <message><source>Keyframe Path: Path required when creating new keyframes</source><translation>キーフレームパス: 创建新キーフレーム时需要パス</translation></message>
-    <message><source>Keyframe Path: Path required when creating new keyframes.</source><translation>キーフレームパス: 创建新キーフレーム时需要パス。</translation></message>
+    <message><source>Keyframe Path: Path required when creating new keyframes</source><translation>キーフレームパス: 新しいキーフレームを作成するにはパスが必要です</translation></message>
+    <message><source>Keyframe Path: Path required when creating new keyframes.</source><translation>キーフレームパス: 新しいキーフレームを作成するにはパスが必要です。</translation></message>
     <message><source>Keyframes</source><translation>キーフレーム</translation></message>
     <message><source>Keyframes linked to visibility clip do not exist</source><translation>链接到可见性片段的キーフレーム不存在</translation></message>
     <message><source>Keys</source><translation>キー</translation></message>
@@ -2522,11 +2522,11 @@
     <message><source>Labels</source><translation>ラベル</translation></message>
     <message><source>Large</source><translation>大きいサイズ</translation></message>
     <message><source>Large Previews</source><translation>大型プレビュー</translation></message>
-    <message><source>Large Previews in the Attribute Editor</source><translation>属性エディタ中的大型预览</translation></message>
+    <message><source>Large Previews in the Attribute Editor</source><translation>属性エディターで大きなプレビューを表示</translation></message>
     <message><source>Lato</source><translation>ラト</translation></message>
-    <message><source>Lattice: Bounds are empty, skipping interpolation</source><translation>晶格: 边界为空，跳过插值</translation></message>
-    <message><source>Lattice: Could not find bounds attribute</source><translation>晶格: 找不到边界属性</translation></message>
-    <message><source>Lattice: Could not find node for interpolation</source><translation>晶格: 找不到用于插值的ノード</translation></message>
+    <message><source>Lattice: Bounds are empty, skipping interpolation</source><translation>ラティス: 境界が空のため、補間をスキップします</translation></message>
+    <message><source>Lattice: Could not find bounds attribute</source><translation>ラティス: 境界属性が見つかりませんでした</translation></message>
+    <message><source>Lattice: Could not find node for interpolation</source><translation>ラティス: 補間用のノードが見つかりませんでした</translation></message>
     <message><source>Lattice: Grid size must be at least 3</source><translation>格子サイズは少なくとも3でなければなりません</translation></message>
     <message><source>Layer</source><translation>レイヤー</translation></message>
     <message><source>Layer Tools</source><translation>レイヤーツール</translation></message>
@@ -2536,11 +2536,11 @@
     <message><source>Left Align Keys</source><translation>左のアライナーキー</translation></message>
     <message><source>Left B</source><translation>左バイト</translation></message>
     <message><source>Length Required</source><translation>長さ 必須</translation></message>
-    <message><source>Let us know your thoughts</source><translation>告诉我们你的想法</translation></message>
+    <message><source>Let us know your thoughts</source><translation>ご意見をお聞かせください</translation></message>
     <message><source>Let us know your thoughts...</source><translation>お問い合わせ...</translation></message>
     <message><source>Library</source><translation>ライブラリー</translation></message>
-    <message><source>Licence Data is null</source><translation>ライセンスデータ为空</translation></message>
-    <message><source>Licence Data is null.</source><translation>ライセンスデータ为空。</translation></message>
+    <message><source>Licence Data is null</source><translation>ライセンスデータがヌルです</translation></message>
+    <message><source>Licence Data is null.</source><translation>ライセンスデータがヌルです。</translation></message>
     <message><source>Ligh</source><translation>リビング</translation></message>
     <message><source>Light</source><translation>ライトライト</translation></message>
     <message><source>light coral</source><translation>光サンゴ</translation></message>
@@ -2560,9 +2560,9 @@
     <message><source>Link Canva Account...</source><translation>Canva アカウントを連携...</translation></message>
     <message><source>List</source><translation>プロフィール</translation></message>
     <message><source>Live Mode</source><translation>ライブモード</translation></message>
-    <message><source>Load .cv</source><translation>加载プロジェクトファイル</translation></message>
-    <message><source>Load Bell Curve Preset</source><translation>加载钟形曲线プリセット</translation></message>
-    <message><source>Load Color Palette</source><translation>加载パレット</translation></message>
+    <message><source>Load .cv</source><translation>.cv を読み込み</translation></message>
+    <message><source>Load Bell Curve Preset</source><translation>ベルカーブプリセットを読み込み</translation></message>
+    <message><source>Load Color Palette</source><translation>カラーパレットを読み込み</translation></message>
     <message><source>Load Demo Scene</source><translation>デモシーンを読み込み</translation></message>
     <message><source>Load error</source><translation>エラーをロード</translation></message>
     <message><source>Load Flat Preset</source><translation>フラットプリセットを読み込み</translation></message>
@@ -2579,7 +2579,7 @@
     <message><source>Lock layer</source><translation>ロック層</translation></message>
     <message><source>Lock Selected</source><translation>選択されたロック</translation></message>
     <message><source>Locked</source><translation>ロック</translation></message>
-    <message><source>Locking Layers Prevents Selection in the Scene Window</source><translation>ロックレイヤー会阻止在シーンウィンドウ中選択</translation></message>
+    <message><source>Locking Layers Prevents Selection in the Scene Window</source><translation>レイヤーをロックすると、シーンウィンドウで選択できなくなります</translation></message>
     <message><source>Locks the current shape. The Reload button can override the lock</source><translation>現在の形状をロックします。 リロードボタンはロックをオーバーライドできます</translation></message>
     <message><source>Locks the current shape. The Reload button can override the lock.</source><translation>現在の形状をロックします。 リロードボタンはロックをオーバーライドできます。</translation></message>
     <message><source>Log Window</source><translation>ログウィンドウ</translation></message>
@@ -2593,9 +2593,9 @@
     <message><source>Loop Playback</source><translation>ループプレイバック</translation></message>
     <message><source>Loop with offset</source><translation>オフセット付きループ</translation></message>
     <message><source>Loop with Offset</source><translation>オフセット付きループ</translation></message>
-    <message><source>Lottie Author</source><translation>宝くじの著者</translation></message>
-    <message><source>Lottie is a Pro Feature</source><translation>宝くじはプロの特徴です</translation></message>
-    <message><source>Lottie: Failed to export Image Asset</source><translation>动画ファイル: 导出图像アセット失敗</translation></message>
+    <message><source>Lottie Author</source><translation>Lottie 作者</translation></message>
+    <message><source>Lottie is a Pro Feature</source><translation>Lottie は Pro 機能です</translation></message>
+    <message><source>Lottie: Failed to export Image Asset</source><translation>Lottie: 画像アセットの書き出しに失敗しました</translation></message>
     <message><source>Low Disk Space</source><translation>低ディスクスペース</translation></message>
     <message><source>Lucida Grande</source><translation>ルシーダ・グランデ</translation></message>
     <message><source>Lyixk</source><translation>ログイン</translation></message>
@@ -2612,8 +2612,8 @@
     <message><source>Manage Presets</source><translation>プリセットを管理</translation></message>
     <message><source>Manage Presets...</source><translation>プリセットを管理...</translation></message>
     <message><source>Manage Velocity Presets</source><translation>速度プリセットを管理</translation></message>
-    <message><source>Mask animation detected. Grouping your Shape first may produce more predictable results</source><translation>检测到蒙版动画。先将シェイプ分グループ可能得到更可预测的结果</translation></message>
-    <message><source>Mask animation detected. Grouping your Shape first may produce more predictable results.</source><translation>检测到蒙版动画。先将シェイプ分グループ可能得到更可预测的结果。</translation></message>
+    <message><source>Mask animation detected. Grouping your Shape first may produce more predictable results</source><translation>マスクアニメーションを検出しました。先にシェイプをグループ化すると、より予測しやすい結果になります</translation></message>
+    <message><source>Mask animation detected. Grouping your Shape first may produce more predictable results.</source><translation>マスクアニメーションを検出しました。先にシェイプをグループ化すると、より予測しやすい結果になります。</translation></message>
     <message><source>Mask Settings</source><translation>マスクの設定</translation></message>
     <message><source>Material</source><translation>材料:</translation></message>
     <message><source>Matrix</source><translation>マトリックス</translation></message>
@@ -2646,8 +2646,8 @@
     <message><source>Missing &apos;direction&apos; arguement.</source><translation>「方向」の議論を欠く。</translation></message>
     <message><source>Missing &apos;index&apos; arguement</source><translation>インデックス引数がありません</translation></message>
     <message><source>Missing &apos;index&apos; arguement.</source><translation>インデックス引数がありません。</translation></message>
-    <message><source>Missing &apos;name&apos; or &apos;tag&apos; argument</source><translation>缺少名称或标签参数</translation></message>
-    <message><source>Missing &apos;name&apos; or &apos;tag&apos; argument.</source><translation>缺少名称或标签参数。</translation></message>
+    <message><source>Missing &apos;name&apos; or &apos;tag&apos; argument</source><translation>'name' または 'tag' 引数がありません</translation></message>
+    <message><source>Missing &apos;name&apos; or &apos;tag&apos; argument.</source><translation>'name' または 'tag' 引数がありません。</translation></message>
     <message><source>Missing &apos;node&apos; argument</source><translation>ノード引数がありません</translation></message>
     <message><source>Missing &apos;node&apos; argument.</source><translation>ノード引数がありません。</translation></message>
     <message><source>Missing &apos;selected&apos; argument</source><translation>選択引数がありません</translation></message>
@@ -2657,8 +2657,8 @@
     <message><source>Missing H</source><translation>H がありません</translation></message>
     <message><source>Missing hidden folder for materials</source><translation>素材の隠しフォルダを欠く</translation></message>
     <message><source>Missing hidden folder for materials.</source><translation>素材の隠しフォルダを欠く。</translation></message>
-    <message><source>Missing palette information, please restart Cavalry</source><translation>缺少パレット信息，请再起動アプリ</translation></message>
-    <message><source>Missing palette information, please restart Cavalry.</source><translation>缺少パレット信息，请再起動アプリ。</translation></message>
+    <message><source>Missing palette information, please restart Cavalry</source><translation>パレット情報がありません。Cavalry を再起動してください</translation></message>
+    <message><source>Missing palette information, please restart Cavalry.</source><translation>パレット情報がありません。Cavalry を再起動してください。</translation></message>
     <message><source>Moccaccino</source><translation>モッカチーノ</translation></message>
     <message><source>Monitor</source><translation>モニター</translation></message>
     <message><source>Monochromatic</source><translation>モノクロ</translation></message>
@@ -2667,15 +2667,15 @@
     <message><source>Move</source><translation>アクセス</translation></message>
     <message><source>Move Input Shapes</source><translation>入力シェイプを移動</translation></message>
     <message><source>Move Pivot</source><translation>ピボットの移動</translation></message>
-    <message><source>Move Pivot (Layer Moves)</source><translation>移动轴心(レイヤー移动)</translation></message>
-    <message><source>Move Pivot (Layer Stays)</source><translation>移动轴心(レイヤー保持)</translation></message>
+    <message><source>Move Pivot (Layer Moves)</source><translation>ピボットを移動（レイヤーも移動）</translation></message>
+    <message><source>Move Pivot (Layer Stays)</source><translation>ピボットを移動（レイヤーは固定）</translation></message>
     <message><source>Move Selection</source><translation>選択の移動</translation></message>
     <message><source>Moved Permanently</source><translation>永続的に動く</translation></message>
     <message><source>Movie</source><translation>ムービー</translation></message>
     <message><source>Multi-Status</source><translation>マルチスタタス</translation></message>
     <message><source>Multiple Choice</source><translation>複数の選択肢</translation></message>
     <message><source>multiple Viewports</source><translation>多个ビューポート</translation></message>
-    <message><source>must not undeclare prefix</source><translation>不得取消声明前缀</translation></message>
+    <message><source>must not undeclare prefix</source><translation>接頭辞の宣言解除はできません</translation></message>
     <message><source>Mute</source><translation>ミュート</translation></message>
     <message><source>Mute Attribute</source><translation>属性をミュート</translation></message>
     <message><source>Mute Input</source><translation>ミュート入力</translation></message>
@@ -2725,7 +2725,7 @@
     <message><source>No GSUB (Glyph Substitution) table found.</source><translation>字形置換テーブルが見つかりません。</translation></message>
     <message><source>No input connection</source><translation>入力接続なし</translation></message>
     <message><source>No input connection.</source><translation>入力接続なし。</translation></message>
-    <message><source>No Job Id</source><translation>没有任务标识</translation></message>
+    <message><source>No Job Id</source><translation>ジョブ ID なし</translation></message>
     <message><source>No Job Id.</source><translation>求人情報。</translation></message>
     <message><source>No Job IH</source><translation>ジョブ入力ハンドルなし</translation></message>
     <message><source>No Keyframe Layers</source><translation>キーフレームレイヤーなし</translation></message>
@@ -2741,8 +2741,8 @@
     <message><source>No Results</source><translation>結果なし</translation></message>
     <message><source>No Scripts Installed</source><translation>インストールされていないスクリプト</translation></message>
     <message><source>No Scripts Installed...</source><translation>スクリプトがインストールされていない...</translation></message>
-    <message><source>No Selection, Playback Range set to Composition Start and End frames</source><translation>未選択内容，播放范围设为コンポジション起止帧</translation></message>
-    <message><source>No Selection, Playback Range set to Composition Start and End frames.</source><translation>未選択内容，播放范围设为コンポジション起止帧。</translation></message>
+    <message><source>No Selection, Playback Range set to Composition Start and End frames</source><translation>選択がありません。再生範囲をコンポジションの開始/終了フレームに設定しました</translation></message>
+    <message><source>No Selection, Playback Range set to Composition Start and End frames.</source><translation>選択がありません。再生範囲をコンポジションの開始/終了フレームに設定しました。</translation></message>
     <message><source>No tokens on disk</source><translation>ディスク上のトークンなし</translation></message>
     <message><source>No User Scripts Installed</source><translation>インストールされていないユーザースクリプト</translation></message>
     <message><source>No User Scripts Installed...</source><translation>ユーザースクリプトがインストールされていない...</translation></message>
@@ -2751,11 +2751,11 @@
     <message><source>No worksheets found in the workbook</source><translation>ワークブックのワークシートが見つかりません</translation></message>
     <message><source>No worksheets found in the workbook.</source><translation>ワークブックにワークシートが見つかりません。</translation></message>
     <message><source>Node</source><translation>ノード</translation></message>
-    <message><source>Node Preset dictionary must contain an &apos;id&apos; key</source><translation>ノードプリセット字典必须包含标识键</translation></message>
+    <message><source>Node Preset dictionary must contain an &apos;id&apos; key</source><translation>ノードプリセット辞書には 'id' キーが必要です</translation></message>
     <message><source>Node Type Counts</source><translation>ノードの種類カウント</translation></message>
     <message><source>Non Editable Path</source><translation>編集不可パス</translation></message>
-    <message><source>Non fatal Pre-Comp Override syncing error</source><translation>非致命预コンポジション覆盖同步エラー</translation></message>
-    <message><source>Non fatal Pre-Comp Override syncing error.</source><translation>非致命预コンポジション覆盖同步エラー。</translation></message>
+    <message><source>Non fatal Pre-Comp Override syncing error</source><translation>致命的ではないプリコンポーズオーバーライド同期エラー</translation></message>
+    <message><source>Non fatal Pre-Comp Override syncing error.</source><translation>致命的ではないプリコンポーズオーバーライド同期エラー。</translation></message>
     <message><source>Non-Authoritative Information</source><translation>非認証情報</translation></message>
     <message><source>Not Acceptable</source><translation>受け入れられない</translation></message>
     <message><source>Not Extended</source><translation>延長なし</translation></message>
@@ -2763,12 +2763,12 @@
     <message><source>Not Implemented</source><translation>実装されていない</translation></message>
     <message><source>Not Modified</source><translation>変更なし</translation></message>
     <message><source>not well-formed (invalid token)</source><translation>整形されていない(無効トークン)</translation></message>
-    <message><source>Note: The Transparency Style does not render</source><translation>注意: 透明样式不会レンダー</translation></message>
-    <message><source>Note: The Transparency Style does not render.</source><translation>注意: 透明样式不会レンダー。</translation></message>
+    <message><source>Note: The Transparency Style does not render</source><translation>注意: 透明スタイルはレンダリングされません</translation></message>
+    <message><source>Note: The Transparency Style does not render.</source><translation>注意: 透明スタイルはレンダリングされません。</translation></message>
     <message><source>Notes added here will appear as tooltips when hovering over layers in the Scene Window</source><translation>ここに追加したメモは、シーンウィンドウでレイヤーにポインターを合わせたときにツールチップとして表示されます</translation></message>
     <message><source>Notes added here will appear as tooltips when hovering over layers in the Scene Window.</source><translation>ここに追加したメモは、シーンウィンドウでレイヤーにポインターを合わせたときにツールチップとして表示されます。</translation></message>
     <message><source>Nothing</source><translation>コメントはありません。</translation></message>
-    <message><source>Nothing selected to Ungroup</source><translation>未選択要取消分グループ的内容</translation></message>
+    <message><source>Nothing selected to Ungroup</source><translation>グループ解除する対象が選択されていません</translation></message>
     <message><source>Nudge Frame</source><translation>ナッジフレーム</translation></message>
     <message><source>Nudge Step</source><translation>ナッジステップ</translation></message>
     <message><source>Nudge Value</source><translation>ナッジ値</translation></message>
@@ -2782,7 +2782,7 @@
     <message><source>object key</source><translation>オブジェクトキー</translation></message>
     <message><source>object separator</source><translation>オブジェクト分離器</translation></message>
     <message><source>of Cavalry.</source><translation>Cavalry。</translation></message>
-    <message><source>Office 365 Sheet Asset</source><translation>办公表格アセット</translation></message>
+    <message><source>Office 365 Sheet Asset</source><translation>Office 365 シートアセット</translation></message>
     <message><source>Office 365 Worksheet</source><translation>オフィスワークシート</translation></message>
     <message><source>Oinx</source><translation>オインクス</translation></message>
     <message><source>Okay</source><translation>了解</translation></message>
@@ -2801,10 +2801,10 @@
     <message><source>Open Reference File</source><translation>参照ファイルを開く</translation></message>
     <message><source>Open Reference File...</source><translation>参照ファイルを開きます...</translation></message>
     <message><source>Open the Glyph Browser</source><translation>字形ブラウザーを開く</translation></message>
-    <message><source>Open the Tag Drawer</source><translation>開く标签抽屉</translation></message>
-    <message><source>Open the Tag Drawer.</source><translation>開く标签抽屉。</translation></message>
-    <message><source>Opened and converted legacy file. Please save the new file</source><translation>レガシーファイルを開いて変換します。 新しいファイルを保存する</translation></message>
-    <message><source>Opened and converted legacy file. Please save the new file.</source><translation>レガシーファイルを開いて変換します。 新しいファイルを保存してください。</translation></message>
+    <message><source>Open the Tag Drawer</source><translation>タグドロワーを開く</translation></message>
+    <message><source>Open the Tag Drawer.</source><translation>タグドロワーを開きます。</translation></message>
+    <message><source>Opened and converted legacy file. Please save the new file</source><translation>レガシーファイルを開いて変換しました。新しいファイルを保存してください</translation></message>
+    <message><source>Opened and converted legacy file. Please save the new file.</source><translation>レガシーファイルを開いて変換しました。新しいファイルを保存してください。</translation></message>
     <message><source>Optional</source><translation>オプション</translation></message>
     <message><source>Orbit</source><translation>オービット</translation></message>
     <message><source>Organise Pre-Comp Overrides here</source><translation>組織プレコンオーバーライドはこちら</translation></message>
@@ -2829,10 +2829,10 @@
     <message><source>pale goldenrod</source><translation>淡いゴールデンロッド</translation></message>
     <message><source>Pale Prim</source><translation>ペールプリム</translation></message>
     <message><source>pale violet red</source><translation>淡い紫紅</translation></message>
-    <message><source>Palette Generator Options</source><translation>パレット生成器选项</translation></message>
+    <message><source>Palette Generator Options</source><translation>パレットジェネレーターオプション</translation></message>
     <message><source>Palettes</source><translation>パレット</translation></message>
     <message><source>Parent</source><translation>親子</translation></message>
-    <message><source>Parent or move into Composition?</source><translation>设为父级还是移入コンポジション?</translation></message>
+    <message><source>Parent or move into Composition?</source><translation>親子付けしますか？それともコンポジション内へ移動しますか？</translation></message>
     <message><source>parse error</source><translation>エラーを解析</translation></message>
     <message><source>parser not suspended</source><translation>パーサーは中断しません</translation></message>
     <message><source>parser suspended</source><translation>パーサーは中断しました</translation></message>
@@ -2848,14 +2848,14 @@
     <message><source>Payload Too Large</source><translation>ペイロード東大</translation></message>
     <message><source>Payment Required</source><translation>支払 必須</translation></message>
     <message><source>Pelorous</source><translation>ペリロース</translation></message>
-    <message><source>Pen Tool: Cleared Path</source><translation>钢笔工具: 已クリアパス</translation></message>
-    <message><source>Pen Tool: Cleared Path.</source><translation>钢笔工具: 已クリアパス。</translation></message>
-    <message><source>Pen Tool: New Contour Requested</source><translation>钢笔工具: 请求新轮廓</translation></message>
-    <message><source>Pen Tool: New Contour Requested.</source><translation>钢笔工具: 请求新轮廓。</translation></message>
-    <message><source>Pencil Tool: Cleared Path</source><translation>铅笔工具: 已クリアパス</translation></message>
-    <message><source>Pencil Tool: Cleared Path.</source><translation>铅笔工具: 已クリアパス。</translation></message>
-    <message><source>Pencil Tool: New Shape Requested</source><translation>铅笔工具: 请求新シェイプ</translation></message>
-    <message><source>Pencil Tool: New Shape Requested.</source><translation>铅笔工具: 请求新シェイプ。</translation></message>
+    <message><source>Pen Tool: Cleared Path</source><translation>ペンツール: パスをクリアしました</translation></message>
+    <message><source>Pen Tool: Cleared Path.</source><translation>ペンツール: パスをクリアしました。</translation></message>
+    <message><source>Pen Tool: New Contour Requested</source><translation>ペンツール: 新しい輪郭が要求されました</translation></message>
+    <message><source>Pen Tool: New Contour Requested.</source><translation>ペンツール: 新しい輪郭が要求されました。</translation></message>
+    <message><source>Pencil Tool: Cleared Path</source><translation>鉛筆ツール: パスをクリアしました</translation></message>
+    <message><source>Pencil Tool: Cleared Path.</source><translation>鉛筆ツール: パスをクリアしました。</translation></message>
+    <message><source>Pencil Tool: New Shape Requested</source><translation>鉛筆ツール: 新しいシェイプが要求されました</translation></message>
+    <message><source>Pencil Tool: New Shape Requested.</source><translation>鉛筆ツール: 新しいシェイプが要求されました。</translation></message>
     <message><source>Performance</source><translation>パフォーマンス</translation></message>
     <message><source>Permanent Redirect</source><translation>永久リダイレクト</translation></message>
     <message><source>Phags-pa</source><translation>パスパ文字</translation></message>
@@ -2886,40 +2886,40 @@
     <message><source>Please include the steps required to reproduce the issue.</source><translation>課題を再現するために必要な手順をご記入ください。</translation></message>
     <message><source>Please note this does not affect the rendering camera which is always the topmost visible camera</source><translation>これは、常に最上位に見えるカメラであるレンダリングカメラには影響しません</translation></message>
     <message><source>Please note this does not affect the rendering camera which is always the topmost visible camera.</source><translation>これは、常に最上位に見えるカメラであるレンダリングカメラには影響しません。</translation></message>
-    <message><source>Please note, this is an indicative compute time, and does NOT include draw time</source><translation>注意して、これはインジケーターの計算時間であり、描画時間を含まない</translation></message>
-    <message><source>Please note, this is an indicative compute time, and does NOT include draw time.</source><translation>注意して、これはインジケーターの計算時間であり、描画時間は含まれていません。</translation></message>
-    <message><source>Please note, this is an indicative draw time, and does NOT include compute time</source><translation>注意して、これは時計の描画時間であり、計算時間は含まれていません。</translation></message>
-    <message><source>Please note, this is an indicative draw time, and does NOT include compute time.</source><translation>注意して、これは時計の描画時間であり、計算時間は含まれていません。</translation></message>
+    <message><source>Please note, this is an indicative compute time, and does NOT include draw time</source><translation>これは目安の計算時間であり、描画時間は含まれません</translation></message>
+    <message><source>Please note, this is an indicative compute time, and does NOT include draw time.</source><translation>これは目安の計算時間であり、描画時間は含まれません。</translation></message>
+    <message><source>Please note, this is an indicative draw time, and does NOT include compute time</source><translation>これは目安の描画時間であり、計算時間は含まれません</translation></message>
+    <message><source>Please note, this is an indicative draw time, and does NOT include compute time.</source><translation>これは目安の描画時間であり、計算時間は含まれません。</translation></message>
     <message><source>Please Restart</source><translation>再起動してください</translation></message>
-    <message><source>Please restart Cavalry to use the new Plugin version</source><translation>请再起動アプリ以使用新插件版本</translation></message>
-    <message><source>Please restart Cavalry to use the new Plugin version.</source><translation>请再起動アプリ以使用新插件版本。</translation></message>
+    <message><source>Please restart Cavalry to use the new Plugin version</source><translation>新しいプラグインバージョンを使用するには Cavalry を再起動してください</translation></message>
+    <message><source>Please restart Cavalry to use the new Plugin version.</source><translation>新しいプラグインバージョンを使用するには Cavalry を再起動してください。</translation></message>
     <message><source>Please select 2 or more layers to distribute</source><translation>2層以上を選択して配布してください</translation></message>
     <message><source>Please select 2 or more layers to distribute.</source><translation>2層以上を選択して配布してください。</translation></message>
-    <message><source>Please select a Forge Solvers Solver to cache</source><translation>请選択要缓存的求解器</translation></message>
-    <message><source>Please select a Forge Solvers Solver to cache.</source><translation>请選択要缓存的求解器。</translation></message>
-    <message><source>Please select a gradient attribute in the Attribute Editor</source><translation>请在属性エディタ中選択渐变属性</translation></message>
-    <message><source>Please select a gradient attribute in the Attribute Editor.</source><translation>请在属性エディタ中選択渐变属性。</translation></message>
+    <message><source>Please select a Forge Solvers Solver to cache</source><translation>キャッシュする Forge Solvers ソルバーを選択してください</translation></message>
+    <message><source>Please select a Forge Solvers Solver to cache.</source><translation>キャッシュする Forge Solvers ソルバーを選択してください。</translation></message>
+    <message><source>Please select a gradient attribute in the Attribute Editor</source><translation>属性エディターでグラデーション属性を選択してください</translation></message>
+    <message><source>Please select a gradient attribute in the Attribute Editor.</source><translation>属性エディターでグラデーション属性を選択してください。</translation></message>
     <message><source>Please select a layer to export to Lottie</source><translation>Lottieにエクスポートするレイヤーを選択してください</translation></message>
     <message><source>Please select a layer to export to Lottie.</source><translation>Lottie にエクスポートするレイヤーを選択します。</translation></message>
-    <message><source>Please select a layer to move, and a shape to move along</source><translation>移動するレイヤーを選択し、移動する形状を選択してください。</translation></message>
-    <message><source>Please select a layer to move, and a shape to move along.</source><translation>移動するレイヤーを選択し、移動する形状を選択してください。</translation></message>
+    <message><source>Please select a layer to move, and a shape to move along</source><translation>移動するレイヤーと、移動先に沿うシェイプを選択してください</translation></message>
+    <message><source>Please select a layer to move, and a shape to move along.</source><translation>移動するレイヤーと、移動先に沿うシェイプを選択してください。</translation></message>
     <message><source>Please select a layers before deleting animation</source><translation>アニメーションを削除する前にレイヤーを選択して下さい</translation></message>
     <message><source>Please select a layers before deleting animation.</source><translation>アニメーションを削除する前にレイヤーを選択します。</translation></message>
-    <message><source>Please Select a Path Point</source><translation>请選択パス点</translation></message>
-    <message><source>Please Select a Path Point.</source><translation>请選択パス点。</translation></message>
-    <message><source>Please select a Shape for the Text to move along</source><translation>请選択文本要沿其移动的シェイプ</translation></message>
-    <message><source>Please select a Shape for the Text to move along.</source><translation>请選択文本要沿其移动的シェイプ。</translation></message>
-    <message><source>Please select a shape to deform, and a shape to deform along</source><translation>変形する形状、変形する形状を選択して下さい。</translation></message>
-    <message><source>Please select a shape to deform, and a shape to deform along.</source><translation>変形する形状、変形する形状を選択してください。</translation></message>
+    <message><source>Please Select a Path Point</source><translation>パスポイントを選択してください</translation></message>
+    <message><source>Please Select a Path Point.</source><translation>パスポイントを選択してください。</translation></message>
+    <message><source>Please select a Shape for the Text to move along</source><translation>テキストが沿って移動するシェイプを選択してください</translation></message>
+    <message><source>Please select a Shape for the Text to move along.</source><translation>テキストが沿って移動するシェイプを選択してください。</translation></message>
+    <message><source>Please select a shape to deform, and a shape to deform along</source><translation>変形するシェイプと、変形に沿わせるシェイプを選択してください</translation></message>
+    <message><source>Please select a shape to deform, and a shape to deform along.</source><translation>変形するシェイプと、変形に沿わせるシェイプを選択してください。</translation></message>
     <message><source>Please select a shape to turn into a Rubber Hose</source><translation>ゴム製ホースに変える形を選んで下さい</translation></message>
-    <message><source>Please select a shape to turn into a Rubber Hose.</source><translation>ゴムホースに変える形状をお選びください。</translation></message>
-    <message><source>Please Select a Text Shape</source><translation>请選択文本シェイプ</translation></message>
+    <message><source>Please select a shape to turn into a Rubber Hose.</source><translation>ラバーホースに変換するシェイプを選択してください。</translation></message>
+    <message><source>Please Select a Text Shape</source><translation>テキストシェイプを選択してください</translation></message>
     <message><source>Please select at least one Element and then a new parent</source><translation>少なくとも1つの要素を選択し、新しい親を選択します。</translation></message>
     <message><source>Please select at least one Element and then a new parent.</source><translation>少なくとも1つの要素を選択し、新しい親を選択します。</translation></message>
-    <message><source>Please select one or more Shapes to embed in a Layout</source><translation>请選択一个或多个シェイプ嵌入レイアウト</translation></message>
-    <message><source>Please select one or more Shapes to embed in a Layout.</source><translation>请選択一个或多个シェイプ嵌入レイアウト。</translation></message>
+    <message><source>Please select one or more Shapes to embed in a Layout</source><translation>レイアウトに埋め込むシェイプを 1 つ以上選択してください</translation></message>
+    <message><source>Please select one or more Shapes to embed in a Layout.</source><translation>レイアウトに埋め込むシェイプを 1 つ以上選択してください。</translation></message>
     <message><source>Please select one or two points to perform a Split</source><translation>スプリットを実行するには、1つまたは2つのポイントを選択してください</translation></message>
-    <message><source>Please select one or two points to perform a Split.</source><translation>请選択一个或两个点执行分割。</translation></message>
+    <message><source>Please select one or two points to perform a Split.</source><translation>分割するポイントを 1 つまたは 2 つ選択してください。</translation></message>
     <message><source>Please select one point when deleting a point along with it&apos;s edges</source><translation>端とともにポイントを削除すると1ポイントを選択してください</translation></message>
     <message><source>Please select one point when deleting a point along with it&apos;s edges.</source><translation>点を裏返す際は、ポイントを1点選択してください。</translation></message>
     <message><source>Please select some animating attributes or keyframes to reverse</source><translation>逆にいくつかのアニメーション属性またはキーフレームを選択して下さい</translation></message>
@@ -2928,26 +2928,26 @@
     <message><source>Please select some animating attributes to reverse.</source><translation>重複する属性をいくつか選択してください。</translation></message>
     <message><source>Please select some keyframes</source><translation>いくつかのキーフレームを選択して下さい</translation></message>
     <message><source>Please select some keyframes to nudge</source><translation>微調するキーフレームを選択してください</translation></message>
-    <message><source>Please select some keyframes to nudge.</source><translation>请選択要微调的キーフレーム。</translation></message>
+    <message><source>Please select some keyframes to nudge.</source><translation>微調整するキーフレームを選択してください。</translation></message>
     <message><source>Please select some keyframes to snap</source><translation>スナップするキーフレームを選択して下さい</translation></message>
     <message><source>Please select some keyframes to snap.</source><translation>いくつかのキーフレームを選択してスナップしてください。</translation></message>
     <message><source>Please select some keyframes.</source><translation>キーフレームをお選び下さい。</translation></message>
-    <message><source>Please select some Shapes to reset</source><translation>请選択要重置的シェイプ</translation></message>
-    <message><source>Please select some Shapes to reset.</source><translation>请選択要重置的シェイプ。</translation></message>
+    <message><source>Please select some Shapes to reset</source><translation>リセットするシェイプを選択してください</translation></message>
+    <message><source>Please select some Shapes to reset.</source><translation>リセットするシェイプを選択してください。</translation></message>
     <message><source>Please select something to Group</source><translation>グループを選ぶ</translation></message>
-    <message><source>Please select something to Group.</source><translation>请選択要分グループ的内容。</translation></message>
-    <message><source>Please select something to Pre-Compose</source><translation>请選択要预コンポジション的内容</translation></message>
-    <message><source>Please select something to Pre-Compose.</source><translation>请選択要预コンポジション的内容。</translation></message>
+    <message><source>Please select something to Group.</source><translation>グループ化する対象を選択してください。</translation></message>
+    <message><source>Please select something to Pre-Compose</source><translation>プリコンポーズする対象を選択してください</translation></message>
+    <message><source>Please select something to Pre-Compose.</source><translation>プリコンポーズする対象を選択してください。</translation></message>
     <message><source>Please select something to un-parent</source><translation>不透明に何かを選択して下さい</translation></message>
     <message><source>Please select something to un-parent.</source><translation>不透明に何かを選択して下さい。</translation></message>
     <message><source>Please set color preferences with hex color values</source><translation>ヘックスカラー値でカラー設定を行ってください。</translation></message>
     <message><source>Please set color preferences with hex color values.</source><translation>ヘックスカラー値でカラー設定を行ってください。</translation></message>
-    <message><source>Please update Cavalry</source><translation>请更新アプリ</translation></message>
+    <message><source>Please update Cavalry</source><translation>Cavalry をアップデートしてください</translation></message>
     <message><source>Plug</source><translation>プラグ</translation></message>
     <message><source>Plugin Installed.</source><translation>プラグインのインストール。</translation></message>
     <message><source>Plugin Updated.</source><translation>プラグインの更新。</translation></message>
-    <message><source>Plugin Updated. Please relaunch Cavalry to use the new Plugin version</source><translation>插件已更新。请重新启动アプリ以使用新版本</translation></message>
-    <message><source>Plugin Updated. Please relaunch Cavalry to use the new Plugin version.</source><translation>插件已更新。请重新启动アプリ以使用新版本。</translation></message>
+    <message><source>Plugin Updated. Please relaunch Cavalry to use the new Plugin version</source><translation>プラグインが更新されました。新しいバージョンを使用するには Cavalry を再起動してください</translation></message>
+    <message><source>Plugin Updated. Please relaunch Cavalry to use the new Plugin version.</source><translation>プラグインが更新されました。新しいバージョンを使用するには Cavalry を再起動してください。</translation></message>
     <message><source>Plugins</source><translation>プラグイン</translation></message>
     <message><source>Point does not exist</source><translation>ポイントが存在しない</translation></message>
     <message><source>Point does not exist.</source><translation>ポイントが存在しません。</translation></message>
@@ -2971,17 +2971,17 @@
     <message><source>Precondition Required</source><translation>事前条件 必須</translation></message>
     <message><source>prefix must not be bound to one of the reserved namespace names</source><translation>プレフィックスは、予約された名前空間名のいずれかにバインドされてはならない</translation></message>
     <message><source>Pres</source><translation>プレステージ</translation></message>
-    <message><source>Preserve RGB</source><translation>保存 RGB</translation></message>
+    <message><source>Preserve RGB</source><translation>RGB を保持</translation></message>
     <message><source>Preset</source><translation>プリセット</translation></message>
-    <message><source>Preset Authentication Token cannot be empty</source><translation>プリセット认证トークン不能为空</translation></message>
-    <message><source>Preset Authentication Token cannot be empty.</source><translation>プリセット认证トークン不能为空。</translation></message>
+    <message><source>Preset Authentication Token cannot be empty</source><translation>プリセット認証トークンは空にできません</translation></message>
+    <message><source>Preset Authentication Token cannot be empty.</source><translation>プリセット認証トークンは空にできません。</translation></message>
     <message><source>Preset Name</source><translation>プリセット名</translation></message>
     <message><source>Presets</source><translation>プリセット</translation></message>
     <message><source>Presets require a name</source><translation>プリセット需要名称</translation></message>
     <message><source>Presets require a name.</source><translation>プリセット需要名称。</translation></message>
     <message><source>Pressing Return in an Attribute Field</source><translation>在属性字段中按回车</translation></message>
     <message><source>Pretty</source><translation>かわいい</translation></message>
-    <message><source>Preview Compositions in the Assets Window</source><translation>在アセットウィンドウ中预览コンポジション</translation></message>
+    <message><source>Preview Compositions in the Assets Window</source><translation>アセットウィンドウでコンポジションをプレビュー</translation></message>
     <message><source>Previous</source><translation>新着情報</translation></message>
     <message><source>Print all affected attributes</source><translation>すべての影響を受ける属性を印刷する</translation></message>
     <message><source>Print all affecter attributes</source><translation>すべての影響属性を印刷する</translation></message>
@@ -3012,8 +3012,8 @@
     <message><source>Qxxxxxxxxttttttttttttttt</source><translation>Qxxxxxxxxttttttttttttttt</translation></message>
     <message><source>Range Not Satisfiable</source><translation>範囲 満足できない</translation></message>
     <message><source>Read</source><translation>採用情報</translation></message>
-    <message><source>Read Zip failed</source><translation>读取压缩包失敗</translation></message>
-    <message><source>Read Zip failed.</source><translation>读取压缩包失敗。</translation></message>
+    <message><source>Read Zip failed</source><translation>ZIP の読み込みに失敗しました</translation></message>
+    <message><source>Read Zip failed.</source><translation>ZIP の読み込みに失敗しました。</translation></message>
     <message><source>Rebind</source><translation>リバインド</translation></message>
     <message><source>Received frame is invalid</source><translation>受信フレームが無効</translation></message>
     <message><source>Received frame is invalid.</source><translation>受信枠が無効です。</translation></message>
@@ -3032,8 +3032,8 @@
     <message><source>Relationship</source><translation>関連記事</translation></message>
     <message><source>Relaxed</source><translation>リラックス</translation></message>
     <message><source>Reload</source><translation>リロード</translation></message>
-    <message><source>Reload the current Shape</source><translation>重新加载当前シェイプ</translation></message>
-    <message><source>Reload the current Shape.</source><translation>重新加载当前シェイプ。</translation></message>
+    <message><source>Reload the current Shape</source><translation>現在のシェイプを再読み込み</translation></message>
+    <message><source>Reload the current Shape.</source><translation>現在のシェイプを再読み込みします。</translation></message>
     <message><source>Remember Graph Editor Curve Framing</source><translation>グラフエディタカーブフラミングを忘れないでください</translation></message>
     <message><source>Remember to set motion blur to &apos;Full&apos; for each shape you wish to use this with</source><translation>これを使用する各シェイプのモーションブラーを「フル」に設定してください</translation></message>
     <message><source>Remember to set motion blur to &apos;Full&apos; for each shape you wish to use this with.</source><translation>これを使用する各シェイプのモーションブラーを「フル」に設定してください。</translation></message>
@@ -3078,10 +3078,10 @@
     <message><source>Render LH</source><translation>左ハンドルをレンダー</translation></message>
     <message><source>Render Log</source><translation>レンダーログ</translation></message>
     <message><source>Render Notifications</source><translation>入札通知</translation></message>
-    <message><source>Render Queue closed: Background Renders will continue, but no progress will be reported</source><translation>レンダーキュー已关闭: 后台レンダー会继续，但不会报告进度</translation></message>
-    <message><source>Render Queue closed: Background Renders will continue, but no progress will be reported.</source><translation>レンダーキュー已关闭: 后台レンダー会继续，但不会报告进度。</translation></message>
-    <message><source>Render Queue Items cannot be grouped</source><translation>レンダーキュー項目不能分グループ</translation></message>
-    <message><source>Render Queue Items cannot be grouped.</source><translation>レンダーキュー項目不能分グループ。</translation></message>
+    <message><source>Render Queue closed: Background Renders will continue, but no progress will be reported</source><translation>レンダーキューが閉じられました: バックグラウンドレンダーは続行されますが、進行状況は報告されません</translation></message>
+    <message><source>Render Queue closed: Background Renders will continue, but no progress will be reported.</source><translation>レンダーキューが閉じられました: バックグラウンドレンダーは続行されますが、進行状況は報告されません。</translation></message>
+    <message><source>Render Queue Items cannot be grouped</source><translation>レンダーキュー項目はグループ化できません</translation></message>
+    <message><source>Render Queue Items cannot be grouped.</source><translation>レンダーキュー項目はグループ化できません。</translation></message>
     <message><source>Render Selected</source><translation>レンダリング 選択される</translation></message>
     <message><source>Rendering Complete</source><translation>完全なレンダリング</translation></message>
     <message><source>Renders</source><translation>レンダー</translation></message>
@@ -3091,26 +3091,26 @@
     <message><source>Request was cancelled</source><translation>リクエストはキャンセルされました</translation></message>
     <message><source>Request was cancelled.</source><translation>リクエストはキャンセルされました。</translation></message>
     <message><source>Required</source><translation>必須</translation></message>
-    <message><source>reserved prefix (xml) must not be undeclared or bound to another namespace name</source><translation>保留前缀不得取消声明或绑定到其他命名空间名称</translation></message>
-    <message><source>reserved prefix (xmlns) must not be declared or undeclared</source><translation>保留命名空间前缀不得声明或取消声明</translation></message>
+    <message><source>reserved prefix (xml) must not be undeclared or bound to another namespace name</source><translation>予約済みプレフィックス (xml) は未宣言にしたり、別の名前空間名にバインドしたりできません</translation></message>
+    <message><source>reserved prefix (xmlns) must not be declared or undeclared</source><translation>予約済みプレフィックス (xmlns) は宣言または未宣言にできません</translation></message>
     <message><source>Reset all Attributes</source><translation>すべての属性をリセット</translation></message>
-    <message><source>Reset Attribute Value to Default</source><translation>将属性值重置为默认值</translation></message>
+    <message><source>Reset Attribute Value to Default</source><translation>属性値をデフォルトにリセット</translation></message>
     <message><source>Reset Content</source><translation>コンテンツのリセット</translation></message>
     <message><source>Reset Layer</source><translation>リセットレイヤー</translation></message>
-    <message><source>Reset Layers to Default Colors</source><translation>将レイヤー重置为默认色</translation></message>
+    <message><source>Reset Layers to Default Colors</source><translation>レイヤーをデフォルトカラーにリセット</translation></message>
     <message><source>Reset Project Description</source><translation>重置プロジェクト説明</translation></message>
     <message><source>Reset Shortcuts</source><translation>リセットショートカット</translation></message>
-    <message><source>Reset Shortcuts in progress. Please restart Cavalry to continue</source><translation>正在重置快捷键。请再起動アプリ继续</translation></message>
-    <message><source>Reset Shortcuts in progress. Please restart Cavalry to continue.</source><translation>正在重置快捷键。请再起動アプリ继续。</translation></message>
+    <message><source>Reset Shortcuts in progress. Please restart Cavalry to continue</source><translation>ショートカットのリセット中です。続行するには Cavalry を再起動してください</translation></message>
+    <message><source>Reset Shortcuts in progress. Please restart Cavalry to continue.</source><translation>ショートカットのリセット中です。続行するには Cavalry を再起動してください。</translation></message>
     <message><source>Reset Transform Attributes</source><translation>トランスフォーム属性をリセット</translation></message>
     <message><source>Reset Value to Origin</source><translation>原点に対する値のリセット</translation></message>
     <message><source>Resetting preferences</source><translation>設定のリセット</translation></message>
-    <message><source>Resize Mesh?</source><translation>调整メッシュ大小?</translation></message>
-    <message><source>Rest Pose Controls</source><translation>静止姿态制御</translation></message>
-    <message><source>Restart Cavalry for changes to take effect</source><translation>再起動アプリ以使更改生效</translation></message>
-    <message><source>Restart Cavalry for changes to take effect.</source><translation>再起動アプリ以使更改生效。</translation></message>
-    <message><source>Restart Cavalry to access all Experimental features</source><translation>再起動アプリ以访问所有实验功能</translation></message>
-    <message><source>Restart Cavalry to access all Experimental features.</source><translation>再起動アプリ以访问所有实验功能。</translation></message>
+    <message><source>Resize Mesh?</source><translation>メッシュのサイズを変更しますか？</translation></message>
+    <message><source>Rest Pose Controls</source><translation>レストポーズ制御</translation></message>
+    <message><source>Restart Cavalry for changes to take effect</source><translation>変更を反映するには Cavalry を再起動してください</translation></message>
+    <message><source>Restart Cavalry for changes to take effect.</source><translation>変更を反映するには Cavalry を再起動してください。</translation></message>
+    <message><source>Restart Cavalry to access all Experimental features</source><translation>すべての実験的機能にアクセスするには Cavalry を再起動してください</translation></message>
+    <message><source>Restart Cavalry to access all Experimental features.</source><translation>すべての実験的機能にアクセスするには Cavalry を再起動してください。</translation></message>
     <message><source>Restore Palette</source><translation>パレットを復元</translation></message>
     <message><source>Restricted Assets found</source><translation>制限付きアセットが見つかりました</translation></message>
     <message><source>Restricted Assets found.</source><translation>制限付きアセットが見つかりました。</translation></message>
@@ -3124,7 +3124,7 @@
     <message><source>Reveal in Finder</source><translation>ファインダーの明らかに</translation></message>
     <message><source>Reveal in Finder...</source><translation>在访达中表示...</translation></message>
     <message><source>Reveal in Scene Window</source><translation>在シーンウィンドウ中表示</translation></message>
-    <message><source>Reveal Pre-Comp in Assets Window</source><translation>在アセットウィンドウ中表示预コンポジション</translation></message>
+    <message><source>Reveal Pre-Comp in Assets Window</source><translation>アセットウィンドウでプリコンポーズを表示</translation></message>
     <message><source>Reveal the Origin Layer</source><translation>表示原始レイヤー</translation></message>
     <message><source>Reverse Contour</source><translation>逆の輪郭</translation></message>
     <message><source>Reverse Stop Positions</source><translation>逆停止位置</translation></message>
@@ -3144,7 +3144,7 @@
     <message><source>Right click to add a Shader</source><translation>右クリックでシェーダーを追加</translation></message>
     <message><source>Riv</source><translation>リヴ</translation></message>
     <message><source>Riz</source><translation>ログイン</translation></message>
-    <message><source>rksheet H</source><translation>工作表高值</translation></message>
+    <message><source>rksheet H</source><translation>ワークシート H</translation></message>
     <message><source>Rli</source><translation>ログイン</translation></message>
     <message><source>rmk RUK smk</source><translation>内部識別九</translation></message>
     <message><source>Rmo</source><translation>ログイン</translation></message>
@@ -3158,7 +3158,7 @@
     <message><source>Rta</source><translation>ログイン</translation></message>
     <message><source>rtm WAM stm</source><translation>内部識別十</translation></message>
     <message><source>Rub</source><translation>ルック</translation></message>
-    <message><source>Rubber Hose</source><translation>ゴム製ホース</translation></message>
+    <message><source>Rubber Hose</source><translation>ラバーホース</translation></message>
     <message><source>Ruler Guide</source><translation>ルーラーガイド</translation></message>
     <message><source>Run (Pro)</source><translation>実行(プロ版)</translation></message>
     <message><source>Run Preset</source><translation>プリセットを実行</translation></message>
@@ -3177,10 +3177,10 @@
     <message><source>Save and recall viewport positions</source><translation>ビューポートの位置を保存してリコールする</translation></message>
     <message><source>Save and recall viewport positions.</source><translation>ビューポートの位置を保存してリコールします。</translation></message>
     <message><source>Save as .cv</source><translation>プロジェクトファイルとして保存</translation></message>
-    <message><source>Save As Encrypted</source><translation>暗号化として保存</translation></message>
-    <message><source>Save As Encrypted...</source><translation>暗号化として保存...</translation></message>
-    <message><source>Save as H</source><translation>高品質として保存</translation></message>
-    <message><source>Save as json</source><translation>データファイルとして保存</translation></message>
+    <message><source>Save As Encrypted</source><translation>暗号化して別名で保存</translation></message>
+    <message><source>Save As Encrypted...</source><translation>暗号化して別名で保存...</translation></message>
+    <message><source>Save as H</source><translation>H として保存</translation></message>
+    <message><source>Save as json</source><translation>JSON として保存</translation></message>
     <message><source>Save As... (Pro)</source><translation>別名で保存...(プロ版)</translation></message>
     <message><source>Save Bookmark</source><translation>ブックマークを保存</translation></message>
     <message><source>Save Bookmark...</source><translation>ブックマークを保存...</translation></message>
@@ -3188,23 +3188,23 @@
     <message><source>Save Current Graph...</source><translation>現在のグラフを保存...</translation></message>
     <message><source>Save Encrypted...</source><translation>暗号化された保存...</translation></message>
     <message><source>Save Encrypted... (Pro)</source><translation>暗号化して保存...(プロ版)</translation></message>
-    <message><source>Save file</source><translation>ファイルを保存する</translation></message>
+    <message><source>Save file</source><translation>ファイルを保存</translation></message>
     <message><source>Save Gradient Colors as Palette</source><translation>グラデーション色をパレットとして保存</translation></message>
     <message><source>Save Gradient to Palette</source><translation>グラデーションをパレットに保存</translation></message>
-    <message><source>Save Licence to File</source><translation>ファイルへのライセンスを保存</translation></message>
-    <message><source>Save Lottie File</source><translation>宝くじファイルを保存する</translation></message>
+    <message><source>Save Licence to File</source><translation>ライセンスをファイルに保存</translation></message>
+    <message><source>Save Lottie File</source><translation>Lottie ファイルを保存</translation></message>
     <message><source>Save Palette</source><translation>パレットを保存</translation></message>
     <message><source>Save Preset</source><translation>プリセットを保存</translation></message>
     <message><source>Save Preset...</source><translation>プリセットを保存...</translation></message>
     <message><source>Save Render</source><translation>レンダリングを保存</translation></message>
     <message><source>Save SVG</source><translation>SVG を保存</translation></message>
     <message><source>Save SVGH</source><translation>ベクター画像ハンドルを保存</translation></message>
-    <message><source>Save Workspace</source><translation>保存工作区</translation></message>
-    <message><source>Saving and Rendering disabled</source><translation>保存およびレンダリングの無効化</translation></message>
-    <message><source>Saving and Rendering disabled.</source><translation>保存およびレンダリングの無効化。</translation></message>
+    <message><source>Save Workspace</source><translation>ワークスペースを保存</translation></message>
+    <message><source>Saving and Rendering disabled</source><translation>保存とレンダリングは無効です</translation></message>
+    <message><source>Saving and Rendering disabled.</source><translation>保存とレンダリングは無効です。</translation></message>
     <message><source>Saving Metadata</source><translation>メタデータの保存</translation></message>
     <message><source>Saving MH</source><translation>移動ハンドルを保存中</translation></message>
-    <message><source>Saving Scene</source><translation>正在保存シーン</translation></message>
+    <message><source>Saving Scene</source><translation>シーンを保存中</translation></message>
     <message><source>Saving SH</source><translation>シェイプハンドルを保存中</translation></message>
     <message><source>Saving Shortcuts</source><translation>ショートカットを保存中</translation></message>
     <message><source>Saving Snippets</source><translation>スニペットの節約</translation></message>
@@ -3227,8 +3227,8 @@
     <message><source>Search for a Snippet</source><translation>スニペットを探す</translation></message>
     <message><source>Search layers...</source><translation>レイヤー検索...</translation></message>
     <message><source>Search shortcuts</source><translation>ショートカット検索</translation></message>
-    <message><source>Searching by shortcut is only available in the All Shortcuts tab</source><translation>只能在所有快捷键标签中按快捷键搜索</translation></message>
-    <message><source>Searching by shortcut is only available in the All Shortcuts tab.</source><translation>只能在所有快捷键标签中按快捷键搜索。</translation></message>
+    <message><source>Searching by shortcut is only available in the All Shortcuts tab</source><translation>ショートカットでの検索は「すべてのショートカット」タブでのみ使用できます</translation></message>
+    <message><source>Searching by shortcut is only available in the All Shortcuts tab.</source><translation>ショートカットでの検索は「すべてのショートカット」タブでのみ使用できます。</translation></message>
     <message><source>See Other</source><translation>詳しくはこちら</translation></message>
     <message><source>Seek error</source><translation>定位エラー</translation></message>
     <message><source>Select a Preset</source><translation>プリセットを選択</translation></message>
@@ -3241,10 +3241,10 @@
     <message><source>Select by Hierarchy</source><translation>階層で選択</translation></message>
     <message><source>Select Children</source><translation>子供を選択</translation></message>
     <message><source>Select Folder</source><translation>フォルダを選択</translation></message>
-    <message><source>Select Hierarchy</source><translation>選択层级</translation></message>
+    <message><source>Select Hierarchy</source><translation>階層を選択</translation></message>
     <message><source>Select items</source><translation>アイテムを選択</translation></message>
     <message><source>Select layers to see their settings</source><translation>レイヤーを選択して設定を表示</translation></message>
-    <message><source>Select Layers with Color</source><translation>選択带色的レイヤー</translation></message>
+    <message><source>Select Layers with Color</source><translation>カラー付きレイヤーを選択</translation></message>
     <message><source>Select Offspring</source><translation>子孫を選択</translation></message>
     <message><source>Select Parent</source><translation>両親を選択</translation></message>
     <message><source>Select Same Color</source><translation>同じ色を選ぶ</translation></message>
@@ -3264,11 +3264,11 @@
     <message><source>Service Unavailable</source><translation>サービス利用不可</translation></message>
     <message><source>Set All</source><translation>すべてセット</translation></message>
     <message><source>Set all stops to Linear</source><translation>すべての停止をリニアに設定</translation></message>
-    <message><source>Set all stops to Stepped</source><translation>将所有色标设为阶梯</translation></message>
+    <message><source>Set all stops to Stepped</source><translation>すべてのストップをステップに設定</translation></message>
     <message><source>Set Array Index</source><translation>配列インデックスを設定</translation></message>
     <message><source>Set as Default Settings</source><translation>デフォルト設定として設定</translation></message>
-    <message><source>Set as the Fill Color for Selected Shapes</source><translation>设为所选シェイプ的填充色</translation></message>
-    <message><source>Set as the Stroke Color for Selected Shapes</source><translation>设为所选シェイプ的描边色</translation></message>
+    <message><source>Set as the Fill Color for Selected Shapes</source><translation>選択したシェイプの塗りカラーに設定</translation></message>
+    <message><source>Set as the Stroke Color for Selected Shapes</source><translation>選択したシェイプのストロークカラーに設定</translation></message>
     <message><source>Set Asset</source><translation>設定アセット</translation></message>
     <message><source>Set Attribute (1)</source><translation>属性一を設定</translation></message>
     <message><source>Set Attribute (2)</source><translation>属性二を設定</translation></message>
@@ -3291,7 +3291,7 @@
     <message><source>Set Loop (Oscillate))</source><translation>セットループ(発振)</translation></message>
     <message><source>Set Loop with Offset</source><translation>オフセットでループを設定する</translation></message>
     <message><source>Set Looping</source><translation>セットループ</translation></message>
-    <message><source>Set Looping to None</source><translation>将循环设为无</translation></message>
+    <message><source>Set Looping to None</source><translation>ループをなしに設定</translation></message>
     <message><source>Set Notes</source><translation>セットノート</translation></message>
     <message><source>Set Preset</source><translation>設定プリセット</translation></message>
     <message><source>Set Segment Velocity</source><translation>セットの区分 速度</translation></message>
@@ -3316,7 +3316,7 @@
     <message><source>Setting up background render</source><translation>背景レンダリングの設定</translation></message>
     <message><source>Shad</source><translation>シェード</translation></message>
     <message><source>Shadow</source><translation>シャドー</translation></message>
-    <message><source>Shape Depth Debug</source><translation>シェイプ深度调试</translation></message>
+    <message><source>Shape Depth Debug</source><translation>シェイプ深度デバッグ</translation></message>
     <message><source>Shape Editing</source><translation>シェイプ編集</translation></message>
     <message><source>Share usage data to help improve Cavalry</source><translation>共享使用データ以ヘルプ改进アプリ</translation></message>
     <message><source>Shift Stops</source><translation>シフトストップ</translation></message>
@@ -3326,19 +3326,19 @@
     <message><source>Shortcut</source><translation>ショートカット</translation></message>
     <message><source>Shortcut Manager (Pro)</source><translation>ショートカット管理(プロ版)</translation></message>
     <message><source>Show 3D Grid</source><translation>表示三维メッシュ</translation></message>
-    <message><source>Show Animated Attributes in the Hierarchy</source><translation>在层级中表示动画属性</translation></message>
+    <message><source>Show Animated Attributes in the Hierarchy</source><translation>階層にアニメーション属性を表示</translation></message>
     <message><source>Show Channel Names in the Graph</source><translation>グラフのチャンネル名を表示</translation></message>
     <message><source>Show Clipping Masks</source><translation>クリップマスクを表示する</translation></message>
-    <message><source>Show Clipping Masks for selected Shapes</source><translation>表示所选シェイプ的剪裁蒙版</translation></message>
+    <message><source>Show Clipping Masks for selected Shapes</source><translation>表示選択したシェイプ的剪裁蒙版</translation></message>
     <message><source>Show Direction</source><translation>ショーの方向</translation></message>
-    <message><source>Show Drawables</source><translation>表示可绘制对象</translation></message>
+    <message><source>Show Drawables</source><translation>描画対象を表示</translation></message>
     <message><source>Show Experimental Features</source><translation>実験的な機能を表示する</translation></message>
     <message><source>Show Experimental Features (Pro)</source><translation>実験的機能を表示(プロ版)</translation></message>
     <message><source>Show Feedback button in Message Bar</source><translation>メッセージバーのフィードバックボタンを表示する</translation></message>
     <message><source>Show FPS in Playback</source><translation>播放时表示帧率</translation></message>
     <message><source>Show Frames</source><translation>ショーフレーム</translation></message>
     <message><source>Show Grid</source><translation>ディスプレイグリッド</translation></message>
-    <message><source>Show Hierarchy</source><translation>表示层级</translation></message>
+    <message><source>Show Hierarchy</source><translation>階層を表示</translation></message>
     <message><source>Show Mini-Map</source><translation>ミニマップを表示</translation></message>
     <message><source>Show Motion Paths</source><translation>モーションパスを表示</translation></message>
     <message><source>Show Names</source><translation>名前を表示</translation></message>
@@ -3350,7 +3350,7 @@
     <message><source>Showing All Snapshots</source><translation>すべてのスナップショットを表示</translation></message>
     <message><source>Showing Snapshot</source><translation>スナップショットを表示する</translation></message>
     <message><source>Shuffle Stop Positions</source><translation>シャッフルストップポジション</translation></message>
-    <message><source>Sign in with Canva</source><translation>使用在线设计服务登录</translation></message>
+    <message><source>Sign in with Canva</source><translation>Canva でサインイン</translation></message>
     <message><source>Sign-in timed out. Please try again</source><translation>サインインタイムアウト。 お問い合わせ</translation></message>
     <message><source>Sign-in timed out. Please try again.</source><translation>サインインタイムアウト。 お問い合わせ。</translation></message>
     <message><source>Signing out...</source><translation>サインアップ...</translation></message>
@@ -3466,7 +3466,7 @@
     <message><source>Staging</source><translation>ステージング</translation></message>
     <message><source>Standing End</source><translation>スタンドエンド</translation></message>
     <message><source>Standing Start</source><translation>スタンドスタート</translation></message>
-    <message><source>Start New Contour</source><translation>开始新轮廓</translation></message>
+    <message><source>Start New Contour</source><translation>開始新轮廓</translation></message>
     <message><source>Start New Shape</source><translation>新規シェイプを開始</translation></message>
     <message><source>start reordering USE</source><translation>USE の並べ替えを開始</translation></message>
     <message><source>Start Rotation</source><translation>回転の開始</translation></message>
@@ -3477,7 +3477,7 @@
     <message><source>Stream length is zero</source><translation>ストリームの長さはゼロです</translation></message>
     <message><source>Stream length is zero.</source><translation>ストリームの長さはゼロです。</translation></message>
     <message><source>Stretch bone</source><translation>ストレッチボーン</translation></message>
-    <message><source>Stretch H</source><translation>拉伸高值</translation></message>
+    <message><source>Stretch H</source><translation>H をストレッチ</translation></message>
     <message><source>string literal</source><translation>文字列 リテラル</translation></message>
     <message><source>Style Options.</source><translation>スタイルオプション。</translation></message>
     <message><source>Stylistic Set</source><translation>スタイリスティックセット</translation></message>
@@ -3489,7 +3489,7 @@
     <message><source>Supervised tracking will stop when quality drops too low and will</source><translation>監督された追跡は質の低下が余りに低いとき停止し、</translation></message>
     <message><source>surface creation failed</source><translation>表面作成失敗</translation></message>
     <message><source>Surface is null</source><translation>サーフェスが空です</translation></message>
-    <message><source>Surface is null.</source><translation>表面为空。</translation></message>
+    <message><source>Surface is null.</source><translation>サーフェスがヌルです。</translation></message>
     <message><source>Suspended</source><translation>サスペンド</translation></message>
     <message><source>SVG Layer</source><translation>SVG レイヤー</translation></message>
     <message><source>Swap Composition</source><translation>コンポジションを入れ替え</translation></message>
@@ -3500,8 +3500,8 @@
     <message><source>Switch Compositions?</source><translation>切り替えコンポジション？</translation></message>
     <message><source>Switch Integration</source><translation>スイッチ統合</translation></message>
     <message><source>Switching Protocol</source><translation>スイッチプロトコル</translation></message>
-    <message><source>Switching to the Default Keyframe Layer in order to modify layer End Points</source><translation>正在切换到默认キーフレームレイヤー以修改レイヤー端点</translation></message>
-    <message><source>Switching to the Default Keyframe Layer in order to modify layer End Points.</source><translation>正在切换到默认キーフレームレイヤー以修改レイヤー端点。</translation></message>
+    <message><source>Switching to the Default Keyframe Layer in order to modify layer End Points</source><translation>レイヤーの終了ポイントを変更するため、デフォルトキーフレームレイヤーへ切り替えています</translation></message>
+    <message><source>Switching to the Default Keyframe Layer in order to modify layer End Points.</source><translation>レイヤーの終了ポイントを変更するため、デフォルトキーフレームレイヤーへ切り替えています。</translation></message>
     <message><source>Switching to the Default Keyframe Layer in order to modify this keyframe</source><translation>このキーフレームを変更するため、デフォルトのキーフレームレイヤーに切り替えています</translation></message>
     <message><source>Switching to the Default Keyframe Layer in order to modify this keyframe.</source><translation>このキーフレームを変更するため、デフォルトのキーフレームレイヤーに切り替えています。</translation></message>
     <message><source>Switching to the Default Keyframe Layer in order to set this keyframe</source><translation>このキーフレームを設定するため、デフォルトのキーフレームレイヤーに切り替えています</translation></message>
@@ -3525,18 +3525,18 @@
     <message><source>The Google Sheet Share settings must be set to &apos;Anyone with the link&apos;.</source><translation>Googleシートの共有設定は「リンクで任意の」に設定する必要があります。</translation></message>
     <message><source>The Google Sheets API is either very slow to respond or unavailable... Trying again</source><translation>グーグル表計算連携の応答が遅いか利用できません...再試行中</translation></message>
     <message><source>The Google Sheets API is either very slow to respond or unavailable... Trying again...</source><translation>グーグル表計算連携の応答が遅いか利用できません...再試行中...</translation></message>
-    <message><source>The number of points (positions) in the Path, this includes control points for curves</source><translation>パス中的点(位置)数量，包括曲线制御点</translation></message>
-    <message><source>The number of points (positions) in the Path, this includes control points for curves.</source><translation>パス中的点(位置)数量，包括曲线制御点。</translation></message>
-    <message><source>The number of verbs (draw instructions) in the Path, this excludes control points</source><translation>パス中的绘制指令数量，不包括制御点</translation></message>
-    <message><source>The number of verbs (draw instructions) in the Path, this excludes control points.</source><translation>パス中的绘制指令数量，不包括制御点。</translation></message>
-    <message><source>The Office 365 Spreadsheet Share settings must be set to &apos;Anyone with the link&apos;.</source><translation>办公表格共享設定必须设为任何拥有链接的人。</translation></message>
+    <message><source>The number of points (positions) in the Path, this includes control points for curves</source><translation>パス内のポイント（位置）の数です。カーブのコントロールポイントも含みます</translation></message>
+    <message><source>The number of points (positions) in the Path, this includes control points for curves.</source><translation>パス内のポイント（位置）の数です。カーブのコントロールポイントも含みます。</translation></message>
+    <message><source>The number of verbs (draw instructions) in the Path, this excludes control points</source><translation>パス内の描画命令数です。コントロールポイントは含みません</translation></message>
+    <message><source>The number of verbs (draw instructions) in the Path, this excludes control points.</source><translation>パス内の描画命令数です。コントロールポイントは含みません。</translation></message>
+    <message><source>The Office 365 Spreadsheet Share settings must be set to &apos;Anyone with the link&apos;.</source><translation>Office 365 スプレッドシートの共有設定は「リンクを知っているすべてのユーザー」に設定する必要があります。</translation></message>
     <message><source>The root CA certificate may be missing from your system</source><translation>システムにルート認証局証明書がない可能性があります</translation></message>
     <message><source>The root CA certificate may be missing from your system.</source><translation>システムにルート認証局証明書がない可能性があります。</translation></message>
     <message><source>the Shortcut Manager</source><translation>ショートカットマネージャー</translation></message>
-    <message><source>There are no active Render Queue Items</source><translation>没有活动的レンダーキュー項目</translation></message>
-    <message><source>There are no active Render Queue Items.</source><translation>没有活动的レンダーキュー項目。</translation></message>
-    <message><source>They will not be removed when clearing the Attribute Editor</source><translation>清空属性エディタ时不会移除它们</translation></message>
-    <message><source>They will not be removed when clearing the Attribute Editor.</source><translation>清空属性エディタ时不会移除它们。</translation></message>
+    <message><source>There are no active Render Queue Items</source><translation>アクティブなレンダーキュー項目はありません</translation></message>
+    <message><source>There are no active Render Queue Items.</source><translation>アクティブなレンダーキュー項目はありません。</translation></message>
+    <message><source>They will not be removed when clearing the Attribute Editor</source><translation>属性エディターをクリアしても削除されません</translation></message>
+    <message><source>They will not be removed when clearing the Attribute Editor.</source><translation>属性エディターをクリアしても削除されません。</translation></message>
     <message><source>This account does not have access to Cavalry. Please contact your account administrator</source><translation>このアカウントには Cavalry へのアクセス権がありません。アカウント管理者にお問い合わせください</translation></message>
     <message><source>This account does not have access to Cavalry. Please contact your account administrator.</source><translation>このアカウントには Cavalry へのアクセス権がありません。アカウント管理者にお問い合わせください。</translation></message>
     <message><source>This Attribute is available as a Pre-Comp Override</source><translation>この属性はプリコンポーズオーバーライドとして使用できます</translation></message>
@@ -3574,8 +3574,8 @@
     <message><source>This Scene cannot be saved.</source><translation>このシーンを保存できません。</translation></message>
     <message><source>This Scene contains missing plugins so a copy has been created. Saving this file will remove any missing Layers</source><translation>このシーンには見つからないプラグインが含まれているため、コピーが作成されました。このファイルを保存すると、見つからないレイヤーは削除されます</translation></message>
     <message><source>This Scene contains missing plugins so a copy has been created. Saving this file will remove any missing Layers.</source><translation>このシーンには見つからないプラグインが含まれているため、コピーが作成されました。このファイルを保存すると、見つからないレイヤーは削除されます。</translation></message>
-    <message><source>This shape is likely too long and thin to create a valid preview</source><translation>この形状は長すぎて薄くなり、有効なプレビューを作成します。</translation></message>
-    <message><source>This shape is likely too long and thin to create a valid preview.</source><translation>この形状は長すぎて薄く、有効なプレビューを作成します。</translation></message>
+    <message><source>This shape is likely too long and thin to create a valid preview</source><translation>このシェイプは長く細すぎるため、有効なプレビューを作成できない可能性があります</translation></message>
+    <message><source>This shape is likely too long and thin to create a valid preview.</source><translation>このシェイプは長く細すぎるため、有効なプレビューを作成できない可能性があります。</translation></message>
     <message><source>This shape is not editable. You can make it editable with the Make Editable option in the Shapes menu</source><translation>このシェイプは編集できません。シェイプメニューの「編集可能にする」で編集可能にできます</translation></message>
     <message><source>This shape is not editable. You can make it editable with the Make Editable option in the Shapes menu.</source><translation>このシェイプは編集できません。シェイプメニューの「編集可能にする」で編集可能にできます。</translation></message>
     <message><source>This shape is not editable. You can use the &quot;Shapes&quot; Menu&apos;s &quot;Make Editable&quot; item</source><translation>このシェイプは編集できません。「シェイプ」メニューの「編集可能にする」を使用できます</translation></message>
@@ -3585,9 +3585,9 @@
     <message><source>This Shape Type</source><translation>このシェイプタイプ</translation></message>
     <message><source>This will automatically connect to any selected shapes</source><translation>選択した形状を自動的に接続します。</translation></message>
     <message><source>This will automatically connect to any selected shapes.</source><translation>選択した形状を自動的に接続します。</translation></message>
-    <message><source>This works with any Editable Shape including Cel Animation</source><translation>这适用于任何可编辑シェイプ，包括逐帧动画</translation></message>
-    <message><source>This Zip file is not a valid plugin</source><translation>この Zip ファイルは有効なプラグインではありません</translation></message>
-    <message><source>This Zip file is not a valid plugin.</source><translation>この Zip ファイルは有効なプラグインではありません。</translation></message>
+    <message><source>This works with any Editable Shape including Cel Animation</source><translation>これはセルアニメーションを含む任意の編集可能シェイプで機能します</translation></message>
+    <message><source>This Zip file is not a valid plugin</source><translation>この ZIP ファイルは有効なプラグインではありません</translation></message>
+    <message><source>This Zip file is not a valid plugin.</source><translation>この ZIP ファイルは有効なプラグインではありません。</translation></message>
     <message><source>Thorn</source><translation>タホーン</translation></message>
     <message><source>Thornsmall</source><translation>ソーンモール</translation></message>
     <message><source>thread constructor failed</source><translation>スレッドコンストラクタが失敗しました</translation></message>
@@ -3603,7 +3603,7 @@
     <message><source>Toggle</source><translation>トピックス</translation></message>
     <message><source>Toggle Audio Playback</source><translation>オーディオプレイバックを切り替える</translation></message>
     <message><source>Toggle Audio Playback.</source><translation>オーディオプレイバックを切り替えます。</translation></message>
-    <message><source>Toggle B</source><translation>切换バイト</translation></message>
+    <message><source>Toggle B</source><translation>バイトを切り替え</translation></message>
     <message><source>Toggle Color Management</source><translation>トグルカラーマネジメント</translation></message>
     <message><source>Toggle Lock</source><translation>トグルロック</translation></message>
     <message><source>Toggle Motion Paths</source><translation>モーションパスを切り替え</translation></message>
@@ -3615,18 +3615,18 @@
     <message><source>Toggle this mode with the &apos;U&apos; key</source><translation>U キーでこのモードを切り替えます</translation></message>
     <message><source>Toggle this mode with the &apos;U&apos; key.</source><translation>U キーでこのモードを切り替えます。</translation></message>
     <message><source>Toggle Transform Tool</source><translation>トグル変換ツール</translation></message>
-    <message><source>Toggle Viewport Grid</source><translation>切换ビューポートメッシュ</translation></message>
-    <message><source>Toggle Viewport Grid.</source><translation>切换ビューポートメッシュ。</translation></message>
+    <message><source>Toggle Viewport Grid</source><translation>ビューポートグリッドを切り替え</translation></message>
+    <message><source>Toggle Viewport Grid.</source><translation>ビューポートグリッドを切り替え。</translation></message>
     <message><source>Toggle Viewport Snapping</source><translation>ビューポートスナップを切り替え</translation></message>
-    <message><source>Toggle Viewport Snapping.</source><translation>切换ビューポート吸附。</translation></message>
+    <message><source>Toggle Viewport Snapping.</source><translation>ビューポートスナップを切り替え。</translation></message>
     <message><source>Token</source><translation>トークン</translation></message>
     <message><source>Token exchange failed (HTTP</source><translation>トークン交換に失敗(通信</translation></message>
-    <message><source>Token exchange failed: could not connect to Canva</source><translation>トークン交換に失敗: オンラインデザインサービスに接続できません</translation></message>
+    <message><source>Token exchange failed: could not connect to Canva</source><translation>トークン交換に失敗しました: Canva に接続できません</translation></message>
     <message><source>Token exchange failed: invalid JSON response</source><translation>トークン交換に失敗しました: 無効な JSON 応答</translation></message>
     <message><source>Token refresh failed (HTTP</source><translation>トークン更新に失敗(通信</translation></message>
-    <message><source>Token refresh failed: could not connect to Canva</source><translation>トークン更新に失敗: オンラインデザインサービスに接続できません</translation></message>
+    <message><source>Token refresh failed: could not connect to Canva</source><translation>トークン更新に失敗しました: Canva に接続できません</translation></message>
     <message><source>Token refresh failed: invalid JSON response</source><translation>トークン更新に失敗しました: 無効な JSON 応答</translation></message>
-    <message><source>Token revocation failed: could not connect to Canva</source><translation>トークン無効化に失敗: オンラインデザインサービスに接続できません</translation></message>
+    <message><source>Token revocation failed: could not connect to Canva</source><translation>トークン取り消しに失敗しました: Canva に接続できません</translation></message>
     <message><source>Tolopea</source><translation>トロップア</translation></message>
     <message><source>Too Early</source><translation>早すぎる</translation></message>
     <message><source>Too many redirects</source><translation>あまりにも多くのリダイレクト</translation></message>
@@ -3647,15 +3647,15 @@
     <message><source>Tracking is already in progress.</source><translation>追跡は既に進行中です。</translation></message>
     <message><source>Tracking Settings</source><translation>トラッキング設定</translation></message>
     <message><source>Tradewind</source><translation>トレードウィンド</translation></message>
-    <message><source>Transform animation detected. Grouping your Shape first may produce more predictable results</source><translation>检测到变换动画。先将シェイプ分グループ可能得到更可预测的结果</translation></message>
-    <message><source>Transform animation detected. Grouping your Shape first may produce more predictable results.</source><translation>检测到变换动画。先将シェイプ分グループ可能得到更可预测的结果。</translation></message>
+    <message><source>Transform animation detected. Grouping your Shape first may produce more predictable results</source><translation>トランスフォームアニメーションを検出しました。先にシェイプをグループ化すると、より予測しやすい結果になります</translation></message>
+    <message><source>Transform animation detected. Grouping your Shape first may produce more predictable results.</source><translation>トランスフォームアニメーションを検出しました。先にシェイプをグループ化すると、より予測しやすい結果になります。</translation></message>
     <message><source>Transform Tool</source><translation>変換ツール</translation></message>
     <message><source>Transparency Style</source><translation>透明スタイル</translation></message>
     <message><source>Tree</source><translation>ツリー</translation></message>
     <message><source>Triadic</source><translation>トライアドリック</translation></message>
     <message><source>true literal</source><translation>真のリテラル</translation></message>
-    <message><source>Trying to nudge non existent key index</source><translation>尝试微调不存在的关键索引</translation></message>
-    <message><source>Trying to nudge non existent key index.</source><translation>尝试微调不存在的关键索引。</translation></message>
+    <message><source>Trying to nudge non existent key index</source><translation>存在しないキーインデックスを微調整しようとしています</translation></message>
+    <message><source>Trying to nudge non existent key index.</source><translation>存在しないキーインデックスを微調整しようとしています。</translation></message>
     <message><source>Turbo</source><translation>ターボ</translation></message>
     <message><source>Turn all frequencies off</source><translation>すべての周波数をオフにする</translation></message>
     <message><source>Turn all frequencies on</source><translation>すべての周波数をオンにします</translation></message>
@@ -3675,7 +3675,7 @@
     <message><source>UI Font Size</source><translation>画面フォントサイズ</translation></message>
     <message><source>ukm KNM elm</source><translation>内部識別甲</translation></message>
     <message><source>Un-Parent</source><translation>アンパレント</translation></message>
-    <message><source>Unable to autosave scene</source><translation>シーンを自動保存できない</translation></message>
+    <message><source>Unable to autosave scene</source><translation>シーンを自動保存できません</translation></message>
     <message><source>Unable to autosave scene.</source><translation>シーンの自動保存はできません。</translation></message>
     <message><source>Unable to encrypt content (encryption failed)</source><translation>コンテンツを暗号化できない(暗号化失敗)</translation></message>
     <message><source>Unable to encrypt content (encryption failed).</source><translation>コンテンツを暗号化できない(暗号化失敗)。</translation></message>
@@ -3690,7 +3690,7 @@
     <message><source>Unable to write encrypted script (encryption failed).</source><translation>暗号化されたスクリプト(暗号化失敗)を書くことができません。</translation></message>
     <message><source>Unauthorized</source><translation>無許可</translation></message>
     <message><source>Unavailable For Legal Reasons</source><translation>法的理由で利用できない</translation></message>
-    <message><source>unbound prefix</source><translation>未绑定前缀</translation></message>
+    <message><source>unbound prefix</source><translation>未バインドの接頭辞</translation></message>
     <message><source>unclosed CDATA section</source><translation>文字データセクションが閉じていません</translation></message>
     <message><source>unclosed token</source><translation>未閉鎖トークン</translation></message>
     <message><source>undefined entity</source><translation>未定義の組織</translation></message>
@@ -3703,14 +3703,14 @@
     <message><source>Unknown error occurred</source><translation>未知のエラーが発生しました</translation></message>
     <message><source>Unknown error occurred.</source><translation>未知のエラーが発生しました。</translation></message>
     <message><source>Unknown error.</source><translation>未知のエラー。</translation></message>
-    <message><source>Unknown H</source><translation>未知高值</translation></message>
+    <message><source>Unknown H</source><translation>不明な H</translation></message>
     <message><source>Unknown Script</source><translation>未知のスクリプト</translation></message>
     <message><source>unknown token</source><translation>未知のトークン</translation></message>
     <message><source>Unlock B</source><translation>ロック解除バイト</translation></message>
     <message><source>Unlock Selected</source><translation>選択解除</translation></message>
     <message><source>Unmute Input</source><translation>不正入力</translation></message>
     <message><source>Unprocessable Entity</source><translation>加工不可能なエンティティティ</translation></message>
-    <message><source>Unsupported codec</source><translation>不支持的编解码器</translation></message>
+    <message><source>Unsupported codec</source><translation>サポートされていないコーデック</translation></message>
     <message><source>Unsupported Media Type</source><translation>サポートされていないメディアタイプ</translation></message>
     <message><source>Untitled</source><translation>未定</translation></message>
     <message><source>Untitled Script</source><translation>無題スクリプト</translation></message>
@@ -3725,19 +3725,19 @@
     <message><source>Upgrade Required</source><translation>アップグレード 必須</translation></message>
     <message><source>Upload cancelled</source><translation>キャンセル</translation></message>
     <message><source>Upload Progress</source><translation>投稿の進捗</translation></message>
-    <message><source>Upload to Canva</source><translation>上传到在线设计服务</translation></message>
+    <message><source>Upload to Canva</source><translation>Canva にアップロード</translation></message>
     <message><source>Uploading</source><translation>アップロード</translation></message>
     <message><source>URI Too Long</source><translation>アドレスが長すぎます</translation></message>
-    <message><source>Use Absolute B</source><translation>使用绝对バイト</translation></message>
+    <message><source>Use Absolute B</source><translation>使用绝に対してバイト</translation></message>
     <message><source>Use Checkerboard</source><translation>チェックボードを使用する</translation></message>
     <message><source>Use Expression</source><translation>式の使用</translation></message>
     <message><source>Use Proxy</source><translation>プロキシを使用する</translation></message>
     <message><source>Use Selection</source><translation>選択を使用する</translation></message>
     <message><source>Use Speed</source><translation>使用速度</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition</source><translation>使用创建メニュー向コンポジション追加レイヤー</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>使用创建メニュー向コンポジション追加レイヤー。</translation></message>
-    <message><source>Use the tracking data to corner pin the selected Shape</source><translation>使用跟踪データ对所选シェイプ进行角点固定</translation></message>
-    <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>使用跟踪データ对所选シェイプ进行角点固定。</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください。</translation></message>
+    <message><source>Use the tracking data to corner pin the selected Shape</source><translation>トラッキングデータを使用して、選択したシェイプをコーナーピン固定します</translation></message>
+    <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>トラッキングデータを使用して、選択したシェイプをコーナーピン固定します。</translation></message>
     <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>このリストを使用して Cavalry のコントロールでの属性順序をカスタマイズします</translation></message>
     <message><source>Use this list to customise the Attribute order in Cavalry Control.</source><translation>このリストを使用して Cavalry のコントロールでの属性順序をカスタマイズします。</translation></message>
     <message><source>Used once</source><translation>一度使用されて</translation></message>
@@ -3746,7 +3746,7 @@
     <message><source>User-Agent</source><translation>ユーザーエージェント</translation></message>
     <message><source>Username</source><translation>ユーザ名</translation></message>
     <message><source>usn HAN otn</source><translation>私たちハン・オトン</translation></message>
-    <message><source>Util</source><translation>ユーティリティ</translation></message>
+    <message><source>Util</source><translation>補助</translation></message>
     <message><source>Uuid</source><translation>ウイド</translation></message>
     <message><source>uut HTA vut</source><translation>内部識別乙</translation></message>
     <message><source>Values</source><translation>バリュー</translation></message>
@@ -3757,7 +3757,7 @@
     <message><source>Velocity Presets</source><translation>速度プリセット一覧</translation></message>
     <message><source>Verifying licence. Please wait</source><translation>ライセンスの確認 お問い合わせ</translation></message>
     <message><source>Verifying licence. Please wait...</source><translation>ライセンスの確認 お問い合わせ...</translation></message>
-    <message><source>Vertical Distribution</source><translation>縦の配分</translation></message>
+    <message><source>Vertical Distribution</source><translation>垂直分布</translation></message>
     <message><source>Vertical Element Alignment</source><translation>縦要素の直線化</translation></message>
     <message><source>Vertical Layout Group</source><translation>縦レイアウトグループ</translation></message>
     <message><source>Vertical Positioning</source><translation>垂直位置決め</translation></message>
@@ -3767,7 +3767,7 @@
     <message><source>Very Slow In, Very Slow Out Magic Easing set</source><translation>非常に遅い で、非常に スロー アウト マジック エイジング セット</translation></message>
     <message><source>Very Slow In, Very Slow Out Magic Easing set.</source><translation>非常に遅い で、非常に スロー アウト マジック エイジング セット。</translation></message>
     <message><source>Very Slow Out</source><translation>非常に遅い アウト</translation></message>
-    <message><source>W Action</source><translation>宽度动作</translation></message>
+    <message><source>W Action</source><translation>幅アクション</translation></message>
     <message><source>Waiting for frame</source><translation>フレーム待ち</translation></message>
     <message><source>Waiting for frame...</source><translation>フレームを待って...</translation></message>
     <message><source>Warning</source><translation>警告</translation></message>
@@ -3779,8 +3779,8 @@
     <message><source>What would you like to see in Cavalry?</source><translation>你希望在アプリ中看到什么?</translation></message>
     <message><source>What&apos;s Next?</source><translation>次は何ですか?</translation></message>
     <message><source>What&apos;s NH</source><translation>名前ハンドルとは</translation></message>
-    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>使用アプリ时，若你同意，共享使用データ能ヘルプ我们改进</translation></message>
-    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>使用アプリ时，若你同意，共享使用データ能ヘルプ我们改进。</translation></message>
+    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>同意いただいた場合のみ、Cavalry の使用データが製品改善に役立てられます</translation></message>
+    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>同意いただいた場合のみ、Cavalry の使用データが製品改善に役立てられます。</translation></message>
     <message><source>while parsing</source><translation>解析中</translation></message>
     <message><source>White Ice</source><translation>白い氷</translation></message>
     <message><source>Whitelist</source><translation>ホワイトリスト</translation></message>
@@ -3795,71 +3795,71 @@
     <message><source>Workbook name not found in the response</source><translation>応答にないワークブック名</translation></message>
     <message><source>Workbook name not found in the response.</source><translation>応答にないワークブック名。</translation></message>
     <message><source>Workbook relationships file not found</source><translation>ワークブックのリレーションファイルが見つかりません</translation></message>
-    <message><source>Workbook relationships file not found.</source><translation>找不到工作簿关系ファイル。</translation></message>
+    <message><source>Workbook relationships file not found.</source><translation>ワークブックのリレーションシップファイルが見つかりません。</translation></message>
     <message><source>Working Color Space</source><translation>働く色スペース</translation></message>
     <message><source>Workspace</source><translation>ワークスペース</translation></message>
-    <message><source>Would you like to add the SVG as a single layer or separate into layers?</source><translation>要将矢量图追加为单个レイヤー，还是拆分为多个レイヤー?</translation></message>
-    <message><source>Would you like to add the SVG as an Asset layer or separate into layers?</source><translation>要将矢量图追加为アセットレイヤー，还是拆分为多个レイヤー?</translation></message>
-    <message><source>Would you like to Append of Replace the existing Swatches?</source><translation>要追加还是替换现有色板?</translation></message>
-    <message><source>Would you like to create a new shape, or paste the SVG onto the selection?</source><translation>要创建新シェイプ，还是将矢量图粘贴到所选内容?</translation></message>
+    <message><source>Would you like to add the SVG as a single layer or separate into layers?</source><translation>SVG を単一レイヤーとして追加しますか？それとも複数レイヤーに分割しますか？</translation></message>
+    <message><source>Would you like to add the SVG as an Asset layer or separate into layers?</source><translation>SVG をアセットレイヤーとして追加しますか？それとも複数レイヤーに分割しますか？</translation></message>
+    <message><source>Would you like to Append of Replace the existing Swatches?</source><translation>既存のスウォッチに追加しますか？それとも置換しますか？</translation></message>
+    <message><source>Would you like to create a new shape, or paste the SVG onto the selection?</source><translation>新しいシェイプを作成しますか？それとも選択範囲に SVG を貼り付けますか？</translation></message>
     <message><source>Would you like to create it?</source><translation>作成したいですか?</translation></message>
     <message><source>Would you like to delete all Path Keyframes for this layer?</source><translation>このレイヤーのすべてのパスキーフレームを削除しますか?</translation></message>
     <message><source>Would you like to include all composition backgrounds as shapes?</source><translation>すべての構成背景を図形として含めてみませんか?</translation></message>
     <message><source>Would you like to install this Plugin?</source><translation>このプラグインをインストールしたいですか?</translation></message>
     <message><source>Would you like to make it editable?</source><translation>編集可能にしたいですか?</translation></message>
-    <message><source>Would you like to open Cavalry as a separate process?</source><translation>要以单独进程開くアプリ吗?</translation></message>
+    <message><source>Would you like to open Cavalry as a separate process?</source><translation>Cavalry を別プロセスとして開きますか？</translation></message>
     <message><source>Would you like to overwrite existing caches?</source><translation>既存のキャッシュを上書きしたいですか?</translation></message>
-    <message><source>Would you like to overwrite existing renders?</source><translation>要覆盖现有レンダー吗?</translation></message>
+    <message><source>Would you like to overwrite existing renders?</source><translation>既存のレンダーを上書きしますか？</translation></message>
     <message><source>Would you like to overwrite it?</source><translation>それを上書きしたいですか?</translation></message>
-    <message><source>Would you like to resize the Mesh Shape to match the Asset size?</source><translation>要调整メッシュシェイプ以匹配アセット大小吗?</translation></message>
-    <message><source>Would you like to save your changes?</source><translation>変更を保存したいですか?</translation></message>
+    <message><source>Would you like to resize the Mesh Shape to match the Asset size?</source><translation>メッシュシェイプのサイズをアセットに合わせて変更しますか？</translation></message>
+    <message><source>Would you like to save your changes?</source><translation>変更を保存しますか？</translation></message>
     <message><source>Write Preset Defaults</source><translation>プリセットのデフォルトを書き込み</translation></message>
-    <message><source>X Action</source><translation>横向动作</translation></message>
+    <message><source>X Action</source><translation>X アクション</translation></message>
     <message><source>x error H</source><translation>横方向エラー高</translation></message>
     <message><source>xcn HAN bdn</source><translation>内部識別戊</translation></message>
     <message><source>xgt HTA ygt</source><translation>内部識別己</translation></message>
     <message><source>XML declaration not well-formed</source><translation>マークアップ宣言の形式が正しくありません</translation></message>
     <message><source>XML or text declaration not at start of entity</source><translation>マークアップまたはテキスト宣言が実体の先頭にありません</translation></message>
-    <message><source>Y Action</source><translation>纵向动作</translation></message>
+    <message><source>Y Action</source><translation>Y アクション</translation></message>
     <message><source>Y Transparent Figures</source><translation>縦方向透明数字</translation></message>
     <message><source>Y Transparent Leading</source><translation>縦方向透明行送り</translation></message>
     <message><source>Y Transparent Uppercase</source><translation>縦方向透明大文字</translation></message>
     <message><source>yok HTA zok</source><translation>内部識別庚</translation></message>
     <message><source>You are Offline</source><translation>オフライン</translation></message>
-    <message><source>You are working in an unsaved scene</source><translation>未保存のシーンで働いています</translation></message>
-    <message><source>You are working in an unsaved scene.</source><translation>未保存のシーンで働いています。</translation></message>
+    <message><source>You are working in an unsaved scene</source><translation>未保存のシーンで作業しています</translation></message>
+    <message><source>You are working in an unsaved scene.</source><translation>未保存のシーンで作業しています。</translation></message>
     <message><source>You can customise the Cavalry Control interface by adding a UI Script to act as a Header</source><translation>ヘッダーとして動作する画面スクリプトを追加してコントロール画面をカスタマイズできます</translation></message>
     <message><source>You can customise the Cavalry Control interface by adding a UI Script to act as a Header.</source><translation>ヘッダーとして動作する画面スクリプトを追加してコントロール画面をカスタマイズできます。</translation></message>
     <message><source>You can open the Control Centre from the Window menu</source><translation>コントロールセンターをウィンドウメニューから開くことができます</translation></message>
     <message><source>You can open the Control Centre from the Window menu.</source><translation>コントロールセンターをウィンドウメニューから開くことができます。</translation></message>
-    <message><source>You can override sub-mesh materials with a Sub-Mesh deformer</source><translation>可以使用子メッシュ变形器覆盖子メッシュ材质</translation></message>
-    <message><source>You can override sub-mesh materials with a Sub-Mesh deformer.</source><translation>可以使用子メッシュ变形器覆盖子メッシュ材质。</translation></message>
-    <message><source>You can override sub-mesh strokes with a Sub-Mesh deformer</source><translation>可以使用子メッシュ变形器覆盖子メッシュ描边</translation></message>
-    <message><source>You can override sub-mesh strokes with a Sub-Mesh deformer.</source><translation>可以使用子メッシュ变形器覆盖子メッシュ描边。</translation></message>
+    <message><source>You can override sub-mesh materials with a Sub-Mesh deformer</source><translation>サブメッシュデフォーマでサブメッシュのマテリアルを上書きできます</translation></message>
+    <message><source>You can override sub-mesh materials with a Sub-Mesh deformer.</source><translation>サブメッシュデフォーマでサブメッシュのマテリアルを上書きできます。</translation></message>
+    <message><source>You can override sub-mesh strokes with a Sub-Mesh deformer</source><translation>サブメッシュデフォーマでサブメッシュのストロークを上書きできます</translation></message>
+    <message><source>You can override sub-mesh strokes with a Sub-Mesh deformer.</source><translation>サブメッシュデフォーマでサブメッシュのストロークを上書きできます。</translation></message>
     <message><source>You can&apos;t create keyframes during playback at the moment</source><translation>再生時にキーフレームを作成できません。</translation></message>
     <message><source>You can&apos;t create keyframes during playback at the moment.</source><translation>再生時にキーフレームを作成できません。</translation></message>
     <message><source>You can&apos;t delete the Default animation layer</source><translation>デフォルトのアニメーションレイヤーを削除できません。</translation></message>
     <message><source>You can&apos;t delete the Default animation layer.</source><translation>デフォルトのアニメーションレイヤーを削除することはできません。</translation></message>
     <message><source>You can&apos;t key a Rig Control in the &apos;Control Layer&apos; Keyframe Layer</source><translation>「コントロールレイヤー」キーフレームレイヤーではリグコントロールにキーを設定できません</translation></message>
     <message><source>You can&apos;t key this attribute at the moment. Switch to the &apos;Control Layer&apos; Keyframe Layer</source><translation>現在この属性にはキーを設定できません。「コントロールレイヤー」キーフレームレイヤーに切り替えてください</translation></message>
-    <message><source>You cannot add the root path as an Asset Folder</source><translation>不能将根パス追加为アセットファイル夹</translation></message>
-    <message><source>You cannot add the root path as an Asset Folder.</source><translation>不能将根パス追加为アセットファイル夹。</translation></message>
-    <message><source>You cannot connect an Attribute that is animated, or has an input connection</source><translation>不能接続已有动画或入力接続的属性</translation></message>
-    <message><source>You cannot connect an Attribute that is animated, or has an input connection.</source><translation>不能接続已有动画或入力接続的属性。</translation></message>
+    <message><source>You cannot add the root path as an Asset Folder</source><translation>ルートパスをアセットフォルダーとして追加することはできません</translation></message>
+    <message><source>You cannot add the root path as an Asset Folder.</source><translation>ルートパスをアセットフォルダーとして追加することはできません。</translation></message>
+    <message><source>You cannot connect an Attribute that is animated, or has an input connection</source><translation>アニメーション済み、または入力接続がある属性は接続できません</translation></message>
+    <message><source>You cannot connect an Attribute that is animated, or has an input connection.</source><translation>アニメーション済み、または入力接続がある属性は接続できません。</translation></message>
     <message><source>You cannot copy easing from multiple attributes at once</source><translation>複数の属性から同時にイージングをコピーすることはできません</translation></message>
     <message><source>You cannot copy easing from multiple attributes at once.</source><translation>複数の属性から同時にイージングをコピーすることはできません。</translation></message>
     <message><source>You cannot delete referenced layers</source><translation>参照層を削除することはできません</translation></message>
     <message><source>You cannot delete referenced layers.</source><translation>参照層を削除することはできません。</translation></message>
-    <message><source>You cannot open a new Scene while Cavalry is busy rendering</source><translation>アプリ正在レンダー时不能開く新シーン</translation></message>
-    <message><source>You cannot open a new Scene while Cavalry is busy rendering.</source><translation>アプリ正在レンダー时不能開く新シーン。</translation></message>
+    <message><source>You cannot open a new Scene while Cavalry is busy rendering</source><translation>Cavalry がレンダリング中のため、新しいシーンを開けません</translation></message>
+    <message><source>You cannot open a new Scene while Cavalry is busy rendering.</source><translation>Cavalry がレンダリング中のため、新しいシーンを開けません。</translation></message>
     <message><source>You cannot parent layers to Cameras at this time</source><translation>今度はカメラに親層が見えない</translation></message>
     <message><source>You cannot parent layers to Cameras at this time.</source><translation>今度はカメラに親層が見えない。</translation></message>
     <message><source>You cannot paste into this Scene</source><translation>このシーンにはペーストできません</translation></message>
     <message><source>You cannot paste into this Scene.</source><translation>このシーンにはペーストできません。</translation></message>
-    <message><source>You cannot pre-compose Asset layers</source><translation>不能预コンポジションアセットレイヤー</translation></message>
-    <message><source>You cannot pre-compose Asset layers.</source><translation>不能预コンポジションアセットレイヤー。</translation></message>
-    <message><source>You cannot put a Composition inside itself</source><translation>不能将コンポジション放入其自身</translation></message>
-    <message><source>You cannot put a Composition inside itself.</source><translation>不能将コンポジション放入其自身。</translation></message>
+    <message><source>You cannot pre-compose Asset layers</source><translation>アセットレイヤーはプリコンポーズできません</translation></message>
+    <message><source>You cannot pre-compose Asset layers.</source><translation>アセットレイヤーはプリコンポーズできません。</translation></message>
+    <message><source>You cannot put a Composition inside itself</source><translation>コンポジションをそれ自身の中に入れることはできません</translation></message>
+    <message><source>You cannot put a Composition inside itself.</source><translation>コンポジションをそれ自身の中に入れることはできません。</translation></message>
     <message><source>You cannot rename referenced layers</source><translation>参照層の名前を変更することはできません</translation></message>
     <message><source>You cannot rename referenced layers.</source><translation>参照層の名前を変更することはできません。</translation></message>
     <message><source>You cannot save this Scene</source><translation>このシーンは保存できません</translation></message>
@@ -3869,21 +3869,21 @@
     <message><source>You have unsaved changes in this file</source><translation>このファイルでは変更が未保存になっています</translation></message>
     <message><source>You must set at least one color on the gradient</source><translation>勾配に少なくとも1色を設定する必要があります</translation></message>
     <message><source>You must set at least one color on the gradient.</source><translation>グラデーションに少なくとも1色を設定する必要があります。</translation></message>
-    <message><source>You need to switch Compositions</source><translation>需要切换コンポジション</translation></message>
-    <message><source>Your Canva authorisation has been revoked. Please sign in again</source><translation>在线设计服务授权已被撤销。请重新登录</translation></message>
-    <message><source>Your Canva authorisation has been revoked. Please sign in again.</source><translation>在线设计服务授权已被撤销。请重新登录。</translation></message>
+    <message><source>You need to switch Compositions</source><translation>コンポジションを切り替える必要があります</translation></message>
+    <message><source>Your Canva authorisation has been revoked. Please sign in again</source><translation>Canva の認証が取り消されました。もう一度サインインしてください</translation></message>
+    <message><source>Your Canva authorisation has been revoked. Please sign in again.</source><translation>Canva の認証が取り消されました。もう一度サインインしてください。</translation></message>
     <message><source>Your render has been submitted, updates will appear in the Message Bar</source><translation>レンダリングが送信され、更新はメッセージバーに表示されます</translation></message>
     <message><source>Your render has been submitted, updates will appear in the Message Bar.</source><translation>レンダリングが送信され、更新はメッセージバーに表示されます。</translation></message>
-    <message><source>Your render will not be uploaded to Canva</source><translation>你的レンダー不会上传到在线设计服务</translation></message>
-    <message><source>Your render will not be uploaded to Canva.</source><translation>你的レンダー不会上传到在线设计服务。</translation></message>
+    <message><source>Your render will not be uploaded to Canva</source><translation>レンダーは Canva にアップロードされません</translation></message>
+    <message><source>Your render will not be uploaded to Canva.</source><translation>レンダーは Canva にアップロードされません。</translation></message>
     <message><source>yuj 9</source><translation>ユジ 9</translation></message>
     <message><source>yvj 9</source><translation>イヴジ 9</translation></message>
-    <message><source>Z Action</source><translation>深度动作</translation></message>
+    <message><source>Z Action</source><translation>Z アクション</translation></message>
     <message><source>zier Angle Snapping</source><translation>ジエルアングルスナップ</translation></message>
-    <message><source>zier curves, Straight lines, or Orthogonal routing</source><translation>贝塞尔曲线、直线或正交路由</translation></message>
+    <message><source>zier curves, Straight lines, or Orthogonal routing</source><translation>ベジェカーブ、直線、または直交ルーティング</translation></message>
     <message><source>zier curves, Straight lines, or Orthogonal routing.</source><translation>ジアーカーブ、直線、または正当性のルーティング。</translation></message>
-    <message><source>zier Handle</source><translation>贝塞尔ハンドル</translation></message>
-    <message><source>zier Handles</source><translation>贝塞尔ハンドル</translation></message>
+    <message><source>zier Handle</source><translation>ベジェハンドル</translation></message>
+    <message><source>zier Handles</source><translation>ベジェハンドル</translation></message>
     <message><source>zier Point</source><translation>ジエルポイント</translation></message>
     <message><source>zier Positions</source><translation>ジアーポジション</translation></message>
     <message><source>zier Weight</source><translation>ジッパーの重量</translation></message>
@@ -4144,11 +4144,11 @@
     </message>
     <message>
       <source>appears to be a Version 4 MAT-file, which is not currently supported</source>
-      <translation>似乎是当前不支持的第四版矩阵ファイル</translation>
+      <translation>現在サポートされていないバージョン 4 の MAT ファイルのようです</translation>
     </message>
     <message>
       <source>appears to be a Version 4 MAT-file, which is not currently supported.</source>
-      <translation>似乎是当前不支持的第四版矩阵ファイル。</translation>
+      <translation>現在サポートされていないバージョン 4 の MAT ファイルのようです。</translation>
     </message>
     <message>
       <source>Attach Nulls</source>
@@ -4360,7 +4360,7 @@
         </message>
     <message>
           <source>Fit to Screen</source>
-          <translation>画面に合わせる</translation>
+          <translation>画面にフィット</translation>
         </message>
     <message>
           <source>Hide</source>
@@ -4624,7 +4624,7 @@
     </message>
     <message>
       <source>Path Relax</source>
-      <translation>パス緩和</translation>
+      <translation>パス緩と</translation>
     </message>
     <message>
       <source>Pathfinder</source>
@@ -5803,7 +5803,7 @@
     </message>
     <message>
       <source>Replace H</source>
-      <translation>替换高值</translation>
+      <translation>高い値を置換</translation>
     </message>
     <message>
       <source>Replace Script or Create New Tab?</source>
@@ -5877,7 +5877,7 @@
     </message>
     <message>
       <source>Viewport Soloing Cleared (Quicklist deselected)</source>
-      <translation>ビューポート独显已クリア(快速列表已取消選択)</translation>
+      <translation>ビューポート単独表示をクリアしました(クイックリストの選択を解除しました)</translation>
     </message>
     <message>
       <source>Viewport Tool Help</source><translation>ビューポートツールヘルプ</translation>
@@ -5888,7 +5888,7 @@
     </message>
     <message>
       <source>Viewport setting to preview.</source>
-      <translation>ビューポート設定为预览。</translation>
+      <translation>ビューポート設定をプレビューにします。</translation>
     </message>
     <message>
       <source>Windows</source>
@@ -5920,7 +5920,7 @@
     </message>
     <message>
       <source>Alternate Vertical Half Metrics</source>
-      <translation>替代垂直半幅量</translation>
+      <translation>代替垂直半幅量</translation>
     </message>
     <message>
       <source>Alternate Vertical Metrics</source>
@@ -6028,7 +6028,7 @@
     </message>
     <message>
       <source>Case-Sensitive Forms</source>
-      <translation>サイズ写敏感形式</translation>
+      <translation>サイズ依存形式</translation>
     </message>
     <message>
       <source>Centre</source>
@@ -6080,7 +6080,7 @@
     </message>
     <message>
       <source>Contextual Half-width Spacing</source>
-      <translation>上下文半宽間隔</translation>
+      <translation>文脈依存半角スペーシング</translation>
     </message>
     <message>
       <source>Contextual Ligatures</source>
@@ -6116,7 +6116,7 @@
     </message>
     <message>
       <source>Cursive Positioning</source>
-      <translation>连笔定ビット</translation>
+      <translation>筆記体位置調整</translation>
     </message>
     <message>
       <source>Curve Interpolation</source>
@@ -6396,7 +6396,7 @@
     </message>
     <message>
       <source>Justification Alternates</source>
-      <translation>两端整列替代</translation>
+      <translation>两端整列代替</translation>
     </message>
     <message>
       <source>Kerning</source>
@@ -6408,7 +6408,7 @@
     </message>
     <message>
       <source>Kerning for Alternate Proportional Widths</source>
-      <translation>替代比例幅字距</translation>
+      <translation>代替比例幅字距</translation>
     </message>
     <message>
       <source>Label</source>
@@ -6488,15 +6488,15 @@
     </message>
     <message>
       <source>Mark Positioning</source>
-      <translation>マーカー定ビット</translation>
+      <translation>マーク位置調整</translation>
     </message>
     <message>
       <source>Mark Positioning via Substitution</source>
-      <translation>通过置換进行マーカー定ビット</translation>
+      <translation>置換によるマーク位置調整</translation>
     </message>
     <message>
       <source>Mark to Mark Positioning</source>
-      <translation>マーカー到マーカー定ビット</translation>
+      <translation>マーク間位置調整</translation>
     </message>
     <message>
       <source>Math</source>
@@ -6504,7 +6504,7 @@
     </message>
     <message>
       <source>Math Script-style Alternates</source>
-      <translation>数学脚本スタイル替代</translation>
+      <translation>数学脚本スタイル代替</translation>
     </message>
     <message>
       <source>Mathematical Greek</source>
@@ -6580,7 +6580,7 @@
     </message>
     <message>
       <source>Optical Size</source>
-      <translation>视觉サイズ</translation>
+      <translation>視覚サイズ</translation>
     </message>
     <message>
       <source>Ordinals</source>
@@ -6647,7 +6647,7 @@
     </message>
     <message>
       <source>Proportional Alternate Widths</source>
-      <translation>比例替代幅</translation>
+      <translation>比例代替幅</translation>
     </message>
     <message>
       <source>Proportional Figures</source>
@@ -7002,7 +7002,7 @@
     </message>
     <message>
       <source>Traditional Name Forms</source>
-      <translation>传统名前形式</translation>
+      <translation>伝統名前形式</translation>
     </message>
     <message>
       <source>Trailing Jamo Forms</source>
@@ -7037,7 +7037,7 @@
       <translation>結合</translation>
     </message>
     <message>
-      <source>Utility</source><translation>ユーティリティ</translation>
+      <source>Utility</source><translation>補助機能</translation>
     </message>
     <message>
       <source>Value</source>
@@ -7085,15 +7085,15 @@
     </message>
     <message>
       <source>Vertical Alternates and Rotation</source>
-      <translation>垂直替代和回転</translation>
+      <translation>垂直代替と回転</translation>
     </message>
     <message>
       <source>Vertical Alternates for Rotation</source>
-      <translation>垂直回転替代</translation>
+      <translation>垂直回転代替</translation>
     </message>
     <message>
       <source>Vertical Contextual Half-width Spacing</source>
-      <translation>垂直上下文半宽間隔</translation>
+      <translation>垂直文脈依存半角スペーシング</translation>
     </message>
     <message>
       <source>Vertical Kana Alternates</source>

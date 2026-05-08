@@ -89,12 +89,12 @@
         "visibility": {
           "0": "两者",
           "1": "正面",
-          "2": "背面"
+          "2": "后退"
         }
       },
       "tabs": {
-        "filter": "设置",
-        "lighting": "光照"
+        "filter": "Settings",
+        "lighting": "Lighting"
       }
     }
   }

@@ -5,12 +5,12 @@
     "value": {
       "auth.error.accessDenied": "認証が拒否されました。再度サインインしてください。",
       "auth.error.generic": "サインイン中に問題が発生しました。もう一度お試しください。",
-      "gpu.unsupported.contactSupport": "このメッセージが誤りで表示されていると思われる場合は、サポートに連絡して、システム診断のコピーを含めてください（ヘルプ > システム診断 > クリップボードにコピー）。",
-      "gpu.unsupported.discreteGPU": "ディスクリートGPU（NVIDIAまたはAMD）がある場合は、統合グラフィックスではなくCavalryがそれを使用していることを確認してください。",
+      "gpu.unsupported.title": "GPUはサポートされていません",
       "gpu.unsupported.intro": "このコンピュータでGPUレンダリングを初期化できませんでした。",
       "gpu.unsupported.thingsToTry": "試してみてください:",
-      "gpu.unsupported.title": "GPUはサポートされていません",
-      "gpu.unsupported.updateDrivers": "GPUドライバーを最新バージョンに更新してください。"
+      "gpu.unsupported.updateDrivers": "GPUドライバーを最新バージョンに更新してください。",
+      "gpu.unsupported.discreteGPU": "ディスクリートGPU（NVIDIAまたはAMD）がある場合は、統合グラフィックスではなくCavalryがそれを使用していることを確認してください。",
+      "gpu.unsupported.contactSupport": "このメッセージが誤りで表示されていると思われる場合は、サポートに連絡して、システム診断のコピーを含めてください（ヘルプ > システム診断 > クリップボードにコピー）。"
     }
   }
 ]

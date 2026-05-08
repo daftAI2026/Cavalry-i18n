@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "lightSweepFilter",
-      "niceName": "光掃",
+      "niceName": "掃光",
       "layerInfo": "模擬光源在圖層上移動的效果。",
       "language": "zh-Hant",
       "attributes": {
@@ -55,7 +55,7 @@
       },
       "enums": {
         "shape": {
-          "0": "線條",
+          "0": "直線",
           "1": "圓形"
         }
       }

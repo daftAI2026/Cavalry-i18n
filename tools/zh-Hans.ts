@@ -67,15 +67,15 @@
   </message>
   <message>
     <source>2026 Scene Group Ltd.</source>
-    <translation>2026 Scene Group Ltd.</translation>
+    <translation>2026 Scene Group Ltd。</translation>
   </message>
   <message>
     <source>A new tab has been opened in your default browser so you can log in to Canva there</source>
-    <translation>已在您的默认浏览器中打开新标签页，您可以在此登录 Canva</translation>
+    <translation>已在默认浏览器中打开新标签页，方便你在其中登录 Canva。</translation>
   </message>
   <message>
     <source>A new tab has been opened in your default browser so you can log in to Canva there.</source>
-    <translation>已在您的默认浏览器中打开新标签页，您可以在此登录 Canva。</translation>
+    <translation>已在默认浏览器中打开新标签页，方便你在其中登录 Canva。</translation>
   </message>
   <message>
     <source>A Professional licence is required for Dynamic Rendering</source>
@@ -87,11 +87,11 @@
   </message>
   <message>
     <source>A selection of two points from two different contours on the same shape is required to join contours</source>
-    <translation>需要从同一形状的两个不同轮廓上各选择一个点才能连接轮廓</translation>
+    <translation>要连接轮廓，需要在同一形状上的两个不同轮廓中各选择一个点。</translation>
   </message>
   <message>
     <source>A selection of two points from two different contours on the same shape is required to join contours.</source>
-    <translation>需要从同一形状的两个不同轮廓上各选择一个点才能连接轮廓。</translation>
+    <translation>要连接轮廓，需要在同一形状上的两个不同轮廓中各选择一个点。</translation>
   </message>
   <message>
     <source>About Cavalry</source>
@@ -111,7 +111,7 @@
   </message>
   <message>
     <source>Access All Alternates</source>
-    <translation>访问所有替代项</translation>
+    <translation>访问所有替代字形</translation>
   </message>
   <message>
     <source>Account</source>
@@ -119,39 +119,39 @@
   </message>
   <message>
     <source>Action not allowed. Adding composition would create a cycle</source>
-    <translation>不允许此操作。添加合成会创建循环</translation>
+    <translation>不允许此操作。添加该合成会形成循环。</translation>
   </message>
   <message>
     <source>Action not allowed. Adding composition would create a cycle.</source>
-    <translation>不允许此操作。添加合成会创建循环。</translation>
+    <translation>不允许此操作。添加该合成会形成循环。</translation>
   </message>
   <message>
     <source>Active</source>
-    <translation>激活</translation>
+    <translation>活动</translation>
   </message>
   <message>
     <source>Active Camera</source>
-    <translation>激活摄像机</translation>
+    <translation>活动相机</translation>
   </message>
   <message>
     <source>Active Camera: Layer Tools Disabled</source>
-    <translation>激活摄像机：图层工具已禁用</translation>
+    <translation>活动相机：图层工具已禁用</translation>
   </message>
   <message>
     <source>Active Camera: Layer Tools Disabled.</source>
-    <translation>激活摄像机：图层工具已禁用。</translation>
+    <translation>活动相机：图层工具已禁用。</translation>
   </message>
   <message>
     <source>Active Composition</source>
-    <translation>激活合成</translation>
+    <translation>活动合成</translation>
   </message>
   <message>
     <source>Active Forge Solver</source>
-    <translation>激活 Forge 求解器</translation>
+    <translation>启用 Forge 求解器</translation>
   </message>
   <message>
     <source>Active Tags.</source>
-    <translation>激活标签。</translation>
+    <translation>活动标签。</translation>
   </message>
   <message>
     <source>Add</source>
@@ -159,35 +159,35 @@
   </message>
   <message>
     <source>Add a bone at the top of the hierarchy</source>
-    <translation>在层次结构顶部添加骨骼</translation>
+    <translation>在层级顶部添加骨骼</translation>
   </message>
   <message>
     <source>Add a bone at the top of the hierarchy.</source>
-    <translation>在层次结构顶部添加骨骼。</translation>
+    <translation>在层级顶部添加骨骼。</translation>
   </message>
   <message>
     <source>Add a bone parented to this one</source>
-    <translation>添加子骨骼</translation>
+    <translation>添加一个以此骨骼为父级的骨骼</translation>
   </message>
   <message>
     <source>Add a bone parented to this one.</source>
-    <translation>添加子骨骼。</translation>
+    <translation>添加一个以此骨骼为父级的骨骼。</translation>
   </message>
   <message>
     <source>Add a new Attribute variable which can be used in your script</source>
-    <translation>添加新的属性变量，可在脚本中使用</translation>
+    <translation>添加可在脚本中使用的新属性变量</translation>
   </message>
   <message>
     <source>Add a new Attribute variable which can be used in your script.</source>
-    <translation>添加新的属性变量，可在脚本中使用。</translation>
+    <translation>添加可在脚本中使用的新属性变量。</translation>
   </message>
   <message>
     <source>Add a Placement Utility</source>
-    <translation>添加布局工具</translation>
+    <translation>添加放置实用工具</translation>
   </message>
   <message>
     <source>Add a Rig Control</source>
-    <translation>添加绑定控制</translation>
+    <translation>添加绑定控制器</translation>
   </message>
   <message>
     <source>Add a Tag</source>
@@ -199,15 +199,15 @@
   </message>
   <message>
     <source>Add a tracker (4 required)</source>
-    <translation>添加跟踪器（需要 4 个）</translation>
+    <translation>添加跟踪点（需要 4 个）</translation>
   </message>
   <message>
     <source>Add a tracker (4 required).</source>
-    <translation>添加跟踪器（需要 4 个）。</translation>
+    <translation>添加跟踪点（需要 4 个）。</translation>
   </message>
   <message>
     <source>Add an Animation Control</source>
-    <translation>添加动画控制</translation>
+    <translation>添加动画控制器</translation>
   </message>
   <message>
     <source>Add an Auto-Animate Deformer</source>
@@ -215,11 +215,11 @@
   </message>
   <message>
     <source>Add an IK Control using this Bone as End Effector</source>
-    <translation>使用此骨骼作为末端执行器添加反向运动控制</translation>
+    <translation>使用此骨骼作为末端执行器添加 IK 控制器</translation>
   </message>
   <message>
     <source>Add an IK Control using this Bone as End Effector.</source>
-    <translation>使用此骨骼作为末端执行器添加反向运动控制。</translation>
+    <translation>使用此骨骼作为末端执行器添加 IK 控制器。</translation>
   </message>
   <message>
     <source>Add Animation Control</source>
@@ -235,7 +235,7 @@
   </message>
   <message>
     <source>Add Asset To Scene</source>
-    <translation>添加资源到场景</translation>
+    <translation>将资源添加到场景</translation>
   </message>
   <message>
     <source>Add Background</source>
@@ -243,7 +243,7 @@
   </message>
   <message>
     <source>Add Background to Selected</source>
-    <translation>添加背景到所选项</translation>
+    <translation>为所选添加背景</translation>
   </message>
   <message>
     <source>Add Behaviour</source>
@@ -255,7 +255,7 @@
   </message>
   <message>
     <source>Add Camera</source>
-    <translation>添加摄像机</translation>
+    <translation>添加相机</translation>
   </message>
   <message>
     <source>Add Clip</source>
@@ -263,11 +263,11 @@
   </message>
   <message>
     <source>Add Clip to End</source>
-    <translation>添加片段到末尾</translation>
+    <translation>将片段添加到末尾</translation>
   </message>
   <message>
     <source>Add Clip to Start</source>
-    <translation>添加片段到开始</translation>
+    <translation>将片段添加到开头</translation>
   </message>
   <message>
     <source>Add Collision Event</source>
@@ -279,15 +279,15 @@
   </message>
   <message>
     <source>Add Color Stop</source>
-    <translation>添加颜色停止点</translation>
+    <translation>添加色标</translation>
   </message>
   <message>
     <source>Add Colors from Selection</source>
-    <translation>从所选项添加颜色</translation>
+    <translation>从所选内容添加颜色</translation>
   </message>
   <message>
     <source>Add Colors from Selection and Connect</source>
-    <translation>从所选项添加颜色并连接</translation>
+    <translation>从所选内容添加颜色并连接</translation>
   </message>
   <message>
     <source>Add connections</source>
@@ -299,11 +299,11 @@
   </message>
   <message>
     <source>Add Double</source>
-    <translation>添加双精度浮点数</translation>
+    <translation>添加双精度数值</translation>
   </message>
   <message>
     <source>Add Double (float)</source>
-    <translation>添加浮点数</translation>
+    <translation>添加双精度数值（浮点）</translation>
   </message>
   <message>
     <source>Add Expression...</source>
@@ -315,7 +315,7 @@
   </message>
   <message>
     <source>Add Field</source>
-    <translation>添加字段</translation>
+    <translation>添加场</translation>
   </message>
   <message>
     <source>Add Header</source>
@@ -371,7 +371,7 @@
   </message>
   <message>
     <source>Add Layers Popover</source>
-    <translation>添加图层弹出菜单</translation>
+    <translation>添加图层弹出面板</translation>
   </message>
   <message>
     <source>Add List Attribute</source>
@@ -383,7 +383,7 @@
   </message>
   <message>
     <source>Add New Layers to Selected Tags</source>
-    <translation>添加新图层到所选标签</translation>
+    <translation>将新图层添加到所选标签</translation>
   </message>
   <message>
     <source>Add new snippet</source>
@@ -411,11 +411,11 @@
   </message>
   <message>
     <source>Add selected layers to the Attribute Editor</source>
-    <translation>添加所选图层到属性编辑器</translation>
+    <translation>将所选图层添加到属性编辑器</translation>
   </message>
   <message>
     <source>Add selected layers to the Attribute Editor.</source>
-    <translation>添加所选图层到属性编辑器。</translation>
+    <translation>将所选图层添加到属性编辑器。</translation>
   </message>
   <message>
     <source>Add Shader</source>
@@ -693,9 +693,9 @@
       <translation>关于 Cavalry</translation>
     </message>
     <message><source>Base</source><translation>基础</translation></message>
-    <message><source>Bearer</source><translation>接线员</translation></message>
-    <message><source>Bearer Token</source><translation>守护者托肯</translation></message>
-    <message><source>Beat Marker Settings</source><translation>击败标记设置</translation></message>
+    <message><source>Bearer</source><translation>Bearer</translation></message>
+    <message><source>Bearer Token</source><translation>Bearer 令牌</translation></message>
+    <message><source>Beat Marker Settings</source><translation>节拍标记设置</translation></message>
     <message><source>before of</source><translation>开始前</translation></message>
     <message><source>Beta</source><translation>贝塔</translation></message>
     <message><source>Bezier</source><translation>贝塞尔</translation></message>
@@ -712,37 +712,37 @@
     <message><source>Bounce In</source><translation>弹入</translation></message>
     <message><source>Bounce In, Bounce Out</source><translation>弹入,弹出</translation></message>
     <message><source>Bounce OH</source><translation>弹跳出手柄</translation></message>
-    <message><source>Bounce Out Magic Easing set</source><translation>弹出魔法减速装置</translation></message>
-    <message><source>Bounce Out Magic Easing set.</source><translation>弹跳弹出魔法缓动设置。</translation></message>
+    <message><source>Bounce Out Magic Easing set</source><translation>已设置弹出魔法缓动</translation></message>
+    <message><source>Bounce Out Magic Easing set.</source><translation>已设置弹出魔法缓动。</translation></message>
     <message><source>Break</source><translation>中断</translation></message>
     <message><source>Break B</source><translation>断开 B</translation></message>
     <message><source>Built-in</source><translation>内建</translation></message>
     <message><source>Built-in Presets</source><translation>内置预设</translation></message>
     <message><source>but got</source><translation>却得到了</translation></message>
     <message><source>Button</source><translation>按钮</translation></message>
-    <message><source>Bypass colour management entirely. Use for control layers like displacement maps</source><translation>完全通过色彩管理 用于控制层, 如移位图</translation></message>
-    <message><source>Bypass colour management entirely. Use for control layers like displacement maps.</source><translation>完全通过色彩管理 用于控制层, 如移位图 。</translation></message>
+    <message><source>Bypass colour management entirely. Use for control layers like displacement maps</source><translation>完全绕过色彩管理。用于位移贴图等控制图层</translation></message>
+    <message><source>Bypass colour management entirely. Use for control layers like displacement maps.</source><translation>完全绕过色彩管理。用于位移贴图等控制图层。</translation></message>
     <message><source>c Vital.</source><translation>关键状态。</translation></message>
-    <message><source>Cache Solvers</source><translation>缓存解析器</translation></message>
+    <message><source>Cache Solvers</source><translation>缓存解算器</translation></message>
     <message><source>Camera Bookmarks</source><translation>相机书签</translation></message>
     <message><source>Cameras</source><translation>摄影机</translation></message>
     <message><source>Cancel (esc.)</source><translation>取消(退出键)</translation></message>
     <message><source>Cancel Uploads</source><translation>取消上传</translation></message>
     <message><source>Cancelled</source><translation>已取消</translation></message>
     <message><source>cannot change setting once parsing has begun</source><translation>无法在解析开始后更改设置</translation></message>
-    <message><source>cannot compare iterators of different containers</source><translation>无法比较不同容器的载体</translation></message>
+    <message><source>cannot compare iterators of different containers</source><translation>不能比较不同容器的迭代器</translation></message>
     <message><source>cannot get value</source><translation>无法获得值</translation></message>
-    <message><source>Cannot Group Transform across different Hierarchy levels. Transform Mode set to Individual</source><translation>无法通过不同级别分组变换 。 转换模式设置为个人</translation></message>
-    <message><source>Cannot Group Transform across different Hierarchy levels. Transform Mode set to Individual.</source><translation>无法通过不同级别分组变换 。 转换模式设置为个人 。</translation></message>
+    <message><source>Cannot Group Transform across different Hierarchy levels. Transform Mode set to Individual</source><translation>无法跨不同层级执行组变换。变换模式已设为“单独”</translation></message>
+    <message><source>Cannot Group Transform across different Hierarchy levels. Transform Mode set to Individual.</source><translation>无法跨不同层级执行组变换。变换模式已设为“单独”。</translation></message>
     <message><source>Cannot render</source><translation>无法渲染</translation></message>
     <message><source>cannot suspend in external parameter entity</source><translation>无法在外部参数实体中暂停</translation></message>
     <message><source>cannot switch from automatic to manual argument indexing</source><translation>无法从自动参数索引切换到手动参数索引</translation></message>
     <message><source>cannot switch from manual to automatic argument indexing</source><translation>无法从手动向自动参数索引转换</translation></message>
-    <message><source>cannot use at() with</source><translation>无法在( ) 时使用</translation></message>
-    <message><source>cannot use erase() with</source><translation>无法使用擦除( )</translation></message>
-    <message><source>cannot use key() for non-object iterators</source><translation>不能对非对象迭代器使用键函数</translation></message>
-    <message><source>cannot use operator[] with a numeric argument with</source><translation>无法使用运算符 。</translation></message>
-    <message><source>cannot use operator[] with a string argument with</source><translation>无法使用字符串参数的运算符[]</translation></message>
+    <message><source>cannot use at() with</source><translation>不能将 at() 用于</translation></message>
+    <message><source>cannot use erase() with</source><translation>不能将 erase() 用于</translation></message>
+    <message><source>cannot use key() for non-object iterators</source><translation>不能对非对象迭代器使用 key()</translation></message>
+    <message><source>cannot use operator[] with a numeric argument with</source><translation>不能将带数字参数的 operator[] 用于</translation></message>
+    <message><source>cannot use operator[] with a string argument with</source><translation>不能将带字符串参数的 operator[] 用于</translation></message>
     <message><source>Canva auth has expired</source><translation>Canva 授权已过期</translation></message>
     <message><source>Canva auth has expired.</source><translation>Canva 授权已过期。</translation></message>
     <message><source>Canva auth offline grace period expired</source><translation>Canva 授权离线宽限期已过期</translation></message>
@@ -752,17 +752,17 @@
     <message><source>Carissma</source><translation>卡里斯马</translation></message>
     <message><source>Case Features</source><translation>大小写特性</translation></message>
     <message><source>Cavalry access check failed (HTTP</source><translation>软件访问检查失败(网络协议</translation></message>
-    <message><source>Cavalry access check failed: could not connect to Canva</source><translation>访问检查失败: 无法连接在线设计服务</translation></message>
+    <message><source>Cavalry access check failed: could not connect to Canva</source><translation>Cavalry 访问检查失败：无法连接 Canva</translation></message>
     <message><source>Cavalry access check failed: invalid JSON response</source><translation>Cavalry 访问检查失败：无效JSON响应</translation></message>
-    <message><source>Cavalry by Canva</source><translation>Cavalry由Canva</translation></message>
-    <message><source>Cavalry Control Header Script</source><translation>Cavalry控制头部脚本</translation></message>
+    <message><source>Cavalry by Canva</source><translation>Canva 旗下 Cavalry</translation></message>
+    <message><source>Cavalry Control Header Script</source><translation>控制界面头部脚本</translation></message>
     <message><source>Cavalry does not know how to import this directory</source><translation>本软件无法导入此目录</translation></message>
     <message><source>Cavalry does not know how to import this directory.</source><translation>本软件无法导入此目录。</translation></message>
     <message><source>Cel Animation</source><translation>逐帧动画</translation></message>
     <message><source>Cell Count</source><translation>单元格数</translation></message>
     <message><source>Cell Size</source><translation>单元格大小</translation></message>
     <message><source>Centre Align</source><translation>中间对齐</translation></message>
-    <message><source>Centre Align Keys</source><translation>中心对齐密钥</translation></message>
+    <message><source>Centre Align Keys</source><translation>居中对齐关键帧</translation></message>
     <message><source>Change Composition</source><translation>更改合成</translation></message>
     <message><source>Character Variant</source><translation>字符变量</translation></message>
     <message><source>Checkbox</source><translation>复选框</translation></message>
@@ -773,12 +773,12 @@
     <message><source>Clear All</source><translation>全部清除</translation></message>
     <message><source>Clear Control Centre</source><translation>清除控制中心</translation></message>
     <message><source>Clear Generator</source><translation>清除生成器</translation></message>
-    <message><source>Clear Key</source><translation>清除密钥</translation></message>
+    <message><source>Clear Key</source><translation>清除关键帧</translation></message>
     <message><source>Clear palette</source><translation>清除调色板</translation></message>
     <message><source>Clear Palette</source><translation>清除调色板</translation></message>
     <message><source>Clear Path</source><translation>清除路径</translation></message>
     <message><source>Clear Script</source><translation>清除脚本</translation></message>
-    <message><source>Clear Script?</source><translation>清除脚本吗 ?</translation></message>
+    <message><source>Clear Script?</source><translation>清除脚本吗？</translation></message>
     <message><source>Clear Selected</source><translation>清除选中内容</translation></message>
     <message><source>Clear Settings</source><translation>清除设置</translation></message>
     <message><source>Clear Shortcut.</source><translation>清除快捷键。</translation></message>
@@ -786,14 +786,14 @@
     <message><source>Clear Tag Selection</source><translation>清除标签选择</translation></message>
     <message><source>Clear the log</source><translation>清除日志</translation></message>
     <message><source>Clear the log window</source><translation>清除日志窗口</translation></message>
-    <message><source>Clear the log window.</source><translation>清除日志窗口 。</translation></message>
+    <message><source>Clear the log window.</source><translation>清除日志窗口。</translation></message>
     <message><source>Clear the log.</source><translation>清除日志。</translation></message>
     <message><source>Clear the Quicklist</source><translation>清除快速列表</translation></message>
     <message><source>Clear the Tracking data for the selected layer</source><translation>清除选定层的跟踪数据</translation></message>
     <message><source>Clear the Tracking data for the selected layer.</source><translation>清除选定层的跟踪数据。</translation></message>
-    <message><source>Cleared Snapshots.</source><translation>已清除快照 。</translation></message>
+    <message><source>Cleared Snapshots.</source><translation>已清除快照。</translation></message>
     <message><source>Clears all mixed styling from this text</source><translation>在此文本中清除所有混合样式</translation></message>
-    <message><source>Clears all mixed styling from this text.</source><translation>清除此文本中的所有混合样式 。</translation></message>
+    <message><source>Clears all mixed styling from this text.</source><translation>清除此文本中的所有混合样式。</translation></message>
     <message><source>Clears Focus</source><translation>清除焦点</translation></message>
     <message><source>Click</source><translation>单击</translation></message>
     <message><source>Click a Shape</source><translation>单击形状</translation></message>
@@ -807,8 +807,8 @@
     <message><source>Click handle</source><translation>点击手柄</translation></message>
     <message><source>Click to edit or remove the Attribute Expression</source><translation>单击以编辑或移除属性表达式</translation></message>
     <message><source>Click to edit or remove the Attribute Expression.</source><translation>单击以编辑或移除属性表达式。</translation></message>
-    <message><source>Click to isolate layers and reveal any animated attributes</source><translation>单击以隔离层并显示任何动画属性</translation></message>
-    <message><source>Click to isolate layers and reveal any animated attributes.</source><translation>点击可隔离层并显示任何动画属性.</translation></message>
+    <message><source>Click to isolate layers and reveal any animated attributes</source><translation>单击以隔离图层并显示所有动画属性</translation></message>
+    <message><source>Click to isolate layers and reveal any animated attributes.</source><translation>单击以隔离图层并显示所有动画属性。</translation></message>
     <message><source>Click to see any connections</source><translation>单击以查看任何连接</translation></message>
     <message><source>Click to set a Keyframe</source><translation>单击以设置关键帧</translation></message>
     <message><source>Click to show all layers</source><translation>单击以显示所有层</translation></message>
@@ -816,16 +816,16 @@
     <message><source>Click to show connections to and from this Attribute</source><translation>单击以显示此属性的输入和输出连接</translation></message>
     <message><source>Click to show connections to and from this Attribute.</source><translation>单击以显示此属性的输入和输出连接。</translation></message>
     <message><source>Click to Zoom In</source><translation>单击以放大</translation></message>
-    <message><source>Clipping Mask</source><translation>擦拭面具</translation></message>
+    <message><source>Clipping Mask</source><translation>剪切遮罩</translation></message>
     <message><source>Clips</source><translation>剪辑</translation></message>
     <message><source>Collapsible</source><translation>可折叠</translation></message>
     <message><source>Collinear Tolerance</source><translation>共线容差</translation></message>
     <message><source>Color Management</source><translation>色彩管理</translation></message>
-    <message><source>Color picking is already active!</source><translation>颜色选择已经激活 !</translation></message>
+    <message><source>Color picking is already active!</source><translation>颜色拾取已启用！</translation></message>
     <message><source>Color Settings</source><translation>颜色设置</translation></message>
     <message><source>Color Settings...</source><translation>颜色设置...</translation></message>
-    <message><source>Colour-managed working surface failed, trying without colour space</source><translation>色彩管理工作表面失败, 没有色彩空间</translation></message>
-    <message><source>Colour-managed working surface failed, trying without colour space.</source><translation>色彩管理工作表面失败, 没有色彩空间 。</translation></message>
+    <message><source>Colour-managed working surface failed, trying without colour space</source><translation>色彩管理工作表面失败，正在尝试不使用色彩空间</translation></message>
+    <message><source>Colour-managed working surface failed, trying without colour space.</source><translation>色彩管理工作表面失败，正在尝试不使用色彩空间。</translation></message>
     <message><source>Column titles are the first row in each column</source><translation>列标题是每列中的第一行</translation></message>
     <message><source>Column titles are the first row in each column.</source><translation>列标题是每列中的第一行。</translation></message>
     <message><source>Combined Keyframe Layers value</source><translation>组合关键帧图层值</translation></message>
@@ -835,11 +835,11 @@
     <message><source>Command Search (Pro)</source><translation>命令搜索(专业版)</translation></message>
     <message><source>Commit Tag</source><translation>提交标签</translation></message>
     <message><source>Common</source><translation>常见</translation></message>
-    <message><source>Comp</source><translation>压缩</translation></message>
+    <message><source>Comp</source><translation>合成</translation></message>
     <message><source>Compact</source><translation>压缩</translation></message>
     <message><source>Complementary</source><translation>辅助</translation></message>
     <message><source>Complete</source><translation>完成</translation></message>
-    <message><source>Compositing Bit Depth</source><translation>构成比特深度</translation></message>
+    <message><source>Compositing Bit Depth</source><translation>合成位深度</translation></message>
     <message><source>Composition Background Alpha is set to 255. Use the Composition Menu to make the Composition Background transparent</source><translation>合成背景透明度为二百五十五。请使用合成菜单让背景透明</translation></message>
     <message><source>Composition Background Alpha is set to 255. Use the Composition Menu to make the Composition Background transparent.</source><translation>合成背景透明度为二百五十五。请使用合成菜单让背景透明。</translation></message>
     <message><source>Composition End</source><translation>合成结束</translation></message>
@@ -853,24 +853,24 @@
     <message><source>Composition Timecode. Alt-Click this control to switch to frame mode.</source><translation>合成时间码。按住选项键单击此控件可切换到帧模式。</translation></message>
     <message><source>Conflict</source><translation>冲突</translation></message>
     <message><source>Connect a Behaviour or Utility here</source><translation>在此连接一个行为或工具</translation></message>
-    <message><source>Connect a Behaviour or Utility here.</source><translation>在此连接一个行为或工具 。</translation></message>
+    <message><source>Connect a Behaviour or Utility here.</source><translation>在此连接一个行为或工具。</translation></message>
     <message><source>Connect Deformer</source><translation>连接变形器</translation></message>
     <message><source>Connect H</source><translation>连接 H</translation></message>
-    <message><source>Connect its output to a keyframed attribute</source><translation>将其输出连接到密钥框架属性</translation></message>
-    <message><source>Connect its output to a keyframed attribute.</source><translation>将其输出连接到密钥框架属性 。</translation></message>
-    <message><source>Connect time marker to keyframe</source><translation>连接时间标记到密钥框架</translation></message>
+    <message><source>Connect its output to a keyframed attribute</source><translation>将其输出连接到带关键帧的属性</translation></message>
+    <message><source>Connect its output to a keyframed attribute.</source><translation>将其输出连接到带关键帧的属性。</translation></message>
+    <message><source>Connect time marker to keyframe</source><translation>将时间标记连接到关键帧</translation></message>
     <message><source>Connect Time Marker to Keyframe</source><translation>将时间标记连接到关键帧</translation></message>
     <message><source>Connect to</source><translation>连接到</translation></message>
     <message><source>Connect Window</source><translation>连接窗口</translation></message>
     <message><source>Connected</source><translation>已连接</translation></message>
     <message><source>Connected Accounts</source><translation>已连接账户</translation></message>
     <message><source>Connection</source><translation>连接</translation></message>
-    <message><source>Connection error (code</source><translation>连接错误( 代码)</translation></message>
+    <message><source>Connection error (code</source><translation>连接错误（代码)</translation></message>
     <message><source>Connection established</source><translation>已建立连接</translation></message>
     <message><source>Connection failed: Unable to connect to server</source><translation>连接失败: 无法连接到服务器</translation></message>
-    <message><source>Connection failed: Unable to connect to server.</source><translation>连接失败: 无法连接到服务器 。</translation></message>
+    <message><source>Connection failed: Unable to connect to server.</source><translation>连接失败：无法连接到服务器。</translation></message>
     <message><source>Connections</source><translation>连接</translation></message>
-    <message><source>Constant (Linear)</source><translation>常数( 内尔)</translation></message>
+    <message><source>Constant (Linear)</source><translation>常数（内尔)</translation></message>
     <message><source>Constrain Axis</source><translation>约束轴</translation></message>
     <message><source>Constrain Proportions</source><translation>限制比例</translation></message>
     <message><source>Constrain the proportions of this Attribute based on the current values</source><translation>根据当前值约束此属性的比例</translation></message>
@@ -898,9 +898,9 @@
     <message><source>Copied Path to Clipboard.</source><translation>已将路径复制到剪贴板。</translation></message>
     <message><source>Copied Selected Animation</source><translation>已复制选中动画</translation></message>
     <message><source>Copied Selected Keyframes</source><translation>已复制选中关键帧</translation></message>
-    <message><source>Copy and send this information to support for troubleshooting</source><translation>复制并发送此信息支持排除故障</translation></message>
-    <message><source>Copy and send this information to support for troubleshooting.</source><translation>复制并发送此信息支持排除故障.</translation></message>
-    <message><source>Copy Asset Id</source><translation>复制资产标识符</translation></message>
+    <message><source>Copy and send this information to support for troubleshooting</source><translation>故障排查时复制并发送此信息给支持团队</translation></message>
+    <message><source>Copy and send this information to support for troubleshooting.</source><translation>故障排查时复制并发送此信息给支持团队。</translation></message>
+    <message><source>Copy Asset Id</source><translation>复制素材 ID</translation></message>
     <message><source>Copy Composition Id</source><translation>复制合成标识符</translation></message>
     <message><source>Copy Generator Type</source><translation>复制生成器类型</translation></message>
     <message><source>Copy Group Id</source><translation>复制组标识符</translation></message>
@@ -914,8 +914,8 @@
     <message><source>copy the entire path.</source><translation>复制整个路径。</translation></message>
     <message><source>Copy to Clipboard</source><translation>复制到剪贴板</translation></message>
     <message><source>Copy to Next</source><translation>复制到下一个</translation></message>
-    <message><source>Could not compile script (check for syntax errors)</source><translation>无法编译脚本( 请检查语法错误)</translation></message>
-    <message><source>Could not compile script (check for syntax errors).</source><translation>无法编译脚本( 检查语法错误) 。</translation></message>
+    <message><source>Could not compile script (check for syntax errors)</source><translation>无法编译脚本（请检查语法错误）</translation></message>
+    <message><source>Could not compile script (check for syntax errors).</source><translation>无法编译脚本（请检查语法错误）。</translation></message>
     <message><source>could not connect</source><translation>无法连接</translation></message>
     <message><source>Could not fetch app config: connection failed</source><translation>无法获取应用配置：连接失败</translation></message>
     <message><source>Could not find audio stream</source><translation>找不到音频流</translation></message>
@@ -923,10 +923,10 @@
     <message><source>Could not find or create Lattice Constraint.</source><translation>无法找到或创建晶格约束。</translation></message>
     <message><source>Could not find stream information</source><translation>找不到流信息</translation></message>
     <message><source>Could not get client token</source><translation>无法获得客户端代号</translation></message>
-    <message><source>Could not get client token.</source><translation>无法获得客户端代号 。</translation></message>
+    <message><source>Could not get client token.</source><translation>无法获取客户端令牌。</translation></message>
     <message><source>Could not get latest version</source><translation>无法获取最新版本</translation></message>
-    <message><source>Could not load Google Sheet. You do not have permission to view</source><translation>无法装入 Google 工作表 。 您没有权限查看</translation></message>
-    <message><source>Could not load Google Sheet. You do not have permission to view.</source><translation>无法装入 Google 工作表 。 您没有权限查看 。</translation></message>
+    <message><source>Could not load Google Sheet. You do not have permission to view</source><translation>无法加载 Google 工作表。你没有查看权限</translation></message>
+    <message><source>Could not load Google Sheet. You do not have permission to view.</source><translation>无法加载 Google 工作表。你没有查看权限。</translation></message>
     <message><source>Could not obtain Canva access token</source><translation>无法获取Canva访问令牌</translation></message>
     <message><source>Could not open file</source><translation>无法打开文件</translation></message>
     <message><source>Could not open font file</source><translation>无法打开字体文件</translation></message>
@@ -934,41 +934,41 @@
     <message><source>Could not reset Canva tokens</source><translation>无法重置Canva令牌</translation></message>
     <message><source>Could not reset Canva tokens.</source><translation>无法重置Canva令牌。</translation></message>
     <message><source>Could not reset licence</source><translation>无法重置许可证</translation></message>
-    <message><source>Could not reset licence.</source><translation>无法重置许可证 。</translation></message>
+    <message><source>Could not reset licence.</source><translation>无法重置许可证。</translation></message>
     <message><source>Could not retrieve access token</source><translation>无法获取访问令牌</translation></message>
-    <message><source>Could not retrieve access token.</source><translation>无法获取访问令牌 。</translation></message>
+    <message><source>Could not retrieve access token.</source><translation>无法获取访问令牌。</translation></message>
     <message><source>Could not set AGEP Position from Data</source><translation>无法从数据设置位置</translation></message>
     <message><source>Could not set AGEP Position from Data.</source><translation>无法从数据设置位置。</translation></message>
     <message><source>Crash Reporting disabled</source><translation>崩溃报告已禁用</translation></message>
-    <message><source>Crash Reporting disabled.</source><translation>崩溃报告已失效 。</translation></message>
+    <message><source>Crash Reporting disabled.</source><translation>崩溃报告已禁用。</translation></message>
     <message><source>Crash Reporting enabled</source><translation>已启用崩溃报告</translation></message>
-    <message><source>Crash Reporting enabled.</source><translation>崩溃报告启用 。</translation></message>
+    <message><source>Crash Reporting enabled.</source><translation>崩溃报告已启用。</translation></message>
     <message><source>Cream Brulee</source><translation>奶油布鲁利</translation></message>
     <message><source>Create a Camera</source><translation>创建相机</translation></message>
     <message><source>Create a Cel Animation Shape and switch to the Pencil tool</source><translation>创建逐帧动画形状并切换到铅笔工具</translation></message>
     <message><source>Create a Cel Animation Shape and switch to the Pencil tool.</source><translation>创建逐帧动画形状并切换到铅笔工具。</translation></message>
     <message><source>Create a Composition</source><translation>创建合成</translation></message>
     <message><source>Create a Duplicator</source><translation>创建复制器</translation></message>
-    <message><source>Create a Forge Dynamics Solver</source><translation>创建 Forge 动态解析器</translation></message>
+    <message><source>Create a Forge Dynamics Solver</source><translation>创建 Forge Dynamics 解算器</translation></message>
     <message><source>Create a Group</source><translation>创建分组</translation></message>
-    <message><source>Create a new keyframe</source><translation>创建新密钥框架</translation></message>
-    <message><source>Create a new keyframe.</source><translation>创建一个新的键框 。</translation></message>
-    <message><source>Create a palette to begin</source><translation>创建调色板开始</translation></message>
-    <message><source>Create a palette to begin.</source><translation>创建调色板开始 。</translation></message>
-    <message><source>Create a Rubber Hose Limb</source><translation>创建橡胶屋林布</translation></message>
-    <message><source>Create a Rubber Hose Limb.</source><translation>创建橡胶豪斯林布。</translation></message>
+    <message><source>Create a new keyframe</source><translation>创建新关键帧</translation></message>
+    <message><source>Create a new keyframe.</source><translation>创建新关键帧。</translation></message>
+    <message><source>Create a palette to begin</source><translation>创建调色板以开始</translation></message>
+    <message><source>Create a palette to begin.</source><translation>创建调色板以开始。</translation></message>
+    <message><source>Create a Rubber Hose Limb</source><translation>创建橡皮管肢体</translation></message>
+    <message><source>Create a Rubber Hose Limb.</source><translation>创建橡皮管肢体。</translation></message>
     <message><source>Create an Align Behaviour</source><translation>创建对齐行为</translation></message>
-    <message><source>Create an Extrusion</source><translation>创建突变</translation></message>
-    <message><source>Create and connect a layer</source><translation>创建和连接层</translation></message>
-    <message><source>Create and connect a layer.</source><translation>创建和连接一层 。</translation></message>
-    <message><source>Create Array from Assets in Group</source><translation>从组内资产创建阵列</translation></message>
+    <message><source>Create an Extrusion</source><translation>创建挤出</translation></message>
+    <message><source>Create and connect a layer</source><translation>创建并连接图层</translation></message>
+    <message><source>Create and connect a layer.</source><translation>创建并连接图层。</translation></message>
+    <message><source>Create Array from Assets in Group</source><translation>从组内素材创建阵列</translation></message>
     <message><source>Create Array from Compositions in Group</source><translation>从组内合成创建阵列</translation></message>
-    <message><source>Create Array From Palette</source><translation>创建数组从调色板</translation></message>
+    <message><source>Create Array From Palette</source><translation>从调色板创建数组</translation></message>
     <message><source>Create as Mask</source><translation>创建为遮罩</translation></message>
-    <message><source>Create Asset Array from Group</source><translation>创建资产数组从组</translation></message>
-    <message><source>Create Backdrop from Selection</source><translation>从选择区创建后空投</translation></message>
-    <message><source>Create Composition Array from Group</source><translation>创建合成数组从组</translation></message>
-    <message><source>Create Composition based on</source><translation>创建合成基于开启</translation></message>
+    <message><source>Create Asset Array from Group</source><translation>从组创建素材数组</translation></message>
+    <message><source>Create Backdrop from Selection</source><translation>从所选内容创建背景板</translation></message>
+    <message><source>Create Composition Array from Group</source><translation>从组创建合成数组</translation></message>
+    <message><source>Create Composition based on</source><translation>基于以下内容创建合成</translation></message>
     <message><source>Create Custom Preset</source><translation>创建自定义预设</translation></message>
     <message><source>Create Custom Preset...</source><translation>创建自定义预设...</translation></message>
     <message><source>Create from the Centre</source><translation>从中心创建</translation></message>
@@ -979,10 +979,10 @@
     <message><source>Create Text along a Path. You must have a Shape layer selected. Selecting a Text Shape is optional.</source><translation>沿路径创建文本。必须选择一个形状图层，也可以选择文本形状。</translation></message>
     <message><source>Create Text Background Shape</source><translation>创建文本背景形状</translation></message>
     <message><source>Created</source><translation>创建</translation></message>
-    <message><source>Created Asset Array from Group</source><translation>已创建资产数组从组</translation></message>
-    <message><source>Created Asset Array from Group.</source><translation>已创建资产数组从组。</translation></message>
+    <message><source>Created Asset Array from Group</source><translation>已从组创建素材数组</translation></message>
+    <message><source>Created Asset Array from Group.</source><translation>已从组创建素材数组。</translation></message>
     <message><source>Crete</source><translation>克里特</translation></message>
-    <message><source>Crop Animation to Selected Keys</source><translation>裁剪动画项目选中键</translation></message>
+    <message><source>Crop Animation to Selected Keys</source><translation>将动画裁剪到所选关键帧</translation></message>
     <message><source>crs DRS krs</source><translation>内部标识一</translation></message>
     <message><source>Crush</source><translation>粉笔</translation></message>
     <message><source>Current Composition</source><translation>当前合成</translation></message>
@@ -1006,7 +1006,7 @@
     <message><source>deep pink</source><translation>深粉红色</translation></message>
     <message><source>Defa</source><translation>德华</translation></message>
     <message><source>Default</source><translation>默认</translation></message>
-    <message><source>Default Ease (33%)</source><translation>默认容易( 33%)</translation></message>
+    <message><source>Default Ease (33%)</source><translation>默认缓动 (33%)</translation></message>
     <message><source>Default Keyframe Layer</source><translation>默认关键帧图层</translation></message>
     <message><source>Default Preset for this Layer Type</source><translation>此图层类型的默认预设</translation></message>
     <message><source>Default Renderer</source><translation>默认渲染器</translation></message>
@@ -1022,8 +1022,8 @@
     <message><source>Delete Path Animation</source><translation>删除路径动画</translation></message>
     <message><source>Delete Path Animation on this Shape</source><translation>删除路径动画开启此形状</translation></message>
     <message><source>Delete Path Animation on this Shape.</source><translation>删除路径动画开启此形状</translation></message>
-    <message><source>Delete this bookmark?</source><translation>删除此书签吗 ?</translation></message>
-    <message><source>Delete this preset?</source><translation>删除此预设 ?</translation></message>
+    <message><source>Delete this bookmark?</source><translation>删除此书签吗？</translation></message>
+    <message><source>Delete this preset?</source><translation>删除此预设？</translation></message>
     <message><source>Delete Unused Colours</source><translation>删除未使用的颜色</translation></message>
     <message><source>Descender Depth</source><translation>降温器深度</translation></message>
     <message><source>Description</source><translation>说明</translation></message>
@@ -1036,12 +1036,12 @@
     <message><source>Di Serria</source><translation>迪·塞里亚</translation></message>
     <message><source>Dialog Title</source><translation>对话框标题</translation></message>
     <message><source>Digest</source><translation>文摘</translation></message>
-    <message><source>Direct Layer Selection</source><translation>项目图层选择</translation></message>
+    <message><source>Direct Layer Selection</source><translation>直接选择图层</translation></message>
     <message><source>Directory outside of project</source><translation>项目以外的目录</translation></message>
     <message><source>Disable</source><translation>禁用</translation></message>
     <message><source>Disable B</source><translation>禁用字节</translation></message>
     <message><source>Disable Playback Caching to use this feature</source><translation>禁用播放缓存来使用此特性</translation></message>
-    <message><source>Disable Playback Caching to use this feature.</source><translation>禁用播放缓存来使用此特性 。</translation></message>
+    <message><source>Disable Playback Caching to use this feature.</source><translation>请禁用播放缓存以使用此功能。</translation></message>
     <message><source>Disable Snapping</source><translation>禁用抓图</translation></message>
     <message><source>Disable Soft Selection</source><translation>禁用软选择</translation></message>
     <message><source>Disconnect</source><translation>断开连接</translation></message>
@@ -1056,41 +1056,41 @@
     <message><source>Display Color Space</source><translation>显示颜色空间</translation></message>
     <message><source>Distribute Stops</source><translation>分发停止</translation></message>
     <message><source>Distribute: Please select a minimum of 2 shapes</source><translation>分布: 请至少选择两个形状</translation></message>
-    <message><source>Distribute: Please select a minimum of 2 shapes.</source><translation>分布:请至少选择2个形状.</translation></message>
+    <message><source>Distribute: Please select a minimum of 2 shapes.</source><translation>分布：请至少选择 2 个形状。</translation></message>
     <message><source>document is not standalone</source><translation>文档不是独立的</translation></message>
     <message><source>doesn&apos;t exist.</source><translation>没有。</translation></message>
     <message><source>dom PPC kom</source><translation>内部标识三</translation></message>
     <message><source>Done</source><translation>完成</translation></message>
-    <message><source>Double click here to import Assets</source><translation>双击此处导入资产</translation></message>
-    <message><source>Double click here to import Assets.</source><translation>双击此处导入资产。</translation></message>
+    <message><source>Double click here to import Assets</source><translation>双击此处导入素材</translation></message>
+    <message><source>Double click here to import Assets.</source><translation>双击此处导入素材。</translation></message>
     <message><source>Double click on a Preset to rename it</source><translation>双击预设以重命名</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>双击预设以重命名。</translation></message>
     <message><source>Double Click on layer</source><translation>双击图层</translation></message>
     <message><source>Drag a connection from here</source><translation>从这里拖动连接</translation></message>
-    <message><source>Drag a connection from here.</source><translation>从这里拖动连接 。</translation></message>
+    <message><source>Drag a connection from here.</source><translation>从这里拖动连接。</translation></message>
     <message><source>Drag a Shape here</source><translation>将形状拖到此处</translation></message>
     <message><source>Drag a Shape layer here</source><translation>将形状图层拖到这里</translation></message>
-    <message><source>Drag an Asset here from the Asset Window</source><translation>从资产窗口将资产拖到此处</translation></message>
-    <message><source>Drag an Asset here from the Asset Window.</source><translation>从资产窗口将资产拖到此处。</translation></message>
+    <message><source>Drag an Asset here from the Asset Window</source><translation>从素材窗口将素材拖到此处</translation></message>
+    <message><source>Drag an Asset here from the Asset Window.</source><translation>从素材窗口将素材拖到此处。</translation></message>
     <message><source>Drag an Attribute connection here</source><translation>将属性连接拖到此处</translation></message>
     <message><source>Drag an Attribute connection here.</source><translation>将属性连接拖到此处。</translation></message>
     <message><source>Drag at least two Shapes here</source><translation>将至少两个形状拖到这里</translation></message>
     <message><source>Drag colors here</source><translation>在此拖动颜色</translation></message>
-    <message><source>Drag colors here.</source><translation>在此拖放颜色 。</translation></message>
+    <message><source>Drag colors here.</source><translation>在此拖放颜色。</translation></message>
     <message><source>Drag colours here</source><translation>在此拖动颜色</translation></message>
-    <message><source>Drag colours here.</source><translation>在此拖动颜色 。</translation></message>
-    <message><source>Drag in a file from the Assets window</source><translation>从资产窗口拖入文件</translation></message>
+    <message><source>Drag colours here.</source><translation>在此拖动颜色。</translation></message>
+    <message><source>Drag in a file from the Assets window</source><translation>从素材窗口拖入文件</translation></message>
     <message><source>Drag in a Shape layer</source><translation>拖入形状图层</translation></message>
     <message><source>Drag in a Smart Folder</source><translation>在智能文件夹中拖动</translation></message>
-    <message><source>Drag in a Spreadsheet from the Assets Window</source><translation>从资产窗口拖入电子表格</translation></message>
-    <message><source>Drag in or connect an Asset</source><translation>拖入或连接资产</translation></message>
+    <message><source>Drag in a Spreadsheet from the Assets Window</source><translation>从素材窗口拖入电子表格</translation></message>
+    <message><source>Drag in or connect an Asset</source><translation>拖入或连接素材</translation></message>
     <message><source>Drag layers here to see their settings</source><translation>在此拖动图层查看其设置</translation></message>
-    <message><source>Drag layers here to see their settings.</source><translation>在此拖动层以查看其设置 。</translation></message>
+    <message><source>Drag layers here to see their settings.</source><translation>将图层拖到此处以查看其设置。</translation></message>
     <message><source>Draw</source><translation>绘制</translation></message>
     <message><source>Draw a Straight Line</source><translation>绘制直线</translation></message>
     <message><source>Draw Channel Names</source><translation>绘制频道名称</translation></message>
     <message><source>Draw debug info for selected nodes at the specified level</source><translation>为指定级别选定的节点绘制调试信息</translation></message>
-    <message><source>Draw debug info for selected nodes at the specified level.</source><translation>为指定级别选定的节点绘制调试信息 。</translation></message>
+    <message><source>Draw debug info for selected nodes at the specified level.</source><translation>为所选节点在指定级别绘制调试信息。</translation></message>
     <message><source>Drop Connection</source><translation>丢弃连接</translation></message>
     <message><source>Drop Selection</source><translation>丢弃选择</translation></message>
     <message><source>Dummy</source><translation>哑巴</translation></message>
@@ -1120,16 +1120,16 @@
     <message><source>Edward</source><translation>爱德华</translation></message>
     <message><source>Embed in layout</source><translation>嵌入布局</translation></message>
     <message><source>Embed the selected layers to a Grid Layout</source><translation>将选定的层嵌入网格布局</translation></message>
-    <message><source>Embed the selected layers to a Grid Layout.</source><translation>将选中的层嵌入网格布局 。</translation></message>
+    <message><source>Embed the selected layers to a Grid Layout.</source><translation>将所选图层嵌入网格布局。</translation></message>
     <message><source>Embed the selected layers to a Horizontal Layout</source><translation>将选中的层嵌入到水平布局</translation></message>
-    <message><source>Embed the selected layers to a Horizontal Layout.</source><translation>将选中的图层嵌入到水平布局 。</translation></message>
+    <message><source>Embed the selected layers to a Horizontal Layout.</source><translation>将所选图层嵌入水平布局。</translation></message>
     <message><source>Embed the selected layers to a Vertical Layout</source><translation>将选定的层嵌入垂直布局</translation></message>
     <message><source>Embed the selected layers to a Vertical Layout.</source><translation>将选定的层嵌入垂直布局。</translation></message>
     <message><source>Empty Layout Information</source><translation>空布局信息</translation></message>
     <message><source>Empty Sheet names found</source><translation>空 找到工作表名称</translation></message>
-    <message><source>Empty Sheet names found.</source><translation>空 找到工作表名称 。</translation></message>
+    <message><source>Empty Sheet names found.</source><translation>发现空的工作表名称。</translation></message>
     <message><source>Empty titles or invalid column data was found</source><translation>找到空标题或无效的列数据</translation></message>
-    <message><source>Empty titles or invalid column data was found.</source><translation>找到空标题或无效的列数据 。</translation></message>
+    <message><source>Empty titles or invalid column data was found.</source><translation>发现空标题或无效列数据。</translation></message>
     <message><source>Enable</source><translation>启用</translation></message>
     <message><source>Enable B</source><translation>启用字节</translation></message>
     <message><source>Enable Color Management</source><translation>启用色彩管理</translation></message>
@@ -1138,7 +1138,7 @@
     <message><source>Encoding file</source><translation>编码文件</translation></message>
     <message><source>encoding specified in XML declaration is incorrect</source><translation>声明中指定的编码不正确</translation></message>
     <message><source>End of Render Queue</source><translation>渲染队列末尾</translation></message>
-    <message><source>End of Render Queue Item</source><translation>结束项目渲染队列项目</translation></message>
+    <message><source>End of Render Queue Item</source><translation>渲染队列项目结束</translation></message>
     <message><source>end reordering USE</source><translation>结束重排使用法</translation></message>
     <message><source>End Rotation</source><translation>结束旋转</translation></message>
     <message><source>Enter a Color Name</source><translation>输入颜色名称</translation></message>
@@ -1150,12 +1150,12 @@
     <message><source>Enter a header value.</source><translation>输入标题值。</translation></message>
     <message><source>Enter a layer name</source><translation>输入图层名称</translation></message>
     <message><source>Enter a name for your preset</source><translation>输入您预设的名称</translation></message>
-    <message><source>Enter a name for your preset.</source><translation>输入您预设的名称 。</translation></message>
+    <message><source>Enter a name for your preset.</source><translation>输入您预设的名称。</translation></message>
     <message><source>Enter a name for your snippet</source><translation>输入您片段的名称</translation></message>
-    <message><source>Enter an Asset name</source><translation>输入资产名称</translation></message>
+    <message><source>Enter an Asset name</source><translation>输入素材名称</translation></message>
     <message><source>Enter an Attribute name</source><translation>输入属性名称</translation></message>
     <message><source>Enter authentication token here</source><translation>在此输入认证符</translation></message>
-    <message><source>Enter authentication token here.</source><translation>在此输入认证符 。</translation></message>
+    <message><source>Enter authentication token here.</source><translation>在此输入认证令牌。</translation></message>
     <message><source>Enter preset name</source><translation>输入预设名称</translation></message>
     <message><source>Enter the base URL here</source><translation>在此输入基础网址</translation></message>
     <message><source>Enter the base URL here.</source><translation>在此输入基础网址。</translation></message>
@@ -1168,14 +1168,14 @@
     <message><source>Error adding Steiner Point</source><translation>添加斯坦纳点出错</translation></message>
     <message><source>Error adding Steiner Point.</source><translation>添加斯坦纳点出错。</translation></message>
     <message><source>Error deserialising Workspace</source><translation>反序列化工作区出错</translation></message>
-    <message><source>Error fetching image asset. Please try adding it to the scene again</source><translation>获取图像资产出错 。 请再次加入现场</translation></message>
-    <message><source>Error fetching image asset. Please try adding it to the scene again.</source><translation>获取图像资产出错 。 请再加到现场。</translation></message>
+    <message><source>Error fetching image asset. Please try adding it to the scene again</source><translation>获取图像素材时出错。请尝试重新添加到场景</translation></message>
+    <message><source>Error fetching image asset. Please try adding it to the scene again.</source><translation>获取图像素材时出错。请尝试重新添加到场景。</translation></message>
     <message><source>error in processing external entity reference</source><translation>处理外部实体引用错误</translation></message>
     <message><source>Error reading from socket</source><translation>从套接字读取出错</translation></message>
-    <message><source>Error reading from socket.</source><translation>从套接字读取出错 。</translation></message>
+    <message><source>Error reading from socket.</source><translation>从套接字读取出错。</translation></message>
     <message><source>Error sending a packet for decoding</source><translation>发送解码包出错</translation></message>
     <message><source>Error writing to socket</source><translation>写入套接字出错</translation></message>
-    <message><source>Error writing to socket.</source><translation>写入套接字出错 。</translation></message>
+    <message><source>Error writing to socket.</source><translation>写入套接字出错。</translation></message>
     <message><source>Error: Canceled</source><translation>错误: 已取消</translation></message>
     <message><source>Error: CH</source><translation>错误: 通道一</translation></message>
     <message><source>Error: Compression</source><translation>错误:压缩</translation></message>
@@ -1184,7 +1184,7 @@
     <message><source>Error: RH</source><translation>错误: 通道二</translation></message>
     <message><source>Error: SSLConnection</source><translation>错误: 安全连接</translation></message>
     <message><source>Error: Trying to add an attribute without a control</source><translation>错误: 试图添加一个没有控件的属性</translation></message>
-    <message><source>Error: Trying to add an attribute without a control.</source><translation>错误: 试图添加一个没有控件的属性 。</translation></message>
+    <message><source>Error: Trying to add an attribute without a control.</source><translation>错误：试图添加没有控件的属性。</translation></message>
     <message><source>Error: UH</source><translation>错误: 通道三</translation></message>
     <message><source>Error: Unknown</source><translation>错误:未知</translation></message>
     <message><source>Error: WH</source><translation>错误: 通道四</translation></message>
@@ -1216,7 +1216,7 @@
     <message><source>Export SH</source><translation>导出形状句柄</translation></message>
     <message><source>Export Velocity Preset</source><translation>导出速度预设</translation></message>
     <message><source>Exporting</source><translation>导出</translation></message>
-    <message><source>Exporting scene to Lottie file</source><translation>导出到 Lottie 文件的场景</translation></message>
+    <message><source>Exporting scene to Lottie file</source><translation>正在将场景导出为 Lottie 文件</translation></message>
     <message><source>Exporting script</source><translation>导出脚本</translation></message>
     <message><source>Exporting Selected</source><translation>导出选中内容</translation></message>
     <message><source>Extra Width</source><translation>额外宽度</translation></message>
@@ -1224,13 +1224,13 @@
     <message><source>Failed</source><translation>失败</translation></message>
     <message><source>Failed Dependency</source><translation>依赖失败</translation></message>
     <message><source>Failed to allocate memory for output buffers</source><translation>分配输出缓冲器内存失败</translation></message>
-    <message><source>Failed to allocate memory for output buffers.</source><translation>分配输出缓冲器的内存失败 。</translation></message>
+    <message><source>Failed to allocate memory for output buffers.</source><translation>分配输出缓冲器的内存失败。</translation></message>
     <message><source>Failed to bind to IP address</source><translation>绑定网络地址失败</translation></message>
     <message><source>Failed to bind to IP address.</source><translation>绑定网络地址失败。</translation></message>
     <message><source>Failed to create image snapshot from surface</source><translation>从表面创建图像快照失败</translation></message>
-    <message><source>Failed to create image snapshot from surface.</source><translation>从表面创建图像快照失败 。</translation></message>
-    <message><source>Failed to create working surface after all fallbacks. GPU may not be supported</source><translation>在所有倒计时后创建工作表面失败 。 无法支持 GPU</translation></message>
-    <message><source>Failed to create working surface after all fallbacks. GPU may not be supported.</source><translation>在所有倒计时后创建工作表面失败 。 无法支持 GPU 。</translation></message>
+    <message><source>Failed to create image snapshot from surface.</source><translation>从表面创建图像快照失败。</translation></message>
+    <message><source>Failed to create working surface after all fallbacks. GPU may not be supported</source><translation>所有回退方案均失败，无法创建工作表面。GPU 可能不受支持</translation></message>
+    <message><source>Failed to create working surface after all fallbacks. GPU may not be supported.</source><translation>所有回退方案均失败，无法创建工作表面。GPU 可能不受支持。</translation></message>
     <message><source>Failed to create XML parser for relationships</source><translation>创建关系解析器失败</translation></message>
     <message><source>Failed to create XML parser for relationships.</source><translation>创建关系解析器失败。</translation></message>
     <message><source>Failed to create XML parser for workbook</source><translation>创建工作簿解析器失败</translation></message>
@@ -1241,9 +1241,9 @@
     <message><source>Failed to fetch user info: could not connect to Canva</source><translation>获取用户信息失败: 无法连接在线设计服务</translation></message>
     <message><source>Failed to get Motion Blur Filter</source><translation>获取运动模糊过滤器失败</translation></message>
     <message><source>Failed to get upload preset</source><translation>上传预设失败</translation></message>
-    <message><source>Failed to get upload preset.</source><translation>上传预设失败 。</translation></message>
+    <message><source>Failed to get upload preset.</source><translation>上传预设失败。</translation></message>
     <message><source>Failed to import preset</source><translation>导入预设失败</translation></message>
-    <message><source>Failed to import preset.</source><translation>导入预设失败 。</translation></message>
+    <message><source>Failed to import preset.</source><translation>导入预设失败。</translation></message>
     <message><source>Failed to import Scene. Please check the file is valid</source><translation>导入场景失败。请检查文件是否有效</translation></message>
     <message><source>Failed to import Scene. Please check the file is valid.</source><translation>导入场景失败。请检查文件是否有效。</translation></message>
     <message><source>Failed to initialize SWR context for sample format conversion</source><translation>初始化采样格式转换上下文失败</translation></message>
@@ -1251,30 +1251,30 @@
     <message><source>Failed to initialize ZIP reader</source><translation>初始化压缩包读取器失败</translation></message>
     <message><source>Failed to initialize ZIP reader.</source><translation>初始化压缩包读取器失败。</translation></message>
     <message><source>Failed to parse workbook relationships</source><translation>分析工作簿关系失败</translation></message>
-    <message><source>Failed to parse workbook relationships.</source><translation>分析工作簿关系失败 。</translation></message>
+    <message><source>Failed to parse workbook relationships.</source><translation>分析工作簿关系失败。</translation></message>
     <message><source>Failed to read pixels from raster surface</source><translation>从栅格表面读取像素失败</translation></message>
     <message><source>Failed to read pixels from raster surface.</source><translation>从栅格表面读取像素失败。</translation></message>
     <message><source>Failed to read the full stream</source><translation>读取完整流失败</translation></message>
-    <message><source>Failed to read the full stream.</source><translation>读取全流失败 。</translation></message>
-    <message><source>Failed to reset tracker, not enough features to track</source><translation>重设跟踪器失败, 没有足够的特性跟踪</translation></message>
-    <message><source>Failed to reset tracker, not enough features to track.</source><translation>重置跟踪器失败, 没有足够的特性跟踪 。</translation></message>
-    <message><source>Failed to update Spreadsheet asset after multiple attempts</source><translation>多次尝试后更新电子表格资产失败</translation></message>
-    <message><source>Failed to update Spreadsheet asset after multiple attempts.</source><translation>多次尝试后更新电子表格资产失败 。</translation></message>
+    <message><source>Failed to read the full stream.</source><translation>读取完整流失败。</translation></message>
+    <message><source>Failed to reset tracker, not enough features to track</source><translation>重设跟踪器失败，没有足够的特性跟踪</translation></message>
+    <message><source>Failed to reset tracker, not enough features to track.</source><translation>重置跟踪器失败，可跟踪特征不足。</translation></message>
+    <message><source>Failed to update Spreadsheet asset after multiple attempts</source><translation>多次尝试后更新电子表格素材失败</translation></message>
+    <message><source>Failed to update Spreadsheet asset after multiple attempts.</source><translation>多次尝试后更新电子表格素材失败。</translation></message>
     <message><source>Falloff Control bind position set to current location</source><translation>衰减控制绑定位置已设为当前位置</translation></message>
     <message><source>Falloff Control bind position set to current location.</source><translation>衰减控制绑定位置已设为当前位置。</translation></message>
-    <message><source>false literal</source><translation>虚词</translation></message>
+    <message><source>false literal</source><translation>false 字面量</translation></message>
     <message><source>Family Name</source><translation>姓氏</translation></message>
     <message><source>Fast End</source><translation>快速结束</translation></message>
     <message><source>Fast Start</source><translation>快速启动</translation></message>
-    <message><source>Feature Request</source><translation>特性请求</translation></message>
+    <message><source>Feature Request</source><translation>功能请求</translation></message>
     <message><source>Feedback Type</source><translation>反馈类型</translation></message>
     <message><source>Figure SH</source><translation>图形形状句柄</translation></message>
     <message><source>Figure Styles</source><translation>图样式</translation></message>
-    <message><source>File autosaved.</source><translation>文件自动保存 。</translation></message>
+    <message><source>File autosaved.</source><translation>文件已自动保存。</translation></message>
     <message><source>File buffer is empty</source><translation>文件缓冲器为空</translation></message>
-    <message><source>File buffer is empty.</source><translation>文件缓冲器为空 。</translation></message>
+    <message><source>File buffer is empty.</source><translation>文件缓冲器为空。</translation></message>
     <message><source>File created in a newer version</source><translation>在更新版本中创建的文件</translation></message>
-    <message><source>File created in a newer version.</source><translation>在更新版本中创建的文件 。</translation></message>
+    <message><source>File created in a newer version.</source><translation>文件由较新版本创建。</translation></message>
     <message><source>Filter Both</source><translation>过滤两个</translation></message>
     <message><source>Filter Index</source><translation>过滤索引</translation></message>
     <message><source>Filter Position</source><translation>过滤位置</translation></message>
@@ -1292,7 +1292,7 @@
     <message><source>Flow Rows</source><translation>流动行</translation></message>
     <message><source>Font Axes</source><translation>字体轴</translation></message>
     <message><source>Font Not Found</source><translation>未找到字体</translation></message>
-    <message><source>Font Not Found.</source><translation>字体未找到 。</translation></message>
+    <message><source>Font Not Found.</source><translation>未找到字体。</translation></message>
     <message><source>Forge Solvers</source><translation>福吉溶解器</translation></message>
     <message><source>format specifier requires numeric argument</source><translation>格式描述符需要数字参数</translation></message>
     <message><source>Found</source><translation>发现</translation></message>
@@ -1323,7 +1323,7 @@
     <message><source>Go to your Scene Group Account.</source><translation>前往场景组账户。</translation></message>
     <message><source>Golden Ratio</source><translation>黄金比率</translation></message>
     <message><source>Gone</source><translation>不见了</translation></message>
-    <message><source>Google Sheet Asset</source><translation>谷歌表格资产</translation></message>
+    <message><source>Google Sheet Asset</source><translation>Google 表格素材</translation></message>
     <message><source>Google Sheets Import</source><translation>Google 工作表导入</translation></message>
     <message><source>Grade</source><translation>职等</translation></message>
     <message><source>Gradient Stop Array Error: Mismatching attribute counts</source><translation>渐变色标数组错误: 属性数量不匹配</translation></message>
@@ -1338,18 +1338,18 @@
     <message><source>Grid Snapping</source><translation>网格抓取</translation></message>
     <message><source>Grid Step</source><translation>网格步骤</translation></message>
     <message><source>Grid Type</source><translation>网格类型</translation></message>
-    <message><source>Group doesn&apos;t contain any assets</source><translation>集团没有任何资产</translation></message>
-    <message><source>Group doesn&apos;t contain any assets.</source><translation>集团不包含任何资产.</translation></message>
+    <message><source>Group doesn&apos;t contain any assets</source><translation>组内没有任何素材</translation></message>
+    <message><source>Group doesn&apos;t contain any assets.</source><translation>组内没有任何素材。</translation></message>
     <message><source>Group doesn&apos;t contain any compositions</source><translation>组不包含任何组成</translation></message>
     <message><source>Group doesn&apos;t contain any compositions.</source><translation>团体不包含任何成分.</translation></message>
     <message><source>Group Selected</source><translation>组选中</translation></message>
-    <message><source>Group: The selected combination of layers cannot be grouped</source><translation>组 : 无法组合所选的图层组合</translation></message>
-    <message><source>Group: The selected combination of layers cannot be grouped.</source><translation>组 : 无法对所选的图层组合进行分组 。</translation></message>
+    <message><source>Group: The selected combination of layers cannot be grouped</source><translation>组： 无法组合所选的图层组合</translation></message>
+    <message><source>Group: The selected combination of layers cannot be grouped.</source><translation>分组：所选图层组合无法分组。</translation></message>
     <message><source>Gutter</source><translation>盖特</translation></message>
     <message><source>Half and Half</source><translation>一半和一半</translation></message>
-    <message><source>Happy Holidays!</source><translation>假期快乐!</translation></message>
-    <message><source>Happy New Year!</source><translation>新年快乐!</translation></message>
-    <message><source>Happy World Compliment Day, you&apos;re doing an excellent job!</source><translation>欢乐世界 一天,你做得很好! ! 一天,你做得很好!</translation></message>
+    <message><source>Happy Holidays!</source><translation>假期快乐！</translation></message>
+    <message><source>Happy New Year!</source><translation>新年快乐！</translation></message>
+    <message><source>Happy World Compliment Day, you&apos;re doing an excellent job!</source><translation>世界赞美日快乐，你做得很棒！</translation></message>
     <message><source>has finished rendering</source><translation>已完成渲染</translation></message>
     <message><source>has no constructor</source><translation>没有构造器</translation></message>
     <message><source>Hbbbbbbbbaaaaaaaa</source><translation>Hbbbbbbbbaaaaaaaa</translation></message>
@@ -1368,23 +1368,23 @@
     <message><source>Horizontal Element Alignment</source><translation>水平元素对齐</translation></message>
     <message><source>Horizontal Layout Group</source><translation>水平布局组</translation></message>
     <message><source>Host</source><translation>东道主</translation></message>
-    <message><source>How do you feel about Cavalry?</source><translation>你觉得本软件怎么样?</translation></message>
-    <message><source>How would you like to duplicate the selection?</source><translation>你想重复选择吗?</translation></message>
+    <message><source>How do you feel about Cavalry?</source><translation>你觉得本软件怎么样？</translation></message>
+    <message><source>How would you like to duplicate the selection?</source><translation>你想重复选择吗？</translation></message>
     <message><source>HTTP Version Not Supported</source><translation>网络协议版本不受支持</translation></message>
     <message><source>Hyhxh</source><translation>许赫</translation></message>
     <message><source>illegal parameter entity reference</source><translation>非法参数实体引用</translation></message>
     <message><source>IM Used</source><translation>已用插值模式</translation></message>
     <message><source>Image cache is empty</source><translation>图像缓存为空</translation></message>
-    <message><source>Image cache is empty.</source><translation>图像缓存为空 。</translation></message>
+    <message><source>Image cache is empty.</source><translation>图像缓存为空。</translation></message>
     <message><source>Image Cache Size (MB)</source><translation>图像缓存大小(兆字节)</translation></message>
     <message><source>Image Folder</source><translation>图像文件夹</translation></message>
-    <message><source>Image Sequences must each be placed in separate folders to be detected by the Image Smart Folder</source><translation>图像序列必须分别放在单独的文件夹中, 由图像智能文件夹检测</translation></message>
+    <message><source>Image Sequences must each be placed in separate folders to be detected by the Image Smart Folder</source><translation>图像序列必须分别放在单独的文件夹中，由图像智能文件夹检测</translation></message>
     <message><source>Image Sequences must each be placed in separate folders to be detected by the Image Smart Folder.</source><translation>图像序列必须分别放在单独的文件夹中,由图像智能文件夹检测.</translation></message>
     <message><source>Image SK</source><translation>图像骨架</translation></message>
     <message><source>Image Smart Folders</source><translation>图像智能文件夹</translation></message>
     <message><source>Impo</source><translation>小猪</translation></message>
     <message><source>Import a Reference</source><translation>导入引用</translation></message>
-    <message><source>Import an Asset</source><translation>导入资产</translation></message>
+    <message><source>Import an Asset</source><translation>导入素材</translation></message>
     <message><source>Import Audio Smart Folder</source><translation>导入音频智能文件夹</translation></message>
     <message><source>Import Audio Smart Folder... (Pro)</source><translation>导入音频智能文件夹...(专业版)</translation></message>
     <message><source>Import Color Palette</source><translation>导入调色板</translation></message>
@@ -1402,7 +1402,7 @@
     <message><source>Import Smart Folder</source><translation>导入智能文件夹</translation></message>
     <message><source>Import Snippets</source><translation>导入片段</translation></message>
     <message><source>Import Velocity Presets</source><translation>导入速度预设</translation></message>
-    <message><source>Imported preset.</source><translation>导入预设 。</translation></message>
+    <message><source>Imported preset.</source><translation>导入预设。</translation></message>
     <message><source>Imported Scene</source><translation>已导入场景</translation></message>
     <message><source>In Influence</source><translation>影响中</translation></message>
     <message><source>In Speed</source><translation>在速度中</translation></message>
@@ -1425,12 +1425,12 @@
     <message><source>Intersect</source><translation>交叉</translation></message>
     <message><source>invalid argument</source><translation>无效的参数</translation></message>
     <message><source>Invalid array length: actual</source><translation>无效的数组长度: 实际</translation></message>
-    <message><source>Invalid Audio Asset (it contains no files). Please try adding it to the scene again</source><translation>音频资产无效(不含文件)。请尝试重新添加到场景</translation></message>
-    <message><source>Invalid Audio Asset (it contains no files). Please try adding it to the scene again.</source><translation>音频资产无效(不含文件)。请尝试重新添加到场景。</translation></message>
+    <message><source>Invalid Audio Asset (it contains no files). Please try adding it to the scene again</source><translation>音频素材无效(不含文件)。请尝试重新添加到场景</translation></message>
+    <message><source>Invalid Audio Asset (it contains no files). Please try adding it to the scene again.</source><translation>音频素材无效(不含文件)。请尝试重新添加到场景。</translation></message>
     <message><source>invalid format specifier</source><translation>格式说明符无效</translation></message>
     <message><source>invalid format string</source><translation>无效的格式字符串</translation></message>
-    <message><source>Invalid Image Asset (it contains no images). Please try adding it to the scene again</source><translation>图像资产无效(不含图像)。请尝试重新添加到场景</translation></message>
-    <message><source>Invalid Image Asset (it contains no images). Please try adding it to the scene again.</source><translation>图像资产无效(不含图像)。请尝试重新添加到场景。</translation></message>
+    <message><source>Invalid Image Asset (it contains no images). Please try adding it to the scene again</source><translation>图像素材无效（不含图像）。请尝试重新添加到场景</translation></message>
+    <message><source>Invalid Image Asset (it contains no images). Please try adding it to the scene again.</source><translation>图像素材无效（不含图像）。请尝试重新添加到场景。</translation></message>
     <message><source>Invalid Keyframe JSON in Clipboard, missing keyframe arrays</source><translation>剪贴板中的关键帧数据无效，缺少关键帧数组</translation></message>
     <message><source>Invalid Keyframe JSON in Clipboard, missing keyframe arrays.</source><translation>剪贴板中的关键帧数据无效，缺少关键帧数组。</translation></message>
     <message><source>Invalid List widget</source><translation>无效的列表部件</translation></message>
@@ -1440,7 +1440,7 @@
     <message><source>Invalid Path JSON in Clipboard, missing the &apos;path&apos; key.</source><translation>剪贴板中的路径数据无效，缺少路径键。</translation></message>
     <message><source>invalid precision</source><translation>无效的精度</translation></message>
     <message><source>Invalid Snippet Dictionary</source><translation>无效的片段词典</translation></message>
-    <message><source>Invalid Snippet Dictionary.</source><translation>无效的片段词典 。</translation></message>
+    <message><source>Invalid Snippet Dictionary.</source><translation>无效的片段词典。</translation></message>
     <message><source>Invalid Snippet JSON</source><translation>无效的片段 JSON</translation></message>
     <message><source>Invalid Snippet JSON.</source><translation>无效的片段 JSON。</translation></message>
     <message><source>invalid string: forbidden character after backslash</source><translation>无效字符串: 反斜线后禁止字符</translation></message>
@@ -1510,7 +1510,7 @@
     <message><source>Lilx</source><translation>利尔克斯</translation></message>
     <message><source>limit on input amplification factor (from DTD and entities) breached</source><translation>输入放大因子限制已超出</translation></message>
     <message><source>Line Tool</source><translation>线条工具</translation></message>
-    <message><source>Linear (No Change)</source><translation>线性( 无更改)</translation></message>
+    <message><source>Linear (No Change)</source><translation>线性（无更改)</translation></message>
     <message><source>Linearise</source><translation>线性</translation></message>
     <message><source>Link Canva Account</source><translation>关联 Canva 帐户</translation></message>
     <message><source>Link Canva Account...</source><translation>关联 Canva 帐户...</translation></message>
@@ -1530,7 +1530,7 @@
     <message><source>Load Script</source><translation>装入脚本</translation></message>
     <message><source>Load the Dependency Graph to see the nodal representation of this layer</source><translation>加载依赖图以查看此图层的节点表示</translation></message>
     <message><source>Load the Dependency Graph to see the nodal representation of this layer.</source><translation>加载依赖图以查看此图层的节点表示。</translation></message>
-    <message><source>Loading Assets</source><translation>正在加载资产</translation></message>
+    <message><source>Loading Assets</source><translation>正在加载素材</translation></message>
     <message><source>Lock B</source><translation>锁定字节</translation></message>
     <message><source>Lock layer</source><translation>锁层</translation></message>
     <message><source>Lock Selected</source><translation>锁定选中</translation></message>
@@ -1551,7 +1551,7 @@
     <message><source>Loop with Offset</source><translation>用偏移循环</translation></message>
     <message><source>Lottie Author</source><translation>乐天作者</translation></message>
     <message><source>Lottie is a Pro Feature</source><translation>洛蒂是个特质</translation></message>
-    <message><source>Lottie: Failed to export Image Asset</source><translation>动画文件: 导出图像资产失败</translation></message>
+    <message><source>Lottie: Failed to export Image Asset</source><translation>Lottie: 导出图像素材失败</translation></message>
     <message><source>Low Disk Space</source><translation>低磁盘空间</translation></message>
     <message><source>Lucida Grande</source><translation>卢西达·格兰德</translation></message>
     <message><source>Lyixk</source><translation>莱克斯克</translation></message>
@@ -1593,13 +1593,13 @@
     <message><source>Midlight</source><translation>中灯</translation></message>
     <message><source>MIME Type</source><translation>媒体类型</translation></message>
     <message><source>Minimise Cache</source><translation>最小化缓存</translation></message>
-    <message><source>Minor Line Color</source><translation>小行颜色</translation></message>
+    <message><source>Minor Line Color</source><translation>次要线条颜色</translation></message>
     <message><source>Misdirected Request</source><translation>指令错误的请求</translation></message>
     <message><source>mismatched tag</source><translation>标签不匹配</translation></message>
     <message><source>Missing &apos;attribute&apos; argument</source><translation>缺少属性参数</translation></message>
     <message><source>Missing &apos;attribute&apos; argument.</source><translation>缺少属性参数。</translation></message>
-    <message><source>Missing &apos;direction&apos; arguement</source><translation>缺少“ 方向” 辩词</translation></message>
-    <message><source>Missing &apos;direction&apos; arguement.</source><translation>缺少&quot;方向&quot;辩词.</translation></message>
+    <message><source>Missing &apos;direction&apos; arguement</source><translation>缺少 direction 参数</translation></message>
+    <message><source>Missing &apos;direction&apos; arguement.</source><translation>缺少 direction 参数。</translation></message>
     <message><source>Missing &apos;index&apos; arguement</source><translation>缺少索引参数</translation></message>
     <message><source>Missing &apos;index&apos; arguement.</source><translation>缺少索引参数。</translation></message>
     <message><source>Missing &apos;name&apos; or &apos;tag&apos; argument</source><translation>缺少名称或标签参数</translation></message>
@@ -1611,8 +1611,8 @@
     <message><source>Missing &apos;tag&apos; argument</source><translation>缺少标签参数</translation></message>
     <message><source>Missing &apos;tag&apos; argument.</source><translation>缺少标签参数。</translation></message>
     <message><source>Missing H</source><translation>缺少 H</translation></message>
-    <message><source>Missing hidden folder for materials</source><translation>缺少隐藏的材料文件夹</translation></message>
-    <message><source>Missing hidden folder for materials.</source><translation>缺少隐藏的材料文件夹 。</translation></message>
+    <message><source>Missing hidden folder for materials</source><translation>缺少材质用隐藏文件夹</translation></message>
+    <message><source>Missing hidden folder for materials.</source><translation>缺少材质用隐藏文件夹。</translation></message>
     <message><source>Missing palette information, please restart Cavalry</source><translation>缺少调色板信息，请重启软件</translation></message>
     <message><source>Missing palette information, please restart Cavalry.</source><translation>缺少调色板信息，请重启软件。</translation></message>
     <message><source>Moccaccino</source><translation>摩纳哥</translation></message>
@@ -1656,20 +1656,20 @@
     <message><source>nkm PPC rkm</source><translation>内部标识七</translation></message>
     <message><source>nml MAL wml</source><translation>内部文本标识二三</translation></message>
     <message><source>No access token provided</source><translation>未提供访问令牌</translation></message>
-    <message><source>No access token provided.</source><translation>未提供访问令牌 。</translation></message>
-    <message><source>No audio devices found!</source><translation>找不到音频设备 !</translation></message>
+    <message><source>No access token provided.</source><translation>未提供访问令牌。</translation></message>
+    <message><source>No audio devices found!</source><translation>找不到音频设备！</translation></message>
     <message><source>No audio file has been set for this decoder</source><translation>此解码器没有设置音频文件</translation></message>
-    <message><source>No audio file has been set for this decoder.</source><translation>此解码器没有设置音频文件 。</translation></message>
+    <message><source>No audio file has been set for this decoder.</source><translation>此解码器没有设置音频文件。</translation></message>
     <message><source>No bookmarks yet</source><translation>还没有书签</translation></message>
     <message><source>No bookmarks yet.</source><translation>没有书签。</translation></message>
     <message><source>No Connection</source><translation>无连接</translation></message>
     <message><source>No Connections</source><translation>无连接</translation></message>
-    <message><source>No Connections.</source><translation>无连接 。</translation></message>
+    <message><source>No Connections.</source><translation>无连接。</translation></message>
     <message><source>No Content</source><translation>无内容</translation></message>
     <message><source>No current preset</source><translation>没有当前预设</translation></message>
-    <message><source>No current preset.</source><translation>无当前预设 。</translation></message>
+    <message><source>No current preset.</source><translation>无当前预设。</translation></message>
     <message><source>No data found in the worksheet</source><translation>工作表中找不到数据</translation></message>
-    <message><source>No data found in the worksheet.</source><translation>在工作表中找不到数据 。</translation></message>
+    <message><source>No data found in the worksheet.</source><translation>在工作表中找不到数据。</translation></message>
     <message><source>no display colour space</source><translation>不显示颜色空间</translation></message>
     <message><source>no element found</source><translation>未找到元素</translation></message>
     <message><source>No File Path</source><translation>没有文件路径</translation></message>
@@ -1680,20 +1680,20 @@
     <message><source>No GSUB (Glyph Substitution) table found</source><translation>未找到字形替换表</translation></message>
     <message><source>No GSUB (Glyph Substitution) table found.</source><translation>未找到字形替换表。</translation></message>
     <message><source>No input connection</source><translation>无输入连接</translation></message>
-    <message><source>No input connection.</source><translation>没有输入连接 。</translation></message>
+    <message><source>No input connection.</source><translation>没有输入连接。</translation></message>
     <message><source>No Job Id</source><translation>没有任务标识</translation></message>
     <message><source>No Job Id.</source><translation>没有工作日。</translation></message>
     <message><source>No Job IH</source><translation>没有任务入手柄</translation></message>
     <message><source>No Keyframe Layers</source><translation>没有关键帧图层</translation></message>
     <message><source>No licence available</source><translation>无许可证</translation></message>
     <message><source>No presets yet</source><translation>还没有预设</translation></message>
-    <message><source>No presets yet.</source><translation>还没有预设 。</translation></message>
+    <message><source>No presets yet.</source><translation>还没有预设。</translation></message>
     <message><source>No Project Set</source><translation>未设置工程</translation></message>
     <message><source>No Project Set.</source><translation>未设置工程。</translation></message>
     <message><source>No Project Set...</source><translation>未设置工程...</translation></message>
     <message><source>No Recent Files</source><translation>没有最近的文件</translation></message>
-    <message><source>No Render Format selected, please add one in the Format tab</source><translation>未选择渲染格式, 请在格式标签中添加</translation></message>
-    <message><source>No Render Format selected, please add one in the Format tab.</source><translation>未选择渲染格式, 请在格式标签中添加 。</translation></message>
+    <message><source>No Render Format selected, please add one in the Format tab</source><translation>未选择渲染格式，请在格式标签中添加</translation></message>
+    <message><source>No Render Format selected, please add one in the Format tab.</source><translation>未选择渲染格式，请在“格式”标签页中添加一个。</translation></message>
     <message><source>No Results</source><translation>无结果</translation></message>
     <message><source>No Scripts Installed</source><translation>没有安装脚本</translation></message>
     <message><source>No Scripts Installed...</source><translation>没有安装脚本...</translation></message>
@@ -1703,9 +1703,9 @@
     <message><source>No User Scripts Installed</source><translation>没有安装用户脚本</translation></message>
     <message><source>No User Scripts Installed...</source><translation>没有安装用户脚本...</translation></message>
     <message><source>No worksheets available to process</source><translation>没有工作表可用处理</translation></message>
-    <message><source>No worksheets available to process.</source><translation>没有工作表可用处理 。</translation></message>
+    <message><source>No worksheets available to process.</source><translation>没有可处理的工作表。</translation></message>
     <message><source>No worksheets found in the workbook</source><translation>工作表中找不到工作表</translation></message>
-    <message><source>No worksheets found in the workbook.</source><translation>在工作簿中找不到工作表 。</translation></message>
+    <message><source>No worksheets found in the workbook.</source><translation>在工作簿中找不到工作表。</translation></message>
     <message><source>Node</source><translation>节点</translation></message>
     <message><source>Node Preset dictionary must contain an &apos;id&apos; key</source><translation>节点预设字典必须包含标识键</translation></message>
     <message><source>Node Type Counts</source><translation>节点类型数</translation></message>
@@ -1718,7 +1718,7 @@
     <message><source>Not Found</source><translation>未找到</translation></message>
     <message><source>Not Implemented</source><translation>未执行</translation></message>
     <message><source>Not Modified</source><translation>未修改</translation></message>
-    <message><source>not well-formed (invalid token)</source><translation>不完善( 无效的符号)</translation></message>
+    <message><source>not well-formed (invalid token)</source><translation>不完善（无效的符号)</translation></message>
     <message><source>Note: The Transparency Style does not render</source><translation>注意: 透明样式不会渲染</translation></message>
     <message><source>Note: The Transparency Style does not render.</source><translation>注意: 透明样式不会渲染。</translation></message>
     <message><source>Notes added here will appear as tooltips when hovering over layers in the Scene Window</source><translation>此处添加的备注会在场景窗口悬停图层时显示为工具提示</translation></message>
@@ -1738,7 +1738,7 @@
     <message><source>object key</source><translation>对象密钥</translation></message>
     <message><source>object separator</source><translation>对象分隔符</translation></message>
     <message><source>of Cavalry.</source><translation>Cavalry。</translation></message>
-    <message><source>Office 365 Sheet Asset</source><translation>办公表格资产</translation></message>
+    <message><source>Office 365 Sheet Asset</source><translation>Office 365 工作表素材</translation></message>
     <message><source>Office 365 Worksheet</source><translation>办公套件工作表</translation></message>
     <message><source>Oinx</source><translation>牡蛎</translation></message>
     <message><source>Okay</source><translation>确定</translation></message>
@@ -1746,25 +1746,25 @@
     <message><source>One Line</source><translation>单行</translation></message>
     <message><source>Only</source><translation>仅</translation></message>
     <message><source>Only the first selected layer will be exported</source><translation>仅导出第一个选中的图层</translation></message>
-    <message><source>Onscreen surface with colour space failed. Trying without colour management</source><translation>显示色空间的屏幕表面失败 。 没有色彩管理的尝试</translation></message>
-    <message><source>Onscreen surface with colour space failed. Trying without colour management.</source><translation>显示色空间的屏幕表面失败 。 尝试没有色彩管理 。</translation></message>
+    <message><source>Onscreen surface with colour space failed. Trying without colour management</source><translation>带色彩空间的屏幕表面失败，正在尝试不使用色彩管理</translation></message>
+    <message><source>Onscreen surface with colour space failed. Trying without colour management.</source><translation>带色彩空间的屏幕表面失败，正在尝试不使用色彩管理。</translation></message>
     <message><source>Open Composition</source><translation>打开合成</translation></message>
     <message><source>Open Google Sheet in Browser</source><translation>在浏览器中打开 Google 工作表</translation></message>
     <message><source>Open Gradient in new Window</source><translation>在新窗口中打开渐变</translation></message>
     <message><source>Open IK Control UI in Attribute Editor</source><translation>在属性编辑器中打开反向动力学控制界面</translation></message>
     <message><source>Open IK Control UI in Attribute Editor.</source><translation>在属性编辑器中打开反向动力学控制界面。</translation></message>
-    <message><source>Open Office 365 Sheet in Browser</source><translation>在浏览器中打开办公表格</translation></message>
+    <message><source>Open Office 365 Sheet in Browser</source><translation>在浏览器中打开 Office 365 工作表</translation></message>
     <message><source>Open Reference File</source><translation>打开引用文件</translation></message>
     <message><source>Open Reference File...</source><translation>打开引用文件...</translation></message>
     <message><source>Open the Glyph Browser</source><translation>打开字形浏览器</translation></message>
     <message><source>Open the Tag Drawer</source><translation>打开标签抽屉</translation></message>
     <message><source>Open the Tag Drawer.</source><translation>打开标签抽屉。</translation></message>
-    <message><source>Opened and converted legacy file. Please save the new file</source><translation>打开并转换了遗产文件 。 请保存新文件</translation></message>
-    <message><source>Opened and converted legacy file. Please save the new file.</source><translation>打开并转换了遗产文件 。 请保存新文件 。</translation></message>
+    <message><source>Opened and converted legacy file. Please save the new file</source><translation>已打开并转换旧版文件。请保存新文件</translation></message>
+    <message><source>Opened and converted legacy file. Please save the new file.</source><translation>已打开并转换旧版文件。请保存新文件。</translation></message>
     <message><source>Optional</source><translation>可选</translation></message>
     <message><source>Orbit</source><translation>轨道</translation></message>
     <message><source>Organise Pre-Comp Overrides here</source><translation>在此组织操作前覆盖</translation></message>
-    <message><source>Organise Pre-Comp Overrides here.</source><translation>在此组织控制前覆盖 。</translation></message>
+    <message><source>Organise Pre-Comp Overrides here.</source><translation>在此整理预合成覆盖。</translation></message>
     <message><source>Orient</source><translation>东方</translation></message>
     <message><source>Origin</source><translation>来源</translation></message>
     <message><source>Orthogonal</source><translation>正弦</translation></message>
@@ -1776,7 +1776,7 @@
     <message><source>Outline Only</source><translation>仅大纲</translation></message>
     <message><source>Output: H</source><translation>输出: 高</translation></message>
     <message><source>Outside Corners</source><translation>转角外</translation></message>
-    <message><source>Overridden by Project Settings</source><translation>项目由项目设置</translation></message>
+    <message><source>Overridden by Project Settings</source><translation>由项目设置覆盖</translation></message>
     <message><source>Override</source><translation>覆盖</translation></message>
     <message><source>Override the Active Camera</source><translation>覆盖活动相机</translation></message>
     <message><source>Override the Active Camera.</source><translation>覆盖主动摄像头。</translation></message>
@@ -1787,23 +1787,23 @@
     <message><source>pale violet red</source><translation>淡紫红色</translation></message>
     <message><source>Palette Generator Options</source><translation>调色板生成器选项</translation></message>
     <message><source>Palettes</source><translation>调色板</translation></message>
-    <message><source>Parent</source><translation>家长</translation></message>
-    <message><source>Parent or move into Composition?</source><translation>设为父级还是移入合成?</translation></message>
+    <message><source>Parent</source><translation>父级</translation></message>
+    <message><source>Parent or move into Composition?</source><translation>设为父级还是移入合成？</translation></message>
     <message><source>parse error</source><translation>解析错误</translation></message>
-    <message><source>parser not suspended</source><translation>未中止的参数</translation></message>
+    <message><source>parser not suspended</source><translation>解析器未暂停</translation></message>
     <message><source>parser suspended</source><translation>解析器暂停</translation></message>
     <message><source>parsing aborted</source><translation>解析已中止</translation></message>
     <message><source>parsing finished</source><translation>解析完成</translation></message>
     <message><source>partial character</source><translation>部分字符</translation></message>
     <message><source>Partial Content</source><translation>部分内容</translation></message>
-    <message><source>Particles</source><translation>文章</translation></message>
+    <message><source>Particles</source><translation>粒子</translation></message>
     <message><source>pass skipped.</source><translation>过关了。</translation></message>
     <message><source>Password</source><translation>密码</translation></message>
     <message><source>Paste and import image</source><translation>粘贴和导入图像</translation></message>
     <message><source>Paste attribute value</source><translation>粘贴属性值</translation></message>
     <message><source>Pasted Animation</source><translation>已粘贴动画</translation></message>
     <message><source>Pasted attribute value</source><translation>粘贴属性值</translation></message>
-    <message><source>Pasted attribute value.</source><translation>粘贴属性值 。</translation></message>
+    <message><source>Pasted attribute value.</source><translation>粘贴属性值。</translation></message>
     <message><source>Pasted Gradient</source><translation>粘贴渐变</translation></message>
     <message><source>Pasted Graph</source><translation>粘贴图</translation></message>
     <message><source>Pasted Grid.</source><translation>粘贴网格.</translation></message>
@@ -1830,7 +1830,7 @@
     <message><source>Phags-pa</source><translation>八思巴文</translation></message>
     <message><source>Pill</source><translation>药丸</translation></message>
     <message><source>Pin these settings</source><translation>键入这些设置</translation></message>
-    <message><source>Pin these settings.</source><translation>打开这些设置 。</translation></message>
+    <message><source>Pin these settings.</source><translation>固定这些设置。</translation></message>
     <message><source>Pinch Binder</source><translation>键宾德</translation></message>
     <message><source>Pinch Mover</source><translation>键动器</translation></message>
     <message><source>Pipi</source><translation>皮皮尔</translation></message>
@@ -1843,18 +1843,18 @@
     <message><source>Play Audio</source><translation>播放音频</translation></message>
     <message><source>Playback</source><translation>回放</translation></message>
     <message><source>Playback Cache Cleared</source><translation>播放缓存已清除</translation></message>
-    <message><source>Playback Cache Cleared.</source><translation>播放缓存已清除 。</translation></message>
+    <message><source>Playback Cache Cleared.</source><translation>播放缓存已清除。</translation></message>
     <message><source>Playback Once</source><translation>播放一次</translation></message>
     <message><source>Playback Start</source><translation>回放开始</translation></message>
     <message><source>Playback Volume</source><translation>回放音量</translation></message>
-    <message><source>Please check your network connection and that the server is reachable</source><translation>请检查您的网络连接, 服务器是否可到达</translation></message>
-    <message><source>Please check your network connection and that the server is reachable.</source><translation>请检查您的网络连接, 并且服务器可以到达 。</translation></message>
+    <message><source>Please check your network connection and that the server is reachable</source><translation>请检查您的网络连接，服务器是否可到达</translation></message>
+    <message><source>Please check your network connection and that the server is reachable.</source><translation>请检查网络连接，并确认服务器可访问。</translation></message>
     <message><source>Please consider rendering to a different format</source><translation>请考虑采用不同格式</translation></message>
     <message><source>Please consider rendering to a different format.</source><translation>请考虑采用不同的形式。</translation></message>
     <message><source>Please include the steps required to reproduce the issue</source><translation>请列入转载这一问题所需的步骤。</translation></message>
     <message><source>Please include the steps required to reproduce the issue.</source><translation>请列入复制这一问题所需的步骤。</translation></message>
-    <message><source>Please note this does not affect the rendering camera which is always the topmost visible camera</source><translation>请注意, 这不影响 渲染相机, 它总是最显眼的相机</translation></message>
-    <message><source>Please note this does not affect the rendering camera which is always the topmost visible camera.</source><translation>请注意, 这不影响 渲染相机, 它总是最显眼的相机。</translation></message>
+    <message><source>Please note this does not affect the rendering camera which is always the topmost visible camera</source><translation>请注意，这不影响 渲染相机，它总是最显眼的相机</translation></message>
+    <message><source>Please note this does not affect the rendering camera which is always the topmost visible camera.</source><translation>请注意，这不影响 渲染相机，它总是最显眼的相机。</translation></message>
     <message><source>Please note, this is an indicative compute time, and does NOT include draw time</source><translation>请注意,这是一个指示性计算时间,不包括抽取时间</translation></message>
     <message><source>Please note, this is an indicative compute time, and does NOT include draw time.</source><translation>请注意,这是一个指示性计算时间,不包括抽取时间。</translation></message>
     <message><source>Please note, this is an indicative draw time, and does NOT include compute time</source><translation>请注意,这是指示性的抽取时间,不包括计算时间。</translation></message>
@@ -1863,78 +1863,78 @@
     <message><source>Please restart Cavalry to use the new Plugin version</source><translation>请重启软件以使用新插件版本</translation></message>
     <message><source>Please restart Cavalry to use the new Plugin version.</source><translation>请重启软件以使用新插件版本。</translation></message>
     <message><source>Please select 2 or more layers to distribute</source><translation>请选择两个或更多层进行分配</translation></message>
-    <message><source>Please select 2 or more layers to distribute.</source><translation>请选择两个或更多层来分配 。</translation></message>
+    <message><source>Please select 2 or more layers to distribute.</source><translation>请选择两个或更多图层进行分布。</translation></message>
     <message><source>Please select a Forge Solvers Solver to cache</source><translation>请选择要缓存的求解器</translation></message>
     <message><source>Please select a Forge Solvers Solver to cache.</source><translation>请选择要缓存的求解器。</translation></message>
     <message><source>Please select a gradient attribute in the Attribute Editor</source><translation>请在属性编辑器中选择渐变属性</translation></message>
     <message><source>Please select a gradient attribute in the Attribute Editor.</source><translation>请在属性编辑器中选择渐变属性。</translation></message>
     <message><source>Please select a layer to export to Lottie</source><translation>请选择要导出到 Lottie 的图层</translation></message>
-    <message><source>Please select a layer to export to Lottie.</source><translation>请选择要导出到 Lottie 的图层 。</translation></message>
+    <message><source>Please select a layer to export to Lottie.</source><translation>请选择要导出到 Lottie 的图层。</translation></message>
     <message><source>Please select a layer to move, and a shape to move along</source><translation>请选择要移动的图层和要移动的形状</translation></message>
-    <message><source>Please select a layer to move, and a shape to move along.</source><translation>请选择要移动的图层和要移动的形状 。</translation></message>
+    <message><source>Please select a layer to move, and a shape to move along.</source><translation>请选择要移动的图层和要移动的形状。</translation></message>
     <message><source>Please select a layers before deleting animation</source><translation>在删除动画前请选择一层</translation></message>
-    <message><source>Please select a layers before deleting animation.</source><translation>删除动画前请选择一层 。</translation></message>
+    <message><source>Please select a layers before deleting animation.</source><translation>删除动画前请选择图层。</translation></message>
     <message><source>Please Select a Path Point</source><translation>请选择路径点</translation></message>
     <message><source>Please Select a Path Point.</source><translation>请选择路径点。</translation></message>
     <message><source>Please select a Shape for the Text to move along</source><translation>请选择文本要沿其移动的形状</translation></message>
     <message><source>Please select a Shape for the Text to move along.</source><translation>请选择文本要沿其移动的形状。</translation></message>
     <message><source>Please select a shape to deform, and a shape to deform along</source><translation>请选择变形的形状和变形的形状</translation></message>
-    <message><source>Please select a shape to deform, and a shape to deform along.</source><translation>请选择变形的形状, 以及随身变形的形状 。</translation></message>
-    <message><source>Please select a shape to turn into a Rubber Hose</source><translation>请选择一个形状变成橡胶屋</translation></message>
-    <message><source>Please select a shape to turn into a Rubber Hose.</source><translation>请选择一个形状来变成橡胶花.</translation></message>
+    <message><source>Please select a shape to deform, and a shape to deform along.</source><translation>请选择要变形的形状，以及要沿其变形的形状。</translation></message>
+    <message><source>Please select a shape to turn into a Rubber Hose</source><translation>请选择一个形状转换为橡皮管</translation></message>
+    <message><source>Please select a shape to turn into a Rubber Hose.</source><translation>请选择一个形状转换为橡皮管。</translation></message>
     <message><source>Please Select a Text Shape</source><translation>请选择文本形状</translation></message>
-    <message><source>Please select at least one Element and then a new parent</source><translation>请至少选择一个元素, 然后选择一个新的父元素</translation></message>
-    <message><source>Please select at least one Element and then a new parent.</source><translation>请至少选择一个元素, 然后选择一个新的父元素 。</translation></message>
+    <message><source>Please select at least one Element and then a new parent</source><translation>请至少选择一个元素，然后选择一个新的父元素</translation></message>
+    <message><source>Please select at least one Element and then a new parent.</source><translation>请至少选择一个元素，然后选择一个新的父元素。</translation></message>
     <message><source>Please select one or more Shapes to embed in a Layout</source><translation>请选择一个或多个形状嵌入布局</translation></message>
     <message><source>Please select one or more Shapes to embed in a Layout.</source><translation>请选择一个或多个形状嵌入布局。</translation></message>
     <message><source>Please select one or two points to perform a Split</source><translation>请选择一个或两个点来进行分割</translation></message>
     <message><source>Please select one or two points to perform a Split.</source><translation>请选择一个或两个点执行分割。</translation></message>
     <message><source>Please select one point when deleting a point along with it&apos;s edges</source><translation>请在删除一个点和它的边缘时选择一个点</translation></message>
-    <message><source>Please select one point when deleting a point along with it&apos;s edges.</source><translation>请在删除一个点和它的边缘时选择一个点 。</translation></message>
+    <message><source>Please select one point when deleting a point along with it&apos;s edges.</source><translation>请在删除一个点和它的边缘时选择一个点。</translation></message>
     <message><source>Please select some animating attributes or keyframes to reverse</source><translation>请选择一些要反转的动画属性或密钥框</translation></message>
-    <message><source>Please select some animating attributes or keyframes to reverse.</source><translation>请选择一些要反转的动画属性或密钥框 。</translation></message>
+    <message><source>Please select some animating attributes or keyframes to reverse.</source><translation>请选择要反转的动画属性或关键帧。</translation></message>
     <message><source>Please select some animating attributes to reverse</source><translation>请选择一些要反转的动画属性</translation></message>
-    <message><source>Please select some animating attributes to reverse.</source><translation>请选择一些可逆的动画属性 。</translation></message>
+    <message><source>Please select some animating attributes to reverse.</source><translation>请选择要反转的动画属性。</translation></message>
     <message><source>Please select some keyframes</source><translation>请选择一些密钥框</translation></message>
     <message><source>Please select some keyframes to nudge</source><translation>请选择要微调的关键帧</translation></message>
     <message><source>Please select some keyframes to nudge.</source><translation>请选择要微调的关键帧。</translation></message>
     <message><source>Please select some keyframes to snap</source><translation>请选择要抓取的密钥框</translation></message>
-    <message><source>Please select some keyframes to snap.</source><translation>请选择要抓取的键框 。</translation></message>
-    <message><source>Please select some keyframes.</source><translation>请选择一些键框 。</translation></message>
+    <message><source>Please select some keyframes to snap.</source><translation>请选择要吸附的关键帧。</translation></message>
+    <message><source>Please select some keyframes.</source><translation>请选择一些关键帧。</translation></message>
     <message><source>Please select some Shapes to reset</source><translation>请选择要重置的形状</translation></message>
     <message><source>Please select some Shapes to reset.</source><translation>请选择要重置的形状。</translation></message>
     <message><source>Please select something to Group</source><translation>请选择要分组的内容</translation></message>
     <message><source>Please select something to Group.</source><translation>请选择要分组的内容。</translation></message>
     <message><source>Please select something to Pre-Compose</source><translation>请选择要预合成的内容</translation></message>
     <message><source>Please select something to Pre-Compose.</source><translation>请选择要预合成的内容。</translation></message>
-    <message><source>Please select something to un-parent</source><translation>请选择一些不为人父母的东西</translation></message>
-    <message><source>Please select something to un-parent.</source><translation>请选择一些不为人父母的东西 。</translation></message>
+    <message><source>Please select something to un-parent</source><translation>请选择要取消父级关系的内容</translation></message>
+    <message><source>Please select something to un-parent.</source><translation>请选择要取消父级关系的内容。</translation></message>
     <message><source>Please set color preferences with hex color values</source><translation>请设置带有十六进制色彩值的色彩偏好</translation></message>
-    <message><source>Please set color preferences with hex color values.</source><translation>请设置带有十六进制色彩值的色彩偏好 。</translation></message>
+    <message><source>Please set color preferences with hex color values.</source><translation>请设置带有十六进制色彩值的色彩偏好。</translation></message>
     <message><source>Please update Cavalry</source><translation>请更新软件</translation></message>
     <message><source>Plug</source><translation>插头</translation></message>
-    <message><source>Plugin Installed.</source><translation>插件已安装 。</translation></message>
-    <message><source>Plugin Updated.</source><translation>插件已更新 。</translation></message>
+    <message><source>Plugin Installed.</source><translation>插件已安装。</translation></message>
+    <message><source>Plugin Updated.</source><translation>插件已更新。</translation></message>
     <message><source>Plugin Updated. Please relaunch Cavalry to use the new Plugin version</source><translation>插件已更新。请重新启动软件以使用新版本</translation></message>
     <message><source>Plugin Updated. Please relaunch Cavalry to use the new Plugin version.</source><translation>插件已更新。请重新启动软件以使用新版本。</translation></message>
     <message><source>Plugins</source><translation>插件</translation></message>
     <message><source>Point does not exist</source><translation>点不存在</translation></message>
     <message><source>Point does not exist.</source><translation>点不存在。</translation></message>
     <message><source>Polling the upload failed</source><translation>投票上传失败</translation></message>
-    <message><source>Polling the upload failed.</source><translation>投票上传失败 。</translation></message>
+    <message><source>Polling the upload failed.</source><translation>轮询上传失败。</translation></message>
     <message><source>Polygon command: Not enough points to make a polygon</source><translation>多边形命令: 点数不足，无法生成多边形</translation></message>
     <message><source>Polygon command: Not enough points to make a polygon.</source><translation>多边形命令: 点数不足，无法生成多边形。</translation></message>
     <message><source>pom NYM rom</source><translation>内部标识八</translation></message>
     <message><source>Porsche</source><translation>保时捷</translation></message>
     <message><source>Portafino</source><translation>波尔塔菲诺</translation></message>
     <message><source>possible CSRF attack</source><translation>可能存在跨站请求伪造攻击</translation></message>
-    <message><source>Post Colour</source><translation>邮政颜色</translation></message>
-    <message><source>Post Frames</source><translation>后边框</translation></message>
+    <message><source>Post Colour</source><translation>后置颜色</translation></message>
+    <message><source>Post Frames</source><translation>后置帧</translation></message>
     <message><source>Powered by open-source software</source><translation>由开源软件提供动力</translation></message>
-    <message><source>Pre Colour</source><translation>预选颜色</translation></message>
-    <message><source>Pre Frames</source><translation>预设框架</translation></message>
-    <message><source>Pre-Compose Based on Selection</source><translation>根据选择进行预编</translation></message>
-    <message><source>Pre-Compose Selection</source><translation>撰写前选择</translation></message>
+    <message><source>Pre Colour</source><translation>前置颜色</translation></message>
+    <message><source>Pre Frames</source><translation>前置帧</translation></message>
+    <message><source>Pre-Compose Based on Selection</source><translation>基于所选内容预合成</translation></message>
+    <message><source>Pre-Compose Selection</source><translation>预合成所选内容</translation></message>
     <message><source>precision is not integer</source><translation>精度不是整数</translation></message>
     <message><source>Precondition Failed</source><translation>先决条件失败</translation></message>
     <message><source>Precondition Required</source><translation>先决条件</translation></message>
@@ -1950,7 +1950,7 @@
     <message><source>Presets require a name.</source><translation>预设需要名称。</translation></message>
     <message><source>Pressing Return in an Attribute Field</source><translation>在属性字段中按回车</translation></message>
     <message><source>Pretty</source><translation>不错</translation></message>
-    <message><source>Preview Compositions in the Assets Window</source><translation>在资产窗口中预览合成</translation></message>
+    <message><source>Preview Compositions in the Assets Window</source><translation>在素材窗口中预览合成</translation></message>
     <message><source>Previous</source><translation>上一个</translation></message>
     <message><source>Print all affected attributes</source><translation>打印所有受影响的属性</translation></message>
     <message><source>Print all affecter attributes</source><translation>打印所有影响属性</translation></message>
@@ -1965,17 +1965,17 @@
     <message><source>Pulse</source><translation>脉搏</translation></message>
     <message><source>Pumpkin Skin</source><translation>南瓜皮肤</translation></message>
     <message><source>Purple Mountains</source><translation>紫色山脉</translation></message>
-    <message><source>q )Zzc</source><translation>q )Zzc</translation></message>
+    <message><source>q )Zzc</source><translation>q）Zzc</translation></message>
     <message><source>Queued</source><translation>队列</translation></message>
     <message><source>Quick Action</source><translation>快速行动</translation></message>
     <message><source>Quick Assign Tag</source><translation>快速分配标签</translation></message>
     <message><source>Quick Set Pivot</source><translation>快速设置中枢</translation></message>
     <message><source>Quick Set Pivot (Layer Moves)</source><translation>快速设置锚点（图层移动）</translation></message>
     <message><source>Quick Set Pivot (Layer Stays)</source><translation>快速设置锚点（图层保持）</translation></message>
-    <message><source>Quicklist (converted)</source><translation>快速列表( 转换)</translation></message>
+    <message><source>Quicklist (converted)</source><translation>快速列表（转换)</translation></message>
     <message><source>Quicklist Cleared.</source><translation>快名单清空.</translation></message>
     <message><source>Quickly create and assign tags</source><translation>快速创建和指定标签</translation></message>
-    <message><source>Quickly create and assign tags.</source><translation>快速创建并指定标签 。</translation></message>
+    <message><source>Quickly create and assign tags.</source><translation>快速创建并指定标签。</translation></message>
     <message><source>Quickly create and connect a String Generator</source><translation>快创建并连接字符串生成器</translation></message>
     <message><source>Quote</source><translation>引号</translation></message>
     <message><source>Qxxxxxxxxttttttttttttttt</source><translation>Qxxxxxxxxttttttttttttttt</translation></message>
@@ -1985,12 +1985,12 @@
     <message><source>Read Zip failed.</source><translation>读取压缩包失败。</translation></message>
     <message><source>Rebind</source><translation>重组</translation></message>
     <message><source>Received frame is invalid</source><translation>收到框架无效</translation></message>
-    <message><source>Received frame is invalid.</source><translation>收到帧无效 。</translation></message>
+    <message><source>Received frame is invalid.</source><translation>收到帧无效。</translation></message>
     <message><source>Recent LH</source><translation>最近的左手柄</translation></message>
     <message><source>Recent Logs</source><translation>最近的日志</translation></message>
     <message><source>Rectangular (Tetradic)</source><translation>矩形配色(四角色)</translation></message>
     <message><source>recursive entity reference</source><translation>递归实体参考</translation></message>
-    <message><source>Redo (Text Editing)</source><translation>重做( 文本编辑)</translation></message>
+    <message><source>Redo (Text Editing)</source><translation>重做（文本编辑)</translation></message>
     <message><source>Reference</source><translation>参考</translation></message>
     <message><source>reference to binary entity</source><translation>引用二进制实体</translation></message>
     <message><source>reference to external entity in attribute</source><translation>引用属性中的外部实体</translation></message>
@@ -2011,7 +2011,7 @@
     <message><source>Remove all Attributes from the Control Centre</source><translation>从控制中心移除所有属性</translation></message>
     <message><source>Remove all Attributes from the Control Centre.</source><translation>从控制中心移除所有属性。</translation></message>
     <message><source>Remove all layers from the Dependency Graph</source><translation>从依赖图中删除所有层</translation></message>
-    <message><source>Remove all layers from the Dependency Graph.</source><translation>从依赖图中删除所有层 。</translation></message>
+    <message><source>Remove all layers from the Dependency Graph.</source><translation>从依赖图中删除所有层。</translation></message>
     <message><source>Remove all of this Composition&apos;s Attributes from the Control Centre</source><translation>从控制中心移除此合成的所有属性</translation></message>
     <message><source>Remove all of this Composition&apos;s Attributes from the Control Centre.</source><translation>从控制中心移除此合成的所有属性。</translation></message>
     <message><source>Remove all the layers from the Attribute Editor</source><translation>从属性编辑器移除所有图层</translation></message>
@@ -2023,10 +2023,10 @@
     <message><source>Remove from Control Centre</source><translation>从控制中心删除</translation></message>
     <message><source>Remove Pre-Comp Override</source><translation>删除覆盖前</translation></message>
     <message><source>Remove selected layers from the Dependency Graph</source><translation>从依赖图中删除选中的图层</translation></message>
-    <message><source>Remove selected layers from the Dependency Graph.</source><translation>从依赖图中删除选中的层 。</translation></message>
+    <message><source>Remove selected layers from the Dependency Graph.</source><translation>从依赖图中删除选中的层。</translation></message>
     <message><source>Remove Speed Values</source><translation>删除速度值</translation></message>
     <message><source>Remove the selected tracker</source><translation>删除选中的跟踪器</translation></message>
-    <message><source>Remove the selected tracker.</source><translation>删除选中的跟踪器 。</translation></message>
+    <message><source>Remove the selected tracker.</source><translation>删除选中的跟踪器。</translation></message>
     <message><source>Remove this layer&apos;s settings from the Attribute Editor</source><translation>从属性编辑器移除此图层的设置</translation></message>
     <message><source>Remove this Pre-Comp Override</source><translation>删除此覆盖</translation></message>
     <message><source>Remy</source><translation>莱米</translation></message>
@@ -2053,13 +2053,13 @@
     <message><source>Renders</source><translation>渲染器</translation></message>
     <message><source>Reorder</source><translation>重排序</translation></message>
     <message><source>Replace and reconnect</source><translation>替换和重新连接</translation></message>
-    <message><source>Replace Asset...</source><translation>替换资产...</translation></message>
+    <message><source>Replace Asset...</source><translation>替换素材...</translation></message>
     <message><source>Replace Connection</source><translation>替换连接</translation></message>
     <message><source>Replace Current</source><translation>替换当前</translation></message>
     <message><source>Replace Google Sheet</source><translation>替换谷歌工作表</translation></message>
     <message><source>Replace Google Sheet...</source><translation>替换 Google 工作表...</translation></message>
     <message><source>Replace H</source><translation>替换高值</translation></message>
-    <message><source>Replace Script or Create New Tab?</source><translation>替换脚本还是创建新标签 ?</translation></message>
+    <message><source>Replace Script or Create New Tab?</source><translation>替换脚本还是创建新标签？</translation></message>
     <message><source>Replaced Connection</source><translation>已替换的连接</translation></message>
     <message><source>Request Header Fields Too Large</source><translation>请求页眉字段太大</translation></message>
     <message><source>Request Timeout</source><translation>请求超时</translation></message>
@@ -2080,26 +2080,26 @@
     <message><source>Reset Transform Attributes</source><translation>重置变换属性</translation></message>
     <message><source>Reset Value to Origin</source><translation>重置值为原值</translation></message>
     <message><source>Resetting preferences</source><translation>重置偏好</translation></message>
-    <message><source>Resize Mesh?</source><translation>调整网格大小?</translation></message>
+    <message><source>Resize Mesh?</source><translation>调整网格大小？</translation></message>
     <message><source>Rest Pose Controls</source><translation>静止姿态控制</translation></message>
     <message><source>Restart Cavalry for changes to take effect</source><translation>重启软件以使更改生效</translation></message>
     <message><source>Restart Cavalry for changes to take effect.</source><translation>重启软件以使更改生效。</translation></message>
     <message><source>Restart Cavalry to access all Experimental features</source><translation>重启软件以访问所有实验功能</translation></message>
     <message><source>Restart Cavalry to access all Experimental features.</source><translation>重启软件以访问所有实验功能。</translation></message>
     <message><source>Restore Palette</source><translation>恢复调色板</translation></message>
-    <message><source>Restricted Assets found</source><translation>发现受限资产</translation></message>
-    <message><source>Restricted Assets found.</source><translation>发现受限资产。</translation></message>
+    <message><source>Restricted Assets found</source><translation>发现受限素材</translation></message>
+    <message><source>Restricted Assets found.</source><translation>发现受限素材。</translation></message>
     <message><source>Restricted Mode: Professional Features Found</source><translation>限定模式:找到专业特征</translation></message>
     <message><source>Rethrowing unknown exception in logger</source><translation>在日志中重写未知的例外</translation></message>
-    <message><source>Revalidation skipped: device appears to be offline. Using offline grace period</source><translation>校正跳过: 设备似乎已下线 。 使用离线宽限期</translation></message>
-    <message><source>Revalidation skipped: device appears to be offline. Using offline grace period.</source><translation>校正跳过: 设备似乎已下线 。 使用离线宽限期.</translation></message>
+    <message><source>Revalidation skipped: device appears to be offline. Using offline grace period</source><translation>已跳过重新验证：设备似乎离线，正在使用离线宽限期</translation></message>
+    <message><source>Revalidation skipped: device appears to be offline. Using offline grace period.</source><translation>已跳过重新验证：设备似乎离线，正在使用离线宽限期。</translation></message>
     <message><source>Reveal</source><translation>启示</translation></message>
-    <message><source>Reveal Composition in Assets Window</source><translation>在资产窗口中显示合成</translation></message>
+    <message><source>Reveal Composition in Assets Window</source><translation>在素材窗口中显示合成</translation></message>
     <message><source>Reveal Generator</source><translation>视网膜发电机</translation></message>
     <message><source>Reveal in Finder</source><translation>在查找器中揭示</translation></message>
     <message><source>Reveal in Finder...</source><translation>在访达中显示...</translation></message>
     <message><source>Reveal in Scene Window</source><translation>在场景窗口中显示</translation></message>
-    <message><source>Reveal Pre-Comp in Assets Window</source><translation>在资产窗口中显示预合成</translation></message>
+    <message><source>Reveal Pre-Comp in Assets Window</source><translation>在素材窗口中显示预合成</translation></message>
     <message><source>Reveal the Origin Layer</source><translation>显示原始图层</translation></message>
     <message><source>Reverse Contour</source><translation>反转轮廓</translation></message>
     <message><source>Reverse Stop Positions</source><translation>倒转停止位置</translation></message>
@@ -2133,14 +2133,14 @@
     <message><source>Rta</source><translation>常规</translation></message>
     <message><source>rtm WAM stm</source><translation>内部标识十</translation></message>
     <message><source>Rub</source><translation>鲁布</translation></message>
-    <message><source>Rubber Hose</source><translation>橡胶</translation></message>
+    <message><source>Rubber Hose</source><translation>橡皮管</translation></message>
     <message><source>Ruler Guide</source><translation>标尺指南</translation></message>
     <message><source>Run (Pro)</source><translation>运行(专业版)</translation></message>
     <message><source>Run Preset</source><translation>运行预设</translation></message>
     <message><source>Run Script</source><translation>运行脚本</translation></message>
     <message><source>Run Snippet</source><translation>运行片段</translation></message>
     <message><source>Run the current script</source><translation>运行当前脚本</translation></message>
-    <message><source>Run the current script.</source><translation>运行当前脚本 。</translation></message>
+    <message><source>Run the current script.</source><translation>运行当前脚本。</translation></message>
     <message><source>runs Shell commands</source><translation>运行命令行命令</translation></message>
     <message><source>Russett</source><translation>鲁塞特</translation></message>
     <message><source>Ruw</source><translation>鲁</translation></message>
@@ -2148,9 +2148,9 @@
     <message><source>Rxp</source><translation>缩写</translation></message>
     <message><source>Rzn</source><translation>兹恩</translation></message>
     <message><source>Save and load custom graph presets</source><translation>保存并装入自定义图表预设</translation></message>
-    <message><source>Save and load custom graph presets.</source><translation>保存并加载自定义图表预设 。</translation></message>
+    <message><source>Save and load custom graph presets.</source><translation>保存并加载自定义图表预设。</translation></message>
     <message><source>Save and recall viewport positions</source><translation>保存和召回视图位置</translation></message>
-    <message><source>Save and recall viewport positions.</source><translation>保存和召回视图位置 。</translation></message>
+    <message><source>Save and recall viewport positions.</source><translation>保存和召回视图位置。</translation></message>
     <message><source>Save as .cv</source><translation>保存为工程文件</translation></message>
     <message><source>Save As Encrypted</source><translation>另存为加密</translation></message>
     <message><source>Save As Encrypted...</source><translation>另存为加密...</translation></message>
@@ -2176,7 +2176,7 @@
     <message><source>Save SVGH</source><translation>保存矢量图手柄</translation></message>
     <message><source>Save Workspace</source><translation>保存工作区</translation></message>
     <message><source>Saving and Rendering disabled</source><translation>保存和渲染已禁用</translation></message>
-    <message><source>Saving and Rendering disabled.</source><translation>保存和渲染已禁用 。</translation></message>
+    <message><source>Saving and Rendering disabled.</source><translation>保存和渲染已禁用。</translation></message>
     <message><source>Saving Metadata</source><translation>保存元数据</translation></message>
     <message><source>Saving MH</source><translation>正在保存移动手柄</translation></message>
     <message><source>Saving Scene</source><translation>正在保存场景</translation></message>
@@ -2235,7 +2235,7 @@
     <message><source>Separated</source><translation>分离</translation></message>
     <message><source>Sequence the selected layers using a Scheduling Group</source><translation>使用排程组排序选定的层</translation></message>
     <message><source>Sequence the selected layers using a Scheduling Group.</source><translation>使用排程组对选定的层进行排序。</translation></message>
-    <message><source>Server-side token revocation unsuccessful (best-effort)</source><translation>服务器端的令牌撤销失败( 最优)</translation></message>
+    <message><source>Server-side token revocation unsuccessful (best-effort)</source><translation>服务器端的令牌撤销失败（最优)</translation></message>
     <message><source>Server-side token revocation unsuccessful (best-effort).</source><translation>服务器端令牌撤销未成功(已尽力)。</translation></message>
     <message><source>Service Unavailable</source><translation>服务不可用</translation></message>
     <message><source>Set all stops to Linear</source><translation>设定所有站点到线性</translation></message>
@@ -2257,7 +2257,7 @@
     <message><source>Set Keyframe Expression.</source><translation>设置关键帧表达式。</translation></message>
     <message><source>Set Label Color</source><translation>设置标签颜色</translation></message>
     <message><source>Set Label Color on Selected Items</source><translation>设置选中项目的标签颜色</translation></message>
-    <message><source>Set Loop (Oscillate))</source><translation>设置环( 斜面)</translation></message>
+    <message><source>Set Loop (Oscillate))</source><translation>设置环（斜面)</translation></message>
     <message><source>Set Loop with Offset</source><translation>用偏移设置循环</translation></message>
     <message><source>Set Looping to None</source><translation>将循环设为无</translation></message>
     <message><source>Set Segment Velocity</source><translation>设置段速</translation></message>
@@ -2320,7 +2320,7 @@
     <message><source>Signing out...</source><translation>签名...</translation></message>
     <message><source>Skeleton Tool</source><translation>斯凯勒顿工具</translation></message>
     <message><source>Skeptic</source><translation>怀疑论</translation></message>
-    <message><source>skipped inserting dotted-circles because there is no broken syllables</source><translation>跳过插入点圈, 因为没有断开的音节</translation></message>
+    <message><source>skipped inserting dotted-circles because there is no broken syllables</source><translation>跳过插入点圈，因为没有断开的音节</translation></message>
     <message><source>Slant</source><translation>倾斜</translation></message>
     <message><source>slate blue</source><translation>蓝板</translation></message>
     <message><source>Slider</source><translation>滑块</translation></message>
@@ -2339,15 +2339,15 @@
     <message><source>Smooth Blend</source><translation>平滑组合</translation></message>
     <message><source>Snap Angle</source><translation>坐标角</translation></message>
     <message><source>Snap layers to the grid when dragging</source><translation>拖动时将图层与网格对齐</translation></message>
-    <message><source>Snap layers to the grid when dragging.</source><translation>拖动时将层与网格连接 。</translation></message>
+    <message><source>Snap layers to the grid when dragging.</source><translation>拖动时将图层吸附到网格。</translation></message>
     <message><source>Snap Selected to Current Frame</source><translation>将选中内容对齐到当前框架</translation></message>
     <message><source>Snap to 90 Degree Angles</source><translation>与 90 度角对齐</translation></message>
     <message><source>Snapping Settings</source><translation>抓取设置</translation></message>
     <message><source>Snapping Threshold</source><translation>抓取阈值</translation></message>
     <message><source>Snippet Editor</source><translation>片段编辑器</translation></message>
     <message><source>Snippet Library Options</source><translation>片段库选项</translation></message>
-    <message><source>Some content goes here, and here, but more here, and it wraps around to other rows</source><translation>有些内容是在这里,在这里,但更多的在这里, 它包裹到其他行</translation></message>
-    <message><source>Some content goes here, and here, but more here, and it wraps around to other rows.</source><translation>有些内容是在这里,在这里,但更多的是在这里, 它包裹在其他行。</translation></message>
+    <message><source>Some content goes here, and here, but more here, and it wraps around to other rows</source><translation>有些内容是在这里,在这里,但更多的在这里，它包裹到其他行</translation></message>
+    <message><source>Some content goes here, and here, but more here, and it wraps around to other rows.</source><translation>有些内容是在这里,在这里,但更多的是在这里，它包裹在其他行。</translation></message>
     <message><source>Some plugins require a newer version</source><translation>一些插件需要更新版本</translation></message>
     <message><source>Something went wrong during sign in. Please try again</source><translation>签字时出事了 请再试一次</translation></message>
     <message><source>Sort Order</source><translation>排序顺序</translation></message>
@@ -2425,7 +2425,7 @@
     <message><source>SSL error: Unable to get local issuer certificate.</source><translation>安全连接错误: 无法获取本地颁发者证书。</translation></message>
     <message><source>SSL error: Unable to verify the first certificate</source><translation>安全连接错误: 无法验证第一张证书</translation></message>
     <message><source>SSL error: Unable to verify the first certificate.</source><translation>安全连接错误: 无法验证第一张证书。</translation></message>
-    <message><source>Stack trace (most recent call last)</source><translation>堆栈跟踪( 最近最后一次呼叫)</translation></message>
+    <message><source>Stack trace (most recent call last)</source><translation>堆栈跟踪（最近最后一次呼叫)</translation></message>
     <message><source>Stag</source><translation>暂停</translation></message>
     <message><source>Staging</source><translation>粘贴</translation></message>
     <message><source>Standing End</source><translation>状态结束</translation></message>
@@ -2439,7 +2439,7 @@
     <message><source>Storm Dust</source><translation>风暴尘</translation></message>
     <message><source>Straight</source><translation>直线</translation></message>
     <message><source>Stream length is zero</source><translation>流长为 0</translation></message>
-    <message><source>Stream length is zero.</source><translation>流长为 0 。</translation></message>
+    <message><source>Stream length is zero.</source><translation>流长为 0。</translation></message>
     <message><source>Stretch bone</source><translation>伸展骨头</translation></message>
     <message><source>Stretch H</source><translation>拉伸高值</translation></message>
     <message><source>string literal</source><translation>字符串字节</translation></message>
@@ -2482,18 +2482,18 @@
     <message><source>Text Style Change</source><translation>文本样式更改</translation></message>
     <message><source>Text Tool</source><translation>文本工具</translation></message>
     <message><source>The certificate chain may be incomplete</source><translation>证书链可能不完整</translation></message>
-    <message><source>The certificate chain may be incomplete.</source><translation>证书链可能不完整 。</translation></message>
-    <message><source>The certificate is valid but doesn&apos;t match the server hostname</source><translation>证书有效, 但与服务器主机名不符</translation></message>
-    <message><source>The certificate is valid but doesn&apos;t match the server hostname.</source><translation>证书是有效的, 但与服务器主机名不符 。</translation></message>
+    <message><source>The certificate chain may be incomplete.</source><translation>证书链可能不完整。</translation></message>
+    <message><source>The certificate is valid but doesn&apos;t match the server hostname</source><translation>证书有效，但与服务器主机名不符</translation></message>
+    <message><source>The certificate is valid but doesn&apos;t match the server hostname.</source><translation>证书是有效的，但与服务器主机名不符。</translation></message>
     <message><source>the Command Search Window</source><translation>命令搜索窗口</translation></message>
-    <message><source>The Google Sheet Share settings must be set to &apos;Anyone with the link&apos;.</source><translation>Google 工作表共享设置必须设置为“ 任何有链接的人 ” 。</translation></message>
+    <message><source>The Google Sheet Share settings must be set to &apos;Anyone with the link&apos;.</source><translation>Google 工作表共享设置必须设置为“ 任何有链接的人 ”。</translation></message>
     <message><source>The Google Sheets API is either very slow to respond or unavailable... Trying again</source><translation>谷歌表格接口响应很慢或不可用...正在重试</translation></message>
     <message><source>The Google Sheets API is either very slow to respond or unavailable... Trying again...</source><translation>谷歌表格接口响应很慢或不可用...正在重试...</translation></message>
     <message><source>The number of points (positions) in the Path, this includes control points for curves</source><translation>路径中的点(位置)数量，包括曲线控制点</translation></message>
     <message><source>The number of points (positions) in the Path, this includes control points for curves.</source><translation>路径中的点(位置)数量，包括曲线控制点。</translation></message>
     <message><source>The number of verbs (draw instructions) in the Path, this excludes control points</source><translation>路径中的绘制指令数量，不包括控制点</translation></message>
     <message><source>The number of verbs (draw instructions) in the Path, this excludes control points.</source><translation>路径中的绘制指令数量，不包括控制点。</translation></message>
-    <message><source>The Office 365 Spreadsheet Share settings must be set to &apos;Anyone with the link&apos;.</source><translation>办公表格共享设置必须设为任何拥有链接的人。</translation></message>
+    <message><source>The Office 365 Spreadsheet Share settings must be set to &apos;Anyone with the link&apos;.</source><translation>Office 365 电子表格共享设置必须设为“拥有链接的任何人”。</translation></message>
     <message><source>The root CA certificate may be missing from your system</source><translation>系统可能缺少根证书颁发机构证书</translation></message>
     <message><source>The root CA certificate may be missing from your system.</source><translation>系统可能缺少根证书颁发机构证书。</translation></message>
     <message><source>the Shortcut Manager</source><translation>快捷键管理器</translation></message>
@@ -2514,8 +2514,8 @@
     <message><source>This feature requires a Pro Licence</source><translation>此功能需要专业版许可证</translation></message>
     <message><source>This feature requires a Pro Licence.</source><translation>此功能需要专业版许可证。</translation></message>
     <message><source>This feature requires a Project</source><translation>此功能需要项目</translation></message>
-    <message><source>This is a read only attribute. Please use the other controls to affect this color</source><translation>这是只读属性 。 请使用其他控件影响此颜色</translation></message>
-    <message><source>This is a read only attribute. Please use the other controls to affect this color.</source><translation>这是只读属性 。 请使用其他控件来影响此颜色 。</translation></message>
+    <message><source>This is a read only attribute. Please use the other controls to affect this color</source><translation>这是只读属性。 请使用其他控件影响此颜色</translation></message>
+    <message><source>This is a read only attribute. Please use the other controls to affect this color.</source><translation>这是只读属性。 请使用其他控件来影响此颜色。</translation></message>
     <message><source>This is not undoable</source><translation>无法撤销</translation></message>
     <message><source>This is not undoable.</source><translation>这不能取消。</translation></message>
     <message><source>This is very useful for rigging facial animation</source><translation>这对操纵面部动画很有用</translation></message>
@@ -2525,11 +2525,11 @@
     <message><source>This may affect the playback speed</source><translation>这可能影响播放速度</translation></message>
     <message><source>This may affect the playback speed.</source><translation>这可能影响回放速度.</translation></message>
     <message><source>This means you will be able to keyframe the path so that it animates over time</source><translation>这意味着你将能够按键 路径,以便它动画 一段时间</translation></message>
-    <message><source>This means you will be able to keyframe the path so that it animates over time.</source><translation>这意味着您将能够按键设定路径, 以便它随时间推移而动画化 。</translation></message>
+    <message><source>This means you will be able to keyframe the path so that it animates over time.</source><translation>这意味着您将能够按键设定路径，以便它随时间推移而动画化。</translation></message>
     <message><source>This path is too dense for Bezier visibility rollovers, please click a point to see relevant Bezier handles</source><translation>此路径过密，无法在悬停时显示贝塞尔控制柄；请点击点以查看相关控制柄</translation></message>
     <message><source>This path is too dense for Bezier visibility rollovers, please click a point to see relevant Bezier handles.</source><translation>此路径过密，无法在悬停时显示贝塞尔控制柄；请点击点以查看相关控制柄。</translation></message>
-    <message><source>This row is locked and cannot be renamed</source><translation>此行已锁定, 无法重命名</translation></message>
-    <message><source>This row is locked and cannot be renamed.</source><translation>此行已锁定, 无法重命名 。</translation></message>
+    <message><source>This row is locked and cannot be renamed</source><translation>此行已锁定，无法重命名</translation></message>
+    <message><source>This row is locked and cannot be renamed.</source><translation>此行已锁定，无法重命名。</translation></message>
     <message><source>This Scene cannot be exported</source><translation>无法导出此场景</translation></message>
     <message><source>This Scene cannot be exported.</source><translation>无法导出此场景。</translation></message>
     <message><source>This Scene cannot be rendered</source><translation>无法渲染此场景</translation></message>
@@ -2538,7 +2538,7 @@
     <message><source>This Scene cannot be saved.</source><translation>无法保存此场景。</translation></message>
     <message><source>This Scene contains missing plugins so a copy has been created. Saving this file will remove any missing Layers</source><translation>此场景包含缺失插件，因此已创建副本。保存此文件会移除所有缺失图层</translation></message>
     <message><source>This Scene contains missing plugins so a copy has been created. Saving this file will remove any missing Layers.</source><translation>此场景包含缺失插件，因此已创建副本。保存此文件会移除所有缺失图层。</translation></message>
-    <message><source>This shape is likely too long and thin to create a valid preview</source><translation>此形状可能太长和细, 无法创建有效的预览</translation></message>
+    <message><source>This shape is likely too long and thin to create a valid preview</source><translation>此形状可能太长和细，无法创建有效的预览</translation></message>
     <message><source>This shape is likely too long and thin to create a valid preview.</source><translation>这个形状可能太长和细,无法创建有效的预览.</translation></message>
     <message><source>This shape is not editable. You can make it editable with the Make Editable option in the Shapes menu</source><translation>此形状不可编辑。可在形状菜单中使用设为可编辑选项</translation></message>
     <message><source>This shape is not editable. You can make it editable with the Make Editable option in the Shapes menu.</source><translation>此形状不可编辑。可在形状菜单中使用设为可编辑选项。</translation></message>
@@ -2548,7 +2548,7 @@
     <message><source>This Shape it not editable.</source><translation>此形状不可编辑。</translation></message>
     <message><source>This Shape Type</source><translation>此形状类型</translation></message>
     <message><source>This will automatically connect to any selected shapes</source><translation>这将自动连接到任何选定的形状</translation></message>
-    <message><source>This will automatically connect to any selected shapes.</source><translation>这将自动连接到任何选定的形状 。</translation></message>
+    <message><source>This will automatically connect to any selected shapes.</source><translation>这将自动连接到任何选定的形状。</translation></message>
     <message><source>This works with any Editable Shape including Cel Animation</source><translation>这适用于任何可编辑形状，包括逐帧动画</translation></message>
     <message><source>This Zip file is not a valid plugin</source><translation>此压缩包不是有效插件</translation></message>
     <message><source>This Zip file is not a valid plugin.</source><translation>此压缩包不是有效插件。</translation></message>
@@ -2563,17 +2563,17 @@
     <message><source>to keep this popover open when disconnecting.</source><translation>连接时保持打开。</translation></message>
     <message><source>to load the settings for this layer</source><translation>装入此层的设置</translation></message>
     <message><source>to load the settings for this layer.</source><translation>以加载此层的设置。</translation></message>
-    <message><source>Today is Cavalry&apos;s Birthday!</source><translation>今天是软件生日!</translation></message>
+    <message><source>Today is Cavalry&apos;s Birthday!</source><translation>今天是软件生日！</translation></message>
     <message><source>Toggle</source><translation>切换</translation></message>
     <message><source>Toggle Audio Playback</source><translation>切换音频播放</translation></message>
-    <message><source>Toggle Audio Playback.</source><translation>切换音频回放 。</translation></message>
+    <message><source>Toggle Audio Playback.</source><translation>切换音频回放。</translation></message>
     <message><source>Toggle B</source><translation>切换字节</translation></message>
     <message><source>Toggle Color Management</source><translation>切换色彩管理</translation></message>
     <message><source>Toggle Lock</source><translation>切换锁定</translation></message>
     <message><source>Toggle Motion Paths</source><translation>切换运动路径</translation></message>
     <message><source>Toggle Snapping</source><translation>切换抓取</translation></message>
     <message><source>Toggle the background grid visibility</source><translation>切换背景网格可见度</translation></message>
-    <message><source>Toggle the background grid visibility.</source><translation>切换背景网格可见度 。</translation></message>
+    <message><source>Toggle the background grid visibility.</source><translation>切换背景网格可见度。</translation></message>
     <message><source>Toggle the mini-map overview in the bottom-right corner</source><translation>切换右下角的小地图概览</translation></message>
     <message><source>Toggle the mini-map overview in the bottom-right corner.</source><translation>切换右下角的小地图概览.</translation></message>
     <message><source>Toggle this mode with the &apos;U&apos; key</source><translation>使用字母键切换此模式</translation></message>
@@ -2599,14 +2599,14 @@
     <message><source>Tools</source><translation>工具</translation></message>
     <message><source>Tooltips</source><translation>工具提示</translation></message>
     <message><source>Top Align</source><translation>顶部对齐</translation></message>
-    <message><source>Track failed: could not decompose homography matrix</source><translation>音轨失败: 无法解析音轨矩阵</translation></message>
-    <message><source>Track failed: could not decompose homography matrix.</source><translation>音轨失败: 无法分解音轨矩阵 。</translation></message>
-    <message><source>Track failed: point count dropped too low</source><translation>音轨失败: 点数下降太低</translation></message>
-    <message><source>Track failed: point count dropped too low.</source><translation>音轨失败: 点数下降太低 。</translation></message>
+    <message><source>Track failed: could not decompose homography matrix</source><translation>跟踪失败：无法分解单应矩阵</translation></message>
+    <message><source>Track failed: could not decompose homography matrix.</source><translation>跟踪失败：无法分解单应矩阵。</translation></message>
+    <message><source>Track failed: point count dropped too low</source><translation>跟踪失败：点数过低</translation></message>
+    <message><source>Track failed: point count dropped too low.</source><translation>跟踪失败：点数过低。</translation></message>
     <message><source>Track the selected layer Backwards</source><translation>向后跟踪选定的层</translation></message>
     <message><source>Track the selected layer Backwards.</source><translation>向后跟踪选定的层。</translation></message>
     <message><source>Track the selected layer Forwards</source><translation>跟踪选中的层向前</translation></message>
-    <message><source>Track the selected layer Forwards.</source><translation>跟踪选中的层向前 。</translation></message>
+    <message><source>Track the selected layer Forwards.</source><translation>向前跟踪所选图层。</translation></message>
     <message><source>Track XY</source><translation>跟踪平面坐标</translation></message>
     <message><source>Tracking is already in progress</source><translation>追踪工作已在进行中</translation></message>
     <message><source>Tracking is already in progress.</source><translation>追踪工作已经开始。</translation></message>
@@ -2641,35 +2641,35 @@
     <message><source>ukm KNM elm</source><translation>内部标识甲</translation></message>
     <message><source>Un-Parent</source><translation>非家长</translation></message>
     <message><source>Unable to autosave scene</source><translation>无法自动保存场景</translation></message>
-    <message><source>Unable to autosave scene.</source><translation>无法自动保存场景 。</translation></message>
-    <message><source>Unable to encrypt content (encryption failed)</source><translation>无法加密内容( 加密失败)</translation></message>
-    <message><source>Unable to encrypt content (encryption failed).</source><translation>无法加密内容( 加密失败) 。</translation></message>
+    <message><source>Unable to autosave scene.</source><translation>无法自动保存场景。</translation></message>
+    <message><source>Unable to encrypt content (encryption failed)</source><translation>无法加密内容（加密失败)</translation></message>
+    <message><source>Unable to encrypt content (encryption failed).</source><translation>无法加密内容（加密失败)。</translation></message>
     <message><source>Unable to find Dynamic Render Manager</source><translation>无法找到动态渲染器管理器</translation></message>
     <message><source>Unable to get current script editor</source><translation>无法获取当前脚本编辑器</translation></message>
-    <message><source>Unable to get current script editor.</source><translation>无法获取当前脚本编辑器 。</translation></message>
+    <message><source>Unable to get current script editor.</source><translation>无法获取当前脚本编辑器。</translation></message>
     <message><source>Unable to preview mesh</source><translation>无法预览网格</translation></message>
-    <message><source>Unable to preview mesh.</source><translation>无法预览网格 。</translation></message>
+    <message><source>Unable to preview mesh.</source><translation>无法预览网格。</translation></message>
     <message><source>Unable to set an aspect ratio as one of the attribute values is 0</source><translation>无法将宽比设定为属性值之一为 0</translation></message>
-    <message><source>Unable to set an aspect ratio as one of the attribute values is 0.</source><translation>无法将宽比设定为属性值之一为 0 。</translation></message>
-    <message><source>Unable to write encrypted script (encryption failed)</source><translation>无法写入加密脚本( 加密失败)</translation></message>
-    <message><source>Unable to write encrypted script (encryption failed).</source><translation>无法写入加密脚本( 加密失败) 。</translation></message>
+    <message><source>Unable to set an aspect ratio as one of the attribute values is 0.</source><translation>无法设置宽高比，因为其中一个属性值为 0。</translation></message>
+    <message><source>Unable to write encrypted script (encryption failed)</source><translation>无法写入加密脚本（加密失败)</translation></message>
+    <message><source>Unable to write encrypted script (encryption failed).</source><translation>无法写入加密脚本（加密失败)。</translation></message>
     <message><source>Unauthorized</source><translation>未经授权</translation></message>
     <message><source>Unavailable For Legal Reasons</source><translation>因法律原因无法使用</translation></message>
     <message><source>unbound prefix</source><translation>未绑定前缀</translation></message>
     <message><source>unclosed CDATA section</source><translation>未闭合的字符数据区段</translation></message>
     <message><source>unclosed token</source><translation>未关闭的代号</translation></message>
     <message><source>undefined entity</source><translation>未定义实体</translation></message>
-    <message><source>Undo (Text Editing)</source><translation>撤消( 文本编辑)</translation></message>
+    <message><source>Undo (Text Editing)</source><translation>撤消（文本编辑)</translation></message>
     <message><source>Undock</source><translation>打开</translation></message>
     <message><source>Unkn</source><translation>无效</translation></message>
     <message><source>Unknown</source><translation>不详</translation></message>
-    <message><source>Unknown Asset</source><translation>未知资产</translation></message>
+    <message><source>Unknown Asset</source><translation>未知素材</translation></message>
     <message><source>unknown encoding</source><translation>未知编码</translation></message>
     <message><source>Unknown error</source><translation>未知错误</translation></message>
     <message><source>Unknown Error</source><translation>未知错误</translation></message>
     <message><source>Unknown error occurred</source><translation>发生未知错误</translation></message>
-    <message><source>Unknown error occurred.</source><translation>发生了未知错误 。</translation></message>
-    <message><source>Unknown error.</source><translation>未知错误 。</translation></message>
+    <message><source>Unknown error occurred.</source><translation>发生了未知错误。</translation></message>
+    <message><source>Unknown error.</source><translation>未知错误。</translation></message>
     <message><source>Unknown H</source><translation>未知高值</translation></message>
     <message><source>Unknown Script</source><translation>未知脚本</translation></message>
     <message><source>unknown token</source><translation>未知的符号</translation></message>
@@ -2752,13 +2752,13 @@
     <message><source>Waiting for frame</source><translation>等待帧</translation></message>
     <message><source>Waiting for frame...</source><translation>正在等待帧...</translation></message>
     <message><source>Warning</source><translation>警告</translation></message>
-    <message><source>Warning: You have run out of disk space!</source><translation>警告: 您已耗尽磁盘空间 !</translation></message>
+    <message><source>Warning: You have run out of disk space!</source><translation>警告：磁盘空间已用尽！</translation></message>
     <message><source>Web Proxy</source><translation>网络代理</translation></message>
     <message><source>Weight</source><translation>重量</translation></message>
     <message><source>Weight Locking</source><translation>重量锁定</translation></message>
     <message><source>Wewak</source><translation>文华</translation></message>
-    <message><source>What would you like to see in Cavalry?</source><translation>你希望在软件中看到什么?</translation></message>
-    <message><source>What&apos;s Next?</source><translation>接下来呢?</translation></message>
+    <message><source>What would you like to see in Cavalry?</source><translation>你希望在软件中看到什么？</translation></message>
+    <message><source>What&apos;s Next?</source><translation>接下来呢？</translation></message>
     <message><source>What&apos;s NH</source><translation>名称手柄是什么</translation></message>
     <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>使用软件时，若你同意，共享使用数据能帮助我们改进</translation></message>
     <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>使用软件时，若你同意，共享使用数据能帮助我们改进。</translation></message>
@@ -2775,26 +2775,26 @@
     <message><source>wks PPC yks</source><translation>内部标识丙</translation></message>
     <message><source>wmt YLM ant</source><translation>内部标识丁</translation></message>
     <message><source>Workbook name not found in the response</source><translation>在回复中找不到工作簿名称</translation></message>
-    <message><source>Workbook name not found in the response.</source><translation>在回复中找不到工作簿名称 。</translation></message>
+    <message><source>Workbook name not found in the response.</source><translation>在回复中找不到工作簿名称。</translation></message>
     <message><source>Workbook relationships file not found</source><translation>找不到工作簿关系文件</translation></message>
     <message><source>Workbook relationships file not found.</source><translation>找不到工作簿关系文件。</translation></message>
     <message><source>Working Color Space</source><translation>工作颜色空间</translation></message>
     <message><source>Workspace</source><translation>工作区</translation></message>
-    <message><source>Would you like to add the SVG as a single layer or separate into layers?</source><translation>要将矢量图添加为单个图层，还是拆分为多个图层?</translation></message>
-    <message><source>Would you like to add the SVG as an Asset layer or separate into layers?</source><translation>要将矢量图添加为资产图层，还是拆分为多个图层?</translation></message>
-    <message><source>Would you like to Append of Replace the existing Swatches?</source><translation>要追加还是替换现有色板?</translation></message>
-    <message><source>Would you like to create a new shape, or paste the SVG onto the selection?</source><translation>要创建新形状，还是将矢量图粘贴到所选内容?</translation></message>
-    <message><source>Would you like to create it?</source><translation>你想创造它吗?</translation></message>
-    <message><source>Would you like to delete all Path Keyframes for this layer?</source><translation>要删除此图层的所有路径关键帧吗?</translation></message>
-    <message><source>Would you like to include all composition backgrounds as shapes?</source><translation>您想要将所有构成背景作为形状吗 ?</translation></message>
-    <message><source>Would you like to install this Plugin?</source><translation>您要安装此插件吗 ?</translation></message>
-    <message><source>Would you like to make it editable?</source><translation>您要使它可以编辑吗 ?</translation></message>
-    <message><source>Would you like to open Cavalry as a separate process?</source><translation>要以单独进程打开软件吗?</translation></message>
-    <message><source>Would you like to overwrite existing caches?</source><translation>您想要覆盖已有缓存吗 ?</translation></message>
-    <message><source>Would you like to overwrite existing renders?</source><translation>要覆盖现有渲染吗?</translation></message>
-    <message><source>Would you like to overwrite it?</source><translation>你想覆盖它吗?</translation></message>
-    <message><source>Would you like to resize the Mesh Shape to match the Asset size?</source><translation>要调整网格形状以匹配资产大小吗?</translation></message>
-    <message><source>Would you like to save your changes?</source><translation>您想要保存您的更改吗 ?</translation></message>
+    <message><source>Would you like to add the SVG as a single layer or separate into layers?</source><translation>要将矢量图添加为单个图层，还是拆分为多个图层？</translation></message>
+    <message><source>Would you like to add the SVG as an Asset layer or separate into layers?</source><translation>要将 SVG 添加为素材图层，还是拆分为多个图层？</translation></message>
+    <message><source>Would you like to Append of Replace the existing Swatches?</source><translation>要追加还是替换现有色板？</translation></message>
+    <message><source>Would you like to create a new shape, or paste the SVG onto the selection?</source><translation>要创建新形状，还是将矢量图粘贴到所选内容？</translation></message>
+    <message><source>Would you like to create it?</source><translation>你想创造它吗？</translation></message>
+    <message><source>Would you like to delete all Path Keyframes for this layer?</source><translation>要删除此图层的所有路径关键帧吗？</translation></message>
+    <message><source>Would you like to include all composition backgrounds as shapes?</source><translation>是否将所有合成背景作为形状包含进来？</translation></message>
+    <message><source>Would you like to install this Plugin?</source><translation>要安装此外挂吗？</translation></message>
+    <message><source>Would you like to make it editable?</source><translation>要使其可编辑吗？</translation></message>
+    <message><source>Would you like to open Cavalry as a separate process?</source><translation>要以单独进程打开软件吗？</translation></message>
+    <message><source>Would you like to overwrite existing caches?</source><translation>要覆盖现有缓存吗？</translation></message>
+    <message><source>Would you like to overwrite existing renders?</source><translation>要覆盖现有渲染吗？</translation></message>
+    <message><source>Would you like to overwrite it?</source><translation>你想覆盖它吗？</translation></message>
+    <message><source>Would you like to resize the Mesh Shape to match the Asset size?</source><translation>要调整网格形状以匹配素材大小吗？</translation></message>
+    <message><source>Would you like to save your changes?</source><translation>要保存更改吗？</translation></message>
     <message><source>Write Preset Defaults</source><translation>写入预设默认值</translation></message>
     <message><source>X Action</source><translation>横向动作</translation></message>
     <message><source>x error H</source><translation>横向错误高</translation></message>
@@ -2813,49 +2813,49 @@
     <message><source>You can customise the Cavalry Control interface by adding a UI Script to act as a Header</source><translation>可以添加界面脚本作为页眉来自定义控制界面</translation></message>
     <message><source>You can customise the Cavalry Control interface by adding a UI Script to act as a Header.</source><translation>可以添加界面脚本作为页眉来自定义控制界面。</translation></message>
     <message><source>You can open the Control Centre from the Window menu</source><translation>您可以从窗口菜单打开控制中心</translation></message>
-    <message><source>You can open the Control Centre from the Window menu.</source><translation>您可以从窗口菜单打开控制中心 。</translation></message>
+    <message><source>You can open the Control Centre from the Window menu.</source><translation>可以从“窗口”菜单打开控制中心。</translation></message>
     <message><source>You can override sub-mesh materials with a Sub-Mesh deformer</source><translation>可以使用子网格变形器覆盖子网格材质</translation></message>
     <message><source>You can override sub-mesh materials with a Sub-Mesh deformer.</source><translation>可以使用子网格变形器覆盖子网格材质。</translation></message>
     <message><source>You can override sub-mesh strokes with a Sub-Mesh deformer</source><translation>可以使用子网格变形器覆盖子网格描边</translation></message>
     <message><source>You can override sub-mesh strokes with a Sub-Mesh deformer.</source><translation>可以使用子网格变形器覆盖子网格描边。</translation></message>
-    <message><source>You can&apos;t create keyframes during playback at the moment</source><translation>播放时不能创建键框</translation></message>
-    <message><source>You can&apos;t create keyframes during playback at the moment.</source><translation>在目前播放时无法创建键框 。</translation></message>
+    <message><source>You can&apos;t create keyframes during playback at the moment</source><translation>目前播放期间不能创建关键帧</translation></message>
+    <message><source>You can&apos;t create keyframes during playback at the moment.</source><translation>目前播放期间不能创建关键帧。</translation></message>
     <message><source>You can&apos;t delete the Default animation layer</source><translation>不能删除默认动画层</translation></message>
-    <message><source>You can&apos;t delete the Default animation layer.</source><translation>无法删除默认动画层 。</translation></message>
+    <message><source>You can&apos;t delete the Default animation layer.</source><translation>不能删除默认动画图层。</translation></message>
     <message><source>You can&apos;t key a Rig Control in the &apos;Control Layer&apos; Keyframe Layer</source><translation>不能在控制图层关键帧图层中为绑定控制设置关键帧</translation></message>
     <message><source>You can&apos;t key this attribute at the moment. Switch to the &apos;Control Layer&apos; Keyframe Layer</source><translation>现在不能为此属性设置关键帧。请切换到控制图层关键帧图层</translation></message>
-    <message><source>You cannot add the root path as an Asset Folder</source><translation>不能将根路径添加为资产文件夹</translation></message>
-    <message><source>You cannot add the root path as an Asset Folder.</source><translation>不能将根路径添加为资产文件夹。</translation></message>
+    <message><source>You cannot add the root path as an Asset Folder</source><translation>不能将根路径添加为素材文件夹</translation></message>
+    <message><source>You cannot add the root path as an Asset Folder.</source><translation>不能将根路径添加为素材文件夹。</translation></message>
     <message><source>You cannot connect an Attribute that is animated, or has an input connection</source><translation>不能连接已有动画或输入连接的属性</translation></message>
     <message><source>You cannot connect an Attribute that is animated, or has an input connection.</source><translation>不能连接已有动画或输入连接的属性。</translation></message>
     <message><source>You cannot copy easing from multiple attributes at once</source><translation>不能一次从多个属性复制缓动</translation></message>
     <message><source>You cannot copy easing from multiple attributes at once.</source><translation>不能一次从多个属性复制缓动。</translation></message>
     <message><source>You cannot delete referenced layers</source><translation>您不能删除引用的图层</translation></message>
-    <message><source>You cannot delete referenced layers.</source><translation>您无法删除引用的层 。</translation></message>
+    <message><source>You cannot delete referenced layers.</source><translation>不能删除引用图层。</translation></message>
     <message><source>You cannot open a new Scene while Cavalry is busy rendering</source><translation>软件正在渲染时不能打开新场景</translation></message>
     <message><source>You cannot open a new Scene while Cavalry is busy rendering.</source><translation>软件正在渲染时不能打开新场景。</translation></message>
     <message><source>You cannot parent layers to Cameras at this time</source><translation>您此时不能将图层归为相机</translation></message>
-    <message><source>You cannot parent layers to Cameras at this time.</source><translation>您此时不能为相机提供图层 。</translation></message>
+    <message><source>You cannot parent layers to Cameras at this time.</source><translation>目前不能将图层设为摄像机子级。</translation></message>
     <message><source>You cannot paste into this Scene</source><translation>不能粘贴到此场景</translation></message>
     <message><source>You cannot paste into this Scene.</source><translation>不能粘贴到此场景。</translation></message>
-    <message><source>You cannot pre-compose Asset layers</source><translation>不能预合成资产图层</translation></message>
-    <message><source>You cannot pre-compose Asset layers.</source><translation>不能预合成资产图层。</translation></message>
+    <message><source>You cannot pre-compose Asset layers</source><translation>不能预合成素材图层</translation></message>
+    <message><source>You cannot pre-compose Asset layers.</source><translation>不能预合成素材图层。</translation></message>
     <message><source>You cannot put a Composition inside itself</source><translation>不能将合成放入其自身</translation></message>
     <message><source>You cannot put a Composition inside itself.</source><translation>不能将合成放入其自身。</translation></message>
     <message><source>You cannot rename referenced layers</source><translation>您无法重命名引用层</translation></message>
-    <message><source>You cannot rename referenced layers.</source><translation>您不能重命名引用层 。</translation></message>
+    <message><source>You cannot rename referenced layers.</source><translation>不能重命名引用图层。</translation></message>
     <message><source>You cannot save this Scene</source><translation>不能保存此场景</translation></message>
     <message><source>You cannot save this Scene.</source><translation>不能保存此场景。</translation></message>
     <message><source>You cannot set keyframes on a layer connected to the Timeline</source><translation>您无法在连接到时间线的图层上设置密钥框</translation></message>
-    <message><source>You cannot set keyframes on a layer connected to the Timeline.</source><translation>您不能在连接到时间线的层上设置密钥框架 。</translation></message>
+    <message><source>You cannot set keyframes on a layer connected to the Timeline.</source><translation>不能在连接到时间线的图层上设置关键帧。</translation></message>
     <message><source>You have unsaved changes in this file</source><translation>您的文件中未保存的更改</translation></message>
     <message><source>You must set at least one color on the gradient</source><translation>您必须在梯度上至少设置一个颜色</translation></message>
-    <message><source>You must set at least one color on the gradient.</source><translation>您必须在梯度上设置至少一个颜色 。</translation></message>
+    <message><source>You must set at least one color on the gradient.</source><translation>必须在渐变上设置至少一种颜色。</translation></message>
     <message><source>You need to switch Compositions</source><translation>需要切换合成</translation></message>
     <message><source>Your Canva authorisation has been revoked. Please sign in again</source><translation>在线设计服务授权已被撤销。请重新登录</translation></message>
     <message><source>Your Canva authorisation has been revoked. Please sign in again.</source><translation>在线设计服务授权已被撤销。请重新登录。</translation></message>
-    <message><source>Your render has been submitted, updates will appear in the Message Bar</source><translation>您的渲染已提交, 更新将在信件栏中显示</translation></message>
-    <message><source>Your render has been submitted, updates will appear in the Message Bar.</source><translation>您的渲染已提交, 更新将在信件栏中显示 。</translation></message>
+    <message><source>Your render has been submitted, updates will appear in the Message Bar</source><translation>您的渲染已提交，更新将在信件栏中显示</translation></message>
+    <message><source>Your render has been submitted, updates will appear in the Message Bar.</source><translation>渲染已提交，更新会显示在消息栏中。</translation></message>
     <message><source>Your render will not be uploaded to Canva</source><translation>你的渲染不会上传到在线设计服务</translation></message>
     <message><source>Your render will not be uploaded to Canva.</source><translation>你的渲染不会上传到在线设计服务。</translation></message>
     <message><source>yuj 9</source><translation>9号公路</translation></message>
@@ -3388,11 +3388,11 @@
     <message><source>Match Color</source><translation>匹配颜色</translation></message>
     <message><source>Match Color to layer</source><translation>匹配到图层颜色</translation></message>
     <message><source>This feature requires a Project.</source><translation>此功能需要项目。</translation></message>
-    <message><source>No Groups in this Composition.</source><translation>此合成中没有编组。</translation></message>
+    <message><source>No Groups in this Composition.</source><translation>此合成中没有组。</translation></message>
     <message><source>Quicklist</source><translation>快速列表</translation></message>
     <message><source>No Presets.</source><translation>没有预设。</translation></message>
-    <message><source>Set Playback Range to Composition</source><translation>将播放范围设为合成</translation></message>
-    <message><source>Basic Line</source><translation>基本线条</translation></message>
+    <message><source>Set Playback Range to Composition</source><translation>将播放范围设置为合成</translation></message>
+    <message><source>Basic Line</source><translation>基本线</translation></message>
     <message><source>Basic Shape</source><translation>基本形状</translation></message>
     <message><source>Component</source><translation>组件</translation></message>
     <message><source>Connect Shape</source><translation>连接形状</translation></message>
@@ -3402,42 +3402,42 @@
     <message><source>Footage Shape</source><translation>素材形状</translation></message>
     <message><source>Grid Layout Group</source><translation>网格布局组</translation></message>
     <message><source>Grid Layout Row</source><translation>网格布局行</translation></message>
-    <message><source>Image To Shapes</source><translation>图像转形状</translation></message>
+    <message><source>Image To Shapes</source><translation>图像到形状</translation></message>
     <message><source>Layout Group</source><translation>布局组</translation></message>
     <message><source>Mesh Shape</source><translation>网格形状</translation></message>
     <message><source>Outline</source><translation>轮廓</translation></message>
     <message><source>Quad Tree Shape</source><translation>四叉树形状</translation></message>
     <message><source>Shortest Path</source><translation>最短路径</translation></message>
-    <message><source>3D Matrix</source><translation>3D 矩阵</translation></message>
-    <message><source>Add Divisions</source><translation>添加细分</translation></message>
+    <message><source>3D Matrix</source><translation>3D矩阵</translation></message>
+    <message><source>Add Divisions</source><translation>添加分割</translation></message>
     <message><source>Behaviour Mixer</source><translation>行为混合器</translation></message>
     <message><source>Bend</source><translation>弯曲</translation></message>
-    <message><source>Bevel</source><translation>斜面</translation></message>
+    <message><source>Bevel</source><translation>斜边</translation></message>
     <message><source>Blend Shape</source><translation>混合形状</translation></message>
     <message><source>Boolean</source><translation>布尔</translation></message>
     <message><source>Clean Up</source><translation>清理</translation></message>
     <message><source>Color Blend</source><translation>颜色混合</translation></message>
-    <message><source>Curves To Lines</source><translation>曲线转线条</translation></message>
+    <message><source>Curves To Lines</source><translation>曲线转直线</translation></message>
     <message><source>Distance</source><translation>距离</translation></message>
-    <message><source>Extend Open Paths</source><translation>延伸开放路径</translation></message>
+    <message><source>Extend Open Paths</source><translation>扩展开放路径</translation></message>
     <message><source>Fill Rule</source><translation>填充规则</translation></message>
-    <message><source>Flare</source><translation>光晕</translation></message>
+    <message><source>Flare</source><translation>耀光</translation></message>
     <message><source>Flatten Shape Layers</source><translation>扁平化形状图层</translation></message>
-    <message><source>Four Point Warp</source><translation>四点扭曲</translation></message>
+    <message><source>Four Point Warp</source><translation>四点变形</translation></message>
     <message><source>Frame</source><translation>帧</translation></message>
     <message><source>Get Vector</source><translation>获取向量</translation></message>
-    <message><source>Is Within</source><translation>位于内部</translation></message>
+    <message><source>Is Within</source><translation>包含在内</translation></message>
     <message><source>Lattice</source><translation>晶格</translation></message>
-    <message><source>Look At</source><translation>朝向</translation></message>
+    <message><source>Look At</source><translation>注视</translation></message>
     <message><source>Manipulator</source><translation>操纵器</translation></message>
     <message><source>Material Sampler</source><translation>材质采样器</translation></message>
-    <message><source>Morph</source><translation>形变</translation></message>
-    <message><source>Noise</source><translation>噪波</translation></message>
-    <message><source>Number Range</source><translation>数值范围</translation></message>
-    <message><source>Number Range To Color</source><translation>数值范围转颜色</translation></message>
+    <message><source>Morph</source><translation>变形</translation></message>
+    <message><source>Noise</source><translation>噪声</translation></message>
+    <message><source>Number Range</source><translation>数字范围</translation></message>
+    <message><source>Number Range To Color</source><translation>数字范围到颜色</translation></message>
     <message><source>Oscillator</source><translation>振荡器</translation></message>
     <message><source>Pathfinder</source><translation>路径查找器</translation></message>
-    <message><source>Pinch</source><translation>挤压</translation></message>
+    <message><source>Pinch</source><translation>夹紧</translation></message>
     <message><source>Position Blend</source><translation>位置混合</translation></message>
     <message><source>Push Along Vector</source><translation>沿向量推送</translation></message>
     <message><source>Random</source><translation>随机</translation></message>
@@ -3539,21 +3539,21 @@
     <message><source>Add String</source><translation>添加字符串</translation></message>
     <message><source>Add Sub Bone</source><translation>添加子骨骼</translation></message>
     <message><source>Add Top Bone</source><translation>添加顶部骨骼</translation></message>
-    <message><source>Add Utility</source><translation>添加实用工具</translation></message>
+    <message><source>Add Utility</source><translation>添加实用程序</translation></message>
     <message><source>Add SVG to Composition</source><translation>将 SVG 添加到合成</translation></message>
-    <message><source>Add SVG to Scene</source><translation>将 SVG 添加到场景</translation></message>
-    <message><source>Add SVG to Scene.</source><translation>将 SVG 添加到场景。</translation></message>
+    <message><source>Add SVG to Scene</source><translation>将SVG添加到场景</translation></message>
+    <message><source>Add SVG to Scene.</source><translation>将SVG添加到场景。</translation></message>
     <message><source>Add Text</source><translation>添加文本</translation></message>
     <message><source>Add Text Shape</source><translation>添加文本形状</translation></message>
     <message><source>Add to Composition as Footage</source><translation>作为素材添加到合成</translation></message>
     <message><source>Add to Composition as Mesh</source><translation>作为网格添加到合成</translation></message>
     <message><source>Add to Control Centre</source><translation>添加到控制中心</translation></message>
     <message><source>Add to Duplicator</source><translation>添加到复制器</translation></message>
-    <message><source>Add to GH</source><translation>添加到 GH</translation></message>
+    <message><source>Add to GH</source><translation>添加到GH</translation></message>
     <message><source>Add Viewport (Pro)</source><translation>添加视口(专业版)</translation></message>
     <message><source>Add Visibility Bar</source><translation>添加可见性栏</translation></message>
-    <message><source>Add your own Presets and you'll be able to delete and rename them here</source><translation>在此添加你自己的预设，之后就可以在这里删除和重命名它们。</translation></message>
-    <message><source>Add your own Presets and you'll be able to delete and rename them here.</source><translation>在此添加你自己的预设，之后就可以在这里删除和重命名它们。</translation></message>
+    <message><source>Add your own Presets and you'll be able to delete and rename them here</source><translation>添加您自己的预设，您将能够在此处删除和重命名它们</translation></message>
+    <message><source>Add your own Presets and you'll be able to delete and rename them here.</source><translation>添加您自己的预设，您将能够在此处删除和重命名它们。</translation></message>
     <message><source>Address</source><translation>地址</translation></message>
     <message><source>Adjust Colors (HSV)</source><translation>调整颜色（HSV）</translation></message>
     <message><source>Advanced</source><translation>高级</translation></message>
@@ -3587,8 +3587,8 @@
     <message><source>Akhand</source><translation>阿克汉德</translation></message>
     <message><source>Alizarin Crimson</source><translation>茜素红</translation></message>
     <message><source>Analogous</source><translation>类似的</translation></message>
-    <message><source>and restricted Assets found</source><translation>并找到受限资产</translation></message>
-    <message><source>and restricted Assets found.</source><translation>并找到受限资产。</translation></message>
+    <message><source>and restricted Assets found</source><translation>并找到受限素材</translation></message>
+    <message><source>and restricted Assets found.</source><translation>并找到受限素材。</translation></message>
     <message><source>Angle Locking</source><translation>角度锁定</translation></message>
     <message><source>Animate Path</source><translation>动画路径</translation></message>
     <message><source>Animated</source><translation>动画</translation></message>
@@ -3634,9 +3634,9 @@
     <message><source>Array</source><translation>数组</translation></message>
     <message><source>Arrow Keys Control Hierarchy</source><translation>箭头键控制层次</translation></message>
     <message><source>Ascender Height</source><translation>上升部高度</translation></message>
-    <message><source>Asset Files Path</source><translation>资产文件路径</translation></message>
-    <message><source>Asset Layer</source><translation>资产图层</translation></message>
-    <message><source>Assets</source><translation>资产</translation></message>
+    <message><source>Asset Files Path</source><translation>素材文件路径</translation></message>
+    <message><source>Asset Layer</source><translation>素材图层</translation></message>
+    <message><source>Assets</source><translation>素材</translation></message>
     <message><source>Assign Control Points</source><translation>分配控制点</translation></message>
     <message><source>Assign Tag</source><translation>分配标签</translation></message>
     <message><source>asynchronous entity</source><translation>异步实体</translation></message>
@@ -3780,7 +3780,7 @@
         </message>
     <message>
           <source>Timeline</source>
-          <translation>时间线</translation>
+          <translation>时间轴</translation>
         </message>
     <message>
           <source>Ungroup</source>
@@ -4426,7 +4426,7 @@
     </message>
     <message>
       <source>Delete Assets</source>
-      <translation>删除资产</translation>
+      <translation>删除素材</translation>
     </message>
     <message>
       <source>Delete Attributes</source>
@@ -4565,7 +4565,7 @@
     </message>
     <message>
       <source>Set Asset</source>
-      <translation>设置资产</translation>
+      <translation>设置素材</translation>
     </message>
     <message>
       <source>Set B</source><translation>设置 B</translation>
@@ -6179,7 +6179,7 @@
     </message>
     <message>
       <source>String From Asset</source>
-      <translation>从资产生成字符串</translation>
+      <translation>从素材生成字符串</translation>
     </message>
     <message>
       <source>String Generator</source>

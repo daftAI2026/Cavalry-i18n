@@ -7,9 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [Unreleased]
+### Fixed
+- **Translation Quality (zh-Hans/zh-Hant/ja_JP)**: Batch terminology and quality corrections across 3 languages.
+  - Reverted `pivot` translation back to `锚点`/`錨點` per glossary (was incorrectly changed to `轴心`/`軸心`).
+  - Fixed zh-Hant `spheriseFilter.json`: restored English-leaked tabs back to Chinese, corrected `Back` → `背面`.
+  - Fixed zh-Hant `zoomBlurFilter.json`: restored `origin` → `原點`.
+  - Unified zh-Hant terminology: `質量` → `品質`, `圖像` → `影像`, `屏幕` → `螢幕`, `控製` → `控制`.
+  - Fixed ja_JP Chinese-Japanese mixed-language strings in lattice deformers, fluid dynamics, and path operations.
+  - Expanded `forbidden_translation_patterns.json` allowlist with `Forge`, `Dynamics`, `Shift`, `Ctrl` etc.
 
 ### Added
+
 - **Qt Translator Injector**: Introduced `injector/` module (Objective-C++) for runtime Qt menu interception.
   - Implemented `EmbeddedTranslator` (QTranslator subclass) for high-performance string replacement.
   - Added support for "English dump-only" mode to capture runtime UI inventories.

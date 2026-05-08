@@ -28,7 +28,7 @@
     "value": {
       "nodeType": "group",
       "nodeInfo": "将图层收集到文件夹中以进行整理和/或创建公共变换。",
-      "niceName": "编组",
+      "niceName": "分组",
       "attributes": {
         "groupMode": [
           "混合和不透明度模式",
@@ -75,7 +75,7 @@
         ],
         "pivot": [
           "锚点",
-          "定义形状的轴心点。这在制作旋转和缩放动画时很有用。"
+          "定义形状的锚点。这在制作旋转和缩放动画时很有用。"
         ],
         "webExport": "Lottie 导出"
       },
@@ -917,20 +917,20 @@
     "value": {
       "nodeType": "planarCamera",
       "nodeInfo": "在 2.5D 视口中组合和查看形状。",
-      "niceName": "摄像机",
+      "niceName": "相机",
       "attributes": {
         "cameraType": "类型",
         "position": "位置",
         "rotation": "旋转",
         "positionOffset": "位置偏移",
         "lookAtOffset": "注视偏移",
-        "lookAt": "朝向",
+        "lookAt": "注视",
         "zoom": "缩放"
       },
       "enums": {
         "cameraType": {
           "0": "自由形状",
-          "1": "朝向",
+          "1": "注视",
           "2": "参考线"
         }
       }
@@ -962,7 +962,7 @@
         "overrides.attribute": "属性",
         "overrides.enabled": "使用覆盖",
         "overrides.double": "值",
-        "overrides.double2": "值 2",
+        "overrides.double2": "二维数值",
         "overrides.color": "颜色",
         "overrides.string": "字符串",
         "overrides.font": "字体",
@@ -1058,7 +1058,7 @@
           "0": "路径切线",
           "1": "自定义...",
           "2": "路径曲率",
-          "3": "弧形"
+          "3": "圆弧"
         },
         "arcDirection": {
           "0": "正常",
@@ -1744,7 +1744,7 @@
       },
       {
         "nodeType": "spreadsheet",
-        "nodeInfo": "从电子表格资产读取并重映射数据。",
+        "nodeInfo": "从电子表格素材读取并重映射数据。",
         "attributes": {
           "column": "列标题",
           "file": "文件",
@@ -2062,7 +2062,7 @@
       },
       {
         "nodeType": "materialBehaviourAlpha",
-        "niceName": "Alpha 材质覆盖",
+        "niceName": "Alpha材质覆盖",
         "nodeInfo": "覆盖子网格中的透明度。",
         "attributes": {
           "alpha": "Alpha"
@@ -2071,7 +2071,7 @@
       {
         "nodeType": "materialBehaviourHSV",
         "nodeInfo": "覆盖子网格内形状的色相、饱和度和明度。",
-        "niceName": "HSV 材质覆盖",
+        "niceName": "HSV材质覆盖",
         "attributes": {
           "adjustHue": "色相",
           "adjustSaturation": "饱和度",
@@ -2141,7 +2141,7 @@
       {
         "nodeType": "chopPath",
         "nodeInfo": "使用矩形将路径切割成块。",
-        "niceName": "切割路径",
+        "niceName": "分割路径",
         "attributes": {
           "count": [
             "数量",
@@ -2346,7 +2346,7 @@
           "joinStyle": {
             "0": "斜接",
             "1": "四舍五入",
-            "2": "斜面"
+            "2": "斜边"
           },
           "align": {
             "0": "中心",
@@ -3173,7 +3173,7 @@
             "3": "双三次（用于放大）"
           },
           "missingImageMode": {
-            "0": "噪波",
+            "0": "噪声",
             "1": "最近帧",
             "2": "黑色"
           }
@@ -3686,7 +3686,7 @@
           "text": "字符串",
           "font": "字体",
           "fontSize": "字号",
-          "alignment": "对齐方式",
+          "alignment": "对齐",
           "spacing": "间距",
           "wordSpacing": "词间距",
           "lineSpacing": "行间距",
@@ -3717,7 +3717,7 @@
           "letterSpacing": "字符间距",
           "wordSpacing": "词间距",
           "lineSpacing": "行间距",
-          "horizontalAlignment": "对齐方式",
+          "horizontalAlignment": "对齐",
           "verticalAlignment": "垂直对齐",
           "manipulators": "字符串操作器",
           "textBoxSize": "文本框大小",
@@ -3784,7 +3784,7 @@
             "3": "基线"
           },
           "backgroundMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符",
             "3": "段落",
@@ -3818,7 +3818,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           },
@@ -3863,7 +3863,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           }
@@ -3898,7 +3898,7 @@
             "1": "指定索引"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           }
@@ -3943,7 +3943,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           },
@@ -4017,11 +4017,11 @@
         "enums": {
           "feature": {
             "0": "访问所有替代字形",
-            "1": "上基字形",
-            "2": "上基标记定位",
-            "3": "上基替换",
-            "4": "替代分数",
-            "5": "完整连字",
+            "1": "基线上方形式",
+            "2": "基线上方标记定位",
+            "3": "基线上方替换",
+            "4": "替代分数形式",
+            "5": "阿克汉德",
             "6": "替代比例宽度字距",
             "7": "下基字形",
             "8": "下基标记定位",
@@ -4053,7 +4053,7 @@
             "34": "全宽",
             "35": "半形",
             "36": "尾音符形式",
-            "37": "替代半宽",
+            "37": "替代半宽形式",
             "38": "历史形式",
             "39": "水平假名替代",
             "40": "历史连字",
@@ -4083,7 +4083,7 @@
             "64": "标记到标记定位",
             "65": "通过替换进行标记定位",
             "66": "替代注释形式",
-            "67": "NLC 汉字形式",
+            "67": "汉字形式",
             "68": "点符形式",
             "69": "分子",
             "70": "旧式数字",
@@ -4147,7 +4147,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           },
@@ -4229,7 +4229,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           },
@@ -4388,7 +4388,7 @@
       },
       {
         "nodeType": "imageToShapes",
-        "nodeInfo": "通过采样图像资产创建形状。",
+        "nodeInfo": "通过采样图像素材创建形状。",
         "attributes": {
           "iterations": "迭代次数",
           "mode": "模式",
@@ -4419,7 +4419,7 @@
       {
         "nodeType": "simpleLine",
         "nodeInfo": "生成线段图元。",
-        "niceName": "线条",
+        "niceName": "直线",
         "attributes": {
           "divisions": "细分",
           "length": "长度"
@@ -4488,7 +4488,7 @@
           "joinStyle": {
             "0": "斜接",
             "1": "四舍五入",
-            "2": "斜面"
+            "2": "斜边"
           },
           "capStyle": {
             "0": "平面",
@@ -5029,7 +5029,7 @@
       {
         "nodeType": "arcShape",
         "nodeInfo": "生成圆弧图元。",
-        "niceName": "弧形",
+        "niceName": "圆弧",
         "attributes": {
           "divisions": [
             "细分",
@@ -5060,7 +5060,7 @@
       {
         "nodeType": "ringShape",
         "nodeInfo": "生成圆环图元。",
-        "niceName": "环形",
+        "niceName": "圆环",
         "attributes": {
           "divisions": "细分",
           "radius": "外半径",
@@ -5233,7 +5233,7 @@
         "nodeInfo": "将网格工具与此形状结合使用以扭曲图像和着色器。",
         "attributes": {
           "mesh": [
-            "网格体",
+            "网格",
             "选中后，形状将转换为网格，因此可以通过使用网格工具添加顶点来变形。"
           ],
           "size": [
@@ -5277,7 +5277,7 @@
           ]
         },
         "tabs": {
-          "mesh": "网格体"
+          "mesh": "网格"
         }
       },
       {
@@ -5327,7 +5327,7 @@
       },
       {
         "nodeType": "pointsToCurve",
-        "niceName": "点转路径",
+        "niceName": "点到路径",
         "nodeInfo": "使用分布中的点创建路径。",
         "attributes": {
           "generator": "点来源",
@@ -5482,7 +5482,7 @@
       },
       {
         "nodeType": "numberRangeBase",
-        "niceName": "数值范围",
+        "niceName": "数字范围",
         "attributes": {
           "sourceMin": "来源最小值",
           "sourceMax": "来源最大值",
@@ -5496,7 +5496,7 @@
       },
       {
         "nodeType": "numberRangeToColorBase",
-        "niceName": "数值范围转颜色",
+        "niceName": "数字范围到颜色",
         "attributes": {
           "sourceMin": "来源最小值",
           "sourceMax": "来源最大值",
@@ -5625,7 +5625,7 @@
           },
           "indexMode": {
             "0": "词",
-            "1": "线条",
+            "1": "直线",
             "2": "段落",
             "3": "文档"
           }
@@ -5665,7 +5665,7 @@
           "indexMode": {
             "0": "字符",
             "1": "词",
-            "2": "线条",
+            "2": "直线",
             "3": "段落"
           }
         }
@@ -5868,7 +5868,7 @@
           "indexMode": {
             "0": "字符",
             "1": "词",
-            "2": "线条"
+            "2": "直线"
           }
         }
       },
@@ -5882,9 +5882,9 @@
       },
       {
         "nodeType": "assetArray",
-        "nodeInfo": "创建资产列表，可通过索引分配给其他图层。",
+        "nodeInfo": "创建素材列表，可通过索引分配给其他图层。",
         "attributes": {
-          "array": "资产",
+          "array": "素材",
           "arrayIndex": "索引"
         }
       },
@@ -6365,7 +6365,7 @@
         "enums": {
           "layoutItems.contentType": {
             "0": "形状",
-            "1": "间隔器"
+            "1": "间隔符"
           },
           "verticalAlignment": {
             "0": "顶部",
@@ -6431,7 +6431,7 @@
       },
       {
         "nodeType": "spacerItem",
-        "niceName": "间隔器",
+        "niceName": "间隔符",
         "nodeInfo": "与布局形状结合使用以创建间隙或空白单元格。",
         "attributes": {
           "minimumSize": "最小大小"
@@ -6628,12 +6628,12 @@
       },
       {
         "nodeType": "lineRectPatternGenerator",
-        "niceName": "线条",
+        "niceName": "直线",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "orientation": "方向",
           "size": "大小",
-          "horizontalAlignment": "对齐方式",
+          "horizontalAlignment": "对齐",
           "fixedGapWidth": "固定间隙宽度"
         },
         "enums": {
@@ -6650,7 +6650,7 @@
       },
       {
         "nodeType": "ringRectPatternGenerator",
-        "niceName": "环形",
+        "niceName": "圆环",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "startAngle": "开始角度",
@@ -8006,7 +8006,7 @@
       },
       {
         "nodeType": "segmentPath",
-        "niceName": "分段路径",
+        "niceName": "分割路径",
         "nodeInfo": "将路径分割成更小的段。",
         "attributes": {
           "count": "数量",
@@ -8039,7 +8039,7 @@
       },
       {
         "nodeType": "forgeDynamicsShape",
-        "niceName": "Forge 动力学",
+        "niceName": "Forge动力学",
         "nodeInfo": "用于刚体碰撞的 2D 物理引擎。",
         "attributes": {
           "groundMode": "地面模式",
@@ -8231,7 +8231,7 @@
       },
       {
         "nodeType": "stickyCollisionEvent",
-        "niceName": "粘性碰撞事件",
+        "niceName": "粘附碰撞事件",
         "nodeInfo": "当 Forge 动力学物体碰撞时使其相互粘附。",
         "attributes": {
           "breakable": "可断裂",
@@ -8243,7 +8243,7 @@
       },
       {
         "nodeType": "impulseCollisionEvent",
-        "niceName": "脉冲碰撞事件",
+        "niceName": "冲量碰撞事件",
         "nodeInfo": "当 Forge 动力学刚体碰撞时添加额外的力。",
         "attributes": {
           "useBounceDirection": "使用弹跳方向",
@@ -8477,7 +8477,7 @@
       {
         "nodeType": "attractorField",
         "nodeInfo": "与 Forge 动力学模拟配合使用，将形状移向或远离目标。",
-        "niceName": "吸引力场"
+        "niceName": "吸引场"
       },
       {
         "nodeType": "vortexField",
@@ -8677,9 +8677,9 @@
       {
         "nodeType": "assetFromSmartFolder",
         "niceName": "从智能文件夹获取资源",
-        "nodeInfo": "引用智能文件夹中包含的资产（图像、视频、音频等）。",
+        "nodeInfo": "引用智能文件夹中包含的素材（图像、视频、音频等）。",
         "attributes": {
-          "file": "智能文件夹资产",
+          "file": "智能文件夹素材",
           "path": "路径",
           "mode": "模式",
           "index": "索引",
@@ -9273,7 +9273,7 @@
       {
         "nodeType": "cornerPinShape",
         "nodeInfo": "变形形状以创建 3D 透视错觉。",
-        "niceName": "边角定位",
+        "niceName": "角固定",
         "attributes": {
           "topLeft": "左上",
           "topRight": "右上",
@@ -9290,7 +9290,7 @@
       {
         "nodeType": "extrude",
         "nodeInfo": "挤出形状以呈现深度效果。",
-        "niceName": "挤出",
+        "niceName": "挤压",
         "attributes": {
           "inputShapes": "输入形状",
           "extrudeDistance": "挤出距离",
@@ -9384,12 +9384,12 @@
       },
       {
         "nodeType": "imageSampler",
-        "nodeInfo": "从图像资产中采样颜色值并用其驱动其他属性。",
+        "nodeInfo": "从图像素材中采样颜色值并用其驱动其他属性。",
         "niceName": "图像采样器",
         "attributes": {
           "strength": "强度",
           "invert": "反转值",
-          "image": "图像资产",
+          "image": "图像素材",
           "tilingX": "平铺 X",
           "tilingY": "平铺 Y",
           "enabled": "已启用",
@@ -9448,7 +9448,7 @@
       },
       {
         "nodeType": "javaScriptShape",
-        "niceName": "JavaScript 形状",
+        "niceName": "JavaScript形状",
         "nodeInfo": "使用 JavaScript 创建形状。",
         "attributes": {
           "generator": "表达式"
@@ -9478,7 +9478,7 @@
       },
       {
         "nodeType": "javaScriptDeformer",
-        "niceName": "JavaScript 变形器",
+        "niceName": "JavaScript变形器",
         "nodeInfo": "使用 JavaScript 变形形状。"
       },
       {
@@ -9499,7 +9499,7 @@
       },
       {
         "nodeType": "stringFromAsset",
-        "nodeInfo": "提取文本资产的内容，用于文本形状或 JavaScript 图层。"
+        "nodeInfo": "提取文本素材的内容，用于文本形状或 JavaScript 图层。"
       }
     ]
   },
@@ -9599,7 +9599,7 @@
     "value": {
       "nodeType": "knot",
       "nodeInfo": "在轮廓自相交处为路径添加缺口。",
-      "niceName": "交叉点",
+      "niceName": "结点",
       "attributes": {
         "mode": [
           "模式"
@@ -10032,7 +10032,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "isolinesShape",
-      "niceName": "等值线",
+      "niceName": "等高线",
       "nodeInfo": "将图像或形状图层转换为轮廓。",
       "attributes": {
         "inputShape": [
@@ -10261,8 +10261,8 @@
           "3": "曲率角度"
         },
         "branchType": {
-          "0": "线条",
-          "1": "弧形",
+          "0": "直线",
+          "1": "圆弧",
           "2": "贝塞尔曲线"
         },
         "branchArcDirection": {

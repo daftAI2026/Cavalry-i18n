@@ -5,12 +5,12 @@
     "value": {
       "auth.error.accessDenied": "授权被拒绝。请重新登录。",
       "auth.error.generic": "登录过程中出现问题。请重试。",
-      "gpu.unsupported.contactSupport": "如果您认为这条消息是误显示的，请联系支持人员并包含系统诊断的副本（帮助 > 系统诊断 > 复制到剪贴板）。",
-      "gpu.unsupported.discreteGPU": "如果您有独立GPU（NVIDIA或AMD），请确保Cavalry使用的是独立GPU而不是集成显卡。",
+      "gpu.unsupported.title": "不支持GPU",
       "gpu.unsupported.intro": "Cavalry无法在此计算机上初始化GPU渲染。",
       "gpu.unsupported.thingsToTry": "可以尝试的操作:",
-      "gpu.unsupported.title": "不支持GPU",
-      "gpu.unsupported.updateDrivers": "将您的GPU驱动程序更新到最新版本。"
+      "gpu.unsupported.updateDrivers": "将您的GPU驱动程序更新到最新版本。",
+      "gpu.unsupported.discreteGPU": "如果您有独立GPU（NVIDIA或AMD），请确保Cavalry使用的是独立GPU而不是集成显卡。",
+      "gpu.unsupported.contactSupport": "如果您认为这条消息是误显示的，请联系支持人员并包含系统诊断的副本（帮助 > 系统诊断 > 复制到剪贴板）。"
     }
   }
 ]

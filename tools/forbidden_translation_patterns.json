@@ -99,9 +99,10 @@
       "Alpha", "Beta", "Gamma", "Delta", "Theta", "Lambda", "Sigma",
       "UV", "UVs", "IK", "FK", "FBX", "OBJ", "GLB", "GLTF", "USD", "USDZ",
       "2D", "3D", "FPS", "DPI", "PPI",
-      "Cavalry", "Canva", "Adobe", "Houdini", "Maya", "Blender",
+      "Cavalry", "Canva", "Forge", "Dynamics", "Solvers", "Office", "Adobe", "Houdini", "Maya", "Blender",
       "GPU", "CPU", "RAM", "OS", "macOS", "iOS", "API", "SDK", "CLI", "GUI",
       "OK", "ID", "URL", "URI", "UUID", "GUID",
+      "at", "path", "name", "tag", "cv", "xmlns",
       "AABB", "NaN", "BPM", "OSC", "MIDI",
       "x", "y", "z", "w", "X", "Y", "Z", "W", "u", "v", "U", "V",
       "A", "B", "C", "D", "R", "G", "H", "L", "N", "S", "T",
@@ -110,7 +111,9 @@
       "Professional", "Pro", "Lite", "Standard", "Enterprise", "Studio", "Plus",
       "Tauri", "Electron", "Qt", "WebGL", "WebGPU", "OpenGL", "Vulkan", "Metal",
       "MP4", "MOV", "WEBM", "GIF", "PRORES", "H264", "H265", "HEVC",
-      "Lottie", "Rive", "Spine"
+      "Lottie", "Rive", "Spine",
+      "Bearer", "erase", "key", "operator", "direction", "false", "true",
+      "Shift", "Ctrl", "Alt", "Option", "Command"
     ],
     "extraReservedFromAllowlist": "tools/runtime_ui_allowlist.json",
     "ignoreAllUppercaseAcronyms": true,
