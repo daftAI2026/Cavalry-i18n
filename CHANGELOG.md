@@ -18,6 +18,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Qt Widget Translation & Periodic UI Refresh**:
+  - Implemented automatic translation for non-menu QWidgets including `QLabel`, `QAbstractButton`, `QGroupBox`, `QLineEdit`, and `QTabBar` in `CavalryTranslatorInjector.mm`.
+  - Added delayed periodic refresh attempts (`scheduleRefreshAttempts`) to capture dynamically spawned UI widgets after initial app launch.
+  - Added comprehensive test assertions in `tools/check_app_contracts.js` validating widget translation coverage and scheduler actions.
 - **Qt Translator Injector**: Introduced `injector/` module (Objective-C++) for runtime Qt menu interception.
   - Implemented `EmbeddedTranslator` (QTranslator subclass) for high-performance string replacement.
   - Added support for "English dump-only" mode to capture runtime UI inventories.

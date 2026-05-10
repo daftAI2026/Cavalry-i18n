@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI (QTranslator/QMenuBar/QAction)、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator (QTranslator 子类)、Qt 菜单翻译、AppKit 菜单同步、English dump-only runtime inventory 导出
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI (QTranslator/QMenuBar/QAction/QWidget)、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
+ * [OUTPUT]: 对外提供 EmbeddedTranslator (QTranslator 子类)、Qt 菜单与普通 QWidget 翻译、AppKit 菜单同步、定时刷新任务、English dump-only runtime inventory 导出
  * [POS]: injector 的唯一源文件，通过 DYLD_INSERT_LIBRARIES 注入 Cavalry 进程，拦截 Qt 翻译请求并刷新 macOS 原生菜单栏
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,7 +18,11 @@
 #include <qfileinfo.h>
 #include <qglobal.h>
 #include <QtGui/qaction.h>
+#include <QtWidgets/qabstractbutton.h>
 #include <QtWidgets/qapplication.h>
+#include <QtWidgets/qgroupbox.h>
+#include <QtWidgets/qlabel.h>
+#include <QtWidgets/qlineedit.h>
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qmenubar.h>
 #include <QtWidgets/qtabbar.h>
@@ -32,6 +36,8 @@ namespace {
 
 constexpr int kMaxInstallAttempts = 20;
 constexpr int kRetryDelayMs = 250;
+constexpr int kMaxRefreshAttempts = 24;
+constexpr int kRefreshDelayMs = 500;
 
 struct TranslationEntry {
     const char *context;
@@ -83,6 +89,7 @@ private:
 
 EmbeddedTranslator *gTranslator = nullptr;
 bool gInstallAttempted = false;
+bool gRefreshScheduled = false;
 
 QString readEnvVar(const char *name)
 {
@@ -511,6 +518,129 @@ void refreshNativeMenuBar(const QString &lang)
     }
 }
 
+QString translatedWidgetText(const QString &lang, const QString &sourceText)
+{
+    const QString translated = lookupEmbeddedTranslation(lang, sourceText);
+    if (translated.isEmpty() || translated == sourceText) {
+        return QString();
+    }
+    return translated;
+}
+
+void translateQtWidgetTexts(QWidget *widget, const QString &lang)
+{
+    if (widget == nullptr || lang.isEmpty()) {
+        return;
+    }
+
+    QString translated = translatedWidgetText(lang, widget->windowTitle());
+    if (!translated.isEmpty()) {
+        widget->setWindowTitle(translated);
+    }
+
+    translated = translatedWidgetText(lang, widget->toolTip());
+    if (!translated.isEmpty()) {
+        widget->setToolTip(translated);
+    }
+
+    translated = translatedWidgetText(lang, widget->statusTip());
+    if (!translated.isEmpty()) {
+        widget->setStatusTip(translated);
+    }
+
+    translated = translatedWidgetText(lang, widget->whatsThis());
+    if (!translated.isEmpty()) {
+        widget->setWhatsThis(translated);
+    }
+
+    if (QLabel *label = qobject_cast<QLabel *>(widget)) {
+        translated = translatedWidgetText(lang, label->text());
+        if (!translated.isEmpty()) {
+            label->setText(translated);
+        }
+    }
+
+    if (QAbstractButton *button = qobject_cast<QAbstractButton *>(widget)) {
+        translated = translatedWidgetText(lang, button->text());
+        if (!translated.isEmpty()) {
+            button->setText(translated);
+        }
+    }
+
+    if (QGroupBox *groupBox = qobject_cast<QGroupBox *>(widget)) {
+        translated = translatedWidgetText(lang, groupBox->title());
+        if (!translated.isEmpty()) {
+            groupBox->setTitle(translated);
+        }
+    }
+
+    if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(widget)) {
+        translated = translatedWidgetText(lang, lineEdit->placeholderText());
+        if (!translated.isEmpty()) {
+            lineEdit->setPlaceholderText(translated);
+        }
+    }
+
+    if (QTabBar *tabBar = qobject_cast<QTabBar *>(widget)) {
+        for (int index = 0; index < tabBar->count(); ++index) {
+            translated = translatedWidgetText(lang, tabBar->tabText(index));
+            if (!translated.isEmpty()) {
+                tabBar->setTabText(index, translated);
+            }
+        }
+    }
+}
+
+void translateQtWidgets(const QString &lang)
+{
+    if (qobject_cast<QApplication *>(QCoreApplication::instance()) == nullptr) {
+        return;
+    }
+
+    const auto widgets = QApplication::allWidgets();
+    for (QWidget *widget : widgets) {
+        translateQtWidgetTexts(widget, lang);
+    }
+}
+
+void refreshQtUiTranslations(const QString &lang)
+{
+    if (lang.isEmpty()) {
+        return;
+    }
+
+    translateQtMenuBar(lang);
+    translateQtWidgets(lang);
+    refreshNativeMenuBar(lang);
+    dumpQtMenuInventory(lang);
+}
+
+void scheduleRefreshAttempt(const QString &lang, int attempt)
+{
+    if (lang.isEmpty() || attempt >= kMaxRefreshAttempts) {
+        return;
+    }
+
+    dispatch_after(
+        dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(kRefreshDelayMs) * NSEC_PER_MSEC),
+        dispatch_get_main_queue(),
+        ^{
+            refreshQtUiTranslations(lang);
+            scheduleRefreshAttempt(lang, attempt + 1);
+        }
+    );
+}
+
+void scheduleRefreshAttempts(const QString &lang)
+{
+    if (gRefreshScheduled || lang.isEmpty()) {
+        return;
+    }
+
+    gRefreshScheduled = true;
+    scheduleRefreshAttempt(lang, 0);
+}
+
 QString majorMinorVersion(const QString &version)
 {
     const QStringList parts = version.split('.');
@@ -598,8 +728,10 @@ bool installTranslator()
         return false;
     }
 
+    translateQtWidgets(lang);
     dumpQtMenuInventory(lang);
     refreshNativeMenuBar(lang);
+    scheduleRefreshAttempts(lang);
 
     fprintf(
         stderr,

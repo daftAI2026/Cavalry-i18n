@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-CavalryTranslatorInjector.mm: Objective-C++ runtime 翻译注入器主源，子类化 QTranslator 拦截 Qt 菜单翻译，支持 English dump-only 模式输出 runtime inventory。
+CavalryTranslatorInjector.mm: Objective-C++ runtime 翻译注入器主源，子类化 QTranslator 拦截 Qt 菜单与普通 QWidget 翻译，支持定时刷新 UI 与 English dump-only 模式输出 runtime inventory。
 generated_translations.inc: 由 `tools/generate_embedded_translations.js` 从 `tools/*.ts` 自动生成的 C++ 编译期翻译表，不可手动编辑。
 libCavalryTranslatorInjector.dylib: 预编译的 universal (x86_64/arm64) 动态库，由 `tools/build_translator_injector.sh` 构建，Tauri 打包时作为 bundle resource 嵌入。
 

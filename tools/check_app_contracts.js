@@ -263,6 +263,34 @@ test('embedded injector keeps retrying until a Qt menu surface exists', () => {
   );
 });
 
+test('embedded injector translates visible Qt widget text beyond menus', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /translateQtWidgetTexts/,
+    'injector should have a dedicated pass for non-menu QWidget text so compiled UI labels can use the embedded translations'
+  );
+  assert.match(
+    injectorSource,
+    /QLabel|QAbstractButton|QGroupBox|QLineEdit|QTabBar/,
+    'widget translation should cover common Qt label, button, group, input placeholder, and tab surfaces'
+  );
+  assert.match(
+    injectorSource,
+    /setWindowTitle|setToolTip|setStatusTip|setWhatsThis|setText|setTitle|setPlaceholderText|setTabText/,
+    'widget translation should write translated strings back through Qt widget APIs rather than only exporting inventory'
+  );
+  assert.match(
+    injectorSource,
+    /scheduleRefreshAttempt|refreshQtUiTranslations/,
+    'injector should keep refreshing UI translations after startup because Cavalry creates many widgets after the menu bar exists'
+  );
+});
+
 test('manual debug launcher follows the embedded-injector flow', () => {
   const launcherSource = fs.readFileSync(
     path.join(repoRoot, 'tools', 'launch_cavalry_with_injector.sh'),
@@ -1972,4 +2000,3 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
     'release pipeline should publish Tauri macOS artifacts for end users'
   );
 });
-
