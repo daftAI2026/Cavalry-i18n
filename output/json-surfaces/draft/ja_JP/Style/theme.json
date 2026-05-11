@@ -67,9 +67,9 @@
   "FontSize": 12,
   "FontSizeLarge": 14,
   "FontFamilyWindows": "Canva Sans",
-  "FontStyleWindows": "レギュラー",
+  "FontStyleWindows": "Regular",
   "FontFamilyMac": "Canva Sans",
-  "FontStyleMac": "レギュラー",
+  "FontStyleMac": "Regular",
   "fonts": [
     "fonts:CanvaSans-Bold.otf",
     "fonts:CanvaSans-BoldItalic.otf",

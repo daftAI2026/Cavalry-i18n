@@ -61,6 +61,22 @@
       "language"
     ]
   },
+  "theme": {
+    "translate": [],
+    "no_translate": [
+      "QPalette",
+      "labelColors",
+      "colors",
+      "FontSize",
+      "FontSizeLarge",
+      "FontFamilyWindows",
+      "FontStyleWindows",
+      "FontFamilyMac",
+      "FontStyleMac",
+      "fonts"
+    ],
+    "locale_sync": []
+  },
   "pluginDefinitions": {
     "translate": [],
     "no_translate": [

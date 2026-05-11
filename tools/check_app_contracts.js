@@ -70,6 +70,11 @@ function writeLanguageFixture(rootDir, languageCode, values) {
   writeJson(path.join(languageRoot, 'nodeStrings.json'), [{ value: { label: values.nodeLabel } }]);
   writeJson(path.join(languageRoot, 'onboarding.json'), [{ value: { label: values.onboardingLabel } }]);
   writeJson(path.join(languageRoot, 'tips.json'), [{ value: { label: values.tipLabel } }]);
+  writeJson(path.join(languageRoot, 'Style', 'theme.json'), {
+    FontStyleWindows: 'Regular',
+    FontStyleMac: 'Regular',
+    colors: { Green: '#2FCD71' },
+  });
 }
 
 function writeFrozenExtractionInventory(rootDir, extractionPath) {
@@ -103,6 +108,7 @@ function makeValidatorFixtureRepo() {
     onboarding: { translate: ['label'], no_translate: [], locale_sync: [] },
     tips: { translate: ['label'], no_translate: [], locale_sync: [] },
     plugins: { translate: ['label'], no_translate: [], locale_sync: [] },
+    theme: { translate: [], no_translate: ['FontStyleWindows', 'FontStyleMac', 'colors'], locale_sync: [] },
   });
 
   writeJson(path.join(tempRoot, 'languages', 'en', 'appStrings.json'), [
@@ -113,6 +119,11 @@ function makeValidatorFixtureRepo() {
     { value: { label: 'Current Onboarding Label' } },
   ]);
   writeJson(path.join(tempRoot, 'languages', 'en', 'tips.json'), [{ value: { label: 'Current Tip Label' } }]);
+  writeJson(path.join(tempRoot, 'languages', 'en', 'Style', 'theme.json'), {
+    FontStyleWindows: 'Regular',
+    FontStyleMac: 'Regular',
+    colors: { Green: '#2FCD71' },
+  });
 
   writeLanguageFixture(tempRoot, 'zh-Hans', {
     appLabel: 'Current App Label',

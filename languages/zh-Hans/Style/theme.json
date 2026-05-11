@@ -67,9 +67,9 @@
   "FontSize": 12,
   "FontSizeLarge": 14,
   "FontFamilyWindows": "Canva Sans",
-  "FontStyleWindows": "经常",
+  "FontStyleWindows": "Regular",
   "FontFamilyMac": "Canva Sans",
-  "FontStyleMac": "经常",
+  "FontStyleMac": "Regular",
   "fonts": [
     "fonts:CanvaSans-Bold.otf",
     "fonts:CanvaSans-BoldItalic.otf",

@@ -37,6 +37,7 @@ FILE_GROUPS = {
     "appStrings": ["appStrings.json"],
     "tips": ["tips.json"],
     "onboarding": ["onboarding.json"],
+    "theme": ["Style/theme.json"],
 }
 JSON_SURFACE_KEYS = {
     "appStrings": "languages/en/appStrings.json",
