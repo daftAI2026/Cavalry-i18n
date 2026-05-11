@@ -1,0 +1,26 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "zoomBlurFilter",
+      "niceName": "缩放模糊",
+      "layerInfo": "从中心点向外模糊形状，支持自定义衰减。",
+      "language": "zh-Hans",
+      "attributes": {
+        "origin": [
+          "来源",
+          "设置模糊的中心点，其中 0,0 是形状的中心。"
+        ],
+        "amount": [
+          "数量",
+          "设置模糊的距离/强度。"
+        ],
+        "attenuationMultiplier": [
+          "衰减倍数",
+          "根据距'原点'的距离乘以模糊值。较低的值会产生更硬的过渡。"
+        ]
+      }
+    }
+  }
+]

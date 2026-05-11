@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
 <!--
-[INPUT]: 依赖 Cavalry compiled/runtime 英文 source、doc/translation-guidelines.md、doc/cavalry-glossary*.md 与 tools/translation-whitelist.json
-[OUTPUT]: に対して外提供 ja_JP Qt TS 翻译目录，被 generate_embedded_translations.js 编译进 injector 表
-[POS]: tools 编译期 UI 翻译源，と zh-Hans.ts / zh-Hant.ts 共同オーバーライド compiled/runtime 菜单文本
-[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+[INPUT]: Cavalry compiled/runtime 英語ソース、doc/translation-guidelines.md、doc/cavalry-glossary*.md、tools/translation-whitelist.json に依存
+[OUTPUT]: ja_JP Qt TS 翻訳カタログを提供し、generate_embedded_translations.js によって injector テーブルにコンパイルされる
+[POS]: tools コンパイル時 UI 翻訳ソース。zh-Hans.ts / zh-Hant.ts と共に compiled/runtime メニューテキストを上書きする
+[PROTOCOL]: 変更時にこのヘッダーを更新し、CLAUDE.md を確認すること
 -->
 <TS version="2.1" language="ja_JP">
   <context>
@@ -1540,7 +1540,7 @@
       <translation>注視を追加</translation>
     </message>
     <message>
-      <source>Emoji &amp;&amp; Symbols</source>
+      <source>Emoji &amp; Symbols</source>
       <translation>絵文字と記号</translation>
     </message>
     <message>
@@ -4142,6 +4142,10 @@
       <source>Print to File</source>
       <translation>ファイルに出力</translation>
     </message>
+  </context>
+
+  <context>
+    <name>MenuBarManager</name>
     <message>
       <source>appears to be a Version 4 MAT-file, which is not currently supported</source>
       <translation>現在サポートされていないバージョン 4 の MAT ファイルのようです</translation>
@@ -4438,7 +4442,7 @@
           <source>Unlock</source>
           <translation>ロック解除</translation>
         </message>
-      <message>
+    <message>
       <source>Duplicator</source>
       <translation>複製器</translation>
     </message>
@@ -4758,7 +4762,7 @@
       <source>Isolines</source>
       <translation>等高線</translation>
     </message>
-      <message>
+    <message>
       <source>Add SVG to Scene</source>
       <translation>シーンにSVGを追加</translation>
     </message>
@@ -4970,7 +4974,7 @@
       <source>Rotate View</source>
       <translation>ビューを回転</translation>
     </message>
-      <message>
+    <message>
       <source>Active</source>
       <translation>アクティブ</translation>
     </message>
@@ -7634,6 +7638,54 @@
     <message>
       <source>Zoom Random Words</source>
       <translation>ランダム単語をズーム</translation>
+    </message>
+    <message>
+      <source>A new tab has been opened in your default browser so you can log in to Canva there</source>
+      <translation>デフォルトブラウザで新しいタブが開きました。そこで Canva にログインできます。</translation>
+    </message>
+    <message>
+      <source>A new tab has been opened in your default browser so you can log in to Canva there.</source>
+      <translation>デフォルトブラウザで新しいタブが開きました。そこで Canva にログインできます。</translation>
+    </message>
+    <message>
+      <source>A Professional licence is required for Dynamic Rendering</source>
+      <translation>ダイナミックレンダリングには Professional ライセンスが必要です。</translation>
+    </message>
+    <message>
+      <source>A Professional licence is required for Dynamic Rendering.</source>
+      <translation>ダイナミックレンダリングには Professional ライセンスが必要です。</translation>
+    </message>
+    <message>
+      <source>Action not allowed. Adding composition would create a cycle</source>
+      <translation>許可されていない操作です。コンポジションを追加すると循環が発生します。</translation>
+    </message>
+    <message>
+      <source>Action not allowed. Adding composition would create a cycle.</source>
+      <translation>許可されていない操作です。コンポジションを追加すると循環が発生します。</translation>
+    </message>
+    <message>
+      <source>A selection of two points from two different contours on the same shape is required to join contours</source>
+      <translation>輪郭を結合するには、同じシェイプ上の異なる 2 つの輪郭から各 1 点を選択する必要があります。</translation>
+    </message>
+    <message>
+      <source>A selection of two points from two different contours on the same shape is required to join contours.</source>
+      <translation>輪郭を結合するには、同じシェイプ上の異なる 2 つの輪郭から各 1 点を選択する必要があります。</translation>
+    </message>
+    <message>
+      <source>Account</source>
+      <translation>アカウント</translation>
+    </message>
+    <message>
+      <source>Adobe RGB</source>
+      <translation>Adobe RGB</translation>
+    </message>
+    <message>
+      <source>Adobe RGB (1998)</source>
+      <translation>Adobe RGB (1998)</translation>
+    </message>
+    <message>
+      <source>Access All Alternates</source>
+      <translation>すべての異体字にアクセス</translation>
     </message>
   </context>
 </TS>

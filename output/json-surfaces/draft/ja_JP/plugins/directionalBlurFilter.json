@@ -1,0 +1,23 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "directionalBlurFilter",
+      "niceName": "方向ぼかし",
+      "layerInfo": "軸に沿ってシェイプをぼかし、ストリーク効果やモーションブラーをシミュレートします。",
+      "language": "ja_JP",
+      "attributes": {
+        "angle": [
+          "角度",
+          "ブラーの方向（度）。"
+        ],
+        "blurAmount": [
+          "ブラー量",
+          "方向ブラー効果の距離/強度。高い値でより顕著なブラーストリークが生成されます。"
+        ]
+      },
+      "enums": {}
+    }
+  }
+]

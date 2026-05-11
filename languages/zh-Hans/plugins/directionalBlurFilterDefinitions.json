@@ -1,0 +1,45 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "directionalBlurFilter",
+    "superType": "thirdPartyFilter",
+    "skslFile": "directionalBlurFilter.sksl",
+    "version": "1.0",
+    "attributes": {
+      "angle": {
+        "type": "double",
+        "default": 0,
+        "step": 1
+      },
+      "amount": {
+        "type": "double",
+        "default": 10,
+        "min": 0,
+        "max": 250,
+        "step": 1
+      },
+      "autoPadding": {
+        "default": true
+      },
+      "filterInputCompositing": {
+        "default": 1
+      }
+    },
+    "triggers": {
+      "out": [
+        "angle",
+        "amount"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "angle",
+        "amount"
+      ],
+      "icon": "directionalBlurFilter.png",
+      "controls": {
+        "angle": "angle"
+      }
+    }
+  }
+]

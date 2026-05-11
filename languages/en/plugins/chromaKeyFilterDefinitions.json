@@ -1,0 +1,270 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "chromaKeyFilter",
+    "superType": "thirdPartyFilter",
+    "skslFile": "chromaKeyFilter.skslc",
+    "version": "1.0",
+    "attributes": {
+      "screenColor": {
+        "type": "color",
+        "default": {
+          "r": 0,
+          "g": 0,
+          "b": 0,
+          "a": 255
+        }
+      },
+      "screenGain": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 5,
+        "step": 0.01
+      },
+      "screenBalance": {
+        "type": "double",
+        "default": 0.5,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "shadowTolerance": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "shadowSoftness": {
+        "type": "double",
+        "default": 0.5,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "alphaBias": {
+        "type": "color",
+        "default": {
+          "r": 127,
+          "g": 127,
+          "b": 127,
+          "a": 255
+        }
+      },
+      "despillBias": {
+        "type": "color",
+        "default": {
+          "r": 127,
+          "g": 127,
+          "b": 127,
+          "a": 255
+        },
+        "dimming": "useAlphaBiasForDespill == true"
+      },
+      "useAlphaBiasForDespill": {
+        "type": "bool",
+        "default": true
+      },
+      "despillStrength": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 2,
+        "step": 0.1
+      },
+      "clipBlack": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "clipWhite": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "clipRollback": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "screenDilate": {
+        "type": "double",
+        "default": 0,
+        "min": -5,
+        "max": 5,
+        "step": 0.1
+      },
+      "screenSoftness": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "softMax": 1,
+        "step": 0.01
+      },
+      "screenDespotBlack": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "screenDespotWhite": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "screenReplaceMethod": {
+        "type": "enum",
+        "default": 3,
+        "enumValues": [
+          0,
+          1,
+          2,
+          3
+        ]
+      },
+      "screenReplaceColor": {
+        "type": "color",
+        "default": {
+          "r": 127,
+          "g": 127,
+          "b": 127,
+          "a": 255
+        },
+        "dimming": "screenReplaceMethod == 0"
+      },
+      "shadowGain": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 2,
+        "step": 0.01
+      },
+      "midtonesGain": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 2,
+        "step": 0.01
+      },
+      "highlightsGain": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 2,
+        "step": 0.01
+      },
+      "preBlur": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 5,
+        "step": 0.1
+      },
+      "detailPreservation": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "edgeSoftness": {
+        "type": "double",
+        "default": 0.5,
+        "min": 0,
+        "max": 1,
+        "step": 0.01
+      },
+      "viewMode": {
+        "type": "enum",
+        "default": 0,
+        "enumValues": [
+          0,
+          1,
+          2,
+          4
+        ]
+      },
+      "matteApplyMode": {
+        "default": 1
+      }
+    },
+    "triggers": {
+      "out": [
+        "screenColor",
+        "screenGain",
+        "screenBalance",
+        "shadowTolerance",
+        "shadowSoftness",
+        "alphaBias",
+        "despillBias",
+        "useAlphaBiasForDespill",
+        "despillStrength",
+        "clipBlack",
+        "clipWhite",
+        "clipRollback",
+        "screenDilate",
+        "screenSoftness",
+        "screenDespotBlack",
+        "screenDespotWhite",
+        "screenReplaceMethod",
+        "screenReplaceColor",
+        "shadowGain",
+        "midtonesGain",
+        "highlightsGain",
+        "preBlur",
+        "detailPreservation",
+        "edgeSoftness",
+        "viewMode"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "viewMode",
+        "screenColor",
+        "screenGain",
+        "screenBalance",
+        "---A",
+        "shadowTolerance",
+        "shadowSoftness",
+        "---B",
+        "alphaBias",
+        "useAlphaBiasForDespill",
+        "despillBias",
+        "despillStrength",
+        "screenReplaceMethod",
+        "screenReplaceColor",
+        "---C",
+        "preBlur",
+        "detailPreservation",
+        "edgeSoftness",
+        "---D",
+        "clipBlack",
+        "clipWhite",
+        "clipRollback",
+        "screenDilate",
+        "screenSoftness",
+        "---E",
+        "screenDespotBlack",
+        "screenDespotWhite",
+        "---G",
+        "shadowGain",
+        "midtonesGain",
+        "highlightsGain"
+      ],
+      "hide": [
+        "matteApplyMode"
+      ],
+      "icon": "chromaKeyFilter.png"
+    }
+  }
+]

@@ -1,0 +1,187 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "grainFilter",
+    "superType": "thirdPartyFilter",
+    "skslFile": "grainFilter.sksl",
+    "version": "1.0",
+    "attributes": {
+      "time": {
+        "type": "double",
+        "default": 0
+      },
+      "sharpen": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 2,
+        "step": 0.01
+      },
+      "sharpenEdgesOnly": {
+        "type": "bool",
+        "default": false
+      },
+      "grainAmount": {
+        "type": "double",
+        "default": 0.5,
+        "min": 0,
+        "max": 2,
+        "step": 0.01,
+        "hiding": "monochromeGrain != 1"
+      },
+      "grainSize": {
+        "type": "double",
+        "default": 1,
+        "min": 0.1,
+        "max": 5,
+        "step": 0.1,
+        "hiding": "monochromeGrain != 1"
+      },
+      "grainTexture": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 3,
+        "step": 0.01
+      },
+      "logGrain": {
+        "type": "enum",
+        "default": 1,
+        "enumValues": [
+          0,
+          1
+        ]
+      },
+      "monochromeGrain": {
+        "type": "enum",
+        "default": 0,
+        "enumValues": [
+          0,
+          1
+        ]
+      },
+      "redAmount": {
+        "type": "double",
+        "default": 0.5,
+        "min": 0,
+        "max": 2,
+        "step": 0.01,
+        "hiding": "monochromeGrain != 0"
+      },
+      "greenAmount": {
+        "type": "double",
+        "default": 0.5,
+        "min": 0,
+        "max": 2,
+        "step": 0.01,
+        "hiding": "monochromeGrain != 0"
+      },
+      "blueAmount": {
+        "type": "double",
+        "default": 0.5,
+        "min": 0,
+        "max": 2,
+        "step": 0.01,
+        "hiding": "monochromeGrain != 0"
+      },
+      "redSize": {
+        "type": "double",
+        "default": 0.2,
+        "min": 0,
+        "max": 5,
+        "step": 0.1,
+        "hiding": "monochromeGrain != 0"
+      },
+      "greenSize": {
+        "type": "double",
+        "default": 0.4,
+        "min": 0,
+        "max": 5,
+        "step": 0.1,
+        "hiding": "monochromeGrain != 0"
+      },
+      "blueSize": {
+        "type": "double",
+        "default": 0.6,
+        "min": 0,
+        "max": 5,
+        "step": 0.1,
+        "hiding": "monochromeGrain != 0"
+      },
+      "highlight": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 2,
+        "step": 0.01
+      },
+      "midtone": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 2,
+        "step": 0.01
+      },
+      "shadow": {
+        "type": "double",
+        "default": 1,
+        "min": 0,
+        "max": 2,
+        "step": 0.01
+      },
+      "matteApplyMode": {
+        "default": 1
+      }
+    },
+    "triggers": {
+      "out": [
+        "time",
+        "sharpen",
+        "sharpenEdgesOnly",
+        "grainAmount",
+        "grainSize",
+        "grainTexture",
+        "logGrain",
+        "monochromeGrain",
+        "redAmount",
+        "greenAmount",
+        "blueAmount",
+        "redSize",
+        "greenSize",
+        "blueSize",
+        "highlight",
+        "midtone",
+        "shadow"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "monochromeGrain",
+        "grainAmount",
+        "grainSize",
+        "redAmount",
+        "greenAmount",
+        "blueAmount",
+        "redSize",
+        "greenSize",
+        "blueSize",
+        "---D",
+        "logGrain",
+        "grainTexture",
+        "---A",
+        "sharpen",
+        "sharpenEdgesOnly",
+        "---B",
+        "highlight",
+        "midtone",
+        "shadow",
+        "---C",
+        "time"
+      ],
+      "hide": [
+        "matteApplyMode"
+      ],
+      "icon": "grainFilter.png"
+    }
+  }
+]

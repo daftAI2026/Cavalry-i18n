@@ -1,0 +1,3202 @@
+[
+  {
+    "name": "primitive",
+    "arguments": [
+      {
+        "name": "primitiveType",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Creates a primitive shape. Returns the resulting layer id.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createEditable",
+    "arguments": [
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Creates an editable shape from a given object and names it. Returns the new layer id.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "create",
+    "arguments": [
+      {
+        "name": "layerType",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "allowDefaultPreset",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "Creates a layer of the specified type and optionally names it. Returns the new layer id.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelection",
+    "arguments": [
+      {
+        "name": "sortByHierarchyOrder",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves the IDs of currently selected layers, optionally in hierarchy order.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "sortLayerIdsByHierarchy",
+    "arguments": [
+      {
+        "name": "layerIds",
+        "type": "Array<String>",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Returns the IDs of the given layers in hierarchy order.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedAttributes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "Returns the selected attributes.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "selectAttribute",
+    "arguments": [
+      {
+        "name": "attributePaths",
+        "type": "Array<string>",
+        "required": true
+      },
+      {
+        "name": "add",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "Selects attributes by their full paths (e.g., \"layerId.attrId.subAttr\"). Pass an empty array to clear the selection.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deselectAttribute",
+    "arguments": [
+      {
+        "name": "attributePaths",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "Deselects attributes by their full paths.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reorder",
+    "arguments": [
+      {
+        "name": "layerIdToReorder",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "underLayerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Reorder layers in the hierarchy, reparenting if required.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedKeyframes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "Gets the selected keyframes. Returns a dictionary of attribute ids and frame numbers.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setSelectedKeyframeIds",
+    "arguments": [
+      {
+        "name": "keyframeIdArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "Sets the selected keyframes based on an array of keyframe IDs.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeFromKeyframeId",
+    "arguments": [
+      {
+        "name": "keyframeId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the attribute id associated with a given keyframe ID.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resyncPathKeyframes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Resynchronise path keyframe data, run this if you use api.set() on a path keyframe.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedKeyframeIds",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "Retrieves the IDs of the currently selected keyframes.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getKeyframeIdsForAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves keyframe IDs for a specific attribute on a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "select",
+    "arguments": [
+      {
+        "name": "array",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "Selects layers based on their IDs.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "invertSelection",
+    "arguments": null,
+    "description": "Inverts the current layer selection.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isReferenced",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns true if the layer has been imported with a Reference.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSuperTypes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves the SuperTypes of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerVersion",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the version of a specified layer. This is useful for third party developers.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "compareVersions",
+    "arguments": [
+      {
+        "name": "firstVersion",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "secondVersion",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns true if first version is less than second version.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getChildren",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves the child layers of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the parent layer ID of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setFrame",
+    "arguments": [
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the current frame in the active Composition.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFrame",
+    "arguments": null,
+    "return_type": "int",
+    "description": "Retrieves the current frame of the active Composition.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompLayers",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves layer IDs from the active Composition, optionally only top-level layers.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompLayersOfType",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves layer IDs of a specific type in the Composition, optionally only top-level layers.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getNiceName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the 'nice' name of a layer based on its ID.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInConnection",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the input connection of a specific attribute on a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutConnections",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves output connections of a specific attribute on a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "rename",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Renames a specified layer to a new name.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGenerator",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "generatorType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Sets a generator of a specific type to an attribute on a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCurrentGenerator",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Gets the generator for an attribute on a layer, returns an empty string if there isn't one.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "parent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newParentId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Sets the parent of a layer to the specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "editComponent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "editing",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "Sets the editing mode for a Component.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "offsetLayerTime",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "timeDelta",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "Offsets the timing of a layer by a specified time delta.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "Retrieves the in-frame (first visible frame) of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "Retrieves the out-frame (last visible frame) of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setInFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the in-frame (first visible frame) of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setOutFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the out-frame (last visible frame) of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInOutKeyframeIds",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Object>",
+    "description": "Returns an array of objects containing the keyframe ids for all in and out points on this layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "framesToTimecode",
+    "arguments": [
+      {
+        "name": "frames",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Converts a given number of frames into an equivalent timecode by using an FPS value.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "timecodeToFrames",
+    "arguments": [
+      {
+        "name": "timecode",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "Converts a given timecode into an equivalent number of frames by using an FPS value.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadAsset",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "isImageSequence",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Loads an Asset from a file path, optionally as an image sequence.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadSmartFolderAsset",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Loads a Smart Folder Asset from a file path, the type can be 'image' or 'audio'.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reloadAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Reloads a specified Asset (including Smart Folder Assets).",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addAssetToComp",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string/array",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Adds an Asset (or array of Assets) to the active Composition returning the ids of the newly created layers.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadGoogleSheet",
+    "arguments": [
+      {
+        "name": "fileId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "sheetId",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "Loads a Google Sheet and returns the asset ID.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetType",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the type of a specified asset.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontAssetFamilyName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns the name of the font family associated with a Font Asset.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontAssetStyleName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns the name of the font style associated with a Font Asset.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getProfileName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns the ICC profile name of an image asset. Returns empty string for sRGB or untagged images.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetWindowLayers",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves layer IDs from the asset window, optionally only top-level layers.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGradientFromColors",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": false,
+        "default": "string"
+      }
+    ],
+    "description": "Sets the colours on a gradient attribute from an array of hex color strings.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGradientInterpolation",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": false,
+        "default": "string"
+      }
+    ],
+    "description": "Sets the interpolation for every stop on a gradient: Linear = 0, Step = 1, Smooth = 2, Crush = 3, Smooth Blend = 4, Contrast = 5.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "unParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Removes the parent of a specified layer, making it a top-level layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setProject",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Sets the Project.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearProject",
+    "arguments": null,
+    "description": "Clears the current Project.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveComp",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Retrieves the ID of the currently active Composition.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getParentComp",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the ID of the parent Composition for a given layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveCamera",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Retrieves the ID of the active camera in the current Composition.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasActiveCamera",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "Checks if the current Composition has an active camera.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setActiveComp",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Activates the specified Composition.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createCompReference",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Creates a reference for a specified Composition, this is how you can create an empty Pre-Composition.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getComps",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "Retrieves the IDs of all Compositions in the scene.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createComp",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Creates a new Composition and names it, returning the new Composition's ID.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "preCompose",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "Creates a pre-Composition from selected layers and optionally names it.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompFromReference",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the origin Composition ID from a pre-Composition.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "writeToFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "overwriteExisting",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "bool",
+    "description": "Writes content to a file at a specified path, with an option to overwrite exiting files.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "encodeBinary",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Encodes a binary file to a base64 string.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "writeEncodedToBinaryFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Writes a base64-encoded string to a binary file.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "readFromFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Reads and returns the content of a specified file.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "connect",
+    "arguments": [
+      {
+        "name": "fromId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fromAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "force",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "Creates a connection between two Attributes identified by their respective layer IDs and attribute IDs. Forcing a connection will overwrite any existing connection.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnect",
+    "arguments": [
+      {
+        "name": "fromId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fromAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toAttrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Disconnects a connection between two Attributes identified by their respective layer IDs and attribute IDs.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnectInput",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Disconnects the input connection of a specified Attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnectOutputs",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Disconnects all output connections of a specified Attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setStroke",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "on",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "Toggles the stroke visibility on or off for a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasStroke",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Checks if a specified layer has a stroke.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setFill",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "on",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "Toggles the fill visibility on or off for a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasFill",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Checks if a specified layer has a fill.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isVisible",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "testHierarchy",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Checks if a specified layer is visible, with an option to test hierarchy visibility.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "keyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Adds a keyframe to an Attribute of a layer at a specified frame with a given value.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getKeyframeTimes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<int>",
+    "description": "Retrieves the keyframe times for a specified Attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteKeyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Deletes a keyframe at a specified frame for a given Attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteAnimation",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Deletes the animation for a specified Attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "modifyKeyframeTangent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Modifies the tangent properties of keyframes for a given layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setKeyframeVelocity",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Sets speed and influence values on keyframes for a given layer. Keys in the",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearKeyframeVelocity",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Clears all speed and influence overrides from keyframes, reverting them to",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "modifyKeyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Modifies keyframes for a specified layer based on provided parameters.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "magicEasing",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "easingName",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "description": "Apply Magic Easing to an Attribute's keyframe and optionally add an expression.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "move",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "Moves the current selection by given x and y coordinates.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "set",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Sets the value of attributes for a specified layer based on a provided dictionary.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "get",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "Retrieves the value of a specified Attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "areAttributeValuesEqual",
+    "arguments": [
+      {
+        "name": "layerId1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "layerId2",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId2",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns true if two attributes are identical in value, expression and custom name (if set).",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addPreCompOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Adds a pre-composition override for a specified attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removePreCompOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Removes a pre-composition override from a specified attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listPreCompOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "Lists pre-composition overrides for a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the type of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isProLayerType",
+    "arguments": [
+      {
+        "name": "layerType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns `true` if the specified layer requires a Pro licence to use.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isThirdPartyLayer",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns true if the layer in question is a 3rd party layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isRestrictedLicence",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "Returns true if a free licence is in use.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isShape",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Checks if a specified layer is a Shape.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns true if a specified layer has transform Attributes (e.g. Position and Scale).",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "has3dTransforms",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns true if a specified layer has it's 3d transform Attributes activated.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "uuid",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Returns a UUIDv4 string.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the type of a specified Attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reorderArrayAttr",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "oldIndex",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "newIndex",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Reorders an Array attribute from a given index, to a given index.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isAttrDefault",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns true if an attribute value matches its default value.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the parent attribute of a specified attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrChildren",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves the child attributes of a specified attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Resets a specified attribute in a layer to its default value.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetLayerAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeTransformAttributes",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "Resets all attributes of a specified layer to their default values, optionally ignoring transform Attributes.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addArrayIndex",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "Adds an index to an array attribute in a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getArrayCount",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "Retrieves the count of indices in an array attribute.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeArrayIndex",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Removes an index from an array attribute in the specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addDynamic",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Adds a dynamic attribute to a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectionBoundingBox",
+    "arguments": [
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "Retrieves the bounding box of the current selection (and child layers of the selection) in world space.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getBoundingBox",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number",
+      "width": "number",
+      "height": "number",
+      "centre": {
+        "x": "number",
+        "y": "number"
+      },
+      "left": "number",
+      "right": "number",
+      "top": "number",
+      "bottom": "number"
+    },
+    "description": "Retrieves the bounding box of a specified Shape and its children in local or world space.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPivotPosition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number"
+    },
+    "description": "Returns the position of a specified Layer's pivot in local or world space.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRenderQueueItems",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "Retrieves the items in the render queue.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addRenderQueueItem",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Adds a Composition to the render queue.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "connectDynamicIndex",
+    "arguments": [
+      {
+        "name": "nodeId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Connects the Dynamic Rendering index to a specified attribute in a node.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDynamicIndex",
+    "arguments": null,
+    "return_type": "int",
+    "description": "Retrieves the current value of the Dynamic Rendering index.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setDynamicIndexOffset",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "Set the Dynamic Rendering Index Offset.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteLayer",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Deletes a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renameAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Renames a specified attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCustomAttributeName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the custom name of a specified attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasCustomAttributeName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Returns true if the specified attribute has a custom name.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "graphPreset",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "presetNumber",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Applies a graph preset to a specified attribute in a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "flipGraph",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "flipType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Flips the graph of a specified attribute in a layer, the flipType can be \"horizontal\" or \"vertical\".",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createTimeMarker",
+    "arguments": [
+      {
+        "name": "time",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Creates a time marker at a specified time.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeTimeMarker",
+    "arguments": [
+      {
+        "name": "markerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Removes a specified time marker.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getTimeMarkers",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "Retrieves all time marker IDs.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getNthBeat",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Retrieves the time of the nth beat based on the current Composition BPM settings.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getProjectPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Retrieves the path of the current project.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Retrieves the path of the assets directory in the current project.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPalettesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Retrieves the path of the palettes directory in the current project.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRenderPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Retrieves the path of the renders directory in the current project.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getScenesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Retrieves the path of the scenes directory in the current project.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSceneFilePath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Retrieves the file path of the current Scene. Returns an empty string if the scene is unsaved.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferencesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Provides the path to the preferences directory.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPresetsPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Provides the path to the presets directory.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAppAssetsPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Returns the path to the application's assets directory.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileModifiedDate",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "Gets the last modified time of the file in milliseconds since epoch.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileSize",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "Gets the file size in kilobytes (KB).",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isDirectory",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Returns true if the path exists and is a directory.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectoryPaths",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeDirectories",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Returns all visible file paths in a directory, optionally including subdirectories.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isFile",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Returns true if the path exists and is a regular file.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAbsolutePath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns an absolute, canonical path string (resolving relative paths ../../).",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRelativePath",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Computes the relative path from one location to another.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectory",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "array",
+    "description": "Returns an array of all file and folder paths directly under the given directory.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectoryRecursive",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "array",
+    "description": "Returns an array of all file and folder paths under the given directory (recursive).",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "filePathExists",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Checks if the provided file path exists.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "unzip",
+    "arguments": [
+      {
+        "name": "zipPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "destinationPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "[string]",
+    "description": "Unzips a zip file to a given location, returning a list of extracted top level files.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileNameFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeExtension",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "Extracts the file name from a given file path, with an option to include the file extension.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getExtensionFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the file extension from a given file path.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFolderFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Extracts the folder path from a given file path.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteFilePath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Deletes the file at the specified path.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "copyFilePath",
+    "arguments": [
+      {
+        "name": "fromPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Copy a file from one specified path to another. Creates the destination location if needed.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeFolder",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "overwriteExisting",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Creates a new folder at the specified path, with an option to overwrite if it already exists.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPlatform",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Returns the name of the operating system platform (e.g. \"macOS\" or \"Windows\").",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "layerExists",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Checks if a layer with the specified ID exists.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Sets an expression for a specified attribute of a layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Returns true if the given attribute has an expression.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns an Attribute's expression.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setAttributeDefinitionOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "number",
+        "required": false
+      }
+    ],
+    "description": "Set a definition override for an attribute (keys: \"hardMin\", \"hardMax\", \"softMin\", \"softMax\", \"step\")",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeDefinitionOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number|null",
+    "description": "Get a definition override for an attribute",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearAttributeDefinitionOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Clear all definition overrides for an attribute",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttributeDefinitionOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Check if an attribute has any definition overrides",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getEffectiveAttributeDefinition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "object",
+    "description": "Get the attribute definition including any overrides",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isGuiSession",
+    "arguments": null,
+    "return_type": "boolean",
+    "description": "Determines if the current session is a GUI session.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "openScene",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "description": "Opens a scene from a specified file path, with an option to force open (lose unsaved changes).",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "importScene",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Imports a Scene from a specified file path.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "saveSceneAs",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Saves the current Scene to a specified file path.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exportSceneAs",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Export the current Scene to a specified file path.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exportSelected",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "exportingAsProject",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Export any selected (and connected) Layers to a specified file path.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "duplicate",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "withInputConnections",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Duplicates a layer with the specified ID, with an option to also duplicate it's input connected layers.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "centrePivot",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "doCentroid",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "Centers the pivot of a layer, with an option to use the centroid for centering.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeFirstPoint",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Sets the first point of an editable shape layer, based on the current point selection.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "freezeTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Freezes the transform properties of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Resets the transform properties of a specified layer to their default values.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerFromUUID",
+    "arguments": [
+      {
+        "name": "uuid",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Retrieves the layer ID associated with a specified UUID.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAllSceneLayers",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "Returns a list of all layer IDs in the current scene.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAllLayerTypes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "Provides a list of all layer types used in the current scene.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setUserData",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Sets a user data value for a specified key on a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasUserDataKey",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Checks if a specified key exists in the user data of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getUserDataKey",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "Retrieves the value of a specified key from the user data of a specified layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "Retrieves the preference value for a specified key.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Sets a preference value for a specified key.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Sets a preference value for a specified key.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "Checks if a preference key exists.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "Retrieves the preference value for a specified key.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addToControlCentre",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Adds a specified attribute of a specified layer to the Control Centre.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeFromControlCentre",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Removes a specified attribute of a specified layer from the Control Centre.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeEditable",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "makeCopy",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Makes a layer editable, with an option to create a copy of the layer.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "movePoint",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "localSpace",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "Moves selected points in an Editable Shape by a specified amount in x and y directions, with an option to use local space coordinates.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPointPosition",
+    "arguments": [
+      {
+        "name": "xAndOrYObject",
+        "type": "Object",
+        "required": true
+      },
+      {
+        "name": "localSpace",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "name": "handles",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "Sets the positions selected points in an Editable Shape, with options for local space coordinates and including handle positions.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getEditablePath",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "Retrieves the editable path of a specified layer, with an option to return point coordinates in world space.",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setEditablePath",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "name": "pathObject",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Sets the editable path of a specified layer using a given path object, with an option to interpret coordinates in world space",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  }
+]

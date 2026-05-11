@@ -6233,5 +6233,9 @@
       <source>Zoom Random Words</source>
       <translation>随机单词缩放</translation>
     </message>
+    <message>
+      <source>Emoji &amp; Symbols</source>
+      <translation>表情与符号</translation>
+    </message>
   </context>
 </TS>

@@ -664,9 +664,9 @@ mod tests {
   <string>2.3.4</string>
 </dict></plist>"#,
         );
-        for (file, subdir) in crate::patch::CORE_MAP {
+        for (_, asset_rel) in crate::patch::CORE_MAP {
             write(
-                &app.join("Contents/assets").join(subdir).join(file),
+                &app.join("Contents/assets").join(asset_rel),
                 br#"{"value":"en"}"#,
             );
         }
@@ -693,8 +693,8 @@ mod tests {
 
     fn make_language(root: &Path, lang: &str) {
         let base = root.join("languages").join(lang);
-        for (file, _) in crate::patch::CORE_MAP {
-            write(&base.join(file), br#"{"value":"translated"}"#);
+        for (lang_rel, _) in crate::patch::CORE_MAP {
+            write(&base.join(lang_rel), br#"{"value":"translated"}"#);
         }
         write(
             &base.join("plugins/gaussianBlurFilter.json"),
@@ -704,8 +704,8 @@ mod tests {
 
     fn make_english_snapshot(state: &Path) {
         let base = state.join("en");
-        for (file, _) in crate::patch::CORE_MAP {
-            write(&base.join(file), br#"{"value":"en"}"#);
+        for (lang_rel, _) in crate::patch::CORE_MAP {
+            write(&base.join(lang_rel), br#"{"value":"en"}"#);
         }
         write(
             &base.join("plugins/gaussianBlurFilter.json"),

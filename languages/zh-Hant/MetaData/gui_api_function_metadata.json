@@ -1,0 +1,1051 @@
+[
+  {
+    "name": "setCavalryPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "object",
+        "required": true
+      }
+    ],
+    "description": "設定 Cavalry 偏好設定。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCavalryPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "取得 Cavalry 偏好。若指定鍵沒有對應的偏好，或偏好類型不受支援，則傳回 null。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setClipboardText",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "設定剪貼簿文字。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getClipboardText",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取剪貼簿上的目前文字。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearAttributeEditor",
+    "arguments": null,
+    "description": "清除屬性編輯器 UI。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "showInAttributeEditor",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "在屬性編輯器中顯示指定圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getHomeFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取使用者主目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferencesFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回 Cavalry 偏好設定目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAppDataFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回 Cavalry 資料目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDesktopFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回使用者桌面目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getTempFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回系統暫存檔案目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontsFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回使用者字型目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDownloadsFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回使用者下載目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "toNativeFilePath",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "將檔案路徑轉換為原生檔案系統格式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "serialise",
+    "arguments": [
+      {
+        "name": "layerIds",
+        "type": "Array<string>",
+        "required": true
+      },
+      {
+        "name": "withConnections",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "將已選取的圖層（可選包含連接）序列化為字串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "updateAppTitleBar",
+    "arguments": [
+      {
+        "name": "string",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "強制更新應用程式標題列。可用於在合成中加入 Pro 功能時為入門版使用者觸發受限模式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deserialise",
+    "arguments": [
+      {
+        "name": "string",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "反序列化字串以重新建立圖層和連接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "replaceGoogleSheet",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "sheetId",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "description": "使用指定的檔案和表格 ID 替換 Google 試算表素材。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "openURL",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "在預設網頁瀏覽器中開啟 URL。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getGenerators",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取與指定圖層關聯的生成器屬性 ID 清單。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCurrentGeneratorType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "generatorId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "取得指定生成器的類型。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutConnectedAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取具有輸出連接的屬性清單。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInConnectedAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取具有輸入連接的屬性清單。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取指定圖層的所有屬性清單。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeNiceName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "根據屬性 ID 擷取其顯示名稱。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "檢查指定圖層是否具有指定的屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAnimatedAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取指定圖層的已設定動畫的屬性清單。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isAnimatedAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "檢查指定圖層上的指定屬性是否已設定動畫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "render",
+    "arguments": [
+      {
+        "name": "renderQueueItemId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "算繪算繪佇列中的指定項目。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "cancelRender",
+    "arguments": null,
+    "description": "要求 Cavalry 取消目前算繪。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renderAll",
+    "arguments": null,
+    "description": "算繪算繪佇列中的所有項目。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "backgroundRenderAll",
+    "arguments": null,
+    "description": "在背景開始算繪算繪佇列中的所有項目。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "backgroundRender",
+    "arguments": [
+      {
+        "name": "renderQueueItemId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "在背景開始算繪算繪佇列中的指定項目。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renderPNGFrame",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "scalePercentage",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "以指定的縮放百分比將 PNG 影格算繪到指定的檔案路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renderSVGFrame",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "scalePercentage",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "skipComps",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "以指定的縮放百分比將 SVG 影格算繪到指定的檔案路徑，並提供略過合成背景的選項。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "play",
+    "arguments": null,
+    "description": "開始播放。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "stop",
+    "arguments": null,
+    "description": "停止播放。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCavalryVersion",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取 Cavalry 的目前版本。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSystemInfo",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "提供 Cavalry 執行所在系統的資訊。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "soloLayers",
+    "arguments": [
+      {
+        "name": "layerIdArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "獨奏指定的圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "runProcess",
+    "arguments": [
+      {
+        "name": "cmd",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "argArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "使用指定的指令和參數執行系統程序，傳回輸出和錯誤資訊。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "runDetachedProcess",
+    "arguments": [
+      {
+        "name": "cmd",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "argArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "使用指定的指令和參數以分離模式執行系統程序。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createAssetGroup",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "建立素材群組並命名。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "replaceAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "用位於新檔案路徑的素材替換目前素材。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getGoogleSheetAssetURL",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回指定 Google 試算表素材的 URL。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isFileAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "若素材是檔案素材（影像、影片、音訊、智慧型資料夾等）則傳回 true。Google 試算表、合成或群組將傳回 false。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isGoogleSheetAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "若素材是 Google 試算表則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetFilePath",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取指定素材的檔案路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getImageSequenceFilePaths",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取影像序列素材的所有檔案路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "saveScene",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "儲存目前場景。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "newScene",
+    "arguments": null,
+    "description": "開啟新場景，捨棄變更。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "jsonFromAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "將指定素材的內容轉換為 JSON 格式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "textFromAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取指定素材的文字內容。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "load",
+    "arguments": [
+      {
+        "name": "scriptPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "從檔案路徑載入並執行腳本。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exec",
+    "arguments": [
+      {
+        "name": "scriptId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "使用腳本 ID 執行指定的腳本字串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDrawInstructionsForSelection",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前選取形狀的 JavaScript 繪製指令。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addGuide",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "isVertical",
+        "type": "bool",
+        "required": true
+      },
+      {
+        "name": "position",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "向合成加入導引線並傳回其 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteGuide",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "rulerId",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "根據 ID 從合成中刪除導引線。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearGuides",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "清除合成中的所有導引線。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getGuideInfo",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Object>",
+    "description": "擷取合成中所有導引線的資訊。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "saveViewportContentsAsImage",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "將視埠內容儲存為 PNG。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isShiftHeld",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "檢查 Shift 鍵目前是否被按住。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isAltHeld",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "檢查 Option/Alt 鍵目前是否被按住。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isControlHeld",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "檢查 Control 鍵（Windows）或 Command 鍵（macOS）目前是否被按住。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isMetaHeld",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "檢查 Meta 鍵（macOS 上是 Control 鍵，Windows 上是 Windows 鍵）目前是否被按住。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "presentOpenFile",
+    "arguments": [
+      {
+        "name": "startPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "顯示開啟檔案對話方塊，起始目錄為指定目錄。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "presentSaveFile",
+    "arguments": [
+      {
+        "name": "startPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "defaultFileName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "顯示儲存檔案對話方塊，起始目錄為指定目錄。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "presentChooseFolder",
+    "arguments": [
+      {
+        "name": "startPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "顯示讓使用者選擇資料夾的對話方塊。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "processEvents",
+    "arguments": null,
+    "description": "處理所有待處理的 GUI 事件。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "convertSVGToLayers",
+    "arguments": [
+      {
+        "name": "filename",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "將 SVG 檔案轉換為圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "sceneHasUnsavedChanges",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "檢查目前場景是否有未儲存的變更。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "encrypt",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "加密指定的內容並以字串形式傳回。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "encryptFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newFilePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "加密指定的檔案，並將其儲存到指定位置。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "bringForward",
+    "arguments": null,
+    "description": "將已選取的圖層在圖層堆疊中上移一層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "bringToFront",
+    "arguments": null,
+    "description": "將已選取的圖層移到圖層堆疊頂部。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "moveBackward",
+    "arguments": null,
+    "description": "將已選取的圖層在圖層堆疊中下移一層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "moveToBack",
+    "arguments": null,
+    "description": "將已選取的圖層移到圖層堆疊底部。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeDefinition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "傳回包含屬性詳細資訊的物件。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDropdownNiceName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回下拉屬性中指定索引的名稱。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveTool",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳迴視埠目前使用中的工具。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  }
+]

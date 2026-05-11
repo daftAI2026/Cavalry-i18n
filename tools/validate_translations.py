@@ -467,9 +467,10 @@ def file_paths(root: Path, lang_code: str) -> list[tuple[str, Path, Path]]:
             )
     for source_path in plugin_paths(root, "en"):
         relative = source_path.relative_to(root / LANGUAGE_PACK_ROOT / "en")
+        group_name = "pluginDefinitions" if source_path.name.endswith("Definitions.json") else "plugins"
         paths.append(
             (
-                "plugins",
+                group_name,
                 source_path,
                 root / LANGUAGE_PACK_ROOT / lang_code / relative,
             )

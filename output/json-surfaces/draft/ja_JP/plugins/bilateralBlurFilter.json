@@ -1,0 +1,26 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "bilateralBlurFilter",
+      "niceName": "バイラテラルぼかし",
+      "layerInfo": "エッジを保持しながら、似た色の領域を滑らかにするブラーです。",
+      "language": "ja_JP",
+      "attributes": {
+        "amount": [
+          "量",
+          "シェイプに適用するブラーのピクセル量を設定します。"
+        ],
+        "edgeThreshold": [
+          "エッジしきい値",
+          "エッジ検出の感度を設定します。低い値でより多くのエッジが保持されます。"
+        ],
+        "colorSigma": [
+          "カラー許容値",
+          "類似カラーを結合する許容値を設定します。高い値でより広い範囲のカラーが結合されます。"
+        ]
+      }
+    }
+  }
+]

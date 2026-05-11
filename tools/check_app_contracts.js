@@ -31,6 +31,22 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function listJsonRelativeFiles(rootDir) {
+  const results = [];
+  const visit = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const entryPath = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        visit(entryPath);
+      } else if (entry.isFile() && entry.name.endsWith('.json')) {
+        results.push(path.relative(rootDir, entryPath).split(path.sep).join('/'));
+      }
+    }
+  };
+  visit(rootDir);
+  return results.sort();
+}
+
 function sha256(filePath) {
   return require('node:crypto').createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
@@ -288,6 +304,44 @@ test('embedded injector translates visible Qt widget text beyond menus', () => {
     injectorSource,
     /scheduleRefreshAttempt|refreshQtUiTranslations/,
     'injector should keep refreshing UI translations after startup because Cavalry creates many widgets after the menu bar exists'
+  );
+});
+
+test('embedded injector translates widget-owned actions and container item labels', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /translateQtWidgetActions/,
+    'injector should translate QAction objects owned by ordinary widgets because toolbars and custom panels often draw action text outside the menu bar'
+  );
+  assert.match(
+    injectorSource,
+    /actions\(\)/,
+    'widget action translation should cover direct QWidget::actions used by toolbars and custom panels'
+  );
+  assert.doesNotMatch(
+    injectorSource,
+    /widget->findChildren<QAction \*>/,
+    'injector should not recursively scan child actions for every widget because that can make Cavalry hang during startup'
+  );
+  assert.match(
+    injectorSource,
+    /QSet<QAction \*>|seenActions/,
+    'widget action translation should de-duplicate actions across the widget tree'
+  );
+  assert.match(
+    injectorSource,
+    /QComboBox|QTabWidget|QStatusBar/,
+    'widget translation should cover combo box item labels, tab widget pages, and status bar messages'
+  );
+  assert.match(
+    injectorSource,
+    /setItemText|setTabText|showMessage/,
+    'container translation should write translated item, tab, and status text back through Qt APIs'
   );
 });
 
@@ -1922,6 +1976,77 @@ test('translation validator rejects generic translation reuse across unrelated s
   assert.equal(result.status, 1, 'validator should hard-fail generic placeholder reuse');
   assert.equal(report.gates.B13.status, 'FAIL');
   assert.equal(report.languages.ja.forbidden_patterns.by_pattern['FP-12'], 1);
+});
+
+test('JSON surface translation report uses non-overlapping file counts', () => {
+  const reportPath = path.join(repoRoot, 'output', 'json-surfaces', 'translation-gap-report.md');
+  const report = fs.readFileSync(reportPath, 'utf8');
+  const rowValue = (label) => {
+    const escaped = label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const match = report.match(
+      new RegExp(`\\| ${escaped} \\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|\\s*(\\d+)\\s*\\|`)
+    );
+    assert.ok(match, `missing report row: ${label}`);
+    assert.equal(match[1], match[2], `${label} should match across zh-Hans and zh-Hant`);
+    assert.equal(match[1], match[3], `${label} should match across zh-Hans and ja_JP`);
+    return Number(match[1]);
+  };
+
+  const total = rowValue('Total JSON files');
+  const retained = rowValue('Previously covered files retained');
+  const translated = rowValue('New user-visible files translated');
+  const preserved = rowValue('New zero-user-visible files preserved');
+  const deferred = rowValue('Files deferred');
+
+  assert.equal(retained + translated + preserved + deferred, total);
+  assert.equal(deferred, 0);
+});
+
+test('English language package is the 38-file JSON surface source truth', () => {
+  const englishFiles = listJsonRelativeFiles(path.join(repoRoot, 'languages', 'en'));
+  const zhHansFiles = listJsonRelativeFiles(path.join(repoRoot, 'languages', 'zh-Hans'));
+  const zhHantFiles = listJsonRelativeFiles(path.join(repoRoot, 'languages', 'zh-Hant'));
+  const jaFiles = listJsonRelativeFiles(path.join(repoRoot, 'languages', 'ja_JP'));
+
+  assert.equal(englishFiles.length, 38);
+  assert.deepEqual(englishFiles, zhHansFiles);
+  assert.deepEqual(englishFiles, zhHantFiles);
+  assert.deepEqual(englishFiles, jaFiles);
+});
+
+test('checked-in 38-file JSON language packages pass the translation validator', () => {
+  const tempRoot = makeTempDir();
+  const reportPath = path.join(tempRoot, 'report.json');
+  const summaryPath = path.join(tempRoot, 'summary.md');
+  const result = spawnSync(
+    'python3',
+    [
+      'tools/validate_translations.py',
+      '--root',
+      repoRoot,
+      '--json-report',
+      reportPath,
+      '--markdown-summary',
+      summaryPath,
+    ],
+    { cwd: repoRoot, encoding: 'utf8' }
+  );
+
+  assert.equal(result.status, 0, fs.existsSync(summaryPath) ? fs.readFileSync(summaryPath, 'utf8') : result.stderr);
+});
+
+test('ja_JP TS header is not mixed with Chinese wording', () => {
+  const source = fs.readFileSync(path.join(repoRoot, 'tools', 'ja_JP.ts'), 'utf8');
+  const header = source.slice(0, source.indexOf('-->'));
+  assert.doesNotMatch(header, /对外提供|依赖|菜单文本|编译期|翻译目录/);
+});
+
+test('zh-Hant node strings reject known simplified Chinese residues', () => {
+  const source = fs.readFileSync(
+    path.join(repoRoot, 'languages', 'zh-Hant', 'nodeStrings.json'),
+    'utf8'
+  );
+  assert.doesNotMatch(source, /参考|伽马|卷曲/);
 });
 
 test('runtime and JSON validators import the shared forbidden translation detector', () => {

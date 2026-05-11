@@ -6274,5 +6274,217 @@
       <source>Zoom Random Words</source>
       <translation>隨機單字縮放</translation>
     </message>
+    <message>
+      <source>A new tab has been opened in your default browser so you can log in to Canva there</source>
+      <translation>已在預設瀏覽器中開啟新分頁，方便你在其中登入 Canva。</translation>
+    </message>
+    <message>
+      <source>A new tab has been opened in your default browser so you can log in to Canva there.</source>
+      <translation>已在預設瀏覽器中開啟新分頁，方便你在其中登入 Canva。</translation>
+    </message>
+    <message>
+      <source>A Professional licence is required for Dynamic Rendering</source>
+      <translation>動態算繪需要專業版授權</translation>
+    </message>
+    <message>
+      <source>A Professional licence is required for Dynamic Rendering.</source>
+      <translation>動態算繪需要專業版授權。</translation>
+    </message>
+    <message>
+      <source>Action not allowed. Adding composition would create a cycle</source>
+      <translation>不允許此操作。加入該合成會形成循環。</translation>
+    </message>
+    <message>
+      <source>Action not allowed. Adding composition would create a cycle.</source>
+      <translation>不允許此操作。加入該合成會形成循環。</translation>
+    </message>
+    <message>
+      <source>A selection of two points from two different contours on the same shape is required to join contours</source>
+      <translation>要連接輪廓，需在同一形狀上的兩個不同輪廓中各選取一個點。</translation>
+    </message>
+    <message>
+      <source>A selection of two points from two different contours on the same shape is required to join contours.</source>
+      <translation>要連接輪廓，需在同一形狀上的兩個不同輪廓中各選取一個點。</translation>
+    </message>
+    <message>
+      <source>Active</source>
+      <translation>使用中</translation>
+    </message>
+    <message>
+      <source>Active Camera</source>
+      <translation>使用中攝影機</translation>
+    </message>
+    <message>
+      <source>Active Camera: Layer Tools Disabled</source>
+      <translation>使用中攝影機：圖層工具已停用</translation>
+    </message>
+    <message>
+      <source>Active Camera: Layer Tools Disabled.</source>
+      <translation>使用中攝影機：圖層工具已停用。</translation>
+    </message>
+    <message>
+      <source>Active Tags.</source>
+      <translation>使用中標籤。</translation>
+    </message>
+    <message>
+      <source>Active Composition</source>
+      <translation>使用中合成</translation>
+    </message>
+    <message>
+      <source>Account</source>
+      <translation>帳戶</translation>
+    </message>
+    <message>
+      <source>Add a bone at the top of the hierarchy</source>
+      <translation>在層級頂端新增骨骼</translation>
+    </message>
+    <message>
+      <source>Add a bone at the top of the hierarchy.</source>
+      <translation>在層級頂端新增骨骼。</translation>
+    </message>
+    <message>
+      <source>Add a bone parented to this one</source>
+      <translation>新增以此骨骼為父級的骨骼</translation>
+    </message>
+    <message>
+      <source>Add a bone parented to this one.</source>
+      <translation>新增以此骨骼為父級的骨骼。</translation>
+    </message>
+    <message>
+      <source>Add a new Attribute variable which can be used in your script</source>
+      <translation>新增可在腳本中使用的新屬性變數</translation>
+    </message>
+    <message>
+      <source>Add a new Attribute variable which can be used in your script.</source>
+      <translation>新增可在腳本中使用的新屬性變數。</translation>
+    </message>
+    <message>
+      <source>Add a Placement Utility</source>
+      <translation>新增放置工具</translation>
+    </message>
+    <message>
+      <source>Add a Rig Control</source>
+      <translation>新增骨架控制器</translation>
+    </message>
+    <message>
+      <source>Add a Tag</source>
+      <translation>新增標籤</translation>
+    </message>
+    <message>
+      <source>Add a Text Background</source>
+      <translation>新增文字背景</translation>
+    </message>
+    <message>
+      <source>Add a tracker (4 required)</source>
+      <translation>新增追蹤點（需要 4 個）</translation>
+    </message>
+    <message>
+      <source>Add a tracker (4 required).</source>
+      <translation>新增追蹤點（需要 4 個）。</translation>
+    </message>
+    <message>
+      <source>Add an Animation Control</source>
+      <translation>新增動畫控制器</translation>
+    </message>
+    <message>
+      <source>Add an Auto-Animate Deformer</source>
+      <translation>新增自動動畫變形器</translation>
+    </message>
+    <message>
+      <source>Add an IK Control using this Bone as End Effector</source>
+      <translation>使用此骨骼作為末端效應器新增 IK 控制器</translation>
+    </message>
+    <message>
+      <source>Add an IK Control using this Bone as End Effector.</source>
+      <translation>使用此骨骼作為末端效應器新增 IK 控制器。</translation>
+    </message>
+    <message>
+      <source>Add Asset To Scene</source>
+      <translation>將資產加入場景</translation>
+    </message>
+    <message>
+      <source>Add Clip to End</source>
+      <translation>將片段加入末尾</translation>
+    </message>
+    <message>
+      <source>Add Clip to Start</source>
+      <translation>將片段加入開頭</translation>
+    </message>
+    <message>
+      <source>Add Color Stop</source>
+      <translation>新增色標</translation>
+    </message>
+    <message>
+      <source>Add Colors from Selection</source>
+      <translation>從選取範圍新增色彩</translation>
+    </message>
+    <message>
+      <source>Add Colors from Selection and Connect</source>
+      <translation>從選取範圍新增色彩並連接</translation>
+    </message>
+    <message>
+      <source>Add connections</source>
+      <translation>新增連接</translation>
+    </message>
+    <message>
+      <source>Add Double (float)</source>
+      <translation>新增倍精度數值（浮點）</translation>
+    </message>
+    <message>
+      <source>Add Layers Popover</source>
+      <translation>新增圖層彈出面板</translation>
+    </message>
+    <message>
+      <source>Add List Attribute</source>
+      <translation>新增清單屬性</translation>
+    </message>
+    <message>
+      <source>Add New Layers to Selected Tags</source>
+      <translation>將新圖層加入已選標籤</translation>
+    </message>
+    <message>
+      <source>Add new snippet</source>
+      <translation>新增程式碼片段</translation>
+    </message>
+    <message>
+      <source>Add or edit Bind positions</source>
+      <translation>新增或編輯綁定位置</translation>
+    </message>
+    <message>
+      <source>Add Point Data (Distribution)</source>
+      <translation>新增點資料（分佈）</translation>
+    </message>
+    <message>
+      <source>Add Pre-Comp Override</source>
+      <translation>新增預合成覆寫</translation>
+    </message>
+    <message>
+      <source>Add Pre-Comp Overrides</source>
+      <translation>新增預合成覆寫</translation>
+    </message>
+    <message>
+      <source>Add selected layers to the Attribute Editor</source>
+      <translation>將已選圖層加入屬性編輯器</translation>
+    </message>
+    <message>
+      <source>Add selected layers to the Attribute Editor.</source>
+      <translation>將已選圖層加入屬性編輯器。</translation>
+    </message>
+    <message>
+      <source>Adobe RGB</source>
+      <translation>Adobe RGB</translation>
+    </message>
+    <message>
+      <source>Adobe RGB (1998)</source>
+      <translation>Adobe RGB (1998)</translation>
+    </message>
+    <message>
+      <source>Access All Alternates</source>
+      <translation>存取所有替代字形</translation>
+    </message>
+    <message>
+      <source>Emoji &amp; Symbols</source>
+      <translation>表情與符號</translation>
+    </message>
   </context>
 </TS>

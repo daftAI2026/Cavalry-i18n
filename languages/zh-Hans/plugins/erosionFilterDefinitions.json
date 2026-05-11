@@ -1,0 +1,115 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "erosionFilter",
+    "hide": true,
+    "superType": "thirdPartyFilter",
+    "version": "1.0",
+    "passes": [
+      {
+        "skslFile": "erosionHorizontal.sksl",
+        "uniforms": [
+          "amount",
+          "directionMode",
+          "angle",
+          "directionStrength"
+        ]
+      },
+      {
+        "skslFile": "erosionVertical.sksl",
+        "uniforms": [
+          "amount",
+          "directionMode",
+          "angle",
+          "directionStrength"
+        ]
+      },
+      {
+        "skslFile": "erosionHorizontal2.sksl",
+        "uniforms": [
+          "amount",
+          "directionMode",
+          "angle",
+          "directionStrength"
+        ]
+      },
+      {
+        "skslFile": "erosionVerticalAndEffects.sksl",
+        "uniforms": [
+          "amount",
+          "softness",
+          "directionMode",
+          "angle",
+          "directionStrength"
+        ]
+      }
+    ],
+    "attributes": {
+      "amount": {
+        "type": "double",
+        "default": 10,
+        "min": 0,
+        "max": 252,
+        "step": 0.1
+      },
+      "softness": {
+        "type": "double",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 0.1,
+        "prefix": "%"
+      },
+      "directionMode": {
+        "type": "enum",
+        "default": 0,
+        "enumValues": [
+          0,
+          1
+        ]
+      },
+      "angle": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 360,
+        "step": 0.1,
+        "prefix": "°",
+        "dimming": "directionMode != 1"
+      },
+      "directionStrength": {
+        "type": "double",
+        "default": 100,
+        "min": 0,
+        "max": 100,
+        "step": 0.1,
+        "prefix": "%",
+        "dimming": "directionMode != 1"
+      },
+      "autoPadding": {
+        "default": false
+      }
+    },
+    "triggers": {
+      "out": [
+        "amount",
+        "directionMode",
+        "angle",
+        "directionStrength"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "amount",
+        "---A",
+        "directionMode",
+        "angle",
+        "directionStrength"
+      ],
+      "controls": {
+        "angle": "angle"
+      },
+      "icon": "erosion.png"
+    }
+  }
+]

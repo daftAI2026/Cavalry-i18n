@@ -1,0 +1,23 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "directionalBlurFilter",
+      "niceName": "方向模糊",
+      "layerInfo": "沿軸線模糊形狀以建立拖尾效果或模擬運動模糊。",
+      "language": "zh-Hant",
+      "attributes": {
+        "angle": [
+          "角度",
+          "模糊的方向（度）。"
+        ],
+        "blurAmount": [
+          "模糊量",
+          "方向模糊效果的距離/強度。較高的值建立更明顯的模糊條紋。"
+        ]
+      },
+      "enums": {}
+    }
+  }
+]

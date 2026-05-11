@@ -1,0 +1,101 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "spheriseFilter",
+      "niceName": "球面化",
+      "layerInfo": "將輸入形狀映射到可旋轉的球體上。",
+      "language": "zh-Hant",
+      "attributes": {
+        "centre": [
+          "中心",
+          "設定球體的位置。"
+        ],
+        "radius": [
+          "半徑",
+          "設定球體半徑，以形狀大小的百分比表示。"
+        ],
+        "visibility": [
+          "可見性",
+          "確定使用包含透明度的影像時球體的哪些面可見。"
+        ],
+        "rotation": [
+          "旋轉",
+          "圍繞球體的 X、Y 或 Z 轴旋轉（度）。"
+        ],
+        "enableLighting": [
+          "啟用光照",
+          "勾選時，將漫射光照新增到球體表面。"
+        ],
+        "lightPosition": [
+          "光源位置",
+          "設定光源的 3D 位置。"
+        ],
+        "lightIntensity": [
+          "光照強度",
+          "設定光源的亮度。"
+        ],
+        "lightColor": [
+          "光照顏色",
+          "設定光源的顏色。"
+        ],
+        "ambientStrength": [
+          "環境光強度",
+          "設定環境光的量（基础照明）。"
+        ],
+        "ambientColor": [
+          "環境光顏色",
+          "設定環境光的顏色。"
+        ],
+        "specularStrength": [
+          "高光強度",
+          "設定高光的強度。"
+        ],
+        "specularColor": [
+          "高光顏色",
+          "設定高光的顏色。"
+        ],
+        "shininess": [
+          "光泽度",
+          "設定高光的大小和銳度。較高的值會產生更小、更銳利的高光。"
+        ],
+        "useAsBumpMap": [
+          "用作凹凸貼圖",
+          "勾選時，形狀的材質用作凹凸貼圖以新增表面細節光照。"
+        ],
+        "bumpMapStrength": [
+          "凹凸貼圖強度",
+          "增加/減少凹凸貼圖對表面光照的影響。"
+        ],
+        "enableSelfShadowing": [
+          "啟用自陰影",
+          "勾選時，在球體背面新增陰影。"
+        ],
+        "shadowIntensity": [
+          "陰影強度",
+          "確定陰影區域變暗的程度。"
+        ],
+        "shadowSoftness": [
+          "陰影柔化",
+          "確定陰影從暗到亮過渡的柔和程度"
+        ],
+        "backExposure": [
+          "背面曝光",
+          "設定球體背面/內部表面的亮度。"
+        ]
+      },
+      "enums": {
+        "visibility": {
+          "0": "兩者",
+          "1": "正面",
+          "2": "背面"
+        }
+      },
+      "tabs": {
+        "filter": "設定",
+        "lighting": "光照"
+      }
+    }
+  }
+]

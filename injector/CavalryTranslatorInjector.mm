@@ -20,13 +20,17 @@
 #include <QtGui/qaction.h>
 #include <QtWidgets/qabstractbutton.h>
 #include <QtWidgets/qapplication.h>
+#include <QtWidgets/qcombobox.h>
 #include <QtWidgets/qgroupbox.h>
 #include <QtWidgets/qlabel.h>
 #include <QtWidgets/qlineedit.h>
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qmenubar.h>
+#include <QtWidgets/qstatusbar.h>
 #include <QtWidgets/qtabbar.h>
+#include <QtWidgets/qtabwidget.h>
 #include <QtWidgets/qwidget.h>
+#include <qset.h>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qtranslator.h>
@@ -36,8 +40,8 @@ namespace {
 
 constexpr int kMaxInstallAttempts = 20;
 constexpr int kRetryDelayMs = 250;
-constexpr int kMaxRefreshAttempts = 24;
-constexpr int kRefreshDelayMs = 500;
+constexpr int kMaxRefreshAttempts = 8;
+constexpr int kRefreshDelayMs = 1000;
 
 struct TranslationEntry {
     const char *context;
@@ -453,10 +457,29 @@ void translateQtAction(QAction *action, const QString &lang)
         return;
     }
 
-    const QString text = action->text();
-    const QString translatedText = lookupEmbeddedTranslation(lang, text);
-    if (!translatedText.isEmpty() && translatedText != text) {
-        action->setText(translatedText);
+    QString translated = lookupEmbeddedTranslation(lang, action->text());
+    if (!translated.isEmpty() && translated != action->text()) {
+        action->setText(translated);
+    }
+
+    translated = lookupEmbeddedTranslation(lang, action->iconText());
+    if (!translated.isEmpty() && translated != action->iconText()) {
+        action->setIconText(translated);
+    }
+
+    translated = lookupEmbeddedTranslation(lang, action->toolTip());
+    if (!translated.isEmpty() && translated != action->toolTip()) {
+        action->setToolTip(translated);
+    }
+
+    translated = lookupEmbeddedTranslation(lang, action->statusTip());
+    if (!translated.isEmpty() && translated != action->statusTip()) {
+        action->setStatusTip(translated);
+    }
+
+    translated = lookupEmbeddedTranslation(lang, action->whatsThis());
+    if (!translated.isEmpty() && translated != action->whatsThis()) {
+        action->setWhatsThis(translated);
     }
 
     translateQtMenu(action->menu(), lang);
@@ -527,7 +550,22 @@ QString translatedWidgetText(const QString &lang, const QString &sourceText)
     return translated;
 }
 
-void translateQtWidgetTexts(QWidget *widget, const QString &lang)
+void translateQtWidgetActions(QWidget *widget, const QString &lang, QSet<QAction *> &seen)
+{
+    if (widget == nullptr || lang.isEmpty()) {
+        return;
+    }
+
+    for (QAction *action : widget->actions()) {
+        if (action == nullptr || seen.contains(action)) {
+            continue;
+        }
+        seen.insert(action);
+        translateQtAction(action, lang);
+    }
+}
+
+void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *> &seenActions)
 {
     if (widget == nullptr || lang.isEmpty()) {
         return;
@@ -581,6 +619,15 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang)
         }
     }
 
+    if (QComboBox *comboBox = qobject_cast<QComboBox *>(widget)) {
+        for (int index = 0; index < comboBox->count(); ++index) {
+            translated = translatedWidgetText(lang, comboBox->itemText(index));
+            if (!translated.isEmpty()) {
+                comboBox->setItemText(index, translated);
+            }
+        }
+    }
+
     if (QTabBar *tabBar = qobject_cast<QTabBar *>(widget)) {
         for (int index = 0; index < tabBar->count(); ++index) {
             translated = translatedWidgetText(lang, tabBar->tabText(index));
@@ -589,6 +636,24 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang)
             }
         }
     }
+
+    if (QTabWidget *tabWidget = qobject_cast<QTabWidget *>(widget)) {
+        for (int index = 0; index < tabWidget->count(); ++index) {
+            translated = translatedWidgetText(lang, tabWidget->tabText(index));
+            if (!translated.isEmpty()) {
+                tabWidget->setTabText(index, translated);
+            }
+        }
+    }
+
+    if (QStatusBar *statusBar = qobject_cast<QStatusBar *>(widget)) {
+        translated = translatedWidgetText(lang, statusBar->currentMessage());
+        if (!translated.isEmpty()) {
+            statusBar->showMessage(translated);
+        }
+    }
+
+    translateQtWidgetActions(widget, lang, seenActions);
 }
 
 void translateQtWidgets(const QString &lang)
@@ -598,8 +663,9 @@ void translateQtWidgets(const QString &lang)
     }
 
     const auto widgets = QApplication::allWidgets();
+    QSet<QAction *> seenActions;
     for (QWidget *widget : widgets) {
-        translateQtWidgetTexts(widget, lang);
+        translateQtWidgetTexts(widget, lang, seenActions);
     }
 }
 
@@ -612,7 +678,6 @@ void refreshQtUiTranslations(const QString &lang)
     translateQtMenuBar(lang);
     translateQtWidgets(lang);
     refreshNativeMenuBar(lang);
-    dumpQtMenuInventory(lang);
 }
 
 void scheduleRefreshAttempt(const QString &lang, int attempt)

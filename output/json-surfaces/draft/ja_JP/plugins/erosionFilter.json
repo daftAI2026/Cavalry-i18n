@@ -1,0 +1,41 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "erosionFilter",
+      "niceName": "エロージョン",
+      "layerInfo": "トランジションやマット調整のためにレイヤーの Alpha を侵食します",
+      "language": "ja_JP",
+      "attributes": {
+        "amount": [
+          "量",
+          "エロージョン量をピクセルで設定します。"
+        ],
+        "directionMode": [
+          "方向モード",
+          "全方向への均一なエロージョンか、特定角度に偏った方向エロージョンを選択します。"
+        ],
+        "angle": [
+          "角度",
+          "方向エロージョンバイアスの角度を設定します。"
+        ],
+        "directionStrength": [
+          "方向強度",
+          "エロージョンが指定方向に偏る強度を制御します。"
+        ]
+      },
+      "enums": {
+        "directionMode": {
+          "0": "均一",
+          "1": "方向性"
+        },
+        "edgeTint": {
+          "0": "なし",
+          "1": "暗く",
+          "2": "カスタムカラー"
+        }
+      }
+    }
+  }
+]

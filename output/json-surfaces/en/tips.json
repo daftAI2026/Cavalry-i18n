@@ -1,0 +1,91 @@
+[
+  {
+    "title": "Create a Color Array from a Palette",
+    "text": "Quickly create a Color Array from a Library Palette via the options in the Color Window.",
+    "images": [
+      "arrayFromPalette1.png",
+      "arrayFromPalette2.png",
+      "arrayFromPalette3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "Quickly add backgrounds",
+    "text": "Add a background to any Shape by right clicking on it in the Viewport. You can then round corners and change the colour of the Rectangle that this creates.",
+    "images": [
+      "addBackground1.png",
+      "addBackground2.png",
+      "addBackground3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "Drag to close open contours",
+    "text": "Drag and drop end points to interactively close contours in the Viewport.",
+    "images": [
+      "closePath1.png",
+      "closePath2.png",
+      "closePath3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "Alt/option drag attributes",
+    "text": "Scrubbing attributes with the alt/option key held will update both values at the same time.",
+    "images": [
+      "altScrub1.png",
+      "altScrub2.png",
+      "altScrub3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "Precisely distribute Gradient Stops with ease",
+    "text": "Quickly distribute gradient stops to create smooth color transitions along gradients.",
+    "images": [
+      "distributeGradient1.png",
+      "distributeGradient2.png",
+      "distributeGradient3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "Jump to the next keyframe",
+    "text": "Use hot keys to move the playhead to the next or previous keyframe.",
+    "images": [
+      [
+        "nextKeyframe1.png",
+        "nextKeyframe1-win.png"
+      ],
+      [
+        "nextKeyframe2.png",
+        "nextKeyframe2-win.png"
+      ],
+      [
+        "nextKeyframe3.png",
+        "nextKeyframe3-win.png"
+      ]
+    ],
+    "beginner": true
+  },
+  {
+    "title": "Remove bezier handles",
+    "text": "Hold the X key to remove bezier handles in the Graph Editor.",
+    "images": [
+      "deleteBezierHandle1.png",
+      "deleteBezierHandle2.png",
+      "deleteBezierHandle3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "Hold S to add new points to Paths",
+    "text": "Hold S when in the Edit Shape tool to create new points along edges.",
+    "images": [
+      "splitPath1.png",
+      "splitPath2.png",
+      "splitPath3.png"
+    ],
+    "beginner": true
+  }
+]

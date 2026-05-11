@@ -1,0 +1,976 @@
+{
+  "generatedAt": "2026-05-10T17:52:07.692Z",
+  "appRoot": "/Applications/Cavalry.app/Contents/assets",
+  "totalJson": 38,
+  "currentlyCovered": 16,
+  "missing": 22,
+  "languages": {
+    "zh-Hans": {
+      "stringLeaves": 24939,
+      "prefilledLeaves": 6086,
+      "untranslatedEnglishLeaves": 18501
+    },
+    "zh-Hant": {
+      "stringLeaves": 24939,
+      "prefilledLeaves": 6087,
+      "untranslatedEnglishLeaves": 18500
+    },
+    "ja_JP": {
+      "stringLeaves": 24939,
+      "prefilledLeaves": 6110,
+      "untranslatedEnglishLeaves": 18477
+    }
+  },
+  "rows": [
+    {
+      "asset": "Definitions/appStrings.json",
+      "languagePath": "appStrings.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/appStrings.json",
+      "stringLeaves": 10,
+      "englishLeaves": 10,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 10,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 1
+        },
+        "zh-Hant": {
+          "stringLeaves": 10,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 1
+        },
+        "ja_JP": {
+          "stringLeaves": 10,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 1
+        }
+      }
+    },
+    {
+      "asset": "Definitions/nodeDefinitions.json",
+      "languagePath": "Definitions/nodeDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Definitions/nodeDefinitions.json",
+      "stringLeaves": 13958,
+      "englishLeaves": 13657,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 13958,
+          "prefilledLeaves": 39,
+          "untranslatedEnglishLeaves": 13618
+        },
+        "zh-Hant": {
+          "stringLeaves": 13958,
+          "prefilledLeaves": 39,
+          "untranslatedEnglishLeaves": 13618
+        },
+        "ja_JP": {
+          "stringLeaves": 13958,
+          "prefilledLeaves": 39,
+          "untranslatedEnglishLeaves": 13618
+        }
+      }
+    },
+    {
+      "asset": "Definitions/nodeStrings.json",
+      "languagePath": "nodeStrings.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/nodeStrings.json",
+      "stringLeaves": 6320,
+      "englishLeaves": 6312,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 6320,
+          "prefilledLeaves": 5622,
+          "untranslatedEnglishLeaves": 690
+        },
+        "zh-Hant": {
+          "stringLeaves": 6320,
+          "prefilledLeaves": 5622,
+          "untranslatedEnglishLeaves": 690
+        },
+        "ja_JP": {
+          "stringLeaves": 6320,
+          "prefilledLeaves": 5645,
+          "untranslatedEnglishLeaves": 667
+        }
+      }
+    },
+    {
+      "asset": "Definitions/systemPresets.json",
+      "languagePath": "Definitions/systemPresets.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Definitions/systemPresets.json",
+      "stringLeaves": 101,
+      "englishLeaves": 99,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 101,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 99
+        },
+        "zh-Hant": {
+          "stringLeaves": 101,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 99
+        },
+        "ja_JP": {
+          "stringLeaves": 101,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 99
+        }
+      }
+    },
+    {
+      "asset": "Learn/Guides/guides.json",
+      "languagePath": "Learn/Guides/guides.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Learn/Guides/guides.json",
+      "stringLeaves": 234,
+      "englishLeaves": 234,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 234,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 234
+        },
+        "zh-Hant": {
+          "stringLeaves": 234,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 234
+        },
+        "ja_JP": {
+          "stringLeaves": 234,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 234
+        }
+      }
+    },
+    {
+      "asset": "Learn/Guides/strings.json",
+      "languagePath": "Learn/Guides/strings.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Learn/Guides/strings.json",
+      "stringLeaves": 100,
+      "englishLeaves": 100,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 100,
+          "prefilledLeaves": 27,
+          "untranslatedEnglishLeaves": 73
+        },
+        "zh-Hant": {
+          "stringLeaves": 100,
+          "prefilledLeaves": 27,
+          "untranslatedEnglishLeaves": 73
+        },
+        "ja_JP": {
+          "stringLeaves": 100,
+          "prefilledLeaves": 27,
+          "untranslatedEnglishLeaves": 73
+        }
+      }
+    },
+    {
+      "asset": "Learn/onboarding.json",
+      "languagePath": "onboarding.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/onboarding.json",
+      "stringLeaves": 34,
+      "englishLeaves": 34,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 34,
+          "prefilledLeaves": 7,
+          "untranslatedEnglishLeaves": 27
+        },
+        "zh-Hant": {
+          "stringLeaves": 34,
+          "prefilledLeaves": 7,
+          "untranslatedEnglishLeaves": 27
+        },
+        "ja_JP": {
+          "stringLeaves": 34,
+          "prefilledLeaves": 7,
+          "untranslatedEnglishLeaves": 27
+        }
+      }
+    },
+    {
+      "asset": "Learn/tips.json",
+      "languagePath": "tips.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/tips.json",
+      "stringLeaves": 43,
+      "englishLeaves": 43,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 43,
+          "prefilledLeaves": 16,
+          "untranslatedEnglishLeaves": 27
+        },
+        "zh-Hant": {
+          "stringLeaves": 43,
+          "prefilledLeaves": 16,
+          "untranslatedEnglishLeaves": 27
+        },
+        "ja_JP": {
+          "stringLeaves": 43,
+          "prefilledLeaves": 16,
+          "untranslatedEnglishLeaves": 27
+        }
+      }
+    },
+    {
+      "asset": "MetaData/api_function_metadata.json",
+      "languagePath": "MetaData/api_function_metadata.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/MetaData/api_function_metadata.json",
+      "stringLeaves": 1535,
+      "englishLeaves": 1535,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 1535,
+          "prefilledLeaves": 22,
+          "untranslatedEnglishLeaves": 1513
+        },
+        "zh-Hant": {
+          "stringLeaves": 1535,
+          "prefilledLeaves": 22,
+          "untranslatedEnglishLeaves": 1513
+        },
+        "ja_JP": {
+          "stringLeaves": 1535,
+          "prefilledLeaves": 22,
+          "untranslatedEnglishLeaves": 1513
+        }
+      }
+    },
+    {
+      "asset": "MetaData/core_api_function_metadata.json",
+      "languagePath": "MetaData/core_api_function_metadata.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/MetaData/core_api_function_metadata.json",
+      "stringLeaves": 1010,
+      "englishLeaves": 1008,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 1010,
+          "prefilledLeaves": 69,
+          "untranslatedEnglishLeaves": 939
+        },
+        "zh-Hant": {
+          "stringLeaves": 1010,
+          "prefilledLeaves": 69,
+          "untranslatedEnglishLeaves": 939
+        },
+        "ja_JP": {
+          "stringLeaves": 1010,
+          "prefilledLeaves": 69,
+          "untranslatedEnglishLeaves": 939
+        }
+      }
+    },
+    {
+      "asset": "MetaData/gui_api_function_metadata.json",
+      "languagePath": "MetaData/gui_api_function_metadata.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/MetaData/gui_api_function_metadata.json",
+      "stringLeaves": 525,
+      "englishLeaves": 525,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 525,
+          "prefilledLeaves": 4,
+          "untranslatedEnglishLeaves": 521
+        },
+        "zh-Hant": {
+          "stringLeaves": 525,
+          "prefilledLeaves": 4,
+          "untranslatedEnglishLeaves": 521
+        },
+        "ja_JP": {
+          "stringLeaves": 525,
+          "prefilledLeaves": 4,
+          "untranslatedEnglishLeaves": 521
+        }
+      }
+    },
+    {
+      "asset": "MetaData/widget_api_function_metadata.json",
+      "languagePath": "MetaData/widget_api_function_metadata.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/MetaData/widget_api_function_metadata.json",
+      "stringLeaves": 208,
+      "englishLeaves": 208,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 208,
+          "prefilledLeaves": 6,
+          "untranslatedEnglishLeaves": 202
+        },
+        "zh-Hant": {
+          "stringLeaves": 208,
+          "prefilledLeaves": 6,
+          "untranslatedEnglishLeaves": 202
+        },
+        "ja_JP": {
+          "stringLeaves": 208,
+          "prefilledLeaves": 6,
+          "untranslatedEnglishLeaves": 202
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Bilateral Blur Filter/definitions.json",
+      "languagePath": "plugins/bilateralBlurFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Bilateral Blur Filter/definitions.json",
+      "stringLeaves": 15,
+      "englishLeaves": 14,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 15,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 14
+        },
+        "zh-Hant": {
+          "stringLeaves": 15,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 14
+        },
+        "ja_JP": {
+          "stringLeaves": 15,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 14
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Bilateral Blur Filter/strings.json",
+      "languagePath": "plugins/bilateralBlurFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/bilateralBlurFilter.json",
+      "stringLeaves": 12,
+      "englishLeaves": 12,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Box Blur Filter/definitions.json",
+      "languagePath": "plugins/boxBlurFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Box Blur Filter/definitions.json",
+      "stringLeaves": 12,
+      "englishLeaves": 11,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 11
+        },
+        "zh-Hant": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 11
+        },
+        "ja_JP": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 11
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Box Blur Filter/strings.json",
+      "languagePath": "plugins/boxBlurFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/boxBlurFilter.json",
+      "stringLeaves": 8,
+      "englishLeaves": 8,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 8,
+          "prefilledLeaves": 5,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 8,
+          "prefilledLeaves": 5,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 8,
+          "prefilledLeaves": 5,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Bulge Filter/definitions.json",
+      "languagePath": "plugins/bulgeFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Bulge Filter/definitions.json",
+      "stringLeaves": 34,
+      "englishLeaves": 32,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 34,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 32
+        },
+        "zh-Hant": {
+          "stringLeaves": 34,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 32
+        },
+        "ja_JP": {
+          "stringLeaves": 34,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 32
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Bulge Filter/strings.json",
+      "languagePath": "plugins/bulgeFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/bulgeFilter.json",
+      "stringLeaves": 20,
+      "englishLeaves": 20,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 20,
+          "prefilledLeaves": 17,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 20,
+          "prefilledLeaves": 17,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 20,
+          "prefilledLeaves": 17,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Chroma Key Filter/definitions.json",
+      "languagePath": "plugins/chromaKeyFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Chroma Key Filter/definitions.json",
+      "stringLeaves": 90,
+      "englishLeaves": 89,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 90,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 89
+        },
+        "zh-Hant": {
+          "stringLeaves": 90,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 89
+        },
+        "ja_JP": {
+          "stringLeaves": 90,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 89
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Chroma Key Filter/strings.json",
+      "languagePath": "plugins/chromaKeyFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/chromaKeyFilter.json",
+      "stringLeaves": 66,
+      "englishLeaves": 66,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 66,
+          "prefilledLeaves": 62,
+          "untranslatedEnglishLeaves": 4
+        },
+        "zh-Hant": {
+          "stringLeaves": 66,
+          "prefilledLeaves": 62,
+          "untranslatedEnglishLeaves": 4
+        },
+        "ja_JP": {
+          "stringLeaves": 66,
+          "prefilledLeaves": 63,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Directional Blur Filter/definitions.json",
+      "languagePath": "plugins/directionalBlurFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Directional Blur Filter/definitions.json",
+      "stringLeaves": 13,
+      "englishLeaves": 12,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 13,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 12
+        },
+        "zh-Hant": {
+          "stringLeaves": 13,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 12
+        },
+        "ja_JP": {
+          "stringLeaves": 13,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 12
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Directional Blur Filter/strings.json",
+      "languagePath": "plugins/directionalBlurFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/directionalBlurFilter.json",
+      "stringLeaves": 10,
+      "englishLeaves": 10,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 10,
+          "prefilledLeaves": 7,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 10,
+          "prefilledLeaves": 7,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 10,
+          "prefilledLeaves": 7,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Erosion Filter/definitions.json",
+      "languagePath": "plugins/erosionFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Erosion Filter/definitions.json",
+      "stringLeaves": 46,
+      "englishLeaves": 42,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 46,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 42
+        },
+        "zh-Hant": {
+          "stringLeaves": 46,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 42
+        },
+        "ja_JP": {
+          "stringLeaves": 46,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 42
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Erosion Filter/strings.json",
+      "languagePath": "plugins/erosionFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/erosionFilter.json",
+      "stringLeaves": 19,
+      "englishLeaves": 19,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 19,
+          "prefilledLeaves": 16,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 19,
+          "prefilledLeaves": 16,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 19,
+          "prefilledLeaves": 16,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Gaussian Blur Filter/definitions.json",
+      "languagePath": "plugins/gaussianBlurFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Gaussian Blur Filter/definitions.json",
+      "stringLeaves": 12,
+      "englishLeaves": 11,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 11
+        },
+        "zh-Hant": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 11
+        },
+        "ja_JP": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 11
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Gaussian Blur Filter/strings.json",
+      "languagePath": "plugins/gaussianBlurFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/gaussianBlurFilter.json",
+      "stringLeaves": 8,
+      "englishLeaves": 8,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 8,
+          "prefilledLeaves": 5,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 8,
+          "prefilledLeaves": 5,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 8,
+          "prefilledLeaves": 5,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Grain Filter/definitions.json",
+      "languagePath": "plugins/grainFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Grain Filter/definitions.json",
+      "stringLeaves": 70,
+      "englishLeaves": 69,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 70,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 69
+        },
+        "zh-Hant": {
+          "stringLeaves": 70,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 69
+        },
+        "ja_JP": {
+          "stringLeaves": 70,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 69
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Grain Filter/strings.json",
+      "languagePath": "plugins/grainFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/grainFilter.json",
+      "stringLeaves": 45,
+      "englishLeaves": 45,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 45,
+          "prefilledLeaves": 42,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 45,
+          "prefilledLeaves": 42,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 45,
+          "prefilledLeaves": 42,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Light Sweep Filter/definitions.json",
+      "languagePath": "plugins/lightSweepFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Light Sweep Filter/definitions.json",
+      "stringLeaves": 46,
+      "englishLeaves": 44,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 46,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 44
+        },
+        "zh-Hant": {
+          "stringLeaves": 46,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 44
+        },
+        "ja_JP": {
+          "stringLeaves": 46,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 44
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Light Sweep Filter/strings.json",
+      "languagePath": "plugins/lightSweepFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/lightSweepFilter.json",
+      "stringLeaves": 30,
+      "englishLeaves": 30,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 30,
+          "prefilledLeaves": 27,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 30,
+          "prefilledLeaves": 27,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 30,
+          "prefilledLeaves": 27,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Polar Coordinates Filter/definitions.json",
+      "languagePath": "plugins/polarCoordinatesFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Polar Coordinates Filter/definitions.json",
+      "stringLeaves": 37,
+      "englishLeaves": 31,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 37,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 31
+        },
+        "zh-Hant": {
+          "stringLeaves": 37,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 31
+        },
+        "ja_JP": {
+          "stringLeaves": 37,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 31
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Polar Coordinates Filter/strings.json",
+      "languagePath": "plugins/polarCoordinatesFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/polarCoordinatesFilter.json",
+      "stringLeaves": 22,
+      "englishLeaves": 22,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 22,
+          "prefilledLeaves": 19,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 22,
+          "prefilledLeaves": 19,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 22,
+          "prefilledLeaves": 19,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Spherise Filter/definitions.json",
+      "languagePath": "plugins/spheriseFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Spherise Filter/definitions.json",
+      "stringLeaves": 88,
+      "englishLeaves": 85,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 88,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 85
+        },
+        "zh-Hant": {
+          "stringLeaves": 88,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 85
+        },
+        "ja_JP": {
+          "stringLeaves": 88,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 85
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Spherise Filter/strings.json",
+      "languagePath": "plugins/spheriseFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/spheriseFilter.json",
+      "stringLeaves": 49,
+      "englishLeaves": 49,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 49,
+          "prefilledLeaves": 45,
+          "untranslatedEnglishLeaves": 4
+        },
+        "zh-Hant": {
+          "stringLeaves": 49,
+          "prefilledLeaves": 46,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 49,
+          "prefilledLeaves": 45,
+          "untranslatedEnglishLeaves": 4
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Zoom Blur Filter/definitions.json",
+      "languagePath": "plugins/zoomBlurFilterDefinitions.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Plugins/Zoom Blur Filter/definitions.json",
+      "stringLeaves": 16,
+      "englishLeaves": 15,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 16,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 15
+        },
+        "zh-Hant": {
+          "stringLeaves": 16,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 15
+        },
+        "ja_JP": {
+          "stringLeaves": 16,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 15
+        }
+      }
+    },
+    {
+      "asset": "Plugins/Zoom Blur Filter/strings.json",
+      "languagePath": "plugins/zoomBlurFilter.json",
+      "currentlyCovered": true,
+      "sourcePath": "/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/languages/en/plugins/zoomBlurFilter.json",
+      "stringLeaves": 12,
+      "englishLeaves": 12,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 3
+        },
+        "zh-Hant": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 3
+        },
+        "ja_JP": {
+          "stringLeaves": 12,
+          "prefilledLeaves": 9,
+          "untranslatedEnglishLeaves": 3
+        }
+      }
+    },
+    {
+      "asset": "Style/layout.json",
+      "languagePath": "Style/layout.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Style/layout.json",
+      "stringLeaves": 0,
+      "englishLeaves": 0,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 0,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 0
+        },
+        "zh-Hant": {
+          "stringLeaves": 0,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 0
+        },
+        "ja_JP": {
+          "stringLeaves": 0,
+          "prefilledLeaves": 0,
+          "untranslatedEnglishLeaves": 0
+        }
+      }
+    },
+    {
+      "asset": "Style/theme.json",
+      "languagePath": "Style/theme.json",
+      "currentlyCovered": false,
+      "sourcePath": "/Applications/Cavalry.app/Contents/assets/Style/theme.json",
+      "stringLeaves": 81,
+      "englishLeaves": 66,
+      "languages": {
+        "zh-Hans": {
+          "stringLeaves": 81,
+          "prefilledLeaves": 2,
+          "untranslatedEnglishLeaves": 64
+        },
+        "zh-Hant": {
+          "stringLeaves": 81,
+          "prefilledLeaves": 2,
+          "untranslatedEnglishLeaves": 64
+        },
+        "ja_JP": {
+          "stringLeaves": 81,
+          "prefilledLeaves": 2,
+          "untranslatedEnglishLeaves": 64
+        }
+      }
+    }
+  ]
+}

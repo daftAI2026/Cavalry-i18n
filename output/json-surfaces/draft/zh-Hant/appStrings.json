@@ -1,0 +1,16 @@
+[
+  {
+    "type": "strings",
+    "language": "zh-Hant",
+    "value": {
+      "auth.error.accessDenied": "授權被拒絕。請重新登入。",
+      "auth.error.generic": "登入過程中發生錯誤。請重試。",
+      "gpu.unsupported.title": "不支援 GPU",
+      "gpu.unsupported.intro": "Cavalry 無法在此電腦上初始化 GPU 算繪。",
+      "gpu.unsupported.thingsToTry": "可以嘗試的操作:",
+      "gpu.unsupported.updateDrivers": "將您的 GPU 驅動程式更新到最新版本。",
+      "gpu.unsupported.discreteGPU": "如果您有獨立 GPU（NVIDIA 或 AMD），請確保 Cavalry 使用的是獨立 GPU 而不是整合顯卡。",
+      "gpu.unsupported.contactSupport": "如果您認為這個訊息是誤顯示的，請聯絡支援人員並包含系統診斷的複本（説明 > 系統診斷 > 複製到剪貼簿）。"
+    }
+  }
+]

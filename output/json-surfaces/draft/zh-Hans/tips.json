@@ -1,0 +1,91 @@
+[
+  {
+    "title": "从调色板创建颜色数组",
+    "text": "通过颜色窗口的选项，快速从库调色板创建颜色数组。",
+    "images": [
+      "arrayFromPalette1.png",
+      "arrayFromPalette2.png",
+      "arrayFromPalette3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "快速添加背景",
+    "text": "在视口中右键点击任意形状即可添加背景。然后可以对创建的矩形进行圆角处理和更改颜色。",
+    "images": [
+      "addBackground1.png",
+      "addBackground2.png",
+      "addBackground3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "拖拽闭合开放轮廓",
+    "text": "拖放端点即可在视口中交互式地闭合轮廓。",
+    "images": [
+      "closePath1.png",
+      "closePath2.png",
+      "closePath3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "按住修饰键拖拽属性",
+    "text": "按住修饰键拖拽属性时，将同时更新两个值。",
+    "images": [
+      "altScrub1.png",
+      "altScrub2.png",
+      "altScrub3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "精确分布渐变色标",
+    "text": "快速分布渐变色标，沿渐变创建平滑的颜色过渡。",
+    "images": [
+      "distributeGradient1.png",
+      "distributeGradient2.png",
+      "distributeGradient3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "跳转到下一个关键帧",
+    "text": "使用快捷键将播放头移动到下一个或上一个关键帧。",
+    "images": [
+      [
+        "nextKeyframe1.png",
+        "nextKeyframe1-win.png"
+      ],
+      [
+        "nextKeyframe2.png",
+        "nextKeyframe2-win.png"
+      ],
+      [
+        "nextKeyframe3.png",
+        "nextKeyframe3-win.png"
+      ]
+    ],
+    "beginner": true
+  },
+  {
+    "title": "移除贝塞尔手柄",
+    "text": "在图形编辑器中按住 X 键可移除贝塞尔手柄。",
+    "images": [
+      "deleteBezierHandle1.png",
+      "deleteBezierHandle2.png",
+      "deleteBezierHandle3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "按住 S 在路径上添加新点",
+    "text": "在编辑形状工具中按住 S 键，即可沿边缘创建新点。",
+    "images": [
+      "splitPath1.png",
+      "splitPath2.png",
+      "splitPath3.png"
+    ],
+    "beginner": true
+  }
+]

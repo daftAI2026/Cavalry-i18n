@@ -1,0 +1,383 @@
+{
+  "guides": [
+    {
+      "id": "firstLaunch",
+      "category": "firstLaunch",
+      "path": "default",
+      "theme": "light",
+      "requiredWidgets": [
+        "viewport",
+        "sceneTree",
+        "attributeEditor",
+        "timeline",
+        "projectAssets"
+      ],
+      "validationFailScript": "var m = new ui.Modal(); if (m.showConfirmation('{{onboarding.dialog.resetWorkspace.title}}', '{{onboarding.dialog.resetWorkspace.body}}')) { api.resetWorkspace(); }",
+      "steps": [
+        {
+          "widgetTag": "viewport",
+          "titleKey": "onboarding.firstLaunch.step0.title",
+          "bodyKey": "onboarding.firstLaunch.step0.body",
+          "side": "left",
+          "showArrow": false
+        },
+        {
+          "widgetTag": "sceneTree",
+          "titleKey": "onboarding.firstLaunch.step1.title",
+          "bodyKey": "onboarding.firstLaunch.step1.body",
+          "side": "right",
+          "showArrow": false
+        },
+        {
+          "widgetTag": "attributeEditor",
+          "titleKey": "onboarding.firstLaunch.step2.title",
+          "bodyKey": "onboarding.firstLaunch.step2.body",
+          "side": "left",
+          "showArrow": false
+        },
+        {
+          "widgetTag": "timeline",
+          "titleKey": "onboarding.firstLaunch.step3.title",
+          "bodyKey": "onboarding.firstLaunch.step3.body",
+          "side": "top",
+          "showArrow": true
+        },
+        {
+          "widgetTag": "projectAssets",
+          "titleKey": "onboarding.firstLaunch.step4.title",
+          "bodyKey": "onboarding.firstLaunch.step4.body",
+          "nextButtonKey": "onboarding.button.done.tada",
+          "side": "right",
+          "showArrow": false
+        }
+      ]
+    },
+    {
+      "id": "uiDeepDive",
+      "category": "followUp",
+      "labelKey": "onboarding.nextGuide.uiDeepDive.label",
+      "descriptionKey": "onboarding.nextGuide.uiDeepDive.description",
+      "requiredWidgets": [
+        "viewport",
+        "attributeEditor",
+        "timeline"
+      ],
+      "validationFailScript": "var m = new ui.Modal(); if (m.showConfirmation('{{onboarding.dialog.resetWorkspace.title}}', '{{onboarding.dialog.resetWorkspace.body}}')) { api.resetWorkspace(); }",
+      "steps": [
+        {
+          "widgetTag": "playButton",
+          "titleKey": "onboarding.uiDeepDive.step0.title",
+          "bodyKey": "onboarding.uiDeepDive.step0.body",
+          "side": "top",
+          "showArrow": true
+        },
+        {
+          "widgetTag": "toolBox",
+          "titleKey": "onboarding.uiDeepDive.step1.title",
+          "bodyKey": "onboarding.uiDeepDive.step1.body",
+          "side": "right",
+          "showArrow": true
+        },
+        {
+          "widgetTag": "toolSettingsBar",
+          "titleKey": "onboarding.uiDeepDive.step2.title",
+          "bodyKey": "onboarding.uiDeepDive.step2.body",
+          "side": "bottom",
+          "showArrow": true
+        },
+        {
+          "widgetTag": "shelf",
+          "titleKey": "onboarding.uiDeepDive.step3.title",
+          "bodyKey": "onboarding.uiDeepDive.step3.body",
+          "side": "bottom",
+          "showArrow": true
+        },
+        {
+          "widgetTag": "compSettingsButton",
+          "titleKey": "onboarding.uiDeepDive.step4.title",
+          "bodyKey": "onboarding.uiDeepDive.step4.body",
+          "side": "bottom"
+        },
+        {
+          "widgetTag": "addLayersButton",
+          "titleKey": "onboarding.uiDeepDive.step5.title",
+          "bodyKey": "onboarding.uiDeepDive.step5.body",
+          "side": "bottom"
+        },
+        {
+          "widgetTag": "projectAssetsFooter",
+          "titleKey": "onboarding.uiDeepDive.step6.title",
+          "bodyKey": "onboarding.uiDeepDive.step6.body",
+          "nextButtonKey": "onboarding.button.done.tada",
+          "side": "top",
+          "showArrow": true
+        }
+      ]
+    },
+    {
+      "id": "animationBasics",
+      "category": "followUp",
+      "labelKey": "onboarding.nextGuide.animationBasics.label",
+      "descriptionKey": "onboarding.nextGuide.animationBasics.description",
+      "requiredWidgets": [
+        "viewport",
+        "attributeEditor",
+        "timeline"
+      ],
+      "validationFailScript": "var m = new ui.Modal(); if (m.showConfirmation('{{onboarding.dialog.resetWorkspace.title}}', '{{onboarding.dialog.resetWorkspace.body}}')) { api.resetWorkspace(); }",
+      "setupScript": "var layers = api.getCompLayers(true); if (layers.length > 0) { var compId = api.createComp('{{onboarding.comp.animationGuide.name}}'); api.setActiveComp(compId); } var shapeId = api.primitive('ellipse', '{{onboarding.layer.myShape.name}}'); api.set(shapeId, {'material.materialColor': '#4faffd', 'position.x': -500, 'generator.radius': {'x':150, 'y':150}}); api.select([shapeId]); api.showInAttributeEditor(shapeId); api.set(api.getActiveComp(), {'endFrame': 100, 'playbackEnd': 100});",
+      "steps": [
+        {
+          "widgetTag": "attributeEditor",
+          "titleKey": "onboarding.animationBasics.step0.title",
+          "bodyKey": "onboarding.animationBasics.step0.body",
+          "side": "left",
+          "showArrow": false,
+          "forceKeyButtons": "position.x",
+          "highlightRow": "position.x",
+          "advanceEvent": "keyframeAdded"
+        },
+        {
+          "widgetTag": "timeline",
+          "titleKey": "onboarding.animationBasics.step1.title",
+          "bodyKey": "onboarding.animationBasics.step1.body",
+          "side": "top",
+          "showArrow": true,
+          "advanceEvent": "timeChanged"
+        },
+        {
+          "widgetTag": "viewport",
+          "titleKey": "onboarding.animationBasics.step2.title",
+          "bodyKey": "onboarding.animationBasics.step2.body",
+          "side": "left",
+          "showArrow": false,
+          "align": "bottom",
+          "setupScript": "api.setActiveTool('select'); var sel = api.getSelection(); var guideId = api.primitive('ellipse', 'Target'); api.set(guideId, {'position.x': 500, 'generator.radius': {'x':175, 'y':175}}); api.setFill(guideId, false); api.setStroke(guideId, true); api.set(guideId, {'stroke.strokeColor': '#808080', 'stroke.dashPattern': '10, 10', 'locked': true}); if (sel.length > 0) { api.select(sel); }",
+          "advanceEvent": "positionAboveThreshold"
+        },
+        {
+          "widgetTag": "timeline",
+          "titleKey": "onboarding.animationBasics.step3.title",
+          "bodyKey": "onboarding.animationBasics.step3.body",
+          "side": "left",
+          "showArrow": true,
+          "anchorKeyframe": "position.x:0",
+          "advanceEvent": "easingSet"
+        },
+        {
+          "widgetTag": "playButton",
+          "fallbackWidgetTag": "playbackControls",
+          "titleKey": "onboarding.animationBasics.step4.title",
+          "bodyKey": "onboarding.animationBasics.step4.body",
+          "nextButtonKey": "onboarding.button.done.tada",
+          "setupScript": "api.setFrame(0);",
+          "side": "top",
+          "showArrow": true
+        }
+      ]
+    },
+    {
+      "id": "connectionBasics",
+      "category": "followUp",
+      "labelKey": "onboarding.nextGuide.connectionBasics.label",
+      "descriptionKey": "onboarding.nextGuide.connectionBasics.description",
+      "requiredWidgets": [
+        "viewport",
+        "attributeEditor",
+        "tool_rectangle"
+      ],
+      "validationFailScript": "var m = new ui.Modal(); if (m.showConfirmation('{{onboarding.dialog.resetWorkspace.title}}', '{{onboarding.dialog.resetWorkspace.body}}')) { api.resetWorkspace(); }",
+      "setupScript": "var layers = api.getCompLayers(true); if (layers.length > 0) { var compId = api.createComp('{{onboarding.comp.connectionGuide.name}}'); api.setActiveComp(compId); }",
+      "steps": [
+        {
+          "widgetTag": "tool_rectangle",
+          "titleKey": "onboarding.connectionBasics.step0.title",
+          "bodyKey": "onboarding.connectionBasics.step0.body",
+          "side": "right",
+          "showArrow": true,
+          "advanceEvent": "nodeAdded:basicShape"
+        },
+        {
+          "widgetTag": "attributeEditor",
+          "titleKey": "onboarding.connectionBasics.step1.title",
+          "bodyKey": "onboarding.connectionBasics.step1.body",
+          "side": "right",
+          "showArrow": true,
+          "highlightPrefixLabel": "position.x",
+          "highlightFieldGroup": "rotation.z",
+          "advanceEvent": "connectionMade"
+        },
+        {
+          "widgetTag": "attributeEditor",
+          "titleKey": "onboarding.connectionBasics.step2.title",
+          "bodyKey": "onboarding.connectionBasics.step2.body",
+          "side": "right",
+          "showArrow": true,
+          "nextButtonKey": "onboarding.button.done.tada",
+          "highlightRow": "position"
+        }
+      ]
+    },
+    {
+      "id": "behaviourBasics",
+      "category": "followUp",
+      "labelKey": "onboarding.nextGuide.behaviourBasics.label",
+      "descriptionKey": "onboarding.nextGuide.behaviourBasics.description",
+      "requiredWidgets": [
+        "viewport",
+        "sceneTree",
+        "attributeEditor",
+        "timeline"
+      ],
+      "validationFailScript": "var m = new ui.Modal(); if (m.showConfirmation('{{onboarding.dialog.resetWorkspace.title}}', '{{onboarding.dialog.resetWorkspace.body}}')) { api.resetWorkspace(); }",
+      "setupScript": "var layers = api.getCompLayers(true); if (layers.length > 0) { var compId = api.createComp('{{onboarding.comp.behaviourGuide.name}}'); api.setActiveComp(compId); } var ellipseId = api.primitive('ellipse', '{{onboarding.layer.ellipse.name}}'); api.set(ellipseId, {'generator.radius': [5, 5]}); var dupId = api.create('duplicator', '{{onboarding.layer.duplicator.name}}'); api.connect(ellipseId, 'id', dupId, 'shapes'); api.set(dupId, {'generator.count': [15, 15], 'generator.size': [75, 75], 'generator.distributionMode': 1}); var colorId = api.create('colorArray', '{{onboarding.layer.colours.name}}'); api.addArrayIndex(colorId, 'array'); api.addArrayIndex(colorId, 'array'); api.addArrayIndex(colorId, 'array'); api.addArrayIndex(colorId, 'array'); api.set(colorId, {'array.0': '#a35fbf', 'array.1': '#05c7c2', 'array.2': '#f2e205', 'array.3': '#f27405', 'array.4': '#f20505'}); api.connect(colorId, 'id', ellipseId, 'material.materialColor'); api.select([dupId]); api.showInAttributeEditor(dupId);",
+      "steps": [
+        {
+          "widgetTag": "attributeEditor",
+          "titleKey": "onboarding.behaviourBasics.step0.title",
+          "bodyKey": "onboarding.behaviourBasics.step0.body",
+          "side": "left",
+          "showArrow": false,
+          "highlightRow": "shapePosition",
+          "advanceEvent": "behaviourAdded"
+        },
+        {
+          "widgetTag": "sceneTree",
+          "titleKey": "onboarding.behaviourBasics.step1.title",
+          "bodyKey": "onboarding.behaviourBasics.step1.body",
+          "side": "top",
+          "showArrow": true,
+          "advanceEvent": "nodeUIAdded:noise"
+        },
+        {
+          "widgetTag": "attributeEditor",
+          "titleKey": "onboarding.behaviourBasics.step2.title",
+          "bodyKey": "onboarding.behaviourBasics.step2.body",
+          "side": "left",
+          "showArrow": false,
+          "highlightRow": "strength",
+          "advanceEvent": "strengthAboveThreshold"
+        },
+        {
+          "widgetTag": "attributeEditor",
+          "titleKey": "onboarding.behaviourBasics.step3.title",
+          "bodyKey": "onboarding.behaviourBasics.step3.body",
+          "side": "left",
+          "showArrow": false,
+          "advanceEvent": "falloffAdded"
+        },
+        {
+          "widgetTag": "sceneTree",
+          "titleKey": "onboarding.behaviourBasics.step4.title",
+          "bodyKey": "onboarding.behaviourBasics.step4.body",
+          "side": "top",
+          "showArrow": true,
+          "advanceEvent": "nodeUIAdded:falloff"
+        },
+        {
+          "widgetTag": "attributeEditor",
+          "titleKey": "onboarding.behaviourBasics.step5.title",
+          "bodyKey": "onboarding.behaviourBasics.step5.body",
+          "side": "left",
+          "showArrow": false,
+          "highlightRow": "scale",
+          "advanceEvent": "falloffScaleSet"
+        },
+        {
+          "widgetTag": "playButton",
+          "fallbackWidgetTag": "playbackControls",
+          "titleKey": "onboarding.behaviourBasics.step6.title",
+          "bodyKey": "onboarding.behaviourBasics.step6.body",
+          "nextButtonKey": "onboarding.button.done.tada",
+          "side": "top",
+          "showArrow": true
+        }
+      ]
+    },
+    {
+      "id": "renderBasics",
+      "category": "followUp",
+      "labelKey": "onboarding.nextGuide.renderBasics.label",
+      "descriptionKey": "onboarding.nextGuide.renderBasics.description",
+      "requiredWidgets": [
+        "viewport"
+      ],
+      "validationFailScript": "var m = new ui.Modal(); if (m.showConfirmation('{{onboarding.dialog.resetWorkspace.title}}', '{{onboarding.dialog.resetWorkspace.body}}')) { api.resetWorkspace(); }",
+      "steps": [
+        {
+          "widgetTag": "viewport",
+          "titleKey": "onboarding.renderBasics.step0.title",
+          "bodyKey": "onboarding.renderBasics.step0.body",
+          "side": "left",
+          "showArrow": false
+        },
+        {
+          "widgetTag": "renderManager",
+          "titleKey": "onboarding.renderBasics.step1.title",
+          "bodyKey": "onboarding.renderBasics.step1.body",
+          "setupScript": "api.openWindow('renderManager', 440);",
+          "side": "left",
+          "showArrow": false
+        },
+        {
+          "widgetTag": "addCurrentCompButton",
+          "titleKey": "onboarding.renderBasics.step2.title",
+          "bodyKey": "onboarding.renderBasics.step2.body",
+          "advanceEvent": "renderQueueItemAdded",
+          "side": "bottom",
+          "showArrow": true
+        },
+        {
+          "widgetTag": "renderButton",
+          "titleKey": "onboarding.renderBasics.step3.title",
+          "bodyKey": "onboarding.renderBasics.step3.body",
+          "side": "bottom",
+          "showArrow": true
+        },
+        {
+          "widgetTag": "renderGoToPath",
+          "titleKey": "onboarding.renderBasics.step4.title",
+          "bodyKey": "onboarding.renderBasics.step4.body",
+          "nextButtonKey": "onboarding.button.done.tada",
+          "side": "right",
+          "showArrow": true
+        }
+      ]
+    },
+    {
+      "id": "contextual_demoNotes",
+      "category": "contextual",
+      "triggerEvent": "demoLoaded",
+      "steps": [
+        {
+          "widgetTag": "firstNotesIcon",
+          "titleKey": "onboarding.contextual_demoNotes.step0.title",
+          "bodyKey": "onboarding.contextual_demoNotes.step0.body",
+          "nextButtonKey": "onboarding.button.done",
+          "side": "right",
+          "showArrow": true
+        }
+      ]
+    }
+  ],
+  "demos": [
+    {
+      "id": "overAndOver",
+      "labelKey": "onboarding.demo.overAndOver.label",
+      "icon": "DemoPreviews/OverOverPreview.png",
+      "scriptPath": "Presets/Kinetic Type/Over and Over.js"
+    },
+    {
+      "id": "gradientAlongPath",
+      "labelKey": "onboarding.demo.gradientAlongPath.label",
+      "icon": "DemoPreviews/GradientAlongPathPreview.png",
+      "scriptPath": "Presets/Illustration/Gradient along a Path.js"
+    },
+    {
+      "id": "variableFont",
+      "labelKey": "onboarding.demo.variableFont.label",
+      "icon": "DemoPreviews/VariableFontPreview.png",
+      "scriptPath": "Presets/Text/Variable Font.js"
+    }
+  ]
+}

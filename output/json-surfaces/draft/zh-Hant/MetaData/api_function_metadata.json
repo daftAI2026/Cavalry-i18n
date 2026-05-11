@@ -1,0 +1,3202 @@
+[
+  {
+    "name": "primitive",
+    "arguments": [
+      {
+        "name": "primitiveType",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "建立基本體形狀，傳回結果圖層 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createEditable",
+    "arguments": [
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "從給定物件建立可編輯形狀並命名，傳回新圖層 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "create",
+    "arguments": [
+      {
+        "name": "layerType",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "allowDefaultPreset",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "建立指定類型的圖層並可選擇命名，傳回新圖層 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelection",
+    "arguments": [
+      {
+        "name": "sortByHierarchyOrder",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取目前已選取圖層的 ID，可選擇按階層順序排列。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "sortLayerIdsByHierarchy",
+    "arguments": [
+      {
+        "name": "layerIds",
+        "type": "Array<String>",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "按階層順序傳回給定圖層的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedAttributes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "傳回已選取的屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "selectAttribute",
+    "arguments": [
+      {
+        "name": "attributePaths",
+        "type": "Array<string>",
+        "required": true
+      },
+      {
+        "name": "add",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "按完整路徑選取屬性（例如 \"layerId.attrId.subAttr\"），傳入空陣列可清除選取。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deselectAttribute",
+    "arguments": [
+      {
+        "name": "attributePaths",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "按完整路徑取消選取屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reorder",
+    "arguments": [
+      {
+        "name": "layerIdToReorder",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "underLayerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "在階層中重新排序圖層，必要時重新指定父級。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedKeyframes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "取得已選取的關鍵影格，傳回屬性 ID 與影格號碼的字典。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setSelectedKeyframeIds",
+    "arguments": [
+      {
+        "name": "keyframeIdArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "基於關鍵影格 ID 陣列設定已選取的關鍵影格。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeFromKeyframeId",
+    "arguments": [
+      {
+        "name": "keyframeId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取與給定關鍵影格 ID 關聯的屬性 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resyncPathKeyframes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "重新同步路徑關鍵影格資料，如果對路徑關鍵影格使用了 api.set()，請執行此函式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedKeyframeIds",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "擷取目前選取關鍵影格的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getKeyframeIdsForAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取圖層上特定屬性的關鍵影格 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "select",
+    "arguments": [
+      {
+        "name": "array",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "基於 ID 選取圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "invertSelection",
+    "arguments": null,
+    "description": "反轉目前圖層選取。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isReferenced",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果圖層是透過 Reference 匯入的，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSuperTypes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取指定圖層的 SuperType。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerVersion",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取指定圖層的版本，對第三方開發者很有用。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "compareVersions",
+    "arguments": [
+      {
+        "name": "firstVersion",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "secondVersion",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果第一版本低於第二版本，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getChildren",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取指定圖層的子圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取指定圖層的父圖層 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setFrame",
+    "arguments": [
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定目前合成中的目前影格。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFrame",
+    "arguments": null,
+    "return_type": "int",
+    "description": "擷取目前合成的目前影格。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompLayers",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "從目前合成中擷取圖層 ID，可選擇僅傳回頂層圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompLayersOfType",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取合成中特定類型的圖層 ID，可選擇僅傳回頂層圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getNiceName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "基於 ID 擷取圖層的友好名稱。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInConnection",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取圖層上特定屬性的輸入連接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutConnections",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取圖層上特定屬性的輸出連接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "rename",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "將指定圖層重新命名為新名稱。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGenerator",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "generatorType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "為圖層上的屬性設定特定類型的產生器。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCurrentGenerator",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "取得圖層上屬性的產生器，如果不存在則傳回空字串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "parent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newParentId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "將圖層的父級設定為指定圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "editComponent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "editing",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "設定元件的編輯模式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "offsetLayerTime",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "timeDelta",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "按指定的時間偏移量偏移圖層的時間。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "擷取指定圖層的入點影格（第一個可見影格）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "擷取指定圖層的出點影格（最後一個可見影格）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setInFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定指定圖層的入點影格（第一個可見影格）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setOutFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定指定圖層的出點影格（最後一個可見影格）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInOutKeyframeIds",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Object>",
+    "description": "傳回包含此圖層所有入點和出點關鍵影格 ID 的物件陣列。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "framesToTimecode",
+    "arguments": [
+      {
+        "name": "frames",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "使用 FPS 值將給定影格數轉換為等效時間碼。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "timecodeToFrames",
+    "arguments": [
+      {
+        "name": "timecode",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "使用 FPS 值將給定時間碼轉換為等效影格數。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadAsset",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "isImageSequence",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "從檔案路徑載入素材，可選擇作為影像序列載入。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadSmartFolderAsset",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "從檔案路徑載入智慧資料夾素材，類型可以是 'image' 或 'audio'。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reloadAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "重新載入指定素材（包括智慧資料夾素材）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addAssetToComp",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string/array",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "將素材（或素材陣列）加入目前合成，傳回新建立圖層的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadGoogleSheet",
+    "arguments": [
+      {
+        "name": "fileId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "sheetId",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "載入 Google Sheet 並傳回素材 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetType",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取指定素材的類型。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontAssetFamilyName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回與字型素材關聯的字型系列名稱。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontAssetStyleName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回與字型素材關聯的字型樣式名稱。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getProfileName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回影像素材的 ICC 設定檔名稱，對 sRGB 或無標記影像傳回空字串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetWindowLayers",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "從素材視窗擷取圖層 ID，可選擇僅傳回頂層圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGradientFromColors",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": false,
+        "default": "string"
+      }
+    ],
+    "description": "從十六進位色彩字串陣列設定漸層屬性的色彩。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGradientInterpolation",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": false,
+        "default": "string"
+      }
+    ],
+    "description": "設定漸層上每個色標的插值方式：Linear = 0, Step = 1, Smooth = 2, Crush = 3, Smooth Blend = 4, Contrast = 5。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "unParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "移除指定圖層的父級，使其成為頂層圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setProject",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "設定專案。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearProject",
+    "arguments": null,
+    "description": "清除目前專案。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveComp",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前使用中合成的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getParentComp",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取給定圖層的父合成 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveCamera",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前合成中使用中攝影機的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasActiveCamera",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "檢查目前合成是否有使用中攝影機。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setActiveComp",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "啟用指定的合成。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createCompReference",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "為指定合成建立引用，這是建立空白預合成的方式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getComps",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "擷取場景中所有合成的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createComp",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "建立新合成並命名，傳回新合成的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "preCompose",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "從已選取圖層建立預合成並可選擇命名。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompFromReference",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "從預合成中擷取原始合成 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "writeToFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "overwriteExisting",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "bool",
+    "description": "將內容寫入指定路徑的檔案，可選擇覆寫已存在的檔案。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "encodeBinary",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "將二進位檔案編碼為 base64 字串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "writeEncodedToBinaryFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "將 base64 編碼的字串寫入二進位檔案。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "readFromFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "讀取並傳回指定檔案的內容。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "connect",
+    "arguments": [
+      {
+        "name": "fromId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fromAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "force",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "在兩個屬性之間建立連接（透過各自的圖層 ID 和屬性 ID 標識），強制連接將覆寫任何現有連接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnect",
+    "arguments": [
+      {
+        "name": "fromId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fromAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toAttrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "中斷兩個屬性之間的連接（透過各自的圖層 ID 和屬性 ID 標識）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnectInput",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "中斷圖層中指定屬性的輸入連接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnectOutputs",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "中斷圖層中指定屬性的所有輸出連接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setStroke",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "on",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "切換指定圖層的筆觸可見性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasStroke",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "檢查指定圖層是否有筆觸。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setFill",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "on",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "切換指定圖層的填色可見性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasFill",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "檢查指定圖層是否有填色。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isVisible",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "testHierarchy",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "檢查指定圖層是否可見，可選擇測試階層可見性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "keyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "以給定值在指定影格為圖層的屬性加入關鍵影格。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getKeyframeTimes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<int>",
+    "description": "擷取圖層中指定屬性的關鍵影格時間。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteKeyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "在指定影格刪除圖層中給定屬性的關鍵影格。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteAnimation",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "刪除圖層中指定屬性的動畫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "modifyKeyframeTangent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "修改給定圖層關鍵影格的切線屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setKeyframeVelocity",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "設定給定圖層關鍵影格的速度和影響力值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearKeyframeVelocity",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "清除關鍵影格上的所有速度和影響力覆寫，恢復為",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "modifyKeyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "根據提供的參數修改指定圖層的關鍵影格。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "magicEasing",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "easingName",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "description": "對屬性的關鍵影格套用 Magic Easing，並可選擇加入表達式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "move",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "按給定的 x 和 y 座標移動目前選取。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "set",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "根據提供的字典設定指定圖層屬性的值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "get",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "擷取圖層中指定屬性的值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "areAttributeValuesEqual",
+    "arguments": [
+      {
+        "name": "layerId1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "layerId2",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId2",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果兩個屬性在值、表達式和自訂名稱（如果已設定）上完全相同，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addPreCompOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "為圖層中的指定屬性加入預合成覆寫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removePreCompOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "從圖層中的指定屬性移除預合成覆寫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listPreCompOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "列出指定圖層的預合成覆寫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取指定圖層的類型。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isProLayerType",
+    "arguments": [
+      {
+        "name": "layerType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果指定圖層需要 Pro 授權才能使用，則傳回 `true`。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isThirdPartyLayer",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果該圖層是第三方圖層，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isRestrictedLicence",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "如果正在使用免費授權，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isShape",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "檢查指定圖層是否為形狀。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果指定圖層具有變換屬性（例如 Position 和 Scale），則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "has3dTransforms",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果指定圖層啟用了 3D 變換屬性，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "uuid",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回 UUIDv4 字串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取圖層中指定屬性的類型。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reorderArrayAttr",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "oldIndex",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "newIndex",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "將陣列屬性從給定索引重新排序到給定索引。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isAttrDefault",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果屬性值與其預設值匹配，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取圖層中指定屬性的父屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrChildren",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "擷取圖層中指定屬性的子屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "將圖層中的指定屬性重設為預設值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetLayerAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeTransformAttributes",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "將指定圖層的所有屬性重設為預設值，可選擇忽略變換屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addArrayIndex",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "向指定圖層中的陣列屬性加入索引。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getArrayCount",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "擷取陣列屬性中的索引數量。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeArrayIndex",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "從指定圖層中的陣列屬性移除索引。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addDynamic",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "向指定圖層加入動態屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectionBoundingBox",
+    "arguments": [
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "在世界空間中擷取目前選取（及選取的子圖層）的邊界框。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getBoundingBox",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number",
+      "width": "number",
+      "height": "number",
+      "centre": {
+        "x": "number",
+        "y": "number"
+      },
+      "left": "number",
+      "right": "number",
+      "top": "number",
+      "bottom": "number"
+    },
+    "description": "在局部或世界空間中擷取指定形狀及其子級的邊界框。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPivotPosition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number"
+    },
+    "description": "在局部或世界空間中傳回指定圖層軸心的位置。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRenderQueueItems",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "擷取算繪佇列中的項目。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addRenderQueueItem",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "將合成加入算繪佇列。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "connectDynamicIndex",
+    "arguments": [
+      {
+        "name": "nodeId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "將 Dynamic Rendering 索引連接到節點中的指定屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDynamicIndex",
+    "arguments": null,
+    "return_type": "int",
+    "description": "擷取 Dynamic Rendering 索引的目前值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setDynamicIndexOffset",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "設定 Dynamic Rendering 索引偏移。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteLayer",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "刪除指定圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renameAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "重新命名圖層中的指定屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCustomAttributeName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取圖層中指定屬性的自訂名稱。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasCustomAttributeName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果指定屬性有自訂名稱，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "graphPreset",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "presetNumber",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "對圖層中的指定屬性套用圖表預設集。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "flipGraph",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "flipType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "翻轉圖層中指定屬性的圖表，flipType 可以是 \"horizontal\" 或 \"vertical\"。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createTimeMarker",
+    "arguments": [
+      {
+        "name": "time",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "在指定時間建立時間標記。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeTimeMarker",
+    "arguments": [
+      {
+        "name": "markerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "移除指定的時間標記。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getTimeMarkers",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "擷取所有時間標記 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getNthBeat",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "根據目前合成的 BPM 設定擷取第 n 拍的時間。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getProjectPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前專案的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前專案中素材目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPalettesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前專案中調色盤目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRenderPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前專案中算繪目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getScenesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前專案中場景目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSceneFilePath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "擷取目前場景的檔案路徑，如果場景未儲存則傳回空字串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferencesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "提供偏好設定目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPresetsPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "提供預設集目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAppAssetsPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回應用程式素材目錄的路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileModifiedDate",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "取得檔案自紀元以來的最後修改時間（以毫秒為單位）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileSize",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "取得檔案大小（以 KB 為單位）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isDirectory",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "如果路徑存在且為目錄，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectoryPaths",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeDirectories",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "傳回目錄中所有可見檔案的路径，可選擇包含子目录。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isFile",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "如果路徑存在且為常規檔案，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAbsolutePath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回絕對標準化路徑字串（解析 ../../ 等相對路徑）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRelativePath",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "計算從一個位置到另一個位置的相對路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectory",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "array",
+    "description": "傳回給定目錄下所有檔案和資料夾路徑的陣列。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectoryRecursive",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "array",
+    "description": "傳回給定目錄下所有檔案和資料夾路徑的陣列（遞迴）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "filePathExists",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "檢查提供的檔案路徑是否存在。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "unzip",
+    "arguments": [
+      {
+        "name": "zipPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "destinationPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "[string]",
+    "description": "將 zip 檔案解壓縮到指定位置，傳回解壓出的頂級檔案列表。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileNameFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeExtension",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "從給定檔案路徑中提取檔案名稱，可選擇包含檔案副檔名。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getExtensionFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "從給定檔案路徑中擷取檔案副檔名。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFolderFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "從給定檔案路徑中提取資料夾路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteFilePath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "刪除指定路徑的檔案。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "copyFilePath",
+    "arguments": [
+      {
+        "name": "fromPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "將檔案從一個指定路徑複製到另一個路徑，必要時建立目標位置。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeFolder",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "overwriteExisting",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "boolean",
+    "description": "在指定路徑建立新資料夾，可選擇在已存在時覆寫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPlatform",
+    "arguments": null,
+    "return_type": "string",
+    "description": "傳回作業系統平台名稱（例如 \"macOS\" 或 \"Windows\"）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "layerExists",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "檢查指定 ID 的圖層是否存在。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "為圖層的指定屬性設定表達式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "如果給定屬性有表達式，則傳回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回屬性的表達式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setAttributeDefinitionOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "number",
+        "required": false
+      }
+    ],
+    "description": "設定屬性的定義覆寫（鍵：\"hardMin\"、\"hardMax\"、\"softMin\"、\"softMax\"、\"step\"）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeDefinitionOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number|null",
+    "description": "取得屬性的定義覆寫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearAttributeDefinitionOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "清除屬性的所有定義覆寫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttributeDefinitionOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "檢查屬性是否有任何定義覆寫。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getEffectiveAttributeDefinition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "object",
+    "description": "取得屬性定義（包括任何覆寫）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isGuiSession",
+    "arguments": null,
+    "return_type": "boolean",
+    "description": "判斷目前工作階段是否為 GUI 工作階段。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "openScene",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "description": "從指定檔案路徑開啟場景，可選擇強制開啟（會遺失未儲存的變更）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "importScene",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "從指定檔案路徑匯入場景。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "saveSceneAs",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "將目前場景儲存到指定檔案路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exportSceneAs",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "將目前場景匯出到指定檔案路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exportSelected",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "exportingAsProject",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "boolean",
+    "description": "將任何已選取（及已连接）的圖層匯出到指定檔案路徑。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "duplicate",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "withInputConnections",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "複製指定 ID 的圖層，可選擇同時複製其輸入連接的圖層。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "centrePivot",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "doCentroid",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "將圖層的轴心置中，可選擇使用形心進行置中。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeFirstPoint",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "根據目前點選取設定可編輯形狀圖層的起始點。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "freezeTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "凍結指定圖層的變換屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "將指定圖層的變換屬性重設為預設值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerFromUUID",
+    "arguments": [
+      {
+        "name": "uuid",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "擷取與指定 UUID 關聯的圖層 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAllSceneLayers",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "傳回目前場景中所有圖層 ID 的清單。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAllLayerTypes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "提供目前場景中使用的所有圖層類型的清單。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setUserData",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "為指定圖層上的指定鍵設定使用者資料值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasUserDataKey",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "檢查指定鍵是否存在於指定圖層的使用者資料中。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getUserDataKey",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "從指定圖層的使用者資料中擷取指定鍵的值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "擷取指定鍵的偏好設定值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "設定指定鍵的偏好設定值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "設定指定鍵的偏好設定值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "檢查偏好設定鍵是否存在。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "擷取指定鍵的偏好設定值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addToControlCentre",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "將指定圖層的指定屬性加入 Control Centre。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeFromControlCentre",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "從 Control Centre 中移除指定圖層的指定屬性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeEditable",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "makeCopy",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "使圖層可編輯，可選擇建立圖層的副本。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "movePoint",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "localSpace",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "按指定量在 x 和 y 方向上移動可編輯形狀中的已選取點，可選擇使用局部空間座標。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPointPosition",
+    "arguments": [
+      {
+        "name": "xAndOrYObject",
+        "type": "Object",
+        "required": true
+      },
+      {
+        "name": "localSpace",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "name": "handles",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "設定可編輯形狀中已選取點的位置，可選擇使用局部空間座標和包含手柄位置。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getEditablePath",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "擷取指定圖層的可編輯路徑，可選擇在世界空間中傳回點座標。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setEditablePath",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "name": "pathObject",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "使用給定路徑物件設定指定圖層的可編輯路徑，可選擇在世界空間中解釋座標。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  }
+]

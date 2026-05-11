@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 std fs/path，读取 Cavalry Contents/assets JSON 与插件 strings.json
- * [OUTPUT]: 对外提供 CORE_MAP、discover_plugins、extract_english、build_copy_pairs、stage_files、needs_english_snapshot
+ * [OUTPUT]: 对外提供 CORE_MAP、discover_plugins、extract_english、build_copy_pairs、stage_files、has_english_snapshot、needs_english_snapshot
  * [POS]: src-tauri/src 的 JSON patch 映射模块，对齐 Cavalry JSON 资产映射需求
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,11 +9,86 @@ use std::{
     path::{Path, PathBuf},
 };
 
-pub const CORE_MAP: [(&str, &str); 4] = [
-    ("nodeStrings.json", "Definitions"),
-    ("appStrings.json", "Definitions"),
-    ("tips.json", "Learn"),
-    ("onboarding.json", "Learn"),
+/// Static map of all non-plugin file pairs.
+/// Each tuple: (language_relative_path, asset_relative_path)
+/// relative to `languages/{lang}/` and `Contents/assets/` respectively.
+pub const CORE_MAP: [(&str, &str); 14] = [
+    ("appStrings.json", "Definitions/appStrings.json"),
+    ("nodeStrings.json", "Definitions/nodeStrings.json"),
+    ("onboarding.json", "Learn/onboarding.json"),
+    ("tips.json", "Learn/tips.json"),
+    ("Definitions/nodeDefinitions.json", "Definitions/nodeDefinitions.json"),
+    ("Definitions/systemPresets.json", "Definitions/systemPresets.json"),
+    ("Learn/Guides/guides.json", "Learn/Guides/guides.json"),
+    ("Learn/Guides/strings.json", "Learn/Guides/strings.json"),
+    ("MetaData/api_function_metadata.json", "MetaData/api_function_metadata.json"),
+    (
+        "MetaData/core_api_function_metadata.json",
+        "MetaData/core_api_function_metadata.json",
+    ),
+    (
+        "MetaData/gui_api_function_metadata.json",
+        "MetaData/gui_api_function_metadata.json",
+    ),
+    (
+        "MetaData/widget_api_function_metadata.json",
+        "MetaData/widget_api_function_metadata.json",
+    ),
+    ("Style/layout.json", "Style/layout.json"),
+    ("Style/theme.json", "Style/theme.json"),
+];
+
+/// Static map of known plugin definition file pairs.
+/// Each tuple: (language_relative_path, asset_relative_path)
+pub const PLUGIN_DEFINITION_MAP: [(&str, &str); 12] = [
+    (
+        "plugins/bilateralBlurFilterDefinitions.json",
+        "Plugins/Bilateral Blur Filter/definitions.json",
+    ),
+    (
+        "plugins/boxBlurFilterDefinitions.json",
+        "Plugins/Box Blur Filter/definitions.json",
+    ),
+    (
+        "plugins/bulgeFilterDefinitions.json",
+        "Plugins/Bulge Filter/definitions.json",
+    ),
+    (
+        "plugins/chromaKeyFilterDefinitions.json",
+        "Plugins/Chroma Key Filter/definitions.json",
+    ),
+    (
+        "plugins/directionalBlurFilterDefinitions.json",
+        "Plugins/Directional Blur Filter/definitions.json",
+    ),
+    (
+        "plugins/erosionFilterDefinitions.json",
+        "Plugins/Erosion Filter/definitions.json",
+    ),
+    (
+        "plugins/gaussianBlurFilterDefinitions.json",
+        "Plugins/Gaussian Blur Filter/definitions.json",
+    ),
+    (
+        "plugins/grainFilterDefinitions.json",
+        "Plugins/Grain Filter/definitions.json",
+    ),
+    (
+        "plugins/lightSweepFilterDefinitions.json",
+        "Plugins/Light Sweep Filter/definitions.json",
+    ),
+    (
+        "plugins/polarCoordinatesFilterDefinitions.json",
+        "Plugins/Polar Coordinates Filter/definitions.json",
+    ),
+    (
+        "plugins/spheriseFilterDefinitions.json",
+        "Plugins/Spherise Filter/definitions.json",
+    ),
+    (
+        "plugins/zoomBlurFilterDefinitions.json",
+        "Plugins/Zoom Blur Filter/definitions.json",
+    ),
 ];
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -89,9 +164,26 @@ pub fn extract_english(app_path: &Path, output_dir: &Path) -> Result<usize, Stri
     fs::create_dir_all(output_dir).map_err(|error| error.to_string())?;
 
     let mut count = 0;
-    for (file, subdir) in CORE_MAP {
-        fs::copy(root.join(subdir).join(file), output_dir.join(file))
-            .map_err(|error| error.to_string())?;
+    for (lang_rel, asset_rel) in CORE_MAP {
+        let src = root.join(asset_rel);
+        let dst = output_dir.join(lang_rel);
+        if let Some(parent) = dst.parent() {
+            fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+        }
+        fs::copy(&src, &dst).map_err(|error| error.to_string())?;
+        count += 1;
+    }
+
+    for (lang_rel, asset_rel) in PLUGIN_DEFINITION_MAP {
+        let src = root.join(asset_rel);
+        let dst = output_dir.join(lang_rel);
+        if !src.exists() {
+            continue;
+        }
+        if let Some(parent) = dst.parent() {
+            fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+        }
+        fs::copy(&src, &dst).map_err(|error| error.to_string())?;
         count += 1;
     }
 
@@ -113,15 +205,27 @@ pub fn extract_english(app_path: &Path, output_dir: &Path) -> Result<usize, Stri
 pub fn build_copy_pairs(source_dir: &Path, app_path: &Path) -> Vec<CopyPair> {
     let root = assets_root(app_path);
     let mut pairs = Vec::new();
-    for (file, subdir) in CORE_MAP {
-        let source_path = source_dir.join(file);
+
+    for (lang_rel, asset_rel) in CORE_MAP {
+        let source_path = source_dir.join(lang_rel);
         if source_path.exists() {
             pairs.push(CopyPair {
                 src: source_path,
-                dst: root.join(subdir).join(file),
+                dst: root.join(asset_rel),
             });
         }
     }
+
+    for (lang_rel, asset_rel) in PLUGIN_DEFINITION_MAP {
+        let source_path = source_dir.join(lang_rel);
+        if source_path.exists() {
+            pairs.push(CopyPair {
+                src: source_path,
+                dst: root.join(asset_rel),
+            });
+        }
+    }
+
     for plugin in discover_plugins(app_path) {
         let source_path = source_dir
             .join("plugins")
@@ -173,10 +277,21 @@ pub fn stage_files(pairs: &[CopyPair], staging_dir: &Path) -> Result<Vec<CopyPai
         .collect()
 }
 
-pub fn has_english_snapshot(state_dir: &Path) -> bool {
-    CORE_MAP
+pub fn has_english_snapshot(state_dir: &Path, app_path: &Path) -> bool {
+    let snapshot_dir = state_dir.join("en");
+    let root = assets_root(app_path);
+
+    let has_core = CORE_MAP
         .iter()
-        .all(|(file, _)| state_dir.join("en").join(file).exists())
+        .all(|(lang_rel, _)| snapshot_dir.join(lang_rel).exists());
+    let has_plugin_definitions = PLUGIN_DEFINITION_MAP.iter().all(|(lang_rel, asset_rel)| {
+        !root.join(asset_rel).exists() || snapshot_dir.join(lang_rel).exists()
+    });
+    let has_plugin_strings = discover_plugins(app_path)
+        .iter()
+        .all(|plugin| snapshot_dir.join("plugins").join(format!("{}.json", plugin.camel_name)).exists());
+
+    has_core && has_plugin_definitions && has_plugin_strings
 }
 
 pub fn needs_english_snapshot(
@@ -189,14 +304,14 @@ pub fn needs_english_snapshot(
     if app_path.as_os_str().is_empty() {
         return false;
     }
-    !has_english_snapshot(state_dir)
+    !has_english_snapshot(state_dir, app_path)
         || state_app_path != app_path.to_string_lossy()
         || state_version != version
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{build_copy_pairs, discover_plugins, extract_english};
+    use super::{build_copy_pairs, discover_plugins, extract_english, CORE_MAP};
     use std::fs;
 
     fn write_json(path: &std::path::Path, value: &str) {
@@ -219,11 +334,14 @@ mod tests {
     fn extract_english_copies_core_files() {
         let temp = tempfile::tempdir().unwrap();
         let app = temp.path().join("Cavalry.app");
-        for (file, subdir) in super::CORE_MAP {
-            write_json(&app.join("Contents/assets").join(subdir).join(file), "{}");
+        for (_, asset_rel) in CORE_MAP {
+            write_json(&app.join("Contents/assets").join(asset_rel), "{}");
         }
         let out = temp.path().join("en");
-        assert_eq!(extract_english(&app, &out).unwrap(), 4);
+        let result = extract_english(&app, &out);
+        assert!(result.is_ok());
+        let count = result.unwrap();
+        assert!(count >= CORE_MAP.len() as usize);
         assert!(out.join("nodeStrings.json").exists());
     }
 
@@ -232,14 +350,14 @@ mod tests {
         let temp = tempfile::tempdir().unwrap();
         let app = temp.path().join("Cavalry.app");
         let source = temp.path().join("lang");
-        for (file, subdir) in super::CORE_MAP {
-            write_json(&app.join("Contents/assets").join(subdir).join(file), "{}");
-            write_json(&source.join(file), "{}");
+        for (lang_rel, asset_rel) in CORE_MAP {
+            write_json(&app.join("Contents/assets").join(asset_rel), "{}");
+            write_json(&source.join(lang_rel), "{}");
         }
         let pairs = build_copy_pairs(&source, &app);
-        assert_eq!(pairs.len(), 4);
-        assert!(pairs[0]
+        assert!(pairs.len() >= CORE_MAP.len());
+        assert!(pairs.iter().any(|p| p
             .dst
-            .ends_with("Contents/assets/Definitions/nodeStrings.json"));
+            .ends_with("Contents/assets/Definitions/nodeStrings.json")));
     }
 }

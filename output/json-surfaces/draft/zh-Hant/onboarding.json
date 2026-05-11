@@ -1,0 +1,70 @@
+[
+  {
+    "title": "繪製形狀",
+    "images": [
+      "createShape1.png",
+      "createShape2.png"
+    ]
+  },
+  {
+    "title": "設定關鍵幀",
+    "images": [
+      "setKeyframes1.png",
+      "setKeyframes2.png",
+      "setKeyframes3.png",
+      "setKeyframes4.png"
+    ]
+  },
+  {
+    "title": "建立連接",
+    "images": [
+      "connections1.png",
+      "connections2.png",
+      "connections3.png",
+      "connections4.png"
+    ]
+  },
+  {
+    "title": "設定顏色",
+    "images": [
+      "setColor1.png",
+      "setColor2.png",
+      "setColor3.png"
+    ]
+  },
+  {
+    "title": "快速連接",
+    "images": [
+      "quickConnect1.png",
+      "quickConnect2.png",
+      "quickConnect3.png",
+      "quickConnect4.png"
+    ]
+  },
+  {
+    "title": "設定解析度",
+    "images": [
+      [
+        "resolution1-mac.png",
+        "resolution1-win.png"
+      ],
+      "resolution2.png",
+      "resolution3.png",
+      "resolution4.png"
+    ]
+  },
+  {
+    "title": "從示範場景開始",
+    "images": [
+      [
+        "preset1-mac.png",
+        "preset1-win.png"
+      ],
+      [
+        "preset2-mac.png",
+        "preset2-win.png"
+      ],
+      "preset3.png"
+    ]
+  }
+]

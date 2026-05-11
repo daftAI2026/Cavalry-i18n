@@ -1,0 +1,105 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "rectToPolarFilter",
+    "superType": "thirdPartyFilter",
+    "hide": true,
+    "skslFile": "rectToPolarFilter.sksl",
+    "version": "1.0",
+    "attributes": {
+      "centre": {
+        "type": "double2",
+        "default": {
+          "x": 0,
+          "y": 0
+        },
+        "children": {
+          "*": {
+            "step": 1
+          }
+        }
+      },
+      "radius": {
+        "type": "double",
+        "default": 100,
+        "min": 0,
+        "max": 100,
+        "step": 0.1,
+        "prefix": "%"
+      },
+      "innerRadius": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 100,
+        "step": 0.1,
+        "prefix": "%"
+      },
+      "angleOffset": {
+        "type": "double",
+        "default": 0,
+        "step": 1,
+        "prefix": "°"
+      },
+      "angularRange": {
+        "type": "double",
+        "default": 360,
+        "min": 0,
+        "max": 360,
+        "step": 1,
+        "prefix": "°"
+      },
+      "invertRadius": {
+        "type": "bool",
+        "default": false
+      },
+      "edgeFeather": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 50,
+        "step": 0.1
+      },
+      "seamFeather": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 90,
+        "step": 0.1,
+        "prefix": "°"
+      },
+      "allowViewportClipping": {
+        "default": false
+      }
+    },
+    "triggers": {
+      "out": [
+        "centre",
+        "radius",
+        "innerRadius",
+        "angleOffset",
+        "angularRange",
+        "invertRadius",
+        "edgeFeather",
+        "seamFeather"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "samplingQuality",
+        "centre",
+        "radius",
+        "innerRadius",
+        "angleOffset",
+        "angularRange",
+        "invertRadius",
+        "edgeFeather",
+        "seamFeather"
+      ],
+      "controls": {
+        "rotation": "angle"
+      },
+      "icon": "rectToPolarFilter.png"
+    }
+  }
+]

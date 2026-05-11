@@ -1,0 +1,55 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "boxBlurFilter",
+    "superType": "thirdPartyFilter",
+    "version": "1.0",
+    "attributes": {
+      "amount": {
+        "type": "double2",
+        "default": {
+          "x": 10,
+          "y": 10
+        },
+        "children": {
+          "*": {
+            "min": 0,
+            "max": 60,
+            "step": 1
+          }
+        }
+      },
+      "autoPadding": {
+        "default": true
+      },
+      "filterInputCompositing": {
+        "default": 1
+      }
+    },
+    "passes": [
+      {
+        "skslFile": "boxHorizontal.sksl",
+        "uniforms": [
+          "amount"
+        ]
+      },
+      {
+        "skslFile": "boxVertical.sksl",
+        "uniforms": [
+          "amount"
+        ]
+      }
+    ],
+    "triggers": {
+      "out": [
+        "amount"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "amount"
+      ],
+      "icon": "boxBlurFilter.png"
+    }
+  }
+]

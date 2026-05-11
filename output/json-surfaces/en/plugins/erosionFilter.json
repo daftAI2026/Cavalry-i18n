@@ -1,0 +1,41 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "erosionFilter",
+      "niceName": "Erosion",
+      "layerInfo": "Erode layer alpha for transitions and matte adjustments",
+      "language": "en",
+      "attributes": {
+        "amount": [
+          "Amount",
+          "Set the erosion amount in pixels."
+        ],
+        "directionMode": [
+          "Direction Mode",
+          "Choose between uniform erosion in all directions or directional erosion biased toward a specific angle."
+        ],
+        "angle": [
+          "Angle",
+          "Set the angle for directional erosion bias."
+        ],
+        "directionStrength": [
+          "Direction Strength",
+          "Control how strongly the erosion is biased toward the specified direction."
+        ]
+      },
+      "enums": {
+        "directionMode": {
+          "0": "Uniform",
+          "1": "Directional"
+        },
+        "edgeTint": {
+          "0": "None",
+          "1": "Darken",
+          "2": "Custom Colour"
+        }
+      }
+    }
+  }
+]

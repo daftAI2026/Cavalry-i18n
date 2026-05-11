@@ -1,0 +1,3202 @@
+[
+  {
+    "name": "primitive",
+    "arguments": [
+      {
+        "name": "primitiveType",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "プリミティブシェイプを作成し、結果のレイヤー ID を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createEditable",
+    "arguments": [
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたオブジェクトから編集可能なシェイプを作成して名前を付け、新しいレイヤー ID を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "create",
+    "arguments": [
+      {
+        "name": "layerType",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "allowDefaultPreset",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたタイプのレイヤーを作成し、オプションで名前を付け、新しいレイヤー ID を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelection",
+    "arguments": [
+      {
+        "name": "sortByHierarchyOrder",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "現在選択されているレイヤーの ID を取得します。オプションで階層順に並べ替えます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "sortLayerIdsByHierarchy",
+    "arguments": [
+      {
+        "name": "layerIds",
+        "type": "Array<String>",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "指定されたレイヤーの ID を階層順に返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedAttributes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "選択された属性を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "selectAttribute",
+    "arguments": [
+      {
+        "name": "attributePaths",
+        "type": "Array<string>",
+        "required": true
+      },
+      {
+        "name": "add",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "完全パス（例: \"layerId.attrId.subAttr\"）で属性を選択します。空の配列を渡すと選択を解除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deselectAttribute",
+    "arguments": [
+      {
+        "name": "attributePaths",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "完全パスで属性の選択を解除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reorder",
+    "arguments": [
+      {
+        "name": "layerIdToReorder",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "underLayerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "階層内のレイヤーを並べ替え、必要に応じて親を再設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedKeyframes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "選択されたキーフレームを取得します。属性 ID とフレーム番号の辞書を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setSelectedKeyframeIds",
+    "arguments": [
+      {
+        "name": "keyframeIdArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "キーフレーム ID の配列に基づいて選択されたキーフレームを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeFromKeyframeId",
+    "arguments": [
+      {
+        "name": "keyframeId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたキーフレーム ID に関連付けられた属性 ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resyncPathKeyframes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "パスキーフレームデータを再同期します。パスキーフレームに api.set() を使用した場合に実行してください。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedKeyframeIds",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "現在選択されているキーフレームの ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getKeyframeIdsForAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "レイヤー上の特定の属性のキーフレーム ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "select",
+    "arguments": [
+      {
+        "name": "array",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "ID に基づいてレイヤーを選択します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "invertSelection",
+    "arguments": null,
+    "description": "現在のレイヤー選択を反転します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isReferenced",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "レイヤーが Reference でインポートされた場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSuperTypes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "指定されたレイヤーの SuperType を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerVersion",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたレイヤーのバージョンを取得します。サードパーティ開発者に便利です。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "compareVersions",
+    "arguments": [
+      {
+        "name": "firstVersion",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "secondVersion",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "最初のバージョンが 2 番目のバージョンより低い場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getChildren",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "指定されたレイヤーの子レイヤーを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたレイヤーの親レイヤー ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setFrame",
+    "arguments": [
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "アクティブなコンポジションで現在のフレームを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFrame",
+    "arguments": null,
+    "return_type": "int",
+    "description": "アクティブなコンポジションの現在のフレームを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompLayers",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "アクティブなコンポジションからレイヤー ID を取得します。オプションで最上位レイヤーのみに絞ります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompLayersOfType",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "コンポジション内の特定タイプのレイヤー ID を取得します。オプションで最上位レイヤーのみに絞ります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getNiceName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "ID に基づいてレイヤーの表示名を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInConnection",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "レイヤー上の特定の属性の入力コネクションを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutConnections",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "レイヤー上の特定の属性の出力コネクションを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "rename",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーを新しい名前に変更します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGenerator",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "generatorType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤー上の属性に特定タイプのジェネレーターを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCurrentGenerator",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "レイヤー上の属性のジェネレーターを取得します。存在しない場合は空文字列を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "parent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newParentId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤーの親を指定されたレイヤーに設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "editComponent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "editing",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "コンポーネントの編集モードを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "offsetLayerTime",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "timeDelta",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "指定された時間デルタでレイヤーのタイミングをオフセットします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "指定されたレイヤーのインフレーム（最初の可視フレーム）を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "指定されたレイヤーのアウトフレーム（最後の可視フレーム）を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setInFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーのインフレーム（最初の可視フレーム）を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setOutFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーのアウトフレーム（最後の可視フレーム）を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInOutKeyframeIds",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Object>",
+    "description": "このレイヤー上のすべてのイン・アウトポイントのキーフレーム ID を含むオブジェクトの配列を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "framesToTimecode",
+    "arguments": [
+      {
+        "name": "frames",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "FPS 値を使用して、指定されたフレーム数を同等のタイムコードに変換します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "timecodeToFrames",
+    "arguments": [
+      {
+        "name": "timecode",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "FPS 値を使用して、指定されたタイムコードを同等のフレーム数に変換します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadAsset",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "isImageSequence",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "ファイルパスからアセットを読み込みます。オプションで画像シーケンスとして読み込めます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadSmartFolderAsset",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "ファイルパスからスマートフォルダーアセットを読み込みます。タイプは 'image' または 'audio' です。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reloadAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたアセットを再読み込みします（スマートフォルダーアセットを含む）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addAssetToComp",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string/array",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "アセット（またはアセットの配列）をアクティブなコンポジションに追加し、新しく作成されたレイヤーの ID を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadGoogleSheet",
+    "arguments": [
+      {
+        "name": "fileId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "sheetId",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "Google スプレッドシートを読み込み、アセット ID を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetType",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたアセットのタイプを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontAssetFamilyName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "フォントアセットに関連付けられたフォントファミリー名を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontAssetStyleName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "フォントアセットに関連付けられたフォントスタイル名を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getProfileName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "画像アセットの ICC プロファイル名を返します。sRGB またはタグなし画像の場合は空文字列を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetWindowLayers",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "アセットウィンドウからレイヤー ID を取得します。オプションで最上位レイヤーのみに絞ります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGradientFromColors",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": false,
+        "default": "string"
+      }
+    ],
+    "description": "16 進数カラー文字列の配列からグラデーション属性のカラーを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGradientInterpolation",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": false,
+        "default": "string"
+      }
+    ],
+    "description": "グラデーションの各ストップの補間を設定します：Linear = 0, Step = 1, Smooth = 2, Crush = 3, Smooth Blend = 4, Contrast = 5。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "unParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーの親を削除し、最上位レイヤーにします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setProject",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "プロジェクトを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearProject",
+    "arguments": null,
+    "description": "現在のプロジェクトをクリアします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveComp",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在アクティブなコンポジションの ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getParentComp",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたレイヤーの親コンポジション ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveCamera",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在のコンポジションのアクティブなカメラの ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasActiveCamera",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "現在のコンポジションにアクティブなカメラがあるかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setActiveComp",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたコンポジションをアクティブにします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createCompReference",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたコンポジションの参照を作成します。空のプリコンポジションを作成する方法です。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getComps",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "シーン内のすべてのコンポジションの ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createComp",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "新しいコンポジションを作成して名前を付け、新しいコンポジションの ID を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "preCompose",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "選択されたレイヤーからプリコンポジションを作成し、オプションで名前を付けます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompFromReference",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "プリコンポジションから元のコンポジション ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "writeToFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "overwriteExisting",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたパスのファイルに内容を書き込みます。既存ファイルを上書きするオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "encodeBinary",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "バイナリファイルを base64 文字列にエンコードします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "writeEncodedToBinaryFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "base64 エンコードされた文字列をバイナリファイルに書き込みます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "readFromFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたファイルの内容を読み取り、返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "connect",
+    "arguments": [
+      {
+        "name": "fromId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fromAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "force",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "それぞれのレイヤー ID と属性 ID で識別される 2 つの属性間にコネクションを作成します。強制接続は既存の接続を上書きします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnect",
+    "arguments": [
+      {
+        "name": "fromId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fromAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toAttrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "それぞれのレイヤー ID と属性 ID で識別される 2 つの属性間のコネクションを切断します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnectInput",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性の入力接続を切断します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnectOutputs",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性のすべての出力接続を切断します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setStroke",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "on",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーのストロークの表示/非表示を切り替えます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasStroke",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤーにストロークがあるかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setFill",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "on",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーの塗りの表示/非表示を切り替えます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasFill",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤーに塗りがあるかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isVisible",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "testHierarchy",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤーが表示されているかを確認します。階層の表示状態をテストするオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "keyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定された値で、指定されたフレームにレイヤーの属性にキーフレームを追加します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getKeyframeTimes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<int>",
+    "description": "レイヤー内の指定された属性のキーフレーム時間を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteKeyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性の、指定されたフレームのキーフレームを削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteAnimation",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性のアニメーションを削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "modifyKeyframeTangent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーのキーフレームのタンジェントプロパティを変更します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setKeyframeVelocity",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーのキーフレームに速度と影響力を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearKeyframeVelocity",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "キーフレームからすべての速度と影響力の上書きをクリアし、",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "modifyKeyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "提供されたパラメータに基づいて、指定されたレイヤーのキーフレームを変更します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "magicEasing",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "easingName",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "description": "属性のキーフレームに Magic Easing を適用し、オプションで式を追加します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "move",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "指定された X 座標と Y 座標で現在の選択を移動します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "set",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "提供された辞書に基づいて、指定されたレイヤーの属性値を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "get",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "レイヤー内の指定された属性の値を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "areAttributeValuesEqual",
+    "arguments": [
+      {
+        "name": "layerId1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "layerId2",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId2",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "2 つの属性の値、式、カスタム名（設定されている場合）が同一である場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addPreCompOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "レイヤー内の指定された属性にプリコンポジションオーバーライドを追加します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removePreCompOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性からプリコンポジションオーバーライドを削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listPreCompOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "指定されたレイヤーのプリコンポジションオーバーライドを一覧表示します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたレイヤーのタイプを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isProLayerType",
+    "arguments": [
+      {
+        "name": "layerType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤーが Pro ライセンスを必要とする場合に `true` を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isThirdPartyLayer",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "対象のレイヤーがサードパーティレイヤーである場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isRestrictedLicence",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "無料ライセンスが使用されている場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isShape",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤーがシェイプであるかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤーに変形属性（例: Position と Scale）がある場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "has3dTransforms",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤーで 3D 変形属性が有効になっている場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "uuid",
+    "arguments": null,
+    "return_type": "string",
+    "description": "UUIDv4 文字列を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "レイヤー内の指定された属性のタイプを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reorderArrayAttr",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "oldIndex",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "newIndex",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "配列属性を指定されたインデックスから指定されたインデックスに並べ替えます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isAttrDefault",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "属性値がデフォルト値と一致する場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "レイヤー内の指定された属性の親属性を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrChildren",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "レイヤー内の指定された属性の子属性を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性をデフォルト値にリセットします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetLayerAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeTransformAttributes",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "指定されたレイヤーのすべての属性をデフォルト値にリセットします。オプションで変形属性を無視します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addArrayIndex",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "指定されたレイヤー内の配列属性にインデックスを追加します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getArrayCount",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "配列属性のインデックス数を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeArrayIndex",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤー内の配列属性からインデックスを削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addDynamic",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたレイヤーに動的属性を追加します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectionBoundingBox",
+    "arguments": [
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "現在の選択（および選択の子レイヤー）のバウンディングボックスをワールド空間で取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getBoundingBox",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number",
+      "width": "number",
+      "height": "number",
+      "centre": {
+        "x": "number",
+        "y": "number"
+      },
+      "left": "number",
+      "right": "number",
+      "top": "number",
+      "bottom": "number"
+    },
+    "description": "指定されたシェイプとその子のバウンディングボックスをローカル空間またはワールド空間で取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPivotPosition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number"
+    },
+    "description": "指定されたレイヤーのピボット位置をローカル空間またはワールド空間で返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRenderQueueItems",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "レンダリングキュー内のアイテムを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addRenderQueueItem",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "コンポジションをレンダリングキューに追加します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "connectDynamicIndex",
+    "arguments": [
+      {
+        "name": "nodeId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "動的レンダリングインデックスをノード内の指定された属性に接続します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDynamicIndex",
+    "arguments": null,
+    "return_type": "int",
+    "description": "動的レンダリングインデックスの現在の値を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setDynamicIndexOffset",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "動的レンダリングインデックスオフセットを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteLayer",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーを削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renameAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性の名前を変更します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCustomAttributeName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "レイヤー内の指定された属性のカスタム名を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasCustomAttributeName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定された属性にカスタム名がある場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "graphPreset",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "presetNumber",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性にグラフプリセットを適用します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "flipGraph",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "flipType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤー内の指定された属性のグラフを反転します。flipType には \"horizontal\" または \"vertical\" を指定できます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createTimeMarker",
+    "arguments": [
+      {
+        "name": "time",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定された時間にタイムマーカーを作成します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeTimeMarker",
+    "arguments": [
+      {
+        "name": "markerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたタイムマーカーを削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getTimeMarkers",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "すべてのタイムマーカー ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getNthBeat",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "現在のコンポジションの BPM 設定に基づいて、n 番目のビートの時間を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getProjectPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在のプロジェクトのパスを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在のプロジェクトのアセットディレクトリのパスを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPalettesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在のプロジェクトのパレットディレクトリのパスを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRenderPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在のプロジェクトのレンダリングディレクトリのパスを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getScenesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在のプロジェクトのシーンディレクトリのパスを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSceneFilePath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在のシーンのファイルパスを取得します。シーンが未保存の場合は空文字列を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferencesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "環境設定ディレクトリへのパスを提供します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPresetsPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "プリセットディレクトリへのパスを提供します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAppAssetsPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "アプリケーションのアセットディレクトリへのパスを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileModifiedDate",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "エポックからのミリ秒単位でファイルの最終更新時刻を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileSize",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "ファイルサイズをキロバイト（KB）単位で取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isDirectory",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "パスが存在し、ディレクトリである場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectoryPaths",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeDirectories",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "ディレクトリ内のすべての可視ファイルパスを返します。オプションでサブディレクトリを含めます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isFile",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "パスが存在し、通常のファイルである場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAbsolutePath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "絶対パスの正規化された文字列を返します（../../ などの相対パスを解決）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRelativePath",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "ある場所から別の場所への相対パスを計算します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectory",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "array",
+    "description": "指定されたディレクトリ直下のすべてのファイルとフォルダのパスの配列を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectoryRecursive",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "array",
+    "description": "指定されたディレクトリ以下のすべてのファイルとフォルダのパスの配列を返します（再帰的）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "filePathExists",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "指定されたファイルパスが存在するかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "unzip",
+    "arguments": [
+      {
+        "name": "zipPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "destinationPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "[string]",
+    "description": "zip ファイルを指定された場所に展開し、抽出された最上位ファイルのリストを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileNameFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeExtension",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたファイルパスからファイル名を抽出します。ファイル拡張子を含めるオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getExtensionFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたファイルパスからファイル拡張子を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFolderFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたファイルパスからフォルダパスを抽出します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteFilePath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "指定されたパスのファイルを削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "copyFilePath",
+    "arguments": [
+      {
+        "name": "fromPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "ファイルを指定されたパスから別のパスにコピーします。必要に応じて宛先を作成します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeFolder",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "overwriteExisting",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "boolean",
+    "description": "指定されたパスに新しいフォルダを作成します。既に存在する場合は上書きするオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPlatform",
+    "arguments": null,
+    "return_type": "string",
+    "description": "オペレーティングシステムのプラットフォーム名を返します（例: \"macOS\" または \"Windows\"）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "layerExists",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "指定された ID のレイヤーが存在するかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイヤーの指定された属性に式を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "指定された属性に式がある場合に true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "属性の式を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setAttributeDefinitionOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "number",
+        "required": false
+      }
+    ],
+    "description": "属性の定義オーバーライドを設定します（キー: \"hardMin\"、\"hardMax\"、\"softMin\"、\"softMax\"、\"step\"）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeDefinitionOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number|null",
+    "description": "属性の定義オーバーライドを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearAttributeDefinitionOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "属性のすべての定義オーバーライドをクリアします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttributeDefinitionOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "属性に定義オーバーライドがあるかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getEffectiveAttributeDefinition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "object",
+    "description": "オーバーライドを含む属性定義を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isGuiSession",
+    "arguments": null,
+    "return_type": "boolean",
+    "description": "現在のセッションが GUI セッションであるかを判定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "openScene",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "description": "指定されたファイルパスからシーンを開きます。強制オープンのオプションあり（未保存の変更は失われます）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "importScene",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたファイルパスからシーンをインポートします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "saveSceneAs",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "現在のシーンを指定されたファイルパスに保存します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exportSceneAs",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "現在のシーンを指定されたファイルパスにエクスポートします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exportSelected",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "exportingAsProject",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "boolean",
+    "description": "選択された（および接続された）レイヤーを指定されたファイルパスにエクスポートします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "duplicate",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "withInputConnections",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定された ID のレイヤーを複製します。入力接続されたレイヤーも複製するオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "centrePivot",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "doCentroid",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "レイヤーのピボットを中央に配置します。重心を使用するオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeFirstPoint",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "現在のポイント選択に基づいて、編集可能なシェイプレイヤーの最初のポイントを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "freezeTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーの変形プロパティを凍結します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーの変形プロパティをデフォルト値にリセットします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerFromUUID",
+    "arguments": [
+      {
+        "name": "uuid",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定された UUID に関連付けられたレイヤー ID を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAllSceneLayers",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "現在のシーン内のすべてのレイヤー ID のリストを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAllLayerTypes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "現在のシーンで使用されているすべてのレイヤータイプのリストを提供します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setUserData",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤー上の指定されたキーにユーザーデータ値を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasUserDataKey",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "指定されたキーが指定されたレイヤーのユーザーデータに存在するかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getUserDataKey",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "指定されたレイヤーのユーザーデータから、指定されたキーの値を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "指定されたキーの環境設定値を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "指定されたキーの環境設定値を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "指定されたキーの環境設定値を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "環境設定キーが存在するかを確認します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "指定されたキーの環境設定値を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addToControlCentre",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーの指定された属性を Control Centre に追加します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeFromControlCentre",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーの指定された属性を Control Centre から削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeEditable",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "makeCopy",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "レイヤーを編集可能にします。レイヤーのコピーを作成するオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "movePoint",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "localSpace",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "編集可能なシェイプで選択されたポイントを指定された量だけ X および Y 方向に移動します。ローカル空間座標を使用するオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPointPosition",
+    "arguments": [
+      {
+        "name": "xAndOrYObject",
+        "type": "Object",
+        "required": true
+      },
+      {
+        "name": "localSpace",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "name": "handles",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "編集可能なシェイプで選択されたポイントの位置を設定します。ローカル空間座標とハンドル位置を含めるオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getEditablePath",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "指定されたレイヤーの編集可能なパスを取得します。ポイント座標をワールド空間で返すオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setEditablePath",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "name": "pathObject",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "指定されたパスオブジェクトを使用して、指定されたレイヤーの編集可能なパスを設定します。座標をワールド空間で解釈するオプションがあります。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  }
+]

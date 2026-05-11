@@ -1,0 +1,64 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "lightSweepFilter",
+      "niceName": "掃光",
+      "layerInfo": "模擬光源在圖層上移動的效果。",
+      "language": "zh-Hant",
+      "attributes": {
+        "sweepIntensity": [
+          "掃光強度",
+          "設定光的亮度。"
+        ],
+        "direction": [
+          "方向",
+          "設定掃光在圖層上移動的角度（度）。"
+        ],
+        "shape": [
+          "形狀",
+          "選擇掃光形狀。"
+        ],
+        "centre": [
+          "中心",
+          "設定光掃的中心點。"
+        ],
+        "coneWidth": [
+          "錐形寬度",
+          "設定光束的寬度。"
+        ],
+        "conePercentage": [
+          "錐形百分比",
+          "設定光束不透明度開始衰減的距離，以從中心到邊緣的百分比表示。"
+        ],
+        "useFalloff": [
+          "使用衰減",
+          "當形狀設定為線時，限制光掃沿 Y 轴從中心到的距離。"
+        ],
+        "falloffDistance": [
+          "衰減距離",
+          "設定光通過中心後衰減的距離。"
+        ],
+        "edgeIntensity": [
+          "邊緣強度",
+          "設定光掃邊緣的附加輝光強度。"
+        ],
+        "edgeThickness": [
+          "邊緣厚度",
+          "設定光掃邊緣的厚度。"
+        ],
+        "lightColor": [
+          "光照顏色",
+          "設定光的顏色。"
+        ]
+      },
+      "enums": {
+        "shape": {
+          "0": "直線",
+          "1": "圓形"
+        }
+      }
+    }
+  }
+]

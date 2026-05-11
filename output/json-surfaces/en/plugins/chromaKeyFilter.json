@@ -1,0 +1,132 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "chromaKeyFilter",
+      "niceName": "Chroma Key",
+      "layerInfo": "Remove green/blue screen from video/images with advanced matte controls.",
+      "language": "en",
+      "attributes": {
+        "viewMode": [
+          "View",
+          "Select what to render in the Viewport. 'Final Result' shows the matted image with transparency."
+        ],
+        "screenColor": [
+          "Screen Color",
+          "The color to become transparent (usually green or blue background). Use the Color Picker to select a colour from the image."
+        ],
+        "screenGain": [
+          "Screen Gain",
+          "Control how aggressively colors are keyed. Higher values remove more background."
+        ],
+        "screenBalance": [
+          "Screen Balance",
+          "Adjust the color saturation measurement. 0.0 = use the maximum of other channels, 0.5 = use the average (green screens), 1.0 = use the minimum (blue screens)."
+        ],
+        "shadowTolerance": [
+          "Shadow Tolerance",
+          "Determine How much darker variations of the screen color can be to be to included in the matte. This is useful for removing shadows cast on the background."
+        ],
+        "shadowSoftness": [
+          "Shadow Softness",
+          "Control the transition between areas in and out of shadow. A higher value will create a smoother transition."
+        ],
+        "alphaBias": [
+          "Alpha Bias",
+          "Adjust bias to reduce foreground/subject transparency. Use the Color Picker to select a colour from the image."
+        ],
+        "despillBias": [
+          "Despill Bias",
+          "Remove color spill from the edges of the matte. Picking hair or skin tones will often produce the best results."
+        ],
+        "useAlphaBiasForDespill": [
+          "Use Alpha Bias for Despill",
+          "When checked, the 'Alpha Bias' color is used to affect despill calulations."
+        ],
+        "despillStrength": [
+          "Despill Strength",
+          "Control the overall strength of the despill. Use lower values for subtle despill or higher values for aggressive removal."
+        ],
+        "clipBlack": [
+          "Clip Black",
+          "Set the transparency cutoff. Matte values below this value become fully transparent. Use carefully to avoid hard edges."
+        ],
+        "clipWhite": [
+          "Clip White",
+          "Set the opacity cutoff. Matte values above this value become fully opaque. Use carefully to avoid hard edges."
+        ],
+        "clipRollback": [
+          "Clip Rollback",
+          "Soften the effect of clipping by restoring some edge detail. Higher values restore more of the original matte."
+        ],
+        "screenDilate": [
+          "Screen Dilate",
+          "Grow or shrink the matte's edges. Use sparingly as too much erosion can produce poor mattes."
+        ],
+        "screenSoftness": [
+          "Screen Softness",
+          "Blur the matte's edges for smoother compositing. This only affects edges and not solid areas. Small values are recommended."
+        ],
+        "screenDespotBlack": [
+          "Despot Black",
+          "Remove isolated transparent spots in opaque areas to clean up any small holes that may appear within the foreground/subject."
+        ],
+        "screenDespotWhite": [
+          "Despot White",
+          "Remove isolated opaque spots in transparent areasto clean up any small holes that may appear within the background."
+        ],
+        "screenReplaceMethod": [
+          "Screen Replace",
+          "Determine the method for how colors in the foreground/subject are replaced when using 'Despill' for advanced color correction."
+        ],
+        "screenReplaceColor": [
+          "Replace Color",
+          "Set the color used to replace any color spill in foreground/subject. Set to dominant foreground/subject colors like skin or fabric for best results."
+        ],
+        "shadowGain": [
+          "Shadow Gain",
+          "Adjust the matte's contrast in dark areas. Higher values make shadows more opaque."
+        ],
+        "midtonesGain": [
+          "Midtones Gain",
+          "Adjust the matte's contrast in mid-range areas. Higher values improve edge definition."
+        ],
+        "highlightsGain": [
+          "Highlights Gain",
+          "Adjust the matte's contrast in bright areas. Higher values make highlights more opaque."
+        ],
+        "preBlur": [
+          "Pre-Blur",
+          "Blur the input image before keying to reduce any noise/grain. This does not affect the output."
+        ],
+        "detailPreservation": [
+          "Detail Recovery",
+          "Recover fine details like hair strands that may have been incorrectly keyed out. Uses edge detection and color analysis to identify areas that should remain opaque where 0 = no recovery and 1 = maximum recovery."
+        ],
+        "edgeSoftness": [
+          "Edge Softness",
+          "Control the softness of the matte's edges where 0 = hard edges and 1 = very soft edges to help create a smoother transition between opaque and transparent pixels."
+        ]
+      },
+      "enums": {
+        "viewMode": {
+          "0": "Final Result",
+          "1": "Source",
+          "2": "Alpha",
+          "4": "Status"
+        },
+        "screenReplaceMethod": {
+          "0": "None",
+          "1": "Source",
+          "2": "Hard Color",
+          "3": "Soft Color"
+        },
+        "useAlphaBiasForDespill": {
+          "0": "Disabled",
+          "1": "Enabled"
+        }
+      }
+    }
+  }
+]

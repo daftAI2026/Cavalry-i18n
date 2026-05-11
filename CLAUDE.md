@@ -6,6 +6,7 @@ injector/ - Qt 进程动态注入器，负责运行时翻译拦截与菜单刷�
 renderer/ - Tauri 前端 UI，提供多语言补丁的管理界面 (HTML, JS)
 src-tauri/ - Tauri 后端逻辑，处理进程启动、注入与资源管理 (Rust)
 tools/ - 自动化工具链，涵盖翻译提取、校验与 SDK 解析 (Node.js, Bash)
+output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿 (JSON, PNG)
 </directory>
 
 <config>
