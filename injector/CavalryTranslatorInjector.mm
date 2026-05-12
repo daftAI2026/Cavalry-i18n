@@ -607,7 +607,7 @@ void hookQtMenu(QMenu *menu, const QString &lang)
             translateQtMenu(guardedMenu, lang);
             for (QAction *action : guardedMenu->actions()) {
                 if (action != nullptr) {
-                    hookQtMenu(action->menu(), lang);
+                    translateQtAction(action, lang);
                 }
             }
             dispatch_async(dispatch_get_main_queue(), ^{
@@ -994,11 +994,21 @@ void scheduleCoalescedRefresh(QString lang)
     }
 
     gRefreshPending = true;
-    dispatch_async(dispatch_get_main_queue(), ^{
-        gRefreshPending = false;
-        ++gEventRefreshCount;
-        refreshQtUiTranslations(lang);
-    });
+    dispatch_after(
+        dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(kCoalescedRefreshDelayMs) * NSEC_PER_MSEC),
+        dispatch_get_main_queue(),
+        ^{
+            ++gEventRefreshCount;
+            refreshQtUiTranslations(lang);
+            dispatch_after(
+                dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(kCoalescedRefreshDelayMs) * NSEC_PER_MSEC),
+                dispatch_get_main_queue(),
+                ^{
+                    gRefreshPending = false;
+                }
+            );
+        }
+    );
 }
 
 void scheduleRefreshAttempts(QString lang)
@@ -1009,9 +1019,13 @@ void scheduleRefreshAttempts(QString lang)
 
     gRefreshScheduled = true;
     for (int i = 0; i < kWarmupRefreshAttempts; ++i) {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            refreshQtUiTranslations(lang);
-        });
+        dispatch_after(
+            dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(i * kRefreshDelayMs) * NSEC_PER_MSEC),
+            dispatch_get_main_queue(),
+            ^{
+                refreshQtUiTranslations(lang);
+            }
+        );
     }
 }
 
@@ -1098,8 +1112,6 @@ bool installTranslator()
         return true;
     }
 
-    installRuntimeUiEventFilter(lang);
-
     if (!translateQtMenuBar(lang)) {
         return false;
     }
@@ -1107,6 +1119,8 @@ bool installTranslator()
     translateQtWidgets(lang);
     dumpQtMenuInventory(lang);
     refreshNativeMenuBar(lang);
+
+    installRuntimeUiEventFilter(lang);
 
     fprintf(
         stderr,

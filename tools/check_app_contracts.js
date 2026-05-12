@@ -410,6 +410,11 @@ test('embedded injector uses a Qt event filter for widgets created after startup
     /constexpr int kMaxRefreshAttempts = 8;/,
     'injector should not rely on the old fixed 8-second refresh window as the only dynamic UI mechanism'
   );
+  assert.match(
+    injectorSource,
+    /dispatch_after[\s\S]*?kCoalescedRefreshDelayMs/,
+    'coalesced refresh must use dispatch_after with kCoalescedRefreshDelayMs cooldown, not dispatch_async, to avoid 100% CPU from event cascade'
+  );
 });
 
 test('embedded injector covers item widgets, headers, docks, toolbars, and standard dialog surfaces', () => {

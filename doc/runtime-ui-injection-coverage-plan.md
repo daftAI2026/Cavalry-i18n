@@ -1341,3 +1341,15 @@ NODE
 - [x] Task 9: contract 测试 72/72 PASS，翻译质量 gate 三语 100% PASS。
 - [x] 额外修正：warmup 刷新从 `installTranslator()` 移至 `NSApplicationDidFinishLaunching` handler，
       修复 dispatch_after 在 Qt 主 runloop 中不触发的问题，改用 dispatch_async 值捕获确保 lang 不悬空。
+
+### 2026-05-13 修复记录
+
+- **[BUGFIX] aboutToShow handler 未翻译 action text**：原 handler 只调 `translateQtMenu`（只设 menu title）和 `hookQtMenu(action->menu())`（只 hook 子 menu 的 aboutToShow），未调 `translateQtAction` 翻译 action 本身的 text/toolTip 等。懒加载创建出来的 action 始终英文。已修复：`hookQtMenu(action->menu(), lang)` → `translateQtAction(action, lang)`（后者内部递归调用 hookQtMenu + translateQtMenu）。
+
+- **[BUGFIX] scheduleCoalescedRefresh 无延迟导致 100% CPU**：原实现用 `dispatch_async` 立即将 refresh block 派到 main queue，在 Cavalry 初始化嵌套 event loop（`ButtonGroup::setChecked` → `processEvents`）中让 CFRunLoop 持续服务 dispatch queue，无法退出嵌套循环。已修复：改用 `dispatch_after(75ms)` + cooldown `dispatch_after(75ms)` 确保 gRefreshPending 保持 true 直到刷新完成后再释放。
+
+- **[BUGFIX] scheduleRefreshAttempts 一次性派发全部 warmup**：3 次 refresh 同时 dispatch_async，在嵌套 event loop 中同时触发。已修复：改用 `dispatch_after(i * 1000ms)` 间隔 1 秒发散。
+
+- **[BUGFIX] event filter 安装过早**：原方案要求 event filter 装在 readiness gate 之前（L576）。但 early attempt 即使 `translateQtMenuBar` 返回 false，event filter 仍永久安装，开始拦截 Cavalry 初始化期的所有 Show/ChildAdded/ActionAdded 事件，触发额外 refresh。已修复：将 `installRuntimeUiEventFilter` 移至 `installTranslator` 成功路径末尾（`translateQtWidgets` 之后），early attempt 不安装 filter。
+
+- **[SCOPE] 菜单英文已被抑制**：injector inventory 2026-05-13 实机截图确认顶层菜单全文已翻译。`建立 > 形狀` 子菜单在 inventory 中为 `dummy`（纯懒加载），`aboutToShow` 触发后方可验证。已知局限：Qt 菜单不创建原生 NSMenu，System Events 无法通过 AX click 触发 aboutToShow，需用户实机操作验证。
