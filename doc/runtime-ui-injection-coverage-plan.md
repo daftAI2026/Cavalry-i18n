@@ -1334,4 +1334,10 @@ NODE
 
 - [x] 根因已通过 live AX/injector inventory 对照确认。
 - [x] 方案已拆分为菜单、动态刷新、widget surface、runtime diagnostics、live 验证五条线。
-- [ ] Task 1-9 未执行。
+- [x] Task 1-6 代码已实现并提交。
+- [x] Task 7-8 live 验证：warmup 刷新确认正常工作（refreshCount=3+），event filter 触发的 coalesced refresh 已工作（eventRefreshCount>0）。
+      AX inventory 抓取因 Qt 菜单栏 bridge 间歇性不可用未能完整验证；注入器诊断证明机制已生效。
+      AX 枚举的 `aboutToShow` 触发依赖实际用户菜单展开，受 System Events 限制未能自动化验证。
+- [x] Task 9: contract 测试 72/72 PASS，翻译质量 gate 三语 100% PASS。
+- [x] 额外修正：warmup 刷新从 `installTranslator()` 移至 `NSApplicationDidFinishLaunching` handler，
+      修复 dispatch_after 在 Qt 主 runloop 中不触发的问题，改用 dispatch_async 值捕获确保 lang 不悬空。

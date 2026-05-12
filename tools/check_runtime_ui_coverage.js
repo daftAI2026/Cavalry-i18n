@@ -154,6 +154,16 @@ function collectWidgetStrings(widgetTexts, bucket) {
         }
       }
     }
+
+    for (const field of ['actionTexts', 'listItems', 'treeItems', 'tableItems', 'headerTexts']) {
+      if (widget && Array.isArray(widget[field])) {
+        for (const value of widget[field]) {
+          if (typeof value === 'string') {
+            bucket.push(value);
+          }
+        }
+      }
+    }
   }
 }
 

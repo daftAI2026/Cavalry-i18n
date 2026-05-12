@@ -262,6 +262,34 @@ test('embedded injector translates Qt-owned menus before AppKit sync can overwri
   );
 });
 
+test('embedded injector hooks menus before they are shown so lazy submenus are translated', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /aboutToShow/,
+    'injector should connect QMenu::aboutToShow because Cavalry creates many submenu actions lazily when menus open'
+  );
+  assert.match(
+    injectorSource,
+    /hookQtMenu|installMenuHooks|ensureMenuHooked/,
+    'injector should have a named menu hook pass so newly discovered menus are hooked exactly once'
+  );
+  assert.match(
+    injectorSource,
+    /QSet<QMenu \*>|hookedMenus/,
+    'menu hooks should be de-duplicated to avoid repeated signal connections on every refresh'
+  );
+  assert.match(
+    injectorSource,
+    /refreshNativeMenuBar\(lang\)/,
+    'menu show-time translation should refresh the native AppKit menu after Qt action text is updated'
+  );
+});
+
 test('embedded injector keeps retrying until a Qt menu surface exists', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
@@ -354,6 +382,83 @@ test('embedded injector translates widget-owned actions and container item label
     /setItemText|setTabText|showMessage/,
     'container translation should write translated item, tab, and status text back through Qt APIs'
   );
+});
+
+test('embedded injector uses a Qt event filter for widgets created after startup', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /eventFilter/,
+    'injector should install a Qt event filter because Cavalry creates panels and widgets after the startup refresh window'
+  );
+  assert.match(
+    injectorSource,
+    /QEvent::Show|QEvent::ChildAdded|QEvent::Polish|QEvent::ActionAdded|QEvent::LayoutRequest/,
+    'event filter should react to widget creation, show, polish, action, or layout events'
+  );
+  assert.match(
+    injectorSource,
+    /scheduleCoalescedRefresh|gRefreshPending/,
+    'dynamic refresh should be coalesced so bursty Qt events do not trigger one full scan per event'
+  );
+  assert.doesNotMatch(
+    injectorSource,
+    /constexpr int kMaxRefreshAttempts = 8;/,
+    'injector should not rely on the old fixed 8-second refresh window as the only dynamic UI mechanism'
+  );
+});
+
+test('embedded injector covers item widgets, headers, docks, toolbars, and standard dialog surfaces', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /QListWidget|QTreeWidget|QTableWidget/,
+    'injector should translate item-based list, tree, and table widgets without mutating arbitrary business models'
+  );
+  assert.match(
+    injectorSource,
+    /headerItem\(\)|horizontalHeaderItem\(|verticalHeaderItem\(/,
+    'injector should translate table/tree header labels because Cavalry panels use column headers'
+  );
+  assert.match(
+    injectorSource,
+    /QDockWidget|QToolBar|QToolButton|QDialogButtonBox/,
+    'injector should cover common dock, toolbar, tool button, and standard button box surfaces'
+  );
+  assert.match(
+    injectorSource,
+    /QSpinBox|QDoubleSpinBox|QProgressBar/,
+    'injector should cover prefix, suffix, and progress format strings used by numeric widgets'
+  );
+});
+
+test('embedded injector inventory records dynamic refresh and expanded widget evidence', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /refreshCount|eventRefreshCount|menuHookCount/,
+    'runtime inventory should expose refresh and hook counters so weak injection can be diagnosed from artifacts'
+  );
+  assert.match(
+    injectorSource,
+    /actionTexts/,
+    'runtime inventory should include actionTexts evidence from widget-owned actions'
+  );
+  // NOTE: listItems/treeItems/tableItems/headerTexts serialization is deferred per plan (line 994);
+  // these fields are consumed by check_runtime_ui_coverage.js but not yet emitted by the injector.
+  // Add them when live capture cannot locate remaining English residues with actionTexts alone.
 });
 
 test('manual debug launcher follows the embedded-injector flow', () => {

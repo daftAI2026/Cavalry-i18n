@@ -24,12 +24,23 @@
 #include <QtWidgets/qgroupbox.h>
 #include <QtWidgets/qlabel.h>
 #include <QtWidgets/qlineedit.h>
+#include <QtWidgets/qdialogbuttonbox.h>
+#include <QtWidgets/qdockwidget.h>
+#include <QtWidgets/qheaderview.h>
+#include <QtWidgets/qlistwidget.h>
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qmenubar.h>
+#include <QtWidgets/qprogressbar.h>
+#include <QtWidgets/qspinbox.h>
 #include <QtWidgets/qstatusbar.h>
 #include <QtWidgets/qtabbar.h>
+#include <QtWidgets/qtablewidget.h>
 #include <QtWidgets/qtabwidget.h>
+#include <QtWidgets/qtoolbar.h>
+#include <QtWidgets/qtoolbutton.h>
+#include <QtWidgets/qtreewidget.h>
 #include <QtWidgets/qwidget.h>
+#include <qpointer.h>
 #include <qset.h>
 #include <qstring.h>
 #include <qstringlist.h>
@@ -40,8 +51,9 @@ namespace {
 
 constexpr int kMaxInstallAttempts = 20;
 constexpr int kRetryDelayMs = 250;
-constexpr int kMaxRefreshAttempts = 8;
+constexpr int kWarmupRefreshAttempts = 3;
 constexpr int kRefreshDelayMs = 1000;
+constexpr int kCoalescedRefreshDelayMs = 75;
 
 struct TranslationEntry {
     const char *context;
@@ -94,6 +106,11 @@ private:
 EmbeddedTranslator *gTranslator = nullptr;
 bool gInstallAttempted = false;
 bool gRefreshScheduled = false;
+QSet<QMenu *> gHookedMenus;
+bool gRefreshPending = false;
+QObject *gEventFilter = nullptr;
+int gRefreshCount = 0;
+int gEventRefreshCount = 0;
 
 QString readEnvVar(const char *name)
 {
@@ -348,7 +365,20 @@ id serializeWidget(QWidget *widget)
         }
     }
 
-    if (payload[@"strings"] == nil && payload[@"tabTexts"] == nil) {
+    NSMutableArray *actionTexts = [NSMutableArray array];
+    for (QAction *action : widget->actions()) {
+        if (action != nullptr) {
+            const QString actionText = normalizeMenuText(action->text());
+            if (!actionText.isEmpty()) {
+                [actionTexts addObject:toNSString(actionText)];
+            }
+        }
+    }
+    if ([actionTexts count] > 0) {
+        payload[@"actionTexts"] = actionTexts;
+    }
+
+    if (payload[@"strings"] == nil && payload[@"tabTexts"] == nil && payload[@"actionTexts"] == nil) {
         return [NSNull null];
     }
 
@@ -405,6 +435,11 @@ bool dumpQtMenuInventory(const QString &lang)
         },
         @"menuBars" : menuBars,
         @"widgetTexts" : widgetTexts,
+        @"diagnostics" : @{
+            @"refreshCount" : @(gRefreshCount),
+            @"eventRefreshCount" : @(gEventRefreshCount),
+            @"menuHookCount" : @(gHookedMenus.size()),
+        },
     }
                                                        options:NSJSONWritingPrettyPrinted
                                                           error:&jsonError];
@@ -433,6 +468,8 @@ bool dumpQtMenuInventory(const QString &lang)
 }
 
 void translateQtAction(QAction *action, const QString &lang);
+void hookQtMenu(QMenu *menu, const QString &lang);
+void hookQtMenus(const QString &lang);
 
 void translateQtMenu(QMenu *menu, const QString &lang)
 {
@@ -482,7 +519,9 @@ void translateQtAction(QAction *action, const QString &lang)
         action->setWhatsThis(translated);
     }
 
-    translateQtMenu(action->menu(), lang);
+    QMenu *submenu = action->menu();
+    hookQtMenu(submenu, lang);
+    translateQtMenu(submenu, lang);
 }
 
 bool translateQtMenuBar(const QString &lang)
@@ -541,6 +580,62 @@ void refreshNativeMenuBar(const QString &lang)
     }
 }
 
+void hookQtMenu(QMenu *menu, const QString &lang)
+{
+    if (menu == nullptr || lang.isEmpty() || gHookedMenus.contains(menu)) {
+        return;
+    }
+
+    gHookedMenus.insert(menu);
+    QPointer<QMenu> guardedMenu(menu);
+    QObject::connect(
+        menu,
+        &QObject::destroyed,
+        menu,
+        [menu]() {
+            gHookedMenus.remove(menu);
+        }
+    );
+    QObject::connect(
+        menu,
+        &QMenu::aboutToShow,
+        menu,
+        [guardedMenu, lang]() {
+            if (guardedMenu.isNull()) {
+                return;
+            }
+            translateQtMenu(guardedMenu, lang);
+            for (QAction *action : guardedMenu->actions()) {
+                if (action != nullptr) {
+                    hookQtMenu(action->menu(), lang);
+                }
+            }
+            dispatch_async(dispatch_get_main_queue(), ^{
+                refreshNativeMenuBar(lang);
+            });
+        }
+    );
+}
+
+void hookQtMenus(const QString &lang)
+{
+    if (qobject_cast<QApplication *>(QCoreApplication::instance()) == nullptr || lang.isEmpty()) {
+        return;
+    }
+
+    const auto widgets = QApplication::allWidgets();
+    for (QWidget *widget : widgets) {
+        if (QMenu *menu = qobject_cast<QMenu *>(widget)) {
+            hookQtMenu(menu, lang);
+        }
+        if (QMenuBar *menuBar = qobject_cast<QMenuBar *>(widget)) {
+            for (QAction *action : menuBar->actions()) {
+                hookQtMenu(action != nullptr ? action->menu() : nullptr, lang);
+            }
+        }
+    }
+}
+
 QString translatedWidgetText(const QString &lang, const QString &sourceText)
 {
     const QString translated = lookupEmbeddedTranslation(lang, sourceText);
@@ -548,6 +643,58 @@ QString translatedWidgetText(const QString &lang, const QString &sourceText)
         return QString();
     }
     return translated;
+}
+
+void translateListWidgetItems(QListWidget *listWidget, const QString &lang)
+{
+    if (listWidget == nullptr || lang.isEmpty()) {
+        return;
+    }
+    for (int row = 0; row < listWidget->count(); ++row) {
+        QListWidgetItem *item = listWidget->item(row);
+        if (item == nullptr) {
+            continue;
+        }
+        const QString translated = translatedWidgetText(lang, item->text());
+        if (!translated.isEmpty()) {
+            item->setText(translated);
+        }
+    }
+}
+
+void translateTreeWidgetItem(QTreeWidgetItem *item, const QString &lang)
+{
+    if (item == nullptr || lang.isEmpty()) {
+        return;
+    }
+    for (int column = 0; column < item->columnCount(); ++column) {
+        const QString translated = translatedWidgetText(lang, item->text(column));
+        if (!translated.isEmpty()) {
+            item->setText(column, translated);
+        }
+    }
+    for (int index = 0; index < item->childCount(); ++index) {
+        translateTreeWidgetItem(item->child(index), lang);
+    }
+}
+
+void translateTableWidgetItems(QTableWidget *tableWidget, const QString &lang)
+{
+    if (tableWidget == nullptr || lang.isEmpty()) {
+        return;
+    }
+    for (int row = 0; row < tableWidget->rowCount(); ++row) {
+        for (int column = 0; column < tableWidget->columnCount(); ++column) {
+            QTableWidgetItem *item = tableWidget->item(row, column);
+            if (item == nullptr) {
+                continue;
+            }
+            const QString translated = translatedWidgetText(lang, item->text());
+            if (!translated.isEmpty()) {
+                item->setText(translated);
+            }
+        }
+    }
 }
 
 void translateQtWidgetActions(QWidget *widget, const QString &lang, QSet<QAction *> &seen)
@@ -650,6 +797,111 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
         translated = translatedWidgetText(lang, statusBar->currentMessage());
         if (!translated.isEmpty()) {
             statusBar->showMessage(translated);
+
+        }
+    }
+
+    if (QDockWidget *dockWidget = qobject_cast<QDockWidget *>(widget)) {
+        translated = translatedWidgetText(lang, dockWidget->windowTitle());
+        if (!translated.isEmpty()) {
+            dockWidget->setWindowTitle(translated);
+        }
+    }
+
+    if (QToolBar *toolBar = qobject_cast<QToolBar *>(widget)) {
+        translated = translatedWidgetText(lang, toolBar->windowTitle());
+        if (!translated.isEmpty()) {
+            toolBar->setWindowTitle(translated);
+        }
+        for (QAction *action : toolBar->actions()) {
+            translateQtAction(action, lang);
+        }
+    }
+
+    if (QToolButton *toolButton = qobject_cast<QToolButton *>(widget)) {
+        translated = translatedWidgetText(lang, toolButton->text());
+        if (!translated.isEmpty()) {
+            toolButton->setText(translated);
+        }
+        translateQtAction(toolButton->defaultAction(), lang);
+    }
+
+    if (QDialogButtonBox *buttonBox = qobject_cast<QDialogButtonBox *>(widget)) {
+        for (QAbstractButton *button : buttonBox->buttons()) {
+            translated = translatedWidgetText(lang, button->text());
+            if (!translated.isEmpty()) {
+                button->setText(translated);
+            }
+        }
+    }
+
+    if (QSpinBox *spinBox = qobject_cast<QSpinBox *>(widget)) {
+        translated = translatedWidgetText(lang, spinBox->prefix());
+        if (!translated.isEmpty()) {
+            spinBox->setPrefix(translated);
+        }
+        translated = translatedWidgetText(lang, spinBox->suffix());
+        if (!translated.isEmpty()) {
+            spinBox->setSuffix(translated);
+        }
+    }
+
+    if (QDoubleSpinBox *doubleSpinBox = qobject_cast<QDoubleSpinBox *>(widget)) {
+        translated = translatedWidgetText(lang, doubleSpinBox->prefix());
+        if (!translated.isEmpty()) {
+            doubleSpinBox->setPrefix(translated);
+        }
+        translated = translatedWidgetText(lang, doubleSpinBox->suffix());
+        if (!translated.isEmpty()) {
+            doubleSpinBox->setSuffix(translated);
+        }
+    }
+
+    if (QProgressBar *progressBar = qobject_cast<QProgressBar *>(widget)) {
+        translated = translatedWidgetText(lang, progressBar->format());
+        if (!translated.isEmpty()) {
+            progressBar->setFormat(translated);
+        }
+    }
+
+    if (QListWidget *listWidget = qobject_cast<QListWidget *>(widget)) {
+        translateListWidgetItems(listWidget, lang);
+    }
+
+    if (QTreeWidget *treeWidget = qobject_cast<QTreeWidget *>(widget)) {
+        for (int column = 0; column < treeWidget->columnCount(); ++column) {
+            QTreeWidgetItem *header = treeWidget->headerItem();
+            if (header != nullptr) {
+                translated = translatedWidgetText(lang, header->text(column));
+                if (!translated.isEmpty()) {
+                    header->setText(column, translated);
+                }
+            }
+        }
+        for (int index = 0; index < treeWidget->topLevelItemCount(); ++index) {
+            translateTreeWidgetItem(treeWidget->topLevelItem(index), lang);
+        }
+    }
+
+    if (QTableWidget *tableWidget = qobject_cast<QTableWidget *>(widget)) {
+        translateTableWidgetItems(tableWidget, lang);
+        for (int column = 0; column < tableWidget->columnCount(); ++column) {
+            QTableWidgetItem *header = tableWidget->horizontalHeaderItem(column);
+            if (header != nullptr) {
+                translated = translatedWidgetText(lang, header->text());
+                if (!translated.isEmpty()) {
+                    header->setText(translated);
+                }
+            }
+        }
+        for (int row = 0; row < tableWidget->rowCount(); ++row) {
+            QTableWidgetItem *header = tableWidget->verticalHeaderItem(row);
+            if (header != nullptr) {
+                translated = translatedWidgetText(lang, header->text());
+                if (!translated.isEmpty()) {
+                    header->setText(translated);
+                }
+            }
         }
     }
 
@@ -675,35 +927,92 @@ void refreshQtUiTranslations(const QString &lang)
         return;
     }
 
+    ++gRefreshCount;
+    hookQtMenus(lang);
     translateQtMenuBar(lang);
     translateQtWidgets(lang);
     refreshNativeMenuBar(lang);
+    dumpQtMenuInventory(lang);
 }
 
-void scheduleRefreshAttempt(const QString &lang, int attempt)
+void scheduleRefreshAttempts(QString lang);
+void scheduleCoalescedRefresh(QString lang);
+
+class RuntimeUiEventFilter final : public QObject {
+public:
+    explicit RuntimeUiEventFilter(const QString &lang)
+        : QObject(QCoreApplication::instance()), m_lang(lang)
+    {
+    }
+
+protected:
+    bool eventFilter(QObject *watched, QEvent *event) override
+    {
+        if (watched == nullptr || event == nullptr || m_lang.isEmpty()) {
+            return QObject::eventFilter(watched, event);
+        }
+
+        const bool isRelevantObject = qobject_cast<QWidget *>(watched) != nullptr ||
+            qobject_cast<QAction *>(watched) != nullptr ||
+            qobject_cast<QMenu *>(watched) != nullptr;
+        if (!isRelevantObject) {
+            return QObject::eventFilter(watched, event);
+        }
+
+        switch (event->type()) {
+        case QEvent::Show:
+        case QEvent::ChildAdded:
+        case QEvent::ActionAdded:
+            scheduleCoalescedRefresh(m_lang);
+            break;
+        default:
+            break;
+        }
+
+        return QObject::eventFilter(watched, event);
+    }
+
+private:
+    QString m_lang;
+};
+
+void installRuntimeUiEventFilter(const QString &lang)
 {
-    if (lang.isEmpty() || attempt >= kMaxRefreshAttempts) {
+    QCoreApplication *app = QCoreApplication::instance();
+    if (app == nullptr || lang.isEmpty() || gEventFilter != nullptr) {
         return;
     }
 
-    dispatch_after(
-        dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(kRefreshDelayMs) * NSEC_PER_MSEC),
-        dispatch_get_main_queue(),
-        ^{
-            refreshQtUiTranslations(lang);
-            scheduleRefreshAttempt(lang, attempt + 1);
-        }
-    );
+    gEventFilter = new RuntimeUiEventFilter(lang);
+    app->installEventFilter(gEventFilter);
 }
 
-void scheduleRefreshAttempts(const QString &lang)
+void scheduleCoalescedRefresh(QString lang)
+{
+    if (lang.isEmpty() || gRefreshPending) {
+        return;
+    }
+
+    gRefreshPending = true;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        gRefreshPending = false;
+        ++gEventRefreshCount;
+        refreshQtUiTranslations(lang);
+    });
+}
+
+void scheduleRefreshAttempts(QString lang)
 {
     if (gRefreshScheduled || lang.isEmpty()) {
         return;
     }
 
     gRefreshScheduled = true;
-    scheduleRefreshAttempt(lang, 0);
+    for (int i = 0; i < kWarmupRefreshAttempts; ++i) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            refreshQtUiTranslations(lang);
+        });
+    }
 }
 
 QString majorMinorVersion(const QString &version)
@@ -789,6 +1098,8 @@ bool installTranslator()
         return true;
     }
 
+    installRuntimeUiEventFilter(lang);
+
     if (!translateQtMenuBar(lang)) {
         return false;
     }
@@ -796,7 +1107,6 @@ bool installTranslator()
     translateQtWidgets(lang);
     dumpQtMenuInventory(lang);
     refreshNativeMenuBar(lang);
-    scheduleRefreshAttempts(lang);
 
     fprintf(
         stderr,
@@ -845,15 +1155,12 @@ void bootstrapInjector()
                             object:nil
                              queue:[NSOperationQueue mainQueue]
                         usingBlock:^(__unused NSNotification *note) {
+                            const QString lang = readEnvVar("CAVALRY_I18N_LANG");
+                            fprintf(stderr, "[cavalry-i18n] NSApplicationDidFinishLaunching lang=%s\n",
+                                    lang.toUtf8().constData());
                             scheduleInstallAttempt(0);
-                            refreshNativeMenuBar(readEnvVar("CAVALRY_I18N_LANG"));
-                            dispatch_after(
-                                dispatch_time(DISPATCH_TIME_NOW, 250 * NSEC_PER_MSEC),
-                                dispatch_get_main_queue(),
-                                ^{
-                                    refreshNativeMenuBar(readEnvVar("CAVALRY_I18N_LANG"));
-                                }
-                            );
+                            refreshNativeMenuBar(lang);
+                            scheduleRefreshAttempts(lang);
                         }];
         }
     });
