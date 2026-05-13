@@ -3665,6 +3665,7 @@
     "values": [
       {
         "nodeType": "basicShape",
+        "niceName": "Basic Shape",
         "nodeInfo": "A primitive shape such as a Rectangle, Ellipse or Polygon.",
         "attributes": {
           "generator": "Primitive Type"
@@ -4410,6 +4411,7 @@
       },
       {
         "nodeType": "basicLine",
+        "niceName": "Basic Line",
         "nodeInfo": "Create a primitive line such as bézier, spiral or straight.",
         "attributes": {
           "generator": "Line Type",
@@ -5215,6 +5217,7 @@
       },
       {
         "nodeType": "backgroundShape",
+        "niceName": "Background Shape",
         "nodeInfo": "A Shape which resizes to the resolution of its Composition.",
         "attributes": {
           "shrink": "Shrink"

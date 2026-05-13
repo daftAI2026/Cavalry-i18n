@@ -41,18 +41,21 @@ function listVisibleWindows() {
   const output = runAppleScript(`
 tell application "System Events"
   set outputLines to {}
-  repeat with proc in (every process whose background only is false)
-    set procName to name of proc
-    try
-      repeat with win in windows of proc
-        try
-          set winPos to position of win
-          set winSize to size of win
-          set end of outputLines to procName & "|" & (name of win) & "|" & ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text)
-        end try
-      end repeat
-    end try
-  end repeat
+  try
+    set allProcs to (every process whose background only is false)
+    repeat with proc in allProcs
+      try
+        set procName to name of proc
+        repeat with win in windows of proc
+          try
+            set winPos to position of win
+            set winSize to size of win
+            set end of outputLines to procName & "|" & (name of win) & "|" & ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text)
+          end try
+        end repeat
+      end try
+    end repeat
+  end try
   set AppleScript's text item delimiters to linefeed
   return outputLines as text
 end tell

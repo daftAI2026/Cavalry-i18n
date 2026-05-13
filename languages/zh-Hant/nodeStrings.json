@@ -3665,6 +3665,7 @@
     "values": [
       {
         "nodeType": "basicShape",
+        "niceName": "基本形狀",
         "nodeInfo": "基本圖形，例如矩形、橢圓形或多邊形。",
         "attributes": {
           "generator": "基本體類型"
@@ -4410,6 +4411,7 @@
       },
       {
         "nodeType": "basicLine",
+        "niceName": "基本線",
         "nodeInfo": "建立基本線條，例如貝茲曲線、螺旋線或直線。",
         "attributes": {
           "generator": "線條類型",
@@ -5215,6 +5217,7 @@
       },
       {
         "nodeType": "backgroundShape",
+        "niceName": "背景形狀",
         "nodeInfo": "根據合成解析度自動調整大小的形狀。",
         "attributes": {
           "shrink": "收縮"

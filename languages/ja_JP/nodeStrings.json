@@ -3665,6 +3665,7 @@
     "values": [
       {
         "nodeType": "basicShape",
+        "niceName": "基本シェイプ",
         "nodeInfo": "長方形、楕円、ポリゴンなどのプリミティブシェイプ。",
         "attributes": {
           "generator": "基本体タイプ"
@@ -4410,6 +4411,7 @@
       },
       {
         "nodeType": "basicLine",
+        "niceName": "基本ライン",
         "nodeInfo": "ベジェ、スパイラル、直線などのプリミティブラインを作成します。",
         "attributes": {
           "generator": "ラインタイプ",
@@ -5215,6 +5217,7 @@
       },
       {
         "nodeType": "backgroundShape",
+        "niceName": "背景シェイプ",
         "nodeInfo": "コンポジションの解像度に合わせてリサイズされるシェイプ。",
         "attributes": {
           "shrink": "縮小"

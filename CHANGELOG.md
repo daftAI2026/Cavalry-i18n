@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Unified zh-Hant terminology: `質量` → `品質`, `圖像` → `影像`, `屏幕` → `螢幕`, `控製` → `控制`.
   - Fixed ja_JP Chinese-Japanese mixed-language strings in lattice deformers, fluid dynamics, and path operations.
   - Expanded `forbidden_translation_patterns.json` allowlist with `Forge`, `Dynamics`, `Shift`, `Ctrl` etc.
+  - **Added `niceName` coverage**: Populated `niceName` fields for basic shapes (Rectangle, Ellipse, Polygon), lines (Bezier, Spiral, Straight), and background shapes in `nodeStrings.json` across all languages.
 
 ### Added
 
@@ -27,6 +28,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Added support for "English dump-only" mode to capture runtime UI inventories.
   - Integrated GEB Fractal Documentation System (L1/L2/L3) for architectural integrity.
 - **Tauri Native Bridge**: Enhanced Rust-to-JS bridge with better error handling and permission pre-checks.
+- **Build Infrastructure**:
+  - Corrected `LOCAL_BUILD_SOP.md` path in `check_tauri_build_sop.js` after file relocation.
+  - Stabilized AppleScript-based window detection in `window_contract_lib.js` by using safer process iteration and error handling.
 
 ### Changed
 - **Tauri Transition**: Formally promoted Tauri as the exclusive runtime, completing the migration from Electron.
