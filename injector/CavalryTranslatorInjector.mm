@@ -15,6 +15,7 @@
 
 #include <qdatetime.h>
 #include <qcoreapplication.h>
+#include <qevent.h>
 #include <qfileinfo.h>
 #include <qglobal.h>
 #include <QtGui/qaction.h>
@@ -55,7 +56,7 @@ constexpr int kMaxInstallAttempts = 20;
 constexpr int kRetryDelayMs = 250;
 constexpr int kWarmupRefreshAttempts = 3;
 constexpr int kRefreshDelayMs = 1000;
-constexpr int kCoalescedRefreshDelayMs = 75;
+constexpr int kDirtyDrainMaxObjects = 32;
 
 struct TranslationEntry {
     const char *context;
@@ -109,10 +110,19 @@ EmbeddedTranslator *gTranslator = nullptr;
 bool gInstallAttempted = false;
 bool gRefreshScheduled = false;
 QSet<QMenu *> gHookedMenus;
-bool gRefreshPending = false;
+struct DirtyObject {
+    QObject *key;
+    QPointer<QObject> object;
+};
+
 QObject *gEventFilter = nullptr;
+QVector<DirtyObject> gDirtyObjects;
+QSet<QObject *> gDirtyObjectSet;
+bool gDirtyDrainScheduled = false;
 int gRefreshCount = 0;
-int gEventRefreshCount = 0;
+int gDirtyEnqueueCount = 0;
+int gDirtyDrainCount = 0;
+int gDirtyObjectTranslateCount = 0;
 QHash<QString, QString> gTranslationBySource;
 QString gTranslationCacheLang;
 
@@ -475,7 +485,7 @@ bool dumpQtMenuInventory(const QString &lang)
         @"widgetTexts" : widgetTexts,
         @"diagnostics" : @{
             @"refreshCount" : @(gRefreshCount),
-            @"eventRefreshCount" : @(gEventRefreshCount),
+            @"dirtyEnqueueCount" : @(gDirtyEnqueueCount),
             @"menuHookCount" : @(gHookedMenus.size()),
         },
     }
@@ -973,8 +983,106 @@ void refreshQtUiTranslations(const QString &lang)
     dumpQtMenuInventory(lang);
 }
 
-void scheduleRefreshAttempts(QString lang);
-void scheduleCoalescedRefresh(QString lang);
+void scheduleRefreshAttempts(QString lang)
+{
+    if (gRefreshScheduled || lang.isEmpty()) {
+        return;
+    }
+
+    gRefreshScheduled = true;
+    for (int i = 0; i < kWarmupRefreshAttempts; ++i) {
+        dispatch_after(
+            dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(i * kRefreshDelayMs) * NSEC_PER_MSEC),
+            dispatch_get_main_queue(),
+            ^{
+                refreshQtUiTranslations(lang);
+            }
+        );
+    }
+}
+
+void translateRuntimeObject(QObject *object, const QString &lang)
+{
+    if (object == nullptr || lang.isEmpty()) {
+        return;
+    }
+
+    QSet<QAction *> seenActions;
+    if (QAction *action = qobject_cast<QAction *>(object)) {
+        translateQtAction(action, lang);
+        ++gDirtyObjectTranslateCount;
+        return;
+    }
+
+    if (QMenu *menu = qobject_cast<QMenu *>(object)) {
+        hookQtMenu(menu, lang);
+        translateQtMenu(menu, lang);
+        ++gDirtyObjectTranslateCount;
+        return;
+    }
+
+    if (QWidget *widget = qobject_cast<QWidget *>(object)) {
+        translateQtWidgetTexts(widget, lang, seenActions);
+        for (QWidget *child : widget->findChildren<QWidget *>(QString(), Qt::FindDirectChildrenOnly)) {
+            translateQtWidgetTexts(child, lang, seenActions);
+        }
+        ++gDirtyObjectTranslateCount;
+    }
+}
+
+void drainDirtyObjects(QString lang)
+{
+    int processed = 0;
+    while (!gDirtyObjects.isEmpty() && processed < kDirtyDrainMaxObjects) {
+        DirtyObject entry = gDirtyObjects.takeFirst();
+        gDirtyObjectSet.remove(entry.key);
+        if (!entry.object.isNull()) {
+            translateRuntimeObject(entry.object.data(), lang);
+        }
+        ++processed;
+    }
+
+    ++gDirtyDrainCount;
+    if (!gDirtyObjects.isEmpty()) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            drainDirtyObjects(lang);
+        });
+        return;
+    }
+
+    gDirtyDrainScheduled = false;
+}
+
+void scheduleDirtyObjectDrain(QString lang)
+{
+    if (lang.isEmpty() || gDirtyDrainScheduled) {
+        return;
+    }
+
+    gDirtyDrainScheduled = true;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        drainDirtyObjects(lang);
+    });
+}
+
+void enqueueRuntimeObject(QObject *object, const QString &lang)
+{
+    if (object == nullptr || lang.isEmpty() || gDirtyObjectSet.contains(object)) {
+        return;
+    }
+
+    const bool isRelevantObject = qobject_cast<QWidget *>(object) != nullptr ||
+        qobject_cast<QAction *>(object) != nullptr ||
+        qobject_cast<QMenu *>(object) != nullptr;
+    if (!isRelevantObject) {
+        return;
+    }
+
+    gDirtyObjectSet.insert(object);
+    gDirtyObjects.append(DirtyObject{ object, QPointer<QObject>(object) });
+    ++gDirtyEnqueueCount;
+    scheduleDirtyObjectDrain(lang);
+}
 
 class RuntimeUiEventFilter final : public QObject {
 public:
@@ -990,19 +1098,16 @@ protected:
             return QObject::eventFilter(watched, event);
         }
 
-        const bool isRelevantObject = qobject_cast<QWidget *>(watched) != nullptr ||
-            qobject_cast<QAction *>(watched) != nullptr ||
-            qobject_cast<QMenu *>(watched) != nullptr;
-        if (!isRelevantObject) {
-            return QObject::eventFilter(watched, event);
-        }
-
         switch (event->type()) {
         case QEvent::Show:
-        case QEvent::ChildAdded:
         case QEvent::ActionAdded:
-            scheduleCoalescedRefresh(m_lang);
+            enqueueRuntimeObject(watched, m_lang);
             break;
+        case QEvent::ChildAdded: {
+            QChildEvent *childEvent = static_cast<QChildEvent *>(event);
+            enqueueRuntimeObject(childEvent->child(), m_lang);
+            break;
+        }
         default:
             break;
         }
@@ -1023,48 +1128,6 @@ void installRuntimeUiEventFilter(const QString &lang)
 
     gEventFilter = new RuntimeUiEventFilter(lang);
     app->installEventFilter(gEventFilter);
-}
-
-void scheduleCoalescedRefresh(QString lang)
-{
-    if (lang.isEmpty() || gRefreshPending) {
-        return;
-    }
-
-    gRefreshPending = true;
-    dispatch_after(
-        dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(kCoalescedRefreshDelayMs) * NSEC_PER_MSEC),
-        dispatch_get_main_queue(),
-        ^{
-            ++gEventRefreshCount;
-            refreshQtUiTranslations(lang);
-            dispatch_after(
-                dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(kCoalescedRefreshDelayMs) * NSEC_PER_MSEC),
-                dispatch_get_main_queue(),
-                ^{
-                    gRefreshPending = false;
-                }
-            );
-        }
-    );
-}
-
-void scheduleRefreshAttempts(QString lang)
-{
-    if (gRefreshScheduled || lang.isEmpty()) {
-        return;
-    }
-
-    gRefreshScheduled = true;
-    for (int i = 0; i < kWarmupRefreshAttempts; ++i) {
-        dispatch_after(
-            dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(i * kRefreshDelayMs) * NSEC_PER_MSEC),
-            dispatch_get_main_queue(),
-            ^{
-                refreshQtUiTranslations(lang);
-            }
-        );
-    }
 }
 
 QString majorMinorVersion(const QString &version)
