@@ -384,7 +384,7 @@ test('embedded injector translates widget-owned actions and container item label
   );
 });
 
-test('embedded injector uses a Qt event filter for widgets created after startup', () => {
+test('embedded injector handles runtime Qt events with dirty-object local translation only', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
@@ -393,27 +393,55 @@ test('embedded injector uses a Qt event filter for widgets created after startup
   assert.match(
     injectorSource,
     /eventFilter/,
-    'injector should install a Qt event filter because Cavalry creates panels and widgets after the startup refresh window'
+    'injector should still observe runtime Qt object creation for panels and widgets created after startup'
   );
   assert.match(
     injectorSource,
-    /QEvent::Show|QEvent::ChildAdded|QEvent::Polish|QEvent::ActionAdded|QEvent::LayoutRequest/,
-    'event filter should react to widget creation, show, polish, action, or layout events'
+    /enqueueRuntimeObject|scheduleDirtyObjectDrain|drainDirtyObjects|gDirtyObjects/,
+    'runtime events should enqueue dirty objects for local translation instead of scheduling a full UI refresh'
   );
   assert.match(
     injectorSource,
-    /scheduleCoalescedRefresh|gRefreshPending/,
-    'dynamic refresh should be coalesced so bursty Qt events do not trigger one full scan per event'
+    /QChildEvent|child\(\)/,
+    'ChildAdded handling should enqueue the new child object instead of blindly refreshing the whole application'
+  );
+  assert.match(
+    injectorSource,
+    /translateRuntimeObject/,
+    'dirty object draining should use a dedicated local translation entry point'
   );
   assert.doesNotMatch(
     injectorSource,
-    /constexpr int kMaxRefreshAttempts = 8;/,
-    'injector should not rely on the old fixed 8-second refresh window as the only dynamic UI mechanism'
+    /scheduleCoalescedRefresh[\s\S]*refreshQtUiTranslations/,
+    'coalesced runtime event handling must not call refreshQtUiTranslations because that runs QApplication::allWidgets()'
+  );
+  assert.doesNotMatch(
+    injectorSource,
+    /eventFilter[\s\S]{0,1600}refreshQtUiTranslations/,
+    'eventFilter must not directly or nearby indirectly trigger the full UI refresh path'
+  );
+});
+
+test('embedded injector caches source-text translation lookup for runtime widget writes', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /QHash<\s*QString\s*,\s*QString\s*>|QHash<QString, QString>/,
+    'widget translation lookup should use a QHash cache instead of linearly normalizing every embedded entry for every widget string'
   );
   assert.match(
     injectorSource,
-    /dispatch_after[\s\S]*?kCoalescedRefreshDelayMs/,
-    'coalesced refresh must use dispatch_after with kCoalescedRefreshDelayMs cooldown, not dispatch_async, to avoid 100% CPU from event cascade'
+    /rebuildTranslationCache|gTranslationBySource/,
+    'injector should build the per-language source text translation cache when the translator is installed'
+  );
+  assert.match(
+    injectorSource,
+    /lookupEmbeddedTranslation[\s\S]*gTranslationBySource/,
+    'lookupEmbeddedTranslation should consult the cache before falling back to embedded table scanning'
   );
 });
 
@@ -453,8 +481,8 @@ test('embedded injector inventory records dynamic refresh and expanded widget ev
 
   assert.match(
     injectorSource,
-    /refreshCount|eventRefreshCount|menuHookCount/,
-    'runtime inventory should expose refresh and hook counters so weak injection can be diagnosed from artifacts'
+    /refreshCount|menuHookCount|dirtyEnqueueCount|dirtyDrainCount|dirtyObjectTranslateCount/,
+    'runtime inventory should expose full-refresh, menu-hook, and dirty-object counters so weak injection and runtime event behavior can be diagnosed from artifacts'
   );
   assert.match(
     injectorSource,
