@@ -14,8 +14,8 @@
 #include <string.h>
 
 #include <qdatetime.h>
+#include <QEvent>
 #include <qcoreapplication.h>
-#include <qevent.h>
 #include <qfileinfo.h>
 #include <qglobal.h>
 #include <QtGui/qaction.h>
@@ -485,8 +485,10 @@ bool dumpQtMenuInventory(const QString &lang)
         @"widgetTexts" : widgetTexts,
         @"diagnostics" : @{
             @"refreshCount" : @(gRefreshCount),
-            @"dirtyEnqueueCount" : @(gDirtyEnqueueCount),
             @"menuHookCount" : @(gHookedMenus.size()),
+            @"dirtyEnqueueCount" : @(gDirtyEnqueueCount),
+            @"dirtyDrainCount" : @(gDirtyDrainCount),
+            @"dirtyObjectTranslateCount" : @(gDirtyObjectTranslateCount),
         },
     }
                                                        options:NSJSONWritingPrettyPrinted
