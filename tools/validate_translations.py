@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""Validate translation quality gates for Cavalry i18n assets."""
+"""
+[INPUT]: 依赖 languages/* JSON、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
+[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率
+[POS]: tools 的 G1 / §P5 validator，被 full-ui gate 用来审判翻译资产与生成表
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+"""
 
 from __future__ import annotations
 
@@ -10,6 +15,8 @@ import sys
 from collections import Counter
 from pathlib import Path
 from typing import Any
+
+from forbidden_translation_patterns import detect_forbidden_translation_patterns
 
 
 REPORT_LANGUAGE_ALIASES = {
@@ -30,13 +37,27 @@ FILE_GROUPS = {
     "appStrings": ["appStrings.json"],
     "tips": ["tips.json"],
     "onboarding": ["onboarding.json"],
+    "theme": ["Style/theme.json"],
+}
+JSON_SURFACE_KEYS = {
+    "appStrings": "languages/en/appStrings.json",
+    "nodeStrings": "languages/en/nodeStrings.json",
+    "onboarding": "languages/en/onboarding.json",
+    "tips": "languages/en/tips.json",
 }
 
 PLACEHOLDER_RE = re.compile(r"\{[0-9]+\}|%[0-9]+|\{\{[^{}]+\}\}")
 HTML_TAG_RE = re.compile(r"<[^>]+>")
+TS_MESSAGE_RE = re.compile(
+    r"<message\b[\s\S]*?<source>([\s\S]*?)</source>[\s\S]*?<translation(?:\s+[^>]*)?>([\s\S]*?)</translation>[\s\S]*?</message>"
+)
+TS_CONTEXT_RE = re.compile(r"<context\b[\s\S]*?<name>([\s\S]*?)</name>([\s\S]*?)</context>")
+INC_ENTRY_RE = re.compile(r'\{"([^"]*)", "([^"]*)", "([^"]*)"\}')
 ENGLISH_TOKEN_RE = re.compile(
     r"(?<![A-Za-z0-9])[A-Za-z0-9.+/-]*[A-Za-z][A-Za-z0-9.+/-]*(?![A-Za-z0-9])"
 )
+JSON_PATH_KEY_RE = re.compile(r"\.([^.\\[]+)")
+CJK_OR_KANA_RE = re.compile(r"[\u4e00-\u9fff\u3040-\u30ff]")
 
 ALLOWED_EMBEDDED_ENGLISH = {
     ".svg",
@@ -204,6 +225,8 @@ ALLOWED_EMBEDDED_ENGLISH = {
     "XML",
     "XYZ",
     "YUV",
+    "AMD",
+    "NVIDIA",
 }
 
 VALID_SINGLE_LETTER_TOKENS = {"x", "y", "z", "X", "Y", "Z", "W", "R", "G", "B", "A", "N", "V", "S", "a", "b"}
@@ -301,6 +324,10 @@ def parse_args() -> argparse.Namespace:
         required=True,
         help="Path to write the markdown runlog/summary.",
     )
+    parser.add_argument(
+        "--extraction-inventory",
+        help="Optional frozen extraction inventory whose English leaves become the JSON denominator.",
+    )
     return parser.parse_args()
 
 
@@ -331,6 +358,14 @@ def token_is_allowed(token: str) -> bool:
     return False
 
 
+def is_allowlisted_exact_translate_value(value: str) -> bool:
+    visible = visible_text(value)
+    tokens = english_tokens(visible)
+    if tokens:
+        return all(token_is_allowed(token) for token in tokens)
+    return not re.search(r"[A-Za-z]", visible)
+
+
 def purity_matches(repo_code: str, value: str) -> list[str]:
     patterns = LANGUAGE_PURITY_PATTERNS.get(repo_code, {})
     hits = []
@@ -338,6 +373,77 @@ def purity_matches(repo_code: str, value: str) -> list[str]:
         if term in value:
             hits.append(term)
     return hits
+
+
+def decode_xml_entities(value: str) -> str:
+    return (
+        value.replace("&lt;", "<")
+        .replace("&gt;", ">")
+        .replace("&quot;", '"')
+        .replace("&apos;", "'")
+        .replace("&amp;", "&")
+    )
+
+
+def parse_ts_message_records(file_path: Path) -> list[dict[str, str]]:
+    xml = file_path.read_text(encoding="utf-8")
+    records: list[dict[str, str]] = []
+    for context, block in TS_CONTEXT_RE.findall(xml):
+        normalized_context = normalize_string(decode_xml_entities(context))
+        for source, translation in TS_MESSAGE_RE.findall(block):
+            records.append(
+                {
+                    "context": normalized_context,
+                    "source": normalize_string(decode_xml_entities(source)),
+                    "translation": normalize_string(decode_xml_entities(translation)),
+                }
+            )
+    if records:
+        return records
+    return [
+        {
+            "context": "",
+            "source": normalize_string(decode_xml_entities(source)),
+            "translation": normalize_string(decode_xml_entities(translation)),
+        }
+        for source, translation in TS_MESSAGE_RE.findall(xml)
+    ]
+
+
+def parse_ts_messages(file_path: Path) -> list[tuple[str, str]]:
+    return [(record["source"], record["translation"]) for record in parse_ts_message_records(file_path)]
+
+
+def parse_generated_translation_entry_records(file_path: Path, repo_code: str) -> list[dict[str, str]]:
+    array_names = {
+        "zh-Hans": "kZhHansEntries",
+        "zh-Hant": "kZhHantEntries",
+        "ja_JP": "kJaEntries",
+    }
+    array_name = array_names[repo_code]
+    text = file_path.read_text(encoding="utf-8")
+    start = text.find(f"const TranslationEntry {array_name}[]")
+    if start < 0:
+        return []
+    end = text.find("};", start)
+    if end < 0:
+        return []
+    block = text[start:end]
+    return [
+        {
+            "context": normalize_string(context),
+            "source": normalize_string(source),
+            "translation": normalize_string(translation),
+        }
+        for context, source, translation in INC_ENTRY_RE.findall(block)
+    ]
+
+
+def parse_generated_translation_entries(file_path: Path, repo_code: str) -> list[tuple[str, str]]:
+    return [
+        (record["source"], record["translation"])
+        for record in parse_generated_translation_entry_records(file_path, repo_code)
+    ]
 
 
 def load_json(path: Path) -> Any:
@@ -362,9 +468,10 @@ def file_paths(root: Path, lang_code: str) -> list[tuple[str, Path, Path]]:
             )
     for source_path in plugin_paths(root, "en"):
         relative = source_path.relative_to(root / LANGUAGE_PACK_ROOT / "en")
+        group_name = "pluginDefinitions" if source_path.name.endswith("Definitions.json") else "plugins"
         paths.append(
             (
-                "plugins",
+                group_name,
                 source_path,
                 root / LANGUAGE_PACK_ROOT / lang_code / relative,
             )
@@ -412,6 +519,34 @@ def collect_leaves(
     return leaves
 
 
+def extraction_mode_for_path(json_path: str, rules: dict[str, set[str]]) -> str | None:
+    mode: str | None = None
+    for match in JSON_PATH_KEY_RE.finditer(json_path):
+        mode = next_mode(match.group(1), mode, rules)
+    return mode
+
+
+def collect_frozen_source_leaves(
+    extraction_inventory: dict[str, Any],
+    group_name: str,
+    rules: dict[str, set[str]],
+) -> dict[str, dict[str, str]]:
+    surface = extraction_inventory.get("surfaces", {}).get(JSON_SURFACE_KEYS[group_name])
+    if surface is None:
+        raise KeyError(f"Missing extraction surface: {JSON_SURFACE_KEYS[group_name]}")
+
+    leaves: dict[str, dict[str, str]] = {}
+    for leaf in surface.get("englishLeaves", []):
+        json_path = leaf.get("path")
+        value = leaf.get("value")
+        if not isinstance(json_path, str):
+            continue
+        mode = extraction_mode_for_path(json_path, rules)
+        if isinstance(value, str) and mode is not None:
+            leaves[json_path] = {"mode": mode, "value": value}
+    return leaves
+
+
 def sample_issue(
     language_alias: str,
     repo_code: str,
@@ -437,11 +572,122 @@ def limited_append(items: list[dict[str, str]], item: dict[str, str], limit: int
         items.append(item)
 
 
+def record_forbidden_pattern_issue(
+    result: dict[str, Any],
+    language_alias: str,
+    repo_code: str,
+    file_path: Path,
+    item_path: str,
+    source_value: str,
+    target_value: str,
+    hits: list[dict[str, Any]],
+) -> None:
+    result["forbidden_pattern_issue_count"] += 1
+    result["forbidden_patterns"]["total"] += len(hits)
+    for hit in hits:
+        result["forbidden_patterns"]["by_pattern"][hit["id"]] = (
+            result["forbidden_patterns"]["by_pattern"].get(hit["id"], 0) + 1
+        )
+
+    detail = "Forbidden pattern(s): " + ", ".join(
+        f"{hit['id']} ({hit['detail']})" for hit in hits
+    )
+    issue = sample_issue(
+        language_alias,
+        repo_code,
+        file_path,
+        item_path,
+        source_value,
+        target_value,
+        detail,
+    )
+    limited_append(result["issues"]["forbidden_patterns"], issue)
+    limited_append(result["forbidden_patterns"]["samples"], issue)
+
+
+def translation_reuse_contract(whitelist: dict[str, Any]) -> dict[str, Any]:
+    return whitelist.get("_forbidden_patterns", {}).get(
+        "translation_reuse_cap",
+        {
+            "id": "FP-12",
+            "max_distinct_sources": 2,
+            "min_translation_length": 6,
+            "controlled_vocabulary": [],
+        },
+    )
+
+
+def add_reuse_candidate(
+    records: list[dict[str, str]],
+    file_path: Path,
+    item_path: str,
+    source_value: str,
+    target_value: str,
+) -> None:
+    visible_target = visible_text(target_value)
+    if not visible_target or visible_target == visible_text(source_value):
+        return
+    if not CJK_OR_KANA_RE.search(visible_target):
+        return
+    records.append(
+        {
+            "file": file_path.as_posix(),
+            "path": item_path,
+            "source": visible_text(source_value),
+            "target": visible_target,
+        }
+    )
+
+
+def record_translation_reuse_issues(
+    result: dict[str, Any],
+    language_alias: str,
+    repo_code: str,
+    whitelist: dict[str, Any],
+    records: list[dict[str, str]],
+) -> None:
+    contract = translation_reuse_contract(whitelist)
+    pattern_id = contract.get("id", "FP-12")
+    max_distinct_sources = int(contract.get("max_distinct_sources", 2))
+    min_translation_length = int(contract.get("min_translation_length", 6))
+    controlled = set(contract.get("controlled_vocabulary", []))
+
+    by_translation: dict[str, list[dict[str, str]]] = {}
+    for record in records:
+        target = normalize_string(record["target"])
+        if len(target) < min_translation_length:
+            continue
+        if target in controlled:
+            continue
+        by_translation.setdefault(target, []).append(record)
+
+    for target, grouped_records in sorted(by_translation.items()):
+        distinct_sources = sorted({record["source"] for record in grouped_records})
+        if len(distinct_sources) <= max_distinct_sources:
+            continue
+        first = grouped_records[0]
+        detail = (
+            f"{pattern_id} generic translation reuse: {len(distinct_sources)} distinct sources share "
+            f"'{target}'"
+        )
+        record_forbidden_pattern_issue(
+            result,
+            language_alias,
+            repo_code,
+            Path(first["file"]),
+            first["path"],
+            " | ".join(distinct_sources[:5]),
+            target,
+            [{"id": pattern_id, "detail": detail, "value": target}],
+        )
+
+
 def evaluate_language(
     root: Path,
     whitelist: dict[str, Any],
     language_alias: str,
     repo_code: str,
+    extraction_inventory: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     result = {
         "alias": language_alias,
@@ -455,6 +701,12 @@ def evaluate_language(
         "no_translate_issue_count": 0,
         "locale_sync_issue_count": 0,
         "purity_issue_count": 0,
+        "forbidden_pattern_issue_count": 0,
+        "forbidden_patterns": {
+            "total": 0,
+            "by_pattern": {},
+            "samples": [],
+        },
         "issues": {
             "structure": [],
             "no_translate": [],
@@ -462,8 +714,10 @@ def evaluate_language(
             "placeholder": [],
             "english_residue": [],
             "purity": [],
+            "forbidden_patterns": [],
         },
     }
+    reuse_records: list[dict[str, str]] = []
 
     for group_name, source_path, target_path in file_paths(root, repo_code):
         if not source_path.exists():
@@ -493,11 +747,20 @@ def evaluate_language(
             continue
 
         rules = build_rule_sets(whitelist, group_name)
-        source_data = load_json(source_path)
         target_data = load_json(target_path)
 
-        source_leaves = collect_leaves(source_data, rules)
+        source_leaves = (
+            collect_frozen_source_leaves(extraction_inventory, group_name, rules)
+            if extraction_inventory is not None and group_name in JSON_SURFACE_KEYS
+            else collect_leaves(load_json(source_path), rules)
+        )
         target_leaves = collect_leaves(target_data, rules)
+        if extraction_inventory is not None and group_name in JSON_SURFACE_KEYS:
+            target_leaves = {
+                json_path: leaf
+                for json_path, leaf in target_leaves.items()
+                if json_path in source_leaves
+            }
 
         source_paths = set(source_leaves)
         target_paths = set(target_leaves)
@@ -554,6 +817,8 @@ def evaluate_language(
                 result["translate_leaves"] += 1
                 if normalize_string(source_value) != normalize_string(target_value):
                     result["changed_translate_leaves"] += 1
+                elif is_allowlisted_exact_translate_value(target_value):
+                    result["changed_translate_leaves"] += 1
                 else:
                     result["exact_english_translate_leaves"] += 1
 
@@ -575,6 +840,28 @@ def evaluate_language(
                     )
 
                 visible_target_value = visible_text(target_value)
+                forbidden_hits = detect_forbidden_translation_patterns(
+                    repo_code, visible_target_value, source_value
+                )
+                if forbidden_hits:
+                    record_forbidden_pattern_issue(
+                        result,
+                        language_alias,
+                        repo_code,
+                        target_path,
+                        json_path,
+                        source_value,
+                        target_value,
+                        forbidden_hits,
+                    )
+                add_reuse_candidate(
+                    reuse_records,
+                    target_path,
+                    json_path,
+                    source_value,
+                    target_value,
+                )
+
                 disallowed_tokens = [
                     token
                     for token in english_tokens(visible_target_value)
@@ -665,6 +952,66 @@ def evaluate_language(
             },
         )
 
+    ts_path = root / "tools" / f"{repo_code}.ts"
+    if ts_path.exists():
+        for index, record in enumerate(parse_ts_message_records(ts_path), start=1):
+            source_value = record["source"]
+            target_value = record["translation"]
+            add_reuse_candidate(
+                reuse_records,
+                ts_path,
+                f"ts-message[{index}]",
+                source_value,
+                target_value,
+            )
+            forbidden_hits = detect_forbidden_translation_patterns(
+                repo_code, visible_text(target_value), source_value, record["context"]
+            )
+            if not forbidden_hits:
+                continue
+            record_forbidden_pattern_issue(
+                result,
+                language_alias,
+                repo_code,
+                ts_path,
+                f"ts-message[{index}]",
+                source_value,
+                target_value,
+                forbidden_hits,
+            )
+
+    generated_path = root / "injector" / "generated_translations.inc"
+    if generated_path.exists():
+        for index, record in enumerate(
+            parse_generated_translation_entry_records(generated_path, repo_code), start=1
+        ):
+            source_value = record["source"]
+            target_value = record["translation"]
+            add_reuse_candidate(
+                reuse_records,
+                generated_path,
+                f"generated-entry[{index}]",
+                source_value,
+                target_value,
+            )
+            forbidden_hits = detect_forbidden_translation_patterns(
+                repo_code, visible_text(target_value), source_value, record["context"]
+            )
+            if not forbidden_hits:
+                continue
+            record_forbidden_pattern_issue(
+                result,
+                language_alias,
+                repo_code,
+                generated_path,
+                f"generated-entry[{index}]",
+                source_value,
+                target_value,
+                forbidden_hits,
+            )
+
+    record_translation_reuse_issues(result, language_alias, repo_code, whitelist, reuse_records)
+
     translate_leaves = result["translate_leaves"]
     result["coverage"] = (
         result["changed_translate_leaves"] / translate_leaves if translate_leaves else 1.0
@@ -676,20 +1023,22 @@ def gate_status(condition: bool) -> str:
     return "PASS" if condition else "FAIL"
 
 
-def build_report(root: Path) -> dict[str, Any]:
+def build_report(root: Path, extraction_inventory_path: Path | None = None) -> dict[str, Any]:
     whitelist = load_json(root / "tools" / "translation-whitelist.json")
+    extraction_inventory = load_json(extraction_inventory_path) if extraction_inventory_path else None
 
     languages: dict[str, Any] = {}
     for alias, repo_code in VALIDATION_TARGETS.items():
-        languages[alias] = evaluate_language(root, whitelist, alias, repo_code)
+        languages[alias] = evaluate_language(root, whitelist, alias, repo_code, extraction_inventory)
 
     b2_ok = all(language["structure_issue_count"] == 0 for language in languages.values())
     b3_ok = all(language["no_translate_issue_count"] == 0 for language in languages.values())
     b4_ok = all(language["placeholder_issue_count"] == 0 for language in languages.values())
     b9_ok = all(language["english_residue_count"] == 0 for language in languages.values())
-    b10_ok = all(language["coverage"] >= 0.90 for language in languages.values())
+    b10_ok = all(language["coverage"] >= 1.00 for language in languages.values())
     b11_ok = all(language["locale_sync_issue_count"] == 0 for language in languages.values())
     b12_ok = all(language["purity_issue_count"] == 0 for language in languages.values())
+    b13_ok = all(language["forbidden_pattern_issue_count"] == 0 for language in languages.values())
     gates = {
         "B2": {
             "name": "Structure parity",
@@ -714,7 +1063,7 @@ def build_report(root: Path) -> dict[str, Any]:
         "B10": {
             "name": "Leaf coverage",
             "status": gate_status(b10_ok),
-            "detail": "translate leaves must reach 90% non-English coverage.",
+            "detail": "translate leaves must reach 100% non-English coverage.",
         },
         "B11": {
             "name": "locale_sync",
@@ -726,13 +1075,18 @@ def build_report(root: Path) -> dict[str, Any]:
             "status": gate_status(b12_ok),
             "detail": "Each target language must reject known off-script or off-locale UI terms.",
         },
+        "B13": {
+            "name": "Forbidden patterns",
+            "status": gate_status(b13_ok),
+            "detail": "FP-1/2/3/4/5/7/8/9/10/11/12 must hard-fail across JSON, TS, and generated injector outputs.",
+        },
     }
 
     overall_ok = all(gate["status"] == "PASS" for gate in gates.values())
     return {
         "overall_status": gate_status(overall_ok),
         "aliases": REPORT_LANGUAGE_ALIASES,
-        "coverage_threshold": 0.90,
+        "coverage_threshold": 1.00,
         "gates": gates,
         "languages": languages,
     }
@@ -759,6 +1113,7 @@ def render_summary(report: dict[str, Any]) -> str:
         "Coverage",
         "English residue",
         "Purity issues",
+        "Forbidden patterns",
         "locale_sync",
     ]]
     for alias, language in report["languages"].items():
@@ -771,6 +1126,7 @@ def render_summary(report: dict[str, Any]) -> str:
                 f"{language['coverage'] * 100:.1f}%",
                 str(language["english_residue_count"]),
                 str(language["purity_issue_count"]),
+                str(language["forbidden_pattern_issue_count"]),
                 str(language["locale_sync_issue_count"]),
             ]
         )
@@ -798,6 +1154,7 @@ def render_summary(report: dict[str, Any]) -> str:
             "placeholder",
             "english_residue",
             "purity",
+            "forbidden_patterns",
             "locale_sync",
         ]:
             for issue in language["issues"][issue_type][:3]:
@@ -838,7 +1195,7 @@ def crash_report(message: str) -> dict[str, Any]:
     return {
         "overall_status": "FAIL",
         "aliases": REPORT_LANGUAGE_ALIASES,
-        "coverage_threshold": 0.90,
+        "coverage_threshold": 1.00,
         "gates": {
             "CRASH": {
                 "name": "Validator crash",
@@ -855,9 +1212,10 @@ def main() -> int:
     root = Path(args.root).resolve()
     json_report = Path(args.json_report)
     markdown_summary = Path(args.markdown_summary)
+    extraction_inventory = Path(args.extraction_inventory).resolve() if args.extraction_inventory else None
 
     try:
-        report = build_report(root)
+        report = build_report(root, extraction_inventory)
     except Exception as exc:  # Surface crash details through workflow artifacts.
         report = crash_report(str(exc))
         write_outputs(report, json_report, markdown_summary)

@@ -1,0 +1,95 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "bulgeFilter",
+    "superType": "thirdPartyFilter",
+    "skslFile": "bulgeFilter.sksl",
+    "version": "1.0",
+    "attributes": {
+      "blendMode": {
+        "default": 1
+      },
+      "passthroughBackground": {
+        "type": "bool",
+        "default": true,
+        "dimming": "blendMode != 1"
+      },
+      "amount": {
+        "type": "double",
+        "default": 0.5,
+        "step": 0.01
+      },
+      "centre": {
+        "type": "double2",
+        "default": {
+          "x": 0,
+          "y": 0
+        },
+        "children": {
+          "*": {
+            "min": -2000,
+            "max": 2000,
+            "step": 1
+          }
+        }
+      },
+      "radius": {
+        "type": "double",
+        "default": 50,
+        "min": 0,
+        "max": 100,
+        "step": 0.01,
+        "prefix": "%"
+      },
+      "enableRefraction": {
+        "type": "bool",
+        "default": true
+      },
+      "chromaticAberration": {
+        "type": "double",
+        "default": 2,
+        "min": 0,
+        "step": 0.1,
+        "dimming": "enableRefraction == false"
+      },
+      "refractiveIndex": {
+        "type": "double",
+        "default": 1.5,
+        "min": 1,
+        "step": 0.01,
+        "dimming": "enableRefraction == false"
+      },
+      "matteApplyMode": {
+        "default": 1
+      }
+    },
+    "triggers": {
+      "out": [
+        "blendMode",
+        "passthroughBackground",
+        "amount",
+        "centre",
+        "radius",
+        "enableRefraction",
+        "chromaticAberration",
+        "refractiveIndex"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "samplingQuality",
+        "passthroughBackground",
+        "amount",
+        "centre",
+        "radius",
+        "enableRefraction",
+        "refractiveIndex",
+        "chromaticAberration"
+      ],
+      "hide": [
+        "matteApplyMode"
+      ],
+      "icon": "bulgeFilter.png"
+    }
+  }
+]

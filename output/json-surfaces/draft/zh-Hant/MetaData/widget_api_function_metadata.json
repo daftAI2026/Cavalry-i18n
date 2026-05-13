@@ -1,0 +1,424 @@
+[
+  {
+    "name": "getThemeColor",
+    "arguments": [
+      {
+        "name": "colorName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回給定 key 對應的主題色彩。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setCallbacksActive",
+    "arguments": [
+      {
+        "name": "setCallbacksActive",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "可用於暫時停用 UI 回呼。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "fieldWidth",
+    "return_type": "int",
+    "description": "取得數值欄位的預設寬度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "fieldHeight",
+    "return_type": "int",
+    "description": "取得數值欄位的預設高度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "add",
+    "arguments": [
+      {
+        "name": "widget",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "向根佈局中加入控制項。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addStretch",
+    "arguments": null,
+    "description": "向根佈局中加入可拉伸空間。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addSpacing",
+    "arguments": [
+      {
+        "name": "spacing",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "向根佈局中加入固定間距。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setSpaceBetween",
+    "arguments": [
+      {
+        "name": "spacing",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定佈局中元素之間的間距。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setBackgroundColor",
+    "arguments": [
+      {
+        "name": "color",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "設定佈局中元素之間的間距。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMargins",
+    "arguments": [
+      {
+        "name": "left",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "top",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "right",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "bottom",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定根佈局的邊距。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFileToOpen",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回所選的檔案路徑，若使用者在對話方塊中按下取消則為空。檔案篩選字串應遵循格式 \"Palettes (*.pal *.ase *.theme)\"",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFolderPath",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回所選的資料夾路徑，若使用者在對話方塊中按下取消則為空。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFileToSave",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "傳回所選的用於建立檔案的檔案路徑，若使用者在對話方塊中按下取消則為空。檔案篩選字串應遵循格式 \"Palettes (*.pal *.ase *.theme)\"",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addMenuItem",
+    "arguments": [
+      {
+        "name": "menuItem",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "向內容選單中加入選單項目。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addSubMenu",
+    "arguments": [
+      {
+        "name": "subMenu",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "向內容選單中加入子選單。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "clearContextMenu",
+    "arguments": null,
+    "description": "清除內容選單中的所有項目。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "showContextMenuOnRightClick",
+    "arguments": null,
+    "description": "啟用在右鍵點擊事件中顯示內容選單。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "showContextMenu",
+    "arguments": null,
+    "description": "在游標目前位置顯示內容選單。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "runFileScript",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "從檔案中執行 GUI 指令稿，成功時傳回 true。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "scriptLocation",
+    "return_type": "string",
+    "description": "取得目前指令稿的資料夾路徑。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "show",
+    "arguments": null,
+    "description": "顯示視窗。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "size",
+    "arguments": null,
+    "return_type": {
+      "x": "Number",
+      "y": "Number"
+    },
+    "description": "傳回視窗的大小。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedSize",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定視窗的固定大小。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMinimumWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定視窗的最小寬度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMinimumHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定視窗的最小高度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMaximumWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定視窗的最大寬度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMaximumHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定視窗的最大高度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定視窗的固定寬度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "設定視窗的固定高度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setTitle",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "設定視窗標題。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setToolbar",
+    "arguments": null,
+    "description": "將控制項標記為工具列。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setVerticalToolbar",
+    "arguments": null,
+    "description": "將工具列方向設定為垂直。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "openSceneDialog",
+    "arguments": null,
+    "description": "開啟用於開啟 Cavalry Scenes 的檔案瀏覽器",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addCallbackObject",
+    "arguments": [
+      {
+        "name": "callbackObject",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "設定視窗的回呼物件。可用於在特定應用事件發生時觸發方法。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "registerDragDropMimeType",
+    "arguments": [
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "為視窗註冊拖放 mime 類型（例如 layerIds、色彩、文字）。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  }
+]

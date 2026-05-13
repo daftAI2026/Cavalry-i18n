@@ -19,7 +19,7 @@
 - `REPO/tools/check_full_ui_matrix.js`
 - `REPO/tools/check_runtime_ui_coverage.js`
 - `REPO/tools/launch_cavalry_with_injector.sh`
-- `REPO/desktop-patcher/injector/CavalryTranslatorInjector.mm`
+- `REPO/injector/CavalryTranslatorInjector.mm`
 
 ## Task
 

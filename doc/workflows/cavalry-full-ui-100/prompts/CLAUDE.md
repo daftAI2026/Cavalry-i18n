@@ -6,7 +6,7 @@
 - 01-audit-and-gate-hardening.md: W-AUDIT 执行协议，把弱阈值、缺 preflight、漏 target 变成 RED/GREEN
 - 02-extraction-inventory-freeze.md: G-X 执行协议，在 capture/provenance 已可信后冻结 JSON、compiled、runtime 完整英文分母
 - 03-provenance-gate.md: G-P 执行协议，固定 session-dir、live capture provenance 与合法输入边界
-- 04-forbidden-translation-detector.md: §P5 执行协议，统一占位标记、全角拉丁、错位填词、简繁串味、自我递归检测
+- 04-forbidden-translation-detector.md: §P5 执行协议，统一占位标记、全角拉丁、错位填词、简繁串味、合成 source、伪 context 与 Frankenstein 检测
 - 05-measurement-integrity.md: G0 执行协议，固定阈值、reader、run record 与 CI 接线
 - 06-compiled-owner-map.md: G2 执行协议，保证 compiled source map 来自 raw extraction 并覆盖 libExtensionLayer
 - 07-runtime-capture-toolchain.md: G-CAPTURE/G3 执行协议，先建立 live injector、AX capture 与 merged inventory 链路，再供 G-X 冻结分母

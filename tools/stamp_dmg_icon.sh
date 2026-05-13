@@ -7,7 +7,7 @@ set -euo pipefail
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 DIST_DIR="${1:-dist}"
-ICNS="desktop-patcher/resources/icon.icns"
+ICNS="src-tauri/icons/icon.icns"
 
 # 1. 检查基础资源
 if [ ! -f "$ICNS" ]; then

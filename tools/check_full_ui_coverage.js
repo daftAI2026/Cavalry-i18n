@@ -6,6 +6,7 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const {
   buildCoverage,
+  inferExtractionInventoryPath,
   normalizeText,
   readJson,
   shouldIgnore,
@@ -32,8 +33,9 @@ function parseArgs(argv) {
     compiledSourceMap: COMPILED_SOURCE_MAP_PATH,
     ts: '',
     allowlist: path.join(__dirname, 'runtime_ui_allowlist.json'),
-    threshold: 99,
+    threshold: 100,
     maxReport: 80,
+    extractionInventory: '',
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -71,6 +73,11 @@ function parseArgs(argv) {
     if (arg === '--max-report') {
       options.maxReport = Number(argv[index + 1] || '');
       index += 1;
+      continue;
+    }
+    if (arg === '--extraction-inventory') {
+      options.extractionInventory = argv[index + 1] || '';
+      index += 1;
     }
   }
 
@@ -88,6 +95,9 @@ function parseArgs(argv) {
   }
   if (!Number.isFinite(options.maxReport) || options.maxReport < 1) {
     fail('max-report must be a positive integer.');
+  }
+  if (!options.extractionInventory) {
+    options.extractionInventory = inferExtractionInventoryPath(options.inventory);
   }
 
   return options;
@@ -130,6 +140,17 @@ function shouldCountCompiledCandidate(text, surfaceHint, allowlist) {
     return false;
   }
 
+  if (
+    /^\d+: [A-Z][a-z]+$/.test(text) ||
+    /(?:^|\s)(?:Ltd|Ltd\.|Inc|Inc\.|LLC|Corp|Corp\.|GmbH|PLC)(?:$|\s|\.)/.test(text) ||
+    /^[A-Z](?:acute|grave|circumflex|dieresis|tilde|cedilla|caron|breve|ogonek|ring|macron|slash|dotaccent|hungarumlaut)+(?:small)?$/i.test(
+      text
+    ) ||
+    /^(?:Above|Below|Post|Pre)-base (?:Forms|Mark Positioning|Substitutions)$/.test(text)
+  ) {
+    return false;
+  }
+
   if (surfaceHint === 'menu-or-action-like') {
     return true;
   }
@@ -141,11 +162,22 @@ function shouldCountCompiledCandidate(text, surfaceHint, allowlist) {
   return /^[A-Z][a-z]+(?:['-][A-Za-z]+)?$/.test(text);
 }
 
-function buildCompiledCoverage(sourceMap, translations, allowlist) {
-  const candidates = [];
+function compiledTranslationLookupKeys(candidate) {
+  const normalized = normalizeText(candidate);
+  const stripped = normalized.replace(/(?:\.{3}|\.)$/, '').trim();
+  const keys = [normalized];
+  if (stripped && stripped !== normalized) {
+    keys.push(stripped);
+  }
+  return [...new Set(keys)];
+}
 
-  for (const entry of sourceMap.entries || []) {
-    const text = normalizeText(entry.normalizedText || entry.text || '');
+function buildCompiledCoverage(sourceMap, translations, allowlist, extractionSurface = null) {
+  const candidates = [];
+  const sourceEntries = Array.isArray(extractionSurface?.englishLeaves) ? extractionSurface.englishLeaves : sourceMap.entries || [];
+
+  for (const entry of sourceEntries) {
+    const text = normalizeText(entry.normalizedText || entry.text || entry.value || '');
     if (!shouldCountCompiledCandidate(text, entry.surfaceHint || '', allowlist)) {
       continue;
     }
@@ -154,7 +186,11 @@ function buildCompiledCoverage(sourceMap, translations, allowlist) {
 
   const uniqueCandidates = [...new Set(candidates)];
   const untranslated = uniqueCandidates.filter((candidate) => {
-    const translation = normalizeText(translations.get(candidate) || '');
+    const translation = normalizeText(
+      compiledTranslationLookupKeys(candidate)
+        .map((key) => translations.get(key) || '')
+        .find(Boolean) || ''
+    );
     if (!translation) {
       return true;
     }
@@ -167,6 +203,7 @@ function buildCompiledCoverage(sourceMap, translations, allowlist) {
       : Number((((uniqueCandidates.length - untranslated.length) / uniqueCandidates.length) * 100).toFixed(2));
 
   return {
+    denominatorSource: sourceEntries === (sourceMap.entries || []) ? 'source-map' : 'extraction-inventory',
     totalCandidates: uniqueCandidates.length,
     untranslatedCount: untranslated.length,
     coveragePct,
@@ -174,20 +211,24 @@ function buildCompiledCoverage(sourceMap, translations, allowlist) {
   };
 }
 
-function runJsonValidator(repoRoot, language) {
+function runJsonValidator(repoRoot, language, extractionInventoryPath = '') {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-i18n-validator-'));
   const jsonReportPath = path.join(tempRoot, 'report.json');
   const markdownPath = path.join(tempRoot, 'summary.md');
+  const args = ['tools/validate_translations.py', '--root', repoRoot, '--json-report', jsonReportPath, '--markdown-summary', markdownPath];
+  if (extractionInventoryPath) {
+    args.push('--extraction-inventory', extractionInventoryPath);
+  }
   const result = spawnSync(
     'python3',
-    ['tools/validate_translations.py', '--root', repoRoot, '--json-report', jsonReportPath, '--markdown-summary', markdownPath],
+    args,
     {
       cwd: repoRoot,
       encoding: 'utf8',
     }
   );
 
-  if (result.status !== 0) {
+  if (!fs.existsSync(jsonReportPath)) {
     fail(result.stderr || result.stdout || 'validate_translations.py failed');
   }
 
@@ -201,19 +242,26 @@ function runJsonValidator(repoRoot, language) {
   return {
     alias,
     coveragePct: Number((Number(languageReport.coverage || 0) * 100).toFixed(2)),
+    exactEnglishTranslateLeaves: languageReport.exact_english_translate_leaves || 0,
     englishResidueCount: languageReport.english_residue_count || 0,
     structureIssueCount: languageReport.structure_issue_count || 0,
     noTranslateIssueCount: languageReport.no_translate_issue_count || 0,
     placeholderIssueCount: languageReport.placeholder_issue_count || 0,
     localeSyncIssueCount: languageReport.locale_sync_issue_count || 0,
     purityIssueCount: languageReport.purity_issue_count || 0,
+    forbiddenPatternIssueCount: languageReport.forbidden_pattern_issue_count || 0,
+    forbiddenPatterns: languageReport.forbidden_patterns || { total: 0, by_pattern: {}, samples: [] },
+    denominatorSource: extractionInventoryPath ? 'extraction-inventory' : 'repo-english-files',
     pass:
+      Number((Number(languageReport.coverage || 0) * 100).toFixed(2)) === 100 &&
+      (languageReport.exact_english_translate_leaves || 0) === 0 &&
       (languageReport.structure_issue_count || 0) === 0 &&
       (languageReport.no_translate_issue_count || 0) === 0 &&
       (languageReport.placeholder_issue_count || 0) === 0 &&
       (languageReport.english_residue_count || 0) === 0 &&
       (languageReport.locale_sync_issue_count || 0) === 0 &&
-      (languageReport.purity_issue_count || 0) === 0,
+      (languageReport.purity_issue_count || 0) === 0 &&
+      (languageReport.forbidden_pattern_issue_count || 0) === 0,
   };
 }
 
@@ -224,21 +272,39 @@ function main() {
   const sourceMap = readJson(path.resolve(options.compiledSourceMap));
   const translations = loadTsTranslations(path.resolve(options.ts));
   const repoRoot = path.resolve(__dirname, '..');
+  const extractionInventory =
+    options.extractionInventory && fs.existsSync(path.resolve(options.extractionInventory))
+      ? readJson(path.resolve(options.extractionInventory))
+      : null;
 
-  const runtime = buildCoverage(inventory, allowlist);
-  const compiled = buildCompiledCoverage(sourceMap, translations, allowlist);
-  const jsonValidation = runJsonValidator(repoRoot, options.language);
+  const runtime = buildCoverage(
+    inventory,
+    allowlist,
+    translations,
+    extractionInventory?.surfaces?.['runtime-candidates'] || null
+  );
+  const compiled = buildCompiledCoverage(
+    sourceMap,
+    translations,
+    allowlist,
+    extractionInventory?.surfaces?.['compiled-source-map'] || null
+  );
+  const jsonValidation = runJsonValidator(repoRoot, options.language, options.extractionInventory);
 
   const report = {
     language: options.language,
     threshold: options.threshold,
     runtime: {
+      denominatorSource: runtime.denominatorSource,
       coveragePct: runtime.coveragePct,
       totalCandidates: runtime.totalCandidates,
+      observedCandidateCount: runtime.observedCandidateCount,
       untranslatedCount: runtime.untranslatedCount,
       untranslated: runtime.untranslated.slice(0, options.maxReport),
+      forbiddenPatterns: runtime.forbiddenPatterns,
     },
     compiled: {
+      denominatorSource: compiled.denominatorSource,
       coveragePct: compiled.coveragePct,
       totalCandidates: compiled.totalCandidates,
       untranslatedCount: compiled.untranslatedCount,
@@ -266,6 +332,7 @@ if (require.main === module) {
 
 module.exports = {
   buildCompiledCoverage,
+  compiledTranslationLookupKeys,
   loadTsTranslations,
   parseArgs,
   runJsonValidator,

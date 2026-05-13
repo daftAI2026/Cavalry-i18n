@@ -1,0 +1,424 @@
+[
+  {
+    "name": "getThemeColor",
+    "arguments": [
+      {
+        "name": "colorName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定された key に対応するテーマカラーを返します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setCallbacksActive",
+    "arguments": [
+      {
+        "name": "setCallbacksActive",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "UI コールバックを一時的に無効にするために使用できます。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "fieldWidth",
+    "return_type": "int",
+    "description": "数値フィールドのデフォルトの幅を取得します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "fieldHeight",
+    "return_type": "int",
+    "description": "数値フィールドのデフォルトの高さを取得します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "add",
+    "arguments": [
+      {
+        "name": "widget",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "ルートレイアウトにウィジェットを追加します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addStretch",
+    "arguments": null,
+    "description": "ルートレイアウトに伸縮可能なスペースを追加します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addSpacing",
+    "arguments": [
+      {
+        "name": "spacing",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ルートレイアウトに固定量のスペースを追加します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setSpaceBetween",
+    "arguments": [
+      {
+        "name": "spacing",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "レイアウト内の要素間の間隔を設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setBackgroundColor",
+    "arguments": [
+      {
+        "name": "color",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レイアウト内の要素間の間隔を設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMargins",
+    "arguments": [
+      {
+        "name": "left",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "top",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "right",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "bottom",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ルートレイアウトのマージンを設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFileToOpen",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "選択されたファイルパスを返します。ユーザーがダイアログボックスでキャンセルを押した場合は空になります。ファイルフィルター文字列は \"Palettes (*.pal *.ase *.theme)\" の形式に従う必要があります",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFolderPath",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "選択されたフォルダパスを返します。ユーザーがダイアログボックスでキャンセルを押した場合は空になります。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFileToSave",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "作成するファイルパスを返します。ユーザーがダイアログボックスでキャンセルを押した場合は空になります。ファイルフィルター文字列は \"Palettes (*.pal *.ase *.theme)\" の形式に従う必要があります",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addMenuItem",
+    "arguments": [
+      {
+        "name": "menuItem",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "コンテキストメニューにメニュー項目を追加します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addSubMenu",
+    "arguments": [
+      {
+        "name": "subMenu",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "コンテキストメニューにサブメニューを追加します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "clearContextMenu",
+    "arguments": null,
+    "description": "コンテキストメニューからすべての項目をクリアします。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "showContextMenuOnRightClick",
+    "arguments": null,
+    "description": "右クリックイベントでコンテキストメニューを表示するように有効にします。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "showContextMenu",
+    "arguments": null,
+    "description": "現在のカーソル位置にコンテキストメニューを表示します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "runFileScript",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "ファイルから GUI スクリプトを実行し、成功時に true を返します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "scriptLocation",
+    "return_type": "string",
+    "description": "現在のスクリプトのフォルダパスを取得します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "show",
+    "arguments": null,
+    "description": "ウィンドウを表示します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "size",
+    "arguments": null,
+    "return_type": {
+      "x": "Number",
+      "y": "Number"
+    },
+    "description": "ウィンドウのサイズを返します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedSize",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウの固定サイズを設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMinimumWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウの最小幅を設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMinimumHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウの最小高さを設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMaximumWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウの最大幅を設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMaximumHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウの最大高さを設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウの固定幅を設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウの固定高さを設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setTitle",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウのタイトルを設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setToolbar",
+    "arguments": null,
+    "description": "ウィジェットをツールバーとしてマークします。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setVerticalToolbar",
+    "arguments": null,
+    "description": "ツールバーの向きを垂直に設定します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "openSceneDialog",
+    "arguments": null,
+    "description": "Cavalry Scenes を開くためのファイルブラウザを開きます",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addCallbackObject",
+    "arguments": [
+      {
+        "name": "callbackObject",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウのコールバックオブジェクトを設定します。特定のアプリイベント発生時にメソッドをトリガーするために使用できます。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "registerDragDropMimeType",
+    "arguments": [
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "ウィンドウにドロップ mime タイプ（例: layerIds、color、text）を登録します。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  }
+]

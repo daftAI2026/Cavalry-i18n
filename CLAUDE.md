@@ -1,38 +1,18 @@
-# Cavalry-i18n - Cavalry 桌面语言补丁器
-Electron + Node.js + Objective-C++ injector + JSON 语言资源；Tauri 迁移中保持 renderer 原件不变。
+# Cavalry-i18n - Tauri desktop language patcher for Cavalry
+HTML + Javascript + Rust (Tauri) + Objective-C++ (Qt Injector)
 
 <directory>
-desktop-patcher/ - 桌面补丁器主程序，Electron 壳层与可注入 i18n handler 分离 (4子目录: lib, renderer, injector, resources)
-src-tauri/ - Tauri v2 壳层与 Rust command 实现，复用原 renderer 并逐步追平 Electron handler
-languages/ - JSON 语言包与英文基线，按语言代码组织翻译资产
-tools/ - 构建、测试、覆盖率、翻译表生成、翻译检测契约与手动调试脚本
-doc/ - 本地迁移方案、构建 SOP、术语表与 workflow 草案；按仓库策略保持本地忽略
+injector/ - Qt 进程动态注入器，负责运行时翻译拦截与菜单刷新 (C++, Objective-C++)
+renderer/ - Tauri 前端 UI，提供多语言补丁的管理界面 (HTML, JS)
+src-tauri/ - Tauri 后端逻辑，处理进程启动、注入与资源管理 (Rust)
+tools/ - 自动化工具链，涵盖翻译提取、校验与 SDK 解析 (Node.js, Bash)
+output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿 (JSON, PNG)
 </directory>
 
 <config>
-package.json - npm 脚本、Electron 构建配置与 Tauri 迁移前置检查入口
-package-lock.json - Node 依赖锁定
-tools/cavalry_qt_target.json - 当前发布目标 Cavalry/Qt/SDK 映射，CI 无 Cavalry.app 时的唯一版本真相源
-tools/translation-whitelist.json - JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界
-.gitignore - 忽略本地文档、Node/Rust 构建产物、dist 与 SDK 缓存
-.github/workflows/build.yml - macOS release 构建与 injector 预构建流水线
+package.json - 项目元数据与核心构建/测试指令
+src-tauri/tauri.conf.json - Tauri 运行配置
+injector/generated_translations.inc - 编译期嵌入的翻译静态表
 </config>
 
-架构决策:
-Electron `main.js` 只装配窗口和真实依赖；`desktop-patcher/i18n-handlers.js` 承载 5 个 renderer API，允许测试注入 fake dialog、userData、command runner 与资源路径。
-Tauri v2 现已接管默认打包路径；窗口配置按 macOS titlebar 高度补偿到 `480x528`，以保持与 Electron `useContentSize` 下 `480x500` 内容区一致。
-
-开发规范:
-UI 真相源只在 `desktop-patcher/renderer/` 三文件；迁移不得改 DOM、class、文案、布局。外部命令必须经可替换 runner 或 handler 依赖注入，测试不得触发真实 `osascript`、`codesign`、`xattr`、`open`。
-打包必须使用 `npm run build:tauri`（含 DMG 卷宗图标盖章与产物验证），不要用 `npm run build` 或裸 `tauri build`，否则会漏掉盖章步骤。
-
-变更日志:
-2026-04-23 - 为 Tauri 迁移 Phase -1/1 播种 L1，记录 Electron 壳层与 handler 分离，并新增 `src-tauri/` 迁移壳。
-2026-04-24 - 完成 Tauri 默认构建切换；更新高清图标资产并播种 resources L2 文档；整合打包与静默校验脚本并补齐 Tauri DMG 盖章流程。
-2026-04-24 - 收敛默认 `build` 为 `npm run tauri:build`，保留 `build:tauri` 承担 DMG 盖章与 packaged 校验。
-2026-04-24 - 修正 full UI 覆盖脚本入口，显式绑定 runtime inventory、compiled source map 与对应 `.ts` 翻译源。
-2026-04-24 - 将 Cavalry/Qt 发布目标收敛到 `tools/cavalry_qt_target.json`，由 resolver 在本机校验、在 CI 补齐 SDK。
-2026-04-24 - CI macOS 打包改用 `npm run prepare:qt-sdk`，不再在 workflow 内写第二份 Qt 版本。
-2026-04-28 - 将 `translation-whitelist.json` 移入 `tools/` 作为版本化 gate 契约；compiled source map 改为 `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` 生成物，`doc/` 回归本地文档目录。
-2026-04-30 - 当前 Cavalry 目标升级到 2.7.1，Qt 仍为 6.6.3；full-ui 分母需重新抽取、捕获与冻结。
-2026-04-30 - Cavalry 2.7.1 app bundle 新增 6 条 `appStrings` GPU 文案；JSON lower bound 提升到 10 / 6320 / 34 / 51 / total 6415。
+法则: 极简·稳定·导航·版本精确

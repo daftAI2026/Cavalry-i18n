@@ -11,7 +11,7 @@
           "凍結此圖層的計算。對此屬性設定關鍵幀以「暫停」圖層計算。"
         ],
         "drawOnTopOfParent": "繪製在父級上方",
-        "drawOnTopOfParentHelp": "選中“繪製在父級上方”後，此圖層將在檢視區中顯示在其父級圖層上方。"
+        "drawOnTopOfParentHelp": "選取「繪製在父級上方」後，此圖層會在檢視區中顯示於其父級圖層上方。"
       }
     }
   },
@@ -75,7 +75,7 @@
         ],
         "pivot": [
           "錨點",
-          "定義形狀的軸心點。這在製作旋轉和縮放動畫時很有用。"
+          "定義形狀的錨點。這在製作旋轉和縮放動畫時很有用。"
         ],
         "webExport": "Lottie 匯出"
       },
@@ -144,7 +144,7 @@
           "連接行為以變形形狀。"
         ],
         "masks": [
-          "裁剪遮罩",
+          "裁切遮罩",
           "連接用作裁切遮罩的形狀。"
         ],
         "clippingMode": "裁切模式",
@@ -160,7 +160,7 @@
         ],
         "featherMasks": [
           "羽化裁切遮罩",
-          "對形狀的裁剪遮罩進行羽化。"
+          "對形狀的裁切遮罩進行羽化。"
         ],
         "blendMode": [
           "混合模式",
@@ -207,7 +207,7 @@
           "控制此圖層被排程群組使用的方式。"
         ],
         "guideLayer": [
-          "参考線圖層",
+          "參考線圖層",
           "可以將圖層轉換為輔助圖層，使其在視口中可見但不在最終算繪中顯示。"
         ],
         "is3d": [
@@ -220,7 +220,7 @@
         "fill": "填充",
         "stroke": "描邊",
         "mask": "遮罩",
-        "advanced": "高級"
+        "advanced": "進階"
       },
       "enums": {
         "blendMode": {
@@ -277,20 +277,20 @@
           "5": "Alpha 反轉"
         },
         "verticalLayoutAlignment": {
-          "0": "忽略",
+          "0": "略過",
           "1": "頂部",
           "2": "中間",
           "3": "底部"
         },
         "horizontalLayoutAlignment": {
-          "0": "忽略",
+          "0": "略過",
           "1": "起始",
           "2": "中心",
           "3": "尾隨"
         },
         "schedulingGroupMode": {
           "0": "使用",
-          "1": "忽略",
+          "1": "略過",
           "2": "使用子級"
         }
       }
@@ -341,8 +341,8 @@
       "nodeInfo": "將屬性的動畫曲線（例如從第一個到最後一個關鍵幀）重映射為百分比。",
       "attributes": {
         "amount": "數量",
-        "active": "活動",
-        "controlHelp": "使用滑塊控製動畫。只需將此圖層的輸出<img src = icons:ConnectionAnchor.png width=18 height=18 style=vertical-align:middle/>拖拽到任何動畫屬性。"
+        "active": "啟用",
+        "controlHelp": "使用滑桿控制動畫。只需將此圖層的輸出連接點拖曳到任何動畫屬性。"
       }
     }
   },
@@ -367,7 +367,7 @@
         "blurCentre": "運動模糊中心",
         "blurAlign": "模糊對齊",
         "motionBlurSamples": "運動模糊取樣數",
-        "linearGamma": "線性伽马",
+        "linearGamma": "線性伽瑪",
         "activeAudioLayer": [
           "啟用音訊圖層",
           "將圖層拖入此插槽以在播放期間播放。"
@@ -381,7 +381,7 @@
           "使合成幀範圍適應約束圖層。"
         ],
         "rangeConstraints": "約束圖層",
-        "frameRange": "适配幀範圍",
+        "frameRange": "適配幀範圍",
         "beatMarkers.bpm": "每分鐘拍數",
         "beatMarkers.offset": "偏移",
         "beatMarkers.bars": "每小節拍數",
@@ -414,7 +414,7 @@
       "attributes": {
         "strength": "強度",
         "blendMode": "模式",
-        "active": "活動",
+        "active": "啟用",
         "color": "標籤顏色"
       },
       "enums": {
@@ -463,7 +463,7 @@
         "metaDataFormat": "格式",
         "retimeHelp": "使用合成行上的齒輪圖標在算繪時重新計時合成或更改合成的幀率。",
         "renderQuality": [
-          "算繪質量",
+          "算繪品質",
           "此設定對向量算繪格式（如 SVG 和 Lottie ）無效。"
         ],
         "ensureUniqueNames": [
@@ -480,7 +480,7 @@
         ],
         "postRenderExpression": [
           "算繪後腳本",
-          "此腳本將在每次算繪後執行（例如影片或圖像序列）。"
+          "此腳本將在每次算繪後執行（例如影片或影像序列）。"
         ],
         "respectViewportFiltering": [
           "遵循檢視區過濾",
@@ -492,7 +492,7 @@
         ],
         "targets.remapToTimecode": [
           "新合成長度",
-          "輸入時間碼 (MM:SS:FF) 表示所需的算繪長度。此重映射將基于完整的合成長度。"
+          "輸入代表所需算繪長度的時間碼 (MM:SS:FF)。此重映射將基於完整的合成長度。"
         ],
         "targets.remapFPS": [
           "重映射幀率",
@@ -504,7 +504,7 @@
         ],
         "niceName": [
           "控制中心按鈕名稱",
-          "這是此項目在 Cavalry Control 中的按鈕名稱。"
+          "這是此項目在 Cavalry 控制面板中的按鈕名稱。"
         ]
       },
       "enums": {
@@ -550,7 +550,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "renderPNG",
-      "nodeInfo": "產生 PNG 圖像檔案。",
+      "nodeInfo": "產生 PNG 影像檔案。",
       "niceName": "PNG 序列",
       "attributes": {
         "compression": "壓縮",
@@ -574,8 +574,8 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "renderSpriteSheet",
-      "nodeInfo": "產生精靈表圖像。",
-      "niceName": "精靈图",
+      "nodeInfo": "產生精靈表影像。",
+      "niceName": "精靈圖",
       "attributes": {
         "compression": "壓縮",
         "pngFilter": "PNG 濾鏡",
@@ -596,10 +596,10 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "renderJPEG",
-      "nodeInfo": "產生 JPEG 圖像檔案。",
+      "nodeInfo": "產生 JPEG 影像檔案。",
       "niceName": "JPEG 序列",
       "attributes": {
-        "quality": "質量"
+        "quality": "品質"
       }
     }
   },
@@ -607,10 +607,10 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "renderWebP",
-      "nodeInfo": "產生 WebP 圖像檔案。",
+      "nodeInfo": "產生 WebP 影像檔案。",
       "niceName": "WebP 序列",
       "attributes": {
-        "quality": "質量"
+        "quality": "品質"
       }
     }
   },
@@ -630,7 +630,7 @@
       "niceName": "GIF",
       "attributes": {
         "quality": [
-          "質量",
+          "品質",
           "設定輸出檔案中的最大顏色數。"
         ],
         "alpha": "Alpha"
@@ -661,12 +661,12 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "renderQuicktime",
-      "nodeInfo": "產生 QuickTime 影片檔案。",
+      "nodeInfo": "產生影片檔案。",
       "niceName": "QuickTime",
       "attributes": {
         "proResCodec": [
           "ProRes 編解碼器",
-          "ProRes 422 HQ （在 1920x1080x29.97 下約 220 Mbps ）"
+          "ProRes 422 HQ（1920x1080x29.97 下約 220 兆位元/秒）"
         ],
         "bitDepth": [
           "位元深度",
@@ -707,7 +707,7 @@
       "attributes": {
         "codec": [
           "編解碼器",
-          "ProRes 422 HQ （在 1920x1080x29.97 下約 220 Mbps ）"
+          "ProRes 422 HQ（1920x1080x29.97 下約 220 兆位元/秒）"
         ]
       },
       "enums": {
@@ -733,7 +733,7 @@
         "quality": "位元率預設",
         "bitrate": "自訂比特率",
         "qualityMode": "品質模式",
-        "crf": "質量"
+        "crf": "品質"
       },
       "enums": {
         "codec": {
@@ -749,7 +749,7 @@
           "4": "自定義..."
         },
         "qualityMode": {
-          "0": "質量",
+          "0": "品質",
           "1": "比特率"
         }
       }
@@ -803,7 +803,7 @@
           "2": "Adobe RGB",
           "3": "Display P3",
           "4": "Rec.2020",
-          "5": "線性 sRGB"
+          "5": "線性標準 RGB"
         }
       }
     }
@@ -841,7 +841,7 @@
         "qualityMode": "品質模式",
         "mp4Quality": "位元率預設",
         "mp4Bitrate": "自訂比特率",
-        "crf": "質量",
+        "crf": "品質",
         "encodingMode": "編碼速度"
       },
       "enums": {
@@ -853,7 +853,7 @@
           "4": "自定義..."
         },
         "qualityMode": {
-          "0": "質量",
+          "0": "品質",
           "1": "比特率"
         },
         "encodingMode": {
@@ -876,12 +876,12 @@
         "qualityMode": "品質模式",
         "bitrate": "自訂比特率",
         "bitratePresets": "位元率預設",
-        "crf": "質量",
+        "crf": "品質",
         "encodingMode": "編碼速度"
       },
       "enums": {
         "qualityMode": {
-          "0": "質量",
+          "0": "品質",
           "1": "比特率"
         },
         "bitratePresets": {
@@ -924,14 +924,14 @@
         "rotation": "旋轉",
         "positionOffset": "位置偏移",
         "lookAtOffset": "注視偏移",
-        "lookAt": "朝向",
+        "lookAt": "注視",
         "zoom": "縮放"
       },
       "enums": {
         "cameraType": {
           "0": "自由形狀",
-          "1": "朝向",
-          "2": "参考線"
+          "1": "注視",
+          "2": "參考線"
         }
       }
     }
@@ -942,9 +942,9 @@
       "nodeType": "rigControl",
       "nodeInfo": "2D 控制器（或稱為操縱桿）。",
       "attributes": {
-        "rigControlHelp": "綁定控製器（搖桿）可以連接到“位置”等屬性或可編輯形狀的“路徑”。",
+        "rigControlHelp": "綁定控制器（搖桿）可以連接到“位置”等屬性或可編輯形狀的“路徑”。",
         "amount": "控制",
-        "active": "活動"
+        "active": "啟用"
       }
     }
   },
@@ -958,13 +958,13 @@
         "composition": "合成",
         "timeOffset": "時間偏移",
         "length": "合成長度",
-        "overrideHelp": "要添加預合成覆蓋，右鍵單擊合成中圖層上的屬性並選擇“添加預合成覆蓋”。該屬性將出現在此列表中。",
+        "overrideHelp": "要新增預合成覆蓋，右鍵單擊合成中圖層上的屬性並選擇“新增預合成覆蓋”。該屬性將出現在此列表中。",
         "overrides.attribute": "屬性",
         "overrides.enabled": "使用覆蓋",
         "overrides.double": "值",
-        "overrides.double2": "值 2",
+        "overrides.double2": "數值 2",
         "overrides.color": "顏色",
-        "overrides.string": "字符串",
+        "overrides.string": "字元串",
         "overrides.font": "字體",
         "overrides.richText": "RTF 文字",
         "overrides.name": "名稱",
@@ -1058,7 +1058,7 @@
           "0": "路徑切線",
           "1": "自定義...",
           "2": "路徑曲率",
-          "3": "弧形"
+          "3": "圓弧"
         },
         "arcDirection": {
           "0": "正常",
@@ -1077,7 +1077,7 @@
         "attributes": {
           "gridCount": [
             "網格數量",
-            "X 和 Y 維度的控製點數量。"
+            "X 和 Y 維度的控制點數量。"
           ],
           "bounds": [
             "邊界",
@@ -1085,24 +1085,24 @@
           ],
           "falloffs": "衰減",
           "controlPointOffsets": [
-            "控製點偏移",
-            "晶格網格中每個控製點的偏移。"
+            "控制點偏移",
+            "晶格網格中每個控制點的偏移。"
           ],
           "deformers": [
             "變形器",
-            "連接行為以程式化修改晶格控製點。"
+            "連接行為以程式化修改晶格控制點。"
           ],
           "constraints": [
             "約束",
-            "連接晶格約束以使用變換控製晶格點組。"
+            "連接晶格約束以使用變換控制晶格點組。"
           ],
           "strength": [
             "強度",
-            "控製變形效果的強度。"
+            "控制變形效果的強度。"
           ],
           "triangulate": [
             "三角化",
-            "三角化形狀以啟用紋理變形支持。"
+            "三角化形狀以啟用紋理變形支援。"
           ]
         }
       },
@@ -1121,15 +1121,15 @@
           ],
           "position": [
             "位置",
-            "控製器變換的位置偏移。"
+            "控制器變換的位置偏移。"
           ],
           "rotation": [
             "旋轉",
-            "控製器變換的旋轉（度）。"
+            "控制器變換的旋轉（度）。"
           ],
           "scale": [
             "縮放",
-            "控製器變換的縮放。"
+            "控制器變換的縮放。"
           ],
           "strength": [
             "強度",
@@ -1151,68 +1151,68 @@
           ],
           "corner0.position": [
             "左上",
-            "左上角的位置和切線控製柄。"
+            "左上角的位置和切線控制柄。"
           ],
           "corner0.tangentIn": [
-            "左上入控製柄",
-            "左上角的位置和切線控製柄。"
+            "左上入控制柄",
+            "左上角的位置和切線控制柄。"
           ],
           "corner0.tangentOut": [
-            "左上出控製柄",
-            "左上角的位置和切線控製柄。"
+            "左上出控制柄",
+            "左上角的位置和切線控制柄。"
           ],
           "corner1.position": [
             "右上",
-            "右上角的位置和切線控製柄。"
+            "右上角的位置和切線控制柄。"
           ],
           "corner1.tangentIn": [
-            "右上入控製柄",
-            "右上角的位置和切線控製柄。"
+            "右上入控制柄",
+            "右上角的位置和切線控制柄。"
           ],
           "corner1.tangentOut": [
-            "右上出控製柄",
-            "右上角的位置和切線控製柄。"
+            "右上出控制柄",
+            "右上角的位置和切線控制柄。"
           ],
           "corner2.position": [
             "右下",
-            "右下角的位置和切線控製柄。"
+            "右下角的位置和切線控制柄。"
           ],
           "corner2.tangentIn": [
-            "右下入控製柄",
-            "右下角的位置和切線控製柄。"
+            "右下入控制柄",
+            "右下角的位置和切線控制柄。"
           ],
           "corner2.tangentOut": [
-            "右下出控製柄",
-            "右下角的位置和切線控製柄。"
+            "右下出控制柄",
+            "右下角的位置和切線控制柄。"
           ],
           "corner3.position": [
             "左下",
-            "左下角的位置和切線控製柄。"
+            "左下角的位置和切線控制柄。"
           ],
           "corner3.tangentIn": [
-            "左下入控製柄",
-            "左下角的位置和切線控製柄。"
+            "左下入控制柄",
+            "左下角的位置和切線控制柄。"
           ],
           "corner3.tangentOut": [
-            "左下出控製柄",
-            "左下角的位置和切線控製柄。"
+            "左下出控制柄",
+            "左下角的位置和切線控制柄。"
           ],
           "falloffs": "衰減",
           "triangulate": [
             "三角化",
-            "三角化形狀以啟用紋理變形支持。"
+            "三角化形狀以啟用紋理變形支援。"
           ],
           "quality": [
-            "質量",
+            "品質",
             "選擇網格變形的細分密度。"
           ],
           "meshCustomSpacing": [
             "網格間距",
-            "網格質量設為自定義時網格採樣之間的像素間距。"
+            "網格品質設為自定義時網格採樣之間的像素間距。"
           ],
           "strength": [
             "強度",
-            "控製扭曲效果的強度。"
+            "控制扭曲效果的強度。"
           ]
         },
         "enums": {
@@ -1262,8 +1262,8 @@
           ]
         },
         "tabs": {
-          "basic": "設置",
-          "advanced": "高級"
+          "basic": "設定",
+          "advanced": "進階"
         },
         "enums": {
           "fractalType": {
@@ -1286,8 +1286,8 @@
           "octaves": "八度",
           "lacunarity": "空隙度",
           "gain": "增益",
-          "curl": "卷曲噪波",
-          "curlAmplitude": "卷曲量"
+          "curl": "捲曲噪波",
+          "curlAmplitude": "捲曲量"
         }
       },
       {
@@ -1298,8 +1298,8 @@
           "octaves": "八度",
           "lacunarity": "空隙度",
           "gain": "增益",
-          "curl": "卷曲",
-          "curlAmplitude": "卷曲振幅"
+          "curl": "捲曲",
+          "curlAmplitude": "捲曲振幅"
         }
       },
       {
@@ -1310,8 +1310,8 @@
           "octaves": "八度",
           "lacunarity": "空隙度",
           "gain": "增益",
-          "curl": "卷曲",
-          "curlAmplitude": "卷曲振幅"
+          "curl": "捲曲",
+          "curlAmplitude": "捲曲振幅"
         }
       },
       {
@@ -1322,7 +1322,7 @@
           "octaves": "八度",
           "lacunarity": "空隙度",
           "gain": "增益",
-          "curl": "卷曲",
+          "curl": "捲曲",
           "distanceFunction": "距離函數",
           "cellularType": "細胞類型",
           "jitter": "抖動"
@@ -1399,7 +1399,7 @@
           "flip": "翻轉",
           "pathOffset": "路徑偏移",
           "strength": "強度",
-          "loop": "循環",
+          "loop": "迴圈",
           "reversePath": "反轉輸入路徑",
           "rotation": "旋轉",
           "rotationOffset": "旋轉偏移"
@@ -1514,12 +1514,12 @@
         },
         "enums": {
           "operation": {
-            "0": "小于",
-            "1": "大于",
-            "2": "等于",
-            "3": "不等于",
-            "4": "小于或等于",
-            "5": "大于或等于"
+            "0": "小於",
+            "1": "大於",
+            "2": "等於",
+            "3": "不等於",
+            "4": "小於或等於",
+            "5": "大於或等於"
           }
         }
       },
@@ -1551,7 +1551,7 @@
         },
         "enums": {
           "operation": {
-            "0": "加法",
+            "0": "新增",
             "1": "減法",
             "2": "正片疊底",
             "3": "除法",
@@ -1568,9 +1568,9 @@
             "14": "向上取整",
             "15": "四捨五入",
             "16": "絕對",
-            "17": "大于",
-            "18": "小于",
-            "19": "等于"
+            "17": "大於",
+            "18": "小於",
+            "19": "等於"
           }
         }
       },
@@ -1586,7 +1586,7 @@
         },
         "enums": {
           "operation": {
-            "0": "加法",
+            "0": "新增",
             "1": "減法",
             "2": "正片疊底"
           }
@@ -1604,7 +1604,7 @@
         },
         "enums": {
           "operation": {
-            "0": "加法",
+            "0": "新增",
             "1": "減法"
           }
         }
@@ -1660,7 +1660,7 @@
         "attributes": {
           "condition": [
             "條件",
-            "一個佈爾值，對于任何 ≥ 0.5 的值輸出真，對于任何 < 0.5 的值輸出假"
+            "一個佈爾值，對於任何 ≥ 0.5 的值輸出真，對於任何 < 0.5 的值輸出假"
           ],
           "first": [
             "真",
@@ -1712,7 +1712,7 @@
         },
         "tabs": {
           "shape": "形狀",
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
@@ -1791,7 +1791,7 @@
           "reverse": "反轉",
           "useIndex": [
             "使用索引上下文",
-            "將任何傳入索引（例如來自複製器的）添加到此圖層創建的索引中。"
+            "將任何傳入索引（例如來自複製器的）新增到此圖層建立的索引中。"
           ],
           "gradientMode": "漸層模式"
         },
@@ -1803,8 +1803,8 @@
           }
         },
         "tabs": {
-          "advanced": "高級",
-          "utility": "實用"
+          "advanced": "進階",
+          "utility": "工具"
         }
       },
       {
@@ -1863,8 +1863,8 @@
           "frameOffset": "幀偏移",
           "offset": "值偏移",
           "maxDb": [
-            "最大 dB",
-            "將音頻信號振幅轉換為 dB 時找到的最大 dB 值。使用平滑幀或子步驟時，此值為近似值。"
+            "最大分貝",
+            "將音訊訊號振幅轉換為分貝時找到的最大分貝值。使用平滑影格或子步驟時，此值為近似值。"
           ],
           "length": [
             "檔案長度",
@@ -1876,22 +1876,22 @@
           ],
           "useIndex": [
             "使用傳入索引",
-            "將任何傳入索引（例如來自複製器的）添加到此圖層創建的索引中。"
+            "將任何傳入索引（例如來自複製器的）新增到此圖層建立的索引中。"
           ],
           "weightingGraph": [
             "頻段權重圖",
-            "使用此功能控製各頻段的音量。"
+            "使用此功能控制各頻段的音量。"
           ],
           "frequencyRange": [
-            "頻率範圍 Hz",
-            "採樣的頻率範圍。人類聽覺範圍約為 20 Hz 到 20,000 Hz。\n預設值為鋼琴的頻率範圍。"
+            "頻率範圍（赫茲）",
+            "取樣的頻率範圍。人類聽覺範圍約為 20 赫茲到 20,000 赫茲。\n預設值為鋼琴的頻率範圍。"
           ],
           "aWeighting": [
             "A 加權",
             "調整頻段的振幅以更好地反映人類聽覺感知。"
           ],
-          "playbackVolume": "音量調整 dB",
-          "playbackPan": "平移"
+          "playbackVolume": "音量調整（分貝）",
+          "playbackPan": "移動檢視"
         },
         "notifications": {
           "0": "Number of Bands must be above 1.",
@@ -1899,7 +1899,7 @@
           "2": "Drag an Audio Asset onto the File attribute."
         },
         "tabs": {
-          "advanced": "高級"
+          "advanced": "進階"
         },
         "enums": {
           "frequencyScale": {
@@ -1962,8 +1962,8 @@
           "level": "自定義層級",
           "useLevels": "使用層級",
           "highQuality": [
-            "高質量",
-            "幾何體將以更高質量採樣，但會犧牲性能。"
+            "高品質",
+            "幾何體將以更高品質採樣，但會犧牲性能。"
           ]
         },
         "enums": {
@@ -1984,8 +1984,8 @@
           "levelMode": {
             "0": "自定義...",
             "1": "文字（行）/ 複製器",
-            "2": "文本（詞）",
-            "3": "文本（字符）"
+            "2": "文字（詞）",
+            "3": "文字（字元）"
           }
         }
       },
@@ -2004,15 +2004,15 @@
           ],
           "subdivideGeometry": [
             "細分幾何體",
-            "凸起時將添加額外的幾何體。"
+            "凸起時將新增額外的幾何體。"
           ],
           "areaPreservation": [
             "面積保持",
             "凸起將被縮放以保持整體形狀面積。"
           ],
           "highQuality": [
-            "高質量",
-            "幾何體將以更高質量採樣，但會犧牲性能。"
+            "高品質",
+            "幾何體將以更高品質採樣，但會犧牲性能。"
           ],
           "levelMode": "層級模式",
           "level": "自定義層級",
@@ -2027,8 +2027,8 @@
           "levelMode": {
             "0": "自定義...",
             "1": "文字（行）/ 複製器",
-            "2": "文本（詞）",
-            "3": "文本（字符）"
+            "2": "文字（詞）",
+            "3": "文字（字元）"
           }
         }
       },
@@ -2054,7 +2054,7 @@
       },
       {
         "nodeType": "materialBehaviourColor",
-        "niceName": "顏色材質覆寫",
+        "niceName": "顏色材質覆蓋",
         "nodeInfo": "覆蓋子網格內的顏色。",
         "attributes": {
           "materialColor": "顏色"
@@ -2062,7 +2062,7 @@
       },
       {
         "nodeType": "materialBehaviourAlpha",
-        "niceName": "Alpha 材質覆寫",
+        "niceName": "Alpha材質覆蓋",
         "nodeInfo": "覆蓋子網格內的透明度。",
         "attributes": {
           "alpha": "Alpha"
@@ -2071,7 +2071,7 @@
       {
         "nodeType": "materialBehaviourHSV",
         "nodeInfo": "覆蓋子網格內形狀的色相、飽和度和明度。",
-        "niceName": "HSV 材質覆蓋",
+        "niceName": "HSV材質覆蓋",
         "attributes": {
           "adjustHue": "色相",
           "adjustSaturation": "飽和度",
@@ -2095,9 +2095,9 @@
         "enums": {
           "levelMode": {
             "0": "自定義...",
-            "1": "文本（行）",
-            "2": "文本（詞）",
-            "3": "文本（字符）"
+            "1": "文字（行）",
+            "2": "文字（詞）",
+            "3": "文字（字元）"
           }
         }
       },
@@ -2114,9 +2114,9 @@
         "enums": {
           "levelMode": {
             "0": "自定義...",
-            "1": "文本（行）",
-            "2": "文本（詞）",
-            "3": "文本（字符）"
+            "1": "文字（行）",
+            "2": "文字（詞）",
+            "3": "文字（字元）"
           }
         }
       },
@@ -2126,8 +2126,8 @@
         "niceName": "套用版面",
         "attributes": {
           "layout": [
-            "佈局",
-            "選擇用于定位形狀的佈局。"
+            "版面配置",
+            "選擇用於定位形狀的佈局。"
           ],
           "level": [
             "層級",
@@ -2141,7 +2141,7 @@
       {
         "nodeType": "chopPath",
         "nodeInfo": "使用矩形將路徑切割為區塊。",
-        "niceName": "切割路徑",
+        "niceName": "分割路徑",
         "attributes": {
           "count": [
             "數量",
@@ -2151,7 +2151,7 @@
             "角度",
             "切割的角度。"
           ],
-          "spreadHelp": "您可以將隨機、噪波或錯開等行為連接到“擴散”和“偏移”以創建有趣的效果。",
+          "spreadHelp": "您可以將隨機、噪波或錯開等行為連接到“擴散”和“偏移”以建立有趣的效果。",
           "offset": [
             "偏移",
             "偏移路徑的切割部分。例如，您可以在此連接錯開、隨機或噪波。"
@@ -2162,13 +2162,13 @@
           ],
           "deformers": [
             "矩形變形器",
-            "變形用于切割路徑的矩形。"
+            "變形用於切割路徑的矩形。"
           ],
           "flattenShape": [
             "展平形狀",
             "開啟後，切割將把所有子網格視為一個整體。"
           ],
-          "flattenShapeHelp": "開啟展平形狀後，您將丟失所有輸入材質。要對輸出切片套用材質，請使用子網格行為。"
+          "flattenShapeHelp": "開啟展平形狀後，您將遺失所有輸入材質。要對輸出切片套用材質，請使用子網格行為。"
         }
       },
       {
@@ -2201,7 +2201,7 @@
           "deformers": "變形器",
           "flattenMeshAtLevel": [
             "在層級展平網格",
-            "這將在特定級別展平網格。\n適用于將每個字符的材質轉換為每個詞/行的材質。"
+            "這將在特定級別展平網格。\n適用於將每個字元的材質轉換為每個詞/行的材質。"
           ],
           "fillReplacementMode": "替換模式",
           "strokeReplacementMode": "替換模式",
@@ -2211,7 +2211,7 @@
           ],
           "useIndex": [
             "使用索引上下文",
-            "將任何傳入索引（例如來自複製器的）添加到此圖層創建的索引中。"
+            "將任何傳入索引（例如來自複製器的）新增到此圖層建立的索引中。"
           ],
           "indexMode": [
             "索引模式",
@@ -2233,26 +2233,26 @@
           },
           "levelMode": {
             "0": "自定義...",
-            "1": "文本（行）",
-            "2": "文本（詞）",
-            "3": "文本（字符）",
+            "1": "文字（行）",
+            "2": "文字（詞）",
+            "3": "文字（字元）",
             "4": "全部"
           },
           "fillReplacementMode": {
             "0": "全部替換",
-            "1": "替換缺失",
+            "1": "替換缺少",
             "2": "替換現有"
           },
           "strokeReplacementMode": {
             "0": "全部替換",
-            "1": "替換缺失",
+            "1": "替換缺少",
             "2": "替換現有"
           }
         },
         "tabs": {
           "fill": "填充",
           "stroke": "描邊",
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
@@ -2268,11 +2268,11 @@
           "curveToEndPoints": "曲線到端點",
           "minAngle": [
             "最小角度",
-            "僅對內角大于此值（度）的拐角進行斜面處理。"
+            "僅對內角大於此值（度）的拐角進行斜面處理。"
           ],
           "maxAngle": [
             "最大角度",
-            "僅對內角小于此值（度）的拐角進行斜面處理。"
+            "僅對內角小於此值（度）的拐角進行斜面處理。"
           ]
         },
         "enums": {
@@ -2320,7 +2320,7 @@
           "trimEnd": "結束",
           "trimTravel": "行程",
           "reversePath": "反轉路徑",
-          "align": "對齊",
+          "align": "對齐",
           "colorShaders": "著色器",
           "alpha": "Alpha",
           "taperedWidth": "錐形寬度",
@@ -2346,7 +2346,7 @@
           "joinStyle": {
             "0": "斜接",
             "1": "四捨五入",
-            "2": "斜面"
+            "2": "斜邊"
           },
           "align": {
             "0": "中心",
@@ -2365,7 +2365,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路徑）",
             "2": "HSV 插值（長路徑）",
-            "3": "Oklab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路徑）",
             "5": "LCH 插值（長路徑）"
           }
@@ -2377,8 +2377,8 @@
         "attributes": {
           "size": "大小",
           "voxelScale": "體素縮放",
-          "screenSpace": "屏幕空間",
-          "screenSize": "屏幕大小"
+          "screenSpace": "螢幕空間",
+          "screenSize": "螢幕大小"
         }
       },
       {
@@ -2432,8 +2432,8 @@
       },
       {
         "nodeType": "align",
-        "niceName": "對齊",
-        "nodeInfo": "沿形狀邊界框的邊緣動態定位其軸心點。",
+        "niceName": "對齐",
+        "nodeInfo": "沿形狀邊界框的邊緣動態定位其錨點。",
         "attributes": {
           "x": "X",
           "y": "Y"
@@ -2532,7 +2532,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路徑）",
             "2": "HSV 插值（長路徑）",
-            "3": "Oklab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路徑）",
             "5": "LCH 插值（長路徑）"
           }
@@ -2592,8 +2592,8 @@
         "nodeType": "rubberHoseLimb",
         "nodeInfo": "適用於彎曲或直線肢體的簡易雙骨骼 IK 系統。",
         "attributes": {
-          "topJoint": "開始控製器",
-          "bottomJoint": "結束控製器",
+          "topJoint": "開始控制器",
+          "bottomJoint": "結束控制器",
           "graph": "錐度圖",
           "stretch": "拉伸",
           "jointPosition": "關節位置",
@@ -2638,7 +2638,7 @@
         "nodeInfo": "透過移動空物件，在衰減範圍內對形狀進行「捏取與拉伸」。",
         "attributes": {
           "strength": "強度",
-          "active": "活動",
+          "active": "啟用",
           "mover": "收縮點",
           "bindFalloff": "綁定區域"
         }
@@ -2675,8 +2675,8 @@
           "levelMode": {
             "0": "自定義...",
             "1": "文字（行）/ 複製器",
-            "2": "文本（詞）",
-            "3": "文本（字符）",
+            "2": "文字（詞）",
+            "3": "文字（字元）",
             "4": "全部"
           }
         }
@@ -2719,9 +2719,9 @@
         "enums": {
           "levelMode": {
             "0": "自定義...",
-            "1": "文本（行）",
-            "2": "文本（詞）",
-            "3": "文本（字符）"
+            "1": "文字（行）",
+            "2": "文字（詞）",
+            "3": "文字（字元）"
           }
         }
       },
@@ -2773,8 +2773,8 @@
         "enums": {
           "colorFilter": {
             "0": "無",
-            "1": "線性到 sRGB",
-            "2": "sRGB 到線性"
+            "1": "線性到標準 RGB",
+            "2": "標準 RGB 到線性"
           },
           "tiling": {
             "0": "鉗製",
@@ -2846,8 +2846,8 @@
           },
           "colorFilter": {
             "0": "無",
-            "1": "線性到 sRGB",
-            "2": "sRGB 到線性"
+            "1": "線性到標準 RGB",
+            "2": "標準 RGB 到線性"
           },
           "greyscaleMode": {
             "0": "亮度（伽馬校正）",
@@ -2863,7 +2863,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路徑）",
             "2": "HSV 插值（長路徑）",
-            "3": "Oklab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路徑）",
             "5": "LCH 插值（長路徑）"
           }
@@ -2885,8 +2885,8 @@
           "filterQuality": {
             "0": "無（最快）",
             "1": "雙線性",
-            "2": "Mipmap（用于縮小）",
-            "3": "雙三次（用于放大）"
+            "2": "多級紋理（用於縮小）",
+            "3": "雙三次（用於放大）"
           }
         }
       },
@@ -2895,7 +2895,7 @@
         "niceName": "漸層著色器",
         "nodeInfo": "具有線性、放射狀、掃描和錐形漸層的漸層著色器。",
         "attributes": {
-          "screenSpace": "屏幕空間",
+          "screenSpace": "螢幕空間",
           "tiling": "平鋪",
           "generator": "模式",
           "alpha": "Alpha",
@@ -2908,7 +2908,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路徑）",
             "2": "HSV 插值（長路徑）",
-            "3": "Oklab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路徑）",
             "5": "LCH 插值（長路徑）"
           }
@@ -3030,8 +3030,8 @@
       },
       {
         "nodeType": "skslShader",
-        "niceName": "SkSL 著色器",
-        "nodeInfo": "使用 SkSL （基於 GLSL ）撰寫自訂著色器。",
+        "niceName": "史奇亞著色語言著色器",
+        "nodeInfo": "使用史奇亞著色語言（基於 GLSL）撰寫自訂著色器。",
         "attributes": {
           "inputs": "輸入",
           "code": "著色器代碼"
@@ -3039,7 +3039,7 @@
       },
       {
         "nodeType": "contoursToSubMeshes",
-        "niceName": "輪廓轉子網格",
+        "niceName": "等高線到子網格",
         "nodeInfo": "將路徑輪廓轉換為不同的子網格，可選擇保留孔洞。",
         "attributes": {
           "keepHoles": "保留孔洞"
@@ -3047,12 +3047,12 @@
       },
       {
         "nodeType": "skslFilter",
-        "niceName": "SkSL 濾鏡",
-        "nodeInfo": "使用 SkSL （基於 GLSL ）撰寫自訂濾鏡。",
+        "niceName": "史奇亞著色語言濾鏡",
+        "nodeInfo": "使用史奇亞著色語言（基於 GLSL）撰寫自訂濾鏡。",
         "attributes": {
           "code": [
             "濾鏡代碼",
-            "在此編寫/貼上/編輯 SkSL 代碼。"
+            "在此撰寫、貼上或編輯史奇亞著色語言程式碼。"
           ],
           "blendMode": [
             "混合模式",
@@ -3090,10 +3090,10 @@
         "nodeType": "thirdPartyFilter",
         "attributes": {
           "blendMode": "混合模式",
-          "renderPassesOffscreen": "在屏幕外算繪通道",
+          "renderPassesOffscreen": "在螢幕外算繪通道",
           "samplingQuality": [
-            "採樣質量",
-            "控製圖像的採樣/插值方式。"
+            "採樣品質",
+            "控制影像的採樣/插值方式。"
           ]
         },
         "enums": {
@@ -3127,7 +3127,7 @@
       },
       {
         "nodeType": "imageShader",
-        "niceName": "圖像著色器",
+        "niceName": "影像著色器",
         "nodeInfo": "用於影像、影像序列和影片的著色器。",
         "attributes": {
           "image": "檔案",
@@ -3143,7 +3143,7 @@
           "fps": "FPS",
           "sequenceLength": "序列長度",
           "filterQuality": "濾鏡",
-          "missingImageMode": "缺失幀",
+          "missingImageMode": "缺少幀",
           "ourResolution": "大小"
         },
         "enums": {
@@ -3169,11 +3169,11 @@
           "filterQuality": {
             "0": "無（最快）",
             "1": "雙線性",
-            "2": "Mipmap（用于縮小）",
-            "3": "雙三次（用于放大）"
+            "2": "多級紋理（用於縮小）",
+            "3": "雙三次（用於放大）"
           },
           "missingImageMode": {
-            "0": "噪波",
+            "0": "雜訊",
             "1": "最近幀",
             "2": "黑色"
           }
@@ -3217,7 +3217,7 @@
             "3": "Alpha 反轉"
           },
           "blendMode": {
-            "0": "加法",
+            "0": "新增",
             "1": "減法",
             "2": "正片疊底",
             "3": "最小值",
@@ -3395,7 +3395,7 @@
           "inputShape": "輸入形狀",
           "alpha": "Alpha",
           "blendMode": "混合模式",
-          "renderQuality": "算繪質量"
+          "renderQuality": "算繪品質"
         },
         "enums": {
           "renderQuality": {
@@ -3472,7 +3472,7 @@
           "width": "寬度",
           "feather": "羽化",
           "direction": "旋轉",
-          "screenSpace": "屏幕空間",
+          "screenSpace": "螢幕空間",
           "opacity": "不透明度"
         },
         "enums": {
@@ -3539,7 +3539,7 @@
           "wipeMode": "模式",
           "feather": "羽化",
           "startAngle": "開始角度",
-          "screenSpace": "屏幕空間"
+          "screenSpace": "螢幕空間"
         },
         "enums": {
           "wipeMode": {
@@ -3616,7 +3616,7 @@
           "completion": "完成度",
           "feather": "羽化",
           "direction": "旋轉",
-          "screenSpace": "屏幕空間",
+          "screenSpace": "螢幕空間",
           "resolution": "解析度"
         }
       },
@@ -3642,8 +3642,8 @@
           "fracMode": "分形模式",
           "ridgeOffset": "山脊偏移",
           "noiseShaderType": "噪波類型",
-          "curlEnabled": "卷曲噪波",
-          "epsilonScale": "卷曲量"
+          "curlEnabled": "捲曲噪波",
+          "epsilonScale": "捲曲量"
         },
         "enums": {
           "noiseShaderType": {
@@ -3665,6 +3665,7 @@
     "values": [
       {
         "nodeType": "basicShape",
+        "niceName": "基本形狀",
         "nodeInfo": "基本圖形，例如矩形、橢圓形或多邊形。",
         "attributes": {
           "generator": "基本體類型"
@@ -3672,7 +3673,7 @@
       },
       {
         "nodeType": "svgShape",
-        "nodeInfo": "從 .svg 素材建立形狀。",
+        "nodeInfo": "從 SVG 素材建立形狀。",
         "niceName": "SVG",
         "attributes": {
           "input": "檔案",
@@ -3683,7 +3684,7 @@
       {
         "nodeType": "typeShape",
         "attributes": {
-          "text": "字符串",
+          "text": "字元串",
           "font": "字體",
           "fontSize": "字號",
           "alignment": "對齊方式",
@@ -3692,7 +3693,7 @@
           "lineSpacing": "行間距",
           "shapeColor": "顏色",
           "verticalAlignment": "垂直對齊",
-          "manipulators": "字符串操作器",
+          "manipulators": "字元串操作器",
           "monospaceMultiplier": "等寬乘數",
           "forceMonospace": "強製等寬"
         },
@@ -3711,16 +3712,16 @@
       },
       {
         "nodeType": "textShape",
-        "nodeInfo": "建立並格式化富文本。",
+        "nodeInfo": "建立並格式化富文字。",
         "attributes": {
-          "text": "字符串",
-          "letterSpacing": "字符間距",
+          "text": "字元串",
+          "letterSpacing": "字元間距",
           "wordSpacing": "詞間距",
           "lineSpacing": "行間距",
           "horizontalAlignment": "對齊方式",
           "verticalAlignment": "垂直對齊",
-          "manipulators": "字符串操作器",
-          "textBoxSize": "文本框大小",
+          "manipulators": "字元串操作器",
+          "textBoxSize": "文字框大小",
           "autoWidth": "自動寬度",
           "autoHeight": "自動高度",
           "monospaceMultiplier": "等寬乘數",
@@ -3732,12 +3733,12 @@
           "descenderAdjustment": "下伸部調整",
           "paragraphSpacing": "段落間距",
           "autoScaleFontSize": [
-            "縮小適配文本框",
-            "縮小字號使文本適配文本框。\n*需要取消勾選**文本框大小**上的**自動高度**。*"
+            "縮小適配文字框",
+            "縮小字號使文字適配文字框。\n*需要取消勾選**文字框大小**上的**自動高度**。*"
           ],
           "allowWordBreaks": [
             "允許詞內換行",
-            "允許長詞跨兩行或多行拆分。\n*僅在啟用**縮放適配文本框**時才能禁用。*"
+            "允許長詞跨兩行或多行拆分。\n*僅在啟用**縮放適配文字框**時才能停用。*"
           ],
           "specificIndices": [
             "指定索引",
@@ -3746,19 +3747,19 @@
           "backgroundMode": "模式",
           "pathPush": "路徑推力",
           "pathTravel": "路徑行程",
-          "textPath": "文本路徑",
+          "textPath": "文字路徑",
           "pathLoop": "路徑循環",
           "fontScale": [
             "字體縮放",
-            "當“縮小適配文本框”開啟時，這是套用于字號的縮放結果。"
+            "當“縮小適配文字框”開啟時，這是套用於字號的縮放結果。"
           ],
           "autoName": [
             "自動命名",
-            "開啟後，此圖層將自動重命名以匹配其文本。"
+            "開啟後，此圖層將自動重命名以匹配其文字。"
           ],
           "avoidOrphans": [
             "避免孤行",
-            "避免單詞獨佔一行。需要啟用文本框。"
+            "避免單詞獨佔一行。需要啟用文字框。"
           ],
           "cornerRadius": "圓角半徑",
           "radiusMode": "圓角半徑模式",
@@ -3784,9 +3785,9 @@
             "3": "基線"
           },
           "backgroundMode": {
-            "0": "線條",
+            "0": "直線",
             "1": "詞",
-            "2": "字符",
+            "2": "字元",
             "3": "段落",
             "4": "文檔"
           },
@@ -3803,7 +3804,7 @@
       {
         "nodeType": "applyFontSize",
         "niceName": "套用字型大小",
-        "nodeInfo": "透過文字形狀的樣式行為，根據搜尋（正規表達式）以程序化方式設定文字形狀的字型大小。",
+        "nodeInfo": "透過文字形狀的樣式行為，根據搜尋（正規表達式）以程式化方式設定文字形狀的字型大小。",
         "attributes": {
           "indices": "索引",
           "fontSize": "字號",
@@ -3818,9 +3819,9 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "線條",
+            "0": "直線",
             "1": "詞",
-            "2": "字符"
+            "2": "字元"
           },
           "blendMode": {
             "0": "正常（疊加）",
@@ -3846,7 +3847,7 @@
       {
         "nodeType": "applyTypeface",
         "niceName": "套用字體",
-        "nodeInfo": "透過文字形狀的樣式行為，根據搜尋（正規表達式）以程序化方式設定文字形狀的字體。",
+        "nodeInfo": "透過文字形狀的樣式行為，根據搜尋（正規表達式）以程式化方式設定文字形狀的字體。",
         "attributes": {
           "indices": "指定索引",
           "fontSize": "字號",
@@ -3863,9 +3864,9 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "線條",
+            "0": "直線",
             "1": "詞",
-            "2": "字符"
+            "2": "字元"
           }
         },
         "presets": {
@@ -3882,7 +3883,7 @@
       {
         "nodeType": "applyTextFill",
         "niceName": "套用文字填色",
-        "nodeInfo": "舊版圖層 - 新的「套用文字材質」已可用。\n以程序化方式設定文字形狀的行／字詞／字元的填色顏色，或根據搜尋（正規表達式）設定。",
+        "nodeInfo": "舊版圖層 - 新的「套用文字材質」已可用。\n以程式化方式設定文字形狀的行／字詞／字元的填色顏色，或根據搜尋（正規表達式）設定。",
         "attributes": {
           "indices": "指定索引",
           "fontSize": "字號",
@@ -3898,9 +3899,9 @@
             "1": "指定索引"
           },
           "indexMode": {
-            "0": "線條",
+            "0": "直線",
             "1": "詞",
-            "2": "字符"
+            "2": "字元"
           }
         },
         "presets": {
@@ -3917,7 +3918,7 @@
       {
         "nodeType": "applyTextMaterial",
         "niceName": "套用文字材質",
-        "nodeInfo": "透過行／字詞／字元或搜尋（正規表達式）以程序化方式設定文字形狀的填色／筆畫。",
+        "nodeInfo": "透過行／字詞／字元或搜尋（正規表達式）以程式化方式設定文字形狀的填色／筆畫。",
         "attributes": {
           "indices": "指定索引",
           "mode": "模式",
@@ -3943,9 +3944,9 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "線條",
+            "0": "直線",
             "1": "詞",
-            "2": "字符"
+            "2": "字元"
           },
           "blendMode": {
             "1": "替換",
@@ -3984,17 +3985,17 @@
       {
         "nodeType": "applyCharacterSpacing",
         "niceName": "套用字元間距",
-        "nodeInfo": "透過文字形狀的樣式行為建立程序化字距配對。",
+        "nodeInfo": "透過文字形狀的樣式行為建立程式化字距配對。",
         "attributes": {
           "pairs": "匹配",
-          "pairs.matchString": "匹配字符串",
-          "pairs.spacing": "字符間距"
+          "pairs.matchString": "匹配字元串",
+          "pairs.spacing": "字元間距"
         }
       },
       {
         "nodeType": "applyOpenType",
-        "niceName": "套用 OpenType",
-        "nodeInfo": "對特定文字範圍套用 OpenType 特性。",
+        "niceName": "套用開放字型",
+        "nodeInfo": "對特定文字範圍套用開放字型特性。",
         "attributes": {
           "features": "特性",
           "features.feature": "字體特性",
@@ -4016,12 +4017,12 @@
         },
         "enums": {
           "feature": {
-            "0": "訪問所有替代字形",
-            "1": "上基字形",
-            "2": "上基標記定位",
-            "3": "上基替換",
+            "0": "存取所有替代項",
+            "1": "基線上方形式",
+            "2": "基線上方標記定位",
+            "3": "基線上方替換",
             "4": "替代分數",
-            "5": "Akhand 連字",
+            "5": "完整連字",
             "6": "替代比例寬度字距",
             "7": "下基字形",
             "8": "下基標記定位",
@@ -4029,7 +4030,7 @@
             "10": "上下文替代字形",
             "11": "大小寫敏感形式",
             "12": "字形組合/分解",
-            "13": "Ro 後連接形式",
+            "13": "羅字後連接形式",
             "14": "上下文半寬間距",
             "15": "連接形式",
             "16": "上下文連字",
@@ -4052,7 +4053,7 @@
             "33": "分數",
             "34": "全寬",
             "35": "半形",
-            "36": "Halant 形式",
+            "36": "尾音符形式",
             "37": "替代半寬",
             "38": "歷史形式",
             "39": "水平假名替代",
@@ -4083,8 +4084,8 @@
             "64": "標記到標記定位",
             "65": "通過替換進行標記定位",
             "66": "替代注釋形式",
-            "67": "NLC 漢字形式",
-            "68": "Nukta 形式",
+            "67": "漢字形式",
+            "68": "點符形式",
             "69": "分子",
             "70": "舊式數字",
             "71": "視覺邊界",
@@ -4102,9 +4103,9 @@
             "83": "四分之一寬",
             "84": "隨機化",
             "85": "必需上下文替代",
-            "86": "Rakar 形式",
+            "86": "拉卡爾形式",
             "87": "必需連字",
-            "88": "Reph 形式",
+            "88": "雷夫形式",
             "89": "右邊界",
             "90": "從右到左替代",
             "91": "從右到左鏡像形式",
@@ -4129,7 +4130,7 @@
             "110": "單一大小寫",
             "111": "替代垂直度量",
             "112": "替代比例垂直度量字距",
-            "113": "Vattu 變體",
+            "113": "瓦圖變體",
             "114": "垂直上下文半寬間距",
             "115": "垂直替代",
             "116": "替代垂直半寬度量",
@@ -4147,9 +4148,9 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "線條",
+            "0": "直線",
             "1": "詞",
-            "2": "字符"
+            "2": "字元"
           },
           "blendMode": {
             "0": "正常（疊加）",
@@ -4189,7 +4190,7 @@
           ],
           "regex": [
             "正則運算式",
-            "設置正則運算式以確定字符串中哪些部分將被選中。"
+            "設置正則運算式以確定字元串中哪些部分將被選中。"
           ],
           "indexMode": [
             "索引模式",
@@ -4229,9 +4230,9 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "線條",
+            "0": "直線",
             "1": "詞",
-            "2": "字符"
+            "2": "字元"
           },
           "supersInferiorsMode": {
             "0": "無",
@@ -4301,7 +4302,7 @@
           "maxPerPointConnections": "每點連接限製",
           "timeOffset": "時間偏移",
           "autoBezierMode": "自動貝茲模式",
-          "controlPointLengthBias": "控製點偏差"
+          "controlPointLengthBias": "控制點偏差"
         },
         "tabs": {
           "source": "來源",
@@ -4360,7 +4361,7 @@
       },
       {
         "nodeType": "textHex",
-        "nodeInfo": "為字串產生器產生十六進位（ base-16 ）字串。",
+        "nodeInfo": "為字串產生器產生十六進位字串。",
         "niceName": "十六進位",
         "attributes": {
           "numberOfLines": "行數",
@@ -4392,7 +4393,7 @@
         "attributes": {
           "iterations": "迭代次數",
           "mode": "模式",
-          "image": "圖像",
+          "image": "影像",
           "filterQuality": "濾鏡"
         },
         "enums": {
@@ -4403,13 +4404,14 @@
           "filterQuality": {
             "0": "無（最快）",
             "1": "雙線性",
-            "2": "Mipmap（用于縮小）",
-            "3": "雙三次（用于放大）"
+            "2": "多級紋理（用於縮小）",
+            "3": "雙三次（用於放大）"
           }
         }
       },
       {
         "nodeType": "basicLine",
+        "niceName": "基本線",
         "nodeInfo": "建立基本線條，例如貝茲曲線、螺旋線或直線。",
         "attributes": {
           "generator": "線條類型",
@@ -4419,7 +4421,7 @@
       {
         "nodeType": "simpleLine",
         "nodeInfo": "產生線條基本形。",
-        "niceName": "線條",
+        "niceName": "直線",
         "attributes": {
           "divisions": "細分",
           "length": "長度"
@@ -4470,7 +4472,7 @@
           "width": "寬度",
           "joinStyle": "連接樣式",
           "reversePath": "反轉路徑",
-          "align": "對齊",
+          "align": "對齐",
           "offset": "偏移",
           "capStyle": "端頭樣式",
           "cleanUp": "清理",
@@ -4488,7 +4490,7 @@
           "joinStyle": {
             "0": "斜接",
             "1": "四捨五入",
-            "2": "斜面"
+            "2": "斜邊"
           },
           "capStyle": {
             "0": "平面",
@@ -4522,14 +4524,14 @@
             "使用搜索半徑",
             "通過調整最短路徑算法可以在分佈中搜索有用點的距離來進行微調。"
           ],
-          "countHelp": "當數量大于 1 時，將行為（如隨機）連接到起始或結束行程屬性，使每條路徑不同。"
+          "countHelp": "當數量大於 1 時，將行為（如隨機）連接到起始或結束行程屬性，使每條路徑不同。"
         },
         "enums": {
           "levelMode": {
             "0": "自定義...",
-            "1": "文本（行）",
-            "2": "文本（詞）",
-            "3": "文本（字符）"
+            "1": "文字（行）",
+            "2": "文字（詞）",
+            "3": "文字（字元）"
           },
           "startMode": {
             "0": "位置",
@@ -4543,7 +4545,7 @@
         "attributes": {
           "shapes": [
             "輸入形狀",
-            "連接或添加要複製的形狀。"
+            "連接或新增要複製的形狀。"
           ],
           "generator": [
             "分佈",
@@ -4583,7 +4585,7 @@
           ],
           "useIndex": [
             "使用索引上下文",
-            "將任何傳入索引（例如來自複製器的）添加到此圖層創建的索引中。"
+            "將任何傳入索引（例如來自複製器的）新增到此圖層建立的索引中。"
           ],
           "indexContext": [
             "索引上下文",
@@ -4601,7 +4603,7 @@
           }
         },
         "tabs": {
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
@@ -4729,7 +4731,7 @@
         "attributes": {
           "inputShape": "輸入形狀",
           "size": "大小",
-          "screenSpace": "屏幕空間"
+          "screenSpace": "螢幕空間"
         },
         "notifications": {
           "0": "No input path connected."
@@ -4860,9 +4862,9 @@
         "enums": {
           "levelMode": {
             "0": "自定義...",
-            "1": "文本（行）",
-            "2": "文本（詞）",
-            "3": "文本（字符）"
+            "1": "文字（行）",
+            "2": "文字（詞）",
+            "3": "文字（字元）"
           }
         }
       },
@@ -5022,18 +5024,18 @@
           "sides": "邊",
           "useIndividualRadii": [
             "使用獨立半徑",
-            "將行為分別套用于每側的半徑。"
+            "將行為分別套用於每側的半徑。"
           ]
         }
       },
       {
         "nodeType": "arcShape",
         "nodeInfo": "產生弧形基本形。",
-        "niceName": "弧形",
+        "niceName": "圓弧",
         "attributes": {
           "divisions": [
             "細分",
-            "設置點之間的細分數量。這對創建更平滑的變形特別有用。"
+            "設置點之間的細分數量。這對建立更平滑的變形特別有用。"
           ],
           "radius": [
             "外半徑",
@@ -5053,14 +5055,14 @@
           ],
           "bezier": [
             "貝茲",
-            "選中時，弧形使用貝茲點創建。"
+            "選中時，弧形使用貝茲點建立。"
           ]
         }
       },
       {
         "nodeType": "ringShape",
         "nodeInfo": "產生環形基本圖形。",
-        "niceName": "環形",
+        "niceName": "圓環",
         "attributes": {
           "divisions": "細分",
           "radius": "外半徑",
@@ -5089,7 +5091,7 @@
       {
         "nodeType": "capsuleShape",
         "nodeInfo": "產生膠囊形基本圖形。",
-        "niceName": "膠囊形",
+        "niceName": "膠囊",
         "attributes": {
           "divisions": "邊緣細分",
           "radius": "半徑",
@@ -5145,20 +5147,20 @@
             "每行詞數。連接行為以產生變化。"
           ],
           "charsPerWord": [
-            "字符",
-            "每詞字符數。連接行為以產生變化。"
+            "字元",
+            "每詞字元數。連接行為以產生變化。"
           ],
           "mode": [
             "模式",
-            "在 Unicode 碼位和字符串字符之間選擇。"
+            "在 Unicode 碼位和字元串字元之間選擇。"
           ],
           "codePoint": [
             "碼位",
-            "字符的 Unicode 碼位。連接行為以根據位置產生變化。"
+            "字元的 Unicode 碼位。連接行為以根據位置產生變化。"
           ],
           "character": [
-            "字符串",
-            "要使用的字符或字符串。連接生成器以根據位置產生變化。"
+            "字元串",
+            "要使用的字元或字元串。連接生成器以根據位置產生變化。"
           ],
           "wordDelimiter": [
             "詞分隔符",
@@ -5176,7 +5178,7 @@
         "enums": {
           "mode": {
             "0": "Unicode 碼位",
-            "1": "字符串"
+            "1": "字元串"
           }
         }
       },
@@ -5185,17 +5187,17 @@
         "nodeInfo": "使用字串產生器透過日期和時間符記產生字串。",
         "niceName": "格式化日期與時間",
         "attributes": {
-          "inputString": "格式化字符串",
-          "array": "字符串"
+          "inputString": "格式化字元串",
+          "array": "字元串"
         }
       },
       {
         "nodeType": "textFormatted",
         "nodeInfo": "使用字串產生器產生串接字串。",
-        "niceName": "格式化字符串",
+        "niceName": "格式化字元串",
         "attributes": {
-          "inputString": "格式化字符串",
-          "array": "字符串"
+          "inputString": "格式化字元串",
+          "array": "字元串"
         }
       },
       {
@@ -5215,6 +5217,7 @@
       },
       {
         "nodeType": "backgroundShape",
+        "niceName": "背景形狀",
         "nodeInfo": "根據合成解析度自動調整大小的形狀。",
         "attributes": {
           "shrink": "收縮"
@@ -5224,7 +5227,7 @@
         "nodeType": "footageShape",
         "attributes": {
           "shrink": "收縮",
-          "footageShader": "圖像著色器",
+          "footageShader": "影像著色器",
           "resolution": "大小"
         }
       },
@@ -5233,8 +5236,8 @@
         "nodeInfo": "將網格工具與此形狀結合使用來扭曲圖片和著色器。",
         "attributes": {
           "mesh": [
-            "網格體",
-            "選中後，形狀將轉換為網格，因此可以通過使用網格工具添加頂點來變形。"
+            "網格",
+            "選中後，形狀將轉換為網格，因此可以通過使用網格工具新增頂點來變形。"
           ],
           "size": [
             "大小",
@@ -5267,17 +5270,17 @@
           ],
           "meshVertex.offset": [
             "偏移位置",
-            "設置值以偏移頂點相對于其綁定位置的位置。"
+            "設置值以偏移頂點相對於其綁定位置的位置。"
           ],
           "meshVertex.offsetPath": "綁定路徑",
           "meshVertex.bindPath": "偏移路徑",
           "meshControllerFalloffs": [
-            "控製器",
-            "添加可用于影響頂點組的衰減。"
+            "控制器",
+            "新增可用於影響頂點組的衰減。"
           ]
         },
         "tabs": {
-          "mesh": "網格體"
+          "mesh": "網格"
         }
       },
       {
@@ -5292,7 +5295,7 @@
           "timeOffset": "時間偏移",
           "useIndex": [
             "使用索引上下文",
-            "將任何傳入索引（例如來自複製器的）添加到此圖層創建的索引中。"
+            "將任何傳入索引（例如來自複製器的）新增到此圖層建立的索引中。"
           ]
         },
         "enums": {
@@ -5302,7 +5305,7 @@
           }
         },
         "tabs": {
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
@@ -5322,12 +5325,12 @@
         "nodeInfo": "建立一個包圍其他形狀的形狀。",
         "attributes": {
           "shapes": "輸入形狀",
-          "highQuality": "高質量"
+          "highQuality": "高品質"
         }
       },
       {
         "nodeType": "pointsToCurve",
-        "niceName": "點轉路徑",
+        "niceName": "點到路徑",
         "nodeInfo": "使用分佈中的點建立路徑。",
         "attributes": {
           "generator": "點來源",
@@ -5347,7 +5350,7 @@
       {
         "nodeType": "transformDistribution",
         "nodeInfo": "將點分佈到圖層的位置上。",
-        "niceName": "變換",
+      "niceName": "變換",
         "attributes": {
           "inputShape": "輸入形狀"
         }
@@ -5482,7 +5485,7 @@
       },
       {
         "nodeType": "numberRangeBase",
-        "niceName": "數值範圍",
+        "niceName": "數字範圍",
         "attributes": {
           "sourceMin": "來源最小值",
           "sourceMax": "來源最大值",
@@ -5496,7 +5499,7 @@
       },
       {
         "nodeType": "numberRangeToColorBase",
-        "niceName": "數值範圍轉顏色",
+        "niceName": "數字範圍到顏色",
         "attributes": {
           "sourceMin": "來源最小值",
           "sourceMax": "來源最大值",
@@ -5580,7 +5583,7 @@
         "niceName": "字串操作器",
         "nodeInfo": "以某種方式修改現有字串（文字）。包含隨機排列、調整大小、取代等選項。",
         "attributes": {
-          "text": "字符串",
+          "text": "字元串",
           "generator": "操縱器"
         }
       },
@@ -5599,7 +5602,7 @@
           "percentage": "百分比",
           "randomSeed": "隨機種子",
           "shuffleFromEnd": "從末尾洗牌",
-          "shuffleText": "自定義字符串",
+          "shuffleText": "自定義字元串",
           "unicodeOffset": "Unicode 偏移",
           "indexMode": "分組",
           "timeOffset": "時間偏移",
@@ -5611,7 +5614,7 @@
           "shuffleType": {
             "0": "Unicode 偏移",
             "1": "隨機字母數字",
-            "2": "自定義字符串"
+            "2": "自定義字元串"
           },
           "directionMode": {
             "0": "開始",
@@ -5625,7 +5628,7 @@
           },
           "indexMode": {
             "0": "詞",
-            "1": "線條",
+            "1": "直線",
             "2": "段落",
             "3": "文檔"
           }
@@ -5640,7 +5643,7 @@
           "length": "長度",
           "mode": "進度模式",
           "eraseFromStart": "從開頭擦除",
-          "useSpaceWhenEmpty": "空字符串為空格",
+          "useSpaceWhenEmpty": "空字元串為空格",
           "indexMode": "分組",
           "matchMode": "匹配模式",
           "directionMode": "方向模式",
@@ -5663,9 +5666,9 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "字符",
+            "0": "字元",
             "1": "詞",
-            "2": "線條",
+            "2": "直線",
             "3": "段落"
           }
         }
@@ -5673,7 +5676,7 @@
       {
         "nodeType": "replaceString",
         "nodeInfo": "將字串的一部分替換為另一個字串。",
-        "niceName": "替換字符串",
+        "niceName": "替換字元串",
         "attributes": {
           "replace": "替換",
           "with": "包含"
@@ -5705,7 +5708,7 @@
           "length": "長度",
           "mode": "模式",
           "transitionFromEnd": "從末尾過渡",
-          "destinationText": "最終字符串"
+          "destinationText": "最終字元串"
         },
         "enums": {
           "mode": {
@@ -5719,10 +5722,10 @@
         "nodeInfo": "儲存一段文字。",
         "attributes": {
           "string": [
-            "字符串",
-            "按 Shift+Return 將字符串轉換為多行字符串。"
+            "字元串",
+            "按住上檔鍵並按返回鍵，將字串轉換為多行字串。"
           ],
-          "manipulators": "字符串操作器"
+          "manipulators": "字元串操作器"
         }
       },
       {
@@ -5821,7 +5824,7 @@
           "promotedAttributes.notes": "音符"
         },
         "tabs": {
-          "controls": "控製"
+          "controls": "控制"
         }
       },
       {
@@ -5844,7 +5847,7 @@
       },
       {
         "nodeType": "unicodeManipulator",
-        "nodeInfo": "依 Unicode 碼位偏移字元。適用於圖片字型和字符操作。",
+        "nodeInfo": "依 Unicode 碼位偏移字元。適用於圖片字型和字元操作。",
         "niceName": "Unicode 偏移",
         "attributes": {
           "offset": "偏移",
@@ -5866,9 +5869,9 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "字符",
+            "0": "字元",
             "1": "詞",
-            "2": "線條"
+            "2": "直線"
           }
         }
       },
@@ -5901,8 +5904,8 @@
         "nodeInfo": "建立可透過索引指派給其他圖層的字串列表。",
         "attributes": {
           "array": [
-            "字符串",
-            "按 Shift+Return 將字符串轉換為多行字符串。"
+            "字元串",
+            "按住上檔鍵並按返回鍵，將字串轉換為多行字串。"
           ],
           "arrayIndex": "索引",
           "mode": "模式"
@@ -5975,11 +5978,11 @@
           "curveToEndPoints": "曲線到端點",
           "smoothAngle": [
             "平滑角度",
-            "角度大于此值的任何邊緣都將被平滑。調整此值以在平滑時保留尖銳拐角。"
+            "角度大於此值的任何邊緣都將被平滑。調整此值以在平滑時保留尖銳拐角。"
           ],
           "threshold": [
             "閾值",
-            "短于此距離（像素）的線段將不會被細分。"
+            "短於此距離（像素）的線段將不會被細分。"
           ]
         }
       },
@@ -6022,7 +6025,7 @@
         "nodeInfo": "串接多個字串。",
         "niceName": "合併字串",
         "attributes": {
-          "array": "字符串",
+          "array": "字元串",
           "delimiter": "分隔符",
           "delimiterAtStart": "開始分隔符",
           "delimiterAtEnd": "結束分隔符"
@@ -6133,7 +6136,7 @@
         },
         "tabs": {
           "shape": "形狀",
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
@@ -6152,7 +6155,7 @@
         "enums": {},
         "tabs": {
           "shape": "形狀",
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
@@ -6182,7 +6185,7 @@
       },
       {
         "nodeType": "stringGenerator",
-        "nodeInfo": "建立程序化字串，例如日期和時間、雜湊、數字和時間碼。",
+        "nodeInfo": "建立程式化字串，例如日期和時間、雜湊、數字和時間碼。",
         "attributes": {
           "generator": "生成器",
           "manipulators": "操縱器",
@@ -6217,7 +6220,7 @@
         },
         "tabs": {
           "solver": "求解器",
-          "advanced": "高級"
+          "advanced": "進階"
         },
         "enums": {
           "mode": {
@@ -6251,7 +6254,7 @@
         },
         "tabs": {
           "solver": "求解器",
-          "advanced": "高級"
+          "advanced": "進階"
         },
         "enums": {
           "mode": {
@@ -6344,7 +6347,7 @@
         "niceName": "佈局形狀",
         "nodeInfo": "此圖層已棄用 - 請參閱佈局以取得替代功能。",
         "attributes": {
-          "layout": "佈局",
+          "layout": "版面配置",
           "resolution": "大小",
           "layoutItems": "佈局項目",
           "layoutItems.contentType": "類型",
@@ -6359,13 +6362,13 @@
           "layoutItems.baseline": "基線",
           "useIndex": [
             "使用傳入索引",
-            "將任何傳入索引（例如來自複製器的）添加到此圖層創建的索引中。"
+            "將任何傳入索引（例如來自複製器的）新增到此圖層建立的索引中。"
           ]
         },
         "enums": {
           "layoutItems.contentType": {
             "0": "形狀",
-            "1": "間隔器"
+            "1": "間隔符"
           },
           "verticalAlignment": {
             "0": "頂部",
@@ -6381,7 +6384,7 @@
           }
         },
         "tabs": {
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
@@ -6431,7 +6434,7 @@
       },
       {
         "nodeType": "spacerItem",
-        "niceName": "間隔器",
+        "niceName": "間隔符",
         "nodeInfo": "與佈局形狀結合使用以建立間隙或空白儲存格。",
         "attributes": {
           "minimumSize": "最小大小"
@@ -6447,16 +6450,16 @@
       },
       {
         "nodeType": "stringLength",
-        "niceName": "字符串長度",
+        "niceName": "字元串長度",
         "nodeInfo": "計算字串中的行數／字數／字元數。",
         "attributes": {
-          "string": "字符串",
+          "string": "字元串",
           "out": "輸出",
           "mode": "模式"
         },
         "enums": {
           "mode": {
-            "0": "字符",
+            "0": "字元",
             "1": "詞",
             "2": "行"
           }
@@ -6490,7 +6493,7 @@
           ],
           "spacingMode": [
             "間距模式",
-            "項目在可用空間中的分佈方式。預設情況下，您可以添加“間隔器”圖層來推動形狀。"
+            "項目在可用空間中的分佈方式。預設情況下，您可以新增“間隔器”圖層來推動形狀。"
           ],
           "margins": [
             "邊距",
@@ -6511,7 +6514,7 @@
           ],
           "wrapMode": [
             "環繞模式",
-            "控製項目超出可用空間時的換行方式。"
+            "控制項目超出可用空間時的換行方式。"
           ],
           "alignContent": [
             "對齊內容",
@@ -6619,16 +6622,16 @@
           "gaps": "間隙",
           "useIndex": [
             "使用索引上下文",
-            "將任何傳入索引（例如來自複製器的）添加到此圖層創建的索引中。"
+            "將任何傳入索引（例如來自複製器的）新增到此圖層建立的索引中。"
           ]
         },
         "tabs": {
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
         "nodeType": "lineRectPatternGenerator",
-        "niceName": "線條",
+        "niceName": "直線",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "orientation": "方向",
@@ -6650,7 +6653,7 @@
       },
       {
         "nodeType": "ringRectPatternGenerator",
-        "niceName": "環形",
+        "niceName": "圓環",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "startAngle": "開始角度",
@@ -6715,8 +6718,8 @@
         },
         "enums": {
           "lensType": {
-            "1": "凹面",
-            "0": "魚眼/桶形畸變"
+            "0": "魚眼/桶形畸變",
+            "1": "凹面"
           }
         },
         "tabs": {
@@ -6852,16 +6855,16 @@
         "nodeInfo": "模擬複雜的物理效果，例如煙霧、雨滴或灰塵。",
         "attributes": {
           "modifiers": "修改器",
-          "inputImage": "輸入圖像",
+          "inputImage": "輸入影像",
           "numberOfParticles": "粒子數量",
-          "imageBlendModeHelp": "使用透明輸入圖像時，請嘗試將圖像混合模式設為顏色 Alpha。"
+          "imageBlendModeHelp": "使用透明輸入影像時，請嘗試將影像混合模式設為顏色 Alpha。"
         },
         "enums": {
           "gradientMode": {
             "0": "RGB 插值",
             "1": "HSV 插值（短路徑）",
             "2": "HSV 插值（長路徑）",
-            "3": "OkLab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路徑）",
             "5": "LCH 插值（長路徑）"
           },
@@ -6872,7 +6875,7 @@
           },
           "imageQuality": {
             "0": "無（最快）",
-            "1": "雙三次（適用于放大）"
+            "1": "雙三次（適用於放大）"
           },
           "shapeStyle": {
             "0": "矩形",
@@ -6897,7 +6900,7 @@
             "3": "正常",
             "4": "反向",
             "5": "顏色 Alpha",
-            "10": "圖像 Alpha",
+            "10": "影像 Alpha",
             "12": "加",
             "14": "濾色",
             "15": "疊加",
@@ -6936,7 +6939,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路徑）",
             "2": "HSV 插值（長路徑）",
-            "3": "OkLab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路徑）",
             "5": "LCH 插值（長路徑）"
           },
@@ -6955,7 +6958,7 @@
         "niceName": "圖片修改器",
         "nodeInfo": "為粒子新增影像或影像序列。",
         "attributes": {
-          "inputImage": "圖像",
+          "inputImage": "影像",
           "loopSequence": "循環序列",
           "fitToLifespan": "適配生命週期",
           "fps": "幀率"
@@ -7087,11 +7090,11 @@
       {
         "nodeType": "forceModifier",
         "niceName": "力修改器",
-        "nodeInfo": "透過施加力來變更粒子的物理屬性，例如重力和質量。",
+        "nodeInfo": "透過施加力來變更粒子的物理屬性，例如重力和品質。",
         "attributes": {
           "forceVelocity": "力速度",
-          "massOverLifespan": "生命週期質量",
-          "massMultiplier": "質量乘數"
+          "massOverLifespan": "生命週期品質",
+          "massMultiplier": "品質乘數"
         },
         "enums": {
           "physicsMode": {
@@ -7134,7 +7137,7 @@
         "enums": {
           "gradientMode": {
             "0": "RGB 插值",
-            "1": "OkLab 插值"
+            "1": "感知色彩插值"
           }
         }
       },
@@ -7244,7 +7247,7 @@
           ],
           "gamma": [
             "伽馬",
-            "設置套用于輸入值的伽馬校正，大于/小于 1 的值將使圖層變暗/變亮。"
+            "設置套用於輸入值的伽馬校正，大於/小於 1 的值將使圖層變暗/變亮。"
           ],
           "timeScale": [
             "時間縮放",
@@ -7252,7 +7255,7 @@
           ],
           "displacement": [
             "置換",
-            "增大此值以創建更多湍流噪波。"
+            "增大此值以建立更多湍流噪波。"
           ],
           "offset": [
             "偏移",
@@ -7271,16 +7274,16 @@
           "noiseType": {
             "0": "Stapl",
             "1": "Luka",
-            "2": "Naki 形式",
+            "2": "納基形式",
             "3": "Nutous",
             "4": "Poxo",
             "5": "Stupl",
             "6": "Pezo",
             "7": "盒形",
             "8": "起泡湍流",
-            "9": "Buya 形式",
+            "9": "布亞形式",
             "10": "單元",
-            "11": "Cranal 形式",
+            "11": "克拉納爾形式",
             "12": "凹痕",
             "13": "位移湍流",
             "14": "Hama",
@@ -7376,7 +7379,7 @@
           "circleColor": "圓形顏色"
         },
         "tabs": {
-          "basic": "設置",
+          "basic": "設定",
           "advanced": "顏色"
         },
         "enums": {
@@ -7476,12 +7479,12 @@
           "pattern": {
             "0": "自定義",
             "1": "白噪波",
+            "2": "拜耳",
             "3": "磚塊",
             "4": "條紋",
             "5": "氣泡",
             "6": "病毒",
-            "7": "藍色噪波",
-            "2": "拜耳"
+            "7": "藍色噪波"
           },
           "blendMode": {
             "1": "替換",
@@ -7660,7 +7663,7 @@
       },
       {
         "nodeType": "kitaokaFilter",
-        "niceName": "Kitaoka 濾鏡",
+        "niceName": "北岡濾鏡",
         "nodeInfo": "產生美觀的波浪效果。",
         "attributes": {
           "blendMode": "混合模式",
@@ -7821,7 +7824,7 @@
           }
         },
         "tabs": {
-          "settings": "設置",
+          "settings": "設定",
           "shader": "著色器"
         }
       },
@@ -7880,7 +7883,7 @@
           }
         },
         "tabs": {
-          "settings": "設置",
+          "settings": "設定",
           "shader": "著色器"
         }
       },
@@ -8006,7 +8009,7 @@
       },
       {
         "nodeType": "segmentPath",
-        "niceName": "分段路徑",
+        "niceName": "分割路徑",
         "nodeInfo": "將路徑分割為較小的段落。",
         "attributes": {
           "count": "數量",
@@ -8039,7 +8042,7 @@
       },
       {
         "nodeType": "forgeDynamicsShape",
-        "niceName": "Forge 動力學",
+        "niceName": "Forge動力學",
         "nodeInfo": "用於剛體碰撞的 2D 物理引擎。",
         "attributes": {
           "groundMode": "地面模式",
@@ -8052,7 +8055,7 @@
           "shapes.bodyType": "物體類型",
           "shapes.shapeType": [
             "碰撞形狀類型",
-            "盒形：盒形碰撞形狀\n圓形：圓形碰撞形狀\n簡單多邊形：將創建最多 8 條邊的“最佳擬合”凸多邊形來表示形狀。\n複雜多邊形：凹多邊形的精確碰撞——自動三角化以實現精確碰撞檢測。\n鏈：一個**靜止**的單側碰撞對象，表示一系列點。適用于開放路徑。\n鏈（反向）：同上，但碰撞發生在形狀的另一側。\n軟體：由彈簧連接粒子組成的可變形物理體。支持帶孔洞的複雜多邊形。"
+            "盒形：盒形碰撞形狀\n圓形：圓形碰撞形狀\n簡單多邊形：將建立最多 8 條邊的“最佳擬合”凸多邊形來表示形狀。\n複雜多邊形：凹多邊形的精確碰撞——自動三角化以實現精確碰撞檢測。\n鏈：一個**靜止**的單側碰撞對象，表示一系列點。適用於開放路徑。\n鏈（反向）：同上，但碰撞發生在形狀的另一側。\n軟體：由彈簧連接粒子組成的可變形物理體。支援帶孔洞的複雜多邊形。"
           ],
           "shapes.startsAsleep": "初始休眠",
           "shapes.allowsSleep": "允許休眠",
@@ -8070,27 +8073,27 @@
           "shapes.sensor": "傳感器",
           "shapes.collisionGroups": [
             "碰撞組",
-            "此物體所屬的碰撞組名稱，以逗號分隔（如 'terrain,solid'）。留空表示屬于所有組。使用 'none' 表示不屬于任何組。"
+            "此物體所屬的碰撞組名稱，以逗號分隔（如「地形,實體」）。留空表示屬於所有組。使用「無」表示不屬於任何組。"
           ],
           "shapes.collidesWith": [
             "碰撞對象",
-            "此物體碰撞的組名稱，以逗號分隔（如 'terrain,solid'）。留空表示與所有組碰撞。使用 'none' 表示不與任何東西碰撞。"
+            "此物體會碰撞的組名稱，以逗號分隔（如「地形,實體」）。留空表示與所有組碰撞。使用「無」表示不與任何物件碰撞。"
           ],
           "shapes.maxFixturesPerBody": [
             "每物體最大固定件數",
-            "為複雜多邊形形狀創建的三角形固定件的最大數量。較高的值為高度細節化的形狀提供更精確的碰撞，但會犧牲性能。"
+            "為複雜多邊形形狀建立的三角形固定件的最大數量。較高的值為高度細節化的形狀提供更精確的碰撞，但會犧牲性能。"
           ],
           "shapes.stiffness": [
             "剛度",
-            "彈簧頻率（Hz，每秒振動次數）。較高的值使軟體更硬。"
+            "彈簧頻率（赫茲，每秒振動次數）。較高的值會使柔體更硬。"
           ],
           "shapes.damping": [
             "阻尼",
-            "阻尼比。控製振盪衰減的速度。"
+            "阻尼比。控制振盪衰減的速度。"
           ],
           "shapes.pressure": [
             "壓力",
-            "用于體積保持的內部壓力。較高的值將粒子向外推以保持物體的形狀。"
+            "用於體積保持的內部壓力。較高的值將粒子向外推以保持物體的形狀。"
           ],
           "shapes.shapeMatching": [
             "形狀匹配",
@@ -8098,7 +8101,7 @@
           ],
           "shapes.particleRadius": [
             "粒子半徑",
-            "用于模擬軟體的粒子大小。較小的值提供更精細的細節但粒子更多——較小的值更難控製。"
+            "用於模擬軟體的粒子大小。較小的值提供更精細的細節但粒子更多——較小的值更難控制。"
           ],
           "shapes.maxStretch": [
             "最大拉伸",
@@ -8133,9 +8136,9 @@
           },
           "levelMode": {
             "0": "自定義...",
-            "1": "文本行/複製器",
-            "2": "文本詞",
-            "3": "文本字符",
+            "1": "文字行/複製器",
+            "2": "文字詞",
+            "3": "文字字元",
             "4": "關"
           },
           "bodyType": {
@@ -8162,7 +8165,7 @@
         "tabs": {
           "bodies": "剛體",
           "initial": "初始狀態",
-          "advanced": "高級"
+          "advanced": "進階"
         }
       },
       {
@@ -8186,7 +8189,7 @@
           "thirdShaders": "第三著色器",
           "useCollisionIndex": [
             "使用碰撞索引",
-            "碰撞編號將用于替代物體索引以獲取每次碰撞的唯一值。\n當您希望每次碰撞不同而非每個物體不同時使用此模式。"
+            "碰撞編號將用於替代物體索引以獲取每次碰撞的唯一值。\n當您希望每次碰撞不同而非每個物體不同時使用此模式。"
           ],
           "specificCollisions": [
             "指定碰撞",
@@ -8210,28 +8213,28 @@
         "niceName": "測量文字",
         "nodeInfo": "根據給定的字型和字型大小測量文字字串的尺寸。",
         "attributes": {
-          "string": "字符串",
+          "string": "字元串",
           "fontSize": "字號",
           "font": "字體",
           "fontAxes": "字體軸",
-          "textBoxSize": "文本框大小",
+          "textBoxSize": "文字框大小",
           "allowWordBreaks": [
             "允許詞內換行",
-            "允許長詞跨兩行或多行拆分。\n*僅在啟用**縮放適配文本框**時才能禁用。*"
+            "允許長詞跨兩行或多行拆分。\n*僅在啟用**縮放適配文字框**時才能停用。*"
           ],
           "textSize": [
-            "輸出文本大小",
-            "結果文本的大小，不包括行間距等度量。"
+            "輸出文字大小",
+            "結果文字的大小，不包括行間距等度量。"
           ],
           "fontScale": [
             "輸出字體縮放",
-            "這是在文本形狀上使用“縮小適配文本框”後的縮放因子結果。其优勢在于您無需文本形狀即可創建此因子。"
+            "這是在文字形狀上使用“縮小適配文字框”後的縮放因子結果。其優勢在於您無需文字形狀即可建立此因子。"
           ]
         }
       },
       {
         "nodeType": "stickyCollisionEvent",
-        "niceName": "黏著碰撞事件",
+        "niceName": "黏附碰撞事件",
         "nodeInfo": "當 Forge 動力學物體碰撞時使其相互黏著。",
         "attributes": {
           "breakable": "可斷裂",
@@ -8243,7 +8246,7 @@
       },
       {
         "nodeType": "impulseCollisionEvent",
-        "niceName": "脈衝碰撞事件",
+        "niceName": "衝量碰撞事件",
         "nodeInfo": "在 Forge 動力學剛體碰撞時新增額外的力。",
         "attributes": {
           "useBounceDirection": "使用彈跳方向",
@@ -8259,7 +8262,7 @@
         "attributes": {
           "useCollisionIndex": [
             "使用碰撞索引",
-            "碰撞編號將用于替代物體索引以獲取每次碰撞的唯一值。\n當您希望每次碰撞不同而非每個物體不同時使用此模式。"
+            "碰撞編號將用於替代物體索引以獲取每次碰撞的唯一值。\n當您希望每次碰撞不同而非每個物體不同時使用此模式。"
           ],
           "specificCollisions": [
             "指定碰撞",
@@ -8283,7 +8286,7 @@
           "fadeTime": "淡入淡出時間",
           "useCollisionIndex": [
             "使用碰撞索引",
-            "碰撞編號將用于替代物體索引以獲取每次碰撞的唯一值。\n當您希望每次碰撞不同而非每個物體不同時使用此模式。"
+            "碰撞編號將用於替代物體索引以獲取每次碰撞的唯一值。\n當您希望每次碰撞不同而非每個物體不同時使用此模式。"
           ],
           "specificCollisions": [
             "指定碰撞",
@@ -8306,7 +8309,7 @@
         "niceName": "橋接約束",
         "nodeInfo": "在 Forge 動力學模擬中將形狀連接在一起以形成鏈條或橋樑結構。",
         "attributes": {
-          "frequencyHz": "頻率 (Hz)",
+          "frequencyHz": "頻率（赫茲）",
           "dampingRatio": "阻尼比",
           "breakable": "可斷裂",
           "breakingForce": "斷裂力",
@@ -8359,7 +8362,7 @@
           "limits": "旋轉限製",
           "tension": [
             "張力",
-            "關節柔性。為 0 時，固定點為剛性（預設行為——物體可圍繞固定點自由旋轉）。大于 0 時，關節變為柔性焊接，以彈簧般的行為抵抗旋轉。"
+            "關節柔性。為 0 時，固定點為剛性（預設行為——物體可圍繞固定點自由旋轉）。大於 0 時，關節變為柔性焊接，以彈簧般的行為抵抗旋轉。"
           ],
           "dampingRatio": [
             "阻尼比",
@@ -8403,7 +8406,7 @@
           "restLength": "靜止長度",
           "minLength": "最小長度",
           "maxLength": "最大長度",
-          "frequencyHz": "頻率 (Hz)",
+          "frequencyHz": "頻率（赫茲）",
           "dampingRatio": "阻尼比",
           "inputShape": [
             "彈簧位置",
@@ -8444,13 +8447,13 @@
           "strength": "強度",
           "falloffs": [
             "衰減",
-            "連接或添加衰減以根據位置確定場的強度。"
+            "連接或新增衰減以根據位置確定場的強度。"
           ],
           "customColor": "自定義顏色",
           "drawColor": "繪製顏色",
           "affectsGroups": [
             "影響群組",
-            "此場影響的碰撞組，以逗號分隔。使用 'none' 表示不影響任何組。"
+            "此場影響的碰撞組，以逗號分隔。使用「無」表示不影響任何組。"
           ]
         },
         "enums": {
@@ -8477,12 +8480,12 @@
       {
         "nodeType": "attractorField",
         "nodeInfo": "與 Forge 動力學模擬搭配使用，將形狀移向或遠離目標。",
-        "niceName": "吸引力場"
+        "niceName": "吸引場"
       },
       {
         "nodeType": "vortexField",
         "nodeInfo": "對形狀施加繞中心點的螺旋/旋轉力。",
-        "niceName": "渦流場",
+        "niceName": "渦旋場",
         "attributes": {
           "radius": [
             "半徑",
@@ -8506,7 +8509,7 @@
           ],
           "generator": [
             "噪波生成器",
-            "基于噪波調製力。"
+            "根據噪波調製力。"
           ],
           "noiseAffects": [
             "噪波影響",
@@ -8537,7 +8540,7 @@
           ],
           "fluidDensity": [
             "流體密度",
-            "流體的密度。密度較低的物體將浮起，密度較高的將下沈。將此與物體密度（在 Forge 動力學形狀中設置）進行比較以控製行為。"
+            "流體的密度。密度較低的物體將浮起，密度較高的將下沈。將此與物體密度（在 Forge 動力學形狀中設置）進行比較以控制行為。"
           ],
           "buoyancyStrength": [
             "浮力強度",
@@ -8549,7 +8552,7 @@
           ],
           "liftCoefficient": [
             "升力系數",
-            "垂直于速度方向的力。在流體中產生旋渦/螺旋運動。0 = 無升力。"
+            "垂直於速度方向的力。在流體中產生旋渦/螺旋運動。0 = 無升力。"
           ],
           "angularDrag": [
             "角阻力",
@@ -8573,7 +8576,7 @@
           ],
           "surfaceTensionForce": [
             "表面張力",
-            "穿越流體邊界時的脈沖強度。創建類似飛濺的入水效果。"
+            "穿越流體邊界時的脈沖強度。建立類似飛濺的入水效果。"
           ],
           "surfaceThickness": [
             "表面厚度",
@@ -8608,15 +8611,15 @@
           ],
           "flowVariance": [
             "流動方差",
-            "為流動方向添加隨機性以獲得更自然的運動。"
+            "為流動方向新增隨機性以獲得更自然的運動。"
           ],
           "captureGraph": [
             "捕獲曲線",
-            "控製捕獲力隨路徑距離的衰減方式。"
+            "控制捕獲力隨路徑距離的衰減方式。"
           ],
           "flowGraph": [
             "流動曲線",
-            "控製流動力隨路徑距離的衰減方式。"
+            "控制流動力隨路徑距離的衰減方式。"
           ],
           "velocityDamping": [
             "速度阻尼",
@@ -8679,7 +8682,7 @@
         "niceName": "智慧資料夾素材",
         "nodeInfo": "參考智慧資料夾中包含的素材（圖片、影片、音訊等）。",
         "attributes": {
-          "file": "智能檔案夾資產",
+          "file": "智慧型資料夾素材",
           "path": "路徑",
           "mode": "模式",
           "index": "索引",
@@ -8804,7 +8807,7 @@
           },
           "algorithm": {
             "0": "Sobel",
-            "1": "Canny 邊緣偵測"
+            "1": "坎尼邊緣偵測"
           },
           "greyScaleMode": {
             "0": "亮度（伽馬校正）",
@@ -8824,7 +8827,7 @@
         "attributes": {
           "blendMode": "混合模式",
           "opacity": "不透明度",
-          "screenSpace": "屏幕空間",
+          "screenSpace": "螢幕空間",
           "offset": "偏移",
           "scale": "縮放",
           "rotation": "旋轉",
@@ -8974,7 +8977,7 @@
           "blendMode": "混合模式",
           "blurCentre": "模糊中心",
           "samples": "採樣",
-          "highQualitySamples": "高質量採樣"
+          "highQualitySamples": "高品質採樣"
         },
         "enums": {
           "blendMode": {
@@ -9135,7 +9138,7 @@
           }
         },
         "tabs": {
-          "basic": "設置",
+          "basic": "設定",
           "advanced": "層級顏色"
         }
       },
@@ -9148,7 +9151,7 @@
           "blurR": "紅色輝光半徑",
           "blurG": "綠色輝光半徑",
           "blurB": "藍色輝光半徑",
-          "complex": "獨立通道控製",
+          "complex": "獨立通道控制",
           "gamma": "來源伽馬",
           "opacity": "不透明度",
           "intensity": "強度",
@@ -9190,8 +9193,8 @@
             "28": "明度"
           },
           "mode": {
-            "0": "簡單控製",
-            "1": "獨立通道控製"
+            "0": "簡單控制",
+            "1": "獨立通道控制"
           },
           "drawMode": {
             "0": "結果",
@@ -9273,7 +9276,7 @@
       {
         "nodeType": "cornerPinShape",
         "nodeInfo": "變形形狀以建立 3D 透視的錯覺。",
-        "niceName": "邊角定位",
+        "niceName": "邊角固定",
         "attributes": {
           "topLeft": "左上",
           "topRight": "右上",
@@ -9305,8 +9308,8 @@
           "levelMode": {
             "0": "自定義...",
             "1": "文字（行）/ 複製器",
-            "2": "文本（詞）",
-            "3": "文本（字符）",
+            "2": "文字（詞）",
+            "3": "文字（字元）",
             "4": "全部"
           }
         }
@@ -9314,7 +9317,7 @@
       {
         "nodeType": "extractSubMeshes",
         "nodeInfo": "從形狀中擷取特定的子網格。",
-        "niceName": "擷取子網格",
+        "niceName": "提取子網格",
         "attributes": {
           "inputShape": "輸入形狀",
           "ignoreEmptySubMeshes": "忽略空子網格",
@@ -9326,8 +9329,8 @@
           "levelMode": {
             "0": "自定義...",
             "1": "文字（行）/ 複製器",
-            "2": "文本（詞）",
-            "3": "文本（字符）",
+            "2": "文字（詞）",
+            "3": "文字（字元）",
             "4": "全部"
           }
         }
@@ -9350,8 +9353,8 @@
           "levelMode": {
             "0": "自定義...",
             "1": "文字（行）/ 複製器",
-            "2": "文本（詞）",
-            "3": "文本（字符）"
+            "2": "文字（詞）",
+            "3": "文字（字元）"
           }
         }
       },
@@ -9374,11 +9377,11 @@
           ],
           "offset": [
             "偏移",
-            "偏移將添加到最終值。"
+            "偏移將新增到最終值。"
           ],
           "padding": [
             "內邊距",
-            "在每個累積步驟之間添加內邊距。"
+            "在每個累積步驟之間新增內邊距。"
           ]
         }
       },
@@ -9389,17 +9392,17 @@
         "attributes": {
           "strength": "強度",
           "invert": "反轉值",
-          "image": "圖像資產",
+          "image": "影像資產",
           "tilingX": "平鋪 X",
           "tilingY": "平鋪 Y",
           "enabled": "已啟用",
           "helper": [
             "輔助器",
-            "使用任何變換（例如帶有圖像的矩形）來幫助定位圖像。"
+            "使用任何變換（例如帶有影像的矩形）來幫助定位影像。"
           ],
           "looping": [
             "循環",
-            "循環播放圖像序列或影片。"
+            "循環播放影像序列或影片。"
           ],
           "offset": "偏移",
           "channel": "通道"
@@ -9448,7 +9451,7 @@
       },
       {
         "nodeType": "javaScriptShape",
-        "niceName": "JavaScript 形狀",
+        "niceName": "JavaScript形狀",
         "nodeInfo": "使用 JavaScript 建立形狀。",
         "attributes": {
           "generator": "運算式"
@@ -9478,7 +9481,7 @@
       },
       {
         "nodeType": "javaScriptDeformer",
-        "niceName": "JavaScript 變形器",
+        "niceName": "JavaScript變形器",
         "nodeInfo": "使用 JavaScript 變形形狀。"
       },
       {
@@ -9552,7 +9555,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "schedulingGroup",
-      "nodeInfo": "按程序在時間上定位子圖層。",
+      "nodeInfo": "按程式在時間上定位子圖層。",
       "niceName": "排程群組",
       "attributes": {
         "childOffset": [
@@ -9599,7 +9602,7 @@
     "value": {
       "nodeType": "knot",
       "nodeInfo": "在輪廓自相交處為路徑新增缺口。",
-      "niceName": "交叉點",
+      "niceName": "結點",
       "attributes": {
         "mode": [
           "模式"
@@ -9748,9 +9751,9 @@
         "travel": "行程",
         "samplePoints": [
           "取樣點數",
-          "這控製輸出曲線的質量。值越高質量越好，但計算速度越慢。"
+          "這控制輸出曲線的品質。值越高品質越好，但計算速度越慢。"
         ],
-        "outputBeziers": "輸出 Béziers"
+        "outputBeziers": "輸出貝茲曲線"
       },
       "enums": {
         "mode": {
@@ -9822,11 +9825,11 @@
         ],
         "zoom": [
           "縮放",
-          "旋轉動畫使用內部相機，您可以使用此控件更改鏡頭角度，較小的數值（如 100）會產生非常廣角的鏡頭效果。"
+          "旋轉動畫使用內部相機，您可以使用此控制項更改鏡頭角度，較小的數值（如 100）會產生非常廣角的鏡頭效果。"
         ],
         "timingHelp": "必須勾選「使用級別」才能使用時間偏移功能。",
         "animationModeHelp": "使用下方的各個「進度」屬性來建立更加自訂的動畫。",
-        "useLevelsHelp": "層級是指您可以對複製器中的各個形狀或文本形狀的行/詞/字符進行獨立動畫。",
+        "useLevelsHelp": "層級是指您可以對複製器中的各個形狀或文字形狀的行/詞/字元進行獨立動畫。",
         "offsetAnimationModeHelp": "選擇“在入幀開始”時，動畫從圖層的入點開始。選擇“在出幀結束”時，動畫在圖層的出點結束。"
       },
       "tabs": {
@@ -9880,8 +9883,8 @@
         "levelMode": {
           "0": "自定義...",
           "1": "文字（行）/ 複製器",
-          "2": "文本（詞）",
-          "3": "文本（字符）"
+          "2": "文字（詞）",
+          "3": "文字（字元）"
         },
         "progressMode": {
           "0": "單一進度控制",
@@ -10032,8 +10035,8 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "isolinesShape",
-      "niceName": "等值線",
-      "nodeInfo": "將圖像或形狀圖層轉換為輪廓。",
+      "niceName": "等高線",
+      "nodeInfo": "將影像或形狀圖層轉換為輪廓。",
       "attributes": {
         "inputShape": [
           "輸入形狀"
@@ -10045,7 +10048,7 @@
           "網格大小"
         ],
         "outputBeziers": [
-          "輸出 Béziers",
+          "輸出貝茲曲線",
           "輸出貝茲曲線而非多邊形。"
         ],
         "cleanupPath": [
@@ -10062,7 +10065,7 @@
       },
       "enums": {
         "mode": {
-          "0": "圖像",
+          "0": "影像",
           "1": "形狀圖層"
         }
       }
@@ -10098,7 +10101,7 @@
       },
       "enums": {
         "debugMode": {
-          "0": "最终結果",
+          "0": "最終結果",
           "1": "亮度"
         }
       }
@@ -10261,8 +10264,8 @@
           "3": "曲率角度"
         },
         "branchType": {
-          "0": "線條",
-          "1": "弧形",
+          "0": "直線",
+          "1": "圓弧",
           "2": "貝茲曲線"
         },
         "branchArcDirection": {
@@ -10315,8 +10318,8 @@
         "levelMode": {
           "0": "自定義...",
           "1": "文字（行）/ 複製器",
-          "2": "文本（詞）",
-          "3": "文本（字符）"
+          "2": "文字（詞）",
+          "3": "文字（字元）"
         }
       }
     }

@@ -67,6 +67,7 @@ function getCompiledUiTargets(appPath) {
     path.join(appPath, 'Contents', 'MacOS', 'Cavalry'),
     path.join(appPath, 'Contents', 'Frameworks', 'libCavalryUI.dylib'),
     path.join(appPath, 'Contents', 'Frameworks', 'libCavalryFramework.dylib'),
+    path.join(appPath, 'Contents', 'Frameworks', 'libExtensionLayer.dylib'),
   ].filter((targetPath) => fs.existsSync(targetPath));
 
   if (targets.length === 0) {
@@ -214,6 +215,15 @@ function getSurfaceHint(text) {
   return 'label-like';
 }
 
+function expandUiAliases(text) {
+  const variants = [text];
+  const stripped = text.replace(/(?:\.{3}|\.)$/, '').trim();
+  if (stripped && stripped !== text && stripped.split(/\s+/).length >= 3 && isLikelyUiString(stripped)) {
+    variants.push(stripped);
+  }
+  return variants;
+}
+
 function runStrings(binaryPath) {
   const result = spawnSync('/usr/bin/strings', ['-a', '-n', '4', binaryPath], {
     encoding: 'utf8',
@@ -240,18 +250,20 @@ function extractEntriesFromLines(sourcePath, rawLines) {
       continue;
     }
 
-    const dedupeKey = `${sourcePath}\u0000${text}`;
-    if (seen.has(dedupeKey)) {
-      continue;
-    }
-    seen.add(dedupeKey);
+    for (const candidate of expandUiAliases(text)) {
+      const dedupeKey = `${sourcePath}\u0000${candidate}`;
+      if (seen.has(dedupeKey)) {
+        continue;
+      }
+      seen.add(dedupeKey);
 
-    entries.push({
-      source: sourcePath,
-      text,
-      normalizedText: text,
-      surfaceHint: getSurfaceHint(text),
-    });
+      entries.push({
+        source: sourcePath,
+        text: candidate,
+        normalizedText: candidate,
+        surfaceHint: getSurfaceHint(candidate),
+      });
+    }
   }
 
   return entries;
@@ -347,6 +359,7 @@ module.exports = {
   extractEntriesFromLines,
   extractInventory,
   getCompiledUiTargets,
+  expandUiAliases,
   getSurfaceHint,
   isLikelyUiString,
   normalizeCandidate,

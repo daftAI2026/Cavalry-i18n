@@ -1,0 +1,135 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "lightSweepFilter",
+    "superType": "thirdPartyFilter",
+    "skslFile": "lightSweepFilter.sksl",
+    "version": "1.0",
+    "attributes": {
+      "sweepIntensity": {
+        "type": "double",
+        "default": 0.65,
+        "min": 0,
+        "step": 0.01
+      },
+      "blendMode": {
+        "default": 12
+      },
+      "direction": {
+        "type": "double",
+        "default": 45,
+        "min": 0,
+        "max": 360,
+        "step": 1
+      },
+      "shape": {
+        "type": "enum",
+        "enumValues": [
+          0,
+          1
+        ]
+      },
+      "edgeIntensity": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "step": 0.01
+      },
+      "edgeThickness": {
+        "type": "double",
+        "default": 10,
+        "min": 0,
+        "step": 1,
+        "dimming": "edgeIntensity == 0"
+      },
+      "centre": {
+        "type": "double2",
+        "default": {
+          "type": "double2",
+          "x": 0,
+          "y": 0
+        },
+        "children": {
+          "*": {
+            "step": 1
+          }
+        }
+      },
+      "useFalloff": {
+        "type": "bool",
+        "default": false,
+        "dimming": "shape == 1"
+      },
+      "falloffDistance": {
+        "type": "double",
+        "default": 500,
+        "min": 0.1,
+        "step": 1,
+        "dimming": "shape == 1 || useFalloff == 0"
+      },
+      "coneWidth": {
+        "type": "double",
+        "default": 400,
+        "min": 0,
+        "step": 1
+      },
+      "conePercentage": {
+        "type": "double",
+        "default": 10,
+        "min": 0,
+        "max": 100,
+        "step": 0.1,
+        "prefix": "%"
+      },
+      "lightColor": {
+        "type": "color",
+        "default": {
+          "r": 255,
+          "g": 255,
+          "b": 255,
+          "a": 255
+        }
+      },
+      "matteApplyMode": {
+        "default": 1
+      }
+    },
+    "triggers": {
+      "out": [
+        "sweepIntensity",
+        "direction",
+        "shape",
+        "edgeIntensity",
+        "edgeThickness",
+        "centre",
+        "useFalloff",
+        "falloffDistance",
+        "coneWidth",
+        "conePercentage",
+        "lightColor"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "sweepIntensity",
+        "direction",
+        "shape",
+        "centre",
+        "coneWidth",
+        "conePercentage",
+        "useFalloff",
+        "falloffDistance",
+        "edgeIntensity",
+        "edgeThickness",
+        "lightColor"
+      ],
+      "icon": "lightSweepFilter.png",
+      "controls": {
+        "direction": "angle"
+      },
+      "hide": [
+        "matteApplyMode"
+      ]
+    }
+  }
+]

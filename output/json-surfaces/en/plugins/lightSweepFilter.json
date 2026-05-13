@@ -1,0 +1,64 @@
+[
+  {
+    "type": "layerStrings",
+    "value": {
+      "author": "sceneGroup",
+      "layerType": "lightSweepFilter",
+      "niceName": "Light Sweep",
+      "layerInfo": "Simulate a light source moving across a Layer.",
+      "language": "en",
+      "attributes": {
+        "sweepIntensity": [
+          "Sweep Intensity",
+          "Set the light's brightness."
+        ],
+        "direction": [
+          "Direction",
+          "Set the angle the sweep moves across a Layer in degrees."
+        ],
+        "shape": [
+          "Shape",
+          "Select a shape for the sweep."
+        ],
+        "centre": [
+          "Centre",
+          "Set the light sweep's centre point."
+        ],
+        "coneWidth": [
+          "Cone Width",
+          "Set the width of the light beam."
+        ],
+        "conePercentage": [
+          "Cone Percentage",
+          "Set the distance the light beam's opacity begins to falloff as a percentage from its centre to its edge."
+        ],
+        "useFalloff": [
+          "Use Falloff",
+          "When the Shape is set to Line, limit the light sweep's distance from the Centre along its Y axis."
+        ],
+        "falloffDistance": [
+          "Falloff Distance",
+          "Set the distance over which the light falls off after passing the Centre."
+        ],
+        "edgeIntensity": [
+          "Edge Intensity",
+          "Set the intensity of an additional glow at the edges of the light sweep."
+        ],
+        "edgeThickness": [
+          "Edge Thickness",
+          "Set the thickness of the light sweep's edges."
+        ],
+        "lightColor": [
+          "Light Color",
+          "Set the color of the light."
+        ]
+      },
+      "enums": {
+        "shape": {
+          "0": "Line",
+          "1": "Circle"
+        }
+      }
+    }
+  }
+]

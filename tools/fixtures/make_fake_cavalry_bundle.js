@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 node fs/path，在临时目录中写入最小 Cavalry.app 文件树
- * [OUTPUT]: 对外提供 makeFakeCavalryBundle，用于 Electron/Tauri contract tests 生成无副作用 fixture
+ * [OUTPUT]: 对外提供 makeFakeCavalryBundle，用于 Tauri contract tests 生成无副作用 fixture
  * [POS]: tools/fixtures 的测试数据工厂，被 handler snapshot 与后续迁移测试复用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

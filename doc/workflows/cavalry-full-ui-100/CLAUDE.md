@@ -23,7 +23,7 @@
 - Cavalry version / Qt version / bundle hash 是 denominator 的一部分；目标变化后旧 JSON 100、compiled coverage、runtime capture 只能作为历史证据。
 - AX 菜单抓取必须留下递归证据：`menuDepthMax` 与 submenu path samples；只证明脚本会递归不等于本轮抓取合格。
 - 翻译引擎只允许 LLM；禁止 fixture / curated / 本地词表 / 全角化 / 占位标记 / 自我递归伪翻译。
-- 构建与发布遵守 `doc/LOCAL_BUILD_SOP.md` 的 Tauri 路径；Electron 专属路径只作历史残留，不作为本 workflow 修复目标。
+- 构建与发布遵守 `doc/LOCAL_BUILD_SOP.md` 的 Tauri-only 路径；旧壳层路径已删除，不作为本 workflow 修复目标。
 - `ChatlogRef.md` 与 `Anti-Patterns.md` 只保留历史证据；若与 `Project.md` / `Acceptance.md` / `Runbook.md` 冲突，以后三者为准。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

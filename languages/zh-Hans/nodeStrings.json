@@ -28,7 +28,7 @@
     "value": {
       "nodeType": "group",
       "nodeInfo": "将图层收集到文件夹中以进行整理和/或创建公共变换。",
-      "niceName": "编组",
+      "niceName": "分组",
       "attributes": {
         "groupMode": [
           "混合和不透明度模式",
@@ -75,7 +75,7 @@
         ],
         "pivot": [
           "锚点",
-          "定义形状的轴心点。这在制作旋转和缩放动画时很有用。"
+          "定义形状的锚点。这在制作旋转和缩放动画时很有用。"
         ],
         "webExport": "Lottie 导出"
       },
@@ -342,7 +342,7 @@
       "attributes": {
         "amount": "数量",
         "active": "活动",
-        "controlHelp": "使用滑块控制动画。只需将此图层的输出<img src = icons:ConnectionAnchor.png width=18 height=18 style=vertical-align:middle/>拖拽到任何动画属性。"
+        "controlHelp": "使用滑块控制动画。只需将此图层的输出连接点拖拽到任何动画属性。"
       }
     }
   },
@@ -504,7 +504,7 @@
         ],
         "niceName": [
           "控制中心按钮名称",
-          "这是此项目在 Cavalry Control 中的按钮名称。"
+          "这是此项目在 Cavalry 控制面板中的按钮名称。"
         ]
       },
       "enums": {
@@ -661,12 +661,12 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "renderQuicktime",
-      "nodeInfo": "生成 QuickTime 视频文件。",
+      "nodeInfo": "生成视频文件。",
       "niceName": "QuickTime",
       "attributes": {
         "proResCodec": [
           "ProRes 编解码器",
-          "ProRes 422 HQ （在 1920x1080x29.97 下约 220 Mbps ）"
+          "ProRes 422 HQ（1920x1080x29.97 下约 220 兆比特/秒）"
         ],
         "bitDepth": [
           "位深度",
@@ -707,7 +707,7 @@
       "attributes": {
         "codec": [
           "编解码器",
-          "ProRes 422 HQ （在 1920x1080x29.97 下约 220 Mbps ）"
+          "ProRes 422 HQ（1920x1080x29.97 下约 220 兆比特/秒）"
         ]
       },
       "enums": {
@@ -803,7 +803,7 @@
           "2": "Adobe RGB",
           "3": "Display P3",
           "4": "Rec.2020",
-          "5": "线性 sRGB"
+          "5": "线性标准 RGB"
         }
       }
     }
@@ -917,20 +917,20 @@
     "value": {
       "nodeType": "planarCamera",
       "nodeInfo": "在 2.5D 视口中组合和查看形状。",
-      "niceName": "摄像机",
+      "niceName": "相机",
       "attributes": {
         "cameraType": "类型",
         "position": "位置",
         "rotation": "旋转",
         "positionOffset": "位置偏移",
         "lookAtOffset": "注视偏移",
-        "lookAt": "朝向",
+        "lookAt": "注视",
         "zoom": "缩放"
       },
       "enums": {
         "cameraType": {
           "0": "自由形状",
-          "1": "朝向",
+          "1": "注视",
           "2": "参考线"
         }
       }
@@ -962,7 +962,7 @@
         "overrides.attribute": "属性",
         "overrides.enabled": "使用覆盖",
         "overrides.double": "值",
-        "overrides.double2": "值 2",
+        "overrides.double2": "二维数值",
         "overrides.color": "颜色",
         "overrides.string": "字符串",
         "overrides.font": "字体",
@@ -1058,7 +1058,7 @@
           "0": "路径切线",
           "1": "自定义...",
           "2": "路径曲率",
-          "3": "弧形"
+          "3": "圆弧"
         },
         "arcDirection": {
           "0": "正常",
@@ -1744,7 +1744,7 @@
       },
       {
         "nodeType": "spreadsheet",
-        "nodeInfo": "从电子表格资产读取并重映射数据。",
+        "nodeInfo": "从电子表格素材读取并重映射数据。",
         "attributes": {
           "column": "列标题",
           "file": "文件",
@@ -1804,7 +1804,7 @@
         },
         "tabs": {
           "advanced": "高级",
-          "utility": "实用"
+          "utility": "实用工具"
         }
       },
       {
@@ -1863,8 +1863,8 @@
           "frameOffset": "帧偏移",
           "offset": "值偏移",
           "maxDb": [
-            "最大 dB",
-            "将音频信号振幅转换为 dB 时找到的最大 dB 值。使用平滑帧或子步骤时，此值为近似值。"
+            "最大分贝",
+            "将音频信号振幅转换为分贝时找到的最大分贝值。使用平滑帧或子步骤时，此值为近似值。"
           ],
           "length": [
             "文件长度",
@@ -1883,14 +1883,14 @@
             "使用此功能控制各频段的音量。"
           ],
           "frequencyRange": [
-            "频率范围 Hz",
-            "采样的频率范围。人类听觉范围约为 20 Hz 到 20,000 Hz。\n默认值为钢琴的频率范围。"
+            "频率范围（赫兹）",
+            "采样的频率范围。人类听觉范围约为 20 赫兹到 20,000 赫兹。\n默认值为钢琴的频率范围。"
           ],
           "aWeighting": [
             "A 加权",
             "调整频段的振幅以更好地反映人类听觉感知。"
           ],
-          "playbackVolume": "音量调整 dB",
+          "playbackVolume": "音量调整（分贝）",
           "playbackPan": "平移"
         },
         "notifications": {
@@ -2062,7 +2062,7 @@
       },
       {
         "nodeType": "materialBehaviourAlpha",
-        "niceName": "Alpha 材质覆盖",
+        "niceName": "Alpha材质覆盖",
         "nodeInfo": "覆盖子网格中的透明度。",
         "attributes": {
           "alpha": "Alpha"
@@ -2071,7 +2071,7 @@
       {
         "nodeType": "materialBehaviourHSV",
         "nodeInfo": "覆盖子网格内形状的色相、饱和度和明度。",
-        "niceName": "HSV 材质覆盖",
+        "niceName": "HSV材质覆盖",
         "attributes": {
           "adjustHue": "色相",
           "adjustSaturation": "饱和度",
@@ -2141,7 +2141,7 @@
       {
         "nodeType": "chopPath",
         "nodeInfo": "使用矩形将路径切割成块。",
-        "niceName": "切割路径",
+        "niceName": "分割路径",
         "attributes": {
           "count": [
             "数量",
@@ -2346,7 +2346,7 @@
           "joinStyle": {
             "0": "斜接",
             "1": "四舍五入",
-            "2": "斜面"
+            "2": "斜边"
           },
           "align": {
             "0": "中心",
@@ -2365,7 +2365,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路径）",
             "2": "HSV 插值（长路径）",
-            "3": "Oklab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路径）",
             "5": "LCH 插值（长路径）"
           }
@@ -2532,7 +2532,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路径）",
             "2": "HSV 插值（长路径）",
-            "3": "Oklab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路径）",
             "5": "LCH 插值（长路径）"
           }
@@ -2773,8 +2773,8 @@
         "enums": {
           "colorFilter": {
             "0": "无",
-            "1": "线性到 sRGB",
-            "2": "sRGB 到线性"
+            "1": "线性到标准 RGB",
+            "2": "标准 RGB 到线性"
           },
           "tiling": {
             "0": "钳制",
@@ -2846,8 +2846,8 @@
           },
           "colorFilter": {
             "0": "无",
-            "1": "线性到 sRGB",
-            "2": "sRGB 到线性"
+            "1": "线性到标准 RGB",
+            "2": "标准 RGB 到线性"
           },
           "greyscaleMode": {
             "0": "亮度（伽马校正）",
@@ -2863,7 +2863,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路径）",
             "2": "HSV 插值（长路径）",
-            "3": "Oklab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路径）",
             "5": "LCH 插值（长路径）"
           }
@@ -2885,7 +2885,7 @@
           "filterQuality": {
             "0": "无（最快）",
             "1": "双线性",
-            "2": "Mipmap（用于缩小）",
+            "2": "多级纹理（用于缩小）",
             "3": "双三次（用于放大）"
           }
         }
@@ -2908,7 +2908,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路径）",
             "2": "HSV 插值（长路径）",
-            "3": "Oklab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路径）",
             "5": "LCH 插值（长路径）"
           }
@@ -3030,8 +3030,8 @@
       },
       {
         "nodeType": "skslShader",
-        "niceName": "SkSL 着色器",
-        "nodeInfo": "使用 SkSL （基于 GLSL ）编写自定义着色器。",
+        "niceName": "着色语言着色器",
+        "nodeInfo": "使用着色语言（基于 GLSL）编写自定义着色器。",
         "attributes": {
           "inputs": "输入",
           "code": "着色器代码"
@@ -3047,12 +3047,12 @@
       },
       {
         "nodeType": "skslFilter",
-        "niceName": "SkSL 滤镜",
-        "nodeInfo": "使用 SkSL （基于 GLSL ）编写自定义滤镜。",
+        "niceName": "着色语言滤镜",
+        "nodeInfo": "使用着色语言（基于 GLSL）编写自定义滤镜。",
         "attributes": {
           "code": [
             "滤镜代码",
-            "在此编写/粘贴/编辑 SkSL 代码。"
+            "在此编写、粘贴或编辑着色语言代码。"
           ],
           "blendMode": [
             "混合模式",
@@ -3169,11 +3169,11 @@
           "filterQuality": {
             "0": "无（最快）",
             "1": "双线性",
-            "2": "Mipmap（用于缩小）",
+            "2": "多级纹理（用于缩小）",
             "3": "双三次（用于放大）"
           },
           "missingImageMode": {
-            "0": "噪波",
+            "0": "噪声",
             "1": "最近帧",
             "2": "黑色"
           }
@@ -3623,7 +3623,7 @@
       {
         "nodeType": "noiseShader",
         "niceName": "噪波着色器",
-        "nodeInfo": "从 Perlin、Value 或 Cellular 噪波创建连贯的噪波效果。",
+        "nodeInfo": "从柏林噪波、值噪波或细胞噪波创建连贯的噪波效果。",
         "attributes": {
           "colorFilter": "颜色滤镜",
           "resolution": "分辨率",
@@ -3665,6 +3665,7 @@
     "values": [
       {
         "nodeType": "basicShape",
+        "niceName": "基本形状",
         "nodeInfo": "基本图形，如矩形、椭圆或多边形。",
         "attributes": {
           "generator": "基本体类型"
@@ -3686,7 +3687,7 @@
           "text": "字符串",
           "font": "字体",
           "fontSize": "字号",
-          "alignment": "对齐方式",
+          "alignment": "对齐",
           "spacing": "间距",
           "wordSpacing": "词间距",
           "lineSpacing": "行间距",
@@ -3717,7 +3718,7 @@
           "letterSpacing": "字符间距",
           "wordSpacing": "词间距",
           "lineSpacing": "行间距",
-          "horizontalAlignment": "对齐方式",
+          "horizontalAlignment": "对齐",
           "verticalAlignment": "垂直对齐",
           "manipulators": "字符串操作器",
           "textBoxSize": "文本框大小",
@@ -3784,7 +3785,7 @@
             "3": "基线"
           },
           "backgroundMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符",
             "3": "段落",
@@ -3818,7 +3819,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           },
@@ -3863,7 +3864,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           }
@@ -3898,7 +3899,7 @@
             "1": "指定索引"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           }
@@ -3943,7 +3944,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           },
@@ -3993,8 +3994,8 @@
       },
       {
         "nodeType": "applyOpenType",
-        "niceName": "应用 OpenType",
-        "nodeInfo": "将 OpenType 特性应用于特定文本范围。",
+        "niceName": "应用开放字体",
+        "nodeInfo": "将开放字体特性应用于特定文本范围。",
         "attributes": {
           "features": "特性",
           "features.feature": "字体特性",
@@ -4017,11 +4018,11 @@
         "enums": {
           "feature": {
             "0": "访问所有替代字形",
-            "1": "上基字形",
-            "2": "上基标记定位",
-            "3": "上基替换",
-            "4": "替代分数",
-            "5": "Akhand 连字",
+            "1": "基线上方形式",
+            "2": "基线上方标记定位",
+            "3": "基线上方替换",
+            "4": "替代分数形式",
+            "5": "阿克汉德",
             "6": "替代比例宽度字距",
             "7": "下基字形",
             "8": "下基标记定位",
@@ -4029,7 +4030,7 @@
             "10": "上下文替代字形",
             "11": "大小写敏感形式",
             "12": "字形组合/分解",
-            "13": "Ro 后连接形式",
+            "13": "罗字后连接形式",
             "14": "上下文半宽间距",
             "15": "连接形式",
             "16": "上下文连字",
@@ -4052,8 +4053,8 @@
             "33": "分数",
             "34": "全宽",
             "35": "半形",
-            "36": "Halant 形式",
-            "37": "替代半宽",
+            "36": "尾音符形式",
+            "37": "替代半宽形式",
             "38": "历史形式",
             "39": "水平假名替代",
             "40": "历史连字",
@@ -4083,8 +4084,8 @@
             "64": "标记到标记定位",
             "65": "通过替换进行标记定位",
             "66": "替代注释形式",
-            "67": "NLC 汉字形式",
-            "68": "Nukta 形式",
+            "67": "汉字形式",
+            "68": "点符形式",
             "69": "分子",
             "70": "旧式数字",
             "71": "视觉边界",
@@ -4102,9 +4103,9 @@
             "83": "四分之一宽",
             "84": "随机化",
             "85": "必需上下文替代",
-            "86": "Rakar 形式",
+            "86": "拉卡尔形式",
             "87": "必需连字",
-            "88": "Reph 形式",
+            "88": "雷夫形式",
             "89": "右边界",
             "90": "从右到左替代",
             "91": "从右到左镜像形式",
@@ -4129,7 +4130,7 @@
             "110": "单一大小写",
             "111": "替代垂直度量",
             "112": "替代比例垂直度量字距",
-            "113": "Vattu 变体",
+            "113": "瓦图变体",
             "114": "垂直上下文半宽间距",
             "115": "垂直替代",
             "116": "替代垂直半宽度量",
@@ -4147,7 +4148,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           },
@@ -4229,7 +4230,7 @@
             "2": "全部"
           },
           "indexMode": {
-            "0": "线条",
+            "0": "直线",
             "1": "词",
             "2": "字符"
           },
@@ -4360,7 +4361,7 @@
       },
       {
         "nodeType": "textHex",
-        "nodeInfo": "为字符串生成器生成十六进制（ base-16 ）字符串。",
+        "nodeInfo": "为字符串生成器生成十六进制字符串。",
         "niceName": "十六进制",
         "attributes": {
           "numberOfLines": "行数",
@@ -4388,7 +4389,7 @@
       },
       {
         "nodeType": "imageToShapes",
-        "nodeInfo": "通过采样图像资产创建形状。",
+        "nodeInfo": "通过采样图像素材创建形状。",
         "attributes": {
           "iterations": "迭代次数",
           "mode": "模式",
@@ -4403,13 +4404,14 @@
           "filterQuality": {
             "0": "无（最快）",
             "1": "双线性",
-            "2": "Mipmap（用于缩小）",
+            "2": "多级纹理（用于缩小）",
             "3": "双三次（用于放大）"
           }
         }
       },
       {
         "nodeType": "basicLine",
+        "niceName": "基本线",
         "nodeInfo": "创建基础线段，如贝塞尔、螺旋或直线。",
         "attributes": {
           "generator": "线条类型",
@@ -4419,7 +4421,7 @@
       {
         "nodeType": "simpleLine",
         "nodeInfo": "生成线段图元。",
-        "niceName": "线条",
+        "niceName": "直线",
         "attributes": {
           "divisions": "细分",
           "length": "长度"
@@ -4488,7 +4490,7 @@
           "joinStyle": {
             "0": "斜接",
             "1": "四舍五入",
-            "2": "斜面"
+            "2": "斜边"
           },
           "capStyle": {
             "0": "平面",
@@ -5029,7 +5031,7 @@
       {
         "nodeType": "arcShape",
         "nodeInfo": "生成圆弧图元。",
-        "niceName": "弧形",
+        "niceName": "圆弧",
         "attributes": {
           "divisions": [
             "细分",
@@ -5060,7 +5062,7 @@
       {
         "nodeType": "ringShape",
         "nodeInfo": "生成圆环图元。",
-        "niceName": "环形",
+        "niceName": "圆环",
         "attributes": {
           "divisions": "细分",
           "radius": "外半径",
@@ -5215,6 +5217,7 @@
       },
       {
         "nodeType": "backgroundShape",
+        "niceName": "背景形状",
         "nodeInfo": "根据其合成的分辨率自动调整大小的形状。",
         "attributes": {
           "shrink": "收缩"
@@ -5233,7 +5236,7 @@
         "nodeInfo": "将网格工具与此形状结合使用以扭曲图像和着色器。",
         "attributes": {
           "mesh": [
-            "网格体",
+            "网格",
             "选中后，形状将转换为网格，因此可以通过使用网格工具添加顶点来变形。"
           ],
           "size": [
@@ -5277,7 +5280,7 @@
           ]
         },
         "tabs": {
-          "mesh": "网格体"
+          "mesh": "网格"
         }
       },
       {
@@ -5327,7 +5330,7 @@
       },
       {
         "nodeType": "pointsToCurve",
-        "niceName": "点转路径",
+        "niceName": "点到路径",
         "nodeInfo": "使用分布中的点创建路径。",
         "attributes": {
           "generator": "点来源",
@@ -5482,7 +5485,7 @@
       },
       {
         "nodeType": "numberRangeBase",
-        "niceName": "数值范围",
+        "niceName": "数字范围",
         "attributes": {
           "sourceMin": "来源最小值",
           "sourceMax": "来源最大值",
@@ -5496,7 +5499,7 @@
       },
       {
         "nodeType": "numberRangeToColorBase",
-        "niceName": "数值范围转颜色",
+        "niceName": "数字范围到颜色",
         "attributes": {
           "sourceMin": "来源最小值",
           "sourceMax": "来源最大值",
@@ -5625,7 +5628,7 @@
           },
           "indexMode": {
             "0": "词",
-            "1": "线条",
+            "1": "直线",
             "2": "段落",
             "3": "文档"
           }
@@ -5665,7 +5668,7 @@
           "indexMode": {
             "0": "字符",
             "1": "词",
-            "2": "线条",
+            "2": "直线",
             "3": "段落"
           }
         }
@@ -5720,7 +5723,7 @@
         "attributes": {
           "string": [
             "字符串",
-            "按 Shift+Return 将字符串转换为多行字符串。"
+            "按住上档键并按回车键，将字符串转换为多行字符串。"
           ],
           "manipulators": "字符串操作器"
         }
@@ -5868,7 +5871,7 @@
           "indexMode": {
             "0": "字符",
             "1": "词",
-            "2": "线条"
+            "2": "直线"
           }
         }
       },
@@ -5882,9 +5885,9 @@
       },
       {
         "nodeType": "assetArray",
-        "nodeInfo": "创建资产列表，可通过索引分配给其他图层。",
+        "nodeInfo": "创建素材列表，可通过索引分配给其他图层。",
         "attributes": {
-          "array": "资产",
+          "array": "素材",
           "arrayIndex": "索引"
         }
       },
@@ -5902,7 +5905,7 @@
         "attributes": {
           "array": [
             "字符串",
-            "按 Shift+Return 将字符串转换为多行字符串。"
+            "按住上档键并按回车键，将字符串转换为多行字符串。"
           ],
           "arrayIndex": "索引",
           "mode": "模式"
@@ -6365,7 +6368,7 @@
         "enums": {
           "layoutItems.contentType": {
             "0": "形状",
-            "1": "间隔器"
+            "1": "间隔符"
           },
           "verticalAlignment": {
             "0": "顶部",
@@ -6431,7 +6434,7 @@
       },
       {
         "nodeType": "spacerItem",
-        "niceName": "间隔器",
+        "niceName": "间隔符",
         "nodeInfo": "与布局形状结合使用以创建间隙或空白单元格。",
         "attributes": {
           "minimumSize": "最小大小"
@@ -6628,12 +6631,12 @@
       },
       {
         "nodeType": "lineRectPatternGenerator",
-        "niceName": "线条",
+        "niceName": "直线",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "orientation": "方向",
           "size": "大小",
-          "horizontalAlignment": "对齐方式",
+          "horizontalAlignment": "对齐",
           "fixedGapWidth": "固定间隙宽度"
         },
         "enums": {
@@ -6650,7 +6653,7 @@
       },
       {
         "nodeType": "ringRectPatternGenerator",
-        "niceName": "环形",
+        "niceName": "圆环",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "startAngle": "开始角度",
@@ -6715,8 +6718,8 @@
         },
         "enums": {
           "lensType": {
-            "1": "凹面",
-            "0": "鱼眼/桶形畸变"
+            "0": "鱼眼/桶形畸变",
+            "1": "凹面"
           }
         },
         "tabs": {
@@ -6861,7 +6864,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路径）",
             "2": "HSV 插值（长路径）",
-            "3": "OkLab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路径）",
             "5": "LCH 插值（长路径）"
           },
@@ -6936,7 +6939,7 @@
             "0": "RGB 插值",
             "1": "HSV 插值（短路径）",
             "2": "HSV 插值（长路径）",
-            "3": "OkLab 插值",
+            "3": "感知色彩插值",
             "4": "LCH 插值（短路径）",
             "5": "LCH 插值（长路径）"
           },
@@ -7134,7 +7137,7 @@
         "enums": {
           "gradientMode": {
             "0": "RGB 插值",
-            "1": "OkLab 插值"
+            "1": "感知色彩插值"
           }
         }
       },
@@ -7271,16 +7274,16 @@
           "noiseType": {
             "0": "Stapl",
             "1": "Luka",
-            "2": "Naki 形式",
+            "2": "纳基形式",
             "3": "Nutous",
             "4": "Poxo",
             "5": "Stupl",
             "6": "Pezo",
             "7": "盒形",
             "8": "起泡湍流",
-            "9": "Buya 形式",
+            "9": "布亚形式",
             "10": "单元",
-            "11": "Cranal 形式",
+            "11": "克拉纳尔形式",
             "12": "凹痕",
             "13": "位移湍流",
             "14": "Hama",
@@ -7476,12 +7479,12 @@
           "pattern": {
             "0": "自定义",
             "1": "白噪波",
+            "2": "拜耳",
             "3": "砖块",
             "4": "条纹",
             "5": "气泡",
             "6": "病毒",
-            "7": "蓝色噪波",
-            "2": "拜耳"
+            "7": "蓝色噪波"
           },
           "blendMode": {
             "1": "替换",
@@ -7660,7 +7663,7 @@
       },
       {
         "nodeType": "kitaokaFilter",
-        "niceName": "Kitaoka 滤镜",
+        "niceName": "北冈滤镜",
         "nodeInfo": "生成美观的波浪效果。",
         "attributes": {
           "blendMode": "混合模式",
@@ -8006,7 +8009,7 @@
       },
       {
         "nodeType": "segmentPath",
-        "niceName": "分段路径",
+        "niceName": "分割路径",
         "nodeInfo": "将路径分割成更小的段。",
         "attributes": {
           "count": "数量",
@@ -8039,7 +8042,7 @@
       },
       {
         "nodeType": "forgeDynamicsShape",
-        "niceName": "Forge 动力学",
+        "niceName": "Forge动力学",
         "nodeInfo": "用于刚体碰撞的 2D 物理引擎。",
         "attributes": {
           "groundMode": "地面模式",
@@ -8070,11 +8073,11 @@
           "shapes.sensor": "传感器",
           "shapes.collisionGroups": [
             "碰撞组",
-            "此物体所属的碰撞组名称，以逗号分隔（如 'terrain,solid'）。留空表示属于所有组。使用 'none' 表示不属于任何组。"
+            "此物体所属的碰撞组名称，以逗号分隔（如“地形,实体”）。留空表示属于所有组。使用“无”表示不属于任何组。"
           ],
           "shapes.collidesWith": [
             "碰撞对象",
-            "此物体碰撞的组名称，以逗号分隔（如 'terrain,solid'）。留空表示与所有组碰撞。使用 'none' 表示不与任何东西碰撞。"
+            "此物体会碰撞的组名称，以逗号分隔（如“地形,实体”）。留空表示与所有组碰撞。使用“无”表示不与任何对象碰撞。"
           ],
           "shapes.maxFixturesPerBody": [
             "每物体最大固定件数",
@@ -8082,7 +8085,7 @@
           ],
           "shapes.stiffness": [
             "刚度",
-            "弹簧频率（Hz，每秒振动次数）。较高的值使软体更硬。"
+            "弹簧频率（赫兹，每秒振动次数）。较高的值会使柔体更硬。"
           ],
           "shapes.damping": [
             "阻尼",
@@ -8231,7 +8234,7 @@
       },
       {
         "nodeType": "stickyCollisionEvent",
-        "niceName": "粘性碰撞事件",
+        "niceName": "粘附碰撞事件",
         "nodeInfo": "当 Forge 动力学物体碰撞时使其相互粘附。",
         "attributes": {
           "breakable": "可断裂",
@@ -8243,7 +8246,7 @@
       },
       {
         "nodeType": "impulseCollisionEvent",
-        "niceName": "脉冲碰撞事件",
+        "niceName": "冲量碰撞事件",
         "nodeInfo": "当 Forge 动力学刚体碰撞时添加额外的力。",
         "attributes": {
           "useBounceDirection": "使用弹跳方向",
@@ -8306,7 +8309,7 @@
         "niceName": "桥接约束",
         "nodeInfo": "在 Forge 动力学模拟中将形状连接在一起形成链条或桥梁结构。",
         "attributes": {
-          "frequencyHz": "频率 (Hz)",
+          "frequencyHz": "频率（赫兹）",
           "dampingRatio": "阻尼比",
           "breakable": "可断裂",
           "breakingForce": "断裂力",
@@ -8403,7 +8406,7 @@
           "restLength": "静止长度",
           "minLength": "最小长度",
           "maxLength": "最大长度",
-          "frequencyHz": "频率 (Hz)",
+          "frequencyHz": "频率（赫兹）",
           "dampingRatio": "阻尼比",
           "inputShape": [
             "弹簧位置",
@@ -8450,7 +8453,7 @@
           "drawColor": "绘制颜色",
           "affectsGroups": [
             "影响群组",
-            "此场影响的碰撞组，以逗号分隔。使用 'none' 表示不影响任何组。"
+            "此场影响的碰撞组，以逗号分隔。使用“无”表示不影响任何组。"
           ]
         },
         "enums": {
@@ -8477,7 +8480,7 @@
       {
         "nodeType": "attractorField",
         "nodeInfo": "与 Forge 动力学模拟配合使用，将形状移向或远离目标。",
-        "niceName": "吸引力场"
+        "niceName": "吸引场"
       },
       {
         "nodeType": "vortexField",
@@ -8677,9 +8680,9 @@
       {
         "nodeType": "assetFromSmartFolder",
         "niceName": "从智能文件夹获取资源",
-        "nodeInfo": "引用智能文件夹中包含的资产（图像、视频、音频等）。",
+        "nodeInfo": "引用智能文件夹中包含的素材（图像、视频、音频等）。",
         "attributes": {
-          "file": "智能文件夹资产",
+          "file": "智能文件夹素材",
           "path": "路径",
           "mode": "模式",
           "index": "索引",
@@ -8804,7 +8807,7 @@
           },
           "algorithm": {
             "0": "Sobel",
-            "1": "Canny 边缘检测"
+            "1": "坎尼边缘检测"
           },
           "greyScaleMode": {
             "0": "亮度（伽马校正）",
@@ -9273,7 +9276,7 @@
       {
         "nodeType": "cornerPinShape",
         "nodeInfo": "变形形状以创建 3D 透视错觉。",
-        "niceName": "边角定位",
+        "niceName": "角固定",
         "attributes": {
           "topLeft": "左上",
           "topRight": "右上",
@@ -9290,7 +9293,7 @@
       {
         "nodeType": "extrude",
         "nodeInfo": "挤出形状以呈现深度效果。",
-        "niceName": "挤出",
+        "niceName": "挤压",
         "attributes": {
           "inputShapes": "输入形状",
           "extrudeDistance": "挤出距离",
@@ -9384,12 +9387,12 @@
       },
       {
         "nodeType": "imageSampler",
-        "nodeInfo": "从图像资产中采样颜色值并用其驱动其他属性。",
+        "nodeInfo": "从图像素材中采样颜色值并用其驱动其他属性。",
         "niceName": "图像采样器",
         "attributes": {
           "strength": "强度",
           "invert": "反转值",
-          "image": "图像资产",
+          "image": "图像素材",
           "tilingX": "平铺 X",
           "tilingY": "平铺 Y",
           "enabled": "已启用",
@@ -9448,7 +9451,7 @@
       },
       {
         "nodeType": "javaScriptShape",
-        "niceName": "JavaScript 形状",
+        "niceName": "JavaScript形状",
         "nodeInfo": "使用 JavaScript 创建形状。",
         "attributes": {
           "generator": "表达式"
@@ -9478,7 +9481,7 @@
       },
       {
         "nodeType": "javaScriptDeformer",
-        "niceName": "JavaScript 变形器",
+        "niceName": "JavaScript变形器",
         "nodeInfo": "使用 JavaScript 变形形状。"
       },
       {
@@ -9499,7 +9502,7 @@
       },
       {
         "nodeType": "stringFromAsset",
-        "nodeInfo": "提取文本资产的内容，用于文本形状或 JavaScript 图层。"
+        "nodeInfo": "提取文本素材的内容，用于文本形状或 JavaScript 图层。"
       }
     ]
   },
@@ -9599,7 +9602,7 @@
     "value": {
       "nodeType": "knot",
       "nodeInfo": "在轮廓自相交处为路径添加缺口。",
-      "niceName": "交叉点",
+      "niceName": "结点",
       "attributes": {
         "mode": [
           "模式"
@@ -9750,7 +9753,7 @@
           "采样点数",
           "这控制输出曲线的质量。值越高质量越好，但计算速度越慢。"
         ],
-        "outputBeziers": "输出 Béziers"
+        "outputBeziers": "输出贝塞尔曲线"
       },
       "enums": {
         "mode": {
@@ -10032,7 +10035,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "isolinesShape",
-      "niceName": "等值线",
+      "niceName": "等高线",
       "nodeInfo": "将图像或形状图层转换为轮廓。",
       "attributes": {
         "inputShape": [
@@ -10045,7 +10048,7 @@
           "网格大小"
         ],
         "outputBeziers": [
-          "输出 Béziers",
+          "输出贝塞尔曲线",
           "输出贝塞尔曲线而非多边形。"
         ],
         "cleanupPath": [
@@ -10261,8 +10264,8 @@
           "3": "曲率角度"
         },
         "branchType": {
-          "0": "线条",
-          "1": "弧形",
+          "0": "直线",
+          "1": "圆弧",
           "2": "贝塞尔曲线"
         },
         "branchArcDirection": {

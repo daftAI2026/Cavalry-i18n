@@ -4,7 +4,7 @@
 
 **NOT COMPLETE** — Dylib injection failed; AX-only insufficient; denominator unmet.
 
-- Session UUID: 21B1048E-963E-43B1-975B-0C506902E0EB  
+- Session UUID: 21B1048E-963E-43B1-975B-0C506902E0EB
 - Target: Cavalry 2.7.1 / Qt 6.6.3
 - Requirement: runtime ≥ 613 candidates / ≥ 666 menuLeaves
 - Current: **0 runtime candidates** (dylib injection failed)
@@ -114,4 +114,3 @@ C. **Declare WEAK-CAPTURE**
 - Runtime: `$CACHE_ROOT/sessions/$SESSION_UUID/runtime/` (empty)
 - Audit: `$CACHE_ROOT/sessions/$SESSION_UUID/audit/codesign-evidence.txt` (✓)
 - Build: `desktop-patcher/injector/libCavalryTranslatorInjector.dylib` (rebuilt, verified)
-

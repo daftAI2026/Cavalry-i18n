@@ -1,0 +1,53 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "bilateralBlurFilter",
+    "superType": "thirdPartyFilter",
+    "skslFile": "bilateralBlur.sksl",
+    "version": "1.0",
+    "attributes": {
+      "amount": {
+        "type": "double",
+        "default": 10,
+        "min": 0,
+        "max": 50,
+        "step": 0.1
+      },
+      "edgeThreshold": {
+        "type": "double",
+        "default": 0.1,
+        "min": 0.01,
+        "max": 1,
+        "step": 0.01
+      },
+      "colorSigma": {
+        "type": "double",
+        "default": 0.15,
+        "min": 0.01,
+        "max": 1,
+        "step": 0.01
+      },
+      "autoPadding": {
+        "default": true
+      },
+      "matteApplyMode": {
+        "default": 1
+      }
+    },
+    "triggers": {
+      "out": [
+        "amount",
+        "edgeThreshold",
+        "colorSigma"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "amount",
+        "edgeThreshold",
+        "colorSigma"
+      ],
+      "icon": "bilateralBlurFilter.png"
+    }
+  }
+]

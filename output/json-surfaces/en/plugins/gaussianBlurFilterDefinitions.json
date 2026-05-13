@@ -1,0 +1,57 @@
+[
+  {
+    "author": "sceneGroup",
+    "type": "gaussianBlurFilter",
+    "superType": "thirdPartyFilter",
+    "version": "1.0",
+    "attributes": {
+      "amount": {
+        "type": "double2",
+        "default": {
+          "x": 10,
+          "y": 10
+        },
+        "children": {
+          "*": {
+            "min": 0,
+            "max": 100,
+            "step": 0.1
+          }
+        }
+      },
+      "autoPadding": {
+        "default": true
+      },
+      "filterInputCompositing": {
+        "default": 1
+      }
+    },
+    "passes": [
+      {
+        "skslFile": "gaussianHorizontal.sksl",
+        "uniforms": [
+          "amount"
+        ],
+        "downsampleFactor": 1
+      },
+      {
+        "skslFile": "gaussianVertical.sksl",
+        "uniforms": [
+          "amount"
+        ],
+        "downsampleFactor": 1
+      }
+    ],
+    "triggers": {
+      "out": [
+        "amount"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "amount"
+      ],
+      "icon": "gaussianBlurFilter.png"
+    }
+  }
+]

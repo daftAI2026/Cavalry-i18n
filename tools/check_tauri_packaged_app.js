@@ -15,7 +15,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const bundleRoot = path.join(repoRoot, 'src-tauri', 'target', 'release', 'bundle');
 const appPath = path.join(bundleRoot, 'macos', 'Cavalry Language Switcher.app');
 const reportPath = path.join(bundleRoot, 'cavalry-i18n-tauri-size-report.json');
-const rendererRoot = path.join(repoRoot, 'desktop-patcher', 'renderer');
+const rendererRoot = path.join(repoRoot, 'renderer');
 const expectedRendererHashes = {
   'index.html': sha256(path.join(rendererRoot, 'index.html')),
   'styles.css': sha256(path.join(rendererRoot, 'styles.css')),
@@ -95,7 +95,7 @@ test('tauri build contains renderer assets or embeds their Tauri routes', () => 
   const binary = packagedBinary();
   assert.ok(fs.existsSync(binary), 'Tauri executable missing from packaged app');
   const binaryText = fs.readFileSync(binary, 'latin1');
-  for (const token of ['index.html', '/styles.css', '/app.js', '../desktop-patcher/renderer']) {
+  for (const token of ['index.html', '/styles.css', '/app.js', '../renderer']) {
     assert.match(binaryText, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 });

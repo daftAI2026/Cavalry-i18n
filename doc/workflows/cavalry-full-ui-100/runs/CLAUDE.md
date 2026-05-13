@@ -18,6 +18,20 @@
 2026-04-30-G-CAPTURE-SIP-blocker.md: INVALIDATED 样本，没有出示 `codesign-evidence.txt` 就声明 SIP 内核阻塞；保留作为 `Anti-Patterns.md` §D SIP-Blame Misdiagnosis 的反向回归证据，不作为 G-CAPTURE 真相源。
 2026-04-30-G-CAPTURE-FINAL-STATUS-WEAK-CAPTURE.md: INVALIDATED 样本，把 9-candidate AX 弱抓取 + 未验证的 SIP 假设当作 G-CAPTURE 最终结论；保留作为 `Anti-Patterns.md` §D 的反向回归证据，不作为 G-CAPTURE 真相源。
 2026-04-30-G-CAPTURE-WORKTREE-STATE-CORRECTION.md: 69d6bfc worktree 状态校正记录，撤销 active 文档中的 SIP 结论，固定当前第一失败 gate 为 G-CAPTURE runtime live denominator 未成立。
+2026-05-01-G2b-batch-1-complete.md: G2b Batch 1 真翻译记录（50 条 compiled UI），cherry-pick 自 b4f784c。
+2026-05-01-CHECKPOINT-Batch1-Done.md: G2b Batch 1 完成 checkpoint，配合 batch-1-complete 阅读。
+2026-05-01-G2b-batch-2-complete.md: G2b Batch 2 真翻译记录（50 条 compiled UI），cherry-pick 自 88760e9。
+2026-05-01-fabrication-recovery.md: 2026-05-01 伪造事件复盘 + reset/cherry-pick 恢复 + §P5 加固总览，是后续 agent 的入口 run note。
+2026-05-05-doc-alignment-fp-set-and-5195-and-archive.md: 文档对齐记录，把 §P5 表与 detector JSON 同集、compiled lower bound 4743→5195 加 provenance、fabrication-era 与 NEXT-STEPS.md 归档；不动 gate 状态与代码。
+2026-05-05-review-finding-fixes.md: Review finding 修复记录，收敛当前状态口径、5195 gate、§P5 detector 集合与 executable contract；保留 G-P / G-X / G2 / G3 剩余 blocker。
+2026-05-05-G-P-P5-reverify.md: G-P / §P5 复核记录，证明 root-cache runtime 旁路已封堵、FP-8 context 检测已接通、FP-9 已清零。
+2026-05-05-P5-GX-matrix-reverify.md: 本轮 P5/G-CAPTURE/G-X/G0/G1/G3 复核记录，证明 FP-9 清零、top-level target 已冻结、G2/G4 仍因真实 compiled 翻译缺口 FAIL。
+2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md: 2026-05-07 G2/G4 ALL GATES PASS 声明的 INVALIDATED 取证，定义 FP-10 transliteration / FP-11 font-sample pangram / FP-12 placeholder reuse 三类反模式，绑定 quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7 与 detector 升级清单。
+2026-05-07-G-P-FP-10-11-12-detector-uplift.md: Step 1 §P5 detector 升级 PASS 记录，证明 FP-10/11/12 命中 transliteration quarantine、当前 HEAD 零误报、fabrication quarantine FP-7/8/9 下界未退化。
+2026-05-07-G-X-denominator-recleaning.md: Step 2 G-X 分母清洗 PASS 记录，冻结新 truth source 为 JSON 6292、compiled 3190、runtime candidates 617、menuLeaves 730，并登记 §F 噪声剔除 provenance。
+2026-05-07-G2-G3-llm-batch-diagnostic-drift.md: Step 3 G2/G3 LLM 批译 BLOCKED 记录，证明同一 LLM batch blocker 两次修复仍复现并固定停止点。
+2026-05-08-ALL-GATES-PASS.md: Step 3/4 最终 PASS 记录，绑定 session BC5BF821、cleaned denominator、三语 FP-1..12=0、check:full-ui overallPass=true / blockedReason=null 与 test:desktop 88/88。
+archive/: 反模式与污染 run note 取证目录，含 fabrication-era over-claim 报告与失效的 NEXT-STEPS.md，仅供反向回归，不参与当前 gate。
 
 规则
 - 每个 run log 必须包含 `## Status`，状态只允许 `PASS` / `FAIL` / `INVALIDATED` / `BLOCKED`。

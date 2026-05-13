@@ -48,7 +48,7 @@ node tools/extract_compiled_ui_strings.js \
 ### 3. 记录抽取量（observed baseline，不是 formal gate）
 
 - 在当前 `Cavalry 2.7.1 / Qt 6.6.3` 样本上，`libExtensionLayer.dylib` raw 抽取通常可见到约 1500+ 条
-- 总 entries 常见于 4000-6000 量级（当前观测约 4743）
+- 总 entries 常见于 4000-6000 量级（Cavalry 2.7.1 当前观测 5195；2.7.0 时为 4743）
 - 保留率与排除率应进入 audit；若明显偏离当前样本，必须在 run note 解释原因
 - 这些数字只用于 drift 审计，不单独构成 PASS / FAIL gate
 

@@ -3665,6 +3665,7 @@
     "values": [
       {
         "nodeType": "basicShape",
+        "niceName": "Basic Shape",
         "nodeInfo": "A primitive shape such as a Rectangle, Ellipse or Polygon.",
         "attributes": {
           "generator": "Primitive Type"
@@ -4410,6 +4411,7 @@
       },
       {
         "nodeType": "basicLine",
+        "niceName": "Basic Line",
         "nodeInfo": "Create a primitive line such as bézier, spiral or straight.",
         "attributes": {
           "generator": "Line Type",
@@ -5215,6 +5217,7 @@
       },
       {
         "nodeType": "backgroundShape",
+        "niceName": "Background Shape",
         "nodeInfo": "A Shape which resizes to the resolution of its Composition.",
         "attributes": {
           "shrink": "Shrink"
@@ -6715,8 +6718,8 @@
         },
         "enums": {
           "lensType": {
-            "1": "Concave",
-            "0": "Fisheye/ Barrel Distortion"
+            "0": "Fisheye/ Barrel Distortion",
+            "1": "Concave"
           }
         },
         "tabs": {
@@ -7476,12 +7479,12 @@
           "pattern": {
             "0": "Custom",
             "1": "White Noise",
+            "2": "Bayer",
             "3": "Bricks",
             "4": "Stripes",
             "5": "Bubbles",
             "6": "Virus",
-            "7": "Blue Noise",
-            "2": "Bayer"
+            "7": "Blue Noise"
           },
           "blendMode": {
             "1": "Replace",

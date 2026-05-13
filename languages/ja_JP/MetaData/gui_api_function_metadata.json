@@ -1,0 +1,1051 @@
+[
+  {
+    "name": "setCavalryPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "object",
+        "required": true
+      }
+    ],
+    "description": "Cavalry の環境設定を設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCavalryPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Cavalry の設定を取得します。指定されたキーに設定がない場合、または設定タイプがサポートされていない場合は null を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setClipboardText",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "クリップボードのテキストを設定します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getClipboardText",
+    "arguments": null,
+    "return_type": "string",
+    "description": "クリップボードから現在のテキストを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearAttributeEditor",
+    "arguments": null,
+    "description": "属性エディター UI をクリアします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "showInAttributeEditor",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーを属性エディターに表示します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getHomeFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "ユーザーのホームディレクトリへのパスを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferencesFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Cavalry の設定ディレクトリへのパスを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAppDataFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Cavalry のデータディレクトリへのパスを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDesktopFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "ユーザーのデスクトップディレクトリへのパスを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getTempFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "システムの一時ファイルディレクトリへのパスを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontsFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "ユーザーのフォントディレクトリへのパスを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDownloadsFolder",
+    "arguments": null,
+    "return_type": "string",
+    "description": "ユーザーのダウンロードディレクトリへのパスを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "toNativeFilePath",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "ファイルパスをネイティブファイルシステム形式に変換します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "serialise",
+    "arguments": [
+      {
+        "name": "layerIds",
+        "type": "Array<string>",
+        "required": true
+      },
+      {
+        "name": "withConnections",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "選択されたレイヤー（オプションで接続を含む）を文字列にシリアライズします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "updateAppTitleBar",
+    "arguments": [
+      {
+        "name": "string",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "アプリケーションのタイトルバーを強制的に更新します。コンポジションに Pro 機能が追加された場合にスターターユーザー向けの制限モードをトリガーするためなどに使用できます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deserialise",
+    "arguments": [
+      {
+        "name": "string",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "文字列をデシリアライズしてレイヤーと接続を再作成します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "replaceGoogleSheet",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "sheetId",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "description": "指定されたファイル ID とシート ID を使用して Google スプレッドシートアセットを新しいアセットに置き換えます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "openURL",
+    "arguments": [
+      {
+        "name": "url",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "デフォルトの Web ブラウザで URL を開きます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getGenerators",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "指定されたレイヤーに関連付けられたジェネレーター属性 ID のリストを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCurrentGeneratorType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "generatorId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたジェネレーターのタイプを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutConnectedAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "出力接続を持つ属性のリストを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInConnectedAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "入力接続を持つ属性のリストを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "指定されたレイヤーのすべての属性のリストを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeNiceName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "属性 ID に基づいて属性の表示名を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤーに指定された属性があるかどうかをチェックします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAnimatedAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "指定されたレイヤーのアニメーションが設定された属性のリストを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isAnimatedAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたレイヤー上の指定された属性がアニメーション設定されているかどうかをチェックします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "render",
+    "arguments": [
+      {
+        "name": "renderQueueItemId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レンダリングキュー内の指定されたアイテムをレンダリングします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "cancelRender",
+    "arguments": null,
+    "description": "現在のレンダリングをキャンセルするよう Cavalry に要求します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renderAll",
+    "arguments": null,
+    "description": "レンダリングキュー内のすべてのアイテムをレンダリングします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "backgroundRenderAll",
+    "arguments": null,
+    "description": "バックグラウンドでレンダリングキュー内のすべてのアイテムのレンダリングを開始します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "backgroundRender",
+    "arguments": [
+      {
+        "name": "renderQueueItemId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "レンダリングキュー内の指定されたアイテムのバックグラウンドレンダリングを開始します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renderPNGFrame",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "scalePercentage",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "指定されたスケールパーセンテージで PNG フレームを指定されたファイルパスにレンダリングします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renderSVGFrame",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "scalePercentage",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "skipComps",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "指定されたスケールパーセンテージで SVG フレームを指定されたファイルパスにレンダリングし、コンポジション背景をスキップするオプションを提供します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "play",
+    "arguments": null,
+    "description": "再生を開始します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "stop",
+    "arguments": null,
+    "description": "再生を停止します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCavalryVersion",
+    "arguments": null,
+    "return_type": "string",
+    "description": "Cavalry の現在のバージョンを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSystemInfo",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "Cavalry が実行されているシステムに関する情報を提供します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "soloLayers",
+    "arguments": [
+      {
+        "name": "layerIdArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "指定されたレイヤーをソロにします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "runProcess",
+    "arguments": [
+      {
+        "name": "cmd",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "argArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "指定されたコマンドと引数でシステムプロセスを実行し、出力とエラーを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "runDetachedProcess",
+    "arguments": [
+      {
+        "name": "cmd",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "argArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "指定されたコマンドと引数でシステムプロセスを分離モードで実行します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createAssetGroup",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "アセットグループを作成し名前を付けます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "replaceAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "新しいファイルパスにあるアセットで置き換えます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getGoogleSheetAssetURL",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定された Google スプレッドシートアセットの URL を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isFileAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "アセットがファイルアセット（画像、動画、オーディオ、スマートフォルダなど）の場合は true を返します。Google スプレッドシート、コンポジション、グループの場合は false を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isGoogleSheetAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "アセットが Google スプレッドシートの場合は true を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetFilePath",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたアセットのファイルパスを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getImageSequenceFilePaths",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "画像シーケンスアセットからすべてのファイルパスを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "saveScene",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "現在のシーンを保存します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "newScene",
+    "arguments": null,
+    "description": "変更を破棄して新しいシーンを開きます。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "jsonFromAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "指定されたアセットのコンテンツを JSON 形式に変換します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "textFromAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたアセットのテキストコンテンツを取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "load",
+    "arguments": [
+      {
+        "name": "scriptPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "ファイルパスからスクリプトを読み込み実行します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exec",
+    "arguments": [
+      {
+        "name": "scriptId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "script",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたスクリプト文字列をスクリプト ID で実行します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDrawInstructionsForSelection",
+    "arguments": null,
+    "return_type": "string",
+    "description": "現在選択されているシェイプの JavaScript 描画命令を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addGuide",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "isVertical",
+        "type": "bool",
+        "required": true
+      },
+      {
+        "name": "position",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "コンポジションにガイドラインを追加し、その ID を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteGuide",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "rulerId",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "ID に基づいてコンポジションからガイドラインを削除します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearGuides",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "コンポジションからすべてのガイドラインをクリアします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getGuideInfo",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Object>",
+    "description": "コンポジション内のすべてのガイドラインに関する情報を取得します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "saveViewportContentsAsImage",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "ビューポートの内容を PNG として保存します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isShiftHeld",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "Shift キーが現在押されているかどうかをチェックします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isAltHeld",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "Option/Alt キーが現在押されているかどうかをチェックします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isControlHeld",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "Control キー（Windows）または Command キー（macOS）が現在押されているかどうかをチェックします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isMetaHeld",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "Meta キー（macOS では Control、Windows では Windows キー）が現在押されているかどうかをチェックします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "presentOpenFile",
+    "arguments": [
+      {
+        "name": "startPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたディレクトリから開始してファイルを開くダイアログを表示します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "presentSaveFile",
+    "arguments": [
+      {
+        "name": "startPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "defaultFileName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたディレクトリから開始してファイルを保存するダイアログを表示します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "presentChooseFolder",
+    "arguments": [
+      {
+        "name": "startPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "ユーザーがフォルダを選択するためのダイアログを表示します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "processEvents",
+    "arguments": null,
+    "description": "保留中のすべての GUI イベントを処理します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "convertSVGToLayers",
+    "arguments": [
+      {
+        "name": "filename",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "SVG ファイルをレイヤーに変換します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "sceneHasUnsavedChanges",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "現在のシーンに保存されていない変更があるかどうかをチェックします。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "encrypt",
+    "arguments": [
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定されたコンテンツを暗号化し、文字列として返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "encryptFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newFilePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "指定されたファイルを暗号化し、指定された場所に保存します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "bringForward",
+    "arguments": null,
+    "description": "選択されたレイヤーをレイヤースタックで 1 つ上に移動します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "bringToFront",
+    "arguments": null,
+    "description": "選択されたレイヤーをレイヤースタックの一番上に移動します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "moveBackward",
+    "arguments": null,
+    "description": "選択されたレイヤーをレイヤースタックで 1 つ下に移動します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "moveToBack",
+    "arguments": null,
+    "description": "選択されたレイヤーをレイヤースタックの一番下に移動します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeDefinition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "属性に関する詳細情報を含むオブジェクトを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDropdownNiceName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "ドロップダウン属性内の指定されたインデックスの名前を返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveTool",
+    "arguments": null,
+    "return_type": "string",
+    "description": "ビューポートのアクティブなツールを返します。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  }
+]

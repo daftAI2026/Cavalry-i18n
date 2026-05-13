@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::state 的 schema、normalize 与 state.json 读写能力
- * [OUTPUT]: 对外提供 Electron 兼容 state.json shape contract tests
+ * [OUTPUT]: 对外提供 Tauri state.json shape contract tests
  * [POS]: src-tauri/tests 的状态守门，确保 saved app path、language 与时间戳 schema 稳定
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -16,7 +16,7 @@ fn normalize_state_defaults_to_english() {
 }
 
 #[test]
-fn write_and_read_state_uses_electron_compatible_schema() {
+fn write_and_read_state_uses_tauri_schema() {
     let temp = tempfile::tempdir().unwrap();
     let expected = State {
         app_path: "/Applications/Cavalry.app".into(),

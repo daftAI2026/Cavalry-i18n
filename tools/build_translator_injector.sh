@@ -54,8 +54,8 @@ major_minor_version() {
 OUTPUT="$1"
 LINK_FRAMEWORKS="${2:-/Applications/Cavalry.app/Contents/Frameworks}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-SOURCE="$REPO_ROOT/desktop-patcher/injector/CavalryTranslatorInjector.mm"
-GENERATED="$REPO_ROOT/desktop-patcher/injector/generated_translations.inc"
+SOURCE="$REPO_ROOT/injector/CavalryTranslatorInjector.mm"
+GENERATED="$REPO_ROOT/injector/generated_translations.inc"
 QT_PREFIX="$(find_qt_prefix || true)"
 TARGET_QT_VERSION="${CAVALRY_QT_VERSION:-}"
 
@@ -132,13 +132,36 @@ clang++ \
   -fobjc-arc \
   -DQT_NO_VERSION_TAGGING \
   -dynamiclib \
+  -arch arm64 \
+  -arch x86_64 \
+  -install_name "@rpath/$(basename "$OUTPUT")" \
+  -Wl,-rpath,"$LINK_FRAMEWORKS" \
+  -Wl,-rpath,"$QT_FRAMEWORKS" \
   "$SOURCE" \
   -o "$OUTPUT" \
   -I"$QT_FRAMEWORKS" \
   -I"$QT_CORE_HEADERS" \
   -F"$QT_FRAMEWORKS" \
-  "${LINK_INPUTS[@]}" \
+  -F"$LINK_FRAMEWORKS" \
+  -framework QtCore \
+  -framework QtGui \
+  -framework QtWidgets \
   -framework Foundation \
   -framework AppKit
+
+# Strip clang's linker-signed flag and re-sign as proper ad-hoc.
+# DYLD_INSERT_LIBRARIES injection is silently rejected by amfid when the dylib
+# carries flags=0x20002(adhoc,linker-signed); proper ad-hoc (flags=0x2) is required.
+/usr/bin/codesign --force --sign - "$OUTPUT"
+
+# Verify the dylib has the expected ad-hoc-only signature.
+DYLIB_FLAGS="$(/usr/bin/codesign -dv "$OUTPUT" 2>&1 | awk -F'[()]' '/^CodeDirectory.*flags=/ { for (i=1;i<=NF;i++) if ($i ~ /,/) print $i }')"
+case "$DYLIB_FLAGS" in
+  *linker-signed*)
+    echo "FATAL: dylib is still linker-signed after codesign --force --sign -. Check Xcode CLT version." >&2
+    /usr/bin/codesign -dv "$OUTPUT" >&2
+    exit 1
+    ;;
+esac
 
 echo "Built translator injector -> $OUTPUT"

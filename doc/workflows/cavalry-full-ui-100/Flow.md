@@ -22,7 +22,7 @@ flowchart TD
   GP -- "no" --> FIX_GP["Create verify_gate_inputs / reject fixture, curated and root-cache runtime input"]
   FIX_GP --> GP
   GP -- "yes" --> P5{"§P5 forbidden patterns wired?"}
-  P5 -- "no" --> FIX_P5["Hard-fail placeholder, fullwidth Latin, page-fill, script-mix and recursive fake translations"]
+  P5 -- "no" --> FIX_P5["Hard-fail placeholder, fullwidth Latin, page-fill, script-mix, synthetic source, fake context and Frankenstein residue"]
   FIX_P5 --> P5
   P5 -- "yes" --> GCAP{"G-CAPTURE runtime capture ready?"}
   GCAP -- "no" --> FIX_GCAP["Enable English dump-only injector / session-dir launch / AX walk / merge toolchain"]
@@ -92,7 +92,7 @@ flowchart TD
 | --- | --- | --- | --- |
 | W-AUDIT | package/test contracts + reviewer red flags | 防止旧弱口径被测试固定住 | 白名单外未达 100、`0.90`、缺 preflight、缺 `libExtensionLayer` 仍被测试接受 |
 | G-P | `verify_gate_inputs.js` + session provenance | 防止 input 出处造假 | fixture/curated/input provenance 缺失、root-cache runtime input、session UUID 不一致 |
-| §P5 | forbidden translation detector | 防止 translation 形态造假 | `（译）` / 全角拉丁 / `页:N` / 简繁串味 / 自我递归伪翻译命中 |
+| §P5 | forbidden translation detector | 防止 translation/source/context 形态造假 | `（译）` / 全角拉丁 / `页:N` / 简繁串味 / 合成 source / 伪 context / Frankenstein 残留命中 |
 | G-CAPTURE | injector + AX + merge runtime toolchain | 先让 live runtime 分母抓得全 | English dump-only 失败、session-dir 缺失、runtime candidates/menuLeaves 低于 A9B11073 基线、缺 `menuDepthMax` / submenu path samples |
 | G-X | extraction inventory + frozen denominator | 防止未抽全就开始翻译 | JSON/compiled/runtime 任一 surface 低于 frozen lower bound、target identity 不一致，或后续 gate 换分母 |
 | G0 | package scripts + detector wiring + CI handoff | 防止“检测存在但 workflow 不自洽” | package tests 红、threshold 弱、runtime metadata 缺失、CI 未接 full-ui |

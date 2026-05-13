@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 desktop-patcher/renderer 视图文件与 preload.js，读取 hash、DOM id 和 API method 锚点
+ * [INPUT]: 依赖 renderer 视图文件与 Tauri bridge，读取 hash、DOM id 和 API method 锚点
  * [OUTPUT]: 对外提供 renderer contract 测试，冻结 UI 真相源和 window.cavalryI18n 需求面
- * [POS]: tools 的 Phase 0 UI 冻结测试，被 Tauri bridge 迁移用作不可漂移基准
+ * [POS]: tools 的 Phase 0 UI 冻结测试，确保 Tauri-only renderer 和 bridge 不漂移
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -12,14 +12,13 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const repoRoot = path.resolve(__dirname, '..');
-const desktopRoot = path.join(repoRoot, 'desktop-patcher');
-const rendererRoot = path.join(desktopRoot, 'renderer');
+const rendererRoot = path.join(repoRoot, 'renderer');
 
 const EXPECTED_HASHES = {
-  'index.html': '4696182c839d011035b3436854c1fa742921825a3d61de974ddb4183d9bdd330',
-  'styles.css': '7c194a12a2ead446bf86f382bec97e4e94c5586205d18902c49ef81bd63722ee',
-  'app.js': '1893469d364d1544ad941e180887a2169885e362e5eaf9932deea48c9ef40182',
-  'tauri-bridge.js': '86ec8ce69fcd0fdc59fd52f7a871bac2d0c2f3b4c4b446f5f9d652a47e0c9693',
+  'index.html': 'f5371832308ace4f37f3c833e341ac5306b59ea6a979a51976d8efad71b4345d',
+  'styles.css': '29225329fc6ca2c15e4c315d46b837319f6c17decbf8144293f88b1ac2e14f54',
+  'app.js': 'adbdcdb4ed7e9227950888cf8dd8f45142eef953752250251af8c98fd1d3f21f',
+  'tauri-bridge.js': 'b583914ca17dbe2f775250cecae3c8598e79fbc8c0064cd8c746192e1e337790',
 };
 
 const REQUIRED_IDS = [
@@ -68,12 +67,12 @@ test('renderer keeps the DOM ids required by app.js and future bridge tests', ()
   }
 });
 
-test('preload exposes the exact cavalryI18n API surface consumed by renderer app.js', () => {
-  const preload = fs.readFileSync(path.join(desktopRoot, 'preload.js'), 'utf8');
+test('tauri bridge exposes the exact cavalryI18n API surface consumed by renderer app.js', () => {
+  const bridge = fs.readFileSync(path.join(rendererRoot, 'tauri-bridge.js'), 'utf8');
   const renderer = fs.readFileSync(path.join(rendererRoot, 'app.js'), 'utf8');
 
   for (const method of REQUIRED_API_METHODS) {
-    assert.match(preload, new RegExp(`${method}\\s*:`), `${method} not exposed in preload`);
+    assert.match(bridge, new RegExp(`${method}\\s*:`), `${method} not exposed in bridge`);
     assert.match(renderer, new RegExp(`api\\.${method}\\(`), `${method} not consumed by renderer`);
   }
 });

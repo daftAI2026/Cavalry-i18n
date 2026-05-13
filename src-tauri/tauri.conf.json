@@ -4,7 +4,7 @@
   "version": "0.1.2",
   "identifier": "com.daftai.cavalry-i18n",
   "build": {
-    "frontendDist": "../desktop-patcher/renderer",
+    "frontendDist": "../renderer",
     "beforeBuildCommand": "npm run build:injector"
   },
   "app": {
@@ -37,11 +37,11 @@
       "app"
     ],
     "icon": [
-      "../desktop-patcher/resources/icon.icns"
+      "icons/icon.icns"
     ],
     "resources": {
       "../languages": "languages",
-      "../desktop-patcher/injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
+      "../injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
     },
     "macOS": {
       "dmg": {

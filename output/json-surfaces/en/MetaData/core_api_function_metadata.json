@@ -1,0 +1,2270 @@
+[
+  {
+    "name": "transformationMatrix",
+    "arguments": null,
+    "return_type": "Matrix",
+    "description": "Returns the upstream local transformation matrix, or null if there isn't one.",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "globalTransformationMatrix",
+    "arguments": null,
+    "return_type": "Matrix",
+    "description": "Returns the upstream global transformation matrix, or null if there isn't one.",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "index",
+    "return_type": "int",
+    "description": "The index of the object (in, for example, a Duplicator).",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "count",
+    "return_type": "int",
+    "description": "The number of shapes being calculated (in, for example, a Duplicator).",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "attributeId",
+    "return_type": "string",
+    "description": "The id of the Attribute being calculated.",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "layerId",
+    "return_type": "string",
+    "description": "The layer id being calculated.",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "niceName",
+    "return_type": "string",
+    "description": "The nice name of the layer being calculated.",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "hasObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Checks if an object with the specified name exists and can be loaded.",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "saveObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "object",
+        "required": true
+      }
+    ],
+    "description": "Saves an object which can then be retreived on future calculations.",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "loadObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "object",
+    "description": "Loads an object which has been previously saved.",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "getBoundingBox",
+    "arguments": null,
+    "return_type": {
+      "x": "number",
+      "y": "number",
+      "width": "number",
+      "height": "number",
+      "centre": {
+        "x": "number",
+        "y": "number"
+      },
+      "left": "number",
+      "right": "number",
+      "top": "number",
+      "bottom": "number"
+    },
+    "description": "Returns an object representing the bounding box of the shape being deformed.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getFalloffAtPoint",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "Returns the falloff value (0-1) at the given local position, multiplied by strength.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "meshDepth",
+    "return_type": "int",
+    "description": "The maximum mesh depth.",
+    "namespace": "@JS_DEFORMER",
+    "type": "property"
+  },
+  {
+    "name": "meshCountAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "Returns the mesh count at the given depth.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "highestDepthWithPath",
+    "arguments": null,
+    "return_type": "int",
+    "description": "Returns the highest depth with a path",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getMeshesAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Mesh>",
+    "description": "Returns an array of Mesh objects.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMeshesAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "meshes",
+        "type": "Array<Mesh>",
+        "required": true
+      }
+    ],
+    "description": "Sets an array of meshes at the given depth.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getMeshAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "Mesh",
+    "description": "Returns a Mesh at the given depth and index.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMeshAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "mesh",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Replaces a mesh at a specific depth and index with the provided mesh object.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setTransformAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "position",
+        "type": "{x",
+        "required": false,
+        "default": "number}"
+      },
+      {
+        "name": "rotation",
+        "type": "number",
+        "required": false
+      },
+      {
+        "name": "scale",
+        "type": "{x",
+        "required": false,
+        "default": "number}"
+      }
+    ],
+    "description": "Applies a transformation to a mesh at a specific depth and index.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "clearTransformAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Clears the transform of a mesh at a specific depth and index.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "centrePivotAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Centers the pivot of a mesh at a specific depth and index.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMaterialAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "material",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Sets the material of a mesh at a specific depth and index.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getPoints",
+    "arguments": [
+      null
+    ],
+    "return_type": "Array<Object>",
+    "description": "Retrieves an array of point objects from all meshes.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setPoints",
+    "arguments": [
+      {
+        "name": "points",
+        "type": "Array<Object>",
+        "required": true
+      }
+    ],
+    "description": "Sets the positions of points in all meshes using an array of point objects.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getRootMesh",
+    "arguments": null,
+    "return_type": "Mesh",
+    "description": "Returns the root Mesh with its full hierarchy of child meshes for recursive traversal.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setRootMesh",
+    "arguments": [
+      {
+        "name": "mesh",
+        "type": "Mesh",
+        "required": true
+      }
+    ],
+    "description": "Sets the root Mesh, replacing the entire mesh hierarchy.",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "Point",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": []
+  },
+  {
+    "name": "PointCloud",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "points",
+        "type": "Array<Point>",
+        "description": "Gets the current points array."
+      }
+    ],
+    "methods": [
+      {
+        "name": "appendPoint",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Point",
+            "required": true
+          }
+        ],
+        "description": "Append a Point to the cloud."
+      },
+      {
+        "name": "appendRotation",
+        "arguments": [
+          {
+            "name": "rotation",
+            "type": "Number",
+            "required": true
+          }
+        ],
+        "description": "Append a rotation in degrees to the cloud. Make sure there's a corresponding point."
+      },
+      {
+        "name": "appendSize",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Point",
+            "required": true
+          }
+        ],
+        "description": "Append a size to the cloud. Make sure there's a corresponding point."
+      }
+    ]
+  },
+  {
+    "name": "Path",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "length",
+        "type": "double",
+        "description": "Gets the total length of the path."
+      },
+      {
+        "name": "isClosed",
+        "type": "bool",
+        "description": "Indicates whether the path is closed."
+      }
+    ],
+    "methods": [
+      {
+        "name": "moveTo",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Moves the starting point of a new contour to the (x, y) coordinates."
+      },
+      {
+        "name": "lineTo",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds a straight line."
+      },
+      {
+        "name": "cubicTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x3",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y3",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds a cubic Bézier curve to the path."
+      },
+      {
+        "name": "quadTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds a quadratic Bézier curve to the path."
+      },
+      {
+        "name": "arcTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "radius",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds an arc to the path which is tangential to the line from the current point to (x1, y1), ending at (x2, y2)."
+      },
+      {
+        "name": "conicTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "weight",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds a conic to the path weighted by w."
+      },
+      {
+        "name": "close",
+        "description": "Closes the current contour by drawing a straight line back to the start."
+      },
+      {
+        "name": "clear",
+        "description": "Clears the entire path, removing all points."
+      },
+      {
+        "name": "addRect",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds a rectangle to the path."
+      },
+      {
+        "name": "addEllipse",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rX",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rY",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds an ellipse to the path."
+      },
+      {
+        "name": "addText",
+        "arguments": [
+          {
+            "name": "text",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "fontSize",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds the text string to the path at the specified location and font size."
+      },
+      {
+        "name": "translate",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Applies a translation to the path."
+      },
+      {
+        "name": "rotate",
+        "arguments": [
+          {
+            "name": "radians",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Rotates the path by the specified radians."
+      },
+      {
+        "name": "scale",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Scales the path by the given x and y factors."
+      },
+      {
+        "name": "append",
+        "arguments": [
+          null
+        ],
+        "description": "Appends another Path object to this path."
+      },
+      {
+        "name": "intersect",
+        "arguments": [
+          null
+        ],
+        "description": "Sets this path to the intersection of it and another path."
+      },
+      {
+        "name": "unite",
+        "arguments": [
+          null
+        ],
+        "description": "Combines this path with another path."
+      },
+      {
+        "name": "difference",
+        "arguments": [
+          null
+        ],
+        "description": "Subtracts another path from this path."
+      },
+      {
+        "name": "convertToCurves",
+        "description": "Converts all lines in the path to Bézier curves."
+      },
+      {
+        "name": "mergeOverlaps",
+        "description": "Converts the path into a set of non-overlapping contours that describe the same area as the original path."
+      },
+      {
+        "name": "convertToLines",
+        "arguments": [
+          {
+            "name": "linesPerCurve",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "description": "Converts all Bézier curves in the path to straight lines."
+      },
+      {
+        "name": "toObject",
+        "return_type": "None",
+        "description": "Returns a serialized object representing the path."
+      },
+      {
+        "name": "fromObject",
+        "arguments": [
+          null
+        ],
+        "description": "Deserializes and sets the path from an object."
+      },
+      {
+        "name": "boundingBox",
+        "return_type": "None",
+        "description": "Calculates and returns the bounding box of the path."
+      },
+      {
+        "name": "findClosestPoint",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Finds the closest point on the path to the given (x, y) coordinates."
+      },
+      {
+        "name": "tangentAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Calculates the tangent vector at the given parameter t along the path."
+      },
+      {
+        "name": "normalAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Calculates the normal vector at the given parameter t along the path."
+      },
+      {
+        "name": "angleAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Calculates the angle of the tangent at the given parameter t along the path."
+      },
+      {
+        "name": "paramAtLength",
+        "arguments": [
+          {
+            "name": "length",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Finds the parameter along the path corresponding to the given length."
+      },
+      {
+        "name": "pointAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Calculates the point at the given parameter t along the path."
+      },
+      {
+        "name": "pointCount",
+        "return_type": "None",
+        "description": "Returns the number of points in the path."
+      },
+      {
+        "name": "contains",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Determines whether the path contains the given (x, y) point."
+      },
+      {
+        "name": "empty",
+        "return_type": "None",
+        "description": "Checks if the path is empty."
+      },
+      {
+        "name": "pathData",
+        "return_type": "None",
+        "description": "Retrieves the path data representing the path."
+      },
+      {
+        "name": "setPathData",
+        "arguments": [
+          null
+        ],
+        "description": "Sets the path based on the provided path data."
+      },
+      {
+        "name": "trim",
+        "arguments": [
+          {
+            "name": "start",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "end",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "travel",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "reverse",
+            "type": "bool",
+            "required": true
+          }
+        ],
+        "description": "Trims the path according to the specified parameters."
+      },
+      {
+        "name": "offset",
+        "arguments": [
+          {
+            "name": "distance",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rounded",
+            "type": "bool",
+            "required": true
+          }
+        ],
+        "description": "Offsets the path by a certain distance, optionally with rounded joins."
+      },
+      {
+        "name": "resample",
+        "arguments": [
+          {
+            "name": "edgeLength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Rebuilds the path by sampling points based on a desired 'edgeLength'."
+      },
+      {
+        "name": "additiveResample",
+        "arguments": [
+          {
+            "name": "edgeLength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Adds points to the current path based on a desired 'edgeLength'."
+      },
+      {
+        "name": "lineIntersections",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "Returns an array of points at which the path and line intersect."
+      },
+      {
+        "name": "pathIntersections",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "Returns an array of points at which this path and the given path intersect."
+      },
+      {
+        "name": "relax",
+        "arguments": [
+          {
+            "name": "iterations",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "radius",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "relaxationStrength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Relax the points in the path away from each other."
+      },
+      {
+        "name": "smooth",
+        "arguments": [
+          {
+            "name": "iterations",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "smoothStrength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Smooths the points by averaging their positions."
+      },
+      {
+        "name": "applyMatrix",
+        "arguments": [
+          {
+            "name": "matrix",
+            "type": "object",
+            "required": true
+          }
+        ],
+        "description": "Multiply the path point positions by a matrix."
+      },
+      {
+        "name": "scatter",
+        "arguments": [
+          {
+            "name": "numberOfPoints",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "seed",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "sequence",
+            "type": "int",
+            "required": false
+          },
+          {
+            "name": "relaxIterations",
+            "type": "int",
+            "required": false
+          },
+          {
+            "name": "relaxDistance",
+            "type": "number",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "Scatter points inside the path via dart throwing. Points are relaxed by default."
+      },
+      {
+        "name": "convertConicsToQuads",
+        "description": "Converts any conic verbs to quad verbs, this might be useful as not all features in Cavalry support conic verbs."
+      },
+      {
+        "name": "fastArea",
+        "return_type": "None",
+        "description": "Returns the area of the path in square pixels. This method does not support holes."
+      },
+      {
+        "name": "isClockwise",
+        "return_type": "None",
+        "description": "Returns true if the path is clockwise."
+      },
+      {
+        "name": "reverse",
+        "description": "Reverses the Path direction."
+      }
+    ]
+  },
+  {
+    "name": "Material",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "strokeColor",
+        "type": "string",
+        "description": "The color of the stroke as a hex string."
+      },
+      {
+        "name": "fillColor",
+        "type": "string",
+        "description": "The color of the fill as a hex string."
+      },
+      {
+        "name": "fill",
+        "type": "bool",
+        "description": "Indicates whether the material should be filled."
+      },
+      {
+        "name": "stroke",
+        "type": "bool",
+        "description": "Indicates whether the material should have a stroke."
+      },
+      {
+        "name": "strokeWidth",
+        "type": "double",
+        "description": "The width of the stroke."
+      },
+      {
+        "name": "trim",
+        "type": "bool",
+        "description": "Indicates whether the stroke should be trimmed."
+      },
+      {
+        "name": "trimReversed",
+        "type": "bool",
+        "description": "Indicates whether the trim should be applied in reverse."
+      },
+      {
+        "name": "trimTravel",
+        "type": "double",
+        "description": "The amount of trim travel."
+      },
+      {
+        "name": "trimStart",
+        "type": "double",
+        "description": "The start position of the trim."
+      },
+      {
+        "name": "trimEnd",
+        "type": "double",
+        "description": "The end position of the trim."
+      }
+    ],
+    "methods": []
+  },
+  {
+    "name": "Mesh",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": [
+      {
+        "name": "addPath",
+        "arguments": [
+          {
+            "name": "path",
+            "type": "Path",
+            "required": true
+          },
+          {
+            "name": "material",
+            "type": "Material",
+            "required": false
+          }
+        ],
+        "description": "Adds a path to the mesh. If no material is provided, the path inherits the material from its parent mesh."
+      },
+      {
+        "name": "count",
+        "return_type": "None",
+        "description": "Returns the number of paths in the mesh."
+      },
+      {
+        "name": "empty",
+        "return_type": "None",
+        "description": "Checks if the mesh is empty."
+      },
+      {
+        "name": "clear",
+        "description": "Clears all paths from the mesh."
+      },
+      {
+        "name": "getPathDataAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Retrieves the path data at the specified index. Usful for exiting existing points."
+      },
+      {
+        "name": "getPathAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Retrieves the Path object at the specified index. Useful for adding to a path."
+      },
+      {
+        "name": "setPathAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          null
+        ],
+        "description": "Sets the path at the specified index."
+      },
+      {
+        "name": "setPathDataAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          null
+        ],
+        "description": "Sets the path data at the specified index."
+      },
+      {
+        "name": "setMaterialAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "material",
+            "type": "Material",
+            "required": true
+          }
+        ],
+        "description": "Sets the material for the path at the specified index. Pass null to clear the material and inherit from parent."
+      },
+      {
+        "name": "getBoundingBox",
+        "return_type": "None",
+        "description": "Calculates and returns the bounding box of the entire mesh."
+      },
+      {
+        "name": "addChildMesh",
+        "arguments": [
+          {
+            "name": "mesh",
+            "type": "Mesh",
+            "required": true
+          }
+        ],
+        "description": "Adds a child mesh to this Mesh."
+      },
+      {
+        "name": "clearChildMeshes",
+        "description": "Deletes all the child Meshes on this Mesh."
+      },
+      {
+        "name": "childMeshCount",
+        "return_type": "None",
+        "description": "Returns the number of child Meshes."
+      },
+      {
+        "name": "getChildMeshAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Returns the child Mesh at the given index."
+      },
+      {
+        "name": "setChildMeshAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "mesh",
+            "type": "Mesh",
+            "required": true
+          }
+        ],
+        "description": "Sets the child Mesh at the given index."
+      },
+      {
+        "name": "getFlattenedPath",
+        "return_type": "None",
+        "description": "Returns a path representing the combined geometry of this mesh and all child meshes."
+      }
+    ]
+  },
+  {
+    "name": "Line",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {
+      "arguments": [
+        {
+          "name": "x1",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "y1",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "x2",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "y2",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    "properties": [],
+    "methods": [
+      {
+        "name": "length",
+        "description": "Gets the length of the line."
+      },
+      {
+        "name": "angle",
+        "description": "Gets the angle of the line in radians."
+      },
+      {
+        "name": "setLength",
+        "arguments": [
+          {
+            "name": "length",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Sets the length of the line."
+      },
+      {
+        "name": "setAngle",
+        "arguments": [
+          {
+            "name": "angle",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Sets the angle of the line in radians."
+      },
+      {
+        "name": "start",
+        "return_type": "None",
+        "description": "Retrieves the start point of the line."
+      },
+      {
+        "name": "end",
+        "return_type": "None",
+        "description": "Retrieves the end point of the line."
+      },
+      {
+        "name": "delta",
+        "return_type": "None",
+        "description": "Calculates the delta (difference in coordinates) between the start and end points of the line."
+      },
+      {
+        "name": "pointAt",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Calculates the point at a given parameter t along the line."
+      },
+      {
+        "name": "normalAt",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Calculates the normal vector at a given parameter t along the line."
+      },
+      {
+        "name": "translate",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "description": "Translates the line by a given point vector."
+      },
+      {
+        "name": "distance",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "Calculates the shortest distance from the line to a given point."
+      },
+      {
+        "name": "closestPointTo",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "Calculates the closest point on the line to a given point."
+      },
+      {
+        "name": "lineIntersection",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "Returns the point at which two lines intersect, or null if there's no intersection."
+      }
+    ]
+  },
+  {
+    "name": "Matrix",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": [
+      {
+        "name": "setPosition",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Sets the position (translation) of the matrix."
+      },
+      {
+        "name": "setRotation",
+        "arguments": [
+          {
+            "name": "angle",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Sets the rotation of the matrix in degrees."
+      },
+      {
+        "name": "setScale",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Sets the scale factors of the matrix."
+      },
+      {
+        "name": "setSkew",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "Sets the skew factors of the matrix."
+      },
+      {
+        "name": "scale",
+        "return_type": "None",
+        "description": "Gets the scale factors of the matrix."
+      },
+      {
+        "name": "position",
+        "return_type": "None",
+        "description": "Gets the position (translation) of the matrix."
+      },
+      {
+        "name": "skew",
+        "return_type": "None",
+        "description": "Gets the skew of the matrix."
+      },
+      {
+        "name": "rotation",
+        "return_type": "None",
+        "description": "Gets the rotation of the matrix in degrees."
+      },
+      {
+        "name": "multiply",
+        "arguments": [
+          {
+            "name": "other",
+            "type": "Matrix",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Returns a new matrix that is the result of multiplying this matrix with another matrix."
+      },
+      {
+        "name": "inverted",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "Returns a new matrix that is the inverse of this matrix."
+      },
+      {
+        "name": "invert",
+        "description": "Inverts this matrix in place."
+      },
+      {
+        "name": "isFinite",
+        "return_type": "None",
+        "description": "Checks if all elements of the matrix are finite."
+      },
+      {
+        "name": "isIdentity",
+        "return_type": "None",
+        "description": "Checks if the matrix is an identity matrix."
+      },
+      {
+        "name": "mapRect",
+        "arguments": [
+          {
+            "name": "rect",
+            "type": "Object",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Maps a rectangle {x,y,width,height} using this matrix and returns the resulting rectangle."
+      },
+      {
+        "name": "mapPoint",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Object",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Maps a point using this matrix and returns the resulting point."
+      },
+      {
+        "name": "mapPoints",
+        "arguments": [
+          {
+            "name": "points",
+            "type": "Array<Object>",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "Maps an array of points using this matrix and returns the resulting array of points."
+      }
+    ]
+  },
+  {
+    "name": "random",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "sequence",
+        "type": "int",
+        "required": false,
+        "default": "0"
+      }
+    ],
+    "return_type": "double",
+    "description": "Create a random number.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "uniform",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "sequence",
+        "type": "int",
+        "required": false,
+        "default": "0"
+      }
+    ],
+    "return_type": "double",
+    "description": "Create a uniformly distributed random number.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise1d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Sample 1d Simplex Noise at the given X coodrinate.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise2d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Sample 2d Simplex Noise at the given XY coodrinate.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise3d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "z",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Sample 3d Simplex Noise at the given XYZ coodrinate.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "dist",
+    "arguments": [
+      {
+        "name": "x1",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y1",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "x2",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y2",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Calculates the distance between two points (x1, y1) and (x2, y2).",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "map",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "inMin",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "inMax",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "outMin",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "outMax",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Re-maps a number from one range to another.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "norm",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Normalizes a number within a range.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "clamp",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Clamps a value between a minimum and a maximum number.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "lerp",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "t",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Performs linear interpolation between values min and max.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "degreesToRadians",
+    "arguments": [
+      {
+        "name": "degrees",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Converts an angle in degrees to radians.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "radiansToDegrees",
+    "arguments": [
+      {
+        "name": "radians",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Converts an angle in radians to degrees.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "angleFromVector",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "Calculates the angle (in radians) from a vector (x, y).",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "vectorFromAngle",
+    "arguments": [
+      {
+        "name": "angleRad",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number"
+    },
+    "description": "Creates a vector from an angle in radians.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hexToHsv",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "h": "number",
+      "s": "number",
+      "v": "number"
+    },
+    "description": "Converts a hex color value to its HSV representation.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hexToRgba",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "r": "number",
+      "g": "number",
+      "b": "number",
+      "a": "number"
+    },
+    "description": "Converts a hex color value to its RGBA representation, optionally scaled to the range of 0-1.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbToHsv",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "h": "number",
+      "s": "number",
+      "v": "number"
+    },
+    "description": "Converts RGB color values to their HSV representation.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbToHex",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "Converts RGB color values to their hex color string representation.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbaToHex",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "a",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "Converts RGBA color values to their hex color string representation.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hsvToHex",
+    "arguments": [
+      {
+        "name": "h",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "s",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "v",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Converts HSV color values to their hex color string representation.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hsvToRgba",
+    "arguments": [
+      {
+        "name": "h",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "s",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "v",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "scaledValues",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "r": "number",
+      "g": "number",
+      "b": "number",
+      "a": "number"
+    },
+    "description": "Converts HSV color values to their RGBA representation.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "nameThatColor",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns a W3C color name that's the closest match to the specified hex color.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "versionLessThan",
+    "arguments": [
+      {
+        "name": "version",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Compares the given version string with the Cavalry version.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "fontExists",
+    "arguments": [
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontStyle",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Checks if a font with the given family and style exists.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontFamilies",
+    "arguments": [
+      null
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves a list of available font families.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontStyles",
+    "arguments": [
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "Retrieves a list of available styles for a given font family.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "measureText",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontStyle",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontSize",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "width": "number",
+      "height": "number",
+      "x": "number",
+      "y": "number",
+      "centreX": "number",
+      "centreY": "number"
+    },
+    "description": "Measures the dimensions of the given text with specified font settings.",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  }
+]

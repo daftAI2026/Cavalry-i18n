@@ -22,17 +22,17 @@
 
 PASS 条件：
 
-- active full-ui / Tauri gate 实现 whitelist-filtered 100，并拒绝 legacy weak threshold（如 `--threshold 99`）；不要把 Electron 专属测试当作本 workflow 的修复目标
+- active full-ui / Tauri gate 实现 whitelist-filtered 100，并拒绝 legacy weak threshold（如 `--threshold 99`）；不要把已删除旧壳层测试当作本 workflow 的修复目标
 - `package.json` 的 `check:full-ui` 在 matrix 前调用 `tools/verify_gate_inputs.js`
 - `tools/validate_translations.py` 在 coverage < `1.00` 时 exit 非 `0`
 - `tools/check_runtime_ui_coverage.js` 把 `（译）` / 全角拉丁 / `页:1` 计入 forbidden pattern
 - `tools/extract_compiled_ui_strings.js` 的 target contract 覆盖 `libExtensionLayer.dylib`
 
-Electron 边界：
+Removed legacy shell boundary:
 
-- `tools/check_electron_patcher_ui.js`、`tools/electron_harness.js`、`tools/capture_electron_*` 只可作为历史断言来源。
+- `tools/check_app_contracts.js` 是迁移后的 active contract；旧 harness/capture 工具已删除。
 - 若其中仍有 full-ui 价值，迁移断言到 full-ui / Tauri gate。
-- 不新增、不修复、不扩展 Electron 专属测试来满足本 workflow。
+- 不恢复旧壳层专属测试来满足本 workflow。
 
 ---
 
@@ -47,9 +47,9 @@ test -f "$SESSION_DIR/extraction-inventory.json"
 PASS 条件：
 
 - JSON / compiled / runtime 三类 surface 全部存在
-- JSON lower bounds 达到 `10 / 6320 / 34 / 51 / total 6415`
-- compiled source-map entries `>= 4743`
-- runtime candidates `>= 613` 且 menu leaves `>= 666`，下界来自 A9B11073 合格基线
+- JSON lower bounds 达到 G-X 清洗后 `10 / 6197 / 34 / 51 / total 6292`
+- compiled source-map entries `>= 3190`（Cavalry 2.7.1 raw extraction 经 §F 噪声剔除；2.7.0 时为 4743）
+- runtime candidates `>= 617` 且 menu leaves `>= 730`，下界来自 1D78B1A9 清洗后合格基线
 - `RUN_RECORD.extractionInventory.path/hash/mtime` 已记录
 
 ### BX.2 downstream gates must use frozen denominator
@@ -95,7 +95,7 @@ PASS 条件：
 
 - `tools/verify_gate_inputs.js --section P5` 在干净 main 上通过
 - `archive/cavalry-full-ui-100-v2-invalidated-20260428` 污染样本全部失败
-- runtime / compiled / `.ts` / `.inc` / JSON 任意命中 `（译）`、全角拉丁、`页:N`、简繁串味、source==translation 自我递归时，gate exit 非 `0`
+- runtime / compiled / `.ts` / `.inc` / JSON 任意命中 FP-1/2/3/4/5/7/8/9 时，gate exit 非 `0`
 
 ---
 
@@ -104,7 +104,7 @@ PASS 条件：
 ### B0.1 package workflow scripts must exist
 
 ```bash
-npm run test:desktop
+npm run test:contracts
 ```
 
 PASS 条件：

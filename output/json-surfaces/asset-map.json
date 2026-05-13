@@ -1,0 +1,195 @@
+{
+  "count": 38,
+  "rows": [
+    {
+      "asset": "Definitions/appStrings.json",
+      "languagePath": "appStrings.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Definitions/nodeDefinitions.json",
+      "languagePath": "Definitions/nodeDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Definitions/nodeStrings.json",
+      "languagePath": "nodeStrings.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Definitions/systemPresets.json",
+      "languagePath": "Definitions/systemPresets.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Learn/Guides/guides.json",
+      "languagePath": "Learn/Guides/guides.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Learn/Guides/strings.json",
+      "languagePath": "Learn/Guides/strings.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Learn/onboarding.json",
+      "languagePath": "onboarding.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Learn/tips.json",
+      "languagePath": "tips.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "MetaData/api_function_metadata.json",
+      "languagePath": "MetaData/api_function_metadata.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "MetaData/core_api_function_metadata.json",
+      "languagePath": "MetaData/core_api_function_metadata.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "MetaData/gui_api_function_metadata.json",
+      "languagePath": "MetaData/gui_api_function_metadata.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "MetaData/widget_api_function_metadata.json",
+      "languagePath": "MetaData/widget_api_function_metadata.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Bilateral Blur Filter/definitions.json",
+      "languagePath": "plugins/bilateralBlurFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Bilateral Blur Filter/strings.json",
+      "languagePath": "plugins/bilateralBlurFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Box Blur Filter/definitions.json",
+      "languagePath": "plugins/boxBlurFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Box Blur Filter/strings.json",
+      "languagePath": "plugins/boxBlurFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Bulge Filter/definitions.json",
+      "languagePath": "plugins/bulgeFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Bulge Filter/strings.json",
+      "languagePath": "plugins/bulgeFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Chroma Key Filter/definitions.json",
+      "languagePath": "plugins/chromaKeyFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Chroma Key Filter/strings.json",
+      "languagePath": "plugins/chromaKeyFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Directional Blur Filter/definitions.json",
+      "languagePath": "plugins/directionalBlurFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Directional Blur Filter/strings.json",
+      "languagePath": "plugins/directionalBlurFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Erosion Filter/definitions.json",
+      "languagePath": "plugins/erosionFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Erosion Filter/strings.json",
+      "languagePath": "plugins/erosionFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Gaussian Blur Filter/definitions.json",
+      "languagePath": "plugins/gaussianBlurFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Gaussian Blur Filter/strings.json",
+      "languagePath": "plugins/gaussianBlurFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Grain Filter/definitions.json",
+      "languagePath": "plugins/grainFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Grain Filter/strings.json",
+      "languagePath": "plugins/grainFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Light Sweep Filter/definitions.json",
+      "languagePath": "plugins/lightSweepFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Light Sweep Filter/strings.json",
+      "languagePath": "plugins/lightSweepFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Polar Coordinates Filter/definitions.json",
+      "languagePath": "plugins/polarCoordinatesFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Polar Coordinates Filter/strings.json",
+      "languagePath": "plugins/polarCoordinatesFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Spherise Filter/definitions.json",
+      "languagePath": "plugins/spheriseFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Spherise Filter/strings.json",
+      "languagePath": "plugins/spheriseFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Plugins/Zoom Blur Filter/definitions.json",
+      "languagePath": "plugins/zoomBlurFilterDefinitions.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Plugins/Zoom Blur Filter/strings.json",
+      "languagePath": "plugins/zoomBlurFilter.json",
+      "currentlyCovered": true
+    },
+    {
+      "asset": "Style/layout.json",
+      "languagePath": "Style/layout.json",
+      "currentlyCovered": false
+    },
+    {
+      "asset": "Style/theme.json",
+      "languagePath": "Style/theme.json",
+      "currentlyCovered": false
+    }
+  ]
+}

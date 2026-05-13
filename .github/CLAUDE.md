@@ -5,7 +5,7 @@
 workflows/: CI/CD 工作流目录，负责语法/合同验证、macOS 打包与 release 上传。
 
 依赖边界:
-.github 只描述自动化执行路径；默认构建切到 Tauri 后，workflow 也必须同步，不允许继续假装 Electron 是主线。
+.github 只描述自动化执行路径；Tauri 是唯一构建主线，workflow 必须与本地入口同构。
 
 法则: 默认路径同步·CI 与本地一致·产物路径明确
 

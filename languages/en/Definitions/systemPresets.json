@@ -1,0 +1,243 @@
+[
+  {
+    "presetType": "layer",
+    "id": "ff4cec15-22cd-40f0-9253-b9803f003467",
+    "name": "Numbers",
+    "layerType": [
+      "applyFontSize",
+      "applyTextMaterial",
+      "applyFontSize",
+      "applyFont",
+      "applyOpenType",
+      "applyTypeface"
+    ],
+    "attrs": [
+      {
+        "attrId": "mode",
+        "value": 0
+      },
+      {
+        "attrId": "regex",
+        "value": "[\\-]{0,1}[0-9]+[\\.][0-9]+|[\\-]{0,1}[0-9]+"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "97e73d1f-5977-45e5-b216-cf3b7734b956",
+    "name": "Text in Parenthesis",
+    "layerType": [
+      "applyFontSize",
+      "applyTextMaterial",
+      "applyFontSize",
+      "applyFont",
+      "applyOpenType"
+    ],
+    "attrs": [
+      {
+        "attrId": "mode",
+        "value": 0
+      },
+      {
+        "attrId": "regex",
+        "value": "\\(([^\\)]+)\\)"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "71d364e6-c799-461d-90ed-5f69660d6557",
+    "name": "Vowels",
+    "layerType": [
+      "applyFontSize",
+      "applyTextMaterial",
+      "applyFontSize",
+      "applyFont",
+      "applyOpenType"
+    ],
+    "attrs": [
+      {
+        "attrId": "mode",
+        "value": 0
+      },
+      {
+        "attrId": "regex",
+        "value": "[aeiuo]+"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "e9a6d515-4f6f-4509-bc3e-78a5e6cb88cf",
+    "name": "All 2 Letter Words",
+    "layerType": [
+      "applyFontSize",
+      "applyTextMaterial",
+      "applyFontSize",
+      "applyFont",
+      "applyOpenType"
+    ],
+    "attrs": [
+      {
+        "attrId": "mode",
+        "value": 0
+      },
+      {
+        "attrId": "regex",
+        "value": "\\b\\w{2}\\b"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "c301e97e-72d4-413c-9863-0308fa854be3",
+    "name": "Capitalised Words",
+    "layerType": [
+      "applyFontSize",
+      "applyTextMaterial",
+      "applyFontSize",
+      "applyFont",
+      "applyOpenType"
+    ],
+    "attrs": [
+      {
+        "attrId": "mode",
+        "value": 0
+      },
+      {
+        "attrId": "regex",
+        "value": "[A-Z][a-z]*"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "a9336bfe-e7d2-46d5-83da-fd1a9efc6dc8",
+    "name": "Match Specific Words",
+    "layerType": [
+      "applyFontSize",
+      "applyTextMaterial",
+      "applyFontSize",
+      "applyFont",
+      "applyOpenType"
+    ],
+    "attrs": [
+      {
+        "attrId": "mode",
+        "value": 0
+      },
+      {
+        "attrId": "regex",
+        "value": "\\b(enter|words|here)\\b"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "e4ed8cb1-6ca5-435f-891f-48b820948c25",
+    "name": "File Names",
+    "layerType": [
+      "applyFontSize",
+      "applyTextMaterial",
+      "applyFontSize",
+      "applyFont",
+      "applyOpenType"
+    ],
+    "attrs": [
+      {
+        "attrId": "mode",
+        "value": 0
+      },
+      {
+        "attrId": "regex",
+        "value": "\\b(\\w+)\\.(\\w+)\\b"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "4f398a11-2c93-4593-a728-b2a625373082",
+    "name": "Ordinal Indicators",
+    "layerType": [
+      "applyFontSize",
+      "applyTextMaterial",
+      "applyFontSize",
+      "applyFont",
+      "applyOpenType"
+    ],
+    "attrs": [
+      {
+        "attrId": "mode",
+        "value": 0
+      },
+      {
+        "attrId": "regex",
+        "value": "(th|rd|st|nd)"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "4ed4005e-bca6-4d50-a110-d352f18052e0",
+    "name": "Fahrenheit To Celcius",
+    "layerType": "javaScript",
+    "attrs": [
+      {
+        "attrId": "expression",
+        "value": "function toCelsius(fahrenheit) {\n    return (5/9) * (fahrenheit-32);\n}\n\ntoCelsius(n0);"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  },
+  {
+    "presetType": "layer",
+    "id": "5b7fd688-1435-42fa-8864-509db46befb6",
+    "name": "Animating Gradient",
+    "layerType": "skslShader",
+    "attrs": [
+      {
+        "attrId": "code",
+        "value": "half4 main(float2 fragCoord) {\n    // Normalized pixel coordinates (from 0 to 1)\n    float2 uv = fragCoord / resolution;\n\n    // Varying pixel color based on n0\n    float3 col = 0.5 + 0.5 * sin(n0 + float3(uv.x, uv.y, uv.x) + float3(0.0, 8.0, 16.0));\n\n    // Output color\n    return half4(col, 1.0);\n}"
+      }
+    ],
+    "generators": [],
+    "shapeInfo": {},
+    "resetsTransforms": false,
+    "resetsLayer": true
+  }
+]

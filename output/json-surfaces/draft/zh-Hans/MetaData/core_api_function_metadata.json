@@ -1,0 +1,2270 @@
+[
+  {
+    "name": "transformationMatrix",
+    "arguments": null,
+    "return_type": "Matrix",
+    "description": "返回上游局部变换矩阵，如果不存在则返回 null。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "globalTransformationMatrix",
+    "arguments": null,
+    "return_type": "Matrix",
+    "description": "返回上游全局变换矩阵，如果不存在则返回 null。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "index",
+    "return_type": "int",
+    "description": "对象的索引（例如在复製器中的索引）。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "count",
+    "return_type": "int",
+    "description": "正在计算的形状数量（例如在复製器中）。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "attributeId",
+    "return_type": "string",
+    "description": "正在计算的属性 ID。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "layerId",
+    "return_type": "string",
+    "description": "正在计算的图层 ID。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "niceName",
+    "return_type": "string",
+    "description": "正在计算的图层的友好名称。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "hasObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "检查是否存在指定名称的对象并可将其加载。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "saveObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "object",
+        "required": true
+      }
+    ],
+    "description": "保存一个对象，以便在后续计算中获取。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "loadObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "object",
+    "description": "加载先前保存的对象。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "getBoundingBox",
+    "arguments": null,
+    "return_type": {
+      "x": "number",
+      "y": "number",
+      "width": "number",
+      "height": "number",
+      "centre": {
+        "x": "number",
+        "y": "number"
+      },
+      "left": "number",
+      "right": "number",
+      "top": "number",
+      "bottom": "number"
+    },
+    "description": "返回一个表示正在变形的形状的包围盒对象。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getFalloffAtPoint",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "返回给定局部位置处的衰减值（0-1），乘以强度。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "meshDepth",
+    "return_type": "int",
+    "description": "最大网格深度。",
+    "namespace": "@JS_DEFORMER",
+    "type": "property"
+  },
+  {
+    "name": "meshCountAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "返回给定深度处的网格数量。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "highestDepthWithPath",
+    "arguments": null,
+    "return_type": "int",
+    "description": "返回带有路径的最高深度。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getMeshesAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Mesh>",
+    "description": "返回一个 Mesh 对象数组。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMeshesAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "meshes",
+        "type": "Array<Mesh>",
+        "required": true
+      }
+    ],
+    "description": "在给定深度处设置一个网格数组。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getMeshAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "Mesh",
+    "description": "返回给定深度和索引处的 Mesh。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMeshAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "mesh",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "用提供的网格对象替换指定深度和索引处的网格。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setTransformAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "position",
+        "type": "{x",
+        "required": false,
+        "default": "number}"
+      },
+      {
+        "name": "rotation",
+        "type": "number",
+        "required": false
+      },
+      {
+        "name": "scale",
+        "type": "{x",
+        "required": false,
+        "default": "number}"
+      }
+    ],
+    "description": "对指定深度和索引处的网格应用变换。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "clearTransformAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "清除指定深度和索引处网格的变换。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "centrePivotAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "将指定深度和索引处网格的轴心点居中。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMaterialAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "material",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "设置指定深度和索引处网格的材质。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getPoints",
+    "arguments": [
+      null
+    ],
+    "return_type": "Array<Object>",
+    "description": "从所有网格中获取点对象数组。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setPoints",
+    "arguments": [
+      {
+        "name": "points",
+        "type": "Array<Object>",
+        "required": true
+      }
+    ],
+    "description": "使用点对象数组设置所有网格中点的位置。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getRootMesh",
+    "arguments": null,
+    "return_type": "Mesh",
+    "description": "返回根 Mesh 及其完整的子网格层级结构，用于递归遍历。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setRootMesh",
+    "arguments": [
+      {
+        "name": "mesh",
+        "type": "Mesh",
+        "required": true
+      }
+    ],
+    "description": "设置根 Mesh，替换整个网格层级结构。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "Point",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": []
+  },
+  {
+    "name": "PointCloud",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "points",
+        "type": "Array<Point>",
+        "description": "获取当前点数组。"
+      }
+    ],
+    "methods": [
+      {
+        "name": "appendPoint",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Point",
+            "required": true
+          }
+        ],
+        "description": "向点云追加一个 Point。"
+      },
+      {
+        "name": "appendRotation",
+        "arguments": [
+          {
+            "name": "rotation",
+            "type": "Number",
+            "required": true
+          }
+        ],
+        "description": "向点云追加一个以度为单位的旋转。确保存在对应的点。"
+      },
+      {
+        "name": "appendSize",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Point",
+            "required": true
+          }
+        ],
+        "description": "向点云追加一个大小。确保存在对应的点。"
+      }
+    ]
+  },
+  {
+    "name": "Path",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "length",
+        "type": "double",
+        "description": "获取路径的总长度。"
+      },
+      {
+        "name": "isClosed",
+        "type": "bool",
+        "description": "指示路径是否闭合。"
+      }
+    ],
+    "methods": [
+      {
+        "name": "moveTo",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "将新轮廓的起点移动到 (x, y) 坐标处。"
+      },
+      {
+        "name": "lineTo",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "添加一条直线。"
+      },
+      {
+        "name": "cubicTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x3",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y3",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "向路径添加一条三次贝塞尔曲线。"
+      },
+      {
+        "name": "quadTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "向路径添加一条二次贝塞尔曲线。"
+      },
+      {
+        "name": "arcTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "radius",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "向路径添加一段圆弧，该圆弧与从当前点到 (x1, y1) 的连线相切，终点为 (x2, y2)。"
+      },
+      {
+        "name": "conicTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "weight",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "向路径添加一条由 w 加权的圆锥曲线。"
+      },
+      {
+        "name": "close",
+        "description": "通过绘制一条返回起点的直线来闭合当前轮廓。"
+      },
+      {
+        "name": "clear",
+        "description": "清空整个路径，移除所有点。"
+      },
+      {
+        "name": "addRect",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "向路径添加一个矩形。"
+      },
+      {
+        "name": "addEllipse",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rX",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rY",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "向路径添加一个椭圆。"
+      },
+      {
+        "name": "addText",
+        "arguments": [
+          {
+            "name": "text",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "fontSize",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "将文本字符串添加到路径的指定位置，使用指定字体大小。"
+      },
+      {
+        "name": "translate",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "对路径应用平移。"
+      },
+      {
+        "name": "rotate",
+        "arguments": [
+          {
+            "name": "radians",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "按指定弧度旋转路径。"
+      },
+      {
+        "name": "scale",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "按给定的 x 和 y 因子缩放路径。"
+      },
+      {
+        "name": "append",
+        "arguments": [
+          null
+        ],
+        "description": "将另一个 Path 对象追加到此路径。"
+      },
+      {
+        "name": "intersect",
+        "arguments": [
+          null
+        ],
+        "description": "将此路径设置为它与另一个路径的交集。"
+      },
+      {
+        "name": "unite",
+        "arguments": [
+          null
+        ],
+        "description": "将此路径与另一个路径合并。"
+      },
+      {
+        "name": "difference",
+        "arguments": [
+          null
+        ],
+        "description": "从此路径中减去另一个路径。"
+      },
+      {
+        "name": "convertToCurves",
+        "description": "将路径中的所有直线转换为贝塞尔曲线。"
+      },
+      {
+        "name": "mergeOverlaps",
+        "description": "将路径转换为一组不重叠的轮廓，这些轮廓描述与原始路径相同的区域。"
+      },
+      {
+        "name": "convertToLines",
+        "arguments": [
+          {
+            "name": "linesPerCurve",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "description": "将路径中的所有贝塞尔曲线转换为直线。"
+      },
+      {
+        "name": "toObject",
+        "return_type": "None",
+        "description": "返回一个表示该路径的序列化对象。"
+      },
+      {
+        "name": "fromObject",
+        "arguments": [
+          null
+        ],
+        "description": "从对象反序列化并设置路径。"
+      },
+      {
+        "name": "boundingBox",
+        "return_type": "None",
+        "description": "计算并返回路径的包围盒。"
+      },
+      {
+        "name": "findClosestPoint",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "查找路径上距离给定 (x, y) 坐标最近的点。"
+      },
+      {
+        "name": "tangentAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "计算路径上给定参数 t 处的切向量。"
+      },
+      {
+        "name": "normalAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "计算路径上给定参数 t 处的法向量。"
+      },
+      {
+        "name": "angleAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "计算路径上给定参数 t 处切线的角度。"
+      },
+      {
+        "name": "paramAtLength",
+        "arguments": [
+          {
+            "name": "length",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "查找路径上对应给定长度的参数。"
+      },
+      {
+        "name": "pointAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "计算路径上给定参数 t 处的点。"
+      },
+      {
+        "name": "pointCount",
+        "return_type": "None",
+        "description": "返回路径中的点数。"
+      },
+      {
+        "name": "contains",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "判断路径是否包含给定的 (x, y) 点。"
+      },
+      {
+        "name": "empty",
+        "return_type": "None",
+        "description": "检查路径是否为空。"
+      },
+      {
+        "name": "pathData",
+        "return_type": "None",
+        "description": "获取表示该路径的路径数据。"
+      },
+      {
+        "name": "setPathData",
+        "arguments": [
+          null
+        ],
+        "description": "根据提供的路径数据设置路径。"
+      },
+      {
+        "name": "trim",
+        "arguments": [
+          {
+            "name": "start",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "end",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "travel",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "reverse",
+            "type": "bool",
+            "required": true
+          }
+        ],
+        "description": "根据指定参数裁剪路径。"
+      },
+      {
+        "name": "offset",
+        "arguments": [
+          {
+            "name": "distance",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rounded",
+            "type": "bool",
+            "required": true
+          }
+        ],
+        "description": "将路径偏移一定距离，可选择圆角连接。"
+      },
+      {
+        "name": "resample",
+        "arguments": [
+          {
+            "name": "edgeLength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "通过基于期望的 'edgeLength' 采样点来重建路径。"
+      },
+      {
+        "name": "additiveResample",
+        "arguments": [
+          {
+            "name": "edgeLength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "基于期望的 'edgeLength' 向当前路径添加点。"
+      },
+      {
+        "name": "lineIntersections",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "返回路径与直线相交的点数组。"
+      },
+      {
+        "name": "pathIntersections",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "返回此路径与给定路径相交的点数组。"
+      },
+      {
+        "name": "relax",
+        "arguments": [
+          {
+            "name": "iterations",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "radius",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "relaxationStrength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "松弛路径中的点，使其相互远离。"
+      },
+      {
+        "name": "smooth",
+        "arguments": [
+          {
+            "name": "iterations",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "smoothStrength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "通过平均点位来平滑化路径点。"
+      },
+      {
+        "name": "applyMatrix",
+        "arguments": [
+          {
+            "name": "matrix",
+            "type": "object",
+            "required": true
+          }
+        ],
+        "description": "将路径点位置乘以矩阵。"
+      },
+      {
+        "name": "scatter",
+        "arguments": [
+          {
+            "name": "numberOfPoints",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "seed",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "sequence",
+            "type": "int",
+            "required": false
+          },
+          {
+            "name": "relaxIterations",
+            "type": "int",
+            "required": false
+          },
+          {
+            "name": "relaxDistance",
+            "type": "number",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "通过掷镖法在路径内散布点。默认情况下点会进行松弛处理。"
+      },
+      {
+        "name": "convertConicsToQuads",
+        "description": "将所有圆锥曲线动词转换为二次曲线动词，因为 Cavalry 中并非所有功能都支持圆锥曲线动词，这可能很有用。"
+      },
+      {
+        "name": "fastArea",
+        "return_type": "None",
+        "description": "返回路径的面积（以平方像素为单位）。此方法不支持孔洞。"
+      },
+      {
+        "name": "isClockwise",
+        "return_type": "None",
+        "description": "如果路径为顺时针方向则返回 true。"
+      },
+      {
+        "name": "reverse",
+        "description": "反转路径方向。"
+      }
+    ]
+  },
+  {
+    "name": "Material",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "strokeColor",
+        "type": "string",
+        "description": "描边的颜色，以十六进制字符串表示。"
+      },
+      {
+        "name": "fillColor",
+        "type": "string",
+        "description": "填充的颜色，以十六进制字符串表示。"
+      },
+      {
+        "name": "fill",
+        "type": "bool",
+        "description": "指示材质是否应被填充。"
+      },
+      {
+        "name": "stroke",
+        "type": "bool",
+        "description": "指示材质是否应有描边。"
+      },
+      {
+        "name": "strokeWidth",
+        "type": "double",
+        "description": "描边的宽度。"
+      },
+      {
+        "name": "trim",
+        "type": "bool",
+        "description": "指示描边是否应被裁剪。"
+      },
+      {
+        "name": "trimReversed",
+        "type": "bool",
+        "description": "指示裁剪是否应以反向应用。"
+      },
+      {
+        "name": "trimTravel",
+        "type": "double",
+        "description": "裁剪行程量。"
+      },
+      {
+        "name": "trimStart",
+        "type": "double",
+        "description": "裁剪的起始位置。"
+      },
+      {
+        "name": "trimEnd",
+        "type": "double",
+        "description": "裁剪的结束位置。"
+      }
+    ],
+    "methods": []
+  },
+  {
+    "name": "Mesh",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": [
+      {
+        "name": "addPath",
+        "arguments": [
+          {
+            "name": "path",
+            "type": "Path",
+            "required": true
+          },
+          {
+            "name": "material",
+            "type": "Material",
+            "required": false
+          }
+        ],
+        "description": "向网格添加一条路径。如果未提供材质，该路径将从其父网格继承材质。"
+      },
+      {
+        "name": "count",
+        "return_type": "None",
+        "description": "返回网格中的路径数量。"
+      },
+      {
+        "name": "empty",
+        "return_type": "None",
+        "description": "检查网格是否为空。"
+      },
+      {
+        "name": "clear",
+        "description": "清除网格中的所有路径。"
+      },
+      {
+        "name": "getPathDataAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "获取指定索引处的路径数据。用于编辑现有点。"
+      },
+      {
+        "name": "getPathAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "获取指定索引处的 Path 对象。用于向路径添加内容。"
+      },
+      {
+        "name": "setPathAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          null
+        ],
+        "description": "设置指定索引处的路径。"
+      },
+      {
+        "name": "setPathDataAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          null
+        ],
+        "description": "设置指定索引处的路径数据。"
+      },
+      {
+        "name": "setMaterialAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "material",
+            "type": "Material",
+            "required": true
+          }
+        ],
+        "description": "为指定索引处的路径设置材质。传入 null 可清除材质并从父级继承。"
+      },
+      {
+        "name": "getBoundingBox",
+        "return_type": "None",
+        "description": "计算并返回整个网格的包围盒。"
+      },
+      {
+        "name": "addChildMesh",
+        "arguments": [
+          {
+            "name": "mesh",
+            "type": "Mesh",
+            "required": true
+          }
+        ],
+        "description": "向此 Mesh 添加一个子网格。"
+      },
+      {
+        "name": "clearChildMeshes",
+        "description": "删除此 Mesh 上的所有子网格。"
+      },
+      {
+        "name": "childMeshCount",
+        "return_type": "None",
+        "description": "返回子网格的数量。"
+      },
+      {
+        "name": "getChildMeshAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "返回给定索引处的子 Mesh。"
+      },
+      {
+        "name": "setChildMeshAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "mesh",
+            "type": "Mesh",
+            "required": true
+          }
+        ],
+        "description": "设置给定索引处的子 Mesh。"
+      },
+      {
+        "name": "getFlattenedPath",
+        "return_type": "None",
+        "description": "返回一个表示此网格及所有子网格组合几何体的路径。"
+      }
+    ]
+  },
+  {
+    "name": "Line",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {
+      "arguments": [
+        {
+          "name": "x1",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "y1",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "x2",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "y2",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    "properties": [],
+    "methods": [
+      {
+        "name": "length",
+        "description": "获取直线的长度。"
+      },
+      {
+        "name": "angle",
+        "description": "获取直线的角度（以弧度为单位）。"
+      },
+      {
+        "name": "setLength",
+        "arguments": [
+          {
+            "name": "length",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "设置直线的长度。"
+      },
+      {
+        "name": "setAngle",
+        "arguments": [
+          {
+            "name": "angle",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "设置直线的角度（以弧度为单位）。"
+      },
+      {
+        "name": "start",
+        "return_type": "None",
+        "description": "获取直线的起点。"
+      },
+      {
+        "name": "end",
+        "return_type": "None",
+        "description": "获取直线的终点。"
+      },
+      {
+        "name": "delta",
+        "return_type": "None",
+        "description": "计算直线起点和终点之间的差值（坐标差）。"
+      },
+      {
+        "name": "pointAt",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "计算直线上给定参数 t 处的点。"
+      },
+      {
+        "name": "normalAt",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "计算直线上给定参数 t 处的法向量。"
+      },
+      {
+        "name": "translate",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "description": "以给定的点向量平移直线。"
+      },
+      {
+        "name": "distance",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "计算直线到给定点的最短距离。"
+      },
+      {
+        "name": "closestPointTo",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "计算直线上距离给定点最近的点。"
+      },
+      {
+        "name": "lineIntersection",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "返回两条直线的交点，如果没有交点则返回 null。"
+      }
+    ]
+  },
+  {
+    "name": "Matrix",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": [
+      {
+        "name": "setPosition",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "设置矩阵的位置（平移）。"
+      },
+      {
+        "name": "setRotation",
+        "arguments": [
+          {
+            "name": "angle",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "设置矩阵的旋转（以度为单位）。"
+      },
+      {
+        "name": "setScale",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "设置矩阵的缩放因子。"
+      },
+      {
+        "name": "setSkew",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "设置矩阵的倾斜因子。"
+      },
+      {
+        "name": "scale",
+        "return_type": "None",
+        "description": "获取矩阵的缩放因子。"
+      },
+      {
+        "name": "position",
+        "return_type": "None",
+        "description": "获取矩阵的位置（平移）。"
+      },
+      {
+        "name": "skew",
+        "return_type": "None",
+        "description": "获取矩阵的倾斜。"
+      },
+      {
+        "name": "rotation",
+        "return_type": "None",
+        "description": "获取矩阵的旋转（以度为单位）。"
+      },
+      {
+        "name": "multiply",
+        "arguments": [
+          {
+            "name": "other",
+            "type": "Matrix",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "返回此矩阵与另一个矩阵相乘的结果（一个新矩阵）。"
+      },
+      {
+        "name": "inverted",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "返回此矩阵的逆矩阵（一个新矩阵）。"
+      },
+      {
+        "name": "invert",
+        "description": "原地反转此矩阵。"
+      },
+      {
+        "name": "isFinite",
+        "return_type": "None",
+        "description": "检查矩阵的所有元素是否都是有限值。"
+      },
+      {
+        "name": "isIdentity",
+        "return_type": "None",
+        "description": "检查矩阵是否为单位矩阵。"
+      },
+      {
+        "name": "mapRect",
+        "arguments": [
+          {
+            "name": "rect",
+            "type": "Object",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "使用此矩阵映射矩形 {x,y,width,height}，并返回结果矩形。"
+      },
+      {
+        "name": "mapPoint",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Object",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "使用此矩阵映射一个点，并返回结果点。"
+      },
+      {
+        "name": "mapPoints",
+        "arguments": [
+          {
+            "name": "points",
+            "type": "Array<Object>",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "使用此矩阵映射点数组，并返回结果点数组。"
+      }
+    ]
+  },
+  {
+    "name": "random",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "sequence",
+        "type": "int",
+        "required": false,
+        "default": "0"
+      }
+    ],
+    "return_type": "double",
+    "description": "创建一个随机数。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "uniform",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "sequence",
+        "type": "int",
+        "required": false,
+        "default": "0"
+      }
+    ],
+    "return_type": "double",
+    "description": "创建一个均匀分布的随机数。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise1d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "在给定 X 坐标处采样一维 Simplex 噪声。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise2d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "在给定 XY 坐标处采样二维 Simplex 噪声。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise3d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "z",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "在给定 XYZ 坐标处采样三维 Simplex 噪声。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "dist",
+    "arguments": [
+      {
+        "name": "x1",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y1",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "x2",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y2",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "计算两点 (x1, y1) 和 (x2, y2) 之间的距离。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "map",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "inMin",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "inMax",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "outMin",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "outMax",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "将一个数从一个范围重新映射到另一个范围。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "norm",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "将一个数在范围内归一化。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "clamp",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "将一个值钳制在最小值和最大值之间。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "lerp",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "t",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "在值 min 和 max 之间执行线性插值。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "degreesToRadians",
+    "arguments": [
+      {
+        "name": "degrees",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "将角度从度转换为弧度。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "radiansToDegrees",
+    "arguments": [
+      {
+        "name": "radians",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "将角度从弧度转换为度。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "angleFromVector",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "从向量 (x, y) 计算角度（以弧度为单位）。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "vectorFromAngle",
+    "arguments": [
+      {
+        "name": "angleRad",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number"
+    },
+    "description": "从以弧度为单位的角创建一个向量。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hexToHsv",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "h": "number",
+      "s": "number",
+      "v": "number"
+    },
+    "description": "将十六进制颜色值转换为其 HSV 表示。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hexToRgba",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "r": "number",
+      "g": "number",
+      "b": "number",
+      "a": "number"
+    },
+    "description": "将十六进制颜色值转换为其 RGBA 表示，可选择缩放到 0-1 范围。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbToHsv",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "h": "number",
+      "s": "number",
+      "v": "number"
+    },
+    "description": "将 RGB 颜色值转换为其 HSV 表示。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbToHex",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "将 RGB 颜色值转换为其十六进制颜色字符串表示。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbaToHex",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "a",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "将 RGBA 颜色值转换为其十六进制颜色字符串表示。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hsvToHex",
+    "arguments": [
+      {
+        "name": "h",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "s",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "v",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "将 HSV 颜色值转换为其十六进制颜色字符串表示。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hsvToRgba",
+    "arguments": [
+      {
+        "name": "h",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "s",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "v",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "scaledValues",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "r": "number",
+      "g": "number",
+      "b": "number",
+      "a": "number"
+    },
+    "description": "将 HSV 颜色值转换为其 RGBA 表示。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "nameThatColor",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回与指定十六进制颜色最匹配的 W3C 颜色名称。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "versionLessThan",
+    "arguments": [
+      {
+        "name": "version",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "将给定的版本字符串与 Cavalry 版本进行比较。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "fontExists",
+    "arguments": [
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontStyle",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "检查是否存在具有给定族名和样式的字体。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontFamilies",
+    "arguments": [
+      null
+    ],
+    "return_type": "Array<string>",
+    "description": "获取可用字体族列表。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontStyles",
+    "arguments": [
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "获取给定字体族的可用样式列表。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "measureText",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontStyle",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontSize",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "width": "number",
+      "height": "number",
+      "x": "number",
+      "y": "number",
+      "centreX": "number",
+      "centreY": "number"
+    },
+    "description": "使用指定的字体设置测量给定文本的尺寸。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  }
+]

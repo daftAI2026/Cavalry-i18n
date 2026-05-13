@@ -28,7 +28,7 @@
 
 把所有“旧弱口径仍被测试或脚本冻结为正确行为”的问题先变成 RED→GREEN。
 
-本步骤只处理 active full-ui / Tauri 路径。Electron 专属测试、Electron harness、electron-builder 配置不属于本 workflow 修复目标；若旧 Electron 测试里有仍有价值的断言，迁移到 full-ui / Tauri gate。
+本步骤只处理 active full-ui / Tauri 路径。旧壳层测试、harness、builder 配置不属于本 workflow；若历史断言仍有价值，迁移到 full-ui / Tauri gate。
 
 ### 必做项
 
@@ -46,7 +46,7 @@
 ## Gate Check
 
 ```bash
-npm run test:desktop
+npm run test:contracts
 ! rg -n -- '--threshold 99' package.json tools/check_full_ui_matrix.js tools/check_full_ui_coverage.js tools/check_runtime_ui_coverage.js
 ! rg -n 'coverage >= 0\.90|coverage_threshold.*0\.90' tools/validate_translations.py
 rg -n 'verify_gate_inputs' package.json
@@ -54,7 +54,7 @@ node -e "const {getCompiledUiTargets}=require('./tools/extract_compiled_ui_strin
 ```
 
 说明：带 `! rg` 的检查必须**无命中才算通过**；命中旧弱口径就是 RED，不能继续写 PASS。
-若 `npm run test:desktop` 只因 Electron 专属测试失败，本 prompt 不修 Electron；记录为 legacy residual，并把仍有价值的断言迁移到 full-ui / Tauri gate。
+若 `npm run test:contracts` 暴露历史旧壳层断言残留，本 prompt 不恢复旧壳；记录为 stale residual，并把仍有价值的断言迁移到 full-ui / Tauri gate。
 
 ## Run Note
 

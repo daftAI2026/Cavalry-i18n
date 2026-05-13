@@ -1,0 +1,424 @@
+[
+  {
+    "name": "getThemeColor",
+    "arguments": [
+      {
+        "name": "colorName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns the theme colour for the given key.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setCallbacksActive",
+    "arguments": [
+      {
+        "name": "setCallbacksActive",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "This can be used to temporarily disable UI callbacks.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "fieldWidth",
+    "return_type": "int",
+    "description": "Get's the default width for a numeric field.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "fieldHeight",
+    "return_type": "int",
+    "description": "Gets the default height for a numeric field.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "add",
+    "arguments": [
+      {
+        "name": "widget",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Adds a widget to the root layout.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addStretch",
+    "arguments": null,
+    "description": "Adds a stretchable space to the root layout.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addSpacing",
+    "arguments": [
+      {
+        "name": "spacing",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Adds a fixed amount of space to the root layout.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setSpaceBetween",
+    "arguments": [
+      {
+        "name": "spacing",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the spacing between elements in the layout.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setBackgroundColor",
+    "arguments": [
+      {
+        "name": "color",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Sets the spacing between elements in the layout.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMargins",
+    "arguments": [
+      {
+        "name": "left",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "top",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "right",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "bottom",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the margins of the root layout.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFileToOpen",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns the chosen file path, this is empty if the user presses cancel from the dialog box. The file filter string should follow the format \"Palettes (*.pal *.ase *.theme)\"",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFolderPath",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns the chosen folder path or empty if the user presses cancel from the dialog box.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFileToSave",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "Returns the chosen file path to create or empty if the user presses cancel from the dialog box. The file filter string should follow the format \"Palettes (*.pal *.ase *.theme)\"",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addMenuItem",
+    "arguments": [
+      {
+        "name": "menuItem",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Adds a menu item to the context menu.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addSubMenu",
+    "arguments": [
+      {
+        "name": "subMenu",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Adds a submenu to the context menu.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "clearContextMenu",
+    "arguments": null,
+    "description": "Clears all items from the context menu.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "showContextMenuOnRightClick",
+    "arguments": null,
+    "description": "Enables showing the context menu on right-click events.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "showContextMenu",
+    "arguments": null,
+    "description": "Shows the context menu at the current cursor position.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "runFileScript",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "Runs a GUI script from a file, returning true on success.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "scriptLocation",
+    "return_type": "string",
+    "description": "Gets the folder path of the current script.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "show",
+    "arguments": null,
+    "description": "Shows the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "size",
+    "arguments": null,
+    "return_type": {
+      "x": "Number",
+      "y": "Number"
+    },
+    "description": "Returns the size of the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedSize",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets a fixed size for the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMinimumWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the minimum width for the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMinimumHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the minimum height for the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMaximumWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the maximum width for the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMaximumHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets the maximum height for the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets a fixed width for the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "Sets a fixed height for the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setTitle",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Sets the window title.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setToolbar",
+    "arguments": null,
+    "description": "Marks the widget as a toolbar.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setVerticalToolbar",
+    "arguments": null,
+    "description": "Sets the toolbar orientation to vertical.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "openSceneDialog",
+    "arguments": null,
+    "description": "Opens a file browser for opening Cavalry Scenes",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addCallbackObject",
+    "arguments": [
+      {
+        "name": "callbackObject",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "Sets the callback object for the window. This can be used to trigger methods when certain app events happen.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "registerDragDropMimeType",
+    "arguments": [
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "Registers a drop mime type (e.g layerIds, color, text) for the window.",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  }
+]

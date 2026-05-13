@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package.json、src-tauri/tauri.conf.json、capabilities/default.json 与本地打包 SOP 文档
- * [OUTPUT]: 对外提供 Tauri 打包 SOP 与配置 contract 测试，阻止发布路径退回 Electron 默认链路
+ * [OUTPUT]: 对外提供 Tauri-only 打包 SOP 与配置 contract 测试，阻止发布路径恢复旧壳层链路
  * [POS]: tools 的 Phase 6 打包守门，连接文档相、npm script 与 Tauri bundle 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -20,19 +20,15 @@ function readText(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
 
-test('tauri local build SOP replaces the Electron builder release path', () => {
-  const localSop = readText('doc/LOCAL_BUILD_SOP.md');
-  const electronArchive = readText('doc/archive/LOCAL_BUILD_ELECTRON_SOP.md');
+test('tauri local build SOP is the only release path', () => {
+  const localSop = readText('LOCAL_BUILD_SOP.md');
 
   assert.match(localSop, /Tauri/i);
   assert.match(localSop, /npm run tauri:build/);
   assert.match(localSop, /npm run prepare:qt-sdk/);
   assert.match(localSop, /tools\/cavalry_qt_target\.json/);
   assert.match(localSop, /6\.6\.3/);
-  assert.doesNotMatch(localSop, /electron-builder\s+-m/);
-
-  assert.match(electronArchive, /Electron/i);
-  assert.match(electronArchive, /npm run build/);
+  assert.doesNotMatch(localSop, /Electron|electron-builder|test:desktop|check:desktop|desktop-patcher/);
 });
 
 test('tauri build scripts and config describe one injector and resource pipeline', () => {
@@ -43,22 +39,29 @@ test('tauri build scripts and config describe one injector and resource pipeline
 
   assert.equal(pkg.scripts['tauri:build'], 'tauri build');
   assert.equal(pkg.scripts.build, 'npm run tauri:build');
-  assert.match(pkg.scripts['build:electron'], /electron-builder -m/);
+  assert.equal(pkg.scripts.desktop, undefined);
+  assert.equal(pkg.scripts['build:electron'], undefined);
+  assert.equal(pkg.scripts['build:electron:dir'], undefined);
+  assert.equal(pkg.scripts['build:dir'], undefined);
+  assert.equal(pkg.build, undefined);
+  assert.equal(pkg.devDependencies.electron, undefined);
+  assert.equal(pkg.devDependencies['electron-builder'], undefined);
   assert.equal(pkg.scripts['prepare:qt-sdk'], 'node tools/resolve_cavalry_qt_sdk.js --ensure');
   assert.match(pkg.scripts['build:injector'], /resolve_cavalry_qt_sdk\.js --print-env --ensure/);
+  assert.match(pkg.scripts['build:injector'], /build_translator_injector\.sh injector\/libCavalryTranslatorInjector\.dylib/);
   assert.equal(qtTarget.qtVersion, '6.6.3');
   assert.equal(qtTarget.sdkPath, 'qt_sdk/6.6.3/macos');
   assert.equal(config.build.beforeBuildCommand, 'npm run build:injector');
-  assert.equal(config.build.frontendDist, '../desktop-patcher/renderer');
+  assert.equal(config.build.frontendDist, '../renderer');
   assert.equal(config.app.withGlobalTauri, true);
   assert.equal(resources['../languages'], 'languages');
   assert.equal(
-    resources['../desktop-patcher/injector/libCavalryTranslatorInjector.dylib'],
+    resources['../injector/libCavalryTranslatorInjector.dylib'],
     'injector/libCavalryTranslatorInjector.dylib'
   );
 });
 
-test('tauri bundle config preserves the Electron window contract', () => {
+test('tauri bundle config preserves the frozen Tauri window contract', () => {
   const config = readJson('src-tauri/tauri.conf.json');
   const window = config.app.windows.find((candidate) => candidate.label === 'main');
 
@@ -81,7 +84,7 @@ test('tauri window icon is an 8-bit PNG compatible with generate_context', () =>
 });
 
 test('tauri capability and SOP mention the bridge and packaged resource boundaries', () => {
-  const localSop = readText('doc/LOCAL_BUILD_SOP.md');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
   const capabilities = readJson('src-tauri/capabilities/default.json');
 
   assert.ok(capabilities.windows.includes('main'));

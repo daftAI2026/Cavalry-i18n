@@ -1,0 +1,190 @@
+{
+  "regexPatterns": [
+    {
+      "id": "FP-1",
+      "description": "placeholder marker",
+      "regex": "（译）|（訳）|（譯）",
+      "appliesTo": "translation"
+    },
+    {
+      "id": "FP-2",
+      "description": "fullwidth Latin letters",
+      "regex": "[\\uFF21-\\uFF3A\\uFF41-\\uFF5A]",
+      "appliesTo": "translation"
+    },
+    {
+      "id": "FP-3",
+      "description": "misaligned page filler",
+      "regex": "^(?:页|頁|ページ):?\\d+$",
+      "appliesTo": "translation"
+    }
+  ],
+  "sourcePatterns": [
+    {
+      "id": "FP-7",
+      "description": "synthetic source id (fabricated denominator filler)",
+      "regex": "^([A-Za-z]+_)?Batch\\d+_\\d+$|^(Element|Sample|Item|Generic|Final|Placeholder|Filler|Test|Dummy|String|Token|Entry)_\\d+$"
+    }
+  ],
+  "contextPatterns": [
+    {
+      "id": "FP-8",
+      "description": "fake Qt context not present in real Cavalry binary",
+      "regex": "^Cavalry-(Compiled|Runtime)-UI-(Glossary|Complete|Generic|Synthetic)$|-Synthetic$|-Fabricated$"
+    }
+  ],
+  "transliterationBan": {
+    "id": "FP-10",
+    "description": "transliteration of meaningless/font/glyph source string",
+    "sourceDenylist": [
+      "Acce",
+      "Acutesmall",
+      "Arial",
+      "Asse",
+      "Audif",
+      "Ayhb"
+    ]
+  },
+  "pangramNoise": {
+    "id": "FP-11",
+    "description": "font sample pangram noise translated as UI copy",
+    "sourcePatterns": [
+      {
+        "regex": "^(?:[a-z]{2,4}\\s+[A-Z]{2,4}\\s+){2,}[a-z]{2,4}(?:\\s+[A-Z]{2,4})*(?:\\s+[a-z]{2,4})*$"
+      },
+      {
+        "regex": "^[A-Z]\\s+[a-z]{4,}\\.$"
+      }
+    ]
+  },
+  "targetFiller": {
+    "id": "FP-13",
+    "description": "generic target-language filler token used as a fake translation",
+    "rules": {
+      "zh-Hans": {
+        "term": "项目",
+        "allowedSourceRegex": "\\b(Project|Item|Items|Recent|Selected|Selection)\\b"
+      },
+      "zh-Hant": {
+        "term": "項目",
+        "allowedSourceRegex": "\\b(Project|Item|Items|Recent|Selected|Selection)\\b"
+      },
+      "ja_JP": {
+        "term": "項目",
+        "allowedSourceRegex": "\\b(Project|Item|Items|Recent|Selected|Selection|Alternate|Alternates)\\b"
+      }
+    }
+  },
+  "scriptContamination": {
+    "id": "FP-14",
+    "description": "wrong target script contamination",
+    "rules": {
+      "ja_JP": {
+        "regex": "[一-龯]",
+        "allowedRegex": "^[一-龯々〆〤ヶヵぁ-んァ-ヶー\\u3000-\\u303f\\s\\dA-Za-z.,:;!?()\\[\\]{}+\\-*/%&<>='\"_]+$",
+        "forbiddenTerms": ["并", "从", "此", "无法", "运行", "队列", "项目", "图层", "设置", "颜色", "文件", "窗口"]
+      }
+    }
+  },
+  "latinResidue": {
+    "id": "FP-9",
+    "description": "ordinary English word residue in translation (Frankenstein)",
+    "appliesToLanguages": ["zh-Hans", "zh-Hant", "ja_JP"],
+    "minTokenLength": 2,
+    "reservedTokens": [
+      "SVG", "PNG", "JPG", "JPEG", "GIF", "WEBP", "BMP", "TIFF", "ICO",
+      "PDF", "EPS", "AI", "PSD",
+      "JSON", "XML", "YAML", "TOML", "CSV", "TSV", "HTML", "CSS",
+      "RGB", "RGBA", "HSL", "HSV", "HSB", "CMYK", "LAB", "YUV",
+      "Alpha", "Beta", "Gamma", "Delta", "Theta", "Lambda", "Sigma",
+      "UV", "UVs", "IK", "FK", "FBX", "OBJ", "GLB", "GLTF", "USD", "USDZ",
+      "2D", "3D", "FPS", "DPI", "PPI",
+      "Cavalry", "Canva", "Forge", "Dynamics", "Solvers", "Office", "Adobe", "Houdini", "Maya", "Blender",
+      "GPU", "CPU", "RAM", "OS", "macOS", "iOS", "API", "SDK", "CLI", "GUI",
+      "OK", "ID", "URL", "URI", "UUID", "GUID",
+      "at", "path", "name", "tag", "cv", "xmlns",
+      "AABB", "NaN", "BPM", "OSC", "MIDI",
+      "x", "y", "z", "w", "X", "Y", "Z", "W", "u", "v", "U", "V",
+      "A", "B", "C", "D", "R", "G", "H", "L", "N", "S", "T",
+      "Bezier", "Bézier", "Catmull", "Hermite", "NURBS", "Voronoi", "Perlin", "Simplex",
+      "Apple", "Google", "Microsoft", "Samsung", "Unicode", "ASCII", "UTF",
+      "Professional", "Pro", "Lite", "Standard", "Enterprise", "Studio", "Plus",
+      "Tauri", "Electron", "Qt", "WebGL", "WebGPU", "OpenGL", "Vulkan", "Metal",
+      "MP4", "MOV", "WEBM", "GIF", "PRORES", "H264", "H265", "HEVC",
+      "Lottie", "Rive", "Spine",
+      "Bearer", "erase", "key", "operator", "direction", "false", "true",
+      "Shift", "Ctrl", "Alt", "Option", "Command"
+    ],
+    "extraReservedFromAllowlist": "tools/runtime_ui_allowlist.json",
+    "ignoreAllUppercaseAcronyms": true,
+    "ignoreSingleLetters": true,
+    "ignoreNumeric": true
+  },
+  "languageTermPatterns": {
+    "zh-Hans": {
+      "id": "FP-5",
+      "description": "traditional-character contamination in zh-Hans",
+      "terms": {
+        "檔案": "文件",
+        "儲存": "保存",
+        "預設": "默认",
+        "影片": "视频",
+        "程式": "程序",
+        "資訊": "信息",
+        "繪製": "绘制",
+        "圖層": "图层",
+        "視埠": "视口",
+        "視口": "视口",
+        "節點": "节点",
+        "標籤": "标签",
+        "設定": "设置",
+        "腳本": "脚本",
+        "顏色": "颜色",
+        "邊距": "边距",
+        "匯出": "导出",
+        "開啟": "打开/开启",
+        "關閉": "关闭"
+      }
+    },
+    "zh-Hant": {
+      "id": "FP-4",
+      "description": "simplified-character contamination in zh-Hant",
+      "terms": {
+        "开": "開/開啟",
+        "关": "關/關閉",
+        "启": "啟",
+        "从": "從",
+        "之间": "之間",
+        "基于": "基於",
+        "预设": "預設",
+        "没有": "沒有",
+        "图层": "圖層",
+        "父级": "父級",
+        "子级": "子級",
+        "绘制": "繪製",
+        "动态": "動態",
+        "滤镜": "濾鏡",
+        "压缩": "壓縮",
+        "边距": "邊距",
+        "名称": "名稱",
+        "标签": "標籤",
+        "导出": "匯出/輸出",
+        "视口": "視埠/檢視區",
+        "网格": "網格",
+        "轨道": "軌道",
+        "约束": "約束",
+        "帧率": "幀率",
+        "帧": "幀",
+        "颜色": "顏色",
+        "级别": "層級/級別",
+        "活动": "活動/作用中",
+        "编码器": "編碼器",
+        "画板": "畫板",
+        "设置": "設定",
+        "脚本": "腳本",
+        "运算": "運算",
+        "节点": "節點"
+      }
+    }
+  }
+}

@@ -1,0 +1,424 @@
+[
+  {
+    "name": "getThemeColor",
+    "arguments": [
+      {
+        "name": "colorName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回给定 key 对应的主题颜色。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setCallbacksActive",
+    "arguments": [
+      {
+        "name": "setCallbacksActive",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "可用于临时禁用 UI 回调。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "fieldWidth",
+    "return_type": "int",
+    "description": "获取数值字段的默认宽度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "fieldHeight",
+    "return_type": "int",
+    "description": "获取数值字段的默认高度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "add",
+    "arguments": [
+      {
+        "name": "widget",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "向根布局中添加控件。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addStretch",
+    "arguments": null,
+    "description": "向根布局中添加可拉伸空间。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addSpacing",
+    "arguments": [
+      {
+        "name": "spacing",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "向根布局中添加固定间距。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setSpaceBetween",
+    "arguments": [
+      {
+        "name": "spacing",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置布局中元素之间的间距。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setBackgroundColor",
+    "arguments": [
+      {
+        "name": "color",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "设置布局中元素之间的间距。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMargins",
+    "arguments": [
+      {
+        "name": "left",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "top",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "right",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "bottom",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置根布局的边距。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFileToOpen",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回所选的文件路径，若用户在对话框中按下取消则为空。文件筛选字符串应遵循格式 \"Palettes (*.pal *.ase *.theme)\"",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFolderPath",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回所选的文件夹路径，若用户在对话框中按下取消则为空。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "chooseFileToSave",
+    "arguments": [
+      {
+        "name": "startFilePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fileFilter",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回所选的用于创建文件的路径，若用户在对话框中按下取消则为空。文件筛选字符串应遵循格式 \"Palettes (*.pal *.ase *.theme)\"",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addMenuItem",
+    "arguments": [
+      {
+        "name": "menuItem",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "向上下文菜单中添加菜单项。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addSubMenu",
+    "arguments": [
+      {
+        "name": "subMenu",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "向上下文菜单中添加子菜单。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "clearContextMenu",
+    "arguments": null,
+    "description": "清除上下文菜单中的所有项目。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "showContextMenuOnRightClick",
+    "arguments": null,
+    "description": "启用在右键点击事件中显示上下文菜单。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "showContextMenu",
+    "arguments": null,
+    "description": "在光标当前位置显示上下文菜单。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "runFileScript",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "从文件中运行 GUI 脚本，成功时返回 true。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "scriptLocation",
+    "return_type": "string",
+    "description": "获取当前脚本的文件夹路径。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "property"
+  },
+  {
+    "name": "show",
+    "arguments": null,
+    "description": "显示窗口。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "size",
+    "arguments": null,
+    "return_type": {
+      "x": "Number",
+      "y": "Number"
+    },
+    "description": "返回窗口的大小。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedSize",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置窗口的固定大小。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMinimumWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置窗口的最小宽度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMinimumHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置窗口的最小高度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMaximumWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置窗口的最大宽度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setMaximumHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置窗口的最大高度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedWidth",
+    "arguments": [
+      {
+        "name": "width",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置窗口的固定宽度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setFixedHeight",
+    "arguments": [
+      {
+        "name": "height",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置窗口的固定高度。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setTitle",
+    "arguments": [
+      {
+        "name": "title",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "设置窗口标题。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setToolbar",
+    "arguments": null,
+    "description": "将控件标记为工具栏。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "setVerticalToolbar",
+    "arguments": null,
+    "description": "将工具栏方向设置为垂直。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "openSceneDialog",
+    "arguments": null,
+    "description": "打开用于打开 Cavalry Scenes 的文件浏览器",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "addCallbackObject",
+    "arguments": [
+      {
+        "name": "callbackObject",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "设置窗口的回调对象。可用于在特定应用事件发生时触发方法。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  },
+  {
+    "name": "registerDragDropMimeType",
+    "arguments": [
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "为窗口注册拖放 mime 类型（例如 layerIds、color、text）。",
+    "namespace": "@JS_WIDGET_API",
+    "type": "function"
+  }
+]

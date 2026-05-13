@@ -39,9 +39,10 @@ fn tauri_versions_are_pinned_to_one_v2_minor() {
         serde_json::from_str(&fs::read_to_string(repo_root.join("package.json")).unwrap()).unwrap();
     let cargo_toml = fs::read_to_string(manifest_dir.join("Cargo.toml")).unwrap();
 
+    let deps = package_json["dependencies"].as_object().unwrap();
     let dev_deps = package_json["devDependencies"].as_object().unwrap();
+    assert_eq!(deps["@tauri-apps/api"], "2.10.1");
     assert_eq!(dev_deps["@tauri-apps/cli"], "2.10.1");
-    assert_eq!(dev_deps["@tauri-apps/api"], "2.10.1");
     assert_eq!(dependency_version(&cargo_toml, "tauri"), "=2.10.3");
     assert_eq!(dependency_version(&cargo_toml, "tauri-build"), "=2.5.6");
     assert!(!dependency_version(&cargo_toml, "tauri").starts_with('^'));

@@ -1,0 +1,3202 @@
+[
+  {
+    "name": "primitive",
+    "arguments": [
+      {
+        "name": "primitiveType",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "创建基本体形状，返回结果图层 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createEditable",
+    "arguments": [
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "从给定对象创建可编辑形状并命名，返回新图层 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "create",
+    "arguments": [
+      {
+        "name": "layerType",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      },
+      {
+        "name": "allowDefaultPreset",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "创建指定类型的图层并可选择命名，返回新图层 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelection",
+    "arguments": [
+      {
+        "name": "sortByHierarchyOrder",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "检索当前选中图层的 ID，可选择按层级顺序排列。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "sortLayerIdsByHierarchy",
+    "arguments": [
+      {
+        "name": "layerIds",
+        "type": "Array<String>",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "按层级顺序返回给定图层的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedAttributes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "返回选中的属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "selectAttribute",
+    "arguments": [
+      {
+        "name": "attributePaths",
+        "type": "Array<string>",
+        "required": true
+      },
+      {
+        "name": "add",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "按完整路径选择属性（例如 \"layerId.attrId.subAttr\"），传入空数组可清除选择。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deselectAttribute",
+    "arguments": [
+      {
+        "name": "attributePaths",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "按完整路径取消选择属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reorder",
+    "arguments": [
+      {
+        "name": "layerIdToReorder",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "underLayerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "在层级中重新排序图层，必要时重新指定父级。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedKeyframes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "获取选中的关键帧，返回属性 ID 与帧号的字典。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setSelectedKeyframeIds",
+    "arguments": [
+      {
+        "name": "keyframeIdArray",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "基于关键帧 ID 数组设置选中的关键帧。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeFromKeyframeId",
+    "arguments": [
+      {
+        "name": "keyframeId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索与给定关键帧 ID 关联的属性 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resyncPathKeyframes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "重新同步路径关键帧数据，如果对路径关键帧使用了 api.set()，请运行此函数。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectedKeyframeIds",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "检索当前选中关键帧的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getKeyframeIdsForAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "检索图层的特定属性的关键帧 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "select",
+    "arguments": [
+      {
+        "name": "array",
+        "type": "Array<string>",
+        "required": true
+      }
+    ],
+    "description": "基于 ID 选择图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "invertSelection",
+    "arguments": null,
+    "description": "反转当前图层选择。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isReferenced",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果图层是通过 Reference 导入的，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSuperTypes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "检索指定图层的 SuperType。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerVersion",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索指定图层的版本，对第三方开发者很有用。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "compareVersions",
+    "arguments": [
+      {
+        "name": "firstVersion",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "secondVersion",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果第一版本低于第二版本，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getChildren",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "检索指定图层的子图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索指定图层的父图层 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setFrame",
+    "arguments": [
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置当前合成中的当前帧。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFrame",
+    "arguments": null,
+    "return_type": "int",
+    "description": "检索当前合成的当前帧。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompLayers",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "从当前合成中检索图层 ID，可选择仅返回顶层图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompLayersOfType",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "检索合成中特定类型的图层 ID，可选择仅返回顶层图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getNiceName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "基于 ID 检索图层的友好名称。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInConnection",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索图层上特定属性的输入连接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutConnections",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "检索图层上特定属性的输出连接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "rename",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newName",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "将指定图层重命名为新名称。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGenerator",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "generatorType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "为图层上的属性设置特定类型的生成器。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCurrentGenerator",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "获取图层上属性的生成器，如果不存在则返回空字符串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "parent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "newParentId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "将图层的父级设置为指定图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "editComponent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "editing",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "设置组件的编辑模式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "offsetLayerTime",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "timeDelta",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "按指定的时间偏移量偏移图层的时间。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "检索指定图层的入点帧（第一个可见帧）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getOutFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "检索指定图层的出点帧（最后一个可见帧）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setInFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置指定图层的入点帧（第一个可见帧）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setOutFrame",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "设置指定图层的出点帧（最后一个可见帧）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getInOutKeyframeIds",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Object>",
+    "description": "返回包含此图层所有入点和出点关键帧 ID 的对象数组。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "framesToTimecode",
+    "arguments": [
+      {
+        "name": "frames",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "使用 FPS 值将给定帧数转换为等效时间码。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "timecodeToFrames",
+    "arguments": [
+      {
+        "name": "timecode",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fps",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "使用 FPS 值将给定时间码转换为等效帧数。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadAsset",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "isImageSequence",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "从文件路径加载资源，可选择作为图像序列加载。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadSmartFolderAsset",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "从文件路径加载智能文件夹资源，类型可以是 'image' 或 'audio'。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reloadAsset",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "重新加载指定资源（包括智能文件夹资源）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addAssetToComp",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string/array",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "将资源（或资源数组）添加到当前合成，返回新创建图层的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "loadGoogleSheet",
+    "arguments": [
+      {
+        "name": "fileId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "sheetId",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "加载 Google Sheet 并返回资源 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetType",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索指定资源的类型。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontAssetFamilyName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回与字体资源关联的字体系列名称。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontAssetStyleName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回与字体资源关联的字体样式名称。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getProfileName",
+    "arguments": [
+      {
+        "name": "assetId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回图像资源的 ICC 配置文件名称，对 sRGB 或无标记图像返回空字符串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetWindowLayers",
+    "arguments": [
+      {
+        "name": "topLevel",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "从资源窗口检索图层 ID，可选择仅返回顶层图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGradientFromColors",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": false,
+        "default": "string"
+      }
+    ],
+    "description": "从十六进制颜色字符串数组设置渐变属性的颜色。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setGradientInterpolation",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": false,
+        "default": "string"
+      }
+    ],
+    "description": "设置渐变上每个色标的插值方式：Linear = 0, Step = 1, Smooth = 2, Crush = 3, Smooth Blend = 4, Contrast = 5。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "unParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "移除指定图层的父级，使其成为顶层图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setProject",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "设置项目。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearProject",
+    "arguments": null,
+    "description": "清除当前项目。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveComp",
+    "arguments": null,
+    "return_type": "string",
+    "description": "检索当前活动合成的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getParentComp",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索给定图层的父合成 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getActiveCamera",
+    "arguments": null,
+    "return_type": "string",
+    "description": "检索当前合成中活动相机的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasActiveCamera",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "检查当前合成是否有活动相机。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setActiveComp",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "激活指定的合成。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createCompReference",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "为指定合成创建引用，这是创建空预合成的方式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getComps",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "检索场景中所有合成的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createComp",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "创建新合成并命名，返回新合成的 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "preCompose",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "从选中图层创建预合成并可选择命名。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCompFromReference",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "从预合成中检索原始合成 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "writeToFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "overwriteExisting",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "bool",
+    "description": "将内容写入指定路径的文件，可选择覆盖已存在的文件。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "encodeBinary",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "将二进制文件编码为 base64 字符串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "writeEncodedToBinaryFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "content",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "将 base64 编码的字符串写入二进制文件。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "readFromFile",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "读取并返回指定文件的内容。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "connect",
+    "arguments": [
+      {
+        "name": "fromId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fromAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "force",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "在两个属性之间创建连接（通过各自的图层 ID 和属性 ID 标识），强制连接将覆盖任何现有连接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnect",
+    "arguments": [
+      {
+        "name": "fromId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fromAttrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toAttrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "断开两个属性之间的连接（通过各自的图层 ID 和属性 ID 标识）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnectInput",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "断开图层中指定属性的输入连接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "disconnectOutputs",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "断开图层中指定属性的所有输出连接。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setStroke",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "on",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "切换指定图层的描边可见性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasStroke",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "检查指定图层是否有描边。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setFill",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "on",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "description": "切换指定图层的填色可见性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasFill",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "检查指定图层是否有填色。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isVisible",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "testHierarchy",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "检查指定图层是否可见，可选择测试层级可见性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "keyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "以给定值在指定帧为图层的属性添加关键帧。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getKeyframeTimes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<int>",
+    "description": "检索图层中指定属性的关键帧时间。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteKeyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "在指定帧删除图层中给定属性的关键帧。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteAnimation",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "删除图层中指定属性的动画。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "modifyKeyframeTangent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "修改给定图层关键帧的切线属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setKeyframeVelocity",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "设置给定图层关键帧的速度和影响力值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearKeyframeVelocity",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "清除关键帧上的所有速度和影响力覆盖，恢复为",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "modifyKeyframe",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "根据提供的参数修改指定图层的关键帧。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "magicEasing",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "frame",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "easingName",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": false
+      }
+    ],
+    "description": "对属性的关键帧应用 Magic Easing，并可选择添加表达式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "move",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "按给定的 x 和 y 坐标移动当前选择。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "set",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "dictionary",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "根据提供的字典设置指定图层属性的值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "get",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "检索图层中指定属性的值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "areAttributeValuesEqual",
+    "arguments": [
+      {
+        "name": "layerId1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId1",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "layerId2",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId2",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果两个属性在值、表达式和自定义名称（如果已设置）上完全相同，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addPreCompOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "为图层中的指定属性添加预合成覆盖。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removePreCompOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "从图层中的指定属性移除预合成覆盖。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listPreCompOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "列出指定图层的预合成覆盖。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索指定图层的类型。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isProLayerType",
+    "arguments": [
+      {
+        "name": "layerType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果指定图层需要 Pro 许可证才能使用，则返回 `true`。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isThirdPartyLayer",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果该图层是第三方图层，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isRestrictedLicence",
+    "arguments": null,
+    "return_type": "bool",
+    "description": "如果正在使用免费许可证，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isShape",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "检查指定图层是否为形状。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果指定图层具有变换属性（例如 Position 和 Scale），则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "has3dTransforms",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果指定图层激活了 3D 变换属性，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "uuid",
+    "arguments": null,
+    "return_type": "string",
+    "description": "返回 UUIDv4 字符串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrType",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索图层中指定属性的类型。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "reorderArrayAttr",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "oldIndex",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "newIndex",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "将数组属性从给定索引重新排序到给定索引。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isAttrDefault",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果属性值与其默认值匹配，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrParent",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索图层中指定属性的父属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttrChildren",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "检索图层中指定属性的子属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "将图层中的指定属性重置为默认值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetLayerAttributes",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeTransformAttributes",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "description": "将指定图层的所有属性重置为默认值，可选择忽略变换属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addArrayIndex",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "向指定图层中的数组属性添加索引。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getArrayCount",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "检索数组属性中的索引数量。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeArrayIndex",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "从指定图层中的数组属性移除索引。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addDynamic",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "向指定图层添加动态属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSelectionBoundingBox",
+    "arguments": [
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "在世界空间中检索当前选择（及选择的子图层）的边界框。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getBoundingBox",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number",
+      "width": "number",
+      "height": "number",
+      "centre": {
+        "x": "number",
+        "y": "number"
+      },
+      "left": "number",
+      "right": "number",
+      "top": "number",
+      "bottom": "number"
+    },
+    "description": "在局部或世界空间中检索指定形状及其子级的边界框。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPivotPosition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "bool",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number"
+    },
+    "description": "在局部或世界空间中返回指定图层轴心的位置。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRenderQueueItems",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "检索渲染队列中的项目。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addRenderQueueItem",
+    "arguments": [
+      {
+        "name": "compId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "将合成添加到渲染队列。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "connectDynamicIndex",
+    "arguments": [
+      {
+        "name": "nodeId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "将 Dynamic Rendering 索引连接到节点中的指定属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getDynamicIndex",
+    "arguments": null,
+    "return_type": "int",
+    "description": "检索 Dynamic Rendering 索引的当前值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setDynamicIndexOffset",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "description": "设置 Dynamic Rendering 索引偏移。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteLayer",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "删除指定图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "renameAttribute",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "重命名图层中的指定属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getCustomAttributeName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索图层中指定属性的自定义名称。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasCustomAttributeName",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "如果指定属性有自定义名称，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "graphPreset",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "presetNumber",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "对图层中的指定属性应用图表预设。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "flipGraph",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "flipType",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "翻转图层中指定属性的图表，flipType 可以是 \"horizontal\" 或 \"vertical\"。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "createTimeMarker",
+    "arguments": [
+      {
+        "name": "time",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "在指定时间创建时间标记。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeTimeMarker",
+    "arguments": [
+      {
+        "name": "markerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "移除指定的时间标记。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getTimeMarkers",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "检索所有时间标记 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getNthBeat",
+    "arguments": [
+      {
+        "name": "n",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "根据当前合成的 BPM 设置检索第 n 拍的时间。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getProjectPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "检索当前项目的路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAssetPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "检索当前项目中资源目录的路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPalettesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "检索当前项目中调色板目录的路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRenderPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "检索当前项目中渲染目录的路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getScenesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "检索当前项目中场景目录的路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getSceneFilePath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "检索当前场景的文件路径，如果场景未保存则返回空字符串。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferencesPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "提供首选项目录的路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPresetsPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "提供预设目录的路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAppAssetsPath",
+    "arguments": null,
+    "return_type": "string",
+    "description": "返回应用程序资源目录的路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileModifiedDate",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "获取文件自纪元以来的最后修改时间（以毫秒为单位）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileSize",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "获取文件大小（以 KB 为单位）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isDirectory",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "如果路径存在且为目录，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectoryPaths",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeDirectories",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "返回目录中所有可见文件的路径，可选择包含子目录。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isFile",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "如果路径存在且为常规文件，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAbsolutePath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回绝对规范化路径字符串（解析 ../../ 等相对路径）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getRelativePath",
+    "arguments": [
+      {
+        "name": "from",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "to",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "计算从一个位置到另一个位置的相对路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectory",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "array",
+    "description": "返回给定目录下所有文件和文件夹路径的数组。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "listDirectoryRecursive",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "array",
+    "description": "返回给定目录下所有文件和文件夹路径的数组（递归）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "filePathExists",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "检查提供的文件路径是否存在。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "unzip",
+    "arguments": [
+      {
+        "name": "zipPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "destinationPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "[string]",
+    "description": "将 zip 文件解压到指定位置，返回解压出的顶级文件列表。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFileNameFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "includeExtension",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "从给定文件路径中提取文件名，可选择包含文件扩展名。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getExtensionFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "从给定文件路径中检索文件扩展名。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getFolderFromPath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "从给定文件路径中提取文件夹路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "deleteFilePath",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "删除指定路径的文件。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "copyFilePath",
+    "arguments": [
+      {
+        "name": "fromPath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "toPath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "将文件从一个指定路径复制到另一个路径，必要时创建目标位置。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeFolder",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "overwriteExisting",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "boolean",
+    "description": "在指定路径创建新文件夹，可选择在已存在时覆盖。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPlatform",
+    "arguments": null,
+    "return_type": "string",
+    "description": "返回操作系统平台名称（例如 \"macOS\" 或 \"Windows\"）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "layerExists",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "检查指定 ID 的图层是否存在。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "为图层的指定属性设置表达式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "如果给定属性有表达式，则返回 true。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeExpression",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "返回属性的表达式。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setAttributeDefinitionOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "number",
+        "required": false
+      }
+    ],
+    "description": "设置属性的定义覆盖（键：\"hardMin\"、\"hardMax\"、\"softMin\"、\"softMax\"、\"step\"）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAttributeDefinitionOverride",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "number|null",
+    "description": "获取属性的定义覆盖。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "clearAttributeDefinitionOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "清除属性的所有定义覆盖。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasAttributeDefinitionOverrides",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "检查属性是否有任何定义覆盖。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getEffectiveAttributeDefinition",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "object",
+    "description": "获取属性定义（包括任何覆盖）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "isGuiSession",
+    "arguments": null,
+    "return_type": "boolean",
+    "description": "判断当前会话是否为 GUI 会话。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "openScene",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "force",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "description": "从指定文件路径打开场景，可选择强制打开（会丢失未保存的更改）。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "importScene",
+    "arguments": [
+      {
+        "name": "path",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "从指定文件路径导入场景。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "saveSceneAs",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "将当前场景保存到指定文件路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exportSceneAs",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "将当前场景导出到指定文件路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "exportSelected",
+    "arguments": [
+      {
+        "name": "filePath",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "exportingAsProject",
+        "type": "bool",
+        "required": false
+      }
+    ],
+    "return_type": "boolean",
+    "description": "将任何选中（及已连接）的图层导出到指定文件路径。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "duplicate",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "withInputConnections",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "复制指定 ID 的图层，可选择同时复制其输入连接的图层。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "centrePivot",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "doCentroid",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "将图层的轴心居中，可选择使用质心进行居中。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeFirstPoint",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "根据当前点选择设置可编辑形状图层的起始点。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "freezeTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "冻结指定图层的变换属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "resetTransform",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "将指定图层的变换属性重置为默认值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getLayerFromUUID",
+    "arguments": [
+      {
+        "name": "uuid",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "检索与指定 UUID 关联的图层 ID。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAllSceneLayers",
+    "arguments": null,
+    "return_type": "Array<string>",
+    "description": "返回当前场景中所有图层 ID 的列表。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getAllLayerTypes",
+    "arguments": null,
+    "return_type": "Object",
+    "description": "提供当前场景中使用的所有图层类型的列表。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setUserData",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "value",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "为指定图层上的指定键设置用户数据值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasUserDataKey",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "检查指定键是否存在于指定图层的用户数据中。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getUserDataKey",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "从指定图层的用户数据中检索指定键的值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "检索指定键的首选项值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPreference",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "设置指定键的首选项值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "设置指定键的首选项值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "hasPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "boolean",
+    "description": "检查首选项键是否存在。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getPreferenceObject",
+    "arguments": [
+      {
+        "name": "key",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "检索指定键的首选项值。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "addToControlCentre",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "将指定图层的指定属性添加到 Control Centre。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "removeFromControlCentre",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "attrId",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "description": "从 Control Centre 中移除指定图层的指定属性。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "makeEditable",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "makeCopy",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "使图层可编辑，可选择创建图层的副本。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "movePoint",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "localSpace",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "按指定量在 x 和 y 方向上移动可编辑形状中的选中点，可选择使用局部空间坐标。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setPointPosition",
+    "arguments": [
+      {
+        "name": "xAndOrYObject",
+        "type": "Object",
+        "required": true
+      },
+      {
+        "name": "localSpace",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "name": "handles",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "description": "设置可编辑形状中选中点的位置，可选择使用局部空间坐标和包含手柄位置。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "getEditablePath",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "boolean",
+        "required": true
+      }
+    ],
+    "return_type": "Object",
+    "description": "检索指定图层的可编辑路径，可选择在世界空间中返回点坐标。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  },
+  {
+    "name": "setEditablePath",
+    "arguments": [
+      {
+        "name": "layerId",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "worldSpace",
+        "type": "boolean",
+        "required": true
+      },
+      {
+        "name": "pathObject",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "使用给定路径对象设置指定图层的可编辑路径，可选择在世界空间中解释坐标。",
+    "namespace": "@JS_GUI_API",
+    "type": "function"
+  }
+]

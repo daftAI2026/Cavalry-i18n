@@ -1,0 +1,2270 @@
+[
+  {
+    "name": "transformationMatrix",
+    "arguments": null,
+    "return_type": "Matrix",
+    "description": "上流のローカル変換マトリックスを返します。存在しない場合は null を返します。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "globalTransformationMatrix",
+    "arguments": null,
+    "return_type": "Matrix",
+    "description": "上流のグローバル変換マトリックスを返します。存在しない場合は null を返します。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "index",
+    "return_type": "int",
+    "description": "オブジェクトのインデックス（例：Duplicator 内）。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "count",
+    "return_type": "int",
+    "description": "計算中のシェイプ数（例：Duplicator 内）。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "attributeId",
+    "return_type": "string",
+    "description": "計算中の属性の ID。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "layerId",
+    "return_type": "string",
+    "description": "計算中のレイヤー ID。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "niceName",
+    "return_type": "string",
+    "description": "計算中のレイヤーの表示名。",
+    "namespace": "@JS_CTX",
+    "type": "property"
+  },
+  {
+    "name": "hasObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定された名前のオブジェクトが存在し、読み込み可能かチェックします。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "saveObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "object",
+        "type": "object",
+        "required": true
+      }
+    ],
+    "description": "後続の計算で取得できるようオブジェクトを保存します。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "loadObject",
+    "arguments": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "object",
+    "description": "以前に保存されたオブジェクトを読み込みます。",
+    "namespace": "@JS_CTX",
+    "type": "function"
+  },
+  {
+    "name": "getBoundingBox",
+    "arguments": null,
+    "return_type": {
+      "x": "number",
+      "y": "number",
+      "width": "number",
+      "height": "number",
+      "centre": {
+        "x": "number",
+        "y": "number"
+      },
+      "left": "number",
+      "right": "number",
+      "top": "number",
+      "bottom": "number"
+    },
+    "description": "変形中のシェイプのバウンディングボックスを表すオブジェクトを返します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getFalloffAtPoint",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "number",
+    "description": "与えられたローカル位置でのフォールオフ値（0-1）を返し、強度で乗算します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "meshDepth",
+    "return_type": "int",
+    "description": "メッシュの最大深度。",
+    "namespace": "@JS_DEFORMER",
+    "type": "property"
+  },
+  {
+    "name": "meshCountAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "int",
+    "description": "与えられた深度でのメッシュ数を返します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "highestDepthWithPath",
+    "arguments": null,
+    "return_type": "int",
+    "description": "パスを持つ最も高い深度を返します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getMeshesAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "Array<Mesh>",
+    "description": "Mesh オブジェクトの配列を返します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMeshesAtDepth",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "meshes",
+        "type": "Array<Mesh>",
+        "required": true
+      }
+    ],
+    "description": "与えられた深度にメッシュの配列を設定します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getMeshAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "return_type": "Mesh",
+    "description": "与えられた深度とインデックスの Mesh を返します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMeshAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "mesh",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "指定された深度とインデックスのメッシュを、与えられたメッシュオブジェクトで置き換えます。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setTransformAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "position",
+        "type": "{x",
+        "required": false,
+        "default": "number}"
+      },
+      {
+        "name": "rotation",
+        "type": "number",
+        "required": false
+      },
+      {
+        "name": "scale",
+        "type": "{x",
+        "required": false,
+        "default": "number}"
+      }
+    ],
+    "description": "指定された深度とインデックスのメッシュに変換を適用します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "clearTransformAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "指定された深度とインデックスのメッシュの変換をクリアします。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "centrePivotAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      }
+    ],
+    "description": "指定された深度とインデックスのメッシュのピボットを中央に配置します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setMaterialAtDepthAtIndex",
+    "arguments": [
+      {
+        "name": "depth",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "index",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "material",
+        "type": "Object",
+        "required": true
+      }
+    ],
+    "description": "指定された深度とインデックスのメッシュのマテリアルを設定します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getPoints",
+    "arguments": [
+      null
+    ],
+    "return_type": "Array<Object>",
+    "description": "すべてのメッシュからポイントオブジェクトの配列を取得します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setPoints",
+    "arguments": [
+      {
+        "name": "points",
+        "type": "Array<Object>",
+        "required": true
+      }
+    ],
+    "description": "ポイントオブジェクトの配列を使用して、すべてのメッシュ内のポイント位置を設定します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "getRootMesh",
+    "arguments": null,
+    "return_type": "Mesh",
+    "description": "子メッシュの完全な階層を含むルート Mesh を返し、再帰的な走査に使用します。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "setRootMesh",
+    "arguments": [
+      {
+        "name": "mesh",
+        "type": "Mesh",
+        "required": true
+      }
+    ],
+    "description": "ルート Mesh を設定し、メッシュ階層全体を置き換えます。",
+    "namespace": "@JS_DEFORMER",
+    "type": "function"
+  },
+  {
+    "name": "Point",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": []
+  },
+  {
+    "name": "PointCloud",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "points",
+        "type": "Array<Point>",
+        "description": "現在のポイント配列を取得します。"
+      }
+    ],
+    "methods": [
+      {
+        "name": "appendPoint",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Point",
+            "required": true
+          }
+        ],
+        "description": "ポイントクラウドに Point を追加します。"
+      },
+      {
+        "name": "appendRotation",
+        "arguments": [
+          {
+            "name": "rotation",
+            "type": "Number",
+            "required": true
+          }
+        ],
+        "description": "度単位の回転をポイントクラウドに追加します。対応するポイントがあることを確認してください。"
+      },
+      {
+        "name": "appendSize",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Point",
+            "required": true
+          }
+        ],
+        "description": "サイズをポイントクラウドに追加します。対応するポイントがあることを確認してください。"
+      }
+    ]
+  },
+  {
+    "name": "Path",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "length",
+        "type": "double",
+        "description": "パスの総長を取得します。"
+      },
+      {
+        "name": "isClosed",
+        "type": "bool",
+        "description": "パスが閉じているかどうかを示します。"
+      }
+    ],
+    "methods": [
+      {
+        "name": "moveTo",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "新しい輪郭の開始点を (x, y) 座標に移動します。"
+      },
+      {
+        "name": "lineTo",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "直線を追加します。"
+      },
+      {
+        "name": "cubicTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x3",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y3",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "パスに3次ベジエ曲線を追加します。"
+      },
+      {
+        "name": "quadTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "パスに2次ベジエ曲線を追加します。"
+      },
+      {
+        "name": "arcTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "radius",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "現在の点から (x1, y1) までの線に接し、(x2, y2) で終わる円弧をパスに追加します。"
+      },
+      {
+        "name": "conicTo",
+        "arguments": [
+          {
+            "name": "x1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y1",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "weight",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "w で重み付けされた円錐曲線をパスに追加します。"
+      },
+      {
+        "name": "close",
+        "description": "開始点に戻る直線を描画して現在の輪郭を閉じます。"
+      },
+      {
+        "name": "clear",
+        "description": "パス全体をクリアし、すべてのポイントを削除します。"
+      },
+      {
+        "name": "addRect",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x2",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y2",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "パスに矩形を追加します。"
+      },
+      {
+        "name": "addEllipse",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rX",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rY",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "パスに楕円を追加します。"
+      },
+      {
+        "name": "addText",
+        "arguments": [
+          {
+            "name": "text",
+            "type": "string",
+            "required": true
+          },
+          {
+            "name": "fontSize",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "指定された位置とフォントサイズでテキスト文字列をパスに追加します。"
+      },
+      {
+        "name": "translate",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "パスに平行移動を適用します。"
+      },
+      {
+        "name": "rotate",
+        "arguments": [
+          {
+            "name": "radians",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "指定されたラジアンでパスを回転します。"
+      },
+      {
+        "name": "scale",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "指定された x と y の係数でパスを拡大縮小します。"
+      },
+      {
+        "name": "append",
+        "arguments": [
+          null
+        ],
+        "description": "別の Path オブジェクトをこのパスに追加します。"
+      },
+      {
+        "name": "intersect",
+        "arguments": [
+          null
+        ],
+        "description": "このパスを、別のパスとの交差部分に設定します。"
+      },
+      {
+        "name": "unite",
+        "arguments": [
+          null
+        ],
+        "description": "このパスを別のパスと結合します。"
+      },
+      {
+        "name": "difference",
+        "arguments": [
+          null
+        ],
+        "description": "このパスから別のパスを減算します。"
+      },
+      {
+        "name": "convertToCurves",
+        "description": "パス内のすべての線をベジエ曲線に変換します。"
+      },
+      {
+        "name": "mergeOverlaps",
+        "description": "パスを、元のパスと同じ領域を表す重なり合わない輪郭のセットに変換します。"
+      },
+      {
+        "name": "convertToLines",
+        "arguments": [
+          {
+            "name": "linesPerCurve",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "description": "パス内のすべてのベジエ曲線を直線に変換します。"
+      },
+      {
+        "name": "toObject",
+        "return_type": "None",
+        "description": "パスを表すシリアライズされたオブジェクトを返します。"
+      },
+      {
+        "name": "fromObject",
+        "arguments": [
+          null
+        ],
+        "description": "オブジェクトからデシリアライズしてパスを設定します。"
+      },
+      {
+        "name": "boundingBox",
+        "return_type": "None",
+        "description": "パスのバウンディングボックスを計算して返します。"
+      },
+      {
+        "name": "findClosestPoint",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "与えられた (x, y) 座標に最も近いパス上の点を検索します。"
+      },
+      {
+        "name": "tangentAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "パス上の指定されたパラメータ t における接線ベクトルを計算します。"
+      },
+      {
+        "name": "normalAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "パス上の指定されたパラメータ t における法線ベクトルを計算します。"
+      },
+      {
+        "name": "angleAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "パス上の指定されたパラメータ t における接線の角度を計算します。"
+      },
+      {
+        "name": "paramAtLength",
+        "arguments": [
+          {
+            "name": "length",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "与えられた長さに対応するパス上のパラメータを検索します。"
+      },
+      {
+        "name": "pointAtParam",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "パス上の指定されたパラメータ t における点を計算します。"
+      },
+      {
+        "name": "pointCount",
+        "return_type": "None",
+        "description": "パス内のポイント数を返します。"
+      },
+      {
+        "name": "contains",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "パスが指定された (x, y) 点を含むかどうかを判定します。"
+      },
+      {
+        "name": "empty",
+        "return_type": "None",
+        "description": "パスが空かどうかをチェックします。"
+      },
+      {
+        "name": "pathData",
+        "return_type": "None",
+        "description": "パスを表すパスデータを取得します。"
+      },
+      {
+        "name": "setPathData",
+        "arguments": [
+          null
+        ],
+        "description": "指定されたパスデータに基づいてパスを設定します。"
+      },
+      {
+        "name": "trim",
+        "arguments": [
+          {
+            "name": "start",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "end",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "travel",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "reverse",
+            "type": "bool",
+            "required": true
+          }
+        ],
+        "description": "指定されたパラメータに従ってパスをトリミングします。"
+      },
+      {
+        "name": "offset",
+        "arguments": [
+          {
+            "name": "distance",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "rounded",
+            "type": "bool",
+            "required": true
+          }
+        ],
+        "description": "パスを一定距離オフセットします。オプションで角を丸く結合します。"
+      },
+      {
+        "name": "resample",
+        "arguments": [
+          {
+            "name": "edgeLength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "指定された 'edgeLength' に基づいてポイントをサンプリングし、パスを再構築します。"
+      },
+      {
+        "name": "additiveResample",
+        "arguments": [
+          {
+            "name": "edgeLength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "指定された 'edgeLength' に基づいて、現在のパスにポイントを追加します。"
+      },
+      {
+        "name": "lineIntersections",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "パスと直線が交差する点の配列を返します。"
+      },
+      {
+        "name": "pathIntersections",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "このパスと指定されたパスが交差する点の配列を返します。"
+      },
+      {
+        "name": "relax",
+        "arguments": [
+          {
+            "name": "iterations",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "radius",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "relaxationStrength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "パス内のポイントを互いに離れるように緩和します。"
+      },
+      {
+        "name": "smooth",
+        "arguments": [
+          {
+            "name": "iterations",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "smoothStrength",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "ポイントの位置を平均化して滑らかにします。"
+      },
+      {
+        "name": "applyMatrix",
+        "arguments": [
+          {
+            "name": "matrix",
+            "type": "object",
+            "required": true
+          }
+        ],
+        "description": "パスポイントの位置にマトリックスを乗算します。"
+      },
+      {
+        "name": "scatter",
+        "arguments": [
+          {
+            "name": "numberOfPoints",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "seed",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "sequence",
+            "type": "int",
+            "required": false
+          },
+          {
+            "name": "relaxIterations",
+            "type": "int",
+            "required": false
+          },
+          {
+            "name": "relaxDistance",
+            "type": "number",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "ダーツ投げ法でパス内にポイントを散布します。ポイントはデフォルトで緩和されます。"
+      },
+      {
+        "name": "convertConicsToQuads",
+        "description": "すべての円錐曲線動詞を2次曲線動詞に変換します。Cavalry のすべての機能が円錐曲線動詞をサポートしているわけではないため、これが便利な場合があります。"
+      },
+      {
+        "name": "fastArea",
+        "return_type": "None",
+        "description": "パスの面積を平方ピクセル単位で返します。このメソッドは穴をサポートしていません。"
+      },
+      {
+        "name": "isClockwise",
+        "return_type": "None",
+        "description": "パスが時計回りの場合 true を返します。"
+      },
+      {
+        "name": "reverse",
+        "description": "パスの方向を反転します。"
+      }
+    ]
+  },
+  {
+    "name": "Material",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [
+      {
+        "name": "strokeColor",
+        "type": "string",
+        "description": "ストロークの色を16進文字列で表します。"
+      },
+      {
+        "name": "fillColor",
+        "type": "string",
+        "description": "塗りの色を16進文字列で表します。"
+      },
+      {
+        "name": "fill",
+        "type": "bool",
+        "description": "マテリアルを塗りつぶすかどうかを示します。"
+      },
+      {
+        "name": "stroke",
+        "type": "bool",
+        "description": "マテリアルにストロークを付けるかどうかを示します。"
+      },
+      {
+        "name": "strokeWidth",
+        "type": "double",
+        "description": "ストロークの幅。"
+      },
+      {
+        "name": "trim",
+        "type": "bool",
+        "description": "ストロークをトリミングするかどうかを示します。"
+      },
+      {
+        "name": "trimReversed",
+        "type": "bool",
+        "description": "トリムを逆方向に適用するかどうかを示します。"
+      },
+      {
+        "name": "trimTravel",
+        "type": "double",
+        "description": "トリム移動量。"
+      },
+      {
+        "name": "trimStart",
+        "type": "double",
+        "description": "トリムの開始位置。"
+      },
+      {
+        "name": "trimEnd",
+        "type": "double",
+        "description": "トリムの終了位置。"
+      }
+    ],
+    "methods": []
+  },
+  {
+    "name": "Mesh",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": [
+      {
+        "name": "addPath",
+        "arguments": [
+          {
+            "name": "path",
+            "type": "Path",
+            "required": true
+          },
+          {
+            "name": "material",
+            "type": "Material",
+            "required": false
+          }
+        ],
+        "description": "メッシュにパスを追加します。マテリアルが指定されていない場合、パスは親メッシュからマテリアルを継承します。"
+      },
+      {
+        "name": "count",
+        "return_type": "None",
+        "description": "メッシュ内のパス数を返します。"
+      },
+      {
+        "name": "empty",
+        "return_type": "None",
+        "description": "メッシュが空かどうかをチェックします。"
+      },
+      {
+        "name": "clear",
+        "description": "メッシュからすべてのパスをクリアします。"
+      },
+      {
+        "name": "getPathDataAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "指定されたインデックスのパスデータを取得します。既存のポイントの編集に便利です。"
+      },
+      {
+        "name": "getPathAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "指定されたインデックスの Path オブジェクトを取得します。パスへの追加に便利です。"
+      },
+      {
+        "name": "setPathAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          null
+        ],
+        "description": "指定されたインデックスのパスを設定します。"
+      },
+      {
+        "name": "setPathDataAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          null
+        ],
+        "description": "指定されたインデックスのパスデータを設定します。"
+      },
+      {
+        "name": "setMaterialAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "material",
+            "type": "Material",
+            "required": true
+          }
+        ],
+        "description": "指定されたインデックスのパスのマテリアルを設定します。null を渡すとマテリアルをクリアして親から継承します。"
+      },
+      {
+        "name": "getBoundingBox",
+        "return_type": "None",
+        "description": "メッシュ全体のバウンディングボックスを計算して返します。"
+      },
+      {
+        "name": "addChildMesh",
+        "arguments": [
+          {
+            "name": "mesh",
+            "type": "Mesh",
+            "required": true
+          }
+        ],
+        "description": "この Mesh に子メッシュを追加します。"
+      },
+      {
+        "name": "clearChildMeshes",
+        "description": "この Mesh 上のすべての子 Mesh を削除します。"
+      },
+      {
+        "name": "childMeshCount",
+        "return_type": "None",
+        "description": "子 Mesh の数を返します。"
+      },
+      {
+        "name": "getChildMeshAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "指定されたインデックスの子 Mesh を返します。"
+      },
+      {
+        "name": "setChildMeshAtIndex",
+        "arguments": [
+          {
+            "name": "index",
+            "type": "int",
+            "required": true
+          },
+          {
+            "name": "mesh",
+            "type": "Mesh",
+            "required": true
+          }
+        ],
+        "description": "指定されたインデックスの子 Mesh を設定します。"
+      },
+      {
+        "name": "getFlattenedPath",
+        "return_type": "None",
+        "description": "このメッシュとすべての子メッシュの組み合わせジオメトリを表すパスを返します。"
+      }
+    ]
+  },
+  {
+    "name": "Line",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {
+      "arguments": [
+        {
+          "name": "x1",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "y1",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "x2",
+          "type": "number",
+          "required": true
+        },
+        {
+          "name": "y2",
+          "type": "number",
+          "required": true
+        }
+      ]
+    },
+    "properties": [],
+    "methods": [
+      {
+        "name": "length",
+        "description": "線の長さを取得します。"
+      },
+      {
+        "name": "angle",
+        "description": "線の角度をラジアンで取得します。"
+      },
+      {
+        "name": "setLength",
+        "arguments": [
+          {
+            "name": "length",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "線の長さを設定します。"
+      },
+      {
+        "name": "setAngle",
+        "arguments": [
+          {
+            "name": "angle",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "線の角度をラジアンで設定します。"
+      },
+      {
+        "name": "start",
+        "return_type": "None",
+        "description": "線の開始点を取得します。"
+      },
+      {
+        "name": "end",
+        "return_type": "None",
+        "description": "線の終了点を取得します。"
+      },
+      {
+        "name": "delta",
+        "return_type": "None",
+        "description": "線の開始点と終了点の間の差分（座標の差）を計算します。"
+      },
+      {
+        "name": "pointAt",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "線上の指定されたパラメータ t における点を計算します。"
+      },
+      {
+        "name": "normalAt",
+        "arguments": [
+          {
+            "name": "param",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "線上の指定されたパラメータ t における法線ベクトルを計算します。"
+      },
+      {
+        "name": "translate",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "description": "指定されたポイントベクトルで線を平行移動します。"
+      },
+      {
+        "name": "distance",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "線から指定された点までの最短距離を計算します。"
+      },
+      {
+        "name": "closestPointTo",
+        "arguments": [
+          {
+            "name": "{x",
+            "type": "number,y",
+            "required": false
+          }
+        ],
+        "return_type": "None",
+        "description": "線上で指定された点に最も近い点を計算します。"
+      },
+      {
+        "name": "lineIntersection",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "2本の線が交差する点を返します。交差しない場合は null を返します。"
+      }
+    ]
+  },
+  {
+    "name": "Matrix",
+    "namespace": "@JS_CORE_API",
+    "type": "class",
+    "constructors": {},
+    "properties": [],
+    "methods": [
+      {
+        "name": "setPosition",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "マトリックスの位置（平行移動）を設定します。"
+      },
+      {
+        "name": "setRotation",
+        "arguments": [
+          {
+            "name": "angle",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "マトリックスの回転を度単位で設定します。"
+      },
+      {
+        "name": "setScale",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "マトリックスのスケール係数を設定します。"
+      },
+      {
+        "name": "setSkew",
+        "arguments": [
+          {
+            "name": "x",
+            "type": "number",
+            "required": true
+          },
+          {
+            "name": "y",
+            "type": "number",
+            "required": true
+          }
+        ],
+        "description": "マトリックスのスキュー係数を設定します。"
+      },
+      {
+        "name": "scale",
+        "return_type": "None",
+        "description": "マトリックスのスケール係数を取得します。"
+      },
+      {
+        "name": "position",
+        "return_type": "None",
+        "description": "マトリックスの位置（平行移動）を取得します。"
+      },
+      {
+        "name": "skew",
+        "return_type": "None",
+        "description": "マトリックスのスキューを取得します。"
+      },
+      {
+        "name": "rotation",
+        "return_type": "None",
+        "description": "マトリックスの回転を度単位で取得します。"
+      },
+      {
+        "name": "multiply",
+        "arguments": [
+          {
+            "name": "other",
+            "type": "Matrix",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "このマトリックスと別のマトリックスを乗算した結果の新しいマトリックスを返します。"
+      },
+      {
+        "name": "inverted",
+        "arguments": [
+          null
+        ],
+        "return_type": "None",
+        "description": "このマトリックスの逆行列である新しいマトリックスを返します。"
+      },
+      {
+        "name": "invert",
+        "description": "このマトリックスをその場で反転します。"
+      },
+      {
+        "name": "isFinite",
+        "return_type": "None",
+        "description": "マトリックスのすべての要素が有限かどうかをチェックします。"
+      },
+      {
+        "name": "isIdentity",
+        "return_type": "None",
+        "description": "マトリックスが単位行列かどうかをチェックします。"
+      },
+      {
+        "name": "mapRect",
+        "arguments": [
+          {
+            "name": "rect",
+            "type": "Object",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "このマトリックスを使用して矩形 {x,y,width,height} をマッピングし、結果の矩形を返します。"
+      },
+      {
+        "name": "mapPoint",
+        "arguments": [
+          {
+            "name": "point",
+            "type": "Object",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "このマトリックスを使用してポイントをマッピングし、結果のポイントを返します。"
+      },
+      {
+        "name": "mapPoints",
+        "arguments": [
+          {
+            "name": "points",
+            "type": "Array<Object>",
+            "required": true
+          }
+        ],
+        "return_type": "None",
+        "description": "このマトリックスを使用してポイントの配列をマッピングし、結果のポイント配列を返します。"
+      }
+    ]
+  },
+  {
+    "name": "random",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "sequence",
+        "type": "int",
+        "required": false,
+        "default": "0"
+      }
+    ],
+    "return_type": "double",
+    "description": "乱数を生成します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "uniform",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "int",
+        "required": true
+      },
+      {
+        "name": "sequence",
+        "type": "int",
+        "required": false,
+        "default": "0"
+      }
+    ],
+    "return_type": "double",
+    "description": "一様分布の乱数を生成します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise1d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "指定された X 座標で1次元 Simplex ノイズをサンプリングします。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise2d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "指定された XY 座標で2次元 Simplex ノイズをサンプリングします。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "noise3d",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "z",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "seed",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "frequency",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "指定された XYZ 座標で3次元 Simplex ノイズをサンプリングします。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "dist",
+    "arguments": [
+      {
+        "name": "x1",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y1",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "x2",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y2",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "2点 (x1, y1) と (x2, y2) の間の距離を計算します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "map",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "inMin",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "inMax",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "outMin",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "outMax",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "数値をある範囲から別の範囲に再マッピングします。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "norm",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "数値を範囲内で正規化します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "clamp",
+    "arguments": [
+      {
+        "name": "value",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "値を最小値と最大値の間にクランプします。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "lerp",
+    "arguments": [
+      {
+        "name": "min",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "max",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "t",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "値 min と max の間で線形補間を実行します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "degreesToRadians",
+    "arguments": [
+      {
+        "name": "degrees",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "角度を度からラジアンに変換します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "radiansToDegrees",
+    "arguments": [
+      {
+        "name": "radians",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "角度をラジアンから度に変換します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "angleFromVector",
+    "arguments": [
+      {
+        "name": "x",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "y",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "double",
+    "description": "ベクトル (x, y) から角度（ラジアン）を計算します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "vectorFromAngle",
+    "arguments": [
+      {
+        "name": "angleRad",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "x": "number",
+      "y": "number"
+    },
+    "description": "ラジアン単位の角度からベクトルを作成します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hexToHsv",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "h": "number",
+      "s": "number",
+      "v": "number"
+    },
+    "description": "16進数カラー値を HSV 表現に変換します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hexToRgba",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "r": "number",
+      "g": "number",
+      "b": "number",
+      "a": "number"
+    },
+    "description": "16進数カラー値を RGBA 表現に変換します。オプションで 0-1 の範囲にスケーリングします。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbToHsv",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "h": "number",
+      "s": "number",
+      "v": "number"
+    },
+    "description": "RGB カラー値を HSV 表現に変換します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbToHex",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "RGB カラー値を16進数カラー文字列表現に変換します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "rgbaToHex",
+    "arguments": [
+      {
+        "name": "r",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "g",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "b",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "a",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "normalised",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": "string",
+    "description": "RGBA カラー値を16進数カラー文字列表現に変換します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hsvToHex",
+    "arguments": [
+      {
+        "name": "h",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "s",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "v",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "HSV カラー値を16進数カラー文字列表現に変換します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "hsvToRgba",
+    "arguments": [
+      {
+        "name": "h",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "s",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "v",
+        "type": "number",
+        "required": true
+      },
+      {
+        "name": "scaledValues",
+        "type": "boolean",
+        "required": false
+      }
+    ],
+    "return_type": {
+      "r": "number",
+      "g": "number",
+      "b": "number",
+      "a": "number"
+    },
+    "description": "HSV カラー値を RGBA 表現に変換します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "nameThatColor",
+    "arguments": [
+      {
+        "name": "hex",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "string",
+    "description": "指定された16進数カラーに最も近い W3C カラー名を返します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "versionLessThan",
+    "arguments": [
+      {
+        "name": "version",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたバージョン文字列を Cavalry のバージョンと比較します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "fontExists",
+    "arguments": [
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontStyle",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "bool",
+    "description": "指定されたファミリーとスタイルを持つフォントが存在するかチェックします。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontFamilies",
+    "arguments": [
+      null
+    ],
+    "return_type": "Array<string>",
+    "description": "利用可能なフォントファミリーのリストを取得します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "getFontStyles",
+    "arguments": [
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      }
+    ],
+    "return_type": "Array<string>",
+    "description": "指定されたフォントファミリーで利用可能なスタイルのリストを取得します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  },
+  {
+    "name": "measureText",
+    "arguments": [
+      {
+        "name": "text",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontFamily",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontStyle",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "fontSize",
+        "type": "number",
+        "required": true
+      }
+    ],
+    "return_type": {
+      "width": "number",
+      "height": "number",
+      "x": "number",
+      "y": "number",
+      "centreX": "number",
+      "centreY": "number"
+    },
+    "description": "指定されたフォント設定でテキストの寸法を測定します。",
+    "namespace": "@JS_CORE_API",
+    "type": "function"
+  }
+]

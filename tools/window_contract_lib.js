@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 macOS osascript/screencapture、Electron 可执行文件与 packaged Tauri binary
+ * [INPUT]: 依赖 macOS osascript/screencapture 与 packaged Tauri binary
  * [OUTPUT]: 对外提供窗口枚举、截图、内容区域裁剪与图像 diff 辅助函数
- * [POS]: tools 的窗口回归公共层，被 Electron baseline 捕获与 Tauri regression 测试复用
+ * [POS]: tools 的 Tauri 窗口回归公共层
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const fs = require('node:fs');
@@ -41,18 +41,21 @@ function listVisibleWindows() {
   const output = runAppleScript(`
 tell application "System Events"
   set outputLines to {}
-  repeat with proc in (every process whose background only is false)
-    set procName to name of proc
-    try
-      repeat with win in windows of proc
-        try
-          set winPos to position of win
-          set winSize to size of win
-          set end of outputLines to procName & "|" & (name of win) & "|" & ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text)
-        end try
-      end repeat
-    end try
-  end repeat
+  try
+    set allProcs to (every process whose background only is false)
+    repeat with proc in allProcs
+      try
+        set procName to name of proc
+        repeat with win in windows of proc
+          try
+            set winPos to position of win
+            set winSize to size of win
+            set end of outputLines to procName & "|" & (name of win) & "|" & ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text)
+          end try
+        end repeat
+      end try
+    end repeat
+  end try
   set AppleScript's text item delimiters to linefeed
   return outputLines as text
 end tell
@@ -188,19 +191,6 @@ function diffImages(leftPath, rightPath) {
   );
 }
 
-function launchElectron(stateDir) {
-  const electronBinary = require('electron');
-  const child = spawn(electronBinary, ['.'], {
-    cwd: repoRoot,
-    env: {
-      ...process.env,
-      CAVALRY_I18N_STATE_DIR: stateDir,
-    },
-    stdio: 'ignore',
-  });
-  return child;
-}
-
 function tauriBundleBinary() {
   const appPath = path.join(
     repoRoot,
@@ -248,7 +238,6 @@ module.exports = {
   diffImages,
   expectedContentSize,
   focusWindow,
-  launchElectron,
   launchTauri,
   listVisibleWindows,
   makeTempDir,

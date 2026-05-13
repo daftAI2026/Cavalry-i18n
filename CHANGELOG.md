@@ -7,18 +7,43 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added
-- **Permission Pre-check**: Implemented macOS App Management (TCC) write access probe in Rust backend.
-  - Added `appManagementGranted` to Tauri/Electron status payload.
-  - Frontend UI now dynamically hides permission warnings if access is already granted.
-  - Added contract tests for App Management probe status in `command_contract.rs` and `check_tauri_bridge_runtime.js`.
+### Fixed
+- **Translation Quality (zh-Hans/zh-Hant/ja_JP)**: Batch terminology and quality corrections across 3 languages.
+  - Reverted `pivot` translation back to `锚点`/`錨點` per glossary (was incorrectly changed to `轴心`/`軸心`).
+  - Fixed zh-Hant `spheriseFilter.json`: restored English-leaked tabs back to Chinese, corrected `Back` → `背面`.
+  - Fixed zh-Hant `zoomBlurFilter.json`: restored `origin` → `原點`.
+  - Unified zh-Hant terminology: `質量` → `品質`, `圖像` → `影像`, `屏幕` → `螢幕`, `控製` → `控制`.
+  - Fixed ja_JP Chinese-Japanese mixed-language strings in lattice deformers, fluid dynamics, and path operations.
+  - Expanded `forbidden_translation_patterns.json` allowlist with `Forge`, `Dynamics`, `Shift`, `Ctrl` etc.
+  - **Added `niceName` coverage**: Populated `niceName` fields for basic shapes (Rectangle, Ellipse, Polygon), lines (Bezier, Spiral, Straight), and background shapes in `nodeStrings.json` across all languages.
 
-### Infrastructure & Misc
-- **Test Integrity**: Refactored testing tools to use local generated caches instead of checked-in fixtures.
-  - Moved `compiled-ui-source-map.json` from `doc/` to local `~/Library/Caches/Cavalry-i18n/` to ensure live Cavalry.app validation.
-  - Relocated `translation-whitelist.json` from `doc/` to `tools/` to align with logic ownership.
-  - Updated `check_electron_patcher_ui.js` and validation scripts to enforce dynamic path resolution.
-- **Documentation**: Updated `README.md` with dynamic GitHub badges and streamlined architecture overview.
+### Added
+
+- **Qt Widget Translation & Periodic UI Refresh**:
+  - Implemented automatic translation for non-menu QWidgets including `QLabel`, `QAbstractButton`, `QGroupBox`, `QLineEdit`, and `QTabBar` in `CavalryTranslatorInjector.mm`.
+  - Added delayed periodic refresh attempts (`scheduleRefreshAttempts`) to capture dynamically spawned UI widgets after initial app launch.
+  - Added comprehensive test assertions in `tools/check_app_contracts.js` validating widget translation coverage and scheduler actions.
+- **Qt Translator Injector**: Introduced `injector/` module (Objective-C++) for runtime Qt menu interception.
+  - Implemented `EmbeddedTranslator` (QTranslator subclass) for high-performance string replacement.
+  - Added support for "English dump-only" mode to capture runtime UI inventories.
+  - Integrated GEB Fractal Documentation System (L1/L2/L3) for architectural integrity.
+- **Tauri Native Bridge**: Enhanced Rust-to-JS bridge with better error handling and permission pre-checks.
+- **Build Infrastructure**:
+  - Corrected `LOCAL_BUILD_SOP.md` path in `check_tauri_build_sop.js` after file relocation.
+  - Stabilized AppleScript-based window detection in `window_contract_lib.js` by using safer process iteration and error handling.
+
+### Changed
+- **Tauri Transition**: Formally promoted Tauri as the exclusive runtime, completing the migration from Electron.
+- **Test Infrastructure**: Refactored all contract tests to target the Tauri-only architecture.
+  - Updated `check_app_contracts.js` to orchestrate full-stack validation.
+  - Standardized on `~/Library/Caches/Cavalry-i18n/` for runtime session and inventory storage.
+
+### Removed
+- **Electron Deprecation**: Purged all legacy Electron artifacts and dependencies.
+  - Removed `electron-builder`, `electron-rebuild`, and related development scripts.
+  - Deleted legacy Electron testing harness (`electron_harness.js`, `capture_electron_contract.js`, etc.).
+  - Purged Electron-specific UI snapshots and fixtures.
+
 
 ## [0.1.2] - 2026-04-25
 
