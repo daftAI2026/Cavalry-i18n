@@ -21,7 +21,7 @@ function readText(relativePath) {
 }
 
 test('tauri local build SOP is the only release path', () => {
-  const localSop = readText('doc/LOCAL_BUILD_SOP.md');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
 
   assert.match(localSop, /Tauri/i);
   assert.match(localSop, /npm run tauri:build/);
@@ -84,7 +84,7 @@ test('tauri window icon is an 8-bit PNG compatible with generate_context', () =>
 });
 
 test('tauri capability and SOP mention the bridge and packaged resource boundaries', () => {
-  const localSop = readText('doc/LOCAL_BUILD_SOP.md');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
   const capabilities = readJson('src-tauri/capabilities/default.json');
 
   assert.ok(capabilities.windows.includes('main'));
