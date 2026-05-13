@@ -40,12 +40,14 @@
 #include <QtWidgets/qtoolbutton.h>
 #include <QtWidgets/qtreewidget.h>
 #include <QtWidgets/qwidget.h>
+#include <qhash.h>
 #include <qpointer.h>
 #include <qset.h>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qtranslator.h>
 #include <qvariant.h>
+#include <qvector.h>
 
 namespace {
 
@@ -111,6 +113,8 @@ bool gRefreshPending = false;
 QObject *gEventFilter = nullptr;
 int gRefreshCount = 0;
 int gEventRefreshCount = 0;
+QHash<QString, QString> gTranslationBySource;
+QString gTranslationCacheLang;
 
 QString readEnvVar(const char *name)
 {
@@ -226,15 +230,49 @@ QString normalizeMenuText(const QString &text)
     return cleaned.trimmed();
 }
 
+void rebuildTranslationCache(const QString &lang)
+{
+    gTranslationBySource.clear();
+    gTranslationCacheLang.clear();
+
+    int count = 0;
+    const TranslationEntry *entries = entriesForLanguage(lang, &count);
+    if (entries == nullptr) {
+        return;
+    }
+
+    for (int index = 0; index < count; ++index) {
+        const QString source = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
+        const QString translation = QString::fromUtf8(entries[index].translation);
+        if (!source.isEmpty() && !translation.isEmpty()) {
+            gTranslationBySource.insert(source, translation);
+        }
+    }
+
+    gTranslationCacheLang = lang;
+}
+
 QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText)
 {
+    const QString normalizedSource = normalizeMenuText(sourceText);
+    if (normalizedSource.isEmpty()) {
+        return QString();
+    }
+
+    if (gTranslationCacheLang == lang && !gTranslationBySource.isEmpty()) {
+        const auto cached = gTranslationBySource.constFind(normalizedSource);
+        if (cached != gTranslationBySource.constEnd()) {
+            return cached.value();
+        }
+        return QString();
+    }
+
     int count = 0;
     const TranslationEntry *entries = entriesForLanguage(lang, &count);
     if (entries == nullptr) {
         return QString();
     }
 
-    const QString normalizedSource = normalizeMenuText(sourceText);
     for (int index = 0; index < count; ++index) {
         const QString candidate = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
         if (candidate == normalizedSource) {
@@ -1077,6 +1115,7 @@ bool installTranslator()
         if (!dumpOnlyEnglish) {
             gTranslator = new EmbeddedTranslator(lang, app);
             app->installTranslator(gTranslator);
+            rebuildTranslationCache(lang);
         }
     }
 
