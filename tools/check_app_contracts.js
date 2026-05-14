@@ -514,6 +514,22 @@ test('manual debug launcher follows the embedded-injector flow', () => {
 
 
 
+test('Qt SDK resolver rejects installed Cavalry version drift', () => {
+  const resolverPath = path.join(repoRoot, 'tools', 'resolve_cavalry_qt_sdk.js');
+  const resolver = fs.readFileSync(resolverPath, 'utf8');
+
+  assert.match(
+    resolver,
+    /probe\.cavalryVersion[\s\S]*!==[\s\S]*target\.cavalryVersion/,
+    'resolver should reject an installed Cavalry.app whose version does not match tools/cavalry_qt_target.json'
+  );
+  assert.match(
+    resolver,
+    /Unsupported Cavalry version/,
+    'resolver failure should name Cavalry version drift explicitly'
+  );
+});
+
 test('injector build script can fall back to Qt frameworks when Cavalry app frameworks are unavailable', () => {
   const packageJson = fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8');
   const buildScript = fs.readFileSync(path.join(repoRoot, 'tools', 'build_translator_injector.sh'), 'utf8');
@@ -533,7 +549,7 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     'default injector builds should resolve the target SDK from the project contract instead of scattering 6.6.3 inline'
   );
   assert.equal(target.qtVersion, '6.6.3');
-  assert.equal(target.cavalryVersion, '2.7.1');
+  assert.equal(target.cavalryVersion, '2.7.2');
   assert.equal(target.sdkPath, 'qt_sdk/6.6.3/macos');
   assert.match(
     resolver,

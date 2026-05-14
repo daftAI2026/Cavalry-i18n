@@ -118,6 +118,15 @@ function validateCavalryProbe(target, probe) {
   if (!probe) {
     return;
   }
+  if (!probe.cavalryVersion) {
+    fail(`Could not read Cavalry version from ${probe.appPath}.`);
+  }
+  if (probe.cavalryVersion !== target.cavalryVersion) {
+    fail(
+      `Unsupported Cavalry version ${probe.cavalryVersion} at ${probe.appPath}. ` +
+        `This release targets Cavalry ${target.cavalryVersion} / Qt ${target.qtVersion}.`
+    );
+  }
   if (!probe.qtVersion) {
     fail(`Could not read QtCore version from ${probe.appPath}.`);
   }
