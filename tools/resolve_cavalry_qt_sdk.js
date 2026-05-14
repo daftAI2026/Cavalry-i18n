@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 tools/cavalry_qt_target.json、可选 Cavalry.app 与 python3/aqtinstall
+ * [INPUT]: 依赖 tools/cavalry_qt_target.json、可选 Cavalry.app 与 PYTHON/python3/aqtinstall
  * [OUTPUT]: 对外提供 Qt SDK 探测、严格版本校验、按目标版本下载 SDK 与 shell env 输出
  * [POS]: tools 的 injector SDK 解析器，被 package.json 的 prepare/build 脚本消费，消除散落 Qt 版本常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,6 +11,7 @@ const { spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
 const targetPath = path.join(__dirname, 'cavalry_qt_target.json');
+const pythonCommand = process.env.PYTHON || 'python3';
 
 function fail(message) {
   throw new Error(message);
@@ -139,16 +140,16 @@ function validateCavalryProbe(target, probe) {
 }
 
 function ensureAqt() {
-  const check = run('python3', ['-m', 'aqt', '--version']);
+  const check = run(pythonCommand, ['-m', 'aqt', '--version']);
   if (check.ok) {
     return;
   }
 
-  const install = run('python3', ['-m', 'pip', 'install', '--user', 'aqtinstall'], {
+  const install = run(pythonCommand, ['-m', 'pip', 'install', '--user', 'aqtinstall'], {
     stdio: 'inherit',
   });
   if (!install.ok) {
-    fail('aqtinstall is required to download Qt. Install it with: python3 -m pip install --user aqtinstall');
+    fail(`aqtinstall is required to download Qt. Install it with: ${pythonCommand} -m pip install --user aqtinstall`);
   }
 }
 
@@ -173,7 +174,7 @@ function ensureSdk(target, prefix) {
     args.push('--archives', ...target.aqt.archives);
   }
 
-  const result = run('python3', args, { stdio: 'inherit' });
+  const result = run(pythonCommand, args, { stdio: 'inherit' });
   if (!result.ok) {
     fail(`Failed to download Qt ${target.qtVersion} SDK with aqt.`);
   }

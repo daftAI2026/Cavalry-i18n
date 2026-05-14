@@ -534,6 +534,7 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   const packageJson = fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8');
   const buildScript = fs.readFileSync(path.join(repoRoot, 'tools', 'build_translator_injector.sh'), 'utf8');
   const resolverPath = path.join(repoRoot, 'tools', 'resolve_cavalry_qt_sdk.js');
+  const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
   const targetPath = path.join(repoRoot, 'tools', 'cavalry_qt_target.json');
   const target = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
   const resolver = fs.readFileSync(resolverPath, 'utf8');
@@ -555,6 +556,21 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     resolver,
     /install-qt[\s\S]*target\.aqt\.host[\s\S]*target\.aqt\.target[\s\S]*target\.qtVersion[\s\S]*target\.aqt\.arch/,
     'resolver should be able to download exactly the target Qt SDK for CI'
+  );
+  assert.match(
+    resolver,
+    /process\.env\.PYTHON[\s\S]*python3/,
+    'resolver should allow CI to provide an isolated Python interpreter instead of mutating the managed system Python'
+  );
+  assert.match(
+    workflowSource,
+    /python3 -m venv "\$RUNNER_TEMP\/aqt-venv"[\s\S]*pip install aqtinstall[\s\S]*PYTHON=\$RUNNER_TEMP\/aqt-venv\/bin\/python/,
+    'macOS packaging should install aqtinstall inside a local venv and pass that Python to the resolver'
+  );
+  assert.match(
+    workflowSource,
+    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*rm -rf src-tauri\/target\/release\/bundle[\s\S]*npm run build:tauri/,
+    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery and clearing stale bundle output before build:tauri'
   );
   assert.match(
     resolver,
@@ -1555,7 +1571,7 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and pack
   );
   assert.match(
     workflowSource,
-    /run: npm run build:tauri/,
+    /npm run build:tauri/,
     'macOS packaging workflow should use npm run build:tauri'
   );
   assert.doesNotMatch(

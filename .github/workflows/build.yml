@@ -123,6 +123,13 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
+      - name: Set up Qt installer Python environment
+        run: |
+          python3 -m venv "$RUNNER_TEMP/aqt-venv"
+          "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install --upgrade pip
+          "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install aqtinstall
+          echo "PYTHON=$RUNNER_TEMP/aqt-venv/bin/python" >> "$GITHUB_ENV"
+
       - name: Install app dependencies
         run: npm install
 
@@ -133,7 +140,11 @@ jobs:
         run: npm run prepare:qt-sdk
 
       - name: Build packaged macOS app
-        run: npm run build:tauri
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          rm -rf src-tauri/target/release/bundle
+          npm run build:tauri
 
       - name: Validate Tauri Rust contracts and packaged resources
         run: |
