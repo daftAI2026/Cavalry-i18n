@@ -1073,6 +1073,7 @@
     "values": [
       {
         "nodeType": "lattice",
+        "niceName": "晶格",
         "nodeInfo": "使用靈活的控制點網格來變形形狀。",
         "attributes": {
           "gridCount": [
@@ -3834,14 +3835,14 @@
           }
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "數字",
+          "inParenthesis": "括號內文字",
+          "vowels": "母音",
+          "twoLetterWords": "所有雙字母詞",
+          "capitalWords": "首字母大寫詞",
+          "specificWords": "匹配指定單詞",
+          "filenames": "檔案名稱",
+          "ordinalIndicators": "序數標記"
         }
       },
       {
@@ -3870,14 +3871,14 @@
           }
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "數字",
+          "inParenthesis": "括號內文字",
+          "vowels": "母音",
+          "twoLetterWords": "所有雙字母詞",
+          "capitalWords": "首字母大寫詞",
+          "specificWords": "匹配指定單詞",
+          "filenames": "檔案名稱",
+          "ordinalIndicators": "序數標記"
         }
       },
       {
@@ -3905,14 +3906,14 @@
           }
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "數字",
+          "inParenthesis": "括號內文字",
+          "vowels": "母音",
+          "twoLetterWords": "所有雙字母詞",
+          "capitalWords": "首字母大寫詞",
+          "specificWords": "匹配指定單詞",
+          "filenames": "檔案名稱",
+          "ordinalIndicators": "序數標記"
         }
       },
       {
@@ -3972,14 +3973,14 @@
           }
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "數字",
+          "inParenthesis": "括號內文字",
+          "vowels": "母音",
+          "twoLetterWords": "所有雙字母詞",
+          "capitalWords": "首字母大寫詞",
+          "specificWords": "匹配指定單詞",
+          "filenames": "檔案名稱",
+          "ordinalIndicators": "序數標記"
         }
       },
       {
@@ -4006,14 +4007,14 @@
           "indexMode": "索引模式"
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "數字",
+          "inParenthesis": "括號內文字",
+          "vowels": "母音",
+          "twoLetterWords": "所有雙字母詞",
+          "capitalWords": "首字母大寫詞",
+          "specificWords": "匹配指定單詞",
+          "filenames": "檔案名稱",
+          "ordinalIndicators": "序數標記"
         },
         "enums": {
           "feature": {
@@ -4214,14 +4215,14 @@
           ]
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "數字",
+          "inParenthesis": "括號內文字",
+          "vowels": "母音",
+          "twoLetterWords": "所有雙字母詞",
+          "capitalWords": "首字母大寫詞",
+          "specificWords": "匹配指定單詞",
+          "filenames": "檔案名稱",
+          "ordinalIndicators": "序數標記"
         },
         "enums": {
           "mode": {
@@ -5350,7 +5351,7 @@
       {
         "nodeType": "transformDistribution",
         "nodeInfo": "將點分佈到圖層的位置上。",
-      "niceName": "變換",
+        "niceName": "變換",
         "attributes": {
           "inputShape": "輸入形狀"
         }

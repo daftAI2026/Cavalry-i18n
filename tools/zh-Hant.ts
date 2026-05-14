@@ -1311,6 +1311,7 @@
     <message><source>Failed to fetch user info (HTTP</source><translation>取得使用者資訊失敗(網路協定</translation></message>
     <message><source>Failed to fetch user info: could not connect to Canva</source><translation>取得使用者資訊失敗: 無法連線至線上設計服務</translation></message>
     <message><source>Failed to get Motion Blur Filter</source><translation>獲取運動模糊過濾器失敗</translation></message>
+    <message><source>Filter</source><translation>濾鏡</translation></message>
     <message><source>Failed to get upload preset</source><translation>上傳預設失敗</translation></message>
     <message><source>Failed to get upload preset.</source><translation>上傳預設失敗。</translation></message>
     <message><source>Failed to import preset</source><translation>導入預設失敗</translation></message>
@@ -2408,6 +2409,7 @@
     <message><source>Smart Folder</source><translation>智慧型資料夾</translation></message>
     <message><source>Smart Folder Settings</source><translation>智慧型資料夾設定</translation></message>
     <message><source>Smooth Blend</source><translation>平滑組合</translation></message>
+    <message><source>Spiral</source><translation>螺旋</translation></message>
     <message><source>Snap Angle</source><translation>座標角</translation></message>
     <message><source>Snap layers to the grid when dragging</source><translation>拖動時將圖層與網格對齊</translation></message>
     <message><source>Snap layers to the grid when dragging.</source><translation>拖動時將層與網格連接。</translation></message>
@@ -5813,6 +5815,14 @@
     <message>
       <source>Background Blur Filter</source>
       <translation>背景模糊濾鏡</translation>
+    </message>
+    <message>
+      <source>Background Shape</source>
+      <translation>背景形狀</translation>
+    </message>
+    <message>
+      <source>Bézier</source>
+      <translation>貝茲</translation>
     </message>
     <message>
       <source>Bilateral Blur</source>

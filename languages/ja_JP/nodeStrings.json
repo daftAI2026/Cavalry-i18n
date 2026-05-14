@@ -1073,6 +1073,7 @@
     "values": [
       {
         "nodeType": "lattice",
+        "niceName": "ラティス",
         "nodeInfo": "柔軟なコントロールポイントグリッドを使用してシェイプを変形します。",
         "attributes": {
           "gridCount": [
@@ -3834,14 +3835,14 @@
           }
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "数字",
+          "inParenthesis": "括弧内のテキスト",
+          "vowels": "母音",
+          "twoLetterWords": "すべての2文字単語",
+          "capitalWords": "大文字始まりの単語",
+          "specificWords": "指定単語に一致",
+          "filenames": "ファイル名",
+          "ordinalIndicators": "序数標識"
         }
       },
       {
@@ -3870,14 +3871,14 @@
           }
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "数字",
+          "inParenthesis": "括弧内のテキスト",
+          "vowels": "母音",
+          "twoLetterWords": "すべての2文字単語",
+          "capitalWords": "大文字始まりの単語",
+          "specificWords": "指定単語に一致",
+          "filenames": "ファイル名",
+          "ordinalIndicators": "序数標識"
         }
       },
       {
@@ -3905,14 +3906,14 @@
           }
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "数字",
+          "inParenthesis": "括弧内のテキスト",
+          "vowels": "母音",
+          "twoLetterWords": "すべての2文字単語",
+          "capitalWords": "大文字始まりの単語",
+          "specificWords": "指定単語に一致",
+          "filenames": "ファイル名",
+          "ordinalIndicators": "序数標識"
         }
       },
       {
@@ -3972,14 +3973,14 @@
           }
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "数字",
+          "inParenthesis": "括弧内のテキスト",
+          "vowels": "母音",
+          "twoLetterWords": "すべての2文字単語",
+          "capitalWords": "大文字始まりの単語",
+          "specificWords": "指定単語に一致",
+          "filenames": "ファイル名",
+          "ordinalIndicators": "序数標識"
         }
       },
       {
@@ -4006,14 +4007,14 @@
           "indexMode": "インデックスモード"
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "数字",
+          "inParenthesis": "括弧内のテキスト",
+          "vowels": "母音",
+          "twoLetterWords": "すべての2文字単語",
+          "capitalWords": "大文字始まりの単語",
+          "specificWords": "指定単語に一致",
+          "filenames": "ファイル名",
+          "ordinalIndicators": "序数標識"
         },
         "enums": {
           "feature": {
@@ -4214,14 +4215,14 @@
           ]
         },
         "presets": {
-          "numbers": "Numbers",
-          "inParenthesis": "Text in Parenthesis",
-          "vowels": "Vowels",
-          "twoLetterWords": "All 2 Letter Words",
-          "capitalWords": "Capitalised Words",
-          "specificWords": "Match Specific Words",
-          "filenames": "File Names",
-          "ordinalIndicators": "Ordinal Indicators"
+          "numbers": "数字",
+          "inParenthesis": "括弧内のテキスト",
+          "vowels": "母音",
+          "twoLetterWords": "すべての2文字単語",
+          "capitalWords": "大文字始まりの単語",
+          "specificWords": "指定単語に一致",
+          "filenames": "ファイル名",
+          "ordinalIndicators": "序数標識"
         },
         "enums": {
           "mode": {

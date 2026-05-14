@@ -1073,6 +1073,7 @@
     "values": [
       {
         "nodeType": "lattice",
+        "niceName": "Lattice",
         "nodeInfo": "Deform Shapes using a flexible grid of control points.",
         "attributes": {
           "gridCount": [

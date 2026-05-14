@@ -2289,6 +2289,7 @@
     <message><source>Failed to fetch user info (HTTP</source><translation>ユーザー情報の取得に失敗 (HTTP</translation></message>
     <message><source>Failed to fetch user info: could not connect to Canva</source><translation>ユーザー情報の取得に失敗しました: Canva に接続できません</translation></message>
     <message><source>Failed to get Motion Blur Filter</source><translation>モーションブラーフィルターを取得する失敗</translation></message>
+    <message><source>Filter</source><translation>フィルター</translation></message>
     <message><source>Failed to get upload preset</source><translation>アップロードプリセットを取得する失敗</translation></message>
     <message><source>Failed to get upload preset.</source><translation>アップロードプリセットを取得することができません。</translation></message>
     <message><source>Failed to import preset</source><translation>プリセットをインポートできなかった</translation></message>
@@ -3435,6 +3436,7 @@
     <message><source>SSL error: CRL is not yet valid.</source><translation>安全接続エラー: 証明書失効リストはまだ有効ではありません。</translation></message>
     <message><source>SSL error: CRL signature failure</source><translation>安全接続エラー: 証明書失効リストの署名検証に失敗しました</translation></message>
     <message><source>SSL error: CRL signature failure.</source><translation>安全接続エラー: 証明書失効リストの署名検証に失敗しました。</translation></message>
+    <message><source>Spiral</source><translation>スパイラル</translation></message>
     <message><source>SSL error: Hostname mismatch</source><translation>安全接続エラー: ホスト名が一致しません</translation></message>
     <message><source>SSL error: Hostname mismatch.</source><translation>安全接続エラー: ホスト名が一致しません。</translation></message>
     <message><source>SSL error: Invalid CA certificate</source><translation>安全接続エラー: 認証局証明書が無効です</translation></message>
@@ -7166,6 +7168,14 @@
     <message>
       <source>Background Blur Filter</source>
       <translation>背景ぼかしフィルター</translation>
+    </message>
+    <message>
+      <source>Background Shape</source>
+      <translation>背景シェイプ</translation>
+    </message>
+    <message>
+      <source>Bézier</source>
+      <translation>ベジェ</translation>
     </message>
     <message>
       <source>Bilateral Blur</source>

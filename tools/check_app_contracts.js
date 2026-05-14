@@ -2206,6 +2206,101 @@ test('ja_JP TS header is not mixed with Chinese wording', () => {
   assert.doesNotMatch(header, /对外提供|依赖|菜单文本|编译期|翻译目录/);
 });
 
+test('add-layer runtime labels cover short translated tags and unnamed JSON nodes', () => {
+  const requiredTsEntries = {
+    'zh-Hans': {
+      'Background Shape': '背景形状',
+      Filter: '滤镜',
+      Spiral: '螺旋',
+      'Bézier': '贝塞尔',
+    },
+    'zh-Hant': {
+      'Background Shape': '背景形狀',
+      Filter: '濾鏡',
+      Spiral: '螺旋',
+      'Bézier': '貝茲',
+    },
+    ja_JP: {
+      'Background Shape': '背景シェイプ',
+      Filter: 'フィルター',
+      Spiral: 'スパイラル',
+      'Bézier': 'ベジェ',
+    },
+  };
+
+  for (const [language, entries] of Object.entries(requiredTsEntries)) {
+    const source = fs.readFileSync(path.join(repoRoot, 'tools', `${language}.ts`), 'utf8');
+    for (const [english, translation] of Object.entries(entries)) {
+      const message = `<source>${english}</source>\\s*<translation>${translation}</translation>`;
+      assert.match(source, new RegExp(message), `${language} TS should translate ${english}`);
+    }
+  }
+
+  const expectedLatticeNames = {
+    en: 'Lattice',
+    'zh-Hans': '晶格',
+    'zh-Hant': '晶格',
+    ja_JP: 'ラティス',
+  };
+
+  for (const [language, expectedName] of Object.entries(expectedLatticeNames)) {
+    const nodeStrings = readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json'));
+    const lattice = nodeStrings[38].values.find((node) => node.nodeType === 'lattice');
+    assert.equal(lattice.niceName, expectedName, `${language} lattice needs a non-empty add-layer name`);
+  }
+});
+
+test('text selection preset labels are localized in JSON node strings', () => {
+  const nodeTypes = [
+    'applyFontSize',
+    'applyTypeface',
+    'applyTextFill',
+    'applyTextMaterial',
+    'applyOpenType',
+    'applyFontStyle',
+  ];
+  const expectedPresets = {
+    'zh-Hans': {
+      numbers: '数字',
+      inParenthesis: '括号内文本',
+      vowels: '元音',
+      twoLetterWords: '所有双字母词',
+      capitalWords: '首字母大写词',
+      specificWords: '匹配指定单词',
+      filenames: '文件名',
+      ordinalIndicators: '序数标记',
+    },
+    'zh-Hant': {
+      numbers: '數字',
+      inParenthesis: '括號內文字',
+      vowels: '母音',
+      twoLetterWords: '所有雙字母詞',
+      capitalWords: '首字母大寫詞',
+      specificWords: '匹配指定單詞',
+      filenames: '檔案名稱',
+      ordinalIndicators: '序數標記',
+    },
+    ja_JP: {
+      numbers: '数字',
+      inParenthesis: '括弧内のテキスト',
+      vowels: '母音',
+      twoLetterWords: 'すべての2文字単語',
+      capitalWords: '大文字始まりの単語',
+      specificWords: '指定単語に一致',
+      filenames: 'ファイル名',
+      ordinalIndicators: '序数標識',
+    },
+  };
+
+  for (const [language, expected] of Object.entries(expectedPresets)) {
+    const nodeStrings = readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json'));
+    for (const nodeType of nodeTypes) {
+      const node = nodeStrings[40].values.find((candidate) => candidate.nodeType === nodeType);
+      assert.deepEqual(node.presets, expected, `${language} ${nodeType} presets should be localized`);
+    }
+  }
+});
+
 test('zh-Hant node strings reject known simplified Chinese residues', () => {
   const source = fs.readFileSync(
     path.join(repoRoot, 'languages', 'zh-Hant', 'nodeStrings.json'),
