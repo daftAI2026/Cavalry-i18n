@@ -1,8 +1,8 @@
 #!/bin/bash
 set -euo pipefail
 
-# [INPUT]: 依赖磁盘上的 DMG 文件、icon.icns、Rez/SetFile 与 ditto
-# [OUTPUT]: 修改后的 DMG 文件，以及保留 Finder 图标资源分叉的 .dmg.zip
+# [INPUT]: 依赖磁盘上的 DMG 文件、icon.icns、Rez 与 SetFile
+# [OUTPUT]: 修改后的 DMG 文件
 # [POS]: tools/ 下的高鲁棒性 DMG 修饰脚本
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
@@ -34,12 +34,6 @@ for dmg in "$DIST_DIR"/*.dmg; do
   Rez -append "$TMPRSRC" -o "$dmg"
   SetFile -a C "$dmg"
   echo "  - Stamped Finder file icon (Success)"
-
-  # GitHub artifact/Release 上传裸 DMG 时只保留 data fork；
-  # ditto zip 是跨下载链路保住资源分叉的唯一发布载体。
-  rm -f "$dmg.zip"
-  ditto -c -k --sequesterRsrc --keepParent "$dmg" "$dmg.zip"
-  echo "  - Wrote resource-preserving archive: $(basename "$dmg.zip")"
 
   found=1
 done

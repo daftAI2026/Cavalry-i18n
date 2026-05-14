@@ -7,8 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Fixed
-- **GitHub DMG Icon Preservation**: `tools/stamp_dmg_icon.sh` now creates a `*.dmg.zip` with `ditto --sequesterRsrc --keepParent`, and GitHub artifacts/Releases publish it so Finder icon resource forks survive download transport.
+## [0.1.5] - 2026-05-15
+
+### Changed
+- **GitHub Release Asset Shape**: GitHub tag releases now publish the macOS Apple Silicon installer directly as a `.dmg` asset, matching the common desktop-app release structure instead of adding an extra `.dmg.zip` wrapper.
 
 ## [0.1.4] - 2026-05-14
 

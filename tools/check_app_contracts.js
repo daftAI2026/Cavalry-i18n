@@ -572,10 +572,10 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
     'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, running tauri:build, and stamping the DMG'
   );
-  assert.match(
+  assert.doesNotMatch(
     workflowSource,
-    /src-tauri\/target\/release\/bundle\/dmg\/\*\.dmg\.zip/,
-    'macOS packaging should upload a ditto-built DMG zip so Finder icon resource forks survive GitHub artifact transport'
+    /\.dmg\.zip/,
+    'macOS packaging should expose the direct DMG release shape instead of wrapping the installer in a zip'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -1595,15 +1595,15 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
     /run: npm run build$|doc\/compiled-ui-source-map\.json|doc\/translation-whitelist\.json/,
     'workflow should not keep the legacy build command or doc-scoped gate artifacts'
   );
-  assert.match(
+  assert.doesNotMatch(
     stampScript,
-    /ditto -c -k --sequesterRsrc --keepParent "\$dmg" "\$dmg\.zip"/,
-    'DMG stamping should produce a distributable zip that preserves resource forks across GitHub downloads'
+    /ditto -c -k --sequesterRsrc --keepParent|\.dmg\.zip/,
+    'DMG stamping should not create a second zip artifact; GitHub Releases should present the installer DMG directly'
   );
   assert.match(
     workflowSource,
-    /dist\/\*\*\/\*\.dmg\.zip/,
-    'tag releases should publish the resource-preserving DMG zip, not only the naked DMG data fork'
+    /files:\s*\|\s*\n\s+dist\/\*\*\/\*\.dmg\n\s+generate_release_notes:/,
+    'tag releases should publish the direct DMG asset in the same shape users expect from GitHub app releases'
   );
 });
 

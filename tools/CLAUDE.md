@@ -21,7 +21,7 @@ freeze_extraction_inventory.js: G-X freeze 器，按 whitelist 噪声规则冻�
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
 generate_embedded_translations.js: 从 `tools/*.ts` 生成 injector 编译期翻译表。
 resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时按配置下载。
-stamp_dmg_icon.sh: DMG Finder 文件图标盖章器，用 Rez/SetFile 写资源分叉，并用 ditto 产出保留图标元数据的 `.dmg.zip` 发布载体。
+stamp_dmg_icon.sh: DMG Finder 文件图标盖章器，用 Rez/SetFile 写资源分叉，发布链路仍直接分发裸 `.dmg`。
 cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.2、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。
 build_translator_injector.sh: 构建 `libCavalryTranslatorInjector.dylib`，校验 Qt minor 与目标 Cavalry 匹配。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
@@ -44,6 +44,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 
 变更日志
 2026-05-14: 新增 `sync_project_version.js` 与 `git-hooks/pre-commit`，将版本真相源收敛为 CHANGELOG 最新正式版本，并同步 npm、Cargo 与 Tauri 元数据。
-2026-05-15: `stamp_dmg_icon.sh` 明确区分裸 DMG data fork 与 Finder 图标资源分叉，新增 `.dmg.zip` 作为 GitHub 下载链路的图标保真产物。
+2026-05-15: `stamp_dmg_icon.sh` 回归单一 DMG 产物，避免为 Finder 文件图标元数据增加第二发布载体。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

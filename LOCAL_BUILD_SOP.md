@@ -43,7 +43,7 @@ Tauri 原生 DMG 配置（`tauri.conf.json > bundle > macOS > dmg`）已处理�
 bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 ```
 
-该脚本将 `src-tauri/icons/icon.icns` 通过 Rez/SetFile 嵌入 DMG 文件的资源分叉，使 DMG 在 Finder 中显示自定义图标。裸 `.dmg` 经 GitHub artifact 或 Release 下载时通常只保留 data fork，因此脚本同时产出 `*.dmg.zip`；该 zip 使用 `ditto --sequesterRsrc --keepParent` 创建，是保留 Finder 图标盖章的发布载体。
+该脚本将 `src-tauri/icons/icon.icns` 通过 Rez/SetFile 嵌入 DMG 文件的资源分叉，使本机产出的 DMG 在 Finder 中尽量显示自定义图标。GitHub Release 按常见应用分发结构直接发布裸 `.dmg`，不额外包 zip；跨浏览器下载后 Finder 文件图标不作为发布阻塞项。
 
 ## 4. 产物验证
 
@@ -61,7 +61,6 @@ npm run test:tauri:manual-smoke
 
 - `.app` 位于 `src-tauri/target/release/bundle/macos/`。
 - DMG 位于 `src-tauri/target/release/bundle/dmg/`。
-- 保留 Finder 图标资源分叉的发布 zip 位于 `src-tauri/target/release/bundle/dmg/*.dmg.zip`。
 - `.app/Contents/Resources/` 内包含 `languages` 与 `libCavalryTranslatorInjector.dylib`。
 - 主窗口截图、字体加载状态、核心控件 bounding box、按钮顺序与状态文本必须满足冻结的 Tauri window contract。
 
