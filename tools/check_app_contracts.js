@@ -579,8 +579,8 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /Write GitHub Release notes[\s\S]*下载地址[\s\S]*Apple M[\s\S]*LOCAL_BUILD_SOP\.md/,
-    'tag releases should render a clear human release body instead of relying on a bare generated changelog link'
+    /Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry 2\.7\.2[\s\S]*Apple M[\s\S]*支持语言[\s\S]*LOCAL_BUILD_SOP\.md/,
+    'tag releases should render a first-release product body instead of relying on a bare generated changelog link'
   );
   assert.match(
     workflowSource,

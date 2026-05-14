@@ -187,21 +187,36 @@ jobs:
         run: |
           version="${GITHUB_REF_NAME#v}"
           cat > release-notes.md <<EOF
-          ## 下载地址
+          ## Cavalry Language Switcher
+
+          Cavalry Language Switcher 是一个面向 Cavalry 2.7.2 的 macOS 语言切换工具。它可以把本机已安装的 Cavalry 在 English、简体中文、繁體中文、日本語之间切换，并继续从原来的 \`Cavalry.app\` 启动。
+
+          它会处理两类翻译表面：Cavalry 的 JSON 资源文件，以及内置在 Qt/UI 二进制里的菜单、面板、按钮和控件文字。应用语言时，工具会 patch 本地 Cavalry app bundle，安装 runtime injector，重新签名，并清理 Gatekeeper quarantine。
+
+          Cavalry Language Switcher 是独立社区工具，不隶属于 Scene Group、Cavalry 或 Canva。
+
+          ## 下载
 
           ### macOS
           - Apple M 芯片：下载下方 \`Cavalry.Language.Switcher_${version}_aarch64.dmg\`
 
-          ## 本次发布
+          ## 支持语言
+          - English
+          - 简体中文
+          - 繁體中文
+          - 日本語
+
+          ## 使用前须知
+          - 首次应用语言包时，macOS 可能要求授予 App Management 权限。
+          - 建议保留一份干净的 Cavalry 安装包或备份；恢复到完全原始状态时，重新安装 Cavalry 是最稳妥的方式。
+          - 当前 release 只发布 macOS Apple Silicon 版本。
+
+          ## 构建与验证
           - GitHub Actions 按 \`LOCAL_BUILD_SOP.md\` 构建 Tauri macOS 安装包。
           - 构建前校验项目版本元数据，防止 npm、Cargo 与 Tauri 版本漂移。
           - macOS runner 使用项目锁定的 Cavalry/Qt 目标准备 Qt SDK。
           - 已执行非人工 SOP 验证门：\`check:app\`、\`test:contracts\`、\`check:tauri\`、\`test:tauri\`、\`test:tauri:packaged\`、\`test:tauri:dmg-layout\`。
-          - DMG 挂载后包含背景图、窗口布局、卷宗图标、Applications 链接与 app bundle。
-
-          ## 说明
-          - 当前只发布 macOS Apple Silicon 版本。
-          - Release asset 直接发布 \`.dmg\`，不再包一层 zip。
+          - Release asset 直接发布 \`.dmg\`，不额外包 zip。
           EOF
 
       - name: Create GitHub Release
