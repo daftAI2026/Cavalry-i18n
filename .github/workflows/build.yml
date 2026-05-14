@@ -211,13 +211,6 @@ jobs:
           - 首次应用语言包时，macOS 可能要求授予 App Management 权限。
           - 建议保留一份干净的 Cavalry 安装包或备份；恢复到完全原始状态时，重新安装 Cavalry 是最稳妥的方式。
           - 当前 release 只发布 macOS Apple Silicon 版本。
-
-          ## 构建与验证
-          - GitHub Actions 按 \`LOCAL_BUILD_SOP.md\` 构建 Tauri macOS 安装包。
-          - 构建前校验项目版本元数据，防止 npm、Cargo 与 Tauri 版本漂移。
-          - macOS runner 使用项目锁定的 Cavalry/Qt 目标准备 Qt SDK。
-          - 已执行非人工 SOP 验证门：\`check:app\`、\`test:contracts\`、\`check:tauri\`、\`test:tauri\`、\`test:tauri:packaged\`、\`test:tauri:dmg-layout\`。
-          - Release asset 直接发布 \`.dmg\`，不额外包 zip。
           EOF
 
       - name: Create GitHub Release
