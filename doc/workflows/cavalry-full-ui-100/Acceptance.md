@@ -231,12 +231,12 @@ Extraction inventory frozen at:
 
 | Surface | 通过下界 | Provenance |
 | --- | ---: | --- |
-| `languages/en/appStrings.json` | >= 10 leaves | Cavalry 2.7.1 app bundle |
-| `languages/en/nodeStrings.json` | >= 6197 leaves | cleaned repo English baseline |
+| `languages/en/appStrings.json` | >= 10 leaves | Cavalry 2.7.2 app bundle |
+| `languages/en/nodeStrings.json` | >= 6191 leaves | cleaned repo English baseline |
 | `languages/en/onboarding.json` | >= 34 leaves | repo English baseline |
 | `languages/en/tips.json` | >= 51 leaves | repo English baseline |
-| JSON total | >= 6292 leaves | cleaned sum after §F extraction filters |
-| `SOURCE_MAP.entries` | >= 3190 entries | cleaned compiled denominator from `EXTRACTION`, excluding 2005 §F noise leaves |
+| JSON total | >= 6286 leaves | cleaned sum after §F extraction filters |
+| `SOURCE_MAP.entries` | >= 3141 entries | cleaned compiled denominator from `EXTRACTION`, excluding 2047 §F noise leaves |
 | runtime candidates | >= 617 | cleaned runtime denominator |
 | runtime menuLeaves | >= 730 | cleaned runtime menu denominator |
 

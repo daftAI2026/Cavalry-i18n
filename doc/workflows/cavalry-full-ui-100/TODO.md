@@ -22,10 +22,8 @@
 
 ```text
 Current workflow spec = current
-Current repo state    = ALL GATES PASS (2026-05-08, after FP-10/11/12 detector + cleaned denominator + retranslation)
-Last reset            = b9e6c28 + cherry-pick(b4f784c, 88760e9)
-Quarantined branches  = quarantine/cavalry-full-ui-100-fabrication-20260501 (FP-7/8/9 reverse sample)
-                       quarantine/cavalry-full-ui-100-transliteration-20260507 @ 2db74b7 (FP-10/11/12 reverse sample)
+Current repo state    = ALL GATES PASS (2026-05-14, Cavalry 2.7.2 reverified)
+Last reset            = 2026-05-14 target refresh
 ```
 
 ### 2026-05-01 伪造事件复盘（read-before-resume）

@@ -96,18 +96,18 @@ extraction truth source = SESSION_DIR/extraction-inventory.json
 
 ```text
 Baseline is rerunnable and reachable.
-Current repo state: ALL GATES PASS (2026-05-08).
+Current repo state: ALL GATES PASS (2026-05-14, reverified).
 First next gate: none for current target identity; version drift requires a new capture/freeze/matrix cycle.
 
 Historical verified evidence retained:
-  - W-AUDIT / G-P / G-CAPTURE / G-X / G0 / G1 / G2 / G3 / G4 have current evidence from session BC5BF821-F120-469C-A612-7D67A0A70D9E.
-  - Target identity remains Cavalry 2.7.1 / Qt 6.6.3 / bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1.
-  - Cleaned frozen denominator is now JSON 6292 + compiled 3190 + runtime candidates 617 / menuLeaves 730 from session BC5BF821; old 6415 / 5195 / 626 / 734 is historical evidence only.
+  - W-AUDIT / G-P / G-CAPTURE / G-X / G0 / G1 / G2 / G3 / G4 have current evidence from session 85495ECF-FE09-4BA5-8877-0DD9579B7D7A.
+  - Target identity is Cavalry 2.7.2 / Qt 6.6.3 / bundleHash 5a9860b96d398922f49e90d73819a02027c4862960b118d56619229b7810eb5d.
+  - Cleaned frozen denominator is JSON 6286 + compiled 3141 + runtime candidates 617 / menuLeaves 730 from session 85495ECF.
+  - 2.7.1 session BC5BF821 evidence is historical only.
 
 Current blockers:
   - None.
-  - The 2026-05-07 PASS run note remains renamed to runs/2026-05-07-INVALIDATED-G2-G4-fabrication-via-transliteration.md and is reverse-evidence only.
-  - The current PASS is runs/2026-05-08-ALL-GATES-PASS.md.
+  - The current PASS is runs/2026-05-14-2.7.2-reverification.md.
 ```
 
 ### 当前 worktree 真相
@@ -207,25 +207,24 @@ Current blockers:
 
 ### 已核实语言来源
 
-以下数字由 2026-05-08 在本机重新核实。它们是当前 cleaned denominator 来源地图。
+以下数字由 2026-05-14 在本机重新核实。它们是当前 cleaned denominator 来源地图。
 
 | Surface | Evidence | Count |
 | --- | --- | ---: |
-| JSON `languages/en/appStrings.json` | Cavalry 2.7.1 app bundle lower bound | 10 |
-| JSON `languages/en/nodeStrings.json` | cleaned repo English baseline | 6197 |
+| JSON `languages/en/appStrings.json` | Cavalry 2.7.2 app bundle lower bound | 10 |
+| JSON `languages/en/nodeStrings.json` | cleaned repo English baseline | 6191 |
 | JSON `languages/en/onboarding.json` | repo English baseline | 34 |
 | JSON `languages/en/tips.json` | repo English baseline | 51 |
-| JSON total | cleaned frozen denominator | 6292 |
-| compiled source map | cleaned frozen denominator from `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` | 3190 |
-| compiled excluded leaves | §F extraction filters | 2005 |
-| runtime observed candidates | session BC5BF821 merged inventories | 626 |
-| runtime denominator candidates | session BC5BF821 extraction inventory | 617 |
-| runtime menuLeaves | session BC5BF821 extraction inventory | 730 |
-| current `.ts` translation container | `tools/{zh-Hans,zh-Hant,ja_JP}.ts` in wip branch | 5979 translate leaves per language |
+| JSON total | cleaned frozen denominator | 6286 |
+| compiled source map | cleaned frozen denominator from `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` | 3141 |
+| compiled excluded leaves | §F extraction filters | 2047 |
+| excluded as dev error/not user-facing | additional §F developer-error exclusion | 3 |
+| runtime observed candidates | session 85495ECF merged inventories | 625 |
+| runtime denominator candidates | session 85495ECF extraction inventory | 617 |
+| runtime menuLeaves | session 85495ECF extraction inventory | 730 |
+| current `.ts` translation container | `tools/{zh-Hans,zh-Hant,ja_JP}.ts` in main branch | 5989 translate leaves per language |
 
-未复现值：`767 / 1580 / 407 / 34046` 这组 compiled raw 数字不由当前 `extract_compiled_ui_strings.js`、当前 source map、或简单 `strings -a -n 4` 直接产生。若要把这组数字写入 gate，必须先找到对应脚本/过滤口径/历史 artifact。
-
-规则：A9B11073 只能证明 runtime 历史下界，不可替代当前 `SESSION_DIR/runtime/*`。每轮仍必须重新 live capture、写 provenance、再冻结 `extraction-inventory.json`。当前完整分母必须同时包含 JSON 6292、compiled 3190 与 runtime live surface 617 / 730。
+规则：每轮仍必须重新 live capture、写 provenance、再冻结 `extraction-inventory.json`。当前完整分母必须同时包含 JSON 6286、compiled 3141 与 runtime live surface 617 / 730。
 
 ### Deferred Documentation Cleanup
 
@@ -305,11 +304,11 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 | Gate | Current status | Why |
 | --- | --- | --- |
 | W-AUDIT | PASS | weak threshold / preflight / libExtensionLayer red flags have code evidence |
-| G-P | PASS | session BC5BF821 runtime artifacts are session-scoped and preflight rejects root-cache / fixture / curated inputs |
-| §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10=56 / FP-11=398 / FP-12=10 |
-| G-CAPTURE | PASS | session BC5BF821 live merged capture 有 626 observed candidates / 730 menu leaves / menuDepthMax 4 / 5 submenu path samples |
-| G-X | PASS | runs/2026-05-08-ALL-GATES-PASS.md；新分母 JSON 6292 / compiled 3190 / runtime candidates 617 / menuLeaves 730 |
-| G0 | PASS | `npm run test:contracts` 88/88 and workflow contracts pass after reverify |
+| G-P | PASS | session 85495ECF runtime artifacts are session-scoped and preflight rejects root-cache / fixture / curated inputs |
+| §P5 | PASS | 当前 HEAD 0 hit；FP-13 sourceText fix verified |
+| G-CAPTURE | PASS | session 85495ECF live merged capture, 625 observed candidates / 730 menu leaves |
+| G-X | PASS | runs/2026-05-14-2.7.2-reverification.md；新分母 JSON 6286 / compiled 3141 / runtime candidates 617 / menuLeaves 730 |
+| G0 | PASS | `npm run test:contracts` passes and workflow contracts pass after reverify |
 | G1 | PASS | JSON validator exits 0 with 100% coverage and forbiddenPatterns total 0 for all three languages |
 | G2 | PASS | compiled coverage 三语 100%，0 untranslated，FP-1..12 = 0 |
 | G3 | PASS | runtime coverage 三语 100%，0 untranslated，runtime forbiddenPatterns = 0 |
@@ -317,11 +316,11 @@ pass = required_surface translated with zero forbidden patterns and valid proven
 
 ### Verified Session Data
 
-- **Session**: BC5BF821-F120-469C-A612-7D67A0A70D9E
-- **Target**: Cavalry 2.7.1, Qt 6.6.3
-- **Bundle hash**: a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1
-- **Extraction inventory**: `4a43db83a14dc0dd35cce0ccd31e2065694a9c73eb76ddf7f79d78286f933dd5`
-- **Runtime capture**: live merged, 617 denominator candidates / 626 observed candidates / 730 menu leaves, menuDepthMax 4, 5 submenu path samples
+- **Session**: 85495ECF-FE09-4BA5-8877-0DD9579B7D7A
+- **Target**: Cavalry 2.7.2, Qt 6.6.3
+- **Bundle hash**: `5a9860b96d398922f49e90d73819a02027c4862960b118d56619229b7810eb5d`
+- **Extraction inventory**: `bbbeb66e1e73a8308fadb23c3ba5c6392aaf312352957d0b55bf7c31e777878f`
+- **Runtime capture**: live merged, 617 denominator candidates / 625 observed candidates / 730 menu leaves
 
 ### Translation Resource Gap
 

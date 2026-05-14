@@ -7688,4 +7688,33 @@
       <translation>すべての異体字にアクセス</translation>
     </message>
   </context>
-</TS>
+
+    <message>
+      <source>Invalid Path JSON in Clipboard, missing the 'path' key</source>
+      <translation>クリップボード内のパス JSON が無効です。'path'キーがありません</translation>
+    </message>
+    <message>
+      <source>Invalid Path JSON in Clipboard, missing the 'path' key.</source>
+      <translation>クリップボード内のパス JSON が無効です。'path'キーがありません。</translation>
+    </message>
+    <message>
+      <source>Missing 'name' or 'tag' argument</source>
+      <translation>'name' または 'tag' 引数がありません</translation>
+    </message>
+    <message>
+      <source>Missing 'name' or 'tag' argument.</source>
+      <translation>'name' または 'tag' 引数がありません。</translation>
+    </message>
+    <message>
+      <source>Node Preset dictionary must contain an 'id' key</source>
+      <translation>ノードプリセット辞書には 'id' キーが必要です</translation>
+    </message>
+    <message>
+      <source>Toggle this mode with the 'U' key</source>
+      <translation>'U' キーでこのモードを切り替えます</translation>
+    </message>
+    <message>
+      <source>Toggle this mode with the 'U' key.</source>
+      <translation>'U' キーでこのモードを切り替えます。</translation>
+    </message>
+  </TS>
