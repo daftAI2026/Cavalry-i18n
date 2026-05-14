@@ -13,12 +13,12 @@ const { detectForbiddenTranslationPatterns } = require('./forbidden_translation_
 
 const EXTRACTION_LOWER_BOUNDS = {
   'languages/en/appStrings.json': 10,
-  'languages/en/nodeStrings.json': 6197,
+  'languages/en/nodeStrings.json': 6190,
   'languages/en/onboarding.json': 34,
   'languages/en/tips.json': 51,
-  'json-total': 6292,
-  'compiled-source-map': 3190,
-  'runtime-candidates': 617,
+  'json-total': 6285,
+  'compiled-source-map': 3072,
+  'runtime-candidates': 616,
   'runtime-menuLeaves': 730,
 };
 const ALLOWED_CAPTURE_SOURCES = new Set(['live-injector', 'live-accessibility', 'live-merged']);

@@ -199,6 +199,7 @@ function buildCoverage(inventory, allowlist, translationsOrExtraction = null, ex
     const forbiddenHits = detectForbiddenTranslationPatterns({
       language: inventory.language || '',
       value: valueToCheck,
+      sourceText: value,
     });
     for (const hit of forbiddenHits) {
       forbiddenPatternCounts[hit.id] = (forbiddenPatternCounts[hit.id] || 0) + 1;

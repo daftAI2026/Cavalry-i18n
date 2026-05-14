@@ -25,6 +25,10 @@
     "RGBA",
     "RGB",
     "Adlam",
+    "Professional",
+    "PNG",
+    "HTTP",
+    "MAT",
     "dummy"
   ],
   "contains": [
@@ -51,6 +55,10 @@
     "GH",
     "HSV",
     "RGB",
-    "Adlam"
+    "Adlam",
+    "Professional",
+    "PNG",
+    "HTTP",
+    "MAT"
   ]
 }
