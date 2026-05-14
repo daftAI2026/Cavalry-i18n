@@ -211,6 +211,16 @@ jobs:
           - 首次应用语言包时，macOS 可能要求授予 App Management 权限。
           - 建议保留一份干净的 Cavalry 安装包或备份；恢复到完全原始状态时，重新安装 Cavalry 是最稳妥的方式。
           - 当前 release 只发布 macOS Apple Silicon 版本。
+
+          ## 日本語
+
+          Cavalry Language Switcher は、Cavalry 2.7.2 向けの macOS 用言語切り替えツールです。インストール済みの Cavalry を English、簡体字中国語、繁体字中国語、日本語の間で切り替えられます。
+
+          初回適用時に macOS の App Management 権限が求められる場合があります。完全に元の状態へ戻すには、Cavalry を再インストールするのが最も安全です。
+
+          ## English
+
+          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry 2.7.2 on macOS. It is not affiliated with Scene Group, Cavalry, or Canva.
           EOF
 
       - name: Create GitHub Release
