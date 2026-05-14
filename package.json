@@ -1,7 +1,7 @@
 {
   "name": "cavalry-i18n",
   "private": true,
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "Tauri desktop language patcher for Cavalry-i18n",
   "scripts": {
     "check:ui-coverage": "node tools/check_runtime_ui_coverage.js --inventory \"$SESSION_DIR/runtime/${LANGUAGE:-zh-Hans}-merged-inventory.json\" --threshold 100 --extraction-inventory \"$SESSION_DIR/extraction-inventory.json\"",
@@ -16,6 +16,7 @@
     "check:tauri": "cd src-tauri && cargo check",
     "test:tauri": "cd src-tauri && cargo test",
     "test:tauri:packaged": "node --test tools/check_tauri_packaged_app.js",
+    "test:tauri:dmg-layout": "bash tools/check_dmg_layout.sh src-tauri/target/release/bundle/dmg",
     "test:tauri:ui": "node --test tools/check_tauri_window_regression.js",
     "test:tauri:manual-smoke": "cd src-tauri && cargo test --test manual_macos_smoke -- --ignored --nocapture",
     "prepare:qt-sdk": "node tools/resolve_cavalry_qt_sdk.js --ensure",

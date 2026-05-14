@@ -143,6 +143,7 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: |
+          unset CI
           npm run tauri:build
           bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 
@@ -153,6 +154,7 @@ jobs:
           npm run check:tauri
           npm run test:tauri
           npm run test:tauri:packaged
+          npm run test:tauri:dmg-layout
 
       - name: Upload packaged macOS artifacts
         uses: actions/upload-artifact@v4
@@ -194,11 +196,12 @@ jobs:
           - GitHub Actions 按 \`LOCAL_BUILD_SOP.md\` 构建 Tauri macOS 安装包。
           - 构建前校验项目版本元数据，防止 npm、Cargo 与 Tauri 版本漂移。
           - macOS runner 使用项目锁定的 Cavalry/Qt 目标准备 Qt SDK。
-          - 已执行非人工 SOP 验证门：\`check:app\`、\`test:contracts\`、\`check:tauri\`、\`test:tauri\`、\`test:tauri:packaged\`。
+          - 已执行非人工 SOP 验证门：\`check:app\`、\`test:contracts\`、\`check:tauri\`、\`test:tauri\`、\`test:tauri:packaged\`、\`test:tauri:dmg-layout\`。
+          - DMG 挂载后包含背景图、窗口布局、卷宗图标、Applications 链接与 app bundle。
 
           ## 说明
           - 当前只发布 macOS Apple Silicon 版本。
-          - DMG 挂载后的卷宗图标写入安装包内部；Finder 中下载文件本身的小图标受 GitHub/浏览器下载链路影响，不作为发布阻塞项。
+          - Release asset 直接发布 \`.dmg\`，不再包一层 zip。
           EOF
 
       - name: Create GitHub Release

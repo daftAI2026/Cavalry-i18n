@@ -7,10 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-## [0.1.6] - 2026-05-15
+## [0.1.7] - 2026-05-15
 
 ### Fixed
-- **DMG Volume Icon Stamping**: Reworked `tools/stamp_dmg_icon.sh` to embed `.VolumeIcon.icns` inside the mounted DMG filesystem, so the disk image volume icon survives direct GitHub `.dmg` downloads.
+- **GitHub DMG Finder Layout**: The macOS packaging step now unsets `CI` before `npm run tauri:build`, allowing Tauri/create-dmg to run Finder layout automation for DMG background, window sizing, and icon placement.
+- **DMG Layout Gate**: Added `tools/check_dmg_layout.sh` and `npm run test:tauri:dmg-layout` to mount the real DMG and verify `.DS_Store`, `.background/background.png`, `.VolumeIcon.icns`, the Applications link, and the packaged app before upload.
 - **GitHub Release Notes**: Release automation now writes a product-named title and explicit macOS Apple Silicon download notes instead of publishing only an auto-generated changelog link.
 
 ## [0.1.5] - 2026-05-15
@@ -115,7 +116,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
 
-[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.4...HEAD
+[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.7
+[0.1.5]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.4
 [0.1.2]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.0...v0.1.2
 [0.1.0]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.0

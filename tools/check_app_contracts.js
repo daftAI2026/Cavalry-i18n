@@ -569,8 +569,8 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
-    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, running tauri:build, and stamping the DMG'
+    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*unset CI[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
+    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, unsetting CI for Finder DMG layout, running tauri:build, and stamping the DMG'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -1584,6 +1584,8 @@ test('live full UI matrix orchestrator parses launcher PID and rejects missing P
 test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirrors LOCAL_BUILD_SOP gates', () => {
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
   const stampScript = fs.readFileSync(path.join(repoRoot, 'tools', 'stamp_dmg_icon.sh'), 'utf8');
+  const dmgLayoutScript = fs.readFileSync(path.join(repoRoot, 'tools', 'check_dmg_layout.sh'), 'utf8');
+  const packageJson = readJson(path.join(repoRoot, 'package.json'));
 
   assert.match(
     workflowSource,
@@ -1592,7 +1594,7 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
   );
   assert.match(
     workflowSource,
-    /npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg[\s\S]*npm run check:app[\s\S]*npm run test:contracts[\s\S]*npm run check:tauri[\s\S]*npm run test:tauri[\s\S]*npm run test:tauri:packaged/,
+    /unset CI[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg[\s\S]*npm run check:app[\s\S]*npm run test:contracts[\s\S]*npm run check:tauri[\s\S]*npm run test:tauri[\s\S]*npm run test:tauri:packaged[\s\S]*npm run test:tauri:dmg-layout/,
     'macOS packaging workflow should mirror LOCAL_BUILD_SOP, omitting only manual-smoke and GUI window regression'
   );
   assert.doesNotMatch(
@@ -1607,14 +1609,32 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
   );
   assert.doesNotMatch(
     stampScript,
-    /ditto -c -k --sequesterRsrc --keepParent|\.dmg\.zip/,
-    'DMG stamping should not create a second zip artifact; GitHub Releases should present the installer DMG directly'
+    /hdiutil convert|ditto -c -k --sequesterRsrc --keepParent|\.dmg\.zip/,
+    'DMG stamping should not replace the SOP script with a second image build or zip artifact'
   );
   assert.match(
     stampScript,
-    /hdiutil convert "\$dmg" -format UDRW[\s\S]*hdiutil attach "\$rw_dmg"[\s\S]*\.VolumeIcon\.icns[\s\S]*SetFile -a C "\$mount_point"[\s\S]*hdiutil convert "\$rw_dmg" -format UDZO/,
-    'DMG stamping should embed the volume icon inside the DMG filesystem so the mounted disk image survives direct GitHub downloads'
+    /Rez -append "\$TMPRSRC" -o "\$dmg"[\s\S]*SetFile -a C "\$dmg"/,
+    'DMG stamping should stay scoped to the existing Rez/SetFile SOP script'
   );
+  assert.equal(
+    packageJson.scripts['test:tauri:dmg-layout'],
+    'bash tools/check_dmg_layout.sh src-tauri/target/release/bundle/dmg',
+    'package scripts should expose the DMG layout gate used by GitHub packaging'
+  );
+  [
+    /\.DS_Store/,
+    /\.background\/background\.png/,
+    /\.VolumeIcon\.icns/,
+    /Applications/,
+    /Cavalry Language Switcher\.app/,
+  ].forEach((pattern) => {
+    assert.match(
+      dmgLayoutScript,
+      pattern,
+      'DMG layout gate should mount the real image and verify Finder layout resources instead of trusting config alone'
+    );
+  });
   assert.match(
     workflowSource,
     /body_path:\s*release-notes\.md[\s\S]*files:\s*\|\s*\n\s+dist\/\*\*\/\*\.dmg/,
