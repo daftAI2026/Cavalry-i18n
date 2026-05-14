@@ -577,6 +577,16 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     /\.dmg\.zip/,
     'macOS packaging should expose the direct DMG release shape instead of wrapping the installer in a zip'
   );
+  assert.match(
+    workflowSource,
+    /Write GitHub Release notes[\s\S]*下载地址[\s\S]*Apple M[\s\S]*LOCAL_BUILD_SOP\.md/,
+    'tag releases should render a clear human release body instead of relying on a bare generated changelog link'
+  );
+  assert.match(
+    workflowSource,
+    /name:\s*Cavalry Language Switcher \$\{\{ github\.ref_name \}\}[\s\S]*body_path:\s*release-notes\.md/,
+    'tag releases should use the product name as the Release title while keeping the git tag machine-readable'
+  );
   assert.doesNotMatch(
     workflowSource,
     /rm -rf src-tauri\/target\/release\/bundle/,
@@ -1601,8 +1611,13 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
     'DMG stamping should not create a second zip artifact; GitHub Releases should present the installer DMG directly'
   );
   assert.match(
+    stampScript,
+    /hdiutil convert "\$dmg" -format UDRW[\s\S]*hdiutil attach "\$rw_dmg"[\s\S]*\.VolumeIcon\.icns[\s\S]*SetFile -a C "\$mount_point"[\s\S]*hdiutil convert "\$rw_dmg" -format UDZO/,
+    'DMG stamping should embed the volume icon inside the DMG filesystem so the mounted disk image survives direct GitHub downloads'
+  );
+  assert.match(
     workflowSource,
-    /files:\s*\|\s*\n\s+dist\/\*\*\/\*\.dmg\n\s+generate_release_notes:/,
+    /body_path:\s*release-notes\.md[\s\S]*files:\s*\|\s*\n\s+dist\/\*\*\/\*\.dmg/,
     'tag releases should publish the direct DMG asset in the same shape users expect from GitHub app releases'
   );
 });

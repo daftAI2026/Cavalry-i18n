@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-05-15
+
+### Fixed
+- **DMG Volume Icon Stamping**: Reworked `tools/stamp_dmg_icon.sh` to embed `.VolumeIcon.icns` inside the mounted DMG filesystem, so the disk image volume icon survives direct GitHub `.dmg` downloads.
+- **GitHub Release Notes**: Release automation now writes a product-named title and explicit macOS Apple Silicon download notes instead of publishing only an auto-generated changelog link.
+
 ## [0.1.5] - 2026-05-15
 
 ### Changed

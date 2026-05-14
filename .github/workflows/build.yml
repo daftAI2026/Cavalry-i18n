@@ -181,9 +181,30 @@ jobs:
           name: cavalry-patcher-macos
           path: dist
 
+      - name: Write GitHub Release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          cat > release-notes.md <<EOF
+          ## 下载地址
+
+          ### macOS
+          - Apple M 芯片：下载下方 \`Cavalry.Language.Switcher_${version}_aarch64.dmg\`
+
+          ## 本次发布
+          - GitHub Actions 按 \`LOCAL_BUILD_SOP.md\` 构建 Tauri macOS 安装包。
+          - 构建前校验项目版本元数据，防止 npm、Cargo 与 Tauri 版本漂移。
+          - macOS runner 使用项目锁定的 Cavalry/Qt 目标准备 Qt SDK。
+          - 已执行非人工 SOP 验证门：\`check:app\`、\`test:contracts\`、\`check:tauri\`、\`test:tauri\`、\`test:tauri:packaged\`。
+
+          ## 说明
+          - 当前只发布 macOS Apple Silicon 版本。
+          - DMG 挂载后的卷宗图标写入安装包内部；Finder 中下载文件本身的小图标受 GitHub/浏览器下载链路影响，不作为发布阻塞项。
+          EOF
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          name: Cavalry Language Switcher ${{ github.ref_name }}
+          body_path: release-notes.md
           files: |
             dist/**/*.dmg
-          generate_release_notes: true
