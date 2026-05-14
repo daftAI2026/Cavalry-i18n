@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 SESSION_DIR runtime/extraction artifacts、compiled source-map、package scripts 与当前 Cavalry 2.7.1 G-X 清洗后下界
+ * [INPUT]: 依赖 SESSION_DIR runtime/extraction artifacts、compiled source-map、package scripts 与当前 Cavalry 2.7.2 G-X 清洗后下界
  * [OUTPUT]: 对外提供 full-ui gate 输入验证，拒绝旧分母、root-cache runtime、弱 lower bound 与伪翻译输入
  * [POS]: tools 的 G-P/G-X 前置守门器，被 package.json check:full-ui 在 matrix 前调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

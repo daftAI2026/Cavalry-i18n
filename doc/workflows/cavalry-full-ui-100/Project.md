@@ -216,15 +216,14 @@ Current blockers:
 | JSON `languages/en/onboarding.json` | repo English baseline | 34 |
 | JSON `languages/en/tips.json` | repo English baseline | 51 |
 | JSON total | cleaned frozen denominator | 6286 |
-| compiled source map | cleaned frozen denominator from `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` | 3141 |
-| compiled excluded leaves | §F extraction filters | 2047 |
-| excluded as dev error/not user-facing | additional §F developer-error exclusion | 3 |
-| runtime observed candidates | session 85495ECF merged inventories | 625 |
-| runtime denominator candidates | session 85495ECF extraction inventory | 617 |
-| runtime menuLeaves | session 85495ECF extraction inventory | 730 |
+| compiled source map | cleaned frozen denominator from `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` | 3136 |
+| compiled excluded leaves | §F extraction filters | 2052 |
+| runtime observed candidates | session DD7733E9 merged inventories | 625 |
+| runtime denominator candidates | session DD7733E9 extraction inventory | 616 |
+| runtime menuLeaves | session DD7733E9 extraction inventory | 730 |
 | current `.ts` translation container | `tools/{zh-Hans,zh-Hant,ja_JP}.ts` in main branch | 5989 translate leaves per language |
 
-规则：每轮仍必须重新 live capture、写 provenance、再冻结 `extraction-inventory.json`。当前完整分母必须同时包含 JSON 6286、compiled 3141 与 runtime live surface 617 / 730。
+规则：每轮仍必须重新 live capture、写 provenance、再冻结 `extraction-inventory.json`。当前完整分母必须同时包含 JSON 6286、compiled 3136 与 runtime live surface 616 / 730。
 
 ### Deferred Documentation Cleanup
 

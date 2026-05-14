@@ -103,7 +103,7 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 | G-CAPTURE | PASS | session DD7733E9 live merged capture 616 denominator candidates / 625 observed candidates / 730 menuLeaves |
 | G-X | PASS | runs/2026-05-14-2.7.2-reverification.md；新分母 JSON 6286 / compiled 3136 / runtime 616 / menuLeaves 730 |
 | G0 / G1 | PASS | `npm run test:contracts` 88/88、JSON validator 100% / forbiddenPatterns 0 |
-| G2a 分母清洗 | PASS | 旧分母已废弃，新 truth source 为 session BC5BF821 的 extraction hash 4a43db83a14d |
+| G2a 分母清洗 | PASS | 旧分母已废弃，新 truth source 为 session DD7733E9 的 extraction hash c1326cf3 |
 | G2b 编译 UI | PASS | cleaned denominator 上三语 compiled 100%，0 untranslated，FP-1..12 = 0 |
 | G3 运行时 UI | PASS | cleaned denominator 上三语 runtime 100%，runtime forbiddenPatterns = 0 |
 | G4 矩阵 | PASS | `SESSION_DIR=... npm run check:full-ui` overallPass=true / blockedReason=null |
