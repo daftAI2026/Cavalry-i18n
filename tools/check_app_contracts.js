@@ -569,8 +569,13 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*rm -rf src-tauri\/target\/release\/bundle[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
-    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, clearing stale bundle output, running tauri:build, and stamping the DMG'
+    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
+    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, running tauri:build, and stamping the DMG'
+  );
+  assert.doesNotMatch(
+    workflowSource,
+    /rm -rf src-tauri\/target\/release\/bundle/,
+    'GitHub packaging starts from a clean checkout and should not need local stale-bundle cleanup'
   );
   assert.match(
     resolver,

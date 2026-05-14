@@ -143,7 +143,6 @@ jobs:
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: |
-          rm -rf src-tauri/target/release/bundle
           npm run tauri:build
           bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 
