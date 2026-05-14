@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **GitHub DMG Icon Preservation**: `tools/stamp_dmg_icon.sh` now creates a `*.dmg.zip` with `ditto --sequesterRsrc --keepParent`, and GitHub artifacts/Releases publish it so Finder icon resource forks survive download transport.
+
 ## [0.1.4] - 2026-05-14
 
 ### Added

@@ -31,19 +31,19 @@ npm run tauri:build
 - main window 外框固定 `480x528`，最小 `420x528`，对应 `480x500` 内容区。
 - `bundle.resources` 打包 `../languages` 与 `../injector/libCavalryTranslatorInjector.dylib`。
 
-## 3. DMG 增强修饰 (卷宗图标盖章)
+## 3. DMG 增强修饰 (Finder 文件图标盖章)
 
 Tauri 原生 DMG 配置（`tauri.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸与图标坐标，无需手动干预。
 
 `src-tauri/icons/icon.png` 是 Tauri 图标源图 contract，必须保持 `1024x1024`、8-bit、RGBA；`32x32.png`、`128x128.png`、`icon.icns`、`icon.ico`、`ios/*` 与 `android/*` 是由 `npx tauri icon` 从源图生成的派生图标。若验证发现尺寸不一致，应恢复 `icon.png` 源图，不得把 `tools/check_tauri_build_sop.js` 改成迁就派生尺寸。
 
-盖章脚本仅补充 Tauri 不支持的 **卷宗磁盘图标嵌入**（Finder 中 DMG 文件自身的图标）：
+盖章脚本仅补充 Tauri 不支持的 **Finder 文件图标嵌入**（Finder 中 DMG 文件自身的图标）：
 
 ```bash
 bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 ```
 
-该脚本将 `src-tauri/icons/icon.icns` 通过 Rez/SetFile 嵌入 DMG 文件的资源分叉，使 DMG 在 Finder 中显示自定义图标。
+该脚本将 `src-tauri/icons/icon.icns` 通过 Rez/SetFile 嵌入 DMG 文件的资源分叉，使 DMG 在 Finder 中显示自定义图标。裸 `.dmg` 经 GitHub artifact 或 Release 下载时通常只保留 data fork，因此脚本同时产出 `*.dmg.zip`；该 zip 使用 `ditto --sequesterRsrc --keepParent` 创建，是保留 Finder 图标盖章的发布载体。
 
 ## 4. 产物验证
 
@@ -61,6 +61,7 @@ npm run test:tauri:manual-smoke
 
 - `.app` 位于 `src-tauri/target/release/bundle/macos/`。
 - DMG 位于 `src-tauri/target/release/bundle/dmg/`。
+- 保留 Finder 图标资源分叉的发布 zip 位于 `src-tauri/target/release/bundle/dmg/*.dmg.zip`。
 - `.app/Contents/Resources/` 内包含 `languages` 与 `libCavalryTranslatorInjector.dylib`。
 - 主窗口截图、字体加载状态、核心控件 bounding box、按钮顺序与状态文本必须满足冻结的 Tauri window contract。
 

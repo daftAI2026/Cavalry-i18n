@@ -572,6 +572,11 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
     'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, running tauri:build, and stamping the DMG'
   );
+  assert.match(
+    workflowSource,
+    /src-tauri\/target\/release\/bundle\/dmg\/\*\.dmg\.zip/,
+    'macOS packaging should upload a ditto-built DMG zip so Finder icon resource forks survive GitHub artifact transport'
+  );
   assert.doesNotMatch(
     workflowSource,
     /rm -rf src-tauri\/target\/release\/bundle/,
@@ -1568,6 +1573,7 @@ test('live full UI matrix orchestrator parses launcher PID and rejects missing P
 
 test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirrors LOCAL_BUILD_SOP gates', () => {
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
+  const stampScript = fs.readFileSync(path.join(repoRoot, 'tools', 'stamp_dmg_icon.sh'), 'utf8');
 
   assert.match(
     workflowSource,
@@ -1588,6 +1594,16 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
     workflowSource,
     /run: npm run build$|doc\/compiled-ui-source-map\.json|doc\/translation-whitelist\.json/,
     'workflow should not keep the legacy build command or doc-scoped gate artifacts'
+  );
+  assert.match(
+    stampScript,
+    /ditto -c -k --sequesterRsrc --keepParent "\$dmg" "\$dmg\.zip"/,
+    'DMG stamping should produce a distributable zip that preserves resource forks across GitHub downloads'
+  );
+  assert.match(
+    workflowSource,
+    /dist\/\*\*\/\*\.dmg\.zip/,
+    'tag releases should publish the resource-preserving DMG zip, not only the naked DMG data fork'
   );
 });
 

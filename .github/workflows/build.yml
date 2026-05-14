@@ -160,6 +160,7 @@ jobs:
           name: cavalry-patcher-macos
           path: |
             src-tauri/target/release/bundle/dmg/*.dmg
+            src-tauri/target/release/bundle/dmg/*.dmg.zip
             src-tauri/target/release/bundle/macos/Cavalry Language Switcher.app
             src-tauri/target/release/bundle/cavalry-i18n-tauri-size-report.json
             injector/libCavalryTranslatorInjector.dylib
@@ -186,4 +187,5 @@ jobs:
         with:
           files: |
             dist/**/*.dmg
+            dist/**/*.dmg.zip
           generate_release_notes: true
