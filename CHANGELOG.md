@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-05-14
+
+### Added
+- **Project Version Synchronizer**: Added `tools/sync_project_version.js` to use the latest formal `CHANGELOG.md` release as the single source of truth and propagate it to `package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`, and `src-tauri/Cargo.lock`.
+- **Git Version Hook**: Added `tools/git-hooks/pre-commit` and npm hook installation commands so local commits automatically restage synchronized npm, Cargo, and Tauri version metadata.
+- **GitHub Manual Packaging**: Added `workflow_dispatch` to the GitHub Actions Tauri workflow so macOS packaging can be started manually from GitHub.
+
+### Changed
+- **CI Version Gate**: Added `npm run check:version` to both the Linux validation job and macOS packaging job, preventing drifted version metadata from entering CI artifacts or GitHub Releases.
+- **GEB Documentation Sync**: Updated `tools/CLAUDE.md`, `tools/git-hooks/CLAUDE.md`, and `.github/workflows/CLAUDE.md` so the document map mirrors the new version and packaging automation.
+
+## [0.1.3] - 2026-05-14
+
 ### Fixed
 - **Translation Quality (zh-Hans/zh-Hant/ja_JP)**: Batch terminology and quality corrections across 3 languages.
   - Reverted `pivot` translation back to `锚点`/`錨點` per glossary (was incorrectly changed to `轴心`/`軸心`).
@@ -90,5 +103,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
 
+[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.4
 [0.1.2]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.0...v0.1.2
 [0.1.0]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.0
