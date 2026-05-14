@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 runtime merged inventory、translation allowlist、extraction inventory 与 forbidden-pattern detector
+ * [OUTPUT]: 对外提供 runtime UI 覆盖率计算、噪声剔除、英文残留报告与可复用 coverage helper
+ * [POS]: tools 的 runtime denominator 守门器，被单语言 full-ui gate 复用
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');

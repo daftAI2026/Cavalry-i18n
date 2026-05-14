@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 live injector dump、live AX inventory 与目标 session provenance
+ * [OUTPUT]: 对外提供 live-merged runtime inventory，拒绝弱来源并保留合并 provenance
+ * [POS]: tools 的 runtime inventory 合并器，位于 G-CAPTURE 抓取与 G-X freeze 之间
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');

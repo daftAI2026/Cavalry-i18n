@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 tools/zh-Hans.ts、tools/zh-Hant.ts、tools/ja_JP.ts 的 Qt TS 翻译目录
+ * [OUTPUT]: 对外生成 injector/generated_translations.inc 编译期 C++ 翻译表
+ * [POS]: tools 的 TS-to-C++ 投影器，连接翻译资产与 Objective-C++ injector
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');

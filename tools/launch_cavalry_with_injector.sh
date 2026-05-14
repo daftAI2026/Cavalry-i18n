@@ -1,4 +1,8 @@
 #!/bin/bash
+# [INPUT]: 依赖 Cavalry.app、injector dylib、session dir、codesign 与 DYLD_INSERT_LIBRARIES
+# [OUTPUT]: 对外提供 live Cavalry 启动器，写 runtime/audit artifacts 并支持 dump-only 抓取
+# [POS]: tools 的手动 runtime 调试入口，连接 injector 构建、重签与 G-CAPTURE 现场验证
+# [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
 
 usage() {

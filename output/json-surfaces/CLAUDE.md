@@ -4,7 +4,9 @@
 成员清单
 asset-map.json: 38 个 Cavalry JSON asset 到语言包路径的映射表，标记当前覆盖与缺口。
 translation-report.json: 38 个 JSON 的字符串叶子、自动预填数量与未翻译英文残留统计。
+translation-gap-report.md: JSON surface 翻译缺口报告，记录 draft 与上线语言包之间的剩余差异。
 compiled-ts-parity-report.md: compiled/runtime `.ts` 三语 message/context 数量差异与日文 QPrintDialog context 错位报告。
+ts-parity-fix-report.md: compiled/runtime `.ts` parity 修复结果报告，记录上下文错位与数量对齐后的证据。
 translation-plan.md: JSON surface 翻译流水线，定义先翻译后接入 patch 的顺序。
 translation-handoff-prompt.md: 给下一位翻译执行者的完整接手话术。
 en/: 38 个 JSON 的英文基线，来自当前 Cavalry.app 与已有 languages/en。

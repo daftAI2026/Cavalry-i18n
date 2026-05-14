@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 Cavalry.app bundle、macOS strings 工具、framework 二进制与 Qt TS source 规则
+ * [OUTPUT]: 对外提供 compiled UI source-map JSON，作为 full-ui compiled denominator 输入
+ * [POS]: tools 的 compiled surface 抽取器，位于目标 Cavalry bundle 与 G-X freeze 之间
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');

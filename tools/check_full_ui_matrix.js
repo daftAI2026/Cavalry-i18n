@@ -1,4 +1,10 @@
 #!/usr/bin/env node
+/**
+ * [INPUT]: 依赖 check_full_ui_coverage.js、session-dir、compiled source-map、extraction inventory 与三语 runtime inventory
+ * [OUTPUT]: 对外提供三语 full-ui matrix gate 与 stable runlog
+ * [POS]: tools 的 G0-G4 汇总守门器，被 npm run check:full-ui 作为最终覆盖率判定入口
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 
 const fs = require('node:fs');
 const path = require('node:path');

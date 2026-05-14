@@ -4,7 +4,7 @@
 [INPUT]: Cavalry compiled/runtime 英語ソース、doc/translation-guidelines.md、doc/cavalry-glossary*.md、tools/translation-whitelist.json に依存
 [OUTPUT]: ja_JP Qt TS 翻訳カタログを提供し、generate_embedded_translations.js によって injector テーブルにコンパイルされる
 [POS]: tools コンパイル時 UI 翻訳ソース。zh-Hans.ts / zh-Hant.ts と共に compiled/runtime メニューテキストを上書きする
-[PROTOCOL]: 変更時にこのヘッダーを更新し、CLAUDE.md を確認すること
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 <TS version="2.1" language="ja_JP">
   <context>

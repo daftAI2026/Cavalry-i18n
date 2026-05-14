@@ -1,4 +1,8 @@
 #!/usr/bin/env bash
+# [INPUT]: 依赖 Qt SDK、Cavalry.app Frameworks、injector/CavalryTranslatorInjector.mm 与 generated_translations.inc
+# [OUTPUT]: 对外构建 libCavalryTranslatorInjector.dylib universal 动态库
+# [POS]: tools 的 injector 构建入口，连接 Qt ABI 校验与 Tauri bundle resource
+# [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
 
 if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then

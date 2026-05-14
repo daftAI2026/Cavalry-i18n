@@ -3,6 +3,7 @@
 
 成员清单
 Cargo.toml: Rust crate 与 Tauri v2 依赖声明，`tauri` 与 npm Tauri 包保持 2.10 minor，`tauri-build` exact pin 到其真实发布线。
+Cargo.lock: Rust 依赖锁定文件，冻结 Tauri、serde、plist、chrono 等后端依赖版本。
 build.rs: Tauri build script 入口，读取 `tauri.conf.json` 并生成 runtime context。
 tauri.conf.json: Tauri app 配置，指向原 renderer、启用 `withGlobalTauri`、固定窗口尺寸与 bundle resources。
 capabilities/: Tauri v2 capability 配置，限定 main window 的 core 权限。

@@ -10,7 +10,7 @@ runtime-ui-event-filter-performance-fix.md: Runtime UI event filter 卡死问题
 runtime-ui-injection-coverage-plan.md: Runtime UI 注入覆盖修复方案，记录菜单/UI 英文残留根因、aboutToShow hook / event filter / widget surface 扩展。
 cavalry-2.7.2-target-refresh-plan.md: Cavalry 2.7.2 目标刷新与增量补译执行计划，记录 denominator drift、重新冻结分母、只补增量与最终全量 gate 路径。
 translation-guidelines.md: 翻译规范，约束语言风格、保留词与界面一致性。
-workflows/: 文档化工作流，承载构建、验证、发布的操作路径。
+workflows/: 文档化工作流，当前 `cavalry-full-ui-100/` 为 full-ui gate 主线，`cavalry-i18n/` 为早期历史路线。
 archive/: 归档计划与历史方案，保留已完成或废弃决策的证据链（含骑兵 Script UI 方案 plan-v3、Electron 精简改造 refactor-plan、Kumo UI 迁移草案、Scripting API 知识库）。
 
 依赖边界:
