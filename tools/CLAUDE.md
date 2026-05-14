@@ -9,6 +9,7 @@ check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后检查 renderer、languages、injector 与 bundle size report。
 window_contract_lib.js: 窗口回归公共库，封装 macOS 窗口探测、内容区截图与像素 diff。
 check_tauri_window_regression.js: packaged Tauri 主窗口回归测试，验证冻结窗口尺寸与内容截图尺寸。
+sync_project_version.js: 项目版本同步器，以 CHANGELOG 最新正式版本为真相源，级联同步 package、package-lock、Cargo、Tauri 配置与 Cargo.lock。
 check_runtime_ui_coverage.js: runtime UI 覆盖率守门脚本，读取真实菜单 inventory 并按阈值阻塞未翻译文本。
 check_full_ui_coverage.js: 单语言全 UI 覆盖检查，组合 runtime、compiled、JSON-backed 校验。
 check_full_ui_matrix.js: 多语言矩阵覆盖检查，写出稳定 runlog 便于连续追踪。
@@ -33,10 +34,14 @@ zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
 runtime_ui_allowlist.json: runtime UI 覆盖率允许保留英文的显式清单。
 fixtures/: 测试 fixture 工厂，生成 fake Cavalry.app 而不提交真实应用包。
+git-hooks/: Git Hook 模块目录，承载提交前版本同步闸门（详见 git-hooks/CLAUDE.md）。
 
 依赖边界:
 tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修改真实应用；会产生副作用的脚本必须由 npm script 或手动命令显式触发。
 
 法则: 守门清晰·runlog 稳定·真实副作用显式
+
+变更日志
+2026-05-14: 新增 `sync_project_version.js` 与 `git-hooks/pre-commit`，将版本真相源收敛为 CHANGELOG 最新正式版本，并同步 npm、Cargo 与 Tauri 元数据。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

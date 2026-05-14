@@ -1,0 +1,11 @@
+#!/bin/sh
+# [INPUT]: 依赖 node 运行时与 tools/sync_project_version.js
+# [OUTPUT]: 提交前同步项目版本元数据并回填相关文件到暂存区
+# [POS]: tools/git-hooks 的 pre-commit 版本闸门，阻止 npm/Cargo/Tauri 版本漂移进入历史
+# [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+set -e
+
+node tools/sync_project_version.js
+
+git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/tauri.conf.json src-tauri/Cargo.lock

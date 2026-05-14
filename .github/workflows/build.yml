@@ -1,6 +1,7 @@
 name: Build Tauri App
 
 on:
+  workflow_dispatch:
   push:
     branches: [main]
     tags: ['v*']
@@ -23,6 +24,9 @@ jobs:
 
       - name: Install app dependencies
         run: npm install
+
+      - name: Validate project version metadata
+        run: npm run check:version
 
       - name: Validate app contracts
         run: npm run test:contracts
@@ -121,6 +125,9 @@ jobs:
 
       - name: Install app dependencies
         run: npm install
+
+      - name: Validate project version metadata
+        run: npm run check:version
 
       - name: Prepare target Qt SDK for injector build
         run: npm run prepare:qt-sdk
