@@ -1609,13 +1609,18 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
   );
   assert.doesNotMatch(
     stampScript,
-    /hdiutil convert|ditto -c -k --sequesterRsrc --keepParent|\.dmg\.zip/,
-    'DMG stamping should not replace the SOP script with a second image build or zip artifact'
+    /ditto -c -k --sequesterRsrc --keepParent|\.dmg\.zip/,
+    'DMG stamping should keep the release as a direct DMG without creating a zip artifact'
+  );
+  assert.match(
+    stampScript,
+    /hdiutil convert "\$dmg" -format UDRW[\s\S]*hdiutil attach "\$rw_dmg"[\s\S]*cp "\$ICNS" "\$mount_point\/\.VolumeIcon\.icns"[\s\S]*SetFile -a C "\$mount_point"[\s\S]*hdiutil convert "\$rw_dmg" -format UDZO/,
+    'DMG stamping should embed the project icon inside the mounted DMG volume before uploading the direct DMG'
   );
   assert.match(
     stampScript,
     /Rez -append "\$TMPRSRC" -o "\$dmg"[\s\S]*SetFile -a C "\$dmg"/,
-    'DMG stamping should stay scoped to the existing Rez/SetFile SOP script'
+    'DMG stamping should still best-effort stamp the local Finder file icon after the volume icon is embedded'
   );
   assert.equal(
     packageJson.scripts['test:tauri:dmg-layout'],
@@ -1628,6 +1633,8 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
     /\.VolumeIcon\.icns/,
     /Applications/,
     /Cavalry Language Switcher\.app/,
+    /GetFileInfo "\$current_mount"/,
+    /attributes: \.\*C/,
   ].forEach((pattern) => {
     assert.match(
       dmgLayoutScript,

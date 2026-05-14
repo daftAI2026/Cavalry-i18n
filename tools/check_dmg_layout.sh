@@ -37,6 +37,10 @@ for dmg in "$DIST_DIR"/*.dmg; do
   test -f "$current_mount/.VolumeIcon.icns"
   test -L "$current_mount/Applications"
   test -d "$current_mount/$APP_NAME"
+  if ! GetFileInfo "$current_mount" | grep -q "attributes: .*C"; then
+    echo "DMG volume custom icon bit is missing: $dmg" >&2
+    exit 1
+  fi
 
   hdiutil detach "$current_mount" -quiet
   current_mount=""

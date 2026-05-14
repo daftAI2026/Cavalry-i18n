@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.8] - 2026-05-15
+
+### Fixed
+- **DMG Volume Icon Persistence**: `tools/stamp_dmg_icon.sh` now writes `src-tauri/icons/icon.icns` into the DMG filesystem as `.VolumeIcon.icns`, sets the mounted volume custom-icon bit, and recompresses the direct `.dmg` so GitHub Release downloads preserve the mounted volume icon without zip wrapping.
+- **DMG Layout Gate**: `tools/check_dmg_layout.sh` now verifies the mounted volume custom-icon bit in addition to `.DS_Store`, background image, Applications link, and the app bundle.
+
 ## [0.1.7] - 2026-05-15
 
 ### Fixed
@@ -116,7 +122,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
 
-[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.7...HEAD
+[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.8...HEAD
+[0.1.8]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.8
 [0.1.7]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.7
 [0.1.5]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.4...v0.1.5
 [0.1.4]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.4
