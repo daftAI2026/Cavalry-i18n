@@ -140,16 +140,22 @@ function validateCavalryProbe(target, probe) {
 }
 
 function ensureAqt() {
-  const check = run(pythonCommand, ['-m', 'aqt', '--version']);
+  const check = run(pythonCommand, ['-c', 'import aqt']);
   if (check.ok) {
     return;
   }
 
-  const install = run(pythonCommand, ['-m', 'pip', 'install', '--user', 'aqtinstall'], {
+  const installArgs = ['-m', 'pip', 'install'];
+  if (!process.env.PYTHON && !process.env.VIRTUAL_ENV) {
+    installArgs.push('--user');
+  }
+  installArgs.push('aqtinstall');
+
+  const install = run(pythonCommand, installArgs, {
     stdio: 'inherit',
   });
   if (!install.ok) {
-    fail(`aqtinstall is required to download Qt. Install it with: ${pythonCommand} -m pip install --user aqtinstall`);
+    fail(`aqtinstall is required to download Qt. Install it with: ${pythonCommand} ${installArgs.join(' ')}`);
   }
 }
 

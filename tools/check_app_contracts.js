@@ -559,7 +559,7 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     resolver,
-    /process\.env\.PYTHON[\s\S]*python3/,
+    /process\.env\.PYTHON[\s\S]*python3[\s\S]*import aqt[\s\S]*VIRTUAL_ENV/,
     'resolver should allow CI to provide an isolated Python interpreter instead of mutating the managed system Python'
   );
   assert.match(
