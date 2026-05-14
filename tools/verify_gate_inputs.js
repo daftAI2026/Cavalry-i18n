@@ -17,8 +17,8 @@ const EXTRACTION_LOWER_BOUNDS = {
   'languages/en/onboarding.json': 34,
   'languages/en/tips.json': 51,
   'json-total': 6286,
-  'compiled-source-map': 3141,
-  'runtime-candidates': 617,
+  'compiled-source-map': 3136,
+  'runtime-candidates': 616,
   'runtime-menuLeaves': 730,
 };
 const ALLOWED_CAPTURE_SOURCES = new Set(['live-injector', 'live-accessibility', 'live-merged']);

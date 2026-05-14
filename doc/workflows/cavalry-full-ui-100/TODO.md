@@ -100,8 +100,8 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 |---|---|---|
 | W-AUDIT | PASS | 弱阈值 / preflight / libExtensionLayer 红灯已收紧 |
 | G-P / §P5 | PASS | runs/2026-05-07-G-P-FP-10-11-12-detector-uplift.md；当前 HEAD 0 hit，transliteration quarantine FP-10/11/12 必命中 |
-| G-CAPTURE | PASS | session BC5BF821 live merged capture 617 denominator candidates / 626 observed candidates / 730 menuLeaves / menuDepthMax 4 / 5 submenu samples |
-| G-X | PASS | runs/2026-05-08-ALL-GATES-PASS.md；新分母 JSON 6292 / compiled 3190 / runtime 617 / menuLeaves 730 |
+| G-CAPTURE | PASS | session DD7733E9 live merged capture 616 denominator candidates / 625 observed candidates / 730 menuLeaves |
+| G-X | PASS | runs/2026-05-14-2.7.2-reverification.md；新分母 JSON 6286 / compiled 3136 / runtime 616 / menuLeaves 730 |
 | G0 / G1 | PASS | `npm run test:contracts` 88/88、JSON validator 100% / forbiddenPatterns 0 |
 | G2a 分母清洗 | PASS | 旧分母已废弃，新 truth source 为 session BC5BF821 的 extraction hash 4a43db83a14d |
 | G2b 编译 UI | PASS | cleaned denominator 上三语 compiled 100%，0 untranslated，FP-1..12 = 0 |
@@ -119,7 +119,7 @@ G-X (`tools/freeze_extraction_inventory.js`) 必须在冻结分母前剔除：
 ---
 ## Current Implementation Truth
 
-Based on 2026-05-08 session verification (BC5BF821-F120-469C-A612-7D67A0A70D9E):
+Based on 2026-05-14 session verification (DD7733E9-C414-4760-83A3-BC8EC8DEF8D3):
 
 ### ✓ COMPLETED Implementation Items
 
@@ -128,7 +128,7 @@ Based on 2026-05-08 session verification (BC5BF821-F120-469C-A612-7D67A0A70D9E):
 - [x] extraction inventory freeze with JSON/compiled/runtime unified denominator (6292+3190+617 frozen)
 - [x] live English AX capture exports complete runtime and widget text inventory
 - [x] runtime provenance fields recorded in merged inventories
-- [x] target version binding: Cavalry 2.7.1, Qt 6.6.3, bundle hash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1
+- [x] target version binding: Cavalry 2.7.2, Qt 6.6.3, bundle hash 5a9860b96d398922f49e90d73819a02027c4862960b118d56619229b7810eb5d
 - [x] AX menu recursive capture with menuDepthMax >= 2 and 5 submenu path samples recorded
 - [x] runtime detector covers FP-1/FP-2/FP-3 forbidden patterns
 - [x] JSON validator uses 1.00 threshold with frozen denominator
@@ -204,7 +204,7 @@ SOURCE_MAP  = ~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json
 
 **PASS**: Live runtime denominator established via AX-only fallback (2026-05-05 05:12 UTC).
 
-Session: `BC5BF821-F120-469C-A612-7D67A0A70D9E`
+Session: `DD7733E9-C414-4760-83A3-BC8EC8DEF8D3`
 
 Technical status:
 - [x] App code signing: flags=0x2(adhoc), hardened runtime present (normal, does not block AX)
@@ -226,11 +226,11 @@ Next step: none for current target identity; target drift restarts capture/freez
 
 ### W-X
 
-- [x] 产出 `SESSION_DIR/extraction-inventory.json`（session BC5BF821，frozen 2026-05-08）
-- [x] `extraction-inventory.json` 顶层补齐 `target` 对象（session BC5BF821）
+- [x] 产出 `SESSION_DIR/extraction-inventory.json`（session DD7733E9，frozen 2026-05-14）
+- [x] `extraction-inventory.json` 顶层补齐 `target` 对象（session DD7733E9）
 - [x] version drift 后重新抽取 compiled source-map、runtime capture 与 extraction inventory，不复用旧分母
 - [x] 固定 cleaned JSON lower bounds：10 / 6197 / 34 / 51 / total 6292
-- [x] 固定 cleaned compiled source-map denominator：entries = 3190
+- [x] 固定 cleaned compiled source-map denominator：entries = 3136
 - [x] `tools/verify_gate_inputs.js` 已使用 cleaned denominator floors
 - [x] 固定 cleaned runtime lower bounds：candidates 617、menuLeaves 730
 - [x] G1/G2/G3/G4 统一读取 frozen denominator

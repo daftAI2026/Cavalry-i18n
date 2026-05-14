@@ -130,7 +130,7 @@ Current blockers:
 - session `21B1048E-963E-43B1-975B-0C506902E0EB` 只有 codesign evidence，没有 `runtime/en-injector-inventory.json`。
 - `audit/en-injector-launch.log` 为空，未看到 injector bootstrap。
 - 没有 amfid / kernel 拒绝证据；不得写 `BLOCKED-SIP`，不得建议 `csrutil disable`。
-- 这些记录说明弱 capture 不能冻结分母；当前可引用的 capture/freeze/matrix 证据以 session `BC5BF821-F120-469C-A612-7D67A0A70D9E` 为准。
+- 这些记录说明弱 capture 不能冻结分母；当前可引用的 capture/freeze/matrix 证据以 session `DD7733E9-C414-4760-83A3-BC8EC8DEF8D3` 为准。
 
 详见：
 - `runs/2026-04-30-G-CAPTURE-DYLIB-INJECTION-INVESTIGATION.md`

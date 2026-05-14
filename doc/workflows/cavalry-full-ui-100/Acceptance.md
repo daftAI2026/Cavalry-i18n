@@ -127,9 +127,9 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 
 ### 当前状态
 
-**✓ PASS — G-CAPTURE** (2026-05-05 05:12 UTC)
+**✓ PASS — G-CAPTURE** (2026-05-14 09:57 UTC)
 
-当前事实以 worktree `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n` 的 `wip/cavalry-full-ui-100-g-capture` 与 session `BC5BF821-F120-469C-A612-7D67A0A70D9E` 为准：
+当前事实以 `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n` 的 main 分支与 session `DD7733E9-C414-4760-83A3-BC8EC8DEF8D3` 为准：
 
 **已验证 & PASS:**
 - [x] `tools/build_translator_injector.sh` 已加入 `@rpath`、ad-hoc 重签与 `linker-signed` 检查。
@@ -172,7 +172,7 @@ WHITELIST    = REPO/tools/translation-whitelist.json
   - [x] `runtime.candidates >= 617` (实现: 617 denominator / 626 observed)
   - [x] `runtime.menuLeaves >= 730` (实现: 730)
   - [x] `capture.source = live-merged` (实现)
-  - [x] `capture.bundleHash = a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1`
+   - [x] `capture.bundleHash = 5a9860b96d398922f49e90d73819a02027c4862960b118d56619229b7810eb5d`
 
 ### 失败条件
 
@@ -189,10 +189,10 @@ WHITELIST    = REPO/tools/translation-whitelist.json
 
 ### 当前状态
 
-**✓ PASS — G-X recleaned and reverified** (frozen at 2026-05-08T05:01Z UTC)
+**✓ PASS — G-X recleaned and reverified** (frozen at 2026-05-14T09:57Z UTC)
 
 Extraction inventory frozen at:
-`~/Library/Caches/Cavalry-i18n/sessions/BC5BF821-F120-469C-A612-7D67A0A70D9E/extraction-inventory.json`
+`~/Library/Caches/Cavalry-i18n/sessions/DD7733E9-C414-4760-83A3-BC8EC8DEF8D3/extraction-inventory.json`
 （session 与 G-CAPTURE merged inventories 同 UUID）
 
 > 之前文档曾把 frozen path 写成 `/tmp/ax-enhanced-1777559593/extraction-inventory.json`，
@@ -200,15 +200,15 @@ Extraction inventory frozen at:
 
 **已验证：**
 - [x] All surfaces meet frozen lower bounds
-- [x] JSON surfaces: appStrings (10 ✓), nodeStrings (6197 ✓), onboarding (34 ✓), tips (51 ✓), total (6292 ✓)
-- [x] Compiled source-map cleaned denominator: 3190 ✓
-- [x] Runtime candidates: 617 ✓
+- [x] JSON surfaces: appStrings (10 ✓), nodeStrings (6191 ✓), onboarding (34 ✓), tips (51 ✓), total (6286 ✓)
+- [x] Compiled source-map cleaned denominator: 3136 ✓
+- [x] Runtime candidates: 616 ✓
 - [x] Runtime menuLeaves: 730 ✓
 - [x] All four languages have merged inventories: en, ja_JP, zh-Hans, zh-Hant
-- [x] Target identity recorded at top level: Cavalry 2.7.1, Qt 6.6.3, bundleHash a421e0137648bbd284b6e7976a119ae27ba6ada635e0706b76519b54fa7c7fe1, appPath /Applications/Cavalry.app
+- [x] Target identity recorded at top level: Cavalry 2.7.2, Qt 6.6.3, bundleHash 5a9860b96d398922f49e90d73819a02027c4862960b118d56619229b7810eb5d, appPath /Applications/Cavalry.app
 
 **已知未闭合 gap：**
-- None for current target identity. G2/G3/G4 passed in `runs/2026-05-08-ALL-GATES-PASS.md`.
+- None for current target identity. G2/G3/G4 passed in `runs/2026-05-14-2.7.2-reverification.md`.
 
 ### Artifact schema
 
@@ -236,11 +236,11 @@ Extraction inventory frozen at:
 | `languages/en/onboarding.json` | >= 34 leaves | repo English baseline |
 | `languages/en/tips.json` | >= 51 leaves | repo English baseline |
 | JSON total | >= 6286 leaves | cleaned sum after §F extraction filters |
-| `SOURCE_MAP.entries` | >= 3141 entries | cleaned compiled denominator from `EXTRACTION`, excluding 2047 §F noise leaves |
-| runtime candidates | >= 617 | cleaned runtime denominator |
+| `SOURCE_MAP.entries` | >= 3136 entries | cleaned compiled denominator from `EXTRACTION`, excluding 2052 §F noise leaves |
+| runtime candidates | >= 616 | cleaned runtime denominator |
 | runtime menuLeaves | >= 730 | cleaned runtime menu denominator |
 
-> 旧 compiled lower bound 5195 是 2026-05-01 raw extraction 历史值。2026-05-08 cleaned denominator 在冻结前剔除 §F 噪声，当前 truth source 为 compiled 3190。
+> 旧 compiled lower bound 5195 是 2026-05-01 raw extraction 历史值。编译面试清洗后当前 truth source 为 compiled 3136。
 
 > `runtime candidates >= 613` / `runtime menuLeaves >= 666` 是 A9B11073 历史 anti-regression floor，不是当前完整 UI 完成线。当前完整分母必须来自 `EXTRACTION`，即 JSON 6292、compiled 3190、runtime candidates 617、runtime menuLeaves 730。
 
@@ -476,15 +476,15 @@ JSON Surface 100% Gate verification complete with all validation gates passing.
 
 ### 当前状态
 
-**✓ PASS — G2** (2026-05-08)
+**✓ PASS — G2** (2026-05-14)
 
-**Current metrics (session BC5BF821-F120-469C-A612-7D67A0A70D9E):**
+**Current metrics (session DD7733E9-C414-4760-83A3-BC8EC8DEF8D3):**
 - ja_JP: 100% compiled coverage (0 untranslated)
 - zh-Hans: 100% compiled coverage (0 untranslated)
 - zh-Hant: 100% compiled coverage (0 untranslated)
 - All languages: JSON validator forbiddenPatterns = 0
 
-**Evidence:** `runs/2026-05-08-ALL-GATES-PASS.md`; `SESSION_DIR=$SESSION_DIR npm run check:full-ui` returned `overallPass=true / blockedReason=null`.
+**Evidence:** `runs/2026-05-14-2.7.2-reverification.md`; `SESSION_DIR=$SESSION_DIR npm run check:full-ui` returned `overallPass=true / blockedReason=null`.
 
 ### 通过条件
 
@@ -511,11 +511,11 @@ JSON Surface 100% Gate verification complete with all validation gates passing.
 
 ### 当前状态
 
-**✓ PASS — G3** (2026-05-08)
+**✓ PASS — G3** (2026-05-14)
 
-**Current status:** Runtime surface coverage is 100% for the frozen BC5BF821 denominator.
+**Current status:** Runtime surface coverage is 100% for the frozen DD7733E9 denominator.
 
-**Current metrics (session BC5BF821-F120-469C-A612-7D67A0A70D9E):**
+**Current metrics (session DD7733E9-C414-4760-83A3-BC8EC8DEF8D3):**
 - ja_JP: 100% coverage (0 untranslated)
 - zh-Hans: 100% coverage (0 untranslated)
 - zh-Hant: 100% coverage (0 untranslated)
@@ -550,10 +550,10 @@ JSON Surface 100% Gate verification complete with all validation gates passing.
 
 ### 当前状态
 
-**✓ PASS — G4** (2026-05-08)
+**✓ PASS — G4** (2026-05-14)
 
 **Current run record:**
-- Session: `BC5BF821-F120-469C-A612-7D67A0A70D9E`
+- Session: `DD7733E9-C414-4760-83A3-BC8EC8DEF8D3`
 - Threshold: 100
 - Extraction inventory: ✓ Frozen
 - JSON validation: ✓ PASS (all 3 languages 100%)
