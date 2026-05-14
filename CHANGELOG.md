@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 - **CI Version Gate**: Added `npm run check:version` to both the Linux validation job and macOS packaging job, preventing drifted version metadata from entering CI artifacts or GitHub Releases.
-- **macOS Qt SDK Bootstrap**: Updated the GitHub macOS packaging job to install `aqtinstall` in an isolated Python venv, pass that interpreter to the Qt SDK resolver, disable automatic signing discovery, and clear stale bundle output before `npm run build:tauri`.
+- **macOS Qt SDK Bootstrap**: Updated the GitHub macOS packaging job to install `aqtinstall` in an isolated Python venv, pass that interpreter to the Qt SDK resolver, and mirror `LOCAL_BUILD_SOP.md` with explicit bundle cleanup, `npm run tauri:build`, DMG stamping, and all non-local SOP verification gates.
 - **GEB Documentation Sync**: Updated `tools/CLAUDE.md`, `tools/git-hooks/CLAUDE.md`, and `.github/workflows/CLAUDE.md` so the document map mirrors the new version and packaging automation.
 
 ## [0.1.3] - 2026-05-14

@@ -144,10 +144,13 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: |
           rm -rf src-tauri/target/release/bundle
-          npm run build:tauri
+          npm run tauri:build
+          bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 
-      - name: Validate Tauri Rust contracts and packaged resources
+      - name: Validate packaged app with LOCAL_BUILD_SOP gates
         run: |
+          npm run check:app
+          npm run test:contracts
           npm run check:tauri
           npm run test:tauri
           npm run test:tauri:packaged

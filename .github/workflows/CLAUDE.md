@@ -11,6 +11,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 
 变更日志
 2026-05-14: `build.yml` 增加 `workflow_dispatch` 与 `npm run check:version`，让 GitHub 可手动自助打包，同时阻止版本漂移进入 CI 产物。
-2026-05-14: macOS packaging 增加本地 `aqt-venv` 并通过 `PYTHON` 传入 resolver，避开 GitHub macOS 系统 Python 的 PEP 668 管理限制；构建步骤同步 `LOCAL_BUILD_SOP.md` 的 `CSC_IDENTITY_AUTO_DISCOVERY=false` 与 bundle 清理动作。
+2026-05-14: macOS packaging 增加本地 `aqt-venv` 并通过 `PYTHON` 传入 resolver，避开 GitHub macOS 系统 Python 的 PEP 668 管理限制；构建步骤按 `LOCAL_BUILD_SOP.md` 显式执行 `CSC_IDENTITY_AUTO_DISCOVERY=false`、清理 bundle、`npm run tauri:build`、DMG 盖章，以及除 `manual-smoke`/GUI window regression 外的 SOP 验证门。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

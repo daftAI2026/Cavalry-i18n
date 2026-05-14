@@ -569,8 +569,8 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*rm -rf src-tauri\/target\/release\/bundle[\s\S]*npm run build:tauri/,
-    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery and clearing stale bundle output before build:tauri'
+    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*rm -rf src-tauri\/target\/release\/bundle[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
+    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, clearing stale bundle output, running tauri:build, and stamping the DMG'
   );
   assert.match(
     resolver,
@@ -1561,7 +1561,7 @@ test('live full UI matrix orchestrator parses launcher PID and rejects missing P
   );
 });
 
-test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and packages with build:tauri', () => {
+test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirrors LOCAL_BUILD_SOP gates', () => {
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
 
   assert.match(
@@ -1571,8 +1571,13 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and pack
   );
   assert.match(
     workflowSource,
-    /npm run build:tauri/,
-    'macOS packaging workflow should use npm run build:tauri'
+    /npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg[\s\S]*npm run check:app[\s\S]*npm run test:contracts[\s\S]*npm run check:tauri[\s\S]*npm run test:tauri[\s\S]*npm run test:tauri:packaged/,
+    'macOS packaging workflow should mirror LOCAL_BUILD_SOP, omitting only manual-smoke and GUI window regression'
+  );
+  assert.doesNotMatch(
+    workflowSource,
+    /npm run test:tauri:manual-smoke|npm run test:tauri:ui/,
+    'GitHub packaging must omit only the local manual smoke and GUI window regression gates'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -2392,8 +2397,8 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
   );
   assert.match(
     workflow,
-    /npm run build/,
-    'release pipeline should build the packaged macOS Tauri app through the default Tauri path'
+    /npm run tauri:build/,
+    'release pipeline should build the packaged macOS Tauri app through the explicit LOCAL_BUILD_SOP Tauri path'
   );
   assert.match(
     workflow,
