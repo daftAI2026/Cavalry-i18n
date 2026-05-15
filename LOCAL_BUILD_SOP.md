@@ -29,7 +29,30 @@ npm run prepare:qt-sdk
 
 本地构建产物不是浏览器下载文件，默认不会携带 Chrome/GitHub 下载写入的 `com.apple.quarantine` 标记。
 
-## 3. 标准打包流程
+## 3. Release 版本协议
+
+发布版本分两层，不能混用：
+
+- Internal app version: SemVer，写在 `CHANGELOG.md`、`package.json`、`src-tauri/Cargo.toml` 与 `src-tauri/tauri.conf.json`，由 `npm run sync:version` 同步。
+- Release tag: `cavalry-2.7.2-pN`，表示“面向 Cavalry 2.7.2 的第 N 个补丁发布”，触发 GitHub macOS runner 打包与 GitHub Release。
+- DMG asset: `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_aarch64.dmg`，由 `tools/release_metadata.js` 从 `release.config.json` 生成，workflow 不允许手写漂移。
+
+打标前先跑：
+
+```bash
+npm run check:version
+npm run check:release
+npm run test:contracts
+```
+
+发布新补丁时只需要创建并推送新 tag；workflow 已固定读取 `release.config.json`，不需要每次改 `.github/workflows/build.yml`：
+
+```bash
+git tag -a cavalry-2.7.2-p12 -m "Cavalry Language Switcher for Cavalry 2.7.2 patch 12"
+git push origin cavalry-2.7.2-p12
+```
+
+## 4. 标准打包流程
 
 ```bash
 export CSC_IDENTITY_AUTO_DISCOVERY=false
@@ -48,7 +71,7 @@ npm run tauri:build
 - `bundle.resources` 打包 `../languages` 与 `../injector/libCavalryTranslatorInjector.dylib`。
 - `bundle.macOS.signingIdentity = "-"` 与 `APPLE_SIGNING_IDENTITY="-"` 都指向同一个 Tauri ad-hoc pseudo-identity，不是 Developer ID；它让 Tauri 在生成 DMG 前对 `.app` 执行显式 bundle signing，写入 `_CodeSignature/CodeResources`，否则浏览器下载后的 quarantine 检查会把缺少 bundle seal 的 app 判定为 damaged。
 
-## 4. DMG 增强修饰 (卷宗图标盖章)
+## 5. DMG 增强修饰 (卷宗图标盖章)
 
 Tauri 原生 DMG 配置（`tauri.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸与图标坐标，无需手动干预。
 
@@ -64,7 +87,7 @@ bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 
 脚本最后仍会 best-effort 对本机 DMG 文件自身写入 Rez/SetFile resource fork。该外壳图标只对当前 macOS 文件系统可靠，GitHub 上传/下载链路会丢弃 `com.apple.ResourceFork`，不作为发布阻塞项。
 
-## 5. 产物验证
+## 6. 产物验证
 
 ```bash
 npm run check:app
@@ -86,6 +109,6 @@ npm run test:tauri:manual-smoke
 - `.app/Contents/Resources/` 内包含 `languages` 与 `libCavalryTranslatorInjector.dylib`。
 - 主窗口截图、字体加载状态、核心控件 bounding box、按钮顺序与状态文本必须满足冻结的 Tauri window contract。
 
-## 6. 当前边界
+## 7. 当前边界
 
 Tauri 是唯一默认壳与唯一发布路径；bridge、配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实 macOS 三语冒烟都已具备可重跑守门。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。

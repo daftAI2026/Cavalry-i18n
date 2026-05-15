@@ -579,13 +579,13 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry 2\.7\.2[\s\S]*Apple M[\s\S]*支持语言[\s\S]*日本語[\s\S]*English/,
+    /Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry \$\{TARGET_CAVALRY_VERSION\}[\s\S]*Apple M[\s\S]*支持语言[\s\S]*日本語[\s\S]*English/,
     'tag releases should render a concise product body instead of relying on a bare generated changelog link'
   );
   assert.match(
     workflowSource,
-    /name:\s*Cavalry Language Switcher \$\{\{ github\.ref_name \}\}[\s\S]*body_path:\s*release-notes\.md/,
-    'tag releases should use the product name as the Release title while keeping the git tag machine-readable'
+    /gh release create "\$GITHUB_REF_NAME" "\$\{assets\[@\]\}" --title "\$RELEASE_TITLE" --notes-file release-notes\.md/,
+    'tag releases should use release.config.json metadata as the Release title while keeping the git tag machine-readable'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -1644,7 +1644,7 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
   });
   assert.match(
     workflowSource,
-    /body_path:\s*release-notes\.md[\s\S]*files:\s*\|\s*\n\s+dist\/\*\*\/\*\.dmg/,
+    /find dist -type f -name '\*\.dmg'[\s\S]*gh release create "\$GITHUB_REF_NAME" "\$\{assets\[@\]\}" --title "\$RELEASE_TITLE" --notes-file release-notes\.md/,
     'tag releases should publish the direct DMG asset in the same shape users expect from GitHub app releases'
   );
 });

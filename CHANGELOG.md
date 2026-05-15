@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- Added a fixed GitHub Release protocol for `cavalry-2.7.2-pN` tags, with release title and DMG asset naming generated from `release.config.json` instead of mixing Cavalry target patches with the app's internal SemVer.
+
 ## [0.1.11] - 2026-05-15
 
 ### Fixed

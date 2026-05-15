@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package.json、CHANGELOG.md、tools/sync_project_version.js、src-tauri/tauri.conf.json、capabilities/default.json 与本地打包 SOP 文档
- * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、版本同步与配置 contract 测试，阻止发布路径恢复旧壳层链路
- * [POS]: tools 的 Phase 6 打包守门，连接文档相、版本真相源、npm script 与 Tauri bundle 配置
+ * [INPUT]: 依赖 package.json、CHANGELOG.md、tools/sync_project_version.js、tools/release_metadata.js、src-tauri/tauri.conf.json、capabilities/default.json 与本地打包 SOP 文档
+ * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、版本同步、release 协议与配置 contract 测试，阻止发布路径恢复旧壳层链路
+ * [POS]: tools 的 Phase 6 打包守门，连接文档相、版本真相源、release tag 协议、npm script 与 Tauri bundle 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -145,11 +145,61 @@ test('project version workflow exposes one synchronizer and a pre-commit hook in
 
   assert.equal(pkg.scripts['sync:version'], 'node tools/sync_project_version.js');
   assert.equal(pkg.scripts['check:version'], 'node tools/sync_project_version.js --check');
+  assert.equal(pkg.scripts['release:metadata'], 'node tools/release_metadata.js');
+  assert.equal(pkg.scripts['check:release'], 'node tools/release_metadata.js --check');
   assert.equal(
     pkg.scripts['hooks:install'],
     'git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath tools/git-hooks || true'
   );
   assert.equal(pkg.scripts.postinstall, 'npm run hooks:install');
+});
+
+test('release protocol separates internal SemVer from target Cavalry tag naming', () => {
+  const releaseConfig = readJson('release.config.json');
+  const workflow = readText('.github/workflows/build.yml');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
+
+  assert.equal(releaseConfig.targetCavalryVersion, '2.7.2');
+  assert.equal(releaseConfig.releaseTagPrefix, 'cavalry-2.7.2-p');
+  assert.equal(releaseConfig.releaseTagPattern, '^cavalry-2\\.7\\.2-p[0-9]+$');
+  assert.equal(
+    releaseConfig.releaseTitleTemplate,
+    'Cavalry Language Switcher for Cavalry 2.7.2 patch ${patch}'
+  );
+  assert.equal(
+    releaseConfig.assetNameTemplate,
+    'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.dmg'
+  );
+  assert.match(workflow, /tags:\s*\['cavalry-\*-p\*'\]/);
+  assert.match(workflow, /npm run check:release/);
+  assert.match(workflow, /npm run release:metadata -- --github-env/);
+  assert.match(workflow, /RELEASE_ASSET_NAME/);
+  assert.match(localSop, /Internal app version: SemVer/);
+  assert.match(localSop, /Release tag: `cavalry-2\.7\.2-pN`/);
+  assert.match(localSop, /DMG asset: `Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_aarch64\.dmg`/);
+});
+
+test('release metadata script renders GitHub release fields from the patch tag', () => {
+  const valid = spawnSync(process.execPath, ['tools/release_metadata.js', '--tag', 'cavalry-2.7.2-p12'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+  const invalid = spawnSync(process.execPath, ['tools/release_metadata.js', '--tag', 'v0.1.11'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+
+  assert.equal(valid.status, 0, valid.stderr || valid.stdout);
+  assert.deepEqual(JSON.parse(valid.stdout), {
+    RELEASE_TAG: 'cavalry-2.7.2-p12',
+    RELEASE_PATCH: '12',
+    TARGET_CAVALRY_VERSION: '2.7.2',
+    INTERNAL_APP_VERSION: readJson('package.json').version,
+    RELEASE_TITLE: 'Cavalry Language Switcher for Cavalry 2.7.2 patch 12',
+    RELEASE_ASSET_NAME: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.dmg',
+  });
+  assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
+  assert.match(invalid.stderr, /does not match/);
 });
 
 test('project version synchronizer propagates changelog version across npm, Cargo, and Tauri metadata', () => {

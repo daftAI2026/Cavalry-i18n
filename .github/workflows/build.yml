@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    tags: ['v*']
+    tags: ['cavalry-*-p*']
   pull_request:
     branches: [main]
 
@@ -27,6 +27,9 @@ jobs:
 
       - name: Validate project version metadata
         run: npm run check:version
+
+      - name: Validate release protocol
+        run: npm run check:release
 
       - name: Validate app contracts
         run: npm run test:contracts
@@ -94,6 +97,7 @@ jobs:
             LICENSE
             package.json
             package-lock.json
+            release.config.json
             tools/build_translator_injector.sh
             tools/cavalry_qt_target.json
             tools/check_app_contracts.js
@@ -101,6 +105,7 @@ jobs:
             tools/generate_embedded_translations.js
             tools/ja_JP.ts
             tools/launch_cavalry_with_injector.sh
+            tools/release_metadata.js
             tools/resolve_cavalry_qt_sdk.js
             tools/translation-whitelist.json
             tools/validate_translations.py
@@ -108,7 +113,7 @@ jobs:
             tools/zh-Hant.ts
 
   package_macos:
-    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    if: startsWith(github.ref, 'refs/tags/cavalry-') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
 
     steps:
@@ -137,6 +142,13 @@ jobs:
       - name: Validate project version metadata
         run: npm run check:version
 
+      - name: Validate release protocol
+        run: npm run check:release
+
+      - name: Resolve release metadata
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        run: npm run release:metadata -- --github-env
+
       - name: Prepare target Qt SDK for injector build
         run: npm run prepare:qt-sdk
 
@@ -148,6 +160,17 @@ jobs:
           unset CI
           npm run tauri:build
           bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
+
+      - name: Name release DMG asset
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        run: |
+          dmg_dir="src-tauri/target/release/bundle/dmg"
+          source_dmg="$(find "$dmg_dir" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          if [ -z "$source_dmg" ]; then
+            echo "No DMG found in $dmg_dir" >&2
+            exit 1
+          fi
+          mv "$source_dmg" "$dmg_dir/$RELEASE_ASSET_NAME"
 
       - name: Validate packaged app with LOCAL_BUILD_SOP gates
         run: |
@@ -170,7 +193,7 @@ jobs:
 
   release:
     needs: [build, package_macos]
-    if: startsWith(github.ref, 'refs/tags/v')
+    if: startsWith(github.ref, 'refs/tags/cavalry-')
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -185,22 +208,26 @@ jobs:
           name: cavalry-patcher-macos
           path: dist
 
+      - name: Resolve release metadata
+        run: npm run release:metadata -- --github-env
+
       - name: Write GitHub Release notes
         run: |
-          version="${GITHUB_REF_NAME#v}"
           cat > release-notes.md <<EOF
           ## Cavalry Language Switcher
 
-          Cavalry Language Switcher 是一个面向 Cavalry 2.7.2 的 macOS 语言切换工具。它可以把本机已安装的 Cavalry 在 English、简体中文、繁體中文、日本語之间切换，并继续从原来的 \`Cavalry.app\` 启动。
+          Cavalry Language Switcher 是一个面向 Cavalry ${TARGET_CAVALRY_VERSION} 的 macOS 语言切换工具。它可以把本机已安装的 Cavalry 在 English、简体中文、繁體中文、日本語之间切换，并继续从原来的 \`Cavalry.app\` 启动。
 
           它会处理两类翻译表面：Cavalry 的 JSON 资源文件，以及内置在 Qt/UI 二进制里的菜单、面板、按钮和控件文字。应用语言时，工具会 patch 本地 Cavalry app bundle，安装 runtime injector，重新签名，并清理 Gatekeeper quarantine。
 
           Cavalry Language Switcher 是独立社区工具，不隶属于 Scene Group、Cavalry 或 Canva。
 
+          Release: ${RELEASE_TITLE}
+
           ## 下载
 
           ### macOS
-          - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/Cavalry.Language.Switcher_${version}_aarch64.dmg)
+          - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME})
 
           ### macOS 首次打开
           当前 DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID notarization。如果从浏览器下载后，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，请先把应用拖入 Applications，然后运行：
@@ -237,19 +264,22 @@ jobs:
 
           ## 日本語
 
-          Cavalry Language Switcher は、Cavalry 2.7.2 向けの macOS 用言語切り替えツールです。インストール済みの Cavalry を English、簡体字中国語、繁体字中国語、日本語の間で切り替えられます。
+          Cavalry Language Switcher は、Cavalry ${TARGET_CAVALRY_VERSION} 向けの macOS 用言語切り替えツールです。インストール済みの Cavalry を English、簡体字中国語、繁体字中国語、日本語の間で切り替えられます。
 
           初回適用時に macOS の App Management 権限が求められる場合があります。完全に元の状態へ戻すには、Cavalry を再インストールするのが最も安全です。
 
           ## English
 
-          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry 2.7.2 on macOS. It is not affiliated with Scene Group, Cavalry, or Canva.
+          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS. It is not affiliated with Scene Group, Cavalry, or Canva.
           EOF
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
-        with:
-          name: Cavalry Language Switcher ${{ github.ref_name }}
-          body_path: release-notes.md
-          files: |
-            dist/**/*.dmg
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mapfile -t assets < <(find dist -type f -name '*.dmg' -print)
+          if [ "${#assets[@]}" -eq 0 ]; then
+            echo "No DMG assets found in dist" >&2
+            exit 1
+          fi
+          gh release create "$GITHUB_REF_NAME" "${assets[@]}" --title "$RELEASE_TITLE" --notes-file release-notes.md

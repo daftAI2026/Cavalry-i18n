@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/.github/CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；main/PR 只跑版本元数据、Node/Rust 合同与翻译质量验证；`v*` tag 与手动触发才在 macOS 上构建 Tauri DMG 与 `.app` artifact；`v*` tag 以产品名标题和产品介绍型 release notes 发布 DMG 到 GitHub Releases。
+build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；main/PR 只跑版本元数据、release 协议、Node/Rust 合同与翻译质量验证；`cavalry-*-p*` tag 与手动触发才在 macOS 上构建 Tauri DMG 与 `.app` artifact；`cavalry-*-p*` tag 通过 `release.config.json` 生成产品标题、DMG 资产名与产品介绍型 release notes。
 
 依赖边界:
 workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。
@@ -18,5 +18,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-05-15: macOS packaging job 限制为 `v*` tag 与手动触发，main/PR push 不再自动生成 macOS DMG artifact；Release 继续只由 `v*` tag 创建。
 2026-05-15: macOS packaging 显式设置 `APPLE_SIGNING_IDENTITY="-"`，让 GitHub runner 走与本地一致的 Tauri ad-hoc bundle signing，避免 release DMG 安装后缺少 `CodeResources` 被 Gatekeeper 判定 damaged。
 2026-05-15: release notes 增加未 notarized 下载包的首次打开说明、`xattr -dr com.apple.quarantine` 命令，以及按 `LOCAL_BUILD_SOP.md` 让本机 agent 从源码构建的提示词。
+2026-05-15: tag 发布协议从内部 `v*` SemVer 改为 `cavalry-*-p*`，并由 `tools/release_metadata.js` 读取 `release.config.json` 生成 release 标题与 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_aarch64.dmg` 资产名。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

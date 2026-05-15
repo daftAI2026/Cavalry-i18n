@@ -24,9 +24,11 @@
     "build": "npm run tauri:build",
     "build:tauri": "npm run tauri:build && bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg && npm run test:tauri:packaged",
     "test:contracts": "node --test tools/check_app_contracts.js tools/check_renderer_contract.js tools/check_tauri_build_sop.js tools/check_tauri_bridge_runtime.js",
-    "check:app": "node --check renderer/tauri-bridge.js && node --check renderer/app.js && node --check tools/check_renderer_contract.js && node --check tools/check_app_contracts.js && node --check tools/check_tauri_build_sop.js && node --check tools/check_tauri_bridge_runtime.js && node --check tools/check_tauri_packaged_app.js && node --check tools/check_tauri_window_regression.js && node --check tools/window_contract_lib.js && node --check tools/fixtures/make_fake_cavalry_bundle.js",
+    "check:app": "node --check renderer/tauri-bridge.js && node --check renderer/app.js && node --check tools/check_renderer_contract.js && node --check tools/check_app_contracts.js && node --check tools/check_tauri_build_sop.js && node --check tools/check_tauri_bridge_runtime.js && node --check tools/check_tauri_packaged_app.js && node --check tools/check_tauri_window_regression.js && node --check tools/release_metadata.js && node --check tools/window_contract_lib.js && node --check tools/fixtures/make_fake_cavalry_bundle.js",
     "sync:version": "node tools/sync_project_version.js",
     "check:version": "node tools/sync_project_version.js --check",
+    "release:metadata": "node tools/release_metadata.js",
+    "check:release": "node tools/release_metadata.js --check",
     "hooks:install": "git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath tools/git-hooks || true",
     "postinstall": "npm run hooks:install"
   },

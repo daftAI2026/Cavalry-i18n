@@ -1,0 +1,7 @@
+{
+  "targetCavalryVersion": "2.7.2",
+  "releaseTagPrefix": "cavalry-2.7.2-p",
+  "releaseTagPattern": "^cavalry-2\\.7\\.2-p[0-9]+$",
+  "releaseTitleTemplate": "Cavalry Language Switcher for Cavalry 2.7.2 patch ${patch}",
+  "assetNameTemplate": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.dmg"
+}

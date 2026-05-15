@@ -21,6 +21,7 @@ README.zh-Hant.md - 繁体中文 README，本地化主文档并保持命令、�
 README.ja_JP.md - 日文 README，本地化主文档并保持命令、路径与版本不漂移
 package.json - 项目元数据与核心构建/测试指令
 package-lock.json - npm 依赖锁定文件，冻结 Tauri CLI 与运行时 API 版本
+release.config.json - GitHub Release 协议真相源，声明 Cavalry 目标版本、tag 格式、标题模板与 DMG 资产名
 src-tauri/Cargo.toml - Rust crate、Tauri v2 与后端依赖声明
 src-tauri/Cargo.lock - Rust 依赖锁定文件，保证本地与 CI 构建同构
 src-tauri/tauri.conf.json - Tauri 运行配置
