@@ -569,8 +569,8 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*unset CI[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
-    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, unsetting CI for Finder DMG layout, running tauri:build, and stamping the DMG'
+    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*APPLE_SIGNING_IDENTITY:\s*"-"[\s\S]*unset CI[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
+    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, forcing Tauri ad-hoc signing, unsetting CI for Finder DMG layout, running tauri:build, and stamping the DMG'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -579,8 +579,8 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry 2\.7\.2[\s\S]*Apple M[\s\S]*支持语言[\s\S]*LOCAL_BUILD_SOP\.md/,
-    'tag releases should render a first-release product body instead of relying on a bare generated changelog link'
+    /Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry 2\.7\.2[\s\S]*Apple M[\s\S]*支持语言[\s\S]*日本語[\s\S]*English/,
+    'tag releases should render a concise product body instead of relying on a bare generated changelog link'
   );
   assert.match(
     workflowSource,

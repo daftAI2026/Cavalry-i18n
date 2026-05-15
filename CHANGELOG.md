@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.9] - 2026-05-15
+
+### Fixed
+- **macOS Quarantine Launch**: Added explicit Tauri ad-hoc bundle signing with `bundle.macOS.signingIdentity = "-"` and `APPLE_SIGNING_IDENTITY="-"`, then gated the packaged `.app`, DMG-contained `.app`, and installed-copy `.app` with `codesign --verify --deep --strict` to prevent browser-downloaded builds from opening as damaged.
+
 ## [0.1.8] - 2026-05-15
 
 ### Fixed
@@ -122,7 +127,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
 
-[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.8...HEAD
+[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.9...HEAD
+[0.1.9]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.9
 [0.1.8]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.8
 [0.1.7]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.7
 [0.1.5]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.4...v0.1.5

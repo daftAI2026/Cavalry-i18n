@@ -18,6 +18,7 @@ npm run prepare:qt-sdk
 
 ```bash
 export CSC_IDENTITY_AUTO_DISCOVERY=false
+export APPLE_SIGNING_IDENTITY="-"
 
 rm -rf src-tauri/target/release/bundle
 npm run tauri:build
@@ -30,6 +31,7 @@ npm run tauri:build
 - `app.withGlobalTauri = true`，供 vanilla bridge 在页面加载前拿到 `window.__TAURI__.core.invoke`。
 - main window 外框固定 `480x528`，最小 `420x528`，对应 `480x500` 内容区。
 - `bundle.resources` 打包 `../languages` 与 `../injector/libCavalryTranslatorInjector.dylib`。
+- `bundle.macOS.signingIdentity = "-"` 与 `APPLE_SIGNING_IDENTITY="-"` 都指向同一个 Tauri ad-hoc pseudo-identity，不是 Developer ID；它让 Tauri 在生成 DMG 前对 `.app` 执行显式 bundle signing，写入 `_CodeSignature/CodeResources`，否则浏览器下载后的 quarantine 检查会把缺少 bundle seal 的 app 判定为 damaged。
 
 ## 3. DMG 增强修饰 (卷宗图标盖章)
 
@@ -63,6 +65,7 @@ npm run test:tauri:manual-smoke
 打包后检查：
 
 - `.app` 位于 `src-tauri/target/release/bundle/macos/`。
+- DMG 内 `.app` 与从 DMG 拷贝出的安装态 `.app` 都必须包含 `Contents/_CodeSignature/CodeResources`，并通过 `codesign --verify --deep --strict`。
 - DMG 位于 `src-tauri/target/release/bundle/dmg/`。
 - DMG 挂载后必须包含 `.DS_Store`、`.background/background.png`、`.VolumeIcon.icns`、卷宗 custom-icon 标记、`Applications` 链接与 `.app`。
 - `.app/Contents/Resources/` 内包含 `languages` 与 `libCavalryTranslatorInjector.dylib`。

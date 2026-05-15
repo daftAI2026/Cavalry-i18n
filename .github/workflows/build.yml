@@ -143,6 +143,7 @@ jobs:
       - name: Build packaged macOS app
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+          APPLE_SIGNING_IDENTITY: "-"
         run: |
           unset CI
           npm run tauri:build
@@ -199,7 +200,7 @@ jobs:
           ## 下载
 
           ### macOS
-          - Apple M 芯片：下载下方 \`Cavalry.Language.Switcher_${version}_aarch64.dmg\`
+          - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/Cavalry.Language.Switcher_${version}_aarch64.dmg)
 
           ## 支持语言
           - English

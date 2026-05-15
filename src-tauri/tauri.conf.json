@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Cavalry Language Switcher",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "identifier": "com.daftai.cavalry-i18n",
   "build": {
     "frontendDist": "../renderer",
@@ -44,6 +44,7 @@
       "../injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
     },
     "macOS": {
+      "signingIdentity": "-",
       "dmg": {
         "background": "icons/background.png",
         "windowSize": {

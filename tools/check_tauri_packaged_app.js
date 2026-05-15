@@ -10,6 +10,7 @@ const assert = require('node:assert/strict');
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
 const bundleRoot = path.join(repoRoot, 'src-tauri', 'target', 'release', 'bundle');
@@ -114,6 +115,17 @@ test('tauri build contains injector dylib resource', () => {
   const injector = findFile(appPath, 'libCavalryTranslatorInjector.dylib');
   assert.ok(injector, 'libCavalryTranslatorInjector.dylib missing from packaged app');
   assert.ok(fs.statSync(injector).size > 0, 'injector dylib is empty');
+});
+
+test('tauri build has a valid app bundle signature for quarantined downloads', { skip: process.platform !== 'darwin' }, () => {
+  requirePackagedApp();
+  const codeResources = path.join(appPath, 'Contents', '_CodeSignature', 'CodeResources');
+  assert.ok(fs.existsSync(codeResources), 'packaged app is missing CodeResources bundle seal');
+
+  const result = spawnSync('codesign', ['--verify', '--deep', '--strict', '--verbose=4', appPath], {
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
 });
 
 test('tauri bundle app size report is generated from the real package', () => {

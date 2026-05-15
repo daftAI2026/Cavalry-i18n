@@ -5,7 +5,7 @@
 Cargo.toml: Rust crate 与 Tauri v2 依赖声明，`tauri` 与 npm Tauri 包保持 2.10 minor，`tauri-build` exact pin 到其真实发布线。
 Cargo.lock: Rust 依赖锁定文件，冻结 Tauri、serde、plist、chrono 等后端依赖版本。
 build.rs: Tauri build script 入口，读取 `tauri.conf.json` 并生成 runtime context。
-tauri.conf.json: Tauri app 配置，指向原 renderer、启用 `withGlobalTauri`、固定窗口尺寸与 bundle resources。
+tauri.conf.json: Tauri app 配置，指向原 renderer、启用 `withGlobalTauri`、固定窗口尺寸、bundle resources 与 macOS ad-hoc bundle signing。
 capabilities/: Tauri v2 capability 配置，限定 main window 的 core 权限。
 icons/: Tauri 图标集，由 `npx tauri icon` 从源图生成全平台图标（icns/ico/各尺寸 PNG + iOS/Android），`icon.png` 保持 1024x1024 8-bit RGBA 避免 `generate_context!()` 启动崩溃；`background.png` 为 DMG 安装器背景（1600x856），不受 `tauri icon` 管理。
 src/: Rust command 与纯函数模块，承载桌面业务能力与 Tauri-only 权限入口。

@@ -104,6 +104,7 @@ test('tauri local build SOP is the only release path', () => {
   assert.match(localSop, /Tauri/i);
   assert.match(localSop, /npm run tauri:build/);
   assert.match(localSop, /npm run prepare:qt-sdk/);
+  assert.match(localSop, /APPLE_SIGNING_IDENTITY="-"/);
   assert.match(localSop, /tools\/cavalry_qt_target\.json/);
   assert.match(localSop, /6\.6\.3/);
   assert.doesNotMatch(localSop, /Electron|electron-builder|test:desktop|check:desktop|desktop-patcher/);
@@ -181,6 +182,12 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.equal(window.minWidth, 420);
   assert.equal(window.minHeight, 528);
   assert.deepEqual(config.bundle.targets, ['dmg', 'app']);
+});
+
+test('tauri macOS package uses explicit ad-hoc bundle signing for downloaded apps', () => {
+  const config = readJson('src-tauri/tauri.conf.json');
+
+  assert.equal(config.bundle.macOS.signingIdentity, '-');
 });
 
 test('tauri window icon is an 8-bit PNG compatible with generate_context', () => {
