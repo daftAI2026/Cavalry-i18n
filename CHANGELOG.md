@@ -7,8 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-05-15
+
 ### Documentation
 - Added macOS first-launch quarantine guidance and local agent build prompts to public READMEs, GitHub Release notes, and the local build SOP.
+
+### Fixed
+- Fixed packaged GitHub builds so `get_status` and language application read bundled `Contents/Resources/languages` instead of the compile-time repository path.
 
 ## [0.1.9] - 2026-05-15
 
@@ -130,7 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
 
-[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.9...HEAD
+[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.10...HEAD
+[0.1.10]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.10
 [0.1.9]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.9
 [0.1.8]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.8
 [0.1.7]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.7

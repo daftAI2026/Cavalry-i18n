@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块、chrono/serde 与原子计数 staging id
+ * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块、Tauri resource_dir、chrono/serde 与原子计数 staging id
  * [OUTPUT]: 对外提供 get_status、browse_app、extract_english、apply_language、open_privacy_security、restart_cavalry 6 个 Tauri command
  * [POS]: src-tauri/src 的 renderer API 等价层，返回 renderer 兼容 JSON shape
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -143,6 +143,24 @@ fn language_choices(languages_dir: &Path) -> Vec<LanguageChoice> {
     choices
 }
 
+fn languages_root(repo_root: &Path, resource_dir: &Path) -> PathBuf {
+    let packaged = resource_dir.join("languages");
+    if packaged.exists() {
+        packaged
+    } else {
+        repo_root.join("languages")
+    }
+}
+
+fn language_source_dir(repo_root: &Path, resource_dir: &Path, lang: &str) -> PathBuf {
+    let packaged = resource_dir.join("languages").join(lang);
+    if packaged.exists() {
+        packaged
+    } else {
+        repo_root.join("languages").join(lang)
+    }
+}
+
 fn sync_state_with_bundle(state_dir: &Path, state: State, app_path: &Path, version: &str) -> State {
     if app_path.as_os_str().is_empty() {
         return state;
@@ -174,8 +192,8 @@ fn resolved_state(state_dir: &Path) -> (PathBuf, State, String) {
     (app_path, state, version)
 }
 
-fn status_for_paths(repo_root: &Path, state_dir: &Path) -> StatusPayload {
-    let languages_dir = repo_root.join("languages");
+fn status_for_paths(repo_root: &Path, state_dir: &Path, resource_dir: &Path) -> StatusPayload {
+    let languages_dir = languages_root(repo_root, resource_dir);
     let (app_path, state, version) = resolved_state(state_dir);
     let current_lang = state.current_lang.clone();
     let diagnostics = if app_path.as_os_str().is_empty() {
@@ -218,7 +236,11 @@ fn status_for_paths(repo_root: &Path, state_dir: &Path) -> StatusPayload {
 
 #[tauri::command]
 pub fn get_status(app: tauri::AppHandle) -> StatusPayload {
-    status_for_paths(&repo_root(), &state_dir_for_app(&app))
+    status_for_paths(
+        &repo_root(),
+        &state_dir_for_app(&app),
+        &resource_dir_for_app(&app),
+    )
 }
 
 #[tauri::command]
@@ -419,7 +441,7 @@ pub fn apply_language_inner<R: CommandRunner>(
     let source_dir = if lang == "en" {
         state_dir.join("en")
     } else {
-        repo_root.join("languages").join(lang)
+        language_source_dir(repo_root, resource_dir, lang)
     };
 
     if !source_dir.exists() {
@@ -619,7 +641,8 @@ impl ActionPayload {
 #[cfg(test)]
 mod tests {
     use super::{
-        apply_language_inner, registered_command_names, restart_cavalry_inner, COMMAND_NAMES,
+        apply_language_inner, registered_command_names, restart_cavalry_inner, status_for_paths,
+        COMMAND_NAMES,
     };
     use crate::privilege::RecordingRunner;
     use std::{fs, path::Path};
@@ -762,6 +785,56 @@ mod tests {
                 .iter()
                 .any(|command| command.program == "xattr"));
         }
+    }
+
+    #[test]
+    fn status_uses_packaged_resource_languages_when_repo_root_is_missing() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("missing-repo");
+        let state = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        make_language(&resources, "zh-Hans");
+        make_language(&resources, "ja_JP");
+
+        let status = status_for_paths(&repo, &state, &resources);
+        let values = status
+            .languages
+            .iter()
+            .map(|language| language.value.as_str())
+            .collect::<Vec<_>>();
+
+        assert!(values.contains(&"en"));
+        assert!(values.contains(&"zh-Hans"));
+        assert!(values.contains(&"ja_JP"));
+    }
+
+    #[test]
+    fn apply_language_uses_packaged_resource_languages_when_repo_root_is_missing() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("missing-repo");
+        let state = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        let app = make_bundle(temp.path());
+        make_language(&resources, "zh-Hans");
+        write(
+            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+            b"injector",
+        );
+
+        let mut runner = RecordingRunner::default();
+        let result = apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "zh-Hans",
+            &mut runner,
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap();
+
+        assert!(result.ok);
+        assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
     }
 
     #[test]
