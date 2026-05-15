@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-05-15
+
+### Fixed
+- Fixed packaged GitHub builds so Tauri runtime resource resolution finds bundled `languages` and `injector` assets when `resource_dir()` points at either `Contents/Resources` or its `_up_` resource base.
+
 ## [0.1.10] - 2026-05-15
 
 ### Documentation
@@ -135,7 +140,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
 
-[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.10...HEAD
+[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.11...HEAD
+[0.1.11]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.11
 [0.1.10]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.10
 [0.1.9]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.9
 [0.1.8]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.8

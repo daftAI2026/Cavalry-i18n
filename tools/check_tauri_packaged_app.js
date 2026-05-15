@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 npm run tauri:build 产出的 macOS .app、renderer 资产、languages 与 injector dylib
- * [OUTPUT]: 对外提供 packaged Tauri .app 资源测试与 size report，证明发布包包含 UI 入口和运行资源
+ * [INPUT]: 依赖 npm run tauri:build 产出的 macOS .app、renderer 资产、runtime resource 候选路径、languages 与 injector dylib
+ * [OUTPUT]: 对外提供 packaged Tauri .app 资源测试与 size report，证明发布包包含 UI 入口和运行时可解析资源
  * [POS]: tools 的 Phase 6 packaged 资源守门，只在打包后执行，失败即说明不能宣称 packaged 可用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -47,6 +47,19 @@ function findFile(root, name) {
 
 function packagedBinary() {
   return path.join(appPath, 'Contents', 'MacOS', 'cavalry-i18n-tauri');
+}
+
+function packagedResourceDir() {
+  return path.join(appPath, 'Contents', 'Resources');
+}
+
+function runtimeLanguageResourceCandidates() {
+  const resources = packagedResourceDir();
+  return [
+    path.join(resources, 'languages'),
+    path.join(resources, '_up_', 'languages'),
+    path.join(resources, '..', 'languages'),
+  ];
 }
 
 function findDirectory(root, name) {
@@ -103,8 +116,13 @@ test('tauri build contains renderer assets or embeds their Tauri routes', () => 
 
 test('tauri build contains languages resource tree', () => {
   requirePackagedApp();
-  const languagesDir = findDirectory(path.join(appPath, 'Contents'), 'languages');
-  assert.ok(languagesDir, 'languages directory missing from packaged app');
+  const languagesDir = runtimeLanguageResourceCandidates().find((candidate) =>
+    ['zh-Hans', 'zh-Hant', 'ja_JP'].every((lang) => fs.existsSync(path.join(candidate, lang)))
+  );
+  assert.ok(
+    languagesDir,
+    `languages directory missing from runtime resource candidates: ${runtimeLanguageResourceCandidates().join(', ')}`
+  );
   for (const lang of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
     assert.ok(fs.existsSync(path.join(languagesDir, lang)), `${lang} missing from packaged app`);
   }

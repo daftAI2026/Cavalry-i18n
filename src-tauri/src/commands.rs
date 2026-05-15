@@ -127,38 +127,50 @@ fn labels(code: &str) -> &str {
     }
 }
 
-fn language_choices(languages_dir: &Path) -> Vec<LanguageChoice> {
+fn runtime_resource_candidates(resource_dir: &Path) -> Vec<PathBuf> {
+    let mut candidates = vec![resource_dir.to_path_buf(), resource_dir.join("_up_")];
+    if let Some(parent) = resource_dir.parent() {
+        candidates.push(parent.to_path_buf());
+    }
+    candidates.dedup();
+    candidates
+}
+
+fn language_root_candidates(repo_root: &Path, resource_dir: &Path) -> Vec<PathBuf> {
+    let mut candidates = runtime_resource_candidates(resource_dir)
+        .into_iter()
+        .map(|root| root.join("languages"))
+        .collect::<Vec<_>>();
+    candidates.push(repo_root.join("languages"));
+    candidates.dedup();
+    candidates
+}
+
+fn language_choices_from_roots(roots: &[PathBuf]) -> Vec<LanguageChoice> {
+    let mut values = roots
+        .iter()
+        .flat_map(|root| detect::list_language_options(root))
+        .collect::<Vec<_>>();
+    values.sort();
+    values.dedup();
+
     let mut choices = vec![LanguageChoice {
         value: "en".to_string(),
         label: labels("en").to_string(),
     }];
-    choices.extend(
-        detect::list_language_options(languages_dir)
-            .into_iter()
-            .map(|value| LanguageChoice {
-                label: labels(&value).to_string(),
-                value,
-            }),
-    );
+    choices.extend(values.into_iter().map(|value| LanguageChoice {
+        label: labels(&value).to_string(),
+        value,
+    }));
     choices
 }
 
-fn languages_root(repo_root: &Path, resource_dir: &Path) -> PathBuf {
-    let packaged = resource_dir.join("languages");
-    if packaged.exists() {
-        packaged
-    } else {
-        repo_root.join("languages")
-    }
-}
-
 fn language_source_dir(repo_root: &Path, resource_dir: &Path, lang: &str) -> PathBuf {
-    let packaged = resource_dir.join("languages").join(lang);
-    if packaged.exists() {
-        packaged
-    } else {
-        repo_root.join("languages").join(lang)
-    }
+    language_root_candidates(repo_root, resource_dir)
+        .into_iter()
+        .map(|root| root.join(lang))
+        .find(|candidate| candidate.exists())
+        .unwrap_or_else(|| repo_root.join("languages").join(lang))
 }
 
 fn sync_state_with_bundle(state_dir: &Path, state: State, app_path: &Path, version: &str) -> State {
@@ -193,7 +205,7 @@ fn resolved_state(state_dir: &Path) -> (PathBuf, State, String) {
 }
 
 fn status_for_paths(repo_root: &Path, state_dir: &Path, resource_dir: &Path) -> StatusPayload {
-    let languages_dir = languages_root(repo_root, resource_dir);
+    let language_roots = language_root_candidates(repo_root, resource_dir);
     let (app_path, state, version) = resolved_state(state_dir);
     let current_lang = state.current_lang.clone();
     let diagnostics = if app_path.as_os_str().is_empty() {
@@ -220,7 +232,7 @@ fn status_for_paths(repo_root: &Path, state_dir: &Path, resource_dir: &Path) -> 
             .map(|candidate| candidate.to_string_lossy().to_string())
             .collect(),
         diagnostics,
-        languages: language_choices(&languages_dir),
+        languages: language_choices_from_roots(&language_roots),
         needs_extract: !app_path.as_os_str().is_empty()
             && patch::needs_english_snapshot(
                 state_dir,
@@ -563,13 +575,16 @@ fn extract_english_snapshot_or_throw(
 }
 
 fn injector_source_path(repo_root: &Path, resource_dir: &Path) -> Result<PathBuf, String> {
-    let candidates = [
-        resource_dir
-            .join("injector")
-            .join(mac_runtime::INJECTOR_DYLIB_NAME),
-        resource_dir.join(mac_runtime::INJECTOR_DYLIB_NAME),
-        repo_root.join("injector").join(mac_runtime::INJECTOR_DYLIB_NAME),
-    ];
+    let mut candidates = runtime_resource_candidates(resource_dir)
+        .into_iter()
+        .flat_map(|root| {
+            [
+                root.join("injector").join(mac_runtime::INJECTOR_DYLIB_NAME),
+                root.join(mac_runtime::INJECTOR_DYLIB_NAME),
+            ]
+        })
+        .collect::<Vec<_>>();
+    candidates.push(repo_root.join("injector").join(mac_runtime::INJECTOR_DYLIB_NAME));
     candidates
         .into_iter()
         .find(|candidate| candidate.exists())
@@ -809,6 +824,26 @@ mod tests {
     }
 
     #[test]
+    fn status_finds_languages_when_tauri_stores_parent_resources_under_up_dir() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("missing-repo");
+        let state = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        make_language(&resources.join("_up_"), "zh-Hans");
+        make_language(&resources.join("_up_"), "zh-Hant");
+        make_language(&resources.join("_up_"), "ja_JP");
+
+        let status = status_for_paths(&repo, &state, &resources);
+        let values = status
+            .languages
+            .iter()
+            .map(|language| language.value.as_str())
+            .collect::<Vec<_>>();
+
+        assert_eq!(values, vec!["en", "ja_JP", "zh-Hans", "zh-Hant"]);
+    }
+
+    #[test]
     fn apply_language_uses_packaged_resource_languages_when_repo_root_is_missing() {
         let temp = tempfile::tempdir().unwrap();
         let repo = temp.path().join("missing-repo");
@@ -826,6 +861,65 @@ mod tests {
             &repo,
             &state,
             &resources,
+            &app,
+            "zh-Hans",
+            &mut runner,
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap();
+
+        assert!(result.ok);
+        assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
+    }
+
+    #[test]
+    fn apply_language_finds_languages_when_tauri_stores_parent_resources_under_up_dir() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("missing-repo");
+        let state = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        let app = make_bundle(temp.path());
+        make_language(&resources.join("_up_"), "zh-Hans");
+        write(
+            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+            b"injector",
+        );
+
+        let mut runner = RecordingRunner::default();
+        let result = apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "zh-Hans",
+            &mut runner,
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap();
+
+        assert!(result.ok);
+        assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
+    }
+
+    #[test]
+    fn apply_language_finds_sibling_injector_when_resource_dir_points_at_up_dir() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("missing-repo");
+        let state = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        let resource_dir = resources.join("_up_");
+        let app = make_bundle(temp.path());
+        make_language(&resource_dir, "zh-Hans");
+        write(
+            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+            b"injector",
+        );
+
+        let mut runner = RecordingRunner::default();
+        let result = apply_language_inner(
+            &repo,
+            &state,
+            &resource_dir,
             &app,
             "zh-Hans",
             &mut runner,
