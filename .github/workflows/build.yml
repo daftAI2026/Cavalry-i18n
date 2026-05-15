@@ -202,6 +202,27 @@ jobs:
           ### macOS
           - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/Cavalry.Language.Switcher_${version}_aarch64.dmg)
 
+          ### macOS 首次打开
+          当前 DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID notarization。如果从浏览器下载后，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，请先把应用拖入 Applications，然后运行：
+
+          \`\`\`bash
+          xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
+          open "/Applications/Cavalry Language Switcher.app"
+          \`\`\`
+
+          开发者也可以按仓库内的 \`LOCAL_BUILD_SOP.md\` 从源码本地构建；本地构建产物不会携带浏览器下载写入的 quarantine 标记。
+
+          可把这段话发给你的 AI agent：
+
+          \`\`\`text
+          请从源码本地构建 Cavalry Language Switcher：
+
+          1. 打开仓库 /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n。
+          2. 严格按照 LOCAL_BUILD_SOP.md 执行。
+          3. 运行标准 Tauri build、执行 DMG 卷宗图标盖章，并运行 SOP 里的 packaged checks。
+          4. 完成后告诉我最终 DMG 路径。
+          \`\`\`
+
           ## 支持语言
           - English
           - 简体中文
@@ -209,6 +230,7 @@ jobs:
           - 日本語
 
           ## 使用前须知
+          - 当前 release 尚未经过 Apple Developer ID notarization；浏览器下载后首次打开可能需要手动清除 quarantine。
           - 首次应用语言包时，macOS 可能要求授予 App Management 权限。
           - 建议保留一份干净的 Cavalry 安装包或备份；恢复到完全原始状态时，重新安装 Cavalry 是最稳妥的方式。
           - 当前 release 只发布 macOS Apple Silicon 版本。

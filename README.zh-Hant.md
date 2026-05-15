@@ -30,6 +30,28 @@ Cavalry-i18n 是獨立的社群工具。它不是 Scene Group、Cavalry 或 Canv
 
 macOS 要求這個權限，是因為修改另一個 `.app` bundle 屬於受保護操作。只有在你信任此構建，並理解它會補丁、重新簽名並重新啟動本機 Cavalry 安裝時，才授予權限。請保留乾淨的 Cavalry 安裝器或備份；重新安裝 Cavalry 是恢復到未修改官方 bundle 的最安全方式。
 
+## 從 Release 安裝
+
+GitHub Release DMG 使用 ad-hoc 簽名，但尚未經過 Apple Developer ID notarization。如果把 app 拖入 Applications 後，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，請先清除一次瀏覽器下載帶來的 quarantine 標記：
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
+open "/Applications/Cavalry Language Switcher.app"
+```
+
+開發者也可以從原始碼本地構建。本地構建遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)，不會帶有瀏覽器下載產生的 quarantine 標記。
+
+也可以把這段話發給你的 AI agent：
+
+```text
+請從原始碼本地構建 Cavalry Language Switcher：
+
+1. 打開倉庫 /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n。
+2. 嚴格按照 LOCAL_BUILD_SOP.md 執行。
+3. 運行標準 Tauri build、執行 DMG 卷宗圖示蓋章，並運行 SOP 裡的 packaged checks。
+4. 完成後告訴我最終 DMG 路徑。
+```
+
 ## 快速開始
 
 ```bash

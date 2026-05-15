@@ -30,6 +30,28 @@ This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can l
 
 macOS asks for this permission because changing another `.app` bundle is a protected operation. Only grant it if you trust this build and understand that the tool will patch, re-sign, and relaunch your local Cavalry installation. Keep a clean Cavalry installer or backup available; reinstalling Cavalry is the safest way to return to an untouched official bundle.
 
+## Install From Release
+
+The GitHub Release DMG is ad-hoc signed, but it is not Apple Developer ID notarized. If macOS shows "Apple could not verify Cavalry Language Switcher is free of malware" after you drag the app into Applications, remove the browser download quarantine flag once:
+
+```bash
+xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
+open "/Applications/Cavalry Language Switcher.app"
+```
+
+Developers can also build locally from source. Local builds follow [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) and do not carry the browser download quarantine flag.
+
+Or paste this prompt to your AI agent:
+
+```text
+Build Cavalry Language Switcher locally from source:
+
+1. Open the repository at /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n.
+2. Follow LOCAL_BUILD_SOP.md exactly.
+3. Run the standard Tauri build, stamp the DMG icon, and run the packaged checks described in the SOP.
+4. Confirm the final DMG path when done.
+```
+
 ## Quick Start
 
 ```bash

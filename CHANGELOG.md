@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+- Added macOS first-launch quarantine guidance and local agent build prompts to public READMEs, GitHub Release notes, and the local build SOP.
+
 ## [0.1.9] - 2026-05-15
 
 ### Fixed

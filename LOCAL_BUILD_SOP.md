@@ -14,7 +14,22 @@
 npm run prepare:qt-sdk
 ```
 
-## 2. 标准打包流程
+## 2. Agent 本地构建话术
+
+如果开发者不想使用 GitHub Release 下载包，可以让本机 agent 按本 SOP 构建。推荐提示词：
+
+```text
+请从源码本地构建 Cavalry Language Switcher：
+
+1. 打开仓库 /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n。
+2. 严格按照 LOCAL_BUILD_SOP.md 执行。
+3. 运行标准 Tauri build、执行 DMG 卷宗图标盖章，并运行 SOP 里的 packaged checks。
+4. 完成后告诉我最终 DMG 路径。
+```
+
+本地构建产物不是浏览器下载文件，默认不会携带 Chrome/GitHub 下载写入的 `com.apple.quarantine` 标记。
+
+## 3. 标准打包流程
 
 ```bash
 export CSC_IDENTITY_AUTO_DISCOVERY=false
@@ -33,7 +48,7 @@ npm run tauri:build
 - `bundle.resources` 打包 `../languages` 与 `../injector/libCavalryTranslatorInjector.dylib`。
 - `bundle.macOS.signingIdentity = "-"` 与 `APPLE_SIGNING_IDENTITY="-"` 都指向同一个 Tauri ad-hoc pseudo-identity，不是 Developer ID；它让 Tauri 在生成 DMG 前对 `.app` 执行显式 bundle signing，写入 `_CodeSignature/CodeResources`，否则浏览器下载后的 quarantine 检查会把缺少 bundle seal 的 app 判定为 damaged。
 
-## 3. DMG 增强修饰 (卷宗图标盖章)
+## 4. DMG 增强修饰 (卷宗图标盖章)
 
 Tauri 原生 DMG 配置（`tauri.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸与图标坐标，无需手动干预。
 
@@ -49,7 +64,7 @@ bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 
 脚本最后仍会 best-effort 对本机 DMG 文件自身写入 Rez/SetFile resource fork。该外壳图标只对当前 macOS 文件系统可靠，GitHub 上传/下载链路会丢弃 `com.apple.ResourceFork`，不作为发布阻塞项。
 
-## 4. 产物验证
+## 5. 产物验证
 
 ```bash
 npm run check:app
@@ -71,6 +86,6 @@ npm run test:tauri:manual-smoke
 - `.app/Contents/Resources/` 内包含 `languages` 与 `libCavalryTranslatorInjector.dylib`。
 - 主窗口截图、字体加载状态、核心控件 bounding box、按钮顺序与状态文本必须满足冻结的 Tauri window contract。
 
-## 5. 当前边界
+## 6. 当前边界
 
 Tauri 是唯一默认壳与唯一发布路径；bridge、配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实 macOS 三语冒烟都已具备可重跑守门。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。

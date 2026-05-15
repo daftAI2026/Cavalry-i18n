@@ -17,5 +17,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-05-15: release notes 模板改为第一次发布可读的产品说明，中文为主并补充日文短说明与英文独立工具声明，包含用途、支持语言、权限提醒和下载入口，不在用户侧 Release 说明中展示内部 SOP 构建验证细节。
 2026-05-15: macOS packaging job 限制为 `v*` tag 与手动触发，main/PR push 不再自动生成 macOS DMG artifact；Release 继续只由 `v*` tag 创建。
 2026-05-15: macOS packaging 显式设置 `APPLE_SIGNING_IDENTITY="-"`，让 GitHub runner 走与本地一致的 Tauri ad-hoc bundle signing，避免 release DMG 安装后缺少 `CodeResources` 被 Gatekeeper 判定 damaged。
+2026-05-15: release notes 增加未 notarized 下载包的首次打开说明、`xattr -dr com.apple.quarantine` 命令，以及按 `LOCAL_BUILD_SOP.md` 让本机 agent 从源码构建的提示词。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
