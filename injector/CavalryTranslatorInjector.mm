@@ -654,10 +654,12 @@ void hookQtMenu(QMenu *menu, const QString &lang)
             if (guardedMenu.isNull()) {
                 return;
             }
-            // Defer translation to next event loop iteration.
-            // Cavalry's own aboutToShow handler may populate items lazily.
-            // By dispatching async, we ensure all handlers have run first.
-            dispatch_async(dispatch_get_main_queue(), ^{
+            // Defer translation to next event loop iteration in COMMON modes.
+            // dispatch_async(main_queue) does NOT run during menu tracking
+            // (NSRunLoop is in NSEventTrackingRunLoopMode), so use
+            // CFRunLoopPerformBlock with kCFRunLoopCommonModes to ensure
+            // the translation block executes while the menu is visible.
+            CFRunLoopPerformBlock(CFRunLoopGetMain(), kCFRunLoopCommonModes, ^{
                 if (guardedMenu.isNull()) {
                     return;
                 }
@@ -669,6 +671,7 @@ void hookQtMenu(QMenu *menu, const QString &lang)
                 }
                 refreshNativeMenuBar(lang);
             });
+            CFRunLoopWakeUp(CFRunLoopGetMain());
         }
     );
 }
