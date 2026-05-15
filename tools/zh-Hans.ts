@@ -1362,7 +1362,7 @@
     <message><source>Hold</source><translation>别动</translation></message>
     <message><source>Hold Alt while clicking to hide this help permanently</source><translation>单击时按住选项键可永久隐藏此帮助</translation></message>
     <message><source>Hold Alt while clicking to hide this help permanently.</source><translation>单击时按住选项键可永久隐藏此帮助。</translation></message>
-    <message><source>Hold S</source><translation>按住保存键</translation></message>
+    <message><source>Hold S</source><translation>按住 S</translation></message>
     <message><source>Hold Shift to Align Handles as well as Points</source><translation>按住上档键同时对齐手柄和点</translation></message>
     <message><source>Hold Shift to Align Handles as well as Points.</source><translation>按住上档键同时对齐手柄和点。</translation></message>
     <message><source>Horizontal Distribution</source><translation>水平分布</translation></message>
@@ -2353,7 +2353,7 @@
     <message><source>Some plugins require a newer version</source><translation>一些插件需要更新版本</translation></message>
     <message><source>Something went wrong during sign in. Please try again</source><translation>签字时出事了 请再试一次</translation></message>
     <message><source>Sort Order</source><translation>排序顺序</translation></message>
-    <message><source>Space</source><translation>空间</translation></message>
+    <message><source>Space</source><translation>空格</translation></message>
     <message><source>Speed In</source><translation>速度进入</translation></message>
     <message><source>Speed Out</source><translation>快速退出</translation></message>
     <message><source>Speed Strength</source><translation>速度强度</translation></message>
@@ -3059,7 +3059,7 @@
     </message>
     <message>
       <source>Shift</source>
-      <translation>移动</translation>
+      <translation>Shift</translation>
     </message>
     <message>
       <source>Alt</source>
@@ -6246,6 +6246,50 @@
     <message>
       <source>Emoji &amp; Symbols</source>
       <translation>表情与符号</translation>
+    </message>
+    <message>
+      <source>Load...</source>
+      <translation>加载...</translation>
+    </message>
+    <message>
+      <source>Create...</source>
+      <translation>创建...</translation>
+    </message>
+    <message>
+      <source>Welcome to Cavalry.</source>
+      <translation>欢迎使用 Cavalry。</translation>
+    </message>
+    <message>
+      <source>S + click path</source>
+      <translation>S + 单击路径</translation>
+    </message>
+    <message>
+      <source>Play / Stop</source>
+      <translation>播放 / 停止</translation>
+    </message>
+    <message>
+      <source>Space + click + drag</source>
+      <translation>空格 + 单击 + 拖动</translation>
+    </message>
+    <message>
+      <source>Snap Angle:</source>
+      <translation>吸附角度:</translation>
+    </message>
+    <message>
+      <source>Manipulator:</source>
+      <translation>操纵器:</translation>
+    </message>
+    <message>
+      <source>Rectangle Tool</source>
+      <translation>矩形工具</translation>
+    </message>
+    <message>
+      <source>Hold alt/option to create this primitive without entering the tool.</source>
+      <translation>按住 Alt/Option 可直接创建此图元，而不进入该工具。</translation>
+    </message>
+    <message>
+      <source>Align:</source>
+      <translation>对齐:</translation>
     </message>
   </context>
 </TS>

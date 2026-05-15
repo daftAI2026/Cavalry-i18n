@@ -2424,7 +2424,7 @@
     <message><source>Some plugins require a newer version</source><translation>一些外掛需要更新版本</translation></message>
     <message><source>Something went wrong during sign in. Please try again</source><translation>簽字時出事了 請再試一次</translation></message>
     <message><source>Sort Order</source><translation>排序順序</translation></message>
-    <message><source>Space</source><translation>空間</translation></message>
+    <message><source>Space</source><translation>空白鍵</translation></message>
     <message><source>Speed In</source><translation>速度進入</translation></message>
     <message><source>Speed Out</source><translation>快速退出</translation></message>
     <message><source>Speed Strength</source><translation>速度強度</translation></message>
@@ -3130,7 +3130,7 @@
     </message>
     <message>
       <source>Shift</source>
-      <translation>移動</translation>
+      <translation>Shift</translation>
     </message>
     <message>
       <source>Alt</source>
@@ -6495,6 +6495,50 @@
     <message>
       <source>Emoji &amp; Symbols</source>
       <translation>表情與符號</translation>
+    </message>
+    <message>
+      <source>Load...</source>
+      <translation>載入...</translation>
+    </message>
+    <message>
+      <source>Create...</source>
+      <translation>建立...</translation>
+    </message>
+    <message>
+      <source>Welcome to Cavalry.</source>
+      <translation>歡迎使用 Cavalry。</translation>
+    </message>
+    <message>
+      <source>S + click path</source>
+      <translation>S + 按一下路徑</translation>
+    </message>
+    <message>
+      <source>Play / Stop</source>
+      <translation>播放 / 停止</translation>
+    </message>
+    <message>
+      <source>Space + click + drag</source>
+      <translation>空白鍵 + 按一下 + 拖曳</translation>
+    </message>
+    <message>
+      <source>Snap Angle:</source>
+      <translation>吸附角度:</translation>
+    </message>
+    <message>
+      <source>Manipulator:</source>
+      <translation>操控器:</translation>
+    </message>
+    <message>
+      <source>Rectangle Tool</source>
+      <translation>矩形工具</translation>
+    </message>
+    <message>
+      <source>Hold alt/option to create this primitive without entering the tool.</source>
+      <translation>按住 Alt/Option 可直接建立此圖元，而不進入該工具。</translation>
+    </message>
+    <message>
+      <source>Align:</source>
+      <translation>對齊:</translation>
     </message>
   </context>
 

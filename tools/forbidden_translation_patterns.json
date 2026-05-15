@@ -113,7 +113,7 @@
       "MP4", "MOV", "WEBM", "GIF", "PRORES", "H264", "H265", "HEVC",
       "Lottie", "Rive", "Spine",
       "Bearer", "erase", "key", "operator", "direction", "false", "true",
-      "Shift", "Ctrl", "Alt", "Option", "Command"
+      "Shift", "Ctrl", "Alt", "Option", "Command", "Space"
     ],
     "extraReservedFromAllowlist": "tools/runtime_ui_allowlist.json",
     "ignoreAllUppercaseAcronyms": true,

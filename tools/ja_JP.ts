@@ -7697,6 +7697,50 @@
       <source>Access All Alternates</source>
       <translation>すべての異体字にアクセス</translation>
     </message>
+    <message>
+      <source>Load...</source>
+      <translation>読み込み...</translation>
+    </message>
+    <message>
+      <source>Create...</source>
+      <translation>作成...</translation>
+    </message>
+    <message>
+      <source>Welcome to Cavalry.</source>
+      <translation>Cavalry へようこそ。</translation>
+    </message>
+    <message>
+      <source>S + click path</source>
+      <translation>S + パスをクリック</translation>
+    </message>
+    <message>
+      <source>Play / Stop</source>
+      <translation>再生 / 停止</translation>
+    </message>
+    <message>
+      <source>Space + click + drag</source>
+      <translation>Space + クリック + ドラッグ</translation>
+    </message>
+    <message>
+      <source>Snap Angle:</source>
+      <translation>スナップ角度:</translation>
+    </message>
+    <message>
+      <source>Manipulator:</source>
+      <translation>マニピュレータ:</translation>
+    </message>
+    <message>
+      <source>Rectangle Tool</source>
+      <translation>矩形ツール</translation>
+    </message>
+    <message>
+      <source>Hold alt/option to create this primitive without entering the tool.</source>
+      <translation>Alt/Option を押したままにすると、このプリミティブをツールに入らず作成できます。</translation>
+    </message>
+    <message>
+      <source>Align:</source>
+      <translation>整列:</translation>
+    </message>
   </context>
 
     <message>
