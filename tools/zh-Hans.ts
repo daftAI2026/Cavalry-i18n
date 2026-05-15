@@ -831,7 +831,7 @@
     <message><source>Combined Keyframe Layers value</source><translation>组合关键帧图层值</translation></message>
     <message><source>Combined Keyframe Layers value.</source><translation>组合关键帧图层值。</translation></message>
     <message><source>Comm</source><translation>通讯</translation></message>
-    <message><source>Command</source><translation>命令</translation></message>
+    <message><source>Command</source><translation>Command</translation></message>
     <message><source>Command Search (Pro)</source><translation>命令搜索(专业版)</translation></message>
     <message><source>Commit Tag</source><translation>提交标签</translation></message>
     <message><source>Common</source><translation>常见</translation></message>

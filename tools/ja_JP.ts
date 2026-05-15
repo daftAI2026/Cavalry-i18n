@@ -1915,7 +1915,7 @@
     <message><source>Combined Keyframe Layers value</source><translation>結合キーフレームレイヤー値</translation></message>
     <message><source>Combined Keyframe Layers value.</source><translation>結合キーフレームレイヤー値。</translation></message>
     <message><source>Comm</source><translation>コーム</translation></message>
-    <message><source>Command</source><translation>コマンド</translation></message>
+    <message><source>Command</source><translation>Command</translation></message>
     <message><source>Command Search (Pro)</source><translation>コマンド検索(プロ版)</translation></message>
     <message><source>Commit Tag</source><translation>コミットタグ</translation></message>
     <message><source>Common</source><translation>よくある質問</translation></message>

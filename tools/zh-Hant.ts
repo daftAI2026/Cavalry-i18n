@@ -902,7 +902,7 @@
     <message><source>Combined Keyframe Layers value</source><translation>組合關鍵幀圖層值</translation></message>
     <message><source>Combined Keyframe Layers value.</source><translation>組合關鍵幀圖層值。</translation></message>
     <message><source>Comm</source><translation>通訊</translation></message>
-    <message><source>Command</source><translation>命令</translation></message>
+    <message><source>Command</source><translation>Command</translation></message>
     <message><source>Command Search (Pro)</source><translation>指令搜尋(專業版)</translation></message>
     <message><source>Commit Tag</source><translation>提交標籤</translation></message>
     <message><source>Common</source><translation>常見</translation></message>
