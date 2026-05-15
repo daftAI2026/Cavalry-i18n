@@ -2080,6 +2080,45 @@ test('shared forbidden translation detector rejects transliteration and pangram 
   );
 });
 
+test('shortcut-token translations are free of semantic mistranslation', () => {
+  const zhHansPath = path.join(repoRoot, 'tools', 'zh-Hans.ts');
+  const zhHantPath = path.join(repoRoot, 'tools', 'zh-Hant.ts');
+  const jaJpPath = path.join(repoRoot, 'tools', 'ja_JP.ts');
+
+  function parseTs(file) {
+    const xml = fs.readFileSync(file, 'utf8');
+    const out = new Map();
+    for (const message of xml.matchAll(/<message>([\s\S]*?)<\/message>/g)) {
+      const block = message[1];
+      const source = (block.match(/<source>([\s\S]*?)<\/source>/) || [])[1];
+      const translation = (block.match(/<translation>([\s\S]*?)<\/translation>/) || [])[1];
+      if (source && translation) out.set(source.trim(), translation.trim());
+    }
+    return out;
+  }
+
+  const zhHans = parseTs(zhHansPath);
+  const zhHant = parseTs(zhHantPath);
+  const jaJp = parseTs(jaJpPath);
+
+  // Hold S must not contain 保存 (save verb)
+  assert.ok(!zhHans.get('Hold S').includes('保存'), 'Hold S zh-Hans should not contain 保存');
+
+  // Standalone Space must not translate as 空间 (outer space)
+  assert.ok(!zhHans.get('Space').includes('空间'), 'Space zh-Hans should not be 空间');
+  assert.ok(!zhHant.get('Space').includes('空間'), 'Space zh-Hant should not be 空間');
+
+  // Standalone Shift must not translate as 移动/上档 (move verb)
+  assert.ok(!zhHans.get('Shift').includes('移动'), 'Shift zh-Hans should not be 移动');
+  assert.ok(!zhHans.get('Shift').includes('上档'), 'Shift zh-Hans should not be 上档');
+  assert.ok(!zhHant.get('Shift').includes('移動'), 'Shift zh-Hant should not be 移動');
+  assert.ok(!zhHant.get('Shift').includes('上檔'), 'Shift zh-Hant should not be 上檔');
+
+  // Command must not translate as 命令 (order verb) in zh-Hans and zh-Hant
+  assert.ok(!zhHans.get('Command').includes('命令'), 'Command zh-Hans should not be 命令');
+  assert.ok(!zhHant.get('Command').includes('命令'), 'Command zh-Hant should not be 命令');
+});
+
 test('shared forbidden translation detector rejects target-language filler and script contamination', () => {
   const detectorPath = path.join(repoRoot, 'tools', 'forbidden_translation_patterns.js');
   const { detectForbiddenTranslationPatterns } = require(detectorPath);

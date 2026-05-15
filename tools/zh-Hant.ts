@@ -738,7 +738,7 @@
     <message><source>Any selected shapes will automatically be added as input shapes.</source><translation>任何選取的形狀都會自動新增為輸入形狀。</translation></message>
     <message><source>Apache</source><translation>阿帕契</translation></message>
     <message><source>Append</source><translation>附加</translation></message>
-    <message><source>Apple</source><translation>蘋果公司</translation></message>
+    <message><source>Apple</source><translation>Apple</translation></message>
     <message><source>Application</source><translation>應用程式</translation></message>
     <message><source>Apply Track</source><translation>應用音軌</translation></message>
     <message><source>Apricot Peach</source><translation>杏花桃( 杏花桃)</translation></message>
@@ -6539,6 +6539,10 @@
     <message>
       <source>Align:</source>
       <translation>對齊:</translation>
+    </message>
+    <message>
+      <source>Shelf</source>
+      <translation>工具架</translation>
     </message>
   </context>
 

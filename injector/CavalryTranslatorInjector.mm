@@ -654,13 +654,19 @@ void hookQtMenu(QMenu *menu, const QString &lang)
             if (guardedMenu.isNull()) {
                 return;
             }
-            translateQtMenu(guardedMenu, lang);
-            for (QAction *action : guardedMenu->actions()) {
-                if (action != nullptr) {
-                    translateQtAction(action, lang);
-                }
-            }
+            // Defer translation to next event loop iteration.
+            // Cavalry's own aboutToShow handler may populate items lazily.
+            // By dispatching async, we ensure all handlers have run first.
             dispatch_async(dispatch_get_main_queue(), ^{
+                if (guardedMenu.isNull()) {
+                    return;
+                }
+                translateQtMenu(guardedMenu, lang);
+                for (QAction *action : guardedMenu->actions()) {
+                    if (action != nullptr) {
+                        translateQtAction(action, lang);
+                    }
+                }
                 refreshNativeMenuBar(lang);
             });
         }

@@ -1776,7 +1776,7 @@
     <message><source>Any selected shapes will automatically be added as input shapes.</source><translation>選択した形状は入力形状として自動的に追加されます。</translation></message>
     <message><source>Apache</source><translation>アパッチ</translation></message>
     <message><source>Append</source><translation>追加</translation></message>
-    <message><source>Apple</source><translation>アップル</translation></message>
+    <message><source>Apple</source><translation>Apple</translation></message>
     <message><source>Application</source><translation>アプリケーション</translation></message>
     <message><source>Apply Track</source><translation>応用トラック</translation></message>
     <message><source>Apricot Peach</source><translation>アプリコットピーチ</translation></message>
@@ -7740,6 +7740,10 @@
     <message>
       <source>Align:</source>
       <translation>整列:</translation>
+    </message>
+    <message>
+      <source>Shelf</source>
+      <translation>シェルフ</translation>
     </message>
   </context>
 

@@ -2899,7 +2899,7 @@ const TranslationEntry kZhHansEntries[] = {
     {"MenuBarManager", "appears to be a Version 4 MAT-file, which is not currently supported", "似乎是当前不支持的第四版矩阵文件"},
     {"MenuBarManager", "appears to be a Version 4 MAT-file, which is not currently supported.", "似乎是当前不支持的第四版矩阵文件。"},
     {"MenuBarManager", "Append", "追加"},
-    {"MenuBarManager", "Apple", "苹果"},
+    {"MenuBarManager", "Apple", "Apple"},
     {"MenuBarManager", "Application", "应用程序"},
     {"MenuBarManager", "Apply Track", "应用跟踪"},
     {"MenuBarManager", "Apricot Peach", "杏桃"},
@@ -3622,6 +3622,7 @@ const TranslationEntry kZhHansEntries[] = {
     {"MenuBarManager", "Rectangle Tool", "矩形工具"},
     {"MenuBarManager", "Hold alt/option to create this primitive without entering the tool.", "按住 Alt/Option 可直接创建此图元，而不进入该工具。"},
     {"MenuBarManager", "Align:", "对齐:"},
+    {"MenuBarManager", "Shelf", "工具架"},
 };
 
 const TranslationEntry kZhHantEntries[] = {
@@ -3840,7 +3841,7 @@ const TranslationEntry kZhHantEntries[] = {
     {"MenuBarManager", "Any selected shapes will automatically be added as input shapes.", "任何選取的形狀都會自動新增為輸入形狀。"},
     {"MenuBarManager", "Apache", "阿帕契"},
     {"MenuBarManager", "Append", "附加"},
-    {"MenuBarManager", "Apple", "蘋果公司"},
+    {"MenuBarManager", "Apple", "Apple"},
     {"MenuBarManager", "Application", "應用程式"},
     {"MenuBarManager", "Apply Track", "應用音軌"},
     {"MenuBarManager", "Apricot Peach", "杏花桃( 杏花桃)"},
@@ -7172,6 +7173,7 @@ const TranslationEntry kZhHantEntries[] = {
     {"MenuBarManager", "Rectangle Tool", "矩形工具"},
     {"MenuBarManager", "Hold alt/option to create this primitive without entering the tool.", "按住 Alt/Option 可直接建立此圖元，而不進入該工具。"},
     {"MenuBarManager", "Align:", "對齊:"},
+    {"MenuBarManager", "Shelf", "工具架"},
 };
 
 const TranslationEntry kJaEntries[] = {
@@ -7647,7 +7649,7 @@ const TranslationEntry kJaEntries[] = {
     {"MenuBarManager", "Any selected shapes will automatically be added as input shapes.", "選択した形状は入力形状として自動的に追加されます。"},
     {"MenuBarManager", "Apache", "アパッチ"},
     {"MenuBarManager", "Append", "追加"},
-    {"MenuBarManager", "Apple", "アップル"},
+    {"MenuBarManager", "Apple", "Apple"},
     {"MenuBarManager", "Application", "アプリケーション"},
     {"MenuBarManager", "Apply Track", "応用トラック"},
     {"MenuBarManager", "Apricot Peach", "アプリコットピーチ"},
@@ -10724,6 +10726,7 @@ const TranslationEntry kJaEntries[] = {
     {"MenuBarManager", "Rectangle Tool", "矩形ツール"},
     {"MenuBarManager", "Hold alt/option to create this primitive without entering the tool.", "Alt/Option を押したままにすると、このプリミティブをツールに入らず作成できます。"},
     {"MenuBarManager", "Align:", "整列:"},
+    {"MenuBarManager", "Shelf", "シェルフ"},
 };
 
 const TranslationEntry *entriesForLanguage(const QString &lang, int *count)

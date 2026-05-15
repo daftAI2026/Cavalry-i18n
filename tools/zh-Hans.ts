@@ -3617,7 +3617,7 @@
     <message><source>appears to be a Version 4 MAT-file, which is not currently supported</source><translation>似乎是当前不支持的第四版矩阵文件</translation></message>
     <message><source>appears to be a Version 4 MAT-file, which is not currently supported.</source><translation>似乎是当前不支持的第四版矩阵文件。</translation></message>
     <message><source>Append</source><translation>追加</translation></message>
-    <message><source>Apple</source><translation>苹果</translation></message>
+    <message><source>Apple</source><translation>Apple</translation></message>
     <message><source>Application</source><translation>应用程序</translation></message>
     <message><source>Apply Track</source><translation>应用跟踪</translation></message>
     <message><source>Apricot Peach</source><translation>杏桃</translation></message>
@@ -6290,6 +6290,10 @@
     <message>
       <source>Align:</source>
       <translation>对齐:</translation>
+    </message>
+    <message>
+      <source>Shelf</source>
+      <translation>工具架</translation>
     </message>
   </context>
 </TS>
