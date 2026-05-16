@@ -346,6 +346,47 @@ test('embedded injector translates visible Qt widget text beyond menus', () => {
   );
 });
 
+test('embedded injector translates compound multiline widget strings line by line', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /translatedCompoundWidgetText/,
+    'compound tooltip text should have a dedicated fallback after exact string lookup fails'
+  );
+  assert.match(
+    injectorSource,
+    /split\(QChar\('\\n'\)\)|split\(QStringLiteral\("\\n"\)\)/,
+    'compound tooltip fallback should split multiline tooltips into independently translatable lines'
+  );
+  assert.match(
+    injectorSource,
+    /translatedLineCount/,
+    'compound translation should only rewrite a string when at least one component line was translated'
+  );
+});
+
+test('embedded injector translates exact QLineEdit values as well as placeholders', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /lineEdit->text\(\)/,
+    'line edit current values such as Default Keyframe Layer should be considered for exact embedded translation'
+  );
+  assert.match(
+    injectorSource,
+    /lineEdit->setText\(translated\)/,
+    'line edit current values should be rewritten when they exactly match an embedded UI source'
+  );
+});
+
 test('embedded injector translates widget-owned actions and container item labels', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),

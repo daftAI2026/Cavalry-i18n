@@ -695,13 +695,48 @@ void hookQtMenus(const QString &lang)
     }
 }
 
+QString translatedCompoundWidgetText(const QString &lang, const QString &sourceText);
+
 QString translatedWidgetText(const QString &lang, const QString &sourceText)
 {
-    const QString translated = lookupEmbeddedTranslation(lang, sourceText);
+    const QString translated = translatedCompoundWidgetText(lang, sourceText);
     if (translated.isEmpty() || translated == sourceText) {
         return QString();
     }
     return translated;
+}
+
+QString translatedCompoundWidgetText(const QString &lang, const QString &sourceText)
+{
+    const QString translated = lookupEmbeddedTranslation(lang, sourceText);
+    if (!translated.isEmpty() && translated != sourceText) {
+        return translated;
+    }
+
+    if (!sourceText.contains(QChar('\n'))) {
+        return QString();
+    }
+
+    const QStringList lines = sourceText.split(QChar('\n'));
+    QStringList translatedLines;
+    translatedLines.reserve(lines.size());
+
+    int translatedLineCount = 0;
+    for (const QString &line : lines) {
+        const QString translatedLine = lookupEmbeddedTranslation(lang, line);
+        if (!translatedLine.isEmpty() && translatedLine != line) {
+            translatedLines.append(translatedLine);
+            ++translatedLineCount;
+            continue;
+        }
+        translatedLines.append(line);
+    }
+
+    if (translatedLineCount == 0) {
+        return QString();
+    }
+
+    return translatedLines.join(QChar('\n'));
 }
 
 void translateListWidgetItems(QListWidget *listWidget, const QString &lang)
@@ -819,6 +854,10 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
     }
 
     if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(widget)) {
+        translated = translatedWidgetText(lang, lineEdit->text());
+        if (!translated.isEmpty()) {
+            lineEdit->setText(translated);
+        }
         translated = translatedWidgetText(lang, lineEdit->placeholderText());
         if (!translated.isEmpty()) {
             lineEdit->setPlaceholderText(translated);

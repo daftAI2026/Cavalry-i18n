@@ -7742,6 +7742,122 @@
       <translation>整列:</translation>
     </message>
     <message>
+      <source>Arc Tool</source>
+      <translation>弧ツール</translation>
+    </message>
+    <message>
+      <source>Arrow Tool</source>
+      <translation>矢印ツール</translation>
+    </message>
+    <message>
+      <source>Camera Tool (c)</source>
+      <translation>カメラツール (c)</translation>
+    </message>
+    <message>
+      <source>Capsule Tool</source>
+      <translation>カプセルツール</translation>
+    </message>
+    <message>
+      <source>Cogwheel Tool</source>
+      <translation>歯車ツール</translation>
+    </message>
+    <message>
+      <source>Edit Shape Tool (a)</source>
+      <translation>シェイプ編集ツール (a)</translation>
+    </message>
+    <message>
+      <source>Ellipse Tool</source>
+      <translation>楕円ツール</translation>
+    </message>
+    <message>
+      <source>Mesh Tool (m)</source>
+      <translation>メッシュツール (m)</translation>
+    </message>
+    <message>
+      <source>Pen Tool (p)</source>
+      <translation>ペンツール (p)</translation>
+    </message>
+    <message>
+      <source>Pencil Tool (l)</source>
+      <translation>鉛筆ツール (l)</translation>
+    </message>
+    <message>
+      <source>Pivot Tool (y)</source>
+      <translation>ピボットツール (y)</translation>
+    </message>
+    <message>
+      <source>Polygon Tool</source>
+      <translation>多角形ツール</translation>
+    </message>
+    <message>
+      <source>Select Tool (v)</source>
+      <translation>選択ツール (v)</translation>
+    </message>
+    <message>
+      <source>Star Tool</source>
+      <translation>星形ツール</translation>
+    </message>
+    <message>
+      <source>Super Ellipse Tool</source>
+      <translation>スーパー楕円ツール</translation>
+    </message>
+    <message>
+      <source>Text Tool (t)</source>
+      <translation>テキストツール (t)</translation>
+    </message>
+    <message>
+      <source>Tracking Tool</source>
+      <translation>トラッキングツール</translation>
+    </message>
+    <message>
+      <source>Play/ Stop</source>
+      <translation>再生/停止</translation>
+    </message>
+    <message>
+      <source>Add a layer to your Composition (⌘.)</source>
+      <translation>コンポジションにレイヤーを追加 (⌘.)</translation>
+    </message>
+    <message>
+      <source>Click and drag in the Viewport to create an Editable Shape or alt/option + click the icon to create a Basic Line.</source>
+      <translation>ビューポートでクリックしてドラッグすると編集可能なシェイプを作成し、Alt/Option + アイコンのクリックで基本線を作成します。</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to Create a Camera</source>
+      <translation>Alt/Option を押したままカメラを作成</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to add a Rubber Hose to the Selected Objects.</source>
+      <translation>Alt/Option を押したまま選択オブジェクトにラバーホースを追加します。</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to align to the Composition</source>
+      <translation>Alt/Option を押したままコンポジションに整列</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to distribute across the Composition</source>
+      <translation>Alt/Option を押したままコンポジション全体に分布</translation>
+    </message>
+    <message>
+      <source>Remember to set motion blur to 'Full' for each shape you wish to use this with.</source>
+      <translation>この機能を使う各シェイプで、モーションブラーを「完全」に設定してください。</translation>
+    </message>
+    <message>
+      <source>Schedule the selected layers using a Scheduling Group. A Stagger Behaviour will automatically be created to control the group.</source>
+      <translation>選択したレイヤーをスケジューリンググループでスケジュールします。グループを制御するずらしビヘイビアが自動的に作成されます。</translation>
+    </message>
+    <message>
+      <source>Show Composition Boundary.</source>
+      <translation>コンポジション境界を表示します。</translation>
+    </message>
+    <message>
+      <source>Toggle this mode with the 'U' key.</source>
+      <translation>U キーでこのモードを切り替えます。</translation>
+    </message>
+    <message>
+      <source>Tips and Tricks 🚀</source>
+      <translation>ヒントとコツ 🚀</translation>
+    </message>
+    <message>
       <source>Shelf</source>
       <translation>シェルフ</translation>
     </message>

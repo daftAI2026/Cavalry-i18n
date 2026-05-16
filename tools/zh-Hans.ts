@@ -6292,6 +6292,122 @@
       <translation>对齐:</translation>
     </message>
     <message>
+      <source>Arc Tool</source>
+      <translation>弧线工具</translation>
+    </message>
+    <message>
+      <source>Arrow Tool</source>
+      <translation>箭头工具</translation>
+    </message>
+    <message>
+      <source>Camera Tool (c)</source>
+      <translation>摄像机工具 (c)</translation>
+    </message>
+    <message>
+      <source>Capsule Tool</source>
+      <translation>胶囊工具</translation>
+    </message>
+    <message>
+      <source>Cogwheel Tool</source>
+      <translation>齿轮工具</translation>
+    </message>
+    <message>
+      <source>Edit Shape Tool (a)</source>
+      <translation>编辑形状工具 (a)</translation>
+    </message>
+    <message>
+      <source>Ellipse Tool</source>
+      <translation>椭圆工具</translation>
+    </message>
+    <message>
+      <source>Mesh Tool (m)</source>
+      <translation>网格工具 (m)</translation>
+    </message>
+    <message>
+      <source>Pen Tool (p)</source>
+      <translation>钢笔工具 (p)</translation>
+    </message>
+    <message>
+      <source>Pencil Tool (l)</source>
+      <translation>铅笔工具 (l)</translation>
+    </message>
+    <message>
+      <source>Pivot Tool (y)</source>
+      <translation>轴心工具 (y)</translation>
+    </message>
+    <message>
+      <source>Polygon Tool</source>
+      <translation>多边形工具</translation>
+    </message>
+    <message>
+      <source>Select Tool (v)</source>
+      <translation>选择工具 (v)</translation>
+    </message>
+    <message>
+      <source>Star Tool</source>
+      <translation>星形工具</translation>
+    </message>
+    <message>
+      <source>Super Ellipse Tool</source>
+      <translation>超椭圆工具</translation>
+    </message>
+    <message>
+      <source>Text Tool (t)</source>
+      <translation>文本工具 (t)</translation>
+    </message>
+    <message>
+      <source>Tracking Tool</source>
+      <translation>跟踪工具</translation>
+    </message>
+    <message>
+      <source>Play/ Stop</source>
+      <translation>播放/停止</translation>
+    </message>
+    <message>
+      <source>Add a layer to your Composition (⌘.)</source>
+      <translation>向合成添加图层 (⌘.)</translation>
+    </message>
+    <message>
+      <source>Click and drag in the Viewport to create an Editable Shape or alt/option + click the icon to create a Basic Line.</source>
+      <translation>在视口中单击并拖动可创建可编辑形状，或按 Alt/Option 并单击图标可创建基础线条。</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to Create a Camera</source>
+      <translation>按住 Alt/Option 可创建摄像机</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to add a Rubber Hose to the Selected Objects.</source>
+      <translation>按住 Alt/Option 可向所选对象添加橡皮管。</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to align to the Composition</source>
+      <translation>按住 Alt/Option 可对齐到合成</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to distribute across the Composition</source>
+      <translation>按住 Alt/Option 可在合成范围内分布</translation>
+    </message>
+    <message>
+      <source>Remember to set motion blur to 'Full' for each shape you wish to use this with.</source>
+      <translation>请记得将每个要使用此功能的形状的运动模糊设为“完全”。</translation>
+    </message>
+    <message>
+      <source>Schedule the selected layers using a Scheduling Group. A Stagger Behaviour will automatically be created to control the group.</source>
+      <translation>使用调度组调度所选图层。系统会自动创建一个错开行为来控制该组。</translation>
+    </message>
+    <message>
+      <source>Show Composition Boundary.</source>
+      <translation>显示合成边界。</translation>
+    </message>
+    <message>
+      <source>Toggle this mode with the 'U' key.</source>
+      <translation>使用 U 键切换此模式。</translation>
+    </message>
+    <message>
+      <source>Tips and Tricks 🚀</source>
+      <translation>提示与技巧 🚀</translation>
+    </message>
+    <message>
       <source>Shelf</source>
       <translation>工具架</translation>
     </message>
