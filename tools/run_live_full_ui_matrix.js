@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 launch_cavalry_with_injector.sh、capture_accessibility_inventory.js、merge_runtime_inventory.js 与 runtime coverage 工具
- * [OUTPUT]: 对外提供 live full-ui matrix session、SESSION_DIR/runtime/* inventories 与 full-ui-run-record.json
+ * [OUTPUT]: 对外提供 live full-ui matrix session、SESSION_DIR/runtime/* inventories、full-ui-run-record.json 与无副作用 --help
  * [POS]: tools 的 G-CAPTURE 编排器，负责启动真实 Cavalry、拒绝弱抓取并留下 session-scoped provenance
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -19,6 +19,18 @@ function fail(message) {
   throw new Error(message);
 }
 
+function usage() {
+  return `Usage: run_live_full_ui_matrix.js [options]
+
+Options:
+  --app <path>           Target Cavalry.app bundle. Default: /Applications/Cavalry.app
+  --cache-root <path>    Cache root for session artifacts. Default: ~/Library/Caches/Cavalry-i18n
+  --session-uuid <id>    Explicit session id. Default: generated UUID
+  --languages <codes>    Comma-separated languages. Default: en,zh-Hans,zh-Hant,ja_JP
+  --help, -h             Show this help text without starting Cavalry
+`;
+}
+
 function parseArgs(argv) {
   const options = {
     app: '/Applications/Cavalry.app',
@@ -29,6 +41,10 @@ function parseArgs(argv) {
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
+    if (arg === '--help' || arg === '-h') {
+      options.help = true;
+      continue;
+    }
     if (arg === '--app') {
       options.app = argv[index + 1] || '';
       index += 1;
@@ -141,6 +157,11 @@ function assertRuntimeCaptureStrength({ language, totalCandidates, menuLeaves })
 
 function main() {
   const options = parseArgs(process.argv.slice(2));
+  if (options.help) {
+    process.stdout.write(usage());
+    return;
+  }
+
   const repoRoot = path.resolve(__dirname, '..');
   const sessionDir = path.join(options.cacheRoot, 'sessions', options.sessionUuid);
   const runtimeDir = path.join(sessionDir, 'runtime');
@@ -286,6 +307,7 @@ module.exports = {
   assertRuntimeCaptureStrength,
   parseLaunchPid,
   parseArgs,
+  usage,
   waitForFile,
   waitForFileOptional,
 };

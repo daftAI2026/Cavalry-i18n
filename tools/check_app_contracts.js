@@ -1622,6 +1622,13 @@ test('live full UI matrix orchestrator parses launcher PID and rejects missing P
   );
 });
 
+test('live full UI matrix orchestrator exposes help without starting a capture', () => {
+  const { parseArgs } = require(path.join(repoRoot, 'tools', 'run_live_full_ui_matrix.js'));
+
+  assert.equal(parseArgs(['--help']).help, true);
+  assert.equal(parseArgs(['-h']).help, true);
+});
+
 test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirrors LOCAL_BUILD_SOP gates', () => {
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
   const stampScript = fs.readFileSync(path.join(repoRoot, 'tools', 'stamp_dmg_icon.sh'), 'utf8');

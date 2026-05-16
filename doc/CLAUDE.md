@@ -9,8 +9,11 @@ cavalry-runtime-injection-techniques.md: Cavalry runtime UI 抽取与翻译注�
 runtime-ui-event-filter-performance-fix.md: Runtime UI event filter 卡死问题修复方案，记录 100% CPU 根因、dirty object queue 替代 full refresh 的 TDD 步骤。
 runtime-ui-injection-coverage-plan.md: Runtime UI 注入覆盖修复方案，记录菜单/UI 英文残留根因、aboutToShow hook / event filter / widget surface 扩展。
 runtime-ui-tail-cleanup-plan.md: Runtime UI 收尾清理独立执行计划，面向真实截图残留英文、错译快捷键、已嵌入未命中与方块缺字标签分类修复。
+runtime-ui-tail-cleanup-run-2026-05-16.md: Runtime UI 收尾清理实跑记录，记录 zh-Hans live capture、FIX1/FIX2 对比、根因修复与残留分类。
+runtime-ui-live-capture-workflow.md: Runtime UI live 抓取流程，区分注入后中文 session 与英文 dump-only 基线，并规定全量复抓、增量修复、coverage 对比路径。
 cavalry-2.7.2-target-refresh-plan.md: Cavalry 2.7.2 目标刷新与增量补译执行计划，记录 denominator drift、重新冻结分母、只补增量与最终全量 gate 路径。
 translation-guidelines.md: 翻译规范，约束语言风格、保留词与界面一致性。
+audits/: 审计报告目录，保存阶段性人工/自动检查结果。
 workflows/: 文档化工作流，当前 `cavalry-full-ui-100/` 为 full-ui gate 主线，`cavalry-i18n/` 为早期历史路线。
 archive/: 归档计划与历史方案，保留已完成或废弃决策的证据链（含骑兵 Script UI 方案 plan-v3、Electron 精简改造 refactor-plan、Kumo UI 迁移草案、Scripting API 知识库）。
 
