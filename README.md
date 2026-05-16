@@ -1,13 +1,17 @@
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
   <h1>Cavalry-i18n</h1>
-  <p>Switch <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 between English, Simplified Chinese, Traditional Chinese, and Japanese — right from the original app.</p>
+  <p>Switch <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 between English, Simplified Chinese, Traditional Chinese, and Japanese.</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases"><img src="https://img.shields.io/github/v/tag/daftAI2026/Cavalry-i18n?label=version&style=flat-square" alt="Version" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
 
   <p>Languages: English | <a href="README.zh-Hans.md">简体中文</a> | <a href="README.zh-Hant.md">繁體中文</a> | <a href="README.ja_JP.md">日本語</a></p>
 </div>
+
+## Preview
+
+![Cavalry UI in Simplified Chinese](doc/img/ui-zh-Hans.png)
 
 ## Features
 

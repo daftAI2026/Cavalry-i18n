@@ -9,6 +9,7 @@ runtime-ui-live-capture-workflow.md: Runtime UI live 抓取流程，区分注入
 translation-guidelines.md: 翻译规范，约束语言风格、保留词与界面一致性。
 audits/: 审计报告与实跑记录目录，保存阶段性人工/自动检查结果。
 workflows/: 文档化工作流，当前 `cavalry-full-ui-100/` 为 full-ui gate 主线，`cavalry-i18n/` 为早期历史路线。
+img/: 静态资源库，存放 README 截图与文档示意图。
 archive/: 归档计划与历史方案，保留已完成或废弃决策的证据链。
 
 依赖边界:

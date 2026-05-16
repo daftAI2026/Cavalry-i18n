@@ -9,6 +9,10 @@
   <p>Languages: <a href="README.md">English</a> | 简体中文 | <a href="README.zh-Hant.md">繁體中文</a> | <a href="README.ja_JP.md">日本語</a></p>
 </div>
 
+## 预览
+
+![Cavalry UI 简体中文](doc/img/ui-zh-Hans.png)
+
 ## 功能
 
 - 🎯 **一键切换**：选择语言，点击应用，重新启动后 Cavalry 即以目标语言打开
