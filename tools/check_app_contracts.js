@@ -2056,6 +2056,60 @@ test('runtime allowlist keeps glossary-preserved brands and acronyms out of bloc
   );
 });
 
+test('runtime allowlist ignores shortcut, color swatch, app-state, and AX chrome noise', () => {
+  const { buildCoverage } = require(path.join(repoRoot, 'tools', 'check_runtime_ui_coverage.js'));
+  const allowlist = readJson(path.join(repoRoot, 'tools', 'runtime_ui_allowlist.json'));
+  const summary = buildCoverage(
+    {
+      formatVersion: 3,
+      language: 'zh-Hans',
+      menuBars: [
+        {
+          items: [
+            { text: '项目设置' },
+            { text: '3D矩阵' },
+            { text: 'Falloff' },
+          ],
+        },
+      ],
+      widgetTexts: [
+        { className: 'ToolButton', strings: { toolTip: '选择工具 (v)' } },
+        {
+          className: 'ToolButton',
+          strings: { toolTip: '箭头工具 按住 Alt/Option 可直接创建此图元，而不进入该工具。' },
+        },
+        { className: 'QLabel', strings: { text: 'Name: Tan Hex: #ffbfab99 R: 191 G: 171 B: 153 A: 255' } },
+        { className: 'AXWindow', strings: { description: 'standard window' } },
+        { className: 'QLabel', strings: { text: 'Composition 1' } },
+        { className: 'QLabel', strings: { text: '<i>点击查看下一条消息</i>' } },
+      ],
+    },
+    allowlist
+  );
+
+  assert.deepEqual(summary.untranslated, ['Falloff']);
+});
+
+test('zh-Hans embedded runtime tail has exact translations for live-only widget strings', () => {
+  const zhHansTs = fs.readFileSync(path.join(repoRoot, 'tools', 'zh-Hans.ts'), 'utf8');
+
+  assert.match(
+    zhHansTs,
+    /<source>Falloff<\/source>\s*<translation>衰减<\/translation>/,
+    'live runtime menus can expose the bare Falloff label outside Add Falloff'
+  );
+  assert.match(
+    zhHansTs,
+    /<source>ToolBox<\/source>\s*<translation>工具箱<\/translation>/,
+    'live runtime window titles can expose ToolBox as a bare widget string'
+  );
+  assert.match(
+    zhHansTs,
+    /<source>&lt;i&gt;Click to see next message&lt;\/i&gt;<\/source>\s*<translation>&lt;i&gt;点击查看下一条消息&lt;\/i&gt;<\/translation>/,
+    'Tips panel HTML labels should be translated as exact runtime widget strings'
+  );
+});
+
 test('shared forbidden translation detector covers the current FP set without legacy FP-6', () => {
   const detectorPath = path.join(repoRoot, 'tools', 'forbidden_translation_patterns.js');
   const { detectForbiddenTranslationPatterns } = require(detectorPath);

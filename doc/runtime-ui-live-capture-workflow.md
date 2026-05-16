@@ -28,6 +28,21 @@ english dump-only inventory exported
 
 判断中文覆盖率时，不要拿 `en-*` inventory 当残留报告。
 
+## AMP 实战结论
+
+AMP 那轮经验不是“跑一次脚本看数字”，而是一套闭环：
+
+1. 先用 Language Switcher 把目标语言 JSON 资源写进 `/Applications/Cavalry.app`
+2. 再用 `run_live_full_ui_matrix.js` 启动真实 Cavalry，并注入当前构建的 dylib
+3. 抓 injector inventory 与 AX inventory
+4. 合并成 merged inventory
+5. 用 coverage 报告分类残留
+6. 只修一类根因
+7. 重新生成 embedded table、重建 injector、重新 Apply 语言资源
+8. 再开新 session 全量复抓，用数字和 canary 证明修复
+
+关键点：注入只负责运行时 compiled UI / QWidget / menu refresh；JSON-backed 资源必须已经被 patcher 写入 app bundle。抓取脚本不会替你把 `languages/zh-Hans` 复制进 Cavalry.app。
+
 ## 打开软件
 
 入口是 `tools/run_live_full_ui_matrix.js`。它不是只读脚本，会启动真实 Cavalry。
@@ -106,6 +121,27 @@ embedded translator installed lang=zh-Hans
 
 如果看到 `lang=en` 或 `english dump-only inventory exported`，那是英文基线，不是中文注入后现场。
 
+再查目标 app 资源是否真是当前语言。反复测试繁简切换时，最容易发生“state 显示简体，但 app bundle 里仍是繁体 JSON”：
+
+```bash
+shasum -a 256 \
+  languages/zh-Hans/nodeStrings.json \
+  /Applications/Cavalry.app/Contents/assets/Definitions/nodeStrings.json
+```
+
+正确的 `zh-Hans` 抓取必须满足：
+
+```text
+languages/zh-Hans/nodeStrings.json == /Applications/Cavalry.app/.../nodeStrings.json
+languages/zh-Hans/appStrings.json == /Applications/Cavalry.app/.../appStrings.json
+languages/zh-Hans/tips.json == /Applications/Cavalry.app/.../tips.json
+languages/zh-Hans/onboarding.json == /Applications/Cavalry.app/.../onboarding.json
+```
+
+如果 app 侧 hash 等于 `languages/zh-Hant/*`，说明之前繁体 Apply 留在了 bundle 里；此时复抓只会得到混合语言现场，数字不能拿来评价简体修复。
+
+直接写 `/Applications/Cavalry.app` 可能被 macOS 拦截为 `EPERM`。正确路径是通过 Language Switcher 的 Apply 流程触发 staging + privilege copy + resign，并确认管理员/App Management 授权弹窗。
+
 ## 覆盖率分析
 
 ```bash
@@ -125,6 +161,14 @@ node tools/check_runtime_ui_coverage.js \
 4. 组合字符串：多行 tooltip 或空格、斜杠、冒号等 exact 变体导致查表失败
 5. 自绘 overlay：OpenGL / viewport helper 不在 QWidget 或 AX inventory
 6. 假阳性：品牌、技术缩写、颜色、快捷键 token，进入 allowlist 或保留
+
+AMP 那轮残留分析的一个教训：coverage 的 `untranslated` 名字偏误导。它实际包含三种东西：
+
+1. 真英文残留
+2. 禁止模式命中，比如简体包里混入繁体
+3. 允许保留但还没进入 allowlist 的技术 token / AX role / 颜色样本
+
+所以看数字前先抽样定位 surface。菜单路径里的 `顏色`、`著色器` 这类繁体，不是英文漏翻，而是语言资源污染或错误语言资源覆盖。
 
 ## 增量修复
 
@@ -165,6 +209,18 @@ node --test tools/check_app_contracts.js \
 7. 复抓新 session
 8. 对比 coverage 和关键 canary 是否下降或消失
 
+每次复抓前先做四个 sanity check：
+
+1. 没有残留 Cavalry 进程：
+
+```bash
+pgrep -fl "/Applications/Cavalry.app/Contents/MacOS/Cavalry|run_live_full_ui_matrix|capture_accessibility_inventory" || true
+```
+
+2. 目标 app JSON hash 与目标语言一致。
+3. `node tools/run_live_full_ui_matrix.js --help` 只打印帮助，不启动 Cavalry。
+4. 新 session 名不要复用旧 session，避免把新旧 inventory 混在一起。
+
 ## 对比样本
 
 快速查看某些词在多个 session 中是否已经消失：
@@ -202,9 +258,10 @@ NODE
 
 1. 新 session 是目标语言，不是 `en`
 2. `embedded translator installed lang=<target>` 存在
-3. `merged-inventory.json` 存在且不是 weak capture
-4. coverage 上升或目标 canary 消失
-5. 合同测试通过
-6. 剩余英文被分类，不把假阳性当真实缺陷
+3. `/Applications/Cavalry.app` 的 JSON 资源 hash 等于目标语言资源
+4. `merged-inventory.json` 存在且不是 weak capture
+5. coverage 上升或目标 canary 消失
+6. 合同测试通过
+7. 剩余英文被分类，不把假阳性、繁简污染或 AX role 当真实缺陷
 
 好流程不是补一个词，而是让残留英文的分母越来越小、原因越来越清楚。

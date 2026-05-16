@@ -6408,6 +6408,18 @@
       <translation>提示与技巧 🚀</translation>
     </message>
     <message>
+      <source>Falloff</source>
+      <translation>衰减</translation>
+    </message>
+    <message>
+      <source>ToolBox</source>
+      <translation>工具箱</translation>
+    </message>
+    <message>
+      <source>&lt;i&gt;Click to see next message&lt;/i&gt;</source>
+      <translation>&lt;i&gt;点击查看下一条消息&lt;/i&gt;</translation>
+    </message>
+    <message>
       <source>Shelf</source>
       <translation>工具架</translation>
     </message>

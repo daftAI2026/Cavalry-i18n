@@ -100,8 +100,18 @@ function shouldIgnore(value, allowlist) {
     return true;
   }
 
+  if (/^[A-Za-z]$/.test(value)) {
+    return true;
+  }
+
   if ((allowlist.exact || []).includes(value)) {
     return true;
+  }
+
+  for (const pattern of allowlist.regex || []) {
+    if (new RegExp(pattern).test(value)) {
+      return true;
+    }
   }
 
   return false;
@@ -115,6 +125,9 @@ function stripAllowedFragments(value, allowlist) {
   let stripped = value;
   for (const fragment of allowlist.contains || []) {
     stripped = stripped.replace(new RegExp(escapeRegExp(fragment), 'g'), ' ');
+  }
+  for (const pattern of allowlist.stripRegex || []) {
+    stripped = stripped.replace(new RegExp(pattern, 'g'), ' ');
   }
   return normalizeText(stripped);
 }

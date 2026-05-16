@@ -39,7 +39,23 @@
     "Dynamics",
     "Shift",
     "CA",
-    "dummy"
+    "2.5D",
+    "Alice",
+    "Gray",
+    "dummy",
+    "导出为项目...",
+    "项目设置",
+    "设置项目",
+    "显示项目文件夹",
+    "此功能需要项目。",
+    "项目",
+    "项目：无 - 场景：未命名",
+    "standard window",
+    "close button",
+    "zoom button",
+    "group",
+    "minimize button",
+    "text"
   ],
   "contains": [
     "Cavalry",
@@ -96,6 +112,24 @@
     "（H",
     "（S",
     "'U'",
-    "「U」"
+    "「U」",
+    "3D",
+    "SLA",
+    "Voronoi",
+    "Alt",
+    "Option",
+    "fps"
+  ],
+  "regex": [
+    "^Name: .* Hex: #[0-9A-Fa-f]{8}(?: [RGBA]: \\d+)+$",
+    "^Hex: #[0-9A-Fa-f]{8}(?: [RGBA]: \\d+)+$",
+    "^\\d+(?:\\.\\d+)?fps$",
+    "^\\d+ x \\d+$",
+    "^Composition \\d+$"
+  ],
+  "stripRegex": [
+    "\\([a-z]\\)",
+    "\\bU\\b",
+    "<[^>]+>"
   ]
 }

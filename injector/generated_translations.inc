@@ -3651,6 +3651,9 @@ const TranslationEntry kZhHansEntries[] = {
     {"MenuBarManager", "Show Composition Boundary.", "显示合成边界。"},
     {"MenuBarManager", "Toggle this mode with the 'U' key.", "使用 U 键切换此模式。"},
     {"MenuBarManager", "Tips and Tricks 🚀", "提示与技巧 🚀"},
+    {"MenuBarManager", "Falloff", "衰减"},
+    {"MenuBarManager", "ToolBox", "工具箱"},
+    {"MenuBarManager", "<i>Click to see next message</i>", "<i>点击查看下一条消息</i>"},
     {"MenuBarManager", "Shelf", "工具架"},
 };
 
