@@ -514,6 +514,65 @@ test('embedded injector covers item widgets, headers, docks, toolbars, and stand
   );
 });
 
+test('embedded injector patches ExtensionLayer literal hints outside Qt widget properties', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /_dyld_register_func_for_add_image|_dyld_image_count/,
+    'injector should observe loaded Mach-O images because ExtensionLayer hint text is stored as raw binary literals'
+  );
+  assert.match(
+    injectorSource,
+    /libExtensionLayer\.dylib/,
+    'literal patching should be scoped to Cavalry ExtensionLayer instead of mutating arbitrary Qt or injector strings'
+  );
+  assert.match(
+    injectorSource,
+    /__cstring/,
+    'literal patching should scan the Mach-O __cstring section that owns self-painted panel and viewport hint strings'
+  );
+  assert.match(
+    injectorSource,
+    /vm_protect[\s\S]*VM_PROT_COPY[\s\S]*mprotect/,
+    'literal patching should use macOS copy-on-write page protection before falling back to mprotect for read-only binary literals'
+  );
+
+  for (const english of [
+    'Double click here to import Assets.',
+    'Drag layers here to see their settings.',
+    'Use the Create menu to add a layer to your Composition.',
+    'Insert Keyframe',
+    'Direct Layer Selection',
+    'Play/ Stop',
+    'Space + click + drag',
+    'Enable Snapping',
+    'Pan',
+  ]) {
+    assert.match(
+      injectorSource,
+      new RegExp(english.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+      `literal patch table should cover screenshot residue: ${english}`
+    );
+  }
+
+  const compactRows = [
+    ['Drag layers here to see their settings.', '拖入图层查看设置。'],
+    ['Play/ Stop', '播/停'],
+    ['Space + click + drag', '空格+点按+拖动'],
+    ['Pan', '移'],
+  ];
+  for (const [source, translation] of compactRows) {
+    assert.ok(
+      Buffer.byteLength(translation) <= Buffer.byteLength(source),
+      `${translation} must fit inside the original ${source} literal for safe in-place patching`
+    );
+  }
+});
+
 test('embedded injector inventory records dynamic refresh and expanded widget evidence', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),

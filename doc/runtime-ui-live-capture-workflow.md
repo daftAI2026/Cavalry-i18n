@@ -170,6 +170,37 @@ AMP 那轮残留分析的一个教训：coverage 的 `untranslated` 名字偏误
 
 所以看数字前先抽样定位 surface。菜单路径里的 `顏色`、`著色器` 这类繁体，不是英文漏翻，而是语言资源污染或错误语言资源覆盖。
 
+## 自绘提示盲区
+
+如果截图里还有英文，但 merged inventory 完全搜不到，优先按自绘字面量处理，而不是继续补 TS。
+
+典型例子：
+
+```text
+Double click here to import Assets.
+Drag layers here to see their settings.
+Use the Create menu to add a layer to your Composition.
+S + click path / Insert Keyframe
+Space + click + drag / Pan
+```
+
+这些字符串来自 `/Applications/Cavalry.app/Contents/Frameworks/libExtensionLayer.dylib` 的 `__TEXT,__cstring`，Cavalry 在 panel/viewport 内部绘制它们，不暴露为 `QLabel::text()`、`QAction::text()` 或 AX 文本节点。翻译表里有不等于会生效；Qt translator 和 widget 遍历都碰不到。
+
+诊断命令：
+
+```bash
+strings -a -t x /Applications/Cavalry.app/Contents/Frameworks/libExtensionLayer.dylib \
+  | rg -C 8 "Double click here|Drag layers here|Use the Create menu|Insert Keyframe|Space \\+ click \\+ drag"
+```
+
+正确修复路径是 injector 在 dyld 加载 `libExtensionLayer.dylib` 时扫描 Mach-O `__cstring`，用 `vm_protect(..., VM_PROT_COPY)` 做进程内 copy-on-write 字面量补丁。启动日志应出现：
+
+```text
+[cavalry-i18n] patched ExtensionLayer __cstring literals lang=zh-Hans patches=10
+```
+
+如果只看到 `embedded translator installed`，但没有 `patched ExtensionLayer`，这批自绘提示仍然会保持英文。
+
 ## 增量修复
 
 这里的“增量”不是只抓 diff。每次都重新全量抓一个新 session，用 session 间差异证明修复有效。
