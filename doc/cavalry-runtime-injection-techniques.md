@@ -329,7 +329,7 @@ Qt 6.6 与 Qt 6.7 的内部 vtable 不一致，跨 minor 注入会段错误或�
 
 ```json
 {
-  "cavalryVersion": "2.7.1",
+  "cavalryVersion": "2.7.2",
   "qtVersion": "6.6.3",
   ...
 }
