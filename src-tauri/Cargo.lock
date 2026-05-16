@@ -259,7 +259,7 @@ dependencies = [
 
 [[package]]
 name = "cavalry-i18n-tauri"
-version = "0.1.11"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "rfd",

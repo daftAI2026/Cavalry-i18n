@@ -5,10 +5,21 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-05-17
 
-### Changed
-- Added a fixed GitHub Release protocol for `cavalry-2.7.2-pN` tags, with release title and DMG asset naming generated from `release.config.json` instead of mixing Cavalry target patches with the app's internal SemVer.
+### Added
+- **ExtensionLayer Mach-O Patching**: Implemented direct `__cstring` patching for `ExtensionLayer.dylib` to translate hardcoded UI strings (e.g., "Empty State" prompts) that are inaccessible via standard Qt property hooks.
+- **Compound Widget Translation**: Added line-by-line translation support for multiline widgets and tooltips, ensuring partial matches succeed when exact full-string matches fail.
+- **Expanded UI Coverage**: Implemented QLineEdit value translation (e.g., default "Keyframe Layer" names) and added missing translations for 11 critical UI sources.
+- **Live Capture Orchestrator**: Added `--help` support and refined coverage allowlists (regex-based noise filtering) for the automated UI capture workflow.
+
+### Fixed
+- **Menu Translation Reliability**: Improved `aboutToShow` menu interception using `CFRunLoopPerformBlock` with `kCFRunLoopCommonModes` to ensure translations apply reliably during active menu tracking.
+- **Shortcuts & Symbols**: Corrected semantic errors in shortcut key tokens and fixed exact-source matching for specialized symbols.
+
+### Documentation & Tooling
+- **Architecture Cleanup**: Archived 5 completed implementation plans, merged multi-language glossaries, and synchronized localized README previews.
+- **Contract Enforcement**: Updated `check_app_contracts.js` to lock down new Mach-O patching and compound translation architectural requirements.
 
 ## [0.1.11] - 2026-05-15
 
