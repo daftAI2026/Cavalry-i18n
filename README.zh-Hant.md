@@ -3,7 +3,7 @@
   <h1>Cavalry-i18n</h1>
   <p>直接在原始應用程式中，將 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 切換為 English、簡體中文、繁體中文或日本語。</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
-  <a href="https://github.com/daftAI2026/Cavalry-i18n/releases"><img src="https://img.shields.io/github/v/tag/daftAI2026/Cavalry-i18n?label=version&style=flat-square" alt="Version" /></a>
+  <a href="https://github.com/daftAI2026/Cavalry-i18n/releases"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?display_name=tag&label=release&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
 
   <p>Languages: <a href="README.md">English</a> | <a href="README.zh-Hans.md">简体中文</a> | 繁體中文 | <a href="README.ja_JP.md">日本語</a></p>
@@ -152,7 +152,7 @@ Cavalry-i18n/
 |-----|--------|------|
 | **build** | ubuntu | 語法檢查、合同測試、翻譯驗證 |
 | **package_macos** | macos | Qt SDK 準備、Tauri 構建、Rust contracts、打包後檢查 |
-| **release** | ubuntu | 由 `v*` tag 觸發，將 DMG 發布到 GitHub Releases |
+| **release** | ubuntu | 由 `cavalry-*-p*` tag 觸發，將 DMG 發布到 GitHub Releases |
 
 ## 支援
 
