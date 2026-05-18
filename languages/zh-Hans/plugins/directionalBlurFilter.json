@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "directionalBlurFilter",
-      "niceName": "方向模糊",
+      "niceName": "Directional Blur",
       "layerInfo": "沿轴线模糊形状以创建拖尾效果或模拟运动模糊。",
       "language": "zh-Hans",
       "attributes": {

@@ -5,7 +5,7 @@
       "language": "zh-Hans",
       "author": "sceneGroup",
       "layerType": "rectToPolarFilter",
-      "niceName": "极坐标",
+      "niceName": "Polar Coordinates",
       "layerInfo": "将图层重新映射到极坐标空间。",
       "attributes": {
         "centre": [

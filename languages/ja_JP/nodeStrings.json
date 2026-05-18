@@ -3,7 +3,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "element",
-      "niceName": "エレメント",
+      "niceName": "Element",
       "attributes": {
         "hidden": "非表示",
         "frozen": [
@@ -19,7 +19,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "atomic",
-      "niceName": "アトミック",
+      "niceName": "Atomic",
       "attributes": {}
     }
   },
@@ -28,7 +28,7 @@
     "value": {
       "nodeType": "group",
       "nodeInfo": "レイヤーをフォルダーに収集して整理し、共通のトランスフォームを作成します。",
-      "niceName": "グループ化",
+      "niceName": "Group",
       "attributes": {
         "groupMode": [
           "ブレンドと不透明度モード",
@@ -47,7 +47,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "behaviourBase",
-      "niceName": "ビヘイビアベース",
+      "niceName": "Behaviour Base",
       "attributes": {}
     }
   },
@@ -55,7 +55,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "transform",
-      "niceName": "変形",
+      "niceName": "Transform",
       "attributes": {
         "position": [
           "位置",
@@ -92,7 +92,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "drawable",
-      "niceName": "ドローアブル",
+      "niceName": "Drawable",
       "attributes": {
         "polyMesh": "ポリメッシュ",
         "on": "オン",
@@ -136,7 +136,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "shape",
-      "niceName": "シェイプ",
+      "niceName": "Shape",
       "nodeInfo": "ビューポートに描画できるポリゴンオブジェクト",
       "attributes": {
         "deformers": [
@@ -300,7 +300,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "behaviour",
-      "niceName": "ビヘイビア",
+      "niceName": "Behaviour",
       "attributes": {
         "falloffs": [
           "フォールオフ",
@@ -350,7 +350,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "compNode",
-      "niceName": "コンポジション",
+      "niceName": "Composition",
       "attributes": {
         "resolution": "解像度",
         "startFrame": "フレーム範囲",
@@ -503,8 +503,8 @@
           "アニメーションをリマップする先の FPS です。コンポジション設定で設定された FPS を上書きします。"
         ],
         "niceName": [
-          "コントロールセンターボタン名",
-          "Cavalry のコントロールパネルでこの項目のボタンに付けられる名前です。"
+          "Control Centre Button Name",
+          "This is the name given to the button for this item in Cavalry Control."
         ]
       },
       "enums": {
@@ -551,7 +551,7 @@
     "value": {
       "nodeType": "renderPNG",
       "nodeInfo": "PNG 画像ファイルを生成します。",
-      "niceName": "PNG シーケンス",
+      "niceName": "PNG Sequence",
       "attributes": {
         "compression": "圧縮",
         "pngFilter": "PNG フィルター",
@@ -575,7 +575,7 @@
     "value": {
       "nodeType": "renderSpriteSheet",
       "nodeInfo": "スプライトシート画像を生成します。",
-      "niceName": "スプライトシート",
+      "niceName": "Sprite Sheet",
       "attributes": {
         "compression": "圧縮",
         "pngFilter": "PNG フィルター",
@@ -597,7 +597,7 @@
     "value": {
       "nodeType": "renderJPEG",
       "nodeInfo": "JPEG 画像ファイルを生成します。",
-      "niceName": "JPEG シーケンス",
+      "niceName": "JPEG Sequence",
       "attributes": {
         "quality": "品質"
       }
@@ -608,7 +608,7 @@
     "value": {
       "nodeType": "renderWebP",
       "nodeInfo": "WebP 画像ファイルを生成します。",
-      "niceName": "WebP シーケンス",
+      "niceName": "WebP Sequence",
       "attributes": {
         "quality": "品質"
       }
@@ -813,7 +813,7 @@
     "value": {
       "nodeType": "renderAudioOnly",
       "nodeInfo": "オーディオファイルを生成します。",
-      "niceName": "オーディオのみ",
+      "niceName": "Audio Only",
       "attributes": {
         "format": "コンテナ",
         "bitDepth": "ビット深度"
@@ -906,7 +906,7 @@
     "value": {
       "nodeType": "renderSVG",
       "nodeInfo": "SVG ファイルを生成します。",
-      "niceName": "SVG シーケンス",
+      "niceName": "SVG Sequence",
       "attributes": {
         "includeBackground": "背景を含める"
       }
@@ -917,7 +917,7 @@
     "value": {
       "nodeType": "planarCamera",
       "nodeInfo": "2.5D ビューポートでシェイプを合成・表示します。",
-      "niceName": "カメラ",
+      "niceName": "Camera",
       "attributes": {
         "cameraType": "タイプ",
         "position": "位置",
@@ -952,7 +952,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "compositionReference",
-      "niceName": "プリコンポ",
+      "niceName": "Pre-Comp",
       "nodeInfo": "プリコンポジションは参照されたコンポジションです。",
       "attributes": {
         "composition": "コンポジション",
@@ -1073,7 +1073,7 @@
     "values": [
       {
         "nodeType": "lattice",
-        "niceName": "ラティス",
+        "niceName": "Lattice",
         "nodeInfo": "柔軟なコントロールポイントグリッドを使用してシェイプを変形します。",
         "attributes": {
           "gridCount": [
@@ -1110,7 +1110,7 @@
       {
         "nodeType": "latticeController",
         "nodeInfo": "位置、回転、スケールを使用して複数のラティスポイントを操作します。",
-        "niceName": "ラティスコントローラー",
+        "niceName": "Lattice Controller",
         "attributes": {
           "bind": [
             "バインド",
@@ -1282,7 +1282,7 @@
       {
         "nodeType": "simplexNoise",
         "nodeInfo": "シンプレックスノイズパターンを生成。",
-        "niceName": "シンプレックスノイズ",
+        "niceName": "Simplex Noise",
         "attributes": {
           "octaves": "オクターブ",
           "lacunarity": "ラキュナリティ",
@@ -1294,7 +1294,7 @@
       {
         "nodeType": "valueNoise",
         "nodeInfo": "バリューノイズパターンを生成。",
-        "niceName": "バリューノイズ",
+        "niceName": "Value Noise",
         "attributes": {
           "octaves": "オクターブ",
           "lacunarity": "ラキュナリティ",
@@ -1306,7 +1306,7 @@
       {
         "nodeType": "cubicNoise",
         "nodeInfo": "キュービックノイズパターンを生成。",
-        "niceName": "キュービックノイズ",
+        "niceName": "Cubic Noise",
         "attributes": {
           "octaves": "オクターブ",
           "lacunarity": "ラキュナリティ",
@@ -1318,7 +1318,7 @@
       {
         "nodeType": "cellularNoise",
         "nodeInfo": "セルラーノイズパターンを生成。",
-        "niceName": "セルラーノイズ",
+        "niceName": "Cellular Noise",
         "attributes": {
           "octaves": "オクターブ",
           "lacunarity": "ラキュナリティ",
@@ -1577,7 +1577,7 @@
       },
       {
         "nodeType": "math2",
-        "niceName": "二次元数学",
+        "niceName": "Math2",
         "nodeInfo": "2 次元値（例: X,Y ）に対して簡単な数学演算を実行します。",
         "attributes": {
           "first": "最初",
@@ -1595,7 +1595,7 @@
       },
       {
         "nodeType": "math3",
-        "niceName": "三次元数学",
+        "niceName": "Math3",
         "nodeInfo": "3 次元値（例: X,Y,Z ）に対して簡単な数学演算を実行します。",
         "attributes": {
           "first": "最初",
@@ -1612,7 +1612,7 @@
       },
       {
         "nodeType": "value2Array",
-        "niceName": "2値配列",
+        "niceName": "Value2 Array",
         "nodeInfo": "インデックスを介して他のレイヤーに割り当て可能な 2D 値（ X,Y ）のリストを作成します。",
         "attributes": {
           "array": "値",
@@ -1621,7 +1621,7 @@
       },
       {
         "nodeType": "value3Array",
-        "niceName": "3値配列",
+        "niceName": "Value3 Array",
         "nodeInfo": "インデックスを介して他のレイヤーに割り当て可能な 3D 値（ X,Y,Z ）のリストを作成します。",
         "attributes": {
           "array": "値",
@@ -1810,7 +1810,7 @@
       },
       {
         "nodeType": "areaRange",
-        "niceName": "範囲エリア",
+        "niceName": "Area Range",
         "nodeInfo": "値を比例面積を生み出す幅と高さにマッピングします。",
         "attributes": {
           "area": "値",
@@ -1821,7 +1821,7 @@
       },
       {
         "nodeType": "areaRangeBase",
-        "niceName": "範囲エリア",
+        "niceName": "Area Range",
         "nodeInfo": "値を比例面積を生み出す幅と高さにマッピングします。",
         "attributes": {
           "maxArea": "最大値",
@@ -1992,7 +1992,7 @@
       },
       {
         "nodeType": "squashAndStretch",
-        "niceName": "スカッシュ＆ストレッチ",
+        "niceName": "Squash and Stretch",
         "nodeInfo": "シェイプをスカッシュ＆ストレッチし、オプションでバルジを追加します。",
         "attributes": {
           "amount": "量",
@@ -2055,7 +2055,7 @@
       },
       {
         "nodeType": "materialBehaviourColor",
-        "niceName": "カラーマテリアルオーバーライド",
+        "niceName": "Color Material Override",
         "nodeInfo": "サブメッシュ内のカラーをオーバーライドします。",
         "attributes": {
           "materialColor": "カラー"
@@ -2063,7 +2063,7 @@
       },
       {
         "nodeType": "materialBehaviourAlpha",
-        "niceName": "アルファマテリアルオーバーライド",
+        "niceName": "Alpha Material Override",
         "nodeInfo": "サブメッシュ内のアルファをオーバーライドします。",
         "attributes": {
           "alpha": "アルファ"
@@ -2072,7 +2072,7 @@
       {
         "nodeType": "materialBehaviourHSV",
         "nodeInfo": "サブメッシュ内のシェイプの色相、彩度、明度をオーバーライドします。",
-        "niceName": "HSVマテリアルオーバーライド",
+        "niceName": "HSV Material Override",
         "attributes": {
           "adjustHue": "色相",
           "adjustSaturation": "彩度",
@@ -2082,7 +2082,7 @@
       {
         "nodeType": "applyDistribution",
         "nodeInfo": "シェイプのサブメッシュに分布を適用。",
-        "niceName": "分布を適用",
+        "niceName": "Apply Distribution",
         "attributes": {
           "distribution": [
             "配分",
@@ -2105,7 +2105,7 @@
       {
         "nodeType": "countSubMeshes",
         "nodeInfo": "指定レベルのサブメッシュの数をカウントします。",
-        "niceName": "サブメッシュ数をカウント",
+        "niceName": "Count Sub-Meshes",
         "attributes": {
           "levelMode": "レベルモード",
           "level": "カスタム階層",
@@ -2124,7 +2124,7 @@
       {
         "nodeType": "applyLayout",
         "nodeInfo": "レイアウトグループと同様の方法でサブメッシュ内のシェイプをスタックします。",
-        "niceName": "レイアウトを適用",
+        "niceName": "Apply Layout",
         "attributes": {
           "layout": [
             "レイアウト",
@@ -2142,7 +2142,7 @@
       {
         "nodeType": "chopPath",
         "nodeInfo": "矩形を使用してパスをチャンクに分割します。",
-        "niceName": "パスをカット",
+        "niceName": "Chop Path",
         "attributes": {
           "count": [
             "数",
@@ -2175,7 +2175,7 @@
       {
         "nodeType": "subMesh",
         "nodeInfo": "シェイプ内のサブメッシュにアクセスしてトランスフォーム、マテリアルなどを適用。",
-        "niceName": "サブメッシュ",
+        "niceName": "Sub-Mesh",
         "attributes": {
           "shapePosition": "位置",
           "shapeScale": "スケール",
@@ -2297,7 +2297,7 @@
       {
         "nodeType": "colorMaterial",
         "nodeInfo": "複数のシェイプに一度に使用できるフィルマテリアルを追加。",
-        "niceName": "塗り",
+        "niceName": "Fill",
         "attributes": {
           "materialColor": "カラー",
           "colorShaders": "シェーダー",
@@ -2306,7 +2306,7 @@
       },
       {
         "nodeType": "strokeMaterial",
-        "niceName": "ストローク",
+        "niceName": "Stroke",
         "nodeInfo": "複数のシェイプに一度に使用できるストロークマテリアルを追加。",
         "attributes": {
           "strokeColor": "カラー",
@@ -2413,7 +2413,7 @@
       },
       {
         "nodeType": "value2",
-        "niceName": "値 2",
+        "niceName": "Value2",
         "nodeInfo": "2 次元値（例: X,Y ）を保存して操作します。",
         "attributes": {
           "value": "値",
@@ -2423,7 +2423,7 @@
       },
       {
         "nodeType": "value3",
-        "niceName": "値 3",
+        "niceName": "Value3",
         "nodeInfo": "3 次元値（例: X,Y,Z ）を保存して操作します。",
         "attributes": {
           "value": "値",
@@ -2433,7 +2433,7 @@
       },
       {
         "nodeType": "align",
-        "niceName": "配置",
+        "niceName": "Align",
         "nodeInfo": "シェイプのピボットポイントをバウンディングボックスのエッジに沿って動的に配置します。",
         "attributes": {
           "x": "X",
@@ -2442,7 +2442,7 @@
       },
       {
         "nodeType": "autoCrop",
-        "niceName": "自動クロップ",
+        "niceName": "Auto-Crop",
         "nodeInfo": "バウンディングボックスに基づいてシェイプを簡単にクロップします。",
         "attributes": {
           "alignX": "X整列",
@@ -2565,7 +2565,7 @@
       },
       {
         "nodeType": "value2Blend",
-        "niceName": "2値ブレンド",
+        "niceName": "Value2 Blend",
         "nodeInfo": "2 次元値（例: X,Y）の間を線形補間します。",
         "attributes": {
           "firstValue": "最初",
@@ -2574,7 +2574,7 @@
       },
       {
         "nodeType": "value3Blend",
-        "niceName": "3値ブレンド",
+        "niceName": "Value3 Blend",
         "nodeInfo": "3 次元値（例: X,Y,Z）の間を線形補間します。",
         "attributes": {
           "firstValue": "最初",
@@ -2662,7 +2662,7 @@
       },
       {
         "nodeType": "blendSubMeshPositions",
-        "niceName": "サブメッシュ位置をブレンド",
+        "niceName": "Blend Sub-Mesh Positions",
         "nodeInfo": "2 つのシェイプのサブメッシュ位置間をブレンドします。",
         "attributes": {
           "blend": "ブレンド",
@@ -2684,7 +2684,7 @@
       },
       {
         "nodeType": "blendSubMeshPositionsLegacy",
-        "niceName": "サブメッシュ位置をブレンド",
+        "niceName": "Blend Sub-Mesh Positions",
         "nodeInfo": "レガシーレイヤー - 新しい「サブメッシュ位置ブレンド」が利用可能です。\n2 つのシェイプのサブメッシュ位置間をブレンドします。",
         "attributes": {
           "blend": "ブレンド",
@@ -2728,7 +2728,7 @@
       },
       {
         "nodeType": "materialBehaviourSwapColor",
-        "niceName": "カラースワップ",
+        "niceName": "Swap Color",
         "nodeInfo": "サブメッシュ上の特定のカラーを検索して入れ替えます。",
         "attributes": {
           "oldColor": "旧カラー",
@@ -2737,7 +2737,7 @@
       },
       {
         "nodeType": "spreadsheetLookup",
-        "niceName": "スプレッドシート検索",
+        "niceName": "Spreadsheet Lookup",
         "nodeInfo": "キーに基づいてスプレッドシートの値を検索します。",
         "attributes": {
           "lookupColumn": "ルックアップ列",
@@ -2748,7 +2748,7 @@
       },
       {
         "nodeType": "visibility",
-        "niceName": "可視性シーケンス",
+        "niceName": "Visibility Sequence",
         "nodeInfo": "サブメッシュの表示/非表示を制御。",
         "attributes": {
           "start": "開始",
@@ -2766,7 +2766,7 @@
     "values": [
       {
         "nodeType": "shader",
-        "niceName": "シェーダー",
+        "niceName": "Shader",
         "attributes": {
           "colorFilter": "カラーフィルター",
           "blendMode": "ブレンドモード"
@@ -2816,7 +2816,7 @@
       },
       {
         "nodeType": "gradientMapFilter",
-        "niceName": "グラデーションマップ",
+        "niceName": "Gradient Map",
         "nodeInfo": "入力の明るさに基づいてグラデーションを生成します。",
         "attributes": {
           "alpha": "アルファ",
@@ -2872,7 +2872,7 @@
       },
       {
         "nodeType": "checkerboardShader",
-        "niceName": "チェッカーボードシェーダー",
+        "niceName": "Checkerboard Shader",
         "nodeInfo": "パターンサイズを調整可能なチェッカーボードシェーダー。",
         "attributes": {
           "size": "サイズ",
@@ -2893,7 +2893,7 @@
       },
       {
         "nodeType": "gradientShader",
-        "niceName": "グラデーションシェーダー",
+        "niceName": "Gradient Shader",
         "nodeInfo": "リニア、ラジアル、スウィープ、コニカルグラデーションに対応したグラデーションシェーダー。",
         "attributes": {
           "screenSpace": "スクリーン空間",
@@ -2918,7 +2918,7 @@
       {
         "nodeType": "linearGradientShader",
         "nodeInfo": "グラデーションシェーダー用のリニアグラデーションを生成します。",
-        "niceName": "リニアグラデーション",
+        "niceName": "Linear Gradient",
         "attributes": {
           "gradient": "グラデーション",
           "wrapUVs": "UV ラップ",
@@ -2931,7 +2931,7 @@
       {
         "nodeType": "conicalGradientShaderLegacy",
         "nodeInfo": "レガシーレイヤー - 新しい「コニカルグラデーションシェーダー」が利用可能です。\nグラデーションシェーダー用のコニカルグラデーションを生成します。",
-        "niceName": "コニカルグラデーション",
+        "niceName": "Conical Gradient",
         "attributes": {
           "gradient": "グラデーション",
           "reverseGrad": "反転",
@@ -2955,7 +2955,7 @@
       {
         "nodeType": "conicalGradientShader",
         "nodeInfo": "グラデーションシェーダー用のコニカルグラデーションを生成します。",
-        "niceName": "コニカルグラデーション",
+        "niceName": "Conical Gradient",
         "attributes": {
           "gradient": "グラデーション",
           "wrapUVs": "UV ラップ",
@@ -2973,7 +2973,7 @@
       {
         "nodeType": "shapeGradientShader",
         "nodeInfo": "グラデーションシェーダー用のシェイプグラデーションを生成します。",
-        "niceName": "シェイプグラデーション",
+        "niceName": "Shape Gradient",
         "attributes": {
           "gradient": "グラデーション",
           "wrapUVs": "UV ラップ",
@@ -2993,7 +2993,7 @@
       {
         "nodeType": "radialGradientShader",
         "nodeInfo": "グラデーションシェーダー用のラジアルグラデーションを生成します。",
-        "niceName": "ラジアルグラデーション",
+        "niceName": "Radial Gradient",
         "attributes": {
           "gradient": "グラデーション",
           "wrapUVs": "UV ラップ",
@@ -3012,7 +3012,7 @@
       {
         "nodeType": "sweepGradientShader",
         "nodeInfo": "グラデーションシェーダー用のスウィープグラデーションを生成します。",
-        "niceName": "スウィープグラデーション",
+        "niceName": "Sweep Gradient",
         "attributes": {
           "gradient": "グラデーション",
           "wrapUVs": "UV ラップ",
@@ -3023,7 +3023,7 @@
       },
       {
         "nodeType": "colorShader",
-        "niceName": "カラーシェーダー",
+        "niceName": "Color Shader",
         "nodeInfo": "カラーを出力するシンプルなシェーダー。",
         "attributes": {
           "shaderColor": "カラー"
@@ -3031,7 +3031,7 @@
       },
       {
         "nodeType": "skslShader",
-        "niceName": "スキアシェーディング言語シェーダー",
+        "niceName": "SkSL Shader",
         "nodeInfo": "スキアシェーディング言語（GLSL ベース）で独自のシェーダーを記述します。",
         "attributes": {
           "inputs": "入力",
@@ -3040,7 +3040,7 @@
       },
       {
         "nodeType": "contoursToSubMeshes",
-        "niceName": "等高線からサブメッシュへ",
+        "niceName": "Contours to Sub-Meshes",
         "nodeInfo": "パスの輪郭を異なるサブメッシュに変換します。オプションで穴を保持できます。",
         "attributes": {
           "keepHoles": "穴を維持"
@@ -3048,7 +3048,7 @@
       },
       {
         "nodeType": "skslFilter",
-        "niceName": "スキアシェーディング言語フィルター",
+        "niceName": "SkSL Filter",
         "nodeInfo": "スキアシェーディング言語（GLSL ベース）で独自のフィルターを記述します。",
         "attributes": {
           "code": [
@@ -3128,7 +3128,7 @@
       },
       {
         "nodeType": "imageShader",
-        "niceName": "画像シェーダー",
+        "niceName": "Image Shader",
         "nodeInfo": "画像、画像シーケンス、ビデオ用のシェーダー。",
         "attributes": {
           "image": "ファイル",
@@ -3182,7 +3182,7 @@
       },
       {
         "nodeType": "mixShader",
-        "niceName": "ミックスシェーダー",
+        "niceName": "Mix Shader",
         "attributes": {
           "first": "第一シェーダー",
           "second": "第二シェーダー",
@@ -3191,7 +3191,7 @@
       },
       {
         "nodeType": "filter",
-        "niceName": "フィルター",
+        "niceName": "Filter",
         "attributes": {
           "mattes": "マット",
           "mattes.matteLayer": "マットシェイプ",
@@ -3238,7 +3238,7 @@
       },
       {
         "nodeType": "maskBlurFilter",
-        "niceName": "マスクブラー",
+        "niceName": "Mask Blur",
         "attributes": {
           "amount": "量",
           "blurStyle": "スタイル"
@@ -3254,7 +3254,7 @@
       },
       {
         "nodeType": "dropShadowFilter",
-        "niceName": "ドロップシャドウ",
+        "niceName": "Drop Shadow",
         "nodeInfo": "シェイプにドロップシャドウを追加。",
         "attributes": {
           "amount": "ブラー量",
@@ -3272,7 +3272,7 @@
       },
       {
         "nodeType": "gaussianDropShadowFilter",
-        "niceName": "ガウスドロップシャドウ",
+        "niceName": "Gaussian Drop Shadow",
         "nodeInfo": "シェイプにドロップシャドウを追加。",
         "attributes": {
           "amount": "ブラー量",
@@ -3290,7 +3290,7 @@
       },
       {
         "nodeType": "backgroundBlurFilter",
-        "niceName": "背景ブラー",
+        "niceName": "Background Blur",
         "nodeInfo": "入力シェイプに基づいてレイヤーの特定の部分のみをぼかします。",
         "attributes": {
           "amount": "ブラー量",
@@ -3322,7 +3322,7 @@
       },
       {
         "nodeType": "innerShadowFilter",
-        "niceName": "内側シャドウ",
+        "niceName": "Inner Shadow",
         "nodeInfo": "シェイプにインナーシャドウを追加して奥行きをシミュレート。",
         "attributes": {
           "amount": "ブラー量",
@@ -3358,7 +3358,7 @@
       },
       {
         "nodeType": "blurFilter",
-        "niceName": "ファストブラー",
+        "niceName": "Fast Blur",
         "nodeInfo": "垂直と水平のブラーを個別に制御してシェイプにブラーを追加。",
         "attributes": {
           "amount": "量",
@@ -3374,7 +3374,7 @@
       },
       {
         "nodeType": "gaussianBlurFilter",
-        "niceName": "ガウスブラー",
+        "niceName": "Gaussian Blur",
         "nodeInfo": "垂直と水平のブラーを個別に制御してシェイプにガウスブラーを追加。",
         "attributes": {
           "amount": "量",
@@ -3391,7 +3391,7 @@
       {
         "nodeType": "shapeToShader",
         "nodeInfo": "シェイプを使用して別のシェイプ用のシェーダーを作成します。",
-        "niceName": "シェイプからシェーダー",
+        "niceName": "Shape to Shader",
         "attributes": {
           "inputShape": "入力シェイプ",
           "alpha": "アルファ",
@@ -3410,7 +3410,7 @@
       {
         "nodeType": "levels",
         "nodeInfo": "レイヤーの黒と白のレベルをリマップしてトーン範囲とカラーバランスを調整します。",
-        "niceName": "レベル",
+        "niceName": "Levels",
         "attributes": {
           "channel": "チャンネル",
           "clipBlack": "裁切黒",
@@ -3433,7 +3433,7 @@
       },
       {
         "nodeType": "triToneFilter",
-        "niceName": "トライトーン",
+        "niceName": "TriTone",
         "nodeInfo": "暗部、中間調、明部の値を指定されたカラーにマッピングします。",
         "attributes": {
           "shadowColor": "シャドウ",
@@ -3466,7 +3466,7 @@
       },
       {
         "nodeType": "venetianBlinds",
-        "niceName": "ベネチアンブラインド",
+        "niceName": "Venetian Blinds",
         "nodeInfo": "ストライプワイプ効果を使用してレイヤーを表示します。",
         "attributes": {
           "completion": "完了度",
@@ -3501,7 +3501,7 @@
       },
       {
         "nodeType": "fill",
-        "niceName": "塗りカラー",
+        "niceName": "Fill Color",
         "nodeInfo": "指定されたフィルカラーでレイヤーのカラーを上書きします。",
         "attributes": {
           "fillColor": "カラー",
@@ -3533,7 +3533,7 @@
       },
       {
         "nodeType": "radialWipe",
-        "niceName": "ラジアルワイプ",
+        "niceName": "Radial Wipe",
         "nodeInfo": "円形ワイプに基づいてレイヤーを表示します。",
         "attributes": {
           "completion": "完了度",
@@ -3571,7 +3571,7 @@
       },
       {
         "nodeType": "invert",
-        "niceName": "反転",
+        "niceName": "Invert",
         "nodeInfo": "レイヤーの色を反転します。",
         "attributes": {
           "channel": "チャンネル",
@@ -3611,7 +3611,7 @@
       },
       {
         "nodeType": "linearWipe",
-        "niceName": "リニアワイプ",
+        "niceName": "Linear Wipe",
         "nodeInfo": "レイヤーにシンプルなリニアワイプを作成。",
         "attributes": {
           "completion": "完了度",
@@ -3623,7 +3623,7 @@
       },
       {
         "nodeType": "noiseShader",
-        "niceName": "ノイズシェーダー",
+        "niceName": "Noise Shader",
         "nodeInfo": "Perlin、バリュー、またはセルラーノイズからコヒーレントなノイズ効果を作成します。",
         "attributes": {
           "colorFilter": "カラーフィルター",
@@ -3666,7 +3666,7 @@
     "values": [
       {
         "nodeType": "basicShape",
-        "niceName": "基本シェイプ",
+        "niceName": "Basic Shape",
         "nodeInfo": "長方形、楕円、ポリゴンなどのプリミティブシェイプ。",
         "attributes": {
           "generator": "基本体タイプ"
@@ -3804,7 +3804,7 @@
       },
       {
         "nodeType": "applyFontSize",
-        "niceName": "フォントサイズを適用",
+        "niceName": "Apply Font Size",
         "nodeInfo": "テキストシェイプのスタイルビヘイビアを介して、検索（正規表現）に基づいてテキストシェイプのフォントサイズをプロシージャルに設定します。",
         "attributes": {
           "indices": "インデックス",
@@ -3847,7 +3847,7 @@
       },
       {
         "nodeType": "applyTypeface",
-        "niceName": "書体を適用",
+        "niceName": "Apply Typeface",
         "nodeInfo": "テキストシェイプのスタイルビヘイビアを介して、検索（正規表現）に基づいてテキストシェイプの書体をプロシージャルに設定します。",
         "attributes": {
           "indices": "指定インデックス",
@@ -3883,7 +3883,7 @@
       },
       {
         "nodeType": "applyTextFill",
-        "niceName": "テキストフィルを適用",
+        "niceName": "Apply Text Fill",
         "nodeInfo": "レガシーレイヤー - 新しい「テキストマテリアル適用」が利用可能です。\nテキストシェイプの行/単語/文字のフィルカラーを検索（正規表現）に基づいてプロシージャルに設定します。",
         "attributes": {
           "indices": "指定インデックス",
@@ -3918,7 +3918,7 @@
       },
       {
         "nodeType": "applyTextMaterial",
-        "niceName": "テキストマテリアルを適用",
+        "niceName": "Apply Text Material",
         "nodeInfo": "行/単語/文字または検索（正規表現）でテキストシェイプのフィル/ストロークをプロシージャルに設定します。",
         "attributes": {
           "indices": "指定インデックス",
@@ -3985,7 +3985,7 @@
       },
       {
         "nodeType": "applyCharacterSpacing",
-        "niceName": "文字間隔を適用",
+        "niceName": "Apply Character Spacing",
         "nodeInfo": "テキストシェイプのスタイルビヘイビアを介してプロシージャルなカーニングペアを作成します。",
         "attributes": {
           "pairs": "マッチ",
@@ -3995,7 +3995,7 @@
       },
       {
         "nodeType": "applyOpenType",
-        "niceName": "オープンタイプを適用",
+        "niceName": "Apply OpenType",
         "nodeInfo": "テキストの特定範囲にオープンタイプ機能を適用します。",
         "attributes": {
           "features": "特性",
@@ -4166,7 +4166,7 @@
       },
       {
         "nodeType": "applyFontStyle",
-        "niceName": "フォントスタイルを適用",
+        "niceName": "Apply Font Style",
         "nodeInfo": "下線や上付き文字などのフォントスタイルをテキストの特定範囲に適用。",
         "attributes": {
           "features": [
@@ -4340,7 +4340,7 @@
       {
         "nodeType": "textHash",
         "nodeInfo": "文字列ジェネレーターでハッシュ文字列を生成します",
-        "niceName": "ハッシュ",
+        "niceName": "Hash",
         "attributes": {
           "numberOfLines": "行数",
           "lineOffset": "ラインオフセット",
@@ -4350,7 +4350,7 @@
       {
         "nodeType": "textValue",
         "nodeInfo": "文字列ジェネレーター用の値を生成します。",
-        "niceName": "値",
+        "niceName": "Value",
         "attributes": {
           "length": "パディング",
           "number": "数値",
@@ -4363,7 +4363,7 @@
       {
         "nodeType": "textHex",
         "nodeInfo": "文字列ジェネレーター用の 16 進数文字列を生成します。",
-        "niceName": "16 進数",
+        "niceName": "Hexadecimal",
         "attributes": {
           "numberOfLines": "行数",
           "lineOffset": "ラインオフセット",
@@ -4374,7 +4374,7 @@
       {
         "nodeType": "textNumber",
         "nodeInfo": "文字列ジェネレーター用のランダム数値を生成します。",
-        "niceName": "ランダム数値",
+        "niceName": "Random Number",
         "attributes": {
           "minimum": "最小",
           "maximum": "最大",
@@ -4412,7 +4412,7 @@
       },
       {
         "nodeType": "basicLine",
-        "niceName": "基本ライン",
+        "niceName": "Basic Line",
         "nodeInfo": "ベジェ、スパイラル、直線などのプリミティブラインを作成します。",
         "attributes": {
           "generator": "ラインタイプ",
@@ -4422,7 +4422,7 @@
       {
         "nodeType": "simpleLine",
         "nodeInfo": "ラインプリミティブを生成します。",
-        "niceName": "線",
+        "niceName": "Line",
         "attributes": {
           "divisions": "サブディビジョン",
           "length": "長さ"
@@ -4431,7 +4431,7 @@
       {
         "nodeType": "spiralLine",
         "nodeInfo": "スパイラルラインプリミティブを生成します。",
-        "niceName": "スパイラル",
+        "niceName": "Spiral",
         "attributes": {
           "divisions": "サブディビジョン",
           "radius": "外半径",
@@ -4444,7 +4444,7 @@
       {
         "nodeType": "bezierLine",
         "nodeInfo": "ベジェラインプリミティブを生成します。",
-        "niceName": "ベジェ",
+        "niceName": "Bézier",
         "attributes": {
           "divisions": "サブディビジョン",
           "startPosition": "開始位置",
@@ -4456,7 +4456,7 @@
       {
         "nodeType": "rayLine",
         "nodeInfo": "ポイントからレイを発射し、他のシェイプと衝突しない限り無限長のラインを作成します。",
-        "niceName": "光線",
+        "niceName": "Ray",
         "attributes": {
           "shapes": "衝突シェイプ",
           "collisionMargin": "衝突マージン",
@@ -4610,7 +4610,7 @@
       {
         "nodeType": "circleDistribution",
         "nodeInfo": "放射状にポイントを分布。",
-        "niceName": "円",
+        "niceName": "Circle",
         "attributes": {
           "count": "数",
           "radius": "半径",
@@ -4625,7 +4625,7 @@
       {
         "nodeType": "randomDistribution",
         "nodeInfo": "ランダムな位置にポイントを分布。",
-        "niceName": "ランダム",
+        "niceName": "Random",
         "attributes": {
           "count": "数",
           "size": "サイズ",
@@ -4649,7 +4649,7 @@
       {
         "nodeType": "pointDistribution",
         "nodeInfo": "0,0 にポイントを分布。",
-        "niceName": "ポイント",
+        "niceName": "Point",
         "attributes": {
           "count": "数"
         }
@@ -4657,7 +4657,7 @@
       {
         "nodeType": "arrayDistribution",
         "nodeInfo": "各インデックスの位置を指定してポイントを分布します。",
-        "niceName": "配列",
+        "niceName": "Array",
         "attributes": {
           "array": "位置"
         }
@@ -4665,7 +4665,7 @@
       {
         "nodeType": "particleDistribution",
         "nodeInfo": "パーティクルシェイプにポイントを分布。",
-        "niceName": "パーティクル",
+        "niceName": "Particle",
         "attributes": {
           "array": "位置"
         }
@@ -4673,7 +4673,7 @@
       {
         "nodeType": "pathDistribution",
         "nodeInfo": "パスに沿ってポイントを分布。",
-        "niceName": "パス",
+        "niceName": "Path",
         "attributes": {
           "count": "数",
           "inputShape": "入力シェイプ",
@@ -4699,7 +4699,7 @@
       {
         "nodeType": "shapePointDistribution",
         "nodeInfo": "別のシェイプのポイント/頂点にポイントを分布します。",
-        "niceName": "シェイプポイント",
+        "niceName": "Shape Points",
         "attributes": {
           "inputShape": "配分シェイプ",
           "calculateRotations": "回転を使用",
@@ -4713,7 +4713,7 @@
       {
         "nodeType": "shapeEdgeDistribution",
         "nodeInfo": "別のシェイプのエッジにポイントを分布します。",
-        "niceName": "シェイプエッジ",
+        "niceName": "Shape Edges",
         "attributes": {
           "inputShape": "配分シェイプ",
           "calculateRotations": "回転を使用",
@@ -4728,7 +4728,7 @@
       {
         "nodeType": "voxelizeDistribution",
         "nodeInfo": "別のシェイプをボクセル化してポイントを分布します。",
-        "niceName": "ボクセル化",
+        "niceName": "Voxelize",
         "attributes": {
           "inputShape": "入力シェイプ",
           "size": "サイズ",
@@ -4740,7 +4740,7 @@
       },
       {
         "nodeType": "patternShape",
-        "niceName": "パターン",
+        "niceName": "Pattern",
         "attributes": {}
       },
       {
@@ -4766,7 +4766,7 @@
       {
         "nodeType": "roseDistribution",
         "nodeInfo": "ローズパターンでポイントを分布。",
-        "niceName": "ローズ",
+        "niceName": "Rose",
         "attributes": {
           "count": "数",
           "radius": "半径",
@@ -4785,7 +4785,7 @@
       {
         "nodeType": "gridDistribution",
         "nodeInfo": "グリッド状にポイントを分布。",
-        "niceName": "グリッド",
+        "niceName": "Grid",
         "attributes": {
           "count": [
             "数",
@@ -4818,7 +4818,7 @@
       {
         "nodeType": "linearDistribution",
         "nodeInfo": "水平または垂直のラインにポイントを分布します。",
-        "niceName": "リニア",
+        "niceName": "Linear",
         "attributes": {
           "count": "数",
           "size": "サイズ",
@@ -4839,7 +4839,7 @@
       {
         "nodeType": "customDistribution",
         "nodeInfo": "JavaScript を使用してポイントを分布させます。",
-        "niceName": "カスタム...",
+        "niceName": "Custom...",
         "attributes": {
           "input": "入力配分"
         }
@@ -4847,7 +4847,7 @@
       {
         "nodeType": "meshDistribution",
         "nodeInfo": "子メッシュの位置にポイントを分布します。",
-        "niceName": "サブメッシュ",
+        "niceName": "Sub-Mesh",
         "attributes": {
           "inputShape": "入力シェイプ",
           "count": "数",
@@ -4872,7 +4872,7 @@
       {
         "nodeType": "mathDistribution",
         "nodeInfo": "数式を使用してポイントを分布させます。",
-        "niceName": "数学",
+        "niceName": "Math",
         "attributes": {
           "count": "数",
           "expression": "エクスプレッション",
@@ -4882,7 +4882,7 @@
       {
         "nodeType": "maskDistribution",
         "nodeInfo": "ポイントを分布し、別のシェイプの外側にあるものを削除します。",
-        "niceName": "マスク",
+        "niceName": "Mask",
         "attributes": {
           "input": "入力配分",
           "reverse": "反転",
@@ -4893,7 +4893,7 @@
       {
         "nodeType": "shuffleDistribution",
         "nodeInfo": "サブメッシュの ID を並べ替えてポイントを分布します。",
-        "niceName": "シャッフル",
+        "niceName": "Shuffle",
         "attributes": {
           "input": "入力配分",
           "masks": [
@@ -4905,7 +4905,7 @@
       {
         "nodeType": "sortDistribution",
         "nodeInfo": "別のディストリビューションの ID を並べ替えてポイントを分布します。",
-        "niceName": "ソート",
+        "niceName": "Sort",
         "attributes": {
           "input": "入力配分",
           "reverse": "反転",
@@ -4925,7 +4925,7 @@
       {
         "nodeType": "fibonacciDistribution",
         "nodeInfo": "フィボナッチスパイラルパターンでポイントを分布します。",
-        "niceName": "フィボナッチ",
+        "niceName": "Fibonacci",
         "attributes": {
           "radius": "半径",
           "count": "数",
@@ -4934,7 +4934,7 @@
       },
       {
         "nodeType": "rectangleShape",
-        "niceName": "長方形",
+        "niceName": "Rectangle",
         "attributes": {
           "divisions": "拐角サブディビジョン",
           "dimensions": "サイズ",
@@ -4968,7 +4968,7 @@
       {
         "nodeType": "polygonShape",
         "nodeInfo": "ポリゴンプリミティブを生成。",
-        "niceName": "多角形",
+        "niceName": "Polygon",
         "attributes": {
           "divisions": "サブディビジョン",
           "radius": "半径",
@@ -4978,7 +4978,7 @@
       {
         "nodeType": "superEllipseShape",
         "nodeInfo": "スーパー楕円プリミティブを生成します。",
-        "niceName": "スーパー楕円",
+        "niceName": "Super Ellipse",
         "attributes": {
           "radius": "半径",
           "push": "プッシュ",
@@ -4989,7 +4989,7 @@
       {
         "nodeType": "superShape",
         "nodeInfo": "スーパーシェイププリミティブを生成します。",
-        "niceName": "スーパーシェイプ",
+        "niceName": "Super Shape",
         "attributes": {
           "radius": "半径",
           "complexity": "複雑度",
@@ -5004,7 +5004,7 @@
       {
         "nodeType": "squircleShape",
         "nodeInfo": "スクワークルプリミティブを生成します。",
-        "niceName": "スクワークル",
+        "niceName": "Squircle",
         "attributes": {
           "dimensions": "サイズ",
           "cornerRadius": "コーナー半径",
@@ -5016,7 +5016,7 @@
       {
         "nodeType": "starShape",
         "nodeInfo": "スタープリミティブを生成します。",
-        "niceName": "星形",
+        "niceName": "Star",
         "attributes": {
           "divisions": "サブディビジョン",
           "radius": "半径",
@@ -5032,7 +5032,7 @@
       {
         "nodeType": "arcShape",
         "nodeInfo": "アークプリミティブを生成します。",
-        "niceName": "円弧",
+        "niceName": "Arc",
         "attributes": {
           "divisions": [
             "サブディビジョン",
@@ -5063,7 +5063,7 @@
       {
         "nodeType": "ringShape",
         "nodeInfo": "リングプリミティブを生成。",
-        "niceName": "リング",
+        "niceName": "Ring",
         "attributes": {
           "divisions": "サブディビジョン",
           "radius": "外半径",
@@ -5072,7 +5072,7 @@
       },
       {
         "nodeType": "circleShape",
-        "niceName": "円",
+        "niceName": "Circle",
         "attributes": {
           "divisions": "サブディビジョン",
           "radius": "半径"
@@ -5081,7 +5081,7 @@
       {
         "nodeType": "ellipseShape",
         "nodeInfo": "楕円プリミティブを生成します。",
-        "niceName": "楕円",
+        "niceName": "Ellipse",
         "attributes": {
           "divisions": "サブディビジョン",
           "radius": "半径",
@@ -5092,7 +5092,7 @@
       {
         "nodeType": "capsuleShape",
         "nodeInfo": "カプセルプリミティブを生成。",
-        "niceName": "カプセル",
+        "niceName": "Capsule",
         "attributes": {
           "divisions": "エッジ分割",
           "radius": "半径",
@@ -5113,7 +5113,7 @@
       {
         "nodeType": "textDate",
         "nodeInfo": "文字列ジェネレーター用のランダム日付を生成します。",
-        "niceName": "ランダム日付",
+        "niceName": "Random Date",
         "attributes": {
           "startDate": "開始日付",
           "endDate": "終了日付",
@@ -5133,7 +5133,7 @@
       {
         "nodeType": "textBlockUnicode",
         "nodeInfo": "設定可能な段落、行、単語、文字数で階層構造のテキストを生成します。",
-        "niceName": "ブロック",
+        "niceName": "Block",
         "attributes": {
           "paragraphs": [
             "段落",
@@ -5186,7 +5186,7 @@
       {
         "nodeType": "formattedDateAndTime",
         "nodeInfo": "文字列ジェネレーターで日付と時刻トークンを使用して文字列を生成します。",
-        "niceName": "フォーマット済み日時",
+        "niceName": "Formatted Date and Time",
         "attributes": {
           "inputString": "格式化文字列",
           "array": "文字列"
@@ -5195,7 +5195,7 @@
       {
         "nodeType": "textFormatted",
         "nodeInfo": "文字列ジェネレーターで連結文字列を生成します。",
-        "niceName": "格式化文字列",
+        "niceName": "Formatted String",
         "attributes": {
           "inputString": "格式化文字列",
           "array": "文字列"
@@ -5203,14 +5203,14 @@
       },
       {
         "nodeType": "chartShape",
-        "niceName": "チャート",
+        "niceName": "Chart",
         "attributes": {
           "generator": "チャートタイプ"
         }
       },
       {
         "nodeType": "lineChart",
-        "niceName": "ラインチャート",
+        "niceName": "Line Chart",
         "attributes": {
           "xAxis": "X軸",
           "yAxis": "Y軸"
@@ -5218,7 +5218,7 @@
       },
       {
         "nodeType": "backgroundShape",
-        "niceName": "背景シェイプ",
+        "niceName": "Background Shape",
         "nodeInfo": "コンポジションの解像度に合わせてリサイズされるシェイプ。",
         "attributes": {
           "shrink": "縮小"
@@ -5331,7 +5331,7 @@
       },
       {
         "nodeType": "pointsToCurve",
-        "niceName": "ポイントからパスへ",
+        "niceName": "Points to Path",
         "nodeInfo": "ディストリビューション内のポイントを使用してパスを作成します。",
         "attributes": {
           "generator": "ポイントソース",
@@ -5351,7 +5351,7 @@
       {
         "nodeType": "transformDistribution",
         "nodeInfo": "レイヤーの位置にポイントを分布します。",
-        "niceName": "変形",
+        "niceName": "Transform",
         "attributes": {
           "inputShape": "入力シェイプ"
         }
@@ -5359,7 +5359,7 @@
       {
         "nodeType": "cogwheelShape",
         "nodeInfo": "コグホイール（歯車）プリミティブを生成します。",
-        "niceName": "歯車",
+        "niceName": "Cogwheel",
         "attributes": {
           "teeth": "歯",
           "radius": "ピッチ半径",
@@ -5372,7 +5372,7 @@
       },
       {
         "nodeType": "cogwheelGearShape",
-        "niceName": "歯車（ギア）",
+        "niceName": "Cogwheel (Gear)",
         "attributes": {
           "teeth": "歯",
           "pitchRadius": "ピッチ半径",
@@ -5384,7 +5384,7 @@
       {
         "nodeType": "arrowShape",
         "nodeInfo": "矢印プリミティブを生成します。",
-        "niceName": "矢印",
+        "niceName": "Arrow",
         "attributes": {
           "bodyLength": "主体長さ",
           "bodyWidth": "主体幅",
@@ -5395,7 +5395,7 @@
       {
         "nodeType": "basicArrowHead",
         "nodeInfo": "矢印プリミティブ用の矢印端を生成します。",
-        "niceName": "矢印",
+        "niceName": "Arrow",
         "attributes": {
           "headLength": "終了長さ",
           "headWidth": "矢印幅",
@@ -5405,7 +5405,7 @@
       {
         "nodeType": "chevronHead",
         "nodeInfo": "矢印プリミティブ用のシェブロン端を生成します。",
-        "niceName": "シェブロン",
+        "niceName": "Chevron",
         "attributes": {
           "headLength": "終了長さ",
           "headWidth": "V 形幅",
@@ -5416,7 +5416,7 @@
       {
         "nodeType": "barbedHead",
         "nodeInfo": "矢印プリミティブ用のバーブ端を生成します。",
-        "niceName": "バーブ",
+        "niceName": "Barbed",
         "attributes": {
           "headLength": "終了長さ",
           "barbWidth": "倒钩幅",
@@ -5426,7 +5426,7 @@
       {
         "nodeType": "circleHead",
         "nodeInfo": "矢印プリミティブ用の円形端を生成します。",
-        "niceName": "円",
+        "niceName": "Circle",
         "attributes": {
           "circleRadius": "サイズ",
           "circleHole": "穴",
@@ -5436,7 +5436,7 @@
       {
         "nodeType": "boxHead",
         "nodeInfo": "矢印プリミティブ用のボックス端を生成します。",
-        "niceName": "ボックス",
+        "niceName": "Box",
         "attributes": {
           "boxSize": "サイズ",
           "boxHole": "穴",
@@ -5446,7 +5446,7 @@
       {
         "nodeType": "textTimecode",
         "nodeInfo": "文字列ジェネレーター用のタイムコードを生成します。",
-        "niceName": "タイムコード",
+        "niceName": "Timecode",
         "attributes": {
           "frame": "フレーム",
           "offset": "フレームオフセット",
@@ -5486,7 +5486,7 @@
       },
       {
         "nodeType": "numberRangeBase",
-        "niceName": "数値範囲",
+        "niceName": "Number Range",
         "attributes": {
           "sourceMin": "ソース最小値",
           "sourceMax": "ソース最大値",
@@ -5500,7 +5500,7 @@
       },
       {
         "nodeType": "numberRangeToColorBase",
-        "niceName": "数値範囲から色へ",
+        "niceName": "Number Range To Color",
         "attributes": {
           "sourceMin": "ソース最小値",
           "sourceMax": "ソース最大値",
@@ -5555,7 +5555,7 @@
       },
       {
         "nodeType": "contextIndex",
-        "niceName": "インデックスコンテキスト",
+        "niceName": "Index Context",
         "nodeInfo": "このレイヤーのインデックスを抽出し、デュプリケーターやコネクトシェイプなどのレイヤーの入力に送信します。",
         "attributes": {
           "depth": "上游深さ",
@@ -5581,7 +5581,7 @@
       },
       {
         "nodeType": "stringManipulator",
-        "niceName": "文字列マニピュレーター",
+        "niceName": "String Manipulator",
         "nodeInfo": "既存の文字列（テキスト）を変更。シャッフル、リサイズ、置換などのオプションを含む。",
         "attributes": {
           "text": "文字列",
@@ -5590,7 +5590,7 @@
       },
       {
         "nodeType": "arrayManipulator",
-        "niceName": "配列マニピュレーター",
+        "niceName": "Array Manipulator",
         "attributes": {
           "generator": "マニピュレータ"
         }
@@ -5598,7 +5598,7 @@
       {
         "nodeType": "shuffleString",
         "nodeInfo": "文字列の文字を並べ替えます。",
-        "niceName": "文字列シャッフル",
+        "niceName": "Shuffle String",
         "attributes": {
           "percentage": "パーセンテージ",
           "randomSeed": "ランダムシード",
@@ -5638,7 +5638,7 @@
       {
         "nodeType": "resizeString",
         "nodeInfo": "文字列の長さを短縮します。",
-        "niceName": "文字列リサイズ",
+        "niceName": "Resize String",
         "attributes": {
           "percentage": "パーセンテージ",
           "length": "長さ",
@@ -5677,7 +5677,7 @@
       {
         "nodeType": "replaceString",
         "nodeInfo": "文字列の一部を別の文字列に置換します。",
-        "niceName": "文字列を置換",
+        "niceName": "Replace String",
         "attributes": {
           "replace": "置換",
           "with": "含む"
@@ -5685,7 +5685,7 @@
       },
       {
         "nodeType": "changeStringCase",
-        "niceName": "文字列の大文字/小文字を変更",
+        "niceName": "Change String Case",
         "attributes": {
           "mode": "モード",
           "exclusionList": "単語除算外リスト",
@@ -5703,7 +5703,7 @@
       {
         "nodeType": "transitionString",
         "nodeInfo": "ある文字列から別の文字列にトランジションします。",
-        "niceName": "トランジション文字列",
+        "niceName": "Transition String",
         "attributes": {
           "percentage": "パーセンテージ",
           "length": "長さ",
@@ -5831,7 +5831,7 @@
       {
         "nodeType": "regexString",
         "nodeInfo": "正規表現を使用して文字列をフィルタリングします。",
-        "niceName": "正規表現",
+        "niceName": "Regex",
         "attributes": {
           "regex": "正規表現"
         }
@@ -5839,7 +5839,7 @@
       {
         "nodeType": "subString",
         "nodeInfo": "文字列をトリミング。",
-        "niceName": "サブストリング",
+        "niceName": "Sub-String",
         "attributes": {
           "start": "開始位置",
           "end": "終了位置",
@@ -5849,7 +5849,7 @@
       {
         "nodeType": "unicodeManipulator",
         "nodeInfo": "Unicode コードポイントで文字をオフセットします。ピクチャーフォントやグリフ操作に便利です。",
-        "niceName": "Unicode オフセット",
+        "niceName": "Unicode Offset",
         "attributes": {
           "offset": "オフセット",
           "clampToRange": "钳制到範囲",
@@ -5921,7 +5921,7 @@
       },
       {
         "nodeType": "shapeArray",
-        "niceName": "シェイプ配列",
+        "niceName": "Shape Array",
         "nodeInfo": "インデックスを介して他のレイヤーに割り当て可能な接続シェイプのリストを作成します。",
         "attributes": {
           "array": "シェイプ"
@@ -5929,24 +5929,24 @@
       },
       {
         "nodeType": "resizeArray",
-        "niceName": "配列リサイズ",
+        "niceName": "Resize Array",
         "attributes": {
           "size": "サイズ"
         }
       },
       {
         "nodeType": "sortArray",
-        "niceName": "配列ソート",
+        "niceName": "Sort Array",
         "attributes": {}
       },
       {
         "nodeType": "shuffleArray",
-        "niceName": "配列シャッフル",
+        "niceName": "Shuffle Array",
         "attributes": {}
       },
       {
         "nodeType": "manipulateArray",
-        "niceName": "配列操作",
+        "niceName": "Manipulate Array",
         "attributes": {
           "mode": "モード"
         },
@@ -5973,7 +5973,7 @@
       },
       {
         "nodeType": "subdivide",
-        "niceName": "サブディバイド",
+        "niceName": "Subdivide",
         "attributes": {
           "subdivisions": "サブディビジョン",
           "curveToEndPoints": "カーブ到端点",
@@ -5989,7 +5989,7 @@
       },
       {
         "nodeType": "compConstraint",
-        "niceName": "コンポジションコンストレイント",
+        "niceName": "Composition Constraint",
         "nodeInfo": "シェイプをコンポジションのエッジにコンストレイントします。",
         "attributes": {
           "offset": "オフセット",
@@ -6015,7 +6015,7 @@
       },
       {
         "nodeType": "componentConstraint",
-        "niceName": "コンポーネントコンストレイント",
+        "niceName": "Component Constraint",
         "nodeInfo": "シェイプを別のシェイプのポイントまたはエッジにコンストレイントします。",
         "attributes": {
           "generator": "コンストレイントタイプ"
@@ -6024,7 +6024,7 @@
       {
         "nodeType": "concatenateStringArray",
         "nodeInfo": "複数の文字列を連結。",
-        "niceName": "文字列結合",
+        "niceName": "Join String",
         "attributes": {
           "array": "文字列",
           "delimiter": "区切り文字",
@@ -6043,7 +6043,7 @@
       {
         "nodeType": "edgeConstraint",
         "nodeInfo": "コンポーネントコンストレイント用のエッジコンストレイントを生成します。",
-        "niceName": "エッジコンストレイント",
+        "niceName": "Edge Constraint",
         "attributes": {
           "target": "ターゲット",
           "offset": "オフセット",
@@ -6058,7 +6058,7 @@
       },
       {
         "nodeType": "transformConstraint",
-        "niceName": "変形コンストレイント",
+        "niceName": "Transform Constraint",
         "attributes": {
           "target": "ターゲット",
           "offset": "オフセット",
@@ -6070,7 +6070,7 @@
       {
         "nodeType": "pointConstraint",
         "nodeInfo": "コンポーネントコンストレイント用のポイントコンストレイントを生成します。",
-        "niceName": "ポイントコンストレイント",
+        "niceName": "Point Constraint",
         "attributes": {
           "target": "ターゲット",
           "offset": "オフセット",
@@ -6085,7 +6085,7 @@
       {
         "nodeType": "pathOffsetBehaviour",
         "nodeInfo": "パスを縮小または拡大します。",
-        "niceName": "パスオフセット",
+        "niceName": "Path Offset",
         "attributes": {
           "offset": "オフセット",
           "rounded": "角丸",
@@ -6206,7 +6206,7 @@
       },
       {
         "nodeType": "simpleValue2Solver",
-        "niceName": "2値ソルバー",
+        "niceName": "Value2 Solver",
         "nodeInfo": "前のフレームの 2 次元値を保存し、累積および/またはフェードします。",
         "attributes": {
           "saveLimit": "保存制限",
@@ -6240,7 +6240,7 @@
       },
       {
         "nodeType": "simpleValueSolver",
-        "niceName": "値ソルバー",
+        "niceName": "Value Solver",
         "nodeInfo": "前のフレームの値を保存し、累積および/またはフェードします。",
         "attributes": {
           "saveLimit": "保存制限",
@@ -6345,7 +6345,7 @@
       },
       {
         "nodeType": "layoutShape",
-        "niceName": "レイアウトシェイプ",
+        "niceName": "Layout Shape",
         "nodeInfo": "このレイヤーは非推奨です - 代替機能についてはレイアウトを参照してください。",
         "attributes": {
           "layout": "レイアウト",
@@ -6391,7 +6391,7 @@
       {
         "nodeType": "horizontalLayout",
         "nodeInfo": "レイアウト適用ビヘイビア用の水平レイアウトを生成します。",
-        "niceName": "水平レイアウト",
+        "niceName": "Horizontal Layout",
         "attributes": {
           "autoSpacing": "自動間隔",
           "paddingLR": "水平パディング",
@@ -6406,7 +6406,7 @@
       {
         "nodeType": "verticalLayout",
         "nodeInfo": "レイアウト適用ビヘイビア用の垂直レイアウトを生成します。",
-        "niceName": "垂直レイアウト",
+        "niceName": "Vertical Layout",
         "attributes": {
           "autoSpacing": "自動間隔",
           "paddingLR": "水平パディング",
@@ -6421,7 +6421,7 @@
       {
         "nodeType": "gridLayout",
         "nodeInfo": "レイアウト適用ビヘイビア用のグリッドレイアウトを生成します。",
-        "niceName": "グリッドレイアウト",
+        "niceName": "Grid Layout",
         "attributes": {
           "rows": "行",
           "columns": "列",
@@ -6435,7 +6435,7 @@
       },
       {
         "nodeType": "spacerItem",
-        "niceName": "スペーサー",
+        "niceName": "Spacer",
         "nodeInfo": "レイアウトシェイプと組み合わせてギャップや空白セルを作成します。",
         "attributes": {
           "minimumSize": "最小サイズ"
@@ -6443,7 +6443,7 @@
       },
       {
         "nodeType": "getLayerName",
-        "niceName": "名前を取得",
+        "niceName": "Get Name",
         "nodeInfo": "レイヤーの「表示名」を取得し、文字列として出力します。",
         "attributes": {
           "inputShape": "入力"
@@ -6451,7 +6451,7 @@
       },
       {
         "nodeType": "stringLength",
-        "niceName": "文字列長",
+        "niceName": "String Length",
         "nodeInfo": "文字列内の行数/単語数/文字数をカウントします。",
         "attributes": {
           "string": "文字列",
@@ -6614,7 +6614,7 @@
       },
       {
         "nodeType": "rectPatternShape",
-        "niceName": "矩形パターン",
+        "niceName": "Rectangle Pattern",
         "nodeInfo": "積み上げバー/円/リングチャートおよびバーコードを作成します。",
         "attributes": {
           "generator": "パターンモード",
@@ -6632,7 +6632,7 @@
       },
       {
         "nodeType": "lineRectPatternGenerator",
-        "niceName": "線",
+        "niceName": "Line",
         "attributes": {
           "useFixedSize": "固定サイズを使用",
           "orientation": "方向",
@@ -6654,7 +6654,7 @@
       },
       {
         "nodeType": "ringRectPatternGenerator",
-        "niceName": "リング",
+        "niceName": "Ring",
         "attributes": {
           "useFixedSize": "固定サイズを使用",
           "startAngle": "開始角度",
@@ -6673,7 +6673,7 @@
       },
       {
         "nodeType": "bentoShape",
-        "niceName": "ベント",
+        "niceName": "Bento",
         "attributes": {
           "size": "サイズ",
           "gridColumns": "グリッド列",
@@ -6697,7 +6697,7 @@
       },
       {
         "nodeType": "chromaticAberrationFilter",
-        "niceName": "色収差",
+        "niceName": "Chromatic Aberration",
         "nodeInfo": "レイヤーのエッジを歪ませながら赤、緑、青のチャンネルを分離します。",
         "attributes": {
           "alignmentX": "水平整列",
@@ -6742,7 +6742,7 @@
       {
         "nodeType": "distributionEmitter",
         "nodeInfo": "分布からパーティクルをエミット。",
-        "niceName": "分布エミッター",
+        "niceName": "Distribution Emitter",
         "attributes": {
           "generator": "配分",
           "emissionMode": "エミッションモード",
@@ -6764,7 +6764,7 @@
       },
       {
         "nodeType": "particleEmitter",
-        "niceName": "パーティクルエミッター",
+        "niceName": "Particle Emitter",
         "nodeInfo": "ポイント、シェイプ、またはパスからパーティクルを放出します。",
         "attributes": {
           "emitterRate": "レート",
@@ -6800,7 +6800,7 @@
       },
       {
         "nodeType": "particleModifier",
-        "niceName": "パーティクルモディファイア",
+        "niceName": "Particle Modifier",
         "nodeInfo": "情報",
         "attributes": {
           "enabled": "有効修改器",
@@ -6828,7 +6828,7 @@
       },
       {
         "nodeType": "dataModifier",
-        "niceName": "データモディファイアー",
+        "niceName": "Data Modifier",
         "nodeInfo": "ID、寿命、速度などのパーティクルプロパティに影響を与える。",
         "attributes": {
           "kill": "パーティクル消去",
@@ -6852,7 +6852,7 @@
       },
       {
         "nodeType": "particleShape",
-        "niceName": "パーティクルシェイプ",
+        "niceName": "Particle Shape",
         "nodeInfo": "煙、雨、塵のような複雑な物理ベースのエフェクトをシミュレートします。",
         "attributes": {
           "modifiers": "モディファイア",
@@ -6926,7 +6926,7 @@
       },
       {
         "nodeType": "visualModifier",
-        "niceName": "ビジュアルモディファイア",
+        "niceName": "Visual Modifier",
         "nodeInfo": "パーティクルの外観を変更します。",
         "attributes": {
           "gradientMode": "グラデーションモード",
@@ -6956,7 +6956,7 @@
       },
       {
         "nodeType": "imageModifier",
-        "niceName": "イメージモディファイア",
+        "niceName": "Image Modifier",
         "nodeInfo": "パーティクルに画像または画像シーケンスを追加。",
         "attributes": {
           "inputImage": "画像",
@@ -6978,7 +6978,7 @@
       },
       {
         "nodeType": "pathModifier",
-        "niceName": "パスモディファイア",
+        "niceName": "Path Modifier",
         "nodeInfo": "パスに沿ってパーティクルを流す。",
         "attributes": {
           "overwritePhysics": "物理を上書き",
@@ -7010,7 +7010,7 @@
       },
       {
         "nodeType": "vortexModifier",
-        "niceName": "ボルテックスモディファイア",
+        "niceName": "Vortex Modifier",
         "nodeInfo": "位置の周りでパーティクルを渦巻かせ、スパイラルまたは銀河効果を作成します。",
         "attributes": {},
         "enums": {
@@ -7022,7 +7022,7 @@
       },
       {
         "nodeType": "magneticModifier",
-        "niceName": "マグネティックモディファイア",
+        "niceName": "Magnetic Modifier",
         "nodeInfo": "位置に向かってパーティクルを引き寄せるか、位置から遠ざけます。",
         "attributes": {},
         "enums": {
@@ -7034,7 +7034,7 @@
       },
       {
         "nodeType": "flowFieldModifier",
-        "niceName": "フローフィールドモディファイアー",
+        "niceName": "Flow Field Modifier",
         "nodeInfo": "方向セルのグリッドを通してパーティクルを移動させ、自然で流体的な動きを作成します。",
         "attributes": {
           "generator": "フローフィールド"
@@ -7048,7 +7048,7 @@
       },
       {
         "nodeType": "goalModifier",
-        "niceName": "ゴールモディファイア",
+        "niceName": "Goal Modifier",
         "nodeInfo": "ターゲットディストリビューションに向かってパーティクルを移動します。",
         "attributes": {
           "inputPoints": "配分",
@@ -7070,7 +7070,7 @@
       },
       {
         "nodeType": "speedModifier",
-        "niceName": "スピードモディファイアー",
+        "niceName": "Speed Modifier",
         "nodeInfo": "パーティクルの速度にドラッグを追加または制限を設定。",
         "attributes": {
           "limitType": "制限タイプ",
@@ -7090,7 +7090,7 @@
       },
       {
         "nodeType": "forceModifier",
-        "niceName": "フォースモディファイアー",
+        "niceName": "Force Modifier",
         "nodeInfo": "力を適用してパーティクルの重力や質量などの物理プロパティを変更します。",
         "attributes": {
           "forceVelocity": "力速度",
@@ -7106,7 +7106,7 @@
       },
       {
         "nodeType": "turbulenceModifier",
-        "niceName": "タービュランスモディファイア",
+        "niceName": "Turbulence Modifier",
         "nodeInfo": "ノイズを使用してパーティクルの位置と速度に影響を与え、シミュレーションに変化を加えます。",
         "attributes": {
           "forceMagnitude": "力サイズ",
@@ -7124,7 +7124,7 @@
       },
       {
         "nodeType": "multiPointGradientShader",
-        "niceName": "マルチポイントグラデーションシェーダー",
+        "niceName": "Multi-Point Gradient Shader",
         "nodeInfo": "カラーを配置し、影響を使用してフォールオフを設定します。",
         "attributes": {
           "premultiply": "プリマルチプライ",
@@ -7144,7 +7144,7 @@
       },
       {
         "nodeType": "gammaCorrectionFilter",
-        "niceName": "ガンマ補正",
+        "niceName": "Gamma Correction",
         "nodeInfo": "カラーをべき乗して知覚される明るさと暗さを増減します。",
         "attributes": {
           "gamma": "ガンマ値",
@@ -7176,7 +7176,7 @@
       },
       {
         "nodeType": "blendShader",
-        "niceName": "ブレンドシェーダー",
+        "niceName": "Blend Shader",
         "nodeInfo": "複数のシェーダーを組み合わせて単一のシェーダーを出力します。",
         "attributes": {
           "shaders": "シェーダー",
@@ -7219,7 +7219,7 @@
       },
       {
         "nodeType": "slaShader",
-        "niceName": "SLA シェーダー",
+        "niceName": "SLA Shader",
         "nodeInfo": "ノベルノイズシェーダー。",
         "attributes": {
           "noiseType": [
@@ -7316,7 +7316,7 @@
       },
       {
         "nodeType": "rgbSplitFilter",
-        "niceName": "RGB スプリット",
+        "niceName": "RGB Split",
         "nodeInfo": "レイヤーの赤、緑、青のカラーチャンネルをオフセットします。",
         "attributes": {
           "passes": "繰り返し",
@@ -7364,7 +7364,7 @@
       },
       {
         "nodeType": "halftoneLegacyFilter",
-        "niceName": "ハーフトーン",
+        "niceName": "Halftone",
         "nodeInfo": "レガシーレイヤー - 新しい「ハーフトーン」が利用可能です。\nレイヤーの明るさに比例したサイズの円の連続としてレイヤーを再描画します。",
         "attributes": {
           "count": "サイズ",
@@ -7392,7 +7392,7 @@
       },
       {
         "nodeType": "halftoneFilter",
-        "niceName": "ハーフトーン",
+        "niceName": "Halftone",
         "nodeInfo": "レイヤーの明るさに比例したサイズの円の連続としてレイヤーを再描画します。",
         "attributes": {
           "size": "サイズ",
@@ -7450,7 +7450,7 @@
       },
       {
         "nodeType": "frostedGlassFilter",
-        "niceName": "すりガラス",
+        "niceName": "Frosted Glass",
         "attributes": {
           "strength": "強度",
           "tint": "ティント",
@@ -7462,7 +7462,7 @@
       },
       {
         "nodeType": "ditheringFilter",
-        "niceName": "ディザリング",
+        "niceName": "Dithering",
         "nodeInfo": "バンディングを防ぐためにノイズを適用し、色のビット深度を下げてレイヤーを再描画します。",
         "attributes": {
           "colorBit": "ビット深度",
@@ -7523,7 +7523,7 @@
       },
       {
         "nodeType": "pixelSortingFilter",
-        "niceName": "ピクセルソート",
+        "niceName": "Pixel Sorting",
         "nodeInfo": "明るさなどの様々なアトリビュートに従ってレイヤーのピクセルを並べ替えます。",
         "attributes": {
           "blendMode": "ブレンドモード",
@@ -7576,7 +7576,7 @@
       },
       {
         "nodeType": "stripesFilter",
-        "niceName": "ストライプ",
+        "niceName": "Stripes",
         "nodeInfo": "ピクセルのラインをサンプリングし、拡張してストライプパターンを作成します。",
         "attributes": {
           "blendMode": "ブレンドモード",
@@ -7612,7 +7612,7 @@
       },
       {
         "nodeType": "pixelateFilter",
-        "niceName": "ピクセレート",
+        "niceName": "Pixelate",
         "nodeInfo": "均一なカラーのブロックを使用してレイヤーを再描画します。「ピクセル」にはさまざまな形状を使用できます。",
         "attributes": {
           "leadingDiagonal": "主対角線を反転",
@@ -7632,7 +7632,7 @@
       },
       {
         "nodeType": "crtScanLines",
-        "niceName": "走査線",
+        "niceName": "Scan Lines",
         "nodeInfo": "CRT モニターの効果を模倣します。",
         "attributes": {
           "realRes": "スキャンライン解像度を使用",
@@ -7664,7 +7664,7 @@
       },
       {
         "nodeType": "kitaokaFilter",
-        "niceName": "北岡フィルター",
+        "niceName": "Kitaoka Filter",
         "nodeInfo": "美しい波を作成します。",
         "attributes": {
           "blendMode": "ブレンドモード",
@@ -7734,7 +7734,7 @@
       },
       {
         "nodeType": "mirrorFilter",
-        "niceName": "ミラー",
+        "niceName": "Mirror",
         "nodeInfo": "中心線に沿ってシェイプを反転させ、反射を作成します。",
         "attributes": {},
         "enums": {
@@ -7767,7 +7767,7 @@
       },
       {
         "nodeType": "distortionFilter",
-        "niceName": "ディストーション",
+        "niceName": "Distortion",
         "nodeInfo": "シェーダー（ノイズなど）に基づいてレイヤーを歪ませます。",
         "attributes": {
           "singleDirection": "単一方向を使用",
@@ -7831,7 +7831,7 @@
       },
       {
         "nodeType": "distortEdges",
-        "niceName": "エッジを歪める",
+        "niceName": "Distort Edges",
         "nodeInfo": "シェーダーを使用してレイヤーのエッジのみを歪ませます。",
         "attributes": {
           "border": "ボーダー",
@@ -7890,7 +7890,7 @@
       },
       {
         "nodeType": "chromaticDisplacement",
-        "niceName": "色収差ディスプレイスメント",
+        "niceName": "Chromatic Displacement",
         "nodeInfo": "ハイトマップシェーダーに基づいて独立した RGB チャンネルのディスプレイスメントを適用し、色収差や屈折の効果を作成します。",
         "attributes": {
           "amplitude": "振幅",
@@ -7952,7 +7952,7 @@
       },
       {
         "nodeType": "displacementUtility",
-        "niceName": "ディスプレイスメントユーティリティ",
+        "niceName": "Displacement Utility",
         "enums": {
           "shapeType": {
             "0": "円",
@@ -7962,7 +7962,7 @@
       },
       {
         "nodeType": "colorInfo",
-        "niceName": "カラー情報",
+        "niceName": "Color Info",
         "nodeInfo": "指定カラーの色相、彩度、または明度を取得します。",
         "attributes": {
           "inColor": "カラー",
@@ -7979,7 +7979,7 @@
       },
       {
         "nodeType": "hsvColor",
-        "niceName": "HSV カラー",
+        "niceName": "HSV Color",
         "nodeInfo": "色相、彩度、明度からカラーを作成します。",
         "attributes": {
           "hue": "色相",
@@ -7991,7 +7991,7 @@
       },
       {
         "nodeType": "subBoundingBox",
-        "niceName": "サブメッシュバウンディングボックス",
+        "niceName": "Sub-Mesh Bounding Box",
         "nodeInfo": "サブメッシュ（デュプリケーター、テキスト、SVG など）のバウンディングボックスを使用して矩形を作成します。",
         "attributes": {
           "inputShape": "入力シェイプ",
@@ -8010,7 +8010,7 @@
       },
       {
         "nodeType": "segmentPath",
-        "niceName": "パスセグメント",
+        "niceName": "Segment Path",
         "nodeInfo": "パスをより小さなセクションに分割します。",
         "attributes": {
           "count": "数",
@@ -8043,7 +8043,7 @@
       },
       {
         "nodeType": "forgeDynamicsShape",
-        "niceName": "フォージダイナミクス",
+        "niceName": "Forge Dynamics",
         "nodeInfo": "剛体衝突用の 2D 物理エンジン。",
         "attributes": {
           "groundMode": "地面モード",
@@ -8171,7 +8171,7 @@
       },
       {
         "nodeType": "colorCollisionEvent",
-        "niceName": "カラー衝突イベント",
+        "niceName": "Color Collision Event",
         "nodeInfo": "Forge ダイナミクスボディが衝突した時にカラーを変更します。",
         "attributes": {
           "fillColor": "カラー",
@@ -8211,7 +8211,7 @@
       },
       {
         "nodeType": "measureText",
-        "niceName": "テキスト計測",
+        "niceName": "Measure Text",
         "nodeInfo": "フォントとフォントサイズを指定してテキスト文字列のサイズを計測します。",
         "attributes": {
           "string": "文字列",
@@ -8235,7 +8235,7 @@
       },
       {
         "nodeType": "stickyCollisionEvent",
-        "niceName": "粘着衝突イベント",
+        "niceName": "Sticky Collision Event",
         "nodeInfo": "Forge ダイナミクスボディが衝突した時に互いに貼り付けます。",
         "attributes": {
           "breakable": "破壊可能",
@@ -8247,7 +8247,7 @@
       },
       {
         "nodeType": "impulseCollisionEvent",
-        "niceName": "インパルス衝突イベント",
+        "niceName": "Impulse Collision Event",
         "nodeInfo": "Forge ダイナミクスのボディが衝突した際に追加のフォースを適用。",
         "attributes": {
           "useBounceDirection": "バウンス方向を使用",
@@ -8258,7 +8258,7 @@
       },
       {
         "nodeType": "bodySettingCollisionEvent",
-        "niceName": "ボディ設定衝突イベント",
+        "niceName": "Body Settings Collision Event",
         "nodeInfo": "Forge ダイナミクスボディが別のボディと衝突した時に設定を更新します。",
         "attributes": {
           "useCollisionIndex": [
@@ -8277,7 +8277,7 @@
       },
       {
         "nodeType": "visibilityCollisionEvent",
-        "niceName": "可視性衝突イベント",
+        "niceName": "Visibility Collision Event",
         "nodeInfo": "Forge ダイナミクスのボディが衝突した際に可視性または不透明度に影響を与える。",
         "attributes": {
           "mode": "モード",
@@ -8307,7 +8307,7 @@
       },
       {
         "nodeType": "bridgeConstraint",
-        "niceName": "ブリッジコンストレイント",
+        "niceName": "Bridge Constraint",
         "nodeInfo": "Forge ダイナミクスシミュレーションでシェイプを接続してチェーンやブリッジ構造を形成します。",
         "attributes": {
           "frequencyHz": "周波数（ヘルツ）",
@@ -8353,7 +8353,7 @@
       },
       {
         "nodeType": "pinConstraint",
-        "niceName": "ピンコンストレイント",
+        "niceName": "Pin Constraint",
         "nodeInfo": "Forge ダイナミクスシミュレーションでシェイプを元の位置にピン留めしますが、回転は許可します。",
         "attributes": {
           "motor": "モーター",
@@ -8401,7 +8401,7 @@
       },
       {
         "nodeType": "distanceConstraint",
-        "niceName": "ディスタンスコンストレイント",
+        "niceName": "Distance Constraint",
         "nodeInfo": "Forge ダイナミクスシミュレーションでシェイプを元の位置にコンストレイントします。",
         "attributes": {
           "restLength": "静止長",
@@ -8471,7 +8471,7 @@
       },
       {
         "nodeType": "directionField",
-        "niceName": "方向フィールド",
+        "niceName": "Direction Field",
         "nodeInfo": "Forge ダイナミクスシミュレーションで方向性のある力を作成してシェイプを押し出します。",
         "attributes": {
           "directionalForce": "方向",
@@ -8481,12 +8481,12 @@
       {
         "nodeType": "attractorField",
         "nodeInfo": "Forge ダイナミクスシミュレーションで使用してシェイプをターゲットに向かって、またはターゲットから離れるように移動します。",
-        "niceName": "引力フィールド"
+        "niceName": "Attractor Field"
       },
       {
         "nodeType": "vortexField",
         "nodeInfo": "中心点の周りにスパイラル/回転フォースをシェイプに適用。",
-        "niceName": "渦フィールド",
+        "niceName": "Vortex Field",
         "attributes": {
           "radius": [
             "半径",
@@ -8533,7 +8533,7 @@
       {
         "nodeType": "buoyancyField",
         "nodeInfo": "密度に基づいてダイナミックボディが浮いたり沈んだりする流体コンテナを作成します。",
-        "niceName": "浮力フィールド",
+        "niceName": "Buoyancy Field",
         "attributes": {
           "size": [
             "サイズ",
@@ -8588,7 +8588,7 @@
       {
         "nodeType": "pathField",
         "nodeInfo": "シェイプにパス追従フォースを適用。",
-        "niceName": "パスフィールド",
+        "niceName": "Path Field",
         "attributes": {
           "pathToFollow": [
             "追従パス",
@@ -8632,7 +8632,7 @@
       },
       {
         "nodeType": "travel",
-        "niceName": "トラベル",
+        "niceName": "Travel",
         "nodeInfo": "パス内のすべての輪郭に沿って始点を移動します（パスには複数の輪郭を含めることができます）。",
         "attributes": {
           "mode": "トラベル"
@@ -8640,7 +8640,7 @@
       },
       {
         "nodeType": "reversePathUtility",
-        "niceName": "パス反転",
+        "niceName": "Reverse Path",
         "nodeInfo": "パス内の輪郭の方向を反転します（パスには複数の輪郭を含めることができます）。",
         "attributes": {
           "mode": "モード"
@@ -8655,7 +8655,7 @@
       },
       {
         "nodeType": "normalizePathUtility",
-        "niceName": "パス方向の正規化",
+        "niceName": "Normalize Path Direction",
         "nodeInfo": "パスの外側輪郭の方向を設定し、必要に応じて内側輪郭を反転します。",
         "attributes": {
           "mode": "外側輪郭",
@@ -8671,7 +8671,7 @@
       },
       {
         "nodeType": "removeContoursUtility",
-        "niceName": "輪郭を削除",
+        "niceName": "Remove Contours",
         "nodeInfo": "方向に基づいてパスから輪郭を削除します。",
         "attributes": {
           "removeClockwise": "削除算顺时针",
@@ -8680,7 +8680,7 @@
       },
       {
         "nodeType": "assetFromSmartFolder",
-        "niceName": "スマートフォルダーからアセット",
+        "niceName": "Asset From Smart Folder",
         "nodeInfo": "スマートフォルダ内のアセット（画像、動画、オーディオなど）を参照します。",
         "attributes": {
           "file": "智能ファイル夹アセット",
@@ -8700,7 +8700,7 @@
       },
       {
         "nodeType": "thresholdFilter",
-        "niceName": "しきい値",
+        "niceName": "Threshold",
         "nodeInfo": "レイヤーを高コントラストの白黒表現に変換します。",
         "attributes": {
           "threshold": "しきい値",
@@ -8740,7 +8740,7 @@
       },
       {
         "nodeType": "posterizeFilter",
-        "niceName": "ポスタリゼーション",
+        "niceName": "Posterize",
         "nodeInfo": "レイヤーの色の変化を減らして低色深度の外観を作成します。",
         "attributes": {
           "levels": "レベル",
@@ -8771,7 +8771,7 @@
       },
       {
         "nodeType": "edgeDetection",
-        "niceName": "エッジ検出",
+        "niceName": "Edge Detection",
         "nodeInfo": "画像内のカラー境界をラインに変換します。",
         "attributes": {
           "blendMode": "ブレンドモード",
@@ -8823,7 +8823,7 @@
       },
       {
         "nodeType": "vignetteFilter",
-        "niceName": "ビネット",
+        "niceName": "Vignette",
         "nodeInfo": "特定のレンズを通して画像を見る際の光のフォールオフ特性をシミュレートします。",
         "attributes": {
           "blendMode": "ブレンドモード",
@@ -8866,7 +8866,7 @@
       },
       {
         "nodeType": "hsvAdjustmentFilter",
-        "niceName": "HSV 調整",
+        "niceName": "HSV Adjustment",
         "nodeInfo": "色相、彩度、明度を調整。",
         "attributes": {
           "levels": "レベル",
@@ -8903,7 +8903,7 @@
       },
       {
         "nodeType": "sharpenFilter",
-        "niceName": "シャープ",
+        "niceName": "Sharpen",
         "nodeInfo": "エッジピクセル間のコントラストを上げ、よりシャープな外観を与えます。",
         "attributes": {
           "intensity": "強度",
@@ -8935,7 +8935,7 @@
       },
       {
         "nodeType": "grainFilter",
-        "niceName": "グレイン",
+        "niceName": "Grain",
         "nodeInfo": "フィルムストックの視覚的な質感を再現する微細なグレインを追加。",
         "attributes": {
           "amount": "強度",
@@ -8971,7 +8971,7 @@
       },
       {
         "nodeType": "motionBlurFilter",
-        "niceName": "モーションブラー",
+        "niceName": "Motion Blur",
         "nodeInfo": "速度で指定された方向とサイズでリニアブラーを適用",
         "attributes": {
           "strength": "強度",
@@ -9005,7 +9005,7 @@
       },
       {
         "nodeType": "scrapeFilter",
-        "niceName": "スクレイプ",
+        "niceName": "Scrape",
         "nodeInfo": "ラインからピクセルを引き伸ばしてスミア効果を作成します。",
         "attributes": {
           "offset": "オフセット",
@@ -9041,7 +9041,7 @@
       },
       {
         "nodeType": "slitScanFilter",
-        "niceName": "スリットスキャン",
+        "niceName": "Slit Scan",
         "nodeInfo": "アニメーション付きフライスルーエフェクトを作成。",
         "attributes": {
           "offset": "オフセット",
@@ -9100,7 +9100,7 @@
       },
       {
         "nodeType": "voronoiShader",
-        "niceName": "Voronoi シェーダー",
+        "niceName": "Voronoi Shader",
         "nodeInfo": "ポイント格子間の距離を計算してセルパターンを生成します。",
         "attributes": {
           "offset": "オフセット",
@@ -9145,7 +9145,7 @@
       },
       {
         "nodeType": "glowFilter",
-        "niceName": "グロー",
+        "niceName": "Glow",
         "nodeInfo": "RGB チャンネルを個別に制御してシェイプにグローエフェクトを追加。",
         "attributes": {
           "blur": "グロー半径",
@@ -9205,7 +9205,7 @@
       },
       {
         "nodeType": "shiftChannels",
-        "niceName": "チャンネルシフト",
+        "niceName": "Shift Channels",
         "nodeInfo": "赤、緑、青、アルファチャンネルを他のチャンネルの値に置き換えます。",
         "attributes": {
           "aSource": "アルファ",
@@ -9254,7 +9254,7 @@
       },
       {
         "nodeType": "blackAndWhite",
-        "niceName": "白黒",
+        "niceName": "Black and White",
         "nodeInfo": "レイヤーを白黒に変換。",
         "attributes": {
           "red": "レッド系",
@@ -9267,7 +9267,7 @@
       },
       {
         "nodeType": "brightnessAndContrast",
-        "niceName": "明るさとコントラスト",
+        "niceName": "Brightness And Contrast",
         "nodeInfo": "レイヤーの明るさとコントラストを調整。",
         "attributes": {
           "brightness": "明度",
@@ -9277,7 +9277,7 @@
       {
         "nodeType": "cornerPinShape",
         "nodeInfo": "3D パースペクティブの錯覚を作成するためにシェイプを変形します。",
-        "niceName": "コーナーピン",
+        "niceName": "Corner Pin",
         "attributes": {
           "topLeft": "左上",
           "topRight": "右上",
@@ -9294,7 +9294,7 @@
       {
         "nodeType": "extrude",
         "nodeInfo": "シェイプを押し出して奥行きの外観を与えます。",
-        "niceName": "押し出し",
+        "niceName": "Extrude",
         "attributes": {
           "inputShapes": "入力シェイプ",
           "extrudeDistance": "挤出距離",
@@ -9318,7 +9318,7 @@
       {
         "nodeType": "extractSubMeshes",
         "nodeInfo": "シェイプから特定のサブメッシュを抽出します。",
-        "niceName": "サブメッシュを抽出",
+        "niceName": "Extract Sub-Meshes",
         "attributes": {
           "inputShape": "入力シェイプ",
           "ignoreEmptySubMeshes": "忽略空子グリッド",
@@ -9339,7 +9339,7 @@
       {
         "nodeType": "getSubMeshTransform",
         "nodeInfo": "これを使用してサブメッシュ内の任意のシェイプのトランスフォーム（位置、回転、スケール）を取得します。",
-        "niceName": "サブメッシュトランスフォームを取得",
+        "niceName": "Get Sub-Mesh Transform",
         "attributes": {
           "inputShape": "入力シェイプ",
           "index": "子グリッドインデックス",
@@ -9362,7 +9362,7 @@
       {
         "nodeType": "intersectionDistribution",
         "nodeInfo": "パスの交差点にポイントを分布。",
-        "niceName": "交差",
+        "niceName": "Intersections",
         "attributes": {
           "inputShapes": "相交シェイプ"
         }
@@ -9370,7 +9370,7 @@
       {
         "nodeType": "accumulator",
         "nodeInfo": "シェイプの「スタック」またはカスタムレイアウトを作成します。",
-        "niceName": "アキュムレーター",
+        "niceName": "Accumulator",
         "attributes": {
           "value": [
             "値",
@@ -9389,7 +9389,7 @@
       {
         "nodeType": "imageSampler",
         "nodeInfo": "画像アセットからカラー値をサンプリングし、他のアトリビュートの駆動に使用します。",
-        "niceName": "イメージサンプラー",
+        "niceName": "Image Sampler",
         "attributes": {
           "strength": "強度",
           "invert": "値を反転",
@@ -9433,7 +9433,7 @@
       },
       {
         "nodeType": "toonOutlines",
-        "niceName": "トゥーンストローク",
+        "niceName": "Toon Stroke",
         "nodeInfo": "シェイプの周囲に複数のストロークを作成。",
         "attributes": {},
         "tabs": {
@@ -9444,7 +9444,7 @@
       {
         "nodeType": "javaScript",
         "nodeInfo": "JavaScript を使用してアトリビュートの設定、カスタムシミュレーション、ディストリビューションなどを作成します。",
-        "niceName": "JavaScript ユーティリティ",
+        "niceName": "JavaScript Utility",
         "attributes": {},
         "presets": {
           "fahrenheitToCelcius": "Fahrenheit To Celsius"
@@ -9452,7 +9452,7 @@
       },
       {
         "nodeType": "javaScriptShape",
-        "niceName": "JavaScriptシェイプ",
+        "niceName": "JavaScript Shape",
         "nodeInfo": "JavaScript を使用してシェイプを作成します。",
         "attributes": {
           "generator": "エクスプレッション"
@@ -9463,7 +9463,7 @@
       },
       {
         "nodeType": "javaScriptModifier",
-        "niceName": "JavaScript モディファイア",
+        "niceName": "JavaScript Modifier",
         "nodeInfo": "JavaScript を使用してパーティクルを制御または影響させます。",
         "attributes": {
           "expression": "エクスプレッション",
@@ -9472,7 +9472,7 @@
       },
       {
         "nodeType": "javaScriptEmitter",
-        "niceName": "JavaScript エミッター",
+        "niceName": "JavaScript Emitter",
         "nodeInfo": "JavaScript を使用してカスタムパーティクルエミッターを作成します。",
         "attributes": {
           "expression": "エクスプレッション",
@@ -9482,7 +9482,7 @@
       },
       {
         "nodeType": "javaScriptDeformer",
-        "niceName": "JavaScriptデフォーマ",
+        "niceName": "JavaScript Deformer",
         "nodeInfo": "JavaScript を使用してシェイプを変形します。"
       },
       {
@@ -9511,7 +9511,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "timeMarker",
-      "niceName": "タイムマーカー",
+      "niceName": "Time Marker",
       "attributes": {
         "label": "ラベル",
         "drawColorId": "カラー",
@@ -9557,7 +9557,7 @@
     "value": {
       "nodeType": "schedulingGroup",
       "nodeInfo": "子レイヤーを時間軸上でプロシージャルに配置します。",
-      "niceName": "スケジューリンググループ",
+      "niceName": "Scheduling Group",
       "attributes": {
         "childOffset": [
           "子オフセット"
@@ -9603,7 +9603,7 @@
     "value": {
       "nodeType": "knot",
       "nodeInfo": "輪郭が自己交差する箇所にギャップを追加します。",
-      "niceName": "ノット",
+      "niceName": "Knot",
       "attributes": {
         "mode": [
           "モード"
@@ -9627,7 +9627,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "skeleton",
-      "niceName": "スケルトン",
+      "niceName": "Skeleton",
       "nodeInfo": "キャラクターリギング/アニメーション用の IK コントロール付きボーンを作成します。",
       "attributes": {
         "bones": "ボーン階層",
@@ -9641,7 +9641,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "bone",
-      "niceName": "ボーン",
+      "niceName": "Bone",
       "attributes": {
         "rotationRestPose": "回転の静止ポーズ",
         "lengthRestPose": "長さの静止ポーズ",
@@ -9653,7 +9653,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "inverseKinematicsControl",
-      "niceName": "IK コントロール",
+      "niceName": "IK Control",
       "attributes": {
         "chainLength": "チェーン長さ",
         "stretch": "ストレッチ",
@@ -9672,7 +9672,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "skinning",
-      "niceName": "スキニング",
+      "niceName": "Skinning",
       "nodeInfo": "シェイプをスケルトンのボーンにバインドします。",
       "attributes": {
         "skeleton": "スケルトン",
@@ -9685,7 +9685,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "timelineCounter",
-      "niceName": "タイムラインカウンター",
+      "niceName": "Timeline Counter",
       "nodeInfo": "タイムマーカー、BPM、または秒を使用して時間の経過とともに値を蓄積またはトリガーします。",
       "attributes": {
         "out": "数",
@@ -9715,7 +9715,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "contrastingColor",
-      "niceName": "コントラストカラー",
+      "niceName": "Contrasting Color",
       "nodeInfo": "入力色とコントラスト比に応じて異なる出力色を提供するユーティリティです。",
       "attributes": {
         "inColor": "入力カラー",
@@ -9740,7 +9740,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "wave",
-      "niceName": "ウェーブ",
+      "niceName": "Wave",
       "nodeInfo": "正弦波、鋸波、矩形波などのウェーブエフェクトをシェイプに適用します。",
       "attributes": {
         "mode": "モード",
@@ -9770,7 +9770,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "autoAnimate",
-      "niceName": "自動アニメート",
+      "niceName": "Auto-Animate",
       "nodeInfo": "少数のキーフレームでシェイプに多様なアニメーションを追加します。",
       "attributes": {
         "progressMode": [
@@ -9927,7 +9927,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pieChart",
-      "niceName": "円グラフ",
+      "niceName": "Pie Chart",
       "attributes": {
         "file": "スプレッドシート",
         "column": "列",
@@ -9957,7 +9957,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "barChart",
-      "niceName": "棒グラフ",
+      "niceName": "Bar Chart",
       "attributes": {
         "file": "スプレッドシート",
         "xAxisColumn": "X軸",
@@ -9984,7 +9984,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "mergeShape",
-      "niceName": "結合",
+      "niceName": "Merge",
       "nodeInfo": "オープンパスを含む 2 つのシェイプからクローズドパスを含むシェイプを作成します。",
       "attributes": {
         "firstInputShape": "第1シェイプ",
@@ -9998,7 +9998,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "stitches",
-      "niceName": "ステッチ",
+      "niceName": "Stitches",
       "nodeInfo": "クローズドパスをステッチエフェクトで塗りつぶします。",
       "attributes": {
         "distance": [
@@ -10022,7 +10022,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "strokeDuplicator",
-      "niceName": "ストロークデュプリケーター",
+      "niceName": "Stroke Duplicator",
       "nodeInfo": "複雑なストロークの組み合わせを作成します。",
       "attributes": {
         "strokeCount": [
@@ -10036,7 +10036,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "isolinesShape",
-      "niceName": "等高線",
+      "niceName": "Isolines",
       "nodeInfo": "画像またはシェイプレイヤーを輪郭に変換します。",
       "attributes": {
         "inputShape": [
@@ -10076,7 +10076,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "luminanceBlur",
-      "niceName": "輝度ブラー",
+      "niceName": "Luminance Blur",
       "nodeInfo": "別のレイヤーの輝度値に基づいてレイヤーをぼかします。",
       "attributes": {
         "maxBlurAmount": [
@@ -10112,7 +10112,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathRelax",
-      "niceName": "パス緩と",
+      "niceName": "Path Relax",
       "nodeInfo": "パスポイントを互いに離します。",
       "attributes": {
         "iterations": [
@@ -10134,7 +10134,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathAverage",
-      "niceName": "パス平均",
+      "niceName": "Path Average",
       "nodeInfo": "位置を平均化してパスポイントをスムーズにします。",
       "attributes": {
         "iterations": [
@@ -10152,7 +10152,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pointDisplace",
-      "niceName": "ポイントディスプレイサー",
+      "niceName": "Point Displacer",
       "nodeInfo": "法線またはカスタム角度に沿ってポイントをディスプレイスします。",
       "attributes": {
         "displacement": [
@@ -10181,7 +10181,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathSplit",
-      "niceName": "パス分岐",
+      "niceName": "Path Split",
       "nodeInfo": "既存のパス先端から新しいパスサブメッシュを生成して分岐構造を作成します。静的フラクタルにはイテレーションモード、アニメーション成長にはフレームモードを使用します。",
       "attributes": {
         "mode": [
@@ -10280,7 +10280,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "meshSolver",
-      "niceName": "メッシュソルバー",
+      "niceName": "Mesh Solver",
       "nodeInfo": "デフォーマーを接続して描画マシンや差分成長などの反復エフェクトを作成します。",
       "attributes": {
         "time": "時間",

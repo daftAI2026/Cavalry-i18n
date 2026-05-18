@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "erosionFilter",
-      "niceName": "侵蚀",
+      "niceName": "Erosion",
       "layerInfo": "侵蚀图层 Alpha 以用于过渡和蒙版调整",
       "language": "zh-Hans",
       "attributes": {

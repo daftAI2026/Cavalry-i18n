@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "zoomBlurFilter",
-      "niceName": "縮放模糊",
+      "niceName": "Zoom Blur",
       "layerInfo": "從中心點向外模糊形狀，支援自訂衰減。",
       "language": "zh-Hant",
       "attributes": {

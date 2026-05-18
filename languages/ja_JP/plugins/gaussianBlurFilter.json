@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "gaussianBlurFilter",
-      "niceName": "ガウスブラー",
+      "niceName": "Gaussian Blur",
       "layerInfo": "シェイプとシェーダーに高品質なガウシアンブラーを追加します。",
       "language": "ja_JP",
       "attributes": {

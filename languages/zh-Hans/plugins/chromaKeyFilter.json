@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "chromaKeyFilter",
-      "niceName": "色度键",
+      "niceName": "Chroma Key",
       "layerInfo": "通过高级蒙版控制从视频/图像中去除绿幕/蓝幕。",
       "language": "zh-Hans",
       "attributes": {

@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "bulgeFilter",
-      "niceName": "凸起",
+      "niceName": "Bulge",
       "layerInfo": "通过将形状映射到球面上来产生扭曲，创建凸出或收缩效果。",
       "language": "zh-Hans",
       "attributes": {

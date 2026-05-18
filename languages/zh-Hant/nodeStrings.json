@@ -3,7 +3,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "element",
-      "niceName": "元素",
+      "niceName": "Element",
       "attributes": {
         "hidden": "隱藏",
         "frozen": [
@@ -19,7 +19,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "atomic",
-      "niceName": "原子",
+      "niceName": "Atomic",
       "attributes": {}
     }
   },
@@ -28,7 +28,7 @@
     "value": {
       "nodeType": "group",
       "nodeInfo": "將圖層收集到資料夾中以進行整理和/或建立公共變換。",
-      "niceName": "群組",
+      "niceName": "Group",
       "attributes": {
         "groupMode": [
           "混合和不透明度模式",
@@ -47,7 +47,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "behaviourBase",
-      "niceName": "行為基礎",
+      "niceName": "Behaviour Base",
       "attributes": {}
     }
   },
@@ -55,7 +55,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "transform",
-      "niceName": "變換",
+      "niceName": "Transform",
       "attributes": {
         "position": [
           "位置",
@@ -92,7 +92,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "drawable",
-      "niceName": "可繪製物件",
+      "niceName": "Drawable",
       "attributes": {
         "polyMesh": "多邊形網格",
         "on": "開",
@@ -136,7 +136,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "shape",
-      "niceName": "形狀",
+      "niceName": "Shape",
       "nodeInfo": "可以在視口中繪製的多邊形物件",
       "attributes": {
         "deformers": [
@@ -300,7 +300,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "behaviour",
-      "niceName": "行為",
+      "niceName": "Behaviour",
       "attributes": {
         "falloffs": [
           "衰減",
@@ -350,7 +350,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "compNode",
-      "niceName": "合成",
+      "niceName": "Composition",
       "attributes": {
         "resolution": "解析度",
         "startFrame": "幀範圍",
@@ -503,8 +503,8 @@
           "動畫應重映射到的幀率。這將覆蓋合成設置中設置的幀率。"
         ],
         "niceName": [
-          "控制中心按鈕名稱",
-          "這是此項目在 Cavalry 控制面板中的按鈕名稱。"
+          "Control Centre Button Name",
+          "This is the name given to the button for this item in Cavalry Control."
         ]
       },
       "enums": {
@@ -551,7 +551,7 @@
     "value": {
       "nodeType": "renderPNG",
       "nodeInfo": "產生 PNG 影像檔案。",
-      "niceName": "PNG 序列",
+      "niceName": "PNG Sequence",
       "attributes": {
         "compression": "壓縮",
         "pngFilter": "PNG 濾鏡",
@@ -575,7 +575,7 @@
     "value": {
       "nodeType": "renderSpriteSheet",
       "nodeInfo": "產生精靈表影像。",
-      "niceName": "精靈圖",
+      "niceName": "Sprite Sheet",
       "attributes": {
         "compression": "壓縮",
         "pngFilter": "PNG 濾鏡",
@@ -597,7 +597,7 @@
     "value": {
       "nodeType": "renderJPEG",
       "nodeInfo": "產生 JPEG 影像檔案。",
-      "niceName": "JPEG 序列",
+      "niceName": "JPEG Sequence",
       "attributes": {
         "quality": "品質"
       }
@@ -608,7 +608,7 @@
     "value": {
       "nodeType": "renderWebP",
       "nodeInfo": "產生 WebP 影像檔案。",
-      "niceName": "WebP 序列",
+      "niceName": "WebP Sequence",
       "attributes": {
         "quality": "品質"
       }
@@ -813,7 +813,7 @@
     "value": {
       "nodeType": "renderAudioOnly",
       "nodeInfo": "產生音訊檔案。",
-      "niceName": "僅音訊",
+      "niceName": "Audio Only",
       "attributes": {
         "format": "容器",
         "bitDepth": "位元深度"
@@ -906,7 +906,7 @@
     "value": {
       "nodeType": "renderSVG",
       "nodeInfo": "產生 SVG 檔案。",
-      "niceName": "SVG 序列",
+      "niceName": "SVG Sequence",
       "attributes": {
         "includeBackground": "包含背景"
       }
@@ -917,7 +917,7 @@
     "value": {
       "nodeType": "planarCamera",
       "nodeInfo": "在 2.5D 視口中組合和檢視形狀。",
-      "niceName": "攝影機",
+      "niceName": "Camera",
       "attributes": {
         "cameraType": "類型",
         "position": "位置",
@@ -952,7 +952,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "compositionReference",
-      "niceName": "預合成",
+      "niceName": "Pre-Comp",
       "nodeInfo": "預合成是一個被參考的合成。",
       "attributes": {
         "composition": "合成",
@@ -1073,7 +1073,7 @@
     "values": [
       {
         "nodeType": "lattice",
-        "niceName": "晶格",
+        "niceName": "Lattice",
         "nodeInfo": "使用靈活的控制點網格來變形形狀。",
         "attributes": {
           "gridCount": [
@@ -1110,7 +1110,7 @@
       {
         "nodeType": "latticeController",
         "nodeInfo": "使用位置、旋轉和縮放操作多個格點。",
-        "niceName": "晶格控制器",
+        "niceName": "Lattice Controller",
         "attributes": {
           "bind": [
             "綁定",
@@ -1282,7 +1282,7 @@
       {
         "nodeType": "simplexNoise",
         "nodeInfo": "產生 Simplex 雜訊圖案。",
-        "niceName": "單純形噪波",
+        "niceName": "Simplex Noise",
         "attributes": {
           "octaves": "八度",
           "lacunarity": "空隙度",
@@ -1294,7 +1294,7 @@
       {
         "nodeType": "valueNoise",
         "nodeInfo": "產生數值雜訊圖案。",
-        "niceName": "值噪波",
+        "niceName": "Value Noise",
         "attributes": {
           "octaves": "八度",
           "lacunarity": "空隙度",
@@ -1306,7 +1306,7 @@
       {
         "nodeType": "cubicNoise",
         "nodeInfo": "產生立方雜訊圖案。",
-        "niceName": "立方雜訊",
+        "niceName": "Cubic Noise",
         "attributes": {
           "octaves": "八度",
           "lacunarity": "空隙度",
@@ -1318,7 +1318,7 @@
       {
         "nodeType": "cellularNoise",
         "nodeInfo": "產生細胞雜訊圖案。",
-        "niceName": "細胞噪波",
+        "niceName": "Cellular Noise",
         "attributes": {
           "octaves": "八度",
           "lacunarity": "空隙度",
@@ -1577,7 +1577,7 @@
       },
       {
         "nodeType": "math2",
-        "niceName": "數學 2",
+        "niceName": "Math2",
         "nodeInfo": "對二維數值執行簡單的數學運算（例如 X、Y ）。",
         "attributes": {
           "first": "第一個",
@@ -1595,7 +1595,7 @@
       },
       {
         "nodeType": "math3",
-        "niceName": "數學 3",
+        "niceName": "Math3",
         "nodeInfo": "對三維數值執行簡單的數學運算（例如 X、Y、Z ）。",
         "attributes": {
           "first": "第一個",
@@ -1612,7 +1612,7 @@
       },
       {
         "nodeType": "value2Array",
-        "niceName": "數值 2 陣列",
+        "niceName": "Value2 Array",
         "nodeInfo": "建立可透過索引指派給其他圖層的 2D 數值（ X、Y ）列表。",
         "attributes": {
           "array": "值",
@@ -1621,7 +1621,7 @@
       },
       {
         "nodeType": "value3Array",
-        "niceName": "數值 3 陣列",
+        "niceName": "Value3 Array",
         "nodeInfo": "建立可透過索引指派給其他圖層的 3D 數值（ X、Y、Z ）列表。",
         "attributes": {
           "array": "值",
@@ -1810,7 +1810,7 @@
       },
       {
         "nodeType": "areaRange",
-        "niceName": "區域範圍",
+        "niceName": "Area Range",
         "nodeInfo": "將數值映射為產生等比例面積的寬度和高度。",
         "attributes": {
           "area": "值",
@@ -1821,7 +1821,7 @@
       },
       {
         "nodeType": "areaRangeBase",
-        "niceName": "區域範圍",
+        "niceName": "Area Range",
         "nodeInfo": "將數值映射為產生等比例面積的寬度和高度。",
         "attributes": {
           "maxArea": "最大值",
@@ -1992,7 +1992,7 @@
       },
       {
         "nodeType": "squashAndStretch",
-        "niceName": "壓扁與拉伸",
+        "niceName": "Squash and Stretch",
         "nodeInfo": "壓扁與拉伸形狀，可選擇加入膨脹效果。",
         "attributes": {
           "amount": "數量",
@@ -2055,7 +2055,7 @@
       },
       {
         "nodeType": "materialBehaviourColor",
-        "niceName": "顏色材質覆蓋",
+        "niceName": "Color Material Override",
         "nodeInfo": "覆蓋子網格內的顏色。",
         "attributes": {
           "materialColor": "顏色"
@@ -2063,7 +2063,7 @@
       },
       {
         "nodeType": "materialBehaviourAlpha",
-        "niceName": "Alpha材質覆蓋",
+        "niceName": "Alpha Material Override",
         "nodeInfo": "覆蓋子網格內的透明度。",
         "attributes": {
           "alpha": "Alpha"
@@ -2072,7 +2072,7 @@
       {
         "nodeType": "materialBehaviourHSV",
         "nodeInfo": "覆蓋子網格內形狀的色相、飽和度和明度。",
-        "niceName": "HSV材質覆蓋",
+        "niceName": "HSV Material Override",
         "attributes": {
           "adjustHue": "色相",
           "adjustSaturation": "飽和度",
@@ -2082,7 +2082,7 @@
       {
         "nodeType": "applyDistribution",
         "nodeInfo": "對形狀上的子網格套用分佈。",
-        "niceName": "套用分佈",
+        "niceName": "Apply Distribution",
         "attributes": {
           "distribution": [
             "分佈",
@@ -2105,7 +2105,7 @@
       {
         "nodeType": "countSubMeshes",
         "nodeInfo": "計算指定層級的子網格數量。",
-        "niceName": "計算子網格數量",
+        "niceName": "Count Sub-Meshes",
         "attributes": {
           "levelMode": "層級模式",
           "level": "自定義層級",
@@ -2124,7 +2124,7 @@
       {
         "nodeType": "applyLayout",
         "nodeInfo": "以類似佈局群組的方式在子網格內堆疊形狀。",
-        "niceName": "套用版面",
+        "niceName": "Apply Layout",
         "attributes": {
           "layout": [
             "版面配置",
@@ -2142,7 +2142,7 @@
       {
         "nodeType": "chopPath",
         "nodeInfo": "使用矩形將路徑切割為區塊。",
-        "niceName": "分割路徑",
+        "niceName": "Chop Path",
         "attributes": {
           "count": [
             "數量",
@@ -2175,7 +2175,7 @@
       {
         "nodeType": "subMesh",
         "nodeInfo": "存取形狀中的子網格，以套用變形、材質及更多效果。",
-        "niceName": "子網格",
+        "niceName": "Sub-Mesh",
         "attributes": {
           "shapePosition": "位置",
           "shapeScale": "縮放",
@@ -2297,7 +2297,7 @@
       {
         "nodeType": "colorMaterial",
         "nodeInfo": "新增可同時套用至多個形狀的填色材質。",
-        "niceName": "填充",
+        "niceName": "Fill",
         "attributes": {
           "materialColor": "顏色",
           "colorShaders": "著色器",
@@ -2306,7 +2306,7 @@
       },
       {
         "nodeType": "strokeMaterial",
-        "niceName": "描邊",
+        "niceName": "Stroke",
         "nodeInfo": "新增可同時套用至多個形狀的筆畫材質。",
         "attributes": {
           "strokeColor": "顏色",
@@ -2413,7 +2413,7 @@
       },
       {
         "nodeType": "value2",
-        "niceName": "數值 2",
+        "niceName": "Value2",
         "nodeInfo": "儲存並操作二維數值（例如 X、Y ）。",
         "attributes": {
           "value": "值",
@@ -2423,7 +2423,7 @@
       },
       {
         "nodeType": "value3",
-        "niceName": "數值 3",
+        "niceName": "Value3",
         "nodeInfo": "儲存並操作三維數值（例如 X、Y、Z ）。",
         "attributes": {
           "value": "值",
@@ -2433,7 +2433,7 @@
       },
       {
         "nodeType": "align",
-        "niceName": "對齐",
+        "niceName": "Align",
         "nodeInfo": "沿形狀邊界框的邊緣動態定位其錨點。",
         "attributes": {
           "x": "X",
@@ -2442,7 +2442,7 @@
       },
       {
         "nodeType": "autoCrop",
-        "niceName": "自動裁切",
+        "niceName": "Auto-Crop",
         "nodeInfo": "根據邊界框輕鬆裁切形狀。",
         "attributes": {
           "alignX": "水平對齊",
@@ -2565,7 +2565,7 @@
       },
       {
         "nodeType": "value2Blend",
-        "niceName": "數值 2 混合",
+        "niceName": "Value2 Blend",
         "nodeInfo": "在二維數值之間進行混合（線性插值）（例如 X、Y ）。",
         "attributes": {
           "firstValue": "第一個",
@@ -2574,7 +2574,7 @@
       },
       {
         "nodeType": "value3Blend",
-        "niceName": "數值 3 混合",
+        "niceName": "Value3 Blend",
         "nodeInfo": "在三維數值之間進行混合（線性插值）（例如 X、Y、Z ）。",
         "attributes": {
           "firstValue": "第一個",
@@ -2662,7 +2662,7 @@
       },
       {
         "nodeType": "blendSubMeshPositions",
-        "niceName": "混合子網格位置",
+        "niceName": "Blend Sub-Mesh Positions",
         "nodeInfo": "在兩個形狀的子網格位置之間進行混合。",
         "attributes": {
           "blend": "混合",
@@ -2684,7 +2684,7 @@
       },
       {
         "nodeType": "blendSubMeshPositionsLegacy",
-        "niceName": "混合子網格位置",
+        "niceName": "Blend Sub-Mesh Positions",
         "nodeInfo": "舊版圖層 - 新的「混合子網格位置」已可用。\n在兩個形狀的子網格位置之間進行混合。",
         "attributes": {
           "blend": "混合",
@@ -2728,7 +2728,7 @@
       },
       {
         "nodeType": "materialBehaviourSwapColor",
-        "niceName": "交換顏色",
+        "niceName": "Swap Color",
         "nodeInfo": "搜尋並交換子網格上的特定顏色。",
         "attributes": {
           "oldColor": "舊顏色",
@@ -2737,7 +2737,7 @@
       },
       {
         "nodeType": "spreadsheetLookup",
-        "niceName": "試算表查找",
+        "niceName": "Spreadsheet Lookup",
         "nodeInfo": "根據鍵值在試算表中查找數值。",
         "attributes": {
           "lookupColumn": "查找列",
@@ -2748,7 +2748,7 @@
       },
       {
         "nodeType": "visibility",
-        "niceName": "可見性序列",
+        "niceName": "Visibility Sequence",
         "nodeInfo": "影響子網格的可見性。",
         "attributes": {
           "start": "開始",
@@ -2766,7 +2766,7 @@
     "values": [
       {
         "nodeType": "shader",
-        "niceName": "著色器",
+        "niceName": "Shader",
         "attributes": {
           "colorFilter": "顏色濾鏡",
           "blendMode": "混合模式"
@@ -2816,7 +2816,7 @@
       },
       {
         "nodeType": "gradientMapFilter",
-        "niceName": "漸層對應",
+        "niceName": "Gradient Map",
         "nodeInfo": "根據輸入的亮度產生漸層。",
         "attributes": {
           "alpha": "Alpha",
@@ -2872,7 +2872,7 @@
       },
       {
         "nodeType": "checkerboardShader",
-        "niceName": "棋盤格著色器",
+        "niceName": "Checkerboard Shader",
         "nodeInfo": "具有可調整圖案大小的棋盤格著色器。",
         "attributes": {
           "size": "大小",
@@ -2893,7 +2893,7 @@
       },
       {
         "nodeType": "gradientShader",
-        "niceName": "漸層著色器",
+        "niceName": "Gradient Shader",
         "nodeInfo": "具有線性、放射狀、掃描和錐形漸層的漸層著色器。",
         "attributes": {
           "screenSpace": "螢幕空間",
@@ -2918,7 +2918,7 @@
       {
         "nodeType": "linearGradientShader",
         "nodeInfo": "為漸層著色器產生線性漸層。",
-        "niceName": "線性漸層",
+        "niceName": "Linear Gradient",
         "attributes": {
           "gradient": "漸層",
           "wrapUVs": "環繞 UV",
@@ -2931,7 +2931,7 @@
       {
         "nodeType": "conicalGradientShaderLegacy",
         "nodeInfo": "舊版圖層 - 新的「錐形漸層著色器」已可用。\n為漸層著色器產生錐形漸層。",
-        "niceName": "錐形漸層",
+        "niceName": "Conical Gradient",
         "attributes": {
           "gradient": "漸層",
           "reverseGrad": "反轉",
@@ -2955,7 +2955,7 @@
       {
         "nodeType": "conicalGradientShader",
         "nodeInfo": "為漸層著色器產生錐形漸層。",
-        "niceName": "錐形漸層",
+        "niceName": "Conical Gradient",
         "attributes": {
           "gradient": "漸層",
           "wrapUVs": "環繞 UV",
@@ -2973,7 +2973,7 @@
       {
         "nodeType": "shapeGradientShader",
         "nodeInfo": "為漸層著色器產生形狀漸層。",
-        "niceName": "形狀漸層",
+        "niceName": "Shape Gradient",
         "attributes": {
           "gradient": "漸層",
           "wrapUVs": "環繞 UV",
@@ -2993,7 +2993,7 @@
       {
         "nodeType": "radialGradientShader",
         "nodeInfo": "為漸層著色器產生放射狀漸層。",
-        "niceName": "徑向漸層",
+        "niceName": "Radial Gradient",
         "attributes": {
           "gradient": "漸層",
           "wrapUVs": "環繞 UV",
@@ -3012,7 +3012,7 @@
       {
         "nodeType": "sweepGradientShader",
         "nodeInfo": "為漸層著色器產生掃掠漸層。",
-        "niceName": "掃描漸層",
+        "niceName": "Sweep Gradient",
         "attributes": {
           "gradient": "漸層",
           "wrapUVs": "環繞 UV",
@@ -3023,7 +3023,7 @@
       },
       {
         "nodeType": "colorShader",
-        "niceName": "顏色著色器",
+        "niceName": "Color Shader",
         "nodeInfo": "輸出顏色的簡易著色器。",
         "attributes": {
           "shaderColor": "顏色"
@@ -3031,7 +3031,7 @@
       },
       {
         "nodeType": "skslShader",
-        "niceName": "史奇亞著色語言著色器",
+        "niceName": "SkSL Shader",
         "nodeInfo": "使用史奇亞著色語言（基於 GLSL）撰寫自訂著色器。",
         "attributes": {
           "inputs": "輸入",
@@ -3040,7 +3040,7 @@
       },
       {
         "nodeType": "contoursToSubMeshes",
-        "niceName": "等高線到子網格",
+        "niceName": "Contours to Sub-Meshes",
         "nodeInfo": "將路徑輪廓轉換為不同的子網格，可選擇保留孔洞。",
         "attributes": {
           "keepHoles": "保留孔洞"
@@ -3048,7 +3048,7 @@
       },
       {
         "nodeType": "skslFilter",
-        "niceName": "史奇亞著色語言濾鏡",
+        "niceName": "SkSL Filter",
         "nodeInfo": "使用史奇亞著色語言（基於 GLSL）撰寫自訂濾鏡。",
         "attributes": {
           "code": [
@@ -3128,7 +3128,7 @@
       },
       {
         "nodeType": "imageShader",
-        "niceName": "影像著色器",
+        "niceName": "Image Shader",
         "nodeInfo": "用於影像、影像序列和影片的著色器。",
         "attributes": {
           "image": "檔案",
@@ -3182,7 +3182,7 @@
       },
       {
         "nodeType": "mixShader",
-        "niceName": "混合著色器",
+        "niceName": "Mix Shader",
         "attributes": {
           "first": "第一著色器",
           "second": "第二著色器",
@@ -3191,7 +3191,7 @@
       },
       {
         "nodeType": "filter",
-        "niceName": "濾鏡",
+        "niceName": "Filter",
         "attributes": {
           "mattes": "遮罩",
           "mattes.matteLayer": "遮罩形狀",
@@ -3238,7 +3238,7 @@
       },
       {
         "nodeType": "maskBlurFilter",
-        "niceName": "遮罩模糊",
+        "niceName": "Mask Blur",
         "attributes": {
           "amount": "數量",
           "blurStyle": "樣式"
@@ -3254,7 +3254,7 @@
       },
       {
         "nodeType": "dropShadowFilter",
-        "niceName": "投影",
+        "niceName": "Drop Shadow",
         "nodeInfo": "為形狀新增投射陰影。",
         "attributes": {
           "amount": "模糊量",
@@ -3272,7 +3272,7 @@
       },
       {
         "nodeType": "gaussianDropShadowFilter",
-        "niceName": "高斯投射陰影",
+        "niceName": "Gaussian Drop Shadow",
         "nodeInfo": "為形狀新增投射陰影。",
         "attributes": {
           "amount": "模糊量",
@@ -3290,7 +3290,7 @@
       },
       {
         "nodeType": "backgroundBlurFilter",
-        "niceName": "背景模糊",
+        "niceName": "Background Blur",
         "nodeInfo": "根據輸入形狀，僅模糊圖層的特定部分。",
         "attributes": {
           "amount": "模糊量",
@@ -3322,7 +3322,7 @@
       },
       {
         "nodeType": "innerShadowFilter",
-        "niceName": "內陰影",
+        "niceName": "Inner Shadow",
         "nodeInfo": "為形狀新增內陰影以模擬深度。",
         "attributes": {
           "amount": "模糊量",
@@ -3358,7 +3358,7 @@
       },
       {
         "nodeType": "blurFilter",
-        "niceName": "快速模糊",
+        "niceName": "Fast Blur",
         "nodeInfo": "為形狀新增模糊，並可獨立控制垂直與水平模糊。",
         "attributes": {
           "amount": "數量",
@@ -3374,7 +3374,7 @@
       },
       {
         "nodeType": "gaussianBlurFilter",
-        "niceName": "高斯模糊",
+        "niceName": "Gaussian Blur",
         "nodeInfo": "為形狀新增高斯模糊，並可獨立控制垂直與水平模糊。",
         "attributes": {
           "amount": "數量",
@@ -3391,7 +3391,7 @@
       {
         "nodeType": "shapeToShader",
         "nodeInfo": "使用形狀為另一個形狀建立著色器。",
-        "niceName": "形狀轉著色器",
+        "niceName": "Shape to Shader",
         "attributes": {
           "inputShape": "輸入形狀",
           "alpha": "Alpha",
@@ -3410,7 +3410,7 @@
       {
         "nodeType": "levels",
         "nodeInfo": "重新映射圖層的黑白色階以調整其色調範圍和色彩平衡。",
-        "niceName": "色階",
+        "niceName": "Levels",
         "attributes": {
           "channel": "通道",
           "clipBlack": "裁切黑色",
@@ -3433,7 +3433,7 @@
       },
       {
         "nodeType": "triToneFilter",
-        "niceName": "三色調",
+        "niceName": "TriTone",
         "nodeInfo": "將暗部、中間調和亮部數值映射到指定的顏色。",
         "attributes": {
           "shadowColor": "陰影",
@@ -3466,7 +3466,7 @@
       },
       {
         "nodeType": "venetianBlinds",
-        "niceName": "百葉窗",
+        "niceName": "Venetian Blinds",
         "nodeInfo": "使用條紋擦除效果顯示圖層。",
         "attributes": {
           "completion": "完成度",
@@ -3501,7 +3501,7 @@
       },
       {
         "nodeType": "fill",
-        "niceName": "填色顏色",
+        "niceName": "Fill Color",
         "nodeInfo": "以指定的填色顏色覆寫圖層的顏色。",
         "attributes": {
           "fillColor": "顏色",
@@ -3533,7 +3533,7 @@
       },
       {
         "nodeType": "radialWipe",
-        "niceName": "徑向擦除",
+        "niceName": "Radial Wipe",
         "nodeInfo": "根據圓形擦除顯示圖層。",
         "attributes": {
           "completion": "完成度",
@@ -3571,7 +3571,7 @@
       },
       {
         "nodeType": "invert",
-        "niceName": "反轉",
+        "niceName": "Invert",
         "nodeInfo": "反轉圖層的顏色。",
         "attributes": {
           "channel": "通道",
@@ -3611,7 +3611,7 @@
       },
       {
         "nodeType": "linearWipe",
-        "niceName": "線性擦除",
+        "niceName": "Linear Wipe",
         "nodeInfo": "在圖層上建立簡單的線性擦除。",
         "attributes": {
           "completion": "完成度",
@@ -3623,7 +3623,7 @@
       },
       {
         "nodeType": "noiseShader",
-        "niceName": "噪波著色器",
+        "niceName": "Noise Shader",
         "nodeInfo": "從 Perlin、數值或細胞雜訊建立連貫的雜訊效果。",
         "attributes": {
           "colorFilter": "顏色濾鏡",
@@ -3666,7 +3666,7 @@
     "values": [
       {
         "nodeType": "basicShape",
-        "niceName": "基本形狀",
+        "niceName": "Basic Shape",
         "nodeInfo": "基本圖形，例如矩形、橢圓形或多邊形。",
         "attributes": {
           "generator": "基本體類型"
@@ -3804,7 +3804,7 @@
       },
       {
         "nodeType": "applyFontSize",
-        "niceName": "套用字型大小",
+        "niceName": "Apply Font Size",
         "nodeInfo": "透過文字形狀的樣式行為，根據搜尋（正規表達式）以程式化方式設定文字形狀的字型大小。",
         "attributes": {
           "indices": "索引",
@@ -3847,7 +3847,7 @@
       },
       {
         "nodeType": "applyTypeface",
-        "niceName": "套用字體",
+        "niceName": "Apply Typeface",
         "nodeInfo": "透過文字形狀的樣式行為，根據搜尋（正規表達式）以程式化方式設定文字形狀的字體。",
         "attributes": {
           "indices": "指定索引",
@@ -3883,7 +3883,7 @@
       },
       {
         "nodeType": "applyTextFill",
-        "niceName": "套用文字填色",
+        "niceName": "Apply Text Fill",
         "nodeInfo": "舊版圖層 - 新的「套用文字材質」已可用。\n以程式化方式設定文字形狀的行／字詞／字元的填色顏色，或根據搜尋（正規表達式）設定。",
         "attributes": {
           "indices": "指定索引",
@@ -3918,7 +3918,7 @@
       },
       {
         "nodeType": "applyTextMaterial",
-        "niceName": "套用文字材質",
+        "niceName": "Apply Text Material",
         "nodeInfo": "透過行／字詞／字元或搜尋（正規表達式）以程式化方式設定文字形狀的填色／筆畫。",
         "attributes": {
           "indices": "指定索引",
@@ -3985,7 +3985,7 @@
       },
       {
         "nodeType": "applyCharacterSpacing",
-        "niceName": "套用字元間距",
+        "niceName": "Apply Character Spacing",
         "nodeInfo": "透過文字形狀的樣式行為建立程式化字距配對。",
         "attributes": {
           "pairs": "匹配",
@@ -3995,7 +3995,7 @@
       },
       {
         "nodeType": "applyOpenType",
-        "niceName": "套用開放字型",
+        "niceName": "Apply OpenType",
         "nodeInfo": "對特定文字範圍套用開放字型特性。",
         "attributes": {
           "features": "特性",
@@ -4166,7 +4166,7 @@
       },
       {
         "nodeType": "applyFontStyle",
-        "niceName": "套用字型樣式",
+        "niceName": "Apply Font Style",
         "nodeInfo": "對特定文字範圍套用字型樣式，例如底線和上標。",
         "attributes": {
           "features": [
@@ -4340,7 +4340,7 @@
       {
         "nodeType": "textHash",
         "nodeInfo": "使用字串產生器產生雜湊字串",
-        "niceName": "雜湊",
+        "niceName": "Hash",
         "attributes": {
           "numberOfLines": "行數",
           "lineOffset": "線條偏移",
@@ -4350,7 +4350,7 @@
       {
         "nodeType": "textValue",
         "nodeInfo": "為字串產生器產生數值。",
-        "niceName": "值",
+        "niceName": "Value",
         "attributes": {
           "length": "內邊距",
           "number": "數字",
@@ -4363,7 +4363,7 @@
       {
         "nodeType": "textHex",
         "nodeInfo": "為字串產生器產生十六進位字串。",
-        "niceName": "十六進位",
+        "niceName": "Hexadecimal",
         "attributes": {
           "numberOfLines": "行數",
           "lineOffset": "線條偏移",
@@ -4374,7 +4374,7 @@
       {
         "nodeType": "textNumber",
         "nodeInfo": "為字串產生器產生隨機數字。",
-        "niceName": "隨機數字",
+        "niceName": "Random Number",
         "attributes": {
           "minimum": "最小值",
           "maximum": "最大值",
@@ -4412,7 +4412,7 @@
       },
       {
         "nodeType": "basicLine",
-        "niceName": "基本線",
+        "niceName": "Basic Line",
         "nodeInfo": "建立基本線條，例如貝茲曲線、螺旋線或直線。",
         "attributes": {
           "generator": "線條類型",
@@ -4422,7 +4422,7 @@
       {
         "nodeType": "simpleLine",
         "nodeInfo": "產生線條基本形。",
-        "niceName": "直線",
+        "niceName": "Line",
         "attributes": {
           "divisions": "細分",
           "length": "長度"
@@ -4431,7 +4431,7 @@
       {
         "nodeType": "spiralLine",
         "nodeInfo": "產生螺旋線基本形。",
-        "niceName": "螺旋",
+        "niceName": "Spiral",
         "attributes": {
           "divisions": "細分",
           "radius": "外半徑",
@@ -4444,7 +4444,7 @@
       {
         "nodeType": "bezierLine",
         "nodeInfo": "產生貝茲線基本形。",
-        "niceName": "貝茲",
+        "niceName": "Bézier",
         "attributes": {
           "divisions": "細分",
           "startPosition": "起始位置",
@@ -4456,7 +4456,7 @@
       {
         "nodeType": "rayLine",
         "nodeInfo": "從一個點投射射線以建立無限長度的線條，除非它與其他形狀碰撞。",
-        "niceName": "射線",
+        "niceName": "Ray",
         "attributes": {
           "shapes": "碰撞形狀",
           "collisionMargin": "碰撞邊距",
@@ -4610,7 +4610,7 @@
       {
         "nodeType": "circleDistribution",
         "nodeInfo": "以放射狀圖案分佈點。",
-        "niceName": "圓形",
+        "niceName": "Circle",
         "attributes": {
           "count": "數量",
           "radius": "半徑",
@@ -4625,7 +4625,7 @@
       {
         "nodeType": "randomDistribution",
         "nodeInfo": "將點分佈至隨機位置。",
-        "niceName": "隨機",
+        "niceName": "Random",
         "attributes": {
           "count": "數量",
           "size": "大小",
@@ -4649,7 +4649,7 @@
       {
         "nodeType": "pointDistribution",
         "nodeInfo": "在 0,0 處分佈點。",
-        "niceName": "點",
+        "niceName": "Point",
         "attributes": {
           "count": "數量"
         }
@@ -4657,7 +4657,7 @@
       {
         "nodeType": "arrayDistribution",
         "nodeInfo": "透過為每個索引指定位置來分佈點。",
-        "niceName": "數組",
+        "niceName": "Array",
         "attributes": {
           "array": "位置"
         }
@@ -4665,7 +4665,7 @@
       {
         "nodeType": "particleDistribution",
         "nodeInfo": "將點分佈至粒子形狀上。",
-        "niceName": "粒子",
+        "niceName": "Particle",
         "attributes": {
           "array": "位置"
         }
@@ -4673,7 +4673,7 @@
       {
         "nodeType": "pathDistribution",
         "nodeInfo": "沿路徑分佈點。",
-        "niceName": "路徑",
+        "niceName": "Path",
         "attributes": {
           "count": "數量",
           "inputShape": "輸入形狀",
@@ -4699,7 +4699,7 @@
       {
         "nodeType": "shapePointDistribution",
         "nodeInfo": "將點分佈到另一個形狀的點／頂點上。",
-        "niceName": "形狀點",
+        "niceName": "Shape Points",
         "attributes": {
           "inputShape": "分佈形狀",
           "calculateRotations": "使用旋轉",
@@ -4713,7 +4713,7 @@
       {
         "nodeType": "shapeEdgeDistribution",
         "nodeInfo": "將點分佈到另一個形狀的邊緣上。",
-        "niceName": "形狀邊緣",
+        "niceName": "Shape Edges",
         "attributes": {
           "inputShape": "分佈形狀",
           "calculateRotations": "使用旋轉",
@@ -4728,7 +4728,7 @@
       {
         "nodeType": "voxelizeDistribution",
         "nodeInfo": "透過體素化另一個形狀來分佈點。",
-        "niceName": "體素化",
+        "niceName": "Voxelize",
         "attributes": {
           "inputShape": "輸入形狀",
           "size": "大小",
@@ -4740,7 +4740,7 @@
       },
       {
         "nodeType": "patternShape",
-        "niceName": "圖案",
+        "niceName": "Pattern",
         "attributes": {}
       },
       {
@@ -4766,7 +4766,7 @@
       {
         "nodeType": "roseDistribution",
         "nodeInfo": "以玫瑰線圖案分佈點。",
-        "niceName": "玫瑰線",
+        "niceName": "Rose",
         "attributes": {
           "count": "數量",
           "radius": "半徑",
@@ -4785,7 +4785,7 @@
       {
         "nodeType": "gridDistribution",
         "nodeInfo": "以網格分佈點。",
-        "niceName": "網格",
+        "niceName": "Grid",
         "attributes": {
           "count": [
             "數量",
@@ -4818,7 +4818,7 @@
       {
         "nodeType": "linearDistribution",
         "nodeInfo": "在水平或垂直線上分佈點。",
-        "niceName": "線性",
+        "niceName": "Linear",
         "attributes": {
           "count": "數量",
           "size": "大小",
@@ -4839,7 +4839,7 @@
       {
         "nodeType": "customDistribution",
         "nodeInfo": "使用 JavaScript 分佈點。",
-        "niceName": "自定義...",
+        "niceName": "Custom...",
         "attributes": {
           "input": "輸入分佈"
         }
@@ -4847,7 +4847,7 @@
       {
         "nodeType": "meshDistribution",
         "nodeInfo": "將點分佈到子網格的位置上。",
-        "niceName": "子網格",
+        "niceName": "Sub-Mesh",
         "attributes": {
           "inputShape": "輸入形狀",
           "count": "數量",
@@ -4872,7 +4872,7 @@
       {
         "nodeType": "mathDistribution",
         "nodeInfo": "使用數學運算式分佈點。",
-        "niceName": "數學",
+        "niceName": "Math",
         "attributes": {
           "count": "數量",
           "expression": "運算式",
@@ -4882,7 +4882,7 @@
       {
         "nodeType": "maskDistribution",
         "nodeInfo": "分佈點並移除落在另一個形狀外部的點。",
-        "niceName": "遮罩",
+        "niceName": "Mask",
         "attributes": {
           "input": "輸入分佈",
           "reverse": "反轉",
@@ -4893,7 +4893,7 @@
       {
         "nodeType": "shuffleDistribution",
         "nodeInfo": "透過重新排列子網格的 ID 來分佈點。",
-        "niceName": "洗牌",
+        "niceName": "Shuffle",
         "attributes": {
           "input": "輸入分佈",
           "masks": [
@@ -4905,7 +4905,7 @@
       {
         "nodeType": "sortDistribution",
         "nodeInfo": "透過重新排序另一個分佈的 ID 來分佈點。",
-        "niceName": "排序",
+        "niceName": "Sort",
         "attributes": {
           "input": "輸入分佈",
           "reverse": "反轉",
@@ -4925,7 +4925,7 @@
       {
         "nodeType": "fibonacciDistribution",
         "nodeInfo": "以費氏螺旋圖案分佈點。",
-        "niceName": "費波那契",
+        "niceName": "Fibonacci",
         "attributes": {
           "radius": "半徑",
           "count": "數量",
@@ -4934,7 +4934,7 @@
       },
       {
         "nodeType": "rectangleShape",
-        "niceName": "矩形",
+        "niceName": "Rectangle",
         "attributes": {
           "divisions": "拐角細分",
           "dimensions": "大小",
@@ -4968,7 +4968,7 @@
       {
         "nodeType": "polygonShape",
         "nodeInfo": "產生多邊形基本圖形。",
-        "niceName": "多邊形",
+        "niceName": "Polygon",
         "attributes": {
           "divisions": "細分",
           "radius": "半徑",
@@ -4978,7 +4978,7 @@
       {
         "nodeType": "superEllipseShape",
         "nodeInfo": "產生超橢圓基本形。",
-        "niceName": "超級橢圓",
+        "niceName": "Super Ellipse",
         "attributes": {
           "radius": "半徑",
           "push": "推動",
@@ -4989,7 +4989,7 @@
       {
         "nodeType": "superShape",
         "nodeInfo": "產生超級形狀基本形。",
-        "niceName": "超級形狀",
+        "niceName": "Super Shape",
         "attributes": {
           "radius": "半徑",
           "complexity": "複雜度",
@@ -5004,7 +5004,7 @@
       {
         "nodeType": "squircleShape",
         "nodeInfo": "產生方圓形基本形。",
-        "niceName": "超橢圓",
+        "niceName": "Squircle",
         "attributes": {
           "dimensions": "大小",
           "cornerRadius": "圓角半徑",
@@ -5016,7 +5016,7 @@
       {
         "nodeType": "starShape",
         "nodeInfo": "產生星形基本形。",
-        "niceName": "星形",
+        "niceName": "Star",
         "attributes": {
           "divisions": "細分",
           "radius": "半徑",
@@ -5032,7 +5032,7 @@
       {
         "nodeType": "arcShape",
         "nodeInfo": "產生弧形基本形。",
-        "niceName": "圓弧",
+        "niceName": "Arc",
         "attributes": {
           "divisions": [
             "細分",
@@ -5063,7 +5063,7 @@
       {
         "nodeType": "ringShape",
         "nodeInfo": "產生環形基本圖形。",
-        "niceName": "圓環",
+        "niceName": "Ring",
         "attributes": {
           "divisions": "細分",
           "radius": "外半徑",
@@ -5072,7 +5072,7 @@
       },
       {
         "nodeType": "circleShape",
-        "niceName": "圓形",
+        "niceName": "Circle",
         "attributes": {
           "divisions": "細分",
           "radius": "半徑"
@@ -5081,7 +5081,7 @@
       {
         "nodeType": "ellipseShape",
         "nodeInfo": "產生橢圓基本形。",
-        "niceName": "橢圓",
+        "niceName": "Ellipse",
         "attributes": {
           "divisions": "細分",
           "radius": "半徑",
@@ -5092,7 +5092,7 @@
       {
         "nodeType": "capsuleShape",
         "nodeInfo": "產生膠囊形基本圖形。",
-        "niceName": "膠囊",
+        "niceName": "Capsule",
         "attributes": {
           "divisions": "邊緣細分",
           "radius": "半徑",
@@ -5113,7 +5113,7 @@
       {
         "nodeType": "textDate",
         "nodeInfo": "為字串產生器產生隨機日期。",
-        "niceName": "隨機日期",
+        "niceName": "Random Date",
         "attributes": {
           "startDate": "開始日期",
           "endDate": "結束日期",
@@ -5133,7 +5133,7 @@
       {
         "nodeType": "textBlockUnicode",
         "nodeInfo": "產生具有可設定段落、行、字詞和字元數量的階層結構文字。",
-        "niceName": "區塊",
+        "niceName": "Block",
         "attributes": {
           "paragraphs": [
             "段落",
@@ -5186,7 +5186,7 @@
       {
         "nodeType": "formattedDateAndTime",
         "nodeInfo": "使用字串產生器透過日期和時間符記產生字串。",
-        "niceName": "格式化日期與時間",
+        "niceName": "Formatted Date and Time",
         "attributes": {
           "inputString": "格式化字元串",
           "array": "字元串"
@@ -5195,7 +5195,7 @@
       {
         "nodeType": "textFormatted",
         "nodeInfo": "使用字串產生器產生串接字串。",
-        "niceName": "格式化字元串",
+        "niceName": "Formatted String",
         "attributes": {
           "inputString": "格式化字元串",
           "array": "字元串"
@@ -5203,14 +5203,14 @@
       },
       {
         "nodeType": "chartShape",
-        "niceName": "圖表",
+        "niceName": "Chart",
         "attributes": {
           "generator": "圖表類型"
         }
       },
       {
         "nodeType": "lineChart",
-        "niceName": "折線圖",
+        "niceName": "Line Chart",
         "attributes": {
           "xAxis": "X 軸",
           "yAxis": "Y 軸"
@@ -5218,7 +5218,7 @@
       },
       {
         "nodeType": "backgroundShape",
-        "niceName": "背景形狀",
+        "niceName": "Background Shape",
         "nodeInfo": "根據合成解析度自動調整大小的形狀。",
         "attributes": {
           "shrink": "收縮"
@@ -5331,7 +5331,7 @@
       },
       {
         "nodeType": "pointsToCurve",
-        "niceName": "點到路徑",
+        "niceName": "Points to Path",
         "nodeInfo": "使用分佈中的點建立路徑。",
         "attributes": {
           "generator": "點來源",
@@ -5351,7 +5351,7 @@
       {
         "nodeType": "transformDistribution",
         "nodeInfo": "將點分佈到圖層的位置上。",
-        "niceName": "變換",
+        "niceName": "Transform",
         "attributes": {
           "inputShape": "輸入形狀"
         }
@@ -5359,7 +5359,7 @@
       {
         "nodeType": "cogwheelShape",
         "nodeInfo": "產生齒輪基本形。",
-        "niceName": "齒輪",
+        "niceName": "Cogwheel",
         "attributes": {
           "teeth": "牙齒",
           "radius": "節圓半徑",
@@ -5372,7 +5372,7 @@
       },
       {
         "nodeType": "cogwheelGearShape",
-        "niceName": "齒輪",
+        "niceName": "Cogwheel (Gear)",
         "attributes": {
           "teeth": "牙齒",
           "pitchRadius": "節圓半徑",
@@ -5384,7 +5384,7 @@
       {
         "nodeType": "arrowShape",
         "nodeInfo": "產生箭頭基本形。",
-        "niceName": "箭頭",
+        "niceName": "Arrow",
         "attributes": {
           "bodyLength": "主體長度",
           "bodyWidth": "主體寬度",
@@ -5395,7 +5395,7 @@
       {
         "nodeType": "basicArrowHead",
         "nodeInfo": "為箭頭基本形產生箭頭末端。",
-        "niceName": "箭頭",
+        "niceName": "Arrow",
         "attributes": {
           "headLength": "結束長度",
           "headWidth": "箭頭寬度",
@@ -5405,7 +5405,7 @@
       {
         "nodeType": "chevronHead",
         "nodeInfo": "為箭頭基本形產生 V 形末端。",
-        "niceName": "V 形",
+        "niceName": "Chevron",
         "attributes": {
           "headLength": "結束長度",
           "headWidth": "V 形寬度",
@@ -5416,7 +5416,7 @@
       {
         "nodeType": "barbedHead",
         "nodeInfo": "為箭頭基本形產生倒鉤末端。",
-        "niceName": "倒鉤形",
+        "niceName": "Barbed",
         "attributes": {
           "headLength": "結束長度",
           "barbWidth": "倒鉤寬度",
@@ -5426,7 +5426,7 @@
       {
         "nodeType": "circleHead",
         "nodeInfo": "為箭頭基本形產生圓形末端。",
-        "niceName": "圓形",
+        "niceName": "Circle",
         "attributes": {
           "circleRadius": "大小",
           "circleHole": "孔洞",
@@ -5436,7 +5436,7 @@
       {
         "nodeType": "boxHead",
         "nodeInfo": "為箭頭基本形產生方框末端。",
-        "niceName": "盒形",
+        "niceName": "Box",
         "attributes": {
           "boxSize": "大小",
           "boxHole": "孔洞",
@@ -5446,7 +5446,7 @@
       {
         "nodeType": "textTimecode",
         "nodeInfo": "為字串產生器產生時間碼。",
-        "niceName": "時間碼",
+        "niceName": "Timecode",
         "attributes": {
           "frame": "幀",
           "offset": "幀偏移",
@@ -5486,7 +5486,7 @@
       },
       {
         "nodeType": "numberRangeBase",
-        "niceName": "數字範圍",
+        "niceName": "Number Range",
         "attributes": {
           "sourceMin": "來源最小值",
           "sourceMax": "來源最大值",
@@ -5500,7 +5500,7 @@
       },
       {
         "nodeType": "numberRangeToColorBase",
-        "niceName": "數字範圍到顏色",
+        "niceName": "Number Range To Color",
         "attributes": {
           "sourceMin": "來源最小值",
           "sourceMax": "來源最大值",
@@ -5555,7 +5555,7 @@
       },
       {
         "nodeType": "contextIndex",
-        "niceName": "索引上下文",
+        "niceName": "Index Context",
         "nodeInfo": "擷取並傳送此圖層的索引至複製器和連接形狀等圖層的輸入。",
         "attributes": {
           "depth": "上遊深度",
@@ -5581,7 +5581,7 @@
       },
       {
         "nodeType": "stringManipulator",
-        "niceName": "字串操作器",
+        "niceName": "String Manipulator",
         "nodeInfo": "以某種方式修改現有字串（文字）。包含隨機排列、調整大小、取代等選項。",
         "attributes": {
           "text": "字元串",
@@ -5590,7 +5590,7 @@
       },
       {
         "nodeType": "arrayManipulator",
-        "niceName": "陣列操作器",
+        "niceName": "Array Manipulator",
         "attributes": {
           "generator": "操縱器"
         }
@@ -5598,7 +5598,7 @@
       {
         "nodeType": "shuffleString",
         "nodeInfo": "重新排列字串中的字元。",
-        "niceName": "隨機排列字串",
+        "niceName": "Shuffle String",
         "attributes": {
           "percentage": "百分比",
           "randomSeed": "隨機種子",
@@ -5638,7 +5638,7 @@
       {
         "nodeType": "resizeString",
         "nodeInfo": "縮減字串的長度。",
-        "niceName": "調整字串大小",
+        "niceName": "Resize String",
         "attributes": {
           "percentage": "百分比",
           "length": "長度",
@@ -5677,7 +5677,7 @@
       {
         "nodeType": "replaceString",
         "nodeInfo": "將字串的一部分替換為另一個字串。",
-        "niceName": "替換字元串",
+        "niceName": "Replace String",
         "attributes": {
           "replace": "替換",
           "with": "包含"
@@ -5685,7 +5685,7 @@
       },
       {
         "nodeType": "changeStringCase",
-        "niceName": "變更字串大小寫",
+        "niceName": "Change String Case",
         "attributes": {
           "mode": "模式",
           "exclusionList": "詞排除列表",
@@ -5703,7 +5703,7 @@
       {
         "nodeType": "transitionString",
         "nodeInfo": "將一個字串過渡到另一個字串。",
-        "niceName": "過渡字串",
+        "niceName": "Transition String",
         "attributes": {
           "percentage": "百分比",
           "length": "長度",
@@ -5831,7 +5831,7 @@
       {
         "nodeType": "regexString",
         "nodeInfo": "使用正規表達式篩選字串。",
-        "niceName": "正則運算式",
+        "niceName": "Regex",
         "attributes": {
           "regex": "正則運算式"
         }
@@ -5839,7 +5839,7 @@
       {
         "nodeType": "subString",
         "nodeInfo": "裁切字串。",
-        "niceName": "子字串",
+        "niceName": "Sub-String",
         "attributes": {
           "start": "起始位置",
           "end": "結束位置",
@@ -5849,7 +5849,7 @@
       {
         "nodeType": "unicodeManipulator",
         "nodeInfo": "依 Unicode 碼位偏移字元。適用於圖片字型和字元操作。",
-        "niceName": "Unicode 偏移",
+        "niceName": "Unicode Offset",
         "attributes": {
           "offset": "偏移",
           "clampToRange": "鉗製到範圍",
@@ -5921,7 +5921,7 @@
       },
       {
         "nodeType": "shapeArray",
-        "niceName": "形狀陣列",
+        "niceName": "Shape Array",
         "nodeInfo": "建立可透過索引指派給其他圖層的連接形狀列表。",
         "attributes": {
           "array": "形狀"
@@ -5929,24 +5929,24 @@
       },
       {
         "nodeType": "resizeArray",
-        "niceName": "調整陣列大小",
+        "niceName": "Resize Array",
         "attributes": {
           "size": "大小"
         }
       },
       {
         "nodeType": "sortArray",
-        "niceName": "排序數組",
+        "niceName": "Sort Array",
         "attributes": {}
       },
       {
         "nodeType": "shuffleArray",
-        "niceName": "隨機排列陣列",
+        "niceName": "Shuffle Array",
         "attributes": {}
       },
       {
         "nodeType": "manipulateArray",
-        "niceName": "操作陣列",
+        "niceName": "Manipulate Array",
         "attributes": {
           "mode": "模式"
         },
@@ -5973,7 +5973,7 @@
       },
       {
         "nodeType": "subdivide",
-        "niceName": "細分",
+        "niceName": "Subdivide",
         "attributes": {
           "subdivisions": "細分",
           "curveToEndPoints": "曲線到端點",
@@ -5989,7 +5989,7 @@
       },
       {
         "nodeType": "compConstraint",
-        "niceName": "合成約束",
+        "niceName": "Composition Constraint",
         "nodeInfo": "將形狀約束至合成的邊緣。",
         "attributes": {
           "offset": "偏移",
@@ -6015,7 +6015,7 @@
       },
       {
         "nodeType": "componentConstraint",
-        "niceName": "元件約束",
+        "niceName": "Component Constraint",
         "nodeInfo": "將形狀約束至另一個形狀的點或邊緣。",
         "attributes": {
           "generator": "約束類型"
@@ -6024,7 +6024,7 @@
       {
         "nodeType": "concatenateStringArray",
         "nodeInfo": "串接多個字串。",
-        "niceName": "合併字串",
+        "niceName": "Join String",
         "attributes": {
           "array": "字元串",
           "delimiter": "分隔符",
@@ -6043,7 +6043,7 @@
       {
         "nodeType": "edgeConstraint",
         "nodeInfo": "為元件約束產生邊緣約束。",
-        "niceName": "邊緣約束",
+        "niceName": "Edge Constraint",
         "attributes": {
           "target": "目標",
           "offset": "偏移",
@@ -6058,7 +6058,7 @@
       },
       {
         "nodeType": "transformConstraint",
-        "niceName": "變換約束",
+        "niceName": "Transform Constraint",
         "attributes": {
           "target": "目標",
           "offset": "偏移",
@@ -6070,7 +6070,7 @@
       {
         "nodeType": "pointConstraint",
         "nodeInfo": "為元件約束產生點約束。",
-        "niceName": "點約束",
+        "niceName": "Point Constraint",
         "attributes": {
           "target": "目標",
           "offset": "偏移",
@@ -6085,7 +6085,7 @@
       {
         "nodeType": "pathOffsetBehaviour",
         "nodeInfo": "收縮或擴展路徑。",
-        "niceName": "路徑偏移",
+        "niceName": "Path Offset",
         "attributes": {
           "offset": "偏移",
           "rounded": "圓角",
@@ -6206,7 +6206,7 @@
       },
       {
         "nodeType": "simpleValue2Solver",
-        "niceName": "數值 2 求解器",
+        "niceName": "Value2 Solver",
         "nodeInfo": "儲存前幾影格的二維數值以進行累積和／或淡出。",
         "attributes": {
           "saveLimit": "儲存限制",
@@ -6240,7 +6240,7 @@
       },
       {
         "nodeType": "simpleValueSolver",
-        "niceName": "數值求解器",
+        "niceName": "Value Solver",
         "nodeInfo": "儲存前幾影格的數值以進行累積和／或淡出。",
         "attributes": {
           "saveLimit": "儲存限制",
@@ -6345,7 +6345,7 @@
       },
       {
         "nodeType": "layoutShape",
-        "niceName": "佈局形狀",
+        "niceName": "Layout Shape",
         "nodeInfo": "此圖層已棄用 - 請參閱佈局以取得替代功能。",
         "attributes": {
           "layout": "版面配置",
@@ -6391,7 +6391,7 @@
       {
         "nodeType": "horizontalLayout",
         "nodeInfo": "為套用佈局行為產生水平佈局。",
-        "niceName": "水平佈局",
+        "niceName": "Horizontal Layout",
         "attributes": {
           "autoSpacing": "自動間距",
           "paddingLR": "水平內邊距",
@@ -6406,7 +6406,7 @@
       {
         "nodeType": "verticalLayout",
         "nodeInfo": "為套用佈局行為產生垂直佈局。",
-        "niceName": "垂直佈局",
+        "niceName": "Vertical Layout",
         "attributes": {
           "autoSpacing": "自動間距",
           "paddingLR": "水平內邊距",
@@ -6421,7 +6421,7 @@
       {
         "nodeType": "gridLayout",
         "nodeInfo": "為套用佈局行為產生網格佈局。",
-        "niceName": "網格佈局",
+        "niceName": "Grid Layout",
         "attributes": {
           "rows": "行",
           "columns": "列",
@@ -6435,7 +6435,7 @@
       },
       {
         "nodeType": "spacerItem",
-        "niceName": "間隔符",
+        "niceName": "Spacer",
         "nodeInfo": "與佈局形狀結合使用以建立間隙或空白儲存格。",
         "attributes": {
           "minimumSize": "最小大小"
@@ -6443,7 +6443,7 @@
       },
       {
         "nodeType": "getLayerName",
-        "niceName": "取得名稱",
+        "niceName": "Get Name",
         "nodeInfo": "取得圖層的「顯示名稱」並以字串輸出。",
         "attributes": {
           "inputShape": "輸入"
@@ -6451,7 +6451,7 @@
       },
       {
         "nodeType": "stringLength",
-        "niceName": "字元串長度",
+        "niceName": "String Length",
         "nodeInfo": "計算字串中的行數／字數／字元數。",
         "attributes": {
           "string": "字元串",
@@ -6614,7 +6614,7 @@
       },
       {
         "nodeType": "rectPatternShape",
-        "niceName": "矩形圖案",
+        "niceName": "Rectangle Pattern",
         "nodeInfo": "建立堆疊長條圖／圓餅圖／環形圖和條碼。",
         "attributes": {
           "generator": "圖案模式",
@@ -6632,7 +6632,7 @@
       },
       {
         "nodeType": "lineRectPatternGenerator",
-        "niceName": "直線",
+        "niceName": "Line",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "orientation": "方向",
@@ -6654,7 +6654,7 @@
       },
       {
         "nodeType": "ringRectPatternGenerator",
-        "niceName": "圓環",
+        "niceName": "Ring",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "startAngle": "開始角度",
@@ -6673,7 +6673,7 @@
       },
       {
         "nodeType": "bentoShape",
-        "niceName": "便當格",
+        "niceName": "Bento",
         "attributes": {
           "size": "大小",
           "gridColumns": "網格列",
@@ -6697,7 +6697,7 @@
       },
       {
         "nodeType": "chromaticAberrationFilter",
-        "niceName": "色差",
+        "niceName": "Chromatic Aberration",
         "nodeInfo": "分離紅色、綠色和藍色通道，同時扭曲圖層的邊緣。",
         "attributes": {
           "alignmentX": "水平對齊",
@@ -6742,7 +6742,7 @@
       {
         "nodeType": "distributionEmitter",
         "nodeInfo": "從分佈發射粒子。",
-        "niceName": "分佈發射器",
+        "niceName": "Distribution Emitter",
         "attributes": {
           "generator": "分佈",
           "emissionMode": "發射模式",
@@ -6764,7 +6764,7 @@
       },
       {
         "nodeType": "particleEmitter",
-        "niceName": "粒子發射器",
+        "niceName": "Particle Emitter",
         "nodeInfo": "從點、形狀或路徑發射粒子。",
         "attributes": {
           "emitterRate": "速率",
@@ -6800,7 +6800,7 @@
       },
       {
         "nodeType": "particleModifier",
-        "niceName": "粒子修改器",
+        "niceName": "Particle Modifier",
         "nodeInfo": "資訊。",
         "attributes": {
           "enabled": "啟用修改器",
@@ -6828,7 +6828,7 @@
       },
       {
         "nodeType": "dataModifier",
-        "niceName": "資料修改器",
+        "niceName": "Data Modifier",
         "nodeInfo": "影響粒子的屬性，包括 ID、生命週期和速度。",
         "attributes": {
           "kill": "銷毀粒子",
@@ -6852,7 +6852,7 @@
       },
       {
         "nodeType": "particleShape",
-        "niceName": "粒子形狀",
+        "niceName": "Particle Shape",
         "nodeInfo": "模擬複雜的物理效果，例如煙霧、雨滴或灰塵。",
         "attributes": {
           "modifiers": "修改器",
@@ -6926,7 +6926,7 @@
       },
       {
         "nodeType": "visualModifier",
-        "niceName": "視覺修改器",
+        "niceName": "Visual Modifier",
         "nodeInfo": "變更粒子的視覺外觀。",
         "attributes": {
           "gradientMode": "漸層模式",
@@ -6956,7 +6956,7 @@
       },
       {
         "nodeType": "imageModifier",
-        "niceName": "圖片修改器",
+        "niceName": "Image Modifier",
         "nodeInfo": "為粒子新增影像或影像序列。",
         "attributes": {
           "inputImage": "影像",
@@ -6978,7 +6978,7 @@
       },
       {
         "nodeType": "pathModifier",
-        "niceName": "路徑修改器",
+        "niceName": "Path Modifier",
         "nodeInfo": "沿路徑流動粒子。",
         "attributes": {
           "overwritePhysics": "覆蓋物理",
@@ -7010,7 +7010,7 @@
       },
       {
         "nodeType": "vortexModifier",
-        "niceName": "渦流修改器",
+        "niceName": "Vortex Modifier",
         "nodeInfo": "讓粒子圍繞一個位置旋轉以建立螺旋或銀河效果。",
         "attributes": {},
         "enums": {
@@ -7022,7 +7022,7 @@
       },
       {
         "nodeType": "magneticModifier",
-        "niceName": "磁力修改器",
+        "niceName": "Magnetic Modifier",
         "nodeInfo": "將粒子吸引至或排斥遠離某個位置。",
         "attributes": {},
         "enums": {
@@ -7034,7 +7034,7 @@
       },
       {
         "nodeType": "flowFieldModifier",
-        "niceName": "流場修改器",
+        "niceName": "Flow Field Modifier",
         "nodeInfo": "讓粒子穿過方向性細胞網格以建立自然流暢的運動。",
         "attributes": {
           "generator": "流場"
@@ -7048,7 +7048,7 @@
       },
       {
         "nodeType": "goalModifier",
-        "niceName": "目標修改器",
+        "niceName": "Goal Modifier",
         "nodeInfo": "將粒子移動至目標分佈。",
         "attributes": {
           "inputPoints": "分佈",
@@ -7070,7 +7070,7 @@
       },
       {
         "nodeType": "speedModifier",
-        "niceName": "速度修改器",
+        "niceName": "Speed Modifier",
         "nodeInfo": "為粒子速度新增阻力或設定限制。",
         "attributes": {
           "limitType": "限製類型",
@@ -7090,7 +7090,7 @@
       },
       {
         "nodeType": "forceModifier",
-        "niceName": "力修改器",
+        "niceName": "Force Modifier",
         "nodeInfo": "透過施加力來變更粒子的物理屬性，例如重力和品質。",
         "attributes": {
           "forceVelocity": "力速度",
@@ -7106,7 +7106,7 @@
       },
       {
         "nodeType": "turbulenceModifier",
-        "niceName": "亂流修改器",
+        "niceName": "Turbulence Modifier",
         "nodeInfo": "使用雜訊影響粒子的位置和速度，為模擬增添趣味。",
         "attributes": {
           "forceMagnitude": "力大小",
@@ -7124,7 +7124,7 @@
       },
       {
         "nodeType": "multiPointGradientShader",
-        "niceName": "多點漸層著色器",
+        "niceName": "Multi-Point Gradient Shader",
         "nodeInfo": "定位顏色，然後使用影響力設定其衰減方式。",
         "attributes": {
           "premultiply": "預乘",
@@ -7144,7 +7144,7 @@
       },
       {
         "nodeType": "gammaCorrectionFilter",
-        "niceName": "Gamma 校正",
+        "niceName": "Gamma Correction",
         "nodeInfo": "將顏色提升至某次方以增加或降低感知的亮度和暗度。",
         "attributes": {
           "gamma": "伽馬值",
@@ -7176,7 +7176,7 @@
       },
       {
         "nodeType": "blendShader",
-        "niceName": "混合著色器",
+        "niceName": "Blend Shader",
         "nodeInfo": "將多個著色器組合在一起並輸出單一著色器。",
         "attributes": {
           "shaders": "著色器",
@@ -7219,7 +7219,7 @@
       },
       {
         "nodeType": "slaShader",
-        "niceName": "SLA 著色器",
+        "niceName": "SLA Shader",
         "nodeInfo": "新型雜訊著色器。",
         "attributes": {
           "noiseType": [
@@ -7316,7 +7316,7 @@
       },
       {
         "nodeType": "rgbSplitFilter",
-        "niceName": "RGB 分離",
+        "niceName": "RGB Split",
         "nodeInfo": "偏移圖層的紅色、綠色和藍色色彩通道。",
         "attributes": {
           "passes": "重複次數",
@@ -7364,7 +7364,7 @@
       },
       {
         "nodeType": "halftoneLegacyFilter",
-        "niceName": "半色調",
+        "niceName": "Halftone",
         "nodeInfo": "舊版圖層 - 新的「半色調」已可用。\n將圖層重繪為一系列大小與圖層亮度成正比的圓形。",
         "attributes": {
           "count": "大小",
@@ -7392,7 +7392,7 @@
       },
       {
         "nodeType": "halftoneFilter",
-        "niceName": "半色調",
+        "niceName": "Halftone",
         "nodeInfo": "將圖層重繪為一系列大小與圖層亮度成正比的圓形。",
         "attributes": {
           "size": "大小",
@@ -7450,7 +7450,7 @@
       },
       {
         "nodeType": "frostedGlassFilter",
-        "niceName": "毛玻璃",
+        "niceName": "Frosted Glass",
         "attributes": {
           "strength": "強度",
           "tint": "著色",
@@ -7462,7 +7462,7 @@
       },
       {
         "nodeType": "ditheringFilter",
-        "niceName": "抖色",
+        "niceName": "Dithering",
         "nodeInfo": "使用降低的色彩位元深度重繪圖層，並套用雜訊以防止色帶。",
         "attributes": {
           "colorBit": "位元深度",
@@ -7523,7 +7523,7 @@
       },
       {
         "nodeType": "pixelSortingFilter",
-        "niceName": "像素排序",
+        "niceName": "Pixel Sorting",
         "nodeInfo": "根據亮度等各種屬性排序圖層的像素以重新排列。",
         "attributes": {
           "blendMode": "混合模式",
@@ -7576,7 +7576,7 @@
       },
       {
         "nodeType": "stripesFilter",
-        "niceName": "條紋",
+        "niceName": "Stripes",
         "nodeInfo": "取樣一行像素並延伸以建立條紋圖案。",
         "attributes": {
           "blendMode": "混合模式",
@@ -7612,7 +7612,7 @@
       },
       {
         "nodeType": "pixelateFilter",
-        "niceName": "像素化",
+        "niceName": "Pixelate",
         "nodeInfo": "使用均勻色彩的區塊重繪圖層。「像素」可以具有各種不同的形狀。",
         "attributes": {
           "leadingDiagonal": "反轉主對角線",
@@ -7632,7 +7632,7 @@
       },
       {
         "nodeType": "crtScanLines",
-        "niceName": "掃描線",
+        "niceName": "Scan Lines",
         "nodeInfo": "模擬 CRT 顯示器的效果。",
         "attributes": {
           "realRes": "使用掃描線解析度",
@@ -7664,7 +7664,7 @@
       },
       {
         "nodeType": "kitaokaFilter",
-        "niceName": "北岡濾鏡",
+        "niceName": "Kitaoka Filter",
         "nodeInfo": "產生美觀的波浪效果。",
         "attributes": {
           "blendMode": "混合模式",
@@ -7734,7 +7734,7 @@
       },
       {
         "nodeType": "mirrorFilter",
-        "niceName": "鏡像",
+        "niceName": "Mirror",
         "nodeInfo": "沿中心線反轉形狀以建立鏡像。",
         "attributes": {},
         "enums": {
@@ -7767,7 +7767,7 @@
       },
       {
         "nodeType": "distortionFilter",
-        "niceName": "扭曲",
+        "niceName": "Distortion",
         "nodeInfo": "根據著色器（如雜訊）扭曲圖層。",
         "attributes": {
           "singleDirection": "使用單一方向",
@@ -7831,7 +7831,7 @@
       },
       {
         "nodeType": "distortEdges",
-        "niceName": "扭曲邊緣",
+        "niceName": "Distort Edges",
         "nodeInfo": "使用著色器僅扭曲圖層的邊緣。",
         "attributes": {
           "border": "邊框",
@@ -7890,7 +7890,7 @@
       },
       {
         "nodeType": "chromaticDisplacement",
-        "niceName": "色彩位移",
+        "niceName": "Chromatic Displacement",
         "nodeInfo": "根據高度圖著色器對 RGB 通道套用獨立位移，以實現色差和折射效果。",
         "attributes": {
           "amplitude": "振幅",
@@ -7952,7 +7952,7 @@
       },
       {
         "nodeType": "displacementUtility",
-        "niceName": "位移工具",
+        "niceName": "Displacement Utility",
         "enums": {
           "shapeType": {
             "0": "圓形",
@@ -7962,7 +7962,7 @@
       },
       {
         "nodeType": "colorInfo",
-        "niceName": "顏色資訊",
+        "niceName": "Color Info",
         "nodeInfo": "取得指定顏色的色相、飽和度或明度。",
         "attributes": {
           "inColor": "顏色",
@@ -7979,7 +7979,7 @@
       },
       {
         "nodeType": "hsvColor",
-        "niceName": "HSV 顏色",
+        "niceName": "HSV Color",
         "nodeInfo": "從色相、飽和度和明度建立顏色。",
         "attributes": {
           "hue": "色相",
@@ -7991,7 +7991,7 @@
       },
       {
         "nodeType": "subBoundingBox",
-        "niceName": "子網格邊界框",
+        "niceName": "Sub-Mesh Bounding Box",
         "nodeInfo": "使用子網格的邊界框建立矩形（複製器、文字、SVG 等）。",
         "attributes": {
           "inputShape": "輸入形狀",
@@ -8010,7 +8010,7 @@
       },
       {
         "nodeType": "segmentPath",
-        "niceName": "分割路徑",
+        "niceName": "Segment Path",
         "nodeInfo": "將路徑分割為較小的段落。",
         "attributes": {
           "count": "數量",
@@ -8043,7 +8043,7 @@
       },
       {
         "nodeType": "forgeDynamicsShape",
-        "niceName": "Forge動力學",
+        "niceName": "Forge Dynamics",
         "nodeInfo": "用於剛體碰撞的 2D 物理引擎。",
         "attributes": {
           "groundMode": "地面模式",
@@ -8171,7 +8171,7 @@
       },
       {
         "nodeType": "colorCollisionEvent",
-        "niceName": "顏色碰撞事件",
+        "niceName": "Color Collision Event",
         "nodeInfo": "當 Forge 動力學物體碰撞時變更其顏色。",
         "attributes": {
           "fillColor": "顏色",
@@ -8211,7 +8211,7 @@
       },
       {
         "nodeType": "measureText",
-        "niceName": "測量文字",
+        "niceName": "Measure Text",
         "nodeInfo": "根據給定的字型和字型大小測量文字字串的尺寸。",
         "attributes": {
           "string": "字元串",
@@ -8235,7 +8235,7 @@
       },
       {
         "nodeType": "stickyCollisionEvent",
-        "niceName": "黏附碰撞事件",
+        "niceName": "Sticky Collision Event",
         "nodeInfo": "當 Forge 動力學物體碰撞時使其相互黏著。",
         "attributes": {
           "breakable": "可斷裂",
@@ -8247,7 +8247,7 @@
       },
       {
         "nodeType": "impulseCollisionEvent",
-        "niceName": "衝量碰撞事件",
+        "niceName": "Impulse Collision Event",
         "nodeInfo": "在 Forge 動力學剛體碰撞時新增額外的力。",
         "attributes": {
           "useBounceDirection": "使用彈跳方向",
@@ -8258,7 +8258,7 @@
       },
       {
         "nodeType": "bodySettingCollisionEvent",
-        "niceName": "剛體設定碰撞事件",
+        "niceName": "Body Settings Collision Event",
         "nodeInfo": "當 Forge 動力學物體與另一個碰撞時更新其設定。",
         "attributes": {
           "useCollisionIndex": [
@@ -8277,7 +8277,7 @@
       },
       {
         "nodeType": "visibilityCollisionEvent",
-        "niceName": "可見性碰撞事件",
+        "niceName": "Visibility Collision Event",
         "nodeInfo": "影響 Forge 動力學剛體碰撞時的可見性或不透明度。",
         "attributes": {
           "mode": "模式",
@@ -8307,7 +8307,7 @@
       },
       {
         "nodeType": "bridgeConstraint",
-        "niceName": "橋接約束",
+        "niceName": "Bridge Constraint",
         "nodeInfo": "在 Forge 動力學模擬中將形狀連接在一起以形成鏈條或橋樑結構。",
         "attributes": {
           "frequencyHz": "頻率（赫茲）",
@@ -8353,7 +8353,7 @@
       },
       {
         "nodeType": "pinConstraint",
-        "niceName": "釘選約束",
+        "niceName": "Pin Constraint",
         "nodeInfo": "在 Forge 動力學模擬中將形狀釘選至其原始位置，但允許旋轉。",
         "attributes": {
           "motor": "馬達",
@@ -8401,7 +8401,7 @@
       },
       {
         "nodeType": "distanceConstraint",
-        "niceName": "距離約束",
+        "niceName": "Distance Constraint",
         "nodeInfo": "在 Forge 動力學模擬中將形狀約束至其原始位置。",
         "attributes": {
           "restLength": "靜止長度",
@@ -8471,7 +8471,7 @@
       },
       {
         "nodeType": "directionField",
-        "niceName": "方向場",
+        "niceName": "Direction Field",
         "nodeInfo": "在 Forge 動力學模擬中建立方向力以推動形狀。",
         "attributes": {
           "directionalForce": "方向",
@@ -8481,12 +8481,12 @@
       {
         "nodeType": "attractorField",
         "nodeInfo": "與 Forge 動力學模擬搭配使用，將形狀移向或遠離目標。",
-        "niceName": "吸引場"
+        "niceName": "Attractor Field"
       },
       {
         "nodeType": "vortexField",
         "nodeInfo": "對形狀施加繞中心點的螺旋/旋轉力。",
-        "niceName": "渦旋場",
+        "niceName": "Vortex Field",
         "attributes": {
           "radius": [
             "半徑",
@@ -8533,7 +8533,7 @@
       {
         "nodeType": "buoyancyField",
         "nodeInfo": "建立流體容器，動態物體將根據其密度浮起或下沉。",
-        "niceName": "浮力場",
+        "niceName": "Buoyancy Field",
         "attributes": {
           "size": [
             "大小",
@@ -8588,7 +8588,7 @@
       {
         "nodeType": "pathField",
         "nodeInfo": "對形狀套用路徑跟隨力。",
-        "niceName": "路徑場",
+        "niceName": "Path Field",
         "attributes": {
           "pathToFollow": [
             "跟隨路徑",
@@ -8632,7 +8632,7 @@
       },
       {
         "nodeType": "travel",
-        "niceName": "行程",
+        "niceName": "Travel",
         "nodeInfo": "沿路徑中所有輪廓移動起始點（一條路徑可包含多個輪廓）。",
         "attributes": {
           "mode": "行程"
@@ -8640,7 +8640,7 @@
       },
       {
         "nodeType": "reversePathUtility",
-        "niceName": "反轉路徑",
+        "niceName": "Reverse Path",
         "nodeInfo": "反轉路徑中輪廓的方向（一條路徑可包含多個輪廓）。",
         "attributes": {
           "mode": "模式"
@@ -8655,7 +8655,7 @@
       },
       {
         "nodeType": "normalizePathUtility",
-        "niceName": "標準化路徑方向",
+        "niceName": "Normalize Path Direction",
         "nodeInfo": "設定路徑外部輪廓的方向，並在需要時反轉其內部輪廓。",
         "attributes": {
           "mode": "外輪廓",
@@ -8671,7 +8671,7 @@
       },
       {
         "nodeType": "removeContoursUtility",
-        "niceName": "移除輪廓",
+        "niceName": "Remove Contours",
         "nodeInfo": "根據方向從路徑中移除輪廓。",
         "attributes": {
           "removeClockwise": "移除順時針",
@@ -8680,7 +8680,7 @@
       },
       {
         "nodeType": "assetFromSmartFolder",
-        "niceName": "智慧資料夾素材",
+        "niceName": "Asset From Smart Folder",
         "nodeInfo": "參考智慧資料夾中包含的素材（圖片、影片、音訊等）。",
         "attributes": {
           "file": "智慧型資料夾素材",
@@ -8700,7 +8700,7 @@
       },
       {
         "nodeType": "thresholdFilter",
-        "niceName": "閾值",
+        "niceName": "Threshold",
         "nodeInfo": "將圖層轉換為高對比的黑白表現。",
         "attributes": {
           "threshold": "閾值",
@@ -8740,7 +8740,7 @@
       },
       {
         "nodeType": "posterizeFilter",
-        "niceName": "色調分離",
+        "niceName": "Posterize",
         "nodeInfo": "降低圖層的色彩變化以建立低色深外觀。",
         "attributes": {
           "levels": "色階",
@@ -8771,7 +8771,7 @@
       },
       {
         "nodeType": "edgeDetection",
-        "niceName": "邊緣檢測",
+        "niceName": "Edge Detection",
         "nodeInfo": "將圖片中顏色的邊界轉換為線條。",
         "attributes": {
           "blendMode": "混合模式",
@@ -8823,7 +8823,7 @@
       },
       {
         "nodeType": "vignetteFilter",
-        "niceName": "暗角",
+        "niceName": "Vignette",
         "nodeInfo": "模擬透過某些類型鏡頭觀看圖片時的光線衰減特性。",
         "attributes": {
           "blendMode": "混合模式",
@@ -8866,7 +8866,7 @@
       },
       {
         "nodeType": "hsvAdjustmentFilter",
-        "niceName": "HSV 調整",
+        "niceName": "HSV Adjustment",
         "nodeInfo": "調整色相、飽和度與明度。",
         "attributes": {
           "levels": "色階",
@@ -8903,7 +8903,7 @@
       },
       {
         "nodeType": "sharpenFilter",
-        "niceName": "銳化",
+        "niceName": "Sharpen",
         "nodeInfo": "增加邊緣像素之間的對比度，使其呈現更銳利的外觀。",
         "attributes": {
           "intensity": "強度",
@@ -8935,7 +8935,7 @@
       },
       {
         "nodeType": "grainFilter",
-        "niceName": "顆粒",
+        "niceName": "Grain",
         "nodeInfo": "新增細微顆粒以模擬底片的視覺效果。",
         "attributes": {
           "amount": "強度",
@@ -8971,7 +8971,7 @@
       },
       {
         "nodeType": "motionBlurFilter",
-        "niceName": "動態模糊",
+        "niceName": "Motion Blur",
         "nodeInfo": "根據速度的方向和大小套用線性模糊",
         "attributes": {
           "strength": "強度",
@@ -9005,7 +9005,7 @@
       },
       {
         "nodeType": "scrapeFilter",
-        "niceName": "刮擦",
+        "niceName": "Scrape",
         "nodeInfo": "從一條線延伸像素以建立塗抹效果。",
         "attributes": {
           "offset": "偏移",
@@ -9041,7 +9041,7 @@
       },
       {
         "nodeType": "slitScanFilter",
-        "niceName": "狹縫掃描",
+        "niceName": "Slit Scan",
         "nodeInfo": "建立動態穿越效果。",
         "attributes": {
           "offset": "偏移",
@@ -9100,7 +9100,7 @@
       },
       {
         "nodeType": "voronoiShader",
-        "niceName": "Voronoi 著色器",
+        "niceName": "Voronoi Shader",
         "nodeInfo": "透過計算點格之間的距離產生細胞圖案。",
         "attributes": {
           "offset": "偏移",
@@ -9145,7 +9145,7 @@
       },
       {
         "nodeType": "glowFilter",
-        "niceName": "輝光",
+        "niceName": "Glow",
         "nodeInfo": "為形狀新增發光效果，並可個別控制 RGB 通道。",
         "attributes": {
           "blur": "輝光半徑",
@@ -9205,7 +9205,7 @@
       },
       {
         "nodeType": "shiftChannels",
-        "niceName": "位移通道",
+        "niceName": "Shift Channels",
         "nodeInfo": "以其他通道的值取代紅色、綠色、藍色和 Alpha 通道。",
         "attributes": {
           "aSource": "Alpha",
@@ -9254,7 +9254,7 @@
       },
       {
         "nodeType": "blackAndWhite",
-        "niceName": "黑白",
+        "niceName": "Black and White",
         "nodeInfo": "將圖層轉換為黑白。",
         "attributes": {
           "red": "紅色調",
@@ -9267,7 +9267,7 @@
       },
       {
         "nodeType": "brightnessAndContrast",
-        "niceName": "亮度與對比",
+        "niceName": "Brightness And Contrast",
         "nodeInfo": "調整圖層的亮度與對比。",
         "attributes": {
           "brightness": "亮度",
@@ -9277,7 +9277,7 @@
       {
         "nodeType": "cornerPinShape",
         "nodeInfo": "變形形狀以建立 3D 透視的錯覺。",
-        "niceName": "邊角固定",
+        "niceName": "Corner Pin",
         "attributes": {
           "topLeft": "左上",
           "topRight": "右上",
@@ -9294,7 +9294,7 @@
       {
         "nodeType": "extrude",
         "nodeInfo": "擠出形狀以呈現深度效果。",
-        "niceName": "擠出",
+        "niceName": "Extrude",
         "attributes": {
           "inputShapes": "輸入形狀",
           "extrudeDistance": "擠出距離",
@@ -9318,7 +9318,7 @@
       {
         "nodeType": "extractSubMeshes",
         "nodeInfo": "從形狀中擷取特定的子網格。",
-        "niceName": "提取子網格",
+        "niceName": "Extract Sub-Meshes",
         "attributes": {
           "inputShape": "輸入形狀",
           "ignoreEmptySubMeshes": "忽略空子網格",
@@ -9339,7 +9339,7 @@
       {
         "nodeType": "getSubMeshTransform",
         "nodeInfo": "使用此功能取得子網格中任何形狀的變換（位置、旋轉、縮放）。",
-        "niceName": "取得子網格變換",
+        "niceName": "Get Sub-Mesh Transform",
         "attributes": {
           "inputShape": "輸入形狀",
           "index": "子網格索引",
@@ -9362,7 +9362,7 @@
       {
         "nodeType": "intersectionDistribution",
         "nodeInfo": "在路徑交叉處分佈點。",
-        "niceName": "交叉點",
+        "niceName": "Intersections",
         "attributes": {
           "inputShapes": "相交形狀"
         }
@@ -9370,7 +9370,7 @@
       {
         "nodeType": "accumulator",
         "nodeInfo": "建立形狀的「堆疊」或自訂佈局。",
-        "niceName": "累加器",
+        "niceName": "Accumulator",
         "attributes": {
           "value": [
             "值",
@@ -9389,7 +9389,7 @@
       {
         "nodeType": "imageSampler",
         "nodeInfo": "從圖片素材中取樣色彩值並用於驅動其他屬性。",
-        "niceName": "圖片取樣器",
+        "niceName": "Image Sampler",
         "attributes": {
           "strength": "強度",
           "invert": "反轉值",
@@ -9433,7 +9433,7 @@
       },
       {
         "nodeType": "toonOutlines",
-        "niceName": "卡通筆畫",
+        "niceName": "Toon Stroke",
         "nodeInfo": "在形狀周圍建立多重筆畫。",
         "attributes": {},
         "tabs": {
@@ -9444,7 +9444,7 @@
       {
         "nodeType": "javaScript",
         "nodeInfo": "使用 JavaScript 設定屬性、建立自訂模擬、分佈等。",
-        "niceName": "JavaScript 工具",
+        "niceName": "JavaScript Utility",
         "attributes": {},
         "presets": {
           "fahrenheitToCelcius": "Fahrenheit To Celsius"
@@ -9452,7 +9452,7 @@
       },
       {
         "nodeType": "javaScriptShape",
-        "niceName": "JavaScript形狀",
+        "niceName": "JavaScript Shape",
         "nodeInfo": "使用 JavaScript 建立形狀。",
         "attributes": {
           "generator": "運算式"
@@ -9463,7 +9463,7 @@
       },
       {
         "nodeType": "javaScriptModifier",
-        "niceName": "JavaScript 修改器",
+        "niceName": "JavaScript Modifier",
         "nodeInfo": "使用 JavaScript 控制或影響粒子。",
         "attributes": {
           "expression": "運算式",
@@ -9472,7 +9472,7 @@
       },
       {
         "nodeType": "javaScriptEmitter",
-        "niceName": "JavaScript 發射器",
+        "niceName": "JavaScript Emitter",
         "nodeInfo": "使用 JavaScript 建立自訂粒子發射器。",
         "attributes": {
           "expression": "運算式",
@@ -9482,7 +9482,7 @@
       },
       {
         "nodeType": "javaScriptDeformer",
-        "niceName": "JavaScript變形器",
+        "niceName": "JavaScript Deformer",
         "nodeInfo": "使用 JavaScript 變形形狀。"
       },
       {
@@ -9511,7 +9511,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "timeMarker",
-      "niceName": "時間標記",
+      "niceName": "Time Marker",
       "attributes": {
         "label": "標籤",
         "drawColorId": "顏色",
@@ -9557,7 +9557,7 @@
     "value": {
       "nodeType": "schedulingGroup",
       "nodeInfo": "按程式在時間上定位子圖層。",
-      "niceName": "排程群組",
+      "niceName": "Scheduling Group",
       "attributes": {
         "childOffset": [
           "子級偏移"
@@ -9603,7 +9603,7 @@
     "value": {
       "nodeType": "knot",
       "nodeInfo": "在輪廓自相交處為路徑新增缺口。",
-      "niceName": "結點",
+      "niceName": "Knot",
       "attributes": {
         "mode": [
           "模式"
@@ -9627,7 +9627,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "skeleton",
-      "niceName": "骨骼",
+      "niceName": "Skeleton",
       "nodeInfo": "建立帶有 IK 控制的骨骼用於角色綁定/動畫。",
       "attributes": {
         "bones": "骨骼層級",
@@ -9641,7 +9641,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "bone",
-      "niceName": "骨骼",
+      "niceName": "Bone",
       "attributes": {
         "rotationRestPose": "旋轉靜止姿態",
         "lengthRestPose": "長度靜止姿態",
@@ -9653,7 +9653,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "inverseKinematicsControl",
-      "niceName": "IK 控制",
+      "niceName": "IK Control",
       "attributes": {
         "chainLength": "鏈長度",
         "stretch": "拉伸",
@@ -9672,7 +9672,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "skinning",
-      "niceName": "蒙皮",
+      "niceName": "Skinning",
       "nodeInfo": "將形狀綁定到骨骼。",
       "attributes": {
         "skeleton": "骨骼",
@@ -9685,7 +9685,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "timelineCounter",
-      "niceName": "時間軸計數器",
+      "niceName": "Timeline Counter",
       "nodeInfo": "使用時間標記、BPM 或秒來隨時間累積或觸發值。",
       "attributes": {
         "out": "數量",
@@ -9715,7 +9715,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "contrastingColor",
-      "niceName": "對比色",
+      "niceName": "Contrasting Color",
       "nodeInfo": "使用此工具根據輸入顏色和對比度提供不同的輸出顏色。",
       "attributes": {
         "inColor": "著色",
@@ -9740,7 +9740,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "wave",
-      "niceName": "波浪",
+      "niceName": "Wave",
       "nodeInfo": "將正弦、鋸齒和方波等波形效果套用到形狀。",
       "attributes": {
         "mode": "模式",
@@ -9770,7 +9770,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "autoAnimate",
-      "niceName": "自動動畫",
+      "niceName": "Auto-Animate",
       "nodeInfo": "僅用少量關鍵幀為形狀新增多種動畫。",
       "attributes": {
         "progressMode": [
@@ -9927,7 +9927,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pieChart",
-      "niceName": "餅圖",
+      "niceName": "Pie Chart",
       "attributes": {
         "file": "試算表",
         "column": "列",
@@ -9957,7 +9957,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "barChart",
-      "niceName": "長條圖",
+      "niceName": "Bar Chart",
       "attributes": {
         "file": "試算表",
         "xAxisColumn": "X 軸",
@@ -9984,7 +9984,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "mergeShape",
-      "niceName": "合併",
+      "niceName": "Merge",
       "nodeInfo": "從包含開放路徑的兩個形狀建立包含封閉路徑的形狀。",
       "attributes": {
         "firstInputShape": "第一形狀",
@@ -9998,7 +9998,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "stitches",
-      "niceName": "縫線",
+      "niceName": "Stitches",
       "nodeInfo": "用針線效果填充封閉路徑。",
       "attributes": {
         "distance": [
@@ -10022,7 +10022,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "strokeDuplicator",
-      "niceName": "描邊複製器",
+      "niceName": "Stroke Duplicator",
       "nodeInfo": "建立複雜的描邊組合。",
       "attributes": {
         "strokeCount": [
@@ -10036,7 +10036,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "isolinesShape",
-      "niceName": "等高線",
+      "niceName": "Isolines",
       "nodeInfo": "將影像或形狀圖層轉換為輪廓。",
       "attributes": {
         "inputShape": [
@@ -10076,7 +10076,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "luminanceBlur",
-      "niceName": "亮度模糊",
+      "niceName": "Luminance Blur",
       "nodeInfo": "根據另一個圖層的亮度值模糊一個圖層。",
       "attributes": {
         "maxBlurAmount": [
@@ -10112,7 +10112,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathRelax",
-      "niceName": "路徑鬆弛",
+      "niceName": "Path Relax",
       "nodeInfo": "將路徑點相互推開。",
       "attributes": {
         "iterations": [
@@ -10134,7 +10134,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathAverage",
-      "niceName": "路徑平均",
+      "niceName": "Path Average",
       "nodeInfo": "透過平均位置來平滑路徑點。",
       "attributes": {
         "iterations": [
@@ -10152,7 +10152,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pointDisplace",
-      "niceName": "點置換器",
+      "niceName": "Point Displacer",
       "nodeInfo": "沿法線或自訂角度置換點。",
       "attributes": {
         "displacement": [
@@ -10181,7 +10181,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathSplit",
-      "niceName": "路徑分裂",
+      "niceName": "Path Split",
       "nodeInfo": "透過從現有路徑尖端生成新的路徑子網格來建立分支結構。使用迭代模式建立靜態碎形，或使用幀模式建立動畫生長。",
       "attributes": {
         "mode": [
@@ -10280,7 +10280,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "meshSolver",
-      "niceName": "網格求解器",
+      "niceName": "Mesh Solver",
       "nodeInfo": "連接變形器以建立繪圖機器或差異生長等迭代效果。",
       "attributes": {
         "time": "時間",

@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "bulgeFilter",
-      "niceName": "バルジ",
+      "niceName": "Bulge",
       "layerInfo": "シェイプを球面にマッピングして歪ませ、膨張またはピンチ効果を作成します。",
       "language": "ja_JP",
       "attributes": {

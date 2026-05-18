@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "grainFilter",
-      "niceName": "グレイン",
+      "niceName": "Grain",
       "layerInfo": "画像にグレインを追加してフィルムの質感をエミュレートします",
       "language": "ja_JP",
       "attributes": {

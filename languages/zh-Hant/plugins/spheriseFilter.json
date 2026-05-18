@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "spheriseFilter",
-      "niceName": "球面化",
+      "niceName": "Spherise",
       "layerInfo": "將輸入形狀映射到可旋轉的球體上。",
       "language": "zh-Hant",
       "attributes": {

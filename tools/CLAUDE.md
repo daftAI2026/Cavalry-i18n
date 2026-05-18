@@ -31,7 +31,7 @@ validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 sou
 forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。
 forbidden_translation_patterns.js: Node 共享 forbidden-pattern detector，供 runtime/full-ui gate 与契约测试复用 FP-1/2/3/4/5/7/8/9/10/11。
 forbidden_translation_patterns.json: §P5 detector 配置，集中声明正则、source/context denylist、latin residue、transliteration 与 pangram 规则。
-translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、FP-10/11/12 whitelist 契约与 G-X denominator filter，含颜色名与 Unicode script 交集剔除 provenance。
+translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、模型 niceName 英文保留、FP-10/11/12 whitelist 契约与 G-X denominator filter，含颜色名与 Unicode script 交集剔除 provenance。
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
@@ -54,6 +54,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-17: `runtime_ui_allowlist.json` 扩展 regex/stripRegex 过滤，剔除快捷键、HTML 标签、颜色样本与 AX chrome 噪声，让 live coverage 聚焦真实残留。
 2026-05-17: `check_app_contracts.js` 增加 ExtensionLayer 自绘字面量补丁 contract，要求 injector 通过 dyld/Mach-O `__cstring` copy-on-write 命中 Qt 属性抓不到的空状态与视口提示。
 2026-05-18: `check_app_contracts.js` 将 ExtensionLayer 合同改为自绘层保持英文，防止 Latin-only overlay renderer 把 CJK glyph 显示为 `?`，并要求 compact sentinel 在 `strcmp` 前被跳过。
-2026-05-18: `check_app_contracts.js` 增加 Time Editor 词汇隔离合同，要求 layer/tool/niceName 词汇跳过全局 `QTranslator`，只在支持 CJK 的 Qt widget 后处理通道翻译。
+2026-05-18: `check_app_contracts.js` 增加 Time Editor niceName 合同，要求 node/plugin 模型 niceName 与英文基线一致，并要求 injector 在 item `setText()` 前跳过这些模型词汇。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

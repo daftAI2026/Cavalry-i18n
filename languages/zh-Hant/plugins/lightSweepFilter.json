@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "lightSweepFilter",
-      "niceName": "掃光",
+      "niceName": "Light Sweep",
       "layerInfo": "模擬光源在圖層上移動的效果。",
       "language": "zh-Hant",
       "attributes": {

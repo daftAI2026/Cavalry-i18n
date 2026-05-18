@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "directionalBlurFilter",
-      "niceName": "方向ぼかし",
+      "niceName": "Directional Blur",
       "layerInfo": "軸に沿ってシェイプをぼかし、ストリーク効果やモーションブラーをシミュレートします。",
       "language": "ja_JP",
       "attributes": {

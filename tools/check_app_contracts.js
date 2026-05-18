@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui 与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName 与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -425,34 +425,88 @@ test('embedded injector translates widget-owned actions and container item label
   );
 });
 
-test('embedded translator keeps timeline layer vocabulary out of the global Qt translator', () => {
+test('model-backed niceName text stays English for Time Editor and item-model reuse', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
+  const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
+
+  for (const surface of ['nodeStrings', 'plugins']) {
+    assert(!whitelist[surface].translate.includes('niceName'), `${surface}.niceName should not be translated`);
+    assert(whitelist[surface].no_translate.includes('niceName'), `${surface}.niceName should stay English`);
+  }
 
   assert.match(
     injectorSource,
-    /isTimelineUnsafeSourceText/,
-    'global QTranslator should skip layer and tool vocabulary that Time Editor later paints with a Latin-only renderer'
+    /shouldPreserveModelBackedItemText/,
+    'injector should guard model-backed item text at the QWidgetItem mutation boundary'
   );
-  for (const source of ['Basic Line', 'Particle Emitter', 'Forge Dynamics', 'Duplicator']) {
+  const preserveFunction = injectorSource.match(
+    /bool shouldPreserveModelBackedItemText\(const QString &sourceText\)[\s\S]*?\n}\n\nclass EmbeddedTranslator/
+  )[0];
+  for (const source of ['Basic Line', 'Particle Emitter', 'Forge Dynamics', 'Duplicator', 'Rig Control']) {
     assert.match(
-      injectorSource,
+      preserveFunction,
       new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-      `timeline unsafe vocabulary should cover ${source}, not only one screenshot example`
+      `model-backed preservation vocabulary should cover ${source}, not only one screenshot example`
     );
   }
   assert.match(
-    injectorSource,
-    /translate\([\s\S]{0,900}isTimelineUnsafeSourceText[\s\S]{0,80}sourceText[\s\S]{0,120}return QString\(\)/,
-    'EmbeddedTranslator::translate should leave unsafe source text in English before it can enter Cavalry model data'
+    preserveFunction,
+    /\\s\+\[0-9\]\+\$/,
+    'model-backed preservation should normalize Cavalry auto-suffixed names like Basic Line 2'
   );
   assert.match(
     injectorSource,
-    /lookupEmbeddedTranslation[\s\S]*gTranslationBySource/,
-    'post-hoc Qt widget translation should still be able to translate the same English labels on supported Qt surfaces'
+    /translateListWidgetItems[\s\S]{0,650}const QString source = item->text\(\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(source\)[\s\S]{0,120}continue;/,
+    'QListWidgetItem text must be skipped before translatedWidgetText can write it back with setText'
   );
+  assert.match(
+    injectorSource,
+    /translateTreeWidgetItem[\s\S]{0,650}const QString source = item->text\(column\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(source\)[\s\S]{0,120}continue;/,
+    'QTreeWidgetItem text must be skipped before translatedWidgetText can write it back with setText'
+  );
+  assert.doesNotMatch(
+    injectorSource,
+    /EmbeddedTranslator[\s\S]{0,1200}isTimelineUnsafeSourceText/,
+    'global QTranslator should not own Time Editor preservation; the bug is item-model mutation, not lookup alone'
+  );
+
+  const compareNiceNames = (englishValue, localizedValue, label) => {
+    if (Array.isArray(englishValue)) {
+      assert(Array.isArray(localizedValue), `${label} should keep array shape`);
+      assert.equal(localizedValue.length, englishValue.length, `${label} should keep array length`);
+      englishValue.forEach((item, index) => compareNiceNames(item, localizedValue[index], `${label}[${index}]`));
+      return;
+    }
+    if (englishValue && typeof englishValue === 'object') {
+      assert(localizedValue && typeof localizedValue === 'object', `${label} should keep object shape`);
+      for (const key of Object.keys(englishValue)) {
+        if (key === 'niceName') {
+          assert.deepEqual(localizedValue[key], englishValue[key], `${label}.niceName should stay English`);
+        }
+        compareNiceNames(englishValue[key], localizedValue[key], `${label}.${key}`);
+      }
+    }
+  };
+
+  for (const language of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    compareNiceNames(
+      readJson(path.join(repoRoot, 'languages', 'en', 'nodeStrings.json')),
+      readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json')),
+      `${language}/nodeStrings.json`
+    );
+
+    const pluginDir = path.join(repoRoot, 'languages', 'en', 'plugins');
+    for (const file of fs.readdirSync(pluginDir).filter((candidate) => candidate.endsWith('.json'))) {
+      compareNiceNames(
+        readJson(path.join(pluginDir, file)),
+        readJson(path.join(repoRoot, 'languages', language, 'plugins', file)),
+        `${language}/plugins/${file}`
+      );
+    }
+  }
 });
 
 test('embedded injector handles runtime Qt events with dirty-object local translation only', () => {
@@ -2547,7 +2601,7 @@ test('ja_JP TS header is not mixed with Chinese wording', () => {
   assert.doesNotMatch(header, /对外提供|依赖|菜单文本|编译期|翻译目录/);
 });
 
-test('add-layer runtime labels cover short translated tags and unnamed JSON nodes', () => {
+test('add-layer runtime labels cover short translated tags while model niceNames stay English', () => {
   const requiredTsEntries = {
     'zh-Hans': {
       'Background Shape': '背景形状',
@@ -2579,9 +2633,9 @@ test('add-layer runtime labels cover short translated tags and unnamed JSON node
 
   const expectedLatticeNames = {
     en: 'Lattice',
-    'zh-Hans': '晶格',
-    'zh-Hant': '晶格',
-    ja_JP: 'ラティス',
+    'zh-Hans': 'Lattice',
+    'zh-Hant': 'Lattice',
+    ja_JP: 'Lattice',
   };
 
   for (const [language, expectedName] of Object.entries(expectedLatticeNames)) {

@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "boxBlurFilter",
-      "niceName": "盒式模糊",
+      "niceName": "Box Blur",
       "layerInfo": "为形状和着色器添加快速方框模糊。",
       "language": "zh-Hans",
       "attributes": {

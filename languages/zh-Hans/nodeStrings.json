@@ -3,7 +3,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "element",
-      "niceName": "元素",
+      "niceName": "Element",
       "attributes": {
         "hidden": "隐藏",
         "frozen": [
@@ -19,7 +19,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "atomic",
-      "niceName": "原子",
+      "niceName": "Atomic",
       "attributes": {}
     }
   },
@@ -28,7 +28,7 @@
     "value": {
       "nodeType": "group",
       "nodeInfo": "将图层收集到文件夹中以进行整理和/或创建公共变换。",
-      "niceName": "分组",
+      "niceName": "Group",
       "attributes": {
         "groupMode": [
           "混合和不透明度模式",
@@ -47,7 +47,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "behaviourBase",
-      "niceName": "行为基础",
+      "niceName": "Behaviour Base",
       "attributes": {}
     }
   },
@@ -55,7 +55,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "transform",
-      "niceName": "变换",
+      "niceName": "Transform",
       "attributes": {
         "position": [
           "位置",
@@ -92,7 +92,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "drawable",
-      "niceName": "可绘制对象",
+      "niceName": "Drawable",
       "attributes": {
         "polyMesh": "多边形网格",
         "on": "开启",
@@ -136,7 +136,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "shape",
-      "niceName": "形状",
+      "niceName": "Shape",
       "nodeInfo": "可以在视口中绘制的多边形对象",
       "attributes": {
         "deformers": [
@@ -300,7 +300,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "behaviour",
-      "niceName": "行为",
+      "niceName": "Behaviour",
       "attributes": {
         "falloffs": [
           "衰减",
@@ -350,7 +350,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "compNode",
-      "niceName": "合成",
+      "niceName": "Composition",
       "attributes": {
         "resolution": "分辨率",
         "startFrame": "帧范围",
@@ -503,8 +503,8 @@
           "动画应重映射到的帧率。这将覆盖合成设置中设置的帧率。"
         ],
         "niceName": [
-          "控制中心按钮名称",
-          "这是此项目在 Cavalry 控制面板中的按钮名称。"
+          "Control Centre Button Name",
+          "This is the name given to the button for this item in Cavalry Control."
         ]
       },
       "enums": {
@@ -551,7 +551,7 @@
     "value": {
       "nodeType": "renderPNG",
       "nodeInfo": "生成 PNG 图像文件。",
-      "niceName": "PNG 序列",
+      "niceName": "PNG Sequence",
       "attributes": {
         "compression": "压缩",
         "pngFilter": "PNG 滤镜",
@@ -575,7 +575,7 @@
     "value": {
       "nodeType": "renderSpriteSheet",
       "nodeInfo": "生成精灵表图像。",
-      "niceName": "精灵图",
+      "niceName": "Sprite Sheet",
       "attributes": {
         "compression": "压缩",
         "pngFilter": "PNG 滤镜",
@@ -597,7 +597,7 @@
     "value": {
       "nodeType": "renderJPEG",
       "nodeInfo": "生成 JPEG 图像文件。",
-      "niceName": "JPEG 序列",
+      "niceName": "JPEG Sequence",
       "attributes": {
         "quality": "质量"
       }
@@ -608,7 +608,7 @@
     "value": {
       "nodeType": "renderWebP",
       "nodeInfo": "生成 WebP 图像文件。",
-      "niceName": "WebP 序列",
+      "niceName": "WebP Sequence",
       "attributes": {
         "quality": "质量"
       }
@@ -813,7 +813,7 @@
     "value": {
       "nodeType": "renderAudioOnly",
       "nodeInfo": "生成音频文件。",
-      "niceName": "仅音频",
+      "niceName": "Audio Only",
       "attributes": {
         "format": "容器",
         "bitDepth": "位深度"
@@ -906,7 +906,7 @@
     "value": {
       "nodeType": "renderSVG",
       "nodeInfo": "生成 SVG 文件。",
-      "niceName": "SVG 序列",
+      "niceName": "SVG Sequence",
       "attributes": {
         "includeBackground": "包含背景"
       }
@@ -917,7 +917,7 @@
     "value": {
       "nodeType": "planarCamera",
       "nodeInfo": "在 2.5D 视口中组合和查看形状。",
-      "niceName": "相机",
+      "niceName": "Camera",
       "attributes": {
         "cameraType": "类型",
         "position": "位置",
@@ -952,7 +952,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "compositionReference",
-      "niceName": "预合成",
+      "niceName": "Pre-Comp",
       "nodeInfo": "预合成是一个被引用的合成。",
       "attributes": {
         "composition": "合成",
@@ -1073,7 +1073,7 @@
     "values": [
       {
         "nodeType": "lattice",
-        "niceName": "晶格",
+        "niceName": "Lattice",
         "nodeInfo": "使用灵活的控制点网格来变形形状。",
         "attributes": {
           "gridCount": [
@@ -1110,7 +1110,7 @@
       {
         "nodeType": "latticeController",
         "nodeInfo": "使用位置、旋转和缩放操作多个网格点。",
-        "niceName": "晶格控制器",
+        "niceName": "Lattice Controller",
         "attributes": {
           "bind": [
             "绑定",
@@ -1282,7 +1282,7 @@
       {
         "nodeType": "simplexNoise",
         "nodeInfo": "生成单纯形噪波图案。",
-        "niceName": "单纯形噪波",
+        "niceName": "Simplex Noise",
         "attributes": {
           "octaves": "八度",
           "lacunarity": "空隙度",
@@ -1294,7 +1294,7 @@
       {
         "nodeType": "valueNoise",
         "nodeInfo": "生成值噪波图案。",
-        "niceName": "值噪波",
+        "niceName": "Value Noise",
         "attributes": {
           "octaves": "八度",
           "lacunarity": "空隙度",
@@ -1306,7 +1306,7 @@
       {
         "nodeType": "cubicNoise",
         "nodeInfo": "生成立方噪波图案。",
-        "niceName": "立方噪波",
+        "niceName": "Cubic Noise",
         "attributes": {
           "octaves": "八度",
           "lacunarity": "空隙度",
@@ -1318,7 +1318,7 @@
       {
         "nodeType": "cellularNoise",
         "nodeInfo": "生成细胞噪波图案。",
-        "niceName": "细胞噪波",
+        "niceName": "Cellular Noise",
         "attributes": {
           "octaves": "八度",
           "lacunarity": "空隙度",
@@ -1577,7 +1577,7 @@
       },
       {
         "nodeType": "math2",
-        "niceName": "二维数学运算",
+        "niceName": "Math2",
         "nodeInfo": "对二维数值（如 X,Y ）执行简单的数学运算。",
         "attributes": {
           "first": "第一个",
@@ -1595,7 +1595,7 @@
       },
       {
         "nodeType": "math3",
-        "niceName": "三维数学运算",
+        "niceName": "Math3",
         "nodeInfo": "对三维数值（如 X,Y,Z ）执行简单的数学运算。",
         "attributes": {
           "first": "第一个",
@@ -1612,7 +1612,7 @@
       },
       {
         "nodeType": "value2Array",
-        "niceName": "二维数值数组",
+        "niceName": "Value2 Array",
         "nodeInfo": "创建二维数值（ X,Y ）列表，可通过索引分配给其他图层。",
         "attributes": {
           "array": "值",
@@ -1621,7 +1621,7 @@
       },
       {
         "nodeType": "value3Array",
-        "niceName": "三维数值数组",
+        "niceName": "Value3 Array",
         "nodeInfo": "创建三维数值（ X,Y,Z ）列表，可通过索引分配给其他图层。",
         "attributes": {
           "array": "值",
@@ -1810,7 +1810,7 @@
       },
       {
         "nodeType": "areaRange",
-        "niceName": "区域范围",
+        "niceName": "Area Range",
         "nodeInfo": "将数值映射到产生等比例面积的宽度和高度。",
         "attributes": {
           "area": "值",
@@ -1821,7 +1821,7 @@
       },
       {
         "nodeType": "areaRangeBase",
-        "niceName": "区域范围",
+        "niceName": "Area Range",
         "nodeInfo": "将数值映射到产生等比例面积的宽度和高度。",
         "attributes": {
           "maxArea": "最大值",
@@ -1992,7 +1992,7 @@
       },
       {
         "nodeType": "squashAndStretch",
-        "niceName": "挤压与拉伸",
+        "niceName": "Squash and Stretch",
         "nodeInfo": "挤压和拉伸形状，可选择添加膨胀。",
         "attributes": {
           "amount": "数量",
@@ -2055,7 +2055,7 @@
       },
       {
         "nodeType": "materialBehaviourColor",
-        "niceName": "颜色材质覆盖",
+        "niceName": "Color Material Override",
         "nodeInfo": "覆盖子网格中的颜色。",
         "attributes": {
           "materialColor": "颜色"
@@ -2063,7 +2063,7 @@
       },
       {
         "nodeType": "materialBehaviourAlpha",
-        "niceName": "Alpha材质覆盖",
+        "niceName": "Alpha Material Override",
         "nodeInfo": "覆盖子网格中的透明度。",
         "attributes": {
           "alpha": "Alpha"
@@ -2072,7 +2072,7 @@
       {
         "nodeType": "materialBehaviourHSV",
         "nodeInfo": "覆盖子网格内形状的色相、饱和度和明度。",
-        "niceName": "HSV材质覆盖",
+        "niceName": "HSV Material Override",
         "attributes": {
           "adjustHue": "色相",
           "adjustSaturation": "饱和度",
@@ -2082,7 +2082,7 @@
       {
         "nodeType": "applyDistribution",
         "nodeInfo": "将分布应用于形状上的子网格。",
-        "niceName": "应用分布",
+        "niceName": "Apply Distribution",
         "attributes": {
           "distribution": [
             "分布",
@@ -2105,7 +2105,7 @@
       {
         "nodeType": "countSubMeshes",
         "nodeInfo": "计算给定层级的子网格数量。",
-        "niceName": "子网格计数",
+        "niceName": "Count Sub-Meshes",
         "attributes": {
           "levelMode": "层级模式",
           "level": "自定义层级",
@@ -2124,7 +2124,7 @@
       {
         "nodeType": "applyLayout",
         "nodeInfo": "以类似布局组的方式在子网格内堆叠形状。",
-        "niceName": "应用布局",
+        "niceName": "Apply Layout",
         "attributes": {
           "layout": [
             "布局",
@@ -2142,7 +2142,7 @@
       {
         "nodeType": "chopPath",
         "nodeInfo": "使用矩形将路径切割成块。",
-        "niceName": "分割路径",
+        "niceName": "Chop Path",
         "attributes": {
           "count": [
             "数量",
@@ -2175,7 +2175,7 @@
       {
         "nodeType": "subMesh",
         "nodeInfo": "访问形状中的子网格以应用变换、材质等。",
-        "niceName": "子网格",
+        "niceName": "Sub-Mesh",
         "attributes": {
           "shapePosition": "位置",
           "shapeScale": "缩放",
@@ -2297,7 +2297,7 @@
       {
         "nodeType": "colorMaterial",
         "nodeInfo": "添加可同时用于多个形状的填充材质。",
-        "niceName": "填充",
+        "niceName": "Fill",
         "attributes": {
           "materialColor": "颜色",
           "colorShaders": "着色器",
@@ -2306,7 +2306,7 @@
       },
       {
         "nodeType": "strokeMaterial",
-        "niceName": "描边",
+        "niceName": "Stroke",
         "nodeInfo": "添加可同时用于多个形状的描边材质。",
         "attributes": {
           "strokeColor": "颜色",
@@ -2413,7 +2413,7 @@
       },
       {
         "nodeType": "value2",
-        "niceName": "二维数值",
+        "niceName": "Value2",
         "nodeInfo": "存储并操作二维数值（如 X,Y ）。",
         "attributes": {
           "value": "值",
@@ -2423,7 +2423,7 @@
       },
       {
         "nodeType": "value3",
-        "niceName": "三维数值",
+        "niceName": "Value3",
         "nodeInfo": "存储并操作三维数值（如 X,Y,Z ）。",
         "attributes": {
           "value": "值",
@@ -2433,7 +2433,7 @@
       },
       {
         "nodeType": "align",
-        "niceName": "对齐",
+        "niceName": "Align",
         "nodeInfo": "沿边界框的边缘动态定位形状的枢轴点。",
         "attributes": {
           "x": "X",
@@ -2442,7 +2442,7 @@
       },
       {
         "nodeType": "autoCrop",
-        "niceName": "自动裁剪",
+        "niceName": "Auto-Crop",
         "nodeInfo": "根据边界框轻松裁剪形状。",
         "attributes": {
           "alignX": "水平对齐",
@@ -2565,7 +2565,7 @@
       },
       {
         "nodeType": "value2Blend",
-        "niceName": "二维数值混合",
+        "niceName": "Value2 Blend",
         "nodeInfo": "在二维数值（如 X,Y ）之间进行混合（线性插值）。",
         "attributes": {
           "firstValue": "第一个",
@@ -2574,7 +2574,7 @@
       },
       {
         "nodeType": "value3Blend",
-        "niceName": "三维数值混合",
+        "niceName": "Value3 Blend",
         "nodeInfo": "在三维数值（如 X,Y,Z ）之间进行混合（线性插值）。",
         "attributes": {
           "firstValue": "第一个",
@@ -2662,7 +2662,7 @@
       },
       {
         "nodeType": "blendSubMeshPositions",
-        "niceName": "混合子网格位置",
+        "niceName": "Blend Sub-Mesh Positions",
         "nodeInfo": "在两个形状的子网格位置之间进行混合。",
         "attributes": {
           "blend": "混合",
@@ -2684,7 +2684,7 @@
       },
       {
         "nodeType": "blendSubMeshPositionsLegacy",
-        "niceName": "混合子网格位置",
+        "niceName": "Blend Sub-Mesh Positions",
         "nodeInfo": "旧版图层 - 新的“混合子网格位置”已可用。\n在两个形状的子网格位置之间进行混合。",
         "attributes": {
           "blend": "混合",
@@ -2728,7 +2728,7 @@
       },
       {
         "nodeType": "materialBehaviourSwapColor",
-        "niceName": "交换颜色",
+        "niceName": "Swap Color",
         "nodeInfo": "在子网格上搜索并交换特定颜色。",
         "attributes": {
           "oldColor": "旧颜色",
@@ -2737,7 +2737,7 @@
       },
       {
         "nodeType": "spreadsheetLookup",
-        "niceName": "电子表格查找",
+        "niceName": "Spreadsheet Lookup",
         "nodeInfo": "根据键值在电子表格中查找数据。",
         "attributes": {
           "lookupColumn": "查找列",
@@ -2748,7 +2748,7 @@
       },
       {
         "nodeType": "visibility",
-        "niceName": "可见性序列",
+        "niceName": "Visibility Sequence",
         "nodeInfo": "影响子网格的可见性。",
         "attributes": {
           "start": "开始",
@@ -2766,7 +2766,7 @@
     "values": [
       {
         "nodeType": "shader",
-        "niceName": "着色器",
+        "niceName": "Shader",
         "attributes": {
           "colorFilter": "颜色滤镜",
           "blendMode": "混合模式"
@@ -2816,7 +2816,7 @@
       },
       {
         "nodeType": "gradientMapFilter",
-        "niceName": "渐变映射",
+        "niceName": "Gradient Map",
         "nodeInfo": "基于输入的亮度生成渐变。",
         "attributes": {
           "alpha": "Alpha",
@@ -2872,7 +2872,7 @@
       },
       {
         "nodeType": "checkerboardShader",
-        "niceName": "棋盘格着色器",
+        "niceName": "Checkerboard Shader",
         "nodeInfo": "具有可调图案大小的棋盘格着色器。",
         "attributes": {
           "size": "大小",
@@ -2893,7 +2893,7 @@
       },
       {
         "nodeType": "gradientShader",
-        "niceName": "渐变着色器",
+        "niceName": "Gradient Shader",
         "nodeInfo": "支持线性、径向、扫描和锥形渐变的渐变着色器。",
         "attributes": {
           "screenSpace": "屏幕空间",
@@ -2918,7 +2918,7 @@
       {
         "nodeType": "linearGradientShader",
         "nodeInfo": "为渐变着色器生成线性渐变。",
-        "niceName": "线性渐变",
+        "niceName": "Linear Gradient",
         "attributes": {
           "gradient": "渐变",
           "wrapUVs": "环绕 UV",
@@ -2931,7 +2931,7 @@
       {
         "nodeType": "conicalGradientShaderLegacy",
         "nodeInfo": "旧版图层 - 新的“锥形渐变着色器”已可用。\n为渐变着色器生成锥形渐变。",
-        "niceName": "锥形渐变",
+        "niceName": "Conical Gradient",
         "attributes": {
           "gradient": "渐变",
           "reverseGrad": "反转",
@@ -2955,7 +2955,7 @@
       {
         "nodeType": "conicalGradientShader",
         "nodeInfo": "为渐变着色器生成锥形渐变。",
-        "niceName": "锥形渐变",
+        "niceName": "Conical Gradient",
         "attributes": {
           "gradient": "渐变",
           "wrapUVs": "环绕 UV",
@@ -2973,7 +2973,7 @@
       {
         "nodeType": "shapeGradientShader",
         "nodeInfo": "为渐变着色器生成形状渐变。",
-        "niceName": "形状渐变",
+        "niceName": "Shape Gradient",
         "attributes": {
           "gradient": "渐变",
           "wrapUVs": "环绕 UV",
@@ -2993,7 +2993,7 @@
       {
         "nodeType": "radialGradientShader",
         "nodeInfo": "为渐变着色器生成径向渐变。",
-        "niceName": "径向渐变",
+        "niceName": "Radial Gradient",
         "attributes": {
           "gradient": "渐变",
           "wrapUVs": "环绕 UV",
@@ -3012,7 +3012,7 @@
       {
         "nodeType": "sweepGradientShader",
         "nodeInfo": "为渐变着色器生成扫描渐变。",
-        "niceName": "扫描渐变",
+        "niceName": "Sweep Gradient",
         "attributes": {
           "gradient": "渐变",
           "wrapUVs": "环绕 UV",
@@ -3023,7 +3023,7 @@
       },
       {
         "nodeType": "colorShader",
-        "niceName": "颜色着色器",
+        "niceName": "Color Shader",
         "nodeInfo": "一个输出颜色的简单着色器。",
         "attributes": {
           "shaderColor": "颜色"
@@ -3031,7 +3031,7 @@
       },
       {
         "nodeType": "skslShader",
-        "niceName": "着色语言着色器",
+        "niceName": "SkSL Shader",
         "nodeInfo": "使用着色语言（基于 GLSL）编写自定义着色器。",
         "attributes": {
           "inputs": "输入",
@@ -3040,7 +3040,7 @@
       },
       {
         "nodeType": "contoursToSubMeshes",
-        "niceName": "轮廓转子网格",
+        "niceName": "Contours to Sub-Meshes",
         "nodeInfo": "将路径轮廓转换为不同的子网格，可选择保留孔洞。",
         "attributes": {
           "keepHoles": "保留孔洞"
@@ -3048,7 +3048,7 @@
       },
       {
         "nodeType": "skslFilter",
-        "niceName": "着色语言滤镜",
+        "niceName": "SkSL Filter",
         "nodeInfo": "使用着色语言（基于 GLSL）编写自定义滤镜。",
         "attributes": {
           "code": [
@@ -3128,7 +3128,7 @@
       },
       {
         "nodeType": "imageShader",
-        "niceName": "图像着色器",
+        "niceName": "Image Shader",
         "nodeInfo": "用于图像、图像序列和视频的着色器。",
         "attributes": {
           "image": "文件",
@@ -3182,7 +3182,7 @@
       },
       {
         "nodeType": "mixShader",
-        "niceName": "混合着色器",
+        "niceName": "Mix Shader",
         "attributes": {
           "first": "第一着色器",
           "second": "第二着色器",
@@ -3191,7 +3191,7 @@
       },
       {
         "nodeType": "filter",
-        "niceName": "滤镜",
+        "niceName": "Filter",
         "attributes": {
           "mattes": "蒙版",
           "mattes.matteLayer": "蒙版形状",
@@ -3238,7 +3238,7 @@
       },
       {
         "nodeType": "maskBlurFilter",
-        "niceName": "蒙版模糊",
+        "niceName": "Mask Blur",
         "attributes": {
           "amount": "数量",
           "blurStyle": "样式"
@@ -3254,7 +3254,7 @@
       },
       {
         "nodeType": "dropShadowFilter",
-        "niceName": "投影",
+        "niceName": "Drop Shadow",
         "nodeInfo": "为形状添加投影。",
         "attributes": {
           "amount": "模糊量",
@@ -3272,7 +3272,7 @@
       },
       {
         "nodeType": "gaussianDropShadowFilter",
-        "niceName": "高斯投影",
+        "niceName": "Gaussian Drop Shadow",
         "nodeInfo": "为形状添加投影。",
         "attributes": {
           "amount": "模糊量",
@@ -3290,7 +3290,7 @@
       },
       {
         "nodeType": "backgroundBlurFilter",
-        "niceName": "背景模糊",
+        "niceName": "Background Blur",
         "nodeInfo": "基于输入形状，仅模糊图层的特定部分。",
         "attributes": {
           "amount": "模糊量",
@@ -3322,7 +3322,7 @@
       },
       {
         "nodeType": "innerShadowFilter",
-        "niceName": "内阴影",
+        "niceName": "Inner Shadow",
         "nodeInfo": "为形状添加内阴影以模拟深度。",
         "attributes": {
           "amount": "模糊量",
@@ -3358,7 +3358,7 @@
       },
       {
         "nodeType": "blurFilter",
-        "niceName": "快速模糊",
+        "niceName": "Fast Blur",
         "nodeInfo": "为形状添加模糊，可独立控制垂直和水平模糊。",
         "attributes": {
           "amount": "数量",
@@ -3374,7 +3374,7 @@
       },
       {
         "nodeType": "gaussianBlurFilter",
-        "niceName": "高斯模糊",
+        "niceName": "Gaussian Blur",
         "nodeInfo": "为形状添加高斯模糊，可独立控制垂直和水平模糊。",
         "attributes": {
           "amount": "数量",
@@ -3391,7 +3391,7 @@
       {
         "nodeType": "shapeToShader",
         "nodeInfo": "使用一个形状为另一个形状创建着色器。",
-        "niceName": "形状转着色器",
+        "niceName": "Shape to Shader",
         "attributes": {
           "inputShape": "输入形状",
           "alpha": "Alpha",
@@ -3410,7 +3410,7 @@
       {
         "nodeType": "levels",
         "nodeInfo": "重映射图层的黑白色阶以调整其色调范围和色彩平衡。",
-        "niceName": "色阶",
+        "niceName": "Levels",
         "attributes": {
           "channel": "通道",
           "clipBlack": "裁切黑色",
@@ -3433,7 +3433,7 @@
       },
       {
         "nodeType": "triToneFilter",
-        "niceName": "三色调",
+        "niceName": "TriTone",
         "nodeInfo": "将暗部、中间调和亮部数值映射到指定颜色。",
         "attributes": {
           "shadowColor": "阴影",
@@ -3466,7 +3466,7 @@
       },
       {
         "nodeType": "venetianBlinds",
-        "niceName": "百叶窗",
+        "niceName": "Venetian Blinds",
         "nodeInfo": "使用条纹擦除效果显示图层。",
         "attributes": {
           "completion": "完成度",
@@ -3501,7 +3501,7 @@
       },
       {
         "nodeType": "fill",
-        "niceName": "填充颜色",
+        "niceName": "Fill Color",
         "nodeInfo": "用指定的填充颜色覆写图层的颜色。",
         "attributes": {
           "fillColor": "颜色",
@@ -3533,7 +3533,7 @@
       },
       {
         "nodeType": "radialWipe",
-        "niceName": "径向擦除",
+        "niceName": "Radial Wipe",
         "nodeInfo": "基于圆形擦除显示图层。",
         "attributes": {
           "completion": "完成度",
@@ -3571,7 +3571,7 @@
       },
       {
         "nodeType": "invert",
-        "niceName": "反转",
+        "niceName": "Invert",
         "nodeInfo": "反转图层的颜色。",
         "attributes": {
           "channel": "通道",
@@ -3611,7 +3611,7 @@
       },
       {
         "nodeType": "linearWipe",
-        "niceName": "线性擦除",
+        "niceName": "Linear Wipe",
         "nodeInfo": "在图层上创建简单的线性擦除。",
         "attributes": {
           "completion": "完成度",
@@ -3623,7 +3623,7 @@
       },
       {
         "nodeType": "noiseShader",
-        "niceName": "噪波着色器",
+        "niceName": "Noise Shader",
         "nodeInfo": "从柏林噪波、值噪波或细胞噪波创建连贯的噪波效果。",
         "attributes": {
           "colorFilter": "颜色滤镜",
@@ -3666,7 +3666,7 @@
     "values": [
       {
         "nodeType": "basicShape",
-        "niceName": "基本形状",
+        "niceName": "Basic Shape",
         "nodeInfo": "基本图形，如矩形、椭圆或多边形。",
         "attributes": {
           "generator": "基本体类型"
@@ -3804,7 +3804,7 @@
       },
       {
         "nodeType": "applyFontSize",
-        "niceName": "应用字体大小",
+        "niceName": "Apply Font Size",
         "nodeInfo": "通过文本形状的样式行为，基于搜索（正则表达式）程序化设置文本形状的字号。",
         "attributes": {
           "indices": "索引",
@@ -3847,7 +3847,7 @@
       },
       {
         "nodeType": "applyTypeface",
-        "niceName": "应用字体",
+        "niceName": "Apply Typeface",
         "nodeInfo": "通过文本形状的样式行为，基于搜索（正则表达式）程序化设置文本形状的字体。",
         "attributes": {
           "indices": "指定索引",
@@ -3883,7 +3883,7 @@
       },
       {
         "nodeType": "applyTextFill",
-        "niceName": "应用文本填充",
+        "niceName": "Apply Text Fill",
         "nodeInfo": "旧版图层 - 新的“应用文本材质”已可用。\n通过程序化方式设置文本形状的行/词/字符的填充颜色，或基于搜索（正则表达式）设置。",
         "attributes": {
           "indices": "指定索引",
@@ -3918,7 +3918,7 @@
       },
       {
         "nodeType": "applyTextMaterial",
-        "niceName": "应用文本材质",
+        "niceName": "Apply Text Material",
         "nodeInfo": "通过行/词/字符或搜索（正则表达式）程序化设置文本形状的填充/描边。",
         "attributes": {
           "indices": "指定索引",
@@ -3985,7 +3985,7 @@
       },
       {
         "nodeType": "applyCharacterSpacing",
-        "niceName": "应用字符间距",
+        "niceName": "Apply Character Spacing",
         "nodeInfo": "通过文本形状的样式行为创建程序化字距调整对。",
         "attributes": {
           "pairs": "匹配",
@@ -3995,7 +3995,7 @@
       },
       {
         "nodeType": "applyOpenType",
-        "niceName": "应用开放字体",
+        "niceName": "Apply OpenType",
         "nodeInfo": "将开放字体特性应用于特定文本范围。",
         "attributes": {
           "features": "特性",
@@ -4166,7 +4166,7 @@
       },
       {
         "nodeType": "applyFontStyle",
-        "niceName": "应用字体样式",
+        "niceName": "Apply Font Style",
         "nodeInfo": "将下划线和上标等字体样式应用于特定文本范围。",
         "attributes": {
           "features": [
@@ -4340,7 +4340,7 @@
       {
         "nodeType": "textHash",
         "nodeInfo": "使用字符串生成器生成哈希字符串",
-        "niceName": "哈希",
+        "niceName": "Hash",
         "attributes": {
           "numberOfLines": "行数",
           "lineOffset": "线条偏移",
@@ -4350,7 +4350,7 @@
       {
         "nodeType": "textValue",
         "nodeInfo": "为字符串生成器生成数值。",
-        "niceName": "值",
+        "niceName": "Value",
         "attributes": {
           "length": "内边距",
           "number": "数字",
@@ -4363,7 +4363,7 @@
       {
         "nodeType": "textHex",
         "nodeInfo": "为字符串生成器生成十六进制字符串。",
-        "niceName": "十六进制",
+        "niceName": "Hexadecimal",
         "attributes": {
           "numberOfLines": "行数",
           "lineOffset": "线条偏移",
@@ -4374,7 +4374,7 @@
       {
         "nodeType": "textNumber",
         "nodeInfo": "为字符串生成器生成随机数字。",
-        "niceName": "随机数字",
+        "niceName": "Random Number",
         "attributes": {
           "minimum": "最小值",
           "maximum": "最大值",
@@ -4412,7 +4412,7 @@
       },
       {
         "nodeType": "basicLine",
-        "niceName": "基本线",
+        "niceName": "Basic Line",
         "nodeInfo": "创建基础线段，如贝塞尔、螺旋或直线。",
         "attributes": {
           "generator": "线条类型",
@@ -4422,7 +4422,7 @@
       {
         "nodeType": "simpleLine",
         "nodeInfo": "生成线段图元。",
-        "niceName": "直线",
+        "niceName": "Line",
         "attributes": {
           "divisions": "细分",
           "length": "长度"
@@ -4431,7 +4431,7 @@
       {
         "nodeType": "spiralLine",
         "nodeInfo": "生成螺旋线段图元。",
-        "niceName": "螺旋",
+        "niceName": "Spiral",
         "attributes": {
           "divisions": "细分",
           "radius": "外半径",
@@ -4444,7 +4444,7 @@
       {
         "nodeType": "bezierLine",
         "nodeInfo": "生成贝塞尔线段图元。",
-        "niceName": "贝塞尔",
+        "niceName": "Bézier",
         "attributes": {
           "divisions": "细分",
           "startPosition": "起始位置",
@@ -4456,7 +4456,7 @@
       {
         "nodeType": "rayLine",
         "nodeInfo": "从一个点投射射线以创建无限长度的线段，除非与其他形状碰撞。",
-        "niceName": "射线",
+        "niceName": "Ray",
         "attributes": {
           "shapes": "碰撞形状",
           "collisionMargin": "碰撞边距",
@@ -4610,7 +4610,7 @@
       {
         "nodeType": "circleDistribution",
         "nodeInfo": "以径向模式分布点。",
-        "niceName": "圆形",
+        "niceName": "Circle",
         "attributes": {
           "count": "数量",
           "radius": "半径",
@@ -4625,7 +4625,7 @@
       {
         "nodeType": "randomDistribution",
         "nodeInfo": "将点分布到随机位置。",
-        "niceName": "随机",
+        "niceName": "Random",
         "attributes": {
           "count": "数量",
           "size": "大小",
@@ -4649,7 +4649,7 @@
       {
         "nodeType": "pointDistribution",
         "nodeInfo": "在 0,0 处分布点。",
-        "niceName": "点",
+        "niceName": "Point",
         "attributes": {
           "count": "数量"
         }
@@ -4657,7 +4657,7 @@
       {
         "nodeType": "arrayDistribution",
         "nodeInfo": "通过为每个索引指定位置来分布点。",
-        "niceName": "数组",
+        "niceName": "Array",
         "attributes": {
           "array": "位置"
         }
@@ -4665,7 +4665,7 @@
       {
         "nodeType": "particleDistribution",
         "nodeInfo": "将点分布到粒子形状上。",
-        "niceName": "粒子",
+        "niceName": "Particle",
         "attributes": {
           "array": "位置"
         }
@@ -4673,7 +4673,7 @@
       {
         "nodeType": "pathDistribution",
         "nodeInfo": "沿路径分布点。",
-        "niceName": "路径",
+        "niceName": "Path",
         "attributes": {
           "count": "数量",
           "inputShape": "输入形状",
@@ -4699,7 +4699,7 @@
       {
         "nodeType": "shapePointDistribution",
         "nodeInfo": "将点分布到另一个形状的点/顶点上。",
-        "niceName": "形状点",
+        "niceName": "Shape Points",
         "attributes": {
           "inputShape": "分布形状",
           "calculateRotations": "使用旋转",
@@ -4713,7 +4713,7 @@
       {
         "nodeType": "shapeEdgeDistribution",
         "nodeInfo": "将点分布到另一个形状的边缘。",
-        "niceName": "形状边缘",
+        "niceName": "Shape Edges",
         "attributes": {
           "inputShape": "分布形状",
           "calculateRotations": "使用旋转",
@@ -4728,7 +4728,7 @@
       {
         "nodeType": "voxelizeDistribution",
         "nodeInfo": "通过体素化另一个形状来分布点。",
-        "niceName": "体素化",
+        "niceName": "Voxelize",
         "attributes": {
           "inputShape": "输入形状",
           "size": "大小",
@@ -4740,7 +4740,7 @@
       },
       {
         "nodeType": "patternShape",
-        "niceName": "图案",
+        "niceName": "Pattern",
         "attributes": {}
       },
       {
@@ -4766,7 +4766,7 @@
       {
         "nodeType": "roseDistribution",
         "nodeInfo": "以玫瑰线模式分布点。",
-        "niceName": "玫瑰线",
+        "niceName": "Rose",
         "attributes": {
           "count": "数量",
           "radius": "半径",
@@ -4785,7 +4785,7 @@
       {
         "nodeType": "gridDistribution",
         "nodeInfo": "在网格中分布点。",
-        "niceName": "网格",
+        "niceName": "Grid",
         "attributes": {
           "count": [
             "数量",
@@ -4818,7 +4818,7 @@
       {
         "nodeType": "linearDistribution",
         "nodeInfo": "在水平或垂直线上分布点。",
-        "niceName": "线性",
+        "niceName": "Linear",
         "attributes": {
           "count": "数量",
           "size": "大小",
@@ -4839,7 +4839,7 @@
       {
         "nodeType": "customDistribution",
         "nodeInfo": "使用 JavaScript 分布点。",
-        "niceName": "自定义...",
+        "niceName": "Custom...",
         "attributes": {
           "input": "输入分布"
         }
@@ -4847,7 +4847,7 @@
       {
         "nodeType": "meshDistribution",
         "nodeInfo": "将点分布到子网格的位置上。",
-        "niceName": "子网格",
+        "niceName": "Sub-Mesh",
         "attributes": {
           "inputShape": "输入形状",
           "count": "数量",
@@ -4872,7 +4872,7 @@
       {
         "nodeType": "mathDistribution",
         "nodeInfo": "使用数学表达式分布点。",
-        "niceName": "数学",
+        "niceName": "Math",
         "attributes": {
           "count": "数量",
           "expression": "表达式",
@@ -4882,7 +4882,7 @@
       {
         "nodeType": "maskDistribution",
         "nodeInfo": "分布点并移除落在另一个形状外部的点。",
-        "niceName": "蒙版",
+        "niceName": "Mask",
         "attributes": {
           "input": "输入分布",
           "reverse": "反转",
@@ -4893,7 +4893,7 @@
       {
         "nodeType": "shuffleDistribution",
         "nodeInfo": "通过重新排列子网格的 ID 来分布点。",
-        "niceName": "洗牌",
+        "niceName": "Shuffle",
         "attributes": {
           "input": "输入分布",
           "masks": [
@@ -4905,7 +4905,7 @@
       {
         "nodeType": "sortDistribution",
         "nodeInfo": "通过重新排序另一个分布的 ID 来分布点。",
-        "niceName": "排序",
+        "niceName": "Sort",
         "attributes": {
           "input": "输入分布",
           "reverse": "反转",
@@ -4925,7 +4925,7 @@
       {
         "nodeType": "fibonacciDistribution",
         "nodeInfo": "以斐波那契螺旋图案分布点。",
-        "niceName": "斐波那契",
+        "niceName": "Fibonacci",
         "attributes": {
           "radius": "半径",
           "count": "数量",
@@ -4934,7 +4934,7 @@
       },
       {
         "nodeType": "rectangleShape",
-        "niceName": "矩形",
+        "niceName": "Rectangle",
         "attributes": {
           "divisions": "拐角细分",
           "dimensions": "大小",
@@ -4968,7 +4968,7 @@
       {
         "nodeType": "polygonShape",
         "nodeInfo": "生成多边形图元。",
-        "niceName": "多边形",
+        "niceName": "Polygon",
         "attributes": {
           "divisions": "细分",
           "radius": "半径",
@@ -4978,7 +4978,7 @@
       {
         "nodeType": "superEllipseShape",
         "nodeInfo": "生成超级椭圆图元。",
-        "niceName": "超级椭圆",
+        "niceName": "Super Ellipse",
         "attributes": {
           "radius": "半径",
           "push": "推动",
@@ -4989,7 +4989,7 @@
       {
         "nodeType": "superShape",
         "nodeInfo": "生成超级形状图元。",
-        "niceName": "超级形状",
+        "niceName": "Super Shape",
         "attributes": {
           "radius": "半径",
           "complexity": "复杂度",
@@ -5004,7 +5004,7 @@
       {
         "nodeType": "squircleShape",
         "nodeInfo": "生成超椭圆方形图元。",
-        "niceName": "超椭圆",
+        "niceName": "Squircle",
         "attributes": {
           "dimensions": "大小",
           "cornerRadius": "圆角半径",
@@ -5016,7 +5016,7 @@
       {
         "nodeType": "starShape",
         "nodeInfo": "生成星形图元。",
-        "niceName": "星形",
+        "niceName": "Star",
         "attributes": {
           "divisions": "细分",
           "radius": "半径",
@@ -5032,7 +5032,7 @@
       {
         "nodeType": "arcShape",
         "nodeInfo": "生成圆弧图元。",
-        "niceName": "圆弧",
+        "niceName": "Arc",
         "attributes": {
           "divisions": [
             "细分",
@@ -5063,7 +5063,7 @@
       {
         "nodeType": "ringShape",
         "nodeInfo": "生成圆环图元。",
-        "niceName": "圆环",
+        "niceName": "Ring",
         "attributes": {
           "divisions": "细分",
           "radius": "外半径",
@@ -5072,7 +5072,7 @@
       },
       {
         "nodeType": "circleShape",
-        "niceName": "圆形",
+        "niceName": "Circle",
         "attributes": {
           "divisions": "细分",
           "radius": "半径"
@@ -5081,7 +5081,7 @@
       {
         "nodeType": "ellipseShape",
         "nodeInfo": "生成椭圆图元。",
-        "niceName": "椭圆",
+        "niceName": "Ellipse",
         "attributes": {
           "divisions": "细分",
           "radius": "半径",
@@ -5092,7 +5092,7 @@
       {
         "nodeType": "capsuleShape",
         "nodeInfo": "生成胶囊图元。",
-        "niceName": "胶囊",
+        "niceName": "Capsule",
         "attributes": {
           "divisions": "边缘细分",
           "radius": "半径",
@@ -5113,7 +5113,7 @@
       {
         "nodeType": "textDate",
         "nodeInfo": "为字符串生成器生成随机日期。",
-        "niceName": "随机日期",
+        "niceName": "Random Date",
         "attributes": {
           "startDate": "开始日期",
           "endDate": "结束日期",
@@ -5133,7 +5133,7 @@
       {
         "nodeType": "textBlockUnicode",
         "nodeInfo": "生成层次结构化的文本，可配置段落、行、词和字符数量。",
-        "niceName": "方块",
+        "niceName": "Block",
         "attributes": {
           "paragraphs": [
             "段落",
@@ -5186,7 +5186,7 @@
       {
         "nodeType": "formattedDateAndTime",
         "nodeInfo": "使用字符串生成器通过日期和时间标记生成字符串。",
-        "niceName": "格式化日期和时间",
+        "niceName": "Formatted Date and Time",
         "attributes": {
           "inputString": "格式化字符串",
           "array": "字符串"
@@ -5195,7 +5195,7 @@
       {
         "nodeType": "textFormatted",
         "nodeInfo": "使用字符串生成器生成连接字符串。",
-        "niceName": "格式化字符串",
+        "niceName": "Formatted String",
         "attributes": {
           "inputString": "格式化字符串",
           "array": "字符串"
@@ -5203,14 +5203,14 @@
       },
       {
         "nodeType": "chartShape",
-        "niceName": "图表",
+        "niceName": "Chart",
         "attributes": {
           "generator": "图表类型"
         }
       },
       {
         "nodeType": "lineChart",
-        "niceName": "折线图",
+        "niceName": "Line Chart",
         "attributes": {
           "xAxis": "X 轴",
           "yAxis": "Y 轴"
@@ -5218,7 +5218,7 @@
       },
       {
         "nodeType": "backgroundShape",
-        "niceName": "背景形状",
+        "niceName": "Background Shape",
         "nodeInfo": "根据其合成的分辨率自动调整大小的形状。",
         "attributes": {
           "shrink": "收缩"
@@ -5331,7 +5331,7 @@
       },
       {
         "nodeType": "pointsToCurve",
-        "niceName": "点到路径",
+        "niceName": "Points to Path",
         "nodeInfo": "使用分布中的点创建路径。",
         "attributes": {
           "generator": "点来源",
@@ -5351,7 +5351,7 @@
       {
         "nodeType": "transformDistribution",
         "nodeInfo": "将点分布到图层的位置上。",
-        "niceName": "变换",
+        "niceName": "Transform",
         "attributes": {
           "inputShape": "输入形状"
         }
@@ -5359,7 +5359,7 @@
       {
         "nodeType": "cogwheelShape",
         "nodeInfo": "生成齿轮图元。",
-        "niceName": "齿轮",
+        "niceName": "Cogwheel",
         "attributes": {
           "teeth": "牙齿",
           "radius": "节圆半径",
@@ -5372,7 +5372,7 @@
       },
       {
         "nodeType": "cogwheelGearShape",
-        "niceName": "齿轮",
+        "niceName": "Cogwheel (Gear)",
         "attributes": {
           "teeth": "牙齿",
           "pitchRadius": "节圆半径",
@@ -5384,7 +5384,7 @@
       {
         "nodeType": "arrowShape",
         "nodeInfo": "生成箭头图元。",
-        "niceName": "箭头",
+        "niceName": "Arrow",
         "attributes": {
           "bodyLength": "主体长度",
           "bodyWidth": "主体宽度",
@@ -5395,7 +5395,7 @@
       {
         "nodeType": "basicArrowHead",
         "nodeInfo": "为箭头图元生成箭头末端。",
-        "niceName": "箭头",
+        "niceName": "Arrow",
         "attributes": {
           "headLength": "结束长度",
           "headWidth": "箭头宽度",
@@ -5405,7 +5405,7 @@
       {
         "nodeType": "chevronHead",
         "nodeInfo": "为箭头图元生成 V 形末端。",
-        "niceName": "人字形",
+        "niceName": "Chevron",
         "attributes": {
           "headLength": "结束长度",
           "headWidth": "V 形宽度",
@@ -5416,7 +5416,7 @@
       {
         "nodeType": "barbedHead",
         "nodeInfo": "为箭头图元生成倒刺末端。",
-        "niceName": "倒刺",
+        "niceName": "Barbed",
         "attributes": {
           "headLength": "结束长度",
           "barbWidth": "倒钩宽度",
@@ -5426,7 +5426,7 @@
       {
         "nodeType": "circleHead",
         "nodeInfo": "为箭头图元生成圆形末端。",
-        "niceName": "圆形",
+        "niceName": "Circle",
         "attributes": {
           "circleRadius": "大小",
           "circleHole": "孔洞",
@@ -5436,7 +5436,7 @@
       {
         "nodeType": "boxHead",
         "nodeInfo": "为箭头图元生成方形末端。",
-        "niceName": "盒形",
+        "niceName": "Box",
         "attributes": {
           "boxSize": "大小",
           "boxHole": "孔洞",
@@ -5446,7 +5446,7 @@
       {
         "nodeType": "textTimecode",
         "nodeInfo": "为字符串生成器生成时间码。",
-        "niceName": "时间码",
+        "niceName": "Timecode",
         "attributes": {
           "frame": "帧",
           "offset": "帧偏移",
@@ -5486,7 +5486,7 @@
       },
       {
         "nodeType": "numberRangeBase",
-        "niceName": "数字范围",
+        "niceName": "Number Range",
         "attributes": {
           "sourceMin": "来源最小值",
           "sourceMax": "来源最大值",
@@ -5500,7 +5500,7 @@
       },
       {
         "nodeType": "numberRangeToColorBase",
-        "niceName": "数字范围到颜色",
+        "niceName": "Number Range To Color",
         "attributes": {
           "sourceMin": "来源最小值",
           "sourceMax": "来源最大值",
@@ -5555,7 +5555,7 @@
       },
       {
         "nodeType": "contextIndex",
-        "niceName": "索引上下文",
+        "niceName": "Index Context",
         "nodeInfo": "提取并将此图层的索引发送到复制器和连接形状等图层的输入。",
         "attributes": {
           "depth": "上游深度",
@@ -5581,7 +5581,7 @@
       },
       {
         "nodeType": "stringManipulator",
-        "niceName": "字符串操作器",
+        "niceName": "String Manipulator",
         "nodeInfo": "以某种方式修改现有字符串（文本）。包括随机排列、调整大小、替换等选项。",
         "attributes": {
           "text": "字符串",
@@ -5590,7 +5590,7 @@
       },
       {
         "nodeType": "arrayManipulator",
-        "niceName": "数组操控器",
+        "niceName": "Array Manipulator",
         "attributes": {
           "generator": "操纵器"
         }
@@ -5598,7 +5598,7 @@
       {
         "nodeType": "shuffleString",
         "nodeInfo": "重新排列字符串中的字符。",
-        "niceName": "随机排列字符串",
+        "niceName": "Shuffle String",
         "attributes": {
           "percentage": "百分比",
           "randomSeed": "随机种子",
@@ -5638,7 +5638,7 @@
       {
         "nodeType": "resizeString",
         "nodeInfo": "缩短字符串的长度。",
-        "niceName": "调整字符串大小",
+        "niceName": "Resize String",
         "attributes": {
           "percentage": "百分比",
           "length": "长度",
@@ -5677,7 +5677,7 @@
       {
         "nodeType": "replaceString",
         "nodeInfo": "将字符串的一部分替换为另一个字符串。",
-        "niceName": "替换字符串",
+        "niceName": "Replace String",
         "attributes": {
           "replace": "替换",
           "with": "包含"
@@ -5685,7 +5685,7 @@
       },
       {
         "nodeType": "changeStringCase",
-        "niceName": "更改字符串大小写",
+        "niceName": "Change String Case",
         "attributes": {
           "mode": "模式",
           "exclusionList": "词排除列表",
@@ -5703,7 +5703,7 @@
       {
         "nodeType": "transitionString",
         "nodeInfo": "将一个字符串过渡到另一个。",
-        "niceName": "过渡字符串",
+        "niceName": "Transition String",
         "attributes": {
           "percentage": "百分比",
           "length": "长度",
@@ -5831,7 +5831,7 @@
       {
         "nodeType": "regexString",
         "nodeInfo": "使用正则表达式过滤字符串。",
-        "niceName": "正则表达式",
+        "niceName": "Regex",
         "attributes": {
           "regex": "正则表达式"
         }
@@ -5839,7 +5839,7 @@
       {
         "nodeType": "subString",
         "nodeInfo": "裁剪字符串。",
-        "niceName": "子字符串",
+        "niceName": "Sub-String",
         "attributes": {
           "start": "起始位置",
           "end": "结束位置",
@@ -5849,7 +5849,7 @@
       {
         "nodeType": "unicodeManipulator",
         "nodeInfo": "按 Unicode 码位偏移字符。适用于图片字体和字形操作。",
-        "niceName": "Unicode 偏移",
+        "niceName": "Unicode Offset",
         "attributes": {
           "offset": "偏移",
           "clampToRange": "钳制到范围",
@@ -5921,7 +5921,7 @@
       },
       {
         "nodeType": "shapeArray",
-        "niceName": "形状数组",
+        "niceName": "Shape Array",
         "nodeInfo": "创建连接形状列表，可通过索引分配给其他图层。",
         "attributes": {
           "array": "形状"
@@ -5929,24 +5929,24 @@
       },
       {
         "nodeType": "resizeArray",
-        "niceName": "调整数组大小",
+        "niceName": "Resize Array",
         "attributes": {
           "size": "大小"
         }
       },
       {
         "nodeType": "sortArray",
-        "niceName": "排序数组",
+        "niceName": "Sort Array",
         "attributes": {}
       },
       {
         "nodeType": "shuffleArray",
-        "niceName": "随机排列数组",
+        "niceName": "Shuffle Array",
         "attributes": {}
       },
       {
         "nodeType": "manipulateArray",
-        "niceName": "操作数组",
+        "niceName": "Manipulate Array",
         "attributes": {
           "mode": "模式"
         },
@@ -5973,7 +5973,7 @@
       },
       {
         "nodeType": "subdivide",
-        "niceName": "细分",
+        "niceName": "Subdivide",
         "attributes": {
           "subdivisions": "细分",
           "curveToEndPoints": "曲线到端点",
@@ -5989,7 +5989,7 @@
       },
       {
         "nodeType": "compConstraint",
-        "niceName": "合成约束",
+        "niceName": "Composition Constraint",
         "nodeInfo": "将形状约束到合成的边缘。",
         "attributes": {
           "offset": "偏移",
@@ -6015,7 +6015,7 @@
       },
       {
         "nodeType": "componentConstraint",
-        "niceName": "分量约束",
+        "niceName": "Component Constraint",
         "nodeInfo": "将形状约束到另一个形状的点或边缘。",
         "attributes": {
           "generator": "约束类型"
@@ -6024,7 +6024,7 @@
       {
         "nodeType": "concatenateStringArray",
         "nodeInfo": "将多个字符串连接在一起。",
-        "niceName": "连接字符串",
+        "niceName": "Join String",
         "attributes": {
           "array": "字符串",
           "delimiter": "分隔符",
@@ -6043,7 +6043,7 @@
       {
         "nodeType": "edgeConstraint",
         "nodeInfo": "为组件约束生成边缘约束。",
-        "niceName": "边缘约束",
+        "niceName": "Edge Constraint",
         "attributes": {
           "target": "目标",
           "offset": "偏移",
@@ -6058,7 +6058,7 @@
       },
       {
         "nodeType": "transformConstraint",
-        "niceName": "变换约束",
+        "niceName": "Transform Constraint",
         "attributes": {
           "target": "目标",
           "offset": "偏移",
@@ -6070,7 +6070,7 @@
       {
         "nodeType": "pointConstraint",
         "nodeInfo": "为组件约束生成点约束。",
-        "niceName": "点约束",
+        "niceName": "Point Constraint",
         "attributes": {
           "target": "目标",
           "offset": "偏移",
@@ -6085,7 +6085,7 @@
       {
         "nodeType": "pathOffsetBehaviour",
         "nodeInfo": "收缩或扩展路径。",
-        "niceName": "路径偏移",
+        "niceName": "Path Offset",
         "attributes": {
           "offset": "偏移",
           "rounded": "圆角",
@@ -6206,7 +6206,7 @@
       },
       {
         "nodeType": "simpleValue2Solver",
-        "niceName": "二维数值求解器",
+        "niceName": "Value2 Solver",
         "nodeInfo": "存储前一帧的二维数值以进行累积和/或淡出。",
         "attributes": {
           "saveLimit": "保存限制",
@@ -6240,7 +6240,7 @@
       },
       {
         "nodeType": "simpleValueSolver",
-        "niceName": "数值求解器",
+        "niceName": "Value Solver",
         "nodeInfo": "存储前一帧的数值以进行累积和/或淡出。",
         "attributes": {
           "saveLimit": "保存限制",
@@ -6345,7 +6345,7 @@
       },
       {
         "nodeType": "layoutShape",
-        "niceName": "布局形状",
+        "niceName": "Layout Shape",
         "nodeInfo": "此图层已弃用 - 请参阅布局获取替代功能。",
         "attributes": {
           "layout": "布局",
@@ -6391,7 +6391,7 @@
       {
         "nodeType": "horizontalLayout",
         "nodeInfo": "为应用布局行为生成水平布局。",
-        "niceName": "水平布局",
+        "niceName": "Horizontal Layout",
         "attributes": {
           "autoSpacing": "自动间距",
           "paddingLR": "水平内边距",
@@ -6406,7 +6406,7 @@
       {
         "nodeType": "verticalLayout",
         "nodeInfo": "为应用布局行为生成垂直布局。",
-        "niceName": "垂直布局",
+        "niceName": "Vertical Layout",
         "attributes": {
           "autoSpacing": "自动间距",
           "paddingLR": "水平内边距",
@@ -6421,7 +6421,7 @@
       {
         "nodeType": "gridLayout",
         "nodeInfo": "为应用布局行为生成网格布局。",
-        "niceName": "网格布局",
+        "niceName": "Grid Layout",
         "attributes": {
           "rows": "行",
           "columns": "列",
@@ -6435,7 +6435,7 @@
       },
       {
         "nodeType": "spacerItem",
-        "niceName": "间隔符",
+        "niceName": "Spacer",
         "nodeInfo": "与布局形状结合使用以创建间隙或空白单元格。",
         "attributes": {
           "minimumSize": "最小大小"
@@ -6443,7 +6443,7 @@
       },
       {
         "nodeType": "getLayerName",
-        "niceName": "获取名称",
+        "niceName": "Get Name",
         "nodeInfo": "获取图层的“友好名称”并将其输出为字符串。",
         "attributes": {
           "inputShape": "输入"
@@ -6451,7 +6451,7 @@
       },
       {
         "nodeType": "stringLength",
-        "niceName": "字符串长度",
+        "niceName": "String Length",
         "nodeInfo": "计算字符串中的行数/词数/字符数。",
         "attributes": {
           "string": "字符串",
@@ -6614,7 +6614,7 @@
       },
       {
         "nodeType": "rectPatternShape",
-        "niceName": "矩形图案",
+        "niceName": "Rectangle Pattern",
         "nodeInfo": "创建堆叠条形图/饼图/环形图和条形码。",
         "attributes": {
           "generator": "图案模式",
@@ -6632,7 +6632,7 @@
       },
       {
         "nodeType": "lineRectPatternGenerator",
-        "niceName": "直线",
+        "niceName": "Line",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "orientation": "方向",
@@ -6654,7 +6654,7 @@
       },
       {
         "nodeType": "ringRectPatternGenerator",
-        "niceName": "圆环",
+        "niceName": "Ring",
         "attributes": {
           "useFixedSize": "使用固定大小",
           "startAngle": "开始角度",
@@ -6673,7 +6673,7 @@
       },
       {
         "nodeType": "bentoShape",
-        "niceName": "便当",
+        "niceName": "Bento",
         "attributes": {
           "size": "大小",
           "gridColumns": "网格列",
@@ -6697,7 +6697,7 @@
       },
       {
         "nodeType": "chromaticAberrationFilter",
-        "niceName": "色差",
+        "niceName": "Chromatic Aberration",
         "nodeInfo": "在扭曲图层边缘的同时分离红色、绿色和蓝色通道。",
         "attributes": {
           "alignmentX": "水平对齐",
@@ -6742,7 +6742,7 @@
       {
         "nodeType": "distributionEmitter",
         "nodeInfo": "从分布中发射粒子。",
-        "niceName": "分布发射器",
+        "niceName": "Distribution Emitter",
         "attributes": {
           "generator": "分布",
           "emissionMode": "发射模式",
@@ -6764,7 +6764,7 @@
       },
       {
         "nodeType": "particleEmitter",
-        "niceName": "粒子发射器",
+        "niceName": "Particle Emitter",
         "nodeInfo": "从点、形状或路径发射粒子。",
         "attributes": {
           "emitterRate": "速率",
@@ -6800,7 +6800,7 @@
       },
       {
         "nodeType": "particleModifier",
-        "niceName": "粒子修改器",
+        "niceName": "Particle Modifier",
         "nodeInfo": "信息。",
         "attributes": {
           "enabled": "启用修改器",
@@ -6828,7 +6828,7 @@
       },
       {
         "nodeType": "dataModifier",
-        "niceName": "数据修改器",
+        "niceName": "Data Modifier",
         "nodeInfo": "影响粒子的属性，包括 ID、寿命和速度。",
         "attributes": {
           "kill": "销毁粒子",
@@ -6852,7 +6852,7 @@
       },
       {
         "nodeType": "particleShape",
-        "niceName": "粒子形状",
+        "niceName": "Particle Shape",
         "nodeInfo": "模拟复杂的物理效果，如烟雾、雨或灰尘。",
         "attributes": {
           "modifiers": "修改器",
@@ -6926,7 +6926,7 @@
       },
       {
         "nodeType": "visualModifier",
-        "niceName": "视觉修改器",
+        "niceName": "Visual Modifier",
         "nodeInfo": "更改粒子的视觉外观。",
         "attributes": {
           "gradientMode": "渐变模式",
@@ -6956,7 +6956,7 @@
       },
       {
         "nodeType": "imageModifier",
-        "niceName": "图像修改器",
+        "niceName": "Image Modifier",
         "nodeInfo": "为粒子添加图像或图像序列。",
         "attributes": {
           "inputImage": "图像",
@@ -6978,7 +6978,7 @@
       },
       {
         "nodeType": "pathModifier",
-        "niceName": "路径修改器",
+        "niceName": "Path Modifier",
         "nodeInfo": "使粒子沿路径流动。",
         "attributes": {
           "overwritePhysics": "覆盖物理",
@@ -7010,7 +7010,7 @@
       },
       {
         "nodeType": "vortexModifier",
-        "niceName": "涡流修改器",
+        "niceName": "Vortex Modifier",
         "nodeInfo": "使粒子围绕一个位置旋转以创建螺旋或星系效果。",
         "attributes": {},
         "enums": {
@@ -7022,7 +7022,7 @@
       },
       {
         "nodeType": "magneticModifier",
-        "niceName": "磁力修改器",
+        "niceName": "Magnetic Modifier",
         "nodeInfo": "将粒子吸引到某个位置或从某个位置排斥粒子。",
         "attributes": {},
         "enums": {
@@ -7034,7 +7034,7 @@
       },
       {
         "nodeType": "flowFieldModifier",
-        "niceName": "流场修改器",
+        "niceName": "Flow Field Modifier",
         "nodeInfo": "通过方向单元格网格移动粒子，创建自然流畅的运动。",
         "attributes": {
           "generator": "流场"
@@ -7048,7 +7048,7 @@
       },
       {
         "nodeType": "goalModifier",
-        "niceName": "目标修改器",
+        "niceName": "Goal Modifier",
         "nodeInfo": "将粒子移向目标分布。",
         "attributes": {
           "inputPoints": "分布",
@@ -7070,7 +7070,7 @@
       },
       {
         "nodeType": "speedModifier",
-        "niceName": "速度修改器",
+        "niceName": "Speed Modifier",
         "nodeInfo": "为粒子添加阻力或设置速度限制。",
         "attributes": {
           "limitType": "限制类型",
@@ -7090,7 +7090,7 @@
       },
       {
         "nodeType": "forceModifier",
-        "niceName": "力修改器",
+        "niceName": "Force Modifier",
         "nodeInfo": "通过施加力来改变粒子的物理属性，如重力和质量。",
         "attributes": {
           "forceVelocity": "力速度",
@@ -7106,7 +7106,7 @@
       },
       {
         "nodeType": "turbulenceModifier",
-        "niceName": "湍流修改器",
+        "niceName": "Turbulence Modifier",
         "nodeInfo": "使用噪波影响粒子的位置和速度，为模拟增添趣味。",
         "attributes": {
           "forceMagnitude": "力大小",
@@ -7124,7 +7124,7 @@
       },
       {
         "nodeType": "multiPointGradientShader",
-        "niceName": "多点渐变着色器",
+        "niceName": "Multi-Point Gradient Shader",
         "nodeInfo": "定位颜色，然后使用影响力设置其衰减方式。",
         "attributes": {
           "premultiply": "预乘",
@@ -7144,7 +7144,7 @@
       },
       {
         "nodeType": "gammaCorrectionFilter",
-        "niceName": "伽马校正",
+        "niceName": "Gamma Correction",
         "nodeInfo": "将颜色提升到一个幂次以增加或减少感知的明暗度。",
         "attributes": {
           "gamma": "伽马值",
@@ -7176,7 +7176,7 @@
       },
       {
         "nodeType": "blendShader",
-        "niceName": "混合着色器",
+        "niceName": "Blend Shader",
         "nodeInfo": "将多个着色器组合在一起并输出单个着色器。",
         "attributes": {
           "shaders": "着色器",
@@ -7219,7 +7219,7 @@
       },
       {
         "nodeType": "slaShader",
-        "niceName": "SLA 着色器",
+        "niceName": "SLA Shader",
         "nodeInfo": "新型噪波着色器。",
         "attributes": {
           "noiseType": [
@@ -7316,7 +7316,7 @@
       },
       {
         "nodeType": "rgbSplitFilter",
-        "niceName": "RGB 分离",
+        "niceName": "RGB Split",
         "nodeInfo": "偏移图层的红色、绿色和蓝色通道。",
         "attributes": {
           "passes": "重复次数",
@@ -7364,7 +7364,7 @@
       },
       {
         "nodeType": "halftoneLegacyFilter",
-        "niceName": "半色调",
+        "niceName": "Halftone",
         "nodeInfo": "旧版图层 - 新的“半色调”已可用。\n将图层重绘为一系列大小与图层亮度成比例的圆形。",
         "attributes": {
           "count": "大小",
@@ -7392,7 +7392,7 @@
       },
       {
         "nodeType": "halftoneFilter",
-        "niceName": "半色调",
+        "niceName": "Halftone",
         "nodeInfo": "将图层重绘为一系列大小与图层亮度成比例的圆形。",
         "attributes": {
           "size": "大小",
@@ -7450,7 +7450,7 @@
       },
       {
         "nodeType": "frostedGlassFilter",
-        "niceName": "磨砂玻璃",
+        "niceName": "Frosted Glass",
         "attributes": {
           "strength": "强度",
           "tint": "着色",
@@ -7462,7 +7462,7 @@
       },
       {
         "nodeType": "ditheringFilter",
-        "niceName": "抖动",
+        "niceName": "Dithering",
         "nodeInfo": "使用降低的颜色位深度重绘图层，并应用噪波以防止色带。",
         "attributes": {
           "colorBit": "位深度",
@@ -7523,7 +7523,7 @@
       },
       {
         "nodeType": "pixelSortingFilter",
-        "niceName": "像素排序",
+        "niceName": "Pixel Sorting",
         "nodeInfo": "通过按亮度等各种属性排序来重新排列图层的像素。",
         "attributes": {
           "blendMode": "混合模式",
@@ -7576,7 +7576,7 @@
       },
       {
         "nodeType": "stripesFilter",
-        "niceName": "条纹",
+        "niceName": "Stripes",
         "nodeInfo": "采样一行像素并延伸以创建条纹图案。",
         "attributes": {
           "blendMode": "混合模式",
@@ -7612,7 +7612,7 @@
       },
       {
         "nodeType": "pixelateFilter",
-        "niceName": "像素化",
+        "niceName": "Pixelate",
         "nodeInfo": "使用统一颜色的色块重绘图层。这些“像素”可以有各种不同的形状。",
         "attributes": {
           "leadingDiagonal": "反转主对角线",
@@ -7632,7 +7632,7 @@
       },
       {
         "nodeType": "crtScanLines",
-        "niceName": "扫描线",
+        "niceName": "Scan Lines",
         "nodeInfo": "模拟 CRT 显示器效果。",
         "attributes": {
           "realRes": "使用扫描线分辨率",
@@ -7664,7 +7664,7 @@
       },
       {
         "nodeType": "kitaokaFilter",
-        "niceName": "北冈滤镜",
+        "niceName": "Kitaoka Filter",
         "nodeInfo": "生成美观的波浪效果。",
         "attributes": {
           "blendMode": "混合模式",
@@ -7734,7 +7734,7 @@
       },
       {
         "nodeType": "mirrorFilter",
-        "niceName": "镜像",
+        "niceName": "Mirror",
         "nodeInfo": "沿中心线翻转形状以创建镜像。",
         "attributes": {},
         "enums": {
@@ -7767,7 +7767,7 @@
       },
       {
         "nodeType": "distortionFilter",
-        "niceName": "扭曲",
+        "niceName": "Distortion",
         "nodeInfo": "基于着色器（如噪波）扭曲图层。",
         "attributes": {
           "singleDirection": "使用单一方向",
@@ -7831,7 +7831,7 @@
       },
       {
         "nodeType": "distortEdges",
-        "niceName": "扭曲边缘",
+        "niceName": "Distort Edges",
         "nodeInfo": "使用着色器仅扭曲图层的边缘。",
         "attributes": {
           "border": "边框",
@@ -7890,7 +7890,7 @@
       },
       {
         "nodeType": "chromaticDisplacement",
-        "niceName": "色差位移",
+        "niceName": "Chromatic Displacement",
         "nodeInfo": "基于高度图着色器应用独立的 RGB 通道位移，实现色差和折射效果。",
         "attributes": {
           "amplitude": "振幅",
@@ -7952,7 +7952,7 @@
       },
       {
         "nodeType": "displacementUtility",
-        "niceName": "位移工具",
+        "niceName": "Displacement Utility",
         "enums": {
           "shapeType": {
             "0": "圆形",
@@ -7962,7 +7962,7 @@
       },
       {
         "nodeType": "colorInfo",
-        "niceName": "颜色信息",
+        "niceName": "Color Info",
         "nodeInfo": "获取给定颜色的色相、饱和度或明度。",
         "attributes": {
           "inColor": "颜色",
@@ -7979,7 +7979,7 @@
       },
       {
         "nodeType": "hsvColor",
-        "niceName": "HSV 颜色",
+        "niceName": "HSV Color",
         "nodeInfo": "从色相、饱和度和明度创建颜色。",
         "attributes": {
           "hue": "色相",
@@ -7991,7 +7991,7 @@
       },
       {
         "nodeType": "subBoundingBox",
-        "niceName": "子网格边界框",
+        "niceName": "Sub-Mesh Bounding Box",
         "nodeInfo": "使用子网格（复制器、文本、SVG 等）的边界框创建矩形。",
         "attributes": {
           "inputShape": "输入形状",
@@ -8010,7 +8010,7 @@
       },
       {
         "nodeType": "segmentPath",
-        "niceName": "分割路径",
+        "niceName": "Segment Path",
         "nodeInfo": "将路径分割成更小的段。",
         "attributes": {
           "count": "数量",
@@ -8043,7 +8043,7 @@
       },
       {
         "nodeType": "forgeDynamicsShape",
-        "niceName": "Forge动力学",
+        "niceName": "Forge Dynamics",
         "nodeInfo": "用于刚体碰撞的 2D 物理引擎。",
         "attributes": {
           "groundMode": "地面模式",
@@ -8171,7 +8171,7 @@
       },
       {
         "nodeType": "colorCollisionEvent",
-        "niceName": "颜色碰撞事件",
+        "niceName": "Color Collision Event",
         "nodeInfo": "当 Forge 动力学物体碰撞时更改其颜色。",
         "attributes": {
           "fillColor": "颜色",
@@ -8211,7 +8211,7 @@
       },
       {
         "nodeType": "measureText",
-        "niceName": "测量文本",
+        "niceName": "Measure Text",
         "nodeInfo": "根据字体和字号测量文本字符串的大小。",
         "attributes": {
           "string": "字符串",
@@ -8235,7 +8235,7 @@
       },
       {
         "nodeType": "stickyCollisionEvent",
-        "niceName": "粘附碰撞事件",
+        "niceName": "Sticky Collision Event",
         "nodeInfo": "当 Forge 动力学物体碰撞时使其相互粘附。",
         "attributes": {
           "breakable": "可断裂",
@@ -8247,7 +8247,7 @@
       },
       {
         "nodeType": "impulseCollisionEvent",
-        "niceName": "冲量碰撞事件",
+        "niceName": "Impulse Collision Event",
         "nodeInfo": "当 Forge 动力学刚体碰撞时添加额外的力。",
         "attributes": {
           "useBounceDirection": "使用弹跳方向",
@@ -8258,7 +8258,7 @@
       },
       {
         "nodeType": "bodySettingCollisionEvent",
-        "niceName": "刚体设置碰撞事件",
+        "niceName": "Body Settings Collision Event",
         "nodeInfo": "当 Forge 动力学物体与另一个碰撞时更新其设置。",
         "attributes": {
           "useCollisionIndex": [
@@ -8277,7 +8277,7 @@
       },
       {
         "nodeType": "visibilityCollisionEvent",
-        "niceName": "可见性碰撞事件",
+        "niceName": "Visibility Collision Event",
         "nodeInfo": "当 Forge 动力学刚体碰撞时影响其可见性或不透明度。",
         "attributes": {
           "mode": "模式",
@@ -8307,7 +8307,7 @@
       },
       {
         "nodeType": "bridgeConstraint",
-        "niceName": "桥接约束",
+        "niceName": "Bridge Constraint",
         "nodeInfo": "在 Forge 动力学模拟中将形状连接在一起形成链条或桥梁结构。",
         "attributes": {
           "frequencyHz": "频率（赫兹）",
@@ -8353,7 +8353,7 @@
       },
       {
         "nodeType": "pinConstraint",
-        "niceName": "钉固约束",
+        "niceName": "Pin Constraint",
         "nodeInfo": "在 Forge 动力学模拟中将形状钉固在原始位置，但允许其旋转。",
         "attributes": {
           "motor": "马达",
@@ -8401,7 +8401,7 @@
       },
       {
         "nodeType": "distanceConstraint",
-        "niceName": "距离约束",
+        "niceName": "Distance Constraint",
         "nodeInfo": "在 Forge 动力学模拟中将形状约束到其原始位置。",
         "attributes": {
           "restLength": "静止长度",
@@ -8471,7 +8471,7 @@
       },
       {
         "nodeType": "directionField",
-        "niceName": "方向场",
+        "niceName": "Direction Field",
         "nodeInfo": "在 Forge 动力学模拟中创建定向力以推动形状。",
         "attributes": {
           "directionalForce": "方向",
@@ -8481,12 +8481,12 @@
       {
         "nodeType": "attractorField",
         "nodeInfo": "与 Forge 动力学模拟配合使用，将形状移向或远离目标。",
-        "niceName": "吸引场"
+        "niceName": "Attractor Field"
       },
       {
         "nodeType": "vortexField",
         "nodeInfo": "围绕中心点对形状施加螺旋/旋转力。",
-        "niceName": "涡旋场",
+        "niceName": "Vortex Field",
         "attributes": {
           "radius": [
             "半径",
@@ -8533,7 +8533,7 @@
       {
         "nodeType": "buoyancyField",
         "nodeInfo": "创建流体容器，动力学物体将根据密度浮起或下沉。",
-        "niceName": "浮力场",
+        "niceName": "Buoyancy Field",
         "attributes": {
           "size": [
             "大小",
@@ -8588,7 +8588,7 @@
       {
         "nodeType": "pathField",
         "nodeInfo": "对形状应用沿路径的力。",
-        "niceName": "路径场",
+        "niceName": "Path Field",
         "attributes": {
           "pathToFollow": [
             "跟随路径",
@@ -8632,7 +8632,7 @@
       },
       {
         "nodeType": "travel",
-        "niceName": "行程",
+        "niceName": "Travel",
         "nodeInfo": "沿路径中所有轮廓移动起始点（一条路径可以包含多个轮廓）。",
         "attributes": {
           "mode": "行程"
@@ -8640,7 +8640,7 @@
       },
       {
         "nodeType": "reversePathUtility",
-        "niceName": "反转路径",
+        "niceName": "Reverse Path",
         "nodeInfo": "反转路径中轮廓的方向（一条路径可以包含多个轮廓）。",
         "attributes": {
           "mode": "模式"
@@ -8655,7 +8655,7 @@
       },
       {
         "nodeType": "normalizePathUtility",
-        "niceName": "规范化路径方向",
+        "niceName": "Normalize Path Direction",
         "nodeInfo": "设置路径外轮廓的方向，并在需要时反转其内轮廓。",
         "attributes": {
           "mode": "外轮廓",
@@ -8671,7 +8671,7 @@
       },
       {
         "nodeType": "removeContoursUtility",
-        "niceName": "移除轮廓",
+        "niceName": "Remove Contours",
         "nodeInfo": "根据方向从路径中移除轮廓。",
         "attributes": {
           "removeClockwise": "移除顺时针",
@@ -8680,7 +8680,7 @@
       },
       {
         "nodeType": "assetFromSmartFolder",
-        "niceName": "从智能文件夹获取资源",
+        "niceName": "Asset From Smart Folder",
         "nodeInfo": "引用智能文件夹中包含的素材（图像、视频、音频等）。",
         "attributes": {
           "file": "智能文件夹素材",
@@ -8700,7 +8700,7 @@
       },
       {
         "nodeType": "thresholdFilter",
-        "niceName": "阈值",
+        "niceName": "Threshold",
         "nodeInfo": "将图层转换为高对比度的黑白表示。",
         "attributes": {
           "threshold": "阈值",
@@ -8740,7 +8740,7 @@
       },
       {
         "nodeType": "posterizeFilter",
-        "niceName": "色调分离",
+        "niceName": "Posterize",
         "nodeInfo": "减少图层的色彩变化以创建低色深效果。",
         "attributes": {
           "levels": "色阶",
@@ -8771,7 +8771,7 @@
       },
       {
         "nodeType": "edgeDetection",
-        "niceName": "边缘检测",
+        "niceName": "Edge Detection",
         "nodeInfo": "将图像中颜色的边界转换为线条。",
         "attributes": {
           "blendMode": "混合模式",
@@ -8823,7 +8823,7 @@
       },
       {
         "nodeType": "vignetteFilter",
-        "niceName": "暗角",
+        "niceName": "Vignette",
         "nodeInfo": "模拟通过特定类型镜头观看图像时的光线衰减特性。",
         "attributes": {
           "blendMode": "混合模式",
@@ -8866,7 +8866,7 @@
       },
       {
         "nodeType": "hsvAdjustmentFilter",
-        "niceName": "HSV 调整",
+        "niceName": "HSV Adjustment",
         "nodeInfo": "调整色相、饱和度和明度。",
         "attributes": {
           "levels": "色阶",
@@ -8903,7 +8903,7 @@
       },
       {
         "nodeType": "sharpenFilter",
-        "niceName": "锐化",
+        "niceName": "Sharpen",
         "nodeInfo": "增加边缘像素之间的对比度，呈现更高的锐度效果。",
         "attributes": {
           "intensity": "强度",
@@ -8935,7 +8935,7 @@
       },
       {
         "nodeType": "grainFilter",
-        "niceName": "颗粒",
+        "niceName": "Grain",
         "nodeInfo": "添加细腻颗粒以模拟胶片的视觉外观。",
         "attributes": {
           "amount": "强度",
@@ -8971,7 +8971,7 @@
       },
       {
         "nodeType": "motionBlurFilter",
-        "niceName": "运动模糊",
+        "niceName": "Motion Blur",
         "nodeInfo": "根据速度给定的方向和大小应用线性模糊",
         "attributes": {
           "strength": "强度",
@@ -9005,7 +9005,7 @@
       },
       {
         "nodeType": "scrapeFilter",
-        "niceName": "刮擦",
+        "niceName": "Scrape",
         "nodeInfo": "从一条线拉伸像素以创建涂抹效果。",
         "attributes": {
           "offset": "偏移",
@@ -9041,7 +9041,7 @@
       },
       {
         "nodeType": "slitScanFilter",
-        "niceName": "狭缝扫描",
+        "niceName": "Slit Scan",
         "nodeInfo": "创建动画穿越效果。",
         "attributes": {
           "offset": "偏移",
@@ -9100,7 +9100,7 @@
       },
       {
         "nodeType": "voronoiShader",
-        "niceName": "Voronoi 着色器",
+        "niceName": "Voronoi Shader",
         "nodeInfo": "通过计算点阵之间的距离生成单元格图案。",
         "attributes": {
           "offset": "偏移",
@@ -9145,7 +9145,7 @@
       },
       {
         "nodeType": "glowFilter",
-        "niceName": "辉光",
+        "niceName": "Glow",
         "nodeInfo": "为形状添加辉光效果，可单独控制 RGB 通道。",
         "attributes": {
           "blur": "辉光半径",
@@ -9205,7 +9205,7 @@
       },
       {
         "nodeType": "shiftChannels",
-        "niceName": "偏移通道",
+        "niceName": "Shift Channels",
         "nodeInfo": "用其他通道的值替换红色、绿色、蓝色和透明度通道。",
         "attributes": {
           "aSource": "Alpha",
@@ -9254,7 +9254,7 @@
       },
       {
         "nodeType": "blackAndWhite",
-        "niceName": "黑白",
+        "niceName": "Black and White",
         "nodeInfo": "将图层转换为黑白。",
         "attributes": {
           "red": "红色调",
@@ -9267,7 +9267,7 @@
       },
       {
         "nodeType": "brightnessAndContrast",
-        "niceName": "亮度与对比度",
+        "niceName": "Brightness And Contrast",
         "nodeInfo": "调整图层的亮度和对比度。",
         "attributes": {
           "brightness": "亮度",
@@ -9277,7 +9277,7 @@
       {
         "nodeType": "cornerPinShape",
         "nodeInfo": "变形形状以创建 3D 透视错觉。",
-        "niceName": "角固定",
+        "niceName": "Corner Pin",
         "attributes": {
           "topLeft": "左上",
           "topRight": "右上",
@@ -9294,7 +9294,7 @@
       {
         "nodeType": "extrude",
         "nodeInfo": "挤出形状以呈现深度效果。",
-        "niceName": "挤压",
+        "niceName": "Extrude",
         "attributes": {
           "inputShapes": "输入形状",
           "extrudeDistance": "挤出距离",
@@ -9318,7 +9318,7 @@
       {
         "nodeType": "extractSubMeshes",
         "nodeInfo": "从形状中提取特定的子网格。",
-        "niceName": "提取子网格",
+        "niceName": "Extract Sub-Meshes",
         "attributes": {
           "inputShape": "输入形状",
           "ignoreEmptySubMeshes": "忽略空子网格",
@@ -9339,7 +9339,7 @@
       {
         "nodeType": "getSubMeshTransform",
         "nodeInfo": "使用此功能获取子网格内任何形状的变换（位置、旋转、缩放）。",
-        "niceName": "获取子网格变换",
+        "niceName": "Get Sub-Mesh Transform",
         "attributes": {
           "inputShape": "输入形状",
           "index": "子网格索引",
@@ -9362,7 +9362,7 @@
       {
         "nodeType": "intersectionDistribution",
         "nodeInfo": "在路径交叉处分布点。",
-        "niceName": "交叉点",
+        "niceName": "Intersections",
         "attributes": {
           "inputShapes": "相交形状"
         }
@@ -9370,7 +9370,7 @@
       {
         "nodeType": "accumulator",
         "nodeInfo": "创建形状的“堆叠”或自定义布局。",
-        "niceName": "累加器",
+        "niceName": "Accumulator",
         "attributes": {
           "value": [
             "值",
@@ -9389,7 +9389,7 @@
       {
         "nodeType": "imageSampler",
         "nodeInfo": "从图像素材中采样颜色值并用其驱动其他属性。",
-        "niceName": "图像采样器",
+        "niceName": "Image Sampler",
         "attributes": {
           "strength": "强度",
           "invert": "反转值",
@@ -9433,7 +9433,7 @@
       },
       {
         "nodeType": "toonOutlines",
-        "niceName": "卡通描边",
+        "niceName": "Toon Stroke",
         "nodeInfo": "在形状周围创建多重描边。",
         "attributes": {},
         "tabs": {
@@ -9444,7 +9444,7 @@
       {
         "nodeType": "javaScript",
         "nodeInfo": "使用 JavaScript 设置属性、创建自定义模拟、分布等。",
-        "niceName": "JavaScript 工具",
+        "niceName": "JavaScript Utility",
         "attributes": {},
         "presets": {
           "fahrenheitToCelcius": "Fahrenheit To Celsius"
@@ -9452,7 +9452,7 @@
       },
       {
         "nodeType": "javaScriptShape",
-        "niceName": "JavaScript形状",
+        "niceName": "JavaScript Shape",
         "nodeInfo": "使用 JavaScript 创建形状。",
         "attributes": {
           "generator": "表达式"
@@ -9463,7 +9463,7 @@
       },
       {
         "nodeType": "javaScriptModifier",
-        "niceName": "JavaScript 修改器",
+        "niceName": "JavaScript Modifier",
         "nodeInfo": "使用 JavaScript 控制或影响粒子。",
         "attributes": {
           "expression": "表达式",
@@ -9472,7 +9472,7 @@
       },
       {
         "nodeType": "javaScriptEmitter",
-        "niceName": "JavaScript 发射器",
+        "niceName": "JavaScript Emitter",
         "nodeInfo": "使用 JavaScript 创建自定义粒子发射器。",
         "attributes": {
           "expression": "表达式",
@@ -9482,7 +9482,7 @@
       },
       {
         "nodeType": "javaScriptDeformer",
-        "niceName": "JavaScript变形器",
+        "niceName": "JavaScript Deformer",
         "nodeInfo": "使用 JavaScript 变形形状。"
       },
       {
@@ -9511,7 +9511,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "timeMarker",
-      "niceName": "时间标记",
+      "niceName": "Time Marker",
       "attributes": {
         "label": "标签",
         "drawColorId": "颜色",
@@ -9557,7 +9557,7 @@
     "value": {
       "nodeType": "schedulingGroup",
       "nodeInfo": "按程序在时间上定位子图层。",
-      "niceName": "调度组",
+      "niceName": "Scheduling Group",
       "attributes": {
         "childOffset": [
           "子级偏移"
@@ -9603,7 +9603,7 @@
     "value": {
       "nodeType": "knot",
       "nodeInfo": "在轮廓自相交处为路径添加缺口。",
-      "niceName": "结点",
+      "niceName": "Knot",
       "attributes": {
         "mode": [
           "模式"
@@ -9627,7 +9627,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "skeleton",
-      "niceName": "骨骼",
+      "niceName": "Skeleton",
       "nodeInfo": "创建带有 IK 控制的骨骼用于角色绑定/动画。",
       "attributes": {
         "bones": "骨骼层级",
@@ -9641,7 +9641,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "bone",
-      "niceName": "骨骼",
+      "niceName": "Bone",
       "attributes": {
         "rotationRestPose": "旋转静止姿态",
         "lengthRestPose": "长度静止姿态",
@@ -9653,7 +9653,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "inverseKinematicsControl",
-      "niceName": "IK 控制",
+      "niceName": "IK Control",
       "attributes": {
         "chainLength": "链长度",
         "stretch": "拉伸",
@@ -9672,7 +9672,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "skinning",
-      "niceName": "蒙皮",
+      "niceName": "Skinning",
       "nodeInfo": "将形状绑定到骨骼。",
       "attributes": {
         "skeleton": "骨骼",
@@ -9685,7 +9685,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "timelineCounter",
-      "niceName": "时间线计数器",
+      "niceName": "Timeline Counter",
       "nodeInfo": "使用时间标记、BPM 或秒来随时间累积或触发值。",
       "attributes": {
         "out": "数量",
@@ -9715,7 +9715,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "contrastingColor",
-      "niceName": "对比色",
+      "niceName": "Contrasting Color",
       "nodeInfo": "使用此工具根据输入颜色和对比度提供不同的输出颜色。",
       "attributes": {
         "inColor": "着色",
@@ -9740,7 +9740,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "wave",
-      "niceName": "波浪",
+      "niceName": "Wave",
       "nodeInfo": "将正弦、锯齿和方波等波形效果应用到形状。",
       "attributes": {
         "mode": "模式",
@@ -9770,7 +9770,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "autoAnimate",
-      "niceName": "自动动画",
+      "niceName": "Auto-Animate",
       "nodeInfo": "仅用少量关键帧为形状添加多种动画。",
       "attributes": {
         "progressMode": [
@@ -9927,7 +9927,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pieChart",
-      "niceName": "饼图",
+      "niceName": "Pie Chart",
       "attributes": {
         "file": "电子表格",
         "column": "列",
@@ -9957,7 +9957,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "barChart",
-      "niceName": "柱状图",
+      "niceName": "Bar Chart",
       "attributes": {
         "file": "电子表格",
         "xAxisColumn": "X 轴",
@@ -9984,7 +9984,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "mergeShape",
-      "niceName": "合并",
+      "niceName": "Merge",
       "nodeInfo": "从包含开放路径的两个形状创建包含闭合路径的形状。",
       "attributes": {
         "firstInputShape": "第一形状",
@@ -9998,7 +9998,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "stitches",
-      "niceName": "缝线",
+      "niceName": "Stitches",
       "nodeInfo": "用针线效果填充闭合路径。",
       "attributes": {
         "distance": [
@@ -10022,7 +10022,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "strokeDuplicator",
-      "niceName": "描边复制器",
+      "niceName": "Stroke Duplicator",
       "nodeInfo": "创建复杂的描边组合。",
       "attributes": {
         "strokeCount": [
@@ -10036,7 +10036,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "isolinesShape",
-      "niceName": "等高线",
+      "niceName": "Isolines",
       "nodeInfo": "将图像或形状图层转换为轮廓。",
       "attributes": {
         "inputShape": [
@@ -10076,7 +10076,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "luminanceBlur",
-      "niceName": "亮度模糊",
+      "niceName": "Luminance Blur",
       "nodeInfo": "根据另一个图层的亮度值模糊一个图层。",
       "attributes": {
         "maxBlurAmount": [
@@ -10112,7 +10112,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathRelax",
-      "niceName": "路径松弛",
+      "niceName": "Path Relax",
       "nodeInfo": "将路径点相互推开。",
       "attributes": {
         "iterations": [
@@ -10134,7 +10134,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathAverage",
-      "niceName": "路径平均",
+      "niceName": "Path Average",
       "nodeInfo": "通过平均位置来平滑路径点。",
       "attributes": {
         "iterations": [
@@ -10152,7 +10152,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pointDisplace",
-      "niceName": "点置换器",
+      "niceName": "Point Displacer",
       "nodeInfo": "沿法线或自定义角度置换点。",
       "attributes": {
         "displacement": [
@@ -10181,7 +10181,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "pathSplit",
-      "niceName": "路径分裂",
+      "niceName": "Path Split",
       "nodeInfo": "通过从现有路径尖端生成新的路径子网格来创建分支结构。使用迭代模式创建静态分形，或使用帧模式创建动画生长。",
       "attributes": {
         "mode": [
@@ -10280,7 +10280,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "meshSolver",
-      "niceName": "网格求解器",
+      "niceName": "Mesh Solver",
       "nodeInfo": "连接变形器以创建绘图机器或差异生长等迭代效果。",
       "attributes": {
         "time": "时间",

@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "lightSweepFilter",
-      "niceName": "ライトスイープ",
+      "niceName": "Light Sweep",
       "layerInfo": "光源がレイヤー上を移動する効果をシミュレートします。",
       "language": "ja_JP",
       "attributes": {

@@ -5,7 +5,7 @@
       "language": "ja_JP",
       "author": "sceneGroup",
       "layerType": "rectToPolarFilter",
-      "niceName": "極座標",
+      "niceName": "Polar Coordinates",
       "layerInfo": "レイヤーを極座標空間にリマップします。",
       "attributes": {
         "centre": [

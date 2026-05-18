@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "chromaKeyFilter",
-      "niceName": "クロマキー",
+      "niceName": "Chroma Key",
       "layerInfo": "高度なマットコントロールにより、動画/画像からグリーン/ブルースクリーンを除去します。",
       "language": "ja_JP",
       "attributes": {

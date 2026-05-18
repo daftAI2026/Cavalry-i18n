@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "bilateralBlurFilter",
-      "niceName": "雙邊模糊",
+      "niceName": "Bilateral Blur",
       "layerInfo": "一種保留邊緣的模糊效果，可平滑顏色相近的區域，同時保持清晰的邊緣。",
       "language": "zh-Hant",
       "attributes": {

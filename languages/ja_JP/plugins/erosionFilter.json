@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "erosionFilter",
-      "niceName": "エロージョン",
+      "niceName": "Erosion",
       "layerInfo": "トランジションやマット調整のためにレイヤーの Alpha を侵食します",
       "language": "ja_JP",
       "attributes": {

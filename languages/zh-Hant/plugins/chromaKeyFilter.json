@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "chromaKeyFilter",
-      "niceName": "色度鍵",
+      "niceName": "Chroma Key",
       "layerInfo": "透過進階遮罩控制從影片/影像中去除綠幕/藍幕。",
       "language": "zh-Hant",
       "attributes": {

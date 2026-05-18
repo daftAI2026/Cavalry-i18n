@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "zoomBlurFilter",
-      "niceName": "ズームぼかし",
+      "niceName": "Zoom Blur",
       "layerInfo": "中心点からシェイプを外側に向かってぼかし、カスタマイズ可能な減衰を備えています。",
       "language": "ja_JP",
       "attributes": {

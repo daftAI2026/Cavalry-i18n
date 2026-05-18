@@ -5,6 +5,14 @@ All notable changes to this project are documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Fixed
+- **Model niceName Preservation**: Reverted `niceName` fields to English across all translation files to prevent Time Editor rendering issues and model key serialization errors in Cavalry.
+- **Widget Mutation Boundary Protection**: Refactored the timeline-unsafe protection to intercept `QListWidgetItem` and `QTreeWidgetItem` values at the mutation boundary via `shouldPreserveModelBackedItemText` instead of using the global QTranslator.
+- **Contract Enforcement**: Updated contract tests to verify that `niceName` values stay English in `nodeStrings.json` and all plugin translation files across Simplified Chinese, Traditional Chinese, and Japanese.
+- **Whitelist Enforcement**: Configured `translation-whitelist.json` to move `niceName` from `translate` to `no_translate` to prevent future localization regressions.
+
 ## [0.2.0] - 2026-05-17
 
 ### Added
@@ -154,7 +162,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
 
-[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.11...HEAD
+[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.2.0
 [0.1.11]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.11
 [0.1.10]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.10
 [0.1.9]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.9

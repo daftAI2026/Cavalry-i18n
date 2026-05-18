@@ -4,7 +4,7 @@
     "value": {
       "author": "sceneGroup",
       "layerType": "spheriseFilter",
-      "niceName": "球面化",
+      "niceName": "Spherise",
       "layerInfo": "入力シェイプを回転可能な球体にマッピングします。",
       "language": "ja_JP",
       "attributes": {
