@@ -425,6 +425,36 @@ test('embedded injector translates widget-owned actions and container item label
   );
 });
 
+test('embedded translator keeps timeline layer vocabulary out of the global Qt translator', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /isTimelineUnsafeSourceText/,
+    'global QTranslator should skip layer and tool vocabulary that Time Editor later paints with a Latin-only renderer'
+  );
+  for (const source of ['Basic Line', 'Particle Emitter', 'Forge Dynamics', 'Duplicator']) {
+    assert.match(
+      injectorSource,
+      new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+      `timeline unsafe vocabulary should cover ${source}, not only one screenshot example`
+    );
+  }
+  assert.match(
+    injectorSource,
+    /translate\([\s\S]{0,900}isTimelineUnsafeSourceText[\s\S]{0,80}sourceText[\s\S]{0,120}return QString\(\)/,
+    'EmbeddedTranslator::translate should leave unsafe source text in English before it can enter Cavalry model data'
+  );
+  assert.match(
+    injectorSource,
+    /lookupEmbeddedTranslation[\s\S]*gTranslationBySource/,
+    'post-hoc Qt widget translation should still be able to translate the same English labels on supported Qt surfaces'
+  );
+});
+
 test('embedded injector handles runtime Qt events with dirty-object local translation only', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),

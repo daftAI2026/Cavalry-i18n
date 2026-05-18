@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、动态菜单兜底翻译、AppKit 菜单同步与运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
- * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；ExtensionLayer 自绘提示保留英文原文
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、Time Editor 模型词汇英文保护、动态菜单兜底翻译、AppKit 菜单同步与运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
+ * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -336,6 +336,126 @@ void patchExtensionLayerImage(const struct mach_header *header, intptr_t slide)
     }
 }
 
+QString normalizeMenuText(const QString &text);
+
+bool isTimelineUnsafeSourceText(const char *sourceText)
+{
+    if (sourceText == nullptr || sourceText[0] == '\0') {
+        return false;
+    }
+
+    const QString source = normalizeMenuText(QString::fromUtf8(sourceText));
+    if (source.isEmpty()) {
+        return false;
+    }
+
+    static const QSet<QString> kTimelineUnsafeSourceTexts = {
+        QStringLiteral("Basic Line"),
+        QStringLiteral("Basic Shape"),
+        QStringLiteral("Component"),
+        QStringLiteral("Connect Shape"),
+        QStringLiteral("Convex Hull"),
+        QStringLiteral("Custom Shape"),
+        QStringLiteral("Duplicator"),
+        QStringLiteral("Footage Shape"),
+        QStringLiteral("Grid Layout Group"),
+        QStringLiteral("Grid Layout Row"),
+        QStringLiteral("Image To Shapes"),
+        QStringLiteral("Layout Group"),
+        QStringLiteral("Mesh Shape"),
+        QStringLiteral("Outline"),
+        QStringLiteral("Particle Emitter"),
+        QStringLiteral("Particle Shape"),
+        QStringLiteral("Quad Tree Shape"),
+        QStringLiteral("Rubber Hose Limb"),
+        QStringLiteral("Shortest Path"),
+        QStringLiteral("Trails"),
+        QStringLiteral("Forge Dynamics"),
+        QStringLiteral("Forge Dynamics Shape"),
+        QStringLiteral("3D Matrix"),
+        QStringLiteral("Add Divisions"),
+        QStringLiteral("Behaviour Mixer"),
+        QStringLiteral("Bend"),
+        QStringLiteral("Bevel"),
+        QStringLiteral("Blend Shape"),
+        QStringLiteral("Boolean"),
+        QStringLiteral("Clean Up"),
+        QStringLiteral("Color Blend"),
+        QStringLiteral("Curves To Lines"),
+        QStringLiteral("Distance"),
+        QStringLiteral("Extend Open Paths"),
+        QStringLiteral("Fill Rule"),
+        QStringLiteral("Flare"),
+        QStringLiteral("Flatten Shape Layers"),
+        QStringLiteral("Four Point Warp"),
+        QStringLiteral("Frame"),
+        QStringLiteral("Get Vector"),
+        QStringLiteral("Is Within"),
+        QStringLiteral("Lattice"),
+        QStringLiteral("Look At"),
+        QStringLiteral("Manipulator"),
+        QStringLiteral("Material Sampler"),
+        QStringLiteral("Modulate"),
+        QStringLiteral("Morph"),
+        QStringLiteral("Motion Stretch"),
+        QStringLiteral("Noise"),
+        QStringLiteral("Number Range"),
+        QStringLiteral("Number Range To Color"),
+        QStringLiteral("Oscillator"),
+        QStringLiteral("Pathfinder"),
+        QStringLiteral("Pinch"),
+        QStringLiteral("Position Blend"),
+        QStringLiteral("Push Along Vector"),
+        QStringLiteral("Random"),
+        QStringLiteral("Resample Path"),
+        QStringLiteral("Round"),
+        QStringLiteral("Skew"),
+        QStringLiteral("Sound"),
+        QStringLiteral("Spring"),
+        QStringLiteral("Stagger"),
+        QStringLiteral("Value"),
+        QStringLiteral("Value Blend"),
+        QStringLiteral("Voxelize"),
+        QStringLiteral("Animation Control"),
+        QStringLiteral("Asset Array"),
+        QStringLiteral("Bounding Box"),
+        QStringLiteral("Bounding Box Constraint"),
+        QStringLiteral("Camera Guide"),
+        QStringLiteral("Color Array"),
+        QStringLiteral("Comparison"),
+        QStringLiteral("Drag Field"),
+        QStringLiteral("Falloff"),
+        QStringLiteral("If Else"),
+        QStringLiteral("Index To Color"),
+        QStringLiteral("Layer Seed"),
+        QStringLiteral("Length Context"),
+        QStringLiteral("Local Time"),
+        QStringLiteral("Logic"),
+        QStringLiteral("Math"),
+        QStringLiteral("Measure"),
+        QStringLiteral("Null"),
+        QStringLiteral("Path Length"),
+        QStringLiteral("Radius"),
+        QStringLiteral("Range Falloff"),
+        QStringLiteral("Rig Control"),
+        QStringLiteral("Seconds To Frames"),
+        QStringLiteral("Sequence"),
+        QStringLiteral("Shader Array"),
+        QStringLiteral("Spreadsheet"),
+        QStringLiteral("String"),
+        QStringLiteral("String Array"),
+        QStringLiteral("String From Asset"),
+        QStringLiteral("String Generator"),
+        QStringLiteral("Typeface"),
+        QStringLiteral("Typeface Array"),
+        QStringLiteral("Value Array"),
+        QStringLiteral("Velocity Context"),
+        QStringLiteral("Velocity Magnitude Context"),
+    };
+
+    return kTimelineUnsafeSourceTexts.contains(source);
+}
+
 class EmbeddedTranslator final : public QTranslator {
 public:
     explicit EmbeddedTranslator(const QString &lang, QObject *parent = nullptr)
@@ -353,6 +473,9 @@ public:
         (void) n;
 
         if (context == nullptr || sourceText == nullptr) {
+            return QString();
+        }
+        if (isTimelineUnsafeSourceText(sourceText)) {
             return QString();
         }
 
