@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、动态菜单兜底翻译、ExtensionLayer __cstring 内存打桩补丁、AppKit 菜单同步与运行时 inventory 导出
- * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求并对 libExtensionLayer.dylib 执行内存字面量修补
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、动态菜单兜底翻译、AppKit 菜单同步与运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
+ * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -83,31 +83,19 @@ struct CompactRuntimeLiteralTranslation {
     const char *translation;
 };
 
+/* -----------------------------------------------------------------------
+ * ExtensionLayer 自绘提示 — 保留英文原文，不做 CJK 补丁
+ *
+ * ExtensionLayer 的 overlay text renderer 使用硬编码 Latin-only 字体，
+ * 没有 CJK glyph 也没有 fallback 链。写入 CJK 后每个字符显示为 ?。
+ * Qt 通道的翻译不受影响，仅此自绘层保持英文。
+ * ----------------------------------------------------------------------- */
 constexpr RuntimeLiteralPatch kExtensionLayerLiteralPatches[] = {
-    { "Double click here to import Assets." },
-    { "Drag layers here to see their settings." },
-    { "Use the Create menu to add a layer to your Composition." },
-    { "Insert Keyframe" },
-    { "Direct Layer Selection" },
-    { "Play/ Stop" },
-    { "Space + click + drag" },
-    { "Enable Snapping" },
-    { "Pan" },
+    { nullptr },
 };
 
 constexpr CompactRuntimeLiteralTranslation kCompactRuntimeLiteralTranslations[] = {
-    { "zh-Hans", "Drag layers here to see their settings.", "拖入图层查看设置。" },
-    { "zh-Hans", "Play/ Stop", "播/停" },
-    { "zh-Hans", "Space + click + drag", "空格+点按+拖动" },
-    { "zh-Hans", "Pan", "移" },
-    { "zh-Hant", "Drag layers here to see their settings.", "拖入圖層查看設定。" },
-    { "zh-Hant", "Play/ Stop", "播/停" },
-    { "zh-Hant", "Space + click + drag", "空白+點按+拖曳" },
-    { "zh-Hant", "Pan", "移" },
-    { "ja_JP", "Drag layers here to see their settings.", "レイヤーをドラッグ" },
-    { "ja_JP", "Play/ Stop", "再/停" },
-    { "ja_JP", "Space + click + drag", "Space+クリック+ドラッグ" },
-    { "ja_JP", "Pan", "移" },
+    { nullptr, nullptr, nullptr },
 };
 
 const TranslationEntry *entriesForLanguageName(const char *lang, int *count)
@@ -157,6 +145,9 @@ const char *compactTranslationForSource(const char *lang, const char *sourceText
     }
 
     for (const auto &entry : kCompactRuntimeLiteralTranslations) {
+        if (entry.lang == nullptr || entry.sourceText == nullptr) {
+            continue;
+        }
         if (strcmp(entry.lang, lang) == 0 && strcmp(entry.sourceText, sourceText) == 0) {
             return entry.translation;
         }
@@ -269,6 +260,9 @@ int patchCStringSection(uint8_t *sectionStart, uint64_t sectionSize, const char 
 
     for (const auto &patch : kExtensionLayerLiteralPatches) {
         const char *source = patch.sourceText;
+        if (source == nullptr) {
+            continue;
+        }
         const char *translation = runtimeLiteralTranslation(lang, source);
         if (translation == nullptr) {
             continue;

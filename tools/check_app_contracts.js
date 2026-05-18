@@ -514,7 +514,7 @@ test('embedded injector covers item widgets, headers, docks, toolbars, and stand
   );
 });
 
-test('embedded injector patches ExtensionLayer literal hints outside Qt widget properties', () => {
+test('embedded injector keeps ExtensionLayer literal hints in English', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
@@ -538,39 +538,33 @@ test('embedded injector patches ExtensionLayer literal hints outside Qt widget p
   assert.match(
     injectorSource,
     /vm_protect[\s\S]*VM_PROT_COPY[\s\S]*mprotect/,
-    'literal patching should use macOS copy-on-write page protection before falling back to mprotect for read-only binary literals'
+    'the dormant literal patching path should still use copy-on-write page protection if it is deliberately re-enabled later'
   );
-
-  for (const english of [
-    'Double click here to import Assets.',
-    'Drag layers here to see their settings.',
-    'Use the Create menu to add a layer to your Composition.',
-    'Insert Keyframe',
-    'Direct Layer Selection',
-    'Play/ Stop',
-    'Space + click + drag',
-    'Enable Snapping',
-    'Pan',
-  ]) {
-    assert.match(
-      injectorSource,
-      new RegExp(english.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
-      `literal patch table should cover screenshot residue: ${english}`
-    );
-  }
-
-  const compactRows = [
-    ['Drag layers here to see their settings.', '拖入图层查看设置。'],
-    ['Play/ Stop', '播/停'],
-    ['Space + click + drag', '空格+点按+拖动'],
-    ['Pan', '移'],
-  ];
-  for (const [source, translation] of compactRows) {
-    assert.ok(
-      Buffer.byteLength(translation) <= Buffer.byteLength(source),
-      `${translation} must fit inside the original ${source} literal for safe in-place patching`
-    );
-  }
+  assert.match(
+    injectorSource,
+    /ExtensionLayer[\s\S]{0,240}保留英文原文/,
+    'ExtensionLayer self-painted hints should remain English because that renderer turns CJK glyphs into question marks'
+  );
+  assert.match(
+    injectorSource,
+    /kExtensionLayerLiteralPatches\[\][\s\S]{0,80}\{\s*nullptr\s*\}/,
+    'ExtensionLayer literal patch table should be disabled with an explicit sentinel'
+  );
+  assert.match(
+    injectorSource,
+    /kCompactRuntimeLiteralTranslations\[\][\s\S]{0,100}\{\s*nullptr,\s*nullptr,\s*nullptr\s*\}/,
+    'compact CJK literal fallback table should be disabled with an explicit sentinel'
+  );
+  assert.match(
+    injectorSource,
+    /source\s*==\s*nullptr[\s\S]{0,80}continue/,
+    'literal patch loop must skip the disabled sentinel without calling strlen on a null source'
+  );
+  assert.match(
+    injectorSource,
+    /entry\.lang\s*==\s*nullptr[\s\S]{0,120}entry\.sourceText\s*==\s*nullptr[\s\S]{0,120}continue/,
+    'compact translation lookup must skip the disabled sentinel before strcmp'
+  );
 });
 
 test('embedded injector inventory records dynamic refresh and expanded widget evidence', () => {
