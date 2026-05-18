@@ -162,14 +162,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
 
-[Unreleased]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.2.0
-[0.1.11]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.11
-[0.1.10]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.10
-[0.1.9]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.9
-[0.1.8]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.8
-[0.1.7]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.7
-[0.1.5]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.4...v0.1.5
-[0.1.4]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.4
-[0.1.2]: https://github.com/daftAI2026/Cavalry-i18n/compare/v0.1.0...v0.1.2
-[0.1.0]: https://github.com/daftAI2026/Cavalry-i18n/releases/tag/v0.1.0
