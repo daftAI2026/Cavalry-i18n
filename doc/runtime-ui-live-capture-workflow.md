@@ -61,6 +61,87 @@ AMP 那轮经验不是“跑一次脚本看数字”，而是一套闭环：
 node tools/run_live_full_ui_matrix.js --help
 ```
 
+## 启动路径校验
+
+有两条启动路径，必须先分清，否则会把“抓取现场”和“用户实际打开现场”混在一起。
+
+`run_live_full_ui_matrix.js` 走调试路径：
+
+1. 重新构建当前 repo 的 injector。
+2. 把 injector 写到 cache。
+3. 通过 `DYLD_INSERT_LIBRARIES=<cache>/libCavalryTranslatorInjector.dylib` 直接启动 Cavalry 二进制。
+
+用户双击 `/Applications/Cavalry.app` 走安装包路径：
+
+1. `Info.plist` 的 `CFBundleExecutable` 应该是 `CavalryLauncher`。
+2. `CavalryLauncher` 读取 `Contents/Resources/cavalry-i18n-lang.txt`。
+3. `CavalryLauncher` 注入 `Contents/Frameworks/libCavalryTranslatorInjector.dylib`。
+
+所以遇到“抓取正常、实际打开异常”时，先比对 app 内 injector 是否等于当前 repo 构建产物：
+
+```bash
+plutil -extract CFBundleExecutable raw \
+  /Applications/Cavalry.app/Contents/Info.plist
+
+cat /Applications/Cavalry.app/Contents/Resources/cavalry-i18n-lang.txt
+
+shasum -a 256 \
+  injector/libCavalryTranslatorInjector.dylib \
+  /Applications/Cavalry.app/Contents/Frameworks/libCavalryTranslatorInjector.dylib
+```
+
+正确状态：
+
+```text
+CFBundleExecutable == CavalryLauncher
+lang marker == 当前目标语言
+repo injector hash == app injector hash
+```
+
+如果 hash 不一致，先通过 Language Switcher 重新 Apply & Restart。只有本机诊断时，才可以手动同步 app 内 injector：
+
+```bash
+cp injector/libCavalryTranslatorInjector.dylib \
+  /Applications/Cavalry.app/Contents/Frameworks/libCavalryTranslatorInjector.dylib
+
+codesign --force --sign - \
+  /Applications/Cavalry.app/Contents/Frameworks/libCavalryTranslatorInjector.dylib
+
+codesign --force --deep --sign - /Applications/Cavalry.app
+codesign --verify --deep --strict /Applications/Cavalry.app
+```
+
+手动同步后必须重启 Cavalry。已运行的进程不会重新加载磁盘上刚替换的 dylib。
+
+## 截图证据
+
+截图只做 canary，不当覆盖率分母。截图时截 Cavalry 窗口，不截全屏，避免把 Codex、菜单栏或其他 app 干扰混进证据。
+
+```bash
+osascript -e 'tell application "Cavalry" to activate'
+sleep 0.5
+
+BOUNDS="$(
+  osascript <<'APPLESCRIPT'
+set AppleScript's text item delimiters to " "
+tell application "System Events"
+  tell process "Cavalry"
+    tell window 1
+      set p to position
+      set s to size
+      return {item 1 of p as integer, item 2 of p as integer, item 1 of s as integer, item 2 of s as integer} as text
+    end tell
+  end tell
+end tell
+APPLESCRIPT
+)"
+
+read X Y W H <<<"$BOUNDS"
+screencapture -x -R"$X,$Y,$W,$H" /tmp/cavalry-window.png
+```
+
+Retina 屏幕上输出 PNG 像素尺寸可能是 AX bounds 的 2 倍，这是正常现象。若窗口 bounds 取不到，先确认系统设置里给 Terminal/Codex 所在宿主授予 Accessibility 权限。多窗口场景下，先关闭无关弹窗，或用 Accessibility inventory 定位目标窗口后再截图。
+
 ## 抓取链路
 
 每个语言会生成一个 session：
