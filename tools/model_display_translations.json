@@ -1,0 +1,1733 @@
+{
+  "//": "Display-only model niceName translations. Keep languages/* niceName English for Time Editor; injector may use these for Qt display labels.",
+  "entries": [
+    {
+      "source": "Accumulator",
+      "zh-Hans": "累加器",
+      "zh-Hant": "累加器",
+      "ja_JP": "アキュムレーター"
+    },
+    {
+      "source": "Align",
+      "zh-Hans": "对齐",
+      "zh-Hant": "對齐",
+      "ja_JP": "配置"
+    },
+    {
+      "source": "Alpha Material Override",
+      "zh-Hans": "Alpha材质覆盖",
+      "zh-Hant": "Alpha材質覆蓋",
+      "ja_JP": "アルファマテリアルオーバーライド"
+    },
+    {
+      "source": "Apply Character Spacing",
+      "zh-Hans": "应用字符间距",
+      "zh-Hant": "套用字元間距",
+      "ja_JP": "文字間隔を適用"
+    },
+    {
+      "source": "Apply Distribution",
+      "zh-Hans": "应用分布",
+      "zh-Hant": "套用分佈",
+      "ja_JP": "分布を適用"
+    },
+    {
+      "source": "Apply Font Size",
+      "zh-Hans": "应用字体大小",
+      "zh-Hant": "套用字型大小",
+      "ja_JP": "フォントサイズを適用"
+    },
+    {
+      "source": "Apply Font Style",
+      "zh-Hans": "应用字体样式",
+      "zh-Hant": "套用字型樣式",
+      "ja_JP": "フォントスタイルを適用"
+    },
+    {
+      "source": "Apply Layout",
+      "zh-Hans": "应用布局",
+      "zh-Hant": "套用版面",
+      "ja_JP": "レイアウトを適用"
+    },
+    {
+      "source": "Apply OpenType",
+      "zh-Hans": "应用开放字体",
+      "zh-Hant": "套用開放字型",
+      "ja_JP": "オープンタイプを適用"
+    },
+    {
+      "source": "Apply Text Fill",
+      "zh-Hans": "应用文本填充",
+      "zh-Hant": "套用文字填色",
+      "ja_JP": "テキストフィルを適用"
+    },
+    {
+      "source": "Apply Text Material",
+      "zh-Hans": "应用文本材质",
+      "zh-Hant": "套用文字材質",
+      "ja_JP": "テキストマテリアルを適用"
+    },
+    {
+      "source": "Apply Typeface",
+      "zh-Hans": "应用字体",
+      "zh-Hant": "套用字體",
+      "ja_JP": "書体を適用"
+    },
+    {
+      "source": "Arc",
+      "zh-Hans": "圆弧",
+      "zh-Hant": "圓弧",
+      "ja_JP": "円弧"
+    },
+    {
+      "source": "Area Range",
+      "zh-Hans": "区域范围",
+      "zh-Hant": "區域範圍",
+      "ja_JP": "範囲エリア"
+    },
+    {
+      "source": "Array",
+      "zh-Hans": "数组",
+      "zh-Hant": "數組",
+      "ja_JP": "配列"
+    },
+    {
+      "source": "Array Manipulator",
+      "zh-Hans": "数组操控器",
+      "zh-Hant": "陣列操作器",
+      "ja_JP": "配列マニピュレーター"
+    },
+    {
+      "source": "Arrow",
+      "zh-Hans": "箭头",
+      "zh-Hant": "箭頭",
+      "ja_JP": "矢印"
+    },
+    {
+      "source": "Asset From Smart Folder",
+      "zh-Hans": "从智能文件夹获取资源",
+      "zh-Hant": "智慧資料夾素材",
+      "ja_JP": "スマートフォルダーからアセット"
+    },
+    {
+      "source": "Atomic",
+      "zh-Hans": "原子",
+      "zh-Hant": "原子",
+      "ja_JP": "アトミック"
+    },
+    {
+      "source": "Attractor Field",
+      "zh-Hans": "吸引场",
+      "zh-Hant": "吸引場",
+      "ja_JP": "引力フィールド"
+    },
+    {
+      "source": "Audio Only",
+      "zh-Hans": "仅音频",
+      "zh-Hant": "僅音訊",
+      "ja_JP": "オーディオのみ"
+    },
+    {
+      "source": "Auto-Animate",
+      "zh-Hans": "自动动画",
+      "zh-Hant": "自動動畫",
+      "ja_JP": "自動アニメート"
+    },
+    {
+      "source": "Auto-Crop",
+      "zh-Hans": "自动裁剪",
+      "zh-Hant": "自動裁切",
+      "ja_JP": "自動クロップ"
+    },
+    {
+      "source": "Background Blur",
+      "zh-Hans": "背景模糊",
+      "zh-Hant": "背景模糊",
+      "ja_JP": "背景ブラー"
+    },
+    {
+      "source": "Background Shape",
+      "zh-Hans": "背景形状",
+      "zh-Hant": "背景形狀",
+      "ja_JP": "背景シェイプ"
+    },
+    {
+      "source": "Bar Chart",
+      "zh-Hans": "柱状图",
+      "zh-Hant": "長條圖",
+      "ja_JP": "棒グラフ"
+    },
+    {
+      "source": "Barbed",
+      "zh-Hans": "倒刺",
+      "zh-Hant": "倒鉤形",
+      "ja_JP": "バーブ"
+    },
+    {
+      "source": "Basic Line",
+      "zh-Hans": "基本线",
+      "zh-Hant": "基本線",
+      "ja_JP": "基本ライン"
+    },
+    {
+      "source": "Basic Shape",
+      "zh-Hans": "基本形状",
+      "zh-Hant": "基本形狀",
+      "ja_JP": "基本シェイプ"
+    },
+    {
+      "source": "Behaviour",
+      "zh-Hans": "行为",
+      "zh-Hant": "行為",
+      "ja_JP": "ビヘイビア"
+    },
+    {
+      "source": "Behaviour Base",
+      "zh-Hans": "行为基础",
+      "zh-Hant": "行為基礎",
+      "ja_JP": "ビヘイビアベース"
+    },
+    {
+      "source": "Bento",
+      "zh-Hans": "便当",
+      "zh-Hant": "便當格",
+      "ja_JP": "ベント"
+    },
+    {
+      "source": "Bézier",
+      "zh-Hans": "贝塞尔",
+      "zh-Hant": "貝茲",
+      "ja_JP": "ベジェ"
+    },
+    {
+      "source": "Black and White",
+      "zh-Hans": "黑白",
+      "zh-Hant": "黑白",
+      "ja_JP": "白黒"
+    },
+    {
+      "source": "Blend Shader",
+      "zh-Hans": "混合着色器",
+      "zh-Hant": "混合著色器",
+      "ja_JP": "ブレンドシェーダー"
+    },
+    {
+      "source": "Blend Sub-Mesh Positions",
+      "zh-Hans": "混合子网格位置",
+      "zh-Hant": "混合子網格位置",
+      "ja_JP": "サブメッシュ位置をブレンド"
+    },
+    {
+      "source": "Block",
+      "zh-Hans": "方块",
+      "zh-Hant": "區塊",
+      "ja_JP": "ブロック"
+    },
+    {
+      "source": "Body Settings Collision Event",
+      "zh-Hans": "刚体设置碰撞事件",
+      "zh-Hant": "剛體設定碰撞事件",
+      "ja_JP": "ボディ設定衝突イベント"
+    },
+    {
+      "source": "Bone",
+      "zh-Hans": "骨骼",
+      "zh-Hant": "骨骼",
+      "ja_JP": "ボーン"
+    },
+    {
+      "source": "Box",
+      "zh-Hans": "盒形",
+      "zh-Hant": "盒形",
+      "ja_JP": "ボックス"
+    },
+    {
+      "source": "Bridge Constraint",
+      "zh-Hans": "桥接约束",
+      "zh-Hant": "橋接約束",
+      "ja_JP": "ブリッジコンストレイント"
+    },
+    {
+      "source": "Brightness And Contrast",
+      "zh-Hans": "亮度与对比度",
+      "zh-Hant": "亮度與對比",
+      "ja_JP": "明るさとコントラスト"
+    },
+    {
+      "source": "Buoyancy Field",
+      "zh-Hans": "浮力场",
+      "zh-Hant": "浮力場",
+      "ja_JP": "浮力フィールド"
+    },
+    {
+      "source": "Camera",
+      "zh-Hans": "相机",
+      "zh-Hant": "攝影機",
+      "ja_JP": "カメラ"
+    },
+    {
+      "source": "Capsule",
+      "zh-Hans": "胶囊",
+      "zh-Hant": "膠囊",
+      "ja_JP": "カプセル"
+    },
+    {
+      "source": "Cellular Noise",
+      "zh-Hans": "细胞噪波",
+      "zh-Hant": "細胞噪波",
+      "ja_JP": "セルラーノイズ"
+    },
+    {
+      "source": "Change String Case",
+      "zh-Hans": "更改字符串大小写",
+      "zh-Hant": "變更字串大小寫",
+      "ja_JP": "文字列の大文字/小文字を変更"
+    },
+    {
+      "source": "Chart",
+      "zh-Hans": "图表",
+      "zh-Hant": "圖表",
+      "ja_JP": "チャート"
+    },
+    {
+      "source": "Checkerboard Shader",
+      "zh-Hans": "棋盘格着色器",
+      "zh-Hant": "棋盤格著色器",
+      "ja_JP": "チェッカーボードシェーダー"
+    },
+    {
+      "source": "Chevron",
+      "zh-Hans": "人字形",
+      "zh-Hant": "V 形",
+      "ja_JP": "シェブロン"
+    },
+    {
+      "source": "Chop Path",
+      "zh-Hans": "分割路径",
+      "zh-Hant": "分割路徑",
+      "ja_JP": "パスをカット"
+    },
+    {
+      "source": "Chromatic Aberration",
+      "zh-Hans": "色差",
+      "zh-Hant": "色差",
+      "ja_JP": "色収差"
+    },
+    {
+      "source": "Chromatic Displacement",
+      "zh-Hans": "色差位移",
+      "zh-Hant": "色彩位移",
+      "ja_JP": "色収差ディスプレイスメント"
+    },
+    {
+      "source": "Circle",
+      "zh-Hans": "圆形",
+      "zh-Hant": "圓形",
+      "ja_JP": "円"
+    },
+    {
+      "source": "Cogwheel",
+      "zh-Hans": "齿轮",
+      "zh-Hant": "齒輪",
+      "ja_JP": "歯車"
+    },
+    {
+      "source": "Cogwheel (Gear)",
+      "zh-Hans": "齿轮",
+      "zh-Hant": "齒輪",
+      "ja_JP": "歯車（ギア）"
+    },
+    {
+      "source": "Color Collision Event",
+      "zh-Hans": "颜色碰撞事件",
+      "zh-Hant": "顏色碰撞事件",
+      "ja_JP": "カラー衝突イベント"
+    },
+    {
+      "source": "Color Info",
+      "zh-Hans": "颜色信息",
+      "zh-Hant": "顏色資訊",
+      "ja_JP": "カラー情報"
+    },
+    {
+      "source": "Color Material Override",
+      "zh-Hans": "颜色材质覆盖",
+      "zh-Hant": "顏色材質覆蓋",
+      "ja_JP": "カラーマテリアルオーバーライド"
+    },
+    {
+      "source": "Color Shader",
+      "zh-Hans": "颜色着色器",
+      "zh-Hant": "顏色著色器",
+      "ja_JP": "カラーシェーダー"
+    },
+    {
+      "source": "Component Constraint",
+      "zh-Hans": "分量约束",
+      "zh-Hant": "元件約束",
+      "ja_JP": "コンポーネントコンストレイント"
+    },
+    {
+      "source": "Composition",
+      "zh-Hans": "合成",
+      "zh-Hant": "合成",
+      "ja_JP": "コンポジション"
+    },
+    {
+      "source": "Composition Constraint",
+      "zh-Hans": "合成约束",
+      "zh-Hant": "合成約束",
+      "ja_JP": "コンポジションコンストレイント"
+    },
+    {
+      "source": "Conical Gradient",
+      "zh-Hans": "锥形渐变",
+      "zh-Hant": "錐形漸層",
+      "ja_JP": "コニカルグラデーション"
+    },
+    {
+      "source": "Contours to Sub-Meshes",
+      "zh-Hans": "轮廓转子网格",
+      "zh-Hant": "等高線到子網格",
+      "ja_JP": "等高線からサブメッシュへ"
+    },
+    {
+      "source": "Contrasting Color",
+      "zh-Hans": "对比色",
+      "zh-Hant": "對比色",
+      "ja_JP": "コントラストカラー"
+    },
+    {
+      "source": "Corner Pin",
+      "zh-Hans": "角固定",
+      "zh-Hant": "邊角固定",
+      "ja_JP": "コーナーピン"
+    },
+    {
+      "source": "Count Sub-Meshes",
+      "zh-Hans": "子网格计数",
+      "zh-Hant": "計算子網格數量",
+      "ja_JP": "サブメッシュ数をカウント"
+    },
+    {
+      "source": "Cubic Noise",
+      "zh-Hans": "立方噪波",
+      "zh-Hant": "立方雜訊",
+      "ja_JP": "キュービックノイズ"
+    },
+    {
+      "source": "Custom...",
+      "zh-Hans": "自定义...",
+      "zh-Hant": "自定義...",
+      "ja_JP": "カスタム..."
+    },
+    {
+      "source": "Data Modifier",
+      "zh-Hans": "数据修改器",
+      "zh-Hant": "資料修改器",
+      "ja_JP": "データモディファイアー"
+    },
+    {
+      "source": "Direction Field",
+      "zh-Hans": "方向场",
+      "zh-Hant": "方向場",
+      "ja_JP": "方向フィールド"
+    },
+    {
+      "source": "Displacement Utility",
+      "zh-Hans": "位移工具",
+      "zh-Hant": "位移工具",
+      "ja_JP": "ディスプレイスメントユーティリティ"
+    },
+    {
+      "source": "Distance Constraint",
+      "zh-Hans": "距离约束",
+      "zh-Hant": "距離約束",
+      "ja_JP": "ディスタンスコンストレイント"
+    },
+    {
+      "source": "Distort Edges",
+      "zh-Hans": "扭曲边缘",
+      "zh-Hant": "扭曲邊緣",
+      "ja_JP": "エッジを歪める"
+    },
+    {
+      "source": "Distortion",
+      "zh-Hans": "扭曲",
+      "zh-Hant": "扭曲",
+      "ja_JP": "ディストーション"
+    },
+    {
+      "source": "Distribution Emitter",
+      "zh-Hans": "分布发射器",
+      "zh-Hant": "分佈發射器",
+      "ja_JP": "分布エミッター"
+    },
+    {
+      "source": "Dithering",
+      "zh-Hans": "抖动",
+      "zh-Hant": "抖色",
+      "ja_JP": "ディザリング"
+    },
+    {
+      "source": "Drawable",
+      "zh-Hans": "可绘制对象",
+      "zh-Hant": "可繪製物件",
+      "ja_JP": "ドローアブル"
+    },
+    {
+      "source": "Drop Shadow",
+      "zh-Hans": "投影",
+      "zh-Hant": "投影",
+      "ja_JP": "ドロップシャドウ"
+    },
+    {
+      "source": "Edge Constraint",
+      "zh-Hans": "边缘约束",
+      "zh-Hant": "邊緣約束",
+      "ja_JP": "エッジコンストレイント"
+    },
+    {
+      "source": "Edge Detection",
+      "zh-Hans": "边缘检测",
+      "zh-Hant": "邊緣檢測",
+      "ja_JP": "エッジ検出"
+    },
+    {
+      "source": "Element",
+      "zh-Hans": "元素",
+      "zh-Hant": "元素",
+      "ja_JP": "エレメント"
+    },
+    {
+      "source": "Ellipse",
+      "zh-Hans": "椭圆",
+      "zh-Hant": "橢圓",
+      "ja_JP": "楕円"
+    },
+    {
+      "source": "Extract Sub-Meshes",
+      "zh-Hans": "提取子网格",
+      "zh-Hant": "提取子網格",
+      "ja_JP": "サブメッシュを抽出"
+    },
+    {
+      "source": "Extrude",
+      "zh-Hans": "挤压",
+      "zh-Hant": "擠出",
+      "ja_JP": "押し出し"
+    },
+    {
+      "source": "Fast Blur",
+      "zh-Hans": "快速模糊",
+      "zh-Hant": "快速模糊",
+      "ja_JP": "ファストブラー"
+    },
+    {
+      "source": "Fibonacci",
+      "zh-Hans": "斐波那契",
+      "zh-Hant": "費波那契",
+      "ja_JP": "フィボナッチ"
+    },
+    {
+      "source": "Fill",
+      "zh-Hans": "填充",
+      "zh-Hant": "填充",
+      "ja_JP": "塗り"
+    },
+    {
+      "source": "Fill Color",
+      "zh-Hans": "填充颜色",
+      "zh-Hant": "填色顏色",
+      "ja_JP": "塗りカラー"
+    },
+    {
+      "source": "Filter",
+      "zh-Hans": "滤镜",
+      "zh-Hant": "濾鏡",
+      "ja_JP": "フィルター"
+    },
+    {
+      "source": "Flow Field Modifier",
+      "zh-Hans": "流场修改器",
+      "zh-Hant": "流場修改器",
+      "ja_JP": "フローフィールドモディファイアー"
+    },
+    {
+      "source": "Force Modifier",
+      "zh-Hans": "力修改器",
+      "zh-Hant": "力修改器",
+      "ja_JP": "フォースモディファイアー"
+    },
+    {
+      "source": "Forge Dynamics",
+      "zh-Hans": "Forge动力学",
+      "zh-Hant": "Forge動力學",
+      "ja_JP": "フォージダイナミクス"
+    },
+    {
+      "source": "Formatted Date and Time",
+      "zh-Hans": "格式化日期和时间",
+      "zh-Hant": "格式化日期與時間",
+      "ja_JP": "フォーマット済み日時"
+    },
+    {
+      "source": "Formatted String",
+      "zh-Hans": "格式化字符串",
+      "zh-Hant": "格式化字元串",
+      "ja_JP": "格式化文字列"
+    },
+    {
+      "source": "Frosted Glass",
+      "zh-Hans": "磨砂玻璃",
+      "zh-Hant": "毛玻璃",
+      "ja_JP": "すりガラス"
+    },
+    {
+      "source": "Gamma Correction",
+      "zh-Hans": "伽马校正",
+      "zh-Hant": "Gamma 校正",
+      "ja_JP": "ガンマ補正"
+    },
+    {
+      "source": "Gaussian Blur",
+      "zh-Hans": "高斯模糊",
+      "zh-Hant": "高斯模糊",
+      "ja_JP": "ガウスブラー"
+    },
+    {
+      "source": "Gaussian Drop Shadow",
+      "zh-Hans": "高斯投影",
+      "zh-Hant": "高斯投射陰影",
+      "ja_JP": "ガウスドロップシャドウ"
+    },
+    {
+      "source": "Get Name",
+      "zh-Hans": "获取名称",
+      "zh-Hant": "取得名稱",
+      "ja_JP": "名前を取得"
+    },
+    {
+      "source": "Get Sub-Mesh Transform",
+      "zh-Hans": "获取子网格变换",
+      "zh-Hant": "取得子網格變換",
+      "ja_JP": "サブメッシュトランスフォームを取得"
+    },
+    {
+      "source": "Glow",
+      "zh-Hans": "辉光",
+      "zh-Hant": "輝光",
+      "ja_JP": "グロー"
+    },
+    {
+      "source": "Goal Modifier",
+      "zh-Hans": "目标修改器",
+      "zh-Hant": "目標修改器",
+      "ja_JP": "ゴールモディファイア"
+    },
+    {
+      "source": "Gradient Map",
+      "zh-Hans": "渐变映射",
+      "zh-Hant": "漸層對應",
+      "ja_JP": "グラデーションマップ"
+    },
+    {
+      "source": "Gradient Shader",
+      "zh-Hans": "渐变着色器",
+      "zh-Hant": "漸層著色器",
+      "ja_JP": "グラデーションシェーダー"
+    },
+    {
+      "source": "Grain",
+      "zh-Hans": "颗粒",
+      "zh-Hant": "顆粒",
+      "ja_JP": "グレイン"
+    },
+    {
+      "source": "Grid",
+      "zh-Hans": "网格",
+      "zh-Hant": "網格",
+      "ja_JP": "グリッド"
+    },
+    {
+      "source": "Grid Layout",
+      "zh-Hans": "网格布局",
+      "zh-Hant": "網格佈局",
+      "ja_JP": "グリッドレイアウト"
+    },
+    {
+      "source": "Group",
+      "zh-Hans": "分组",
+      "zh-Hant": "群組",
+      "ja_JP": "グループ化"
+    },
+    {
+      "source": "Halftone",
+      "zh-Hans": "半色调",
+      "zh-Hant": "半色調",
+      "ja_JP": "ハーフトーン"
+    },
+    {
+      "source": "Hash",
+      "zh-Hans": "哈希",
+      "zh-Hant": "雜湊",
+      "ja_JP": "ハッシュ"
+    },
+    {
+      "source": "Hexadecimal",
+      "zh-Hans": "十六进制",
+      "zh-Hant": "十六進位",
+      "ja_JP": "16 進数"
+    },
+    {
+      "source": "Horizontal Layout",
+      "zh-Hans": "水平布局",
+      "zh-Hant": "水平佈局",
+      "ja_JP": "水平レイアウト"
+    },
+    {
+      "source": "HSV Adjustment",
+      "zh-Hans": "HSV 调整",
+      "zh-Hant": "HSV 調整",
+      "ja_JP": "HSV 調整"
+    },
+    {
+      "source": "HSV Color",
+      "zh-Hans": "HSV 颜色",
+      "zh-Hant": "HSV 顏色",
+      "ja_JP": "HSV カラー"
+    },
+    {
+      "source": "HSV Material Override",
+      "zh-Hans": "HSV材质覆盖",
+      "zh-Hant": "HSV材質覆蓋",
+      "ja_JP": "HSVマテリアルオーバーライド"
+    },
+    {
+      "source": "IK Control",
+      "zh-Hans": "IK 控制",
+      "zh-Hant": "IK 控制",
+      "ja_JP": "IK コントロール"
+    },
+    {
+      "source": "Image Modifier",
+      "zh-Hans": "图像修改器",
+      "zh-Hant": "圖片修改器",
+      "ja_JP": "イメージモディファイア"
+    },
+    {
+      "source": "Image Sampler",
+      "zh-Hans": "图像采样器",
+      "zh-Hant": "圖片取樣器",
+      "ja_JP": "イメージサンプラー"
+    },
+    {
+      "source": "Image Shader",
+      "zh-Hans": "图像着色器",
+      "zh-Hant": "影像著色器",
+      "ja_JP": "画像シェーダー"
+    },
+    {
+      "source": "Impulse Collision Event",
+      "zh-Hans": "冲量碰撞事件",
+      "zh-Hant": "衝量碰撞事件",
+      "ja_JP": "インパルス衝突イベント"
+    },
+    {
+      "source": "Index Context",
+      "zh-Hans": "索引上下文",
+      "zh-Hant": "索引上下文",
+      "ja_JP": "インデックスコンテキスト"
+    },
+    {
+      "source": "Inner Shadow",
+      "zh-Hans": "内阴影",
+      "zh-Hant": "內陰影",
+      "ja_JP": "内側シャドウ"
+    },
+    {
+      "source": "Intersections",
+      "zh-Hans": "交叉点",
+      "zh-Hant": "交叉點",
+      "ja_JP": "交差"
+    },
+    {
+      "source": "Invert",
+      "zh-Hans": "反转",
+      "zh-Hant": "反轉",
+      "ja_JP": "反転"
+    },
+    {
+      "source": "Isolines",
+      "zh-Hans": "等高线",
+      "zh-Hant": "等高線",
+      "ja_JP": "等高線"
+    },
+    {
+      "source": "JavaScript Deformer",
+      "zh-Hans": "JavaScript变形器",
+      "zh-Hant": "JavaScript變形器",
+      "ja_JP": "JavaScriptデフォーマ"
+    },
+    {
+      "source": "JavaScript Emitter",
+      "zh-Hans": "JavaScript 发射器",
+      "zh-Hant": "JavaScript 發射器",
+      "ja_JP": "JavaScript エミッター"
+    },
+    {
+      "source": "JavaScript Modifier",
+      "zh-Hans": "JavaScript 修改器",
+      "zh-Hant": "JavaScript 修改器",
+      "ja_JP": "JavaScript モディファイア"
+    },
+    {
+      "source": "JavaScript Shape",
+      "zh-Hans": "JavaScript形状",
+      "zh-Hant": "JavaScript形狀",
+      "ja_JP": "JavaScriptシェイプ"
+    },
+    {
+      "source": "JavaScript Utility",
+      "zh-Hans": "JavaScript 工具",
+      "zh-Hant": "JavaScript 工具",
+      "ja_JP": "JavaScript ユーティリティ"
+    },
+    {
+      "source": "Join String",
+      "zh-Hans": "连接字符串",
+      "zh-Hant": "合併字串",
+      "ja_JP": "文字列結合"
+    },
+    {
+      "source": "JPEG Sequence",
+      "zh-Hans": "JPEG 序列",
+      "zh-Hant": "JPEG 序列",
+      "ja_JP": "JPEG シーケンス"
+    },
+    {
+      "source": "Kitaoka Filter",
+      "zh-Hans": "北冈滤镜",
+      "zh-Hant": "北岡濾鏡",
+      "ja_JP": "北岡フィルター"
+    },
+    {
+      "source": "Knot",
+      "zh-Hans": "结点",
+      "zh-Hant": "結點",
+      "ja_JP": "ノット"
+    },
+    {
+      "source": "Lattice",
+      "zh-Hans": "晶格",
+      "zh-Hant": "晶格",
+      "ja_JP": "ラティス"
+    },
+    {
+      "source": "Lattice Controller",
+      "zh-Hans": "晶格控制器",
+      "zh-Hant": "晶格控制器",
+      "ja_JP": "ラティスコントローラー"
+    },
+    {
+      "source": "Layout Shape",
+      "zh-Hans": "布局形状",
+      "zh-Hant": "佈局形狀",
+      "ja_JP": "レイアウトシェイプ"
+    },
+    {
+      "source": "Levels",
+      "zh-Hans": "色阶",
+      "zh-Hant": "色階",
+      "ja_JP": "レベル"
+    },
+    {
+      "source": "Line",
+      "zh-Hans": "直线",
+      "zh-Hant": "直線",
+      "ja_JP": "線"
+    },
+    {
+      "source": "Line Chart",
+      "zh-Hans": "折线图",
+      "zh-Hant": "折線圖",
+      "ja_JP": "ラインチャート"
+    },
+    {
+      "source": "Linear",
+      "zh-Hans": "线性",
+      "zh-Hant": "線性",
+      "ja_JP": "リニア"
+    },
+    {
+      "source": "Linear Gradient",
+      "zh-Hans": "线性渐变",
+      "zh-Hant": "線性漸層",
+      "ja_JP": "リニアグラデーション"
+    },
+    {
+      "source": "Linear Wipe",
+      "zh-Hans": "线性擦除",
+      "zh-Hant": "線性擦除",
+      "ja_JP": "リニアワイプ"
+    },
+    {
+      "source": "Luminance Blur",
+      "zh-Hans": "亮度模糊",
+      "zh-Hant": "亮度模糊",
+      "ja_JP": "輝度ブラー"
+    },
+    {
+      "source": "Magnetic Modifier",
+      "zh-Hans": "磁力修改器",
+      "zh-Hant": "磁力修改器",
+      "ja_JP": "マグネティックモディファイア"
+    },
+    {
+      "source": "Manipulate Array",
+      "zh-Hans": "操作数组",
+      "zh-Hant": "操作陣列",
+      "ja_JP": "配列操作"
+    },
+    {
+      "source": "Mask",
+      "zh-Hans": "蒙版",
+      "zh-Hant": "遮罩",
+      "ja_JP": "マスク"
+    },
+    {
+      "source": "Mask Blur",
+      "zh-Hans": "蒙版模糊",
+      "zh-Hant": "遮罩模糊",
+      "ja_JP": "マスクブラー"
+    },
+    {
+      "source": "Math",
+      "zh-Hans": "数学",
+      "zh-Hant": "數學",
+      "ja_JP": "数学"
+    },
+    {
+      "source": "Math2",
+      "zh-Hans": "二维数学运算",
+      "zh-Hant": "數學 2",
+      "ja_JP": "二次元数学"
+    },
+    {
+      "source": "Math3",
+      "zh-Hans": "三维数学运算",
+      "zh-Hant": "數學 3",
+      "ja_JP": "三次元数学"
+    },
+    {
+      "source": "Measure Text",
+      "zh-Hans": "测量文本",
+      "zh-Hant": "測量文字",
+      "ja_JP": "テキスト計測"
+    },
+    {
+      "source": "Merge",
+      "zh-Hans": "合并",
+      "zh-Hant": "合併",
+      "ja_JP": "結合"
+    },
+    {
+      "source": "Mesh Solver",
+      "zh-Hans": "网格求解器",
+      "zh-Hant": "網格求解器",
+      "ja_JP": "メッシュソルバー"
+    },
+    {
+      "source": "Mirror",
+      "zh-Hans": "镜像",
+      "zh-Hant": "鏡像",
+      "ja_JP": "ミラー"
+    },
+    {
+      "source": "Mix Shader",
+      "zh-Hans": "混合着色器",
+      "zh-Hant": "混合著色器",
+      "ja_JP": "ミックスシェーダー"
+    },
+    {
+      "source": "Motion Blur",
+      "zh-Hans": "运动模糊",
+      "zh-Hant": "動態模糊",
+      "ja_JP": "モーションブラー"
+    },
+    {
+      "source": "Multi-Point Gradient Shader",
+      "zh-Hans": "多点渐变着色器",
+      "zh-Hant": "多點漸層著色器",
+      "ja_JP": "マルチポイントグラデーションシェーダー"
+    },
+    {
+      "source": "Noise Shader",
+      "zh-Hans": "噪波着色器",
+      "zh-Hant": "噪波著色器",
+      "ja_JP": "ノイズシェーダー"
+    },
+    {
+      "source": "Normalize Path Direction",
+      "zh-Hans": "规范化路径方向",
+      "zh-Hant": "標準化路徑方向",
+      "ja_JP": "パス方向の正規化"
+    },
+    {
+      "source": "Number Range",
+      "zh-Hans": "数字范围",
+      "zh-Hant": "數字範圍",
+      "ja_JP": "数値範囲"
+    },
+    {
+      "source": "Number Range To Color",
+      "zh-Hans": "数字范围到颜色",
+      "zh-Hant": "數字範圍到顏色",
+      "ja_JP": "数値範囲から色へ"
+    },
+    {
+      "source": "Particle",
+      "zh-Hans": "粒子",
+      "zh-Hant": "粒子",
+      "ja_JP": "パーティクル"
+    },
+    {
+      "source": "Particle Emitter",
+      "zh-Hans": "粒子发射器",
+      "zh-Hant": "粒子發射器",
+      "ja_JP": "パーティクルエミッター"
+    },
+    {
+      "source": "Particle Modifier",
+      "zh-Hans": "粒子修改器",
+      "zh-Hant": "粒子修改器",
+      "ja_JP": "パーティクルモディファイア"
+    },
+    {
+      "source": "Particle Shape",
+      "zh-Hans": "粒子形状",
+      "zh-Hant": "粒子形狀",
+      "ja_JP": "パーティクルシェイプ"
+    },
+    {
+      "source": "Path",
+      "zh-Hans": "路径",
+      "zh-Hant": "路徑",
+      "ja_JP": "パス"
+    },
+    {
+      "source": "Path Average",
+      "zh-Hans": "路径平均",
+      "zh-Hant": "路徑平均",
+      "ja_JP": "パス平均"
+    },
+    {
+      "source": "Path Field",
+      "zh-Hans": "路径场",
+      "zh-Hant": "路徑場",
+      "ja_JP": "パスフィールド"
+    },
+    {
+      "source": "Path Modifier",
+      "zh-Hans": "路径修改器",
+      "zh-Hant": "路徑修改器",
+      "ja_JP": "パスモディファイア"
+    },
+    {
+      "source": "Path Offset",
+      "zh-Hans": "路径偏移",
+      "zh-Hant": "路徑偏移",
+      "ja_JP": "パスオフセット"
+    },
+    {
+      "source": "Path Relax",
+      "zh-Hans": "路径松弛",
+      "zh-Hant": "路徑鬆弛",
+      "ja_JP": "パス緩と"
+    },
+    {
+      "source": "Path Split",
+      "zh-Hans": "路径分裂",
+      "zh-Hant": "路徑分裂",
+      "ja_JP": "パス分岐"
+    },
+    {
+      "source": "Pattern",
+      "zh-Hans": "图案",
+      "zh-Hant": "圖案",
+      "ja_JP": "パターン"
+    },
+    {
+      "source": "Pie Chart",
+      "zh-Hans": "饼图",
+      "zh-Hant": "餅圖",
+      "ja_JP": "円グラフ"
+    },
+    {
+      "source": "Pin Constraint",
+      "zh-Hans": "钉固约束",
+      "zh-Hant": "釘選約束",
+      "ja_JP": "ピンコンストレイント"
+    },
+    {
+      "source": "Pixel Sorting",
+      "zh-Hans": "像素排序",
+      "zh-Hant": "像素排序",
+      "ja_JP": "ピクセルソート"
+    },
+    {
+      "source": "Pixelate",
+      "zh-Hans": "像素化",
+      "zh-Hant": "像素化",
+      "ja_JP": "ピクセレート"
+    },
+    {
+      "source": "PNG Sequence",
+      "zh-Hans": "PNG 序列",
+      "zh-Hant": "PNG 序列",
+      "ja_JP": "PNG シーケンス"
+    },
+    {
+      "source": "Point",
+      "zh-Hans": "点",
+      "zh-Hant": "點",
+      "ja_JP": "ポイント"
+    },
+    {
+      "source": "Point Constraint",
+      "zh-Hans": "点约束",
+      "zh-Hant": "點約束",
+      "ja_JP": "ポイントコンストレイント"
+    },
+    {
+      "source": "Point Displacer",
+      "zh-Hans": "点置换器",
+      "zh-Hant": "點置換器",
+      "ja_JP": "ポイントディスプレイサー"
+    },
+    {
+      "source": "Points to Path",
+      "zh-Hans": "点到路径",
+      "zh-Hant": "點到路徑",
+      "ja_JP": "ポイントからパスへ"
+    },
+    {
+      "source": "Polygon",
+      "zh-Hans": "多边形",
+      "zh-Hant": "多邊形",
+      "ja_JP": "多角形"
+    },
+    {
+      "source": "Posterize",
+      "zh-Hans": "色调分离",
+      "zh-Hant": "色調分離",
+      "ja_JP": "ポスタリゼーション"
+    },
+    {
+      "source": "Pre-Comp",
+      "zh-Hans": "预合成",
+      "zh-Hant": "預合成",
+      "ja_JP": "プリコンポ"
+    },
+    {
+      "source": "Radial Gradient",
+      "zh-Hans": "径向渐变",
+      "zh-Hant": "徑向漸層",
+      "ja_JP": "ラジアルグラデーション"
+    },
+    {
+      "source": "Radial Wipe",
+      "zh-Hans": "径向擦除",
+      "zh-Hant": "徑向擦除",
+      "ja_JP": "ラジアルワイプ"
+    },
+    {
+      "source": "Random",
+      "zh-Hans": "随机",
+      "zh-Hant": "隨機",
+      "ja_JP": "ランダム"
+    },
+    {
+      "source": "Random Date",
+      "zh-Hans": "随机日期",
+      "zh-Hant": "隨機日期",
+      "ja_JP": "ランダム日付"
+    },
+    {
+      "source": "Random Number",
+      "zh-Hans": "随机数字",
+      "zh-Hant": "隨機數字",
+      "ja_JP": "ランダム数値"
+    },
+    {
+      "source": "Ray",
+      "zh-Hans": "射线",
+      "zh-Hant": "射線",
+      "ja_JP": "光線"
+    },
+    {
+      "source": "Rectangle",
+      "zh-Hans": "矩形",
+      "zh-Hant": "矩形",
+      "ja_JP": "長方形"
+    },
+    {
+      "source": "Rectangle Pattern",
+      "zh-Hans": "矩形图案",
+      "zh-Hant": "矩形圖案",
+      "ja_JP": "矩形パターン"
+    },
+    {
+      "source": "Regex",
+      "zh-Hans": "正则表达式",
+      "zh-Hant": "正則運算式",
+      "ja_JP": "正規表現"
+    },
+    {
+      "source": "Remove Contours",
+      "zh-Hans": "移除轮廓",
+      "zh-Hant": "移除輪廓",
+      "ja_JP": "輪郭を削除"
+    },
+    {
+      "source": "Replace String",
+      "zh-Hans": "替换字符串",
+      "zh-Hant": "替換字元串",
+      "ja_JP": "文字列を置換"
+    },
+    {
+      "source": "Resize Array",
+      "zh-Hans": "调整数组大小",
+      "zh-Hant": "調整陣列大小",
+      "ja_JP": "配列リサイズ"
+    },
+    {
+      "source": "Resize String",
+      "zh-Hans": "调整字符串大小",
+      "zh-Hant": "調整字串大小",
+      "ja_JP": "文字列リサイズ"
+    },
+    {
+      "source": "Reverse Path",
+      "zh-Hans": "反转路径",
+      "zh-Hant": "反轉路徑",
+      "ja_JP": "パス反転"
+    },
+    {
+      "source": "RGB Split",
+      "zh-Hans": "RGB 分离",
+      "zh-Hant": "RGB 分離",
+      "ja_JP": "RGB スプリット"
+    },
+    {
+      "source": "Ring",
+      "zh-Hans": "圆环",
+      "zh-Hant": "圓環",
+      "ja_JP": "リング"
+    },
+    {
+      "source": "Rose",
+      "zh-Hans": "玫瑰线",
+      "zh-Hant": "玫瑰線",
+      "ja_JP": "ローズ"
+    },
+    {
+      "source": "Scan Lines",
+      "zh-Hans": "扫描线",
+      "zh-Hant": "掃描線",
+      "ja_JP": "走査線"
+    },
+    {
+      "source": "Scheduling Group",
+      "zh-Hans": "调度组",
+      "zh-Hant": "排程群組",
+      "ja_JP": "スケジューリンググループ"
+    },
+    {
+      "source": "Scrape",
+      "zh-Hans": "刮擦",
+      "zh-Hant": "刮擦",
+      "ja_JP": "スクレイプ"
+    },
+    {
+      "source": "Segment Path",
+      "zh-Hans": "分割路径",
+      "zh-Hant": "分割路徑",
+      "ja_JP": "パスセグメント"
+    },
+    {
+      "source": "Shader",
+      "zh-Hans": "着色器",
+      "zh-Hant": "著色器",
+      "ja_JP": "シェーダー"
+    },
+    {
+      "source": "Shape",
+      "zh-Hans": "形状",
+      "zh-Hant": "形狀",
+      "ja_JP": "シェイプ"
+    },
+    {
+      "source": "Shape Array",
+      "zh-Hans": "形状数组",
+      "zh-Hant": "形狀陣列",
+      "ja_JP": "シェイプ配列"
+    },
+    {
+      "source": "Shape Edges",
+      "zh-Hans": "形状边缘",
+      "zh-Hant": "形狀邊緣",
+      "ja_JP": "シェイプエッジ"
+    },
+    {
+      "source": "Shape Gradient",
+      "zh-Hans": "形状渐变",
+      "zh-Hant": "形狀漸層",
+      "ja_JP": "シェイプグラデーション"
+    },
+    {
+      "source": "Shape Points",
+      "zh-Hans": "形状点",
+      "zh-Hant": "形狀點",
+      "ja_JP": "シェイプポイント"
+    },
+    {
+      "source": "Shape to Shader",
+      "zh-Hans": "形状转着色器",
+      "zh-Hant": "形狀轉著色器",
+      "ja_JP": "シェイプからシェーダー"
+    },
+    {
+      "source": "Sharpen",
+      "zh-Hans": "锐化",
+      "zh-Hant": "銳化",
+      "ja_JP": "シャープ"
+    },
+    {
+      "source": "Shift Channels",
+      "zh-Hans": "偏移通道",
+      "zh-Hant": "位移通道",
+      "ja_JP": "チャンネルシフト"
+    },
+    {
+      "source": "Shuffle",
+      "zh-Hans": "洗牌",
+      "zh-Hant": "洗牌",
+      "ja_JP": "シャッフル"
+    },
+    {
+      "source": "Shuffle Array",
+      "zh-Hans": "随机排列数组",
+      "zh-Hant": "隨機排列陣列",
+      "ja_JP": "配列シャッフル"
+    },
+    {
+      "source": "Shuffle String",
+      "zh-Hans": "随机排列字符串",
+      "zh-Hant": "隨機排列字串",
+      "ja_JP": "文字列シャッフル"
+    },
+    {
+      "source": "Simplex Noise",
+      "zh-Hans": "单纯形噪波",
+      "zh-Hant": "單純形噪波",
+      "ja_JP": "シンプレックスノイズ"
+    },
+    {
+      "source": "Skeleton",
+      "zh-Hans": "骨骼",
+      "zh-Hant": "骨骼",
+      "ja_JP": "スケルトン"
+    },
+    {
+      "source": "Skinning",
+      "zh-Hans": "蒙皮",
+      "zh-Hant": "蒙皮",
+      "ja_JP": "スキニング"
+    },
+    {
+      "source": "SkSL Filter",
+      "zh-Hans": "着色语言滤镜",
+      "zh-Hant": "史奇亞著色語言濾鏡",
+      "ja_JP": "スキアシェーディング言語フィルター"
+    },
+    {
+      "source": "SkSL Shader",
+      "zh-Hans": "着色语言着色器",
+      "zh-Hant": "史奇亞著色語言著色器",
+      "ja_JP": "スキアシェーディング言語シェーダー"
+    },
+    {
+      "source": "SLA Shader",
+      "zh-Hans": "SLA 着色器",
+      "zh-Hant": "SLA 著色器",
+      "ja_JP": "SLA シェーダー"
+    },
+    {
+      "source": "Slit Scan",
+      "zh-Hans": "狭缝扫描",
+      "zh-Hant": "狹縫掃描",
+      "ja_JP": "スリットスキャン"
+    },
+    {
+      "source": "Sort",
+      "zh-Hans": "排序",
+      "zh-Hant": "排序",
+      "ja_JP": "ソート"
+    },
+    {
+      "source": "Sort Array",
+      "zh-Hans": "排序数组",
+      "zh-Hant": "排序數組",
+      "ja_JP": "配列ソート"
+    },
+    {
+      "source": "Spacer",
+      "zh-Hans": "间隔符",
+      "zh-Hant": "間隔符",
+      "ja_JP": "スペーサー"
+    },
+    {
+      "source": "Speed Modifier",
+      "zh-Hans": "速度修改器",
+      "zh-Hant": "速度修改器",
+      "ja_JP": "スピードモディファイアー"
+    },
+    {
+      "source": "Spiral",
+      "zh-Hans": "螺旋",
+      "zh-Hant": "螺旋",
+      "ja_JP": "スパイラル"
+    },
+    {
+      "source": "Spreadsheet Lookup",
+      "zh-Hans": "电子表格查找",
+      "zh-Hant": "試算表查找",
+      "ja_JP": "スプレッドシート検索"
+    },
+    {
+      "source": "Sprite Sheet",
+      "zh-Hans": "精灵图",
+      "zh-Hant": "精靈圖",
+      "ja_JP": "スプライトシート"
+    },
+    {
+      "source": "Squash and Stretch",
+      "zh-Hans": "挤压与拉伸",
+      "zh-Hant": "壓扁與拉伸",
+      "ja_JP": "スカッシュ＆ストレッチ"
+    },
+    {
+      "source": "Squircle",
+      "zh-Hans": "超椭圆",
+      "zh-Hant": "超橢圓",
+      "ja_JP": "スクワークル"
+    },
+    {
+      "source": "Star",
+      "zh-Hans": "星形",
+      "zh-Hant": "星形",
+      "ja_JP": "星形"
+    },
+    {
+      "source": "Sticky Collision Event",
+      "zh-Hans": "粘附碰撞事件",
+      "zh-Hant": "黏附碰撞事件",
+      "ja_JP": "粘着衝突イベント"
+    },
+    {
+      "source": "Stitches",
+      "zh-Hans": "缝线",
+      "zh-Hant": "縫線",
+      "ja_JP": "ステッチ"
+    },
+    {
+      "source": "String Length",
+      "zh-Hans": "字符串长度",
+      "zh-Hant": "字元串長度",
+      "ja_JP": "文字列長"
+    },
+    {
+      "source": "String Manipulator",
+      "zh-Hans": "字符串操作器",
+      "zh-Hant": "字串操作器",
+      "ja_JP": "文字列マニピュレーター"
+    },
+    {
+      "source": "Stripes",
+      "zh-Hans": "条纹",
+      "zh-Hant": "條紋",
+      "ja_JP": "ストライプ"
+    },
+    {
+      "source": "Stroke",
+      "zh-Hans": "描边",
+      "zh-Hant": "描邊",
+      "ja_JP": "ストローク"
+    },
+    {
+      "source": "Stroke Duplicator",
+      "zh-Hans": "描边复制器",
+      "zh-Hant": "描邊複製器",
+      "ja_JP": "ストロークデュプリケーター"
+    },
+    {
+      "source": "Sub-Mesh",
+      "zh-Hans": "子网格",
+      "zh-Hant": "子網格",
+      "ja_JP": "サブメッシュ"
+    },
+    {
+      "source": "Sub-Mesh Bounding Box",
+      "zh-Hans": "子网格边界框",
+      "zh-Hant": "子網格邊界框",
+      "ja_JP": "サブメッシュバウンディングボックス"
+    },
+    {
+      "source": "Sub-String",
+      "zh-Hans": "子字符串",
+      "zh-Hant": "子字串",
+      "ja_JP": "サブストリング"
+    },
+    {
+      "source": "Subdivide",
+      "zh-Hans": "细分",
+      "zh-Hant": "細分",
+      "ja_JP": "サブディバイド"
+    },
+    {
+      "source": "Super Ellipse",
+      "zh-Hans": "超级椭圆",
+      "zh-Hant": "超級橢圓",
+      "ja_JP": "スーパー楕円"
+    },
+    {
+      "source": "Super Shape",
+      "zh-Hans": "超级形状",
+      "zh-Hant": "超級形狀",
+      "ja_JP": "スーパーシェイプ"
+    },
+    {
+      "source": "SVG Sequence",
+      "zh-Hans": "SVG 序列",
+      "zh-Hant": "SVG 序列",
+      "ja_JP": "SVG シーケンス"
+    },
+    {
+      "source": "Swap Color",
+      "zh-Hans": "交换颜色",
+      "zh-Hant": "交換顏色",
+      "ja_JP": "カラースワップ"
+    },
+    {
+      "source": "Sweep Gradient",
+      "zh-Hans": "扫描渐变",
+      "zh-Hant": "掃描漸層",
+      "ja_JP": "スウィープグラデーション"
+    },
+    {
+      "source": "Threshold",
+      "zh-Hans": "阈值",
+      "zh-Hant": "閾值",
+      "ja_JP": "しきい値"
+    },
+    {
+      "source": "Time Marker",
+      "zh-Hans": "时间标记",
+      "zh-Hant": "時間標記",
+      "ja_JP": "タイムマーカー"
+    },
+    {
+      "source": "Timecode",
+      "zh-Hans": "时间码",
+      "zh-Hant": "時間碼",
+      "ja_JP": "タイムコード"
+    },
+    {
+      "source": "Timeline Counter",
+      "zh-Hans": "时间线计数器",
+      "zh-Hant": "時間軸計數器",
+      "ja_JP": "タイムラインカウンター"
+    },
+    {
+      "source": "Toon Stroke",
+      "zh-Hans": "卡通描边",
+      "zh-Hant": "卡通筆畫",
+      "ja_JP": "トゥーンストローク"
+    },
+    {
+      "source": "Transform",
+      "zh-Hans": "变换",
+      "zh-Hant": "變換",
+      "ja_JP": "変形"
+    },
+    {
+      "source": "Transform Constraint",
+      "zh-Hans": "变换约束",
+      "zh-Hant": "變換約束",
+      "ja_JP": "変形コンストレイント"
+    },
+    {
+      "source": "Transition String",
+      "zh-Hans": "过渡字符串",
+      "zh-Hant": "過渡字串",
+      "ja_JP": "トランジション文字列"
+    },
+    {
+      "source": "Travel",
+      "zh-Hans": "行程",
+      "zh-Hant": "行程",
+      "ja_JP": "トラベル"
+    },
+    {
+      "source": "TriTone",
+      "zh-Hans": "三色调",
+      "zh-Hant": "三色調",
+      "ja_JP": "トライトーン"
+    },
+    {
+      "source": "Turbulence Modifier",
+      "zh-Hans": "湍流修改器",
+      "zh-Hant": "亂流修改器",
+      "ja_JP": "タービュランスモディファイア"
+    },
+    {
+      "source": "Unicode Offset",
+      "zh-Hans": "Unicode 偏移",
+      "zh-Hant": "Unicode 偏移",
+      "ja_JP": "Unicode オフセット"
+    },
+    {
+      "source": "Value",
+      "zh-Hans": "值",
+      "zh-Hant": "值",
+      "ja_JP": "値"
+    },
+    {
+      "source": "Value Noise",
+      "zh-Hans": "值噪波",
+      "zh-Hant": "值噪波",
+      "ja_JP": "バリューノイズ"
+    },
+    {
+      "source": "Value Solver",
+      "zh-Hans": "数值求解器",
+      "zh-Hant": "數值求解器",
+      "ja_JP": "値ソルバー"
+    },
+    {
+      "source": "Value2",
+      "zh-Hans": "二维数值",
+      "zh-Hant": "數值 2",
+      "ja_JP": "値 2"
+    },
+    {
+      "source": "Value2 Array",
+      "zh-Hans": "二维数值数组",
+      "zh-Hant": "數值 2 陣列",
+      "ja_JP": "2値配列"
+    },
+    {
+      "source": "Value2 Blend",
+      "zh-Hans": "二维数值混合",
+      "zh-Hant": "數值 2 混合",
+      "ja_JP": "2値ブレンド"
+    },
+    {
+      "source": "Value2 Solver",
+      "zh-Hans": "二维数值求解器",
+      "zh-Hant": "數值 2 求解器",
+      "ja_JP": "2値ソルバー"
+    },
+    {
+      "source": "Value3",
+      "zh-Hans": "三维数值",
+      "zh-Hant": "數值 3",
+      "ja_JP": "値 3"
+    },
+    {
+      "source": "Value3 Array",
+      "zh-Hans": "三维数值数组",
+      "zh-Hant": "數值 3 陣列",
+      "ja_JP": "3値配列"
+    },
+    {
+      "source": "Value3 Blend",
+      "zh-Hans": "三维数值混合",
+      "zh-Hant": "數值 3 混合",
+      "ja_JP": "3値ブレンド"
+    },
+    {
+      "source": "Venetian Blinds",
+      "zh-Hans": "百叶窗",
+      "zh-Hant": "百葉窗",
+      "ja_JP": "ベネチアンブラインド"
+    },
+    {
+      "source": "Vertical Layout",
+      "zh-Hans": "垂直布局",
+      "zh-Hant": "垂直佈局",
+      "ja_JP": "垂直レイアウト"
+    },
+    {
+      "source": "Vignette",
+      "zh-Hans": "暗角",
+      "zh-Hant": "暗角",
+      "ja_JP": "ビネット"
+    },
+    {
+      "source": "Visibility Collision Event",
+      "zh-Hans": "可见性碰撞事件",
+      "zh-Hant": "可見性碰撞事件",
+      "ja_JP": "可視性衝突イベント"
+    },
+    {
+      "source": "Visibility Sequence",
+      "zh-Hans": "可见性序列",
+      "zh-Hant": "可見性序列",
+      "ja_JP": "可視性シーケンス"
+    },
+    {
+      "source": "Visual Modifier",
+      "zh-Hans": "视觉修改器",
+      "zh-Hant": "視覺修改器",
+      "ja_JP": "ビジュアルモディファイア"
+    },
+    {
+      "source": "Voronoi Shader",
+      "zh-Hans": "Voronoi 着色器",
+      "zh-Hant": "Voronoi 著色器",
+      "ja_JP": "Voronoi シェーダー"
+    },
+    {
+      "source": "Vortex Field",
+      "zh-Hans": "涡旋场",
+      "zh-Hant": "渦旋場",
+      "ja_JP": "渦フィールド"
+    },
+    {
+      "source": "Vortex Modifier",
+      "zh-Hans": "涡流修改器",
+      "zh-Hant": "渦流修改器",
+      "ja_JP": "ボルテックスモディファイア"
+    },
+    {
+      "source": "Voxelize",
+      "zh-Hans": "体素化",
+      "zh-Hant": "體素化",
+      "ja_JP": "ボクセル化"
+    },
+    {
+      "source": "Wave",
+      "zh-Hans": "波浪",
+      "zh-Hant": "波浪",
+      "ja_JP": "ウェーブ"
+    },
+    {
+      "source": "WebP Sequence",
+      "zh-Hans": "WebP 序列",
+      "zh-Hant": "WebP 序列",
+      "ja_JP": "WebP シーケンス"
+    }
+  ]
+}

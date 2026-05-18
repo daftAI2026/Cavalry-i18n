@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、模型 niceName item 写回保护、动态菜单兜底翻译、AppKit 菜单同步与运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit 后续文本显示翻译、模型 niceName item 写回保护、动态菜单兜底翻译、AppKit 菜单同步与带坐标父链的运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -25,6 +25,7 @@
 #include <qfileinfo.h>
 #include <qglobal.h>
 #include <QtGui/qaction.h>
+#include <QtGui/qcursor.h>
 #include <QtWidgets/qabstractbutton.h>
 #include <QtWidgets/qapplication.h>
 #include <QtWidgets/qcombobox.h>
@@ -48,9 +49,12 @@
 #include <QtWidgets/qtreewidget.h>
 #include <QtWidgets/qwidget.h>
 #include <qhash.h>
+#include <qpoint.h>
 #include <qpointer.h>
 #include <qregularexpression.h>
+#include <qrect.h>
 #include <qset.h>
+#include <QSignalBlocker>
 #include <qstring.h>
 #include <qstringlist.h>
 #include <qtranslator.h>
@@ -804,6 +808,7 @@ EmbeddedTranslator *gTranslator = nullptr;
 bool gInstallAttempted = false;
 bool gRefreshScheduled = false;
 QSet<QMenu *> gHookedMenus;
+QSet<QLineEdit *> gHookedLineEdits;
 struct DirtyObject {
     QObject *key;
     QPointer<QObject> object;
@@ -1132,6 +1137,121 @@ void addWidgetPropertyString(NSMutableDictionary *strings, QWidget *widget, cons
     strings[[NSString stringWithUTF8String:propertyName]] = toNSString(value);
 }
 
+NSArray *widgetParentChain(QWidget *widget)
+{
+    NSMutableArray *chain = [NSMutableArray array];
+    QObject *parent = widget != nullptr ? widget->parent() : nullptr;
+    while (parent != nullptr && [chain count] < 12) {
+        NSMutableDictionary *entry = [NSMutableDictionary dictionary];
+        entry[@"className"] = [NSString stringWithUTF8String:parent->metaObject()->className()];
+        if (!parent->objectName().isEmpty()) {
+            entry[@"objectName"] = toNSString(parent->objectName());
+        }
+        [chain addObject:entry];
+        parent = parent->parent();
+    }
+    return chain;
+}
+
+NSDictionary *widgetGlobalGeometry(QWidget *widget)
+{
+    const QPoint topLeft = widget->mapToGlobal(QPoint(0, 0));
+    const QRect rect = widget->rect();
+    return @{
+        @"x" : @(topLeft.x()),
+        @"y" : @(topLeft.y()),
+        @"w" : @(rect.width()),
+        @"h" : @(rect.height()),
+    };
+}
+
+NSArray *widgetDynamicProperties(QWidget *widget)
+{
+    NSMutableArray *properties = [NSMutableArray array];
+    for (const QByteArray &name : widget->dynamicPropertyNames()) {
+        const QVariant value = widget->property(name.constData());
+        NSMutableDictionary *entry = [NSMutableDictionary dictionary];
+        entry[@"name"] = [NSString stringWithUTF8String:name.constData()];
+        if (value.isValid()) {
+            entry[@"value"] = toNSString(normalizeMenuText(value.toString()));
+        }
+        [properties addObject:entry];
+    }
+    return properties;
+}
+
+bool shouldKeepDiagnosticWidget(QWidget *widget)
+{
+    const QString className = QString::fromLatin1(widget->metaObject()->className());
+    if (className.contains(QStringLiteral("Attribute"), Qt::CaseInsensitive) ||
+        className.contains(QStringLiteral("Editable"), Qt::CaseInsensitive) ||
+        className.contains(QStringLiteral("LineEdit"), Qt::CaseInsensitive) ||
+        className.contains(QStringLiteral("Rollover"), Qt::CaseInsensitive) ||
+        className.contains(QStringLiteral("RowWidget"), Qt::CaseInsensitive)) {
+        return true;
+    }
+
+    QObject *parent = widget->parent();
+    while (parent != nullptr) {
+        const QString parentClassName = QString::fromLatin1(parent->metaObject()->className());
+        if (parentClassName.contains(QStringLiteral("Attribute"), Qt::CaseInsensitive)) {
+            return true;
+        }
+        parent = parent->parent();
+    }
+
+    return false;
+}
+
+id serializeWidgetAtPoint(NSString *name, const QPoint &point)
+{
+    QWidget *widget = QApplication::widgetAt(point);
+    if (widget == nullptr) {
+        return @{
+            @"name" : name,
+            @"point" : @{
+                @"x" : @(point.x()),
+                @"y" : @(point.y()),
+            },
+            @"hit" : [NSNull null],
+        };
+    }
+
+    NSMutableDictionary *hit = [NSMutableDictionary dictionary];
+    hit[@"className"] = [NSString stringWithUTF8String:widget->metaObject()->className()];
+    hit[@"geometry"] = widgetGlobalGeometry(widget);
+    hit[@"parentChain"] = widgetParentChain(widget);
+    if (!widget->objectName().isEmpty()) {
+        hit[@"objectName"] = toNSString(widget->objectName());
+    }
+    NSArray *dynamicProperties = widgetDynamicProperties(widget);
+    if ([dynamicProperties count] > 0) {
+        hit[@"dynamicProperties"] = dynamicProperties;
+    }
+
+    NSMutableDictionary *strings = [NSMutableDictionary dictionary];
+    addStringValue(strings, @"windowTitle", widget->windowTitle());
+    addStringValue(strings, @"toolTip", widget->toolTip());
+    addStringValue(strings, @"statusTip", widget->statusTip());
+    addStringValue(strings, @"whatsThis", widget->whatsThis());
+    addWidgetPropertyString(strings, widget, "text");
+    addWidgetPropertyString(strings, widget, "title");
+    addWidgetPropertyString(strings, widget, "placeholderText");
+    addWidgetPropertyString(strings, widget, "currentText");
+    if ([strings count] > 0) {
+        hit[@"strings"] = strings;
+    }
+
+    return @{
+        @"name" : name,
+        @"point" : @{
+            @"x" : @(point.x()),
+            @"y" : @(point.y()),
+        },
+        @"hit" : hit,
+    };
+}
+
 id serializeWidget(QWidget *widget)
 {
     if (widget == nullptr || !widget->isVisible()) {
@@ -1140,8 +1260,15 @@ id serializeWidget(QWidget *widget)
 
     NSMutableDictionary *payload = [NSMutableDictionary dictionary];
     payload[@"className"] = [NSString stringWithUTF8String:widget->metaObject()->className()];
+    payload[@"geometry"] = widgetGlobalGeometry(widget);
+    payload[@"parentChain"] = widgetParentChain(widget);
     if (!widget->objectName().isEmpty()) {
         payload[@"objectName"] = toNSString(widget->objectName());
+    }
+
+    NSArray *dynamicProperties = widgetDynamicProperties(widget);
+    if ([dynamicProperties count] > 0) {
+        payload[@"dynamicProperties"] = dynamicProperties;
     }
 
     NSMutableDictionary *strings = [NSMutableDictionary dictionary];
@@ -1185,7 +1312,8 @@ id serializeWidget(QWidget *widget)
         payload[@"actionTexts"] = actionTexts;
     }
 
-    if (payload[@"strings"] == nil && payload[@"tabTexts"] == nil && payload[@"actionTexts"] == nil) {
+    if (payload[@"strings"] == nil && payload[@"tabTexts"] == nil && payload[@"actionTexts"] == nil &&
+        !shouldKeepDiagnosticWidget(widget)) {
         return [NSNull null];
     }
 
@@ -1248,6 +1376,7 @@ bool dumpQtMenuInventory(const QString &lang)
             @"dirtyEnqueueCount" : @(gDirtyEnqueueCount),
             @"dirtyDrainCount" : @(gDirtyDrainCount),
             @"dirtyObjectTranslateCount" : @(gDirtyObjectTranslateCount),
+            @"cursorWidget" : serializeWidgetAtPoint(@"cursor", QCursor::pos()),
         },
     }
                                                        options:NSJSONWritingPrettyPrinted
@@ -1460,7 +1589,16 @@ QString translatedWidgetText(const QString &lang, const QString &sourceText)
 {
     const QString translated = translatedCompoundWidgetText(lang, sourceText);
     if (translated.isEmpty() || translated == sourceText) {
-        return QString();
+        QRegularExpressionMatch match = QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
+        if (!match.hasMatch()) {
+            return QString();
+        }
+
+        const QString baseTranslation = translatedCompoundWidgetText(lang, match.captured(1).trimmed());
+        if (baseTranslation.isEmpty() || baseTranslation == match.captured(1).trimmed()) {
+            return QString();
+        }
+        return baseTranslation + match.captured(2);
     }
     return translated;
 }
@@ -1558,6 +1696,81 @@ void translateTableWidgetItems(QTableWidget *tableWidget, const QString &lang)
     }
 }
 
+QString translatedLineEditValue(const QString &lang, const QString &sourceText)
+{
+    QString translated = translatedWidgetText(lang, sourceText);
+    if (!translated.isEmpty()) {
+        return translated;
+    }
+
+    QRegularExpressionMatch match = QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
+    if (!match.hasMatch()) {
+        return QString();
+    }
+
+    const QString baseTranslation = translatedWidgetText(lang, match.captured(1).trimmed());
+    if (baseTranslation.isEmpty()) {
+        return QString();
+    }
+    return baseTranslation + match.captured(2);
+}
+
+void translateLineEditDisplayText(QLineEdit *lineEdit, const QString &lang)
+{
+    if (lineEdit == nullptr || lang.isEmpty()) {
+        return;
+    }
+
+    QString translated = translatedLineEditValue(lang, lineEdit->text());
+    if (!translated.isEmpty()) {
+        QSignalBlocker blocker(lineEdit);
+        lineEdit->setText(translated);
+    }
+
+    translated = translatedWidgetText(lang, lineEdit->placeholderText());
+    if (!translated.isEmpty()) {
+        lineEdit->setPlaceholderText(translated);
+    }
+}
+
+void hookLineEditTextChanges(QLineEdit *lineEdit, const QString &lang)
+{
+    if (lineEdit == nullptr || lang.isEmpty() || gHookedLineEdits.contains(lineEdit)) {
+        return;
+    }
+
+    gHookedLineEdits.insert(lineEdit);
+    QObject::connect(
+        lineEdit,
+        &QObject::destroyed,
+        lineEdit,
+        [lineEdit]() {
+            gHookedLineEdits.remove(lineEdit);
+        }
+    );
+
+    QPointer<QLineEdit> guardedLineEdit(lineEdit);
+    QObject::connect(
+        lineEdit,
+        &QLineEdit::textChanged,
+        lineEdit,
+        [guardedLineEdit, lang](const QString &text) {
+            if (guardedLineEdit.isNull() || text.isEmpty()) {
+                return;
+            }
+            const QString translated = translatedLineEditValue(lang, text);
+            if (translated.isEmpty() || guardedLineEdit->text() != text) {
+                return;
+            }
+
+            QSignalBlocker blocker(guardedLineEdit.data());
+            guardedLineEdit->setText(translated);
+        }
+    );
+
+    translateLineEditDisplayText(lineEdit, lang);
+}
+
 void translateQtWidgetActions(QWidget *widget, const QString &lang, QSet<QAction *> &seen)
 {
     if (widget == nullptr || lang.isEmpty()) {
@@ -1621,14 +1834,7 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
     }
 
     if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(widget)) {
-        translated = translatedWidgetText(lang, lineEdit->text());
-        if (!translated.isEmpty()) {
-            lineEdit->setText(translated);
-        }
-        translated = translatedWidgetText(lang, lineEdit->placeholderText());
-        if (!translated.isEmpty()) {
-            lineEdit->setPlaceholderText(translated);
-        }
+        hookLineEditTextChanges(lineEdit, lang);
     }
 
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(widget)) {
@@ -1868,6 +2074,7 @@ void drainDirtyObjects(QString lang)
     }
 
     gDirtyDrainScheduled = false;
+    dumpQtMenuInventory(lang);
 }
 
 void scheduleDirtyObjectDrain(QString lang)
@@ -1918,6 +2125,7 @@ protected:
         switch (event->type()) {
         case QEvent::Show:
         case QEvent::ActionAdded:
+        case QEvent::MouseButtonRelease:
             enqueueRuntimeObject(watched, m_lang);
             break;
         case QEvent::ChildAdded: {

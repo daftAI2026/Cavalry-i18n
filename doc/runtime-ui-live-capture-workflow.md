@@ -140,7 +140,7 @@ read X Y W H <<<"$BOUNDS"
 screencapture -x -R"$X,$Y,$W,$H" /tmp/cavalry-window.png
 ```
 
-Retina 屏幕上输出 PNG 像素尺寸可能是 AX bounds 的 2 倍，这是正常现象。若窗口 bounds 取不到，先确认系统设置里给 Terminal/Codex 所在宿主授予 Accessibility 权限。多窗口场景下，先关闭无关弹窗，或用 Accessibility inventory 定位目标窗口后再截图。
+只截 Cavalry 窗口，不截全屏。全屏截图会把 Codex、菜单栏、浮窗和其他应用混入证据，后续按坐标反查 QWidget 时会误判命中对象。Retina 屏幕上输出 PNG 像素尺寸可能是 AX bounds 的 2 倍，这是正常现象。若窗口 bounds 取不到，先确认系统设置里给 Terminal/Codex 所在宿主授予 Accessibility 权限。多窗口场景下，先关闭无关弹窗，或用 Accessibility inventory 定位目标窗口后再截图。
 
 ## 抓取链路
 
@@ -165,7 +165,7 @@ full-ui-run-record.json
 两路来源：
 
 1. `live-injector`
-   进程内 injector 导出 Qt 菜单、widget、tooltip、line edit、action 等 runtime inventory。
+   进程内 injector 导出 Qt 菜单、widget、tooltip、line edit、action、坐标、父链、动态属性等 runtime inventory。
 
 2. `live-accessibility`
    `capture_accessibility_inventory.js` 通过 macOS Accessibility / `osascript` 按 PID 抓菜单、窗口与 AX text nodes。
@@ -177,6 +177,33 @@ runtime/<lang>-merged-inventory.json
 ```
 
 后续分析一律以 merged inventory 为主。
+
+## 坐标反查控件
+
+当截图里能看到文字、但 `strings.text/title/currentText` 常规抓取没有命中时，不要猜类名。把鼠标放到目标文字或边框上，触发一次点击或显示刷新，然后读取 injector inventory 里的：
+
+```text
+diagnostics.cursorWidget
+```
+
+这个字段由 `QApplication::widgetAt(QCursor::pos())` 反查当前鼠标下的 QWidget，并带出：
+
+```text
+className
+objectName
+geometry
+parentChain
+dynamicProperties
+strings
+```
+
+若 `cursorWidget` 命中的是子控件，再用同一份 `widgetTexts` 按 `geometry` 附近范围过滤，查看兄弟控件。比如属性编辑器浮动标题不是 Time Editor item，而是：
+
+```text
+QLabel.text -> Widget -> AttributeEditorTreeWidget -> AttributeEditorWindow
+```
+
+这类路径应该走 Qt 显示层翻译；Time Editor 的 `QTreeWidgetItem/QListWidgetItem` 模型名仍由 injector 的 model-backed guard 保持英文。
 
 ## 判断是否抓对
 

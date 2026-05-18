@@ -385,6 +385,26 @@ test('embedded injector translates exact QLineEdit values as well as placeholder
     /lineEdit->setText\(translated\)/,
     'line edit current values should be rewritten when they exactly match an embedded UI source'
   );
+  assert.match(
+    injectorSource,
+    /QLineEdit::textChanged/,
+    'line edit values can change after widget creation, so runtime translation must hook textChanged'
+  );
+  assert.match(
+    injectorSource,
+    /QSignalBlocker blocker\(.*lineEdit/,
+    'line edit display translation should block signals so model-backed names are not renamed while being localized for display'
+  );
+  assert.match(
+    injectorSource,
+    /translatedLineEditValue[\s\S]*\\s\+\[0-9\]\+[\s\S]*baseTranslation \+ match\.captured\(2\)/,
+    'line edit display translation should preserve Cavalry auto-numbered suffixes like Camera 3'
+  );
+  assert.match(
+    injectorSource,
+    /translatedWidgetText[\s\S]*\\s\+\[0-9\]\+\)\$[\s\S]*baseTranslation \+ match\.captured\(2\)/,
+    'generic widget display translation should preserve Cavalry auto-numbered suffixes like Camera 2 in QLabel headers'
+  );
 });
 
 test('embedded injector translates widget-owned actions and container item labels', () => {
@@ -430,12 +450,33 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
+  const generatorSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'generate_embedded_translations.js'),
+    'utf8'
+  );
   const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
+  const displayNames = readJson(path.join(repoRoot, 'tools', 'model_display_translations.json'));
 
   for (const surface of ['nodeStrings', 'plugins']) {
     assert(!whitelist[surface].translate.includes('niceName'), `${surface}.niceName should not be translated`);
     assert(whitelist[surface].no_translate.includes('niceName'), `${surface}.niceName should stay English`);
   }
+
+  for (const [source, zhHant] of Object.entries({
+    Camera: '攝影機',
+    'Particle Shape': '粒子形狀',
+    'Particle Emitter': '粒子發射器',
+    'Basic Line': '基本線',
+  })) {
+    const entry = displayNames.entries.find((candidate) => candidate.source === source);
+    assert(entry, `display-only model name map should retain ${source}`);
+    assert.equal(entry['zh-Hant'], zhHant, `${source} should have a Traditional Chinese display translation`);
+  }
+  assert.match(
+    generatorSource,
+    /model_display_translations\.json[\s\S]*ModelDisplay/,
+    'embedded table generation should append display-only model name translations without changing JSON niceName'
+  );
 
   assert.match(
     injectorSource,
