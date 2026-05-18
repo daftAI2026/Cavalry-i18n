@@ -768,9 +768,42 @@ test('embedded injector normalizes real runtime menu text before lookup', () => 
     'normalization should ignore Qt mnemonic markers so runtime menu text can match ts source strings'
   );
   assert.match(
+    injectorSource,
+    /simplified\(\)|\\s\+/,
+    'normalization should collapse runtime whitespace so menu labels reset with odd spacing still hit embedded translations'
+  );
+  assert.match(
     generated,
     /"MenuBarManager", "Set Project", ".*"/,
     'embedded translations should include the real Set Project menu label captured from the runtime inventory'
+  );
+});
+
+test('embedded injector handles dynamic layer context menu labels without static one-off entries', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /lookupDynamicMenuTranslation/,
+    'runtime lookup should include a small dynamic fallback for labels like Copy 1 Layer and user-numbered Rig Control menu items'
+  );
+  assert.match(
+    injectorSource,
+    /Copy\\s\+\[0-9\]\+\\s\+Layer|Copy\\\\s\+\(\[0-9\]\+\)\\\\s\+Layer/,
+    'dynamic fallback should translate Copy <n> Layer context menu actions without enumerating every count'
+  );
+  assert.match(
+    injectorSource,
+    /Rig Control\\s\+\[0-9\]\+|Rig Control\\\\s\+\(\[0-9\]\+\)/,
+    'dynamic fallback should translate numbered Rig Control labels while preserving the user-visible suffix'
+  );
+  assert.match(
+    injectorSource,
+    /Rename\.\.\./,
+    'dynamic fallback should cover Rename... because the static table only contains the bare Rename command'
   );
 });
 

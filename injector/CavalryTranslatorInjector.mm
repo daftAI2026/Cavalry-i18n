@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、ExtensionLayer __cstring 内存打桩补丁、AppKit 菜单同步与运行时 inventory 导出
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、动态菜单兜底翻译、ExtensionLayer __cstring 内存打桩补丁、AppKit 菜单同步与运行时 inventory 导出
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求并对 libExtensionLayer.dylib 执行内存字面量修补
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -49,6 +49,7 @@
 #include <QtWidgets/qwidget.h>
 #include <qhash.h>
 #include <qpointer.h>
+#include <qregularexpression.h>
 #include <qset.h>
 #include <qstring.h>
 #include <qstringlist.h>
@@ -512,7 +513,72 @@ QString normalizeMenuText(const QString &text)
         cleaned.append(ch);
     }
 
-    return cleaned.trimmed();
+    return cleaned.simplified();
+}
+
+QString lookupDynamicMenuTranslation(const QString &lang, const QString &sourceText)
+{
+    const QString source = normalizeMenuText(sourceText);
+    if (source.isEmpty()) {
+        return QString();
+    }
+
+    const QRegularExpression copyLayerPattern(QStringLiteral("^Copy\\s+([0-9]+)\\s+Layers?$"));
+    const QRegularExpressionMatch copyLayerMatch = copyLayerPattern.match(source);
+    if (copyLayerMatch.hasMatch()) {
+        const QString count = copyLayerMatch.captured(1);
+        if (lang == QStringLiteral("zh-Hans")) {
+            return QStringLiteral("复制 %1 个图层").arg(count);
+        }
+        if (lang == QStringLiteral("zh-Hant")) {
+            return QStringLiteral("複製 %1 個圖層").arg(count);
+        }
+        if (lang == QStringLiteral("ja_JP")) {
+            return QStringLiteral("%1 個のレイヤーをコピー").arg(count);
+        }
+    }
+
+    const QRegularExpression rigControlPattern(QStringLiteral("^Rig Control\\s+([0-9]+)(\\.\\.\\.)?$"));
+    const QRegularExpressionMatch rigControlMatch = rigControlPattern.match(source);
+    if (rigControlMatch.hasMatch()) {
+        const QString suffix = rigControlMatch.captured(2);
+        const QString count = rigControlMatch.captured(1);
+        if (lang == QStringLiteral("zh-Hans")) {
+            return QStringLiteral("绑定控制 %1%2").arg(count, suffix);
+        }
+        if (lang == QStringLiteral("zh-Hant")) {
+            return QStringLiteral("綁定控制 %1%2").arg(count, suffix);
+        }
+        if (lang == QStringLiteral("ja_JP")) {
+            return QStringLiteral("リグ制御 %1%2").arg(count, suffix);
+        }
+    }
+
+    if (source == QStringLiteral("Rename...")) {
+        if (lang == QStringLiteral("zh-Hans")) {
+            return QStringLiteral("重命名...");
+        }
+        if (lang == QStringLiteral("zh-Hant")) {
+            return QStringLiteral("重新命名...");
+        }
+        if (lang == QStringLiteral("ja_JP")) {
+            return QStringLiteral("名前変更...");
+        }
+    }
+
+    if (source.startsWith(QStringLiteral("Reveal Composition in Assets Wind"))) {
+        if (lang == QStringLiteral("zh-Hans")) {
+            return QStringLiteral("在素材窗口中显示合成");
+        }
+        if (lang == QStringLiteral("zh-Hant")) {
+            return QStringLiteral("在素材視窗中顯示合成");
+        }
+        if (lang == QStringLiteral("ja_JP")) {
+            return QStringLiteral("アセットウィンドウでコンポジションを表示");
+        }
+    }
+
+    return QString();
 }
 
 void rebuildTranslationCache(const QString &lang)
@@ -549,7 +615,7 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
         if (cached != gTranslationBySource.constEnd()) {
             return cached.value();
         }
-        return QString();
+        return lookupDynamicMenuTranslation(lang, normalizedSource);
     }
 
     int count = 0;
@@ -565,7 +631,7 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
         }
     }
 
-    return QString();
+    return lookupDynamicMenuTranslation(lang, normalizedSource);
 }
 
 NSString *toNSString(const QString &value)
