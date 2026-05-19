@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Qt Item Model Serialization**: Added `serializeItemViewModel` and `serializeModelRows` to serialize and capture Qt item model structures in the runtime inventory for downstream coverage auditing.
+- **Debounced Dynamic Translation Refresh**: Implemented GCD-based coalescing (`scheduleInteractiveRefresh`) to debounce and schedule translation refreshes for dynamic widgets and late-loaded layouts during event-filter callbacks.
+- **Quick-Add Empty Rows Pruning**: Implemented `pruneQuickAddEmptyItems` in the injector to clean up empty list rows inside `QuickAddWindow`, preventing blank card residues in the Add Layer dialog.
+- **Add Layer UI & Attribute Translations**: Completed missing translation entries for the Add Layer dialog and dynamic attribute panels in both Simplified and Traditional Chinese, and Japanese translation files.
 - **Forge Dynamics Attribute Translations**: Added localization support for *Ground Friction*, *Ground Bounce*, *Velocity Iterations*, *Position Iterations*, *Fields*, and *Un-Parent* in the translation catalogs and `forgeDynamicsShape` node properties.
 - **Dynamic Status Bar Selection Translation**: Implemented regex-based status bar selection count localization (e.g. `([0-9]+) selected`) in the C++ injector to translate selection status displays dynamically across all locales.
 - **Runtime Noise Quarantine**: Added `tools/runtime-noise-quarantine.json` containing 20 audited short tokens (e.g. `Rhu`) that lack translation provenance.
@@ -21,6 +25,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ellipsis Menu Variant Generation**: Dynamically derive ellipsis (`...`) variants for `ModelDisplay` translation entries during compile-time header generation to cover context-menu actions while keeping NiceNames in English.
 
 ### Changed
+- **Definition Tag Token Restoration**: Reverted localized tags back to standard English source tokens (e.g., `Distribution`, `Spiral`, `Bezier`) in Simplified Chinese, Traditional Chinese, and Japanese language packs to keep tag chips matching Cavalry's native tags rendering.
+- **Smoother Node Elimination**: Purged obsolete, undefined `smoother` node definitions from JSON assets and translation lists to prevent orphan blank cards in the Add Layer dialog.
 - **Directory Renaming & Path Migration**: Renamed the `doc` directory to `docs` to align with standard conventions, migrating all path references, contract tests (`check_app_contracts.js`), translation sources (`ja_JP.ts`, `zh-Hans.ts`, `zh-Hant.ts`), and configuration files (`translation-whitelist.json`).
 - **Embedded Translation Filtering**: Updated `tools/generate_embedded_translations.js` to load the noise quarantine list and filter out unproven tokens, preventing bulk translation pollution (e.g., `Rhu -> 鲁/ログイン`) in `injector/generated_translations.inc`.
 - **GEB Document Synchronization**: Updated L2 and L3 headers in `tools/CLAUDE.md` and `tools/check_app_contracts.js` to document the new quarantine config and test verification structures.
