@@ -232,12 +232,24 @@ function makeTempDir(prefix) {
   return fs.mkdtempSync(path.join(os.tmpdir(), prefix));
 }
 
+let _assistiveAccess;
+function hasAssistiveAccess() {
+  if (_assistiveAccess === undefined) {
+    const result = spawnSync('osascript', ['-e', 'tell application "System Events" to count windows of process "Finder"'], {
+      encoding: 'utf8',
+    });
+    _assistiveAccess = result.status === 0;
+  }
+  return _assistiveAccess;
+}
+
 module.exports = {
   captureContentRegion,
   delay,
   diffImages,
   expectedContentSize,
   focusWindow,
+  hasAssistiveAccess,
   launchTauri,
   listVisibleWindows,
   makeTempDir,

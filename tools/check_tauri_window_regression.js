@@ -13,6 +13,7 @@ const {
   delay,
   expectedContentSize,
   focusWindow,
+  hasAssistiveAccess,
   launchTauri,
   makeTempDir,
   stopChild,
@@ -28,7 +29,11 @@ const FROZEN_WINDOW = {
   chromeHeight: 28,
 };
 
-test('tauri window regression stays within the frozen Tauri contract', async () => {
+test('tauri window regression stays within the frozen Tauri contract', async (t) => {
+  if (!hasAssistiveAccess()) {
+    t.skip('Skipping tauri window regression: osascript lacks assistive access permissions');
+    return;
+  }
   tauriBundleBinary();
   const stateDir = makeTempDir('cavalry-i18n-tauri-window-state-');
   const outputDir = makeTempDir('cavalry-i18n-tauri-window-shot-');
