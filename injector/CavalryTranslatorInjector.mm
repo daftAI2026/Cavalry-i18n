@@ -977,6 +977,21 @@ QString lookupDynamicMenuTranslation(const QString &lang, const QString &sourceT
         }
     }
 
+    const QRegularExpression addKeyframePattern(QStringLiteral("^Add Keyframe on frame\\s+([0-9]+)$"));
+    const QRegularExpressionMatch addKeyframeMatch = addKeyframePattern.match(source);
+    if (addKeyframeMatch.hasMatch()) {
+        const QString frame = addKeyframeMatch.captured(1);
+        if (lang == QStringLiteral("zh-Hans")) {
+            return QStringLiteral("在第 %1 帧添加关键帧").arg(frame);
+        }
+        if (lang == QStringLiteral("zh-Hant")) {
+            return QStringLiteral("在第 %1 幀新增關鍵幀").arg(frame);
+        }
+        if (lang == QStringLiteral("ja_JP")) {
+            return QStringLiteral("フレーム %1 にキーフレームを追加").arg(frame);
+        }
+    }
+
     if (source == QStringLiteral("Rename...")) {
         if (lang == QStringLiteral("zh-Hans")) {
             return QStringLiteral("重命名...");

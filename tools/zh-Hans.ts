@@ -2109,6 +2109,8 @@
     <message><source>Rhb 9</source><translation>第9条</translation></message>
     <message><source>Rht</source><translation>调值</translation></message>
     <message><source>Rhu</source><translation>鲁</translation></message>
+    <message><source>Copy Animated Attribute</source><translation>复制动画属性</translation></message>
+    <message><source>Clip(s)</source><translation>片段</translation></message>
     <message><source>Right Align</source><translation>右对齐</translation></message>
     <message><source>Right Align Keys</source><translation>右对齐密钥</translation></message>
     <message><source>Right B</source><translation>右字节</translation></message>

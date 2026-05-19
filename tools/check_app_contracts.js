@@ -983,6 +983,11 @@ test('embedded injector handles dynamic layer context menu labels without static
     /Rename\.\.\./,
     'dynamic fallback should cover Rename... because the static table only contains the bare Rename command'
   );
+  assert.match(
+    injectorSource,
+    /Add Keyframe on frame\\s\+\(\[0-9\]\+\)|Add Keyframe on frame\\\\s\+\(\[0-9\]\+\)/,
+    'dynamic fallback should translate Time Editor Add Keyframe on frame <n> actions without enumerating every frame number'
+  );
 });
 
 test('active full-ui scripts reject the legacy 99% threshold', () => {
@@ -2381,6 +2386,8 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     'Tips panel HTML labels should be translated as exact runtime widget strings'
   );
   for (const [source, zhHans, zhHant, ja] of [
+    ['Copy Animated Attribute', '复制动画属性', '複製動畫屬性', 'アニメーション属性をコピー'],
+    ['Clip(s)', '片段', '片段', 'クリップ'],
     ['Start Frame', '起始帧', '起始幀', '開始フレーム'],
     ['Seed', '种子', '種子', 'シード'],
     ['Lifespan', '生命周期', '生命週期', '寿命'],

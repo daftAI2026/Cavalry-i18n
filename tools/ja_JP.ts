@@ -3134,6 +3134,8 @@
     <message><source>Rhb 9</source><translation>ラフブ 9</translation></message>
     <message><source>Rht</source><translation>ログイン</translation></message>
     <message><source>Rhu</source><translation>ログイン</translation></message>
+    <message><source>Copy Animated Attribute</source><translation>アニメーション属性をコピー</translation></message>
+    <message><source>Clip(s)</source><translation>クリップ</translation></message>
     <message><source>Right Align</source><translation>右アライナー</translation></message>
     <message><source>Right Align Keys</source><translation>右アライナーキー</translation></message>
     <message><source>Right B</source><translation>右バイト</translation></message>

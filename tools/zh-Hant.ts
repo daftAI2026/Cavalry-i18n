@@ -2180,6 +2180,8 @@
     <message><source>Rhb 9</source><translation>第9條</translation></message>
     <message><source>Rht</source><translation>調值</translation></message>
     <message><source>Rhu</source><translation>魯</translation></message>
+    <message><source>Copy Animated Attribute</source><translation>複製動畫屬性</translation></message>
+    <message><source>Clip(s)</source><translation>片段</translation></message>
     <message><source>Right Align</source><translation>右對齊</translation></message>
     <message><source>Right Align Keys</source><translation>右對齊密鑰</translation></message>
     <message><source>Right B</source><translation>右位元組</translation></message>
