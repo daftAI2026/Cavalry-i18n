@@ -11,7 +11,7 @@
 
 ## 预览
 
-![Cavalry UI 简体中文](doc/img/ui-zh-Hans.png)
+![Cavalry UI 简体中文](docs/img/ui-zh-Hans.png)
 
 ## 功能
 
@@ -141,7 +141,7 @@ Cavalry-i18n/
 │       └── ...
 ├── languages/                    # JSON 语言包（en、zh-Hans、zh-Hant、ja_JP）
 ├── tools/                        # 构建、测试、覆盖率脚本与 gate contracts
-├── doc/                          # 架构计划、翻译规则、workflow evidence
+├── docs/                          # 架构计划、翻译规则、workflow evidence
 ├── output/                       # 派生审计产物与 JSON surface evidence
 └── .github/workflows/            # CI：contract → packaging → release
 ```

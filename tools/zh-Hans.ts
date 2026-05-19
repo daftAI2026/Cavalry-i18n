@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
 <!--
-[INPUT]: 依赖 Cavalry compiled/runtime 英文 source、doc/translation-guidelines.md、doc/cavalry-glossary*.md 与 tools/translation-whitelist.json
+[INPUT]: 依赖 Cavalry compiled/runtime 英文 source、docs/translation-guidelines.md、docs/cavalry-glossary*.md 与 tools/translation-whitelist.json
 [OUTPUT]: 对外提供 zh-Hans Qt TS 翻译目录，被 generate_embedded_translations.js 编译进 injector 表
 [POS]: tools 编译期 UI 翻译源，和 zh-Hant.ts / ja_JP.ts 共同覆盖 compiled/runtime 菜单文本
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

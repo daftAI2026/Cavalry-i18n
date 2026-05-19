@@ -1084,8 +1084,8 @@ test('verify gate inputs fails on known bypass artifacts before matrix execution
     },
   });
   fs.mkdirSync(path.join(tempRoot, 'tools', 'full_ui_inventory_fixtures'), { recursive: true });
-  fs.mkdirSync(path.join(tempRoot, 'doc'), { recursive: true });
-  fs.writeFileSync(path.join(tempRoot, 'doc', 'libExtensionLayer-curated-ui.txt'), 'curated\n');
+  fs.mkdirSync(path.join(tempRoot, 'docs'), { recursive: true });
+  fs.writeFileSync(path.join(tempRoot, 'docs', 'libExtensionLayer-curated-ui.txt'), 'curated\n');
 
   const result = spawnSync(process.execPath, [preflightPath, '--repo-root', tempRoot], {
     encoding: 'utf8',
@@ -1186,14 +1186,14 @@ test('verify gate inputs rejects runtime inventories outside SESSION_DIR/runtime
   assert.match(`${result.stdout}\n${result.stderr}`, /SESSION_DIR\/runtime|runtime artifact outside/i);
 });
 
-test('compiled UI source map is generated in the local cache, not tracked under doc', () => {
+test('compiled UI source map is generated in the local cache, not tracked under docs', () => {
   const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
   const scripts = packageJson.scripts || {};
 
   assert.equal(
-    fs.existsSync(path.join(repoRoot, 'doc', 'compiled-ui-source-map.json')),
+    fs.existsSync(path.join(repoRoot, 'docs', 'compiled-ui-source-map.json')),
     false,
-    'compiled UI source map should be regenerated from the local Cavalry.app instead of tracked under doc/'
+    'compiled UI source map should be regenerated from the local Cavalry.app instead of tracked under docs/'
   );
   assert.match(
     scripts['extract:compiled-ui'] || '',
@@ -1927,8 +1927,8 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
   );
   assert.doesNotMatch(
     workflowSource,
-    /run: npm run build$|doc\/compiled-ui-source-map\.json|doc\/translation-whitelist\.json/,
-    'workflow should not keep the legacy build command or doc-scoped gate artifacts'
+    /run: npm run build$|docs\/compiled-ui-source-map\.json|docs\/translation-whitelist\.json/,
+    'workflow should not keep the legacy build command or docs-scoped gate artifacts'
   );
   assert.doesNotMatch(
     stampScript,

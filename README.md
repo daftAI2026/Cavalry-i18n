@@ -11,7 +11,7 @@
 
 ## Preview
 
-![Cavalry UI in Simplified Chinese](doc/img/ui-zh-Hans.png)
+![Cavalry UI in Simplified Chinese](docs/img/ui-zh-Hans.png)
 
 ## Features
 
@@ -141,7 +141,7 @@ Cavalry-i18n/
 │       └── ...
 ├── languages/                    # JSON language packs (en, zh-Hans, zh-Hant, ja_JP)
 ├── tools/                        # Build, test, coverage scripts and gate contracts
-├── doc/                          # Architecture plans, translation rules, workflow evidence
+├── docs/                          # Architecture plans, translation rules, workflow evidence
 ├── output/                       # Derived audit artifacts and JSON surface evidence
 └── .github/workflows/            # CI: contract → packaging → release
 ```

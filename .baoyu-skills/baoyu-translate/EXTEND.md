@@ -8,4 +8,4 @@ audience: technical
 style: technical
 
 glossary_files:
-  - ../../doc/cavalry-glossary-en-zh.md
+  - ../../docs/cavalry-glossary-en-zh.md

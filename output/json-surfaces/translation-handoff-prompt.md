@@ -80,9 +80,9 @@
 
 如果需要语言风格/质量要求，请参考：
 
-- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/doc/workflows/cavalry-full-ui-100/prompts/08-translate-zh-hans.md`
-- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/doc/workflows/cavalry-full-ui-100/prompts/09-translate-zh-hant.md`
-- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/doc/workflows/cavalry-full-ui-100/prompts/10-translate-ja-jp.md`
+- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/workflows/cavalry-full-ui-100/prompts/08-translate-zh-hans.md`
+- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/workflows/cavalry-full-ui-100/prompts/09-translate-zh-hant.md`
+- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/workflows/cavalry-full-ui-100/prompts/10-translate-ja-jp.md`
 
 ## 任务目标
 

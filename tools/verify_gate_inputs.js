@@ -89,9 +89,9 @@ function collectViolations(repoRoot) {
     violations.push(`tools/full_ui_inventory_fixtures present at ${fixturesDir}`);
   }
 
-  const curatedCorpus = path.join(repoRoot, 'doc', 'libExtensionLayer-curated-ui.txt');
+  const curatedCorpus = path.join(repoRoot, 'docs', 'libExtensionLayer-curated-ui.txt');
   if (fs.existsSync(curatedCorpus)) {
-    violations.push(`doc/libExtensionLayer-curated-ui.txt present at ${curatedCorpus}`);
+    violations.push(`docs/libExtensionLayer-curated-ui.txt present at ${curatedCorpus}`);
   }
 
   const packagePath = path.join(repoRoot, 'package.json');

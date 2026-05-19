@@ -11,7 +11,7 @@
 
 ## プレビュー
 
-![Cavalry UI 日本語](doc/img/ui-ja_JP.png)
+![Cavalry UI 日本語](docs/img/ui-ja_JP.png)
 
 ## 機能
 
@@ -141,7 +141,7 @@ Cavalry-i18n/
 │       └── ...
 ├── languages/                    # JSON language packs（en、zh-Hans、zh-Hant、ja_JP）
 ├── tools/                        # build、test、coverage scripts、gate contracts
-├── doc/                          # architecture plans、translation rules、workflow evidence
+├── docs/                          # architecture plans、translation rules、workflow evidence
 ├── output/                       # derived audit artifacts、JSON surface evidence
 └── .github/workflows/            # CI：contract → packaging → release
 ```

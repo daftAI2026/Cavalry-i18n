@@ -130,8 +130,8 @@ if [ "$RESIGN_APP" -eq 1 ]; then
   /usr/bin/codesign --force --deep --sign - "$APP_PATH" 2>/dev/null || true
 
   # Verify codesign state for G-CAPTURE provenance.
-  # See doc/cavalry-runtime-injection-techniques.md §5 and
-  # doc/workflows/cavalry-full-ui-100/Acceptance.md §G-CAPTURE for detailed
+  # See docs/cavalry-runtime-injection-techniques.md §5 and
+  # docs/workflows/cavalry-full-ui-100/Acceptance.md §G-CAPTURE for detailed
   # expectations. This evidence.txt log proves:
   #
   #  1. Codesign operation was attempted (launcher ran this block)

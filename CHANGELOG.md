@@ -10,15 +10,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 - **Runtime Noise Quarantine**: Added `tools/runtime-noise-quarantine.json` containing 20 audited short tokens (e.g. `Rhu`) that lack translation provenance.
 - **Contract Verification for Quarantine**: Added a contract test in `tools/check_app_contracts.js` to assert that quarantined noise tokens are filtered and do not enter compile-time tables.
-- **Cavalry-i18n Code Review Report**: Added `doc/code-review-report.md` performing a thorough audit of dead code, redundant logic, and architecture detours.
-- **Runtime Translation Noise Triage Audit**: Added `doc/audits/runtime-translation-noise-triage-2026-05-19.md` listing triage logs and evidence checkouts for 21 candidate tokens.
-- **Runtime Translation Noise Triage Protocol**: Added `doc/runtime-translation-noise-triage.md` outlining the triage steps, evidence levels, and quarantine rules for runtime translation short tokens (e.g., `Rhu`), and linked it in `doc/CLAUDE.md`.
+- **Cavalry-i18n Code Review Report**: Added `docs/code-review-report.md` performing a thorough audit of dead code, redundant logic, and architecture detours.
+- **Runtime Translation Noise Triage Audit**: Added `docs/audits/runtime-translation-noise-triage-2026-05-19.md` listing triage logs and evidence checkouts for 21 candidate tokens.
+- **Runtime Translation Noise Triage Protocol**: Added `docs/runtime-translation-noise-triage.md` outlining the triage steps, evidence levels, and quarantine rules for runtime translation short tokens (e.g., `Rhu`), and linked it in `docs/CLAUDE.md`.
 - **Dynamic Frame Keyframe Translation**: Implemented regex-based interceptor in `CavalryTranslatorInjector.mm` to localize Time Editor's "Add Keyframe on frame <n>" context-menu actions dynamically across all supported locales.
 - **Animation and Timing Translations**: Added Japanese, Simplified Chinese, and Traditional Chinese translation support for animation/timing variables including *Copy Animated Attribute*, *Clip(s)*, *Start Frame*, *Seed*, *Lifespan*, *Emitters*, *Turbulence*, *Gravity*, *Drag Force*, *Mass*, *Timing Mode*, *Group By Parent*, *Parent Timing Mode*, and *Reverse Parent Order*.
 - **Contract Verification for Animation Terms**: Added corresponding test assertions in `tools/check_app_contracts.js` to verify these newly added parameters and dynamic menu translation schemas exist in all language assets.
 - **Ellipsis Menu Variant Generation**: Dynamically derive ellipsis (`...`) variants for `ModelDisplay` translation entries during compile-time header generation to cover context-menu actions while keeping NiceNames in English.
 
 ### Changed
+- **Directory Renaming & Path Migration**: Renamed the `doc` directory to `docs` to align with standard conventions, migrating all path references, contract tests (`check_app_contracts.js`), translation sources (`ja_JP.ts`, `zh-Hans.ts`, `zh-Hant.ts`), and configuration files (`translation-whitelist.json`).
 - **Embedded Translation Filtering**: Updated `tools/generate_embedded_translations.js` to load the noise quarantine list and filter out unproven tokens, preventing bulk translation pollution (e.g., `Rhu -> 鲁/ログイン`) in `injector/generated_translations.inc`.
 - **GEB Document Synchronization**: Updated L2 and L3 headers in `tools/CLAUDE.md` and `tools/check_app_contracts.js` to document the new quarantine config and test verification structures.
 
