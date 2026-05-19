@@ -1717,12 +1717,6 @@
         }
       },
       {
-        "nodeType": "smoother",
-        "attributes": {
-          "smoothingSteps": "平滑步数"
-        }
-      },
-      {
         "nodeType": "motionStretch",
         "nodeInfo": "根据速度变形形状。",
         "attributes": {

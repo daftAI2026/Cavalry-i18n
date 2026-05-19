@@ -357,6 +357,7 @@ bool shouldPreserveModelBackedItemText(const QString &sourceText)
 
     static const QSet<QString> kModelBackedItemTexts = {
         QStringLiteral("3D Matrix"),
+        QStringLiteral("4-Point Warp"),
         QStringLiteral("Accumulator"),
         QStringLiteral("Add Divisions"),
         QStringLiteral("Align"),
@@ -467,6 +468,7 @@ bool shouldPreserveModelBackedItemText(const QString &sourceText)
         QStringLiteral("Drawable"),
         QStringLiteral("Drop Shadow"),
         QStringLiteral("Duplicator"),
+        QStringLiteral("Editable Shape"),
         QStringLiteral("Edge Constraint"),
         QStringLiteral("Edge Detection"),
         QStringLiteral("Element"),

@@ -567,6 +567,16 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     /translateTreeWidgetItem[\s\S]{0,650}const QString source = item->text\(column\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(source\)[\s\S]{0,120}continue;/,
     'QTreeWidgetItem text must be skipped before translatedWidgetText can write it back with setText'
   );
+  assert.match(
+    injectorSource,
+    /QStringLiteral\("4-Point Warp"\)/,
+    'display-layer translations for generated Add Layer labels must still preserve Time Editor item text'
+  );
+  assert.match(
+    injectorSource,
+    /QStringLiteral\("Editable Shape"\)/,
+    'Editable Shape display translation must not bleed into Time Editor item-model text'
+  );
   assert.doesNotMatch(
     injectorSource,
     /EmbeddedTranslator[\s\S]{0,1200}isTimelineUnsafeSourceText/,
@@ -2393,6 +2403,21 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
   for (const [source, zhHans, zhHant, ja] of [
     ['Copy Animated Attribute', '复制动画属性', '複製動畫屬性', 'アニメーション属性をコピー'],
     ['Clip(s)', '片段', '片段', 'クリップ'],
+    ['4-Point Warp', '四点变形', '四點變形', '4点ワープ'],
+    ['Editable Shape', '可编辑形状', '可編輯形狀', '編集可能シェイプ'],
+    ['Erosion', '腐蚀', '侵蝕', 'エロージョン'],
+    ['Falloff', '衰减', '衰減', 'フォールオフ'],
+    ['Motion Stretch', '运动拉伸', '運動拉伸', 'モーションストレッチ'],
+    ['Polar Coordinates', '极坐标', '極座標', '極座標'],
+    ['Spring', '弹簧', '彈簧', 'スプリング'],
+    ['Trails', '轨迹', '軌跡', 'トレイル'],
+    ['Velocity Context', '速度方向上下文', '速度方向上下文', '速度方向コンテキスト'],
+    ['Velocity Magnitude Context', '速度大小上下文', '速度大小上下文', '速度の大きさコンテキスト'],
+    ['Remapping', '重映射', '重映射', 'リマッピング'],
+    ['None...', '无...', '無...', 'なし...'],
+    ['Draw Extents', '绘制范围', '繪製範圍', '範囲を描画'],
+    ['Column Span', '跨列', '跨列', '列スパン'],
+    ['Row Span', '跨行', '跨行', '行スパン'],
     ['Start Frame', '起始帧', '起始幀', '開始フレーム'],
     ['Seed', '种子', '種子', 'シード'],
     ['Lifespan', '生命周期', '生命週期', '寿命'],
@@ -2416,6 +2441,23 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     assert.match(zhHansTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHans}<\\/translation>`));
     assert.match(zhHantTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHant}<\\/translation>`));
     assert.match(jaTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${ja}<\\/translation>`));
+  }
+});
+
+test('orphan smoother node string is not exposed as a blank Add Layer card', () => {
+  const definitions = readJson(path.join(repoRoot, 'languages', 'en', 'Definitions', 'nodeDefinitions.json'));
+  assert(
+    !definitions.some((definition) => definition.nodeType === 'smoother'),
+    'smoother has no node definition in the Cavalry 2.7.2 schema'
+  );
+
+  for (const language of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
+    const nodeStrings = readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json'));
+    const smoother = nodeStrings
+      .flatMap((section) => section.values || [])
+      .find((candidate) => candidate.nodeType === 'smoother');
+
+    assert.equal(smoother, undefined, `${language} should not ship the orphan smoother Add Layer entry`);
   }
 });
 

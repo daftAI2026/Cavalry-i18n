@@ -2178,6 +2178,21 @@
     <message><source>Revert</source><translation>還原</translation></message>
     <message><source>Copy Animated Attribute</source><translation>複製動畫屬性</translation></message>
     <message><source>Clip(s)</source><translation>片段</translation></message>
+    <message><source>4-Point Warp</source><translation>四點變形</translation></message>
+    <message><source>Editable Shape</source><translation>可編輯形狀</translation></message>
+    <message><source>Erosion</source><translation>侵蝕</translation></message>
+    <message><source>Falloff</source><translation>衰減</translation></message>
+    <message><source>Motion Stretch</source><translation>運動拉伸</translation></message>
+    <message><source>Polar Coordinates</source><translation>極座標</translation></message>
+    <message><source>Spring</source><translation>彈簧</translation></message>
+    <message><source>Trails</source><translation>軌跡</translation></message>
+    <message><source>Velocity Context</source><translation>速度方向上下文</translation></message>
+    <message><source>Velocity Magnitude Context</source><translation>速度大小上下文</translation></message>
+    <message><source>Remapping</source><translation>重映射</translation></message>
+    <message><source>None...</source><translation>無...</translation></message>
+    <message><source>Draw Extents</source><translation>繪製範圍</translation></message>
+    <message><source>Column Span</source><translation>跨列</translation></message>
+    <message><source>Row Span</source><translation>跨行</translation></message>
     <message><source>Right Align</source><translation>右對齊</translation></message>
     <message><source>Right Align Keys</source><translation>右對齊密鑰</translation></message>
     <message><source>Right B</source><translation>右位元組</translation></message>

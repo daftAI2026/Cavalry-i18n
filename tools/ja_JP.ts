@@ -3132,6 +3132,21 @@
     <message><source>Revert</source><translation>リバート</translation></message>
     <message><source>Copy Animated Attribute</source><translation>アニメーション属性をコピー</translation></message>
     <message><source>Clip(s)</source><translation>クリップ</translation></message>
+    <message><source>4-Point Warp</source><translation>4点ワープ</translation></message>
+    <message><source>Editable Shape</source><translation>編集可能シェイプ</translation></message>
+    <message><source>Erosion</source><translation>エロージョン</translation></message>
+    <message><source>Falloff</source><translation>フォールオフ</translation></message>
+    <message><source>Motion Stretch</source><translation>モーションストレッチ</translation></message>
+    <message><source>Polar Coordinates</source><translation>極座標</translation></message>
+    <message><source>Spring</source><translation>スプリング</translation></message>
+    <message><source>Trails</source><translation>トレイル</translation></message>
+    <message><source>Velocity Context</source><translation>速度方向コンテキスト</translation></message>
+    <message><source>Velocity Magnitude Context</source><translation>速度の大きさコンテキスト</translation></message>
+    <message><source>Remapping</source><translation>リマッピング</translation></message>
+    <message><source>None...</source><translation>なし...</translation></message>
+    <message><source>Draw Extents</source><translation>範囲を描画</translation></message>
+    <message><source>Column Span</source><translation>列スパン</translation></message>
+    <message><source>Row Span</source><translation>行スパン</translation></message>
     <message><source>Right Align</source><translation>右アライナー</translation></message>
     <message><source>Right Align Keys</source><translation>右アライナーキー</translation></message>
     <message><source>Right B</source><translation>右バイト</translation></message>
