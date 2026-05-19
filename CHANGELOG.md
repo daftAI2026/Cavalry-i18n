@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Runtime Translation Noise Triage Protocol**: Added `doc/runtime-translation-noise-triage.md` outlining the triage steps, evidence levels, and quarantine rules for runtime translation short tokens (e.g., `Rhu`), and linked it in `doc/CLAUDE.md`.
 - **Dynamic Frame Keyframe Translation**: Implemented regex-based interceptor in `CavalryTranslatorInjector.mm` to localize Time Editor's "Add Keyframe on frame <n>" context-menu actions dynamically across all supported locales.
 - **Animation and Timing Translations**: Added Japanese, Simplified Chinese, and Traditional Chinese translation support for animation/timing variables including *Copy Animated Attribute*, *Clip(s)*, *Start Frame*, *Seed*, *Lifespan*, *Emitters*, *Turbulence*, *Gravity*, *Drag Force*, *Mass*, *Timing Mode*, *Group By Parent*, *Parent Timing Mode*, and *Reverse Parent Order*.
 - **Contract Verification for Animation Terms**: Added corresponding test assertions in `tools/check_app_contracts.js` to verify these newly added parameters and dynamic menu translation schemas exist in all language assets.
