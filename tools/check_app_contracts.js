@@ -507,6 +507,11 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     'embedded table generation should append display-only model name translations without changing JSON niceName'
   );
   assert.match(
+    generatorSource,
+    /source: `\$\{entry\.source\}\.\.\.`[\s\S]*translation: `\$\{entry\.translation\}\.\.\.`/,
+    'embedded table generation should derive model-name ellipsis menu labels while keeping Time Editor base niceNames English'
+  );
+  assert.match(
     zhHansTs,
     /<source>Create a Forge Dynamics Solver<\/source><translation>创建 Forge 动力学解算器<\/translation>/,
     'Simplified Chinese Forge Dynamics solver tooltip should use the same display term as ModelDisplay'

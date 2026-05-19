@@ -70,13 +70,19 @@ function parseTs(filePath) {
 
 function parseModelDisplayTranslations(languageCode) {
   const payload = JSON.parse(fs.readFileSync(modelDisplayPath, 'utf8'));
-  return (payload.entries || [])
+  const entries = (payload.entries || [])
     .map((entry) => ({
       context: 'ModelDisplay',
       source: entry.source || '',
       translation: entry[languageCode] || '',
     }))
     .filter((entry) => entry.source && entry.translation);
+  const menuVariants = entries.map((entry) => ({
+    context: 'ModelDisplay',
+    source: `${entry.source}...`,
+    translation: `${entry.translation}...`,
+  }));
+  return [...entries, ...menuVariants];
 }
 
 function renderEntries(symbol, entries) {

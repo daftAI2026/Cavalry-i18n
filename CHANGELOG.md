@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Ellipsis Menu Variant Generation**: Dynamically derive ellipsis (`...`) variants for `ModelDisplay` translation entries during compile-time header generation to cover context-menu actions while keeping NiceNames in English.
+
 ### Fixed
 - **Model niceName Preservation**: Reverted `niceName` fields to English across all translation files to prevent Time Editor rendering issues and model key serialization errors in Cavalry.
 - **Widget Mutation Boundary Protection**: Refactored the timeline-unsafe protection to intercept `QListWidgetItem` and `QTreeWidgetItem` values at the mutation boundary via `shouldPreserveModelBackedItemText` instead of using the global QTranslator.
