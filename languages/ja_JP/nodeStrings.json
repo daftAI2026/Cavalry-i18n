@@ -2925,7 +2925,7 @@
           "scale": "スケール",
           "rotation": "回転",
           "offset": "オフセット",
-          "autoSetGradWidth": "グラデーション随回転スケール"
+          "autoSetGradWidth": "グラデーション追従回転スケール"
         }
       },
       {
@@ -4680,7 +4680,7 @@
           "travel": "トラベル",
           "length": "長さ",
           "flip": "反転",
-          "excludeEnd": "除算外末尾",
+          "excludeEnd": "末尾除外",
           "offset": "オフセット",
           "calculateRotations": "回転を使用",
           "mode": "カウントモード"
@@ -5156,7 +5156,7 @@
             "Unicode コードポイントまたは文字列の文字を選択します。"
           ],
           "codePoint": [
-            "码ビット",
+            "コードポイント",
             "文字の Unicode コードポイント。位置に基づく変化を付けるにはビヘイビアを接続します。"
           ],
           "character": [
@@ -5419,8 +5419,8 @@
         "niceName": "Barbed",
         "attributes": {
           "headLength": "終了長さ",
-          "barbWidth": "倒钩幅",
-          "barbPosition": "倒钩位置"
+          "barbWidth": "バーブ幅",
+          "barbPosition": "バーブ位置"
         }
       },
       {
@@ -5688,7 +5688,7 @@
         "niceName": "Change String Case",
         "attributes": {
           "mode": "モード",
-          "exclusionList": "単語除算外リスト",
+          "exclusionList": "単語除外リスト",
           "newLineDelimeter": "改行を文区切りとして使用"
         },
         "enums": {
@@ -5843,7 +5843,7 @@
         "attributes": {
           "start": "開始位置",
           "end": "終了位置",
-          "excludeEnd": "除算外末尾"
+          "excludeEnd": "末尾除外"
         }
       },
       {
@@ -5852,8 +5852,8 @@
         "niceName": "Unicode Offset",
         "attributes": {
           "offset": "オフセット",
-          "clampToRange": "钳制到範囲",
-          "codePointRange": "码ビット範囲",
+          "clampToRange": "範囲制限",
+          "codePointRange": "コードポイント範囲",
           "selectionMode": "選択モード",
           "indexMode": "グルーピング",
           "indices": "インデックス",
@@ -6165,7 +6165,7 @@
           "stopCount": "停止点",
           "positions": "位置",
           "colours": "カラー",
-          "positionModifier": "位置修改器"
+          "positionModifier": "位置モディファイア"
         }
       },
       {
@@ -6785,7 +6785,7 @@
             "1": "円",
             "2": "正方形",
             "3": "入力シェイプ",
-            "4": "入力シェイプ周长"
+            "4": "入力シェイプ周長"
           },
           "directionType": {
             "0": "角度",
@@ -6803,7 +6803,7 @@
         "niceName": "Particle Modifier",
         "nodeInfo": "情報",
         "attributes": {
-          "enabled": "有効修改器",
+          "enabled": "モディファイアを有効化",
           "falloffShape": "フォールオフシェイプ",
           "strength": "強度",
           "falloffs": "フォールオフ",
@@ -6832,13 +6832,13 @@
         "nodeInfo": "ID、寿命、速度などのパーティクルプロパティに影響を与える。",
         "attributes": {
           "kill": "パーティクル消去",
-          "changeEmitterId": "更改エミッター ID",
+          "changeEmitterId": "変更エミッター ID",
           "emitterId": "新規エミッターID",
           "lifespanMode": "寿命モード",
           "lifespan": "寿命",
-          "age": "寿命",
-          "ageOnArrival": "到着时寿命",
-          "resetVelocity": "到着时リセット速度",
+          "age": "経過時間",
+          "ageOnArrival": "到着時の経過時間",
+          "resetVelocity": "到着時リセット速度",
           "clampVelocity": "速度クランプ",
           "velocityLimit": "速度制限"
         },
@@ -6846,7 +6846,7 @@
           "lifespanMode": {
             "0": "なし",
             "1": "寿命",
-            "2": "寿命"
+            "2": "経過時間"
           }
         }
       },
@@ -6894,7 +6894,7 @@
           },
           "colorMode": {
             "0": "カラー",
-            "1": "生命周期カラー"
+            "1": "寿命カラー"
           },
           "imageBlendMode": {
             "1": "置換",
@@ -6930,10 +6930,10 @@
         "nodeInfo": "パーティクルの外観を変更します。",
         "attributes": {
           "gradientMode": "グラデーションモード",
-          "colorOverLifespan": "生命周期カラー",
-          "scaleOverLifespan": "生命周期スケール",
+          "colorOverLifespan": "寿命カラー",
+          "scaleOverLifespan": "寿命スケール",
           "scaleMultiplier": "スケール乗算数",
-          "rotationOverLifespan": "生命周期回転"
+          "rotationOverLifespan": "寿命回転"
         },
         "enums": {
           "gradientMode": {
@@ -6950,7 +6950,7 @@
           },
           "colorMode": {
             "0": "カラー",
-            "1": "生命周期カラー"
+            "1": "寿命カラー"
           }
         }
       },
@@ -6983,7 +6983,7 @@
         "attributes": {
           "overwritePhysics": "物理を上書き",
           "forceMagnitude": "力サイズ",
-          "pathToFollow": "跟随パス",
+          "pathToFollow": "追従パス",
           "followPathMode": "パス追従モード",
           "smoothPath": "スムーズ",
           "pathPointsPS": "毎秒ポイント数",
@@ -7094,8 +7094,8 @@
         "nodeInfo": "力を適用してパーティクルの重力や質量などの物理プロパティを変更します。",
         "attributes": {
           "forceVelocity": "力速度",
-          "massOverLifespan": "生命周期品質",
-          "massMultiplier": "品質乗算数"
+          "massOverLifespan": "寿命に沿った質量",
+          "massMultiplier": "質量倍率"
         },
         "enums": {
           "physicsMode": {
@@ -8648,8 +8648,8 @@
         "enums": {
           "mode": {
             "0": "すべて反転",
-            "1": "反転顺时针",
-            "2": "反転逆时针"
+            "1": "時計回りを反転",
+            "2": "反時計回りを反転"
           }
         }
       },
@@ -8674,8 +8674,8 @@
         "niceName": "Remove Contours",
         "nodeInfo": "方向に基づいてパスから輪郭を削除します。",
         "attributes": {
-          "removeClockwise": "削除算顺时针",
-          "removeCounterclockwise": "削除算逆时针"
+          "removeClockwise": "時計回りを削除",
+          "removeCounterclockwise": "反時計回りを削除"
         }
       },
       {
@@ -8683,7 +8683,7 @@
         "niceName": "Asset From Smart Folder",
         "nodeInfo": "スマートフォルダ内のアセット（画像、動画、オーディオなど）を参照します。",
         "attributes": {
-          "file": "智能ファイル夹アセット",
+          "file": "スマートフォルダアセット",
           "path": "パス",
           "mode": "モード",
           "index": "インデックス",
@@ -9297,13 +9297,13 @@
         "niceName": "Extrude",
         "attributes": {
           "inputShapes": "入力シェイプ",
-          "extrudeDistance": "挤出距離",
+          "extrudeDistance": "押し出し距離",
           "extrudeAngle": "押し出し角度",
           "levelMode": "レベルモード",
           "level": "カスタム階層",
           "combineMeshes": "マージグリッド",
           "capEnd": "キャップ端",
-          "backFaceCulling": "背面剔除算"
+          "backFaceCulling": "背面カリング"
         },
         "enums": {
           "levelMode": {

@@ -137,7 +137,7 @@
     "value": {
       "nodeType": "shape",
       "niceName": "Shape",
-      "nodeInfo": "可以在視口中繪製的多邊形物件",
+      "nodeInfo": "可以在檢視區中繪製的多邊形物件",
       "attributes": {
         "deformers": [
           "變形器",
@@ -208,7 +208,7 @@
         ],
         "guideLayer": [
           "參考線圖層",
-          "可以將圖層轉換為輔助圖層，使其在視口中可見但不在最終算繪中顯示。"
+          "可以將圖層轉換為輔助圖層，使其在檢視區中可見但不在最終算繪中顯示。"
         ],
         "is3d": [
           "2.5D",
@@ -761,8 +761,8 @@
       "nodeType": "renderFormatWithAudio",
       "nodeInfo": "產生包含音訊的影片檔案。",
       "attributes": {
-        "audioQuality": "音頻品質",
-        "exportAudio": "匯出音頻",
+        "audioQuality": "音訊品質",
+        "exportAudio": "匯出音訊",
         "audioProHelp": "音訊匯出僅在專業版授權下可用。"
       },
       "enums": {
@@ -916,7 +916,7 @@
     "type": "nodeStrings",
     "value": {
       "nodeType": "planarCamera",
-      "nodeInfo": "在 2.5D 視口中組合和檢視形狀。",
+      "nodeInfo": "在 2.5D 檢視區中組合和檢視形狀。",
       "niceName": "Camera",
       "attributes": {
         "cameraType": "類型",
@@ -979,7 +979,7 @@
         ],
         "viewportZoomAware": [
           "檢視區縮放感知",
-          "視口放大時以更高解析度重新算繪。可能影響效能。"
+          "檢視區放大時以更高解析度重新算繪。可能影響效能。"
         ]
       },
       "tabs": {
@@ -1114,7 +1114,7 @@
         "attributes": {
           "bind": [
             "綁定",
-            "啟用以計算並存儲受控點的綁定位置和偏移。"
+            "啟用以計算並儲存受控點的綁定位置和偏移。"
           ],
           "pivotOffset": [
             "錨點偏移",
@@ -2321,7 +2321,7 @@
           "trimEnd": "結束",
           "trimTravel": "行程",
           "reversePath": "反轉路徑",
-          "align": "對齐",
+          "align": "對齊",
           "colorShaders": "著色器",
           "alpha": "Alpha",
           "taperedWidth": "錐形寬度",
@@ -4473,7 +4473,7 @@
           "width": "寬度",
           "joinStyle": "連接樣式",
           "reversePath": "反轉路徑",
-          "align": "對齐",
+          "align": "對齊",
           "offset": "偏移",
           "capStyle": "端頭樣式",
           "cleanUp": "清理",
@@ -6829,15 +6829,15 @@
       {
         "nodeType": "dataModifier",
         "niceName": "Data Modifier",
-        "nodeInfo": "影響粒子的屬性，包括 ID、生命週期和速度。",
+        "nodeInfo": "影響粒子的屬性，包括 ID、生命週期、經過時間和速度。",
         "attributes": {
           "kill": "銷毀粒子",
           "changeEmitterId": "更改發射器 ID",
           "emitterId": "新發射器 ID",
           "lifespanMode": "生命週期模式",
           "lifespan": "生命週期",
-          "age": "壽命",
-          "ageOnArrival": "到達時壽命",
+          "age": "經過時間",
+          "ageOnArrival": "到達時經過時間",
           "resetVelocity": "到達時重置速度",
           "clampVelocity": "鉗製速度",
           "velocityLimit": "速度限製"
@@ -6846,7 +6846,7 @@
           "lifespanMode": {
             "0": "無",
             "1": "生命週期",
-            "2": "壽命"
+            "2": "經過時間"
           }
         }
       },
@@ -7091,11 +7091,11 @@
       {
         "nodeType": "forceModifier",
         "niceName": "Force Modifier",
-        "nodeInfo": "透過施加力來變更粒子的物理屬性，例如重力和品質。",
+        "nodeInfo": "透過施加力來變更粒子的物理屬性，例如重力和質量。",
         "attributes": {
           "forceVelocity": "力速度",
-          "massOverLifespan": "生命週期品質",
-          "massMultiplier": "品質乘數"
+          "massOverLifespan": "生命週期質量",
+          "massMultiplier": "質量乘數"
         },
         "enums": {
           "physicsMode": {
@@ -8098,7 +8098,7 @@
           ],
           "shapes.shapeMatching": [
             "形狀匹配",
-            "形狀保持強度。輕柔地將粒子拉向其原始相對位置，以幫助在變形後恢複物體的形狀。"
+            "形狀保持強度。輕柔地將粒子拉向其原始相對位置，以幫助在變形後恢復物體的形狀。"
           ],
           "shapes.particleRadius": [
             "粒子半徑",
@@ -10093,7 +10093,7 @@
         ],
         "debugMode": [
           "檢視模式",
-          "選擇算繪到視口的檢視。"
+          "選擇算繪到檢視區的檢視。"
         ],
         "controlShape": [
           "輸入形狀",

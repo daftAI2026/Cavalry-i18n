@@ -152,14 +152,14 @@
         "childShapes": "子级形状",
         "material": "填充",
         "stroke": "描边",
-        "trackMattes": "轨道遮罩",
-        "matteMode": "轨道遮罩模式",
+        "trackMattes": "轨道蒙版",
+        "matteMode": "轨道蒙版模式",
         "featherAmount": [
           "羽化",
           "通过应用蒙版模糊来羽化形状的几何/边缘。"
         ],
         "featherMasks": [
-          "羽化裁切遮罩",
+          "羽化裁切蒙版",
           "对形状的裁剪蒙版进行羽化。"
         ],
         "blendMode": [
@@ -4897,7 +4897,7 @@
         "attributes": {
           "input": "输入分布",
           "masks": [
-            "分布遮罩",
+            "分布蒙版",
             "连接用作裁切蒙版的形状。"
           ]
         }
@@ -6836,8 +6836,8 @@
           "emitterId": "新发射器 ID",
           "lifespanMode": "生命周期模式",
           "lifespan": "生命周期",
-          "age": "寿命",
-          "ageOnArrival": "到达时寿命",
+          "age": "经过时间",
+          "ageOnArrival": "到达时经过时间",
           "resetVelocity": "到达时重置速度",
           "clampVelocity": "钳制速度",
           "velocityLimit": "速度限制"
@@ -6846,7 +6846,7 @@
           "lifespanMode": {
             "0": "无",
             "1": "生命周期",
-            "2": "寿命"
+            "2": "经过时间"
           }
         }
       },

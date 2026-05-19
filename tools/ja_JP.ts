@@ -1735,12 +1735,12 @@
       <source>Boolean (Exclude)</source>
       <translation>ブーリアン（除外）</translation>
     </message>
-    <message><source>Align Behaviour</source><translation>アライグ・ビーア</translation></message>
+    <message><source>Align Behaviour</source><translation>整列ビヘイビア</translation></message>
     <message><source>Align Bottom</source><translation>下揃え</translation></message>
     <message><source>Align keyframe values</source><translation>キーフレームの値を揃える</translation></message>
-    <message><source>Align Middle</source><translation>アライナー・ミドル</translation></message>
+    <message><source>Align Middle</source><translation>中央揃え</translation></message>
     <message><source>Align Points</source><translation>ポイント</translation></message>
-    <message><source>Align Top</source><translation>アライナートップ</translation></message>
+    <message><source>Align Top</source><translation>上揃え</translation></message>
     <message><source>Alizarin Crimson</source><translation>アリザリンクリムゾン</translation></message>
     <message><source>All Attributes will be reset before applying the Preset</source><translation>プリセット適用前にすべての属性がリセットされます</translation></message>
     <message><source>All Attributes will be reset before applying the Preset.</source><translation>プリセット適用前にすべての属性がリセットされます。</translation></message>
@@ -1749,11 +1749,11 @@
     <message><source>allow you to correct the tracking marker positions before continuing</source><translation>追跡マーカーの位置を継続する前に修正できます</translation></message>
     <message><source>allow you to correct the tracking marker positions before continuing.</source><translation>追跡マーカーの位置を継続する前に修正できます。</translation></message>
     <message><source>already exists.</source><translation>既に存在している。</translation></message>
-    <message><source>Always Visible</source><translation>常に可視性</translation></message>
+    <message><source>Always Visible</source><translation>常に表示</translation></message>
     <message><source>Analogous</source><translation>アナログ</translation></message>
     <message><source>and restricted Assets found</source><translation>制限付きアセットが見つかりました</translation></message>
     <message><source>and restricted Assets found.</source><translation>制限付きアセットが見つかりました。</translation></message>
-    <message><source>Angle Locking</source><translation>角度の錠</translation></message>
+    <message><source>Angle Locking</source><translation>角度ロック</translation></message>
     <message><source>Animated</source><translation>アニメーション済み</translation></message>
     <message><source>Animated Attribute</source><translation>アニメーション済み属性</translation></message>
     <message><source>Animated Attributes</source><translation>アニメーション済み属性</translation></message>
@@ -1765,7 +1765,7 @@
     <message><source>Animation Offset Value.</source><translation>アニメーションオフセット値。</translation></message>
     <message><source>Animators</source><translation>アニメーター</translation></message>
     <message><source>Anticipate In</source><translation>期待する</translation></message>
-    <message><source>Anticipate In, Overshoot Out</source><translation>予想されるで、オーバーシュートアウト</translation></message>
+    <message><source>Anticipate In, Overshoot Out</source><translation>予測イン、オーバーシュートアウト</translation></message>
     <message><source>Any 3</source><translation>3</translation></message>
     <message><source>Any other comments?</source><translation>その他のコメント？</translation></message>
     <message><source>Any selected shapes will automatically be added as input shapes</source><translation>選択された形は入力形として自動的に加えられます</translation></message>
@@ -1778,9 +1778,9 @@
     <message><source>Append</source><translation>追加</translation></message>
     <message><source>Apple</source><translation>Apple</translation></message>
     <message><source>Application</source><translation>アプリケーション</translation></message>
-    <message><source>Apply Track</source><translation>応用トラック</translation></message>
+    <message><source>Apply Track</source><translation>トラックを適用</translation></message>
     <message><source>Apricot Peach</source><translation>アプリコットピーチ</translation></message>
-    <message><source>Are you sure you want to delete all Render Queue Items?</source><translation>項目レンダーキュー項目を削除してもよろしいですか？</translation></message>
+    <message><source>Are you sure you want to delete all Render Queue Items?</source><translation>すべてのレンダーキュー項目を削除してもよろしいですか？</translation></message>
     <message><source>Are you sure you want to delete this palette? This cannot be undone</source><translation>このパレットを削除したいですか? これは元に戻すことができません</translation></message>
     <message><source>Are you sure you want to delete this palette? This cannot be undone.</source><translation>このパレットを削除したいですか? これは元に戻すことができません。</translation></message>
     <message><source>Are you sure you want to delete this preset?</source><translation>このプリセットを削除したいですか?</translation></message>
@@ -1788,8 +1788,8 @@
     <message><source>Are you sure you want to delete this Swatch?</source><translation>このスウォッチを削除してもよろしいですか？</translation></message>
     <message><source>Are you sure you want to quit? Unsaved changes will be lost</source><translation>終了してもよろしいですか？未保存の変更は失われます</translation></message>
     <message><source>Are you sure you want to quit? Unsaved changes will be lost.</source><translation>終了してもよろしいですか？未保存の変更は失われます。</translation></message>
-    <message><source>Are you sure? This action cannot be undone</source><translation>お問い合わせ このアクションは元に戻すことができません</translation></message>
-    <message><source>Are you sure? This action cannot be undone.</source><translation>お問い合わせ このアクションは元に戻すことができません。</translation></message>
+    <message><source>Are you sure? This action cannot be undone</source><translation>よろしいですか？この操作は元に戻せません</translation></message>
+    <message><source>Are you sure? This action cannot be undone.</source><translation>よろしいですか？この操作は元に戻せません。</translation></message>
     <message><source>Argument count does not match function definition. Expected</source><translation>引数のカウントは関数の定義に一致しません。 期待される</translation></message>
     <message><source>argument not found</source><translation>引数が見つかりません</translation></message>
     <message><source>Arrow Keys Control Hierarchy</source><translation>矢印キー制御階層</translation></message>
@@ -1799,33 +1799,33 @@
     <message><source>Assets</source><translation>アセット</translation></message>
     <message><source>Assign Control Points</source><translation>制御ポイントの割り当て</translation></message>
     <message><source>Assign Tag</source><translation>割り当てタグ</translation></message>
-    <message><source>asynchronous entity</source><translation>非同期組織</translation></message>
-    <message><source>at line</source><translation>ライン</translation></message>
+    <message><source>asynchronous entity</source><translation>非同期エンティティ</translation></message>
+    <message><source>at line</source><translation>行</translation></message>
     <message><source>Base</source><translation>ベース</translation></message>
     <message><source>Bearer</source><translation>ベアラー</translation></message>
-    <message><source>Bearer Token</source><translation>ベアアートークン</translation></message>
+    <message><source>Bearer Token</source><translation>ベアラートークン</translation></message>
     <message><source>Beat Marker Settings</source><translation>ビートマーカーの設定</translation></message>
     <message><source>before of</source><translation>前へ</translation></message>
-    <message><source>Beta</source><translation>ベタ</translation></message>
+    <message><source>Beta</source><translation>ベータ</translation></message>
     <message><source>Bezier</source><translation>ベジェ</translation></message>
     <message><source>Bismark</source><translation>ビスマーク</translation></message>
     <message><source>bits per sample with data format</source><translation>データフォーマットでサンプルごとのビット</translation></message>
     <message><source>blocking return</source><translation>ブロックのリターン</translation></message>
     <message><source>Blue Bayoux</source><translation>ブルーベイオックス</translation></message>
     <message><source>Bold</source><translation>ボールド</translation></message>
-    <message><source>Bold Angle</source><translation>冷たい角度</translation></message>
+    <message><source>Bold Angle</source><translation>ボールドアングル</translation></message>
     <message><source>Bombay</source><translation>ボンベイ</translation></message>
-    <message><source>Book</source><translation>予約する</translation></message>
-    <message><source>Bottom Align</source><translation>ボトムアライナー</translation></message>
+    <message><source>Book</source><translation>ブック</translation></message>
+    <message><source>Bottom Align</source><translation>下揃え</translation></message>
     <message><source>Bounce IH</source><translation>バウンス入力ハンドル</translation></message>
     <message><source>Bounce In</source><translation>バウンスイン</translation></message>
     <message><source>Bounce In, Bounce Out</source><translation>バウンスイン、バウンスアウト</translation></message>
     <message><source>Bounce OH</source><translation>バウンス出力ハンドル</translation></message>
     <message><source>Bounce Out Magic Easing set</source><translation>バウンスアウトマジックイーシングセット</translation></message>
     <message><source>Bounce Out Magic Easing set.</source><translation>バウンスアウトマジックイージング設定。</translation></message>
-    <message><source>Break</source><translation>ブレイクアウト</translation></message>
+    <message><source>Break</source><translation>ブレーク</translation></message>
     <message><source>Break B</source><translation>B をブレーク</translation></message>
-    <message><source>Built-in</source><translation>作り付け</translation></message>
+    <message><source>Built-in</source><translation>ビルトイン</translation></message>
     <message><source>Built-in Presets</source><translation>内蔵プリセット</translation></message>
     <message><source>but got</source><translation>しかし、</translation></message>
     <message><source>Button</source><translation>ボタン</translation></message>
@@ -1908,8 +1908,8 @@
     <message><source>Color picking is already active!</source><translation>カラーピッキングは既に有効です!</translation></message>
     <message><source>Color Settings</source><translation>カラー設定</translation></message>
     <message><source>Color Settings...</source><translation>カラー設定...</translation></message>
-    <message><source>Colour-managed working surface failed, trying without colour space</source><translation>色管理された働く表面は色スペースなしで試みる失敗しました</translation></message>
-    <message><source>Colour-managed working surface failed, trying without colour space.</source><translation>色分けされた働く表面は色スペースなしで、試みる失敗しました。</translation></message>
+    <message><source>Colour-managed working surface failed, trying without colour space</source><translation>カラーマネジメントされたワークサーフェスが失敗しました。色空間なしで試行します</translation></message>
+    <message><source>Colour-managed working surface failed, trying without colour space.</source><translation>カラーマネジメントされたワークサーフェスが失敗しました。色空間なしで試行します。</translation></message>
     <message><source>Column titles are the first row in each column</source><translation>列のタイトルは各列の最初の行です</translation></message>
     <message><source>Column titles are the first row in each column.</source><translation>列のタイトルは各列の最初の行です。</translation></message>
     <message><source>Combined Keyframe Layers value</source><translation>結合キーフレームレイヤー値</translation></message>
@@ -1918,12 +1918,12 @@
     <message><source>Command</source><translation>Command</translation></message>
     <message><source>Command Search (Pro)</source><translation>コマンド検索(プロ版)</translation></message>
     <message><source>Commit Tag</source><translation>コミットタグ</translation></message>
-    <message><source>Common</source><translation>よくある質問</translation></message>
-    <message><source>Comp</source><translation>プロフィール</translation></message>
+    <message><source>Common</source><translation>共通</translation></message>
+    <message><source>Comp</source><translation>コンポ</translation></message>
     <message><source>Compact</source><translation>コンパクト</translation></message>
-    <message><source>Complementary</source><translation>コンプライアンス</translation></message>
-    <message><source>Complete</source><translation>エントリー</translation></message>
-    <message><source>Compositing Bit Depth</source><translation>ビット深さの堆肥化</translation></message>
+    <message><source>Complementary</source><translation>補色</translation></message>
+    <message><source>Complete</source><translation>完了</translation></message>
+    <message><source>Compositing Bit Depth</source><translation>コンポジットビット深度</translation></message>
     <message><source>Composition Background Alpha is set to 255. Use the Composition Menu to make the Composition Background transparent</source><translation>コンポジション背景の不透明度が最大です。背景を透明にするにはコンポジションメニューを使用してください</translation></message>
     <message><source>Composition Background Alpha is set to 255. Use the Composition Menu to make the Composition Background transparent.</source><translation>コンポジション背景の不透明度が最大です。背景を透明にするにはコンポジションメニューを使用してください。</translation></message>
     <message><source>Composition End</source><translation>コンポジション終了</translation></message>
@@ -1935,7 +1935,7 @@
     <message><source>Composition Start</source><translation>コンポジション開始</translation></message>
     <message><source>Composition Timecode. Alt-Click this control to switch to frame mode</source><translation>コンポジションタイムコード。オプションキーを押しながらクリックするとフレームモードに切り替わります</translation></message>
     <message><source>Composition Timecode. Alt-Click this control to switch to frame mode.</source><translation>コンポジションタイムコード。オプションキーを押しながらクリックするとフレームモードに切り替わります。</translation></message>
-    <message><source>Conflict</source><translation>コンプリット</translation></message>
+    <message><source>Conflict</source><translation>競合</translation></message>
     <message><source>Connect a Behaviour or Utility here</source><translation>行動やユーティリティをここで接続する</translation></message>
     <message><source>Connect a Behaviour or Utility here.</source><translation>行動やユーティリティをここに接続します。</translation></message>
     <message><source>Connect Deformer</source><translation>接続デフォーマー</translation></message>
@@ -2027,7 +2027,7 @@
     <message><source>Create a palette to begin.</source><translation>パレットを作成する。</translation></message>
     <message><source>Create a Rubber Hose Limb</source><translation>ラバーホースリムを作成</translation></message>
     <message><source>Create a Rubber Hose Limb.</source><translation>ラバーホースリムを作成します。</translation></message>
-    <message><source>Create an Align Behaviour</source><translation>アラインの行動を作成する</translation></message>
+    <message><source>Create an Align Behaviour</source><translation>整列ビヘイビアを作成</translation></message>
     <message><source>Create an Extrusion</source><translation>押出を作成する</translation></message>
     <message><source>Create and connect a layer</source><translation>レイヤーの作成と接続</translation></message>
     <message><source>Create and connect a layer.</source><translation>レイヤーを作成して接続します。</translation></message>
@@ -2123,12 +2123,12 @@
     <message><source>document is not standalone</source><translation>文書は独立していません</translation></message>
     <message><source>doesn&apos;t exist.</source><translation>存在しない。</translation></message>
     <message><source>dom PPC kom</source><translation>内部識別三</translation></message>
-    <message><source>Done</source><translation>ログイン</translation></message>
+    <message><source>Done</source><translation>完了</translation></message>
     <message><source>Double click here to import Assets</source><translation>ここをダブルクリックしてアセットを読み込み</translation></message>
     <message><source>Double click here to import Assets.</source><translation>ここをダブルクリックしてアセットを読み込み。</translation></message>
     <message><source>Double click on a Preset to rename it</source><translation>プリセットをダブルクリックして名前を変更</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>プリセットをダブルクリックして名前を変更。</translation></message>
-    <message><source>Double Click on layer</source><translation>ダブルレイヤーをクリックします</translation></message>
+    <message><source>Double Click on layer</source><translation>レイヤーをダブルクリック</translation></message>
     <message><source>Drag a connection from here</source><translation>ここから接続をドラッグする</translation></message>
     <message><source>Drag a connection from here.</source><translation>ここから接続をドラッグします。</translation></message>
     <message><source>Drag a Shape here</source><translation>ここにシェイプをドラッグ</translation></message>
@@ -2187,7 +2187,7 @@
     <message><source>Encoding file</source><translation>ファイルのエンコーディング</translation></message>
     <message><source>encoding specified in XML declaration is incorrect</source><translation>宣言で指定されたエンコードが正しくありません</translation></message>
     <message><source>End of Render Queue</source><translation>レンダーキューの末尾</translation></message>
-    <message><source>End of Render Queue Item</source><translation>終了項目レンダーキュー項目</translation></message>
+    <message><source>End of Render Queue Item</source><translation>レンダーキュー項目の終了</translation></message>
     <message><source>end reordering USE</source><translation>エンドリオーダーの使用</translation></message>
     <message><source>End Rotation</source><translation>終わりの回転</translation></message>
     <message><source>Enter a Color Name</source><translation>色名を入力してください</translation></message>
@@ -2269,17 +2269,17 @@
     <message><source>Exporting script</source><translation>スクリプトのエクスポート</translation></message>
     <message><source>Exporting Selected</source><translation>選択項目を書き出し中</translation></message>
     <message><source>Extra Width</source><translation>余分幅</translation></message>
-    <message><source>Factorize</source><translation>工場化</translation></message>
+    <message><source>Factorize</source><translation>因数分解</translation></message>
     <message><source>Failed</source><translation>失敗した</translation></message>
     <message><source>Failed Dependency</source><translation>依存関係エラー</translation></message>
     <message><source>Failed to allocate memory for output buffers</source><translation>出力バッファのメモリを割り当てる失敗</translation></message>
     <message><source>Failed to allocate memory for output buffers.</source><translation>出力バッファのメモリを割り当てることができません。</translation></message>
     <message><source>Failed to bind to IP address</source><translation>ネットワークアドレスへのバインドに失敗</translation></message>
     <message><source>Failed to bind to IP address.</source><translation>ネットワークアドレスへのバインドに失敗。</translation></message>
-    <message><source>Failed to create image snapshot from surface</source><translation>表面からイメージスナップショットを作成する失敗</translation></message>
-    <message><source>Failed to create image snapshot from surface.</source><translation>表面からイメージスナップショットを作成する失敗しました。</translation></message>
-    <message><source>Failed to create working surface after all fallbacks. GPU may not be supported</source><translation>すべてのフォールバックの後で働く表面を作成失敗しました。 GPUがサポートされていない場合</translation></message>
-    <message><source>Failed to create working surface after all fallbacks. GPU may not be supported.</source><translation>すべてのフォールバックの後で働く表面を作成失敗しました。 GPUはサポートできません。</translation></message>
+    <message><source>Failed to create image snapshot from surface</source><translation>サーフェスからのイメージスナップショット作成に失敗</translation></message>
+    <message><source>Failed to create image snapshot from surface.</source><translation>サーフェスからのイメージスナップショット作成に失敗しました。</translation></message>
+    <message><source>Failed to create working surface after all fallbacks. GPU may not be supported</source><translation>すべてのフォールバック後、ワークサーフェスの作成に失敗しました。GPUがサポートされていない可能性があります</translation></message>
+    <message><source>Failed to create working surface after all fallbacks. GPU may not be supported.</source><translation>すべてのフォールバック後、ワークサーフェスの作成に失敗しました。GPU がサポートされていない可能性があります。</translation></message>
     <message><source>Failed to create XML parser for relationships</source><translation>リレーション用解析器を作成できません</translation></message>
     <message><source>Failed to create XML parser for relationships.</source><translation>リレーション用解析器を作成できません。</translation></message>
     <message><source>Failed to create XML parser for workbook</source><translation>ワークブック用解析器を作成できません</translation></message>
@@ -2339,18 +2339,18 @@
     <message><source>Font Not Found.</source><translation>フォントが見つかりません。</translation></message>
     <message><source>Forge Solvers</source><translation>フォージ・ソルバー</translation></message>
     <message><source>format specifier requires numeric argument</source><translation>フォーマットの指定子は数値引数を要求します</translation></message>
-    <message><source>Found</source><translation>新着情報</translation></message>
+    <message><source>Found</source><translation>見つかりました</translation></message>
     <message><source>Free</source><translation>無料</translation></message>
-    <message><source>Full Ease (100%)</source><translation>完全な消去(100%)</translation></message>
+    <message><source>Full Ease (100%)</source><translation>フルイーズ(100%)</translation></message>
     <message><source>Full Motion Blur</source><translation>フルモーションブラー</translation></message>
     <message><source>Full Screen Focus Mode</source><translation>フル スクリーンの焦点モード</translation></message>
     <message><source>Fussy</source><translation>フッシー</translation></message>
-    <message><source>g Font: H</source><translation>フォント: 高</translation></message>
+    <message><source>g Font: H</source><translation>g フォント: H</translation></message>
     <message><source>General Feedback</source><translation>一般的なフィードバック</translation></message>
     <message><source>Generate</source><translation>生成する</translation></message>
-    <message><source>Get Info</source><translation>情報を入手</translation></message>
+    <message><source>Get Info</source><translation>情報を取得</translation></message>
     <message><source>Gipng</source><translation>ログイン</translation></message>
-    <message><source>Glyphs</source><translation>グリフス</translation></message>
+    <message><source>Glyphs</source><translation>グリフ</translation></message>
     <message><source>Go back to the start frame to move input shapes</source><translation>入力シェイプを移動するには開始フレームに戻ってください</translation></message>
     <message><source>Go back to the start frame to move input shapes.</source><translation>入力シェイプを移動するには開始フレームに戻ってください。</translation></message>
     <message><source>Go Pro and enable</source><translation>プロ版にして有効化</translation></message>
@@ -2515,7 +2515,7 @@
     <message><source>Keyframe Path: Path required when creating new keyframes</source><translation>キーフレームパス: 新しいキーフレームを作成するにはパスが必要です</translation></message>
     <message><source>Keyframe Path: Path required when creating new keyframes.</source><translation>キーフレームパス: 新しいキーフレームを作成するにはパスが必要です。</translation></message>
     <message><source>Keyframes</source><translation>キーフレーム</translation></message>
-    <message><source>Keyframes linked to visibility clip do not exist</source><translation>链接到可见性片段的キーフレーム不存在</translation></message>
+    <message><source>Keyframes linked to visibility clip do not exist</source><translation>可視性クリップにリンクされたキーフレームが存在しません</translation></message>
     <message><source>Keys</source><translation>キー</translation></message>
     <message><source>Kilamanjaro</source><translation>キラマンジャロ</translation></message>
     <message><source>KKKK KLMSO</source><translation>内部識別壬</translation></message>
@@ -2559,7 +2559,7 @@
     <message><source>Linearise</source><translation>リニアライズ</translation></message>
     <message><source>Link Canva Account</source><translation>Canva アカウントを連携</translation></message>
     <message><source>Link Canva Account...</source><translation>Canva アカウントを連携...</translation></message>
-    <message><source>List</source><translation>プロフィール</translation></message>
+    <message><source>List</source><translation>リスト</translation></message>
     <message><source>Live Mode</source><translation>ライブモード</translation></message>
     <message><source>Load .cv</source><translation>.cv を読み込み</translation></message>
     <message><source>Load Bell Curve Preset</source><translation>ベルカーブプリセットを読み込み</translation></message>
@@ -2586,10 +2586,10 @@
     <message><source>Log Window</source><translation>ログウィンドウ</translation></message>
     <message><source>logging clip areas</source><translation>ロギングクリップエリア</translation></message>
     <message><source>logging clip areas...</source><translation>ロギングクリップエリア...</translation></message>
-    <message><source>Logs</source><translation>ログイン</translation></message>
+    <message><source>Logs</source><translation>ログ</translation></message>
     <message><source>Long Ease (66%)</source><translation>ロングイーズ (66%)</translation></message>
     <message><source>Loop After</source><translation>ループ後</translation></message>
-    <message><source>Loop Before</source><translation>前のループ</translation></message>
+    <message><source>Loop Before</source><translation>ループ前</translation></message>
     <message><source>Loop Detected</source><translation>ループ検出</translation></message>
     <message><source>Loop Playback</source><translation>ループプレイバック</translation></message>
     <message><source>Loop with offset</source><translation>オフセット付きループ</translation></message>
@@ -2671,7 +2671,7 @@
     <message><source>Move Pivot (Layer Moves)</source><translation>ピボットを移動（レイヤーも移動）</translation></message>
     <message><source>Move Pivot (Layer Stays)</source><translation>ピボットを移動（レイヤーは固定）</translation></message>
     <message><source>Move Selection</source><translation>選択の移動</translation></message>
-    <message><source>Moved Permanently</source><translation>永続的に動く</translation></message>
+    <message><source>Moved Permanently</source><translation>恒久的に移動しました</translation></message>
     <message><source>Movie</source><translation>ムービー</translation></message>
     <message><source>Multi-Status</source><translation>マルチスタタス</translation></message>
     <message><source>Multiple Choice</source><translation>複数の選択肢</translation></message>
@@ -2812,16 +2812,16 @@
     <message><source>Organise Pre-Comp Overrides here.</source><translation>組織プレコンオーバーライドはこちら。</translation></message>
     <message><source>Orient</source><translation>オリエント</translation></message>
     <message><source>Origin</source><translation>起源の場所</translation></message>
-    <message><source>Orthogonal</source><translation>矯正歯科</translation></message>
+    <message><source>Orthogonal</source><translation>直交</translation></message>
     <message><source>Oscillate</source><translation>オシレート</translation></message>
     <message><source>Other Features</source><translation>その他の機能</translation></message>
     <message><source>Out Influence</source><translation>影響を受ける</translation></message>
     <message><source>out of memory</source><translation>メモリ不足</translation></message>
     <message><source>Out Speed</source><translation>アウトスピード</translation></message>
-    <message><source>Outline Only</source><translation>概要のみ</translation></message>
-    <message><source>Output: H</source><translation>出力: 高</translation></message>
+    <message><source>Outline Only</source><translation>アウトラインのみ</translation></message>
+    <message><source>Output: H</source><translation>出力: H</translation></message>
     <message><source>Outside Corners</source><translation>外部コーナー</translation></message>
-    <message><source>Overridden by Project Settings</source><translation>項目提供項目設定</translation></message>
+    <message><source>Overridden by Project Settings</source><translation>プロジェクト設定で上書き</translation></message>
     <message><source>Override</source><translation>オーバーライド</translation></message>
     <message><source>Override the Active Camera</source><translation>アクティブカメラをオーバーライド</translation></message>
     <message><source>Override the Active Camera.</source><translation>アクティブカメラをオーバーライドします。</translation></message>
@@ -2832,16 +2832,16 @@
     <message><source>pale violet red</source><translation>淡い紫紅</translation></message>
     <message><source>Palette Generator Options</source><translation>パレットジェネレーターオプション</translation></message>
     <message><source>Palettes</source><translation>パレット</translation></message>
-    <message><source>Parent</source><translation>親子</translation></message>
+    <message><source>Parent</source><translation>親</translation></message>
     <message><source>Parent or move into Composition?</source><translation>親子付けしますか？それともコンポジション内へ移動しますか？</translation></message>
-    <message><source>parse error</source><translation>エラーを解析</translation></message>
+    <message><source>parse error</source><translation>解析エラー</translation></message>
     <message><source>parser not suspended</source><translation>パーサーは中断しません</translation></message>
     <message><source>parser suspended</source><translation>パーサーは中断しました</translation></message>
-    <message><source>parsing aborted</source><translation>解析已中止</translation></message>
+    <message><source>parsing aborted</source><translation>解析が中断されました</translation></message>
     <message><source>parsing finished</source><translation>パーシング仕上げ</translation></message>
     <message><source>partial character</source><translation>部分的な文字</translation></message>
     <message><source>Partial Content</source><translation>部分コンテンツ</translation></message>
-    <message><source>Particles</source><translation>粒子</translation></message>
+    <message><source>Particles</source><translation>パーティクル</translation></message>
     <message><source>pass skipped.</source><translation>スキップされたパス。</translation></message>
     <message><source>Password</source><translation>パスワード</translation></message>
     <message><source>Path Duration</source><translation>パスの継続時間</translation></message>
@@ -2978,16 +2978,16 @@
     <message><source>Preset Authentication Token cannot be empty.</source><translation>プリセット認証トークンは空にできません。</translation></message>
     <message><source>Preset Name</source><translation>プリセット名</translation></message>
     <message><source>Presets</source><translation>プリセット</translation></message>
-    <message><source>Presets require a name</source><translation>プリセット需要名称</translation></message>
-    <message><source>Presets require a name.</source><translation>プリセット需要名称。</translation></message>
-    <message><source>Pressing Return in an Attribute Field</source><translation>在属性字段中按回车</translation></message>
-    <message><source>Pretty</source><translation>かわいい</translation></message>
+    <message><source>Presets require a name</source><translation>プリセットには名前が必要です</translation></message>
+    <message><source>Presets require a name.</source><translation>プリセットには名前が必要です。</translation></message>
+    <message><source>Pressing Return in an Attribute Field</source><translation>属性フィールドでリターンキーを押す</translation></message>
+    <message><source>Pretty</source><translation>プリティ</translation></message>
     <message><source>Preview Compositions in the Assets Window</source><translation>アセットウィンドウでコンポジションをプレビュー</translation></message>
-    <message><source>Previous</source><translation>新着情報</translation></message>
+    <message><source>Previous</source><translation>前へ</translation></message>
     <message><source>Print all affected attributes</source><translation>すべての影響を受ける属性を印刷する</translation></message>
     <message><source>Print all affecter attributes</source><translation>すべての影響属性を印刷する</translation></message>
-    <message><source>Processing</source><translation>プロセス</translation></message>
-    <message><source>Production</source><translation>生産工程</translation></message>
+    <message><source>Processing</source><translation>処理中</translation></message>
+    <message><source>Production</source><translation>プロダクション</translation></message>
     <message><source>Professional</source><translation>プロフェッショナル</translation></message>
     <message><source>Profiling</source><translation>プロファイリング</translation></message>
     <message><source>Project</source><translation>項目</translation></message>
@@ -3021,7 +3021,7 @@
     <message><source>Recent LH</source><translation>最近の左ハンドル</translation></message>
     <message><source>Recent Logs</source><translation>最近のログ</translation></message>
     <message><source>Rectangular (Tetradic)</source><translation>矩形配色(四角色)</translation></message>
-    <message><source>recursive entity reference</source><translation>再帰的団体参照</translation></message>
+    <message><source>recursive entity reference</source><translation>再帰的エンティティ参照</translation></message>
     <message><source>Reference</source><translation>参考文献</translation></message>
     <message><source>reference to binary entity</source><translation>バイナリエンティティティへの参照</translation></message>
     <message><source>reference to external entity in attribute</source><translation>属性内の外部のエンティティティティを参照</translation></message>
@@ -3072,19 +3072,19 @@
     <message><source>Render All</source><translation>レンダリング すべて</translation></message>
     <message><source>Render CH</source><translation>チャンネルハンドルをレンダー</translation></message>
     <message><source>Render Complete</source><translation>レンダリングの完了</translation></message>
-    <message><source>Render Current Frame</source><translation>レンダリングの現在のフレーム</translation></message>
+    <message><source>Render Current Frame</source><translation>現在のフレームをレンダリング</translation></message>
     <message><source>Render Current Frame as SVG</source><translation>現在のフレームを SVG としてレンダリング</translation></message>
     <message><source>Render Current Frame to SVG</source><translation>現在のフレームを SVG にレンダリング</translation></message>
     <message><source>Render Item</source><translation>レンダリング項目</translation></message>
     <message><source>Render LH</source><translation>左ハンドルをレンダー</translation></message>
     <message><source>Render Log</source><translation>レンダーログ</translation></message>
-    <message><source>Render Notifications</source><translation>入札通知</translation></message>
+    <message><source>Render Notifications</source><translation>レンダー通知</translation></message>
     <message><source>Render Queue closed: Background Renders will continue, but no progress will be reported</source><translation>レンダーキューが閉じられました: バックグラウンドレンダーは続行されますが、進行状況は報告されません</translation></message>
     <message><source>Render Queue closed: Background Renders will continue, but no progress will be reported.</source><translation>レンダーキューが閉じられました: バックグラウンドレンダーは続行されますが、進行状況は報告されません。</translation></message>
     <message><source>Render Queue Items cannot be grouped</source><translation>レンダーキュー項目はグループ化できません</translation></message>
     <message><source>Render Queue Items cannot be grouped.</source><translation>レンダーキュー項目はグループ化できません。</translation></message>
-    <message><source>Render Selected</source><translation>レンダリング 選択される</translation></message>
-    <message><source>Rendering Complete</source><translation>完全なレンダリング</translation></message>
+    <message><source>Render Selected</source><translation>選択項目をレンダリング</translation></message>
+    <message><source>Rendering Complete</source><translation>レンダリング完了</translation></message>
     <message><source>Renders</source><translation>レンダー</translation></message>
     <message><source>Reorder</source><translation>リオーダー</translation></message>
     <message><source>Request Header Fields Too Large</source><translation>リクエスト ヘッダー フィールド トー 大</translation></message>
@@ -3099,7 +3099,7 @@
     <message><source>Reset Content</source><translation>コンテンツのリセット</translation></message>
     <message><source>Reset Layer</source><translation>リセットレイヤー</translation></message>
     <message><source>Reset Layers to Default Colors</source><translation>レイヤーをデフォルトカラーにリセット</translation></message>
-    <message><source>Reset Project Description</source><translation>重置プロジェクト説明</translation></message>
+    <message><source>Reset Project Description</source><translation>プロジェクト説明をリセット</translation></message>
     <message><source>Reset Shortcuts</source><translation>リセットショートカット</translation></message>
     <message><source>Reset Shortcuts in progress. Please restart Cavalry to continue</source><translation>ショートカットのリセット中です。続行するには Cavalry を再起動してください</translation></message>
     <message><source>Reset Shortcuts in progress. Please restart Cavalry to continue.</source><translation>ショートカットのリセット中です。続行するには Cavalry を再起動してください。</translation></message>
@@ -3247,13 +3247,13 @@
     <message><source>Select layers to see their settings</source><translation>レイヤーを選択して設定を表示</translation></message>
     <message><source>Select Layers with Color</source><translation>カラー付きレイヤーを選択</translation></message>
     <message><source>Select Offspring</source><translation>子孫を選択</translation></message>
-    <message><source>Select Parent</source><translation>両親を選択</translation></message>
+    <message><source>Select Parent</source><translation>親を選択</translation></message>
     <message><source>Select Same Color</source><translation>同じ色を選ぶ</translation></message>
     <message><source>Select Siblings</source><translation>兄弟を選ぶ</translation></message>
     <message><source>Select Transformable Offspring</source><translation>変形可能な子孫を選択</translation></message>
     <message><source>Selected Keyframes Required</source><translation>選択済みキーフレーム項目</translation></message>
     <message><source>Selects All</source><translation>すべてを選択</translation></message>
-    <message><source>Semibold</source><translation>セミボルト</translation></message>
+    <message><source>Semibold</source><translation>セミボールド</translation></message>
     <message><source>Send</source><translation>送信</translation></message>
     <message><source>Send Feedback</source><translation>フィードバックを送信</translation></message>
     <message><source>Separate Layers</source><translation>レイヤーを分離</translation></message>
@@ -3287,56 +3287,56 @@
     <message><source>Set Keyframe Expression</source><translation>設定キーフレーム式</translation></message>
     <message><source>Set Keyframe Expression.</source><translation>設定キーフレーム式。</translation></message>
     <message><source>Set Keyframes</source><translation>設定キーフレーム</translation></message>
-    <message><source>Set Label Color</source><translation>セット ラベル色</translation></message>
-    <message><source>Set Label Color on Selected Items</source><translation>選択された項目のラベル色を置いて下さい</translation></message>
+    <message><source>Set Label Color</source><translation>ラベル色を設定</translation></message>
+    <message><source>Set Label Color on Selected Items</source><translation>選択項目のラベル色を設定</translation></message>
     <message><source>Set Loop (Oscillate))</source><translation>セットループ(発振)</translation></message>
     <message><source>Set Loop with Offset</source><translation>オフセットでループを設定する</translation></message>
     <message><source>Set Looping</source><translation>セットループ</translation></message>
     <message><source>Set Looping to None</source><translation>ループをなしに設定</translation></message>
     <message><source>Set Notes</source><translation>セットノート</translation></message>
-    <message><source>Set Preset</source><translation>設定プリセット</translation></message>
-    <message><source>Set Segment Velocity</source><translation>セットの区分 速度</translation></message>
-    <message><source>Set Selected</source><translation>選択されたセット</translation></message>
-    <message><source>Set Selected Attributes</source><translation>設定選択済み属性</translation></message>
-    <message><source>Set Selected Clip Ends</source><translation>選択されたクリップ エンド セット</translation></message>
+    <message><source>Set Preset</source><translation>プリセットを設定</translation></message>
+    <message><source>Set Segment Velocity</source><translation>セグメント速度を設定</translation></message>
+    <message><source>Set Selected</source><translation>選択項目を設定</translation></message>
+    <message><source>Set Selected Attributes</source><translation>選択した属性を設定</translation></message>
+    <message><source>Set Selected Clip Ends</source><translation>選択したクリップ終了点を設定</translation></message>
     <message><source>Set Selected Clip Ranges</source><translation>選択されたクリップ範囲を設定する</translation></message>
     <message><source>Set Selected Clip Starts</source><translation>選択されたクリップ開始を設定する</translation></message>
-    <message><source>Set Selected Colours</source><translation>選択された色を置いて下さい</translation></message>
-    <message><source>Set Selected Layers</source><translation>設定選択済みレイヤー</translation></message>
-    <message><source>Set selected to Contrast</source><translation>コントラストに選択したセット</translation></message>
+    <message><source>Set Selected Colours</source><translation>選択した色を設定</translation></message>
+    <message><source>Set Selected Layers</source><translation>選択したレイヤーを設定</translation></message>
+    <message><source>Set selected to Contrast</source><translation>選択項目をコントラストに設定</translation></message>
     <message><source>Set selected to Crush</source><translation>選択項目をクラッシュ補間に設定</translation></message>
     <message><source>Set selected to Cubic</source><translation>選択項目を三次補間に設定</translation></message>
     <message><source>Set selected to Jittered</source><translation>選択項目をジッター補間に設定</translation></message>
-    <message><source>Set selected to Linear</source><translation>選択された設定を線形に</translation></message>
-    <message><source>Set selected to Smooth</source><translation>スムースに選択されたセット</translation></message>
-    <message><source>Set selected to Smooth Blend</source><translation>スムースブレンドを選択</translation></message>
+    <message><source>Set selected to Linear</source><translation>選択項目をリニアに設定</translation></message>
+    <message><source>Set selected to Smooth</source><translation>選択項目をスムーズに設定</translation></message>
+    <message><source>Set selected to Smooth Blend</source><translation>選択項目をスムーズブレンドに設定</translation></message>
     <message><source>Set selected to Stepped</source><translation>選択項目をステップ補間に設定</translation></message>
-    <message><source>Set Speed</source><translation>セット速度</translation></message>
-    <message><source>Set Speed Influence</source><translation>セット速度の影響</translation></message>
-    <message><source>Set Speed Strength</source><translation>速度の強さを置いて下さい</translation></message>
+    <message><source>Set Speed</source><translation>速度を設定</translation></message>
+    <message><source>Set Speed Influence</source><translation>速度影響を設定</translation></message>
+    <message><source>Set Speed Strength</source><translation>速度強度を設定</translation></message>
     <message><source>Setting up background render</source><translation>背景レンダリングの設定</translation></message>
     <message><source>Shad</source><translation>シェード</translation></message>
     <message><source>Shadow</source><translation>シャドー</translation></message>
     <message><source>Shape Depth Debug</source><translation>シェイプ深度デバッグ</translation></message>
     <message><source>Shape Editing</source><translation>シェイプ編集</translation></message>
-    <message><source>Share usage data to help improve Cavalry</source><translation>共享使用データ以ヘルプ改进アプリ</translation></message>
+    <message><source>Share usage data to help improve Cavalry</source><translation>使用データを共有してアプリの改善に役立てる</translation></message>
     <message><source>Shift Stops</source><translation>シフトストップ</translation></message>
     <message><source>Shift Stops Left</source><translation>シフトストップ左</translation></message>
     <message><source>Shift Stops Right</source><translation>シフト停止の権利</translation></message>
     <message><source>Short Ease (16%)</source><translation>ショートイーズ (16%)</translation></message>
     <message><source>Shortcut</source><translation>ショートカット</translation></message>
     <message><source>Shortcut Manager (Pro)</source><translation>ショートカット管理(プロ版)</translation></message>
-    <message><source>Show 3D Grid</source><translation>表示三维メッシュ</translation></message>
+    <message><source>Show 3D Grid</source><translation>3D グリッドを表示</translation></message>
     <message><source>Show Animated Attributes in the Hierarchy</source><translation>階層にアニメーション属性を表示</translation></message>
     <message><source>Show Channel Names in the Graph</source><translation>グラフのチャンネル名を表示</translation></message>
     <message><source>Show Clipping Masks</source><translation>クリップマスクを表示する</translation></message>
-    <message><source>Show Clipping Masks for selected Shapes</source><translation>表示選択したシェイプ的剪裁蒙版</translation></message>
+    <message><source>Show Clipping Masks for selected Shapes</source><translation>選択したシェイプのクリッピングマスクを表示</translation></message>
     <message><source>Show Direction</source><translation>ショーの方向</translation></message>
     <message><source>Show Drawables</source><translation>描画対象を表示</translation></message>
     <message><source>Show Experimental Features</source><translation>実験的な機能を表示する</translation></message>
     <message><source>Show Experimental Features (Pro)</source><translation>実験的機能を表示(プロ版)</translation></message>
     <message><source>Show Feedback button in Message Bar</source><translation>メッセージバーのフィードバックボタンを表示する</translation></message>
-    <message><source>Show FPS in Playback</source><translation>播放时表示帧率</translation></message>
+    <message><source>Show FPS in Playback</source><translation>再生時にフレームレートを表示</translation></message>
     <message><source>Show Frames</source><translation>ショーフレーム</translation></message>
     <message><source>Show Grid</source><translation>ディスプレイグリッド</translation></message>
     <message><source>Show Hierarchy</source><translation>階層を表示</translation></message>
@@ -3347,16 +3347,16 @@
     <message><source>Show Seconds</source><translation>ショーセカンド</translation></message>
     <message><source>Show Selected</source><translation>選択されたショー</translation></message>
     <message><source>Show Tips button in Message Bar</source><translation>メッセージバーにヒントボタンを表示する</translation></message>
-    <message><source>Show Viewport Timecode</source><translation>表示ビューポート时间码</translation></message>
+    <message><source>Show Viewport Timecode</source><translation>ビューポートタイムコードを表示</translation></message>
     <message><source>Showing All Snapshots</source><translation>すべてのスナップショットを表示</translation></message>
     <message><source>Showing Snapshot</source><translation>スナップショットを表示する</translation></message>
     <message><source>Shuffle Stop Positions</source><translation>シャッフルストップポジション</translation></message>
     <message><source>Sign in with Canva</source><translation>Canva でサインイン</translation></message>
     <message><source>Sign-in timed out. Please try again</source><translation>サインインタイムアウト。 お問い合わせ</translation></message>
     <message><source>Sign-in timed out. Please try again.</source><translation>サインインタイムアウト。 お問い合わせ。</translation></message>
-    <message><source>Signing out...</source><translation>サインアップ...</translation></message>
+    <message><source>Signing out...</source><translation>サインアウト...</translation></message>
     <message><source>Skeleton Tool</source><translation>スケルトンツール</translation></message>
-    <message><source>Skeptic</source><translation>無菌症</translation></message>
+    <message><source>Skeptic</source><translation>スケプティック</translation></message>
     <message><source>skipped inserting dotted-circles because there is no broken syllables</source><translation>壊れたシラブルがないため、点状の円弧をスキッピング</translation></message>
     <message><source>Slant</source><translation>スラント</translation></message>
     <message><source>slate blue</source><translation>スレートブルー</translation></message>
@@ -3380,7 +3380,7 @@
     <message><source>Snap Selected to Current Frame</source><translation>現在のフレームに選ばれるスナップ</translation></message>
     <message><source>Snap to 90 Degree Angles</source><translation>90度の角度にスナップ</translation></message>
     <message><source>Snapping Settings</source><translation>スナップ設定</translation></message>
-    <message><source>Snapping Threshold</source><translation>悲しみをスナップ</translation></message>
+    <message><source>Snapping Threshold</source><translation>スナップしきい値</translation></message>
     <message><source>Snippet Editor</source><translation>スニペットエディタ</translation></message>
     <message><source>Snippet Library Options</source><translation>スニペットライブラリオプション</translation></message>
     <message><source>Some content goes here, and here, but more here, and it wraps around to other rows</source><translation>ここには一部コンテンツが出てきますが、ここには、ほかの行に巻き込みます。</translation></message>
@@ -3392,7 +3392,7 @@
     <message><source>Speed In</source><translation>速度 で</translation></message>
     <message><source>Speed Out</source><translation>スピードアウト</translation></message>
     <message><source>Speed Strength</source><translation>速度の強さ</translation></message>
-    <message><source>Split</source><translation>スプリート</translation></message>
+    <message><source>Split</source><translation>スプリット</translation></message>
     <message><source>Split Clip</source><translation>スプリットクリップ</translation></message>
     <message><source>Split Complementary</source><translation>分割補完</translation></message>
     <message><source>Split Path</source><translation>パスを分割</translation></message>
@@ -3487,15 +3487,15 @@
     <message><source>Subdivide Gradient</source><translation>潜水艦勾配</translation></message>
     <message><source>Subdivision Count</source><translation>サブディビジョンカウント</translation></message>
     <message><source>Succ</source><translation>サック</translation></message>
-    <message><source>Success</source><translation>成功事例</translation></message>
+    <message><source>Success</source><translation>成功</translation></message>
     <message><source>Supervised tracking will stop when quality drops too low and will</source><translation>監督された追跡は質の低下が余りに低いとき停止し、</translation></message>
-    <message><source>surface creation failed</source><translation>表面作成失敗</translation></message>
+    <message><source>surface creation failed</source><translation>サーフェス作成失敗</translation></message>
     <message><source>Surface is null</source><translation>サーフェスが空です</translation></message>
     <message><source>Surface is null.</source><translation>サーフェスがヌルです。</translation></message>
     <message><source>Suspended</source><translation>サスペンド</translation></message>
     <message><source>SVG Layer</source><translation>SVG レイヤー</translation></message>
     <message><source>Swap Composition</source><translation>コンポジションを入れ替え</translation></message>
-    <message><source>Swap Fill and Stroke</source><translation>スワップ充填とストローク</translation></message>
+    <message><source>Swap Fill and Stroke</source><translation>塗りとストロークを入れ替え</translation></message>
     <message><source>Swatches</source><translation>スウォッチ</translation></message>
     <message><source>Swiss</source><translation>スイス</translation></message>
     <message><source>Switch Alias State</source><translation>アリアス州のスイッチ</translation></message>
@@ -7303,7 +7303,7 @@
     </message>
     <message>
       <source>Forge Dynamics Shape</source>
-      <translation>動力学形状を生成</translation>
+      <translation>フォージダイナミクスシェイプ</translation>
     </message>
     <message>
       <source>Fractal Tree</source>

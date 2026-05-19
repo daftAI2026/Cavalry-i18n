@@ -733,8 +733,8 @@
     <message><source>Any selected shapes will automatically be added as input shapes</source><translation>任何選取的形狀都會自動新增為輸入形狀</translation></message>
     <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator</source><translation>任何已選取的形狀都會自動新增為複製器的輸入形狀</translation></message>
     <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator.</source><translation>任何已選取的形狀都會自動新增為複製器的輸入形狀。</translation></message>
-    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude</source><translation>任何已選取的形狀都會自動新增為挤出的輸入形狀</translation></message>
-    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude.</source><translation>任何已選取的形狀都會自動新增為挤出的輸入形狀。</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude</source><translation>任何已選取的形狀都會自動新增為擠出的輸入形狀</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Extrude.</source><translation>任何已選取的形狀都會自動新增為擠出的輸入形狀。</translation></message>
     <message><source>Any selected shapes will automatically be added as input shapes.</source><translation>任何選取的形狀都會自動新增為輸入形狀。</translation></message>
     <message><source>Apache</source><translation>阿帕契</translation></message>
     <message><source>Append</source><translation>附加</translation></message>
