@@ -4,7 +4,7 @@
 
 ## 定位
 
-这份文档只描述一件事：如何抓取真实 Cavalry 注入后的 UI 文本分母，并按 session 增量修复残留英文。
+这份文档只描述一件事：如何抓取真实 Cavalry 注入后的 UI 文本分母，并按 session 增量修复残留英文。2026-05-19 补充：截图证据必须限定 Cavalry 窗口；对属性编辑器中滚动后才出现的工具浮动标题/标签，必须用 `widgetAt(cursor)` 反查 Qt 控件链，不再按全屏坐标或 Time Editor 画面猜测来源。
 
 核心原则：截图只是 canary，不是分母。真实分母来自 live session。
 
@@ -98,7 +98,9 @@ lang marker == 当前目标语言
 repo injector hash == app injector hash
 ```
 
-如果 hash 不一致，先通过 Language Switcher 重新 Apply & Restart。只有本机诊断时，才可以手动同步 app 内 injector：
+如果 hash 不一致，先通过 Language Switcher 重新 Apply & Restart。这个不一致会直接造成“抓取 session 已修好，但用户双击 Cavalry 仍看到旧行为”：例如 repo 当前 injector 已经能把属性编辑器里的 `RolloverLabel.text = Particle Shape` 显示为 `粒子形狀/粒子形状`，但 `/Applications/Cavalry.app` 仍加载旧 dylib 时，浮动标题会继续显示英文。
+
+只有本机诊断时，才可以手动同步 app 内 injector：
 
 ```bash
 cp injector/libCavalryTranslatorInjector.dylib \
@@ -204,6 +206,16 @@ QLabel.text -> Widget -> AttributeEditorTreeWidget -> AttributeEditorWindow
 ```
 
 这类路径应该走 Qt 显示层翻译；Time Editor 的 `QTreeWidgetItem/QListWidgetItem` 模型名仍由 injector 的 model-backed guard 保持英文。
+
+属性编辑器里“工具变多、向下滚动后才看到”的绿色描边浮动标题通常不是 Time Editor 条带，而是 Qt 控件链里的显示层标签。已见过的命中形态包括：
+
+```text
+RolloverLabel.text -> Widget -> Widget -> NodeRowWidget -> qt_scrollarea_viewport -> AttributeEditorTreeWidget -> AttributeEditorWindow
+QLabel.text        -> Widget -> AttributeEditorTreeWidget -> AttributeEditorWindow
+RowWidget.toolTip  -> qt_scrollarea_viewport -> SceneTreeWidget
+```
+
+这类控件可以渲染 CJK，应该通过 injector 的 display-only `ModelDisplay` 词典翻译，例如 `Particle Shape -> 粒子形狀/粒子形状`。不要把 `languages/*/nodeStrings.json` 或 plugin `niceName` 改回中文来修它；那会重新污染 Time Editor 共用模型名，让 Latin-only 自绘层回到方块/空白问题。若 inventory 中 `RolloverLabel.text` 仍是英文，优先检查 app 内 injector hash 是否等于 repo 构建产物，并确认 Cavalry 已重启。
 
 ## 判断是否抓对
 

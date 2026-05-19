@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName 与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -343,6 +343,19 @@ test('embedded injector translates visible Qt widget text beyond menus', () => {
     injectorSource,
     /scheduleRefreshAttempt|refreshQtUiTranslations/,
     'injector should keep refreshing UI translations after startup because Cavalry creates many widgets after the menu bar exists'
+  );
+});
+
+test('embedded injector translates dynamic QLabel text before repaint', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /QEvent::Paint[\s\S]{0,320}qobject_cast<QLabel \*>\(watched\)[\s\S]{0,320}translateRuntimeObject/,
+    'attribute editor floating titles reuse QLabel/RolloverLabel instances and can change text after startup, so repaint must translate them before they draw'
   );
 });
 
