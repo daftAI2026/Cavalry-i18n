@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏兜底翻译、AppKit 菜单同步与带坐标父链的运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -26,6 +26,8 @@
 #include <qglobal.h>
 #include <QtGui/qaction.h>
 #include <QtGui/qcursor.h>
+#include <QtCore/qabstractitemmodel.h>
+#include <QtWidgets/qabstractitemview.h>
 #include <QtWidgets/qabstractbutton.h>
 #include <QtWidgets/qapplication.h>
 #include <QtWidgets/qcombobox.h>
@@ -820,6 +822,7 @@ QObject *gEventFilter = nullptr;
 QVector<DirtyObject> gDirtyObjects;
 QSet<QObject *> gDirtyObjectSet;
 bool gDirtyDrainScheduled = false;
+bool gInteractiveRefreshScheduled = false;
 int gRefreshCount = 0;
 int gDirtyEnqueueCount = 0;
 int gDirtyDrainCount = 0;
@@ -1212,6 +1215,181 @@ NSArray *widgetDynamicProperties(QWidget *widget)
     return properties;
 }
 
+bool shouldDumpItemModels()
+{
+    const QString enabled = readEnvVar("CAVALRY_I18N_DUMP_ITEM_MODELS").trimmed().toLower();
+    return enabled == QStringLiteral("1") || enabled == QStringLiteral("true") || enabled == QStringLiteral("yes");
+}
+
+NSString *variantTypeName(const QVariant &value)
+{
+    const char *name = value.metaType().name();
+    if (name == nullptr) {
+        name = value.typeName();
+    }
+    return name != nullptr ? [NSString stringWithUTF8String:name] : @"";
+}
+
+id serializeModelVariant(const QVariant &value)
+{
+    if (!value.isValid()) {
+        return [NSNull null];
+    }
+
+    NSMutableDictionary *payload = [NSMutableDictionary dictionary];
+    payload[@"type"] = variantTypeName(value);
+    payload[@"null"] = @(value.isNull());
+
+    const QString text = normalizeMenuText(value.toString());
+    if (!text.isEmpty()) {
+        payload[@"text"] = toNSString(text);
+    }
+
+    return payload;
+}
+
+NSArray *modelRoleSpecs(QAbstractItemModel *model)
+{
+    NSMutableArray *roles = [NSMutableArray array];
+    const QHash<int, QByteArray> roleNames = model != nullptr ? model->roleNames() : QHash<int, QByteArray>();
+    auto addRole = ^(int role, NSString *fallbackName) {
+        NSString *name = fallbackName;
+        const auto found = roleNames.constFind(role);
+        if (found != roleNames.constEnd() && !found.value().isEmpty()) {
+            name = [NSString stringWithUTF8String:found.value().constData()];
+        }
+        [roles addObject:@{ @"role" : @(role), @"name" : name }];
+    };
+
+    addRole(Qt::DisplayRole, @"DisplayRole");
+    addRole(Qt::DecorationRole, @"DecorationRole");
+    addRole(Qt::EditRole, @"EditRole");
+    addRole(Qt::ToolTipRole, @"ToolTipRole");
+    addRole(Qt::StatusTipRole, @"StatusTipRole");
+    addRole(Qt::WhatsThisRole, @"WhatsThisRole");
+    addRole(Qt::AccessibleTextRole, @"AccessibleTextRole");
+    addRole(Qt::AccessibleDescriptionRole, @"AccessibleDescriptionRole");
+    addRole(Qt::CheckStateRole, @"CheckStateRole");
+
+    for (int offset = 0; offset < 64; ++offset) {
+        addRole(Qt::UserRole + offset, toNSString(QStringLiteral("UserRole+%1").arg(offset)));
+    }
+
+    return roles;
+}
+
+NSArray *serializeModelRows(QAbstractItemView *view, QAbstractItemModel *model, const QModelIndex &parent, int depth)
+{
+    NSMutableArray *rows = [NSMutableArray array];
+    if (model == nullptr || depth > 2) {
+        return rows;
+    }
+
+    const int rowCount = qMin(model->rowCount(parent), 80);
+    const int columnCount = qMin(qMax(model->columnCount(parent), 1), 8);
+    NSArray *roleSpecs = modelRoleSpecs(model);
+
+    for (int row = 0; row < rowCount; ++row) {
+        NSMutableDictionary *rowPayload = [NSMutableDictionary dictionary];
+        rowPayload[@"row"] = @(row);
+        rowPayload[@"depth"] = @(depth);
+
+        NSMutableArray *columns = [NSMutableArray array];
+        for (int column = 0; column < columnCount; ++column) {
+            const QModelIndex index = model->index(row, column, parent);
+            if (!index.isValid()) {
+                continue;
+            }
+
+            NSMutableDictionary *columnPayload = [NSMutableDictionary dictionary];
+            columnPayload[@"column"] = @(column);
+
+            const QRect visualRect = view != nullptr ? view->visualRect(index) : QRect();
+            if (visualRect.isValid()) {
+                columnPayload[@"visualRect"] = @{
+                    @"x" : @(visualRect.x()),
+                    @"y" : @(visualRect.y()),
+                    @"w" : @(visualRect.width()),
+                    @"h" : @(visualRect.height()),
+                };
+            }
+
+            NSMutableArray *roleValues = [NSMutableArray array];
+            for (NSDictionary *roleSpec in roleSpecs) {
+                const int role = [roleSpec[@"role"] intValue];
+                const QVariant value = model->data(index, role);
+                if (!value.isValid()) {
+                    continue;
+                }
+
+                NSMutableDictionary *rolePayload = [NSMutableDictionary dictionaryWithDictionary:roleSpec];
+                rolePayload[@"value"] = serializeModelVariant(value);
+                [roleValues addObject:rolePayload];
+            }
+            if ([roleValues count] > 0) {
+                columnPayload[@"roles"] = roleValues;
+            }
+
+            const int childRows = model->rowCount(index);
+            if (childRows > 0) {
+                columnPayload[@"children"] = serializeModelRows(view, model, index, depth + 1);
+            }
+
+            [columns addObject:columnPayload];
+        }
+
+        if ([columns count] > 0) {
+            rowPayload[@"columns"] = columns;
+            [rows addObject:rowPayload];
+        }
+    }
+
+    return rows;
+}
+
+id serializeItemViewModel(QAbstractItemView *view)
+{
+    if (view == nullptr || !view->isVisible()) {
+        return [NSNull null];
+    }
+
+    QAbstractItemModel *model = view->model();
+    if (model == nullptr) {
+        return [NSNull null];
+    }
+
+    NSMutableDictionary *payload = [NSMutableDictionary dictionary];
+    payload[@"className"] = [NSString stringWithUTF8String:view->metaObject()->className()];
+    payload[@"modelClassName"] = [NSString stringWithUTF8String:model->metaObject()->className()];
+    payload[@"geometry"] = widgetGlobalGeometry(view);
+    payload[@"parentChain"] = widgetParentChain(view);
+    payload[@"rootRowCount"] = @(model->rowCount());
+    payload[@"rootColumnCount"] = @(model->columnCount());
+    if (!view->objectName().isEmpty()) {
+        payload[@"objectName"] = toNSString(view->objectName());
+    }
+    if (!model->objectName().isEmpty()) {
+        payload[@"modelObjectName"] = toNSString(model->objectName());
+    }
+
+    NSArray *dynamicProperties = widgetDynamicProperties(view);
+    if ([dynamicProperties count] > 0) {
+        payload[@"dynamicProperties"] = dynamicProperties;
+    }
+
+    NSMutableDictionary *strings = [NSMutableDictionary dictionary];
+    addStringValue(strings, @"windowTitle", view->windowTitle());
+    addStringValue(strings, @"toolTip", view->toolTip());
+    addStringValue(strings, @"statusTip", view->statusTip());
+    addStringValue(strings, @"whatsThis", view->whatsThis());
+    if ([strings count] > 0) {
+        payload[@"strings"] = strings;
+    }
+
+    payload[@"rows"] = serializeModelRows(view, model, QModelIndex(), 0);
+    return payload;
+}
+
 bool shouldKeepDiagnosticWidget(QWidget *widget)
 {
     const QString className = QString::fromLatin1(widget->metaObject()->className());
@@ -1233,6 +1411,33 @@ bool shouldKeepDiagnosticWidget(QWidget *widget)
     }
 
     return false;
+}
+
+bool hasAncestorClass(QObject *object, const char *className)
+{
+    QObject *parent = object != nullptr ? object->parent() : nullptr;
+    while (parent != nullptr) {
+        if (strcmp(parent->metaObject()->className(), className) == 0) {
+            return true;
+        }
+        parent = parent->parent();
+    }
+    return false;
+}
+
+void pruneQuickAddEmptyItems(QListWidget *listWidget)
+{
+    if (listWidget == nullptr || !hasAncestorClass(listWidget, "QuickAddWindow")) {
+        return;
+    }
+
+    for (int row = listWidget->count() - 1; row >= 0; --row) {
+        QListWidgetItem *item = listWidget->item(row);
+        if (item == nullptr || !normalizeMenuText(item->text()).isEmpty()) {
+            continue;
+        }
+        delete listWidget->takeItem(row);
+    }
 }
 
 id serializeWidgetAtPoint(NSString *name, const QPoint &point)
@@ -1360,6 +1565,8 @@ bool dumpQtMenuInventory(const QString &lang)
 
     NSMutableArray *menuBars = [NSMutableArray array];
     NSMutableArray *widgetTexts = [NSMutableArray array];
+    NSMutableArray *itemModels = [NSMutableArray array];
+    const bool dumpItemModels = shouldDumpItemModels();
     const auto widgets = QApplication::allWidgets();
     for (QWidget *widget : widgets) {
         QMenuBar *menuBar = qobject_cast<QMenuBar *>(widget);
@@ -1378,9 +1585,17 @@ bool dumpQtMenuInventory(const QString &lang)
         if (serializedWidget != [NSNull null]) {
             [widgetTexts addObject:serializedWidget];
         }
+
+        if (dumpItemModels) {
+            QAbstractItemView *itemView = qobject_cast<QAbstractItemView *>(widget);
+            id serializedModel = serializeItemViewModel(itemView);
+            if (serializedModel != [NSNull null]) {
+                [itemModels addObject:serializedModel];
+            }
+        }
     }
 
-    if ([menuBars count] == 0 && [widgetTexts count] == 0) {
+    if ([menuBars count] == 0 && [widgetTexts count] == 0 && [itemModels count] == 0) {
         fprintf(stderr,
                 "[cavalry-i18n] menu inventory export deferred: no populated Qt menu bar or visible widget text yet\n");
         return false;
@@ -1402,6 +1617,7 @@ bool dumpQtMenuInventory(const QString &lang)
         },
         @"menuBars" : menuBars,
         @"widgetTexts" : widgetTexts,
+        @"itemModels" : itemModels,
         @"diagnostics" : @{
             @"refreshCount" : @(gRefreshCount),
             @"menuHookCount" : @(gHookedMenus.size()),
@@ -1673,6 +1889,7 @@ void translateListWidgetItems(QListWidget *listWidget, const QString &lang)
     if (listWidget == nullptr || lang.isEmpty()) {
         return;
     }
+    pruneQuickAddEmptyItems(listWidget);
     for (int row = 0; row < listWidget->count(); ++row) {
         QListWidgetItem *item = listWidget->item(row);
         if (item == nullptr) {
@@ -2038,6 +2255,23 @@ void refreshQtUiTranslations(const QString &lang)
     dumpQtMenuInventory(lang);
 }
 
+void scheduleInteractiveRefresh(QString lang)
+{
+    if (lang.isEmpty() || gInteractiveRefreshScheduled) {
+        return;
+    }
+
+    gInteractiveRefreshScheduled = true;
+    dispatch_after(
+        dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(100) * NSEC_PER_MSEC),
+        dispatch_get_main_queue(),
+        ^{
+            gInteractiveRefreshScheduled = false;
+            refreshQtUiTranslations(lang);
+        }
+    );
+}
+
 void scheduleRefreshAttempts(QString lang)
 {
     if (gRefreshScheduled || lang.isEmpty()) {
@@ -2164,10 +2398,12 @@ protected:
         case QEvent::ActionAdded:
         case QEvent::MouseButtonRelease:
             enqueueRuntimeObject(watched, m_lang);
+            scheduleInteractiveRefresh(m_lang);
             break;
         case QEvent::ChildAdded: {
             QChildEvent *childEvent = static_cast<QChildEvent *>(event);
             enqueueRuntimeObject(childEvent->child(), m_lang);
+            scheduleInteractiveRefresh(m_lang);
             break;
         }
         default:

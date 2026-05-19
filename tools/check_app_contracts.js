@@ -2444,23 +2444,6 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
   }
 });
 
-test('orphan smoother node string is not exposed as a blank Add Layer card', () => {
-  const definitions = readJson(path.join(repoRoot, 'languages', 'en', 'Definitions', 'nodeDefinitions.json'));
-  assert(
-    !definitions.some((definition) => definition.nodeType === 'smoother'),
-    'smoother has no node definition in the Cavalry 2.7.2 schema'
-  );
-
-  for (const language of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
-    const nodeStrings = readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json'));
-    const smoother = nodeStrings
-      .flatMap((section) => section.values || [])
-      .find((candidate) => candidate.nodeType === 'smoother');
-
-    assert.equal(smoother, undefined, `${language} should not ship the orphan smoother Add Layer entry`);
-  }
-});
-
 test('Forge Dynamics nodeStrings include direct labels for generated property names', () => {
   const expectedAttributes = {
     en: {
@@ -2502,6 +2485,46 @@ test('Forge Dynamics nodeStrings include direct labels for generated property na
     assert(node, `${language} should contain forgeDynamicsShape node strings`);
     for (const [key, value] of Object.entries(attributes)) {
       assert.equal(node.attributes[key], value, `${language} forgeDynamicsShape.attributes.${key}`);
+    }
+  }
+});
+
+test('QuickAdd runtime pruning removes only empty Add Layer rows', () => {
+  const injector = fs.readFileSync(path.join(repoRoot, 'injector', 'CavalryTranslatorInjector.mm'), 'utf8');
+  assert.match(
+    injector,
+    /pruneQuickAddEmptyItems\(QListWidget \*listWidget\)[\s\S]*hasAncestorClass\(listWidget,\s*"QuickAddWindow"\)/,
+    'empty Add Layer row pruning must be scoped to the QuickAddWindow list, not global item models'
+  );
+  assert.match(
+    injector,
+    /normalizeMenuText\(item->text\(\)\)\.isEmpty\(\)[\s\S]*delete listWidget->takeItem\(row\)/,
+    'QuickAdd pruning should remove only rows whose display title is empty'
+  );
+  assert.match(
+    injector,
+    /scheduleInteractiveRefresh[\s\S]*refreshQtUiTranslations/,
+    'opening Add Layers after startup should trigger a debounced full widget refresh'
+  );
+});
+
+test('Add Layer definition tags remain source tokens for Cavalry tag chips', () => {
+  const english = readJson(path.join(repoRoot, 'languages', 'en', 'Definitions', 'nodeDefinitions.json'));
+  const expected = new Map(
+    english
+      .filter((definition) => definition.nodeType === 'duplicator' || definition.nodeType === 'basicLine')
+      .map((definition) => [definition.nodeType, definition.tags])
+  );
+
+  for (const language of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    const definitions = readJson(path.join(repoRoot, 'languages', language, 'Definitions', 'nodeDefinitions.json'));
+    for (const [nodeType, tags] of expected) {
+      const definition = definitions.find((candidate) => candidate.nodeType === nodeType);
+      assert.deepEqual(
+        definition?.tags,
+        tags,
+        `${language} ${nodeType}.tags should stay as source tokens so Add Layers can render tag chips`
+      );
     }
   }
 });

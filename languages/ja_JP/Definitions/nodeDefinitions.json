@@ -20466,7 +20466,7 @@
     "version": 1,
     "superType": "shape",
     "tags": [
-      "配分"
+      "Distribution"
     ],
     "attributes": {
       "shapes": {
@@ -24245,8 +24245,8 @@
     "version": 1,
     "superType": "shape",
     "tags": [
-      "スパイラル",
-      "ベジェ"
+      "Spiral",
+      "Bezier"
     ],
     "attributes": {
       "stroke": {
