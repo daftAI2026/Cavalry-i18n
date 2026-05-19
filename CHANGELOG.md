@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Cavalry-i18n Code Review Report**: Added `doc/code-review-report.md` performing a thorough audit of dead code, redundant logic, and architecture detours.
+- **Runtime Translation Noise Triage Audit**: Added `doc/audits/runtime-translation-noise-triage-2026-05-19.md` listing triage logs and evidence checkouts for 21 candidate tokens.
 - **Runtime Translation Noise Triage Protocol**: Added `doc/runtime-translation-noise-triage.md` outlining the triage steps, evidence levels, and quarantine rules for runtime translation short tokens (e.g., `Rhu`), and linked it in `doc/CLAUDE.md`.
 - **Dynamic Frame Keyframe Translation**: Implemented regex-based interceptor in `CavalryTranslatorInjector.mm` to localize Time Editor's "Add Keyframe on frame <n>" context-menu actions dynamically across all supported locales.
 - **Animation and Timing Translations**: Added Japanese, Simplified Chinese, and Traditional Chinese translation support for animation/timing variables including *Copy Animated Attribute*, *Clip(s)*, *Start Frame*, *Seed*, *Lifespan*, *Emitters*, *Turbulence*, *Gravity*, *Drag Force*, *Mass*, *Timing Mode*, *Group By Parent*, *Parent Timing Mode*, and *Reverse Parent Order*.
