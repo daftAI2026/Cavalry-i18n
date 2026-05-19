@@ -2117,6 +2117,18 @@
     <message><source>Right Click on Attributes to add them to this window.</source><translation>右键单击属性以添加到此窗口。</translation></message>
     <message><source>Right click to add a Falloff</source><translation>右键点击添加衰减</translation></message>
     <message><source>Right click to add a Modifier</source><translation>右键单击以添加修改器</translation></message>
+    <message><source>Start Frame</source><translation>起始帧</translation></message>
+    <message><source>Seed</source><translation>种子</translation></message>
+    <message><source>Lifespan</source><translation>生命周期</translation></message>
+    <message><source>Emitters</source><translation>发射器</translation></message>
+    <message><source>Turbulence</source><translation>湍流</translation></message>
+    <message><source>Gravity</source><translation>重力</translation></message>
+    <message><source>Drag Force</source><translation>阻力</translation></message>
+    <message><source>Mass</source><translation>质量</translation></message>
+    <message><source>Timing Mode</source><translation>时序模式</translation></message>
+    <message><source>Group By Parent</source><translation>按父级分组</translation></message>
+    <message><source>Parent Timing Mode</source><translation>父级时序模式</translation></message>
+    <message><source>Reverse Parent Order</source><translation>反转父级顺序</translation></message>
     <message><source>Right click to add a Shader</source><translation>右键点击添加着色器</translation></message>
     <message><source>Riv</source><translation>里弗</translation></message>
     <message><source>Riz</source><translation>里兹</translation></message>

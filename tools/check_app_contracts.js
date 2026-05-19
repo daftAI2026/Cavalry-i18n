@@ -2362,6 +2362,8 @@ test('runtime allowlist ignores shortcut, color swatch, app-state, and AX chrome
 
 test('zh-Hans embedded runtime tail has exact translations for live-only widget strings', () => {
   const zhHansTs = fs.readFileSync(path.join(repoRoot, 'tools', 'zh-Hans.ts'), 'utf8');
+  const zhHantTs = fs.readFileSync(path.join(repoRoot, 'tools', 'zh-Hant.ts'), 'utf8');
+  const jaTs = fs.readFileSync(path.join(repoRoot, 'tools', 'ja_JP.ts'), 'utf8');
 
   assert.match(
     zhHansTs,
@@ -2378,6 +2380,25 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     /<source>&lt;i&gt;Click to see next message&lt;\/i&gt;<\/source>\s*<translation>&lt;i&gt;点击查看下一条消息&lt;\/i&gt;<\/translation>/,
     'Tips panel HTML labels should be translated as exact runtime widget strings'
   );
+  for (const [source, zhHans, zhHant, ja] of [
+    ['Start Frame', '起始帧', '起始幀', '開始フレーム'],
+    ['Seed', '种子', '種子', 'シード'],
+    ['Lifespan', '生命周期', '生命週期', '寿命'],
+    ['Emitters', '发射器', '發射器', 'エミッター'],
+    ['Turbulence', '湍流', '湍流', 'タービュランス'],
+    ['Gravity', '重力', '重力', '重力'],
+    ['Drag Force', '阻力', '阻力', 'ドラッグ力'],
+    ['Mass', '质量', '質量', '質量'],
+    ['Timing Mode', '时序模式', '時序模式', 'タイミングモード'],
+    ['Group By Parent', '按父级分组', '按父級分組', '親でグループ化'],
+    ['Parent Timing Mode', '父级时序模式', '父級時序模式', '親のタイミングモード'],
+    ['Reverse Parent Order', '反转父级顺序', '反轉父級順序', '親の順序を反転'],
+  ]) {
+    const escapedSource = source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    assert.match(zhHansTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHans}<\\/translation>`));
+    assert.match(zhHantTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHant}<\\/translation>`));
+    assert.match(jaTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${ja}<\\/translation>`));
+  }
 });
 
 test('shared forbidden translation detector covers the current FP set without legacy FP-6', () => {

@@ -3142,6 +3142,18 @@
     <message><source>Right Click on Attributes to add them to this window.</source><translation>属性を右クリックしてこのウィンドウに追加します。</translation></message>
     <message><source>Right click to add a Falloff</source><translation>右クリックでフォールオフを追加</translation></message>
     <message><source>Right click to add a Modifier</source><translation>右クリックで修飾子を追加</translation></message>
+    <message><source>Start Frame</source><translation>開始フレーム</translation></message>
+    <message><source>Seed</source><translation>シード</translation></message>
+    <message><source>Lifespan</source><translation>寿命</translation></message>
+    <message><source>Emitters</source><translation>エミッター</translation></message>
+    <message><source>Turbulence</source><translation>タービュランス</translation></message>
+    <message><source>Gravity</source><translation>重力</translation></message>
+    <message><source>Drag Force</source><translation>ドラッグ力</translation></message>
+    <message><source>Mass</source><translation>質量</translation></message>
+    <message><source>Timing Mode</source><translation>タイミングモード</translation></message>
+    <message><source>Group By Parent</source><translation>親でグループ化</translation></message>
+    <message><source>Parent Timing Mode</source><translation>親のタイミングモード</translation></message>
+    <message><source>Reverse Parent Order</source><translation>親の順序を反転</translation></message>
     <message><source>Right click to add a Shader</source><translation>右クリックでシェーダーを追加</translation></message>
     <message><source>Riv</source><translation>リヴ</translation></message>
     <message><source>Riz</source><translation>ログイン</translation></message>
