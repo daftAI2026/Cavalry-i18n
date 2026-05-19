@@ -483,6 +483,10 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     'Particle Emitter': '粒子發射器',
     'Forge Dynamics': 'Forge 動力學',
     'Basic Line': '基本線',
+    'Text Shape': '文字形狀',
+    'Cel Animation Shape': '逐格動畫形狀',
+    'Shape Skew': '形狀傾斜',
+    Duplicator: '複製器',
   })) {
     const entry = displayNames.entries.find((candidate) => candidate.source === source);
     assert(entry, `display-only model name map should retain ${source}`);

@@ -2265,7 +2265,8 @@
     <message><source>Scenes</source><translation>場景</translation></message>
     <message><source>Schedule (Overlap)</source><translation>附表(重疊)</translation></message>
     <message><source>Schedule (Sequence)</source><translation>時間表(順序)</translation></message>
-    <message><source>Schedule Stagger</source><translation>排程錯開</translation></message>
+    <message><source>Schedule Stagger</source><translation>錯開排程</translation></message>
+    <message><source>Schedule Stagger...</source><translation>錯開排程...</translation></message>
     <message><source>Scheduling Groups</source><translation>排程組</translation></message>
     <message><source>Script</source><translation>腳本</translation></message>
     <message><source>Search Colours...</source><translation>搜尋顏色...</translation></message>
@@ -3833,11 +3834,11 @@
     </message>
     <message>
       <source>Grid Layout Group</source>
-      <translation>網格配置組</translation>
+      <translation>網格佈局群組</translation>
     </message>
     <message>
       <source>Grid Layout Row</source>
-      <translation>網格配置行</translation>
+      <translation>網格佈局列</translation>
     </message>
     <message>
       <source>Image To Shapes</source>
@@ -4501,6 +4502,10 @@
     <message>
       <source>Set Notes</source>
       <translation>設定備註</translation>
+    </message>
+    <message>
+      <source>Notes...</source>
+      <translation>備註...</translation>
     </message>
     <message>
       <source>Set Preset</source><translation>設定預設</translation>

@@ -10,8 +10,8 @@
     {
       "source": "Align",
       "zh-Hans": "对齐",
-      "zh-Hant": "對齐",
-      "ja_JP": "配置"
+      "zh-Hant": "對齊",
+      "ja_JP": "整列"
     },
     {
       "source": "Alpha Material Override",
@@ -132,6 +132,12 @@
       "zh-Hans": "自动动画",
       "zh-Hant": "自動動畫",
       "ja_JP": "自動アニメート"
+    },
+    {
+      "source": "Animation Control",
+      "zh-Hans": "动画控制",
+      "zh-Hant": "動畫控制",
+      "ja_JP": "アニメーション制御"
     },
     {
       "source": "Auto-Crop",
@@ -276,6 +282,12 @@
       "zh-Hans": "细胞噪波",
       "zh-Hant": "細胞噪波",
       "ja_JP": "セルラーノイズ"
+    },
+    {
+      "source": "Cel Animation Shape",
+      "zh-Hans": "逐帧动画形状",
+      "zh-Hant": "逐格動畫形狀",
+      "ja_JP": "セルアニメーションシェイプ"
     },
     {
       "source": "Change String Case",
@@ -476,6 +488,12 @@
       "ja_JP": "ドローアブル"
     },
     {
+      "source": "Duplicator",
+      "zh-Hans": "复制器",
+      "zh-Hant": "複製器",
+      "ja_JP": "デュプリケーター"
+    },
+    {
       "source": "Drop Shadow",
       "zh-Hans": "投影",
       "zh-Hant": "投影",
@@ -656,6 +674,18 @@
       "ja_JP": "グリッドレイアウト"
     },
     {
+      "source": "Grid Layout Group",
+      "zh-Hans": "网格布局组",
+      "zh-Hant": "網格佈局群組",
+      "ja_JP": "グリッドレイアウトグループ"
+    },
+    {
+      "source": "Grid Layout Row",
+      "zh-Hans": "网格布局行",
+      "zh-Hant": "網格佈局列",
+      "ja_JP": "グリッドレイアウト行"
+    },
+    {
       "source": "Group",
       "zh-Hans": "分组",
       "zh-Hant": "群組",
@@ -684,6 +714,12 @@
       "zh-Hans": "水平布局",
       "zh-Hant": "水平佈局",
       "ja_JP": "水平レイアウト"
+    },
+    {
+      "source": "Horizontal Layout Group",
+      "zh-Hans": "水平布局组",
+      "zh-Hant": "水平佈局群組",
+      "ja_JP": "水平レイアウトグループ"
     },
     {
       "source": "HSV Adjustment",
@@ -1232,6 +1268,12 @@
       "ja_JP": "ローズ"
     },
     {
+      "source": "Rubber Hose Limb",
+      "zh-Hans": "软管肢体",
+      "zh-Hant": "軟管肢體",
+      "ja_JP": "ラバーホースリム"
+    },
+    {
       "source": "Scan Lines",
       "zh-Hans": "扫描线",
       "zh-Hant": "掃描線",
@@ -1242,6 +1284,12 @@
       "zh-Hans": "调度组",
       "zh-Hant": "排程群組",
       "ja_JP": "スケジューリンググループ"
+    },
+    {
+      "source": "Schedule Stagger",
+      "zh-Hans": "错开排程",
+      "zh-Hant": "錯開排程",
+      "ja_JP": "スケジュールスタッガー"
     },
     {
       "source": "Scrape",
@@ -1284,6 +1332,12 @@
       "zh-Hans": "形状渐变",
       "zh-Hant": "形狀漸層",
       "ja_JP": "シェイプグラデーション"
+    },
+    {
+      "source": "Shape Skew",
+      "zh-Hans": "形状倾斜",
+      "zh-Hant": "形狀傾斜",
+      "ja_JP": "シェイプスキュー"
     },
     {
       "source": "Shape Points",
@@ -1550,6 +1604,12 @@
       "ja_JP": "タイムラインカウンター"
     },
     {
+      "source": "Text Shape",
+      "zh-Hans": "文本形状",
+      "zh-Hant": "文字形狀",
+      "ja_JP": "テキストシェイプ"
+    },
+    {
       "source": "Toon Stroke",
       "zh-Hans": "卡通描边",
       "zh-Hant": "卡通筆畫",
@@ -1668,6 +1728,12 @@
       "zh-Hans": "垂直布局",
       "zh-Hant": "垂直佈局",
       "ja_JP": "垂直レイアウト"
+    },
+    {
+      "source": "Vertical Layout Group",
+      "zh-Hans": "垂直布局组",
+      "zh-Hant": "垂直佈局群組",
+      "ja_JP": "垂直レイアウトグループ"
     },
     {
       "source": "Vignette",

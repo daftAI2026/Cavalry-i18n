@@ -1769,8 +1769,8 @@
     <message><source>Any 3</source><translation>3</translation></message>
     <message><source>Any other comments?</source><translation>その他のコメント？</translation></message>
     <message><source>Any selected shapes will automatically be added as input shapes</source><translation>選択された形は入力形として自動的に加えられます</translation></message>
-    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator</source><translation>選択したシェイプは自動的に複製ツールの入力シェイプとして追加されます</translation></message>
-    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator.</source><translation>選択したシェイプは自動的に複製ツールの入力シェイプとして追加されます。</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator</source><translation>選択したシェイプは自動的にデュプリケーターの入力シェイプとして追加されます</translation></message>
+    <message><source>Any selected shapes will automatically be added as input shapes for the Duplicator.</source><translation>選択したシェイプは自動的にデュプリケーターの入力シェイプとして追加されます。</translation></message>
     <message><source>Any selected shapes will automatically be added as input shapes for the Extrude</source><translation>選択したシェイプは自動的に押し出しの入力シェイプとして追加されます</translation></message>
     <message><source>Any selected shapes will automatically be added as input shapes for the Extrude.</source><translation>選択したシェイプは自動的に押し出しの入力シェイプとして追加されます。</translation></message>
     <message><source>Any selected shapes will automatically be added as input shapes.</source><translation>選択した形状は入力形状として自動的に追加されます。</translation></message>
@@ -3219,7 +3219,8 @@
     <message><source>Scenes</source><translation>シーン</translation></message>
     <message><source>Schedule (Overlap)</source><translation>スケジュール(オーバーラップ)</translation></message>
     <message><source>Schedule (Sequence)</source><translation>スケジュール(シーケンス)</translation></message>
-    <message><source>Schedule Stagger</source><translation>计划错开</translation></message>
+    <message><source>Schedule Stagger</source><translation>スケジュールスタッガー</translation></message>
+    <message><source>Schedule Stagger...</source><translation>スケジュールスタッガー...</translation></message>
     <message><source>Scheduling Groups</source><translation>スケジューリンググループ</translation></message>
     <message><source>Script</source><translation>スクリプト</translation></message>
     <message><source>Search Colours...</source><translation>色を検索...</translation></message>
@@ -3293,7 +3294,8 @@
     <message><source>Set Loop with Offset</source><translation>オフセットでループを設定する</translation></message>
     <message><source>Set Looping</source><translation>セットループ</translation></message>
     <message><source>Set Looping to None</source><translation>ループをなしに設定</translation></message>
-    <message><source>Set Notes</source><translation>セットノート</translation></message>
+    <message><source>Set Notes</source><translation>メモを設定</translation></message>
+    <message><source>Notes...</source><translation>メモ...</translation></message>
     <message><source>Set Preset</source><translation>プリセットを設定</translation></message>
     <message><source>Set Segment Velocity</source><translation>セグメント速度を設定</translation></message>
     <message><source>Set Selected</source><translation>選択項目を設定</translation></message>
@@ -4446,7 +4448,7 @@
         </message>
     <message>
       <source>Duplicator</source>
-      <translation>複製器</translation>
+      <translation>デュプリケーター</translation>
     </message>
     <message>
       <source>Extrude</source>
@@ -4794,7 +4796,7 @@
     </message>
     <message>
       <source>Add to Duplicator</source>
-      <translation>複製器に追加</translation>
+      <translation>デュプリケーターに追加</translation>
     </message>
     <message>
       <source>Add to GH</source>

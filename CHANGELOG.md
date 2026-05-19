@@ -13,6 +13,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contract Enforcement**: Updated contract tests to verify that `niceName` values stay English in `nodeStrings.json` and all plugin translation files across Simplified Chinese, Traditional Chinese, and Japanese.
 - **Whitelist Enforcement**: Configured `translation-whitelist.json` to move `niceName` from `translate` to `no_translate` to prevent future localization regressions.
 
+### Changed
+- **Localization Enhancements**: Unified and corrected terminology translations across Simplified Chinese, Traditional Chinese, and Japanese.
+  - Refined *Duplicator* translation in Japanese to "デュプリケーター" (previously "複製器") and *Grid Layout* in Traditional Chinese to "網格佈局".
+  - Synchronized *Schedule Stagger* translation to "错开排程" / "錯開排程" / "スケジュールスタッガー" across all languages.
+  - Aligned node display translations in `tools/model_display_translations.json` for *Align*, *Animation Control*, *Cel Animation Shape*, *Rubber Hose Limb*, *Shape Skew*, *Text Shape*, and *Vertical/Horizontal Layout Groups*.
+  - Added missing translations for *Notes...* ("备注..." / "備註...") and other standard node items.
+
 ## [0.2.0] - 2026-05-17
 
 ### Added

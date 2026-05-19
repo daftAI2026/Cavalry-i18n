@@ -2194,7 +2194,8 @@
     <message><source>Scenes</source><translation>场景</translation></message>
     <message><source>Schedule (Overlap)</source><translation>附表(重叠)</translation></message>
     <message><source>Schedule (Sequence)</source><translation>时间表(顺序)</translation></message>
-    <message><source>Schedule Stagger</source><translation>计划错开</translation></message>
+    <message><source>Schedule Stagger</source><translation>错开排程</translation></message>
+    <message><source>Schedule Stagger...</source><translation>错开排程...</translation></message>
     <message><source>Scheduling Groups</source><translation>排程组</translation></message>
     <message><source>Script</source><translation>脚本</translation></message>
     <message><source>Search Colours...</source><translation>搜索颜色...</translation></message>
@@ -4595,6 +4596,10 @@
     <message>
       <source>Set Notes</source>
       <translation>设置备注</translation>
+    </message>
+    <message>
+      <source>Notes...</source>
+      <translation>备注...</translation>
     </message>
     <message>
       <source>Set Preset</source>
