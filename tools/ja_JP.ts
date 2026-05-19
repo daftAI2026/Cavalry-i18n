@@ -3148,6 +3148,11 @@
     <message><source>Gravity</source><translation>重力</translation></message>
     <message><source>Drag Force</source><translation>ドラッグ力</translation></message>
     <message><source>Mass</source><translation>質量</translation></message>
+    <message><source>Ground Friction</source><translation>地面摩擦</translation></message>
+    <message><source>Ground Bounce</source><translation>地面バウンス</translation></message>
+    <message><source>Velocity Iterations</source><translation>速度反復</translation></message>
+    <message><source>Position Iterations</source><translation>位置反復</translation></message>
+    <message><source>Fields</source><translation>フィールド</translation></message>
     <message><source>Timing Mode</source><translation>タイミングモード</translation></message>
     <message><source>Group By Parent</source><translation>親でグループ化</translation></message>
     <message><source>Parent Timing Mode</source><translation>親のタイミングモード</translation></message>
@@ -3672,7 +3677,7 @@
     <message><source>Typography Script</source><translation>タイポグラフィスクリプト</translation></message>
     <message><source>UI Font Size</source><translation>画面フォントサイズ</translation></message>
     <message><source>ukm KNM elm</source><translation>内部識別甲</translation></message>
-    <message><source>Un-Parent</source><translation>アンパレント</translation></message>
+    <message><source>Un-Parent</source><translation>親子付けを解除</translation></message>
     <message><source>Unable to autosave scene</source><translation>シーンを自動保存できません</translation></message>
     <message><source>Unable to autosave scene.</source><translation>シーンの自動保存はできません。</translation></message>
     <message><source>Unable to encrypt content (encryption failed)</source><translation>コンテンツを暗号化できない(暗号化失敗)</translation></message>

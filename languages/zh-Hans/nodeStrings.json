@@ -8047,6 +8047,11 @@
         "nodeInfo": "用于刚体碰撞的 2D 物理引擎。",
         "attributes": {
           "groundMode": "地面模式",
+          "groundFriction": "地面摩擦",
+          "groundBounce": "地面弹跳",
+          "velocityIterations": "速度迭代",
+          "positionIterations": "位置迭代",
+          "fields": "场",
           "worldScale": "世界缩放",
           "shapes.id": "输入形状",
           "shapes.enabled": "已启用",

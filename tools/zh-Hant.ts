@@ -2194,6 +2194,11 @@
     <message><source>Gravity</source><translation>重力</translation></message>
     <message><source>Drag Force</source><translation>阻力</translation></message>
     <message><source>Mass</source><translation>質量</translation></message>
+    <message><source>Ground Friction</source><translation>地面摩擦</translation></message>
+    <message><source>Ground Bounce</source><translation>地面彈跳</translation></message>
+    <message><source>Velocity Iterations</source><translation>速度迭代</translation></message>
+    <message><source>Position Iterations</source><translation>位置迭代</translation></message>
+    <message><source>Fields</source><translation>場</translation></message>
     <message><source>Timing Mode</source><translation>時序模式</translation></message>
     <message><source>Group By Parent</source><translation>按父級分組</translation></message>
     <message><source>Parent Timing Mode</source><translation>父級時序模式</translation></message>
@@ -2707,7 +2712,7 @@
     <message><source>Typography Script</source><translation>排版腳本</translation></message>
     <message><source>UI Font Size</source><translation>介面字型大小</translation></message>
     <message><source>ukm KNM elm</source><translation>內部識別甲</translation></message>
-    <message><source>Un-Parent</source><translation>非家長</translation></message>
+    <message><source>Un-Parent</source><translation>解除父級</translation></message>
     <message><source>Unable to autosave scene</source><translation>無法自動儲存場景</translation></message>
     <message><source>Unable to autosave scene.</source><translation>無法自動儲存場景。</translation></message>
     <message><source>Unable to encrypt content (encryption failed)</source><translation>無法加密內容( 加密失敗)</translation></message>

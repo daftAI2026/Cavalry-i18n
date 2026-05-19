@@ -8047,6 +8047,11 @@
         "nodeInfo": "A 2d physics engine for rigid body collisions.",
         "attributes": {
           "groundMode": "Ground Mode",
+          "groundFriction": "Ground Friction",
+          "groundBounce": "Ground Bounce",
+          "velocityIterations": "Velocity Iterations",
+          "positionIterations": "Position Iterations",
+          "fields": "Fields",
           "worldScale": "World Scale",
           "shapes.id": "Input Shape",
           "shapes.enabled": "Enabled",

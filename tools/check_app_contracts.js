@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、Forge 动力学术语、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、Forge 动力学术语、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -987,6 +987,11 @@ test('embedded injector handles dynamic layer context menu labels without static
     injectorSource,
     /Add Keyframe on frame\\s\+\(\[0-9\]\+\)|Add Keyframe on frame\\\\s\+\(\[0-9\]\+\)/,
     'dynamic fallback should translate Time Editor Add Keyframe on frame <n> actions without enumerating every frame number'
+  );
+  assert.match(
+    injectorSource,
+    /selectedCountPattern[\s\S]{0,120}\[0-9\]\+[\s\S]{0,120}selected/,
+    'dynamic fallback should translate status labels like 8 selected without enumerating every selection count'
   );
 });
 
@@ -2396,6 +2401,12 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     ['Gravity', '重力', '重力', '重力'],
     ['Drag Force', '阻力', '阻力', 'ドラッグ力'],
     ['Mass', '质量', '質量', '質量'],
+    ['Ground Friction', '地面摩擦', '地面摩擦', '地面摩擦'],
+    ['Ground Bounce', '地面弹跳', '地面彈跳', '地面バウンス'],
+    ['Velocity Iterations', '速度迭代', '速度迭代', '速度反復'],
+    ['Position Iterations', '位置迭代', '位置迭代', '位置反復'],
+    ['Fields', '场', '場', 'フィールド'],
+    ['Un-Parent', '解除父级', '解除父級', '親子付けを解除'],
     ['Timing Mode', '时序模式', '時序模式', 'タイミングモード'],
     ['Group By Parent', '按父级分组', '按父級分組', '親でグループ化'],
     ['Parent Timing Mode', '父级时序模式', '父級時序模式', '親のタイミングモード'],
@@ -2405,6 +2416,51 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     assert.match(zhHansTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHans}<\\/translation>`));
     assert.match(zhHantTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHant}<\\/translation>`));
     assert.match(jaTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${ja}<\\/translation>`));
+  }
+});
+
+test('Forge Dynamics nodeStrings include direct labels for generated property names', () => {
+  const expectedAttributes = {
+    en: {
+      groundFriction: 'Ground Friction',
+      groundBounce: 'Ground Bounce',
+      velocityIterations: 'Velocity Iterations',
+      positionIterations: 'Position Iterations',
+      fields: 'Fields',
+    },
+    'zh-Hans': {
+      groundFriction: '地面摩擦',
+      groundBounce: '地面弹跳',
+      velocityIterations: '速度迭代',
+      positionIterations: '位置迭代',
+      fields: '场',
+    },
+    'zh-Hant': {
+      groundFriction: '地面摩擦',
+      groundBounce: '地面彈跳',
+      velocityIterations: '速度迭代',
+      positionIterations: '位置迭代',
+      fields: '場',
+    },
+    ja_JP: {
+      groundFriction: '地面摩擦',
+      groundBounce: '地面バウンス',
+      velocityIterations: '速度反復',
+      positionIterations: '位置反復',
+      fields: 'フィールド',
+    },
+  };
+
+  for (const [language, attributes] of Object.entries(expectedAttributes)) {
+    const nodeStrings = readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json'));
+    const node = nodeStrings
+      .flatMap((section) => section.values || [])
+      .find((candidate) => candidate.nodeType === 'forgeDynamicsShape');
+
+    assert(node, `${language} should contain forgeDynamicsShape node strings`);
+    for (const [key, value] of Object.entries(attributes)) {
+      assert.equal(node.attributes[key], value, `${language} forgeDynamicsShape.attributes.${key}`);
+    }
   }
 });
 

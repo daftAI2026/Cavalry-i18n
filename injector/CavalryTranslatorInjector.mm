@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单兜底翻译、AppKit 菜单同步与带坐标父链的运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏兜底翻译、AppKit 菜单同步与带坐标父链的运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -989,6 +989,21 @@ QString lookupDynamicMenuTranslation(const QString &lang, const QString &sourceT
         }
         if (lang == QStringLiteral("ja_JP")) {
             return QStringLiteral("フレーム %1 にキーフレームを追加").arg(frame);
+        }
+    }
+
+    const QRegularExpression selectedCountPattern(QStringLiteral("^([0-9]+)\\s+selected$"));
+    const QRegularExpressionMatch selectedCountMatch = selectedCountPattern.match(source);
+    if (selectedCountMatch.hasMatch()) {
+        const QString count = selectedCountMatch.captured(1);
+        if (lang == QStringLiteral("zh-Hans")) {
+            return QStringLiteral("已选择 %1 个").arg(count);
+        }
+        if (lang == QStringLiteral("zh-Hant")) {
+            return QStringLiteral("已選取 %1 個").arg(count);
+        }
+        if (lang == QStringLiteral("ja_JP")) {
+            return QStringLiteral("%1 個を選択中").arg(count);
         }
     }
 

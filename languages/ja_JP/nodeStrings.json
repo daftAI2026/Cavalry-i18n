@@ -8047,6 +8047,11 @@
         "nodeInfo": "剛体衝突用の 2D 物理エンジン。",
         "attributes": {
           "groundMode": "地面モード",
+          "groundFriction": "地面摩擦",
+          "groundBounce": "地面バウンス",
+          "velocityIterations": "速度反復",
+          "positionIterations": "位置反復",
+          "fields": "フィールド",
           "worldScale": "ワールドスケール",
           "shapes.id": "入力シェイプ",
           "shapes.enabled": "有効",

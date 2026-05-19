@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Forge Dynamics Attribute Translations**: Added localization support for *Ground Friction*, *Ground Bounce*, *Velocity Iterations*, *Position Iterations*, *Fields*, and *Un-Parent* in the translation catalogs and `forgeDynamicsShape` node properties.
+- **Dynamic Status Bar Selection Translation**: Implemented regex-based status bar selection count localization (e.g. `([0-9]+) selected`) in the C++ injector to translate selection status displays dynamically across all locales.
 - **Runtime Noise Quarantine**: Added `tools/runtime-noise-quarantine.json` containing 20 audited short tokens (e.g. `Rhu`) that lack translation provenance.
 - **Contract Verification for Quarantine**: Added a contract test in `tools/check_app_contracts.js` to assert that quarantined noise tokens are filtered and do not enter compile-time tables.
 - **Cavalry-i18n Code Review Report**: Added `docs/code-review-report.md` performing a thorough audit of dead code, redundant logic, and architecture detours.
