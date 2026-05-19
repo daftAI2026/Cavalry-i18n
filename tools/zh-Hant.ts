@@ -824,7 +824,7 @@
     <message><source>Case Features</source><translation>大小寫特性</translation></message>
     <message><source>Cavalry access check failed (HTTP</source><translation>軟體存取檢查失敗(網路協定</translation></message>
     <message><source>Cavalry access check failed: could not connect to Canva</source><translation>Cavalry 存取檢查失敗：無法連線到 Canva</translation></message>
-    <message><source>Cavalry access check failed: invalid JSON response</source><translation>Cavalry 存取檢查失敗：無效JSON回應</translation></message>
+    <message><source>Cavalry access check failed: invalid JSON response</source><translation>Cavalry 存取檢查失敗：無效 JSON 回應</translation></message>
     <message><source>Cavalry by Canva</source><translation>Canva 旗下 Cavalry</translation></message>
     <message><source>Cavalry Control Header Script</source><translation>控制介面頁首腳本</translation></message>
     <message><source>Cavalry does not know how to import this directory</source><translation>本軟體無法匯入此目錄</translation></message>
@@ -998,12 +998,12 @@
     <message><source>Could not get latest version</source><translation>無法獲取最新版本</translation></message>
     <message><source>Could not load Google Sheet. You do not have permission to view</source><translation>無法裝入 Google 工作表。 您沒有權限查看</translation></message>
     <message><source>Could not load Google Sheet. You do not have permission to view.</source><translation>無法裝入 Google 工作表。 您沒有權限查看。</translation></message>
-    <message><source>Could not obtain Canva access token</source><translation>無法取得Canva存取權杖</translation></message>
+    <message><source>Could not obtain Canva access token</source><translation>無法取得 Canva 存取權杖</translation></message>
     <message><source>Could not open file</source><translation>無法打開檔案</translation></message>
     <message><source>Could not open font file</source><translation>無法打開字體檔案</translation></message>
     <message><source>Could not open stream from font file</source><translation>無法打開字體檔案的流</translation></message>
-    <message><source>Could not reset Canva tokens</source><translation>無法重置Canva權杖</translation></message>
-    <message><source>Could not reset Canva tokens.</source><translation>無法重置Canva權杖。</translation></message>
+    <message><source>Could not reset Canva tokens</source><translation>無法重置 Canva 權杖</translation></message>
+    <message><source>Could not reset Canva tokens.</source><translation>無法重置 Canva 權杖。</translation></message>
     <message><source>Could not reset licence</source><translation>無法重置許可證</translation></message>
     <message><source>Could not reset licence.</source><translation>無法重置許可證。</translation></message>
     <message><source>Could not retrieve access token</source><translation>無法獲取訪問權杖</translation></message>
@@ -3633,7 +3633,7 @@
     </message>
     <message>
       <source>3D Matrix</source>
-      <translation>3D矩陣</translation>
+      <translation>3D 矩陣</translation>
     </message>
     <message>
       <source>Add Divisions</source>
@@ -3645,7 +3645,7 @@
     </message>
     <message>
       <source>Alpha Material Override</source>
-      <translation>Alpha材質覆蓋</translation>
+      <translation>Alpha 材質覆蓋</translation>
     </message>
     <message>
       <source>Area Range</source>
@@ -3737,7 +3737,7 @@
     </message>
     <message>
       <source>HSV Material Override</source>
-      <translation>HSV材質覆蓋</translation>
+      <translation>HSV 材質覆蓋</translation>
     </message>
     <message>
       <source>Is Within</source>
@@ -3745,7 +3745,7 @@
     </message>
     <message>
       <source>JavaScript Deformer</source>
-      <translation>JavaScript變形器</translation>
+      <translation>JavaScript 變形器</translation>
     </message>
     <message>
       <source>Knot</source>
@@ -3829,7 +3829,7 @@
     </message>
     <message>
       <source>Forge Dynamics</source>
-      <translation>Forge動力學</translation>
+      <translation>Forge 動力學</translation>
     </message>
     <message>
       <source>Grid Layout Group</source>
@@ -3845,7 +3845,7 @@
     </message>
     <message>
       <source>JavaScript Shape</source>
-      <translation>JavaScript形狀</translation>
+      <translation>JavaScript 形狀</translation>
     </message>
     <message>
       <source>Layout Group</source>
@@ -3937,11 +3937,11 @@
     </message>
       <message>
       <source>Add SVG to Scene</source>
-      <translation>將SVG新增至場景</translation>
+      <translation>將 SVG 新增至場景</translation>
     </message>
     <message>
       <source>Add SVG to Scene.</source>
-      <translation>將SVG新增至場景。</translation>
+      <translation>將 SVG 新增至場景。</translation>
     </message>
     <message>
       <source>Add Text</source>
@@ -3969,7 +3969,7 @@
     </message>
     <message>
       <source>Add to GH</source>
-      <translation>新增至GH</translation>
+      <translation>新增至 GH</translation>
     </message>
     <message>
       <source>Add Top Bone</source>
@@ -4442,7 +4442,7 @@
     </message>
     <message>
       <source>Paste SVG</source>
-      <translation>貼上SVG</translation>
+      <translation>貼上 SVG</translation>
     </message>
     <message>
       <source>Paste Text</source>

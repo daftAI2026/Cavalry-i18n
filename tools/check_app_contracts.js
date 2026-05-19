@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、ModelDisplay 中英间距与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -479,11 +479,21 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     Camera: '攝影機',
     'Particle Shape': '粒子形狀',
     'Particle Emitter': '粒子發射器',
+    'Forge Dynamics': 'Forge 動力學',
     'Basic Line': '基本線',
   })) {
     const entry = displayNames.entries.find((candidate) => candidate.source === source);
     assert(entry, `display-only model name map should retain ${source}`);
     assert.equal(entry['zh-Hant'], zhHant, `${source} should have a Traditional Chinese display translation`);
+  }
+  for (const entry of displayNames.entries) {
+    for (const lang of ['zh-Hans', 'zh-Hant']) {
+      assert.doesNotMatch(
+        entry[lang] || '',
+        /[A-Za-z][\u4e00-\u9fff]|[\u4e00-\u9fff][A-Za-z]/,
+        `${entry.source} ${lang} should keep a space between Latin tokens and CJK text`
+      );
+    }
   }
   assert.match(
     generatorSource,

@@ -15,8 +15,8 @@
     },
     {
       "source": "Alpha Material Override",
-      "zh-Hans": "Alpha材质覆盖",
-      "zh-Hant": "Alpha材質覆蓋",
+      "zh-Hans": "Alpha 材质覆盖",
+      "zh-Hant": "Alpha 材質覆蓋",
       "ja_JP": "アルファマテリアルオーバーライド"
     },
     {
@@ -561,8 +561,8 @@
     },
     {
       "source": "Forge Dynamics",
-      "zh-Hans": "Forge动力学",
-      "zh-Hant": "Forge動力學",
+      "zh-Hans": "Forge 动力学",
+      "zh-Hant": "Forge 動力學",
       "ja_JP": "フォージダイナミクス"
     },
     {
@@ -699,8 +699,8 @@
     },
     {
       "source": "HSV Material Override",
-      "zh-Hans": "HSV材质覆盖",
-      "zh-Hant": "HSV材質覆蓋",
+      "zh-Hans": "HSV 材质覆盖",
+      "zh-Hant": "HSV 材質覆蓋",
       "ja_JP": "HSVマテリアルオーバーライド"
     },
     {
@@ -765,8 +765,8 @@
     },
     {
       "source": "JavaScript Deformer",
-      "zh-Hans": "JavaScript变形器",
-      "zh-Hant": "JavaScript變形器",
+      "zh-Hans": "JavaScript 变形器",
+      "zh-Hant": "JavaScript 變形器",
       "ja_JP": "JavaScriptデフォーマ"
     },
     {
@@ -783,8 +783,8 @@
     },
     {
       "source": "JavaScript Shape",
-      "zh-Hans": "JavaScript形状",
-      "zh-Hant": "JavaScript形狀",
+      "zh-Hans": "JavaScript 形状",
+      "zh-Hant": "JavaScript 形狀",
       "ja_JP": "JavaScriptシェイプ"
     },
     {

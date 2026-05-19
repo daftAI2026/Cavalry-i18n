@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、动态 QLabel 浮动标题、翻译质量、package/workflow 等非壳层断言。
+check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、动态 QLabel 浮动标题、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge.rs 和 renderer/app.js，覆盖系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸与 bridge 能力。
@@ -22,7 +22,7 @@ run_live_full_ui_matrix.js: G-CAPTURE 编排器，启动真实 Cavalry、解析 
 freeze_extraction_inventory.js: G-X freeze 器，按 whitelist 噪声规则冻结 JSON/compiled/runtime 英文分母并写顶层 target identity。
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
 generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成 injector 编译期翻译表。
-model_display_translations.json: display-only 模型名词典，保存 JSON niceName 英文化前的三语显示译名，只供 injector 翻译 Qt 浮动标题等显示层，不回写模型数据。
+model_display_translations.json: display-only 模型名词典，保存 JSON niceName 英文化前的三语显示译名，只供 injector 翻译 Qt 浮动标题等显示层，不回写模型数据，并保持简繁中文 Latin/CJK 间距。
 resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时按配置下载。
 stamp_dmg_icon.sh: DMG 卷宗图标盖章器，用 hdiutil 写入 `.VolumeIcon.icns` 与 custom-icon 标记，再用 Rez/SetFile best-effort 写本机 Finder 文件图标。
 cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.2、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。

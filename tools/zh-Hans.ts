@@ -753,7 +753,7 @@
     <message><source>Case Features</source><translation>大小写特性</translation></message>
     <message><source>Cavalry access check failed (HTTP</source><translation>软件访问检查失败(网络协议</translation></message>
     <message><source>Cavalry access check failed: could not connect to Canva</source><translation>Cavalry 访问检查失败：无法连接 Canva</translation></message>
-    <message><source>Cavalry access check failed: invalid JSON response</source><translation>Cavalry 访问检查失败：无效JSON响应</translation></message>
+    <message><source>Cavalry access check failed: invalid JSON response</source><translation>Cavalry 访问检查失败：无效 JSON 响应</translation></message>
     <message><source>Cavalry by Canva</source><translation>Canva 旗下 Cavalry</translation></message>
     <message><source>Cavalry Control Header Script</source><translation>控制界面头部脚本</translation></message>
     <message><source>Cavalry does not know how to import this directory</source><translation>本软件无法导入此目录</translation></message>
@@ -927,12 +927,12 @@
     <message><source>Could not get latest version</source><translation>无法获取最新版本</translation></message>
     <message><source>Could not load Google Sheet. You do not have permission to view</source><translation>无法加载 Google 工作表。你没有查看权限</translation></message>
     <message><source>Could not load Google Sheet. You do not have permission to view.</source><translation>无法加载 Google 工作表。你没有查看权限。</translation></message>
-    <message><source>Could not obtain Canva access token</source><translation>无法获取Canva访问令牌</translation></message>
+    <message><source>Could not obtain Canva access token</source><translation>无法获取 Canva 访问令牌</translation></message>
     <message><source>Could not open file</source><translation>无法打开文件</translation></message>
     <message><source>Could not open font file</source><translation>无法打开字体文件</translation></message>
     <message><source>Could not open stream from font file</source><translation>无法打开字体文件的流</translation></message>
-    <message><source>Could not reset Canva tokens</source><translation>无法重置Canva令牌</translation></message>
-    <message><source>Could not reset Canva tokens.</source><translation>无法重置Canva令牌。</translation></message>
+    <message><source>Could not reset Canva tokens</source><translation>无法重置 Canva 令牌</translation></message>
+    <message><source>Could not reset Canva tokens.</source><translation>无法重置 Canva 令牌。</translation></message>
     <message><source>Could not reset licence</source><translation>无法重置许可证</translation></message>
     <message><source>Could not reset licence.</source><translation>无法重置许可证。</translation></message>
     <message><source>Could not retrieve access token</source><translation>无法获取访问令牌</translation></message>
@@ -3410,7 +3410,7 @@
     <message><source>Outline</source><translation>轮廓</translation></message>
     <message><source>Quad Tree Shape</source><translation>四叉树形状</translation></message>
     <message><source>Shortest Path</source><translation>最短路径</translation></message>
-    <message><source>3D Matrix</source><translation>3D矩阵</translation></message>
+    <message><source>3D Matrix</source><translation>3D 矩阵</translation></message>
     <message><source>Add Divisions</source><translation>添加分割</translation></message>
     <message><source>Behaviour Mixer</source><translation>行为混合器</translation></message>
     <message><source>Bend</source><translation>弯曲</translation></message>
@@ -3543,15 +3543,15 @@
     <message><source>Add Top Bone</source><translation>添加顶部骨骼</translation></message>
     <message><source>Add Utility</source><translation>添加实用程序</translation></message>
     <message><source>Add SVG to Composition</source><translation>将 SVG 添加到合成</translation></message>
-    <message><source>Add SVG to Scene</source><translation>将SVG添加到场景</translation></message>
-    <message><source>Add SVG to Scene.</source><translation>将SVG添加到场景。</translation></message>
+    <message><source>Add SVG to Scene</source><translation>将 SVG 添加到场景</translation></message>
+    <message><source>Add SVG to Scene.</source><translation>将 SVG 添加到场景。</translation></message>
     <message><source>Add Text</source><translation>添加文本</translation></message>
     <message><source>Add Text Shape</source><translation>添加文本形状</translation></message>
     <message><source>Add to Composition as Footage</source><translation>作为素材添加到合成</translation></message>
     <message><source>Add to Composition as Mesh</source><translation>作为网格添加到合成</translation></message>
     <message><source>Add to Control Centre</source><translation>添加到控制中心</translation></message>
     <message><source>Add to Duplicator</source><translation>添加到复制器</translation></message>
-    <message><source>Add to GH</source><translation>添加到GH</translation></message>
+    <message><source>Add to GH</source><translation>添加到 GH</translation></message>
     <message><source>Add Viewport (Pro)</source><translation>添加视口(专业版)</translation></message>
     <message><source>Add Visibility Bar</source><translation>添加可见性栏</translation></message>
     <message><source>Add your own Presets and you'll be able to delete and rename them here</source><translation>添加您自己的预设，您将能够在此处删除和重命名它们</translation></message>
@@ -3810,7 +3810,7 @@
     </message>
     <message>
       <source>3D Matrix</source>
-      <translation>3D矩阵</translation>
+      <translation>3D 矩阵</translation>
     </message>
     <message>
       <source>Add Divisions</source>
@@ -3822,7 +3822,7 @@
     </message>
     <message>
       <source>Alpha Material Override</source>
-      <translation>Alpha材质覆盖</translation>
+      <translation>Alpha 材质覆盖</translation>
     </message>
     <message>
       <source>Area Range</source>
@@ -3914,7 +3914,7 @@
     </message>
     <message>
       <source>HSV Material Override</source>
-      <translation>HSV材质覆盖</translation>
+      <translation>HSV 材质覆盖</translation>
     </message>
     <message>
       <source>Is Within</source>
@@ -3922,7 +3922,7 @@
     </message>
     <message>
       <source>JavaScript Deformer</source>
-      <translation>JavaScript变形器</translation>
+      <translation>JavaScript 变形器</translation>
     </message>
     <message>
       <source>Knot</source>
@@ -4006,7 +4006,7 @@
     </message>
     <message>
       <source>Forge Dynamics</source>
-      <translation>Forge动力学</translation>
+      <translation>Forge 动力学</translation>
     </message>
     <message>
       <source>Grid Layout Group</source>
@@ -4022,7 +4022,7 @@
     </message>
     <message>
       <source>JavaScript Shape</source>
-      <translation>JavaScript形状</translation>
+      <translation>JavaScript 形状</translation>
     </message>
     <message>
       <source>Layout Group</source>
@@ -4114,11 +4114,11 @@
     </message>
       <message>
       <source>Add SVG to Scene</source>
-      <translation>将SVG添加到场景</translation>
+      <translation>将 SVG 添加到场景</translation>
     </message>
     <message>
       <source>Add SVG to Scene.</source>
-      <translation>将SVG添加到场景。</translation>
+      <translation>将 SVG 添加到场景。</translation>
     </message>
     <message>
       <source>Add Text</source>
@@ -4146,7 +4146,7 @@
     </message>
     <message>
       <source>Add to GH</source>
-      <translation>添加到GH</translation>
+      <translation>添加到 GH</translation>
     </message>
     <message>
       <source>Add Top Bone</source>
@@ -4535,7 +4535,7 @@
     </message>
     <message>
       <source>Paste SVG</source>
-      <translation>粘贴SVG</translation>
+      <translation>粘贴 SVG</translation>
     </message>
     <message>
       <source>Paste Text</source>
