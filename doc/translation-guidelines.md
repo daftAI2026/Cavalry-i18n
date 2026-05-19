@@ -54,9 +54,11 @@ Cavalry 是动效/动画软件，用户同时也用 **After Effects、Cinema 4D�
 
 保持英文原文或英文+中文注释的：
 - **专有名词**：Lottie、Bezier、RGB、CMYK、SVG
-- **品牌/产品名**：Cavalry、Canva、Forge Dynamics
+- **品牌/产品名**：Cavalry、Canva
 - **行业通用缩写**：FPS、BPM、GPU、JSON、CSV
 - **约定俗成不翻的**：Alpha（Alpha 通道）、UV
+
+`Forge Dynamics` 在 UI 显示层统一使用本地化术语：简中 `Forge 动力学`、繁中 `Forge 動力學`、日文 `フォージダイナミクス`；但模型数据里的 `niceName` 保持英文，避免 Time Editor 自绘层出现 CJK 渲染问题。
 
 ## 3. 参考资源
 
@@ -130,4 +132,4 @@ Cavalry 是动效/动画软件，用户同时也用 **After Effects、Cinema 4D�
 1. **先查术语表** (`cavalry-glossary.md`)——有对应翻译就用翻译
 2. **术语表没有？查 AE/C4D/Blender 中文版**——用行业标准译法
 3. **行业内也没有标准译法？完整保留英文**——宁可全英文也不要杂交体
-4. **所有语言保持一致策略**——同一个术语，三种语言要么都翻，要么都保留英文
+4. **所有语言保持一致策略**——同一个术语，三种语言要么都翻，要么都保留英文；有显示层/模型层分流的术语，以术语表备注为准

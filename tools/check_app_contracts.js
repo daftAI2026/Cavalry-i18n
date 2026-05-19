@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、ModelDisplay 中英间距与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、Forge 动力学术语、ModelDisplay 中英间距与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -469,6 +469,8 @@ test('model-backed niceName text stays English for Time Editor and item-model re
   );
   const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
   const displayNames = readJson(path.join(repoRoot, 'tools', 'model_display_translations.json'));
+  const zhHansTs = fs.readFileSync(path.join(repoRoot, 'tools', 'zh-Hans.ts'), 'utf8');
+  const zhHantTs = fs.readFileSync(path.join(repoRoot, 'tools', 'zh-Hant.ts'), 'utf8');
 
   for (const surface of ['nodeStrings', 'plugins']) {
     assert(!whitelist[surface].translate.includes('niceName'), `${surface}.niceName should not be translated`);
@@ -499,6 +501,31 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     generatorSource,
     /model_display_translations\.json[\s\S]*ModelDisplay/,
     'embedded table generation should append display-only model name translations without changing JSON niceName'
+  );
+  assert.match(
+    zhHansTs,
+    /<source>Create a Forge Dynamics Solver<\/source><translation>创建 Forge 动力学解算器<\/translation>/,
+    'Simplified Chinese Forge Dynamics solver tooltip should use the same display term as ModelDisplay'
+  );
+  assert.match(
+    zhHantTs,
+    /<source>Create a Forge Dynamics Solver<\/source><translation>建立 Forge 動力學解算器<\/translation>/,
+    'Traditional Chinese Forge Dynamics solver tooltip should use the same display term as ModelDisplay'
+  );
+  assert.match(
+    zhHansTs,
+    /<source>Forge Dynamics Shape<\/source>\s*<translation>Forge 动力学形状<\/translation>/,
+    'Simplified Chinese Forge Dynamics Shape menu entry should preserve the Forge display term'
+  );
+  assert.match(
+    zhHantTs,
+    /<source>Forge Dynamics Shape<\/source>\s*<translation>Forge 動力學形狀<\/translation>/,
+    'Traditional Chinese Forge Dynamics Shape menu entry should preserve the Forge display term'
+  );
+  assert.doesNotMatch(
+    zhHansTs + zhHantTs,
+    /Forge Dynamics [解求]算器/,
+    'Chinese UI should not regress to mixed Forge Dynamics solver phrasing'
   );
 
   assert.match(

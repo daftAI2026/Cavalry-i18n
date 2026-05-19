@@ -1020,7 +1020,7 @@
     <message><source>Create a Cel Animation Shape and switch to the Pencil tool.</source><translation>建立逐格動畫形狀並切換到鉛筆工具。</translation></message>
     <message><source>Create a Composition</source><translation>建立合成</translation></message>
     <message><source>Create a Duplicator</source><translation>建立複製器</translation></message>
-    <message><source>Create a Forge Dynamics Solver</source><translation>建立 Forge Dynamics 解算器</translation></message>
+    <message><source>Create a Forge Dynamics Solver</source><translation>建立 Forge 動力學解算器</translation></message>
     <message><source>Create a Group</source><translation>建立分組</translation></message>
     <message><source>Create a new keyframe</source><translation>建立新關鍵影格</translation></message>
     <message><source>Create a new keyframe.</source><translation>建立新關鍵影格。</translation></message>
@@ -5950,7 +5950,7 @@
     </message>
     <message>
       <source>Forge Dynamics Shape</source>
-      <translation>構造動力學形狀</translation>
+      <translation>Forge 動力學形狀</translation>
     </message>
     <message>
       <source>Fractal Tree</source>
