@@ -3130,10 +3130,6 @@
     <message><source>Reverse Contour</source><translation>逆の輪郭</translation></message>
     <message><source>Reverse Stop Positions</source><translation>逆停止位置</translation></message>
     <message><source>Revert</source><translation>リバート</translation></message>
-    <message><source>Rfr</source><translation>ログイン</translation></message>
-    <message><source>Rhb 9</source><translation>ラフブ 9</translation></message>
-    <message><source>Rht</source><translation>ログイン</translation></message>
-    <message><source>Rhu</source><translation>ログイン</translation></message>
     <message><source>Copy Animated Attribute</source><translation>アニメーション属性をコピー</translation></message>
     <message><source>Clip(s)</source><translation>クリップ</translation></message>
     <message><source>Right Align</source><translation>右アライナー</translation></message>
@@ -3157,22 +3153,10 @@
     <message><source>Parent Timing Mode</source><translation>親のタイミングモード</translation></message>
     <message><source>Reverse Parent Order</source><translation>親の順序を反転</translation></message>
     <message><source>Right click to add a Shader</source><translation>右クリックでシェーダーを追加</translation></message>
-    <message><source>Riv</source><translation>リヴ</translation></message>
-    <message><source>Riz</source><translation>ログイン</translation></message>
-    <message><source>rksheet H</source><translation>ワークシート H</translation></message>
-    <message><source>Rli</source><translation>ログイン</translation></message>
-    <message><source>rmk RUK smk</source><translation>内部識別九</translation></message>
-    <message><source>Rmo</source><translation>ログイン</translation></message>
     <message><source>Robust</source><translation>ロバスト</translation></message>
     <message><source>Root node not found</source><translation>ルートノードが見つかりません</translation></message>
     <message><source>Rotate bone</source><translation>骨を回転させる</translation></message>
     <message><source>Rotate Selection</source><translation>回転選択</translation></message>
-    <message><source>Rps</source><translation>フィードバック</translation></message>
-    <message><source>Rrn</source><translation>ログイン</translation></message>
-    <message><source>Rrp</source><translation>ログイン</translation></message>
-    <message><source>Rta</source><translation>ログイン</translation></message>
-    <message><source>rtm WAM stm</source><translation>内部識別十</translation></message>
-    <message><source>Rub</source><translation>ルック</translation></message>
     <message><source>Rubber Hose</source><translation>ラバーホース</translation></message>
     <message><source>Ruler Guide</source><translation>ルーラーガイド</translation></message>
     <message><source>Run (Pro)</source><translation>実行(プロ版)</translation></message>
@@ -3183,10 +3167,6 @@
     <message><source>Run the current script.</source><translation>現在のスクリプトを実行します。</translation></message>
     <message><source>runs Shell commands</source><translation>コマンドライン命令を実行</translation></message>
     <message><source>Russett</source><translation>ラステット</translation></message>
-    <message><source>Ruw</source><translation>ログイン</translation></message>
-    <message><source>Rvo</source><translation>ログイン</translation></message>
-    <message><source>Rxp</source><translation>ログイン</translation></message>
-    <message><source>Rzn</source><translation>ログイン</translation></message>
     <message><source>Save and load custom graph presets</source><translation>カスタムグラフプリセットを保存してロードする</translation></message>
     <message><source>Save and load custom graph presets.</source><translation>カスタムグラフプリセットを保存してロードします。</translation></message>
     <message><source>Save and recall viewport positions</source><translation>ビューポートの位置を保存してリコールする</translation></message>

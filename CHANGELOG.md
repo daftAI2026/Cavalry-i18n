@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Runtime Noise Quarantine**: Added `tools/runtime-noise-quarantine.json` containing 20 audited short tokens (e.g. `Rhu`) that lack translation provenance.
+- **Contract Verification for Quarantine**: Added a contract test in `tools/check_app_contracts.js` to assert that quarantined noise tokens are filtered and do not enter compile-time tables.
 - **Cavalry-i18n Code Review Report**: Added `doc/code-review-report.md` performing a thorough audit of dead code, redundant logic, and architecture detours.
 - **Runtime Translation Noise Triage Audit**: Added `doc/audits/runtime-translation-noise-triage-2026-05-19.md` listing triage logs and evidence checkouts for 21 candidate tokens.
 - **Runtime Translation Noise Triage Protocol**: Added `doc/runtime-translation-noise-triage.md` outlining the triage steps, evidence levels, and quarantine rules for runtime translation short tokens (e.g., `Rhu`), and linked it in `doc/CLAUDE.md`.
@@ -15,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Animation and Timing Translations**: Added Japanese, Simplified Chinese, and Traditional Chinese translation support for animation/timing variables including *Copy Animated Attribute*, *Clip(s)*, *Start Frame*, *Seed*, *Lifespan*, *Emitters*, *Turbulence*, *Gravity*, *Drag Force*, *Mass*, *Timing Mode*, *Group By Parent*, *Parent Timing Mode*, and *Reverse Parent Order*.
 - **Contract Verification for Animation Terms**: Added corresponding test assertions in `tools/check_app_contracts.js` to verify these newly added parameters and dynamic menu translation schemas exist in all language assets.
 - **Ellipsis Menu Variant Generation**: Dynamically derive ellipsis (`...`) variants for `ModelDisplay` translation entries during compile-time header generation to cover context-menu actions while keeping NiceNames in English.
+
+### Changed
+- **Embedded Translation Filtering**: Updated `tools/generate_embedded_translations.js` to load the noise quarantine list and filter out unproven tokens, preventing bulk translation pollution (e.g., `Rhu -> 鲁/ログイン`) in `injector/generated_translations.inc`.
+- **GEB Document Synchronization**: Updated L2 and L3 headers in `tools/CLAUDE.md` and `tools/check_app_contracts.js` to document the new quarantine config and test verification structures.
 
 ### Fixed
 - **Model niceName Preservation**: Reverted `niceName` fields to English across all translation files to prevent Time Editor rendering issues and model key serialization errors in Cavalry.

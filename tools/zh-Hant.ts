@@ -2176,10 +2176,6 @@
     <message><source>Reverse Contour</source><translation>反轉輪廓</translation></message>
     <message><source>Reverse Stop Positions</source><translation>倒轉停止位置</translation></message>
     <message><source>Revert</source><translation>還原</translation></message>
-    <message><source>Rfr</source><translation>發光</translation></message>
-    <message><source>Rhb 9</source><translation>第9條</translation></message>
-    <message><source>Rht</source><translation>調值</translation></message>
-    <message><source>Rhu</source><translation>魯</translation></message>
     <message><source>Copy Animated Attribute</source><translation>複製動畫屬性</translation></message>
     <message><source>Clip(s)</source><translation>片段</translation></message>
     <message><source>Right Align</source><translation>右對齊</translation></message>
@@ -2203,22 +2199,10 @@
     <message><source>Parent Timing Mode</source><translation>父級時序模式</translation></message>
     <message><source>Reverse Parent Order</source><translation>反轉父級順序</translation></message>
     <message><source>Right click to add a Shader</source><translation>按右鍵新增著色器</translation></message>
-    <message><source>Riv</source><translation>裏弗</translation></message>
-    <message><source>Riz</source><translation>里茲</translation></message>
-    <message><source>rksheet H</source><translation>工作表高值</translation></message>
-    <message><source>Rli</source><translation>瑞麗</translation></message>
-    <message><source>rmk RUK smk</source><translation>內部識別九</translation></message>
-    <message><source>Rmo</source><translation>羅莫</translation></message>
     <message><source>Robust</source><translation>強壯</translation></message>
     <message><source>Root node not found</source><translation>未找到根節點</translation></message>
     <message><source>Rotate bone</source><translation>旋轉骨頭</translation></message>
     <message><source>Rotate Selection</source><translation>旋轉選擇</translation></message>
-    <message><source>Rps</source><translation>比例</translation></message>
-    <message><source>Rrn</source><translation>轉</translation></message>
-    <message><source>Rrp</source><translation>轉動</translation></message>
-    <message><source>Rta</source><translation>常規</translation></message>
-    <message><source>rtm WAM stm</source><translation>內部識別十</translation></message>
-    <message><source>Rub</source><translation>魯布</translation></message>
     <message><source>Rubber Hose</source><translation>橡皮管</translation></message>
     <message><source>Ruler Guide</source><translation>標尺指南</translation></message>
     <message><source>Run (Pro)</source><translation>執行(專業版)</translation></message>
@@ -2229,10 +2213,6 @@
     <message><source>Run the current script.</source><translation>運行當前腳本。</translation></message>
     <message><source>runs Shell commands</source><translation>執行命令列指令</translation></message>
     <message><source>Russett</source><translation>魯塞特</translation></message>
-    <message><source>Ruw</source><translation>魯</translation></message>
-    <message><source>Rvo</source><translation>羅沃</translation></message>
-    <message><source>Rxp</source><translation>縮寫</translation></message>
-    <message><source>Rzn</source><translation>茲恩</translation></message>
     <message><source>Save and load custom graph presets</source><translation>儲存並載入自訂圖表預設</translation></message>
     <message><source>Save and load custom graph presets.</source><translation>儲存並載入自訂圖表預設。</translation></message>
     <message><source>Save and recall viewport positions</source><translation>儲存並叫回檢視區位置</translation></message>

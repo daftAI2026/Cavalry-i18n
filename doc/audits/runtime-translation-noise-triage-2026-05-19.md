@@ -2,13 +2,13 @@
 
 > 排查依据：`doc/runtime-translation-noise-triage.md`  
 > 来源基线：`/Applications/Cavalry.app` (Cavalry 2.7.2)  
-> 本次仅审计，未修改翻译源。不涉及 languages/*/nodeStrings.json niceName。
+> 审计阶段未修改翻译源；后续修复删除 `tools/*.ts` 中的污染条目，并保留 quarantine 防止回归。不涉及 languages/*/nodeStrings.json niceName。
 
 ---
 
 ## 1. 排查 Token 清单
 
-本次排查覆盖 21 个 token，分三组：
+本次排查覆盖 20 个 token，分三组：
 
 ### 组 A：`doc/runtime-translation-noise-triage.md` 指名的 5 个核心可疑 token
 
@@ -53,12 +53,12 @@
 
 | 等级 | 定义 | 本批次 |
 |------|------|--------|
-| A | live capture 命中，带 widget/action/menu path | 0/21 token |
-| B | Cavalry 原始文本资源命中 (assets/*.json, Definitions, plugin strings) | 0/21 token |
-| C | 只在 tools/*.ts 与 generated_translations.inc 命中 | **21/21 token ⬅️ 全部** |
-| D | 只在 `rg -a` 二进制/图片/压缩数据里命中 | 0/21 token 符合 |
+| A | live capture 命中，带 widget/action/menu path | 0/20 token |
+| B | Cavalry 原始文本资源命中 (assets/*.json, Definitions, plugin strings) | 0/20 token |
+| C | 只在 tools/*.ts 与 generated_translations.inc 命中 | **20/20 token ⬅️ 全部** |
+| D | 只在 `rg -a` 二进制/图片/压缩数据里命中 | 0/20 token 符合 |
 
-**All 21 tokens 均为 C 级证据。** 没有任何 token 能在 `languages/*.json`、`Cavalry.app/Contents/assets/`、`Cavalry.app/Contents/Resources/` 等可解析文本资源中找到。
+**All 20 tokens 均为 C 级证据。** 没有任何 token 能在 `languages/*.json`、`Cavalry.app/Contents/assets/`、`Cavalry.app/Contents/Resources/` 等可解析文本资源中找到。
 
 ---
 
@@ -116,8 +116,8 @@ doc/                                   → 仅 triage protocol 自身提及
 
 | 文件 | token 总数 | 翻成 ログイン 的数量 | 占比 |
 |------|-----------|-------------------|------|
-| ja_JP.ts | 21 | 13 | **62%** |
-| generated_translations.inc | 21 | 13 | **62%** |
+| ja_JP.ts | 20 | 13 | **65%** |
+| generated_translations.inc | 20 | 13 | **65%** |
 
 ---
 
@@ -148,7 +148,7 @@ doc/                                   → 仅 triage protocol 自身提及
 
 ### Quarantine 文件建议
 
-按 triage protocol 推荐，应创建 `tools/runtime-noise-quarantine.json`，将这些 token 列入 `decision: "do_not_translate"`，使生成器跳过它们。
+按 triage protocol 推荐，已创建 `tools/runtime-noise-quarantine.json`，将这些 token 列入 `decision: "do_not_translate"`，并删除 `tools/*.ts` 中对应污染条目；quarantine 继续作为防回归护栏。
 
 ---
 
@@ -178,7 +178,7 @@ doc/                                   → 仅 triage protocol 自身提及
 
 ## 8. 验证命令和结果
 
-**本次仅审计，未修改任何代码或翻译表。** 因此不需要运行：
+审计阶段未修改任何代码或翻译表。后续 quarantine 执行后，需要运行：
 
 ```bash
 npm run build:injector
@@ -187,7 +187,7 @@ npm run check:app
 python3 tools/validate_translations.py ...
 ```
 
-> 若后续执行 quarantine，上述命令应在生成 `tools/runtime-noise-quarantine.json` 并修改生成器跳过逻辑后运行。
+> quarantine 执行后，`tools/runtime-noise-quarantine.json` 是跳过这些 token 的真相源。
 
 ---
 
@@ -213,4 +213,4 @@ python3 tools/validate_translations.py ...
 | Rxp | ログイン | ✅ | 保持英文 |
 | Rzn | ログイン | ✅ | 保持英文 |
 
-**13/21 = 62% 的日语翻译是 `ログイン`（"登录"）。** 这个模式强烈指向批次 AI 翻译时将无法识别的 token 全部替换为相同的占位值。
+**13/20 = 65% 的日语翻译是 `ログイン`（"登录"）。** 这个模式强烈指向批次 AI 翻译时将无法识别的 token 全部替换为相同的占位值。

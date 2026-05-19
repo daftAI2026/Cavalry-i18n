@@ -23,6 +23,7 @@ freeze_extraction_inventory.js: G-X freeze 器，按 whitelist 噪声规则冻�
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
 generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成 injector 编译期翻译表。
 model_display_translations.json: display-only 模型名词典，保存 JSON niceName 英文化前的三语显示译名，只供 injector 翻译 Qt 浮动标题等显示层，不回写模型数据，并保持简繁中文 Latin/CJK 间距。
+runtime-noise-quarantine.json: Runtime 翻译噪声隔离清单，记录无资源/live-capture provenance 的短 token，并让生成器跳过这些项以保持英文。
 resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时按配置下载。
 stamp_dmg_icon.sh: DMG 卷宗图标盖章器，用 hdiutil 写入 `.VolumeIcon.icns` 与 custom-icon 标记，再用 Rez/SetFile best-effort 写本机 Finder 文件图标。
 cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.2、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。
@@ -59,5 +60,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-18: `check_app_contracts.js` 增加 QLineEdit 动态文本合同，要求 injector 监听后续 `textChanged`、保留自动编号后缀，并用 signal-blocked 写回做显示层翻译，避免属性编辑器名称位漏翻或反向污染模型名。
 2026-05-18: `generate_embedded_translations.js` 接入 `model_display_translations.json`，把模型 niceName 的中文/日文显示译名移到 injector 显示层，保护 Time Editor 英文模型名同时恢复属性编辑器浮动标题翻译。
 2026-05-19: `check_app_contracts.js` 增加对新增动画/时序翻译项与动态帧关键帧菜单的断言测试；`ja_JP.ts`、`zh-Hans.ts`、`zh-Hant.ts` 补充相关翻译条目；`CavalryTranslatorInjector.mm` 支持 Time Editor 在特定帧添加关键帧动作（Add Keyframe on frame <n>）的正则拦截翻译。
+2026-05-19: 新增 `runtime-noise-quarantine.json`，`generate_embedded_translations.js` 在生成表时跳过无 provenance 的 runtime 短 token，防止 `Rhu -> 鲁/ログイン` 一类批量污染进入 injector。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

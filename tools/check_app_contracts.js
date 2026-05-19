@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、Forge 动力学术语、ModelDisplay 中英间距与翻译质量契约
+ * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、Forge 动力学术语、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2867,6 +2867,39 @@ test('checked-in generated translation table matches the ts sources', () => {
     checkedIn,
     'generated_translations.inc should be regenerated from tools/*.ts whenever translation sources change'
   );
+});
+
+test('runtime noise quarantine keeps unproven short tokens out of embedded translations', () => {
+  const generatorSource = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'generate_embedded_translations.js'),
+    'utf8'
+  );
+  const generated = fs.readFileSync(path.join(injectorRoot, 'generated_translations.inc'), 'utf8');
+  const quarantine = readJson(path.join(repoRoot, 'tools', 'runtime-noise-quarantine.json'));
+  const quarantinedSources = quarantine.tokens
+    .filter((entry) => entry.decision === 'do_not_translate')
+    .map((entry) => entry.source);
+  const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+  assert.match(
+    generatorSource,
+    /runtime-noise-quarantine\.json/,
+    'embedded translation generator should read the runtime noise quarantine before rendering entries'
+  );
+  assert.equal(quarantinedSources.length, 20, 'audited 2026-05-19 runtime noise batch should contain 20 tokens');
+  assert.equal(new Set(quarantinedSources).size, quarantinedSources.length, 'runtime noise quarantine should not contain duplicate sources');
+
+  for (const source of quarantinedSources) {
+    assert.doesNotMatch(
+      generated,
+      new RegExp(`"MenuBarManager", "${escapeRegExp(source)}",`),
+      `${source} should not be embedded as a runtime translation without provenance`
+    );
+  }
+
+  for (const source of ['RGB', 'HSV', 'IK', 'Hue', 'Red', 'X', 'Y', 'Z']) {
+    assert(!quarantinedSources.includes(source), `${source} is a legitimate short UI token and must not be quarantined`);
+  }
 });
 
 test('release workflow prebuilds the injector and publishes Tauri macOS artifacts', () => {
