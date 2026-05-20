@@ -52,6 +52,7 @@ test('tauri window regression stays within the frozen Tauri contract', async (t)
       `window height drifted from frozen Tauri contract: ${windowInfo.height} !== ${FROZEN_WINDOW.outerHeight}`
     );
     let capture = null;
+    let scale = 1;
     for (let attempt = 0; attempt < 10; attempt += 1) {
       await delay(1000);
       capture = captureContentRegion(windowInfo, actualPngPath);
@@ -59,15 +60,25 @@ test('tauri window regression stays within the frozen Tauri contract', async (t)
         Math.abs(capture.chromeHeight - FROZEN_WINDOW.chromeHeight) <= 1,
         `title bar/content offset drifted from frozen Tauri contract: ${capture.chromeHeight} !== ${FROZEN_WINDOW.chromeHeight}`
       );
+      scale = capture.imageSize.width / expectedContentSize.width;
       if (
-        capture.imageSize.width === expectedContentSize.width &&
-        capture.imageSize.height === expectedContentSize.height
+        (scale === 1 || scale === 2 || scale === 3) &&
+        capture.imageSize.height === expectedContentSize.height * scale
       ) {
         break;
       }
     }
-    assert.deepEqual(capture.imageSize, expectedContentSize, 'content screenshot size drifted');
+    assert.ok(
+      scale === 1 || scale === 2 || scale === 3,
+      `invalid backing scale factor: ${scale}`
+    );
+    assert.deepEqual(
+      capture.imageSize,
+      { width: expectedContentSize.width * scale, height: expectedContentSize.height * scale },
+      'content screenshot size drifted from normalized expected content size'
+    );
   } finally {
     stopChild(child);
   }
 });
+

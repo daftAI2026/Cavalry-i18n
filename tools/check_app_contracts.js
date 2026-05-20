@@ -2442,6 +2442,7 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     ['Parent Timing Mode', '父级时序模式', '父級時序模式', '親のタイミングモード'],
     ['Reverse Parent Order', '反转父级顺序', '反轉父級順序', '親の順序を反転'],
     ['You are working in an unsaved scene.', '你正在未保存的场景中工作。', '你正在未儲存的場景中工作。', '未保存のシーンで作業しています。'],
+    ['Click to see next message', '点击查看下一条消息', '點擊查看下一則訊息', 'クリックして次のメッセージを表示'],
   ]) {
     const escapedSource = source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     assert.match(zhHansTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHans}<\\/translation>`));

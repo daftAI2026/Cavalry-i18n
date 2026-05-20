@@ -6676,6 +6676,10 @@
       <translation>提示與技巧 🚀</translation>
     </message>
     <message>
+      <source>Click to see next message</source>
+      <translation>點擊查看下一則訊息</translation>
+    </message>
+    <message>
       <source>Shelf</source>
       <translation>工具架</translation>
     </message>

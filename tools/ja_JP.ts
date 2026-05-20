@@ -7874,6 +7874,10 @@
       <translation>ヒントとコツ 🚀</translation>
     </message>
     <message>
+      <source>Click to see next message</source>
+      <translation>クリックして次のメッセージを表示</translation>
+    </message>
+    <message>
       <source>Shelf</source>
       <translation>シェルフ</translation>
     </message>

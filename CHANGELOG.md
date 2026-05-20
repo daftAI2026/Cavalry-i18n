@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Tips QLabel Text Translation**: Added `Click to see next message` source translation in Japanese, Simplified Chinese, and Traditional Chinese to cover raw label rendering in the Tips panel.
+- **Contract Verification for Tips Text**: Added contract tests in `tools/check_app_contracts.js` to ensure the exact translation of `Click to see next message` is present across all languages.
 - **Colon-Suffixed Label Translation**: Implemented dynamic colon-suffixed label fallback inside the C++ injector to automatically translate labels like `Looping:` by stripping the colon and looking up `Looping`.
 - **Contract Verification for Colon Labels**: Added contract tests in `tools/check_app_contracts.js` to ensure the dynamic colon-suffix logic is preserved and properly regression-tested.
 - **Add Layers Empty Cards Audit**: Added `docs/audits/add-layers-runtime-model-capture-2026-05-20.md` documenting empty title rows in `QuickAddWindow`, `DisplayRole`/`EditRole` analysis, and token triage boundary definitions.
@@ -38,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **GEB Document Synchronization**: Updated L2 and L3 headers in `tools/CLAUDE.md` and `tools/check_app_contracts.js` to document the new quarantine config and test verification structures.
 
 ### Fixed
+- **Retina Resolution Screenshot Regression**: Patched `check_tauri_window_regression.js` to normalize the captured screenshot content size using the backing scale factor (2x/3x on Retina/High-DPI displays), resolving window regression check failures on high-DPI Mac displays.
 - **Model niceName Preservation**: Reverted `niceName` fields to English across all translation files to prevent Time Editor rendering issues and model key serialization errors in Cavalry.
 - **Widget Mutation Boundary Protection**: Refactored the timeline-unsafe protection to intercept `QListWidgetItem` and `QTreeWidgetItem` values at the mutation boundary via `shouldPreserveModelBackedItemText` instead of using the global QTranslator.
 - **Contract Enforcement**: Updated contract tests to verify that `niceName` values stay English in `nodeStrings.json` and all plugin translation files across Simplified Chinese, Traditional Chinese, and Japanese.

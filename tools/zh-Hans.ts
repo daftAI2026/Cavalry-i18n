@@ -6439,6 +6439,10 @@
       <translation>&lt;i&gt;点击查看下一条消息&lt;/i&gt;</translation>
     </message>
     <message>
+      <source>Click to see next message</source>
+      <translation>点击查看下一条消息</translation>
+    </message>
+    <message>
       <source>Shelf</source>
       <translation>工具架</translation>
     </message>
