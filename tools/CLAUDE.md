@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、动态 QLabel 浮动标题、Forge 动力学术语、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
+check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、动态 QLabel 浮动标题、冒号标签兜底、Forge 动力学术语、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge.rs 和 renderer/app.js，覆盖系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸与 bridge 能力。
@@ -63,5 +63,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-19: 新增 `runtime-noise-quarantine.json`，`generate_embedded_translations.js` 在生成表时跳过无 provenance 的 runtime 短 token，防止 `Rhu -> 鲁/ログイン` 一类批量污染进入 injector。
 2026-05-19: `nodeStrings.json` 补齐 Forge Dynamics 生成属性 label，`tools/*.ts` 修正 `Un-Parent` 与地面/迭代/场术语，`CavalryTranslatorInjector.mm` 增加 `N selected` 状态栏动态翻译。
 2026-05-20: `tools/*.ts` 补齐 Add Layer/属性面板生成词，`check_app_contracts.js` 锁定 Add Layer 空标题行修剪、tag token 与 Time Editor niceName 保护边界。
+2026-05-20: `zh-Hans.ts` 修正 `unsaved scene` 误译，`CavalryTranslatorInjector.mm` 增加冒号后缀标签兜底，让 `Looping:` 复用 `Looping` 的翻译。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

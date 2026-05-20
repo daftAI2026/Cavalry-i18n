@@ -2305,7 +2305,7 @@ const TranslationEntry kZhHansEntries[] = {
     {"MenuBarManager", "yok HTA zok", "内部标识庚"},
     {"MenuBarManager", "You are Offline", "你离线了"},
     {"MenuBarManager", "You are working in an unsaved scene", "你在未保存的场景中工作"},
-    {"MenuBarManager", "You are working in an unsaved scene.", "你正在一个没有保护的场景里工作。"},
+    {"MenuBarManager", "You are working in an unsaved scene.", "你正在未保存的场景中工作。"},
     {"MenuBarManager", "You can customise the Cavalry Control interface by adding a UI Script to act as a Header", "可以添加界面脚本作为页眉来自定义控制界面"},
     {"MenuBarManager", "You can customise the Cavalry Control interface by adding a UI Script to act as a Header.", "可以添加界面脚本作为页眉来自定义控制界面。"},
     {"MenuBarManager", "You can open the Control Centre from the Window menu", "您可以从窗口菜单打开控制中心"},

@@ -2826,7 +2826,7 @@
     <message><source>yok HTA zok</source><translation>内部标识庚</translation></message>
     <message><source>You are Offline</source><translation>你离线了</translation></message>
     <message><source>You are working in an unsaved scene</source><translation>你在未保存的场景中工作</translation></message>
-    <message><source>You are working in an unsaved scene.</source><translation>你正在一个没有保护的场景里工作。</translation></message>
+    <message><source>You are working in an unsaved scene.</source><translation>你正在未保存的场景中工作。</translation></message>
     <message><source>You can customise the Cavalry Control interface by adding a UI Script to act as a Header</source><translation>可以添加界面脚本作为页眉来自定义控制界面</translation></message>
     <message><source>You can customise the Cavalry Control interface by adding a UI Script to act as a Header.</source><translation>可以添加界面脚本作为页眉来自定义控制界面。</translation></message>
     <message><source>You can open the Control Centre from the Window menu</source><translation>您可以从窗口菜单打开控制中心</translation></message>

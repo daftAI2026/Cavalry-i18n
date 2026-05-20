@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Colon-Suffixed Label Translation**: Implemented dynamic colon-suffixed label fallback inside the C++ injector to automatically translate labels like `Looping:` by stripping the colon and looking up `Looping`.
+- **Contract Verification for Colon Labels**: Added contract tests in `tools/check_app_contracts.js` to ensure the dynamic colon-suffix logic is preserved and properly regression-tested.
+- **Add Layers Empty Cards Audit**: Added `docs/audits/add-layers-runtime-model-capture-2026-05-20.md` documenting empty title rows in `QuickAddWindow`, `DisplayRole`/`EditRole` analysis, and token triage boundary definitions.
+- **Qt Item Model Capture Workflow**: Documented the item model dump procedure, role analysis checklist, and file classification guidelines inside `docs/runtime-ui-live-capture-workflow.md`.
 - **Qt Item Model Serialization**: Added `serializeItemViewModel` and `serializeModelRows` to serialize and capture Qt item model structures in the runtime inventory for downstream coverage auditing.
 - **Debounced Dynamic Translation Refresh**: Implemented GCD-based coalescing (`scheduleInteractiveRefresh`) to debounce and schedule translation refreshes for dynamic widgets and late-loaded layouts during event-filter callbacks.
 - **Quick-Add Empty Rows Pruning**: Implemented `pruneQuickAddEmptyItems` in the injector to clean up empty list rows inside `QuickAddWindow`, preventing blank card residues in the Add Layer dialog.
@@ -25,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Ellipsis Menu Variant Generation**: Dynamically derive ellipsis (`...`) variants for `ModelDisplay` translation entries during compile-time header generation to cover context-menu actions while keeping NiceNames in English.
 
 ### Changed
+- **Unsaved Scene Translation Cleanup**: Refined the localization of `You are working in an unsaved scene.` in `tools/zh-Hans.ts` to `你正在未保存的场景中工作。`, synchronizing it to `injector/generated_translations.inc`.
+- **GEB Document Mapping**: Aligned L1 and L2 maps in `docs/CLAUDE.md` and `docs/audits/CLAUDE.md` with the new dated audit reports and folder boundary conventions.
 - **Definition Tag Token Restoration**: Reverted localized tags back to standard English source tokens (e.g., `Distribution`, `Spiral`, `Bezier`) in Simplified Chinese, Traditional Chinese, and Japanese language packs to keep tag chips matching Cavalry's native tags rendering.
 - **Smoother Node Elimination**: Purged obsolete, undefined `smoother` node definitions from JSON assets and translation lists to prevent orphan blank cards in the Add Layer dialog.
 - **Directory Renaming & Path Migration**: Renamed the `doc` directory to `docs` to align with standard conventions, migrating all path references, contract tests (`check_app_contracts.js`), translation sources (`ja_JP.ts`, `zh-Hans.ts`, `zh-Hant.ts`), and configuration files (`translation-whitelist.json`).

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、Forge 动力学术语、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号标签兜底、Forge 动力学术语、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1002,6 +1002,11 @@ test('embedded injector handles dynamic layer context menu labels without static
     injectorSource,
     /selectedCountPattern[\s\S]{0,120}\[0-9\]\+[\s\S]{0,120}selected/,
     'dynamic fallback should translate status labels like 8 selected without enumerating every selection count'
+  );
+  assert.match(
+    injectorSource,
+    /endsWith\(QStringLiteral\(":"\)\)[\s\S]{0,220}left\(normalizedSource\.size\(\) - 1\)/,
+    'dynamic fallback should translate colon-suffixed labels like Looping: from the existing bare Looping entry'
   );
 });
 
@@ -2436,6 +2441,7 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     ['Group By Parent', '按父级分组', '按父級分組', '親でグループ化'],
     ['Parent Timing Mode', '父级时序模式', '父級時序模式', '親のタイミングモード'],
     ['Reverse Parent Order', '反转父级顺序', '反轉父級順序', '親の順序を反転'],
+    ['You are working in an unsaved scene.', '你正在未保存的场景中工作。', '你正在未儲存的場景中工作。', '未保存のシーンで作業しています。'],
   ]) {
     const escapedSource = source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     assert.match(zhHansTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHans}<\\/translation>`));

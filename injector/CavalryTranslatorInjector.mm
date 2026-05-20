@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏/冒号标签兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1073,6 +1073,13 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
         if (cached != gTranslationBySource.constEnd()) {
             return cached.value();
         }
+        if (normalizedSource.endsWith(QStringLiteral(":"))) {
+            const QString bareSource = normalizeMenuText(normalizedSource.left(normalizedSource.size() - 1));
+            const auto bareCached = gTranslationBySource.constFind(bareSource);
+            if (bareCached != gTranslationBySource.constEnd()) {
+                return bareCached.value() + QStringLiteral(":");
+            }
+        }
         return lookupDynamicMenuTranslation(lang, normalizedSource);
     }
 
@@ -1086,6 +1093,16 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
         const QString candidate = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
         if (candidate == normalizedSource) {
             return QString::fromUtf8(entries[index].translation);
+        }
+    }
+
+    if (normalizedSource.endsWith(QStringLiteral(":"))) {
+        const QString bareSource = normalizeMenuText(normalizedSource.left(normalizedSource.size() - 1));
+        for (int index = 0; index < count; ++index) {
+            const QString candidate = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
+            if (candidate == bareSource) {
+                return QString::fromUtf8(entries[index].translation) + QStringLiteral(":");
+            }
         }
     }
 
