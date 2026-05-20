@@ -6443,6 +6443,502 @@
       <translation>点击查看下一条消息</translation>
     </message>
     <message>
+      <source>Strength</source>
+      <translation>强度</translation>
+    </message>
+    <message>
+      <source>Falloffs</source>
+      <translation>衰减</translation>
+    </message>
+    <message>
+      <source>Color Mode</source>
+      <translation>颜色模式</translation>
+    </message>
+    <message>
+      <source>Bend Angle</source>
+      <translation>弯曲角度</translation>
+    </message>
+    <message>
+      <source>Direction</source>
+      <translation>方向</translation>
+    </message>
+    <message>
+      <source>Kill On Collision</source>
+      <translation>碰撞时销毁</translation>
+    </message>
+    <message>
+      <source>Set Sensor</source>
+      <translation>设为传感器</translation>
+    </message>
+    <message>
+      <source>Sensor</source>
+      <translation>传感器</translation>
+    </message>
+    <message>
+      <source>Set Friction</source>
+      <translation>设置摩擦</translation>
+    </message>
+    <message>
+      <source>Friction</source>
+      <translation>摩擦</translation>
+    </message>
+    <message>
+      <source>Set Bounce</source>
+      <translation>设置弹跳</translation>
+    </message>
+    <message>
+      <source>Set Density</source>
+      <translation>设置密度</translation>
+    </message>
+    <message>
+      <source>Density</source>
+      <translation>密度</translation>
+    </message>
+    <message>
+      <source>Set Gravity Scale</source>
+      <translation>设置重力缩放</translation>
+    </message>
+    <message>
+      <source>Gravity Scale</source>
+      <translation>重力缩放</translation>
+    </message>
+    <message>
+      <source>Fade Changes</source>
+      <translation>淡化变化</translation>
+    </message>
+    <message>
+      <source>Fade Time</source>
+      <translation>淡化时间</translation>
+    </message>
+    <message>
+      <source>Input Shapes</source>
+      <translation>输入形状</translation>
+    </message>
+    <message>
+      <source>Stretch</source>
+      <translation>拉伸</translation>
+    </message>
+    <message>
+      <source>Input Guides</source>
+      <translation>输入参考线</translation>
+    </message>
+    <message>
+      <source>Projection Target</source>
+      <translation>投影目标</translation>
+    </message>
+    <message>
+      <source>Input Color</source>
+      <translation>输入颜色</translation>
+    </message>
+    <message>
+      <source>Affect Only</source>
+      <translation>仅影响</translation>
+    </message>
+    <message>
+      <source>Affect Id</source>
+      <translation>影响 ID</translation>
+    </message>
+    <message>
+      <source>Custom Color</source>
+      <translation>自定义颜色</translation>
+    </message>
+    <message>
+      <source>Draw Color</source>
+      <translation>绘制颜色</translation>
+    </message>
+    <message>
+      <source>Amount</source>
+      <translation>数量</translation>
+    </message>
+    <message>
+      <source>Horizontal Alignment</source>
+      <translation>水平对齐</translation>
+    </message>
+    <message>
+      <source>Vertical Alignment</source>
+      <translation>垂直对齐</translation>
+    </message>
+    <message>
+      <source>Amplitude</source>
+      <translation>振幅</translation>
+    </message>
+    <message>
+      <source>Sample Mode</source>
+      <translation>采样模式</translation>
+    </message>
+    <message>
+      <source>Direction Mode</source>
+      <translation>方向模式</translation>
+    </message>
+    <message>
+      <source>Initial Direction</source>
+      <translation>初始方向</translation>
+    </message>
+    <message>
+      <source>Initial Speed</source>
+      <translation>初始速度</translation>
+    </message>
+    <message>
+      <source>Override Lifespan</source>
+      <translation>覆盖生命周期</translation>
+    </message>
+    <message>
+      <source>Blend Mode</source>
+      <translation>混合模式</translation>
+    </message>
+    <message>
+      <source>Greyscale Mode</source>
+      <translation>灰度模式</translation>
+    </message>
+    <message>
+      <source>Force</source>
+      <translation>力</translation>
+    </message>
+    <message>
+      <source>Maintain Transform</source>
+      <translation>保持变换</translation>
+    </message>
+    <message>
+      <source>Show Preview</source>
+      <translation>显示预览</translation>
+    </message>
+    <message>
+      <source>Physics Mode</source>
+      <translation>物理模式</translation>
+    </message>
+    <message>
+      <source>Force Magnitude</source>
+      <translation>力大小</translation>
+    </message>
+    <message>
+      <source>Multi Stroke</source>
+      <translation>多重描边</translation>
+    </message>
+    <message>
+      <source>Premultiply</source>
+      <translation>预乘</translation>
+    </message>
+    <message>
+      <source>Draw Mode</source>
+      <translation>绘制模式</translation>
+    </message>
+    <message>
+      <source>Use CMYK</source>
+      <translation>使用 CMYK</translation>
+    </message>
+    <message>
+      <source>Black Gamma</source>
+      <translation>黑色 Gamma</translation>
+    </message>
+    <message>
+      <source>Out Resolution</source>
+      <translation>输出分辨率</translation>
+    </message>
+    <message>
+      <source>Screen Space</source>
+      <translation>屏幕空间</translation>
+    </message>
+    <message>
+      <source>Tiling</source>
+      <translation>平铺</translation>
+    </message>
+    <message>
+      <source>Offset</source>
+      <translation>偏移</translation>
+    </message>
+    <message>
+      <source>Padding</source>
+      <translation>内边距</translation>
+    </message>
+    <message>
+      <source>Number Of Waves</source>
+      <translation>波形数量</translation>
+    </message>
+    <message>
+      <source>Input Shape</source>
+      <translation>输入形状</translation>
+    </message>
+    <message>
+      <source>Emitter Type</source>
+      <translation>发射器类型</translation>
+    </message>
+    <message>
+      <source>Particles Per Point</source>
+      <translation>每点粒子数</translation>
+    </message>
+    <message>
+      <source>Scale Over Lifespan</source>
+      <translation>生命周期缩放</translation>
+    </message>
+    <message>
+      <source>Rotation Over Lifespan</source>
+      <translation>生命周期旋转</translation>
+    </message>
+    <message>
+      <source>Color Over Lifespan</source>
+      <translation>生命周期颜色</translation>
+    </message>
+    <message>
+      <source>Image Blend Mode</source>
+      <translation>图像混合模式</translation>
+    </message>
+    <message>
+      <source>Image Quality</source>
+      <translation>图像质量</translation>
+    </message>
+    <message>
+      <source>Fit To Lifespan</source>
+      <translation>适配生命周期</translation>
+    </message>
+    <message>
+      <source>Loop Sequence</source>
+      <translation>循环序列</translation>
+    </message>
+    <message>
+      <source>Image Index Offset</source>
+      <translation>图像索引偏移</translation>
+    </message>
+    <message>
+      <source>World Scale</source>
+      <translation>世界缩放</translation>
+    </message>
+    <message>
+      <source>Time Step</source>
+      <translation>时间步长</translation>
+    </message>
+    <message>
+      <source>Use Cache</source>
+      <translation>使用缓存</translation>
+    </message>
+    <message>
+      <source>Cache File Path</source>
+      <translation>缓存文件路径</translation>
+    </message>
+    <message>
+      <source>Base Layer</source>
+      <translation>基础层</translation>
+    </message>
+    <message>
+      <source>Bidirectional</source>
+      <translation>双向</translation>
+    </message>
+    <message>
+      <source>Border</source>
+      <translation>边框</translation>
+    </message>
+    <message>
+      <source>Gap Type</source>
+      <translation>间隙类型</translation>
+    </message>
+    <message>
+      <source>Line Mode</source>
+      <translation>线条模式</translation>
+    </message>
+    <message>
+      <source>Line Size</source>
+      <translation>线条大小</translation>
+    </message>
+    <message>
+      <source>Shadow Mask Scale</source>
+      <translation>阴影蒙版缩放</translation>
+    </message>
+    <message>
+      <source>Unlock Offset</source>
+      <translation>解锁偏移</translation>
+    </message>
+    <message>
+      <source>Frequency Scale</source>
+      <translation>频率缩放</translation>
+    </message>
+    <message>
+      <source>Use Fixed Size</source>
+      <translation>使用固定大小</translation>
+    </message>
+    <message>
+      <source>Fixed Size</source>
+      <translation>固定大小</translation>
+    </message>
+    <message>
+      <source>Excel Sheet</source>
+      <translation>Excel 工作表</translation>
+    </message>
+    <message>
+      <source>Asset</source>
+      <translation>素材</translation>
+    </message>
+    <message>
+      <source>Shuffle Type</source>
+      <translation>随机排序类型</translation>
+    </message>
+    <message>
+      <source>Keep Punctuation</source>
+      <translation>保留标点</translation>
+    </message>
+    <message>
+      <source>Shuffle Text</source>
+      <translation>随机文本</translation>
+    </message>
+    <message>
+      <source>Font Size</source>
+      <translation>字号</translation>
+    </message>
+    <message>
+      <source>Style Behaviours</source>
+      <translation>样式行为</translation>
+    </message>
+    <message>
+      <source>Material Behaviours</source>
+      <translation>材质行为</translation>
+    </message>
+    <message>
+      <source>Vignette Shape</source>
+      <translation>暗角形状</translation>
+    </message>
+    <message>
+      <source>Level 0 Color</source>
+      <translation>层级 0 颜色</translation>
+    </message>
+    <message>
+      <source>Level 1 Color</source>
+      <translation>层级 1 颜色</translation>
+    </message>
+    <message>
+      <source>Level 2 Color</source>
+      <translation>层级 2 颜色</translation>
+    </message>
+    <message>
+      <source>Level 3 Color</source>
+      <translation>层级 3 颜色</translation>
+    </message>
+    <message>
+      <source>Level 4 Color</source>
+      <translation>层级 4 颜色</translation>
+    </message>
+    <message>
+      <source>Force Velocity</source>
+      <translation>力速度</translation>
+    </message>
+    <message>
+      <source>Adaptive Wave Counts</source>
+      <translation>自适应波形数量</translation>
+    </message>
+    <message>
+      <source>No Mask</source>
+      <translation>无蒙版</translation>
+    </message>
+    <message>
+      <source>Octaves</source>
+      <translation>倍频程</translation>
+    </message>
+    <message>
+      <source>Lacunarity</source>
+      <translation>间隙度</translation>
+    </message>
+    <message>
+      <source>Gain</source>
+      <translation>增益</translation>
+    </message>
+    <message>
+      <source>Curl</source>
+      <translation>卷曲</translation>
+    </message>
+    <message>
+      <source>Curl Amplitude</source>
+      <translation>卷曲振幅</translation>
+    </message>
+    <message>
+      <source>Shape Style</source>
+      <translation>形状样式</translation>
+    </message>
+    <message>
+      <source>Particle Radius</source>
+      <translation>粒子半径</translation>
+    </message>
+    <message>
+      <source>Scale Strength</source>
+      <translation>缩放强度</translation>
+    </message>
+    <message>
+      <source>Rotation Scalar</source>
+      <translation>旋转标量</translation>
+    </message>
+    <message>
+      <source>Gradient Mode</source>
+      <translation>渐变模式</translation>
+    </message>
+    <message>
+      <source>Scale Mode</source>
+      <translation>缩放模式</translation>
+    </message>
+    <message>
+      <source>Sequence Mode</source>
+      <translation>序列模式</translation>
+    </message>
+    <message>
+      <source>Cyan</source>
+      <translation>青色</translation>
+    </message>
+    <message>
+      <source>Cyan Transform</source>
+      <translation>青色变换</translation>
+    </message>
+    <message>
+      <source>Magenta</source>
+      <translation>品红</translation>
+    </message>
+    <message>
+      <source>Magenta Transform</source>
+      <translation>品红变换</translation>
+    </message>
+    <message>
+      <source>Yellow</source>
+      <translation>黄色</translation>
+    </message>
+    <message>
+      <source>Yellow Transform</source>
+      <translation>黄色变换</translation>
+    </message>
+    <message>
+      <source>Black</source>
+      <translation>黑色</translation>
+    </message>
+    <message>
+      <source>Black Transform</source>
+      <translation>黑色变换</translation>
+    </message>
+    <message>
+      <source>Draw Capture Margin</source>
+      <translation>绘制捕获边距</translation>
+    </message>
+    <message>
+      <source>Draw Flow Margin</source>
+      <translation>绘制流动边距</translation>
+    </message>
+    <message>
+      <source>Capture Margin</source>
+      <translation>捕获边距</translation>
+    </message>
+    <message>
+      <source>Capture Force</source>
+      <translation>捕获力</translation>
+    </message>
+    <message>
+      <source>Capture Graph</source>
+      <translation>捕获图</translation>
+    </message>
+    <message>
+      <source>Flow Margin</source>
+      <translation>流动边距</translation>
+    </message>
+    <message>
+      <source>Flow Force</source>
+      <translation>流动力</translation>
+    </message>
+    <message>
+      <source>Flow Variance</source>
+      <translation>流动变化</translation>
+    </message>
+    <message>
       <source>Shelf</source>
       <translation>工具架</translation>
     </message>

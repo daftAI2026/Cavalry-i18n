@@ -54,7 +54,7 @@ Cavalry 是动效/动画软件，用户同时也用 **After Effects、Cinema 4D�
 
 保持英文原文或英文+中文注释的：
 - **专有名词**：Lottie、Bezier、RGB、CMYK、SVG
-- **品牌/产品名**：Cavalry、Canva
+- **品牌/产品名**：Cavalry、Canva、Excel
 - **行业通用缩写**：FPS、BPM、GPU、JSON、CSV
 - **约定俗成不翻的**：Alpha（Alpha 通道）、UV
 

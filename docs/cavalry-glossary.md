@@ -75,6 +75,7 @@
 | Lottie | Lottie | Lottie | Lottie | Product / format name |
 | Cavalry | Cavalry | Cavalry | Cavalry | Product name |
 | Canva | Canva | Canva | Canva | Brand name |
+| Excel | Excel | Excel | Excel | Product name; allow labels like "Excel 工作表" / "Excel シート" |
 | Forge Dynamics | Forge 动力学 | Forge 動力學 | フォージダイナミクス | UI display term; keep model niceName English |
 | Undo | 撤销 | 復原 | 元に戻す | |
 | Redo | 重做 | 重做 | やり直し | |

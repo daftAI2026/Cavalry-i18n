@@ -68,5 +68,7 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-20: `tools/*.ts` 补齐 `Click to see next message` 裸文本，避免只翻译 HTML 版本而漏掉 Tips 面板渲染后的 QLabel 文本。
 2026-05-20: `check_app_contracts.js` 增加 Voronoi Shader `loopLength` 属性与合同断言，确保运行时循环长度标签在四语语言包中同构存在。
 2026-05-20: `tauri-bridge.js` 移除 snake_case 回退与未消费 debug 字段，`check_tauri_bridge_runtime.js` 锁定 camelCase-only payload；`check_app_contracts.js` 要求 ExtensionLayer 自绘层不注册空 literal patch 回调。
+2026-05-20: `tools/*.ts` 补齐截图审计中暴露的运行时生成属性标签（如 Color Mode、Blend Mode、Gradient Mode、Capture Force、No Mask），`check_app_contracts.js` 锁定这些 TS 兜底翻译，同时继续由 Time Editor niceName 合同保护右侧模型名英文。
+2026-05-20: `forbidden_translation_patterns.json` 将 Excel 纳入保留品牌词，配合翻译规范允许 `Excel 工作表` / `Excel シート` 这类术语表声明过的品牌组合。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

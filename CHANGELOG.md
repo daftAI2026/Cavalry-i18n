@@ -8,8 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Audited Generated Attribute Label Translations**: Added comprehensive localization support for over 100 runtime-generated Attribute Editor labels (e.g., *Color Mode*, *Blend Mode*, *Gradient Mode*, *Capture Force*, *No Mask*) in Japanese (`tools/ja_JP.ts`), Simplified Chinese (`tools/zh-Hans.ts`), and Traditional Chinese (`tools/zh-Hant.ts`) language catalogs.
+- **Contract Verification for Attribute Labels**: Introduced a comprehensive contract suite in `tools/check_app_contracts.js` that checks for exact translations of all 100+ newly added generated Attribute Editor labels across targeted languages.
 
 ### Changed
+- **Allowed Excel Brand Combinations**: Whitelisted "Excel" as a protected brand name in `tools/forbidden_translation_patterns.json`, `docs/cavalry-glossary.md`, and `docs/translation-guidelines.md` to permit term glossary integrations like `Excel 工作表` and `Excel シート` while guarding it from generic translation.
+- **Synchronized Embedded Translation Table**: Updated `injector/generated_translations.inc` and recompiled `libCavalryTranslatorInjector.dylib` to embed the newly audited Attribute Editor label translations.
 - **Consolidated Packaged Resource Path Lookup**: Introduced a unified `resource_candidates` helper in `src-tauri/src/commands.rs` to merge duplicate path construction logic for language packs and injector source dylib candidates, eliminating redundant candidates calculation and ensuring a single source of truth for resolution order (`resource_dir` → `resource_dir/_up_` → `resource_dir.parent()` → `repo_root`).
 - **CamelCase-Only Tauri Bridge Integration**: Refactored `tauri-bridge.js` to drop obsolete `snake_case` fallbacks and unconsumed fields (`repoRoot`, `diagnostics`), ensuring it only processes `camelCase` properties and only forwards the precise properties required by the renderer.
 - **Removed ExtensionLayer Mach-O Patching Infrastructure**: Completely removed dormant patch tables, compact literal fallback structures, vm/mprotect memory write permissions logic, and dyld image callback registrations from the injector (`CavalryTranslatorInjector.mm`). Standardized the ExtensionLayer self-painted interface to remain in English because its renderer doesn't support CJK font rendering.

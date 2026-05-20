@@ -99,7 +99,7 @@
       "Alpha", "Beta", "Gamma", "Delta", "Theta", "Lambda", "Sigma",
       "UV", "UVs", "IK", "FK", "FBX", "OBJ", "GLB", "GLTF", "USD", "USDZ",
       "2D", "3D", "FPS", "DPI", "PPI",
-      "Cavalry", "Canva", "Forge", "Dynamics", "Solvers", "Office", "Adobe", "Houdini", "Maya", "Blender",
+      "Cavalry", "Canva", "Forge", "Dynamics", "Solvers", "Office", "Excel", "Adobe", "Houdini", "Maya", "Blender",
       "GPU", "CPU", "RAM", "OS", "macOS", "iOS", "API", "SDK", "CLI", "GUI",
       "OK", "ID", "URL", "URI", "UUID", "GUID",
       "at", "path", "name", "tag", "cv", "xmlns",

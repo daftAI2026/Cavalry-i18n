@@ -7878,6 +7878,502 @@
       <translation>クリックして次のメッセージを表示</translation>
     </message>
     <message>
+      <source>Strength</source>
+      <translation>強度</translation>
+    </message>
+    <message>
+      <source>Falloffs</source>
+      <translation>フォールオフ</translation>
+    </message>
+    <message>
+      <source>Color Mode</source>
+      <translation>カラーモード</translation>
+    </message>
+    <message>
+      <source>Bend Angle</source>
+      <translation>曲げ角度</translation>
+    </message>
+    <message>
+      <source>Direction</source>
+      <translation>方向</translation>
+    </message>
+    <message>
+      <source>Kill On Collision</source>
+      <translation>衝突時に消去</translation>
+    </message>
+    <message>
+      <source>Set Sensor</source>
+      <translation>センサーに設定</translation>
+    </message>
+    <message>
+      <source>Sensor</source>
+      <translation>センサー</translation>
+    </message>
+    <message>
+      <source>Set Friction</source>
+      <translation>摩擦を設定</translation>
+    </message>
+    <message>
+      <source>Friction</source>
+      <translation>摩擦</translation>
+    </message>
+    <message>
+      <source>Set Bounce</source>
+      <translation>バウンスを設定</translation>
+    </message>
+    <message>
+      <source>Set Density</source>
+      <translation>密度を設定</translation>
+    </message>
+    <message>
+      <source>Density</source>
+      <translation>密度</translation>
+    </message>
+    <message>
+      <source>Set Gravity Scale</source>
+      <translation>重力スケールを設定</translation>
+    </message>
+    <message>
+      <source>Gravity Scale</source>
+      <translation>重力スケール</translation>
+    </message>
+    <message>
+      <source>Fade Changes</source>
+      <translation>フェード変更</translation>
+    </message>
+    <message>
+      <source>Fade Time</source>
+      <translation>フェード時間</translation>
+    </message>
+    <message>
+      <source>Input Shapes</source>
+      <translation>入力シェイプ</translation>
+    </message>
+    <message>
+      <source>Stretch</source>
+      <translation>ストレッチ</translation>
+    </message>
+    <message>
+      <source>Input Guides</source>
+      <translation>入力ガイド</translation>
+    </message>
+    <message>
+      <source>Projection Target</source>
+      <translation>投影ターゲット</translation>
+    </message>
+    <message>
+      <source>Input Color</source>
+      <translation>入力カラー</translation>
+    </message>
+    <message>
+      <source>Affect Only</source>
+      <translation>影響のみ</translation>
+    </message>
+    <message>
+      <source>Affect Id</source>
+      <translation>影響 ID</translation>
+    </message>
+    <message>
+      <source>Custom Color</source>
+      <translation>カスタムカラー</translation>
+    </message>
+    <message>
+      <source>Draw Color</source>
+      <translation>描画カラー</translation>
+    </message>
+    <message>
+      <source>Amount</source>
+      <translation>量</translation>
+    </message>
+    <message>
+      <source>Horizontal Alignment</source>
+      <translation>水平整列</translation>
+    </message>
+    <message>
+      <source>Vertical Alignment</source>
+      <translation>垂直整列</translation>
+    </message>
+    <message>
+      <source>Amplitude</source>
+      <translation>振幅</translation>
+    </message>
+    <message>
+      <source>Sample Mode</source>
+      <translation>サンプルモード</translation>
+    </message>
+    <message>
+      <source>Direction Mode</source>
+      <translation>方向モード</translation>
+    </message>
+    <message>
+      <source>Initial Direction</source>
+      <translation>初期方向</translation>
+    </message>
+    <message>
+      <source>Initial Speed</source>
+      <translation>初期速度</translation>
+    </message>
+    <message>
+      <source>Override Lifespan</source>
+      <translation>寿命を上書き</translation>
+    </message>
+    <message>
+      <source>Blend Mode</source>
+      <translation>描画モード</translation>
+    </message>
+    <message>
+      <source>Greyscale Mode</source>
+      <translation>グレースケールモード</translation>
+    </message>
+    <message>
+      <source>Force</source>
+      <translation>力</translation>
+    </message>
+    <message>
+      <source>Maintain Transform</source>
+      <translation>トランスフォームを保持</translation>
+    </message>
+    <message>
+      <source>Show Preview</source>
+      <translation>プレビュー表示</translation>
+    </message>
+    <message>
+      <source>Physics Mode</source>
+      <translation>物理モード</translation>
+    </message>
+    <message>
+      <source>Force Magnitude</source>
+      <translation>力の大きさ</translation>
+    </message>
+    <message>
+      <source>Multi Stroke</source>
+      <translation>マルチストローク</translation>
+    </message>
+    <message>
+      <source>Premultiply</source>
+      <translation>プリマルチプライ</translation>
+    </message>
+    <message>
+      <source>Draw Mode</source>
+      <translation>描画モード</translation>
+    </message>
+    <message>
+      <source>Use CMYK</source>
+      <translation>CMYK を使用</translation>
+    </message>
+    <message>
+      <source>Black Gamma</source>
+      <translation>ブラックガンマ</translation>
+    </message>
+    <message>
+      <source>Out Resolution</source>
+      <translation>出力解像度</translation>
+    </message>
+    <message>
+      <source>Screen Space</source>
+      <translation>スクリーン空間</translation>
+    </message>
+    <message>
+      <source>Tiling</source>
+      <translation>タイリング</translation>
+    </message>
+    <message>
+      <source>Offset</source>
+      <translation>オフセット</translation>
+    </message>
+    <message>
+      <source>Padding</source>
+      <translation>パディング</translation>
+    </message>
+    <message>
+      <source>Number Of Waves</source>
+      <translation>波数</translation>
+    </message>
+    <message>
+      <source>Input Shape</source>
+      <translation>入力シェイプ</translation>
+    </message>
+    <message>
+      <source>Emitter Type</source>
+      <translation>エミッタータイプ</translation>
+    </message>
+    <message>
+      <source>Particles Per Point</source>
+      <translation>ポイントあたりのパーティクル</translation>
+    </message>
+    <message>
+      <source>Scale Over Lifespan</source>
+      <translation>寿命中のスケール</translation>
+    </message>
+    <message>
+      <source>Rotation Over Lifespan</source>
+      <translation>寿命中の回転</translation>
+    </message>
+    <message>
+      <source>Color Over Lifespan</source>
+      <translation>寿命中のカラー</translation>
+    </message>
+    <message>
+      <source>Image Blend Mode</source>
+      <translation>画像描画モード</translation>
+    </message>
+    <message>
+      <source>Image Quality</source>
+      <translation>画像品質</translation>
+    </message>
+    <message>
+      <source>Fit To Lifespan</source>
+      <translation>寿命にフィット</translation>
+    </message>
+    <message>
+      <source>Loop Sequence</source>
+      <translation>ループシーケンス</translation>
+    </message>
+    <message>
+      <source>Image Index Offset</source>
+      <translation>画像インデックスオフセット</translation>
+    </message>
+    <message>
+      <source>World Scale</source>
+      <translation>ワールドスケール</translation>
+    </message>
+    <message>
+      <source>Time Step</source>
+      <translation>タイムステップ</translation>
+    </message>
+    <message>
+      <source>Use Cache</source>
+      <translation>キャッシュを使用</translation>
+    </message>
+    <message>
+      <source>Cache File Path</source>
+      <translation>キャッシュファイルパス</translation>
+    </message>
+    <message>
+      <source>Base Layer</source>
+      <translation>ベースレイヤー</translation>
+    </message>
+    <message>
+      <source>Bidirectional</source>
+      <translation>双方向</translation>
+    </message>
+    <message>
+      <source>Border</source>
+      <translation>ボーダー</translation>
+    </message>
+    <message>
+      <source>Gap Type</source>
+      <translation>間隔タイプ</translation>
+    </message>
+    <message>
+      <source>Line Mode</source>
+      <translation>ラインモード</translation>
+    </message>
+    <message>
+      <source>Line Size</source>
+      <translation>ラインサイズ</translation>
+    </message>
+    <message>
+      <source>Shadow Mask Scale</source>
+      <translation>シャドウマスクスケール</translation>
+    </message>
+    <message>
+      <source>Unlock Offset</source>
+      <translation>オフセットを解除</translation>
+    </message>
+    <message>
+      <source>Frequency Scale</source>
+      <translation>周波数スケール</translation>
+    </message>
+    <message>
+      <source>Use Fixed Size</source>
+      <translation>固定サイズを使用</translation>
+    </message>
+    <message>
+      <source>Fixed Size</source>
+      <translation>固定サイズ</translation>
+    </message>
+    <message>
+      <source>Excel Sheet</source>
+      <translation>Excel シート</translation>
+    </message>
+    <message>
+      <source>Asset</source>
+      <translation>アセット</translation>
+    </message>
+    <message>
+      <source>Shuffle Type</source>
+      <translation>シャッフルタイプ</translation>
+    </message>
+    <message>
+      <source>Keep Punctuation</source>
+      <translation>句読点を保持</translation>
+    </message>
+    <message>
+      <source>Shuffle Text</source>
+      <translation>シャッフルテキスト</translation>
+    </message>
+    <message>
+      <source>Font Size</source>
+      <translation>フォントサイズ</translation>
+    </message>
+    <message>
+      <source>Style Behaviours</source>
+      <translation>スタイルビヘイビア</translation>
+    </message>
+    <message>
+      <source>Material Behaviours</source>
+      <translation>マテリアルビヘイビア</translation>
+    </message>
+    <message>
+      <source>Vignette Shape</source>
+      <translation>ビネット形状</translation>
+    </message>
+    <message>
+      <source>Level 0 Color</source>
+      <translation>レベル 0 カラー</translation>
+    </message>
+    <message>
+      <source>Level 1 Color</source>
+      <translation>レベル 1 カラー</translation>
+    </message>
+    <message>
+      <source>Level 2 Color</source>
+      <translation>レベル 2 カラー</translation>
+    </message>
+    <message>
+      <source>Level 3 Color</source>
+      <translation>レベル 3 カラー</translation>
+    </message>
+    <message>
+      <source>Level 4 Color</source>
+      <translation>レベル 4 カラー</translation>
+    </message>
+    <message>
+      <source>Force Velocity</source>
+      <translation>力の速度</translation>
+    </message>
+    <message>
+      <source>Adaptive Wave Counts</source>
+      <translation>適応波数</translation>
+    </message>
+    <message>
+      <source>No Mask</source>
+      <translation>マスクなし</translation>
+    </message>
+    <message>
+      <source>Octaves</source>
+      <translation>オクターブ</translation>
+    </message>
+    <message>
+      <source>Lacunarity</source>
+      <translation>ラキュナリティ</translation>
+    </message>
+    <message>
+      <source>Gain</source>
+      <translation>ゲイン</translation>
+    </message>
+    <message>
+      <source>Curl</source>
+      <translation>カール</translation>
+    </message>
+    <message>
+      <source>Curl Amplitude</source>
+      <translation>カール振幅</translation>
+    </message>
+    <message>
+      <source>Shape Style</source>
+      <translation>シェイプスタイル</translation>
+    </message>
+    <message>
+      <source>Particle Radius</source>
+      <translation>パーティクル半径</translation>
+    </message>
+    <message>
+      <source>Scale Strength</source>
+      <translation>スケール強度</translation>
+    </message>
+    <message>
+      <source>Rotation Scalar</source>
+      <translation>回転スカラー</translation>
+    </message>
+    <message>
+      <source>Gradient Mode</source>
+      <translation>グラデーションモード</translation>
+    </message>
+    <message>
+      <source>Scale Mode</source>
+      <translation>スケールモード</translation>
+    </message>
+    <message>
+      <source>Sequence Mode</source>
+      <translation>シーケンスモード</translation>
+    </message>
+    <message>
+      <source>Cyan</source>
+      <translation>シアン</translation>
+    </message>
+    <message>
+      <source>Cyan Transform</source>
+      <translation>シアン変換</translation>
+    </message>
+    <message>
+      <source>Magenta</source>
+      <translation>マゼンタ</translation>
+    </message>
+    <message>
+      <source>Magenta Transform</source>
+      <translation>マゼンタ変換</translation>
+    </message>
+    <message>
+      <source>Yellow</source>
+      <translation>イエロー</translation>
+    </message>
+    <message>
+      <source>Yellow Transform</source>
+      <translation>イエロー変換</translation>
+    </message>
+    <message>
+      <source>Black</source>
+      <translation>ブラック</translation>
+    </message>
+    <message>
+      <source>Black Transform</source>
+      <translation>ブラック変換</translation>
+    </message>
+    <message>
+      <source>Draw Capture Margin</source>
+      <translation>キャプチャマージンを描画</translation>
+    </message>
+    <message>
+      <source>Draw Flow Margin</source>
+      <translation>フローマージンを描画</translation>
+    </message>
+    <message>
+      <source>Capture Margin</source>
+      <translation>キャプチャマージン</translation>
+    </message>
+    <message>
+      <source>Capture Force</source>
+      <translation>キャプチャ力</translation>
+    </message>
+    <message>
+      <source>Capture Graph</source>
+      <translation>キャプチャグラフ</translation>
+    </message>
+    <message>
+      <source>Flow Margin</source>
+      <translation>フローマージン</translation>
+    </message>
+    <message>
+      <source>Flow Force</source>
+      <translation>フロー力</translation>
+    </message>
+    <message>
+      <source>Flow Variance</source>
+      <translation>フロー変動</translation>
+    </message>
+    <message>
       <source>Shelf</source>
       <translation>シェルフ</translation>
     </message>
