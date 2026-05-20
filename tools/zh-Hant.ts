@@ -6852,6 +6852,10 @@
       <translation>力大小</translation>
     </message>
     <message>
+      <source>Override Mass</source>
+      <translation>覆蓋質量</translation>
+    </message>
+    <message>
       <source>Multi Stroke</source>
       <translation>多重描邊</translation>
     </message>
@@ -6910,6 +6914,10 @@
     <message>
       <source>Emitter Type</source>
       <translation>發射器類型</translation>
+    </message>
+    <message>
+      <source>Direction Type</source>
+      <translation>方向類型</translation>
     </message>
     <message>
       <source>Particles Per Point</source>
@@ -7089,15 +7097,19 @@
     </message>
     <message>
       <source>Force Velocity</source>
-      <translation>力速度</translation>
+      <translation>力向量</translation>
     </message>
     <message>
       <source>Adaptive Wave Counts</source>
-      <translation>自適應波形數量</translation>
+      <translation>自適應波數</translation>
     </message>
     <message>
       <source>No Mask</source>
-      <translation>無蒙版</translation>
+      <translation>無遮罩</translation>
+    </message>
+    <message>
+      <source>Cycles</source>
+      <translation>週期數</translation>
     </message>
     <message>
       <source>Octaves</source>

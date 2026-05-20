@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Audited Attribute Editor Label Translations (Batch 5)**: Added three-language coverage for 3 additional attribute editor labels: *Override Mass* (`覆盖质量` / `覆蓋質量` / `質量を上書き`), *Direction Type* (`方向类型` / `方向類型` / `方向タイプ`), and *Cycles* (`周期数` / `週期數` / `サイクル数`) in Japanese (`tools/ja_JP.ts`), Simplified Chinese (`tools/zh-Hans.ts`), and Traditional Chinese (`tools/zh-Hant.ts`) catalogs.
+- **Embedded Mixed No-Prefix Translation Normalization**: Added dynamic runtime translation support for mixed No-prefix labels (e.g. *No Mask* translations such as `No 蒙版` / `No 遮罩`) in `CavalryTranslatorInjector.mm` by checking stripped/fallback combinations to avoid redundant compile-time dictionary lookups.
+- **Lottie Translation Refining (Simplified Chinese)**: Corrected translations for *Lottie Author* (`Lottie 作者`, was `乐天作者`) and *Lottie is a Pro Feature* (`Lottie 是 Pro 功能`, was `洛蒂是个特质`).
 - **Codex Thread Handoff Audit**: Added `docs/audits/codex-thread-handoff-runtime-i18n-2026-05-20.md` containing a comprehensive compressed summary of the runtime i18n audit, root-cause diagnostics, completed translations (including over 100 runtime-generated Attribute Editor labels, Voronoi loop length, Tips, dynamic status bar count patterns), and handoff recommendations for MacOS sync validation.
 - **Audited Generated Attribute Label Translations**: Added comprehensive localization support for over 100 runtime-generated Attribute Editor labels (e.g., *Color Mode*, *Blend Mode*, *Gradient Mode*, *Capture Force*, *No Mask*) in Japanese (`tools/ja_JP.ts`), Simplified Chinese (`tools/zh-Hans.ts`), and Traditional Chinese (`tools/zh-Hant.ts`) language catalogs.
 - **Contract Verification for Attribute Labels**: Introduced a comprehensive contract suite in `tools/check_app_contracts.js` that checks for exact translations of all 100+ newly added generated Attribute Editor labels across targeted languages.
@@ -15,8 +18,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contract Assertion Updates**: Extended contract tests in `tools/check_app_contracts.js` to strictly enforce translation accuracy for the fourth batch of 9 attribute labels.
 
 ### Changed
+- **Physics and Wave Terminology Corrections**:
+  - Aligned *Force Velocity* translation to `力矢量` in Simplified Chinese (was `力速度`), `力向量` in Traditional Chinese (was `力速度`), and `力ベクトル` in Japanese (was `力の速度`) across language JSON nodeStrings (`languages/*/nodeStrings.json`), tools catalogs, and contract tests.
+  - Aligned *Adaptive Wave Counts* translation to `自适应波数` in Simplified Chinese (was `自适应波形数量`), `自適應波數` in Traditional Chinese (was `自適應波形數量`).
+  - Aligned *No Mask* in Traditional Chinese to `無遮罩` (was `無蒙版`).
+- **Synchronized Embedded Translation Table**: Updated compiled injector tables `injector/generated_translations.inc` and recompiled dynamic library `libCavalryTranslatorInjector.dylib` to embed the newly audited translations and compile-time static lookup entries.
 - **Allowed Excel Brand Combinations**: Whitelisted "Excel" as a protected brand name in `tools/forbidden_translation_patterns.json`, `docs/cavalry-glossary.md`, and `docs/translation-guidelines.md` to permit term glossary integrations like `Excel 工作表` and `Excel シート` while guarding it from generic translation.
-- **Synchronized Embedded Translation Table**: Updated `injector/generated_translations.inc` and recompiled `libCavalryTranslatorInjector.dylib` to embed the newly audited Attribute Editor label translations and compile-time static lookup entries for the fourth batch.
 - **Consolidated Packaged Resource Path Lookup**: Introduced a unified `resource_candidates` helper in `src-tauri/src/commands.rs` to merge duplicate path construction logic for language packs and injector source dylib candidates, eliminating redundant candidates calculation and ensuring a single source of truth for resolution order (`resource_dir` → `resource_dir/_up_` → `resource_dir.parent()` → `repo_root`).
 - **CamelCase-Only Tauri Bridge Integration**: Refactored `tauri-bridge.js` to drop obsolete `snake_case` fallbacks and unconsumed fields (`repoRoot`, `diagnostics`), ensuring it only processes `camelCase` properties and only forwards the precise properties required by the renderer.
 - **Removed ExtensionLayer Mach-O Patching Infrastructure**: Completely removed dormant patch tables, compact literal fallback structures, vm/mprotect memory write permissions logic, and dyld image callback registrations from the injector (`CavalryTranslatorInjector.mm`). Standardized the ExtensionLayer self-painted interface to remain in English because its renderer doesn't support CJK font rendering.
@@ -24,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Contract Enforcement and Testing**:
+  - Added a contract test `'embedded injector normalizes mixed No-prefix widget labels'` and updated Batch 5 label contract assertions in `tools/check_app_contracts.js` to ensure the exact translations exist.
   - Added a unit test suite `resource_candidates_use_one_packaged_root_order_before_repo_fallback` in `src-tauri/src/commands.rs` to lock down priority and order in unified resource path resolving.
   - Updated `tools/check_app_contracts.js` to ensure the injector doesn't contain references to dormant dyld registration or patch functions (`patchExtensionLayerImage`, etc.).
   - Added a new runtime contract test in `tools/check_tauri_bridge_runtime.js` to lock down the camelCase-only property filtering behavior.

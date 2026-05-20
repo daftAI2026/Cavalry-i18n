@@ -8050,6 +8050,10 @@
       <translation>力の大きさ</translation>
     </message>
     <message>
+      <source>Override Mass</source>
+      <translation>質量を上書き</translation>
+    </message>
+    <message>
       <source>Multi Stroke</source>
       <translation>マルチストローク</translation>
     </message>
@@ -8108,6 +8112,10 @@
     <message>
       <source>Emitter Type</source>
       <translation>エミッタータイプ</translation>
+    </message>
+    <message>
+      <source>Direction Type</source>
+      <translation>方向タイプ</translation>
     </message>
     <message>
       <source>Particles Per Point</source>
@@ -8287,7 +8295,7 @@
     </message>
     <message>
       <source>Force Velocity</source>
-      <translation>力の速度</translation>
+      <translation>力ベクトル</translation>
     </message>
     <message>
       <source>Adaptive Wave Counts</source>
@@ -8296,6 +8304,10 @@
     <message>
       <source>No Mask</source>
       <translation>マスクなし</translation>
+    </message>
+    <message>
+      <source>Cycles</source>
+      <translation>サイクル数</translation>
     </message>
     <message>
       <source>Octaves</source>

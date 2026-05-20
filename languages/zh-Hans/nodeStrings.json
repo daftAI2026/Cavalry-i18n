@@ -7087,7 +7087,7 @@
         "niceName": "Force Modifier",
         "nodeInfo": "通过施加力来改变粒子的物理属性，如重力和质量。",
         "attributes": {
-          "forceVelocity": "力速度",
+          "forceVelocity": "力矢量",
           "massOverLifespan": "生命周期质量",
           "massMultiplier": "质量乘数"
         },

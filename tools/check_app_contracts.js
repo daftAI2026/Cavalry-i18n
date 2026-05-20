@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号标签与运行时生成属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、以及运行时生成属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -379,6 +379,29 @@ test('embedded injector translates compound multiline widget strings line by lin
     injectorSource,
     /translatedLineCount/,
     'compound translation should only rewrite a string when at least one component line was translated'
+  );
+});
+
+test('embedded injector normalizes mixed No-prefix widget labels', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /translatedMixedNoPrefixText/,
+    'runtime labels can be partially localized by Cavalry, so No 蒙版 must still collapse to the full No Mask translation'
+  );
+  assert.match(
+    injectorSource,
+    /lookupEmbeddedTranslation\(lang,\s*QStringLiteral\("Mask"\)\)[\s\S]*lookupEmbeddedTranslation\(lang,\s*QStringLiteral\("No Mask"\)\)/,
+    'mixed No-prefix fallback should reuse the embedded Mask and No Mask entries instead of adding another literal table'
+  );
+  assert.match(
+    injectorSource,
+    /QStringLiteral\("No "\) \+ maskTranslation/,
+    'mixed No-prefix fallback should match Cavalry strings such as No 蒙版 produced after only the suffix was translated'
   );
 });
 
@@ -2468,6 +2491,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Show Preview': '显示预览',
       'Physics Mode': '物理模式',
       'Force Magnitude': '力大小',
+      'Override Mass': '覆盖质量',
       'Multi Stroke': '多重描边',
       Premultiply: '预乘',
       'Draw Mode': '绘制模式',
@@ -2475,6 +2499,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Black Gamma': '黑色 Gamma',
       'Out Resolution': '输出分辨率',
       Gradient: '渐变',
+      Cycles: '周期数',
       'Dash, Gap (e.g. "4, 2")': '虚线，间隔（例如 "4, 2"）',
       'Screen Space': '屏幕空间',
       Tiling: '平铺',
@@ -2483,6 +2508,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Number Of Waves': '波形数量',
       'Input Shape': '输入形状',
       'Emitter Type': '发射器类型',
+      'Direction Type': '方向类型',
       'Particles Per Point': '每点粒子数',
       'Particles Per Pixel': '每像素粒子数',
       'Use Emitter Velocity': '使用发射器速度',
@@ -2555,8 +2581,8 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Flow Margin': '流动边距',
       'Flow Force': '流动力',
       'Flow Variance': '流动变化',
-      'Force Velocity': '力速度',
-      'Adaptive Wave Counts': '自适应波形数量',
+      'Force Velocity': '力矢量',
+      'Adaptive Wave Counts': '自适应波数',
       'No Mask': '无蒙版',
     },
     'zh-Hant': {
@@ -2604,6 +2630,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Show Preview': '顯示預覽',
       'Physics Mode': '物理模式',
       'Force Magnitude': '力大小',
+      'Override Mass': '覆蓋質量',
       'Multi Stroke': '多重描邊',
       Premultiply: '預乘',
       'Draw Mode': '繪製模式',
@@ -2611,6 +2638,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Black Gamma': '黑色 Gamma',
       'Out Resolution': '輸出解析度',
       Gradient: '漸層',
+      Cycles: '週期數',
       'Dash, Gap (e.g. "4, 2")': '虛線，間隔（例如 "4, 2"）',
       'Screen Space': '螢幕空間',
       Tiling: '平鋪',
@@ -2619,6 +2647,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Number Of Waves': '波形數量',
       'Input Shape': '輸入形狀',
       'Emitter Type': '發射器類型',
+      'Direction Type': '方向類型',
       'Particles Per Point': '每點粒子數',
       'Particles Per Pixel': '每像素粒子數',
       'Use Emitter Velocity': '使用發射器速度',
@@ -2691,9 +2720,9 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Flow Margin': '流動邊距',
       'Flow Force': '流動力',
       'Flow Variance': '流動變化',
-      'Force Velocity': '力速度',
-      'Adaptive Wave Counts': '自適應波形數量',
-      'No Mask': '無蒙版',
+      'Force Velocity': '力向量',
+      'Adaptive Wave Counts': '自適應波數',
+      'No Mask': '無遮罩',
     },
     ja_JP: {
       Strength: '強度',
@@ -2740,6 +2769,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Show Preview': 'プレビュー表示',
       'Physics Mode': '物理モード',
       'Force Magnitude': '力の大きさ',
+      'Override Mass': '質量を上書き',
       'Multi Stroke': 'マルチストローク',
       Premultiply: 'プリマルチプライ',
       'Draw Mode': '描画モード',
@@ -2747,6 +2777,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Black Gamma': 'ブラックガンマ',
       'Out Resolution': '出力解像度',
       Gradient: 'グラデーション',
+      Cycles: 'サイクル数',
       'Dash, Gap (e.g. "4, 2")': 'ダッシュ, 間隔 (例: "4, 2")',
       'Screen Space': 'スクリーン空間',
       Tiling: 'タイリング',
@@ -2755,6 +2786,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Number Of Waves': '波数',
       'Input Shape': '入力シェイプ',
       'Emitter Type': 'エミッタータイプ',
+      'Direction Type': '方向タイプ',
       'Particles Per Point': 'ポイントあたりのパーティクル',
       'Particles Per Pixel': 'ピクセルあたりのパーティクル',
       'Use Emitter Velocity': 'エミッター速度を使用',
@@ -2827,7 +2859,7 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Flow Margin': 'フローマージン',
       'Flow Force': 'フロー力',
       'Flow Variance': 'フロー変動',
-      'Force Velocity': '力の速度',
+      'Force Velocity': '力ベクトル',
       'Adaptive Wave Counts': '適応波数',
       'No Mask': 'マスクなし',
     },

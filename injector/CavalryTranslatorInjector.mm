@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏/冒号标签兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1627,11 +1627,17 @@ void hookQtMenus(const QString &lang)
 }
 
 QString translatedCompoundWidgetText(const QString &lang, const QString &sourceText);
+QString translatedMixedNoPrefixText(const QString &lang, const QString &sourceText);
 
 QString translatedWidgetText(const QString &lang, const QString &sourceText)
 {
     const QString translated = translatedCompoundWidgetText(lang, sourceText);
     if (translated.isEmpty() || translated == sourceText) {
+        const QString noPrefixTranslation = translatedMixedNoPrefixText(lang, sourceText);
+        if (!noPrefixTranslation.isEmpty()) {
+            return noPrefixTranslation;
+        }
+
         QRegularExpressionMatch match = QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
         if (!match.hasMatch()) {
             return QString();
@@ -1677,6 +1683,22 @@ QString translatedCompoundWidgetText(const QString &lang, const QString &sourceT
     }
 
     return translatedLines.join(QChar('\n'));
+}
+
+QString translatedMixedNoPrefixText(const QString &lang, const QString &sourceText)
+{
+    const QString source = normalizeMenuText(sourceText);
+    const QString maskTranslation = lookupEmbeddedTranslation(lang, QStringLiteral("Mask"));
+    const QString noMaskTranslation = lookupEmbeddedTranslation(lang, QStringLiteral("No Mask"));
+    if (maskTranslation.isEmpty() || noMaskTranslation.isEmpty()) {
+        return QString();
+    }
+
+    const QString mixedNoMask = normalizeMenuText(QStringLiteral("No ") + maskTranslation);
+    if (source == mixedNoMask) {
+        return noMaskTranslation;
+    }
+    return QString();
 }
 
 void translateListWidgetItems(QListWidget *listWidget, const QString &lang)

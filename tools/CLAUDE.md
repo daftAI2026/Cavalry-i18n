@@ -71,5 +71,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-20: `tools/*.ts` 补齐截图审计中暴露的运行时生成属性标签（如 Color Mode、Blend Mode、Gradient Mode、Capture Force、No Mask），`check_app_contracts.js` 锁定这些 TS 兜底翻译，同时继续由 Time Editor niceName 合同保护右侧模型名英文。
 2026-05-20: `forbidden_translation_patterns.json` 将 Excel 纳入保留品牌词，配合翻译规范允许 `Excel 工作表` / `Excel シート` 这类术语表声明过的品牌组合。
 2026-05-20: `tools/*.ts` 补齐第四批运行时生成属性标签（如 Controllers、Gradient、Dash, Gap、Particles Per Pixel、Emitter Velocity、Speed Limit、Blind Color等），同步更新 `check_app_contracts.js` 合同断言、`generated_translations.inc` 嵌入表并重编译 dylib。
+2026-05-20: `CavalryTranslatorInjector.mm` 增加 No-prefix 混合文本兜底翻译，`tools/*.ts` 补齐第五批运行时生成属性标签（如 Override Mass、Direction Type、Cycles），修正 Lottie 及 Force Velocity 物理与波形术语，同步更新 `check_app_contracts.js` 合同断言、`generated_translations.inc` 并重新编译 dylib。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

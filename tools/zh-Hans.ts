@@ -1550,8 +1550,8 @@
     <message><source>Loop Playback</source><translation>回放循环</translation></message>
     <message><source>Loop with offset</source><translation>带偏移循环</translation></message>
     <message><source>Loop with Offset</source><translation>用偏移循环</translation></message>
-    <message><source>Lottie Author</source><translation>乐天作者</translation></message>
-    <message><source>Lottie is a Pro Feature</source><translation>洛蒂是个特质</translation></message>
+    <message><source>Lottie Author</source><translation>Lottie 作者</translation></message>
+    <message><source>Lottie is a Pro Feature</source><translation>Lottie 是 Pro 功能</translation></message>
     <message><source>Lottie: Failed to export Image Asset</source><translation>Lottie: 导出图像素材失败</translation></message>
     <message><source>Low Disk Space</source><translation>低磁盘空间</translation></message>
     <message><source>Lucida Grande</source><translation>卢西达·格兰德</translation></message>
@@ -6615,6 +6615,10 @@
       <translation>力大小</translation>
     </message>
     <message>
+      <source>Override Mass</source>
+      <translation>覆盖质量</translation>
+    </message>
+    <message>
       <source>Multi Stroke</source>
       <translation>多重描边</translation>
     </message>
@@ -6673,6 +6677,10 @@
     <message>
       <source>Emitter Type</source>
       <translation>发射器类型</translation>
+    </message>
+    <message>
+      <source>Direction Type</source>
+      <translation>方向类型</translation>
     </message>
     <message>
       <source>Particles Per Point</source>
@@ -6852,15 +6860,19 @@
     </message>
     <message>
       <source>Force Velocity</source>
-      <translation>力速度</translation>
+      <translation>力矢量</translation>
     </message>
     <message>
       <source>Adaptive Wave Counts</source>
-      <translation>自适应波形数量</translation>
+      <translation>自适应波数</translation>
     </message>
     <message>
       <source>No Mask</source>
       <translation>无蒙版</translation>
+    </message>
+    <message>
+      <source>Cycles</source>
+      <translation>周期数</translation>
     </message>
     <message>
       <source>Octaves</source>

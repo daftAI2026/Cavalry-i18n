@@ -7087,7 +7087,7 @@
         "niceName": "Force Modifier",
         "nodeInfo": "力を適用してパーティクルの重力や質量などの物理プロパティを変更します。",
         "attributes": {
-          "forceVelocity": "力速度",
+          "forceVelocity": "力ベクトル",
           "massOverLifespan": "寿命に沿った質量",
           "massMultiplier": "質量倍率"
         },
