@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Codex Thread Handoff Audit**: Added `docs/audits/codex-thread-handoff-runtime-i18n-2026-05-20.md` containing a comprehensive compressed summary of the runtime i18n audit, root-cause diagnostics, completed translations (including over 100 runtime-generated Attribute Editor labels, Voronoi loop length, Tips, dynamic status bar count patterns), and handoff recommendations for MacOS sync validation.
 - **Audited Generated Attribute Label Translations**: Added comprehensive localization support for over 100 runtime-generated Attribute Editor labels (e.g., *Color Mode*, *Blend Mode*, *Gradient Mode*, *Capture Force*, *No Mask*) in Japanese (`tools/ja_JP.ts`), Simplified Chinese (`tools/zh-Hans.ts`), and Traditional Chinese (`tools/zh-Hant.ts`) language catalogs.
 - **Contract Verification for Attribute Labels**: Introduced a comprehensive contract suite in `tools/check_app_contracts.js` that checks for exact translations of all 100+ newly added generated Attribute Editor labels across targeted languages.
 
@@ -17,7 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Consolidated Packaged Resource Path Lookup**: Introduced a unified `resource_candidates` helper in `src-tauri/src/commands.rs` to merge duplicate path construction logic for language packs and injector source dylib candidates, eliminating redundant candidates calculation and ensuring a single source of truth for resolution order (`resource_dir` → `resource_dir/_up_` → `resource_dir.parent()` → `repo_root`).
 - **CamelCase-Only Tauri Bridge Integration**: Refactored `tauri-bridge.js` to drop obsolete `snake_case` fallbacks and unconsumed fields (`repoRoot`, `diagnostics`), ensuring it only processes `camelCase` properties and only forwards the precise properties required by the renderer.
 - **Removed ExtensionLayer Mach-O Patching Infrastructure**: Completely removed dormant patch tables, compact literal fallback structures, vm/mprotect memory write permissions logic, and dyld image callback registrations from the injector (`CavalryTranslatorInjector.mm`). Standardized the ExtensionLayer self-painted interface to remain in English because its renderer doesn't support CJK font rendering.
-- **GEB Document Mapping & Metadata Sync**: Synchronized the L2 map in `src-tauri/src/CLAUDE.md`, `injector/CLAUDE.md`, `renderer/CLAUDE.md`, `tools/CLAUDE.md`, and their corresponding L3 headers to reflect the pruned ExtensionLayer patcher paths, consolidated resource candidate architecture, and refined bridge interfaces. Updated `docs/code-review-report.md` to document the second batch of resource path cleanups.
+- **GEB Document Mapping & Metadata Sync**: Synchronized the L2 map in `docs/audits/CLAUDE.md`, `src-tauri/src/CLAUDE.md`, `injector/CLAUDE.md`, `renderer/CLAUDE.md`, `tools/CLAUDE.md`, and their corresponding L3 headers to reflect the pruned ExtensionLayer patcher paths, consolidated resource candidate architecture, the new dated codex thread handoff audit report, and refined bridge interfaces. Updated `docs/code-review-report.md` to document the second batch of resource path cleanups.
 
 ### Fixed
 - **Contract Enforcement and Testing**:
