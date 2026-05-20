@@ -9105,6 +9105,7 @@
           "offset": "偏移",
           "rotation": "旋转",
           "time": "时间",
+          "loopLength": "循环长度",
           "blendMode": "混合模式",
           "alpha": "Alpha",
           "scale": "缩放",

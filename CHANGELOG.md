@@ -8,6 +8,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Voronoi Shader Loop Length Translation**: Added `loopLength` (Loop Length / 循环长度 / 循環長度 / ループ長) attribute translation to `voronoiShader` node strings in English, Simplified Chinese, Traditional Chinese, and Japanese language catalogs.
+- **Contract Verification for Voronoi Loop Length**: Added a contract test `Voronoi Shader nodeStrings include runtime loop length label` in `tools/check_app_contracts.js` to ensure the exact `loopLength` attribute translations are consistently present across all language packs.
 - **Tips QLabel Text Translation**: Added `Click to see next message` source translation in Japanese, Simplified Chinese, and Traditional Chinese to cover raw label rendering in the Tips panel.
 - **Contract Verification for Tips Text**: Added contract tests in `tools/check_app_contracts.js` to ensure the exact translation of `Click to see next message` is present across all languages.
 - **Colon-Suffixed Label Translation**: Implemented dynamic colon-suffixed label fallback inside the C++ injector to automatically translate labels like `Looping:` by stripping the colon and looking up `Looping`.

@@ -9105,6 +9105,7 @@
           "offset": "オフセット",
           "rotation": "回転",
           "time": "時間",
+          "loopLength": "ループ長",
           "blendMode": "ブレンドモード",
           "alpha": "アルファ",
           "scale": "スケール",

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号标签兜底、Forge 动力学术语、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2493,6 +2493,25 @@ test('Forge Dynamics nodeStrings include direct labels for generated property na
     for (const [key, value] of Object.entries(attributes)) {
       assert.equal(node.attributes[key], value, `${language} forgeDynamicsShape.attributes.${key}`);
     }
+  }
+});
+
+test('Voronoi Shader nodeStrings include runtime loop length label', () => {
+  const expectedAttributes = {
+    en: 'Loop Length',
+    'zh-Hans': '循环长度',
+    'zh-Hant': '循環長度',
+    ja_JP: 'ループ長',
+  };
+
+  for (const [language, value] of Object.entries(expectedAttributes)) {
+    const nodeStrings = readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json'));
+    const node = nodeStrings
+      .flatMap((section) => section.values || [])
+      .find((candidate) => candidate.nodeType === 'voronoiShader');
+
+    assert(node, `${language} should contain voronoiShader node strings`);
+    assert.equal(node.attributes.loopLength, value, `${language} voronoiShader.attributes.loopLength`);
   }
 });
 
