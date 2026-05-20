@@ -1,3 +1,10 @@
+<!--
+[INPUT]: 依赖 tools/run_live_full_ui_matrix.js、injector/CavalryTranslatorInjector.mm 的 live inventory / cursorWidget / itemModels 诊断能力，以及 macOS Accessibility 窗口截图证据
+[OUTPUT]: 对外提供 Cavalry 运行中 UI 文本抓取、坐标反查、Qt item model 诊断、覆盖率复抓与 canary 验证流程
+[POS]: docs 的运行时抓取主流程文档，连接 injector 诊断能力、语言资源同步和 audits 实跑报告
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 # Runtime UI Live Capture Workflow
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -216,6 +223,36 @@ RowWidget.toolTip  -> qt_scrollarea_viewport -> SceneTreeWidget
 ```
 
 这类控件可以渲染 CJK，应该通过 injector 的 display-only `ModelDisplay` 词典翻译，例如 `Particle Shape -> 粒子形狀/粒子形状`。不要把 `languages/*/nodeStrings.json` 或 plugin `niceName` 改回中文来修它；那会重新污染 Time Editor 共用模型名，让 Latin-only 自绘层回到方块/空白问题。若 inventory 中 `RolloverLabel.text` 仍是英文，优先检查 app 内 injector hash 是否等于 repo 构建产物，并确认 Cavalry 已重启。
+
+## 抓取 Qt Item Model
+
+Add Layers、Scene Tree、Time Editor 这类列表/树控件不一定把行文本暴露成 QLabel。截图里能看到一行，但 `widgetTexts` 和 AX 都搜不到时，下一步不是猜 JSON 文件，而是抓 `QAbstractItemView` 的 model roles。
+
+启用 item model dump：
+
+```bash
+CAVALRY_I18N_DUMP_ITEM_MODELS=1 \
+node tools/run_live_full_ui_matrix.js \
+  --app /Applications/Cavalry.app \
+  --languages zh-Hant \
+  --session-uuid AMP-ITEM-MODEL-ZH-HANT-YYYYMMDD
+```
+
+抓完后查看：
+
+```bash
+jq '.itemModels[] | select((.parentChain // []) | tostring | contains("QuickAddWindow")) | {className, modelClassName, rootRowCount, rows}' \
+  ~/Library/Caches/Cavalry-i18n/sessions/AMP-ITEM-MODEL-ZH-HANT-YYYYMMDD/runtime/zh-Hant-injector-inventory.json
+```
+
+判断方法：
+
+1. `DisplayRole` / `EditRole` 有英文：说明是模型层文本，先判断是否必须保持英文，例如 Time Editor 条带。
+2. `DisplayRole` / `EditRole` 有中文但 UI 空白：再查字体或自绘路径。
+3. `DisplayRole` / `EditRole` 本身为空：这是空模型行，不是漏翻。
+4. `parentChain` 命中 `QuickAddWindow`：这是 Add Layers 面板，不要拿 Time Editor 规则解释它。
+
+2026-05-20 的 Add Layers 空白卡片就是第 3 类：`QuickAddWindow` 下 `QListWidget` 存在空标题 item。修复点是 injector 定点修剪空行，而不是删除 `nodeStrings` 或把 `niceName` 改中文。完整报告见 `docs/audits/add-layers-runtime-model-capture-2026-05-20.md`。
 
 ## 判断是否抓对
 
