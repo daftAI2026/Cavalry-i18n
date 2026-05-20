@@ -6,7 +6,7 @@
 
 > **二次审查日期: 2026-05-20**
 > **二次审查方法: 逐条对照当前代码版本 (injector 2607行, check_app_contracts 3090行) 验证事实准确性与设计意图**
-> **总体准确率: ~75%。3 处关键误判 (H4/M6/M7)，2 处行号/行数过时 (H2/H4)，2 处建议技术不可行 (L3/M3)**
+> **总体准确率: ~75%。3 处误判已删除 (H4/M6/M7)，2 处行号/行数过时 (H2/H4)，2 处建议技术不可行 (L3/M3)**
 
 ---
 
@@ -17,14 +17,14 @@
 | H1 | P0 | ⚠️ 降为 P1 | 有 early return 守卫，CPU 影响被夸大 |
 | H2 | P1 | ⚠️ 行数过时 | 报告说 1327 行，实际 3090 行；核心论点成立 |
 | H3 | P1 | ✅ 维持 | 事实正确，有专门测试保护该路径 |
-| H4 | P0 | ❌ 撤销 | 误判：不是重复，是有意的两阶段翻译设计 |
+| H4 | P0 | ❌ 已删除 | 误判：不是重复，是有意的两阶段翻译设计 |
 | M1 | P1 | ✅ 维持 | 正确 |
 | M2 | P2 | ✅ 维持 | 正确 |
 | M3 | P1 | ⚠️ 降为 P2 | 两个函数参数形态不同，不可简单合并 |
 | M4 | P1 | ✅ 维持 | 正确，snake_case 确认是死代码 |
 | M5 | — | ✅ 维持 | 正确，grep 确认 app.js 零引用 |
-| M6 | P2 | ❌ 撤销 | 误判：inventory 被自动化测试消费 |
-| M7 | — | ❌ 撤销 | 事实错误：是实例级 property override，非 prototype hack |
+| M6 | P2 | ❌ 已删除 | 误判：inventory 被自动化测试消费 |
+| M7 | — | ❌ 已删除 | 事实错误：是实例级 property override，非 prototype hack |
 | M8 | P2 | ⚠️ 降为 P3 | staging 对 admin copy 路径是必要的 |
 | L1-L15 | — | 多数维持 | L3 建议不可行，L11 不算问题，L15 互补不重叠 |
 
@@ -110,33 +110,7 @@
 > (privilege.rs L574-588) 来测试这条路径，说明这不是遗忘的死代码而是有意保留的。
 > 关于 "TCC 同样会阻止 Finder AppleScript" 的推断技术上合理但未经实测验证。
 
----
 
-### H4. 菜单 action 被重复翻译两次
-
-**位置**: `injector/CavalryTranslatorInjector.mm:1554-1559` vs `1424-1426`
-
-**问题**:
-- `translateQtMenu()` (L1412-1427) 已经遍历所有 actions 并调用 `translateQtAction()`
-- `hookQtMenu()` 的 aboutToShow handler (L1554-1558) 又遍历一次相同的 actions 并调用 `translateQtAction()`
-- **每个 action 在每次 aboutToShow 事件时被翻译两次**
-
-**建议**: 移除 aboutToShow handler 中的重复遍历，或让 `translateQtMenu` 不遍历 actions（只翻译 title），由 aboutToShow handler 统一处理。
-
-> **【审查裁定: ❌ 误判 — 撤销 P0】**
->
-> **这不是 "重复"，是有意的两阶段翻译设计：**
->
-> 1. `translateQtMenu()` (L1677-1692): "**立即翻译**" — 翻译当前已知的 actions，在菜单首次被发现时执行
-> 2. `hookQtMenu()` 的 `aboutToShow` handler (L1802-1829): "**延迟补翻**" — Qt 菜单的 actions 不是一次性绑定的，
->    许多 submenu 的 actions 是在 `aboutToShow` 时才动态创建的（如 Recent Files、Window 列表等）。
->    代码注释 L1810-1813 解释了为什么用 `CFRunLoopPerformBlock` 而不是 `dispatch_async`
->
-> 此外，`lookupEmbeddedTranslation` 内部有缓存 (`gTranslationBySource`)，
-> 已翻译的文本 `translated != action->text()` 检查会跳过，所以 "重复翻译" 的实际开销是
-> 几次 QString 比较，不是真正的重复翻译操作。
->
-> **行号也已偏移**: 报告引用 L1412-1427 / L1554-1558，当前版本对应 L1677-1692 / L1802-1829。
 
 ---
 
@@ -219,56 +193,7 @@
 >
 > grep 确认 `app.js` 中 `repoRoot` 和 `diagnostics` 零引用。
 
----
 
-### M6. Inventory 导出系统 (~570 行) 在每次刷新时运行
-
-**位置**: `injector/CavalryTranslatorInjector.mm:836-1406`
-
-**问题**:
-- `dumpQtMenuInventory()` 遍历**所有 Qt widgets**，序列化每个 menu bar 和可见 widget
-- 构建包含 formatVersion、PID、bundle SHA-256 hash、session UUID、wallclock、diagnostics counters、cursor hit-test 的 JSON payload
-- 原子写入磁盘
-- 被四处调用: `refreshQtUiTranslations()`、`drainDirtyObjects()`、`installTranslator()` (两处)
-- `bundleExecutableHash()` (L901-922) 每次调用都**读取整个 Cavalry 可执行文件**计算 SHA-256
-
-**影响**: 这是诊断/审计基础设施，在正常翻译操作中运行。如果这些 JSON dump 没有被自动化流水线消费，这就是过度设计。
-
-**建议**: 确认 inventory JSON 的消费方。如果没有自动化消费，考虑添加环境变量开关（如 `CAVALRY_I18N_DUMP_INVENTORY=1`）使其默认关闭。
-
-> **【审查裁定: ❌ 建议不当 — 撤销】**
->
-> Inventory JSON **有明确的自动化消费方**:
-> - `tools/check_full_ui_coverage.js` 消费 inventory 验证 UI 覆盖率
-> - `tools/check_full_ui_matrix.js` 消费 inventory 做矩阵检查
-> - `tools/merge_runtime_inventory.js` 合并多次 inventory
-> - `tools/capture_accessibility_inventory.js` 基于 inventory 做辅助功能审计
->
-> 默认关闭 inventory 导出会导致自动化测试流水线失效。
-> `bundleExecutableHash()` 每次读全文件计算 SHA-256 确实可以考虑**进程级缓存**（同一进程内可执行文件不变）。
-
----
-
-### M7. 自定义 select 的 prototype hack 脆弱
-
-**位置**: `renderer/app.js:567-574`
-
-**问题**: 使用 `Object.defineProperty` 覆盖 `HTMLSelectElement.prototype.disabled` 来同步原生 select 和自定义 popup 的 disabled 状态。这是针对单个元素实例的 prototype 劫持 — 如果任何代码在 IIFE 运行前设置 disabled，或元素被替换，同步就会断裂。
-
-**影响**: 101 行 JS + 140 行 CSS 用于实现一个视觉上与原生 select 相同的组件。
-
-**建议**: 考虑直接使用原生 `<select>` 并通过 CSS `appearance` 属性定制样式，或至少将 prototype hack 改为仅针对该元素实例的属性拦截（不使用 prototype）。
-
-> **【审查裁定: ❌ 事实错误 — 撤销】**
->
-> 报告说 "覆盖 `HTMLSelectElement.prototype.disabled`"，但实际代码是：
-> ```javascript
-> Object.defineProperty(languageSelect, 'disabled', { ... });
-> //                     ^^^^^^^^^^^^^^ 实例，不是 prototype
-> ```
-> 这是**实例级 property descriptor override**，只影响 `languageSelect` 这一个元素，不会污染 prototype。
-> 代码从 prototype 读取原始 getter/setter 作为委托基础，这是标准的属性拦截模式。
-> 报告的建议 "改为仅针对该元素实例的属性拦截" 恰恰是代码**已经在做的事**。
 
 ---
 
@@ -483,14 +408,6 @@ injector 中有 5 层翻译查找函数：
 
 > **【审查裁定: ⚠️ 见 M8 裁定 — 降为 P3】**
 
-### 走弯路 5: 诊断基础设施混入生产路径
-
-Inventory 导出系统 (~570 行) 在每次翻译刷新时运行，序列化整个 Qt widget 树到 JSON。这是诊断/审计功能，不应在正常操作中默认开启。
-
-> **【审查裁定: ❌ 见 M6 裁定 — 撤销】**
->
-> Inventory 有明确的自动化测试消费方，不应默认关闭。
-
 ---
 
 ## 六、建议优先级（审查后修订）
@@ -498,14 +415,14 @@ Inventory 导出系统 (~570 行) 在每次翻译刷新时运行，序列化整�
 | 优先级 | 行动 | 预期收益 | 审查裁定 |
 |--------|------|----------|----------|
 | **P1** | 删除或守卫 ExtensionLayer 死代码 (H1) | 减少 ~245 行死代码 | 降级：有 early return，CPU 开销不大 |
-| ~~P0~~ | ~~修复 action 重复翻译 (H4)~~ | ~~消除重复翻译~~ | ❌ 撤销：是有意的两阶段设计 |
+
 | **P1** | 移除 Finder 回退 (H3) | 减少 30+ 行死路径 | ✅ 维持 |
 | **P1** | 移除 tauri-bridge.js snake_case 回退 (M4) | 清理死代码 | ✅ 维持 |
 | **P1** | 合并资源候选路径查找 (M1) | 减少代码重复 | ✅ 维持 |
 | **P2** | 拆分 `check_app_contracts.js` (H2) | 降低维护复杂度 | ⚠️ 行数过时 (1327→3090) |
 | **P2** | 统一禁止模式检测 (M2) | 消除双重维护 | ✅ 维持 |
 | **P2** | 提取 tools 共享模块 (L7) | 减少 ~200 行重复 | ✅ 维持 |
-| ~~P2~~ | ~~添加 inventory 导出开关 (M6)~~ | ~~避免不必要序列化~~ | ❌ 撤销：自动化测试依赖 |
+
 | **P3** | 简化 staging 流水线 (M8) | 减少中间复制 | ⚠️ 降级：admin 路径需要 staging |
 
 ---
