@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块、Tauri resource_dir、chrono/serde 与原子计数 staging id
+ * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块、Tauri resource_dir、统一资源候选器、chrono/serde 与原子计数 staging id
  * [OUTPUT]: 对外提供 get_status、browse_app、extract_english、apply_language、open_privacy_security、restart_cavalry 6 个 Tauri command
  * [POS]: src-tauri/src 的 renderer API 等价层，返回 renderer 兼容 JSON shape
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -127,7 +127,7 @@ fn labels(code: &str) -> &str {
     }
 }
 
-fn runtime_resource_candidates(resource_dir: &Path) -> Vec<PathBuf> {
+fn runtime_resource_roots(resource_dir: &Path) -> Vec<PathBuf> {
     let mut candidates = vec![resource_dir.to_path_buf(), resource_dir.join("_up_")];
     if let Some(parent) = resource_dir.parent() {
         candidates.push(parent.to_path_buf());
@@ -136,14 +136,28 @@ fn runtime_resource_candidates(resource_dir: &Path) -> Vec<PathBuf> {
     candidates
 }
 
-fn language_root_candidates(repo_root: &Path, resource_dir: &Path) -> Vec<PathBuf> {
-    let mut candidates = runtime_resource_candidates(resource_dir)
+fn resource_candidates(
+    repo_root: &Path,
+    resource_dir: &Path,
+    resource_suffixes: &[PathBuf],
+    repo_suffix: &Path,
+) -> Vec<PathBuf> {
+    let mut candidates = runtime_resource_roots(resource_dir)
         .into_iter()
-        .map(|root| root.join("languages"))
+        .flat_map(|root| resource_suffixes.iter().map(move |suffix| root.join(suffix)))
         .collect::<Vec<_>>();
-    candidates.push(repo_root.join("languages"));
+    candidates.push(repo_root.join(repo_suffix));
     candidates.dedup();
     candidates
+}
+
+fn language_root_candidates(repo_root: &Path, resource_dir: &Path) -> Vec<PathBuf> {
+    resource_candidates(
+        repo_root,
+        resource_dir,
+        &[PathBuf::from("languages")],
+        Path::new("languages"),
+    )
 }
 
 fn language_choices_from_roots(roots: &[PathBuf]) -> Vec<LanguageChoice> {
@@ -574,18 +588,20 @@ fn extract_english_snapshot_or_throw(
     )
 }
 
+fn injector_source_candidates(repo_root: &Path, resource_dir: &Path) -> Vec<PathBuf> {
+    resource_candidates(
+        repo_root,
+        resource_dir,
+        &[
+            PathBuf::from("injector").join(mac_runtime::INJECTOR_DYLIB_NAME),
+            PathBuf::from(mac_runtime::INJECTOR_DYLIB_NAME),
+        ],
+        &Path::new("injector").join(mac_runtime::INJECTOR_DYLIB_NAME),
+    )
+}
+
 fn injector_source_path(repo_root: &Path, resource_dir: &Path) -> Result<PathBuf, String> {
-    let mut candidates = runtime_resource_candidates(resource_dir)
-        .into_iter()
-        .flat_map(|root| {
-            [
-                root.join("injector").join(mac_runtime::INJECTOR_DYLIB_NAME),
-                root.join(mac_runtime::INJECTOR_DYLIB_NAME),
-            ]
-        })
-        .collect::<Vec<_>>();
-    candidates.push(repo_root.join("injector").join(mac_runtime::INJECTOR_DYLIB_NAME));
-    candidates
+    injector_source_candidates(repo_root, resource_dir)
         .into_iter()
         .find(|candidate| candidate.exists())
         .ok_or_else(|| {
@@ -656,8 +672,8 @@ impl ActionPayload {
 #[cfg(test)]
 mod tests {
     use super::{
-        apply_language_inner, registered_command_names, restart_cavalry_inner, status_for_paths,
-        COMMAND_NAMES,
+        apply_language_inner, injector_source_candidates, registered_command_names,
+        resource_candidates, restart_cavalry_inner, status_for_paths, COMMAND_NAMES,
     };
     use crate::privilege::RecordingRunner;
     use std::{fs, path::Path};
@@ -748,6 +764,56 @@ mod tests {
         write(
             &base.join("plugins/gaussianBlurFilter.json"),
             br#"{"value":"en plugin"}"#,
+        );
+    }
+
+    #[test]
+    fn resource_candidates_use_one_packaged_root_order_before_repo_fallback() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("repo");
+        let resources = temp.path().join("bundle").join("Resources");
+
+        assert_eq!(
+            resource_candidates(
+                &repo,
+                &resources,
+                &[std::path::PathBuf::from("languages")],
+                Path::new("languages"),
+            ),
+            vec![
+                resources.join("languages"),
+                resources.join("_up_").join("languages"),
+                resources.parent().unwrap().join("languages"),
+                repo.join("languages"),
+            ]
+        );
+
+        assert_eq!(
+            injector_source_candidates(&repo, &resources),
+            vec![
+                resources
+                    .join("injector")
+                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
+                resources.join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
+                resources
+                    .join("_up_")
+                    .join("injector")
+                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
+                resources
+                    .join("_up_")
+                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
+                resources
+                    .parent()
+                    .unwrap()
+                    .join("injector")
+                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
+                resources
+                    .parent()
+                    .unwrap()
+                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
+                repo.join("injector")
+                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
+            ]
         );
     }
 

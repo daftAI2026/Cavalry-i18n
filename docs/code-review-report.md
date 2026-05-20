@@ -460,4 +460,35 @@ injector 中有 5 层翻译查找函数：
 - 文档同步: `renderer/CLAUDE.md`、`injector/CLAUDE.md`、`tools/CLAUDE.md` 与相关 L3 头部已更新。
 - 验证通过: `npm run test:contracts`、`npm run check:app`、`npm run build:injector`、`cd src-tauri && cargo check`、`git diff --check`。
 
+**2026-05-20 第二批资源路径清理已执行**:
+
+- M1 / 走弯路 1: `src-tauri/src/commands.rs` 已将 resource fallback 根收敛为 `runtime_resource_roots()`，再通过统一 `resource_candidates()` 派生 language roots 与 injector candidates。
+- 保留原语义: packaged/dev 查找顺序仍为 `resource_dir` → `resource_dir/_up_` → `resource_dir.parent()` → `repo_root`，没有改变用户行为。
+- 合同同步: 新增 `resource_candidates_use_one_packaged_root_order_before_repo_fallback`，锁定 languages 与 injector 共用同一资源候选顺序。
+- 文档同步: `src-tauri/src/commands.rs` L3 头部与 `src-tauri/src/CLAUDE.md` 已更新，明确 commands.rs 拥有统一 packaged resource 候选器。
+- 验证通过: `cd src-tauri && cargo test`、`cd src-tauri && cargo check`、`npm run test:contracts`、`git diff --check`。
+
+---
+
+## 九、剩余任务
+
+**建议暂不执行，保持观察**:
+
+- H3 / 走弯路 2: Finder fallback。必须先跑真实 macOS App Management / TCC smoke，确认 Finder AppleScript 在目标系统上的成功率，再决定删除或文档化限制。
+- M8 / 走弯路 4: staging 流水线。当前 staging 同时承载 runtime wrapper、Info.plist、lang marker、injector、Keychain patch 临时产物与统一清理；没有 apply 耗时证据前不拆。
+
+**可后续作为维护性整理**:
+
+- H2: `tools/check_app_contracts.js` 体量仍大，但现在机器执行稳定、合同入口完整；除非后续频繁冲突或运行变慢，否则不急着拆。
+- M2 / L7: forbidden-pattern detector 与 tools helper 重复。可以单独开一批 `tools/lib/*` 整理，但会横跨多脚本，应独立测试。
+- M3 / L2: privilege 权限错误检测与提权模式有相似处，但参数形态不同，最多做命名/判定函数收敛，不建议强行抽一个大框架。
+- L8 / L10 / L14: `verify_gate_inputs` P5 分支、`diffImages` 导出、Qt 回退检测等低优先级清理项；收益小，适合搭车处理。
+
+**已执行完毕**:
+
+- H1: ExtensionLayer 空补丁 callback 删除。
+- M1: 资源候选路径查找合并。
+- M4: bridge snake_case 回退删除。
+- M5: bridge 未消费 `repoRoot` / `diagnostics` 暴露面收窄。
+
 *报告结束 — 二次审查与独立复审修订完成*

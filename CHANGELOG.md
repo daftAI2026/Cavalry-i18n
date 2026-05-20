@@ -10,12 +10,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 ### Changed
+- **Consolidated Packaged Resource Path Lookup**: Introduced a unified `resource_candidates` helper in `src-tauri/src/commands.rs` to merge duplicate path construction logic for language packs and injector source dylib candidates, eliminating redundant candidates calculation and ensuring a single source of truth for resolution order (`resource_dir` → `resource_dir/_up_` → `resource_dir.parent()` → `repo_root`).
 - **CamelCase-Only Tauri Bridge Integration**: Refactored `tauri-bridge.js` to drop obsolete `snake_case` fallbacks and unconsumed fields (`repoRoot`, `diagnostics`), ensuring it only processes `camelCase` properties and only forwards the precise properties required by the renderer.
 - **Removed ExtensionLayer Mach-O Patching Infrastructure**: Completely removed dormant patch tables, compact literal fallback structures, vm/mprotect memory write permissions logic, and dyld image callback registrations from the injector (`CavalryTranslatorInjector.mm`). Standardized the ExtensionLayer self-painted interface to remain in English because its renderer doesn't support CJK font rendering.
-- **GEB Document Mapping & Metadata Sync**: Synchronized L2 maps in `injector/CLAUDE.md`, `renderer/CLAUDE.md`, `tools/CLAUDE.md`, and their corresponding L3 headers to reflect the pruned ExtensionLayer patcher paths and refined bridge interfaces.
+- **GEB Document Mapping & Metadata Sync**: Synchronized the L2 map in `src-tauri/src/CLAUDE.md`, `injector/CLAUDE.md`, `renderer/CLAUDE.md`, `tools/CLAUDE.md`, and their corresponding L3 headers to reflect the pruned ExtensionLayer patcher paths, consolidated resource candidate architecture, and refined bridge interfaces. Updated `docs/code-review-report.md` to document the second batch of resource path cleanups.
 
 ### Fixed
 - **Contract Enforcement and Testing**:
+  - Added a unit test suite `resource_candidates_use_one_packaged_root_order_before_repo_fallback` in `src-tauri/src/commands.rs` to lock down priority and order in unified resource path resolving.
   - Updated `tools/check_app_contracts.js` to ensure the injector doesn't contain references to dormant dyld registration or patch functions (`patchExtensionLayerImage`, etc.).
   - Added a new runtime contract test in `tools/check_tauri_bridge_runtime.js` to lock down the camelCase-only property filtering behavior.
   - Updated `tools/check_renderer_contract.js` with the fresh SHA-256 hash of `tauri-bridge.js`.
