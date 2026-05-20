@@ -5,8 +5,9 @@
 > 方法: 逐文件阅读 + 3 个子代理并行审查 + 交叉验证
 
 > **二次审查日期: 2026-05-20**
-> **二次审查方法: 逐条对照当前代码版本 (injector 2607行, check_app_contracts 3090行) 验证事实准确性与设计意图**
-> **总体准确率: ~75%。3 处误判已删除 (H4/M6/M7)，2 处行号/行数过时 (H2/H4)，2 处建议技术不可行 (L3/M3)**
+> **二次审查方法: 逐条对照当前代码版本 (injector 2606行, check_app_contracts 3090行) 验证事实准确性与设计意图**
+> **独立复审核验**: 2026-05-20 再次对照实际源码、调用点与 `cargo check` / JS 语法检查修订。
+> **总体裁定: 报告可作为清理 backlog，但不能按原优先级照单执行。多数事实点成立，部分“死代码/走弯路”结论过度，L4/L6 等仍有事实错误已在本文修正。**
 
 ---
 
@@ -16,17 +17,17 @@
 |------|------|------|------|
 | H1 | P0 | ⚠️ 降为 P1 | 有 early return 守卫，CPU 影响被夸大 |
 | H2 | P1 | ⚠️ 行数过时 | 报告说 1327 行，实际 3090 行；核心论点成立 |
-| H3 | P1 | ✅ 维持 | 事实正确，有专门测试保护该路径 |
+| H3 | P1 | ⚠️ 降为观察项 | Finder fallback 存在且有测试保护；“现代 macOS 必然无效”未经实测，不能按死代码删除 |
 | H4 | P0 | ❌ 已删除 | 误判：不是重复，是有意的两阶段翻译设计 |
 | M1 | P1 | ✅ 维持 | 正确 |
 | M2 | P2 | ✅ 维持 | 正确 |
 | M3 | P1 | ⚠️ 降为 P2 | 两个函数参数形态不同，不可简单合并 |
 | M4 | P1 | ✅ 维持 | 正确，snake_case 确认是死代码 |
-| M5 | — | ✅ 维持 | 正确，grep 确认 app.js 零引用 |
+| M5 | — | ⚠️ 部分维持 | app.js 零引用成立；后端字段可能仍服务 contract/debug，不应仅凭 UI 未消费删除 |
 | M6 | P2 | ❌ 已删除 | 误判：inventory 被自动化测试消费 |
 | M7 | — | ❌ 已删除 | 事实错误：是实例级 property override，非 prototype hack |
-| M8 | P2 | ⚠️ 降为 P3 | staging 对 admin copy 路径是必要的 |
-| L1-L15 | — | 多数维持 | L3 建议不可行，L11 不算问题，L15 互补不重叠 |
+| M8 | P2 | ⚠️ 降为 P3 | staging 同时承载 runtime/admin/keychain 临时文件与统一清理，不只是多余复制 |
+| L1-L15 | — | 部分修正 | L3 建议不可行；L4 原裁定事实错误；L6 冲突说法错误；L11 不算问题；L15 互补不重叠 |
 
 ---
 
@@ -36,9 +37,11 @@
 
 | 类别 | 数量 | 影响 |
 |------|------|------|
-| **死代码/未执行路径** | 6 处 | 约 900 行代码永远不会执行，但部分仍在消耗 CPU |
-| **重复/冗余逻辑** | 10 处 | 相同功能在多个文件中重复实现，增加维护成本 |
-| **过度设计/走弯路** | 8 处 | 设计复杂度超出实际需求，引入不必要的中间层或回退路径 |
+| **死代码/未执行路径** | 约 3-4 处 | 以 ExtensionLayer 空补丁表、bridge snake_case 兼容、部分工具脚本分支为主；原报告数量偏高 |
+| **重复/冗余逻辑** | 约 6-8 处 | tools helper、资源候选路径、fixture 工厂等确有重复，但多为维护性问题 |
+| **过度设计/走弯路** | 约 3-5 处 | 部分是 macOS 权限/运行时抓取/contract test 的有意设计，不能简单视为弯路 |
+
+> **独立复审结论**: 当前项目没有发现必须立即修复的高危缺陷。`cargo check` 与关键 JS 语法检查通过。本文更适合作为“低风险清理与后续重构候选清单”，而非删除代码的直接执行计划。
 
 ---
 
@@ -104,11 +107,12 @@
 
 **建议**: 移除 Finder 回退，简化为 direct → admin 两级。如果确实需要保留，添加文档说明其局限性。
 
-> **【审查裁定: ✅ 正确 — 维持 P1】**
+> **【独立复审裁定: ⚠️ 事实存在，删除建议证据不足 — 降为观察项】**
 >
-> 事实完全正确。值得注意的是项目有专门的测试用例 `finder_fallback_used_for_app_bundle_permission_denied`
-> (privilege.rs L574-588) 来测试这条路径，说明这不是遗忘的死代码而是有意保留的。
-> 关于 "TCC 同样会阻止 Finder AppleScript" 的推断技术上合理但未经实测验证。
+> Finder fallback 代码与触发条件确实存在，且项目有专门测试用例
+> `finder_fallback_used_for_app_bundle_permission_denied` (privilege.rs L574-588) 保护该路径，说明它不是遗忘的死代码。
+> “TCC 同样会阻止 Finder AppleScript”是合理推断，但不是源码可证明的事实；在没有 macOS Sonoma+ 真实安装态实测前，
+> 不建议按死代码删除。若后续要处理，应先做真实 App Management / Finder fallback smoke test，再决定删除或保留并补文档说明。
 
 
 
@@ -189,9 +193,10 @@
 
 **建议**: 如果确认不需要，从 bridge 的 normalizeStatus 中移除这两个字段。
 
-> **【审查裁定: ✅ 正确 — 维持】**
+> **【独立复审裁定: ⚠️ 前端事实正确，删除范围需收窄】**
 >
-> grep 确认 `app.js` 中 `repoRoot` 和 `diagnostics` 零引用。
+> grep 确认 `app.js` 中 `repoRoot` 和 `diagnostics` 零引用。但 Rust `StatusPayload` 暴露这些字段可能仍服务 command contract、调试诊断或未来 UI，
+> 因此低风险动作是先从 bridge normalize 返回值中移除未消费字段；是否从后端 payload 删除，需要先检查 Rust/Node contract 测试与打包诊断用途。
 
 
 
@@ -210,11 +215,11 @@
 
 **建议**: 在 direct copy 路径中跳过 staging，直接从源复制到目标。staging 仅在需要提权复制时才有意义。
 
-> **【审查裁定: ⚠️ 部分正确 — 降为 P3】**
+> **【独立复审裁定: ⚠️ 部分正确 — 降为 P3】**
 >
-> 理论上 direct copy 可以跳过 staging，但 staging 还承担：(1) 文件重命名防冲突，
-> (2) 为 admin copy 提供独立目录，(3) `apply_language_inner` 统一清理 staging_root。
-> 跳过 staging 需要拆分 direct/admin 两条完全不同的路径，非零成本重构。
+> 理论上 direct copy 可以跳过 staging，但当前 staging 还承担：(1) runtime wrapper / Info.plist / lang marker / injector 的临时产物承载，
+> (2) 为 admin copy 提供独立源目录，(3) Keychain patch 的临时 dylib 目录，(4) `apply_language_inner` 统一清理 staging_root。
+> “不必要中间复制”只描述了 JSON direct-copy 子场景，不能代表整条 apply 流水线。跳过 staging 需要拆分 direct/admin/runtime/keychain 多条路径，收益有限、重构成本不低。
 
 ---
 
@@ -256,12 +261,12 @@
 
 **位置**: `commands.rs:489-496`, `privilege.rs:105-107`
 
-即使 `report.patched_callsites == 0` 阻止了复制，但仍创建了 staging 目录并执行了完整的解析流程。
+即使 `report.patched_callsites == 0` 阻止了复制，仍需要读取并解析目标 dylib，才能判断是否已有补丁。
 
-> **【审查裁定: ⚠️ 轻微 — 维持低优先级】**
+> **【独立复审裁定: ⚠️ 原裁定事实错误 — 仅保留为低优先级观察项】**
 >
-> `patched_callsites == 0` 时只创建了 staging 目录和写入一份文件，紧接着就 return。
-> 二进制解析本身是必须的（解析后才能知道有没有需要补丁的 callsite）。
+> 当前代码在 `patched_callsites == 0` 时直接 `return Ok(report)`，不会执行后续 `fs::create_dir_all(staging_dir)`、`fs::write(&staged, patched)` 或复制。
+> 因此“仍创建 staging 目录并写入文件”的说法是错误的。唯一额外成本是读取和解析 dylib，而解析本身是判断是否需要补丁的必要步骤。
 
 ### L5. UI_TEXT 可提取为外部 JSON
 
@@ -278,9 +283,12 @@
 
 **位置**: `src-tauri/src/patch.rs:258`
 
-`{index}-{filename}` 格式丢失了原始目录结构。如果不同子目录的同名文件（如两个插件的 `strings.json`）会冲突。当前 CORE_MAP 不会触发，但格式脆弱。
+`{index}-{filename}` 格式丢失了原始目录结构。如果后续调试 staging 目录，需要靠 index 回查原始 `CopyPair`，可读性较弱。
 
-> **【审查裁定: ✅ 正确 — 维持】**
+> **【独立复审裁定: ❌ 原“同名冲突”理由错误 — 降为可读性观察项】**
+>
+> `stage_files` 使用 `enumerate()` 前缀生成 `0-strings.json`、`1-strings.json`，不同子目录的同名文件不会冲突。
+> 该格式的问题不是正确性，而是 staging 目录缺少原始目录结构，可读性和排障体验一般。当前不构成 bug。
 
 ### L7. 工具链中的重复模式
 
@@ -382,7 +390,11 @@ CI 总是通过 `resolve_cavalry_qt_sdk.js --print-env` 设置 `CAVALRY_QT_PREFI
 
 direct → admin (osascript) → Finder 的三级策略中，Finder 回退在现代 macOS 上无效，admin 回退在大多数用户场景下也不需要（App Management 权限授予后 direct copy 即可）。实际只需要 direct + App Management 提示。
 
-> **【审查裁定: ✅ 正确 — 维持】**
+> **【独立复审裁定: ⚠️ 结论过度 — 需实测后再决策】**
+>
+> direct → admin → Finder 的结构确实复杂，但 Finder fallback 不是无主死代码，已有单元测试保护。
+> “现代 macOS 上无效”需要在真实安装态、App Management 权限被拒/未授予的场景下验证。
+> 在没有实测证据前，不能把它列为 P1 删除项；更合适的动作是补一条手动 smoke 或审计记录，验证后再删或文档化限制。
 
 ### 走弯路 3: 翻译查找链过长
 
@@ -406,7 +418,10 @@ injector 中有 5 层翻译查找函数：
 
 对于不需要提权的场景，staging 是纯粹的中间复制开销。应该让 direct copy 直接从源到目标，staging 仅在需要提权时才使用。
 
-> **【审查裁定: ⚠️ 见 M8 裁定 — 降为 P3】**
+> **【独立复审裁定: ⚠️ 见 M8 裁定 — 降为 P3】**
+>
+> 这只对 JSON direct-copy 子路径成立。当前 apply 流程还要 staging runtime wrapper、Info.plist、lang marker、injector 与 Keychain patch 产物。
+> 若要优化，应先度量实际 apply 耗时；没有性能证据时不建议为了减少一次临时复制而拆散统一清理路径。
 
 ---
 
@@ -414,17 +429,22 @@ injector 中有 5 层翻译查找函数：
 
 | 优先级 | 行动 | 预期收益 | 审查裁定 |
 |--------|------|----------|----------|
-| **P1** | 删除或守卫 ExtensionLayer 死代码 (H1) | 减少 ~245 行死代码 | 降级：有 early return，CPU 开销不大 |
-
-| **P1** | 移除 Finder 回退 (H3) | 减少 30+ 行死路径 | ✅ 维持 |
-| **P1** | 移除 tauri-bridge.js snake_case 回退 (M4) | 清理死代码 | ✅ 维持 |
-| **P1** | 合并资源候选路径查找 (M1) | 减少代码重复 | ✅ 维持 |
-| **P2** | 拆分 `check_app_contracts.js` (H2) | 降低维护复杂度 | ⚠️ 行数过时 (1327→3090) |
-| **P2** | 统一禁止模式检测 (M2) | 消除双重维护 | ✅ 维持 |
-| **P2** | 提取 tools 共享模块 (L7) | 减少 ~200 行重复 | ✅ 维持 |
-
-| **P3** | 简化 staging 流水线 (M8) | 减少中间复制 | ⚠️ 降级：admin 路径需要 staging |
+| **P1** | 移除 tauri-bridge.js snake_case 回退 (M4) | 清理确认无用的兼容分支 | ✅ 低风险、事实明确 |
+| **P1** | 明确守卫或禁用 ExtensionLayer 空补丁 callback (H1) | 减少空转注册与保留代码歧义 | ⚠️ 保留“自绘层英文”设计前提，不建议直接大删 |
+| **P2** | 合并资源候选路径查找 (M1) | 减少小范围重复 | ✅ 可做，但注意 packaged/dev 回退语义 |
+| **P2** | 收窄 `repoRoot` / `diagnostics` 暴露面 (M5) | 清理 bridge 未消费字段 | ⚠️ 先查 contract/debug 用途，不直接删后端字段 |
+| **P2** | 拆分 `check_app_contracts.js` 的 fixture/helper 层 (H2) | 降低维护复杂度 | ⚠️ 保留聚合 contract 入口，不建议机械拆散 |
+| **P3** | 统一 forbidden-pattern detector / tools helper (M2/L7) | 降低双重维护 | ✅ 维护性收益，非功能风险 |
+| **观察** | Finder fallback (H3) | 可能减少 30+ 行复杂路径 | ⚠️ 先做真实 macOS smoke，未验证前不删除 |
+| **观察** | 简化 staging 流水线 (M8) | 可能减少中间复制 | ⚠️ 需性能证据；runtime/admin/keychain 仍依赖 staging |
 
 ---
 
-*报告结束 — 二次审查已完成*
+## 七、独立复审验证记录
+
+- 已对照源码核验 `injector/CavalryTranslatorInjector.mm`、`src-tauri/src/{commands,privilege,patch,keychain_patch}.rs`、`renderer/{app,tauri-bridge}.js` 与主要 tools 脚本。
+- `cd src-tauri && cargo check` 通过。
+- `node --check renderer/tauri-bridge.js renderer/app.js tools/verify_gate_inputs.js tools/check_app_contracts.js` 通过。
+- 结论：本文不再建议把原报告作为直接执行计划；应按上表从低风险清理项开始，涉及 macOS 权限和 runtime inventory 的路径需先实测或保留合同测试保护。
+
+*报告结束 — 二次审查与独立复审修订完成*
