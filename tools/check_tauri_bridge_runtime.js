@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 src-tauri bridge.rs、renderer app.js 与一个最小 fake DOM/runtime
- * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 Tauri bridge足以驱动原 renderer、本土化、授权预检状态和权限等待态
+ * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 Tauri bridge足以驱动原 renderer、本土化、camelCase-only payload、授权预检状态和权限等待态
  * [POS]: tools 的 Phase 1 bridge 守门，把字符串级断言升级为实际脚本执行
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -338,6 +338,44 @@ test('tauri bridge boots the original renderer app through invoke', async () => 
     command: 'apply_language',
     payload: { appPath: '/Applications/Cavalry.app', lang: 'ja_JP' },
   });
+});
+
+test('tauri bridge normalizes only the camelCase command payload surface', async () => {
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const runtime = createRuntime({
+    status: {
+      appManagementGranted: undefined,
+      appPath: undefined,
+      currentLang: undefined,
+      defaultAppCandidates: undefined,
+      diagnostics: { source: 'backend-debug-only' },
+      languages: undefined,
+      needsExtract: undefined,
+      repoRoot: '/repo/debug-only',
+      version: undefined,
+      app_management_granted: true,
+      app_path: '/Applications/Snake.app',
+      current_lang: 'ja_JP',
+      default_app_candidates: ['/Applications/Snake.app'],
+      needs_extract: true,
+      repo_root: '/repo/snake',
+    },
+  });
+
+  vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
+  const status = await runtime.window.cavalryI18n.getStatus();
+
+  assert.deepEqual(JSON.parse(JSON.stringify(status)), {
+    appManagementGranted: null,
+    appPath: '',
+    currentLang: 'en',
+    defaultAppCandidates: [],
+    languages: [],
+    needsExtract: false,
+    version: '',
+  });
+  assert.equal(Object.hasOwn(status, 'diagnostics'), false);
+  assert.equal(Object.hasOwn(status, 'repoRoot'), false);
 });
 
 test('renderer localizes visible UI from the system language', async () => {

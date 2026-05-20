@@ -447,4 +447,17 @@ injector 中有 5 层翻译查找函数：
 - `node --check renderer/tauri-bridge.js renderer/app.js tools/verify_gate_inputs.js tools/check_app_contracts.js` 通过。
 - 结论：本文不再建议把原报告作为直接执行计划；应按上表从低风险清理项开始，涉及 macOS 权限和 runtime inventory 的路径需先实测或保留合同测试保护。
 
+---
+
+## 八、执行记录
+
+**2026-05-20 第一批低风险清理已执行**:
+
+- M4: `renderer/tauri-bridge.js` 已移除 snake_case 回退，只接受 Rust/Tauri camelCase payload。
+- M5: bridge 已不再向 renderer 暴露未消费的 `repoRoot` / `diagnostics`；Rust payload 暂保留，避免破坏 command contract 与调试用途。
+- H1: `injector/CavalryTranslatorInjector.mm` 已删除 ExtensionLayer 空补丁表、compact literal fallback、Mach-O `__cstring` 扫描、vm/mprotect 写页逻辑与 dyld image callback 注册；设计收敛为 ExtensionLayer 自绘层保持英文原文。
+- 合同同步: `tools/check_tauri_bridge_runtime.js` 新增 camelCase-only payload 运行时测试；`tools/check_app_contracts.js` 改为断言 ExtensionLayer 不注册空 literal patch 回调；`check_renderer_contract.js` 更新 bridge hash。
+- 文档同步: `renderer/CLAUDE.md`、`injector/CLAUDE.md`、`tools/CLAUDE.md` 与相关 L3 头部已更新。
+- 验证通过: `npm run test:contracts`、`npm run check:app`、`npm run build:injector`、`cd src-tauri && cargo check`、`git diff --check`。
+
 *报告结束 — 二次审查与独立复审修订完成*

@@ -8,6 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+
+### Changed
+- **CamelCase-Only Tauri Bridge Integration**: Refactored `tauri-bridge.js` to drop obsolete `snake_case` fallbacks and unconsumed fields (`repoRoot`, `diagnostics`), ensuring it only processes `camelCase` properties and only forwards the precise properties required by the renderer.
+- **Removed ExtensionLayer Mach-O Patching Infrastructure**: Completely removed dormant patch tables, compact literal fallback structures, vm/mprotect memory write permissions logic, and dyld image callback registrations from the injector (`CavalryTranslatorInjector.mm`). Standardized the ExtensionLayer self-painted interface to remain in English because its renderer doesn't support CJK font rendering.
+- **GEB Document Mapping & Metadata Sync**: Synchronized L2 maps in `injector/CLAUDE.md`, `renderer/CLAUDE.md`, `tools/CLAUDE.md`, and their corresponding L3 headers to reflect the pruned ExtensionLayer patcher paths and refined bridge interfaces.
+
+### Fixed
+- **Contract Enforcement and Testing**:
+  - Updated `tools/check_app_contracts.js` to ensure the injector doesn't contain references to dormant dyld registration or patch functions (`patchExtensionLayerImage`, etc.).
+  - Added a new runtime contract test in `tools/check_tauri_bridge_runtime.js` to lock down the camelCase-only property filtering behavior.
+  - Updated `tools/check_renderer_contract.js` with the fresh SHA-256 hash of `tauri-bridge.js`.
+
+## [0.3.0] - 2026-05-20
+
+### Added
 - **Voronoi Shader Loop Length Translation**: Added `loopLength` (Loop Length / 循环长度 / 循環長度 / ループ長) attribute translation to `voronoiShader` node strings in English, Simplified Chinese, Traditional Chinese, and Japanese language catalogs.
 - **Contract Verification for Voronoi Loop Length**: Added a contract test `Voronoi Shader nodeStrings include runtime loop length label` in `tools/check_app_contracts.js` to ensure the exact `loopLength` attribute translations are consistently present across all language packs.
 - **Tips QLabel Text Translation**: Added `Click to see next message` source translation in Japanese, Simplified Chinese, and Traditional Chinese to cover raw label rendering in the Tips panel.

@@ -18,7 +18,7 @@ const EXPECTED_HASHES = {
   'index.html': 'f5371832308ace4f37f3c833e341ac5306b59ea6a979a51976d8efad71b4345d',
   'styles.css': '29225329fc6ca2c15e4c315d46b837319f6c17decbf8144293f88b1ac2e14f54',
   'app.js': 'adbdcdb4ed7e9227950888cf8dd8f45142eef953752250251af8c98fd1d3f21f',
-  'tauri-bridge.js': 'b583914ca17dbe2f775250cecae3c8598e79fbc8c0064cd8c746192e1e337790',
+  'tauri-bridge.js': 'f2d0224674f04d159e8cef306e2d01a83f2b985ecdc6d08c67bcff001bff1a4d',
 };
 
 const REQUIRED_IDS = [

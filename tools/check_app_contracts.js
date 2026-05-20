@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -714,50 +714,20 @@ test('embedded injector keeps ExtensionLayer literal hints in English', () => {
     'utf8'
   );
 
-  assert.match(
+  assert.doesNotMatch(
     injectorSource,
-    /_dyld_register_func_for_add_image|_dyld_image_count/,
-    'injector should observe loaded Mach-O images because ExtensionLayer hint text is stored as raw binary literals'
-  );
-  assert.match(
-    injectorSource,
-    /libExtensionLayer\.dylib/,
-    'literal patching should be scoped to Cavalry ExtensionLayer instead of mutating arbitrary Qt or injector strings'
-  );
-  assert.match(
-    injectorSource,
-    /__cstring/,
-    'literal patching should scan the Mach-O __cstring section that owns self-painted panel and viewport hint strings'
-  );
-  assert.match(
-    injectorSource,
-    /vm_protect[\s\S]*VM_PROT_COPY[\s\S]*mprotect/,
-    'the dormant literal patching path should still use copy-on-write page protection if it is deliberately re-enabled later'
+    /_dyld_register_func_for_add_image|patchExtensionLayerImage|patchCStringSection|kExtensionLayerLiteralPatches/,
+    'injector should not register a dormant ExtensionLayer literal patch callback when the self-painted layer stays English'
   );
   assert.match(
     injectorSource,
     /ExtensionLayer[\s\S]{0,240}保留英文原文/,
     'ExtensionLayer self-painted hints should remain English because that renderer turns CJK glyphs into question marks'
   );
-  assert.match(
+  assert.doesNotMatch(
     injectorSource,
-    /kExtensionLayerLiteralPatches\[\][\s\S]{0,80}\{\s*nullptr\s*\}/,
-    'ExtensionLayer literal patch table should be disabled with an explicit sentinel'
-  );
-  assert.match(
-    injectorSource,
-    /kCompactRuntimeLiteralTranslations\[\][\s\S]{0,100}\{\s*nullptr,\s*nullptr,\s*nullptr\s*\}/,
-    'compact CJK literal fallback table should be disabled with an explicit sentinel'
-  );
-  assert.match(
-    injectorSource,
-    /source\s*==\s*nullptr[\s\S]{0,80}continue/,
-    'literal patch loop must skip the disabled sentinel without calling strlen on a null source'
-  );
-  assert.match(
-    injectorSource,
-    /entry\.lang\s*==\s*nullptr[\s\S]{0,120}entry\.sourceText\s*==\s*nullptr[\s\S]{0,120}continue/,
-    'compact translation lookup must skip the disabled sentinel before strcmp'
+    /kCompactRuntimeLiteralTranslations|compactTranslationForSource|runtimeLiteralTranslation/,
+    'compact literal fallback should disappear with the disabled ExtensionLayer patch infrastructure'
   );
 });
 

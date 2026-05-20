@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、Mach-O dyld image API、vm_protect/mprotect 内存保护 API、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏/冒号标签兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer __cstring 补丁基础设施保留但已禁用，自绘层 Latin-only 字体无法渲染 CJK）
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏/冒号标签兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,15 +9,9 @@
 #import <Foundation/Foundation.h>
 
 #include <dispatch/dispatch.h>
-#include <errno.h>
-#include <mach/mach.h>
-#include <mach-o/dyld.h>
-#include <mach-o/loader.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/mman.h>
-#include <unistd.h>
 
 #include <qdatetime.h>
 #include <QEvent>
@@ -79,16 +73,6 @@ struct TranslationEntry {
 
 #include "generated_translations.inc"
 
-struct RuntimeLiteralPatch {
-    const char *sourceText;
-};
-
-struct CompactRuntimeLiteralTranslation {
-    const char *lang;
-    const char *sourceText;
-    const char *translation;
-};
-
 /* -----------------------------------------------------------------------
  * ExtensionLayer 自绘提示 — 保留英文原文，不做 CJK 补丁
  *
@@ -96,14 +80,6 @@ struct CompactRuntimeLiteralTranslation {
  * 没有 CJK glyph 也没有 fallback 链。写入 CJK 后每个字符显示为 ?。
  * Qt 通道的翻译不受影响，仅此自绘层保持英文。
  * ----------------------------------------------------------------------- */
-constexpr RuntimeLiteralPatch kExtensionLayerLiteralPatches[] = {
-    { nullptr },
-};
-
-constexpr CompactRuntimeLiteralTranslation kCompactRuntimeLiteralTranslations[] = {
-    { nullptr, nullptr, nullptr },
-};
-
 const TranslationEntry *entriesForLanguageName(const char *lang, int *count)
 {
     if (lang == nullptr) {
@@ -142,204 +118,6 @@ const char *embeddedTranslationForSource(const char *lang, const char *sourceTex
     }
 
     return nullptr;
-}
-
-const char *compactTranslationForSource(const char *lang, const char *sourceText)
-{
-    if (lang == nullptr || sourceText == nullptr) {
-        return nullptr;
-    }
-
-    for (const auto &entry : kCompactRuntimeLiteralTranslations) {
-        if (entry.lang == nullptr || entry.sourceText == nullptr) {
-            continue;
-        }
-        if (strcmp(entry.lang, lang) == 0 && strcmp(entry.sourceText, sourceText) == 0) {
-            return entry.translation;
-        }
-    }
-
-    return nullptr;
-}
-
-const char *runtimeLiteralTranslation(const char *lang, const char *sourceText)
-{
-    const size_t sourceLen = strlen(sourceText);
-    const char *translation = embeddedTranslationForSource(lang, sourceText);
-    if (translation != nullptr && strlen(translation) <= sourceLen) {
-        return translation;
-    }
-
-    translation = compactTranslationForSource(lang, sourceText);
-    if (translation != nullptr && strlen(translation) <= sourceLen) {
-        return translation;
-    }
-
-    return nullptr;
-}
-
-const char *imageNameForHeader(const struct mach_header *header)
-{
-    const uint32_t imageCount = _dyld_image_count();
-    for (uint32_t index = 0; index < imageCount; ++index) {
-        if (_dyld_get_image_header(index) == header) {
-            return _dyld_get_image_name(index);
-        }
-    }
-    return nullptr;
-}
-
-bool isExtensionLayerImage(const char *imageName)
-{
-    return imageName != nullptr && strstr(imageName, "libExtensionLayer.dylib") != nullptr;
-}
-
-bool makePageWritable(void *address, size_t length, int *restoreProtection)
-{
-    if (address == nullptr || length == 0) {
-        return false;
-    }
-
-    const long pageSize = sysconf(_SC_PAGESIZE);
-    if (pageSize <= 0) {
-        return false;
-    }
-
-    const uintptr_t start = reinterpret_cast<uintptr_t>(address);
-    const uintptr_t pageStart = start & ~(static_cast<uintptr_t>(pageSize) - 1);
-    const uintptr_t pageEnd = (start + length + static_cast<uintptr_t>(pageSize) - 1) &
-        ~(static_cast<uintptr_t>(pageSize) - 1);
-
-    *restoreProtection = PROT_READ;
-
-    const kern_return_t vmResult = vm_protect(
-        mach_task_self(),
-        static_cast<vm_address_t>(pageStart),
-        static_cast<vm_size_t>(pageEnd - pageStart),
-        false,
-        VM_PROT_READ | VM_PROT_WRITE | VM_PROT_COPY);
-    if (vmResult == KERN_SUCCESS) {
-        return true;
-    }
-
-    const int mprotectResult = mprotect(
-        reinterpret_cast<void *>(pageStart),
-        pageEnd - pageStart,
-        PROT_READ | PROT_WRITE);
-    if (mprotectResult == 0) {
-        return true;
-    }
-
-    fprintf(stderr,
-            "[cavalry-i18n] writable literal page request failed vm=%s mprotect=%s\n",
-            mach_error_string(vmResult),
-            strerror(errno));
-    return false;
-}
-
-void restorePageProtection(void *address, size_t length, int protection)
-{
-    const long pageSize = sysconf(_SC_PAGESIZE);
-    if (address == nullptr || length == 0 || pageSize <= 0) {
-        return;
-    }
-
-    const uintptr_t start = reinterpret_cast<uintptr_t>(address);
-    const uintptr_t pageStart = start & ~(static_cast<uintptr_t>(pageSize) - 1);
-    const uintptr_t pageEnd = (start + length + static_cast<uintptr_t>(pageSize) - 1) &
-        ~(static_cast<uintptr_t>(pageSize) - 1);
-    vm_protect(
-        mach_task_self(),
-        static_cast<vm_address_t>(pageStart),
-        static_cast<vm_size_t>(pageEnd - pageStart),
-        false,
-        VM_PROT_READ);
-    mprotect(reinterpret_cast<void *>(pageStart), pageEnd - pageStart, protection);
-}
-
-int patchCStringSection(uint8_t *sectionStart, uint64_t sectionSize, const char *lang)
-{
-    int patchCount = 0;
-    if (sectionStart == nullptr || sectionSize == 0 || lang == nullptr || strcmp(lang, "en") == 0) {
-        return patchCount;
-    }
-
-    for (const auto &patch : kExtensionLayerLiteralPatches) {
-        const char *source = patch.sourceText;
-        if (source == nullptr) {
-            continue;
-        }
-        const char *translation = runtimeLiteralTranslation(lang, source);
-        if (translation == nullptr) {
-            continue;
-        }
-
-        const size_t sourceLen = strlen(source);
-        const size_t translationLen = strlen(translation);
-        if (sourceLen == 0 || translationLen > sourceLen || sectionSize <= sourceLen) {
-            continue;
-        }
-
-        for (uint64_t offset = 0; offset + sourceLen < sectionSize; ++offset) {
-            uint8_t *candidate = sectionStart + offset;
-            if (memcmp(candidate, source, sourceLen) != 0 || candidate[sourceLen] != '\0') {
-                continue;
-            }
-
-            int restoreProtection = 0;
-            if (!makePageWritable(candidate, sourceLen + 1, &restoreProtection)) {
-                fprintf(stderr, "[cavalry-i18n] failed to make ExtensionLayer literal writable: %s\n", source);
-                continue;
-            }
-
-            memcpy(candidate, translation, translationLen);
-            memset(candidate + translationLen, 0, sourceLen - translationLen + 1);
-            restorePageProtection(candidate, sourceLen + 1, restoreProtection);
-            ++patchCount;
-        }
-    }
-
-    return patchCount;
-}
-
-void patchExtensionLayerImage(const struct mach_header *header, intptr_t slide)
-{
-    const char *lang = getenv("CAVALRY_I18N_LANG");
-    if (lang == nullptr || lang[0] == '\0' || strcmp(lang, "en") == 0) {
-        return;
-    }
-
-    const char *imageName = imageNameForHeader(header);
-    if (!isExtensionLayerImage(imageName) || header->magic != MH_MAGIC_64) {
-        return;
-    }
-
-    int patchCount = 0;
-    const auto *header64 = reinterpret_cast<const struct mach_header_64 *>(header);
-    const uint8_t *command = reinterpret_cast<const uint8_t *>(header64 + 1);
-    for (uint32_t index = 0; index < header64->ncmds; ++index) {
-        const auto *loadCommand = reinterpret_cast<const struct load_command *>(command);
-        if (loadCommand->cmd == LC_SEGMENT_64) {
-            const auto *segment = reinterpret_cast<const struct segment_command_64 *>(command);
-            const auto *section = reinterpret_cast<const struct section_64 *>(segment + 1);
-            for (uint32_t sectionIndex = 0; sectionIndex < segment->nsects; ++sectionIndex) {
-                if (strncmp(section[sectionIndex].segname, "__TEXT", sizeof(section[sectionIndex].segname)) == 0 &&
-                    strncmp(section[sectionIndex].sectname, "__cstring", sizeof(section[sectionIndex].sectname)) == 0) {
-                    auto *sectionStart = reinterpret_cast<uint8_t *>(section[sectionIndex].addr + slide);
-                    patchCount += patchCStringSection(sectionStart, section[sectionIndex].size, lang);
-                }
-            }
-        }
-        command += loadCommand->cmdsize;
-    }
-
-    if (patchCount > 0) {
-        fprintf(stderr,
-                "[cavalry-i18n] patched ExtensionLayer __cstring literals lang=%s patches=%d image=%s\n",
-                lang,
-                patchCount,
-                imageName != nullptr ? imageName : "");
-    }
 }
 
 QString normalizeMenuText(const QString &text);
@@ -2578,7 +2356,6 @@ void bootstrapInjector()
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         fprintf(stderr, "[cavalry-i18n] injector bootstrap\n");
-        _dyld_register_func_for_add_image(patchExtensionLayerImage);
         scheduleInstallAttempt(0);
 
         @autoreleasepool {
