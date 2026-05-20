@@ -343,6 +343,13 @@ Space + click + drag / Pan
 
 这些字符串来自 `/Applications/Cavalry.app/Contents/Frameworks/libExtensionLayer.dylib` 的 `__TEXT,__cstring`，Cavalry 在 panel/viewport 内部绘制它们，不暴露为 `QLabel::text()`、`QAction::text()` 或 AX 文本节点。翻译表里有不等于会生效；Qt translator 和 widget 遍历都碰不到。
 
+不要把所有 ExtensionLayer 字符串混成一类：
+
+- Panel 空状态提示可以显示 CJK，但原生绘制不会按译文重新测量居中，补丁后可能从居中变成偏左。已确认的三句是 `Double click here to import Assets.`、`Drag layers here to see their settings.`、`Use the Create menu to add a layer to your Composition.`。
+- Viewport 快捷键提示和 overlay 辅助文字更接近 Latin-only 自绘层，CJK 有显示为 `?` 的风险，例如 `S + click path / Insert Keyframe`、`Space + click + drag / Pan`。这批默认保持英文，除非有新的窗口级截图证明可读且不破坏布局。
+
+因此，恢复 `__cstring` 补丁时只能按 surface 分层：空状态提示可作为低风险候选；快捷键 overlay 不得跟着旧表整批恢复。
+
 诊断命令：
 
 ```bash
