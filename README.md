@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
   <h1>Cavalry-i18n</h1>
-  <p>Switch <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 between English, Simplified Chinese, Traditional Chinese, and Japanese.</p>
+  <p>Switch <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 for macOS between English, Simplified Chinese, Traditional Chinese, and Japanese.</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?display_name=tag&label=release&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
@@ -16,8 +16,10 @@
 ## Features
 
 - 🎯 **One-click switch**: Pick a language, click apply, relaunch — Cavalry opens translated
+- 🍎 **macOS-only runtime**: Built for the macOS `Cavalry.app` bundle, its Qt runtime, and `DYLD_INSERT_LIBRARIES` injection path
 - 🔌 **Runtime injection**: Loads compiled UI translations through `DYLD_INSERT_LIBRARIES` without rewriting Cavalry UI strings
 - 📦 **Two translation surfaces**: JSON asset files + compiled Qt/UI strings, both handled automatically
+- 🧩 **Dynamic UI normalization**: Translates generated labels such as shape names, attribute editor fields, colon-suffixed labels, and `No ...` fallback text at runtime
 - 🔑 **Keychain-safe**: Binary-patches `libExtensionLayer.dylib` so login credentials survive language switching
 - 🔐 **Resigned & quarantine-cleared**: Re-signs the patched bundle and clears Gatekeeper flags so macOS doesn't block it
 - 🌐 **Four languages**: English, 简体中文, 繁體中文, 日本語
@@ -25,6 +27,8 @@
 ## Safety & Permissions
 
 Cavalry-i18n is an independent community tool. It is not made by, endorsed by, or affiliated with Scene Group, Cavalry, or Canva.
+
+This project currently supports **macOS only**. The app shell is built with Tauri, but the working language switcher depends on macOS-specific app bundle layout, code signing, Keychain behavior, and dynamic library injection. Windows and Linux builds are not supported.
 
 This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can launch with translated resources. On macOS, that requires **App Management** permission:
 
@@ -36,7 +40,7 @@ macOS asks for this permission because changing another `.app` bundle is a prote
 
 ## Install From Release
 
-The GitHub Release DMG is ad-hoc signed, but it is not Apple Developer ID notarized. If macOS shows "Apple could not verify Cavalry Language Switcher is free of malware" after you drag the app into Applications, remove the browser download quarantine flag once:
+Download the macOS DMG from GitHub Releases. The DMG is ad-hoc signed, but it is not Apple Developer ID notarized. If macOS shows "Apple could not verify Cavalry Language Switcher is free of malware" after you drag the app into Applications, remove the browser download quarantine flag once:
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
@@ -114,6 +118,8 @@ There are **two** translation surfaces in this project:
 
 1. **JSON-backed assets** — `nodeStrings`, `appStrings`, `tips`, `onboarding`, definitions, metadata, guide, style, and plugin files. Patched directly into the app bundle.
 2. **Compiled Qt/UI text** — menu labels, actions, panel titles, widget text, buttons, and tabs embedded in Cavalry binaries. Translated at runtime by the injector dylib.
+
+The injector also normalizes UI text that Cavalry generates at runtime, including derived shape layer names, Attribute Editor labels, colon-suffixed labels, status counts, and mixed `No ...` fallback labels. This keeps generated UI readable without bloating the static translation table with every possible phrase.
 
 Surface 2 is tracked in three forms:
 - `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` — generated ownership map (JSON vs compiled binary)

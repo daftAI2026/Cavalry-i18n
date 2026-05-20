@@ -10,6 +10,7 @@ runtime-ui-live-capture-workflow.md: Runtime UI live 抓取流程，区分调试
 runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义短 token provenance 证据等级、quarantine 决策、live capture 对准步骤与 Time Editor niceName 保护线。
 translation-guidelines.md: 翻译规范，约束语言风格、保留词、Forge Dynamics 显示层/模型层分流与界面一致性。
 audits/: 审计报告与实跑记录目录，保存阶段性人工/自动检查结果；新问题先沉淀 dated report，再决定是否升格为 workflow。
+roadmap/: 路线图目录，保存 proposed/active 的未来优化主题，每个主题链接对应 audit 事实报告并拆出阶段性验收标准。
 workflows/: 文档化工作流，当前 `cavalry-full-ui-100/` 为 full-ui gate 主线，`cavalry-i18n/` 为早期历史路线。
 img/: 静态资源库，存放 README 截图与文档示意图。
 archive/: 归档计划与历史方案，保留已完成或废弃决策的证据链。
@@ -18,7 +19,7 @@ archive/: 归档计划与历史方案，保留已完成或废弃决策的证据�
 docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。任何架构变更必须先让代码成立，再让这里的地图同构。
 
 分类口径:
-规范留根目录，实跑与审计进 audits，稳定流程进 workflows，失效方案进 archive；被 changelog 或当前流程引用的报告不因“已读过”而移动。
+规范留根目录，实跑与审计进 audits，未来优化路线进 roadmap，稳定流程进 workflows，失效方案进 archive；被 changelog 或当前流程引用的报告不因“已读过”而移动。
 
 法则: 计划可执行·结果可追溯·限制不粉饰
 

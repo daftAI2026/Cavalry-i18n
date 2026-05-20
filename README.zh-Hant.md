@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
   <h1>Cavalry-i18n</h1>
-  <p>直接在原始應用程式中，將 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 切換為 English、簡體中文、繁體中文或日本語。</p>
+  <p>直接在 macOS 原始應用程式中，將 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 切換為 English、簡體中文、繁體中文或日本語。</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?display_name=tag&label=release&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
@@ -16,8 +16,10 @@
 ## 功能
 
 - 🎯 **一鍵切換**：選擇語言，點擊套用，重新啟動後 Cavalry 即以目標語言開啟
+- 🍎 **僅支援 macOS 執行階段**：面向 macOS `Cavalry.app` bundle、其 Qt runtime 與 `DYLD_INSERT_LIBRARIES` 注入路徑構建
 - 🔌 **執行階段注入**：透過 `DYLD_INSERT_LIBRARIES` 載入 compiled UI 翻譯，不改寫 Cavalry 的 UI 字串
 - 📦 **雙翻譯面**：JSON 資源檔案 + 編譯進 Qt/UI 的字串，皆自動統一處理
+- 🧩 **動態 UI 規則化**：執行階段翻譯形狀名稱、屬性編輯器欄位、冒號後綴標籤和 `No ...` fallback 文字等生成標籤
 - 🔑 **Keychain 安全**：對 `libExtensionLayer.dylib` 做二進位補丁，避免語言切換後登入憑證失效
 - 🔐 **重新簽名並清除隔離標記**：重新簽名補丁後的 app bundle，並清除 Gatekeeper 標記，避免 macOS 阻止啟動
 - 🌐 **四種語言**：English、簡體中文、繁體中文、日本語
@@ -25,6 +27,8 @@
 ## 安全與權限
 
 Cavalry-i18n 是獨立的社群工具。它不是 Scene Group、Cavalry 或 Canva 製作、認可或關聯的官方工具。
+
+本專案目前 **僅支援 macOS**。應用程式外殼基於 Tauri 構建，但真正可用的語言切換能力依賴 macOS 特有的 app bundle 結構、程式碼簽名、Keychain 行為與動態函式庫注入。Windows 和 Linux 構建目前不受支援。
 
 這個工具會修改你本機 `Cavalry.app` bundle 內的檔案，讓 Cavalry 能以翻譯後的資源啟動。在 macOS 上，這需要 **App Management** 權限：
 
@@ -36,7 +40,7 @@ macOS 要求這個權限，是因為修改另一個 `.app` bundle 屬於受保�
 
 ## 從 Release 安裝
 
-GitHub Release DMG 使用 ad-hoc 簽名，但尚未經過 Apple Developer ID notarization。如果把 app 拖入 Applications 後，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，請先清除一次瀏覽器下載帶來的 quarantine 標記：
+請從 GitHub Releases 下載 macOS DMG。DMG 使用 ad-hoc 簽名，但尚未經過 Apple Developer ID notarization。如果把 app 拖入 Applications 後，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，請先清除一次瀏覽器下載帶來的 quarantine 標記：
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
@@ -114,6 +118,8 @@ npm run check:full-ui          # 完整 JSON + compiled + runtime UI gate（100%
 
 1. **JSON-backed assets** —— `nodeStrings`、`appStrings`、`tips`、`onboarding`、definitions、metadata、guide、style 和 plugin 檔案。它們會直接補丁進 app bundle。
 2. **Compiled Qt/UI text** —— Cavalry 二進位內嵌的選單標籤、action、面板標題、widget 文字、按鈕和 tab。它們由 injector dylib 在執行階段翻譯。
+
+injector 還會規則化 Cavalry 在執行階段生成的 UI 文字，包括派生形狀圖層名、Attribute Editor 標籤、冒號後綴標籤、狀態計數，以及混合 `No ...` fallback 標籤。這樣能讓生成式 UI 保持可讀，而不用把每一種可能片語都塞進靜態翻譯表。
 
 Surface 2 以三種形式追蹤：
 - `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` —— 生成的歸屬映射（JSON vs compiled binary）

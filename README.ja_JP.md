@@ -1,7 +1,7 @@
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
   <h1>Cavalry-i18n</h1>
-  <p>元のアプリのまま、<a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 を English、简体中文、繁體中文、日本語に切り替えます。</p>
+  <p>macOS の元のアプリのまま、<a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 を English、简体中文、繁體中文、日本語に切り替えます。</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases"><img src="https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?display_name=tag&label=release&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
@@ -16,8 +16,10 @@
 ## 機能
 
 - 🎯 **ワンクリック切り替え**：言語を選び、適用をクリックして再起動すると、Cavalry が翻訳済み UI で開きます
+- 🍎 **macOS 専用ランタイム**：macOS の `Cavalry.app` bundle、その Qt runtime、`DYLD_INSERT_LIBRARIES` 注入パスを前提にしています
 - 🔌 **ランタイム注入**：`DYLD_INSERT_LIBRARIES` で compiled UI 翻訳を読み込み、Cavalry の UI 文字列を書き換えません
 - 📦 **2 つの翻訳サーフェス**：JSON アセットファイルと compiled Qt/UI 文字列を自動で処理します
+- 🧩 **動的 UI 正規化**：shape 名、Attribute Editor フィールド、コロン付きラベル、`No ...` fallback text など、実行時に生成されるラベルを翻訳します
 - 🔑 **Keychain-safe**：`libExtensionLayer.dylib` にバイナリパッチを適用し、言語切り替え後もログイン認証情報を維持します
 - 🔐 **再署名と quarantine 解除**：パッチ済み bundle を再署名し、Gatekeeper フラグを消して macOS にブロックされないようにします
 - 🌐 **4 言語対応**：English、简体中文、繁體中文、日本語
@@ -25,6 +27,8 @@
 ## 安全性と権限
 
 Cavalry-i18n は独立したコミュニティツールです。Scene Group、Cavalry、Canva が制作、承認、提携しているものではありません。
+
+このプロジェクトは現在 **macOS のみ** をサポートしています。アプリの shell は Tauri で構築されていますが、実際に動作する language switcher は macOS 固有の app bundle 構造、コード署名、Keychain の挙動、dynamic library injection に依存しています。Windows と Linux build はサポートしていません。
 
 このツールは、翻訳済みリソースで Cavalry を起動できるように、ローカルの `Cavalry.app` bundle 内のファイルを変更します。macOS では、この操作に **App Management** 権限が必要です。
 
@@ -36,7 +40,7 @@ macOS がこの権限を求めるのは、別の `.app` bundle を変更する�
 
 ## Release からインストール
 
-GitHub Release の DMG は ad-hoc 署名されていますが、Apple Developer ID notarization はまだ行っていません。app を Applications にドラッグした後に macOS が "Apple could not verify Cavalry Language Switcher is free of malware" と表示する場合は、ブラウザダウンロード由来の quarantine フラグを一度だけ削除してください。
+GitHub Releases から macOS DMG をダウンロードしてください。DMG は ad-hoc 署名されていますが、Apple Developer ID notarization はまだ行っていません。app を Applications にドラッグした後に macOS が "Apple could not verify Cavalry Language Switcher is free of malware" と表示する場合は、ブラウザダウンロード由来の quarantine フラグを一度だけ削除してください。
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
@@ -114,6 +118,8 @@ npm run check:full-ui          # Full JSON + compiled + runtime UI gate（100%�
 
 1. **JSON-backed assets** — `nodeStrings`、`appStrings`、`tips`、`onboarding`、definitions、metadata、guide、style、plugin files。app bundle に直接パッチされます。
 2. **Compiled Qt/UI text** — Cavalry バイナリ内に埋め込まれた menu labels、actions、panel titles、widget text、buttons、tabs。injector dylib によってランタイムで翻訳されます。
+
+injector は、Cavalry がランタイムで生成する UI text も正規化します。対象には、派生 shape layer names、Attribute Editor labels、colon-suffixed labels、status counts、mixed `No ...` fallback labels が含まれます。これにより、考えられるすべての phrase を静的翻訳テーブルへ詰め込まずに、生成 UI を読みやすく保てます。
 
 Surface 2 は 3 つの形式で追跡します。
 - `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` — 生成された ownership map（JSON vs compiled binary）
