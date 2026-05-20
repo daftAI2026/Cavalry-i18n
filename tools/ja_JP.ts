@@ -7954,6 +7954,10 @@
       <translation>ストレッチ</translation>
     </message>
     <message>
+      <source>Controllers</source>
+      <translation>コントローラー</translation>
+    </message>
+    <message>
       <source>Input Guides</source>
       <translation>入力ガイド</translation>
     </message>
@@ -8070,6 +8074,14 @@
       <translation>出力解像度</translation>
     </message>
     <message>
+      <source>Gradient</source>
+      <translation>グラデーション</translation>
+    </message>
+    <message>
+      <source>Dash, Gap (e.g. "4, 2")</source>
+      <translation>ダッシュ, 間隔 (例: "4, 2")</translation>
+    </message>
+    <message>
       <source>Screen Space</source>
       <translation>スクリーン空間</translation>
     </message>
@@ -8100,6 +8112,18 @@
     <message>
       <source>Particles Per Point</source>
       <translation>ポイントあたりのパーティクル</translation>
+    </message>
+    <message>
+      <source>Particles Per Pixel</source>
+      <translation>ピクセルあたりのパーティクル</translation>
+    </message>
+    <message>
+      <source>Use Emitter Velocity</source>
+      <translation>エミッター速度を使用</translation>
+    </message>
+    <message>
+      <source>Emitter Velocity</source>
+      <translation>エミッター速度</translation>
     </message>
     <message>
       <source>Scale Over Lifespan</source>
@@ -8186,6 +8210,10 @@
       <translation>周波数スケール</translation>
     </message>
     <message>
+      <source>Speed Limit</source>
+      <translation>速度制限</translation>
+    </message>
+    <message>
       <source>Use Fixed Size</source>
       <translation>固定サイズを使用</translation>
     </message>
@@ -8200,6 +8228,10 @@
     <message>
       <source>Asset</source>
       <translation>アセット</translation>
+    </message>
+    <message>
+      <source>Optionally enter some indices, e.g: 1, 2, 4:6</source>
+      <translation>必要に応じて一部のインデックスを入力、例: 1, 2, 4:6</translation>
     </message>
     <message>
       <source>Shuffle Type</source>
@@ -8228,6 +8260,10 @@
     <message>
       <source>Vignette Shape</source>
       <translation>ビネット形状</translation>
+    </message>
+    <message>
+      <source>Blind Color</source>
+      <translation>ブラインドの色</translation>
     </message>
     <message>
       <source>Level 0 Color</source>

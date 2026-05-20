@@ -6519,6 +6519,10 @@
       <translation>拉伸</translation>
     </message>
     <message>
+      <source>Controllers</source>
+      <translation>控制器</translation>
+    </message>
+    <message>
       <source>Input Guides</source>
       <translation>输入参考线</translation>
     </message>
@@ -6635,6 +6639,14 @@
       <translation>输出分辨率</translation>
     </message>
     <message>
+      <source>Gradient</source>
+      <translation>渐变</translation>
+    </message>
+    <message>
+      <source>Dash, Gap (e.g. "4, 2")</source>
+      <translation>虚线，间隔（例如 "4, 2"）</translation>
+    </message>
+    <message>
       <source>Screen Space</source>
       <translation>屏幕空间</translation>
     </message>
@@ -6665,6 +6677,18 @@
     <message>
       <source>Particles Per Point</source>
       <translation>每点粒子数</translation>
+    </message>
+    <message>
+      <source>Particles Per Pixel</source>
+      <translation>每像素粒子数</translation>
+    </message>
+    <message>
+      <source>Use Emitter Velocity</source>
+      <translation>使用发射器速度</translation>
+    </message>
+    <message>
+      <source>Emitter Velocity</source>
+      <translation>发射器速度</translation>
     </message>
     <message>
       <source>Scale Over Lifespan</source>
@@ -6751,6 +6775,10 @@
       <translation>频率缩放</translation>
     </message>
     <message>
+      <source>Speed Limit</source>
+      <translation>速度限制</translation>
+    </message>
+    <message>
       <source>Use Fixed Size</source>
       <translation>使用固定大小</translation>
     </message>
@@ -6765,6 +6793,10 @@
     <message>
       <source>Asset</source>
       <translation>素材</translation>
+    </message>
+    <message>
+      <source>Optionally enter some indices, e.g: 1, 2, 4:6</source>
+      <translation>可输入部分索引，例如：1, 2, 4:6</translation>
     </message>
     <message>
       <source>Shuffle Type</source>
@@ -6793,6 +6825,10 @@
     <message>
       <source>Vignette Shape</source>
       <translation>暗角形状</translation>
+    </message>
+    <message>
+      <source>Blind Color</source>
+      <translation>百叶窗颜色</translation>
     </message>
     <message>
       <source>Level 0 Color</source>
