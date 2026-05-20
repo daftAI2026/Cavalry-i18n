@@ -3222,6 +3222,15 @@
     <message><source>Ring</source><translation>圆环</translation></message>
     <message><source>Star</source><translation>星形</translation></message>
     <message><source>Super Ellipse</source><translation>超级椭圆</translation></message>
+    <message><source>Capsule Shape</source><translation>胶囊形状</translation></message>
+    <message><source>Arrow Shape</source><translation>箭头形状</translation></message>
+    <message><source>Cogwheel Shape</source><translation>齿轮形状</translation></message>
+    <message><source>Super Ellipse Shape</source><translation>超级椭圆形状</translation></message>
+    <message><source>Arc Shape</source><translation>圆弧形状</translation></message>
+    <message><source>Star Shape</source><translation>星形</translation></message>
+    <message><source>Polygon Shape</source><translation>多边形</translation></message>
+    <message><source>Ellipse Shape</source><translation>椭圆</translation></message>
+    <message><source>Rectangle Shape</source><translation>矩形</translation></message>
     <message><source>Super Shape</source><translation>超级形状</translation></message>
     <message><source>Text</source><translation>文字</translation></message>
     <message><source>Background</source><translation>背景</translation></message>
@@ -6869,6 +6878,14 @@
     <message>
       <source>No Mask</source>
       <translation>无蒙版</translation>
+    </message>
+    <message>
+      <source>Third Shaders</source>
+      <translation>第三着色器</translation>
+    </message>
+    <message>
+      <source>No Third Shaders</source>
+      <translation>无第三着色器</translation>
     </message>
     <message>
       <source>Cycles</source>

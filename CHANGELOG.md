@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Audited Generated Shape Label Translations**: Added three-language coverage for 9 additional runtime-generated Shape labels (such as *Capsule Shape*, *Arrow Shape*, *Cogwheel Shape*, *Super Ellipse Shape*, *Arc Shape*, *Star Shape*, *Polygon Shape*, *Ellipse Shape*, *Rectangle Shape*) as well as shader settings (*Third Shaders*, *No Third Shaders*) in Japanese (`tools/ja_JP.ts`), Simplified Chinese (`tools/zh-Hans.ts`), and Traditional Chinese (`tools/zh-Hant.ts`) catalogs.
+- **Dynamic Derived Shape Translation**: Implemented dynamic layer name translation logic (`translatedGeneratedLayerName`) inside the injector to automatically derive localized shape names (e.g. *Capsule Shape*) from base term translations and "Shape" to keep the compiled translation catalog clean.
+- **Comprehensive No-Prefix Fallback Normalization**: Upgraded the dynamic No-prefix lookup algorithm in `translatedMixedNoPrefixText` to systematically resolve any prefixed fallback terms against vetted translation dictionary entries instead of hardcoding fallback strings.
 - **Audited Attribute Editor Label Translations (Batch 5)**: Added three-language coverage for 3 additional attribute editor labels: *Override Mass* (`覆盖质量` / `覆蓋質量` / `質量を上書き`), *Direction Type* (`方向类型` / `方向類型` / `方向タイプ`), and *Cycles* (`周期数` / `週期數` / `サイクル数`) in Japanese (`tools/ja_JP.ts`), Simplified Chinese (`tools/zh-Hans.ts`), and Traditional Chinese (`tools/zh-Hant.ts`) catalogs.
 - **Embedded Mixed No-Prefix Translation Normalization**: Added dynamic runtime translation support for mixed No-prefix labels (e.g. *No Mask* translations such as `No 蒙版` / `No 遮罩`) in `CavalryTranslatorInjector.mm` by checking stripped/fallback combinations to avoid redundant compile-time dictionary lookups.
 - **Lottie Translation Refining (Simplified Chinese)**: Corrected translations for *Lottie Author* (`Lottie 作者`, was `乐天作者`) and *Lottie is a Pro Feature* (`Lottie 是 Pro 功能`, was `洛蒂是个特质`).
@@ -18,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contract Assertion Updates**: Extended contract tests in `tools/check_app_contracts.js` to strictly enforce translation accuracy for the fourth batch of 9 attribute labels.
 
 ### Changed
+- **Scoped Time Editor Item Protection**: Refined timeline-unsafe write-back protection by checking the concrete widget context (`isTimeEditorItemWidget`) instead of a blanket string matching check, preventing Scene View layer lists on the left-side tree from being incorrectly treated as Time Editor elements and left untranslated.
+- **Synchronized Embedded Translation Table & Precompiled Injector**: Updated compiled static translation lookup tables in `injector/generated_translations.inc` and rebuilt the dynamic library `libCavalryTranslatorInjector.dylib`.
 - **Physics and Wave Terminology Corrections**:
   - Aligned *Force Velocity* translation to `力矢量` in Simplified Chinese (was `力速度`), `力向量` in Traditional Chinese (was `力速度`), and `力ベクトル` in Japanese (was `力の速度`) across language JSON nodeStrings (`languages/*/nodeStrings.json`), tools catalogs, and contract tests.
   - Aligned *Adaptive Wave Counts* translation to `自适应波数` in Simplified Chinese (was `自适应波形数量`), `自適應波數` in Traditional Chinese (was `自適應波形數量`).

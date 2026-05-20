@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、以及运行时生成属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -357,6 +357,11 @@ test('embedded injector translates dynamic QLabel text before repaint', () => {
     /QEvent::Paint[\s\S]{0,320}qobject_cast<QLabel \*>\(watched\)[\s\S]{0,320}translateRuntimeObject/,
     'attribute editor floating titles reuse QLabel/RolloverLabel instances and can change text after startup, so repaint must translate them before they draw'
   );
+  assert.match(
+    injectorSource,
+    /QLabel \*label = qobject_cast<QLabel \*>\(widget\)[\s\S]{0,180}translatedWidgetText\(lang, label->text\(\)\)[\s\S]{0,120}label->setText\(translated\)/,
+    'Attribute Editor object headers such as Capsule Shape and Arrow Shape should use the same display translation path as other QLabel/RolloverLabel text'
+  );
 });
 
 test('embedded injector translates compound multiline widget strings line by line', () => {
@@ -395,13 +400,18 @@ test('embedded injector normalizes mixed No-prefix widget labels', () => {
   );
   assert.match(
     injectorSource,
-    /lookupEmbeddedTranslation\(lang,\s*QStringLiteral\("Mask"\)\)[\s\S]*lookupEmbeddedTranslation\(lang,\s*QStringLiteral\("No Mask"\)\)/,
-    'mixed No-prefix fallback should reuse the embedded Mask and No Mask entries instead of adding another literal table'
+    /source\.startsWith\(QStringLiteral\("No "\)\)/,
+    'mixed No-prefix fallback should handle every No + localized suffix label, not only No Mask'
   );
   assert.match(
     injectorSource,
-    /QStringLiteral\("No "\) \+ maskTranslation/,
-    'mixed No-prefix fallback should match Cavalry strings such as No 蒙版 produced after only the suffix was translated'
+    /lookupEmbeddedTranslation\(lang,\s*englishSuffix\)/,
+    'mixed No-prefix fallback should only rewrite when the localized suffix comes from an existing embedded translation'
+  );
+  assert.match(
+    injectorSource,
+    /QString::fromUtf8\(entries\[index\]\.translation\)/,
+    'mixed No-prefix fallback should return the vetted full No ... translation rather than fabricating arbitrary strings'
   );
 });
 
@@ -439,7 +449,7 @@ test('embedded injector translates exact QLineEdit values as well as placeholder
   assert.match(
     injectorSource,
     /translatedWidgetText[\s\S]*\\s\+\[0-9\]\+\)\$[\s\S]*baseTranslation \+ match\.captured\(2\)/,
-    'generic widget display translation should preserve Cavalry auto-numbered suffixes like Camera 2 in QLabel headers'
+    'generic widget display translation should preserve Cavalry auto-numbered suffixes like Super Ellipse Shape 2 in QLabel headers and Scene View rows'
   );
 });
 
@@ -565,9 +575,32 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     /shouldPreserveModelBackedItemText/,
     'injector should guard model-backed item text at the QWidgetItem mutation boundary'
   );
-  const preserveFunction = injectorSource.match(
-    /bool shouldPreserveModelBackedItemText\(const QString &sourceText\)[\s\S]*?\n}\n\nclass EmbeddedTranslator/
+  assert.match(
+    injectorSource,
+    /bool isTimeEditorItemWidget\(QWidget \*widget\)/,
+    'model-backed item preservation should be scoped by widget context so the Scene View list is not treated as Time Editor'
+  );
+  const timeEditorContextFunction = injectorSource.match(
+    /bool isTimeEditorItemWidget\(QWidget \*widget\)[\s\S]*?\n}\n\nbool shouldPreserveModelBackedItemText/
   )[0];
+  assert.match(
+    timeEditorContextFunction,
+    /Time Editor[\s\S]*TimeEditor/,
+    'Time Editor item protection should look for the right-side Time Editor context explicitly'
+  );
+  assert.doesNotMatch(
+    timeEditorContextFunction,
+    /parentWidget\(\)|windowTitle\(\)/,
+    'Time Editor item protection must not inherit a parent Scene Window title and skip the translatable left-side layer list'
+  );
+  const preserveFunction = injectorSource.match(
+    /bool shouldPreserveModelBackedItemText\(QWidget \*owner, const QString &sourceText\)[\s\S]*?\n}\n\nclass EmbeddedTranslator/
+  )[0];
+  assert.match(
+    preserveFunction,
+    /owner == nullptr[\s\S]*!isTimeEditorItemWidget\(owner\)/,
+    'model-backed item preservation must not blanket-skip Scene View or other non-Time-Editor item lists'
+  );
   for (const source of ['Basic Line', 'Particle Emitter', 'Forge Dynamics', 'Duplicator', 'Rig Control']) {
     assert.match(
       preserveFunction,
@@ -580,15 +613,33 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     /\\s\+\[0-9\]\+\$/,
     'model-backed preservation should normalize Cavalry auto-suffixed names like Basic Line 2'
   );
+  const generatedLayerNameFunction = injectorSource.match(
+    /QString translatedGeneratedLayerName\(const QString &lang, const QString &sourceText\)[\s\S]*?\n}\n\nQString translatedMixedNoPrefixText/
+  )[0];
   assert.match(
-    injectorSource,
-    /translateListWidgetItems[\s\S]{0,650}const QString source = item->text\(\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(source\)[\s\S]{0,120}continue;/,
-    'QListWidgetItem text must be skipped before translatedWidgetText can write it back with setText'
+    generatedLayerNameFunction,
+    /endsWith\(kShapeSuffix\)/,
+    'generated layer-name fallback should only handle explicit X Shape display labels'
+  );
+  assert.match(
+    generatedLayerNameFunction,
+    /lookupEmbeddedTranslation\(lang, base\)[\s\S]*lookupEmbeddedTranslation\(lang, QStringLiteral\("Shape"\)\)/,
+    'generated layer-name fallback should derive Capsule Shape from Capsule + Shape display translations'
   );
   assert.match(
     injectorSource,
-    /translateTreeWidgetItem[\s\S]{0,650}const QString source = item->text\(column\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(source\)[\s\S]{0,120}continue;/,
-    'QTreeWidgetItem text must be skipped before translatedWidgetText can write it back with setText'
+    /translatedCompoundWidgetText[\s\S]{0,500}translatedGeneratedLayerName\(lang, sourceText\)/,
+    'generated layer-name fallback should run before numeric suffix preservation so Super Ellipse Shape 2 can translate'
+  );
+  assert.match(
+    injectorSource,
+    /translateListWidgetItems[\s\S]{0,650}const QString source = item->text\(\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(listWidget, source\)[\s\S]{0,120}continue;/,
+    'QListWidgetItem text should be preserved only when the list belongs to the Time Editor context'
+  );
+  assert.match(
+    injectorSource,
+    /translateTreeWidgetItem[\s\S]{0,650}const QString source = item->text\(column\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(owner, source\)[\s\S]{0,120}continue;/,
+    'QTreeWidgetItem text should be preserved only when the tree belongs to the Time Editor context'
   );
   assert.match(
     injectorSource,
@@ -2583,7 +2634,18 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Flow Variance': '流动变化',
       'Force Velocity': '力矢量',
       'Adaptive Wave Counts': '自适应波数',
+      'Capsule Shape': '胶囊形状',
+      'Arrow Shape': '箭头形状',
+      'Cogwheel Shape': '齿轮形状',
+      'Super Ellipse Shape': '超级椭圆形状',
+      'Arc Shape': '圆弧形状',
+      'Star Shape': '星形',
+      'Polygon Shape': '多边形',
+      'Ellipse Shape': '椭圆',
+      'Rectangle Shape': '矩形',
       'No Mask': '无蒙版',
+      'Third Shaders': '第三着色器',
+      'No Third Shaders': '无第三着色器',
     },
     'zh-Hant': {
       Strength: '強度',
@@ -2722,7 +2784,18 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Flow Variance': '流動變化',
       'Force Velocity': '力向量',
       'Adaptive Wave Counts': '自適應波數',
+      'Capsule Shape': '膠囊形狀',
+      'Arrow Shape': '箭頭形狀',
+      'Cogwheel Shape': '齒輪形狀',
+      'Super Ellipse Shape': '超級橢圓形狀',
+      'Arc Shape': '圓弧形狀',
+      'Star Shape': '星形',
+      'Polygon Shape': '多邊形',
+      'Ellipse Shape': '橢圓',
+      'Rectangle Shape': '矩形',
       'No Mask': '無遮罩',
+      'Third Shaders': '第三著色器',
+      'No Third Shaders': '無第三著色器',
     },
     ja_JP: {
       Strength: '強度',
@@ -2861,7 +2934,18 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       'Flow Variance': 'フロー変動',
       'Force Velocity': '力ベクトル',
       'Adaptive Wave Counts': '適応波数',
+      'Capsule Shape': 'カプセルシェイプ',
+      'Arrow Shape': '矢印シェイプ',
+      'Cogwheel Shape': '歯車シェイプ',
+      'Super Ellipse Shape': 'スーパー楕円シェイプ',
+      'Arc Shape': '円弧シェイプ',
+      'Star Shape': '星形',
+      'Polygon Shape': '多角形',
+      'Ellipse Shape': '楕円',
+      'Rectangle Shape': '長方形',
       'No Mask': 'マスクなし',
+      'Third Shaders': 'サードシェーダー',
+      'No Third Shaders': 'サードシェーダーなし',
     },
   };
 
@@ -2877,6 +2961,13 @@ test('runtime-generated Attribute Editor labels are translated without touching 
       );
     }
   }
+
+  const generatedTable = fs.readFileSync(path.join(injectorRoot, 'generated_translations.inc'), 'utf8');
+  assert.doesNotMatch(
+    generatedTable,
+    /"Super Ellipse Shape 2"/,
+    'auto-numbered layer names should not be translated as standalone strings; the numeric suffix must be preserved by the runtime regex'
+  );
 });
 
 test('Forge Dynamics nodeStrings include direct labels for generated property names', () => {

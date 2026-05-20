@@ -1005,6 +1005,42 @@
       <translation>スーパー楕円</translation>
     </message>
     <message>
+      <source>Capsule Shape</source>
+      <translation>カプセルシェイプ</translation>
+    </message>
+    <message>
+      <source>Arrow Shape</source>
+      <translation>矢印シェイプ</translation>
+    </message>
+    <message>
+      <source>Cogwheel Shape</source>
+      <translation>歯車シェイプ</translation>
+    </message>
+    <message>
+      <source>Super Ellipse Shape</source>
+      <translation>スーパー楕円シェイプ</translation>
+    </message>
+    <message>
+      <source>Arc Shape</source>
+      <translation>円弧シェイプ</translation>
+    </message>
+    <message>
+      <source>Star Shape</source>
+      <translation>星形</translation>
+    </message>
+    <message>
+      <source>Polygon Shape</source>
+      <translation>多角形</translation>
+    </message>
+    <message>
+      <source>Ellipse Shape</source>
+      <translation>楕円</translation>
+    </message>
+    <message>
+      <source>Rectangle Shape</source>
+      <translation>長方形</translation>
+    </message>
+    <message>
       <source>Super Shape</source>
       <translation>スーパーシェイプ</translation>
     </message>
@@ -8304,6 +8340,14 @@
     <message>
       <source>No Mask</source>
       <translation>マスクなし</translation>
+    </message>
+    <message>
+      <source>Third Shaders</source>
+      <translation>サードシェーダー</translation>
+    </message>
+    <message>
+      <source>No Third Shaders</source>
+      <translation>サードシェーダーなし</translation>
     </message>
     <message>
       <source>Cycles</source>
