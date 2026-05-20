@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Qt ABI Guarding in Contract Tests**: Added new test assertions in `tools/check_app_contracts.js` using `nm -u` on macOS to inspect the checked-in injector dylib, ensuring it does not import `QWidget::accessibleName()` or `QWidget::accessibleDescription()` symbols which are missing from Cavalry's Qt 6.6.3 runtime.
 - **Audited Generated Shape Label Translations**: Added three-language coverage for 9 additional runtime-generated Shape labels (such as *Capsule Shape*, *Arrow Shape*, *Cogwheel Shape*, *Super Ellipse Shape*, *Arc Shape*, *Star Shape*, *Polygon Shape*, *Ellipse Shape*, *Rectangle Shape*) as well as shader settings (*Third Shaders*, *No Third Shaders*) in Japanese (`tools/ja_JP.ts`), Simplified Chinese (`tools/zh-Hans.ts`), and Traditional Chinese (`tools/zh-Hant.ts`) catalogs.
 - **Dynamic Derived Shape Translation**: Implemented dynamic layer name translation logic (`translatedGeneratedLayerName`) inside the injector to automatically derive localized shape names (e.g. *Capsule Shape*) from base term translations and "Shape" to keep the compiled translation catalog clean.
 - **Comprehensive No-Prefix Fallback Normalization**: Upgraded the dynamic No-prefix lookup algorithm in `translatedMixedNoPrefixText` to systematically resolve any prefixed fallback terms against vetted translation dictionary entries instead of hardcoding fallback strings.
@@ -21,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contract Assertion Updates**: Extended contract tests in `tools/check_app_contracts.js` to strictly enforce translation accuracy for the fourth batch of 9 attribute labels.
 
 ### Changed
+- **ABI-Safe Accessibility Check in Injector**: Modified `isTimeEditorItemWidget` in `injector/CavalryTranslatorInjector.mm` to read accessibility strings through QObject properties (`widget->property("accessibleName")`/`accessibleDescription`) instead of calling the missing QWidget accessors directly, maintaining strict Qt 6.6.3 ABI compatibility.
 - **Scoped Time Editor Item Protection**: Refined timeline-unsafe write-back protection by checking the concrete widget context (`isTimeEditorItemWidget`) instead of a blanket string matching check, preventing Scene View layer lists on the left-side tree from being incorrectly treated as Time Editor elements and left untranslated.
 - **Synchronized Embedded Translation Table & Precompiled Injector**: Updated compiled static translation lookup tables in `injector/generated_translations.inc` and rebuilt the dynamic library `libCavalryTranslatorInjector.dylib`.
 - **Physics and Wave Terminology Corrections**:

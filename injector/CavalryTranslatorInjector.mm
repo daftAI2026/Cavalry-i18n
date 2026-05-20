@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、动态菜单/状态栏/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 后续文本显示翻译、模型 niceName item 写回保护、ABI-safe Time Editor 上下文识别、动态菜单/状态栏/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -131,8 +131,8 @@ bool isTimeEditorItemWidget(QWidget *widget)
     const QStringList probes = {
         QString::fromUtf8(widget->metaObject()->className()),
         widget->objectName(),
-        widget->accessibleName(),
-        widget->accessibleDescription(),
+        widget->property("accessibleName").toString(),
+        widget->property("accessibleDescription").toString(),
     };
     for (const QString &probe : probes) {
         const QString normalized = normalizeMenuText(probe);

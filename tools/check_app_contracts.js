@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName 与 Qt ABI-safe accessibility 探测、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -593,6 +593,21 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     /parentWidget\(\)|windowTitle\(\)/,
     'Time Editor item protection must not inherit a parent Scene Window title and skip the translatable left-side layer list'
   );
+  assert.doesNotMatch(
+    timeEditorContextFunction,
+    /->accessible(Name|Description)\(\)/,
+    'Time Editor context detection must read accessibility strings through QObject properties to keep the injector on Cavalry Qt 6.6.3 ABI'
+  );
+  if (process.platform === 'darwin') {
+    const dylibPath = path.join(injectorRoot, 'libCavalryTranslatorInjector.dylib');
+    const nmResult = spawnSync('nm', ['-u', dylibPath], { encoding: 'utf8' });
+    assert.equal(nmResult.status, 0, nmResult.stderr);
+    assert.doesNotMatch(
+      nmResult.stdout,
+      /__ZNK7QWidget(14accessibleName|21accessibleDescription)Ev/,
+      'checked-in injector dylib must not import QWidget accessibility accessors missing from Cavalry Qt 6.6.3'
+    );
+  }
   const preserveFunction = injectorSource.match(
     /bool shouldPreserveModelBackedItemText\(QWidget \*owner, const QString &sourceText\)[\s\S]*?\n}\n\nclass EmbeddedTranslator/
   )[0];
