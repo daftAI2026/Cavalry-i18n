@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 与 QLineEdit 首次绘制前显示翻译、ModalDialog 退出确认窗首次绘制前同步翻译、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit/QTextEdit 首次绘制前显示翻译、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object 与 QTextEdit append 接入、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1003,6 +1003,62 @@ test('embedded injector inventory records dynamic refresh and expanded widget ev
   // NOTE: listItems/treeItems/tableItems/headerTexts serialization is deferred per plan (line 994);
   // these fields are consumed by check_runtime_ui_coverage.js but not yet emitted by the injector.
   // Add them when live capture cannot locate remaining English residues with actionTexts alone.
+});
+
+test('embedded injector inventory exposes MessageBar meta-object diagnostics', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /MessageBar[\s\S]{0,160}LogMessage/,
+    'MessageBar and LogMessage widgets should stay in diagnostic inventory even when their visible text is self-painted'
+  );
+  assert.match(
+    injectorSource,
+    /widgetMetaObjectMethods|methodSignature/,
+    'diagnostic inventory should expose Qt meta-object methods so message history can be wired through signals/properties instead of guessing'
+  );
+  assert.match(
+    injectorSource,
+    /metaObjectMethods/,
+    'serialized diagnostic widgets should include metaObjectMethods for live capture artifacts'
+  );
+});
+
+test('embedded injector translates MessageBar QTextEdit log popout text before paint', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /QTextEdit/,
+    'MessageBar log popout uses QTextEdit and must be part of the runtime widget translation surface'
+  );
+  assert.match(
+    injectorSource,
+    /translateTextEditDocument|toPlainText|QTextCursor/,
+    'injector should translate already-appended QTextEdit document blocks instead of only QLabel/QLineEdit text'
+  );
+  assert.match(
+    injectorSource,
+    /textEditForObject[\s\S]{0,420}parent\(\)/,
+    'QTextEdit log popouts paint through their viewport child, so the injector should map child paint events back to the parent QTextEdit'
+  );
+  assert.match(
+    injectorSource,
+    /QEvent::Paint[\s\S]{0,320}textEditForObject/,
+    'QTextEdit log popouts should be translated synchronously before their first visible paint'
+  );
+  assert.match(
+    injectorSource,
+    /__ZN9QTextEdit6appendERK7QString|replacementQTextEditAppend|translatedTextEditAppendText/,
+    'MessageBar log popout appends entries through QTextEdit::append, so the injector should translate that public Qt append surface'
+  );
 });
 
 test('manual debug launcher follows the embedded-injector flow', () => {

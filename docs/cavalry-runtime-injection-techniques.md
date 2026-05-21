@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 desktop-patcher/injector/CavalryTranslatorInjector.mm 的 ABI 选择、tools/launch_cavalry_with_injector.sh 的代码签名编排、Cavalry/Qt 的运行时行为
-[OUTPUT]: 对外提供 Cavalry runtime UI 抽取与翻译注入的技术沉淀，作为后续 agent 与协作者的"为什么这么做"参考
+[OUTPUT]: 对外提供 Cavalry runtime UI 抽取与翻译注入的技术沉淀，记录 QTranslator/DYLD 注入、pre-paint 生命周期翻译与 live inventory 诊断，作为后续 agent 与协作者的"为什么这么做"参考
 [POS]: docs/ 知识沉淀位，与 cavalry-glossary*.md / cavalry-scripting-*.md 同级
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -207,7 +207,33 @@ __attribute__((constructor)) load() → bootstrapInjector()
 
 `gInstallAttempted` flag 防止重复安装，`dispatch_once` 防止 bootstrap 被重入。
 
-### 4.6 English Dump-Only 模式（G-CAPTURE 关键能力）
+### 4.6 首次绘制前翻译：按 surface 生命周期贴近真相源
+
+用户看到的“英文先出现再变成 CJK”通常不是缺翻译，而是注入层比 Cavalry 的 UI 收敛晚了一拍。正确设计不是全局扫得更频繁，而是找出该 surface 的文本真相源在哪个生命周期稳定，然后在首次绘制前同步翻译。
+
+已验证的三条链路：
+
+| Surface | 真实证据 | 根因 | 正确注入点 |
+| --- | --- | --- | --- |
+| Composition 菜单 lazy action | 打开前 Qt inventory 是 `&Set Playback Area to Selection`，打开后 AX 是 `Set Playback Range to Composition` | `QAction` title/enabled 在菜单打开链路才收敛 | `QMenu::aboutToShow` / `ActionAdded` / `Show` 内同步 `translateMenuBeforeFirstPaint(...)` |
+| Scene View 行名 | `EditableNodeName.text -> RowWidget -> SceneTreeWidget`，不是 model role | 行名 `QLineEdit` 先带英文文本进入首次 paint，dirty queue 下一轮才翻译 | `QEvent::Paint` 中对 `QLineEdit` 与 `QLabel` 同步 `translateRuntimeObject(...)` |
+| 退出确认窗 | `ModalDialog` + `QLabel#qt_msgbox_label` + `QDialogButtonBox#qt_msgbox_buttonbox` | `QDialog/QMessageBox` 在 `Show` 后先绘制英文，dirty queue 后置翻译按钮和 label | `QEvent::Show` 中识别 `QDialog` 并同步翻译当前 dialog 与直接子控件 |
+
+这三种问题的共同本质是时序，具体修法不能互相套用。菜单不能靠 `QLineEdit` paint 修，SceneTree 不能靠 `aboutToShow` 修，ModalDialog 也不能等 dirty queue。好路径只有一个原则：**在 Cavalry 已经生成最终文本、但 Qt/AppKit 尚未画出第一帧时写回译文**。
+
+因此 runtime event filter 的职责分层是：
+
+```text
+QMenu       -> aboutToShow / ActionAdded / Show  pre-paint 翻译当前菜单树
+QDialog     -> Show                              pre-paint 翻译当前 dialog
+QLabel      -> Paint                             pre-paint 翻译动态 label
+QLineEdit   -> Paint + textChanged               pre-paint / 后续变更翻译显示文本
+其它 QWidget -> dirty-object queue               局部兜底，不能作为首帧保证
+```
+
+坏味道是把这些都交给 `scheduleInteractiveRefresh()` 或下一轮 run loop。那会提高“最终能翻译”的概率，但也把英文中间态暴露给用户。pre-paint 链路必须有 contract 锁住，例如 `check_app_contracts.js` 里的 lazy menu、dynamic QLabel/QLineEdit、ModalDialog 测试。
+
+### 4.7 English Dump-Only 模式（G-CAPTURE 关键能力）
 
 我们要的不只是"翻译给用户看"，还要"枚举完整英文 UI 分母"用于 G-X freeze。
 

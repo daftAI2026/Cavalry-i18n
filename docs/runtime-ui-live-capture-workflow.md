@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 tools/run_live_full_ui_matrix.js、injector/CavalryTranslatorInjector.mm 的 live inventory / cursorWidget / itemModels 诊断能力，以及 macOS Accessibility 窗口截图证据
-[OUTPUT]: 对外提供 Cavalry 运行中 UI 文本抓取、坐标反查、Qt item model 诊断、覆盖率复抓与 canary 验证流程
+[OUTPUT]: 对外提供 Cavalry 运行中 UI 文本抓取、坐标反查、Qt item model / JSON 数据复用 / ModalDialog 诊断、闪烁根因定位、覆盖率复抓与 canary 验证流程
 [POS]: docs 的运行时抓取主流程文档，连接 injector 诊断能力、语言资源同步和 audits 实跑报告
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -253,6 +253,80 @@ jq '.itemModels[] | select((.parentChain // []) | tostring | contains("QuickAddW
 4. `parentChain` 命中 `QuickAddWindow`：这是 Add Layers 面板，不要拿 Time Editor 规则解释它。
 
 2026-05-20 的 Add Layers 空白卡片就是第 3 类：`QuickAddWindow` 下 `QListWidget` 存在空标题 item。修复点是 injector 定点修剪空行，而不是删除 `nodeStrings` 或把 `niceName` 改中文。完整报告见 `docs/audits/add-layers-runtime-model-capture-2026-05-20.md`。
+
+## Time Editor 方框复盘
+
+Time Editor 右侧条带出现 `String Generator [0.□□□□□□]` 时，不要只盯着 `QListWidgetItem`、`QTreeWidgetItem` 或通用 `QAbstractItemView` role 写回。若 injector 已经覆盖 item/model 角色，但方框仍在，下一层要查 JSON 数据层是否先被本地化，然后被 Time Editor 自绘路径复用。
+
+2026-05-22 的 Apply Character Spacing 问题就是这个形态：
+
+```text
+红框 Qt/Attribute Editor:
+  Matches.0 -> 匹配.0
+  Match String -> 匹配字符串
+  Character Spacing -> 字符间距
+
+黄框 Time Editor:
+  String Generator [0.Match String] 必须保持英文
+```
+
+错误修法是把 `languages/*/nodeStrings.json` 里的 `pairs`、`pairs.matchString`、`pairs.spacing` 翻成 CJK，再试图在 Time Editor 末端把它们抢救回来。Time Editor 自绘条可能直接复用这些属性数据；一旦数据层已经是 `匹配字符串`，Latin-only renderer 只会画出方框。
+
+正确分层：
+
+```text
+JSON 数据层:
+  pairs = Matches
+  pairs.matchString = Match String
+  pairs.spacing = Character Spacing
+
+Qt 显示层:
+  由 tools/*.ts + injector 翻译为本地语言
+
+Time Editor 自绘层:
+  继续读取英文数据，不让 CJK 进入右侧条带
+```
+
+验收口径：
+
+1. `tools/translation-whitelist.json` 把 Time Editor 复用字段列入 `no_translate`。
+2. 三语言 `nodeStrings.json` 与 `en/` 在这些字段上保持英文一致。
+3. `tools/*.ts` 仍保留显示层翻译，避免红框回退英文。
+4. 合同测试同时断言 JSON 英文数据层、TS 显示层翻译、Time Editor 英文保护。
+
+经验规则：当同一个源词既出现在 Qt 面板又出现在 Time Editor 右侧条带时，先问“它是不是数据层字段”，再决定翻译位置。能在 TS/injector 显示层翻译的，就不要把 CJK 写回 JSON 数据层。
+
+## 判断“英文闪一下”的链路
+
+看到英文先出现再变成中文/日文时，先不要补词表，也不要假设所有闪烁同源。先抓真实 surface，再决定 pre-paint 注入点。
+
+已验证的三类：
+
+| 现场 | 抓取证据 | 不是 | 修复入口 |
+| --- | --- | --- | --- |
+| Composition 菜单项闪 | 打开前 Qt QAction 与打开后 AX 文本/enable 状态不一致 | 不是缺少 `Set Playback Range...` 词条 | `QMenu::aboutToShow` 同步 `translateMenuBeforeFirstPaint(...)` |
+| Scene View 图层名闪 | `EditableNodeName.text -> RowWidget -> SceneTreeWidget` | 不是 `QTreeModel DisplayRole`，也不是菜单 | `QEvent::Paint` 前同步翻译 `QLineEdit` |
+| 退出确认窗闪 | `ModalDialog`、`QLabel#qt_msgbox_label`、`QDialogButtonBox#qt_msgbox_buttonbox` | 不是 AppKit-only `NSAlert`，也不是 SceneTree | `QEvent::Show` 中同步翻译 `QDialog` |
+
+退出确认窗的 live inventory 形态应类似：
+
+```text
+ModalDialog.text                  -> 此檔案有未儲存的變更
+QLabel#qt_msgbox_label            -> 此檔案有未儲存的變更
+QLabel#qt_msgbox_informativelabel -> 要儲存變更嗎？
+QPushButton                       -> 捨棄 / 取消 / 儲存
+parentChain                       -> QDialogButtonBox#qt_msgbox_buttonbox -> ModalDialog
+```
+
+如果 inventory 已经是中文但肉眼仍看到一闪，说明词条存在且最终写回成功，问题仍是时机。下一步要追的是该 surface 的 `Show` / `Paint` / `aboutToShow` 前后，而不是继续补 `tools/*.ts`。
+
+查法：
+
+1. 用 screenshot 确定可见区域，但不要用截图当根因。
+2. 用 `widgetTexts` 查 className、objectName、parentChain、strings。
+3. 若 `widgetTexts` 没有行名，再开 `CAVALRY_I18N_DUMP_ITEM_MODELS=1` 查 item model role。
+4. 若 AX 只看到 `AXDialog`，同时 injector inventory 看到 `ModalDialog`，按 Qt dialog 处理，不按 AppKit alert 处理。
+5. 修完后加 `check_app_contracts.js` 合同锁住“首次绘制前”路径；只靠 live canary 不够。
 
 ## 判断是否抓对
 

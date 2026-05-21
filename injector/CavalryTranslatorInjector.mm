@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel/QTextEdit 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,6 +9,7 @@
 #import <Foundation/Foundation.h>
 
 #include <dispatch/dispatch.h>
+#include <dlfcn.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,8 +19,12 @@
 #include <qcoreapplication.h>
 #include <qfileinfo.h>
 #include <qglobal.h>
+#include <QtCore/qmetaobject.h>
 #include <QtGui/qaction.h>
 #include <QtGui/qcursor.h>
+#include <QtGui/QTextBlock>
+#include <QtGui/QTextCursor>
+#include <QtGui/QTextDocument>
 #include <QtCore/qabstractitemmodel.h>
 #include <QtWidgets/qabstractitemview.h>
 #include <QtWidgets/qabstractbutton.h>
@@ -41,6 +46,7 @@
 #include <QtWidgets/qtabbar.h>
 #include <QtWidgets/qtablewidget.h>
 #include <QtWidgets/qtabwidget.h>
+#include <QtWidgets/qtextedit.h>
 #include <QtWidgets/qtoolbar.h>
 #include <QtWidgets/qtoolbutton.h>
 #include <QtWidgets/qtreewidget.h>
@@ -1008,6 +1014,15 @@ void addWidgetPropertyString(NSMutableDictionary *strings, QWidget *widget, cons
     strings[[NSString stringWithUTF8String:propertyName]] = toNSString(value);
 }
 
+void addTextEditStrings(NSMutableDictionary *strings, QWidget *widget)
+{
+    QTextEdit *textEdit = qobject_cast<QTextEdit *>(widget);
+    if (textEdit == nullptr) {
+        return;
+    }
+    addStringValue(strings, @"plainText", textEdit->toPlainText());
+}
+
 NSArray *widgetParentChain(QWidget *widget)
 {
     NSMutableArray *chain = [NSMutableArray array];
@@ -1049,6 +1064,39 @@ NSArray *widgetDynamicProperties(QWidget *widget)
         [properties addObject:entry];
     }
     return properties;
+}
+
+NSString *metaMethodTypeName(QMetaMethod::MethodType methodType)
+{
+    switch (methodType) {
+    case QMetaMethod::Method:
+        return @"method";
+    case QMetaMethod::Signal:
+        return @"signal";
+    case QMetaMethod::Slot:
+        return @"slot";
+    case QMetaMethod::Constructor:
+        return @"constructor";
+    }
+    return @"unknown";
+}
+
+NSArray *widgetMetaObjectMethods(QWidget *widget)
+{
+    NSMutableArray *methods = [NSMutableArray array];
+    if (widget == nullptr) {
+        return methods;
+    }
+
+    const QMetaObject *metaObject = widget->metaObject();
+    for (int index = metaObject->methodOffset(); index < metaObject->methodCount() && [methods count] < 96; ++index) {
+        const QMetaMethod method = metaObject->method(index);
+        NSMutableDictionary *entry = [NSMutableDictionary dictionary];
+        entry[@"methodSignature"] = [NSString stringWithUTF8String:method.methodSignature().constData()];
+        entry[@"methodType"] = metaMethodTypeName(method.methodType());
+        [methods addObject:entry];
+    }
+    return methods;
 }
 
 bool shouldDumpItemModels()
@@ -1232,6 +1280,8 @@ bool shouldKeepDiagnosticWidget(QWidget *widget)
     if (className.contains(QStringLiteral("Attribute"), Qt::CaseInsensitive) ||
         className.contains(QStringLiteral("Editable"), Qt::CaseInsensitive) ||
         className.contains(QStringLiteral("LineEdit"), Qt::CaseInsensitive) ||
+        className.contains(QStringLiteral("MessageBar"), Qt::CaseInsensitive) ||
+        className.contains(QStringLiteral("LogMessage"), Qt::CaseInsensitive) ||
         className.contains(QStringLiteral("Rollover"), Qt::CaseInsensitive) ||
         className.contains(QStringLiteral("RowWidget"), Qt::CaseInsensitive)) {
         return true;
@@ -1311,6 +1361,7 @@ id serializeWidgetAtPoint(NSString *name, const QPoint &point)
     addWidgetPropertyString(strings, widget, "title");
     addWidgetPropertyString(strings, widget, "placeholderText");
     addWidgetPropertyString(strings, widget, "currentText");
+    addTextEditStrings(strings, widget);
     if ([strings count] > 0) {
         hit[@"strings"] = strings;
     }
@@ -1353,6 +1404,7 @@ id serializeWidget(QWidget *widget)
     addWidgetPropertyString(strings, widget, "title");
     addWidgetPropertyString(strings, widget, "placeholderText");
     addWidgetPropertyString(strings, widget, "currentText");
+    addTextEditStrings(strings, widget);
 
     if ([strings count] > 0) {
         payload[@"strings"] = strings;
@@ -1385,8 +1437,13 @@ id serializeWidget(QWidget *widget)
         payload[@"actionTexts"] = actionTexts;
     }
 
+    const bool keepDiagnosticWidget = shouldKeepDiagnosticWidget(widget);
+    if (keepDiagnosticWidget) {
+        payload[@"metaObjectMethods"] = widgetMetaObjectMethods(widget);
+    }
+
     if (payload[@"strings"] == nil && payload[@"tabTexts"] == nil && payload[@"actionTexts"] == nil &&
-        !shouldKeepDiagnosticWidget(widget)) {
+        !keepDiagnosticWidget) {
         return [NSNull null];
     }
 
@@ -2050,6 +2107,131 @@ void hookLineEditTextChanges(QLineEdit *lineEdit, const QString &lang)
     translateLineEditDisplayText(lineEdit, lang);
 }
 
+QString translatedLogTextBlock(const QString &lang, const QString &sourceText)
+{
+    const QString normalized = normalizeMenuText(sourceText);
+    if (normalized.isEmpty()) {
+        return QString();
+    }
+
+    const QString direct = translatedWidgetText(lang, normalized);
+    if (!direct.isEmpty() && direct != normalized) {
+        return direct;
+    }
+
+    const QRegularExpressionMatch match =
+        QRegularExpression(QStringLiteral("^(\\[[^\\]]+\\]\\s*\\[[^\\]]+\\]\\s*)(.+)$")).match(normalized);
+    if (!match.hasMatch()) {
+        return QString();
+    }
+
+    const QString message = match.captured(2).trimmed();
+    const QString translatedMessage = translatedWidgetText(lang, message);
+    if (translatedMessage.isEmpty() || translatedMessage == message) {
+        return QString();
+    }
+    return match.captured(1) + translatedMessage;
+}
+
+QString translatedTextEditAppendText(const QString &lang, const QString &sourceText)
+{
+    if (lang.isEmpty() || sourceText.isEmpty()) {
+        return QString();
+    }
+
+    const QString direct = translatedWidgetText(lang, sourceText);
+    if (!direct.isEmpty() && direct != sourceText) {
+        return direct;
+    }
+
+    const QRegularExpressionMatch htmlBreakMatch =
+        QRegularExpression(QStringLiteral("([\\s\\S]*<br\\s*/?>\\s*)([^<]+)(\\s*)$"),
+                           QRegularExpression::CaseInsensitiveOption)
+            .match(sourceText);
+    if (htmlBreakMatch.hasMatch()) {
+        const QString message = normalizeMenuText(htmlBreakMatch.captured(2));
+        const QString translatedMessage = translatedWidgetText(lang, message);
+        if (!translatedMessage.isEmpty() && translatedMessage != message) {
+            return htmlBreakMatch.captured(1) + translatedMessage + htmlBreakMatch.captured(3);
+        }
+    }
+
+    const QString logBlock = translatedLogTextBlock(lang, sourceText);
+    if (!logBlock.isEmpty() && logBlock != sourceText) {
+        return logBlock;
+    }
+
+    return QString();
+}
+
+void translateTextEditDocument(QTextEdit *textEdit, const QString &lang)
+{
+    if (textEdit == nullptr || lang.isEmpty() || textEdit->property("_cavalryI18nTextEditTranslating").toBool()) {
+        return;
+    }
+
+    QTextDocument *document = textEdit->document();
+    if (document == nullptr || document->isEmpty()) {
+        return;
+    }
+
+    textEdit->setProperty("_cavalryI18nTextEditTranslating", true);
+    QSignalBlocker blocker(textEdit);
+    for (QTextBlock block = document->begin(); block.isValid();) {
+        QTextBlock next = block.next();
+        const QString translated = translatedLogTextBlock(lang, block.text());
+        if (!translated.isEmpty() && translated != block.text()) {
+            QTextCursor cursor(block);
+            cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
+            cursor.insertText(translated);
+        }
+        block = next;
+    }
+    textEdit->setProperty("_cavalryI18nTextEditTranslating", false);
+}
+
+QTextEdit *textEditForObject(QObject *object)
+{
+    if (object == nullptr) {
+        return nullptr;
+    }
+    if (QTextEdit *textEdit = qobject_cast<QTextEdit *>(object)) {
+        return textEdit;
+    }
+    return qobject_cast<QTextEdit *>(object->parent());
+}
+
+using QTextEditAppendFunction = void (*)(QTextEdit *, const QString &);
+
+QTextEditAppendFunction originalQTextEditAppend()
+{
+    static QTextEditAppendFunction original =
+        reinterpret_cast<QTextEditAppendFunction>(dlsym(RTLD_NEXT, "__ZN9QTextEdit6appendERK7QString"));
+    return original;
+}
+
+void replacementQTextEditAppend(QTextEdit *textEdit, const QString &text)
+{
+    QTextEditAppendFunction original = originalQTextEditAppend();
+    if (original == nullptr) {
+        return;
+    }
+
+    const QString translated = translatedTextEditAppendText(readEnvVar("CAVALRY_I18N_LANG"), text);
+    original(textEdit, translated.isEmpty() ? text : translated);
+}
+
+extern "C" void qtTextEditAppendInterposeTarget(QTextEdit *, const QString &)
+    __asm("__ZN9QTextEdit6appendERK7QString");
+
+__attribute__((used)) static struct {
+    const void *replacement;
+    const void *replacee;
+} kQTextEditAppendInterpose __attribute__((section("__DATA,__interpose"))) = {
+    reinterpret_cast<const void *>(replacementQTextEditAppend),
+    reinterpret_cast<const void *>(qtTextEditAppendInterposeTarget),
+};
+
 void translateQtWidgetActions(QWidget *widget, const QString &lang, QSet<QAction *> &seen)
 {
     if (widget == nullptr || lang.isEmpty()) {
@@ -2163,6 +2345,10 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
 
     if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(widget)) {
         hookLineEditTextChanges(lineEdit, lang);
+    }
+
+    if (QTextEdit *textEdit = qobject_cast<QTextEdit *>(widget)) {
+        translateTextEditDocument(textEdit, lang);
     }
 
     if (QAbstractItemView *itemView = qobject_cast<QAbstractItemView *>(widget)) {
@@ -2473,12 +2659,20 @@ protected:
 
         switch (event->type()) {
         case QEvent::Paint:
+            if (QTextEdit *textEdit = textEditForObject(watched)) {
+                translateRuntimeObject(textEdit, m_lang);
+                break;
+            }
             if (qobject_cast<QLabel *>(watched) != nullptr ||
                 qobject_cast<QLineEdit *>(watched) != nullptr) {
                 translateRuntimeObject(watched, m_lang);
             }
             break;
         case QEvent::Show:
+            if (QTextEdit *textEdit = textEditForObject(watched)) {
+                translateRuntimeObject(textEdit, m_lang);
+                break;
+            }
             if (QMenu *menu = qobject_cast<QMenu *>(watched)) {
                 translateMenuBeforeFirstPaint(menu, m_lang, true);
                 break;
