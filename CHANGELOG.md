@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contract Assertion Updates**: Extended contract tests in `tools/check_app_contracts.js` to strictly enforce translation accuracy for the fourth batch of 9 attribute labels.
 
 ### Changed
+- **GEB Document Mapping for Workspace Workflows and UI Assets**: Updated file entries mapping `translation-backlog-template.csv` in `docs/workflows/cavalry-full-ui-100/CLAUDE.md`, and added entries for high-definition Japanese/Traditional Chinese UI screenshots (`ui-ja_JP-cls.png`, `ui-ja_JP.png`, `ui-zh-Hant.png`) in `docs/img/CLAUDE.md`.
 - **Canva Authentication Translations**: Corrected and refined translation entries for Canva authentication and usage data sharing screens in Simplified Chinese (`tools/zh-Hans.ts`), Traditional Chinese (`tools/zh-Hant.ts`), and Japanese (`tools/ja_JP.ts`), ensuring brand words (Canva/Cavalry) are preserved intact and cleaning up previous Sign-in/Signing out mistranslations.
 - **Embedded Translation Table Synchronizer**: Updated compiled injector tables `injector/generated_translations.inc` and recompiled dynamic library `injector/libCavalryTranslatorInjector.dylib` to embed the newly refined Canva authentication translations.
 - **GEB Document Mapping for Canva Copy**: Updated L2 module map `tools/CLAUDE.md` and `check_app_contracts.js` L3 header to register the Canva authentication copy contract.

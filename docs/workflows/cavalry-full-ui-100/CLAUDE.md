@@ -10,6 +10,7 @@
 - TODO.md: 当前实现缺口与任务顺序
 - Anti-Patterns.md: fixture/curated、伪翻译、分母缩水三类反绕过档案
 - ChatlogRef.md: 审查证据留档（非规范真相源）
+- translation-backlog-template.csv: 翻译积压工作模板，为三语翻译项梳理提供结构化表格。
 - tests/: 契约文档目录
 - runs/: 运行记录目录
 - prompts/: 分步执行指令目录
