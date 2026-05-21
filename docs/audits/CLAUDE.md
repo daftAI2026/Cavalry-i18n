@@ -6,6 +6,7 @@ add-layer-localized-search-2026-05-21.md: Add Layer 本地化搜索审计报告�
 add-layers-runtime-model-capture-2026-05-20.md: Add Layers 空白卡片与标签空白审计报告，记录 QuickAddWindow item model dump、空 DisplayRole 根因、tag source token 边界与 Time Editor niceName 保护线。
 audit_report.md: Runtime UI Tail Cleanup 深度代码审查，覆盖 TS 数据层验证、injector 根因分析与 aboutToShow 竞态修复路径。
 codex-thread-handoff-runtime-i18n-2026-05-20.md: 本轮 Codex 长对话交接压缩，记录 Time Editor 英文保护、ExtensionLayer CJK 边界、runtime-generated 属性标签补译、Add Layers 空白卡片、噪声隔离、验证结果与安装态同步阻塞。
+composition-menu-lazy-action-flicker-2026-05-21.md: Composition 菜单 lazy QAction 闪烁审计报告，记录打开前 Qt 占位状态、英文 AX 打开后状态、误判修正、aboutToShow 同步 pre-paint 修复与后续 QAction::changed guard。
 runtime-refresh-performance-2026-05-21.md: Runtime 刷新性能审计报告，记录点击闪烁根因、交互全局刷新证据、dirty-object 算法方案、inventory gate 与后续 roadmap 入口。
 runtime-translation-noise-triage-2026-05-19.md: 2026-05-19 运行时翻译噪声分诊审计报告，覆盖 20 个可疑 token（如 Rhu、Rfr）的排查结论与证据链。
 runtime-ui-tail-cleanup-run-2026-05-16.md: Runtime UI 收尾清理实跑记录，记录 zh-Hans live capture、FIX1/FIX2 对比、根因修复与残留分类。状态 BLOCKED。
