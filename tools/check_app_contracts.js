@@ -1087,6 +1087,11 @@ test('embedded injector handles dynamic layer context menu labels without static
   );
   assert.match(
     injectorSource,
+    /offlineAuthPattern[\s\S]{0,180}\[0-9\]\+[\s\S]{0,120}days/,
+    'dynamic fallback should translate offline re-authentication countdown labels without hard-coding the remaining day count'
+  );
+  assert.match(
+    injectorSource,
     /endsWith\(QStringLiteral\(":"\)\)[\s\S]{0,220}left\(normalizedSource\.size\(\) - 1\)/,
     'dynamic fallback should translate colon-suffixed labels like Looping: from the existing bare Looping entry'
   );
@@ -2486,6 +2491,16 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     zhHansTs,
     /<source>&lt;i&gt;Click to see next message&lt;\/i&gt;<\/source>\s*<translation>&lt;i&gt;点击查看下一条消息&lt;\/i&gt;<\/translation>/,
     'Tips panel HTML labels should be translated as exact runtime widget strings'
+  );
+  assert.match(
+    zhHantTs,
+    /<source>&lt;i&gt;Click to see next message&lt;\/i&gt;<\/source>\s*<translation>&lt;i&gt;點擊查看下一則訊息&lt;\/i&gt;<\/translation>/,
+    'Traditional Chinese Tips panel HTML labels should not fall back to the bare text entry'
+  );
+  assert.match(
+    jaTs,
+    /<source>&lt;i&gt;Click to see next message&lt;\/i&gt;<\/source>\s*<translation>&lt;i&gt;クリックして次のメッセージを表示&lt;\/i&gt;<\/translation>/,
+    'Japanese Tips panel HTML labels should not fall back to the bare text entry'
   );
   for (const [source, zhHans, zhHant, ja] of [
     ['Copy Animated Attribute', '复制动画属性', '複製動畫屬性', 'アニメーション属性をコピー'],

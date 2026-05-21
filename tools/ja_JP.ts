@@ -7914,6 +7914,10 @@
       <translation>クリックして次のメッセージを表示</translation>
     </message>
     <message>
+      <source>&lt;i&gt;Click to see next message&lt;/i&gt;</source>
+      <translation>&lt;i&gt;クリックして次のメッセージを表示&lt;/i&gt;</translation>
+    </message>
+    <message>
       <source>Strength</source>
       <translation>強度</translation>
     </message>

@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Offline Re-authentication Countdown Translation**: Implemented `offlineAuthPattern` regex matching in the injector (`CavalryTranslatorInjector.mm`) to dynamically translate Cavalry's offline re-authentication countdown status messages (`"Cavalry is offline. You will need to re-authenticate in less than <n> days."`) across Simplified Chinese, Traditional Chinese, and Japanese, dynamically preserving the remaining days placeholder.
+- **Traditional Chinese and Japanese Tips Translation**: Added exact translations for the HTML-tagged `<i>Click to see next message</i>` source in Traditional Chinese (`tools/zh-Hant.ts`) and Japanese (`tools/ja_JP.ts`) language catalogs to prevent fallback issues.
+- **Offline Re-auth and Tips Contract Verification**: Added contract assertions in `tools/check_app_contracts.js` to strictly verify the regex-based dynamic offline authentication countdown matching and check the exact HTML-tagged Tips translations in the Traditional Chinese and Japanese compiled resources.
 - **Lazy QMenu Synchronous Translation**: Implemented `translateMenuBeforeFirstPaint` in the injector (`CavalryTranslatorInjector.mm`) to intercept QMenu `ActionAdded` and `Show` events. This translates lazy-loaded submenus synchronously *before* they are painted on screen, bypassing debounce-delayed refresh and eliminating the visual flash of English menu texts.
 - **Contract Verification for Lazy Menus**: Added contract assertions in `tools/check_app_contracts.js` to strictly enforce synchronous translation on QMenu pre-paint events.
 - **Roadmap Search Interface Classification**: Added a dedicated "Search Interface Classification" section to `docs/roadmap/localized-search-index.md` classifying search boxes (QuickAdd, Assets, Layer list, Attribute Editor) and establishing constraints to isolate user-facing dynamic fields from system search mappings.
@@ -30,6 +33,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contract Assertion Updates**: Extended contract tests in `tools/check_app_contracts.js` to strictly enforce translation accuracy for the fourth batch of 9 attribute labels.
 
 ### Changed
+- **GEB Document Sync & L2 Logging for Re-auth**: Synchronized L2 maps `tools/CLAUDE.md` and `injector/CLAUDE.md` as well as the L3 header inside `CavalryTranslatorInjector.mm` to reflect the newly integrated dynamic offline countdown translation logic and HTML-tagged Tips translations.
+- **Recompiled Injector Dylib & Generated Tables**: Updated compiler table `injector/generated_translations.inc` and recompiled the dynamic library `injector/libCavalryTranslatorInjector.dylib` to embed the dynamic offline countdown translation and correct the compiled static assets.
 - **GEB Document Sync & L2 Logging**: Synchronized L2 maps in `tools/CLAUDE.md` and `injector/CLAUDE.md` to record the lazy QMenu translation hooks, contract assertions, and compiled dylib updates.
 - **Precompiled Injector Dylib**: Rebuilt and updated the universal binary `injector/libCavalryTranslatorInjector.dylib` with the new synchronous QMenu event translation hooks.
 - **Updated UI Localized Screenshots**: Updated high-definition localized interface screenshots (`docs/img/ui-zh-Hans.png` and `docs/img/ui-zh-Hant.png`).

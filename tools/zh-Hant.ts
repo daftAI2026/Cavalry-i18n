@@ -6689,6 +6689,10 @@
       <translation>點擊查看下一則訊息</translation>
     </message>
     <message>
+      <source>&lt;i&gt;Click to see next message&lt;/i&gt;</source>
+      <translation>&lt;i&gt;點擊查看下一則訊息&lt;/i&gt;</translation>
+    </message>
+    <message>
       <source>Strength</source>
       <translation>強度</translation>
     </message>
