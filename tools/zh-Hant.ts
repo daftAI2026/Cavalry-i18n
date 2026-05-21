@@ -4590,6 +4590,18 @@
       <translation>套用字元間距</translation>
     </message>
     <message>
+      <source>Matches</source>
+      <translation>匹配</translation>
+    </message>
+    <message>
+      <source>Match String</source>
+      <translation>匹配字元串</translation>
+    </message>
+    <message>
+      <source>Character Spacing</source>
+      <translation>字元間距</translation>
+    </message>
+    <message>
       <source>Apply Font Size</source>
       <translation>套用字型大小</translation>
     </message>

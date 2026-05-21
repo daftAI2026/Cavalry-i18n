@@ -6001,6 +6001,18 @@
       <translation>文字間隔を適用</translation>
     </message>
     <message>
+      <source>Matches</source>
+      <translation>マッチ</translation>
+    </message>
+    <message>
+      <source>Match String</source>
+      <translation>マッチ文字列</translation>
+    </message>
+    <message>
+      <source>Character Spacing</source>
+      <translation>文字間隔</translation>
+    </message>
+    <message>
       <source>Apply Font Size</source>
       <translation>フォントサイズを適用</translation>
     </message>

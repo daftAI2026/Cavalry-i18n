@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName 与 Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 与 QLineEdit 首次绘制前显示翻译、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -379,7 +379,7 @@ test('embedded injector translates visible Qt widget text beyond menus', () => {
   );
 });
 
-test('embedded injector translates dynamic QLabel text before repaint', () => {
+test('embedded injector translates dynamic QLabel and QLineEdit text before repaint', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
@@ -387,8 +387,8 @@ test('embedded injector translates dynamic QLabel text before repaint', () => {
 
   assert.match(
     injectorSource,
-    /QEvent::Paint[\s\S]{0,320}qobject_cast<QLabel \*>\(watched\)[\s\S]{0,320}translateRuntimeObject/,
-    'attribute editor floating titles reuse QLabel/RolloverLabel instances and can change text after startup, so repaint must translate them before they draw'
+    /QEvent::Paint[\s\S]{0,360}qobject_cast<QLabel \*>\(watched\)[\s\S]{0,180}qobject_cast<QLineEdit \*>\(watched\)[\s\S]{0,220}translateRuntimeObject/,
+    'attribute editor floating titles and SceneTree EditableNodeName rows can change text after startup, so repaint must translate them before they draw'
   );
   assert.match(
     injectorSource,
@@ -736,6 +736,72 @@ test('model-backed niceName text stays English for Time Editor and item-model re
         readJson(path.join(pluginDir, file)),
         readJson(path.join(repoRoot, 'languages', language, 'plugins', file)),
         `${language}/plugins/${file}`
+      );
+    }
+  }
+});
+
+test('Time Editor reused Apply Character Spacing pair labels stay English in JSON data', () => {
+  const englishNodes = readJson(path.join(repoRoot, 'languages', 'en', 'nodeStrings.json'));
+  const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
+  const expectedPairs = {
+    pairs: 'Matches',
+    'pairs.matchString': 'Match String',
+    'pairs.spacing': 'Character Spacing',
+  };
+
+  for (const key of Object.keys(expectedPairs)) {
+    assert(
+      whitelist.nodeStrings.no_translate.includes(key),
+      `nodeStrings.${key} should be no_translate because Cavalry reuses it in Time Editor item names`
+    );
+  }
+
+  const findNode = (nodes) =>
+    nodes.flatMap((section) => section.values || []).find((node) => node.nodeType === 'applyCharacterSpacing');
+
+  for (const language of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    const englishNode = findNode(englishNodes);
+    const localizedNode = findNode(readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json')));
+    assert(englishNode, 'English applyCharacterSpacing nodeStrings entry should exist');
+    assert(localizedNode, `${language} applyCharacterSpacing nodeStrings entry should exist`);
+    for (const [key, value] of Object.entries(expectedPairs)) {
+      assert.equal(englishNode.attributes[key], value, `en applyCharacterSpacing.attributes.${key}`);
+      assert.equal(
+        localizedNode.attributes[key],
+        value,
+        `${language} applyCharacterSpacing.attributes.${key} should stay English because Cavalry reuses it in Time Editor item names`
+      );
+    }
+  }
+
+  const expectedDisplayTranslations = {
+    'zh-Hans': {
+      Matches: '匹配',
+      'Match String': '匹配字符串',
+      'Character Spacing': '字符间距',
+    },
+    'zh-Hant': {
+      Matches: '匹配',
+      'Match String': '匹配字元串',
+      'Character Spacing': '字元間距',
+    },
+    ja_JP: {
+      Matches: 'マッチ',
+      'Match String': 'マッチ文字列',
+      'Character Spacing': '文字間隔',
+    },
+  };
+
+  for (const [language, entries] of Object.entries(expectedDisplayTranslations)) {
+    const ts = fs.readFileSync(path.join(repoRoot, 'tools', `${language}.ts`), 'utf8');
+    for (const [source, translation] of Object.entries(entries)) {
+      const escapedSource = source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedTranslation = translation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      assert.match(
+        ts,
+        new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${escapedTranslation}<\\/translation>`),
+        `${language} TS display layer should translate ${source}`
       );
     }
   }

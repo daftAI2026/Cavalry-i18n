@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **SceneTree EditableNodeName Pre-Paint Translation**: Extended `QLineEdit` to the `QEvent::Paint` first-draw synchronous translation loop in the injector (`CavalryTranslatorInjector.mm`), completely eliminating the visual flicker where row item names in SceneTree briefly flashed in English before showing CJK.
+- **Time Editor Reused Node Property Data Protection Contract**: Integrated contract checks in `tools/check_app_contracts.js` that audit three-language (`zh-Hans`, `zh-Hant`, `ja_JP`) JSON data files, asserting that `pairs`, `pairs.matchString`, and `pairs.spacing` under the `applyCharacterSpacing` node remain English in the data layer while being fully translated on the display layer via the injector.
+
+### Changed
+- **Apply Character Spacing Data Protection**: Reverted the attributes `pairs`, `pairs.matchString`, and `pairs.spacing` in language JSON packs back to English, and registered them into the `no_translate` array in `tools/translation-whitelist.json` to shield Time Editor layer names from CJK characters, preventing "tofu" block (`?` / CJK square boxes) rendering in Latin-only Canvas drawing contexts.
+- **Display Layer Translation Offloading**: Offloaded display layer translation for the Apply Character Spacing parameters (*Matches* / *Match String* / *Character Spacing*) to the compiled UI TS catalogs (`zh-Hans.ts`, `zh-Hant.ts`, `ja_JP.ts`) and injected translation table (`injector/generated_translations.inc`), ensuring perfect localization on UI labels while maintaining pristine English data states.
+- **GEB Document Mapping Sync**: Updated L2 module maps in `injector/CLAUDE.md`, `languages/CLAUDE.md`, and `tools/CLAUDE.md` to document the new `QLineEdit` repaint interceptor and the Apply Character Spacing English-protection protocol.
+
 ## [0.4.0] - 2026-05-21
 
 ### Added

@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、Qt ABI-safe accessibility 探测、ExtensionLayer 保留英文且不注册空补丁、aboutToShow/ActionAdded/Show QMenu 首次绘制前同步翻译、动态 QLabel 浮动标题、运行时生成图层名、Canva 登录态品牌词、认证倒计时状态句、Tips 富文本标签、冒号与 No-prefix 标签兜底、Forge 动力学术语、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
+check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、Qt ABI-safe accessibility 探测、ExtensionLayer 保留英文且不注册空补丁、Time Editor 复用图层名数据英文保护、aboutToShow/ActionAdded/Show QMenu 首次绘制前同步翻译、动态 QLabel 浮动标题与 QLineEdit 行名首次绘制前翻译、运行时生成图层名、Canva 登录态品牌词、认证倒计时状态句、Tips 富文本标签、冒号与 No-prefix 标签兜底、Forge 动力学术语、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸与 bridge 能力。
@@ -33,7 +33,7 @@ validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 sou
 forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。
 forbidden_translation_patterns.js: Node 共享 forbidden-pattern detector，供 runtime/full-ui gate 与契约测试复用 FP-1/2/3/4/5/7/8/9/10/11。
 forbidden_translation_patterns.json: §P5 detector 配置，集中声明正则、source/context denylist、latin residue、transliteration 与 pangram 规则。
-translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、模型 niceName 英文保留、FP-10/11/12 whitelist 契约与 G-X denominator filter，含颜色名与 Unicode script 交集剔除 provenance。
+translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、模型 niceName 与 Time Editor 复用属性英文保留、FP-10/11/12 whitelist 契约与 G-X denominator filter，含颜色名与 Unicode script 交集剔除 provenance。
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
@@ -78,5 +78,7 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-21: `CavalryTranslatorInjector.mm` 增加离线重认证倒计时动态翻译，保留剩余天数；`tools/zh-Hant.ts` 与 `tools/ja_JP.ts` 补齐 Tips 面板 `<i>Click to see next message</i>` 富文本源。
 2026-05-21: `CavalryTranslatorInjector.mm` 将 `QMenu::aboutToShow` 收敛到同步首次绘制前菜单翻译链路，避免 Composition 菜单中运行时重置的 QAction 先显示英文再翻译；`check_app_contracts.js` 锁定该合同。
 2026-05-21: `tools/*.ts` 修正 Canva 登录态三语文案，保留 Canva/Cavalry 品牌词并清理 Sign-in/Signing out 误译；`check_app_contracts.js` 增加品牌词合同，`generated_translations.inc` 同步再生成。
+2026-05-21: `CavalryTranslatorInjector.mm` 将 QLineEdit 纳入 `QEvent::Paint` 首次绘制前同步翻译链路，覆盖 SceneTree `EditableNodeName` 行名英文先画再翻译的问题；`check_app_contracts.js` 锁定该合同。
+2026-05-21: `translation-whitelist.json` 将 Apply Character Spacing 的 `pairs.*` 标记为 no_translate 数据字段，`check_app_contracts.js` 锁定对应 JSON 英文保护，避免 `Match String` 等属性标签被 Time Editor 复用后在右侧自绘条显示 CJK 方块；三份 TS 承接显示层翻译。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

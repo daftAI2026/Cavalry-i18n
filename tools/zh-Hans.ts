@@ -4645,6 +4645,18 @@
       <translation>应用字符间距</translation>
     </message>
     <message>
+      <source>Matches</source>
+      <translation>匹配</translation>
+    </message>
+    <message>
+      <source>Match String</source>
+      <translation>匹配字符串</translation>
+    </message>
+    <message>
+      <source>Character Spacing</source>
+      <translation>字符间距</translation>
+    </message>
+    <message>
       <source>Apply Font Size</source>
       <translation>应用字体大小</translation>
     </message>
