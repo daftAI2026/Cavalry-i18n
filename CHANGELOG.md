@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-05-21
+
 ### Added
 - **Canva Brand Protection Contract**: Added contract assertions in `tools/check_app_contracts.js` (`Canva authentication copy preserves brand names across runtime translations`) to strictly verify that Canva login-related runtime translations preserve both "Canva" and "Cavalry" brand names and accurately map localized strings across Simplified Chinese, Traditional Chinese, and Japanese.
 - **Synchronous aboutToShow QMenu Translation Contract**: Added contract assertions in `tools/check_app_contracts.js` to strictly verify that `QMenu::aboutToShow` triggers synchronous pre-paint translation via `translateMenuBeforeFirstPaint` and does *not* utilize `CFRunLoopPerformBlock` deferral, preventing visible English-to-localized text flicker on dynamic menus.
@@ -270,4 +272,3 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 4-language support: English, Simplified Chinese, Traditional Chinese, Japanese.
 - Translation validation pipeline with `validate_translations.py`.
 - Electron-builder DMG packaging with custom icon.
-

@@ -1,6 +1,6 @@
 [package]
 name = "cavalry-i18n-tauri"
-version = "0.3.0"
+version = "0.4.0"
 description = "Tauri shell for Cavalry-i18n"
 edition = "2021"
 
