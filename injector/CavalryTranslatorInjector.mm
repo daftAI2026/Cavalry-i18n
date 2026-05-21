@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号显示名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 首次绘制前与后续文本显示翻译、模型 niceName item 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 首次绘制前与后续文本显示翻译、模型 niceName/Time Editor 动态 item 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -151,6 +151,9 @@ bool shouldPreserveModelBackedItemText(QWidget *owner, const QString &sourceText
     }
 
     QString source = normalizeMenuText(sourceText);
+    if (QRegularExpression(QStringLiteral("\\[[0-9]+\\.[^\\]]+\\]")).match(source).hasMatch()) {
+        return true;
+    }
     source.remove(QRegularExpression(QStringLiteral("\\s+[0-9]+$")));
     source = source.trimmed();
     if (source.isEmpty()) {
@@ -1660,8 +1663,10 @@ void hookQtMenus(const QString &lang)
 }
 
 QString translatedCompoundWidgetText(const QString &lang, const QString &sourceText);
+QString translatedDynamicBracketLayerName(const QString &lang, const QString &sourceText, bool forceEnglish);
 QString translatedGeneratedLayerName(const QString &lang, const QString &sourceText);
 QString translatedMixedNoPrefixText(const QString &lang, const QString &sourceText);
+QString timeEditorSafeItemText(const QString &lang, const QString &sourceText);
 
 QString translatedWidgetText(const QString &lang, const QString &sourceText)
 {
@@ -1672,7 +1677,10 @@ QString translatedWidgetText(const QString &lang, const QString &sourceText)
             return noPrefixTranslation;
         }
 
-        QRegularExpressionMatch match = QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
+        QRegularExpressionMatch match = QRegularExpression(QStringLiteral("^(.*?)(\\.[0-9]+)$")).match(sourceText);
+        if (!match.hasMatch()) {
+            match = QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
+        }
         if (!match.hasMatch()) {
             return QString();
         }
@@ -1691,6 +1699,11 @@ QString translatedCompoundWidgetText(const QString &lang, const QString &sourceT
     const QString translated = lookupEmbeddedTranslation(lang, sourceText);
     if (!translated.isEmpty() && translated != sourceText) {
         return translated;
+    }
+
+    const QString dynamicLayerName = translatedDynamicBracketLayerName(lang, sourceText, false);
+    if (!dynamicLayerName.isEmpty() && dynamicLayerName != sourceText) {
+        return dynamicLayerName;
     }
 
     const QString generatedLayerName = translatedGeneratedLayerName(lang, sourceText);
@@ -1722,6 +1735,117 @@ QString translatedCompoundWidgetText(const QString &lang, const QString &sourceT
     }
 
     return translatedLines.join(QChar('\n'));
+}
+
+QString sourceTextForDisplayText(const QString &lang, const QString &displayText)
+{
+    const QString normalizedDisplayText = normalizeMenuText(displayText);
+    if (normalizedDisplayText.isEmpty()) {
+        return QString();
+    }
+
+    int count = 0;
+    const TranslationEntry *entries = entriesForLanguage(lang, &count);
+    if (entries == nullptr) {
+        return QString();
+    }
+
+    for (int index = 0; index < count; ++index) {
+        const QString source = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
+        if (source == normalizedDisplayText) {
+            return source;
+        }
+    }
+    for (int index = 0; index < count; ++index) {
+        const QString translation = normalizeMenuText(QString::fromUtf8(entries[index].translation));
+        if (translation == normalizedDisplayText) {
+            return normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
+        }
+    }
+
+    return QString();
+}
+
+QString translatedNameWithNumericSuffix(const QString &lang, const QString &sourceText)
+{
+    const QString direct = lookupEmbeddedTranslation(lang, sourceText);
+    if (!direct.isEmpty() && direct != sourceText) {
+        return direct;
+    }
+
+    const QRegularExpressionMatch match =
+        QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
+    if (!match.hasMatch()) {
+        return QString();
+    }
+
+    const QString base = match.captured(1).trimmed();
+    const QString baseTranslation = lookupEmbeddedTranslation(lang, base);
+    if (baseTranslation.isEmpty() || baseTranslation == base) {
+        return QString();
+    }
+    return baseTranslation + match.captured(2);
+}
+
+QString sourceNameWithNumericSuffix(const QString &lang, const QString &displayText)
+{
+    const QString direct = sourceTextForDisplayText(lang, displayText);
+    if (!direct.isEmpty()) {
+        return direct;
+    }
+
+    const QRegularExpressionMatch match =
+        QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(displayText);
+    if (!match.hasMatch()) {
+        return QString();
+    }
+
+    const QString base = match.captured(1).trimmed();
+    const QString baseSource = sourceTextForDisplayText(lang, base);
+    if (baseSource.isEmpty()) {
+        return QString();
+    }
+    return baseSource + match.captured(2);
+}
+
+QString translatedDynamicBracketLayerName(const QString &lang, const QString &sourceText, bool forceEnglish)
+{
+    const QString source = normalizeMenuText(sourceText);
+    const QRegularExpression pattern(QStringLiteral("^(.*?)\\s+\\[([0-9]+)\\.([^\\]]+)\\]$"));
+    const QRegularExpressionMatch match = pattern.match(source);
+    if (!match.hasMatch()) {
+        return QString();
+    }
+
+    const QString prefix = match.captured(1).trimmed();
+    const QString index = match.captured(2);
+    const QString bracketLabel = match.captured(3).trimmed();
+    if (prefix.isEmpty() || index.isEmpty() || bracketLabel.isEmpty()) {
+        return QString();
+    }
+
+    if (forceEnglish) {
+        const QString sourcePrefix = sourceNameWithNumericSuffix(lang, prefix);
+        const QString sourceLabel = sourceTextForDisplayText(lang, bracketLabel);
+        const QString safePrefix = !sourcePrefix.isEmpty() ? sourcePrefix : prefix;
+        const QString safeLabel = !sourceLabel.isEmpty() ? sourceLabel : bracketLabel;
+        return QStringLiteral("%1 [%2.%3]").arg(safePrefix, index, safeLabel);
+    }
+
+    const QString translatedPrefix = translatedNameWithNumericSuffix(lang, prefix);
+    const QString translatedLabel = lookupEmbeddedTranslation(lang, bracketLabel);
+    const QString displayPrefix = !translatedPrefix.isEmpty() ? translatedPrefix : prefix;
+    const QString displayLabel =
+        (!translatedLabel.isEmpty() && translatedLabel != bracketLabel) ? translatedLabel : bracketLabel;
+    if (displayPrefix == prefix && displayLabel == bracketLabel) {
+        return QString();
+    }
+    return QStringLiteral("%1 [%2.%3]").arg(displayPrefix, index, displayLabel);
+}
+
+QString timeEditorSafeItemText(const QString &lang, const QString &sourceText)
+{
+    return translatedDynamicBracketLayerName(lang, sourceText, true);
 }
 
 QString translatedGeneratedLayerName(const QString &lang, const QString &sourceText)
@@ -1794,6 +1918,10 @@ void translateListWidgetItems(QListWidget *listWidget, const QString &lang)
         }
         const QString source = item->text();
         if (shouldPreserveModelBackedItemText(listWidget, source)) {
+            const QString safeText = timeEditorSafeItemText(lang, source);
+            if (!safeText.isEmpty() && safeText != source) {
+                item->setText(safeText);
+            }
             continue;
         }
         const QString translated = translatedWidgetText(lang, source);
@@ -1811,6 +1939,10 @@ void translateTreeWidgetItem(QTreeWidget *owner, QTreeWidgetItem *item, const QS
     for (int column = 0; column < item->columnCount(); ++column) {
         const QString source = item->text(column);
         if (shouldPreserveModelBackedItemText(owner, source)) {
+            const QString safeText = timeEditorSafeItemText(lang, source);
+            if (!safeText.isEmpty() && safeText != source) {
+                item->setText(column, safeText);
+            }
             continue;
         }
         const QString translated = translatedWidgetText(lang, source);

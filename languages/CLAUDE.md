@@ -8,7 +8,7 @@ zh-Hant/: 繁体中文语言包，覆盖 38 个 JSON surface，保持繁体术�
 ja_JP/: 日文语言包，覆盖 38 个 JSON surface，遵守カタカナ优先、API 技术字段与模型 niceName 原样、零混合语言原则。
 
 依赖边界:
-JSON 语言包不承载代码逻辑；运行时复制边界由 `src-tauri/src/patch.rs` 的 `CORE_MAP`、`PLUGIN_DEFINITION_MAP` 与插件 strings 发现共同决定。字段是否翻译由 `tools/translation-whitelist.json` 和 JSON surface 审计分母决定；`niceName` 与被 Time Editor 图层名复用的属性数据必须与 `en/` 保持一致，避免 Latin-only 自绘层显示方块，显示层翻译交给 injector TS 兜底。质量由 `tools/validate_translations.py` 与 §P5 detector 守门。任何语言包变更必须保持 `en/` 结构同构，不得通过改 whitelist 掩盖漏翻。
+JSON 语言包不承载代码逻辑；运行时复制边界由 `src-tauri/src/patch.rs` 的 `CORE_MAP`、`PLUGIN_DEFINITION_MAP` 与插件 strings 发现共同决定。字段是否翻译由 `tools/translation-whitelist.json` 和 JSON surface 审计分母决定；`niceName` 是 Time Editor 与图层模型复用的身份词，必须与 `en/` 保持一致；属性数据仍按 JSON 规则翻译，若被 Time Editor 复用，由 injector 在 item view 边界恢复英文。质量由 `tools/validate_translations.py` 与 §P5 detector 守门。任何语言包变更必须保持 `en/` 结构同构，不得通过改 whitelist 掩盖漏翻。
 
 法则: 结构同构·字段分层·niceName 英文·三语同步·禁止半翻译
 

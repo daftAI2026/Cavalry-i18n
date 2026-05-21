@@ -681,13 +681,13 @@ test('model-backed niceName text stays English for Time Editor and item-model re
   );
   assert.match(
     injectorSource,
-    /translateListWidgetItems[\s\S]{0,650}const QString source = item->text\(\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(listWidget, source\)[\s\S]{0,120}continue;/,
-    'QListWidgetItem text should be preserved only when the list belongs to the Time Editor context'
+    /translateListWidgetItems[\s\S]{0,900}const QString source = item->text\(\);[\s\S]{0,140}shouldPreserveModelBackedItemText\(listWidget, source\)[\s\S]{0,220}timeEditorSafeItemText\(lang, source\)[\s\S]{0,220}continue;/,
+    'QListWidgetItem text should be preserved only when the list belongs to the Time Editor context, with dynamic bracket names normalized back to English'
   );
   assert.match(
     injectorSource,
-    /translateTreeWidgetItem[\s\S]{0,650}const QString source = item->text\(column\);[\s\S]{0,120}shouldPreserveModelBackedItemText\(owner, source\)[\s\S]{0,120}continue;/,
-    'QTreeWidgetItem text should be preserved only when the tree belongs to the Time Editor context'
+    /translateTreeWidgetItem[\s\S]{0,900}const QString source = item->text\(column\);[\s\S]{0,140}shouldPreserveModelBackedItemText\(owner, source\)[\s\S]{0,220}timeEditorSafeItemText\(lang, source\)[\s\S]{0,220}continue;/,
+    'QTreeWidgetItem text should be preserved only when the tree belongs to the Time Editor context, with dynamic bracket names normalized back to English'
   );
   assert.match(
     injectorSource,
@@ -741,37 +741,45 @@ test('model-backed niceName text stays English for Time Editor and item-model re
   }
 });
 
-test('Time Editor reused Apply Character Spacing pair labels stay English in JSON data', () => {
+test('Apply Character Spacing pair labels translate in Qt display while Time Editor item names stay English', () => {
   const englishNodes = readJson(path.join(repoRoot, 'languages', 'en', 'nodeStrings.json'));
   const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
   const expectedPairs = {
-    pairs: 'Matches',
-    'pairs.matchString': 'Match String',
-    'pairs.spacing': 'Character Spacing',
+    'zh-Hans': {
+      pairs: '匹配',
+      'pairs.matchString': '匹配字符串',
+      'pairs.spacing': '字符间距',
+    },
+    'zh-Hant': {
+      pairs: '匹配',
+      'pairs.matchString': '匹配字元串',
+      'pairs.spacing': '字元間距',
+    },
+    ja_JP: {
+      pairs: 'マッチ',
+      'pairs.matchString': 'マッチ文字列',
+      'pairs.spacing': '文字間隔',
+    },
   };
 
-  for (const key of Object.keys(expectedPairs)) {
-    assert(
-      whitelist.nodeStrings.no_translate.includes(key),
-      `nodeStrings.${key} should be no_translate because Cavalry reuses it in Time Editor item names`
-    );
-  }
+  assert(!whitelist.nodeStrings.no_translate.includes('pairs'), 'red-box Attribute Editor pair labels should not be blanket no_translate');
+  assert(!whitelist.nodeStrings.no_translate.includes('pairs.matchString'), 'Match String should translate outside Time Editor');
+  assert(!whitelist.nodeStrings.no_translate.includes('pairs.spacing'), 'Character Spacing should translate outside Time Editor');
 
   const findNode = (nodes) =>
     nodes.flatMap((section) => section.values || []).find((node) => node.nodeType === 'applyCharacterSpacing');
 
-  for (const language of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
-    const englishNode = findNode(englishNodes);
+  const englishNode = findNode(englishNodes);
+  assert(englishNode, 'English applyCharacterSpacing nodeStrings entry should exist');
+  assert.equal(englishNode.attributes.pairs, 'Matches', 'en applyCharacterSpacing.attributes.pairs');
+  assert.equal(englishNode.attributes['pairs.matchString'], 'Match String', 'en applyCharacterSpacing.attributes.pairs.matchString');
+  assert.equal(englishNode.attributes['pairs.spacing'], 'Character Spacing', 'en applyCharacterSpacing.attributes.pairs.spacing');
+
+  for (const [language, entries] of Object.entries(expectedPairs)) {
     const localizedNode = findNode(readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json')));
-    assert(englishNode, 'English applyCharacterSpacing nodeStrings entry should exist');
     assert(localizedNode, `${language} applyCharacterSpacing nodeStrings entry should exist`);
-    for (const [key, value] of Object.entries(expectedPairs)) {
-      assert.equal(englishNode.attributes[key], value, `en applyCharacterSpacing.attributes.${key}`);
-      assert.equal(
-        localizedNode.attributes[key],
-        value,
-        `${language} applyCharacterSpacing.attributes.${key} should stay English because Cavalry reuses it in Time Editor item names`
-      );
+    for (const [key, value] of Object.entries(entries)) {
+      assert.equal(localizedNode.attributes[key], value, `${language} applyCharacterSpacing.attributes.${key}`);
     }
   }
 
@@ -805,6 +813,23 @@ test('Time Editor reused Apply Character Spacing pair labels stay English in JSO
       );
     }
   }
+
+  const injectorSource = fs.readFileSync(path.join(injectorRoot, 'CavalryTranslatorInjector.mm'), 'utf8');
+  assert.match(
+    injectorSource,
+    /translatedWidgetText[\s\S]*\\\.\[0-9\]\+/,
+    'red-box Attribute Editor labels like Matches.0 should translate by preserving the .<n> suffix'
+  );
+  assert.match(
+    injectorSource,
+    /translatedDynamicBracketLayerName[\s\S]*QRegularExpression pattern\(QStringLiteral\("\^\(\.\*\?\)\\\\s\+\\\\\[\(\[0-9\]\+\)\\\\\.\(\[\^\\\\\]\]\+\)\\\\\]\$"\)\)/,
+    'red-box Scene View names like String Generator 2 [2.Match String] should translate with a numeric bracket regex'
+  );
+  assert.match(
+    injectorSource,
+    /timeEditorSafeItemText[\s\S]*translatedDynamicBracketLayerName\(lang, sourceText, true\)/,
+    'yellow-box Time Editor item names should use the same dynamic bracket parser in reverse to force English text'
+  );
 });
 
 test('embedded injector handles runtime Qt events with dirty-object local translation only', () => {

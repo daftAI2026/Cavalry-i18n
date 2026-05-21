@@ -8,9 +8,6 @@
     ],
     "no_translate": [
       "niceName",
-      "pairs",
-      "pairs.matchString",
-      "pairs.spacing",
       "type",
       "nodeType"
     ],

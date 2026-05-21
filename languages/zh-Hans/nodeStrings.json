@@ -3982,9 +3982,9 @@
         "niceName": "Apply Character Spacing",
         "nodeInfo": "通过文本形状的样式行为创建程序化字距调整对。",
         "attributes": {
-          "pairs": "Matches",
-          "pairs.matchString": "Match String",
-          "pairs.spacing": "Character Spacing"
+          "pairs": "匹配",
+          "pairs.matchString": "匹配字符串",
+          "pairs.spacing": "字符间距"
         }
       },
       {

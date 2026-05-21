@@ -3982,9 +3982,9 @@
         "niceName": "Apply Character Spacing",
         "nodeInfo": "テキストシェイプのスタイルビヘイビアを介してプロシージャルなカーニングペアを作成します。",
         "attributes": {
-          "pairs": "Matches",
-          "pairs.matchString": "Match String",
-          "pairs.spacing": "Character Spacing"
+          "pairs": "マッチ",
+          "pairs.matchString": "マッチ文字列",
+          "pairs.spacing": "文字間隔"
         }
       },
       {
