@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName 与 Qt ABI-safe accessibility 探测、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName 与 Qt ABI-safe accessibility 探测、懒加载菜单首次绘制前翻译、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -287,6 +287,29 @@ test('embedded injector hooks menus before they are shown so lazy submenus are t
     injectorSource,
     /refreshNativeMenuBar\(lang\)/,
     'menu show-time translation should refresh the native AppKit menu after Qt action text is updated'
+  );
+});
+
+test('embedded injector translates lazy QMenu actions synchronously before first menu paint', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /translateMenuBeforeFirstPaint/,
+    'lazy menu actions should have an explicit before-paint translation path instead of relying only on a delayed refresh'
+  );
+  assert.match(
+    injectorSource,
+    /case QEvent::ActionAdded:[\s\S]{0,520}qobject_cast<QMenu \*>\(watched\)[\s\S]{0,520}translateMenuBeforeFirstPaint/,
+    'QMenu ActionAdded events fire while Cavalry is populating menu items, so they must translate the menu synchronously before AppKit paints English text'
+  );
+  assert.match(
+    injectorSource,
+    /case QEvent::Show:[\s\S]{0,520}qobject_cast<QMenu \*>\(watched\)[\s\S]{0,520}translateMenuBeforeFirstPaint/,
+    'QMenu Show events should also translate the current menu synchronously as the last pre-paint guard'
   );
 });
 

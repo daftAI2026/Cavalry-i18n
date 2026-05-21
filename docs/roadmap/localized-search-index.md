@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 docs/audits/add-layer-localized-search-2026-05-21.md 的调研结论、injector/CavalryTranslatorInjector.mm 的 QLineEdit/QListWidget runtime hook、tools/model_display_translations.json 与 tools/*.ts 的显示层翻译源
-[OUTPUT]: 对外提供本地化搜索索引 roadmap，拆分 Add Layer 中文搜索、反向索引、live capture 与回归验收阶段
+[OUTPUT]: 对外提供本地化搜索索引 roadmap，拆分搜索面分类、Add Layer 中文搜索、反向索引、live capture 与回归验收阶段
 [POS]: docs/roadmap 的 localized search 主题入口，把“中文显示但英文搜索”的问题收敛成可实施路线
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -22,6 +22,23 @@
 - 不翻译 `Definitions.tags`。
 - 不全局改变资源名、图层名、用户自定义名称的搜索语义。
 - 不用模糊拼音搜索作为第一阶段目标。
+
+## 搜索面分类
+
+这些搜索框虽然都可能是 `QLineEdit`，但搜索对象不同，不能共享全局 query bridge。
+
+| 搜索面 | 当前 placeholder 示例 | 搜索对象 | 本路线处理 |
+| --- | --- | --- | --- |
+| Add Layer / QuickAdd | `搜索要添加的图层...` | Cavalry 内置图层、行为、变形器、效果等系统条目 | R1-R4 唯一实现目标，可使用 localized alias -> English source。 |
+| 素材面板 | `输入素材名称` | 用户导入或创建的素材、文件、资源名 | 不启用 bridge；保持用户数据原始搜索语义。 |
+| Scene / 图层列表 | `输入图层名称` | 当前场景中的用户图层名 | 不启用 bridge；图层名可被用户重命名，不能自动反向翻译。 |
+| 属性编辑器 | `输入属性名称` | 当前对象属性、插件字段、动态生成字段，可能混入用户/插件数据 | R5 以后独立评估；只有确认是系统属性表时才考虑 localized alias。 |
+
+实现约束:
+
+- 第一阶段只允许在 `QuickAddWindow` parentChain 下启用 query bridge。
+- 素材、图层、用户命名资源默认视为用户数据，不进入反向翻译索引。
+- 新增任何搜索面前必须先有独立现场报告，记录 parentChain、model roles、输入前后 row count 与用户数据边界。
 
 ## 阶段
 
