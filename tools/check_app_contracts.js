@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 与 QLineEdit 首次绘制前显示翻译、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 与 QLineEdit 首次绘制前显示翻译、ModalDialog 退出确认窗首次绘制前同步翻译、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -394,6 +394,31 @@ test('embedded injector translates dynamic QLabel and QLineEdit text before repa
     injectorSource,
     /QLabel \*label = qobject_cast<QLabel \*>\(widget\)[\s\S]{0,180}translatedWidgetText\(lang, label->text\(\)\)[\s\S]{0,120}label->setText\(translated\)/,
     'Attribute Editor object headers such as Capsule Shape and Arrow Shape should use the same display translation path as other QLabel/RolloverLabel text'
+  );
+});
+
+test('embedded injector translates modal dialogs synchronously before first paint', () => {
+  const injectorSource = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.match(
+    injectorSource,
+    /#include <QtWidgets\/qdialog\.h>/,
+    'ModalDialog/QMessageBox show-time handling should use the Qt dialog type instead of a brittle title string'
+  );
+
+  assert.match(
+    injectorSource,
+    /case QEvent::Show:[\s\S]{0,520}qobject_cast<QDialog \*>\(watched\)[\s\S]{0,220}translateRuntimeObject\(watched, m_lang\)[\s\S]{0,120}break;/,
+    'unsaved-change QMessageBox/ModalDialog must be translated synchronously on Show before the first English paint'
+  );
+
+  assert.match(
+    injectorSource,
+    /QDialogButtonBox \*buttonBox = qobject_cast<QDialogButtonBox \*>\(widget\)[\s\S]{0,180}buttonBox->buttons\(\)[\s\S]{0,180}button->setText\(translated\)/,
+    'the modal pre-paint path must still translate QMessageBox buttons through QDialogButtonBox'
   );
 });
 
