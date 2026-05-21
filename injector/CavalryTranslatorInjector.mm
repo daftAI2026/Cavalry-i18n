@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel/QTextEdit 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel/QTextEdit 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出、QTextEdit::append 符号解析失败安全兜底（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2201,6 +2201,27 @@ QTextEdit *textEditForObject(QObject *object)
     return qobject_cast<QTextEdit *>(object->parent());
 }
 
+void appendTextEditWithoutInterpose(QTextEdit *textEdit, const QString &text)
+{
+    if (textEdit == nullptr) {
+        return;
+    }
+
+    QTextCursor cursor = textEdit->textCursor();
+    cursor.movePosition(QTextCursor::End);
+    QTextDocument *document = textEdit->document();
+    if (document != nullptr && !document->isEmpty()) {
+        cursor.insertBlock();
+    }
+
+    if (Qt::mightBeRichText(text)) {
+        cursor.insertHtml(text);
+    } else {
+        cursor.insertText(text);
+    }
+    textEdit->setTextCursor(cursor);
+}
+
 using QTextEditAppendFunction = void (*)(QTextEdit *, const QString &);
 
 QTextEditAppendFunction originalQTextEditAppend()
@@ -2213,12 +2234,15 @@ QTextEditAppendFunction originalQTextEditAppend()
 void replacementQTextEditAppend(QTextEdit *textEdit, const QString &text)
 {
     QTextEditAppendFunction original = originalQTextEditAppend();
+    const QString translated = translatedTextEditAppendText(readEnvVar("CAVALRY_I18N_LANG"), text);
+    const QString displayText = translated.isEmpty() ? text : translated;
+
     if (original == nullptr) {
+        appendTextEditWithoutInterpose(textEdit, displayText);
         return;
     }
 
-    const QString translated = translatedTextEditAppendText(readEnvVar("CAVALRY_I18N_LANG"), text);
-    original(textEdit, translated.isEmpty() ? text : translated);
+    original(textEdit, displayText);
 }
 
 extern "C" void qtTextEditAppendInterposeTarget(QTextEdit *, const QString &)

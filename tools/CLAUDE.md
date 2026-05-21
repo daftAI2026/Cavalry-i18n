@@ -82,5 +82,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-21: `CavalryTranslatorInjector.mm` 增加点编号与括号编号动态图层名正则，红框 Qt/Scene View 显示 `Matches.0`、`String Generator 2 [2.Match String]` 等翻译并保留数字，黄框 Time Editor item view 用同一解析器反向恢复英文；`check_app_contracts.js` 锁定该边界。
 2026-05-22: `CavalryTranslatorInjector.mm` 将 Time Editor 保护扩展到通用 `QAbstractItemView` 的 `DisplayRole/EditRole`，覆盖右侧自绘条不走 QListWidgetItem/QTreeWidgetItem 包装时的动态括号名英文恢复；`check_app_contracts.js` 锁定 model role 写回边界。
 2026-05-22: `languages/*/nodeStrings.json` 将 Apply Character Spacing 的 `pairs*` 动态属性恢复为英文数据层，避免 Time Editor 自绘条读取 CJK 后显示方框；`tools/*.ts` 继续承担红框 Qt 显示层翻译，`translation-whitelist.json` 与合同测试锁定该分层。
+2026-05-22: `CavalryTranslatorInjector.mm` 增加 `QTextEdit::append` 在 dyld 符号解析失败时的安全写入兜底，用直接 cursor 插入避免吞没日志消息；`check_app_contracts.js` 增加对应安全断言。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
