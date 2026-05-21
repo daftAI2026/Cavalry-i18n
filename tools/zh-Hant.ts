@@ -1309,7 +1309,7 @@
     <message><source>Failed to encode image to PNG format</source><translation>將影像編碼為可攜式網路影像格式失敗</translation></message>
     <message><source>Failed to extract pixels from image</source><translation>從影像中提取像素失敗</translation></message>
     <message><source>Failed to fetch user info (HTTP</source><translation>取得使用者資訊失敗(網路協定</translation></message>
-    <message><source>Failed to fetch user info: could not connect to Canva</source><translation>取得使用者資訊失敗: 無法連線至線上設計服務</translation></message>
+    <message><source>Failed to fetch user info: could not connect to Canva</source><translation>取得使用者資訊失敗：無法連線至 Canva</translation></message>
     <message><source>Failed to get Motion Blur Filter</source><translation>獲取運動模糊過濾器失敗</translation></message>
     <message><source>Filter</source><translation>濾鏡</translation></message>
     <message><source>Failed to get upload preset</source><translation>上傳預設失敗</translation></message>
@@ -1381,8 +1381,8 @@
     <message><source>Go back to the start frame to move input shapes</source><translation>傳回起始框移動輸入形狀</translation></message>
     <message><source>Go back to the start frame to move input shapes.</source><translation>傳回起始框移動輸入形狀.</translation></message>
     <message><source>Go Pro and enable</source><translation>升級到專業版並啟用</translation></message>
-    <message><source>Go to Canva</source><translation>前往線上設計服務</translation></message>
-    <message><source>Go to Canva...</source><translation>前往線上設計服務...</translation></message>
+    <message><source>Go to Canva</source><translation>前往 Canva</translation></message>
+    <message><source>Go to Canva...</source><translation>前往 Canva...</translation></message>
     <message><source>Go to the first frame</source><translation>轉到第一個影格</translation></message>
     <message><source>Go to the first frame.</source><translation>到第一幀。</translation></message>
     <message><source>Go to the last frame</source><translation>轉到最後一個影格</translation></message>
@@ -2369,7 +2369,7 @@
     <message><source>Shadow</source><translation>陰影</translation></message>
     <message><source>Shape Depth Debug</source><translation>形狀深度偵錯</translation></message>
     <message><source>Shape Editing</source><translation>形狀編輯</translation></message>
-    <message><source>Share usage data to help improve Cavalry</source><translation>共享使用資料以說明改进軟體</translation></message>
+    <message><source>Share usage data to help improve Cavalry</source><translation>共享使用資料以幫助改進 Cavalry</translation></message>
     <message><source>Shift Stops</source><translation>移動停止</translation></message>
     <message><source>Shift Stops Left</source><translation>向左移動</translation></message>
     <message><source>Shift Stops Right</source><translation>向右移動</translation></message>
@@ -2402,9 +2402,9 @@
     <message><source>Showing Snapshot</source><translation>顯示快照</translation></message>
     <message><source>Shuffle Stop Positions</source><translation>搖擺停止位置</translation></message>
     <message><source>Sign in with Canva</source><translation>使用 Canva 登入</translation></message>
-    <message><source>Sign-in timed out. Please try again</source><translation>簽到超時. 請再試一次</translation></message>
-    <message><source>Sign-in timed out. Please try again.</source><translation>簽到超時. 請再試一次。</translation></message>
-    <message><source>Signing out...</source><translation>簽名...</translation></message>
+    <message><source>Sign-in timed out. Please try again</source><translation>登入逾時。請重試</translation></message>
+    <message><source>Sign-in timed out. Please try again.</source><translation>登入逾時。請重試。</translation></message>
+    <message><source>Signing out...</source><translation>正在登出...</translation></message>
     <message><source>Skeleton Tool</source><translation>斯凱勒頓工具</translation></message>
     <message><source>Skeptic</source><translation>懷疑論</translation></message>
     <message><source>skipped inserting dotted-circles because there is no broken syllables</source><translation>跳過插入點圈，因為沒有斷開的音節</translation></message>
@@ -2437,7 +2437,7 @@
     <message><source>Some content goes here, and here, but more here, and it wraps around to other rows</source><translation>有些內容是在這裏,在這裏,但更多的在這裏，它包裹到其他行</translation></message>
     <message><source>Some content goes here, and here, but more here, and it wraps around to other rows.</source><translation>有些內容是在這裏,在這裏,但更多的是在這裏，它包裹在其他行。</translation></message>
     <message><source>Some plugins require a newer version</source><translation>一些外掛需要更新版本</translation></message>
-    <message><source>Something went wrong during sign in. Please try again</source><translation>簽字時出事了 請再試一次</translation></message>
+    <message><source>Something went wrong during sign in. Please try again</source><translation>登入過程中發生錯誤。請重試</translation></message>
     <message><source>Sort Order</source><translation>排序順序</translation></message>
     <message><source>Space</source><translation>空白鍵</translation></message>
     <message><source>Speed In</source><translation>速度進入</translation></message>
@@ -2673,12 +2673,12 @@
     <message><source>Toggle Viewport Snapping.</source><translation>切換檢視區吸附。</translation></message>
     <message><source>Token</source><translation>鍵</translation></message>
     <message><source>Token exchange failed (HTTP</source><translation>權杖交換失敗(網路協定</translation></message>
-    <message><source>Token exchange failed: could not connect to Canva</source><translation>權杖交換失敗: 無法連線至線上設計服務</translation></message>
+    <message><source>Token exchange failed: could not connect to Canva</source><translation>權杖交換失敗：無法連線至 Canva</translation></message>
     <message><source>Token exchange failed: invalid JSON response</source><translation>權杖交換失敗：無效的 JSON 回應</translation></message>
     <message><source>Token refresh failed (HTTP</source><translation>權杖重新整理失敗(網路協定</translation></message>
-    <message><source>Token refresh failed: could not connect to Canva</source><translation>權杖重新整理失敗: 無法連線至線上設計服務</translation></message>
+    <message><source>Token refresh failed: could not connect to Canva</source><translation>權杖重新整理失敗：無法連線至 Canva</translation></message>
     <message><source>Token refresh failed: invalid JSON response</source><translation>權杖重新整理失敗：無效的 JSON 回應</translation></message>
-    <message><source>Token revocation failed: could not connect to Canva</source><translation>權杖撤銷失敗: 無法連線至線上設計服務</translation></message>
+    <message><source>Token revocation failed: could not connect to Canva</source><translation>權杖撤銷失敗：無法連線至 Canva</translation></message>
     <message><source>Tolopea</source><translation>託洛佩亞</translation></message>
     <message><source>Too Early</source><translation>來得太早了</translation></message>
     <message><source>Too many redirects</source><translation>重定向過多</translation></message>
@@ -2848,8 +2848,8 @@
     <message><source>What would you like to see in Cavalry?</source><translation>你希望在 Cavalry 中看到什麼？</translation></message>
     <message><source>What&apos;s Next?</source><translation>接下來呢？</translation></message>
     <message><source>What&apos;s NH</source><translation>名稱控制柄是什麼</translation></message>
-    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>使用 Cavalry 時，若你同意，使用資料可以幫助我們改進</translation></message>
-    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>使用 Cavalry 時，若你同意，使用資料可以幫助我們改進。</translation></message>
+    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>使用 Cavalry 時，若你同意，使用資料能幫助我們改進</translation></message>
+    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>使用 Cavalry 時，若你同意，使用資料能幫助我們改進。</translation></message>
     <message><source>while parsing</source><translation>在解析時</translation></message>
     <message><source>White Ice</source><translation>白色冰塊</translation></message>
     <message><source>Whitelist</source><translation>白名單</translation></message>
@@ -2944,8 +2944,8 @@
     <message><source>Your Canva authorisation has been revoked. Please sign in again.</source><translation>你的 Canva 授權已被撤銷。請重新登入。</translation></message>
     <message><source>Your render has been submitted, updates will appear in the Message Bar</source><translation>您的算繪已提交，更新將在信件欄中顯示</translation></message>
     <message><source>Your render has been submitted, updates will appear in the Message Bar.</source><translation>您的算繪已提交，更新將在信件欄中顯示。</translation></message>
-    <message><source>Your render will not be uploaded to Canva</source><translation>你的算繪不會上傳到 Canva</translation></message>
-    <message><source>Your render will not be uploaded to Canva.</source><translation>你的算繪不會上傳到 Canva。</translation></message>
+    <message><source>Your render will not be uploaded to Canva</source><translation>你的算圖不會上傳到 Canva</translation></message>
+    <message><source>Your render will not be uploaded to Canva.</source><translation>你的算圖不會上傳到 Canva。</translation></message>
     <message><source>yuj 9</source><translation>9號公路</translation></message>
     <message><source>yvj 9</source><translation>第9頁</translation></message>
     <message><source>Z Action</source><translation>深度動作</translation></message>

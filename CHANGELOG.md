@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Canva Brand Protection Contract**: Added contract assertions in `tools/check_app_contracts.js` (`Canva authentication copy preserves brand names across runtime translations`) to strictly verify that Canva login-related runtime translations preserve both "Canva" and "Cavalry" brand names and accurately map localized strings across Simplified Chinese, Traditional Chinese, and Japanese.
 - **Synchronous aboutToShow QMenu Translation Contract**: Added contract assertions in `tools/check_app_contracts.js` to strictly verify that `QMenu::aboutToShow` triggers synchronous pre-paint translation via `translateMenuBeforeFirstPaint` and does *not* utilize `CFRunLoopPerformBlock` deferral, preventing visible English-to-localized text flicker on dynamic menus.
 - **Offline Re-authentication Countdown Translation**: Implemented `offlineAuthPattern` regex matching in the injector (`CavalryTranslatorInjector.mm`) to dynamically translate Cavalry's offline re-authentication countdown status messages (`"Cavalry is offline. You will need to re-authenticate in less than <n> days."`) across Simplified Chinese, Traditional Chinese, and Japanese, dynamically preserving the remaining days placeholder.
 - **Traditional Chinese and Japanese Tips Translation**: Added exact translations for the HTML-tagged `<i>Click to see next message</i>` source in Traditional Chinese (`tools/zh-Hant.ts`) and Japanese (`tools/ja_JP.ts`) language catalogs to prevent fallback issues.
@@ -34,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Contract Assertion Updates**: Extended contract tests in `tools/check_app_contracts.js` to strictly enforce translation accuracy for the fourth batch of 9 attribute labels.
 
 ### Changed
+- **Canva Authentication Translations**: Corrected and refined translation entries for Canva authentication and usage data sharing screens in Simplified Chinese (`tools/zh-Hans.ts`), Traditional Chinese (`tools/zh-Hant.ts`), and Japanese (`tools/ja_JP.ts`), ensuring brand words (Canva/Cavalry) are preserved intact and cleaning up previous Sign-in/Signing out mistranslations.
+- **Embedded Translation Table Synchronizer**: Updated compiled injector tables `injector/generated_translations.inc` and recompiled dynamic library `injector/libCavalryTranslatorInjector.dylib` to embed the newly refined Canva authentication translations.
+- **GEB Document Mapping for Canva Copy**: Updated L2 module map `tools/CLAUDE.md` and `check_app_contracts.js` L3 header to register the Canva authentication copy contract.
 - **Synchronous QMenu aboutToShow Translation Interceptor**: Refactored the `QMenu::aboutToShow` interceptor in the C++ injector (`CavalryTranslatorInjector.mm`) to run synchronous, pre-paint menu translation directly instead of deferring via `CFRunLoopPerformBlock`. This converges all menu hooks into a single synchronous pre-paint pipeline.
 - **GEB Document Mapping for aboutToShow Hook**: Synchronized L2 module maps `injector/CLAUDE.md` and `tools/CLAUDE.md`, and L3 file headers in both `CavalryTranslatorInjector.mm` and `check_app_contracts.js` to reflect the converged pre-paint menu translation contract under the GEB fractal document protocol.
 - **Recompiled Injector Dylib**: Rebuilt the universal precompiled library `injector/libCavalryTranslatorInjector.dylib` to embed the synchronous QMenu aboutToShow translation engine.

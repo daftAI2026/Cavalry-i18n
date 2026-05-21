@@ -1238,7 +1238,7 @@
     <message><source>Failed to encode image to PNG format</source><translation>将图像编码为便携式网络图像格式失败</translation></message>
     <message><source>Failed to extract pixels from image</source><translation>从图像中提取像素失败</translation></message>
     <message><source>Failed to fetch user info (HTTP</source><translation>获取用户信息失败(网络协议</translation></message>
-    <message><source>Failed to fetch user info: could not connect to Canva</source><translation>获取用户信息失败: 无法连接在线设计服务</translation></message>
+    <message><source>Failed to fetch user info: could not connect to Canva</source><translation>获取用户信息失败：无法连接 Canva</translation></message>
     <message><source>Failed to get Motion Blur Filter</source><translation>获取运动模糊过滤器失败</translation></message>
     <message><source>Filter</source><translation>滤镜</translation></message>
     <message><source>Failed to get upload preset</source><translation>上传预设失败</translation></message>
@@ -1310,8 +1310,8 @@
     <message><source>Go back to the start frame to move input shapes</source><translation>返回起始框移动输入形状</translation></message>
     <message><source>Go back to the start frame to move input shapes.</source><translation>返回起始框移动输入形状.</translation></message>
     <message><source>Go Pro and enable</source><translation>升级到专业版并启用</translation></message>
-    <message><source>Go to Canva</source><translation>前往在线设计服务</translation></message>
-    <message><source>Go to Canva...</source><translation>前往在线设计服务...</translation></message>
+    <message><source>Go to Canva</source><translation>前往 Canva</translation></message>
+    <message><source>Go to Canva...</source><translation>前往 Canva...</translation></message>
     <message><source>Go to the first frame</source><translation>转到第一个框架</translation></message>
     <message><source>Go to the first frame.</source><translation>到第一帧。</translation></message>
     <message><source>Go to the last frame</source><translation>转到最后一个框架</translation></message>
@@ -2298,7 +2298,7 @@
     <message><source>Shadow</source><translation>阴影</translation></message>
     <message><source>Shape Depth Debug</source><translation>形状深度调试</translation></message>
     <message><source>Shape Editing</source><translation>形状编辑</translation></message>
-    <message><source>Share usage data to help improve Cavalry</source><translation>共享使用数据以帮助改进软件</translation></message>
+    <message><source>Share usage data to help improve Cavalry</source><translation>共享使用数据以帮助改进 Cavalry</translation></message>
     <message><source>Shift Stops</source><translation>移动停止</translation></message>
     <message><source>Shift Stops Left</source><translation>向左移动</translation></message>
     <message><source>Shift Stops Right</source><translation>向右移动</translation></message>
@@ -2330,10 +2330,10 @@
     <message><source>Showing All Snapshots</source><translation>显示全部快照</translation></message>
     <message><source>Showing Snapshot</source><translation>显示快照</translation></message>
     <message><source>Shuffle Stop Positions</source><translation>摇摆停止位置</translation></message>
-    <message><source>Sign in with Canva</source><translation>使用在线设计服务登录</translation></message>
-    <message><source>Sign-in timed out. Please try again</source><translation>签到超时. 请再试一次</translation></message>
-    <message><source>Sign-in timed out. Please try again.</source><translation>签到超时. 请再试一次。</translation></message>
-    <message><source>Signing out...</source><translation>签名...</translation></message>
+    <message><source>Sign in with Canva</source><translation>使用 Canva 登录</translation></message>
+    <message><source>Sign-in timed out. Please try again</source><translation>登录超时。请重试</translation></message>
+    <message><source>Sign-in timed out. Please try again.</source><translation>登录超时。请重试。</translation></message>
+    <message><source>Signing out...</source><translation>正在退出登录...</translation></message>
     <message><source>Skeleton Tool</source><translation>斯凯勒顿工具</translation></message>
     <message><source>Skeptic</source><translation>怀疑论</translation></message>
     <message><source>skipped inserting dotted-circles because there is no broken syllables</source><translation>跳过插入点圈，因为没有断开的音节</translation></message>
@@ -2366,7 +2366,7 @@
     <message><source>Some content goes here, and here, but more here, and it wraps around to other rows</source><translation>有些内容是在这里,在这里,但更多的在这里，它包裹到其他行</translation></message>
     <message><source>Some content goes here, and here, but more here, and it wraps around to other rows.</source><translation>有些内容是在这里,在这里,但更多的是在这里，它包裹在其他行。</translation></message>
     <message><source>Some plugins require a newer version</source><translation>一些插件需要更新版本</translation></message>
-    <message><source>Something went wrong during sign in. Please try again</source><translation>签字时出事了 请再试一次</translation></message>
+    <message><source>Something went wrong during sign in. Please try again</source><translation>登录过程中出现问题。请重试</translation></message>
     <message><source>Sort Order</source><translation>排序顺序</translation></message>
     <message><source>Space</source><translation>空格</translation></message>
     <message><source>Speed In</source><translation>速度进入</translation></message>
@@ -2602,12 +2602,12 @@
     <message><source>Toggle Viewport Snapping.</source><translation>切换视口吸附。</translation></message>
     <message><source>Token</source><translation>键</translation></message>
     <message><source>Token exchange failed (HTTP</source><translation>令牌交换失败(网络协议</translation></message>
-    <message><source>Token exchange failed: could not connect to Canva</source><translation>令牌交换失败: 无法连接在线设计服务</translation></message>
+    <message><source>Token exchange failed: could not connect to Canva</source><translation>令牌交换失败：无法连接 Canva</translation></message>
     <message><source>Token exchange failed: invalid JSON response</source><translation>令牌交换失败：无效的 JSON 响应</translation></message>
     <message><source>Token refresh failed (HTTP</source><translation>令牌刷新失败(网络协议</translation></message>
-    <message><source>Token refresh failed: could not connect to Canva</source><translation>令牌刷新失败: 无法连接在线设计服务</translation></message>
+    <message><source>Token refresh failed: could not connect to Canva</source><translation>令牌刷新失败：无法连接 Canva</translation></message>
     <message><source>Token refresh failed: invalid JSON response</source><translation>令牌刷新失败：无效的 JSON 响应</translation></message>
-    <message><source>Token revocation failed: could not connect to Canva</source><translation>令牌撤销失败: 无法连接在线设计服务</translation></message>
+    <message><source>Token revocation failed: could not connect to Canva</source><translation>令牌撤销失败：无法连接 Canva</translation></message>
     <message><source>Tolopea</source><translation>托洛佩亚</translation></message>
     <message><source>Too Early</source><translation>来得太早了</translation></message>
     <message><source>Too many redirects</source><translation>重定向过多</translation></message>
@@ -2709,7 +2709,7 @@
     <message><source>Upgrade Required</source><translation>需要升级</translation></message>
     <message><source>Upload cancelled</source><translation>上传已取消</translation></message>
     <message><source>Upload Progress</source><translation>上传进度</translation></message>
-    <message><source>Upload to Canva</source><translation>上传到在线设计服务</translation></message>
+    <message><source>Upload to Canva</source><translation>上传到 Canva</translation></message>
     <message><source>Uploading</source><translation>上传</translation></message>
     <message><source>URI Too Long</source><translation>地址过长</translation></message>
     <message><source>Use Absolute B</source><translation>使用绝对字节</translation></message>
@@ -2777,8 +2777,8 @@
     <message><source>What would you like to see in Cavalry?</source><translation>你希望在软件中看到什么？</translation></message>
     <message><source>What&apos;s Next?</source><translation>接下来呢？</translation></message>
     <message><source>What&apos;s NH</source><translation>名称手柄是什么</translation></message>
-    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>使用软件时，若你同意，共享使用数据能帮助我们改进</translation></message>
-    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>使用软件时，若你同意，共享使用数据能帮助我们改进。</translation></message>
+    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>使用 Cavalry 时，若你同意，使用数据能帮助我们改进</translation></message>
+    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>使用 Cavalry 时，若你同意，使用数据能帮助我们改进。</translation></message>
     <message><source>while parsing</source><translation>在解析时</translation></message>
     <message><source>White Ice</source><translation>白色冰块</translation></message>
     <message><source>Whitelist</source><translation>白名单</translation></message>
@@ -2869,12 +2869,12 @@
     <message><source>You must set at least one color on the gradient</source><translation>您必须在梯度上至少设置一个颜色</translation></message>
     <message><source>You must set at least one color on the gradient.</source><translation>必须在渐变上设置至少一种颜色。</translation></message>
     <message><source>You need to switch Compositions</source><translation>需要切换合成</translation></message>
-    <message><source>Your Canva authorisation has been revoked. Please sign in again</source><translation>在线设计服务授权已被撤销。请重新登录</translation></message>
-    <message><source>Your Canva authorisation has been revoked. Please sign in again.</source><translation>在线设计服务授权已被撤销。请重新登录。</translation></message>
+    <message><source>Your Canva authorisation has been revoked. Please sign in again</source><translation>你的 Canva 授权已被撤销。请重新登录</translation></message>
+    <message><source>Your Canva authorisation has been revoked. Please sign in again.</source><translation>你的 Canva 授权已被撤销。请重新登录。</translation></message>
     <message><source>Your render has been submitted, updates will appear in the Message Bar</source><translation>您的渲染已提交，更新将在信件栏中显示</translation></message>
     <message><source>Your render has been submitted, updates will appear in the Message Bar.</source><translation>渲染已提交，更新会显示在消息栏中。</translation></message>
-    <message><source>Your render will not be uploaded to Canva</source><translation>你的渲染不会上传到在线设计服务</translation></message>
-    <message><source>Your render will not be uploaded to Canva.</source><translation>你的渲染不会上传到在线设计服务。</translation></message>
+    <message><source>Your render will not be uploaded to Canva</source><translation>你的渲染不会上传到 Canva</translation></message>
+    <message><source>Your render will not be uploaded to Canva.</source><translation>你的渲染不会上传到 Canva。</translation></message>
     <message><source>yuj 9</source><translation>9号公路</translation></message>
     <message><source>yvj 9</source><translation>第9页</translation></message>
     <message><source>Z Action</source><translation>深度动作</translation></message>

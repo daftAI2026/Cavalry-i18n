@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName 与 Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName 与 Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 浮动标题、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2555,6 +2555,79 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     assert.match(zhHansTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHans}<\\/translation>`));
     assert.match(zhHantTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${zhHant}<\\/translation>`));
     assert.match(jaTs, new RegExp(`<source>${escapedSource}<\\/source>\\s*<translation>${ja}<\\/translation>`));
+  }
+});
+
+test('Canva authentication copy preserves brand names across runtime translations', () => {
+  const expectedEntries = {
+    'zh-Hans': {
+      'A new tab has been opened in your default browser so you can log in to Canva there.':
+        '已在默认浏览器中打开新标签页，方便你在其中登录 Canva。',
+      'Failed to fetch user info: could not connect to Canva': '获取用户信息失败：无法连接 Canva',
+      'Go to Canva': '前往 Canva',
+      'Share usage data to help improve Cavalry': '共享使用数据以帮助改进 Cavalry',
+      'Sign in with Canva': '使用 Canva 登录',
+      'Sign-in timed out. Please try again.': '登录超时。请重试。',
+      'Signing out...': '正在退出登录...',
+      'Token exchange failed: could not connect to Canva': '令牌交换失败：无法连接 Canva',
+      'Token refresh failed: could not connect to Canva': '令牌刷新失败：无法连接 Canva',
+      'Token revocation failed: could not connect to Canva': '令牌撤销失败：无法连接 Canva',
+      'Upload to Canva': '上传到 Canva',
+      'When you use Cavalry, usage data can really help us make improvements, but only if you agree.':
+        '使用 Cavalry 时，若你同意，使用数据能帮助我们改进。',
+      'Your Canva authorisation has been revoked. Please sign in again.': '你的 Canva 授权已被撤销。请重新登录。',
+      'Your render will not be uploaded to Canva.': '你的渲染不会上传到 Canva。',
+    },
+    'zh-Hant': {
+      'A new tab has been opened in your default browser so you can log in to Canva there.':
+        '已在預設瀏覽器中開啟新分頁，方便你在其中登入 Canva。',
+      'Failed to fetch user info: could not connect to Canva': '取得使用者資訊失敗：無法連線至 Canva',
+      'Go to Canva': '前往 Canva',
+      'Share usage data to help improve Cavalry': '共享使用資料以幫助改進 Cavalry',
+      'Sign in with Canva': '使用 Canva 登入',
+      'Sign-in timed out. Please try again.': '登入逾時。請重試。',
+      'Signing out...': '正在登出...',
+      'Token exchange failed: could not connect to Canva': '權杖交換失敗：無法連線至 Canva',
+      'Token refresh failed: could not connect to Canva': '權杖重新整理失敗：無法連線至 Canva',
+      'Token revocation failed: could not connect to Canva': '權杖撤銷失敗：無法連線至 Canva',
+      'Upload to Canva': '上傳到 Canva',
+      'When you use Cavalry, usage data can really help us make improvements, but only if you agree.':
+        '使用 Cavalry 時，若你同意，使用資料能幫助我們改進。',
+      'Your Canva authorisation has been revoked. Please sign in again.': '你的 Canva 授權已被撤銷。請重新登入。',
+      'Your render will not be uploaded to Canva.': '你的算圖不會上傳到 Canva。',
+    },
+    ja_JP: {
+      'A new tab has been opened in your default browser so you can log in to Canva there.':
+        'デフォルトブラウザで新しいタブを開きました。そこで Canva にログインできます。',
+      'Failed to fetch user info: could not connect to Canva': 'ユーザー情報の取得に失敗しました: Canva に接続できません',
+      'Go to Canva': 'Canva に移動',
+      'Share usage data to help improve Cavalry': '使用データを共有して Cavalry の改善に役立てる',
+      'Sign in with Canva': 'Canva でサインイン',
+      'Sign-in timed out. Please try again.': 'サインインがタイムアウトしました。もう一度お試しください。',
+      'Signing out...': 'サインアウトしています...',
+      'Token exchange failed: could not connect to Canva': 'トークン交換に失敗しました: Canva に接続できません',
+      'Token refresh failed: could not connect to Canva': 'トークン更新に失敗しました: Canva に接続できません',
+      'Token revocation failed: could not connect to Canva': 'トークン取り消しに失敗しました: Canva に接続できません',
+      'Upload to Canva': 'Canva にアップロード',
+      'When you use Cavalry, usage data can really help us make improvements, but only if you agree.':
+        '同意した場合のみ、Cavalry の使用データが改善に役立てられます。',
+      'Your Canva authorisation has been revoked. Please sign in again.':
+        'Canva の認証が取り消されました。もう一度サインインしてください。',
+      'Your render will not be uploaded to Canva.': 'レンダーは Canva にアップロードされません。',
+    },
+  };
+
+  for (const [language, entries] of Object.entries(expectedEntries)) {
+    const source = fs.readFileSync(path.join(repoRoot, 'tools', `${language}.ts`), 'utf8');
+    for (const [english, translation] of Object.entries(entries)) {
+      const escapedEnglish = english.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const escapedTranslation = translation.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      assert.match(
+        source,
+        new RegExp(`<source>${escapedEnglish}<\\/source>\\s*<translation>${escapedTranslation}<\\/translation>`),
+        `${language} should preserve Canva/Cavalry brand wording for "${english}"`
+      );
+    }
   }
 });
 

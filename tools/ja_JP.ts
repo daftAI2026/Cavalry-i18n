@@ -71,11 +71,11 @@
   </message>
   <message>
     <source>A new tab has been opened in your default browser so you can log in to Canva there</source>
-    <translation>デフォルトブラウザで新しいタブが開きました。ここで Canva にログインできます</translation>
+    <translation>デフォルトブラウザで新しいタブを開きました。そこで Canva にログインできます</translation>
   </message>
   <message>
     <source>A new tab has been opened in your default browser so you can log in to Canva there.</source>
-    <translation>デフォルトブラウザで新しいタブが開きました。ここで Canva にログインできます。</translation>
+    <translation>デフォルトブラウザで新しいタブを開きました。そこで Canva にログインできます。</translation>
   </message>
   <message>
     <source>A Professional licence is required for Dynamic Rendering</source>
@@ -2390,8 +2390,8 @@
     <message><source>Go back to the start frame to move input shapes</source><translation>入力シェイプを移動するには開始フレームに戻ってください</translation></message>
     <message><source>Go back to the start frame to move input shapes.</source><translation>入力シェイプを移動するには開始フレームに戻ってください。</translation></message>
     <message><source>Go Pro and enable</source><translation>プロ版にして有効化</translation></message>
-    <message><source>Go to Canva</source><translation>Canva へ移動</translation></message>
-    <message><source>Go to Canva...</source><translation>Canva へ移動...</translation></message>
+    <message><source>Go to Canva</source><translation>Canva に移動</translation></message>
+    <message><source>Go to Canva...</source><translation>Canva に移動...</translation></message>
     <message><source>Go to the first frame</source><translation>最初のフレームへ</translation></message>
     <message><source>Go to the first frame.</source><translation>最初のフレームに移動します。</translation></message>
     <message><source>Go to the last frame</source><translation>最後のフレームに行く</translation></message>
@@ -3371,7 +3371,7 @@
     <message><source>Shadow</source><translation>シャドー</translation></message>
     <message><source>Shape Depth Debug</source><translation>シェイプ深度デバッグ</translation></message>
     <message><source>Shape Editing</source><translation>シェイプ編集</translation></message>
-    <message><source>Share usage data to help improve Cavalry</source><translation>使用データを共有してアプリの改善に役立てる</translation></message>
+    <message><source>Share usage data to help improve Cavalry</source><translation>使用データを共有して Cavalry の改善に役立てる</translation></message>
     <message><source>Shift Stops</source><translation>シフトストップ</translation></message>
     <message><source>Shift Stops Left</source><translation>シフトストップ左</translation></message>
     <message><source>Shift Stops Right</source><translation>シフト停止の権利</translation></message>
@@ -3404,9 +3404,9 @@
     <message><source>Showing Snapshot</source><translation>スナップショットを表示する</translation></message>
     <message><source>Shuffle Stop Positions</source><translation>シャッフルストップポジション</translation></message>
     <message><source>Sign in with Canva</source><translation>Canva でサインイン</translation></message>
-    <message><source>Sign-in timed out. Please try again</source><translation>サインインタイムアウト。 お問い合わせ</translation></message>
-    <message><source>Sign-in timed out. Please try again.</source><translation>サインインタイムアウト。 お問い合わせ。</translation></message>
-    <message><source>Signing out...</source><translation>サインアウト...</translation></message>
+    <message><source>Sign-in timed out. Please try again</source><translation>サインインがタイムアウトしました。もう一度お試しください</translation></message>
+    <message><source>Sign-in timed out. Please try again.</source><translation>サインインがタイムアウトしました。もう一度お試しください。</translation></message>
+    <message><source>Signing out...</source><translation>サインアウトしています...</translation></message>
     <message><source>Skeleton Tool</source><translation>スケルトンツール</translation></message>
     <message><source>Skeptic</source><translation>スケプティック</translation></message>
     <message><source>skipped inserting dotted-circles because there is no broken syllables</source><translation>壊れたシラブルがないため、点状の円弧をスキッピング</translation></message>
@@ -3438,7 +3438,7 @@
     <message><source>Some content goes here, and here, but more here, and it wraps around to other rows</source><translation>ここには一部コンテンツが出てきますが、ここには、ほかの行に巻き込みます。</translation></message>
     <message><source>Some content goes here, and here, but more here, and it wraps around to other rows.</source><translation>ここには一部コンテンツが出てきますが、ここまでは、他の行の周りを包みます。</translation></message>
     <message><source>Some plugins require a newer version</source><translation>いくつかのプラグインは、新しいバージョンが必要です</translation></message>
-    <message><source>Something went wrong during sign in. Please try again</source><translation>サイン中に何かが間違っていた。 お問い合わせ</translation></message>
+    <message><source>Something went wrong during sign in. Please try again</source><translation>サインイン中に問題が発生しました。もう一度お試しください</translation></message>
     <message><source>Sort Order</source><translation>並び替え</translation></message>
     <message><source>Space</source><translation>スペース</translation></message>
     <message><source>Speed In</source><translation>速度 で</translation></message>
@@ -3826,15 +3826,15 @@
     <message><source>Waiting for frame...</source><translation>フレームを待って...</translation></message>
     <message><source>Warning</source><translation>警告</translation></message>
     <message><source>Warning: You have run out of disk space!</source><translation>警告: ディスクスペースを外す!</translation></message>
-    <message><source>Web Proxy</source><translation>ネットワーク代理</translation></message>
+    <message><source>Web Proxy</source><translation>ネットワークプロキシ</translation></message>
     <message><source>Weight</source><translation>カートン</translation></message>
     <message><source>Weight Locking</source><translation>重量錠</translation></message>
     <message><source>Wewak</source><translation>ウィワク</translation></message>
     <message><source>What would you like to see in Cavalry?</source><translation>你希望在アプリ中看到什么?</translation></message>
     <message><source>What&apos;s Next?</source><translation>次は何ですか?</translation></message>
     <message><source>What&apos;s NH</source><translation>名前ハンドルとは</translation></message>
-    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>同意いただいた場合のみ、Cavalry の使用データが製品改善に役立てられます</translation></message>
-    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>同意いただいた場合のみ、Cavalry の使用データが製品改善に役立てられます。</translation></message>
+    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree</source><translation>同意した場合のみ、Cavalry の使用データが改善に役立てられます</translation></message>
+    <message><source>When you use Cavalry, usage data can really help us make improvements, but only if you agree.</source><translation>同意した場合のみ、Cavalry の使用データが改善に役立てられます。</translation></message>
     <message><source>while parsing</source><translation>解析中</translation></message>
     <message><source>White Ice</source><translation>白い氷</translation></message>
     <message><source>Whitelist</source><translation>ホワイトリスト</translation></message>
@@ -7703,11 +7703,11 @@
     </message>
     <message>
       <source>A new tab has been opened in your default browser so you can log in to Canva there</source>
-      <translation>デフォルトブラウザで新しいタブが開きました。そこで Canva にログインできます。</translation>
+      <translation>デフォルトブラウザで新しいタブを開きました。そこで Canva にログインできます。</translation>
     </message>
     <message>
       <source>A new tab has been opened in your default browser so you can log in to Canva there.</source>
-      <translation>デフォルトブラウザで新しいタブが開きました。そこで Canva にログインできます。</translation>
+      <translation>デフォルトブラウザで新しいタブを開きました。そこで Canva にログインできます。</translation>
     </message>
     <message>
       <source>A Professional licence is required for Dynamic Rendering</source>
