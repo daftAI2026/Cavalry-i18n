@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 与 QLineEdit 首次绘制前显示翻译、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel 与 QLineEdit 首次绘制前显示翻译、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -829,6 +829,21 @@ test('Apply Character Spacing pair labels translate in Qt display while Time Edi
     injectorSource,
     /timeEditorSafeItemText[\s\S]*translatedDynamicBracketLayerName\(lang, sourceText, true\)/,
     'yellow-box Time Editor item names should use the same dynamic bracket parser in reverse to force English text'
+  );
+  assert.match(
+    injectorSource,
+    /normalizeTimeEditorModelRows\(QAbstractItemView \*view, QAbstractItemModel \*model[\s\S]*Qt::DisplayRole[\s\S]*Qt::EditRole[\s\S]*model->setData\(index, safeText, role\)/,
+    'yellow-box Time Editor generic QAbstractItemView model roles must be normalized because the right-side strip is not guaranteed to be QListWidgetItem/QTreeWidgetItem'
+  );
+  assert.match(
+    injectorSource,
+    /normalizeTimeEditorItemModel\(QAbstractItemView \*view[\s\S]*!isTimeEditorItemWidget\(view\)[\s\S]*view->model\(\)[\s\S]*normalizeTimeEditorModelRows\(view, model, QModelIndex\(\), lang, 0\)/,
+    'yellow-box Time Editor generic item-model normalization must stay scoped to the Time Editor view'
+  );
+  assert.match(
+    injectorSource,
+    /qobject_cast<QAbstractItemView \*>\(widget\)[\s\S]*normalizeTimeEditorItemModel\(itemView, lang\)/,
+    'runtime widget translation should visit generic QAbstractItemView models, not only QListWidgetItem/QTreeWidgetItem wrappers'
   );
 });
 

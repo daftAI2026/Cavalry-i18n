@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 首次绘制前与后续文本显示翻译、模型 niceName/Time Editor 动态 item 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 首次绘制前与后续文本显示翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model 的运行时 inventory 导出（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2064,6 +2064,55 @@ void translateQtWidgetActions(QWidget *widget, const QString &lang, QSet<QAction
     }
 }
 
+void normalizeTimeEditorModelRows(QAbstractItemView *view, QAbstractItemModel *model, const QModelIndex &parent, const QString &lang, int depth)
+{
+    if (view == nullptr || model == nullptr || lang.isEmpty() || depth > 2) {
+        return;
+    }
+
+    const int rowCount = qMin(model->rowCount(parent), 200);
+    const int columnCount = qMin(qMax(model->columnCount(parent), 1), 8);
+    const int roles[] = { Qt::DisplayRole, Qt::EditRole };
+    for (int row = 0; row < rowCount; ++row) {
+        for (int column = 0; column < columnCount; ++column) {
+            const QModelIndex index = model->index(row, column, parent);
+            if (!index.isValid()) {
+                continue;
+            }
+
+            for (int role : roles) {
+                const QVariant value = model->data(index, role);
+                if (!value.canConvert<QString>()) {
+                    continue;
+                }
+                const QString source = value.toString();
+                const QString safeText = timeEditorSafeItemText(lang, source);
+                if (!safeText.isEmpty() && safeText != source) {
+                    model->setData(index, safeText, role);
+                }
+            }
+
+            if (model->hasChildren(index)) {
+                normalizeTimeEditorModelRows(view, model, index, lang, depth + 1);
+            }
+        }
+    }
+}
+
+void normalizeTimeEditorItemModel(QAbstractItemView *view, const QString &lang)
+{
+    if (view == nullptr || lang.isEmpty() || !isTimeEditorItemWidget(view)) {
+        return;
+    }
+
+    QAbstractItemModel *model = view->model();
+    if (model == nullptr) {
+        return;
+    }
+
+    normalizeTimeEditorModelRows(view, model, QModelIndex(), lang, 0);
+}
+
 void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *> &seenActions)
 {
     if (widget == nullptr || lang.isEmpty()) {
@@ -2113,6 +2162,10 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
 
     if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(widget)) {
         hookLineEditTextChanges(lineEdit, lang);
+    }
+
+    if (QAbstractItemView *itemView = qobject_cast<QAbstractItemView *>(widget)) {
+        normalizeTimeEditorItemModel(itemView, lang);
     }
 
     if (QComboBox *comboBox = qobject_cast<QComboBox *>(widget)) {
