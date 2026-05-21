@@ -744,27 +744,27 @@ test('model-backed niceName text stays English for Time Editor and item-model re
 test('Apply Character Spacing pair labels translate in Qt display while Time Editor item names stay English', () => {
   const englishNodes = readJson(path.join(repoRoot, 'languages', 'en', 'nodeStrings.json'));
   const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
-  const expectedPairs = {
+  const expectedDataLayerPairs = {
     'zh-Hans': {
-      pairs: '匹配',
-      'pairs.matchString': '匹配字符串',
-      'pairs.spacing': '字符间距',
+      pairs: 'Matches',
+      'pairs.matchString': 'Match String',
+      'pairs.spacing': 'Character Spacing',
     },
     'zh-Hant': {
-      pairs: '匹配',
-      'pairs.matchString': '匹配字元串',
-      'pairs.spacing': '字元間距',
+      pairs: 'Matches',
+      'pairs.matchString': 'Match String',
+      'pairs.spacing': 'Character Spacing',
     },
     ja_JP: {
-      pairs: 'マッチ',
-      'pairs.matchString': 'マッチ文字列',
-      'pairs.spacing': '文字間隔',
+      pairs: 'Matches',
+      'pairs.matchString': 'Match String',
+      'pairs.spacing': 'Character Spacing',
     },
   };
 
-  assert(!whitelist.nodeStrings.no_translate.includes('pairs'), 'red-box Attribute Editor pair labels should not be blanket no_translate');
-  assert(!whitelist.nodeStrings.no_translate.includes('pairs.matchString'), 'Match String should translate outside Time Editor');
-  assert(!whitelist.nodeStrings.no_translate.includes('pairs.spacing'), 'Character Spacing should translate outside Time Editor');
+  assert(whitelist.nodeStrings.no_translate.includes('pairs'), 'pairs data is reused by Time Editor and should stay English');
+  assert(whitelist.nodeStrings.no_translate.includes('pairs.matchString'), 'Match String data is reused by Time Editor and should stay English');
+  assert(whitelist.nodeStrings.no_translate.includes('pairs.spacing'), 'Character Spacing data is reused by Time Editor and should stay English');
 
   const findNode = (nodes) =>
     nodes.flatMap((section) => section.values || []).find((node) => node.nodeType === 'applyCharacterSpacing');
@@ -775,7 +775,7 @@ test('Apply Character Spacing pair labels translate in Qt display while Time Edi
   assert.equal(englishNode.attributes['pairs.matchString'], 'Match String', 'en applyCharacterSpacing.attributes.pairs.matchString');
   assert.equal(englishNode.attributes['pairs.spacing'], 'Character Spacing', 'en applyCharacterSpacing.attributes.pairs.spacing');
 
-  for (const [language, entries] of Object.entries(expectedPairs)) {
+  for (const [language, entries] of Object.entries(expectedDataLayerPairs)) {
     const localizedNode = findNode(readJson(path.join(repoRoot, 'languages', language, 'nodeStrings.json')));
     assert(localizedNode, `${language} applyCharacterSpacing nodeStrings entry should exist`);
     for (const [key, value] of Object.entries(entries)) {

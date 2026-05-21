@@ -33,7 +33,7 @@ validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 sou
 forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。
 forbidden_translation_patterns.js: Node 共享 forbidden-pattern detector，供 runtime/full-ui gate 与契约测试复用 FP-1/2/3/4/5/7/8/9/10/11。
 forbidden_translation_patterns.json: §P5 detector 配置，集中声明正则、source/context denylist、latin residue、transliteration 与 pangram 规则。
-translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、模型 niceName 英文保留、FP-10/11/12 whitelist 契约与 G-X denominator filter，含颜色名与 Unicode script 交集剔除 provenance。
+translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、模型 niceName 与 Time Editor 复用动态属性英文保留、FP-10/11/12 whitelist 契约与 G-X denominator filter，含颜色名与 Unicode script 交集剔除 provenance。
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
@@ -81,5 +81,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-21: `CavalryTranslatorInjector.mm` 将 QLineEdit 纳入 `QEvent::Paint` 首次绘制前同步翻译链路，覆盖 SceneTree `EditableNodeName` 行名英文先画再翻译的问题；`check_app_contracts.js` 锁定该合同。
 2026-05-21: `CavalryTranslatorInjector.mm` 增加点编号与括号编号动态图层名正则，红框 Qt/Scene View 显示 `Matches.0`、`String Generator 2 [2.Match String]` 等翻译并保留数字，黄框 Time Editor item view 用同一解析器反向恢复英文；`check_app_contracts.js` 锁定该边界。
 2026-05-22: `CavalryTranslatorInjector.mm` 将 Time Editor 保护扩展到通用 `QAbstractItemView` 的 `DisplayRole/EditRole`，覆盖右侧自绘条不走 QListWidgetItem/QTreeWidgetItem 包装时的动态括号名英文恢复；`check_app_contracts.js` 锁定 model role 写回边界。
+2026-05-22: `languages/*/nodeStrings.json` 将 Apply Character Spacing 的 `pairs*` 动态属性恢复为英文数据层，避免 Time Editor 自绘条读取 CJK 后显示方框；`tools/*.ts` 继续承担红框 Qt 显示层翻译，`translation-whitelist.json` 与合同测试锁定该分层。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
