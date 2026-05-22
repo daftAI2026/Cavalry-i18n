@@ -218,10 +218,10 @@ __attribute__((constructor)) load() → bootstrapInjector()
 | Composition 菜单 lazy action | 打开前 Qt inventory 是 `&Set Playback Area to Selection`，打开后 AX 是 `Set Playback Range to Composition` | `QAction` title/enabled 在菜单打开链路才收敛 | `QMenu::aboutToShow` / `ActionAdded` / `Show` 内同步 `translateMenuBeforeFirstPaint(...)` |
 | Scene View 行名 | `EditableNodeName.text -> RowWidget -> SceneTreeWidget`，不是 model role | 行名 `QLineEdit` 先带英文文本进入首次 paint，dirty queue 下一轮才翻译 | `QEvent::Paint` 中对 `QLineEdit` 与 `QLabel` 同步 `translateRuntimeObject(...)` |
 | 退出确认窗 | `ModalDialog` + `QLabel#qt_msgbox_label` + `QDialogButtonBox#qt_msgbox_buttonbox` | `QDialog/QMessageBox` 在 `Show` 后先绘制英文，dirty queue 后置翻译按钮和 label | `QEvent::Show` 中识别 `QDialog` 并同步翻译当前 dialog 与直接子控件 |
-| MessageBar 日志弹窗 | 弹窗主体是 `QTextEdit`，历史行经 `QTextDocument` block 呈现，新行经 `QTextEdit::append(QString)` 追加 | 整句如 `Copied Align` 是运行时拼接，翻译表只有 `Align` / `Polygon Shape` 等对象名；弹窗动画期间会连续 paint | `QEvent::Paint` 只在 `QTextDocument::revision()` 变化时翻译现有 block，并 interpose `QTextEdit::append` 翻译新追加正文；`Copied <object>` 只作为有限模板处理 |
+| MessageBar 日志弹窗 | 弹窗主体是 `QTextEdit`，新日志经 `QTextEdit::append(QString)` 追加；展开弹窗时 Cavalry 原生动画会连续 paint | 整句如 `Copied Align` / `Undo (Create Super Ellipse)` 是运行时拼接，翻译表只有 `Align` / `Create Super Ellipse` 等对象/操作名 | 只 interpose `QTextEdit::append`，在追加时替换正文；禁止在 `QEvent::Paint/Show` 扫 `QTextDocument`，否则会和原生弹窗动画抢主线程 |
 | 底部即时状态消息 | 弹窗已翻译时，底部仍显示 `Copied Animation Control` | 这一路不是 `QTextEdit`，而是普通 `QLabel`/`QStatusBar::currentMessage()` widget 文本 | 把同一个 `Copied <object>` 模板接到 `translatedWidgetText(...)`，由 `QLabel::setText` / `QStatusBar::showMessage` 写回 |
 
-这些问题的共同本质是时序，具体修法不能互相套用。菜单不能靠 `QLineEdit` paint 修，SceneTree 不能靠 `aboutToShow` 修，ModalDialog 也不能等 dirty queue，日志弹窗也不能在每次 paint 重扫全文档。好路径只有一个原则：**在 Cavalry 已经生成最终文本、但 Qt/AppKit 尚未画出第一帧时写回译文**。
+这些问题的共同本质是时序，具体修法不能互相套用。菜单不能靠 `QLineEdit` paint 修，SceneTree 不能靠 `aboutToShow` 修，ModalDialog 也不能等 dirty queue，日志弹窗也不能在每次 paint 重扫全文档。好路径只有一个原则：**贴近该 surface 的文本真相源，在用户可见的动画/绘制路径之外完成替换**。
 
 因此 runtime event filter 的职责分层是：
 
@@ -230,16 +230,16 @@ QMenu       -> aboutToShow / ActionAdded / Show  pre-paint 翻译当前菜单树
 QDialog     -> Show                              pre-paint 翻译当前 dialog
 QLabel      -> Paint                             pre-paint 翻译动态 label
 QLineEdit   -> Paint + textChanged               pre-paint / 后续变更翻译显示文本
-QTextEdit   -> Paint + append(QString)           pre-paint / 后续追加翻译 MessageBar 日志正文
+QTextEdit   -> append(QString)                   追加时翻译 MessageBar 日志正文，Paint/Show 不碰文档
 QStatusBar  -> currentMessage + showMessage       翻译底部即时状态文本
 其它 QWidget -> dirty-object queue               局部兜底，不能作为首帧保证
 ```
 
-坏味道是把这些都交给 `scheduleInteractiveRefresh()` 或下一轮 run loop。那会提高“最终能翻译”的概率，但也把英文中间态暴露给用户。pre-paint 链路必须有 contract 锁住，例如 `check_app_contracts.js` 里的 lazy menu、dynamic QLabel/QLineEdit、ModalDialog 测试。
+坏味道是把这些都交给 `scheduleInteractiveRefresh()` 或下一轮 run loop。那会提高“最终能翻译”的概率，但也把英文中间态暴露给用户。时序链路必须有 contract 锁住，例如 `check_app_contracts.js` 里的 lazy menu、dynamic QLabel/QLineEdit、ModalDialog、MessageBar append-time 测试。
 
 MessageBar 和底部状态栏的另一个坏味道是给每个实例如 `Copied Align`、`Copied Polygon Shape`、`Copied Animation Control`、`Undo (Create Super Ellipse)` 补整句翻译。正确拆法是固定谓词和对象/操作名分离：`Copied <object>`、`Undo/Redo (<operation>)` 先本地化为三语模板，再让 `<object>` / `<operation>` 复用现有 UI 词典；没有对象译名时保留原对象名，不能吞消息。这些模板必须挂在通用 widget 文本入口，而不只挂在 `QTextEdit` 日志入口。
 
-`QTextEdit` 的 pre-paint 翻译还有一个性能边界：弹窗展开动画会产生多次 `Paint`，但同一个 `QTextDocument` revision 的内容没有变。不能每帧都从 `document->begin()` 扫到结尾；必须把已处理的 `document->revision()` 存在 widget property 中，只有 revision 变化才重新扫描。
+MessageBar 的性能边界比普通 pre-paint surface 更硬：弹窗展开动画本来由 Cavalry 自己维护，注入器不能在 `QEvent::Paint/Show` 里从 `QTextDocument::begin()` 扫历史 block。即使加 revision 缓存，也仍然把翻译逻辑挂进动画路径。正确边界是 append-time replacement：日志进入 `QTextEdit::append(QString)` 时已经是最终正文，替换一次后让原生 QTextEdit 和弹窗动画照常运行。
 
 ### 4.7 English Dump-Only 模式（G-CAPTURE 关键能力）
 

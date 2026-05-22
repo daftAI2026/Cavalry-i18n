@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit/QTextEdit 首次绘制前显示翻译、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、QTextDocument revision 去重和底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 首次绘制前显示翻译、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1038,7 +1038,7 @@ test('embedded injector inventory exposes MessageBar meta-object diagnostics', (
   );
 });
 
-test('embedded injector translates MessageBar QTextEdit log popout text before paint', () => {
+test('embedded injector translates MessageBar QTextEdit log popout text at append time', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
@@ -1049,20 +1049,15 @@ test('embedded injector translates MessageBar QTextEdit log popout text before p
     /QTextEdit/,
     'MessageBar log popout uses QTextEdit and must be part of the runtime widget translation surface'
   );
-  assert.match(
+  assert.doesNotMatch(
     injectorSource,
-    /translateTextEditDocument|toPlainText|QTextCursor/,
-    'injector should translate already-appended QTextEdit document blocks instead of only QLabel/QLineEdit text'
+    /QEvent::Paint[\s\S]{0,360}textEditForObject|QEvent::Show[\s\S]{0,360}textEditForObject/,
+    'MessageBar popup animation must stay native; QTextEdit history should not be rescanned from Paint/Show events'
   );
-  assert.match(
+  assert.doesNotMatch(
     injectorSource,
-    /textEditForObject[\s\S]{0,420}parent\(\)/,
-    'QTextEdit log popouts paint through their viewport child, so the injector should map child paint events back to the parent QTextEdit'
-  );
-  assert.match(
-    injectorSource,
-    /QEvent::Paint[\s\S]{0,320}textEditForObject/,
-    'QTextEdit log popouts should be translated synchronously before their first visible paint'
+    /translateTextEditDocument/,
+    'MessageBar translation should replace log text at append-time instead of scanning the whole QTextDocument during popup animation'
   );
   assert.match(
     injectorSource,
@@ -1073,11 +1068,6 @@ test('embedded injector translates MessageBar QTextEdit log popout text before p
     injectorSource,
     /appendTextEditWithoutInterpose[\s\S]{0,520}insertHtml|appendTextEditWithoutInterpose[\s\S]{0,520}insertText/,
     'if dyld cannot resolve the next QTextEdit::append symbol, the replacement must still append the original log text instead of swallowing the message'
-  );
-  assert.match(
-    injectorSource,
-    /document->revision\(\)[\s\S]{0,520}_cavalryI18nTextEditTranslatedRevision[\s\S]{0,520}QTextBlock/,
-    'MessageBar popup animation triggers repeated QTextEdit paint events, so document translation must skip unchanged QTextDocument revisions instead of rescanning every frame'
   );
   assert.doesNotMatch(
     injectorSource,

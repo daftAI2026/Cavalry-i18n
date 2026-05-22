@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel/QTextEdit 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出、QTextEdit::append 符号解析失败安全兜底和 QTextDocument revision 去重（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出、MessageBar `QTextEdit::append` 日志追加时翻译与符号解析失败安全兜底（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -22,7 +22,6 @@
 #include <QtCore/qmetaobject.h>
 #include <QtGui/qaction.h>
 #include <QtGui/qcursor.h>
-#include <QtGui/QTextBlock>
 #include <QtGui/QTextCursor>
 #include <QtGui/QTextDocument>
 #include <QtCore/qabstractitemmodel.h>
@@ -2254,50 +2253,6 @@ QString translatedTextEditAppendText(const QString &lang, const QString &sourceT
     return QString();
 }
 
-void translateTextEditDocument(QTextEdit *textEdit, const QString &lang)
-{
-    if (textEdit == nullptr || lang.isEmpty() || textEdit->property("_cavalryI18nTextEditTranslating").toBool()) {
-        return;
-    }
-
-    QTextDocument *document = textEdit->document();
-    if (document == nullptr || document->isEmpty()) {
-        return;
-    }
-
-    const int documentRevision = document->revision();
-    const QVariant translatedRevision = textEdit->property("_cavalryI18nTextEditTranslatedRevision");
-    if (translatedRevision.isValid() && translatedRevision.toInt() == documentRevision) {
-        return;
-    }
-
-    textEdit->setProperty("_cavalryI18nTextEditTranslating", true);
-    QSignalBlocker blocker(textEdit);
-    for (QTextBlock block = document->begin(); block.isValid();) {
-        QTextBlock next = block.next();
-        const QString translated = translatedLogTextBlock(lang, block.text());
-        if (!translated.isEmpty() && translated != block.text()) {
-            QTextCursor cursor(block);
-            cursor.movePosition(QTextCursor::EndOfBlock, QTextCursor::KeepAnchor);
-            cursor.insertText(translated);
-        }
-        block = next;
-    }
-    textEdit->setProperty("_cavalryI18nTextEditTranslatedRevision", document->revision());
-    textEdit->setProperty("_cavalryI18nTextEditTranslating", false);
-}
-
-QTextEdit *textEditForObject(QObject *object)
-{
-    if (object == nullptr) {
-        return nullptr;
-    }
-    if (QTextEdit *textEdit = qobject_cast<QTextEdit *>(object)) {
-        return textEdit;
-    }
-    return qobject_cast<QTextEdit *>(object->parent());
-}
-
 void appendTextEditWithoutInterpose(QTextEdit *textEdit, const QString &text)
 {
     if (textEdit == nullptr) {
@@ -2466,10 +2421,6 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
 
     if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(widget)) {
         hookLineEditTextChanges(lineEdit, lang);
-    }
-
-    if (QTextEdit *textEdit = qobject_cast<QTextEdit *>(widget)) {
-        translateTextEditDocument(textEdit, lang);
     }
 
     if (QAbstractItemView *itemView = qobject_cast<QAbstractItemView *>(widget)) {
@@ -2780,20 +2731,12 @@ protected:
 
         switch (event->type()) {
         case QEvent::Paint:
-            if (QTextEdit *textEdit = textEditForObject(watched)) {
-                translateRuntimeObject(textEdit, m_lang);
-                break;
-            }
             if (qobject_cast<QLabel *>(watched) != nullptr ||
                 qobject_cast<QLineEdit *>(watched) != nullptr) {
                 translateRuntimeObject(watched, m_lang);
             }
             break;
         case QEvent::Show:
-            if (QTextEdit *textEdit = textEditForObject(watched)) {
-                translateRuntimeObject(textEdit, m_lang);
-                break;
-            }
             if (QMenu *menu = qobject_cast<QMenu *>(watched)) {
                 translateMenuBeforeFirstPaint(menu, m_lang, true);
                 break;
