@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-05-22
+
 ### Added
 - **Undo/Redo Message Template Translation**: Implemented `Undo/Redo (<operation>)` dynamic log template translation (`translatedUndoRedoLogMessage`) inside `CavalryTranslatorInjector.mm` to localize fixed undo/redo prefixes (e.g. `撤销（%1）` / `復原（%1）` / `元に戻す`) while dynamically reusing the existing UI object dictionary for localized operation names.
 - **Generic Widget Dynamic Template Support**: Extended `translatedWidgetText` inside `CavalryTranslatorInjector.mm` to process both `translatedCopiedLogMessage` and `translatedUndoRedoLogMessage` templates, enabling dynamic template translations to work seamlessly across generic widgets (e.g., bottom status bar messages in `QLabel` and `QStatusBar`).
