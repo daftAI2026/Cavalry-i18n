@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、Qt ABI-safe accessibility 探测、ExtensionLayer 保留英文且不注册空补丁、Time Editor item view 与 QAbstractItemView role 英文保护、aboutToShow/ActionAdded/Show QMenu 首次绘制前同步翻译、动态 QLabel 浮动标题、QLineEdit 行名与 QTextEdit 日志弹窗首次绘制前翻译、MessageBar meta-object/append 接入、ModalDialog 退出确认窗首次绘制前同步翻译、运行时生成图层名、Canva 登录态品牌词、认证倒计时状态句、Tips 富文本标签、冒号与 No-prefix 标签兜底、Forge 动力学术语、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
+check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、Qt ABI-safe accessibility 探测、ExtensionLayer 保留英文且不注册空补丁、Time Editor item view 与 QAbstractItemView role 英文保护、aboutToShow/ActionAdded/Show QMenu 首次绘制前同步翻译、动态 QLabel 浮动标题、QLineEdit 行名与 QTextEdit 日志弹窗首次绘制前翻译、MessageBar meta-object/append 接入和 `Copied <object>` 动态日志模板、ModalDialog 退出确认窗首次绘制前同步翻译、运行时生成图层名、Canva 登录态品牌词、认证倒计时状态句、Tips 富文本标签、冒号与 No-prefix 标签兜底、Forge 动力学术语、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸与 bridge 能力。
@@ -83,5 +83,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-22: `CavalryTranslatorInjector.mm` 将 Time Editor 保护扩展到通用 `QAbstractItemView` 的 `DisplayRole/EditRole`，覆盖右侧自绘条不走 QListWidgetItem/QTreeWidgetItem 包装时的动态括号名英文恢复；`check_app_contracts.js` 锁定 model role 写回边界。
 2026-05-22: `languages/*/nodeStrings.json` 将 Apply Character Spacing 的 `pairs*` 动态属性恢复为英文数据层，避免 Time Editor 自绘条读取 CJK 后显示方框；`tools/*.ts` 继续承担红框 Qt 显示层翻译，`translation-whitelist.json` 与合同测试锁定该分层。
 2026-05-22: `CavalryTranslatorInjector.mm` 增加 `QTextEdit::append` 在 dyld 符号解析失败时的安全写入兜底，用直接 cursor 插入避免吞没日志消息；`check_app_contracts.js` 增加对应安全断言。
+2026-05-22: `CavalryTranslatorInjector.mm` 增加 MessageBar `Copied <object>` 动态日志模板翻译，固定谓词按语言本地化、对象名复用现有词典；`check_app_contracts.js` 锁定三语模板与对象名查表。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

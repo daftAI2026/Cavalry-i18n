@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel/QTextEdit 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出、QTextEdit::append 符号解析失败安全兜底（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel/QTextEdit 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出、QTextEdit::append 与 Copied 动态日志模板翻译、符号解析失败安全兜底（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2107,6 +2107,47 @@ void hookLineEditTextChanges(QLineEdit *lineEdit, const QString &lang)
     translateLineEditDisplayText(lineEdit, lang);
 }
 
+QString translatedCopiedLogMessage(const QString &lang, const QString &message)
+{
+    const QRegularExpressionMatch copiedMatch =
+        QRegularExpression(QStringLiteral("^Copied\\s+(.+)$")).match(message);
+    if (!copiedMatch.hasMatch()) {
+        return QString();
+    }
+
+    const QString copiedTarget = copiedMatch.captured(1).trimmed();
+    if (copiedTarget.isEmpty()) {
+        return QString();
+    }
+
+    QString translatedTarget = translatedWidgetText(lang, copiedTarget);
+    if (translatedTarget.isEmpty()) {
+        translatedTarget = copiedTarget;
+    }
+
+    if (lang == QStringLiteral("zh-Hans")) {
+        return QStringLiteral("已复制「%1」").arg(translatedTarget);
+    }
+    if (lang == QStringLiteral("zh-Hant")) {
+        return QStringLiteral("已複製「%1」").arg(translatedTarget);
+    }
+    if (lang == QStringLiteral("ja_JP")) {
+        return QStringLiteral("「%1」をコピーしました").arg(translatedTarget);
+    }
+
+    return QString();
+}
+
+QString translatedLogMessageText(const QString &lang, const QString &message)
+{
+    const QString direct = translatedWidgetText(lang, message);
+    if (!direct.isEmpty() && direct != message) {
+        return direct;
+    }
+
+    return translatedCopiedLogMessage(lang, message);
+}
+
 QString translatedLogTextBlock(const QString &lang, const QString &sourceText)
 {
     const QString normalized = normalizeMenuText(sourceText);
@@ -2114,9 +2155,9 @@ QString translatedLogTextBlock(const QString &lang, const QString &sourceText)
         return QString();
     }
 
-    const QString direct = translatedWidgetText(lang, normalized);
-    if (!direct.isEmpty() && direct != normalized) {
-        return direct;
+    const QString translatedLine = translatedLogMessageText(lang, normalized);
+    if (!translatedLine.isEmpty() && translatedLine != normalized) {
+        return translatedLine;
     }
 
     const QRegularExpressionMatch match =
@@ -2126,7 +2167,7 @@ QString translatedLogTextBlock(const QString &lang, const QString &sourceText)
     }
 
     const QString message = match.captured(2).trimmed();
-    const QString translatedMessage = translatedWidgetText(lang, message);
+    const QString translatedMessage = translatedLogMessageText(lang, message);
     if (translatedMessage.isEmpty() || translatedMessage == message) {
         return QString();
     }
@@ -2150,7 +2191,7 @@ QString translatedTextEditAppendText(const QString &lang, const QString &sourceT
             .match(sourceText);
     if (htmlBreakMatch.hasMatch()) {
         const QString message = normalizeMenuText(htmlBreakMatch.captured(2));
-        const QString translatedMessage = translatedWidgetText(lang, message);
+        const QString translatedMessage = translatedLogMessageText(lang, message);
         if (!translatedMessage.isEmpty() && translatedMessage != message) {
             return htmlBreakMatch.captured(1) + translatedMessage + htmlBreakMatch.captured(3);
         }
