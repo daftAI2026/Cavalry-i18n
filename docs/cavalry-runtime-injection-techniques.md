@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 desktop-patcher/injector/CavalryTranslatorInjector.mm 的 ABI 选择、tools/launch_cavalry_with_injector.sh 的代码签名编排、Cavalry/Qt 的运行时行为
-[OUTPUT]: 对外提供 Cavalry runtime UI 抽取与翻译注入的技术沉淀，记录 QTranslator/DYLD 注入、pre-paint 生命周期翻译、MessageBar 日志模板翻译与 live inventory 诊断，作为后续 agent 与协作者的"为什么这么做"参考
+[OUTPUT]: 对外提供 Cavalry runtime UI 抽取与翻译注入的技术沉淀，记录 QTranslator/DYLD 注入、pre-paint 生命周期翻译、MessageBar 日志模板翻译与 metadata-only live inventory 诊断，作为后续 agent 与协作者的"为什么这么做"参考
 [POS]: docs/ 知识沉淀位，与 cavalry-glossary*.md / cavalry-scripting-*.md 同级
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -240,6 +240,8 @@ QStatusBar  -> currentMessage + showMessage       翻译底部即时状态文本
 MessageBar 和底部状态栏的另一个坏味道是给每个实例如 `Copied Align`、`Copied Polygon Shape`、`Copied Animation Control`、`Undo (Create Super Ellipse)` 补整句翻译。正确拆法是固定谓词和对象/操作名分离：`Copied <object>`、`Undo/Redo (<operation>)` 先本地化为三语模板，再让 `<object>` / `<operation>` 复用现有 UI 词典；没有对象译名时保留原对象名，不能吞消息。这些模板必须挂在通用 widget 文本入口，而不只挂在 `QTextEdit` 日志入口。
 
 MessageBar 的性能边界比普通 pre-paint surface 更硬：弹窗展开动画本来由 Cavalry 自己维护，注入器不能在 `QEvent::Paint/Show` 里从 `QTextDocument::begin()` 扫历史 block。即使加 revision 缓存，也仍然把翻译逻辑挂进动画路径。正确边界是 append-time replacement：日志进入 `QTextEdit::append(QString)` 时已经是最终正文，替换一次后让原生 QTextEdit 和弹窗动画照常运行。
+
+同一条边界也适用于 runtime inventory：MessageBar 可保留 className、parentChain、geometry、meta-object methods 这类 metadata 证据，但交互刷新或 dirty drain 中禁止对 `QTextEdit` 调 `toPlainText()` 读取整份日志历史。那会把 O(history) 的正文复制挂回弹窗展开主线程路径，表现上和 Paint/Show 扫文档一样卡动画。
 
 ### 4.7 English Dump-Only 模式（G-CAPTURE 关键能力）
 
