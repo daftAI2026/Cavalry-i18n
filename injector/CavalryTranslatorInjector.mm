@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel/QTextEdit 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签与 No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出、QTextEdit::append 与 Copied 动态日志模板翻译、符号解析失败安全兜底（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel/QTextEdit 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object 的运行时 inventory 导出、QTextEdit::append 符号解析失败安全兜底和 QTextDocument revision 去重（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1724,6 +1724,8 @@ QString translatedCompoundWidgetText(const QString &lang, const QString &sourceT
 QString translatedDynamicBracketLayerName(const QString &lang, const QString &sourceText, bool forceEnglish);
 QString translatedGeneratedLayerName(const QString &lang, const QString &sourceText);
 QString translatedMixedNoPrefixText(const QString &lang, const QString &sourceText);
+QString translatedCopiedLogMessage(const QString &lang, const QString &message);
+QString translatedUndoRedoLogMessage(const QString &lang, const QString &message);
 QString timeEditorSafeItemText(const QString &lang, const QString &sourceText);
 
 QString translatedWidgetText(const QString &lang, const QString &sourceText)
@@ -1733,6 +1735,16 @@ QString translatedWidgetText(const QString &lang, const QString &sourceText)
         const QString noPrefixTranslation = translatedMixedNoPrefixText(lang, sourceText);
         if (!noPrefixTranslation.isEmpty()) {
             return noPrefixTranslation;
+        }
+
+        const QString copiedLogTranslation = translatedCopiedLogMessage(lang, sourceText);
+        if (!copiedLogTranslation.isEmpty()) {
+            return copiedLogTranslation;
+        }
+
+        const QString undoRedoTranslation = translatedUndoRedoLogMessage(lang, sourceText);
+        if (!undoRedoTranslation.isEmpty()) {
+            return undoRedoTranslation;
         }
 
         QRegularExpressionMatch match = QRegularExpression(QStringLiteral("^(.*?)(\\.[0-9]+)$")).match(sourceText);
@@ -2138,6 +2150,38 @@ QString translatedCopiedLogMessage(const QString &lang, const QString &message)
     return QString();
 }
 
+QString translatedUndoRedoLogMessage(const QString &lang, const QString &message)
+{
+    const QRegularExpressionMatch undoRedoMatch =
+        QRegularExpression(QStringLiteral("^(Undo|Redo)\\s*\\((.+)\\)$")).match(message);
+    if (!undoRedoMatch.hasMatch()) {
+        return QString();
+    }
+
+    const bool isUndo = undoRedoMatch.captured(1) == QStringLiteral("Undo");
+    const QString undoTarget = undoRedoMatch.captured(2).trimmed();
+    if (undoTarget.isEmpty()) {
+        return QString();
+    }
+
+    QString translatedTarget = translatedWidgetText(lang, undoTarget);
+    if (translatedTarget.isEmpty()) {
+        translatedTarget = undoTarget;
+    }
+
+    if (lang == QStringLiteral("zh-Hans")) {
+        return (isUndo ? QStringLiteral("撤销（%1）") : QStringLiteral("重做（%1）")).arg(translatedTarget);
+    }
+    if (lang == QStringLiteral("zh-Hant")) {
+        return (isUndo ? QStringLiteral("復原（%1）") : QStringLiteral("重做（%1）")).arg(translatedTarget);
+    }
+    if (lang == QStringLiteral("ja_JP")) {
+        return (isUndo ? QStringLiteral("%1を元に戻す") : QStringLiteral("%1をやり直す")).arg(translatedTarget);
+    }
+
+    return QString();
+}
+
 QString translatedLogMessageText(const QString &lang, const QString &message)
 {
     const QString direct = translatedWidgetText(lang, message);
@@ -2145,7 +2189,12 @@ QString translatedLogMessageText(const QString &lang, const QString &message)
         return direct;
     }
 
-    return translatedCopiedLogMessage(lang, message);
+    const QString copied = translatedCopiedLogMessage(lang, message);
+    if (!copied.isEmpty()) {
+        return copied;
+    }
+
+    return translatedUndoRedoLogMessage(lang, message);
 }
 
 QString translatedLogTextBlock(const QString &lang, const QString &sourceText)
@@ -2216,6 +2265,12 @@ void translateTextEditDocument(QTextEdit *textEdit, const QString &lang)
         return;
     }
 
+    const int documentRevision = document->revision();
+    const QVariant translatedRevision = textEdit->property("_cavalryI18nTextEditTranslatedRevision");
+    if (translatedRevision.isValid() && translatedRevision.toInt() == documentRevision) {
+        return;
+    }
+
     textEdit->setProperty("_cavalryI18nTextEditTranslating", true);
     QSignalBlocker blocker(textEdit);
     for (QTextBlock block = document->begin(); block.isValid();) {
@@ -2228,6 +2283,7 @@ void translateTextEditDocument(QTextEdit *textEdit, const QString &lang)
         }
         block = next;
     }
+    textEdit->setProperty("_cavalryI18nTextEditTranslatedRevision", document->revision());
     textEdit->setProperty("_cavalryI18nTextEditTranslating", false);
 }
 

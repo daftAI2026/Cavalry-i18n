@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit/QTextEdit 首次绘制前显示翻译、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object 与 QTextEdit append/Copied 动态日志模板接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit/QTextEdit 首次绘制前显示翻译、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、QTextDocument revision 去重和底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -547,6 +547,16 @@ test('embedded injector translates widget-owned actions and container item label
     /setItemText|setTabText|showMessage/,
     'container translation should write translated item, tab, and status text back through Qt APIs'
   );
+  assert.match(
+    injectorSource,
+    /QString translatedWidgetText[\s\S]{0,900}translatedCopiedLogMessage/,
+    'bottom status messages such as "Copied Animation Control" use QLabel/QStatusBar widget text, so Copied templates must be available to the generic widget translation path too'
+  );
+  assert.match(
+    injectorSource,
+    /QString translatedWidgetText[\s\S]{0,1100}translatedUndoRedoLogMessage/,
+    'bottom status messages such as "Undo (Create Super Ellipse)" use QLabel/QStatusBar widget text, so Undo/Redo templates must also be available to the generic widget translation path'
+  );
 });
 
 test('model-backed niceName text stays English for Time Editor and item-model reuse', () => {
@@ -1064,6 +1074,11 @@ test('embedded injector translates MessageBar QTextEdit log popout text before p
     /appendTextEditWithoutInterpose[\s\S]{0,520}insertHtml|appendTextEditWithoutInterpose[\s\S]{0,520}insertText/,
     'if dyld cannot resolve the next QTextEdit::append symbol, the replacement must still append the original log text instead of swallowing the message'
   );
+  assert.match(
+    injectorSource,
+    /document->revision\(\)[\s\S]{0,520}_cavalryI18nTextEditTranslatedRevision[\s\S]{0,520}QTextBlock/,
+    'MessageBar popup animation triggers repeated QTextEdit paint events, so document translation must skip unchanged QTextDocument revisions instead of rescanning every frame'
+  );
   assert.doesNotMatch(
     injectorSource,
     /if\s*\(\s*original\s*==\s*nullptr\s*\)\s*\{\s*return;\s*\}/,
@@ -1083,6 +1098,16 @@ test('embedded injector translates MessageBar QTextEdit log popout text before p
     injectorSource,
     /已复制「%1」[\s\S]{0,220}已複製「%1」[\s\S]{0,220}コピーしました/,
     'Copied log templates should be localized for zh-Hans, zh-Hant, and ja_JP'
+  );
+  assert.match(
+    injectorSource,
+    /translatedUndoRedoLogMessage[\s\S]{0,720}Undo\|Redo[\s\S]{0,720}translatedWidgetText\(lang,\s*undoTarget\)/,
+    'MessageBar history contains dynamic "Undo (<operation>)" entries, so the injector should translate the template and reuse the existing operation translation table'
+  );
+  assert.match(
+    injectorSource,
+    /撤销（%1）[\s\S]{0,260}復原（%1）[\s\S]{0,260}元に戻す/,
+    'Undo log templates should be localized for zh-Hans, zh-Hant, and ja_JP'
   );
 });
 
