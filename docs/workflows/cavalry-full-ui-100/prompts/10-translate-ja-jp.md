@@ -35,7 +35,7 @@ ja_JP 采用日语 UI 术语与片假名规范，禁止日英半混合。
 
 ### 禁止
 
-- 旧路径 `docs/workflows/cavalry-i18n/...`
+- 归档旧路径 `docs/archive/workflows-cavalry-i18n/...`
 - 中文 UI 术语污染
 
 ## Run Note

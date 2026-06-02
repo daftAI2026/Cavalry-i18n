@@ -1,5 +1,5 @@
 # prompts/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/workflows/cavalry-i18n/CLAUDE.md
+> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/archive/workflows-cavalry-i18n/CLAUDE.md
 
 成员清单
 00-bootstrap-context.md: 早期冷启动上下文入口。

@@ -15,6 +15,7 @@ output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿
 </directory>
 
 <config>
+AGENTS.md - 根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 README.md - 英文主入口，链接三语本地化 README 并描述当前构建、运行与验证路径
 README.zh-Hans.md - 简体中文 README，本地化主文档并保持命令、路径与版本不漂移
 README.zh-Hant.md - 繁体中文 README，本地化主文档并保持命令、路径与版本不漂移

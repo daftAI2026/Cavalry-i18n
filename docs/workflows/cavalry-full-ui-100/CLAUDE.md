@@ -9,7 +9,6 @@
 - EXECUTE.md: 冷启动执行入口、完整抽取前置条件与绝对禁止清单
 - TODO.md: 当前实现缺口与任务顺序
 - Anti-Patterns.md: fixture/curated、伪翻译、分母缩水三类反绕过档案
-- ChatlogRef.md: 审查证据留档（非规范真相源）
 - translation-backlog-template.csv: 翻译积压工作模板，为三语翻译项梳理提供结构化表格。
 - tests/: 契约文档目录
 - runs/: 运行记录目录
@@ -25,6 +24,6 @@
 - AX 菜单抓取必须留下递归证据：`menuDepthMax` 与 submenu path samples；只证明脚本会递归不等于本轮抓取合格。
 - 翻译引擎只允许 LLM；禁止 fixture / curated / 本地词表 / 全角化 / 占位标记 / 自我递归伪翻译。
 - 构建与发布遵守 `docs/LOCAL_BUILD_SOP.md` 的 Tauri-only 路径；旧壳层路径已删除，不作为本 workflow 修复目标。
-- `ChatlogRef.md` 与 `Anti-Patterns.md` 只保留历史证据；若与 `Project.md` / `Acceptance.md` / `Runbook.md` 冲突，以后三者为准。
+- `Anti-Patterns.md` 只保留历史证据；若与 `Project.md` / `Acceptance.md` / `Runbook.md` 冲突，以后三者为准。旧 `ChatlogRef.md` 已归档到 `docs/archive/full-ui-100-chatlog-ref.md`。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

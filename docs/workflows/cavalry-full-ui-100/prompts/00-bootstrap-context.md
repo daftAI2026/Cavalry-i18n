@@ -28,8 +28,7 @@
 
 8. `REPO/docs/translation-guidelines.md` — 翻译原则：术语对齐、零混合语言、简繁差异
 9. `REPO/docs/cavalry-glossary.md` — 四语言术语表（en/zh-Hans/zh-Hant/ja_JP，~50 条）
-10. `REPO/docs/cavalry-glossary-en-zh.md` — 英简中双语术语表（带翻译决策注释）
-11. `REPO/tools/translation-whitelist.json` — JSON 字段分类（translate/no_translate/locale_sync）
+10. `REPO/tools/translation-whitelist.json` — JSON 字段分类（translate/no_translate/locale_sync）
 
 ## Must Follow
 

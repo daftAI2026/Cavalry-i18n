@@ -2,7 +2,9 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/CLAUDE.md
 
 成员清单
+cavalry-2.7.2-target-refresh-plan.md: Cavalry 2.7.2 目标刷新执行计划，已完成并由 full-ui 2026-05-14 reverify run note 接管当前真相。
 cavalry-glossary-en-zh.md: 旧英→简中双语术语表（带注释），已合并入 cavalry-glossary.md 主表。
+full-ui-100-chatlog-ref.md: full-ui-100 旧聊天证据留档，保留 compiled/runtime/json 早期解释与 Electron 时代片段，不作为规范真相源。
 G-CAPTURE-DIAGNOSTIC.md: G-CAPTURE 诊断历史记录，保留注入与抓取失败证据。
 LOCAL_BUILD_ELECTRON_SOP.md: 旧 Electron 构建 SOP，已被 Tauri-only 路径取代。
 capture_accessibility_inventory_interactive.js: 归档 AX 交互抓取脚本，保留早期 live inventory 探索实现。
@@ -20,6 +22,7 @@ runtime-ui-event-filter-performance-fix.md: Event filter 100% CPU 修复方案�
 runtime-ui-injection-coverage-plan.md: Runtime UI 注入覆盖修复方案，aboutToShow / event filter / widget 类型扩展全部已实现。
 runtime-ui-tail-cleanup-plan.md: Runtime UI 收尾清理执行计划，已执行完毕并产出实跑记录。
 tauri-migration-tdd-plan.md: Tauri 迁移 TDD 总方案，迁移已全部完成、Electron 已删除。
+workflows-cavalry-i18n/: 早期 Cavalry-i18n workflow 原始执行链，已被 `workflows/cavalry-full-ui-100/` 取代。
 
 依赖边界:
 archive 只保存历史证据；当前实现、gate 与发布流程不得从这里读取真相。

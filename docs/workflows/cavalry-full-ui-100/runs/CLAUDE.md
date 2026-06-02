@@ -13,11 +13,7 @@
 2026-04-30-cavalry-2.7.1-target-refresh.md: Cavalry 2.7.1/Qt 6.6.3 目标确认记录，要求重新抽取 compiled、runtime 与 G-X 分母。
 2026-04-30-target-drift-capture-contract.md: target drift 与 AX submenu capture evidence 规则硬化，阻止旧分母和弱抓取继续证明当前版本。
 2026-04-30-main-misapplied-infra-reverted.md: 89db6c1a session 误在 main 提交 full-ui infrastructure 的 INVALIDATED 记录，保存 quarantine 分支并用 revert 清理 main。
-2026-04-30-G-CAPTURE-session-35087aa7-tool-permission-denied.md: 35087aa7 session 未完成 G-CAPTURE，Copilot 工具权限拒绝导致未创建 session artifacts / run note；不作为 AX 权限结论。
 2026-04-30-worktree-progress-reconciled.md: 第二次错投 main 后的恢复记录，保存 backup branch、确认 useful work 已迁入 wip，并固定当前 G-X / G2 blocker。
-2026-04-30-G-CAPTURE-SIP-blocker.md: INVALIDATED 样本，没有出示 `codesign-evidence.txt` 就声明 SIP 内核阻塞；保留作为 `Anti-Patterns.md` §D SIP-Blame Misdiagnosis 的反向回归证据，不作为 G-CAPTURE 真相源。
-2026-04-30-G-CAPTURE-FINAL-STATUS-WEAK-CAPTURE.md: INVALIDATED 样本，把 9-candidate AX 弱抓取 + 未验证的 SIP 假设当作 G-CAPTURE 最终结论；保留作为 `Anti-Patterns.md` §D 的反向回归证据，不作为 G-CAPTURE 真相源。
-2026-04-30-G-CAPTURE-WORKTREE-STATE-CORRECTION.md: 69d6bfc worktree 状态校正记录，撤销 active 文档中的 SIP 结论，固定当前第一失败 gate 为 G-CAPTURE runtime live denominator 未成立。
 2026-05-01-G2b-batch-1-complete.md: G2b Batch 1 真翻译记录（50 条 compiled UI），cherry-pick 自 b4f784c。
 2026-05-01-CHECKPOINT-Batch1-Done.md: G2b Batch 1 完成 checkpoint，配合 batch-1-complete 阅读。
 2026-05-01-G2b-batch-2-complete.md: G2b Batch 2 真翻译记录（50 条 compiled UI），cherry-pick 自 88760e9。
@@ -31,7 +27,7 @@
 2026-05-07-G-X-denominator-recleaning.md: Step 2 G-X 分母清洗 PASS 记录，冻结新 truth source 为 JSON 6292、compiled 3190、runtime candidates 617、menuLeaves 730，并登记 §F 噪声剔除 provenance。
 2026-05-07-G2-G3-llm-batch-diagnostic-drift.md: Step 3 G2/G3 LLM 批译 BLOCKED 记录，证明同一 LLM batch blocker 两次修复仍复现并固定停止点。
 2026-05-08-ALL-GATES-PASS.md: Step 3/4 最终 PASS 记录，绑定 session BC5BF821、cleaned denominator、三语 FP-1..12=0、check:full-ui overallPass=true / blockedReason=null 与 test:desktop 88/88。
-archive/: 反模式与污染 run note 取证目录，含 fabrication-era over-claim 报告与失效的 NEXT-STEPS.md，仅供反向回归，不参与当前 gate。
+archive/: 反模式与污染 run note 取证目录，含 fabrication-era over-claim、失效 NEXT-STEPS.md 与 2026-04-30 G-CAPTURE 历史诊断，仅供反向回归，不参与当前 gate。
 
 规则
 - 每个 run log 必须包含 `## Status`，状态只允许 `PASS` / `FAIL` / `INVALIDATED` / `BLOCKED`。

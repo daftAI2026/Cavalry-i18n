@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-06-02
+
+### Added
+- **Global Action Map**: Introduced `AGENTS.md` at the root directory to define toolchain requirements, conventions, anti-patterns, and secure boundaries for the desktop switcher repository.
+
+### Changed
+- **Archived Early Workspace Workflows**: Migrated 25+ legacy documents from `docs/workflows/cavalry-i18n/` to `docs/archive/workflows-cavalry-i18n/`, including acceptance rules, execute runs, and early TDD contract specs (TDD master, translation, switcher, whitelist contracts).
+- **Pruned and Archived Live-Capture Logs**: Consolidated 20+ runtime diagnostic logs from `docs/workflows/cavalry-full-ui-100/runs/` to `runs/archive/` to isolate historical SIP blocker audits, dylib injection regressions, and app-copy failures.
+- **Removed Obsolete Planning Docs**: Deleted expired target plans (`cavalry-2.7.2-target-refresh-plan.md`) and dense cache references (`ChatlogRef.md`) to align L1/L2 docs structures with current Tauri runtime gates.
+- **Project Metadata Synchronized**: Propagated version 0.5.1 across project configuration surfaces (`package.json`, `package-lock.json`, `src-tauri/Cargo.toml`, `src-tauri/tauri.conf.json`, `src-tauri/Cargo.lock`).
+
 ## [0.5.0] - 2026-05-22
 
 ### Added

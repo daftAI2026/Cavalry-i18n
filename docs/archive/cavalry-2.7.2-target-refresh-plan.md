@@ -1,7 +1,7 @@
 <!--
 [INPUT]: 依赖 /Applications/Cavalry.app 2.7.2、tools/cavalry_qt_target.json、full-ui-100 Target Version Drift Rule、2026-05-08 2.7.1 ALL GATES PASS artifacts
-[OUTPUT]: 对外提供 Cavalry 2.7.2 目标刷新与增量补译的可执行计划，明确先重冻分母、再看增量、最后全量 gate
-[POS]: docs/ 方案文档，承接 Cavalry 版本升级后的 denominator drift 处理，不驱动运行时
+[OUTPUT]: 对外提供 Cavalry 2.7.2 目标刷新与增量补译的历史执行计划，明确先重冻分母、再看增量、最后全量 gate
+[POS]: docs/archive 的 completed plan，当前真相由 full-ui 2026-05-14 reverify run note 接管
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 

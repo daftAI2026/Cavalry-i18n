@@ -23,7 +23,7 @@ PASS
 - `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/LOCAL_BUILD_SOP.md`
 - `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/translation-guidelines.md`
 - `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/cavalry-glossary.md`
-- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/cavalry-glossary-en-zh.md`
+- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/archive/cavalry-glossary-en-zh.md`
 - `tools/translation-whitelist.json`
 
 ## Findings

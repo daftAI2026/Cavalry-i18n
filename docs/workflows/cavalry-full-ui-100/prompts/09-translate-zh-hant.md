@@ -35,7 +35,7 @@ zh-Hant 必须独立翻译，不是简转繁。
 
 ### 禁止
 
-- 旧路径 `docs/workflows/cavalry-i18n/...`
+- 归档旧路径 `docs/archive/workflows-cavalry-i18n/...`
 - 简体污染
 
 ## Run Note

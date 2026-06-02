@@ -11,7 +11,6 @@
 
 - `REPO/docs/translation-guidelines.md`
 - `REPO/docs/cavalry-glossary.md`
-- `REPO/docs/cavalry-glossary-en-zh.md`
 - `REPO/tools/translation-whitelist.json`
 - `WORKFLOW/Acceptance.md` §G-X
 
@@ -36,7 +35,7 @@ zh-Hans 是基准语言，按 JSON / compiled / runtime 三个 surface 清零。
 
 ### 禁止
 
-- 旧路径 `docs/workflows/cavalry-i18n/...`
+- 归档旧路径 `docs/archive/workflows-cavalry-i18n/...`
 - 本地词表 / 占位标记 / 全角化
 
 ## Run Note

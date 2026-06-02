@@ -103,6 +103,6 @@ flowchart TD
 
 ## Provenance Rule
 
-- `ChatlogRef.md` 是本次审查/复核过程的证据留档
+- `docs/archive/full-ui-100-chatlog-ref.md` 是本次审查/复核过程的历史证据留档
 - 它可以解释“为什么把某些 blocker 升格为 workflow 基线”
 - 但它**不是**当前 gate 的真相源；若与 `Project.md` / `Acceptance.md` / `Runbook.md` 冲突，以后三者为准

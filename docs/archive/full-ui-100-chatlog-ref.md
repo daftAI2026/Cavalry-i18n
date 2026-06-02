@@ -7,8 +7,8 @@ agentMode: smart
 
 <!--
 [INPUT]: 依赖历史对话摘录、执行者最终汇报与审查摘要
-[OUTPUT]: 对外提供 full-ui-100 的聊天证据留档，辅助 Anti-Patterns.md 追溯案例
-[POS]: full-ui-100 的证据附录，不是规范真相源
+[OUTPUT]: 对外提供 full-ui-100 的历史聊天证据留档，辅助 Anti-Patterns.md 追溯案例
+[POS]: docs/archive 的旧证据附录，不是规范真相源
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 

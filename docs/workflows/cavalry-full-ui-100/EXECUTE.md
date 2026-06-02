@@ -92,7 +92,6 @@
 - ✅ 翻译引擎**只允许 LLM**，输入必须是：
   - [`docs/translation-guidelines.md`](../../translation-guidelines.md)
   - [`docs/cavalry-glossary.md`](../../cavalry-glossary.md)
-  - [`docs/cavalry-glossary-en-zh.md`](../../cavalry-glossary-en-zh.md)
   - [`tools/translation-whitelist.json`](../../../tools/translation-whitelist.json)（决定哪些英文必须保留）
 - ✅ 翻译产物在写入仓库前必须先过 §P5 Forbidden-Translation Patterns 扫描，命中即拒收
 
@@ -226,7 +225,7 @@ WORKFLOW/Runbook.md       # 执行纪律
 WORKFLOW/Project.md       # 项目宪法与目标
 WORKFLOW/TODO.md          # 当前任务队列（已重置）
 WORKFLOW/Flow.md          # gate ownership 与端到端流程
-WORKFLOW/ChatlogRef.md    # 旧审查证据，仅参考
+REPO/docs/archive/full-ui-100-chatlog-ref.md # 旧审查证据，仅参考，不是当前真相源
 ```
 
 翻译准则（执行翻译任务前必读）：
@@ -234,7 +233,6 @@ WORKFLOW/ChatlogRef.md    # 旧审查证据，仅参考
 ```text
 REPO/docs/translation-guidelines.md       # 翻译原则：术语对齐、零混合语言、简繁差异
 REPO/docs/cavalry-glossary.md             # 四语言术语表（en/zh-Hans/zh-Hant/ja_JP）
-REPO/docs/cavalry-glossary-en-zh.md       # 英简中双语术语表
 REPO/tools/translation-whitelist.json    # JSON 字段分类（translate/no_translate/locale_sync）
 ```
 
@@ -400,7 +398,7 @@ cat .github/workflows/build.yml
 ## 翻译工具配置
 
 - **翻译引擎**: 只允许 LLM（禁止任何本地词表/启发式/全角化/占位标记 — 详见 §禁6）
-- **Glossary**: `docs/cavalry-glossary.md`（四语言版）+ `docs/cavalry-glossary-en-zh.md`
+- **Glossary**: `docs/cavalry-glossary.md`（四语言版）
 - **Guidelines**: `docs/translation-guidelines.md`
 - **Whitelist**: `tools/translation-whitelist.json`
 - **Validator**: `tools/validate_translations.py`（每次翻译写入后必跑，coverage 必须 1.00）

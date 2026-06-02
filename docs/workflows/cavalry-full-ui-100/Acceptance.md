@@ -378,7 +378,7 @@ Current HEAD is free of FP-1..FP-12 hits after cleaning JSON / TS / generated as
 
 ### 修改流程
 
-- [ ] 先修改 `docs/cavalry-glossary.md` 或 `docs/cavalry-glossary-en-zh.md`
+- [ ] 先修改当前四语术语表 `docs/cavalry-glossary.md`
 - [ ] 再由 derive 脚本生成 whitelist / allowlist
 - [ ] diff 必须经独立审阅
 - [ ] `RUN_RECORD.frozenBaselines` 记录 whitelist / allowlist 的 path/hash/mtime
