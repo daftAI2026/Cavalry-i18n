@@ -112,6 +112,16 @@ npm run check:app              # 檢查所有 JS 語法
 npm run check:full-ui          # 完整 JSON + compiled + runtime UI gate（100%）
 ```
 
+## AI / Agent Guide
+
+本倉庫包含面向 AI agent 的知識庫：
+
+- `AGENTS.md` —— AI coding agent 操作指南：專案地圖、約定、反模式、命令、構建流水線與安全邊界
+- `CLAUDE.md` —— 倉庫根級架構地圖；根目錄或模組結構變化時必須同步更新
+- 模組級 `CLAUDE.md` —— `renderer/`、`src-tauri/`、`tools/`、`docs/` 等目錄的局部地圖
+
+使用 AI agent 時，請先要求它讀取 `AGENTS.md`、`CLAUDE.md` 和最近的模組級 `CLAUDE.md`，再開始修改程式碼。
+
 ## 翻譯面
 
 本專案有 **兩個** 翻譯面：

@@ -112,6 +112,16 @@ npm run check:app              # すべての JS を構文チェック
 npm run check:full-ui          # Full JSON + compiled + runtime UI gate（100%）
 ```
 
+## AI / Agent Guide
+
+このリポジトリには、AI agent 向けのナレッジベースがあります。
+
+- `AGENTS.md` — AI coding agent の運用ガイド：project map、conventions、anti-patterns、commands、build pipeline、safety boundaries
+- `CLAUDE.md` — リポジトリルートの architecture map。ルートまたはモジュール構造を変更した場合は更新してください
+- モジュール単位の `CLAUDE.md` — `renderer/`、`src-tauri/`、`tools/`、`docs/` などのローカルマップ
+
+AI agent を使う場合は、コード変更の前に `AGENTS.md`、`CLAUDE.md`、最寄りのモジュール単位 `CLAUDE.md` を読むよう依頼してください。
+
 ## 翻訳サーフェス
 
 このプロジェクトには **2 つ** の翻訳サーフェスがあります。

@@ -112,6 +112,16 @@ npm run check:app              # Syntax-check all JS
 npm run check:full-ui          # Full JSON + compiled + runtime UI gate (100%)
 ```
 
+## AI / Agent Guide
+
+This repository includes an agent-facing knowledge base:
+
+- `AGENTS.md` — operational guide for AI coding agents: project map, conventions, anti-patterns, commands, build pipeline, and safety boundaries
+- `CLAUDE.md` — root architecture map for the repository; update it when root/module structure changes
+- Module-level `CLAUDE.md` files — local maps for directories such as `renderer/`, `src-tauri/`, `tools/`, and `docs/`
+
+When using an AI agent, ask it to read `AGENTS.md`, `CLAUDE.md`, and the nearest module `CLAUDE.md` before changing code.
+
 ## Translation Surfaces
 
 There are **two** translation surfaces in this project:
