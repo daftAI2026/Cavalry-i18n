@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/.github/CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；main/PR 只跑版本元数据、release 协议、Node/Rust 合同与翻译质量验证；`cavalry-*-p*` tag 与手动触发才在 macOS 上构建 Tauri DMG 与 `.app` artifact；`cavalry-*-p*` tag 通过 `release.config.json` 生成产品标题、DMG 资产名与产品介绍型 release notes。
+build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；main/PR 只跑版本元数据、release 协议、Node/Rust 合同与翻译质量验证；`cavalry-*-p*` tag 与手动触发才在 macOS 上构建 Tauri DMG 与 `.app` artifact；`cavalry-*-p*` tag 通过 `release.config.json` 生成产品标题、DMG 资产名与产品介绍型 release notes，并在 GitHub Release 创建成功后写回 `docs/badges/release.json`。
 
 依赖边界:
 workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。
@@ -20,5 +20,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-05-15: release notes 增加未 notarized 下载包的首次打开说明、`xattr -dr com.apple.quarantine` 命令，以及按 `LOCAL_BUILD_SOP.md` 让本机 agent 从源码构建的提示词。
 2026-05-15: tag 发布协议从内部 `v*` SemVer 改为 `cavalry-*-p*`，并由 `tools/release_metadata.js` 读取 `release.config.json` 生成 release 标题与 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_aarch64.dmg` 资产名。
 2026-05-17: README badge 与 CI 表述改用 GitHub Release tag / `cavalry-*-p*`，避免历史 `v0.1.x` SemVer tag 再污染用户可见发布入口。
+2026-06-04: Release job 在 `gh release create` 成功后写回 `docs/badges/release.json` 到 main，让 README 使用 Shields endpoint badge 而不是实时 GitHub Release API badge。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

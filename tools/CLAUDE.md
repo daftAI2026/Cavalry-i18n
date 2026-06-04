@@ -5,7 +5,7 @@
 check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、Qt ABI-safe accessibility 探测、ExtensionLayer 保留英文且不注册空补丁、Time Editor item view 与 QAbstractItemView role 英文保护、aboutToShow/ActionAdded/Show QMenu 首次绘制前同步翻译、动态 QLabel 浮动标题、QLineEdit 行名首次绘制前翻译、MessageBar meta-object/append 接入、禁止 QTextEdit 在 Paint/Show 阶段扫描文档或 inventory 阶段读取整份日志、底部状态消息和 `Copied <object>` / `Undo (<operation>)` 动态日志模板、ModalDialog 退出确认窗首次绘制前同步翻译、运行时生成图层名、Canva 登录态品牌词、认证倒计时状态句、Tips 富文本标签、冒号与 No-prefix 标签兜底、Forge 动力学术语、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试。
-check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸与 bridge 能力。
+check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸、README release badge endpoint 与 bridge 能力。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer、languages、injector、ad-hoc bundle seal 与 bundle size report。
 check_dmg_layout.sh: DMG 布局与签名守门器，挂载真实 `.dmg` 并验证 `.DS_Store`、背景图、卷宗图标、custom-icon 标记、Applications 链接、DMG 内 app 与安装态 app 的 bundle seal/codesign strict 结果。
 window_contract_lib.js: 窗口回归公共库，封装 macOS 窗口探测、内容区截图与像素 diff。
@@ -86,5 +86,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-22: `CavalryTranslatorInjector.mm` 增加 `Copied <object>` 动态消息模板翻译，固定谓词按语言本地化、对象名复用现有词典，并同时覆盖 MessageBar 弹窗与底部 QLabel/QStatusBar 状态文本；`check_app_contracts.js` 锁定三语模板、对象名查表与通用 widget 入口。
 2026-05-22: `CavalryTranslatorInjector.mm` 移除 MessageBar QTextEdit 的 Paint/Show 文档扫描，只保留 `QTextEdit::append(QString)` 追加时正文替换，避免注入逻辑进入原生弹窗动画路径；`check_app_contracts.js` 锁定该性能边界。
 2026-05-22: `CavalryTranslatorInjector.mm` 增加 `Undo/Redo (<operation>)` 动态消息模板翻译，谓词按语言本地化、括号内操作名复用现有词典，并同时覆盖 MessageBar 弹窗与底部状态文本；`check_app_contracts.js` 锁定该入口。
+2026-06-04: `check_tauri_build_sop.js` 增加 README release badge endpoint 合同，要求四语 README 不再使用 Shields GitHub Release badge，并要求 tag release workflow 成功创建 Release 后写回 `docs/badges/release.json`。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

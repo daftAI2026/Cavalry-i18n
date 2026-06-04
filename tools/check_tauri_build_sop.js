@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package.json、CHANGELOG.md、tools/sync_project_version.js、tools/release_metadata.js、src-tauri/tauri.conf.json、capabilities/default.json 与本地打包 SOP 文档
- * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、版本同步、release 协议与配置 contract 测试，阻止发布路径恢复旧壳层链路
- * [POS]: tools 的 Phase 6 打包守门，连接文档相、版本真相源、release tag 协议、npm script 与 Tauri bundle 配置
+ * [INPUT]: 依赖 package.json、CHANGELOG.md、tools/sync_project_version.js、tools/release_metadata.js、src-tauri/tauri.conf.json、capabilities/default.json、本地打包 SOP、README 与 release badge JSON
+ * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、版本同步、release 协议、README release badge 与配置 contract 测试，阻止发布路径恢复旧壳层链路或 README 重新依赖 Shields GitHub API token pool
+ * [POS]: tools 的 Phase 6 打包守门，连接文档相、版本真相源、release tag 协议、README badge、npm script 与 Tauri bundle 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -200,6 +200,36 @@ test('release metadata script renders GitHub release fields from the patch tag',
   });
   assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
   assert.match(invalid.stderr, /does not match/);
+});
+
+test('README release badges use a generated Shields endpoint instead of the GitHub API token pool', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const badge = readJson('docs/badges/release.json');
+  const badgeEndpoint =
+    'https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FdaftAI2026%2FCavalry-i18n%2Fmain%2Fdocs%2Fbadges%2Frelease.json&style=flat-square';
+
+  assert.deepEqual(Object.keys(badge).sort(), ['color', 'label', 'message', 'schemaVersion']);
+  assert.equal(badge.schemaVersion, 1);
+  assert.equal(badge.label, 'release');
+  assert.match(badge.message, /^cavalry-2\.7\.2-p[0-9]+$/);
+  assert.equal(badge.color, 'blue');
+
+  for (const readme of ['README.md', 'README.zh-Hans.md', 'README.zh-Hant.md', 'README.ja_JP.md']) {
+    const source = readText(readme);
+    assert.match(source, new RegExp(badgeEndpoint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${readme} should use the generated release endpoint badge`);
+    assert.doesNotMatch(source, /img\.shields\.io\/github\/v\/release/, `${readme} should not query Shields GitHub Release directly`);
+  }
+
+  assert.match(
+    workflow,
+    /gh release create "\$GITHUB_REF_NAME" "\$\{assets\[@\]\}" --title "\$RELEASE_TITLE" --notes-file release-notes\.md[\s\S]*docs\/badges\/release\.json[\s\S]*"message": "\$\{GITHUB_REF_NAME\}"/,
+    'tag release workflow should update the endpoint badge JSON only after GitHub Release creation succeeds'
+  );
+  assert.match(
+    workflow,
+    /git push origin HEAD:main/,
+    'tag release workflow should publish the generated badge JSON back to main'
+  );
 });
 
 test('project version synchronizer propagates changelog version across npm, Cargo, and Tauri metadata', () => {

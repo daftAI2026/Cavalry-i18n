@@ -12,6 +12,7 @@ audits/: 审计报告与实跑记录目录，保存阶段性人工/自动检查�
 roadmap/: 路线图目录，保存 proposed/active 的未来优化主题，每个主题链接对应 audit 事实报告并拆出阶段性验收标准。
 workflows/: 文档化工作流，当前仅 `cavalry-full-ui-100/` 为 full-ui gate 主线；早期 `cavalry-i18n/` 已归档到 `archive/workflows-cavalry-i18n/`。
 img/: 静态资源库，存放 README 截图与文档示意图。
+badges/: README badge endpoint 数据源目录，保存发布 workflow 写回的 Shields JSON 投影。
 archive/: 归档计划与历史方案，保留已完成或废弃决策的证据链。
 
 依赖边界:
@@ -21,5 +22,8 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 规范留根目录，实跑与审计进 audits，未来优化路线进 roadmap，稳定流程进 workflows，失效方案进 archive；被 changelog 或当前流程引用的报告不因“已读过”而移动。
 
 法则: 计划可执行·结果可追溯·限制不粉饰
+
+变更日志
+2026-06-04: 新增 `badges/release.json` 作为 README release badge 的 Shields endpoint 数据源，发布 workflow 成功创建 GitHub Release 后写回 main，避免 README 首屏实时依赖 Shields GitHub API token pool。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
