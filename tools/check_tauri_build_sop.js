@@ -166,17 +166,21 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     releaseConfig.releaseTitleTemplate,
     'Cavalry Language Switcher for Cavalry 2.7.2 patch ${patch}'
   );
-  assert.equal(
-    releaseConfig.assetNameTemplate,
-    'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.dmg'
-  );
+  assert.deepEqual(releaseConfig.assetNameTemplates, {
+    aarch64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.dmg',
+    x64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.dmg',
+  });
   assert.match(workflow, /tags:\s*\['cavalry-\*-p\*'\]/);
   assert.match(workflow, /npm run check:release/);
   assert.match(workflow, /npm run release:metadata -- --github-env/);
-  assert.match(workflow, /RELEASE_ASSET_NAME/);
+  assert.match(workflow, /RELEASE_ASSET_NAME_AARCH64/);
+  assert.match(workflow, /RELEASE_ASSET_NAME_X64/);
+  assert.match(workflow, /x86_64-apple-darwin/);
   assert.match(localSop, /Internal app version: SemVer/);
   assert.match(localSop, /Release tag: `cavalry-2\.7\.2-pN`/);
-  assert.match(localSop, /DMG asset: `Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_aarch64\.dmg`/);
+  assert.match(localSop, /DMG assets:/);
+  assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_aarch64\.dmg/);
+  assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_x64\.dmg/);
 });
 
 test('release metadata script renders GitHub release fields from the patch tag', () => {
@@ -196,7 +200,8 @@ test('release metadata script renders GitHub release fields from the patch tag',
     TARGET_CAVALRY_VERSION: '2.7.2',
     INTERNAL_APP_VERSION: readJson('package.json').version,
     RELEASE_TITLE: 'Cavalry Language Switcher for Cavalry 2.7.2 patch 12',
-    RELEASE_ASSET_NAME: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.dmg',
+    RELEASE_ASSET_NAME_AARCH64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.dmg',
+    RELEASE_ASSET_NAME_X64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.dmg',
   });
   assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
   assert.match(invalid.stderr, /does not match/);

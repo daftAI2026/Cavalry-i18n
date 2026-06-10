@@ -35,7 +35,10 @@ npm run prepare:qt-sdk
 
 - Internal app version: SemVer，写在 `CHANGELOG.md`、`package.json`、`src-tauri/Cargo.toml` 与 `src-tauri/tauri.conf.json`，由 `npm run sync:version` 同步。
 - Release tag: `cavalry-2.7.2-pN`，表示“面向 Cavalry 2.7.2 的第 N 个补丁发布”，触发 GitHub macOS runner 打包与 GitHub Release。
-- DMG asset: `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_aarch64.dmg`，由 `tools/release_metadata.js` 从 `release.config.json` 生成，workflow 不允许手写漂移。
+- DMG assets:
+  - Apple Silicon: `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_aarch64.dmg`
+  - Intel: `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_x64.dmg`
+  资产名由 `tools/release_metadata.js` 从 `release.config.json` 生成，workflow 不允许手写漂移。
 
 打标前先跑：
 

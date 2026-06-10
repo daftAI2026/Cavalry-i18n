@@ -1,7 +1,7 @@
 {
   "name": "cavalry-i18n",
   "private": true,
-  "version": "0.5.1",
+  "version": "0.5.2",
   "description": "Tauri desktop language patcher for Cavalry-i18n",
   "scripts": {
     "check:ui-coverage": "node tools/check_runtime_ui_coverage.js --inventory \"$SESSION_DIR/runtime/${LANGUAGE:-zh-Hans}-merged-inventory.json\" --threshold 100 --extraction-inventory \"$SESSION_DIR/extraction-inventory.json\"",

@@ -1181,8 +1181,8 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*APPLE_SIGNING_IDENTITY:\s*"-"[\s\S]*unset CI[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg/,
-    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, forcing Tauri ad-hoc signing, unsetting CI for Finder DMG layout, running tauri:build, and stamping the DMG'
+    /matrix:[\s\S]*aarch64-apple-darwin[\s\S]*x86_64-apple-darwin[\s\S]*CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*APPLE_SIGNING_IDENTITY:\s*"-"[\s\S]*unset CI[\s\S]*npm run tauri:build -- --target \$\{\{ matrix\.rust_target \}\}[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/\$\{\{ matrix\.rust_target \}\}\/release\/bundle\/dmg/,
+    'macOS packaging should mirror LOCAL_BUILD_SOP by disabling automatic signing discovery, forcing Tauri ad-hoc signing, unsetting CI for Finder DMG layout, and building/stamping both Apple Silicon and Intel targets'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -1191,7 +1191,7 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry \$\{TARGET_CAVALRY_VERSION\}[\s\S]*Apple M[\s\S]*支持语言[\s\S]*日本語[\s\S]*English/,
+    /Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry \$\{TARGET_CAVALRY_VERSION\}[\s\S]*Apple M[\s\S]*Intel[\s\S]*支持语言[\s\S]*日本語[\s\S]*English/,
     'tag releases should render a concise product body instead of relying on a bare generated changelog link'
   );
   assert.match(
@@ -2266,8 +2266,8 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
   );
   assert.match(
     workflowSource,
-    /unset CI[\s\S]*npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/release\/bundle\/dmg[\s\S]*npm run check:app[\s\S]*npm run test:contracts[\s\S]*npm run check:tauri[\s\S]*npm run test:tauri[\s\S]*npm run test:tauri:packaged[\s\S]*npm run test:tauri:dmg-layout/,
-    'macOS packaging workflow should mirror LOCAL_BUILD_SOP, omitting only manual-smoke and GUI window regression'
+    /unset CI[\s\S]*npm run tauri:build -- --target \$\{\{ matrix\.rust_target \}\}[\s\S]*bash tools\/stamp_dmg_icon\.sh src-tauri\/target\/\$\{\{ matrix\.rust_target \}\}\/release\/bundle\/dmg[\s\S]*npm run check:app[\s\S]*npm run test:contracts[\s\S]*npm run check:tauri[\s\S]*npm run test:tauri[\s\S]*PACKAGED_APP_PATH="\$app_path" PACKAGED_EXPECTED_ARCH="\$\{\{ matrix\.expected_arch \}\}" npm run test:tauri:packaged[\s\S]*bash tools\/check_dmg_layout\.sh "\$bundle_root\/dmg"/,
+    'macOS packaging workflow should mirror LOCAL_BUILD_SOP for each matrix architecture, omitting only manual-smoke and GUI window regression'
   );
   assert.doesNotMatch(
     workflowSource,
@@ -3971,7 +3971,7 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
   );
   assert.match(
     workflow,
-    /src-tauri\/target\/release\/bundle\/dmg\/\*\.dmg|src-tauri\/target\/release\/bundle\/macos/,
-    'release pipeline should publish Tauri macOS artifacts for end users'
+    /src-tauri\/target\/\$\{\{ matrix\.rust_target \}\}\/release\/bundle\/dmg\/\*\.dmg[\s\S]*src-tauri\/target\/\$\{\{ matrix\.rust_target \}\}\/release\/bundle\/macos/,
+    'release pipeline should publish Tauri macOS artifacts for both target architectures'
   );
 });

@@ -13,8 +13,13 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
-const bundleRoot = path.join(repoRoot, 'src-tauri', 'target', 'release', 'bundle');
-const appPath = path.join(bundleRoot, 'macos', 'Cavalry Language Switcher.app');
+const appPath = process.env.PACKAGED_APP_PATH
+  ? path.resolve(repoRoot, process.env.PACKAGED_APP_PATH)
+  : path.join(repoRoot, 'src-tauri', 'target', 'release', 'bundle', 'macos', 'Cavalry Language Switcher.app');
+const bundleRoot = process.env.PACKAGED_BUNDLE_ROOT
+  ? path.resolve(repoRoot, process.env.PACKAGED_BUNDLE_ROOT)
+  : path.resolve(appPath, '..', '..');
+const expectedArch = process.env.PACKAGED_EXPECTED_ARCH || '';
 const reportPath = path.join(bundleRoot, 'cavalry-i18n-tauri-size-report.json');
 const rendererRoot = path.join(repoRoot, 'renderer');
 const expectedRendererHashes = {
@@ -133,6 +138,19 @@ test('tauri build contains injector dylib resource', () => {
   const injector = findFile(appPath, 'libCavalryTranslatorInjector.dylib');
   assert.ok(injector, 'libCavalryTranslatorInjector.dylib missing from packaged app');
   assert.ok(fs.statSync(injector).size > 0, 'injector dylib is empty');
+});
+
+test('tauri packaged executable matches the requested macOS architecture', { skip: process.platform !== 'darwin' || !expectedArch }, () => {
+  requirePackagedApp();
+  const result = spawnSync('lipo', ['-archs', packagedBinary()], {
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  const archs = result.stdout.trim().split(/\s+/).filter(Boolean);
+  assert.ok(
+    archs.includes(expectedArch),
+    `packaged executable should include ${expectedArch}; found ${archs.join(', ') || 'none'}`
+  );
 });
 
 test('tauri build has a valid app bundle signature for quarantined downloads', { skip: process.platform !== 'darwin' }, () => {

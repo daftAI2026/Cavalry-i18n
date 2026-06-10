@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-06-10
+
+### Added
+- **Intel macOS Release Artifact**: Added a GitHub Actions macOS packaging matrix that builds both Apple Silicon (`aarch64-apple-darwin`) and Intel (`x86_64-apple-darwin`) DMG artifacts for Cavalry Language Switcher releases.
+
+### Changed
+- **Release Download Template**: Updated the GitHub Release notes and release metadata protocol to publish separate Apple M chip and Intel chip download links instead of a single Apple Silicon-only DMG.
+
 ## [0.5.1] - 2026-06-02
 
 ### Added

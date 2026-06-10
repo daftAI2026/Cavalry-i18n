@@ -29,9 +29,14 @@ function loadConfig() {
     'releaseTagPrefix',
     'releaseTagPattern',
     'releaseTitleTemplate',
-    'assetNameTemplate',
   ]) {
     requireString(config[field], field);
+  }
+  if (!config.assetNameTemplates || typeof config.assetNameTemplates !== 'object') {
+    throw new Error('release.config.json assetNameTemplates must be an object.');
+  }
+  for (const field of ['aarch64', 'x64']) {
+    requireString(config.assetNameTemplates[field], `assetNameTemplates.${field}`);
   }
   return config;
 }
@@ -68,7 +73,8 @@ function metadataForTag(config, tag) {
     TARGET_CAVALRY_VERSION: config.targetCavalryVersion,
     INTERNAL_APP_VERSION: readJson('package.json').version,
     RELEASE_TITLE: renderTemplate(config.releaseTitleTemplate, patch),
-    RELEASE_ASSET_NAME: renderTemplate(config.assetNameTemplate, patch),
+    RELEASE_ASSET_NAME_AARCH64: renderTemplate(config.assetNameTemplates.aarch64, patch),
+    RELEASE_ASSET_NAME_X64: renderTemplate(config.assetNameTemplates.x64, patch),
   };
 }
 
@@ -86,8 +92,11 @@ function checkProtocol(config) {
   if (sample.RELEASE_TITLE !== 'Cavalry Language Switcher for Cavalry 2.7.2 patch 1') {
     throw new Error('releaseTitleTemplate does not render the frozen title contract.');
   }
-  if (sample.RELEASE_ASSET_NAME !== 'Cavalry.Language.Switcher_Cavalry-2.7.2-p1_aarch64.dmg') {
-    throw new Error('assetNameTemplate does not render the frozen asset contract.');
+  if (sample.RELEASE_ASSET_NAME_AARCH64 !== 'Cavalry.Language.Switcher_Cavalry-2.7.2-p1_aarch64.dmg') {
+    throw new Error('assetNameTemplates.aarch64 does not render the frozen asset contract.');
+  }
+  if (sample.RELEASE_ASSET_NAME_X64 !== 'Cavalry.Language.Switcher_Cavalry-2.7.2-p1_x64.dmg') {
+    throw new Error('assetNameTemplates.x64 does not render the frozen asset contract.');
   }
   if (new RegExp(config.releaseTagPattern).test('v0.1.11')) {
     throw new Error('releaseTagPattern must reject internal SemVer tags.');

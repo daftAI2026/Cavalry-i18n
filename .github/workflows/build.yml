@@ -115,6 +115,16 @@ jobs:
   package_macos:
     if: startsWith(github.ref, 'refs/tags/cavalry-') || github.event_name == 'workflow_dispatch'
     runs-on: macos-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - label: aarch64
+            rust_target: aarch64-apple-darwin
+            expected_arch: arm64
+          - label: x64
+            rust_target: x86_64-apple-darwin
+            expected_arch: x86_64
 
     steps:
       - name: Checkout repository
@@ -128,6 +138,9 @@ jobs:
 
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
+
+      - name: Add Rust target for ${{ matrix.label }}
+        run: rustup target add ${{ matrix.rust_target }}
 
       - name: Set up Qt installer Python environment
         run: |
@@ -158,37 +171,44 @@ jobs:
           APPLE_SIGNING_IDENTITY: "-"
         run: |
           unset CI
-          npm run tauri:build
-          bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
+          npm run tauri:build -- --target ${{ matrix.rust_target }}
+          bash tools/stamp_dmg_icon.sh src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg
 
       - name: Name release DMG asset
         if: startsWith(github.ref, 'refs/tags/cavalry-')
         run: |
-          dmg_dir="src-tauri/target/release/bundle/dmg"
+          dmg_dir="src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg"
+          case "${{ matrix.label }}" in
+            aarch64) release_asset_name="$RELEASE_ASSET_NAME_AARCH64" ;;
+            x64) release_asset_name="$RELEASE_ASSET_NAME_X64" ;;
+            *) echo "Unknown release asset label: ${{ matrix.label }}" >&2; exit 1 ;;
+          esac
           source_dmg="$(find "$dmg_dir" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
           if [ -z "$source_dmg" ]; then
             echo "No DMG found in $dmg_dir" >&2
             exit 1
           fi
-          mv "$source_dmg" "$dmg_dir/$RELEASE_ASSET_NAME"
+          mv "$source_dmg" "$dmg_dir/$release_asset_name"
 
       - name: Validate packaged app with LOCAL_BUILD_SOP gates
         run: |
+          bundle_root="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
+          app_path="$bundle_root/macos/Cavalry Language Switcher.app"
           npm run check:app
           npm run test:contracts
           npm run check:tauri
           npm run test:tauri
-          npm run test:tauri:packaged
-          npm run test:tauri:dmg-layout
+          PACKAGED_APP_PATH="$app_path" PACKAGED_EXPECTED_ARCH="${{ matrix.expected_arch }}" npm run test:tauri:packaged
+          bash tools/check_dmg_layout.sh "$bundle_root/dmg"
 
       - name: Upload packaged macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: cavalry-patcher-macos
+          name: cavalry-patcher-macos-${{ matrix.label }}
           path: |
-            src-tauri/target/release/bundle/dmg/*.dmg
-            src-tauri/target/release/bundle/macos/Cavalry Language Switcher.app
-            src-tauri/target/release/bundle/cavalry-i18n-tauri-size-report.json
+            src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.rust_target }}/release/bundle/macos/Cavalry Language Switcher.app
+            src-tauri/target/${{ matrix.rust_target }}/release/bundle/cavalry-i18n-tauri-size-report.json
             injector/libCavalryTranslatorInjector.dylib
 
   release:
@@ -205,7 +225,7 @@ jobs:
       - name: Download packaged macOS artifacts
         uses: actions/download-artifact@v4
         with:
-          name: cavalry-patcher-macos
+          pattern: cavalry-patcher-macos-*
           path: dist
 
       - name: Resolve release metadata
@@ -227,7 +247,10 @@ jobs:
           ## 下载
 
           ### macOS
-          - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME})
+          | 你的 Mac | 下载 |
+          | --- | --- |
+          | Apple M 芯片 | [下载 Apple Silicon 版](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_AARCH64}) |
+          | Intel 芯片 | [下载 Intel 版](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_X64}) |
 
           ### macOS 首次打开
           当前 DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID notarization。如果从浏览器下载后，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，请先把应用拖入 Applications，然后运行：
@@ -260,7 +283,7 @@ jobs:
           - 当前 release 尚未经过 Apple Developer ID notarization；浏览器下载后首次打开可能需要手动清除 quarantine。
           - 首次应用语言包时，macOS 可能要求授予 App Management 权限。
           - 建议保留一份干净的 Cavalry 安装包或备份；恢复到完全原始状态时，重新安装 Cavalry 是最稳妥的方式。
-          - 当前 release 只发布 macOS Apple Silicon 版本。
+          - 当前 release 同时发布 macOS Apple Silicon 与 Intel 两个版本，请按芯片类型下载对应 DMG。
 
           ## 日本語
 
