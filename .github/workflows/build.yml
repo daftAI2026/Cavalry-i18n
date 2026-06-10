@@ -242,8 +242,6 @@ jobs:
 
           Cavalry Language Switcher 是独立社区工具，不隶属于 Scene Group、Cavalry 或 Canva。
 
-          Release: ${RELEASE_TITLE}
-
           ## 下载
 
           ### macOS
