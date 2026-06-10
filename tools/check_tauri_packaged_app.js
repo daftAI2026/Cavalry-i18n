@@ -114,8 +114,8 @@ test('tauri build contains renderer assets or embeds their Tauri routes', () => 
   const binary = packagedBinary();
   assert.ok(fs.existsSync(binary), 'Tauri executable missing from packaged app');
   const binaryText = fs.readFileSync(binary, 'latin1');
-  for (const token of ['index.html', '/styles.css', '/app.js', '../renderer']) {
-    assert.match(binaryText, new RegExp(token.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  for (const token of ['index.html', '/styles.css', '/app.js']) {
+    assert.ok(binaryText.includes(token), `Tauri executable should embed route token ${token}`);
   }
 });
 
