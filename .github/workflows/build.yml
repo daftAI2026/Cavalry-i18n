@@ -1,3 +1,7 @@
+# [INPUT]: 依赖仓库版本、CHANGELOG、release.config、Tauri/Qt 构建入口与 GitHub tag/artifact 环境
+# [OUTPUT]: 对外提供 Node/Rust/翻译合同验证、双架构 macOS 包、精确版本更新摘要、GitHub Release 与 README badge 写回
+# [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库版本真相投影为可验证构建和 Cavalry patch tag 发布
+# [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
 on:
@@ -94,6 +98,7 @@ jobs:
             src-tauri/
             languages/
             README.md
+            CHANGELOG.md
             LICENSE
             package.json
             package-lock.json
@@ -102,6 +107,7 @@ jobs:
             tools/cavalry_qt_target.json
             tools/check_app_contracts.js
             tools/extract_compiled_ui_strings.js
+            tools/extract_release_changelog.js
             tools/generate_embedded_translations.js
             tools/ja_JP.ts
             tools/launch_cavalry_with_injector.sh
@@ -231,9 +237,17 @@ jobs:
       - name: Resolve release metadata
         run: npm run release:metadata -- --github-env
 
+      - name: Extract version changelog
+        run: |
+          node tools/extract_release_changelog.js \
+            --version "$INTERNAL_APP_VERSION" \
+            --changelog CHANGELOG.md \
+            --output release-changes.md
+
       - name: Write GitHub Release notes
         run: |
-          cat > release-notes.md <<EOF
+          {
+            cat <<EOF
           ## Cavalry Language Switcher
 
           Cavalry Language Switcher 是一个面向 Cavalry ${TARGET_CAVALRY_VERSION} 的 macOS 语言切换工具。它可以把本机已安装的 Cavalry 在 English、简体中文、繁體中文、日本語之间切换，并继续从原来的 \`Cavalry.app\` 启动。
@@ -242,10 +256,15 @@ jobs:
 
           Cavalry Language Switcher 是独立社区工具，不隶属于 Scene Group、Cavalry 或 Canva。
 
+          ## p${RELEASE_PATCH} 更新内容 / Changes
+          EOF
+            cat release-changes.md
+            cat <<EOF
+
           ## 下载
 
           ### macOS
-          - [Apple M芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_AARCH64}) | [Intel芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_X64})
+          - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_AARCH64}) | [Intel 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_X64})
 
           ### macOS 首次打开
           当前 DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID notarization。如果从浏览器下载后，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，请先把应用拖入 Applications，然后运行：
@@ -290,6 +309,7 @@ jobs:
 
           Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS. It is not affiliated with Scene Group, Cavalry, or Canva.
           EOF
+          } > release-notes.md
 
       - name: Create GitHub Release
         env:

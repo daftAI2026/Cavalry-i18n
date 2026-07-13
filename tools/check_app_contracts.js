@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 三处空状态定点居中翻译与其余自绘文本英文边界、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
- * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止交互期全局刷新/普通运行 inventory 写盘等性能回归
+ * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、ExtensionLayer 三处空状态定点居中翻译与其余自绘文本英文边界、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -1345,8 +1345,8 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     workflowSource,
-    /Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry \$\{TARGET_CAVALRY_VERSION\}[\s\S]*Apple M[\s\S]*Intel[\s\S]*支持语言[\s\S]*日本語[\s\S]*English/,
-    'tag releases should render a concise product body instead of relying on a bare generated changelog link'
+    /Extract version changelog[\s\S]*extract_release_changelog\.js[\s\S]*--version "\$INTERNAL_APP_VERSION"[\s\S]*--output release-changes\.md[\s\S]*Write GitHub Release notes[\s\S]*Cavalry Language Switcher 是一个面向 Cavalry \$\{TARGET_CAVALRY_VERSION\}[\s\S]*## p\$\{RELEASE_PATCH\} 更新内容 \/ Changes[\s\S]*cat release-changes\.md[\s\S]*Apple M 芯片[\s\S]*Intel 芯片[\s\S]*支持语言[\s\S]*日本語[\s\S]*English/,
+    'tag releases should combine the product body with the exact internal-version CHANGELOG section'
   );
   assert.match(
     workflowSource,

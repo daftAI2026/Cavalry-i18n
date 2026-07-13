@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package.json、CHANGELOG.md、tools/sync_project_version.js、tools/release_metadata.js、src-tauri/tauri.conf.json、capabilities/default.json、本地打包 SOP、README 与 release badge JSON
- * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、版本同步、release 协议、README release badge 与配置 contract 测试，阻止发布路径恢复旧壳层链路或 README 重新依赖 Shields GitHub API token pool
- * [POS]: tools 的 Phase 6 打包守门，连接文档相、版本真相源、release tag 协议、README badge、npm script 与 Tauri bundle 配置
+ * [INPUT]: 依赖 package.json、CHANGELOG.md、tools/sync_project_version.js、tools/release_metadata.js、tools/extract_release_changelog.js、src-tauri/tauri.conf.json、capabilities/default.json、本地打包 SOP、README 与 release badge JSON
+ * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、版本同步、release 协议、精确版本 CHANGELOG 摘要、README release badge 与配置 contract 测试，阻止发布路径恢复旧壳层链路或 Release 丢失版本更新内容
+ * [POS]: tools 的 Phase 6 打包守门，连接文档相、版本真相源、release tag 协议、版本更新摘要、README badge、npm script 与 Tauri bundle 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -147,6 +147,7 @@ test('project version workflow exposes one synchronizer and a pre-commit hook in
   assert.equal(pkg.scripts['check:version'], 'node tools/sync_project_version.js --check');
   assert.equal(pkg.scripts['release:metadata'], 'node tools/release_metadata.js');
   assert.equal(pkg.scripts['check:release'], 'node tools/release_metadata.js --check');
+  assert.match(pkg.scripts['check:app'], /node --check tools\/extract_release_changelog\.js/);
   assert.equal(
     pkg.scripts['hooks:install'],
     'git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath tools/git-hooks || true'
@@ -173,6 +174,14 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(workflow, /tags:\s*\['cavalry-\*-p\*'\]/);
   assert.match(workflow, /npm run check:release/);
   assert.match(workflow, /npm run release:metadata -- --github-env/);
+  assert.match(
+    workflow,
+    /node tools\/extract_release_changelog\.js[\s\S]*--version "\$INTERNAL_APP_VERSION"[\s\S]*--changelog CHANGELOG\.md[\s\S]*--output release-changes\.md/
+  );
+  assert.match(
+    workflow,
+    /## p\$\{RELEASE_PATCH\} 更新内容 \/ Changes[\s\S]*cat release-changes\.md[\s\S]*gh release create/
+  );
   assert.match(workflow, /RELEASE_ASSET_NAME_AARCH64/);
   assert.match(workflow, /RELEASE_ASSET_NAME_X64/);
   assert.match(workflow, /x86_64-apple-darwin/);
@@ -205,6 +214,76 @@ test('release metadata script renders GitHub release fields from the patch tag',
   });
   assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
   assert.match(invalid.stderr, /does not match/);
+});
+
+test('release changelog extractor selects one exact released SemVer section and fails closed', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-release-changelog-'));
+  const changelogPath = path.join(tempRoot, 'CHANGELOG.md');
+  const outputPath = path.join(tempRoot, 'release-changes.md');
+  const scriptPath = path.join(repoRoot, 'tools', 'extract_release_changelog.js');
+  const runExtractor = (version) =>
+    spawnSync(
+      process.execPath,
+      [scriptPath, '--version', version, '--changelog', changelogPath, '--output', outputPath],
+      { cwd: repoRoot, encoding: 'utf8' }
+    );
+
+  fs.writeFileSync(
+    changelogPath,
+    [
+      '# Changelog',
+      '',
+      '## [Unreleased]',
+      '',
+      '### Changed',
+      '- Not ready for users.',
+      '',
+      '## [9.8.7] - 2026-07-14',
+      '',
+      '### Added',
+      '- Exact release note.',
+      '',
+      '### Fixed',
+      '- Exact release fix.',
+      '',
+      '## [9.8.6] - 2026-07-13',
+      '',
+      '### Fixed',
+      '- Older release note.',
+      '',
+    ].join('\n')
+  );
+
+  const valid = runExtractor('9.8.7');
+  assert.equal(valid.status, 0, valid.stderr || valid.stdout);
+  assert.equal(
+    fs.readFileSync(outputPath, 'utf8'),
+    '### Added\n- Exact release note.\n\n### Fixed\n- Exact release fix.\n'
+  );
+  assert.doesNotMatch(fs.readFileSync(outputPath, 'utf8'), /Not ready|Older release/);
+
+  const missing = runExtractor('9.8.5');
+  assert.notEqual(missing.status, 0, missing.stdout);
+  assert.match(missing.stderr, /9\.8\.5[\s\S]*not found/i);
+  assert.equal(fs.existsSync(outputPath), false, 'a failed extraction must not leave stale release notes');
+
+  fs.writeFileSync(
+    changelogPath,
+    '# Changelog\n\n## [9.8.7] - 2026-07-14\n\n## [9.8.7] - 2026-07-15\n\n### Fixed\n- Duplicate.\n'
+  );
+  const duplicate = runExtractor('9.8.7');
+  assert.notEqual(duplicate.status, 0, duplicate.stdout);
+  assert.match(duplicate.stderr, /9\.8\.7[\s\S]*more than once/i);
+
+  fs.writeFileSync(changelogPath, '# Changelog\n\n## [9.8.7]\n\n### Fixed\n- Missing release date.\n');
+  const undated = runExtractor('9.8.7');
+  assert.notEqual(undated.status, 0, undated.stdout);
+  assert.match(undated.stderr, /9\.8\.7[\s\S]*release date/i);
+
+  fs.writeFileSync(changelogPath, '# Changelog\n\n## [9.8.7] - 2026-07-14\n\n## [9.8.6] - 2026-07-13\n');
+  const empty = runExtractor('9.8.7');
+  assert.notEqual(empty.status, 0, empty.stdout);
+  assert.match(empty.stderr, /9\.8\.7[\s\S]*empty/i);
 });
 
 test('README release badges use a generated Shields endpoint instead of the GitHub API token pool', () => {
