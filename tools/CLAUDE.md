@@ -2,13 +2,13 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、injector、Qt ABI-safe accessibility 探测、ExtensionLayer 保留英文且不注册空补丁、Time Editor item view 与 QAbstractItemView role 英文保护、aboutToShow/ActionAdded/Show QMenu 首次绘制前同步翻译、动态 QLabel 浮动标题、QLineEdit 行名首次绘制前翻译、MessageBar meta-object/append 接入、禁止 QTextEdit 在 Paint/Show 阶段扫描文档或 inventory 阶段读取整份日志、底部状态消息和 `Copied <object>` / `Undo (<operation>)` 动态日志模板、ModalDialog 退出确认窗首次绘制前同步翻译、运行时生成图层名、Canva 登录态品牌词、认证倒计时状态句、Tips 富文本标签、冒号与 No-prefix 标签兜底、Forge 动力学术语、ModelDisplay 中英间距、翻译质量、package/workflow 等非壳层断言。
+check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、capture-only/dirty-only injector、first-match 哈希、`@loader_path` 单 Qt runtime、Qt ABI-safe accessibility、ExtensionLayer 三处空状态定点居中翻译/其余自绘英文边界、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、MessageBar append 与动态模板、ModalDialog、运行时图层名、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
-check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试。
+check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试、自定义 select 原生 change 语义。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸、README release badge endpoint 与 bridge 能力。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer、languages、injector、ad-hoc bundle seal 与 bundle size report。
 check_dmg_layout.sh: DMG 布局与签名守门器，挂载真实 `.dmg` 并验证 `.DS_Store`、背景图、卷宗图标、custom-icon 标记、Applications 链接、DMG 内 app 与安装态 app 的 bundle seal/codesign strict 结果。
-window_contract_lib.js: 窗口回归公共库，封装 macOS 窗口探测、内容区截图与像素 diff。
+window_contract_lib.js: 窗口回归公共库，通过明确 AX UI 查询判定辅助能力，封装窗口枚举、内容区截图与原生 `sips` 像素尺寸读取；Finder 无窗口不再导致空心 skip，也不依赖系统 Python/PIL。
 check_tauri_window_regression.js: packaged Tauri 主窗口回归测试，验证冻结窗口尺寸与内容截图尺寸。
 sync_project_version.js: 项目版本同步器，以 CHANGELOG 最新正式版本为真相源，级联同步 package、package-lock、Cargo、Tauri 配置与 Cargo.lock。
 release_metadata.js: GitHub Release 协议守门器，以 `release.config.json` 为真相源，校验 `cavalry-2.7.2-pN` tag 并生成 release 标题与 DMG 资产名。
@@ -27,7 +27,7 @@ runtime-noise-quarantine.json: Runtime 翻译噪声隔离清单，记录无资�
 resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时按配置下载。
 stamp_dmg_icon.sh: DMG 卷宗图标盖章器，用 hdiutil 写入 `.VolumeIcon.icns` 与 custom-icon 标记，再用 Rez/SetFile best-effort 写本机 Finder 文件图标。
 cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.2、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。
-build_translator_injector.sh: 构建 `libCavalryTranslatorInjector.dylib`，校验 Qt minor 与目标 Cavalry 匹配。
+build_translator_injector.sh: 以 `-O2` 构建 universal injector，校验 Qt minor，使用 `@loader_path` 绑定所选 Cavalry 的同目录 Qt，并禁止把构建 SDK 留作运行时 fallback。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
 validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 source/context/translation 三相并输出 §P5 FP-1..12 报告与摘要。
 forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。
@@ -87,5 +87,9 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-05-22: `CavalryTranslatorInjector.mm` 移除 MessageBar QTextEdit 的 Paint/Show 文档扫描，只保留 `QTextEdit::append(QString)` 追加时正文替换，避免注入逻辑进入原生弹窗动画路径；`check_app_contracts.js` 锁定该性能边界。
 2026-05-22: `CavalryTranslatorInjector.mm` 增加 `Undo/Redo (<operation>)` 动态消息模板翻译，谓词按语言本地化、括号内操作名复用现有词典，并同时覆盖 MessageBar 弹窗与底部状态文本；`check_app_contracts.js` 锁定该入口。
 2026-06-04: `check_tauri_build_sop.js` 增加 README release badge endpoint 合同，要求四语 README 不再使用 Shields GitHub Release badge，并要求 tag release workflow 成功创建 Release 后写回 `docs/badges/release.json`。
+2026-07-13: 修正 `window_contract_lib.js` 的 AX 前置检查，不再用无关窗口数量判断权限；截图尺寸改由 `sips` 读取，真实 packaged Tauri 窗口回归已执行而非空心 skip。
+2026-07-07: `check_tauri_bridge_runtime.js` 增加自定义语言 select 的 change 事件合同，要求自定义弹层选择与原生 select 语义一致。
+2026-07-13: injector 合同锁定 capture-only inventory、dirty/direct-child 局部补译、QHash 语义、Paint fingerprint、item-model 异步更新、`-O2` 与 `@loader_path`；真实 Cavalry 验证禁止构建 SDK 作为 runtime RPATH，避免双 Qt SIGABRT。
+2026-07-14: `CavalryTranslatorInjector.mm` 定点拦截 `QPainter::drawText(QPointF, QString)`，只翻译 Assets、Attribute Editor、Scene Tree 三处由 `ui::textAtWidgetCentre` 绘制的空状态提示；`zh-Hans.ts`、`zh-Hant.ts`、`ja_JP.ts` 将三条统一收敛为无句号的 UI 微文案，合同锁定三语标点一致性、CJK font fallback、新旧字宽中心补偿、纵向基线不变、Qt 6.6.3 等价四参数重载的不可吞字回退及 `__cstring` 补丁禁令。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -1,15 +1,19 @@
 /**
- * [INPUT]: 依赖 std fs/process/path 与 patch::CopyPair，接收已 staging 的复制计划和 app bundle 路径
- * [OUTPUT]: 对外提供 CommandRunner、copy_with_privilege、patch_keychain_query_attributes、patch_keychain_query_attributes_with_privilege、resign_patched_bundle、clear_quarantine、open_privacy_security、restart_cavalry
- * [POS]: src-tauri/src 的系统命令边界，集中 osascript/codesign/xattr/open 等真实调用
+ * [INPUT]: 依赖 std fs/process/path 与 patch::CopyPair，接收已 staging 的复制计划、实际变更 code 路径和 app bundle
+ * [OUTPUT]: 对外提供 CommandRunner、权限复制、owned Keychain 补丁、增量签名/只验签并按需全量修复、quarantine 与 restart 能力
+ * [POS]: src-tauri/src 的系统命令边界，集中 osascript/codesign/xattr/open 等真实调用并以验证失败回退守住 bundle 可执行性
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
+    collections::HashSet,
     fs,
     io::{Read, Write},
     path::{Path, PathBuf},
     process::Command,
 };
+
+#[cfg(unix)]
+use std::os::unix::fs::MetadataExt;
 
 use crate::{keychain_patch, patch::CopyPair};
 pub use keychain_patch::KeychainPatchReport;
@@ -101,7 +105,7 @@ pub fn patch_keychain_query_attributes_with_privilege<R: CommandRunner>(
     }
 
     let bytes = fs::read(&target).map_err(|error| error.to_string())?;
-    let (patched, report) = keychain_patch::patch_keychain_query_attributes_bytes(&bytes)?;
+    let (patched, report) = keychain_patch::patch_keychain_query_attributes_owned(bytes)?;
     if report.patched_callsites == 0 {
         return Ok(report);
     }
@@ -274,13 +278,89 @@ fn is_permission_error(detail: &str) -> bool {
 
 pub fn resign_patched_bundle<R: CommandRunner>(
     app_path: &Path,
+    modified_nested_code: &[PathBuf],
     runner: &mut R,
 ) -> Result<(), String> {
     if cfg!(not(target_os = "macos")) {
         return Ok(());
     }
 
-    for code_path in collect_nested_code_paths(app_path) {
+    let modified_nested_code = dedupe_code_paths(app_path, modified_nested_code, false)?;
+    let fast_result = (|| {
+        for code_path in modified_nested_code {
+            sign_code_object(&code_path, runner)?;
+        }
+        sign_code_object(app_path, runner)?;
+        verify_signed_bundle(app_path, runner)
+    })();
+
+    if let Err(fast_error) = fast_result {
+        repair_bundle_signatures(app_path, runner).map_err(|repair_error| {
+            format!(
+                "incremental signing or verification failed ({fast_error}); full signature repair failed: {repair_error}"
+            )
+        })?;
+        verify_signed_bundle(app_path, runner).map_err(|repair_verify_error| {
+            format!(
+                "incremental signing or verification failed ({fast_error}); full signature repair did not verify: {repair_verify_error}"
+            )
+        })?;
+    }
+    Ok(())
+}
+
+pub fn ensure_bundle_signature<R: CommandRunner>(
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    if cfg!(not(target_os = "macos")) {
+        return Ok(());
+    }
+    if let Err(verify_error) = verify_signed_bundle(app_path, runner) {
+        repair_bundle_signatures(app_path, runner).map_err(|repair_error| {
+            format!(
+                "bundle signature verification failed ({verify_error}); full signature repair failed: {repair_error}"
+            )
+        })?;
+        verify_signed_bundle(app_path, runner).map_err(|repair_verify_error| {
+            format!(
+                "bundle signature verification failed ({verify_error}); full signature repair did not verify: {repair_verify_error}"
+            )
+        })?;
+    }
+    Ok(())
+}
+
+fn sign_code_object<R: CommandRunner>(target_path: &Path, runner: &mut R) -> Result<(), String> {
+    run_maybe_admin(
+        runner,
+        "codesign",
+        &[
+            "--force".to_string(),
+            "--sign".to_string(),
+            "-".to_string(),
+            target_path.to_string_lossy().to_string(),
+        ],
+    )
+}
+
+fn verify_signed_bundle<R: CommandRunner>(app_path: &Path, runner: &mut R) -> Result<(), String> {
+    runner.run(
+        "codesign",
+        &[
+            "--verify".to_string(),
+            "--deep".to_string(),
+            "--strict".to_string(),
+            app_path.to_string_lossy().to_string(),
+        ],
+    )
+}
+
+fn repair_bundle_signatures<R: CommandRunner>(
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    for code_path in collect_nested_code_paths(app_path)? {
         sign_code_object(&code_path, runner)?;
     }
     run_maybe_admin(
@@ -296,41 +376,84 @@ pub fn resign_patched_bundle<R: CommandRunner>(
     )
 }
 
-fn sign_code_object<R: CommandRunner>(target_path: &Path, runner: &mut R) -> Result<(), String> {
-    remove_signature_if_present(target_path, runner)?;
-    run_maybe_admin(
-        runner,
-        "codesign",
-        &[
-            "--force".to_string(),
-            "--sign".to_string(),
-            "-".to_string(),
-            target_path.to_string_lossy().to_string(),
-        ],
-    )
+fn dedupe_code_paths(
+    app_path: &Path,
+    candidates: &[PathBuf],
+    macho_only: bool,
+) -> Result<Vec<PathBuf>, String> {
+    let canonical_app = fs::canonicalize(app_path).map_err(|error| {
+        format!(
+            "Could not resolve app bundle {} before signing: {error}",
+            app_path.display()
+        )
+    })?;
+    let mut canonical_seen = HashSet::new();
+    #[cfg(unix)]
+    let mut inode_seen = HashSet::new();
+    let mut paths = Vec::new();
+    let mut candidates = candidates.to_vec();
+    candidates.sort();
+
+    for candidate in &candidates {
+        let canonical = fs::canonicalize(candidate).map_err(|error| {
+            format!(
+                "Could not resolve modified code object {}: {error}",
+                candidate.display()
+            )
+        })?;
+        if !canonical.starts_with(&canonical_app) {
+            return Err(format!(
+                "Refusing to sign code object outside {}: {}",
+                app_path.display(),
+                candidate.display()
+            ));
+        }
+        if macho_only && !is_macho_binary(&canonical) {
+            continue;
+        }
+        if !canonical_seen.insert(canonical.clone()) {
+            continue;
+        }
+        #[cfg(unix)]
+        {
+            let metadata = fs::metadata(&canonical).map_err(|error| error.to_string())?;
+            if !inode_seen.insert((metadata.dev(), metadata.ino())) {
+                continue;
+            }
+        }
+        paths.push(canonical);
+    }
+
+    paths.sort_by(code_sign_order);
+    Ok(paths)
 }
 
-fn remove_signature_if_present<R: CommandRunner>(
-    target_path: &Path,
-    runner: &mut R,
-) -> Result<(), String> {
-    match run_maybe_admin(
-        runner,
-        "codesign",
-        &[
-            "--remove-signature".to_string(),
-            target_path.to_string_lossy().to_string(),
-        ],
-    ) {
-        Ok(()) => Ok(()),
-        Err(error)
-            if error.contains("not signed at all")
-                || error.contains("code object is not signed") =>
-        {
-            Ok(())
-        }
-        Err(error) => Err(error),
+fn code_sign_order(left: &PathBuf, right: &PathBuf) -> std::cmp::Ordering {
+    let left_crashpad = left
+        .file_name()
+        .is_some_and(|name| name == "crashpad_handler");
+    let right_crashpad = right
+        .file_name()
+        .is_some_and(|name| name == "crashpad_handler");
+    if left_crashpad != right_crashpad {
+        return right_crashpad.cmp(&left_crashpad);
     }
+    right
+        .to_string_lossy()
+        .len()
+        .cmp(&left.to_string_lossy().len())
+}
+
+fn collect_nested_code_paths(app_path: &Path) -> Result<Vec<PathBuf>, String> {
+    let roots = [
+        app_path.join("Contents").join("MacOS"),
+        app_path.join("Contents").join("Frameworks"),
+    ];
+    let candidates = roots
+        .iter()
+        .flat_map(|root| walk_files(root))
+        .collect::<Vec<_>>();
+    dedupe_code_paths(app_path, &candidates, true)
 }
 
 fn run_maybe_admin<R: CommandRunner>(
@@ -440,34 +563,6 @@ pub fn restart_cavalry<R: CommandRunner>(app_path: &Path, runner: &mut R) -> Res
     runner.spawn_detached(&commands[1].program, &commands[1].args)
 }
 
-fn collect_nested_code_paths(app_path: &Path) -> Vec<PathBuf> {
-    let roots = [
-        app_path.join("Contents").join("MacOS"),
-        app_path.join("Contents").join("Frameworks"),
-    ];
-    let mut paths = roots
-        .iter()
-        .flat_map(|root| walk_files(root))
-        .filter(|path| is_macho_binary(path))
-        .collect::<Vec<_>>();
-    paths.sort_by(|left, right| {
-        let left_crashpad = left
-            .file_name()
-            .is_some_and(|name| name == "crashpad_handler");
-        let right_crashpad = right
-            .file_name()
-            .is_some_and(|name| name == "crashpad_handler");
-        if left_crashpad != right_crashpad {
-            return right_crashpad.cmp(&left_crashpad);
-        }
-        right
-            .to_string_lossy()
-            .len()
-            .cmp(&left.to_string_lossy().len())
-    });
-    paths
-}
-
 fn walk_files(root: &Path) -> Vec<PathBuf> {
     if !root.exists() {
         return Vec::new();
@@ -486,9 +581,13 @@ fn walk_files(root: &Path) -> Vec<PathBuf> {
             continue;
         }
         let path = entry.path();
-        if path.is_dir() {
+        let kind = match entry.file_type() {
+            Ok(kind) => kind,
+            Err(_) => continue,
+        };
+        if kind.is_dir() {
             paths.extend(walk_files(&path));
-        } else if path.is_file() {
+        } else if kind.is_file() || (kind.is_symlink() && path.is_file()) {
             paths.push(path);
         }
     }
@@ -509,18 +608,16 @@ fn is_macho_binary(path: &Path) -> bool {
     }
     let be = u32::from_be_bytes(header);
     let le = u32::from_le_bytes(header);
-    matches!(
-        be,
-        0xfeedface | 0xfeedfacf | 0xcafebabe | 0xbebafeca | 0xcefaedfe | 0xcffaedfe
-    ) || matches!(le, 0xfeedface | 0xfeedfacf | 0xcafebabe | 0xbebafeca)
+    const MACHO_MAGICS: [u32; 8] = [
+        0xfeedface, 0xfeedfacf, 0xcefaedfe, 0xcffaedfe, 0xcafebabe, 0xbebafeca, 0xcafebabf,
+        0xbfbafeca,
+    ];
+    MACHO_MAGICS.contains(&be) || MACHO_MAGICS.contains(&le)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{
-        clear_gatekeeper_quarantine, copy_with_privilege, resign_patched_bundle, restart_cavalry,
-        restart_commands, CommandRunner, RecordedCommand, RecordingRunner,
-    };
+    use super::{copy_with_privilege, CommandRunner, RecordedCommand, RecordingRunner};
     use crate::patch::CopyPair;
     use std::{fs, path::Path};
 
@@ -541,14 +638,6 @@ mod tests {
                 Ok(())
             }
         }
-    }
-
-    #[test]
-    fn restart_quits_then_opens_new_instance() {
-        let commands = restart_commands(Path::new("/Applications/Cavalry.app"));
-        assert_eq!(commands[0].program, "osascript");
-        assert_eq!(commands[1].program, "open");
-        assert_eq!(commands[1].args, ["-n", "/Applications/Cavalry.app"]);
     }
 
     #[test]
@@ -585,51 +674,5 @@ mod tests {
         assert_eq!(runner.commands[0].program, "osascript");
         assert_eq!(runner.commands[1].program, "osascript");
         assert!(runner.commands[1].args[1].contains("tell application \"Finder\""));
-    }
-
-    #[test]
-    fn resign_collects_nested_macho_paths() {
-        let temp = tempfile::tempdir().unwrap();
-        let app = temp.path().join("Cavalry.app");
-        fs::create_dir_all(app.join("Contents/MacOS")).unwrap();
-        fs::create_dir_all(app.join("Contents/Frameworks")).unwrap();
-        fs::write(
-            app.join("Contents/MacOS/crashpad_handler"),
-            [0xcf, 0xfa, 0xed, 0xfe],
-        )
-        .unwrap();
-        fs::write(
-            app.join("Contents/Frameworks/libFake.dylib"),
-            [0xcf, 0xfa, 0xed, 0xfe],
-        )
-        .unwrap();
-        let mut runner = RecordingRunner::default();
-        resign_patched_bundle(&app, &mut runner).unwrap();
-        if cfg!(target_os = "macos") {
-            assert!(runner.commands[0]
-                .args
-                .iter()
-                .any(|arg| arg.contains("crashpad_handler")));
-        }
-    }
-
-    #[test]
-    fn quarantine_clear_ignores_missing_xattr() {
-        let mut runner = FailingRunner {
-            commands: Vec::new(),
-            first_error: Some(
-                "No such xattr: com.apple.quarantine does not have an attribute named com.apple.quarantine"
-                    .to_string(),
-            ),
-        };
-        clear_gatekeeper_quarantine(Path::new("/tmp/Cavalry.app"), &mut runner).unwrap();
-    }
-
-    #[test]
-    fn restart_runs_commands_through_runner() {
-        let mut runner = RecordingRunner::default();
-        restart_cavalry(Path::new("/Applications/Cavalry.app"), &mut runner).unwrap();
-        assert_eq!(runner.commands[0].program, "osascript");
-        assert_eq!(runner.commands[1].program, "open");
     }
 }

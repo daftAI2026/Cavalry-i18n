@@ -1,14 +1,14 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::privilege 的复制、重签、quarantine 与 restart 边界
- * [OUTPUT]: 对外提供命令顺序、权限回退、Keychain 明细报告 contract tests
- * [POS]: src-tauri/tests 的系统边界守门，确保 fake runner 能完整断言 macOS 命令流
+ * [OUTPUT]: 对外提供命令顺序、权限回退、owned Keychain 明细和增量签名 contract tests
+ * [POS]: src-tauri/tests 的系统边界守门，确保 fake runner 能断言 macOS 快路径签名后仍执行 deep/strict 验证
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::patch::CopyPair;
 use cavalry_i18n_tauri::privilege::{
-    clear_gatekeeper_quarantine, copy_with_privilege, patch_keychain_query_attributes,
-    patch_keychain_query_attributes_with_privilege, resign_patched_bundle, restart_commands,
-    RecordedCommand, RecordingRunner,
+    clear_gatekeeper_quarantine, copy_with_privilege, ensure_bundle_signature,
+    patch_keychain_query_attributes, patch_keychain_query_attributes_with_privilege,
+    resign_patched_bundle, restart_commands, CommandRunner, RecordedCommand, RecordingRunner,
 };
 use std::{
     fs,
@@ -40,6 +40,41 @@ fn write_keychain_dylib(app: &Path, bytes: &[u8]) -> PathBuf {
         .join("libExtensionLayer.dylib");
     write(&target, bytes);
     target
+}
+
+fn make_signing_bundle(root: &Path) -> PathBuf {
+    let app = root.join("Cavalry.app");
+    for relative in [
+        "Contents/MacOS/Cavalry",
+        "Contents/MacOS/crashpad_handler",
+        "Contents/Frameworks/libCavalryFramework.dylib",
+    ] {
+        write(&app.join(relative), &[0xcf, 0xfa, 0xed, 0xfe]);
+    }
+    app
+}
+
+struct VerifyFailsRunner {
+    commands: Vec<RecordedCommand>,
+    verify_failures: usize,
+}
+
+impl CommandRunner for VerifyFailsRunner {
+    fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
+        self.commands.push(RecordedCommand {
+            program: program.to_string(),
+            args: args.to_vec(),
+        });
+        if program == "codesign"
+            && args.iter().any(|arg| arg == "--verify")
+            && self.verify_failures > 0
+        {
+            self.verify_failures -= 1;
+            Err("nested code is not signed".to_string())
+        } else {
+            Ok(())
+        }
+    }
 }
 
 #[test]
@@ -149,6 +184,19 @@ fn patch_keychain_query_attributes_is_idempotent_rs() {
 }
 
 #[test]
+fn owned_keychain_patch_reuses_the_input_allocation() {
+    let bytes =
+        cavalry_i18n_tauri::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false);
+    let input_pointer = bytes.as_ptr();
+
+    let (patched, report) =
+        cavalry_i18n_tauri::keychain_patch::patch_keychain_query_attributes_owned(bytes).unwrap();
+
+    assert_eq!(report.patched_callsites, 10);
+    assert_eq!(patched.as_ptr(), input_pointer);
+}
+
+#[test]
 fn patch_keychain_query_attributes_with_privilege_copies_staged_dylib() {
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().join("Cavalry.app");
@@ -236,28 +284,124 @@ fn restart_quits_then_opens_new_instance() {
 }
 
 #[test]
-fn resign_collects_nested_macho_paths() {
+fn resign_fast_path_signs_changed_code_then_verifies_bundle() {
     let temp = tempfile::tempdir().unwrap();
-    let app = temp.path().join("Cavalry.app");
-    write(
-        &app.join("Contents/MacOS/Cavalry"),
-        &[0xcf, 0xfa, 0xed, 0xfe],
-    );
-    write(
-        &app.join("Contents/MacOS/crashpad_handler"),
-        &[0xcf, 0xfa, 0xed, 0xfe],
-    );
-    write(
-        &app.join("Contents/Frameworks/libCavalryFramework.dylib"),
-        &[0xcf, 0xfa, 0xed, 0xfe],
-    );
+    let app = make_signing_bundle(temp.path());
 
     let mut runner = RecordingRunner::default();
-    resign_patched_bundle(&app, &mut runner).unwrap();
+    let changed = app.join("Contents/Frameworks/libCavalryFramework.dylib");
+    resign_patched_bundle(&app, std::slice::from_ref(&changed), &mut runner).unwrap();
     if cfg!(target_os = "macos") {
-        assert!(runner
+        let signing = runner
             .commands
             .iter()
-            .any(|command| command.program == "codesign"));
+            .filter(|command| command.args.iter().any(|arg| arg == "--sign"))
+            .collect::<Vec<_>>();
+        assert_eq!(signing.len(), 2);
+        assert!(signing
+            .iter()
+            .all(|command| !command.args.iter().any(|arg| arg == "--deep")));
+        assert!(!runner
+            .commands
+            .iter()
+            .any(|command| command.args.iter().any(|arg| arg == "--remove-signature")));
+        assert!(runner.commands.iter().any(|command| {
+            command.args.iter().any(|arg| arg == "--verify")
+                && command.args.iter().any(|arg| arg == "--deep")
+                && command.args.iter().any(|arg| arg == "--strict")
+        }));
+    }
+}
+
+#[test]
+fn resign_verify_failure_runs_deduplicated_full_repair_then_reverifies() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = make_signing_bundle(temp.path());
+    #[cfg(unix)]
+    fs::hard_link(
+        app.join("Contents/Frameworks/libCavalryFramework.dylib"),
+        app.join("Contents/Frameworks/libCavalryFrameworkAlias.dylib"),
+    )
+    .unwrap();
+    let changed = app.join("Contents/Frameworks/libCavalryFramework.dylib");
+    let mut runner = VerifyFailsRunner {
+        commands: Vec::new(),
+        verify_failures: 1,
+    };
+
+    resign_patched_bundle(&app, std::slice::from_ref(&changed), &mut runner).unwrap();
+
+    if cfg!(target_os = "macos") {
+        let signing = runner
+            .commands
+            .iter()
+            .filter(|command| command.args.iter().any(|arg| arg == "--sign"))
+            .collect::<Vec<_>>();
+        assert_eq!(signing.len(), 6);
+        assert_eq!(
+            runner
+                .commands
+                .iter()
+                .filter(|command| command.args.iter().any(|arg| arg == "--verify"))
+                .count(),
+            2
+        );
+        assert_eq!(
+            signing
+                .iter()
+                .filter(|command| command.args.iter().any(|arg| arg == "--deep"))
+                .count(),
+            1
+        );
+        assert!(!signing.iter().any(|command| command
+            .args
+            .iter()
+            .any(|arg| arg.ends_with("libCavalryFrameworkAlias.dylib"))));
+    }
+}
+
+#[test]
+fn unchanged_bundle_verifies_without_signing() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = make_signing_bundle(temp.path());
+    let mut runner = RecordingRunner::default();
+
+    ensure_bundle_signature(&app, &mut runner).unwrap();
+
+    if cfg!(target_os = "macos") {
+        assert_eq!(runner.commands.len(), 1);
+        assert!(runner.commands[0].args.iter().any(|arg| arg == "--verify"));
+        assert!(!runner.commands[0].args.iter().any(|arg| arg == "--sign"));
+    }
+}
+
+#[test]
+fn unchanged_bundle_with_broken_seal_repairs_and_reverifies() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = make_signing_bundle(temp.path());
+    let mut runner = VerifyFailsRunner {
+        commands: Vec::new(),
+        verify_failures: 1,
+    };
+
+    ensure_bundle_signature(&app, &mut runner).unwrap();
+
+    if cfg!(target_os = "macos") {
+        assert_eq!(
+            runner
+                .commands
+                .iter()
+                .filter(|command| command.args.iter().any(|arg| arg == "--verify"))
+                .count(),
+            2
+        );
+        assert_eq!(
+            runner
+                .commands
+                .iter()
+                .filter(|command| command.args.iter().any(|arg| arg == "--sign"))
+                .count(),
+            4
+        );
     }
 }

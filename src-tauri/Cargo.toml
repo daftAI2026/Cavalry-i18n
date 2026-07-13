@@ -1,6 +1,6 @@
 [package]
 name = "cavalry-i18n-tauri"
-version = "0.5.2"
+version = "0.5.3"
 description = "Tauri shell for Cavalry-i18n"
 edition = "2021"
 
@@ -13,6 +13,7 @@ tauri-build = { version = "=2.5.6", features = [] }
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock"] }
+libc = "0.2"
 rfd = "=0.17.2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"

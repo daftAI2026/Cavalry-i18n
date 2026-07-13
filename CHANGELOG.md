@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.3] - 2026-07-14
+
+### Added
+- **Centered ExtensionLayer Empty States**: Localized the Assets, Attribute Editor, and Scene Tree empty-state hints across Simplified Chinese, Traditional Chinese, and Japanese while preserving their original icon alignment, horizontal center, and vertical baseline.
+- **Cross-process Bundle Operation Lock**: Added a macOS advisory file lock shared by extract, apply, and restart operations so separate switcher processes cannot modify the same Cavalry bundle concurrently.
+
+### Changed
+- **Runtime Translation Hot Path**: Restricted inventory scans and disk exports to explicit capture sessions, replaced interaction-time global refreshes with dirty-object and item-model updates, indexed embedded translations with first-match-preserving hashes, and enabled optimized injector builds.
+- **Incremental Patch and Signing Pipeline**: Moved heavy Tauri commands off the UI thread, copied only changed resources, signed only modified nested code, and retained verified full-bundle repair as the failure fallback.
+- **Live Release Verification**: Expanded the real macOS smoke matrix and contract coverage for three-language injection, signature integrity, packaged resources, DMG layout, and runtime performance evidence.
+
+### Fixed
+- **Empty-state Rendering Safety**: Replaced the unsafe literal-patching approach with a CJK-safe drawing interpose whose fail-open path always renders the original text instead of producing blank hints.
+- **Empty-state Punctuation Consistency**: Removed terminal full-width stops from all three localized empty-state hint sets so Simplified Chinese, Traditional Chinese, and Japanese use the same compact UI-copy style.
+
 ## [0.5.2] - 2026-06-10
 
 ### Added
