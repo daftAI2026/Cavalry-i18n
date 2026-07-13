@@ -2161,7 +2161,7 @@
     <message><source>dom PPC kom</source><translation>内部識別三</translation></message>
     <message><source>Done</source><translation>完了</translation></message>
     <message><source>Double click here to import Assets</source><translation>ここをダブルクリックしてアセットを読み込み</translation></message>
-    <message><source>Double click here to import Assets.</source><translation>ここをダブルクリックしてアセットを読み込み。</translation></message>
+    <message><source>Double click here to import Assets.</source><translation>ここをダブルクリックしてアセットを読み込み</translation></message>
     <message><source>Double click on a Preset to rename it</source><translation>プリセットをダブルクリックして名前を変更</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>プリセットをダブルクリックして名前を変更。</translation></message>
     <message><source>Double Click on layer</source><translation>レイヤーをダブルクリック</translation></message>
@@ -2184,7 +2184,7 @@
     <message><source>Drag in a Spreadsheet from the Assets Window</source><translation>アセットウィンドウから表計算をドラッグ</translation></message>
     <message><source>Drag in or connect an Asset</source><translation>アセットをドラッグまたは接続</translation></message>
     <message><source>Drag layers here to see their settings</source><translation>レイヤーをドラッグして設定を見る</translation></message>
-    <message><source>Drag layers here to see their settings.</source><translation>レイヤーをドラッグして設定を確認します。</translation></message>
+    <message><source>Drag layers here to see their settings.</source><translation>レイヤーをドラッグして設定を確認します</translation></message>
     <message><source>Draw</source><translation>ドロー</translation></message>
     <message><source>Draw a Straight Line</source><translation>直線線を引く</translation></message>
     <message><source>Draw Channel Names</source><translation>チャンネル名を描画する</translation></message>
@@ -3789,7 +3789,7 @@
     <message><source>Use Selection</source><translation>選択を使用する</translation></message>
     <message><source>Use Speed</source><translation>使用速度</translation></message>
     <message><source>Use the Create menu to add a layer to your Composition</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください。</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape</source><translation>トラッキングデータを使用して、選択したシェイプをコーナーピン固定します</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>トラッキングデータを使用して、選択したシェイプをコーナーピン固定します。</translation></message>
     <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>このリストを使用して Cavalry のコントロールでの属性順序をカスタマイズします</translation></message>

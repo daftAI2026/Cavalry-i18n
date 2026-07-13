@@ -1087,17 +1087,23 @@ test('embedded injector translates three ExtensionLayer empty-state hints withou
     /"Use the Create menu to add a layer to your Composition\."/,
     'the final centered empty-state hint must remain an exact source match'
   );
-  for (const [source, translation] of [
-    ['Double click here to import Assets.', '双击此处导入素材'],
-    ['Drag layers here to see their settings.', '将图层拖到此处以查看其设置'],
-    ['Use the Create menu to add a layer to your Composition.', '使用创建菜单向合成添加图层'],
+  for (const [language, source, translation] of [
+    ['zh-Hans', 'Double click here to import Assets.', '双击此处导入素材'],
+    ['zh-Hans', 'Drag layers here to see their settings.', '将图层拖到此处以查看其设置'],
+    ['zh-Hans', 'Use the Create menu to add a layer to your Composition.', '使用创建菜单向合成添加图层'],
+    ['zh-Hant', 'Double click here to import Assets.', '連按兩下此處匯入素材'],
+    ['zh-Hant', 'Drag layers here to see their settings.', '在此拖動層以查看其設置'],
+    ['zh-Hant', 'Use the Create menu to add a layer to your Composition.', '使用建立選單向合成新增圖層'],
+    ['ja_JP', 'Double click here to import Assets.', 'ここをダブルクリックしてアセットを読み込み'],
+    ['ja_JP', 'Drag layers here to see their settings.', 'レイヤーをドラッグして設定を確認します'],
+    ['ja_JP', 'Use the Create menu to add a layer to your Composition.', '作成メニューを使用してコンポジションにレイヤーを追加してください'],
   ]) {
     assert.match(
       generatedTranslations,
       new RegExp(
         `"${source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}", "${translation}"`
       ),
-      `the Simplified Chinese centered hint must omit terminal punctuation: ${source}`
+      `${language} centered hint must omit terminal punctuation: ${source}`
     );
   }
   assert.match(

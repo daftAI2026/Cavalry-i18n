@@ -1133,7 +1133,7 @@
     <message><source>dom PPC kom</source><translation>內部識別三</translation></message>
     <message><source>Done</source><translation>完成</translation></message>
     <message><source>Double click here to import Assets</source><translation>連按兩下此處匯入素材</translation></message>
-    <message><source>Double click here to import Assets.</source><translation>連按兩下此處匯入素材。</translation></message>
+    <message><source>Double click here to import Assets.</source><translation>連按兩下此處匯入素材</translation></message>
     <message><source>Double click on a Preset to rename it</source><translation>連按兩下預設以重新命名</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>連按兩下預設以重新命名。</translation></message>
     <message><source>Double Click on layer</source><translation>雙擊圖層</translation></message>
@@ -1156,7 +1156,7 @@
     <message><source>Drag in a Spreadsheet from the Assets Window</source><translation>從素材視窗拖入試算表</translation></message>
     <message><source>Drag in or connect an Asset</source><translation>拖入或連接素材</translation></message>
     <message><source>Drag layers here to see their settings</source><translation>在此拖動圖層查看其設置</translation></message>
-    <message><source>Drag layers here to see their settings.</source><translation>在此拖動層以查看其設置。</translation></message>
+    <message><source>Drag layers here to see their settings.</source><translation>在此拖動層以查看其設置</translation></message>
     <message><source>Draw</source><translation>繪製</translation></message>
     <message><source>Draw a Straight Line</source><translation>繪製直線</translation></message>
     <message><source>Draw Channel Names</source><translation>繪製頻道名稱</translation></message>
@@ -2790,7 +2790,7 @@
     <message><source>Use Selection</source><translation>使用選擇</translation></message>
     <message><source>Use Speed</source><translation>使用速度</translation></message>
     <message><source>Use the Create menu to add a layer to your Composition</source><translation>使用建立選單向合成新增圖層</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>使用建立選單向合成新增圖層。</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>使用建立選單向合成新增圖層</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape</source><translation>使用跟踪資料對所选形狀进行角點固定</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>使用跟踪資料對所选形狀进行角點固定。</translation></message>
     <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>使用此清單自訂控制介面中的屬性順序</translation></message>
