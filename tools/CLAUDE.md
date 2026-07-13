@@ -2,7 +2,7 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、capture-only/dirty-only injector、first-match 哈希、`@loader_path` 单 Qt runtime、Qt ABI-safe accessibility、ExtensionLayer/Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、MessageBar append 与动态模板、ModalDialog、运行时图层名、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
+check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、capture-only/dirty-only injector、first-match 哈希、`@loader_path` 单 Qt runtime、Qt ABI-safe accessibility、ExtensionLayer 三处空状态定点居中翻译/其余自绘英文边界、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、MessageBar append 与动态模板、ModalDialog、运行时图层名、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试、自定义 select 原生 change 语义。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证默认发布文档、资源声明、窗口尺寸、README release badge endpoint 与 bridge 能力。
@@ -90,5 +90,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-13: 修正 `window_contract_lib.js` 的 AX 前置检查，不再用无关窗口数量判断权限；截图尺寸改由 `sips` 读取，真实 packaged Tauri 窗口回归已执行而非空心 skip。
 2026-07-07: `check_tauri_bridge_runtime.js` 增加自定义语言 select 的 change 事件合同，要求自定义弹层选择与原生 select 语义一致。
 2026-07-13: injector 合同锁定 capture-only inventory、dirty/direct-child 局部补译、QHash 语义、Paint fingerprint、item-model 异步更新、`-O2` 与 `@loader_path`；真实 Cavalry 验证禁止构建 SDK 作为 runtime RPATH，避免双 Qt SIGABRT。
+2026-07-14: `CavalryTranslatorInjector.mm` 定点拦截 `QPainter::drawText(QPointF, QString)`，只翻译 Assets、Attribute Editor、Scene Tree 三处由 `ui::textAtWidgetCentre` 绘制的空状态提示；`zh-Hans.ts` 将三条统一收敛为无句号的 UI 微文案，合同锁定 CJK font fallback、新旧字宽中心补偿、纵向基线不变、Qt 6.6.3 等价四参数重载的不可吞字回退及 `__cstring` 补丁禁令。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

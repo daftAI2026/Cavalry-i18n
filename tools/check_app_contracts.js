@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 三处空状态定点居中翻译与其余自绘文本英文边界、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止交互期全局刷新/普通运行 inventory 写盘等性能回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1061,26 +1061,84 @@ test('embedded injector covers item widgets, headers, docks, toolbars, and stand
   );
 });
 
-test('embedded injector keeps ExtensionLayer literal hints in English', () => {
+test('embedded injector translates three ExtensionLayer empty-state hints without moving their center', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
   );
+  const generatedTranslations = fs.readFileSync(
+    path.join(injectorRoot, 'generated_translations.inc'),
+    'utf8'
+  );
 
-  assert.doesNotMatch(
+  for (const source of [
+    'Double click here to import Assets.',
+    'Drag layers here to see their settings.',
+    'Use the Create menu to add a layer to your Composition.',
+  ]) {
+    assert.match(
+      injectorSource,
+      new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')),
+      `centered empty-state allowlist should contain ${source}`
+    );
+  }
+  assert.match(
     injectorSource,
-    /_dyld_register_func_for_add_image|patchExtensionLayerImage|patchCStringSection|kExtensionLayerLiteralPatches/,
-    'injector should not register a dormant ExtensionLayer literal patch callback when the self-painted layer stays English'
+    /"Use the Create menu to add a layer to your Composition\."/,
+    'the final centered empty-state hint must remain an exact source match'
+  );
+  for (const [source, translation] of [
+    ['Double click here to import Assets.', '双击此处导入素材'],
+    ['Drag layers here to see their settings.', '将图层拖到此处以查看其设置'],
+    ['Use the Create menu to add a layer to your Composition.', '使用创建菜单向合成添加图层'],
+  ]) {
+    assert.match(
+      generatedTranslations,
+      new RegExp(
+        `"${source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}", "${translation}"`
+      ),
+      `the Simplified Chinese centered hint must omit terminal punctuation: ${source}`
+    );
+  }
+  assert.match(
+    injectorSource,
+    /drawPointTextWithoutInterpose[\s\S]{0,500}painter->drawText\(point, text, 0, 0\)/,
+    'the pass-through must use Qt 6.6.3\'s equivalent four-argument overload instead of a fallible RTLD_NEXT lookup'
   );
   assert.match(
     injectorSource,
-    /ExtensionLayer[\s\S]{0,240}保留英文原文/,
-    'ExtensionLayer self-painted hints should remain English because that renderer turns CJK glyphs into question marks'
+    /qtPainterDrawPointTextInterposeTarget[\s\S]{0,900}kQPainterDrawPointTextInterpose/,
+    'the point-text overload must be installed as an explicit dyld interpose entry'
+  );
+  assert.match(
+    injectorSource,
+    /translated\.isEmpty\(\)[\s\S]{0,180}drawPointTextWithoutInterpose\(painter, point, text\)/,
+    'missing language or translation data must draw the original hint instead of swallowing it'
   );
   assert.doesNotMatch(
     injectorSource,
-    /kCompactRuntimeLiteralTranslations|compactTranslationForSource|runtimeLiteralTranslation/,
-    'compact literal fallback should disappear with the disabled ExtensionLayer patch infrastructure'
+    /originalQPainterDrawPointText|RTLD_NEXT[^\n]*QPainter8drawText/,
+    'the centered hint path must not depend on fallible dynamic symbol resolution'
+  );
+  assert.match(
+    injectorSource,
+    /sourceWidth[\s\S]{0,700}translatedWidth[\s\S]{0,420}point\.x\(\) \+ static_cast<qreal>\(sourceWidth - translatedWidth\) \/ 2\.0[\s\S]{0,160}point\.y\(\)/,
+    'the replacement must compensate only the text width delta so the visual center and vertical baseline stay fixed'
+  );
+  assert.match(
+    injectorSource,
+    /displayFont\.setStyleStrategy\(QFont::PreferDefault\)[\s\S]{0,700}painter->setFont\(sourceFont\)/,
+    'the targeted draw path must enable CJK fallback temporarily and restore the original painter font afterwards'
+  );
+  assert.doesNotMatch(
+    injectorSource,
+    /_dyld_register_func_for_add_image|patchExtensionLayerImage|patchCStringSection|kExtensionLayerLiteralPatches/,
+    'fixed-length ExtensionLayer literals must not be rewritten because their QByteArrayView lengths are compiled into the call sites'
+  );
+  assert.match(
+    injectorSource,
+    /非白名单 ExtensionLayer 自绘提示保留英文原文/,
+    'the feature must stay allowlist-scoped instead of translating every self-painted ExtensionLayer string'
   );
 });
 

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QHash/QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表及显式 capture/session 环境
- * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底翻译、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
- * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；启动期保留有界全量补译，交互期只处理 dirty 子树与首次绘制热路径，Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QHash/QRegularExpression/QPainter、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表及显式 capture/session 环境
+ * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、ExtensionLayer 三处空状态提示的 CJK-safe 居中绘制、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文
+ * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译与定点绘制请求；启动期保留有界全量补译，交互期只处理 dirty 子树与首次绘制热路径，Time Editor 模型词汇及非白名单 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -22,6 +22,9 @@
 #include <QtCore/qmetaobject.h>
 #include <QtGui/qaction.h>
 #include <QtGui/qcursor.h>
+#include <QtGui/qfont.h>
+#include <QtGui/qfontmetrics.h>
+#include <QtGui/qpainter.h>
 #include <QtGui/QTextCursor>
 #include <QtGui/QTextDocument>
 #include <QtCore/qabstractitemmodel.h>
@@ -80,11 +83,11 @@ struct TranslationEntry {
 #include "generated_translations.inc"
 
 /* -----------------------------------------------------------------------
- * ExtensionLayer 自绘提示 — 保留英文原文，不做 CJK 补丁
+ * ExtensionLayer 自绘提示 — 仅翻译已确认由 textAtWidgetCentre 绘制的三处空状态
  *
- * ExtensionLayer 的 overlay text renderer 使用硬编码 Latin-only 字体，
- * 没有 CJK glyph 也没有 fallback 链。写入 CJK 后每个字符显示为 ?。
- * Qt 通道的翻译不受影响，仅此自绘层保持英文。
+ * 禁止恢复 __cstring 内存补丁：调用点把英文 byte length 编进机器码，原地改 UTF-8
+ * 会破坏 QString 边界。绘制层定点拦截能保留原图标、纵向基线和 panel 几何，
+ * 只按新旧字宽修正 x 坐标，并为 CJK 开启字体 fallback。
  * ----------------------------------------------------------------------- */
 const TranslationEntry *entriesForLanguageName(const char *lang, int *count)
 {
@@ -2383,6 +2386,81 @@ void appendTextEditWithoutInterpose(QTextEdit *textEdit, const QString &text)
     }
     textEdit->setTextCursor(cursor);
 }
+
+bool isCenteredExtensionLayerEmptyStateHint(const QString &text)
+{
+    static const QSet<QString> kCenteredEmptyStateHints = {
+        QStringLiteral("Double click here to import Assets."),
+        QStringLiteral("Drag layers here to see their settings."),
+        QStringLiteral("Use the Create menu to add a layer to your Composition."),
+    };
+    return kCenteredEmptyStateHints.contains(text);
+}
+
+QString translatedCenteredExtensionLayerHint(const QString &text)
+{
+    if (!isCenteredExtensionLayerEmptyStateHint(text)) {
+        return QString();
+    }
+
+    const QByteArray lang = readEnvVar("CAVALRY_I18N_LANG").toUtf8();
+    const QByteArray source = text.toUtf8();
+    const char *translation = embeddedTranslationForSource(lang.constData(), source.constData());
+    return translation != nullptr ? QString::fromUtf8(translation) : QString();
+}
+
+void drawPointTextWithoutInterpose(QPainter *painter, const QPointF &point, const QString &text)
+{
+    // Qt 6.6.3 的两参数入口本身只是把两个尾参数置零后跳转到这个四参数重载。
+    // 直接调用不同 ABI 符号，既完全保留原始绘制语义，也绕开易把 Mach-O 展示
+    // 前导下划线误传给 dlsym 的解析路径，从结构上杜绝解析失败后吞掉文字。
+    painter->drawText(point, text, 0, 0);
+}
+
+void replacementQPainterDrawPointText(
+    QPainter *painter,
+    const QPointF &point,
+    const QString &text)
+{
+    if (painter == nullptr) {
+        return;
+    }
+
+    const QString translated = translatedCenteredExtensionLayerHint(text);
+    if (translated.isEmpty()) {
+        drawPointTextWithoutInterpose(painter, point, text);
+        return;
+    }
+
+    const QFont sourceFont = painter->font();
+    const int sourceWidth = QFontMetrics(sourceFont).boundingRect(text).width();
+
+    QFont displayFont = sourceFont;
+    // ExtensionLayer 可设置 NoFontMerging；清成默认策略后，Qt 才能为 CJK 选择系统 fallback。
+    displayFont.setStyleStrategy(QFont::PreferDefault);
+    painter->setFont(displayFont);
+    const int translatedWidth = QFontMetrics(displayFont).boundingRect(translated).width();
+
+    // ui::textAtWidgetCentre 已算好英文中心；仅补偿字宽差，纵向基线和图标位置完全不动。
+    const QPointF centeredPoint(
+        point.x() + static_cast<qreal>(sourceWidth - translatedWidth) / 2.0,
+        point.y());
+    drawPointTextWithoutInterpose(painter, centeredPoint, translated);
+    painter->setFont(sourceFont);
+}
+
+extern "C" void qtPainterDrawPointTextInterposeTarget(
+    QPainter *,
+    const QPointF &,
+    const QString &) __asm("__ZN8QPainter8drawTextERK7QPointFRK7QString");
+
+__attribute__((used)) static struct {
+    const void *replacement;
+    const void *replacee;
+} kQPainterDrawPointTextInterpose __attribute__((section("__DATA,__interpose"))) = {
+    reinterpret_cast<const void *>(replacementQPainterDrawPointText),
+    reinterpret_cast<const void *>(qtPainterDrawPointTextInterposeTarget),
+};
 
 using QTextEditAppendFunction = void (*)(QTextEdit *, const QString &);
 
