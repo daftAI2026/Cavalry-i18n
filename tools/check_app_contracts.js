@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单和 package 脚本契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 探测、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 首次绘制前显示翻译、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
- * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言
+ * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、ExtensionLayer 英文保留、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止交互期全局刷新/普通运行 inventory 写盘等性能回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -387,13 +387,47 @@ test('embedded injector translates dynamic QLabel and QLineEdit text before repa
 
   assert.match(
     injectorSource,
-    /QEvent::Paint[\s\S]{0,360}qobject_cast<QLabel \*>\(watched\)[\s\S]{0,180}qobject_cast<QLineEdit \*>\(watched\)[\s\S]{0,220}translateRuntimeObject/,
-    'attribute editor floating titles and SceneTree EditableNodeName rows can change text after startup, so repaint must translate them before they draw'
+    /case QEvent::Paint:[\s\S]{0,520}translateLabelBeforePaint\(label, m_lang\)[\s\S]{0,320}translateLineEditBeforePaint\(lineEdit, m_lang\)/,
+    'attribute editor floating titles and SceneTree EditableNodeName rows must use dedicated first-paint translation without traversing child widgets or actions'
   );
   assert.match(
     injectorSource,
-    /QLabel \*label = qobject_cast<QLabel \*>\(widget\)[\s\S]{0,180}translatedWidgetText\(lang, label->text\(\)\)[\s\S]{0,120}label->setText\(translated\)/,
+    /translateLabelDisplayText\(QLabel \*label[\s\S]{0,220}translatedWidgetText\(lang, label->text\(\)\)[\s\S]{0,160}label->setText\(translated\)/,
     'Attribute Editor object headers such as Capsule Shape and Arrow Shape should use the same display translation path as other QLabel/RolloverLabel text'
+  );
+  const paintCase = injectorSource.slice(
+    injectorSource.indexOf('case QEvent::Paint:'),
+    injectorSource.indexOf('case QEvent::Show:', injectorSource.indexOf('case QEvent::Paint:'))
+  );
+  assert.doesNotMatch(
+    paintCase,
+    /translateRuntimeObject\(watched, m_lang\)/,
+    'Paint is a hot path and must not enter generic dirty-subtree translation'
+  );
+  assert.match(
+    injectorSource,
+    /PaintTextFingerprint[\s\S]{0,320}QString lang[\s\S]{0,180}QString text[\s\S]{0,180}QString placeholder/,
+    'Paint fast-path fingerprints must include language, visible text, and placeholder rather than guessing from whether text already looks localized'
+  );
+  assert.match(
+    injectorSource,
+    /translateLabelBeforePaint[\s\S]{0,520}paintTextFingerprintMatches[\s\S]{0,520}translateLabelDisplayText[\s\S]{0,520}rememberPaintTextFingerprint/,
+    'QLabel Paint should skip unchanged content but translate again after an external text change'
+  );
+  assert.match(
+    injectorSource,
+    /translateLineEditBeforePaint[\s\S]{0,900}paintTextFingerprintMatches\(lineEdit, lang, lineEdit->text\(\), lineEdit->placeholderText\(\)\)[\s\S]{0,900}rememberPaintTextFingerprint/,
+    'QLineEdit Paint should fingerprint both value and placeholder and refresh the fingerprint after translation'
+  );
+  assert.match(
+    injectorSource,
+    /QObject::destroyed[\s\S]{0,260}gPaintTextFingerprints\.remove\(object\)/,
+    'Paint fingerprints must be removed with QObject lifetime so pointer reuse cannot suppress translation'
+  );
+  assert.doesNotMatch(
+    injectorSource,
+    /setProperty\([^\n]*cavalry[^\n]*paint|setProperty\([^\n]*fingerprint/i,
+    'Paint fingerprints must not leak into dynamicProperties inventory evidence'
   );
 });
 
@@ -411,8 +445,13 @@ test('embedded injector translates modal dialogs synchronously before first pain
 
   assert.match(
     injectorSource,
-    /case QEvent::Show:[\s\S]{0,520}qobject_cast<QDialog \*>\(watched\)[\s\S]{0,220}translateRuntimeObject\(watched, m_lang\)[\s\S]{0,120}break;/,
+    /case QEvent::Show:[\s\S]{0,520}qobject_cast<QDialog \*>\(watched\)[\s\S]{0,220}translateRuntimeWidgetSubtree\(dialog, m_lang\)[\s\S]{0,120}break;/,
     'unsaved-change QMessageBox/ModalDialog must be translated synchronously on Show before the first English paint'
+  );
+  assert.match(
+    injectorSource,
+    /translateRuntimeWidgetSubtree[\s\S]{0,700}widget->findChildren<QWidget \*>\(\)/,
+    'dialog first paint must translate the complete local subtree without depending on a later global refresh'
   );
 
   assert.match(
@@ -675,6 +714,18 @@ test('model-backed niceName text stays English for Time Editor and item-model re
       /__ZNK7QWidget(14accessibleName|21accessibleDescription)Ev/,
       'checked-in injector dylib must not import QWidget accessibility accessors missing from Cavalry Qt 6.6.3'
     );
+    const loadCommands = spawnSync('otool', ['-l', dylibPath], { encoding: 'utf8' });
+    assert.equal(loadCommands.status, 0, loadCommands.stderr);
+    assert.match(
+      loadCommands.stdout,
+      /path @loader_path /,
+      'checked-in injector must resolve Qt beside itself after it is copied into the selected Cavalry.app'
+    );
+    assert.doesNotMatch(
+      loadCommands.stdout,
+      /path .*qt_sdk.*\/lib /,
+      'checked-in injector must not fall back to the build SDK and load a second Qt runtime into Cavalry'
+    );
   }
   const preserveFunction = injectorSource.match(
     /bool shouldPreserveModelBackedItemText\(QWidget \*owner, const QString &sourceText\)[\s\S]*?\n}\n\nclass EmbeddedTranslator/
@@ -908,15 +959,34 @@ test('embedded injector handles runtime Qt events with dirty-object local transl
     /translateRuntimeObject/,
     'dirty object draining should use a dedicated local translation entry point'
   );
+  const runtimeObjectFunction = injectorSource.slice(
+    injectorSource.indexOf('void translateRuntimeObject'),
+    injectorSource.indexOf('void translateRuntimeWidgetSubtree')
+  );
   assert.doesNotMatch(
     injectorSource,
-    /scheduleCoalescedRefresh[\s\S]*refreshQtUiTranslations/,
-    'coalesced runtime event handling must not call refreshQtUiTranslations because that runs QApplication::allWidgets()'
+    /scheduleInteractiveRefresh/,
+    'ordinary runtime events must not retain a hidden path back to QApplication::allWidgets()'
   );
   assert.doesNotMatch(
     injectorSource,
     /eventFilter[\s\S]{0,1600}refreshQtUiTranslations/,
     'eventFilter must not directly or nearby indirectly trigger the full UI refresh path'
+  );
+  assert.match(
+    runtimeObjectFunction,
+    /Qt::FindDirectChildrenOnly/,
+    'ordinary dirty translation should stay bounded to the changed object and direct children'
+  );
+  assert.doesNotMatch(
+    runtimeObjectFunction,
+    /widget->findChildren<QWidget \*>\(\)/,
+    'ordinary clicks and ChildAdded events must not recursively walk a large top-level widget subtree'
+  );
+  assert.match(
+    injectorSource,
+    /drainDirtyObjects[\s\S]{0,1200}scheduleCaptureInventoryDump\(lang\)/,
+    'dirty translation may schedule a capture-only trailing inventory, but must not synchronously write one per event'
   );
 });
 
@@ -940,6 +1010,26 @@ test('embedded injector caches source-text translation lookup for runtime widget
     injectorSource,
     /lookupEmbeddedTranslation[\s\S]*gTranslationBySource/,
     'lookupEmbeddedTranslation should consult the cache before falling back to embedded table scanning'
+  );
+  assert.match(
+    injectorSource,
+    /EmbeddedTranslator[\s\S]{0,1800}exactTranslationKey\(context, sourceText\)[\s\S]{0,900}QHash<QByteArray, QString>/,
+    'QTranslator exact (context, source) lookup should use a hash index instead of scanning every generated entry'
+  );
+  assert.match(
+    injectorSource,
+    /if \(!m_translations\.contains\(key\)\)[\s\S]{0,260}m_translations\.insert\(key/,
+    'duplicate exact keys must preserve the generated table first-match-wins behavior'
+  );
+  assert.match(
+    injectorSource,
+    /rebuildTranslationCache[\s\S]{0,900}if \(!source\.isEmpty\(\) && !translation\.isEmpty\(\)\) \{[\s\S]{0,180}gTranslationBySource\.insert\(source, translation\)/,
+    'source-only display lookup must preserve its existing last-match-wins cache behavior independently of exact QTranslator keys'
+  );
+  assert.match(
+    injectorSource,
+    /translatedLineEditValue[\s\S]{0,520}static const QRegularExpression kNumericSuffixPattern[\s\S]{0,260}kNumericSuffixPattern\.match\(sourceText\)/,
+    'fixed hot-path patterns should compile once instead of reconstructing QRegularExpression on every Paint/text change'
   );
 });
 
@@ -1213,6 +1303,21 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     buildScript,
     /QT_FRAMEWORKS\/QtCore\.framework\/Versions\/A\/QtCore/,
     'injector build should support linking against a standalone Qt install for CI prebuilds'
+  );
+  assert.match(
+    buildScript,
+    /clang\+\+[\s\S]{0,240}-O2/,
+    'the shipped runtime injector must use a stable optimized build rather than clang default -O0'
+  );
+  assert.match(
+    buildScript,
+    /-Wl,-rpath,@loader_path/,
+    'the injector must bind to the selected app bundle rather than a build-machine absolute Qt path'
+  );
+  assert.doesNotMatch(
+    buildScript,
+    /-Wl,-rpath,"\$QT_FRAMEWORKS"/,
+    'the injector must not retain a runtime fallback to the build SDK because duplicate Qt runtimes abort Cavalry'
   );
   assert.match(
     buildScript,
@@ -2115,6 +2220,31 @@ test('injector supports English dump-only and session-scoped runtime inventory o
     injectorSource,
     /runtime\/.*-injector-inventory\.json|-injector-inventory\.json/,
     'injector should write session-scoped injector inventories instead of cache-root menu-inventory.json'
+  );
+  assert.match(
+    injectorSource,
+    /runtimeInventoryCaptureEnabled[\s\S]{0,520}CAVALRY_I18N_SESSION_DIR[\s\S]{0,520}CAVALRY_I18N_CAPTURE_RUNTIME[\s\S]{0,520}CAVALRY_I18N_DUMP_ITEM_MODELS/,
+    'runtime inventory must be gated behind an explicit session/capture environment instead of ordinary language switching'
+  );
+  assert.match(
+    injectorSource,
+    /dumpQtMenuInventory\(const QString &lang\)[\s\S]{0,300}!runtimeInventoryCaptureEnabled\(\)[\s\S]{0,120}return true;/,
+    'the inventory gate must run before QApplication::allWidgets so normal launches do not scan or write diagnostic state'
+  );
+  assert.match(
+    injectorSource,
+    /NSString \*runtimeSessionDir\(\)[\s\S]{0,260}static NSString \*sessionDir[\s\S]{0,180}dispatch_once/,
+    'one process must reuse one session path instead of creating a UUID directory per dump'
+  );
+  assert.match(
+    injectorSource,
+    /NSString \*bundleExecutableHash\(\)[\s\S]{0,260}static NSString \*bundleHash[\s\S]{0,180}dispatch_once/,
+    'capture provenance should hash the Cavalry executable once per process, not once per inventory export'
+  );
+  assert.match(
+    injectorSource,
+    /if \(dumpOnlyEnglish\)[\s\S]{0,260}!runtimeInventoryCaptureEnabled\(\)[\s\S]{0,260}runtime inventory disabled/,
+    'ordinary English mode must remain write-free while explicit English dump-only sessions retain their retry/export path'
   );
 });
 
@@ -3416,8 +3546,18 @@ test('QuickAdd runtime pruning removes only empty Add Layer rows', () => {
   );
   assert.match(
     injector,
-    /scheduleInteractiveRefresh[\s\S]*refreshQtUiTranslations/,
-    'opening Add Layers after startup should trigger a debounced full widget refresh'
+    /hookItemViewModelChanges[\s\S]{0,2200}QAbstractItemModel::rowsInserted[\s\S]{0,900}QAbstractItemModel::modelReset[\s\S]{0,900}QAbstractItemModel::dataChanged/,
+    'QuickAdd rows populated after Show must enqueue only their owning item view for translation/pruning'
+  );
+  assert.match(
+    injector,
+    /qobject_cast<QAbstractItemView \*>\(widget\)[\s\S]{0,240}hookItemViewModelChanges\(itemView, lang\)/,
+    'runtime item views must install exact model-change hooks during startup and local Show translation'
+  );
+  assert.doesNotMatch(
+    injector,
+    /scheduleInteractiveRefresh/,
+    'QuickAdd async population must not be repaired by restoring a global refresh'
   );
 });
 

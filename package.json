@@ -33,8 +33,7 @@
     "postinstall": "npm run hooks:install"
   },
   "dependencies": {
-    "@tauri-apps/api": "2.10.1",
-    "@paper-design/shaders-react": "^0.0.76"
+    "@tauri-apps/api": "2.10.1"
   },
   "devDependencies": {
     "@tauri-apps/cli": "2.10.1"

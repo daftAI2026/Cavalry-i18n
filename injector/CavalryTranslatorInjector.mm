@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表
- * [OUTPUT]: 对外提供 EmbeddedTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底翻译、AppKit 菜单同步与带坐标父链/Qt item model/MessageBar meta-object-only 的运行时 inventory 导出、MessageBar `QTextEdit::append` 日志追加时翻译与符号解析失败安全兜底，且 inventory 不读取 QTextEdit 正文（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
- * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QHash/QRegularExpression、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表及显式 capture/session 环境
+ * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底翻译、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文（ExtensionLayer 自绘层 Latin-only 字体无法渲染 CJK，保持英文原文）
+ * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译请求；启动期保留有界全量补译，交互期只处理 dirty 子树与首次绘制热路径，Time Editor 模型词汇与 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -157,10 +157,12 @@ bool shouldPreserveModelBackedItemText(QWidget *owner, const QString &sourceText
     }
 
     QString source = normalizeMenuText(sourceText);
-    if (QRegularExpression(QStringLiteral("\\[[0-9]+\\.[^\\]]+\\]")).match(source).hasMatch()) {
+    static const QRegularExpression kBracketItemPattern(QStringLiteral("\\[[0-9]+\\.[^\\]]+\\]"));
+    static const QRegularExpression kNumericSuffixPattern(QStringLiteral("\\s+[0-9]+$"));
+    if (kBracketItemPattern.match(source).hasMatch()) {
         return true;
     }
-    source.remove(QRegularExpression(QStringLiteral("\\s+[0-9]+$")));
+    source.remove(kNumericSuffixPattern);
     source = source.trimmed();
     if (source.isEmpty()) {
         return false;
@@ -577,11 +579,33 @@ bool shouldPreserveModelBackedItemText(QWidget *owner, const QString &sourceText
     return kModelBackedItemTexts.contains(source);
 }
 
+QByteArray exactTranslationKey(const char *context, const char *sourceText)
+{
+    QByteArray key(context);
+    key.append('\0');
+    key.append(sourceText);
+    return key;
+}
+
 class EmbeddedTranslator final : public QTranslator {
 public:
     explicit EmbeddedTranslator(const QString &lang, QObject *parent = nullptr)
-        : QTranslator(parent), m_lang(lang)
+        : QTranslator(parent)
     {
+        int count = 0;
+        const TranslationEntry *entries = entriesForLanguage(lang, &count);
+        if (entries == nullptr) {
+            return;
+        }
+
+        m_translations.reserve(count);
+        for (int index = 0; index < count; ++index) {
+            const QByteArray key = exactTranslationKey(entries[index].context, entries[index].sourceText);
+            if (!m_translations.contains(key)) {
+                // generated table 允许同 key；线性实现一直以首条为准，哈希索引必须保持同一语义。
+                m_translations.insert(key, QString::fromUtf8(entries[index].translation));
+            }
+        }
     }
 
     QString translate(
@@ -597,24 +621,12 @@ public:
             return QString();
         }
 
-        int count = 0;
-        const TranslationEntry *entries = entriesForLanguage(m_lang, &count);
-        if (entries == nullptr) {
-            return QString();
-        }
-
-        for (int index = 0; index < count; ++index) {
-            if (strcmp(entries[index].context, context) == 0 &&
-                strcmp(entries[index].sourceText, sourceText) == 0) {
-                return QString::fromUtf8(entries[index].translation);
-            }
-        }
-
-        return QString();
+        const auto translation = m_translations.constFind(exactTranslationKey(context, sourceText));
+        return translation != m_translations.constEnd() ? translation.value() : QString();
     }
 
 private:
-    QString m_lang;
+    QHash<QByteArray, QString> m_translations;
 };
 
 EmbeddedTranslator *gTranslator = nullptr;
@@ -622,6 +634,13 @@ bool gInstallAttempted = false;
 bool gRefreshScheduled = false;
 QSet<QMenu *> gHookedMenus;
 QSet<QLineEdit *> gHookedLineEdits;
+QHash<QAbstractItemView *, QPointer<QAbstractItemModel>> gHookedItemViewModels;
+struct PaintTextFingerprint {
+    QString lang;
+    QString text;
+    QString placeholder;
+};
+QHash<QObject *, PaintTextFingerprint> gPaintTextFingerprints;
 struct DirtyObject {
     QObject *key;
     QPointer<QObject> object;
@@ -631,7 +650,7 @@ QObject *gEventFilter = nullptr;
 QVector<DirtyObject> gDirtyObjects;
 QSet<QObject *> gDirtyObjectSet;
 bool gDirtyDrainScheduled = false;
-bool gInteractiveRefreshScheduled = false;
+int gInventoryDumpGeneration = 0;
 int gRefreshCount = 0;
 int gDirtyEnqueueCount = 0;
 int gDirtyDrainCount = 0;
@@ -643,6 +662,22 @@ QString readEnvVar(const char *name)
 {
     const char *value = getenv(name);
     return value ? QString::fromUtf8(value) : QString();
+}
+
+bool envFlagEnabled(const char *name)
+{
+    const QString value = readEnvVar(name).trimmed().toLower();
+    return value == QStringLiteral("1") || value == QStringLiteral("true") ||
+        value == QStringLiteral("yes");
+}
+
+bool runtimeInventoryCaptureEnabled()
+{
+    static const bool enabled = !readEnvVar("CAVALRY_I18N_SESSION_DIR").isEmpty() ||
+        !readEnvVar("CAVALRY_I18N_SESSION_UUID").isEmpty() ||
+        envFlagEnabled("CAVALRY_I18N_CAPTURE_RUNTIME") ||
+        envFlagEnabled("CAVALRY_I18N_DUMP_ITEM_MODELS");
+    return enabled;
 }
 
 NSString *toNSString(const QString &value);
@@ -660,44 +695,44 @@ NSString *runtimeCacheRoot()
 
 QString sessionUuidValue()
 {
-    const QString explicitSessionUuid = readEnvVar("CAVALRY_I18N_SESSION_UUID");
-    if (!explicitSessionUuid.isEmpty()) {
-        return explicitSessionUuid;
-    }
+    static const QString sessionUuid = []() {
+        const QString explicitSessionUuid = readEnvVar("CAVALRY_I18N_SESSION_UUID");
+        if (!explicitSessionUuid.isEmpty()) {
+            return explicitSessionUuid;
+        }
 
-    const QString sessionDir = readEnvVar("CAVALRY_I18N_SESSION_DIR");
-    if (!sessionDir.isEmpty()) {
-        return QFileInfo(sessionDir).fileName();
-    }
+        const QString sessionDir = readEnvVar("CAVALRY_I18N_SESSION_DIR");
+        if (!sessionDir.isEmpty()) {
+            return QFileInfo(sessionDir).fileName();
+        }
 
-    return QString();
+        return QString::fromUtf8([[[NSUUID UUID] UUIDString] UTF8String]);
+    }();
+    return sessionUuid;
 }
 
 NSString *runtimeSessionDir()
 {
-    @autoreleasepool {
-        const QString configured = readEnvVar("CAVALRY_I18N_SESSION_DIR");
-        if (!configured.isEmpty()) {
-            NSString *sessionDir = toNSString(configured);
+    static NSString *sessionDir = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        @autoreleasepool {
+            const QString configured = readEnvVar("CAVALRY_I18N_SESSION_DIR");
+            if (!configured.isEmpty()) {
+                sessionDir = toNSString(configured);
+            } else {
+                NSString *cacheRoot = runtimeCacheRoot();
+                NSString *sessionUuid = toNSString(sessionUuidValue());
+                sessionDir = [[cacheRoot stringByAppendingPathComponent:@"sessions"]
+                    stringByAppendingPathComponent:sessionUuid];
+            }
             [[NSFileManager defaultManager] createDirectoryAtPath:sessionDir
                                       withIntermediateDirectories:YES
                                                        attributes:nil
                                                             error:nil];
-            return sessionDir;
         }
-
-        NSString *cacheRoot = runtimeCacheRoot();
-        NSString *sessionUuid = toNSString(sessionUuidValue());
-        if ([sessionUuid length] == 0) {
-            sessionUuid = [[NSUUID UUID] UUIDString];
-        }
-        NSString *sessionDir = [[cacheRoot stringByAppendingPathComponent:@"sessions"] stringByAppendingPathComponent:sessionUuid];
-        [[NSFileManager defaultManager] createDirectoryAtPath:sessionDir
-                                  withIntermediateDirectories:YES
-                                                   attributes:nil
-                                                        error:nil];
-        return sessionDir;
-    }
+    });
+    return sessionDir;
 }
 
 NSString *runtimeInventoryDir()
@@ -714,25 +749,27 @@ NSString *runtimeInventoryDir()
 
 NSString *bundleExecutableHash()
 {
-    @autoreleasepool {
-        NSString *executablePath = [[NSBundle mainBundle] executablePath];
-        if (executablePath == nil) {
-            return @"";
-        }
+    static NSString *bundleHash = nil;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        @autoreleasepool {
+            NSString *executablePath = [[NSBundle mainBundle] executablePath];
+            NSData *data = executablePath != nil ? [NSData dataWithContentsOfFile:executablePath] : nil;
+            if (data == nil) {
+                bundleHash = @"";
+                return;
+            }
 
-        NSData *data = [NSData dataWithContentsOfFile:executablePath];
-        if (data == nil) {
-            return @"";
+            unsigned char digest[CC_SHA256_DIGEST_LENGTH];
+            CC_SHA256([data bytes], static_cast<CC_LONG>([data length]), digest);
+            NSMutableString *hash = [NSMutableString stringWithCapacity:CC_SHA256_DIGEST_LENGTH * 2];
+            for (int index = 0; index < CC_SHA256_DIGEST_LENGTH; ++index) {
+                [hash appendFormat:@"%02x", digest[index]];
+            }
+            bundleHash = [hash copy];
         }
-
-        unsigned char digest[CC_SHA256_DIGEST_LENGTH];
-        CC_SHA256([data bytes], static_cast<CC_LONG>([data length]), digest);
-        NSMutableString *hash = [NSMutableString stringWithCapacity:CC_SHA256_DIGEST_LENGTH * 2];
-        for (int index = 0; index < CC_SHA256_DIGEST_LENGTH; ++index) {
-            [hash appendFormat:@"%02x", digest[index]];
-        }
-        return hash;
-    }
+    });
+    return bundleHash;
 }
 
 QString normalizeMenuText(const QString &text)
@@ -760,7 +797,7 @@ QString lookupDynamicMenuTranslation(const QString &lang, const QString &sourceT
         return QString();
     }
 
-    const QRegularExpression copyLayerPattern(QStringLiteral("^Copy\\s+([0-9]+)\\s+Layers?$"));
+    static const QRegularExpression copyLayerPattern(QStringLiteral("^Copy\\s+([0-9]+)\\s+Layers?$"));
     const QRegularExpressionMatch copyLayerMatch = copyLayerPattern.match(source);
     if (copyLayerMatch.hasMatch()) {
         const QString count = copyLayerMatch.captured(1);
@@ -775,7 +812,7 @@ QString lookupDynamicMenuTranslation(const QString &lang, const QString &sourceT
         }
     }
 
-    const QRegularExpression rigControlPattern(QStringLiteral("^Rig Control\\s+([0-9]+)(\\.\\.\\.)?$"));
+    static const QRegularExpression rigControlPattern(QStringLiteral("^Rig Control\\s+([0-9]+)(\\.\\.\\.)?$"));
     const QRegularExpressionMatch rigControlMatch = rigControlPattern.match(source);
     if (rigControlMatch.hasMatch()) {
         const QString suffix = rigControlMatch.captured(2);
@@ -791,7 +828,7 @@ QString lookupDynamicMenuTranslation(const QString &lang, const QString &sourceT
         }
     }
 
-    const QRegularExpression addKeyframePattern(QStringLiteral("^Add Keyframe on frame\\s+([0-9]+)$"));
+    static const QRegularExpression addKeyframePattern(QStringLiteral("^Add Keyframe on frame\\s+([0-9]+)$"));
     const QRegularExpressionMatch addKeyframeMatch = addKeyframePattern.match(source);
     if (addKeyframeMatch.hasMatch()) {
         const QString frame = addKeyframeMatch.captured(1);
@@ -806,7 +843,7 @@ QString lookupDynamicMenuTranslation(const QString &lang, const QString &sourceT
         }
     }
 
-    const QRegularExpression selectedCountPattern(QStringLiteral("^([0-9]+)\\s+selected$"));
+    static const QRegularExpression selectedCountPattern(QStringLiteral("^([0-9]+)\\s+selected$"));
     const QRegularExpressionMatch selectedCountMatch = selectedCountPattern.match(source);
     if (selectedCountMatch.hasMatch()) {
         const QString count = selectedCountMatch.captured(1);
@@ -821,7 +858,7 @@ QString lookupDynamicMenuTranslation(const QString &lang, const QString &sourceT
         }
     }
 
-    const QRegularExpression offlineAuthPattern(QStringLiteral("^Cavalry is offline\\. You will need to re-authenticate in less than\\s+([0-9]+)\\s+days\\.$"));
+    static const QRegularExpression offlineAuthPattern(QStringLiteral("^Cavalry is offline\\. You will need to re-authenticate in less than\\s+([0-9]+)\\s+days\\.$"));
     const QRegularExpressionMatch offlineAuthMatch = offlineAuthPattern.match(source);
     if (offlineAuthMatch.hasMatch()) {
         const QString days = offlineAuthMatch.captured(1);
@@ -878,6 +915,7 @@ void rebuildTranslationCache(const QString &lang)
         const QString source = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
         const QString translation = QString::fromUtf8(entries[index].translation);
         if (!source.isEmpty() && !translation.isEmpty()) {
+            // source-only 显示层缓存历史语义是末条覆盖；不要与精确 QTranslator 的首条语义混同。
             gTranslationBySource.insert(source, translation);
         }
     }
@@ -1091,8 +1129,7 @@ NSArray *widgetMetaObjectMethods(QWidget *widget)
 
 bool shouldDumpItemModels()
 {
-    const QString enabled = readEnvVar("CAVALRY_I18N_DUMP_ITEM_MODELS").trimmed().toLower();
-    return enabled == QStringLiteral("1") || enabled == QStringLiteral("true") || enabled == QStringLiteral("yes");
+    return envFlagEnabled("CAVALRY_I18N_DUMP_ITEM_MODELS");
 }
 
 NSString *variantTypeName(const QVariant &value)
@@ -1440,6 +1477,12 @@ id serializeWidget(QWidget *widget)
 
 bool dumpQtMenuInventory(const QString &lang)
 {
+    // 正常语言切换只负责翻译，不创建 session、更不扫描全局 widget 写盘。
+    // live gate 通过显式 session/capture 环境进入这条诊断路径。
+    if (!runtimeInventoryCaptureEnabled()) {
+        return true;
+    }
+
     if (qobject_cast<QApplication *>(QCoreApplication::instance()) == nullptr) {
         return false;
     }
@@ -1735,9 +1778,11 @@ QString translatedWidgetText(const QString &lang, const QString &sourceText)
             return undoRedoTranslation;
         }
 
-        QRegularExpressionMatch match = QRegularExpression(QStringLiteral("^(.*?)(\\.[0-9]+)$")).match(sourceText);
+        static const QRegularExpression kDotNumericSuffixPattern(QStringLiteral("^(.*?)(\\.[0-9]+)$"));
+        static const QRegularExpression kSpaceNumericSuffixPattern(QStringLiteral("^(.*?)(\\s+[0-9]+)$"));
+        QRegularExpressionMatch match = kDotNumericSuffixPattern.match(sourceText);
         if (!match.hasMatch()) {
-            match = QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
+            match = kSpaceNumericSuffixPattern.match(sourceText);
         }
         if (!match.hasMatch()) {
             return QString();
@@ -1831,8 +1876,8 @@ QString translatedNameWithNumericSuffix(const QString &lang, const QString &sour
         return direct;
     }
 
-    const QRegularExpressionMatch match =
-        QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
+    static const QRegularExpression kNumericSuffixPattern(QStringLiteral("^(.*?)(\\s+[0-9]+)$"));
+    const QRegularExpressionMatch match = kNumericSuffixPattern.match(sourceText);
     if (!match.hasMatch()) {
         return QString();
     }
@@ -1852,8 +1897,8 @@ QString sourceNameWithNumericSuffix(const QString &lang, const QString &displayT
         return direct;
     }
 
-    const QRegularExpressionMatch match =
-        QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(displayText);
+    static const QRegularExpression kNumericSuffixPattern(QStringLiteral("^(.*?)(\\s+[0-9]+)$"));
+    const QRegularExpressionMatch match = kNumericSuffixPattern.match(displayText);
     if (!match.hasMatch()) {
         return QString();
     }
@@ -1869,7 +1914,7 @@ QString sourceNameWithNumericSuffix(const QString &lang, const QString &displayT
 QString translatedDynamicBracketLayerName(const QString &lang, const QString &sourceText, bool forceEnglish)
 {
     const QString source = normalizeMenuText(sourceText);
-    const QRegularExpression pattern(QStringLiteral("^(.*?)\\s+\\[([0-9]+)\\.([^\\]]+)\\]$"));
+    static const QRegularExpression pattern(QStringLiteral("^(.*?)\\s+\\[([0-9]+)\\.([^\\]]+)\\]$"));
     const QRegularExpressionMatch match = pattern.match(source);
     if (!match.hasMatch()) {
         return QString();
@@ -2039,7 +2084,8 @@ QString translatedLineEditValue(const QString &lang, const QString &sourceText)
         return translated;
     }
 
-    QRegularExpressionMatch match = QRegularExpression(QStringLiteral("^(.*?)(\\s+[0-9]+)$")).match(sourceText);
+    static const QRegularExpression kNumericSuffixPattern(QStringLiteral("^(.*?)(\\s+[0-9]+)$"));
+    QRegularExpressionMatch match = kNumericSuffixPattern.match(sourceText);
     if (!match.hasMatch()) {
         return QString();
     }
@@ -2067,6 +2113,64 @@ void translateLineEditDisplayText(QLineEdit *lineEdit, const QString &lang)
     if (!translated.isEmpty()) {
         lineEdit->setPlaceholderText(translated);
     }
+}
+
+void translateLabelDisplayText(QLabel *label, const QString &lang)
+{
+    if (label == nullptr || lang.isEmpty()) {
+        return;
+    }
+
+    const QString translated = translatedWidgetText(lang, label->text());
+    if (!translated.isEmpty() && translated != label->text()) {
+        label->setText(translated);
+    }
+}
+
+bool paintTextFingerprintMatches(
+    QObject *object,
+    const QString &lang,
+    const QString &text,
+    const QString &placeholder = QString())
+{
+    const auto existing = gPaintTextFingerprints.constFind(object);
+    return existing != gPaintTextFingerprints.constEnd() &&
+        existing.value().lang == lang && existing.value().text == text &&
+        existing.value().placeholder == placeholder;
+}
+
+void rememberPaintTextFingerprint(
+    QObject *object,
+    const QString &lang,
+    const QString &text,
+    const QString &placeholder = QString())
+{
+    if (object == nullptr) {
+        return;
+    }
+
+    if (!gPaintTextFingerprints.contains(object)) {
+        QObject::connect(
+            object,
+            &QObject::destroyed,
+            object,
+            [object]() {
+                gPaintTextFingerprints.remove(object);
+            }
+        );
+    }
+    gPaintTextFingerprints.insert(object, PaintTextFingerprint{ lang, text, placeholder });
+}
+
+void translateLabelBeforePaint(QLabel *label, const QString &lang)
+{
+    if (label == nullptr || lang.isEmpty() ||
+        paintTextFingerprintMatches(label, lang, label->text())) {
+        return;
+    }
+
+    translateLabelDisplayText(label, lang);
+    rememberPaintTextFingerprint(label, lang, label->text());
 }
 
 void hookLineEditTextChanges(QLineEdit *lineEdit, const QString &lang)
@@ -2107,10 +2211,26 @@ void hookLineEditTextChanges(QLineEdit *lineEdit, const QString &lang)
     translateLineEditDisplayText(lineEdit, lang);
 }
 
+void translateLineEditBeforePaint(QLineEdit *lineEdit, const QString &lang)
+{
+    if (lineEdit == nullptr || lang.isEmpty() ||
+        paintTextFingerprintMatches(lineEdit, lang, lineEdit->text(), lineEdit->placeholderText())) {
+        return;
+    }
+
+    if (!gHookedLineEdits.contains(lineEdit)) {
+        hookLineEditTextChanges(lineEdit, lang);
+    } else {
+        // 某些 Cavalry 控件会阻断 textChanged 后直接改值；Paint 前仍做一次精确显示层兜底。
+        translateLineEditDisplayText(lineEdit, lang);
+    }
+    rememberPaintTextFingerprint(lineEdit, lang, lineEdit->text(), lineEdit->placeholderText());
+}
+
 QString translatedCopiedLogMessage(const QString &lang, const QString &message)
 {
-    const QRegularExpressionMatch copiedMatch =
-        QRegularExpression(QStringLiteral("^Copied\\s+(.+)$")).match(message);
+    static const QRegularExpression kCopiedMessagePattern(QStringLiteral("^Copied\\s+(.+)$"));
+    const QRegularExpressionMatch copiedMatch = kCopiedMessagePattern.match(message);
     if (!copiedMatch.hasMatch()) {
         return QString();
     }
@@ -2140,8 +2260,8 @@ QString translatedCopiedLogMessage(const QString &lang, const QString &message)
 
 QString translatedUndoRedoLogMessage(const QString &lang, const QString &message)
 {
-    const QRegularExpressionMatch undoRedoMatch =
-        QRegularExpression(QStringLiteral("^(Undo|Redo)\\s*\\((.+)\\)$")).match(message);
+    static const QRegularExpression kUndoRedoMessagePattern(QStringLiteral("^(Undo|Redo)\\s*\\((.+)\\)$"));
+    const QRegularExpressionMatch undoRedoMatch = kUndoRedoMessagePattern.match(message);
     if (!undoRedoMatch.hasMatch()) {
         return QString();
     }
@@ -2197,8 +2317,9 @@ QString translatedLogTextBlock(const QString &lang, const QString &sourceText)
         return translatedLine;
     }
 
-    const QRegularExpressionMatch match =
-        QRegularExpression(QStringLiteral("^(\\[[^\\]]+\\]\\s*\\[[^\\]]+\\]\\s*)(.+)$")).match(normalized);
+    static const QRegularExpression kTimestampedLogPattern(
+        QStringLiteral("^(\\[[^\\]]+\\]\\s*\\[[^\\]]+\\]\\s*)(.+)$"));
+    const QRegularExpressionMatch match = kTimestampedLogPattern.match(normalized);
     if (!match.hasMatch()) {
         return QString();
     }
@@ -2222,10 +2343,10 @@ QString translatedTextEditAppendText(const QString &lang, const QString &sourceT
         return direct;
     }
 
-    const QRegularExpressionMatch htmlBreakMatch =
-        QRegularExpression(QStringLiteral("([\\s\\S]*<br\\s*/?>\\s*)([^<]+)(\\s*)$"),
-                           QRegularExpression::CaseInsensitiveOption)
-            .match(sourceText);
+    static const QRegularExpression kHtmlBreakMessagePattern(
+        QStringLiteral("([\\s\\S]*<br\\s*/?>\\s*)([^<]+)(\\s*)$"),
+        QRegularExpression::CaseInsensitiveOption);
+    const QRegularExpressionMatch htmlBreakMatch = kHtmlBreakMessagePattern.match(sourceText);
     if (htmlBreakMatch.hasMatch()) {
         const QString message = normalizeMenuText(htmlBreakMatch.captured(2));
         const QString translatedMessage = translatedLogMessageText(lang, message);
@@ -2361,6 +2482,68 @@ void normalizeTimeEditorItemModel(QAbstractItemView *view, const QString &lang)
     normalizeTimeEditorModelRows(view, model, QModelIndex(), lang, 0);
 }
 
+void enqueueRuntimeObject(QObject *object, const QString &lang);
+
+void hookItemViewModelChanges(QAbstractItemView *view, const QString &lang)
+{
+    if (view == nullptr || lang.isEmpty()) {
+        return;
+    }
+
+    QAbstractItemModel *model = view->model();
+    const auto existing = gHookedItemViewModels.constFind(view);
+    if (existing != gHookedItemViewModels.constEnd() && existing.value().data() == model) {
+        return;
+    }
+
+    if (existing == gHookedItemViewModels.constEnd()) {
+        QObject::connect(
+            view,
+            &QObject::destroyed,
+            view,
+            [view]() {
+                gHookedItemViewModels.remove(view);
+            }
+        );
+    }
+    gHookedItemViewModels.insert(view, QPointer<QAbstractItemModel>(model));
+    if (model == nullptr) {
+        return;
+    }
+
+    QPointer<QAbstractItemView> guardedView(view);
+    QObject::connect(
+        model,
+        &QAbstractItemModel::rowsInserted,
+        view,
+        [guardedView, lang](const QModelIndex &, int, int) {
+            if (!guardedView.isNull()) {
+                enqueueRuntimeObject(guardedView.data(), lang);
+            }
+        }
+    );
+    QObject::connect(
+        model,
+        &QAbstractItemModel::modelReset,
+        view,
+        [guardedView, lang]() {
+            if (!guardedView.isNull()) {
+                enqueueRuntimeObject(guardedView.data(), lang);
+            }
+        }
+    );
+    QObject::connect(
+        model,
+        &QAbstractItemModel::dataChanged,
+        view,
+        [guardedView, lang](const QModelIndex &, const QModelIndex &, const QList<int> &) {
+            if (!guardedView.isNull()) {
+                enqueueRuntimeObject(guardedView.data(), lang);
+            }
+        }
+    );
+}
+
 void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *> &seenActions)
 {
     if (widget == nullptr || lang.isEmpty()) {
@@ -2388,10 +2571,7 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
     }
 
     if (QLabel *label = qobject_cast<QLabel *>(widget)) {
-        translated = translatedWidgetText(lang, label->text());
-        if (!translated.isEmpty()) {
-            label->setText(translated);
-        }
+        translateLabelDisplayText(label, lang);
     }
 
     if (QAbstractButton *button = qobject_cast<QAbstractButton *>(widget)) {
@@ -2413,6 +2593,7 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
     }
 
     if (QAbstractItemView *itemView = qobject_cast<QAbstractItemView *>(widget)) {
+        hookItemViewModelChanges(itemView, lang);
         normalizeTimeEditorItemModel(itemView, lang);
     }
 
@@ -2585,19 +2766,20 @@ void refreshQtUiTranslations(const QString &lang)
     dumpQtMenuInventory(lang);
 }
 
-void scheduleInteractiveRefresh(QString lang)
+void scheduleCaptureInventoryDump(QString lang)
 {
-    if (lang.isEmpty() || gInteractiveRefreshScheduled) {
+    if (lang.isEmpty() || !runtimeInventoryCaptureEnabled()) {
         return;
     }
 
-    gInteractiveRefreshScheduled = true;
+    const int generation = ++gInventoryDumpGeneration;
     dispatch_after(
-        dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(100) * NSEC_PER_MSEC),
+        dispatch_time(DISPATCH_TIME_NOW, static_cast<int64_t>(250) * NSEC_PER_MSEC),
         dispatch_get_main_queue(),
         ^{
-            gInteractiveRefreshScheduled = false;
-            refreshQtUiTranslations(lang);
+            if (generation == gInventoryDumpGeneration) {
+                dumpQtMenuInventory(lang);
+            }
         }
     );
 }
@@ -2649,16 +2831,29 @@ void translateRuntimeObject(QObject *object, const QString &lang)
     }
 }
 
+void translateRuntimeWidgetSubtree(QWidget *widget, const QString &lang)
+{
+    if (widget == nullptr || lang.isEmpty()) {
+        return;
+    }
+
+    QSet<QAction *> seenActions;
+    translateQtWidgetTexts(widget, lang, seenActions);
+    for (QWidget *child : widget->findChildren<QWidget *>()) {
+        translateQtWidgetTexts(child, lang, seenActions);
+    }
+}
+
 void drainDirtyObjects(QString lang)
 {
-    int processed = 0;
-    while (!gDirtyObjects.isEmpty() && processed < kDirtyDrainMaxObjects) {
-        DirtyObject entry = gDirtyObjects.takeFirst();
+    const int batchSize = qMin(gDirtyObjects.size(), kDirtyDrainMaxObjects);
+    const QVector<DirtyObject> batch = gDirtyObjects.mid(0, batchSize);
+    gDirtyObjects.remove(0, batchSize);
+    for (const DirtyObject &entry : batch) {
         gDirtyObjectSet.remove(entry.key);
         if (!entry.object.isNull()) {
             translateRuntimeObject(entry.object.data(), lang);
         }
-        ++processed;
     }
 
     ++gDirtyDrainCount;
@@ -2670,7 +2865,7 @@ void drainDirtyObjects(QString lang)
     }
 
     gDirtyDrainScheduled = false;
-    dumpQtMenuInventory(lang);
+    scheduleCaptureInventoryDump(lang);
 }
 
 void scheduleDirtyObjectDrain(QString lang)
@@ -2720,9 +2915,12 @@ protected:
 
         switch (event->type()) {
         case QEvent::Paint:
-            if (qobject_cast<QLabel *>(watched) != nullptr ||
-                qobject_cast<QLineEdit *>(watched) != nullptr) {
-                translateRuntimeObject(watched, m_lang);
+            if (QLabel *label = qobject_cast<QLabel *>(watched)) {
+                translateLabelBeforePaint(label, m_lang);
+                break;
+            }
+            if (QLineEdit *lineEdit = qobject_cast<QLineEdit *>(watched)) {
+                translateLineEditBeforePaint(lineEdit, m_lang);
             }
             break;
         case QEvent::Show:
@@ -2730,12 +2928,11 @@ protected:
                 translateMenuBeforeFirstPaint(menu, m_lang, true);
                 break;
             }
-            if (qobject_cast<QDialog *>(watched) != nullptr) {
-                translateRuntimeObject(watched, m_lang);
+            if (QDialog *dialog = qobject_cast<QDialog *>(watched)) {
+                translateRuntimeWidgetSubtree(dialog, m_lang);
                 break;
             }
             enqueueRuntimeObject(watched, m_lang);
-            scheduleInteractiveRefresh(m_lang);
             break;
         case QEvent::ActionAdded:
             if (QMenu *menu = qobject_cast<QMenu *>(watched)) {
@@ -2743,16 +2940,17 @@ protected:
                 break;
             }
             enqueueRuntimeObject(watched, m_lang);
-            scheduleInteractiveRefresh(m_lang);
             break;
         case QEvent::MouseButtonRelease:
             enqueueRuntimeObject(watched, m_lang);
-            scheduleInteractiveRefresh(m_lang);
             break;
         case QEvent::ChildAdded: {
             QChildEvent *childEvent = static_cast<QChildEvent *>(event);
             enqueueRuntimeObject(childEvent->child(), m_lang);
-            scheduleInteractiveRefresh(m_lang);
+            if (qobject_cast<QAbstractItemView *>(watched) != nullptr &&
+                qobject_cast<QAbstractItemModel *>(childEvent->child()) != nullptr) {
+                enqueueRuntimeObject(watched, m_lang);
+            }
             break;
         }
         default:
@@ -2830,6 +3028,13 @@ bool installTranslator()
     }
 
     if (dumpOnlyEnglish) {
+        if (!runtimeInventoryCaptureEnabled()) {
+            fprintf(stderr,
+                    "[cavalry-i18n] english mode active; runtime inventory disabled without an explicit capture session\n");
+            gInstallAttempted = true;
+            return true;
+        }
+
         bool inventoryExported = false;
         for (int attempt = 0; attempt < kMaxInstallAttempts; ++attempt) {
             if (dumpQtMenuInventory(lang)) {

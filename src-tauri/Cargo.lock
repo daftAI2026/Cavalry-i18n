@@ -262,6 +262,7 @@ name = "cavalry-i18n-tauri"
 version = "0.5.2"
 dependencies = [
  "chrono",
+ "libc",
  "rfd",
  "serde",
  "serde_json",

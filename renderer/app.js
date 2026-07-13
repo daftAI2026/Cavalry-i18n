@@ -515,7 +515,7 @@ bootstrap().catch((error) => {
 
   function pick(value) {
     languageSelect.value = value;
-    syncPopup();
+    languageSelect.dispatchEvent(new Event('change', { bubbles: true }));
     close();
   }
 

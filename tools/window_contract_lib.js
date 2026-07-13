@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 macOS osascript/screencapture 与 packaged Tauri binary
- * [OUTPUT]: 对外提供窗口枚举、截图、内容区域裁剪与图像 diff 辅助函数
+ * [OUTPUT]: 对外提供 AX 窗口权限探测、窗口枚举、截图与内容区域尺寸校验辅助函数
  * [POS]: tools 的 Tauri 窗口回归公共层
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -125,18 +125,13 @@ function captureRect(bounds, outputPath) {
 }
 
 function readImageSize(imagePath) {
-  return JSON.parse(
-    run('python3', [
-      '-c',
-      [
-        'from PIL import Image',
-        'import json, sys',
-        'image = Image.open(sys.argv[1])',
-        'print(json.dumps({"width": image.width, "height": image.height}))',
-      ].join(';'),
-      imagePath,
-    ])
-  );
+  const metadata = run('sips', ['-g', 'pixelWidth', '-g', 'pixelHeight', imagePath]);
+  const width = Number(metadata.match(/pixelWidth:\s*(\d+)/)?.[1]);
+  const height = Number(metadata.match(/pixelHeight:\s*(\d+)/)?.[1]);
+  if (!Number.isFinite(width) || !Number.isFinite(height)) {
+    fail(`Could not read screenshot dimensions from ${imagePath}.`);
+  }
+  return { width, height };
 }
 
 function captureContentRegion(bounds, outputPath) {
@@ -158,37 +153,6 @@ function captureContentRegion(bounds, outputPath) {
     contentBounds,
     imageSize,
   };
-}
-
-function diffImages(leftPath, rightPath) {
-  return JSON.parse(
-    run('python3', [
-      '-c',
-      [
-        'from PIL import Image, ImageChops',
-        'import json, sys',
-        'left = Image.open(sys.argv[1]).convert("RGBA")',
-        'right = Image.open(sys.argv[2]).convert("RGBA")',
-        'if left.size != right.size:',
-        '    raise SystemExit(json.dumps({"error": "size-mismatch", "left": left.size, "right": right.size}))',
-        'diff = ImageChops.difference(left, right).convert("L")',
-        'hist = diff.histogram()',
-        'pixels = diff.width * diff.height',
-        'changed = sum(hist[1:])',
-        'weighted = sum(index * count for index, count in enumerate(hist))',
-        'max_diff = max((index for index, count in enumerate(hist) if count), default=0)',
-        'print(json.dumps({',
-        '    "width": diff.width,',
-        '    "height": diff.height,',
-        '    "changedRatio": changed / pixels,',
-        '    "meanDiff": weighted / pixels,',
-        '    "maxDiff": max_diff,',
-        '}))',
-      ].join('\n'),
-      leftPath,
-      rightPath,
-    ])
-  );
 }
 
 function tauriBundleBinary() {
@@ -235,9 +199,24 @@ function makeTempDir(prefix) {
 let _assistiveAccess;
 function hasAssistiveAccess() {
   if (_assistiveAccess === undefined) {
-    const result = spawnSync('osascript', ['-e', 'tell application "System Events" to count windows of process "Finder"'], {
-      encoding: 'utf8',
-    });
+    const result = spawnSync(
+      'osascript',
+      [
+        '-e',
+        `
+tell application "System Events"
+  if UI elements enabled is false then error "Accessibility UI scripting is disabled"
+  set finderProcess to first process whose name is "Finder"
+  return count windows of finderProcess
+end tell
+        `,
+      ],
+      {
+        encoding: 'utf8',
+        timeout: 5000,
+      }
+    );
+    // 只用查询是否成功判断 AX 权限；Finder 可以合法地没有打开任何窗口。
     _assistiveAccess = result.status === 0;
   }
   return _assistiveAccess;
@@ -246,7 +225,6 @@ function hasAssistiveAccess() {
 module.exports = {
   captureContentRegion,
   delay,
-  diffImages,
   expectedContentSize,
   focusWindow,
   hasAssistiveAccess,

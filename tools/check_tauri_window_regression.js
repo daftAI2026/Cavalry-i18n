@@ -31,7 +31,7 @@ const FROZEN_WINDOW = {
 
 test('tauri window regression stays within the frozen Tauri contract', async (t) => {
   if (!hasAssistiveAccess()) {
-    t.skip('Skipping tauri window regression: osascript lacks assistive access permissions');
+    t.skip('Skipping tauri window regression: osascript cannot query AX window properties');
     return;
   }
   tauriBundleBinary();
@@ -81,4 +81,3 @@ test('tauri window regression stays within the frozen Tauri contract', async (t)
     stopChild(child);
   }
 });
-

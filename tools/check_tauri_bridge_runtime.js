@@ -51,6 +51,13 @@ class FakeElement {
     this.listeners.get(type).push(listener);
   }
 
+  dispatchEvent(event) {
+    for (const listener of this.listeners.get(event.type) || []) {
+      listener(event);
+    }
+    return true;
+  }
+
   setAttribute(name, value = '') {
     this.attributes.set(name, String(value));
   }
@@ -274,6 +281,12 @@ function createRuntime(options = {}) {
       }
     },
     HTMLSelectElement: FakeSelectElement,
+    Event: class {
+      constructor(type, options = {}) {
+        this.type = type;
+        this.bubbles = Boolean(options.bubbles);
+      }
+    },
     Promise,
     setTimeout,
     clearTimeout,
@@ -530,4 +543,31 @@ test('renderer localizes status failures while preserving backend details', asyn
   await flush();
 
   assert.equal(runtime.statusText.textContent, '应用语言包失败。详情：Backend refused the patch');
+});
+
+test('custom select dispatches native change when an option is picked', async () => {
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
+  const runtime = createRuntime();
+  let changeCount = 0;
+
+  runtime.languageSelect.addEventListener('change', () => {
+    changeCount += 1;
+  });
+
+  vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
+  vm.runInNewContext(appScript, runtime.context, { filename: 'app.js' });
+  await flush();
+
+  runtime.selectTrigger.listeners.get('click')[0]({
+    preventDefault() {},
+    stopPropagation() {},
+  });
+  const option = runtime.context.document.querySelector('#selectPopup').optionElements[0];
+  runtime.context.document.querySelector('#selectPopup').listeners.get('click')[0]({
+    target: option,
+  });
+
+  assert.equal(runtime.languageSelect.value, 'en');
+  assert.equal(changeCount, 1);
 });

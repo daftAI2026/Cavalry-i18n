@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 std fs/path，读取 Mach-O fat/thin dylib 的符号表、间接符号表与指令字节
- * [OUTPUT]: 对外提供 patch_keychain_query_attributes、patch_keychain_query_attributes_bytes、build_synthetic_keychain_dylib 和 per-function 补丁报告
+ * [OUTPUT]: 对外提供文件/借用字节/owned Vec 三种 Keychain 补丁入口、build_synthetic_keychain_dylib 和 per-function 补丁报告
  * [POS]: src-tauri/src 的 Keychain 二进制补丁核心，被 privilege 系统边界调用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -104,7 +104,7 @@ pub fn patch_keychain_query_attributes(app_path: &Path) -> Result<KeychainPatchR
     }
 
     let bytes = fs::read(&target).map_err(|error| error.to_string())?;
-    let (patched, report) = patch_keychain_query_attributes_bytes(&bytes)?;
+    let (patched, report) = patch_keychain_query_attributes_owned(bytes)?;
     if report.patched_callsites > 0 {
         fs::write(&target, patched).map_err(|error| error.to_string())?;
     }
@@ -114,7 +114,12 @@ pub fn patch_keychain_query_attributes(app_path: &Path) -> Result<KeychainPatchR
 pub fn patch_keychain_query_attributes_bytes(
     input: &[u8],
 ) -> Result<(Vec<u8>, KeychainPatchReport), String> {
-    let mut bytes = input.to_vec();
+    patch_keychain_query_attributes_owned(input.to_vec())
+}
+
+pub fn patch_keychain_query_attributes_owned(
+    mut bytes: Vec<u8>,
+) -> Result<(Vec<u8>, KeychainPatchReport), String> {
     let mut report = empty_report();
     for slice in parse_slices(&bytes)? {
         let macho = parse_macho(&bytes, &slice)?;

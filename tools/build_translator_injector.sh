@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖 Qt SDK、Cavalry.app Frameworks、injector/CavalryTranslatorInjector.mm 与 generated_translations.inc
-# [OUTPUT]: 对外构建 libCavalryTranslatorInjector.dylib universal 动态库
-# [POS]: tools 的 injector 构建入口，连接 Qt ABI 校验与 Tauri bundle resource
+# [OUTPUT]: 对外构建启用 -O2、以 @loader_path 绑定目标 app Qt 的 universal injector dylib
+# [POS]: tools 的 injector 发布构建入口，以 Qt ABI 校验、可搬移运行时链接和稳定优化级别连接源码与 Tauri bundle resource
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
 
@@ -133,14 +133,15 @@ node "$REPO_ROOT/tools/generate_embedded_translations.js" "$GENERATED"
 
 clang++ \
   -std=c++17 \
+  -O2 \
   -fobjc-arc \
   -DQT_NO_VERSION_TAGGING \
   -dynamiclib \
   -arch arm64 \
   -arch x86_64 \
   -install_name "@rpath/$(basename "$OUTPUT")" \
+  -Wl,-rpath,@loader_path \
   -Wl,-rpath,"$LINK_FRAMEWORKS" \
-  -Wl,-rpath,"$QT_FRAMEWORKS" \
   "$SOURCE" \
   -o "$OUTPUT" \
   -I"$QT_FRAMEWORKS" \

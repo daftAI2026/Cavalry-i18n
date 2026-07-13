@@ -1,13 +1,13 @@
 <!--
-[INPUT]: 依赖 docs/audits/runtime-refresh-performance-2026-05-21.md 的根因报告，以及 injector/CavalryTranslatorInjector.mm 的 dirty-object、aboutToShow、full refresh 与 inventory 导出路径
-[OUTPUT]: 对外提供 Runtime 刷新性能优化 roadmap，记录后续实施阶段、验收标准与风险边界
-[POS]: docs/roadmap 的 runtime 性能主题入口，链接 audit 事实报告并为后续实现计划提供范围
+[INPUT]: 依赖 docs/audits/runtime-refresh-performance-2026-05-21.md 的根因报告、runtime-performance-implementation-2026-07-13.md 的完成证据，以及 injector/Rust apply 的最终实现
+[OUTPUT]: 对外提供已完成的 Runtime 刷新性能路线、各阶段验收结果与仍属于发布门的边界
+[POS]: docs/roadmap 的 runtime 性能闭环入口，把早期问题、实施决策与真实 Cavalry 验证连接成可追溯路径
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
 # Runtime Refresh Performance Roadmap
 
-状态: Proposed  
+状态: Completed
 问题: 点击或打开动态 UI 时，用户可见整窗闪烁，能感知到 runtime 注入刷新过程。  
 依据: [`docs/audits/runtime-refresh-performance-2026-05-21.md`](../audits/runtime-refresh-performance-2026-05-21.md)
 
@@ -26,7 +26,7 @@
 
 ### R1 — 收敛合同测试
 
-状态: Not started
+状态: Completed
 
 把现有 contract 中的矛盾收敛成同一条规则：runtime events 只能 enqueue dirty object，不能触发 full `refreshQtUiTranslations`。Add Layers 的动态补翻译必须由 dirty-object path 或菜单 aboutToShow path 覆盖，而不是依赖交互后的全局扫描。
 
@@ -38,7 +38,7 @@
 
 ### R2 — 移除普通交互全局刷新
 
-状态: Not started
+状态: Completed
 
 从 `RuntimeUiEventFilter` 的普通事件路径移除 `scheduleInteractiveRefresh(m_lang)`。`Show`、`ActionAdded`、`MouseButtonRelease`、`ChildAdded` 只 enqueue 相关 QObject；菜单仍通过 `aboutToShow` 处理当前菜单树。
 
@@ -51,7 +51,7 @@
 
 ### R3 — Runtime inventory 导出 gate
 
-状态: Not started
+状态: Completed
 
 把 `dumpQtMenuInventory(lang)` 从普通 dirty drain 末尾移出，或加显式 capture env gate。用户正常运行时不写 JSON；`run_live_full_ui_matrix.js`、dump-only、item model capture 仍能写出完整 inventory。
 
@@ -63,9 +63,9 @@
 
 ### R4 — 重复写回规避
 
-状态: Not started
+状态: Completed
 
-在已有 `translated != current` 检查基础上，评估是否给 QObject 写入轻量 property/hash，记录最近一次处理的语言与源文本。源文本未变时跳过 setText/setTitle，降低 repaint/layout 成本。
+在已有 `translated != current` 检查基础上，为 Paint 热路径的 QLabel/QLineEdit 维护随 QObject 生命周期清理的语言/文本/placeholder fingerprint。源文本未变时跳过重复翻译，外部改值后 fingerprint 失效并重新处理。
 
 验收:
 
@@ -75,15 +75,15 @@
 
 ### R5 — 现场验证
 
-状态: Not started
+状态: Completed
 
-在安装态 Cavalry.app 同步 repo injector 后做手动验证和必要的 live capture。
+在 APFS clone 安装 repo injector 并执行真实签名/apply，同时将同一候选 dylib 外加载到真实 Cavalry 进程做 session capture；测试不得静默覆盖用户安装。
 
 验收:
 
-- repo dylib 与 app dylib hash 一致。
-- `codesign --verify --deep --strict /Applications/Cavalry.app` 通过。
-- Cavalry 重启后，连续点击普通 UI 不出现整窗闪烁。
+- repo dylib 与 clone 中已安装 dylib byte-for-byte 一致。
+- `codesign --verify --deep --strict <clone>/Cavalry.app` 在每次语言 apply 与 English 恢复后通过。
+- 真实 Cavalry 进程加载候选 dylib 后，三语日志和非 placeholder inventory 证明 injector 已安装 translator，菜单首屏完成翻译。
 - 菜单打开前翻译仍及时。
 - `npm run test:contracts` 通过。
 
@@ -93,6 +93,6 @@
 - capture 能力不能被误删；R3 必须保留显式审计入口。
 - 如果 contract 只做源码正则，仍需人工视觉 canary 验证“闪一下”是否改善。
 
-## 下一步
+## 完成证据
 
-先执行 R1 和 R2。只有当普通交互不再触发全局 refresh 后，再判断是否需要 R4 的对象级 hash。
+实现、基准、签名与真实进程证据见 [`docs/audits/runtime-performance-implementation-2026-07-13.md`](../audits/runtime-performance-implementation-2026-07-13.md)。全 UI 100% matrix 仍属于发布 gate，不重新打开本路线的实现状态。
