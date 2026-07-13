@@ -28,5 +28,6 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 2026-06-04: 新增 `badges/release.json` 作为 README release badge 的 Shields endpoint 数据源，发布 workflow 成功创建 GitHub Release 后写回 main，避免 README 首屏实时依赖 Shields GitHub API token pool。
 2026-07-07: 新增 `user-story-status.xlsx` 作为单一 canonical 用户故事状态表，跟踪功能预期、测试状态、错误与修复闭环。
 2026-07-13: 完成 runtime 性能路线，新增真实 Cavalry 三语注入、APFS 副本增量签名与翻译等价性审计证据，并纠正 canonical 用户故事状态口径。
+2026-07-14: 同步 `0.5.3` 发布候选的 dylib/生成表证据，记录三语空状态实机验证，并将维护者明确豁免的额外 full UI matrix 标为 `USER-WAIVED`，不冒充 100% coverage。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -1,5 +1,5 @@
 <!--
-[INPUT]: 依赖 injector/CavalryTranslatorInjector.mm、tools/build_translator_injector.sh、src-tauri/src/{commands,privilege,keychain_patch}.rs 与 manual_macos_smoke.rs 的最终实现和 2026-07-13 本机验证记录
+[INPUT]: 依赖 injector/CavalryTranslatorInjector.mm、tools/build_translator_injector.sh、src-tauri/src/{commands,privilege,keychain_patch}.rs、manual_macos_smoke.rs、docs/user-story-status.xlsx 与 2026-07-13/14 本机验证及发布审阅记录
 [OUTPUT]: 对外提供 runtime 热路径、增量签名、真实 Cavalry 注入与功能等价性的完成证据、性能数据和残余边界
 [POS]: docs/audits 的 dated 性能实施报告，闭环 2026-05-21 根因审计与 docs/roadmap/runtime-refresh-performance.md
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -46,7 +46,7 @@
 - 12,994 个 `(context, source)` exact keys：0 mismatch。
 - 71 个 normalized-source 冲突 key：0 mismatch。
 - zh-Hans / zh-Hant / ja_JP 的窗口标题、菜单、QAction、QLabel、QLineEdit、QuickAdd 异步 item 与 duplicate first-match 全部逐字段一致。
-- `generated_translations.inc` 与变更前 SHA-256 相同；本轮没有改翻译资产。
+- 性能提交 `3b11795` 阶段的 `generated_translations.inc` 与变更前 SHA-256 相同，因此性能等价性结论不依赖翻译资产变化。后续 `d9f94ba` / `7c67334` 为三处空状态补齐简中、繁中、日文文本与标点，`0.5.3` 发布候选的生成表 SHA-256 为 `4b6f35bb6b029e3834d80d69b071fe11ca7ad9f270c0c6ce920884fc356b951a`；这是独立功能修复，不回写性能基线。
 
 ### Injector 性能
 
@@ -59,7 +59,7 @@
 | user CPU | 1.350 s | 0.500 s |
 | 普通运行 inventory 导出 | 47 | 0 |
 
-checked-in universal dylib 从 2,646,208 bytes 降到 2,335,008 bytes，arm64/x86_64 与 ad-hoc-only `flags=0x2` 保持不变；最终源码产物与 Tauri packaged resource 的 SHA-256 均为 `eef1ca71daec699888530a755dea6c3fb89b508612a9910f65b5ba0aa16360eb`。
+性能提交 `3b11795` 的 checked-in universal dylib 从 2,646,208 bytes 降到 2,335,008 bytes，SHA-256 为 `eef1ca71daec699888530a755dea6c3fb89b508612a9910f65b5ba0aa16360eb`。后续空状态翻译生成表变化触发一次正常重编译；`0.5.3` 发布候选 `e31f028` 的 checked-in dylib 为 2,337,536 bytes，源码产物与本地 Tauri packaged resource 的 SHA-256 均为 `2de7206c019da67a3ed831b44ca10498791a0bdab96bda23d8f8aecadba0c029`。两个阶段都保持 arm64/x86_64、`@loader_path` 和 ad-hoc-only `flags=0x2`。
 
 ### 真实 Cavalry 与副本 apply
 
@@ -87,7 +87,7 @@ checked-in universal dylib 从 2,646,208 bytes 降到 2,335,008 bytes，arm64/x8
 
 最终发布级回归同时通过：121/121 Node contracts、24 个 Rust unit tests、38 个 Rust integration tests、`cargo check`、Tauri app/DMG build、packaged 5 pass / 1 architecture skip、DMG layout，以及真实可见桌面上的 packaged window 1/1 pass / 0 skip。
 
-Waza 对最终工作树进行了独立只读复审：P0/P1/P2 均为 0，结论为 no blocker；未提交/未推送状态被明确视为交付状态而非已发布分支提交。
+Waza 对 `0.5.3` 发布候选进行了独立只读复审：代码层 P0/P1/P2 均为 0；其指出的唯一发布阻断是本报告与 canonical workbook 仍引用性能提交阶段的旧产物/交付状态。本次证据同步已将阶段基线与当前候选明确分开，分支已推送并创建 PR #2，尚未冒充已合并或已发布。
 
 ## 参考任务复核
 
@@ -97,7 +97,7 @@ Codex task `019f3919-757d-7710-b8f3-01bf095b0e0e` 确实创建过 `codex/user-st
 
 ## 残余边界
 
-- live inventory 逐一证明三语首屏三个菜单哨兵与真实 injector 路径；全 UI 100% matrix 仍是发布前更宽的覆盖门，不应与本轮性能正确性混为一谈。
+- live inventory 逐一证明三语首屏三个菜单哨兵与真实 injector 路径；全 UI 100% matrix 仍是更宽的覆盖门，不应与本轮性能正确性混为一谈。维护者于 2026-07-14 明确豁免本次额外 matrix，canonical workbook 以 `USER-WAIVED` 记录，并继续拒绝把较窄 smoke 冒充 100% coverage。
 - 本轮真实 smoke 不调用产品 `restart` command；restart 的命令顺序与 renderer 时序有自动合同，但 path/PID-bound 的真实重启仍按 PARTIAL 记录，不能混入 injector 通过结论。
 - deep/strict verify 本身约 1.4s，因此重复 apply 不追求“零耗时”；这是一条有意保留的安全成本。
-- 当前成果位于 `codex/performance-overhaul` 工作树，遵循仓库约束尚未 commit/push，不冒充已发布的分支提交；候选 dylib 不主动覆盖用户已安装的旧 injector，真实安装更新仍由产品 Apply 操作完成。
+- 当前成果已提交并推送至 `codex/performance-overhaul`、进入 PR #2；在 PR 合并、tag workflow 与 Release 资产读回验证完成前，不宣称已经发布。候选 dylib 不主动覆盖用户已安装的旧 injector，真实安装更新仍由产品 Apply 操作完成。
