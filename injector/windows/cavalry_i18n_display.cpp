@@ -1,0 +1,509 @@
+/**
+ * [INPUT]: 依赖 cavalry_i18n_display.h、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets 公共 API
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、受控控件显示属性翻译和动态英文写回后的同步恢复
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单弥补 LanguageChange 不会自动重写厂商控件的边界
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+#include "cavalry_i18n_display.h"
+
+#include "cavalry_i18n_translator.h"
+
+#include <QtCore/QPointer>
+#include <QtGui/QAction>
+#include <QtWidgets/QAbstractButton>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QLabel>
+#include <QtWidgets/QLineEdit>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QTabBar>
+#include <QtWidgets/QWidget>
+
+namespace {
+
+class TranslationScope final
+{
+public:
+    TranslationScope(QSet<QObject *> &activeObjects, QObject *object)
+        : activeObjects_(activeObjects)
+        , object_(object)
+        , entered_(object != nullptr && !activeObjects.contains(object))
+    {
+        if (entered_) {
+            activeObjects_.insert(object_);
+        }
+    }
+
+    ~TranslationScope()
+    {
+        if (entered_) {
+            activeObjects_.remove(object_);
+        }
+    }
+
+    bool entered() const
+    {
+        return entered_;
+    }
+
+private:
+    QSet<QObject *> &activeObjects_;
+    QObject *object_;
+    bool entered_;
+};
+
+QString normalizedDisplaySource(const QString &source)
+{
+    QString normalized = source;
+    normalized.replace(QChar('&'), QString());
+    normalized.replace(QString::fromUtf8("…"), QStringLiteral("..."));
+
+    QString cleaned;
+    cleaned.reserve(normalized.size());
+    for (QChar character : normalized) {
+        if (character.category() == QChar::Other_Format
+            || character.unicode() == 0xFEFF) {
+            continue;
+        }
+        cleaned.append(character);
+    }
+
+    return cleaned.simplified();
+}
+
+} // namespace
+
+CavalryDisplayTranslator::CavalryDisplayTranslator(
+    CavalryEmbeddedTranslator &translator,
+    QObject *parent)
+    : QObject(parent)
+    , translator_(translator)
+{
+}
+
+void CavalryDisplayTranslator::translateAction(QAction *action)
+{
+    TranslationScope scope(translatingObjects_, action);
+    if (!scope.entered()) {
+        return;
+    }
+
+    hookAction(action);
+    const QPointer<QAction> guardedAction(action);
+
+    applyTranslation(
+        action,
+        QByteArrayLiteral("text"),
+        action->text(),
+        [guardedAction](const QString &value) {
+            if (!guardedAction.isNull()) {
+                guardedAction->setText(value);
+            }
+        });
+    if (guardedAction.isNull()) {
+        return;
+    }
+
+    applyTranslation(
+        action,
+        QByteArrayLiteral("iconText"),
+        action->iconText(),
+        [guardedAction](const QString &value) {
+            if (!guardedAction.isNull()) {
+                guardedAction->setIconText(value);
+            }
+        });
+    if (guardedAction.isNull()) {
+        return;
+    }
+
+    applyTranslation(
+        action,
+        QByteArrayLiteral("toolTip"),
+        action->toolTip(),
+        [guardedAction](const QString &value) {
+            if (!guardedAction.isNull()) {
+                guardedAction->setToolTip(value);
+            }
+        });
+    if (guardedAction.isNull()) {
+        return;
+    }
+
+    applyTranslation(
+        action,
+        QByteArrayLiteral("statusTip"),
+        action->statusTip(),
+        [guardedAction](const QString &value) {
+            if (!guardedAction.isNull()) {
+                guardedAction->setStatusTip(value);
+            }
+        });
+    if (!guardedAction.isNull()) {
+        translateMenu(guardedAction->menu());
+    }
+}
+
+void CavalryDisplayTranslator::translateMenu(QMenu *menu)
+{
+    TranslationScope scope(translatingObjects_, menu);
+    if (!scope.entered()) {
+        return;
+    }
+
+    hookMenu(menu);
+    const QPointer<QMenu> guardedMenu(menu);
+    translateWidgetProperties(menu);
+    if (guardedMenu.isNull()) {
+        return;
+    }
+
+    applyTranslation(
+        menu,
+        QByteArrayLiteral("title"),
+        menu->title(),
+        [guardedMenu](const QString &value) {
+            if (!guardedMenu.isNull()) {
+                guardedMenu->setTitle(value);
+            }
+        });
+    if (guardedMenu.isNull()) {
+        return;
+    }
+
+    const QList<QAction *> rawActions = guardedMenu->actions();
+    QList<QPointer<QAction>> actions;
+    actions.reserve(rawActions.size());
+    for (QAction *menuAction : rawActions) {
+        actions.append(QPointer<QAction>(menuAction));
+    }
+    for (const QPointer<QAction> &menuAction : actions) {
+        if (!menuAction.isNull()) {
+            translateAction(menuAction.data());
+        }
+    }
+}
+
+void CavalryDisplayTranslator::translateWidget(QWidget *widget)
+{
+    if (auto *menu = qobject_cast<QMenu *>(widget)) {
+        translateMenu(menu);
+        return;
+    }
+
+    TranslationScope scope(translatingObjects_, widget);
+    if (!scope.entered()) {
+        return;
+    }
+
+    trackObject(widget);
+    const QPointer<QWidget> guardedWidget(widget);
+    translateWidgetProperties(widget);
+    if (guardedWidget.isNull()) {
+        return;
+    }
+
+    translateWidgetText(guardedWidget.data());
+    if (!guardedWidget.isNull()) {
+        translateWidgetActions(guardedWidget.data());
+    }
+}
+
+void CavalryDisplayTranslator::translatePaintWidget(QWidget *widget)
+{
+    TranslationScope scope(translatingObjects_, widget);
+    if (!scope.entered()) {
+        return;
+    }
+
+    trackObject(widget);
+    translateWidgetText(widget);
+}
+
+void CavalryDisplayTranslator::translateWidgetText(QWidget *widget)
+{
+    const QPointer<QWidget> guardedWidget(widget);
+    if (auto *label = qobject_cast<QLabel *>(guardedWidget.data())) {
+        const QPointer<QLabel> guardedLabel(label);
+        applyTranslation(
+            label,
+            QByteArrayLiteral("text"),
+            label->text(),
+            [guardedLabel](const QString &value) {
+                if (!guardedLabel.isNull()) {
+                    guardedLabel->setText(value);
+                }
+            });
+    } else if (
+        auto *button = qobject_cast<QAbstractButton *>(guardedWidget.data())) {
+        const QPointer<QAbstractButton> guardedButton(button);
+        applyTranslation(
+            button,
+            QByteArrayLiteral("text"),
+            button->text(),
+            [guardedButton](const QString &value) {
+                if (!guardedButton.isNull()) {
+                    guardedButton->setText(value);
+                }
+            });
+    } else if (
+        auto *groupBox = qobject_cast<QGroupBox *>(guardedWidget.data())) {
+        const QPointer<QGroupBox> guardedGroupBox(groupBox);
+        applyTranslation(
+            groupBox,
+            QByteArrayLiteral("title"),
+            groupBox->title(),
+            [guardedGroupBox](const QString &value) {
+                if (!guardedGroupBox.isNull()) {
+                    guardedGroupBox->setTitle(value);
+                }
+            });
+    } else if (
+        auto *lineEdit = qobject_cast<QLineEdit *>(guardedWidget.data())) {
+        const QPointer<QLineEdit> guardedLineEdit(lineEdit);
+        // 输入内容属于用户/模型数据；Windows 显示层只允许改 placeholder。
+        applyTranslation(
+            lineEdit,
+            QByteArrayLiteral("placeholderText"),
+            lineEdit->placeholderText(),
+            [guardedLineEdit](const QString &value) {
+                if (!guardedLineEdit.isNull()) {
+                    guardedLineEdit->setPlaceholderText(value);
+                }
+            });
+    } else if (
+        auto *tabBar = qobject_cast<QTabBar *>(guardedWidget.data())) {
+        const QPointer<QTabBar> guardedTabBar(tabBar);
+        const int tabCount = tabBar->count();
+        for (int index = 0; index < tabCount; ++index) {
+            if (guardedTabBar.isNull() || index >= guardedTabBar->count()) {
+                break;
+            }
+            applyTranslation(
+                tabBar,
+                QByteArray("tabText:") + QByteArray::number(index),
+                guardedTabBar->tabText(index),
+                [guardedTabBar, index](const QString &value) {
+                    if (!guardedTabBar.isNull()
+                        && index < guardedTabBar->count()) {
+                        guardedTabBar->setTabText(index, value);
+                    }
+            });
+        }
+    }
+}
+
+void CavalryDisplayTranslator::translateWidgetTree(QWidget *root)
+{
+    if (root == nullptr) {
+        return;
+    }
+
+    QList<QPointer<QWidget>> widgets;
+    widgets.append(QPointer<QWidget>(root));
+    const QList<QWidget *> descendants = root->findChildren<QWidget *>();
+    widgets.reserve(descendants.size() + 1);
+    for (QWidget *descendant : descendants) {
+        widgets.append(QPointer<QWidget>(descendant));
+    }
+
+    for (const QPointer<QWidget> &widget : widgets) {
+        if (!widget.isNull()) {
+            translateWidget(widget.data());
+        }
+    }
+}
+
+QString CavalryDisplayTranslator::translationFor(const QString &source) const
+{
+    if (source.isEmpty()) {
+        return QString();
+    }
+
+    const auto lookup = [this](const QString &candidate) {
+        const QByteArray utf8 = candidate.toUtf8();
+        return translator_.translate(nullptr, utf8.constData());
+    };
+
+    QString translated = lookup(source);
+    if (!translated.isEmpty()) {
+        return translated;
+    }
+
+    const QString normalized = normalizedDisplaySource(source);
+    if (normalized.isEmpty()) {
+        return QString();
+    }
+
+    if (normalized != source) {
+        translated = lookup(normalized);
+        if (!translated.isEmpty()) {
+            return translated;
+        }
+    }
+
+    if (normalized.endsWith(QChar(':'))) {
+        const QString bareSource =
+            normalized.left(normalized.size() - 1).trimmed();
+        translated = lookup(bareSource);
+        if (!translated.isEmpty()) {
+            return translated + QChar(':');
+        }
+    }
+
+    return QString();
+}
+
+void CavalryDisplayTranslator::applyTranslation(
+    QObject *object,
+    const QByteArray &property,
+    const QString &current,
+    const std::function<void(const QString &)> &setter)
+{
+    if (object == nullptr || current.isEmpty()) {
+        return;
+    }
+
+    trackObject(object);
+    const auto objectTranslations = lastTranslations_.constFind(object);
+    if (objectTranslations != lastTranslations_.constEnd()) {
+        const auto previous =
+            objectTranslations.value().constFind(property);
+        if (previous != objectTranslations.value().constEnd()
+            && previous.value() == current) {
+            return;
+        }
+    }
+
+    const QString translated = translationFor(current);
+    if (translated.isEmpty() || translated == current) {
+        return;
+    }
+
+    // 先记录再调用 setter；同步 changed/event 回调会被对象级重入门挡住。
+    lastTranslations_[object].insert(property, translated);
+    setter(translated);
+}
+
+void CavalryDisplayTranslator::hookAction(QAction *action)
+{
+    if (action == nullptr || hookedActions_.contains(action)) {
+        return;
+    }
+
+    trackObject(action);
+    hookedActions_.insert(action);
+    const QPointer<QAction> guardedAction(action);
+    QObject::connect(
+        action,
+        &QAction::changed,
+        this,
+        [this, guardedAction]() {
+            if (!guardedAction.isNull()) {
+                translateAction(guardedAction.data());
+            }
+        });
+}
+
+void CavalryDisplayTranslator::hookMenu(QMenu *menu)
+{
+    if (menu == nullptr || hookedMenus_.contains(menu)) {
+        return;
+    }
+
+    trackObject(menu);
+    hookedMenus_.insert(menu);
+    const QPointer<QMenu> guardedMenu(menu);
+    QObject::connect(
+        menu,
+        &QMenu::aboutToShow,
+        this,
+        [this, guardedMenu]() {
+            if (!guardedMenu.isNull()) {
+                translateMenu(guardedMenu.data());
+            }
+        });
+}
+
+void CavalryDisplayTranslator::trackObject(QObject *object)
+{
+    if (object == nullptr || trackedObjects_.contains(object)) {
+        return;
+    }
+
+    trackedObjects_.insert(object);
+    QObject::connect(
+        object,
+        &QObject::destroyed,
+        this,
+        [this](QObject *destroyedObject) {
+            lastTranslations_.remove(destroyedObject);
+            trackedObjects_.remove(destroyedObject);
+            hookedActions_.remove(destroyedObject);
+            hookedMenus_.remove(destroyedObject);
+            translatingObjects_.remove(destroyedObject);
+        });
+}
+
+void CavalryDisplayTranslator::translateWidgetProperties(QWidget *widget)
+{
+    if (widget == nullptr) {
+        return;
+    }
+
+    trackObject(widget);
+    const QPointer<QWidget> guardedWidget(widget);
+    applyTranslation(
+        widget,
+        QByteArrayLiteral("windowTitle"),
+        widget->windowTitle(),
+        [guardedWidget](const QString &value) {
+            if (!guardedWidget.isNull()) {
+                guardedWidget->setWindowTitle(value);
+            }
+        });
+    if (guardedWidget.isNull()) {
+        return;
+    }
+
+    applyTranslation(
+        widget,
+        QByteArrayLiteral("toolTip"),
+        guardedWidget->toolTip(),
+        [guardedWidget](const QString &value) {
+            if (!guardedWidget.isNull()) {
+                guardedWidget->setToolTip(value);
+            }
+        });
+    if (guardedWidget.isNull()) {
+        return;
+    }
+
+    applyTranslation(
+        widget,
+        QByteArrayLiteral("statusTip"),
+        guardedWidget->statusTip(),
+        [guardedWidget](const QString &value) {
+            if (!guardedWidget.isNull()) {
+                guardedWidget->setStatusTip(value);
+            }
+        });
+}
+
+void CavalryDisplayTranslator::translateWidgetActions(QWidget *widget)
+{
+    if (widget == nullptr) {
+        return;
+    }
+
+    const QList<QAction *> rawActions = widget->actions();
+    QList<QPointer<QAction>> actions;
+    actions.reserve(rawActions.size());
+    for (QAction *widgetAction : rawActions) {
+        actions.append(QPointer<QAction>(widgetAction));
+    }
+    for (const QPointer<QAction> &widgetAction : actions) {
+        if (!widgetAction.isNull()) {
+            translateAction(widgetAction.data());
+        }
+    }
+}
