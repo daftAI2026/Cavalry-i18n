@@ -2160,8 +2160,8 @@
     <message><source>doesn&apos;t exist.</source><translation>存在しない。</translation></message>
     <message><source>dom PPC kom</source><translation>内部識別三</translation></message>
     <message><source>Done</source><translation>完了</translation></message>
-    <message><source>Double click here to import Assets</source><translation>ここをダブルクリックしてアセットを読み込み</translation></message>
-    <message><source>Double click here to import Assets.</source><translation>ここをダブルクリックしてアセットを読み込み</translation></message>
+    <message><source>Double click here to import Assets</source><translation>ここをダブルクリックしてアセットをインポートします</translation></message>
+    <message><source>Double click here to import Assets.</source><translation>ここをダブルクリックしてアセットをインポートします。</translation></message>
     <message><source>Double click on a Preset to rename it</source><translation>プリセットをダブルクリックして名前を変更</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>プリセットをダブルクリックして名前を変更。</translation></message>
     <message><source>Double Click on layer</source><translation>レイヤーをダブルクリック</translation></message>
@@ -2174,17 +2174,18 @@
     <message><source>Drag an Attribute connection here</source><translation>ここに属性接続をドラッグ</translation></message>
     <message><source>Drag an Attribute connection here.</source><translation>ここに属性接続をドラッグします。</translation></message>
     <message><source>Drag at least two Shapes here</source><translation>少なくとも二つのシェイプをここにドラッグ</translation></message>
-    <message><source>Drag colors here</source><translation>ここでは色をドラッグします</translation></message>
-    <message><source>Drag colors here.</source><translation>ここでは色をドラッグします。</translation></message>
-    <message><source>Drag colours here</source><translation>ここに色をドラッグする</translation></message>
-    <message><source>Drag colours here.</source><translation>ここに色をドラッグします。</translation></message>
+    <message><source>Drag colors here</source><translation>ここにカラーをドラッグします</translation></message>
+    <message><source>Drag colors here.</source><translation>ここにカラーをドラッグします。</translation></message>
+    <message><source>Drag colours here</source><translation>ここにカラーをドラッグします</translation></message>
+    <message><source>Drag colours here.</source><translation>ここにカラーをドラッグします。</translation></message>
+    <message><source>Drag in Compositions or use the '+ Current Composition' button.</source><translation>コンポジションをここにドラッグするか、「+ 現在のコンポジション」ボタンを使用します。</translation></message>
     <message><source>Drag in a file from the Assets window</source><translation>アセットウィンドウからファイルをドラッグ</translation></message>
     <message><source>Drag in a Shape layer</source><translation>シェイプレイヤーをドラッグ</translation></message>
     <message><source>Drag in a Smart Folder</source><translation>スマートフォルダにドラッグ</translation></message>
     <message><source>Drag in a Spreadsheet from the Assets Window</source><translation>アセットウィンドウから表計算をドラッグ</translation></message>
     <message><source>Drag in or connect an Asset</source><translation>アセットをドラッグまたは接続</translation></message>
-    <message><source>Drag layers here to see their settings</source><translation>レイヤーをドラッグして設定を見る</translation></message>
-    <message><source>Drag layers here to see their settings.</source><translation>レイヤーをドラッグして設定を確認します</translation></message>
+    <message><source>Drag layers here to see their settings</source><translation>レイヤーをここにドラッグして設定を確認します</translation></message>
+    <message><source>Drag layers here to see their settings.</source><translation>レイヤーをここにドラッグして設定を確認します。</translation></message>
     <message><source>Drag some JavaScript here to make a Snippet.</source><translation>JavaScript をここにドラッグしてスニペットを作成します。</translation></message>
     <message><source>Draw</source><translation>ドロー</translation></message>
     <message><source>Draw a Straight Line</source><translation>直線線を引く</translation></message>
@@ -3188,8 +3189,8 @@
     <message><source>Right Align Keys</source><translation>右アライナーキー</translation></message>
     <message><source>Right B</source><translation>右バイト</translation></message>
     <message><source>right click</source><translation>右クリック</translation></message>
-    <message><source>Right Click on Attributes to add them to this window</source><translation>属性を右クリックしてこのウィンドウに追加</translation></message>
-    <message><source>Right Click on Attributes to add them to this window.</source><translation>属性を右クリックしてこのウィンドウに追加します。</translation></message>
+    <message><source>Right Click on Attributes to add them to this window</source><translation>属性を右クリックして、このウィンドウに追加します</translation></message>
+    <message><source>Right Click on Attributes to add them to this window.</source><translation>属性を右クリックして、このウィンドウに追加します。</translation></message>
     <message><source>Right click to add a Falloff</source><translation>右クリックでフォールオフを追加</translation></message>
     <message><source>Right click to add a Modifier</source><translation>右クリックで修飾子を追加</translation></message>
     <message><source>Start Frame</source><translation>開始フレーム</translation></message>
@@ -3789,8 +3790,8 @@
     <message><source>Use Proxy</source><translation>プロキシを使用する</translation></message>
     <message><source>Use Selection</source><translation>選択を使用する</translation></message>
     <message><source>Use Speed</source><translation>使用速度</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition</source><translation>「作成」メニューを使用してコンポジションにレイヤーを追加します</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>「作成」メニューを使用してコンポジションにレイヤーを追加します。</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape</source><translation>トラッキングデータを使用して、選択したシェイプをコーナーピン固定します</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>トラッキングデータを使用して、選択したシェイプをコーナーピン固定します。</translation></message>
     <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>このリストを使用して Cavalry のコントロールでの属性順序をカスタマイズします</translation></message>

@@ -1132,8 +1132,8 @@
     <message><source>doesn&apos;t exist.</source><translation>沒有。</translation></message>
     <message><source>dom PPC kom</source><translation>內部識別三</translation></message>
     <message><source>Done</source><translation>完成</translation></message>
-    <message><source>Double click here to import Assets</source><translation>連按兩下此處匯入素材</translation></message>
-    <message><source>Double click here to import Assets.</source><translation>連按兩下此處匯入素材</translation></message>
+    <message><source>Double click here to import Assets</source><translation>連按兩下此處以匯入素材</translation></message>
+    <message><source>Double click here to import Assets.</source><translation>連按兩下此處以匯入素材。</translation></message>
     <message><source>Double click on a Preset to rename it</source><translation>連按兩下預設以重新命名</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>連按兩下預設以重新命名。</translation></message>
     <message><source>Double Click on layer</source><translation>雙擊圖層</translation></message>
@@ -1143,20 +1143,21 @@
     <message><source>Drag a Shape layer here</source><translation>將形狀圖層拖到這裡</translation></message>
     <message><source>Drag an Asset here from the Asset Window</source><translation>從素材視窗將素材拖到此處</translation></message>
     <message><source>Drag an Asset here from the Asset Window.</source><translation>從素材視窗將素材拖到此處。</translation></message>
-    <message><source>Drag an Attribute connection here</source><translation>將屬性連線拖到此處</translation></message>
-    <message><source>Drag an Attribute connection here.</source><translation>將屬性連線拖到此處。</translation></message>
+    <message><source>Drag an Attribute connection here</source><translation>將屬性連線拖曳至此</translation></message>
+    <message><source>Drag an Attribute connection here.</source><translation>將屬性連線拖曳至此。</translation></message>
     <message><source>Drag at least two Shapes here</source><translation>將至少兩個形狀拖到這裡</translation></message>
-    <message><source>Drag colors here</source><translation>在此拖動顏色</translation></message>
-    <message><source>Drag colors here.</source><translation>在此拖放顏色。</translation></message>
-    <message><source>Drag colours here</source><translation>在此拖動顏色</translation></message>
-    <message><source>Drag colours here.</source><translation>在此拖動顏色。</translation></message>
+    <message><source>Drag colors here</source><translation>將顏色拖曳至此</translation></message>
+    <message><source>Drag colors here.</source><translation>將顏色拖曳至此。</translation></message>
+    <message><source>Drag colours here</source><translation>將顏色拖曳至此</translation></message>
+    <message><source>Drag colours here.</source><translation>將顏色拖曳至此。</translation></message>
+    <message><source>Drag in Compositions or use the '+ Current Composition' button.</source><translation>將合成拖曳至此，或使用「+ 目前合成」按鈕。</translation></message>
     <message><source>Drag in a file from the Assets window</source><translation>從素材視窗拖入檔案</translation></message>
     <message><source>Drag in a Shape layer</source><translation>拖入形狀圖層</translation></message>
     <message><source>Drag in a Smart Folder</source><translation>拖入智慧型資料夾</translation></message>
     <message><source>Drag in a Spreadsheet from the Assets Window</source><translation>從素材視窗拖入試算表</translation></message>
     <message><source>Drag in or connect an Asset</source><translation>拖入或連接素材</translation></message>
-    <message><source>Drag layers here to see their settings</source><translation>在此拖動圖層查看其設置</translation></message>
-    <message><source>Drag layers here to see their settings.</source><translation>在此拖動層以查看其設置</translation></message>
+    <message><source>Drag layers here to see their settings</source><translation>將圖層拖曳至此以查看其設定</translation></message>
+    <message><source>Drag layers here to see their settings.</source><translation>將圖層拖曳至此以查看其設定。</translation></message>
     <message><source>Drag some JavaScript here to make a Snippet.</source><translation>將 JavaScript 拖到此處以建立程式碼片段。</translation></message>
     <message><source>Draw</source><translation>繪製</translation></message>
     <message><source>Draw a Straight Line</source><translation>繪製直線</translation></message>
@@ -2198,8 +2199,8 @@
     <message><source>Right Align Keys</source><translation>右對齊密鑰</translation></message>
     <message><source>Right B</source><translation>右位元組</translation></message>
     <message><source>right click</source><translation>右鍵</translation></message>
-    <message><source>Right Click on Attributes to add them to this window</source><translation>右鍵點按屬性以新增到此視窗</translation></message>
-    <message><source>Right Click on Attributes to add them to this window.</source><translation>右鍵點按屬性以新增到此視窗。</translation></message>
+    <message><source>Right Click on Attributes to add them to this window</source><translation>在屬性上按一下右鍵，將其新增至此視窗</translation></message>
+    <message><source>Right Click on Attributes to add them to this window.</source><translation>在屬性上按一下右鍵，將其新增至此視窗。</translation></message>
     <message><source>Right click to add a Falloff</source><translation>按右鍵新增衰減</translation></message>
     <message><source>Right click to add a Modifier</source><translation>按右鍵新增修改器</translation></message>
     <message><source>Start Frame</source><translation>起始幀</translation></message>
@@ -2306,7 +2307,7 @@
     <message><source>Select Folder</source><translation>選擇資料夾</translation></message>
     <message><source>Select Hierarchy</source><translation>選取層級</translation></message>
     <message><source>Select items</source><translation>選擇項目</translation></message>
-    <message><source>Select layers to see their settings</source><translation>選擇要查看其設置的層</translation></message>
+    <message><source>Select layers to see their settings</source><translation>選取圖層以查看其設定</translation></message>
     <message><source>Select Layers with Color</source><translation>選取带色彩的圖層</translation></message>
     <message><source>Select Offspring</source><translation>選擇外彈簧</translation></message>
     <message><source>Select Parent</source><translation>選擇父</translation></message>
@@ -2790,8 +2791,8 @@
     <message><source>Use Proxy</source><translation>使用代理服務器</translation></message>
     <message><source>Use Selection</source><translation>使用選擇</translation></message>
     <message><source>Use Speed</source><translation>使用速度</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition</source><translation>使用建立選單向合成新增圖層</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>使用建立選單向合成新增圖層</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition</source><translation>使用「建立」選單將圖層新增至合成</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>使用「建立」選單將圖層新增至合成。</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape</source><translation>使用跟踪資料對所选形狀进行角點固定</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>使用跟踪資料對所选形狀进行角點固定。</translation></message>
     <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>使用此清單自訂控制介面中的屬性順序</translation></message>
