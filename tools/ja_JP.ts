@@ -2185,6 +2185,7 @@
     <message><source>Drag in or connect an Asset</source><translation>アセットをドラッグまたは接続</translation></message>
     <message><source>Drag layers here to see their settings</source><translation>レイヤーをドラッグして設定を見る</translation></message>
     <message><source>Drag layers here to see their settings.</source><translation>レイヤーをドラッグして設定を確認します</translation></message>
+    <message><source>Drag some JavaScript here to make a Snippet.</source><translation>JavaScript をここにドラッグしてスニペットを作成します。</translation></message>
     <message><source>Draw</source><translation>ドロー</translation></message>
     <message><source>Draw a Straight Line</source><translation>直線線を引く</translation></message>
     <message><source>Draw Channel Names</source><translation>チャンネル名を描画する</translation></message>

@@ -1086,6 +1086,7 @@
     <message><source>Drag in or connect an Asset</source><translation>拖入或连接素材</translation></message>
     <message><source>Drag layers here to see their settings</source><translation>在此拖动图层查看其设置</translation></message>
     <message><source>Drag layers here to see their settings.</source><translation>将图层拖到此处以查看其设置</translation></message>
+    <message><source>Drag some JavaScript here to make a Snippet.</source><translation>将 JavaScript 拖到此处以创建代码片段。</translation></message>
     <message><source>Draw</source><translation>绘制</translation></message>
     <message><source>Draw a Straight Line</source><translation>绘制直线</translation></message>
     <message><source>Draw Channel Names</source><translation>绘制频道名称</translation></message>

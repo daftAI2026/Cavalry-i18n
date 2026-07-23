@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QHash/QRegularExpression/QPainter、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表及显式 capture/session 环境
- * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、ExtensionLayer 三处空状态提示的 CJK-safe 居中绘制、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文
+ * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、ExtensionLayer 四处空状态提示的 CJK-safe 居中绘制、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文
  * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译与定点绘制请求；启动期保留有界全量补译，交互期只处理 dirty 子树与首次绘制热路径，Time Editor 模型词汇及非白名单 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -83,7 +83,7 @@ struct TranslationEntry {
 #include "generated_translations.inc"
 
 /* -----------------------------------------------------------------------
- * ExtensionLayer 自绘提示 — 仅翻译已确认由 textAtWidgetCentre 绘制的三处空状态
+ * ExtensionLayer 自绘提示 — 仅翻译已确认由 textAtWidgetCentre 绘制的四处空状态
  *
  * 禁止恢复 __cstring 内存补丁：调用点把英文 byte length 编进机器码，原地改 UTF-8
  * 会破坏 QString 边界。绘制层定点拦截能保留原图标、纵向基线和 panel 几何，
@@ -2392,6 +2392,7 @@ bool isCenteredExtensionLayerEmptyStateHint(const QString &text)
     static const QSet<QString> kCenteredEmptyStateHints = {
         QStringLiteral("Double click here to import Assets."),
         QStringLiteral("Drag layers here to see their settings."),
+        QStringLiteral("Drag some JavaScript here to make a Snippet."),
         QStringLiteral("Use the Create menu to add a layer to your Composition."),
     };
     return kCenteredEmptyStateHints.contains(text);
