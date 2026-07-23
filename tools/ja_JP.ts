@@ -2173,11 +2173,11 @@
     <message><source>Drag an Asset here from the Asset Window.</source><translation>アセットウィンドウからここにアセットをドラッグします。</translation></message>
     <message><source>Drag an Attribute connection here</source><translation>ここに属性接続をドラッグ</translation></message>
     <message><source>Drag an Attribute connection here.</source><translation>ここに属性接続をドラッグします。</translation></message>
-    <message><source>Drag at least two Shapes here</source><translation>少なくとも二つのシェイプをここにドラッグ</translation></message>
+    <message><source>Drag at least two Shapes here</source><translation>ここに2つ以上のシェイプをドラッグ</translation></message>
     <message><source>Drag colors here</source><translation>ここにカラーをドラッグします</translation></message>
-    <message><source>Drag colors here.</source><translation>ここにカラーをドラッグします。</translation></message>
+    <message><source>Drag colors here.</source><translation>ここにカラーをドラッグしてください。</translation></message>
     <message><source>Drag colours here</source><translation>ここにカラーをドラッグします</translation></message>
-    <message><source>Drag colours here.</source><translation>ここにカラーをドラッグします。</translation></message>
+    <message><source>Drag colours here.</source><translation>ここにカラーをドラッグしてください。</translation></message>
     <message><source>Drag in Compositions or use the '+ Current Composition' button.</source><translation>コンポジションをここにドラッグするか、「+ 現在のコンポジション」ボタンを使用します。</translation></message>
     <message><source>Drag in a file from the Assets window</source><translation>アセットウィンドウからファイルをドラッグ</translation></message>
     <message><source>Drag in a Shape layer</source><translation>シェイプレイヤーをドラッグ</translation></message>
@@ -2186,7 +2186,7 @@
     <message><source>Drag in or connect an Asset</source><translation>アセットをドラッグまたは接続</translation></message>
     <message><source>Drag layers here to see their settings</source><translation>レイヤーをここにドラッグして設定を確認します</translation></message>
     <message><source>Drag layers here to see their settings.</source><translation>レイヤーをここにドラッグして設定を確認します。</translation></message>
-    <message><source>Drag some JavaScript here to make a Snippet.</source><translation>JavaScript をここにドラッグしてスニペットを作成します。</translation></message>
+    <message><source>Drag some JavaScript here to make a Snippet.</source><translation>JavaScript をここにドラッグしてスニペットを作成してください。</translation></message>
     <message><source>Draw</source><translation>ドロー</translation></message>
     <message><source>Draw a Straight Line</source><translation>直線線を引く</translation></message>
     <message><source>Draw Channel Names</source><translation>チャンネル名を描画する</translation></message>
@@ -2747,7 +2747,7 @@
     <message><source>No bookmarks yet.</source><translation>ブックマークはまだありません。</translation></message>
     <message><source>No Connection</source><translation>接続なし</translation></message>
     <message><source>No Connections</source><translation>接続なし</translation></message>
-    <message><source>No Connections.</source><translation>接続なし。</translation></message>
+    <message><source>No Connections.</source><translation>接続はありません。</translation></message>
     <message><source>No Content</source><translation>コンテンツなし</translation></message>
     <message><source>No current preset</source><translation>現在のプリセットなし</translation></message>
     <message><source>No current preset.</source><translation>現在のプリセットはありません。</translation></message>
@@ -2770,9 +2770,9 @@
     <message><source>No Keyframe Layers</source><translation>キーフレームレイヤーなし</translation></message>
     <message><source>No licence available</source><translation>ライセンスなし</translation></message>
     <message><source>No presets yet</source><translation>プリセットなし</translation></message>
-    <message><source>No presets yet.</source><translation>プリセットはありません。</translation></message>
+    <message><source>No presets yet.</source><translation>プリセットはまだありません。</translation></message>
     <message><source>No Project Set</source><translation>未設定プロジェクト</translation></message>
-    <message><source>No Project Set.</source><translation>未設定プロジェクト。</translation></message>
+    <message><source>No Project Set.</source><translation>プロジェクトが設定されていません。</translation></message>
     <message><source>No Project Set...</source><translation>プロジェクト未設定...</translation></message>
     <message><source>No Recent Files</source><translation>最近のファイルはありません</translation></message>
     <message><source>No Render Format selected, please add one in the Format tab</source><translation>レンダー形式を選択せず、フォーマットタブに1つ追加してください。</translation></message>
@@ -2847,7 +2847,7 @@
     <message><source>Optional</source><translation>オプション</translation></message>
     <message><source>Orbit</source><translation>オービット</translation></message>
     <message><source>Organise Pre-Comp Overrides here</source><translation>組織プレコンオーバーライドはこちら</translation></message>
-    <message><source>Organise Pre-Comp Overrides here.</source><translation>組織プレコンオーバーライドはこちら。</translation></message>
+    <message><source>Organise Pre-Comp Overrides here.</source><translation>ここでプリコンポーズのオーバーライドを整理してください。</translation></message>
     <message><source>Orient</source><translation>オリエント</translation></message>
     <message><source>Origin</source><translation>起源の場所</translation></message>
     <message><source>Orthogonal</source><translation>直交</translation></message>
@@ -3191,8 +3191,8 @@
     <message><source>right click</source><translation>右クリック</translation></message>
     <message><source>Right Click on Attributes to add them to this window</source><translation>属性を右クリックして、このウィンドウに追加します</translation></message>
     <message><source>Right Click on Attributes to add them to this window.</source><translation>属性を右クリックして、このウィンドウに追加します。</translation></message>
-    <message><source>Right click to add a Falloff</source><translation>右クリックでフォールオフを追加</translation></message>
-    <message><source>Right click to add a Modifier</source><translation>右クリックで修飾子を追加</translation></message>
+    <message><source>Right click to add a Falloff</source><translation>右クリックしてフォールオフを追加</translation></message>
+    <message><source>Right click to add a Modifier</source><translation>右クリックしてモディファイアを追加</translation></message>
     <message><source>Start Frame</source><translation>開始フレーム</translation></message>
     <message><source>Seed</source><translation>シード</translation></message>
     <message><source>Lifespan</source><translation>寿命</translation></message>
@@ -3210,7 +3210,7 @@
     <message><source>Group By Parent</source><translation>親でグループ化</translation></message>
     <message><source>Parent Timing Mode</source><translation>親のタイミングモード</translation></message>
     <message><source>Reverse Parent Order</source><translation>親の順序を反転</translation></message>
-    <message><source>Right click to add a Shader</source><translation>右クリックでシェーダーを追加</translation></message>
+    <message><source>Right click to add a Shader</source><translation>右クリックしてシェーダーを追加</translation></message>
     <message><source>Robust</source><translation>ロバスト</translation></message>
     <message><source>Root node not found</source><translation>ルートノードが見つかりません</translation></message>
     <message><source>Rotate bone</source><translation>骨を回転させる</translation></message>

@@ -1074,7 +1074,7 @@
     <message><source>Drag an Asset here from the Asset Window.</source><translation>从素材窗口将素材拖到此处。</translation></message>
     <message><source>Drag an Attribute connection here</source><translation>将属性连接拖到此处</translation></message>
     <message><source>Drag an Attribute connection here.</source><translation>将属性连接拖到此处。</translation></message>
-    <message><source>Drag at least two Shapes here</source><translation>将至少两个形状拖到这里</translation></message>
+    <message><source>Drag at least two Shapes here</source><translation>将至少两个形状拖到此处</translation></message>
     <message><source>Drag colors here</source><translation>将颜色拖到此处</translation></message>
     <message><source>Drag colors here.</source><translation>将颜色拖到此处。</translation></message>
     <message><source>Drag colours here</source><translation>将颜色拖到此处</translation></message>
@@ -1664,10 +1664,10 @@
     <message><source>No audio file has been set for this decoder</source><translation>此解码器没有设置音频文件</translation></message>
     <message><source>No audio file has been set for this decoder.</source><translation>此解码器没有设置音频文件。</translation></message>
     <message><source>No bookmarks yet</source><translation>还没有书签</translation></message>
-    <message><source>No bookmarks yet.</source><translation>没有书签。</translation></message>
+    <message><source>No bookmarks yet.</source><translation>暂无书签。</translation></message>
     <message><source>No Connection</source><translation>无连接</translation></message>
     <message><source>No Connections</source><translation>无连接</translation></message>
-    <message><source>No Connections.</source><translation>无连接。</translation></message>
+    <message><source>No Connections.</source><translation>暂无连接。</translation></message>
     <message><source>No Content</source><translation>无内容</translation></message>
     <message><source>No current preset</source><translation>没有当前预设</translation></message>
     <message><source>No current preset.</source><translation>无当前预设。</translation></message>
@@ -1690,9 +1690,9 @@
     <message><source>No Keyframe Layers</source><translation>没有关键帧图层</translation></message>
     <message><source>No licence available</source><translation>无许可证</translation></message>
     <message><source>No presets yet</source><translation>还没有预设</translation></message>
-    <message><source>No presets yet.</source><translation>还没有预设。</translation></message>
+    <message><source>No presets yet.</source><translation>暂无预设。</translation></message>
     <message><source>No Project Set</source><translation>未设置工程</translation></message>
-    <message><source>No Project Set.</source><translation>未设置工程。</translation></message>
+    <message><source>No Project Set.</source><translation>尚未设置项目。</translation></message>
     <message><source>No Project Set...</source><translation>未设置工程...</translation></message>
     <message><source>No Recent Files</source><translation>没有最近的文件</translation></message>
     <message><source>No Render Format selected, please add one in the Format tab</source><translation>未选择渲染格式，请在格式标签中添加</translation></message>
@@ -1767,7 +1767,7 @@
     <message><source>Optional</source><translation>可选</translation></message>
     <message><source>Orbit</source><translation>轨道</translation></message>
     <message><source>Organise Pre-Comp Overrides here</source><translation>在此组织操作前覆盖</translation></message>
-    <message><source>Organise Pre-Comp Overrides here.</source><translation>在此整理预合成覆盖。</translation></message>
+    <message><source>Organise Pre-Comp Overrides here.</source><translation>在此整理预合成覆盖项。</translation></message>
     <message><source>Orient</source><translation>东方</translation></message>
     <message><source>Origin</source><translation>来源</translation></message>
     <message><source>Orthogonal</source><translation>正弦</translation></message>
@@ -2130,7 +2130,7 @@
     <message><source>right click</source><translation>右键</translation></message>
     <message><source>Right Click on Attributes to add them to this window</source><translation>右键单击属性以将其添加到此窗口</translation></message>
     <message><source>Right Click on Attributes to add them to this window.</source><translation>右键单击属性以将其添加到此窗口。</translation></message>
-    <message><source>Right click to add a Falloff</source><translation>右键点击添加衰减</translation></message>
+    <message><source>Right click to add a Falloff</source><translation>右键单击以添加衰减</translation></message>
     <message><source>Right click to add a Modifier</source><translation>右键单击以添加修改器</translation></message>
     <message><source>Start Frame</source><translation>起始帧</translation></message>
     <message><source>Seed</source><translation>种子</translation></message>
@@ -2149,7 +2149,7 @@
     <message><source>Group By Parent</source><translation>按父级分组</translation></message>
     <message><source>Parent Timing Mode</source><translation>父级时序模式</translation></message>
     <message><source>Reverse Parent Order</source><translation>反转父级顺序</translation></message>
-    <message><source>Right click to add a Shader</source><translation>右键点击添加着色器</translation></message>
+    <message><source>Right click to add a Shader</source><translation>右键单击以添加着色器</translation></message>
     <message><source>Robust</source><translation>强壮</translation></message>
     <message><source>Root node not found</source><translation>未找到根节点</translation></message>
     <message><source>Rotate bone</source><translation>旋转骨头</translation></message>

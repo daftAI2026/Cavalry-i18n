@@ -1139,17 +1139,17 @@
     <message><source>Double Click on layer</source><translation>雙擊圖層</translation></message>
     <message><source>Drag a connection from here</source><translation>從這裏拖動連接</translation></message>
     <message><source>Drag a connection from here.</source><translation>從這裏拖動連接。</translation></message>
-    <message><source>Drag a Shape here</source><translation>將形狀拖到此處</translation></message>
+    <message><source>Drag a Shape here</source><translation>將形狀拖曳到此處</translation></message>
     <message><source>Drag a Shape layer here</source><translation>將形狀圖層拖到這裡</translation></message>
     <message><source>Drag an Asset here from the Asset Window</source><translation>從素材視窗將素材拖到此處</translation></message>
     <message><source>Drag an Asset here from the Asset Window.</source><translation>從素材視窗將素材拖到此處。</translation></message>
     <message><source>Drag an Attribute connection here</source><translation>將屬性連線拖曳至此</translation></message>
     <message><source>Drag an Attribute connection here.</source><translation>將屬性連線拖曳至此。</translation></message>
-    <message><source>Drag at least two Shapes here</source><translation>將至少兩個形狀拖到這裡</translation></message>
+    <message><source>Drag at least two Shapes here</source><translation>將至少兩個形狀拖曳到此處</translation></message>
     <message><source>Drag colors here</source><translation>將顏色拖曳至此</translation></message>
-    <message><source>Drag colors here.</source><translation>將顏色拖曳至此。</translation></message>
+    <message><source>Drag colors here.</source><translation>將顏色拖曳到此處。</translation></message>
     <message><source>Drag colours here</source><translation>將顏色拖曳至此</translation></message>
-    <message><source>Drag colours here.</source><translation>將顏色拖曳至此。</translation></message>
+    <message><source>Drag colours here.</source><translation>將顏色拖曳到此處。</translation></message>
     <message><source>Drag in Compositions or use the '+ Current Composition' button.</source><translation>將合成拖曳至此，或使用「+ 目前合成」按鈕。</translation></message>
     <message><source>Drag in a file from the Assets window</source><translation>從素材視窗拖入檔案</translation></message>
     <message><source>Drag in a Shape layer</source><translation>拖入形狀圖層</translation></message>
@@ -1735,10 +1735,10 @@
     <message><source>No audio file has been set for this decoder</source><translation>此解碼器沒有設置音頻檔案</translation></message>
     <message><source>No audio file has been set for this decoder.</source><translation>此解碼器沒有設置音頻檔案。</translation></message>
     <message><source>No bookmarks yet</source><translation>還沒有書籤</translation></message>
-    <message><source>No bookmarks yet.</source><translation>沒有書籤。</translation></message>
+    <message><source>No bookmarks yet.</source><translation>尚無書籤。</translation></message>
     <message><source>No Connection</source><translation>無連接</translation></message>
     <message><source>No Connections</source><translation>無連接</translation></message>
-    <message><source>No Connections.</source><translation>無連接。</translation></message>
+    <message><source>No Connections.</source><translation>尚無連線。</translation></message>
     <message><source>No Content</source><translation>無內容</translation></message>
     <message><source>No current preset</source><translation>沒有當前預設</translation></message>
     <message><source>No current preset.</source><translation>無當前預設。</translation></message>
@@ -1761,9 +1761,9 @@
     <message><source>No Keyframe Layers</source><translation>沒有關鍵影格圖層</translation></message>
     <message><source>No licence available</source><translation>無許可證</translation></message>
     <message><source>No presets yet</source><translation>還沒有預設</translation></message>
-    <message><source>No presets yet.</source><translation>還沒有預設。</translation></message>
+    <message><source>No presets yet.</source><translation>尚無預設。</translation></message>
     <message><source>No Project Set</source><translation>未設定專案</translation></message>
-    <message><source>No Project Set.</source><translation>未設定專案。</translation></message>
+    <message><source>No Project Set.</source><translation>尚未設定專案。</translation></message>
     <message><source>No Project Set...</source><translation>未設定專案...</translation></message>
     <message><source>No Recent Files</source><translation>沒有最近的檔案</translation></message>
     <message><source>No Render Format selected, please add one in the Format tab</source><translation>未選取算繪格式，請在格式分頁中新增一個</translation></message>
@@ -1838,7 +1838,7 @@
     <message><source>Optional</source><translation>可選</translation></message>
     <message><source>Orbit</source><translation>軌道</translation></message>
     <message><source>Organise Pre-Comp Overrides here</source><translation>在此組織操作前覆蓋</translation></message>
-    <message><source>Organise Pre-Comp Overrides here.</source><translation>在此組織控制前覆蓋。</translation></message>
+    <message><source>Organise Pre-Comp Overrides here.</source><translation>在此整理預合成覆寫項。</translation></message>
     <message><source>Orient</source><translation>東方</translation></message>
     <message><source>Origin</source><translation>來源</translation></message>
     <message><source>Orthogonal</source><translation>正弦</translation></message>
@@ -2201,8 +2201,8 @@
     <message><source>right click</source><translation>右鍵</translation></message>
     <message><source>Right Click on Attributes to add them to this window</source><translation>在屬性上按一下右鍵，將其新增至此視窗</translation></message>
     <message><source>Right Click on Attributes to add them to this window.</source><translation>在屬性上按一下右鍵，將其新增至此視窗。</translation></message>
-    <message><source>Right click to add a Falloff</source><translation>按右鍵新增衰減</translation></message>
-    <message><source>Right click to add a Modifier</source><translation>按右鍵新增修改器</translation></message>
+    <message><source>Right click to add a Falloff</source><translation>按一下滑鼠右鍵以新增衰減</translation></message>
+    <message><source>Right click to add a Modifier</source><translation>按一下滑鼠右鍵以新增修改器</translation></message>
     <message><source>Start Frame</source><translation>起始幀</translation></message>
     <message><source>Seed</source><translation>種子</translation></message>
     <message><source>Lifespan</source><translation>生命週期</translation></message>
@@ -2220,7 +2220,7 @@
     <message><source>Group By Parent</source><translation>按父級分組</translation></message>
     <message><source>Parent Timing Mode</source><translation>父級時序模式</translation></message>
     <message><source>Reverse Parent Order</source><translation>反轉父級順序</translation></message>
-    <message><source>Right click to add a Shader</source><translation>按右鍵新增著色器</translation></message>
+    <message><source>Right click to add a Shader</source><translation>按一下滑鼠右鍵以新增著色器</translation></message>
     <message><source>Robust</source><translation>強壯</translation></message>
     <message><source>Root node not found</source><translation>未找到根節點</translation></message>
     <message><source>Rotate bone</source><translation>旋轉骨頭</translation></message>
