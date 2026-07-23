@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、插件环境与显式 diagnostic marker
- * [OUTPUT]: 对外验证真实插件加载、十二个顶层菜单、四条 ExtensionLayer 精确自绘提示翻译、动态 ActionAdded、显示白名单、数据隔离和 marker
+ * [OUTPUT]: 对外验证真实插件加载、十二个顶层菜单、嵌入翻译表样本、动态 ActionAdded、显示白名单、数据隔离和 marker
  * [POS]: injector/windows 的端到端回归 smoke，以真实 Qt 事件链锁住 Cavalry 首帧与动态英文写回边界
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -109,8 +109,9 @@ bool verifyMarker()
     return true;
 }
 
-bool verifyExtensionLayerHintTranslations()
+bool verifyEmbeddedTranslationSamples()
 {
+    // 仅验证生成表被 generic plugin 安装；不把这些样本当成任何自绘 hook 的覆盖声明。
     const QStringList sources {
         QStringLiteral("Double click here to import Assets."),
         QStringLiteral("Drag layers here to see their settings."),
@@ -119,18 +120,18 @@ bool verifyExtensionLayerHintTranslations()
             "Use the Create menu to add a layer to your Composition."),
     };
     const QStringList translations {
-        QStringLiteral("双击此处导入素材"),
+        QStringLiteral("双击此处以导入素材"),
         QStringLiteral("将图层拖到此处以查看其设置"),
-        QStringLiteral("将 JavaScript 拖到此处以创建代码片段。"),
-        QStringLiteral("使用创建菜单向合成添加图层"),
+        QStringLiteral("将 JavaScript 拖到此处以创建代码片段"),
+        QStringLiteral("使用“创建”菜单将图层添加到合成中"),
     };
 
     for (int index = 0; index < sources.size(); ++index) {
         const QByteArray sourceUtf8 = sources.at(index).toUtf8();
         if (!expectEqual(
-                QStringLiteral("ExtensionLayer source %1").arg(index),
+                QStringLiteral("embedded source %1").arg(index),
                 QCoreApplication::translate(
-                    "ExtensionLayerFixture",
+                    "EmbeddedTranslationFixture",
                     sourceUtf8.constData()),
                 translations.at(index))) {
             return false;
@@ -256,7 +257,7 @@ bool verifyDisplayTranslation(QApplication &application)
         || !expectEqual(
             QStringLiteral("label"),
             label->text(),
-            QStringLiteral("双击此处导入素材"))
+            QStringLiteral("双击此处以导入素材"))
         || !expectEqual(
             QStringLiteral("button"),
             button->text(),
@@ -325,7 +326,7 @@ bool verifyDisplayTranslation(QApplication &application)
         || !expectEqual(
             QStringLiteral("dynamic label rewrite"),
             label->text(),
-            QStringLiteral("双击此处导入素材"))) {
+            QStringLiteral("双击此处以导入素材"))) {
         return false;
     }
 
@@ -350,7 +351,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    return verifyExtensionLayerHintTranslations()
+    return verifyEmbeddedTranslationSamples()
             && verifyDisplayTranslation(application) && verifyMarker()
         ? 0
         : 1;

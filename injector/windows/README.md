@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、CMake、generated_translations.inc 与启动器提供的进程级环境
-[OUTPUT]: 对外提供 Windows generic plugin 的构建、目录布局、启动契约和诊断判定说明
+[INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、CMake、generated_translations.inc、可选只读 vendor 二进制与启动器提供的进程级环境
+[OUTPUT]: 对外提供 Windows generic plugin 的构建、目录布局、静态 ABI 合同、启动契约和诊断判定说明
 [POS]: injector/windows 的操作边界文档，把源码 POC 约束为可重复且不污染系统/厂商安装的验证流程
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -15,6 +15,25 @@ Qt DLL、不修改 Cavalry 文件，也不做远程进程注入。
 菜单/动作，以及窗口标题、标签、按钮、分组框、输入框 placeholder、标签页、
 tooltip 和 statusTip。刷新严格停留在显示层：不修改 `QLineEdit::text()`、
 item model、Time Editor 模型值或其他厂商业务数据。
+
+对 ExtensionLayer 的空状态文本，插件只在该模块已加载后安装两条已采证、可逆的
+IAT 边界：
+
+- `CavalryUI.dll!ui::textAtWidgetCentre(QWidget*, const QString&, const QColor&, const QPixmap*)`
+  的唯一正常导入槽，仅处理九条已采证的静态 helper source；
+- `CustomListWidget::setPlaceholder(QString const&)` 的导出 thunk → canonical setter →
+  `QString::operator=(QString const&)` 尾跳槽。这条槽不在标准 import descriptor 的
+  枚举范围内，运行时必须从已验证 setter 的 RIP-relative 尾跳解码，且只接受直接
+  `E8` 调用该导出 thunk 的返回地址；若槽仍为 canonical import-by-name RVA，则先等待
+  loader 解析为 Qt6Core 导出，绝不抢写。
+
+两条边界都必须同时命中 `cavalry_i18n_extension_layer_sources.h` 的精确 source 合同和
+三语嵌入表才会换成译文，并始终交回 Cavalry 原函数完成布局与绘制；未知 source、以及
+表内但不在白名单的 source 都原样透传，不手算字体或布局。helper 只允许九条 source；
+placeholder 只允许十三条已采证 source（其中包括
+`Drag some JavaScript here to make a Snippet.`）。动态 `HelperHints` 不满足其直接调用
+判定，仍保持英文。任一 ABI、模块名、导出或槽目标不匹配时会 fail closed，不写厂商
+`.text`、不修改厂商文件。
 
 ## 依赖
 
@@ -38,8 +57,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.p
 ```
 
 脚本优先读取 `CAVALRY_QT_PREFIX`，未设置时使用
-`qt_sdk/6.6.3/msvc2019_64`；它会依次 configure、Release build、运行两个
-CTest，并把已验证 DLL 发布到：
+`qt_sdk/6.6.3/msvc2019_64`；它会依次 configure、Release build、运行 CTest，
+并把已验证 DLL 发布到：
 
 ```text
 injector/windows/
@@ -55,6 +74,24 @@ cmake -S injector/windows -B build/windows-injector `
   -DCMAKE_PREFIX_PATH="$PWD/qt_sdk/6.6.3/msvc2019_64"
 cmake --build build/windows-injector --config Release
 ```
+
+### 可选 vendor ABI/import 合同
+
+`build.ps1` 不猜测盘符或安装目录。需要把某个已选择的 Cavalry 安装纳入只读
+静态合同时，显式指定它的安装根：
+
+```powershell
+$env:CAVALRY_VENDOR_ROOT = "E:\Apps\Cavalry"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.ps1
+```
+
+该测试只读映射两个 PE 文件到测试进程内存，验证 `ExtensionLayer.dll` 唯一正常导入的
+`ui::textAtWidgetCentre` decorated symbol、预期 IAT RVA 与 `CavalryUI.dll` 对应导出；
+还验证 `CustomListWidget::setPlaceholder` 的导出 thunk、canonical setter、尾跳解析出的
+QString 赋值槽 RVA、其初始 import-by-name RVA、二十个直接调用与 Snippet 的直接调用点。
+它还逐一验证十三条 placeholder source literal 仍位于 `ExtensionLayer.dll`。测试不会加载、
+执行、复制或修改厂商 DLL。未设置变量且默认目录不存在时，常规跨机器构建仍可运行，
+只是不包含该 machine-specific 合同。
 
 中间产物为：
 
@@ -93,6 +130,7 @@ $env:CAVALRY_I18N_DIAGNOSTIC_MARKER = "C:\Path\To\State\runtime.json"
 
 marker 的 `status` 为 `ready` 且 `translatorInstalled` 为 `true`，只能证明
 插件已被目标 Qt 加载并安装嵌入表；`embeddedEntryCount`、`exactKeyCount` 与
-`sourceFallbackCount` 必须大于零。构建 smoke 会额外验证十二个顶层菜单、
-既有/动态动作、受控显示属性和输入/model 隔离；真实 Cavalry 的完整覆盖仍需
-live UI gate 与截图验证。
+`sourceFallbackCount` 必须大于零。还必须读取 `extensionLayerHookStatus`：只有
+`installed` 才说明两条精确 IAT 边界已安装，但它仍不能替代真实 Cavalry 中 Snippet
+空状态的截图与 live UI gate。构建 smoke 会额外验证十二个顶层菜单、既有/动态动作、
+受控显示属性和输入/model 隔离。

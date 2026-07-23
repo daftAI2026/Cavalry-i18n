@@ -1062,7 +1062,7 @@
     <message><source>dom PPC kom</source><translation>内部标识三</translation></message>
     <message><source>Done</source><translation>完成</translation></message>
     <message><source>Double click here to import Assets</source><translation>双击此处以导入素材</translation></message>
-    <message><source>Double click here to import Assets.</source><translation>双击此处以导入素材。</translation></message>
+    <message><source>Double click here to import Assets.</source><translation>双击此处以导入素材</translation></message>
     <message><source>Double click on a Preset to rename it</source><translation>双击预设以重命名</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>双击预设以重命名。</translation></message>
     <message><source>Double Click on layer</source><translation>双击图层</translation></message>
@@ -1073,21 +1073,21 @@
     <message><source>Drag an Asset here from the Asset Window</source><translation>从素材窗口将素材拖到此处</translation></message>
     <message><source>Drag an Asset here from the Asset Window.</source><translation>从素材窗口将素材拖到此处。</translation></message>
     <message><source>Drag an Attribute connection here</source><translation>将属性连接拖到此处</translation></message>
-    <message><source>Drag an Attribute connection here.</source><translation>将属性连接拖到此处。</translation></message>
+    <message><source>Drag an Attribute connection here.</source><translation>将属性连接拖到此处</translation></message>
     <message><source>Drag at least two Shapes here</source><translation>将至少两个形状拖到此处</translation></message>
     <message><source>Drag colors here</source><translation>将颜色拖到此处</translation></message>
-    <message><source>Drag colors here.</source><translation>将颜色拖到此处。</translation></message>
+    <message><source>Drag colors here.</source><translation>将颜色拖到此处</translation></message>
     <message><source>Drag colours here</source><translation>将颜色拖到此处</translation></message>
-    <message><source>Drag colours here.</source><translation>将颜色拖到此处。</translation></message>
-    <message><source>Drag in Compositions or use the '+ Current Composition' button.</source><translation>将合成拖入此处，或使用“+ 当前合成”按钮。</translation></message>
+    <message><source>Drag colours here.</source><translation>将颜色拖到此处</translation></message>
+    <message><source>Drag in Compositions or use the '+ Current Composition' button.</source><translation>将合成拖入此处，或使用“+ 当前合成”按钮</translation></message>
     <message><source>Drag in a file from the Assets window</source><translation>从素材窗口拖入文件</translation></message>
     <message><source>Drag in a Shape layer</source><translation>拖入形状图层</translation></message>
     <message><source>Drag in a Smart Folder</source><translation>在智能文件夹中拖动</translation></message>
     <message><source>Drag in a Spreadsheet from the Assets Window</source><translation>从素材窗口拖入电子表格</translation></message>
     <message><source>Drag in or connect an Asset</source><translation>拖入或连接素材</translation></message>
     <message><source>Drag layers here to see their settings</source><translation>将图层拖到此处以查看其设置</translation></message>
-    <message><source>Drag layers here to see their settings.</source><translation>将图层拖到此处以查看其设置。</translation></message>
-    <message><source>Drag some JavaScript here to make a Snippet.</source><translation>将 JavaScript 拖到此处以创建代码片段。</translation></message>
+    <message><source>Drag layers here to see their settings.</source><translation>将图层拖到此处以查看其设置</translation></message>
+    <message><source>Drag some JavaScript here to make a Snippet.</source><translation>将 JavaScript 拖到此处以创建代码片段</translation></message>
     <message><source>Draw</source><translation>绘制</translation></message>
     <message><source>Draw a Straight Line</source><translation>绘制直线</translation></message>
     <message><source>Draw Channel Names</source><translation>绘制频道名称</translation></message>
@@ -1664,10 +1664,10 @@
     <message><source>No audio file has been set for this decoder</source><translation>此解码器没有设置音频文件</translation></message>
     <message><source>No audio file has been set for this decoder.</source><translation>此解码器没有设置音频文件。</translation></message>
     <message><source>No bookmarks yet</source><translation>还没有书签</translation></message>
-    <message><source>No bookmarks yet.</source><translation>暂无书签。</translation></message>
+    <message><source>No bookmarks yet.</source><translation>暂无书签</translation></message>
     <message><source>No Connection</source><translation>无连接</translation></message>
     <message><source>No Connections</source><translation>无连接</translation></message>
-    <message><source>No Connections.</source><translation>暂无连接。</translation></message>
+    <message><source>No Connections.</source><translation>暂无连接</translation></message>
     <message><source>No Content</source><translation>无内容</translation></message>
     <message><source>No current preset</source><translation>没有当前预设</translation></message>
     <message><source>No current preset.</source><translation>无当前预设。</translation></message>
@@ -1690,9 +1690,9 @@
     <message><source>No Keyframe Layers</source><translation>没有关键帧图层</translation></message>
     <message><source>No licence available</source><translation>无许可证</translation></message>
     <message><source>No presets yet</source><translation>还没有预设</translation></message>
-    <message><source>No presets yet.</source><translation>暂无预设。</translation></message>
+    <message><source>No presets yet.</source><translation>暂无预设</translation></message>
     <message><source>No Project Set</source><translation>未设置工程</translation></message>
-    <message><source>No Project Set.</source><translation>尚未设置项目。</translation></message>
+    <message><source>No Project Set.</source><translation>尚未设置项目</translation></message>
     <message><source>No Project Set...</source><translation>未设置工程...</translation></message>
     <message><source>No Recent Files</source><translation>没有最近的文件</translation></message>
     <message><source>No Render Format selected, please add one in the Format tab</source><translation>未选择渲染格式，请在格式标签中添加</translation></message>
@@ -1767,7 +1767,7 @@
     <message><source>Optional</source><translation>可选</translation></message>
     <message><source>Orbit</source><translation>轨道</translation></message>
     <message><source>Organise Pre-Comp Overrides here</source><translation>在此组织操作前覆盖</translation></message>
-    <message><source>Organise Pre-Comp Overrides here.</source><translation>在此整理预合成覆盖项。</translation></message>
+    <message><source>Organise Pre-Comp Overrides here.</source><translation>在此整理预合成覆盖项</translation></message>
     <message><source>Orient</source><translation>东方</translation></message>
     <message><source>Origin</source><translation>来源</translation></message>
     <message><source>Orthogonal</source><translation>正弦</translation></message>
@@ -2129,7 +2129,7 @@
     <message><source>Right B</source><translation>右字节</translation></message>
     <message><source>right click</source><translation>右键</translation></message>
     <message><source>Right Click on Attributes to add them to this window</source><translation>右键单击属性以将其添加到此窗口</translation></message>
-    <message><source>Right Click on Attributes to add them to this window.</source><translation>右键单击属性以将其添加到此窗口。</translation></message>
+    <message><source>Right Click on Attributes to add them to this window.</source><translation>右键单击属性以将其添加到此窗口</translation></message>
     <message><source>Right click to add a Falloff</source><translation>右键单击以添加衰减</translation></message>
     <message><source>Right click to add a Modifier</source><translation>右键单击以添加修改器</translation></message>
     <message><source>Start Frame</source><translation>起始帧</translation></message>
@@ -2721,7 +2721,7 @@
     <message><source>Use Selection</source><translation>使用选择</translation></message>
     <message><source>Use Speed</source><translation>使用速度</translation></message>
     <message><source>Use the Create menu to add a layer to your Composition</source><translation>使用“创建”菜单将图层添加到合成中</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>使用“创建”菜单将图层添加到合成中。</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>使用“创建”菜单将图层添加到合成中</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape</source><translation>使用跟踪数据对所选形状进行角点固定</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>使用跟踪数据对所选形状进行角点固定。</translation></message>
     <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>使用此列表自定义控制界面中的属性顺序</translation></message>

@@ -1,5 +1,5 @@
-# [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、Windows Psapi、本目录源码与 ../generated_translations.inc
-# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 translator、PE/IAT、ExtensionLayer hook 与 generic-plugin smoke 合同测试
+# [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、Windows Psapi、本目录源码、../generated_translations.inc 与可选 Cavalry vendor 二进制根目录
+# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 translator、PE/IAT、ExtensionLayer helper/placeholder hook、vendor ABI/import 与 generic-plugin smoke 合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构前置检查约束 Windows Qt 插件产物与无第三方 IAT 实现
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 3.21)
@@ -26,6 +26,13 @@ add_compile_options(/utf-8)
 
 find_package(Qt6 6.6.3 EXACT REQUIRED COMPONENTS Core Gui Widgets)
 
+set(
+    CAVALRY_VENDOR_ROOT
+    ""
+    CACHE PATH
+    "Optional Cavalry installation root used only by the read-only vendor ABI/import contract test"
+)
+
 if(NOT Qt6Core_VERSION VERSION_EQUAL "6.6.3")
     message(FATAL_ERROR "Qt 6.6.3 is required; found ${Qt6Core_VERSION}.")
 endif()
@@ -43,6 +50,7 @@ target_sources(cavalryi18n
         cavalry_i18n_display.h
         cavalry_i18n_extension_layer_hook.cpp
         cavalry_i18n_extension_layer_hook.h
+        cavalry_i18n_extension_layer_sources.h
         cavalry_i18n_pe_iat.cpp
         cavalry_i18n_pe_iat.h
         cavalry_i18n_plugin.cpp
@@ -138,10 +146,53 @@ if(BUILD_TESTING)
         COMMAND "$<TARGET_FILE:cavalryi18n_pe_iat_test>"
     )
 
+    if(NOT CAVALRY_VENDOR_ROOT STREQUAL "")
+        get_filename_component(
+            CAVALRY_VENDOR_ROOT_ABSOLUTE
+            "${CAVALRY_VENDOR_ROOT}"
+            ABSOLUTE
+        )
+        set(
+            CAVALRY_VENDOR_EXTENSION_LAYER
+            "${CAVALRY_VENDOR_ROOT_ABSOLUTE}/ExtensionLayer.dll"
+        )
+        set(
+            CAVALRY_VENDOR_CAVALRY_UI
+            "${CAVALRY_VENDOR_ROOT_ABSOLUTE}/CavalryUI.dll"
+        )
+        if(NOT EXISTS "${CAVALRY_VENDOR_EXTENSION_LAYER}"
+            OR NOT EXISTS "${CAVALRY_VENDOR_CAVALRY_UI}")
+            message(FATAL_ERROR
+                "CAVALRY_VENDOR_ROOT must contain ExtensionLayer.dll and CavalryUI.dll: ${CAVALRY_VENDOR_ROOT_ABSOLUTE}"
+            )
+        endif()
+
+        add_executable(cavalryi18n_vendor_iat_contract_test
+            cavalry_i18n_vendor_iat_contract_test.cpp
+            cavalry_i18n_extension_layer_sources.h
+            cavalry_i18n_pe_iat.cpp
+            cavalry_i18n_pe_iat.h
+        )
+
+        target_include_directories(cavalryi18n_vendor_iat_contract_test
+            PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}"
+        )
+
+        add_test(
+            NAME cavalryi18n_vendor_iat_contract
+            COMMAND
+                "$<TARGET_FILE:cavalryi18n_vendor_iat_contract_test>"
+                "${CAVALRY_VENDOR_EXTENSION_LAYER}"
+                "${CAVALRY_VENDOR_CAVALRY_UI}"
+        )
+    endif()
+
     add_executable(cavalryi18n_extension_layer_hook_test
         cavalry_i18n_extension_layer_hook_test.cpp
         cavalry_i18n_extension_layer_hook.cpp
         cavalry_i18n_extension_layer_hook.h
+        cavalry_i18n_extension_layer_sources.h
         cavalry_i18n_pe_iat.cpp
         cavalry_i18n_pe_iat.h
         cavalry_i18n_translator.cpp

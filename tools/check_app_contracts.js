@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 node:test 与仓库源码文件，读取 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、ExtensionLayer 三处空状态定点居中翻译与其余自绘文本英文边界、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
- * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
+ * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -12,6 +12,7 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { spawnPythonSync } = require('./python_command.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const rendererRoot = path.join(repoRoot, 'renderer');
@@ -688,7 +689,7 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     'model-backed item preservation should be scoped by widget context so the Scene View list is not treated as Time Editor'
   );
   const timeEditorContextFunction = injectorSource.match(
-    /bool isTimeEditorItemWidget\(QWidget \*widget\)[\s\S]*?\n}\n\nbool shouldPreserveModelBackedItemText/
+    /bool isTimeEditorItemWidget\(QWidget \*widget\)[\s\S]*?\r?\n}\r?\n\r?\nbool shouldPreserveModelBackedItemText/
   )[0];
   assert.match(
     timeEditorContextFunction,
@@ -728,7 +729,7 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     );
   }
   const preserveFunction = injectorSource.match(
-    /bool shouldPreserveModelBackedItemText\(QWidget \*owner, const QString &sourceText\)[\s\S]*?\n}\n\nclass EmbeddedTranslator/
+    /bool shouldPreserveModelBackedItemText\(QWidget \*owner, const QString &sourceText\)[\s\S]*?\r?\n}\r?\n\r?\nclass EmbeddedTranslator/
   )[0];
   assert.match(
     preserveFunction,
@@ -748,7 +749,7 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     'model-backed preservation should normalize Cavalry auto-suffixed names like Basic Line 2'
   );
   const generatedLayerNameFunction = injectorSource.match(
-    /QString translatedGeneratedLayerName\(const QString &lang, const QString &sourceText\)[\s\S]*?\n}\n\nQString translatedMixedNoPrefixText/
+    /QString translatedGeneratedLayerName\(const QString &lang, const QString &sourceText\)[\s\S]*?\r?\n}\r?\n\r?\nQString translatedMixedNoPrefixText/
   )[0];
   assert.match(
     generatedLayerNameFunction,
@@ -1061,7 +1062,7 @@ test('embedded injector covers item widgets, headers, docks, toolbars, and stand
   );
 });
 
-test('embedded injector translates three ExtensionLayer empty-state hints without moving their center', () => {
+test('embedded injector translates four exact ExtensionLayer self-painted hints without moving their center', () => {
   const injectorSource = fs.readFileSync(
     path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
     'utf8'
@@ -1074,6 +1075,7 @@ test('embedded injector translates three ExtensionLayer empty-state hints withou
   for (const source of [
     'Double click here to import Assets.',
     'Drag layers here to see their settings.',
+    'Drag some JavaScript here to make a Snippet.',
     'Use the Create menu to add a layer to your Composition.',
   ]) {
     assert.match(
@@ -1088,22 +1090,50 @@ test('embedded injector translates three ExtensionLayer empty-state hints withou
     'the final centered empty-state hint must remain an exact source match'
   );
   for (const [language, source, translation] of [
-    ['zh-Hans', 'Double click here to import Assets.', '双击此处导入素材'],
+    ['zh-Hans', 'Double click here to import Assets.', '双击此处以导入素材'],
     ['zh-Hans', 'Drag layers here to see their settings.', '将图层拖到此处以查看其设置'],
-    ['zh-Hans', 'Use the Create menu to add a layer to your Composition.', '使用创建菜单向合成添加图层'],
-    ['zh-Hant', 'Double click here to import Assets.', '連按兩下此處匯入素材'],
-    ['zh-Hant', 'Drag layers here to see their settings.', '在此拖動層以查看其設置'],
-    ['zh-Hant', 'Use the Create menu to add a layer to your Composition.', '使用建立選單向合成新增圖層'],
-    ['ja_JP', 'Double click here to import Assets.', 'ここをダブルクリックしてアセットを読み込み'],
-    ['ja_JP', 'Drag layers here to see their settings.', 'レイヤーをドラッグして設定を確認します'],
-    ['ja_JP', 'Use the Create menu to add a layer to your Composition.', '作成メニューを使用してコンポジションにレイヤーを追加してください'],
+    ['zh-Hans', 'Drag some JavaScript here to make a Snippet.', '将 JavaScript 拖到此处以创建代码片段'],
+    ['zh-Hans', 'Use the Create menu to add a layer to your Composition.', '使用“创建”菜单将图层添加到合成中'],
+    ['zh-Hant', 'Double click here to import Assets.', '連按兩下此處以匯入素材'],
+    ['zh-Hant', 'Drag layers here to see their settings.', '將圖層拖曳至此以查看其設定'],
+    ['zh-Hant', 'Drag some JavaScript here to make a Snippet.', '將 JavaScript 拖到此處以建立程式碼片段'],
+    ['zh-Hant', 'Use the Create menu to add a layer to your Composition.', '使用「建立」選單將圖層新增至合成'],
+    ['ja_JP', 'Double click here to import Assets.', 'ここをダブルクリックしてアセットをインポートします'],
+    ['ja_JP', 'Drag layers here to see their settings.', 'レイヤーをここにドラッグして設定を確認します'],
+    ['ja_JP', 'Drag some JavaScript here to make a Snippet.', 'JavaScript をここにドラッグしてスニペットを作成してください'],
+    ['ja_JP', 'Use the Create menu to add a layer to your Composition.', '「作成」メニューを使用してコンポジションにレイヤーを追加します'],
   ]) {
     assert.match(
       generatedTranslations,
       new RegExp(
         `"${source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}", "${translation}"`
       ),
-      `${language} centered hint must omit terminal punctuation: ${source}`
+      `${language} centered hint must match the generated translation exactly: ${source}`
+    );
+  }
+  for (const source of [
+    'Double click here to import Assets.',
+    'Drag layers here to see their settings.',
+    'Drag some JavaScript here to make a Snippet.',
+    'Use the Create menu to add a layer to your Composition.',
+    'No Connections.',
+    'No presets yet.',
+    'Drag colours here.',
+    'Drag colors here.',
+    'No Project Set.',
+    'No bookmarks yet.',
+    'Organise Pre-Comp Overrides here.',
+    'Drag an Attribute connection here.',
+    "Drag in Compositions or use the '+ Current Composition' button.",
+    'Right Click on Attributes to add them to this window.',
+  ]) {
+    assert.doesNotMatch(
+      generatedTranslations,
+      new RegExp(
+        `"${source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}", "[^"\\r\\n]*[。．]"`,
+        'u'
+      ),
+      `empty-state and drag/drop translations must not end with a full stop: ${source}`
     );
   }
   assert.match(
@@ -1304,6 +1334,7 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   const targetPath = path.join(repoRoot, 'tools', 'cavalry_qt_target.json');
   const target = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
   const resolver = fs.readFileSync(resolverPath, 'utf8');
+  const pythonResolver = fs.readFileSync(path.join(repoRoot, 'tools', 'python_command.js'), 'utf8');
 
   assert.match(
     packageJson,
@@ -1325,8 +1356,13 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   );
   assert.match(
     resolver,
-    /process\.env\.PYTHON[\s\S]*python3[\s\S]*import aqt[\s\S]*VIRTUAL_ENV/,
-    'resolver should allow CI to provide an isolated Python interpreter instead of mutating the managed system Python'
+    /resolvePythonCommand[\s\S]*import aqt[\s\S]*VIRTUAL_ENV/,
+    'resolver should route aqt through the shared Python command boundary without mutating the managed system Python'
+  );
+  assert.match(
+    pythonResolver,
+    /env\.PYTHON[\s\S]*command:\s*'py'[\s\S]*'-3'[\s\S]*command:\s*'python'/,
+    'shared Python command resolution should honor PYTHON and probe py -3/python on Windows'
   );
   assert.match(
     workflowSource,
@@ -3838,8 +3874,7 @@ test('translation validator preserves TS and generated table context for FP-8', 
     ].join('\n')
   );
 
-  const result = spawnSync(
-    'python3',
+  const result = spawnPythonSync(
     [
       validatorPath,
       '--root',
@@ -3882,8 +3917,7 @@ test('translation validator rejects generic translation reuse across unrelated s
     ].join('\n')
   );
 
-  const result = spawnSync(
-    'python3',
+  const result = spawnPythonSync(
     [
       validatorPath,
       '--root',
@@ -3944,8 +3978,7 @@ test('checked-in 38-file JSON language packages pass the translation validator',
   const tempRoot = makeTempDir();
   const reportPath = path.join(tempRoot, 'report.json');
   const summaryPath = path.join(tempRoot, 'summary.md');
-  const result = spawnSync(
-    'python3',
+  const result = spawnPythonSync(
     [
       'tools/validate_translations.py',
       '--root',
@@ -4098,8 +4131,8 @@ test('checked-in generated translation table matches the ts sources', () => {
   const result = spawnSync(process.execPath, [generatorPath, generatedPath], { encoding: 'utf8' });
   assert.equal(result.status, 0, result.stderr || result.stdout || 'generator should exit cleanly');
 
-  const generated = fs.readFileSync(generatedPath, 'utf8');
-  const checkedIn = fs.readFileSync(checkedInPath, 'utf8');
+  const generated = fs.readFileSync(generatedPath, 'utf8').replace(/\r\n?/g, '\n');
+  const checkedIn = fs.readFileSync(checkedInPath, 'utf8').replace(/\r\n?/g, '\n');
   assert.equal(
     generated,
     checkedIn,
@@ -4142,6 +4175,10 @@ test('runtime noise quarantine keeps unproven short tokens out of embedded trans
 
 test('release workflow prebuilds the injector and publishes Tauri macOS artifacts', () => {
   const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
+  const macConfig = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'src-tauri', 'tauri.macos.conf.json'), 'utf8')
+  );
+  const packageJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
   assert.match(
     workflow,
@@ -4155,13 +4192,18 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
   );
   assert.match(
     workflow,
-    /tools\/cavalry_qt_target\.json/,
-    'release pipeline should upload the single Cavalry/Qt target contract with the source artifact'
+    /^\s+tools\/\s*$/m,
+    'release pipeline should upload the complete tools dependency closure with the source artifact'
+  );
+  assert.equal(
+    macConfig.build.beforeBuildCommand,
+    'npm run build:injector',
+    'the explicit macOS Tauri config should prebuild the injector before packaging'
   );
   assert.match(
-    workflow,
+    packageJson.scripts['build:injector'],
     /build_translator_injector\.sh/,
-    'release pipeline should invoke the injector build script'
+    'the macOS Tauri prebuild command should invoke the injector build script'
   );
   assert.match(
     workflow,

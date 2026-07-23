@@ -13,9 +13,9 @@
 
 namespace {
 
-constexpr char kQt6GuiDll[] = "Qt6Gui.dll";
-constexpr char kQPainterDrawTextSymbol[] =
-    "?drawText@QPainter@@QEAAXAEBVQPointF@@AEBVQString@@@Z";
+constexpr char kCavalryUiDll[] = "CavalryUI.dll";
+constexpr char kTextAtWidgetCentreSymbol[] =
+    "?textAtWidgetCentre@ui@@YAXPEAVQWidget@@AEBVQString@@AEBVQColor@@PEBVQPixmap@@@Z";
 constexpr std::size_t kNtOffset = 0x80;
 constexpr std::size_t kOptionalHeaderOffset = kNtOffset + 4 + 20;
 constexpr std::size_t kImportDescriptorOffset = 0x200;
@@ -67,11 +67,11 @@ std::vector<std::uint8_t> makeFixture()
     writeU32(image, kImportDescriptorOffset, kOriginalFirstThunkOffset);
     writeU32(image, kImportDescriptorOffset + 12, kImportNameOffset);
     writeU32(image, kImportDescriptorOffset + 16, kIatOffset);
-    writeAscii(image, kImportNameOffset, "qT6gUi.DlL");
+    writeAscii(image, kImportNameOffset, "cAvAlRyUi.DlL");
     writeU64(image, kOriginalFirstThunkOffset, kImportByNameOffset);
     writeU64(image, kIatOffset, 0x1122334455667788ULL);
     writeU16(image, kImportByNameOffset, 0);
-    writeAscii(image, kImportByNameOffset + 2, kQPainterDrawTextSymbol);
+    writeAscii(image, kImportByNameOffset + 2, kTextAtWidgetCentreSymbol);
     return image;
 }
 
@@ -104,12 +104,12 @@ int main()
 {
     const auto fixture = makeFixture();
     if (!expectStatus(
-            "exact Qt6Gui QPainter import",
+            "exact CavalryUI ui::textAtWidgetCentre import",
             findCavalryPe64IatSlot(
                 fixture.data(),
                 fixture.size(),
-                kQt6GuiDll,
-                kQPainterDrawTextSymbol),
+                kCavalryUiDll,
+                kTextAtWidgetCentreSymbol),
             CavalryPeIatLookupStatus::Found,
             kIatOffset)) {
         return 1;
@@ -121,7 +121,7 @@ int main()
                 fixture.data(),
                 fixture.size(),
                 "Qt6Widgets.dll",
-                kQPainterDrawTextSymbol),
+                kTextAtWidgetCentreSymbol),
             CavalryPeIatLookupStatus::TargetModuleNotFound)) {
         return 1;
     }
@@ -131,8 +131,8 @@ int main()
             findCavalryPe64IatSlot(
                 fixture.data(),
                 fixture.size(),
-                kQt6GuiDll,
-                "?drawText@QPainter@@unexpected"),
+                kCavalryUiDll,
+                "?textAtWidgetCentre@ui@@unexpected"),
             CavalryPeIatLookupStatus::TargetSymbolNotFound)) {
         return 1;
     }
@@ -145,8 +145,8 @@ int main()
             findCavalryPe64IatSlot(
                 duplicate.data(),
                 duplicate.size(),
-                kQt6GuiDll,
-                kQPainterDrawTextSymbol),
+                kCavalryUiDll,
+                kTextAtWidgetCentreSymbol),
             CavalryPeIatLookupStatus::AmbiguousTargetSymbol)) {
         return 1;
     }
@@ -158,8 +158,8 @@ int main()
             findCavalryPe64IatSlot(
                 missingOriginalThunk.data(),
                 missingOriginalThunk.size(),
-                kQt6GuiDll,
-                kQPainterDrawTextSymbol),
+                kCavalryUiDll,
+                kTextAtWidgetCentreSymbol),
             CavalryPeIatLookupStatus::InvalidImage)) {
         return 1;
     }

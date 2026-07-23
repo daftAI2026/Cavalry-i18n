@@ -1,7 +1,7 @@
 <#
-[INPUT]: 依赖 CMake、MSVC、Qt 6.6.3 SDK、本目录 CMake 工程与父级 generated_translations.inc
-[OUTPUT]: 对外执行 Release configure/build/ctest，并发布唯一 DLL 到 generic/cavalryi18n.dll
-[POS]: injector/windows 的可重复 Windows 构建入口，连接本地 SDK、真实插件 smoke 与 Tauri resource 稳定路径
+[INPUT]: 依赖 CMake、MSVC、Qt 6.6.3 SDK、本目录 CMake 工程、父级 generated_translations.inc 与可选 CAVALRY_VENDOR_ROOT
+[OUTPUT]: 对外执行 Release configure/build/ctest，并在可用时执行只读 vendor ABI/import 合同后发布唯一 DLL 到 generic/cavalryi18n.dll
+[POS]: injector/windows 的可重复 Windows 构建入口，连接本地 SDK、真实插件 smoke、可选实际 Cavalry 二进制合同与 Tauri resource 稳定路径
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -29,6 +29,8 @@ if (-not (Test-Path -LiteralPath $qtConfig -PathType Leaf)) {
     throw "Qt 6.6.3 SDK not found at '$qtPrefix'. Set CAVALRY_QT_PREFIX to the x64 MSVC SDK root."
 }
 
+$vendorRoot = [Environment]::GetEnvironmentVariable('CAVALRY_VENDOR_ROOT')
+
 $cmakeCommand = Get-Command cmake.exe -ErrorAction SilentlyContinue
 if ($null -ne $cmakeCommand) {
     $cmake = $cmakeCommand.Source
@@ -51,13 +53,23 @@ if (-not (Test-Path -LiteralPath $ctest -PathType Leaf)) {
     throw "CTest was not found next to '$cmake'."
 }
 
-& $cmake `
-    -S $scriptDirectory `
-    -B $buildDirectory `
-    -G 'Visual Studio 17 2022' `
-    -A x64 `
-    "-DCMAKE_PREFIX_PATH=$qtPrefix" `
-    -DBUILD_TESTING=ON
+$cmakeConfigureArguments = @(
+    '-S', $scriptDirectory,
+    '-B', $buildDirectory,
+    '-G', 'Visual Studio 17 2022',
+    '-A', 'x64',
+    "-DCMAKE_PREFIX_PATH=$qtPrefix",
+    '-DBUILD_TESTING=ON'
+)
+if (-not [string]::IsNullOrWhiteSpace($vendorRoot)) {
+    $vendorRoot = [System.IO.Path]::GetFullPath($vendorRoot)
+    $cmakeConfigureArguments += "-DCAVALRY_VENDOR_ROOT=$vendorRoot"
+} else {
+    # 显式清空缓存，避免上一次本机构建的 vendor 路径泄漏到普通构建。
+    $cmakeConfigureArguments += @('-U', 'CAVALRY_VENDOR_ROOT')
+}
+
+& $cmake @cmakeConfigureArguments
 if ($LASTEXITCODE -ne 0) {
     throw "CMake configure failed with exit code $LASTEXITCODE."
 }

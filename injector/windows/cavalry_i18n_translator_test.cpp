@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryEmbeddedTranslator 与 generated_translations.inc 中稳定存在的菜单样本
- * [OUTPUT]: 对外验证三语言嵌入、四条 ExtensionLayer 精确自绘提示、精确查询、未知 context 的 source fallback、未知语言/文本空结果
+ * [OUTPUT]: 对外验证三语言嵌入、已证实 helper 提示的翻译表样本、精确查询、未知 context 的 source fallback、未知语言/文本空结果
  * [POS]: injector/windows 的最小数据合同测试，在进入真实 Cavalry 前证明 DLL 内翻译表不是空壳
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -59,19 +59,18 @@ bool verifyLanguage(
                "missing source lookup");
 }
 
-bool verifyExtensionLayerEmptyStates(
+bool verifyEmbeddedHelperTranslationSamples(
     const QString &language,
     const QStringList &expectedTranslations)
 {
     const QStringList sources {
         QStringLiteral("Double click here to import Assets."),
         QStringLiteral("Drag layers here to see their settings."),
-        QStringLiteral("Drag some JavaScript here to make a Snippet."),
         QStringLiteral(
             "Use the Create menu to add a layer to your Composition."),
     };
     if (expectedTranslations.size() != sources.size()) {
-        qCritical() << "ExtensionLayer test fixture has an invalid size.";
+        qCritical() << "Embedded helper translation fixture has an invalid size.";
         return false;
     }
 
@@ -83,7 +82,7 @@ bool verifyExtensionLayerEmptyStates(
                     "UnknownContext",
                     sourceUtf8.constData()),
                 expectedTranslations.at(index),
-                "ExtensionLayer source fallback")) {
+                "embedded helper source fallback")) {
             return false;
         }
     }
@@ -97,30 +96,27 @@ int main()
     if (!verifyLanguage(QStringLiteral("zh-Hans"), QStringLiteral("文件"))
         || !verifyLanguage(QStringLiteral("zh-Hant"), QStringLiteral("檔案"))
         || !verifyLanguage(QStringLiteral("ja_JP"), QStringLiteral("ファイル"))
-        || !verifyExtensionLayerEmptyStates(
+        || !verifyEmbeddedHelperTranslationSamples(
             QStringLiteral("zh-Hans"),
             {
-                QStringLiteral("双击此处导入素材"),
+                QStringLiteral("双击此处以导入素材"),
                 QStringLiteral("将图层拖到此处以查看其设置"),
-            QStringLiteral("将 JavaScript 拖到此处以创建代码片段。"),
-                QStringLiteral("使用创建菜单向合成添加图层"),
+                QStringLiteral("使用“创建”菜单将图层添加到合成中"),
             })
-        || !verifyExtensionLayerEmptyStates(
+        || !verifyEmbeddedHelperTranslationSamples(
             QStringLiteral("zh-Hant"),
             {
-                QStringLiteral("連按兩下此處匯入素材"),
-                QStringLiteral("在此拖動層以查看其設置"),
-            QStringLiteral("將 JavaScript 拖到此處以建立程式碼片段。"),
-                QStringLiteral("使用建立選單向合成新增圖層"),
+                QStringLiteral("連按兩下此處以匯入素材"),
+                QStringLiteral("將圖層拖曳至此以查看其設定"),
+                QStringLiteral("使用「建立」選單將圖層新增至合成"),
             })
-        || !verifyExtensionLayerEmptyStates(
+        || !verifyEmbeddedHelperTranslationSamples(
             QStringLiteral("ja_JP"),
             {
-                QStringLiteral("ここをダブルクリックしてアセットを読み込み"),
-                QStringLiteral("レイヤーをドラッグして設定を確認します"),
-                QStringLiteral("JavaScript をここにドラッグしてスニペットを作成します。"),
+                QStringLiteral("ここをダブルクリックしてアセットをインポートします"),
+                QStringLiteral("レイヤーをここにドラッグして設定を確認します"),
                 QStringLiteral(
-                    "作成メニューを使用してコンポジションにレイヤーを追加してください"),
+                    "「作成」メニューを使用してコンポジションにレイヤーを追加します"),
             })) {
         return 1;
     }
