@@ -19,7 +19,10 @@ for file in $VERSION_FILES; do
   fi
 done
 
-if command -v node >/dev/null 2>&1; then
+NODE_BIN="$(git config --get cavalry-i18n.nodePath 2>/dev/null || true)"
+if [ -n "$NODE_BIN" ] && [ -x "$NODE_BIN" ]; then
+  :
+elif command -v node >/dev/null 2>&1; then
   NODE_BIN="$(command -v node)"
 elif [ -x "/c/Program Files/nodejs/node.exe" ]; then
   NODE_BIN="/c/Program Files/nodejs/node.exe"
