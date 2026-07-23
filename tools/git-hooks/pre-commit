@@ -1,26 +1,20 @@
 #!/bin/sh
-# [INPUT]: 依赖 Git 暂存区、Node 运行时与 tools/sync_project_version.js
-# [OUTPUT]: 仅在版本真相源/投影进入暂存区时同步项目版本，并拒绝吞并同文件的未暂存改动
-# [POS]: tools/git-hooks 的跨平台 pre-commit 版本闸门，阻止版本漂移与脏工作树意外扩张提交
+# [INPUT]: 依赖 Git 本地配置与 Node 运行时，读取安装器记录的 Node 绝对路径并委派 tools/pre_commit_gate.js
+# [OUTPUT]: 对外提供零业务逻辑的跨平台 hook bootstrap；优先仓库级 Node，再安全回退 PATH/Windows 标准安装位置
+# [POS]: tools/git-hooks 的进程入口，不直接修改暂存区；版本同步、路径门禁与显式 projection add 全部收敛到 Node gate
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
-set -e
+set -eu
 
-VERSION_FILES="CHANGELOG.md package.json package-lock.json src-tauri/Cargo.toml src-tauri/tauri.conf.json src-tauri/Cargo.lock"
-
-if git diff --cached --quiet -- $VERSION_FILES; then
-  exit 0
+REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || true)"
+if [ -z "$REPO_ROOT" ]; then
+  echo "pre-commit: 找不到当前 Git 工作树。" >&2
+  exit 1
 fi
+cd "$REPO_ROOT"
 
-for file in $VERSION_FILES; do
-  if ! git diff --quiet -- "$file"; then
-    echo "pre-commit: $file 同时存在未暂存改动；请先明确暂存或拆分后再提交。" >&2
-    exit 1
-  fi
-done
-
-NODE_BIN="$(git config --get cavalry-i18n.nodePath 2>/dev/null || true)"
-if [ -n "$NODE_BIN" ] && [ -x "$NODE_BIN" ]; then
+NODE_BIN="$(git config --local --get cavalry-i18n.nodePath 2>/dev/null || true)"
+if [ -n "$NODE_BIN" ] && "$NODE_BIN" --version >/dev/null 2>&1; then
   :
 elif command -v node >/dev/null 2>&1; then
   NODE_BIN="$(command -v node)"
@@ -31,6 +25,4 @@ else
   exit 1
 fi
 
-"$NODE_BIN" tools/sync_project_version.js
-
-git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/tauri.conf.json src-tauri/Cargo.lock
+exec "$NODE_BIN" tools/pre_commit_gate.js

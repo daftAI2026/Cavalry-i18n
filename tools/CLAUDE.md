@@ -2,19 +2,23 @@
 > L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接 full-ui、精确版本 CHANGELOG 发布摘要、capture-only/dirty-only injector、first-match 哈希、`@loader_path` 单 Qt runtime、Qt ABI-safe accessibility、ExtensionLayer 三处空状态定点居中翻译/其余自绘英文边界、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、MessageBar append 与动态模板、ModalDialog、运行时图层名、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
-check_renderer_contract.js: Renderer contract 测试，冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面。
-check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、系统语言本土化、Apply 确认、App Management 授权预检、权限等待与原地重试、自定义 select 原生 change 语义。
-check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证版本同步、精确版本 CHANGELOG 抽取、默认发布文档、资源声明、窗口尺寸、README release badge endpoint 与 bridge 能力。
+check_app_contracts.js: Tauri-only Node 合同测试，承接跨平台 Python/换行、full-ui、精确版本 CHANGELOG 发布摘要、capture-only/dirty-only injector、first-match 哈希、`@loader_path` 单 Qt runtime、Qt ABI-safe accessibility、macOS ExtensionLayer 四处空状态定点居中翻译/其余自绘英文边界、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、MessageBar append 与动态模板、ModalDialog、运行时图层名、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
+check_renderer_contract.js: Renderer contract 测试，以规范化 LF 冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面，避免 Git 换行策略制造假漂移。
+check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、平台 dataset、系统语言本土化、Apply 确认、提交后 cleanup warning、macOS openPrivacy/Windows requestElevation 权限恢复、不可写自定义根的无 UAC 错误、原地重试与自定义 select 原生 change 语义。
+check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证跨平台 hook/Python/CRLF、公共与显式平台 Tauri 配置、Windows Qt plugin/NSIS 资源与 CI、DMG/NSIS 同步发布、版本同步、精确版本 CHANGELOG 抽取、默认发布文档、窗口尺寸、README release badge endpoint 与 bridge 能力。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer、languages、injector、ad-hoc bundle seal 与 bundle size report。
 check_dmg_layout.sh: DMG 布局与签名守门器，挂载真实 `.dmg` 并验证 `.DS_Store`、背景图、卷宗图标、custom-icon 标记、Applications 链接、DMG 内 app 与安装态 app 的 bundle seal/codesign strict 结果。
 window_contract_lib.js: 窗口回归公共库，通过明确 AX UI 查询判定辅助能力，封装窗口枚举、内容区截图与原生 `sips` 像素尺寸读取；Finder 无窗口不再导致空心 skip，也不依赖系统 Python/PIL。
 check_tauri_window_regression.js: packaged Tauri 主窗口回归测试，验证冻结窗口尺寸与内容截图尺寸。
-sync_project_version.js: 项目版本同步器，以 CHANGELOG 最新正式版本为真相源，级联同步 package、package-lock、Cargo、Tauri 配置与 Cargo.lock。
-release_metadata.js: GitHub Release 协议守门器，以 `release.config.json` 为真相源，校验 `cavalry-2.7.2-pN` tag 并生成 release 标题与 DMG 资产名。
+sync_project_version.js: 项目版本同步器，以 CHANGELOG 最新正式版本为真相源，规范化 CRLF/LF 后级联同步 package、package-lock、Cargo、Tauri 公共配置与 Cargo.lock。
+install_git_hooks.js: 跨平台 Git hook 安装器，Windows 在 stale PATH 时继续探测 Program Files/用户级 Git，写入 hook 目录与当前 Node 绝对路径，并精确区分 Git 不可用与非工作树，供 npm postinstall 消费。
+pre_commit_gate.js: 可测试的 Node pre-commit 执行层；先拒绝本次 gate 输入闭包中的未暂存/未跟踪差异，再按暂存路径运行 Rust `cargo fmt --check`、JS `node --check`、版本投影同步、语言 JSON 合同与嵌入翻译表一致性；禁止通配暂存，版本投影是唯一受控 `git add`。
+check_git_hooks.js: Windows 兼容 Git hook 合同测试，模拟 stale PATH、缺失 Git、非工作树，以及 JS/Rust/版本/语言/gate 自身的 partial-staged 漂移，并冻结快速门禁触发范围。
+python_command.js: Python 3 命令边界，优先尊重 `PYTHON`；Windows 先探测用户级 Python Launcher 的绝对路径，再回退 `py -3`/`python`，隔离 IDE/Codex 继承旧 PATH 与 Windows Store 假别名；其余平台使用 `python3`，供 Node 验证器与 Qt SDK 解析器复用。
+release_metadata.js: GitHub Release 协议守门器，以 `release.config.json` 为真相源，校验 `cavalry-2.7.2-pN` tag 并生成 release 标题、双架构 DMG 与稳定 Windows x64 NSIS 资产名。
 extract_release_changelog.js: Release notes 内容守门器，按内部 SemVer 从 `CHANGELOG.md` 精确抽取单个已发布日期区块；缺失、重复、未标日期或空正文时失败关闭，防止固定产品模板吞掉版本更新。
 check_runtime_ui_coverage.js: runtime UI 覆盖率守门脚本，读取真实菜单 inventory 并按阈值阻塞未翻译文本。
-check_full_ui_coverage.js: 单语言全 UI 覆盖检查，组合 runtime、compiled、JSON-backed 校验。
+check_full_ui_coverage.js: 单语言全 UI 覆盖检查，组合 runtime、compiled、JSON-backed 校验，并通过共享 Python 命令边界启动验证器。
 check_full_ui_matrix.js: 多语言矩阵覆盖检查，写出稳定 runlog 便于连续追踪。
 verify_gate_inputs.js: full-ui 前置输入守门器，冻结 session artifact、2.7.2 JSON lower bound、source-map 与 runtime provenance 合法性。
 capture_accessibility_inventory.js: live AX runtime 抓取器，写 `RUNTIME_DIR/<lang>-ax-inventory.json` 与 menuDepthMax/submenu path audit evidence。
@@ -25,7 +29,7 @@ extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似�
 generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成 injector 编译期翻译表。
 model_display_translations.json: display-only 模型名词典，保存 JSON niceName 英文化前的三语显示译名，只供 injector 翻译 Qt 浮动标题等显示层，不回写模型数据，并保持简繁中文 Latin/CJK 间距。
 runtime-noise-quarantine.json: Runtime 翻译噪声隔离清单，记录无资源/live-capture provenance 的短 token，并让生成器跳过这些项以保持英文。
-resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时按配置下载。
+resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时通过共享 Python 命令边界按配置下载。
 stamp_dmg_icon.sh: DMG 卷宗图标盖章器，用 hdiutil 写入 `.VolumeIcon.icns` 与 custom-icon 标记，再用 Rez/SetFile best-effort 写本机 Finder 文件图标。
 cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.2、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。
 build_translator_injector.sh: 以 `-O2` 构建 universal injector，校验 Qt minor，使用 `@loader_path` 绑定所选 Cavalry 的同目录 Qt，并禁止把构建 SDK 留作运行时 fallback。
@@ -40,7 +44,7 @@ zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
 runtime_ui_allowlist.json: runtime UI 覆盖率允许保留英文/快捷键/格式标签/样本值的 exact、contains、regex 与 stripRegex 清单。
 fixtures/: 测试 fixture 工厂，生成 fake Cavalry.app 而不提交真实应用包。
-git-hooks/: Git Hook 模块目录，承载提交前版本同步闸门（详见 git-hooks/CLAUDE.md）。
+git-hooks/: Git Hook bootstrap 目录，承载提交前 Node 路径解析与快速门禁入口（详见 git-hooks/CLAUDE.md）。
 
 依赖边界:
 tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修改真实应用；会产生副作用的脚本必须由 npm script 或手动命令显式触发。
@@ -93,5 +97,10 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-13: injector 合同锁定 capture-only inventory、dirty/direct-child 局部补译、QHash 语义、Paint fingerprint、item-model 异步更新、`-O2` 与 `@loader_path`；真实 Cavalry 验证禁止构建 SDK 作为 runtime RPATH，避免双 Qt SIGABRT。
 2026-07-14: `CavalryTranslatorInjector.mm` 定点拦截 `QPainter::drawText(QPointF, QString)`，只翻译 Assets、Attribute Editor、Scene Tree 三处由 `ui::textAtWidgetCentre` 绘制的空状态提示；`zh-Hans.ts`、`zh-Hant.ts`、`ja_JP.ts` 将三条统一收敛为无句号的 UI 微文案，合同锁定三语标点一致性、CJK font fallback、新旧字宽中心补偿、纵向基线不变、Qt 6.6.3 等价四参数重载的不可吞字回退及 `__cstring` 补丁禁令。
 2026-07-14: 新增 `extract_release_changelog.js` 与失败关闭合同，GitHub Release 只接受 `INTERNAL_APP_VERSION` 对应的单个非空、已标日期 CHANGELOG 区块，并继续保留产品介绍与下载模板。
+2026-07-23: 新增 `install_git_hooks.js` 与 `python_command.js`，修复 Windows npm postinstall/Python 入口；版本、renderer hash、生成表及 C++ 源合同统一跨 CRLF/LF，打包合同同步冻结公共/macOS/Windows Tauri 配置和 Windows CI 可执行构建基线。
+2026-07-24: `release_metadata.js` 与打包合同把 Windows x64 NSIS 稳定资产名纳入 `release.config.json` 真相源，要求 tag release 同时上传一个 EXE 与两个 DMG。
+2026-07-24: pre-commit 拆为最小 shell bootstrap 与 `pre_commit_gate.js`；按暂存路径执行 Rust 格式、JS 语法、语言 JSON 合同和嵌入翻译表一致性，版本同步仍只显式暂存受控投影，并用 Windows Git resolver 合同覆盖 stale PATH。
+2026-07-24: pre-commit 在运行任何读取工作区的子进程 gate 前，拒绝 Rust、JS/package、翻译/语言合同与 gate 自身输入闭包的未暂存或未跟踪差异，防止工作区修正掩盖旧 index；source artifact 同步携带 hook bootstrap 与 Node gate 闭包。
+2026-07-24: ExtensionLayer 空状态、拖放提示与 CustomListWidget placeholder 的简中、繁中、日语显示文案统一移除末尾句号；英文 source 与精确 hook 白名单保持不变，完整状态通知仍保留句子标点。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
