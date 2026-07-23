@@ -1,11 +1,33 @@
 #!/bin/sh
-# [INPUT]: 依赖 node 运行时与 tools/sync_project_version.js
-# [OUTPUT]: 提交前同步项目版本元数据并回填相关文件到暂存区
-# [POS]: tools/git-hooks 的 pre-commit 版本闸门，阻止 npm/Cargo/Tauri 版本漂移进入历史
+# [INPUT]: 依赖 Git 暂存区、Node 运行时与 tools/sync_project_version.js
+# [OUTPUT]: 仅在版本真相源/投影进入暂存区时同步项目版本，并拒绝吞并同文件的未暂存改动
+# [POS]: tools/git-hooks 的跨平台 pre-commit 版本闸门，阻止版本漂移与脏工作树意外扩张提交
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 set -e
 
-node tools/sync_project_version.js
+VERSION_FILES="CHANGELOG.md package.json package-lock.json src-tauri/Cargo.toml src-tauri/tauri.conf.json src-tauri/Cargo.lock"
+
+if git diff --cached --quiet -- $VERSION_FILES; then
+  exit 0
+fi
+
+for file in $VERSION_FILES; do
+  if ! git diff --quiet -- "$file"; then
+    echo "pre-commit: $file 同时存在未暂存改动；请先明确暂存或拆分后再提交。" >&2
+    exit 1
+  fi
+done
+
+if command -v node >/dev/null 2>&1; then
+  NODE_BIN="$(command -v node)"
+elif [ -x "/c/Program Files/nodejs/node.exe" ]; then
+  NODE_BIN="/c/Program Files/nodejs/node.exe"
+else
+  echo "pre-commit: 找不到 Node.js；请安装 Node.js 或将 node 加入 PATH。" >&2
+  exit 1
+fi
+
+"$NODE_BIN" tools/sync_project_version.js
 
 git add package.json package-lock.json src-tauri/Cargo.toml src-tauri/tauri.conf.json src-tauri/Cargo.lock
