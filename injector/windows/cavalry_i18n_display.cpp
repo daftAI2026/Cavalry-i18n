@@ -1,16 +1,19 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_display.h、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、受控控件显示属性翻译和动态英文写回后的同步恢复
- * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单弥补 LanguageChange 不会自动重写厂商控件的边界
+ * [INPUT]: 依赖 cavalry_i18n_display.h、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、已知基名数字后缀、QComboBox 可见项和动态英文写回后的同步恢复
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件，同时隔离 UserRole、currentIndex 与通用 item model
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
 
 #include "cavalry_i18n_translator.h"
 
+#include <QtCore/QAbstractItemModel>
 #include <QtCore/QPointer>
+#include <QtCore/QRegularExpression>
 #include <QtGui/QAction>
 #include <QtWidgets/QAbstractButton>
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
@@ -271,6 +274,9 @@ void CavalryDisplayTranslator::translateWidgetText(QWidget *widget)
                 }
             });
     } else if (
+        auto *comboBox = qobject_cast<QComboBox *>(guardedWidget.data())) {
+        translateComboBoxDisplay(comboBox);
+    } else if (
         auto *tabBar = qobject_cast<QTabBar *>(guardedWidget.data())) {
         const QPointer<QTabBar> guardedTabBar(tabBar);
         const int tabCount = tabBar->count();
@@ -323,6 +329,29 @@ QString CavalryDisplayTranslator::translationFor(const QString &source) const
         const QByteArray utf8 = candidate.toUtf8();
         return translator_.translate(nullptr, utf8.constData());
     };
+    const auto lookupNumericSuffix =
+        [&lookup](const QString &candidate) -> QString {
+        static const QRegularExpression kDotNumericSuffixPattern(
+            QStringLiteral("^(.*?)(\\.[0-9]+)$"));
+        static const QRegularExpression kSpaceNumericSuffixPattern(
+            QStringLiteral("^(.*?)(\\s+[0-9]+)$"));
+
+        QRegularExpressionMatch match =
+            kDotNumericSuffixPattern.match(candidate);
+        if (!match.hasMatch()) {
+            match = kSpaceNumericSuffixPattern.match(candidate);
+        }
+        if (!match.hasMatch()) {
+            return QString();
+        }
+
+        const QString baseSource = match.captured(1).trimmed();
+        const QString baseTranslation = lookup(baseSource);
+        if (baseTranslation.isEmpty() || baseTranslation == baseSource) {
+            return QString();
+        }
+        return baseTranslation + match.captured(2);
+    };
 
     QString translated = lookup(source);
     if (!translated.isEmpty()) {
@@ -347,6 +376,17 @@ QString CavalryDisplayTranslator::translationFor(const QString &source) const
         translated = lookup(bareSource);
         if (!translated.isEmpty()) {
             return translated + QChar(':');
+        }
+    }
+
+    translated = lookupNumericSuffix(source);
+    if (!translated.isEmpty()) {
+        return translated;
+    }
+    if (normalized != source) {
+        translated = lookupNumericSuffix(normalized);
+        if (!translated.isEmpty()) {
+            return translated;
         }
     }
 
@@ -442,6 +482,69 @@ void CavalryDisplayTranslator::trackObject(QObject *object)
             hookedMenus_.remove(destroyedObject);
             translatingObjects_.remove(destroyedObject);
         });
+}
+
+void CavalryDisplayTranslator::translateComboBoxDisplay(QComboBox *comboBox)
+{
+    if (comboBox == nullptr || comboBox->model() == nullptr) {
+        return;
+    }
+
+    trackObject(comboBox);
+    const QPointer<QComboBox> guardedComboBox(comboBox);
+    const int itemCount = comboBox->count();
+    const int modelColumn = comboBox->modelColumn();
+    for (int index = 0; index < itemCount; ++index) {
+        if (guardedComboBox.isNull()
+            || guardedComboBox->model() == nullptr
+            || index >= guardedComboBox->count()) {
+            break;
+        }
+
+        QAbstractItemModel *model = guardedComboBox->model();
+        const QModelIndex modelIndex = model->index(
+            index,
+            modelColumn,
+            guardedComboBox->rootModelIndex());
+        if (!modelIndex.isValid()) {
+            continue;
+        }
+
+        const QVariant displayValue =
+            model->data(modelIndex, Qt::DisplayRole);
+        if (!displayValue.isValid()) {
+            continue;
+        }
+
+        applyTranslation(
+            comboBox,
+            QByteArrayLiteral("comboDisplay:")
+                + QByteArray::number(modelColumn)
+                + QByteArrayLiteral(":")
+                + QByteArray::number(index),
+            displayValue.toString(),
+            [guardedComboBox, index, modelColumn](const QString &value) {
+                if (guardedComboBox.isNull()
+                    || guardedComboBox->model() == nullptr
+                    || index >= guardedComboBox->count()) {
+                    return;
+                }
+
+                QAbstractItemModel *currentModel =
+                    guardedComboBox->model();
+                const QModelIndex currentIndex = currentModel->index(
+                    index,
+                    modelColumn,
+                    guardedComboBox->rootModelIndex());
+                if (currentIndex.isValid()) {
+                    // 只写可见角色；UserRole、选中索引和业务模型身份保持原值。
+                    currentModel->setData(
+                        currentIndex,
+                        value,
+                        Qt::DisplayRole);
+                }
+            });
+    }
 }
 
 void CavalryDisplayTranslator::translateWidgetProperties(QWidget *widget)

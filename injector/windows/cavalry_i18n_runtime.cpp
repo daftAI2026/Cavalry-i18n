@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CAVALRY_I18N_LANG、嵌入式生成表、ExtensionLayer 精确 hook、可选诊断 marker 与 Qt 6.6.3 应用实例
- * [OUTPUT]: 对外安装 EmbeddedTranslator、主动刷新既有/动态显示属性、在 Show/Paint 前重试目标模块 hook，并原子记录加载结果
- * [POS]: injector/windows 的运行时状态机，以事件驱动白名单弥补厂商控件不响应 LanguageChange 与精确自绘提示的边界
+ * [OUTPUT]: 对外安装 EmbeddedTranslator、主动刷新既有/动态显示属性及 QComboBox DisplayRole、在 Show/Paint 前重试目标模块 hook，并原子记录加载结果
+ * [POS]: injector/windows 的运行时状态机，以事件驱动显示白名单弥补厂商控件不响应 LanguageChange 与精确自绘提示的边界
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_runtime.h"
@@ -24,6 +24,7 @@
 #include <QtGui/QActionEvent>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QAbstractButton>
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
@@ -179,6 +180,7 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
             || qobject_cast<QAbstractButton *>(widget) != nullptr
             || qobject_cast<QGroupBox *>(widget) != nullptr
             || qobject_cast<QLineEdit *>(widget) != nullptr
+            || qobject_cast<QComboBox *>(widget) != nullptr
             || qobject_cast<QTabBar *>(widget) != nullptr) {
             displayTranslator_->translatePaintWidget(widget);
         }

@@ -1,10 +1,11 @@
 /**
  * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、插件环境与显式 diagnostic marker
- * [OUTPUT]: 对外验证真实插件加载、十二个顶层菜单、嵌入翻译表样本、动态 ActionAdded、显示白名单、数据隔离和 marker
- * [POS]: injector/windows 的端到端回归 smoke，以真实 Qt 事件链锁住 Cavalry 首帧与动态英文写回边界
+ * [OUTPUT]: 对外验证真实插件加载、十二个顶层菜单、数字后缀、QComboBox DisplayRole、动态写回、数据隔离和 marker
+ * [POS]: injector/windows 的端到端回归 smoke，以真实 Qt Show/Paint/ActionAdded 事件锁住首帧与动态英文写回边界
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include <QtCore/QByteArray>
+#include <QtCore/QAbstractItemModel>
 #include <QtCore/QCoreApplication>
 #include <QtCore/QFile>
 #include <QtCore/QJsonDocument>
@@ -15,6 +16,7 @@
 #include <QtCore/QDebug>
 #include <QtGui/QAction>
 #include <QtWidgets/QApplication>
+#include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
@@ -196,6 +198,8 @@ bool verifyDisplayTranslation(QApplication &application)
     auto *label = new QLabel(
         QStringLiteral("Double click here to import Assets"),
         centralWidget);
+    auto *compositionLabel =
+        new QLabel(QStringLiteral("Composition 1"), centralWidget);
     auto *button =
         new QPushButton(QStringLiteral("Continue"), centralWidget);
     auto *groupBox =
@@ -208,13 +212,23 @@ bool verifyDisplayTranslation(QApplication &application)
     tabBar->addTab(QStringLiteral("JavaScript Editor"));
     auto *modelView = new QListWidget(centralWidget);
     modelView->addItem(QStringLiteral("Scene Window"));
+    auto *comboBox = new QComboBox(centralWidget);
+    comboBox->addItem(
+        QStringLiteral("Rectangle"),
+        QStringLiteral("rectangle-identity"));
+    comboBox->addItem(
+        QStringLiteral("My Custom Shape"),
+        QStringLiteral("custom-identity"));
+    comboBox->setCurrentIndex(1);
 
     layout->addWidget(label);
+    layout->addWidget(compositionLabel);
     layout->addWidget(button);
     layout->addWidget(groupBox);
     layout->addWidget(lineEdit);
     layout->addWidget(tabBar);
     layout->addWidget(modelView);
+    layout->addWidget(comboBox);
     window.setCentralWidget(centralWidget);
 
     window.show();
@@ -259,6 +273,10 @@ bool verifyDisplayTranslation(QApplication &application)
             label->text(),
             QStringLiteral("双击此处以导入素材"))
         || !expectEqual(
+            QStringLiteral("numbered built-in name"),
+            compositionLabel->text(),
+            QStringLiteral("合成 1"))
+        || !expectEqual(
             QStringLiteral("button"),
             button->text(),
             QStringLiteral("继续"))
@@ -274,6 +292,14 @@ bool verifyDisplayTranslation(QApplication &application)
             QStringLiteral("tab"),
             tabBar->tabText(0),
             QStringLiteral("JavaScript 编辑器"))
+        || !expectEqual(
+            QStringLiteral("combo DisplayRole"),
+            comboBox->itemText(0),
+            QStringLiteral("矩形"))
+        || !expectEqual(
+            QStringLiteral("custom combo display"),
+            comboBox->itemText(1),
+            QStringLiteral("My Custom Shape"))
         || !expectEqual(
             QStringLiteral("preexisting action"),
             existingAction->text(),
@@ -301,7 +327,12 @@ bool verifyDisplayTranslation(QApplication &application)
         || !expectEqual(
             QStringLiteral("item model value"),
             modelView->item(0)->text(),
-            QStringLiteral("Scene Window"))) {
+            QStringLiteral("Scene Window"))
+        || !expectEqual(
+            QStringLiteral("combo UserRole"),
+            comboBox->itemData(0, Qt::UserRole).toString(),
+            QStringLiteral("rectangle-identity"))
+        || comboBox->currentIndex() != 1) {
         return false;
     }
 
@@ -317,7 +348,12 @@ bool verifyDisplayTranslation(QApplication &application)
 
     existingAction->setText(QStringLiteral("Undo"));
     label->setText(QStringLiteral("Double click here to import Assets"));
+    comboBox->model()->setData(
+        comboBox->model()->index(0, comboBox->modelColumn()),
+        QStringLiteral("Rectangle"),
+        Qt::DisplayRole);
     label->repaint();
+    comboBox->repaint();
     application.processEvents();
     if (!expectEqual(
             QStringLiteral("dynamic action rewrite"),
@@ -326,7 +362,16 @@ bool verifyDisplayTranslation(QApplication &application)
         || !expectEqual(
             QStringLiteral("dynamic label rewrite"),
             label->text(),
-            QStringLiteral("双击此处以导入素材"))) {
+            QStringLiteral("双击此处以导入素材"))
+        || !expectEqual(
+            QStringLiteral("dynamic combo rewrite"),
+            comboBox->itemText(0),
+            QStringLiteral("矩形"))
+        || !expectEqual(
+            QStringLiteral("dynamic combo UserRole"),
+            comboBox->itemData(0, Qt::UserRole).toString(),
+            QStringLiteral("rectangle-identity"))
+        || comboBox->currentIndex() != 1) {
         return false;
     }
 

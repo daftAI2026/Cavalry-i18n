@@ -1,5 +1,5 @@
 # [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、Windows Psapi、本目录源码、../generated_translations.inc 与可选 Cavalry vendor 二进制根目录
-# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 translator、PE/IAT、ExtensionLayer helper/placeholder hook、vendor ABI/import 与 generic-plugin smoke 合同测试
+# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 display、translator、PE/IAT、ExtensionLayer hook、vendor ABI/import 与 generic-plugin smoke 合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构前置检查约束 Windows Qt 插件产物与无第三方 IAT 实现
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 3.21)
@@ -100,6 +100,41 @@ install(
 include(CTest)
 
 if(BUILD_TESTING)
+    add_executable(cavalryi18n_display_test
+        cavalry_i18n_display_test.cpp
+        cavalry_i18n_display.cpp
+        cavalry_i18n_display.h
+        cavalry_i18n_translator.cpp
+        cavalry_i18n_translator.h
+    )
+
+    target_link_libraries(cavalryi18n_display_test
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Widgets
+    )
+
+    target_include_directories(cavalryi18n_display_test
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    target_compile_definitions(
+        cavalryi18n_display_test
+        PRIVATE
+            QT_NO_KEYWORDS
+    )
+
+    add_test(
+        NAME cavalryi18n_display
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "QT_QPA_PLATFORM=offscreen"
+            "$<TARGET_FILE:cavalryi18n_display_test>"
+    )
+
     add_executable(cavalryi18n_embedded_translator_test
         cavalry_i18n_translator_test.cpp
         cavalry_i18n_translator.cpp

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CavalryEmbeddedTranslator 的 source fallback，以及 Qt Widgets 的公开显示属性与菜单事件
- * [OUTPUT]: 对外提供幂等的 QWidget/QAction 主动翻译、菜单首帧刷新和动态英文写回恢复
- * [POS]: injector/windows 的显示层边界，只改可见文案，不接触输入值、item model 或厂商业务数据
+ * [INPUT]: 依赖 CavalryEmbeddedTranslator 的 source fallback，以及 Qt Widgets 的公开显示属性、QComboBox DisplayRole 与菜单事件
+ * [OUTPUT]: 对外提供幂等的 QWidget/QAction 主动翻译、已知基名数字后缀投影、菜单首帧刷新和动态英文写回恢复
+ * [POS]: injector/windows 的显示层边界，只改受控可见文案与下拉框 DisplayRole，不接触输入值、UserRole、currentIndex 或通用 item view
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
@@ -15,6 +15,7 @@
 #include <functional>
 
 class QAction;
+class QComboBox;
 class QMenu;
 class QWidget;
 class CavalryEmbeddedTranslator;
@@ -42,6 +43,7 @@ private:
     void hookAction(QAction *action);
     void hookMenu(QMenu *menu);
     void trackObject(QObject *object);
+    void translateComboBoxDisplay(QComboBox *comboBox);
     void translateWidgetProperties(QWidget *widget);
     void translateWidgetActions(QWidget *widget);
     void translateWidgetText(QWidget *widget);
