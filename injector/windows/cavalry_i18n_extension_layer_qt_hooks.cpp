@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Qt/CavalryUI 函数 ABI、ExtensionLayer placeholder setter 链、固定 source 数组与 immutable exact-translation snapshot
- * [OUTPUT]: 对外实现无 raw-owner callback、process-lifetime 原子发布槽、逐槽 original 生命周期与只读 PE 调用链验证
+ * [INPUT]: 依赖 Qt/CavalryUI 函数 ABI、ExtensionLayer placeholder setter/MessageBar append 链、固定 source 数组与 immutable exact-translation snapshot
+ * [OUTPUT]: 对外实现无 raw-owner callback、process-lifetime 原子发布槽、逐槽 original 生命周期与 placeholder/MessageBar 只读 PE 调用链验证
  * [POS]: injector/windows 的 ExtensionLayer Qt callback 状态所有者；静态 detach 不析构 shared_ptr，callback 只保留原函数、值译文和 caller 元数据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -40,26 +40,48 @@ constexpr char kSetPlaceholderSymbol[] =
 constexpr std::size_t kSetPlaceholderThunkRva = 0x00015A87;
 constexpr std::size_t kSetPlaceholderSetterRva = 0x002759F0;
 constexpr std::uintptr_t kQStringAssignmentNameRva = 0x01B7CBD2;
+constexpr std::size_t kMessageBarAppendIatRva = 0x01B2E420;
+constexpr std::array<std::size_t, 2> kMessageBarAppendCallRvas {{
+    0x00FB40F4,
+    0x00FB4B91,
+}};
 constexpr std::array<std::uint8_t, 15> kSetPlaceholderSetterPrologue {{
     0xB8, 0xA8, 0x00, 0x00, 0x00,
     0x48, 0x03, 0x81, 0x90, 0x01, 0x00, 0x00,
     0x48, 0x89, 0xC1,
+}};
+constexpr std::array<std::array<std::uint8_t, 9>, 2>
+    kMessageBarPostCallBytes {{
+        {{
+            0x48, 0x8B, 0x4D, 0x40,
+            0x48, 0x85, 0xC9, 0x74, 0x14,
+        }},
+        {{
+            0x48, 0x8B, 0x4D, 0xD8,
+            0x48, 0x85, 0xC9, 0x74, 0x14,
+        }},
 }};
 
 using TextAtWidgetCentreFunction =
     void (*)(QWidget *, const QString &, const QColor &, const QPixmap *);
 using QStringAssignmentFunction =
     QString &(*)(QString *, const QString &);
+using QTextEditAppendFunction = void (*)(QTextEdit *, const QString &);
 using HelperTranslations =
     cavalry_i18n::ExactTranslationSnapshot<QString, 9>;
 using PlaceholderTranslations =
     cavalry_i18n::ExactTranslationSnapshot<QString, 13>;
+using MessageBarTranslations =
+    cavalry_i18n::ExactTranslationSnapshot<QString, 1>;
 
 static_assert(
     cavalry_i18n::extension_layer_contract::kStaticHelperSources.size() == 9);
 static_assert(
     cavalry_i18n::extension_layer_contract::kStaticPlaceholderSources.size()
     == 13);
+static_assert(
+    cavalry_i18n::extension_layer_contract::kStaticMessageBarSources.size()
+    == 1);
 
 struct HelperCallbackState final {
     HelperCallbackState(
@@ -96,6 +118,22 @@ struct PlaceholderCallbackState final {
     const std::uint8_t *setPlaceholderThunk;
 };
 
+struct MessageBarCallbackState final {
+    MessageBarCallbackState(
+        QTextEditAppendFunction originalFunction,
+        std::array<MessageBarTranslations::Entry, 1> entries,
+        std::array<const std::uint8_t *, 2> approvedReturns)
+        : original(originalFunction)
+        , translations(std::move(entries))
+        , approvedReturnAddresses(approvedReturns)
+    {
+    }
+
+    QTextEditAppendFunction original;
+    MessageBarTranslations translations;
+    std::array<const std::uint8_t *, 2> approvedReturnAddresses;
+};
+
 std::shared_ptr<const HelperCallbackState> &helperCallbackSlot()
 {
     return cavalry_i18n::processLifetimeCallbackSlot<
@@ -107,10 +145,19 @@ std::shared_ptr<const PlaceholderCallbackState> &placeholderCallbackSlot()
     return cavalry_i18n::processLifetimeCallbackSlot<
         PlaceholderCallbackState>();
 }
+
+std::shared_ptr<const MessageBarCallbackState> &messageBarCallbackSlot()
+{
+    return cavalry_i18n::processLifetimeCallbackSlot<
+        MessageBarCallbackState>();
+}
+
 std::atomic<bool> gHelperTranslationsEnabled { false };
 std::atomic<bool> gPlaceholderTranslationsEnabled { false };
+std::atomic<bool> gMessageBarTranslationsEnabled { false };
 std::atomic<TextAtWidgetCentreFunction> gOriginalTextAtWidgetCentre { nullptr };
 std::atomic<QStringAssignmentFunction> gOriginalPlaceholderAssignment { nullptr };
+std::atomic<QTextEditAppendFunction> gOriginalMessageBarAppend { nullptr };
 
 bool moduleContainsRange(
     const std::uint8_t *moduleBase,
@@ -227,6 +274,45 @@ bool isDirectSetPlaceholderCaller(
         == state.setPlaceholderThunk;
 }
 
+bool isApprovedMessageBarCaller(
+    const MessageBarCallbackState &state,
+    const void *returnAddress)
+{
+    return returnAddress != nullptr
+        && (returnAddress == state.approvedReturnAddresses[0]
+            || returnAddress == state.approvedReturnAddresses[1]);
+}
+
+QString translatedMessageBarHtml(
+    const MessageBarCallbackState &state,
+    const QString &source)
+{
+    const qsizetype breakOffset =
+        source.lastIndexOf(QStringLiteral("<br>"));
+    if (breakOffset < 0) {
+        return source;
+    }
+
+    qsizetype bodyStart = breakOffset + 4;
+    qsizetype bodyEnd = source.size();
+    while (bodyStart < bodyEnd && source.at(bodyStart).isSpace()) {
+        ++bodyStart;
+    }
+    while (bodyEnd > bodyStart && source.at(bodyEnd - 1).isSpace()) {
+        --bodyEnd;
+    }
+    if (bodyStart == bodyEnd) {
+        return source;
+    }
+
+    const QString body = source.mid(bodyStart, bodyEnd - bodyStart);
+    const QString *translated = state.translations.find(body);
+    if (translated == nullptr) {
+        return source;
+    }
+    return source.left(bodyStart) + *translated + source.mid(bodyEnd);
+}
+
 void cavalryExtensionLayerTextAtWidgetCentreReplacement(
     QWidget *widget,
     const QString &source,
@@ -268,6 +354,35 @@ QString &cavalryExtensionLayerQStringAssignmentReplacement(
     return state->original(
         destination,
         translated == nullptr ? source : *translated);
+}
+
+void dispatchCavalryMessageBarAppend(
+    QTextEdit *textEdit,
+    const QString &source,
+    const void *returnAddress)
+{
+    const auto state = std::atomic_load_explicit(
+        &messageBarCallbackSlot(),
+        std::memory_order_acquire);
+    if (state == nullptr || state->original == nullptr) {
+        return;
+    }
+    QString translated = source;
+    if (gMessageBarTranslationsEnabled.load(std::memory_order_acquire)
+        && isApprovedMessageBarCaller(*state, returnAddress)) {
+        translated = translatedMessageBarHtml(*state, source);
+    }
+    state->original(textEdit, translated);
+}
+
+void cavalryExtensionLayerMessageBarAppendReplacement(
+    QTextEdit *textEdit,
+    const QString &source)
+{
+    dispatchCavalryMessageBarAppend(
+        textEdit,
+        source,
+        _ReturnAddress());
 }
 
 } // namespace
@@ -380,6 +495,81 @@ bool isCavalryUnresolvedPlaceholderAssignmentSlot(
             1);
 }
 
+bool validateCavalryMessageBarAppendPath(
+    const std::uint8_t *moduleBase,
+    std::size_t moduleSize,
+    void **iatSlot,
+    CavalryMessageBarAppendPath *path,
+    QString *failureDetail)
+{
+    if (moduleBase == nullptr || iatSlot == nullptr || path == nullptr) {
+        if (failureDetail != nullptr) {
+            *failureDetail = QStringLiteral(
+                "MessageBar append path validation received a null pointer.");
+        }
+        return false;
+    }
+    if (moduleSize < sizeof(void *) || moduleSize < 6
+        || kMessageBarAppendIatRva > moduleSize - sizeof(void *)
+        || iatSlot != reinterpret_cast<void **>(
+            const_cast<std::uint8_t *>(moduleBase)
+            + kMessageBarAppendIatRva)) {
+        if (failureDetail != nullptr) {
+            *failureDetail = QStringLiteral(
+                "ExtensionLayer.dll QTextEdit::append IAT slot is not the Cavalry 2.7.2 canonical slot.");
+        }
+        return false;
+    }
+
+    for (std::size_t index = 0;
+         index < kMessageBarAppendCallRvas.size();
+         ++index) {
+        if (kMessageBarAppendCallRvas[index] > moduleSize - 6) {
+            if (failureDetail != nullptr) {
+                *failureDetail = QStringLiteral(
+                    "A canonical MessageBar append caller lies outside ExtensionLayer.dll.");
+            }
+            return false;
+        }
+        const auto *call =
+            moduleBase + kMessageBarAppendCallRvas[index];
+        const auto &continuation = kMessageBarPostCallBytes[index];
+        if (!moduleContainsRange(
+                moduleBase,
+                moduleSize,
+                call,
+                6 + continuation.size())
+            || call[0] != 0xFF || call[1] != 0x15) {
+            if (failureDetail != nullptr) {
+                *failureDetail = QStringLiteral(
+                    "A canonical MessageBar path no longer calls QTextEdit::append through the expected IAT form.");
+            }
+            return false;
+        }
+        std::int32_t displacement = 0;
+        std::memcpy(&displacement, call + 2, sizeof(displacement));
+        const auto *resolvedSlot = reinterpret_cast<const std::uint8_t *>(
+            reinterpret_cast<std::intptr_t>(call + 6) + displacement);
+        if (resolvedSlot
+                != reinterpret_cast<const std::uint8_t *>(iatSlot)
+            || std::memcmp(
+                   call + 6,
+                   continuation.data(),
+                   continuation.size())
+                != 0) {
+            if (failureDetail != nullptr) {
+                *failureDetail = QStringLiteral(
+                    "A canonical MessageBar append call no longer matches its locked slot and continuation.");
+            }
+            return false;
+        }
+        path->approvedReturnAddresses[index] = call + 6;
+    }
+
+    path->iatSlot = iatSlot;
+    return true;
+}
+
 bool publishCavalryHelperCallbackSnapshot(
     const CavalryEmbeddedTranslator &translator,
     void *original,
@@ -466,6 +656,51 @@ bool publishCavalryPlaceholderCallbackSnapshot(
     }
 }
 
+bool publishCavalryMessageBarCallbackSnapshot(
+    const CavalryEmbeddedTranslator &translator,
+    void *original,
+    const std::array<const std::uint8_t *, 2> &approvedReturnAddresses,
+    QString *failureDetail)
+{
+    std::array<MessageBarTranslations::Entry, 1> entries {};
+    if (original == nullptr || approvedReturnAddresses[0] == nullptr
+        || approvedReturnAddresses[1] == nullptr
+        || !buildTranslationEntries(
+            translator,
+            cavalry_i18n::extension_layer_contract::
+                kStaticMessageBarSources,
+            &entries,
+            failureDetail)) {
+        return false;
+    }
+    try {
+        const auto originalFunction =
+            reinterpret_cast<QTextEditAppendFunction>(original);
+        const auto state =
+            std::make_shared<const MessageBarCallbackState>(
+                originalFunction,
+                std::move(entries),
+                approvedReturnAddresses);
+        gMessageBarTranslationsEnabled.store(
+            false,
+            std::memory_order_release);
+        std::atomic_store_explicit(
+            &messageBarCallbackSlot(),
+            state,
+            std::memory_order_release);
+        gOriginalMessageBarAppend.store(
+            originalFunction,
+            std::memory_order_release);
+        return true;
+    } catch (...) {
+        if (failureDetail != nullptr) {
+            *failureDetail = QStringLiteral(
+                "Could not allocate the immutable MessageBar callback snapshot.");
+        }
+        return false;
+    }
+}
+
 void enableCavalryHelperTranslations(bool enabled)
 {
     gHelperTranslationsEnabled.store(enabled, std::memory_order_release);
@@ -476,6 +711,11 @@ void enableCavalryPlaceholderTranslations(bool enabled)
     gPlaceholderTranslationsEnabled.store(enabled, std::memory_order_release);
 }
 
+void enableCavalryMessageBarTranslations(bool enabled)
+{
+    gMessageBarTranslationsEnabled.store(enabled, std::memory_order_release);
+}
+
 void clearCavalryHelperOriginal()
 {
     gOriginalTextAtWidgetCentre.store(nullptr, std::memory_order_release);
@@ -484,6 +724,11 @@ void clearCavalryHelperOriginal()
 void clearCavalryPlaceholderOriginal()
 {
     gOriginalPlaceholderAssignment.store(nullptr, std::memory_order_release);
+}
+
+void clearCavalryMessageBarOriginal()
+{
+    gOriginalMessageBarAppend.store(nullptr, std::memory_order_release);
 }
 
 bool isCavalryHelperOriginalPublished()
@@ -498,6 +743,12 @@ bool isCavalryPlaceholderOriginalPublished()
         != nullptr;
 }
 
+bool isCavalryMessageBarOriginalPublished()
+{
+    return gOriginalMessageBarAppend.load(std::memory_order_acquire)
+        != nullptr;
+}
+
 void *cavalryHelperReplacementAddress()
 {
     return reinterpret_cast<void *>(
@@ -509,3 +760,19 @@ void *cavalryPlaceholderReplacementAddress()
     return reinterpret_cast<void *>(
         cavalryExtensionLayerQStringAssignmentReplacement);
 }
+
+void *cavalryMessageBarReplacementAddress()
+{
+    return reinterpret_cast<void *>(
+        cavalryExtensionLayerMessageBarAppendReplacement);
+}
+
+#ifdef CAVALRY_I18N_TESTING
+void dispatchCavalryMessageBarAppendForTesting(
+    QTextEdit *textEdit,
+    const QString &source,
+    const void *returnAddress)
+{
+    dispatchCavalryMessageBarAppend(textEdit, source, returnAddress);
+}
+#endif

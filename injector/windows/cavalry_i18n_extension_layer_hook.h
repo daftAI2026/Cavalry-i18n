@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 CavalryEmbeddedTranslator、CavalryUI helper/CustomListWidget placeholder ABI、Core text-path 子边界与精确 PE/IAT 槽查询
- * [OUTPUT]: 对外提供串行化 helper/placeholder/十五项 text-path 聚合状态、前两条 Qt source 查询及结构化 text-path 诊断快照
+ * [INPUT]: 依赖 CavalryEmbeddedTranslator、CavalryUI helper/CustomListWidget placeholder/MessageBar append ABI、Core text-path 子边界与精确 PE/IAT 槽查询
+ * [OUTPUT]: 对外提供串行化 helper/placeholder/MessageBar/十五项 text-path 聚合状态、前两条 Qt source 查询及结构化 text-path 诊断快照
  * [POS]: injector/windows 的 ExtensionLayer 聚合生命周期边界；动态 detail 转发子 hook 最新计数，callback 不持 hook/translator raw pointer
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -50,7 +50,10 @@ public:
         bool helperInstalled,
         void **placeholderSlot,
         void *placeholderOriginal,
-        bool placeholderInstalled);
+        bool placeholderInstalled,
+        void **messageBarSlot = nullptr,
+        void *messageBarOriginal = nullptr,
+        bool messageBarInstalled = false);
     bool triggerTerminalFailureForTesting(const QString &failure);
 #endif
 
@@ -66,10 +69,13 @@ private:
     void *originalTextAtWidgetCentre_ = nullptr;
     void **placeholderAssignmentIatSlot_ = nullptr;
     void *originalPlaceholderAssignment_ = nullptr;
+    void **messageBarAppendIatSlot_ = nullptr;
+    void *originalMessageBarAppend_ = nullptr;
     QString status_ = QStringLiteral("waiting-for-extension-layer");
     QString detail_ = QStringLiteral("ExtensionLayer.dll is not loaded yet.");
     bool textAtWidgetCentreInstalled_ = false;
     bool placeholderAssignmentInstalled_ = false;
+    bool messageBarAppendInstalled_ = false;
     bool ownsGlobalHooks_ = false;
     bool terminalFailure_ = false;
 };

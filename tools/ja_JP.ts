@@ -8582,4 +8582,8 @@
     <message><source xml:space="preserve">Show Grid: </source><translation xml:space="preserve">グリッドを表示： </translation></message>
     <message><source xml:space="preserve">Preset: </source><translation xml:space="preserve">プリセット： </translation></message>
   </context>
+  <context>
+    <name>MessageBar</name>
+    <message><source>Pencil Tool: You're drawing too far away from the camera, try drawing in 2d.</source><translation>鉛筆ツール：カメラから離れすぎのため2Dで描画してください</translation></message>
+  </context>
 </TS>

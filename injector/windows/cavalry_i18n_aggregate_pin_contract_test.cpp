@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 aggregate hook 生产源码、现有 process-lifetime PIN helper 与测试进程自身映像
- * [OUTPUT]: 对外提供 aggregate 全部 IAT 安装写点必须位于插件 PIN 之后的源码合同，以及 PIN helper 正反例
+ * [OUTPUT]: 对外提供 aggregate 三个 Qt IAT 安装写点必须位于插件 PIN 之后的源码合同，以及 PIN helper 正反例
  * [POS]: injector/windows 的危险原语顺序合同分片；直接锚定 ensureInstalled 生产路径，不伪造厂商模块或 WinAPI
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -67,9 +67,9 @@ bool verifyProductionOrder()
         ++writeCount;
         cursor = write + QByteArray(iatWriteToken).size();
     }
-    if (!ordered || writeCount != 2) {
+    if (!ordered || writeCount != 3) {
         qCritical()
-            << "Aggregate ensureInstalled must PIN before exactly two IAT writes;"
+            << "Aggregate ensureInstalled must PIN before exactly three IAT writes;"
             << "writes:" << writeCount;
         return false;
     }

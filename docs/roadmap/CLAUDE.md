@@ -1,5 +1,5 @@
 # roadmap/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/CLAUDE.md
+> L2 | 父级: ../CLAUDE.md
 
 成员清单
 localized-search-index.md: 本地化搜索索引路线图，链接 Add Layer 中文搜索调研报告，并把 QuickAdd 现场抓取、反向翻译索引、scoped query bridge 与 live canary 拆成阶段验收。

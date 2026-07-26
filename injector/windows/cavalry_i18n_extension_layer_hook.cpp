@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 ExtensionLayer/CavalryUI/Qt6Core PE 导入事实、插件 process-lifetime PIN、Qt callback snapshot、Core text-path 子 hook 与共享 IAT CAS 原语
- * [OUTPUT]: 对外聚合三个串行化、可逆 IAT 边界，仅在插件永久驻留后首次写槽，终态失败回滚并转发 text-path 诊断
+ * [INPUT]: 依赖 ExtensionLayer/CavalryUI/Qt6Core/Qt6Widgets PE 导入事实、插件 process-lifetime PIN、Qt callback snapshot、Core text-path 子 hook 与共享 IAT CAS 原语
+ * [OUTPUT]: 对外聚合四个串行化、可逆 IAT 边界，仅在插件永久驻留后首次写槽，终态失败回滚并转发 text-path 诊断
  * [POS]: injector/windows 的 ExtensionLayer 生命周期编排器；固定 aggregate→text 锁序与 PIN→IAT 写序，callback、ABI 与原子计数下沉到兄弟模块
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -38,11 +38,15 @@ namespace {
 constexpr wchar_t kExtensionLayerModuleName[] = L"ExtensionLayer.dll";
 constexpr wchar_t kCavalryUiModuleName[] = L"CavalryUI.dll";
 constexpr wchar_t kQt6CoreModuleName[] = L"Qt6Core.dll";
+constexpr wchar_t kQt6WidgetsModuleName[] = L"Qt6Widgets.dll";
 constexpr char kCavalryUiImportName[] = "CavalryUI.dll";
+constexpr char kQt6WidgetsImportName[] = "Qt6Widgets.dll";
 constexpr char kTextAtWidgetCentreSymbol[] =
     "?textAtWidgetCentre@ui@@YAXPEAVQWidget@@AEBVQString@@AEBVQColor@@PEBVQPixmap@@@Z";
 constexpr char kQStringAssignmentSymbol[] =
     "??4QString@@QEAAAEAV0@AEBV0@@Z";
+constexpr char kQTextEditAppendSymbol[] =
+    "?append@QTextEdit@@QEAAXAEBVQString@@@Z";
 
 std::atomic<const void *> gLifecycleOwner { nullptr };
 
@@ -103,6 +107,7 @@ bool CavalryExtensionLayerHook::ensureInstalled()
 {
     std::lock_guard<std::mutex> lock(lifecycleMutex_);
     if (textAtWidgetCentreInstalled_ && placeholderAssignmentInstalled_
+        && messageBarAppendInstalled_
         && textPathHook_ != nullptr && textPathHook_->isInstalled()) {
         return true;
     }
@@ -284,6 +289,79 @@ bool CavalryExtensionLayerHook::ensureInstalled()
         enableCavalryPlaceholderTranslations(true);
     }
 
+    if (!messageBarAppendInstalled_) {
+        const CavalryPeIatLookupResult appendLookup = findCavalryPe64IatSlot(
+            image,
+            moduleInfo.SizeOfImage,
+            kQt6WidgetsImportName,
+            kQTextEditAppendSymbol);
+        if (appendLookup.status != CavalryPeIatLookupStatus::Found) {
+            return failTerminalLocked(QStringLiteral(
+                "ExtensionLayer.dll MessageBar append PE/IAT contract rejected: %1.")
+                .arg(QString::fromLatin1(
+                    cavalryPeIatLookupStatusName(appendLookup.status))));
+        }
+
+        auto **appendSlot = reinterpret_cast<void **>(
+            const_cast<std::uint8_t *>(image)
+            + appendLookup.iatSlotOffset);
+        CavalryMessageBarAppendPath appendPath;
+        QString pathFailure;
+        if (!validateCavalryMessageBarAppendPath(
+                image,
+                moduleInfo.SizeOfImage,
+                appendSlot,
+                &appendPath,
+                &pathFailure)) {
+            return failTerminalLocked(pathFailure);
+        }
+
+        HMODULE qt6Widgets = GetModuleHandleW(kQt6WidgetsModuleName);
+        if (!hasExpectedModuleName(
+                qt6Widgets,
+                kQt6WidgetsModuleName)) {
+            status_ = QStringLiteral("waiting-for-messagebar-append");
+            detail_ = QStringLiteral(
+                "Qt6Widgets.dll is not available for MessageBar append translation yet.");
+            return false;
+        }
+        const FARPROC qTextEditAppend =
+            GetProcAddress(qt6Widgets, kQTextEditAppendSymbol);
+        if (qTextEditAppend == nullptr) {
+            return failTerminalLocked(QStringLiteral(
+                "Qt6Widgets.dll does not export the expected QTextEdit::append(QString const&) ABI."));
+        }
+        void *const originalAppend = *appendPath.iatSlot;
+        if (originalAppend != reinterpret_cast<void *>(qTextEditAppend)) {
+            return failTerminalLocked(QStringLiteral(
+                "ExtensionLayer.dll QTextEdit::append IAT target does not match Qt6Widgets.dll."));
+        }
+
+        QString snapshotFailure;
+        if (!publishCavalryMessageBarCallbackSnapshot(
+                translator_,
+                originalAppend,
+                appendPath.approvedReturnAddresses,
+                &snapshotFailure)) {
+            return failTerminalLocked(snapshotFailure);
+        }
+
+        QString replacementFailure;
+        if (!replaceCavalryIatPointer(
+                appendPath.iatSlot,
+                originalAppend,
+                cavalryMessageBarReplacementAddress(),
+                &replacementFailure)) {
+            clearCavalryMessageBarOriginal();
+            return failTerminalLocked(replacementFailure);
+        }
+
+        messageBarAppendIatSlot_ = appendPath.iatSlot;
+        originalMessageBarAppend_ = originalAppend;
+        messageBarAppendInstalled_ = true;
+        enableCavalryMessageBarTranslations(true);
+    }
+
     if (textPathHook_ == nullptr) {
         return failTerminalLocked(QStringLiteral(
             "Core text-path hook state is unavailable."));
@@ -303,7 +381,7 @@ bool CavalryExtensionLayerHook::ensureInstalled()
 
     status_ = QStringLiteral("installed");
     detail_ = QStringLiteral(
-        "Patched ExtensionLayer.dll ui::textAtWidgetCentre, CustomListWidget::setPlaceholder, and canonical Core::MakePathFromText IAT paths.");
+        "Patched ExtensionLayer.dll ui::textAtWidgetCentre, CustomListWidget::setPlaceholder, canonical MessageBar QTextEdit::append, and Core::MakePathFromText IAT paths.");
     return true;
 }
 
@@ -312,6 +390,7 @@ bool CavalryExtensionLayerHook::isWaitingForModule() const
     std::lock_guard<std::mutex> lock(lifecycleMutex_);
     return status_ == QStringLiteral("waiting-for-extension-layer")
         || status_ == QStringLiteral("waiting-for-placeholder-assignment")
+        || status_ == QStringLiteral("waiting-for-messagebar-append")
         || status_ == QStringLiteral("waiting-for-core-text-path");
 }
 
@@ -375,7 +454,10 @@ bool CavalryExtensionLayerHook::configurePartialInstallForTesting(
     bool helperInstalled,
     void **placeholderSlot,
     void *placeholderOriginal,
-    bool placeholderInstalled)
+    bool placeholderInstalled,
+    void **messageBarSlot,
+    void *messageBarOriginal,
+    bool messageBarInstalled)
 {
     std::lock_guard<std::mutex> lock(lifecycleMutex_);
     const void *expectedOwner = nullptr;
@@ -392,6 +474,9 @@ bool CavalryExtensionLayerHook::configurePartialInstallForTesting(
     placeholderAssignmentIatSlot_ = placeholderSlot;
     originalPlaceholderAssignment_ = placeholderOriginal;
     placeholderAssignmentInstalled_ = placeholderInstalled;
+    messageBarAppendIatSlot_ = messageBarSlot;
+    originalMessageBarAppend_ = messageBarOriginal;
+    messageBarAppendInstalled_ = messageBarInstalled;
     return true;
 }
 
@@ -432,6 +517,7 @@ bool CavalryExtensionLayerHook::uninstallLocked(
     const bool hasInstalledHook =
         textAtWidgetCentreInstalled_
         || placeholderAssignmentInstalled_
+        || messageBarAppendInstalled_
         || childInstalled;
     if (!ownsGlobalHooks_) {
         if (!hasInstalledHook) {
@@ -457,6 +543,7 @@ bool CavalryExtensionLayerHook::uninstallLocked(
         return false;
     }
 
+    enableCavalryMessageBarTranslations(false);
     enableCavalryPlaceholderTranslations(false);
     enableCavalryHelperTranslations(false);
 
@@ -466,6 +553,26 @@ bool CavalryExtensionLayerHook::uninstallLocked(
         && !textPathHook_->uninstall(&childFailure)) {
         failures.append(QStringLiteral("Core text-path restore: %1")
             .arg(childFailure));
+    }
+
+    bool messageBarRestoreSucceeded = !messageBarAppendInstalled_;
+    if (messageBarAppendInstalled_) {
+        QString restoreFailure;
+        messageBarRestoreSucceeded =
+            messageBarAppendIatSlot_ != nullptr
+            && originalMessageBarAppend_ != nullptr
+            && replaceCavalryIatPointer(
+                messageBarAppendIatSlot_,
+                cavalryMessageBarReplacementAddress(),
+                originalMessageBarAppend_,
+                &restoreFailure);
+        if (!messageBarRestoreSucceeded) {
+            failures.append(QStringLiteral("MessageBar restore: %1")
+                .arg(restoreFailure.isEmpty()
+                        ? QStringLiteral(
+                              "slot metadata was unavailable; immutable callback state retains original forwarding.")
+                        : restoreFailure));
+        }
     }
 
     const auto attempts = cavalry_i18n::decideIatPairUninstall(
@@ -534,6 +641,12 @@ bool CavalryExtensionLayerHook::uninstallLocked(
         textAtWidgetCentreIatSlot_ = nullptr;
         originalTextAtWidgetCentre_ = nullptr;
         textAtWidgetCentreInstalled_ = false;
+    }
+    if (messageBarAppendInstalled_ && messageBarRestoreSucceeded) {
+        clearCavalryMessageBarOriginal();
+        messageBarAppendIatSlot_ = nullptr;
+        originalMessageBarAppend_ = nullptr;
+        messageBarAppendInstalled_ = false;
     }
 
     const void *expectedOwner = this;

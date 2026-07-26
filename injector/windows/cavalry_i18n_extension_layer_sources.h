@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 不依赖 Qt 或厂商模块；只承载经静态采证的 ASCII source 常量
- * [OUTPUT]: 对外提供九条 QWidget helper、十三条 CustomListWidget placeholder，以及十五条 Skia text-path source 的共享 ABI 合同
+ * [OUTPUT]: 对外提供九条 QWidget helper、十三条 CustomListWidget placeholder、一条 MessageBar 日志，以及十五条 Skia text-path source 的共享 ABI 合同
  * [POS]: injector/windows 的 ExtensionLayer 文本边界真相，供运行时 hook、无厂商单测和只读 vendor 合同共同消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -41,6 +41,12 @@ inline constexpr std::array<const char *, 13> kStaticPlaceholderSources {{
     "No bookmarks yet.",
     "Organise Pre-Comp Overrides here.",
     "Drag some JavaScript here to make a Snippet.",
+}};
+
+inline constexpr char kPencilCameraDistanceWarning[] =
+    "Pencil Tool: You're drawing too far away from the camera, try drawing in 2d.";
+inline constexpr std::array<const char *, 1> kStaticMessageBarSources {{
+    kPencilCameraDistanceWarning,
 }};
 
 inline constexpr char kViewportQualityHigh[] = "Viewport Quality: High";
@@ -110,6 +116,7 @@ inline constexpr std::array<const char *, 15> kStaticTextPathSources {{
 
 static_assert(kStaticHelperSources.size() == 9);
 static_assert(kStaticPlaceholderSources.size() == 13);
+static_assert(kStaticMessageBarSources.size() == 1);
 static_assert(kViewportQualitySources.size() == 4);
 static_assert(kEditShapeToolHelpPairs.size() == 6);
 static_assert(kTransformToolHelpPairs.size() == 5);

@@ -3161,6 +3161,77 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
   }
 });
 
+test('Windows Pencil warning uses two exact MessageBar append callers', () => {
+  const generatorPath = path.join(repoRoot, 'tools', 'generate_embedded_translations.js');
+  const { parseTs } = require(generatorPath);
+  const source =
+    "Pencil Tool: You're drawing too far away from the camera, try drawing in 2d.";
+  const expectations = new Map([
+    ['zh-Hans', '铅笔工具：绘制位置离相机太远，请尝试在 2D 中绘制'],
+    ['zh-Hant', '鉛筆工具：繪製位置離攝影機太遠，請嘗試在 2D 中繪製'],
+    ['ja_JP', '鉛筆ツール：カメラから離れすぎのため2Dで描画してください'],
+  ]);
+
+  for (const [language, translation] of expectations) {
+    const fileName = language === 'ja_JP' ? 'ja_JP.ts' : `${language}.ts`;
+    const entries = new Map(
+      parseTs(path.join(repoRoot, 'tools', fileName)).map((entry) => [
+        `${entry.context}\u001f${entry.source}`,
+        entry.translation,
+      ])
+    );
+    assert.equal(
+      entries.get(`MessageBar\u001f${source}`),
+      translation,
+      `${language} must carry the exact Pencil warning used by MessageBar`
+    );
+  }
+
+  const sourcesHeader = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'cavalry_i18n_extension_layer_sources.h'),
+    'utf8'
+  );
+  const qtHooks = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'cavalry_i18n_extension_layer_qt_hooks.cpp'),
+    'utf8'
+  );
+  const aggregateHook = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'cavalry_i18n_extension_layer_hook.cpp'),
+    'utf8'
+  );
+  const vendorContract = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'cavalry_i18n_vendor_messagebar_contract.cpp'),
+    'utf8'
+  );
+  const hookTest = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'cavalry_i18n_messagebar_qt_hook_test.cpp'),
+    'utf8'
+  );
+  const cmake = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'CMakeLists.txt'),
+    'utf8'
+  );
+
+  assert.match(sourcesHeader, /kStaticMessageBarSources/);
+  assert.match(qtHooks, /cavalryExtensionLayerMessageBarAppendReplacement/);
+  assert.match(qtHooks, /approvedReturnAddresses/);
+  assert.match(qtHooks, /_ReturnAddress\(\)/);
+  assert.match(qtHooks, /lastIndexOf\(QStringLiteral\("<br>"\)\)/);
+  assert.doesNotMatch(qtHooks, /toPlainText\s*\(|setPlainText\s*\(/);
+  assert.match(aggregateHook, /\?append@QTextEdit@@QEAAXAEBVQString@@@Z/);
+  assert.match(vendorContract, /kExpectedQTextEditAppendCallCount\s*=\s*3/);
+  assert.match(vendorContract, /0x00FB40F4/);
+  assert.match(vendorContract, /0x00FB4B91/);
+  assert.match(vendorContract, /kExcludedJsLoggerAppendCallRva\s*=\s*0x010DF4B0/);
+  assert.match(vendorContract, / \{\} <b>\{\}<\/b> <br>\{\}/);
+  assert.match(hookTest, /excluded js_logger caller/);
+  assert.match(hookTest, /raw source without br/);
+  assert.match(hookTest, /null return address/);
+  assert.match(hookTest, /unknown MessageBar body/);
+  assert.match(hookTest, /forward-only callback tombstone/);
+  assert.match(cmake, /cavalryi18n_messagebar_qt_hook_test/);
+});
+
 test('Canva authentication copy preserves brand names across runtime translations', () => {
   const expectedEntries = {
     'zh-Hans': {

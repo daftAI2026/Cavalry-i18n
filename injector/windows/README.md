@@ -32,7 +32,7 @@ tooltip 和 statusTip。刷新严格停留在显示层：`QLineEdit::text()` 仅
 命中时以信号阻断方式投影译文，未知/用户输入保持原样；`QTreeWidget` 仅写递归
 可见 `DisplayRole`。`UserRole`、Time Editor 模型身份和其他厂商业务数据均不修改。
 
-对 ExtensionLayer 的自绘/空状态文本，插件只在该模块已加载后安装三条已采证、可逆的
+对 ExtensionLayer 的自绘/空状态文本，插件只在该模块已加载后安装四条已采证、可逆的
 IAT 边界：
 
 - `CavalryUI.dll!ui::textAtWidgetCentre(QWidget*, const QString&, const QColor&, const QPixmap*)`
@@ -42,15 +42,19 @@ IAT 边界：
   枚举范围内，运行时必须从已验证 setter 的 RIP-relative 尾跳解码，且只接受直接
   `E8` 调用该导出 thunk 的返回地址；若槽仍为 canonical import-by-name RVA，则先等待
   loader 解析为 Qt6Core 导出，绝不抢写；
+- `Qt6Widgets.dll!QTextEdit::append(QString const&)` 的唯一导入槽，只批准 MessageBar
+  history/live 两个固定 return；仅替换最后一个 `<br>` 后精确等于 Pencil 警告的正文，
+  HTML 与首尾空白不变，命名 `js_logger`、无 `<br>` 与未知日志全部透传；
 - `Core.dll!cavalry::MakePathFromText(std::string const&, double) -> Path` 的唯一导入槽
   （MSVC x64 调用时包含隐藏的 Path 返回存储参数）。
   这一路还必须命中 `GraphicsViewportBase::getOrCreateTextPath` 内已采证的 canonical
   return RVA 与十五条 exact UTF-8 source，才会进入受控 CJK Path 分支。
 
-三条边界都必须同时命中 `cavalry_i18n_extension_layer_sources.h` 的精确 source 合同和
+四条边界都必须同时命中 `cavalry_i18n_extension_layer_sources.h` 的精确 source 合同和
 三语嵌入表才会换成译文；未知 source、以及表内但不在白名单的 source 都原样透传。helper
 只允许九条 source；placeholder 只允许十三条已采证 source（其中包括
-`Drag some JavaScript here to make a Snippet.`）。text-path 只允许四条 viewport quality、
+`Drag some JavaScript here to make a Snippet.`）；MessageBar 只允许一条 Pencil 正文。
+text-path 只允许四条 viewport quality、
 六条 EditShapeTool action 与五条 TransformTool action；快捷键 prefix 保持英文。
 
 text-path 命中后不会改写厂商代码或安装全局 Skia hook。`CavalrySkiaTextPathRenderer` 只调用
@@ -60,7 +64,7 @@ ABI 或空轮廓任一检查失败时，callback 直接交回原 `MakePathFromTe
 或猜测布局。任一 ABI、模块名、导出、槽目标或 canonical caller 不匹配时同样 fail closed；
 不写厂商 `.text`、不拦截 Skia/libc/QPainter，也不修改厂商文件。
 
-三条 callback 在安装时把原函数、精确译文与 caller 元数据复制进不可变 snapshot，
+helper、placeholder 与 MessageBar 三条 Qt callback 在安装时把原函数、精确译文与 caller 元数据复制进不可变 snapshot，
 运行时原子读取，不保存 hook 或 translator 指针，也不在生命周期锁内调用 Cavalry/Qt
 原函数。IAT 写入使用 compare-exchange：槽已被第三方改动时不覆盖；终态安装失败会在
 同一聚合生命周期内回滚已装槽，waiting 状态才允许保留 partial install。卸载时每个槽
@@ -117,16 +121,17 @@ $env:CAVALRY_VENDOR_ROOT = "E:\Apps\Cavalry"
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.ps1
 ```
 
-该测试只读映射两个 PE 文件到测试进程内存，验证 `ExtensionLayer.dll` 唯一正常导入的
+该测试只读映射四个 PE 文件到测试进程内存，验证 `ExtensionLayer.dll` 唯一正常导入的
 `ui::textAtWidgetCentre` decorated symbol、预期 IAT RVA 与 `CavalryUI.dll` 对应导出；
 还验证 `CustomListWidget::setPlaceholder` 的导出 thunk、canonical setter、尾跳解析出的
 QString 赋值槽 RVA、其初始 import-by-name RVA、二十个直接调用与 Snippet 的直接调用点。
-它还逐一验证十三条 placeholder source literal，以及 Core MakePath 唯一槽、证明
+它还逐一验证十三条 placeholder source literal；锁定 `QTextEdit::append` 唯一槽、三处调用、
+history/live 两个批准 return、`js_logger` 排除项、HTML 模板与 Pencil 原文；并验证 Core MakePath 唯一槽、证明
 RCX hidden-sret/RDX string-ref/XMM2 double 参数搬运的十字节 preamble、canonical
 return、viewport enum 表、EditShapeTool 与 TransformTool 的 prefix/action 双 Path 数据流及十五条精确定位的完整 source；
 并验证 Core 固定 Lato 路径、CJK renderer 所需的 Core/skia 导出、Path 几何步骤与 typeface
 引用计数析构约定。测试不会加载、执行、复制或修改厂商 DLL。未设置变量时，常规跨机器构建仍会编译
-text-path/Core-Skia 合同代码并运行其余五项测试，只是不执行 machine-specific 映像断言。
+MessageBar/text-path/Core-Skia 合同代码并运行其余六项测试，只是不执行 machine-specific 映像断言。
 
 中间产物为：
 
@@ -154,8 +159,8 @@ build/windows-injector/
 `injector/generated_translations.inc`，运行时不读取 `.qm`，也没有外部语言目录猜测。
 
 插件的 process-lifetime PIN 是所有 aggregate IAT 安装写入的前置资格：
-`ensureInstalled` 必须先固定 `cavalryi18n.dll`，PIN 失败时 helper 与 placeholder
-两个槽均保持原值。Core text-path 在完成私有 ABI 验证后仍执行自己的插件/Core/skia
+`ensureInstalled` 必须先固定 `cavalryi18n.dll`，PIN 失败时 helper、placeholder 与 MessageBar
+三个 Qt 槽均保持原值。Core text-path 在完成私有 ABI 验证后仍执行自己的插件/Core/skia
 PIN，作为独立防线；不能用其中一路的延迟加载假设替代另一路的驻留保证。
 
 示意验证只使用占位路径：
@@ -171,7 +176,7 @@ $env:CAVALRY_I18N_DIAGNOSTIC_MARKER = "C:\Path\To\State\runtime.json"
 marker 的 `status` 为 `ready` 且 `translatorInstalled` 为 `true`，只能证明
 插件已被目标 Qt 加载并安装嵌入表；`embeddedEntryCount`、`exactKeyCount` 与
 `sourceFallbackCount` 必须大于零。还必须读取 `extensionLayerHookStatus`：只有
-`installed` 才说明 helper、placeholder 与 Core text-path 三条精确 IAT 边界已全部安装，
+`installed` 才说明 helper、placeholder、MessageBar 与 Core text-path 四条精确 IAT 边界已全部安装，
 `extensionLayerTextPathDiagnostics` 还会给出 `revision`、`canonicalCalls`、
 `whitelistCalls`、`cjkPathSuccess`、`originalFallback`、`noTranslation`、
 `rendererFailure`、`translatedSourceMask` 与 `fallbackSourceMask`。十五位 mask 按

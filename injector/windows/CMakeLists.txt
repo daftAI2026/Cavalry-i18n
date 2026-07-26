@@ -1,5 +1,5 @@
 # [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、Windows Psapi、本目录源码、../generated_translations.inc 与可选 Cavalry vendor 二进制根目录
-# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 display、translator、PE/IAT、ExtensionLayer 三边界 hook、vendor ABI/import 与 generic-plugin smoke 合同测试
+# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 display、translator、PE/IAT、ExtensionLayer 四边界 hook、MessageBar/vendor ABI/import 与 generic-plugin smoke 合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构前置检查约束 Windows Qt 插件产物与无第三方 IAT 实现
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 3.21)
@@ -177,6 +177,43 @@ if(BUILD_TESTING)
             "$<TARGET_FILE:cavalryi18n_embedded_translator_test>"
     )
 
+    add_executable(cavalryi18n_messagebar_qt_hook_test
+        cavalry_i18n_messagebar_qt_hook_test.cpp
+        cavalry_i18n_callback_snapshot.h
+        cavalry_i18n_extension_layer_qt_hooks.cpp
+        cavalry_i18n_extension_layer_qt_hooks.h
+        cavalry_i18n_extension_layer_sources.h
+        cavalry_i18n_translator.cpp
+        cavalry_i18n_translator.h
+    )
+
+    target_link_libraries(cavalryi18n_messagebar_qt_hook_test
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Widgets
+    )
+
+    target_include_directories(cavalryi18n_messagebar_qt_hook_test
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    target_compile_definitions(
+        cavalryi18n_messagebar_qt_hook_test
+        PRIVATE
+            CAVALRY_I18N_TESTING
+            QT_NO_KEYWORDS
+    )
+
+    add_test(
+        NAME cavalryi18n_messagebar_qt_hook
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "$<TARGET_FILE:cavalryi18n_messagebar_qt_hook_test>"
+    )
+
     add_executable(cavalryi18n_pe_iat_test
         cavalry_i18n_pe_iat_test.cpp
         cavalry_i18n_pe_iat.cpp
@@ -205,6 +242,18 @@ if(BUILD_TESTING)
     )
 
     target_include_directories(cavalryi18n_vendor_text_path_contract
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    add_library(cavalryi18n_vendor_messagebar_contract OBJECT
+        cavalry_i18n_vendor_messagebar_contract.cpp
+        cavalry_i18n_vendor_messagebar_contract.h
+        cavalry_i18n_extension_layer_sources.h
+        cavalry_i18n_pe_iat.h
+    )
+
+    target_include_directories(cavalryi18n_vendor_messagebar_contract
         PRIVATE
             "${CMAKE_CURRENT_SOURCE_DIR}"
     )
@@ -243,6 +292,7 @@ if(BUILD_TESTING)
         add_executable(cavalryi18n_vendor_iat_contract_test
             cavalry_i18n_vendor_iat_contract_test.cpp
             $<TARGET_OBJECTS:cavalryi18n_vendor_text_path_contract>
+            $<TARGET_OBJECTS:cavalryi18n_vendor_messagebar_contract>
             cavalry_i18n_extension_layer_sources.h
             cavalry_i18n_pe_iat.h
         )
@@ -266,6 +316,7 @@ if(BUILD_TESTING)
     add_executable(cavalryi18n_extension_layer_hook_test
         cavalry_i18n_aggregate_pin_contract_test.cpp
         cavalry_i18n_extension_layer_hook_test.cpp
+        cavalry_i18n_messagebar_lifecycle_contract_test.cpp
         cavalry_i18n_callback_snapshot.h
         cavalry_i18n_extension_layer_hook.cpp
         cavalry_i18n_extension_layer_hook.h

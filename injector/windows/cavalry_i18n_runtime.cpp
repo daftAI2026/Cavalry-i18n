@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 CAVALRY_I18N_LANG、嵌入生成表、ExtensionLayer 三条精确 hook、可选绝对 marker 路径与 Qt 6.6.3 事件循环
+ * [INPUT]: 依赖 CAVALRY_I18N_LANG、嵌入生成表、ExtensionLayer 四条精确 hook、可选绝对 marker 路径与 Qt 6.6.3 事件循环
  * [OUTPUT]: 对外安装 translator/显示投影，并以事件重试 hook、以 75ms 条件计时器仅在 text-path revision 变化时写结构化诊断
  * [POS]: injector/windows 的运行时状态机；普通用户无 marker 时不创建诊断计时器，callback 只改原子计数，Qt 线程负责安全落盘
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

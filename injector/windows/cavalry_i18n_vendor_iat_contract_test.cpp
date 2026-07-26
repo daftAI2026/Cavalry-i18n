@@ -1,11 +1,12 @@
 /**
- * [INPUT]: 依赖指定 Cavalry 安装根的 ExtensionLayer.dll/CavalryUI.dll/Core.dll/skia.dll 只读 PE 文件、PE/IAT 解析器与 text-path 静态合同分片
- * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 helper IAT、CavalryUI 导出、placeholder setter 链、ExtensionLayer 调用点及 Core/Skia CJK Path ABI
+ * [INPUT]: 依赖指定 Cavalry 安装根的 ExtensionLayer.dll/CavalryUI.dll/Core.dll/skia.dll 只读 PE 文件、PE/IAT 解析器与 MessageBar/text-path 静态合同分片
+ * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 helper IAT、CavalryUI 导出、placeholder setter 链、MessageBar append、ExtensionLayer 调用点及 Core/Skia CJK Path ABI
  * [POS]: injector/windows 的 vendor 静态 ABI/import 合同；不加载、执行、修改或复制厂商 DLL，只把原始 PE 文件映射到测试内存
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_pe_iat.h"
 #include "cavalry_i18n_extension_layer_sources.h"
+#include "cavalry_i18n_vendor_messagebar_contract.h"
 #include "cavalry_i18n_vendor_skia_text_path_contract.h"
 #include "cavalry_i18n_vendor_text_path_contract.h"
 
@@ -645,6 +646,12 @@ int main(int argc, char *argv[])
         fail("ExtensionLayer placeholder source contract: " + failure);
         return 1;
     }
+    if (!verifyCavalryExtensionLayerMessageBarContract(
+            extensionLayerImage,
+            &failure)) {
+        fail("ExtensionLayer MessageBar append contract: " + failure);
+        return 1;
+    }
     if (!verifyCavalryExtensionLayerTextPathContract(
             extensionLayerImage,
             &failure)) {
@@ -704,6 +711,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::puts("Cavalry vendor helper, placeholder, ExtensionLayer, and Core/Skia CJK text-path contracts passed.");
+    std::puts("Cavalry vendor helper, placeholder, MessageBar, ExtensionLayer, and Core/Skia CJK text-path contracts passed.");
     return 0;
 }
