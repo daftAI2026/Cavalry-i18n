@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 [INPUT]: 依赖 languages/* JSON、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
-[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率，并只对显式 source variant 集合豁免同义复用
+[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝占位符（含裸 {}）漂移、FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率，并只对显式 source variant 集合豁免同义复用
 [POS]: tools 的 G1 / §P5 validator，被 full-ui gate 用来审判翻译资产与生成表
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -46,7 +46,7 @@ JSON_SURFACE_KEYS = {
     "tips": "languages/en/tips.json",
 }
 
-PLACEHOLDER_RE = re.compile(r"\{[0-9]+\}|%[0-9]+|\{\{[^{}]+\}\}")
+PLACEHOLDER_RE = re.compile(r"\{\}|\{[0-9]+\}|%[0-9]+|\{\{[^{}]+\}\}")
 HTML_TAG_RE = re.compile(r"<[^>]+>")
 TS_MESSAGE_RE = re.compile(
     r"<message\b[\s\S]*?<source>([\s\S]*?)</source>[\s\S]*?<translation(?:\s+[^>]*)?>([\s\S]*?)</translation>[\s\S]*?</message>"
@@ -1064,7 +1064,7 @@ def build_report(root: Path, extraction_inventory_path: Path | None = None) -> d
         "B4": {
             "name": "Placeholder parity",
             "status": gate_status(b4_ok),
-            "detail": "Placeholder tokens like {0}, %1, {{...}} must be preserved.",
+            "detail": "Placeholder tokens like {}, {0}, %1, {{...}} must be preserved.",
         },
         "B9": {
             "name": "English residue",

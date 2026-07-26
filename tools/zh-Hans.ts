@@ -6434,6 +6434,30 @@
       <translation>按住 Alt/Option 可在合成范围内分布</translation>
     </message>
     <message>
+      <source>Enable the &apos;Update the UI during Playback&apos;</source>
+      <translation>启用“播放期间更新界面”</translation>
+    </message>
+    <message>
+      <source>The resolution of {} is too large for H.264/MP4 and will be scaled.</source>
+      <translation>{} 的分辨率超过 H.264/MP4 限制，将被缩放。</translation>
+    </message>
+    <message>
+      <source>Materials are inherited by children - unless a child has their own material.</source>
+      <translation>子级会继承父级材质，已有自身材质的子级除外。</translation>
+    </message>
+    <message>
+      <source>Strokes are inherited by children - unless a child has their own stroke.</source>
+      <translation>子级会继承父级描边，已有自身描边的子级除外。</translation>
+    </message>
+    <message>
+      <source>This is useful to know when a feature requires matching verb counts between shapes (for example when using the Blend Shape).</source>
+      <translation>当某项功能要求各形状的绘制指令数量一致时，这项信息会很有用（例如使用混合形状时）。</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to run just the selected text.</source>
+      <translation>按住 Alt/Option 可仅运行所选文本。</translation>
+    </message>
+    <message>
       <source>Remember to set motion blur to 'Full' for each shape you wish to use this with.</source>
       <translation>请记得将每个要使用此功能的形状的运动模糊设为“完全”。</translation>
     </message>

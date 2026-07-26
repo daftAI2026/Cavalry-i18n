@@ -7908,6 +7908,30 @@
       <translation>Alt/Option を押したままコンポジション全体に分布</translation>
     </message>
     <message>
+      <source>Enable the &apos;Update the UI during Playback&apos;</source>
+      <translation>「再生中に画面を更新」を有効にする</translation>
+    </message>
+    <message>
+      <source>The resolution of {} is too large for H.264/MP4 and will be scaled.</source>
+      <translation>{}の解像度はH.264/MP4には大きすぎるため、縮小されます。</translation>
+    </message>
+    <message>
+      <source>Materials are inherited by children - unless a child has their own material.</source>
+      <translation>子は親のマテリアルを継承します。ただし、独自のマテリアルがある子は除きます。</translation>
+    </message>
+    <message>
+      <source>Strokes are inherited by children - unless a child has their own stroke.</source>
+      <translation>子は親のストロークを継承します。ただし、独自のストロークがある子は除きます。</translation>
+    </message>
+    <message>
+      <source>This is useful to know when a feature requires matching verb counts between shapes (for example when using the Blend Shape).</source>
+      <translation>シェイプ間で描画命令数を一致させる必要がある機能では、この情報が役立ちます（たとえばブレンドシェイプを使用する場合）。</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to run just the selected text.</source>
+      <translation>Alt/Optionを押したままにすると、選択したテキストのみを実行します。</translation>
+    </message>
+    <message>
       <source>Remember to set motion blur to 'Full' for each shape you wish to use this with.</source>
       <translation>この機能を使う各シェイプで、モーションブラーを「完全」に設定してください。</translation>
     </message>

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定工具栏逐行 tooltip、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
+ * [OUTPUT]: 对外锁定运行时逐行 tooltip、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
  * [POS]: injector/windows 的显示层单元回归，证明复合提示只改已知行，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -264,7 +264,7 @@ bool verifyLineEditDisplay(const LocaleExpectation &expectation)
             emittedTexts.size() == signalCountBeforePaintFallback);
 }
 
-bool verifyCompoundToolbarTooltips(const LocaleExpectation &expectation)
+bool verifyCompoundRuntimeTooltips(const LocaleExpectation &expectation)
 {
     const QString language = QString::fromLatin1(expectation.language);
     CavalryEmbeddedTranslator translator(language);
@@ -369,6 +369,48 @@ bool verifyCompoundToolbarTooltips(const LocaleExpectation &expectation)
             QStringLiteral(
                 "Hold Alt/Option to distribute across the Composition"),
         },
+        {
+            QStringLiteral(
+                "Enable the 'Update the UI during Playback'"),
+            QStringLiteral("Viewport setting to preview."),
+        },
+        {
+            QStringLiteral(
+                "The resolution of {} is too large for H.264/MP4 and will be "
+                "scaled."),
+            QStringLiteral(
+                "Please consider rendering to a different format."),
+        },
+        {
+            QStringLiteral(
+                "Materials are inherited by children - unless a child has "
+                "their own material."),
+            QStringLiteral(
+                "You can override sub-mesh materials with a Sub-Mesh "
+                "deformer."),
+        },
+        {
+            QStringLiteral(
+                "Strokes are inherited by children - unless a child has "
+                "their own stroke."),
+            QStringLiteral(
+                "You can override sub-mesh strokes with a Sub-Mesh "
+                "deformer."),
+        },
+        {
+            QStringLiteral(
+                "The number of verbs (draw instructions) in the Path, this "
+                "excludes control points."),
+            QStringLiteral(
+                "This is useful to know when a feature requires matching "
+                "verb counts between shapes (for example when using the "
+                "Blend Shape)."),
+        },
+        {
+            QStringLiteral("Run the current script."),
+            QStringLiteral(
+                "Hold Alt/Option to run just the selected text."),
+        },
     };
 
     for (const QStringList &tooltipLines : tooltips) {
@@ -384,7 +426,7 @@ bool verifyCompoundToolbarTooltips(const LocaleExpectation &expectation)
             }
             if (!expectTrue(
                     language
-                        + QStringLiteral(" toolbar source is translated: ")
+                        + QStringLiteral(" compound source is translated: ")
                         + line,
                     !translatedLine.isEmpty() && translatedLine != line)) {
                 return false;
@@ -541,7 +583,7 @@ bool verifyLocale(const LocaleExpectation &expectation)
         return false;
     }
 
-    return verifyCompoundToolbarTooltips(expectation)
+    return verifyCompoundRuntimeTooltips(expectation)
         && verifyTreeWidgetDisplay(expectation)
         && verifyLineEditDisplay(expectation);
 }
