@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
- * [POS]: injector/windows 的显示层单元回归，证明通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入，也不会产生输入框业务回写信号
+ * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
+ * [OUTPUT]: 对外锁定工具栏逐行 tooltip、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
+ * [POS]: injector/windows 的显示层单元回归，证明复合提示只改已知行，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -13,6 +13,7 @@
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
+#include <QtGui/QAction>
 #include <QtGui/QStandardItemModel>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
@@ -263,6 +264,160 @@ bool verifyLineEditDisplay(const LocaleExpectation &expectation)
             emittedTexts.size() == signalCountBeforePaintFallback);
 }
 
+bool verifyCompoundToolbarTooltips(const LocaleExpectation &expectation)
+{
+    const QString language = QString::fromLatin1(expectation.language);
+    CavalryEmbeddedTranslator translator(language);
+    CavalryDisplayTranslator displayTranslator(translator);
+
+    const QList<QStringList> tooltips {
+        {
+            QStringLiteral(" (c)"),
+            QStringLiteral("Hold Alt/Option to Create a Camera"),
+        },
+        {
+            QStringLiteral("Line Tool"),
+            QStringLiteral(
+                "Click and drag in the Viewport to create an Editable Shape "
+                "or alt/option + click the icon to create a Basic Line."),
+        },
+        {
+            QStringLiteral("Create a Duplicator"),
+            QStringLiteral(
+                "Any selected shapes will automatically be added as input "
+                "shapes for the Duplicator."),
+        },
+        {
+            QStringLiteral("Create an Extrusion"),
+            QStringLiteral(
+                "Any selected shapes will automatically be added as input "
+                "shapes for the Extrude."),
+        },
+        {
+            QStringLiteral("Create a Forge Dynamics Solver"),
+            QStringLiteral(
+                "Any selected shapes will automatically be added as input "
+                "shapes."),
+        },
+        {
+            QStringLiteral("Add a Rig Control"),
+            QStringLiteral(
+                "This is very useful for rigging facial animation."),
+            QStringLiteral(
+                "Connect its output to a keyframed attribute."),
+        },
+        {
+            QStringLiteral("Add an Animation Control"),
+            QStringLiteral(
+                "This lets you drive animation in a non-linear way."),
+            QStringLiteral(
+                "Connect its output to a keyframed attribute."),
+        },
+        {
+            QStringLiteral("Create a Rubber Hose Limb."),
+            QStringLiteral(
+                "Hold Alt/Option to add a Rubber Hose to the Selected "
+                "Objects."),
+        },
+        {
+            QStringLiteral("Create an Align Behaviour"),
+            QStringLiteral(
+                "This will automatically connect to any selected shapes."),
+        },
+        {
+            QStringLiteral("Add an Auto-Animate Deformer"),
+            QStringLiteral(
+                "This will automatically connect to any selected shapes."),
+        },
+        {
+            QStringLiteral("Top Align"),
+            QStringLiteral(
+                "Hold Alt/Option to align to the Composition"),
+        },
+        {
+            QStringLiteral("Middle Align"),
+            QStringLiteral(
+                "Hold Alt/Option to align to the Composition"),
+        },
+        {
+            QStringLiteral("Bottom Align"),
+            QStringLiteral(
+                "Hold Alt/Option to align to the Composition"),
+        },
+        {
+            QStringLiteral("Left Align"),
+            QStringLiteral(
+                "Hold Alt/Option to align to the Composition"),
+        },
+        {
+            QStringLiteral("Centre Align"),
+            QStringLiteral(
+                "Hold Alt/Option to align to the Composition"),
+        },
+        {
+            QStringLiteral("Right Align"),
+            QStringLiteral(
+                "Hold Alt/Option to align to the Composition"),
+        },
+        {
+            QStringLiteral("Horizontal Distribution"),
+            QStringLiteral(
+                "Hold Alt/Option to distribute across the Composition"),
+        },
+        {
+            QStringLiteral("Vertical Distribution"),
+            QStringLiteral(
+                "Hold Alt/Option to distribute across the Composition"),
+        },
+    };
+
+    for (const QStringList &tooltipLines : tooltips) {
+        QStringList expectedLines;
+        expectedLines.reserve(tooltipLines.size());
+        for (const QString &line : tooltipLines) {
+            const QByteArray lineUtf8 = line.toUtf8();
+            const QString translatedLine =
+                translator.translate(nullptr, lineUtf8.constData());
+            if (line == QStringLiteral(" (c)")) {
+                expectedLines.append(line);
+                continue;
+            }
+            if (!expectTrue(
+                    language
+                        + QStringLiteral(" toolbar source is translated: ")
+                        + line,
+                    !translatedLine.isEmpty() && translatedLine != line)) {
+                return false;
+            }
+            expectedLines.append(translatedLine);
+        }
+
+        QAction action;
+        action.setToolTip(tooltipLines.join(QChar('\n')));
+        displayTranslator.translateAction(&action);
+
+        if (!expectEqual(
+                language + QStringLiteral(" compound toolbar tooltip"),
+                action.toolTip(),
+                expectedLines.join(QChar('\n')))) {
+            return false;
+        }
+    }
+
+    const QString customDetail = QStringLiteral("Custom user tooltip");
+    const QString lineTool = QStringLiteral("Line Tool");
+    const QByteArray lineToolUtf8 = lineTool.toUtf8();
+    const QString translatedLineTool =
+        translator.translate(nullptr, lineToolUtf8.constData());
+    QAction partialAction;
+    partialAction.setToolTip(lineTool + QChar('\n') + customDetail);
+    displayTranslator.translateAction(&partialAction);
+    return expectEqual(
+        language + QStringLiteral(" compound unknown-line preservation"),
+        partialAction.toolTip(),
+        translatedLineTool + QChar('\n') + customDetail);
+}
+
 bool verifyLocale(const LocaleExpectation &expectation)
 {
     const QString language = QString::fromLatin1(expectation.language);
@@ -386,7 +541,8 @@ bool verifyLocale(const LocaleExpectation &expectation)
         return false;
     }
 
-    return verifyTreeWidgetDisplay(expectation)
+    return verifyCompoundToolbarTooltips(expectation)
+        && verifyTreeWidgetDisplay(expectation)
         && verifyLineEditDisplay(expectation);
 }
 

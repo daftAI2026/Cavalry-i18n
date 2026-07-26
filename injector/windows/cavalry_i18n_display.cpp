@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_display.h、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、已知基名数字后缀、QComboBox 可见项和动态英文写回后的同步恢复
- * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件，同时隔离 UserRole、currentIndex 与通用 item model
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、工具栏逐行 tooltip、已知基名数字后缀、QComboBox 可见项和动态英文写回后的同步恢复
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示，同时隔离 UserRole、currentIndex 与通用 item model
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -353,6 +353,26 @@ QString CavalryDisplayTranslator::translationFor(const QString &source) const
     QString translated = lookup(source);
     if (!translated.isEmpty()) {
         return translated;
+    }
+
+    if (source.contains(QChar('\n'))) {
+        const QStringList lines =
+            source.split(QChar('\n'), Qt::KeepEmptyParts);
+        QStringList translatedLines;
+        translatedLines.reserve(lines.size());
+        int translatedLineCount = 0;
+        for (const QString &line : lines) {
+            const QString translatedLine = translationFor(line);
+            if (!translatedLine.isEmpty() && translatedLine != line) {
+                translatedLines.append(translatedLine);
+                ++translatedLineCount;
+            } else {
+                translatedLines.append(line);
+            }
+        }
+        if (translatedLineCount > 0) {
+            return translatedLines.join(QChar('\n'));
+        }
     }
 
     const QString normalized = normalizedDisplaySource(source);

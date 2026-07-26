@@ -9,8 +9,8 @@ cavalry_i18n_callback_snapshot.h: 固定数量 exact source/translation 的不�
 cavalry_i18n_plugin.h: `QGenericPlugin` metadata 与工厂接口，只暴露大小写不敏感的 `cavalryi18n` key。
 cavalry_i18n_plugin.cpp: Qt generic factory 路由，把受支持 key 映射到独立的运行时生命周期对象。
 cavalry_i18n_display.h: 主动显示翻译接口与对象生命周期状态，明确 QWidget/QAction、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束的 QLineEdit 显示值边界。
-cavalry_i18n_display.cpp: 幂等翻译菜单、动作、标题、已知基名数字后缀、QComboBox 可见项和递归 QTreeWidget DisplayRole；通过 `aboutToShow`/`changed`/model signal/Paint 接住首帧与动态英文写回，QLineEdit 仅以信号阻断投影词表命中值，未知输入、UserRole、currentIndex 和通用 item view 保持原值。
-cavalry_i18n_display_test.cpp: 三语显示层单元回归，锁定已知基名的空格/点数字后缀、QComboBox/QTreeWidget DisplayRole 投影、嵌套/动态树项、自定义名称和 UserRole 不变，以及 QLineEdit 动态词表值、未知用户输入和无回写信号合同。
+cavalry_i18n_display.cpp: 幂等翻译菜单、动作、标题、逐行复合 tooltip、已知基名数字后缀、QComboBox 可见项和递归 QTreeWidget DisplayRole；通过 `aboutToShow`/`changed`/model signal/Paint 接住首帧与动态英文写回，复合提示只替换词表命中行，未知行、UserRole、currentIndex 和通用 item view 保持原值。
+cavalry_i18n_display_test.cpp: 三语显示层单元回归，锁定横竖工具栏 `标题\n说明` tooltip、未知提示行保留、已知基名的空格/点数字后缀、QComboBox/QTreeWidget DisplayRole 投影，以及 QLineEdit 无业务回写合同。
 cavalry_i18n_extension_layer_hook.h: ExtensionLayer 的串行化聚合生命周期接口；固定 aggregate→text 锁序，拥有 helper/placeholder 两槽、独立 text-path 子 hook 及结构化诊断转发，只有三路全部安装才报告 `installed`。
 cavalry_i18n_extension_layer_sources.h: 不依赖 Qt 的共享文本真相，锁定九条 helper、十三条 CustomListWidget placeholder，以及十五条 text-path source：四条 viewport quality、六组 EditShapeTool 与五组 TransformTool 的英文 prefix/action；快捷键 prefix 与十五条可翻译 action/quality source 明确分离。
 cavalry_i18n_extension_layer_hook.cpp: 编排 helper、placeholder 与 Core text-path 三条可逆 IAT 边界；取得 aggregate owner 后、首次 helper IAT 写入前必须永久 PIN 插件，失败则零写入；waiting 可保留已装前缀，终态失败逆序回滚。
