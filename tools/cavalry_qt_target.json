@@ -1,12 +1,26 @@
 {
   "cavalryVersion": "2.7.2",
   "qtVersion": "6.6.3",
-  "sdkPath": "qt_sdk/6.6.3/macos",
-  "aqt": {
-    "host": "mac",
-    "target": "desktop",
-    "arch": "clang_64",
-    "outputDir": "qt_sdk",
-    "archives": ["qtbase"]
+  "platforms": {
+    "macos": {
+      "sdkPath": "qt_sdk/6.6.3/macos",
+      "aqt": {
+        "host": "mac",
+        "target": "desktop",
+        "arch": "clang_64",
+        "outputDir": "qt_sdk",
+        "archives": ["qtbase"]
+      }
+    },
+    "windows": {
+      "sdkPath": "qt_sdk/6.6.3/msvc2019_64",
+      "aqt": {
+        "host": "windows",
+        "target": "desktop",
+        "arch": "win64_msvc2019_64",
+        "outputDir": "qt_sdk",
+        "archives": ["qtbase"]
+      }
+    }
   }
 }

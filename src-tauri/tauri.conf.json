@@ -4,8 +4,7 @@
   "version": "0.5.3",
   "identifier": "com.daftai.cavalry-i18n",
   "build": {
-    "frontendDist": "../renderer",
-    "beforeBuildCommand": "npm run build:injector"
+    "frontendDist": "../renderer"
   },
   "app": {
     "withGlobalTauri": true,
@@ -31,35 +30,6 @@
     }
   },
   "bundle": {
-    "active": true,
-    "targets": [
-      "dmg",
-      "app"
-    ],
-    "icon": [
-      "icons/icon.icns"
-    ],
-    "resources": {
-      "../languages": "languages",
-      "../injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
-    },
-    "macOS": {
-      "signingIdentity": "-",
-      "dmg": {
-        "background": "icons/background.png",
-        "windowSize": {
-          "width": 800,
-          "height": 476
-        },
-        "appPosition": {
-          "x": 212,
-          "y": 170
-        },
-        "applicationFolderPosition": {
-          "x": 592,
-          "y": 170
-        }
-      }
-    }
+    "active": true
   }
 }

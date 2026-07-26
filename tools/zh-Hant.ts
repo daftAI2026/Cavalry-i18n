@@ -562,7 +562,7 @@
     </message>
     <message>
       <source>Solo Selection in Viewport</source>
-      <translation>在視埠中單獨顯示所選內容</translation>
+      <translation>在檢視區中單獨顯示所選內容</translation>
     </message>
     <message>
       <source>Clear Quicklist</source>
@@ -1113,7 +1113,7 @@
     <message><source>Disable B</source><translation>停用位元組</translation></message>
     <message><source>Disable Playback Caching to use this feature</source><translation>停用播放緩存來使用此特性</translation></message>
     <message><source>Disable Playback Caching to use this feature.</source><translation>停用播放緩存來使用此特性。</translation></message>
-    <message><source>Disable Snapping</source><translation>停用抓圖</translation></message>
+    <message><source>Disable Snapping</source><translation>停用吸附</translation></message>
     <message><source>Disable Soft Selection</source><translation>停用軟選擇</translation></message>
     <message><source>Disconnect</source><translation>斷開連接</translation></message>
     <message><source>Disconnect All</source><translation>全部斷開</translation></message>
@@ -1204,7 +1204,7 @@
     <message><source>Empty titles or invalid column data was found</source><translation>找到空標題或無效的列數據</translation></message>
     <message><source>Empty titles or invalid column data was found.</source><translation>找到空標題或無效的列數據。</translation></message>
     <message><source>Enable</source><translation>啓用</translation></message>
-    <message><source>Enable B</source><translation>啟用位元組</translation></message>
+    <message><source>Enable Bézier Angle Snapping</source><translation>啟用貝茲角度吸附</translation></message>
     <message><source>Enable Color Management</source><translation>啓用色彩管理</translation></message>
     <message><source>Enable Render Items</source><translation>啓用算繪項目</translation></message>
     <message><source>Enable Snapping</source><translation>啓用抓取</translation></message>
@@ -2449,8 +2449,8 @@
     <message><source>Split Clip</source><translation>分割剪切</translation></message>
     <message><source>Split Complementary</source><translation>拆分輔助</translation></message>
     <message><source>Split Path</source><translation>分割路徑</translation></message>
-    <message><source>Split Path (B</source><translation>分割路徑（B</translation></message>
-    <message><source>Split Path (Corner)</source><translation>分割路徑(角點)</translation></message>
+    <message><source>Split Path (Bézier)</source><translation>分割路徑（貝茲）</translation></message>
+    <message><source>Split Path (Corner)</source><translation>分割路徑（角點）</translation></message>
     <message><source>Split Path command: Final Contour not found</source><translation>分割路徑命令: 找不到最终輪廓</translation></message>
     <message><source>Split Path command: Final Contour not found.</source><translation>分割路徑命令: 找不到最终輪廓。</translation></message>
     <message><source>Split Path command: Second EUID not found</source><translation>分割路徑指令: 找不到第二個實體識別碼</translation></message>
@@ -2829,14 +2829,14 @@
     <message><source>View File Paths...</source><translation>查看檔案路徑...</translation></message>
     <message><source>Viewport</source><translation>檢視區</translation></message>
     <message><source>Viewport Canvas Color</source><translation>檢視區畫布顏色</translation></message>
-    <message><source>Viewport Quality: Balanced</source><translation>質量:平衡</translation></message>
-    <message><source>Viewport Quality: High</source><translation>檢視區品質: 高</translation></message>
-    <message><source>Viewport Quality: Low</source><translation>檢視區品質: 低</translation></message>
-    <message><source>Viewport Quality: Lowest</source><translation>質量:最低</translation></message>
+    <message><source>Viewport Quality: Balanced</source><translation>檢視區品質：平衡</translation></message>
+    <message><source>Viewport Quality: High</source><translation>檢視區品質：高</translation></message>
+    <message><source>Viewport Quality: Low</source><translation>檢視區品質：低</translation></message>
+    <message><source>Viewport Quality: Lowest</source><translation>檢視區品質：最低</translation></message>
     <message><source>Viewport setting to preview</source><translation>檢視區設定為預覽</translation></message>
     <message><source>Viewport setting to preview.</source><translation>檢視區設定為預覽。</translation></message>
     <message><source>Viewport Settings</source><translation>檢視區設定</translation></message>
-    <message><source>Viewport Soloing Cleared (Quicklist deselected)</source><translation>檢視區獨顯已清除(快速列表已取消選取)</translation></message>
+    <message><source>Viewport Soloing Cleared (Quicklist deselected)</source><translation>檢視區獨顯已清除（快速列表已取消選取）</translation></message>
     <message><source>Viewport Tool Help</source><translation>檢視區工具說明</translation></message>
     <message><source>W Action</source><translation>寬度動作</translation></message>
     <message><source>Waiting for frame</source><translation>等待幀</translation></message>
@@ -3252,9 +3252,9 @@
     <message><source>Show Pixel Grid</source><translation>顯示像素網格</translation></message>
     <message><source>Show Composition Boundary</source><translation>顯示合成邊界</translation></message>
     <message><source>Show Layer Names on Hover</source><translation>懸停時顯示圖層名稱</translation></message>
-    <message><source>Show Viewport Tool Help</source><translation>顯示視埠工具說明</translation></message>
+<message><source>Show Viewport Tool Help</source><translation>顯示檢視區工具說明</translation></message>
     <message><source>Show Layer Tools</source><translation>顯示圖層工具</translation></message>
-    <message><source>Viewport Quality</source><translation>視埠品質</translation></message>
+<message><source>Viewport Quality</source><translation>檢視區品質</translation></message>
     <message><source>High</source><translation>高</translation></message>
     <message><source>Balanced</source><translation>平衡</translation></message>
     <message><source>Low</source><translation>低</translation></message>
@@ -3444,7 +3444,7 @@
     <message><source>Command Search</source><translation>指令搜尋</translation></message>
     <message><source>Command Search (Quick Actions Only)</source><translation>指令搜尋（僅快速操作）</translation></message>
     <message><source>Toggle Time/Graph Editor</source><translation>切換時間/曲線編輯器</translation></message>
-    <message><source>Add Viewport</source><translation>新增視埠</translation></message>
+<message><source>Add Viewport</source><translation>新增檢視區</translation></message>
     <message><source>Focus Mode</source><translation>專注模式</translation></message>
     <message><source>Show Scripts Folder</source><translation>顯示腳本資料夾</translation></message>
     <message><source>About</source><translation>關於</translation></message>
@@ -4007,7 +4007,7 @@
     </message>
     <message>
       <source>Add Viewport (Pro)</source>
-      <translation>新增檢視區(專業版)</translation>
+      <translation>新增檢視區（專業版）</translation>
     </message>
     <message>
       <source>Add Visibility Bar</source>
@@ -4368,7 +4368,7 @@
       <translation>刪除屬性</translation>
     </message>
     <message>
-      <source>Delete B</source><translation>刪除 B</translation>
+      <source>Delete Bézier Handle</source><translation>刪除貝茲控制柄</translation>
     </message>
     <message>
       <source>Delete Backdrop</source>
@@ -6569,6 +6569,10 @@
     <message>
       <source>Manipulator:</source>
       <translation>操控器:</translation>
+    </message>
+    <message>
+      <source>Close Distance:</source>
+      <translation>閉合距離:</translation>
     </message>
     <message>
       <source>Rectangle Tool</source>

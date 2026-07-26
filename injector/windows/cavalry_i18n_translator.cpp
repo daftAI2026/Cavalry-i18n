@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖共享 generated_translations.inc 的三语言表与 cavalry_i18n_translator.h 的 Qt 接口
- * [OUTPUT]: 对外实现精确键首条优先、source-only 末条覆盖兜底的嵌入式 QTranslator
+ * [OUTPUT]: 对外实现精确键首条优先、source-only 末条覆盖兜底及语言标签查询的嵌入式 QTranslator
  * [POS]: injector/windows 的翻译真相投影，复用 macOS 同源生成数据但不依赖 Objective-C++/AppKit hook
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -28,6 +28,7 @@ QByteArray exactTranslationKey(const char *context, const char *sourceText)
 } // namespace
 
 CavalryEmbeddedTranslator::CavalryEmbeddedTranslator(const QString &language)
+    : language_(language)
 {
     int count = 0;
     const TranslationEntry *entries = entriesForLanguage(language, &count);
@@ -109,4 +110,9 @@ int CavalryEmbeddedTranslator::exactKeyCount() const
 int CavalryEmbeddedTranslator::sourceFallbackCount() const
 {
     return sourceFallbacks_.size();
+}
+
+QString CavalryEmbeddedTranslator::language() const
+{
+    return language_;
 }

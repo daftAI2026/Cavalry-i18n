@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、插件环境与显式 diagnostic marker
- * [OUTPUT]: 对外验证真实插件加载、十二个顶层菜单、数字后缀、QComboBox DisplayRole、动态写回、数据隔离和 marker
+ * [OUTPUT]: 对外验证真实插件加载、十二个菜单、显示投影/数据隔离及含九项 text-path 计数与 source mask 的 marker 结构
  * [POS]: injector/windows 的端到端回归 smoke，以真实 Qt Show/Paint/ActionAdded 事件锁住首帧与动态英文写回边界
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -86,6 +86,10 @@ bool verifyMarker()
     }
 
     const QJsonObject marker = document.object();
+    const QJsonObject textPathDiagnostics =
+        marker.value(
+            QStringLiteral("extensionLayerTextPathDiagnostics"))
+            .toObject();
     const QString expectedProcessId =
         QString::number(QCoreApplication::applicationPid());
     if (marker.value(QStringLiteral("plugin")).toString()
@@ -103,6 +107,19 @@ bool verifyMarker()
         || !marker.value(QStringLiteral("extensionLayerHookDetail"))
                 .toString()
                 .contains(QStringLiteral("ExtensionLayer.dll"))
+        || textPathDiagnostics.size() != 9
+        || textPathDiagnostics
+                .value(QStringLiteral("revision")).toInteger()
+            != 0
+        || textPathDiagnostics
+                .value(QStringLiteral("canonicalCalls")).toInteger()
+            != 0
+        || textPathDiagnostics
+                .value(QStringLiteral("translatedSourceMask")).toInt()
+            != 0
+        || textPathDiagnostics
+                .value(QStringLiteral("fallbackSourceMask")).toInt()
+            != 0
         || marker.value(QStringLiteral("processId")).toString()
             != expectedProcessId) {
         return fail(QStringLiteral("Plugin marker contract mismatch."));
@@ -118,6 +135,7 @@ bool verifyEmbeddedTranslationSamples()
         QStringLiteral("Double click here to import Assets."),
         QStringLiteral("Drag layers here to see their settings."),
         QStringLiteral("Drag some JavaScript here to make a Snippet."),
+        QStringLiteral("Enable Bézier Angle Snapping"),
         QStringLiteral(
             "Use the Create menu to add a layer to your Composition."),
     };
@@ -125,6 +143,7 @@ bool verifyEmbeddedTranslationSamples()
         QStringLiteral("双击此处以导入素材"),
         QStringLiteral("将图层拖到此处以查看其设置"),
         QStringLiteral("将 JavaScript 拖到此处以创建代码片段"),
+        QStringLiteral("启用贝塞尔角度吸附"),
         QStringLiteral("使用“创建”菜单将图层添加到合成中"),
     };
 
@@ -319,11 +338,11 @@ bool verifyDisplayTranslation(QApplication &application)
         return false;
     }
 
-    // 输入值和 item model 是业务数据，显示层翻译不得触碰。
+    // 词表命中的 QLineEdit 值可作显示投影；未知输入与通用 item model 保持业务原值。
     if (!expectEqual(
             QStringLiteral("line edit value"),
             lineEdit->text(),
-            QStringLiteral("Scene Window"))
+            QStringLiteral("场景窗口"))
         || !expectEqual(
             QStringLiteral("item model value"),
             modelView->item(0)->text(),

@@ -1,11 +1,13 @@
 /**
- * [INPUT]: 依赖指定 Cavalry 安装根的 ExtensionLayer.dll/CavalryUI.dll 只读 PE 文件与 cavalry_i18n_pe_iat 解析器
- * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 helper IAT、CavalryUI 导出、Snippet placeholder setter 链与 x64 PE 映像边界
+ * [INPUT]: 依赖指定 Cavalry 安装根的 ExtensionLayer.dll/CavalryUI.dll/Core.dll/skia.dll 只读 PE 文件、PE/IAT 解析器与 text-path 静态合同分片
+ * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 helper IAT、CavalryUI 导出、placeholder setter 链、ExtensionLayer 调用点及 Core/Skia CJK Path ABI
  * [POS]: injector/windows 的 vendor 静态 ABI/import 合同；不加载、执行、修改或复制厂商 DLL，只把原始 PE 文件映射到测试内存
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_pe_iat.h"
 #include "cavalry_i18n_extension_layer_sources.h"
+#include "cavalry_i18n_vendor_skia_text_path_contract.h"
+#include "cavalry_i18n_vendor_text_path_contract.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -616,13 +618,15 @@ void fail(const std::string &message)
 
 int main(int argc, char *argv[])
 {
-    if (argc != 3) {
-        fail("Usage: cavalryi18n_vendor_iat_contract_test <ExtensionLayer.dll> <CavalryUI.dll>");
+    if (argc != 5) {
+        fail("Usage: cavalryi18n_vendor_iat_contract_test <ExtensionLayer.dll> <CavalryUI.dll> <Core.dll> <skia.dll>");
         return 1;
     }
 
     const std::filesystem::path extensionLayerPath = argv[1];
     const std::filesystem::path cavalryUiPath = argv[2];
+    const std::filesystem::path corePath = argv[3];
+    const std::filesystem::path skiaPath = argv[4];
     std::string failure;
     std::vector<std::uint8_t> extensionLayerImage;
     if (!mapRawPeImage(extensionLayerPath, &extensionLayerImage, &failure)) {
@@ -639,6 +643,12 @@ int main(int argc, char *argv[])
     }
     if (!verifyPlaceholderSourceLiterals(extensionLayerImage, &failure)) {
         fail("ExtensionLayer placeholder source contract: " + failure);
+        return 1;
+    }
+    if (!verifyCavalryExtensionLayerTextPathContract(
+            extensionLayerImage,
+            &failure)) {
+        fail("ExtensionLayer text-path contract: " + failure);
         return 1;
     }
 
@@ -676,6 +686,24 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::puts("Cavalry vendor helper and Snippet placeholder ABI/import contract passed.");
+    std::vector<std::uint8_t> coreImage;
+    std::vector<std::uint8_t> skiaImage;
+    if (!mapRawPeImage(corePath, &coreImage, &failure)) {
+        fail("Core vendor contract: " + failure);
+        return 1;
+    }
+    if (!mapRawPeImage(skiaPath, &skiaImage, &failure)) {
+        fail("Skia vendor contract: " + failure);
+        return 1;
+    }
+    if (!verifyCavalryCoreSkiaTextPathContract(
+            coreImage,
+            skiaImage,
+            &failure)) {
+        fail("Core/Skia CJK text-path contract: " + failure);
+        return 1;
+    }
+
+    std::puts("Cavalry vendor helper, placeholder, ExtensionLayer, and Core/Skia CJK text-path contracts passed.");
     return 0;
 }

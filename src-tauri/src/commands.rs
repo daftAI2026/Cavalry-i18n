@@ -1,408 +1,65 @@
 /**
- * [INPUT]: 依赖 detect/state/patch/mac_runtime/privilege 模块、Tauri resource_dir/async runtime、chrono/serde、原子状态与 macOS flock
- * [OUTPUT]: 对外提供 6 个稳定 Tauri command，extract/apply 通过 spawn_blocking 执行，extract/apply/restart 共享跨进程 bundle 单飞锁
- * [POS]: src-tauri/src 的 renderer API 等价层，以内容差异驱动复制/增量签名并阻止多进程同时修改同一安装
+ * [INPUT]: 依赖 commands 子模块、Tauri command runtime 与 privilege facade。
+ * [OUTPUT]: 保持六条稳定 Tauri command、commands::apply_language_inner 与 extract_english_inner 兼容路径。
+ * [POS]: renderer API facade；具体状态、快照、锁、写入和平台运行时都下沉到单一职责模块。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+mod apply;
+mod context;
+mod contract;
+mod lock;
+mod restart;
+mod snapshot;
+mod status;
+#[cfg(test)]
+#[path = "commands/tests.rs"]
+mod tests;
+
 use chrono::{SecondsFormat, Utc};
-use serde::Serialize;
-use std::{
-    fs,
-    io::ErrorKind,
-    path::{Path, PathBuf},
-    process,
-    sync::atomic::{AtomicBool, AtomicU64, Ordering},
+use std::path::Path;
+
+use crate::{detect, privilege};
+
+pub use apply::apply_language_inner;
+pub use contract::{
+    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, StatusPayload,
 };
-use tauri::Manager;
-
-#[cfg(unix)]
-use std::os::unix::fs::PermissionsExt;
-
-#[cfg(target_os = "macos")]
-use std::os::fd::AsRawFd;
-
-use crate::{
-    detect, mac_runtime, patch,
-    privilege::{self, CommandRunner, RealCommandRunner},
-    state::{self, State},
-};
-
-pub const COMMAND_NAMES: [&str; 6] = [
-    "get_status",
-    "browse_app",
-    "extract_english",
-    "apply_language",
-    "open_privacy_security",
-    "restart_cavalry",
-];
-static STAGING_COUNTER: AtomicU64 = AtomicU64::new(0);
-static BUNDLE_OPERATION_IN_PROGRESS: AtomicBool = AtomicBool::new(false);
-const BUSY_ERROR: &str =
-    "Another Cavalry language operation is already running. Wait for it to finish and try again.";
-#[cfg(target_os = "macos")]
-const BUNDLE_LOCK_FILE_NAME: &str = ".cavalry-i18n-bundle.lock";
-
-struct BundleOperationGuard {
-    #[cfg(target_os = "macos")]
-    lock_file: Option<fs::File>,
-}
-
-impl Drop for BundleOperationGuard {
-    fn drop(&mut self) {
-        #[cfg(target_os = "macos")]
-        if let Some(file) = &self.lock_file {
-            // SAFETY: fd 属于 guard 持有且仍存活的 File。
-            unsafe {
-                libc::flock(file.as_raw_fd(), libc::LOCK_UN);
-            }
-        }
-        BUNDLE_OPERATION_IN_PROGRESS.store(false, Ordering::Release);
-    }
-}
-
-#[cfg(target_os = "macos")]
-fn acquire_bundle_file_lock(state_dir: &Path) -> Result<fs::File, String> {
-    fs::create_dir_all(state_dir).map_err(|error| {
-        format!(
-            "Could not create bundle operation lock directory {}: {error}",
-            state_dir.display()
-        )
-    })?;
-    let lock_path = state_dir.join(BUNDLE_LOCK_FILE_NAME);
-    // 锁文件必须持久保留；删除它会让两个进程锁住不同 inode，破坏单飞语义。
-    let file = fs::OpenOptions::new()
-        .read(true)
-        .write(true)
-        .create(true)
-        .open(&lock_path)
-        .map_err(|error| format!("Could not open bundle operation lock: {error}"))?;
-    // SAFETY: flock 只读取 `file` 拥有的有效描述符。
-    if unsafe { libc::flock(file.as_raw_fd(), libc::LOCK_EX | libc::LOCK_NB) } == 0 {
-        return Ok(file);
-    }
-    let error = std::io::Error::last_os_error();
-    if error.raw_os_error() == Some(libc::EWOULDBLOCK) {
-        Err(BUSY_ERROR.to_string())
-    } else {
-        Err(format!(
-            "Could not acquire bundle operation lock {}: {error}",
-            lock_path.display()
-        ))
-    }
-}
-
-fn try_begin_bundle_operation(state_dir: &Path) -> Result<BundleOperationGuard, String> {
-    BUNDLE_OPERATION_IN_PROGRESS
-        .compare_exchange(false, true, Ordering::Acquire, Ordering::Relaxed)
-        .map_err(|_| BUSY_ERROR.to_string())?;
-    let guard = BundleOperationGuard {
-        #[cfg(target_os = "macos")]
-        lock_file: None,
-    };
-    #[cfg(target_os = "macos")]
-    {
-        let mut guard = guard;
-        guard.lock_file = Some(acquire_bundle_file_lock(state_dir)?);
-        return Ok(guard);
-    }
-    #[cfg(not(target_os = "macos"))]
-    {
-        let _ = state_dir;
-        Ok(guard)
-    }
-}
-
-#[derive(Debug, Serialize, PartialEq, Eq)]
-pub struct LanguageChoice {
-    pub value: String,
-    pub label: String,
-}
-
-#[derive(Debug, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct BundleDiagnostics {
-    pub exists: bool,
-    pub app_path: String,
-    pub version: String,
-    pub has_assets_root: bool,
-    pub has_definitions: bool,
-    pub has_learn: bool,
-    pub has_plugins: bool,
-}
-
-#[derive(Debug, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct StatusPayload {
-    pub app_management_granted: Option<bool>,
-    pub app_path: String,
-    pub current_lang: String,
-    pub default_app_candidates: Vec<String>,
-    pub diagnostics: Option<BundleDiagnostics>,
-    pub languages: Vec<LanguageChoice>,
-    pub needs_extract: bool,
-    pub repo_root: String,
-    pub version: String,
-}
-
-#[derive(Debug, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct BrowsePayload {
-    pub canceled: bool,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub app_path: String,
-    #[serde(skip_serializing_if = "String::is_empty")]
-    pub version: String,
-}
-
-#[derive(Debug, Serialize, PartialEq, Eq)]
-#[serde(rename_all = "camelCase")]
-pub struct ActionPayload {
-    pub ok: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub count: Option<usize>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub current_lang: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub warning: Option<String>,
-    #[serde(skip_serializing_if = "is_false")]
-    pub permission_required: bool,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error: Option<String>,
-}
+pub use restart::restart_cavalry_inner;
+pub use snapshot::extract_english_inner;
 
 pub fn registered_command_names() -> &'static [&'static str] {
-    &COMMAND_NAMES
-}
-
-fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")))
-        .to_path_buf()
-}
-
-fn fallback_state_dir() -> PathBuf {
-    std::env::var_os("CAVALRY_I18N_STATE_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| std::env::temp_dir().join("cavalry-i18n-tauri-state"))
-}
-
-fn state_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
-    std::env::var_os("CAVALRY_I18N_STATE_DIR")
-        .map(PathBuf::from)
-        .or_else(|| app.path().app_data_dir().ok())
-        .unwrap_or_else(fallback_state_dir)
-}
-
-fn resource_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
-    app.path().resource_dir().unwrap_or_else(|_| repo_root())
-}
-
-fn labels(code: &str) -> &str {
-    match code {
-        "en" => "English",
-        "zh-Hans" => "简体中文",
-        "zh-Hant" => "繁体中文",
-        "ja_JP" => "日本語",
-        _ => code,
-    }
-}
-
-fn runtime_resource_roots(resource_dir: &Path) -> Vec<PathBuf> {
-    let mut candidates = vec![resource_dir.to_path_buf(), resource_dir.join("_up_")];
-    if let Some(parent) = resource_dir.parent() {
-        candidates.push(parent.to_path_buf());
-    }
-    candidates.dedup();
-    candidates
-}
-
-fn resource_candidates(
-    repo_root: &Path,
-    resource_dir: &Path,
-    resource_suffixes: &[PathBuf],
-    repo_suffix: &Path,
-) -> Vec<PathBuf> {
-    let mut candidates = runtime_resource_roots(resource_dir)
-        .into_iter()
-        .flat_map(|root| {
-            resource_suffixes
-                .iter()
-                .map(move |suffix| root.join(suffix))
-        })
-        .collect::<Vec<_>>();
-    candidates.push(repo_root.join(repo_suffix));
-    candidates.dedup();
-    candidates
-}
-
-fn language_root_candidates(repo_root: &Path, resource_dir: &Path) -> Vec<PathBuf> {
-    resource_candidates(
-        repo_root,
-        resource_dir,
-        &[PathBuf::from("languages")],
-        Path::new("languages"),
-    )
-}
-
-fn language_choices_from_roots(roots: &[PathBuf]) -> Vec<LanguageChoice> {
-    let mut values = roots
-        .iter()
-        .flat_map(|root| detect::list_language_options(root))
-        .collect::<Vec<_>>();
-    values.sort();
-    values.dedup();
-
-    let mut choices = vec![LanguageChoice {
-        value: "en".to_string(),
-        label: labels("en").to_string(),
-    }];
-    choices.extend(values.into_iter().map(|value| LanguageChoice {
-        label: labels(&value).to_string(),
-        value,
-    }));
-    choices
-}
-
-fn language_source_dir(repo_root: &Path, resource_dir: &Path, lang: &str) -> PathBuf {
-    language_root_candidates(repo_root, resource_dir)
-        .into_iter()
-        .map(|root| root.join(lang))
-        .find(|candidate| candidate.exists())
-        .unwrap_or_else(|| repo_root.join("languages").join(lang))
-}
-
-fn sync_state_with_bundle(state_dir: &Path, state: State, app_path: &Path, version: &str) -> State {
-    if app_path.as_os_str().is_empty() {
-        return state;
-    }
-    let app_path_text = app_path.to_string_lossy().to_string();
-    let default_lang = if state.app_path == app_path_text && state.cavalry_version == version {
-        state.current_lang.as_str()
-    } else {
-        "en"
-    };
-    let next = state::normalize(State {
-        app_path: app_path_text,
-        cavalry_version: version.to_string(),
-        current_lang: detect::read_installed_language(app_path, default_lang),
-        last_patched_at: state.last_patched_at.clone(),
-    });
-    if next == state {
-        state
-    } else {
-        state::write_state(state_dir, &next).unwrap_or(next)
-    }
-}
-
-fn resolved_state(state_dir: &Path) -> (PathBuf, State, String) {
-    let existing_state = state::read_state(state_dir).unwrap_or_default();
-    let app_path = detect::find_cavalry_app(&existing_state.app_path);
-    let version = detect::read_bundle_version(&app_path).unwrap_or_default();
-    let state = sync_state_with_bundle(state_dir, existing_state, &app_path, &version);
-    (app_path, state, version)
-}
-
-fn status_for_paths(repo_root: &Path, state_dir: &Path, resource_dir: &Path) -> StatusPayload {
-    let language_roots = language_root_candidates(repo_root, resource_dir);
-    let (app_path, state, version) = resolved_state(state_dir);
-    let current_lang = state.current_lang.clone();
-    let diagnostics = if app_path.as_os_str().is_empty() {
-        None
-    } else {
-        let info = detect::inspect_bundle(&app_path);
-        Some(BundleDiagnostics {
-            exists: info.exists,
-            app_path: info.app_path,
-            version: info.version,
-            has_assets_root: info.has_assets_root,
-            has_definitions: info.has_definitions,
-            has_learn: info.has_learn,
-            has_plugins: info.has_plugins,
-        })
-    };
-
-    StatusPayload {
-        app_management_granted: probe_app_management_permission(&app_path),
-        app_path: app_path.to_string_lossy().to_string(),
-        current_lang,
-        default_app_candidates: detect::default_app_candidates()
-            .into_iter()
-            .map(|candidate| candidate.to_string_lossy().to_string())
-            .collect(),
-        diagnostics,
-        languages: language_choices_from_roots(&language_roots),
-        needs_extract: !app_path.as_os_str().is_empty()
-            && patch::needs_english_snapshot(
-                state_dir,
-                &state.app_path,
-                &state.cavalry_version,
-                &app_path,
-                &version,
-            ),
-        repo_root: repo_root.to_string_lossy().to_string(),
-        version,
-    }
+    &contract::COMMAND_NAMES
 }
 
 #[tauri::command]
 pub fn get_status(app: tauri::AppHandle) -> StatusPayload {
-    status_for_paths(
-        &repo_root(),
-        &state_dir_for_app(&app),
-        &resource_dir_for_app(&app),
-    )
+    status::get_status_for_app(&app)
 }
 
 #[tauri::command]
 pub fn browse_app(app: tauri::AppHandle) -> BrowsePayload {
-    let Some(path) = rfd::FileDialog::new()
-        .set_title("Select Cavalry.app")
-        .set_directory("/Applications")
-        .add_filter("Applications", &["app"])
-        .pick_file()
-    else {
-        return BrowsePayload {
-            canceled: true,
-            app_path: String::new(),
-            version: String::new(),
-        };
-    };
-    let version = detect::read_bundle_version(&path).unwrap_or_default();
-    let state_dir = state_dir_for_app(&app);
-    let previous = state::read_state(&state_dir).unwrap_or_default();
-    let _ = sync_state_with_bundle(
-        &state_dir,
-        State {
-            app_path: path.to_string_lossy().to_string(),
-            cavalry_version: version.clone(),
-            ..previous
-        },
-        &path,
-        &version,
-    );
-    BrowsePayload {
-        canceled: false,
-        app_path: path.to_string_lossy().to_string(),
-        version,
-    }
+    status::browse_for_app(&app)
 }
 
 #[tauri::command(rename_all = "camelCase")]
 pub async fn extract_english(app: tauri::AppHandle, app_path: String) -> ActionPayload {
-    let app_path = PathBuf::from(app_path);
-    if app_path.as_os_str().is_empty() {
-        return ActionPayload::error("Select a Cavalry.app first.");
-    }
-    let state_dir = state_dir_for_app(&app);
-    let guard = match try_begin_bundle_operation(&state_dir) {
+    let app_path = match detect::resolve_install(Path::new(&app_path)) {
+        Ok(layout) => layout.root,
+        Err(error) => return ActionPayload::error(&error),
+    };
+    let paths = context::AppPaths::for_app(&app);
+    let guard = match lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
         Err(error) => return ActionPayload::error(&error),
     };
-
     match tauri::async_runtime::spawn_blocking(move || {
         let _guard = guard;
-        extract_english_inner(&app_path, &state_dir)
+        snapshot::extract_english_inner(
+            &paths.repo_root,
+            &paths.state_dir,
+            &paths.resource_dir,
+            &app_path,
+        )
     })
     .await
     {
@@ -418,23 +75,23 @@ pub async fn apply_language(
     app_path: String,
     lang: String,
 ) -> ActionPayload {
-    let state_dir = state_dir_for_app(&app);
-    let guard = match try_begin_bundle_operation(&state_dir) {
+    let paths = context::AppPaths::for_app(&app);
+    let guard = match lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
         Err(error) => return ActionPayload::error(&error),
     };
-    let repo_root = repo_root();
-    let resource_dir = resource_dir_for_app(&app);
-    let app_path = PathBuf::from(app_path);
-    let now = now_iso();
-
+    let app_path = match detect::resolve_install(Path::new(&app_path)) {
+        Ok(layout) => layout.root,
+        Err(error) => return ActionPayload::error(&error),
+    };
+    let now = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
     match tauri::async_runtime::spawn_blocking(move || {
         let _guard = guard;
-        let mut runner = RealCommandRunner;
-        apply_language_inner(
-            &repo_root,
-            &state_dir,
-            &resource_dir,
+        let mut runner = privilege::RealCommandRunner;
+        apply::apply_language_inner(
+            &paths.repo_root,
+            &paths.state_dir,
+            &paths.resource_dir,
             &app_path,
             &lang,
             &mut runner,
@@ -444,7 +101,7 @@ pub async fn apply_language(
     .await
     {
         Ok(Ok(payload)) => payload,
-        Ok(Err(error)) if is_app_management_error(&error) => {
+        Ok(Err(error)) if status::is_app_management_error(&error) => {
             ActionPayload::permission_error(&error)
         }
         Ok(Err(error)) => ActionPayload::error(&error),
@@ -454,7 +111,7 @@ pub async fn apply_language(
 
 #[tauri::command]
 pub fn open_privacy_security() -> ActionPayload {
-    let mut runner = RealCommandRunner;
+    let mut runner = privilege::RealCommandRunner;
     match privilege::open_privacy_security(&mut runner) {
         Ok(()) => ActionPayload::ok(),
         Err(error) => ActionPayload::error(&error),
@@ -462,942 +119,51 @@ pub fn open_privacy_security() -> ActionPayload {
 }
 
 #[tauri::command(rename_all = "camelCase")]
-pub fn restart_cavalry(app: tauri::AppHandle, app_path: String) -> ActionPayload {
-    let state_dir = state_dir_for_app(&app);
-    let app_path = PathBuf::from(app_path);
-    let mut runner = RealCommandRunner;
-    restart_cavalry_guarded(&state_dir, &app_path, &mut runner)
-}
-
-fn restart_cavalry_guarded<R: CommandRunner>(
-    state_dir: &Path,
-    app_path: &Path,
-    runner: &mut R,
-) -> ActionPayload {
-    if app_path.as_os_str().is_empty() {
-        return ActionPayload::error("Select a Cavalry.app first.");
-    }
-    let _guard = match try_begin_bundle_operation(state_dir) {
+pub async fn restart_cavalry(app: tauri::AppHandle, app_path: String) -> ActionPayload {
+    let paths = context::AppPaths::for_app(&app);
+    let app_path = match detect::resolve_install(Path::new(&app_path)) {
+        Ok(layout) => layout.root,
+        Err(error) => return ActionPayload::error(&error),
+    };
+    let guard = match lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
         Err(error) => return ActionPayload::error(&error),
     };
-    match restart_cavalry_inner(state_dir, app_path, runner) {
-        Ok(()) => ActionPayload::ok(),
-        Err(error) => ActionPayload::error(&error),
-    }
-}
-
-fn now_iso() -> String {
-    Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true)
-}
-
-fn is_false(value: &bool) -> bool {
-    !*value
-}
-
-fn is_app_management_error(error: &str) -> bool {
-    let lower = error.to_ascii_lowercase();
-    lower.contains("not authorized to send apple events")
-        || lower.contains("app management")
-        || ((lower.contains("operation not permitted") || lower.contains("privacy"))
-            && (error.contains(".app") || error.contains("/Applications/")))
-}
-
-fn probe_app_management_permission(app_path: &Path) -> Option<bool> {
-    if !cfg!(target_os = "macos") || app_path.as_os_str().is_empty() {
-        return None;
-    }
-    let probe_dir = app_path.join("Contents").join("Resources");
-    if !probe_dir.is_dir() {
-        return None;
-    }
-
-    let probe_path = probe_dir.join(format!(
-        ".cavalry-i18n-probe-{}-{}-{}",
-        process::id(),
-        Utc::now().timestamp_millis(),
-        STAGING_COUNTER.fetch_add(1, Ordering::Relaxed)
-    ));
-    let granted = match fs::write(&probe_path, []) {
-        Ok(()) => Some(true),
-        Err(error) if error.kind() == ErrorKind::PermissionDenied => Some(false),
-        Err(_) => None,
-    };
-    let _ = fs::remove_file(&probe_path);
-    granted
-}
-
-fn unique_staging_root() -> PathBuf {
-    std::env::temp_dir().join(format!(
-        "cavalry-i18n-tauri-staging-{}-{}-{}",
-        std::process::id(),
-        Utc::now().timestamp_millis(),
-        STAGING_COUNTER.fetch_add(1, Ordering::Relaxed)
-    ))
-}
-
-fn files_match(source: &Path, destination: &Path) -> bool {
-    let (Ok(source_meta), Ok(destination_meta)) = (fs::metadata(source), fs::metadata(destination))
-    else {
-        return false;
-    };
-    if source_meta.len() != destination_meta.len()
-        || source_meta.permissions().readonly() != destination_meta.permissions().readonly()
+    match tauri::async_runtime::spawn_blocking(move || {
+        let _guard = guard;
+        let mut runner = privilege::RealCommandRunner;
+        restart::restart_cavalry_inner(
+            &paths.repo_root,
+            &paths.state_dir,
+            &paths.resource_dir,
+            &app_path,
+            &mut runner,
+        )
+    })
+    .await
     {
-        return false;
-    }
-    #[cfg(unix)]
-    if source_meta.permissions().mode() & 0o777 != destination_meta.permissions().mode() & 0o777 {
-        return false;
-    }
-
-    match (fs::read(source), fs::read(destination)) {
-        (Ok(source_bytes), Ok(destination_bytes)) => source_bytes == destination_bytes,
-        _ => false,
+        Ok(Ok(())) => ActionPayload::ok(),
+        Ok(Err(error)) => ActionPayload::error(&error),
+        Err(error) => ActionPayload::error(&format!("Cavalry restart task failed: {error}")),
     }
 }
 
-pub fn extract_english_inner(app_path: &Path, state_dir: &Path) -> Result<usize, String> {
-    let version = detect::read_bundle_version(app_path).unwrap_or_default();
-    let current_state = sync_state_with_bundle(
-        state_dir,
-        state::read_state(state_dir).unwrap_or_default(),
-        app_path,
-        &version,
-    );
-    let count = patch::extract_english(app_path, &state_dir.join("en"))?;
-    let _ = state::write_state(
-        state_dir,
-        &State {
-            app_path: app_path.to_string_lossy().to_string(),
-            cavalry_version: version,
-            current_lang: if current_state.app_path == app_path.to_string_lossy().as_ref() {
-                current_state.current_lang
-            } else {
-                "en".to_string()
-            },
-            last_patched_at: current_state.last_patched_at,
-        },
-    )?;
-    Ok(count)
-}
-
-pub fn apply_language_inner<R: CommandRunner>(
-    repo_root: &Path,
-    state_dir: &Path,
-    resource_dir: &Path,
-    app_path: &Path,
-    lang: &str,
-    runner: &mut R,
-    now: &str,
-) -> Result<ActionPayload, String> {
-    if app_path.as_os_str().is_empty() {
-        return Err("Select a Cavalry.app first.".to_string());
-    }
-    if !matches!(lang, "en" | "zh-Hans" | "zh-Hant" | "ja_JP") {
-        return Err(format!("Unsupported language: {lang}"));
-    }
-
-    let version = detect::read_bundle_version(app_path).unwrap_or_default();
-    let current_state = sync_state_with_bundle(
-        state_dir,
-        state::read_state(state_dir).unwrap_or_default(),
-        app_path,
-        &version,
-    );
-
-    if lang == "en" && current_state.current_lang == "en" {
-        return Ok(ActionPayload::ok_lang("en", ""));
-    }
-
-    if lang != "en" {
-        extract_english_snapshot_or_throw(state_dir, current_state, app_path, &version)?;
-    }
-    let source_dir = if lang == "en" {
-        state_dir.join("en")
-    } else {
-        language_source_dir(repo_root, resource_dir, lang)
-    };
-
-    if !source_dir.exists() {
-        return if lang == "en" {
-            Err("English snapshot not found. Point the app picker to a clean Cavalry.app and refresh English first.".to_string())
-        } else {
-            Err(format!("Language files not found for {lang}."))
-        };
-    }
-
-    let mut pairs = patch::build_copy_pairs(&source_dir, app_path);
-    if pairs.is_empty() {
-        return Err(format!("No JSON assets found for {lang}."));
-    }
-
-    let staging_root = unique_staging_root();
-    let copy_mode = (|| {
-        if cfg!(target_os = "macos") {
-            pairs.extend(
-                mac_runtime::build_runtime_pairs(
-                    app_path,
-                    lang,
-                    &staging_root.join("runtime"),
-                    &injector_source_path(repo_root, resource_dir)?,
-                )
-                .map_err(|error| format!("Could not build macOS runtime patch files: {error}"))?,
-            );
-        }
-        let changed_pairs = pairs
-            .iter()
-            .filter(|pair| !files_match(&pair.src, &pair.dst))
-            .cloned()
-            .collect::<Vec<_>>();
-        let staged_pairs = patch::stage_files(&changed_pairs, &staging_root.join("staged"))
-            .map_err(|error| format!("Could not stage patch files: {error}"))?;
-        let injector_target = app_path
-            .join("Contents")
-            .join("Frameworks")
-            .join(mac_runtime::INJECTOR_DYLIB_NAME);
-        let mut modified_nested_code = staged_pairs
-            .iter()
-            .filter(|pair| pair.dst == injector_target)
-            .map(|pair| pair.dst.clone())
-            .collect::<Vec<_>>();
-        let mut bundle_changed = !staged_pairs.is_empty();
-        let mode = privilege::copy_with_privilege(&staged_pairs, runner)
-            .map_err(|error| format!("Could not copy patch files into Cavalry.app: {error}"))?;
-        if cfg!(target_os = "macos") {
-            if lang != "en" {
-                let keychain_report = privilege::patch_keychain_query_attributes_with_privilege(
-                    app_path,
-                    &staging_root.join("keychain"),
-                    runner,
-                )
-                .map_err(|error| format!("Could not patch Keychain query attributes: {error}"))?;
-                if keychain_report.patched_callsites > 0 {
-                    bundle_changed = true;
-                    modified_nested_code.push(
-                        app_path
-                            .join("Contents")
-                            .join("Frameworks")
-                            .join("libExtensionLayer.dylib"),
-                    );
-                }
-            }
-            if bundle_changed {
-                privilege::resign_patched_bundle(app_path, &modified_nested_code, runner)
-                    .map_err(|error| format!("Could not re-sign patched Cavalry.app: {error}"))?;
-            } else {
-                privilege::ensure_bundle_signature(app_path, runner).map_err(|error| {
-                    format!("Could not verify or repair Cavalry.app signature: {error}")
-                })?;
-            }
-            privilege::clear_gatekeeper_quarantine(app_path, runner)
-                .map_err(|error| format!("Could not clear Gatekeeper quarantine: {error}"))?;
-        }
-        Ok::<String, String>(mode)
-    })();
-    let _ = std::fs::remove_dir_all(&staging_root);
-    let copy_mode = copy_mode?;
-
-    let next_state = state::write_state(
-        state_dir,
-        &State {
-            app_path: app_path.to_string_lossy().to_string(),
-            cavalry_version: version,
-            current_lang: lang.to_string(),
-            last_patched_at: now.to_string(),
-        },
-    )?;
-
-    let warning = if copy_mode == "finder" {
-        "macOS blocked direct shell copy, so Finder-style replacement was used."
-    } else {
-        ""
-    };
-    Ok(ActionPayload::ok_lang(&next_state.current_lang, warning))
-}
-
-pub fn restart_cavalry_inner<R: CommandRunner>(
-    state_dir: &Path,
-    app_path: &Path,
-    runner: &mut R,
-) -> Result<(), String> {
-    if app_path.as_os_str().is_empty() {
-        return Err("Select a Cavalry.app first.".to_string());
-    }
-    let version = detect::read_bundle_version(app_path).unwrap_or_default();
-    let _ = sync_state_with_bundle(
-        state_dir,
-        state::read_state(state_dir).unwrap_or_default(),
-        app_path,
-        &version,
-    );
-    privilege::restart_cavalry(app_path, runner)
-}
-
-fn extract_english_snapshot_or_throw(
-    state_dir: &Path,
-    state: State,
-    app_path: &Path,
-    version: &str,
-) -> Result<State, String> {
-    if !patch::needs_english_snapshot(
-        state_dir,
-        &state.app_path,
-        &state.cavalry_version,
-        app_path,
-        version,
-    ) {
-        return Ok(state);
-    }
-
-    let can_refresh = state.current_lang == "en"
-        || state.app_path != app_path.to_string_lossy().as_ref()
-        || state.cavalry_version != version;
-    if !can_refresh {
-        return Err("The English snapshot is missing for a translated install. Point the app picker to a clean Cavalry.app and refresh English first.".to_string());
-    }
-    patch::extract_english(app_path, &state_dir.join("en"))?;
-    state::write_state(
-        state_dir,
-        &State {
-            app_path: app_path.to_string_lossy().to_string(),
-            cavalry_version: version.to_string(),
-            ..state
-        },
-    )
-}
-
-fn injector_source_candidates(repo_root: &Path, resource_dir: &Path) -> Vec<PathBuf> {
-    resource_candidates(
-        repo_root,
-        resource_dir,
-        &[
-            PathBuf::from("injector").join(mac_runtime::INJECTOR_DYLIB_NAME),
-            PathBuf::from(mac_runtime::INJECTOR_DYLIB_NAME),
-        ],
-        &Path::new("injector").join(mac_runtime::INJECTOR_DYLIB_NAME),
-    )
-}
-
-fn injector_source_path(repo_root: &Path, resource_dir: &Path) -> Result<PathBuf, String> {
-    injector_source_candidates(repo_root, resource_dir)
-        .into_iter()
-        .find(|candidate| candidate.exists())
-        .ok_or_else(|| {
-            format!(
-                "Packaged injector missing. Checked Resources/injector and repo injector/ for {}.",
-                mac_runtime::INJECTOR_DYLIB_NAME
-            )
-        })
-}
-
-impl ActionPayload {
-    fn ok() -> Self {
-        Self {
-            ok: true,
-            count: None,
-            current_lang: None,
-            warning: None,
-            permission_required: false,
-            error: None,
-        }
-    }
-
-    fn ok_count(count: usize) -> Self {
-        Self {
-            ok: true,
-            count: Some(count),
-            current_lang: None,
-            warning: None,
-            permission_required: false,
-            error: None,
-        }
-    }
-
-    fn ok_lang(lang: &str, warning: &str) -> Self {
-        Self {
-            ok: true,
-            count: None,
-            current_lang: Some(lang.to_string()),
-            warning: if warning.is_empty() {
-                None
-            } else {
-                Some(warning.to_string())
-            },
-            permission_required: false,
-            error: None,
-        }
-    }
-
-    fn error(message: &str) -> Self {
-        Self {
-            ok: false,
-            count: None,
-            current_lang: None,
-            warning: None,
-            permission_required: false,
-            error: Some(message.to_string()),
-        }
-    }
-
-    fn permission_error(message: &str) -> Self {
-        Self {
-            ok: false,
-            count: None,
-            current_lang: None,
-            warning: None,
-            permission_required: true,
-            error: Some(message.to_string()),
-        }
-    }
-}
-
+#[cfg(target_os = "macos")]
 #[cfg(test)]
-mod tests {
-    #[cfg(target_os = "macos")]
-    use super::acquire_bundle_file_lock;
-    use super::{
-        apply_language_inner, injector_source_candidates, registered_command_names,
-        resource_candidates, restart_cavalry_guarded, restart_cavalry_inner, status_for_paths,
-        try_begin_bundle_operation, BUSY_ERROR, COMMAND_NAMES,
-    };
-    use crate::privilege::{CommandRunner, RecordedCommand, RecordingRunner};
-    use std::{fs, path::Path};
-
-    struct VerifyFailsOnceRunner {
-        commands: Vec<RecordedCommand>,
-        verify_failures: usize,
-    }
-
-    impl CommandRunner for VerifyFailsOnceRunner {
-        fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
-            self.commands.push(RecordedCommand {
-                program: program.to_string(),
-                args: args.to_vec(),
-            });
-            if program == "codesign"
-                && args.iter().any(|arg| arg == "--verify")
-                && self.verify_failures > 0
-            {
-                self.verify_failures -= 1;
-                Err("bundle seal is damaged".to_string())
-            } else {
-                Ok(())
-            }
-        }
-    }
-
-    #[test]
-    fn registers_six_commands() {
-        assert_eq!(
-            registered_command_names(),
-            &[
-                "get_status",
-                "browse_app",
-                "extract_english",
-                "apply_language",
-                "open_privacy_security",
-                "restart_cavalry"
-            ]
-        );
-        assert_eq!(COMMAND_NAMES.len(), 6);
-    }
-
-    #[test]
-    fn bundle_lock_conflicts_releases_and_blocks_restart() {
-        let temp = tempfile::tempdir().unwrap();
-        let state_dir = temp.path().join("state");
-        #[cfg(target_os = "macos")]
-        {
-            let first_file_lock = acquire_bundle_file_lock(&state_dir).unwrap();
-            assert_eq!(
-                acquire_bundle_file_lock(&state_dir).unwrap_err(),
-                BUSY_ERROR
-            );
-            drop(first_file_lock);
-            assert!(acquire_bundle_file_lock(&state_dir).is_ok());
-        }
-
-        let first = try_begin_bundle_operation(&state_dir).unwrap();
-        match try_begin_bundle_operation(&state_dir) {
-            Ok(_) => panic!("second bundle mutation unexpectedly acquired the single-flight lock"),
-            Err(error) => assert_eq!(error, BUSY_ERROR),
-        }
-        let mut runner = RecordingRunner::default();
-        let restart =
-            restart_cavalry_guarded(&state_dir, Path::new("/tmp/Cavalry.app"), &mut runner);
-        assert_eq!(restart.error.as_deref(), Some(BUSY_ERROR));
-        assert!(runner.commands.is_empty());
-
-        drop(first);
-        assert!(try_begin_bundle_operation(&state_dir).is_ok());
-    }
-
-    fn write(path: &Path, value: impl AsRef<[u8]>) {
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(path, value).unwrap();
-    }
-
-    fn write_keychain_dylib(app: &Path) {
-        let bytes = crate::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false);
-        write(
-            &app.join("Contents/Frameworks/libExtensionLayer.dylib"),
-            bytes,
-        );
-    }
-
-    fn make_bundle(root: &Path) -> std::path::PathBuf {
-        let app = root.join("Cavalry.app");
-        write(
-            &app.join("Contents/Info.plist"),
-            r#"<plist><dict>
-  <key>CFBundleExecutable</key>
-  <string>Cavalry</string>
-  <key>CFBundleShortVersionString</key>
-  <string>2.3.4</string>
-</dict></plist>"#,
-        );
-        for (_, asset_rel) in crate::patch::CORE_MAP {
-            write(
-                &app.join("Contents/assets").join(asset_rel),
-                br#"{"value":"en"}"#,
-            );
-        }
-        write(
-            &app.join("Contents/assets/Plugins/Gaussian Blur Filter/strings.json"),
-            br#"{"value":"en plugin"}"#,
-        );
-        write(
-            &app.join("Contents/MacOS/Cavalry"),
-            [0xcf, 0xfa, 0xed, 0xfe],
-        );
-        write(
-            &app.join("Contents/MacOS/crashpad_handler"),
-            [0xcf, 0xfa, 0xed, 0xfe],
-        );
-        write(
-            &app.join("Contents/Frameworks/libCavalryFramework.dylib"),
-            [0xcf, 0xfa, 0xed, 0xfe],
-        );
-        write_keychain_dylib(&app);
-        fs::create_dir_all(app.join("Contents/Resources")).unwrap();
-        app
-    }
-
-    fn make_language(root: &Path, lang: &str) {
-        let base = root.join("languages").join(lang);
-        for (lang_rel, _) in crate::patch::CORE_MAP {
-            write(&base.join(lang_rel), br#"{"value":"translated"}"#);
-        }
-        write(
-            &base.join("plugins/gaussianBlurFilter.json"),
-            br#"{"value":"translated plugin"}"#,
-        );
-    }
-
-    fn make_english_snapshot(state: &Path) {
-        let base = state.join("en");
-        for (lang_rel, _) in crate::patch::CORE_MAP {
-            write(&base.join(lang_rel), br#"{"value":"en"}"#);
-        }
-        write(
-            &base.join("plugins/gaussianBlurFilter.json"),
-            br#"{"value":"en plugin"}"#,
-        );
-    }
-
-    #[test]
-    fn resource_candidates_use_one_packaged_root_order_before_repo_fallback() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("repo");
-        let resources = temp.path().join("bundle").join("Resources");
-
-        assert_eq!(
-            resource_candidates(
-                &repo,
-                &resources,
-                &[std::path::PathBuf::from("languages")],
-                Path::new("languages"),
-            ),
-            vec![
-                resources.join("languages"),
-                resources.join("_up_").join("languages"),
-                resources.parent().unwrap().join("languages"),
-                repo.join("languages"),
-            ]
-        );
-
-        assert_eq!(
-            injector_source_candidates(&repo, &resources),
-            vec![
-                resources
-                    .join("injector")
-                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
-                resources.join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
-                resources
-                    .join("_up_")
-                    .join("injector")
-                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
-                resources
-                    .join("_up_")
-                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
-                resources
-                    .parent()
-                    .unwrap()
-                    .join("injector")
-                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
-                resources
-                    .parent()
-                    .unwrap()
-                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
-                repo.join("injector")
-                    .join(crate::mac_runtime::INJECTOR_DYLIB_NAME),
-            ]
-        );
-    }
-
-    #[test]
-    fn apply_language_patches_fake_bundle_and_records_macos_commands() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        let app = make_bundle(temp.path());
-        make_language(&repo, "zh-Hans");
-        write(
-            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
-            b"injector",
-        );
-
-        let mut runner = RecordingRunner::default();
-        let result = apply_language_inner(
-            &repo,
-            &state,
-            &resources,
-            &app,
-            "zh-Hans",
-            &mut runner,
-            "2026-04-23T00:00:00.000Z",
-        )
-        .unwrap();
-
-        assert!(result.ok);
-        assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
-        assert_eq!(result.warning, None);
-        assert!(serde_json::to_value(&result)
-            .unwrap()
-            .get("warning")
-            .is_none());
-        assert_eq!(
-            fs::read_to_string(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap(),
-            "zh-Hans\n"
-        );
-        assert!(fs::read_to_string(app.join("Contents/Info.plist"))
-            .unwrap()
-            .contains("<string>CavalryLauncher</string>"));
-        let (_, keychain_report) = crate::keychain_patch::patch_keychain_query_attributes_bytes(
-            &fs::read(app.join("Contents/Frameworks/libExtensionLayer.dylib")).unwrap(),
-        )
-        .unwrap();
-        assert_eq!(keychain_report.already_patched_callsites, 10);
-        if cfg!(target_os = "macos") {
-            assert!(runner
-                .commands
-                .iter()
-                .any(|command| command.program == "codesign"));
-            assert!(runner
-                .commands
-                .iter()
-                .any(|command| command.program == "xattr"));
-        }
-    }
-
-    #[test]
-    fn repeated_identical_apply_repairs_broken_signature_and_keeps_injection_payload() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        let app = make_bundle(temp.path());
-        make_language(&repo, "zh-Hans");
-        let injector_source = resources.join("injector/libCavalryTranslatorInjector.dylib");
-        write(&injector_source, b"injector");
-
-        let mut first_runner = RecordingRunner::default();
-        apply_language_inner(
-            &repo,
-            &state,
-            &resources,
-            &app,
-            "zh-Hans",
-            &mut first_runner,
-            "2026-04-23T00:00:00.000Z",
-        )
-        .unwrap();
-        let mut second_runner = VerifyFailsOnceRunner {
-            commands: Vec::new(),
-            verify_failures: 1,
-        };
-        let second = apply_language_inner(
-            &repo,
-            &state,
-            &resources,
-            &app,
-            "zh-Hans",
-            &mut second_runner,
-            "2026-04-23T00:01:00.000Z",
-        )
-        .unwrap();
-
-        assert!(second.ok);
-        assert_eq!(second.current_lang.as_deref(), Some("zh-Hans"));
-        assert_eq!(
-            fs::read(app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")).unwrap(),
-            fs::read(injector_source).unwrap()
-        );
-        assert_eq!(
-            fs::read_to_string(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap(),
-            "zh-Hans\n"
-        );
-        if cfg!(target_os = "macos") {
-            let verify_count = second_runner
-                .commands
-                .iter()
-                .filter(|command| command.args.iter().any(|arg| arg == "--verify"))
-                .count();
-            let signing = second_runner
-                .commands
-                .iter()
-                .filter(|command| command.args.iter().any(|arg| arg == "--sign"))
-                .collect::<Vec<_>>();
-            assert_eq!(verify_count, 2);
-            assert!(!signing.is_empty());
-            assert_eq!(
-                signing
-                    .iter()
-                    .filter(|command| command.args.iter().any(|arg| arg == "--deep"))
-                    .count(),
-                1
-            );
-            assert!(second_runner
-                .commands
-                .iter()
-                .any(|command| command.program == "xattr"));
-        }
-    }
-
-    #[test]
-    fn status_uses_packaged_resource_languages_when_repo_root_is_missing() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("missing-repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        make_language(&resources, "zh-Hans");
-        make_language(&resources, "ja_JP");
-
-        let status = status_for_paths(&repo, &state, &resources);
-        let values = status
-            .languages
-            .iter()
-            .map(|language| language.value.as_str())
-            .collect::<Vec<_>>();
-
-        assert!(values.contains(&"en"));
-        assert!(values.contains(&"zh-Hans"));
-        assert!(values.contains(&"ja_JP"));
-    }
-
-    #[test]
-    fn status_finds_languages_when_tauri_stores_parent_resources_under_up_dir() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("missing-repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        make_language(&resources.join("_up_"), "zh-Hans");
-        make_language(&resources.join("_up_"), "zh-Hant");
-        make_language(&resources.join("_up_"), "ja_JP");
-
-        let status = status_for_paths(&repo, &state, &resources);
-        let values = status
-            .languages
-            .iter()
-            .map(|language| language.value.as_str())
-            .collect::<Vec<_>>();
-
-        assert_eq!(values, vec!["en", "ja_JP", "zh-Hans", "zh-Hant"]);
-    }
-
-    #[test]
-    fn apply_language_uses_packaged_resource_languages_when_repo_root_is_missing() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("missing-repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        let app = make_bundle(temp.path());
-        make_language(&resources, "zh-Hans");
-        write(
-            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
-            b"injector",
-        );
-
-        let mut runner = RecordingRunner::default();
-        let result = apply_language_inner(
-            &repo,
-            &state,
-            &resources,
-            &app,
-            "zh-Hans",
-            &mut runner,
-            "2026-04-23T00:00:00.000Z",
-        )
-        .unwrap();
-
-        assert!(result.ok);
-        assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
-    }
-
-    #[test]
-    fn apply_language_finds_languages_when_tauri_stores_parent_resources_under_up_dir() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("missing-repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        let app = make_bundle(temp.path());
-        make_language(&resources.join("_up_"), "zh-Hans");
-        write(
-            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
-            b"injector",
-        );
-
-        let mut runner = RecordingRunner::default();
-        let result = apply_language_inner(
-            &repo,
-            &state,
-            &resources,
-            &app,
-            "zh-Hans",
-            &mut runner,
-            "2026-04-23T00:00:00.000Z",
-        )
-        .unwrap();
-
-        assert!(result.ok);
-        assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
-    }
-
-    #[test]
-    fn apply_language_finds_sibling_injector_when_resource_dir_points_at_up_dir() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("missing-repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        let resource_dir = resources.join("_up_");
-        let app = make_bundle(temp.path());
-        make_language(&resource_dir, "zh-Hans");
-        write(
-            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
-            b"injector",
-        );
-
-        let mut runner = RecordingRunner::default();
-        let result = apply_language_inner(
-            &repo,
-            &state,
-            &resource_dir,
-            &app,
-            "zh-Hans",
-            &mut runner,
-            "2026-04-23T00:00:00.000Z",
-        )
-        .unwrap();
-
-        assert!(result.ok);
-        assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
-    }
-
-    #[test]
-    fn apply_language_english_skips_keychain_patch() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        let app = make_bundle(temp.path());
-        make_language(&repo, "zh-Hans");
-        make_english_snapshot(&state);
-        write(
-            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
-            b"injector",
-        );
-        fs::create_dir_all(&state).unwrap();
-        fs::write(
-            state.join("state.json"),
-            format!(
-                "{{\"appPath\":\"{}\",\"cavalryVersion\":\"2.3.4\",\"currentLang\":\"zh-Hans\",\"lastPatchedAt\":\"old\"}}\n",
-                app.to_string_lossy()
-            ),
-        )
-        .unwrap();
-        fs::remove_file(app.join("Contents/Frameworks/libExtensionLayer.dylib")).unwrap();
-
-        let mut runner = RecordingRunner::default();
-        let result = apply_language_inner(
-            &repo,
-            &state,
-            &resources,
-            &app,
-            "en",
-            &mut runner,
-            "2026-04-23T00:00:00.000Z",
-        )
-        .unwrap();
-
-        assert!(result.ok);
-        assert_eq!(result.current_lang.as_deref(), Some("en"));
-    }
-
-    #[test]
-    fn apply_language_patch_failure_aborts_resign() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("repo");
-        let state = temp.path().join("state");
-        let resources = temp.path().join("resources");
-        let app = make_bundle(temp.path());
-        make_language(&repo, "zh-Hans");
-        write(
-            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
-            b"injector",
-        );
-        fs::remove_file(app.join("Contents/Frameworks/libExtensionLayer.dylib")).unwrap();
-
-        let mut runner = RecordingRunner::default();
-        let error = apply_language_inner(
-            &repo,
-            &state,
-            &resources,
-            &app,
-            "zh-Hans",
-            &mut runner,
-            "2026-04-23T00:00:00.000Z",
-        )
-        .unwrap_err();
-
-        assert!(
-            error.contains("libExtensionLayer.dylib not found"),
-            "{error}"
-        );
-        assert!(!runner
-            .commands
-            .iter()
-            .any(|command| command.program == "codesign"));
-    }
-
-    #[test]
-    fn restart_cavalry_inner_uses_runner() {
-        let temp = tempfile::tempdir().unwrap();
-        let app = make_bundle(temp.path());
-        let mut runner = RecordingRunner::default();
-        restart_cavalry_inner(&temp.path().join("state"), &app, &mut runner).unwrap();
-        assert_eq!(runner.commands[0].program, "osascript");
-        assert_eq!(runner.commands[1].program, "open");
-    }
-}
+pub(crate) use crate::mac_runtime::injector_source_candidates;
+#[cfg(test)]
+pub(crate) use apply::marker_guarded_transaction_pairs;
+#[cfg(test)]
+pub(crate) use context::resource_candidates;
+#[cfg(test)]
+pub(crate) use contract::COMMAND_NAMES;
+#[cfg(all(test, target_os = "macos"))]
+pub(crate) use lock::acquire_bundle_file_lock;
+#[cfg(test)]
+pub(crate) use lock::{try_begin_bundle_operation, BUSY_ERROR};
+#[cfg(test)]
+pub(crate) use restart::restart_cavalry_guarded;
+#[cfg(test)]
+pub(crate) use status::{
+    is_app_management_error, permission_action, status_for_paths, sync_state_with_bundle,
+};

@@ -1326,11 +1326,16 @@ test('Qt SDK resolver rejects installed Cavalry version drift', () => {
   );
 });
 
-test('injector build script can fall back to Qt frameworks when Cavalry app frameworks are unavailable', () => {
+test('Qt SDK contract preserves macOS builds and prepares the Windows x64 SDK from one version truth', () => {
   const packageJson = fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8');
+  const packageScripts = JSON.parse(packageJson).scripts;
   const buildScript = fs.readFileSync(path.join(repoRoot, 'tools', 'build_translator_injector.sh'), 'utf8');
   const resolverPath = path.join(repoRoot, 'tools', 'resolve_cavalry_qt_sdk.js');
+  const resolverApi = require(resolverPath);
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
+  const windowsConfig = JSON.parse(
+    fs.readFileSync(path.join(repoRoot, 'src-tauri', 'tauri.windows.conf.json'), 'utf8')
+  );
   const targetPath = path.join(repoRoot, 'tools', 'cavalry_qt_target.json');
   const target = JSON.parse(fs.readFileSync(targetPath, 'utf8'));
   const resolver = fs.readFileSync(resolverPath, 'utf8');
@@ -1339,16 +1344,49 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
   assert.match(
     packageJson,
     /"prepare:qt-sdk": "node tools\/resolve_cavalry_qt_sdk\.js --ensure"/,
-    'package.json should expose an explicit SDK preparation command for CI and clean machines'
+    'the existing macOS SDK preparation command must remain compatible'
+  );
+  assert.equal(
+    packageScripts['prepare:qt-sdk:windows'],
+    'node tools/resolve_cavalry_qt_sdk.js --platform windows --ensure'
   );
   assert.match(
-    JSON.parse(packageJson).scripts['build:injector'] || '',
+    packageScripts['build:injector'] || '',
     /resolve_cavalry_qt_sdk\.js --print-env --ensure.*build_translator_injector\.sh/,
     'default injector builds should resolve the target SDK from the project contract instead of scattering 6.6.3 inline'
   );
   assert.equal(target.qtVersion, '6.6.3');
   assert.equal(target.cavalryVersion, '2.7.2');
-  assert.equal(target.sdkPath, 'qt_sdk/6.6.3/macos');
+  assert.deepEqual(Object.keys(target.platforms).sort(), ['macos', 'windows']);
+  assert.equal(target.platforms.macos.sdkPath, 'qt_sdk/6.6.3/macos');
+  assert.equal(target.platforms.macos.aqt.host, 'mac');
+  assert.equal(target.platforms.macos.aqt.arch, 'clang_64');
+  assert.equal(target.platforms.windows.sdkPath, 'qt_sdk/6.6.3/msvc2019_64');
+  assert.equal(target.platforms.windows.aqt.host, 'windows');
+  assert.equal(target.platforms.windows.aqt.arch, 'win64_msvc2019_64');
+  assert.equal(resolverApi.parseArgs(['--platform', 'windows']).platform, 'windows');
+  assert.deepEqual(resolverApi.selectPlatformTarget(target, 'windows'), {
+    cavalryVersion: '2.7.2',
+    qtVersion: '6.6.3',
+    platform: 'windows',
+    sdkPath: 'qt_sdk/6.6.3/msvc2019_64',
+    aqt: target.platforms.windows.aqt,
+  });
+  assert.throws(
+    () => resolverApi.selectPlatformTarget(target, 'linux'),
+    /Unsupported Qt SDK platform "linux"/
+  );
+  const fakeWindowsQt = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-windows-qt-'));
+  try {
+    fs.mkdirSync(path.join(fakeWindowsQt, 'mkspecs'), { recursive: true });
+    fs.writeFileSync(
+      path.join(fakeWindowsQt, 'mkspecs', 'qconfig.pri'),
+      'QT_VERSION = 6.6.3\n'
+    );
+    assert.equal(resolverApi.sdkQtVersion(fakeWindowsQt, 'windows'), '6.6.3');
+  } finally {
+    fs.rmSync(fakeWindowsQt, { recursive: true, force: true });
+  }
   assert.match(
     resolver,
     /install-qt[\s\S]*target\.aqt\.host[\s\S]*target\.aqt\.target[\s\S]*target\.qtVersion[\s\S]*target\.aqt\.arch/,
@@ -1368,6 +1406,31 @@ test('injector build script can fall back to Qt frameworks when Cavalry app fram
     workflowSource,
     /python3 -m venv "\$RUNNER_TEMP\/aqt-venv"[\s\S]*pip install aqtinstall[\s\S]*PYTHON=\$RUNNER_TEMP\/aqt-venv\/bin\/python/,
     'macOS packaging should install aqtinstall inside a local venv and pass that Python to the resolver'
+  );
+  assert.equal(
+    packageScripts['build:tauri:windows'],
+    'npm run prepare:qt-sdk:windows && tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.conf.json && node tools/windows_nsis_provenance.js --record',
+    'the public Windows build entry must prepare Qt, build the explicit x64 target, and record provenance'
+  );
+  assert.equal(
+    windowsConfig.build.beforeBuildCommand,
+    'npm run prepare:tauri:windows-bundle',
+    'the Tauri Windows hook must build the injector and prepare provenance before bundling'
+  );
+  assert.equal(
+    packageScripts['prepare:tauri:windows-bundle'],
+    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare',
+    'the bundle hook must publish the Windows injector before fingerprinting package inputs'
+  );
+  assert.match(
+    workflowSource,
+    /windows_check:[\s\S]*npm run build:tauri:windows/,
+    'Windows CI must use the same self-contained x64 build entry as local packaging'
+  );
+  assert.doesNotMatch(
+    workflowSource,
+    /python -m aqt install-qt windows/,
+    'Windows CI must not duplicate the target Qt version and architecture outside cavalry_qt_target.json'
   );
   assert.match(
     workflowSource,
@@ -3838,6 +3901,15 @@ test('translation whitelist registers FP-10 FP-11 FP-12 contracts', () => {
   assert.equal(contracts.transliteration_ban.id, 'FP-10');
   assert.equal(contracts.pangram_skip.id, 'FP-11');
   assert.equal(contracts.translation_reuse_cap.id, 'FP-12');
+  assert.deepEqual(
+    contracts.translation_reuse_cap.controlled_source_variants['将颜色拖到此处'],
+    [
+      'Drag colors here',
+      'Drag colors here.',
+      'Drag colours here',
+      'Drag colours here.',
+    ]
+  );
 });
 
 test('translation validator preserves TS and generated table context for FP-8', () => {
@@ -3936,6 +4008,71 @@ test('translation validator rejects generic translation reuse across unrelated s
   assert.equal(result.status, 1, 'validator should hard-fail generic placeholder reuse');
   assert.equal(report.gates.B13.status, 'FAIL');
   assert.equal(report.languages.ja.forbidden_patterns.by_pattern['FP-12'], 1);
+});
+
+test('translation validator permits only the declared spelling and punctuation variants', () => {
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+  const validatorPath = path.join(tempRoot, 'tools', 'validate_translations.py');
+  const reportPath = path.join(tempRoot, 'p5-report.json');
+  const summaryPath = path.join(tempRoot, 'p5-summary.md');
+  const whitelistPath = path.join(tempRoot, 'tools', 'translation-whitelist.json');
+  const tsPath = path.join(tempRoot, 'tools', 'zh-Hans.ts');
+  const whitelist = readJson(whitelistPath);
+  whitelist._forbidden_patterns = {
+    translation_reuse_cap: {
+      id: 'FP-12',
+      max_distinct_sources: 2,
+      min_translation_length: 6,
+      controlled_vocabulary: [],
+      controlled_source_variants: {
+        将颜色拖到此处: [
+          'Drag colors here',
+          'Drag colors here.',
+          'Drag colours here',
+          'Drag colours here.',
+        ],
+      },
+    },
+  };
+  writeJson(whitelistPath, whitelist);
+
+  fs.writeFileSync(
+    tsPath,
+    [
+      '<?xml version="1.0" encoding="utf-8"?>',
+      '<TS version="2.1" language="zh-Hans">',
+      '<context>',
+      '<name>MenuBarManager</name>',
+      '<message><source>Drag colors here</source><translation>将颜色拖到此处</translation></message>',
+      '<message><source>Drag colors here.</source><translation>将颜色拖到此处</translation></message>',
+      '<message><source>Drag colours here</source><translation>将颜色拖到此处</translation></message>',
+      '<message><source>Drag colours here.</source><translation>将颜色拖到此处</translation></message>',
+      '</context>',
+      '</TS>',
+    ].join('\n')
+  );
+
+  const result = spawnPythonSync(
+    [
+      validatorPath,
+      '--root',
+      tempRoot,
+      '--extraction-inventory',
+      extractionPath,
+      '--json-report',
+      reportPath,
+      '--markdown-summary',
+      summaryPath,
+    ],
+    { encoding: 'utf8' }
+  );
+  const report = readJson(reportPath);
+
+  assert.equal(
+    report.languages.zh_Hans.forbidden_patterns.by_pattern['FP-12'] || 0,
+    0,
+    result.stderr || result.stdout
+  );
 });
 
 test('JSON surface translation report uses non-overlapping file counts', () => {

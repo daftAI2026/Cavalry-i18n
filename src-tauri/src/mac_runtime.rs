@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 patch::CopyPair 与 Info.plist/runtime staging 目录
- * [OUTPUT]: 对外提供 build_launch_wrapper、build_wrapped_info_plist、build_runtime_pairs
- * [POS]: src-tauri/src 的 macOS runtime patch 模块，集中 wrapper、marker、injector 目标路径
+ * [INPUT]: 依赖 install::LANG_MARKER_NAME、patch::CopyPair 与 Info.plist/runtime staging 目录。
+ * [OUTPUT]: 对外提供 wrapper、Info.plist、runtime copy pair 构造及 macOS 包装 injector 来源解析。
+ * [POS]: src-tauri/src 的 macOS runtime patch 模块；供 platform_runtime 取得已打包或开发期 injector，再生成原子运行时写入计划。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, path::Path};
@@ -13,7 +13,45 @@ use std::os::unix::fs::PermissionsExt;
 
 pub const INJECTOR_DYLIB_NAME: &str = "libCavalryTranslatorInjector.dylib";
 pub const WRAPPER_EXECUTABLE_NAME: &str = "CavalryLauncher";
-pub const LANG_MARKER_NAME: &str = "cavalry-i18n-lang.txt";
+pub use crate::install::LANG_MARKER_NAME;
+
+#[cfg(target_os = "macos")]
+pub(crate) fn injector_source_candidates(
+    repo_root: &Path,
+    resource_dir: &Path,
+) -> Vec<std::path::PathBuf> {
+    let suffixes = [
+        std::path::PathBuf::from("injector").join(INJECTOR_DYLIB_NAME),
+        std::path::PathBuf::from(INJECTOR_DYLIB_NAME),
+    ];
+    let mut roots = vec![resource_dir.to_path_buf(), resource_dir.join("_up_")];
+    if let Some(parent) = resource_dir.parent() {
+        roots.push(parent.to_path_buf());
+    }
+    let mut candidates = roots
+        .into_iter()
+        .flat_map(|root| suffixes.iter().map(move |suffix| root.join(suffix)))
+        .collect::<Vec<_>>();
+    candidates.push(repo_root.join("injector").join(INJECTOR_DYLIB_NAME));
+    candidates.dedup();
+    candidates
+}
+
+#[cfg(target_os = "macos")]
+pub(crate) fn injector_source_path(
+    repo_root: &Path,
+    resource_dir: &Path,
+) -> Result<std::path::PathBuf, String> {
+    injector_source_candidates(repo_root, resource_dir)
+        .into_iter()
+        .find(|candidate| candidate.exists())
+        .ok_or_else(|| {
+            format!(
+                "Packaged injector missing. Checked Resources/injector and repo injector/ for {}.",
+                INJECTOR_DYLIB_NAME
+            )
+        })
+}
 
 pub fn build_launch_wrapper() -> String {
     format!(

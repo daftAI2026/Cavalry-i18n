@@ -1,19 +1,20 @@
 /**
- * [INPUT]: 依赖 CavalryEmbeddedTranslator、CavalryUI helper/CustomListWidget placeholder ABI 与精确 PE/IAT 槽查询
- * [OUTPUT]: 对外提供 ExtensionLayer 空状态 helper 与已验证 placeholder setter 的受控 IAT hook、精确 source 查询与可诊断安装状态
- * [POS]: injector/windows 的自绘空状态适配边界；接管 ExtensionLayer.dll 对 CavalryUI helper 的唯一导入槽，以及经 canonical setter 链验证的 QString 赋值槽，不处理动态 HelperHints
+ * [INPUT]: 依赖 CavalryEmbeddedTranslator、CavalryUI helper/CustomListWidget placeholder ABI、Core text-path 子边界与精确 PE/IAT 槽查询
+ * [OUTPUT]: 对外提供串行化 helper/placeholder/十五项 text-path 聚合状态、前两条 Qt source 查询及结构化 text-path 诊断快照
+ * [POS]: injector/windows 的 ExtensionLayer 聚合生命周期边界；动态 detail 转发子 hook 最新计数，callback 不持 hook/translator raw pointer
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
 
+#include "cavalry_i18n_extension_layer_text_path_hook.h"
+
 #include <QtCore/QString>
 
 #include <cstddef>
+#include <memory>
+#include <mutex>
 
 class CavalryEmbeddedTranslator;
-class QColor;
-class QPixmap;
-class QWidget;
 
 class CavalryExtensionLayerHook final
 {
@@ -29,6 +30,7 @@ public:
     bool isWaitingForModule() const;
     QString status() const;
     QString detail() const;
+    CavalryTextPathHookDiagnostics textPathDiagnostics() const;
 
     // 可测试的 helper 精确 source 投影；未知文案和动态 HelperHints 必须返回空值。
     static QString translationForWhitelistedSource(
@@ -40,34 +42,34 @@ public:
         const CavalryEmbeddedTranslator &translator,
         const QString &source);
 
-    // 仅供已验证的 ui::textAtWidgetCentre IAT 回调入口调用；保留 widget、颜色和图标实参。
-    void forwardTextAtWidgetCentre(
-        QWidget *widget,
-        const QString &source,
-        const QColor &color,
-        const QPixmap *icon);
-
-    // 仅由 QString::operator= IAT 回调调用；返回地址必须是直调 setPlaceholder export 的返回点。
-    QString &forwardPlaceholderAssignment(
-        QString *destination,
-        const QString &source,
-        const void *returnAddress);
+#ifdef CAVALRY_I18N_TESTING
+    // 仅供无厂商 DLL 的本进程 fake-slot 生命周期测试；正式插件不暴露此入口。
+    bool configurePartialInstallForTesting(
+        void **helperSlot,
+        void *helperOriginal,
+        bool helperInstalled,
+        void **placeholderSlot,
+        void *placeholderOriginal,
+        bool placeholderInstalled);
+    bool triggerTerminalFailureForTesting(const QString &failure);
+#endif
 
 private:
-    bool isDirectSetPlaceholderCaller(const void *returnAddress) const;
+    bool failTerminalLocked(const QString &failure);
+    bool uninstallLocked(QString *failureDetail);
     void uninstall();
 
     CavalryEmbeddedTranslator &translator_;
+    std::unique_ptr<CavalryExtensionLayerTextPathHook> textPathHook_;
+    mutable std::mutex lifecycleMutex_;
     void **textAtWidgetCentreIatSlot_ = nullptr;
     void *originalTextAtWidgetCentre_ = nullptr;
     void **placeholderAssignmentIatSlot_ = nullptr;
     void *originalPlaceholderAssignment_ = nullptr;
-    const void *setPlaceholderThunk_ = nullptr;
-    const void *extensionLayerImage_ = nullptr;
-    std::size_t extensionLayerImageSize_ = 0;
     QString status_ = QStringLiteral("waiting-for-extension-layer");
     QString detail_ = QStringLiteral("ExtensionLayer.dll is not loaded yet.");
     bool textAtWidgetCentreInstalled_ = false;
     bool placeholderAssignmentInstalled_ = false;
+    bool ownsGlobalHooks_ = false;
     bool terminalFailure_ = false;
 };

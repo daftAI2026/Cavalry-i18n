@@ -2141,7 +2141,7 @@
     <message><source>Disable B</source><translation>バイトを無効化</translation></message>
     <message><source>Disable Playback Caching to use this feature</source><translation>この機能を使用する再生キャッシュを無効にする</translation></message>
     <message><source>Disable Playback Caching to use this feature.</source><translation>この機能を使用する再生キャッシュを無効にします。</translation></message>
-    <message><source>Disable Snapping</source><translation>無効なスナップ</translation></message>
+    <message><source>Disable Snapping</source><translation>スナップを無効にする</translation></message>
     <message><source>Disable Soft Selection</source><translation>無効なソフト選択</translation></message>
     <message><source>Disconnect</source><translation>接続解除</translation></message>
     <message><source>Disconnect All</source><translation>切断 すべて</translation></message>
@@ -2218,7 +2218,7 @@
     <message><source>Empty titles or invalid column data was found</source><translation>空のタイトルや無効な列データが見つかりました</translation></message>
     <message><source>Empty titles or invalid column data was found.</source><translation>タイトルや無効な列データが見つかりました。</translation></message>
     <message><source>Enable</source><translation>アクセス</translation></message>
-    <message><source>Enable B</source><translation>バイトを有効化</translation></message>
+    <message><source>Enable Bézier Angle Snapping</source><translation>ベジェ角度スナップを有効にする</translation></message>
     <message><source>Enable Color Management</source><translation>カラーマネジメントを有効にする</translation></message>
     <message><source>Enable Render Items</source><translation>レンダリングアイテムを有効にする</translation></message>
     <message><source>Enable Snapping</source><translation>スナップを有効にする</translation></message>
@@ -3450,8 +3450,8 @@
     <message><source>Split Clip</source><translation>スプリットクリップ</translation></message>
     <message><source>Split Complementary</source><translation>分割補完</translation></message>
     <message><source>Split Path</source><translation>パスを分割</translation></message>
-    <message><source>Split Path (B</source><translation>パスを分割（B</translation></message>
-    <message><source>Split Path (Corner)</source><translation>分割パス(角点)</translation></message>
+    <message><source>Split Path (Bézier)</source><translation>パスを分割（ベジェ）</translation></message>
+    <message><source>Split Path (Corner)</source><translation>パスを分割（コーナー）</translation></message>
     <message><source>Split Path command: Final Contour not found</source><translation>分割パス命令: 找不到最终轮廓</translation></message>
     <message><source>Split Path command: Final Contour not found.</source><translation>分割パス命令: 找不到最终轮廓。</translation></message>
     <message><source>Split Path command: Second EUID not found</source><translation>パス分割コマンド: 二番目の実体識別子が見つかりません</translation></message>
@@ -3670,7 +3670,7 @@
     <message><source>Toggle the mini-map overview in the bottom-right corner.</source><translation>右下隅にあるミニマップの概要を切り替えます。</translation></message>
     <message><source>Toggle this mode with the &apos;U&apos; key</source><translation>U キーでこのモードを切り替えます</translation></message>
     <message><source>Toggle this mode with the &apos;U&apos; key.</source><translation>U キーでこのモードを切り替えます。</translation></message>
-    <message><source>Toggle Transform Tool</source><translation>トグル変換ツール</translation></message>
+    <message><source>Toggle Transform Tool</source><translation>トランスフォームツールを切り替え</translation></message>
     <message><source>Toggle Viewport Grid</source><translation>ビューポートグリッドを切り替え</translation></message>
     <message><source>Toggle Viewport Grid.</source><translation>ビューポートグリッドを切り替え。</translation></message>
     <message><source>Toggle Viewport Snapping</source><translation>ビューポートスナップを切り替え</translation></message>
@@ -5555,7 +5555,7 @@
       <translation>属性を削除</translation>
     </message>
     <message>
-      <source>Delete B</source><translation>B を削除</translation>
+      <source>Delete Bézier Handle</source><translation>ベジェハンドルを削除</translation>
     </message>
     <message>
       <source>Delete Backdrop</source>
@@ -5918,19 +5918,19 @@
     </message>
     <message>
       <source>Viewport Quality: Balanced</source>
-      <translation>ビューポート品質: バランス</translation>
+      <translation>ビューポート品質：バランス</translation>
     </message>
     <message>
       <source>Viewport Quality: High</source>
-      <translation>ビューポート品質: 高</translation>
+      <translation>ビューポート品質：高</translation>
     </message>
     <message>
       <source>Viewport Quality: Low</source>
-      <translation>ビューポート品質: 低</translation>
+      <translation>ビューポート品質：低</translation>
     </message>
     <message>
       <source>Viewport Quality: Lowest</source>
-      <translation>ビューポート品質: 最低</translation>
+      <translation>ビューポート品質：最低</translation>
     </message>
     <message>
       <source>Viewport Settings</source><translation>ビューポート設定</translation>
@@ -7794,6 +7794,10 @@
     <message>
       <source>Manipulator:</source>
       <translation>マニピュレータ:</translation>
+    </message>
+    <message>
+      <source>Close Distance:</source>
+      <translation>閉じる距離:</translation>
     </message>
     <message>
       <source>Rectangle Tool</source>

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package.json、CHANGELOG.md、tools/sync_project_version.js、tools/release_metadata.js、tools/extract_release_changelog.js、src-tauri/tauri.conf.json、capabilities/default.json、本地打包 SOP、README 与 release badge JSON
- * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、版本同步、release 协议、精确版本 CHANGELOG 摘要、README release badge 与配置 contract 测试，阻止发布路径恢复旧壳层链路或 Release 丢失版本更新内容
- * [POS]: tools 的 Phase 6 打包守门，连接文档相、版本真相源、release tag 协议、版本更新摘要、README badge、npm script 与 Tauri bundle 配置
+ * [INPUT]: 依赖 package.json、CHANGELOG.md、跨平台工具入口、Windows NSIS provenance/安装态守门/disposable live-clone 证据门、PowerShell 5.1 脚本编码边界、src-tauri/tauri*.conf.json、capabilities/default.json、本地打包 SOP、README、GitHub workflow 与 release badge JSON
+ * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、跨平台安装/换行/Python 命令、版本同步、双 DMG 加 Windows x64 NSIS 的 release 协议、Windows 当前输入 provenance/隔离安装卸载与 exact-HWND live GUI clone/PID/panic/UTF-8 BOM 安全合同、精确版本 CHANGELOG 摘要、README release badge 与平台安装包配置 contract 测试
+ * [POS]: tools 的 Phase 6 打包守门，连接文档相、版本真相源、release tag 协议、Windows NSIS build-provenance/安装态验证、disposable clone 的三类自绘截图与逐类人工证据门、npm script 与 Tauri 公共/平台 bundle 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -11,6 +11,8 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { installGitHooks } = require('./install_git_hooks.js');
+const { resolvePythonCommand } = require('./python_command.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 
@@ -98,46 +100,269 @@ function makeVersionFixture() {
   return tempRoot;
 }
 
+function makeWindowsNsisProvenanceFixture() {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-windows-nsis-provenance-'));
+  const write = (relativePath, content) => {
+    const filePath = path.join(tempRoot, relativePath);
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, content);
+  };
+  fs.mkdirSync(path.join(tempRoot, 'tools'), { recursive: true });
+  fs.copyFileSync(
+    path.join(repoRoot, 'tools', 'windows_nsis_provenance.js'),
+    path.join(tempRoot, 'tools', 'windows_nsis_provenance.js')
+  );
+  writeJson(path.join(tempRoot, 'package.json'), { name: 'cavalry-i18n', version: '9.8.7' });
+  writeJson(path.join(tempRoot, 'package-lock.json'), {
+    name: 'cavalry-i18n',
+    version: '9.8.7',
+    lockfileVersion: 3,
+    packages: { '': { name: 'cavalry-i18n', version: '9.8.7' } },
+  });
+  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.conf.json'), {
+    productName: 'Cavalry Language Switcher',
+    version: '9.8.7',
+    build: { frontendDist: '../renderer' },
+  });
+  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.windows.conf.json'), {
+    bundle: {
+      targets: ['nsis'],
+      resources: {
+        '../languages': 'languages',
+        '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
+      },
+      windows: {
+        nsis: {
+          installerHooks: 'nsis-hooks.nsh',
+        },
+      },
+    },
+  });
+  writeJson(path.join(tempRoot, 'src-tauri', 'capabilities', 'default.json'), { permissions: [] });
+  write('renderer/index.html', '<!doctype html><title>fixture</title>');
+  write('languages/en/appStrings.json', '{"fixture":"English"}\n');
+  write('src-tauri/src/lib.rs', 'pub fn fixture() {}\n');
+  write('src-tauri/Cargo.toml', '[package]\nname = "fixture"\nversion = "9.8.7"\n');
+  write('src-tauri/Cargo.lock', 'version = 4\n');
+  write('src-tauri/build.rs', 'fn main() {}\n');
+  write('src-tauri/nsis-hooks.nsh', '!macro NSIS_HOOK_POSTUNINSTALL\n!macroend\n');
+  write('src-tauri/icons/icon.ico', Buffer.from([0, 0, 1, 0]));
+  write('injector/windows/generic/cavalryi18n.dll', Buffer.from('fixture-plugin'));
+  return tempRoot;
+}
+
 test('tauri local build SOP is the only release path', () => {
   const localSop = readText('LOCAL_BUILD_SOP.md');
 
   assert.match(localSop, /Tauri/i);
   assert.match(localSop, /npm run tauri:build/);
   assert.match(localSop, /npm run prepare:qt-sdk/);
+  assert.match(localSop, /npm run prepare:qt-sdk:windows/);
   assert.match(localSop, /APPLE_SIGNING_IDENTITY="-"/);
   assert.match(localSop, /tools\/cavalry_qt_target\.json/);
   assert.match(localSop, /6\.6\.3/);
   assert.doesNotMatch(localSop, /Electron|electron-builder|test:desktop|check:desktop|desktop-patcher/);
 });
 
-test('tauri build scripts and config describe one injector and resource pipeline', () => {
+test('tauri build scripts and configs isolate the macOS and Windows injectors', () => {
   const pkg = readJson('package.json');
   const config = readJson('src-tauri/tauri.conf.json');
-  const resources = config.bundle.resources;
+  const macConfig = readJson('src-tauri/tauri.macos.conf.json');
+  const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
+  const macResources = macConfig.bundle.resources;
+  const windowsResources = windowsConfig.bundle.resources;
   const qtTarget = readJson('tools/cavalry_qt_target.json');
 
-  assert.equal(pkg.scripts['tauri:build'], 'tauri build');
+  assert.equal(
+    pkg.scripts['tauri:build'],
+    'tauri build --config src-tauri/tauri.macos.conf.json'
+  );
   assert.equal(pkg.scripts.build, 'npm run tauri:build');
+  assert.equal(
+    pkg.scripts['build:tauri:windows'],
+    'npm run prepare:qt-sdk:windows && tauri build --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.conf.json && node tools/windows_nsis_provenance.js --record'
+  );
+  assert.equal(
+    pkg.scripts['build:injector:windows'],
+    'powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.ps1'
+  );
+  assert.equal(
+    pkg.scripts['prepare:tauri:windows-bundle'],
+    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare'
+  );
+  assert.equal(
+    pkg.scripts['test:tauri:windows-nsis'],
+    'powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/check_windows_nsis_install.ps1'
+  );
+  assert.equal(
+    pkg.scripts['test:tauri:manual-windows-live-smoke'],
+    'cd src-tauri && cargo test --test manual_windows_live_smoke -- --ignored --nocapture'
+  );
   assert.equal(pkg.scripts.desktop, undefined);
   assert.equal(pkg.scripts['build:electron'], undefined);
   assert.equal(pkg.scripts['build:electron:dir'], undefined);
   assert.equal(pkg.scripts['build:dir'], undefined);
   assert.equal(pkg.build, undefined);
+  assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance\.js/);
   assert.equal(pkg.devDependencies.electron, undefined);
   assert.equal(pkg.devDependencies['electron-builder'], undefined);
   assert.equal(pkg.scripts['prepare:qt-sdk'], 'node tools/resolve_cavalry_qt_sdk.js --ensure');
+  assert.equal(
+    pkg.scripts['prepare:qt-sdk:windows'],
+    'node tools/resolve_cavalry_qt_sdk.js --platform windows --ensure'
+  );
   assert.match(pkg.scripts['build:injector'], /resolve_cavalry_qt_sdk\.js --print-env --ensure/);
   assert.match(pkg.scripts['build:injector'], /build_translator_injector\.sh injector\/libCavalryTranslatorInjector\.dylib/);
   assert.equal(qtTarget.qtVersion, '6.6.3');
-  assert.equal(qtTarget.sdkPath, 'qt_sdk/6.6.3/macos');
-  assert.equal(config.build.beforeBuildCommand, 'npm run build:injector');
+  assert.equal(qtTarget.platforms.macos.sdkPath, 'qt_sdk/6.6.3/macos');
+  assert.equal(qtTarget.platforms.macos.aqt.arch, 'clang_64');
+  assert.equal(qtTarget.platforms.windows.sdkPath, 'qt_sdk/6.6.3/msvc2019_64');
+  assert.equal(qtTarget.platforms.windows.aqt.arch, 'win64_msvc2019_64');
+  assert.equal(config.build.beforeBuildCommand, undefined);
   assert.equal(config.build.frontendDist, '../renderer');
   assert.equal(config.app.withGlobalTauri, true);
-  assert.equal(resources['../languages'], 'languages');
+  assert.equal(macConfig.build.beforeBuildCommand, 'npm run build:injector');
+  assert.deepEqual(macConfig.bundle.targets, ['dmg', 'app']);
+  assert.equal(macResources['../languages'], 'languages');
   assert.equal(
-    resources['../injector/libCavalryTranslatorInjector.dylib'],
+    macResources['../injector/libCavalryTranslatorInjector.dylib'],
     'injector/libCavalryTranslatorInjector.dylib'
   );
+  assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
+  assert.deepEqual(windowsConfig.bundle.icon, ['icons/icon.ico']);
+  assert.equal(windowsConfig.build.beforeBuildCommand, 'npm run prepare:tauri:windows-bundle');
+  assert.deepEqual(windowsResources, {
+    '../languages': 'languages',
+    '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
+  });
+});
+
+test('Windows NSIS provenance binds one new installer to current dirty packaging inputs', () => {
+  const tempRoot = makeWindowsNsisProvenanceFixture();
+  const script = path.join(tempRoot, 'tools', 'windows_nsis_provenance.js');
+  const bundleRoot = path.join(
+    tempRoot,
+    'src-tauri',
+    'target',
+    'x86_64-pc-windows-msvc',
+    'release',
+    'bundle',
+    'nsis'
+  );
+  const installerName = 'Cavalry Language Switcher_9.8.7_x64-setup.exe';
+  const installerPath = path.join(bundleRoot, installerName);
+  const provenanceModule = require(script);
+  const run = (...args) => spawnSync(process.execPath, [script, ...args], {
+    cwd: tempRoot,
+    encoding: 'utf8',
+  });
+
+  fs.mkdirSync(bundleRoot, { recursive: true });
+  fs.writeFileSync(installerPath, 'stale-current-version-installer');
+  const prepared = run('--prepare');
+  assert.equal(prepared.status, 0, prepared.stderr || prepared.stdout);
+  assert.equal(fs.existsSync(installerPath), false, 'prepare must remove only the expected old installer');
+  assert.equal(
+    fs.existsSync(path.join(bundleRoot, 'cavalry-i18n-windows-nsis-build-intent.json')),
+    true,
+    'prepare must leave a build intent for record'
+  );
+
+  fs.writeFileSync(installerPath, 'fresh-installer-bytes');
+  const recorded = run('--record');
+  assert.equal(recorded.status, 0, recorded.stderr || recorded.stdout);
+  const provenancePath = `${installerPath}.provenance.json`;
+  const provenance = JSON.parse(fs.readFileSync(provenancePath, 'utf8'));
+  assert.equal(provenance.target, 'x86_64-pc-windows-msvc');
+  assert.equal(provenance.version, '9.8.7');
+  assert.equal(provenance.installer.fileName, installerName);
+  assert.equal(provenance.installer.bytes, Buffer.byteLength('fresh-installer-bytes'));
+  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'renderer/index.html'));
+  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'languages/en/appStrings.json'));
+  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'src-tauri/src/lib.rs'));
+  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'injector/windows/generic/cavalryi18n.dll'));
+  for (const requiredInput of [
+    'package.json',
+    'package-lock.json',
+    'src-tauri/Cargo.toml',
+    'src-tauri/Cargo.lock',
+    'src-tauri/build.rs',
+    'src-tauri/tauri.conf.json',
+    'src-tauri/tauri.windows.conf.json',
+    'src-tauri/nsis-hooks.nsh',
+    'src-tauri/capabilities/default.json',
+    'src-tauri/icons/icon.ico',
+  ]) {
+    assert.ok(
+      provenance.inputFingerprint.files.some((entry) => entry.path === requiredInput),
+      `provenance must bind ${requiredInput}`
+    );
+  }
+
+  const verified = run('--verify', installerPath);
+  assert.equal(verified.status, 0, verified.stderr || verified.stdout);
+  assert.equal(provenanceModule.TARGET_TRIPLE, 'x86_64-pc-windows-msvc');
+  assert.doesNotThrow(() => provenanceModule.verify(tempRoot, installerPath));
+  fs.appendFileSync(installerPath, '-tampered');
+  assert.throws(
+    () => provenanceModule.verify(tempRoot, installerPath),
+    /sidecar does not match the current installer bytes and packaging input fingerprint/
+  );
+  fs.writeFileSync(installerPath, 'fresh-installer-bytes');
+  fs.appendFileSync(path.join(tempRoot, 'renderer', 'index.html'), '<!-- dirty after package -->');
+  const staleInputs = run('--verify', installerPath);
+  assert.notEqual(staleInputs.status, 0, 'a dirty packaging input must invalidate the old installer sidecar');
+  assert.match(staleInputs.stderr, /sidecar does not match the current installer bytes and packaging input fingerprint/);
+});
+
+test('Windows NSIS provenance refuses foreign stale installers instead of broad deletion', () => {
+  const tempRoot = makeWindowsNsisProvenanceFixture();
+  const script = path.join(tempRoot, 'tools', 'windows_nsis_provenance.js');
+  const bundleRoot = path.join(
+    tempRoot,
+    'src-tauri',
+    'target',
+    'x86_64-pc-windows-msvc',
+    'release',
+    'bundle',
+    'nsis'
+  );
+  const foreignInstaller = path.join(bundleRoot, 'Cavalry Language Switcher_9.8.6_x64-setup.exe');
+  fs.mkdirSync(bundleRoot, { recursive: true });
+  fs.writeFileSync(foreignInstaller, 'foreign-stale-installer');
+
+  const prepared = spawnSync(process.execPath, [script, '--prepare'], {
+    cwd: tempRoot,
+    encoding: 'utf8',
+  });
+  assert.notEqual(prepared.status, 0);
+  assert.match(prepared.stderr, /refusing to erase non-current Windows installer output/);
+  assert.equal(fs.existsSync(foreignInstaller), true, 'prepare must leave foreign output untouched');
+});
+
+test('Windows NSIS provenance refuses an orphan sidecar instead of uploading stale metadata', () => {
+  const tempRoot = makeWindowsNsisProvenanceFixture();
+  const script = path.join(tempRoot, 'tools', 'windows_nsis_provenance.js');
+  const bundleRoot = path.join(
+    tempRoot,
+    'src-tauri',
+    'target',
+    'x86_64-pc-windows-msvc',
+    'release',
+    'bundle',
+    'nsis'
+  );
+  const orphanSidecar = path.join(bundleRoot, 'Cavalry Language Switcher_9.8.6_x64-setup.exe.provenance.json');
+  fs.mkdirSync(bundleRoot, { recursive: true });
+  fs.writeFileSync(orphanSidecar, '{}\n');
+
+  const prepared = spawnSync(process.execPath, [script, '--prepare'], {
+    cwd: tempRoot,
+    encoding: 'utf8',
+  });
+  assert.notEqual(prepared.status, 0);
+  assert.match(prepared.stderr, /refusing to erase non-current Windows installer output/);
+  assert.equal(fs.existsSync(orphanSidecar), true, 'prepare must leave orphan sidecar visible');
 });
 
 test('project version workflow exposes one synchronizer and a pre-commit hook installer', () => {
@@ -148,17 +373,123 @@ test('project version workflow exposes one synchronizer and a pre-commit hook in
   assert.equal(pkg.scripts['release:metadata'], 'node tools/release_metadata.js');
   assert.equal(pkg.scripts['check:release'], 'node tools/release_metadata.js --check');
   assert.match(pkg.scripts['check:app'], /node --check tools\/extract_release_changelog\.js/);
-  assert.equal(
-    pkg.scripts['hooks:install'],
-    'git rev-parse --is-inside-work-tree >/dev/null 2>&1 && git config core.hooksPath tools/git-hooks || true'
-  );
+  assert.equal(pkg.scripts['hooks:install'], 'node tools/install_git_hooks.js');
   assert.equal(pkg.scripts.postinstall, 'npm run hooks:install');
+  assert.doesNotMatch(pkg.scripts['hooks:install'], /\/dev\/null|&&|\|\||\btrue\b/);
+
+  const nonGitRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-hook-install-'));
+  const result = spawnSync(process.execPath, [path.join(repoRoot, 'tools', 'install_git_hooks.js')], {
+    cwd: nonGitRoot,
+    encoding: 'utf8',
+  });
+  assert.equal(result.status, 0, result.stderr || result.stdout);
+  assert.match(result.stderr, /skipped \(not-a-git-worktree\)/);
+
+  const calls = [];
+  const nodePath = 'D:\\Portable Node\\node.exe';
+  const installed = installGitHooks({
+    cwd: 'D:\\repo',
+    nodePath,
+    spawn: (command, args, options) => {
+      calls.push({ command, args, cwd: options.cwd });
+      return args[0] === 'rev-parse'
+        ? { status: 0, stdout: 'true\n' }
+        : { status: 0, stdout: '' };
+    },
+  });
+  assert.deepEqual(installed, { installed: true, reason: 'configured' });
+  assert.deepEqual(calls, [
+    {
+      command: 'git',
+      args: ['--version'],
+      cwd: undefined,
+    },
+    {
+      command: 'git',
+      args: ['rev-parse', '--is-inside-work-tree'],
+      cwd: 'D:\\repo',
+    },
+    {
+      command: 'git',
+      args: ['config', 'core.hooksPath', 'tools/git-hooks'],
+      cwd: 'D:\\repo',
+    },
+    {
+      command: 'git',
+      args: ['config', 'cavalry-i18n.nodePath', nodePath],
+      cwd: 'D:\\repo',
+    },
+  ]);
+});
+
+test('Python resolver honors PYTHON and probes Windows launchers without a shell', () => {
+  const explicit = resolvePythonCommand({
+    env: { PYTHON: '"C:\\Program Files\\Python\\python.exe"' },
+    platform: 'win32',
+    spawn: () => {
+      throw new Error('explicit PYTHON must not be probed');
+    },
+  });
+  assert.deepEqual(explicit, {
+    command: 'C:\\Program Files\\Python\\python.exe',
+    args: [],
+  });
+
+  const probes = [];
+  const discovered = resolvePythonCommand({
+    env: {},
+    platform: 'win32',
+    spawn: (command, args) => {
+      probes.push([command, args]);
+      return { status: command === 'python' ? 0 : 1 };
+    },
+  });
+  assert.deepEqual(probes[0], ['py', ['-3', '-c', 'import sys']]);
+  assert.deepEqual(probes[1], ['python', ['-c', 'import sys']]);
+  assert.deepEqual(discovered, { command: 'python', args: [] });
+
+  const localAppData = 'C:\\Users\\Codex\\AppData\\Local';
+  const localLauncher = path.join(
+    localAppData,
+    'Programs',
+    'Python',
+    'Launcher',
+    'py.exe'
+  );
+  const launcherProbes = [];
+  const localDiscovered = resolvePythonCommand({
+    env: { LOCALAPPDATA: localAppData },
+    platform: 'win32',
+    spawn: (command, args) => {
+      launcherProbes.push([command, args]);
+      return { status: command === localLauncher ? 0 : 1 };
+    },
+  });
+  assert.deepEqual(launcherProbes, [
+    [localLauncher, ['-3', '-c', 'import sys']],
+  ]);
+  assert.deepEqual(localDiscovered, {
+    command: localLauncher,
+    args: ['-3'],
+  });
+
+  assert.throws(
+    () =>
+      resolvePythonCommand({
+        env: {},
+        platform: 'win32',
+        spawn: () => ({ status: 1 }),
+      }),
+    /找不到 Python 3.*PYTHON/
+  );
 });
 
 test('release protocol separates internal SemVer from target Cavalry tag naming', () => {
   const releaseConfig = readJson('release.config.json');
   const workflow = readText('.github/workflows/build.yml');
   const localSop = readText('LOCAL_BUILD_SOP.md');
+  const windowsBuild = readText('injector/windows/build.ps1');
+  const windowsCmake = readText('injector/windows/CMakeLists.txt');
 
   assert.equal(releaseConfig.targetCavalryVersion, '2.7.2');
   assert.equal(releaseConfig.releaseTagPrefix, 'cavalry-2.7.2-p');
@@ -170,7 +501,11 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.deepEqual(releaseConfig.assetNameTemplates, {
     aarch64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.dmg',
     x64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.dmg',
+    windowsX64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_windows-x64-setup.exe',
   });
+  assert.deepEqual(Object.keys(releaseConfig.assetNameTemplates).sort(), ['aarch64', 'windowsX64', 'x64']);
+  assert.match(windowsBuild, /'-A', 'x64'/);
+  assert.match(windowsCmake, /must be built for x64/);
   assert.match(workflow, /tags:\s*\['cavalry-\*-p\*'\]/);
   assert.match(workflow, /npm run check:release/);
   assert.match(workflow, /npm run release:metadata -- --github-env/);
@@ -184,12 +519,17 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   );
   assert.match(workflow, /RELEASE_ASSET_NAME_AARCH64/);
   assert.match(workflow, /RELEASE_ASSET_NAME_X64/);
+  assert.match(workflow, /RELEASE_ASSET_NAME_WINDOWS_X64/);
   assert.match(workflow, /x86_64-apple-darwin/);
   assert.match(localSop, /Internal app version: SemVer/);
   assert.match(localSop, /Release tag: `cavalry-2\.7\.2-pN`/);
-  assert.match(localSop, /DMG assets:/);
+  assert.match(localSop, /三种发布资产：/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_aarch64\.dmg/);
   assert.match(localSop, /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_x64\.dmg/);
+  assert.match(
+    localSop,
+    /Cavalry\.Language\.Switcher_Cavalry-2\.7\.2-pN_windows-x64-setup\.exe/
+  );
 });
 
 test('release metadata script renders GitHub release fields from the patch tag', () => {
@@ -211,9 +551,68 @@ test('release metadata script renders GitHub release fields from the patch tag',
     RELEASE_TITLE: 'Cavalry Language Switcher for Cavalry 2.7.2 patch 12',
     RELEASE_ASSET_NAME_AARCH64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.dmg',
     RELEASE_ASSET_NAME_X64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.dmg',
+    RELEASE_ASSET_NAME_WINDOWS_X64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_windows-x64-setup.exe',
   });
   assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
   assert.match(invalid.stderr, /does not match/);
+});
+
+test('release metadata refuses x86 and i686 asset templates', () => {
+  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-release-assets-'));
+  try {
+    fs.copyFileSync(
+      path.join(repoRoot, 'tools', 'release_metadata.js'),
+      path.join(tempRoot, 'release_metadata.js')
+    );
+    writeJson(path.join(tempRoot, 'package.json'), { version: '9.8.7' });
+    writeJson(path.join(tempRoot, 'release.config.json'), {
+      targetCavalryVersion: '2.7.2',
+      releaseTagPrefix: 'cavalry-2.7.2-p',
+      releaseTagPattern: '^cavalry-2\\.7\\.2-p[0-9]+$',
+      releaseTitleTemplate: 'Cavalry Language Switcher for Cavalry 2.7.2 patch ${patch}',
+      assetNameTemplates: {
+        aarch64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.dmg',
+        x64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.dmg',
+        windowsX64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_windows-x64-setup.exe',
+        windowsX86: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_windows-x86-setup.exe',
+      },
+    });
+
+    const result = spawnSync(process.execPath, ['release_metadata.js', '--check'], {
+      cwd: tempRoot,
+      encoding: 'utf8',
+    });
+    assert.notEqual(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stderr, /x86\/i686 releases are unsupported/);
+  } finally {
+    fs.rmSync(tempRoot, { recursive: true, force: true });
+  }
+});
+
+test('tag release publishes both macOS DMGs and the stable Windows x64 NSIS asset', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const releaseJob = workflow.match(
+    /\r?\n  release:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+
+  assert.ok(releaseJob, 'release job missing');
+  assert.match(releaseJob[1], /name:\s*cavalry-i18n-windows-nsis/);
+  assert.match(releaseJob[1], /path:\s*dist\/windows/);
+  assert.match(
+    releaseJob[1],
+    /find dist\/windows -type f -name '\*\.exe'[\s\S]*mv "\$\{windows_installers\[0\]\}" "dist\/\$RELEASE_ASSET_NAME_WINDOWS_X64"/
+  );
+  assert.match(
+    releaseJob[1],
+    /Windows x64 安装器[\s\S]*RELEASE_ASSET_NAME_WINDOWS_X64/
+  );
+  assert.doesNotMatch(releaseJob[1], /windowsX86|windows-x86|i686|win32/i);
+  assert.match(releaseJob[1], /find dist -type f -name '\*\.dmg'/);
+  assert.match(
+    releaseJob[1],
+    /windows_asset="dist\/\$RELEASE_ASSET_NAME_WINDOWS_X64"[\s\S]*assets=\("\$\{dmg_assets\[@\]\}" "\$windows_asset"\)[\s\S]*gh release create/
+  );
 });
 
 test('release changelog extractor selects one exact released SemVer section and fails closed', () => {
@@ -335,8 +734,38 @@ test('project version synchronizer propagates changelog version across npm, Carg
   );
 });
 
+test('project version check treats CRLF and LF metadata as the same content', () => {
+  const tempRoot = makeVersionFixture();
+  const syncResult = spawnSync(process.execPath, ['tools/sync_project_version.js'], {
+    cwd: tempRoot,
+    encoding: 'utf8',
+  });
+  assert.equal(syncResult.status, 0, syncResult.stderr || syncResult.stdout);
+
+  for (const relativePath of [
+    'CHANGELOG.md',
+    'package.json',
+    'package-lock.json',
+    'src-tauri/Cargo.toml',
+    'src-tauri/tauri.conf.json',
+    'src-tauri/Cargo.lock',
+  ]) {
+    const filePath = path.join(tempRoot, relativePath);
+    const source = fs.readFileSync(filePath, 'utf8').replace(/\r\n?/g, '\n');
+    fs.writeFileSync(filePath, source.replace(/\n/g, '\r\n'));
+  }
+
+  const checkResult = spawnSync(process.execPath, ['tools/sync_project_version.js', '--check'], {
+    cwd: tempRoot,
+    encoding: 'utf8',
+  });
+  assert.equal(checkResult.status, 0, checkResult.stderr || checkResult.stdout);
+});
+
 test('tauri bundle config preserves the frozen Tauri window contract', () => {
   const config = readJson('src-tauri/tauri.conf.json');
+  const macConfig = readJson('src-tauri/tauri.macos.conf.json');
+  const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
   const window = config.app.windows.find((candidate) => candidate.label === 'main');
 
   assert.ok(window, 'main window missing');
@@ -345,13 +774,270 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.equal(window.height, 528);
   assert.equal(window.minWidth, 420);
   assert.equal(window.minHeight, 528);
-  assert.deepEqual(config.bundle.targets, ['dmg', 'app']);
+  assert.deepEqual(macConfig.bundle.targets, ['dmg', 'app']);
+  assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
 });
 
 test('tauri macOS package uses explicit ad-hoc bundle signing for downloaded apps', () => {
-  const config = readJson('src-tauri/tauri.conf.json');
+  const config = readJson('src-tauri/tauri.macos.conf.json');
 
   assert.equal(config.bundle.macOS.signingIdentity, '-');
+});
+
+test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an installed NSIS smoke', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const job = workflow.match(/\r?\n  windows_check:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/);
+  const sourceArtifact = workflow.match(
+    /- name: Upload app source artifact\r?\n([\s\S]*?)(?=\r?\n {6}- name:|\r?\n  windows_check:)/
+  );
+
+  assert.ok(job, 'windows_check job missing');
+  assert.match(job[1], /runs-on:\s*windows-latest/);
+  assert.match(job[1], /actions\/setup-python@v5/);
+  assert.doesNotMatch(job[1], /npm run prepare:qt-sdk:windows/);
+  assert.doesNotMatch(job[1], /python -m aqt install-qt/);
+  assert.match(job[1], /npm ci/);
+  assert.match(job[1], /npm run test:contracts/);
+  assert.doesNotMatch(job[1], /npm run build:injector:windows/);
+  assert.match(job[1], /npm run test:tauri/);
+  assert.match(
+    job[1],
+    /npm run build:tauri:windows[\s\S]*npm run test:tauri:windows-nsis[\s\S]*Upload the Windows NSIS installer/
+  );
+  assert.match(
+    job[1],
+    /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe/
+  );
+  assert.match(
+    job[1],
+    /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.provenance\.json/
+  );
+  assert.match(job[1], /if-no-files-found:\s*error/);
+  const pkg = readJson('package.json');
+  assert.match(pkg.scripts['build:tauri:windows'], /^npm run prepare:qt-sdk:windows/);
+  assert.equal(
+    pkg.scripts['prepare:tauri:windows-bundle'],
+    'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare'
+  );
+  assert.ok(sourceArtifact, 'source artifact upload step missing');
+  assert.match(sourceArtifact[1], /^\s+\.gitattributes\s*$/m);
+  assert.match(
+    sourceArtifact[1],
+    /^\s+tools\/\s*$/m,
+    'source artifact should carry the complete tools dependency closure used by package scripts and hooks'
+  );
+});
+
+test('Windows NSIS installed-surface smoke refuses collisions and has no destructive fallback', () => {
+  const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
+  for (const relativePath of [
+    'injector/windows/build.ps1',
+    'tools/capture_windows_pid_window.ps1',
+    'tools/check_windows_nsis_install.ps1',
+  ]) {
+    const scriptBytes = fs.readFileSync(path.join(repoRoot, relativePath));
+    assert.deepEqual(
+      [...scriptBytes.subarray(0, 3)],
+      [0xef, 0xbb, 0xbf],
+      `${relativePath}: Windows PowerShell 5.1 requires a UTF-8 BOM before parsing non-ASCII comments`
+    );
+  }
+  const script = readText('tools/check_windows_nsis_install.ps1');
+  const nsisHooks = readText('src-tauri/nsis-hooks.nsh');
+
+  assert.equal(windowsConfig.bundle.windows.nsis.installerHooks, 'nsis-hooks.nsh');
+  assert.match(nsisHooks, /!macro NSIS_HOOK_POSTUNINSTALL/);
+  assert.match(nsisHooks, /DeleteRegValue SHCTX "\$\{MANUPRODUCTKEY\}" ""/);
+  assert.match(nsisHooks, /DeleteRegKey \/ifempty SHCTX "\$\{MANUPRODUCTKEY\}"/);
+  assert.match(script, /\$windowsTargetTriple = 'x86_64-pc-windows-msvc'/);
+  assert.match(
+    script,
+    /src-tauri\\target\\\$windowsTargetTriple\\release\\bundle\\nsis/
+  );
+  assert.doesNotMatch(script, /src-tauri\\target\\release\\bundle\\nsis/);
+  assert.match(script, /Assert-NoPreexistingState/);
+  assert.match(
+    script,
+    /HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Cavalry Language Switcher/
+  );
+  assert.match(script, /HKCU:\\Software\\daftai\\Cavalry Language Switcher/);
+  assert.match(script, /GetFolderPath\(\$Folder\)/);
+  assert.match(script, /System\.Guid\]::NewGuid\(\)\.ToString\('N'\)/);
+  assert.match(script, /Test-StrictChildPath -Path \$installRoot -Root \$tempRoot/);
+  assert.match(
+    script,
+    /Assert-NoReparsePathChain -Path \$tempRoot -Role 'Windows package smoke TEMP root'/
+  );
+  assert.match(script, /-ArgumentList @\('\/S', '\/NS', "\/D=\$installRoot"\)/);
+  assert.match(script, /\.WaitForExit\(\$processTimeoutMilliseconds\)/);
+  assert.match(script, /Assert-NoReparsePoints -Root \$InstallRoot/);
+  assert.match(script, /0x8664/);
+  assert.match(script, /\$expectedLocales = @\('en', 'ja_JP', 'zh-Hans', 'zh-Hant'\)/);
+  assert.match(script, /\$expectedJsonCountPerLocale = 38/);
+  assert.match(script, /\$provenanceTool = Join-Path \$repoRoot 'tools\\windows_nsis_provenance\.js'/);
+  assert.match(script, /function Assert-CurrentInstallerProvenance/);
+  assert.match(script, /& \$node\.Source \$provenanceTool '--verify' \$Installer/);
+  const provenanceCheck = script.indexOf('Assert-CurrentInstallerProvenance -Installer $resolvedInstaller');
+  const smokeTemp = script.indexOf('$tempRoot = Normalize-ComparablePath');
+  assert.ok(provenanceCheck >= 0 && provenanceCheck < smokeTemp, 'provenance must fail before temp install state is created');
+  assert.match(script, /Get-FileHash -LiteralPath \$sourcePlugin -Algorithm SHA256/);
+  assert.match(script, /\$_.Extension -ieq '\.dylib' -or \$_.Name -like 'Qt6\*\.dll'/);
+  assert.match(script, /Assert-InstalledRegistry/);
+  assert.match(script, /finally \{/);
+  assert.match(script, /Wait-ForNoResidualState/);
+  assert.doesNotMatch(
+    script,
+    /\bRemove-Item(?:Property)?\b|\breg(?:\.exe)?\s+delete\b|\brmdir\b/i,
+    'installed-surface smoke must leave unexpected residue visible instead of deleting around a failed uninstaller'
+  );
+});
+
+test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-review only', () => {
+  const live = readText('src-tauri/tests/manual_windows_live_smoke.rs');
+  const guard = readText('src-tauri/tests/support/windows_disposable.rs');
+  const helper = readText('tools/capture_windows_pid_window.ps1');
+  const sop = readText('LOCAL_BUILD_SOP.md');
+  const combined = `${live}\n${guard}\n${helper}`;
+
+  assert.match(live, /#\[ignore = "requires explicit disposable clone\/evidence TEMP roots/);
+  assert.match(live, /CAVALRY_I18N_WINDOWS_SMOKE_APP/);
+  assert.match(live, /CAVALRY_I18N_WINDOWS_LIVE_EVIDENCE_DIR/);
+  assert.doesNotMatch(combined, /5ccbe11380404a19a1b3c40aa3ac545a|D:\\\\cavalry/i);
+  assert.match(guard, /env::temp_dir\(\)/);
+  assert.match(guard, /\.cavalry-i18n-disposable-smoke/);
+  assert.match(guard, /FILE_ATTRIBUTE_REPARSE_POINT/);
+  assert.match(guard, /path_is_strictly_within/);
+  assert.match(guard, /assert_existing_chain_has_no_reparse/);
+  assert.match(guard, /pub fn assert_write_target/);
+  assert.match(live, /assert_safe_write_surface/);
+  assert.match(
+    live,
+    /require_no_cavalry_processes\(&mut runner, &helper, "startup"\)[\s\S]*capture_english_baseline[\s\S]*create_unique_child_directory/
+  );
+  assert.match(live, /const EXPECTED_JSON_COUNT: usize = 38/);
+  assert.match(live, /apply_language_inner/);
+  assert.match(live, /RealCommandRunner/);
+  assert.match(live, /spawn_detached_in_with_env_and_pid/);
+  assert.doesNotMatch(live, /restart_cavalry_with_environment_and_pid/);
+  assert.match(live, /wait_for_ready_marker/);
+  assert.match(live, /extension_layer_hook_status != "installed"/);
+  assert.match(
+    live,
+    /\("ViewportQuality", "viewport-quality"\)[\s\S]*\("TransformHelper", "transform-helper"\)[\s\S]*\("EditShapeHelper", "edit-shape-helper"\)/
+  );
+  assert.match(live, /Vec::with_capacity\(3\)/);
+  assert.doesNotMatch(
+    combined,
+    /render_live_scene_script|ScenePrepared|SceneScriptPath|SceneProofPath|UIAutomation|SelectionItemPattern|api\.createComp/
+  );
+  assert.match(live, /"ViewportQuality" => 0x0001/);
+  assert.match(live, /"TransformHelper" => 0x7c00/);
+  assert.match(live, /"EditShapeHelper" => 0x03f0/);
+  assert.match(live, /fallback_source_mask != 0/);
+  assert.match(live, /translated_source_mask & required_text_path_mask/);
+  assert.match(live, /\("zh-Hans", "平滑步数"\)/);
+  assert.match(live, /\("zh-Hant", "平滑步數"\)/);
+  assert.match(live, /\("ja_JP", "スムージングステップ数"\)/);
+  assert.match(live, /cleanup_and_restore/);
+  assert.match(live, /BTreeSet<u32>/);
+  assert.match(live, /outstanding_processes\.insert\(process_id\)/);
+  assert.match(live, /outstanding_processes\.remove\(&process_id\)/);
+  assert.match(
+    live,
+    /close_owned_process\(runner, helper, process_id, &layout\.executable\)\?;\s+if !outstanding_processes\.remove\(&process_id\)/
+  );
+  assert.doesNotMatch(live, /created_processes/);
+  assert.match(live, /catch_unwind\(AssertUnwindSafe/);
+  assert.match(live, /exercise panic:/);
+  const caughtExercise = live.indexOf('let exercise = catch_unwind');
+  const cleanupAfterExercise = live.indexOf('let cleanup = cleanup_and_restore', caughtExercise);
+  assert.ok(caughtExercise >= 0 && cleanupAfterExercise > caughtExercise);
+  assert.match(live, /apply_without_elevation\(repo, state_dir, layout, "en"\)/);
+  assert.match(live, /restored == \*original/);
+  assert.match(live, /"final global audit"/);
+  assert.match(live, /MANUAL SCREENSHOT REVIEW REQUIRED/);
+  assert.match(live, /no OCR assertion was performed/);
+  assert.doesNotMatch(live, /thread::sleep|std::thread|Command::new/);
+  assert.match(sop, /clone 只隔离 Cavalry 安装根，不隔离当前 Windows 用户 profile/);
+  assert.match(sop, /三张三语主窗口 PNG 只是基础证据/);
+  assert.match(sop, /菜单、属性编辑器、合成\/自动编号项、所有受控下拉显示项/);
+  assert.match(sop, /同一用户下的恶意并发换链仍不是被完整消除的 TOCTOU/);
+  assert.match(sop, /Ctrl\+C、进程强制终止、断电或 panic=abort 无法承诺执行 finally/);
+
+  assert.match(helper, /Get-CimInstance Win32_Process -Filter "Name='Cavalry\.exe'"/);
+  assert.match(helper, /Get-CimInstance Win32_Process -Filter "ProcessId=\$Id"/);
+  assert.match(helper, /function Assert-DisposableCavalryExecutable/);
+  assert.match(helper, /GetFileName\(\$executable\) -ieq 'Cavalry\.exe'/);
+  assert.match(helper, /Test-StrictChildPath -Path \$cloneRoot -Root \$tempRoot/);
+  assert.match(
+    helper,
+    /Assert-NoReparseTargetChain `\s+-Root \$tempRoot `\s+-Target \$executable/
+  );
+  assert.match(helper, /Join-Path \$cloneRoot \$disposableSentinel/);
+  const executableGuard = helper.indexOf(
+    '$ExecutablePath = Assert-DisposableCavalryExecutable -Path $ExecutablePath'
+  );
+  const closeBranch = helper.indexOf("if ($Action -eq 'Close')");
+  assert.ok(executableGuard >= 0, 'Capture/Close must invoke the disposable executable guard');
+  assert.ok(
+    executableGuard < closeBranch,
+    'disposable executable guard must run before the Close/Capture branch split'
+  );
+  assert.match(helper, /ExecutablePath/);
+  assert.match(helper, /GetWindowThreadProcessId/);
+  assert.match(helper, /WaitForInputIdle/);
+  assert.match(helper, /catch \[System\.InvalidOperationException\]/);
+  assert.match(helper, /continue with the PID window oracle/);
+  assert.match(helper, /WaitForChanged/);
+  assert.match(helper, /WaitForSingleObject/);
+  assert.match(helper, /extensionLayerHookStatus -ceq 'installed'/);
+  assert.match(helper, /Wait-ForTextPathDiagnostics/);
+  assert.match(helper, /fallbackSourceMask -eq 0/);
+  assert.match(helper, /'ViewportQuality'\s*\{\s*0x0001\s*\}/);
+  assert.match(helper, /'TransformHelper'\s*\{\s*0x7C00\s*\}/);
+  assert.match(helper, /'EditShapeHelper'\s*\{\s*0x03F0\s*\}/);
+  assert.match(
+    helper,
+    /ValidateSet\('ViewportQuality', 'TransformHelper', 'EditShapeHelper'\)/
+  );
+  assert.match(helper, /function Assert-ExactForegroundWindow/);
+  assert.match(helper, /function Assert-ForegroundProcess/);
+  assert.match(helper, /function Prepare-ToolHelperEvidence/);
+  assert.match(helper, /PostVirtualKey\(\$Window, 0x41\)/);
+  assert.match(helper, /exact-hwnd-postmessage-vk-a/);
+  assert.match(helper, /WM_KEYDOWN/);
+  assert.match(helper, /WM_KEYUP/);
+  assert.doesNotMatch(
+    helper,
+    /SetCursorPos|mouse_event|SendInput|GetClickablePoint|FromPoint|InvokePattern|Get-UiAutomationInventory/
+  );
+  assert.match(helper, /DwmFlush/);
+  assert.match(helper, /PrintWindow/);
+  assert.match(helper, /PostMessage/);
+  assert.match(helper, /WM_CLOSE/);
+  assert.match(helper, /FocusBelongsToProcess/);
+  assert.match(helper, /ConfirmDiscardOfDisposableScene/);
+  assert.match(helper, /hasRenderedContent/);
+  assert.match(helper, /ImageFormat\]::Png/);
+  assert.doesNotMatch(
+    helper,
+    /\bStart-Sleep\b|\bStop-Process\b|\.Kill\(|TerminateProcess|\bRemove-Item\b/i
+  );
+
+  if (process.platform === 'win32') {
+    const rejected = spawnSync('powershell.exe', [
+      '-NoLogo', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass',
+      '-File', path.join(repoRoot, 'tools', 'capture_windows_pid_window.ps1'),
+      '-Action', 'Close', '-TargetProcessId', '2147483647',
+      '-ExecutablePath', String.raw`D:\cavalry\Cavalry.exe`,
+    ], { cwd: repoRoot, encoding: 'utf8', windowsHide: true });
+    assert.notEqual(rejected.status, 0, 'standalone helper must reject D:\\cavalry');
+    assert.match(
+      `${rejected.stdout}\n${rejected.stderr}`,
+      /clone root must be strictly below %TEMP%/,
+      'D:\\cavalry must fail at the common clone guard before any PID lookup'
+    );
+  }
 });
 
 test('tauri window icon is an 8-bit PNG compatible with generate_context', () => {
@@ -373,9 +1059,13 @@ test('tauri capability and SOP mention the bridge and packaged resource boundari
   assert.ok(capabilities.permissions.includes('core:webview:default'));
 
   for (const requiredText of [
-    'bundle.resources',
+    'tauri.conf.json',
+    'tauri.macos.conf.json',
+    'tauri.windows.conf.json',
     'languages',
     'libCavalryTranslatorInjector.dylib',
+    'build:tauri:windows',
+    'provenance',
     'src-tauri/target/release/bundle',
     'DMG',
     '.app',

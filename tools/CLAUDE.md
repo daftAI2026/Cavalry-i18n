@@ -1,12 +1,15 @@
 # tools/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
+> L2 | 父级: ../CLAUDE.md
 
 成员清单
 check_app_contracts.js: Tauri-only Node 合同测试，承接跨平台 Python/换行、full-ui、精确版本 CHANGELOG 发布摘要、capture-only/dirty-only injector、first-match 哈希、`@loader_path` 单 Qt runtime、Qt ABI-safe accessibility、macOS ExtensionLayer 四处空状态定点居中翻译/其余自绘英文边界、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、MessageBar append 与动态模板、ModalDialog、运行时图层名、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，以规范化 LF 冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面，避免 Git 换行策略制造假漂移。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、平台 dataset、系统语言本土化、Apply 确认、提交后 cleanup warning、macOS openPrivacy/Windows requestElevation 权限恢复、不可写自定义根的无 UAC 错误、原地重试与自定义 select 原生 change 语义。
-check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证跨平台 hook/Python/CRLF、公共与显式平台 Tauri 配置、Windows Qt plugin/NSIS 资源与 CI、DMG/NSIS 同步发布、版本同步、精确版本 CHANGELOG 抽取、默认发布文档、窗口尺寸、README release badge endpoint 与 bridge 能力。
+check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证跨平台 hook/Python/CRLF、Windows PowerShell 5.1 UTF-8 BOM、公共与显式平台 Tauri 配置、Windows Qt plugin/NSIS 资源、当前输入 provenance prepare/record/verify、隔离安装卸载接线与 CI、exact-HWND disposable 自绘截图合同、DMG/NSIS 同步发布、版本同步、精确版本 CHANGELOG 抽取、默认发布文档、窗口尺寸、README release badge endpoint 与 bridge 能力。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer、languages、injector、ad-hoc bundle seal 与 bundle size report。
+windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；在 Tauri bundle 前仅清除本版本预期 EXE/sidecar、拒绝其余输出，构建后记录安装器长度/SHA-256 与 renderer、languages、Windows Tauri/Rust/config/Cargo/build、package manifests、generic DLL 的内容 fingerprint，smoke 安装前重新计算并拒绝漂移。
+check_windows_nsis_install.ps1: 带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装，验证主程序/plugin 架构、四语 JSON、plugin hash、无 macOS/第二 Qt runtime 与注册表字段，再仅通过包内卸载器静默卸载并观察零残留，禁止递归删除掩盖失败。
+capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，直接截取初始空场景已常驻的 Viewport Quality/Transform 自绘文字，仅在 exact HWND/前台 PID 双重确认后以 `PostMessage(VK_A)` 触发 Edit Shape，再以逐场景 source mask、零 fallback/renderer failure 与 PNG 共同取证；不创建场景、不运行脚本、不依赖 Qt UIA，禁止坐标/鼠标回退、强杀、固定 sleep、覆盖证据。
 check_dmg_layout.sh: DMG 布局与签名守门器，挂载真实 `.dmg` 并验证 `.DS_Store`、背景图、卷宗图标、custom-icon 标记、Applications 链接、DMG 内 app 与安装态 app 的 bundle seal/codesign strict 结果。
 window_contract_lib.js: 窗口回归公共库，通过明确 AX UI 查询判定辅助能力，封装窗口枚举、内容区截图与原生 `sips` 像素尺寸读取；Finder 无窗口不再导致空心 skip，也不依赖系统 Python/PIL。
 check_tauri_window_regression.js: packaged Tauri 主窗口回归测试，验证冻结窗口尺寸与内容截图尺寸。
@@ -29,16 +32,16 @@ extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似�
 generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成 injector 编译期翻译表。
 model_display_translations.json: display-only 模型名词典，保存 JSON niceName 英文化前的三语显示译名，只供 injector 翻译 Qt 浮动标题等显示层，不回写模型数据，并保持简繁中文 Latin/CJK 间距。
 runtime-noise-quarantine.json: Runtime 翻译噪声隔离清单，记录无资源/live-capture provenance 的短 token，并让生成器跳过这些项以保持英文。
-resolve_cavalry_qt_sdk.js: 解析当前发布目标 Qt SDK，本机校验 Cavalry.app，CI 缺 SDK 时通过共享 Python 命令边界按配置下载。
+resolve_cavalry_qt_sdk.js: 从单一 Cavalry/Qt 版本真相解析宿主默认或显式 macOS/Windows SDK 投影；macOS 校验 Cavalry.app，clean CI 缺 SDK 时通过共享 Python 命令边界下载 `clang_64` 或 `msvc2019_64`。
 stamp_dmg_icon.sh: DMG 卷宗图标盖章器，用 hdiutil 写入 `.VolumeIcon.icns` 与 custom-icon 标记，再用 Rez/SetFile best-effort 写本机 Finder 文件图标。
-cavalry_qt_target.json: 发布目标映射，声明 Cavalry 2.7.2、Qt 6.6.3、repo-local SDK 路径和 aqt 下载参数。
+cavalry_qt_target.json: 发布目标映射，唯一声明 Cavalry 2.7.2 与 Qt 6.6.3，并为 macOS `clang_64`、Windows `msvc2019_64` 提供 repo-local SDK 路径和 aqt 参数。
 build_translator_injector.sh: 以 `-O2` 构建 universal injector，校验 Qt minor，使用 `@loader_path` 绑定所选 Cavalry 的同目录 Qt，并禁止把构建 SDK 留作运行时 fallback。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
-validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 source/context/translation 三相并输出 §P5 FP-1..12 报告与摘要。
+validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 source/context/translation 三相并输出 §P5 FP-1..12 报告与摘要；FP-12 只对契约中逐 source 列明的拼写/标点变体放行同义译文。
 forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。
 forbidden_translation_patterns.js: Node 共享 forbidden-pattern detector，供 runtime/full-ui gate 与契约测试复用 FP-1/2/3/4/5/7/8/9/10/11。
 forbidden_translation_patterns.json: §P5 detector 配置，集中声明正则、source/context denylist、latin residue、transliteration 与 pangram 规则。
-translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、模型 niceName 与 Time Editor 复用动态属性英文保留、FP-10/11/12 whitelist 契约与 G-X denominator filter，含颜色名与 Unicode script 交集剔除 provenance。
+translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、模型 niceName 与 Time Editor 复用动态属性英文保留、FP-10/11/12 whitelist 契约与 G-X denominator filter；颜色拖放的英美拼写/末尾句号变体以 exact source 集合共享同一简中微文案，禁止扩大为通用 FP-12 豁免。
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
@@ -102,5 +105,10 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-24: pre-commit 拆为最小 shell bootstrap 与 `pre_commit_gate.js`；按暂存路径执行 Rust 格式、JS 语法、语言 JSON 合同和嵌入翻译表一致性，版本同步仍只显式暂存受控投影，并用 Windows Git resolver 合同覆盖 stale PATH。
 2026-07-24: pre-commit 在运行任何读取工作区的子进程 gate 前，拒绝 Rust、JS/package、翻译/语言合同与 gate 自身输入闭包的未暂存或未跟踪差异，防止工作区修正掩盖旧 index；source artifact 同步携带 hook bootstrap 与 Node gate 闭包。
 2026-07-24: ExtensionLayer 空状态、拖放提示与 CustomListWidget placeholder 的简中、繁中、日语显示文案统一移除末尾句号；英文 source 与精确 hook 白名单保持不变，完整状态通知仍保留句子标点。
+2026-07-24: 新增 `check_windows_nsis_install.ps1`，把 Windows x64 NSIS 从构建产物提升为 CI 隔离安装/卸载合同；随机 TEMP 根、固定用户状态碰撞拒绝、PE/资源/哈希/注册表验证与无破坏性 fallback 的零残留观察共同守住安装态发布面。
+2026-07-27: Windows NSIS 安装态守门只解析显式 `x86_64-pc-windows-msvc` target 产物目录，与构建脚本及 CI artifact 上传同构，杜绝脏工作区里旧 `target/release` EXE 被误验。
+2026-07-27: `cavalry_qt_target.json` 从 macOS 单投影升级为共享版本加双平台 SDK 投影；resolver 默认跟随宿主并支持 `--platform windows`，Windows CI 与本地 `prepare:qt-sdk:windows` 复用同一路径和 Qt 6.6.3 `msvc2019_64` 校验。
+2026-07-27: Windows NSIS 以 `windows_nsis_provenance.js` 形成构建前精确旧输出清理、构建后输入/安装器哈希记录、安装前复算的闭环；sidecar 与 EXE 成对上传，拒绝版本变更留下的未知 EXE 或 orphan sidecar，禁止用 Git HEAD 或 mtime 伪造当前包来源。
+2026-07-24: 新增 `capture_windows_pid_window.ps1` 与 ignored Windows live-clone 合同；三语真实 PID 窗口证据必须等待 ExtensionLayer installed 和 DWM 完成，helper 独立调用也先拒绝非 `%TEMP%` sentinel clone，只能优雅关闭 outstanding 精确进程；三张主窗不等于全表面覆盖，逐类追加截图后才进入人工通过。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

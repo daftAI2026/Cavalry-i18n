@@ -1,0 +1,20 @@
+# 文本合同统一使用 LF，避免 Git for Windows 的 core.autocrlf 改变哈希与生成物比较。
+* text=auto eol=lf
+
+# 仅由 Windows 原生命令解释器消费的脚本保留 CRLF。
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# 打包与审计二进制不得参与换行转换。
+*.dylib binary
+*.dll binary
+*.icns binary
+*.ico binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.pdf binary
+*.zip binary
+*.dmg binary

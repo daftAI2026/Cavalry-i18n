@@ -11,6 +11,7 @@
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QPointer>
 #include <QtCore/QRegularExpression>
+#include <QtCore/QSignalBlocker>
 #include <QtGui/QAction>
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QComboBox>
@@ -19,6 +20,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QTabBar>
+#include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QWidget>
 
 namespace {
@@ -262,20 +264,15 @@ void CavalryDisplayTranslator::translateWidgetText(QWidget *widget)
             });
     } else if (
         auto *lineEdit = qobject_cast<QLineEdit *>(guardedWidget.data())) {
-        const QPointer<QLineEdit> guardedLineEdit(lineEdit);
-        // 输入内容属于用户/模型数据；Windows 显示层只允许改 placeholder。
-        applyTranslation(
-            lineEdit,
-            QByteArrayLiteral("placeholderText"),
-            lineEdit->placeholderText(),
-            [guardedLineEdit](const QString &value) {
-                if (!guardedLineEdit.isNull()) {
-                    guardedLineEdit->setPlaceholderText(value);
-                }
-            });
+        hookLineEdit(lineEdit);
+        translateLineEditDisplay(lineEdit);
     } else if (
         auto *comboBox = qobject_cast<QComboBox *>(guardedWidget.data())) {
         translateComboBoxDisplay(comboBox);
+    } else if (
+        auto *treeWidget = qobject_cast<QTreeWidget *>(guardedWidget.data())) {
+        hookTreeWidget(treeWidget);
+        translateTreeWidgetDisplay(treeWidget);
     } else if (
         auto *tabBar = qobject_cast<QTabBar *>(guardedWidget.data())) {
         const QPointer<QTabBar> guardedTabBar(tabBar);
@@ -444,6 +441,26 @@ void CavalryDisplayTranslator::hookAction(QAction *action)
         });
 }
 
+void CavalryDisplayTranslator::hookLineEdit(QLineEdit *lineEdit)
+{
+    if (lineEdit == nullptr || hookedLineEdits_.contains(lineEdit)) {
+        return;
+    }
+
+    trackObject(lineEdit);
+    hookedLineEdits_.insert(lineEdit);
+    const QPointer<QLineEdit> guardedLineEdit(lineEdit);
+    QObject::connect(
+        lineEdit,
+        &QLineEdit::textChanged,
+        this,
+        [this, guardedLineEdit](const QString &) {
+            if (!guardedLineEdit.isNull()) {
+                translateLineEditDisplay(guardedLineEdit.data());
+            }
+        });
+}
+
 void CavalryDisplayTranslator::hookMenu(QMenu *menu)
 {
     if (menu == nullptr || hookedMenus_.contains(menu)) {
@@ -464,6 +481,58 @@ void CavalryDisplayTranslator::hookMenu(QMenu *menu)
         });
 }
 
+void CavalryDisplayTranslator::hookTreeWidget(QTreeWidget *treeWidget)
+{
+    if (treeWidget == nullptr || hookedTreeWidgets_.contains(treeWidget)
+        || treeWidget->model() == nullptr) {
+        return;
+    }
+
+    trackObject(treeWidget);
+    hookedTreeWidgets_.insert(treeWidget);
+    const QPointer<QTreeWidget> guardedTreeWidget(treeWidget);
+    const auto refreshTreeWidget = [this, guardedTreeWidget]() {
+        if (!guardedTreeWidget.isNull()) {
+            translateWidget(guardedTreeWidget.data());
+        }
+    };
+    QAbstractItemModel *model = treeWidget->model();
+    QObject::connect(
+        model,
+        &QAbstractItemModel::rowsInserted,
+        this,
+        [refreshTreeWidget](const QModelIndex &, int, int) {
+            refreshTreeWidget();
+        });
+    QObject::connect(
+        model,
+        &QAbstractItemModel::modelReset,
+        this,
+        [refreshTreeWidget]() {
+            refreshTreeWidget();
+        });
+    QObject::connect(
+        model,
+        &QAbstractItemModel::headerDataChanged,
+        this,
+        [refreshTreeWidget](Qt::Orientation, int, int) {
+            refreshTreeWidget();
+        });
+    QObject::connect(
+        model,
+        &QAbstractItemModel::dataChanged,
+        this,
+        [refreshTreeWidget](
+            const QModelIndex &,
+            const QModelIndex &,
+            const QList<int> &roles) {
+            if (roles.isEmpty() || roles.contains(Qt::DisplayRole)
+                || roles.contains(Qt::EditRole)) {
+                refreshTreeWidget();
+            }
+        });
+}
+
 void CavalryDisplayTranslator::trackObject(QObject *object)
 {
     if (object == nullptr || trackedObjects_.contains(object)) {
@@ -479,7 +548,9 @@ void CavalryDisplayTranslator::trackObject(QObject *object)
             lastTranslations_.remove(destroyedObject);
             trackedObjects_.remove(destroyedObject);
             hookedActions_.remove(destroyedObject);
+            hookedLineEdits_.remove(destroyedObject);
             hookedMenus_.remove(destroyedObject);
+            hookedTreeWidgets_.remove(destroyedObject);
             translatingObjects_.remove(destroyedObject);
         });
 }
@@ -544,6 +615,90 @@ void CavalryDisplayTranslator::translateComboBoxDisplay(QComboBox *comboBox)
                         Qt::DisplayRole);
                 }
             });
+    }
+}
+
+void CavalryDisplayTranslator::translateLineEditDisplay(QLineEdit *lineEdit)
+{
+    if (lineEdit == nullptr) {
+        return;
+    }
+
+    const QPointer<QLineEdit> guardedLineEdit(lineEdit);
+    applyTranslation(
+        lineEdit,
+        QByteArrayLiteral("lineEditText"),
+        lineEdit->text(),
+        [guardedLineEdit](const QString &value) {
+            if (!guardedLineEdit.isNull()) {
+                // 已知词表值仅作显示投影，不能把回写信号送回 Cavalry 业务层。
+                QSignalBlocker blocker(guardedLineEdit.data());
+                guardedLineEdit->setText(value);
+            }
+        });
+    if (guardedLineEdit.isNull()) {
+        return;
+    }
+
+    applyTranslation(
+        lineEdit,
+        QByteArrayLiteral("placeholderText"),
+        guardedLineEdit->placeholderText(),
+        [guardedLineEdit](const QString &value) {
+            if (!guardedLineEdit.isNull()) {
+                guardedLineEdit->setPlaceholderText(value);
+            }
+        });
+}
+
+void CavalryDisplayTranslator::translateTreeWidgetDisplay(
+    QTreeWidget *treeWidget)
+{
+    if (treeWidget == nullptr) {
+        return;
+    }
+
+    const QPointer<QTreeWidget> guardedTreeWidget(treeWidget);
+    translateTreeWidgetItemDisplay(treeWidget->headerItem());
+    if (guardedTreeWidget.isNull()) {
+        return;
+    }
+
+    const int topLevelItemCount = guardedTreeWidget->topLevelItemCount();
+    for (int index = 0; index < topLevelItemCount; ++index) {
+        if (guardedTreeWidget.isNull()
+            || index >= guardedTreeWidget->topLevelItemCount()) {
+            break;
+        }
+        translateTreeWidgetItemDisplay(guardedTreeWidget->topLevelItem(index));
+    }
+}
+
+void CavalryDisplayTranslator::translateTreeWidgetItemDisplay(
+    QTreeWidgetItem *item)
+{
+    if (item == nullptr) {
+        return;
+    }
+
+    const int columnCount = item->columnCount();
+    for (int column = 0; column < columnCount; ++column) {
+        const QVariant displayValue = item->data(column, Qt::DisplayRole);
+        if (!displayValue.isValid()) {
+            continue;
+        }
+
+        const QString current = displayValue.toString();
+        const QString translated = translationFor(current);
+        if (!translated.isEmpty() && translated != current) {
+            // 树的业务身份可能藏在 UserRole；只改可见 DisplayRole。
+            item->setData(column, Qt::DisplayRole, translated);
+        }
+    }
+
+    const int childCount = item->childCount();
+    for (int index = 0; index < childCount; ++index) {
+        translateTreeWidgetItemDisplay(item->child(index));
     }
 }
 

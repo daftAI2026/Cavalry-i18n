@@ -1,17 +1,19 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 tools/cavalry_qt_target.json、可选 Cavalry.app 与 PYTHON/python3/aqtinstall
- * [OUTPUT]: 对外提供 Qt SDK 探测、严格版本校验、按目标版本下载 SDK 与 shell env 输出
- * [POS]: tools 的 injector SDK 解析器，被 package.json 的 prepare/build 脚本消费，消除散落 Qt 版本常量
+ * [INPUT]: 依赖 tools/cavalry_qt_target.json 的 macOS/Windows 平台投影、python_command.js、可选 Cavalry.app 与 aqtinstall
+ * [OUTPUT]: 对外提供宿主感知或显式平台的 Qt SDK 探测、严格版本校验、按目标版本下载 SDK 与 shell env 输出，Python 解释器可由 PYTHON 或平台默认入口解析
+ * [POS]: tools 的跨平台 injector SDK 解析器，被 package.json 的 prepare/build 脚本与 CI 共同消费，以单一 Cavalry/Qt 版本真相派生 clang_64 与 msvc2019_64 SDK
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { resolvePythonCommand } = require('./python_command.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const targetPath = path.join(__dirname, 'cavalry_qt_target.json');
-const pythonCommand = process.env.PYTHON || 'python3';
+const SUPPORTED_PLATFORMS = Object.freeze(['macos', 'windows']);
+let pythonCommand = null;
 
 function fail(message) {
   throw new Error(message);
@@ -21,6 +23,7 @@ function parseArgs(argv) {
   const options = {
     app: process.env.CAVALRY_APP_PATH || '/Applications/Cavalry.app',
     ensure: false,
+    platform: process.platform === 'win32' ? 'windows' : 'macos',
     printEnv: false,
   };
 
@@ -33,6 +36,11 @@ function parseArgs(argv) {
     }
     if (arg === '--ensure') {
       options.ensure = true;
+      continue;
+    }
+    if (arg === '--platform') {
+      options.platform = argv[index + 1] || '';
+      index += 1;
       continue;
     }
     if (arg === '--print-env') {
@@ -55,6 +63,18 @@ function run(command, args, options = {}) {
     stderr: result.stderr || '',
     status: result.status,
   };
+}
+
+function resolvedPythonCommand() {
+  if (!pythonCommand) {
+    pythonCommand = resolvePythonCommand();
+  }
+  return pythonCommand;
+}
+
+function runPython(args, options = {}) {
+  const python = resolvedPythonCommand();
+  return run(python.command, [...python.args, ...args], options);
 }
 
 function readJson(filePath) {
@@ -95,7 +115,15 @@ function sdkPrefix(target) {
   return path.resolve(repoRoot, target.sdkPath);
 }
 
-function sdkQtVersion(prefix) {
+function sdkQtVersion(prefix, platform) {
+  if (platform === 'windows') {
+    const qconfig = path.join(prefix, 'mkspecs', 'qconfig.pri');
+    if (!fs.existsSync(qconfig)) {
+      return '';
+    }
+    const match = fs.readFileSync(qconfig, 'utf8').match(/^QT_VERSION\s*=\s*(\S+)\s*$/m);
+    return match ? match[1] : '';
+  }
   return readPlistValue(
     path.join(prefix, 'lib', 'QtCore.framework', 'Resources', 'Info.plist'),
     'CFBundleVersion'
@@ -103,16 +131,38 @@ function sdkQtVersion(prefix) {
 }
 
 function validateTarget(target) {
-  for (const key of ['cavalryVersion', 'qtVersion', 'sdkPath', 'aqt']) {
+  for (const key of ['cavalryVersion', 'qtVersion', 'platforms']) {
     if (!target[key]) {
       fail(`Missing ${key} in ${path.relative(repoRoot, targetPath)}.`);
     }
   }
-  for (const key of ['host', 'target', 'arch', 'outputDir']) {
-    if (!target.aqt[key]) {
-      fail(`Missing aqt.${key} in ${path.relative(repoRoot, targetPath)}.`);
+  for (const platform of SUPPORTED_PLATFORMS) {
+    const projection = target.platforms[platform];
+    if (!projection || !projection.sdkPath || !projection.aqt) {
+      fail(`Missing platforms.${platform} SDK mapping in ${path.relative(repoRoot, targetPath)}.`);
+    }
+    for (const key of ['host', 'target', 'arch', 'outputDir']) {
+      if (!projection.aqt[key]) {
+        fail(`Missing platforms.${platform}.aqt.${key} in ${path.relative(repoRoot, targetPath)}.`);
+      }
     }
   }
+}
+
+function selectPlatformTarget(target, platform) {
+  if (!SUPPORTED_PLATFORMS.includes(platform)) {
+    fail(
+      `Unsupported Qt SDK platform "${platform}". Expected one of: ${SUPPORTED_PLATFORMS.join(', ')}.`
+    );
+  }
+  const projection = target.platforms[platform];
+  return {
+    cavalryVersion: target.cavalryVersion,
+    qtVersion: target.qtVersion,
+    platform,
+    sdkPath: projection.sdkPath,
+    aqt: projection.aqt,
+  };
 }
 
 function validateCavalryProbe(target, probe) {
@@ -140,7 +190,7 @@ function validateCavalryProbe(target, probe) {
 }
 
 function ensureAqt() {
-  const check = run(pythonCommand, ['-c', 'import aqt']);
+  const check = runPython(['-c', 'import aqt']);
   if (check.ok) {
     return;
   }
@@ -151,11 +201,15 @@ function ensureAqt() {
   }
   installArgs.push('aqtinstall');
 
-  const install = run(pythonCommand, installArgs, {
+  const install = runPython(installArgs, {
     stdio: 'inherit',
   });
   if (!install.ok) {
-    fail(`aqtinstall is required to download Qt. Install it with: ${pythonCommand} ${installArgs.join(' ')}`);
+    const python = resolvedPythonCommand();
+    fail(
+      `aqtinstall is required to download Qt. Install it with: ` +
+        `${[python.command, ...python.args, ...installArgs].join(' ')}`
+    );
   }
 }
 
@@ -180,7 +234,7 @@ function ensureSdk(target, prefix) {
     args.push('--archives', ...target.aqt.archives);
   }
 
-  const result = run(pythonCommand, args, { stdio: 'inherit' });
+  const result = runPython(args, { stdio: 'inherit' });
   if (!result.ok) {
     fail(`Failed to download Qt ${target.qtVersion} SDK with aqt.`);
   }
@@ -191,8 +245,9 @@ function shellQuote(value) {
 }
 
 function resolve(options) {
-  const target = readJson(targetPath);
-  validateTarget(target);
+  const config = readJson(targetPath);
+  validateTarget(config);
+  const target = selectPlatformTarget(config, options.platform);
   validateCavalryProbe(target, probeCavalry(options.app));
 
   const prefix = sdkPrefix(target);
@@ -207,7 +262,7 @@ function resolve(options) {
     );
   }
 
-  const buildQtVersion = sdkQtVersion(prefix);
+  const buildQtVersion = sdkQtVersion(prefix, target.platform);
   if (buildQtVersion !== target.qtVersion) {
     fail(`SDK at ${path.relative(repoRoot, prefix)} is Qt ${buildQtVersion || 'unknown'}, expected ${target.qtVersion}.`);
   }
@@ -252,5 +307,7 @@ module.exports = {
   parseArgs,
   probeCavalry,
   resolve,
+  sdkQtVersion,
+  selectPlatformTarget,
   shellQuote,
 };

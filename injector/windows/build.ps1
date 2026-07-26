@@ -1,5 +1,5 @@
-<#
-[INPUT]: 依赖 CMake、MSVC、Qt 6.6.3 SDK、本目录 CMake 工程、父级 generated_translations.inc 与可选 CAVALRY_VENDOR_ROOT
+﻿<#
+[INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、CMake、MSVC、Qt 6.6.3 SDK、本目录 CMake 工程、父级 generated_translations.inc 与可选 CAVALRY_VENDOR_ROOT
 [OUTPUT]: 对外执行 Release configure/build/ctest，并在可用时执行只读 vendor ABI/import 合同后发布唯一 DLL 到 generic/cavalryi18n.dll
 [POS]: injector/windows 的可重复 Windows 构建入口，连接本地 SDK、真实插件 smoke、可选实际 Cavalry 二进制合同与 Tauri resource 稳定路径
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

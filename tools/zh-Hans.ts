@@ -1042,7 +1042,7 @@
     <message><source>Disable B</source><translation>禁用字节</translation></message>
     <message><source>Disable Playback Caching to use this feature</source><translation>禁用播放缓存来使用此特性</translation></message>
     <message><source>Disable Playback Caching to use this feature.</source><translation>请禁用播放缓存以使用此功能。</translation></message>
-    <message><source>Disable Snapping</source><translation>禁用抓图</translation></message>
+    <message><source>Disable Snapping</source><translation>禁用吸附</translation></message>
     <message><source>Disable Soft Selection</source><translation>禁用软选择</translation></message>
     <message><source>Disconnect</source><translation>断开连接</translation></message>
     <message><source>Disconnect All</source><translation>全部断开</translation></message>
@@ -1133,7 +1133,7 @@
     <message><source>Empty titles or invalid column data was found</source><translation>找到空标题或无效的列数据</translation></message>
     <message><source>Empty titles or invalid column data was found.</source><translation>发现空标题或无效列数据。</translation></message>
     <message><source>Enable</source><translation>启用</translation></message>
-    <message><source>Enable B</source><translation>启用字节</translation></message>
+    <message><source>Enable Bézier Angle Snapping</source><translation>启用贝塞尔角度吸附</translation></message>
     <message><source>Enable Color Management</source><translation>启用色彩管理</translation></message>
     <message><source>Enable Render Items</source><translation>启用渲染项目</translation></message>
     <message><source>Enable Snapping</source><translation>启用抓取</translation></message>
@@ -2378,8 +2378,8 @@
     <message><source>Split Clip</source><translation>分割剪切</translation></message>
     <message><source>Split Complementary</source><translation>拆分辅助</translation></message>
     <message><source>Split Path</source><translation>拆分路径</translation></message>
-    <message><source>Split Path (B</source><translation>拆分路径（B</translation></message>
-    <message><source>Split Path (Corner)</source><translation>分割路径(角点)</translation></message>
+    <message><source>Split Path (Bézier)</source><translation>拆分路径（贝塞尔）</translation></message>
+    <message><source>Split Path (Corner)</source><translation>拆分路径（角点）</translation></message>
     <message><source>Split Path command: Final Contour not found</source><translation>分割路径命令: 找不到最终轮廓</translation></message>
     <message><source>Split Path command: Final Contour not found.</source><translation>分割路径命令: 找不到最终轮廓。</translation></message>
     <message><source>Split Path command: Second EUID not found</source><translation>分割路径命令: 找不到第二个实体标识</translation></message>
@@ -2758,10 +2758,10 @@
     <message><source>View File Paths...</source><translation>查看文件路径...</translation></message>
     <message><source>Viewport</source><translation>视口</translation></message>
     <message><source>Viewport Canvas Color</source><translation>视口画布颜色</translation></message>
-    <message><source>Viewport Quality: Balanced</source><translation>质量:平衡</translation></message>
-    <message><source>Viewport Quality: High</source><translation>视口质量: 高</translation></message>
-    <message><source>Viewport Quality: Low</source><translation>视口质量: 低</translation></message>
-    <message><source>Viewport Quality: Lowest</source><translation>质量:最低</translation></message>
+    <message><source>Viewport Quality: Balanced</source><translation>视口质量：平衡</translation></message>
+    <message><source>Viewport Quality: High</source><translation>视口质量：高</translation></message>
+    <message><source>Viewport Quality: Low</source><translation>视口质量：低</translation></message>
+    <message><source>Viewport Quality: Lowest</source><translation>视口质量：最低</translation></message>
     <message><source>Viewport setting to preview</source><translation>视口设置为预览</translation></message>
     <message><source>Viewport setting to preview.</source><translation>视口设置为预览。</translation></message>
     <message><source>Viewport Settings</source><translation>视口设置</translation></message>
@@ -4461,7 +4461,7 @@
       <translation>删除属性</translation>
     </message>
     <message>
-      <source>Delete B</source><translation>删除 B</translation>
+      <source>Delete Bézier Handle</source><translation>删除贝塞尔控制柄</translation>
     </message>
     <message>
       <source>Delete Backdrop</source>
@@ -6320,6 +6320,10 @@
     <message>
       <source>Manipulator:</source>
       <translation>操纵器:</translation>
+    </message>
+    <message>
+      <source>Close Distance:</source>
+      <translation>闭合距离:</translation>
     </message>
     <message>
       <source>Rectangle Tool</source>

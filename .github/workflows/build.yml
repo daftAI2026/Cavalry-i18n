@@ -1,6 +1,6 @@
-# [INPUT]: 依赖仓库版本、CHANGELOG、release.config、Tauri/Qt 构建入口与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供 Node/Rust/翻译合同验证、双架构 macOS 包、精确版本更新摘要、GitHub Release 与 README badge 写回
-# [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库版本真相投影为可验证构建和 Cavalry patch tag 发布
+# [INPUT]: 依赖仓库版本、CHANGELOG、release.config、跨平台 Tauri 配置、Qt 构建入口、Windows NSIS provenance sidecar 与 GitHub tag/artifact 环境
+# [OUTPUT]: 对外提供 Node/翻译合同、Windows Qt runtime/Rust check/test/带当前输入 provenance 的 NSIS 隔离安装卸载门、双架构 macOS 包、精确版本更新摘要、跨平台 GitHub Release 与 README badge 写回
+# [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库版本真相投影为带 Qt runtime/安装态/provenance gate 的 Windows NSIS、macOS 发布包和同时携带 EXE/DMG 的 Cavalry patch tag 发布
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -27,7 +27,7 @@ jobs:
           cache: npm
 
       - name: Install app dependencies
-        run: npm install
+        run: npm ci
 
       - name: Validate project version metadata
         run: npm run check:version
@@ -103,20 +103,60 @@ jobs:
             package.json
             package-lock.json
             release.config.json
-            tools/build_translator_injector.sh
-            tools/cavalry_qt_target.json
-            tools/check_app_contracts.js
-            tools/extract_compiled_ui_strings.js
-            tools/extract_release_changelog.js
-            tools/generate_embedded_translations.js
-            tools/ja_JP.ts
-            tools/launch_cavalry_with_injector.sh
-            tools/release_metadata.js
-            tools/resolve_cavalry_qt_sdk.js
-            tools/translation-whitelist.json
-            tools/validate_translations.py
-            tools/zh-Hans.ts
-            tools/zh-Hant.ts
+            .gitattributes
+            tools/
+          include-hidden-files: true
+
+  windows_check:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Validate project metadata and app contracts
+        run: |
+          npm run check:version
+          npm run check:release
+          npm run check:app
+          npm run test:contracts
+
+      - name: Check and test the Windows Rust target
+        run: |
+          npm run check:tauri
+          npm run test:tauri
+
+      - name: Build the Windows NSIS installer
+        run: npm run build:tauri:windows
+
+      - name: Install and uninstall the Windows NSIS package
+        run: npm run test:tauri:windows-nsis
+
+      - name: Upload the Windows NSIS installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: cavalry-i18n-windows-nsis
+          path: |
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe
+            src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe.provenance.json
+          if-no-files-found: error
 
   package_macos:
     if: startsWith(github.ref, 'refs/tags/cavalry-') || github.event_name == 'workflow_dispatch'
@@ -156,7 +196,7 @@ jobs:
           echo "PYTHON=$RUNNER_TEMP/aqt-venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Install app dependencies
-        run: npm install
+        run: npm ci
 
       - name: Validate project version metadata
         run: npm run check:version
@@ -218,7 +258,7 @@ jobs:
             injector/libCavalryTranslatorInjector.dylib
 
   release:
-    needs: [build, package_macos]
+    needs: [build, windows_check, package_macos]
     if: startsWith(github.ref, 'refs/tags/cavalry-')
     runs-on: ubuntu-latest
     permissions:
@@ -234,8 +274,23 @@ jobs:
           pattern: cavalry-patcher-macos-*
           path: dist
 
+      - name: Download packaged Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: cavalry-i18n-windows-nsis
+          path: dist/windows
+
       - name: Resolve release metadata
         run: npm run release:metadata -- --github-env
+
+      - name: Name Windows release asset
+        run: |
+          mapfile -d '' -t windows_installers < <(find dist/windows -type f -name '*.exe' -print0)
+          if [ "${#windows_installers[@]}" -ne 1 ]; then
+            echo "Expected exactly one Windows NSIS installer, found ${#windows_installers[@]}" >&2
+            exit 1
+          fi
+          mv "${windows_installers[0]}" "dist/$RELEASE_ASSET_NAME_WINDOWS_X64"
 
       - name: Extract version changelog
         run: |
@@ -250,9 +305,9 @@ jobs:
             cat <<EOF
           ## Cavalry Language Switcher
 
-          Cavalry Language Switcher 是一个面向 Cavalry ${TARGET_CAVALRY_VERSION} 的 macOS 语言切换工具。它可以把本机已安装的 Cavalry 在 English、简体中文、繁體中文、日本語之间切换，并继续从原来的 \`Cavalry.app\` 启动。
+          Cavalry Language Switcher 是一个面向 Cavalry ${TARGET_CAVALRY_VERSION} 的 macOS 与 Windows 语言切换工具。它可以把本机已安装的 Cavalry 在 English、简体中文、繁體中文、日本語之间切换，并继续从原来的 Cavalry 应用启动。
 
-          它会处理两类翻译表面：Cavalry 的 JSON 资源文件，以及内置在 Qt/UI 二进制里的菜单、面板、按钮和控件文字。应用语言时，工具会 patch 本地 Cavalry app bundle，安装 runtime injector，重新签名，并清理 Gatekeeper quarantine。
+          它会处理两类翻译表面：Cavalry 的 JSON 资源文件，以及内置在 Qt/UI 二进制里的菜单、面板、按钮和控件文字。Windows 版动态发现或由用户选择 Cavalry 安装目录，不依赖固定盘符，并部署 Qt runtime plugin；macOS 版 patch 本地 app bundle、安装 runtime injector、重新签名并清理 Gatekeeper quarantine。
 
           Cavalry Language Switcher 是独立社区工具，不隶属于 Scene Group、Cavalry 或 Canva。
 
@@ -265,6 +320,9 @@ jobs:
 
           ### macOS
           - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_AARCH64}) | [Intel 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_X64})
+
+          ### Windows
+          - [Windows x64 安装器](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_WINDOWS_X64})
 
           ### macOS 首次打开
           当前 DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID notarization。如果从浏览器下载后，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，请先把应用拖入 Applications，然后运行：
@@ -296,18 +354,19 @@ jobs:
           ## 使用前须知
           - 当前 release 尚未经过 Apple Developer ID notarization；浏览器下载后首次打开可能需要手动清除 quarantine。
           - 首次应用语言包时，macOS 可能要求授予 App Management 权限。
+          - Windows 版不要求 Cavalry 位于固定盘符；自动检测失败时可在应用内选择安装目录，写入受保护目录时可能请求 UAC 提权。
           - 建议保留一份干净的 Cavalry 安装包或备份；恢复到完全原始状态时，重新安装 Cavalry 是最稳妥的方式。
-          - 当前 release 同时发布 macOS Apple Silicon 与 Intel 两个版本，请按芯片类型下载对应 DMG。
+          - 当前 release 同时发布 Windows x64 安装器与 macOS Apple Silicon/Intel 两个 DMG，请按平台和芯片类型下载。
 
           ## 日本語
 
-          Cavalry Language Switcher は、Cavalry ${TARGET_CAVALRY_VERSION} 向けの macOS 用言語切り替えツールです。インストール済みの Cavalry を English、簡体字中国語、繁体字中国語、日本語の間で切り替えられます。
+          Cavalry Language Switcher は、Cavalry ${TARGET_CAVALRY_VERSION} 向けの macOS / Windows 用言語切り替えツールです。インストール済みの Cavalry を English、簡体字中国語、繁体字中国語、日本語の間で切り替えられます。
 
           初回適用時に macOS の App Management 権限が求められる場合があります。完全に元の状態へ戻すには、Cavalry を再インストールするのが最も安全です。
 
           ## English
 
-          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS. It is not affiliated with Scene Group, Cavalry, or Canva.
+          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva.
           EOF
           } > release-notes.md
 
@@ -315,11 +374,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          mapfile -t assets < <(find dist -type f -name '*.dmg' -print)
-          if [ "${#assets[@]}" -eq 0 ]; then
-            echo "No DMG assets found in dist" >&2
+          mapfile -d '' -t dmg_assets < <(find dist -type f -name '*.dmg' -print0)
+          if [ "${#dmg_assets[@]}" -ne 2 ]; then
+            echo "Expected two DMG assets, found ${#dmg_assets[@]}" >&2
             exit 1
           fi
+          windows_asset="dist/$RELEASE_ASSET_NAME_WINDOWS_X64"
+          if [ ! -f "$windows_asset" ]; then
+            echo "Windows NSIS asset is missing: $windows_asset" >&2
+            exit 1
+          fi
+          assets=("${dmg_assets[@]}" "$windows_asset")
           gh release create "$GITHUB_REF_NAME" "${assets[@]}" --title "$RELEASE_TITLE" --notes-file release-notes.md
 
       - name: Update README release badge endpoint

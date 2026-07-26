@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 src-tauri bridge.rs、renderer app.js 与一个最小 fake DOM/runtime
- * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 Tauri bridge足以驱动原 renderer、本土化、camelCase-only payload、授权预检状态和权限等待态
- * [POS]: tools 的 Phase 1 bridge 守门，把字符串级断言升级为实际脚本执行
+ * [INPUT]: 依赖 src-tauri bridge.rs、跨平台 renderer app.js 与一个最小 fake DOM/runtime
+ * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 Tauri bridge 足以驱动本土化、camelCase-only payload、平台标识、提交后 cleanup warning，以及 macOS openPrivacy、Program Files requestElevation 与不可写自定义根无 UAC 路径
+ * [POS]: tools 的 Phase 1 bridge 守门，把字符串级断言升级为 macOS/Windows 平台语义的实际脚本执行
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -243,6 +243,7 @@ function createRuntime(options = {}) {
           invokeCalls.push({ command, payload });
           if (command === 'get_status') {
             return Promise.resolve({
+              appManagementGranted: false,
               appPath: '/Applications/Cavalry.app',
               currentLang: 'zh-Hans',
               languages: [
@@ -251,6 +252,8 @@ function createRuntime(options = {}) {
               ],
               needsExtract: false,
               defaultAppCandidates: ['/Applications/Cavalry.app'],
+              permissionAction: 'openPrivacy',
+              platform: 'macos',
               version: '2.3.4',
               ...(options.status || {}),
             });
@@ -341,8 +344,9 @@ test('tauri bridge boots the original renderer app through invoke', async () => 
   assert.equal(runtime.currentLanguage.textContent, '简体中文');
   assert.equal(
     runtime.statusText.textContent,
-    'Apply will require macOS permission to modify Cavalry.app.'
+    'System permission may be required to modify the Cavalry installation.'
   );
+  assert.equal(runtime.context.document.documentElement.dataset.platform, 'macos');
   assert.equal(runtime.triggerText.textContent, '简体中文');
   assert.deepEqual(runtime.invokeCalls[0], { command: 'get_status', payload: undefined });
 
@@ -364,6 +368,8 @@ test('tauri bridge normalizes only the camelCase command payload surface', async
       diagnostics: { source: 'backend-debug-only' },
       languages: undefined,
       needsExtract: undefined,
+      permissionAction: undefined,
+      platform: undefined,
       repoRoot: '/repo/debug-only',
       version: undefined,
       app_management_granted: true,
@@ -371,6 +377,8 @@ test('tauri bridge normalizes only the camelCase command payload surface', async
       current_lang: 'ja_JP',
       default_app_candidates: ['/Applications/Snake.app'],
       needs_extract: true,
+      permission_action: 'requestElevation',
+      platform_name: 'windows',
       repo_root: '/repo/snake',
     },
   });
@@ -385,6 +393,8 @@ test('tauri bridge normalizes only the camelCase command payload surface', async
     defaultAppCandidates: [],
     languages: [],
     needsExtract: false,
+    permissionAction: 'none',
+    platform: '',
     version: '',
   });
   assert.equal(Object.hasOwn(status, 'diagnostics'), false);
@@ -405,7 +415,7 @@ test('renderer localizes visible UI from the system language', async () => {
   assert.equal(runtime.switchToLabel.textContent, '切换为');
   assert.equal(runtime.applyButton.textContent, '应用并重启');
   assert.equal(runtime.extractButton.textContent, '刷新英文');
-  assert.equal(runtime.statusText.textContent, '应用语言包需要 macOS 授权修改 Cavalry.app。');
+  assert.equal(runtime.statusText.textContent, '修改 Cavalry 安装目录可能需要系统授权。');
 });
 
 test('renderer hides the permission warning when app management is already granted', async () => {
@@ -461,7 +471,45 @@ test('renderer asks for confirmation before applying a language pack', async () 
   );
 });
 
-test('renderer shows localized macOS permission wait dialog and retries the same selection', async () => {
+test('renderer reports committed copy cleanup residue as a warning instead of a patch failure', async () => {
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
+  const residualPath = 'C:\\Temp\\cavalry-i18n-copy-backup-42';
+  const cleanupWarning =
+    `Language files were applied, but transaction backups could not be removed from ${residualPath}: simulated cleanup lock.`;
+  const runtime = createRuntime({
+    status: {
+      appPath: 'D:\\Cavalry',
+      defaultAppCandidates: ['D:\\Cavalry'],
+      permissionAction: 'none',
+      platform: 'windows',
+    },
+    applyResponses: [
+      {
+        ok: true,
+        currentLang: 'zh-Hans',
+        warning: cleanupWarning,
+      },
+    ],
+  });
+
+  vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
+  vm.runInNewContext(appScript, runtime.context, { filename: 'app.js' });
+  await flush();
+
+  await runtime.applyButton.listeners.get('click')[0]();
+  await flush();
+  await runtime.modalPrimaryButton.listeners.get('click')[0]();
+  await flush();
+
+  assert.equal(runtime.statusText.dataset.tone, 'warning');
+  assert.match(runtime.statusText.textContent, /Applied 简体中文 and restarted Cavalry\./);
+  assert.match(runtime.statusText.textContent, /transaction backups could not be removed/);
+  assert.match(runtime.statusText.textContent, /cavalry-i18n-copy-backup-42/);
+  assert.doesNotMatch(runtime.statusText.textContent, /Patch failed/);
+});
+
+test('renderer shows a localized system permission dialog and retries the same selection', async () => {
   const bridgeScript = readText('renderer/tauri-bridge.js');
   const appScript = readText('renderer/app.js');
   const runtime = createRuntime({
@@ -486,11 +534,11 @@ test('renderer shows localized macOS permission wait dialog and retries the same
   await flush();
 
   assert.equal(runtime.statusText.dataset.tone, 'warning');
-  assert.equal(runtime.statusText.textContent, '正在等待 macOS 授权。');
+  assert.equal(runtime.statusText.textContent, '正在等待系统授权。');
   assert.equal(runtime.modalBackdrop.hidden, false);
-  assert.equal(runtime.modalTitle.textContent, '等待 macOS 授权');
+  assert.equal(runtime.modalTitle.textContent, '需要系统授权');
   assert.equal(runtime.modalPrimaryButton.textContent, '重试应用');
-  assert.equal(runtime.modalSecondaryButton.textContent, '打开隐私与安全性');
+  assert.equal(runtime.modalSecondaryButton.textContent, '打开权限设置');
   assert.deepEqual(JSON.parse(JSON.stringify(runtime.invokeCalls.at(-1))), {
     command: 'apply_language',
     payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
@@ -522,6 +570,101 @@ test('renderer shows localized macOS permission wait dialog and retries the same
         payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
       },
     ]
+  );
+});
+
+test('renderer retries Windows permission failures through elevation without opening macOS settings', async () => {
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
+  const windowsInstall = 'C:\\Program Files\\Cavalry';
+  const runtime = createRuntime({
+    language: 'zh-CN',
+    status: {
+      appPath: windowsInstall,
+      defaultAppCandidates: [windowsInstall],
+      permissionAction: 'requestElevation',
+      platform: 'windows',
+    },
+    applyResponses: [
+      {
+        ok: false,
+        permissionRequired: true,
+        error: 'Administrator permission required',
+      },
+      { ok: true, currentLang: 'zh-Hans' },
+    ],
+  });
+
+  vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
+  vm.runInNewContext(appScript, runtime.context, { filename: 'app.js' });
+  await flush();
+
+  assert.equal(runtime.context.document.documentElement.dataset.platform, 'windows');
+  await runtime.applyButton.listeners.get('click')[0]();
+  await flush();
+  await runtime.modalPrimaryButton.listeners.get('click')[0]();
+  await flush();
+
+  assert.equal(runtime.modalPrimaryButton.textContent, '以管理员身份重试');
+  assert.equal(runtime.modalSecondaryButton.textContent, '取消');
+  assert.equal(runtime.permissionButton.textContent, '以管理员身份重试');
+  assert.equal(runtime.permissionButton.hidden, false);
+
+  await runtime.permissionButton.listeners.get('click')[0]();
+  await flush();
+
+  const applyCalls = runtime.invokeCalls.filter((call) => call.command === 'apply_language');
+  assert.equal(applyCalls.length, 2);
+  assert.deepEqual(JSON.parse(JSON.stringify(applyCalls[0].payload)), {
+    appPath: windowsInstall,
+    lang: 'zh-Hans',
+  });
+  assert.equal(runtime.invokeCalls.some((call) => call.command === 'open_privacy_security'), false);
+});
+
+test('renderer reports an unwritable custom Windows root without offering a UAC retry', async () => {
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
+  const customInstall = 'D:\\Creative Tools\\Cavalry';
+  const backendError =
+    'The selected Cavalry installation is not writable. Windows administrator retry is available only for installations under the OS-known Program Files folders; choose a writable Cavalry copy or update that folder\'s permissions.';
+  const runtime = createRuntime({
+    status: {
+      appManagementGranted: false,
+      appPath: customInstall,
+      defaultAppCandidates: [customInstall],
+      permissionAction: 'none',
+      platform: 'windows',
+    },
+    applyResponses: [{ ok: false, permissionRequired: false, error: backendError }],
+  });
+
+  vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
+  vm.runInNewContext(appScript, runtime.context, { filename: 'app.js' });
+  await flush();
+
+  assert.equal(
+    runtime.statusText.textContent,
+    'The selected Cavalry folder is not writable. Windows administrator retry is only available for installations under Program Files; choose a writable copy or update this folder’s permissions.'
+  );
+  assert.equal(runtime.statusText.dataset.tone, 'error');
+  assert.equal(runtime.permissionButton.hidden, true);
+
+  await runtime.applyButton.listeners.get('click')[0]();
+  await flush();
+  await runtime.modalPrimaryButton.listeners.get('click')[0]();
+  await flush();
+
+  assert.equal(runtime.modalBackdrop.hidden, true);
+  assert.equal(runtime.permissionButton.hidden, true);
+  assert.equal(
+    runtime.statusText.textContent,
+    `Patch failed. Details: ${backendError}`
+  );
+  assert.equal(runtime.invokeCalls.some((call) => call.command === 'open_privacy_security'), false);
+  assert.equal(
+    runtime.invokeCalls.filter((call) => call.command === 'apply_language').length,
+    1
   );
 });
 

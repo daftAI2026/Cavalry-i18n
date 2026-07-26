@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 CHANGELOG.md、package.json、package-lock.json、src-tauri/Cargo.toml、src-tauri/tauri.conf.json 与 src-tauri/Cargo.lock
- * [OUTPUT]: 对外提供项目版本同步器，将 CHANGELOG 最新正式版本同步到 npm、Cargo 与 Tauri 元数据，支持 --check
- * [POS]: tools 的发布版本真相源闸门，消除桌面包版本在 JS/Rust/Tauri 三层之间的漂移
+ * [INPUT]: 依赖 CHANGELOG.md、package.json、package-lock.json、src-tauri/Cargo.toml、公共 tauri.conf.json 与 src-tauri/Cargo.lock
+ * [OUTPUT]: 对外提供换行无关的项目版本同步器，将 CHANGELOG 最新正式版本同步到 npm、Cargo 与 Tauri 公共元数据，支持 --check
+ * [POS]: tools 的发布版本真相源闸门，消除桌面包版本在 JS/Rust/Tauri 三层及不同 Git 换行策略之间的漂移
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -14,7 +14,7 @@ const isCheckMode = process.argv.includes('--check');
 const projectPackageName = 'cavalry-i18n-tauri';
 
 function readText(relativePath) {
-  return fs.readFileSync(path.join(rootDir, relativePath), 'utf8');
+  return fs.readFileSync(path.join(rootDir, relativePath), 'utf8').replace(/\r\n?/g, '\n');
 }
 
 function writeText(relativePath, source) {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 release.config.json、package.json 与 GitHub tag 环境变量
- * [OUTPUT]: 对外提供 release tag 校验、资产命名与 GitHub Actions 环境变量写入能力
+ * [OUTPUT]: 对外提供 release tag 校验、仅双 macOS DMG 加 Windows x64 NSIS 的资产命名与 GitHub Actions 环境变量写入能力
  * [POS]: tools 的发布协议守门器，把内部 SemVer 与 Cavalry 目标版本补丁号分离
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,6 +11,7 @@ const path = require('node:path');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
+const RELEASE_ASSET_TEMPLATE_KEYS = Object.freeze(['aarch64', 'windowsX64', 'x64']);
 
 function readJson(relativePath) {
   return JSON.parse(fs.readFileSync(path.join(rootDir, relativePath), 'utf8'));
@@ -35,7 +36,13 @@ function loadConfig() {
   if (!config.assetNameTemplates || typeof config.assetNameTemplates !== 'object') {
     throw new Error('release.config.json assetNameTemplates must be an object.');
   }
-  for (const field of ['aarch64', 'x64']) {
+  const assetTemplateKeys = Object.keys(config.assetNameTemplates).sort();
+  if (assetTemplateKeys.join(',') !== RELEASE_ASSET_TEMPLATE_KEYS.join(',')) {
+    throw new Error(
+      'release.config.json must define exactly aarch64, x64, and windowsX64 assets; x86/i686 releases are unsupported.'
+    );
+  }
+  for (const field of RELEASE_ASSET_TEMPLATE_KEYS) {
     requireString(config.assetNameTemplates[field], `assetNameTemplates.${field}`);
   }
   return config;
@@ -75,6 +82,7 @@ function metadataForTag(config, tag) {
     RELEASE_TITLE: renderTemplate(config.releaseTitleTemplate, patch),
     RELEASE_ASSET_NAME_AARCH64: renderTemplate(config.assetNameTemplates.aarch64, patch),
     RELEASE_ASSET_NAME_X64: renderTemplate(config.assetNameTemplates.x64, patch),
+    RELEASE_ASSET_NAME_WINDOWS_X64: renderTemplate(config.assetNameTemplates.windowsX64, patch),
   };
 }
 
@@ -97,6 +105,12 @@ function checkProtocol(config) {
   }
   if (sample.RELEASE_ASSET_NAME_X64 !== 'Cavalry.Language.Switcher_Cavalry-2.7.2-p1_x64.dmg') {
     throw new Error('assetNameTemplates.x64 does not render the frozen asset contract.');
+  }
+  if (
+    sample.RELEASE_ASSET_NAME_WINDOWS_X64 !==
+    'Cavalry.Language.Switcher_Cavalry-2.7.2-p1_windows-x64-setup.exe'
+  ) {
+    throw new Error('assetNameTemplates.windowsX64 does not render the frozen asset contract.');
   }
   if (new RegExp(config.releaseTagPattern).test('v0.1.11')) {
     throw new Error('releaseTagPattern must reject internal SemVer tags.');

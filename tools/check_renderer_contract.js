@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer 视图文件与 Tauri bridge，读取 hash、DOM id 和 API method 锚点
- * [OUTPUT]: 对外提供 renderer contract 测试，冻结 UI 真相源和 window.cavalryI18n 需求面
- * [POS]: tools 的 Phase 0 UI 冻结测试，确保 Tauri-only renderer 和 bridge 不漂移
+ * [INPUT]: 依赖 renderer 视图文件与 Tauri bridge，以规范化 LF 文本读取 hash、DOM id 和 API method 锚点
+ * [OUTPUT]: 对外提供跨平台 renderer contract 测试，冻结 UI 真相源和 window.cavalryI18n 需求面
+ * [POS]: tools 的 Phase 0 UI 冻结测试，确保 Tauri-only renderer 和 bridge 不因平台换行策略漂移
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -15,10 +15,10 @@ const repoRoot = path.resolve(__dirname, '..');
 const rendererRoot = path.join(repoRoot, 'renderer');
 
 const EXPECTED_HASHES = {
-  'index.html': 'f5371832308ace4f37f3c833e341ac5306b59ea6a979a51976d8efad71b4345d',
+  'index.html': 'ef7680a61014fb72db0afea39b41e2e3764038fdc9d14b2386858b27ef3ffd5e',
   'styles.css': '29225329fc6ca2c15e4c315d46b837319f6c17decbf8144293f88b1ac2e14f54',
-  'app.js': '48e5022a7aa433b3f796653ea51bfa8de169e677e099dd05d565f985bc7fead1',
-  'tauri-bridge.js': 'f2d0224674f04d159e8cef306e2d01a83f2b985ecdc6d08c67bcff001bff1a4d',
+  'app.js': 'ac1c28c0c54d54d5a7b6e2bd1b10c73d399a9da86d14b16e0923992163ed70a6',
+  'tauri-bridge.js': '9c7001344e860cd9df076eee3e3c7792326a8951c94e0dfa77b0d5070c54810f',
 };
 
 const REQUIRED_IDS = [
@@ -51,7 +51,8 @@ const REQUIRED_API_METHODS = [
 ];
 
 function sha256(filePath) {
-  return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+  const source = fs.readFileSync(filePath, 'utf8').replace(/\r\n?/g, '\n');
+  return crypto.createHash('sha256').update(source, 'utf8').digest('hex');
 }
 
 test('renderer source hashes stay frozen for the Tauri migration', () => {

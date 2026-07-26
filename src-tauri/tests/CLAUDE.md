@@ -1,20 +1,23 @@
 # tests/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/src-tauri/CLAUDE.md
+> L2 | 父级: ../CLAUDE.md
 
 成员清单
 tauri_version_contract.rs: 断言 npm 与 Cargo Tauri 依赖 exact pin 到同一个 v2 minor。
-tauri_config_contract.rs: 断言 renderer 路径、withGlobalTauri、窗口尺寸、bundle resources、capabilities。
-command_contract.rs: 断言 6 个 command 注册名、权限提示字段、App Management 预检字段、packaged resource 语言包回退和 renderer 兼容 camelCase JSON shape。
+tauri_config_contract.rs: 断言公共 renderer/窗口/capabilities，以及 macOS dylib/签名资源与 Windows NSIS/languages 资源严格隔离。
+command_contract.rs: 断言 6 个 command 注册名、旧权限字段、`platform`/`permissionAction`、成功后 cleanup warning 与 renderer 兼容 camelCase JSON shape。
 bridge_webview_contract.rs: 断言 bridge 预注入到 Tauri builder，并暴露 `window.cavalryI18n` 兼容 API 与 Privacy & Security 入口。
-detect_contract.rs: 断言默认路径、Info.plist 版本读取与 bundle-local 语言 marker 恢复。
-patch_contract.rs: 断言 English 提取、插件 camelCase、copy pair、38 面 snapshot 完整性与 staging mode 保留。
+detect_contract.rs: 断言保存路径优先、任意 Windows 安装根规范化、展示版本不伪造，并验证非 MSI 安装的不可变二进制 mutation 必然改变 revision。
+patch_contract.rs: 断言 English 提取、插件/copy pair/snapshot、packaged-English 逐叶内容证明与 revision provenance 失效，验证 keyed overlay 保留 smoother/未来节点，并锁定 smoother 属性的英简繁日四语同构。
 mac_runtime_contract.rs: 断言 wrapper、Info.plist 改写和 runtime pair 目标路径。
-privilege_contract.rs: 断言复制回退、5 函数 Keychain callsite owned-buffer/双架构幂等补丁、增量签名、同内容只验签、验签失败全量修复、quarantine 与 restart 命令顺序。
-state_contract.rs: 断言 Tauri state.json schema 的 normalize 与读写。
+privilege_contract.rs: 断言复制回退、Keychain/签名，以及 Windows UAC allowlist 只来自 Known Folder API、不读取可伪造 Program Files 环境变量、custom root 拒绝提权、SHA-256 锁定 manifest、同 handle `FileShare.None` 源复制与脚本复核 reparse point、0/42/43/44 事务退出码；对 `src/privilege.rs` facade 与 `src/privilege/` 责任树共同进行源码契约审计，确保 direct 失败转 UAC 的恢复残留由 typed diagnostics 保留且提升侧不写用户临时 warning/report；restart 仍守住绝对 executable graceful close、cwd/env 与 PID 链路。
+state_contract.rs: 断言 Tauri state.json 的当前 revision/快照 provenance schema、normalize、读写与旧 state serde-default 迁移。
 manual_macos_smoke.rs: 真实 macOS ignored smoke test，在 APFS 副本跑三语 apply、重复 apply、strict codesign 与 English 恢复，并将候选 injector 外加载到真实 Cavalry 进程，要求每种语言的三个菜单哨兵全部出现，输出日志/inventory 哈希，并核验 provenance、进程存活及原安装关键文件零变化。
+manual_windows_smoke.rs: 默认 ignored 的 Windows 克隆验收，只接受显式 `%TEMP%` 下且带 disposable sentinel 的 Cavalry 安装，对原始路径、规范路径及每个 JSON/plugin/marker 写入链逐级拒绝 reparse/越界，依次验证简繁日全部 core/plugin JSON leaf、smoother、marker、root-generic plugin 与 English 全资源原始字节恢复，且不启动 GUI/UAC。
+manual_windows_live_smoke.rs: 默认 ignored 的 Windows disposable live-clone 证据门；可用显式语言过滤器跑单语探针或默认三语，子进程使用 evidence 内隔离 AppData，直接捕获初始空场景的 Viewport Quality/Transform，并仅向 exact HWND 投递默认 `A` 键捕获 Edit Shape；三类 source mask、零 fallback/renderer failure 与 PNG 共同取证，outstanding PID 只优雅关闭 owned clone，unwind panic 仍恢复 English 38 JSON，静态合同禁止场景脚本、Qt UIA 与坐标假 gate，Path 像素仍须人工截图审阅。
+support/: ignored Windows smoke 的路径安全支撑；见 `support/CLAUDE.md`。
 
 依赖边界:
-默认测试只读配置或通过 fake runner 调用 Rust API，不启动真实 GUI/提权命令；唯一例外是显式 `--ignored` 触发的 `manual_macos_smoke.rs`，它只写 APFS 副本，并以外置 dylib 启动真实 Cavalry 二进制、核验安装源关键字节前后不变。
+默认测试只读配置、临时安装 fixture 或通过 fake runner 调用 Rust API，不访问真实 Cavalry 安装、不启动 GUI/UAC；例外是显式 `--ignored` 的 macOS/Windows disposable clone smoke。Windows live smoke 还要求 clone/evidence 两个显式 `%TEMP%` 根与 sentinel 双重证明，所有写目标逐级拒绝 reparse/越界，并把无 OCR 的 PNG 结果停在人工 gate；clone 只隔离安装根，仍使用当前 Windows profile，重复校验降低但不宣称消除同用户恶意 TOCTOU，Ctrl+C/强制终止也不承诺 cleanup。
 
 法则: 合同先行·配置可证·无真实副作用
 

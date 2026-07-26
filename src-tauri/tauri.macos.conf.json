@@ -1,0 +1,37 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
+  "build": {
+    "beforeBuildCommand": "npm run build:injector"
+  },
+  "bundle": {
+    "targets": [
+      "dmg",
+      "app"
+    ],
+    "icon": [
+      "icons/icon.icns"
+    ],
+    "resources": {
+      "../languages": "languages",
+      "../injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
+    },
+    "macOS": {
+      "signingIdentity": "-",
+      "dmg": {
+        "background": "icons/background.png",
+        "windowSize": {
+          "width": 800,
+          "height": 476
+        },
+        "appPosition": {
+          "x": 212,
+          "y": 170
+        },
+        "applicationFolderPosition": {
+          "x": 592,
+          "y": 170
+        }
+      }
+    }
+  }
+}

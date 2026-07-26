@@ -1,7 +1,14 @@
+<!--
+[INPUT]: 依赖当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
+[OUTPUT]: 对外提供 macOS / Windows 用户安装、使用、开发与安全说明的繁體中文版本
+[POS]: 倉庫繁體中文使用者入口；與英文及其他本地化 README 同步發布真相，不替代平台真機驗收
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 <div align="center">
   <img src="./src-tauri/icons/icon.png" width="120" />
   <h1>Cavalry-i18n</h1>
-  <p>直接在 macOS 原始應用程式中，將 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 切換為 English、簡體中文、繁體中文或日本語。</p>
+  <p>直接在 macOS 或 Windows 原始應用程式中，將 <a href="https://cavalry.scenegroup.co/">Cavalry</a> 2.7.2 切換為 English、簡體中文、繁體中文或日本語。</p>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/stargazers"><img src="https://img.shields.io/github/stars/daftAI2026/Cavalry-i18n?style=flat-square" alt="Stars" /></a>
   <a href="https://github.com/daftAI2026/Cavalry-i18n/releases"><img src="https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FdaftAI2026%2FCavalry-i18n%2Fmain%2Fdocs%2Fbadges%2Frelease.json&style=flat-square" alt="Release" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License" /></a>
@@ -16,19 +23,20 @@
 ## 功能
 
 - 🎯 **一鍵切換**：選擇語言，點擊套用，重新啟動後 Cavalry 即以目標語言開啟
-- 🍎 **僅支援 macOS 執行階段**：面向 macOS `Cavalry.app` bundle、其 Qt runtime 與 `DYLD_INSERT_LIBRARIES` 注入路徑構建
-- 🔌 **執行階段注入**：透過 `DYLD_INSERT_LIBRARIES` 載入 compiled UI 翻譯，不改寫 Cavalry 的 UI 字串
+- 🍎🪟 **macOS 與 Windows**：支援 macOS `Cavalry.app` 及 Windows Cavalry 安裝根
+- 🔌 **平台原生執行階段翻譯**：macOS 使用 `DYLD_INSERT_LIBRARIES`；Windows 部署 Qt generic plugin，不改寫 Cavalry 編譯進二進位的 UI 字串
 - 📦 **雙翻譯面**：JSON 資源檔案 + 編譯進 Qt/UI 的字串，皆自動統一處理
 - 🧩 **動態 UI 規則化**：執行階段翻譯形狀名稱、屬性編輯器欄位、冒號後綴標籤和 `No ...` fallback 文字等生成標籤
-- 🔑 **Keychain 安全**：對 `libExtensionLayer.dylib` 做二進位補丁，避免語言切換後登入憑證失效
-- 🔐 **重新簽名並清除隔離標記**：重新簽名補丁後的 app bundle，並清除 Gatekeeper 標記，避免 macOS 阻止啟動
+- 🔑 **macOS Keychain 安全**：對 `libExtensionLayer.dylib` 做二進位補丁，避免語言切換後登入憑證失效
+- 🔐 **macOS 簽名路徑**：重新簽名補丁後的 app bundle，並清除 Gatekeeper 標記，避免 macOS 阻止啟動
+- 📍 **Windows 自動探索與手動選址**：盡量探索現有安裝；失敗時可選擇 `Cavalry.exe` 或安裝目錄
 - 🌐 **四種語言**：English、簡體中文、繁體中文、日本語
 
 ## 安全與權限
 
 Cavalry-i18n 是獨立的社群工具。它不是 Scene Group、Cavalry 或 Canva 製作、認可或關聯的官方工具。
 
-本專案目前 **僅支援 macOS**。應用程式外殼基於 Tauri 構建，但真正可用的語言切換能力依賴 macOS 特有的 app bundle 結構、程式碼簽名、Keychain 行為與動態函式庫注入。Windows 和 Linux 構建目前不受支援。
+本專案支援 **macOS 與 Windows x64**。macOS 會補丁並重新簽名 `Cavalry.app` bundle；Windows 會在使用者選定的 Cavalry 安裝根套用 JSON overlay，並以 Qt generic plugin 啟動 Cavalry。Windows 的構建、安裝器與合同鏈路已具備；針對真實 Cavalry 安裝的完整現場驗收仍在進行。Linux 暫不支援。
 
 這個工具會修改你本機 `Cavalry.app` bundle 內的檔案，讓 Cavalry 能以翻譯後的資源啟動。在 macOS 上，這需要 **App Management** 權限：
 
@@ -38,14 +46,18 @@ Cavalry-i18n 是獨立的社群工具。它不是 Scene Group、Cavalry 或 Canv
 
 macOS 要求這個權限，是因為修改另一個 `.app` bundle 屬於受保護操作。只有在你信任此構建，並理解它會補丁、重新簽名並重新啟動本機 Cavalry 安裝時，才授予權限。請保留乾淨的 Cavalry 安裝器或備份；重新安裝 Cavalry 是恢復到未修改官方 bundle 的最安全方式。
 
+在 Windows 上，應用程式會先嘗試探索本機安裝；失敗時請手動選擇 `Cavalry.exe` 或其安裝目錄。支援自訂目錄，但該目錄必須允許目前使用者寫入。自動 UAC 提權嚴格限於實際位於 Windows Program Files 下的安裝；任意自訂路徑不會因此提權。
+
 ## 從 Release 安裝
 
-請從 GitHub Releases 下載 macOS DMG。DMG 使用 ad-hoc 簽名，但尚未經過 Apple Developer ID notarization。如果把 app 拖入 Applications 後，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，請先清除一次瀏覽器下載帶來的 quarantine 標記：
+請從 GitHub Releases 下載對應平台的資產。macOS 請依 Apple Silicon 或 Intel 下載 DMG。DMG 使用 ad-hoc 簽名，但尚未經過 Apple Developer ID notarization。如果把 app 拖入 Applications 後，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，請先清除一次瀏覽器下載帶來的 quarantine 標記：
 
 ```bash
 xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
 open "/Applications/Cavalry Language Switcher.app"
 ```
+
+Windows 請下載並執行 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`。NSIS 安裝器只安裝語言切換器；最終使用者無需安裝 Python、Rust、Qt 或 PowerShell 7。安裝後選擇自動探索到的 Cavalry，或瀏覽到目前使用者可寫的安裝根。
 
 開發者也可以從原始碼本地構建。本地構建遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)，不會帶有瀏覽器下載產生的 quarantine 標記。
 
@@ -69,17 +81,25 @@ npm run build            # 生產構建
 npm run build:tauri      # 生產 DMG + 打包後檢查
 ```
 
-> **注意**：injector（`libCavalryTranslatorInjector.dylib`）必須基於 Qt 6.6.3 構建，以匹配 Cavalry 2.7.2 隨附的 Qt 分支。CI 和本地構建透過 `tools/cavalry_qt_target.json` 固定該版本。可用 `CAVALRY_QT_PREFIX` 或 `QT_ROOT_DIR` 覆蓋。
+Windows 開發構建：
+
+```powershell
+npm run build:tauri:windows    # Windows NSIS 安裝器
+```
+
+Windows 開發時，系統內建的 Windows PowerShell 5.1 已足夠，不要求 PowerShell 7。
+
+> **注意**：兩條平台 injector 都必須基於 Qt 6.6.3 構建，以匹配 Cavalry 2.7.2 隨附的 Qt 分支。`tools/cavalry_qt_target.json` 是唯一版本真相，並分別投影到 macOS `clang_64` 與 Windows `msvc2019_64`；clean Windows 構建使用 `npm run prepare:qt-sdk:windows`。
 
 ## 工作原理
 
-1. **偵測** 本機 `Cavalry.app` 安裝
+1. **偵測** macOS 的 `Cavalry.app`，或探索/選擇 Windows 的 `Cavalry.exe` 安裝根
 2. **擷取** 目前英文 JSON 資源，作為帶版本的快照
-3. **補丁** 將 `languages/` 中的翻譯 JSON 檔案寫入 app bundle
-4. **安裝** launcher wrapper、執行階段 injector 與語言標記
-5. **重新簽名** 修改後的 bundle，並清除 Gatekeeper 隔離標記
+3. **補丁** 將 `languages/` 中的翻譯 JSON 檔案寫入應用程式資源
+4. **安裝** macOS launcher wrapper 與 injector，或將 Windows `generic/cavalryi18n.dll` 部署到所選安裝根
+5. **重新啟動** Cavalry 並載入平台執行階段翻譯；macOS 還會重新簽名 bundle 並清除 Gatekeeper 隔離標記
 
-補丁完成後，原來的 `Cavalry.app` 路徑仍然可用。launcher wrapper 會設定 `DYLD_INSERT_LIBRARIES`，讓 injector 在執行階段載入翻譯。恢復 English 時使用擷取出的快照，而不是倉庫內建副本。
+補丁完成後，原來的啟動路徑仍然可用。macOS 的 launcher wrapper 會設定 `DYLD_INSERT_LIBRARIES`；Windows 只把 Qt plugin 環境傳給 Cavalry 子行程。恢復 English 時使用擷取出的快照，而不是倉庫內建副本。
 
 ## 支援語言
 
@@ -98,6 +118,10 @@ npm run build                  # Tauri 生產構建
 npm run build:tauri            # 完整流水線：構建 + DMG 圖示標記 + 打包後檢查
 npm run build:injector         # 編譯 libCavalryTranslatorInjector.dylib
 npm run prepare:qt-sdk         # 下載/解析 Qt 6.6.3 SDK
+npm run prepare:qt-sdk:windows # 下載/驗證 Qt 6.6.3 msvc2019_64
+npm run build:injector:windows # 構建/測試 Windows Qt generic plugin
+npm run build:tauri:windows    # 構建 Windows NSIS 安裝器
+npm run test:tauri:windows-nsis # 重算目前安裝器 provenance，並驗證安裝與解除安裝
 
 # 開發
 npm run tauri:dev              # Tauri 開發伺服器
@@ -111,6 +135,8 @@ npm run test:tauri:ui          # 打包後視窗回歸
 npm run check:app              # 檢查所有 JS 語法
 npm run check:full-ui          # 完整 JSON + compiled + runtime UI gate（100%）
 ```
+
+Windows 打包完成後會產生同名 `.exe.provenance.json` sidecar，將安裝器位元組與目前 renderer、語言包、Windows Tauri/Rust 輸入、package manifests 和打包的 generic plugin 綁定；NSIS smoke 會在安裝前重新計算並驗證它。構建只會移除目前版本的預期舊輸出，目標 bundle 目錄中存在任何其他遺留安裝器或 sidecar 都會 fail-closed。
 
 ## AI / Agent Guide
 
@@ -167,8 +193,9 @@ Cavalry-i18n/
 | Job | Runner | What |
 |-----|--------|------|
 | **build** | ubuntu | 語法檢查、合同測試、翻譯驗證 |
+| **windows_check** | windows | Qt generic plugin 構建/測試、Rust 檢查、Windows NSIS 安裝器 |
 | **package_macos** | macos | Qt SDK 準備、Tauri 構建、Rust contracts、打包後檢查 |
-| **release** | ubuntu | 由 `cavalry-*-p*` tag 觸發，將 DMG 發布到 GitHub Releases |
+| **release** | ubuntu | 由 `cavalry-*-p*` tag 觸發，發布兩個 DMG 與一個 Windows x64 NSIS EXE |
 
 ## 支援
 

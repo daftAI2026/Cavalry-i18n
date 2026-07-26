@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryEmbeddedTranslator 与 generated_translations.inc 中稳定存在的菜单样本
- * [OUTPUT]: 对外验证三语言嵌入、已证实 helper 提示的翻译表样本、精确查询、未知 context 的 source fallback、未知语言/文本空结果
+ * [OUTPUT]: 对外验证三语言标签/嵌入、已证实 helper 与动态工具栏标签样本、精确查询、未知 context 的 source fallback、未知语言/文本空结果
  * [POS]: injector/windows 的最小数据合同测试，在进入真实 Cavalry 前证明 DLL 内翻译表不是空壳
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -33,7 +33,8 @@ bool expectEqual(
 
 bool verifyLanguage(
     const QString &language,
-    const QString &expectedFileTranslation)
+    const QString &expectedFileTranslation,
+    const QString &expectedCloseDistanceTranslation)
 {
     const CavalryEmbeddedTranslator translator(language);
     if (translator.isEmpty()
@@ -46,6 +47,10 @@ bool verifyLanguage(
     }
 
     return expectEqual(
+               translator.language(),
+               language,
+               "language identity")
+        && expectEqual(
                translator.translate("QMenuBar", "File"),
                expectedFileTranslation,
                "exact context lookup")
@@ -53,6 +58,10 @@ bool verifyLanguage(
                translator.translate("UnknownContext", "File"),
                expectedFileTranslation,
                "source fallback lookup")
+        && expectEqual(
+               translator.translate("UnknownContext", "Close Distance:"),
+               expectedCloseDistanceTranslation,
+               "dynamic toolbar label source fallback")
         && expectEqual(
                translator.translate("QMenuBar", "__missing_source__"),
                QString(),
@@ -93,9 +102,18 @@ bool verifyEmbeddedHelperTranslationSamples(
 
 int main()
 {
-    if (!verifyLanguage(QStringLiteral("zh-Hans"), QStringLiteral("文件"))
-        || !verifyLanguage(QStringLiteral("zh-Hant"), QStringLiteral("檔案"))
-        || !verifyLanguage(QStringLiteral("ja_JP"), QStringLiteral("ファイル"))
+    if (!verifyLanguage(
+            QStringLiteral("zh-Hans"),
+            QStringLiteral("文件"),
+            QStringLiteral("闭合距离:"))
+        || !verifyLanguage(
+            QStringLiteral("zh-Hant"),
+            QStringLiteral("檔案"),
+            QStringLiteral("閉合距離:"))
+        || !verifyLanguage(
+            QStringLiteral("ja_JP"),
+            QStringLiteral("ファイル"),
+            QStringLiteral("閉じる距離:"))
         || !verifyEmbeddedHelperTranslationSamples(
             QStringLiteral("zh-Hans"),
             {

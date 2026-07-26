@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- **Smoother Node Restoration**: Restored the real Cavalry 2.7.2 `smoother.smoothingSteps` node across English, Simplified Chinese, Traditional Chinese, and Japanese after byte-identical `nodeStrings.json` files from the macOS DMG and Windows installation disproved the earlier orphan-node assumption; keyed overlays preserve this and future installed nodes.
+- **Windows Qt SDK Preparation**: Replaced the macOS-only clean-machine SDK resolver contract with one Cavalry/Qt version source and explicit macOS `clang_64` / Windows `msvc2019_64` projections, so Windows CI and local builds cannot install the wrong Qt architecture.
+
 ## [0.5.3] - 2026-07-14
 
 ### Added

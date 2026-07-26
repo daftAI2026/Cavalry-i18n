@@ -5,6 +5,7 @@
   "releaseTitleTemplate": "Cavalry Language Switcher for Cavalry 2.7.2 patch ${patch}",
   "assetNameTemplates": {
     "aarch64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.dmg",
-    "x64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.dmg"
+    "x64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.dmg",
+    "windowsX64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_windows-x64-setup.exe"
   }
 }

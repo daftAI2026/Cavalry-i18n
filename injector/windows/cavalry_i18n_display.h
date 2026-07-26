@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CavalryEmbeddedTranslator 的 source fallback，以及 Qt Widgets 的公开显示属性、QComboBox DisplayRole 与菜单事件
- * [OUTPUT]: 对外提供幂等的 QWidget/QAction 主动翻译、已知基名数字后缀投影、菜单首帧刷新和动态英文写回恢复
- * [POS]: injector/windows 的显示层边界，只改受控可见文案与下拉框 DisplayRole，不接触输入值、UserRole、currentIndex 或通用 item view
+ * [INPUT]: 依赖 CavalryEmbeddedTranslator 的 source fallback，以及 Qt Widgets 的公开显示属性、QComboBox/QTreeWidget DisplayRole、QLineEdit 信号与菜单事件
+ * [OUTPUT]: 对外提供幂等的 QWidget/QAction 主动翻译、已知基名数字后缀投影、受词表约束的 QLineEdit 显示值和 QTreeWidget 递归 DisplayRole 刷新
+ * [POS]: injector/windows 的显示层边界，只改受控可见文案、下拉框/树的 DisplayRole 和词表命中的输入框显示值；未知输入、UserRole、currentIndex 与通用 item view 保持原值
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
@@ -16,7 +16,10 @@
 
 class QAction;
 class QComboBox;
+class QLineEdit;
 class QMenu;
+class QTreeWidget;
+class QTreeWidgetItem;
 class QWidget;
 class CavalryEmbeddedTranslator;
 
@@ -41,9 +44,14 @@ private:
         const QString &current,
         const std::function<void(const QString &)> &setter);
     void hookAction(QAction *action);
+    void hookLineEdit(QLineEdit *lineEdit);
     void hookMenu(QMenu *menu);
+    void hookTreeWidget(QTreeWidget *treeWidget);
     void trackObject(QObject *object);
     void translateComboBoxDisplay(QComboBox *comboBox);
+    void translateLineEditDisplay(QLineEdit *lineEdit);
+    void translateTreeWidgetDisplay(QTreeWidget *treeWidget);
+    void translateTreeWidgetItemDisplay(QTreeWidgetItem *item);
     void translateWidgetProperties(QWidget *widget);
     void translateWidgetActions(QWidget *widget);
     void translateWidgetText(QWidget *widget);
@@ -52,6 +60,8 @@ private:
     QHash<QObject *, QHash<QByteArray, QString>> lastTranslations_;
     QSet<QObject *> trackedObjects_;
     QSet<QObject *> hookedActions_;
+    QSet<QObject *> hookedLineEdits_;
     QSet<QObject *> hookedMenus_;
+    QSet<QObject *> hookedTreeWidgets_;
     QSet<QObject *> translatingObjects_;
 };

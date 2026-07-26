@@ -25,6 +25,7 @@
 | --- | --- | --- | --- |
 | [`localized-search-index.md`](localized-search-index.md) | Proposed | [`add-layer-localized-search-2026-05-21.md`](../audits/add-layer-localized-search-2026-05-21.md) | 执行 R1：抓取 QuickAdd 搜索框、列表模型与中英文 query 行为 |
 | [`runtime-refresh-performance.md`](runtime-refresh-performance.md) | Proposed | [`runtime-refresh-performance-2026-05-21.md`](../audits/runtime-refresh-performance-2026-05-21.md) | 执行 R1/R2：收敛合同测试，移除普通交互全局刷新 |
+| [`windows-port-and-injection-roadmap.md`](windows-port-and-injection-roadmap.md) | Active | Windows Qt generic plugin、NSIS 与跨平台安装根合同 | 以真实 Windows Cavalry 完成安装、切换、重启、升级与卸载闭环 |
 
 ## 归档规则
 

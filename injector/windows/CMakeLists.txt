@@ -1,5 +1,5 @@
 # [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、Windows Psapi、本目录源码、../generated_translations.inc 与可选 Cavalry vendor 二进制根目录
-# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 display、translator、PE/IAT、ExtensionLayer hook、vendor ABI/import 与 generic-plugin smoke 合同测试
+# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 display、translator、PE/IAT、ExtensionLayer 三边界 hook、vendor ABI/import 与 generic-plugin smoke 合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构前置检查约束 Windows Qt 插件产物与无第三方 IAT 实现
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 3.21)
@@ -48,11 +48,23 @@ target_sources(cavalryi18n
     PRIVATE
         cavalry_i18n_display.cpp
         cavalry_i18n_display.h
+        cavalry_i18n_callback_snapshot.h
         cavalry_i18n_extension_layer_hook.cpp
         cavalry_i18n_extension_layer_hook.h
+        cavalry_i18n_extension_layer_qt_hooks.cpp
+        cavalry_i18n_extension_layer_qt_hooks.h
         cavalry_i18n_extension_layer_sources.h
+        cavalry_i18n_extension_layer_text_path_hook.cpp
+        cavalry_i18n_extension_layer_text_path_hook.h
+        cavalry_i18n_iat_lifecycle.h
+        cavalry_i18n_iat_patch.cpp
+        cavalry_i18n_iat_patch.h
         cavalry_i18n_pe_iat.cpp
         cavalry_i18n_pe_iat.h
+        cavalry_i18n_skia_runtime_abi.cpp
+        cavalry_i18n_skia_runtime_abi.h
+        cavalry_i18n_skia_text_path_renderer.cpp
+        cavalry_i18n_skia_text_path_renderer.h
         cavalry_i18n_plugin.cpp
         cavalry_i18n_plugin.h
         cavalry_i18n_runtime.cpp
@@ -181,6 +193,22 @@ if(BUILD_TESTING)
         COMMAND "$<TARGET_FILE:cavalryi18n_pe_iat_test>"
     )
 
+    # 始终编译只读 text-path 合同；只有显式 vendor root 才把它链接进实际映像验证。
+    add_library(cavalryi18n_vendor_text_path_contract OBJECT
+        cavalry_i18n_vendor_text_path_contract.cpp
+        cavalry_i18n_vendor_text_path_contract.h
+        cavalry_i18n_vendor_skia_text_path_contract.cpp
+        cavalry_i18n_vendor_skia_text_path_contract.h
+        cavalry_i18n_extension_layer_sources.h
+        cavalry_i18n_pe_iat.cpp
+        cavalry_i18n_pe_iat.h
+    )
+
+    target_include_directories(cavalryi18n_vendor_text_path_contract
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
     if(NOT CAVALRY_VENDOR_ROOT STREQUAL "")
         get_filename_component(
             CAVALRY_VENDOR_ROOT_ABSOLUTE
@@ -195,17 +223,27 @@ if(BUILD_TESTING)
             CAVALRY_VENDOR_CAVALRY_UI
             "${CAVALRY_VENDOR_ROOT_ABSOLUTE}/CavalryUI.dll"
         )
+        set(
+            CAVALRY_VENDOR_CORE
+            "${CAVALRY_VENDOR_ROOT_ABSOLUTE}/Core.dll"
+        )
+        set(
+            CAVALRY_VENDOR_SKIA
+            "${CAVALRY_VENDOR_ROOT_ABSOLUTE}/skia.dll"
+        )
         if(NOT EXISTS "${CAVALRY_VENDOR_EXTENSION_LAYER}"
-            OR NOT EXISTS "${CAVALRY_VENDOR_CAVALRY_UI}")
+            OR NOT EXISTS "${CAVALRY_VENDOR_CAVALRY_UI}"
+            OR NOT EXISTS "${CAVALRY_VENDOR_CORE}"
+            OR NOT EXISTS "${CAVALRY_VENDOR_SKIA}")
             message(FATAL_ERROR
-                "CAVALRY_VENDOR_ROOT must contain ExtensionLayer.dll and CavalryUI.dll: ${CAVALRY_VENDOR_ROOT_ABSOLUTE}"
+                "CAVALRY_VENDOR_ROOT must contain ExtensionLayer.dll, CavalryUI.dll, Core.dll, and skia.dll: ${CAVALRY_VENDOR_ROOT_ABSOLUTE}"
             )
         endif()
 
         add_executable(cavalryi18n_vendor_iat_contract_test
             cavalry_i18n_vendor_iat_contract_test.cpp
+            $<TARGET_OBJECTS:cavalryi18n_vendor_text_path_contract>
             cavalry_i18n_extension_layer_sources.h
-            cavalry_i18n_pe_iat.cpp
             cavalry_i18n_pe_iat.h
         )
 
@@ -220,16 +258,31 @@ if(BUILD_TESTING)
                 "$<TARGET_FILE:cavalryi18n_vendor_iat_contract_test>"
                 "${CAVALRY_VENDOR_EXTENSION_LAYER}"
                 "${CAVALRY_VENDOR_CAVALRY_UI}"
+                "${CAVALRY_VENDOR_CORE}"
+                "${CAVALRY_VENDOR_SKIA}"
         )
     endif()
 
     add_executable(cavalryi18n_extension_layer_hook_test
+        cavalry_i18n_aggregate_pin_contract_test.cpp
         cavalry_i18n_extension_layer_hook_test.cpp
+        cavalry_i18n_callback_snapshot.h
         cavalry_i18n_extension_layer_hook.cpp
         cavalry_i18n_extension_layer_hook.h
+        cavalry_i18n_extension_layer_qt_hooks.cpp
+        cavalry_i18n_extension_layer_qt_hooks.h
         cavalry_i18n_extension_layer_sources.h
+        cavalry_i18n_extension_layer_text_path_hook.cpp
+        cavalry_i18n_extension_layer_text_path_hook.h
+        cavalry_i18n_iat_lifecycle.h
+        cavalry_i18n_iat_patch.cpp
+        cavalry_i18n_iat_patch.h
         cavalry_i18n_pe_iat.cpp
         cavalry_i18n_pe_iat.h
+        cavalry_i18n_skia_runtime_abi.cpp
+        cavalry_i18n_skia_runtime_abi.h
+        cavalry_i18n_skia_text_path_renderer.cpp
+        cavalry_i18n_skia_text_path_renderer.h
         cavalry_i18n_translator.cpp
         cavalry_i18n_translator.h
     )
@@ -249,6 +302,8 @@ if(BUILD_TESTING)
     target_compile_definitions(
         cavalryi18n_extension_layer_hook_test
         PRIVATE
+            CAVALRY_I18N_TESTING
+            CAVALRY_I18N_EXTENSION_LAYER_HOOK_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/cavalry_i18n_extension_layer_hook.cpp"
             QT_NO_KEYWORDS
     )
 

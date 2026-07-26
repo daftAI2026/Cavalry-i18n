@@ -1,15 +1,21 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_tauri::privilege 的复制、重签、quarantine 与 restart 边界
- * [OUTPUT]: 对外提供命令顺序、权限回退、owned Keychain 明细和增量签名 contract tests
- * [POS]: src-tauri/tests 的系统边界守门，确保 fake runner 能断言 macOS 快路径签名后仍执行 deep/strict 验证
+ * [INPUT]: 依赖 privilege facade、其按职责拆分的源码树，以及复制、重签、quarantine 与跨平台 restart 边界。
+ * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名及 Windows Known Folder UAC、hash-locked loader、0/42/43/44 状态与 typed recovery diagnostics contract tests。
+ * [POS]: src-tauri/tests 的系统边界守门；审计 facade 与子模块共同满足安全边界，避免文件拆分掩盖 Windows 提权约束。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::patch::CopyPair;
+#[cfg(target_os = "windows")]
+use cavalry_i18n_tauri::privilege::restart_cavalry_with_environment;
+#[cfg(target_os = "macos")]
+use cavalry_i18n_tauri::privilege::restart_commands;
 use cavalry_i18n_tauri::privilege::{
     clear_gatekeeper_quarantine, copy_with_privilege, ensure_bundle_signature,
     patch_keychain_query_attributes, patch_keychain_query_attributes_with_privilege,
-    resign_patched_bundle, restart_commands, CommandRunner, RecordedCommand, RecordingRunner,
+    resign_patched_bundle, CommandRunner, RecordedCommand, RecordingRunner,
 };
+#[cfg(target_os = "windows")]
+use std::ffi::OsString;
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -31,6 +37,31 @@ fn report_count(
 fn write(path: &Path, value: &[u8]) {
     fs::create_dir_all(path.parent().unwrap()).unwrap();
     fs::write(path, value).unwrap();
+}
+
+#[cfg(target_os = "windows")]
+fn privilege_source_tree() -> String {
+    let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let mut sources = vec![source_root.join("privilege.rs")];
+    collect_privilege_sources(&source_root.join("privilege"), &mut sources);
+    sources.sort();
+    sources
+        .into_iter()
+        .map(|path| fs::read_to_string(path).unwrap())
+        .collect::<Vec<_>>()
+        .join("\n")
+}
+
+#[cfg(target_os = "windows")]
+fn collect_privilege_sources(directory: &Path, sources: &mut Vec<PathBuf>) {
+    for entry in fs::read_dir(directory).unwrap() {
+        let path = entry.unwrap().path();
+        if path.is_dir() {
+            collect_privilege_sources(&path, sources);
+        } else if path.extension().is_some_and(|extension| extension == "rs") {
+            sources.push(path);
+        }
+    }
 }
 
 fn write_keychain_dylib(app: &Path, bytes: &[u8]) -> PathBuf {
@@ -85,7 +116,7 @@ fn copy_tries_direct_then_admin_on_permission_error() {
     write(&source, br#"{}"#);
 
     let mut runner = RecordingRunner::default();
-    let mode = copy_with_privilege(
+    let outcome = copy_with_privilege(
         &[CopyPair {
             src: source,
             dst: dest,
@@ -93,7 +124,8 @@ fn copy_tries_direct_then_admin_on_permission_error() {
         &mut runner,
     )
     .unwrap();
-    assert_eq!(mode, "direct");
+    assert_eq!(outcome.mode, "direct");
+    assert_eq!(outcome.warning, None);
     assert!(runner.commands.is_empty());
 }
 
@@ -266,6 +298,7 @@ fn quarantine_clear_ignores_missing_xattr() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn restart_quits_then_opens_new_instance() {
     let commands = restart_commands(Path::new("/Applications/Cavalry.app"));
     assert_eq!(
@@ -281,6 +314,161 @@ fn restart_quits_then_opens_new_instance() {
             }
         ]
     );
+}
+
+#[cfg(target_os = "windows")]
+#[derive(Default)]
+struct WindowsRestartRunner {
+    commands: Vec<RecordedCommand>,
+    environment: Vec<(OsString, OsString)>,
+    working_directory: Option<PathBuf>,
+    close_error: Option<String>,
+}
+
+#[cfg(target_os = "windows")]
+impl CommandRunner for WindowsRestartRunner {
+    fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
+        self.commands.push(RecordedCommand {
+            program: program.to_string(),
+            args: args.to_vec(),
+        });
+        match self.close_error.take() {
+            Some(error) => Err(error),
+            None => Ok(()),
+        }
+    }
+
+    fn spawn_detached_in_with_env(
+        &mut self,
+        program: &str,
+        args: &[String],
+        working_directory: &Path,
+        environment: &[(OsString, OsString)],
+    ) -> Result<(), String> {
+        self.commands.push(RecordedCommand {
+            program: program.to_string(),
+            args: args.to_vec(),
+        });
+        self.working_directory = Some(working_directory.to_path_buf());
+        self.environment = environment.to_vec();
+        Ok(())
+    }
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_restart_uses_absolute_executable_install_root_cwd_and_process_environment() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = cavalry_i18n_tauri::install::normalize_path(temp.path());
+    let mut runner = WindowsRestartRunner::default();
+    let environment = vec![(
+        OsString::from("CAVALRY_I18N_LANG"),
+        OsString::from("zh-Hans"),
+    )];
+
+    restart_cavalry_with_environment(&root, &environment, &mut runner).unwrap();
+
+    assert_eq!(runner.commands[0].program, "powershell.exe");
+    assert!(!runner.commands[0].args.iter().any(|arg| arg == "/F"));
+    assert!(!runner.commands[0].args.iter().any(|arg| arg == "/IM"));
+    assert_eq!(
+        PathBuf::from(&runner.commands[1].program),
+        root.join("Cavalry.exe")
+    );
+    assert_eq!(runner.working_directory.as_deref(), Some(root.as_path()));
+    assert_eq!(runner.environment, environment);
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_restart_aborts_before_spawn_when_graceful_close_fails() {
+    let temp = tempfile::tempdir().unwrap();
+    let root = cavalry_i18n_tauri::install::normalize_path(temp.path());
+    let mut runner = WindowsRestartRunner {
+        close_error: Some("Cavalry did not exit gracefully".to_string()),
+        ..Default::default()
+    };
+
+    let error = restart_cavalry_with_environment(&root, &[], &mut runner).unwrap_err();
+
+    assert!(error.contains("did not exit gracefully"), "{error}");
+    assert_eq!(
+        runner.commands.len(),
+        1,
+        "spawn must not follow a failed close"
+    );
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_restart_contract_forbids_forced_termination_and_matches_exact_executable_path() {
+    let source = privilege_source_tree();
+    let forced_termination = ["Stop", "Process"].join("-");
+    let legacy_killer = ["task", "kill"].join("");
+
+    assert!(source.contains("Get-CimInstance Win32_Process"));
+    assert!(source.contains("ExecutablePath"));
+    assert!(source.contains("[System.String]::Equals"));
+    assert!(source.contains("OrdinalIgnoreCase"));
+    assert!(source.contains("CloseMainWindow()"));
+    assert!(source.contains("WINDOWS_GRACEFUL_CLOSE_TIMEOUT_SECONDS: u64 = 15"));
+    assert!(!source.contains(&forced_termination));
+    assert!(!source.to_ascii_lowercase().contains(&legacy_killer));
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_uac_allowlist_uses_known_folders_and_forbids_environment_root_lookup() {
+    let source = privilege_source_tree();
+    let legacy_wow64_root = ["Program", "W6432"].concat();
+    let legacy_x86_environment = ["ProgramFiles", "(x86)"].concat();
+    let environment_lookup = ["var", "_os"].concat();
+
+    assert!(source.contains("SHGetKnownFolderPath"));
+    assert!(source.contains("FOLDER_ID_PROGRAM_FILES"));
+    assert!(source.contains("FOLDER_ID_PROGRAM_FILES_X86"));
+    assert!(source.contains("CoTaskMemFree"));
+    assert!(source.contains("[Environment]::GetFolderPath"));
+    assert!(source.contains("[System.IO.FileAttributes]::ReparsePoint"));
+    assert!(!source.contains(&legacy_wow64_root));
+    assert!(!source.contains(&legacy_x86_environment));
+    assert!(!source.contains(&environment_lookup));
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_uac_manifest_contract_keeps_payload_bounded_and_source_locked() {
+    let source = privilege_source_tree();
+
+    assert!(source.contains("cavalry-i18n-admin-copy-"));
+    assert!(source.contains("create_new(true)"));
+    assert!(source.contains("parse_verified_windows_copy_manifest"));
+    assert!(source.contains("ReadAllBytes($manifestPath)"));
+    assert!(source.contains("ConvertFrom-Json"));
+    assert!(source.contains("sourceSha256"));
+    assert!(source.contains("[System.IO.FileShare]::None"));
+    assert!(source.contains("Get-OpenStreamSha256Hex"));
+    assert!(source.contains("$sourceStream.CopyTo($destinationStream)"));
+    assert!(source.contains("windows_admin_copy_script_loader"));
+    assert!(source.contains("Administrator copy script hash did not match"));
+    assert!(source.contains("cleanup_windows_temp_files"));
+    assert!(source.contains("CommandStatus"));
+    assert!(source.contains("run_captured"));
+    assert!(source.contains("CopyDiagnostic::RecoveryResidual"));
+    assert!(source.contains("PostCommitWarningCode"));
+    assert!(!source.contains("preserve_direct_copy_recovery_residual"));
+    assert!(source.contains("exit [int]$p.ExitCode"));
+    assert!(source.contains("exit 0"));
+    assert!(source.contains("exit 42"));
+    assert!(source.contains("exit 43"));
+    assert!(source.contains("exit 44"));
+    assert!(source.contains("'\\r' | '\\n' | '\\0' | '\\t'"));
+    let legacy_copy = ["Copy", "Item -LiteralPath"].join("-");
+    let legacy_warning_variable = ["warning", "Path"].concat();
+    let legacy_warning_writer = ["Write", "AllText"].concat();
+    assert!(!source.contains(&legacy_copy));
+    assert!(!source.contains(&legacy_warning_variable));
+    assert!(!source.contains(&legacy_warning_writer));
 }
 
 #[test]

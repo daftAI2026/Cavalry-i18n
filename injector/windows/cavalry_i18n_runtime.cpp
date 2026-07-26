@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CAVALRY_I18N_LANG、嵌入式生成表、ExtensionLayer 精确 hook、可选诊断 marker 与 Qt 6.6.3 应用实例
- * [OUTPUT]: 对外安装 EmbeddedTranslator、主动刷新既有/动态显示属性及 QComboBox DisplayRole、在 Show/Paint 前重试目标模块 hook，并原子记录加载结果
- * [POS]: injector/windows 的运行时状态机，以事件驱动显示白名单弥补厂商控件不响应 LanguageChange 与精确自绘提示的边界
+ * [INPUT]: 依赖 CAVALRY_I18N_LANG、嵌入生成表、ExtensionLayer 三条精确 hook、可选绝对 marker 路径与 Qt 6.6.3 事件循环
+ * [OUTPUT]: 对外安装 translator/显示投影，并以事件重试 hook、以 75ms 条件计时器仅在 text-path revision 变化时写结构化诊断
+ * [POS]: injector/windows 的运行时状态机；普通用户无 marker 时不创建诊断计时器，callback 只改原子计数，Qt 线程负责安全落盘
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_runtime.h"
@@ -20,6 +20,7 @@
 #include <QtCore/QPointer>
 #include <QtCore/QSaveFile>
 #include <QtCore/QThread>
+#include <QtCore/QTimer>
 #include <QtCore/QDebug>
 #include <QtGui/QActionEvent>
 #include <QtWidgets/QApplication>
@@ -126,6 +127,18 @@ bool CavalryI18nRuntime::configure()
         std::make_unique<CavalryExtensionLayerHook>(*translator_);
     ensureExtensionLayerHook();
     application->installEventFilter(this);
+    const QString diagnosticMarker =
+        qEnvironmentVariable(kMarkerEnvironment).trimmed();
+    if (QDir::isAbsolutePath(diagnosticMarker)) {
+        auto *diagnosticTimer = new QTimer(this);
+        diagnosticTimer->setInterval(75);
+        QObject::connect(
+            diagnosticTimer,
+            &QTimer::timeout,
+            this,
+            [this]() { maybeWriteTextPathDiagnostic(); });
+        diagnosticTimer->start();
+    }
 
     // generic plugin 在 QGuiApplication 构造期加载；把首次刷新投递到事件队列，
     // 等 QApplication 与早期顶层窗口完成创建后再访问 QWidget。
@@ -160,6 +173,7 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
         // 先于目标 QWidget 的 Show/Paint 处理；若 ExtensionLayer 刚刚加载，首帧即可接住。
         ensureExtensionLayerHook();
     }
+    maybeWriteTextPathDiagnostic();
 
     auto *widget = qobject_cast<QWidget *>(watched);
     if (widget == nullptr) {
@@ -175,7 +189,7 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
         }
         break;
     case QEvent::Paint:
-        // 这些类型没有统一的 textChanged 信号；Paint 前的小白名单能接住厂商动态写回。
+        // 动态英文写回路径并不统一；Paint 前的小白名单补齐未走信号的控件。
         if (qobject_cast<QLabel *>(widget) != nullptr
             || qobject_cast<QAbstractButton *>(widget) != nullptr
             || qobject_cast<QGroupBox *>(widget) != nullptr
@@ -210,7 +224,28 @@ void CavalryI18nRuntime::ensureExtensionLayerHook()
             QStringLiteral("ready"),
             QStringLiteral("Embedded translation table installed."),
             true);
+        lastTextPathDiagnosticRevision_ =
+            extensionLayerHook_->textPathDiagnostics().revision;
     }
+}
+
+void CavalryI18nRuntime::maybeWriteTextPathDiagnostic()
+{
+    if (!translatorInstalled_ || extensionLayerHook_ == nullptr) {
+        return;
+    }
+    const CavalryTextPathHookDiagnostics diagnostics =
+        extensionLayerHook_->textPathDiagnostics();
+    if (diagnostics.revision
+        == lastTextPathDiagnosticRevision_) {
+        return;
+    }
+    lastTextPathDiagnosticRevision_ = diagnostics.revision;
+    writeDiagnostic(
+        QStringLiteral("ready"),
+        QStringLiteral(
+            "Embedded translation table installed; text-path diagnostics advanced."),
+        true);
 }
 
 void CavalryI18nRuntime::queueRefresh(QWidget *root)
@@ -293,6 +328,49 @@ void CavalryI18nRuntime::writeDiagnostic(
         return;
     }
 
+    const CavalryTextPathHookDiagnostics textPathDiagnostics =
+        extensionLayerHook_ == nullptr
+        ? CavalryTextPathHookDiagnostics {}
+        : extensionLayerHook_->textPathDiagnostics();
+    const QJsonObject textPathDiagnosticObject {
+        {
+            QStringLiteral("revision"),
+            static_cast<qint64>(textPathDiagnostics.revision)
+        },
+        {
+            QStringLiteral("canonicalCalls"),
+            static_cast<qint64>(textPathDiagnostics.canonicalCalls)
+        },
+        {
+            QStringLiteral("whitelistCalls"),
+            static_cast<qint64>(textPathDiagnostics.whitelistCalls)
+        },
+        {
+            QStringLiteral("cjkPathSuccess"),
+            static_cast<qint64>(textPathDiagnostics.cjkPathSuccess)
+        },
+        {
+            QStringLiteral("originalFallback"),
+            static_cast<qint64>(textPathDiagnostics.originalFallback)
+        },
+        {
+            QStringLiteral("noTranslation"),
+            static_cast<qint64>(textPathDiagnostics.noTranslation)
+        },
+        {
+            QStringLiteral("rendererFailure"),
+            static_cast<qint64>(textPathDiagnostics.rendererFailure)
+        },
+        {
+            QStringLiteral("translatedSourceMask"),
+            static_cast<int>(textPathDiagnostics.translatedSourceMask)
+        },
+        {
+            QStringLiteral("fallbackSourceMask"),
+            static_cast<int>(textPathDiagnostics.fallbackSourceMask)
+        },
+    };
+
     const QJsonObject marker {
         { QStringLiteral("plugin"), QString::fromLatin1(kPluginKey) },
         { QStringLiteral("status"), status },
@@ -326,6 +404,10 @@ void CavalryI18nRuntime::writeDiagnostic(
             extensionLayerHook_ != nullptr
                 ? extensionLayerHook_->detail()
                 : QStringLiteral("No non-English embedded translator is installed.")
+        },
+        {
+            QStringLiteral("extensionLayerTextPathDiagnostics"),
+            textPathDiagnosticObject
         },
         { QStringLiteral("qtVersion"), QString::fromLatin1(qVersion()) },
         {
