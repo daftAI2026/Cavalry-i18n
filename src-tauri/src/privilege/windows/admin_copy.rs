@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 known_folders 的 Program Files/reparse 校验、manifest 的 hash-locked UAC 脚本与 CommandRunner。
- * [OUTPUT]: 提供 direct 写入预检、受限 UAC retry、0/42/43/44 事务状态解释与结构化 cleanup warning。
- * [POS]: Windows 复制权限编排；父进程在本地清理临时脚本，提升进程仅透传固定事务退出码。
+ * [OUTPUT]: 提供 direct 写入预检、受限 UAC retry、静默提升 worker、0/42/43/44 事务状态解释与结构化 cleanup warning。
+ * [POS]: Windows 复制权限编排；保留可见 UAC consent，隐藏 PowerShell 控制台，父进程在本地清理临时脚本。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -165,7 +165,7 @@ pub(crate) fn execute_windows_admin_copy<R: CommandRunner>(
         let loader = windows_admin_copy_script_loader(&script_path, &script_hash);
         let encoded = encode_powershell_command(&loader);
         let command = format!(
-            "$ErrorActionPreference='Stop'; $p=Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-NonInteractive','-EncodedCommand','{encoded}') -Verb RunAs -Wait -PassThru; if($null -eq $p.ExitCode){{exit 1}}; exit [int]$p.ExitCode"
+            "$ErrorActionPreference='Stop'; $p=Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoLogo','-NoProfile','-NonInteractive','-WindowStyle','Hidden','-EncodedCommand','{encoded}') -Verb RunAs -WindowStyle Hidden -Wait -PassThru; if($null -eq $p.ExitCode){{exit 1}}; exit [int]$p.ExitCode"
         );
         runner.run_captured(
             "powershell.exe",

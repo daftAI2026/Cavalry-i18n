@@ -1,10 +1,23 @@
 /**
- * [INPUT]: 依赖 std::process::Command、路径与环境变量类型；被权限复制、签名和重启边界注入执行器。
- * [OUTPUT]: 提供 CommandRunner、RealCommandRunner、RecordingRunner、CommandStatus 与 RecordedCommand。
- * [POS]: privilege 的进程执行适配器；业务事务只依赖此抽象，不直接构造子进程。
+ * [INPUT]: 依赖 std::process::Command、Windows CommandExt、路径与环境变量类型；被发现、权限复制、签名和重启边界注入执行器。
+ * [OUTPUT]: 提供 CommandRunner、RealCommandRunner、RecordingRunner、CommandStatus、RecordedCommand 与无控制台 captured command 构造器。
+ * [POS]: privilege 的进程执行适配器；业务事务只依赖此抽象，Windows 控制台辅助程序统一以 CREATE_NO_WINDOW 运行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{ffi::OsString, path::Path, process::Command};
+
+#[cfg(windows)]
+const WINDOWS_CREATE_NO_WINDOW: u32 = 0x08000000;
+
+pub(crate) fn captured_command(program: &str) -> Command {
+    let mut command = Command::new(program);
+    #[cfg(windows)]
+    {
+        use std::os::windows::process::CommandExt;
+        command.creation_flags(WINDOWS_CREATE_NO_WINDOW);
+    }
+    command
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct RecordedCommand {
@@ -115,7 +128,7 @@ impl CommandRunner for RealCommandRunner {
     }
 
     fn run_captured(&mut self, program: &str, args: &[String]) -> Result<CommandStatus, String> {
-        let output = Command::new(program)
+        let output = captured_command(program)
             .args(args)
             .output()
             .map_err(|error| error.to_string())?;
@@ -209,4 +222,33 @@ pub(crate) fn is_permission_error(detail: &str) -> bool {
 #[cfg(target_os = "macos")]
 pub(crate) fn shell_quote<T: std::fmt::Display>(value: T) -> String {
     format!("'{}'", value.to_string().replace('\'', "'\\''"))
+}
+
+#[cfg(all(test, windows))]
+mod tests {
+    use super::captured_command;
+
+    #[test]
+    fn captured_commands_do_not_have_a_windows_console() {
+        let script = concat!(
+            "$signature='[DllImport(\"kernel32.dll\")] public static extern ",
+            "System.IntPtr GetConsoleWindow();'; ",
+            "Add-Type -MemberDefinition $signature -Name NativeConsole ",
+            "-Namespace CavalryI18n; ",
+            "[CavalryI18n.NativeConsole]::GetConsoleWindow().ToInt64()"
+        );
+        let output = captured_command("powershell.exe")
+            .args([
+                "-NoLogo",
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                script,
+            ])
+            .output()
+            .unwrap();
+
+        assert!(output.status.success());
+        assert_eq!(String::from_utf8_lossy(&output.stdout).trim(), "0");
+    }
 }

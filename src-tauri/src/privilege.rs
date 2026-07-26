@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair 和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口。
- * [POS]: src-tauri/src 的系统命令 facade；平台安全细节下沉到职责模块，命令层不直接触碰 UAC/AppleScript。
+ * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读发现命令和受控启动请求。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，并向 crate 内提供无控制台 captured command。
+ * [POS]: src-tauri/src 的系统命令 facade；平台安全与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod copy_transaction;
@@ -34,6 +34,7 @@ pub use runner::{
 pub(crate) use copy_transaction::{
     copy_with_privilege_detailed, PostCommitWarning, PostCommitWarningCode,
 };
+pub(crate) use runner::captured_command;
 
 /// Windows 管理员重试只服务 OS Known Folder 证明的 Program Files 后代；其他平台保持旧行为返回 false。
 pub fn windows_elevation_supported_for_install(install_root: &Path) -> bool {

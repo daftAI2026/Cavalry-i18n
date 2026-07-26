@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 privilege facade、其按职责拆分的源码树，以及复制、重签、quarantine 与跨平台 restart 边界。
- * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名及 Windows Known Folder UAC、hash-locked loader、0/42/43/44 状态与 typed recovery diagnostics contract tests。
+ * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名及 Windows Known Folder UAC、无控制台 PowerShell、hash-locked loader、0/42/43/44 状态与 typed recovery diagnostics contract tests。
  * [POS]: src-tauri/tests 的系统边界守门；审计 facade 与子模块共同满足安全边界，避免文件拆分掩盖 Windows 提权约束。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -414,6 +414,31 @@ fn windows_restart_contract_forbids_forced_termination_and_matches_exact_executa
     assert!(source.contains("WINDOWS_GRACEFUL_CLOSE_TIMEOUT_SECONDS: u64 = 15"));
     assert!(!source.contains(&forced_termination));
     assert!(!source.to_ascii_lowercase().contains(&legacy_killer));
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_runtime_powershell_contract_never_allocates_console_windows() {
+    let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+    let runner = fs::read_to_string(source_root.join("privilege/runner.rs")).unwrap();
+    let discovery = fs::read_to_string(source_root.join("windows_install.rs")).unwrap();
+    let restart = fs::read_to_string(source_root.join("privilege/restart.rs")).unwrap();
+    let admin_copy =
+        fs::read_to_string(source_root.join("privilege/windows/admin_copy.rs")).unwrap();
+
+    assert!(runner.contains("const WINDOWS_CREATE_NO_WINDOW: u32 = 0x08000000;"));
+    assert!(runner.contains("command.creation_flags(WINDOWS_CREATE_NO_WINDOW);"));
+    assert!(runner.contains("let status = self.run_captured(program, args)?;"));
+    assert!(runner.contains("captured_command(program)"));
+    assert!(discovery.contains("captured_command(\"powershell.exe\")"));
+    assert!(!discovery.contains("Command::new(\"powershell.exe\")"));
+    assert!(restart.contains("program: \"powershell.exe\".to_string()"));
+    assert!(!restart.contains("Command::new("));
+    assert!(
+        admin_copy.matches("-WindowStyle").count() >= 2,
+        "the elevated PowerShell needs both a hidden startup argument and hidden Start-Process style"
+    );
+    assert!(admin_copy.contains("-Verb RunAs"));
 }
 
 #[test]

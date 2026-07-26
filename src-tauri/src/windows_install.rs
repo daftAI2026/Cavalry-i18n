@@ -1,18 +1,18 @@
 /**
- * [INPUT]: 依赖 Windows PowerShell 5.1 进程查询、MSI advertised shortcut API 与标准环境目录
+ * [INPUT]: 依赖 privilege 无控制台命令入口、Windows PowerShell 5.1 进程查询、MSI advertised shortcut API 与标准环境目录
  * [OUTPUT]: 对外提供运行中进程、MSI 快捷方式、常见安装目录候选以及 MSI ProductVersion 查询
- * [POS]: src-tauri/src 的 Windows 只读发现边界，为 detect 提供任意安装位置线索且禁止全盘扫描
+ * [POS]: src-tauri/src 的 Windows 只读发现边界，为 detect 提供任意安装位置线索且禁止全盘扫描或弹出辅助控制台
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(windows)]
 mod implementation {
+    use crate::privilege::captured_command;
     use std::{
         env,
         ffi::{OsStr, OsString},
         fs,
         os::windows::ffi::{OsStrExt, OsStringExt},
         path::{Path, PathBuf},
-        process::Command,
     };
 
     const ERROR_SUCCESS: u32 = 0;
@@ -56,7 +56,7 @@ mod implementation {
             "Get-CimInstance Win32_Process -Filter \"Name='Cavalry.exe'\" ",
             "-ErrorAction SilentlyContinue | ForEach-Object { $_.ExecutablePath }"
         );
-        let output = match Command::new("powershell.exe")
+        let output = match captured_command("powershell.exe")
             .args([
                 "-NoLogo",
                 "-NoProfile",

@@ -9,7 +9,7 @@ bridge_webview_contract.rs: 断言 bridge 预注入到 Tauri builder，并暴露
 detect_contract.rs: 断言保存路径优先、任意 Windows 安装根规范化、展示版本不伪造，并验证非 MSI 安装的不可变二进制 mutation 必然改变 revision。
 patch_contract.rs: 断言 English 提取、插件/copy pair/snapshot、packaged-English 逐叶内容证明与 revision provenance 失效，验证 keyed overlay 保留 smoother/未来节点，并锁定 smoother 属性的英简繁日四语同构。
 mac_runtime_contract.rs: 断言 wrapper、Info.plist 改写和 runtime pair 目标路径。
-privilege_contract.rs: 断言复制回退、Keychain/签名，以及 Windows UAC allowlist 只来自 Known Folder API、不读取可伪造 Program Files 环境变量、custom root 拒绝提权、SHA-256 锁定 manifest、同 handle `FileShare.None` 源复制与脚本复核 reparse point、0/42/43/44 事务退出码；对 `src/privilege.rs` facade 与 `src/privilege/` 责任树共同进行源码契约审计，确保 direct 失败转 UAC 的恢复残留由 typed diagnostics 保留且提升侧不写用户临时 warning/report；restart 仍守住绝对 executable graceful close、cwd/env 与 PID 链路。
+privilege_contract.rs: 断言复制回退、Keychain/签名，以及 Windows UAC allowlist 只来自 Known Folder API、不读取可伪造 Program Files 环境变量、custom root 拒绝提权、SHA-256 锁定 manifest、同 handle `FileShare.None` 源复制与脚本复核 reparse point、0/42/43/44 事务退出码；对发现、restart 与提升 worker 的无控制台 PowerShell 策略做源码合同审计，确保 direct 失败转 UAC 的恢复残留由 typed diagnostics 保留且提升侧不写用户临时 warning/report；restart 仍守住绝对 executable graceful close、cwd/env 与 PID 链路。
 state_contract.rs: 断言 Tauri state.json 的当前 revision/快照 provenance schema、normalize、读写与旧 state serde-default 迁移。
 manual_macos_smoke.rs: 真实 macOS ignored smoke test，在 APFS 副本跑三语 apply、重复 apply、strict codesign 与 English 恢复，并将候选 injector 外加载到真实 Cavalry 进程，要求每种语言的三个菜单哨兵全部出现，输出日志/inventory 哈希，并核验 provenance、进程存活及原安装关键文件零变化。
 manual_windows_smoke.rs: 默认 ignored 的 Windows 克隆验收，只接受显式 `%TEMP%` 下且带 disposable sentinel 的 Cavalry 安装，对原始路径、规范路径及每个 JSON/plugin/marker 写入链逐级拒绝 reparse/越界，依次验证简繁日全部 core/plugin JSON leaf、smoother、marker、root-generic plugin 与 English 全资源原始字节恢复，且不启动 GUI/UAC。
