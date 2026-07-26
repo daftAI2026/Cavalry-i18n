@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定 ToolBox 窗口标题、Exit 动作、运行时逐行 tooltip、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
+ * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、Exit/调色板动作、精确尾随空白工具标签、运行时逐行 tooltip、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
  * [POS]: injector/windows 的显示层单元回归，证明复合提示只改已知行，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -462,6 +462,68 @@ bool verifyCompoundRuntimeTooltips(const LocaleExpectation &expectation)
         translatedLineTool + QChar('\n') + customDetail);
 }
 
+bool verifyEvidencedResidualWidgets(const QString &language)
+{
+    CavalryEmbeddedTranslator translator(language);
+    CavalryDisplayTranslator displayTranslator(translator);
+    const auto expectedTranslation =
+        [&translator](const char *source) {
+            return translator.translate(nullptr, source);
+        };
+
+    QLabel paletteName(QStringLiteral("Palette Name:"));
+    QLabel missingAssets(QStringLiteral("This Scene has missing assets:"));
+    QLabel softSelection(QStringLiteral("Soft Selection: "));
+    QLabel strokeWidth(QStringLiteral("Stroke Width"));
+    QLabel unprovenPitchRadius(QStringLiteral("Pitch Radius: "));
+    QWidget renderDialog;
+    renderDialog.setWindowTitle(QStringLiteral("Delete Render Item(s)"));
+    QAction paletteAction;
+    paletteAction.setText(QStringLiteral("Set W3C Name"));
+    paletteAction.setToolTip(QStringLiteral("Reveal in Explorer..."));
+
+    displayTranslator.translateWidget(&paletteName);
+    displayTranslator.translateWidget(&missingAssets);
+    displayTranslator.translateWidget(&softSelection);
+    displayTranslator.translateWidget(&strokeWidth);
+    displayTranslator.translateWidget(&unprovenPitchRadius);
+    displayTranslator.translateWidget(&renderDialog);
+    displayTranslator.translateAction(&paletteAction);
+
+    return expectEqual(
+               language + QStringLiteral(" palette input label"),
+               paletteName.text(),
+               expectedTranslation("Palette Name:"))
+        && expectEqual(
+               language + QStringLiteral(" scene issue label"),
+               missingAssets.text(),
+               expectedTranslation("This Scene has missing assets:"))
+        && expectEqual(
+               language + QStringLiteral(" exact tool label whitespace"),
+               softSelection.text(),
+               expectedTranslation("Soft Selection: "))
+        && expectEqual(
+               language + QStringLiteral(" direct QLabel source fallback"),
+               strokeWidth.text(),
+               expectedTranslation("Stroke Width"))
+        && expectEqual(
+               language + QStringLiteral(" render dialog title"),
+               renderDialog.windowTitle(),
+               expectedTranslation("Delete Render Item(s)"))
+        && expectEqual(
+               language + QStringLiteral(" palette action"),
+               paletteAction.text(),
+               expectedTranslation("Set W3C Name"))
+        && expectEqual(
+               language + QStringLiteral(" Explorer action tooltip"),
+               paletteAction.toolTip(),
+               expectedTranslation("Reveal in Explorer..."))
+        && expectEqual(
+               language + QStringLiteral(" unproven Pitch Radius boundary"),
+               unprovenPitchRadius.text(),
+               QStringLiteral("Pitch Radius: "));
+}
+
 bool verifyLocale(const LocaleExpectation &expectation)
 {
     const QString language = QString::fromLatin1(expectation.language);
@@ -603,6 +665,7 @@ bool verifyLocale(const LocaleExpectation &expectation)
     }
 
     return verifyCompoundRuntimeTooltips(expectation)
+        && verifyEvidencedResidualWidgets(language)
         && verifyTreeWidgetDisplay(expectation)
         && verifyLineEditDisplay(expectation);
 }

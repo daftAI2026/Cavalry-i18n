@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 tools/zh-Hans.ts、tools/zh-Hant.ts、tools/ja_JP.ts 的 Qt TS 翻译目录、model_display_translations.json 的显示层模型名词典与 runtime-noise-quarantine.json 的无来源噪声清单
- * [OUTPUT]: 对外提供 parseTs 测试缝与 injector/generated_translations.inc 编译期 C++ 翻译表，拒绝 context 外孤儿消息，附加 display-only 模型 niceName 译名并剔除无 provenance 的 runtime 噪声
+ * [OUTPUT]: 对外提供 parseTs 测试缝与 injector/generated_translations.inc 编译期 C++ 翻译表，拒绝 context 外孤儿消息并保留 xml:space 标记的精确空白，附加 display-only 模型 niceName 译名并剔除无 provenance 的 runtime 噪声
  * [POS]: tools 的 TS/显示层词典到 C++ 投影器，连接翻译资产与 Objective-C++ injector
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -38,8 +38,16 @@ function escapeCpp(value) {
 }
 
 function parseTag(block, tagName) {
-  const match = block.match(new RegExp(`<${tagName}>([\\s\\S]*?)<\\/${tagName}>`));
-  return match ? decodeXml(match[1].trim()) : '';
+  const match = block.match(
+    new RegExp(`<${tagName}(\\s[^>]*)?>([\\s\\S]*?)<\\/${tagName}>`)
+  );
+  if (!match) {
+    return '';
+  }
+  const attributes = match[1] || '';
+  const preserveWhitespace =
+    /\bxml:space\s*=\s*(["'])preserve\1/.test(attributes);
+  return decodeXml(preserveWhitespace ? match[2] : match[2].trim());
 }
 
 function assertTsMessageOwnership(xml, filePath) {

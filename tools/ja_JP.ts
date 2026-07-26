@@ -3160,8 +3160,8 @@
     <message><source>Reveal</source><translation>リバイアル</translation></message>
     <message><source>Reveal Composition in Assets Window</source><translation>アセットウィンドウでコンポジションを表示</translation></message>
     <message><source>Reveal Generator</source><translation>リード発電機</translation></message>
-    <message><source>Reveal in Finder</source><translation>ファインダーの明らかに</translation></message>
-    <message><source>Reveal in Finder...</source><translation>在访达中表示...</translation></message>
+    <message><source>Reveal in Finder</source><translation>Finder に表示</translation></message>
+    <message><source>Reveal in Finder...</source><translation>Finder に表示...</translation></message>
     <message><source>Reveal in Scene Window</source><translation>在シーンウィンドウ中表示</translation></message>
     <message><source>Reveal Pre-Comp in Assets Window</source><translation>アセットウィンドウでプリコンポーズを表示</translation></message>
     <message><source>Reveal the Origin Layer</source><translation>表示原始レイヤー</translation></message>
@@ -8523,5 +8523,63 @@
       <source>Shelf</source>
       <translation>シェルフ</translation>
     </message>
+  </context>
+  <context>
+    <name>cavalry::PaletteListWidget</name>
+    <message><source>Palette Name:</source><translation>パレット名:</translation></message>
+  </context>
+  <context>
+    <name>Widget</name>
+    <message><source>Palette Name:</source><translation>パレット名:</translation></message>
+    <message><source>Reveal in Explorer...</source><translation>エクスプローラーで表示...</translation></message>
+    <message><source>New Name:</source><translation>新しい名前:</translation></message>
+  </context>
+  <context>
+    <name>PaletteWidget</name>
+    <message><source>Palette Name:</source><translation>パレット名:</translation></message>
+    <message><source>Set W3C Name</source><translation>W3C 名を設定</translation></message>
+  </context>
+  <context>
+    <name>assets::Window</name>
+    <message><source>Reveal in Explorer...</source><translation>エクスプローラーで表示...</translation></message>
+  </context>
+  <context>
+    <name>cavalry::DGWindow</name>
+    <message><source>Bookmark Name:</source><translation>ブックマーク名:</translation></message>
+  </context>
+  <context>
+    <name>MenuBarManager</name>
+    <message><source>This Scene has missing layer types:</source><translation>このシーンに次のレイヤータイプがありません：</translation></message>
+    <message><source>This Scene has corrupt References:</source><translation>このシーンには破損した参照があります：</translation></message>
+    <message><source>This Scene has missing assets:</source><translation>このシーンに不足しているアセットがあります：</translation></message>
+    <message><source>This Scene has missing fonts:</source><translation>このシーンに不足しているフォントがあります：</translation></message>
+    <message><source>Are you sure you want to delete the Render Item(s)?</source><translation>レンダリング項目を削除してもよろしいですか？</translation></message>
+    <message><source>Delete Render Item(s)</source><translation>レンダリング項目を削除</translation></message>
+  </context>
+  <context>
+    <name>MeshToolSettings</name>
+    <message><source xml:space="preserve">Soft Selection: </source><translation xml:space="preserve">ソフト選択： </translation></message>
+    <message><source xml:space="preserve">Soft Selection Size: </source><translation xml:space="preserve">ソフト選択サイズ： </translation></message>
+  </context>
+  <context>
+    <name>PencilToolSettings</name>
+    <message><source xml:space="preserve">Stability Radius: </source><translation xml:space="preserve">安定化半径： </translation></message>
+  </context>
+  <context>
+    <name>PrimitiveToolSettingsBase</name>
+    <message><source xml:space="preserve">Draw in 2.5D: </source><translation xml:space="preserve">2.5Dで描画： </translation></message>
+  </context>
+  <context>
+    <name>LineToolSettings</name>
+    <message><source>Stroke Width</source><translation>ストローク幅</translation></message>
+    <message><source>Cap Style</source><translation>キャップスタイル</translation></message>
+    <message><source xml:space="preserve">Line Style: </source><translation xml:space="preserve">ラインスタイル： </translation></message>
+  </context>
+  <context>
+    <name>TrackingToolSettings</name>
+    <message><source xml:space="preserve">Supervision Strength: </source><translation xml:space="preserve">監督強度： </translation></message>
+    <message><source xml:space="preserve">Supervised: </source><translation xml:space="preserve">監督あり： </translation></message>
+    <message><source xml:space="preserve">Show Grid: </source><translation xml:space="preserve">グリッドを表示： </translation></message>
+    <message><source xml:space="preserve">Preset: </source><translation xml:space="preserve">プリセット： </translation></message>
   </context>
 </TS>

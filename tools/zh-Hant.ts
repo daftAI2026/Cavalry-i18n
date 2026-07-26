@@ -2170,8 +2170,8 @@
     <message><source>Reveal</source><translation>啓示</translation></message>
     <message><source>Reveal Composition in Assets Window</source><translation>在素材視窗中顯示合成</translation></message>
     <message><source>Reveal Generator</source><translation>視網膜發電機</translation></message>
-    <message><source>Reveal in Finder</source><translation>在查找器中揭示</translation></message>
-    <message><source>Reveal in Finder...</source><translation>在访达中顯示...</translation></message>
+    <message><source>Reveal in Finder</source><translation>在 Finder 中顯示</translation></message>
+    <message><source>Reveal in Finder...</source><translation>在 Finder 中顯示...</translation></message>
     <message><source>Reveal in Scene Window</source><translation>在場景視窗中顯示</translation></message>
     <message><source>Reveal Pre-Comp in Assets Window</source><translation>在素材視窗中顯示預合成</translation></message>
     <message><source>Reveal the Origin Layer</source><translation>顯示原始圖層</translation></message>
@@ -7298,5 +7298,63 @@
       <source>Shelf</source>
       <translation>工具架</translation>
     </message>
+  </context>
+  <context>
+    <name>cavalry::PaletteListWidget</name>
+    <message><source>Palette Name:</source><translation>調色盤名稱:</translation></message>
+  </context>
+  <context>
+    <name>Widget</name>
+    <message><source>Palette Name:</source><translation>調色盤名稱:</translation></message>
+    <message><source>Reveal in Explorer...</source><translation>在檔案總管中顯示...</translation></message>
+    <message><source>New Name:</source><translation>新名稱:</translation></message>
+  </context>
+  <context>
+    <name>PaletteWidget</name>
+    <message><source>Palette Name:</source><translation>調色盤名稱:</translation></message>
+    <message><source>Set W3C Name</source><translation>設定 W3C 名稱</translation></message>
+  </context>
+  <context>
+    <name>assets::Window</name>
+    <message><source>Reveal in Explorer...</source><translation>在檔案總管中顯示...</translation></message>
+  </context>
+  <context>
+    <name>cavalry::DGWindow</name>
+    <message><source>Bookmark Name:</source><translation>書籤名稱:</translation></message>
+  </context>
+  <context>
+    <name>MenuBarManager</name>
+    <message><source>This Scene has missing layer types:</source><translation>此場景缺少以下圖層類型：</translation></message>
+    <message><source>This Scene has corrupt References:</source><translation>此場景包含損壞的參照：</translation></message>
+    <message><source>This Scene has missing assets:</source><translation>此場景缺少素材：</translation></message>
+    <message><source>This Scene has missing fonts:</source><translation>此場景缺少字體：</translation></message>
+    <message><source>Are you sure you want to delete the Render Item(s)?</source><translation>確定要刪除算繪項目嗎？</translation></message>
+    <message><source>Delete Render Item(s)</source><translation>刪除算繪項目</translation></message>
+  </context>
+  <context>
+    <name>MeshToolSettings</name>
+    <message><source xml:space="preserve">Soft Selection: </source><translation xml:space="preserve">軟選擇： </translation></message>
+    <message><source xml:space="preserve">Soft Selection Size: </source><translation xml:space="preserve">軟選擇大小： </translation></message>
+  </context>
+  <context>
+    <name>PencilToolSettings</name>
+    <message><source xml:space="preserve">Stability Radius: </source><translation xml:space="preserve">穩定半徑： </translation></message>
+  </context>
+  <context>
+    <name>PrimitiveToolSettingsBase</name>
+    <message><source xml:space="preserve">Draw in 2.5D: </source><translation xml:space="preserve">在 2.5D 中繪製： </translation></message>
+  </context>
+  <context>
+    <name>LineToolSettings</name>
+    <message><source>Stroke Width</source><translation>描邊寬度</translation></message>
+    <message><source>Cap Style</source><translation>端頭樣式</translation></message>
+    <message><source xml:space="preserve">Line Style: </source><translation xml:space="preserve">線條樣式： </translation></message>
+  </context>
+  <context>
+    <name>TrackingToolSettings</name>
+    <message><source xml:space="preserve">Supervision Strength: </source><translation xml:space="preserve">監督強度： </translation></message>
+    <message><source xml:space="preserve">Supervised: </source><translation xml:space="preserve">受監督： </translation></message>
+    <message><source xml:space="preserve">Show Grid: </source><translation xml:space="preserve">顯示網格： </translation></message>
+    <message><source xml:space="preserve">Preset: </source><translation xml:space="preserve">預設： </translation></message>
   </context>
 </TS>

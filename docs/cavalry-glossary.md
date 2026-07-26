@@ -1,3 +1,10 @@
+<!--
+[INPUT]: 依赖 Cavalry 运行时英文 source、translation-guidelines.md 的翻译边界与各平台产品名事实
+[OUTPUT]: 对外提供 en/zh-Hans/zh-Hant/ja_JP 四语术语、品牌保留与显示层例外的规范表
+[POS]: docs 的术语真相源，被三语 TS/JSON 翻译、质量检查与人工审校共同消费
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 | en | zh-Hans | zh-Hant | ja_JP | note |
 |---|---|---|---|---|
 | Language Switcher | 语言切换器 | 語言切換器 | 言語切り替え | UI name |
@@ -76,6 +83,7 @@
 | Lottie | Lottie | Lottie | Lottie | Product / format name |
 | Cavalry | Cavalry | Cavalry | Cavalry | Product name |
 | Canva | Canva | Canva | Canva | Brand name |
+| Finder | 访达 | Finder | Finder | macOS product name; use Apple’s localized Simplified Chinese name and preserve the product name in Traditional Chinese/Japanese |
 | Excel | Excel | Excel | Excel | Product name; allow labels like "Excel 工作表" / "Excel シート" |
 | Forge Dynamics | Forge 动力学 | Forge 動力學 | フォージダイナミクス | UI display term; keep model niceName English |
 | Undo | 撤销 | 復原 | 元に戻す | |

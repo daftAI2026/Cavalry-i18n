@@ -3104,6 +3104,63 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
   }
 });
 
+test('compiled runtime catalogs cover evidenced palette, scene, and tool surfaces', () => {
+  const generatorPath = path.join(repoRoot, 'tools', 'generate_embedded_translations.js');
+  const { parseTs } = require(generatorPath);
+  const catalogs = new Map([
+    ['zh-Hans', path.join(repoRoot, 'tools', 'zh-Hans.ts')],
+    ['zh-Hant', path.join(repoRoot, 'tools', 'zh-Hant.ts')],
+    ['ja_JP', path.join(repoRoot, 'tools', 'ja_JP.ts')],
+  ]);
+  const expectations = [
+    ['MenuBarManager', 'Reveal in Finder', '在访达中显示', '在 Finder 中顯示', 'Finder に表示'],
+    ['MenuBarManager', 'Reveal in Finder...', '在访达中显示...', '在 Finder 中顯示...', 'Finder に表示...'],
+    ['cavalry::PaletteListWidget', 'Palette Name:', '调色板名称:', '調色盤名稱:', 'パレット名:'],
+    ['Widget', 'Palette Name:', '调色板名称:', '調色盤名稱:', 'パレット名:'],
+    ['Widget', 'Reveal in Explorer...', '在文件资源管理器中显示...', '在檔案總管中顯示...', 'エクスプローラーで表示...'],
+    ['Widget', 'New Name:', '新名称:', '新名稱:', '新しい名前:'],
+    ['PaletteWidget', 'Palette Name:', '调色板名称:', '調色盤名稱:', 'パレット名:'],
+    ['PaletteWidget', 'Set W3C Name', '设置 W3C 名称', '設定 W3C 名稱', 'W3C 名を設定'],
+    ['assets::Window', 'Reveal in Explorer...', '在文件资源管理器中显示...', '在檔案總管中顯示...', 'エクスプローラーで表示...'],
+    ['cavalry::DGWindow', 'Bookmark Name:', '书签名称:', '書籤名稱:', 'ブックマーク名:'],
+    ['MenuBarManager', 'This Scene has missing layer types:', '此场景缺少以下图层类型：', '此場景缺少以下圖層類型：', 'このシーンに次のレイヤータイプがありません：'],
+    ['MenuBarManager', 'This Scene has corrupt References:', '此场景包含损坏的引用：', '此場景包含損壞的參照：', 'このシーンには破損した参照があります：'],
+    ['MenuBarManager', 'This Scene has missing assets:', '此场景缺少素材：', '此場景缺少素材：', 'このシーンに不足しているアセットがあります：'],
+    ['MenuBarManager', 'This Scene has missing fonts:', '此场景缺少字体：', '此場景缺少字體：', 'このシーンに不足しているフォントがあります：'],
+    ['MenuBarManager', 'Are you sure you want to delete the Render Item(s)?', '确定要删除渲染项目吗？', '確定要刪除算繪項目嗎？', 'レンダリング項目を削除してもよろしいですか？'],
+    ['MenuBarManager', 'Delete Render Item(s)', '删除渲染项目', '刪除算繪項目', 'レンダリング項目を削除'],
+    ['MeshToolSettings', 'Soft Selection: ', '软选择： ', '軟選擇： ', 'ソフト選択： '],
+    ['MeshToolSettings', 'Soft Selection Size: ', '软选择大小： ', '軟選擇大小： ', 'ソフト選択サイズ： '],
+    ['PencilToolSettings', 'Stability Radius: ', '稳定半径： ', '穩定半徑： ', '安定化半径： '],
+    ['PrimitiveToolSettingsBase', 'Draw in 2.5D: ', '在 2.5D 中绘制： ', '在 2.5D 中繪製： ', '2.5Dで描画： '],
+    ['LineToolSettings', 'Stroke Width', '描边宽度', '描邊寬度', 'ストローク幅'],
+    ['LineToolSettings', 'Cap Style', '端头样式', '端頭樣式', 'キャップスタイル'],
+    ['LineToolSettings', 'Line Style: ', '线条样式： ', '線條樣式： ', 'ラインスタイル： '],
+    ['TrackingToolSettings', 'Supervision Strength: ', '监督强度： ', '監督強度： ', '監督強度： '],
+    ['TrackingToolSettings', 'Supervised: ', '受监督： ', '受監督： ', '監督あり： '],
+    ['TrackingToolSettings', 'Show Grid: ', '显示网格： ', '顯示網格： ', 'グリッドを表示： '],
+    ['TrackingToolSettings', 'Preset: ', '预设： ', '預設： ', 'プリセット： '],
+  ];
+
+  for (const [language, filePath] of catalogs) {
+    const languageIndex = language === 'zh-Hans' ? 2 : language === 'zh-Hant' ? 3 : 4;
+    const entries = new Map(
+      parseTs(filePath).map(({ context, source, translation }) => [
+        `${context}\u001f${source}`,
+        translation,
+      ])
+    );
+    for (const expectation of expectations) {
+      const [context, source] = expectation;
+      assert.equal(
+        entries.get(`${context}\u001f${source}`),
+        expectation[languageIndex],
+        `${language} must translate evidenced ${context} / ${JSON.stringify(source)}`
+      );
+    }
+  }
+});
+
 test('Canva authentication copy preserves brand names across runtime translations', () => {
   const expectedEntries = {
     'zh-Hans': {
@@ -4342,6 +4399,38 @@ test('embedded translation generator rejects TS messages outside a context', () 
     /orphan\.ts contains <message> outside <context>/,
     'messages outside a TS context would be silently absent from the runtime translation table'
   );
+});
+
+test('embedded translation generator preserves deliberate TS source whitespace', () => {
+  const tempRoot = makeTempDir();
+  const tsPath = path.join(tempRoot, 'preserved-space.ts');
+  const generatorPath = path.join(repoRoot, 'tools', 'generate_embedded_translations.js');
+  const { parseTs } = require(generatorPath);
+
+  fs.writeFileSync(
+    tsPath,
+    [
+      '<?xml version="1.0" encoding="utf-8"?>',
+      '<TS version="2.1">',
+      '  <context>',
+      '    <name>ToolSettings</name>',
+      '    <message>',
+      '      <source xml:space="preserve">Soft Selection: </source>',
+      '      <translation xml:space="preserve">软选择： </translation>',
+      '    </message>',
+      '  </context>',
+      '</TS>',
+      '',
+    ].join('\n')
+  );
+
+  assert.deepEqual(parseTs(tsPath), [
+    {
+      context: 'ToolSettings',
+      source: 'Soft Selection: ',
+      translation: '软选择： ',
+    },
+  ]);
 });
 
 test('compiled runtime TS catalogs keep context and source keys symmetric', () => {

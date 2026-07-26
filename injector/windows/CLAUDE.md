@@ -10,7 +10,7 @@ cavalry_i18n_plugin.h: `QGenericPlugin` metadata 与工厂接口，只暴露大�
 cavalry_i18n_plugin.cpp: Qt generic factory 路由，把受支持 key 映射到独立的运行时生命周期对象。
 cavalry_i18n_display.h: 主动显示翻译接口与对象生命周期状态，明确 QWidget/QAction、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束的 QLineEdit 显示值边界。
 cavalry_i18n_display.cpp: 幂等翻译菜单、动作、标题、逐行复合 tooltip、已知基名数字后缀、QComboBox 可见项和递归 QTreeWidget DisplayRole；通过 `aboutToShow`/`changed`/model signal/Paint 接住首帧与动态英文写回，复合提示只替换词表命中行，未知行、UserRole、currentIndex 和通用 item view 保持原值。
-cavalry_i18n_display_test.cpp: 三语显示层单元回归，锁定 ToolBox 窗口标题、Exit 菜单动作、横竖工具栏及播放、渲染、Sub-Mesh、Path、脚本表面的 `标题\n说明` tooltip、未知提示行保留、已知基名数字后缀与 DisplayRole 投影隔离合同。
+cavalry_i18n_display_test.cpp: 三语显示层单元回归，锁定 ToolBox/渲染窗口标题、Exit/调色板动作、精确尾随空白工具标签、横竖工具栏及播放、渲染、Sub-Mesh、Path、脚本表面的 `标题\n说明` tooltip、未知提示行与未证实 Pitch Radius 保留、已知基名数字后缀与 DisplayRole 投影隔离合同。
 cavalry_i18n_extension_layer_hook.h: ExtensionLayer 的串行化聚合生命周期接口；固定 aggregate→text 锁序，拥有 helper/placeholder 两槽、独立 text-path 子 hook 及结构化诊断转发，只有三路全部安装才报告 `installed`。
 cavalry_i18n_extension_layer_sources.h: 不依赖 Qt 的共享文本真相，锁定九条 helper、十三条 CustomListWidget placeholder，以及十五条 text-path source：四条 viewport quality、六组 EditShapeTool 与五组 TransformTool 的英文 prefix/action；快捷键 prefix 与十五条可翻译 action/quality source 明确分离。
 cavalry_i18n_extension_layer_hook.cpp: 编排 helper、placeholder 与 Core text-path 三条可逆 IAT 边界；取得 aggregate owner 后、首次 helper IAT 写入前必须永久 PIN 插件，失败则零写入；waiting 可保留已装前缀，终态失败逆序回滚。
@@ -39,7 +39,7 @@ cavalry_i18n_runtime.h: 翻译加载、主动显示刷新、聚合三边界延�
 cavalry_i18n_runtime.cpp: 显式绝对 marker 路径下才创建 75ms Qt 线程计时器，只在 text-path revision 改变时写九项计数/位图；渲染 callback 不执行 Qt/IO，无 marker 的发布运行无周期唤醒。
 cavalry_i18n_translator.h: 嵌入式 translator 查询接口与统计边界，隔离生成表表示和运行时生命周期。
 cavalry_i18n_translator.cpp: 复用共享 `generated_translations.inc`，构建精确 `(context, source)` 首条优先哈希与遵循现有显示层语义的末条覆盖 source fallback。
-cavalry_i18n_translator_test.cpp: 三语言非空表、已证实 helper 的嵌入翻译样本、精确查询、source fallback、未知语言和未知文本合同测试。
+cavalry_i18n_translator_test.cpp: 三语言非空表、已证实 helper 与调色板/场景/工具残留的嵌入翻译样本、精确尾随空白查询、source fallback、未知语言和未知文本合同测试。
 cavalry_i18n_plugin_smoke_test.cpp: 由最小 `QApplication` 走真实 generic plugin 自动发现，验证显示投影、数据隔离与九字段 text-path marker 结构；不将零计数冒充 live hook 覆盖。
 cavalryi18n.json: Qt plugin metadata，声明唯一自动加载 key `cavalryi18n`。
 README.md: Windows 插件依赖、构建目录、子进程环境契约、只读 vendor 静态合同、禁止携带 Qt runtime 与 live gate 边界。

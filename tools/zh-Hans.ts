@@ -2099,7 +2099,7 @@
     <message><source>Reveal</source><translation>启示</translation></message>
     <message><source>Reveal Composition in Assets Window</source><translation>在素材窗口中显示合成</translation></message>
     <message><source>Reveal Generator</source><translation>视网膜发电机</translation></message>
-    <message><source>Reveal in Finder</source><translation>在查找器中揭示</translation></message>
+    <message><source>Reveal in Finder</source><translation>在访达中显示</translation></message>
     <message><source>Reveal in Finder...</source><translation>在访达中显示...</translation></message>
     <message><source>Reveal in Scene Window</source><translation>在场景窗口中显示</translation></message>
     <message><source>Reveal Pre-Comp in Assets Window</source><translation>在素材窗口中显示预合成</translation></message>
@@ -7053,5 +7053,63 @@
       <source>Shelf</source>
       <translation>工具架</translation>
     </message>
+  </context>
+  <context>
+    <name>cavalry::PaletteListWidget</name>
+    <message><source>Palette Name:</source><translation>调色板名称:</translation></message>
+  </context>
+  <context>
+    <name>Widget</name>
+    <message><source>Palette Name:</source><translation>调色板名称:</translation></message>
+    <message><source>Reveal in Explorer...</source><translation>在文件资源管理器中显示...</translation></message>
+    <message><source>New Name:</source><translation>新名称:</translation></message>
+  </context>
+  <context>
+    <name>PaletteWidget</name>
+    <message><source>Palette Name:</source><translation>调色板名称:</translation></message>
+    <message><source>Set W3C Name</source><translation>设置 W3C 名称</translation></message>
+  </context>
+  <context>
+    <name>assets::Window</name>
+    <message><source>Reveal in Explorer...</source><translation>在文件资源管理器中显示...</translation></message>
+  </context>
+  <context>
+    <name>cavalry::DGWindow</name>
+    <message><source>Bookmark Name:</source><translation>书签名称:</translation></message>
+  </context>
+  <context>
+    <name>MenuBarManager</name>
+    <message><source>This Scene has missing layer types:</source><translation>此场景缺少以下图层类型：</translation></message>
+    <message><source>This Scene has corrupt References:</source><translation>此场景包含损坏的引用：</translation></message>
+    <message><source>This Scene has missing assets:</source><translation>此场景缺少素材：</translation></message>
+    <message><source>This Scene has missing fonts:</source><translation>此场景缺少字体：</translation></message>
+    <message><source>Are you sure you want to delete the Render Item(s)?</source><translation>确定要删除渲染项目吗？</translation></message>
+    <message><source>Delete Render Item(s)</source><translation>删除渲染项目</translation></message>
+  </context>
+  <context>
+    <name>MeshToolSettings</name>
+    <message><source xml:space="preserve">Soft Selection: </source><translation xml:space="preserve">软选择： </translation></message>
+    <message><source xml:space="preserve">Soft Selection Size: </source><translation xml:space="preserve">软选择大小： </translation></message>
+  </context>
+  <context>
+    <name>PencilToolSettings</name>
+    <message><source xml:space="preserve">Stability Radius: </source><translation xml:space="preserve">稳定半径： </translation></message>
+  </context>
+  <context>
+    <name>PrimitiveToolSettingsBase</name>
+    <message><source xml:space="preserve">Draw in 2.5D: </source><translation xml:space="preserve">在 2.5D 中绘制： </translation></message>
+  </context>
+  <context>
+    <name>LineToolSettings</name>
+    <message><source>Stroke Width</source><translation>描边宽度</translation></message>
+    <message><source>Cap Style</source><translation>端头样式</translation></message>
+    <message><source xml:space="preserve">Line Style: </source><translation xml:space="preserve">线条样式： </translation></message>
+  </context>
+  <context>
+    <name>TrackingToolSettings</name>
+    <message><source xml:space="preserve">Supervision Strength: </source><translation xml:space="preserve">监督强度： </translation></message>
+    <message><source xml:space="preserve">Supervised: </source><translation xml:space="preserve">受监督： </translation></message>
+    <message><source xml:space="preserve">Show Grid: </source><translation xml:space="preserve">显示网格： </translation></message>
+    <message><source xml:space="preserve">Preset: </source><translation xml:space="preserve">预设： </translation></message>
   </context>
 </TS>
