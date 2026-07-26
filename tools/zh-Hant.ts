@@ -7291,21 +7291,4 @@
       <translation>工具架</translation>
     </message>
   </context>
-
-    <message>
-      <source>Invalid Path JSON in Clipboard, missing the 'path' key</source>
-      <translation>剪貼簿中的路徑 JSON 無效，缺少「path」鍵</translation>
-    </message>
-    <message>
-      <source>Invalid Path JSON in Clipboard, missing the 'path' key.</source>
-      <translation>剪貼簿中的路徑 JSON 無效，缺少「path」鍵。</translation>
-    </message>
-    <message>
-      <source>Toggle this mode with the 'U' key</source>
-      <translation>使用「U」鍵切換此模式</translation>
-    </message>
-    <message>
-      <source>Toggle this mode with the 'U' key.</source>
-      <translation>使用「U」鍵切換此模式。</translation>
-    </message>
-  </TS>
+</TS>
