@@ -6727,6 +6727,14 @@
       <translation>提示與技巧 🚀</translation>
     </message>
     <message>
+      <source>ToolBox</source>
+      <translation>工具箱</translation>
+    </message>
+    <message>
+      <source>Exit</source>
+      <translation>結束</translation>
+    </message>
+    <message>
       <source>Click to see next message</source>
       <translation>點擊查看下一則訊息</translation>
     </message>

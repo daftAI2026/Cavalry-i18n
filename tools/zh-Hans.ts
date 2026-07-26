@@ -6486,6 +6486,10 @@
       <translation>工具箱</translation>
     </message>
     <message>
+      <source>Exit</source>
+      <translation>退出</translation>
+    </message>
+    <message>
       <source>&lt;i&gt;Click to see next message&lt;/i&gt;</source>
       <translation>&lt;i&gt;点击查看下一条消息&lt;/i&gt;</translation>
     </message>

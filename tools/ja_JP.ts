@@ -7952,6 +7952,14 @@
       <translation>ヒントとコツ 🚀</translation>
     </message>
     <message>
+      <source>ToolBox</source>
+      <translation>ツールボックス</translation>
+    </message>
+    <message>
+      <source>Exit</source>
+      <translation>終了</translation>
+    </message>
+    <message>
       <source>Click to see next message</source>
       <translation>クリックして次のメッセージを表示</translation>
     </message>

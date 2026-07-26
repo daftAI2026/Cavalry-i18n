@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定运行时逐行 tooltip、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
+ * [OUTPUT]: 对外锁定 ToolBox 窗口标题、Exit 动作、运行时逐行 tooltip、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
  * [POS]: injector/windows 的显示层单元回归，证明复合提示只改已知行，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -50,6 +50,8 @@ struct LocaleExpectation
     const char *rectangle;
     const char *circle;
     const char *defaultKeyframeLayer;
+    const char *toolBox;
+    const char *exitAction;
 };
 
 bool fail(const QString &message)
@@ -467,6 +469,9 @@ bool verifyLocale(const LocaleExpectation &expectation)
         QString::fromUtf8(expectation.composition);
     const QString rectangle = QString::fromUtf8(expectation.rectangle);
     const QString circle = QString::fromUtf8(expectation.circle);
+    const QString toolBox = QString::fromUtf8(expectation.toolBox);
+    const QString exitActionText =
+        QString::fromUtf8(expectation.exitAction);
 
     CavalryEmbeddedTranslator translator(language);
     CavalryDisplayTranslator displayTranslator(translator);
@@ -475,11 +480,17 @@ bool verifyLocale(const LocaleExpectation &expectation)
     QLabel dottedCircle(QStringLiteral("Circle.12"));
     QLabel customName(QStringLiteral("Custom Composition 1"));
     QLabel localizedName(composition + QStringLiteral(" 1"));
+    QLabel toolBoxWindow;
+    toolBoxWindow.setWindowTitle(QStringLiteral("ToolBox"));
+    QAction exitAction;
+    exitAction.setText(QStringLiteral("Exit"));
 
     displayTranslator.translateWidget(&numberedComposition);
     displayTranslator.translateWidget(&dottedCircle);
     displayTranslator.translateWidget(&customName);
     displayTranslator.translateWidget(&localizedName);
+    displayTranslator.translateWidget(&toolBoxWindow);
+    displayTranslator.translateAction(&exitAction);
 
     if (!expectEqual(
             language + QStringLiteral(" numbered Composition"),
@@ -496,7 +507,15 @@ bool verifyLocale(const LocaleExpectation &expectation)
         || !expectEqual(
             language + QStringLiteral(" already-localized name"),
             localizedName.text(),
-            composition + QStringLiteral(" 1"))) {
+            composition + QStringLiteral(" 1"))
+        || !expectEqual(
+            language + QStringLiteral(" ToolBox window title"),
+            toolBoxWindow.windowTitle(),
+            toolBox)
+        || !expectEqual(
+            language + QStringLiteral(" Exit action"),
+            exitAction.text(),
+            exitActionText)) {
         return false;
     }
 
@@ -595,9 +614,9 @@ int main(int argc, char *argv[])
     QApplication application(argc, argv);
 
     const LocaleExpectation expectations[] {
-        { "zh-Hans", "合成", "矩形", "圆形", "默认关键帧图层" },
-        { "zh-Hant", "合成", "矩形", "圓形", "預設關鍵影格圖層" },
-        { "ja_JP", "コンポジション", "長方形", "円", "既定キーフレームレイヤー" },
+        { "zh-Hans", "合成", "矩形", "圆形", "默认关键帧图层", "工具箱", "退出" },
+        { "zh-Hant", "合成", "矩形", "圓形", "預設關鍵影格圖層", "工具箱", "結束" },
+        { "ja_JP", "コンポジション", "長方形", "円", "既定キーフレームレイヤー", "ツールボックス", "終了" },
     };
 
     for (const LocaleExpectation &expectation : expectations) {

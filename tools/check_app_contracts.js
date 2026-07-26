@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属、裸 {} 占位符、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -3023,6 +3023,27 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
     'live runtime window titles can expose ToolBox as a bare widget string'
   );
   assert.match(
+    zhHantTs,
+    /<source>ToolBox<\/source>\s*<translation>工具箱<\/translation>/,
+    'Traditional Chinese live runtime window titles must not fall back to English ToolBox'
+  );
+  assert.match(
+    jaTs,
+    /<source>ToolBox<\/source>\s*<translation>ツールボックス<\/translation>/,
+    'Japanese live runtime window titles must not fall back to English ToolBox'
+  );
+  for (const [catalog, translation, language] of [
+    [zhHansTs, '退出', 'Simplified Chinese'],
+    [zhHantTs, '結束', 'Traditional Chinese'],
+    [jaTs, '終了', 'Japanese'],
+  ]) {
+    assert.match(
+      catalog,
+      new RegExp(`<source>Exit</source>\\s*<translation>${translation}</translation>`),
+      `${language} File menu must translate the ExtensionLayer Exit action`
+    );
+  }
+  assert.match(
     zhHansTs,
     /<source>&lt;i&gt;Click to see next message&lt;\/i&gt;<\/source>\s*<translation>&lt;i&gt;点击查看下一条消息&lt;\/i&gt;<\/translation>/,
     'Tips panel HTML labels should be translated as exact runtime widget strings'
@@ -4321,6 +4342,33 @@ test('embedded translation generator rejects TS messages outside a context', () 
     /orphan\.ts contains <message> outside <context>/,
     'messages outside a TS context would be silently absent from the runtime translation table'
   );
+});
+
+test('compiled runtime TS catalogs keep context and source keys symmetric', () => {
+  const generatorPath = path.join(repoRoot, 'tools', 'generate_embedded_translations.js');
+  const { parseTs } = require(generatorPath);
+  const catalogPaths = new Map([
+    ['zh-Hans', path.join(repoRoot, 'tools', 'zh-Hans.ts')],
+    ['zh-Hant', path.join(repoRoot, 'tools', 'zh-Hant.ts')],
+    ['ja_JP', path.join(repoRoot, 'tools', 'ja_JP.ts')],
+  ]);
+  const keySet = (filePath) =>
+    new Set(parseTs(filePath).map(({ context, source }) => `${context}\u001f${source}`));
+  const baseline = keySet(catalogPaths.get('zh-Hans'));
+
+  for (const [language, filePath] of catalogPaths) {
+    if (language === 'zh-Hans') {
+      continue;
+    }
+    const actual = keySet(filePath);
+    const missing = [...baseline].filter((key) => !actual.has(key)).sort();
+    const unexpected = [...actual].filter((key) => !baseline.has(key)).sort();
+    assert.deepEqual(
+      { missing, unexpected },
+      { missing: [], unexpected: [] },
+      `${language} compiled/runtime catalog must match the zh-Hans (context, source) key set`
+    );
+  }
 });
 
 test('runtime noise quarantine keeps unproven short tokens out of embedded translations', () => {
