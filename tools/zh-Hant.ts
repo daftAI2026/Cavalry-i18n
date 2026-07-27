@@ -943,7 +943,7 @@
     <message><source>Connections</source><translation>連接</translation></message>
     <message><source>Constant (Linear)</source><translation>常數( 內爾)</translation></message>
     <message><source>Constrain Axis</source><translation>約束軸</translation></message>
-    <message><source>Constrain Proportions</source><translation>限制比例</translation></message>
+    <message><source>Constrain Proportions</source><translation>鎖定長寬比</translation></message>
     <message><source>Constrain the proportions of this Attribute based on the current values</source><translation>根據目前值約束此屬性的比例</translation></message>
     <message><source>Constrain the proportions of this Attribute based on the current values.</source><translation>根據目前值約束此屬性的比例。</translation></message>
     <message><source>Context</source><translation>背景情況</translation></message>
@@ -2520,8 +2520,8 @@
     <message><source>Staging</source><translation>暫存</translation></message>
     <message><source>Standing End</source><translation>狀態結束</translation></message>
     <message><source>Standing Start</source><translation>狀態啓動</translation></message>
-    <message><source>Start New Contour</source><translation>開始新輪廓</translation></message>
-    <message><source>Start New Shape</source><translation>開始新形狀</translation></message>
+    <message><source>Start New Contour</source><translation>新增輪廓</translation></message>
+    <message><source>Start New Shape</source><translation>新增形狀</translation></message>
     <message><source>start reordering USE</source><translation>開始重新排序使用項</translation></message>
     <message><source>Start Rotation</source><translation>開始旋轉</translation></message>
     <message><source>Starter</source><translation>啓動器</translation></message>
@@ -7338,6 +7338,8 @@
   </context>
   <context>
     <name>PencilToolSettings</name>
+    <message><source xml:space="preserve">Accuracy: </source><translation xml:space="preserve">精度： </translation></message>
+    <message><source xml:space="preserve">Stabiliser: </source><translation xml:space="preserve">穩定器： </translation></message>
     <message><source xml:space="preserve">Stability Radius: </source><translation xml:space="preserve">穩定半徑： </translation></message>
   </context>
   <context>

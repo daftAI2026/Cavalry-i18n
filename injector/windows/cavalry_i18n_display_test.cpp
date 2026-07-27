@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、调色板动作、CogTool Pitch context-only 隔离、精确空白工具标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
- * [POS]: injector/windows 的显示层单元回归，证明复合提示只改已知行，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
+ * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、调色板动作、CogTool Pitch context-only 隔离、动态 selected 计数 QLabel 投影、精确空白工具标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
+ * [POS]: injector/windows 的显示层单元回归，证明复合提示与动态计数只改受控显示文本，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -534,6 +534,91 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                        : QString::fromUtf8("ピッチ半径： "));
 }
 
+bool verifySelectedCountLabels(const LocaleExpectation &expectation)
+{
+    const QString language = QString::fromLatin1(expectation.language);
+    const auto expectedSelectedCount = [&language](const QString &count) {
+        if (language == QStringLiteral("zh-Hans")) {
+            return QString::fromUtf8("已选择 %1 个").arg(count);
+        }
+        if (language == QStringLiteral("zh-Hant")) {
+            return QString::fromUtf8("已選取 %1 個").arg(count);
+        }
+        return QString::fromUtf8("%1 個を選択中").arg(count);
+    };
+
+    CavalryEmbeddedTranslator translator(language);
+    CavalryDisplayTranslator displayTranslator(translator);
+    QLabel zeroSelected(QStringLiteral("0 selected"));
+    QLabel multiDigitSelected(QStringLiteral("12345 selected"));
+    QLineEdit modelBoundInput(QStringLiteral("42 selected"));
+    QComboBox modelBoundCombo;
+    RoleRecordingModel model;
+    modelBoundCombo.setModel(&model);
+    modelBoundCombo.addItem(
+        QStringLiteral("42 selected"),
+        QStringLiteral("selected-identity"));
+    model.writtenRoles.clear();
+
+    displayTranslator.translateWidget(&zeroSelected);
+    displayTranslator.translateWidget(&multiDigitSelected);
+    displayTranslator.translateWidget(&modelBoundInput);
+    displayTranslator.translateWidget(&modelBoundCombo);
+
+    if (!expectEqual(
+            language + QStringLiteral(" selected count zero"),
+            zeroSelected.text(),
+            expectedSelectedCount(QStringLiteral("0")))
+        || !expectEqual(
+            language + QStringLiteral(" selected count multiple digits"),
+            multiDigitSelected.text(),
+            expectedSelectedCount(QStringLiteral("12345")))
+        || !expectEqual(
+            language + QStringLiteral(" selected count QLineEdit isolation"),
+            modelBoundInput.text(),
+            QStringLiteral("42 selected"))
+        || !expectEqual(
+            language + QStringLiteral(" selected count model display isolation"),
+            modelBoundCombo.itemText(0),
+            QStringLiteral("42 selected"))
+        || !expectEqual(
+            language + QStringLiteral(" selected count model identity isolation"),
+            modelBoundCombo.itemData(0, Qt::UserRole).toString(),
+            QStringLiteral("selected-identity"))
+        || !expectTrue(
+            language + QStringLiteral(" selected count model write isolation"),
+            model.writtenRoles.isEmpty())) {
+        return false;
+    }
+
+    const QStringList nearMisses {
+        QStringLiteral("12selected"),
+        QStringLiteral("12 Selected"),
+        QStringLiteral("12 selected "),
+        QStringLiteral("12 selected items"),
+        QStringLiteral("12  selected"),
+        QStringLiteral("12\tselected"),
+    };
+    for (const QString &nearMiss : nearMisses) {
+        QLabel label(nearMiss);
+        displayTranslator.translateWidget(&label);
+        if (!expectEqual(
+                language + QStringLiteral(" selected count near miss: ")
+                    + nearMiss,
+                label.text(),
+                nearMiss)) {
+            return false;
+        }
+    }
+
+    zeroSelected.setText(QStringLiteral("67890 selected"));
+    displayTranslator.translatePaintWidget(&zeroSelected);
+    return expectEqual(
+        language + QStringLiteral(" selected count dynamic QLabel rewrite"),
+        zeroSelected.text(),
+        expectedSelectedCount(QStringLiteral("67890")));
+}
+
 bool verifyLocale(const LocaleExpectation &expectation)
 {
     const QString language = QString::fromLatin1(expectation.language);
@@ -676,6 +761,7 @@ bool verifyLocale(const LocaleExpectation &expectation)
 
     return verifyCompoundRuntimeTooltips(expectation)
         && verifyEvidencedResidualWidgets(language)
+        && verifySelectedCountLabels(expectation)
         && verifyTreeWidgetDisplay(expectation)
         && verifyLineEditDisplay(expectation);
 }

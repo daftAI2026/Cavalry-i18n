@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Windows CogTool 动态节圆半径前缀、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Windows Pencil/Pen/Centre 静态 text-path、CogTool 动态节圆半径与 selected-count QLabel、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -3131,6 +3131,8 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
     ['MenuBarManager', 'Delete Render Item(s)', '删除渲染项目', '刪除算繪項目', 'レンダリング項目を削除'],
     ['MeshToolSettings', 'Soft Selection: ', '软选择： ', '軟選擇： ', 'ソフト選択： '],
     ['MeshToolSettings', 'Soft Selection Size: ', '软选择大小： ', '軟選擇大小： ', 'ソフト選択サイズ： '],
+    ['PencilToolSettings', 'Accuracy: ', '精度： ', '精度： ', '精度： '],
+    ['PencilToolSettings', 'Stabiliser: ', '稳定器： ', '穩定器： ', 'スタビライザー： '],
     ['PencilToolSettings', 'Stability Radius: ', '稳定半径： ', '穩定半徑： ', '安定化半径： '],
     ['PrimitiveToolSettingsBase', 'Draw in 2.5D: ', '在 2.5D 中绘制： ', '在 2.5D 中繪製： ', '2.5Dで描画： '],
     ['LineToolSettings', 'Stroke Width', '描边宽度', '描邊寬度', 'ストローク幅'],
@@ -3141,6 +3143,13 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
     ['TrackingToolSettings', 'Show Grid: ', '显示网格： ', '顯示網格： ', 'グリッドを表示： '],
     ['TrackingToolSettings', 'Preset: ', '预设： ', '預設： ', 'プリセット： '],
     ['CogTool', 'Pitch Radius: ', '节圆半径： ', '節圓半徑： ', 'ピッチ半径： '],
+    ['MenuBarManager', 'Clear Path', '清除路径', '清除路徑', 'パスをクリア'],
+    ['MenuBarManager', 'New Shape', '新建形状', '新增形狀', '新規シェイプ'],
+    ['MenuBarManager', 'Create as Mask', '创建为遮罩', '建立為遮罩', 'マスクとして作成'],
+    ['MenuBarManager', 'Start New Shape', '新建形状', '新增形狀', '新規シェイプを開始'],
+    ['MenuBarManager', 'Start New Contour', '新建轮廓', '新增輪廓', '新しい輪郭を開始'],
+    ['MenuBarManager', 'Create from the Centre', '从中心创建', '從中心建立', 'センターから作成'],
+    ['MenuBarManager', 'Constrain Proportions', '锁定纵横比', '鎖定長寬比', '縦横比を固定'],
   ];
 
   for (const [language, filePath] of catalogs) {
@@ -3160,6 +3169,48 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
       );
     }
   }
+});
+
+test('Windows selected-count QLabel projection mirrors the existing macOS surface', () => {
+  const windowsInjector = path.join(injectorRoot, 'windows');
+  const display = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_display.cpp'),
+    'utf8'
+  );
+  const displayTest = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_display_test.cpp'),
+    'utf8'
+  );
+  const vendorContract = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_vendor_iat_contract_test.cpp'),
+    'utf8'
+  );
+  const macInjector = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+
+  assert.ok(display.includes('QStringLiteral("^([0-9]+) selected$")'));
+  assert.match(
+    display,
+    /property == QByteArrayLiteral\("text"\)[\s\S]{0,120}qobject_cast<QLabel \*>\(object\)/
+  );
+  for (const translation of [
+    '已选择 %1 个',
+    '已選取 %1 個',
+    '%1 個を選択中',
+  ]) {
+    assert.ok(display.includes(translation));
+    assert.ok(macInjector.includes(translation));
+  }
+  assert.match(displayTest, /QStringLiteral\("12  selected"\)/);
+  assert.match(displayTest, /QStringLiteral\("12\\tselected"\)/);
+  assert.match(displayTest, /QLineEdit modelBoundInput/);
+  assert.match(displayTest, /selected count model write isolation/);
+  assert.match(vendorContract, /kSelectedCountProducerRva\s*=\s*0x00E815C0/);
+  assert.match(vendorContract, /kSelectedCountLiteralRva\s*=\s*0x0157F6EE/);
+  assert.match(vendorContract, /kSelectedCountSetTextCallRva\s*=\s*0x00E816A0/);
+  assert.match(vendorContract, /kQLabelSetTextSymbol/);
 });
 
 test('Windows CogTool Pitch Radius stays inside its exact dynamic text-path boundary', () => {
@@ -3209,7 +3260,10 @@ test('Windows CogTool Pitch Radius stays inside its exact dynamic text-path boun
     /kPitchRadiusPrefix\s*=\s*cavalry_i18n::kCogToolPitchSource/
   );
   assert.match(sourcesHeader, /kTextPathSourceCount\s*=\s*[\s\S]*\+\s*1/);
-  assert.match(sourcesHeader, /static_assert\(kTextPathSourceCount\s*==\s*16\)/);
+  assert.match(sourcesHeader, /static_assert\(kTextPathSourceCount\s*==\s*23\)/);
+  assert.match(sourcesHeader, /kPencilToolHelpPairs[\s\S]*Control \+ \//);
+  assert.match(sourcesHeader, /kPenToolHelpPairs[\s\S]*kStartNewContour/);
+  assert.match(sourcesHeader, /kCentreToolHelpPairs[\s\S]*kCreateFromTheCentre/);
   assert.match(
     sourcesHeader,
     /textPathTranslationContext[\s\S]*kPitchRadiusSourceIndex[\s\S]*cavalry_i18n::kCogToolPitchContext/
@@ -3248,6 +3302,13 @@ test('Windows CogTool Pitch Radius stays inside its exact dynamic text-path boun
   assert.match(vendorContract, /kPitchShortLeaRva\s*=\s*0x01257527/);
   assert.match(vendorContract, /kPitchLongLeaRva\s*=\s*0x01257575/);
   assert.match(vendorContract, /kToolLineRenderCallRva\s*=\s*0x0124BEDF/);
+  assert.match(vendorContract, /kPencilToolHelpBodyRva\s*=\s*0x011F3830/);
+  assert.match(vendorContract, /kPenToolHelpBodyRva\s*=\s*0x0118FDB0/);
+  assert.match(vendorContract, /kCentreToolHelpBodyRva\s*=\s*0x0124CA60/);
+  assert.match(vendorContract, /kPencilClearPrefixTailImmediate/);
+  assert.match(vendorContract, /kPencilDualToolHelpEvidence/);
+  assert.match(vendorContract, /kPenToolHelpEvidence/);
+  assert.match(vendorContract, /kCentreToolHelpEvidence/);
   assert.match(vendorContract, /verifyPitchRadiusBoundary/);
   assert.match(dispatchTest, /"Pitch Radius: -17"/);
   assert.match(dispatchTest, /"Pitch Radius: -2147483648"/);
@@ -3255,6 +3316,8 @@ test('Windows CogTool Pitch Radius stays inside its exact dynamic text-path boun
   assert.match(dispatchTest, /"Pitch Radius: \+1"/);
   assert.match(dispatchTest, /firstPreambleRva\s*\+\s*2/);
   assert.match(dispatchTest, /callbackRejectsChangedStringLoad/);
+  assert.match(dispatchTest, /"Clear Paths"/);
+  assert.match(dispatchTest, /"Constrain proportions"/);
   assert.match(cmake, /add_executable\(cavalryi18n_text_path_dispatch_test/);
   assert.doesNotMatch(
     dispatch,

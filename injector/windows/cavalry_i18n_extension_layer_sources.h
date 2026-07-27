@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 不依赖 Qt 或厂商模块；只承载经静态采证的 ASCII source 常量
- * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、十五条静态 text-path source、一条 CogTool 动态前缀及其精确 lookup context
+ * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、二十二条静态 text-path source、一条 CogTool 动态前缀及其精确 lookup context
  * [POS]: injector/windows 的 ExtensionLayer 文本边界真相，供运行时 hook、无厂商单测和只读 vendor 合同共同消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -69,6 +69,13 @@ inline constexpr char kPan[] = "Pan";
 inline constexpr char kPlayStop[] = "Play/ Stop";
 inline constexpr char kDirectLayerSelection[] = "Direct Layer Selection";
 inline constexpr char kInsertKeyframe[] = "Insert Keyframe";
+inline constexpr char kClearPath[] = "Clear Path";
+inline constexpr char kNewShape[] = "New Shape";
+inline constexpr char kCreateAsMask[] = "Create as Mask";
+inline constexpr char kStartNewShape[] = "Start New Shape";
+inline constexpr char kStartNewContour[] = "Start New Contour";
+inline constexpr char kCreateFromTheCentre[] = "Create from the Centre";
+inline constexpr char kConstrainProportions[] = "Constrain Proportions";
 inline constexpr auto &kPitchRadiusPrefix =
     cavalry_i18n::kCogToolPitchSource;
 
@@ -101,7 +108,29 @@ inline constexpr std::array<ToolHelpSourcePair, 5>
         { "S + click path", kInsertKeyframe },
     }};
 
-inline constexpr std::array<const char *, 15> kStaticTextPathSources {{
+// Pencil/Pen/Centre 工具同样把快捷键与动作分别生成 Path；
+// 快捷键保持 ASCII 原文，只批准已由 vendor producer 证明的动作文本。
+inline constexpr std::array<ToolHelpSourcePair, 3>
+    kPencilToolHelpPairs {{
+        { "Control + /", kClearPath },
+        { "S", kNewShape },
+        { "M", kCreateAsMask },
+    }};
+
+inline constexpr std::array<ToolHelpSourcePair, 3>
+    kPenToolHelpPairs {{
+        { "S", kStartNewShape },
+        { "G", kStartNewContour },
+        { "M", kCreateAsMask },
+    }};
+
+inline constexpr std::array<ToolHelpSourcePair, 2>
+    kCentreToolHelpPairs {{
+        { "Shift", kConstrainProportions },
+        { "Alt", kCreateFromTheCentre },
+    }};
+
+inline constexpr std::array<const char *, 22> kStaticTextPathSources {{
     kViewportQualityHigh,
     kViewportQualityLow,
     kViewportQualityLowest,
@@ -117,6 +146,13 @@ inline constexpr std::array<const char *, 15> kStaticTextPathSources {{
     kPlayStop,
     kDirectLayerSelection,
     kInsertKeyframe,
+    kClearPath,
+    kNewShape,
+    kCreateAsMask,
+    kStartNewShape,
+    kStartNewContour,
+    kCreateFromTheCentre,
+    kConstrainProportions,
 }};
 
 inline constexpr std::size_t kPitchRadiusSourceIndex =
@@ -148,7 +184,10 @@ static_assert(kStaticMessageBarSources.size() == 1);
 static_assert(kViewportQualitySources.size() == 4);
 static_assert(kEditShapeToolHelpPairs.size() == 6);
 static_assert(kTransformToolHelpPairs.size() == 5);
-static_assert(kStaticTextPathSources.size() == 15);
-static_assert(kTextPathSourceCount == 16);
+static_assert(kPencilToolHelpPairs.size() == 3);
+static_assert(kPenToolHelpPairs.size() == 3);
+static_assert(kCentreToolHelpPairs.size() == 2);
+static_assert(kStaticTextPathSources.size() == 22);
+static_assert(kTextPathSourceCount == 23);
 
 } // namespace cavalry_i18n::extension_layer_contract

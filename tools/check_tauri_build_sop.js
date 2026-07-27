@@ -2,7 +2,7 @@
 /**
  * [INPUT]: 依赖 package.json、CHANGELOG.md、跨平台工具入口、Windows NSIS provenance/安装态守门/disposable live-clone 证据门、PowerShell 5.1 脚本编码边界、src-tauri/tauri*.conf.json、capabilities/default.json、本地打包 SOP、README、GitHub workflow 与 release badge JSON
  * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、跨平台安装/换行/Python 命令、版本同步、双 DMG 加 Windows x64 NSIS 的 release 协议、Windows 当前输入 provenance/隔离安装卸载与 exact-HWND live GUI clone/PID/panic/UTF-8 BOM 安全合同、精确版本 CHANGELOG 摘要、README release badge 与平台安装包配置 contract 测试
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、Windows NSIS 安装态验证、disposable clone 的三类自动截图与 opt-in Cog Pitch bit 15 人工证据门、npm/Tauri 平台配置
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、Windows NSIS 安装态验证、disposable clone 的三类自动截图与 opt-in Cog Pitch bit 22 人工证据门、npm/Tauri 平台配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -948,7 +948,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(live, /"ViewportQuality" => 0x0001/);
   assert.match(live, /"TransformHelper" => 0x7c00/);
   assert.match(live, /"EditShapeHelper" => 0x03f0/);
-  assert.match(live, /"CogPitch" => 0x8000/);
+  assert.match(live, /"CogPitch" => 0x0040_0000/);
   assert.match(live, /fallback_source_mask != 0/);
   assert.match(live, /translated_source_mask & required_text_path_mask/);
   assert.match(live, /\("zh-Hans", "平滑步数"\)/);
@@ -1013,7 +1013,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /'ViewportQuality'\s*\{\s*0x0001\s*\}/);
   assert.match(helper, /'TransformHelper'\s*\{\s*0x7C00\s*\}/);
   assert.match(helper, /'EditShapeHelper'\s*\{\s*0x03F0\s*\}/);
-  assert.match(helper, /'CogPitch'\s*\{\s*0x8000\s*\}/);
+  assert.match(helper, /'CogPitch'\s*\{\s*0x00400000\s*\}/);
   assert.match(
     helper,
     /ValidateSet\('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch'\)/
@@ -1037,7 +1037,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
     helper,
     /diagnostics\.cjkPathSuccess\s+-gt\s+\[uint64\]\$BaselineDiagnostics\.cjkPathSuccess/
   );
-  assert.match(helper, /pre-set Pitch bit 15/);
+  assert.match(helper, /pre-set Pitch bit 22/);
   assert.match(helper, /textPathBaselineDiagnostics\s*=\s*\$cogPitchBaseline/);
   assert.match(helper, /function Wait-ForExactForegroundWindow/);
   assert.match(helper, /function Prepare-ToolHelperEvidence/);

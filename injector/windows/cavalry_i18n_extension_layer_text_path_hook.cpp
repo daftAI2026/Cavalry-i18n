@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖唯一 Core::MakePathFromText IAT、三处 caller、十六项 source/context、运行时 ABI 防火墙与嵌入 translator
+ * [INPUT]: 依赖唯一 Core::MakePathFromText IAT、三处 caller、二十三项 source/context、运行时 ABI 防火墙与嵌入 translator
  * [OUTPUT]: 对外实现 exact slot/caller/source/context 四重约束、CogTool 数字后缀保留、CJK Path/英语回退、process-lifetime 槽与无 IO 诊断
  * [POS]: injector/windows 的 text-path 局部适配器；私有 ABI 未验证或 renderer 创建失败时终态拒装，卸载不让 SkTypeface 留到 loader-lock
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -55,8 +55,8 @@ public:
     std::atomic<std::uint64_t> originalFallback { 0 };
     std::atomic<std::uint64_t> noTranslation { 0 };
     std::atomic<std::uint64_t> rendererFailure { 0 };
-    std::atomic<std::uint16_t> translatedSourceMask { 0 };
-    std::atomic<std::uint16_t> fallbackSourceMask { 0 };
+    std::atomic<std::uint32_t> translatedSourceMask { 0 };
+    std::atomic<std::uint32_t> fallbackSourceMask { 0 };
 
     CavalryTextPathHookDiagnostics snapshot() const
     {
@@ -118,8 +118,8 @@ constexpr std::size_t kSourceCount =
 static_assert(
     sizeof(std::string) == 0x20,
     "Cavalry 2.7.2 Core::MakePathFromText requires the MSVC x64 release std::string ABI.");
-static_assert(kSourceCount == 16);
-static_assert(kSourceCount <= 16);
+static_assert(kSourceCount == 23);
+static_assert(kSourceCount <= 32);
 
 std::shared_ptr<const CavalryTextPathCallbackState> &callbackSlot()
 {
@@ -140,7 +140,7 @@ void bump(
 }
 void setSourceMask(
     const std::shared_ptr<CavalryTextPathDiagnosticState> &state,
-    std::atomic<std::uint16_t>
+    std::atomic<std::uint32_t>
         CavalryTextPathDiagnosticState::*mask,
     std::size_t sourceIndex)
 {
@@ -148,7 +148,7 @@ void setSourceMask(
         return;
     }
     const auto bit =
-        static_cast<std::uint16_t>(1U << sourceIndex);
+        static_cast<std::uint32_t>(1U << sourceIndex);
     (state.get()->*mask).fetch_or(bit, std::memory_order_relaxed);
     state->revision.fetch_add(1, std::memory_order_release);
 }
@@ -363,8 +363,8 @@ QString diagnosticsText(const CavalryTextPathHookDiagnostics &value)
         .arg(QString::number(value.originalFallback))
         .arg(QString::number(value.noTranslation))
         .arg(QString::number(value.rendererFailure))
-        .arg(value.translatedSourceMask, 4, 16, QLatin1Char('0'))
-        .arg(value.fallbackSourceMask, 4, 16, QLatin1Char('0'));
+        .arg(value.translatedSourceMask, 8, 16, QLatin1Char('0'))
+        .arg(value.fallbackSourceMask, 8, 16, QLatin1Char('0'));
 }
 
 } // namespace

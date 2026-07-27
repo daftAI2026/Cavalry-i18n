@@ -91,6 +91,13 @@ constexpr TextPathTranslationExpectations kZhHansTextPathTranslations {{
     "播放/停止",
     "直接选择图层",
     "插入关键帧",
+    "清除路径",
+    "新建形状",
+    "创建为遮罩",
+    "新建形状",
+    "新建轮廓",
+    "从中心创建",
+    "锁定纵横比",
 }};
 
 constexpr TextPathTranslationExpectations kZhHantTextPathTranslations {{
@@ -109,6 +116,13 @@ constexpr TextPathTranslationExpectations kZhHantTextPathTranslations {{
     "播放/停止",
     "項目圖層選取",
     "插入關鍵幀",
+    "清除路徑",
+    "新增形狀",
+    "建立為遮罩",
+    "新增形狀",
+    "新增輪廓",
+    "從中心建立",
+    "鎖定長寬比",
 }};
 
 constexpr TextPathTranslationExpectations kJaTextPathTranslations {{
@@ -127,6 +141,13 @@ constexpr TextPathTranslationExpectations kJaTextPathTranslations {{
     "再生/停止",
     "レイヤーを直接選択",
     "キーフレームを挿入",
+    "パスをクリア",
+    "新規シェイプ",
+    "マスクとして作成",
+    "新規シェイプを開始",
+    "新しい輪郭を開始",
+    "センターから作成",
+    "縦横比を固定",
 }};
 
 bool expectEqual(
@@ -284,30 +305,38 @@ bool verifyLanguage(
             return false;
         }
     }
-    for (const auto &pair
-         : cavalry_i18n::extension_layer_contract::kEditShapeToolHelpPairs) {
-        const std::string prefix(pair.prefix);
-        if (CavalryExtensionLayerTextPathHook::isWhitelistedSource(prefix)
-            || !expectTextPathEmpty(
-                language + QStringLiteral(": shortcut prefix remains English"),
-                translator,
-                prefix)) {
-            return false;
+    const auto verifyShortcutPrefixes =
+        [&language, &translator](const auto &pairs, const QString &tool) {
+        for (const auto &pair : pairs) {
+            const std::string prefix(pair.prefix);
+            if (CavalryExtensionLayerTextPathHook::isWhitelistedSource(prefix)
+                || !expectTextPathEmpty(
+                    language + QStringLiteral(": ") + tool
+                        + QStringLiteral(" shortcut prefix remains English"),
+                    translator,
+                    prefix)) {
+                return false;
+            }
         }
-    }
-    for (const auto &pair
-         : cavalry_i18n::extension_layer_contract::
-             kTransformToolHelpPairs) {
-        const std::string prefix(pair.prefix);
-        if (CavalryExtensionLayerTextPathHook::isWhitelistedSource(prefix)
-            || !expectTextPathEmpty(
-                language
-                    + QStringLiteral(
-                        ": TransformTool shortcut prefix remains English"),
-                translator,
-                prefix)) {
-            return false;
-        }
+        return true;
+    };
+    using namespace cavalry_i18n::extension_layer_contract;
+    if (!verifyShortcutPrefixes(
+            kEditShapeToolHelpPairs,
+            QStringLiteral("EditShapeTool"))
+        || !verifyShortcutPrefixes(
+            kTransformToolHelpPairs,
+            QStringLiteral("TransformTool"))
+        || !verifyShortcutPrefixes(
+            kPencilToolHelpPairs,
+            QStringLiteral("PencilTool"))
+        || !verifyShortcutPrefixes(
+            kPenToolHelpPairs,
+            QStringLiteral("PenTool"))
+        || !verifyShortcutPrefixes(
+            kCentreToolHelpPairs,
+            QStringLiteral("CentreTool"))) {
+        return false;
     }
     if (!expectTextPathEmpty(
             language + QStringLiteral(": dynamic text path is rejected"),
@@ -429,7 +458,7 @@ bool verifySkiaRuntimeIdentityAndTextPathDiagnostics()
         || diagnostics.noTranslation != 1
         || diagnostics.rendererFailure != 1
         || diagnostics.translatedSourceMask != 0x0001
-        || diagnostics.fallbackSourceMask != 0x8000) {
+        || diagnostics.fallbackSourceMask != 0x00400000) {
         qCritical()
             << "Text-path callback diagnostics/mask contract failed.";
         return false;
@@ -781,7 +810,8 @@ int main(int argc, char *argv[])
 {
     QCoreApplication application(argc, argv);
     return verifyAggregatePluginPinContract()
-            && verifyCavalryMessageBarAggregateLifecycle() && verifySnapshotRetention()
+            && verifyCavalryMessageBarAggregateLifecycle()
+            && verifySnapshotRetention()
             && verifySkiaRuntimeIdentityAndTextPathDiagnostics()
             && verifyIatPairLifecycleMatrix()
             && verifyRealIatCas()

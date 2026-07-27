@@ -13,7 +13,7 @@ privilege_contract.rs: 断言复制回退、Keychain/签名，以及 Windows UAC
 state_contract.rs: 断言 Tauri state.json 的当前 revision/快照 provenance schema、normalize、读写与旧 state serde-default 迁移。
 manual_macos_smoke.rs: 真实 macOS ignored smoke test，在 APFS 副本跑三语 apply、重复 apply、strict codesign 与 English 恢复，并将候选 injector 外加载到真实 Cavalry 进程，要求每种语言的三个菜单哨兵全部出现，输出日志/inventory 哈希，并核验 provenance、进程存活及原安装关键文件零变化。
 manual_windows_smoke.rs: 默认 ignored 的 Windows 克隆验收，只接受显式 `%TEMP%` 下且带 disposable sentinel 的 Cavalry 安装，对原始路径、规范路径及每个 JSON/plugin/marker 写入链逐级拒绝 reparse/越界，依次验证简繁日全部 core/plugin JSON leaf、smoother、marker、root-generic plugin 与 English 全资源原始字节恢复，且不启动 GUI/UAC。
-manual_windows_live_smoke.rs: 默认 ignored 的 Windows disposable live-clone 证据门；可用语言过滤器跑单语或默认三语，子进程隔离 AppData，自动捕获 Viewport Quality/Transform 与有界 exact-HWND 前台门后 `A` 键触发的 Edit Shape；显式 `CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1` 时先拒绝预置 bit 15，追加人工 Cogwheel 拖拽，并要求前后 revision/canonical/whitelist/CJK-success 严格增长、零 fallback/renderer failure 与 PNG，outstanding PID 只优雅关闭 owned clone，unwind 仍恢复 English 38 JSON，禁止场景脚本、Qt UIA 与坐标假 gate。
+manual_windows_live_smoke.rs: 默认 ignored 的 Windows disposable live-clone 证据门；可用语言过滤器跑单语或默认三语，子进程隔离 AppData，自动捕获 Viewport Quality/Transform 与有界 exact-HWND 前台门后 `A` 键触发的 Edit Shape；显式 `CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1` 时先拒绝预置 bit 22，追加人工 Cogwheel 拖拽，并要求前后 revision/canonical/whitelist/CJK-success 严格增长、零 fallback/renderer failure 与 PNG，outstanding PID 只优雅关闭 owned clone，unwind 仍恢复 English 38 JSON，禁止场景脚本、Qt UIA 与坐标假 gate。
 support/: ignored Windows smoke 的路径安全支撑；见 `support/CLAUDE.md`。
 
 依赖边界:

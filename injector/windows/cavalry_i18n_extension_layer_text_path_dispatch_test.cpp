@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 text-path dispatch 纯合同、CavalryEmbeddedTranslator 与三语生成表
- * [OUTPUT]: 对外验证安装与 callback 都持续拒绝被篡改的三处 caller/RDX 字节包络、Pitch exact context，以及动态文本仅接受 canonical 32-bit int 后缀并逐字保留数值
- * [POS]: injector/windows 的动态 text-path 回归；与真实 vendor PE 合同互补，不执行任何厂商代码
+ * [OUTPUT]: 对外验证安装与 callback 都持续拒绝被篡改的三处 caller/RDX 字节包络、二十二项静态白名单、Pitch exact context，以及动态文本仅接受 canonical 32-bit int 后缀并逐字保留数值
+ * [POS]: injector/windows 的静态/动态 text-path 回归；与真实 vendor PE 合同互补，不执行任何厂商代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_extension_layer_text_path_dispatch.h"
@@ -22,6 +22,7 @@ namespace {
 struct LocaleExpectation final {
     const char *language;
     const char *prefix;
+    std::array<const char *, 7> toolHelpActions;
 };
 
 bool fail(const QString &message)
@@ -169,6 +170,46 @@ bool verifyLocale(const LocaleExpectation &expectation)
             .arg(QString::fromLatin1(expectation.language)));
     }
 
+    constexpr std::array<const char *, 7> toolHelpSources {{
+        kClearPath,
+        kNewShape,
+        kCreateAsMask,
+        kStartNewShape,
+        kStartNewContour,
+        kCreateFromTheCentre,
+        kConstrainProportions,
+    }};
+    for (std::size_t index = 0; index < toolHelpSources.size(); ++index) {
+        const char *const source = toolHelpSources[index];
+        const std::size_t sourceIndex =
+            cavalryTextPathExactSourceIndex(source);
+        const CavalryTextPathSourceMatch match =
+            matchCavalryTextPathSource(
+                CavalryTextPathCallerKind::StaticExact,
+                source);
+        const QString embeddedAction =
+            translator.translate(nullptr, source);
+        const std::string expectedAction =
+            expectation.toolHelpActions[index];
+        if (sourceIndex >= kStaticTextPathSources.size()
+            || !match.isMatched()
+            || match.sourceIndex != sourceIndex
+            || !match.preservedSuffix.empty()
+            || embeddedAction.toUtf8().toStdString() != expectedAction
+            || composeCavalryTextPathTranslation(
+                   expectedAction,
+                   match) != expectedAction
+            || matchCavalryTextPathSource(
+                   CavalryTextPathCallerKind::PrimitiveToolLine,
+                   source).isMatched()) {
+            return fail(QStringLiteral(
+                "%1 static tool-help action contract failed for '%2'.")
+                .arg(
+                    QString::fromLatin1(expectation.language),
+                    QString::fromLatin1(source)));
+        }
+    }
+
     for (const std::string source
          : { std::string("Pitch Radius: 0"),
              std::string("Pitch Radius: 42"),
@@ -232,9 +273,45 @@ int main()
         return 1;
     }
     constexpr std::array<LocaleExpectation, 3> locales {{
-        { "zh-Hans", "节圆半径： " },
-        { "zh-Hant", "節圓半徑： " },
-        { "ja_JP", "ピッチ半径： " },
+        {
+            "zh-Hans",
+            "节圆半径： ",
+            {{
+                "清除路径",
+                "新建形状",
+                "创建为遮罩",
+                "新建形状",
+                "新建轮廓",
+                "从中心创建",
+                "锁定纵横比",
+            }},
+        },
+        {
+            "zh-Hant",
+            "節圓半徑： ",
+            {{
+                "清除路徑",
+                "新增形狀",
+                "建立為遮罩",
+                "新增形狀",
+                "新增輪廓",
+                "從中心建立",
+                "鎖定長寬比",
+            }},
+        },
+        {
+            "ja_JP",
+            "ピッチ半径： ",
+            {{
+                "パスをクリア",
+                "新規シェイプ",
+                "マスクとして作成",
+                "新規シェイプを開始",
+                "新しい輪郭を開始",
+                "センターから作成",
+                "縦横比を固定",
+            }},
+        },
     }};
     for (const LocaleExpectation &locale : locales) {
         if (!verifyLocale(locale)) {
@@ -269,6 +346,15 @@ int main()
     if (matchCavalryTextPathSource(
             CavalryTextPathCallerKind::StaticExact,
             "Pitch Radius: 12").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "Clear Paths").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            " Create as Mask").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "Constrain proportions").isMatched()
         || matchCavalryTextPathSource(
             CavalryTextPathCallerKind::Rejected,
             "Pitch Radius: 12").isMatched()

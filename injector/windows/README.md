@@ -132,7 +132,7 @@ QString 赋值槽 RVA、其初始 import-by-name RVA、二十个直接调用与 
 它还逐一验证十三条 placeholder source literal；锁定 `QTextEdit::append` 唯一槽、三处调用、
 history/live 两个批准 return、`js_logger` 排除项、HTML 模板与 Pencil 原文；并验证 Core MakePath 唯一槽、证明
 RCX hidden-sret/RDX string-ref/XMM2 double 参数搬运的十字节 preamble、canonical
-return、viewport enum 表、EditShapeTool 与 TransformTool 的 prefix/action 双 Path 数据流及十五条静态 source；
+return、viewport enum 表、EditShapeTool、TransformTool、Pencil、Pen 与 Centre 的 prefix/action 双 Path 数据流及二十二条静态 source；
 并验证 CogTool 两处分支生成 `Pitch Radius: `、写入 optional vector、PrimitiveToolBase
 读取该成员，以及首行/后续行两处 MakePath caller 的参数 preamble 与同一 IAT 槽；
 并验证 Core 固定 Lato 路径、CJK renderer 所需的 Core/skia 导出、Path 几何步骤与 typeface
@@ -185,9 +185,9 @@ marker 的 `status` 为 `ready` 且 `translatorInstalled` 为 `true`，只能证
 `installed` 才说明 helper、placeholder、MessageBar 与 Core text-path 四条精确 IAT 边界已全部安装，
 `extensionLayerTextPathDiagnostics` 还会给出 `revision`、`canonicalCalls`、
 `whitelistCalls`、`cjkPathSuccess`、`originalFallback`、`noTranslation`、
-`rendererFailure`、`translatedSourceMask` 与 `fallbackSourceMask`。十六位 mask 按
+`rendererFailure`、`translatedSourceMask` 与 `fallbackSourceMask`。三十二位 mask 按
 `cavalry_i18n_extension_layer_sources.h` 固定顺序对应 4 条 viewport quality、6 条
-EditShapeTool action、5 条 TransformTool action 与第 16 位动态 Pitch；live 截图验收应同时检查目标类别位
+EditShapeTool action、5 条 TransformTool action、7 条 Pencil/Pen/Centre action 与第 23 位动态 Pitch；live 截图验收应同时检查目标类别位
 确实进入 `translatedSourceMask`，不能只看总计数。
 但它仍不能替代真实 Cavalry 的截图与 live UI gate。构建 smoke 会额外验证十二个顶层
 菜单、完整 Bézier UTF-8 生成表样本、既有/动态动作、受控显示属性和输入/model 隔离。

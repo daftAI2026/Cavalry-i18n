@@ -80,8 +80,8 @@ mod windows_live_smoke {
         original_fallback: u64,
         no_translation: u64,
         renderer_failure: u64,
-        translated_source_mask: u16,
-        fallback_source_mask: u16,
+        translated_source_mask: u32,
+        fallback_source_mask: u32,
     }
 
     #[derive(Debug, Deserialize)]
@@ -279,7 +279,7 @@ mod windows_live_smoke {
             "ViewportQuality" => 0x0001,
             "TransformHelper" => 0x7c00,
             "EditShapeHelper" => 0x03f0,
-            "CogPitch" => 0x8000,
+            "CogPitch" => 0x0040_0000,
             _ => 0,
         };
         let diagnostics = &result.extension_layer_text_path_diagnostics;
@@ -290,7 +290,7 @@ mod windows_live_smoke {
             ("CogPitch", Some(baseline)) => {
                 baseline.renderer_failure == 0
                     && baseline.fallback_source_mask == 0
-                    && baseline.translated_source_mask & 0x8000 == 0
+                    && baseline.translated_source_mask & 0x0040_0000 == 0
                     && diagnostics.revision > baseline.revision
                     && diagnostics.canonical_calls > baseline.canonical_calls
                     && diagnostics.whitelist_calls > baseline.whitelist_calls
@@ -842,10 +842,10 @@ mod windows_live_smoke {
             "fallbackSourceMask",
             "rendererFailure",
             "CogPitch",
-            "0x8000",
+            "0x00400000",
             "AllowManualCogPitch",
             "manual-disposable-cogwheel-drag",
-            "pre-set Pitch bit 15",
+            "pre-set Pitch bit 22",
         ] {
             assert!(
                 helper.contains(required),
@@ -948,7 +948,7 @@ mod windows_live_smoke {
             );
         }
         panic!(
-            "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language has exact-PID Viewport Quality and Transform PNGs from the initial empty scene plus an Edit Shape PNG staged only by exact-HWND PostMessage VK_A below {}. When CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1, it also has a manually triggered Cogwheel Pitch PNG whose recorded baseline has bit 15 clear and whose final revision/canonical/whitelist/CJK-success counters all strictly increase with zero fallback. Manually verify their visible localized text and explicitly append screenshots for menus, dropdowns, four empty states, and Snippet before accepting Windows GUI translation.",
+            "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language has exact-PID Viewport Quality and Transform PNGs from the initial empty scene plus an Edit Shape PNG staged only by exact-HWND PostMessage VK_A below {}. When CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1, it also has a manually triggered Cogwheel Pitch PNG whose recorded baseline has bit 22 clear and whose final revision/canonical/whitelist/CJK-success counters all strictly increase with zero fallback. Manually verify their visible localized text and explicitly append screenshots for menus, dropdowns, four empty states, and Snippet before accepting Windows GUI translation.",
             run_root.display()
         );
     }

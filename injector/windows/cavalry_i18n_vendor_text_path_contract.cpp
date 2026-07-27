@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_vendor_text_path_contract.h、共享十五项静态 source/一项动态前缀、PE/IAT 解析器与已采证 RVAs
- * [OUTPUT]: 对外锁定 Core::MakePathFromText 槽/调用数、含首行 RDX 来源的三处 ABI caller、tool-help 数据流及 CogTool Pitch vector→Path 链
+ * [INPUT]: 依赖 cavalry_i18n_vendor_text_path_contract.h、共享二十二项静态 source/一项动态前缀、PE/IAT 解析器与已采证 RVAs
+ * [OUTPUT]: 对外锁定 Core::MakePathFromText 槽/调用数、含首行 RDX 来源的三处 ABI caller、Edit/Transform/Pencil/Pen/Centre tool-help 数据流及 CogTool Pitch vector→Path 链
  * [POS]: injector/windows 的 Cavalry 2.7.2 text-path 静态兼容合同；只读取已映射字节，不执行 vendor 代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -125,7 +125,7 @@ constexpr std::array<std::uint8_t, 6> kToolHelpVirtualCall {{
     0xFF, 0x90, 0xE0, 0x00, 0x00, 0x00,
 }};
 
-struct TransformToolHelpEvidence {
+struct DualToolHelpEvidence {
     std::size_t firstPrefixLeaRva;
     std::size_t firstActionLeaRva;
     std::size_t secondPrefixLeaRva;
@@ -134,7 +134,7 @@ struct TransformToolHelpEvidence {
     std::size_t actionLiteralRva;
 };
 
-constexpr std::array<TransformToolHelpEvidence, 5>
+constexpr std::array<DualToolHelpEvidence, 5>
     kTransformToolHelpEvidence {{
         {
             0x011CA417,
@@ -175,6 +175,111 @@ constexpr std::array<TransformToolHelpEvidence, 5>
             0x011CA59A,
             0x015A36AF,
             0x015325FE,
+        },
+    }};
+
+constexpr std::size_t kPencilToolHelpThunkRva = 0x0000DD37;
+constexpr std::size_t kPencilToolHelpBodyRva = 0x011F3830;
+constexpr std::size_t kPencilToolHelpVtableSlotRva = 0x0159FCC0;
+constexpr std::size_t kPencilClearPrefixTailImmediateRva = 0x011F3989;
+constexpr std::array<std::uint8_t, 10>
+    kPencilClearPrefixTailImmediate {{
+        0x48, 0xB8, 0x74, 0x72, 0x6F,
+        0x6C, 0x20, 0x2B, 0x20, 0x2F,
+    }};
+constexpr std::size_t kPencilClearPrefixHeadImmediateRva = 0x011F3997;
+constexpr std::array<std::uint8_t, 11>
+    kPencilClearPrefixHeadImmediate {{
+        0xC7, 0x45, 0x20, 0x43, 0x6F, 0x6E, 0x74,
+        0xC6, 0x45, 0x2B, 0x00,
+    }};
+constexpr std::size_t kPencilClearActionHeadImmediateRva = 0x011F39CB;
+constexpr std::array<std::uint8_t, 14>
+    kPencilClearActionHeadImmediate {{
+        0x48, 0xB8, 0x43, 0x6C, 0x65, 0x61, 0x72,
+        0x20, 0x50, 0x61, 0x48, 0x89, 0x42, 0x20,
+    }};
+constexpr std::size_t kPencilClearActionTailImmediateRva = 0x011F39D9;
+constexpr std::array<std::uint8_t, 6>
+    kPencilClearActionTailImmediate {{
+        0x66, 0xC7, 0x42, 0x28, 0x74, 0x68,
+    }};
+constexpr std::size_t kPencilClearHeapActionLeaRva = 0x011F39E6;
+constexpr std::size_t kPencilClearHeapPrefixLocalLeaRva = 0x011F39ED;
+constexpr std::array<std::uint8_t, 4> kPencilClearHeapPrefixLocalLea {{
+    0x4C, 0x8D, 0x45, 0x20,
+}};
+constexpr std::size_t kPencilClearActionLiteralRva = 0x015A314D;
+constexpr std::array<DualToolHelpEvidence, 2>
+    kPencilDualToolHelpEvidence {{
+        {
+            0x011F3A42,
+            0x011F3A49,
+            0x011F3A87,
+            0x011F3A8E,
+            0x0150BDF0,
+            0x015A3B41,
+        },
+        {
+            0x011F3A6A,
+            0x011F3A71,
+            0x011F3AAA,
+            0x011F3AB1,
+            0x015A3194,
+            0x015A3182,
+        },
+    }};
+
+constexpr std::size_t kPenToolHelpThunkRva = 0x0000D3FA;
+constexpr std::size_t kPenToolHelpBodyRva = 0x0118FDB0;
+constexpr std::size_t kPenToolHelpVtableSlotRva = 0x014C9410;
+constexpr std::array<DualToolHelpEvidence, 3>
+    kPenToolHelpEvidence {{
+        {
+            0x0119015B,
+            0x01190162,
+            0x011901C8,
+            0x011901CF,
+            0x0150BDF0,
+            0x015A315A,
+        },
+        {
+            0x01190183,
+            0x0119018A,
+            0x011901EB,
+            0x011901F2,
+            0x0153A7E3,
+            0x015A316D,
+        },
+        {
+            0x011901AB,
+            0x011901B2,
+            0x0119020E,
+            0x01190215,
+            0x015A3194,
+            0x015A3182,
+        },
+    }};
+
+constexpr std::size_t kCentreToolHelpThunkRva = 0x00015794;
+constexpr std::size_t kCentreToolHelpBodyRva = 0x0124CA60;
+constexpr std::array<DualToolHelpEvidence, 2>
+    kCentreToolHelpEvidence {{
+        {
+            0x0124CA7A,
+            0x0124CA81,
+            0x0124CAC4,
+            0x0124CACB,
+            0x015A312D,
+            0x015A58E0,
+        },
+        {
+            0x0124CAA3,
+            0x0124CAAA,
+            0x0124CAE9,
+            0x0124CAF0,
+            0x014C5A78,
+            0x015A58FA,
         },
     }};
 
@@ -329,6 +434,52 @@ bool bytesAt(
             image.data() + rva,
             expected.data(),
             expected.size()) == 0;
+}
+
+template <std::size_t EvidenceSize, std::size_t PairSize>
+bool dualToolHelpEvidenceMatches(
+    const std::vector<std::uint8_t> &image,
+    const std::array<DualToolHelpEvidence, EvidenceSize> &evidenceTable,
+    const std::array<
+        cavalry_i18n::extension_layer_contract::ToolHelpSourcePair,
+        PairSize> &pairs,
+    std::size_t pairOffset)
+{
+    if (pairOffset > pairs.size()
+        || evidenceTable.size() > pairs.size() - pairOffset) {
+        return false;
+    }
+    for (std::size_t index = 0; index < evidenceTable.size(); ++index) {
+        const DualToolHelpEvidence &evidence = evidenceTable[index];
+        const auto &pair = pairs[pairOffset + index];
+        if (!leaTargets(
+                image,
+                evidence.firstPrefixLeaRva,
+                evidence.prefixLiteralRva)
+            || !leaTargets(
+                image,
+                evidence.firstActionLeaRva,
+                evidence.actionLiteralRva)
+            || !leaTargets(
+                image,
+                evidence.secondPrefixLeaRva,
+                evidence.prefixLiteralRva)
+            || !leaTargets(
+                image,
+                evidence.secondActionLeaRva,
+                evidence.actionLiteralRva)
+            || !literalAt(
+                image,
+                evidence.prefixLiteralRva,
+                pair.prefix)
+            || !literalAt(
+                image,
+                evidence.actionLiteralRva,
+                pair.action)) {
+            return false;
+        }
+    }
+    return true;
 }
 
 bool exportTableContainsRva(
@@ -589,7 +740,9 @@ bool verifyToolHelpBoundary(
     IMAGE_FILE_HEADER fileHeader {};
     IMAGE_OPTIONAL_HEADER64 optionalHeader {};
     std::size_t ignoredSectionTable = 0;
-    std::uint64_t virtualTarget = 0;
+    std::uint64_t transformVirtualTarget = 0;
+    std::uint64_t pencilVirtualTarget = 0;
+    std::uint64_t penVirtualTarget = 0;
     if (!peHeaders(
             image,
             &fileHeader,
@@ -598,8 +751,8 @@ bool verifyToolHelpBoundary(
         || !readValue(
             image,
             kTransformToolSecondaryVtableSlotRva,
-            &virtualTarget)
-        || virtualTarget
+            &transformVirtualTarget)
+        || transformVirtualTarget
             != optionalHeader.ImageBase + kTransformToolHelpThunkRva
         || !nearJumpTargets(
             image,
@@ -624,50 +777,92 @@ bool verifyToolHelpBoundary(
             kToolHelpVirtualCall.size())
         || std::memcmp(
                image.data() + 0x002C4122,
-               kToolHelpVirtualCall.data(),
-               kToolHelpVirtualCall.size())
-            != 0) {
+            kToolHelpVirtualCall.data(),
+            kToolHelpVirtualCall.size())
+            != 0
+        || !readValue(
+            image,
+            kPencilToolHelpVtableSlotRva,
+            &pencilVirtualTarget)
+        || pencilVirtualTarget
+            != optionalHeader.ImageBase + kPencilToolHelpThunkRva
+        || !nearJumpTargets(
+            image,
+            kPencilToolHelpThunkRva,
+            kPencilToolHelpBodyRva)
+        || !readValue(
+            image,
+            kPenToolHelpVtableSlotRva,
+            &penVirtualTarget)
+        || penVirtualTarget
+            != optionalHeader.ImageBase + kPenToolHelpThunkRva
+        || !nearJumpTargets(
+            image,
+            kPenToolHelpThunkRva,
+            kPenToolHelpBodyRva)
+        || !nearJumpTargets(
+            image,
+            kCentreToolHelpThunkRva,
+            kCentreToolHelpBodyRva)) {
         *failure =
-            "TransformTool secondary vtable/toolHelp dispatch contract changed.";
+            "Transform/Pencil/Pen/Centre toolHelp dispatch contract changed.";
         return false;
     }
 
-    for (std::size_t index = 0;
-         index < kTransformToolHelpEvidence.size();
-         ++index) {
-        const TransformToolHelpEvidence &evidence =
-            kTransformToolHelpEvidence[index];
-        const auto &pair =
-            cavalry_i18n::extension_layer_contract::
-                kTransformToolHelpPairs[index];
-        if (!leaTargets(
-                image,
-                evidence.firstPrefixLeaRva,
-                evidence.prefixLiteralRva)
-            || !leaTargets(
-                image,
-                evidence.firstActionLeaRva,
-                evidence.actionLiteralRva)
-            || !leaTargets(
-                image,
-                evidence.secondPrefixLeaRva,
-                evidence.prefixLiteralRva)
-            || !leaTargets(
-                image,
-                evidence.secondActionLeaRva,
-                evidence.actionLiteralRva)
-            || !literalAt(
-                image,
-                evidence.prefixLiteralRva,
-                pair.prefix)
-            || !literalAt(
-                image,
-                evidence.actionLiteralRva,
-                pair.action)) {
-            *failure =
-                "TransformTool prefix/action vector evidence changed.";
-            return false;
-        }
+    using namespace cavalry_i18n::extension_layer_contract;
+    if (!dualToolHelpEvidenceMatches(
+            image,
+            kTransformToolHelpEvidence,
+            kTransformToolHelpPairs,
+            0)
+        || !bytesAt(
+            image,
+            kPencilClearPrefixTailImmediateRva,
+            kPencilClearPrefixTailImmediate)
+        || !bytesAt(
+            image,
+            kPencilClearPrefixHeadImmediateRva,
+            kPencilClearPrefixHeadImmediate)
+        || !bytesAt(
+            image,
+            kPencilClearActionHeadImmediateRva,
+            kPencilClearActionHeadImmediate)
+        || !bytesAt(
+            image,
+            kPencilClearActionTailImmediateRva,
+            kPencilClearActionTailImmediate)
+        || !leaTargets(
+            image,
+            kPencilClearHeapActionLeaRva,
+            kPencilClearActionLiteralRva)
+        || !bytesAt(
+            image,
+            kPencilClearHeapPrefixLocalLeaRva,
+            kPencilClearHeapPrefixLocalLea)
+        || !literalAt(
+            image,
+            kPencilClearActionLiteralRva,
+            kPencilToolHelpPairs[0].action)
+        || std::string_view(kPencilToolHelpPairs[0].prefix)
+            != "Control + /"
+        || !dualToolHelpEvidenceMatches(
+            image,
+            kPencilDualToolHelpEvidence,
+            kPencilToolHelpPairs,
+            1)
+        || !dualToolHelpEvidenceMatches(
+            image,
+            kPenToolHelpEvidence,
+            kPenToolHelpPairs,
+            0)
+        || !dualToolHelpEvidenceMatches(
+            image,
+            kCentreToolHelpEvidence,
+            kCentreToolHelpPairs,
+            0)) {
+        *failure =
+            "Transform/Pencil/Pen/Centre prefix/action vector evidence changed.";
+        return false;
     }
     if (!exportTableContainsRva(image, kRenderToolHelpThunkRva)
         || !nearJumpTargets(

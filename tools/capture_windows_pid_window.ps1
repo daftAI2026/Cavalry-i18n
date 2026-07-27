@@ -1,7 +1,7 @@
 ﻿<#
 [INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、显式 PID、位于带 sentinel 的 disposable `%TEMP%` clone 根内的 Cavalry.exe、runtime marker、带 sentinel 的 evidence `%TEMP%` 根与输出 PNG 路径
 [OUTPUT]: 对外提供 Inventory/Capture/Close 三个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；自动捕获三类场景，并以显式开关从零位图基线等待人工 Cogwheel 拖拽及严格诊断增量
-[POS]: tools 的 Windows GUI 取证边界；Edit Shape 与人工 CogPitch 通过有界 exact-HWND 前台门，拒绝预置 bit 15 并保存前后诊断，不创建场景、不依赖 Qt UIA、不运行脚本，禁止坐标/鼠标回退、强杀、固定 sleep 或覆盖证据
+[POS]: tools 的 Windows GUI 取证边界；Edit Shape 与人工 CogPitch 通过有界 exact-HWND 前台门，拒绝预置 bit 22 并保存前后诊断，不创建场景、不依赖 Qt UIA、不运行脚本，禁止坐标/鼠标回退、强杀、固定 sleep 或覆盖证据
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -939,8 +939,8 @@ if ($CaptureScenario -ceq 'CogPitch') {
     Assert-Condition -Condition ([int]$cogPitchBaseline.fallbackSourceMask -eq 0) `
         -Message 'CogPitch baseline already contains a translated-source fallback.'
     Assert-Condition `
-        -Condition (([int]$cogPitchBaseline.translatedSourceMask -band 0x8000) -eq 0) `
-        -Message 'CogPitch baseline contains a pre-set Pitch bit 15; restart the owned clone before collecting evidence.'
+        -Condition (([int]$cogPitchBaseline.translatedSourceMask -band 0x00400000) -eq 0) `
+        -Message 'CogPitch baseline contains a pre-set Pitch bit 22; restart the owned clone before collecting evidence.'
 }
 $interactionEvidence = switch ($CaptureScenario) {
     'ViewportQuality' {
@@ -976,7 +976,7 @@ $requiredTextPathMask = switch ($CaptureScenario) {
     'ViewportQuality' { 0x0001 }
     'TransformHelper' { 0x7C00 }
     'EditShapeHelper' { 0x03F0 }
-    'CogPitch' { 0x8000 }
+    'CogPitch' { 0x00400000 }
     default { 0 }
 }
 $diagnosticArguments = @{

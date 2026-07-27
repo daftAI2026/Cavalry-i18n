@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖指定 Cavalry 安装根的 ExtensionLayer.dll/CavalryUI.dll/Core.dll/skia.dll 只读 PE 文件、PE/IAT 解析器与 MessageBar/text-path 静态合同分片
- * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 helper IAT、CavalryUI 导出、placeholder setter 链、MessageBar append、ExtensionLayer 调用点及 Core/Skia CJK Path ABI
+ * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 helper IAT、CavalryUI 导出、placeholder setter 链、selected-count QLabel 数据流、MessageBar append、ExtensionLayer 调用点及 Core/Skia CJK Path ABI
  * [POS]: injector/windows 的 vendor 静态 ABI/import 合同；不加载、执行、修改或复制厂商 DLL，只把原始 PE 文件映射到测试内存
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -37,6 +37,9 @@ constexpr char kTextAtWidgetCentreSymbol[] =
     "?textAtWidgetCentre@ui@@YAXPEAVQWidget@@AEBVQString@@AEBVQColor@@PEBVQPixmap@@@Z";
 constexpr char kSetPlaceholderSymbol[] =
     "?setPlaceholder@CustomListWidget@cavalry@@QEAAXAEBVQString@@@Z";
+constexpr char kQtWidgetsImportName[] = "Qt6Widgets.dll";
+constexpr char kQLabelSetTextSymbol[] =
+    "?setText@QLabel@@QEAAXAEBVQString@@@Z";
 constexpr std::size_t kExpectedTextAtWidgetCentreIatRva = 0x01B26D68;
 constexpr std::size_t kExpectedQStringAssignmentIatRva = 0x01B2C860;
 constexpr std::uintptr_t kExpectedQStringAssignmentNameRva = 0x01B7CBD2;
@@ -44,6 +47,16 @@ constexpr std::size_t kSetPlaceholderThunkRva = 0x00015A87;
 constexpr std::size_t kSetPlaceholderSetterRva = 0x002759F0;
 constexpr std::size_t kSnippetPlaceholderCallRva = 0x010E118A;
 constexpr std::size_t kExpectedSetPlaceholderDirectCallCount = 20;
+constexpr std::size_t kSelectedCountProducerRva = 0x00E815C0;
+constexpr std::array<std::uint8_t, 18> kSelectedCountProducerPrologue {{
+    0x55, 0x56, 0x57, 0x48, 0x81, 0xEC, 0xB0, 0x00, 0x00,
+    0x00, 0x48, 0x8D, 0xAC, 0x24, 0x80, 0x00, 0x00, 0x00,
+}};
+constexpr std::size_t kSelectedCountLiteralRva = 0x0157F6EE;
+constexpr std::size_t kSelectedCountLiteralLeaRva = 0x00E8161A;
+constexpr std::size_t kSelectedCountSetTextCallRva = 0x00E816A0;
+constexpr std::size_t kSelectedCountSetTextReturnRva = 0x00E816A6;
+constexpr std::size_t kExpectedQLabelSetTextIatRva = 0x01B2F6A0;
 constexpr std::size_t kMaximumMappedImageSize = 256U * 1024U * 1024U;
 constexpr std::array<std::uint8_t, 15> kSetPlaceholderSetterPrologue {{
     0xB8, 0xA8, 0x00, 0x00, 0x00,
@@ -462,6 +475,44 @@ bool nearJumpTargetsRva(
     return target == static_cast<std::int64_t>(expectedTargetRva);
 }
 
+bool ripRelativeLeaTargetsRva(
+    const std::vector<std::uint8_t> &image,
+    std::size_t leaRva,
+    std::size_t expectedTargetRva)
+{
+    if (!hasBytes(image.size(), leaRva, 7)
+        || (image[leaRva] & 0xF0) != 0x40
+        || image[leaRva + 1] != 0x8D
+        || (image[leaRva + 2] & 0xC7) != 0x05) {
+        return false;
+    }
+    std::int32_t displacement = 0;
+    if (!readI32(image, leaRva + 3, &displacement)) {
+        return false;
+    }
+    const std::int64_t target =
+        static_cast<std::int64_t>(leaRva) + 7 + displacement;
+    return target == static_cast<std::int64_t>(expectedTargetRva);
+}
+
+bool indirectCallTargetsRva(
+    const std::vector<std::uint8_t> &image,
+    std::size_t callRva,
+    std::size_t expectedTargetRva)
+{
+    if (!hasBytes(image.size(), callRva, 6)
+        || image[callRva] != 0xFF || image[callRva + 1] != 0x15) {
+        return false;
+    }
+    std::int32_t displacement = 0;
+    if (!readI32(image, callRva + 2, &displacement)) {
+        return false;
+    }
+    const std::int64_t target =
+        static_cast<std::int64_t>(callRva) + 6 + displacement;
+    return target == static_cast<std::int64_t>(expectedTargetRva);
+}
+
 bool countDirectNearCallsToRva(
     const std::vector<std::uint8_t> &image,
     std::size_t expectedTargetRva,
@@ -610,6 +661,47 @@ bool verifyPlaceholderSourceLiterals(
     return true;
 }
 
+bool verifySelectedCountLabelContract(
+    const std::vector<std::uint8_t> &image,
+    std::string *failure)
+{
+    const CavalryPeIatLookupResult lookup = findCavalryPe64IatSlot(
+        image.data(),
+        image.size(),
+        kQtWidgetsImportName,
+        kQLabelSetTextSymbol);
+    if (lookup.status != CavalryPeIatLookupStatus::Found
+        || lookup.iatSlotOffset != kExpectedQLabelSetTextIatRva
+        || !hasBytes(
+            image.size(),
+            kSelectedCountProducerRva,
+            kSelectedCountProducerPrologue.size())
+        || std::memcmp(
+               image.data() + kSelectedCountProducerRva,
+               kSelectedCountProducerPrologue.data(),
+               kSelectedCountProducerPrologue.size())
+            != 0
+        || !asciiEquals(
+            image,
+            kSelectedCountLiteralRva,
+            "%1 selected")
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kSelectedCountLiteralLeaRva,
+            kSelectedCountLiteralRva)
+        || kSelectedCountSetTextCallRva + 6
+            != kSelectedCountSetTextReturnRva
+        || !indirectCallTargetsRva(
+            image,
+            kSelectedCountSetTextCallRva,
+            kExpectedQLabelSetTextIatRva)) {
+        *failure =
+            "Selection count producer no longer formats '%1 selected' into the canonical QLabel::setText call.";
+        return false;
+    }
+    return true;
+}
+
 void fail(const std::string &message)
 {
     std::fprintf(stderr, "%s\n", message.c_str());
@@ -644,6 +736,10 @@ int main(int argc, char *argv[])
     }
     if (!verifyPlaceholderSourceLiterals(extensionLayerImage, &failure)) {
         fail("ExtensionLayer placeholder source contract: " + failure);
+        return 1;
+    }
+    if (!verifySelectedCountLabelContract(extensionLayerImage, &failure)) {
+        fail("ExtensionLayer selected-count QLabel contract: " + failure);
         return 1;
     }
     if (!verifyCavalryExtensionLayerMessageBarContract(

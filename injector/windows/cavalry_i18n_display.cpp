@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_display.h、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、工具栏逐行 tooltip、已知基名数字后缀、QComboBox 可见项和动态英文写回后的同步恢复
- * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示，同时隔离 UserRole、currentIndex 与通用 item model
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、工具栏逐行 tooltip、已知基名数字后缀、动态 selected 计数 QLabel 投影、QComboBox 可见项和动态英文写回后的同步恢复
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态计数仅落在 QLabel text，隔离 UserRole、currentIndex、QLineEdit 与通用 item model
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -73,6 +73,29 @@ QString normalizedDisplaySource(const QString &source)
     }
 
     return cleaned.simplified();
+}
+
+QString selectedCountLabelTranslation(
+    const QString &source,
+    const QString &language)
+{
+    static const QRegularExpression kSelectedCountPattern(
+        QStringLiteral("^([0-9]+) selected$"));
+    const QRegularExpressionMatch match = kSelectedCountPattern.match(source);
+    if (!match.hasMatch()) {
+        return QString();
+    }
+    const QString count = match.captured(1);
+    if (language == QStringLiteral("zh-Hans")) {
+        return QString::fromUtf8("已选择 %1 个").arg(count);
+    }
+    if (language == QStringLiteral("zh-Hant")) {
+        return QString::fromUtf8("已選取 %1 個").arg(count);
+    }
+    if (language == QStringLiteral("ja_JP")) {
+        return QString::fromUtf8("%1 個を選択中").arg(count);
+    }
+    return QString();
 }
 
 } // namespace
@@ -431,7 +454,12 @@ void CavalryDisplayTranslator::applyTranslation(
         }
     }
 
-    const QString translated = translationFor(current);
+    QString translated = translationFor(current);
+    if (translated.isEmpty()
+        && property == QByteArrayLiteral("text")
+        && qobject_cast<QLabel *>(object) != nullptr) {
+        translated = selectedCountLabelTranslation(current, translator_.language());
+    }
     if (translated.isEmpty() || translated == current) {
         return;
     }

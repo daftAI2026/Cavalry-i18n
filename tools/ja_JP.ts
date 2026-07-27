@@ -1992,7 +1992,7 @@
     <message><source>Connections</source><translation>コネクション</translation></message>
     <message><source>Constant (Linear)</source><translation>定数(リニア)</translation></message>
     <message><source>Constrain Axis</source><translation>制約軸</translation></message>
-    <message><source>Constrain Proportions</source><translation>制約の報告</translation></message>
+    <message><source>Constrain Proportions</source><translation>縦横比を固定</translation></message>
     <message><source>Constrain the proportions of this Attribute based on the current values</source><translation>現在の値に基づいてこの属性の比率を制約</translation></message>
     <message><source>Constrain the proportions of this Attribute based on the current values.</source><translation>現在の値に基づいてこの属性の比率を制約します。</translation></message>
     <message><source>Context</source><translation>コンテンツ</translation></message>
@@ -3522,7 +3522,7 @@
     <message><source>Staging</source><translation>ステージング</translation></message>
     <message><source>Standing End</source><translation>スタンドエンド</translation></message>
     <message><source>Standing Start</source><translation>スタンドスタート</translation></message>
-    <message><source>Start New Contour</source><translation>開始新轮廓</translation></message>
+    <message><source>Start New Contour</source><translation>新しい輪郭を開始</translation></message>
     <message><source>Start New Shape</source><translation>新規シェイプを開始</translation></message>
     <message><source>start reordering USE</source><translation>USE の並べ替えを開始</translation></message>
     <message><source>Start Rotation</source><translation>回転の開始</translation></message>
@@ -5320,7 +5320,7 @@
     </message>
     <message>
       <source>Clear Path</source>
-      <translation>クリアパス</translation>
+      <translation>パスをクリア</translation>
     </message>
     <message>
       <source>Clear Script</source>
@@ -8563,6 +8563,8 @@
   </context>
   <context>
     <name>PencilToolSettings</name>
+    <message><source xml:space="preserve">Accuracy: </source><translation xml:space="preserve">精度： </translation></message>
+    <message><source xml:space="preserve">Stabiliser: </source><translation xml:space="preserve">スタビライザー： </translation></message>
     <message><source xml:space="preserve">Stability Radius: </source><translation xml:space="preserve">安定化半径： </translation></message>
   </context>
   <context>
