@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、插件环境与显式 diagnostic marker
- * [OUTPUT]: 对外验证真实插件加载、十二个菜单、显示投影/数据隔离及含九项 text-path 计数与 source mask 的 marker 结构
- * [POS]: injector/windows 的端到端回归 smoke，以真实 Qt Show/Paint/ActionAdded 事件锁住首帧与动态英文写回边界
+ * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、QPA 等价显式 specification 与 diagnostic marker
+ * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离及九项 text-path marker 结构
+ * [POS]: injector/windows 的端到端回归 smoke；证明只有正式 QPA 显式入口能创建翻译运行时
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include <QtCore/QByteArray>
@@ -11,10 +11,13 @@
 #include <QtCore/QJsonDocument>
 #include <QtCore/QJsonObject>
 #include <QtCore/QPoint>
+#include <QtCore/QPluginLoader>
+#include <QtCore/QLibrary>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
 #include <QtCore/QDebug>
 #include <QtGui/QAction>
+#include <QtGui/QGenericPlugin>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QGroupBox>
@@ -29,6 +32,7 @@
 #include <QtWidgets/QVBoxLayout>
 
 #include <cstdio>
+#include <memory>
 
 namespace {
 
@@ -403,6 +407,54 @@ int main(int argc, char *argv[])
 {
     QApplication application(argc, argv);
 
+    std::unique_ptr<QPluginLoader> explicitLoader;
+    QObject *explicitRuntime = nullptr;
+    if (argc == 3
+        && QByteArray(argv[1]) == QByteArrayLiteral("--explicit")) {
+        explicitLoader = std::make_unique<QPluginLoader>(
+            QString::fromLocal8Bit(argv[2]));
+        explicitLoader->setLoadHints(
+            explicitLoader->loadHints() | QLibrary::PreventUnloadHint);
+        auto *const plugin = qobject_cast<QGenericPlugin *>(
+            explicitLoader->instance());
+        if (plugin == nullptr) {
+            fail(
+                QStringLiteral("Could not load explicit generic plugin: %1")
+                    .arg(explicitLoader->errorString()));
+            return 1;
+        }
+        if (plugin->create(
+                QStringLiteral("cavalryi18n"),
+                QString())
+            != nullptr) {
+            fail(
+                QStringLiteral(
+                    "Empty specification bypassed the QPA manifest gate."));
+            return 1;
+        }
+        if (plugin->create(
+                QStringLiteral("cavalryi18n"),
+                QStringLiteral(" zh-Hans"))
+            != nullptr) {
+            fail(QStringLiteral("Loose explicit language was accepted."));
+            return 1;
+        }
+        if (plugin->create(
+                QStringLiteral("unknown"),
+                QStringLiteral("zh-Hans"))
+            != nullptr) {
+            fail(QStringLiteral("Unknown generic plugin key was accepted."));
+            return 1;
+        }
+        explicitRuntime = plugin->create(
+            QStringLiteral("cavalryi18n"),
+            QStringLiteral("zh-Hans"));
+        if (explicitRuntime == nullptr) {
+            fail(QStringLiteral("Valid explicit language was rejected."));
+            return 1;
+        }
+    }
+
     const QString exact =
         QCoreApplication::translate("QMenuBar", "File");
     const QString fallback =
@@ -415,8 +467,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    return verifyEmbeddedTranslationSamples()
+    const bool passed = verifyEmbeddedTranslationSamples()
             && verifyDisplayTranslation(application) && verifyMarker()
-        ? 0
-        : 1;
+        ? true
+        : false;
+    delete explicitRuntime;
+    return passed ? 0 : 1;
 }

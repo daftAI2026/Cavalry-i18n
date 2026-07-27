@@ -1,12 +1,13 @@
 /**
- * [INPUT]: 依赖显式 smoke 环境变量、系统 `%TEMP%`、disposable sentinel、InstallLayout 与 CopyPair 写入表面
- * [OUTPUT]: 提供 GuardedTempRoot、disposable_install_layout、兼容 verbatim/8.3 拼写的规范路径身份校验、逐级 reparse 拒绝及安全 evidence 子目录创建
+ * [INPUT]: 依赖显式 smoke 环境变量、系统 `%TEMP%`、disposable sentinel、InstallLayout、CopyPair 与 Windows QPA 固定写入表面
+ * [OUTPUT]: 提供 GuardedTempRoot、disposable_install_layout、兼容 verbatim/8.3 拼写的规范路径身份校验、逐级 reparse 拒绝、QPA 目标守卫及安全 evidence 子目录创建
  * [POS]: Windows ignored integration smoke 的共享路径信任边界；只证明临时克隆/证据根和明确写目标，不启动进程或执行产品操作
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::{
     install::{normalize_path, InstallLayout},
     patch::CopyPair,
+    windows_qpa,
 };
 use std::{
     env, fs,
@@ -158,10 +159,12 @@ pub fn assert_safe_write_surface(
         ));
     }
     let installed_plugin = layout.root.join("generic").join(PLUGIN_FILE_NAME);
+    let qpa_targets = windows_qpa::managed_write_surface(layout);
     for target in pairs
         .iter()
         .map(|pair| pair.dst.as_path())
         .chain([installed_plugin.as_path(), layout.language_marker.as_path()])
+        .chain(qpa_targets.iter().map(PathBuf::as_path))
     {
         guarded.assert_write_target(target)?;
     }

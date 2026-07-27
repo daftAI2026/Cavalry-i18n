@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CavalryEmbeddedTranslator、CavalryDisplayTranslator、聚合四条边界的 CavalryExtensionLayerHook 与 Qt 应用级事件过滤机制
- * [OUTPUT]: 对外提供环境驱动翻译安装、受控显示刷新、ExtensionLayer 延迟安装及按 revision 落盘的结构化诊断 marker
- * [POS]: injector/windows 的 Qt 运行时核心；只有显式绝对 marker 路径才启用低频诊断计时器，渲染 callback 永不执行 Qt 或 IO
+ * [INPUT]: 依赖 QPA 显式语言、嵌入翻译器、显示层、ExtensionLayer 聚合 hook 与 Qt 事件过滤
+ * [OUTPUT]: 对外提供严格语言谓词、可查询配置结果、受控显示刷新及 revision 驱动的结构化诊断 marker
+ * [POS]: injector/windows 的 Qt 运行时核心；拒绝空 specification，语言只能来自 QPA manifest/hash gate
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
@@ -18,11 +18,16 @@ class CavalryDisplayTranslator;
 class CavalryEmbeddedTranslator;
 class CavalryExtensionLayerHook;
 
+bool cavalryIsSupportedRuntimeLanguage(const QString &language);
+
 class CavalryI18nRuntime final : public QObject
 {
 public:
-    CavalryI18nRuntime();
+    explicit CavalryI18nRuntime(
+        const QString &requestedLanguage);
     ~CavalryI18nRuntime() override;
+
+    bool isConfigured() const;
 
 protected:
     bool eventFilter(QObject *watched, QEvent *event) override;
@@ -39,10 +44,12 @@ private:
         const QString &message,
         bool translatorInstalled) const;
 
+    QString requestedLanguage_;
     QString language_;
     std::unique_ptr<CavalryEmbeddedTranslator> translator_;
     std::unique_ptr<CavalryDisplayTranslator> displayTranslator_;
     std::unique_ptr<CavalryExtensionLayerHook> extensionLayerHook_;
     std::uint64_t lastTextPathDiagnosticRevision_ = 0;
     bool translatorInstalled_ = false;
+    bool configured_ = false;
 };

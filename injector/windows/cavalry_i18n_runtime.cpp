@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CAVALRY_I18N_LANG、嵌入生成表、ExtensionLayer 四条精确 hook、可选绝对 marker 路径与 Qt 6.6.3 事件循环
- * [OUTPUT]: 对外安装 translator/显示投影，并以事件重试 hook、以 75ms 条件计时器仅在 text-path revision 变化时写结构化诊断
- * [POS]: injector/windows 的运行时状态机；普通用户无 marker 时不创建诊断计时器，callback 只改原子计数，Qt 线程负责安全落盘
+ * [INPUT]: 依赖 QPA 显式 requestedLanguage、嵌入生成表、四条精确 hook、可选绝对 marker 与 Qt 6.6.3 事件循环
+ * [OUTPUT]: 对外安装 translator/显示投影、报告配置成功，并以事件重试 hook、按 text-path revision 写结构化诊断
+ * [POS]: injector/windows 的运行时状态机；语言只来自已通过 manifest/hash gate 的 QPA 显式参数，不读取进程语言环境
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_runtime.h"
@@ -36,22 +36,15 @@
 namespace {
 
 constexpr auto kPluginKey = "cavalryi18n";
-constexpr auto kLanguageEnvironment = "CAVALRY_I18N_LANG";
 constexpr auto kMarkerEnvironment = "CAVALRY_I18N_DIAGNOSTIC_MARKER";
-
-bool isSupportedLanguage(const QString &language)
-{
-    return language == QStringLiteral("en")
-        || language == QStringLiteral("zh-Hans")
-        || language == QStringLiteral("zh-Hant")
-        || language == QStringLiteral("ja_JP");
-}
 
 } // namespace
 
-CavalryI18nRuntime::CavalryI18nRuntime()
+CavalryI18nRuntime::CavalryI18nRuntime(
+    const QString &requestedLanguage)
+    : requestedLanguage_(requestedLanguage)
 {
-    configure();
+    configured_ = configure();
 }
 
 CavalryI18nRuntime::~CavalryI18nRuntime()
@@ -65,6 +58,19 @@ CavalryI18nRuntime::~CavalryI18nRuntime()
     if (translatorInstalled_) {
         application->removeTranslator(translator_.get());
     }
+}
+
+bool cavalryIsSupportedRuntimeLanguage(const QString &language)
+{
+    return language == QStringLiteral("en")
+        || language == QStringLiteral("zh-Hans")
+        || language == QStringLiteral("zh-Hant")
+        || language == QStringLiteral("ja_JP");
+}
+
+bool CavalryI18nRuntime::isConfigured() const
+{
+    return configured_;
 }
 
 bool CavalryI18nRuntime::configure()
@@ -86,11 +92,11 @@ bool CavalryI18nRuntime::configure()
         return false;
     }
 
-    language_ = qEnvironmentVariable(kLanguageEnvironment).trimmed();
-    if (!isSupportedLanguage(language_)) {
+    language_ = requestedLanguage_;
+    if (!cavalryIsSupportedRuntimeLanguage(language_)) {
         writeDiagnostic(
             QStringLiteral("error"),
-            QStringLiteral("Unsupported or missing CAVALRY_I18N_LANG."),
+            QStringLiteral("Unsupported explicit language specification."),
             false);
         return false;
     }

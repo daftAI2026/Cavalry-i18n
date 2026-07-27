@@ -1,3 +1,10 @@
+<!--
+[INPUT]: 依赖当前版本线、已验证代码/打包行为与公开发布协议
+[OUTPUT]: 对外提供按 SemVer 组织的用户可见新增、变更与修复记录
+[POS]: 根目录发布历史真相；Unreleased 只记录已落地且具备验证证据的行为
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 # Changelog
 
 All notable changes to this project are documented in this file.
@@ -6,6 +13,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Added
+- **Windows Native-Entry QPA Delegate**: Added a Qt 6.6.3 x64 QPA delegate that preserves the vendor window-system plugin, loads the existing generic translator only after strict manifest/hash/language checks, and lets Desktop, Start Menu, taskbar, direct-EXE, and Switcher launches converge without rewriting shortcuts or global Qt environment variables.
+- **Persistent and Explicit Windows Recovery**: Added a durable vendor `qwindows.dll` backup, crash-visible manifest states, same-volume atomic replacement, and an explicit English restoration path. Ordinary Cavalry exit keeps the selected language; vendor updates that replace the owned proxy are preserved instead of being overwritten by a stale backup.
+
+### Changed
+- **Windows Runner-Built Injector Provenance**: Windows builds now produce the generic translator and QPA delegate together; Tauri resources, NSIS provenance, configuration contracts, and isolated installed-package checks bind both x64 DLLs while continuing to reject a bundled second Qt runtime.
 
 ### Fixed
 - **Smoother Node Restoration**: Restored the real Cavalry 2.7.2 `smoother.smoothingSteps` node across English, Simplified Chinese, Traditional Chinese, and Japanese after byte-identical `nodeStrings.json` files from the macOS DMG and Windows installation disproved the earlier orphan-node assumption; keyed overlays preserve this and future installed nodes.

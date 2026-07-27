@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 InstallLayout、CommandRunner、平台运行环境以及 Windows hash-safe PowerShell 编码。
- * [OUTPUT]: 提供 restart_commands、graceful close、带 cwd/env/PID 的 Cavalry 重启。
+ * [OUTPUT]: 提供 restart_commands、写入前 graceful close、带 cwd/env/PID 的 Cavalry 重启。
  * [POS]: privilege 的跨平台重启适配器；Windows 只关闭精确 executable path 的主窗口，绝不强杀。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -153,6 +153,26 @@ pub fn open_privacy_security<R: CommandRunner>(runner: &mut R) -> Result<(), Str
 
 pub fn restart_cavalry<R: CommandRunner>(app_path: &Path, runner: &mut R) -> Result<(), String> {
     restart_cavalry_with_environment(app_path, &[], runner)
+}
+
+/// Windows 在修改 qwindows/JSON 前只关闭所选安装根的 Cavalry，并等待其自然退出；普通关闭不会恢复任何 DLL。
+pub fn close_cavalry_before_modification<R: CommandRunner>(
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    #[cfg(target_os = "windows")]
+    {
+        let layout = InstallLayout::from_root(app_path);
+        if layout.platform == crate::install::InstallPlatform::Windows {
+            let command = windows_close_command(&layout.executable);
+            return runner.run(&command.program, &command.args);
+        }
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = (app_path, runner);
+    }
+    Ok(())
 }
 
 pub fn restart_cavalry_with_environment<R: CommandRunner>(

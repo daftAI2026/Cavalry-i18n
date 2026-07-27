@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package.json、CHANGELOG.md、跨平台工具入口、Windows NSIS provenance/安装态守门/disposable live-clone 证据门、PowerShell 5.1 脚本编码边界、src-tauri/tauri*.conf.json、capabilities/default.json、本地打包 SOP、README、GitHub workflow 与 release badge JSON
- * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、跨平台安装/换行/Python 命令、版本同步、双 DMG 加 Windows x64 NSIS 的 release 协议、Windows 当前输入 provenance/隔离安装卸载/系统语言与品牌图标以及 exact-HWND live GUI clone/PID/panic/UTF-8 BOM 安全合同、精确版本 CHANGELOG 摘要、README release badge 与平台安装包配置 contract 测试
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、Windows NSIS 安装态验证、disposable clone 的三类自动截图与 opt-in Cog Pitch bit 22 人工证据门、npm/Tauri 平台配置
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装态/live-clone、PowerShell 编码、Tauri 配置、SOP/README/workflow
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议与 Windows x64 generic+QPA 双资源 provenance/隔离安装/系统语言/品牌及 live GUI 安全合同
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、Windows NSIS 双 injector 安装态验证、disposable live 证据与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -130,6 +130,7 @@ function makeWindowsNsisProvenanceFixture() {
       resources: {
         '../languages': 'languages',
         '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
+        '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
       },
       windows: {
         nsis: {
@@ -147,7 +148,17 @@ function makeWindowsNsisProvenanceFixture() {
   write('src-tauri/build.rs', 'fn main() {}\n');
   write('src-tauri/nsis-hooks.nsh', '!macro NSIS_HOOK_POSTUNINSTALL\n!macroend\n');
   write('src-tauri/icons/icon.ico', Buffer.from([0, 0, 1, 0]));
+  write('injector/generated_translations.inc', '// generated translation fixture\n');
+  write(
+    'injector/windows/CMakeLists.txt',
+    'cmake_minimum_required(VERSION 3.21)\nproject(cavalryi18n_fixture)\n'
+  );
+  write(
+    'injector/windows/cavalry_i18n_qpa_proxy.cpp',
+    '// Windows native source fixture\n'
+  );
   write('injector/windows/generic/cavalryi18n.dll', Buffer.from('fixture-plugin'));
+  write('injector/windows/qpa/qwindows.dll', Buffer.from('fixture-qpa-proxy'));
   return tempRoot;
 }
 
@@ -250,7 +261,13 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.deepEqual(windowsResources, {
     '../languages': 'languages',
     '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
+    '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
   });
+  assert.equal(
+    Object.entries(windowsResources).some(([source, destination]) => /Qt6.*\.dll/i.test(`${source}\n${destination}`)),
+    false,
+    'Windows resources must reuse Cavalry Qt instead of bundling a second runtime'
+  );
 });
 
 test('Windows NSIS provenance binds one new installer to current dirty packaging inputs', () => {
@@ -297,6 +314,7 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'languages/en/appStrings.json'));
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'src-tauri/src/lib.rs'));
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'injector/windows/generic/cavalryi18n.dll'));
+  assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'injector/windows/qpa/qwindows.dll'));
   for (const requiredInput of [
     'package.json',
     'package-lock.json',
@@ -308,6 +326,9 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
     'src-tauri/nsis-hooks.nsh',
     'src-tauri/capabilities/default.json',
     'src-tauri/icons/icon.ico',
+    'injector/generated_translations.inc',
+    'injector/windows/CMakeLists.txt',
+    'injector/windows/cavalry_i18n_qpa_proxy.cpp',
   ]) {
     assert.ok(
       provenance.inputFingerprint.files.some((entry) => entry.path === requiredInput),
@@ -325,7 +346,25 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
     /sidecar does not match the current installer bytes and packaging input fingerprint/
   );
   fs.writeFileSync(installerPath, 'fresh-installer-bytes');
-  fs.appendFileSync(path.join(tempRoot, 'renderer', 'index.html'), '<!-- dirty after package -->');
+  fs.appendFileSync(
+    path.join(tempRoot, 'injector', 'windows', 'cavalry_i18n_qpa_proxy.cpp'),
+    '// dirty-after-package\n'
+  );
+  const staleNativeSource = run('--verify', installerPath);
+  assert.notEqual(
+    staleNativeSource.status,
+    0,
+    'a dirty native source input must invalidate the old installer sidecar'
+  );
+  assert.match(
+    staleNativeSource.stderr,
+    /sidecar does not match the current installer bytes and packaging input fingerprint/
+  );
+  fs.writeFileSync(
+    path.join(tempRoot, 'injector', 'windows', 'cavalry_i18n_qpa_proxy.cpp'),
+    '// Windows native source fixture\n'
+  );
+  fs.appendFileSync(path.join(tempRoot, 'injector', 'windows', 'qpa', 'qwindows.dll'), '-dirty-after-package');
   const staleInputs = run('--verify', installerPath);
   assert.notEqual(staleInputs.status, 0, 'a dirty packaging input must invalidate the old installer sidecar');
   assert.match(staleInputs.stderr, /sidecar does not match the current installer bytes and packaging input fingerprint/);
@@ -506,6 +545,7 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   const localSop = readText('LOCAL_BUILD_SOP.md');
   const windowsBuild = readText('injector/windows/build.ps1');
   const windowsCmake = readText('injector/windows/CMakeLists.txt');
+  const windowsProvenance = readText('tools/windows_nsis_provenance.js');
 
   assert.equal(releaseConfig.targetCavalryVersion, '2.7.2');
   assert.equal(releaseConfig.releaseTagPrefix, 'cavalry-2.7.2-p');
@@ -521,7 +561,27 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   });
   assert.deepEqual(Object.keys(releaseConfig.assetNameTemplates).sort(), ['aarch64', 'windowsX64', 'x64']);
   assert.match(windowsBuild, /'-A', 'x64'/);
+  assert.match(windowsBuild, /function Assert-NoReparsePathChain/);
+  assert.match(windowsBuild, /function Reset-GeneratedBuildDirectory/);
+  assert.match(
+    windowsBuild,
+    /GetDirectoryName\(\$buildDirectory\)[\s\S]*Remove-Item -LiteralPath \$buildDirectory -Recurse -Force/
+  );
+  assert.match(
+    windowsBuild,
+    /Assert-NoReparsePathChain -Path \$publishedPlugin[\s\S]*Assert-NoReparsePathChain -Path \$publishedQpaProxy/
+  );
   assert.match(windowsCmake, /must be built for x64/);
+  assert.match(windowsCmake, /must come from the shared Qt 6\.6\.3 SDK/);
+  assert.match(windowsProvenance, /function assertNoReparsePathChain/);
+  assert.match(
+    windowsProvenance,
+    /path\.join\('injector', 'windows'\)[\s\S]*\(\?:cpp\|h\|json\|ps1\)[\s\S]*injector', 'generated_translations\.inc'/
+  );
+  assert.match(
+    windowsProvenance,
+    /assertNoReparsePathChain\(bundleRoot, 'Windows NSIS bundle root'\)[\s\S]*fs\.mkdirSync\(bundleRoot[\s\S]*assertNoReparsePathChain\(bundleRoot, 'Windows NSIS bundle root after creation'\)/
+  );
   assert.match(workflow, /tags:\s*\['cavalry-\*-p\*'\]/);
   assert.match(workflow, /npm run check:release/);
   assert.match(workflow, /npm run release:metadata -- --github-env/);
@@ -897,6 +957,10 @@ test('Windows NSIS installed-surface smoke refuses collisions and has no destruc
   const smokeTemp = script.indexOf('$tempRoot = Normalize-ComparablePath');
   assert.ok(provenanceCheck >= 0 && provenanceCheck < smokeTemp, 'provenance must fail before temp install state is created');
   assert.match(script, /Get-FileHash -LiteralPath \$sourcePlugin -Algorithm SHA256/);
+  assert.match(script, /\$qpaProxyRelativePath = 'injector\\windows\\qpa\\qwindows\.dll'/);
+  assert.match(script, /\$sourceQpaProxy = Join-Path \$repoRoot 'injector\\windows\\qpa\\qwindows\.dll'/);
+  assert.match(script, /Assert-PeX64 -Path \$installedQpaProxy/);
+  assert.match(script, /Get-FileHash -LiteralPath \$sourceQpaProxy -Algorithm SHA256/);
   assert.match(script, /\$_.Extension -ieq '\.dylib' -or \$_.Name -like 'Qt6\*\.dll'/);
   assert.match(script, /Assert-InstalledRegistry/);
   assert.match(script, /finally \{/);
@@ -908,15 +972,16 @@ test('Windows NSIS installed-surface smoke refuses collisions and has no destruc
   );
 });
 
-test('Windows production launch preserves the caller profile and login context', () => {
+test('Windows production launch uses QPA state and preserves the caller profile/login context', () => {
   const productionRuntime = readText('src-tauri/src/windows_runtime.rs');
   const runner = readText('src-tauri/src/privilege/runner.rs');
 
-  assert.match(productionRuntime, /QT_PLUGIN_PATH/);
-  assert.match(productionRuntime, /QT_QPA_GENERIC_PLUGINS/);
-  assert.match(productionRuntime, /CAVALRY_I18N_LANG/);
   assert.match(productionRuntime, /CAVALRY_I18N_DIAGNOSTIC_MARKER/);
-  assert.match(productionRuntime, /assert_eq!\(environment\.len\(\), 4\)/);
+  assert.match(productionRuntime, /QpaDeploymentState::Active/);
+  assert.match(productionRuntime, /assert_eq!\(environment\.len\(\), 1\)/);
+  assert.match(productionRuntime, /!environment\.contains_key\("QT_PLUGIN_PATH"\)/);
+  assert.match(productionRuntime, /!environment\.contains_key\("QT_QPA_GENERIC_PLUGINS"\)/);
+  assert.match(productionRuntime, /!environment\.contains_key\("CAVALRY_I18N_LANG"\)/);
   assert.doesNotMatch(productionRuntime, /APPDATA|LOCALAPPDATA|USERPROFILE|Credential/i);
   assert.doesNotMatch(runner, /\.env_clear\(\)/);
 });

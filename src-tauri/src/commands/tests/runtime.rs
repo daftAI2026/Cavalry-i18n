@@ -1,12 +1,14 @@
-use super::super::apply_language_inner;
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-use super::super::restart_cavalry_inner;
 /**
  * [INPUT]: 依赖 commands 测试 fixture、平台条件编译 runner 与 commands facade 的 apply/restart seam。
- * [OUTPUT]: 覆盖打包资源解析、macOS 注入器定位、Windows 插件启动边界与语言应用回归场景。
+ * [OUTPUT]: 覆盖打包资源解析、macOS 注入器定位、Windows QPA ACTIVE/诊断环境启动边界与语言应用回归场景。
  * [POS]: commands/tests 的运行时集成测试；将资源、应用、重启行为从基础契约测试中隔离。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+use super::super::apply_language_inner;
+#[cfg(any(target_os = "macos", target_os = "windows"))]
+use super::super::restart_cavalry_inner;
+#[cfg(target_os = "windows")]
+use super::super::restart_cavalry_inner_with_qpa_inspector;
 use super::{make_bundle, make_english_snapshot, make_language, status_for_paths, write};
 #[cfg(target_os = "windows")]
 use super::{make_windows_install, write_windows_runtime_state, WindowsRuntimeRestartRunner};
@@ -14,6 +16,18 @@ use crate::privilege::RecordingRunner;
 use std::fs;
 #[cfg(target_os = "windows")]
 use std::path::Path;
+
+#[cfg(target_os = "windows")]
+fn active_qpa(
+    _layout: &crate::install::InstallLayout,
+) -> Result<crate::windows_qpa::QpaInspection, String> {
+    Ok(crate::windows_qpa::QpaInspection {
+        state: crate::windows_qpa::QpaDeploymentState::Active,
+        phase: Some(crate::windows_qpa::QpaManifestPhase::Active),
+        current_qwindows_sha256: Some("a".repeat(64)),
+        detail: "test-owned ACTIVE inspection".to_string(),
+    })
+}
 
 #[test]
 fn status_uses_packaged_resource_languages_when_repo_root_is_missing() {
@@ -242,7 +256,15 @@ fn restart_cavalry_inner_passes_packaged_plugin_environment_to_windows_runner() 
     write_windows_runtime_state(&state_dir, &install_root, "zh-Hans");
 
     let mut runner = WindowsRuntimeRestartRunner::default();
-    restart_cavalry_inner(temp.path(), &state_dir, &resources, &app, &mut runner).unwrap();
+    restart_cavalry_inner_with_qpa_inspector(
+        temp.path(),
+        &state_dir,
+        &resources,
+        &app,
+        &mut runner,
+        active_qpa,
+    )
+    .unwrap();
 
     let variables = runner
         .environment
@@ -263,11 +285,10 @@ fn restart_cavalry_inner_passes_packaged_plugin_environment_to_windows_runner() 
         runner.working_directory.as_deref(),
         Some(install_root.as_path())
     );
-    assert_eq!(
-        variables["QT_PLUGIN_PATH"],
-        install_root.to_string_lossy().to_string()
-    );
-    assert_eq!(variables["CAVALRY_I18N_LANG"], "zh-Hans");
+    assert_eq!(variables.len(), 1);
+    assert!(!variables.contains_key("QT_PLUGIN_PATH"));
+    assert!(!variables.contains_key("QT_QPA_GENERIC_PLUGINS"));
+    assert!(!variables.contains_key("CAVALRY_I18N_LANG"));
     assert!(Path::new(&variables["CAVALRY_I18N_DIAGNOSTIC_MARKER"]).is_absolute());
 }
 

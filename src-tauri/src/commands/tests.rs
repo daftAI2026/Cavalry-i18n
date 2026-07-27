@@ -1,5 +1,8 @@
 /**
- * [INPUT]: 渚濊禆 commands 鍚勮亴璐ｆā鍧椼€佷复鏃?bundle fixtures 涓?fake CommandRunner銆? * [OUTPUT]: 瑕嗙洊 command 鍏煎 DTO銆乻napshot/provenance銆佷簨鍔?marker銆乸latform runtime apply/restart銆? * [POS]: commands 鐨?owner unit tests锛涢€氳繃 facade 鍏紑鐨?crate-private seam 楠岃瘉璺ㄦā鍧楃紪鎺掋€? * [PROTOCOL]: 鍙樻洿鏃舵洿鏂版澶撮儴锛岀劧鍚庢鏌?CLAUDE.md
+ * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
+ * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、事务 marker 与平台 runtime apply/restart。
+ * [POS]: commands 的 owner unit tests；通过 facade 公开的 crate-private seam 验证跨模块编排。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(target_os = "macos")]
 use super::{acquire_bundle_file_lock, injector_source_candidates};
@@ -88,11 +91,10 @@ impl CommandRunner for WindowsRuntimeRestartRunner {
             .find(|(key, _)| key.to_string_lossy() == "CAVALRY_I18N_DIAGNOSTIC_MARKER")
             .map(|(_, value)| PathBuf::from(value))
             .ok_or_else(|| "missing diagnostic marker environment".to_string())?;
-        let language = environment
-            .iter()
-            .find(|(key, _)| key.to_string_lossy() == "CAVALRY_I18N_LANG")
-            .map(|(_, value)| value.to_string_lossy().to_string())
-            .ok_or_else(|| "missing language environment".to_string())?;
+        let language = fs::read_to_string(working_directory.join(crate::install::LANG_MARKER_NAME))
+            .map_err(|error| error.to_string())?
+            .trim()
+            .to_string();
         fs::write(
                 marker,
                 format!(
@@ -320,6 +322,7 @@ fn marker_transaction_brackets_assets_with_pending_and_forced_final_marker() {
         &temp.path().join("stage"),
         vec![asset.clone()],
         Some(&final_marker),
+        false,
     )
     .unwrap();
 
@@ -331,6 +334,40 @@ fn marker_transaction_brackets_assets_with_pending_and_forced_final_marker() {
     );
     assert_eq!(transaction[1], asset);
     assert_eq!(transaction[2], final_marker);
+}
+
+#[test]
+fn deferred_final_marker_is_excluded_from_the_pending_resource_transaction() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Cavalry");
+    let layout = crate::install::InstallLayout::from_root(&app);
+    let asset_source = temp.path().join("asset.json");
+    let final_source = temp.path().join("final-marker.txt");
+    write(&asset_source, b"asset");
+    write(&final_source, b"zh-Hans\n");
+    let asset = crate::patch::CopyPair {
+        src: asset_source,
+        dst: app.join("assets/Definitions/appStrings.json"),
+    };
+    let final_marker = crate::patch::CopyPair {
+        src: final_source,
+        dst: layout.language_marker.clone(),
+    };
+
+    let prepare = marker_guarded_transaction_pairs(
+        &layout,
+        &temp.path().join("stage"),
+        vec![asset.clone()],
+        Some(&final_marker),
+        true,
+    )
+    .unwrap();
+
+    assert_eq!(prepare.len(), 2);
+    assert_eq!(prepare[0].dst, layout.language_marker);
+    assert_eq!(fs::read_to_string(&prepare[0].src).unwrap(), "pending\n");
+    assert_eq!(prepare[1], asset);
+    assert!(!prepare.contains(&final_marker));
 }
 
 #[test]
@@ -641,53 +678,39 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
 
 #[test]
 #[cfg(target_os = "windows")]
-fn apply_language_stages_generic_plugin_into_selected_install_root() {
+fn windows_apply_plan_stages_generic_and_defers_final_marker_for_qpa() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
-    let state = temp.path().join("state");
     let resources = temp.path().join("resources");
     let app = make_windows_install(temp.path());
+    let install_root = crate::install::InstallLayout::from_root(&app).root;
     let source_plugin = resources.join("injector/windows/generic/cavalryi18n.dll");
-    make_language(&resources, "zh-Hans");
     write(&source_plugin, b"plugin");
+    write(
+        &resources.join("injector/windows/qpa/qwindows.dll"),
+        b"qpa-proxy",
+    );
 
-    let mut runner = RecordingRunner::default();
-    let result = apply_language_inner(
+    let plan = crate::platform_runtime::prepare_apply(
         &repo,
-        &state,
         &resources,
         &app,
         "zh-Hans",
-        &mut runner,
-        "2026-04-23T00:00:00.000Z",
+        "2.7.2",
+        &temp.path().join("staging"),
     )
     .unwrap();
 
-    assert!(result.ok);
+    assert!(plan.defer_final_language_marker);
+    assert_eq!(plan.runtime_pairs.len(), 1);
+    assert_eq!(plan.runtime_pairs[0].src, source_plugin);
     assert_eq!(
-        fs::read(app.join("generic/cavalryi18n.dll")).unwrap(),
-        b"plugin"
+        plan.runtime_pairs[0].dst,
+        install_root.join("generic/cavalryi18n.dll")
     );
     assert_eq!(
-        fs::read_to_string(app.join(crate::install::LANG_MARKER_NAME)).unwrap(),
-        "zh-Hans\n"
-    );
-    assert!(runner.commands.is_empty());
-
-    let english = apply_language_inner(
-        &repo,
-        &state,
-        &resources,
-        &app,
-        "en",
-        &mut runner,
-        "2026-04-23T00:01:00.000Z",
-    )
-    .unwrap();
-    assert!(english.ok);
-    assert_eq!(
-        fs::read_to_string(app.join(crate::install::LANG_MARKER_NAME)).unwrap(),
-        "en\n"
+        plan.final_language_marker.as_ref().unwrap().dst,
+        install_root.join(crate::install::LANG_MARKER_NAME)
     );
 }
 

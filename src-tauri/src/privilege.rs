@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读发现命令和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，并向 crate 内提供无控制台 captured command。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供写入前 graceful close，并向 crate 内提供无控制台 captured command。
  * [POS]: src-tauri/src 的系统命令 facade；平台安全与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -24,8 +24,8 @@ pub use keychain::{
     KeychainPatchReport,
 };
 pub use restart::{
-    open_privacy_security, restart_cavalry, restart_cavalry_with_environment,
-    restart_cavalry_with_environment_and_pid, restart_commands,
+    close_cavalry_before_modification, open_privacy_security, restart_cavalry,
+    restart_cavalry_with_environment, restart_cavalry_with_environment_and_pid, restart_commands,
 };
 pub use runner::{
     CommandRunner, CommandStatus, RealCommandRunner, RecordedCommand, RecordingRunner,

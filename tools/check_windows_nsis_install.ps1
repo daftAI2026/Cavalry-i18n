@@ -1,7 +1,7 @@
 ﻿<#
-[INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、显式 x86_64 Rust target 下刚构建的 Windows x64 NSIS EXE、其当前工作树 provenance sidecar、package.json 版本、仓库 Windows generic plugin 与当前用户 HKCU/快捷方式命名空间
-[OUTPUT]: 对外提供 fail-closed 的随机 TEMP 安装态冒烟；先复算安装包/输入 fingerprint，再验证 x64/资源/哈希/注册表后静默卸载并拒绝任何残留
-[POS]: tools 的 Windows packaged-install 守门器，只消费唯一且由当前输入自证的 release NSIS；固定状态冲突即中止，失败时不做递归删除或预存状态清理
+[INPUT]: 依赖 PowerShell 5.1 UTF-8 BOM、显式 x64 NSIS/current provenance、package 版本、仓库 generic/QPA 双 DLL 与当前用户安装命名空间
+[OUTPUT]: 对外提供随机 TEMP 安装态冒烟；复算输入后验证主程序与双 DLL x64/资源/hash/无第二 Qt runtime/注册表，再卸载且拒绝残留
+[POS]: tools 的 Windows packaged-install 守门器，只消费当前输入自证的 release NSIS；固定冲突即中止，不以递归删除掩盖失败
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -17,6 +17,7 @@ $productName = 'Cavalry Language Switcher'
 $publisher = 'daftai'
 $mainBinaryName = 'cavalry-i18n-tauri.exe'
 $pluginRelativePath = 'injector\windows\generic\cavalryi18n.dll'
+$qpaProxyRelativePath = 'injector\windows\qpa\qwindows.dll'
 $expectedLocales = @('en', 'ja_JP', 'zh-Hans', 'zh-Hant')
 $expectedJsonCountPerLocale = 38
 $processTimeoutMilliseconds = 300000
@@ -28,6 +29,7 @@ $bundleRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $repoRoot "src-tauri\target\$windowsTargetTriple\release\bundle\nsis")
 )
 $sourcePlugin = Join-Path $repoRoot 'injector\windows\generic\cavalryi18n.dll'
+$sourceQpaProxy = Join-Path $repoRoot 'injector\windows\qpa\qwindows.dll'
 $packageJson = Join-Path $repoRoot 'package.json'
 $provenanceTool = Join-Path $repoRoot 'tools\windows_nsis_provenance.js'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Cavalry Language Switcher'
@@ -486,8 +488,9 @@ function Assert-InstalledPackage {
 
     $mainBinary = Join-Path $InstallRoot $mainBinaryName
     $installedPlugin = Join-Path $InstallRoot $pluginRelativePath
+    $installedQpaProxy = Join-Path $InstallRoot $qpaProxyRelativePath
     $uninstaller = Join-Path $InstallRoot 'uninstall.exe'
-    foreach ($required in @($mainBinary, $installedPlugin, $uninstaller)) {
+    foreach ($required in @($mainBinary, $installedPlugin, $installedQpaProxy, $uninstaller)) {
         Assert-Condition -Condition (Test-Path -LiteralPath $required -PathType Leaf) `
             -Message "Installed Windows package is missing $required."
     }
@@ -495,6 +498,7 @@ function Assert-InstalledPackage {
     Assert-NoReparsePoints -Root $InstallRoot
     Assert-PeX64 -Path $mainBinary
     Assert-PeX64 -Path $installedPlugin
+    Assert-PeX64 -Path $installedQpaProxy
     Assert-InstalledLanguages -InstallRoot $InstallRoot
     Assert-NoForeignRuntime -InstallRoot $InstallRoot
 
@@ -504,6 +508,12 @@ function Assert-InstalledPackage {
     $installedHash = (Get-FileHash -LiteralPath $installedPlugin -Algorithm SHA256).Hash
     Assert-Condition -Condition ($sourceHash -ceq $installedHash) `
         -Message "Installed Windows plugin hash differs from the repository package source."
+    Assert-Condition -Condition (Test-Path -LiteralPath $sourceQpaProxy -PathType Leaf) `
+        -Message "Trusted repository Windows QPA proxy is missing: $sourceQpaProxy"
+    $sourceQpaHash = (Get-FileHash -LiteralPath $sourceQpaProxy -Algorithm SHA256).Hash
+    $installedQpaHash = (Get-FileHash -LiteralPath $installedQpaProxy -Algorithm SHA256).Hash
+    Assert-Condition -Condition ($sourceQpaHash -ceq $installedQpaHash) `
+        -Message "Installed Windows QPA proxy hash differs from the repository package source."
 
     foreach ($shortcut in $ShortcutPaths) {
         Assert-Condition -Condition (-not (Test-Path -LiteralPath $shortcut)) `
@@ -572,6 +582,9 @@ Assert-Condition -Condition (Test-Path -LiteralPath $packageJson -PathType Leaf)
 Assert-Condition -Condition (Test-Path -LiteralPath $sourcePlugin -PathType Leaf) `
     -Message "Windows plugin source does not exist: $sourcePlugin"
 Assert-NoReparsePathChain -Path $sourcePlugin -Role 'Windows plugin source'
+Assert-Condition -Condition (Test-Path -LiteralPath $sourceQpaProxy -PathType Leaf) `
+    -Message "Windows QPA proxy source does not exist: $sourceQpaProxy"
+Assert-NoReparsePathChain -Path $sourceQpaProxy -Role 'Windows QPA proxy source'
 
 $resolvedInstaller = Resolve-Installer -RequestedPath $InstallerPath
 $package = Get-Content -LiteralPath $packageJson -Raw -Encoding UTF8 | ConvertFrom-Json

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖共享 runtime_paths/operation_lock、保存的 State、Cavalry 安装布局、Windows runtime ready marker 与 CommandRunner。
- * [OUTPUT]: 提供 --launch-cavalry 无 WebView 分流，以及带 revision/marker/plugin/PID 就绪门的可测试启动编排。
- * [POS]: src-tauri/src 的 Windows 原生启动入口；复用 Switcher 二进制读取当前选择，只给 Cavalry 子进程注入环境，不修改 vendor EXE 或全局环境。
+ * [OUTPUT]: 提供 --launch-cavalry 无 WebView 分流，以及带 revision/语言 marker/QPA ACTIVE/plugin/PID 就绪门的可测试启动编排。
+ * [POS]: src-tauri/src 的 Windows 原生启动入口；复用 Switcher 二进制读取当前选择，仅给 Cavalry 子进程注入诊断 marker，不修改 vendor EXE 或全局环境。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -60,6 +60,26 @@ fn launch_from_paths<R: CommandRunner>(
     resource_dir: &Path,
     runner: &mut R,
 ) -> Result<(), String> {
+    launch_from_paths_with_qpa_inspector(
+        repo_root,
+        state_dir,
+        resource_dir,
+        runner,
+        crate::windows_qpa::inspect,
+    )
+}
+
+fn launch_from_paths_with_qpa_inspector<R, F>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    runner: &mut R,
+    inspect_qpa: F,
+) -> Result<(), String>
+where
+    R: CommandRunner,
+    F: Fn(&crate::install::InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String>,
+{
     let _operation_guard = operation_lock::try_begin_bundle_operation(state_dir)?;
     let saved = state::read_state(state_dir).ok_or_else(|| {
         "Open Cavalry Language Switcher and apply a language before using this shortcut."
@@ -93,8 +113,14 @@ fn launch_from_paths<R: CommandRunner>(
         ));
     }
 
-    let launch =
-        windows_runtime::prepare_launch(&layout, state_dir, &saved, resource_dir, repo_root)?;
+    let launch = windows_runtime::prepare_launch_with_qpa_inspector(
+        &layout,
+        state_dir,
+        &saved,
+        resource_dir,
+        repo_root,
+        inspect_qpa,
+    )?;
     let process_id = runner
         .spawn_detached_in_with_env_and_pid(
             &layout.executable.to_string_lossy(),
@@ -113,7 +139,7 @@ fn launch_from_paths<R: CommandRunner>(
 
 #[cfg(test)]
 mod tests {
-    use super::{launch_from_paths, launch_requested, LAUNCH_ARGUMENT};
+    use super::{launch_from_paths_with_qpa_inspector, launch_requested, LAUNCH_ARGUMENT};
     use crate::{
         detect,
         install::{InstallLayout, LANG_MARKER_NAME},
@@ -172,10 +198,9 @@ mod tests {
                     .iter()
                     .find(|(key, _)| key == "CAVALRY_I18N_DIAGNOSTIC_MARKER")
                     .map(|(_, value)| PathBuf::from(value));
-                let language = environment
-                    .iter()
-                    .find(|(key, _)| key == "CAVALRY_I18N_LANG")
-                    .map(|(_, value)| value.to_string_lossy().to_string());
+                let language = fs::read_to_string(working_directory.join(LANG_MARKER_NAME))
+                    .ok()
+                    .map(|value| value.trim().to_string());
                 if let (Some(marker_path), Some(language)) = (marker_path, language) {
                     let payload = format!(
                         r#"{{"plugin":"cavalryi18n","status":"ready","message":"installed","language":"{language}","translationSource":"embedded-generated-table","embeddedEntryCount":4,"exactKeyCount":3,"sourceFallbackCount":1,"translatorInstalled":true,"extensionLayerHookStatus":"waiting-for-extension-layer","extensionLayerHookDetail":"ExtensionLayer.dll has not loaded yet.","qtVersion":"6.6.3","processId":"{marker_process_id}"}}"#
@@ -230,6 +255,15 @@ mod tests {
         (app, resources, state_dir)
     }
 
+    fn active_qpa(_layout: &InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String> {
+        Ok(crate::windows_qpa::QpaInspection {
+            state: crate::windows_qpa::QpaDeploymentState::Active,
+            phase: Some(crate::windows_qpa::QpaManifestPhase::Active),
+            current_qwindows_sha256: Some("a".repeat(64)),
+            detail: "test-owned ACTIVE inspection".to_string(),
+        })
+    }
+
     #[test]
     fn headless_mode_requires_the_exact_single_argument() {
         assert!(launch_requested(&[
@@ -251,7 +285,14 @@ mod tests {
         let (app, resources, state_dir) = fixture(&temp, "zh-Hans");
         let mut runner = LaunchRecorder::ready(4242);
 
-        launch_from_paths(temp.path(), &state_dir, &resources, &mut runner).unwrap();
+        launch_from_paths_with_qpa_inspector(
+            temp.path(),
+            &state_dir,
+            &resources,
+            &mut runner,
+            active_qpa,
+        )
+        .unwrap();
 
         let layout = InstallLayout::from_root(&app);
         assert_eq!(
@@ -273,12 +314,11 @@ mod tests {
                 )
             })
             .collect::<std::collections::HashMap<_, _>>();
-        assert_eq!(environment["QT_QPA_GENERIC_PLUGINS"], "cavalryi18n");
-        assert_eq!(environment["CAVALRY_I18N_LANG"], "zh-Hans");
-        assert_eq!(
-            Path::new(&environment["QT_PLUGIN_PATH"]),
-            layout.root.as_path()
-        );
+        assert_eq!(environment.len(), 1);
+        assert!(Path::new(&environment["CAVALRY_I18N_DIAGNOSTIC_MARKER"]).is_absolute());
+        assert!(!environment.contains_key("QT_PLUGIN_PATH"));
+        assert!(!environment.contains_key("QT_QPA_GENERIC_PLUGINS"));
+        assert!(!environment.contains_key("CAVALRY_I18N_LANG"));
     }
 
     #[test]
@@ -288,7 +328,14 @@ mod tests {
         let (_app, resources, state_dir) = fixture(&temp, "en");
         let mut runner = LaunchRecorder::ready(4242);
 
-        launch_from_paths(temp.path(), &state_dir, &resources, &mut runner).unwrap();
+        launch_from_paths_with_qpa_inspector(
+            temp.path(),
+            &state_dir,
+            &resources,
+            &mut runner,
+            active_qpa,
+        )
+        .unwrap();
 
         assert!(runner.environment.is_empty());
         assert!(runner.args.is_empty());
@@ -305,8 +352,14 @@ mod tests {
             ..LaunchRecorder::default()
         };
 
-        let marker_error =
-            launch_from_paths(temp.path(), &state_dir, &resources, &mut wrong_marker).unwrap_err();
+        let marker_error = launch_from_paths_with_qpa_inspector(
+            temp.path(),
+            &state_dir,
+            &resources,
+            &mut wrong_marker,
+            active_qpa,
+        )
+        .unwrap_err();
         assert!(
             marker_error.contains("processId mismatch"),
             "{marker_error}"
@@ -316,8 +369,14 @@ mod tests {
             marker_process_id: Some(4242),
             ..LaunchRecorder::default()
         };
-        let pid_error =
-            launch_from_paths(temp.path(), &state_dir, &resources, &mut missing_pid).unwrap_err();
+        let pid_error = launch_from_paths_with_qpa_inspector(
+            temp.path(),
+            &state_dir,
+            &resources,
+            &mut missing_pid,
+            active_qpa,
+        )
+        .unwrap_err();
         assert!(pid_error.contains("did not report"), "{pid_error}");
     }
 
@@ -329,8 +388,14 @@ mod tests {
         let guard = operation_lock::try_begin_bundle_operation(&state_dir).unwrap();
         let mut runner = LaunchRecorder::ready(4242);
 
-        let error =
-            launch_from_paths(temp.path(), &state_dir, &resources, &mut runner).unwrap_err();
+        let error = launch_from_paths_with_qpa_inspector(
+            temp.path(),
+            &state_dir,
+            &resources,
+            &mut runner,
+            active_qpa,
+        )
+        .unwrap_err();
 
         assert_eq!(error, operation_lock::BUSY_ERROR);
         assert!(runner.program.is_none());
@@ -345,15 +410,27 @@ mod tests {
         fs::write(app.join(LANG_MARKER_NAME), b"en\n").unwrap();
         let mut runner = LaunchRecorder::ready(4242);
 
-        let marker_error =
-            launch_from_paths(temp.path(), &state_dir, &resources, &mut runner).unwrap_err();
+        let marker_error = launch_from_paths_with_qpa_inspector(
+            temp.path(),
+            &state_dir,
+            &resources,
+            &mut runner,
+            active_qpa,
+        )
+        .unwrap_err();
         assert!(marker_error.contains("does not match"), "{marker_error}");
         assert!(runner.program.is_none());
 
         fs::write(app.join(LANG_MARKER_NAME), b"zh-Hant\n").unwrap();
         fs::write(app.join("Cavalry.exe"), b"changed-binary").unwrap();
-        let revision_error =
-            launch_from_paths(temp.path(), &state_dir, &resources, &mut runner).unwrap_err();
+        let revision_error = launch_from_paths_with_qpa_inspector(
+            temp.path(),
+            &state_dir,
+            &resources,
+            &mut runner,
+            active_qpa,
+        )
+        .unwrap_err();
         assert!(
             revision_error.contains("installation changed"),
             "{revision_error}"

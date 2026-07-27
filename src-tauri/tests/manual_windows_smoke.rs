@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 support/windows_disposable 路径守卫、显式 CAVALRY_I18N_WINDOWS_SMOKE_APP、repo 四语语言包与 Windows plugin
- * [OUTPUT]: 对外提供 ignored Windows 冒烟：三种非英语逐文件 apply、smoother/marker/plugin 验证与 English 资源原始字节回滚，并逐目标拒绝越界或 reparse 写入链
+ * [OUTPUT]: 对外提供 ignored Windows 冒烟：三种非英语逐文件 apply、smoother/marker/plugin/QPA ACTIVE 验证与 English 资源及 vendor qwindows 原始字节回滚，并逐目标拒绝越界或 reparse 写入链
  * [POS]: src-tauri/tests 的人工 Windows 非 GUI 验收护栏，只写入用户明确提供且完整路径链可证的临时克隆，绝不启动 Cavalry 或触发 UAC
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -16,7 +16,7 @@ mod windows_smoke {
         install::InstallLayout,
         patch::{self, CORE_MAP, PLUGIN_DEFINITION_MAP},
         privilege::RecordingRunner,
-        state,
+        state, windows_qpa,
     };
     use std::{
         collections::BTreeMap,
@@ -26,6 +26,31 @@ mod windows_smoke {
 
     const SMOKE_APP_ENV: &str = "CAVALRY_I18N_WINDOWS_SMOKE_APP";
     const PLUGIN_FILE_NAME: &str = "cavalryi18n.dll";
+
+    fn require_graceful_close_only(language: &str, runner: &RecordingRunner) -> Result<(), String> {
+        let Some(command) = runner.commands.as_slice().first() else {
+            return Err(format!(
+                "{language} did not run the exact-path graceful close gate"
+            ));
+        };
+        if runner.commands.len() != 1
+            || command.program != "powershell.exe"
+            || command.args.len() != 5
+            || command.args[..4]
+                != [
+                    "-NoLogo",
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-EncodedCommand",
+                ]
+        {
+            return Err(format!(
+                "{language} used an unexpected external/elevated command surface: {:?}",
+                runner.commands
+            ));
+        }
+        Ok(())
+    }
 
     fn repo_root() -> PathBuf {
         Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -149,6 +174,13 @@ mod windows_smoke {
                 "installed plugin differs from source for {language}"
             ));
         }
+        let qpa = windows_qpa::inspect(layout)?;
+        if qpa.state != windows_qpa::QpaDeploymentState::Active {
+            return Err(format!(
+                "{language} did not reach ACTIVE QPA state: {}",
+                qpa.detail
+            ));
+        }
         let current_state = state::read_state(state_dir)
             .ok_or_else(|| format!("state is missing after applying {language}"))?;
         if current_state.current_lang != language {
@@ -190,6 +222,8 @@ mod windows_smoke {
                 .join(", ")
         );
         let baseline_pairs = patch::build_copy_pairs(&english_source, app);
+        let vendor_qwindows = fs::read(app.join(windows_qpa::QWINDOWS_FILE_NAME))
+            .expect("could not capture vendor qwindows.dll baseline");
         let expected_pair_count =
             CORE_MAP.len() + PLUGIN_DEFINITION_MAP.len() + patch::discover_plugins(app).len();
         assert_eq!(
@@ -232,9 +266,7 @@ mod windows_smoke {
                 if !applied.ok || applied.current_lang.as_deref() != Some(language) {
                     return Err(format!("{language} apply returned an invalid payload"));
                 }
-                if !runner.commands.is_empty() {
-                    return Err(format!("{language} unexpectedly needed an elevated copy"));
-                }
+                require_graceful_close_only(language, &runner)?;
                 verify_applied_language(
                     &repo,
                     state_dir.path(),
@@ -288,10 +320,8 @@ mod windows_smoke {
         );
         assert!(restored.ok);
         assert_eq!(restored.current_lang.as_deref(), Some("en"));
-        assert!(
-            english_runner.commands.is_empty(),
-            "the disposable clone unexpectedly needed an elevated English restore"
-        );
+        require_graceful_close_only("en", &english_runner)
+            .expect("the disposable clone used more than the graceful close gate");
         assert!(
             patch::install_matches_language_source(&english_source, app)
                 .expect("could not verify restored English clone"),
@@ -319,6 +349,18 @@ mod windows_smoke {
                 .expect("missing smoke state after English restore")
                 .current_lang,
             "en"
+        );
+        assert_eq!(
+            fs::read(app.join(windows_qpa::QWINDOWS_FILE_NAME))
+                .expect("could not read restored qwindows.dll"),
+            vendor_qwindows,
+            "English selection did not byte-restore vendor qwindows.dll"
+        );
+        let qpa = windows_qpa::inspect(&layout).expect("could not inspect restored QPA state");
+        assert_eq!(qpa.state, windows_qpa::QpaDeploymentState::Stock);
+        assert!(
+            !windows_qpa::recovery_directory(&layout).exists(),
+            "English selection left QPA recovery state behind"
         );
     }
 }

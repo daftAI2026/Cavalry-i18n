@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 install::InstallLayout、patch::CopyPair、state::State、sha2、Tauri resource_dir、仓库根与应用 state 目录
- * [OUTPUT]: 对外提供 Windows 插件源解析、安装根 generic copy pair、非 English 启动前的流式插件完整性校验、marker 清理/就绪校验与仅供 Cavalry 子进程消费的启动环境；ExtensionLayer hook 字段只作诊断报告，不作为启动就绪门槛
- * [POS]: src-tauri/src 的 Windows Qt 运行时装配器，隔离资源定位、受控安装、启动前可信源/已安装插件比对、带 PID/Qt/语言约束的诊断门与进程环境契约；完整性检查不是代码签名，也不能消除校验后的文件替换竞态，不修改用户或系统全局环境
+ * [INPUT]: 依赖 InstallLayout、windows_qpa ACTIVE 状态、generic/QPA 打包资源、state 与 SHA-256。
+ * [OUTPUT]: 提供 generic/QPA 可信源解析、语言 marker staging、ACTIVE 启动门与仅含可选诊断 marker 的子进程环境。
+ * [POS]: Windows Qt 运行时装配器；原生入口由根 qwindows 代理自举翻译，不再依赖 QT_PLUGIN_PATH、QT_QPA_GENERIC_PLUGINS 或 CAVALRY_I18N_LANG。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -23,6 +23,7 @@ use crate::{
 };
 
 pub const PLUGIN_FILE_NAME: &str = "cavalryi18n.dll";
+pub const QPA_PROXY_FILE_NAME: &str = "qwindows.dll";
 pub const DIAGNOSTIC_MARKER_FILE_NAME: &str = "cavalryi18n.json";
 pub const EXPECTED_QT_VERSION: &str = "6.6.3";
 pub const EXPECTED_TRANSLATION_SOURCE: &str = "embedded-generated-table";
@@ -32,8 +33,6 @@ pub const MARKER_WAIT_TIMEOUT: Duration = Duration::from_secs(25);
 pub struct WindowsRuntimeLaunch {
     /// 仅传给即将启动的 Cavalry 子进程；绝不写入用户或系统环境。
     pub environment: Vec<(OsString, OsString)>,
-    /// English 不加载 generic plugin，因此没有 plugin root 或 marker。
-    pub plugin_root: Option<PathBuf>,
     pub diagnostic_marker: Option<PathBuf>,
 }
 
@@ -59,7 +58,6 @@ impl WindowsRuntimeLaunch {
     fn english() -> Self {
         Self {
             environment: Vec::new(),
-            plugin_root: None,
             diagnostic_marker: None,
         }
     }
@@ -102,6 +100,43 @@ pub fn resolve_plugin_source(resource_dir: &Path, repo_root: &Path) -> Result<Pa
             )
         })?;
     Ok(plugin_path.to_path_buf())
+}
+
+pub fn qpa_proxy_source_candidates(resource_dir: &Path, repo_root: &Path) -> Vec<PathBuf> {
+    let suffix = Path::new("injector")
+        .join("windows")
+        .join("qpa")
+        .join(QPA_PROXY_FILE_NAME);
+    let resource_dir = absolute_path(resource_dir);
+    let mut roots = vec![resource_dir.clone(), resource_dir.join("_up_")];
+    if let Some(parent) = resource_dir.parent() {
+        roots.push(parent.to_path_buf());
+    }
+    let mut candidates = roots
+        .into_iter()
+        .map(|root| root.join(&suffix))
+        .collect::<Vec<_>>();
+    candidates.push(absolute_path(repo_root).join(suffix));
+    candidates.dedup();
+    candidates
+}
+
+pub fn resolve_qpa_proxy_source(resource_dir: &Path, repo_root: &Path) -> Result<PathBuf, String> {
+    let candidates = qpa_proxy_source_candidates(resource_dir, repo_root);
+    candidates
+        .iter()
+        .find(|candidate| candidate.is_file())
+        .cloned()
+        .ok_or_else(|| {
+            let checked = candidates
+                .iter()
+                .map(|candidate| candidate.display().to_string())
+                .collect::<Vec<_>>()
+                .join(", ");
+            format!(
+                "Windows QPA proxy {QPA_PROXY_FILE_NAME} was not found. Reinstall Cavalry Language Switcher or build the Windows injector. Checked: {checked}"
+            )
+        })
 }
 
 /// 只把已验证的打包/开发 DLL 交给现有 staging + 权限复制链；绝不直接写入 Cavalry。
@@ -177,6 +212,27 @@ pub fn prepare_launch(
     resource_dir: &Path,
     repo_root: &Path,
 ) -> Result<WindowsRuntimeLaunch, String> {
+    prepare_launch_with_qpa_inspector(
+        layout,
+        state_dir,
+        state,
+        resource_dir,
+        repo_root,
+        crate::windows_qpa::inspect,
+    )
+}
+
+pub(crate) fn prepare_launch_with_qpa_inspector<F>(
+    layout: &InstallLayout,
+    state_dir: &Path,
+    state: &State,
+    resource_dir: &Path,
+    repo_root: &Path,
+    inspect_qpa: F,
+) -> Result<WindowsRuntimeLaunch, String>
+where
+    F: Fn(&InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String>,
+{
     let marker = diagnostic_marker_path(state_dir);
     if state.current_lang == "en" {
         // 英语不依赖插件；清理失败也不能阻断原生 English 启动。
@@ -203,30 +259,34 @@ pub fn prepare_launch(
         )
     })?;
     verify_installed_plugin_integrity(&trusted_plugin, &installed_plugin)?;
-    let plugin_root = layout.root.clone();
+    let qpa = inspect_qpa(layout)?;
+    if qpa.state != crate::windows_qpa::QpaDeploymentState::Active {
+        return Err(format!(
+            "Windows QPA is not ACTIVE for this Cavalry copy. Reapply the selected language before restarting. {}",
+            qpa.detail
+        ));
+    }
+    let installed_language = fs::read_to_string(&layout.language_marker).map_err(|error| {
+        format!(
+            "Could not read Windows language marker {} before restarting: {error}",
+            layout.language_marker.display()
+        )
+    })?;
+    if installed_language.trim() != state.current_lang {
+        return Err(format!(
+            "Windows language marker mismatch before restarting: expected {}, got {}. Reapply the selected language.",
+            state.current_lang,
+            installed_language.trim()
+        ));
+    }
     let marker = prepare_marker(state_dir)?;
-    let environment = vec![
-        (
-            OsString::from("QT_PLUGIN_PATH"),
-            plugin_root.as_os_str().to_os_string(),
-        ),
-        (
-            OsString::from("QT_QPA_GENERIC_PLUGINS"),
-            OsString::from("cavalryi18n"),
-        ),
-        (
-            OsString::from("CAVALRY_I18N_LANG"),
-            OsString::from(&state.current_lang),
-        ),
-        (
-            OsString::from("CAVALRY_I18N_DIAGNOSTIC_MARKER"),
-            marker.as_os_str().to_os_string(),
-        ),
-    ];
+    let environment = vec![(
+        OsString::from("CAVALRY_I18N_DIAGNOSTIC_MARKER"),
+        marker.as_os_str().to_os_string(),
+    )];
 
     Ok(WindowsRuntimeLaunch {
         environment,
-        plugin_root: Some(plugin_root),
         diagnostic_marker: Some(marker),
     })
 }
@@ -451,8 +511,10 @@ fn absolute_path(path: &Path) -> PathBuf {
 mod tests {
     use super::{
         build_language_marker_copy_pair, build_plugin_copy_pair, diagnostic_marker_path,
-        marker_is_ready, plugin_source_candidates, prepare_launch, resolve_plugin_source,
-        wait_for_ready_marker_with_timeout, DIAGNOSTIC_MARKER_FILE_NAME, PLUGIN_FILE_NAME,
+        marker_is_ready, plugin_source_candidates, prepare_launch,
+        prepare_launch_with_qpa_inspector, qpa_proxy_source_candidates, resolve_plugin_source,
+        resolve_qpa_proxy_source, wait_for_ready_marker_with_timeout, DIAGNOSTIC_MARKER_FILE_NAME,
+        PLUGIN_FILE_NAME, QPA_PROXY_FILE_NAME,
     };
     use crate::{install::InstallLayout, state::State};
     use std::{collections::BTreeMap, ffi::OsString, fs, path::Path, time::Duration};
@@ -489,6 +551,15 @@ mod tests {
         let plugin = root.join("generic").join(PLUGIN_FILE_NAME);
         fs::create_dir_all(plugin.parent().unwrap()).unwrap();
         fs::write(plugin, b"plugin").unwrap();
+    }
+
+    fn active_qpa(_layout: &InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String> {
+        Ok(crate::windows_qpa::QpaInspection {
+            state: crate::windows_qpa::QpaDeploymentState::Active,
+            phase: Some(crate::windows_qpa::QpaManifestPhase::Active),
+            current_qwindows_sha256: Some("a".repeat(64)),
+            detail: "test-owned ACTIVE inspection".to_string(),
+        })
     }
 
     fn state(lang: &str) -> State {
@@ -564,20 +635,27 @@ mod tests {
         let layout = InstallLayout::from_root(&app);
         write_source_plugin(&resources);
         write_installed_plugin(&app);
+        fs::write(app.join(crate::install::LANG_MARKER_NAME), b"zh-Hans\n").unwrap();
         let stale_marker = diagnostic_marker_path(&state_dir);
         fs::create_dir_all(stale_marker.parent().unwrap()).unwrap();
         fs::write(&stale_marker, br#"{\"status\":\"ready\"}"#).unwrap();
 
-        let launch =
-            prepare_launch(&layout, &state_dir, &state("zh-Hans"), &resources, &repo).unwrap();
+        let launch = prepare_launch_with_qpa_inspector(
+            &layout,
+            &state_dir,
+            &state("zh-Hans"),
+            &resources,
+            &repo,
+            active_qpa,
+        )
+        .unwrap();
         let marker = launch.diagnostic_marker.as_ref().unwrap();
         let environment = environment(&launch.environment);
 
-        assert_eq!(launch.plugin_root.as_deref(), Some(app.as_path()));
-        assert_eq!(environment.len(), 4);
-        assert_eq!(environment["QT_PLUGIN_PATH"], app.to_string_lossy());
-        assert_eq!(environment["QT_QPA_GENERIC_PLUGINS"], "cavalryi18n");
-        assert_eq!(environment["CAVALRY_I18N_LANG"], "zh-Hans");
+        assert_eq!(environment.len(), 1);
+        assert!(!environment.contains_key("QT_PLUGIN_PATH"));
+        assert!(!environment.contains_key("QT_QPA_GENERIC_PLUGINS"));
+        assert!(!environment.contains_key("CAVALRY_I18N_LANG"));
         assert_eq!(
             environment["CAVALRY_I18N_DIAGNOSTIC_MARKER"],
             marker.to_string_lossy()
@@ -600,7 +678,6 @@ mod tests {
         let english =
             prepare_launch(&layout, temp.path(), &state("en"), &resources, &repo).unwrap();
         assert!(english.environment.is_empty());
-        assert!(english.plugin_root.is_none());
         assert!(english.diagnostic_marker.is_none());
 
         let error =
@@ -619,10 +696,18 @@ mod tests {
         let layout = InstallLayout::from_root(&app);
         write_source_plugin(&resources);
         write_installed_plugin(&app);
+        fs::write(app.join(crate::install::LANG_MARKER_NAME), b"zh-Hans\n").unwrap();
         fs::write(app.join("generic").join(PLUGIN_FILE_NAME), b"tampered").unwrap();
 
-        let error =
-            prepare_launch(&layout, &state_dir, &state("zh-Hans"), &resources, &repo).unwrap_err();
+        let error = prepare_launch_with_qpa_inspector(
+            &layout,
+            &state_dir,
+            &state("zh-Hans"),
+            &resources,
+            &repo,
+            active_qpa,
+        )
+        .unwrap_err();
 
         assert!(error.contains("integrity check failed"), "{error}");
         assert!(error.contains("Reapply the selected language"), "{error}");
@@ -638,12 +723,63 @@ mod tests {
         let state_dir = temp.path().join("state");
         let layout = InstallLayout::from_root(&app);
         write_installed_plugin(&app);
+        fs::write(app.join(crate::install::LANG_MARKER_NAME), b"ja_JP\n").unwrap();
 
-        let error =
-            prepare_launch(&layout, &state_dir, &state("ja_JP"), &resources, &repo).unwrap_err();
+        let error = prepare_launch_with_qpa_inspector(
+            &layout,
+            &state_dir,
+            &state("ja_JP"),
+            &resources,
+            &repo,
+            active_qpa,
+        )
+        .unwrap_err();
 
         assert!(error.contains("Could not verify"), "{error}");
         assert!(error.contains("Reapply the selected language"), "{error}");
+        assert!(!state_dir.join("runtime").exists());
+    }
+
+    #[test]
+    fn qpa_proxy_resolver_uses_packaged_layout_before_repo_fallback() {
+        let temp = tempfile::tempdir().unwrap();
+        let resources = temp.path().join("resources");
+        let repo = temp.path().join("repo");
+        let packaged = resources
+            .join("injector/windows/qpa")
+            .join(QPA_PROXY_FILE_NAME);
+        let development = repo.join("injector/windows/qpa").join(QPA_PROXY_FILE_NAME);
+        fs::create_dir_all(packaged.parent().unwrap()).unwrap();
+        fs::create_dir_all(development.parent().unwrap()).unwrap();
+        fs::write(&packaged, b"packaged").unwrap();
+        fs::write(&development, b"development").unwrap();
+
+        assert_eq!(
+            resolve_qpa_proxy_source(&resources, &repo).unwrap(),
+            packaged
+        );
+        assert_eq!(
+            qpa_proxy_source_candidates(&resources, &repo).last(),
+            Some(&development)
+        );
+    }
+
+    #[test]
+    fn non_english_launch_requires_qpa_active_before_spawn_environment() {
+        let temp = tempfile::tempdir().unwrap();
+        let resources = temp.path().join("resources");
+        let repo = temp.path().join("repo");
+        let app = temp.path().join("Cavalry");
+        let state_dir = temp.path().join("state");
+        let layout = InstallLayout::from_root(&app);
+        write_source_plugin(&resources);
+        write_installed_plugin(&app);
+        fs::write(app.join(crate::install::LANG_MARKER_NAME), b"zh-Hans\n").unwrap();
+
+        let error =
+            prepare_launch(&layout, &state_dir, &state("zh-Hans"), &resources, &repo).unwrap_err();
+
+        assert!(error.contains("QPA is not ACTIVE"), "{error}");
         assert!(!state_dir.join("runtime").exists());
     }
 

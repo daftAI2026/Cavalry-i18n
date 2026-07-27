@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri Builder、bridge 初始化脚本、稳定 commands facade、Windows headless launch、共享 operation_lock/runtime_paths 与私有 platform_runtime。
- * [OUTPUT]: 对外提供 run 函数、Windows 原生启动分流、稳定的六命令注册表与后端公共纯模块。
+ * [INPUT]: 依赖 tauri Builder、bridge 初始化脚本、稳定 commands facade、Windows headless launch/QPA 持久部署、共享 operation_lock/runtime_paths 与私有 platform_runtime。
+ * [OUTPUT]: 对外提供 run 函数、Windows 原生启动与 QPA 部署分流、稳定的六命令注册表与后端公共纯模块。
  * [POS]: src-tauri/src 的应用装配层；组合命令 facade、共享运行基础与平台启动边界，但不承载具体写入或系统命令业务。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -19,6 +19,8 @@ pub mod privilege;
 mod runtime_paths;
 pub mod state;
 pub mod windows_install;
+#[cfg(target_os = "windows")]
+pub mod windows_qpa;
 pub mod windows_runtime;
 
 pub fn run() {

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 QtGui QGenericPlugin 工厂协议与 cavalry_i18n_runtime 的进程内翻译生命周期
- * [OUTPUT]: 对外提供 metadata key 为 cavalryi18n 的 CavalryI18nPlugin 动态插件工厂
- * [POS]: injector/windows 的 Qt 官方加载入口，只负责 key 路由，不承载翻译或系统操作
+ * [INPUT]: 依赖 QtGui QGenericPlugin 工厂协议与 cavalry_i18n_runtime 的显式语言生命周期
+ * [OUTPUT]: 对外提供 metadata key 为 cavalryi18n、只接受严格非空 specification 的动态插件工厂
+ * [POS]: injector/windows 的 generic 入口；拒绝 Qt 环境自动发现旁路，只把 QPA 明确语言投影为运行时
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once

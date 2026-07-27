@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 privilege 无控制台命令入口、Windows PowerShell 5.1 进程查询、MSI advertised shortcut API 与标准环境目录
- * [OUTPUT]: 对外提供运行中进程、MSI 快捷方式、常见安装目录候选以及 MSI ProductVersion 查询
- * [POS]: src-tauri/src 的 Windows 只读发现边界，为 detect 提供任意安装位置线索且禁止全盘扫描或弹出辅助控制台
+ * [OUTPUT]: 对外提供运行中进程、MSI 快捷方式、常见安装目录候选，以及 MSI ProductVersion/唯一 NUL 分隔 2.7.2 token 的版本证明
+ * [POS]: src-tauri/src 的 Windows 只读发现边界，为 detect 提供任意安装位置与非 MSI 克隆线索，禁止全盘扫描或弹出辅助控制台
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(windows)]
@@ -11,6 +11,7 @@ mod implementation {
         env,
         ffi::{OsStr, OsString},
         fs,
+        io::Read,
         os::windows::ffi::{OsStrExt, OsStringExt},
         path::{Path, PathBuf},
     };
@@ -22,6 +23,8 @@ mod implementation {
     const MSI_GUID_CAPACITY: usize = 39;
     const MSI_FEATURE_CAPACITY: usize = 64;
     const LONG_PATH_CAPACITY: usize = 32_768;
+    const SUPPORTED_EMBEDDED_CAVALRY_VERSION: &str = "2.7.2";
+    const SUPPORTED_EMBEDDED_CAVALRY_VERSION_TOKEN: &[u8] = b"\x002.7.2\x00";
 
     #[link(name = "msi")]
     extern "system" {
@@ -103,12 +106,39 @@ mod implementation {
 
     pub fn product_version_for_executable(executable: &Path) -> Option<String> {
         let expected = normalize_for_compare(executable);
-        msi_candidates().into_iter().find_map(|candidate| {
+        let registered = msi_candidates().into_iter().find_map(|candidate| {
             if normalize_for_compare(&candidate.executable) != expected {
                 return None;
             }
             msi_property(&candidate.product_code, "VersionString")
-        })
+        });
+        registered.or_else(|| embedded_supported_product_version(executable))
+    }
+
+    fn embedded_supported_product_version(executable: &Path) -> Option<String> {
+        let mut file = fs::File::open(executable).ok()?;
+        let mut buffer = [0_u8; 64 * 1024];
+        let mut carry = Vec::new();
+        let mut matches = 0_u8;
+        loop {
+            let read = file.read(&mut buffer).ok()?;
+            if read == 0 {
+                break;
+            }
+            let mut window = carry;
+            window.extend_from_slice(&buffer[..read]);
+            for candidate in window.windows(SUPPORTED_EMBEDDED_CAVALRY_VERSION_TOKEN.len()) {
+                if candidate == SUPPORTED_EMBEDDED_CAVALRY_VERSION_TOKEN {
+                    matches = matches.saturating_add(1);
+                    if matches > 1 {
+                        return None;
+                    }
+                }
+            }
+            let carry_len = (SUPPORTED_EMBEDDED_CAVALRY_VERSION_TOKEN.len() - 1).min(window.len());
+            carry = window[window.len() - carry_len..].to_vec();
+        }
+        (matches == 1).then(|| SUPPORTED_EMBEDDED_CAVALRY_VERSION.to_string())
     }
 
     fn msi_candidates() -> Vec<MsiCandidate> {
@@ -260,6 +290,46 @@ mod implementation {
             }
         }
         output
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::embedded_supported_product_version;
+        use std::fs;
+
+        #[test]
+        fn copied_executable_uses_the_embedded_supported_release_when_msi_is_absent() {
+            let temp = tempfile::tempdir().unwrap();
+            let executable = temp.path().join("Cavalry.exe");
+            fs::write(
+                &executable,
+                b"MZ\x00sentry-release\x00\x002.7.2\x00\x00/.crashdb\x00",
+            )
+            .unwrap();
+
+            assert_eq!(
+                embedded_supported_product_version(&executable).as_deref(),
+                Some("2.7.2")
+            );
+        }
+
+        #[test]
+        fn embedded_release_probe_requires_a_nul_delimited_exact_token() {
+            let temp = tempfile::tempdir().unwrap();
+            let executable = temp.path().join("Cavalry.exe");
+            fs::write(&executable, b"MZ\x002.7.20\x00").unwrap();
+
+            assert_eq!(embedded_supported_product_version(&executable), None);
+        }
+
+        #[test]
+        fn embedded_release_probe_rejects_ambiguous_multiple_tokens() {
+            let temp = tempfile::tempdir().unwrap();
+            let executable = temp.path().join("Cavalry.exe");
+            fs::write(&executable, b"MZ\x002.7.2\x00payload\x002.7.2\x00").unwrap();
+
+            assert_eq!(embedded_supported_product_version(&executable), None);
+        }
     }
 }
 

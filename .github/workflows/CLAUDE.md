@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；Linux 跑版本/release/Node/翻译合同，Windows 通过仓库统一 resolver 准备固定 Qt 6.6.3 `msvc2019_64` SDK，跑确定性 npm 安装、Qt plugin smoke、Node/Rust check/test、显式 `x86_64-pc-windows-msvc` NSIS 构建及随机 TEMP 安装卸载守门，并从同一 target triple 目录上传当前输入 provenance 已复算的唯一 EXE 与同名 sidecar；`cavalry-*-p*` tag 与手动触发才在 macOS 上构建 Tauri DMG 与 `.app` artifact；`cavalry-*-p*` tag 通过 `release.config.json` 生成产品标题、双架构 DMG 与稳定 Windows x64 NSIS 资产名，通过 `INTERNAL_APP_VERSION` 精确抽取单个非空、已标日期 CHANGELOG 区块并与跨平台产品说明合成 release notes，同时上传两个 DMG 和一个 EXE，创建成功后写回 `docs/badges/release.json`。
+build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；Linux 跑版本/release/Node/翻译合同，Windows 通过仓库统一 resolver 准备固定 Qt 6.6.3 `msvc2019_64` SDK，runner 现场构建 generic translator 与 QPA delegate，跑其正式 smoke、Node/Rust check/test、显式 `x86_64-pc-windows-msvc` NSIS 构建及随机 TEMP 安装卸载守门，并从同一 target triple 目录上传当前输入 provenance 已复算的唯一 EXE 与同名 sidecar；`cavalry-*-p*` tag 与手动触发才在 macOS 上构建 Tauri DMG 与 `.app` artifact；`cavalry-*-p*` tag 通过 `release.config.json` 生成产品标题、双架构 DMG 与稳定 Windows x64 NSIS 资产名，通过 `INTERNAL_APP_VERSION` 精确抽取单个非空、已标日期 CHANGELOG 区块并与跨平台产品说明合成 release notes，同时上传两个 DMG 和一个 EXE，创建成功后写回 `docs/badges/release.json`。
 
 依赖边界:
 workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。
@@ -31,5 +31,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-07-27: Windows NSIS smoke 与 artifact 上传统一消费显式 `x86_64-pc-windows-msvc` target 目录，禁止回退到可能残留旧 EXE 的隐式 `target/release` 路径。
 2026-07-27: Windows Qt SDK 安装改为复用 `prepare:qt-sdk:windows` 与 `cavalry_qt_target.json` 的平台投影，不再在 workflow 里独立手写版本与 aqt 架构。
 2026-07-27: Windows artifact 改为成对上传唯一 NSIS EXE 与 provenance sidecar；构建/安装态 smoke 共用内容 fingerprint，防止 stale bundle 被 wildcard 当成当前发布包。
+2026-07-27: Windows runner 同次构建 generic translator 与 QPA delegate；provenance/NSIS 安装态同时证明双 DLL 的 x64 与摘要，原生 Cavalry 入口不再依赖子进程 plugin 环境。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -15,8 +15,10 @@ qt_663_sdk/
 # ── 构建与运行产物 ──
 dist/
 build/
+Testing/
 src-tauri/target/
 src-tauri/gen/
+injector/windows/qpa/qwindows.dll
 
 # ── 日志 ──
 *.log

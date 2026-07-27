@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖显式 disposable clone/evidence 环境变量、共享 Windows 路径守卫、apply_language_inner、RealCommandRunner、runtime marker 与 PowerShell PID 窗口证据 helper
- * [OUTPUT]: 对外提供 ignored Windows live-clone 冒烟：可选单语或默认三语真实启动、隔离 AppData、三类自动 PNG、带零位图基线与严格计数增量的人工 Cog Pitch PNG、PID 清理及 English 38 文件恢复
+ * [OUTPUT]: 对外提供 ignored Windows live-clone 冒烟：可选单语或默认三语 QPA 原生启动、隔离 AppData、三类自动 PNG、带零位图基线与严格计数增量的人工 Cog Pitch PNG、PID 清理及显式 English 恢复
  * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；自动路径经有界 exact-HWND 前台门投递 A 键，Cog Pitch 仅在 opt-in 后记录前后诊断并等待用户操作 sentinel clone，不创建场景、不运行脚本、不依赖 Qt UIA
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -521,9 +521,25 @@ mod windows_live_smoke {
         if !applied.ok || applied.current_lang.as_deref() != Some(language) {
             return Err(format!("{language} apply returned an invalid payload"));
         }
-        if !runner.commands.is_empty() {
+        let Some(command) = runner.commands.as_slice().first() else {
             return Err(format!(
-                "{language} disposable clone unexpectedly required an external/elevated command"
+                "{language} did not run the exact-path graceful close gate"
+            ));
+        };
+        if runner.commands.len() != 1
+            || command.program != "powershell.exe"
+            || command.args.len() != 5
+            || command.args[..4]
+                != [
+                    "-NoLogo",
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-EncodedCommand",
+                ]
+        {
+            return Err(format!(
+                "{language} disposable clone used an unexpected external/elevated command surface: {:?}",
+                runner.commands
             ));
         }
         Ok(())

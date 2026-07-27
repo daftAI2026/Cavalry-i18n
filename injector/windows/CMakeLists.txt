@@ -1,6 +1,6 @@
-# [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、Windows Psapi、本目录源码、../generated_translations.inc 与可选 Cavalry vendor 二进制根目录
-# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 display、translator、PE/IAT、ExtensionLayer 四边界 hook、动态 Pitch dispatch、MessageBar/vendor ABI/import 与 generic-plugin smoke 合同测试
-# [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构前置检查约束 Windows Qt 插件产物与无第三方 IAT 实现
+# [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK及版本化 QPA 头、Windows Psapi、本目录源码、../generated_translations.inc 与可选 vendor 根
+# [OUTPUT]: 对外构建 generic/cavalryi18n.dll 与 qpa/qwindows.dll，并注册显示/hook/vendor、QPA manifest 及环境/显式入口合同测试
+# [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构/manifest 前置检查约束通用翻译 runtime 与原生入口 QPA 代理
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 3.21)
 
@@ -26,6 +26,15 @@ add_compile_options(/utf-8)
 
 find_package(Qt6 6.6.3 EXACT REQUIRED COMPONENTS Core Gui Widgets)
 
+foreach(qt_target Qt6::Core Qt6::Gui Qt6::Widgets)
+    get_target_property(qt_target_type "${qt_target}" TYPE)
+    if(NOT qt_target_type STREQUAL "SHARED_LIBRARY")
+        message(FATAL_ERROR
+            "${qt_target} must come from the shared Qt 6.6.3 SDK; static Qt would embed a second runtime into Cavalry."
+        )
+    endif()
+endforeach()
+
 set(
     CAVALRY_VENDOR_ROOT
     ""
@@ -38,6 +47,22 @@ if(NOT Qt6Core_VERSION VERSION_EQUAL "6.6.3")
 endif()
 
 qt_standard_project_setup()
+
+get_filename_component(
+    QT_INSTALL_PREFIX
+    "${Qt6Gui_DIR}/../../.."
+    ABSOLUTE
+)
+set(
+    QT_QPA_INCLUDE_DIR
+    "${QT_INSTALL_PREFIX}/include/QtGui/${Qt6Gui_VERSION}/QtGui"
+)
+if(NOT EXISTS
+    "${QT_QPA_INCLUDE_DIR}/qpa/qplatformintegrationplugin.h")
+    message(FATAL_ERROR
+        "Qt 6.6.3 versioned QPA headers are required: ${QT_QPA_INCLUDE_DIR}"
+    )
+endif()
 
 qt_add_plugin(cavalryi18n
     SHARED
@@ -111,9 +136,123 @@ install(
     LIBRARY DESTINATION generic
 )
 
+qt_add_plugin(cavalryi18n_qpa
+    SHARED
+    CLASS_NAME CavalryWindowsQpaProxy
+)
+
+target_sources(cavalryi18n_qpa
+    PRIVATE
+        cavalry_i18n_qpa_contract.cpp
+        cavalry_i18n_qpa_contract.h
+        cavalry_i18n_qpa_proxy.cpp
+        cavalry_i18n_qpa_proxy.h
+        qwindows.json
+)
+
+target_link_libraries(cavalryi18n_qpa
+    PRIVATE
+        Qt6::Core
+        Qt6::Gui
+)
+
+target_include_directories(cavalryi18n_qpa
+    PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+        "${QT_QPA_INCLUDE_DIR}"
+)
+
+target_compile_definitions(cavalryi18n_qpa PRIVATE QT_NO_KEYWORDS)
+
+set_target_properties(cavalryi18n_qpa PROPERTIES
+    OUTPUT_NAME "qwindows"
+    PREFIX ""
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qpa"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/qpa"
+)
+
+foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+    set_target_properties(cavalryi18n_qpa PROPERTIES
+        "RUNTIME_OUTPUT_DIRECTORY_${config}" "${CMAKE_BINARY_DIR}/qpa"
+        "LIBRARY_OUTPUT_DIRECTORY_${config}" "${CMAKE_BINARY_DIR}/qpa"
+    )
+endforeach()
+
+install(
+    TARGETS cavalryi18n_qpa
+    RUNTIME DESTINATION qpa
+    LIBRARY DESTINATION qpa
+)
+
 include(CTest)
 
 if(BUILD_TESTING)
+    add_executable(cavalryi18n_qpa_contract_test
+        cavalry_i18n_qpa_contract_test.cpp
+        cavalry_i18n_qpa_contract.cpp
+        cavalry_i18n_qpa_contract.h
+    )
+
+    target_link_libraries(cavalryi18n_qpa_contract_test
+        PRIVATE
+            Qt6::Core
+    )
+
+    target_include_directories(cavalryi18n_qpa_contract_test
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    target_compile_definitions(
+        cavalryi18n_qpa_contract_test
+        PRIVATE
+            CAVALRY_I18N_QPA_PROXY_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/cavalry_i18n_qpa_proxy.cpp"
+            QT_NO_KEYWORDS
+    )
+
+    add_test(
+        NAME cavalryi18n_qpa_contract
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "$<TARGET_FILE:cavalryi18n_qpa_contract_test>"
+    )
+
+    add_executable(cavalryi18n_qpa_binary_smoke_test
+        cavalry_i18n_qpa_binary_smoke_test.cpp
+    )
+
+    target_link_libraries(cavalryi18n_qpa_binary_smoke_test
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+    )
+
+    target_include_directories(cavalryi18n_qpa_binary_smoke_test
+        PRIVATE
+            "${QT_QPA_INCLUDE_DIR}"
+    )
+
+    target_compile_definitions(
+        cavalryi18n_qpa_binary_smoke_test
+        PRIVATE
+            QT_NO_KEYWORDS
+    )
+
+    add_dependencies(
+        cavalryi18n_qpa_binary_smoke_test
+        cavalryi18n_qpa
+    )
+
+    add_test(
+        NAME cavalryi18n_qpa_binary_smoke
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "$<TARGET_FILE:cavalryi18n_qpa_binary_smoke_test>"
+            "$<TARGET_FILE:cavalryi18n_qpa>"
+    )
+
     add_executable(cavalryi18n_display_test
         cavalry_i18n_display_test.cpp
         cavalry_i18n_display.cpp
@@ -417,15 +556,16 @@ if(BUILD_TESTING)
     add_dependencies(cavalryi18n_plugin_smoke_test cavalryi18n)
 
     add_test(
-        NAME cavalryi18n_plugin_smoke
+        NAME cavalryi18n_plugin_explicit_specification
         COMMAND
             "${CMAKE_COMMAND}" -E env
+            "--unset=QT_QPA_GENERIC_PLUGINS"
             "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
-            "QT_PLUGIN_PATH=${CMAKE_BINARY_DIR}"
             "QT_QPA_PLATFORM=offscreen"
-            "QT_QPA_GENERIC_PLUGINS=cavalryi18n"
-            "CAVALRY_I18N_LANG=zh-Hans"
-            "CAVALRY_I18N_DIAGNOSTIC_MARKER=${CMAKE_BINARY_DIR}/plugin-smoke-marker.json"
+            "CAVALRY_I18N_LANG=must-not-enable-empty-specification"
+            "CAVALRY_I18N_DIAGNOSTIC_MARKER=${CMAKE_BINARY_DIR}/plugin-explicit-marker.json"
             "$<TARGET_FILE:cavalryi18n_plugin_smoke_test>"
+            "--explicit"
+            "$<TARGET_FILE:cavalryi18n>"
     )
 endif()

@@ -162,6 +162,8 @@ pub(crate) use context::resource_candidates;
 pub(crate) use contract::COMMAND_NAMES;
 #[cfg(test)]
 pub(crate) use restart::restart_cavalry_guarded;
+#[cfg(all(test, target_os = "windows"))]
+pub(crate) use restart::restart_cavalry_inner_with_qpa_inspector;
 #[cfg(test)]
 pub(crate) use status::{
     is_app_management_error, permission_action, status_for_paths, sync_state_with_bundle,

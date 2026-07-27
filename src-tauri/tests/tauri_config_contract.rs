@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 tauri.conf.json、tauri.macos.conf.json、tauri.windows.conf.json 与 capabilities/default.json
- * [OUTPUT]: 对外提供公共窗口契约、macOS injector bundle 与 Windows NSIS 资源隔离/provenance hook/系统语言及品牌图标 contract tests
- * [POS]: src-tauri/tests 的配置守门，确保 Tauri 平台合并配置不会把 DYLD 构建链带入 Windows，并冻结 Windows bundle 前置入口
+ * [INPUT]: 依赖 tauri.conf.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
+ * [OUTPUT]: 对外提供公共窗口、macOS injector、Windows NSIS 双 DLL 资源隔离/provenance hook/系统语言与品牌图标合同
+ * [POS]: src-tauri/tests 的配置守门，冻结 Windows generic runtime + QPA delegate 资源映射并阻止 DYLD/第二套 Qt 混入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde_json::Value;
@@ -96,6 +96,10 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
         resources["../injector/windows/generic/cavalryi18n.dll"],
         "injector/windows/generic/cavalryi18n.dll"
     );
+    assert_eq!(
+        resources["../injector/windows/qpa/qwindows.dll"],
+        "injector/windows/qpa/qwindows.dll"
+    );
     assert_eq!(nsis["installerHooks"], "nsis-hooks.nsh");
     assert_eq!(
         nsis["languages"],
@@ -107,4 +111,13 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
     assert!(nsis.get("headerImage").is_none());
     assert!(nsis.get("sidebarImage").is_none());
     assert!(resources.keys().all(|key| !key.ends_with(".dylib")));
+    assert!(resources
+        .iter()
+        .all(|(source, destination)| !source.contains("Qt6")
+            && !destination.as_str().unwrap_or("").contains("Qt6")));
+    assert!(manifest_dir
+        .join("../injector/windows/generic/cavalryi18n.dll")
+        .is_file());
+    // QPA 是 beforeBuildCommand 在当前平台生成的忽略产物；配置合同只锁定映射，
+    // provenance 与安装态 smoke 才在构建后证明真实字节、架构和摘要。
 }

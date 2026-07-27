@@ -1,7 +1,7 @@
 ﻿<#
-[INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、CMake、MSVC、Qt 6.6.3 SDK、本目录 CMake 工程、父级 generated_translations.inc 与可选 CAVALRY_VENDOR_ROOT
-[OUTPUT]: 对外执行 Release configure/build/ctest，并在可用时执行只读 vendor ABI/import 合同后发布唯一 DLL 到 generic/cavalryi18n.dll
-[POS]: injector/windows 的可重复 Windows 构建入口，连接本地 SDK、真实插件 smoke、可选实际 Cavalry 二进制合同与 Tauri resource 稳定路径
+[INPUT]: 依赖 Windows PowerShell 5.1 UTF-8 BOM、CMake/MSVC、Qt 6.6.3 SDK及版本化 QPA 头、共享生成表与可选 vendor root
+[OUTPUT]: 对外从经过边界验证的干净生成目录执行 Release configure/build/ctest，并经无重解析点父链发布两个无 Qt runtime 产物
+[POS]: injector/windows 的可重复构建入口，拒绝陈旧增量产物、连接同一翻译 runtime/QPA 代理/只读 vendor 合同与受工作区约束的资源路径
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -15,8 +15,64 @@ $repositoryRoot = [System.IO.Path]::GetFullPath(
     (Join-Path $scriptDirectory '..\..')
 )
 $buildDirectory = Join-Path $repositoryRoot 'build\windows-injector'
-$publishDirectory = Join-Path $scriptDirectory 'generic'
-$publishedPlugin = Join-Path $publishDirectory 'cavalryi18n.dll'
+$genericPublishDirectory = Join-Path $scriptDirectory 'generic'
+$qpaPublishDirectory = Join-Path $scriptDirectory 'qpa'
+$publishedPlugin = Join-Path $genericPublishDirectory 'cavalryi18n.dll'
+$publishedQpaProxy = Join-Path $qpaPublishDirectory 'qwindows.dll'
+
+function Assert-NoReparsePathChain {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path,
+
+        [Parameter(Mandatory = $true)]
+        [string]$Role
+    )
+
+    $current = [System.IO.Path]::GetFullPath($Path)
+    while (-not [string]::IsNullOrWhiteSpace($current)) {
+        if (Test-Path -LiteralPath $current) {
+            $item = Get-Item -LiteralPath $current -Force -ErrorAction Stop
+            if (($item.Attributes -band [System.IO.FileAttributes]::ReparsePoint) -ne 0) {
+                throw "Refusing $Role through Windows reparse point '$current'."
+            }
+        }
+        $parent = [System.IO.Directory]::GetParent($current)
+        if ($null -eq $parent -or $parent.FullName -eq $current) {
+            break
+        }
+        $current = $parent.FullName
+    }
+}
+
+function Reset-GeneratedBuildDirectory {
+    [CmdletBinding()]
+    param()
+
+    $expectedBuildRoot = [System.IO.Path]::GetFullPath(
+        (Join-Path $repositoryRoot 'build')
+    )
+    $actualParent = [System.IO.Path]::GetDirectoryName($buildDirectory)
+    if (-not [System.String]::Equals(
+        $actualParent,
+        $expectedBuildRoot,
+        [System.StringComparison]::OrdinalIgnoreCase
+    )) {
+        throw "Refusing to reset unexpected Windows injector build directory '$buildDirectory'."
+    }
+    Assert-NoReparsePathChain -Path $expectedBuildRoot -Role 'Windows injector build root'
+    Assert-NoReparsePathChain -Path $buildDirectory -Role 'Windows injector generated build directory'
+    if (Test-Path -LiteralPath $buildDirectory) {
+        $item = Get-Item -LiteralPath $buildDirectory -Force -ErrorAction Stop
+        if (-not $item.PSIsContainer) {
+            throw "Windows injector build target is not a directory: '$buildDirectory'."
+        }
+        Remove-Item -LiteralPath $buildDirectory -Recurse -Force -ErrorAction Stop
+    }
+    New-Item -ItemType Directory -Path $buildDirectory -Force | Out-Null
+    Assert-NoReparsePathChain -Path $buildDirectory -Role 'fresh Windows injector generated build directory'
+}
 
 $qtPrefix = [Environment]::GetEnvironmentVariable('CAVALRY_QT_PREFIX')
 if ([string]::IsNullOrWhiteSpace($qtPrefix)) {
@@ -69,6 +125,8 @@ if (-not [string]::IsNullOrWhiteSpace($vendorRoot)) {
     $cmakeConfigureArguments += @('-U', 'CAVALRY_VENDOR_ROOT')
 }
 
+Reset-GeneratedBuildDirectory
+
 & $cmake @cmakeConfigureArguments
 if ($LASTEXITCODE -ne 0) {
     throw "CMake configure failed with exit code $LASTEXITCODE."
@@ -91,21 +149,36 @@ $builtPlugin = Join-Path $buildDirectory 'generic\cavalryi18n.dll'
 if (-not (Test-Path -LiteralPath $builtPlugin -PathType Leaf)) {
     throw "Built plugin not found at '$builtPlugin'."
 }
+$builtQpaProxy = Join-Path $buildDirectory 'qpa\qwindows.dll'
+if (-not (Test-Path -LiteralPath $builtQpaProxy -PathType Leaf)) {
+    throw "Built QPA proxy not found at '$builtQpaProxy'."
+}
 
-New-Item -ItemType Directory -Path $publishDirectory -Force | Out-Null
+Assert-NoReparsePathChain -Path $genericPublishDirectory -Role 'generic publish directory'
+Assert-NoReparsePathChain -Path $qpaPublishDirectory -Role 'QPA publish directory'
+New-Item -ItemType Directory -Path $genericPublishDirectory -Force | Out-Null
+New-Item -ItemType Directory -Path $qpaPublishDirectory -Force | Out-Null
+Assert-NoReparsePathChain -Path $publishedPlugin -Role 'generic publish target'
+Assert-NoReparsePathChain -Path $publishedQpaProxy -Role 'QPA publish target'
 
-$bundledQtRuntimes = @(Get-ChildItem `
-    -LiteralPath $publishDirectory `
-    -Filter 'Qt6*.dll' `
-    -File `
-    -ErrorAction SilentlyContinue)
+$bundledQtRuntimes = @(
+    Get-ChildItem `
+        -LiteralPath $genericPublishDirectory,$qpaPublishDirectory `
+        -Filter 'Qt6*.dll' `
+        -File `
+        -ErrorAction SilentlyContinue
+)
 if ($bundledQtRuntimes.Count -gt 0) {
     $unexpectedNames = ($bundledQtRuntimes | Select-Object -ExpandProperty Name) -join ', '
     throw "Refusing publish directory with bundled Qt runtime: $unexpectedNames"
 }
 
 Copy-Item -LiteralPath $builtPlugin -Destination $publishedPlugin -Force
+Copy-Item -LiteralPath $builtQpaProxy -Destination $publishedQpaProxy -Force
 
 $publishedHash = Get-FileHash -LiteralPath $publishedPlugin -Algorithm SHA256
+$publishedQpaHash = Get-FileHash -LiteralPath $publishedQpaProxy -Algorithm SHA256
 Write-Output "Built Windows Qt plugin: $publishedPlugin"
 Write-Output "SHA256: $($publishedHash.Hash)"
+Write-Output "Built Windows QPA proxy: $publishedQpaProxy"
+Write-Output "SHA256: $($publishedQpaHash.Hash)"

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖当前工作树的 renderer、languages、Windows Tauri/Rust/NSIS hook 构建输入、package manifests 和已编译 generic plugin，以及显式 x86_64-pc-windows-msvc NSIS 输出目录
- * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 Windows NSIS provenance 命令；将当前输入内容哈希、唯一安装包长度/哈希、target 和版本写入同名 sidecar
- * [POS]: tools 的 Windows 打包自证器；在构建前只清除本版本预期的旧输出，构建后拒绝任何额外 EXE，供安装态 smoke 重新计算而非信任 Git HEAD 或 mtime
+ * [INPUT]: 依赖 renderer、languages、Windows Tauri/Rust/NSIS 输入、package manifests、已编译 generic/QPA 双 DLL 与显式 x64 NSIS 输出
+ * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance；拒绝 bundle 父链重解析点，将 native 源码与双 injector 纳入哈希并记录安装包身份
+ * [POS]: tools 的 Windows 打包自证器；构建前只在真实工作区 bundle 根清本版本输出，构建后以源码+产物双证据拒绝额外或陈旧 EXE
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const crypto = require('node:crypto');
@@ -79,6 +79,27 @@ function isSafeFileName(name) {
   return name === path.basename(name) && !/[\\/\0]/.test(name);
 }
 
+function assertNoReparsePathChain(candidatePath, role) {
+  let current = path.resolve(candidatePath);
+  for (;;) {
+    try {
+      const stat = fs.lstatSync(current);
+      if (stat.isSymbolicLink()) {
+        fail(`${role} crosses a symbolic link or junction: ${current}`);
+      }
+    } catch (error) {
+      if (!error || error.code !== 'ENOENT') {
+        throw error;
+      }
+    }
+    const parent = path.dirname(current);
+    if (parent === current) {
+      break;
+    }
+    current = parent;
+  }
+}
+
 function readBuildContext(repoRoot) {
   const packageJson = readJson(path.join(repoRoot, 'package.json'), 'package.json');
   const tauriConfig = readJson(path.join(repoRoot, 'src-tauri', 'tauri.conf.json'), 'src-tauri/tauri.conf.json');
@@ -108,6 +129,7 @@ function resolveBundle(repoRoot) {
   if (!bundleRoot.startsWith(allowedPrefix)) {
     fail(`derived bundle root escaped repository: ${bundleRoot}`);
   }
+  assertNoReparsePathChain(bundleRoot, 'Windows NSIS bundle root');
   return bundleRoot;
 }
 
@@ -215,6 +237,7 @@ function collectConfiguredBundleResources(repoRoot, results) {
   const requiredResources = {
     '../languages': 'languages',
     '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
+    '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
   };
   for (const [sourcePath, destination] of Object.entries(requiredResources)) {
     if (resources[sourcePath] !== destination) {
@@ -234,6 +257,17 @@ function collectConfiguredBundleResources(repoRoot, results) {
 function collectInputFingerprint(repoRoot) {
   const files = [];
   collectConfiguredBundleResources(repoRoot, files);
+  collectRegularFiles(
+    repoRoot,
+    path.join('injector', 'windows'),
+    (relativePath) => {
+      const name = path.posix.basename(relativePath);
+      return name === 'CMakeLists.txt'
+        || /\.(?:cpp|h|json|ps1)$/i.test(name);
+    },
+    files
+  );
+  collectExactInput(repoRoot, path.join('injector', 'generated_translations.inc'), files);
   collectRegularFiles(repoRoot, path.join('src-tauri', 'src'), () => true, files);
   collectRegularFiles(repoRoot, path.join('src-tauri', 'capabilities'), () => true, files);
   collectRegularFiles(repoRoot, path.join('src-tauri', 'icons'), () => true, files);
@@ -306,6 +340,7 @@ function prepare(repoRoot) {
   const context = readBuildContext(repoRoot);
   const bundleRoot = resolveBundle(repoRoot);
   fs.mkdirSync(bundleRoot, { recursive: true });
+  assertNoReparsePathChain(bundleRoot, 'Windows NSIS bundle root after creation');
   assertDirectory(bundleRoot, 'Windows NSIS bundle directory');
 
   const expectedInstaller = path.join(bundleRoot, context.installerName);
@@ -431,6 +466,7 @@ function main(argv) {
 
 module.exports = {
   TARGET_TRIPLE,
+  assertNoReparsePathChain,
   collectInputFingerprint,
   prepare,
   record,

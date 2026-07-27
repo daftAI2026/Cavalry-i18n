@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 snapshot/status、patch transaction、platform_runtime ApplyPlan 与 privilege typed copy completion。
- * [OUTPUT]: 提供 apply_language_inner、pending/final marker 事务、staging cleanup typed warning。
- * [POS]: commands 的语言写入编排；平台差异只经 platform_runtime.prepare_apply/after_copy 进入。
+ * [INPUT]: 依赖 snapshot/status、patch transaction、platform_runtime preflight/ApplyPlan 与 privilege typed copy completion。
+ * [OUTPUT]: 提供 apply_language_inner、Windows pending→QPA→final marker 顺序、macOS marker→签名顺序及 staging warning。
+ * [POS]: commands 的语言写入编排；Windows final marker 可延后到 QPA ACTIVE/English 恢复之后，macOS 保持 marker 入事务后统一重签。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::Utc;
@@ -83,6 +83,7 @@ pub(crate) fn marker_guarded_transaction_pairs(
     staging_dir: &Path,
     changed_pairs: Vec<patch::CopyPair>,
     final_marker: Option<&patch::CopyPair>,
+    defer_final_marker: bool,
 ) -> Result<Vec<patch::CopyPair>, String> {
     let Some(final_marker) = final_marker else {
         return Ok(changed_pairs);
@@ -90,7 +91,9 @@ pub(crate) fn marker_guarded_transaction_pairs(
     let mut transaction = Vec::with_capacity(changed_pairs.len() + 2);
     transaction.push(build_pending_language_marker_pair(layout, staging_dir)?);
     transaction.extend(changed_pairs);
-    transaction.push(final_marker.clone());
+    if !defer_final_marker {
+        transaction.push(final_marker.clone());
+    }
     Ok(transaction)
 }
 
@@ -129,7 +132,10 @@ pub fn apply_language_inner<R: CommandRunner>(
         &immutable_revision,
     );
 
-    if lang == "en" && current_state.current_lang == "en" {
+    if lang == "en"
+        && current_state.current_lang == "en"
+        && platform_runtime::english_runtime_is_stock(&app_path)
+    {
         let needs_snapshot = patch::needs_english_snapshot(
             state_dir,
             current_state.english_snapshot_provenance.as_ref(),
@@ -188,8 +194,15 @@ pub fn apply_language_inner<R: CommandRunner>(
     }
 
     let staging_root = unique_staging_root();
-    let plan =
-        platform_runtime::prepare_apply(repo_root, resource_dir, &app_path, lang, &staging_root)?;
+    let plan = platform_runtime::prepare_apply(
+        repo_root,
+        resource_dir,
+        &app_path,
+        lang,
+        &version,
+        &staging_root,
+    )?;
+    platform_runtime::preflight_apply(&app_path, lang, runner)?;
     let mut pairs = if lang == "en" {
         patch::build_copy_pairs(&source_dir, &app_path)
     } else {
@@ -217,18 +230,41 @@ pub fn apply_language_inner<R: CommandRunner>(
             &staging_root.join("pending-marker"),
             changed_pairs,
             plan.final_language_marker.as_ref(),
+            plan.defer_final_language_marker,
         )?;
         // final marker 必须强制写入，不能因开始前内容相同而被 files_match 过滤。
         let staged_pairs = patch::stage_files(&transaction_pairs, &staging_root.join("staged"))
             .map_err(|error| format!("Could not stage patch files: {error}"))?;
-        let completion =
-            privilege::copy_with_privilege_detailed(&staged_pairs, runner).map_err(|error| {
+        let mut completion = privilege::copy_with_privilege_detailed(&staged_pairs, runner)
+            .map_err(|error| {
                 format!(
                     "Could not copy patch files into Cavalry: {}",
                     error.display()
                 )
             })?;
         platform_runtime::after_copy(&plan, &app_path, lang, &staging_root, &staged_pairs, runner)?;
+        if plan.defer_final_language_marker {
+            if let Some(final_marker) = plan.final_language_marker.as_ref() {
+                let staged_final = patch::stage_files(
+                    std::slice::from_ref(final_marker),
+                    &staging_root.join("staged-final-marker"),
+                )
+                .map_err(|error| format!("Could not stage final language marker: {error}"))?;
+                let final_completion =
+                    privilege::copy_with_privilege_detailed(&staged_final, runner).map_err(
+                        |error| {
+                            format!(
+                        "Could not commit final language marker after Windows QPA transition: {}",
+                        error.display()
+                    )
+                        },
+                    )?;
+                if completion.mode == "noop" {
+                    completion.mode = final_completion.mode;
+                }
+                completion.warnings.extend(final_completion.warnings);
+            }
+        }
         Ok::<_, String>(completion)
     })();
 

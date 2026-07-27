@@ -1,11 +1,53 @@
 <!--
-[INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、CMake、generated_translations.inc、可选只读 vendor 二进制与启动器提供的进程级环境
-[OUTPUT]: 对外提供 Windows generic plugin 的构建、目录布局、受控动态 Qt 显示翻译、静态 ABI 合同、启动契约和诊断判定说明
-[POS]: injector/windows 的操作边界文档，把源码 POC 约束为可重复且不污染系统/厂商安装的验证流程
+[INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK及版本化 QPA 头、CMake、generated_translations.inc、可选只读 vendor 二进制与安装根激活 manifest
+[OUTPUT]: 对外提供 Windows QPA 代理 + generic runtime 的构建、目录/激活布局、受控翻译、静态 ABI 合同与诊断判定说明
+[POS]: injector/windows 的操作边界文档，把原生入口委托、翻译 fail-open 与既有精确 UI hook 收束为可重复发布合同
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
-# Windows Qt generic plugin POC
+# Windows Qt QPA proxy + generic translation runtime
+
+## 原生入口 QPA 代理
+
+Windows 发布包含两个职责分离的 DLL：
+
+- `qpa/qwindows.dll` 是 Qt `windows` 平台插件代理，只负责委托原厂 QPA 和启动翻译；
+- `generic/cavalryi18n.dll` 是唯一翻译 runtime，承载 translator、显示投影与四条精确
+  ExtensionLayer IAT 边界。
+
+部署层把 Cavalry 2.7.2 原厂 `qwindows.dll` 持久化为
+`cavalry-i18n-qpa/vendor-qwindows.dll`，再以代理占据安装根原入口。代理先通过绝对路径
+加载原厂 DLL；原厂代码执行前必须同时通过运行时 Qt 6.6.3 与固定 vendor SHA-256
+门禁。代理对两种 `QPlatformIntegrationPlugin::create` 重载完整委托且设置
+`PreventUnloadHint`。只有原厂 integration 非空后才考虑翻译；此时才读取 manifest
+并核对 `Cavalry.exe`。因此厂商 EXE 漂移只会禁用翻译，不会阻断已经验证的原厂窗口
+系统。翻译文件、manifest、marker、generic 插件或 runtime 任一失败，原厂 integration
+仍原样返回。
+
+翻译激活只接受安装根 `cavalry-i18n-qpa/manifest.json` 的 exact schema v1：
+
+```json
+{
+  "schemaVersion": 1,
+  "phase": "active",
+  "cavalryVersion": "2.7.2",
+  "cavalryExecutableSha256": "<lowercase-sha256>",
+  "qtVersion": "6.6.3",
+  "architecture": "x86_64",
+  "vendorQwindowsSha256": "<verified-lowercase-sha256>",
+  "proxyQwindowsSha256": "<lowercase-sha256>",
+  "genericPluginSha256": "<lowercase-sha256>"
+}
+```
+
+未知/缺失字段、非固定版本架构、非已验证原厂 hash、Cavalry.exe/vendor/proxy/generic
+四项磁盘实际 SHA-256 漂移全部只禁用翻译。`phase=prepared|restoring` 始终只走原厂
+QPA；`phase=active` 后仍须严格读取根 `cavalry-i18n-lang.txt`，只有 `zh-Hans`、
+`zh-Hant`、`ja_JP` 才显式调用
+`QGenericPlugin::create("cavalryi18n", language)`。正式代理不调用 `qputenv`；
+English 只返回原厂界面。可选绝对 `CAVALRY_I18N_DIAGNOSTIC_MARKER` 仍用于 Switcher
+验收，代理 bootstrap 错误会写与 generic marker 可反序列化的 `status=error` 结构；
+原生图标启动不要求也不制造 AppData/安装根诊断文件。
 
 ## CJK text-path 运行时发布门
 
@@ -22,9 +64,10 @@ move/null、`SkTypeface::MakeFromName`、`SkPath` copy-constructor 关键字节�
 释放，进程终止时不依赖全局 `shared_ptr` 静态析构。显式绝对 diagnostic marker 存在时，
 Qt 线程每 75ms 检查一次 revision，只有计数变化才落盘；无 marker 时不创建该计时器。
 
-该 POC 使用 Qt 官方 `QGenericPlugin` 扩展点。它只生成
-`generic/cavalryi18n.dll`，运行时链接 Cavalry 已加载的 Qt 6.6.3，不复制
-Qt DLL、不修改 Cavalry 文件，也不做远程进程注入。
+generic runtime 使用 Qt 官方 `QGenericPlugin` 扩展点；QPA 代理显式锁定 Qt 6.6.3
+版本化私有平台插件 ABI。两个 DLL 都链接 Cavalry 已加载的同版 Qt，不复制 Qt DLL，
+不做远程进程注入。安装根原子替换、持久化原厂备份与恢复由 Tauri 部署层负责，本目录
+runtime 不执行写安装根操作。
 
 插件安装嵌入式 `QTranslator` 后，会主动翻译 Cavalry 已存在和动态创建的
 菜单/动作，以及窗口标题、标签、按钮、分组框、输入框 placeholder、标签页、
@@ -102,8 +145,10 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.p
 
 ```text
 injector/windows/
-└── generic/
-    └── cavalryi18n.dll
+├── generic/
+│   └── cavalryi18n.dll
+└── qpa/
+    └── qwindows.dll
 ```
 
 需要单独调试 CMake 时可运行：
@@ -137,14 +182,16 @@ return、viewport enum 表、EditShapeTool、TransformTool、Pencil、Pen 与 Ce
 读取该成员，以及首行/后续行两处 MakePath caller 的参数 preamble 与同一 IAT 槽；
 并验证 Core 固定 Lato 路径、CJK renderer 所需的 Core/skia 导出、Path 几何步骤与 typeface
 引用计数析构约定。测试不会加载、执行、复制或修改厂商 DLL。未设置变量时，常规跨机器构建仍会编译
-MessageBar/text-path/Core-Skia 合同代码并运行其余七项测试，只是不执行 machine-specific 映像断言。
+MessageBar/text-path/Core-Skia 合同代码并运行其余九项测试，只是不执行 machine-specific 映像断言。
 
 中间产物为：
 
 ```text
 build/windows-injector/
-└── generic/
-    └── cavalryi18n.dll
+├── generic/
+│   └── cavalryi18n.dll
+└── qpa/
+    └── qwindows.dll
 ```
 
 构建系统不会调用 `windeployqt`。发布时也只能携带本插件，禁止捆绑第二套
@@ -152,13 +199,18 @@ build/windows-injector/
 
 ## 运行契约
 
-启动器只给 Cavalry 子进程设置以下环境，不修改用户或系统环境：
+正式发布的正常路径不依赖启动入口环境：QPA 代理从同一安装根的 active manifest 与
+语言 marker 取得语言，并以 strict specification 交给 generic 工厂。因此桌面、开始菜单、
+既有任务栏固定项和直接运行 `Cavalry.exe` 汇合到同一加载点，同时原有快捷方式字节、
+图标、AppUserModelID 与 Toast 属性保持不动。
+
+generic 工厂只接受 QPA 明确传入的非空语言。即使父进程或用户环境遗留
+`QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS`、`CAVALRY_I18N_LANG`，Qt 自动发现产生的
+空 specification 也会被拒绝，不能越过 active manifest。Switcher 启动 Cavalry 时只可
+为本轮验收附加以下诊断变量，不修改用户或系统环境：
 
 | 变量 | 契约 |
 | --- | --- |
-| `QT_PLUGIN_PATH` | 包含 `generic/` 子目录的插件根目录 |
-| `QT_QPA_GENERIC_PLUGINS` | 固定为 `cavalryi18n` |
-| `CAVALRY_I18N_LANG` | `en`、`zh-Hans`、`zh-Hant`、`ja_JP` 之一 |
 | `CAVALRY_I18N_DIAGNOSTIC_MARKER` | 可选；父目录已存在的绝对 JSON 文件路径 |
 
 三种非英语翻译直接编译自仓库共享的
@@ -169,14 +221,11 @@ build/windows-injector/
 三个 Qt 槽均保持原值。Core text-path 在完成私有 ABI 验证后仍执行自己的插件/Core/skia
 PIN，作为独立防线；不能用其中一路的延迟加载假设替代另一路的驻留保证。
 
-示意验证只使用占位路径：
+显式 generic 入口由构建合同直接验证：
 
 ```powershell
-$env:QT_PLUGIN_PATH = "C:\Path\To\PluginRoot"
-$env:QT_QPA_GENERIC_PLUGINS = "cavalryi18n"
-$env:CAVALRY_I18N_LANG = "zh-Hans"
-$env:CAVALRY_I18N_DIAGNOSTIC_MARKER = "C:\Path\To\State\runtime.json"
-& "C:\Path\To\Cavalry.exe"
+npm.cmd run build:injector:windows
+ctest --test-dir build\windows-injector -C Release -R cavalryi18n_plugin_explicit_specification --output-on-failure
 ```
 
 marker 的 `status` 为 `ready` 且 `translatorInstalled` 为 `true`，只能证明

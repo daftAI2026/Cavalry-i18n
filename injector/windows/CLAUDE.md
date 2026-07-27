@@ -3,11 +3,17 @@
 
 成员清单
 
-CMakeLists.txt: Qt 6.6.3 x64 MSVC + Windows Psapi generic plugin 构建边界；编译 display、translator、PE/IAT、ExtensionLayer 四条边界、动态 Pitch dispatch、mapped Skia runtime ABI 防火墙、CJK renderer 与 process-lifetime callback snapshot，发布产物只含 `generic/cavalryi18n.dll`。
-build.ps1: 带 UTF-8 BOM 的 Windows 唯一可重复构建入口，兼容 PowerShell 5.1 解析中文契约头，解析 Qt SDK 与显式可选 `CAVALRY_VENDOR_ROOT`，不猜测盘符或安装目录，串联 configure/build/ctest 并把已验证 DLL 发布到稳定资源路径。
+CMakeLists.txt: shared Qt 6.6.3 x64 MSVC + Windows Psapi 构建边界；拒绝静态 Qt，编译 generic 翻译 runtime 与使用版本化私有 QPA 头的原厂委托代理，注册 display/hook/vendor、strict manifest 及仅显式语言入口合同，发布 `generic/cavalryi18n.dll` 和 `qpa/qwindows.dll`。
+build.ps1: 带 UTF-8 BOM 的 Windows 唯一可重复构建入口；验证生成/发布父链无重解析点，每次清空唯一受控 build 目录后解析 shared Qt SDK 与可选 vendor root，串联 configure/build/ctest 并发布已验证双 DLL。
 cavalry_i18n_callback_snapshot.h: 固定数量 exact source/translation 的不可变值表，支持按 source 或已验证索引读取；有意不析构的 process-lifetime shared_ptr 槽在卸载后只保留不触碰 Qt/Skia 的 forward-only 墓碑。
-cavalry_i18n_plugin.h: `QGenericPlugin` metadata 与工厂接口，只暴露大小写不敏感的 `cavalryi18n` key。
-cavalry_i18n_plugin.cpp: Qt generic factory 路由，把受支持 key 映射到独立的运行时生命周期对象。
+cavalry_i18n_plugin.h: `QGenericPlugin` metadata 与工厂接口，只暴露大小写不敏感的 `cavalryi18n` key，并声明严格非空 specification 边界。
+cavalry_i18n_plugin.cpp: Qt generic factory 路由；空 specification 与未知语言一律拒绝，只把 QPA 明确传值映射到 runtime，并将内部配置失败投影为 `nullptr`。
+cavalry_i18n_qpa_contract.h: QPA manifest v1 与语言 marker 的纯数据接口；隔离代理文件 IO 和 exact schema/hash/语言判定。
+cavalry_i18n_qpa_contract.cpp: 严格拒绝 manifest 未知/缺失字段、版本/架构/固定 vendor hash 漂移，逐项比较实际 Cavalry.exe/vendor/proxy/generic SHA-256，并只接受四语言精确 marker。
+cavalry_i18n_qpa_contract_test.cpp: 无厂商 DLL 的激活合同回归；覆盖 prepared/active/restoring、schema/key/运行 Qt/Cavalry.exe/hash 漂移、vendor 执行前摘要门及 marker 空白/大小写拒绝。
+cavalry_i18n_qpa_binary_smoke_test.cpp: 最终 `qpa/qwindows.dll` 产物加载门；验证 QPA IID、唯一 `windows` key、动态依赖可解析及 `QPlatformIntegrationPlugin` 类型，不调用 create 或触碰厂商 DLL。
+cavalry_i18n_qpa_proxy.h: Qt 6.6.3 私有 `QPlatformIntegrationPlugin` 接口与 `windows` metadata；完整实现两种 create 重载。
+cavalry_i18n_qpa_proxy.cpp: 在 `QPluginLoader::instance` 前校验运行 Qt 6.6.3 与固定 vendor 摘要，再绝对加载/永久驻留原厂 QPA；原厂 integration 成功后，仅在 active manifest、Cavalry.exe/vendor/proxy/generic 四项实际 hash 与非英语 marker 全通过时显式启动 generic，翻译失败保留原厂 integration。
 cavalry_i18n_display.h: 主动显示翻译接口与对象生命周期状态，明确 QWidget/QAction、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束的 QLineEdit 显示值边界。
 cavalry_i18n_dynamic_label.h: 不依赖 QObject 的纯动态 QLabel 规则，严格匹配 `N selected` 与登录离线认证天数并提供三语投影；未知语言、未知文本和近似文本返回空值。
 cavalry_i18n_display.cpp: 幂等翻译菜单、动作、标题、逐行复合 tooltip、已知基名数字后缀、严格 selected/离线认证倒计时 QLabel、QComboBox 可见项和递归 QTreeWidget DisplayRole；通过 `aboutToShow`/`changed`/model signal/Paint 接住首帧与动态英文写回，复合提示只替换词表命中行，未知行、UserRole、currentIndex 和通用 item view 保持原值。
@@ -43,24 +49,26 @@ cavalry_i18n_vendor_text_path_contract.cpp: 锁定唯一 Core MakePath IAT、二
 cavalry_i18n_vendor_skia_text_path_contract.h: Core/skia 只读 CJK Path 兼容验证入口，隔离 renderer 依赖的导出、对象布局和所有权证据。
 cavalry_i18n_vendor_skia_text_path_contract.cpp: 独立锁定 Core 固定 Lato、SkFont move/null、SkPath copy prefix、CJK 导出与 refcount 析构；不与运行时常量共用证据。
 cavalry_i18n_extension_layer_hook_test.cpp: 无厂商模块主合同；覆盖三语、helper/placeholder 槽生命周期、runtime identity 正反例、renderer-free tombstone 与原子计数/source-mask，并调用独立 MessageBar 生命周期分片。
-cavalry_i18n_runtime.h: 翻译加载、主动显示刷新、聚合四边界延迟安装及 revision-driven 结构化 marker 生命周期声明。
-cavalry_i18n_runtime.cpp: 显式绝对 marker 路径下才创建 75ms Qt 线程计时器，只在 text-path revision 改变时写九项计数/位图；渲染 callback 不执行 Qt/IO，无 marker 的发布运行无周期唤醒。
+cavalry_i18n_runtime.h: QPA 显式语言、可查询配置结果、主动显示刷新、聚合四边界延迟安装及 revision-driven marker 生命周期声明。
+cavalry_i18n_runtime.cpp: 语言只消费 QPA 非空 specification，绝不读取 `CAVALRY_I18N_LANG`；显式绝对 marker 下创建 75ms Qt 线程计时器，只在 text-path revision 改变时写九项计数/位图。
 cavalry_i18n_translator.h: 嵌入式 translator 查询接口与统计边界，隔离生成表表示和运行时生命周期。
 cavalry_i18n_translator.cpp: 复用共享 `generated_translations.inc`，构建精确 `(context, source)` 首条优先哈希与遵循现有显示层语义的末条覆盖 source fallback；共享策略声明的自绘词条不进入 fallback。
 cavalry_i18n_translator_test.cpp: 三语言非空表、已证实 helper 与调色板/场景/工具残留的嵌入翻译样本、精确尾随空白查询、context-only 拒绝、source fallback、未知语言和未知文本合同测试。
-cavalry_i18n_plugin_smoke_test.cpp: 由最小 `QApplication` 走真实 generic plugin 自动发现，验证显示投影、数据隔离与九字段 text-path marker 结构；不将零计数冒充 live hook 覆盖。
+cavalry_i18n_plugin_smoke_test.cpp: 由最小 `QApplication` 加载真实 generic DLL，证明空 specification 即使存在遗留环境也被拒，并验证 QPA 等价显式语言、显示投影、数据隔离与九字段 marker。
 cavalryi18n.json: Qt plugin metadata，声明唯一自动加载 key `cavalryi18n`。
+qwindows.json: Qt QPA metadata，声明唯一平台 key `windows`。
 README.md: Windows 插件依赖、构建目录、四条 ExtensionLayer 边界、MessageBar 精确排除规则、子进程环境契约、只读 vendor 静态合同与 live gate 判定。
 generic/: 由 build.ps1 生成的 Tauri resource 稳定目录，只允许 `cavalryi18n.dll`，禁止复制 Qt runtime。
+qpa/: 由 build.ps1 生成的 QPA 代理稳定资源目录，只允许 `qwindows.dll`，部署层负责原厂备份、manifest 与原子替换。
 
 依赖边界:
 
-本模块只依赖 Qt 6.6.3 Core/Gui/Widgets 公共 ABI、Windows Psapi 与本地 PE/IAT 解析，并从父级共享生成表取得翻译真相；启动器负责把插件根、语言和可选 marker 作为子进程环境传入。`CAVALRY_VENDOR_ROOT` 仅在构建期把明确路径的 DLL 作为只读 ABI/import 合同输入，运行时不读取安装注册表、不修改厂商 DLL、不执行远程注入、不创建全局环境变量，也不携带第二套 Qt runtime。
+generic runtime 只依赖 Qt 6.6.3 Core/Gui/Widgets 公共 ABI、Windows Psapi、本地 PE/IAT 与父级生成表；QPA 代理额外显式依赖 Qt 6.6.3 版本化私有平台插件 ABI。部署层把原厂 `qwindows.dll` 持久化到安装根专用子目录并以本代理占据原入口；代理自身不写安装根、不读注册表、不创建环境变量，只有可选 diagnostic marker 延续既有显式环境输入。`CAVALRY_VENDOR_ROOT` 仍只用于构建期只读 ABI/import 合同，两个产物均不携带第二套 Qt runtime。
 
 运行数据流:
 
-`generated_translations.inc` → `CavalryEmbeddedTranslator` 精确/兜底哈希，其中 context-only 自绘词条不进入 source fallback → `CavalryDisplayTranslator` 对菜单、严格 selected/离线认证倒计时 QLabel、受控属性、QComboBox/QTreeWidget DisplayRole 及词表命中 QLineEdit 值作幂等投影；树的 model signal、输入框 `textChanged` 与局部 Paint 接住动态英文写回，UserRole/未知输入不变 → helper/placeholder/MessageBar 三条 callback 在安装期生成并原子发布 immutable snapshot；`QT_QPA_GENERIC_PLUGINS=cavalryi18n` → Qt generic factory → `CavalryI18nRuntime` → 安装 translator/显示层 → Show/Paint 首帧验证 ExtensionLayer 四边界：唯一 `CavalryUI::ui::textAtWidgetCentre` 槽处理九条 helper；canonical `setPlaceholder → QString::operator=` 链处理十三条 placeholder；`QTextEdit::append` 仅在 history/live 两个已锁定 return 且最后一个 `<br>` 后正文精确等于 Pencil 警告时替换；唯一 `Core::MakePathFromText` 槽还须在每次 callback 命中三处批准 caller 完整字节包络，canonical caller 仅接受二十二条静态 source，PrimitiveTool 两处 line caller 仅以精确 CogTool context 接受 `Pitch Radius: ` 加 canonical 32-bit `int` 文本。命中时仅以已锁定 Core/skia 导出构造白名单 CJK Path；任一字体、字形、ABI 或 Path 异常则调用原函数保留英文，所有快捷键 prefix 也保持英文 → 可选原子聚合 marker。
+原生任意入口 → 根 `qwindows.dll` 代理 → 在执行前校验运行 Qt 与固定 vendor 摘要，再绝对加载并委托 `cavalry-i18n-qpa/vendor-qwindows.dll`；原厂 integration 非空后解析 exact manifest v1，prepared/restoring 或 English 只返回原厂结果，active 则逐项验证 Cavalry.exe/vendor/proxy/generic 实际 SHA-256 与严格语言 marker → `QGenericPlugin::create("cavalryi18n", language)` 显式传值，不经 `qputenv`；旧式 `QT_QPA_GENERIC_PLUGINS` 的空 specification 被工厂拒绝，不能绕过 manifest → runtime 安装 translator/显示层。`generated_translations.inc` → `CavalryEmbeddedTranslator` 精确/兜底哈希，其中 context-only 自绘词条不进入 source fallback → `CavalryDisplayTranslator` 作幂等显示投影 → helper/placeholder/MessageBar immutable snapshot 与 text-path 白名单四边界；任一翻译、字体、字形、ABI 或 Path 异常都保留原厂窗口系统/英文并在显式 marker 可用时输出结构化错误。
 
-法则: Qt 6.6.3 ABI 锁定·x64 MSVC release `std::string` 必须为 32 bytes·共享生成表真相·精确键首条优先·source fallback 末条覆盖但 context-only 自绘词条禁止进入·已知基名数字后缀通用投影·selected-count 与离线认证倒计时只匹配严格 QLabel 文本·显示属性白名单·QComboBox/QTreeWidget 只写 DisplayRole·QLineEdit 仅翻译词表命中值且以 `QSignalBlocker` 隔离回写·未知输入/UserRole/currentIndex/通用 item view 不变·Paint 禁止树遍历·ExtensionLayer 只允许共享合同中已采证 source 经四条精确 IAT 边界进入，未知或表内非白名单文本原样透传·MessageBar 只批准 history/live 两个 return 与单条 HTML 尾部正文，`js_logger`、无 `<br>`、未知正文和整份 QTextEdit 文档保持原样·callback 不持 hook/translator raw pointer 且不得在生命周期锁内调用原函数·固定 aggregate→text 锁序·插件 process-lifetime PIN 必须早于任一 aggregate IAT 安装写入且 text-path 保留独立 PIN·终态失败回滚而 waiting 可保留 partial install·text-path 必须同时命中 exact slot/caller 字节包络/source/context 且每次 callback 重验，动态 Pitch 只能保留 canonical 32-bit `int` 后缀，CJK Path 只可由已锁定 Core/skia 导出在白名单内重建，任一失败回退英文·禁止扩大到 vendor `.text`、Skia、libc 或 QPainter 全局拦截·快捷键 prefix 保持英文·二十三项 action/quality/Pitch 与 Pencil 三语文案不加末尾句号·IAT 卸载非 owner 不碰 globals，mixed restore 逐槽清 original，失败槽保留 forward-only snapshot·Snippet 仅在直调 canonical `setPlaceholder` 链与十三条 placeholder 合同中翻译·进程级环境·无 vendor 修改·无远程线程·无第二套 Qt runtime·marker 仅在显式绝对路径启用且 `installed` 代表四路完成
+法则: shared Qt 6.6.3 公共/私有 QPA ABI 双锁定·QPA manifest exact schema/固定版本架构/Cavalry.exe+三 DLL 实际 SHA-256·vendor 摘要先于执行·prepared/restoring/English 不激活 generic·空 specification 永久拒绝·显式语言不写环境·原厂 integration 先成功、翻译后尝试且 fail-open·x64 MSVC release `std::string` 必须为 32 bytes·共享生成表真相·精确键首条优先·source fallback 末条覆盖但 context-only 自绘词条禁止进入·已知基名数字后缀通用投影·selected-count 与离线认证倒计时只匹配严格 QLabel 文本·显示属性白名单·QComboBox/QTreeWidget 只写 DisplayRole·QLineEdit 仅翻译词表命中值且以 `QSignalBlocker` 隔离回写·未知输入/UserRole/currentIndex/通用 item view 不变·Paint 禁止树遍历·ExtensionLayer 只允许共享合同中已采证 source 经四条精确 IAT 边界进入，未知或表内非白名单文本原样透传·MessageBar 只批准 history/live 两个 return 与单条 HTML 尾部正文，`js_logger`、无 `<br>`、未知正文和整份 QTextEdit 文档保持原样·callback 不持 hook/translator raw pointer 且不得在生命周期锁内调用原函数·固定 aggregate→text 锁序·插件 process-lifetime PIN 必须早于任一 aggregate IAT 安装写入且 text-path 保留独立 PIN·终态失败回滚而 waiting 可保留 partial install·text-path 必须同时命中 exact slot/caller 字节包络/source/context 且每次 callback 重验，动态 Pitch 只能保留 canonical 32-bit `int` 后缀，CJK Path 只可由已锁定 Core/skia 导出在白名单内重建，任一失败回退英文·禁止扩大到 vendor `.text`、Skia、libc 或 QPainter 全局拦截·快捷键 prefix 保持英文·二十三项 action/quality/Pitch 与 Pencil 三语文案不加末尾句号·IAT 卸载非 owner 不碰 globals，mixed restore 逐槽清 original，失败槽保留 forward-only snapshot·Snippet 仅在直调 canonical `setPlaceholder` 链与十三条 placeholder 合同中翻译·无远程线程·无第二套 Qt runtime·diagnostic marker 仅在显式绝对路径启用且 `installed` 代表四路完成
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
