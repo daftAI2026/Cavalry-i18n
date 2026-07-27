@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖显式 disposable clone/evidence 环境变量、共享 Windows 路径守卫、apply_language_inner、RealCommandRunner、runtime marker 与 PowerShell PID 窗口证据 helper
  * [OUTPUT]: 对外提供 ignored Windows live-clone 冒烟：可选单语或默认三语真实启动、隔离 AppData、三类自动 PNG、带零位图基线与严格计数增量的人工 Cog Pitch PNG、PID 清理及 English 38 文件恢复
- * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；自动路径只向 exact HWND 投递 A 键，Cog Pitch 仅在 opt-in 后记录前后诊断并等待用户操作 sentinel clone，不创建场景、不运行脚本、不依赖 Qt UIA
+ * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；自动路径经有界 exact-HWND 前台门投递 A 键，Cog Pitch 仅在 opt-in 后记录前后诊断并等待用户操作 sentinel clone，不创建场景、不运行脚本、不依赖 Qt UIA
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(target_os = "windows")]
@@ -818,6 +818,8 @@ mod windows_live_smoke {
             "mouse_event",
             "ViewportSettingsPoint",
             "Viewport Settings",
+            "Assert-ExactForegroundWindow",
+            "Assert-ForegroundProcess",
         ] {
             assert!(
                 !helper.contains(forbidden),
@@ -826,13 +828,12 @@ mod windows_live_smoke {
         }
         for required in [
             "PostVirtualKey",
+            "Wait-ForExactForegroundWindow",
             "WM_KEYDOWN",
             "WM_KEYUP",
             "0x41",
             "exact-hwnd-postmessage-vk-a",
             "path-pixels=manual-review-required",
-            "Assert-ExactForegroundWindow",
-            "Assert-ForegroundProcess",
             "Wait-ForTextPathDiagnostics",
             "BaselineDiagnostics",
             "canonicalCalls",

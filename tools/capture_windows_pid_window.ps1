@@ -1,7 +1,7 @@
 ﻿<#
 [INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、显式 PID、位于带 sentinel 的 disposable `%TEMP%` clone 根内的 Cavalry.exe、runtime marker、带 sentinel 的 evidence `%TEMP%` 根与输出 PNG 路径
 [OUTPUT]: 对外提供 Inventory/Capture/Close 三个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；自动捕获三类场景，并以显式开关从零位图基线等待人工 Cogwheel 拖拽及严格诊断增量
-[POS]: tools 的 Windows GUI 证据边界；人工 CogPitch 只接触已验证前台 PID 与 sentinel clone，拒绝预置 bit 15 并保存前后诊断，不创建场景、不依赖 Qt UIA、不运行脚本，禁止坐标/鼠标回退、强杀、固定 sleep或覆盖证据
+[POS]: tools 的 Windows GUI 取证边界；Edit Shape 与人工 CogPitch 通过有界 exact-HWND 前台门，拒绝预置 bit 15 并保存前后诊断，不创建场景、不依赖 Qt UIA、不运行脚本，禁止坐标/鼠标回退、强杀、固定 sleep 或覆盖证据
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -168,14 +168,13 @@ public static class CavalryLiveWindow {
         return bestWindow;
     }
 
-    public static bool FocusBelongsToProcess(IntPtr window, uint targetProcessId) {
-        SetForegroundWindow(window);
-        return ForegroundBelongsToProcess(targetProcessId);
+    public static bool RequestForegroundWindow(IntPtr window) {
+        return SetForegroundWindow(window);
     }
 
-    public static bool ForegroundBelongsToProcess(uint targetProcessId) {
+    public static bool ExactForegroundWindow(IntPtr window, uint targetProcessId) {
         IntPtr foreground = GetForegroundWindow();
-        if (foreground == IntPtr.Zero) {
+        if (foreground == IntPtr.Zero || foreground != window) {
             return false;
         }
         uint foregroundProcessId;
@@ -413,58 +412,74 @@ function Get-ExactProcess {
     }
 }
 
-function Assert-ExactForegroundWindow {
+function Wait-ForExactForegroundWindow {
     param(
+        [Parameter(Mandatory = $true)]
+        [System.Diagnostics.Process]$Process,
         [Parameter(Mandatory = $true)]
         [IntPtr]$Window,
         [Parameter(Mandatory = $true)]
         [int]$ExpectedProcessId,
         [Parameter(Mandatory = $true)]
-        [string]$Operation
-    )
-
-    Assert-Condition `
-        -Condition ([CavalryLiveWindow]::FocusBelongsToProcess($Window, [uint32]$ExpectedProcessId)) `
-        -Message "Refusing $Operation because the foreground window is not Cavalry PID $ExpectedProcessId."
-}
-
-function Assert-ForegroundProcess {
-    param(
-        [Parameter(Mandatory = $true)]
-        [int]$ExpectedProcessId,
+        [System.DateTime]$Deadline,
         [Parameter(Mandatory = $true)]
         [string]$Operation
     )
 
-    Assert-Condition `
-        -Condition ([CavalryLiveWindow]::ForegroundBelongsToProcess([uint32]$ExpectedProcessId)) `
-        -Message "Refusing $Operation because the foreground window is not Cavalry PID $ExpectedProcessId."
+    [void][CavalryLiveWindow]::RequestForegroundWindow($Window)
+    while ([System.DateTime]::UtcNow -lt $Deadline) {
+        $Process.Refresh()
+        Assert-Condition -Condition (-not $Process.HasExited) `
+            -Message "Cavalry process $ExpectedProcessId exited before $Operation."
+        if (
+            [CavalryLiveWindow]::ExactForegroundWindow(
+                $Window,
+                [uint32]$ExpectedProcessId
+            )
+        ) {
+            return
+        }
+        [void][CavalryLiveWindow]::WaitForSingleObject($Process.Handle, 100)
+    }
+    throw (
+        "Timed out waiting for the exact Cavalry window before $Operation. " +
+        'Bring the disposable Cavalry window to the foreground and retry.'
+    )
 }
 
 function Prepare-ToolHelperEvidence {
     param(
         [Parameter(Mandatory = $true)]
+        [System.Diagnostics.Process]$Process,
+        [Parameter(Mandatory = $true)]
         [IntPtr]$Window,
         [Parameter(Mandatory = $true)]
         [int]$ExpectedProcessId,
+        [Parameter(Mandatory = $true)]
+        [System.DateTime]$Deadline,
         [Parameter(Mandatory = $true)]
         [ValidateSet('Transform', 'EditShape')]
         [string]$Tool
     )
 
-    Assert-ExactForegroundWindow `
-        -Window $Window `
-        -ExpectedProcessId $ExpectedProcessId `
-        -Operation "$Tool Tool preparation"
     if ($Tool -ceq 'Transform') {
         return 'transform-helper=initial-empty-scene;path-pixels=manual-review-required'
     }
+    Wait-ForExactForegroundWindow `
+        -Process $Process `
+        -Window $Window `
+        -ExpectedProcessId $ExpectedProcessId `
+        -Deadline $Deadline `
+        -Operation "$Tool Tool preparation"
     Assert-Condition `
         -Condition ([CavalryLiveWindow]::PostVirtualKey($Window, 0x41)) `
         -Message 'PostMessage failed while sending the default Edit Shape Tool key A.'
-    Assert-ForegroundProcess `
-        -ExpectedProcessId $ExpectedProcessId `
-        -Operation 'Edit Shape Tool key delivery'
+    Assert-Condition `
+        -Condition ([CavalryLiveWindow]::ExactForegroundWindow(
+            $Window,
+            [uint32]$ExpectedProcessId
+        )) `
+        -Message 'Refusing Edit Shape Tool evidence because focus changed during exact-HWND key delivery.'
     return 'edit-shape-helper-trigger=exact-hwnd-postmessage-vk-a;path-pixels=manual-review-required'
 }
 
@@ -812,7 +827,8 @@ function Close-ExactProcessWindows {
             )
             if (
                 $focusWindow -ne [IntPtr]::Zero -and
-                [CavalryLiveWindow]::FocusBelongsToProcess(
+                [CavalryLiveWindow]::RequestForegroundWindow($focusWindow) -and
+                [CavalryLiveWindow]::ExactForegroundWindow(
                     $focusWindow,
                     [uint32]$ExpectedProcessId
                 )
@@ -932,20 +948,26 @@ $interactionEvidence = switch ($CaptureScenario) {
     }
     'TransformHelper' {
         Prepare-ToolHelperEvidence `
+            -Process $exact.process `
             -Window $window `
             -ExpectedProcessId $TargetProcessId `
+            -Deadline $deadline `
             -Tool 'Transform'
     }
     'EditShapeHelper' {
         Prepare-ToolHelperEvidence `
+            -Process $exact.process `
             -Window $window `
             -ExpectedProcessId $TargetProcessId `
+            -Deadline $deadline `
             -Tool 'EditShape'
     }
     'CogPitch' {
-        Assert-ExactForegroundWindow `
+        Wait-ForExactForegroundWindow `
+            -Process $exact.process `
             -Window $window `
             -ExpectedProcessId $TargetProcessId `
+            -Deadline $deadline `
             -Operation 'manual Cogwheel Tool Pitch Radius evidence'
         'cog-pitch-trigger=manual-disposable-cogwheel-drag;path-pixels=manual-review-required'
     }

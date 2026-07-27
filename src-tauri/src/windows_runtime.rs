@@ -574,6 +574,7 @@ mod tests {
         let environment = environment(&launch.environment);
 
         assert_eq!(launch.plugin_root.as_deref(), Some(app.as_path()));
+        assert_eq!(environment.len(), 4);
         assert_eq!(environment["QT_PLUGIN_PATH"], app.to_string_lossy());
         assert_eq!(environment["QT_QPA_GENERIC_PLUGINS"], "cavalryi18n");
         assert_eq!(environment["CAVALRY_I18N_LANG"], "zh-Hans");

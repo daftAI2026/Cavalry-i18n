@@ -892,6 +892,19 @@ test('Windows NSIS installed-surface smoke refuses collisions and has no destruc
   );
 });
 
+test('Windows production launch preserves the caller profile and login context', () => {
+  const productionRuntime = readText('src-tauri/src/windows_runtime.rs');
+  const runner = readText('src-tauri/src/privilege/runner.rs');
+
+  assert.match(productionRuntime, /QT_PLUGIN_PATH/);
+  assert.match(productionRuntime, /QT_QPA_GENERIC_PLUGINS/);
+  assert.match(productionRuntime, /CAVALRY_I18N_LANG/);
+  assert.match(productionRuntime, /CAVALRY_I18N_DIAGNOSTIC_MARKER/);
+  assert.match(productionRuntime, /assert_eq!\(environment\.len\(\), 4\)/);
+  assert.doesNotMatch(productionRuntime, /APPDATA|LOCALAPPDATA|USERPROFILE|Credential/i);
+  assert.doesNotMatch(runner, /\.env_clear\(\)/);
+});
+
 test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-review only', () => {
   const live = readText('src-tauri/tests/manual_windows_live_smoke.rs');
   const guard = readText('src-tauri/tests/support/windows_disposable.rs');
@@ -961,7 +974,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(live, /MANUAL SCREENSHOT REVIEW REQUIRED/);
   assert.match(live, /no OCR assertion was performed/);
   assert.doesNotMatch(live, /thread::sleep|std::thread|Command::new/);
-  assert.match(sop, /clone 只隔离 Cavalry 安装根，不隔离当前 Windows 用户 profile/);
+  assert.match(sop, /临时 `APPDATA`\/`LOCALAPPDATA` 只维护测试文件卫生/);
   assert.match(sop, /默认生成的三类 PNG，以及 opt-in 时追加的 Cog Pitch PNG/);
   assert.match(sop, /CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1/);
   assert.match(sop, /菜单、属性编辑器、合成\/自动编号项、所有受控下拉显示项/);
@@ -1026,11 +1039,37 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   );
   assert.match(helper, /pre-set Pitch bit 15/);
   assert.match(helper, /textPathBaselineDiagnostics\s*=\s*\$cogPitchBaseline/);
-  assert.match(helper, /function Assert-ExactForegroundWindow/);
-  assert.match(helper, /function Assert-ForegroundProcess/);
+  assert.match(helper, /function Wait-ForExactForegroundWindow/);
   assert.match(helper, /function Prepare-ToolHelperEvidence/);
   assert.match(helper, /PostVirtualKey\(\$Window, 0x41\)/);
   assert.match(helper, /exact-hwnd-postmessage-vk-a/);
+  const foregroundWait = helper.match(
+    /function Wait-ForExactForegroundWindow[\s\S]*?\r?\n}\r?\n\r?\nfunction Prepare-ToolHelperEvidence/
+  )[0];
+  assert.equal(
+    (foregroundWait.match(/RequestForegroundWindow/g) || []).length,
+    1,
+    'the helper should request foreground once, then wait for observed exact-HWND state'
+  );
+  assert.match(foregroundWait, /UtcNow -lt \$Deadline/);
+  assert.match(
+    foregroundWait,
+    /ExactForegroundWindow\([\s\S]*?\$Window,[\s\S]*?\[uint32\]\$ExpectedProcessId/
+  );
+  assert.match(foregroundWait, /WaitForSingleObject\(\$Process\.Handle, 100\)/);
+  const toolPreparation = helper.match(
+    /function Prepare-ToolHelperEvidence[\s\S]*?\r?\n}\r?\n\r?\nfunction Wait-ForExtensionLayerMarker/
+  )[0];
+  assert.doesNotMatch(
+    toolPreparation,
+    /FocusBelongsToProcess|SetForegroundWindow/,
+    'exact-HWND PostMessage must use the bounded exact-window focus gate'
+  );
+  assert.match(toolPreparation, /Wait-ForExactForegroundWindow/);
+  assert.match(
+    toolPreparation,
+    /Wait-ForExactForegroundWindow[\s\S]*PostVirtualKey\(\$Window, 0x41\)[\s\S]*ExactForegroundWindow/
+  );
   assert.match(helper, /WM_KEYDOWN/);
   assert.match(helper, /WM_KEYUP/);
   assert.doesNotMatch(
@@ -1041,7 +1080,8 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /PrintWindow/);
   assert.match(helper, /PostMessage/);
   assert.match(helper, /WM_CLOSE/);
-  assert.match(helper, /FocusBelongsToProcess/);
+  assert.match(helper, /RequestForegroundWindow/);
+  assert.match(helper, /ExactForegroundWindow/);
   assert.match(helper, /ConfirmDiscardOfDisposableScene/);
   assert.match(helper, /hasRenderedContent/);
   assert.match(helper, /ImageFormat\]::Png/);
