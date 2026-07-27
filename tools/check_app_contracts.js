@@ -4509,6 +4509,22 @@ test('zh-Hant node strings reject known simplified Chinese residues', () => {
   assert.doesNotMatch(source, /参考|伽马|卷曲/);
 });
 
+test('zh-Hant compiled catalog rejects configured simplified tool names', () => {
+  const { parseTs } = require(path.join(repoRoot, 'tools', 'generate_embedded_translations.js'));
+  const { detectForbiddenTranslationPatterns } = require(
+    path.join(repoRoot, 'tools', 'forbidden_translation_patterns.js')
+  );
+  const violations = parseTs(path.join(repoRoot, 'tools', 'zh-Hant.ts')).flatMap((entry) =>
+    detectForbiddenTranslationPatterns({
+      language: 'zh-Hant',
+      sourceText: entry.source,
+      value: entry.translation,
+    }).map((hit) => `${entry.context} :: ${entry.source} :: ${hit.id} :: ${hit.value}`)
+  );
+
+  assert.deepEqual(violations, []);
+});
+
 test('runtime and JSON validators import the shared forbidden translation detector', () => {
   const runtimeSource = fs.readFileSync(
     path.join(repoRoot, 'tools', 'check_runtime_ui_coverage.js'),

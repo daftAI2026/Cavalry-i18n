@@ -26,6 +26,8 @@
 | Child | 子级 | 子級 | 子 | Hierarchy context |
 | Mask | 蒙版 | 遮罩 | マスク | zh-Hans: Prefer AE terminology over "遮罩" |
 | Stroke | 描边 | 描邊 | ストローク | |
+| Pen Tool | 钢笔工具 | 鋼筆工具 | ペンツール | Vector path editing tool |
+| Pencil Tool | 铅笔工具 | 鉛筆工具 | 鉛筆ツール | Freehand drawing tool |
 | Fill | 填充 | 填充 | 塗り | |
 | Bezier | 贝塞尔 | 貝茲 | ベジェ | Use standard Chinese graphics term |
 | Path | 路径 | 路徑 | パス | |

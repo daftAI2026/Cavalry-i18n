@@ -1891,14 +1891,14 @@
     <message><source>Payload Too Large</source><translation>有效載荷太大</translation></message>
     <message><source>Payment Required</source><translation>所需付款</translation></message>
     <message><source>Pelorous</source><translation>美麗</translation></message>
-    <message><source>Pen Tool: Cleared Path</source><translation>钢笔工具: 已清除路徑</translation></message>
-    <message><source>Pen Tool: Cleared Path.</source><translation>钢笔工具: 已清除路徑。</translation></message>
-    <message><source>Pen Tool: New Contour Requested</source><translation>钢笔工具: 請求新輪廓</translation></message>
-    <message><source>Pen Tool: New Contour Requested.</source><translation>钢笔工具: 請求新輪廓。</translation></message>
-    <message><source>Pencil Tool: Cleared Path</source><translation>铅笔工具: 已清除路徑</translation></message>
-    <message><source>Pencil Tool: Cleared Path.</source><translation>铅笔工具: 已清除路徑。</translation></message>
-    <message><source>Pencil Tool: New Shape Requested</source><translation>铅笔工具: 請求新形狀</translation></message>
-    <message><source>Pencil Tool: New Shape Requested.</source><translation>铅笔工具: 請求新形狀。</translation></message>
+    <message><source>Pen Tool: Cleared Path</source><translation>鋼筆工具: 已清除路徑</translation></message>
+    <message><source>Pen Tool: Cleared Path.</source><translation>鋼筆工具: 已清除路徑。</translation></message>
+    <message><source>Pen Tool: New Contour Requested</source><translation>鋼筆工具: 請求新輪廓</translation></message>
+    <message><source>Pen Tool: New Contour Requested.</source><translation>鋼筆工具: 請求新輪廓。</translation></message>
+    <message><source>Pencil Tool: Cleared Path</source><translation>鉛筆工具: 已清除路徑</translation></message>
+    <message><source>Pencil Tool: Cleared Path.</source><translation>鉛筆工具: 已清除路徑。</translation></message>
+    <message><source>Pencil Tool: New Shape Requested</source><translation>鉛筆工具: 請求新形狀</translation></message>
+    <message><source>Pencil Tool: New Shape Requested.</source><translation>鉛筆工具: 請求新形狀。</translation></message>
     <message><source>Performance</source><translation>業績</translation></message>
     <message><source>Permanent Redirect</source><translation>永久定向</translation></message>
     <message><source>Phags-pa</source><translation>八思巴文</translation></message>
