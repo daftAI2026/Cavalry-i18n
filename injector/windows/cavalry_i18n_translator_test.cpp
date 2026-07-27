@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryEmbeddedTranslator 与 generated_translations.inc 中稳定存在的菜单样本
- * [OUTPUT]: 对外验证三语言标签/嵌入、已证实 helper、调色板/场景/工具残留与精确尾随空白、未知 context 的 source fallback、未知语言/文本空结果
+ * [OUTPUT]: 对外验证三语嵌入、helper/残留 source fallback、CogTool Pitch exact-context 隔离、精确尾随空白及未知输入空结果
  * [POS]: injector/windows 的最小数据合同测试，在进入真实 Cavalry 前证明 DLL 内翻译表不是空壳
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -128,6 +128,7 @@ bool verifyEvidencedResidualTranslationSamples(
         QStringLiteral("Supervised: "),
         QStringLiteral("Show Grid: "),
         QStringLiteral("Preset: "),
+        QStringLiteral("Pitch Radius: "),
     };
     if (expectedTranslations.size() != sources.size()) {
         qCritical() << "Residual translation fixture has an invalid size.";
@@ -135,7 +136,7 @@ bool verifyEvidencedResidualTranslationSamples(
     }
 
     const CavalryEmbeddedTranslator translator(language);
-    for (int index = 0; index < sources.size(); ++index) {
+    for (int index = 0; index < sources.size() - 1; ++index) {
         const QByteArray sourceUtf8 = sources.at(index).toUtf8();
         if (!expectEqual(
                 translator.translate(
@@ -148,6 +149,18 @@ bool verifyEvidencedResidualTranslationSamples(
     }
 
     return expectEqual(
+               translator.translate(
+                   nullptr,
+                   "Pitch Radius: "),
+               QString(),
+               "null-context Pitch Radius source rejection")
+        && expectEqual(
+               translator.translate(
+                   "UnknownContext",
+                   "Pitch Radius: "),
+               QString(),
+               "context-only Pitch Radius source rejection")
+        && expectEqual(
                translator.translate(
                    "MeshToolSettings",
                    "Soft Selection: "),
@@ -164,7 +177,13 @@ bool verifyEvidencedResidualTranslationSamples(
                    "cavalry::PaletteListWidget",
                    "Palette Name:"),
                expectedTranslations.at(2),
-               "exact palette dialog lookup");
+               "exact palette dialog lookup")
+        && expectEqual(
+               translator.translate(
+                   "CogTool",
+                   "Pitch Radius: "),
+               expectedTranslations.at(24),
+               "exact CogTool pitch-radius prefix lookup");
 }
 
 } // namespace
@@ -232,6 +251,7 @@ int main()
                 QStringLiteral("受监督： "),
                 QStringLiteral("显示网格： "),
                 QStringLiteral("预设： "),
+                QStringLiteral("节圆半径： "),
             })
         || !verifyEvidencedResidualTranslationSamples(
             QStringLiteral("zh-Hant"),
@@ -260,6 +280,7 @@ int main()
                 QStringLiteral("受監督： "),
                 QStringLiteral("顯示網格： "),
                 QStringLiteral("預設： "),
+                QStringLiteral("節圓半徑： "),
             })
         || !verifyEvidencedResidualTranslationSamples(
             QStringLiteral("ja_JP"),
@@ -293,6 +314,7 @@ int main()
                 QStringLiteral("監督あり： "),
                 QStringLiteral("グリッドを表示： "),
                 QStringLiteral("プリセット： "),
+                QStringLiteral("ピッチ半径： "),
             })) {
         return 1;
     }

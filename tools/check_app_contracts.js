@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Windows CogTool 动态节圆半径前缀、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 与 @loader_path 单 runtime、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -3140,6 +3140,7 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
     ['TrackingToolSettings', 'Supervised: ', '受监督： ', '受監督： ', '監督あり： '],
     ['TrackingToolSettings', 'Show Grid: ', '显示网格： ', '顯示網格： ', 'グリッドを表示： '],
     ['TrackingToolSettings', 'Preset: ', '预设： ', '預設： ', 'プリセット： '],
+    ['CogTool', 'Pitch Radius: ', '节圆半径： ', '節圓半徑： ', 'ピッチ半径： '],
   ];
 
   for (const [language, filePath] of catalogs) {
@@ -3159,6 +3160,107 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
       );
     }
   }
+});
+
+test('Windows CogTool Pitch Radius stays inside its exact dynamic text-path boundary', () => {
+  const windowsInjector = path.join(injectorRoot, 'windows');
+  const sourcesHeader = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_extension_layer_sources.h'),
+    'utf8'
+  );
+  const dispatch = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_extension_layer_text_path_dispatch.cpp'),
+    'utf8'
+  );
+  const hook = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_extension_layer_text_path_hook.cpp'),
+    'utf8'
+  );
+  const translator = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_translator.cpp'),
+    'utf8'
+  );
+  const macInjector = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+  const translationPolicy = fs.readFileSync(
+    path.join(injectorRoot, 'cavalry_i18n_translation_policy.h'),
+    'utf8'
+  );
+  const callbackBody = hook.match(
+    /void \*cavalryMakePathFromTextReplacement\([\s\S]*?\n}\nQString diagnosticsText/
+  )[0];
+  const vendorContract = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_vendor_text_path_contract.cpp'),
+    'utf8'
+  );
+  const dispatchTest = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_extension_layer_text_path_dispatch_test.cpp'),
+    'utf8'
+  );
+  const cmake = fs.readFileSync(
+    path.join(windowsInjector, 'CMakeLists.txt'),
+    'utf8'
+  );
+
+  assert.match(
+    sourcesHeader,
+    /kPitchRadiusPrefix\s*=\s*cavalry_i18n::kCogToolPitchSource/
+  );
+  assert.match(sourcesHeader, /kTextPathSourceCount\s*=\s*[\s\S]*\+\s*1/);
+  assert.match(sourcesHeader, /static_assert\(kTextPathSourceCount\s*==\s*16\)/);
+  assert.match(
+    sourcesHeader,
+    /textPathTranslationContext[\s\S]*kPitchRadiusSourceIndex[\s\S]*cavalry_i18n::kCogToolPitchContext/
+  );
+  assert.match(
+    translationPolicy,
+    /kCogToolPitchContext\[\]\s*=\s*"CogTool"[\s\S]*kCogToolPitchSource\[\]\s*=\s*"Pitch Radius: "[\s\S]*requiresExactTranslationContext/
+  );
+  assert.match(translator, /!cavalry_i18n::requiresExactTranslationContext/);
+  assert.ok(
+    (macInjector.match(/requiresExactTranslationContext/g) || []).length >= 6,
+    'macOS hot cache, cold scans, and reverse lookup must all exclude context-only Pitch'
+  );
+  assert.match(dispatch, /kToolFirstCallRva\s*=\s*0x00ABDB15/);
+  assert.match(dispatch, /kToolFirstPreambleRva\s*=\s*0x00ABDAF0/);
+  assert.match(
+    dispatch,
+    /kToolFirstPreamble[\s\S]*0x48,\s*0x8B,\s*0x17/,
+    'the live caller gate must prove RDX loads an MSVC string from the approved vector entry'
+  );
+  assert.match(dispatch, /kToolNextCallRva\s*=\s*0x00ABDC11/);
+  assert.match(dispatch, /isCanonicalSignedInt\(suffix\)/);
+  assert.match(
+    dispatch,
+    /classifyCavalryTextPathCaller[\s\S]*validatesEnvelope/,
+    'each callback must revalidate its complete approved caller envelope'
+  );
+  assert.match(hook, /classifyCavalryTextPathCaller\s*\(/);
+  assert.match(hook, /matchCavalryTextPathSource\(caller,\s*source\)/);
+  assert.match(hook, /textPathTranslationContext\(index\)/);
+  assert.match(hook, /textPathTranslationContext\(match\.sourceIndex\)/);
+  assert.match(hook, /translation\s*\+\s*"-0123456789"/);
+  assert.match(callbackBody, /std::array<char,\s*64>\s+translatedStorage/);
+  assert.match(callbackBody, /writeCavalryTextPathTranslation\s*\(/);
+  assert.doesNotMatch(callbackBody, /composeCavalryTextPathTranslation|std::string\s+composed/);
+  assert.match(vendorContract, /kPitchShortLeaRva\s*=\s*0x01257527/);
+  assert.match(vendorContract, /kPitchLongLeaRva\s*=\s*0x01257575/);
+  assert.match(vendorContract, /kToolLineRenderCallRva\s*=\s*0x0124BEDF/);
+  assert.match(vendorContract, /verifyPitchRadiusBoundary/);
+  assert.match(dispatchTest, /"Pitch Radius: -17"/);
+  assert.match(dispatchTest, /"Pitch Radius: -2147483648"/);
+  assert.match(dispatchTest, /"Pitch Radius: 2147483648"/);
+  assert.match(dispatchTest, /"Pitch Radius: \+1"/);
+  assert.match(dispatchTest, /firstPreambleRva\s*\+\s*2/);
+  assert.match(dispatchTest, /callbackRejectsChangedStringLoad/);
+  assert.match(cmake, /add_executable\(cavalryi18n_text_path_dispatch_test/);
+  assert.doesNotMatch(
+    dispatch,
+    /QPainter|drawText|VirtualProtect|replaceCavalryIatPointer/,
+    'the pure dispatch seam must not mutate code, patch another slot, or grow into a global draw hook'
+  );
 });
 
 test('Windows Pencil warning uses two exact MessageBar append callers', () => {

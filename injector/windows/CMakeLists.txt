@@ -1,5 +1,5 @@
 # [INPUT]: 依赖 Qt 6.6.3 x64 MSVC SDK、Windows Psapi、本目录源码、../generated_translations.inc 与可选 Cavalry vendor 二进制根目录
-# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 display、translator、PE/IAT、ExtensionLayer 四边界 hook、MessageBar/vendor ABI/import 与 generic-plugin smoke 合同测试
+# [OUTPUT]: 对外构建 generic/cavalryi18n.dll，并注册 display、translator、PE/IAT、ExtensionLayer 四边界 hook、动态 Pitch dispatch、MessageBar/vendor ABI/import 与 generic-plugin smoke 合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构前置检查约束 Windows Qt 插件产物与无第三方 IAT 实现
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 3.21)
@@ -54,6 +54,8 @@ target_sources(cavalryi18n
         cavalry_i18n_extension_layer_qt_hooks.cpp
         cavalry_i18n_extension_layer_qt_hooks.h
         cavalry_i18n_extension_layer_sources.h
+        cavalry_i18n_extension_layer_text_path_dispatch.cpp
+        cavalry_i18n_extension_layer_text_path_dispatch.h
         cavalry_i18n_extension_layer_text_path_hook.cpp
         cavalry_i18n_extension_layer_text_path_hook.h
         cavalry_i18n_iat_lifecycle.h
@@ -230,6 +232,39 @@ if(BUILD_TESTING)
         COMMAND "$<TARGET_FILE:cavalryi18n_pe_iat_test>"
     )
 
+    add_executable(cavalryi18n_text_path_dispatch_test
+        cavalry_i18n_extension_layer_text_path_dispatch_test.cpp
+        cavalry_i18n_extension_layer_text_path_dispatch.cpp
+        cavalry_i18n_extension_layer_text_path_dispatch.h
+        cavalry_i18n_extension_layer_sources.h
+        cavalry_i18n_translator.cpp
+        cavalry_i18n_translator.h
+    )
+
+    target_link_libraries(cavalryi18n_text_path_dispatch_test
+        PRIVATE
+            Qt6::Core
+    )
+
+    target_include_directories(cavalryi18n_text_path_dispatch_test
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    target_compile_definitions(
+        cavalryi18n_text_path_dispatch_test
+        PRIVATE
+            QT_NO_KEYWORDS
+    )
+
+    add_test(
+        NAME cavalryi18n_text_path_dispatch
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "$<TARGET_FILE:cavalryi18n_text_path_dispatch_test>"
+    )
+
     # 始终编译只读 text-path 合同；只有显式 vendor root 才把它链接进实际映像验证。
     add_library(cavalryi18n_vendor_text_path_contract OBJECT
         cavalry_i18n_vendor_text_path_contract.cpp
@@ -323,6 +358,8 @@ if(BUILD_TESTING)
         cavalry_i18n_extension_layer_qt_hooks.cpp
         cavalry_i18n_extension_layer_qt_hooks.h
         cavalry_i18n_extension_layer_sources.h
+        cavalry_i18n_extension_layer_text_path_dispatch.cpp
+        cavalry_i18n_extension_layer_text_path_dispatch.h
         cavalry_i18n_extension_layer_text_path_hook.cpp
         cavalry_i18n_extension_layer_text_path_hook.h
         cavalry_i18n_iat_lifecycle.h

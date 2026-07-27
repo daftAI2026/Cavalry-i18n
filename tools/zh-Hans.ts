@@ -7113,6 +7113,10 @@
     <message><source xml:space="preserve">Preset: </source><translation xml:space="preserve">预设： </translation></message>
   </context>
   <context>
+    <name>CogTool</name>
+    <message><source xml:space="preserve">Pitch Radius: </source><translation xml:space="preserve">节圆半径： </translation></message>
+  </context>
+  <context>
     <name>MessageBar</name>
     <message><source>Pencil Tool: You're drawing too far away from the camera, try drawing in 2d.</source><translation>铅笔工具：绘制位置离相机太远，请尝试在 2D 中绘制</translation></message>
   </context>

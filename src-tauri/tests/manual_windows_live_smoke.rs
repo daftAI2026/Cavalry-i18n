@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖显式 disposable clone/evidence 环境变量、共享 Windows 路径守卫、apply_language_inner、RealCommandRunner、runtime marker 与 PowerShell PID 窗口证据 helper
- * [OUTPUT]: 对外提供 ignored Windows live-clone 冒烟：可选单语或默认三语真实启动、隔离 AppData、精确 PID 的 Viewport Quality/Transform/Edit Shape PNG、逐表面 text-path 掩码、outstanding PID 清理及 English 38 文件字节恢复
- * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；直接复用初始空场景已绘制的 Quality/Transform 自绘文字，仅向 exact HWND 投递默认 A 键触发 Edit Shape，不创建场景、不运行脚本、不依赖 Qt UIA，所有写入限于 sentinel clone/evidence
+ * [OUTPUT]: 对外提供 ignored Windows live-clone 冒烟：可选单语或默认三语真实启动、隔离 AppData、三类自动 PNG、带零位图基线与严格计数增量的人工 Cog Pitch PNG、PID 清理及 English 38 文件恢复
+ * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；自动路径只向 exact HWND 投递 A 键，Cog Pitch 仅在 opt-in 后记录前后诊断并等待用户操作 sentinel clone，不创建场景、不运行脚本、不依赖 Qt UIA
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(target_os = "windows")]
@@ -34,8 +34,10 @@ mod windows_live_smoke {
     const SMOKE_APP_ENV: &str = "CAVALRY_I18N_WINDOWS_SMOKE_APP";
     const EVIDENCE_ROOT_ENV: &str = "CAVALRY_I18N_WINDOWS_LIVE_EVIDENCE_DIR";
     const LANGUAGE_FILTER_ENV: &str = "CAVALRY_I18N_WINDOWS_LIVE_LANGUAGE";
+    const MANUAL_COG_PITCH_ENV: &str = "CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH";
     const EXPECTED_JSON_COUNT: usize = 38;
     const PROCESS_TIMEOUT_MILLISECONDS: u32 = 45_000;
+    const MANUAL_COG_PITCH_TIMEOUT_MILLISECONDS: u32 = 180_000;
     const NOW: &str = "2026-07-24T00:00:00.000Z";
     const PNG_SIGNATURE: &[u8; 8] = b"\x89PNG\r\n\x1a\n";
 
@@ -59,6 +61,7 @@ mod windows_live_smoke {
         source_fallback_count: usize,
         extension_layer_hook_status: String,
         extension_layer_text_path_diagnostics: TextPathDiagnostics,
+        text_path_baseline_diagnostics: Option<TextPathDiagnostics>,
         window_handle: String,
         width: u32,
         height: u32,
@@ -241,39 +244,62 @@ mod windows_live_smoke {
                 output.display()
             ));
         }
-        let payload = invoke_helper(
-            runner,
-            helper,
-            &[
-                "-Action".to_string(),
-                "Capture".to_string(),
-                "-TargetProcessId".to_string(),
-                process_id.to_string(),
-                "-ExecutablePath".to_string(),
-                executable.to_string_lossy().to_string(),
-                "-MarkerPath".to_string(),
-                marker.to_string_lossy().to_string(),
-                "-Language".to_string(),
-                language.to_string(),
-                "-CaptureScenario".to_string(),
-                capture_scenario.to_string(),
-                "-EvidenceRoot".to_string(),
-                evidence_root.root().to_string_lossy().to_string(),
-                "-OutputPath".to_string(),
-                output.to_string_lossy().to_string(),
-                "-TimeoutMilliseconds".to_string(),
-                PROCESS_TIMEOUT_MILLISECONDS.to_string(),
-            ],
-        )?;
+        let timeout_milliseconds = if capture_scenario == "CogPitch" {
+            MANUAL_COG_PITCH_TIMEOUT_MILLISECONDS
+        } else {
+            PROCESS_TIMEOUT_MILLISECONDS
+        };
+        let mut arguments = vec![
+            "-Action".to_string(),
+            "Capture".to_string(),
+            "-TargetProcessId".to_string(),
+            process_id.to_string(),
+            "-ExecutablePath".to_string(),
+            executable.to_string_lossy().to_string(),
+            "-MarkerPath".to_string(),
+            marker.to_string_lossy().to_string(),
+            "-Language".to_string(),
+            language.to_string(),
+            "-CaptureScenario".to_string(),
+            capture_scenario.to_string(),
+            "-EvidenceRoot".to_string(),
+            evidence_root.root().to_string_lossy().to_string(),
+            "-OutputPath".to_string(),
+            output.to_string_lossy().to_string(),
+            "-TimeoutMilliseconds".to_string(),
+            timeout_milliseconds.to_string(),
+        ];
+        if capture_scenario == "CogPitch" {
+            arguments.push("-AllowManualCogPitch".to_string());
+        }
+        let payload = invoke_helper(runner, helper, &arguments)?;
         let result = serde_json::from_str::<CaptureResult>(&payload)
             .map_err(|error| format!("invalid window-capture JSON: {error}: {payload}"))?;
         let required_text_path_mask = match capture_scenario {
             "ViewportQuality" => 0x0001,
             "TransformHelper" => 0x7c00,
             "EditShapeHelper" => 0x03f0,
+            "CogPitch" => 0x8000,
             _ => 0,
         };
         let diagnostics = &result.extension_layer_text_path_diagnostics;
+        let cog_pitch_delta_is_valid = match (
+            capture_scenario,
+            result.text_path_baseline_diagnostics.as_ref(),
+        ) {
+            ("CogPitch", Some(baseline)) => {
+                baseline.renderer_failure == 0
+                    && baseline.fallback_source_mask == 0
+                    && baseline.translated_source_mask & 0x8000 == 0
+                    && diagnostics.revision > baseline.revision
+                    && diagnostics.canonical_calls > baseline.canonical_calls
+                    && diagnostics.whitelist_calls > baseline.whitelist_calls
+                    && diagnostics.cjk_path_success > baseline.cjk_path_success
+            }
+            ("CogPitch", None) => false,
+            (_, None) => true,
+            (_, Some(_)) => false,
+        };
         if result.process_id != process_id
             || !path_is_same(Path::new(&result.executable_path), executable)
             || result.language != language
@@ -299,6 +325,7 @@ mod windows_live_smoke {
             || !path_is_same(Path::new(&result.output_path), output)
             || result.capture_scenario != capture_scenario
             || result.interaction_evidence.is_empty()
+            || !cog_pitch_delta_is_valid
         {
             return Err(format!(
                 "window capture did not satisfy PID/Qt/table/lang/ExtensionLayer/window contract: {payload}"
@@ -574,12 +601,16 @@ mod windows_live_smoke {
         }
         windows_runtime::wait_for_ready_marker(&marker, language, process_id)?;
 
-        let mut evidence = Vec::with_capacity(3);
-        for (capture_scenario, artifact) in [
+        let mut scenarios = vec![
             ("ViewportQuality", "viewport-quality"),
             ("TransformHelper", "transform-helper"),
             ("EditShapeHelper", "edit-shape-helper"),
-        ] {
+        ];
+        if env::var(MANUAL_COG_PITCH_ENV).as_deref() == Ok("1") {
+            scenarios.push(("CogPitch", "cog-pitch"));
+        }
+        let mut evidence = Vec::with_capacity(scenarios.len());
+        for (capture_scenario, artifact) in scenarios {
             let output = run_root.join(format!("{language}-{artifact}.png"));
             evidence.push(capture_main_window(
                 runner,
@@ -803,8 +834,17 @@ mod windows_live_smoke {
             "Assert-ExactForegroundWindow",
             "Assert-ForegroundProcess",
             "Wait-ForTextPathDiagnostics",
+            "BaselineDiagnostics",
+            "canonicalCalls",
+            "whitelistCalls",
+            "cjkPathSuccess",
             "fallbackSourceMask",
             "rendererFailure",
+            "CogPitch",
+            "0x8000",
+            "AllowManualCogPitch",
+            "manual-disposable-cogwheel-drag",
+            "pre-set Pitch bit 15",
         ] {
             assert!(
                 helper.contains(required),
@@ -907,7 +947,7 @@ mod windows_live_smoke {
             );
         }
         panic!(
-            "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language now has exact-PID Viewport Quality and Transform PNGs from the initial empty scene plus an Edit Shape PNG staged only by exact-HWND PostMessage VK_A below {}; manually verify their visible localized text and explicitly append screenshots for menus, dropdowns, four empty states, and Snippet before accepting Windows GUI translation.",
+            "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language has exact-PID Viewport Quality and Transform PNGs from the initial empty scene plus an Edit Shape PNG staged only by exact-HWND PostMessage VK_A below {}. When CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1, it also has a manually triggered Cogwheel Pitch PNG whose recorded baseline has bit 15 clear and whose final revision/canonical/whitelist/CJK-success counters all strictly increase with zero fallback. Manually verify their visible localized text and explicitly append screenshots for menus, dropdowns, four empty states, and Snippet before accepting Windows GUI translation.",
             run_root.display()
         );
     }

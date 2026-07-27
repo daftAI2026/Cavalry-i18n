@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_skia_text_path_renderer.h、已验证并 PIN 的 CavalrySkiaRuntimeAbi 函数表及系统 CJK 字体回退
- * [OUTPUT]: 对外实现语言定向字体选择、逐码点 glyph 门、Core 同构 Path 构造和侵入式 typeface 引用的有界所有权
+ * [OUTPUT]: 对外实现语言定向字体选择、逐码点 glyph 门、借用 UTF-8 string_view 的 Core 同构 Path 构造和侵入式 typeface 引用的有界所有权
  * [POS]: injector/windows 的 CJK 自绘实现；不自行发现或解析厂商 DLL，所有私有调用必须来自 runtime ABI 防火墙
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -228,7 +228,7 @@ CavalrySkiaTextPathRenderer::create(
 
 bool CavalrySkiaTextPathRenderer::makePath(
     void *pathStorage,
-    const std::string &utf8Text,
+    std::string_view utf8Text,
     double pointSize) const noexcept
 {
     if (impl_ == nullptr || impl_->runtimeAbi == nullptr

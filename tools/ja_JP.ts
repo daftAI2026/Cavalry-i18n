@@ -8583,6 +8583,10 @@
     <message><source xml:space="preserve">Preset: </source><translation xml:space="preserve">プリセット： </translation></message>
   </context>
   <context>
+    <name>CogTool</name>
+    <message><source xml:space="preserve">Pitch Radius: </source><translation xml:space="preserve">ピッチ半径： </translation></message>
+  </context>
+  <context>
     <name>MessageBar</name>
     <message><source>Pencil Tool: You're drawing too far away from the camera, try drawing in 2d.</source><translation>鉛筆ツール：カメラから離れすぎのため2Dで描画してください</translation></message>
   </context>

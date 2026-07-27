@@ -1,12 +1,15 @@
 /**
  * [INPUT]: 不依赖 Qt 或厂商模块；只承载经静态采证的 ASCII source 常量
- * [OUTPUT]: 对外提供九条 QWidget helper、十三条 CustomListWidget placeholder、一条 MessageBar 日志，以及十五条 Skia text-path source 的共享 ABI 合同
+ * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、十五条静态 text-path source、一条 CogTool 动态前缀及其精确 lookup context
  * [POS]: injector/windows 的 ExtensionLayer 文本边界真相，供运行时 hook、无厂商单测和只读 vendor 合同共同消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
 
+#include "../cavalry_i18n_translation_policy.h"
+
 #include <array>
+#include <cstddef>
 
 namespace cavalry_i18n::extension_layer_contract {
 
@@ -66,6 +69,8 @@ inline constexpr char kPan[] = "Pan";
 inline constexpr char kPlayStop[] = "Play/ Stop";
 inline constexpr char kDirectLayerSelection[] = "Direct Layer Selection";
 inline constexpr char kInsertKeyframe[] = "Insert Keyframe";
+inline constexpr auto &kPitchRadiusPrefix =
+    cavalry_i18n::kCogToolPitchSource;
 
 // `[viewportQuality - 1]` 的 vendor 跳转表顺序；越界值回退 High。
 inline constexpr std::array<const char *, 4> kViewportQualitySources {{
@@ -114,6 +119,29 @@ inline constexpr std::array<const char *, 15> kStaticTextPathSources {{
     kInsertKeyframe,
 }};
 
+inline constexpr std::size_t kPitchRadiusSourceIndex =
+    kStaticTextPathSources.size();
+inline constexpr std::size_t kTextPathSourceCount =
+    kStaticTextPathSources.size() + 1;
+
+inline constexpr const char *textPathTranslationSource(
+    std::size_t index) noexcept
+{
+    return index < kStaticTextPathSources.size()
+        ? kStaticTextPathSources[index]
+        : (index == kPitchRadiusSourceIndex
+            ? kPitchRadiusPrefix
+            : nullptr);
+}
+
+inline constexpr const char *textPathTranslationContext(
+    std::size_t index) noexcept
+{
+    return index == kPitchRadiusSourceIndex
+        ? cavalry_i18n::kCogToolPitchContext
+        : nullptr;
+}
+
 static_assert(kStaticHelperSources.size() == 9);
 static_assert(kStaticPlaceholderSources.size() == 13);
 static_assert(kStaticMessageBarSources.size() == 1);
@@ -121,5 +149,6 @@ static_assert(kViewportQualitySources.size() == 4);
 static_assert(kEditShapeToolHelpPairs.size() == 6);
 static_assert(kTransformToolHelpPairs.size() == 5);
 static_assert(kStaticTextPathSources.size() == 15);
+static_assert(kTextPathSourceCount == 16);
 
 } // namespace cavalry_i18n::extension_layer_contract

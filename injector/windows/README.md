@@ -47,21 +47,25 @@ IAT 边界：
   HTML 与首尾空白不变，命名 `js_logger`、无 `<br>` 与未知日志全部透传；
 - `Core.dll!cavalry::MakePathFromText(std::string const&, double) -> Path` 的唯一导入槽
   （MSVC x64 调用时包含隐藏的 Path 返回存储参数）。
-  这一路还必须命中 `GraphicsViewportBase::getOrCreateTextPath` 内已采证的 canonical
-  return RVA 与十五条 exact UTF-8 source，才会进入受控 CJK Path 分支。
+  静态文本必须在每次 callback 命中 `GraphicsViewportBase::getOrCreateTextPath` 内已采证的 canonical
+  return RVA、完整 preamble/call 字节包络与十五条 exact UTF-8 source；CogTool 动态文本必须命中
+  `PrimitiveToolBase` 首行/后续行两处已采证 return，且严格等于
+  `Pitch Radius: ` 加 MSVC `int` 产生的 canonical 32-bit 十进制文本，并以精确 `CogTool`
+  context 查询翻译，才会进入受控 CJK Path 分支；该词条不进入普通 source fallback。
 
 四条边界都必须同时命中 `cavalry_i18n_extension_layer_sources.h` 的精确 source 合同和
 三语嵌入表才会换成译文；未知 source、以及表内但不在白名单的 source 都原样透传。helper
 只允许九条 source；placeholder 只允许十三条已采证 source（其中包括
 `Drag some JavaScript here to make a Snippet.`）；MessageBar 只允许一条 Pencil 正文。
-text-path 只允许四条 viewport quality、
-六条 EditShapeTool action 与五条 TransformTool action；快捷键 prefix 保持英文。
+text-path 只允许四条 viewport quality、六条 EditShapeTool action、五条
+TransformTool action 与一条 CogTool 动态 Pitch；动态数值后缀逐字保留，快捷键 prefix
+保持英文。
 
 text-path 命中后不会改写厂商代码或安装全局 Skia hook。`CavalrySkiaTextPathRenderer` 只调用
 经只读 vendor 合同锁定的 Core/skia 导出，以已验证全量 glyph 覆盖的语言定向系统字体重建
 该单个白名单 CJK `Path`，并复现 Core 的 UTF-8、`GetPath` 与 Y 轴翻转几何步骤。字体、字形、
 ABI 或空轮廓任一检查失败时，callback 直接交回原 `MakePathFromText` 生成英文，绝不输出 tofu
-或猜测布局。任一 ABI、模块名、导出、槽目标或 canonical caller 不匹配时同样 fail closed；
+或猜测布局。任一 ABI、模块名、导出、槽目标或三处批准 caller 不匹配时同样 fail closed；
 不写厂商 `.text`、不拦截 Skia/libc/QPainter，也不修改厂商文件。
 
 helper、placeholder 与 MessageBar 三条 Qt callback 在安装时把原函数、精确译文与 caller 元数据复制进不可变 snapshot，
@@ -128,10 +132,12 @@ QString 赋值槽 RVA、其初始 import-by-name RVA、二十个直接调用与 
 它还逐一验证十三条 placeholder source literal；锁定 `QTextEdit::append` 唯一槽、三处调用、
 history/live 两个批准 return、`js_logger` 排除项、HTML 模板与 Pencil 原文；并验证 Core MakePath 唯一槽、证明
 RCX hidden-sret/RDX string-ref/XMM2 double 参数搬运的十字节 preamble、canonical
-return、viewport enum 表、EditShapeTool 与 TransformTool 的 prefix/action 双 Path 数据流及十五条精确定位的完整 source；
+return、viewport enum 表、EditShapeTool 与 TransformTool 的 prefix/action 双 Path 数据流及十五条静态 source；
+并验证 CogTool 两处分支生成 `Pitch Radius: `、写入 optional vector、PrimitiveToolBase
+读取该成员，以及首行/后续行两处 MakePath caller 的参数 preamble 与同一 IAT 槽；
 并验证 Core 固定 Lato 路径、CJK renderer 所需的 Core/skia 导出、Path 几何步骤与 typeface
 引用计数析构约定。测试不会加载、执行、复制或修改厂商 DLL。未设置变量时，常规跨机器构建仍会编译
-MessageBar/text-path/Core-Skia 合同代码并运行其余六项测试，只是不执行 machine-specific 映像断言。
+MessageBar/text-path/Core-Skia 合同代码并运行其余七项测试，只是不执行 machine-specific 映像断言。
 
 中间产物为：
 
@@ -179,9 +185,9 @@ marker 的 `status` 为 `ready` 且 `translatorInstalled` 为 `true`，只能证
 `installed` 才说明 helper、placeholder、MessageBar 与 Core text-path 四条精确 IAT 边界已全部安装，
 `extensionLayerTextPathDiagnostics` 还会给出 `revision`、`canonicalCalls`、
 `whitelistCalls`、`cjkPathSuccess`、`originalFallback`、`noTranslation`、
-`rendererFailure`、`translatedSourceMask` 与 `fallbackSourceMask`。十五位 mask 按
+`rendererFailure`、`translatedSourceMask` 与 `fallbackSourceMask`。十六位 mask 按
 `cavalry_i18n_extension_layer_sources.h` 固定顺序对应 4 条 viewport quality、6 条
-EditShapeTool action 与 5 条 TransformTool action；live 截图验收应同时检查目标类别位
+EditShapeTool action、5 条 TransformTool action 与第 16 位动态 Pitch；live 截图验收应同时检查目标类别位
 确实进入 `translatedSourceMask`，不能只看总计数。
 但它仍不能替代真实 Cavalry 的截图与 live UI gate。构建 smoke 会额外验证十二个顶层
 菜单、完整 Bézier UTF-8 生成表样本、既有/动态动作、受控显示属性和输入/model 隔离。

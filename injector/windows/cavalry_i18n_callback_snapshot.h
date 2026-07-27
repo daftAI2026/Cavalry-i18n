@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖固定数量的 source/translation 值对象与 C++ shared_ptr 原子发布语义
- * [OUTPUT]: 对外提供 immutable exact-translation table 与不参与 DLL detach 析构的 process-lifetime shared_ptr 发布槽
+ * [OUTPUT]: 对外提供支持精确 source 与已验证索引读取的 immutable translation table，以及不参与 DLL detach 析构的 process-lifetime shared_ptr 发布槽
  * [POS]: injector/windows 的无 raw-owner 回调原语；发布槽有意存活到进程结束，由 hook 在普通线程换成不持外部对象的墓碑
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -32,6 +32,13 @@ public:
             }
         }
         return nullptr;
+    }
+
+    const Text *translationAt(std::size_t index) const
+    {
+        return index < entries_.size()
+            ? &entries_[index].second
+            : nullptr;
     }
 
 private:

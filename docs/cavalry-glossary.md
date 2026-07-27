@@ -40,6 +40,7 @@
 | Duplicator | 复制器 | 複製器 | デュプリケーター | Cinema 4D terminology |
 | Node | 节点 | 節點 | ノード | |
 | Smoothing Steps | 平滑步数 | 平滑步數 | スムージングステップ数 | Cavalry 2.7.2 cross-platform `smoother` attribute; align with existing Smooth / smoothing terminology |
+| Pitch Radius | 节圆半径 | 節圓半徑 | ピッチ半径 | Cog/gear geometry; JSON attribute and runtime CogTool prefix must stay aligned |
 | Basic Shape | 基本形状 | 基本形狀 | 基本シェイプ | |
 | Property | 属性 | 屬性 | プロパティ | |
 | Tooltip | 工具提示 | 工具提示 | ツールチップ | Microsoft UI terminology |

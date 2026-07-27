@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_vendor_text_path_contract.h、共享十五项 source、PE/IAT 解析器与已采证 RVAs
- * [OUTPUT]: 对外锁定 Core::MakePathFromText 唯一槽/调用数、十字节 ABI preamble、canonical 返回点、viewport 表顺序及 EditShapeTool/TransformTool 双 Path 数据流
+ * [INPUT]: 依赖 cavalry_i18n_vendor_text_path_contract.h、共享十五项静态 source/一项动态前缀、PE/IAT 解析器与已采证 RVAs
+ * [OUTPUT]: 对外锁定 Core::MakePathFromText 槽/调用数、含首行 RDX 来源的三处 ABI caller、tool-help 数据流及 CogTool Pitch vector→Path 链
  * [POS]: injector/windows 的 Cavalry 2.7.2 text-path 静态兼容合同；只读取已映射字节，不执行 vendor 代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -38,6 +38,40 @@ constexpr std::array<std::uint8_t, 10> kCanonicalMakePathPreamble {{
     0x4C, 0x89, 0xF1,
     0x48, 0x89, 0xF2,
     0x66, 0x0F, 0x28, 0xD6,
+}};
+
+constexpr std::size_t kPitchLiteralRva = 0x015A6343;
+constexpr std::size_t kPitchShortLeaRva = 0x01257527;
+constexpr std::size_t kPitchLongLeaRva = 0x01257575;
+constexpr std::size_t kPitchVectorConstructCallRva = 0x01257659;
+constexpr std::size_t kVectorConstructThunkRva = 0x0001D58E;
+constexpr std::size_t kVectorConstructBodyRva = 0x0012AC70;
+constexpr std::size_t kPitchPresentStoreRva = 0x012576E2;
+constexpr std::array<std::uint8_t, 7> kPitchPresentStore {{
+    0xC6, 0x86, 0x20, 0x01, 0x00, 0x00, 0x01,
+}};
+constexpr std::size_t kToolLineMemberLeaRva = 0x0124BE8F;
+constexpr std::array<std::uint8_t, 7> kToolLineMemberLea {{
+    0x4C, 0x8D, 0xB7, 0x08, 0x01, 0x00, 0x00,
+}};
+constexpr std::size_t kToolLineRenderCallRva = 0x0124BEDF;
+constexpr std::size_t kVectorTextPathThunkRva = 0x0001612B;
+constexpr std::size_t kVectorTextPathBodyRva = 0x00ABDA60;
+constexpr std::size_t kToolFirstPreambleRva = 0x00ABDAF0;
+constexpr std::size_t kToolFirstCallRva = 0x00ABDB15;
+constexpr std::array<std::uint8_t, 37> kToolFirstPreamble {{
+    0x48, 0x8B, 0x17, 0x48, 0x39, 0x57, 0x08,
+    0x0F, 0x84, 0x8C, 0x01, 0x00, 0x00,
+    0xF2, 0x0F, 0x10, 0x35, 0xBB, 0x77, 0xA1, 0x00,
+    0xF2, 0x41, 0x0F, 0x5E, 0xF0,
+    0x4C, 0x8D, 0x75, 0xA8, 0x4C, 0x89, 0xF1,
+    0x66, 0x0F, 0x28, 0xD6,
+}};
+constexpr std::size_t kToolNextPreambleRva = 0x00ABDC00;
+constexpr std::size_t kToolNextCallRva = 0x00ABDC11;
+constexpr std::array<std::uint8_t, 17> kToolNextPreamble {{
+    0x4C, 0x89, 0xEA, 0x48, 0xC1, 0xE2, 0x05, 0x48, 0x01,
+    0xC2, 0x4C, 0x89, 0xF1, 0x66, 0x0F, 0x28, 0xD6,
 }};
 
 constexpr std::size_t kGetOrCreateTextPathThunkRva = 0x0001FEB0;
@@ -282,6 +316,19 @@ bool literalAt(
     return hasRange(image, rva, expected.size() + 1)
         && std::memcmp(image.data() + rva, expected.data(), expected.size()) == 0
         && image[rva + expected.size()] == '\0';
+}
+
+template <std::size_t Size>
+bool bytesAt(
+    const std::vector<std::uint8_t> &image,
+    std::size_t rva,
+    const std::array<std::uint8_t, Size> &expected)
+{
+    return hasRange(image, rva, expected.size())
+        && std::memcmp(
+            image.data() + rva,
+            expected.data(),
+            expected.size()) == 0;
 }
 
 bool exportTableContainsRva(
@@ -641,6 +688,67 @@ bool verifyToolHelpBoundary(
     return true;
 }
 
+bool verifyPitchRadiusBoundary(
+    const std::vector<std::uint8_t> &image,
+    std::string *failure)
+{
+    using namespace cavalry_i18n::extension_layer_contract;
+    if (!literalAt(image, kPitchLiteralRva, kPitchRadiusPrefix)
+        || !leaTargets(image, kPitchShortLeaRva, kPitchLiteralRva)
+        || !leaTargets(image, kPitchLongLeaRva, kPitchLiteralRva)
+        || !directCallTargets(
+            image,
+            kPitchVectorConstructCallRva,
+            kVectorConstructThunkRva)
+        || !nearJumpTargets(
+            image,
+            kVectorConstructThunkRva,
+            kVectorConstructBodyRva)
+        || !bytesAt(
+            image,
+            kPitchPresentStoreRva,
+            kPitchPresentStore)) {
+        *failure =
+            "CogTool Pitch Radius prefix/vector/optional producer changed.";
+        return false;
+    }
+    if (!bytesAt(
+            image,
+            kToolLineMemberLeaRva,
+            kToolLineMemberLea)
+        || !directCallTargets(
+            image,
+            kToolLineRenderCallRva,
+            kVectorTextPathThunkRva)
+        || !nearJumpTargets(
+            image,
+            kVectorTextPathThunkRva,
+            kVectorTextPathBodyRva)) {
+        *failure =
+            "PrimitiveToolBase optional line-vector consumer changed.";
+        return false;
+    }
+    if (!bytesAt(image, kToolFirstPreambleRva, kToolFirstPreamble)
+        || kToolFirstPreambleRva + kToolFirstPreamble.size()
+            != kToolFirstCallRva
+        || !indirectCallTargets(
+            image,
+            kToolFirstCallRva,
+            kMakePathIatRva)
+        || !bytesAt(image, kToolNextPreambleRva, kToolNextPreamble)
+        || kToolNextPreambleRva + kToolNextPreamble.size()
+            != kToolNextCallRva
+        || !indirectCallTargets(
+            image,
+            kToolNextCallRva,
+            kMakePathIatRva)) {
+        *failure =
+            "PrimitiveToolBase line-vector MakePath caller ABI changed.";
+        return false;
+    }
+    return true;
+}
+
 } // namespace
 
 bool verifyCavalryExtensionLayerTextPathContract(
@@ -652,7 +760,8 @@ bool verifyCavalryExtensionLayerTextPathContract(
     }
     if (!verifyMakePathBoundary(image, failure)
         || !verifyViewportBoundary(image, failure)
-        || !verifyToolHelpBoundary(image, failure)) {
+        || !verifyToolHelpBoundary(image, failure)
+        || !verifyPitchRadiusBoundary(image, failure)) {
         return false;
     }
     return true;

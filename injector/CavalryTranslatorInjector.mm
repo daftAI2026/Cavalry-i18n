@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、QHash/QRegularExpression/QPainter、AppKit (NSApp mainMenu)、generated_translations.inc 编译期翻译表及显式 capture/session 环境
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 context-only 查询策略及显式 capture/session 环境
  * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、ExtensionLayer 四处空状态提示的 CJK-safe 居中绘制、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文
- * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译与定点绘制请求；启动期保留有界全量补译，交互期只处理 dirty 子树与首次绘制热路径，Time Editor 模型词汇及非白名单 ExtensionLayer 自绘提示保留英文原文
+ * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译与定点绘制请求；启动期和冷缓存都排除 context-only 词条，Time Editor 模型词汇及非白名单 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -66,6 +66,8 @@
 #include <qvariant.h>
 #include <qvector.h>
 
+#include "cavalry_i18n_translation_policy.h"
+
 namespace {
 
 constexpr int kMaxInstallAttempts = 20;
@@ -121,7 +123,10 @@ const char *embeddedTranslationForSource(const char *lang, const char *sourceTex
     }
 
     for (int index = 0; index < count; ++index) {
-        if (strcmp(entries[index].sourceText, sourceText) == 0) {
+        if (!cavalry_i18n::requiresExactTranslationContext(
+                entries[index].context,
+                entries[index].sourceText)
+            && strcmp(entries[index].sourceText, sourceText) == 0) {
             return entries[index].translation;
         }
     }
@@ -915,6 +920,11 @@ void rebuildTranslationCache(const QString &lang)
     }
 
     for (int index = 0; index < count; ++index) {
+        if (cavalry_i18n::requiresExactTranslationContext(
+                entries[index].context,
+                entries[index].sourceText)) {
+            continue;
+        }
         const QString source = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
         const QString translation = QString::fromUtf8(entries[index].translation);
         if (!source.isEmpty() && !translation.isEmpty()) {
@@ -955,6 +965,11 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
     }
 
     for (int index = 0; index < count; ++index) {
+        if (cavalry_i18n::requiresExactTranslationContext(
+                entries[index].context,
+                entries[index].sourceText)) {
+            continue;
+        }
         const QString candidate = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
         if (candidate == normalizedSource) {
             return QString::fromUtf8(entries[index].translation);
@@ -964,6 +979,11 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
     if (normalizedSource.endsWith(QStringLiteral(":"))) {
         const QString bareSource = normalizeMenuText(normalizedSource.left(normalizedSource.size() - 1));
         for (int index = 0; index < count; ++index) {
+            if (cavalry_i18n::requiresExactTranslationContext(
+                    entries[index].context,
+                    entries[index].sourceText)) {
+                continue;
+            }
             const QString candidate = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
             if (candidate == bareSource) {
                 return QString::fromUtf8(entries[index].translation) + QStringLiteral(":");
@@ -1857,12 +1877,22 @@ QString sourceTextForDisplayText(const QString &lang, const QString &displayText
     }
 
     for (int index = 0; index < count; ++index) {
+        if (cavalry_i18n::requiresExactTranslationContext(
+                entries[index].context,
+                entries[index].sourceText)) {
+            continue;
+        }
         const QString source = normalizeMenuText(QString::fromUtf8(entries[index].sourceText));
         if (source == normalizedDisplayText) {
             return source;
         }
     }
     for (int index = 0; index < count; ++index) {
+        if (cavalry_i18n::requiresExactTranslationContext(
+                entries[index].context,
+                entries[index].sourceText)) {
+            continue;
+        }
         const QString translation = normalizeMenuText(QString::fromUtf8(entries[index].translation));
         if (translation == normalizedDisplayText) {
             return normalizeMenuText(QString::fromUtf8(entries[index].sourceText));

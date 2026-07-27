@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、Exit/调色板动作、精确尾随空白工具标签、运行时逐行 tooltip、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束 QLineEdit 显示翻译的数据隔离合同
+ * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、调色板动作、CogTool Pitch context-only 隔离、精确空白工具标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
  * [POS]: injector/windows 的显示层单元回归，证明复合提示只改已知行，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -470,12 +470,14 @@ bool verifyEvidencedResidualWidgets(const QString &language)
         [&translator](const char *source) {
             return translator.translate(nullptr, source);
         };
+    const QString exactPitchTranslation =
+        translator.translate("CogTool", "Pitch Radius: ");
 
     QLabel paletteName(QStringLiteral("Palette Name:"));
     QLabel missingAssets(QStringLiteral("This Scene has missing assets:"));
     QLabel softSelection(QStringLiteral("Soft Selection: "));
     QLabel strokeWidth(QStringLiteral("Stroke Width"));
-    QLabel unprovenPitchRadius(QStringLiteral("Pitch Radius: "));
+    QLabel pitchRadius(QStringLiteral("Pitch Radius: "));
     QWidget renderDialog;
     renderDialog.setWindowTitle(QStringLiteral("Delete Render Item(s)"));
     QAction paletteAction;
@@ -486,7 +488,7 @@ bool verifyEvidencedResidualWidgets(const QString &language)
     displayTranslator.translateWidget(&missingAssets);
     displayTranslator.translateWidget(&softSelection);
     displayTranslator.translateWidget(&strokeWidth);
-    displayTranslator.translateWidget(&unprovenPitchRadius);
+    displayTranslator.translateWidget(&pitchRadius);
     displayTranslator.translateWidget(&renderDialog);
     displayTranslator.translateAction(&paletteAction);
 
@@ -519,9 +521,17 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                paletteAction.toolTip(),
                expectedTranslation("Reveal in Explorer..."))
         && expectEqual(
-               language + QStringLiteral(" unproven Pitch Radius boundary"),
-               unprovenPitchRadius.text(),
-               QStringLiteral("Pitch Radius: "));
+               language + QStringLiteral(" context-only Pitch Radius label"),
+               pitchRadius.text(),
+               QStringLiteral("Pitch Radius: "))
+        && expectEqual(
+               language + QStringLiteral(" exact CogTool Pitch Radius"),
+               exactPitchTranslation,
+               language == QStringLiteral("zh-Hans")
+                   ? QString::fromUtf8("节圆半径： ")
+                   : language == QStringLiteral("zh-Hant")
+                       ? QString::fromUtf8("節圓半徑： ")
+                       : QString::fromUtf8("ピッチ半径： "));
 }
 
 bool verifyLocale(const LocaleExpectation &expectation)

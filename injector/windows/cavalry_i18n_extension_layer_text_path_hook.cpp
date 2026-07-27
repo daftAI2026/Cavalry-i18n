@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 ExtensionLayer 唯一 Core::MakePathFromText IAT 槽、canonical caller、十五项 source、运行时 ABI 防火墙与嵌入 translator
- * [OUTPUT]: 对外实现 exact slot/caller/source 三重门、CJK Path 或英语回退、process-lifetime 发布槽、forward-only 墓碑及无 IO 原子诊断
+ * [INPUT]: 依赖唯一 Core::MakePathFromText IAT、三处 caller、十六项 source/context、运行时 ABI 防火墙与嵌入 translator
+ * [OUTPUT]: 对外实现 exact slot/caller/source/context 四重约束、CogTool 数字后缀保留、CJK Path/英语回退、process-lifetime 槽与无 IO 诊断
  * [POS]: injector/windows 的 text-path 局部适配器；私有 ABI 未验证或 renderer 创建失败时终态拒装，卸载不让 SkTypeface 留到 loader-lock
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -8,6 +8,7 @@
 
 #include "cavalry_i18n_callback_snapshot.h"
 #include "cavalry_i18n_extension_layer_sources.h"
+#include "cavalry_i18n_extension_layer_text_path_dispatch.h"
 #include "cavalry_i18n_iat_patch.h"
 #include "cavalry_i18n_pe_iat.h"
 #include "cavalry_i18n_skia_runtime_abi.h"
@@ -29,7 +30,6 @@
 #include <array>
 #include <atomic>
 #include <cstdint>
-#include <cstring>
 #include <memory>
 #include <string>
 #include <utility>
@@ -43,7 +43,7 @@ using CavalryTextPathTranslations =
     cavalry_i18n::ExactTranslationSnapshot<
         std::string,
         cavalry_i18n::extension_layer_contract::
-            kStaticTextPathSources.size()>;
+            kTextPathSourceCount>;
 
 class CavalryTextPathDiagnosticState final
 {
@@ -111,22 +111,14 @@ constexpr char kCoreImportName[] = "Core.dll";
 constexpr char kMakePathFromTextSymbol[] =
     "?MakePathFromText@cavalry@@YA?AVPath@1@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@N@Z";
 constexpr std::size_t kExpectedIatSlotRva = 0x01B28F98;
-constexpr std::size_t kCanonicalAbiPreambleRva = 0x002D9170;
-constexpr std::size_t kCanonicalCallRva = 0x002D917A;
-constexpr std::size_t kCanonicalReturnRva = 0x002D9180;
-constexpr std::array<std::uint8_t, 10> kCanonicalAbiPreamble {{
-    0x4C, 0x89, 0xF1,
-    0x48, 0x89, 0xF2,
-    0x66, 0x0F, 0x28, 0xD6,
-}};
 constexpr std::size_t kSourceCount =
     cavalry_i18n::extension_layer_contract::
-        kStaticTextPathSources.size();
+        kTextPathSourceCount;
 
 static_assert(
     sizeof(std::string) == 0x20,
     "Cavalry 2.7.2 Core::MakePathFromText requires the MSVC x64 release std::string ABI.");
-static_assert(kSourceCount == 15);
+static_assert(kSourceCount == 16);
 static_assert(kSourceCount <= 16);
 
 std::shared_ptr<const CavalryTextPathCallbackState> &callbackSlot()
@@ -136,68 +128,6 @@ std::shared_ptr<const CavalryTextPathCallbackState> &callbackSlot()
 }
 
 std::atomic<const void *> gLifecycleOwner { nullptr };
-bool containsRange(
-    const std::uint8_t *image,
-    std::size_t imageSize,
-    const std::uint8_t *address,
-    std::size_t size)
-{
-    if (image == nullptr || address == nullptr || size > imageSize) {
-        return false;
-    }
-    const std::uintptr_t base =
-        reinterpret_cast<std::uintptr_t>(image);
-    const std::uintptr_t value =
-        reinterpret_cast<std::uintptr_t>(address);
-    if (value < base) {
-        return false;
-    }
-    const std::size_t offset =
-        static_cast<std::size_t>(value - base);
-    return offset <= imageSize && size <= imageSize - offset;
-}
-bool indirectCallTargetsSlot(
-    const std::uint8_t *image,
-    std::size_t imageSize,
-    const std::uint8_t *call,
-    const void *slot)
-{
-    if (!containsRange(image, imageSize, call, 6)
-        || call[0] != 0xFF || call[1] != 0x15) {
-        return false;
-    }
-    std::int32_t displacement = 0;
-    std::memcpy(&displacement, call + 2, sizeof(displacement));
-    const std::intptr_t target =
-        static_cast<std::intptr_t>(
-            reinterpret_cast<std::uintptr_t>(call + 6))
-        + displacement;
-    return reinterpret_cast<const void *>(target) == slot;
-}
-bool isCanonicalCaller(
-    const CavalryTextPathCallbackState &state,
-    const void *returnAddress)
-{
-    const auto *expectedReturn =
-        state.extensionLayerImage + kCanonicalReturnRva;
-    return returnAddress == expectedReturn
-        && indirectCallTargetsSlot(
-            state.extensionLayerImage,
-            state.extensionLayerImageSize,
-            expectedReturn - 6,
-            state.iatSlot);
-}
-std::size_t textPathSourceIndex(const std::string &source)
-{
-    for (std::size_t index = 0; index < kSourceCount; ++index) {
-        if (source
-            == cavalry_i18n::extension_layer_contract::
-                kStaticTextPathSources[index]) {
-            return index;
-        }
-    }
-    return kSourceCount;
-}
 void bump(
     const std::shared_ptr<CavalryTextPathDiagnosticState> &state,
     std::atomic<std::uint64_t> CavalryTextPathDiagnosticState::*counter)
@@ -264,11 +194,22 @@ std::shared_ptr<const CavalryTextPathCallbackState> makeActiveState(
         std::vector<std::string> requiredTranslations;
         requiredTranslations.reserve(entries.size());
         for (std::size_t index = 0; index < entries.size(); ++index) {
-            const std::string source(
+            const char *const sourceValue =
                 cavalry_i18n::extension_layer_contract::
-                    kStaticTextPathSources[index]);
+                    textPathTranslationSource(index);
+            if (sourceValue == nullptr) {
+                if (failureDetail != nullptr) {
+                    *failureDetail = QStringLiteral(
+                        "The text-path source table has an invalid index.");
+                }
+                return {};
+            }
+            const std::string source(sourceValue);
+            const char *const context =
+                cavalry_i18n::extension_layer_contract::
+                    textPathTranslationContext(index);
             const QByteArray translated =
-                translator.translate(nullptr, source.c_str()).toUtf8();
+                translator.translate(context, source.c_str()).toUtf8();
             const std::string translation(
                 translated.constData(),
                 translated.size());
@@ -281,7 +222,12 @@ std::shared_ptr<const CavalryTextPathCallbackState> makeActiveState(
                 return {};
             }
             entries[index] = { source, translation };
-            requiredTranslations.push_back(translation);
+            requiredTranslations.push_back(
+                index
+                        == cavalry_i18n::extension_layer_contract::
+                            kPitchRadiusSourceIndex
+                    ? translation + "-0123456789"
+                    : translation);
         }
 
         const auto renderer = CavalrySkiaTextPathRenderer::create(
@@ -335,19 +281,44 @@ void *cavalryMakePathFromTextReplacement(
 
     const MakePathFromTextFunction original = state->original;
     if (state->translationGate == nullptr
-        || !state->translationGate->load(std::memory_order_acquire)
-        || !isCanonicalCaller(*state, _ReturnAddress())) {
+        || !state->translationGate->load(std::memory_order_acquire)) {
+        return original(pathStorage, source, pointSize);
+    }
+
+    const CavalryTextPathCallerKind caller =
+        classifyCavalryTextPathCaller(
+            state->extensionLayerImage,
+            state->extensionLayerImageSize,
+            state->iatSlot,
+            _ReturnAddress());
+    if (caller == CavalryTextPathCallerKind::Rejected) {
         return original(pathStorage, source, pointSize);
     }
 
     bump(state->diagnostics,
         &CavalryTextPathDiagnosticState::canonicalCalls);
-    const std::size_t sourceIndex = textPathSourceIndex(source);
-    const std::string *translated =
+    const CavalryTextPathSourceMatch match =
+        matchCavalryTextPathSource(caller, source);
+    const std::string *translatedPrefix =
         state->translations == nullptr
         ? nullptr
-        : state->translations->find(source);
-    if (translated == nullptr || sourceIndex >= kSourceCount) {
+        : state->translations->translationAt(match.sourceIndex);
+    if (!match.isMatched() || translatedPrefix == nullptr) {
+        bump(state->diagnostics,
+            &CavalryTextPathDiagnosticState::noTranslation);
+        bump(state->diagnostics,
+            &CavalryTextPathDiagnosticState::originalFallback);
+        return original(pathStorage, source, pointSize);
+    }
+
+    std::array<char, 64> translatedStorage {};
+    std::string_view translated;
+    if (!writeCavalryTextPathTranslation(
+            *translatedPrefix,
+            match,
+            translatedStorage.data(),
+            translatedStorage.size(),
+            &translated)) {
         bump(state->diagnostics,
             &CavalryTextPathDiagnosticState::noTranslation);
         bump(state->diagnostics,
@@ -360,14 +331,14 @@ void *cavalryMakePathFromTextReplacement(
     if (state->cjkRenderer != nullptr
         && state->cjkRenderer->makePath(
             pathStorage,
-            *translated,
+            translated,
             pointSize)) {
         bump(state->diagnostics,
             &CavalryTextPathDiagnosticState::cjkPathSuccess);
         setSourceMask(
             state->diagnostics,
             &CavalryTextPathDiagnosticState::translatedSourceMask,
-            sourceIndex);
+            match.sourceIndex);
         return pathStorage;
     }
 
@@ -378,7 +349,7 @@ void *cavalryMakePathFromTextReplacement(
     setSourceMask(
         state->diagnostics,
         &CavalryTextPathDiagnosticState::fallbackSourceMask,
-        sourceIndex);
+        match.sourceIndex);
     return original(pathStorage, source, pointSize);
 }
 QString diagnosticsText(const CavalryTextPathHookDiagnostics &value)
@@ -424,11 +395,10 @@ bool CavalryExtensionLayerTextPathHook::ensureInstalled(
 
     const auto *image =
         static_cast<const std::uint8_t *>(extensionLayerImage);
-    if (image == nullptr || kCanonicalReturnRva > imageSize
-        || imageSize < sizeof(void *)
+    if (image == nullptr || imageSize < sizeof(void *)
         || kExpectedIatSlotRva > imageSize - sizeof(void *)) {
         return failTerminalLocked(QStringLiteral(
-            "ExtensionLayer.dll is smaller than the canonical Core text-path RVAs."));
+            "ExtensionLayer.dll is smaller than the approved Core text-path RVAs."));
     }
 
     const CavalryPeIatLookupResult lookup = findCavalryPe64IatSlot(
@@ -447,26 +417,12 @@ bool CavalryExtensionLayerTextPathHook::ensureInstalled(
     }
     auto **slot = reinterpret_cast<void **>(
         const_cast<std::uint8_t *>(image) + lookup.iatSlotOffset);
-    if (kCanonicalAbiPreambleRva + kCanonicalAbiPreamble.size()
-            != kCanonicalCallRva
-        || !containsRange(
+    if (!validateCavalryTextPathCallerEnvelopes(
             image,
             imageSize,
-            image + kCanonicalAbiPreambleRva,
-            kCanonicalAbiPreamble.size())
-        || std::memcmp(
-            image + kCanonicalAbiPreambleRva,
-            kCanonicalAbiPreamble.data(),
-            kCanonicalAbiPreamble.size())
-            != 0
-        || kCanonicalCallRva + 6 != kCanonicalReturnRva
-        || !indirectCallTargetsSlot(
-            image,
-            imageSize,
-            image + kCanonicalCallRva,
             slot)) {
         return failTerminalLocked(QStringLiteral(
-            "ExtensionLayer.dll canonical MakePathFromText caller/ABI envelope changed."));
+            "ExtensionLayer.dll approved MakePathFromText caller/ABI envelopes changed."));
     }
 
     if (GetModuleHandleW(kCoreModuleName) == nullptr
@@ -566,7 +522,7 @@ bool CavalryExtensionLayerTextPathHook::ensureInstalled(
     installed_ = true;
     status_ = QStringLiteral("installed");
     detail_ = QStringLiteral(
-        "Patched canonical Core::MakePathFromText after mapped ABI validation and process-lifetime PIN. %1 %2")
+        "Patched three approved Core::MakePathFromText callers after mapped ABI validation and process-lifetime PIN. %1 %2")
         .arg(abiDetail, rendererDetail);
     translationGate_->store(true, std::memory_order_release);
     return true;
@@ -625,7 +581,12 @@ CavalryExtensionLayerTextPathHook::diagnostics() const
 bool CavalryExtensionLayerTextPathHook::isWhitelistedSource(
     const std::string &source)
 {
-    return textPathSourceIndex(source) < kSourceCount;
+    return cavalryTextPathExactSourceIndex(source)
+            < cavalry_i18n::extension_layer_contract::
+                kStaticTextPathSources.size()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::PrimitiveToolLine,
+            source).isMatched();
 }
 
 std::string
@@ -633,12 +594,37 @@ CavalryExtensionLayerTextPathHook::translationForWhitelistedSource(
     const CavalryEmbeddedTranslator &translator,
     const std::string &source)
 {
-    if (!isWhitelistedSource(source)) {
+    CavalryTextPathSourceMatch match;
+    const std::size_t exactIndex =
+        cavalryTextPathExactSourceIndex(source);
+    if (exactIndex
+        < cavalry_i18n::extension_layer_contract::
+            kStaticTextPathSources.size()) {
+        match = {
+            exactIndex,
+            cavalry_i18n::extension_layer_contract::
+                textPathTranslationSource(exactIndex),
+            {},
+        };
+    } else {
+        match = matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::PrimitiveToolLine,
+            source);
+    }
+    if (!match.isMatched()) {
         return {};
     }
+    const std::string lookupSource(match.lookupSource);
+    const char *const context =
+        cavalry_i18n::extension_layer_contract::
+            textPathTranslationContext(match.sourceIndex);
     const QByteArray translated =
-        translator.translate(nullptr, source.c_str()).toUtf8();
-    return std::string(translated.constData(), translated.size());
+        translator.translate(
+            context,
+            lookupSource.c_str()).toUtf8();
+    return composeCavalryTextPathTranslation(
+        std::string_view(translated.constData(), translated.size()),
+        match);
 }
 
 bool CavalryExtensionLayerTextPathHook::uninstallLocked(
@@ -793,7 +779,8 @@ exerciseDiagnosticCountersForTesting()
     setSourceMask(
         state,
         &CavalryTextPathDiagnosticState::fallbackSourceMask,
-        14);
+        cavalry_i18n::extension_layer_contract::
+            kPitchRadiusSourceIndex);
     return state->snapshot();
 }
 #endif

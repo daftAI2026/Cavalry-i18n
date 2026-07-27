@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Core::MakePathFromText 的 MSVC x64 ABI、ExtensionLayer canonical caller、十五条 source、已验证 CJK renderer 与嵌入 translator
- * [OUTPUT]: 对外提供串行化 IAT 安装/卸载、终态失败、forward-only 墓碑、按 source 命中位图与无 IO 原子诊断
+ * [INPUT]: 依赖 Core::MakePathFromText 的 MSVC x64 ABI、ExtensionLayer 三处持续复核字节包络的批准 caller、十六项翻译 source/context、已验证 CJK renderer 与嵌入 translator
+ * [OUTPUT]: 对外提供串行化 IAT 安装/卸载、CogTool 整数后缀保留、终态失败、forward-only 墓碑、按 source 命中位图与无 IO 原子诊断
  * [POS]: injector/windows 的 Skia text-path 极窄边界；callback 无 owner/translator 指针，卸载后只保留原函数墓碑供迟到回调转发
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

@@ -9,7 +9,7 @@ check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证跨
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer、languages、injector、ad-hoc bundle seal 与 bundle size report。
 windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；在 Tauri bundle 前仅清除本版本预期 EXE/sidecar、拒绝其余输出，构建后记录安装器长度/SHA-256 与 renderer、languages、Windows Tauri/Rust/config/Cargo/build、package manifests、generic DLL 的内容 fingerprint，smoke 安装前重新计算并拒绝漂移。
 check_windows_nsis_install.ps1: 带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装，验证主程序/plugin 架构、四语 JSON、plugin hash、无 macOS/第二 Qt runtime 与注册表字段，再仅通过包内卸载器静默卸载并观察零残留，禁止递归删除掩盖失败。
-capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，直接截取初始空场景已常驻的 Viewport Quality/Transform 自绘文字，仅在 exact HWND/前台 PID 双重确认后以 `PostMessage(VK_A)` 触发 Edit Shape，再以逐场景 source mask、零 fallback/renderer failure 与 PNG 共同取证；不创建场景、不运行脚本、不依赖 Qt UIA，禁止坐标/鼠标回退、强杀、固定 sleep、覆盖证据。
+capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，自动截取 Viewport Quality/Transform 并以 exact-HWND `VK_A` 触发 Edit Shape；显式 `AllowManualCogPitch` 时先拒绝预置 bit 15，再把已验证前台窗口交给用户选择 Cogwheel 并拖拽，要求 revision/canonical/whitelist/CJK-success 严格增长、零 fallback/renderer failure，并保存前后诊断与 PNG，仍禁止场景脚本、Qt UIA、坐标/鼠标自动化、强杀、固定 sleep和覆盖证据。
 check_dmg_layout.sh: DMG 布局与签名守门器，挂载真实 `.dmg` 并验证 `.DS_Store`、背景图、卷宗图标、custom-icon 标记、Applications 链接、DMG 内 app 与安装态 app 的 bundle seal/codesign strict 结果。
 window_contract_lib.js: 窗口回归公共库，通过明确 AX UI 查询判定辅助能力，封装窗口枚举、内容区截图与原生 `sips` 像素尺寸读取；Finder 无窗口不再导致空心 skip，也不依赖系统 Python/PIL。
 check_tauri_window_regression.js: packaged Tauri 主窗口回归测试，验证冻结窗口尺寸与内容截图尺寸。
@@ -113,6 +113,7 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-27: `generate_embedded_translations.js` 对 `<context>` 外、不会进入 injector 表的 TS 孤儿消息失败关闭；繁中与日语目录清除 11 条已有 canonical 同源项的历史重复，避免审计把无效备份误判为运行时翻译。
 2026-07-27: 三份 compiled/runtime TS 以 `(context, source)` 集合保持严格对称，补齐 `MenuBarManager / ToolBox` 的繁中与日语窗口标题，并为二进制实证的 File 菜单 `Exit` 动作增加三语翻译，阻止普通 Qt runtime 词条静默回退英文。
 2026-07-27: Windows MessageBar 仅在 history/live 两个真实 `QTextEdit::append` return 处理最后一个 `<br>` 后的精确 Pencil 警告，明确排除命名 `js_logger`；三语文案统一无句号，Node/合成 callback/只读 vendor PE 合同共同锁定边界。
-2026-07-27: 三语 TS 补齐二进制实证的调色板/命名、场景/渲染与工具设置普通 Qt 表面；生成器以 `xml:space="preserve"` 保留 `QMetaObject::tr` 实际 source 的尾随空格，Finder 作为 macOS 产品名进入集中 Latin 保留词，合同同时冻结 exact context、source fallback 与未证实 `Pitch Radius:` 不扩 hook 的边界。
+2026-07-27: 三语 TS 补齐二进制实证的调色板/命名、场景/渲染与工具设置普通 Qt 表面；生成器以 `xml:space="preserve"` 保留 `QMetaObject::tr` 实际 source 的尾随空格，Finder 作为 macOS 产品名进入集中 Latin 保留词；`Pitch Radius:` 暂留到独立绘制链采证完成后处理。
+2026-07-27: `CogTool` 的 `Pitch Radius: <integer>` 经 ExtensionLayer 生产、optional vector、PrimitiveToolBase 消费与两处 Core text-path caller 全链采证后加入三语 TS；Windows dispatch 仅在两个批准 caller 接受固定前缀和 MSVC `int` 会生成的 canonical 32-bit 十进制文本，生成表与 Node/C++/vendor 合同共同锁定。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

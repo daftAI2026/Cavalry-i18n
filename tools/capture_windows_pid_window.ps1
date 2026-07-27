@@ -1,7 +1,7 @@
 ﻿<#
 [INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、显式 PID、位于带 sentinel 的 disposable `%TEMP%` clone 根内的 Cavalry.exe、runtime marker、带 sentinel 的 evidence `%TEMP%` 根与输出 PNG 路径
-[OUTPUT]: 对外提供 Inventory/Capture/Close 三个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；直接捕获初始空场景已常驻的 Viewport Quality/Transform 自绘文字，并仅向 exact HWND 投递默认 A 键后捕获 Edit Shape，自绘像素由 marker 掩码与 PNG 双重取证
-[POS]: tools 的 Windows GUI 证据边界；不创建测试场景、不依赖 Qt UIA、不运行脚本，所有键盘动作先验证 exact HWND 的前台 PID，禁止坐标/鼠标回退、强杀、固定 sleep、覆盖证据或接触非 sentinel clone
+[OUTPUT]: 对外提供 Inventory/Capture/Close 三个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；自动捕获三类场景，并以显式开关从零位图基线等待人工 Cogwheel 拖拽及严格诊断增量
+[POS]: tools 的 Windows GUI 证据边界；人工 CogPitch 只接触已验证前台 PID 与 sentinel clone，拒绝预置 bit 15 并保存前后诊断，不创建场景、不依赖 Qt UIA、不运行脚本，禁止坐标/鼠标回退、强杀、固定 sleep或覆盖证据
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -29,8 +29,11 @@ param(
     [string]$OutputPath,
 
     [Parameter(Mandatory = $false)]
-    [ValidateSet('ViewportQuality', 'TransformHelper', 'EditShapeHelper')]
+    [ValidateSet('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch')]
     [string]$CaptureScenario = 'ViewportQuality',
+
+    [Parameter(Mandatory = $false)]
+    [switch]$AllowManualCogPitch,
 
     [Parameter(Mandatory = $false)]
     [int]$TimeoutMilliseconds = 45000
@@ -563,7 +566,8 @@ function Wait-ForTextPathDiagnostics {
         [Parameter(Mandatory = $true)]
         [int]$RequiredSourceMask,
         [Parameter(Mandatory = $true)]
-        [System.DateTime]$Deadline
+        [System.DateTime]$Deadline,
+        [object]$BaselineDiagnostics = $null
     )
 
     while ([System.DateTime]::UtcNow -lt $Deadline) {
@@ -583,8 +587,18 @@ function Wait-ForTextPathDiagnostics {
                 Assert-Condition -Condition ([int]$diagnostics.fallbackSourceMask -eq 0) `
                     -Message 'A translated self-draw source fell back to the original Path.'
                 $translatedMask = [int]$diagnostics.translatedSourceMask
+                $advancedSinceBaseline = $true
+                if ($null -ne $BaselineDiagnostics) {
+                    $advancedSinceBaseline = (
+                        [uint64]$diagnostics.revision -gt [uint64]$BaselineDiagnostics.revision -and
+                        [uint64]$diagnostics.canonicalCalls -gt [uint64]$BaselineDiagnostics.canonicalCalls -and
+                        [uint64]$diagnostics.whitelistCalls -gt [uint64]$BaselineDiagnostics.whitelistCalls -and
+                        [uint64]$diagnostics.cjkPathSuccess -gt [uint64]$BaselineDiagnostics.cjkPathSuccess
+                    )
+                }
                 if (
                     ($translatedMask -band $RequiredSourceMask) -eq $RequiredSourceMask -and
+                    $advancedSinceBaseline -and
                     (
                         $RequiredSourceMask -eq 0 -or
                         [uint64]$diagnostics.cjkPathSuccess -gt 0
@@ -891,6 +905,27 @@ $window = Wait-ForMainWindow `
     -Process $exact.process `
     -ExpectedProcessId $TargetProcessId `
     -Deadline $deadline
+$cogPitchBaseline = $null
+if ($CaptureScenario -ceq 'CogPitch') {
+    Assert-Condition -Condition $AllowManualCogPitch.IsPresent `
+        -Message 'CogPitch requires the explicit -AllowManualCogPitch opt-in.'
+    $marker = Wait-ForExtensionLayerMarker `
+        -Process $exact.process `
+        -Path $markerTarget `
+        -ExpectedLanguage $Language `
+        -ExpectedProcessId $TargetProcessId `
+        -Deadline $deadline
+    $cogPitchBaseline = $marker.extensionLayerTextPathDiagnostics
+    Assert-Condition -Condition ($null -ne $cogPitchBaseline) `
+        -Message 'CogPitch baseline is missing text-path diagnostics.'
+    Assert-Condition -Condition ([uint64]$cogPitchBaseline.rendererFailure -eq 0) `
+        -Message 'CogPitch baseline already contains a renderer failure.'
+    Assert-Condition -Condition ([int]$cogPitchBaseline.fallbackSourceMask -eq 0) `
+        -Message 'CogPitch baseline already contains a translated-source fallback.'
+    Assert-Condition `
+        -Condition (([int]$cogPitchBaseline.translatedSourceMask -band 0x8000) -eq 0) `
+        -Message 'CogPitch baseline contains a pre-set Pitch bit 15; restart the owned clone before collecting evidence.'
+}
 $interactionEvidence = switch ($CaptureScenario) {
     'ViewportQuality' {
         'viewport-quality=initial-empty-scene;path-pixels=manual-review-required'
@@ -907,19 +942,32 @@ $interactionEvidence = switch ($CaptureScenario) {
             -ExpectedProcessId $TargetProcessId `
             -Tool 'EditShape'
     }
+    'CogPitch' {
+        Assert-ExactForegroundWindow `
+            -Window $window `
+            -ExpectedProcessId $TargetProcessId `
+            -Operation 'manual Cogwheel Tool Pitch Radius evidence'
+        'cog-pitch-trigger=manual-disposable-cogwheel-drag;path-pixels=manual-review-required'
+    }
 }
 $requiredTextPathMask = switch ($CaptureScenario) {
     'ViewportQuality' { 0x0001 }
     'TransformHelper' { 0x7C00 }
     'EditShapeHelper' { 0x03F0 }
+    'CogPitch' { 0x8000 }
     default { 0 }
 }
-$marker = Wait-ForTextPathDiagnostics `
-    -Process $exact.process `
-    -Path $markerTarget `
-    -ExpectedProcessId $TargetProcessId `
-    -RequiredSourceMask $requiredTextPathMask `
-    -Deadline $deadline
+$diagnosticArguments = @{
+    Process = $exact.process
+    Path = $markerTarget
+    ExpectedProcessId = $TargetProcessId
+    RequiredSourceMask = $requiredTextPathMask
+    Deadline = $deadline
+}
+if ($null -ne $cogPitchBaseline) {
+    $diagnosticArguments['BaselineDiagnostics'] = $cogPitchBaseline
+}
+$marker = Wait-ForTextPathDiagnostics @diagnosticArguments
 $capture = Capture-MainWindow `
     -Window $window `
     -Process $exact.process `
@@ -941,6 +989,7 @@ ConvertTo-Json -InputObject ([PSCustomObject]@{
     sourceFallbackCount = [int]$marker.sourceFallbackCount
     extensionLayerHookStatus = [string]$marker.extensionLayerHookStatus
     extensionLayerTextPathDiagnostics = $marker.extensionLayerTextPathDiagnostics
+    textPathBaselineDiagnostics = $cogPitchBaseline
     windowHandle = [string]$capture.windowHandle
     width = [int]$capture.width
     height = [int]$capture.height

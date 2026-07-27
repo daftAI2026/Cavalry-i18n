@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 aggregate 生产源码顺序、四条文本合同、process-lifetime snapshot、运行时 PE 身份值门、逐槽决策与本进程 Windows 指针页
- * [OUTPUT]: 对外验证首次 aggregate IAT 写入前插件 PIN、三语投影、身份正反例、forward-only 墓碑、原子计数/位图、mixed restore、MessageBar 生命周期分片与真实 IAT CAS
+ * [OUTPUT]: 对外验证插件 PIN、三语投影、身份门、forward-only 墓碑、原子位图、mixed restore、MessageBar 生命周期与真实 IAT CAS
  * [POS]: injector/windows 的 hook 行为/生命周期合同测试；源码门锚定真实 ensureInstalled 路径，不加载厂商 DLL，关键机器码由独立 vendor fixture 另行锁定
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -429,7 +429,7 @@ bool verifySkiaRuntimeIdentityAndTextPathDiagnostics()
         || diagnostics.noTranslation != 1
         || diagnostics.rendererFailure != 1
         || diagnostics.translatedSourceMask != 0x0001
-        || diagnostics.fallbackSourceMask != 0x4000) {
+        || diagnostics.fallbackSourceMask != 0x8000) {
         qCritical()
             << "Text-path callback diagnostics/mask contract failed.";
         return false;

@@ -1,10 +1,12 @@
 /**
- * [INPUT]: 依赖共享 generated_translations.inc 的三语言表与 cavalry_i18n_translator.h 的 Qt 接口
- * [OUTPUT]: 对外实现精确键首条优先、source-only 末条覆盖兜底及语言标签查询的嵌入式 QTranslator
+ * [INPUT]: 依赖共享 generated_translations.inc、context-only 查询策略与 cavalry_i18n_translator.h 的 Qt 接口
+ * [OUTPUT]: 对外实现精确键首条优先、过滤自绘专用词条的 source-only 末条覆盖兜底及语言标签查询
  * [POS]: injector/windows 的翻译真相投影，复用 macOS 同源生成数据但不依赖 Objective-C++/AppKit hook
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_translator.h"
+
+#include "../cavalry_i18n_translation_policy.h"
 
 namespace {
 
@@ -55,12 +57,16 @@ CavalryEmbeddedTranslator::CavalryEmbeddedTranslator(const QString &language)
                 QString::fromUtf8(entry.translation));
         }
 
-        const QByteArray sourceKey(entry.sourceText);
-        // source-only 兜底复用现有显示层缓存的末条覆盖语义；
-        // 它与精确 (context, source) 的首条优先是两份不同合同。
-        sourceFallbacks_.insert(
-            sourceKey,
-            QString::fromUtf8(entry.translation));
+        if (!cavalry_i18n::requiresExactTranslationContext(
+                entry.context,
+                entry.sourceText)) {
+            const QByteArray sourceKey(entry.sourceText);
+            // source-only 兜底复用现有显示层缓存的末条覆盖语义；
+            // 自绘专用词条必须保留 context，不能泄漏到普通 QWidget。
+            sourceFallbacks_.insert(
+                sourceKey,
+                QString::fromUtf8(entry.translation));
+        }
     }
 }
 
