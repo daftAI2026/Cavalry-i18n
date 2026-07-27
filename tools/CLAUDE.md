@@ -5,7 +5,7 @@
 check_app_contracts.js: Tauri-only Node 合同测试，承接跨平台 Python/换行、full-ui、精确版本 CHANGELOG 发布摘要、capture-only/dirty-only injector、first-match 哈希、TS message context 归属/精确空白/三语 key 对称、裸 `{}` 占位符、`@loader_path` 单 Qt runtime、Qt ABI-safe accessibility、macOS ExtensionLayer 四处空状态定点居中翻译/其余自绘英文边界、Windows MessageBar 双 caller、Pencil/Pen/Centre text-path、selected-count QLabel 与 Pencil HTML 尾部精确替换、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、ModalDialog、运行时图层名、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，以规范化 LF 冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面，避免 Git 换行策略制造假漂移。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、平台 dataset、系统语言本土化、Apply 确认、提交后 cleanup warning、macOS openPrivacy/Windows requestElevation 权限恢复、不可写自定义根的无 UAC 错误、原地重试与自定义 select 原生 change 语义。
-check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证跨平台 hook/Python/CRLF、Windows PowerShell 5.1 UTF-8 BOM、公共与显式平台 Tauri 配置、Windows Qt plugin/NSIS 资源、当前输入 provenance prepare/record/verify、隔离安装卸载接线与 CI、有界 exact-HWND disposable 自绘截图合同、生产启动不清 profile 的边界、DMG/NSIS 同步发布、版本同步、精确版本 CHANGELOG 抽取、默认发布文档、窗口尺寸、README release badge endpoint 与 bridge 能力。
+check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证跨平台 hook/Python/CRLF、Windows PowerShell 5.1 UTF-8 BOM、公共与显式平台 Tauri 配置、Windows Qt plugin/NSIS 资源、四语系统语言选择/品牌图标/无伪造装饰图、当前输入 provenance prepare/record/verify、隔离安装卸载接线与 CI、有界 exact-HWND disposable 自绘截图合同、生产启动不清 profile 的边界、DMG/NSIS 同步发布、版本同步、精确版本 CHANGELOG 抽取、默认发布文档、窗口尺寸、README release badge endpoint 与 bridge 能力。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer、languages、injector、ad-hoc bundle seal 与 bundle size report。
 windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；在 Tauri bundle 前仅清除本版本预期 EXE/sidecar、拒绝其余输出，构建后记录安装器长度/SHA-256 与 renderer、languages、Windows Tauri/Rust/config/Cargo/build、package manifests、generic DLL 的内容 fingerprint，smoke 安装前重新计算并拒绝漂移。
 check_windows_nsis_install.ps1: 带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装，验证主程序/plugin 架构、四语 JSON、plugin hash、无 macOS/第二 Qt runtime 与注册表字段，再仅通过包内卸载器静默卸载并观察零残留，禁止递归删除掩盖失败。
@@ -116,5 +116,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-27: 三语 TS 补齐二进制实证的调色板/命名、场景/渲染与工具设置普通 Qt 表面；生成器以 `xml:space="preserve"` 保留 `QMetaObject::tr` 实际 source 的尾随空格，Finder 作为 macOS 产品名进入集中 Latin 保留词；`Pitch Radius:` 暂留到独立绘制链采证完成后处理。
 2026-07-27: `CogTool` 的 `Pitch Radius: <integer>` 经 ExtensionLayer 生产、optional vector、PrimitiveToolBase 消费与两处 Core text-path caller 全链采证后加入三语 TS；Windows dispatch 仅在两个批准 caller 接受固定前缀和 MSVC `int` 会生成的 canonical 32-bit 十进制文本，生成表与 Node/C++/vendor 合同共同锁定。
 2026-07-27: 繁中 compiled TS 将 Pen/Pencil 状态消息中的简体“钢笔/铅笔”统一为“鋼筆/鉛筆”；共享 FP-4 词表与整份 zh-Hant TS 扫描合同共同阻止同类简体工具名回流。
+2026-07-27: Windows NSIS 固定内置 English/SimpChinese/TradChinese/Japanese，直接跟随系统 UI 语言并以 English 兜底；安装器复用现有 ico，明确不把尺寸/格式不匹配的 DMG 背景伪装成 header/sidebar 品牌资产。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

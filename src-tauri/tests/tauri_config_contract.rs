@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、tauri.macos.conf.json、tauri.windows.conf.json 与 capabilities/default.json
- * [OUTPUT]: 对外提供公共窗口契约、macOS injector bundle 与 Windows NSIS 资源隔离/provenance hook contract tests
+ * [OUTPUT]: 对外提供公共窗口契约、macOS injector bundle 与 Windows NSIS 资源隔离/provenance hook/系统语言及品牌图标 contract tests
  * [POS]: src-tauri/tests 的配置守门，确保 Tauri 平台合并配置不会把 DYLD 构建链带入 Windows，并冻结 Windows bundle 前置入口
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -75,6 +75,7 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = read_json(&manifest_dir.join("tauri.windows.conf.json"));
     let resources = config["bundle"]["resources"].as_object().unwrap();
+    let nsis = &config["bundle"]["windows"]["nsis"];
 
     assert_eq!(
         config["build"]["beforeBuildCommand"],
@@ -95,5 +96,15 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
         resources["../injector/windows/generic/cavalryi18n.dll"],
         "injector/windows/generic/cavalryi18n.dll"
     );
+    assert_eq!(nsis["installerHooks"], "nsis-hooks.nsh");
+    assert_eq!(
+        nsis["languages"],
+        serde_json::json!(["English", "SimpChinese", "TradChinese", "Japanese"])
+    );
+    assert_eq!(nsis["displayLanguageSelector"], false);
+    assert_eq!(nsis["installerIcon"], "icons/icon.ico");
+    assert!(manifest_dir.join("icons/icon.ico").is_file());
+    assert!(nsis.get("headerImage").is_none());
+    assert!(nsis.get("sidebarImage").is_none());
     assert!(resources.keys().all(|key| !key.ends_with(".dylib")));
 }

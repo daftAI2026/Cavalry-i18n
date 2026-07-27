@@ -3,7 +3,7 @@
 
 成员清单
 tauri_version_contract.rs: 断言 npm 与 Cargo Tauri 依赖 exact pin 到同一个 v2 minor。
-tauri_config_contract.rs: 断言公共 renderer/窗口/capabilities，以及 macOS dylib/签名资源与 Windows NSIS/languages 资源严格隔离。
+tauri_config_contract.rs: 断言公共 renderer/窗口/capabilities，以及 macOS dylib/签名资源与 Windows NSIS/languages 资源严格隔离；Windows 安装器固定四语自动跟随系统、不弹选择器并复用品牌图标。
 command_contract.rs: 断言 6 个 command 注册名、旧权限字段、`platform`/`permissionAction`、成功后 cleanup warning 与 renderer 兼容 camelCase JSON shape。
 bridge_webview_contract.rs: 断言 bridge 预注入到 Tauri builder，并暴露 `window.cavalryI18n` 兼容 API 与 Privacy & Security 入口。
 detect_contract.rs: 断言保存路径优先、任意 Windows 安装根规范化、展示版本不伪造，并验证非 MSI 安装的不可变二进制 mutation 必然改变 revision。

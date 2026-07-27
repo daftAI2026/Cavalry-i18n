@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package.json、CHANGELOG.md、跨平台工具入口、Windows NSIS provenance/安装态守门/disposable live-clone 证据门、PowerShell 5.1 脚本编码边界、src-tauri/tauri*.conf.json、capabilities/default.json、本地打包 SOP、README、GitHub workflow 与 release badge JSON
- * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、跨平台安装/换行/Python 命令、版本同步、双 DMG 加 Windows x64 NSIS 的 release 协议、Windows 当前输入 provenance/隔离安装卸载与 exact-HWND live GUI clone/PID/panic/UTF-8 BOM 安全合同、精确版本 CHANGELOG 摘要、README release badge 与平台安装包配置 contract 测试
+ * [OUTPUT]: 对外提供 Tauri-only 打包 SOP、跨平台安装/换行/Python 命令、版本同步、双 DMG 加 Windows x64 NSIS 的 release 协议、Windows 当前输入 provenance/隔离安装卸载/系统语言与品牌图标以及 exact-HWND live GUI clone/PID/panic/UTF-8 BOM 安全合同、精确版本 CHANGELOG 摘要、README release badge 与平台安装包配置 contract 测试
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、Windows NSIS 安装态验证、disposable clone 的三类自动截图与 opt-in Cog Pitch bit 22 人工证据门、npm/Tauri 平台配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -171,6 +171,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
   const macResources = macConfig.bundle.resources;
   const windowsResources = windowsConfig.bundle.resources;
+  const windowsNsis = windowsConfig.bundle.windows.nsis;
   const qtTarget = readJson('tools/cavalry_qt_target.json');
 
   assert.equal(
@@ -231,6 +232,21 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
   assert.deepEqual(windowsConfig.bundle.icon, ['icons/icon.ico']);
   assert.equal(windowsConfig.build.beforeBuildCommand, 'npm run prepare:tauri:windows-bundle');
+  assert.equal(windowsNsis.installerHooks, 'nsis-hooks.nsh');
+  assert.deepEqual(windowsNsis.languages, [
+    'English',
+    'SimpChinese',
+    'TradChinese',
+    'Japanese',
+  ]);
+  assert.equal(windowsNsis.displayLanguageSelector, false);
+  assert.equal(windowsNsis.installerIcon, 'icons/icon.ico');
+  assert.equal(
+    fs.existsSync(path.join(repoRoot, 'src-tauri', windowsNsis.installerIcon)),
+    true
+  );
+  assert.equal(windowsNsis.headerImage, undefined);
+  assert.equal(windowsNsis.sidebarImage, undefined);
   assert.deepEqual(windowsResources, {
     '../languages': 'languages',
     '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',

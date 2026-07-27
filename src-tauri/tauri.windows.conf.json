@@ -16,7 +16,15 @@
     },
     "windows": {
       "nsis": {
-        "installerHooks": "nsis-hooks.nsh"
+        "installerHooks": "nsis-hooks.nsh",
+        "languages": [
+          "English",
+          "SimpChinese",
+          "TradChinese",
+          "Japanese"
+        ],
+        "displayLanguageSelector": false,
+        "installerIcon": "icons/icon.ico"
       }
     }
   }

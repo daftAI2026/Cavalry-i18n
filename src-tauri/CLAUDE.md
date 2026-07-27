@@ -7,7 +7,7 @@ Cargo.lock: Rust 依赖锁定文件，冻结 Tauri、serde、chrono、libc、sha
 build.rs: Tauri build script 入口，读取 `tauri.conf.json` 并生成 runtime context。
 tauri.conf.json: Tauri 公共配置，指向 renderer、启用 `withGlobalTauri` 并固定窗口尺寸与 capability 边界。
 tauri.macos.conf.json: macOS 合并配置，独占 injector 构建、dylib/languages 资源、DMG 与 ad-hoc signing。
-tauri.windows.conf.json: Windows 合并配置，在 bundle 前调用唯一的 plugin + NSIS provenance prepare hook，绑定卸载收尾 hook，并独占 NSIS、ico、languages 与 `cavalryi18n.dll` 资源；禁止携带 macOS dylib。
+tauri.windows.conf.json: Windows 合并配置，在 bundle 前调用唯一的 plugin + NSIS provenance prepare hook，绑定卸载收尾 hook，并独占自动跟随系统语言的四语 NSIS、品牌 ico、languages 与 `cavalryi18n.dll` 资源；禁止携带 macOS dylib。
 nsis-hooks.nsh: Windows NSIS 卸载收尾 hook，精确移除已失效的安装路径与安装器语言元数据，同时不删除用户选择保留的应用数据目录。
 capabilities/: Tauri v2 capability 配置，限定 main window 的 core 权限。
 icons/: Tauri 图标集，由 `npx tauri icon` 从源图生成全平台图标（icns/ico/各尺寸 PNG + iOS/Android），`icon.png` 保持 1024x1024 8-bit RGBA 避免 `generate_context!()` 启动崩溃；`background.png` 为 DMG 安装器背景（1600x856），不受 `tauri icon` 管理。

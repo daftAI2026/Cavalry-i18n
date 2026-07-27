@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Tauri 平台配置、release.config、Qt injector 构建入口、Windows NSIS provenance/安装态守门、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 macOS DMG、Windows NSIS 带当前输入 provenance 的构建/隔离安装卸载验证、Windows clone 基础截图/逐类人工证据采集及真机验收边界
+[OUTPUT]: 对外提供 macOS DMG、Windows NSIS 带当前输入 provenance/系统语言界面/品牌图标的构建与隔离安装卸载验证、Windows clone 基础截图/逐类人工证据采集及真机验收边界
 [POS]: 仓库唯一桌面打包操作合同；区分开发机依赖、无真实 Cavalry 的安装态 gate、仅隔离安装根的临时 clone 证据门与最终用户发布验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -93,6 +93,8 @@ npm run test:tauri:windows-nsis
 ```
 
 第一条命令是唯一 Windows 用户入口：先解析/准备 Qt 6.6.3 `msvc2019_64`，再由 `tauri.windows.conf.json` 的 build hook 通过 `injector/windows/build.ps1` 完成 plugin configure/build/ctest，并在真正 bundle 前执行 provenance prepare。prepare 只删除当前 `package.json` 版本推导出的预期 EXE、同名 sidecar 和受控 intent；任意其他 EXE 或 `.exe.provenance.json` 残留都会失败，不会泛删。随后按固定 `x86_64-pc-windows-msvc` target 生成 `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe`，并立即写入同名 `.exe.provenance.json`：它绑定安装器 SHA-256/长度与当前 renderer、languages、Windows Tauri/Rust/config/Cargo/build 输入、package manifests 和已打包 generic DLL 的内容 fingerprint，不取 Git HEAD 或 mtime 代替输入事实。
+
+NSIS 内置 English、SimpChinese、TradChinese 与 Japanese 四套安装/卸载界面，默认直接跟随 Windows UI 语言；系统语言不在这四种内时回退 English，不额外弹出语言选择器。安装器复用 `src-tauri/icons/icon.ico` 品牌图标。当前不配置 `headerImage` 或 `sidebarImage`：这两项只负责装饰，现有 DMG 背景图的尺寸与格式不匹配，不能冒充 Windows 品牌资产。
 
 第二条命令先用同一工具重新计算 sidecar；任何安装器字节、版本、target 或当前打包输入漂移都会在创建 `%TEMP%` 安装目录前失败。通过 provenance 后，`tools/check_windows_nsis_install.ps1` 只消费该唯一安装器：若当前用户已经存在固定卸载键、厂商产品键、桌面/开始菜单快捷方式或自启动项则立即拒绝，不覆盖任何预存安装；否则只在随机 `%TEMP%` 子目录以 `/S /NS` 安装，验证主程序与 plugin 均为 x64、四个语言目录各含 38 个 JSON、安装态 plugin 与仓库源 hash 相同、包内没有 dylib 或第二套 `Qt6*.dll`，并核对 HKCU 卸载元数据。验证成功或失败都会仅尝试包内 `uninstall.exe /S`，随后观察安装目录、固定键与快捷方式全部消失；脚本禁止用递归删除掩盖卸载失败。不得回退读取 `src-tauri/target/release/bundle/nsis`，因为显式 target 构建不会写入该目录，旧文件会造成假绿。
 
