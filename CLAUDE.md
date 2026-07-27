@@ -9,7 +9,7 @@ docs/ - 架构计划、翻译规范、工作流协议与历史证据链 (Markdow
 injector/ - macOS DYLD 注入器与 Windows Qt generic plugin，复用生成表处理运行时翻译 (C++, Objective-C++)
 languages/ - 运行时 JSON 语言包，保存 English 基线与三语同构翻译资产 (JSON)
 renderer/ - Tauri 前端 UI，提供多语言补丁的管理界面 (HTML, JS)
-src-tauri/ - Tauri 后端；以 commands/、privilege/ 与 platform_runtime 私有编排模块分离 renderer 契约、受控系统命令和平台运行时差异，同时保留稳定 Rust facade 与 disposable live-clone 现场合同 (Rust)
+src-tauri/ - Tauri 后端；以 commands/、privilege/ 与 platform_runtime 私有编排模块分离 renderer 契约、受控系统命令和平台运行时差异，Windows 复用同一 GUI 二进制提供无 WebView 的原生 Cavalry 启动入口，同时保留稳定 Rust facade 与 disposable live-clone 现场合同 (Rust)
 tools/ - 自动化工具链，涵盖翻译提取、校验、SDK 解析、Windows NSIS 安装态守门与精确 PID/HWND 窗口证据采集 (Node.js, PowerShell, Bash)
 output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿 (JSON, PNG)
 </directory>

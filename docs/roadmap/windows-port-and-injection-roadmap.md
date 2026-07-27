@@ -18,7 +18,7 @@
 1. **发现与安装根**：优先从运行中的 `Cavalry.exe`、MSI advertised shortcut 和常见安装位置取得候选；用户也可以直接选择 `Cavalry.exe` 或其安装目录。所有后续路径均归一到选定安装根，不能把安装位置写死为 Program Files。
 2. **JSON keyed overlay**：语言包继续按既有 JSON 映射覆盖到该安装根的 `assets/`；macOS DMG 与 Windows 2.7.2 安装中逐字节相同的 `nodeStrings.json` 键 `smoother.smoothingSteps` 保留在四语同构边界中，不能在跨平台补丁时丢失。
 3. **Qt runtime 翻译**：非 English 时，把已验证的 `cavalryi18n.dll` 部署到所选根的 `generic/`。它是 Qt 6.6.3 x64 MSVC `QGenericPlugin`，与 macOS injector 共享 `injector/generated_translations.inc`，但不携带、替换或部署第二套 Qt DLL。
-4. **子进程环境**：仅启动 Cavalry 子进程时设置 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS=cavalryi18n`、`CAVALRY_I18N_LANG` 与可选诊断 marker；绝不写入用户或系统全局环境。English 不加载该插件。
+4. **子进程环境**：Switcher 的 `--launch-cavalry` 无 WebView 入口先取得既有 bundle operation 锁，读取当前用户 state，再以空参数启动所选任意安装根的 vendor `Cavalry.exe`；仅给该 Cavalry 子进程设置 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS=cavalryi18n`、`CAVALRY_I18N_LANG` 与可选诊断 marker，绝不传给 Switcher 或写入用户/系统全局环境。English 不加载该插件；非 English 必须以同 PID ready marker 证明成功。
 5. **显示层边界**：主动翻译既有和动态菜单、动作、窗口标题、严格 `N selected` QLabel 与受控显示属性；不修改输入值、item model、Time Editor 或其他模型身份数据。ExtensionLayer 只保留四条实证边界：helper、placeholder、MessageBar 与 text-path；其中 MessageBar 仅批准 history/live 两个 `QTextEdit::append` return 和单条 Pencil HTML 尾部正文，明确排除 `js_logger`；text-path 的二十二条静态 source 只走 canonical caller，覆盖 Edit/Transform/Pencil/Pen/Centre 已采证动作，快捷键 prefix 保持英文；动态 `Pitch Radius: <int>` 只走 PrimitiveTool 首行/后续行两个 caller，并保留 canonical 32-bit 数值后缀。其他自绘或日志路径保持英文，禁止宽泛 hook。
 6. **重启与诊断**：先请求目标 `Cavalry.exe` 正常退出，再在同一安装根启动。非 English 启动只在同 PID、语言、Qt 版本与嵌入表计数都匹配的原子 marker 就绪后报告成功；超时或插件错误必须显式失败，而不是假装已翻译。
 7. **权限**：自定义安装目录可以使用，但必须由当前用户可写。只有目标确实位于 Windows 已知 Program Files 根时，才允许 UAC 管理员复制；任何重解析点逃逸或非 Program Files 目标都拒绝提权。

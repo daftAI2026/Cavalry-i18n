@@ -1,13 +1,12 @@
 /**
- * [INPUT]: 依赖 commands 子模块、Tauri command runtime 与 privilege facade。
+ * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime 与 privilege facade。
  * [OUTPUT]: 保持六条稳定 Tauri command、commands::apply_language_inner 与 extract_english_inner 兼容路径。
- * [POS]: renderer API facade；具体状态、快照、锁、写入和平台运行时都下沉到单一职责模块。
+ * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，单飞语义复用 crate 级 operation_lock。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod apply;
 mod context;
 mod contract;
-mod lock;
 mod restart;
 mod snapshot;
 mod status;
@@ -18,7 +17,7 @@ mod tests;
 use chrono::{SecondsFormat, Utc};
 use std::path::Path;
 
-use crate::{detect, privilege};
+use crate::{detect, operation_lock, privilege};
 
 pub use apply::apply_language_inner;
 pub use contract::{
@@ -48,7 +47,7 @@ pub async fn extract_english(app: tauri::AppHandle, app_path: String) -> ActionP
         Err(error) => return ActionPayload::error(&error),
     };
     let paths = context::AppPaths::for_app(&app);
-    let guard = match lock::try_begin_bundle_operation(&paths.state_dir) {
+    let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
         Err(error) => return ActionPayload::error(&error),
     };
@@ -76,7 +75,7 @@ pub async fn apply_language(
     lang: String,
 ) -> ActionPayload {
     let paths = context::AppPaths::for_app(&app);
-    let guard = match lock::try_begin_bundle_operation(&paths.state_dir) {
+    let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
         Err(error) => return ActionPayload::error(&error),
     };
@@ -125,7 +124,7 @@ pub async fn restart_cavalry(app: tauri::AppHandle, app_path: String) -> ActionP
         Ok(layout) => layout.root,
         Err(error) => return ActionPayload::error(&error),
     };
-    let guard = match lock::try_begin_bundle_operation(&paths.state_dir) {
+    let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
         Err(error) => return ActionPayload::error(&error),
     };
@@ -151,16 +150,16 @@ pub async fn restart_cavalry(app: tauri::AppHandle, app_path: String) -> ActionP
 #[cfg(target_os = "macos")]
 #[cfg(test)]
 pub(crate) use crate::mac_runtime::injector_source_candidates;
+#[cfg(all(test, target_os = "macos"))]
+pub(crate) use crate::operation_lock::acquire_bundle_file_lock;
+#[cfg(test)]
+pub(crate) use crate::operation_lock::{try_begin_bundle_operation, BUSY_ERROR};
 #[cfg(test)]
 pub(crate) use apply::marker_guarded_transaction_pairs;
 #[cfg(test)]
 pub(crate) use context::resource_candidates;
 #[cfg(test)]
 pub(crate) use contract::COMMAND_NAMES;
-#[cfg(all(test, target_os = "macos"))]
-pub(crate) use lock::acquire_bundle_file_lock;
-#[cfg(test)]
-pub(crate) use lock::{try_begin_bundle_operation, BUSY_ERROR};
 #[cfg(test)]
 pub(crate) use restart::restart_cavalry_guarded;
 #[cfg(test)]

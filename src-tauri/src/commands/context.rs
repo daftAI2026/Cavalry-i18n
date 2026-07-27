@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 Tauri AppHandle、detect 的语言目录扫描与 CAVALRY_I18N_STATE_DIR 覆盖。
+ * [INPUT]: 依赖 Tauri AppHandle、detect 的语言目录扫描与共享 runtime_paths。
  * [OUTPUT]: 提供应用路径上下文、资源候选、语言源定位和单调 staging nonce。
  * [POS]: commands 的运行环境解析层；业务动作只接收已经归一化的 repo/state/resource 路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,7 +11,7 @@ use std::{
 
 use tauri::Manager;
 
-use crate::detect;
+use crate::{detect, runtime_paths};
 
 use super::contract::LanguageChoice;
 
@@ -35,23 +35,19 @@ impl AppPaths {
 }
 
 pub(crate) fn repo_root() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR"))
-        .parent()
-        .unwrap_or_else(|| Path::new(env!("CARGO_MANIFEST_DIR")))
-        .to_path_buf()
-}
-
-fn fallback_state_dir() -> PathBuf {
-    std::env::var_os("CAVALRY_I18N_STATE_DIR")
-        .map(PathBuf::from)
-        .unwrap_or_else(|| std::env::temp_dir().join("cavalry-i18n-tauri-state"))
+    runtime_paths::repo_root()
 }
 
 pub(crate) fn state_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
-    std::env::var_os("CAVALRY_I18N_STATE_DIR")
-        .map(PathBuf::from)
-        .or_else(|| app.path().app_data_dir().ok())
-        .unwrap_or_else(fallback_state_dir)
+    #[cfg(target_os = "windows")]
+    {
+        let _ = app;
+        return runtime_paths::current_windows_state_dir();
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        runtime_paths::resolve_state_dir(app.path().app_data_dir().ok())
+    }
 }
 
 pub(crate) fn resource_dir_for_app(app: &tauri::AppHandle) -> PathBuf {

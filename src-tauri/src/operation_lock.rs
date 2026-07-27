@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 state 目录、原子标志与 macOS flock/Windows exclusive file handle。
  * [OUTPUT]: 提供 try_begin_bundle_operation、BundleOperationGuard 与稳定 busy 错误。
- * [POS]: commands 的 mutation 单飞边界；extract/apply/restart 共享同一跨进程锁语义。
+ * [POS]: src-tauri/src 的 bundle operation 单飞边界；GUI extract/apply/restart 与 Windows headless launch 共享同一跨进程锁语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{

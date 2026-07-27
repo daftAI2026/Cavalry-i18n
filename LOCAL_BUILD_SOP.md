@@ -144,6 +144,8 @@ npm run test:tauri:windows-nsis
 
 Windows 真机冒烟（不由上述构建命令替代）：在真实 Cavalry 2.7.2 上，以自动发现、当前用户可写的自定义目录和实际 Program Files 目录分别验证安装选择、语言切换、正常重启、English 恢复、安装器升级与卸载。自定义目录不得依赖 UAC；自动 UAC 只可覆盖实际 Program Files 目标。
 
+安装态还必须直接运行 `cavalry-i18n-tauri.exe --launch-cavalry`：English 应以空翻译环境启动；简中、繁中、日语应从保存的任意安装根以空参数启动，并以同 PID ready marker 证明插件就绪。正在 apply/restart 时该入口必须报告 busy 且不 spawn；state、revision、语言 marker 或可信 plugin 缺失/漂移时必须失败关闭。此验收继承当前 Windows 登录 profile，不要求测试账号或清空登录态。
+
 Windows disposable live-clone 截图门只允许显式临时副本，不接受自动发现或真实安装。准备两个已经存在、严格位于 `%TEMP%` 下且各自包含 `.cavalry-i18n-disposable-smoke` sentinel 的目录：clone 根必须是完整、干净 English Cavalry 2.7.2 副本；evidence 根只保存本轮 state 与 PNG。路径通过环境变量传入，代码与 npm script 不固化盘符或安装位置：
 
 ```powershell

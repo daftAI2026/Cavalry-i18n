@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 detect/state/status 同步、platform_runtime.restart 与 CommandRunner。
+ * [INPUT]: 依赖 detect/state/status 同步、platform_runtime.restart、共享 operation_lock 测试门与 CommandRunner。
  * [OUTPUT]: 提供 restart_cavalry_inner，保持 restart 前 revision/state 同步。
  * [POS]: commands 的重启编排层；平台特定 plugin 环境、PID marker 和 macOS launcher 全下沉 facade。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -48,7 +48,7 @@ pub(crate) fn restart_cavalry_guarded<R: CommandRunner>(
     if app_path.as_os_str().is_empty() {
         return super::contract::ActionPayload::error("Select a Cavalry installation first.");
     }
-    let _guard = match super::lock::try_begin_bundle_operation(state_dir) {
+    let _guard = match crate::operation_lock::try_begin_bundle_operation(state_dir) {
         Ok(guard) => guard,
         Err(error) => return super::contract::ActionPayload::error(&error),
     };
