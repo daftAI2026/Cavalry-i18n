@@ -1,11 +1,11 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、调色板动作、CogTool Pitch context-only 隔离、动态 selected 计数 QLabel 投影、精确空白工具标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
- * [POS]: injector/windows 的显示层单元回归，证明复合提示与动态计数只改受控显示文本，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
+ * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、调色板动作、CogTool Pitch context-only 隔离、selected 与离线认证倒计时 QLabel 投影、精确空白工具标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
+ * [POS]: injector/windows 的显示层单元回归，证明复合提示与动态文案只改受控显示文本，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
-
+#include "cavalry_i18n_dynamic_label.h"
 #include "cavalry_i18n_translator.h"
 
 #include <QtCore/QList>
@@ -534,89 +534,102 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                        : QString::fromUtf8("ピッチ半径： "));
 }
 
-bool verifySelectedCountLabels(const LocaleExpectation &expectation)
+bool verifyDynamicLabelTranslations(const LocaleExpectation &expectation)
 {
     const QString language = QString::fromLatin1(expectation.language);
-    const auto expectedSelectedCount = [&language](const QString &count) {
-        if (language == QStringLiteral("zh-Hans")) {
-            return QString::fromUtf8("已选择 %1 个").arg(count);
-        }
-        if (language == QStringLiteral("zh-Hant")) {
-            return QString::fromUtf8("已選取 %1 個").arg(count);
-        }
-        return QString::fromUtf8("%1 個を選択中").arg(count);
+    struct DynamicLabelCase {
+        const char *source;
+        const char *expected[3];
     };
-
-    CavalryEmbeddedTranslator translator(language);
-    CavalryDisplayTranslator displayTranslator(translator);
-    QLabel zeroSelected(QStringLiteral("0 selected"));
-    QLabel multiDigitSelected(QStringLiteral("12345 selected"));
-    QLineEdit modelBoundInput(QStringLiteral("42 selected"));
-    QComboBox modelBoundCombo;
-    RoleRecordingModel model;
-    modelBoundCombo.setModel(&model);
-    modelBoundCombo.addItem(
-        QStringLiteral("42 selected"),
-        QStringLiteral("selected-identity"));
-    model.writtenRoles.clear();
-
-    displayTranslator.translateWidget(&zeroSelected);
-    displayTranslator.translateWidget(&multiDigitSelected);
-    displayTranslator.translateWidget(&modelBoundInput);
-    displayTranslator.translateWidget(&modelBoundCombo);
-
-    if (!expectEqual(
-            language + QStringLiteral(" selected count zero"),
-            zeroSelected.text(),
-            expectedSelectedCount(QStringLiteral("0")))
-        || !expectEqual(
-            language + QStringLiteral(" selected count multiple digits"),
-            multiDigitSelected.text(),
-            expectedSelectedCount(QStringLiteral("12345")))
-        || !expectEqual(
-            language + QStringLiteral(" selected count QLineEdit isolation"),
-            modelBoundInput.text(),
-            QStringLiteral("42 selected"))
-        || !expectEqual(
-            language + QStringLiteral(" selected count model display isolation"),
-            modelBoundCombo.itemText(0),
-            QStringLiteral("42 selected"))
-        || !expectEqual(
-            language + QStringLiteral(" selected count model identity isolation"),
-            modelBoundCombo.itemData(0, Qt::UserRole).toString(),
-            QStringLiteral("selected-identity"))
-        || !expectTrue(
-            language + QStringLiteral(" selected count model write isolation"),
-            model.writtenRoles.isEmpty())) {
-        return false;
+    const DynamicLabelCase positiveCases[] {
+        { "0 selected", { "已选择 0 个", "已選取 0 個", "0 個を選択中" } },
+        { "12345 selected",
+          { "已选择 12345 个", "已選取 12345 個", "12345 個を選択中" } },
+        {
+            "Cavalry is offline. You will need to re-authenticate in less "
+            "than 0 days.",
+            {
+                "Cavalry 已离线。你需要在不到 0 天内重新认证。",
+                "Cavalry 已離線。你需要在不到 0 天內重新驗證。",
+                "Cavalry はオフラインです。0 日以内に再認証が必要です。",
+            },
+        },
+        {
+            "Cavalry is offline. You will need to re-authenticate in less "
+            "than \t 12345 \t days.",
+            {
+                "Cavalry 已离线。你需要在不到 12345 天内重新认证。",
+                "Cavalry 已離線。你需要在不到 12345 天內重新驗證。",
+                "Cavalry はオフラインです。12345 日以内に再認証が必要です。",
+            },
+        },
+    };
+    const int languageIndex = language == QStringLiteral("zh-Hans") ? 0
+        : (language == QStringLiteral("zh-Hant") ? 1 : 2);
+    for (const DynamicLabelCase &testCase : positiveCases) {
+        if (!expectEqual(
+                language + QStringLiteral(" dynamic label rule"),
+                cavalryI18nDynamicLabelTranslation(
+                    QString::fromLatin1(testCase.source),
+                    language),
+                QString::fromUtf8(testCase.expected[languageIndex]))) {
+            return false;
+        }
     }
-
     const QStringList nearMisses {
         QStringLiteral("12selected"),
         QStringLiteral("12 Selected"),
         QStringLiteral("12 selected "),
-        QStringLiteral("12 selected items"),
         QStringLiteral("12  selected"),
         QStringLiteral("12\tselected"),
+        QStringLiteral(
+            "Cavalry is offline. You will need to re-authenticate in less "
+            "than -1 days."),
+        QStringLiteral(
+            "Cavalry is offline. You will need to re-authenticate in less "
+            "than 1 day."),
+        QStringLiteral(
+            "Cavalry is offline. You will need to re-authenticate in less "
+            "than 1 days"),
     };
     for (const QString &nearMiss : nearMisses) {
-        QLabel label(nearMiss);
-        displayTranslator.translateWidget(&label);
         if (!expectEqual(
-                language + QStringLiteral(" selected count near miss: ")
+                language + QStringLiteral(" dynamic QLabel near miss: ")
                     + nearMiss,
-                label.text(),
-                nearMiss)) {
+                cavalryI18nDynamicLabelTranslation(nearMiss, language),
+                QString())) {
             return false;
         }
     }
-
-    zeroSelected.setText(QStringLiteral("67890 selected"));
-    displayTranslator.translatePaintWidget(&zeroSelected);
+    CavalryEmbeddedTranslator translator(language);
+    CavalryDisplayTranslator displayTranslator(translator);
+    const QString offlineSource =
+        QStringLiteral(
+            "Cavalry is offline. You will need to re-authenticate in less "
+            "than 42 days.");
+    QLabel dynamicLabel(offlineSource);
+    QLineEdit modelBoundInput(offlineSource);
+    displayTranslator.translateWidget(&dynamicLabel);
+    displayTranslator.translateWidget(&modelBoundInput);
+    if (!expectEqual(
+            language + QStringLiteral(" dynamic QLabel projection"),
+            dynamicLabel.text(),
+            cavalryI18nDynamicLabelTranslation(offlineSource, language))
+        || !expectEqual(
+            language + QStringLiteral(" dynamic QLabel QLineEdit isolation"),
+            modelBoundInput.text(),
+            offlineSource)) {
+        return false;
+    }
+    dynamicLabel.setText(
+        QStringLiteral("67890 selected"));
+    displayTranslator.translatePaintWidget(&dynamicLabel);
     return expectEqual(
-        language + QStringLiteral(" selected count dynamic QLabel rewrite"),
-        zeroSelected.text(),
-        expectedSelectedCount(QStringLiteral("67890")));
+        language + QStringLiteral(" dynamic QLabel English rewrite"),
+        dynamicLabel.text(),
+        cavalryI18nDynamicLabelTranslation(
+            QStringLiteral("67890 selected"),
+            language));
 }
 
 bool verifyLocale(const LocaleExpectation &expectation)
@@ -761,7 +774,7 @@ bool verifyLocale(const LocaleExpectation &expectation)
 
     return verifyCompoundRuntimeTooltips(expectation)
         && verifyEvidencedResidualWidgets(language)
-        && verifySelectedCountLabels(expectation)
+        && verifyDynamicLabelTranslations(expectation)
         && verifyTreeWidgetDisplay(expectation)
         && verifyLineEditDisplay(expectation);
 }

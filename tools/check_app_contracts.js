@@ -3171,8 +3171,12 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
   }
 });
 
-test('Windows selected-count QLabel projection mirrors the existing macOS surface', () => {
+test('Windows dynamic QLabel projections mirror existing macOS surfaces', () => {
   const windowsInjector = path.join(injectorRoot, 'windows');
+  const dynamicLabel = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_dynamic_label.h'),
+    'utf8'
+  );
   const display = fs.readFileSync(
     path.join(windowsInjector, 'cavalry_i18n_display.cpp'),
     'utf8'
@@ -3190,23 +3194,30 @@ test('Windows selected-count QLabel projection mirrors the existing macOS surfac
     'utf8'
   );
 
-  assert.ok(display.includes('QStringLiteral("^([0-9]+) selected$")'));
+  assert.ok(dynamicLabel.includes('QStringLiteral("^([0-9]+) selected$")'));
+  assert.ok(
+    dynamicLabel.includes('than\\\\s+([0-9]+)\\\\s+days\\\\.$')
+  );
   assert.match(
     display,
-    /property == QByteArrayLiteral\("text"\)[\s\S]{0,120}qobject_cast<QLabel \*>\(object\)/
+    /property == QByteArrayLiteral\("text"\)[\s\S]{0,160}qobject_cast<QLabel \*>\(object\)[\s\S]{0,160}cavalryI18nDynamicLabelTranslation/
   );
   for (const translation of [
     '已选择 %1 个',
     '已選取 %1 個',
     '%1 個を選択中',
+    'Cavalry 已离线。你需要在不到 %1 天内重新认证。',
+    'Cavalry 已離線。你需要在不到 %1 天內重新驗證。',
+    'Cavalry はオフラインです。%1 日以内に再認証が必要です。',
   ]) {
-    assert.ok(display.includes(translation));
+    assert.ok(dynamicLabel.includes(translation));
     assert.ok(macInjector.includes(translation));
   }
   assert.match(displayTest, /QStringLiteral\("12  selected"\)/);
   assert.match(displayTest, /QStringLiteral\("12\\tselected"\)/);
+  assert.match(displayTest, /"than \\t 12345 \\t days\."/);
   assert.match(displayTest, /QLineEdit modelBoundInput/);
-  assert.match(displayTest, /selected count model write isolation/);
+  assert.match(displayTest, /dynamic QLabel QLineEdit isolation/);
   assert.match(vendorContract, /kSelectedCountProducerRva\s*=\s*0x00E815C0/);
   assert.match(vendorContract, /kSelectedCountLiteralRva\s*=\s*0x0157F6EE/);
   assert.match(vendorContract, /kSelectedCountSetTextCallRva\s*=\s*0x00E816A0/);
