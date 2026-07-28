@@ -1,7 +1,7 @@
 ﻿<#
-[INPUT]: 依赖 Windows PowerShell 5.1 UTF-8 BOM、CMake/MSVC、Qt 6.6.3 SDK及版本化 QPA 头、共享生成表与可选 vendor root
-[OUTPUT]: 对外从经过边界验证的干净生成目录执行 Release configure/build/ctest，并经无重解析点父链发布两个无 Qt runtime 产物
-[POS]: injector/windows 的可重复构建入口，拒绝陈旧增量产物、连接同一翻译 runtime/QPA 代理/只读 vendor 合同与受工作区约束的资源路径
+[INPUT]: 依赖 Windows PowerShell 5.1 UTF-8 BOM、Node.js 翻译表生成器、CMake/MSVC、Qt 6.6.3 SDK 及版本化 QPA 头、共享翻译源与可选 vendor root
+[OUTPUT]: 对外先重生成共享翻译表，再从经过边界验证的干净目录执行 Release configure/build/ctest，并经无重解析点父链发布两个无 Qt runtime 产物
+[POS]: injector/windows 的可重复构建入口，以源码生成表为唯一编译输入，拒绝陈旧增量产物并连接同一翻译 runtime/QPA 代理/只读 vendor 合同与受工作区约束的资源路径
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -19,6 +19,8 @@ $genericPublishDirectory = Join-Path $scriptDirectory 'generic'
 $qpaPublishDirectory = Join-Path $scriptDirectory 'qpa'
 $publishedPlugin = Join-Path $genericPublishDirectory 'cavalryi18n.dll'
 $publishedQpaProxy = Join-Path $qpaPublishDirectory 'qwindows.dll'
+$translationGenerator = Join-Path $repositoryRoot 'tools\generate_embedded_translations.js'
+$generatedTranslations = Join-Path $repositoryRoot 'injector\generated_translations.inc'
 
 function Assert-NoReparsePathChain {
     [CmdletBinding()]
@@ -109,6 +111,14 @@ if (-not (Test-Path -LiteralPath $ctest -PathType Leaf)) {
     throw "CTest was not found next to '$cmake'."
 }
 
+$nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
+if ($null -eq $nodeCommand) {
+    throw 'Node.js was not found. Install the package.json toolchain before building the Windows injector.'
+}
+if (-not (Test-Path -LiteralPath $translationGenerator -PathType Leaf)) {
+    throw "Translation generator not found at '$translationGenerator'."
+}
+
 $cmakeConfigureArguments = @(
     '-S', $scriptDirectory,
     '-B', $buildDirectory,
@@ -123,6 +133,14 @@ if (-not [string]::IsNullOrWhiteSpace($vendorRoot)) {
 } else {
     # 显式清空缓存，避免上一次本机构建的 vendor 路径泄漏到普通构建。
     $cmakeConfigureArguments += @('-U', 'CAVALRY_VENDOR_ROOT')
+}
+
+& $nodeCommand.Source $translationGenerator $generatedTranslations
+if ($LASTEXITCODE -ne 0) {
+    throw "Translation table generation failed with exit code $LASTEXITCODE."
+}
+if (-not (Test-Path -LiteralPath $generatedTranslations -PathType Leaf)) {
+    throw "Generated translation table not found at '$generatedTranslations'."
 }
 
 Reset-GeneratedBuildDirectory

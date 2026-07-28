@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装态/live-clone、PowerShell 编码、Tauri 配置、SOP/README/workflow
- * [OUTPUT]: 对外提供 Tauri-only 发布协议与 Windows x64 generic+QPA 双资源 provenance/隔离安装/系统语言/品牌及 live GUI 安全合同
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、Windows NSIS 双 injector 安装态验证、disposable live 证据与 npm/Tauri 配置
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装态/live-clone、PowerShell 编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台现场生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance/隔离安装/系统语言/品牌及 live GUI 安全合同
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、平台 Runner 原生构建、Windows NSIS 双 injector 安装态验证、disposable live 证据与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -546,6 +546,8 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   const windowsBuild = readText('injector/windows/build.ps1');
   const windowsCmake = readText('injector/windows/CMakeLists.txt');
   const windowsProvenance = readText('tools/windows_nsis_provenance.js');
+  const macBuild = readText('tools/build_translator_injector.sh');
+  const gitignore = readText('.gitignore');
 
   assert.equal(releaseConfig.targetCavalryVersion, '2.7.2');
   assert.equal(releaseConfig.releaseTagPrefix, 'cavalry-2.7.2-p');
@@ -563,6 +565,29 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.match(windowsBuild, /'-A', 'x64'/);
   assert.match(windowsBuild, /function Assert-NoReparsePathChain/);
   assert.match(windowsBuild, /function Reset-GeneratedBuildDirectory/);
+  assert.match(windowsBuild, /Get-Command node\.exe/);
+  const generateTranslationsIndex = windowsBuild.indexOf(
+    '& $nodeCommand.Source $translationGenerator $generatedTranslations'
+  );
+  const resetBuildIndex = windowsBuild.indexOf('\nReset-GeneratedBuildDirectory');
+  const configureIndex = windowsBuild.indexOf('& $cmake @cmakeConfigureArguments');
+  assert.ok(generateTranslationsIndex >= 0, 'Windows injector build must regenerate the shared table');
+  assert.ok(
+    generateTranslationsIndex < resetBuildIndex && resetBuildIndex < configureIndex,
+    'translation generation must precede the clean CMake configure/build'
+  );
+  const macGenerateTranslationsIndex = macBuild.indexOf(
+    'node "$REPO_ROOT/tools/generate_embedded_translations.js" "$GENERATED"'
+  );
+  const macCompileIndex = macBuild.indexOf('clang++');
+  assert.ok(macGenerateTranslationsIndex >= 0, 'macOS injector build must regenerate the shared table');
+  assert.ok(
+    macGenerateTranslationsIndex < macCompileIndex,
+    'macOS injector build must regenerate the shared table before compiling'
+  );
+  assert.match(gitignore, /^\/injector\/libCavalryTranslatorInjector\.dylib$/m);
+  assert.match(gitignore, /^\/injector\/windows\/generic\/cavalryi18n\.dll$/m);
+  assert.match(gitignore, /^\/injector\/windows\/qpa\/qwindows\.dll$/m);
   assert.match(
     windowsBuild,
     /GetDirectoryName\(\$buildDirectory\)[\s\S]*Remove-Item -LiteralPath \$buildDirectory -Recurse -Force/
@@ -906,6 +931,16 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     sourceArtifact[1],
     /^\s+tools\/\s*$/m,
     'source artifact should carry the complete tools dependency closure used by package scripts and hooks'
+  );
+  assert.match(
+    sourceArtifact[1],
+    /^\s+!injector\/\*\*\/\*\.dll\s*$/m,
+    'source artifact must exclude platform-built Windows injector binaries'
+  );
+  assert.match(
+    sourceArtifact[1],
+    /^\s+!injector\/\*\*\/\*\.dylib\s*$/m,
+    'source artifact must exclude platform-built macOS injector binaries'
   );
 });
 

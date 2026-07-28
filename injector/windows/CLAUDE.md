@@ -4,7 +4,7 @@
 成员清单
 
 CMakeLists.txt: shared Qt 6.6.3 x64 MSVC + Windows Psapi 构建边界；拒绝静态 Qt，编译 generic 翻译 runtime 与使用版本化私有 QPA 头的原厂委托代理，注册 display/hook/vendor、strict manifest 及仅显式语言入口合同，发布 `generic/cavalryi18n.dll` 和 `qpa/qwindows.dll`。
-build.ps1: 带 UTF-8 BOM 的 Windows 唯一可重复构建入口；验证生成/发布父链无重解析点，每次清空唯一受控 build 目录后解析 shared Qt SDK 与可选 vendor root，串联 configure/build/ctest 并发布已验证双 DLL。
+build.ps1: 带 UTF-8 BOM 的 Windows 唯一可重复构建入口；先从当前 TS/模型词典重生成共享 C++ 翻译表，再验证生成/发布父链无重解析点，每次清空唯一受控 build 目录后解析 shared Qt SDK 与可选 vendor root，串联 configure/build/ctest 并发布两个不纳入 Git 的已验证 DLL。
 cavalry_i18n_callback_snapshot.h: 固定数量 exact source/translation 的不可变值表，支持按 source 或已验证索引读取；有意不析构的 process-lifetime shared_ptr 槽在卸载后只保留不触碰 Qt/Skia 的 forward-only 墓碑。
 cavalry_i18n_plugin.h: `QGenericPlugin` metadata 与工厂接口，只暴露大小写不敏感的 `cavalryi18n` key，并声明严格非空 specification 边界。
 cavalry_i18n_plugin.cpp: Qt generic factory 路由；空 specification 与未知语言一律拒绝，只把 QPA 明确传值映射到 runtime，并将内部配置失败投影为 `nullptr`。

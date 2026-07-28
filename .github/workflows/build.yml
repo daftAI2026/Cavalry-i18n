@@ -1,6 +1,6 @@
 # [INPUT]: 依赖仓库版本、CHANGELOG、release.config、跨平台 Tauri 配置、Qt generic/QPA 构建入口、Windows NSIS provenance sidecar 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供 Node/翻译合同、先构建并嵌入 runtime trust-anchor 的 Windows Rust check/test/带当前输入 provenance 的 NSIS 隔离安装卸载门、双架构 macOS 包、精确版本更新摘要、跨平台 GitHub Release 与 README badge 写回
-# [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库版本真相投影为带双 Windows injector/安装态/provenance gate 的 NSIS、macOS 发布包和同时携带 EXE/DMG 的 Cavalry patch tag 发布
+# [OUTPUT]: 对外提供不夹带原生构建物的源码闭包、Node/翻译合同、平台 Runner 现场生成的 Windows 双 DLL 与 macOS dylib、带当前输入 provenance 的 NSIS 隔离安装卸载门、双架构 macOS 包、精确版本更新摘要、跨平台 GitHub Release 与 README badge 写回
+# [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库源码真相分别投影为 Windows NSIS 与 macOS 发布包，发布边界只交付 EXE/DMG 而不把中间原生库伪装成源码或独立产品资产
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -94,6 +94,8 @@ jobs:
           path: |
             renderer/
             injector/
+            !injector/**/*.dll
+            !injector/**/*.dylib
             resources/
             src-tauri/
             languages/
@@ -260,7 +262,6 @@ jobs:
             src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg/*.dmg
             src-tauri/target/${{ matrix.rust_target }}/release/bundle/macos/Cavalry Language Switcher.app
             src-tauri/target/${{ matrix.rust_target }}/release/bundle/cavalry-i18n-tauri-size-report.json
-            injector/libCavalryTranslatorInjector.dylib
 
   release:
     needs: [build, windows_check, package_macos]

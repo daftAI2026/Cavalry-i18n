@@ -79,6 +79,7 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 - `src-tauri/tauri.conf.json` 保存产品标识、版本、renderer、窗口与 capability 等跨平台公共合同。
 - `src-tauri/tauri.macos.conf.json` 执行 `npm run build:injector`，声明 DMG/`.app`、`languages`、macOS injector 与 DMG 布局。
 - `src-tauri/tauri.windows.conf.json` 先执行 `npm run build:injector:windows`，再声明 NSIS、`icon.ico`、`languages` 与 `injector/windows/generic/cavalryi18n.dll`；它不继承 macOS injector、签名或 DMG 行为。
+- macOS dylib 与 Windows generic/QPA DLL 都是对应平台现场生成的中间产物，不纳入 Git 或 source artifact；macOS build artifact 只交付已嵌入 dylib 的 `.app`/DMG，Windows 只交付已嵌入双 DLL 的 NSIS EXE。
 - `app.withGlobalTauri = true`，供 vanilla bridge 在页面加载前拿到 `window.__TAURI__.core.invoke`。
 - main window 外框固定 `480x528`，最小 `420x528`，对应 `480x500` 内容区。
 - macOS 的 `bundle.macOS.signingIdentity = "-"` 与 `APPLE_SIGNING_IDENTITY="-"` 都指向同一个 Tauri ad-hoc pseudo-identity，不是 Developer ID；它让 Tauri 在生成 DMG 前对 `.app` 执行显式 bundle signing，写入 `_CodeSignature/CodeResources`，否则浏览器下载后的 quarantine 检查会把缺少 bundle seal 的 app 判定为 damaged。
@@ -92,7 +93,7 @@ npm run build:tauri:windows
 npm run test:tauri:windows-nsis
 ```
 
-第一条命令是唯一 Windows 用户入口：先解析/准备 Qt 6.6.3 `msvc2019_64`，再由 `tauri.windows.conf.json` 的 build hook 通过 `injector/windows/build.ps1` 完成 plugin configure/build/ctest，并在真正 bundle 前执行 provenance prepare。prepare 只删除当前 `package.json` 版本推导出的预期 EXE、同名 sidecar 和受控 intent；任意其他 EXE 或 `.exe.provenance.json` 残留都会失败，不会泛删。随后按固定 `x86_64-pc-windows-msvc` target 生成 `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe`，并立即写入同名 `.exe.provenance.json`：它绑定安装器 SHA-256/长度与当前 renderer、languages、Windows Tauri/Rust/config/Cargo/build 输入、package manifests 和已打包 generic DLL 的内容 fingerprint，不取 Git HEAD 或 mtime 代替输入事实。
+第一条命令是唯一 Windows 用户入口：先解析/准备 Qt 6.6.3 `msvc2019_64`，再由 `tauri.windows.conf.json` 的 build hook 通过 `injector/windows/build.ps1` 从当前翻译源重生成共享 C++ 表并完成 plugin configure/build/ctest，随后在真正 bundle 前执行 provenance prepare。prepare 只删除当前 `package.json` 版本推导出的预期 EXE、同名 sidecar 和受控 intent；任意其他 EXE 或 `.exe.provenance.json` 残留都会失败，不会泛删。随后按固定 `x86_64-pc-windows-msvc` target 生成 `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe`，并立即写入同名 `.exe.provenance.json`：它绑定安装器 SHA-256/长度与当前 renderer、languages、Windows Tauri/Rust/config/Cargo/build 输入、package manifests 和已打包 generic DLL 的内容 fingerprint，不取 Git HEAD 或 mtime 代替输入事实。
 
 Windows Cargo build 还会由 `src-tauri/build.rs` 枚举四个 `languages/<lang>` 的全部 JSON，并读取已构建的 `cavalryi18n.dll` 与 QPA `qwindows.dll`，把 SHA-256 catalog 编译进 worker。release profile 缺任一 runtime DLL 立即失败；debug 可以编译，但缺失的 runtime 锚会让真实提权 worker fail closed。提权事务先验证近邻包内文件与编译期摘要，再从当前 Cavalry JSON 经 anchored English 和目标语言重建 exact pretty payload，不能信任 plan/staging 自报摘要。因此 CI 在任何 Windows Rust check/test 前必须先运行 `prepare:qt-sdk:windows` 与 `build:injector:windows`。
 
