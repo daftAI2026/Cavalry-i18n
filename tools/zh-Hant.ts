@@ -871,11 +871,14 @@
     <message><source>Click a Shape.</source><translation>點按形狀。</translation></message>
     <message><source>Click and drag to define the cutting line</source><translation>單擊並拖動以定義剪切線</translation></message>
     <message><source>Click and drag to start making a connection</source><translation>單擊並拖動開始連接</translation></message>
-    <message><source>Click bone</source><translation>點擊骨頭</translation></message>
+    <message><source>Click bone</source><translation>按一下骨骼</translation></message>
     <message><source>Click drag a line between two vertices to create an edge</source><translation>單擊兩個頂點之間的線條以建立邊緣</translation></message>
     <message><source>Click drag a line between two vertices to create an edge.</source><translation>單擊兩個頂點之間拖動一條線以建立邊緣。</translation></message>
     <message><source>Click drag to edit Soft Selection size</source><translation>單擊拖曳以編輯軟選擇大小</translation></message>
-    <message><source>Click handle</source><translation>點擊手柄</translation></message>
+    <message><source>Click handle</source><translation>按一下手柄</translation></message>
+    <message><source>Click handle + drag</source><translation>按一下手柄後拖曳</translation></message>
+    <message><source>Alt + click handle + drag</source><translation>Alt + 按一下手柄後拖曳</translation></message>
+    <message><source>Start/finish adding bone</source><translation>開始/完成新增骨骼</translation></message>
     <message><source>Click to edit or remove the Attribute Expression</source><translation>點按以編輯或移除屬性運算式</translation></message>
     <message><source>Click to edit or remove the Attribute Expression.</source><translation>點按以編輯或移除屬性運算式。</translation></message>
     <message><source>Click to isolate layers and reveal any animated attributes</source><translation>按一下以隔離圖層並顯示所有動畫屬性</translation></message>
@@ -2223,7 +2226,7 @@
     <message><source>Right click to add a Shader</source><translation>按一下滑鼠右鍵以新增著色器</translation></message>
     <message><source>Robust</source><translation>強壯</translation></message>
     <message><source>Root node not found</source><translation>未找到根節點</translation></message>
-    <message><source>Rotate bone</source><translation>旋轉骨頭</translation></message>
+    <message><source>Rotate bone</source><translation>旋轉骨骼</translation></message>
     <message><source>Rotate Selection</source><translation>旋轉選擇</translation></message>
     <message><source>Rubber Hose</source><translation>橡皮管</translation></message>
     <message><source>Ruler Guide</source><translation>標尺指南</translation></message>
@@ -2529,7 +2532,7 @@
     <message><source>Straight</source><translation>直線</translation></message>
     <message><source>Stream length is zero</source><translation>流長為 0</translation></message>
     <message><source>Stream length is zero.</source><translation>流長為 0。</translation></message>
-    <message><source>Stretch bone</source><translation>伸展骨頭</translation></message>
+    <message><source>Stretch bone</source><translation>拉伸骨骼</translation></message>
     <message><source>Stretch H</source><translation>拉伸高值</translation></message>
     <message><source>string literal</source><translation>字元串字節</translation></message>
     <message><source>Style Options.</source><translation>樣式選項。</translation></message>

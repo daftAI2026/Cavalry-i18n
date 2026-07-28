@@ -41,6 +41,7 @@
 | Null | 空对象 | 空物件 | ヌル | Do not shorten to "空" |
 | Duplicator | 复制器 | 複製器 | デュプリケーター | Cinema 4D terminology |
 | Node | 节点 | 節點 | ノード | |
+| Bone | 骨骼 | 骨骼 | ボーン | Rigging/Bone Tool display term; do not use “骨头 / 骨頭” or bare Japanese “骨” |
 | Smoothing Steps | 平滑步数 | 平滑步數 | スムージングステップ数 | Cavalry 2.7.2 cross-platform `smoother` attribute; align with existing Smooth / smoothing terminology |
 | Pitch Radius | 节圆半径 | 節圓半徑 | ピッチ半径 | Cog/gear geometry; JSON attribute and runtime CogTool prefix must stay aligned |
 | Basic Shape | 基本形状 | 基本形狀 | 基本シェイプ | |

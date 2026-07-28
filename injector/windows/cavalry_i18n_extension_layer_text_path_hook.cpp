@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖唯一 Core::MakePathFromText IAT、三处 caller、二十九项 source/context、运行时 ABI 防火墙与嵌入 translator
- * [OUTPUT]: 对外实现 exact slot/caller/source/context 四重约束、CogTool 数字后缀保留、CJK Path/英语回退、process-lifetime 槽与无 IO 诊断
+ * [INPUT]: 依赖唯一 Core::MakePathFromText IAT、三处 caller、三十七项 source/context、运行时 ABI 防火墙与嵌入 translator
+ * [OUTPUT]: 对外实现 exact slot/caller/source/context 四重约束、CogTool 数字后缀保留、CJK Path/英语回退、process-lifetime 槽与 64 位无 IO 诊断
  * [POS]: injector/windows 的 text-path 局部适配器；私有 ABI 未验证或 renderer 创建失败时终态拒装，卸载不让 SkTypeface 留到 loader-lock
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -55,8 +55,8 @@ public:
     std::atomic<std::uint64_t> originalFallback { 0 };
     std::atomic<std::uint64_t> noTranslation { 0 };
     std::atomic<std::uint64_t> rendererFailure { 0 };
-    std::atomic<std::uint32_t> translatedSourceMask { 0 };
-    std::atomic<std::uint32_t> fallbackSourceMask { 0 };
+    std::atomic<std::uint64_t> translatedSourceMask { 0 };
+    std::atomic<std::uint64_t> fallbackSourceMask { 0 };
 
     CavalryTextPathHookDiagnostics snapshot() const
     {
@@ -118,8 +118,9 @@ constexpr std::size_t kSourceCount =
 static_assert(
     sizeof(std::string) == 0x20,
     "Cavalry 2.7.2 Core::MakePathFromText requires the MSVC x64 release std::string ABI.");
-static_assert(kSourceCount == 29);
-static_assert(kSourceCount <= 32);
+static_assert(kSourceCount == 37);
+// marker 通过 QJson 的有符号 64 位整数传递，最高位必须保持未使用。
+static_assert(kSourceCount <= 63);
 
 std::shared_ptr<const CavalryTextPathCallbackState> &callbackSlot()
 {
@@ -140,15 +141,14 @@ void bump(
 }
 void setSourceMask(
     const std::shared_ptr<CavalryTextPathDiagnosticState> &state,
-    std::atomic<std::uint32_t>
+    std::atomic<std::uint64_t>
         CavalryTextPathDiagnosticState::*mask,
     std::size_t sourceIndex)
 {
     if (state == nullptr || sourceIndex >= kSourceCount) {
         return;
     }
-    const auto bit =
-        static_cast<std::uint32_t>(1U << sourceIndex);
+    const auto bit = std::uint64_t { 1 } << sourceIndex;
     (state.get()->*mask).fetch_or(bit, std::memory_order_relaxed);
     state->revision.fetch_add(1, std::memory_order_release);
 }
@@ -363,8 +363,8 @@ QString diagnosticsText(const CavalryTextPathHookDiagnostics &value)
         .arg(QString::number(value.originalFallback))
         .arg(QString::number(value.noTranslation))
         .arg(QString::number(value.rendererFailure))
-        .arg(value.translatedSourceMask, 8, 16, QLatin1Char('0'))
-        .arg(value.fallbackSourceMask, 8, 16, QLatin1Char('0'));
+        .arg(value.translatedSourceMask, 16, 16, QLatin1Char('0'))
+        .arg(value.fallbackSourceMask, 16, 16, QLatin1Char('0'));
 }
 
 } // namespace
@@ -581,9 +581,9 @@ CavalryExtensionLayerTextPathHook::diagnostics() const
 bool CavalryExtensionLayerTextPathHook::isWhitelistedSource(
     const std::string &source)
 {
-    return cavalryTextPathExactSourceIndex(source)
-            < cavalry_i18n::extension_layer_contract::
-                kStaticTextPathSources.size()
+    return cavalry_i18n::extension_layer_contract::
+               isStaticTextPathSourceIndex(
+                   cavalryTextPathExactSourceIndex(source))
         || matchCavalryTextPathSource(
             CavalryTextPathCallerKind::PrimitiveToolLine,
             source).isMatched();
@@ -597,9 +597,8 @@ CavalryExtensionLayerTextPathHook::translationForWhitelistedSource(
     CavalryTextPathSourceMatch match;
     const std::size_t exactIndex =
         cavalryTextPathExactSourceIndex(source);
-    if (exactIndex
-        < cavalry_i18n::extension_layer_contract::
-            kStaticTextPathSources.size()) {
+    if (cavalry_i18n::extension_layer_contract::
+            isStaticTextPathSourceIndex(exactIndex)) {
         match = {
             exactIndex,
             cavalry_i18n::extension_layer_contract::
@@ -772,6 +771,11 @@ exerciseDiagnosticCountersForTesting()
         state,
         &CavalryTextPathDiagnosticState::translatedSourceMask,
         0);
+    setSourceMask(
+        state,
+        &CavalryTextPathDiagnosticState::translatedSourceMask,
+        cavalry_i18n::extension_layer_contract::
+            kTextPathSourceCount - 1);
     bump(state, &CavalryTextPathDiagnosticState::canonicalCalls);
     bump(state, &CavalryTextPathDiagnosticState::whitelistCalls);
     bump(state, &CavalryTextPathDiagnosticState::rendererFailure);

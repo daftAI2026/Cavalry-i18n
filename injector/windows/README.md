@@ -91,7 +91,7 @@ IAT 边界：
 - `Core.dll!cavalry::MakePathFromText(std::string const&, double) -> Path` 的唯一导入槽
   （MSVC x64 调用时包含隐藏的 Path 返回存储参数）。
   静态文本必须在每次 callback 命中 `GraphicsViewportBase::getOrCreateTextPath` 内已采证的 canonical
-  return RVA、完整 preamble/call 字节包络与二十八条 exact UTF-8 source；CogTool 动态文本必须命中
+  return RVA、完整 preamble/call 字节包络与三十六条 exact UTF-8 source；CogTool 动态文本必须命中
   `PrimitiveToolBase` 首行/后续行两处已采证 return，且严格等于
   `Pitch Radius: ` 加 MSVC `int` 产生的 canonical 32-bit 十进制文本，并以精确 `CogTool`
   context 查询翻译，才会进入受控 CJK Path 分支；该词条不进入普通 source fallback。
@@ -102,7 +102,7 @@ IAT 边界：
 `Drag some JavaScript here to make a Snippet.`）；MessageBar 只允许一条 Pencil 正文。
 text-path 只允许四条 viewport quality、六条 EditShapeTool action、五条
 TransformTool action、七条 Pencil/Pen/Centre action、EditShapeTool 与
-TransformTool 各三条已有三语译文的长操作前缀，以及一条 CogTool 动态 Pitch；动态数值后缀逐字保留，
+TransformTool 各三条已有三语译文的长操作前缀、SkeletonTool Bone Tool 四组 prefix/action，以及一条 CogTool 动态 Pitch；动态数值后缀逐字保留，
 `Space`、`Shift`、`Control` 与单字母等纯快捷键 prefix 保持英文。
 
 text-path 命中后不会改写厂商代码或安装全局 Skia hook。`CavalrySkiaTextPathRenderer` 只调用
@@ -178,7 +178,7 @@ QString 赋值槽 RVA、其初始 import-by-name RVA、二十个直接调用与 
 它还逐一验证十三条 placeholder source literal；锁定 `QTextEdit::append` 唯一槽、三处调用、
 history/live 两个批准 return、`js_logger` 排除项、HTML 模板与 Pencil 原文；并验证 Core MakePath 唯一槽、证明
 RCX hidden-sret/RDX string-ref/XMM2 double 参数搬运的十字节 preamble、canonical
-return、viewport enum 表、EditShapeTool、TransformTool、Pencil、Pen 与 Centre 的 prefix/action 双 Path 数据流及二十八条静态 source；
+return、viewport enum 表、EditShapeTool、TransformTool、Pencil、Pen、Centre 与 SkeletonTool Bone Tool 的 prefix/action 双 Path 数据流及三十六条静态 source；Bone Tool 还锁定 secondary vtable/RTTI 与第四组内联字符串构造，
 并验证 CogTool 两处分支生成 `Pitch Radius: `、写入 optional vector、PrimitiveToolBase
 读取该成员，以及首行/后续行两处 MakePath caller 的参数 preamble 与同一 IAT 槽；
 并验证 Core 固定 Lato 路径、CJK renderer 所需的 Core/skia 导出、Path 几何步骤与 typeface
@@ -235,10 +235,10 @@ marker 的 `status` 为 `ready` 且 `translatorInstalled` 为 `true`，只能证
 `installed` 才说明 helper、placeholder、MessageBar 与 Core text-path 四条精确 IAT 边界已全部安装，
 `extensionLayerTextPathDiagnostics` 还会给出 `revision`、`canonicalCalls`、
 `whitelistCalls`、`cjkPathSuccess`、`originalFallback`、`noTranslation`、
-`rendererFailure`、`translatedSourceMask` 与 `fallbackSourceMask`。三十二位 mask 按
+`rendererFailure`、`translatedSourceMask` 与 `fallbackSourceMask`。64 位 mask 按
 `cavalry_i18n_extension_layer_sources.h` 固定顺序对应 4 条 viewport quality、6 条
 EditShapeTool action、5 条 TransformTool action、7 条 Pencil/Pen/Centre action、
-bits 22–24 的三条 TransformTool 长操作前缀、bits 25–27 的三条 EditShapeTool 长操作前缀与 bit 28 的动态 Pitch；live 截图验收应同时
+bits 22–24 的三条 TransformTool 长操作前缀、bits 25–27 的三条 EditShapeTool 长操作前缀、bit 28 的动态 Pitch 与 bits 29–36 的四组 Bone Tool prefix/action；live 截图验收应同时
 检查目标类别位确实进入 `translatedSourceMask`，不能只看总计数。
 但它仍不能替代真实 Cavalry 的截图与 live UI gate。构建 smoke 会额外验证十二个顶层
 菜单、完整 Bézier UTF-8 生成表样本、既有/动态动作、受控显示属性和输入/model 隔离。

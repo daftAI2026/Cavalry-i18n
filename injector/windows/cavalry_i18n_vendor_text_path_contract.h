@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖测试内存中的 ExtensionLayer.dll PE64 映像与已采证的 Cavalry 2.7.2 Core text-path RVAs
- * [OUTPUT]: 对外提供 text-path IAT、三处 hidden-sret/string/XMM2 caller、viewport、Edit/Transform/Pencil/Pen/Centre tool-help 与 CogTool Pitch vector→Path 事实的只读验证入口
+ * [OUTPUT]: 对外提供 text-path IAT、三处 hidden-sret/string/XMM2 caller、viewport、Edit/Transform/Pencil/Pen/Centre/Bone tool-help 与 CogTool Pitch vector→Path 事实的只读验证入口
  * [POS]: injector/windows vendor 合同的 text-path 分片；与主 vendor 测试共享映像但不加载、执行或修改厂商 DLL
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

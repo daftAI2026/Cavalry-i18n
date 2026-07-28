@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 不依赖 Qt 或厂商模块；只承载经静态采证的 ASCII source 常量
- * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、二十八条静态 text-path source（含 EditShapeTool 与 TransformTool 各三条已采证长操作前缀）、一条 CogTool 动态前缀及其精确 lookup context
+ * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、三十六条静态 text-path source（含 Bone Tool 四组已采证提示）、一条 CogTool 动态前缀及其精确 lookup context
  * [POS]: injector/windows 的 ExtensionLayer 文本边界真相，供运行时 hook、无厂商单测和只读 vendor 合同共同消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -83,6 +83,17 @@ inline constexpr char kStartNewShape[] = "Start New Shape";
 inline constexpr char kStartNewContour[] = "Start New Contour";
 inline constexpr char kCreateFromTheCentre[] = "Create from the Centre";
 inline constexpr char kConstrainProportions[] = "Constrain Proportions";
+inline constexpr char kClickBone[] = "Click bone";
+inline constexpr char kSelectAction[] = "Select";
+inline constexpr char kClickHandle[] = "Click handle";
+inline constexpr char kStartFinishAddingBone[] =
+    "Start/finish adding bone";
+inline constexpr char kClickHandleAndDrag[] =
+    "Click handle + drag";
+inline constexpr char kRotateBone[] = "Rotate bone";
+inline constexpr char kAltClickHandleAndDrag[] =
+    "Alt + click handle + drag";
+inline constexpr char kStretchBone[] = "Stretch bone";
 inline constexpr auto &kPitchRadiusPrefix =
     cavalry_i18n::kCogToolPitchSource;
 
@@ -138,7 +149,18 @@ inline constexpr std::array<ToolHelpSourcePair, 2>
         { "Alt", kCreateFromTheCentre },
     }};
 
-inline constexpr std::array<const char *, 28> kStaticTextPathSources {{
+// SkeletonTool 的 Bone Tool 帮助同样由 setupToolHelp 分开生成
+// prefix/action Path；前三组由双分支 literal 构造，第四组在栈上拼出
+// `Alt + click handle + drag`，这里仍只批准已逐字采证的最终 source。
+inline constexpr std::array<ToolHelpSourcePair, 4>
+    kBoneToolHelpPairs {{
+        { kClickBone, kSelectAction },
+        { kClickHandle, kStartFinishAddingBone },
+        { kClickHandleAndDrag, kRotateBone },
+        { kAltClickHandleAndDrag, kStretchBone },
+    }};
+
+inline constexpr std::array<const char *, 36> kStaticTextPathSources {{
     kViewportQualityHigh,
     kViewportQualityLow,
     kViewportQualityLowest,
@@ -167,21 +189,38 @@ inline constexpr std::array<const char *, 28> kStaticTextPathSources {{
     kEditShapeSplitCornerPrefix,
     kEditShapeSplitBezierPrefix,
     kEditShapeDeleteBezierHandlePrefix,
+    kClickBone,
+    kSelectAction,
+    kClickHandle,
+    kStartFinishAddingBone,
+    kClickHandleAndDrag,
+    kRotateBone,
+    kAltClickHandleAndDrag,
+    kStretchBone,
 }};
 
+// 既有 0..28 mask 已进入真机证据协议：Pitch 固定留在 bit 28，
+// 后增的 Bone source 使用 29..36，避免让旧证据在升级后静默改义。
+inline constexpr std::size_t kLegacyStaticTextPathSourceCount = 28;
 inline constexpr std::size_t kPitchRadiusSourceIndex =
-    kStaticTextPathSources.size();
+    kLegacyStaticTextPathSourceCount;
+inline constexpr std::size_t kBoneTextPathSourceIndexOffset =
+    kPitchRadiusSourceIndex + 1;
 inline constexpr std::size_t kTextPathSourceCount =
     kStaticTextPathSources.size() + 1;
 
 inline constexpr const char *textPathTranslationSource(
     std::size_t index) noexcept
 {
-    return index < kStaticTextPathSources.size()
-        ? kStaticTextPathSources[index]
-        : (index == kPitchRadiusSourceIndex
-            ? kPitchRadiusPrefix
-            : nullptr);
+    if (index < kLegacyStaticTextPathSourceCount) {
+        return kStaticTextPathSources[index];
+    }
+    if (index == kPitchRadiusSourceIndex) {
+        return kPitchRadiusPrefix;
+    }
+    return index < kTextPathSourceCount
+        ? kStaticTextPathSources[index - 1]
+        : nullptr;
 }
 
 inline constexpr const char *textPathTranslationContext(
@@ -190,6 +229,13 @@ inline constexpr const char *textPathTranslationContext(
     return index == kPitchRadiusSourceIndex
         ? cavalry_i18n::kCogToolPitchContext
         : nullptr;
+}
+
+inline constexpr bool isStaticTextPathSourceIndex(
+    std::size_t index) noexcept
+{
+    return index < kTextPathSourceCount
+        && index != kPitchRadiusSourceIndex;
 }
 
 static_assert(kStaticHelperSources.size() == 9);
@@ -201,7 +247,11 @@ static_assert(kTransformToolHelpPairs.size() == 5);
 static_assert(kPencilToolHelpPairs.size() == 3);
 static_assert(kPenToolHelpPairs.size() == 3);
 static_assert(kCentreToolHelpPairs.size() == 2);
-static_assert(kStaticTextPathSources.size() == 28);
-static_assert(kTextPathSourceCount == 29);
+static_assert(kBoneToolHelpPairs.size() == 4);
+static_assert(kStaticTextPathSources.size() == 36);
+static_assert(kLegacyStaticTextPathSourceCount == 28);
+static_assert(kPitchRadiusSourceIndex == 28);
+static_assert(kBoneTextPathSourceIndexOffset == 29);
+static_assert(kTextPathSourceCount == 37);
 
 } // namespace cavalry_i18n::extension_layer_contract

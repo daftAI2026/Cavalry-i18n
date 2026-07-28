@@ -1120,19 +1120,33 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
     ...staticSourceTable[1].matchAll(/^\s*(k[A-Za-z0-9_]+),\s*$/gm),
   ].map((match) => match[1]);
   assert.ok(
-    staticSourceNames.length > 0 && staticSourceNames.length < 32,
-    'text-path source masks require one non-empty uint32 source table'
+    staticSourceNames.length > 0 && staticSourceNames.length < 63,
+    'text-path source masks require one non-empty signed-JSON-safe uint64 source table'
   );
   assert.equal(
     new Set(staticSourceNames).size,
     staticSourceNames.length,
     'text-path source constants must not occupy duplicate mask slots'
   );
+  const pitchSourceIndexMatch = textPathSources.match(
+    /static_assert\(kPitchRadiusSourceIndex\s*==\s*(\d+)\)/
+  );
+  assert.ok(
+    pitchSourceIndexMatch,
+    'the preserved Pitch diagnostic index must remain explicit'
+  );
+  const pitchSourceIndex = Number.parseInt(pitchSourceIndexMatch[1], 10);
   const maskForSources = (names) =>
     names.reduce((mask, name) => {
-      const index = staticSourceNames.indexOf(name);
-      assert.notEqual(index, -1, `${name} must remain in the static source table`);
-      return mask + 2 ** index;
+      const staticIndex = staticSourceNames.indexOf(name);
+      assert.notEqual(
+        staticIndex,
+        -1,
+        `${name} must remain in the static source table`
+      );
+      const diagnosticIndex =
+        staticIndex < pitchSourceIndex ? staticIndex : staticIndex + 1;
+      return mask + 2 ** diagnosticIndex;
     }, 0);
   const expectedScenarioMasks = new Map([
     ['ViewportQuality', maskForSources(['kViewportQualityHigh'])],
@@ -1163,7 +1177,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
         'kTransformPanPrefix',
       ]),
     ],
-    ['CogPitch', 2 ** staticSourceNames.length],
+    ['CogPitch', 2 ** pitchSourceIndex],
   ]);
   const parseScenarioMask = (text, pattern, scenario, surface) => {
     const match = text.match(pattern);
@@ -1258,6 +1272,10 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /extensionLayerHookStatus -ceq 'installed'/);
   assert.match(helper, /Wait-ForTextPathDiagnostics/);
   assert.match(helper, /fallbackSourceMask -eq 0/);
+  assert.match(helper, /\[uint64\]\$RequiredSourceMask/);
+  assert.match(helper, /\[uint64\]\$diagnostics\.translatedSourceMask/);
+  assert.match(live, /translated_source_mask:\s*u64/);
+  assert.match(live, /fallback_source_mask:\s*u64/);
   assert.doesNotMatch(helper, /'CogPitch'\s*\{\s*0x00400000\s*\}/);
   assert.doesNotMatch(helper, /'CogPitch'\s*\{\s*0x04000000\s*\}/);
   assert.doesNotMatch(helper, /'CogPitch'\s*\{\s*0x20000000\s*\}/);

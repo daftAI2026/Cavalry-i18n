@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 text-path dispatch 纯合同、CavalryEmbeddedTranslator 与三语生成表
- * [OUTPUT]: 对外验证安装与 callback 都持续拒绝被篡改的三处 caller/RDX 字节包络、二十八项静态白名单（含 EditShapeTool 与 TransformTool 各三条已采证长操作前缀）、Pitch exact context，以及动态文本仅接受 canonical 32-bit int 后缀并逐字保留数值
+ * [OUTPUT]: 对外验证安装与 callback 都持续拒绝被篡改的三处 caller/RDX 字节包络、三十六项静态白名单（含 Bone Tool 四组提示）、Pitch exact context，以及动态文本仅接受 canonical 32-bit int 后缀并逐字保留数值
  * [POS]: injector/windows 的静态/动态 text-path 回归；与真实 vendor PE 合同互补，不执行任何厂商代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -25,6 +25,7 @@ struct LocaleExpectation final {
     std::array<const char *, 7> toolHelpActions;
     std::array<const char *, 3> transformToolPrefixes;
     std::array<const char *, 3> editShapeToolPrefixes;
+    std::array<const char *, 8> boneToolTexts;
 };
 
 bool fail(const QString &message)
@@ -193,7 +194,7 @@ bool verifyLocale(const LocaleExpectation &expectation)
             translator.translate(nullptr, source);
         const std::string expectedAction =
             expectation.toolHelpActions[index];
-        if (sourceIndex >= kStaticTextPathSources.size()
+        if (!isStaticTextPathSourceIndex(sourceIndex)
             || !match.isMatched()
             || match.sourceIndex != sourceIndex
             || !match.preservedSuffix.empty()
@@ -229,7 +230,7 @@ bool verifyLocale(const LocaleExpectation &expectation)
                 source);
         const std::string expected =
             expectation.transformToolPrefixes[index];
-        if (sourceIndex >= kStaticTextPathSources.size()
+        if (!isStaticTextPathSourceIndex(sourceIndex)
             || !match.isMatched()
             || match.sourceIndex != sourceIndex
             || !match.preservedSuffix.empty()
@@ -266,7 +267,7 @@ bool verifyLocale(const LocaleExpectation &expectation)
                 source);
         const std::string expected =
             expectation.editShapeToolPrefixes[index];
-        if (sourceIndex >= kStaticTextPathSources.size()
+        if (!isStaticTextPathSourceIndex(sourceIndex)
             || !match.isMatched()
             || match.sourceIndex != sourceIndex
             || !match.preservedSuffix.empty()
@@ -280,6 +281,50 @@ bool verifyLocale(const LocaleExpectation &expectation)
                    source).isMatched()) {
             return fail(QStringLiteral(
                 "%1 EditShapeTool prefix contract failed for '%2'.")
+                .arg(
+                    QString::fromLatin1(expectation.language),
+                    QString::fromLatin1(source)));
+        }
+    }
+
+    constexpr std::array<const char *, 8> boneToolSources {{
+        kClickBone,
+        kSelectAction,
+        kClickHandle,
+        kStartFinishAddingBone,
+        kClickHandleAndDrag,
+        kRotateBone,
+        kAltClickHandleAndDrag,
+        kStretchBone,
+    }};
+    for (std::size_t index = 0;
+         index < boneToolSources.size();
+         ++index) {
+        const char *const source = boneToolSources[index];
+        const std::size_t sourceIndex =
+            cavalryTextPathExactSourceIndex(source);
+        const CavalryTextPathSourceMatch match =
+            matchCavalryTextPathSource(
+                CavalryTextPathCallerKind::StaticExact,
+                source);
+        const std::string expected =
+            expectation.boneToolTexts[index];
+        if (!isStaticTextPathSourceIndex(sourceIndex)
+            || sourceIndex
+                != kBoneTextPathSourceIndexOffset + index
+            || !match.isMatched()
+            || match.sourceIndex != sourceIndex
+            || !match.preservedSuffix.empty()
+            || translator.translate(nullptr, source)
+                    .toUtf8().toStdString() != expected
+            || composeCavalryTextPathTranslation(
+                   expected,
+                   match) != expected
+            || matchCavalryTextPathSource(
+                   CavalryTextPathCallerKind::PrimitiveToolLine,
+                   source).isMatched()) {
+            return fail(QStringLiteral(
+                "%1 Bone Tool text contract failed for '%2'.")
                 .arg(
                     QString::fromLatin1(expectation.language),
                     QString::fromLatin1(source)));
@@ -371,6 +416,16 @@ int main()
                 "S + 单击",
                 "X + 单击",
             }},
+            {{
+                "单击骨骼",
+                "选择",
+                "单击手柄",
+                "开始/完成添加骨骼",
+                "单击手柄并拖动",
+                "旋转骨骼",
+                "Alt + 单击手柄并拖动",
+                "拉伸骨骼",
+            }},
         },
         {
             "zh-Hant",
@@ -394,6 +449,16 @@ int main()
                 "S + 按一下",
                 "X + 按一下",
             }},
+            {{
+                "按一下骨骼",
+                "選取",
+                "按一下手柄",
+                "開始/完成新增骨骼",
+                "按一下手柄後拖曳",
+                "旋轉骨骼",
+                "Alt + 按一下手柄後拖曳",
+                "拉伸骨骼",
+            }},
         },
         {
             "ja_JP",
@@ -416,6 +481,16 @@ int main()
                 "S + ダブルクリック",
                 "S + クリック",
                 "X + クリック",
+            }},
+            {{
+                "ボーンをクリック",
+                "選択",
+                "ハンドルをクリック",
+                "ボーンの追加を開始/完了",
+                "ハンドルをクリックしてドラッグ",
+                "ボーンを回転させる",
+                "Alt + ハンドルをクリックしてドラッグ",
+                "ボーンを伸ばす",
             }},
         },
     }};
@@ -476,6 +551,15 @@ int main()
         || matchCavalryTextPathSource(
             CavalryTextPathCallerKind::StaticExact,
             "Space").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "Click Bone").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "Click handle+drag").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "Alt + click handle + drag ").isMatched()
         || matchCavalryTextPathSource(
             CavalryTextPathCallerKind::Rejected,
             "Pitch Radius: 12").isMatched()

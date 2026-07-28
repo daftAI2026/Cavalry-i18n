@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 aggregate 生产源码顺序、四条文本合同、process-lifetime snapshot、运行时 PE 身份值门、逐槽决策与本进程 Windows 指针页
- * [OUTPUT]: 对外验证插件 PIN、三语投影、身份门、forward-only 墓碑、原子位图、mixed restore、MessageBar 生命周期与真实 IAT CAS
+ * [OUTPUT]: 对外验证插件 PIN、三语投影、身份门、forward-only 墓碑、跨 bit 36 的 64 位原子位图、mixed restore、MessageBar 生命周期与真实 IAT CAS
  * [POS]: injector/windows 的 hook 行为/生命周期合同测试；源码门锚定真实 ensureInstalled 路径，不加载厂商 DLL，关键机器码由独立 vendor fixture 另行锁定
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -104,6 +104,14 @@ constexpr TextPathTranslationExpectations kZhHansTextPathTranslations {{
     "S + 双击",
     "S + 单击",
     "X + 单击",
+    "单击骨骼",
+    "选择",
+    "单击手柄",
+    "开始/完成添加骨骼",
+    "单击手柄并拖动",
+    "旋转骨骼",
+    "Alt + 单击手柄并拖动",
+    "拉伸骨骼",
 }};
 
 constexpr TextPathTranslationExpectations kZhHantTextPathTranslations {{
@@ -135,6 +143,14 @@ constexpr TextPathTranslationExpectations kZhHantTextPathTranslations {{
     "S + 連按兩下",
     "S + 按一下",
     "X + 按一下",
+    "按一下骨骼",
+    "選取",
+    "按一下手柄",
+    "開始/完成新增骨骼",
+    "按一下手柄後拖曳",
+    "旋轉骨骼",
+    "Alt + 按一下手柄後拖曳",
+    "拉伸骨骼",
 }};
 
 constexpr TextPathTranslationExpectations kJaTextPathTranslations {{
@@ -166,6 +182,14 @@ constexpr TextPathTranslationExpectations kJaTextPathTranslations {{
     "S + ダブルクリック",
     "S + クリック",
     "X + クリック",
+    "ボーンをクリック",
+    "選択",
+    "ハンドルをクリック",
+    "ボーンの追加を開始/完了",
+    "ハンドルをクリックしてドラッグ",
+    "ボーンを回転させる",
+    "Alt + ハンドルをクリックしてドラッグ",
+    "ボーンを伸ばす",
 }};
 
 bool expectEqual(
@@ -493,15 +517,17 @@ bool verifySkiaRuntimeIdentityAndTextPathDiagnostics()
     const CavalryTextPathHookDiagnostics diagnostics =
         CavalryExtensionLayerTextPathHook::
             exerciseDiagnosticCountersForTesting();
-    if (diagnostics.revision != 12
+    if (diagnostics.revision != 13
         || diagnostics.canonicalCalls != 3
         || diagnostics.whitelistCalls != 2
         || diagnostics.cjkPathSuccess != 1
         || diagnostics.originalFallback != 2
         || diagnostics.noTranslation != 1
         || diagnostics.rendererFailure != 1
-        || diagnostics.translatedSourceMask != 0x0001
-        || diagnostics.fallbackSourceMask != 0x10000000) {
+        || diagnostics.translatedSourceMask
+            != 0x0000001000000001ULL
+        || diagnostics.fallbackSourceMask
+            != 0x0000000010000000ULL) {
         qCritical()
             << "Text-path callback diagnostics/mask contract failed.";
         return false;

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、QPA 等价显式 specification 与 diagnostic marker
- * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离及九项 text-path marker 结构
+ * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离及含 64 位 source mask 的九项 text-path marker 结构
  * [POS]: injector/windows 的端到端回归 smoke；证明只有正式 QPA 显式入口能创建翻译运行时
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -119,10 +119,10 @@ bool verifyMarker()
                 .value(QStringLiteral("canonicalCalls")).toInteger()
             != 0
         || textPathDiagnostics
-                .value(QStringLiteral("translatedSourceMask")).toInt()
+                .value(QStringLiteral("translatedSourceMask")).toInteger()
             != 0
         || textPathDiagnostics
-                .value(QStringLiteral("fallbackSourceMask")).toInt()
+                .value(QStringLiteral("fallbackSourceMask")).toInteger()
             != 0
         || marker.value(QStringLiteral("processId")).toString()
             != expectedProcessId) {

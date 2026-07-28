@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 QPA 显式 requestedLanguage、嵌入生成表、四条精确 hook、受控 Qt 显示槽、可选绝对 marker 与 Qt 6.6.3 事件循环
- * [OUTPUT]: 对外安装 translator/显示投影、报告配置成功，并以事件重试 hook、按 text-path revision 写结构化诊断
+ * [OUTPUT]: 对外安装 translator/显示投影、报告配置成功，并以事件重试 hook、按 text-path revision 写含 64 位 source mask 的结构化诊断
  * [POS]: injector/windows 的运行时状态机；语言只来自已通过 manifest/hash gate 的 QPA 显式参数，Paint 仅刷新白名单显示属性且不读取 QPlainTextEdit 正文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -371,11 +371,13 @@ void CavalryI18nRuntime::writeDiagnostic(
         },
         {
             QStringLiteral("translatedSourceMask"),
-            static_cast<int>(textPathDiagnostics.translatedSourceMask)
+            static_cast<qint64>(
+                textPathDiagnostics.translatedSourceMask)
         },
         {
             QStringLiteral("fallbackSourceMask"),
-            static_cast<int>(textPathDiagnostics.fallbackSourceMask)
+            static_cast<qint64>(
+                textPathDiagnostics.fallbackSourceMask)
         },
     };
 

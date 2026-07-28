@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_vendor_text_path_contract.h、共享二十八项静态 source/一项动态前缀、PE/IAT 解析器与已采证 RVAs
- * [OUTPUT]: 对外锁定 Core::MakePathFromText 槽/调用数、含首行 RDX 来源的三处 ABI caller、Edit/Transform/Pencil/Pen/Centre tool-help 数据流及 CogTool Pitch vector→Path 链
+ * [INPUT]: 依赖 cavalry_i18n_vendor_text_path_contract.h、共享三十六项静态 source/一项动态前缀、PE/IAT 解析器与已采证 RVAs
+ * [OUTPUT]: 对外锁定 Core::MakePathFromText 槽/调用数、含首行 RDX 来源的三处 ABI caller、Edit/Transform/Pencil/Pen/Centre/Bone tool-help 数据流及 CogTool Pitch vector→Path 链
  * [POS]: injector/windows 的 Cavalry 2.7.2 text-path 静态兼容合同；只读取已映射字节，不执行 vendor 代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -282,6 +282,78 @@ constexpr std::array<DualToolHelpEvidence, 2>
             0x015A58FA,
         },
     }};
+
+constexpr std::size_t kBoneToolHelpThunkRva = 0x00018264;
+constexpr std::size_t kBoneToolHelpBodyRva = 0x012BD3A0;
+constexpr std::size_t kBoneToolSecondaryVtableRva = 0x014CA0E8;
+constexpr std::size_t kBoneToolHelpVtableSlotRva = 0x014CA1C8;
+constexpr std::size_t kBoneToolCompleteObjectLocatorRva = 0x014CA2F0;
+constexpr std::size_t kBoneToolTypeDescriptorRva = 0x019AFC00;
+constexpr char kBoneToolRttiName[] = ".?AVSkeletonTool@@";
+constexpr std::array<std::uint32_t, 6>
+    kBoneToolCompleteObjectLocator {{
+        1,
+        16,
+        0,
+        static_cast<std::uint32_t>(kBoneToolTypeDescriptorRva),
+        0x014CA280,
+        static_cast<std::uint32_t>(
+            kBoneToolCompleteObjectLocatorRva),
+    }};
+constexpr std::array<DualToolHelpEvidence, 3>
+    kBoneToolHelpEvidence {{
+        {
+            0x012BD3F3,
+            0x012BD3FA,
+            0x012BD460,
+            0x012BD467,
+            0x015A85A1,
+            0x014DF1DC,
+        },
+        {
+            0x012BD41B,
+            0x012BD422,
+            0x012BD483,
+            0x012BD48A,
+            0x015A85CC,
+            0x015A85AE,
+        },
+        {
+            0x012BD443,
+            0x012BD44A,
+            0x012BD4A6,
+            0x012BD4AD,
+            0x015A85E9,
+            0x015A85DB,
+        },
+    }};
+constexpr std::size_t kBoneAltPrefixInstructionsRva = 0x012BD4E5;
+constexpr std::array<std::uint8_t, 38>
+    kBoneAltPrefixInstructions {{
+        0x66, 0xC7, 0x00, 0x41, 0x6C,
+        0xC6, 0x40, 0x02, 0x74,
+        0x0F, 0x10, 0x05, 0x1B, 0xB1, 0x2E, 0x00,
+        0x0F, 0x11, 0x40, 0x03,
+        0x48, 0xB9, 0x65, 0x20, 0x2B, 0x20, 0x64, 0x72,
+        0x61, 0x67,
+        0x48, 0x89, 0x48, 0x11,
+        0xC6, 0x40, 0x19, 0x00,
+    }};
+constexpr std::size_t kBoneAltPrefixMiddleRva = 0x015A8610;
+constexpr std::array<std::uint8_t, 16> kBoneAltPrefixMiddle {{
+    0x20, 0x2B, 0x20, 0x63, 0x6C, 0x69, 0x63, 0x6B,
+    0x20, 0x68, 0x61, 0x6E, 0x64, 0x6C, 0x65, 0x20,
+}};
+constexpr std::size_t kBoneStretchActionImmediateRva = 0x012BD53C;
+constexpr std::array<std::uint8_t, 21>
+    kBoneStretchActionImmediate {{
+        0x48, 0xB8, 0x53, 0x74, 0x72, 0x65, 0x74, 0x63,
+        0x68, 0x20,
+        0x48, 0x89, 0x42, 0x20,
+        0xC7, 0x42, 0x28, 0x62, 0x6F, 0x6E, 0x65,
+    }};
+constexpr std::size_t kBoneStretchActionLeaRva = 0x012BD558;
+constexpr std::size_t kBoneStretchActionLiteralRva = 0x015A8601;
 
 bool hasRange(
     const std::vector<std::uint8_t> &image,
@@ -743,6 +815,9 @@ bool verifyToolHelpBoundary(
     std::uint64_t transformVirtualTarget = 0;
     std::uint64_t pencilVirtualTarget = 0;
     std::uint64_t penVirtualTarget = 0;
+    std::uint64_t boneVirtualTarget = 0;
+    std::uint64_t boneCompleteObjectLocator = 0;
+    std::array<std::uint32_t, 6> boneCompleteObjectLocatorFields {};
     if (!peHeaders(
             image,
             &fileHeader,
@@ -803,9 +878,36 @@ bool verifyToolHelpBoundary(
         || !nearJumpTargets(
             image,
             kCentreToolHelpThunkRva,
-            kCentreToolHelpBodyRva)) {
+            kCentreToolHelpBodyRva)
+        || !readValue(
+            image,
+            kBoneToolHelpVtableSlotRva,
+            &boneVirtualTarget)
+        || boneVirtualTarget
+            != optionalHeader.ImageBase + kBoneToolHelpThunkRva
+        || !nearJumpTargets(
+            image,
+            kBoneToolHelpThunkRva,
+            kBoneToolHelpBodyRva)
+        || !readValue(
+            image,
+            kBoneToolSecondaryVtableRva - sizeof(std::uint64_t),
+            &boneCompleteObjectLocator)
+        || boneCompleteObjectLocator
+            != optionalHeader.ImageBase
+                + kBoneToolCompleteObjectLocatorRva
+        || !readValue(
+            image,
+            kBoneToolCompleteObjectLocatorRva,
+            &boneCompleteObjectLocatorFields)
+        || boneCompleteObjectLocatorFields
+            != kBoneToolCompleteObjectLocator
+        || !literalAt(
+            image,
+            kBoneToolTypeDescriptorRva + 2 * sizeof(std::uint64_t),
+            kBoneToolRttiName)) {
         *failure =
-            "Transform/Pencil/Pen/Centre toolHelp dispatch contract changed.";
+            "Transform/Pencil/Pen/Centre/Bone toolHelp dispatch contract changed.";
         return false;
     }
 
@@ -859,9 +961,36 @@ bool verifyToolHelpBoundary(
             image,
             kCentreToolHelpEvidence,
             kCentreToolHelpPairs,
-            0)) {
+            0)
+        || !dualToolHelpEvidenceMatches(
+            image,
+            kBoneToolHelpEvidence,
+            kBoneToolHelpPairs,
+            0)
+        || !bytesAt(
+            image,
+            kBoneAltPrefixInstructionsRva,
+            kBoneAltPrefixInstructions)
+        || !bytesAt(
+            image,
+            kBoneAltPrefixMiddleRva,
+            kBoneAltPrefixMiddle)
+        || std::string_view(kBoneToolHelpPairs[3].prefix)
+            != "Alt + click handle + drag"
+        || !bytesAt(
+            image,
+            kBoneStretchActionImmediateRva,
+            kBoneStretchActionImmediate)
+        || !leaTargets(
+            image,
+            kBoneStretchActionLeaRva,
+            kBoneStretchActionLiteralRva)
+        || !literalAt(
+            image,
+            kBoneStretchActionLiteralRva,
+            kBoneToolHelpPairs[3].action)) {
         *failure =
-            "Transform/Pencil/Pen/Centre prefix/action vector evidence changed.";
+            "Transform/Pencil/Pen/Centre/Bone prefix/action vector evidence changed.";
         return false;
     }
     if (!exportTableContainsRva(image, kRenderToolHelpThunkRva)

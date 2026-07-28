@@ -1920,11 +1920,14 @@
     <message><source>Click a Shape.</source><translation>シェイプをクリック。</translation></message>
     <message><source>Click and drag to define the cutting line</source><translation>クリックしてドラッグして切断ラインを定義する</translation></message>
     <message><source>Click and drag to start making a connection</source><translation>クリックしてドラッグして接続を開始</translation></message>
-    <message><source>Click bone</source><translation>骨クリック</translation></message>
+    <message><source>Click bone</source><translation>ボーンをクリック</translation></message>
     <message><source>Click drag a line between two vertices to create an edge</source><translation>2つの頂点間の線をドラッグしてエッジを作成する</translation></message>
     <message><source>Click drag a line between two vertices to create an edge.</source><translation>2つの頂点間の線をドラッグしてエッジを作成します。</translation></message>
     <message><source>Click drag to edit Soft Selection size</source><translation>ドラッグをクリックしてソフト選択サイズを編集</translation></message>
     <message><source>Click handle</source><translation>ハンドルをクリック</translation></message>
+    <message><source>Click handle + drag</source><translation>ハンドルをクリックしてドラッグ</translation></message>
+    <message><source>Alt + click handle + drag</source><translation>Alt + ハンドルをクリックしてドラッグ</translation></message>
+    <message><source>Start/finish adding bone</source><translation>ボーンの追加を開始/完了</translation></message>
     <message><source>Click to edit or remove the Attribute Expression</source><translation>クリックして属性エクスプレッションを編集または削除</translation></message>
     <message><source>Click to edit or remove the Attribute Expression.</source><translation>クリックして属性エクスプレッションを編集または削除します。</translation></message>
     <message><source>Click to isolate layers and reveal any animated attributes</source><translation>クリックしてレイヤーを分離し、任意のアニメーション属性を表示</translation></message>
@@ -3213,7 +3216,7 @@
     <message><source>Right click to add a Shader</source><translation>右クリックしてシェーダーを追加</translation></message>
     <message><source>Robust</source><translation>ロバスト</translation></message>
     <message><source>Root node not found</source><translation>ルートノードが見つかりません</translation></message>
-    <message><source>Rotate bone</source><translation>骨を回転させる</translation></message>
+    <message><source>Rotate bone</source><translation>ボーンを回転させる</translation></message>
     <message><source>Rotate Selection</source><translation>回転選択</translation></message>
     <message><source>Rubber Hose</source><translation>ラバーホース</translation></message>
     <message><source>Ruler Guide</source><translation>ルーラーガイド</translation></message>
@@ -3531,7 +3534,7 @@
     <message><source>Straight</source><translation>ストレート</translation></message>
     <message><source>Stream length is zero</source><translation>ストリームの長さはゼロです</translation></message>
     <message><source>Stream length is zero.</source><translation>ストリームの長さはゼロです。</translation></message>
-    <message><source>Stretch bone</source><translation>ストレッチボーン</translation></message>
+    <message><source>Stretch bone</source><translation>ボーンを伸ばす</translation></message>
     <message><source>Stretch H</source><translation>H をストレッチ</translation></message>
     <message><source>string literal</source><translation>文字列 リテラル</translation></message>
     <message><source>Style Options.</source><translation>スタイルオプション。</translation></message>
