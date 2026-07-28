@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、PowerShell 编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台现场生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance、隔离安装/更新/卸载不触碰外部 Cavalry、系统语言/品牌及 live GUI 安全合同
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台现场生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、系统语言/品牌及 GUI 安全合同
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1074,6 +1074,9 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   const guard = readText('src-tauri/tests/support/windows_disposable.rs');
   const helper = readText('tools/capture_windows_pid_window.ps1');
   const sop = readText('LOCAL_BUILD_SOP.md');
+  const textPathSources = readText(
+    'injector/windows/cavalry_i18n_extension_layer_sources.h'
+  );
   const combined = `${live}\n${guard}\n${helper}`;
 
   assert.match(live, /#\[ignore = "requires explicit disposable clone\/evidence TEMP roots/);
@@ -1109,10 +1112,87 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
     combined,
     /render_live_scene_script|ScenePrepared|SceneScriptPath|SceneProofPath|UIAutomation|SelectionItemPattern|api\.createComp/
   );
-  assert.match(live, /"ViewportQuality" => 0x0001/);
-  assert.match(live, /"TransformHelper" => 0x7c00/);
-  assert.match(live, /"EditShapeHelper" => 0x03f0/);
-  assert.match(live, /"CogPitch" => 0x0040_0000/);
+  const staticSourceTable = textPathSources.match(
+    /kStaticTextPathSources\s*\{\{([\s\S]*?)\}\};/
+  );
+  assert.ok(staticSourceTable, 'static text-path source table must remain parseable');
+  const staticSourceNames = [
+    ...staticSourceTable[1].matchAll(/^\s*(k[A-Za-z0-9_]+),\s*$/gm),
+  ].map((match) => match[1]);
+  assert.ok(
+    staticSourceNames.length > 0 && staticSourceNames.length < 32,
+    'text-path source masks require one non-empty uint32 source table'
+  );
+  assert.equal(
+    new Set(staticSourceNames).size,
+    staticSourceNames.length,
+    'text-path source constants must not occupy duplicate mask slots'
+  );
+  const maskForSources = (names) =>
+    names.reduce((mask, name) => {
+      const index = staticSourceNames.indexOf(name);
+      assert.notEqual(index, -1, `${name} must remain in the static source table`);
+      return mask + 2 ** index;
+    }, 0);
+  const expectedScenarioMasks = new Map([
+    ['ViewportQuality', maskForSources(['kViewportQualityHigh'])],
+    [
+      'EditShapeHelper',
+      maskForSources([
+        'kDisableSnapping',
+        'kEnableBezierAngleSnapping',
+        'kSplitPathCorner',
+        'kSplitPathBezier',
+        'kToggleTransformTool',
+        'kDeleteBezierHandle',
+      ]),
+    ],
+    [
+      'TransformHelper',
+      maskForSources([
+        'kEnableSnapping',
+        'kPan',
+        'kPlayStop',
+        'kDirectLayerSelection',
+        'kInsertKeyframe',
+        'kTransformInsertKeyframePrefix',
+        'kTransformDirectSelectionPrefix',
+        'kTransformPlayStopPrefix',
+        'kTransformPanPrefix',
+      ]),
+    ],
+    ['CogPitch', 2 ** staticSourceNames.length],
+  ]);
+  const parseScenarioMask = (text, pattern, scenario, surface) => {
+    const match = text.match(pattern);
+    assert.ok(match, `${surface} must declare a ${scenario} source mask`);
+    return Number.parseInt(match[1].replaceAll('_', '').slice(2), 16);
+  };
+  for (const [scenario, expectedMask] of expectedScenarioMasks) {
+    const rustMask = parseScenarioMask(
+      live,
+      new RegExp(`"${scenario}"\\s*=>\\s*(0x[0-9a-fA-F_]+)`),
+      scenario,
+      'Rust live gate'
+    );
+    const powershellMask = parseScenarioMask(
+      helper,
+      new RegExp(`'${scenario}'\\s*\\{\\s*(0x[0-9a-fA-F]+)\\s*\\}`),
+      scenario,
+      'PowerShell capture helper'
+    );
+    assert.equal(
+      rustMask,
+      expectedMask,
+      `${scenario} Rust mask must derive from the C++ source order`
+    );
+    assert.equal(
+      powershellMask,
+      expectedMask,
+      `${scenario} PowerShell mask must derive from the C++ source order`
+    );
+  }
+  assert.doesNotMatch(live, /"CogPitch" => 0x0040_0000/);
   assert.match(live, /fallback_source_mask != 0/);
   assert.match(live, /translated_source_mask & required_text_path_mask/);
   assert.match(live, /\("zh-Hans", "平滑步数"\)/);
@@ -1174,10 +1254,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /extensionLayerHookStatus -ceq 'installed'/);
   assert.match(helper, /Wait-ForTextPathDiagnostics/);
   assert.match(helper, /fallbackSourceMask -eq 0/);
-  assert.match(helper, /'ViewportQuality'\s*\{\s*0x0001\s*\}/);
-  assert.match(helper, /'TransformHelper'\s*\{\s*0x7C00\s*\}/);
-  assert.match(helper, /'EditShapeHelper'\s*\{\s*0x03F0\s*\}/);
-  assert.match(helper, /'CogPitch'\s*\{\s*0x00400000\s*\}/);
+  assert.doesNotMatch(helper, /'CogPitch'\s*\{\s*0x00400000\s*\}/);
   assert.match(
     helper,
     /ValidateSet\('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch'\)/
@@ -1201,7 +1278,8 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
     helper,
     /diagnostics\.cjkPathSuccess\s+-gt\s+\[uint64\]\$BaselineDiagnostics\.cjkPathSuccess/
   );
-  assert.match(helper, /pre-set Pitch bit 22/);
+  assert.match(helper, /pre-set Pitch bit 26/);
+  assert.doesNotMatch(helper, /pre-set Pitch bit 22/);
   assert.match(helper, /textPathBaselineDiagnostics\s*=\s*\$cogPitchBaseline/);
   assert.match(helper, /function Wait-ForExactForegroundWindow/);
   assert.match(helper, /function Prepare-ToolHelperEvidence/);

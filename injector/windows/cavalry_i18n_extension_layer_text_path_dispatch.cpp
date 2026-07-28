@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_extension_layer_text_path_dispatch.h、映射后的 ExtensionLayer PE64 字节与 IAT 槽地址
- * [OUTPUT]: 对外实现持续复核首行 RDX 字符串来源的三处 exact caller 门、二十二项静态 source 和 Pitch canonical 32-bit int 后缀匹配
+ * [OUTPUT]: 对外实现持续复核首行 RDX 字符串来源的三处 exact caller 门、二十六项静态 source 和 Pitch canonical 32-bit int 后缀匹配
  * [POS]: injector/windows 的无 Qt、无 IO text-path 分发器；安装与每次 callback 共享完整字节包络判定，译文通过有界栈缓冲写入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

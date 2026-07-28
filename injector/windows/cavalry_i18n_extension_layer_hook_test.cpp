@@ -98,6 +98,10 @@ constexpr TextPathTranslationExpectations kZhHansTextPathTranslations {{
     "新建轮廓",
     "从中心创建",
     "锁定纵横比",
+    "S + 单击路径",
+    "按住 S",
+    "空格",
+    "空格 + 单击 + 拖动",
 }};
 
 constexpr TextPathTranslationExpectations kZhHantTextPathTranslations {{
@@ -123,6 +127,10 @@ constexpr TextPathTranslationExpectations kZhHantTextPathTranslations {{
     "新增輪廓",
     "從中心建立",
     "鎖定長寬比",
+    "S + 按一下路徑",
+    "按住 S",
+    "空白鍵",
+    "空白鍵 + 按一下 + 拖曳",
 }};
 
 constexpr TextPathTranslationExpectations kJaTextPathTranslations {{
@@ -148,6 +156,10 @@ constexpr TextPathTranslationExpectations kJaTextPathTranslations {{
     "新しい輪郭を開始",
     "センターから作成",
     "縦横比を固定",
+    "S + パスをクリック",
+    "S キーを押したままにする",
+    "スペース",
+    "Space + クリック + ドラッグ",
 }};
 
 bool expectEqual(
@@ -324,9 +336,13 @@ bool verifyLanguage(
     if (!verifyShortcutPrefixes(
             kEditShapeToolHelpPairs,
             QStringLiteral("EditShapeTool"))
-        || !verifyShortcutPrefixes(
-            kTransformToolHelpPairs,
-            QStringLiteral("TransformTool"))
+        || CavalryExtensionLayerTextPathHook::isWhitelistedSource("Shift")
+        || !expectTextPathEmpty(
+            language
+                + QStringLiteral(
+                    ": TransformTool pure Shift prefix remains English"),
+            translator,
+            "Shift")
         || !verifyShortcutPrefixes(
             kPencilToolHelpPairs,
             QStringLiteral("PencilTool"))
@@ -458,7 +474,7 @@ bool verifySkiaRuntimeIdentityAndTextPathDiagnostics()
         || diagnostics.noTranslation != 1
         || diagnostics.rendererFailure != 1
         || diagnostics.translatedSourceMask != 0x0001
-        || diagnostics.fallbackSourceMask != 0x00400000) {
+        || diagnostics.fallbackSourceMask != 0x04000000) {
         qCritical()
             << "Text-path callback diagnostics/mask contract failed.";
         return false;

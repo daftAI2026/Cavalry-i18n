@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 text-path dispatch 纯合同、CavalryEmbeddedTranslator 与三语生成表
- * [OUTPUT]: 对外验证安装与 callback 都持续拒绝被篡改的三处 caller/RDX 字节包络、二十二项静态白名单、Pitch exact context，以及动态文本仅接受 canonical 32-bit int 后缀并逐字保留数值
+ * [OUTPUT]: 对外验证安装与 callback 都持续拒绝被篡改的三处 caller/RDX 字节包络、二十六项静态白名单（含四条已采证 TransformTool 长前缀）、Pitch exact context，以及动态文本仅接受 canonical 32-bit int 后缀并逐字保留数值
  * [POS]: injector/windows 的静态/动态 text-path 回归；与真实 vendor PE 合同互补，不执行任何厂商代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,6 +23,7 @@ struct LocaleExpectation final {
     const char *language;
     const char *prefix;
     std::array<const char *, 7> toolHelpActions;
+    std::array<const char *, 4> transformToolPrefixes;
 };
 
 bool fail(const QString &message)
@@ -210,6 +211,44 @@ bool verifyLocale(const LocaleExpectation &expectation)
         }
     }
 
+    constexpr std::array<const char *, 4> transformToolPrefixSources {{
+        "S + click path",
+        "Hold S",
+        "Space",
+        "Space + click + drag",
+    }};
+    for (std::size_t index = 0;
+         index < transformToolPrefixSources.size();
+         ++index) {
+        const char *const source = transformToolPrefixSources[index];
+        const std::size_t sourceIndex =
+            cavalryTextPathExactSourceIndex(source);
+        const CavalryTextPathSourceMatch match =
+            matchCavalryTextPathSource(
+                CavalryTextPathCallerKind::StaticExact,
+                source);
+        const std::string expected =
+            expectation.transformToolPrefixes[index];
+        if (sourceIndex >= kStaticTextPathSources.size()
+            || !match.isMatched()
+            || match.sourceIndex != sourceIndex
+            || !match.preservedSuffix.empty()
+            || translator.translate(nullptr, source)
+                    .toUtf8().toStdString() != expected
+            || composeCavalryTextPathTranslation(
+                   expected,
+                   match) != expected
+            || matchCavalryTextPathSource(
+                   CavalryTextPathCallerKind::PrimitiveToolLine,
+                   source).isMatched()) {
+            return fail(QStringLiteral(
+                "%1 TransformTool prefix contract failed for '%2'.")
+                .arg(
+                    QString::fromLatin1(expectation.language),
+                    QString::fromLatin1(source)));
+        }
+    }
+
     for (const std::string source
          : { std::string("Pitch Radius: 0"),
              std::string("Pitch Radius: 42"),
@@ -285,6 +324,12 @@ int main()
                 "从中心创建",
                 "锁定纵横比",
             }},
+            {{
+                "S + 单击路径",
+                "按住 S",
+                "空格",
+                "空格 + 单击 + 拖动",
+            }},
         },
         {
             "zh-Hant",
@@ -298,6 +343,12 @@ int main()
                 "從中心建立",
                 "鎖定長寬比",
             }},
+            {{
+                "S + 按一下路徑",
+                "按住 S",
+                "空白鍵",
+                "空白鍵 + 按一下 + 拖曳",
+            }},
         },
         {
             "ja_JP",
@@ -310,6 +361,12 @@ int main()
                 "新しい輪郭を開始",
                 "センターから作成",
                 "縦横比を固定",
+            }},
+            {{
+                "S + パスをクリック",
+                "S キーを押したままにする",
+                "スペース",
+                "Space + クリック + ドラッグ",
             }},
         },
     }};
@@ -355,6 +412,15 @@ int main()
         || matchCavalryTextPathSource(
             CavalryTextPathCallerKind::StaticExact,
             "Constrain proportions").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "Shift").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "Control").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "S").isMatched()
         || matchCavalryTextPathSource(
             CavalryTextPathCallerKind::Rejected,
             "Pitch Radius: 12").isMatched()

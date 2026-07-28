@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 不依赖 Qt 或厂商模块；只承载经静态采证的 ASCII source 常量
- * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、二十二条静态 text-path source、一条 CogTool 动态前缀及其精确 lookup context
+ * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、二十六条静态 text-path source（含四条已采证 TransformTool 长前缀）、一条 CogTool 动态前缀及其精确 lookup context
  * [POS]: injector/windows 的 ExtensionLayer 文本边界真相，供运行时 hook、无厂商单测和只读 vendor 合同共同消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -69,6 +69,10 @@ inline constexpr char kPan[] = "Pan";
 inline constexpr char kPlayStop[] = "Play/ Stop";
 inline constexpr char kDirectLayerSelection[] = "Direct Layer Selection";
 inline constexpr char kInsertKeyframe[] = "Insert Keyframe";
+inline constexpr char kTransformPanPrefix[] = "Space + click + drag";
+inline constexpr char kTransformPlayStopPrefix[] = "Space";
+inline constexpr char kTransformDirectSelectionPrefix[] = "Hold S";
+inline constexpr char kTransformInsertKeyframePrefix[] = "S + click path";
 inline constexpr char kClearPath[] = "Clear Path";
 inline constexpr char kNewShape[] = "New Shape";
 inline constexpr char kCreateAsMask[] = "Create as Mask";
@@ -98,14 +102,15 @@ inline constexpr std::array<ToolHelpSourcePair, 6> kEditShapeToolHelpPairs {{
 }};
 
 // TransformTool 通过 GraphicsToolBase::toolHelp 返回这五组 pair，
-// setupToolHelp 仍把 prefix/action 分开送入同一 getOrCreateTextPath。
+// setupToolHelp 仍把 prefix/action 分开送入同一 getOrCreateTextPath；
+// 四条含操作语义的长前缀允许翻译，纯修饰键 Shift 保持原文。
 inline constexpr std::array<ToolHelpSourcePair, 5>
     kTransformToolHelpPairs {{
         { "Shift", kEnableSnapping },
-        { "Space + click + drag", kPan },
-        { "Space", kPlayStop },
-        { "Hold S", kDirectLayerSelection },
-        { "S + click path", kInsertKeyframe },
+        { kTransformPanPrefix, kPan },
+        { kTransformPlayStopPrefix, kPlayStop },
+        { kTransformDirectSelectionPrefix, kDirectLayerSelection },
+        { kTransformInsertKeyframePrefix, kInsertKeyframe },
     }};
 
 // Pencil/Pen/Centre 工具同样把快捷键与动作分别生成 Path；
@@ -130,7 +135,7 @@ inline constexpr std::array<ToolHelpSourcePair, 2>
         { "Alt", kCreateFromTheCentre },
     }};
 
-inline constexpr std::array<const char *, 22> kStaticTextPathSources {{
+inline constexpr std::array<const char *, 26> kStaticTextPathSources {{
     kViewportQualityHigh,
     kViewportQualityLow,
     kViewportQualityLowest,
@@ -153,6 +158,10 @@ inline constexpr std::array<const char *, 22> kStaticTextPathSources {{
     kStartNewContour,
     kCreateFromTheCentre,
     kConstrainProportions,
+    kTransformInsertKeyframePrefix,
+    kTransformDirectSelectionPrefix,
+    kTransformPlayStopPrefix,
+    kTransformPanPrefix,
 }};
 
 inline constexpr std::size_t kPitchRadiusSourceIndex =
@@ -187,7 +196,7 @@ static_assert(kTransformToolHelpPairs.size() == 5);
 static_assert(kPencilToolHelpPairs.size() == 3);
 static_assert(kPenToolHelpPairs.size() == 3);
 static_assert(kCentreToolHelpPairs.size() == 2);
-static_assert(kStaticTextPathSources.size() == 22);
-static_assert(kTextPathSourceCount == 23);
+static_assert(kStaticTextPathSources.size() == 26);
+static_assert(kTextPathSourceCount == 27);
 
 } // namespace cavalry_i18n::extension_layer_contract
