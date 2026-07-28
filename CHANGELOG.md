@@ -14,17 +14,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-07-29
+
 ### Added
-- **Windows Native-Entry QPA Delegate**: Added a Qt 6.6.3 x64 QPA delegate that preserves the vendor window-system plugin, loads the existing generic translator only after strict manifest/hash/language checks, and lets Desktop, Start Menu, taskbar, direct-EXE, and Switcher launches converge without rewriting shortcuts or global Qt environment variables.
-- **Persistent and Explicit Windows Recovery**: Added a durable vendor `qwindows.dll` backup, crash-visible manifest states, same-volume atomic replacement, and an explicit English restoration path. Ordinary Cavalry exit keeps the selected language; vendor updates that replace the owned proxy are preserved instead of being overwritten by a stale backup.
+- **Windows x64 Support**: Cavalry Language Switcher now applies English, Simplified Chinese, Traditional Chinese, and Japanese to Cavalry 2.7.2 on Windows 10 x64 or newer, including custom install roots and protected Program Files installs.
+- **Native Cavalry Launches**: Desktop, Start Menu, existing taskbar pins, direct `Cavalry.exe`, and Switcher launches now converge on the selected language without replacing vendor shortcuts or setting global Qt environment variables.
+- **Localized Windows Installer**: The branded NSIS installer follows the Windows UI language for English, Simplified Chinese, Traditional Chinese, and Japanese, with English fallback for other locales.
+- **Windows Runtime UI Translation**: Added scoped translation for ordinary Qt controls, dynamic names and dropdown values, ExtensionLayer empty states and placeholders, tool help, MessageBar warnings, viewport text, and login prompts while preserving model identities, user text, and physical shortcut keys.
+- **Windows Verification Suite**: Added native CTest, Rust transaction contracts, disposable live-clone checks, and isolated NSIS install, same-version update, and uninstall smoke coverage.
 
 ### Changed
-- **Windows Runner-Built Injector Provenance**: Windows builds now produce the generic translator and QPA delegate together; Tauri resources, NSIS provenance, configuration contracts, and isolated installed-package checks bind both x64 DLLs while continuing to reject a bundled second Qt runtime.
+- **Explicit English Recovery**: Windows keeps the selected language across normal Cavalry exit, Switcher update, and Switcher uninstall, and restores the exact vendor QPA only when the user selects English.
+- **Platform-built Native Injectors**: macOS and Windows runners now build their own native injector from the current source and generated translation table before Tauri development, packaging, or release.
+- **Windows Development Baseline**: Windows development supports PowerShell 5.1 or newer, Visual Studio 2022 or newer with x64 MSVC v143, CMake 4.2 or newer, and the exact Qt 6.6.3 `msvc2019_64` SDK without requiring PowerShell 7.
+- **Three-asset Releases**: Release metadata and CI now publish Apple Silicon and Intel macOS DMGs plus one Windows x64 NSIS installer, with each package bound to its current source and native runtime inputs.
 
 ### Fixed
-- **Safe Windows Close Retry**: Language changes on Program Files and arbitrary writable roots now distinguish any current-session exact-PID visible Cavalry window from transaction failures. The switcher leaves the installation untouched, asks users in English, Simplified Chinese, Traditional Chinese, or Japanese to save and close Cavalry, rejects cross-session instances, and only terminates the bound exact-path process after two visible-window oracle passes.
-- **Smoother Node Restoration**: Restored the real Cavalry 2.7.2 `smoother.smoothingSteps` node across English, Simplified Chinese, Traditional Chinese, and Japanese after byte-identical `nodeStrings.json` files from the macOS DMG and Windows installation disproved the earlier orphan-node assumption; keyed overlays preserve this and future installed nodes.
-- **Windows Qt SDK Preparation**: Replaced the macOS-only clean-machine SDK resolver contract with one Cavalry/Qt version source and explicit macOS `clang_64` / Windows `msvc2019_64` projections, so Windows CI and local builds cannot install the wrong Qt architecture.
+- **Complete Windows UI Surfaces**: Filled proven translation gaps for numbered compositions, controlled property values, Line, Pencil, Cog, Bone, Transform, and Edit Shape tool text, selection counts, and the offline login countdown.
+- **CJK Self-painted Text**: Rendered approved Skia text paths with CJK-capable Windows fonts so translated viewport and shortcut hints no longer appear in English, blank, or as missing-glyph boxes.
+- **Smoother Node Restoration**: Restored the real Cavalry 2.7.2 `smoother.smoothingSteps` node across all four language packs after matching macOS and Windows vendor assets disproved the earlier orphan-node assumption.
+- **Safe Windows Close Retry**: Language changes now leave the installation untouched while Cavalry has a visible target window and only terminate the same bound current-session, exact-path process after the approved close flow.
+- **Silent Windows Helpers**: Hidden auxiliary command windows during normal product operations and isolated PowerShell 5.1 fallback modules from a parent PowerShell 7 session.
+- **Login Context Preservation**: Production native-entry launches preserve the caller's Windows profile and Cavalry login context, while disposable live checks remain isolated from the real profile.
+- **Fresh Package Enforcement**: Windows packaging now rejects stale installers, orphan provenance, foreign executables, wrong target directories, and packages containing another Qt runtime.
+- **Index-safe Git Hooks**: Pre-commit checks now validate the staged bytes, preserve partial commits, locate the configured Node executable, and refuse hidden unstaged input drift.
+
+### Security
+- **Hash-locked QPA Activation**: Windows translation activation verifies Cavalry, Qt, vendor QPA, proxy, generic translator, manifest, and language-marker identity before loading localization code.
+- **Restricted Program Files Elevation**: A single headless Switcher worker revalidates OS-known Program Files roots, rejects reparse-point escapes, writes the final language marker last, and restores exact preimages on failure.
+- **Scoped Process Shutdown**: Windows restart handling binds one process handle and revalidates its session, executable path, PID, and visible-window state instead of using broad process-name or process-tree termination.
 
 ## [0.5.3] - 2026-07-14
 
