@@ -3074,10 +3074,6 @@
       <translation>Ctrl</translation>
     </message>
     <message>
-      <source>Shift</source>
-      <translation>Shift</translation>
-    </message>
-    <message>
       <source>Alt</source>
       <translation>Alt</translation>
     </message>

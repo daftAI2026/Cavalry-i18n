@@ -4129,10 +4129,6 @@
       <translation>Ctrl</translation>
     </message>
     <message>
-      <source>Shift</source>
-      <translation>シフト</translation>
-    </message>
-    <message>
       <source>Alt</source>
       <translation>Alt</translation>
     </message>
