@@ -1,7 +1,7 @@
 ﻿<#
-[INPUT]: 依赖 PowerShell 5.1 UTF-8 BOM、显式 x64 NSIS/current provenance、package 版本、仓库 generic/QPA 双 DLL 与当前用户安装命名空间
-[OUTPUT]: 对外提供随机 TEMP 安装态冒烟；复算输入后验证主程序与双 DLL x64/资源/hash/无第二 Qt runtime/注册表，再卸载且拒绝残留
-[POS]: tools 的 Windows packaged-install 守门器，只消费当前输入自证的 release NSIS；固定冲突即中止，不以递归删除掩盖失败
+[INPUT]: 依赖 PowerShell 5.1 UTF-8 BOM、显式 x64 NSIS/current provenance、package 版本、仓库 generic/QPA 双 DLL、外部 Cavalry QPA 哨兵与当前用户安装命名空间
+[OUTPUT]: 对外提供随机 TEMP 安装/同根更新冒烟；复算输入后验证主程序与双 DLL x64/资源/hash/无第二 Qt runtime/注册表、外部 QPA 字节不变，再卸载且拒绝残留
+[POS]: tools 的 Windows packaged-install 守门器，只消费当前输入自证的 release NSIS；固定冲突即中止，更新/卸载不得触碰外部 Cavalry，也不以递归删除掩盖失败
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -35,6 +35,11 @@ $provenanceTool = Join-Path $repoRoot 'tools\windows_nsis_provenance.js'
 $uninstallKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\Cavalry Language Switcher'
 $vendorProductKey = 'HKCU:\Software\daftai\Cavalry Language Switcher'
 $runKey = 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Run'
+$externalSentinelRelativeFiles = @(
+    'qwindows.dll',
+    'cavalry-i18n-qpa\vendor-qwindows.dll',
+    'cavalry-i18n-qpa\manifest.json'
+)
 
 function Assert-Condition {
     param(
@@ -299,6 +304,81 @@ function Assert-NoReparsePoints {
         "Installed package contains a reparse point: " +
         (($reparsePoints | Select-Object -ExpandProperty FullName) -join ', ')
     )
+}
+
+function New-ExternalCavalryQpaSentinel {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root
+    )
+
+    Assert-Condition -Condition (-not (Test-Path -LiteralPath $Root)) `
+        -Message "External Cavalry QPA sentinel root already exists: $Root"
+    foreach ($relativePath in $externalSentinelRelativeFiles) {
+        $target = Join-Path $Root $relativePath
+        [void][System.IO.Directory]::CreateDirectory((Split-Path -Parent $target))
+        $bytes = [System.Text.Encoding]::UTF8.GetBytes(
+            "cavalry-i18n external NSIS QPA sentinel`n$relativePath`n"
+        )
+        [System.IO.File]::WriteAllBytes($target, $bytes)
+    }
+    Assert-NoReparsePoints -Root $Root
+}
+
+function Get-ExternalCavalryQpaFingerprint {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root
+    )
+
+    Assert-NoReparsePoints -Root $Root
+    $normalizedRoot = Normalize-ComparablePath -Path $Root
+    $entries = @(
+        Get-ChildItem -LiteralPath $normalizedRoot -Recurse -File |
+            ForEach-Object {
+                $relativePath = $_.FullName.Substring($normalizedRoot.Length + 1).Replace('\', '/')
+                $hash = (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash
+                "$relativePath|$($_.Length)|$hash"
+            } |
+            Sort-Object
+    )
+    Assert-Condition -Condition ($entries.Count -eq $externalSentinelRelativeFiles.Count) `
+        -Message "External Cavalry QPA sentinel file count changed below $Root."
+    return ($entries -join "`n")
+}
+
+function Assert-ExternalCavalryQpaUnchanged {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root,
+        [Parameter(Mandatory = $true)]
+        [string]$ExpectedFingerprint,
+        [Parameter(Mandatory = $true)]
+        [string]$Phase
+    )
+
+    $actualFingerprint = Get-ExternalCavalryQpaFingerprint -Root $Root
+    Assert-Condition -Condition ($actualFingerprint -ceq $ExpectedFingerprint) `
+        -Message "Windows NSIS $Phase changed the external Cavalry QPA sentinel at $Root."
+}
+
+function Remove-ExternalCavalryQpaSentinel {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Root
+    )
+
+    if (-not (Test-Path -LiteralPath $Root)) {
+        return
+    }
+    Assert-NoReparsePoints -Root $Root
+    foreach ($relativePath in $externalSentinelRelativeFiles) {
+        [System.IO.File]::Delete((Join-Path $Root $relativePath))
+    }
+    [System.IO.Directory]::Delete((Join-Path $Root 'cavalry-i18n-qpa'), $false)
+    [System.IO.Directory]::Delete($Root, $false)
+    Assert-Condition -Condition (-not (Test-Path -LiteralPath $Root)) `
+        -Message "External Cavalry QPA sentinel cleanup left residual state: $Root"
 }
 
 function Get-PeMachine {
@@ -602,6 +682,11 @@ Assert-Condition -Condition (Test-StrictChildPath -Path $installRoot -Root $temp
     -Message "Generated NSIS smoke root escaped TEMP: $installRoot"
 Assert-Condition -Condition (-not (Test-Path -LiteralPath $installRoot)) `
     -Message "Generated NSIS smoke root already exists: $installRoot"
+$externalSentinelRoot = Join-Path $tempRoot (
+    'cavalry-i18n-external-qpa-' + [System.Guid]::NewGuid().ToString('N')
+)
+Assert-Condition -Condition (Test-StrictChildPath -Path $externalSentinelRoot -Root $tempRoot) `
+    -Message "Generated external Cavalry QPA sentinel escaped TEMP: $externalSentinelRoot"
 
 $desktopRoot = Get-RequiredSpecialFolder -Folder DesktopDirectory
 $programsRoot = Get-RequiredSpecialFolder -Folder Programs
@@ -612,9 +697,16 @@ $shortcutPaths = @(
 Assert-NoPreexistingState -ShortcutPaths $shortcutPaths
 
 $installSucceeded = $false
+$sentinelCreated = $false
+$sentinelVerifiedForCleanup = $false
+$externalSentinelFingerprint = ''
 $primaryFailure = $null
 $cleanupFailures = New-Object 'System.Collections.Generic.List[string]'
 try {
+    New-ExternalCavalryQpaSentinel -Root $externalSentinelRoot
+    $sentinelCreated = $true
+    $externalSentinelFingerprint = Get-ExternalCavalryQpaFingerprint -Root $externalSentinelRoot
+
     # /D= 必须保持最后一个参数；安装根由本脚本生成，不接受用户路径。
     Invoke-CheckedProcess `
         -FilePath $resolvedInstaller `
@@ -626,7 +718,29 @@ try {
         -InstallRoot $installRoot `
         -ShortcutPaths $shortcutPaths `
         -ExpectedVersion $expectedVersion
+    Assert-ExternalCavalryQpaUnchanged `
+        -Root $externalSentinelRoot `
+        -ExpectedFingerprint $externalSentinelFingerprint `
+        -Phase 'install'
+
+    # 同一安装器再次执行即真实 update 路径；它仍不得读取或改写外部 Cavalry。
+    Invoke-CheckedProcess `
+        -FilePath $resolvedInstaller `
+        -ArgumentList @('/S', '/NS', '/UPDATE', "/D=$installRoot") `
+        -WorkingDirectory $tempRoot `
+        -Role 'Windows NSIS update'
+    Assert-InstalledPackage `
+        -InstallRoot $installRoot `
+        -ShortcutPaths $shortcutPaths `
+        -ExpectedVersion $expectedVersion
+    Assert-ExternalCavalryQpaUnchanged `
+        -Root $externalSentinelRoot `
+        -ExpectedFingerprint $externalSentinelFingerprint `
+        -Phase 'update'
 } catch {
+    if (Test-Path -LiteralPath $externalSentinelRoot) {
+        $sentinelCreated = $true
+    }
     $primaryFailure = $_.Exception.Message
 } finally {
     $uninstaller = Join-Path $installRoot 'uninstall.exe'
@@ -651,6 +765,30 @@ try {
     )) {
         [void]$cleanupFailures.Add("Windows NSIS smoke left residual state: $residual")
     }
+    if ($sentinelCreated) {
+        if ([string]::IsNullOrWhiteSpace($externalSentinelFingerprint)) {
+            [void]$cleanupFailures.Add(
+                "External Cavalry QPA sentinel has no baseline; preserving evidence at $externalSentinelRoot"
+            )
+        } else {
+            try {
+                Assert-ExternalCavalryQpaUnchanged `
+                    -Root $externalSentinelRoot `
+                    -ExpectedFingerprint $externalSentinelFingerprint `
+                    -Phase 'uninstall'
+                $sentinelVerifiedForCleanup = $true
+            } catch {
+                [void]$cleanupFailures.Add($_.Exception.Message)
+            }
+        }
+    }
+    if ($sentinelVerifiedForCleanup) {
+        try {
+            Remove-ExternalCavalryQpaSentinel -Root $externalSentinelRoot
+        } catch {
+            [void]$cleanupFailures.Add($_.Exception.Message)
+        }
+    }
 }
 
 if ($null -ne $primaryFailure -or $cleanupFailures.Count -gt 0) {
@@ -664,4 +802,4 @@ if ($null -ne $primaryFailure -or $cleanupFailures.Count -gt 0) {
     throw ($failures -join ' ')
 }
 
-Write-Host "Windows x64 NSIS installed-surface smoke passed for $expectedVersion."
+Write-Host "Windows x64 NSIS install/update/uninstall smoke passed for $expectedVersion."

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装态/live-clone、PowerShell 编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台现场生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance/隔离安装/系统语言/品牌及 live GUI 安全合同
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、平台 Runner 原生构建、Windows NSIS 双 injector 安装态验证、disposable live 证据与 npm/Tauri 配置
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、PowerShell 编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台现场生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance、隔离安装/更新/卸载不触碰外部 Cavalry、系统语言/品牌及 live GUI 安全合同
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -944,7 +944,7 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
   );
 });
 
-test('Windows NSIS installed-surface smoke refuses collisions and has no destructive fallback', () => {
+test('Windows NSIS install/update/uninstall smoke preserves external Cavalry and has no destructive fallback', () => {
   const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
   for (const relativePath of [
     'injector/windows/build.ps1',
@@ -960,11 +960,31 @@ test('Windows NSIS installed-surface smoke refuses collisions and has no destruc
   }
   const script = readText('tools/check_windows_nsis_install.ps1');
   const nsisHooks = readText('src-tauri/nsis-hooks.nsh');
+  const executableNsisHooks = nsisHooks
+    .split(/\r?\n/)
+    .map((line) => line.replace(/;.*/, '').trim())
+    .filter(Boolean)
+    .join('\n');
 
   assert.equal(windowsConfig.bundle.windows.nsis.installerHooks, 'nsis-hooks.nsh');
   assert.match(nsisHooks, /!macro NSIS_HOOK_POSTUNINSTALL/);
   assert.match(nsisHooks, /DeleteRegValue SHCTX "\$\{MANUPRODUCTKEY\}" ""/);
   assert.match(nsisHooks, /DeleteRegKey \/ifempty SHCTX "\$\{MANUPRODUCTKEY\}"/);
+  assert.deepEqual(executableNsisHooks.split('\n'), [
+    '!macro NSIS_HOOK_POSTUNINSTALL',
+    'DeleteRegValue SHCTX "${MANUPRODUCTKEY}" ""',
+    'DeleteRegValue HKCU "${MANUPRODUCTKEY}" "Installer Language"',
+    'DeleteRegKey /ifempty SHCTX "${MANUPRODUCTKEY}"',
+    'DeleteRegKey /ifempty HKCU "${MANUPRODUCTKEY}"',
+    'DeleteRegKey /ifempty SHCTX "${MANUKEY}"',
+    'DeleteRegKey /ifempty HKCU "${MANUKEY}"',
+    '!macroend',
+  ]);
+  assert.doesNotMatch(
+    executableNsisHooks,
+    /qwindows|cavalry-i18n-qpa|Cavalry\.exe|cavalry-i18n-lang/i,
+    'Switcher uninstall hooks must not name or mutate Cavalry runtime state'
+  );
   assert.match(script, /\$windowsTargetTriple = 'x86_64-pc-windows-msvc'/);
   assert.match(
     script,
@@ -1003,6 +1023,29 @@ test('Windows NSIS installed-surface smoke refuses collisions and has no destruc
   assert.match(script, /Get-FileHash -LiteralPath \$sourceQpaProxy -Algorithm SHA256/);
   assert.match(script, /\$_.Extension -ieq '\.dylib' -or \$_.Name -like 'Qt6\*\.dll'/);
   assert.match(script, /Assert-InstalledRegistry/);
+  assert.match(script, /\$externalSentinelRelativeFiles = @\(/);
+  assert.match(script, /function New-ExternalCavalryQpaSentinel/);
+  assert.match(script, /function Assert-ExternalCavalryQpaUnchanged/);
+  assert.match(script, /-Role 'Windows NSIS update'/);
+  assert.match(
+    script,
+    /-ArgumentList @\('\/S', '\/NS', '\/UPDATE', "\/D=\$installRoot"\)/
+  );
+  assert.match(script, /-Phase 'install'/);
+  assert.match(script, /-Phase 'update'/);
+  assert.match(script, /-Phase 'uninstall'/);
+  assert.match(script, /\[System\.IO\.File\]::Delete\(\(Join-Path \$Root \$relativePath\)\)/);
+  assert.match(
+    script,
+    /\[System\.IO\.Directory\]::Delete\(\(Join-Path \$Root 'cavalry-i18n-qpa'\), \$false\)/
+  );
+  assert.match(script, /\$sentinelCreated = \$false/);
+  assert.match(script, /if \(\$sentinelVerifiedForCleanup\)/);
+  assert.ok(
+    script.indexOf('Assert-NoPreexistingState -ShortcutPaths $shortcutPaths') <
+      script.indexOf('New-ExternalCavalryQpaSentinel -Root $externalSentinelRoot'),
+    'preexisting installed-state collisions must fail before the external sentinel is created'
+  );
   assert.match(script, /finally \{/);
   assert.match(script, /Wait-ForNoResidualState/);
   assert.doesNotMatch(

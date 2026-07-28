@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Tauri 平台配置、release.config、Qt injector/QPA 构建入口、编译期 Windows 资源 trust-anchor catalog、NSIS provenance/安装态守门、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 macOS DMG、嵌入固定语言/runtime 摘要且带当前输入 provenance/系统语言界面/品牌图标的 Windows NSIS 构建与隔离安装卸载验证、Windows 原生入口一致性、clone 基础截图/逐类人工证据采集及真机验收边界
+[OUTPUT]: 对外提供 macOS DMG、嵌入固定语言/runtime 摘要且带当前输入 provenance/系统语言界面/品牌图标的 Windows NSIS 构建与隔离安装/同版本更新/卸载验证、外部 Cavalry QPA 哨兵保护、Windows 原生入口一致性、clone 基础截图/逐类人工证据采集及真机验收边界
 [POS]: 仓库唯一桌面打包操作合同；区分开发机依赖、无真实 Cavalry 的安装态 gate、仅隔离安装根的临时 clone 证据门与最终用户发布验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -99,13 +99,13 @@ Windows Cargo build 还会由 `src-tauri/build.rs` 枚举四个 `languages/<lang
 
 NSIS 内置 English、SimpChinese、TradChinese 与 Japanese 四套安装/卸载界面，默认直接跟随 Windows UI 语言；系统语言不在这四种内时回退 English，不额外弹出语言选择器。安装器复用 `src-tauri/icons/icon.ico` 品牌图标。当前不配置 `headerImage` 或 `sidebarImage`：这两项只负责装饰，现有 DMG 背景图的尺寸与格式不匹配，不能冒充 Windows 品牌资产。
 
-安装器不创建、替换或重写任何 Cavalry 入口。桌面、开始菜单、任务栏固定项与用户直接运行的 `Cavalry.exe` 均继续保留厂商原始目标、图标和 AppUserModel 身份；非 English Apply 把 hash-locked QPA delegate 安装到所选 Cavalry 根的原生 `qwindows.dll` 必经位置，并把原厂 DLL 持久保存到同根恢复目录，因此所有入口自然汇合到同一翻译运行时。普通关闭 Cavalry 不恢复原厂 DLL；唯一主动恢复入口是用户明确选择 English。若 Cavalry 更新已用另一份 DLL 覆盖代理，则保留厂商新文件，绝不把旧备份写回，同时拒绝把未知 QPA 状态报告为成功 English，需先恢复受支持的 Cavalry 安装。
+安装器不创建、替换或重写任何 Cavalry 入口。NSIS install/update/uninstall hooks 本身不包含可执行的 `Cavalry.exe`、`qwindows.dll` 或 QPA 写入入口；修改所选 Cavalry 安装根只属于 Switcher 运行后由用户明确触发的 Apply 事务。桌面、开始菜单、任务栏固定项与用户直接运行的 `Cavalry.exe` 均继续保留厂商原始目标、图标和 AppUserModel 身份；非 English Apply 把 hash-locked QPA delegate 安装到所选 Cavalry 根的原生 `qwindows.dll` 必经位置，并把原厂 DLL 持久保存到同根恢复目录，因此所有入口自然汇合到同一翻译运行时。普通关闭 Cavalry 不恢复原厂 DLL；唯一主动恢复入口是用户明确选择 English。若 Cavalry 更新已用另一份 DLL 覆盖代理，则保留厂商新文件，绝不把旧备份写回，同时拒绝把未知 QPA 状态报告为成功 English，需先恢复受支持的 Cavalry 安装。
 
-`/UPDATE` 升级、Switcher 卸载、普通 Cavalry 退出和 Switcher 窗口关闭都不隐式改写 Cavalry。希望恢复原厂 English 的用户应先在 Switcher 中明确选择 English，再卸载；厂商重装或升级产生的新文件同样优先于旧备份。卸载器只删除 Switcher 自身，不能在用户未选择语言时暗中改变 Cavalry。
+Switcher 的同版本 `/UPDATE` 重入、Switcher 卸载、普通 Cavalry 退出和 Switcher 窗口关闭都不隐式改写 Cavalry。希望恢复原厂 English 的用户应先在 Switcher 中明确选择 English，再卸载；厂商重装或升级产生的新文件同样优先于旧备份。卸载器只删除 Switcher 自身，不能在用户未选择语言时暗中改变 Cavalry。这里的同版本 `/UPDATE` 合同只证明同一安装器对现有安装的更新路径，不等于两个不同发布版本之间的升级兼容已经验收。
 
-第二条命令先用同一工具重新计算 sidecar；任何安装器字节、版本、target 或当前打包输入漂移都会在创建 `%TEMP%` 安装目录前失败。通过 provenance 后，`tools/check_windows_nsis_install.ps1` 只消费该唯一安装器：若当前用户已经存在固定卸载键、厂商产品键、桌面/开始菜单快捷方式或自启动项则立即拒绝，不覆盖任何预存安装；否则只在随机 `%TEMP%` 子目录以 `/S /NS` 安装，验证主程序与 plugin 均为 x64、四个语言目录各含 38 个 JSON、安装态 plugin 与仓库源 hash 相同、包内没有 dylib 或第二套 `Qt6*.dll`，并核对 HKCU 卸载元数据。验证成功或失败都会仅尝试包内 `uninstall.exe /S`，随后观察安装目录、固定键与快捷方式全部消失；脚本禁止用递归删除掩盖卸载失败。不得回退读取 `src-tauri/target/release/bundle/nsis`，因为显式 target 构建不会写入该目录，旧文件会造成假绿。
+第二条命令先用同一工具重新计算 sidecar；任何安装器字节、版本、target 或当前打包输入漂移都会在创建 `%TEMP%` 安装目录前失败。通过 provenance 后，`tools/check_windows_nsis_install.ps1` 只消费该唯一安装器：若当前用户已经存在固定卸载键、厂商产品键、桌面/开始菜单快捷方式或自启动项则立即拒绝，不覆盖任何预存安装。随后它在 Switcher 安装根之外创建独立的随机 `%TEMP%` 三文件 QPA 形状哨兵，精确写入并记录根 `qwindows.dll`、`cavalry-i18n-qpa/vendor-qwindows.dll` 与 `cavalry-i18n-qpa/manifest.json` 的长度和 SHA-256；再以 `/S /NS` 安装，验证主程序与 plugin 均为 x64、四个语言目录各含 38 个 JSON、安装态 plugin 与仓库源 hash 相同、包内没有 dylib 或第二套 `Qt6*.dll`，并核对 HKCU 卸载元数据。安装后还会用同一安装器执行 `/S /NS /UPDATE`（`/D` 保持最后一个参数）并重新验证安装态，最后只通过包内 `uninstall.exe /S` 卸载。安装、同版本更新、卸载三阶段后都要求该三文件哨兵字节指纹不变；只有最终仍一致时才精确删除这三个哨兵文件和已空目录，任何漂移都会失败并保留证据路径。脚本禁止用递归删除掩盖卸载失败，也不得回退读取 `src-tauri/target/release/bundle/nsis`，因为显式 target 构建不会写入该目录，旧文件会造成假绿。
 
-该 gate 会真实安装/卸载 **Cavalry Language Switcher 自身**，但不会启动或写入 Cavalry。它适合 GitHub 临时 Windows 用户；本地运行必须先确保没有已安装的 Cavalry Language Switcher。它证明公共 renderer、Windows runtime、Rust 后端、资源布局和 NSIS 安装态能够闭合，但不能替代真实 Cavalry GUI、Program Files/UAC 或版本升级验收。macOS 对应的 `npm run tauri:build` 也显式加载 `tauri.macos.conf.json`，两个平台不会依赖调用机器的隐式配置选择。
+该 gate 会真实安装、同版本更新并卸载 **Cavalry Language Switcher 自身**，但不会启动或写入真实 Cavalry；三文件哨兵只是一份独立的临时字节合同，不代表任意用户 Cavalry 安装根都已经实测。它适合 GitHub 临时 Windows 用户；本地运行必须先确保没有已安装的 Cavalry Language Switcher。静态 hooks 无 Cavalry/QPA 写入入口与这次真实 install → 同版本 `/UPDATE` → uninstall 哨兵不变证据共同守住安装器边界，但不能替代真实 Cavalry GUI、Program Files/UAC、任意安装路径或跨版本升级验收。macOS 对应的 `npm run tauri:build` 也显式加载 `tauri.macos.conf.json`，两个平台不会依赖调用机器的隐式配置选择。
 
 Windows **开发机**应使用 Node 22、Python 3、stable MSVC Rust、Visual Studio 2022 x64 C++ Build Tools、CMake 3.21+ 与 Qt 6.6.3 `msvc2019_64` SDK。系统自带 Windows PowerShell 5.1 已足够执行构建脚本，不要求安装 PowerShell 7。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
 
@@ -153,7 +153,7 @@ npm run build:tauri:windows
 npm run test:tauri:windows-nsis
 ```
 
-Windows 真机冒烟（不由上述构建命令替代）：在真实 Cavalry 2.7.2 上，以自动发现、当前用户可写的自定义目录和实际 Program Files 目录分别验证安装选择、语言切换、正常重启、English 恢复、安装器升级与卸载。自定义目录不得依赖 UAC；自动 UAC 只可覆盖实际 Program Files 目标。
+Windows 真机冒烟（不由上述构建命令替代）：在真实 Cavalry 2.7.2 上，以自动发现、当前用户可写的自定义目录和实际 Program Files 目录分别验证安装选择、语言切换、正常重启、English 恢复、跨版本安装器升级与卸载。自定义目录不得依赖 UAC；自动 UAC 只可覆盖实际 Program Files 目标。
 
 原生入口必须单独验收：应用前记录桌面与开始菜单链接的目标、参数、图标、原始 bytes/hash，以及开始菜单的 AppUserModel ID/Toast CLSID；应用后这些值必须逐字节保持不变。随后分别从桌面、开始菜单、已有任务栏固定项、直接 `Cavalry.exe` 与 Switcher 启动，五条路径都必须显示本次语言并命中同一 QPA/generic 摘要。关闭再重开仍保持翻译；明确切回 English 后五条路径均为英文且根 `qwindows.dll` 恢复原厂摘要。用户没有桌面链接时不额外创建，用户删除或移动链接也不影响运行时正确性。
 
@@ -187,4 +187,4 @@ clone 只隔离 Cavalry 安装根；临时 `APPDATA`/`LOCALAPPDATA` 只维护测
 
 ## 8. 当前边界
 
-Tauri 是唯一默认壳与唯一发布路径；macOS 的 bridge、平台配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实三语冒烟都已具备可重跑守门。Windows 当前具备独立配置、Qt generic translator/QPA delegate、原子部署与显式 English 恢复状态机、Node/Rust 合同、NSIS 构建、随机 TEMP 安装卸载 gate，以及只写显式 disposable clone/evidence 根的三语 PID 窗口截图门；原生入口五路径、Program Files/UAC、安装器升级与最终三语 GUI 仍需闭环后才能公开发布。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。
+Tauri 是唯一默认壳与唯一发布路径；macOS 的 bridge、平台配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实三语冒烟都已具备可重跑守门。Windows 当前具备独立配置、Qt generic translator/QPA delegate、原子部署与显式 English 恢复状态机、Node/Rust 合同、NSIS 构建、随机 TEMP 安装/同版本更新/卸载及外部 QPA 哨兵 gate，以及只写显式 disposable clone/evidence 根的三语 PID 窗口截图门；原生入口五路径、Program Files/UAC、跨版本安装器升级与最终三语 GUI 仍需闭环后才能公开发布。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。

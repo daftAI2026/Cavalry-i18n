@@ -46,7 +46,7 @@ Cavalry-i18n は独立したコミュニティツールです。Scene Group、Ca
 
 macOS がこの権限を求めるのは、別の `.app` bundle を変更する操作が保護対象だからです。このビルドを信頼し、ローカルの Cavalry インストールにパッチ、再署名、再起動が行われることを理解した場合にのみ許可してください。クリーンな Cavalry インストーラーまたはバックアップを保持してください。未変更の公式 bundle に戻す最も安全な方法は Cavalry を再インストールすることです。
 
-Windows では、まずローカルのインストールを検出します。見つからない場合は `Cavalry.exe` またはそのインストールフォルダーを手動で選択してください。カスタムパスも利用できますが、現在のユーザーが書き込める必要があります。自動 UAC 昇格は、実際に Windows Program Files 配下にあるインストールだけに限定され、任意のカスタムパスには使われません。Cavalry を閉じても選択中の言語は解除されません。English を明示的に選ぶと、英語アセットのスナップショットと検証済みの vendor QPA を復元します。すべての vendor ファイルを完全な初期状態へ戻す最も確実な方法は、引き続き Cavalry の再インストールです。
+Windows では、まずローカルのインストールを検出します。見つからない場合は `Cavalry.exe` またはそのインストールフォルダーを手動で選択してください。カスタムパスも利用できますが、現在のユーザーが書き込める必要があります。自動 UAC 昇格は、実際に Windows Program Files 配下にあるインストールだけに限定され、任意のカスタムパスには使われません。Cavalry または Switcher の通常終了、Switcher の同一バージョン `/UPDATE`、Switcher のアンインストールでは、選択中の言語を解除せず、Cavalry インストールルート側の外部 QPA ファイルを復元・削除しません。English を明示的に選んだ場合にのみ、英語アセットのスナップショットと検証済みの vendor QPA を復元します。すべての vendor ファイルを完全な初期状態へ戻す最も確実な方法は、引き続き Cavalry の再インストールです。
 
 ## Release からインストール
 
@@ -99,7 +99,7 @@ Windows 開発では、標準搭載の Windows PowerShell 5.1 で十分です。
 4. macOS の launcher wrapper と injector、または選択ルートの Windows `generic/cavalryi18n.dll` translator と root QPA delegate を **インストール**
 5. Cavalry を **再起動** してプラットフォーム固有の翻訳を読み込む。macOS では bundle の再署名と Gatekeeper quarantine の解除も行う
 
-パッチ後も、元の起動パスはそのまま使えます。macOS の launcher wrapper は `DYLD_INSERT_LIBRARIES` を設定します。Windows は Cavalry が必ず通る native QPA path から同じ翻訳 runtime を読み込み、グローバル環境変数や特定のショートカットには依存しません。通常終了では元の `qwindows.dll` を復元しません。English に戻すときは、抽出済みアセットスナップショットと検証済みの vendor QPA を使用します。
+パッチ後も、元の起動パスはそのまま使えます。macOS の launcher wrapper は `DYLD_INSERT_LIBRARIES` を設定します。Windows は Cavalry が必ず通る native QPA path から同じ翻訳 runtime を読み込み、グローバル環境変数や特定のショートカットには依存しません。元の `qwindows.dll` は hash-locked recovery directory に保持され、Cavalry/Switcher の通常終了、Switcher の同一バージョン `/UPDATE`、Switcher のアンインストールでは、この外部 QPA 状態を変更しません。English を明示的に選んだ場合にのみ、抽出済みアセットスナップショットと検証済みの vendor QPA を使って復元します。
 
 ## 対応言語
 
@@ -121,7 +121,7 @@ npm run prepare:qt-sdk         # Qt 6.6.3 SDK をダウンロード/解決
 npm run prepare:qt-sdk:windows # Qt 6.6.3 msvc2019_64 を取得/検証
 npm run build:injector:windows # Windows Qt generic translator + QPA delegate をビルド/テスト
 npm run build:tauri:windows    # Windows NSIS インストーラーをビルド
-npm run test:tauri:windows-nsis # 現在のインストーラー provenance を再計算し、インストールとアンインストールを検証
+npm run test:tauri:windows-nsis # provenance を再計算し、インストール、同一バージョン更新、アンインストールを検証
 
 # 開発
 npm run tauri:dev              # Tauri dev server

@@ -46,7 +46,7 @@ This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can l
 
 macOS asks for this permission because changing another `.app` bundle is a protected operation. Only grant it if you trust this build and understand that the tool will patch, re-sign, and relaunch your local Cavalry installation. Keep a clean Cavalry installer or backup available; reinstalling Cavalry is the safest way to return to an untouched official bundle.
 
-On Windows, the app first tries to discover a local installation; if it cannot, select `Cavalry.exe` or its installation folder yourself. A custom location is supported only when the current user can write to it. Automatic UAC elevation is deliberately limited to an installation that is actually under Windows Program Files; it is not used for arbitrary custom paths. Closing Cavalry does not undo the selected language. Explicitly selecting English restores both the English asset snapshot and the verified vendor QPA; reinstalling Cavalry remains the cleanest way to return every vendor file to factory state.
+On Windows, the app first tries to discover a local installation; if it cannot, select `Cavalry.exe` or its installation folder yourself. A custom location is supported only when the current user can write to it. Automatic UAC elevation is deliberately limited to an installation that is actually under Windows Program Files; it is not used for arbitrary custom paths. Closing Cavalry or the Switcher, updating the Switcher through the same-version `/UPDATE` path, or uninstalling the Switcher does not undo the selected language and does not restore or delete Cavalry's external QPA files. Only explicitly selecting English restores both the English asset snapshot and the verified vendor QPA; reinstalling Cavalry remains the cleanest way to return every vendor file to factory state.
 
 ## Install From Release
 
@@ -99,7 +99,7 @@ For Windows development, the built-in Windows PowerShell 5.1 is sufficient; Powe
 4. **Install** the macOS launcher wrapper and injector, or the Windows `generic/cavalryi18n.dll` translator plus root QPA delegate at the selected installation root
 5. **Relaunch** Cavalry with platform-specific runtime translation; macOS also re-signs the bundle and clears Gatekeeper quarantine
 
-After patching, the original launch path continues to work. macOS uses a launcher wrapper with `DYLD_INSERT_LIBRARIES`; Windows loads the same translation runtime from Cavalry's native QPA path without global or shortcut-specific environment variables. The original `qwindows.dll` remains in a hash-locked recovery directory and is not restored on ordinary exit. Restoring English uses the extracted asset snapshot and the verified vendor QPA, not a guessed DLL.
+After patching, the original launch path continues to work. macOS uses a launcher wrapper with `DYLD_INSERT_LIBRARIES`; Windows loads the same translation runtime from Cavalry's native QPA path without global or shortcut-specific environment variables. The original `qwindows.dll` remains in a hash-locked recovery directory. Normal Cavalry/Switcher exit, a same-version Switcher `/UPDATE`, and Switcher uninstall leave that external Cavalry QPA state untouched. Only an explicit English selection restores the extracted asset snapshot and verified vendor QPA; it never substitutes a guessed DLL.
 
 ## Supported Languages
 
@@ -121,7 +121,7 @@ npm run prepare:qt-sdk         # Download/resolve Qt 6.6.3 SDK
 npm run prepare:qt-sdk:windows # Download/verify Qt 6.6.3 msvc2019_64
 npm run build:injector:windows # Build/test the Windows Qt generic translator + QPA delegate
 npm run build:tauri:windows    # Build the Windows NSIS installer
-npm run test:tauri:windows-nsis # Verify the current installer provenance, install, and uninstall
+npm run test:tauri:windows-nsis # Verify provenance, install, same-version update, and uninstall
 
 # Dev
 npm run tauri:dev              # Tauri dev server

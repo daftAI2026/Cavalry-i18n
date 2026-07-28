@@ -46,7 +46,7 @@ Cavalry-i18n 是独立的社区工具。它不是 Scene Group、Cavalry 或 Canv
 
 macOS 要求这个权限，是因为修改另一个 `.app` bundle 属于受保护操作。只有在你信任此构建，并理解它会补丁、重新签名并重新启动本机 Cavalry 安装时，才授予权限。请保留干净的 Cavalry 安装器或备份；重新安装 Cavalry 是恢复到未修改官方 bundle 的最安全方式。
 
-在 Windows 上，应用会先尝试发现本机安装；失败时请手动选择 `Cavalry.exe` 或其安装目录。支持自定义目录，但该目录必须允许当前用户写入。自动 UAC 提权严格限于实际位于 Windows Program Files 下的安装；任意自定义路径不会因此提权。关闭 Cavalry 不会撤销当前语言；明确选择 English 会恢复英文资源快照与已验证的原厂 QPA。若要把所有厂商文件恢复到完全原始状态，重新安装 Cavalry 仍是最稳妥的方式。
+在 Windows 上，应用会先尝试发现本机安装；失败时请手动选择 `Cavalry.exe` 或其安装目录。支持自定义目录，但该目录必须允许当前用户写入。自动 UAC 提权严格限于实际位于 Windows Program Files 下的安装；任意自定义路径不会因此提权。正常关闭 Cavalry 或 Switcher、通过同版本 `/UPDATE` 路径更新 Switcher、卸载 Switcher，都不会撤销当前语言，也不会恢复或删除 Cavalry 安装根中的外部 QPA 文件。只有明确选择 English 才会恢复英文资源快照与已验证的原厂 QPA。若要把所有厂商文件恢复到完全原始状态，重新安装 Cavalry 仍是最稳妥的方式。
 
 ## 从 Release 安装
 
@@ -99,7 +99,7 @@ Windows 开发时，系统自带的 Windows PowerShell 5.1 已足够，不要求
 4. **安装** macOS launcher wrapper 与 injector，或将 Windows `generic/cavalryi18n.dll` translator 与根 QPA 委托层部署到所选安装根
 5. **重新启动** Cavalry 并加载平台运行时翻译；macOS 还会重新签名 bundle 并清除 Gatekeeper 隔离标记
 
-补丁完成后，原来的启动路径仍然可用。macOS 的 launcher wrapper 会设置 `DYLD_INSERT_LIBRARIES`；Windows 从 Cavalry 原生 QPA 必经路径加载同一翻译运行时，不依赖全局环境或某个特定快捷方式。普通退出不会恢复原厂 `qwindows.dll`；恢复 English 时使用提取出的资源快照与已验证的原厂 QPA，而不是猜测 DLL。
+补丁完成后，原来的启动路径仍然可用。macOS 的 launcher wrapper 会设置 `DYLD_INSERT_LIBRARIES`；Windows 从 Cavalry 原生 QPA 必经路径加载同一翻译运行时，不依赖全局环境或某个特定快捷方式。原厂 `qwindows.dll` 会保存在 hash-locked 恢复目录中；正常关闭 Cavalry/Switcher、Switcher 同版本 `/UPDATE` 与卸载 Switcher 都不会改动这份外部 QPA 状态。只有明确选择 English 才会使用提取出的资源快照与已验证的原厂 QPA 恢复英文，不会猜测 DLL。
 
 ## 支持语言
 
@@ -121,7 +121,7 @@ npm run prepare:qt-sdk         # 下载/解析 Qt 6.6.3 SDK
 npm run prepare:qt-sdk:windows # 下载/验证 Qt 6.6.3 msvc2019_64
 npm run build:injector:windows # 构建/测试 Windows Qt generic translator + QPA delegate
 npm run build:tauri:windows    # 构建 Windows NSIS 安装器
-npm run test:tauri:windows-nsis # 复算当前安装器 provenance，并验证安装与卸载
+npm run test:tauri:windows-nsis # 复算 provenance，并验证安装、同版本更新与卸载
 
 # 开发
 npm run tauri:dev              # Tauri 开发服务器
