@@ -31,5 +31,6 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 2026-07-14: 同步 `0.5.3` 发布候选的 dylib/生成表证据，记录三语空状态实机验证，并将维护者明确豁免的额外 full UI matrix 标为 `USER-WAIVED`，不冒充 100% coverage。
 2026-07-24: 以 macOS DMG 与 Windows 2.7.2 安装内逐字节相同的 `nodeStrings.json` 核实 `smoother.smoothingSteps` 为跨平台版本节点，将四语术语、语言包与 keyed overlay 保留合同同步纳入同构边界。
 2026-07-24: 新增 Windows 端口与注入路线图，明确任意安装根、JSON keyed overlay、Qt generic plugin、进程级环境、ExtensionLayer IAT 白名单和真机验收边界。
+2026-07-29: 新增 Windows x64 适配实施复盘与维护交接，沉淀 generic/QPA/UAC 最终架构、被证伪方案、构建发布经验、证据分级和仍需补齐的跨平台真机验证。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
