@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 contract/transport 的 hash-locked plan、storage durable journal、OS Known Folder、固定资源映射与 windows_qpa transition。
- * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files 提权 worker；固定执行 pending→assets/generic→QPA→pre-final proof→final，并以 marker-last 回滚和 0/42/43/44 表达提交、清理残留、精确恢复与状态不确定。
+ * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files 提权 worker；固定执行 pending→assets/generic→QPA→pre-final proof→final，以 0/42/43/44 表达事务状态，并在任何写入前以 45 单独表达 Cavalry 可见窗口仍未关闭。
  * [POS]: privilege/windows/language_transaction 的唯一提权执行边界；不获取应用锁、不写 Tauri state、不重启 Cavalry，也不接受 plan 提供的任意目标路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,8 +17,8 @@ use sha2::{Digest, Sha256};
 use super::{
     contract::{
         deserialize_bound_plan, payload_source_path, ElevatedLanguagePlan, Language, PayloadKind,
-        PayloadRecord, WorkerTransport, MAX_PLAN_BYTES, WORKER_EXIT_COMMITTED_CLEAN,
-        WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL,
+        PayloadRecord, WorkerTransport, MAX_PLAN_BYTES, WORKER_EXIT_CAVALRY_STILL_RUNNING,
+        WORKER_EXIT_COMMITTED_CLEAN, WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL,
         WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN, WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN,
     },
     storage::{CommitCleanup, DurableJournal, ResolvedPayload, ResolvedPreimage, RollbackOutcome},
@@ -33,7 +33,7 @@ use crate::{
             path_is_within, paths_equal, trusted_root_for_destination,
             windows_trusted_program_files_roots,
         },
-        RealCommandRunner,
+        CloseCavalryError, RealCommandRunner,
     },
     windows_qpa::{QpaDeploymentState, QpaNoopReason, QpaTransitionOutcome, QpaTransitionPlan},
 };
@@ -94,8 +94,15 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
     }
 
     let mut runner = RealCommandRunner;
-    close_cavalry_before_modification(&resolved.layout.root, &mut runner)
-        .map_err(|_| WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)?;
+    match close_cavalry_before_modification(&resolved.layout.root, &mut runner) {
+        Ok(()) => {}
+        Err(CloseCavalryError::StillRunning) => {
+            return Err(WORKER_EXIT_CAVALRY_STILL_RUNNING);
+        }
+        Err(CloseCavalryError::Command(_)) => {
+            return Err(WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN);
+        }
+    }
 
     let recovery = crate::windows_qpa::recovery_directory(&resolved.layout);
     let recovery_existed = ordinary_directory_state(&recovery)
@@ -695,9 +702,10 @@ mod tests {
                 WORKER_EXIT_COMMITTED_CLEAN,
                 WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL,
                 WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN,
-                WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN
+                WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN,
+                WORKER_EXIT_CAVALRY_STILL_RUNNING
             ],
-            [0, 42, 43, 44]
+            [0, 42, 43, 44, 45]
         );
     }
 

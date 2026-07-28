@@ -1,10 +1,13 @@
 /**
- * [INPUT]: 依赖 install 布局、mac_runtime/windows_runtime/windows_qpa、privilege graceful close 与 state。
- * [OUTPUT]: 提供 prepare_apply、fail-before-mutation preflight、after_copy、English 早退判定与 restart 跨平台编排入口。
- * [POS]: commands 与平台差异之间的私有 facade；Windows Program Files 正常路径已提前分流，本层以拒绝提升目标的 backstop 守住自定义可写根，并把直接 QPA 激活/English 恢复置于 pending 资源复制和 final marker 之间。
+ * [INPUT]: 依赖 install 布局、mac_runtime/windows_runtime/windows_qpa、privilege typed graceful close 与 state。
+ * [OUTPUT]: 提供 prepare_apply、typed fail-before-mutation preflight、after_copy、English 早退判定与 restart 跨平台编排入口。
+ * [POS]: commands 与平台差异之间的私有 facade；Windows Program Files 正常路径已提前分流，本层以拒绝提升目标的 backstop 守住自定义可写根，并让 Cavalry StillRunning 保持 typed 到统一 apply 边界。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-use std::path::{Path, PathBuf};
+use std::{
+    fmt,
+    path::{Path, PathBuf},
+};
 
 use crate::{
     install::{InstallLayout, InstallPlatform},
@@ -24,6 +27,31 @@ pub(crate) struct ApplyPlan {
     qpa_proxy_source: Option<PathBuf>,
     #[cfg(target_os = "windows")]
     cavalry_version: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) enum ApplyPreflightError {
+    CavalryStillRunning,
+    Other(String),
+}
+
+impl fmt::Display for ApplyPreflightError {
+    fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::CavalryStillRunning => formatter.write_str(
+                "Cavalry is still running. Save your work, close Cavalry, and try again. The Cavalry installation was not changed.",
+            ),
+            Self::Other(detail) => formatter.write_str(detail),
+        }
+    }
+}
+
+impl std::error::Error for ApplyPreflightError {}
+
+impl From<String> for ApplyPreflightError {
+    fn from(detail: String) -> Self {
+        Self::Other(detail)
+    }
 }
 
 pub(crate) fn prepare_apply(
@@ -112,7 +140,7 @@ pub(crate) fn preflight_apply<R: CommandRunner>(
     app_path: &Path,
     lang: &str,
     runner: &mut R,
-) -> Result<(), String> {
+) -> Result<(), ApplyPreflightError> {
     #[cfg(target_os = "windows")]
     {
         let layout = InstallLayout::from_root(app_path);
@@ -142,7 +170,7 @@ fn preflight_windows_apply_with<R, I, E, W>(
     inspect_qpa: I,
     requires_elevated_worker: E,
     verify_direct_writable: W,
-) -> Result<(), String>
+) -> Result<(), ApplyPreflightError>
 where
     R: CommandRunner,
     I: Fn(&InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String>,
@@ -151,22 +179,30 @@ where
 {
     let inspection = inspect_qpa(layout)?;
     if lang != "en" && inspection.state == crate::windows_qpa::QpaDeploymentState::Drifted {
-        return Err(format!(
+        return Err(ApplyPreflightError::Other(format!(
             "Refusing translated apply because qwindows.dll is drifted. {}",
             inspection.detail
-        ));
+        )));
     }
     let requires_qpa_transition =
         lang != "en" || inspection.state != crate::windows_qpa::QpaDeploymentState::Stock;
     if requires_qpa_transition && requires_elevated_worker(layout) {
-        return Err(
+        return Err(ApplyPreflightError::Other(
             "Windows Program Files QPA changes must be routed through the dedicated elevated language transaction before direct preflight. Cavalry was not closed and no files were changed."
                 .to_string(),
-        );
+        ));
     }
-    privilege::close_cavalry_before_modification(&layout.root, runner).map_err(|error| {
-        format!("Could not close Cavalry before applying language files: {error}")
-    })?;
+    match privilege::close_cavalry_before_modification(&layout.root, runner) {
+        Ok(()) => {}
+        Err(privilege::CloseCavalryError::StillRunning) => {
+            return Err(ApplyPreflightError::CavalryStillRunning);
+        }
+        Err(privilege::CloseCavalryError::Command(detail)) => {
+            return Err(ApplyPreflightError::Other(format!(
+                "Could not close Cavalry before applying language files: {detail}"
+            )));
+        }
+    }
     if requires_qpa_transition {
         verify_direct_writable(layout)?;
     }
@@ -375,13 +411,29 @@ where
 
 #[cfg(all(test, target_os = "windows"))]
 mod tests {
-    use super::preflight_windows_apply_with;
+    use super::{preflight_windows_apply_with, ApplyPreflightError};
     use crate::{
         install::InstallLayout,
-        privilege::RecordingRunner,
+        privilege::{CommandRunner, CommandStatus, RecordingRunner},
         windows_qpa::{QpaDeploymentState, QpaInspection, QpaManifestPhase},
     };
     use std::fs;
+
+    struct CloseStatusRunner(CommandStatus);
+
+    impl CommandRunner for CloseStatusRunner {
+        fn run(&mut self, _program: &str, _args: &[String]) -> Result<(), String> {
+            panic!("typed close preflight must inspect the captured exit code")
+        }
+
+        fn run_captured(
+            &mut self,
+            _program: &str,
+            _args: &[String],
+        ) -> Result<CommandStatus, String> {
+            Ok(self.0.clone())
+        }
+    }
 
     fn inspection(state: QpaDeploymentState) -> Result<QpaInspection, String> {
         Ok(QpaInspection {
@@ -451,7 +503,10 @@ mod tests {
         )
         .unwrap_err();
 
-        assert!(error.contains("drifted"), "{error}");
+        assert!(
+            matches!(&error, ApplyPreflightError::Other(detail) if detail.contains("drifted")),
+            "{error}"
+        );
         assert!(runner.commands.is_empty());
         assert_unchanged(&snapshots);
     }
@@ -472,7 +527,11 @@ mod tests {
         .unwrap_err();
 
         assert!(
-            error.contains("must be routed through the dedicated elevated language transaction"),
+            matches!(
+                &error,
+                ApplyPreflightError::Other(detail)
+                    if detail.contains("must be routed through the dedicated elevated language transaction")
+            ),
             "{error}"
         );
         assert!(runner.commands.is_empty());
@@ -494,7 +553,10 @@ mod tests {
         )
         .unwrap_err();
 
-        assert!(error.contains("not writable"), "{error}");
+        assert!(
+            matches!(&error, ApplyPreflightError::Other(detail) if detail.contains("not writable")),
+            "{error}"
+        );
         assert_eq!(runner.commands.len(), 1);
         assert_eq!(runner.commands[0].program, "powershell.exe");
         assert_unchanged(&snapshots);
@@ -517,6 +579,29 @@ mod tests {
 
         assert_eq!(runner.commands.len(), 1);
         assert_eq!(runner.commands[0].program, "powershell.exe");
+        assert_unchanged(&snapshots);
+    }
+
+    #[test]
+    fn running_cavalry_remains_typed_across_direct_root_preflight() {
+        let (_temp, layout, snapshots) = immutable_fixture();
+        let mut runner = CloseStatusRunner(CommandStatus {
+            exit_code: Some(45),
+            stdout: String::new(),
+            stderr: "Cavalry still owns a visible window.".to_string(),
+        });
+
+        let error = preflight_windows_apply_with(
+            &layout,
+            "zh-Hans",
+            &mut runner,
+            |_| inspection(QpaDeploymentState::Active),
+            |_| false,
+            |_| panic!("a blocked close must reject before the write probe"),
+        )
+        .unwrap_err();
+
+        assert_eq!(error, ApplyPreflightError::CavalryStillRunning);
         assert_unchanged(&snapshots);
     }
 }

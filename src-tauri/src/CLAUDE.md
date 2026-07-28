@@ -18,9 +18,9 @@ runtime_paths.rs: repo/state 路径真相源；GUI command 与无 WebView 启动
 detect.rs: 安装探测编排，按保存路径→运行进程→MSI→常见目录选择有效安装根；展示版本来自 Info.plist/MSI，快照 revision 则来自 macOS bundle version 或 Windows 固定不可变二进制的流式 SHA-256。
 patch.rs: JSON 资产映射模块，提取 English、发现插件、构建 copy pairs；同一递归 string-only keyed overlay 只替换文本，保留 vendor 数字/布尔/null 元数据与当前/未来 Cavalry 版本增量，并证明安装或旧快照的已知文本叶子确属 packaged English。
 mac_runtime.rs: macOS runtime patch 模块，生成 launcher wrapper、Info.plist rewrite、语言 marker/injector copy pairs，并集中解析 Resources、`_up_`、repo 三层 injector 来源。
-platform_runtime.rs: 私有平台运行时编排 facade；Windows Program Files 已由 commands 提前分流，剩余自定义可写根在 payload 前拒绝 drift、精确关闭 Cavalry并验证直接写权限，在 pending JSON/generic 后执行 QPA ACTIVE 或显式 English 恢复，最后才允许 final marker；restart 只交付诊断子进程环境。
+platform_runtime.rs: 私有平台运行时编排 facade；Windows Program Files 已由 commands 提前分流，剩余自定义可写根在 payload 前拒绝 drift、以 typed 结果精确关闭 Cavalry 并验证直接写权限，在 pending JSON/generic 后执行 QPA ACTIVE 或显式 English 恢复，最后才允许 final marker；restart 只交付诊断子进程环境。
 keychain_patch.rs: Mach-O Keychain query callsite 补丁模块，解析 fat/thin slice 并将 5 个函数的 accessGroup/synchronizable 写入调用替换为 NOP；production 入口消费 owned Vec，避免大 dylib 二次复制。
-privilege.rs: 唯一系统命令 facade；保持既有 public API，并向 commands 暴露 Windows Program Files typed parent outcome，事务、runner、Keychain、restart 与 macOS/Windows 适配器下沉至 `privilege/`。
+privilege.rs: 唯一系统命令 facade；保持既有 public API，公开 typed Cavalry graceful-close 结果，并向 commands 暴露 Windows Program Files typed parent outcome；事务、runner、Keychain、restart 与 macOS/Windows 适配器下沉至 `privilege/`。
 privilege/: 系统命令领域模块图；copy_transaction 保持 direct rollback/typed warning，runner 隔离进程副作用，windows/language_transaction 以 same-EXE worker 和 durable journal 守住单次 UAC 完整语言事务。
 state.rs: Tauri state.json schema、normalize 与读写函数；`cavalryRevision` 描述当前安装，`EnglishSnapshotProvenance` 只在成功采集或安全验证旧快照后更新。
 

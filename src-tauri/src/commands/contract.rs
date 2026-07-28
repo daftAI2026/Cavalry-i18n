@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde 序列化和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供六命令名称、renderer 兼容 payload DTO 与稳定 warning code 到 UI 文案的映射。
+ * [OUTPUT]: 提供六命令名称、renderer 兼容 payload DTO、稳定可本土化 error code 与 warning code 到 UI 文案的映射。
  * [POS]: commands 的外部契约层；任何基础设施路径或英文诊断不得穿透为最终 warning 文案。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,6 +10,7 @@ use crate::privilege::PostCommitWarning;
 
 const PROTECTED_TRANSACTION_WARNING: &str = "Language files were applied, but transaction recovery evidence remains in the protected Cavalry installation. Do not delete it manually.";
 const TEMPORARY_CLEANUP_WARNING: &str = "Language files were applied, but temporary cleanup is still pending. Close Cavalry Language Switcher before removing temporary files.";
+pub(crate) const CAVALRY_STILL_RUNNING_ERROR_CODE: &str = "cavalryStillRunning";
 
 pub const COMMAND_NAMES: [&str; 6] = [
     "get_status",
@@ -78,6 +79,8 @@ pub struct ActionPayload {
     pub permission_required: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_code: Option<String>,
 }
 
 impl ActionPayload {
@@ -89,6 +92,7 @@ impl ActionPayload {
             warning: None,
             permission_required: false,
             error: None,
+            error_code: None,
         }
     }
 
@@ -100,6 +104,7 @@ impl ActionPayload {
             warning: None,
             permission_required: false,
             error: None,
+            error_code: None,
         }
     }
 
@@ -111,6 +116,7 @@ impl ActionPayload {
             warning,
             permission_required: false,
             error: None,
+            error_code: None,
         }
     }
 
@@ -122,6 +128,14 @@ impl ActionPayload {
             warning: None,
             permission_required: false,
             error: Some(message.to_string()),
+            error_code: None,
+        }
+    }
+
+    pub(crate) fn error_with_code(message: &str, code: &str) -> Self {
+        Self {
+            error_code: Some(code.to_string()),
+            ..Self::error(message)
         }
     }
 

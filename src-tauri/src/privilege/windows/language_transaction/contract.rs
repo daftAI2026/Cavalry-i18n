@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde/serde_json、SHA-256 与 windows_qpa 的封闭 QPA transition schema。
- * [OUTPUT]: 提供 Windows 提权语言事务 plan v1、固定 payload 记录、受 plan 路径约束的 QPA 源、单令牌编解码与 fail-closed worker argv 分类。
+ * [OUTPUT]: 提供 Windows 提权语言事务 plan v1、固定 payload 记录、受 plan 路径约束的 QPA 源、单令牌编解码、0/42/43/44 事务状态与 45 可重试关闭阻塞状态。
  * [POS]: privilege/windows/language_transaction 的纯数据边界；父进程和同一 EXE 的提权 worker 只交换摘要与固定记录，不接受任意复制目标。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -35,6 +35,7 @@ pub(crate) const WORKER_EXIT_COMMITTED_CLEAN: u32 = 0;
 pub(crate) const WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL: u32 = 42;
 pub(crate) const WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN: u32 = 43;
 pub(crate) const WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN: u32 = 44;
+pub(crate) const WORKER_EXIT_CAVALRY_STILL_RUNNING: u32 = 45;
 
 pub(crate) const PENDING_MARKER_ID: &str = "@pending-marker";
 pub(crate) const FINAL_MARKER_ID: &str = "@final-marker";

@@ -17,8 +17,8 @@ const rendererRoot = path.join(repoRoot, 'renderer');
 const EXPECTED_HASHES = {
   'index.html': 'ef7680a61014fb72db0afea39b41e2e3764038fdc9d14b2386858b27ef3ffd5e',
   'styles.css': '29225329fc6ca2c15e4c315d46b837319f6c17decbf8144293f88b1ac2e14f54',
-  'app.js': 'ac1c28c0c54d54d5a7b6e2bd1b10c73d399a9da86d14b16e0923992163ed70a6',
-  'tauri-bridge.js': '9c7001344e860cd9df076eee3e3c7792326a8951c94e0dfa77b0d5070c54810f',
+  'app.js': '3e04c04ea66e0716e401c28ce89c62996c0664aeb98759c9209f8fddb209ae51',
+  'tauri-bridge.js': '14addaabd7d49bd297534ef855c55261951f9c0927b185f92ab2da39219c0e53',
 };
 
 const REQUIRED_IDS = [

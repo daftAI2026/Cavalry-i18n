@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English-baseline JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight 与 privilege copy completion。
- * [OUTPUT]: 提供 apply_language_inner、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning、自定义根 fallback，以及 macOS 原始 English snapshot 与 marker→签名顺序。
- * [POS]: commands 的语言写入编排；Windows 为 source provenance 统一规范化 English/翻译 payload，Program Files 仅在 worker 0/42 后写 state，macOS 保持已验收快照行为。
+ * [OUTPUT]: 提供 apply_language_inner、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning 与全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS 原始 English snapshot 与 marker→签名顺序。
+ * [POS]: commands 的语言写入编排；Windows 为 source provenance 统一规范化 English/翻译 payload，Program Files 仅在 worker 0/42 后写 state，所有 Windows 写入前关闭阻塞统一投影为可本土化重试结果，macOS 保持已验收快照行为。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::Utc;
@@ -20,7 +20,7 @@ use crate::{
 
 use super::{
     context::{language_source_dir, next_staging_nonce},
-    contract::{renderer_warning_for_copy, ActionPayload},
+    contract::{renderer_warning_for_copy, ActionPayload, CAVALRY_STILL_RUNNING_ERROR_CODE},
     snapshot::extract_english_snapshot_or_throw,
     status::sync_state_with_bundle,
 };
@@ -256,7 +256,11 @@ pub fn apply_language_inner<R: CommandRunner>(
         &version,
         &staging_root,
     )?;
-    platform_runtime::preflight_apply(&app_path, lang, runner)?;
+    if let Some(payload) =
+        finish_direct_preflight_result(platform_runtime::preflight_apply(&app_path, lang, runner))?
+    {
+        return Ok(payload);
+    }
     let mut pairs = pairs;
     pairs.extend(plan.runtime_pairs.iter().cloned());
     let layout = InstallLayout::from_root(&app_path);
@@ -368,6 +372,34 @@ fn finish_apply_state(
 }
 
 #[cfg(target_os = "windows")]
+fn cavalry_still_running_payload() -> ActionPayload {
+    ActionPayload::error_with_code(
+        "Cavalry is still running. Save your work, close Cavalry, and try again. The Cavalry installation was not changed.",
+        CAVALRY_STILL_RUNNING_ERROR_CODE,
+    )
+}
+
+#[cfg(target_os = "windows")]
+fn finish_direct_preflight_result(
+    result: Result<(), platform_runtime::ApplyPreflightError>,
+) -> Result<Option<ActionPayload>, String> {
+    match result {
+        Ok(()) => Ok(None),
+        Err(platform_runtime::ApplyPreflightError::CavalryStillRunning) => {
+            Ok(Some(cavalry_still_running_payload()))
+        }
+        Err(platform_runtime::ApplyPreflightError::Other(detail)) => Err(detail),
+    }
+}
+
+#[cfg(not(target_os = "windows"))]
+fn finish_direct_preflight_result(
+    result: Result<(), platform_runtime::ApplyPreflightError>,
+) -> Result<Option<ActionPayload>, String> {
+    result.map(|()| None).map_err(|error| error.to_string())
+}
+
+#[cfg(target_os = "windows")]
 #[allow(clippy::too_many_arguments)]
 fn finish_program_files_result(
     result: Result<privilege::ParentApplyOutcome, privilege::ParentApplyError>,
@@ -426,6 +458,9 @@ fn finish_program_files_result(
                 "Windows administrator consent is required to update this Program Files installation."
             };
             Ok(Some(ActionPayload::permission_error(message)))
+        }
+        Err(privilege::ParentApplyError::CavalryStillRunning { .. }) => {
+            Ok(Some(cavalry_still_running_payload()))
         }
         Err(error) => Err(error.to_string()),
     }
@@ -556,6 +591,61 @@ mod program_files_result_tests {
         assert!(!payload.ok);
         assert!(payload.permission_required);
         assert!(!state_dir.exists());
+    }
+
+    #[test]
+    fn running_cavalry_is_a_localizable_retry_without_state_write() {
+        let (_temp, state_dir, app_path, state) = context();
+        let payload = finish_program_files_result(
+            Err(privilege::ParentApplyError::CavalryStillRunning {
+                staging_cleanup_warning: None,
+            }),
+            &state_dir,
+            &state,
+            &app_path,
+            "2.7.2",
+            "revision",
+            "zh-Hans",
+            "now",
+        )
+        .unwrap()
+        .unwrap();
+
+        assert!(!payload.ok);
+        assert!(!payload.permission_required);
+        assert_eq!(
+            payload.error_code.as_deref(),
+            Some(CAVALRY_STILL_RUNNING_ERROR_CODE)
+        );
+        assert!(!state_dir.exists());
+    }
+
+    #[test]
+    fn direct_root_running_cavalry_uses_the_same_localizable_retry() {
+        let payload = finish_direct_preflight_result(Err(
+            platform_runtime::ApplyPreflightError::CavalryStillRunning,
+        ))
+        .unwrap()
+        .unwrap();
+
+        assert!(!payload.ok);
+        assert!(!payload.permission_required);
+        assert_eq!(
+            payload.error_code.as_deref(),
+            Some(CAVALRY_STILL_RUNNING_ERROR_CODE)
+        );
+    }
+
+    #[test]
+    fn direct_root_preflight_preserves_success_and_unrelated_failures() {
+        assert!(finish_direct_preflight_result(Ok(())).unwrap().is_none());
+        assert_eq!(
+            finish_direct_preflight_result(Err(platform_runtime::ApplyPreflightError::Other(
+                "fixture failure".to_string(),
+            )))
+            .unwrap_err(),
+            "fixture failure"
+        );
     }
 
     #[test]

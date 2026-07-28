@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 src-tauri bridge.rs、跨平台 renderer app.js 与一个最小 fake DOM/runtime
- * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 Tauri bridge 足以驱动本土化、camelCase-only payload、平台标识、提交后 cleanup warning，以及 macOS openPrivacy、Program Files requestElevation 与不可写自定义根无 UAC 路径
+ * [OUTPUT]: 对外提供 bridge + app.js 运行时契约测试，证明 Tauri bridge 足以驱动本土化、camelCase-only payload、稳定 errorCode、平台标识、提交后 cleanup warning，以及 macOS openPrivacy、Program Files requestElevation 与不可写自定义根无 UAC 路径
  * [POS]: tools 的 Phase 1 bridge 守门，把字符串级断言升级为 macOS/Windows 平台语义的实际脚本执行
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -666,6 +666,60 @@ test('renderer reports an unwritable custom Windows root without offering a UAC 
     runtime.invokeCalls.filter((call) => call.command === 'apply_language').length,
     1
   );
+});
+
+test('renderer localizes the typed Cavalry-still-running retry in all four UI locales', async () => {
+  const bridgeScript = readText('renderer/tauri-bridge.js');
+  const appScript = readText('renderer/app.js');
+  const cases = [
+    [
+      'en-US',
+      'Cavalry is still running. Save your work, close Cavalry, and try again. The Cavalry installation was not changed.',
+    ],
+    [
+      'zh-CN',
+      'Cavalry 仍在运行。请先保存工作并关闭 Cavalry，然后重试；Cavalry 安装内容未被修改。',
+    ],
+    [
+      'zh-TW',
+      'Cavalry 仍在執行。請先儲存工作並關閉 Cavalry，然後重試；Cavalry 安裝內容未被修改。',
+    ],
+    [
+      'ja-JP',
+      'Cavalry がまだ起動しています。作業を保存して Cavalry を終了してから再試行してください。Cavalry のインストール内容は変更されていません。',
+    ],
+  ];
+
+  for (const [language, expected] of cases) {
+    const runtime = createRuntime({
+      language,
+      status: {
+        appManagementGranted: true,
+        permissionAction: 'none',
+        platform: 'windows',
+      },
+      applyResponses: [
+        {
+          ok: false,
+          permissionRequired: false,
+          errorCode: 'cavalryStillRunning',
+          error: 'backend fallback',
+        },
+      ],
+    });
+
+    vm.runInNewContext(bridgeScript, runtime.context, { filename: 'bridge.js' });
+    vm.runInNewContext(appScript, runtime.context, { filename: 'app.js' });
+    await flush();
+    await runtime.applyButton.listeners.get('click')[0]();
+    await flush();
+    await runtime.modalPrimaryButton.listeners.get('click')[0]();
+    await flush();
+
+    assert.equal(runtime.statusText.textContent, expected);
+    assert.equal(runtime.statusText.dataset.tone, 'error');
+    assert.equal(runtime.permissionButton.hidden, true);
+  }
 });
 
 test('renderer localizes status failures while preserving backend details', async () => {

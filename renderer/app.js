@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API 与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置状态、语言选择、英文刷新、权限弹窗、应用并重启交互，以及 Windows 自定义不可写根的无 UAC 状态说明
- * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，不假定 .app 或 .exe 布局，且只在 requestElevation 时公开 Windows 管理员重试
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置状态、语言选择、英文刷新、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明
+ * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode 本土化可恢复错误，且只在 requestElevation 时公开 Windows 管理员重试
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -67,6 +67,8 @@ const UI_TEXT = {
     applying: 'Applying {language}...',
     waitingPermission: 'Waiting for system permission.',
     patchFailed: 'Patch failed.',
+    cavalryStillRunning:
+      'Cavalry is still running. Save your work, close Cavalry, and try again. The Cavalry installation was not changed.',
     restartWarning: 'Language applied, but Cavalry could not be restarted.',
     applied: 'Applied {language} and restarted Cavalry.{warning}',
     openPrivacyFailed: 'Could not open permission settings.',
@@ -111,6 +113,7 @@ const UI_TEXT = {
     applying: '正在应用{language}...',
     waitingPermission: '正在等待系统授权。',
     patchFailed: '应用语言包失败。',
+    cavalryStillRunning: 'Cavalry 仍在运行。请先保存工作并关闭 Cavalry，然后重试；Cavalry 安装内容未被修改。',
     restartWarning: '语言已应用，但无法重启 Cavalry。',
     applied: '已应用{language}并重启 Cavalry。{warning}',
     openPrivacyFailed: '无法打开权限设置。',
@@ -154,6 +157,7 @@ const UI_TEXT = {
     applying: '正在套用{language}...',
     waitingPermission: '正在等待系統授權。',
     patchFailed: '套用語言包失敗。',
+    cavalryStillRunning: 'Cavalry 仍在執行。請先儲存工作並關閉 Cavalry，然後重試；Cavalry 安裝內容未被修改。',
     restartWarning: '語言已套用，但無法重新啟動 Cavalry。',
     applied: '已套用{language}並重新啟動 Cavalry。{warning}',
     openPrivacyFailed: '無法打開權限設定。',
@@ -197,6 +201,8 @@ const UI_TEXT = {
     applying: '{language}を適用しています...',
     waitingPermission: 'システム権限を待っています。',
     patchFailed: '言語パックの適用に失敗しました。',
+    cavalryStillRunning:
+      'Cavalry がまだ起動しています。作業を保存して Cavalry を終了してから再試行してください。Cavalry のインストール内容は変更されていません。',
     restartWarning: '言語は適用されましたが、Cavalry を再起動できませんでした。',
     applied: '{language}を適用して Cavalry を再起動しました。{warning}',
     openPrivacyFailed: '権限設定を開けませんでした。',
@@ -455,6 +461,10 @@ async function runApply(nextLanguage) {
     if (!result.ok) {
       if (result.permissionRequired) {
         showPermissionWait(nextLanguage);
+        return;
+      }
+      if (result.errorCode === 'cavalryStillRunning') {
+        setStatus(t('cavalryStillRunning'), 'error');
         return;
       }
       setStatus(withDetail('patchFailed', result.error), 'error');

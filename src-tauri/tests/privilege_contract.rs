@@ -1,12 +1,10 @@
 /**
  * [INPUT]: 依赖 privilege facade、其按职责拆分的源码树，以及复制、重签、quarantine 与跨平台 restart 边界。
- * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名及 Windows Known Folder UAC、same-EXE worker 早分流、无控制台 PowerShell、hash-locked loader、0/42/43/44 状态与 typed recovery diagnostics contract tests。
+ * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名及 Windows Known Folder UAC、same-EXE worker 早分流、无控制台 PowerShell、当前会话 SafeHandle 绑定且 exact-PID 可见窗口 oracle 守护的精确进程收尾、45 可重试关闭阻塞、hash-locked loader 与 typed recovery diagnostics contract tests。
  * [POS]: src-tauri/tests 的系统边界守门；审计 facade 与子模块共同满足安全边界，避免文件拆分掩盖 Windows 提权约束。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::patch::CopyPair;
-#[cfg(target_os = "windows")]
-use cavalry_i18n_tauri::privilege::restart_cavalry_with_environment;
 #[cfg(target_os = "macos")]
 use cavalry_i18n_tauri::privilege::restart_commands;
 use cavalry_i18n_tauri::privilege::{
@@ -15,7 +13,20 @@ use cavalry_i18n_tauri::privilege::{
     resign_patched_bundle, CommandRunner, RecordedCommand, RecordingRunner,
 };
 #[cfg(target_os = "windows")]
+use cavalry_i18n_tauri::privilege::{
+    close_cavalry_before_modification, restart_cavalry_with_environment, CloseCavalryError,
+    RealCommandRunner,
+};
+#[cfg(target_os = "windows")]
 use std::ffi::OsString;
+#[cfg(target_os = "windows")]
+use std::{
+    ffi::c_void,
+    os::windows::process::CommandExt,
+    process::{Child, Command, Stdio},
+    thread,
+    time::{Duration, Instant},
+};
 use std::{
     fs,
     path::{Path, PathBuf},
@@ -61,6 +72,251 @@ fn collect_privilege_sources(directory: &Path, sources: &mut Vec<PathBuf>) {
         } else if path.extension().is_some_and(|extension| extension == "rs") {
             sources.push(path);
         }
+    }
+}
+
+#[cfg(target_os = "windows")]
+const WINDOWS_CREATE_NO_WINDOW: u32 = 0x08000000;
+#[cfg(target_os = "windows")]
+const WINDOWS_WS_EX_TOOLWINDOW: u32 = 0x00000080;
+#[cfg(target_os = "windows")]
+const WINDOWS_WS_EX_NOACTIVATE: u32 = 0x08000000;
+#[cfg(target_os = "windows")]
+const WINDOWS_WS_OVERLAPPEDWINDOW: u32 = 0x00CF0000;
+#[cfg(target_os = "windows")]
+const WINDOWS_WS_VISIBLE: u32 = 0x10000000;
+
+#[cfg(target_os = "windows")]
+#[link(name = "user32")]
+extern "system" {
+    fn CreateWindowExW(
+        extended_style: u32,
+        class_name: *const u16,
+        window_name: *const u16,
+        style: u32,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+        owner: *mut c_void,
+        menu: *mut c_void,
+        instance: *mut c_void,
+        parameter: *mut c_void,
+    ) -> *mut c_void;
+    fn ShowWindow(window: *mut c_void, command: i32) -> i32;
+    fn UpdateWindow(window: *mut c_void) -> i32;
+    fn DestroyWindow(window: *mut c_void) -> i32;
+}
+
+#[cfg(target_os = "windows")]
+struct WindowlessCavalryProcess {
+    child: Child,
+}
+
+#[cfg(target_os = "windows")]
+impl WindowlessCavalryProcess {
+    fn spawn(root: &Path) -> Self {
+        fs::create_dir_all(root).unwrap();
+        let executable = root.join("Cavalry.exe");
+        let command_shell = std::env::var_os("ComSpec")
+            .map(PathBuf::from)
+            .unwrap_or_else(|| PathBuf::from(r"C:\Windows\System32\cmd.exe"));
+        fs::copy(command_shell, &executable).unwrap();
+        let child = Command::new(&executable)
+            .args(["/d", "/q", "/c", "set /p CAVALRY_I18N_TEST_INPUT="])
+            .stdin(Stdio::piped())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .creation_flags(WINDOWS_CREATE_NO_WINDOW)
+            .spawn()
+            .unwrap();
+        Self { child }
+    }
+
+    fn is_running(&mut self) -> bool {
+        self.child.try_wait().unwrap().is_none()
+    }
+
+    fn wait_for_exit(&mut self, timeout: Duration) -> bool {
+        let deadline = Instant::now() + timeout;
+        while Instant::now() < deadline {
+            if !self.is_running() {
+                return true;
+            }
+            thread::sleep(Duration::from_millis(25));
+        }
+        !self.is_running()
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl Drop for WindowlessCavalryProcess {
+    fn drop(&mut self) {
+        if self.is_running() {
+            let _ = self.child.kill();
+        }
+        let _ = self.child.wait();
+    }
+}
+
+#[cfg(target_os = "windows")]
+struct VisibleOwnedWindowCavalryProcess {
+    child: Child,
+    stop_path: PathBuf,
+}
+
+#[cfg(target_os = "windows")]
+impl VisibleOwnedWindowCavalryProcess {
+    fn spawn(root: &Path) -> Self {
+        fs::create_dir_all(root).unwrap();
+        let executable = root.join("Cavalry.exe");
+        fs::copy(std::env::current_exe().unwrap(), &executable).unwrap();
+        let ready_path = root.join("visible-window.ready");
+        let stop_path = root.join("visible-window.stop");
+        let mut child = Command::new(&executable)
+            .args([
+                "--exact",
+                "windows_visible_owned_window_fixture_child",
+                "--ignored",
+                "--nocapture",
+            ])
+            .env("CAVALRY_I18N_VISIBLE_WINDOW_READY", &ready_path)
+            .env("CAVALRY_I18N_VISIBLE_WINDOW_STOP", &stop_path)
+            .stdin(Stdio::null())
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .creation_flags(WINDOWS_CREATE_NO_WINDOW)
+            .spawn()
+            .unwrap();
+
+        let deadline = Instant::now() + Duration::from_secs(10);
+        while Instant::now() < deadline {
+            if ready_path.exists() {
+                return Self { child, stop_path };
+            }
+            if let Some(status) = child.try_wait().unwrap() {
+                panic!("visible Cavalry fixture exited before ready: {status}");
+            }
+            thread::sleep(Duration::from_millis(25));
+        }
+        let _ = child.kill();
+        let _ = child.wait();
+        panic!("visible Cavalry fixture did not become ready");
+    }
+
+    fn is_running(&mut self) -> bool {
+        self.child.try_wait().unwrap().is_none()
+    }
+
+    fn main_window_handle(&self) -> isize {
+        let script = format!(
+            "$process = Get-Process -Id {} -ErrorAction Stop; $process.Refresh(); [Console]::Out.Write([int64]$process.MainWindowHandle)",
+            self.child.id()
+        );
+        let output = Command::new("powershell.exe")
+            .args([
+                "-NoLogo",
+                "-NoProfile",
+                "-NonInteractive",
+                "-Command",
+                &script,
+            ])
+            .creation_flags(WINDOWS_CREATE_NO_WINDOW)
+            .output()
+            .unwrap();
+        assert!(
+            output.status.success(),
+            "{}",
+            String::from_utf8_lossy(&output.stderr)
+        );
+        String::from_utf8(output.stdout)
+            .unwrap()
+            .trim()
+            .parse()
+            .unwrap()
+    }
+}
+
+#[cfg(target_os = "windows")]
+impl Drop for VisibleOwnedWindowCavalryProcess {
+    fn drop(&mut self) {
+        let _ = fs::write(&self.stop_path, b"stop");
+        let deadline = Instant::now() + Duration::from_secs(5);
+        while Instant::now() < deadline && self.is_running() {
+            thread::sleep(Duration::from_millis(25));
+        }
+        if self.is_running() {
+            let _ = self.child.kill();
+        }
+        let _ = self.child.wait();
+    }
+}
+
+#[test]
+#[ignore = "fixture child launched only by the visible-window parent contract"]
+#[cfg(target_os = "windows")]
+fn windows_visible_owned_window_fixture_child() {
+    let ready_path = PathBuf::from(
+        std::env::var_os("CAVALRY_I18N_VISIBLE_WINDOW_READY")
+            .expect("fixture requires a ready path"),
+    );
+    let stop_path = PathBuf::from(
+        std::env::var_os("CAVALRY_I18N_VISIBLE_WINDOW_STOP").expect("fixture requires a stop path"),
+    );
+    let class_name = "STATIC\0".encode_utf16().collect::<Vec<_>>();
+    let owner_name = "Cavalry fixture owner\0".encode_utf16().collect::<Vec<_>>();
+    let window_name = "Cavalry visible owned fixture\0"
+        .encode_utf16()
+        .collect::<Vec<_>>();
+
+    let owner = unsafe {
+        CreateWindowExW(
+            WINDOWS_WS_EX_TOOLWINDOW | WINDOWS_WS_EX_NOACTIVATE,
+            class_name.as_ptr(),
+            owner_name.as_ptr(),
+            WINDOWS_WS_OVERLAPPEDWINDOW,
+            0,
+            0,
+            200,
+            120,
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+        )
+    };
+    assert!(!owner.is_null(), "could not create the hidden owner window");
+    let visible = unsafe {
+        CreateWindowExW(
+            WINDOWS_WS_EX_TOOLWINDOW | WINDOWS_WS_EX_NOACTIVATE,
+            class_name.as_ptr(),
+            window_name.as_ptr(),
+            WINDOWS_WS_OVERLAPPEDWINDOW | WINDOWS_WS_VISIBLE,
+            -32000,
+            -32000,
+            320,
+            180,
+            owner,
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+        )
+    };
+    assert!(
+        !visible.is_null(),
+        "could not create the visible owned window"
+    );
+    unsafe {
+        ShowWindow(visible, 4);
+        UpdateWindow(visible);
+    }
+    fs::write(&ready_path, b"ready").unwrap();
+    while !stop_path.exists() {
+        thread::sleep(Duration::from_millis(25));
+    }
+    unsafe {
+        DestroyWindow(visible);
+        DestroyWindow(owner);
     }
 }
 
@@ -401,7 +657,56 @@ fn windows_restart_aborts_before_spawn_when_graceful_close_fails() {
 
 #[test]
 #[cfg(target_os = "windows")]
-fn windows_restart_contract_forbids_forced_termination_and_matches_exact_executable_path() {
+fn windows_close_scopes_windowless_termination_to_the_exact_executable() {
+    let temp = tempfile::tempdir().unwrap();
+    let target_root = temp.path().join("target");
+    let decoy_root = temp.path().join("decoy");
+    let mut target = WindowlessCavalryProcess::spawn(&target_root);
+    let mut decoy = WindowlessCavalryProcess::spawn(&decoy_root);
+    thread::sleep(Duration::from_millis(250));
+    assert!(
+        target.is_running(),
+        "target fixture exited before the close"
+    );
+    assert!(decoy.is_running(), "decoy fixture exited before the close");
+
+    close_cavalry_before_modification(&target_root, &mut RealCommandRunner).unwrap();
+
+    assert!(
+        target.wait_for_exit(Duration::from_secs(5)),
+        "the exact-path windowless Cavalry fixture was not terminated"
+    );
+    assert!(
+        decoy.is_running(),
+        "a same-name Cavalry process from another root must remain alive"
+    );
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_close_preserves_an_exact_process_with_a_visible_owned_window() {
+    let temp = tempfile::tempdir().unwrap();
+    let target_root = temp.path().join("target");
+    let mut target = VisibleOwnedWindowCavalryProcess::spawn(&target_root);
+    assert_eq!(
+        target.main_window_handle(),
+        0,
+        "the fixture must prove MainWindowHandle alone misses its visible owned window"
+    );
+
+    let error =
+        close_cavalry_before_modification(&target_root, &mut RealCommandRunner).unwrap_err();
+
+    assert_eq!(error, CloseCavalryError::StillRunning);
+    assert!(
+        target.is_running(),
+        "a visible exact-path Cavalry process must never be terminated"
+    );
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_restart_contract_limits_scoped_termination_to_exact_windowless_processes() {
     let source = privilege_source_tree();
     let forced_termination = ["Stop", "Process"].join("-");
     let legacy_killer = ["task", "kill"].join("");
@@ -412,6 +717,66 @@ fn windows_restart_contract_forbids_forced_termination_and_matches_exact_executa
     assert!(source.contains("OrdinalIgnoreCase"));
     assert!(source.contains("CloseMainWindow()"));
     assert!(source.contains("WINDOWS_GRACEFUL_CLOSE_TIMEOUT_SECONDS: u64 = 15"));
+    assert!(source.contains("WINDOWS_CAVALRY_STILL_RUNNING_EXIT_CODE: i32 = 45"));
+    assert!(source.contains(
+        "Get-CimInstance Win32_Process -Filter \"Name='Cavalry.exe'\" -ErrorAction Stop"
+    ));
+    assert!(source.contains("if (-not $candidate.ExecutablePath)"));
+    assert!(source.contains("Could not verify Cavalry process"));
+    assert!(source.contains("$Process.Refresh()"));
+    assert!(source.contains("$Process.MainModule.FileName"));
+    assert!(source.contains("$Process.MainWindowHandle -ne [IntPtr]::Zero"));
+    assert!(source.contains("CavalryI18nWindowOracle"));
+    assert!(source.contains("EnumWindows"));
+    assert!(source.contains("GetWindowThreadProcessId"));
+    assert!(source.contains("IsWindowVisible"));
+    assert!(source.contains("DwmGetWindowAttribute"));
+    assert!(source.contains("[CavalryI18nWindowOracle]::HasVisibleWindow([uint32]$Process.Id)"));
+    assert!(source.contains(
+        "$currentSessionId = [int][System.Diagnostics.Process]::GetCurrentProcess().SessionId"
+    ));
+    assert!(source.contains("[int]$candidate.SessionId -ne $currentSessionId"));
+    assert!(source.contains("$actualSessionId -ne $ExpectedSessionId"));
+    assert!(source.contains("exit {WINDOWS_CAVALRY_STILL_RUNNING_EXIT_CODE}"));
+    assert!(source.contains("CloseCavalryError::StillRunning"));
+    assert!(source.contains("[System.Threading.Thread]::Sleep(100)"));
+    assert!(source.contains("$boundProcessHandle = $Process.SafeHandle"));
+    assert!(source.contains(
+        "$null -eq $boundProcessHandle -or $boundProcessHandle.IsClosed -or $boundProcessHandle.IsInvalid"
+    ));
+    assert!(source.contains("[object]::ReferenceEquals($Process.SafeHandle, $ProcessHandle)"));
+    assert!(
+        source.contains(
+            "Test-ExactWindowlessProcess $Process $ProcessHandle $ExpectedExecutable $ExpectedSessionId"
+        )
+    );
+    assert!(source.contains("$Process.Kill()"));
+    assert!(!source.contains("$Process.Kill($true)"));
+    let bound_handle = source
+        .find("$boundProcessHandle = $Process.SafeHandle")
+        .expect("the Process object must pin its native handle");
+    let exact_path_revalidation = source
+        .find(
+            "if (-not (Test-ExactProcessPath $Process $boundProcessHandle $ExpectedExecutable $ExpectedSessionId))",
+        )
+        .expect("the Process object must be path-verified before graceful close");
+    let graceful_close = source
+        .find("if (-not $Process.CloseMainWindow())")
+        .expect("the exact Process object must receive the graceful close");
+    let visible_window_oracle = source
+        .find("[CavalryI18nWindowOracle]::HasVisibleWindow([uint32]$Process.Id)")
+        .expect("the exact PID must be checked for visible windows");
+    let scoped_kill = source
+        .find("$Process.Kill()")
+        .expect("the exact windowless process may be terminated");
+    assert!(
+        bound_handle < exact_path_revalidation && exact_path_revalidation < graceful_close,
+        "one retained native handle must span path verification and graceful close"
+    );
+    assert!(
+        visible_window_oracle < scoped_kill,
+        "the exact-PID visible-window oracle must guard every scoped termination"
+    );
     assert!(!source.contains(&forced_termination));
     assert!(!source.to_ascii_lowercase().contains(&legacy_killer));
 }

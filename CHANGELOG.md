@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Windows Runner-Built Injector Provenance**: Windows builds now produce the generic translator and QPA delegate together; Tauri resources, NSIS provenance, configuration contracts, and isolated installed-package checks bind both x64 DLLs while continuing to reject a bundled second Qt runtime.
 
 ### Fixed
+- **Safe Windows Close Retry**: Language changes on Program Files and arbitrary writable roots now distinguish any current-session exact-PID visible Cavalry window from transaction failures. The switcher leaves the installation untouched, asks users in English, Simplified Chinese, Traditional Chinese, or Japanese to save and close Cavalry, rejects cross-session instances, and only terminates the bound exact-path process after two visible-window oracle passes.
 - **Smoother Node Restoration**: Restored the real Cavalry 2.7.2 `smoother.smoothingSteps` node across English, Simplified Chinese, Traditional Chinese, and Japanese after byte-identical `nodeStrings.json` files from the macOS DMG and Windows installation disproved the earlier orphan-node assumption; keyed overlays preserve this and future installed nodes.
 - **Windows Qt SDK Preparation**: Replaced the macOS-only clean-machine SDK resolver contract with one Cavalry/Qt version source and explicit macOS `clang_64` / Windows `msvc2019_64` projections, so Windows CI and local builds cannot install the wrong Qt architecture.
 

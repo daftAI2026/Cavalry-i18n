@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 OS-known Program Files、固定 JSON 映射、Windows runtime 打包源、QPA transition 合同与 same-EXE RunAs launcher。
- * [OUTPUT]: 提供 Program Files 早分流、严格 payload staging、已证明 Noop 的零 UAC 快路、单次 UAC 调用，以及启动前/启动后错误与退出码的结构化结果。
+ * [OUTPUT]: 提供 Program Files 早分流、严格 payload staging、已证明 Noop 的零 UAC 快路、单次 UAC 调用，以及启动前/启动后错误、事务状态与 Cavalry 仍运行的可重试结果。
  * [POS]: language_transaction 的非提权父进程；只准备 hash-locked 计划并等待 worker，绝不关闭 Cavalry、写状态、重启或直接修改安装根。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -25,7 +25,7 @@ use super::{
     contract::{
         serialize_plan, ElevatedLanguagePlan, Language, PayloadKind, WorkerTransport,
         FINAL_MARKER_ID, GENERIC_PLUGIN_ID, PENDING_MARKER_ID, PLAN_SCHEMA_VERSION,
-        QPA_PROXY_SOURCE_ID, WORKER_EXIT_COMMITTED_CLEAN,
+        QPA_PROXY_SOURCE_ID, WORKER_EXIT_CAVALRY_STILL_RUNNING, WORKER_EXIT_COMMITTED_CLEAN,
         WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL,
         WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN, WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN,
     },
@@ -82,6 +82,9 @@ pub(crate) enum ParentApplyError {
     WorkerRolledBack {
         staging_cleanup_warning: Option<String>,
     },
+    CavalryStillRunning {
+        staging_cleanup_warning: Option<String>,
+    },
     WorkerStateUncertain {
         staging_cleanup_warning: Option<String>,
     },
@@ -110,6 +113,13 @@ impl fmt::Display for ParentApplyError {
             } => write_with_cleanup(
                 formatter,
                 "The elevated Windows language transaction failed and restored its exact preimage.",
+                staging_cleanup_warning,
+            ),
+            Self::CavalryStillRunning {
+                staging_cleanup_warning,
+            } => write_with_cleanup(
+                formatter,
+                "Cavalry is still running. Save your work, close Cavalry, and try again. The Cavalry installation was not changed.",
                 staging_cleanup_warning,
             ),
             Self::WorkerStateUncertain {
@@ -316,6 +326,13 @@ where
             let staging_cleanup_warning =
                 cleanup_directory(request.staging_root, &prepared.directory).err();
             Err(ParentApplyError::WorkerRolledBack {
+                staging_cleanup_warning,
+            })
+        }
+        WORKER_EXIT_CAVALRY_STILL_RUNNING => {
+            let staging_cleanup_warning =
+                cleanup_directory(request.staging_root, &prepared.directory).err();
+            Err(ParentApplyError::CavalryStillRunning {
                 staging_cleanup_warning,
             })
         }
@@ -732,6 +749,11 @@ fn finalize_outer_cleanup(
         Err(ParentApplyError::WorkerRolledBack {
             staging_cleanup_warning,
         }) => Err(ParentApplyError::WorkerRolledBack {
+            staging_cleanup_warning: merge_warnings(staging_cleanup_warning, warning),
+        }),
+        Err(ParentApplyError::CavalryStillRunning {
+            staging_cleanup_warning,
+        }) => Err(ParentApplyError::CavalryStillRunning {
             staging_cleanup_warning: merge_warnings(staging_cleanup_warning, warning),
         }),
         Err(ParentApplyError::WorkerStateUncertain {

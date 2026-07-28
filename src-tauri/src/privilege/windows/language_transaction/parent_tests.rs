@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 parent 的可注入 QPA/launcher/postcondition seam 与 tempfile Windows fixture。
- * [OUTPUT]: 覆盖 Program Files 早分流、严格目标映射、AlreadyStock 零 UAC、单次 UAC、取消零目标写入、source provenance E2E 及 0/42/43/44/未知退出语义。
+ * [OUTPUT]: 覆盖 Program Files 早分流、严格目标映射、AlreadyStock 零 UAC、单次 UAC、取消零目标写入、source provenance E2E 及 0/42/43/44/45/未知退出语义。
  * [POS]: language_transaction parent 的隔离合同测试；不调用真实 UAC、不写真实 Program Files，并挂接真实 patch→stage→verifier 子合同。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -530,11 +530,17 @@ fn missing_root_qwindows_rejects_vendor_preserved_noop_without_uac() {
 }
 
 #[test]
-fn rolled_back_uncertain_and_unknown_exit_codes_never_report_success() {
+fn retryable_rolled_back_uncertain_and_unknown_exit_codes_never_report_success() {
     for (exit, expected) in [
         (
             WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN,
             ParentApplyError::WorkerRolledBack {
+                staging_cleanup_warning: None,
+            },
+        ),
+        (
+            WORKER_EXIT_CAVALRY_STILL_RUNNING,
+            ParentApplyError::CavalryStillRunning {
                 staging_cleanup_warning: None,
             },
         ),
