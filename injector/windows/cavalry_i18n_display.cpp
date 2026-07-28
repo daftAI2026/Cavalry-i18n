@@ -1,13 +1,15 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_display.h、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、工具栏逐行 tooltip、已知基名数字后缀、selected 与离线认证倒计时 QLabel 投影、QComboBox 可见项和动态英文写回后的同步恢复
- * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态文案仅落在 QLabel text，隔离 UserRole、currentIndex、QLineEdit 与通用 item model
+ * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context 策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 模板、单索引 QPlainTextEdit 占位文字和动态英文写回恢复
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性与已采证父系/对话框来源，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
 
 #include "cavalry_i18n_dynamic_label.h"
 #include "cavalry_i18n_translator.h"
+
+#include "../cavalry_i18n_translation_policy.h"
 
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QPointer>
@@ -16,10 +18,12 @@
 #include <QtGui/QAction>
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QTabBar>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QWidget>
@@ -74,6 +78,184 @@ QString normalizedDisplaySource(const QString &source)
     }
 
     return cleaned.simplified();
+}
+
+bool isCanonicalNonNegativeInteger(const QString &value)
+{
+    bool parsed = false;
+    const int integer = value.toInt(&parsed, 10);
+    return parsed && integer >= 0 && QString::number(integer) == value;
+}
+
+bool hasAncestorClass(const QObject *object, const char *className)
+{
+    if (object == nullptr || className == nullptr) {
+        return false;
+    }
+    for (const QObject *candidate = object;
+         candidate != nullptr;
+         candidate = candidate->parent()) {
+        if (candidate->inherits(className)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool isColorSettingsCombo(
+    CavalryEmbeddedTranslator &translator,
+    QObject *object)
+{
+    auto *comboBox = qobject_cast<QComboBox *>(object);
+    if (comboBox == nullptr) {
+        return false;
+    }
+    auto *dialog = qobject_cast<QDialog *>(comboBox->window());
+    if (dialog == nullptr) {
+        return false;
+    }
+
+    static const QString kSourceTitle =
+        QStringLiteral("Color Settings");
+    const QString title = dialog->windowTitle();
+    if (title == kSourceTitle) {
+        return true;
+    }
+    const QString translatedTitle =
+        translator.translate(nullptr, "Color Settings");
+    return !translatedTitle.isEmpty() && title == translatedTitle;
+}
+
+QString translatedExactTemplate(
+    CavalryEmbeddedTranslator &translator,
+    const char *context,
+    const char *sourceTemplate,
+    const QString &value)
+{
+    const QString translated =
+        translator.translate(context, sourceTemplate);
+    return translated.contains(QStringLiteral("%1"))
+        ? translated.arg(value)
+        : QString();
+}
+
+QString colorSettingsComboTranslation(
+    CavalryEmbeddedTranslator &translator,
+    const QString &source)
+{
+    static const QString kPrefix = QStringLiteral("Automatic (");
+    if (!source.startsWith(kPrefix) || !source.endsWith(QChar(')'))) {
+        return QString();
+    }
+
+    const QString value =
+        source.mid(kPrefix.size(), source.size() - kPrefix.size() - 1);
+    if (value.isEmpty() || value != value.trimmed()
+        || value.contains(QChar('\r')) || value.contains(QChar('\n'))) {
+        return QString();
+    }
+
+    return translatedExactTemplate(
+        translator,
+        cavalry_i18n::kColorSettingsContext,
+        cavalry_i18n::kColorSettingsAutomaticSource,
+        value);
+}
+
+QString meshExplorerLabelTranslation(
+    CavalryEmbeddedTranslator &translator,
+    const QString &source)
+{
+    const QString indexPrefix =
+        QString::fromUtf8(cavalry_i18n::kMeshExplorerIndexPrefixSource);
+    if (source.startsWith(indexPrefix)) {
+        const QString value = source.mid(indexPrefix.size());
+        if (!isCanonicalNonNegativeInteger(value)) {
+            return QString();
+        }
+        const QString translatedPrefix = translator.translate(
+            cavalry_i18n::kMeshExplorerContext,
+            cavalry_i18n::kMeshExplorerIndexPrefixSource);
+        return translatedPrefix.isEmpty()
+            ? QString()
+            : translatedPrefix + value;
+    }
+
+    const auto translateCount =
+        [&translator, &source](
+            const QString &prefix,
+            const char *sourceTemplate) -> QString {
+        if (!source.startsWith(prefix)) {
+            return QString();
+        }
+        const QString value = source.mid(prefix.size());
+        return isCanonicalNonNegativeInteger(value)
+            ? translatedExactTemplate(
+                  translator,
+                  cavalry_i18n::kMeshExplorerContext,
+                  sourceTemplate,
+                  value)
+            : QString();
+    };
+
+    QString translated = translateCount(
+        QStringLiteral("Points: "),
+        cavalry_i18n::kMeshExplorerPointsSource);
+    if (!translated.isEmpty()) {
+        return translated;
+    }
+    translated = translateCount(
+        QStringLiteral("Verbs: "),
+        cavalry_i18n::kMeshExplorerVerbsSource);
+    if (!translated.isEmpty()) {
+        return translated;
+    }
+    return translateCount(
+        QStringLiteral("Child Meshes: "),
+        cavalry_i18n::kMeshExplorerChildMeshesSource);
+}
+
+QString singleIndexPlaceholderTranslation(
+    CavalryEmbeddedTranslator &translator,
+    const QString &source)
+{
+    if (source
+        != QString::fromUtf8(
+            cavalry_i18n::kSingleIndexPlaceholderSource)) {
+        return QString();
+    }
+    return translator.translate(
+        cavalry_i18n::kSingleIndexContext,
+        cavalry_i18n::kSingleIndexPlaceholderSource);
+}
+
+QString controlledDynamicTranslation(
+    CavalryEmbeddedTranslator &translator,
+    QObject *object,
+    const QByteArray &property,
+    const QString &source)
+{
+    if (property == QByteArrayLiteral("text")
+        && qobject_cast<QLabel *>(object) != nullptr) {
+        QString translated =
+            cavalryI18nDynamicLabelTranslation(source, translator.language());
+        if (!translated.isEmpty()) {
+            return translated;
+        }
+        return hasAncestorClass(object, "MeshExplorerRowWidget")
+            ? meshExplorerLabelTranslation(translator, source)
+            : QString();
+    }
+    if (property.startsWith(QByteArrayLiteral("comboDisplay:"))
+        && isColorSettingsCombo(translator, object)) {
+        return colorSettingsComboTranslation(translator, source);
+    }
+    if (property == QByteArrayLiteral("plainTextPlaceholder")
+        && qobject_cast<QPlainTextEdit *>(object) != nullptr
+        && hasAncestorClass(object, "AttributeEditorWindow")) {
+        return singleIndexPlaceholderTranslation(translator, source);
+    }
+    return QString();
 }
 
 } // namespace
@@ -268,6 +450,10 @@ void CavalryDisplayTranslator::translateWidgetText(QWidget *widget)
         hookLineEdit(lineEdit);
         translateLineEditDisplay(lineEdit);
     } else if (
+        auto *plainTextEdit =
+            qobject_cast<QPlainTextEdit *>(guardedWidget.data())) {
+        translatePlainTextEditDisplay(plainTextEdit);
+    } else if (
         auto *comboBox = qobject_cast<QComboBox *>(guardedWidget.data())) {
         translateComboBoxDisplay(comboBox);
     } else if (
@@ -433,11 +619,12 @@ void CavalryDisplayTranslator::applyTranslation(
     }
 
     QString translated = translationFor(current);
-    if (translated.isEmpty()
-        && property == QByteArrayLiteral("text")
-        && qobject_cast<QLabel *>(object) != nullptr) {
-        translated =
-            cavalryI18nDynamicLabelTranslation(current, translator_.language());
+    if (translated.isEmpty()) {
+        translated = controlledDynamicTranslation(
+            translator_,
+            object,
+            property,
+            current);
     }
     if (translated.isEmpty() || translated == current) {
         return;
@@ -674,6 +861,25 @@ void CavalryDisplayTranslator::translateLineEditDisplay(QLineEdit *lineEdit)
         [guardedLineEdit](const QString &value) {
             if (!guardedLineEdit.isNull()) {
                 guardedLineEdit->setPlaceholderText(value);
+            }
+        });
+}
+
+void CavalryDisplayTranslator::translatePlainTextEditDisplay(
+    QPlainTextEdit *plainTextEdit)
+{
+    if (plainTextEdit == nullptr) {
+        return;
+    }
+
+    const QPointer<QPlainTextEdit> guardedPlainTextEdit(plainTextEdit);
+    applyTranslation(
+        plainTextEdit,
+        QByteArrayLiteral("plainTextPlaceholder"),
+        plainTextEdit->placeholderText(),
+        [guardedPlainTextEdit](const QString &value) {
+            if (!guardedPlainTextEdit.isNull()) {
+                guardedPlainTextEdit->setPlaceholderText(value);
             }
         });
 }

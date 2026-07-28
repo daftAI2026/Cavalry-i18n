@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定 ToolBox/普通 Qt 残留动作与占位符、CogTool Pitch context-only 隔离、selected 与离线认证倒计时 QLabel 投影、LineTool 精确冒号/尾随空白标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
- * [POS]: injector/windows 的显示层单元回归，证明复合提示与动态文案只改受控显示文本，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
+ * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树、QLineEdit 与 QPlainTextEdit
+ * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/单索引动态模板、CogTool context-only 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
+ * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系与显示属性，且通用规则不会改写编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -17,14 +17,33 @@
 #include <QtGui/QStandardItemModel>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
+#include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QTreeWidget>
+#include <QtWidgets/QWidget>
 
 #include <algorithm>
 #include <cstdio>
 
 namespace {
+
+class AttributeEditorWindow final : public QWidget
+{
+    Q_OBJECT
+
+public:
+    using QWidget::QWidget;
+};
+
+class MeshExplorerRowWidget final : public QWidget
+{
+    Q_OBJECT
+
+public:
+    using QWidget::QWidget;
+};
 
 class RoleRecordingModel final : public QStandardItemModel
 {
@@ -52,6 +71,8 @@ struct LocaleExpectation
     const char *defaultKeyframeLayer;
     const char *toolBox;
     const char *exitAction;
+    const char *automaticColorSpace;
+    const char *singleIndexPlaceholder;
 };
 
 bool fail(const QString &message)
@@ -257,13 +278,78 @@ bool verifyLineEditDisplay(const LocaleExpectation &expectation)
         lineEdit.setText(QStringLiteral("Default Keyframe Layer"));
     }
     displayTranslator.translatePaintWidget(&lineEdit);
-    return expectEqual(
-               language + QStringLiteral(" line edit paint fallback"),
-               lineEdit.text(),
-               defaultKeyframeLayer)
-        && expectTrue(
+    if (!expectEqual(
+            language + QStringLiteral(" line edit paint fallback"),
+            lineEdit.text(),
+            defaultKeyframeLayer)
+        || !expectTrue(
             language + QStringLiteral(" line edit paint signal isolation"),
-            emittedTexts.size() == signalCountBeforePaintFallback);
+            emittedTexts.size() == signalCountBeforePaintFallback)) {
+        return false;
+    }
+
+    const QString singleIndexSource =
+        QStringLiteral("Enter an index, e.g: 0");
+    const QString documentText =
+        QStringLiteral("Enter an index, e.g: 0\nUser-authored document");
+    QPlainTextEdit unrelatedPlainTextEdit;
+    unrelatedPlainTextEdit.setPlainText(documentText);
+    unrelatedPlainTextEdit.setPlaceholderText(singleIndexSource);
+    displayTranslator.translateWidget(&unrelatedPlainTextEdit);
+    if (!expectEqual(
+            language + QStringLiteral(
+                " unrelated plain-text placeholder isolation"),
+            unrelatedPlainTextEdit.placeholderText(),
+            singleIndexSource)
+        || !expectEqual(
+            language + QStringLiteral(
+                " unrelated plain-text document isolation"),
+            unrelatedPlainTextEdit.toPlainText(),
+            documentText)) {
+        return false;
+    }
+
+    AttributeEditorWindow attributeEditorWindow;
+    QPlainTextEdit plainTextEdit(&attributeEditorWindow);
+    plainTextEdit.setPlainText(documentText);
+    plainTextEdit.setPlaceholderText(singleIndexSource);
+    displayTranslator.translateWidget(&plainTextEdit);
+    if (!expectEqual(
+            language + QStringLiteral(" plain-text exact placeholder"),
+            plainTextEdit.placeholderText(),
+            QString::fromUtf8(expectation.singleIndexPlaceholder))
+        || !expectEqual(
+            language + QStringLiteral(" plain-text document isolation"),
+            plainTextEdit.toPlainText(),
+            documentText)) {
+        return false;
+    }
+
+    const QString customPlaceholder =
+        QStringLiteral("Custom user placeholder");
+    plainTextEdit.setPlaceholderText(customPlaceholder);
+    displayTranslator.translatePaintWidget(&plainTextEdit);
+    if (!expectEqual(
+            language + QStringLiteral(" plain-text unknown placeholder"),
+            plainTextEdit.placeholderText(),
+            customPlaceholder)
+        || !expectEqual(
+            language + QStringLiteral(" plain-text unknown document isolation"),
+            plainTextEdit.toPlainText(),
+            documentText)) {
+        return false;
+    }
+
+    plainTextEdit.setPlaceholderText(singleIndexSource);
+    displayTranslator.translatePaintWidget(&plainTextEdit);
+    return expectEqual(
+               language + QStringLiteral(" plain-text dynamic rewrite"),
+               plainTextEdit.placeholderText(),
+               QString::fromUtf8(expectation.singleIndexPlaceholder))
+        && expectEqual(
+            language + QStringLiteral(" plain-text dynamic document isolation"),
+            plainTextEdit.toPlainText(),
+            documentText);
 }
 
 bool verifyCompoundRuntimeTooltips(const LocaleExpectation &expectation)
@@ -658,12 +744,88 @@ bool verifyDynamicLabelTranslations(const LocaleExpectation &expectation)
     dynamicLabel.setText(
         QStringLiteral("67890 selected"));
     displayTranslator.translatePaintWidget(&dynamicLabel);
+    if (!expectEqual(
+            language + QStringLiteral(" dynamic QLabel English rewrite"),
+            dynamicLabel.text(),
+            cavalryI18nDynamicLabelTranslation(
+                QStringLiteral("67890 selected"),
+                language))) {
+        return false;
+    }
+
+    QLabel unrelatedMeshText(QStringLiteral("Points: 12"));
+    displayTranslator.translateWidget(&unrelatedMeshText);
+    if (!expectEqual(
+            language + QStringLiteral(
+                " unrelated Mesh Explorer text isolation"),
+            unrelatedMeshText.text(),
+            QStringLiteral("Points: 12"))) {
+        return false;
+    }
+
+    MeshExplorerRowWidget meshExplorerRow;
+    QLabel meshIndex(QStringLiteral("Index: 7"), &meshExplorerRow);
+    QLabel meshPoints(QStringLiteral("Points: 12"), &meshExplorerRow);
+    QLabel meshVerbs(QStringLiteral("Verbs: 34"), &meshExplorerRow);
+    QLabel childMeshes(
+        QStringLiteral("Child Meshes: 56"),
+        &meshExplorerRow);
+    QLabel leadingZeroNearMiss(
+        QStringLiteral("Points: 01"),
+        &meshExplorerRow);
+    QLineEdit modelBoundMeshText(QStringLiteral("Points: 12"));
+    for (QLabel *label
+         : { &meshIndex,
+             &meshPoints,
+             &meshVerbs,
+             &childMeshes,
+             &leadingZeroNearMiss }) {
+        displayTranslator.translateWidget(label);
+    }
+    displayTranslator.translateWidget(&modelBoundMeshText);
+    if (!expectEqual(
+            language + QStringLiteral(" Mesh Explorer index"),
+            meshIndex.text(),
+            translator.translate(
+                "MeshExplorerRowWidget",
+                "Index: ") + QStringLiteral("7"))
+        || !expectEqual(
+            language + QStringLiteral(" Mesh Explorer points"),
+            meshPoints.text(),
+            translator.translate(
+                "MeshExplorerRowWidget",
+                "Points: %1").arg(12))
+        || !expectEqual(
+            language + QStringLiteral(" Mesh Explorer verbs"),
+            meshVerbs.text(),
+            translator.translate(
+                "MeshExplorerRowWidget",
+                "Verbs: %1").arg(34))
+        || !expectEqual(
+            language + QStringLiteral(" Mesh Explorer child meshes"),
+            childMeshes.text(),
+            translator.translate(
+                "MeshExplorerRowWidget",
+                "Child Meshes: %1").arg(56))
+        || !expectEqual(
+            language + QStringLiteral(" Mesh Explorer leading-zero rejection"),
+            leadingZeroNearMiss.text(),
+            QStringLiteral("Points: 01"))
+        || !expectEqual(
+            language + QStringLiteral(" Mesh Explorer QLineEdit isolation"),
+            modelBoundMeshText.text(),
+            QStringLiteral("Points: 12"))) {
+        return false;
+    }
+
+    meshPoints.setText(QStringLiteral("Points: 99"));
+    displayTranslator.translatePaintWidget(&meshPoints);
     return expectEqual(
-        language + QStringLiteral(" dynamic QLabel English rewrite"),
-        dynamicLabel.text(),
-        cavalryI18nDynamicLabelTranslation(
-            QStringLiteral("67890 selected"),
-            language));
+        language + QStringLiteral(" Mesh Explorer dynamic rewrite"),
+        meshPoints.text(),
+        translator.translate(
+            "MeshExplorerRowWidget",
+            "Points: %1").arg(99));
 }
 
 bool verifyLocale(const LocaleExpectation &expectation)
@@ -735,6 +897,12 @@ bool verifyLocale(const LocaleExpectation &expectation)
     comboBox.addItem(
         QStringLiteral("My Custom Shape"),
         QStringLiteral("custom-identity"));
+    comboBox.addItem(
+        QStringLiteral("Automatic (sRGB)"),
+        QStringLiteral("automatic-srgb-identity"));
+    comboBox.addItem(
+        QStringLiteral("Automatic(sRGB)"),
+        QStringLiteral("automatic-near-miss-identity"));
     comboBox.setCurrentIndex(2);
     model.writtenRoles.clear();
 
@@ -753,6 +921,15 @@ bool verifyLocale(const LocaleExpectation &expectation)
             comboBox.itemText(2),
             QStringLiteral("My Custom Shape"))
         || !expectEqual(
+            language + QStringLiteral(
+                " unrelated Automatic combo isolation"),
+            comboBox.itemText(3),
+            QStringLiteral("Automatic (sRGB)"))
+        || !expectEqual(
+            language + QStringLiteral(" Automatic near-miss display"),
+            comboBox.itemText(4),
+            QStringLiteral("Automatic(sRGB)"))
+        || !expectEqual(
             language + QStringLiteral(" Rectangle identity"),
             comboBox.itemData(0, Qt::UserRole).toString(),
             QStringLiteral("rectangle-identity"))
@@ -760,6 +937,14 @@ bool verifyLocale(const LocaleExpectation &expectation)
             language + QStringLiteral(" Circle identity"),
             comboBox.itemData(1, Qt::UserRole).toString(),
             QStringLiteral("circle-identity"))
+        || !expectEqual(
+            language + QStringLiteral(" Automatic color-space identity"),
+            comboBox.itemData(3, Qt::UserRole).toString(),
+            QStringLiteral("automatic-srgb-identity"))
+        || !expectEqual(
+            language + QStringLiteral(" Automatic near-miss identity"),
+            comboBox.itemData(4, Qt::UserRole).toString(),
+            QStringLiteral("automatic-near-miss-identity"))
         || !expectTrue(
             language + QStringLiteral(" currentIndex"),
             comboBox.currentIndex() == 2)
@@ -806,6 +991,77 @@ bool verifyLocale(const LocaleExpectation &expectation)
         return false;
     }
 
+    QDialog colorSettingsDialog;
+    colorSettingsDialog.setWindowTitle(
+        QStringLiteral("Color Settings"));
+    QComboBox colorSettingsCombo(&colorSettingsDialog);
+    RoleRecordingModel colorSettingsModel;
+    colorSettingsCombo.setModel(&colorSettingsModel);
+    colorSettingsCombo.addItem(
+        QStringLiteral("Automatic (sRGB)"),
+        QStringLiteral("automatic-srgb-identity"));
+    colorSettingsCombo.addItem(
+        QStringLiteral("Automatic(sRGB)"),
+        QStringLiteral("automatic-near-miss-identity"));
+    colorSettingsCombo.setCurrentIndex(1);
+    colorSettingsModel.writtenRoles.clear();
+    displayTranslator.translateWidget(&colorSettingsCombo);
+    if (!expectEqual(
+            language + QStringLiteral(" Color Settings Automatic display"),
+            colorSettingsCombo.itemText(0),
+            QString::fromUtf8(expectation.automaticColorSpace))
+        || !expectEqual(
+            language + QStringLiteral(
+                " Color Settings Automatic near-miss"),
+            colorSettingsCombo.itemText(1),
+            QStringLiteral("Automatic(sRGB)"))
+        || !expectEqual(
+            language + QStringLiteral(" Color Settings Automatic identity"),
+            colorSettingsCombo.itemData(0, Qt::UserRole).toString(),
+            QStringLiteral("automatic-srgb-identity"))
+        || !expectTrue(
+            language + QStringLiteral(
+                " Color Settings Automatic currentIndex"),
+            colorSettingsCombo.currentIndex() == 1)
+        || !expectTrue(
+            language + QStringLiteral(
+                " Color Settings Automatic DisplayRole-only write"),
+            colorSettingsModel.writtenRoles.size() == 1
+                && colorSettingsModel.writtenRoles.constFirst()
+                    == Qt::DisplayRole)) {
+        return false;
+    }
+
+    colorSettingsModel.setData(
+        colorSettingsModel.index(
+            0,
+            colorSettingsCombo.modelColumn()),
+        QStringLiteral("Automatic (sRGB)"),
+        Qt::DisplayRole);
+    colorSettingsModel.writtenRoles.clear();
+    colorSettingsDialog.setWindowTitle(
+        translator.translate(nullptr, "Color Settings"));
+    displayTranslator.translatePaintWidget(&colorSettingsCombo);
+    if (!expectEqual(
+            language + QStringLiteral(" dynamic Automatic rewrite"),
+            colorSettingsCombo.itemText(0),
+            QString::fromUtf8(expectation.automaticColorSpace))
+        || !expectEqual(
+            language + QStringLiteral(" dynamic Automatic identity"),
+            colorSettingsCombo.itemData(0, Qt::UserRole).toString(),
+            QStringLiteral("automatic-srgb-identity"))
+        || !expectTrue(
+            language + QStringLiteral(" dynamic Automatic currentIndex"),
+            colorSettingsCombo.currentIndex() == 1)
+        || !expectTrue(
+            language + QStringLiteral(
+                " dynamic Automatic DisplayRole-only write"),
+            colorSettingsModel.writtenRoles.size() == 1
+                && colorSettingsModel.writtenRoles.constFirst()
+                    == Qt::DisplayRole)) {
+        return false;
+    }
+
     return verifyCompoundRuntimeTooltips(expectation)
         && verifyEvidencedResidualWidgets(language)
         && verifyDynamicLabelTranslations(expectation)
@@ -820,9 +1076,9 @@ int main(int argc, char *argv[])
     QApplication application(argc, argv);
 
     const LocaleExpectation expectations[] {
-        { "zh-Hans", "合成", "矩形", "圆形", "默认关键帧图层", "工具箱", "退出" },
-        { "zh-Hant", "合成", "矩形", "圓形", "預設關鍵影格圖層", "工具箱", "結束" },
-        { "ja_JP", "コンポジション", "長方形", "円", "既定キーフレームレイヤー", "ツールボックス", "終了" },
+        { "zh-Hans", "合成", "矩形", "圆形", "默认关键帧图层", "工具箱", "退出", "自动（sRGB）", "输入索引，例如：0" },
+        { "zh-Hant", "合成", "矩形", "圓形", "預設關鍵影格圖層", "工具箱", "結束", "自動（sRGB）", "輸入索引，例如：0" },
+        { "ja_JP", "コンポジション", "長方形", "円", "既定キーフレームレイヤー", "ツールボックス", "終了", "自動（sRGB）", "インデックスを入力（例：0）" },
     };
 
     for (const LocaleExpectation &expectation : expectations) {
@@ -833,3 +1089,5 @@ int main(int argc, char *argv[])
 
     return 0;
 }
+
+#include "cavalry_i18n_display_test.moc"

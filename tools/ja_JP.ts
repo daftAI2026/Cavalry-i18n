@@ -8587,6 +8587,21 @@
     <message><source>Velocity Presets (*.json)</source><translation>速度プリセット (*.json)</translation></message>
   </context>
   <context>
+    <name>ColorSettingsDialog</name>
+    <message><source>Automatic (%1)</source><translation>自動（%1）</translation></message>
+  </context>
+  <context>
+    <name>acrStringSingleIndex</name>
+    <message><source>Enter an index, e.g: 0</source><translation>インデックスを入力（例：0）</translation></message>
+  </context>
+  <context>
+    <name>MeshExplorerRowWidget</name>
+    <message><source xml:space="preserve">Index: </source><translation>インデックス：</translation></message>
+    <message><source>Points: %1</source><translation>ポイント数：%1</translation></message>
+    <message><source>Verbs: %1</source><translation>描画命令：%1</translation></message>
+    <message><source>Child Meshes: %1</source><translation>子メッシュ数：%1</translation></message>
+  </context>
+  <context>
     <name>MeshToolSettings</name>
     <message><source xml:space="preserve">Soft Selection: </source><translation xml:space="preserve">ソフト選択： </translation></message>
     <message><source xml:space="preserve">Soft Selection Size: </source><translation xml:space="preserve">ソフト選択サイズ： </translation></message>

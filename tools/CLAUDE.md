@@ -122,5 +122,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-27: Windows NSIS 固定内置 English/SimpChinese/TradChinese/Japanese，直接跟随系统 UI 语言并以 English 兜底；安装器复用现有 ico，明确不把尺寸/格式不匹配的 DMG 背景伪装成 header/sidebar 品牌资产。
 2026-07-28: `LineToolSettings` 的 `Stroke Width: ` 与 `Cap Style: ` 按 Cavalry 2.7.2 `ExtensionLayer.dll` 唯一真实字面量改为精确冒号/尾随空格源，三语 TS、生成表及 Windows 显示/translator 合同共同拒绝旧的无冒号假表面。
 2026-07-28: Windows 2.7.2 二进制调用链确认的普通 Qt 残留按现有 translator/display 边界补入三语：`Bookmark %1`、`Boundary Color`、两条绑定占位符、Velocity Preset 动作/过滤器及上下文动作；动态值保留 `%1`，无需扩大 ExtensionLayer 自绘 hook。
+2026-07-28: Windows 2.7.2 二进制确认 `Automatic (%1)` 经 Color Settings QComboBox DisplayRole、四条 Mesh Explorer 整数模板经 QLabel factory、`Enter an index, e.g: 0` 经 `acrStringSingleIndex` 的 QPlainTextEdit 占位属性；三语 TS 与 exact-context 策略之外，运行时还要求 `Color Settings` 对话框、`MeshExplorerRowWidget` 或 `AttributeEditorWindow` 父系，编辑器正文、模型角色、近似文本及无关同文控件保持原值。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

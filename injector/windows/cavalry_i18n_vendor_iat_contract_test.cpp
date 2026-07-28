@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖指定 Cavalry 安装根的 ExtensionLayer.dll/CavalryUI.dll/Core.dll/skia.dll 只读 PE 文件、PE/IAT 解析器与 MessageBar/text-path 静态合同分片
- * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 helper IAT、CavalryUI 导出、placeholder setter 链、selected-count QLabel 数据流、MessageBar append、ExtensionLayer 调用点及 Core/Skia CJK Path ABI
+ * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 ExtensionLayer/CavalryUI PE 身份及漂移拒绝、helper IAT、CavalryUI 导出、placeholder setter 链、selected-count 与来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox、单索引 QPlainTextEdit、MessageBar append、ExtensionLayer 调用点及 Core/Skia CJK Path ABI
  * [POS]: injector/windows 的 vendor 静态 ABI/import 合同；不加载、执行、修改或复制厂商 DLL，只把原始 PE 文件映射到测试内存
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cstddef>
 #include <cstdint>
 #include <cstdio>
 #include <cstring>
@@ -40,6 +41,16 @@ constexpr char kSetPlaceholderSymbol[] =
 constexpr char kQtWidgetsImportName[] = "Qt6Widgets.dll";
 constexpr char kQLabelSetTextSymbol[] =
     "?setText@QLabel@@QEAAXAEBVQString@@@Z";
+constexpr char kQLabelTextConstructorSymbol[] =
+    "??0QLabel@@QEAA@AEBVQString@@PEAVQWidget@@V?$QFlags@W4WindowType@Qt@@@@@Z";
+constexpr char kQComboBoxInsertItemSymbol[] =
+    "?insertItem@QComboBox@@QEAAXHAEBVQIcon@@AEBVQString@@AEBVQVariant@@@Z";
+constexpr char kQPlainTextEditSetPlaceholderSymbol[] =
+    "?setPlaceholderText@QPlainTextEdit@@QEAAXAEBVQString@@@Z";
+constexpr std::uint32_t kExtensionLayerTimestamp = 0x6A0300E0;
+constexpr std::size_t kExtensionLayerImageSize = 0x01BBE000;
+constexpr std::uint32_t kCavalryUiTimestamp = 0x6A0300B6;
+constexpr std::size_t kCavalryUiImageSize = 0x002AF000;
 constexpr std::size_t kExpectedTextAtWidgetCentreIatRva = 0x01B26D68;
 constexpr std::size_t kExpectedQStringAssignmentIatRva = 0x01B2C860;
 constexpr std::uintptr_t kExpectedQStringAssignmentNameRva = 0x01B7CBD2;
@@ -57,6 +68,35 @@ constexpr std::size_t kSelectedCountLiteralLeaRva = 0x00E8161A;
 constexpr std::size_t kSelectedCountSetTextCallRva = 0x00E816A0;
 constexpr std::size_t kSelectedCountSetTextReturnRva = 0x00E816A6;
 constexpr std::size_t kExpectedQLabelSetTextIatRva = 0x01B2F6A0;
+constexpr std::size_t kExpectedQLabelTextConstructorIatRva = 0x01B2F478;
+constexpr std::size_t kExpectedQComboBoxInsertItemIatRva = 0x01B2EF68;
+constexpr std::size_t kExpectedQPlainTextEditSetPlaceholderIatRva = 0x01B2EE98;
+constexpr std::size_t kColorSettingsTitleLiteralRva = 0x015977DA;
+constexpr std::size_t kColorSettingsTitleLeaRva = 0x010C6D8C;
+constexpr std::size_t kAutomaticTemplateLiteralRva = 0x015977F8;
+constexpr std::size_t kAutomaticTemplateLeaRva = 0x010C6EF4;
+constexpr std::size_t kAutomaticInsertItemCallRva = 0x010C70DB;
+constexpr std::size_t kSingleIndexPlaceholderLiteralRva = 0x0154AC4C;
+constexpr std::size_t kSingleIndexPlaceholderLeaRva = 0x00AA6BC6;
+constexpr std::size_t kSingleIndexSetPlaceholderCallRva = 0x00AA6BF6;
+constexpr std::size_t kMeshExplorerLabelFactoryRva = 0x010CF230;
+constexpr std::size_t kMeshExplorerQLabelConstructorCallRva = 0x010CF2C0;
+constexpr std::size_t kMeshExplorerRowMetaObjectNameRva = 0x014BEE60;
+constexpr std::size_t kAttributeEditorMetaObjectNameRva = 0x014BE848;
+struct MeshExplorerDynamicLabelContract
+{
+    const char *source;
+    std::size_t literalRva;
+    std::size_t literalLeaRva;
+    std::size_t labelFactoryCallRva;
+};
+constexpr std::array<MeshExplorerDynamicLabelContract, 4>
+    kMeshExplorerDynamicLabelContracts {{
+        { "Index: ", 0x0159812E, 0x010CD6CC, 0x010CD728 },
+        { "Points: %1", 0x015982F6, 0x010CDB23, 0x010CDBB1 },
+        { "Verbs: %1", 0x015983FC, 0x010CDCE1, 0x010CDD6F },
+        { "Child Meshes: %1", 0x01598408, 0x010CDE98, 0x010CDF26 },
+    }};
 constexpr std::size_t kMaximumMappedImageSize = 256U * 1024U * 1024U;
 constexpr std::array<std::uint8_t, 15> kSetPlaceholderSetterPrologue {{
     0xB8, 0xA8, 0x00, 0x00, 0x00,
@@ -146,6 +186,134 @@ bool asciiEquals(
         }
     }
     return image[offset + expected.size()] == '\0';
+}
+
+bool verifyMappedPeIdentity(
+    const std::vector<std::uint8_t> &image,
+    std::uint32_t expectedTimestamp,
+    std::size_t expectedImageSize,
+    std::string_view label,
+    std::string *failure)
+{
+    IMAGE_DOS_HEADER dosHeader {};
+    if (failure == nullptr
+        || !readObject(image, 0, &dosHeader)
+        || dosHeader.e_magic != IMAGE_DOS_SIGNATURE
+        || dosHeader.e_lfanew < 0) {
+        if (failure != nullptr) {
+            *failure = std::string(label)
+                + " has no valid mapped DOS header.";
+        }
+        return false;
+    }
+
+    const std::size_t ntOffset =
+        static_cast<std::size_t>(dosHeader.e_lfanew);
+    std::uint32_t signature = 0;
+    IMAGE_FILE_HEADER fileHeader {};
+    IMAGE_OPTIONAL_HEADER64 optionalHeader {};
+    const std::size_t optionalHeaderOffset =
+        ntOffset + sizeof(signature) + sizeof(fileHeader);
+    if (!readU32(image, ntOffset, &signature)
+        || signature != IMAGE_NT_SIGNATURE
+        || !readObject(
+            image,
+            ntOffset + sizeof(signature),
+            &fileHeader)
+        || !readObject(image, optionalHeaderOffset, &optionalHeader)
+        || fileHeader.Machine != IMAGE_FILE_MACHINE_AMD64
+        || optionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC
+        || fileHeader.TimeDateStamp != expectedTimestamp
+        || optionalHeader.SizeOfImage != expectedImageSize
+        || image.size() != expectedImageSize) {
+        *failure = std::string(label)
+            + " timestamp or image size differs from Cavalry 2.7.2.";
+        return false;
+    }
+    return true;
+}
+
+bool verifyMappedPeIdentityRejectsDrift(
+    const std::vector<std::uint8_t> &image,
+    std::uint32_t expectedTimestamp,
+    std::size_t expectedImageSize,
+    std::string_view label,
+    std::string *failure)
+{
+    if (failure == nullptr) {
+        return false;
+    }
+    if (expectedImageSize <= 0x1000U
+        || expectedImageSize
+            > std::numeric_limits<std::uint32_t>::max()) {
+        *failure = std::string(label)
+            + " negative identity fixture has an invalid expected image size.";
+        return false;
+    }
+    IMAGE_DOS_HEADER dosHeader {};
+    if (!readObject(image, 0, &dosHeader)
+        || dosHeader.e_magic != IMAGE_DOS_SIGNATURE
+        || dosHeader.e_lfanew < 0) {
+        *failure = std::string(label)
+            + " negative identity fixture has no DOS header.";
+        return false;
+    }
+
+    const std::size_t ntOffset =
+        static_cast<std::size_t>(dosHeader.e_lfanew);
+    const std::size_t fileHeaderOffset =
+        ntOffset + sizeof(std::uint32_t);
+    const std::size_t optionalHeaderOffset =
+        fileHeaderOffset + sizeof(IMAGE_FILE_HEADER);
+    const std::size_t timestampOffset =
+        fileHeaderOffset + offsetof(IMAGE_FILE_HEADER, TimeDateStamp);
+    const std::size_t imageSizeOffset =
+        optionalHeaderOffset
+        + offsetof(IMAGE_OPTIONAL_HEADER64, SizeOfImage);
+    if (!hasBytes(image.size(), timestampOffset, sizeof(std::uint32_t))
+        || !hasBytes(image.size(), imageSizeOffset, sizeof(std::uint32_t))) {
+        *failure = std::string(label)
+            + " negative identity fixture header is truncated.";
+        return false;
+    }
+
+    std::vector<std::uint8_t> drifted = image;
+    const std::uint32_t driftedTimestamp = expectedTimestamp ^ 1U;
+    std::memcpy(
+        drifted.data() + timestampOffset,
+        &driftedTimestamp,
+        sizeof(driftedTimestamp));
+    std::string rejection;
+    if (verifyMappedPeIdentity(
+            drifted,
+            expectedTimestamp,
+            expectedImageSize,
+            label,
+            &rejection)) {
+        *failure = std::string(label)
+            + " identity contract accepted a timestamp drift.";
+        return false;
+    }
+
+    drifted = image;
+    const std::uint32_t driftedImageSize =
+        static_cast<std::uint32_t>(expectedImageSize - 0x1000U);
+    std::memcpy(
+        drifted.data() + imageSizeOffset,
+        &driftedImageSize,
+        sizeof(driftedImageSize));
+    rejection.clear();
+    if (verifyMappedPeIdentity(
+            drifted,
+            expectedTimestamp,
+            expectedImageSize,
+            label,
+            &rejection)) {
+        *failure = std::string(label)
+            + " identity contract accepted a SizeOfImage drift.";
+        return false;
+    }
+    return true;
 }
 
 bool hasNulTerminatedAsciiLiteral(
@@ -702,6 +870,120 @@ bool verifySelectedCountLabelContract(
     return true;
 }
 
+bool verifyControlledDynamicQtContract(
+    const std::vector<std::uint8_t> &image,
+    std::string *failure)
+{
+    const CavalryPeIatLookupResult qLabelConstructor =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQLabelTextConstructorSymbol);
+    const CavalryPeIatLookupResult comboInsertItem =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQComboBoxInsertItemSymbol);
+    const CavalryPeIatLookupResult plainTextPlaceholder =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQPlainTextEditSetPlaceholderSymbol);
+    if (qLabelConstructor.status != CavalryPeIatLookupStatus::Found
+        || qLabelConstructor.iatSlotOffset
+            != kExpectedQLabelTextConstructorIatRva
+        || comboInsertItem.status != CavalryPeIatLookupStatus::Found
+        || comboInsertItem.iatSlotOffset
+            != kExpectedQComboBoxInsertItemIatRva
+        || plainTextPlaceholder.status != CavalryPeIatLookupStatus::Found
+        || plainTextPlaceholder.iatSlotOffset
+            != kExpectedQPlainTextEditSetPlaceholderIatRva) {
+        *failure =
+            "Controlled dynamic Qt imports differ from the Cavalry 2.7.2 contract.";
+        return false;
+    }
+
+    if (!asciiEquals(
+            image,
+            kColorSettingsTitleLiteralRva,
+            "Color Settings")
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kColorSettingsTitleLeaRva,
+            kColorSettingsTitleLiteralRva)
+        || !asciiEquals(
+            image,
+            kAutomaticTemplateLiteralRva,
+            "Automatic (%1)")
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kAutomaticTemplateLeaRva,
+            kAutomaticTemplateLiteralRva)
+        || !indirectCallTargetsRva(
+            image,
+            kAutomaticInsertItemCallRva,
+            kExpectedQComboBoxInsertItemIatRva)) {
+        *failure =
+            "Color Settings no longer formats 'Automatic (%1)' into the canonical QComboBox DisplayRole path.";
+        return false;
+    }
+
+    if (!asciiEquals(
+            image,
+            kSingleIndexPlaceholderLiteralRva,
+            "Enter an index, e.g: 0")
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kSingleIndexPlaceholderLeaRva,
+            kSingleIndexPlaceholderLiteralRva)
+        || !indirectCallTargetsRva(
+            image,
+            kSingleIndexSetPlaceholderCallRva,
+            kExpectedQPlainTextEditSetPlaceholderIatRva)) {
+        *failure =
+            "acrStringSingleIndex no longer writes its exact QPlainTextEdit placeholder.";
+        return false;
+    }
+
+    if (!indirectCallTargetsRva(
+            image,
+            kMeshExplorerQLabelConstructorCallRva,
+            kExpectedQLabelTextConstructorIatRva)
+        || !asciiEquals(
+            image,
+            kMeshExplorerRowMetaObjectNameRva,
+            "MeshExplorerRowWidget")
+        || !asciiEquals(
+            image,
+            kAttributeEditorMetaObjectNameRva,
+            "AttributeEditorWindow")) {
+        *failure =
+            "Dynamic Qt owner meta-objects or the Mesh Explorer QLabel factory changed.";
+        return false;
+    }
+    for (const MeshExplorerDynamicLabelContract &contract
+         : kMeshExplorerDynamicLabelContracts) {
+        if (!asciiEquals(image, contract.literalRva, contract.source)
+            || !ripRelativeLeaTargetsRva(
+                image,
+                contract.literalLeaRva,
+                contract.literalRva)
+            || !directNearCallTargetsRva(
+                image,
+                contract.labelFactoryCallRva,
+                kMeshExplorerLabelFactoryRva)) {
+            *failure =
+                std::string("Mesh Explorer dynamic QLabel path changed for: ")
+                + contract.source;
+            return false;
+        }
+    }
+    return true;
+}
+
 void fail(const std::string &message)
 {
     std::fprintf(stderr, "%s\n", message.c_str());
@@ -726,6 +1008,24 @@ int main(int argc, char *argv[])
         fail("ExtensionLayer vendor contract: " + failure);
         return 1;
     }
+    if (!verifyMappedPeIdentity(
+            extensionLayerImage,
+            kExtensionLayerTimestamp,
+            kExtensionLayerImageSize,
+            "ExtensionLayer.dll",
+            &failure)) {
+        fail("ExtensionLayer identity contract: " + failure);
+        return 1;
+    }
+    if (!verifyMappedPeIdentityRejectsDrift(
+            extensionLayerImage,
+            kExtensionLayerTimestamp,
+            kExtensionLayerImageSize,
+            "ExtensionLayer.dll",
+            &failure)) {
+        fail("ExtensionLayer identity negative contract: " + failure);
+        return 1;
+    }
     if (!hasNamedExport(extensionLayerImage, kSetPlaceholderSymbol, &failure)) {
         fail("ExtensionLayer placeholder export contract: " + failure);
         return 1;
@@ -740,6 +1040,10 @@ int main(int argc, char *argv[])
     }
     if (!verifySelectedCountLabelContract(extensionLayerImage, &failure)) {
         fail("ExtensionLayer selected-count QLabel contract: " + failure);
+        return 1;
+    }
+    if (!verifyControlledDynamicQtContract(extensionLayerImage, &failure)) {
+        fail("ExtensionLayer controlled dynamic Qt contract: " + failure);
         return 1;
     }
     if (!verifyCavalryExtensionLayerMessageBarContract(
@@ -784,6 +1088,24 @@ int main(int argc, char *argv[])
         fail("CavalryUI vendor contract: " + failure);
         return 1;
     }
+    if (!verifyMappedPeIdentity(
+            cavalryUiImage,
+            kCavalryUiTimestamp,
+            kCavalryUiImageSize,
+            "CavalryUI.dll",
+            &failure)) {
+        fail("CavalryUI identity contract: " + failure);
+        return 1;
+    }
+    if (!verifyMappedPeIdentityRejectsDrift(
+            cavalryUiImage,
+            kCavalryUiTimestamp,
+            kCavalryUiImageSize,
+            "CavalryUI.dll",
+            &failure)) {
+        fail("CavalryUI identity negative contract: " + failure);
+        return 1;
+    }
     if (!hasNamedExport(cavalryUiImage, kTextAtWidgetCentreSymbol, &failure)) {
         fail("CavalryUI export contract: " + failure);
         return 1;
@@ -807,6 +1129,6 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    std::puts("Cavalry vendor helper, placeholder, MessageBar, ExtensionLayer, and Core/Skia CJK text-path contracts passed.");
+    std::puts("Cavalry vendor helper, controlled Qt display, placeholder, MessageBar, ExtensionLayer, and Core/Skia CJK text-path contracts passed.");
     return 0;
 }

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 QPA 显式 requestedLanguage、嵌入生成表、四条精确 hook、可选绝对 marker 与 Qt 6.6.3 事件循环
+ * [INPUT]: 依赖 QPA 显式 requestedLanguage、嵌入生成表、四条精确 hook、受控 Qt 显示槽、可选绝对 marker 与 Qt 6.6.3 事件循环
  * [OUTPUT]: 对外安装 translator/显示投影、报告配置成功，并以事件重试 hook、按 text-path revision 写结构化诊断
- * [POS]: injector/windows 的运行时状态机；语言只来自已通过 manifest/hash gate 的 QPA 显式参数，不读取进程语言环境
+ * [POS]: injector/windows 的运行时状态机；语言只来自已通过 manifest/hash gate 的 QPA 显式参数，Paint 仅刷新白名单显示属性且不读取 QPlainTextEdit 正文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_runtime.h"
@@ -30,6 +30,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QTabBar>
 #include <QtWidgets/QWidget>
 
@@ -200,6 +201,7 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
             || qobject_cast<QAbstractButton *>(widget) != nullptr
             || qobject_cast<QGroupBox *>(widget) != nullptr
             || qobject_cast<QLineEdit *>(widget) != nullptr
+            || qobject_cast<QPlainTextEdit *>(widget) != nullptr
             || qobject_cast<QComboBox *>(widget) != nullptr
             || qobject_cast<QTabBar *>(widget) != nullptr) {
             displayTranslator_->translatePaintWidget(widget);

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Windows EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre 静态 text-path、CogTool 动态节圆半径与 selected-count QLabel、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Windows EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -3171,6 +3171,12 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
     ['VelocityPresetManager', 'Export...', '导出...', '匯出...', 'エクスポート...'],
     ['VelocityPresetManager', 'Import...', '导入...', '匯入...', 'インポート...'],
     ['VelocityPresetManager', 'Velocity Presets (*.json)', '速度预设 (*.json)', '速度預設 (*.json)', '速度プリセット (*.json)'],
+    ['ColorSettingsDialog', 'Automatic (%1)', '自动（%1）', '自動（%1）', '自動（%1）'],
+    ['acrStringSingleIndex', 'Enter an index, e.g: 0', '输入索引，例如：0', '輸入索引，例如：0', 'インデックスを入力（例：0）'],
+    ['MeshExplorerRowWidget', 'Index: ', '索引：', '索引：', 'インデックス：'],
+    ['MeshExplorerRowWidget', 'Points: %1', '点数：%1', '點數：%1', 'ポイント数：%1'],
+    ['MeshExplorerRowWidget', 'Verbs: %1', '绘制指令：%1', '繪製指令：%1', '描画命令：%1'],
+    ['MeshExplorerRowWidget', 'Child Meshes: %1', '子网格数：%1', '子網格數：%1', '子メッシュ数：%1'],
     ['MeshToolSettings', 'Soft Selection: ', '软选择： ', '軟選擇： ', 'ソフト選択： '],
     ['MeshToolSettings', 'Soft Selection Size: ', '软选择大小： ', '軟選擇大小： ', 'ソフト選択サイズ： '],
     ['PencilToolSettings', 'Accuracy: ', '精度： ', '精度： ', '精度： '],
@@ -3221,7 +3227,7 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
   }
 });
 
-test('Windows dynamic QLabel projections mirror existing macOS surfaces', () => {
+test('Windows controlled dynamic Qt projections stay inside proven display properties', () => {
   const windowsInjector = path.join(injectorRoot, 'windows');
   const dynamicLabel = fs.readFileSync(
     path.join(windowsInjector, 'cavalry_i18n_dynamic_label.h'),
@@ -3233,6 +3239,14 @@ test('Windows dynamic QLabel projections mirror existing macOS surfaces', () => 
   );
   const displayTest = fs.readFileSync(
     path.join(windowsInjector, 'cavalry_i18n_display_test.cpp'),
+    'utf8'
+  );
+  const runtime = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_runtime.cpp'),
+    'utf8'
+  );
+  const translationPolicy = fs.readFileSync(
+    path.join(injectorRoot, 'cavalry_i18n_translation_policy.h'),
     'utf8'
   );
   const vendorContract = fs.readFileSync(
@@ -3250,7 +3264,59 @@ test('Windows dynamic QLabel projections mirror existing macOS surfaces', () => 
   );
   assert.match(
     display,
-    /property == QByteArrayLiteral\("text"\)[\s\S]{0,160}qobject_cast<QLabel \*>\(object\)[\s\S]{0,160}cavalryI18nDynamicLabelTranslation/
+    /property == QByteArrayLiteral\("text"\)[\s\S]{0,180}qobject_cast<QLabel \*>\(object\)[\s\S]{0,220}cavalryI18nDynamicLabelTranslation/
+  );
+  for (const exactSource of [
+    'kColorSettingsAutomaticSource',
+    'kSingleIndexPlaceholderSource',
+    'kMeshExplorerIndexPrefixSource',
+    'kMeshExplorerPointsSource',
+    'kMeshExplorerVerbsSource',
+    'kMeshExplorerChildMeshesSource',
+  ]) {
+    assert.ok(translationPolicy.includes(exactSource));
+    assert.ok(display.includes(exactSource));
+  }
+  assert.match(
+    translationPolicy,
+    /contextView == kColorSettingsContext[\s\S]{0,180}kColorSettingsAutomaticSource/
+  );
+  assert.match(
+    translationPolicy,
+    /contextView == kSingleIndexContext[\s\S]{0,180}kSingleIndexPlaceholderSource/
+  );
+  assert.match(
+    translationPolicy,
+    /contextView == kMeshExplorerContext[\s\S]{0,360}kMeshExplorerChildMeshesSource/
+  );
+  assert.match(
+    display,
+    /property\.startsWith\(QByteArrayLiteral\("comboDisplay:"\)\)[\s\S]{0,160}isColorSettingsCombo\(translator, object\)[\s\S]{0,160}colorSettingsComboTranslation/
+  );
+  assert.match(
+    display,
+    /property == QByteArrayLiteral\("plainTextPlaceholder"\)[\s\S]{0,180}qobject_cast<QPlainTextEdit \*>\(object\)[\s\S]{0,180}hasAncestorClass\(object, "AttributeEditorWindow"\)[\s\S]{0,180}singleIndexPlaceholderTranslation/
+  );
+  assert.match(
+    display,
+    /hasAncestorClass\(object, "MeshExplorerRowWidget"\)[\s\S]{0,160}meshExplorerLabelTranslation/
+  );
+  assert.match(
+    display,
+    /qobject_cast<QDialog \*>\(comboBox->window\(\)\)[\s\S]{0,500}"Color Settings"/
+  );
+  assert.match(
+    display,
+    /translatePlainTextEditDisplay\([\s\S]{0,700}placeholderText\(\)[\s\S]{0,500}setPlaceholderText\(value\)/
+  );
+  assert.doesNotMatch(
+    display,
+    /\b(?:toPlainText|setPlainText)\s*\(/,
+    'QPlainTextEdit projection must never read or write editor document text'
+  );
+  assert.match(
+    runtime,
+    /case QEvent::Paint:[\s\S]{0,520}qobject_cast<QPlainTextEdit \*>\(widget\)[\s\S]{0,260}translatePaintWidget\(widget\)/
   );
   for (const translation of [
     '已选择 %1 个',
@@ -3268,10 +3334,43 @@ test('Windows dynamic QLabel projections mirror existing macOS surfaces', () => 
   assert.match(displayTest, /"than \\t 12345 \\t days\."/);
   assert.match(displayTest, /QLineEdit modelBoundInput/);
   assert.match(displayTest, /dynamic QLabel QLineEdit isolation/);
+  assert.match(displayTest, /QPlainTextEdit plainTextEdit/);
+  assert.match(displayTest, /unrelated plain-text placeholder isolation/);
+  assert.match(displayTest, /plain-text document isolation/);
+  assert.match(displayTest, /Automatic\(sRGB\)/);
+  assert.match(displayTest, /QDialog colorSettingsDialog/);
+  assert.match(displayTest, /unrelated Automatic combo isolation/);
+  assert.match(displayTest, /MeshExplorerRowWidget meshExplorerRow/);
+  assert.match(displayTest, /unrelated Mesh Explorer text isolation/);
+  assert.match(displayTest, /Mesh Explorer leading-zero rejection/);
   assert.match(vendorContract, /kSelectedCountProducerRva\s*=\s*0x00E815C0/);
+  assert.match(vendorContract, /kExtensionLayerTimestamp\s*=\s*0x6A0300E0/);
+  assert.match(vendorContract, /kExtensionLayerImageSize\s*=\s*0x01BBE000/);
+  assert.match(vendorContract, /kCavalryUiTimestamp\s*=\s*0x6A0300B6/);
+  assert.match(vendorContract, /kCavalryUiImageSize\s*=\s*0x002AF000/);
+  assert.match(vendorContract, /verifyMappedPeIdentity\(/);
+  assert.match(vendorContract, /verifyMappedPeIdentityRejectsDrift\(/);
+  assert.match(vendorContract, /accepted a timestamp drift/);
+  assert.match(vendorContract, /accepted a SizeOfImage drift/);
   assert.match(vendorContract, /kSelectedCountLiteralRva\s*=\s*0x0157F6EE/);
   assert.match(vendorContract, /kSelectedCountSetTextCallRva\s*=\s*0x00E816A0/);
   assert.match(vendorContract, /kQLabelSetTextSymbol/);
+  assert.match(vendorContract, /kAutomaticTemplateLiteralRva\s*=\s*0x015977F8/);
+  assert.match(vendorContract, /kAutomaticTemplateLeaRva\s*=\s*0x010C6EF4/);
+  assert.match(vendorContract, /kAutomaticInsertItemCallRva\s*=\s*0x010C70DB/);
+  assert.match(vendorContract, /kSingleIndexPlaceholderLiteralRva\s*=\s*0x0154AC4C/);
+  assert.match(vendorContract, /kSingleIndexSetPlaceholderCallRva\s*=\s*0x00AA6BF6/);
+  assert.match(vendorContract, /kMeshExplorerLabelFactoryRva\s*=\s*0x010CF230/);
+  assert.match(vendorContract, /kMeshExplorerRowMetaObjectNameRva\s*=\s*0x014BEE60/);
+  assert.match(vendorContract, /kAttributeEditorMetaObjectNameRva\s*=\s*0x014BE848/);
+  for (const source of [
+    '"Index: "',
+    '"Points: %1"',
+    '"Verbs: %1"',
+    '"Child Meshes: %1"',
+  ]) {
+    assert.ok(vendorContract.includes(source));
+  }
 });
 
 test('Windows EditShape/Transform operation prefixes and CogTool Pitch stay inside the exact text-path boundary', () => {

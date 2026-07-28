@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 CavalryEmbeddedTranslator 与 generated_translations.inc 中稳定存在的菜单样本
- * [OUTPUT]: 对外验证三语嵌入、helper/残留 source fallback、CogTool Pitch exact-context 隔离、LineTool 精确冒号/尾随空白及未知输入空结果
+ * [INPUT]: 依赖 CavalryEmbeddedTranslator、共享 exact-context 策略与 generated_translations.inc 中稳定存在的菜单/动态 Qt 样本
+ * [OUTPUT]: 对外验证三语嵌入、helper/残留 source fallback、CogTool 与受控动态 Qt exact-context 隔离、LineTool 精确冒号/尾随空白及未知输入空结果
  * [POS]: injector/windows 的最小数据合同测试，在进入真实 Cavalry 前证明 DLL 内翻译表不是空壳
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -204,6 +204,59 @@ bool verifyEvidencedResidualTranslationSamples(
                "exact CogTool pitch-radius prefix lookup");
 }
 
+bool verifyControlledDynamicQtTranslationSamples(
+    const QString &language,
+    const QStringList &expectedTranslations)
+{
+    const QStringList sources {
+        QStringLiteral("Automatic (%1)"),
+        QStringLiteral("Enter an index, e.g: 0"),
+        QStringLiteral("Index: "),
+        QStringLiteral("Points: %1"),
+        QStringLiteral("Verbs: %1"),
+        QStringLiteral("Child Meshes: %1"),
+    };
+    const QStringList contexts {
+        QStringLiteral("ColorSettingsDialog"),
+        QStringLiteral("acrStringSingleIndex"),
+        QStringLiteral("MeshExplorerRowWidget"),
+        QStringLiteral("MeshExplorerRowWidget"),
+        QStringLiteral("MeshExplorerRowWidget"),
+        QStringLiteral("MeshExplorerRowWidget"),
+    };
+    if (expectedTranslations.size() != sources.size()) {
+        qCritical() << "Dynamic Qt translation fixture has an invalid size.";
+        return false;
+    }
+
+    const CavalryEmbeddedTranslator translator(language);
+    for (int index = 0; index < sources.size(); ++index) {
+        const QByteArray contextUtf8 = contexts.at(index).toUtf8();
+        const QByteArray sourceUtf8 = sources.at(index).toUtf8();
+        if (!expectEqual(
+                translator.translate(
+                    contextUtf8.constData(),
+                    sourceUtf8.constData()),
+                expectedTranslations.at(index),
+                "controlled dynamic Qt exact lookup")
+            || !expectEqual(
+                translator.translate(
+                    "UnknownContext",
+                    sourceUtf8.constData()),
+                QString(),
+                "controlled dynamic Qt source rejection")
+            || !expectEqual(
+                translator.translate(
+                    nullptr,
+                    sourceUtf8.constData()),
+                QString(),
+                "controlled dynamic Qt null-context rejection")) {
+            return false;
+        }
+    }
+    return true;
+}
+
 } // namespace
 
 int main()
@@ -241,6 +294,36 @@ int main()
                 QStringLiteral("レイヤーをここにドラッグして設定を確認します"),
                 QStringLiteral(
                     "「作成」メニューを使用してコンポジションにレイヤーを追加します"),
+            })
+        || !verifyControlledDynamicQtTranslationSamples(
+            QStringLiteral("zh-Hans"),
+            {
+                QStringLiteral("自动（%1）"),
+                QStringLiteral("输入索引，例如：0"),
+                QStringLiteral("索引："),
+                QStringLiteral("点数：%1"),
+                QStringLiteral("绘制指令：%1"),
+                QStringLiteral("子网格数：%1"),
+            })
+        || !verifyControlledDynamicQtTranslationSamples(
+            QStringLiteral("zh-Hant"),
+            {
+                QStringLiteral("自動（%1）"),
+                QStringLiteral("輸入索引，例如：0"),
+                QStringLiteral("索引："),
+                QStringLiteral("點數：%1"),
+                QStringLiteral("繪製指令：%1"),
+                QStringLiteral("子網格數：%1"),
+            })
+        || !verifyControlledDynamicQtTranslationSamples(
+            QStringLiteral("ja_JP"),
+            {
+                QStringLiteral("自動（%1）"),
+                QStringLiteral("インデックスを入力（例：0）"),
+                QStringLiteral("インデックス："),
+                QStringLiteral("ポイント数：%1"),
+                QStringLiteral("描画命令：%1"),
+                QStringLiteral("子メッシュ数：%1"),
             })
         || !verifyEvidencedResidualTranslationSamples(
             QStringLiteral("zh-Hans"),

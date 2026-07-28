@@ -7362,6 +7362,21 @@
     <message><source>Velocity Presets (*.json)</source><translation>速度預設 (*.json)</translation></message>
   </context>
   <context>
+    <name>ColorSettingsDialog</name>
+    <message><source>Automatic (%1)</source><translation>自動（%1）</translation></message>
+  </context>
+  <context>
+    <name>acrStringSingleIndex</name>
+    <message><source>Enter an index, e.g: 0</source><translation>輸入索引，例如：0</translation></message>
+  </context>
+  <context>
+    <name>MeshExplorerRowWidget</name>
+    <message><source xml:space="preserve">Index: </source><translation>索引：</translation></message>
+    <message><source>Points: %1</source><translation>點數：%1</translation></message>
+    <message><source>Verbs: %1</source><translation>繪製指令：%1</translation></message>
+    <message><source>Child Meshes: %1</source><translation>子網格數：%1</translation></message>
+  </context>
+  <context>
     <name>MeshToolSettings</name>
     <message><source xml:space="preserve">Soft Selection: </source><translation xml:space="preserve">軟選擇： </translation></message>
     <message><source xml:space="preserve">Soft Selection Size: </source><translation xml:space="preserve">軟選擇大小： </translation></message>
