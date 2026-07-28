@@ -7,7 +7,7 @@
 
 # Windows Port and Injection Roadmap
 
-> Status: **Active** — 构建、合同与安装器链路已存在；真实 Windows Cavalry 的安装、切换、重启、升级和卸载验收尚未闭环。
+> Status: **Active** — 构建、合同、安装器与 `D:\cavalry` 可写自定义根的实机链路已经成立；Program Files UAC、既有任务栏固定项、跨版本升级、卸载和最终三语 UI 验收尚未闭环。
 
 ## 目标
 
@@ -28,12 +28,12 @@
 
 | 阶段 | 状态 | 可验证结果 | 尚缺内容 |
 | --- | --- | --- | --- |
-| W1 安装根与 JSON overlay | 已实现 | 目录或 EXE 选择归一化；核心/插件 JSON 走同一复制链；保留 `smoother.smoothingSteps` | 真实非默认安装目录回归 |
-| W2 generic plugin | 已实现 | Qt 6.6.3 x64 MSVC 编译与正式 CTest、Tauri resource 与 NSIS 构建；四条 ExtensionLayer 边界均有 ABI 合同，Edit/Transform/Pencil/Pen/Centre 动作与长操作前缀、selected QLabel、动态 Pitch 生产/消费链均有真实 vendor 合同，且无第二套 Qt runtime | 真实 Cavalry 的三语首帧、动态菜单、Edit/Transform/Pencil/Pen/Centre 整行、Pencil 警告、Pitch bit 28 与显示白名单截图 |
-| W3 QPA 原生入口 | 进行中 | vendor delegate、strict Cavalry/Qt/四文件 hash、durable backup、同卷原子替换、显式 English 恢复状态机已有单元证据 | 接通 Program Files，并验证五类原生入口不变且同语 |
-| W4 重启与权限 | 进行中 | 正常退出、QPA readiness、Program Files-only UAC 防线与同 plan worker | 受保护与可写自定义目录的真机对照 |
-| W5 事务与溯源 | 进行中 | pending → JSON/generic → QPA → final marker，禁止提前声明语言生效 | 将 snapshot provenance 与 interrupted/recovery 状态统一接入用户可见恢复流程 |
-| W6 发布验收 | 待开始 | Windows x64 NSIS EXE 与两个 macOS DMG 共用 release metadata | 安装、语言切换、五类原生入口、重启、升级、卸载，以及卸载前显式恢复 English 的真实 Cavalry 闭环 |
+| W1 安装根与 JSON overlay | 已实机证明（可写自定义根） | 目录或 EXE 选择归一化；核心/插件 JSON 走同一复制链；保留 `smoother.smoothingSteps`；`D:\cavalry` 非默认盘符已完成真实 Apply 与重启 | Program Files 的发现/手动选址回归 |
+| W2 generic plugin | 已实现；当前构建三语首帧已实机 | Qt 6.6.3 x64 MSVC 编译与正式 CTest、Tauri resource 与 NSIS 构建；四条 ExtensionLayer 边界均有 ABI 合同，Edit/Transform/Pencil/Pen/Centre 动作与长操作前缀、selected QLabel、动态 Pitch 生产/消费链均有真实 vendor 合同，且无第二套 Qt runtime；当前 generic `86F27CFE…F67`、QPA proxy `A2790FCE…971` 与 vendor QPA `E039D39A…F01` 已抓取简中、繁中、日语首帧及快捷操作列 | 动态菜单、Edit/Transform/Pencil/Pen/Centre 整行、Pencil 警告、Pitch bit 28 与其余显示白名单截图 |
+| W3 QPA 原生入口 | 已实现；可写自定义根四入口实机 | vendor delegate、strict Cavalry/Qt/四文件 hash、durable backup、同卷原子替换、显式 English 恢复状态机已有单元证据；current-HEAD 简中下，直接 EXE、厂商桌面 advertised shortcut、厂商开始菜单 advertised shortcut 与 installed Switcher `--launch-cavalry` 均落到 `D:\cavalry\Cavalry.exe`，加载同一 current-HEAD QPA/generic 并取得精确 PID 可见截图；两份厂商快捷方式 bytes/hash 保持不变 | Program Files 真机链路；一台确实已有任务栏固定项的机器（当前机器没有可复用 pin） |
+| W4 重启与权限 | 已实现；可写根实机 | 正常退出、QPA readiness、Program Files-only UAC 防线与同 plan worker；`D:\cavalry` 可写自定义根已完成真实应用与重启 | Program Files 受保护根的真实 UAC 对照 |
+| W5 事务与溯源 | 进行中 | pending → JSON/generic → QPA → final marker，禁止提前声明语言生效；English snapshot 已绑定安装根与 immutable revision provenance | 将 pending、QPA `prepared`/`restoring`/`drifted` 与 retained journal 暴露为用户可见、可执行恢复状态，并完成中断真机回归 |
+| W6 发布验收 | 进行中 | Windows x64 NSIS EXE 与两个 macOS DMG 共用 release metadata；current-HEAD NSIS provenance 已复算通过，当前 profile 已完成显式 `/UPDATE`，安装态 generic/QPA 与当前构建逐字节一致，更新阶段的 `D:\cavalry` runtime 与厂商桌面/开始菜单快捷方式保持不变；正式 `/UPDATE` → uninstall 的隔离安装态合同 gate 已实现，但不冒充当前 profile 的真实卸载；当前机器现有四类入口已完成 current-HEAD 简中截图；显式 English 已令 marker=`en`、恢复原厂 QPA 并移除 active backup/manifest，随后简中再次重建 active 状态并激活同一 current-HEAD proxy/generic | 干净 profile 安装、跨版本升级、真实卸载后持久状态、Program Files、已有任务栏固定项的机器，以及最终三语 UI 全表面截图闭环 |
 
 ## 非目标与防腐线
 
@@ -45,9 +45,9 @@
 
 ## 真机验收清单
 
-1. 在 Program Files 安装、当前用户可写的自定义安装和非默认盘符各验证一次发现/手动选址。
-2. 依次应用三种非 English 语言和 English，确认 JSON overlay、`smoother.smoothingSteps`、菜单、动态动作与白名单 ExtensionLayer 文本。
+1. `D:\cavalry` 已覆盖“可写自定义安装 + 非默认盘符”；另在 Program Files 验证一次发现/手动选址与 UAC，避免把可写根样本误当成受保护根证明。
+2. current-HEAD 已依次应用简中、繁中、日语与 English，并在 English 后重新激活简中；继续补齐 JSON overlay、`smoother.smoothingSteps`、动态菜单、动态动作与全部白名单 ExtensionLayer 文本的逐类截图。
 3. 验证重启会等待匹配 marker；拒绝错误语言、错误 PID、错误 Qt 版本或不完整嵌入表。
-4. 记录桌面/开始菜单链接字节与 AppUserModel 身份；Apply 与重复 Apply 后必须保持不变，并从桌面、开始菜单、已有任务栏固定项、直接 EXE、Switcher 五条路径确认同一语言。
-5. 关闭、升级与卸载都不隐式恢复；明确 English 才恢复原厂 QPA；厂商更新覆盖代理后不得回写旧备份。
+4. current-HEAD 简中已经从桌面、开始菜单、直接 EXE 与 Switcher `--launch-cavalry` 四条现有入口取得同路径、同模块、同语截图；另在一台确实已有任务栏固定项的机器复验。当前机器没有既有 pin，不能伪造该项已通过。
+5. 当前 profile 已完成 current-HEAD NSIS 显式 `/UPDATE`，且只有后续用户 Apply 才更新 `D:\cavalry`；显式 English 恢复原厂 QPA 与再次激活简中也已实跑。继续验证跨版本升级和真实卸载。关闭、升级与卸载都不得隐式恢复；厂商更新覆盖代理后不得回写旧备份。
 6. 确认卸载后不残留全局环境变量、第二套 Qt runtime 或 Switcher 安装目录越界文件；Cavalry 根的持久本地化只由显式 English 或厂商重装/升级改变。
