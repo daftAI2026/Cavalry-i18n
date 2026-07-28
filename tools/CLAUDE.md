@@ -121,5 +121,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-27: 繁中 compiled TS 将 Pen/Pencil 状态消息中的简体“钢笔/铅笔”统一为“鋼筆/鉛筆”；共享 FP-4 词表与整份 zh-Hant TS 扫描合同共同阻止同类简体工具名回流。
 2026-07-27: Windows NSIS 固定内置 English/SimpChinese/TradChinese/Japanese，直接跟随系统 UI 语言并以 English 兜底；安装器复用现有 ico，明确不把尺寸/格式不匹配的 DMG 背景伪装成 header/sidebar 品牌资产。
 2026-07-28: `LineToolSettings` 的 `Stroke Width: ` 与 `Cap Style: ` 按 Cavalry 2.7.2 `ExtensionLayer.dll` 唯一真实字面量改为精确冒号/尾随空格源，三语 TS、生成表及 Windows 显示/translator 合同共同拒绝旧的无冒号假表面。
+2026-07-28: Windows 2.7.2 二进制调用链确认的普通 Qt 残留按现有 translator/display 边界补入三语：`Bookmark %1`、`Boundary Color`、两条绑定占位符、Velocity Preset 动作/过滤器及上下文动作；动态值保留 `%1`，无需扩大 ExtensionLayer 自绘 hook。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

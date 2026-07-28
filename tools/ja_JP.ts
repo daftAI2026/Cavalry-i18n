@@ -8540,6 +8540,7 @@
     <message><source>Palette Name:</source><translation>パレット名:</translation></message>
     <message><source>Reveal in Explorer...</source><translation>エクスプローラーで表示...</translation></message>
     <message><source>New Name:</source><translation>新しい名前:</translation></message>
+    <message><source>Boundary Color</source><translation>境界色</translation></message>
   </context>
   <context>
     <name>PaletteWidget</name>
@@ -8553,6 +8554,7 @@
   <context>
     <name>cavalry::DGWindow</name>
     <message><source>Bookmark Name:</source><translation>ブックマーク名:</translation></message>
+    <message><source>Bookmark %1</source><translation>ブックマーク %1</translation></message>
   </context>
   <context>
     <name>MenuBarManager</name>
@@ -8562,6 +8564,27 @@
     <message><source>This Scene has missing fonts:</source><translation>このシーンに不足しているフォントがあります：</translation></message>
     <message><source>Are you sure you want to delete the Render Item(s)?</source><translation>レンダリング項目を削除してもよろしいですか？</translation></message>
     <message><source>Delete Render Item(s)</source><translation>レンダリング項目を削除</translation></message>
+  </context>
+  <context>
+    <name>GraphicsViewportBase</name>
+    <message><source>Copy as PolyMesh</source><translation>ポリメッシュとしてコピー</translation></message>
+  </context>
+  <context>
+    <name>AttrControlRow</name>
+    <message><source>Duplicate &amp; Replace</source><translation>複製して置換</translation></message>
+    <message><source>Rename...</source><translation>名前を変更...</translation></message>
+  </context>
+  <context>
+    <name>acrOutput</name>
+    <message><source>Click the + button to add a background</source><translation>+ ボタンをクリックして背景を追加</translation></message>
+    <message><source>Click the + button to add a Placement Utility</source><translation>+ ボタンをクリックして配置ユーティリティを追加</translation></message>
+  </context>
+  <context>
+    <name>VelocityPresetManager</name>
+    <message><source>Edit...</source><translation>編集...</translation></message>
+    <message><source>Export...</source><translation>エクスポート...</translation></message>
+    <message><source>Import...</source><translation>インポート...</translation></message>
+    <message><source>Velocity Presets (*.json)</source><translation>速度プリセット (*.json)</translation></message>
   </context>
   <context>
     <name>MeshToolSettings</name>

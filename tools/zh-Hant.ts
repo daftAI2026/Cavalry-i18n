@@ -7315,6 +7315,7 @@
     <message><source>Palette Name:</source><translation>調色盤名稱:</translation></message>
     <message><source>Reveal in Explorer...</source><translation>在檔案總管中顯示...</translation></message>
     <message><source>New Name:</source><translation>新名稱:</translation></message>
+    <message><source>Boundary Color</source><translation>邊界顏色</translation></message>
   </context>
   <context>
     <name>PaletteWidget</name>
@@ -7328,6 +7329,7 @@
   <context>
     <name>cavalry::DGWindow</name>
     <message><source>Bookmark Name:</source><translation>書籤名稱:</translation></message>
+    <message><source>Bookmark %1</source><translation>書籤 %1</translation></message>
   </context>
   <context>
     <name>MenuBarManager</name>
@@ -7337,6 +7339,27 @@
     <message><source>This Scene has missing fonts:</source><translation>此場景缺少字體：</translation></message>
     <message><source>Are you sure you want to delete the Render Item(s)?</source><translation>確定要刪除算繪項目嗎？</translation></message>
     <message><source>Delete Render Item(s)</source><translation>刪除算繪項目</translation></message>
+  </context>
+  <context>
+    <name>GraphicsViewportBase</name>
+    <message><source>Copy as PolyMesh</source><translation>複製為多邊形網格</translation></message>
+  </context>
+  <context>
+    <name>AttrControlRow</name>
+    <message><source>Duplicate &amp; Replace</source><translation>複製並替換</translation></message>
+    <message><source>Rename...</source><translation>重新命名...</translation></message>
+  </context>
+  <context>
+    <name>acrOutput</name>
+    <message><source>Click the + button to add a background</source><translation>按一下 + 按鈕以新增背景</translation></message>
+    <message><source>Click the + button to add a Placement Utility</source><translation>按一下 + 按鈕以新增放置工具</translation></message>
+  </context>
+  <context>
+    <name>VelocityPresetManager</name>
+    <message><source>Edit...</source><translation>編輯...</translation></message>
+    <message><source>Export...</source><translation>匯出...</translation></message>
+    <message><source>Import...</source><translation>匯入...</translation></message>
+    <message><source>Velocity Presets (*.json)</source><translation>速度預設 (*.json)</translation></message>
   </context>
   <context>
     <name>MeshToolSettings</name>

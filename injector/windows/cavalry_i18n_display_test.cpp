@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、调色板动作、CogTool Pitch context-only 隔离、selected 与离线认证倒计时 QLabel 投影、LineTool 精确冒号/尾随空白标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
+ * [OUTPUT]: 对外锁定 ToolBox/普通 Qt 残留动作与占位符、CogTool Pitch context-only 隔离、selected 与离线认证倒计时 QLabel 投影、LineTool 精确冒号/尾随空白标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
  * [POS]: injector/windows 的显示层单元回归，证明复合提示与动态文案只改受控显示文本，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -478,21 +478,32 @@ bool verifyEvidencedResidualWidgets(const QString &language)
     QLabel softSelection(QStringLiteral("Soft Selection: "));
     QLabel strokeWidth(QStringLiteral("Stroke Width: "));
     QLabel capStyle(QStringLiteral("Cap Style: "));
+    QLabel boundaryColor(QStringLiteral("Boundary Color"));
     QLabel pitchRadius(QStringLiteral("Pitch Radius: "));
+    QLineEdit placementUtility;
+    placementUtility.setPlaceholderText(
+        QStringLiteral("Click the + button to add a Placement Utility"));
     QWidget renderDialog;
     renderDialog.setWindowTitle(QStringLiteral("Delete Render Item(s)"));
     QAction paletteAction;
     paletteAction.setText(QStringLiteral("Set W3C Name"));
     paletteAction.setToolTip(QStringLiteral("Reveal in Explorer..."));
+    QAction residualAction;
+    residualAction.setText(QStringLiteral("Copy as PolyMesh"));
+    const QString numberedBookmark =
+        translator.translate("cavalry::DGWindow", "Bookmark %1").arg(7);
 
     displayTranslator.translateWidget(&paletteName);
     displayTranslator.translateWidget(&missingAssets);
     displayTranslator.translateWidget(&softSelection);
     displayTranslator.translateWidget(&strokeWidth);
     displayTranslator.translateWidget(&capStyle);
+    displayTranslator.translateWidget(&boundaryColor);
     displayTranslator.translateWidget(&pitchRadius);
+    displayTranslator.translateWidget(&placementUtility);
     displayTranslator.translateWidget(&renderDialog);
     displayTranslator.translateAction(&paletteAction);
+    displayTranslator.translateAction(&residualAction);
 
     return expectEqual(
                language + QStringLiteral(" palette input label"),
@@ -515,6 +526,15 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                capStyle.text(),
                expectedTranslation("Cap Style: "))
         && expectEqual(
+               language + QStringLiteral(" boundary color label"),
+               boundaryColor.text(),
+               expectedTranslation("Boundary Color"))
+        && expectEqual(
+               language + QStringLiteral(" Placement Utility placeholder"),
+               placementUtility.placeholderText(),
+               expectedTranslation(
+                   "Click the + button to add a Placement Utility"))
+        && expectEqual(
                language + QStringLiteral(" render dialog title"),
                renderDialog.windowTitle(),
                expectedTranslation("Delete Render Item(s)"))
@@ -526,6 +546,14 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                language + QStringLiteral(" Explorer action tooltip"),
                paletteAction.toolTip(),
                expectedTranslation("Reveal in Explorer..."))
+        && expectEqual(
+               language + QStringLiteral(" PolyMesh context action"),
+               residualAction.text(),
+               expectedTranslation("Copy as PolyMesh"))
+        && expectEqual(
+               language + QStringLiteral(" numbered bookmark template"),
+               numberedBookmark,
+               expectedTranslation("Bookmark %1").arg(7))
         && expectEqual(
                language + QStringLiteral(" context-only Pitch Radius label"),
                pitchRadius.text(),

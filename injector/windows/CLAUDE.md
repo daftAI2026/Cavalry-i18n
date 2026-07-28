@@ -17,7 +17,7 @@ cavalry_i18n_qpa_proxy.cpp: 在 `QPluginLoader::instance` 前校验运行 Qt 6.6
 cavalry_i18n_display.h: 主动显示翻译接口与对象生命周期状态，明确 QWidget/QAction、已知基名数字后缀、QComboBox/QTreeWidget DisplayRole 与受词表约束的 QLineEdit 显示值边界。
 cavalry_i18n_dynamic_label.h: 不依赖 QObject 的纯动态 QLabel 规则，严格匹配 `N selected` 与登录离线认证天数并提供三语投影；未知语言、未知文本和近似文本返回空值。
 cavalry_i18n_display.cpp: 幂等翻译菜单、动作、标题、逐行复合 tooltip、已知基名数字后缀、严格 selected/离线认证倒计时 QLabel、QComboBox 可见项和递归 QTreeWidget DisplayRole；通过 `aboutToShow`/`changed`/model signal/Paint 接住首帧与动态英文写回，复合提示只替换词表命中行，未知行、UserRole、currentIndex 和通用 item view 保持原值。
-cavalry_i18n_display_test.cpp: 三语显示层单元回归，锁定 ToolBox/渲染窗口标题、Exit/调色板动作、CogTool Pitch context-only 隔离、selected/离线认证动态 QLabel 正反例与非 QLabel 隔离、LineTool 精确冒号/尾随空白标签、横竖工具栏及播放、渲染、Sub-Mesh、Path、脚本表面的 `标题\n说明` tooltip、未知提示行、已知基名数字后缀与 DisplayRole 投影隔离合同。
+cavalry_i18n_display_test.cpp: 三语显示层单元回归，锁定 ToolBox/渲染窗口标题、调色板及已采证普通 Qt 残留动作/占位符、编号书签、CogTool Pitch context-only 隔离、selected/离线认证动态 QLabel 正反例与非 QLabel 隔离、LineTool 精确冒号/尾随空白标签、横竖工具栏及播放、渲染、Sub-Mesh、Path、脚本表面的 `标题\n说明` tooltip、未知提示行、已知基名数字后缀与 DisplayRole 投影隔离合同。
 cavalry_i18n_extension_layer_hook.h: ExtensionLayer 的串行化聚合生命周期接口；固定 aggregate→text 锁序，拥有 helper/placeholder/MessageBar 三槽、独立 text-path 子 hook 及结构化诊断转发，只有四路全部安装才报告 `installed`。
 cavalry_i18n_extension_layer_sources.h: 不依赖 Qt 的共享文本真相，锁定九条 helper、十三条 CustomListWidget placeholder、一条 MessageBar Pencil 警告、二十八条静态 text-path source 与一条由跨平台策略导出的 CogTool `Pitch Radius: ` context-only 动态前缀；只额外批准 EditShapeTool 与 TransformTool 各三条已有三语译文的长操作前缀，`Space`、纯修饰键及单字母快捷键保持原文。
 cavalry_i18n_extension_layer_hook.cpp: 编排 helper、placeholder、MessageBar 与 Core text-path 四条可逆 IAT 边界；取得 aggregate owner 后、首次 Qt IAT 写入前必须永久 PIN 插件，失败则零写入；waiting 可保留已装前缀，终态失败逆序回滚。
@@ -53,7 +53,7 @@ cavalry_i18n_runtime.h: QPA 显式语言、可查询配置结果、主动显示�
 cavalry_i18n_runtime.cpp: 语言只消费 QPA 非空 specification，绝不读取 `CAVALRY_I18N_LANG`；显式绝对 marker 下创建 75ms Qt 线程计时器，只在 text-path revision 改变时写九项计数/位图。
 cavalry_i18n_translator.h: 嵌入式 translator 查询接口与统计边界，隔离生成表表示和运行时生命周期。
 cavalry_i18n_translator.cpp: 复用共享 `generated_translations.inc`，构建精确 `(context, source)` 首条优先哈希与遵循现有显示层语义的末条覆盖 source fallback；共享策略声明的自绘词条不进入 fallback。
-cavalry_i18n_translator_test.cpp: 三语言非空表、已证实 helper 与调色板/场景/工具残留的嵌入翻译样本、LineTool 精确冒号/尾随空白查询、context-only 拒绝、source fallback、未知语言和未知文本合同测试。
+cavalry_i18n_translator_test.cpp: 三语言非空表、已证实 helper 与调色板/场景/工具/上下文动作残留的嵌入翻译样本、编号书签模板、LineTool 精确冒号/尾随空白查询、context-only 拒绝、source fallback、未知语言和未知文本合同测试。
 cavalry_i18n_plugin_smoke_test.cpp: 由最小 `QApplication` 加载真实 generic DLL，证明空 specification 即使存在遗留环境也被拒，并验证 QPA 等价显式语言、显示投影、数据隔离与九字段 marker。
 cavalryi18n.json: Qt plugin metadata，声明唯一自动加载 key `cavalryi18n`。
 qwindows.json: Qt QPA metadata，声明唯一平台 key `windows`。

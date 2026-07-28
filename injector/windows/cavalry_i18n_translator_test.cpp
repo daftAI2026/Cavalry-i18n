@@ -128,6 +128,17 @@ bool verifyEvidencedResidualTranslationSamples(
         QStringLiteral("Supervised: "),
         QStringLiteral("Show Grid: "),
         QStringLiteral("Preset: "),
+        QStringLiteral("Boundary Color"),
+        QStringLiteral("Bookmark %1"),
+        QStringLiteral("Click the + button to add a background"),
+        QStringLiteral("Click the + button to add a Placement Utility"),
+        QStringLiteral("Edit..."),
+        QStringLiteral("Export..."),
+        QStringLiteral("Import..."),
+        QStringLiteral("Duplicate & Replace"),
+        QStringLiteral("Rename..."),
+        QStringLiteral("Copy as PolyMesh"),
+        QStringLiteral("Velocity Presets (*.json)"),
         QStringLiteral("Pitch Radius: "),
     };
     if (expectedTranslations.size() != sources.size()) {
@@ -147,6 +158,7 @@ bool verifyEvidencedResidualTranslationSamples(
             return false;
         }
     }
+    const int bookmarkIndex = sources.indexOf(QStringLiteral("Bookmark %1"));
 
     return expectEqual(
                translator.translate(
@@ -180,9 +192,15 @@ bool verifyEvidencedResidualTranslationSamples(
                "exact palette dialog lookup")
         && expectEqual(
                translator.translate(
+                   "cavalry::DGWindow",
+                   "Bookmark %1").arg(7),
+               expectedTranslations.at(bookmarkIndex).arg(7),
+               "exact numbered bookmark lookup")
+        && expectEqual(
+               translator.translate(
                    "CogTool",
                    "Pitch Radius: "),
-               expectedTranslations.at(24),
+               expectedTranslations.constLast(),
                "exact CogTool pitch-radius prefix lookup");
 }
 
@@ -251,6 +269,17 @@ int main()
                 QStringLiteral("受监督： "),
                 QStringLiteral("显示网格： "),
                 QStringLiteral("预设： "),
+                QStringLiteral("边界颜色"),
+                QStringLiteral("书签 %1"),
+                QStringLiteral("单击 + 按钮添加背景"),
+                QStringLiteral("单击 + 按钮添加放置实用工具"),
+                QStringLiteral("编辑..."),
+                QStringLiteral("导出..."),
+                QStringLiteral("导入..."),
+                QStringLiteral("复制并替换"),
+                QStringLiteral("重命名..."),
+                QStringLiteral("复制为多边形网格"),
+                QStringLiteral("速度预设 (*.json)"),
                 QStringLiteral("节圆半径： "),
             })
         || !verifyEvidencedResidualTranslationSamples(
@@ -280,6 +309,17 @@ int main()
                 QStringLiteral("受監督： "),
                 QStringLiteral("顯示網格： "),
                 QStringLiteral("預設： "),
+                QStringLiteral("邊界顏色"),
+                QStringLiteral("書籤 %1"),
+                QStringLiteral("按一下 + 按鈕以新增背景"),
+                QStringLiteral("按一下 + 按鈕以新增放置工具"),
+                QStringLiteral("編輯..."),
+                QStringLiteral("匯出..."),
+                QStringLiteral("匯入..."),
+                QStringLiteral("複製並替換"),
+                QStringLiteral("重新命名..."),
+                QStringLiteral("複製為多邊形網格"),
+                QStringLiteral("速度預設 (*.json)"),
                 QStringLiteral("節圓半徑： "),
             })
         || !verifyEvidencedResidualTranslationSamples(
@@ -314,6 +354,17 @@ int main()
                 QStringLiteral("監督あり： "),
                 QStringLiteral("グリッドを表示： "),
                 QStringLiteral("プリセット： "),
+                QStringLiteral("境界色"),
+                QStringLiteral("ブックマーク %1"),
+                QStringLiteral("+ ボタンをクリックして背景を追加"),
+                QStringLiteral("+ ボタンをクリックして配置ユーティリティを追加"),
+                QStringLiteral("編集..."),
+                QStringLiteral("エクスポート..."),
+                QStringLiteral("インポート..."),
+                QStringLiteral("複製して置換"),
+                QStringLiteral("名前を変更..."),
+                QStringLiteral("ポリメッシュとしてコピー"),
+                QStringLiteral("速度プリセット (*.json)"),
                 QStringLiteral("ピッチ半径： "),
             })) {
         return 1;
