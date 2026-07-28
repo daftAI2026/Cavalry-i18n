@@ -3442,7 +3442,6 @@
     <message><source>Some plugins require a newer version</source><translation>いくつかのプラグインは、新しいバージョンが必要です</translation></message>
     <message><source>Something went wrong during sign in. Please try again</source><translation>サインイン中に問題が発生しました。もう一度お試しください</translation></message>
     <message><source>Sort Order</source><translation>並び替え</translation></message>
-    <message><source>Space</source><translation>スペース</translation></message>
     <message><source>Speed In</source><translation>速度 で</translation></message>
     <message><source>Speed Out</source><translation>スピードアウト</translation></message>
     <message><source>Speed Strength</source><translation>速度の強さ</translation></message>
@@ -7797,7 +7796,7 @@
     </message>
     <message>
       <source>Space + click + drag</source>
-      <translation>スペース + クリック + ドラッグ</translation>
+      <translation>Space + クリック + ドラッグ</translation>
     </message>
     <message>
       <source>Snap Angle:</source>

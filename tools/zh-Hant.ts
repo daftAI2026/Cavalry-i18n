@@ -2441,7 +2441,6 @@
     <message><source>Some plugins require a newer version</source><translation>一些外掛需要更新版本</translation></message>
     <message><source>Something went wrong during sign in. Please try again</source><translation>登入過程中發生錯誤。請重試</translation></message>
     <message><source>Sort Order</source><translation>排序順序</translation></message>
-    <message><source>Space</source><translation>空白鍵</translation></message>
     <message><source>Speed In</source><translation>速度進入</translation></message>
     <message><source>Speed Out</source><translation>快速退出</translation></message>
     <message><source>Speed Strength</source><translation>速度強度</translation></message>
@@ -6572,7 +6571,7 @@
     </message>
     <message>
       <source>Space + click + drag</source>
-      <translation>空白鍵 + 按一下 + 拖曳</translation>
+      <translation>Space + 按一下 + 拖曳</translation>
     </message>
     <message>
       <source>Snap Angle:</source>

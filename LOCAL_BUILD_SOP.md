@@ -168,7 +168,7 @@ $env:CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH = '1'
 npm run test:tauri:manual-windows-live-smoke
 ```
 
-`CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1` 是明确的人工交互开关：每种语言的 Cavalry 窗口获得前台焦点后，helper 先记录同一 PID 的诊断基线并要求 `translatedSourceMask` bit 29 尚未置位；验收者再从“工具”菜单选择“齿轮”，在视口拖拽一次。helper 不猜快捷键、不发送鼠标坐标，也不使用 UIA；它只在真实 vendor 路径令 bit 29 置位，且 `revision`、`canonicalCalls`、`whitelistCalls`、`cjkPathSuccess` 均相对基线严格增长、`fallbackSourceMask=0`、`rendererFailure=0` 后截取 Cog Pitch PNG，并把基线与最终诊断一同写入证据 JSON。未设置该开关时仍只跑三类自动场景，不能据此声称 Pitch 已通过真机验收。
+`CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1` 是明确的人工交互开关：每种语言的 Cavalry 窗口获得前台焦点后，helper 先记录同一 PID 的诊断基线并要求 `translatedSourceMask` bit 28 尚未置位；验收者再从“工具”菜单选择“齿轮”，在视口拖拽一次。helper 不猜快捷键、不发送鼠标坐标，也不使用 UIA；它只在真实 vendor 路径令 bit 28 置位，且 `revision`、`canonicalCalls`、`whitelistCalls`、`cjkPathSuccess` 均相对基线严格增长、`fallbackSourceMask=0`、`rendererFailure=0` 后截取 Cog Pitch PNG，并把基线与最终诊断一同写入证据 JSON。未设置该开关时仍只跑三类自动场景，不能据此声称 Pitch 已通过真机验收。
 
 该 ignored harness 启动前发现任意 `Cavalry.exe` 即拒绝运行。它记录 38 个 English JSON 原始字节，逐轮应用简中/繁中/日语，以 `RealCommandRunner` 启动 clone，要求 runtime marker 的 PID、Qt 6.6.3、嵌入表、语言以及 `extensionLayerHookStatus=installed` 全部命中，再以 input-idle 作为可选延迟提示、以精确 PID 顶层窗口和非空像素成帧作为强制 oracle，并在 `DwmFlush` 后写 PNG。Transform 截图不要求前台；Edit Shape 的 exact-HWND `A` 键和人工 Cog Pitch 只做一次 best-effort 前台请求，随后有界等待同一 HWND 获得前台，并在按键后再次验证焦点未转移。每轮仅向仍由本轮持有、且 executable path 已再次证明为 `%TEMP%` sentinel clone 内 `Cavalry.exe` 的全部可见、无 owner 顶层窗口发送标准 `WM_CLOSE`；默认新场景的丢弃确认也只在精确前台 PID 复核后发送。成功关闭即从 outstanding PID 集合移除，cleanup 只重试未关闭 PID。普通 Rust `Result` 错误或 unwind panic 都会进入 cleanup，恢复 English、逐一比较 38 文件原始字节并要求全局 Cavalry PID 为 0；Ctrl+C、进程强制终止、断电或 panic=abort 无法承诺执行 finally。没有强杀或递归清理 fallback。
 

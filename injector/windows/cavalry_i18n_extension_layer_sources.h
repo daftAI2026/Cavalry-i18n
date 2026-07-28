@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 不依赖 Qt 或厂商模块；只承载经静态采证的 ASCII source 常量
- * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、二十九条静态 text-path source（含 EditShapeTool 三条与 TransformTool 四条已采证长操作前缀）、一条 CogTool 动态前缀及其精确 lookup context
+ * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、二十八条静态 text-path source（含 EditShapeTool 与 TransformTool 各三条已采证长操作前缀）、一条 CogTool 动态前缀及其精确 lookup context
  * [POS]: injector/windows 的 ExtensionLayer 文本边界真相，供运行时 hook、无厂商单测和只读 vendor 合同共同消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -106,7 +106,7 @@ inline constexpr std::array<ToolHelpSourcePair, 6> kEditShapeToolHelpPairs {{
 
 // TransformTool 通过 GraphicsToolBase::toolHelp 返回这五组 pair，
 // setupToolHelp 仍把 prefix/action 分开送入同一 getOrCreateTextPath；
-// 四条含操作语义的长前缀允许翻译，纯修饰键 Shift 保持原文。
+// 三条含操作语义的长前缀允许翻译，纯键位 Shift/Space 保持原文。
 inline constexpr std::array<ToolHelpSourcePair, 5>
     kTransformToolHelpPairs {{
         { "Shift", kEnableSnapping },
@@ -138,7 +138,7 @@ inline constexpr std::array<ToolHelpSourcePair, 2>
         { "Alt", kCreateFromTheCentre },
     }};
 
-inline constexpr std::array<const char *, 29> kStaticTextPathSources {{
+inline constexpr std::array<const char *, 28> kStaticTextPathSources {{
     kViewportQualityHigh,
     kViewportQualityLow,
     kViewportQualityLowest,
@@ -163,7 +163,6 @@ inline constexpr std::array<const char *, 29> kStaticTextPathSources {{
     kConstrainProportions,
     kTransformInsertKeyframePrefix,
     kTransformDirectSelectionPrefix,
-    kTransformPlayStopPrefix,
     kTransformPanPrefix,
     kEditShapeSplitCornerPrefix,
     kEditShapeSplitBezierPrefix,
@@ -202,7 +201,7 @@ static_assert(kTransformToolHelpPairs.size() == 5);
 static_assert(kPencilToolHelpPairs.size() == 3);
 static_assert(kPenToolHelpPairs.size() == 3);
 static_assert(kCentreToolHelpPairs.size() == 2);
-static_assert(kStaticTextPathSources.size() == 29);
-static_assert(kTextPathSourceCount == 30);
+static_assert(kStaticTextPathSources.size() == 28);
+static_assert(kTextPathSourceCount == 29);
 
 } // namespace cavalry_i18n::extension_layer_contract

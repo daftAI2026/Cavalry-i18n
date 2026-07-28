@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Windows EditShapeTool/TransformTool 长操作前缀与 Pencil/Pen/Centre 静态 text-path、CogTool 动态节圆半径与 selected-count QLabel、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Windows EditShapeTool/TransformTool 长操作前缀与 `Space` 纯键位保护、Pencil/Pen/Centre 静态 text-path、CogTool 动态节圆半径与 selected-count QLabel、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、动态 QLabel/QLineEdit 专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -3255,7 +3255,7 @@ test('Windows dynamic QLabel projections mirror existing macOS surfaces', () => 
   assert.match(vendorContract, /kQLabelSetTextSymbol/);
 });
 
-test('Windows EditShape/Transform prefixes and CogTool Pitch stay inside the exact text-path boundary', () => {
+test('Windows EditShape/Transform operation prefixes and CogTool Pitch stay inside the exact text-path boundary', () => {
   const windowsInjector = path.join(injectorRoot, 'windows');
   const sourcesHeader = fs.readFileSync(
     path.join(windowsInjector, 'cavalry_i18n_extension_layer_sources.h'),
@@ -3310,7 +3310,6 @@ test('Windows EditShape/Transform prefixes and CogTool Pitch stay inside the exa
     ['kEditShapeDeleteBezierHandlePrefix', 'X + click'],
     ['kTransformInsertKeyframePrefix', 'S + click path'],
     ['kTransformDirectSelectionPrefix', 'Hold S'],
-    ['kTransformPlayStopPrefix', 'Space'],
     ['kTransformPanPrefix', 'Space + click + drag'],
   ]) {
     assert.ok(
@@ -3324,23 +3323,43 @@ test('Windows EditShape/Transform prefixes and CogTool Pitch stay inside the exa
       `${source} must remain inside the exact StaticExact source whitelist`
     );
   }
+  assert.ok(
+    sourcesHeader.includes(
+      '{ kTransformPlayStopPrefix, kPlayStop }'
+    ),
+    'Space must retain its exact TransformTool prefix/action pair'
+  );
+  assert.ok(
+    !staticTextPathSources.includes('kTransformPlayStopPrefix'),
+    'the pure Space key token must stay outside the translation whitelist'
+  );
   const { parseTs } = require(
     path.join(repoRoot, 'tools', 'generate_embedded_translations.js')
   );
-  const jaEntries = new Map(
-    parseTs(path.join(repoRoot, 'tools', 'ja_JP.ts')).map((entry) => [
-      `${entry.context}\u001f${entry.source}`,
-      entry.translation,
-    ])
-  );
-  assert.equal(
-    jaEntries.get('MenuBarManager\u001fSpace + click + drag'),
-    'スペース + クリック + ドラッグ',
-    'the Japanese TransformTool prefix must not mix an English Space label into localized copy'
-  );
+  for (const [fileName, expectedPan] of [
+    ['zh-Hans.ts', 'Space + 单击 + 拖动'],
+    ['zh-Hant.ts', 'Space + 按一下 + 拖曳'],
+    ['ja_JP.ts', 'Space + クリック + ドラッグ'],
+  ]) {
+    const entries = new Map(
+      parseTs(path.join(repoRoot, 'tools', fileName)).map((entry) => [
+        `${entry.context}\u001f${entry.source}`,
+        entry.translation,
+      ])
+    );
+    assert.equal(
+      entries.get('MenuBarManager\u001fSpace + click + drag'),
+      expectedPan,
+      `${fileName} must preserve the physical Space key token`
+    );
+    assert.ok(
+      !entries.has('MenuBarManager\u001fSpace'),
+      `${fileName} must not translate the standalone Space key token`
+    );
+  }
   assert.match(sourcesHeader, /kTextPathSourceCount\s*=\s*[\s\S]*\+\s*1/);
-  assert.match(sourcesHeader, /static_assert\(kTextPathSourceCount\s*==\s*30\)/);
-  assert.match(hook, /static_assert\(kSourceCount\s*==\s*30\)/);
+  assert.match(sourcesHeader, /static_assert\(kTextPathSourceCount\s*==\s*29\)/);
+  assert.match(hook, /static_assert\(kSourceCount\s*==\s*29\)/);
   assert.match(sourcesHeader, /kPencilToolHelpPairs[\s\S]*Control \+ \//);
   assert.match(sourcesHeader, /kPenToolHelpPairs[\s\S]*kStartNewContour/);
   assert.match(sourcesHeader, /kCentreToolHelpPairs[\s\S]*kCreateFromTheCentre/);
@@ -3402,6 +3421,7 @@ test('Windows EditShape/Transform prefixes and CogTool Pitch stay inside the exa
   assert.match(dispatchTest, /"Control"\)\.isMatched\(\)/);
   assert.match(dispatchTest, /"H"\)\.isMatched\(\)/);
   assert.match(dispatchTest, /"S"\)\.isMatched\(\)/);
+  assert.match(dispatchTest, /"Space"\)\.isMatched\(\)/);
   assert.match(cmake, /add_executable\(cavalryi18n_text_path_dispatch_test/);
   assert.doesNotMatch(
     dispatch,
@@ -4239,9 +4259,10 @@ test('shortcut-token translations are free of semantic mistranslation', () => {
   // Hold S must not contain 保存 (save verb)
   assert.ok(!zhHans.get('Hold S').includes('保存'), 'Hold S zh-Hans should not contain 保存');
 
-  // Standalone Space must not translate as 空间 (outer space)
-  assert.ok(!zhHans.get('Space').includes('空间'), 'Space zh-Hans should not be 空间');
-  assert.ok(!zhHant.get('Space').includes('空間'), 'Space zh-Hant should not be 空間');
+  // Standalone physical key identities stay in vendor text, outside the TS table.
+  assert.ok(!zhHans.has('Space'), 'zh-Hans must not translate the standalone Space key');
+  assert.ok(!zhHant.has('Space'), 'zh-Hant must not translate the standalone Space key');
+  assert.ok(!jaJp.has('Space'), 'ja_JP must not translate the standalone Space key');
 
   // Standalone Shift must not translate as 移动/上档 (move verb)
   assert.ok(!zhHans.get('Shift').includes('移动'), 'Shift zh-Hans should not be 移动');

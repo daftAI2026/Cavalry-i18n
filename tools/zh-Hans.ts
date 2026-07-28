@@ -2370,7 +2370,6 @@
     <message><source>Some plugins require a newer version</source><translation>一些插件需要更新版本</translation></message>
     <message><source>Something went wrong during sign in. Please try again</source><translation>登录过程中出现问题。请重试</translation></message>
     <message><source>Sort Order</source><translation>排序顺序</translation></message>
-    <message><source>Space</source><translation>空格</translation></message>
     <message><source>Speed In</source><translation>速度进入</translation></message>
     <message><source>Speed Out</source><translation>快速退出</translation></message>
     <message><source>Speed Strength</source><translation>速度强度</translation></message>
@@ -6323,7 +6322,7 @@
     </message>
     <message>
       <source>Space + click + drag</source>
-      <translation>空格 + 单击 + 拖动</translation>
+      <translation>Space + 单击 + 拖动</translation>
     </message>
     <message>
       <source>Snap Angle:</source>

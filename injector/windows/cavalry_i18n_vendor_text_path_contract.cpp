@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_vendor_text_path_contract.h、共享二十九项静态 source/一项动态前缀、PE/IAT 解析器与已采证 RVAs
+ * [INPUT]: 依赖 cavalry_i18n_vendor_text_path_contract.h、共享二十八项静态 source/一项动态前缀、PE/IAT 解析器与已采证 RVAs
  * [OUTPUT]: 对外锁定 Core::MakePathFromText 槽/调用数、含首行 RDX 来源的三处 ABI caller、Edit/Transform/Pencil/Pen/Centre tool-help 数据流及 CogTool Pitch vector→Path 链
  * [POS]: injector/windows 的 Cavalry 2.7.2 text-path 静态兼容合同；只读取已映射字节，不执行 vendor 代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

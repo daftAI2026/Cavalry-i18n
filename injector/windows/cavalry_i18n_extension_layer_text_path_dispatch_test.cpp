@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 text-path dispatch 纯合同、CavalryEmbeddedTranslator 与三语生成表
- * [OUTPUT]: 对外验证安装与 callback 都持续拒绝被篡改的三处 caller/RDX 字节包络、二十九项静态白名单（含 EditShapeTool 三条与 TransformTool 四条已采证长操作前缀）、Pitch exact context，以及动态文本仅接受 canonical 32-bit int 后缀并逐字保留数值
+ * [OUTPUT]: 对外验证安装与 callback 都持续拒绝被篡改的三处 caller/RDX 字节包络、二十八项静态白名单（含 EditShapeTool 与 TransformTool 各三条已采证长操作前缀）、Pitch exact context，以及动态文本仅接受 canonical 32-bit int 后缀并逐字保留数值
  * [POS]: injector/windows 的静态/动态 text-path 回归；与真实 vendor PE 合同互补，不执行任何厂商代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,7 +23,7 @@ struct LocaleExpectation final {
     const char *language;
     const char *prefix;
     std::array<const char *, 7> toolHelpActions;
-    std::array<const char *, 4> transformToolPrefixes;
+    std::array<const char *, 3> transformToolPrefixes;
     std::array<const char *, 3> editShapeToolPrefixes;
 };
 
@@ -212,10 +212,9 @@ bool verifyLocale(const LocaleExpectation &expectation)
         }
     }
 
-    constexpr std::array<const char *, 4> transformToolPrefixSources {{
+    constexpr std::array<const char *, 3> transformToolPrefixSources {{
         "S + click path",
         "Hold S",
-        "Space",
         "Space + click + drag",
     }};
     for (std::size_t index = 0;
@@ -365,8 +364,7 @@ int main()
             {{
                 "S + 单击路径",
                 "按住 S",
-                "空格",
-                "空格 + 单击 + 拖动",
+                "Space + 单击 + 拖动",
             }},
             {{
                 "S + 双击",
@@ -389,8 +387,7 @@ int main()
             {{
                 "S + 按一下路徑",
                 "按住 S",
-                "空白鍵",
-                "空白鍵 + 按一下 + 拖曳",
+                "Space + 按一下 + 拖曳",
             }},
             {{
                 "S + 連按兩下",
@@ -413,8 +410,7 @@ int main()
             {{
                 "S + パスをクリック",
                 "S キーを押したままにする",
-                "スペース",
-                "スペース + クリック + ドラッグ",
+                "Space + クリック + ドラッグ",
             }},
             {{
                 "S + ダブルクリック",
@@ -477,6 +473,9 @@ int main()
         || matchCavalryTextPathSource(
             CavalryTextPathCallerKind::StaticExact,
             "S").isMatched()
+        || matchCavalryTextPathSource(
+            CavalryTextPathCallerKind::StaticExact,
+            "Space").isMatched()
         || matchCavalryTextPathSource(
             CavalryTextPathCallerKind::Rejected,
             "Pitch Radius: 12").isMatched()

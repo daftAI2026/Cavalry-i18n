@@ -100,8 +100,7 @@ constexpr TextPathTranslationExpectations kZhHansTextPathTranslations {{
     "锁定纵横比",
     "S + 单击路径",
     "按住 S",
-    "空格",
-    "空格 + 单击 + 拖动",
+    "Space + 单击 + 拖动",
     "S + 双击",
     "S + 单击",
     "X + 单击",
@@ -132,8 +131,7 @@ constexpr TextPathTranslationExpectations kZhHantTextPathTranslations {{
     "鎖定長寬比",
     "S + 按一下路徑",
     "按住 S",
-    "空白鍵",
-    "空白鍵 + 按一下 + 拖曳",
+    "Space + 按一下 + 拖曳",
     "S + 連按兩下",
     "S + 按一下",
     "X + 按一下",
@@ -164,8 +162,7 @@ constexpr TextPathTranslationExpectations kJaTextPathTranslations {{
     "縦横比を固定",
     "S + パスをクリック",
     "S キーを押したままにする",
-    "スペース",
-    "スペース + クリック + ドラッグ",
+    "Space + クリック + ドラッグ",
     "S + ダブルクリック",
     "S + クリック",
     "X + クリック",
@@ -358,14 +355,22 @@ bool verifyLanguage(
             return false;
         }
     }
-    if (CavalryExtensionLayerTextPathHook::isWhitelistedSource("Shift")
-        || !expectTextPathEmpty(
-            language
-                + QStringLiteral(
-                    ": TransformTool pure Shift prefix remains English"),
-            translator,
-            "Shift")
-        || !verifyShortcutPrefixes(
+    constexpr std::array<const char *, 2> kTransformPureShortcutPrefixes {{
+        "Shift",
+        "Space",
+    }};
+    for (const char *prefix : kTransformPureShortcutPrefixes) {
+        if (CavalryExtensionLayerTextPathHook::isWhitelistedSource(prefix)
+            || !expectTextPathEmpty(
+                language
+                    + QStringLiteral(
+                        ": TransformTool pure shortcut prefix remains English"),
+                translator,
+                prefix)) {
+            return false;
+        }
+    }
+    if (!verifyShortcutPrefixes(
             kPencilToolHelpPairs,
             QStringLiteral("PencilTool"))
         || !verifyShortcutPrefixes(
@@ -496,7 +501,7 @@ bool verifySkiaRuntimeIdentityAndTextPathDiagnostics()
         || diagnostics.noTranslation != 1
         || diagnostics.rendererFailure != 1
         || diagnostics.translatedSourceMask != 0x0001
-        || diagnostics.fallbackSourceMask != 0x20000000) {
+        || diagnostics.fallbackSourceMask != 0x10000000) {
         qCritical()
             << "Text-path callback diagnostics/mask contract failed.";
         return false;

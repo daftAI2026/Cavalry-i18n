@@ -420,7 +420,7 @@ Space + click + drag / Pan
 不要把所有 ExtensionLayer 字符串混成一类：
 
 - Panel 空状态提示可以显示 CJK，但必须通过各平台已采证的精确绘制边界保留原中心点，不能靠改长字面量碰运气。已确认的三句是 `Double click here to import Assets.`、`Drag layers here to see their settings.`、`Use the Create menu to add a layer to your Composition.`。
-- Viewport 快捷键提示曾有 Latin-only/tofu 风险。Windows 2.7.2 只允许 vendor producer、canonical caller 与 Core/skia ABI 共同证明的七条长操作前缀进入 CJK Path：EditShapeTool 的 `S + double click`、`S + click`、`X + click`，以及 TransformTool 的 `S + click path`、`Hold S`、`Space`、`Space + click + drag`。它们对应的动作文本也必须命中同一精确 source 表；`Control`、`Shift`、`H`、`S`、`Alt` 等纯快捷键和所有未知 source 保持英文。
+- Viewport 快捷键提示曾有 Latin-only/tofu 风险。Windows 2.7.2 只允许 vendor producer、canonical caller 与 Core/skia ABI 共同证明的六条长操作前缀进入 CJK Path：EditShapeTool 的 `S + double click`、`S + click`、`X + click`，以及 TransformTool 的 `S + click path`、`Hold S`、`Space + click + drag`。它们对应的动作文本也必须命中同一精确 source 表；`Control`、`Shift`、`H`、`S`、`Alt`、`Space` 等纯快捷键和所有未知 source 保持英文。
 
 不得恢复 `__cstring` 内存补丁：厂商调用点把英文 byte length 编进机器码，原位写入更长的 UTF-8 会破坏相邻数据或继续按旧长度绘制。macOS 只使用已验证的定点绘制拦截；Windows 只使用 ExtensionLayer 精确 IAT caller/source 门和经 ABI 锁定的 CJK Path renderer。两端都禁止把旧词表整批扩成全局绘制 hook。
 
