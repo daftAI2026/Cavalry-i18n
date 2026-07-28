@@ -1,6 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "build": {
+    "beforeDevCommand": "npm run build:injector:windows",
     "beforeBuildCommand": "npm run prepare:tauri:windows-bundle"
   },
   "bundle": {

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台现场生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、当前 Visual Studio 生成器加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、系统语言/品牌及 GUI 安全合同
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、当前 Visual Studio 生成器加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、系统语言/品牌及 GUI 安全合同
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -237,6 +237,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(config.build.beforeBuildCommand, undefined);
   assert.equal(config.build.frontendDist, '../renderer');
   assert.equal(config.app.withGlobalTauri, true);
+  assert.equal(macConfig.build.beforeDevCommand, 'npm run build:injector');
   assert.equal(macConfig.build.beforeBuildCommand, 'npm run build:injector');
   assert.deepEqual(macConfig.bundle.targets, ['dmg', 'app']);
   assert.equal(macResources['../languages'], 'languages');
@@ -246,6 +247,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
   assert.deepEqual(windowsConfig.bundle.icon, ['icons/icon.ico']);
+  assert.equal(windowsConfig.build.beforeDevCommand, 'npm run build:injector:windows');
   assert.equal(windowsConfig.build.beforeBuildCommand, 'npm run prepare:tauri:windows-bundle');
   assert.equal(windowsNsis.installerHooks, 'nsis-hooks.nsh');
   assert.deepEqual(windowsNsis.languages, [

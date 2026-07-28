@@ -1,6 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "build": {
+    "beforeDevCommand": "npm run build:injector",
     "beforeBuildCommand": "npm run build:injector"
   },
   "bundle": {
