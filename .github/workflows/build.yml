@@ -1,5 +1,5 @@
 # [INPUT]: 依赖仓库版本、CHANGELOG、release.config、跨平台 Tauri 配置、Qt generic/QPA 构建入口、Windows NSIS provenance sidecar 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供 Node/翻译合同、Windows generic/QPA/Rust check/test/带当前输入 provenance 的 NSIS 隔离安装卸载门、双架构 macOS 包、精确版本更新摘要、跨平台 GitHub Release 与 README badge 写回
+# [OUTPUT]: 对外提供 Node/翻译合同、先构建并嵌入 runtime trust-anchor 的 Windows Rust check/test/带当前输入 provenance 的 NSIS 隔离安装卸载门、双架构 macOS 包、精确版本更新摘要、跨平台 GitHub Release 与 README badge 写回
 # [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库版本真相投影为带双 Windows injector/安装态/provenance gate 的 NSIS、macOS 发布包和同时携带 EXE/DMG 的 Cavalry patch tag 发布
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
@@ -137,6 +137,11 @@ jobs:
           npm run check:release
           npm run check:app
           npm run test:contracts
+
+      - name: Build Windows runtime trust anchors
+        run: |
+          npm run prepare:qt-sdk:windows
+          npm run build:injector:windows
 
       - name: Check and test the Windows Rust target
         run: |

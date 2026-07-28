@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-apply.rs: 语言写入事务编排；从已证明的 English snapshot 构建 JSON/runtime copy pairs；Windows 先完成资源/版本只读准备，再执行 fail-before-mutation preflight，以 pending marker 起始、QPA ACTIVE/显式 English 恢复后强制提交 final marker；macOS 保持 marker 在 codesign 前的同事务顺序。
+apply.rs: 语言写入事务编排；Windows 从已证明的 English snapshot 为四语言统一生成 canonical pretty overlay，使 Program Files source provenance 可精确重建，自定义可写根仍以 pending→QPA→final 顺序直写；macOS English 继续复制原始 snapshot，且保持 marker 在 codesign 前的同事务顺序。
 context.rs: Tauri 应用路径与资源候选解析；复用 root 级 runtime_paths，把 repo、state、Resources 以及 `_up_` 打包布局统一为 command 可消费的路径上下文。
 contract.rs: renderer 兼容 DTO 与六命令常量；集中 camelCase JSON 序列化和稳定警告码到用户文案的映射，禁止把底层临时路径泄漏到 UI。
 restart.rs: 重启 command 编排；加载持久 state 后委托 platform_runtime，生产路径只认真实 QPA 检查，测试以显式 inspector seam 覆盖 ACTIVE，保持 renderer 调用路径不含平台 cfg 分支。

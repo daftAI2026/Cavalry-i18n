@@ -2,9 +2,9 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-Cargo.toml: Rust crate 与 Tauri v2 依赖声明，`tauri`/`tauri-build` 保持精确版本线；`sha2` 用于流式安装 revision 与 hash-locked manifest，Windows API crate 仅启用 QPA durable/atomic 文件事务所需 feature。
+Cargo.toml: Rust crate 与 Tauri v2 依赖声明，`tauri`/`tauri-build` 保持精确版本线；`sha2` 同时服务 build-time 发布资源 trust anchor、流式安装 revision 与 hash-locked manifest，Windows API crate 仅启用 QPA durable/atomic 文件事务所需 feature。
 Cargo.lock: Rust 依赖锁定文件，冻结 Tauri、serde、chrono、libc、sha2 与 Windows API 等后端依赖版本。
-build.rs: Tauri build script 入口，读取 `tauri.conf.json` 并生成 runtime context。
+build.rs: Tauri build script 入口；生成 runtime context，并在 Windows 编译时枚举四语 JSON 与已构建 generic/QPA DLL，把固定 SHA-256 catalog 写入 `OUT_DIR` 供提权 worker 嵌入，release 缺 runtime 时 fail closed。
 tauri.conf.json: Tauri 公共配置，指向 renderer、启用 `withGlobalTauri` 并固定窗口尺寸与 capability 边界。
 tauri.macos.conf.json: macOS 合并配置，独占 injector 构建、dylib/languages 资源、DMG 与 ad-hoc signing。
 tauri.windows.conf.json: Windows 合并配置，在 bundle 前构建 generic translator + QPA delegate 并准备 NSIS provenance，绑定仅清理安装元数据的卸载收尾 hook，独占自动跟随系统语言的四语 NSIS、品牌 ico、languages、`cavalryi18n.dll` 与 `qwindows.dll` 资源；禁止携带 macOS dylib。

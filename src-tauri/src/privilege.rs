@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读发现命令和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供写入前 graceful close，并向 crate 内提供无控制台 captured command。
- * [POS]: src-tauri/src 的系统命令 facade；平台安全与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供写入前 graceful close、Windows 提升 worker 早期分流，并向 crate 内提供无控制台 captured command。
+ * [POS]: src-tauri/src 的系统命令 facade；平台安全、提升事务与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod copy_transaction;
@@ -35,6 +35,27 @@ pub(crate) use copy_transaction::{
     copy_with_privilege_detailed, PostCommitWarning, PostCommitWarningCode,
 };
 pub(crate) use runner::captured_command;
+#[cfg(target_os = "windows")]
+pub(crate) use windows::language_transaction::parent::{
+    apply_if_program_files as apply_windows_program_files_language, ParentApplyError,
+    ParentApplyOutcome, ParentApplyRequest,
+};
+
+#[cfg(target_os = "windows")]
+pub(crate) fn dispatch_elevated_language_worker_current_process() -> Option<u32> {
+    use windows::language_transaction::contract::{
+        parse_worker_argv, WorkerArgv, WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN,
+    };
+
+    let args = std::env::args_os().skip(1).collect::<Vec<_>>();
+    match parse_worker_argv(&args) {
+        WorkerArgv::NotWorker => None,
+        WorkerArgv::Apply(transport) => Some(
+            windows::language_transaction::worker::run_elevated_worker(&transport),
+        ),
+        WorkerArgv::HandledError(_) => Some(WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN),
+    }
+}
 
 /// Windows 管理员重试只服务 OS Known Folder 证明的 Program Files 后代；其他平台保持旧行为返回 false。
 pub fn windows_elevation_supported_for_install(install_root: &Path) -> bool {

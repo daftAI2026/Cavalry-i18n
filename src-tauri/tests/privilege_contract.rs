@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 privilege facade、其按职责拆分的源码树，以及复制、重签、quarantine 与跨平台 restart 边界。
- * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名及 Windows Known Folder UAC、无控制台 PowerShell、hash-locked loader、0/42/43/44 状态与 typed recovery diagnostics contract tests。
+ * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名及 Windows Known Folder UAC、same-EXE worker 早分流、无控制台 PowerShell、hash-locked loader、0/42/43/44 状态与 typed recovery diagnostics contract tests。
  * [POS]: src-tauri/tests 的系统边界守门；审计 facade 与子模块共同满足安全边界，避免文件拆分掩盖 Windows 提权约束。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -439,6 +439,27 @@ fn windows_runtime_powershell_contract_never_allocates_console_windows() {
         "the elevated PowerShell needs both a hidden startup argument and hidden Start-Process style"
     );
     assert!(admin_copy.contains("-Verb RunAs"));
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn elevated_language_worker_dispatch_precedes_headless_launch_and_webview_runtime() {
+    let main =
+        fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("src/main.rs")).unwrap();
+    let worker = main
+        .find("dispatch_elevated_language_worker_current_process()")
+        .expect("main must dispatch the reserved elevated worker");
+    let headless = main
+        .find("headless_launch::dispatch_current_process()")
+        .expect("main must retain the native Cavalry launch path");
+    let webview = main
+        .find("cavalry_i18n_tauri::run();")
+        .expect("main must retain the ordinary Tauri runtime");
+
+    assert!(
+        worker < headless && headless < webview,
+        "reserved elevated argv must be consumed before any native launch or WebView"
+    );
 }
 
 #[test]

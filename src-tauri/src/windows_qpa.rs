@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 InstallLayout、打包 QPA 代理、安装根 generic plugin 与 windows_qpa/storage 的原子文件能力。
- * [OUTPUT]: 提供严格 Cavalry 2.7.2/Qt 6.6.3/x64 QPA 激活计划、直接写入 preflight、STOCK/ACTIVE/DRIFTED/RECOVER 检查，以及仅供明确 English 选择调用的原厂恢复。
- * [POS]: src-tauri/src 的 Windows QPA 持久部署边界；原厂 DLL 长期留在安装根恢复目录，普通 Cavalry 关闭不触发恢复，厂商覆盖代理时绝不回写旧备份。
+ * [OUTPUT]: 提供严格 Cavalry 2.7.2/Qt 6.6.3/x64 QPA transition 计划、直接写入 preflight、纯文件 rollback 表面、四态检查，以及仅供明确 English 选择调用的原厂恢复。
+ * [POS]: src-tauri/src 的 Windows QPA 持久部署边界；原厂 DLL 长期留在安装根恢复目录，普通 Cavalry 关闭不触发恢复，厂商覆盖代理时保留新文件并拒绝把未知 QPA 报为成功 English。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, io::ErrorKind, path::Path};
@@ -10,10 +10,14 @@ use crate::install::{InstallLayout, InstallPlatform};
 
 #[path = "windows_qpa/contract.rs"]
 mod contract;
+#[path = "windows_qpa/identity.rs"]
+mod identity;
 #[path = "windows_qpa/preflight.rs"]
 mod preflight;
 #[path = "windows_qpa/storage.rs"]
 mod storage;
+#[path = "windows_qpa/transition.rs"]
+mod transition;
 
 use contract::{
     inspection, manifest_from_activation_plan, validate_activation_plan, validate_manifest,
@@ -21,23 +25,24 @@ use contract::{
 };
 pub use contract::{
     ActivationOutcome, ActivationRequest, PreparedRestore, QpaActivationPlan, QpaDeploymentState,
-    QpaInspection, QpaManifest, QpaManifestPhase, QpaRestorePlan, RestoreAction, RestoreOutcome,
-    RestoreReason, RestoreRequest, GENERIC_PLUGIN_RELATIVE_PATH, MANIFEST_FILE_NAME,
-    QT_CORE_FILE_NAME, QWINDOWS_FILE_NAME, RECOVERY_DIRECTORY_NAME, SUPPORTED_ARCHITECTURE,
-    SUPPORTED_CAVALRY_VERSION, SUPPORTED_QT_VERSION, VENDOR_QWINDOWS_FILE_NAME,
-    VENDOR_QWINDOWS_SHA256,
+    QpaInspection, QpaManifest, QpaManifestPhase, QpaNoopPlan, QpaNoopReason, QpaRestorePlan,
+    QpaTransitionPlan, RestoreAction, RestoreOutcome, RestoreReason, RestoreRequest,
+    GENERIC_PLUGIN_RELATIVE_PATH, MANIFEST_FILE_NAME, QT_CORE_FILE_NAME, QWINDOWS_FILE_NAME,
+    RECOVERY_DIRECTORY_NAME, SUPPORTED_ARCHITECTURE, SUPPORTED_CAVALRY_VERSION,
+    SUPPORTED_QT_VERSION, VENDOR_QWINDOWS_FILE_NAME, VENDOR_QWINDOWS_SHA256,
 };
+use identity::{verify_runtime_identity, verify_target_files_with_generic};
 pub use preflight::{
     direct_write_requires_elevated_worker, managed_write_surface, manifest_path,
-    preflight_direct_writable, recovery_directory, vendor_qwindows_backup,
+    preflight_direct_writable, recovery_directory, rollback_file_surface, vendor_qwindows_backup,
 };
 use storage::{
     copy_new_durable, create_missing_verified, create_recovery_directory,
     ensure_path_chain_has_no_reparse_points, ensure_regular_directory, ensure_regular_file,
-    product_version, publish_without_overwrite, remove_empty_directory, remove_if_hash_matches,
-    remove_regular_file, replace_existing_verified, require_hash, sha256_file, snapshot_hash,
-    validate_x64_pe, write_manifest_atomic, FileVersion, MANIFEST_REPLACE_BACKUP_FILE,
-    MANIFEST_TEMP_FILE, REPLACE_BACKUP_FILE, VENDOR_TEMP_FILE,
+    publish_without_overwrite, remove_empty_directory, remove_if_hash_matches, remove_regular_file,
+    replace_existing_verified, require_hash, sha256_file, snapshot_hash, validate_x64_pe,
+    write_manifest_atomic, MANIFEST_REPLACE_BACKUP_FILE, MANIFEST_TEMP_FILE, REPLACE_BACKUP_FILE,
+    VENDOR_TEMP_FILE,
 };
 
 pub fn inspect(layout: &InstallLayout) -> Result<QpaInspection, String> {
@@ -48,15 +53,17 @@ pub fn build_activation_plan(request: ActivationRequest<'_>) -> Result<QpaActiva
     build_activation_plan_with_policy(request, &Policy::production(), true)
 }
 
+pub fn build_activation_plan_with_generic_source(
+    request: ActivationRequest<'_>,
+    generic_source: &Path,
+) -> Result<QpaActivationPlan, String> {
+    build_activation_plan_with_generic_policy(request, generic_source, &Policy::production(), true)
+}
+
 /// 普通可写安装根直接执行；Program Files 调用方应序列化同一份 hash-locked plan，
 /// 在受限提升 worker 中调用 execute_writable_activation，不能退回 CopyPair 截断覆盖。
 pub fn execute_writable_activation(plan: &QpaActivationPlan) -> Result<ActivationOutcome, String> {
-    execute_writable_activation_with_policy(plan, &Policy::production(), true)
-}
-
-pub fn activate_writable(request: ActivationRequest<'_>) -> Result<ActivationOutcome, String> {
-    let plan = build_activation_plan(request)?;
-    execute_writable_activation(&plan)
+    execute_writable_activation_with_source(plan, None)
 }
 
 pub fn build_restore_plan(request: RestoreRequest<'_>) -> Result<PreparedRestore, String> {
@@ -64,15 +71,14 @@ pub fn build_restore_plan(request: RestoreRequest<'_>) -> Result<PreparedRestore
 }
 
 pub fn execute_writable_restore(plan: &QpaRestorePlan) -> Result<RestoreOutcome, String> {
-    execute_writable_restore_with_policy(plan, &Policy::production())
+    execute_writable_restore_with_policy(plan, &Policy::production(), true)
 }
 
-pub fn restore_writable(request: RestoreRequest<'_>) -> Result<RestoreOutcome, String> {
-    match build_restore_plan(request)? {
-        PreparedRestore::Execute(plan) => execute_writable_restore(&plan),
-        PreparedRestore::Complete(outcome) => Ok(outcome),
-    }
-}
+pub use transition::{
+    activate_writable, build_english_transition, execute_writable_transition,
+    execute_writable_transition_with_outcome, execute_writable_transition_with_proxy_source,
+    restore_writable, QpaTransitionOutcome,
+};
 
 fn inspect_with_policy(layout: &InstallLayout, policy: &Policy) -> Result<QpaInspection, String> {
     require_windows_layout(layout)?;
@@ -185,6 +191,16 @@ fn build_activation_plan_with_policy(
     policy: &Policy,
     verify_versions: bool,
 ) -> Result<QpaActivationPlan, String> {
+    let generic = request.layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH);
+    build_activation_plan_with_generic_policy(request, &generic, policy, verify_versions)
+}
+
+fn build_activation_plan_with_generic_policy(
+    request: ActivationRequest<'_>,
+    generic_source: &Path,
+    policy: &Policy,
+    verify_versions: bool,
+) -> Result<QpaActivationPlan, String> {
     require_windows_layout(request.layout)?;
     if request.cavalry_version != policy.cavalry_version {
         return Err(format!(
@@ -193,16 +209,16 @@ fn build_activation_plan_with_policy(
         ));
     }
     request.layout.validate()?;
-    verify_target_files(
+    verify_target_files_with_generic(
         request.layout,
         request.proxy_source,
+        generic_source,
         policy,
         verify_versions,
     )?;
-    let generic = request.layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH);
     let cavalry_executable_hash = sha256_file(&request.layout.executable)?;
     let proxy_hash = sha256_file(request.proxy_source)?;
-    let generic_hash = sha256_file(&generic)?;
+    let generic_hash = sha256_file(generic_source)?;
     let qwindows = request.layout.root.join(QWINDOWS_FILE_NAME);
     let current = snapshot_hash(&qwindows, "installed qwindows.dll")?;
     let inspection = inspect_with_policy(request.layout, policy)?;
@@ -235,15 +251,26 @@ fn build_activation_plan_with_policy(
     })
 }
 
+#[cfg(test)]
 fn execute_writable_activation_with_policy(
     plan: &QpaActivationPlan,
     policy: &Policy,
     verify_versions: bool,
 ) -> Result<ActivationOutcome, String> {
+    execute_writable_activation_with_source_policy(plan, None, policy, verify_versions)
+}
+
+fn execute_writable_activation_with_source_policy(
+    plan: &QpaActivationPlan,
+    proxy_source_override: Option<&Path>,
+    policy: &Policy,
+    verify_versions: bool,
+) -> Result<ActivationOutcome, String> {
     validate_activation_plan(plan, policy)?;
     let layout = InstallLayout::from_root(Path::new(&plan.install_root));
-    let proxy_source = Path::new(&plan.proxy_source_path);
-    verify_target_files(&layout, proxy_source, policy, verify_versions)?;
+    let proxy_source = proxy_source_override.unwrap_or_else(|| Path::new(&plan.proxy_source_path));
+    let generic = layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH);
+    verify_target_files_with_generic(&layout, proxy_source, &generic, policy, verify_versions)?;
     require_hash(
         &layout.executable,
         &plan.cavalry_executable_sha256,
@@ -318,6 +345,18 @@ fn execute_writable_activation_with_policy(
     } else {
         ActivationOutcome::Activated
     })
+}
+
+fn execute_writable_activation_with_source(
+    plan: &QpaActivationPlan,
+    proxy_source_override: Option<&Path>,
+) -> Result<ActivationOutcome, String> {
+    execute_writable_activation_with_source_policy(
+        plan,
+        proxy_source_override,
+        &Policy::production(),
+        true,
+    )
 }
 
 fn build_restore_plan_with_policy(
@@ -410,6 +449,10 @@ fn build_restore_plan_with_policy(
         install_root: request.layout.root.to_string_lossy().to_string(),
         reason: request.reason,
         action,
+        cavalry_version: policy.cavalry_version.clone(),
+        cavalry_executable_sha256: sha256_file(&request.layout.executable)?,
+        qt_version: policy.qt_version.clone(),
+        architecture: policy.architecture.clone(),
         expected_current_qwindows_sha256: current,
         proxy_qwindows_sha256: manifest_proxy_hash.unwrap_or(packaged_proxy_hash),
         vendor_qwindows_sha256: policy.vendor_hash.clone(),
@@ -420,11 +463,23 @@ fn build_restore_plan_with_policy(
 fn execute_writable_restore_with_policy(
     plan: &QpaRestorePlan,
     policy: &Policy,
+    verify_versions: bool,
 ) -> Result<RestoreOutcome, String> {
     validate_restore_plan(plan, policy)?;
     let layout = InstallLayout::from_root(Path::new(&plan.install_root));
     require_windows_layout(&layout)?;
     ensure_path_chain_has_no_reparse_points(&layout.root)?;
+    if verify_versions {
+        verify_runtime_identity(&layout, policy)?;
+    } else {
+        validate_x64_pe(&layout.executable, "Cavalry.exe")?;
+        validate_x64_pe(&layout.root.join(QT_CORE_FILE_NAME), "Qt6Core.dll")?;
+    }
+    require_hash(
+        &layout.executable,
+        &plan.cavalry_executable_sha256,
+        "hash-locked Cavalry executable",
+    )?;
     require_hash(
         &vendor_qwindows_backup(&layout),
         &policy.vendor_hash,
@@ -494,67 +549,6 @@ fn execute_writable_restore_with_policy(
     } else {
         RestoreOutcome::Restored
     })
-}
-
-fn verify_target_files(
-    layout: &InstallLayout,
-    proxy_source: &Path,
-    policy: &Policy,
-    verify_versions: bool,
-) -> Result<(), String> {
-    ensure_path_chain_has_no_reparse_points(&layout.root)?;
-    let proxy_parent = proxy_source
-        .parent()
-        .ok_or_else(|| "QPA proxy source has no parent.".to_string())?;
-    ensure_path_chain_has_no_reparse_points(proxy_parent)?;
-    validate_x64_pe(&layout.executable, "Cavalry.exe")?;
-    let qt_core = layout.root.join(QT_CORE_FILE_NAME);
-    validate_x64_pe(&qt_core, "Qt6Core.dll")?;
-    validate_x64_pe(proxy_source, "QPA proxy source")?;
-    validate_x64_pe(
-        &layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH),
-        "generic translation plugin",
-    )?;
-    if let Some(current) = snapshot_hash(
-        &layout.root.join(QWINDOWS_FILE_NAME),
-        "installed qwindows.dll",
-    )? {
-        let _ = current;
-        validate_x64_pe(
-            &layout.root.join(QWINDOWS_FILE_NAME),
-            "installed qwindows.dll",
-        )?;
-    }
-    if verify_versions {
-        let actual_cavalry =
-            crate::windows_install::product_version_for_executable(&layout.executable)
-                .unwrap_or_default();
-        if actual_cavalry != policy.cavalry_version {
-            return Err(format!(
-                "Windows QPA requires Cavalry {}; the selected executable proves {}.",
-                policy.cavalry_version,
-                if actual_cavalry.is_empty() {
-                    "no supported release"
-                } else {
-                    actual_cavalry.as_str()
-                }
-            ));
-        }
-        let expected = FileVersion {
-            major: 6,
-            minor: 6,
-            patch: 3,
-            build: 0,
-        };
-        let actual = product_version(&qt_core)?;
-        if actual != expected || policy.qt_version != "6.6.3" {
-            return Err(format!(
-                "Windows QPA requires Qt {} (file version {expected}); found {actual}.",
-                policy.qt_version
-            ));
-        }
-    }
-    Ok(())
 }
 
 fn prepare_vendor_backup(

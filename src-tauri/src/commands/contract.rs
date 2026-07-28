@@ -8,6 +8,9 @@ use serde::Serialize;
 
 use crate::privilege::PostCommitWarning;
 
+const PROTECTED_TRANSACTION_WARNING: &str = "Language files were applied, but transaction recovery evidence remains in the protected Cavalry installation. Do not delete it manually.";
+const TEMPORARY_CLEANUP_WARNING: &str = "Language files were applied, but temporary cleanup is still pending. Close Cavalry Language Switcher before removing temporary files.";
+
 pub const COMMAND_NAMES: [&str; 6] = [
     "get_status",
     "browse_app",
@@ -158,17 +161,70 @@ pub(crate) fn renderer_warning_for_copy(
             "copy.direct-recovery-residual" => {
                 "Language files were applied after recovery; temporary recovery files may still need manual cleanup."
             }
+            "copy.elevated-transaction-cleanup" => PROTECTED_TRANSACTION_WARNING,
             "copy.transaction-backup-cleanup"
-            | "copy.elevated-transaction-cleanup"
             | "copy.elevated-admin-cleanup"
-            | "apply.staging-cleanup" => {
-                "Language files were applied, but temporary cleanup is still pending. Close Cavalry Language Switcher before removing temporary files."
-            }
+            | "apply.staging-cleanup" => TEMPORARY_CLEANUP_WARNING,
             "copy.finder-fallback" => {
                 "macOS blocked direct shell copy, so Finder-style replacement was used."
             }
             _ => "Language files were applied with a non-fatal cleanup warning.",
         })
-        .collect::<Vec<_>>();
+        .fold(Vec::new(), |mut messages, message| {
+            if !messages.contains(&message) {
+                messages.push(message);
+            }
+            messages
+        });
     Some(messages.join(" "))
+}
+
+#[cfg(test)]
+mod warning_tests {
+    use std::path::PathBuf;
+
+    use crate::privilege::{PostCommitWarning, PostCommitWarningCode};
+
+    use super::{
+        renderer_warning_for_copy, PROTECTED_TRANSACTION_WARNING, TEMPORARY_CLEANUP_WARNING,
+    };
+
+    #[test]
+    fn protected_transaction_and_staging_cleanup_keep_distinct_instructions() {
+        let warnings = [
+            PostCommitWarning::new(
+                PostCommitWarningCode::ElevatedTransactionCleanup,
+                [PathBuf::from(r"C:\Program Files\Cavalry")],
+                Some("private worker detail".to_string()),
+            ),
+            PostCommitWarning::new(
+                PostCommitWarningCode::StagingCleanup,
+                [PathBuf::from(r"C:\Users\fixture\Temp")],
+                Some("private staging detail".to_string()),
+            ),
+        ];
+
+        let rendered = renderer_warning_for_copy(&warnings, "elevated").unwrap();
+
+        assert!(rendered.contains(PROTECTED_TRANSACTION_WARNING));
+        assert!(rendered.contains(TEMPORARY_CLEANUP_WARNING));
+        assert!(!rendered.contains("Program Files"));
+        assert!(!rendered.contains("private"));
+    }
+
+    #[test]
+    fn protected_transaction_warning_never_advises_closing_the_switcher() {
+        let rendered = renderer_warning_for_copy(
+            &[PostCommitWarning::new(
+                PostCommitWarningCode::ElevatedTransactionCleanup,
+                std::iter::empty::<PathBuf>(),
+                None,
+            )],
+            "elevated",
+        )
+        .unwrap();
+
+        assert_eq!(rendered, PROTECTED_TRANSACTION_WARNING);
+        assert!(!rendered.contains("Close Cavalry Language Switcher"));
+    }
 }

@@ -870,12 +870,17 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
   assert.ok(job, 'windows_check job missing');
   assert.match(job[1], /runs-on:\s*windows-latest/);
   assert.match(job[1], /actions\/setup-python@v5/);
-  assert.doesNotMatch(job[1], /npm run prepare:qt-sdk:windows/);
+  assert.match(job[1], /npm run prepare:qt-sdk:windows/);
   assert.doesNotMatch(job[1], /python -m aqt install-qt/);
   assert.match(job[1], /npm ci/);
   assert.match(job[1], /npm run test:contracts/);
-  assert.doesNotMatch(job[1], /npm run build:injector:windows/);
+  assert.match(job[1], /npm run build:injector:windows/);
   assert.match(job[1], /npm run test:tauri/);
+  const prepareQtIndex = job[1].indexOf('npm run prepare:qt-sdk:windows');
+  const buildInjectorIndex = job[1].indexOf('npm run build:injector:windows');
+  const rustCheckIndex = job[1].indexOf('npm run check:tauri');
+  assert.ok(prepareQtIndex >= 0 && prepareQtIndex < buildInjectorIndex);
+  assert.ok(buildInjectorIndex < rustCheckIndex);
   assert.match(
     job[1],
     /npm run build:tauri:windows[\s\S]*npm run test:tauri:windows-nsis[\s\S]*Upload the Windows NSIS installer/

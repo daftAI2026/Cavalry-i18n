@@ -1,18 +1,24 @@
 /**
  * [INPUT]: 依赖 windows_qpa 内部 policy seam、临时 x64 PE fixture 与真实 ReplaceFileW 文件语义。
- * [OUTPUT]: 证明激活持久化、显式 English 恢复、普通关闭不恢复、漂移保留、直接写 preflight、崩溃阶段识别及计划 CAS/hash 锁。
+ * [OUTPUT]: 证明激活持久化、显式 English 恢复、普通关闭不恢复、未知厂商漂移保留后 fail-closed、纯文件 rollback 表面、直接写 preflight、崩溃阶段识别及计划 CAS/hash 锁。
  * [POS]: windows_qpa 的 Windows 单元合同；只写 tempfile 安装根，不读取或修改真实 Cavalry。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, path::Path};
 
+use super::storage::{
+    MANIFEST_REPLACE_BACKUP_FILE, MANIFEST_TEMP_FILE, REPLACE_BACKUP_FILE, ROOT_REPLACEMENT_TEMP,
+    VENDOR_TEMP_FILE,
+};
+use super::transition::{build_english_transition_with_policy, execute_writable_noop_with_policy};
 use super::{
     build_activation_plan_with_policy, build_restore_plan_with_policy,
     execute_writable_activation_with_policy, execute_writable_restore_with_policy,
     inspect_with_policy, manifest_path, preflight_direct_writable, read_manifest,
-    recovery_directory, sha256_file, write_manifest, ActivationOutcome, ActivationRequest, Policy,
-    PreparedRestore, QpaDeploymentState, QpaManifestPhase, RestoreOutcome, RestoreReason,
-    RestoreRequest, VENDOR_QWINDOWS_FILE_NAME,
+    recovery_directory, rollback_file_surface, sha256_file, write_manifest, ActivationOutcome,
+    ActivationRequest, Policy, PreparedRestore, QpaDeploymentState, QpaManifestPhase, QpaNoopPlan,
+    QpaNoopReason, QpaTransitionPlan, RestoreOutcome, RestoreReason, RestoreRequest,
+    MANIFEST_FILE_NAME, PLAN_SCHEMA_VERSION, QWINDOWS_FILE_NAME, VENDOR_QWINDOWS_FILE_NAME,
 };
 use crate::install::InstallLayout;
 
@@ -87,6 +93,28 @@ impl Fixture {
 }
 
 #[test]
+fn stock_english_transition_is_a_verified_noop_without_file_mutation() {
+    let fixture = Fixture::new();
+    let before_qwindows = fs::read(fixture.layout.root.join("qwindows.dll")).unwrap();
+    let transition = build_english_transition_with_policy(
+        fixture.restore_request(RestoreReason::EnglishSelection),
+        &fixture.policy,
+    )
+    .unwrap();
+    let QpaTransitionPlan::Noop(plan) = transition else {
+        panic!("stock English selection must produce a hash-locked no-op");
+    };
+
+    assert_eq!(plan.reason, QpaNoopReason::AlreadyStock);
+    execute_writable_noop_with_policy(&plan, &fixture.policy, false).unwrap();
+    assert_eq!(
+        fs::read(fixture.layout.root.join("qwindows.dll")).unwrap(),
+        before_qwindows
+    );
+    assert!(!recovery_directory(&fixture.layout).exists());
+}
+
+#[test]
 fn activation_persists_until_explicit_english_restore() {
     let fixture = Fixture::new();
     assert_eq!(fixture.activate(), ActivationOutcome::Activated);
@@ -126,7 +154,7 @@ fn activation_persists_until_explicit_english_restore() {
         panic!("English selection must produce an explicit restore plan");
     };
     assert_eq!(
-        execute_writable_restore_with_policy(&plan, &fixture.policy).unwrap(),
+        execute_writable_restore_with_policy(&plan, &fixture.policy, false).unwrap(),
         RestoreOutcome::Restored
     );
     assert_eq!(
@@ -159,6 +187,12 @@ fn vendor_update_drift_is_never_overwritten_by_the_old_backup() {
         vendor_update
     );
     assert!(recovery_directory(&fixture.layout).exists());
+    let error = build_english_transition_with_policy(
+        fixture.restore_request(RestoreReason::EnglishSelection),
+        &fixture.policy,
+    )
+    .unwrap_err();
+    assert!(error.contains("unrecognized vendor file"));
 }
 
 #[test]
@@ -174,6 +208,43 @@ fn prepared_manifest_is_recover_not_active() {
     let inspection = inspect_with_policy(&fixture.layout, &fixture.policy).unwrap();
     assert_eq!(inspection.state, QpaDeploymentState::Recover);
     assert_eq!(inspection.phase, Some(QpaManifestPhase::Prepared));
+}
+
+#[test]
+fn vendor_update_preserved_noop_always_fails_closed() {
+    let fixture = Fixture::new();
+    fixture.activate();
+    let mut manifest = read_manifest(&fixture.layout, &fixture.policy)
+        .unwrap()
+        .unwrap();
+    manifest.phase = QpaManifestPhase::Prepared;
+    write_manifest(&fixture.layout, &manifest, &fixture.policy).unwrap();
+    let vendor_update = fake_x64_pe(b"future-vendor-qwindows");
+    fs::write(fixture.layout.root.join(QWINDOWS_FILE_NAME), &vendor_update).unwrap();
+
+    let inspection = inspect_with_policy(&fixture.layout, &fixture.policy).unwrap();
+    assert!(matches!(
+        inspection.state,
+        QpaDeploymentState::Drifted | QpaDeploymentState::Recover
+    ));
+    assert!(inspection.current_qwindows_sha256.is_some());
+
+    let plan = QpaNoopPlan {
+        schema_version: PLAN_SCHEMA_VERSION,
+        install_root: fixture.layout.root.to_string_lossy().to_string(),
+        reason: QpaNoopReason::VendorUpdatePreserved,
+        cavalry_version: fixture.policy.cavalry_version.clone(),
+        cavalry_executable_sha256: sha256_file(&fixture.layout.executable).unwrap(),
+        qt_version: fixture.policy.qt_version.clone(),
+        architecture: fixture.policy.architecture.clone(),
+        expected_current_qwindows_sha256: inspection.current_qwindows_sha256,
+    };
+    let error = execute_writable_noop_with_policy(&plan, &fixture.policy, false).unwrap_err();
+    assert!(error.contains("unrecognized vendor file"));
+    assert_eq!(
+        fs::read(fixture.layout.root.join(QWINDOWS_FILE_NAME)).unwrap(),
+        vendor_update
+    );
 }
 
 #[test]
@@ -309,7 +380,7 @@ fn missing_root_dll_can_be_restored_from_the_durable_backup() {
         panic!("missing owned root DLL must produce a recovery plan");
     };
     assert_eq!(
-        execute_writable_restore_with_policy(&plan, &fixture.policy).unwrap(),
+        execute_writable_restore_with_policy(&plan, &fixture.policy, false).unwrap(),
         RestoreOutcome::Restored
     );
     assert_eq!(
@@ -339,6 +410,33 @@ fn fixture_paths_are_confined_to_temp() {
         expected_root.to_string_lossy().to_ascii_lowercase()
     );
     assert!(Path::new(&fixture.proxy).is_file());
+}
+
+#[test]
+fn rollback_file_surface_contains_only_the_fixed_qpa_files() {
+    let fixture = Fixture::new();
+    let recovery = recovery_directory(&fixture.layout);
+
+    let surface = rollback_file_surface(&fixture.layout);
+
+    assert_eq!(
+        surface,
+        vec![
+            fixture.layout.root.join(QWINDOWS_FILE_NAME),
+            fixture.layout.root.join(ROOT_REPLACEMENT_TEMP),
+            recovery.join(VENDOR_QWINDOWS_FILE_NAME),
+            recovery.join(MANIFEST_FILE_NAME),
+            recovery.join(VENDOR_TEMP_FILE),
+            recovery.join(REPLACE_BACKUP_FILE),
+            recovery.join(MANIFEST_TEMP_FILE),
+            recovery.join(MANIFEST_REPLACE_BACKUP_FILE),
+        ]
+    );
+    assert!(!surface.contains(&fixture.layout.root));
+    assert!(!surface.contains(&recovery));
+    assert!(!surface
+        .iter()
+        .any(|path| path.to_string_lossy().contains("write-probe")));
 }
 
 #[test]

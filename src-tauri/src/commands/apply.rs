@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 snapshot/status、patch transaction、platform_runtime preflight/ApplyPlan 与 privilege typed copy completion。
- * [OUTPUT]: 提供 apply_language_inner、Windows pending→QPA→final marker 顺序、macOS marker→签名顺序及 staging warning。
- * [POS]: commands 的语言写入编排；Windows final marker 可延后到 QPA ACTIVE/English 恢复之后，macOS 保持 marker 入事务后统一重签。
+ * [INPUT]: 依赖 snapshot/status、English-baseline JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight 与 privilege copy completion。
+ * [OUTPUT]: 提供 apply_language_inner、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning、自定义根 fallback，以及 macOS 原始 English snapshot 与 marker→签名顺序。
+ * [POS]: commands 的语言写入编排；Windows 为 source provenance 统一规范化 English/翻译 payload，Program Files 仅在 worker 0/42 后写 state，macOS 保持已验收快照行为。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::Utc;
@@ -194,17 +194,20 @@ pub fn apply_language_inner<R: CommandRunner>(
     }
 
     let staging_root = unique_staging_root();
-    let plan = platform_runtime::prepare_apply(
-        repo_root,
-        resource_dir,
-        &app_path,
-        lang,
-        &version,
-        &staging_root,
-    )?;
-    platform_runtime::preflight_apply(&app_path, lang, runner)?;
-    let mut pairs = if lang == "en" {
-        patch::build_copy_pairs(&source_dir, &app_path)
+    let pairs = if lang == "en" {
+        #[cfg(target_os = "windows")]
+        {
+            patch::build_overlay_pairs(
+                &source_dir,
+                &state_dir.join("en"),
+                &app_path,
+                &staging_root.join("overlay"),
+            )?
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            patch::build_copy_pairs(&source_dir, &app_path)
+        }
     } else {
         patch::build_overlay_pairs(
             &source_dir,
@@ -216,6 +219,45 @@ pub fn apply_language_inner<R: CommandRunner>(
     if pairs.is_empty() {
         return Err(format!("No JSON assets found for {lang}."));
     }
+
+    #[cfg(target_os = "windows")]
+    {
+        let layout = InstallLayout::from_root(&app_path);
+        let program_files_result =
+            privilege::apply_windows_program_files_language(privilege::ParentApplyRequest {
+                repo_root,
+                resource_dir,
+                state_dir,
+                layout: &layout,
+                language: lang,
+                cavalry_version: &version,
+                staging_root: &staging_root,
+                overlay_pairs: &pairs,
+            });
+        if let Some(payload) = finish_program_files_result(
+            program_files_result,
+            state_dir,
+            &current_state,
+            &app_path,
+            &version,
+            &immutable_revision,
+            lang,
+            now,
+        )? {
+            return Ok(payload);
+        }
+    }
+
+    let plan = platform_runtime::prepare_apply(
+        repo_root,
+        resource_dir,
+        &app_path,
+        lang,
+        &version,
+        &staging_root,
+    )?;
+    platform_runtime::preflight_apply(&app_path, lang, runner)?;
+    let mut pairs = pairs;
     pairs.extend(plan.runtime_pairs.iter().cloned());
     let layout = InstallLayout::from_root(&app_path);
 
@@ -289,6 +331,28 @@ pub fn apply_language_inner<R: CommandRunner>(
         ));
     }
 
+    finish_apply_state(
+        state_dir,
+        current_state,
+        &app_path,
+        version,
+        immutable_revision,
+        lang,
+        now,
+        renderer_warning_for_copy(&copy_completion.warnings, &copy_completion.mode),
+    )
+}
+
+fn finish_apply_state(
+    state_dir: &Path,
+    current_state: State,
+    app_path: &Path,
+    version: String,
+    immutable_revision: String,
+    lang: &str,
+    now: &str,
+    warning: Option<String>,
+) -> Result<ActionPayload, String> {
     let next_state = state::write_state(
         state_dir,
         &State {
@@ -300,8 +364,223 @@ pub fn apply_language_inner<R: CommandRunner>(
             ..current_state
         },
     )?;
-    Ok(ActionPayload::ok_lang(
-        &next_state.current_lang,
-        renderer_warning_for_copy(&copy_completion.warnings, &copy_completion.mode),
-    ))
+    Ok(ActionPayload::ok_lang(&next_state.current_lang, warning))
+}
+
+#[cfg(target_os = "windows")]
+#[allow(clippy::too_many_arguments)]
+fn finish_program_files_result(
+    result: Result<privilege::ParentApplyOutcome, privilege::ParentApplyError>,
+    state_dir: &Path,
+    current_state: &State,
+    app_path: &Path,
+    version: &str,
+    immutable_revision: &str,
+    lang: &str,
+    now: &str,
+) -> Result<Option<ActionPayload>, String> {
+    match result {
+        Ok(privilege::ParentApplyOutcome::NotApplicable) => Ok(None),
+        Ok(privilege::ParentApplyOutcome::Applied {
+            worker_cleanup_residual,
+            staging_cleanup_warning,
+        }) => {
+            let mut warnings = Vec::with_capacity(2);
+            if worker_cleanup_residual {
+                warnings.push(PostCommitWarning::new(
+                    PostCommitWarningCode::ElevatedTransactionCleanup,
+                    [app_path.to_path_buf()],
+                    Some(
+                        "The elevated worker committed but retained its bounded transaction journal."
+                            .to_string(),
+                    ),
+                ));
+            }
+            if let Some(detail) = staging_cleanup_warning {
+                warnings.push(PostCommitWarning::new(
+                    PostCommitWarningCode::StagingCleanup,
+                    std::iter::empty::<PathBuf>(),
+                    Some(detail),
+                ));
+            }
+            let warning = renderer_warning_for_copy(&warnings, "elevated");
+            finish_apply_state(
+                state_dir,
+                current_state.clone(),
+                app_path,
+                version.to_string(),
+                immutable_revision.to_string(),
+                lang,
+                now,
+                warning,
+            )
+            .map(Some)
+        }
+        Err(privilege::ParentApplyError::PermissionRequired {
+            staging_cleanup_warning,
+            ..
+        }) => {
+            let message = if staging_cleanup_warning.is_some() {
+                "Windows administrator consent is required to update this Program Files installation. Temporary cleanup is still pending."
+            } else {
+                "Windows administrator consent is required to update this Program Files installation."
+            };
+            Ok(Some(ActionPayload::permission_error(message)))
+        }
+        Err(error) => Err(error.to_string()),
+    }
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod program_files_result_tests {
+    use super::*;
+
+    fn context() -> (tempfile::TempDir, PathBuf, PathBuf, State) {
+        let temp = tempfile::tempdir().unwrap();
+        let state_dir = temp.path().join("state");
+        let app_path = temp.path().join("Cavalry");
+        (
+            temp,
+            state_dir,
+            app_path,
+            State {
+                current_lang: "en".to_string(),
+                ..State::default()
+            },
+        )
+    }
+
+    #[test]
+    fn not_applicable_preserves_state_for_the_direct_path() {
+        let (_temp, state_dir, app_path, state) = context();
+        let result = finish_program_files_result(
+            Ok(privilege::ParentApplyOutcome::NotApplicable),
+            &state_dir,
+            &state,
+            &app_path,
+            "2.7.2",
+            "revision",
+            "zh-Hans",
+            "now",
+        )
+        .unwrap();
+
+        assert_eq!(result, None);
+        assert!(!state_dir.exists());
+    }
+
+    #[test]
+    fn committed_result_is_the_only_path_that_writes_next_state() {
+        let (_temp, state_dir, app_path, state) = context();
+        let payload = finish_program_files_result(
+            Ok(privilege::ParentApplyOutcome::Applied {
+                worker_cleanup_residual: true,
+                staging_cleanup_warning: None,
+            }),
+            &state_dir,
+            &state,
+            &app_path,
+            "2.7.2",
+            "revision",
+            "zh-Hans",
+            "now",
+        )
+        .unwrap()
+        .unwrap();
+
+        assert!(payload.ok);
+        let expected = renderer_warning_for_copy(
+            &[PostCommitWarning::new(
+                PostCommitWarningCode::ElevatedTransactionCleanup,
+                [app_path.clone()],
+                Some("fixture".to_string()),
+            )],
+            "elevated",
+        );
+        assert_eq!(payload.warning, expected);
+        assert_eq!(
+            state::read_state(&state_dir).unwrap().current_lang,
+            "zh-Hans"
+        );
+    }
+
+    #[test]
+    fn staging_residual_uses_the_shared_post_commit_warning_contract() {
+        let (_temp, state_dir, app_path, state) = context();
+        let payload = finish_program_files_result(
+            Ok(privilege::ParentApplyOutcome::Applied {
+                worker_cleanup_residual: false,
+                staging_cleanup_warning: Some("fixture staging residual".to_string()),
+            }),
+            &state_dir,
+            &state,
+            &app_path,
+            "2.7.2",
+            "revision",
+            "zh-Hans",
+            "now",
+        )
+        .unwrap()
+        .unwrap();
+
+        let expected = renderer_warning_for_copy(
+            &[PostCommitWarning::new(
+                PostCommitWarningCode::StagingCleanup,
+                std::iter::empty::<PathBuf>(),
+                Some("fixture".to_string()),
+            )],
+            "elevated",
+        );
+        assert_eq!(payload.warning, expected);
+    }
+
+    #[test]
+    fn cancellation_is_permission_required_without_state_write() {
+        let (_temp, state_dir, app_path, state) = context();
+        let payload = finish_program_files_result(
+            Err(privilege::ParentApplyError::PermissionRequired {
+                code: 1223,
+                staging_cleanup_warning: None,
+            }),
+            &state_dir,
+            &state,
+            &app_path,
+            "2.7.2",
+            "revision",
+            "zh-Hans",
+            "now",
+        )
+        .unwrap()
+        .unwrap();
+
+        assert!(!payload.ok);
+        assert!(payload.permission_required);
+        assert!(!state_dir.exists());
+    }
+
+    #[test]
+    fn rollback_and_uncertain_results_never_write_state() {
+        for error in [
+            privilege::ParentApplyError::WorkerRolledBack {
+                staging_cleanup_warning: None,
+            },
+            privilege::ParentApplyError::WorkerStateUncertain {
+                staging_cleanup_warning: None,
+            },
+        ] {
+            let (_temp, state_dir, app_path, state) = context();
+            assert!(finish_program_files_result(
+                Err(error),
+                &state_dir,
+                &state,
+                &app_path,
+                "2.7.2",
+                "revision",
+                "zh-Hans",
+                "now",
+            )
+            .is_err());
+            assert!(!state_dir.exists());
+        }
+    }
 }

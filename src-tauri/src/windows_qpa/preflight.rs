@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 InstallLayout、Windows known-folder 提升判定、QPA 固定路径与 storage 重解析/普通文件守卫。
- * [OUTPUT]: 提供 QPA durable 路径、完整固定写入表面、Program Files 静态判定与无残留直接写 preflight。
+ * [OUTPUT]: 提供 QPA durable 路径、完整固定写入表面、纯文件 rollback 表面、Program Files 静态判定与无残留直接写 preflight。
  * [POS]: windows_qpa 的写前能力边界；只验证目标安装根和 recovery 权限，不激活、恢复或改变任何 Cavalry 资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -52,6 +52,20 @@ pub fn managed_write_surface(layout: &InstallLayout) -> Vec<PathBuf> {
         recovery_probe.join("probe"),
         recovery_probe,
         recovery,
+    ]
+}
+
+pub fn rollback_file_surface(layout: &InstallLayout) -> Vec<PathBuf> {
+    let recovery = recovery_directory(layout);
+    vec![
+        layout.root.join(QWINDOWS_FILE_NAME),
+        layout.root.join(ROOT_REPLACEMENT_TEMP),
+        vendor_qwindows_backup(layout),
+        manifest_path(layout),
+        recovery.join(VENDOR_TEMP_FILE),
+        recovery.join(REPLACE_BACKUP_FILE),
+        recovery.join(MANIFEST_TEMP_FILE),
+        recovery.join(MANIFEST_REPLACE_BACKUP_FILE),
     ]
 }
 

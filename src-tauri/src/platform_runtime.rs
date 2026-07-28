@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 install 布局、mac_runtime/windows_runtime/windows_qpa、privilege graceful close 与 state。
  * [OUTPUT]: 提供 prepare_apply、fail-before-mutation preflight、after_copy、English 早退判定与 restart 跨平台编排入口。
- * [POS]: commands 与平台差异之间的私有 facade；Windows 先拒绝漂移/需提升 QPA，再精确关闭进程，把直接写 QPA 激活/English 恢复置于 pending 资源复制和 final marker 之间。
+ * [POS]: commands 与平台差异之间的私有 facade；Windows Program Files 正常路径已提前分流，本层以拒绝提升目标的 backstop 守住自定义可写根，并把直接 QPA 激活/English 恢复置于 pending 资源复制和 final marker 之间。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::{Path, PathBuf};
@@ -160,7 +160,7 @@ where
         lang != "en" || inspection.state != crate::windows_qpa::QpaDeploymentState::Stock;
     if requires_qpa_transition && requires_elevated_worker(layout) {
         return Err(
-            "Windows QPA changes under Program Files require the dedicated elevated QPA worker, which is not available in this build. Cavalry was not closed and no files were changed."
+            "Windows Program Files QPA changes must be routed through the dedicated elevated language transaction before direct preflight. Cavalry was not closed and no files were changed."
                 .to_string(),
         );
     }
@@ -471,7 +471,10 @@ mod tests {
         )
         .unwrap_err();
 
-        assert!(error.contains("not available in this build"), "{error}");
+        assert!(
+            error.contains("must be routed through the dedicated elevated language transaction"),
+            "{error}"
+        );
         assert!(runner.commands.is_empty());
         assert_unchanged(&snapshots);
     }

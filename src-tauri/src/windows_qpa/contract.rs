@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 InstallLayout、serde 与绝对 Windows 路径/小写 SHA-256 约束。
- * [OUTPUT]: 定义 QPA manifest、hash-locked 提升计划、四态检查结果及仅显式 English 选择可表达的恢复原因。
- * [POS]: windows_qpa 的稳定数据合同；Rust 普通写入与后续提升 worker 共用同一 schema，C++ 代理消费同构 manifest。
+ * [OUTPUT]: 定义 QPA manifest、hash-locked Activate/EnglishRestore/安全无操作计划、四态检查结果及仅显式 English 选择可表达的恢复原因。
+ * [POS]: windows_qpa 的稳定数据合同；Rust 普通写入与受限提升 worker 共用同一 transition schema，C++ 代理只消费其中同构 manifest。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::Path;
@@ -131,10 +131,47 @@ pub struct QpaRestorePlan {
     pub install_root: String,
     pub reason: RestoreReason,
     pub action: RestoreAction,
+    pub cavalry_version: String,
+    pub cavalry_executable_sha256: String,
+    pub qt_version: String,
+    pub architecture: String,
     pub expected_current_qwindows_sha256: Option<String>,
     pub proxy_qwindows_sha256: String,
     pub vendor_qwindows_sha256: String,
     pub generic_plugin_sha256: String,
+}
+
+#[derive(Debug, Clone, Copy, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub enum QpaNoopReason {
+    AlreadyStock,
+    VendorUpdatePreserved,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(deny_unknown_fields, rename_all = "camelCase")]
+pub struct QpaNoopPlan {
+    pub schema_version: u32,
+    pub install_root: String,
+    pub reason: QpaNoopReason,
+    pub cavalry_version: String,
+    pub cavalry_executable_sha256: String,
+    pub qt_version: String,
+    pub architecture: String,
+    pub expected_current_qwindows_sha256: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(
+    deny_unknown_fields,
+    rename_all = "camelCase",
+    tag = "operation",
+    content = "plan"
+)]
+pub enum QpaTransitionPlan {
+    Activate(QpaActivationPlan),
+    EnglishRestore(QpaRestorePlan),
+    Noop(QpaNoopPlan),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -232,6 +269,9 @@ pub(super) fn validate_activation_plan(
 
 pub(super) fn validate_restore_plan(plan: &QpaRestorePlan, policy: &Policy) -> Result<(), String> {
     if plan.schema_version != PLAN_SCHEMA_VERSION
+        || plan.cavalry_version != policy.cavalry_version
+        || plan.qt_version != policy.qt_version
+        || plan.architecture != policy.architecture
         || plan.vendor_qwindows_sha256 != policy.vendor_hash
     {
         return Err("QPA restore plan target identity is unsupported.".to_string());
@@ -241,8 +281,25 @@ pub(super) fn validate_restore_plan(plan: &QpaRestorePlan, policy: &Policy) -> R
         plan.expected_current_qwindows_sha256.as_deref(),
         "expectedCurrentQwindowsSha256",
     )?;
+    validate_hash(&plan.cavalry_executable_sha256, "cavalryExecutableSha256")?;
     validate_hash(&plan.proxy_qwindows_sha256, "proxyQwindowsSha256")?;
     validate_hash(&plan.generic_plugin_sha256, "genericPluginSha256")
+}
+
+pub(super) fn validate_noop_plan(plan: &QpaNoopPlan, policy: &Policy) -> Result<(), String> {
+    if plan.schema_version != PLAN_SCHEMA_VERSION
+        || plan.cavalry_version != policy.cavalry_version
+        || plan.qt_version != policy.qt_version
+        || plan.architecture != policy.architecture
+    {
+        return Err("QPA no-op plan target identity is unsupported.".to_string());
+    }
+    validate_absolute_path(&plan.install_root, "installRoot")?;
+    validate_hash(&plan.cavalry_executable_sha256, "cavalryExecutableSha256")?;
+    validate_optional_hash(
+        plan.expected_current_qwindows_sha256.as_deref(),
+        "expectedCurrentQwindowsSha256",
+    )
 }
 
 fn validate_absolute_path(value: &str, field: &str) -> Result<(), String> {
