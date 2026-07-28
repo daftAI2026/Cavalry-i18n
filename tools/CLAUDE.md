@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接跨平台 Python/换行、full-ui、精确版本 CHANGELOG 发布摘要、capture-only/dirty-only injector、first-match 哈希、TS message context 归属/精确空白/三语 key 对称、裸 `{}` 占位符、Qt ABI-safe accessibility 源码边界、macOS ExtensionLayer 四处空状态定点居中翻译/其余自绘英文边界、Windows MessageBar 双 caller、Pencil/Pen/Centre text-path、selected-count QLabel 与 Pencil HTML 尾部精确替换、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、ModalDialog、运行时图层名、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
+check_app_contracts.js: Tauri-only Node 合同测试，承接跨平台 Python/换行、full-ui、精确版本 CHANGELOG 发布摘要、capture-only/dirty-only injector、first-match 哈希、TS message context 归属/精确空白/三语 key 对称、裸 `{}` 占位符、Qt ABI-safe accessibility 源码边界、macOS ExtensionLayer 四处空状态定点居中翻译/其余自绘英文边界、Windows MessageBar 双 caller、Pencil/Pen/Centre text-path、selected-count QLabel 与 Pencil HTML 尾部精确替换、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、ModalDialog、运行时图层名、自动编号 Composition 标签分母、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
 check_renderer_contract.js: Renderer contract 测试，以规范化 LF 冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面，避免 Git 换行策略制造假漂移。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、平台 dataset、系统语言本土化、Apply 确认、提交后 cleanup warning、macOS openPrivacy/Windows requestElevation 权限恢复、不可写自定义根的无 UAC 错误、原地重试与自定义 select 原生 change 语义。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证跨平台 hook/Python/CRLF、PowerShell 5.1 BOM、原生库不入 Git/source artifact、Windows 构建前重生成共享翻译表、shared Qt/generic/QPA 干净构建、无重解析点发布、NSIS 源码+产物 provenance/x64 安装态及无第二 Qt runtime、四语系统语言/品牌、隔离安装卸载与 CI、exact-HWND disposable 截图、生产 QPA 启动不清 profile、跨平台发布/版本/README/bridge 契约。
@@ -45,7 +45,7 @@ translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_transl
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
-runtime_ui_allowlist.json: runtime UI 覆盖率允许保留英文/快捷键/格式标签/样本值的 exact、contains、regex 与 stripRegex 清单。
+runtime_ui_allowlist.json: runtime UI 覆盖率允许保留英文/快捷键/格式标签/样本值的 exact、contains、regex 与 stripRegex 清单；可翻译的自动编号 Composition 标签不得进入噪声豁免。
 fixtures/: 测试 fixture 工厂，生成 fake Cavalry.app 而不提交真实应用包。
 git-hooks/: Git Hook bootstrap 目录，承载提交前 Node 路径解析与快速门禁入口（详见 git-hooks/CLAUDE.md）。
 
@@ -107,6 +107,7 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-24: ExtensionLayer 空状态、拖放提示与 CustomListWidget placeholder 的简中、繁中、日语显示文案统一移除末尾句号；英文 source 与精确 hook 白名单保持不变，完整状态通知仍保留句子标点。
 2026-07-24: 新增 `check_windows_nsis_install.ps1`，把 Windows x64 NSIS 从构建产物提升为 CI 隔离安装/卸载合同；随机 TEMP 根、固定用户状态碰撞拒绝、PE/资源/哈希/注册表验证与无破坏性 fallback 的零残留观察共同守住安装态发布面。
 2026-07-28: macOS dylib 与 Windows 双 DLL 统一为对应平台 Runner 现场产物；合同要求 source artifact 排除原生库、Windows 构建先重生成共享翻译表，并由 packaged app 以哈希和 Mach-O ABI 证明嵌入的是同次 macOS 构建物。
+2026-07-28: runtime UI allowlist 移除自动编号 `Composition <n>` 豁免；合同要求英文 `Composition 1` 阻断 100% coverage，而简中、繁中与日语本地化编号标签正常通过。
 2026-07-27: Windows NSIS 安装态守门只解析显式 `x86_64-pc-windows-msvc` target 产物目录，与构建脚本及 CI artifact 上传同构，杜绝脏工作区里旧 `target/release` EXE 被误验。
 2026-07-27: `cavalry_qt_target.json` 从 macOS 单投影升级为共享版本加双平台 SDK 投影；resolver 默认跟随宿主并支持 `--platform windows`，Windows CI 与本地 `prepare:qt-sdk:windows` 复用同一路径和 Qt 6.6.3 `msvc2019_64` 校验。
 2026-07-27: Windows NSIS 以 `windows_nsis_provenance.js` 形成构建前精确旧输出清理、构建后输入/安装器哈希记录、安装前复算的闭环；sidecar 与 EXE 成对上传，拒绝版本变更留下的未知 EXE 或 orphan sidecar，禁止用 Git HEAD 或 mtime 伪造当前包来源。
