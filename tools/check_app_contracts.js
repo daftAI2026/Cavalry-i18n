@@ -3166,8 +3166,8 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
     ['PencilToolSettings', 'Stabiliser: ', '稳定器： ', '穩定器： ', 'スタビライザー： '],
     ['PencilToolSettings', 'Stability Radius: ', '稳定半径： ', '穩定半徑： ', '安定化半径： '],
     ['PrimitiveToolSettingsBase', 'Draw in 2.5D: ', '在 2.5D 中绘制： ', '在 2.5D 中繪製： ', '2.5Dで描画： '],
-    ['LineToolSettings', 'Stroke Width', '描边宽度', '描邊寬度', 'ストローク幅'],
-    ['LineToolSettings', 'Cap Style', '端头样式', '端頭樣式', 'キャップスタイル'],
+    ['LineToolSettings', 'Stroke Width: ', '描边宽度： ', '描邊寬度： ', 'ストローク幅： '],
+    ['LineToolSettings', 'Cap Style: ', '端头样式： ', '端頭樣式： ', 'キャップスタイル： '],
     ['LineToolSettings', 'Line Style: ', '线条样式： ', '線條樣式： ', 'ラインスタイル： '],
     ['TrackingToolSettings', 'Supervision Strength: ', '监督强度： ', '監督強度： ', '監督強度： '],
     ['TrackingToolSettings', 'Supervised: ', '受监督： ', '受監督： ', '監督あり： '],
@@ -3199,6 +3199,14 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
         `${language} must translate evidenced ${context} / ${JSON.stringify(source)}`
       );
     }
+    assert.ok(
+      !entries.has('LineToolSettings\u001fStroke Width'),
+      `${language} must not retain the unevidenced colonless Stroke Width source`
+    );
+    assert.ok(
+      !entries.has('LineToolSettings\u001fCap Style'),
+      `${language} must not retain the unevidenced colonless Cap Style source`
+    );
   }
 });
 

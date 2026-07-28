@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树和输入框信号
- * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、调色板动作、CogTool Pitch context-only 隔离、selected 与离线认证倒计时 QLabel 投影、精确空白工具标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
+ * [OUTPUT]: 对外锁定 ToolBox/残留对话框标题、调色板动作、CogTool Pitch context-only 隔离、selected 与离线认证倒计时 QLabel 投影、LineTool 精确冒号/尾随空白标签、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
  * [POS]: injector/windows 的显示层单元回归，证明复合提示与动态文案只改受控显示文本，且通用规则不会改写自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -476,7 +476,8 @@ bool verifyEvidencedResidualWidgets(const QString &language)
     QLabel paletteName(QStringLiteral("Palette Name:"));
     QLabel missingAssets(QStringLiteral("This Scene has missing assets:"));
     QLabel softSelection(QStringLiteral("Soft Selection: "));
-    QLabel strokeWidth(QStringLiteral("Stroke Width"));
+    QLabel strokeWidth(QStringLiteral("Stroke Width: "));
+    QLabel capStyle(QStringLiteral("Cap Style: "));
     QLabel pitchRadius(QStringLiteral("Pitch Radius: "));
     QWidget renderDialog;
     renderDialog.setWindowTitle(QStringLiteral("Delete Render Item(s)"));
@@ -488,6 +489,7 @@ bool verifyEvidencedResidualWidgets(const QString &language)
     displayTranslator.translateWidget(&missingAssets);
     displayTranslator.translateWidget(&softSelection);
     displayTranslator.translateWidget(&strokeWidth);
+    displayTranslator.translateWidget(&capStyle);
     displayTranslator.translateWidget(&pitchRadius);
     displayTranslator.translateWidget(&renderDialog);
     displayTranslator.translateAction(&paletteAction);
@@ -505,9 +507,13 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                softSelection.text(),
                expectedTranslation("Soft Selection: "))
         && expectEqual(
-               language + QStringLiteral(" direct QLabel source fallback"),
+               language + QStringLiteral(" exact Stroke Width label"),
                strokeWidth.text(),
-               expectedTranslation("Stroke Width"))
+               expectedTranslation("Stroke Width: "))
+        && expectEqual(
+               language + QStringLiteral(" exact Cap Style label"),
+               capStyle.text(),
+               expectedTranslation("Cap Style: "))
         && expectEqual(
                language + QStringLiteral(" render dialog title"),
                renderDialog.windowTitle(),

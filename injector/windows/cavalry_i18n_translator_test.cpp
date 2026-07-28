@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryEmbeddedTranslator 与 generated_translations.inc 中稳定存在的菜单样本
- * [OUTPUT]: 对外验证三语嵌入、helper/残留 source fallback、CogTool Pitch exact-context 隔离、精确尾随空白及未知输入空结果
+ * [OUTPUT]: 对外验证三语嵌入、helper/残留 source fallback、CogTool Pitch exact-context 隔离、LineTool 精确冒号/尾随空白及未知输入空结果
  * [POS]: injector/windows 的最小数据合同测试，在进入真实 Cavalry 前证明 DLL 内翻译表不是空壳
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -121,8 +121,8 @@ bool verifyEvidencedResidualTranslationSamples(
         QStringLiteral("Soft Selection Size: "),
         QStringLiteral("Stability Radius: "),
         QStringLiteral("Draw in 2.5D: "),
-        QStringLiteral("Stroke Width"),
-        QStringLiteral("Cap Style"),
+        QStringLiteral("Stroke Width: "),
+        QStringLiteral("Cap Style: "),
         QStringLiteral("Line Style: "),
         QStringLiteral("Supervision Strength: "),
         QStringLiteral("Supervised: "),
@@ -244,8 +244,8 @@ int main()
                 QStringLiteral("软选择大小： "),
                 QStringLiteral("稳定半径： "),
                 QStringLiteral("在 2.5D 中绘制： "),
-                QStringLiteral("描边宽度"),
-                QStringLiteral("端头样式"),
+                QStringLiteral("描边宽度： "),
+                QStringLiteral("端头样式： "),
                 QStringLiteral("线条样式： "),
                 QStringLiteral("监督强度： "),
                 QStringLiteral("受监督： "),
@@ -273,8 +273,8 @@ int main()
                 QStringLiteral("軟選擇大小： "),
                 QStringLiteral("穩定半徑： "),
                 QStringLiteral("在 2.5D 中繪製： "),
-                QStringLiteral("描邊寬度"),
-                QStringLiteral("端頭樣式"),
+                QStringLiteral("描邊寬度： "),
+                QStringLiteral("端頭樣式： "),
                 QStringLiteral("線條樣式： "),
                 QStringLiteral("監督強度： "),
                 QStringLiteral("受監督： "),
@@ -307,8 +307,8 @@ int main()
                 QStringLiteral("ソフト選択サイズ： "),
                 QStringLiteral("安定化半径： "),
                 QStringLiteral("2.5Dで描画： "),
-                QStringLiteral("ストローク幅"),
-                QStringLiteral("キャップスタイル"),
+                QStringLiteral("ストローク幅： "),
+                QStringLiteral("キャップスタイル： "),
                 QStringLiteral("ラインスタイル： "),
                 QStringLiteral("監督強度： "),
                 QStringLiteral("監督あり： "),

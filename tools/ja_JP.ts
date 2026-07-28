@@ -8580,8 +8580,8 @@
   </context>
   <context>
     <name>LineToolSettings</name>
-    <message><source>Stroke Width</source><translation>ストローク幅</translation></message>
-    <message><source>Cap Style</source><translation>キャップスタイル</translation></message>
+    <message><source xml:space="preserve">Stroke Width: </source><translation xml:space="preserve">ストローク幅： </translation></message>
+    <message><source xml:space="preserve">Cap Style: </source><translation xml:space="preserve">キャップスタイル： </translation></message>
     <message><source xml:space="preserve">Line Style: </source><translation xml:space="preserve">ラインスタイル： </translation></message>
   </context>
   <context>

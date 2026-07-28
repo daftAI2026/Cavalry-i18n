@@ -7355,8 +7355,8 @@
   </context>
   <context>
     <name>LineToolSettings</name>
-    <message><source>Stroke Width</source><translation>描邊寬度</translation></message>
-    <message><source>Cap Style</source><translation>端頭樣式</translation></message>
+    <message><source xml:space="preserve">Stroke Width: </source><translation xml:space="preserve">描邊寬度： </translation></message>
+    <message><source xml:space="preserve">Cap Style: </source><translation xml:space="preserve">端頭樣式： </translation></message>
     <message><source xml:space="preserve">Line Style: </source><translation xml:space="preserve">線條樣式： </translation></message>
   </context>
   <context>
