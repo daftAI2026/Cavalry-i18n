@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer、languages、Windows Tauri/Rust/NSIS 输入、package manifests、已编译 generic/QPA 双 DLL 与显式 x64 NSIS 输出
- * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance；拒绝 bundle 父链重解析点，将 native 源码与双 injector 纳入哈希并记录安装包身份
+ * [INPUT]: 依赖 renderer、languages、Windows Tauri/Rust/NSIS 输入、package manifests、共享 translation policy、已编译 generic/QPA 双 DLL 与显式 x64 NSIS 输出
+ * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance；拒绝 bundle 父链重解析点，将 Windows native 源码、共享编译头与双 injector 纳入哈希并记录安装包身份
  * [POS]: tools 的 Windows 打包自证器；构建前只在真实工作区 bundle 根清本版本输出，构建后以源码+产物双证据拒绝额外或陈旧 EXE
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -267,6 +267,7 @@ function collectInputFingerprint(repoRoot) {
     },
     files
   );
+  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_translation_policy.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'generated_translations.inc'), files);
   collectRegularFiles(repoRoot, path.join('src-tauri', 'src'), () => true, files);
   collectRegularFiles(repoRoot, path.join('src-tauri', 'capabilities'), () => true, files);

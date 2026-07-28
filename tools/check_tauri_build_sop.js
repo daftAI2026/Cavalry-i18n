@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台现场生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、系统语言/品牌及 GUI 安全合同
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台现场生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、系统语言/品牌及 GUI 安全合同
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -148,6 +148,10 @@ function makeWindowsNsisProvenanceFixture() {
   write('src-tauri/build.rs', 'fn main() {}\n');
   write('src-tauri/nsis-hooks.nsh', '!macro NSIS_HOOK_POSTUNINSTALL\n!macroend\n');
   write('src-tauri/icons/icon.ico', Buffer.from([0, 0, 1, 0]));
+  write(
+    'injector/cavalry_i18n_translation_policy.h',
+    '// shared Windows/macOS translation policy fixture\n'
+  );
   write('injector/generated_translations.inc', '// generated translation fixture\n');
   write(
     'injector/windows/CMakeLists.txt',
@@ -326,6 +330,7 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
     'src-tauri/nsis-hooks.nsh',
     'src-tauri/capabilities/default.json',
     'src-tauri/icons/icon.ico',
+    'injector/cavalry_i18n_translation_policy.h',
     'injector/generated_translations.inc',
     'injector/windows/CMakeLists.txt',
     'injector/windows/cavalry_i18n_qpa_proxy.cpp',
@@ -363,6 +368,24 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   fs.writeFileSync(
     path.join(tempRoot, 'injector', 'windows', 'cavalry_i18n_qpa_proxy.cpp'),
     '// Windows native source fixture\n'
+  );
+  fs.appendFileSync(
+    path.join(tempRoot, 'injector', 'cavalry_i18n_translation_policy.h'),
+    '// dirty-shared-policy-after-package\n'
+  );
+  const staleSharedTranslationPolicy = run('--verify', installerPath);
+  assert.notEqual(
+    staleSharedTranslationPolicy.status,
+    0,
+    'a dirty shared translation policy must invalidate the old installer sidecar'
+  );
+  assert.match(
+    staleSharedTranslationPolicy.stderr,
+    /sidecar does not match the current installer bytes and packaging input fingerprint/
+  );
+  fs.writeFileSync(
+    path.join(tempRoot, 'injector', 'cavalry_i18n_translation_policy.h'),
+    '// shared Windows/macOS translation policy fixture\n'
   );
   fs.appendFileSync(path.join(tempRoot, 'injector', 'windows', 'qpa', 'qwindows.dll'), '-dirty-after-package');
   const staleInputs = run('--verify', installerPath);
