@@ -1,5 +1,5 @@
 ﻿<#
-[INPUT]: 依赖 Windows PowerShell 5.1 UTF-8 BOM、Node.js 翻译表生成器、CMake 与已安装 Visual Studio 的 MSVC v143 x64 工具集、Qt 6.6.3 SDK 及版本化 QPA 头、共享翻译源与可选 vendor root
+[INPUT]: 依赖 PowerShell 5.1+ 的 UTF-8 BOM 宿主边界、Node.js 翻译表生成器、CMake 4.2+ 与 Visual Studio 2022+ 的 MSVC v143 x64 工具集、Qt 6.6.3 SDK 及版本化 QPA 头、共享翻译源与可选 vendor root
 [OUTPUT]: 对外先重生成共享翻译表，再由 CMake 选择当前可用 Visual Studio 生成器并锁定 x64/v143，从经过边界验证的干净目录执行 Release configure/build/ctest，经无重解析点父链发布两个无 Qt runtime 产物
 [POS]: injector/windows 的可重复构建入口，以源码生成表为唯一编译输入，拒绝陈旧增量产物并连接同一翻译 runtime/QPA 代理/只读 vendor 合同与受工作区约束的资源路径
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -103,7 +103,7 @@ if ($null -ne $cmakeCommand) {
 }
 
 if ([string]::IsNullOrWhiteSpace($cmake)) {
-    throw 'CMake was not found. Install CMake 3.21 or newer.'
+    throw 'CMake was not found. Install CMake 4.2 or newer.'
 }
 
 $ctest = Join-Path (Split-Path -Parent $cmake) 'ctest.exe'

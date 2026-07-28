@@ -1,5 +1,5 @@
 ﻿<#
-[INPUT]: 依赖 PowerShell 5.1 UTF-8 BOM、显式 x64 NSIS/current provenance、package 版本、仓库 generic/QPA 双 DLL、外部 Cavalry QPA 哨兵与当前用户安装命名空间
+[INPUT]: 依赖 PowerShell 5.1+ 的 UTF-8 BOM 宿主边界、显式 x64 NSIS/current provenance、package 版本、仓库 generic/QPA 双 DLL、外部 Cavalry QPA 哨兵与当前用户安装命名空间
 [OUTPUT]: 对外提供随机 TEMP 安装/同根更新冒烟；复算输入后验证主程序与双 DLL x64/资源/hash/无第二 Qt runtime/注册表、外部 QPA 字节不变，再卸载且拒绝残留
 [POS]: tools 的 Windows packaged-install 守门器，只消费当前输入自证的 release NSIS；固定冲突即中止，更新/卸载不得触碰外部 Cavalry，也不以递归删除掩盖失败
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -656,7 +656,7 @@ function Wait-ForNoResidualState {
 Assert-Condition -Condition ($env:OS -eq 'Windows_NT') `
     -Message 'Windows NSIS installed-surface smoke can run only on Windows.'
 Assert-Condition -Condition ([System.Environment]::Is64BitProcess) `
-    -Message 'Windows NSIS installed-surface smoke requires 64-bit Windows PowerShell.'
+    -Message 'Windows NSIS installed-surface smoke requires a 64-bit PowerShell host.'
 Assert-Condition -Condition (Test-Path -LiteralPath $packageJson -PathType Leaf) `
     -Message "package.json does not exist: $packageJson"
 Assert-Condition -Condition (Test-Path -LiteralPath $sourcePlugin -PathType Leaf) `

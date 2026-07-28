@@ -199,7 +199,7 @@ Windows packaging follows the same JSON source and generated translation table, 
 | Cavalry target | 2.7.2 | Release tag prefix `cavalry-2.7.2-p` |
 | Python | python3 | Translation validator and `aqtinstall` setup |
 | macOS tools | `codesign`, `hdiutil`, `xattr`, `osascript` | Required for package/sign/quarantine/runtime capture |
-| Windows build tools | PowerShell 5.1, VS 2022 x64 Build Tools, CMake 3.21+, Qt 6.6.3 `msvc2019_64` | Developer build only; released NSIS users need none of Python/Rust/Qt/PowerShell 7 |
+| Windows build tools | Windows 10 x64+, Node.js 22+, PowerShell 5.1+, Visual Studio 2022+ x64 Build Tools with MSVC v143, CMake 4.2+, Qt 6.6.3 `msvc2019_64` | Developer build only; released NSIS users need none of Python/Rust/Qt/PowerShell |
 
 ## SECURITY
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、当前 Visual Studio 生成器加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、系统语言/品牌及 GUI 安全合同
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主边界与编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、系统语言/品牌及 GUI 安全合同
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,6 +12,7 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { installGitHooks } = require('./install_git_hooks.js');
+const { runPowerShellScript } = require('./powershell_command.js');
 const { resolvePythonCommand } = require('./python_command.js');
 
 const repoRoot = path.resolve(__dirname, '..');
@@ -200,7 +201,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
   assert.equal(
     pkg.scripts['build:injector:windows'],
-    'powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.ps1'
+    'node tools/powershell_command.js injector/windows/build.ps1'
   );
   assert.equal(
     pkg.scripts['prepare:tauri:windows-bundle'],
@@ -208,7 +209,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
   assert.equal(
     pkg.scripts['test:tauri:windows-nsis'],
-    'powershell.exe -NoProfile -ExecutionPolicy Bypass -File tools/check_windows_nsis_install.ps1'
+    'node tools/powershell_command.js tools/check_windows_nsis_install.ps1'
   );
   assert.equal(
     pkg.scripts['test:tauri:manual-windows-live-smoke'],
@@ -564,6 +565,112 @@ test('Python resolver honors PYTHON and probes Windows launchers without a shell
   );
 });
 
+test('PowerShell launcher prefers pwsh and falls back only when the host is absent', () => {
+  const inheritedEnvironment = {
+    PATH: String.raw`C:\Windows\System32`,
+    PSModulePath: String.raw`C:\Program Files\PowerShell\7\Modules`,
+    PSMODULEPATH: String.raw`C:\stale-case-variant`,
+  };
+  const successCalls = [];
+  const success = runPowerShellScript('fixture.ps1', ['fixture-argument'], {
+    env: inheritedEnvironment,
+    spawn: (command, args, options) => {
+      successCalls.push({ command, args, options });
+      return { status: 0 };
+    },
+  });
+
+  assert.equal(success.command, 'pwsh.exe');
+  assert.equal(success.status, 0);
+  assert.equal(successCalls.length, 1);
+  assert.deepEqual(successCalls[0].args, [
+    '-NoLogo',
+    '-NoProfile',
+    '-NonInteractive',
+    '-ExecutionPolicy',
+    'Bypass',
+    '-File',
+    'fixture.ps1',
+    'fixture-argument',
+  ]);
+  assert.equal(successCalls[0].options.shell, false);
+
+  const fallbackCalls = [];
+  const missing = Object.assign(new Error('pwsh.exe was not found'), { code: 'ENOENT' });
+  const fallbackResult = runPowerShellScript('fixture.ps1', ['fixture-argument'], {
+    env: inheritedEnvironment,
+    spawn: (command, args, options) => {
+      fallbackCalls.push({ command, args, options });
+      return command === 'pwsh.exe' ? { error: missing, status: null } : { status: 0 };
+    },
+  });
+
+  assert.equal(fallbackResult.command, 'powershell.exe');
+  assert.equal(fallbackResult.status, 0);
+  assert.deepEqual(
+    fallbackCalls.map(({ command }) => command),
+    ['pwsh.exe', 'powershell.exe']
+  );
+  assert.deepEqual(fallbackCalls[1].args, successCalls[0].args);
+  assert.equal(fallbackCalls[1].options.shell, false);
+  assert.equal(fallbackCalls[1].options.windowsHide, true);
+  assert.equal(fallbackCalls[1].options.stdio, 'inherit');
+  assert.equal(fallbackCalls[1].options.env.PATH, inheritedEnvironment.PATH);
+  assert.equal(
+    Object.keys(fallbackCalls[1].options.env).some(
+      (key) => key.toLowerCase() === 'psmodulepath'
+    ),
+    false
+  );
+
+  const failureCalls = [];
+  const scriptFailure = runPowerShellScript('fixture.ps1', [], {
+    env: inheritedEnvironment,
+    spawn: (command, args, options) => {
+      failureCalls.push({ command, args, options });
+      return { status: 17 };
+    },
+  });
+
+  assert.equal(scriptFailure.command, 'pwsh.exe');
+  assert.equal(scriptFailure.status, 17);
+  assert.equal(failureCalls.length, 1);
+  assert.equal(failureCalls[0].options.env.PSModulePath, inheritedEnvironment.PSModulePath);
+
+  let signalCalls = 0;
+  const signaled = runPowerShellScript('fixture.ps1', [], {
+    spawn: () => {
+      signalCalls += 1;
+      return { signal: 'SIGTERM', status: null };
+    },
+  });
+  assert.equal(signaled.signal, 'SIGTERM');
+  assert.equal(signaled.status, null);
+  assert.equal(signalCalls, 1);
+
+  const denied = Object.assign(new Error('pwsh.exe access denied'), { code: 'EACCES' });
+  let deniedCalls = 0;
+  assert.throws(
+    () =>
+      runPowerShellScript('fixture.ps1', [], {
+        spawn: () => {
+          deniedCalls += 1;
+          return { error: denied, status: null };
+        },
+      }),
+    /access denied/
+  );
+  assert.equal(deniedCalls, 1);
+
+  assert.throws(
+    () =>
+      runPowerShellScript('fixture.ps1', [], {
+        spawn: () => ({ error: missing, status: null }),
+      }),
+    /PowerShell 5\.1 or newer was not found/
+  );
+});
+
 test('release protocol separates internal SemVer from target Cavalry tag naming', () => {
   const releaseConfig = readJson('release.config.json');
   const workflow = readText('.github/workflows/build.yml');
@@ -912,9 +1019,11 @@ test('tauri macOS package uses explicit ad-hoc bundle signing for downloaded app
 
 test('Windows injector selects the installed Visual Studio generator and locks the proven x64 v143 toolset', () => {
   const windowsBuild = readText('injector/windows/build.ps1');
+  const windowsCmake = readText('injector/windows/CMakeLists.txt');
 
   assert.doesNotMatch(windowsBuild, /'-G'/);
   assert.match(windowsBuild, /'-A', 'x64',\s*'-T', 'v143'/);
+  assert.match(windowsCmake, /cmake_minimum_required\(VERSION 4\.2\)/);
 });
 
 test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an installed NSIS smoke', () => {

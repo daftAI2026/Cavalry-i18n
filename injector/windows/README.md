@@ -130,8 +130,10 @@ helper、placeholder 与 MessageBar 三条 Qt callback 在安装时把原函数�
 
 ## 依赖
 
-- Visual Studio 2022 Build Tools，启用 x64 MSVC C++ 工具链
-- CMake 3.21+
+- Windows 10 x64+
+- Node.js 22+ 与 PowerShell 5.1+
+- Visual Studio 2022+ Build Tools，启用 x64 MSVC v143 C++ 工具链
+- CMake 4.2+
 - Qt 6.6.3 `win64_msvc2019_64` SDK
 
 缺少 Qt SDK 时可安装到仓库忽略目录：
@@ -146,7 +148,7 @@ python -m aqt install-qt windows desktop 6.6.3 win64_msvc2019_64 --outputdir qt_
 推荐从仓库根目录运行唯一入口：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.ps1
+npm run build:injector:windows
 ```
 
 脚本优先读取 `CAVALRY_QT_PREFIX`，未设置时使用
@@ -165,7 +167,7 @@ injector/windows/
 
 ```powershell
 cmake -S injector/windows -B build/windows-injector `
-  -G "Visual Studio 17 2022" -A x64 `
+  -A x64 -T v143 `
   -DCMAKE_PREFIX_PATH="$PWD/qt_sdk/6.6.3/msvc2019_64"
 cmake --build build/windows-injector --config Release
 ```
@@ -177,7 +179,7 @@ cmake --build build/windows-injector --config Release
 
 ```powershell
 $env:CAVALRY_VENDOR_ROOT = "E:\Apps\Cavalry"
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.ps1
+npm run build:injector:windows
 ```
 
 该测试只读映射四个 PE 文件到测试进程内存，验证 `ExtensionLayer.dll` 唯一正常导入的
