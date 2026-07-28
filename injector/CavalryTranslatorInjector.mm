@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 context-only 查询策略及显式 capture/session 环境
- * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、ExtensionLayer 四处空状态提示的 CJK-safe 居中绘制、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文
- * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译与定点绘制请求；启动期和冷缓存都排除 context-only 词条，Time Editor 模型词汇及非白名单 ExtensionLayer 自绘提示保留英文原文
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context 查询策略及显式 capture/session 环境
+ * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、按显示属性与精确 owner 收敛的 QMeta 启动期回补、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、ExtensionLayer 四处空状态提示的 CJK-safe 居中绘制、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文
+ * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译与定点绘制请求；启动期和冷缓存排除 exact-context 词条，仅在已采证的 property/owner 边界回补，Time Editor 模型词汇及非白名单 ExtensionLayer 自绘提示保留英文原文
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -43,6 +43,7 @@
 #include <QtWidgets/qmenu.h>
 #include <QtWidgets/qmenubar.h>
 #include <QtWidgets/qprogressbar.h>
+#include <QtWidgets/qpushbutton.h>
 #include <QtWidgets/qspinbox.h>
 #include <QtWidgets/qstatusbar.h>
 #include <QtWidgets/qtabbar.h>
@@ -1361,6 +1362,177 @@ bool hasAncestorClass(QObject *object, const char *className)
     return false;
 }
 
+bool hasObjectOrAncestorClass(QObject *object, const char *className)
+{
+    return object != nullptr && className != nullptr &&
+        (strcmp(object->metaObject()->className(), className) == 0 ||
+         hasAncestorClass(object, className));
+}
+
+QString exactInstalledTranslation(const char *context, const char *sourceText)
+{
+    return gTranslator != nullptr && context != nullptr && sourceText != nullptr
+        ? gTranslator->translate(context, sourceText)
+        : QString();
+}
+
+QString translatedExactTemplateValue(
+    const char *context,
+    const char *sourceTemplate,
+    const QString &value)
+{
+    const QString translated = exactInstalledTranslation(context, sourceTemplate);
+    return translated.count(QStringLiteral("%1")) == 1
+        ? translated.arg(value)
+        : QString();
+}
+
+QString searchBarTooltipTranslation(QWidget *widget, const QString &source)
+{
+    if (!hasObjectOrAncestorClass(
+            widget,
+            cavalry_i18n::kSearchBarContainerContext)) {
+        return QString();
+    }
+
+    const QString sourceTemplate =
+        QString::fromUtf8(cavalry_i18n::kSearchBarAddLayerSource);
+    const QString marker = QStringLiteral("%1");
+    const int markerOffset = sourceTemplate.indexOf(marker);
+    if (markerOffset < 0 || sourceTemplate.indexOf(marker, markerOffset + marker.size()) >= 0) {
+        return QString();
+    }
+
+    const QString prefix = sourceTemplate.left(markerOffset);
+    const QString suffix = sourceTemplate.mid(markerOffset + marker.size());
+    if (!source.startsWith(prefix) || !source.endsWith(suffix) ||
+        source.size() <= prefix.size() + suffix.size()) {
+        return QString();
+    }
+
+    const QString shortcut =
+        source.mid(prefix.size(), source.size() - prefix.size() - suffix.size());
+    if (shortcut.isEmpty() || shortcut != shortcut.trimmed() ||
+        shortcut.contains(QChar('\r')) || shortcut.contains(QChar('\n'))) {
+        return QString();
+    }
+
+    return translatedExactTemplateValue(
+        cavalry_i18n::kSearchBarContainerContext,
+        cavalry_i18n::kSearchBarAddLayerSource,
+        shortcut);
+}
+
+QString scopedLabelTextTranslation(QLabel *label, const QString &source)
+{
+    if (source == QString::fromUtf8(cavalry_i18n::kTagHeaderAddTagSource) &&
+        hasObjectOrAncestorClass(label, cavalry_i18n::kTagHeaderContext)) {
+        return exactInstalledTranslation(
+            cavalry_i18n::kTagHeaderContext,
+            cavalry_i18n::kTagHeaderAddTagSource);
+    }
+
+    if (!hasObjectOrAncestorClass(label, "ProjectStatisticsWindow")) {
+        return QString();
+    }
+
+    const char *sourceKey = nullptr;
+    if (source == QString::fromUtf8(cavalry_i18n::kProjectStatisticsComputeTimeSource)) {
+        sourceKey = cavalry_i18n::kProjectStatisticsComputeTimeSource;
+    } else if (source == QString::fromUtf8(cavalry_i18n::kProjectStatisticsDrawTimeSource)) {
+        sourceKey = cavalry_i18n::kProjectStatisticsDrawTimeSource;
+    } else if (source == QString::fromUtf8(cavalry_i18n::kProjectStatisticsTotalNodesSource)) {
+        sourceKey = cavalry_i18n::kProjectStatisticsTotalNodesSource;
+    }
+
+    return sourceKey != nullptr
+        ? exactInstalledTranslation(cavalry_i18n::kMenuBarManagerContext, sourceKey)
+        : QString();
+}
+
+bool actionOwnerMatches(
+    QAction *action,
+    QObject *ownerHint,
+    const char *className)
+{
+    if (action == nullptr || className == nullptr) {
+        return false;
+    }
+    if (hasObjectOrAncestorClass(ownerHint, className)) {
+        return true;
+    }
+    if (hasObjectOrAncestorClass(action->parent(), className)) {
+        return true;
+    }
+    for (QObject *associatedObject : action->associatedObjects()) {
+        if (hasObjectOrAncestorClass(associatedObject, className)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+QString scopedActionTextTranslation(
+    QAction *action,
+    QObject *ownerHint,
+    const QString &source)
+{
+    if (source == QString::fromUtf8(cavalry_i18n::kColorWindowSaveSource) &&
+        actionOwnerMatches(action, ownerHint, cavalry_i18n::kColorWindowContext)) {
+        return exactInstalledTranslation(
+            cavalry_i18n::kColorWindowContext,
+            cavalry_i18n::kColorWindowSaveSource);
+    }
+    if (source == QString::fromUtf8(cavalry_i18n::kAssetsWindowReplaceSource) &&
+        actionOwnerMatches(action, ownerHint, cavalry_i18n::kAssetsWindowContext)) {
+        return exactInstalledTranslation(
+            cavalry_i18n::kAssetsWindowContext,
+            cavalry_i18n::kAssetsWindowReplaceSource);
+    }
+    return QString();
+}
+
+bool isTrackingProgressDialog(QDialog *dialog, const QString &source)
+{
+    if (dialog == nullptr ||
+        source != QString::fromUtf8(cavalry_i18n::kTrackingWindowTitleSource) ||
+        dialog->metaObject() != &QDialog::staticMetaObject ||
+        !dialog->isWindow() ||
+        dialog->window() != dialog ||
+        !dialog->testAttribute(Qt::WA_DeleteOnClose)) {
+        return false;
+    }
+
+    const QList<QProgressBar *> progressBars =
+        dialog->findChildren<QProgressBar *>(
+            QString(),
+            Qt::FindDirectChildrenOnly);
+    const QList<QPushButton *> buttons =
+        dialog->findChildren<QPushButton *>(
+            QString(),
+            Qt::FindDirectChildrenOnly);
+    if (progressBars.size() != 1 || buttons.size() != 1 ||
+        progressBars.constFirst()->windowModality() != Qt::WindowModal) {
+        return false;
+    }
+
+    const QString buttonText = buttons.constFirst()->text();
+    const QString translatedCancel =
+        exactInstalledTranslation("QDialog", "Cancel");
+    return buttonText == QStringLiteral("Cancel") ||
+        (!translatedCancel.isEmpty() && buttonText == translatedCancel);
+}
+
+QString scopedWindowTitleTranslation(QWidget *widget, const QString &source)
+{
+    QDialog *dialog = qobject_cast<QDialog *>(widget);
+    return isTrackingProgressDialog(dialog, source)
+        ? exactInstalledTranslation(
+              cavalry_i18n::kMenuBarManagerContext,
+              cavalry_i18n::kTrackingWindowTitleSource)
+        : QString();
+}
+
 void pruneQuickAddEmptyItems(QListWidget *listWidget)
 {
     if (listWidget == nullptr || !hasAncestorClass(listWidget, "QuickAddWindow")) {
@@ -1600,7 +1772,10 @@ bool dumpQtMenuInventory(const QString &lang)
     return wrote;
 }
 
-void translateQtAction(QAction *action, const QString &lang);
+void translateQtAction(
+    QAction *action,
+    const QString &lang,
+    QObject *ownerHint = nullptr);
 void hookQtMenu(QMenu *menu, const QString &lang);
 void hookQtMenus(const QString &lang);
 
@@ -1617,18 +1792,25 @@ void translateQtMenu(QMenu *menu, const QString &lang)
     }
 
     for (QAction *action : menu->actions()) {
-        translateQtAction(action, lang);
+        translateQtAction(action, lang, menu);
     }
 }
 
-void translateQtAction(QAction *action, const QString &lang)
+void translateQtAction(
+    QAction *action,
+    const QString &lang,
+    QObject *ownerHint)
 {
     if (action == nullptr) {
         return;
     }
 
-    QString translated = lookupEmbeddedTranslation(lang, action->text());
-    if (!translated.isEmpty() && translated != action->text()) {
+    const QString sourceText = action->text();
+    QString translated = lookupEmbeddedTranslation(lang, sourceText);
+    if (translated.isEmpty()) {
+        translated = scopedActionTextTranslation(action, ownerHint, sourceText);
+    }
+    if (!translated.isEmpty() && translated != sourceText) {
         action->setText(translated);
     }
 
@@ -1677,7 +1859,7 @@ bool translateQtMenuBar(const QString &lang)
         }
 
         for (QAction *action : actions) {
-            translateQtAction(action, lang);
+            translateQtAction(action, lang, menuBar);
         }
     }
 
@@ -2154,8 +2336,15 @@ void translateLabelDisplayText(QLabel *label, const QString &lang)
         return;
     }
 
-    const QString translated = translatedWidgetText(lang, label->text());
-    if (!translated.isEmpty() && translated != label->text()) {
+    const QString sourceText = label->text();
+    QString translated = translatedWidgetText(lang, label->text());
+    if (!translated.isEmpty() && translated != sourceText) {
+        label->setText(translated);
+        return;
+    }
+
+    translated = scopedLabelTextTranslation(label, sourceText);
+    if (!translated.isEmpty() && translated != sourceText) {
         label->setText(translated);
     }
 }
@@ -2538,7 +2727,7 @@ void translateQtWidgetActions(QWidget *widget, const QString &lang, QSet<QAction
             continue;
         }
         seen.insert(action);
-        translateQtAction(action, lang);
+        translateQtAction(action, lang, widget);
     }
 }
 
@@ -2659,12 +2848,20 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
         return;
     }
 
-    QString translated = translatedWidgetText(lang, widget->windowTitle());
+    const QString sourceWindowTitle = widget->windowTitle();
+    QString translated = translatedWidgetText(lang, sourceWindowTitle);
+    if (translated.isEmpty()) {
+        translated = scopedWindowTitleTranslation(widget, sourceWindowTitle);
+    }
     if (!translated.isEmpty()) {
         widget->setWindowTitle(translated);
     }
 
-    translated = translatedWidgetText(lang, widget->toolTip());
+    const QString sourceToolTip = widget->toolTip();
+    translated = translatedWidgetText(lang, sourceToolTip);
+    if (translated.isEmpty()) {
+        translated = searchBarTooltipTranslation(widget, sourceToolTip);
+    }
     if (!translated.isEmpty()) {
         widget->setToolTip(translated);
     }
@@ -2754,7 +2951,7 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
             toolBar->setWindowTitle(translated);
         }
         for (QAction *action : toolBar->actions()) {
-            translateQtAction(action, lang);
+            translateQtAction(action, lang, toolBar);
         }
     }
 
@@ -2763,7 +2960,7 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
         if (!translated.isEmpty()) {
             toolButton->setText(translated);
         }
-        translateQtAction(toolButton->defaultAction(), lang);
+        translateQtAction(toolButton->defaultAction(), lang, toolButton);
     }
 
     if (QDialogButtonBox *buttonBox = qobject_cast<QDialogButtonBox *>(widget)) {

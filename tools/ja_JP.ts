@@ -8551,8 +8551,21 @@
     <message><source>Set W3C Name</source><translation>W3C 名を設定</translation></message>
   </context>
   <context>
+    <name>SearchBarContainerWidget</name>
+    <message><source>Add a layer to your Composition (%1)</source><translation>コンポジションにレイヤーを追加 (%1)</translation></message>
+  </context>
+  <context>
+    <name>cavalry::TagHeader</name>
+    <message><source>Add Tag:</source><translation>タグを追加：</translation></message>
+  </context>
+  <context>
+    <name>ColorWindow</name>
+    <message><source>Save...</source><translation>保存…</translation></message>
+  </context>
+  <context>
     <name>assets::Window</name>
     <message><source>Reveal in Explorer...</source><translation>エクスプローラーで表示...</translation></message>
+    <message><source>Replace...</source><translation>置換…</translation></message>
   </context>
   <context>
     <name>cavalry::DGWindow</name>
@@ -8567,6 +8580,10 @@
     <message><source>This Scene has missing fonts:</source><translation>このシーンに不足しているフォントがあります：</translation></message>
     <message><source>Are you sure you want to delete the Render Item(s)?</source><translation>レンダリング項目を削除してもよろしいですか？</translation></message>
     <message><source>Delete Render Item(s)</source><translation>レンダリング項目を削除</translation></message>
+    <message><source>Compute Time:</source><translation>計算時間：</translation></message>
+    <message><source>Draw Time:</source><translation>描画時間：</translation></message>
+    <message><source>Total Nodes:</source><translation>ノード総数：</translation></message>
+    <message><source>Tracking...</source><translation>トラッキング中…</translation></message>
   </context>
   <context>
     <name>GraphicsViewportBase</name>

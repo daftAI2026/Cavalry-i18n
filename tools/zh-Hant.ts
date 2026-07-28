@@ -7326,8 +7326,21 @@
     <message><source>Set W3C Name</source><translation>設定 W3C 名稱</translation></message>
   </context>
   <context>
+    <name>SearchBarContainerWidget</name>
+    <message><source>Add a layer to your Composition (%1)</source><translation>向合成新增圖層 (%1)</translation></message>
+  </context>
+  <context>
+    <name>cavalry::TagHeader</name>
+    <message><source>Add Tag:</source><translation>新增標籤：</translation></message>
+  </context>
+  <context>
+    <name>ColorWindow</name>
+    <message><source>Save...</source><translation>儲存…</translation></message>
+  </context>
+  <context>
     <name>assets::Window</name>
     <message><source>Reveal in Explorer...</source><translation>在檔案總管中顯示...</translation></message>
+    <message><source>Replace...</source><translation>取代…</translation></message>
   </context>
   <context>
     <name>cavalry::DGWindow</name>
@@ -7342,6 +7355,10 @@
     <message><source>This Scene has missing fonts:</source><translation>此場景缺少字體：</translation></message>
     <message><source>Are you sure you want to delete the Render Item(s)?</source><translation>確定要刪除算繪項目嗎？</translation></message>
     <message><source>Delete Render Item(s)</source><translation>刪除算繪項目</translation></message>
+    <message><source>Compute Time:</source><translation>計算時間：</translation></message>
+    <message><source>Draw Time:</source><translation>繪製時間：</translation></message>
+    <message><source>Total Nodes:</source><translation>節點總數：</translation></message>
+    <message><source>Tracking...</source><translation>正在追蹤…</translation></message>
   </context>
   <context>
     <name>GraphicsViewportBase</name>

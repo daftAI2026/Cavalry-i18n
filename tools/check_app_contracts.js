@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、Windows EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、运行时噪声隔离与翻译质量契约
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -3135,7 +3135,7 @@ test('zh-Hans embedded runtime tail has exact translations for live-only widget 
   }
 });
 
-test('compiled runtime catalogs cover evidenced palette, scene, and tool surfaces', () => {
+test('compiled runtime catalogs cover evidenced ordinary Qt and tool surfaces', () => {
   const generatorPath = path.join(repoRoot, 'tools', 'generate_embedded_translations.js');
   const { parseTs } = require(generatorPath);
   const catalogs = new Map([
@@ -3153,7 +3153,11 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
     ['Widget', 'Boundary Color', '边界颜色', '邊界顏色', '境界色'],
     ['PaletteWidget', 'Palette Name:', '调色板名称:', '調色盤名稱:', 'パレット名:'],
     ['PaletteWidget', 'Set W3C Name', '设置 W3C 名称', '設定 W3C 名稱', 'W3C 名を設定'],
+    ['SearchBarContainerWidget', 'Add a layer to your Composition (%1)', '向合成添加图层 (%1)', '向合成新增圖層 (%1)', 'コンポジションにレイヤーを追加 (%1)'],
+    ['cavalry::TagHeader', 'Add Tag:', '添加标签：', '新增標籤：', 'タグを追加：'],
+    ['ColorWindow', 'Save...', '保存…', '儲存…', '保存…'],
     ['assets::Window', 'Reveal in Explorer...', '在文件资源管理器中显示...', '在檔案總管中顯示...', 'エクスプローラーで表示...'],
+    ['assets::Window', 'Replace...', '替换…', '取代…', '置換…'],
     ['cavalry::DGWindow', 'Bookmark Name:', '书签名称:', '書籤名稱:', 'ブックマーク名:'],
     ['cavalry::DGWindow', 'Bookmark %1', '书签 %1', '書籤 %1', 'ブックマーク %1'],
     ['MenuBarManager', 'This Scene has missing layer types:', '此场景缺少以下图层类型：', '此場景缺少以下圖層類型：', 'このシーンに次のレイヤータイプがありません：'],
@@ -3162,6 +3166,10 @@ test('compiled runtime catalogs cover evidenced palette, scene, and tool surface
     ['MenuBarManager', 'This Scene has missing fonts:', '此场景缺少字体：', '此場景缺少字體：', 'このシーンに不足しているフォントがあります：'],
     ['MenuBarManager', 'Are you sure you want to delete the Render Item(s)?', '确定要删除渲染项目吗？', '確定要刪除算繪項目嗎？', 'レンダリング項目を削除してもよろしいですか？'],
     ['MenuBarManager', 'Delete Render Item(s)', '删除渲染项目', '刪除算繪項目', 'レンダリング項目を削除'],
+    ['MenuBarManager', 'Compute Time:', '计算时间：', '計算時間：', '計算時間：'],
+    ['MenuBarManager', 'Draw Time:', '绘制时间：', '繪製時間：', '描画時間：'],
+    ['MenuBarManager', 'Total Nodes:', '节点总数：', '節點總數：', 'ノード総数：'],
+    ['MenuBarManager', 'Tracking...', '正在跟踪…', '正在追蹤…', 'トラッキング中…'],
     ['GraphicsViewportBase', 'Copy as PolyMesh', '复制为多边形网格', '複製為多邊形網格', 'ポリメッシュとしてコピー'],
     ['AttrControlRow', 'Duplicate & Replace', '复制并替换', '複製並替換', '複製して置換'],
     ['AttrControlRow', 'Rename...', '重命名...', '重新命名...', '名前を変更...'],
@@ -3249,6 +3257,10 @@ test('Windows controlled dynamic Qt projections stay inside proven display prope
     path.join(injectorRoot, 'cavalry_i18n_translation_policy.h'),
     'utf8'
   );
+  const windowsTranslator = fs.readFileSync(
+    path.join(windowsInjector, 'cavalry_i18n_translator.cpp'),
+    'utf8'
+  );
   const vendorContract = fs.readFileSync(
     path.join(windowsInjector, 'cavalry_i18n_vendor_iat_contract_test.cpp'),
     'utf8'
@@ -3288,6 +3300,29 @@ test('Windows controlled dynamic Qt projections stay inside proven display prope
   assert.match(
     translationPolicy,
     /contextView == kMeshExplorerContext[\s\S]{0,360}kMeshExplorerChildMeshesSource/
+  );
+  assert.match(
+    translationPolicy,
+    /kCrossPlatformScopedTranslationKeys[\s\S]{0,1200}&kSearchBarAddLayerKey[\s\S]{0,1200}&kTrackingWindowTitleKey/
+  );
+  assert.match(
+    windowsTranslator,
+    /if \(!cavalry_i18n::requiresExactTranslationContext\(/
+  );
+  for (const source of [
+    translationPolicy,
+    windowsTranslator,
+    macInjector,
+  ]) {
+    assert.doesNotMatch(source, /requiresWindowsScopedTranslation\(/);
+  }
+  assert.match(
+    macInjector,
+    /searchBarTooltipTranslation\([\s\S]{0,1800}scopedLabelTextTranslation\([\s\S]{0,2200}scopedActionTextTranslation\([\s\S]{0,2200}scopedWindowTitleTranslation\(/
+  );
+  assert.match(
+    macInjector,
+    /action->associatedObjects\(\)/
   );
   assert.match(
     display,
@@ -3343,6 +3378,25 @@ test('Windows controlled dynamic Qt projections stay inside proven display prope
   assert.match(displayTest, /MeshExplorerRowWidget meshExplorerRow/);
   assert.match(displayTest, /unrelated Mesh Explorer text isolation/);
   assert.match(displayTest, /Mesh Explorer leading-zero rejection/);
+  assert.match(display, /hasAncestorClass\(object, "ProjectStatisticsWindow"\)/);
+  assert.match(display, /dialog->metaObject\(\) != &QDialog::staticMetaObject/);
+  assert.match(display, /Qt::FindDirectChildrenOnly/);
+  assert.match(display, /translator\.translate\("QDialog", "Cancel"\)/);
+  assert.match(display, /GetProcAddress\([\s\S]{0,160}\?gMainWindow@@3PEAVDockableGroup@@EA/);
+  assert.match(display, /dialog->parentWidget\(\) != mainWindow/);
+  assert.match(display, /dialog->testAttribute\(Qt::WA_DeleteOnClose\)/);
+  assert.match(display, /progressBars\.constFirst\(\)->windowModality\(\)[\s\S]{0,100}Qt::WindowModal/);
+  assert.match(displayTest, /ProjectStatisticsWindow statisticsWindow/);
+  assert.match(displayTest, /unrelated Project Statistics text isolation/);
+  assert.match(displayTest, /QDialog trackingWindow/);
+  assert.match(displayTest, /cavalryI18nSetMainWindowForTesting\(&cavalryMainWindow\)/);
+  assert.match(displayTest, /same-shape unrelated Tracking isolation/);
+  assert.match(displayTest, /unrelated Tracking dialog isolation/);
+  assert.match(displayTest, /incomplete Tracking dialog isolation/);
+  assert.match(displayTest, /wrong-button Tracking dialog isolation/);
+  assert.match(displayTest, /source-only Save isolation/);
+  assert.match(displayTest, /"SearchBarContainerWidget"/);
+  assert.match(displayTest, /"Add a layer to your Composition \(%1\)"/);
   assert.match(vendorContract, /kSelectedCountProducerRva\s*=\s*0x00E815C0/);
   assert.match(vendorContract, /kExtensionLayerTimestamp\s*=\s*0x6A0300E0/);
   assert.match(vendorContract, /kExtensionLayerImageSize\s*=\s*0x01BBE000/);
@@ -3355,6 +3409,37 @@ test('Windows controlled dynamic Qt projections stay inside proven display prope
   assert.match(vendorContract, /kSelectedCountLiteralRva\s*=\s*0x0157F6EE/);
   assert.match(vendorContract, /kSelectedCountSetTextCallRva\s*=\s*0x00E816A0/);
   assert.match(vendorContract, /kQLabelSetTextSymbol/);
+  assert.match(vendorContract, /kExpectedQMetaObjectTrIatRva\s*=\s*0x01B2C528/);
+  assert.match(vendorContract, /kExpectedQStringFromUtf8IatRva\s*=\s*0x01B2C738/);
+  assert.match(vendorContract, /kExpectedQWidgetSetWindowTitleIatRva\s*=\s*0x01B2F9D8/);
+  assert.match(vendorContract, /kMetaObjectTranslationContracts/);
+  assert.match(vendorContract, /&cavalry_i18n::kSearchBarAddLayerKey[\s\S]{0,160}0x00E8BD34/);
+  assert.match(vendorContract, /&cavalry_i18n::kAssetsWindowReplaceKey[\s\S]{0,160}0x00EBC8D1/);
+  assert.match(vendorContract, /&cavalry_i18n::kColorWindowSaveKey[\s\S]{0,160}0x00F176CE/);
+  assert.match(vendorContract, /&cavalry_i18n::kTagHeaderAddTagKey[\s\S]{0,160}0x0109192D/);
+  assert.match(vendorContract, /kRawQLabelContracts/);
+  assert.match(vendorContract, /&cavalry_i18n::kProjectStatisticsComputeTimeKey[\s\S]{0,100}0x00F3E0FE/);
+  assert.match(vendorContract, /&cavalry_i18n::kProjectStatisticsDrawTimeKey[\s\S]{0,100}0x00F3E221/);
+  assert.match(vendorContract, /&cavalry_i18n::kProjectStatisticsTotalNodesKey[\s\S]{0,100}0x00F3E6A8/);
+  assert.match(vendorContract, /ordinaryQtEvidenceCoversEveryScopedTranslation\(/);
+  assert.match(vendorContract, /kProjectStatisticsMetaObjectNameRva\s*=\s*0x014BF7B0/);
+  assert.match(vendorContract, /kProjectStatisticsWindowTitleLiteralRva\s*=\s*0x014D63D8/);
+  assert.match(vendorContract, /kExpectedCavalryMainWindowIatRva\s*=\s*0x01B26C78/);
+  assert.match(vendorContract, /kTrackingMainWindowLoadRva\s*=\s*0x00C25B6A/);
+  assert.match(vendorContract, /kTrackingDialogParentFlowRva\s*=\s*0x00C25B71/);
+  assert.match(vendorContract, /kTrackingDialogStateFlowRva\s*=\s*0x00C25B84/);
+  assert.match(vendorContract, /kTrackingDeleteOnCloseReceiverFlowRva\s*=\s*0x00C25BD3/);
+  assert.match(vendorContract, /kTrackingDeleteOnCloseCallRva\s*=\s*0x00C25BDF/);
+  assert.match(vendorContract, /kTrackingProgressParentFlowRva\s*=\s*0x00C25CAB/);
+  assert.match(vendorContract, /kTrackingProgressStateFlowRva\s*=\s*0x00C25CC3/);
+  assert.match(vendorContract, /kTrackingWindowModalityReceiverFlowRva\s*=\s*0x00C25D15/);
+  assert.match(vendorContract, /kTrackingWindowModalCallRva\s*=\s*0x00C25D1E/);
+  assert.match(vendorContract, /kTrackingCancelParentFlowRva\s*=\s*0x00C25DC5/);
+  assert.match(vendorContract, /std::array<std::uint8_t,\s*91>\s+kTrackingCancelParentFlow/);
+  assert.match(vendorContract, /kTrackingDialogConstructorCallRva\s*=\s*0x00C25B7E/);
+  assert.match(vendorContract, /kTrackingProgressBarConstructorCallRva\s*=\s*0x00C25CBD/);
+  assert.match(vendorContract, /kTrackingCancelConstructorCallRva\s*=\s*0x00C25E20/);
+  assert.match(vendorContract, /verifyOrdinaryQtResidualContract\(/);
   assert.match(vendorContract, /kAutomaticTemplateLiteralRva\s*=\s*0x015977F8/);
   assert.match(vendorContract, /kAutomaticTemplateLeaRva\s*=\s*0x010C6EF4/);
   assert.match(vendorContract, /kAutomaticInsertItemCallRva\s*=\s*0x010C70DB/);

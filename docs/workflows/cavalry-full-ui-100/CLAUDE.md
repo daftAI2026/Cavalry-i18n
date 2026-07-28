@@ -4,7 +4,7 @@
 成员清单
 - Project.md: 目标、当前 workflow 口径、当前实现真相、完成语义
 - Acceptance.md: W-AUDIT + G-P + §P5 + G-CAPTURE + G-X + G0-G4 的规范性通过/失败条件
-- Runbook.md: 执行纪律、artifact hygiene、固定顺序、run log 规范
+- Runbook.md: 执行纪律、artifact hygiene、固定顺序、run log 规范，以及 8 条跨平台 exact-only 普通 Qt 文本的 macOS 启动前/启动后 owner-backfill 实机验证交接
 - Flow.md: 端到端流程图与 gate ownership
 - EXECUTE.md: 冷启动执行入口、完整抽取前置条件与绝对禁止清单
 - TODO.md: 当前实现缺口与任务顺序

@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Acceptance.md 的 gate 定义、Anti-Patterns.md 的绕过证据
-[OUTPUT]: 对外提供 full-ui-100 的执行纪律、循环规则、run note 规范
+[OUTPUT]: 对外提供 full-ui-100 的执行纪律、循环规则、run note 规范与跨平台实机验证交接清单
 [POS]: full-ui-100 工作流运行手册
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -162,7 +162,49 @@ README / 普通说明文案在最终收尾统一更新；当前阶段只修 acti
 5. 第一轮必须重新抽取 compiled source-map、重新 live capture runtime、重新冻结 `SESSION_DIR/extraction-inventory.json`
 6. 新 `RUN_RECORD` 必须记录 target version、Qt version、bundle hash 与 artifact provenance
 
-当前目标若为 Cavalry `2.7.1` / Qt `6.6.3`，任何 Cavalry `2.7.0` 的分母与 gate 结果都只能写作历史，不得写作 current PASS。
+当前目标若为 Cavalry `2.7.2` / Qt `6.6.3`，任何其他 Cavalry 版本的分母与 gate 结果都只能写作历史，不得写作 current PASS。
+
+---
+
+## macOS Startup-Backfill Handoff
+
+Windows 与 macOS 共用同一份 `(context, source)` 翻译表，但两端的启动时序与 QObject 所有权路径不同：
+
+- 下列 8 条在两个平台都禁止全局 source fallback；普通控件中的同名文本不得仅凭 source 被翻译。
+- 新建表面优先走真实 context；translator 安装前已创建的表面只能走平台内已采证的 owner/控件结构回补。
+- macOS 的回补边界为 Search Bar tooltip 模板、Tag/Project Statistics QLabel 父系、Color/Assets QAction owner，以及带 `WA_DeleteOnClose`、直属 `Qt::WindowModal` 进度条和直属 Cancel 按钮的原生 Tracking `QDialog`。Windows 另以 `ProjectStatisticsWindow` 父系和 CavalryUI `gMainWindow` 直属 Tracking 对话框收紧身份。
+
+代码合同只能证明 fail-closed 边界存在，不能替代 macOS 的实际 QObject 拓扑和启动时序。Mac 验证人必须以 Cavalry `2.7.2`、Qt `6.6.3` 对三种非英语语言逐项执行：
+
+| Context | Source | 验证表面 |
+| --- | --- | --- |
+| `SearchBarContainerWidget` | `Add a layer to your Composition (%1)` | Add Layer 搜索栏提示 |
+| `cavalry::TagHeader` | `Add Tag:` | 标签标题/输入入口 |
+| `ColorWindow` | `Save...` | 颜色窗口保存动作 |
+| `assets::Window` | `Replace...` | 素材窗口替换动作 |
+| `MenuBarManager` | `Compute Time:` | Scene Statistics 计算耗时标签 |
+| `MenuBarManager` | `Draw Time:` | Scene Statistics 绘制耗时标签 |
+| `MenuBarManager` | `Total Nodes:` | Scene Statistics 节点总数标签 |
+| `MenuBarManager` | `Tracking...` | Tracking 进度对话框标题 |
+
+每个语言至少覆盖两种时序：
+
+1. 启动时已创建表面：证明 translator 安装后的 scoped owner backfill 能补译。
+2. 启动后通过真实菜单/操作新建表面：证明 live translator / 动态显示链能直接命中。
+
+通过条件：
+
+- 8 条在简中、繁中、日语中均显示对应译文。
+- 无关用户文本、模型文本或普通控件中的同名 `Save...`、`Replace...`、`Tracking...` 保持原文。
+- run note 记录 Cavalry.app hash、injector hash、语言、表面是否在 translator 安装前存在，并附截图或 session-scoped runtime inventory。
+
+在 Mac 真机完成前，交接状态固定写作：
+
+```text
+PENDING-MAC-LIVE
+```
+
+该状态不阻塞只针对 Windows x64 的代码 PR，但在宣称跨平台 full-ui parity 或发布前必须清零；不得把 Windows 合同测试或 macOS 源码合同改写成 Mac 实机 PASS。
 
 ---
 

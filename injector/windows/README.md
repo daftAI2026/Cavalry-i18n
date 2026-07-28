@@ -75,6 +75,15 @@ tooltip 和 statusTip。刷新严格停留在显示层：`QLineEdit::text()` 仅
 命中时以信号阻断方式投影译文，未知/用户输入保持原样；`QTreeWidget` 仅写递归
 可见 `DisplayRole`。`UserRole`、Time Editor 模型身份和其他厂商业务数据均不修改。
 
+Search Bar、Tag Header、Color Window 与 Assets Window 的四条普通 Qt 残留只按真实
+meta-object context 查询；Scene Statistics 的 Compute/Draw/Total 三条 QLabel 还要求
+`ProjectStatisticsWindow` 父系；Tracking 标题还要求 CavalryUI `gMainWindow` 的直属精确原生
+`QDialog`，设置 `WA_DeleteOnClose`，且直属子控件恰有一个 `Qt::WindowModal`
+`QProgressBar` 和一个 English/本地化 Cancel `QPushButton`。这 8 条在两个平台都不进入
+source-only fallback，因此同名用户文本或无关控件不会被误译；macOS 以对应 exact context /
+scoped owner 回补启动前表面，并由 full-ui Runbook 的 `PENDING-MAC-LIVE` 清单验证实际 QObject
+拓扑与两种启动时序。
+
 对 ExtensionLayer 的自绘/空状态文本，插件只在该模块已加载后安装四条已采证、可逆的
 IAT 边界：
 
@@ -175,7 +184,9 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File injector/windows/build.p
 `ui::textAtWidgetCentre` decorated symbol、预期 IAT RVA 与 `CavalryUI.dll` 对应导出；
 还验证 `CustomListWidget::setPlaceholder` 的导出 thunk、canonical setter、尾跳解析出的
 QString 赋值槽 RVA、其初始 import-by-name RVA、二十个直接调用与 Snippet 的直接调用点。
-它还逐一验证十三条 placeholder source literal；锁定 `QTextEdit::append` 唯一槽、三处调用、
+它还逐一验证十三条 placeholder source literal；锁定 Search Bar、Tag Header、Color Window 与
+Assets Window 四条 meta-object 翻译调用，三条性能 `QLabel` 和 Tracking 窗口标题的
+literal → `QString` → 显示槽路径；锁定 `QTextEdit::append` 唯一槽、三处调用、
 history/live 两个批准 return、`js_logger` 排除项、HTML 模板与 Pencil 原文；并验证 Core MakePath 唯一槽、证明
 RCX hidden-sret/RDX string-ref/XMM2 double 参数搬运的十字节 preamble、canonical
 return、viewport enum 表、EditShapeTool、TransformTool、Pencil、Pen、Centre 与 SkeletonTool Bone Tool 的 prefix/action 双 Path 数据流及三十六条静态 source；Bone Tool 还锁定 secondary vtable/RTTI 与第四组内联字符串构造，

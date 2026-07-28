@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context 策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 模板、单索引 QPlainTextEdit 占位文字和动态英文写回恢复
- * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性与已采证父系/对话框来源，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、单索引 QPlainTextEdit 占位文字和动态英文写回恢复
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系或 vendor 主窗口身份，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -24,11 +24,49 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
 #include <QtWidgets/QPlainTextEdit>
+#include <QtWidgets/QProgressBar>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QTabBar>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QWidget>
 
+#include <array>
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+
 namespace {
+
+#ifdef CAVALRY_I18N_TESTING
+QWidget *gMainWindowForTesting = nullptr;
+#endif
+
+QWidget *cavalryMainWindow()
+{
+#ifdef CAVALRY_I18N_TESTING
+    if (gMainWindowForTesting != nullptr) {
+        return gMainWindowForTesting;
+    }
+#endif
+    HMODULE cavalryUi = GetModuleHandleW(L"CavalryUI.dll");
+    if (cavalryUi == nullptr) {
+        return nullptr;
+    }
+    FARPROC symbol = GetProcAddress(
+        cavalryUi,
+        "?gMainWindow@@3PEAVDockableGroup@@EA");
+    if (symbol == nullptr) {
+        return nullptr;
+    }
+    void *const mainWindow =
+        *reinterpret_cast<void *const *>(symbol);
+    return static_cast<QWidget *>(mainWindow);
+}
 
 class TranslationScope final
 {
@@ -229,6 +267,75 @@ QString singleIndexPlaceholderTranslation(
         cavalry_i18n::kSingleIndexPlaceholderSource);
 }
 
+QString projectStatisticsLabelTranslation(
+    CavalryEmbeddedTranslator &translator,
+    QObject *object,
+    const QString &source)
+{
+    if (!hasAncestorClass(object, "ProjectStatisticsWindow")) {
+        return QString();
+    }
+
+    const std::array<const char *, 3> sources {{
+        cavalry_i18n::kProjectStatisticsComputeTimeSource,
+        cavalry_i18n::kProjectStatisticsDrawTimeSource,
+        cavalry_i18n::kProjectStatisticsTotalNodesSource,
+    }};
+    for (const char *candidate : sources) {
+        if (source == QString::fromUtf8(candidate)) {
+            return translator.translate(
+                cavalry_i18n::kMenuBarManagerContext,
+                candidate);
+        }
+    }
+    return QString();
+}
+
+bool isTrackingProgressDialog(
+    CavalryEmbeddedTranslator &translator,
+    QObject *object,
+    const QString &source)
+{
+    if (source
+        != QString::fromUtf8(cavalry_i18n::kTrackingWindowTitleSource)) {
+        return false;
+    }
+
+    auto *dialog = qobject_cast<QDialog *>(object);
+    QWidget *const mainWindow = cavalryMainWindow();
+    if (dialog == nullptr
+        || dialog->metaObject() != &QDialog::staticMetaObject
+        || !dialog->isWindow()
+        || dialog->window() != dialog
+        || mainWindow == nullptr
+        || dialog->parentWidget() != mainWindow
+        || !dialog->testAttribute(Qt::WA_DeleteOnClose)) {
+        return false;
+    }
+
+    const QList<QProgressBar *> progressBars =
+        dialog->findChildren<QProgressBar *>(
+            QString(),
+            Qt::FindDirectChildrenOnly);
+    const QList<QPushButton *> buttons =
+        dialog->findChildren<QPushButton *>(
+            QString(),
+            Qt::FindDirectChildrenOnly);
+    if (progressBars.size() != 1 || buttons.size() != 1) {
+        return false;
+    }
+    if (progressBars.constFirst()->windowModality()
+        != Qt::WindowModal) {
+        return false;
+    }
+
+    static const QString kCancelSource = QStringLiteral("Cancel");
+    const QString translatedCancel = translator.translate("QDialog", "Cancel");
+    const QString buttonText = buttons.constFirst()->text();
+    return buttonText == kCancelSource
+        || (!translatedCancel.isEmpty() && buttonText == translatedCancel);
+}
+
 QString controlledDynamicTranslation(
     CavalryEmbeddedTranslator &translator,
     QObject *object,
@@ -242,9 +349,22 @@ QString controlledDynamicTranslation(
         if (!translated.isEmpty()) {
             return translated;
         }
-        return hasAncestorClass(object, "MeshExplorerRowWidget")
-            ? meshExplorerLabelTranslation(translator, source)
-            : QString();
+        if (hasAncestorClass(object, "MeshExplorerRowWidget")) {
+            translated = meshExplorerLabelTranslation(translator, source);
+            if (!translated.isEmpty()) {
+                return translated;
+            }
+        }
+        return projectStatisticsLabelTranslation(
+            translator,
+            object,
+            source);
+    }
+    if (property == QByteArrayLiteral("windowTitle")
+        && isTrackingProgressDialog(translator, object, source)) {
+        return translator.translate(
+            cavalry_i18n::kMenuBarManagerContext,
+            cavalry_i18n::kTrackingWindowTitleSource);
     }
     if (property.startsWith(QByteArrayLiteral("comboDisplay:"))
         && isColorSettingsCombo(translator, object)) {
@@ -259,6 +379,13 @@ QString controlledDynamicTranslation(
 }
 
 } // namespace
+
+#ifdef CAVALRY_I18N_TESTING
+void cavalryI18nSetMainWindowForTesting(QWidget *mainWindow)
+{
+    gMainWindowForTesting = mainWindow;
+}
+#endif
 
 CavalryDisplayTranslator::CavalryDisplayTranslator(
     CavalryEmbeddedTranslator &translator,

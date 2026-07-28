@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树、QLineEdit 与 QPlainTextEdit
- * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/单索引动态模板、CogTool context-only 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
- * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系与显示属性，且通用规则不会改写编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
+ * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
+ * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系或对话框结构与显示属性，且通用规则不会改写编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -21,10 +21,13 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QPlainTextEdit>
+#include <QtWidgets/QProgressBar>
+#include <QtWidgets/QPushButton>
 #include <QtWidgets/QTreeWidget>
 #include <QtWidgets/QWidget>
 
 #include <algorithm>
+#include <array>
 #include <cstdio>
 
 namespace {
@@ -38,6 +41,14 @@ public:
 };
 
 class MeshExplorerRowWidget final : public QWidget
+{
+    Q_OBJECT
+
+public:
+    using QWidget::QWidget;
+};
+
+class ProjectStatisticsWindow final : public QWidget
 {
     Q_OBJECT
 
@@ -558,6 +569,24 @@ bool verifyEvidencedResidualWidgets(const QString &language)
         };
     const QString exactPitchTranslation =
         translator.translate("CogTool", "Pitch Radius: ");
+    const QString exactAddLayerTranslation =
+        translator.translate(
+            "SearchBarContainerWidget",
+            "Add a layer to your Composition (%1)");
+    const QString exactAddTagTranslation =
+        translator.translate("cavalry::TagHeader", "Add Tag:");
+    const QString exactSaveTranslation =
+        translator.translate("ColorWindow", "Save...");
+    const QString exactReplaceTranslation =
+        translator.translate("assets::Window", "Replace...");
+    const QString exactComputeTimeTranslation =
+        translator.translate("MenuBarManager", "Compute Time:");
+    const QString exactDrawTimeTranslation =
+        translator.translate("MenuBarManager", "Draw Time:");
+    const QString exactTotalNodesTranslation =
+        translator.translate("MenuBarManager", "Total Nodes:");
+    const QString exactTrackingTranslation =
+        translator.translate("MenuBarManager", "Tracking...");
 
     QLabel paletteName(QStringLiteral("Palette Name:"));
     QLabel missingAssets(QStringLiteral("This Scene has missing assets:"));
@@ -565,19 +594,88 @@ bool verifyEvidencedResidualWidgets(const QString &language)
     QLabel strokeWidth(QStringLiteral("Stroke Width: "));
     QLabel capStyle(QStringLiteral("Cap Style: "));
     QLabel boundaryColor(QStringLiteral("Boundary Color"));
+    ProjectStatisticsWindow statisticsWindow;
+    QLabel computeTime(QStringLiteral("Compute Time:"), &statisticsWindow);
+    QLabel drawTime(QStringLiteral("Draw Time:"), &statisticsWindow);
+    QLabel totalNodes(QStringLiteral("Total Nodes:"), &statisticsWindow);
+    QLabel unrelatedComputeTime(QStringLiteral("Compute Time:"));
     QLabel pitchRadius(QStringLiteral("Pitch Radius: "));
     QLineEdit placementUtility;
     placementUtility.setPlaceholderText(
         QStringLiteral("Click the + button to add a Placement Utility"));
     QWidget renderDialog;
     renderDialog.setWindowTitle(QStringLiteral("Delete Render Item(s)"));
+    QWidget cavalryMainWindow;
+    cavalryI18nSetMainWindowForTesting(&cavalryMainWindow);
+    QDialog trackingWindow(&cavalryMainWindow);
+    trackingWindow.setWindowTitle(QStringLiteral("Tracking..."));
+    trackingWindow.setAttribute(Qt::WA_DeleteOnClose);
+    QProgressBar trackingProgress(&trackingWindow);
+    trackingProgress.setWindowModality(Qt::WindowModal);
+    QPushButton trackingCancel(QStringLiteral("Cancel"), &trackingWindow);
+    QWidget unrelatedMainWindow;
+    QDialog sameShapeUnrelatedTrackingWindow(&unrelatedMainWindow);
+    sameShapeUnrelatedTrackingWindow.setWindowTitle(
+        QStringLiteral("Tracking..."));
+    sameShapeUnrelatedTrackingWindow.setAttribute(Qt::WA_DeleteOnClose);
+    QProgressBar sameShapeUnrelatedProgress(
+        &sameShapeUnrelatedTrackingWindow);
+    sameShapeUnrelatedProgress.setWindowModality(Qt::WindowModal);
+    QPushButton sameShapeUnrelatedCancel(
+        QStringLiteral("Cancel"),
+        &sameShapeUnrelatedTrackingWindow);
+    QDialog unrelatedTrackingWindow;
+    unrelatedTrackingWindow.setWindowTitle(QStringLiteral("Tracking..."));
+    QDialog incompleteTrackingWindow;
+    incompleteTrackingWindow.setWindowTitle(QStringLiteral("Tracking..."));
+    QProgressBar incompleteTrackingProgress(&incompleteTrackingWindow);
+    QDialog wrongButtonTrackingWindow;
+    wrongButtonTrackingWindow.setWindowTitle(QStringLiteral("Tracking..."));
+    QProgressBar wrongButtonTrackingProgress(&wrongButtonTrackingWindow);
+    QPushButton wrongTrackingButton(
+        QStringLiteral("Continue"),
+        &wrongButtonTrackingWindow);
     QAction paletteAction;
     paletteAction.setText(QStringLiteral("Set W3C Name"));
     paletteAction.setToolTip(QStringLiteral("Reveal in Explorer..."));
     QAction residualAction;
     residualAction.setText(QStringLiteral("Copy as PolyMesh"));
+    QAction addTagAction;
+    addTagAction.setText(QStringLiteral("Add Tag:"));
+    QAction saveAction;
+    saveAction.setText(QStringLiteral("Save..."));
+    QAction replaceAction;
+    replaceAction.setText(QStringLiteral("Replace..."));
+    const QString addLayerWithShortcut =
+        exactAddLayerTranslation.arg(QStringLiteral("Ctrl+."));
+    const QString expectedAddLayerTranslation =
+        language == QStringLiteral("zh-Hans")
+        ? QString::fromUtf8("向合成添加图层 (%1)")
+        : language == QStringLiteral("zh-Hant")
+            ? QString::fromUtf8("向合成新增圖層 (%1)")
+            : QString::fromUtf8("コンポジションにレイヤーを追加 (%1)");
     const QString numberedBookmark =
         translator.translate("cavalry::DGWindow", "Bookmark %1").arg(7);
+    const std::array<const char *, 8> scopedSources {{
+        "Add a layer to your Composition (%1)",
+        "Add Tag:",
+        "Save...",
+        "Replace...",
+        "Compute Time:",
+        "Draw Time:",
+        "Total Nodes:",
+        "Tracking...",
+    }};
+    bool scopedFallbacksRemainEmpty = true;
+    for (const char *source : scopedSources) {
+        scopedFallbacksRemainEmpty =
+            expectEqual(
+                language + QStringLiteral(" scoped fallback isolation: ")
+                    + QString::fromUtf8(source),
+                translator.translate(nullptr, source),
+                QString())
+            && scopedFallbacksRemainEmpty;
+    }
 
     displayTranslator.translateWidget(&paletteName);
     displayTranslator.translateWidget(&missingAssets);
@@ -585,13 +683,24 @@ bool verifyEvidencedResidualWidgets(const QString &language)
     displayTranslator.translateWidget(&strokeWidth);
     displayTranslator.translateWidget(&capStyle);
     displayTranslator.translateWidget(&boundaryColor);
+    displayTranslator.translateWidgetTree(&statisticsWindow);
+    displayTranslator.translateWidget(&unrelatedComputeTime);
     displayTranslator.translateWidget(&pitchRadius);
     displayTranslator.translateWidget(&placementUtility);
     displayTranslator.translateWidget(&renderDialog);
+    displayTranslator.translateWidgetTree(&trackingWindow);
+    displayTranslator.translateWidgetTree(
+        &sameShapeUnrelatedTrackingWindow);
+    displayTranslator.translateWidgetTree(&unrelatedTrackingWindow);
+    displayTranslator.translateWidgetTree(&incompleteTrackingWindow);
+    displayTranslator.translateWidgetTree(&wrongButtonTrackingWindow);
     displayTranslator.translateAction(&paletteAction);
     displayTranslator.translateAction(&residualAction);
+    displayTranslator.translateAction(&addTagAction);
+    displayTranslator.translateAction(&saveAction);
+    displayTranslator.translateAction(&replaceAction);
 
-    return expectEqual(
+    const bool passed = expectEqual(
                language + QStringLiteral(" palette input label"),
                paletteName.text(),
                expectedTranslation("Palette Name:"))
@@ -616,6 +725,23 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                boundaryColor.text(),
                expectedTranslation("Boundary Color"))
         && expectEqual(
+               language + QStringLiteral(" compute-time label"),
+               computeTime.text(),
+               exactComputeTimeTranslation)
+        && expectEqual(
+               language + QStringLiteral(" draw-time label"),
+               drawTime.text(),
+               exactDrawTimeTranslation)
+        && expectEqual(
+               language + QStringLiteral(" total-nodes label"),
+               totalNodes.text(),
+               exactTotalNodesTranslation)
+        && expectEqual(
+               language
+                   + QStringLiteral(" unrelated Project Statistics text isolation"),
+               unrelatedComputeTime.text(),
+               QStringLiteral("Compute Time:"))
+        && expectEqual(
                language + QStringLiteral(" Placement Utility placeholder"),
                placementUtility.placeholderText(),
                expectedTranslation(
@@ -624,6 +750,27 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                language + QStringLiteral(" render dialog title"),
                renderDialog.windowTitle(),
                expectedTranslation("Delete Render Item(s)"))
+        && expectEqual(
+               language + QStringLiteral(" tracking window title"),
+               trackingWindow.windowTitle(),
+               exactTrackingTranslation)
+        && expectEqual(
+               language
+                   + QStringLiteral(" same-shape unrelated Tracking isolation"),
+               sameShapeUnrelatedTrackingWindow.windowTitle(),
+               QStringLiteral("Tracking..."))
+        && expectEqual(
+               language + QStringLiteral(" unrelated Tracking dialog isolation"),
+               unrelatedTrackingWindow.windowTitle(),
+               QStringLiteral("Tracking..."))
+        && expectEqual(
+               language + QStringLiteral(" incomplete Tracking dialog isolation"),
+               incompleteTrackingWindow.windowTitle(),
+               QStringLiteral("Tracking..."))
+        && expectEqual(
+               language + QStringLiteral(" wrong-button Tracking dialog isolation"),
+               wrongButtonTrackingWindow.windowTitle(),
+               QStringLiteral("Tracking..."))
         && expectEqual(
                language + QStringLiteral(" palette action"),
                paletteAction.text(),
@@ -636,6 +783,46 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                language + QStringLiteral(" PolyMesh context action"),
                residualAction.text(),
                expectedTranslation("Copy as PolyMesh"))
+        && expectEqual(
+               language + QStringLiteral(" source-only Add Tag isolation"),
+               addTagAction.text(),
+               QStringLiteral("Add Tag:"))
+        && expectEqual(
+               language + QStringLiteral(" source-only Save isolation"),
+               saveAction.text(),
+               QStringLiteral("Save..."))
+        && expectEqual(
+               language + QStringLiteral(" source-only Replace isolation"),
+               replaceAction.text(),
+               QStringLiteral("Replace..."))
+        && expectEqual(
+               language + QStringLiteral(" exact Tag Header Add Tag"),
+               exactAddTagTranslation,
+               language == QStringLiteral("zh-Hans")
+                   ? QString::fromUtf8("添加标签：")
+                   : language == QStringLiteral("zh-Hant")
+                       ? QString::fromUtf8("新增標籤：")
+                       : QString::fromUtf8("タグを追加："))
+        && expectEqual(
+               language + QStringLiteral(" exact Color Window Save"),
+               exactSaveTranslation,
+               language == QStringLiteral("zh-Hans")
+                   ? QString::fromUtf8("保存…")
+                   : language == QStringLiteral("zh-Hant")
+                       ? QString::fromUtf8("儲存…")
+                       : QString::fromUtf8("保存…"))
+        && expectEqual(
+               language + QStringLiteral(" exact Assets Window Replace"),
+               exactReplaceTranslation,
+               language == QStringLiteral("zh-Hans")
+                   ? QString::fromUtf8("替换…")
+                   : language == QStringLiteral("zh-Hant")
+                       ? QString::fromUtf8("取代…")
+                       : QString::fromUtf8("置換…"))
+        && expectEqual(
+               language + QStringLiteral(" Search Bar add-layer template"),
+               addLayerWithShortcut,
+               expectedAddLayerTranslation.arg(QStringLiteral("Ctrl+.")))
         && expectEqual(
                language + QStringLiteral(" numbered bookmark template"),
                numberedBookmark,
@@ -651,7 +838,10 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                    ? QString::fromUtf8("节圆半径： ")
                    : language == QStringLiteral("zh-Hant")
                        ? QString::fromUtf8("節圓半徑： ")
-                       : QString::fromUtf8("ピッチ半径： "));
+                       : QString::fromUtf8("ピッチ半径： "))
+        && scopedFallbacksRemainEmpty;
+    cavalryI18nSetMainWindowForTesting(nullptr);
+    return passed;
 }
 
 bool verifyDynamicLabelTranslations(const LocaleExpectation &expectation)
