@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖显式 disposable clone/evidence 环境变量、共享 Windows 路径守卫、apply_language_inner、RealCommandRunner、runtime marker 与 PowerShell PID 窗口证据 helper
- * [OUTPUT]: 对外提供 ignored Windows live-clone 冒烟：可选单语或默认三语 QPA 原生启动、隔离 AppData、三类自动 PNG、带零位图基线与严格计数增量的人工 Cog Pitch PNG、PID 清理及显式 English 恢复
- * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；自动路径经有界 exact-HWND 前台门投递 A 键，Cog Pitch 仅在 opt-in 后记录前后诊断并等待用户操作 sentinel clone，不创建场景、不运行脚本、不依赖 Qt UIA
+ * [OUTPUT]: 对外提供 ignored Windows live-clone 冒烟：可选单语或默认三语 QPA 原生启动、隔离 AppData、三类带完整 source 位图的自动 PNG、带零位图基线与严格计数增量的人工 Cog Pitch PNG、PID 清理及显式 English 恢复
+ * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；自动路径经有界 exact-HWND 前台门投递 A 键并锁定 EditShape 动作与长操作前缀，Cog Pitch 仅在 opt-in 后记录前后诊断并等待用户操作 sentinel clone，不创建场景、不运行脚本、不依赖 Qt UIA
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(target_os = "windows")]
@@ -278,8 +278,8 @@ mod windows_live_smoke {
         let required_text_path_mask = match capture_scenario {
             "ViewportQuality" => 0x0001,
             "TransformHelper" => 0x03c0_7c00,
-            "EditShapeHelper" => 0x03f0,
-            "CogPitch" => 0x0400_0000,
+            "EditShapeHelper" => 0x1c00_03f0,
+            "CogPitch" => 0x2000_0000,
             _ => 0,
         };
         let diagnostics = &result.extension_layer_text_path_diagnostics;
@@ -290,7 +290,7 @@ mod windows_live_smoke {
             ("CogPitch", Some(baseline)) => {
                 baseline.renderer_failure == 0
                     && baseline.fallback_source_mask == 0
-                    && baseline.translated_source_mask & 0x0400_0000 == 0
+                    && baseline.translated_source_mask & 0x2000_0000 == 0
                     && diagnostics.revision > baseline.revision
                     && diagnostics.canonical_calls > baseline.canonical_calls
                     && diagnostics.whitelist_calls > baseline.whitelist_calls
@@ -858,10 +858,10 @@ mod windows_live_smoke {
             "fallbackSourceMask",
             "rendererFailure",
             "CogPitch",
-            "0x04000000",
+            "0x20000000",
             "AllowManualCogPitch",
             "manual-disposable-cogwheel-drag",
-            "pre-set Pitch bit 26",
+            "pre-set Pitch bit 29",
         ] {
             assert!(
                 helper.contains(required),
@@ -964,7 +964,7 @@ mod windows_live_smoke {
             );
         }
         panic!(
-            "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language has exact-PID Viewport Quality and Transform PNGs from the initial empty scene plus an Edit Shape PNG staged only by exact-HWND PostMessage VK_A below {}. When CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1, it also has a manually triggered Cogwheel Pitch PNG whose recorded baseline has bit 26 clear and whose final revision/canonical/whitelist/CJK-success counters all strictly increase with zero fallback. Manually verify their visible localized text and explicitly append screenshots for menus, dropdowns, four empty states, and Snippet before accepting Windows GUI translation.",
+            "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language has exact-PID Viewport Quality and Transform PNGs from the initial empty scene plus an Edit Shape PNG staged only by exact-HWND PostMessage VK_A and requiring all six actions plus three long operation prefixes below {}. When CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1, it also has a manually triggered Cogwheel Pitch PNG whose recorded baseline has bit 29 clear and whose final revision/canonical/whitelist/CJK-success counters all strictly increase with zero fallback. Manually verify their visible localized text and explicitly append screenshots for menus, dropdowns, four empty states, and Snippet before accepting Windows GUI translation.",
             run_root.display()
         );
     }

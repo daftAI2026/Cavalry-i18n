@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖唯一 Core::MakePathFromText IAT、三处 caller、二十七项 source/context、运行时 ABI 防火墙与嵌入 translator
+ * [INPUT]: 依赖唯一 Core::MakePathFromText IAT、三处 caller、三十项 source/context、运行时 ABI 防火墙与嵌入 translator
  * [OUTPUT]: 对外实现 exact slot/caller/source/context 四重约束、CogTool 数字后缀保留、CJK Path/英语回退、process-lifetime 槽与无 IO 诊断
  * [POS]: injector/windows 的 text-path 局部适配器；私有 ABI 未验证或 renderer 创建失败时终态拒装，卸载不让 SkTypeface 留到 loader-lock
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -118,7 +118,7 @@ constexpr std::size_t kSourceCount =
 static_assert(
     sizeof(std::string) == 0x20,
     "Cavalry 2.7.2 Core::MakePathFromText requires the MSVC x64 release std::string ABI.");
-static_assert(kSourceCount == 27);
+static_assert(kSourceCount == 30);
 static_assert(kSourceCount <= 32);
 
 std::shared_ptr<const CavalryTextPathCallbackState> &callbackSlot()

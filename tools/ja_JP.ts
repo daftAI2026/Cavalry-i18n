@@ -7780,12 +7780,24 @@
       <translation>S + パスをクリック</translation>
     </message>
     <message>
+      <source>S + double click</source>
+      <translation>S + ダブルクリック</translation>
+    </message>
+    <message>
+      <source>S + click</source>
+      <translation>S + クリック</translation>
+    </message>
+    <message>
+      <source>X + click</source>
+      <translation>X + クリック</translation>
+    </message>
+    <message>
       <source>Play / Stop</source>
       <translation>再生 / 停止</translation>
     </message>
     <message>
       <source>Space + click + drag</source>
-      <translation>Space + クリック + ドラッグ</translation>
+      <translation>スペース + クリック + ドラッグ</translation>
     </message>
     <message>
       <source>Snap Angle:</source>

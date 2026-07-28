@@ -6555,6 +6555,18 @@
       <translation>S + 按一下路徑</translation>
     </message>
     <message>
+      <source>S + double click</source>
+      <translation>S + 連按兩下</translation>
+    </message>
+    <message>
+      <source>S + click</source>
+      <translation>S + 按一下</translation>
+    </message>
+    <message>
+      <source>X + click</source>
+      <translation>X + 按一下</translation>
+    </message>
+    <message>
       <source>Play / Stop</source>
       <translation>播放 / 停止</translation>
     </message>

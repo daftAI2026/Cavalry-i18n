@@ -6306,6 +6306,18 @@
       <translation>S + 单击路径</translation>
     </message>
     <message>
+      <source>S + double click</source>
+      <translation>S + 双击</translation>
+    </message>
+    <message>
+      <source>S + click</source>
+      <translation>S + 单击</translation>
+    </message>
+    <message>
+      <source>X + click</source>
+      <translation>X + 单击</translation>
+    </message>
+    <message>
       <source>Play / Stop</source>
       <translation>播放 / 停止</translation>
     </message>

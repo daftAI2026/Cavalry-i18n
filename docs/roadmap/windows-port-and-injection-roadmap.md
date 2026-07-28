@@ -20,7 +20,7 @@
 3. **Qt runtime 翻译**：非 English 时，把已验证的 `cavalryi18n.dll` 部署到所选根的 `generic/`。它是 Qt 6.6.3 x64 MSVC `QGenericPlugin`，与 macOS injector 共享 `injector/generated_translations.inc`，但不携带、替换或部署第二套 Qt DLL。
 4. **原生入口汇合**：非 English Apply 在根 `qwindows.dll` 必经位置部署一个只负责委托原厂 QPA 的小代理，原厂 DLL 持久保存在同根恢复目录。代理在执行原厂代码前校验运行 Qt 6.6.3 与固定 vendor 摘要；原厂 integration 成功后，只有 strict manifest、Cavalry.exe/代理/原厂/generic 四项实际摘要、最终语言 marker、Cavalry 2.7.2 与 x64 全部吻合时才显式加载 generic translator。Cavalry.exe 漂移只关闭翻译，不阻断可信原厂窗口系统。桌面、开始菜单、任务栏固定项、直接 EXE 与 Switcher 启动均不修改入口而自然汇合；不依赖 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS` 或全局语言环境。
 5. **持久与恢复**：普通 Cavalry 退出、Switcher 关闭、升级和卸载都不恢复 QPA，翻译状态长期有效。只有明确选择 English 才生成 hash-locked restore plan；当前 DLL 仍为本工具代理时原子换回已证明的原厂备份。厂商更新若已覆盖代理，则保留新 DLL，不得把旧备份写回。`prepared`、`restoring`、缺失或漂移状态只委托原厂 QPA 并拒绝翻译。
-6. **显示层边界**：主动翻译既有和动态菜单、动作、窗口标题、严格 `N selected` QLabel 与受控显示属性；不修改输入值、item model、Time Editor 或其他模型身份数据。ExtensionLayer 只保留四条实证边界：helper、placeholder、MessageBar 与 text-path；其中 MessageBar 仅批准 history/live 两个 `QTextEdit::append` return 和单条 Pencil HTML 尾部正文，明确排除 `js_logger`；text-path 的二十六条静态 source 只走 canonical caller，覆盖 Edit/Transform/Pencil/Pen/Centre 已采证动作与四条 TransformTool 长操作前缀，纯修饰键和单字母快捷键保持英文；动态 `Pitch Radius: <int>` 只走 PrimitiveTool 首行/后续行两个 caller，并保留 canonical 32-bit 数值后缀。其他自绘或日志路径保持英文，禁止宽泛 hook。
+6. **显示层边界**：主动翻译既有和动态菜单、动作、窗口标题、严格 `N selected` QLabel 与受控显示属性；不修改输入值、item model、Time Editor 或其他模型身份数据。ExtensionLayer 只保留四条实证边界：helper、placeholder、MessageBar 与 text-path；其中 MessageBar 仅批准 history/live 两个 `QTextEdit::append` return 和单条 Pencil HTML 尾部正文，明确排除 `js_logger`；text-path 的二十九条静态 source 只走 canonical caller，覆盖 Edit/Transform/Pencil/Pen/Centre 已采证动作、三条 EditShapeTool 与四条 TransformTool 长操作前缀，纯修饰键和单字母快捷键保持英文；动态 `Pitch Radius: <int>` 只走 PrimitiveTool 首行/后续行两个 caller，并保留 canonical 32-bit 数值后缀。其他自绘或日志路径保持英文，禁止宽泛 hook。
 7. **重启与诊断**：Apply 先请求目标 `Cavalry.exe` 正常退出，再改写 runtime 文件并从同一安装根启动。非 English 启动只在同 PID、语言、Qt 版本、QPA 状态与嵌入表计数都匹配的原子 marker 就绪后报告成功；超时或插件错误必须显式失败，而不是假装已翻译。
 8. **权限**：当前用户可写的自定义安装根直接执行同一 QPA plan。只有目标确实位于 Windows OS-known Program Files 根时，才允许 UAC worker 消费该 plan；任何重解析点逃逸、计划摘要漂移或非 Program Files 目标都拒绝提权。
 
@@ -29,7 +29,7 @@
 | 阶段 | 状态 | 可验证结果 | 尚缺内容 |
 | --- | --- | --- | --- |
 | W1 安装根与 JSON overlay | 已实现 | 目录或 EXE 选择归一化；核心/插件 JSON 走同一复制链；保留 `smoother.smoothingSteps` | 真实非默认安装目录回归 |
-| W2 generic plugin | 已实现 | Qt 6.6.3 x64 MSVC 编译与正式 CTest、Tauri resource 与 NSIS 构建；四条 ExtensionLayer 边界均有 ABI 合同，Pencil/Pen/Centre 动作、selected QLabel 与动态 Pitch 生产/消费链有真实 vendor 合同，且无第二套 Qt runtime | 真实 Cavalry 的三语首帧、动态菜单、Pencil/Pen/Centre 整行、Pencil 警告、Pitch bit 26 与显示白名单截图 |
+| W2 generic plugin | 已实现 | Qt 6.6.3 x64 MSVC 编译与正式 CTest、Tauri resource 与 NSIS 构建；四条 ExtensionLayer 边界均有 ABI 合同，Edit/Transform/Pencil/Pen/Centre 动作与长操作前缀、selected QLabel、动态 Pitch 生产/消费链均有真实 vendor 合同，且无第二套 Qt runtime | 真实 Cavalry 的三语首帧、动态菜单、Edit/Transform/Pencil/Pen/Centre 整行、Pencil 警告、Pitch bit 29 与显示白名单截图 |
 | W3 QPA 原生入口 | 进行中 | vendor delegate、strict Cavalry/Qt/四文件 hash、durable backup、同卷原子替换、显式 English 恢复状态机已有单元证据 | 接通 Program Files，并验证五类原生入口不变且同语 |
 | W4 重启与权限 | 进行中 | 正常退出、QPA readiness、Program Files-only UAC 防线与同 plan worker | 受保护与可写自定义目录的真机对照 |
 | W5 事务与溯源 | 进行中 | pending → JSON/generic → QPA → final marker，禁止提前声明语言生效 | 将 snapshot provenance 与 interrupted/recovery 状态统一接入用户可见恢复流程 |

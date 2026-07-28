@@ -1145,6 +1145,9 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
         'kSplitPathBezier',
         'kToggleTransformTool',
         'kDeleteBezierHandle',
+        'kEditShapeSplitCornerPrefix',
+        'kEditShapeSplitBezierPrefix',
+        'kEditShapeDeleteBezierHandlePrefix',
       ]),
     ],
     [
@@ -1193,6 +1196,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
     );
   }
   assert.doesNotMatch(live, /"CogPitch" => 0x0040_0000/);
+  assert.doesNotMatch(live, /"CogPitch" => 0x0400_0000/);
   assert.match(live, /fallback_source_mask != 0/);
   assert.match(live, /translated_source_mask & required_text_path_mask/);
   assert.match(live, /\("zh-Hans", "平滑步数"\)/);
@@ -1255,6 +1259,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /Wait-ForTextPathDiagnostics/);
   assert.match(helper, /fallbackSourceMask -eq 0/);
   assert.doesNotMatch(helper, /'CogPitch'\s*\{\s*0x00400000\s*\}/);
+  assert.doesNotMatch(helper, /'CogPitch'\s*\{\s*0x04000000\s*\}/);
   assert.match(
     helper,
     /ValidateSet\('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch'\)/
@@ -1278,7 +1283,8 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
     helper,
     /diagnostics\.cjkPathSuccess\s+-gt\s+\[uint64\]\$BaselineDiagnostics\.cjkPathSuccess/
   );
-  assert.match(helper, /pre-set Pitch bit 26/);
+  assert.match(helper, /pre-set Pitch bit 29/);
+  assert.doesNotMatch(helper, /pre-set Pitch bit 26/);
   assert.doesNotMatch(helper, /pre-set Pitch bit 22/);
   assert.match(helper, /textPathBaselineDiagnostics\s*=\s*\$cogPitchBaseline/);
   assert.match(helper, /function Wait-ForExactForegroundWindow/);

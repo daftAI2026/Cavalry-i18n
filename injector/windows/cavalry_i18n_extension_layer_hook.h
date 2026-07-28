@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryEmbeddedTranslator、CavalryUI helper/CustomListWidget placeholder/MessageBar append ABI、Core text-path 子边界与精确 PE/IAT 槽查询
- * [OUTPUT]: 对外提供串行化 helper/placeholder/MessageBar/二十七项 text-path 聚合状态、前两条 Qt source 查询及结构化 text-path 诊断快照
+ * [OUTPUT]: 对外提供串行化 helper/placeholder/MessageBar/三十项 text-path 聚合状态、前两条 Qt source 查询及结构化 text-path 诊断快照
  * [POS]: injector/windows 的 ExtensionLayer 聚合生命周期边界；动态 detail 转发子 hook 最新计数，callback 不持 hook/translator raw pointer
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

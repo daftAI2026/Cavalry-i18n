@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 不依赖 Qt 或厂商模块；只承载经静态采证的 ASCII source 常量
- * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、二十六条静态 text-path source（含四条已采证 TransformTool 长前缀）、一条 CogTool 动态前缀及其精确 lookup context
+ * [OUTPUT]: 对外提供 helper/placeholder/MessageBar source、二十九条静态 text-path source（含 EditShapeTool 三条与 TransformTool 四条已采证长操作前缀）、一条 CogTool 动态前缀及其精确 lookup context
  * [POS]: injector/windows 的 ExtensionLayer 文本边界真相，供运行时 hook、无厂商单测和只读 vendor 合同共同消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -64,6 +64,9 @@ inline constexpr char kSplitPathBezier[] = "Split Path (B\xC3\xA9zier)";
 inline constexpr char kToggleTransformTool[] = "Toggle Transform Tool";
 inline constexpr char kDeleteBezierHandle[] =
     "Delete B\xC3\xA9zier Handle";
+inline constexpr char kEditShapeSplitCornerPrefix[] = "S + double click";
+inline constexpr char kEditShapeSplitBezierPrefix[] = "S + click";
+inline constexpr char kEditShapeDeleteBezierHandlePrefix[] = "X + click";
 inline constexpr char kEnableSnapping[] = "Enable Snapping";
 inline constexpr char kPan[] = "Pan";
 inline constexpr char kPlayStop[] = "Play/ Stop";
@@ -95,10 +98,10 @@ inline constexpr std::array<const char *, 4> kViewportQualitySources {{
 inline constexpr std::array<ToolHelpSourcePair, 6> kEditShapeToolHelpPairs {{
     { "Control", kDisableSnapping },
     { "Shift", kEnableBezierAngleSnapping },
-    { "S + double click", kSplitPathCorner },
-    { "S + click", kSplitPathBezier },
+    { kEditShapeSplitCornerPrefix, kSplitPathCorner },
+    { kEditShapeSplitBezierPrefix, kSplitPathBezier },
     { "H", kToggleTransformTool },
-    { "X + click", kDeleteBezierHandle },
+    { kEditShapeDeleteBezierHandlePrefix, kDeleteBezierHandle },
 }};
 
 // TransformTool 通过 GraphicsToolBase::toolHelp 返回这五组 pair，
@@ -135,7 +138,7 @@ inline constexpr std::array<ToolHelpSourcePair, 2>
         { "Alt", kCreateFromTheCentre },
     }};
 
-inline constexpr std::array<const char *, 26> kStaticTextPathSources {{
+inline constexpr std::array<const char *, 29> kStaticTextPathSources {{
     kViewportQualityHigh,
     kViewportQualityLow,
     kViewportQualityLowest,
@@ -162,6 +165,9 @@ inline constexpr std::array<const char *, 26> kStaticTextPathSources {{
     kTransformDirectSelectionPrefix,
     kTransformPlayStopPrefix,
     kTransformPanPrefix,
+    kEditShapeSplitCornerPrefix,
+    kEditShapeSplitBezierPrefix,
+    kEditShapeDeleteBezierHandlePrefix,
 }};
 
 inline constexpr std::size_t kPitchRadiusSourceIndex =
@@ -196,7 +202,7 @@ static_assert(kTransformToolHelpPairs.size() == 5);
 static_assert(kPencilToolHelpPairs.size() == 3);
 static_assert(kPenToolHelpPairs.size() == 3);
 static_assert(kCentreToolHelpPairs.size() == 2);
-static_assert(kStaticTextPathSources.size() == 26);
-static_assert(kTextPathSourceCount == 27);
+static_assert(kStaticTextPathSources.size() == 29);
+static_assert(kTextPathSourceCount == 30);
 
 } // namespace cavalry_i18n::extension_layer_contract

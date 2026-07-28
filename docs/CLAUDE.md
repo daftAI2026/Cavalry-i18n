@@ -5,7 +5,7 @@
 cavalry-glossary.md: Cavalry 四语术语表（en/zh-Hans/zh-Hant/ja_JP），含注释列标注禁用词、Forge Dynamics 显示层例外、Cavalry 版本增量与行业对齐来源。
 cavalry-runtime-injection-techniques.md: Cavalry runtime UI 抽取与翻译注入技术沉淀，记录 QTranslator 子类化 / DYLD 注入 / ad-hoc 重签 / dump-only 抽取，以及 QMenu/QLineEdit/QDialog 首次绘制前翻译、MessageBar append-time 日志替换、metadata-only 诊断与 QStatusBar 动态消息的为什么这么做。
 code-review-report.md: Cavalry-i18n 代码审查报告，覆盖死代码分析、冗余逻辑、设计走弯路与优化优先级建议。
-runtime-ui-live-capture-workflow.md: Runtime UI live 抓取流程，区分调试/安装包启动路径、Cavalry 窗口截图证据、`widgetAt(cursor)` 坐标反查、Qt item model dump、JSON 数据层复用、ModalDialog 诊断、闪烁根因分类、注入后中文 session、英文 dump-only 基线与 ExtensionLayer 自绘提示盲区，并规定全量复抓、增量修复、coverage 对比路径。
+runtime-ui-live-capture-workflow.md: Runtime UI live 抓取流程，区分调试/安装包启动路径、Cavalry 窗口截图证据、`widgetAt(cursor)` 坐标反查、Qt item model dump、JSON 数据层复用、ModalDialog 诊断、闪烁根因分类、注入后中文 session、英文 dump-only 基线与 ExtensionLayer 平台精确边界，并规定全量复抓、增量修复、coverage 对比路径。
 runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义短 token provenance 证据等级、quarantine 决策、live capture 对准步骤与 Time Editor niceName 保护线。
 translation-guidelines.md: 翻译规范，约束语言风格、保留词、Forge Dynamics 显示层/模型层分流与界面一致性。
 user-story-status.xlsx: canonical 用户故事状态表，按代码反推 Cavalry-i18n 功能、预期行为、测试证据、错误与修复状态。
