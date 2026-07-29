@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Acceptance.md 的 gate 定义、Anti-Patterns.md 的绕过证据
-[OUTPUT]: 对外提供 full-ui-100 的执行纪律、循环规则、run note 规范与跨平台实机验证交接清单
+[OUTPUT]: 对外提供 full-ui-100 的执行纪律、循环规则、run note 规范，以及跨平台实机验证交接清单与当前 macOS 完成证据入口
 [POS]: full-ui-100 工作流运行手册
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -198,13 +198,24 @@ Windows 与 macOS 共用同一份 `(context, source)` 翻译表，但两端的�
 - 无关用户文本、模型文本或普通控件中的同名 `Save...`、`Replace...`、`Tracking...` 保持原文。
 - run note 记录 Cavalry.app hash、injector hash、语言、表面是否在 translator 安装前存在，并附截图或 session-scoped runtime inventory。
 
-在 Mac 真机完成前，交接状态固定写作：
+### 当前候选完成状态
+
+- [x] Cavalry `2.7.2` / Qt `6.6.3` 的 8 条 ordinary Qt 表面完成简中、繁中、日语 `24/24` 实机验证。
+- [x] owner-external 同文负例、启动前已有/启动后新建路径与 exact native-window screenshots 已绑定当前候选。
+- [x] 最终 session `5bbc2099-b9a5-41ef-89ed-6c16ca08105f` 已形成 `PASS-48-OF-48` final record。
+
+完成证据见
+[`runs/2026-07-29-macos-eight-surface-investigation.md`](./runs/2026-07-29-macos-eight-surface-investigation.md)。
+该勾选只对 run note 中冻结的目标、候选、injector 和 disposable Cavalry clone 身份有效；任一身份变化都必须按
+`Target Version Drift Rule` 重新打开，不得把本次勾选沿用到未来候选。
+
+任何尚未完成同等实机证据的候选，交接状态固定写作：
 
 ```text
 PENDING-MAC-LIVE
 ```
 
-该状态不阻塞只针对 Windows x64 的代码 PR，但在宣称跨平台 full-ui parity 或发布前必须清零；不得把 Windows 合同测试或 macOS 源码合同改写成 Mac 实机 PASS。
+`PENDING-MAC-LIVE` 不阻塞只针对 Windows x64 的代码 PR，但在宣称跨平台 full-ui parity 或发布前必须清零；不得把 Windows 合同测试或 macOS 源码合同改写成 Mac 实机 PASS。
 
 ---
 
