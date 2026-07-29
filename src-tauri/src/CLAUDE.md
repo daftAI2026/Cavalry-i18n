@@ -3,14 +3,14 @@
 
 成员清单
 main.rs: 二进制入口；Windows 先消费保留的 same-EXE Program Files 提升事务参数，再消费 `--launch-cavalry` 原生快速路径并返回明确退出码，其余调用进入 `cavalry_i18n_tauri::run()`。
-lib.rs: Tauri Builder 装配层，注入 bridge 初始化脚本、注册 6 个 command、公开 Windows 提升事务/headless launch 早期分流与跨平台纯模块，并私有挂接 `platform_runtime` 以保持命令 facade 不泄漏平台 cfg 编排。
+lib.rs: Tauri Builder 装配层，注入 bridge 初始化脚本、注册 6 个 command、公开 Windows cfg 内的提升事务/headless launch/QPA/runtime 早期分流与跨平台纯模块，并私有挂接 `platform_runtime` 以保持命令 facade 不泄漏平台 cfg 编排。
 bridge.rs: pre-page-load JS bridge，创建 `window.cavalryI18n` 并映射到 Tauri invoke。
 commands.rs: renderer API facade；仅保留六条稳定 Tauri command、camelCase DTO 和兼容测试 seam；状态、快照、锁、写入与重启业务下沉至 `commands/`。
 commands/: command 领域模块图；apply/context/contract/restart/snapshot/status 各自只承担一个变化理由，tests/ 按基础契约与运行时领域拆分。
 install.rs: 跨平台安装模型，将 Cavalry.app、Cavalry.exe 或任意安装目录统一为 root/executable/assets/marker，并以两个核心 JSON 校验真实安装。
 headless_launch.rs: Windows `--launch-cavalry` 原生快速入口；持有共享 operation lock，读取当前用户 state，校验任意安装根 revision/语言 marker/QPA ACTIVE/plugin 完整性，并以空参数启动 vendor EXE；子进程环境仅含可选诊断 marker，非 English 必须等待同 PID ready marker。
 windows_install.rs: Windows 只读发现边界，按无控制台运行进程查询、MSI advertised shortcut 与有限常见目录收集候选；非 MSI 克隆以有界流式扫描证明 Cavalry.exe 中唯一 NUL 分隔 `2.7.2` token，不扫描磁盘、不写安装目录，也不调用任何 MSI repair API。
-windows_runtime.rs: Windows Qt generic plugin/QPA 资源装配，优先解析 Tauri 打包 DLL、回退开发资源并生成受控 copy pair；非 English 重启先流式比较安装 plugin 与当前可信源 SHA-256，再要求 QPA ACTIVE 和安装根语言 marker 一致，随后只准备诊断 marker 环境并以 deadline 校验 plugin、语言、PID、Qt、`embedded-generated-table` 来源和嵌入翻译表就绪；原生入口不依赖 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS` 或 `CAVALRY_I18N_LANG`。
+windows_runtime.rs: 仅在 Windows target 编译的 Qt generic plugin/QPA 资源装配，优先解析 Tauri 打包 DLL、回退开发资源并生成受控 copy pair；非 English 重启先流式比较安装 plugin 与当前可信源 SHA-256，再要求 QPA ACTIVE 和安装根语言 marker 一致，随后只准备诊断 marker 环境并以 deadline 校验 plugin、语言、PID、Qt、`embedded-generated-table` 来源和嵌入翻译表就绪；原生入口不依赖 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS` 或 `CAVALRY_I18N_LANG`。
 windows_qpa.rs: Windows 原生入口持久注入状态机；严格锁定 Cavalry 2.7.2/所选 Cavalry.exe 摘要/Qt 6.6.3/x64/原厂 qwindows 摘要，以安装根 durable backup、prepared/active/restoring manifest 与同卷原子替换识别 STOCK/ACTIVE/DRIFTED/RECOVER；普通关闭不恢复，只有明确选择 English 可恢复，Cavalry.exe 或厂商 qwindows 漂移时保留现状并拒绝 ACTIVE/成功 English，避免把未知 DLL 冒充可启动 QPA；直接写 preflight 在 payload 前验证安装根、现有 recovery 与被替换文件的权限。
 windows_qpa/: QPA 数据合同、身份验证、Windows 文件适配器、普通/提升共用 transition 与 tempfile 合同测试；可写自定义根直接执行，Program Files same-EXE worker 消费同一 hash-locked plan；qwindows 禁止进入截断 CopyPair。
 operation_lock.rs: bundle operation 单飞边界；GUI extract/apply/restart 与 Windows headless launch 共享进程内及跨进程锁，避免写入事务、显式 English 恢复与启动交错。

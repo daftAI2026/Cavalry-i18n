@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 对外提供公共窗口、macOS injector、Windows NSIS 双 DLL 资源隔离/provenance hook/系统语言与品牌图标合同
- * [POS]: src-tauri/tests 的配置守门，冻结 Windows generic runtime + QPA delegate 资源映射并阻止 DYLD/第二套 Qt 混入
+ * [OUTPUT]: 对外提供公共窗口、macOS injector、Windows NSIS 双 DLL 资源映射/生成命令/provenance hook/系统语言与品牌图标合同
+ * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde_json::Value;
@@ -115,9 +115,7 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
         .iter()
         .all(|(source, destination)| !source.contains("Qt6")
             && !destination.as_str().unwrap_or("").contains("Qt6")));
-    assert!(manifest_dir
-        .join("../injector/windows/generic/cavalryi18n.dll")
-        .is_file());
-    // QPA 是 beforeBuildCommand 在当前平台生成的忽略产物；配置合同只锁定映射，
-    // provenance 与安装态 smoke 才在构建后证明真实字节、架构和摘要。
+    // generic/QPA 都是 beforeBuildCommand 在 Windows 生成的忽略产物；
+    // 宿主无关配置合同只锁定映射与生成命令，provenance/安装态 smoke
+    // 才在构建后证明真实字节、架构和摘要。
 }

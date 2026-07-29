@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖 Qt SDK、Cavalry.app Frameworks、injector/CavalryTranslatorInjector.mm 与 generated_translations.inc
-# [OUTPUT]: 对外构建启用 -O2、以 @loader_path 绑定目标 app Qt 的 universal injector dylib
-# [POS]: tools 的 injector 发布构建入口，以 Qt ABI 校验、可搬移运行时链接和稳定优化级别连接源码与 Tauri bundle resource
+# [INPUT]: 依赖 Qt SDK、可选 Cavalry.app Frameworks、macOS injector 主源/TransformTool text-path ABI 适配器与 generated_translations.inc
+# [OUTPUT]: 对外构建启用 -O2/-fno-omit-frame-pointer、以 @loader_path 绑定目标 app Qt/libskia 的 universal injector dylib；干净 CI 无 vendor app 时只生成同 install-name 的临时 Skia 链接桩
+# [POS]: tools 的 injector 发布构建入口，以 Qt minor、双 slice caller-frame 保留、可搬移运行时链接和稳定优化级别连接源码与 Tauri bundle resource，同时把 vendor 二进制依赖留在用户运行时
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
 
@@ -55,16 +55,74 @@ major_minor_version() {
   printf '%s\n' "$1" | awk -F. '{ print $1 "." $2 }'
 }
 
+SKIA_LINK_STUB_DIR=""
+
+cleanup_skia_link_stub() {
+  if [ -z "$SKIA_LINK_STUB_DIR" ]; then
+    return
+  fi
+  rm -f \
+    "$SKIA_LINK_STUB_DIR/skia_link_stub.cpp" \
+    "$SKIA_LINK_STUB_DIR/libskia.dylib"
+  rmdir "$SKIA_LINK_STUB_DIR"
+}
+
+create_skia_link_stub() {
+  local temp_base="${TMPDIR:-/tmp}"
+  SKIA_LINK_STUB_DIR="$(mktemp -d "$temp_base/cavalry-i18n-skia-link.XXXXXX")"
+  cat > "$SKIA_LINK_STUB_DIR/skia_link_stub.cpp" <<'EOF'
+#include <cstddef>
+
+extern "C" void cavalryI18nSkiaGetPathLinkStub(
+    const void *,
+    std::size_t,
+    int,
+    float,
+    float,
+    const void *,
+    void *)
+    __asm("__ZN11SkTextUtils7GetPathEPKvm14SkTextEncodingffRK6SkFontP6SkPath");
+
+extern "C" void cavalryI18nSkiaGetPathLinkStub(
+    const void *,
+    std::size_t,
+    int,
+    float,
+    float,
+    const void *,
+    void *)
+{
+}
+EOF
+  clang++ \
+    -std=c++17 \
+    -dynamiclib \
+    -arch arm64 \
+    -arch x86_64 \
+    -install_name "@rpath/libskia.dylib" \
+    "$SKIA_LINK_STUB_DIR/skia_link_stub.cpp" \
+    -o "$SKIA_LINK_STUB_DIR/libskia.dylib"
+  SKIA_LINK="$SKIA_LINK_STUB_DIR/libskia.dylib"
+}
+
+trap cleanup_skia_link_stub EXIT
+
 OUTPUT="$1"
 LINK_FRAMEWORKS="${2:-/Applications/Cavalry.app/Contents/Frameworks}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE="$REPO_ROOT/injector/CavalryTranslatorInjector.mm"
+TOOL_HELP_SOURCE="$REPO_ROOT/injector/cavalry_i18n_macos_tool_help_text_path.cpp"
 GENERATED="$REPO_ROOT/injector/generated_translations.inc"
 QT_PREFIX="$(find_qt_prefix || true)"
 TARGET_QT_VERSION="${CAVALRY_QT_VERSION:-}"
 
 if [ ! -f "$SOURCE" ]; then
   echo "injector source not found: $SOURCE" >&2
+  exit 1
+fi
+
+if [ ! -f "$TOOL_HELP_SOURCE" ]; then
+  echo "macOS tool-help text-path source not found: $TOOL_HELP_SOURCE" >&2
   exit 1
 fi
 
@@ -131,9 +189,16 @@ done
 mkdir -p "$(dirname "$OUTPUT")"
 node "$REPO_ROOT/tools/generate_embedded_translations.js" "$GENERATED"
 
+SKIA_LINK="$LINK_FRAMEWORKS/libskia.dylib"
+if [ ! -f "$SKIA_LINK" ]; then
+  echo "Cavalry libskia.dylib not found under $LINK_FRAMEWORKS; using a temporary link-only ABI stub." >&2
+  create_skia_link_stub
+fi
+
 clang++ \
   -std=c++17 \
   -O2 \
+  -fno-omit-frame-pointer \
   -fobjc-arc \
   -DQT_NO_VERSION_TAGGING \
   -dynamiclib \
@@ -143,6 +208,8 @@ clang++ \
   -Wl,-rpath,@loader_path \
   -Wl,-rpath,"$LINK_FRAMEWORKS" \
   "$SOURCE" \
+  "$TOOL_HELP_SOURCE" \
+  "$SKIA_LINK" \
   -o "$OUTPUT" \
   -I"$QT_FRAMEWORKS" \
   -I"$QT_CORE_HEADERS" \
@@ -153,6 +220,11 @@ clang++ \
   -framework QtWidgets \
   -framework Foundation \
   -framework AppKit
+
+if ! /usr/bin/otool -L "$OUTPUT" | grep -Fq $'@rpath/libskia.dylib'; then
+  echo "FATAL: injector is not linked against the runtime @rpath/libskia.dylib identity." >&2
+  exit 1
+fi
 
 # Strip clang's linker-signed flag and re-sign as proper ad-hoc.
 # DYLD_INSERT_LIBRARIES injection is silently rejected by amfid when the dylib

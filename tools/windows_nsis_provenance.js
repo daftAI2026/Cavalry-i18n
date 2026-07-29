@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 renderer、languages、Windows Tauri/Rust/NSIS 输入、package manifests、共享 translation policy、已编译 generic/QPA 双 DLL 与显式 x64 NSIS 输出
- * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance；拒绝 bundle 父链重解析点，将 Windows native 源码、共享编译头与双 injector 纳入哈希并记录安装包身份
+ * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance；拒绝 bundle 父链重解析点，将 Windows native 源码、共享编译头与双 injector 纳入哈希，并以 canonical file identity 校验安装包路径
  * [POS]: tools 的 Windows 打包自证器；构建前只在真实工作区 bundle 根清本版本输出，构建后以源码+产物双证据拒绝额外或陈旧 EXE
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -408,7 +408,7 @@ function verify(repoRoot, requestedInstaller) {
   const { installerPath, stat } = assertExactlyExpectedInstaller(bundleRoot, context);
   if (requestedInstaller) {
     const requestedPath = path.resolve(repoRoot, requestedInstaller);
-    if (requestedPath !== installerPath) {
+    if (fs.realpathSync.native(requestedPath) !== fs.realpathSync.native(installerPath)) {
       fail(`requested installer is not the current generated Windows bundle output: ${requestedPath}`);
     }
   }

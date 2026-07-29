@@ -3,10 +3,10 @@ HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows ge
 
 <directory>
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
-.github/ - GitHub Actions 自动化入口，运行合同测试、Windows generic/QPA + NSIS 构建、无 Cavalry/QPA hook 入口合同、隔离安装/同版本更新/卸载与 TEMP 三文件哨兵门、macOS 双架构构建，并上传三种发布资产 (YAML)
+.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同测试、PR 级干净 macOS universal injector 链接、Windows generic/QPA + NSIS 构建、隔离安装/更新/卸载哨兵门与 tag 双架构打包，并上传三种发布资产 (YAML)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
 docs/ - 架构计划、翻译规范、工作流协议与历史证据链 (Markdown, JS, Shell)
-injector/ - macOS DYLD 注入器与 Windows Qt generic translator/QPA delegate；Git 保存共享源码/生成表，各平台 Runner 现场生成不入库的原生库并汇合运行时入口 (C++, Objective-C++)
+injector/ - macOS DYLD 注入器、Cavalry 2.7.2 TransformTool Mach-O/Skia ABI 防火墙与 Windows Qt generic translator/QPA delegate；共享 policy 区分 8 条跨平台 exact-only 表面和平台 owner-scoped 邻接 key，各平台 Runner 现场生成不入库的原生库 (C++, Objective-C++)
 languages/ - 运行时 JSON 语言包，保存 English 基线与三语同构翻译资产 (JSON)
 renderer/ - Tauri 前端 UI，提供多语言补丁的管理界面 (HTML, JS)
 src-tauri/ - Tauri 后端；以 commands/、privilege/、windows_qpa/ 与 platform_runtime 私有编排模块分离 renderer 契约、受控系统命令和平台运行时差异，Windows 以 durable vendor backup、严格 manifest、同卷原子替换与 same-EXE 单次 UAC 事务统一所有 Cavalry 原生启动入口，同时保留稳定 Rust facade 与 disposable live-clone 现场合同 (Rust)
@@ -30,6 +30,7 @@ src-tauri/tauri.conf.json - Tauri 共享运行配置
 src-tauri/tauri.macos.conf.json - macOS 覆盖配置，声明 DMG/bundle 与 dylib 资源
 src-tauri/tauri.windows.conf.json - Windows 覆盖配置，声明 NSIS/x64 与 generic translator/QPA delegate 资源
 injector/generated_translations.inc - 编译期嵌入的翻译静态表
+injector/cavalry_i18n_macos_tool_help_text_path.{h,cpp} - macOS TransformTool 五条自绘 action 的双 slice Mach-O/caller/Skia ABI 适配边界
 </config>
 
 法则: 极简·稳定·导航·版本精确

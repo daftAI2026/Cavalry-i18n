@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、运行时噪声隔离与翻译质量契约
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补及 Scene Statistics 同窗 Update 三语值、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、Guide 固定 loader slot、macOS Assets/Tag/Tracking owner 边界与 Transform 五 source ABI 防火墙
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -71,6 +71,11 @@ function writeLanguageFixture(rootDir, languageCode, values) {
   writeJson(path.join(languageRoot, 'nodeStrings.json'), [{ value: { label: values.nodeLabel } }]);
   writeJson(path.join(languageRoot, 'onboarding.json'), [{ value: { label: values.onboardingLabel } }]);
   writeJson(path.join(languageRoot, 'tips.json'), [{ value: { label: values.tipLabel } }]);
+  writeJson(path.join(languageRoot, 'Learn', 'Guides', 'strings.json'), [{
+    type: 'strings',
+    language: 'en',
+    value: { fixture: values.guideLabel },
+  }]);
   writeJson(path.join(languageRoot, 'Style', 'theme.json'), {
     FontStyleWindows: 'Regular',
     FontStyleMac: 'Regular',
@@ -108,6 +113,7 @@ function makeValidatorFixtureRepo() {
     nodeStrings: { translate: ['label'], no_translate: [], locale_sync: [] },
     onboarding: { translate: ['label'], no_translate: [], locale_sync: [] },
     tips: { translate: ['label'], no_translate: [], locale_sync: [] },
+    guideStrings: { translate: ['value'], no_translate: ['type', 'language'], locale_sync: [] },
     plugins: { translate: ['label'], no_translate: [], locale_sync: [] },
     theme: { translate: [], no_translate: ['FontStyleWindows', 'FontStyleMac', 'colors'], locale_sync: [] },
   });
@@ -120,6 +126,11 @@ function makeValidatorFixtureRepo() {
     { value: { label: 'Current Onboarding Label' } },
   ]);
   writeJson(path.join(tempRoot, 'languages', 'en', 'tips.json'), [{ value: { label: 'Current Tip Label' } }]);
+  writeJson(path.join(tempRoot, 'languages', 'en', 'Learn', 'Guides', 'strings.json'), [{
+    type: 'strings',
+    language: 'en',
+    value: { fixture: 'Current Guide Label' },
+  }]);
   writeJson(path.join(tempRoot, 'languages', 'en', 'Style', 'theme.json'), {
     FontStyleWindows: 'Regular',
     FontStyleMac: 'Regular',
@@ -131,18 +142,21 @@ function makeValidatorFixtureRepo() {
     nodeLabel: '节点标签',
     onboardingLabel: '欢迎',
     tipLabel: '提示',
+    guideLabel: '指南标签',
   });
   writeLanguageFixture(tempRoot, 'zh-Hant', {
     appLabel: '目前的應用標籤',
     nodeLabel: '節點標籤',
     onboardingLabel: '歡迎',
     tipLabel: '提示',
+    guideLabel: '指南標籤',
   });
   writeLanguageFixture(tempRoot, 'ja_JP', {
     appLabel: '現在のアプリラベル',
     nodeLabel: 'ノードラベル',
     onboardingLabel: 'ようこそ',
     tipLabel: 'ヒント',
+    guideLabel: 'ガイドラベル',
   });
 
   const extractionPath = path.join(tempRoot, 'session', 'extraction-inventory.json');
@@ -1149,11 +1163,6 @@ test('embedded injector translates four exact ExtensionLayer self-painted hints 
     /_dyld_register_func_for_add_image|patchExtensionLayerImage|patchCStringSection|kExtensionLayerLiteralPatches/,
     'fixed-length ExtensionLayer literals must not be rewritten because their QByteArrayView lengths are compiled into the call sites'
   );
-  assert.match(
-    injectorSource,
-    /非白名单 ExtensionLayer 自绘提示保留英文原文/,
-    'the feature must stay allowlist-scoped instead of translating every self-painted ExtensionLayer string'
-  );
 });
 
 test('embedded injector inventory records dynamic refresh and expanded widget evidence', () => {
@@ -2096,7 +2105,15 @@ test('JSON validator hard-fails when frozen translate leaves stay equal to untra
 
   const report = runJsonValidator(tempRoot, 'zh-Hant', extractionPath);
 
-  assert.equal(report.coveragePct, 75);
+  assert.equal(
+    report.exactEnglishTranslateLeaves,
+    1,
+    'the natural-language English leaf must remain an explicit blocker'
+  );
+  assert.ok(
+    report.coveragePct < 100,
+    'the negative fixture must stay below full coverage without hard-coding its evolving denominator'
+  );
   assert.equal(
     report.pass,
     false,
@@ -3169,6 +3186,7 @@ test('compiled runtime catalogs cover evidenced ordinary Qt and tool surfaces', 
     ['MenuBarManager', 'Compute Time:', '计算时间：', '計算時間：', '計算時間：'],
     ['MenuBarManager', 'Draw Time:', '绘制时间：', '繪製時間：', '描画時間：'],
     ['MenuBarManager', 'Total Nodes:', '节点总数：', '節點總數：', 'ノード総数：'],
+    ['MenuBarManager', 'Update', '更新', '更新', '更新'],
     ['MenuBarManager', 'Tracking...', '正在跟踪…', '正在追蹤…', 'トラッキング中…'],
     ['GraphicsViewportBase', 'Copy as PolyMesh', '复制为多边形网格', '複製為多邊形網格', 'ポリメッシュとしてコピー'],
     ['AttrControlRow', 'Duplicate & Replace', '复制并替换', '複製並替換', '複製して置換'],
@@ -3316,10 +3334,18 @@ test('Windows controlled dynamic Qt projections stay inside proven display prope
   ]) {
     assert.doesNotMatch(source, /requiresWindowsScopedTranslation\(/);
   }
-  assert.match(
-    macInjector,
-    /searchBarTooltipTranslation\([\s\S]{0,1800}scopedLabelTextTranslation\([\s\S]{0,2200}scopedActionTextTranslation\([\s\S]{0,2200}scopedWindowTitleTranslation\(/
-  );
+  const macScopedHelpers = [
+    'searchBarTooltipTranslation(',
+    'scopedLabelTextTranslation(',
+    'scopedActionTextTranslation(',
+    'scopedWindowTitleTranslation(',
+  ];
+  let previousMacScopedHelper = -1;
+  for (const helper of macScopedHelpers) {
+    const helperIndex = macInjector.indexOf(helper);
+    assert.ok(helperIndex > previousMacScopedHelper, `${helper} must remain in the macOS scoped translation chain`);
+    previousMacScopedHelper = helperIndex;
+  }
   assert.match(
     macInjector,
     /action->associatedObjects\(\)/
@@ -3638,9 +3664,13 @@ test('Windows EditShape/Transform operation prefixes and CogTool Pitch stay insi
     /kCogToolPitchContext\[\]\s*=\s*"CogTool"[\s\S]*kCogToolPitchSource\[\]\s*=\s*"Pitch Radius: "[\s\S]*requiresExactTranslationContext/
   );
   assert.match(translator, /!cavalry_i18n::requiresExactTranslationContext/);
+  assert.match(
+    macInjector,
+    /bool requiresMacExactTranslationContext\([\s\S]{0,320}requiresExactTranslationContext\([\s\S]{0,220}requiresMacOwnerTranslationContext\(/
+  );
   assert.ok(
-    (macInjector.match(/requiresExactTranslationContext/g) || []).length >= 6,
-    'macOS hot cache, cold scans, and reverse lookup must all exclude context-only Pitch'
+    (macInjector.match(/requiresMacExactTranslationContext/g) || []).length >= 5,
+    'macOS wrapper plus hot cache, cold scans, and reverse lookup must all exclude context-only text'
   );
   assert.match(dispatch, /kToolFirstCallRva\s*=\s*0x00ABDB15/);
   assert.match(dispatch, /kToolFirstPreambleRva\s*=\s*0x00ABDAF0/);
@@ -5168,4 +5198,146 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
     /src-tauri\/target\/\$\{\{ matrix\.rust_target \}\}\/release\/bundle\/dmg\/\*\.dmg[\s\S]*src-tauri\/target\/\$\{\{ matrix\.rust_target \}\}\/release\/bundle\/macos/,
     'release pipeline should publish Tauri macOS artifacts for both target architectures'
   );
+});
+
+// ---------------------------------------------------------------------------
+// macOS p4 定向合同：只锁产品边界，不在静态测试里复制现场证据系统。
+// ---------------------------------------------------------------------------
+
+test('macOS p4 ordinary Qt residuals stay inside exact producer owners', () => {
+  const policy = fs.readFileSync(
+    path.join(injectorRoot, 'cavalry_i18n_translation_policy.h'),
+    'utf8'
+  );
+  const injector = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+  const windowsTranslator = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'cavalry_i18n_translator.cpp'),
+    'utf8'
+  );
+
+  for (const [context, source] of [
+    ['cavalry::TagHeader', 'Add Tag:'],
+    ['cavalry::TagHeader', 'Assign Tag to Selection: '],
+    ['ColorWindow', 'Save...'],
+    ['assets::Window', 'Replace...'],
+    ['assets::Window', 'Create Composition based on %1'],
+  ]) {
+    assert.match(policy, new RegExp(context.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+    assert.match(policy, new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  assert.match(policy, /Add a layer to your Composition \(⌘\.\)/);
+  assert.match(policy, /requiresMacOwnerTranslationContext/);
+  assert.match(windowsTranslator, /!cavalry_i18n::requiresMacOwnerTranslationContext/);
+
+  assert.match(injector, /case QEvent::ContextMenu:[\s\S]{0,120}rememberScopedContextMenuOwner\(watched\)/);
+  assert.match(injector, /dispatch_async\(dispatch_get_main_queue\(\)[\s\S]{0,220}gPendingScopedContextMenuOwner\.clear\(\)/);
+  assert.match(injector, /bindPendingScopedMenuOwner\(QMenu \*menu\)[\s\S]{0,700}gScopedMenuOwners\.insert\(rootMenu/);
+  assert.match(injector, /source\.startsWith\(createCompositionPrefix\)[\s\S]{0,500}assetName == assetName\.trimmed\(\)/);
+  assert.match(injector, /tagHeaderSourceKey[\s\S]{0,500}kTagHeaderAssignSelectionSource/);
+  assert.match(injector, /directParent[\s\S]{0,220}"MainDock"[\s\S]{0,260}WA_DeleteOnClose/);
+  const scopedFilterIndex = injector.indexOf('installRuntimeUiEventFilter(lang, false)');
+  const fullFilterIndex = injector.indexOf('installRuntimeUiEventFilter(lang, true)');
+  const initialWidgetTranslationIndex = injector.indexOf(
+    'translateQtWidgets(lang)',
+    scopedFilterIndex
+  );
+  assert.ok(scopedFilterIndex >= 0, 'scoped first-paint filter install is missing');
+  assert.ok(fullFilterIndex > scopedFilterIndex, 'full runtime translation must enable only after the scoped filter');
+  assert.ok(
+    initialWidgetTranslationIndex > scopedFilterIndex && initialWidgetTranslationIndex < fullFilterIndex,
+    'initial widget translation must complete before broad runtime events are enabled'
+  );
+});
+
+test('macOS Transform Tool adapter is a five-source fail-open ABI firewall', () => {
+  const header = fs.readFileSync(
+    path.join(injectorRoot, 'cavalry_i18n_macos_tool_help_text_path.h'),
+    'utf8'
+  );
+  const source = fs.readFileSync(
+    path.join(injectorRoot, 'cavalry_i18n_macos_tool_help_text_path.cpp'),
+    'utf8'
+  );
+  const injector = fs.readFileSync(
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
+    'utf8'
+  );
+  const build = fs.readFileSync(
+    path.join(repoRoot, 'tools', 'build_translator_injector.sh'),
+    'utf8'
+  );
+
+  assert.match(header, /kMacToolHelpActionCount = 5/);
+  assert.match(header, /cavalry_i18n_mac_tool_help_diagnostics_v1/);
+  for (const action of [
+    'Insert Keyframe', 'Direct Layer Selection', 'Play/ Stop', 'Pan', 'Enable Snapping',
+  ]) {
+    assert.equal(source.split(`"${action}"`).length - 1, 1, `${action} must have one approved source identity`);
+  }
+  assert.match(source, /kAllSourceBits = 0x1f/);
+  assert.match(source, /verifyVendorContract\(\)/);
+  assert.match(source, /callerChainMatches\(return0, return1, return2\)/);
+  assert.match(source, /LC_SYMTAB/);
+  assert.match(source, /findMachOSymbol/);
+  assert.match(source, /pathIsEmpty\(path\)/);
+  assert.match(source, /recordFallback\(\*action\)[\s\S]{0,180}original\(text, size, encoding, x, y, font, path\)/);
+  assert.match(source, /section\("__DATA,__interpose"\)/);
+  assert.match(
+    injector,
+    /majorMinorVersion\(buildQtVersion\)[\s\S]{0,900}configureMacToolHelpTextPathFromEnvironment\(\)[\s\S]{0,500}new EmbeddedTranslator/
+  );
+  assert.doesNotMatch(
+    injector,
+    /__attribute__\(\(constructor\)\)[\s\S]{0,200}configureMacToolHelpTextPathFromEnvironment/,
+    'vendor image/ABI discovery must wait until the Qt runtime is present'
+  );
+  assert.match(build, /cavalry_i18n_macos_tool_help_text_path\.cpp/);
+  assert.match(build, /-fno-omit-frame-pointer/);
+  assert.match(build, /@rpath\/libskia\.dylib/);
+  assert.match(build, /temporary link-only ABI stub/);
+});
+
+test('Guide catalogs keep Cavalry fixed en loader slot and resolve all 98 keys', () => {
+  const languages = ['en', 'zh-Hans', 'zh-Hant', 'ja_JP'];
+  const englishRoot = path.join(repoRoot, 'languages', 'en', 'Learn', 'Guides');
+  const englishCatalog = readJson(path.join(englishRoot, 'strings.json'));
+  const englishKeys = Object.keys(englishCatalog[0].value).sort();
+  assert.equal(englishCatalog.length, 1);
+  assert.equal(englishCatalog[0].language, 'en');
+  assert.equal(englishKeys.length, 98);
+
+  const collectStrings = (value, output = []) => {
+    if (typeof value === 'string') output.push(value);
+    else if (Array.isArray(value)) value.forEach((item) => collectStrings(item, output));
+    else if (value && typeof value === 'object') Object.values(value).forEach((item) => collectStrings(item, output));
+    return output;
+  };
+
+  for (const language of languages) {
+    const guideRoot = path.join(repoRoot, 'languages', language, 'Learn', 'Guides');
+    const catalog = readJson(path.join(guideRoot, 'strings.json'));
+    const guides = readJson(path.join(guideRoot, 'guides.json'));
+    assert.equal(catalog.length, 1, `${language} must expose one catalog`);
+    assert.equal(catalog[0].type, 'strings');
+    assert.equal(catalog[0].language, 'en', `${language} must stay in Cavalry's loader slot`);
+    assert.deepEqual(Object.keys(catalog[0].value).sort(), englishKeys);
+    for (let step = 0; step < 5; step += 1) {
+      assert.ok(catalog[0].value[`onboarding.firstLaunch.step${step}.title`]?.trim());
+      assert.ok(catalog[0].value[`onboarding.firstLaunch.step${step}.body`]?.trim());
+    }
+    for (const text of collectStrings(guides)) {
+      for (const match of text.matchAll(/\{\{([^{}]+)\}\}/g)) {
+        assert.ok(Object.hasOwn(catalog[0].value, match[1]), `${language} missing ${match[1]}`);
+      }
+    }
+  }
+
+  const validator = fs.readFileSync(path.join(repoRoot, 'tools', 'validate_translations.py'), 'utf8');
+  const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
+  assert.match(validator, /"guideStrings": \["Learn\/Guides\/strings\.json"\]/);
+  assert.deepEqual(whitelist.guideStrings.translate, ['value']);
+  assert.deepEqual(whitelist.guideStrings.no_translate, ['type', 'language']);
 });

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-[INPUT]: 依赖 languages/* JSON、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
-[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝占位符（含裸 {}）漂移、FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率，并只对显式 source variant 集合豁免同义复用
+[INPUT]: 依赖 languages/* JSON（含 Learn/Guides 固定 `en` 加载槽位）、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
+[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 Guide catalog 槽位漂移、占位符（含裸 {}）漂移、FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率，并只对显式 source variant 集合豁免同义复用
 [POS]: tools 的 G1 / §P5 validator，被 full-ui gate 用来审判翻译资产与生成表
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import sys
@@ -37,6 +38,7 @@ FILE_GROUPS = {
     "appStrings": ["appStrings.json"],
     "tips": ["tips.json"],
     "onboarding": ["onboarding.json"],
+    "guideStrings": ["Learn/Guides/strings.json"],
     "theme": ["Style/theme.json"],
 }
 JSON_SURFACE_KEYS = {
@@ -102,6 +104,7 @@ ALLOWED_EMBEDDED_ENGLISH = {
     "FBM",
     "FF",
     "FK",
+    "Finder",
     "FPS",
     "Forge",
     "Gamma",
@@ -336,7 +339,7 @@ def normalize_string(value: str) -> str:
 
 
 def visible_text(value: str) -> str:
-    return normalize_string(HTML_TAG_RE.sub(" ", value))
+    return normalize_string(html.unescape(HTML_TAG_RE.sub(" ", value)))
 
 
 def placeholder_tokens(value: str) -> list[str]:

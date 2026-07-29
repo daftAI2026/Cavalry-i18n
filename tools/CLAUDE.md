@@ -2,12 +2,12 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试，承接跨平台 Python/换行、full-ui、精确版本 CHANGELOG 发布摘要、capture-only/dirty-only injector、first-match 哈希、TS message context 归属/精确空白/三语 key 对称、裸 `{}` 占位符、Qt ABI-safe accessibility 源码边界、macOS ExtensionLayer 四处空状态定点居中翻译/其余自绘英文边界、8 条跨平台 ordinary-Qt exact-only/source-fallback 排除、macOS scoped owner 回补、Windows ProjectStatistics/gMainWindow owner 负例与 vendor 调用来源、MessageBar 双 caller、EditShapeTool 与 TransformTool 各三条长操作前缀及 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone text-path、64 位 source mask、selected-count QLabel 与 Pencil HTML 尾部精确替换、Time Editor 英文保护、item-model 异步补译、aboutToShow 菜单首帧、QLabel/QLineEdit fingerprint、ModalDialog、运行时图层名、自动编号 Composition 标签分母、品牌/术语、翻译质量及 package/workflow 等非壳层断言。
+check_app_contracts.js: Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙与 Guide 固定 `en` 加载槽位，不承载现场证据编排。
 check_renderer_contract.js: Renderer contract 测试，以规范化 LF 冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面，避免 Git 换行策略制造假漂移。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、稳定 errorCode 四语本土化、平台 dataset、Apply 确认、提交后 cleanup warning、macOS openPrivacy/Windows requestElevation 权限恢复、不可写自定义根的无 UAC 错误、原地重试与自定义 select 原生 change 语义。
-check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试，验证跨平台 hook/Python/CRLF、PowerShell 5.1+ 宿主选择与无污染回退、原生库不入 Git/source artifact、macOS/Windows dev 启动前生成对应 injector、Windows 构建前重生成共享翻译表、Visual Studio 2022+ 的当前生成器加 x64/v143、shared Qt/generic/QPA 干净构建、无重解析点发布、NSIS hooks 无 Cavalry/QPA 写入入口、共享 translation policy 与 Windows 源码/双 DLL provenance、x64 安装态及无第二 Qt runtime、四语系统语言/品牌、隔离安装/同版本更新/卸载与 TEMP 三文件哨兵、由 C++ text-path 源表顺序派生 Windows live 64 位命中掩码、CI、exact-HWND disposable 截图、生产 QPA 启动不清 profile、跨平台发布/版本/README/bridge 契约。
+check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试；除既有跨平台发布合同外，锁定 release tag 已进入 origin/main 的共同 preflight，以及 PR/main 在无 vendor app 的 macOS Runner 编译 universal injector。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer、languages、同次平台构建 injector 的哈希同一性与 Qt ABI、ad-hoc bundle seal 及 bundle size report。
-windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；拒绝 bundle 父链 symlink/junction，仅清本版本预期 EXE/sidecar；记录安装器身份与 renderer/languages/Tauri/Rust/Windows native C++/共享 translation policy/CMake/build/generated table/generic/QPA 的内容 fingerprint，安装前复算并拒绝源码或产物漂移。
+windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；拒绝 bundle 父链 symlink/junction，仅清本版本预期 EXE/sidecar；以 canonical file identity 接受同一安装器的路径别名，记录 renderer/languages/Tauri/Rust/Windows native C++/共享 translation policy/CMake/build/generated table/generic/QPA 的内容 fingerprint，安装前复算并拒绝源码或产物漂移。
 check_windows_nsis_install.ps1: 带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装、以同一安装器执行 `/UPDATE`、仅通过包内卸载器静默卸载并观察零残留；三阶段都要求独立 TEMP 根中 `qwindows.dll`、vendor backup 与 manifest 的长度/SHA-256 哨兵不变，漂移时保留证据，禁止递归删除掩盖失败。
 capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，自动截取 Viewport Quality/Transform 且 Transform 必须同时命中 action 与三条长操作前缀的 64 位位图，并在一次 best-effort 前台请求后的有界 exact-HWND 等待中以 `VK_A` 触发 Edit Shape，要求六条 action 与三条长操作前缀完整位图；`Space` 等纯键位不计翻译命中，显式 `AllowManualCogPitch` 时先拒绝预置 bit 28，再把精确前台窗口交给用户选择 Cogwheel 并拖拽，要求 revision/canonical/whitelist/CJK-success 严格增长、零 fallback/renderer failure，并保存前后诊断与 PNG，仍禁止场景脚本、Qt UIA、坐标/鼠标自动化、强杀、固定 sleep 和覆盖证据。
 check_dmg_layout.sh: DMG 布局与签名守门器，挂载真实 `.dmg` 并验证 `.DS_Store`、背景图、卷宗图标、custom-icon 标记、Applications 链接、DMG 内 app 与安装态 app 的 bundle seal/codesign strict 结果。
@@ -30,19 +30,19 @@ merge_runtime_inventory.js: runtime inventory 合并器，只接受 live-injecto
 run_live_full_ui_matrix.js: G-CAPTURE 编排器，启动真实 Cavalry、解析 launcher PID、拒绝弱抓取并写 session run record，支持无副作用 `--help`。
 freeze_extraction_inventory.js: G-X freeze 器，按 whitelist 噪声规则冻结 JSON/compiled/runtime 英文分母并写顶层 target identity。
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
-generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成 injector 编译期翻译表，拒绝任何位于 `<context>` 外、运行时不可达的孤儿 `<message>`，并仅对显式 `xml:space="preserve"` 的 source/translation 保留首尾空白。
+generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成带 GEB L3 契约的 injector 编译期翻译表，拒绝任何位于 `<context>` 外、运行时不可达的孤儿 `<message>`，并仅对显式 `xml:space="preserve"` 的 source/translation 保留首尾空白。
 model_display_translations.json: display-only 模型名词典，保存 JSON niceName 英文化前的三语显示译名，只供 injector 翻译 Qt 浮动标题等显示层，不回写模型数据，并保持简繁中文 Latin/CJK 间距。
 runtime-noise-quarantine.json: Runtime 翻译噪声隔离清单，记录无资源/live-capture provenance 的短 token，并让生成器跳过这些项以保持英文。
 resolve_cavalry_qt_sdk.js: 从单一 Cavalry/Qt 版本真相解析宿主默认或显式 macOS/Windows SDK 投影；macOS 校验 Cavalry.app，clean CI 缺 SDK 时通过共享 Python 命令边界下载 `clang_64` 或 `msvc2019_64`。
 stamp_dmg_icon.sh: DMG 卷宗图标盖章器，用 hdiutil 写入 `.VolumeIcon.icns` 与 custom-icon 标记，再用 Rez/SetFile best-effort 写本机 Finder 文件图标。
 cavalry_qt_target.json: 发布目标映射，唯一声明 Cavalry 2.7.2 与 Qt 6.6.3，并为 macOS `clang_64`、Windows `msvc2019_64` 提供 repo-local SDK 路径和 aqt 参数。
-build_translator_injector.sh: 从当前翻译源重生成共享 C++ 表后以 `-O2` 构建不纳入 Git 的 universal injector，校验 Qt minor，使用 `@loader_path` 绑定所选 Cavalry 的同目录 Qt，并禁止把构建 SDK 留作运行时 fallback。
+build_translator_injector.sh: 重生成共享翻译表后，以 `-O2/-fno-omit-frame-pointer` 合编 macOS injector 与 TransformTool ABI 适配器；真实运行绑定 `@rpath/libskia.dylib`，无 vendor app 的 CI 只使用不入包的临时链接桩。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
-validate_translations.py: JSON/TS/injector 翻译质量检查脚本，保留 source/context/translation 三相并输出 §P5 占位符（含裸 `{}`）及 FP-1..12 报告与摘要；FP-12 只对契约中逐 source 列明的拼写/标点变体放行同义译文。
+validate_translations.py: JSON/TS/injector 翻译质量检查脚本；Guide catalog 纳入真实分母并固定 `en` loader slot，可见文本先解码 HTML entity，再执行既有占位符与 FP-1..12 审查。
 forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。
 forbidden_translation_patterns.js: Node 共享 forbidden-pattern detector，供 runtime/full-ui gate 与契约测试复用 FP-1/2/3/4/5/7/8/9/10/11。
-forbidden_translation_patterns.json: §P5 detector 配置，集中声明正则、source/context denylist、latin residue、transliteration 与 pangram 规则。
-translation-whitelist.json: JSON 翻译检测契约，定义 translate/no_translate/locale_sync 字段边界、模型 niceName 与 Time Editor 复用动态属性英文保留、FP-10/11/12 whitelist 契约与 G-X denominator filter；颜色拖放的英美拼写/末尾句号变体以 exact source 集合共享同一简中微文案，禁止扩大为通用 FP-12 豁免。
+forbidden_translation_patterns.json: §P5 detector 配置，集中声明正则、source/context denylist、latin residue、受保护品牌/格式词、transliteration 与 pangram 规则。
+translation-whitelist.json: JSON 翻译检测契约；Guide `value` 可翻译而 `type/language` 保持 loader 身份，其他模型 niceName、Time Editor 与 FP-10/11/12 边界不变。
 ja_JP.ts: 日文 compiled UI 翻译源。
 zh-Hans.ts: 简体中文 compiled UI 翻译源。
 zh-Hant.ts: 繁体中文 compiled UI 翻译源。
@@ -125,5 +125,8 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-28: Windows 2.7.2 二进制调用链确认的普通 Qt 残留按现有 translator/display 边界补入三语：`Bookmark %1`、`Boundary Color`、两条绑定占位符、Velocity Preset 动作/过滤器及上下文动作；动态值保留 `%1`，无需扩大 ExtensionLayer 自绘 hook。
 2026-07-28: Windows 2.7.2 二进制确认 `Automatic (%1)` 经 Color Settings QComboBox DisplayRole、四条 Mesh Explorer 整数模板经 QLabel factory、`Enter an index, e.g: 0` 经 `acrStringSingleIndex` 的 QPlainTextEdit 占位属性；三语 TS 与 exact-context 策略之外，运行时还要求 `Color Settings` 对话框、`MeshExplorerRowWidget` 或 `AttributeEditorWindow` 父系，编辑器正文、模型角色、近似文本及无关同文控件保持原值。
 2026-07-29: Windows NSIS provenance 将 Windows 编译单元直接依赖的共享 `cavalry_i18n_translation_policy.h` 纳入输入 fingerprint；合同要求安装包记录完成后单独修改该头文件必须使 verify 失败，防止共享策略漂移被已构建 DLL 掩盖。
+2026-07-29: macOS 定向合同锁定 parentless Assets ContextMenu 的单事件循环 owner 承接、Tag/Tracking owner 负边界、具体 Add Layer 快捷键隔离，以及 TransformTool 五 action 的双 slice caller/Skia ABI 防火墙。
+2026-07-29: Guide catalog 纳入 translation validator，固定 Cavalry 2.7.2 实际读取的 `en` slot、98-key 同构与引用完备性；生成翻译表同时保留 GEB L3 契约。
+2026-07-29: Windows NSIS provenance 比较 canonical file identity，修复 macOS `/var` 与 `/private/var` 指向同一安装器却被误拒绝的本地合同假阴性；bundle 边界与内容 fingerprint 不变。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

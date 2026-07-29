@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context 查询策略及显式 capture/session 环境
- * [OUTPUT]: 对外提供 first-match-wins 的 (context, source) 哈希 QTranslator、Qt UI 翻译、按显示属性与精确 owner 收敛的 QMeta 启动期回补、自动编号/点编号/括号编号动态图层名后缀保留、运行时生成图层名显示层翻译、带生命周期清理 fingerprint 的 QLineEdit/QLabel 首次绘制前与后续文本显示翻译、ModalDialog/QMessageBox 首次绘制前同步翻译、模型 niceName/Time Editor 动态 item 与 QAbstractItemView role 写回保护、Show 后 item-model rowsInserted/modelReset/dataChanged 局部补译、ABI-safe Time Editor 上下文识别、aboutToShow/ActionAdded/Show 同步首次绘制前菜单翻译、ExtensionLayer 四处空状态提示的 CJK-safe 居中绘制、动态菜单/状态栏/认证倒计时/冒号标签、Copied 与 Undo/Redo 动态消息、No 前缀混合文本兜底、AppKit 菜单同步，以及仅显式 capture 时启用且复用进程级 session/hash 的 runtime inventory 导出；MessageBar 仅在 `QTextEdit::append` 追加时翻译且保留符号解析失败兜底，inventory 不读取 QTextEdit 正文
- * [POS]: injector 核心注入源，通过 DYLD_INSERT_LIBRARIES 拦截 Qt 翻译与定点绘制请求；启动期和冷缓存排除 exact-context 词条，仅在已采证的 property/owner 边界回补，Time Editor 模型词汇及非白名单 ExtensionLayer 自绘提示保留英文原文
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context 策略、macOS TransformTool text-path ABI 防火墙与显式 capture/session 环境
+ * [OUTPUT]: 对外提供 first-match-wins QTranslator、既有菜单/控件/模型保护链，以及 8 条 ordinary-Qt、Tag 邻接标签、Assets 动态 Create 模板和 Tracking dialog 的精确 owner 回补；Qt runtime 版本确认后配置五条 TransformTool 自绘 action
+ * [POS]: macOS injector 核心；普通文本只在已证 Qt owner 内补译，parentless Assets 菜单只承接一个事件循环的 owner，Transform 自绘交给独立 ABI 适配器，Time Editor 模型 identity、快捷键 prefix 与无关同文保持原值
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -67,6 +67,7 @@
 #include <qvariant.h>
 #include <qvector.h>
 
+#include "cavalry_i18n_macos_tool_help_text_path.h"
 #include "cavalry_i18n_translation_policy.h"
 
 namespace {
@@ -115,6 +116,16 @@ const TranslationEntry *entriesForLanguageName(const char *lang, int *count)
     return nullptr;
 }
 
+bool requiresMacExactTranslationContext(
+    const char *context,
+    const char *sourceText) noexcept
+{
+    return cavalry_i18n::requiresExactTranslationContext(context, sourceText)
+        || cavalry_i18n::requiresMacOwnerTranslationContext(
+            context,
+            sourceText);
+}
+
 const char *embeddedTranslationForSource(const char *lang, const char *sourceText)
 {
     int count = 0;
@@ -124,7 +135,7 @@ const char *embeddedTranslationForSource(const char *lang, const char *sourceTex
     }
 
     for (int index = 0; index < count; ++index) {
-        if (!cavalry_i18n::requiresExactTranslationContext(
+        if (!requiresMacExactTranslationContext(
                 entries[index].context,
                 entries[index].sourceText)
             && strcmp(entries[index].sourceText, sourceText) == 0) {
@@ -133,6 +144,54 @@ const char *embeddedTranslationForSource(const char *lang, const char *sourceTex
     }
 
     return nullptr;
+}
+
+const char *embeddedTranslationForContext(
+    const char *lang,
+    const char *context,
+    const char *sourceText)
+{
+    int count = 0;
+    const TranslationEntry *entries = entriesForLanguageName(lang, &count);
+    if (entries == nullptr || context == nullptr || sourceText == nullptr) {
+        return nullptr;
+    }
+    for (int index = 0; index < count; ++index) {
+        if (strcmp(entries[index].context, context) == 0 &&
+            strcmp(entries[index].sourceText, sourceText) == 0) {
+            return entries[index].translation;
+        }
+    }
+    return nullptr;
+}
+
+void configureMacToolHelpTextPathFromEnvironment()
+{
+    const char *language = getenv("CAVALRY_I18N_LANG");
+    if (language == nullptr || strcmp(language, "en") == 0) {
+        return;
+    }
+
+    constexpr const char *kContext = "MenuBarManager";
+    cavalry_i18n::MacToolHelpTextPathTranslation translations[] = {
+        {"Insert Keyframe",
+         embeddedTranslationForContext(language, kContext, "Insert Keyframe"),
+         1ull << 0},
+        {"Direct Layer Selection",
+         embeddedTranslationForContext(language, kContext, "Direct Layer Selection"),
+         1ull << 1},
+        {"Play/ Stop",
+         embeddedTranslationForContext(language, kContext, "Play/ Stop"),
+         1ull << 2},
+        {"Pan", embeddedTranslationForContext(language, kContext, "Pan"), 1ull << 3},
+        {"Enable Snapping",
+         embeddedTranslationForContext(language, kContext, "Enable Snapping"),
+         1ull << 4},
+    };
+    cavalry_i18n::configureMacToolHelpTextPath(
+        language,
+        translations,
+        sizeof(translations) / sizeof(translations[0]));
 }
 
 QString normalizeMenuText(const QString &text);
@@ -644,6 +703,9 @@ bool gRefreshScheduled = false;
 QSet<QMenu *> gHookedMenus;
 QSet<QLineEdit *> gHookedLineEdits;
 QHash<QAbstractItemView *, QPointer<QAbstractItemModel>> gHookedItemViewModels;
+QPointer<QWidget> gPendingScopedContextMenuOwner;
+QHash<QMenu *, QPointer<QWidget>> gScopedMenuOwners;
+int gPendingScopedContextMenuGeneration = 0;
 struct PaintTextFingerprint {
     QString lang;
     QString text;
@@ -656,6 +718,7 @@ struct DirtyObject {
 };
 
 QObject *gEventFilter = nullptr;
+bool gRuntimeUiFullTranslationEnabled = false;
 QVector<DirtyObject> gDirtyObjects;
 QSet<QObject *> gDirtyObjectSet;
 bool gDirtyDrainScheduled = false;
@@ -921,7 +984,7 @@ void rebuildTranslationCache(const QString &lang)
     }
 
     for (int index = 0; index < count; ++index) {
-        if (cavalry_i18n::requiresExactTranslationContext(
+        if (requiresMacExactTranslationContext(
                 entries[index].context,
                 entries[index].sourceText)) {
             continue;
@@ -966,7 +1029,7 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
     }
 
     for (int index = 0; index < count; ++index) {
-        if (cavalry_i18n::requiresExactTranslationContext(
+        if (requiresMacExactTranslationContext(
                 entries[index].context,
                 entries[index].sourceText)) {
             continue;
@@ -980,7 +1043,7 @@ QString lookupEmbeddedTranslation(const QString &lang, const QString &sourceText
     if (normalizedSource.endsWith(QStringLiteral(":"))) {
         const QString bareSource = normalizeMenuText(normalizedSource.left(normalizedSource.size() - 1));
         for (int index = 0; index < count; ++index) {
-            if (cavalry_i18n::requiresExactTranslationContext(
+            if (requiresMacExactTranslationContext(
                     entries[index].context,
                     entries[index].sourceText)) {
                 continue;
@@ -1369,6 +1432,72 @@ bool hasObjectOrAncestorClass(QObject *object, const char *className)
          hasAncestorClass(object, className));
 }
 
+QWidget *objectOrAncestorWithClass(QObject *object, const char *className)
+{
+    if (className == nullptr) {
+        return nullptr;
+    }
+
+    QObject *current = object;
+    while (current != nullptr) {
+        if (strcmp(current->metaObject()->className(), className) == 0) {
+            return qobject_cast<QWidget *>(current);
+        }
+        current = current->parent();
+    }
+    return nullptr;
+}
+
+void rememberScopedContextMenuOwner(QObject *watched)
+{
+    const int generation = ++gPendingScopedContextMenuGeneration;
+    QWidget *owner = objectOrAncestorWithClass(
+        watched,
+        cavalry_i18n::kAssetsWindowContext);
+    gPendingScopedContextMenuOwner = owner;
+    if (owner == nullptr) {
+        return;
+    }
+
+    // ContextMenu 处理器同步创建菜单与动作；跨出当前 event-loop 即拒绝猜测 owner。
+    dispatch_async(dispatch_get_main_queue(), ^{
+        if (generation == gPendingScopedContextMenuGeneration) {
+            gPendingScopedContextMenuOwner.clear();
+        }
+    });
+}
+
+void bindPendingScopedMenuOwner(QMenu *menu)
+{
+    if (menu == nullptr || gPendingScopedContextMenuOwner.isNull()) {
+        return;
+    }
+
+    QMenu *rootMenu = menu;
+    while (QMenu *parentMenu = qobject_cast<QMenu *>(rootMenu->parent())) {
+        rootMenu = parentMenu;
+    }
+
+    // Assets 先创建带 root ContextMenu parent 的子菜单；首个 ActionAdded
+    // 不能让子菜单吞掉短时 owner。根菜单与当前子菜单共享同一已证 owner。
+    gScopedMenuOwners.insert(rootMenu, gPendingScopedContextMenuOwner);
+    gScopedMenuOwners.insert(menu, gPendingScopedContextMenuOwner);
+    gPendingScopedContextMenuOwner.clear();
+    ++gPendingScopedContextMenuGeneration;
+}
+
+QObject *scopedMenuOwnerHint(QMenu *menu)
+{
+    for (QMenu *current = menu; current != nullptr;
+         current = qobject_cast<QMenu *>(current->parent())) {
+        const auto found = gScopedMenuOwners.constFind(current);
+        if (found != gScopedMenuOwners.constEnd() && !found.value().isNull()) {
+            return found.value().data();
+        }
+    }
+    return menu;
+}
+
 QString exactInstalledTranslation(const char *context, const char *sourceText)
 {
     return gTranslator != nullptr && context != nullptr && sourceText != nullptr
@@ -1425,11 +1554,20 @@ QString searchBarTooltipTranslation(QWidget *widget, const QString &source)
 
 QString scopedLabelTextTranslation(QLabel *label, const QString &source)
 {
-    if (source == QString::fromUtf8(cavalry_i18n::kTagHeaderAddTagSource) &&
+    const char *tagHeaderSourceKey = nullptr;
+    if (source == QString::fromUtf8(cavalry_i18n::kTagHeaderAddTagSource)) {
+        tagHeaderSourceKey = cavalry_i18n::kTagHeaderAddTagSource;
+    } else if (
+        source ==
+        QString::fromUtf8(cavalry_i18n::kTagHeaderAssignSelectionSource)) {
+        tagHeaderSourceKey =
+            cavalry_i18n::kTagHeaderAssignSelectionSource;
+    }
+    if (tagHeaderSourceKey != nullptr &&
         hasObjectOrAncestorClass(label, cavalry_i18n::kTagHeaderContext)) {
         return exactInstalledTranslation(
             cavalry_i18n::kTagHeaderContext,
-            cavalry_i18n::kTagHeaderAddTagSource);
+            tagHeaderSourceKey);
     }
 
     if (!hasObjectOrAncestorClass(label, "ProjectStatisticsWindow")) {
@@ -1489,12 +1627,42 @@ QString scopedActionTextTranslation(
             cavalry_i18n::kAssetsWindowContext,
             cavalry_i18n::kAssetsWindowReplaceSource);
     }
+    const QString createCompositionTemplate =
+        QString::fromUtf8(
+            cavalry_i18n::kAssetsWindowCreateCompositionSource);
+    const int placeholderOffset =
+        createCompositionTemplate.indexOf(QStringLiteral("%1"));
+    const QString createCompositionPrefix =
+        placeholderOffset >= 0
+        ? createCompositionTemplate.left(placeholderOffset)
+        : QString();
+    if (!createCompositionPrefix.isEmpty() &&
+        source.startsWith(createCompositionPrefix) &&
+        actionOwnerMatches(
+            action,
+            ownerHint,
+            cavalry_i18n::kAssetsWindowContext)) {
+        const QString assetName = source.mid(createCompositionPrefix.size());
+        if (!assetName.isEmpty() &&
+            assetName == assetName.trimmed() &&
+            !assetName.contains(QChar('\r')) &&
+            !assetName.contains(QChar('\n'))) {
+            return translatedExactTemplateValue(
+                cavalry_i18n::kAssetsWindowContext,
+                cavalry_i18n::kAssetsWindowCreateCompositionSource,
+                assetName);
+        }
+    }
     return QString();
 }
 
 bool isTrackingProgressDialog(QDialog *dialog, const QString &source)
 {
+    QWidget *const directParent =
+        dialog != nullptr ? dialog->parentWidget() : nullptr;
     if (dialog == nullptr ||
+        directParent == nullptr ||
+        strcmp(directParent->metaObject()->className(), "MainDock") != 0 ||
         source != QString::fromUtf8(cavalry_i18n::kTrackingWindowTitleSource) ||
         dialog->metaObject() != &QDialog::staticMetaObject ||
         !dialog->isWindow() ||
@@ -1785,6 +1953,7 @@ void translateQtMenu(QMenu *menu, const QString &lang)
         return;
     }
 
+    QObject *const ownerHint = scopedMenuOwnerHint(menu);
     const QString title = menu->title();
     const QString translatedTitle = lookupEmbeddedTranslation(lang, title);
     if (!translatedTitle.isEmpty() && translatedTitle != title) {
@@ -1792,7 +1961,7 @@ void translateQtMenu(QMenu *menu, const QString &lang)
     }
 
     for (QAction *action : menu->actions()) {
-        translateQtAction(action, lang, menu);
+        translateQtAction(action, lang, ownerHint);
     }
 }
 
@@ -1922,6 +2091,7 @@ void hookQtMenu(QMenu *menu, const QString &lang)
         menu,
         [menu]() {
             gHookedMenus.remove(menu);
+            gScopedMenuOwners.remove(menu);
         }
     );
     QObject::connect(
@@ -2059,7 +2229,7 @@ QString sourceTextForDisplayText(const QString &lang, const QString &displayText
     }
 
     for (int index = 0; index < count; ++index) {
-        if (cavalry_i18n::requiresExactTranslationContext(
+        if (requiresMacExactTranslationContext(
                 entries[index].context,
                 entries[index].sourceText)) {
             continue;
@@ -2070,7 +2240,7 @@ QString sourceTextForDisplayText(const QString &lang, const QString &displayText
         }
     }
     for (int index = 0; index < count; ++index) {
-        if (cavalry_i18n::requiresExactTranslationContext(
+        if (requiresMacExactTranslationContext(
                 entries[index].context,
                 entries[index].sourceText)) {
             continue;
@@ -3221,6 +3391,9 @@ protected:
 
         switch (event->type()) {
         case QEvent::Paint:
+            if (!gRuntimeUiFullTranslationEnabled) {
+                break;
+            }
             if (QLabel *label = qobject_cast<QLabel *>(watched)) {
                 translateLabelBeforePaint(label, m_lang);
                 break;
@@ -3229,9 +3402,16 @@ protected:
                 translateLineEditBeforePaint(lineEdit, m_lang);
             }
             break;
+        case QEvent::ContextMenu:
+            rememberScopedContextMenuOwner(watched);
+            break;
         case QEvent::Show:
             if (QMenu *menu = qobject_cast<QMenu *>(watched)) {
+                bindPendingScopedMenuOwner(menu);
                 translateMenuBeforeFirstPaint(menu, m_lang, true);
+                break;
+            }
+            if (!gRuntimeUiFullTranslationEnabled) {
                 break;
             }
             if (QDialog *dialog = qobject_cast<QDialog *>(watched)) {
@@ -3242,15 +3422,25 @@ protected:
             break;
         case QEvent::ActionAdded:
             if (QMenu *menu = qobject_cast<QMenu *>(watched)) {
+                bindPendingScopedMenuOwner(menu);
                 translateMenuBeforeFirstPaint(menu, m_lang, false);
+                break;
+            }
+            if (!gRuntimeUiFullTranslationEnabled) {
                 break;
             }
             enqueueRuntimeObject(watched, m_lang);
             break;
         case QEvent::MouseButtonRelease:
+            if (!gRuntimeUiFullTranslationEnabled) {
+                break;
+            }
             enqueueRuntimeObject(watched, m_lang);
             break;
         case QEvent::ChildAdded: {
+            if (!gRuntimeUiFullTranslationEnabled) {
+                break;
+            }
             QChildEvent *childEvent = static_cast<QChildEvent *>(event);
             enqueueRuntimeObject(childEvent->child(), m_lang);
             if (qobject_cast<QAbstractItemView *>(watched) != nullptr &&
@@ -3270,15 +3460,20 @@ private:
     QString m_lang;
 };
 
-void installRuntimeUiEventFilter(const QString &lang)
+void installRuntimeUiEventFilter(const QString &lang, bool enableFullTranslation)
 {
     QCoreApplication *app = QCoreApplication::instance();
-    if (app == nullptr || lang.isEmpty() || gEventFilter != nullptr) {
+    if (app == nullptr || lang.isEmpty()) {
         return;
     }
 
-    gEventFilter = new RuntimeUiEventFilter(lang);
-    app->installEventFilter(gEventFilter);
+    if (gEventFilter == nullptr) {
+        gEventFilter = new RuntimeUiEventFilter(lang);
+        app->installEventFilter(gEventFilter);
+    }
+    if (enableFullTranslation) {
+        gRuntimeUiFullTranslationEnabled = true;
+    }
 }
 
 QString majorMinorVersion(const QString &version)
@@ -3325,11 +3520,14 @@ bool installTranslator()
         return true;
     }
 
+    configureMacToolHelpTextPathFromEnvironment();
+
     if (gTranslator == nullptr) {
         if (!dumpOnlyEnglish) {
             gTranslator = new EmbeddedTranslator(lang, app);
             app->installTranslator(gTranslator);
             rebuildTranslationCache(lang);
+            installRuntimeUiEventFilter(lang, false);
         }
     }
 
@@ -3380,7 +3578,7 @@ bool installTranslator()
     dumpQtMenuInventory(lang);
     refreshNativeMenuBar(lang);
 
-    installRuntimeUiEventFilter(lang);
+    installRuntimeUiEventFilter(lang, true);
 
     fprintf(
         stderr,

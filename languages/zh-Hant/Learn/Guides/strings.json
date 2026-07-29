@@ -1,7 +1,7 @@
 [
   {
     "type": "strings",
-    "language": "zh-Hant",
+    "language": "en",
     "value": {
       "onboarding.firstLaunch.step0.title": "歡迎使用 Cavalry 🎉",
       "onboarding.firstLaunch.step0.body": "這是<b>視埠</b>，你的設計將在這裡栩栩如生。使用它來即時預覽和互動你的合成。",
@@ -100,7 +100,7 @@
       "onboarding.renderBasics.step3.title": "算繪",
       "onboarding.renderBasics.step3.body": "點擊<b>全部算繪</b>以匯出。Cavalry 支援 PNG、JPEG、MP4、QuickTime、WebM 等格式。",
       "onboarding.renderBasics.step4.title": "尋找檔案",
-      "onboarding.renderBasics.step4.body": "算繪完成後，點擊此箭頭 <img src='icons:fileLink.png' width=16 height=16 style='vertical-align:middle'/> 在 Finder/檔案總管中定位輸出檔案。"
+      "onboarding.renderBasics.step4.body": "算繪完成後，點擊此箭頭 <img src='icons:fileLink.png' width=16 height=16 style='vertical-align:middle'/> 在 Finder / 檔案總管中定位輸出檔案。"
     }
   }
 ]

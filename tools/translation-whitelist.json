@@ -47,6 +47,16 @@
       "images"
     ]
   },
+  "guideStrings": {
+    "translate": [
+      "value"
+    ],
+    "no_translate": [
+      "type",
+      "language"
+    ],
+    "locale_sync": []
+  },
   "plugins": {
     "translate": [
       "layerInfo",

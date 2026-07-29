@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryEmbeddedTranslator、共享 exact-context 策略与 generated_translations.inc 中稳定存在的菜单/动态 Qt 样本
- * [OUTPUT]: 对外验证三语嵌入、helper/残留 source fallback、CogTool 与受控动态 Qt exact-context 隔离、LineTool 精确冒号/尾随空白及未知输入空结果
+ * [OUTPUT]: 对外验证三语嵌入、helper/残留 source fallback、具体快捷键文案/CogTool/受控动态 Qt exact-context 隔离、macOS owner 已采证但 Windows producer 待证的 Tag/Assets 共享词条之 fallback 拒绝、LineTool 精确冒号/尾随空白及未知输入空结果
  * [POS]: injector/windows 的最小数据合同测试，在进入真实 Cavalry 前证明 DLL 内翻译表不是空壳
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -257,6 +257,80 @@ bool verifyControlledDynamicQtTranslationSamples(
     return true;
 }
 
+bool verifyConcreteShortcutIsolation(
+    const QString &language,
+    const QString &expectedTranslation)
+{
+    const CavalryEmbeddedTranslator translator(language);
+    constexpr char kSource[] =
+        "Add a layer to your Composition (⌘.)";
+
+    return expectEqual(
+               translator.translate("MenuBarManager", kSource),
+               expectedTranslation,
+               "concrete shortcut exact lookup")
+        && expectEqual(
+               translator.translate("UnknownContext", kSource),
+               QString(),
+               "concrete shortcut source rejection")
+        && expectEqual(
+               translator.translate(nullptr, kSource),
+               QString(),
+               "concrete shortcut null-context rejection");
+}
+
+bool verifyMacOwnerOnlyIsolation(
+    const QString &language,
+    const QString &expectedTagTranslation,
+    const QString &expectedCreateCompositionTemplate)
+{
+    const CavalryEmbeddedTranslator translator(language);
+    constexpr char kTagSource[] = "Assign Tag to Selection: ";
+    constexpr char kCreateCompositionSource[] =
+        "Create Composition based on %1";
+
+    return expectEqual(
+               translator.translate("cavalry::TagHeader", kTagSource),
+               expectedTagTranslation,
+               "mac owner-only Tag exact lookup")
+        && expectEqual(
+               translator.translate("UnknownContext", kTagSource),
+               QString(),
+               "mac owner-only Tag source rejection")
+        && expectEqual(
+               translator.translate(nullptr, kTagSource),
+               QString(),
+               "mac owner-only Tag null-context rejection")
+        && expectEqual(
+               translator.translate(
+                   "cavalry::TagHeader",
+                   "Assign Tag to Selection:"),
+               QString(),
+               "mac owner-only Tag trailing-space identity")
+        && expectEqual(
+               translator.translate(
+                   "assets::Window",
+                   kCreateCompositionSource),
+               expectedCreateCompositionTemplate,
+               "mac owner-only Assets template exact lookup")
+        && expectEqual(
+               translator.translate(
+                   "UnknownContext",
+                   kCreateCompositionSource),
+               QString(),
+               "mac owner-only Assets template source rejection")
+        && expectEqual(
+               translator.translate(nullptr, kCreateCompositionSource),
+               QString(),
+               "mac owner-only Assets template null-context rejection")
+        && expectEqual(
+               translator.translate(
+                   "UnknownContext",
+                   "Create Composition based on"),
+               QString(),
+               "legacy static prefix source rejection");
+}
+
 } // namespace
 
 int main()
@@ -325,6 +399,27 @@ int main()
                 QStringLiteral("描画命令：%1"),
                 QStringLiteral("子メッシュ数：%1"),
             })
+        || !verifyConcreteShortcutIsolation(
+            QStringLiteral("zh-Hans"),
+            QStringLiteral("向合成添加图层 (⌘.)"))
+        || !verifyConcreteShortcutIsolation(
+            QStringLiteral("zh-Hant"),
+            QStringLiteral("向合成新增圖層 (⌘.)"))
+        || !verifyConcreteShortcutIsolation(
+            QStringLiteral("ja_JP"),
+            QStringLiteral("コンポジションにレイヤーを追加 (⌘.)"))
+        || !verifyMacOwnerOnlyIsolation(
+            QStringLiteral("zh-Hans"),
+            QStringLiteral("为所选内容分配标签："),
+            QStringLiteral("基于 %1 创建合成"))
+        || !verifyMacOwnerOnlyIsolation(
+            QStringLiteral("zh-Hant"),
+            QStringLiteral("為所選內容分配標籤："),
+            QStringLiteral("根據 %1 建立合成"))
+        || !verifyMacOwnerOnlyIsolation(
+            QStringLiteral("ja_JP"),
+            QStringLiteral("選択範囲にタグを割り当て："),
+            QStringLiteral("%1 を基にコンポジションを作成"))
         || !verifyEvidencedResidualTranslationSamples(
             QStringLiteral("zh-Hans"),
             {

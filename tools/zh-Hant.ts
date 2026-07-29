@@ -1110,7 +1110,7 @@
     <message><source>Di Serria</source><translation>迪·塞里亞</translation></message>
     <message><source>Dialog Title</source><translation>對話框標題</translation></message>
     <message><source>Digest</source><translation>文摘</translation></message>
-    <message><source>Direct Layer Selection</source><translation>項目圖層選取</translation></message>
+    <message><source>Direct Layer Selection</source><translation>直接選取圖層</translation></message>
     <message><source>Directory outside of project</source><translation>項目以外的目錄</translation></message>
     <message><source>Disable</source><translation>停用</translation></message>
     <message><source>Disable B</source><translation>停用位元組</translation></message>
@@ -1210,7 +1210,7 @@
     <message><source>Enable Bézier Angle Snapping</source><translation>啟用貝茲角度吸附</translation></message>
     <message><source>Enable Color Management</source><translation>啓用色彩管理</translation></message>
     <message><source>Enable Render Items</source><translation>啓用算繪項目</translation></message>
-    <message><source>Enable Snapping</source><translation>啓用抓取</translation></message>
+    <message><source>Enable Snapping</source><translation>啟用吸附</translation></message>
     <message><source>Encoding file</source><translation>編碼檔案</translation></message>
     <message><source>encoding specified in XML declaration is incorrect</source><translation>宣告中指定的編碼不正確</translation></message>
     <message><source>End of Render Queue</source><translation>算繪佇列結尾</translation></message>
@@ -7332,6 +7332,7 @@
   <context>
     <name>cavalry::TagHeader</name>
     <message><source>Add Tag:</source><translation>新增標籤：</translation></message>
+    <message><source xml:space="preserve">Assign Tag to Selection: </source><translation>為所選內容分配標籤：</translation></message>
   </context>
   <context>
     <name>ColorWindow</name>
@@ -7341,6 +7342,7 @@
     <name>assets::Window</name>
     <message><source>Reveal in Explorer...</source><translation>在檔案總管中顯示...</translation></message>
     <message><source>Replace...</source><translation>取代…</translation></message>
+    <message><source>Create Composition based on %1</source><translation>根據 %1 建立合成</translation></message>
   </context>
   <context>
     <name>cavalry::DGWindow</name>

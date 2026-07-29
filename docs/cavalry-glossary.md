@@ -16,6 +16,8 @@
 | Anchor Point | 锚点 | 錨點 | アンカーポイント | |
 | Pivot | 锚点 | 錨點 | ピボット | Use same term as Anchor Point unless context requires distinction |
 | Keyframe | 关键帧 | 關鍵幀 | キーフレーム | Do not use "关键格" |
+| Direct Layer Selection | 直接选择图层 | 直接選取圖層 | レイヤーを直接選択 | Transform Tool action; “Direct” describes the selection mode, never “项目 / 項目” |
+| Snapping | 吸附 | 吸附 | スナップ | Graphics alignment behavior; do not translate as “抓取” |
 | Easing | 缓动 | 緩動 | イージング | |
 | Ease In | 缓入 | 緩入 | イーズイン | |
 | Ease Out | 缓出 | 緩出 | イーズアウト | |
@@ -88,6 +90,7 @@
 | Cavalry | Cavalry | Cavalry | Cavalry | Product name |
 | Canva | Canva | Canva | Canva | Brand name |
 | Finder | 访达 | Finder | Finder | macOS product name; use Apple’s localized Simplified Chinese name and preserve the product name in Traditional Chinese/Japanese |
+| QuickTime | QuickTime | QuickTime | QuickTime | Apple media format brand; preserve in render-format lists |
 | Excel | Excel | Excel | Excel | Product name; allow labels like "Excel 工作表" / "Excel シート" |
 | Forge Dynamics | Forge 动力学 | Forge 動力學 | フォージダイナミクス | UI display term; keep model niceName English |
 | Undo | 撤销 | 復原 | 元に戻す | |

@@ -12,7 +12,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use super::super::super::{
+use super::super::{
     runner::{is_permission_error, shell_quote},
     CommandRunner,
 };

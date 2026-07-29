@@ -3773,7 +3773,7 @@
     <message><source>Untitled</source><translation>未定</translation></message>
     <message><source>Untitled Script</source><translation>無題スクリプト</translation></message>
     <message><source>Unused</source><translation>未使用</translation></message>
-    <message><source>Update</source><translation>ニュース</translation></message>
+    <message><source>Update</source><translation>更新</translation></message>
     <message><source>Update Available</source><translation>利用できる更新</translation></message>
     <message><source>Update Cache</source><translation>キャッシュの更新</translation></message>
     <message><source>Update the UI during playback</source><translation>再生中に画面を更新</translation></message>
@@ -8557,6 +8557,7 @@
   <context>
     <name>cavalry::TagHeader</name>
     <message><source>Add Tag:</source><translation>タグを追加：</translation></message>
+    <message><source xml:space="preserve">Assign Tag to Selection: </source><translation>選択範囲にタグを割り当て：</translation></message>
   </context>
   <context>
     <name>ColorWindow</name>
@@ -8566,6 +8567,7 @@
     <name>assets::Window</name>
     <message><source>Reveal in Explorer...</source><translation>エクスプローラーで表示...</translation></message>
     <message><source>Replace...</source><translation>置換…</translation></message>
+    <message><source>Create Composition based on %1</source><translation>%1 を基にコンポジションを作成</translation></message>
   </context>
   <context>
     <name>cavalry::DGWindow</name>

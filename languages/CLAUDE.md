@@ -8,8 +8,8 @@ zh-Hant/: 繁体中文语言包，覆盖 38 个 JSON surface，保持繁体术�
 ja_JP/: 日文语言包，覆盖 38 个 JSON surface，遵守カタカナ优先，翻译 Windows 平台增量并保持 API 技术字段与模型 niceName 原样、零混合语言原则。
 
 依赖边界:
-JSON 语言包不承载代码逻辑；运行时复制边界由 `src-tauri/src/patch.rs` 的 `CORE_MAP`、`PLUGIN_DEFINITION_MAP` 与插件 strings 发现共同决定。字段是否翻译由 `tools/translation-whitelist.json` 和 JSON surface 审计分母决定；`niceName` 是 Time Editor 与图层模型复用的身份词，必须与 `en/` 保持一致；被 Time Editor 复用的动态属性数据也保持英文，Qt 显示层由 TS/injector 翻译。已核实的平台增量必须同步写入 English 与三语包；尚未知的安装端节点由 patch overlay 原样保留。质量由 `tools/validate_translations.py` 与 §P5 detector 守门，不得通过改 whitelist 掩盖漏翻。
+JSON 语言包不承载代码逻辑；运行时复制边界由 `src-tauri/src/patch.rs` 的 `CORE_MAP`、`PLUGIN_DEFINITION_MAP` 与插件 strings 发现共同决定。字段是否翻译由 `tools/translation-whitelist.json` 和 JSON surface 审计分母决定；`Learn/Guides/strings.json` 的 `value` 保存三语内容，但 `language` 必须保持 `en`，因为 Cavalry 2.7.2 把它当固定 catalog 加载槽位而非内容语言。`niceName` 是 Time Editor 与图层模型复用的身份词，必须与 `en/` 保持一致；被 Time Editor 复用的动态属性数据也保持英文，Qt 显示层由 TS/injector 翻译。已核实的平台增量必须同步写入 English 与三语包；尚未知的安装端节点由 patch overlay 原样保留。质量由 `tools/validate_translations.py` 与 §P5 detector 守门，不得通过改 whitelist 掩盖漏翻。
 
-法则: 结构同构·字段分层·niceName 英文·三语同步·禁止半翻译
+法则: 结构同构·字段分层·Guide 固定 en 槽位·niceName 英文·三语同步·禁止半翻译
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

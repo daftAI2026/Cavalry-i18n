@@ -1139,7 +1139,7 @@
     <message><source>Enable Bézier Angle Snapping</source><translation>启用贝塞尔角度吸附</translation></message>
     <message><source>Enable Color Management</source><translation>启用色彩管理</translation></message>
     <message><source>Enable Render Items</source><translation>启用渲染项目</translation></message>
-    <message><source>Enable Snapping</source><translation>启用抓取</translation></message>
+    <message><source>Enable Snapping</source><translation>启用吸附</translation></message>
     <message><source>Encoding file</source><translation>编码文件</translation></message>
     <message><source>encoding specified in XML declaration is incorrect</source><translation>声明中指定的编码不正确</translation></message>
     <message><source>End of Render Queue</source><translation>渲染队列末尾</translation></message>
@@ -7087,6 +7087,7 @@
   <context>
     <name>cavalry::TagHeader</name>
     <message><source>Add Tag:</source><translation>添加标签：</translation></message>
+    <message><source xml:space="preserve">Assign Tag to Selection: </source><translation>为所选内容分配标签：</translation></message>
   </context>
   <context>
     <name>ColorWindow</name>
@@ -7096,6 +7097,7 @@
     <name>assets::Window</name>
     <message><source>Reveal in Explorer...</source><translation>在文件资源管理器中显示...</translation></message>
     <message><source>Replace...</source><translation>替换…</translation></message>
+    <message><source>Create Composition based on %1</source><translation>基于 %1 创建合成</translation></message>
   </context>
   <context>
     <name>cavalry::DGWindow</name>

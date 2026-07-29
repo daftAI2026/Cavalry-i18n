@@ -1,10 +1,12 @@
 /**
- * [INPUT]: 依赖 snapshot/status、English-baseline JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight 与 privilege copy completion。
- * [OUTPUT]: 提供 apply_language_inner、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning 与全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS 原始 English snapshot 与 marker→签名顺序。
+ * [INPUT]: 依赖 snapshot/status、English-baseline JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
+ * [OUTPUT]: 提供 apply_language_inner、长度/只读位/Unix mode/内容感知的增量 pair 筛选、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning 与全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS 原始 English snapshot 与 marker→签名顺序。
  * [POS]: commands 的语言写入编排；Windows 为 source provenance 统一规范化 English/翻译 payload，Program Files 仅在 worker 0/42 后写 state，所有 Windows 写入前关闭阻塞统一投影为可本土化重试结果，macOS 保持已验收快照行为。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::Utc;
+#[cfg(unix)]
+use std::os::unix::fs::PermissionsExt;
 use std::{
     fs,
     path::{Path, PathBuf},

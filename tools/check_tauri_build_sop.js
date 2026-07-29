@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主边界与编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、系统语言/品牌及 GUI 安全合同
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable live 证据及 npm/Tauri 配置
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PR 级 clean-macOS universal link gate、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、仅接受已包含于 origin/main 的 tag commit 所生成的 GitHub Release、系统语言/品牌及 GUI 安全合同
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -347,10 +347,10 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   const verified = run('--verify', installerPath);
   assert.equal(verified.status, 0, verified.stderr || verified.stdout);
   assert.equal(provenanceModule.TARGET_TRIPLE, 'x86_64-pc-windows-msvc');
-  assert.doesNotThrow(() => provenanceModule.verify(tempRoot, installerPath));
+  assert.doesNotThrow(() => provenanceModule.verify(fs.realpathSync.native(tempRoot), installerPath));
   fs.appendFileSync(installerPath, '-tampered');
   assert.throws(
-    () => provenanceModule.verify(tempRoot, installerPath),
+    () => provenanceModule.verify(fs.realpathSync.native(tempRoot), installerPath),
     /sidecar does not match the current installer bytes and packaging input fingerprint/
   );
   fs.writeFileSync(installerPath, 'fresh-installer-bytes');
@@ -711,11 +711,14 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   const macGenerateTranslationsIndex = macBuild.indexOf(
     'node "$REPO_ROOT/tools/generate_embedded_translations.js" "$GENERATED"'
   );
-  const macCompileIndex = macBuild.indexOf('clang++');
+  const macCompileIndex = macBuild.indexOf(
+    'clang++ \\\n  -std=c++17 \\\n  -O2'
+  );
   assert.ok(macGenerateTranslationsIndex >= 0, 'macOS injector build must regenerate the shared table');
+  assert.ok(macCompileIndex >= 0, 'macOS injector production compile command missing');
   assert.ok(
     macGenerateTranslationsIndex < macCompileIndex,
-    'macOS injector build must regenerate the shared table before compiling'
+    'macOS injector build must regenerate the shared table before the production compile'
   );
   assert.match(gitignore, /^\/injector\/libCavalryTranslatorInjector\.dylib$/m);
   assert.match(gitignore, /^\/injector\/windows\/generic\/cavalryi18n\.dll$/m);
@@ -740,6 +743,41 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     /assertNoReparsePathChain\(bundleRoot, 'Windows NSIS bundle root'\)[\s\S]*fs\.mkdirSync\(bundleRoot[\s\S]*assertNoReparsePathChain\(bundleRoot, 'Windows NSIS bundle root after creation'\)/
   );
   assert.match(workflow, /tags:\s*\['cavalry-\*-p\*'\]/);
+  const preflightJob = workflow.match(
+    /\r?\n  release_tag_preflight:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  const releaseJob = workflow.match(
+    /\r?\n  release:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  assert.ok(preflightJob, 'release_tag_preflight job missing');
+  assert.ok(releaseJob, 'release job missing');
+  assert.match(
+    preflightJob[1],
+    /if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)[\s\S]*uses:\s*actions\/checkout@v4[\s\S]*fetch-depth:\s*0/,
+    'release ancestry needs a tag-only complete checkout'
+  );
+  assert.match(
+    preflightJob[1],
+    /git fetch --no-tags origin \+refs\/heads\/main:refs\/remotes\/origin\/main[\s\S]*git merge-base --is-ancestor "\$GITHUB_SHA" refs\/remotes\/origin\/main/,
+    'tag builds must fail closed unless the tag commit is already contained in origin/main'
+  );
+  for (const jobName of ['build', 'windows_check', 'package_macos']) {
+    const job = workflow.match(
+      new RegExp(`\\r?\\n  ${jobName}:\\r?\\n([\\s\\S]*?)(?=\\r?\\n  [a-zA-Z_][a-zA-Z0-9_]*:|\\s*$)`)
+    );
+    assert.ok(job, `${jobName} job missing`);
+    assert.match(
+      job[1],
+      /needs:\s*release_tag_preflight/,
+      `${jobName} must not start before the release-tag ancestry preflight`
+    );
+  }
+  assert.match(releaseJob[1], /needs:\s*\[release_tag_preflight,/);
+  assert.doesNotMatch(
+    releaseJob[1],
+    /merge-base --is-ancestor/,
+    'release must consume the shared preflight rather than rechecking ancestry after platform builds'
+  );
   assert.match(workflow, /npm run check:release/);
   assert.match(workflow, /npm run release:metadata -- --github-env/);
   assert.match(
@@ -1083,6 +1121,33 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     /^\s+!injector\/\*\*\/\*\.dylib\s*$/m,
     'source artifact must exclude platform-built macOS injector binaries'
   );
+});
+
+test('PR and main CI compile and link the universal macOS injector without a vendor app', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const job = workflow.match(
+    /\r?\n  macos_injector_check:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+
+  assert.ok(job, 'macos_injector_check job missing');
+  assert.match(job[1], /needs:\s*release_tag_preflight/);
+  assert.match(
+    job[1],
+    /if:\s*github\.event_name == 'pull_request' \|\| github\.ref == 'refs\/heads\/main'/
+  );
+  assert.match(job[1], /runs-on:\s*macos-latest/);
+  assert.match(job[1], /python3 -m venv[\s\S]*pip install aqtinstall/);
+  assert.match(
+    job[1],
+    /test ! -e \/Applications\/Cavalry\.app[\s\S]*npm run build:injector/,
+    'the PR native gate must exercise the clean-runner Skia link-stub path'
+  );
+  assert.match(
+    job[1],
+    /lipo injector\/libCavalryTranslatorInjector\.dylib -verify_arch arm64 x86_64/
+  );
+  assert.match(job[1], /codesign --verify --strict/);
+  assert.match(job[1], /otool -L[\s\S]*@rpath\/libskia\.dylib/);
 });
 
 test('Windows NSIS install/update/uninstall smoke preserves external Cavalry and has no destructive fallback', () => {
