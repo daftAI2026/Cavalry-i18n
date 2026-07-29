@@ -387,6 +387,26 @@ Guide fixture 增加第五个合法叶子后，旧测试把覆盖率分母硬编
 - 平台构建时生成且明确不入 Git 的 Windows DLL，不应在 macOS 源码树中被断言“预先存在”；
 - 生成链应验证配置声明、输入闭包和构建产物 provenance，而不是验证偶然工作区残留。
 
+### 跨平台语义 oracle 必须随词条一起同步
+
+PR 首次更新后的 Windows CI 成功构建两枚 DLL，并通过 8/9 个 CTest；唯一失败的
+`cavalryi18n_extension_layer_hook` 仍把三条已纠正译文写成旧期望：
+
+```text
+zh-Hans Enable Snapping         启用抓取     -> 启用吸附
+zh-Hant Direct Layer Selection  項目圖層選取 -> 直接選取圖層
+zh-Hant Enable Snapping         啓用抓取     -> 啟用吸附
+```
+
+产品 TS、生成表和 macOS 验收已经使用右侧译文，失败来自 Windows 独立语义 oracle 漂移，不是 runtime 实现回归。macOS 无法执行该 Windows CTest，所以本地 Node 合同全绿也不能替代目标平台编译执行。
+
+永久规则：
+
+- 修改共享 TS 后，除生成表外还要 grep 各平台独立预期；
+- 独立 oracle 不应改成从被测生成表读取，否则测试会退化成自证；
+- 第一轮 CI 若暴露目标平台独有漏项，修复后的第二轮 CI 是必要证据，不属于可避免的重复验证；
+- 只有没有候选变化却分批 push 才是浪费 CI。
+
 ## 生成翻译包不是可选步骤
 
 修改 `tools/{zh-Hans,zh-Hant,ja_JP}.ts` 或 display translation 后，必须：
