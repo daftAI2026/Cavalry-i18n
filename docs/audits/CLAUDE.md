@@ -12,6 +12,7 @@ runtime-performance-implementation-2026-07-13.md: Runtime 性能实施闭环报�
 runtime-translation-noise-triage-2026-05-19.md: 2026-05-19 运行时翻译噪声分诊审计报告，覆盖 20 个可疑 token（如 Rhu、Rfr）的排查结论与证据链。
 runtime-ui-tail-cleanup-run-2026-05-16.md: Runtime UI 收尾清理实跑记录，记录 zh-Hans live capture、FIX1/FIX2 对比、根因修复与残留分类。状态 BLOCKED。
 pr3-macos-release-hardening-session-handoff-2026-07-30.md: PR #3 macOS 发布加固复盘与维护交接，压缩八条表面、Onboarding、Transform、验收器假绿、生成物同步、PR/tag 顺序及 Windows live 原始 pending 的决策与避坑经验，并以后续补记链接到 Windows 15/15 独立真相源。
+windows-onboarding-live-validation-session-handoff-2026-07-30.md: Windows Onboarding live 验证复盘，记录恢复工作区与登录态干扰、语义 driver、exact-PID/HWND helper、step 5 ACK-only、证据封存边界及 macOS driver/helper 提交方式。
 windows-port-session-handoff-2026-07-29.md: Windows x64 适配实施复盘与维护交接，记录最终 generic/QPA/UAC 架构、被证伪路线、翻译表面边界、构建与发布经验、证据分级及后续验证债。
 
 依赖边界:
