@@ -1,6 +1,6 @@
-# [INPUT]: 依赖仓库版本、CHANGELOG、release.config、跨平台 Tauri 配置、Qt generic/QPA 构建入口、Windows NSIS provenance sidecar 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供不夹带原生构建物的源码闭包、Node/翻译合同、PR 级干净 macOS 双架构 injector 链接门、平台 Runner 现场生成的 Windows 双 DLL 与 macOS dylib、带当前输入 provenance 且 hooks 无 Cavalry/QPA 写入入口的 NSIS 隔离安装/同版本更新/卸载及 TEMP 三文件哨兵门、双架构 macOS 包、精确版本更新摘要、仅接受已包含于 origin/main 的 tag commit 所生成的跨平台 GitHub Release 与 README badge 写回
-# [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库源码真相分别投影为 Windows NSIS 与 macOS 发布包；release tag 在任何平台构建前验证 commit 已进入 origin/main，PR 则在无 Cavalry.app 的干净 macOS Runner 上先闭合 native 编译/链接，发布边界只交付 EXE/DMG
+# [INPUT]: 依赖仓库版本、CHANGELOG、release.config、跨平台 Tauri 配置、Qt generic/QPA 与 tracked macOS acceptance 构建入口、Windows NSIS provenance sidecar 及 GitHub tag/artifact 环境
+# [OUTPUT]: 对外提供不夹带原生构建物的源码闭包、Node/翻译合同、PR 级干净 macOS 双架构 product injector 与 acceptance producer 编译门、平台 Runner 现场生成的 Windows 双 DLL 与 macOS dylib、带当前输入 provenance 且 hooks 无 Cavalry/QPA 写入入口的 NSIS 隔离安装/同版本更新/卸载及 TEMP 三文件哨兵门、双架构 macOS 包、精确版本更新摘要、仅接受已包含于 origin/main 的 tag commit 所生成的跨平台 GitHub Release 与 README badge 写回
+# [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库源码真相分别投影为 Windows NSIS 与 macOS 发布包；release tag 在任何平台构建前验证 commit 已进入 origin/main，PR 则在无 Cavalry.app 的干净 macOS Runner 上闭合 product/acceptance native 编译，compile-only 不冒充 live gate
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -219,6 +219,21 @@ jobs:
           lipo injector/libCavalryTranslatorInjector.dylib -verify_arch arm64 x86_64
           codesign --verify --strict injector/libCavalryTranslatorInjector.dylib
           otool -L injector/libCavalryTranslatorInjector.dylib | grep -F '@rpath/libskia.dylib'
+
+      - name: Compile tracked macOS acceptance producer without a vendor app
+        run: |
+          test ! -e /Applications/Cavalry.app
+          eval "$(node tools/resolve_cavalry_qt_sdk.js --print-env --ensure)"
+          out="$RUNNER_TEMP/macos-acceptance"
+          npm run test:acceptance:macos:compile -- \
+            --qt-prefix "$CAVALRY_QT_PREFIX" \
+            --out "$out"
+          test -x "$out/cgwindow_exact"
+          file "$out/cgwindow_exact" | grep -F 'Mach-O'
+          for dylib in "$out"/*.dylib; do
+            codesign --verify --strict "$dylib"
+            otool -L "$dylib" | grep -F '@rpath/QtCore.framework/Versions/A/QtCore'
+          done
 
   package_macos:
     needs: release_tag_preflight

@@ -22,6 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Localized Windows Installer**: The branded NSIS installer follows the Windows UI language for English, Simplified Chinese, Traditional Chinese, and Japanese, with English fallback for other locales.
 - **Windows Runtime UI Translation**: Added scoped translation for ordinary Qt controls, dynamic names and dropdown values, ExtensionLayer empty states and placeholders, tool help, MessageBar warnings, viewport text, and login prompts while preserving model identities, user text, and physical shortcut keys.
 - **Windows Verification Suite**: Added native CTest, Rust transaction contracts, disposable live-clone checks, and isolated NSIS install, same-version update, and uninstall smoke coverage.
+- **Reusable macOS Acceptance Harness**: Added tracked Objective-C++ semantic drivers, exact native-window capture, deterministic media fixtures, a target-locked fail-closed Node matrix, and a vendor-free PR compile gate for the scoped 21-run/48-point macOS release surfaces without storing live sessions or generated binaries in Git.
 
 ### Changed
 - **Explicit English Recovery**: Windows keeps the selected language across normal Cavalry exit, Switcher update, and Switcher uninstall, and restores the exact vendor QPA only when the user selects English.

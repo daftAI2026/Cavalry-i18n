@@ -35,5 +35,6 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 2026-07-30: 新增 PR #3 macOS 发布加固复盘与维护交接，沉淀八条表面、Onboarding、Transform、验收器证据卫生、单次 CI 推送和 Windows live release gate 的可迁移经验。
 2026-07-30: 关闭 PR #3 Windows Onboarding `PENDING-NO-WINDOWS-HOST`，新增绑定 commit 0710dc5 的三语 15/15 exact-PID/HWND live run note；Windows 邻接 producer 与 repository-wide G0-G4 仍不冒充完成。
 2026-07-30: 新增 Windows Onboarding live 验证 session 复盘，将恢复工作区/登录干扰、step 5 退出风险、可复用 driver/helper、证据封存和 macOS 迁移边界沉淀到 PR #3 的长期文档。
+2026-07-30: 从任务事件流恢复 macOS 21-run/48-point acceptance producer 至 `tools/macos-acceptance/`，run note 与双平台 handoff 同步记录 tracked source、session artifact 和历史 PASS 的不可混写边界。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

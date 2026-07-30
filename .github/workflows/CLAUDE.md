@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；release tag 在任何平台构建前必须证明 commit 已包含于 `origin/main`，source artifact 保留 injector 源码/共享生成表并排除 dylib/DLL，Linux 跑版本/release/Node/翻译合同，PR/main 另在无 Cavalry.app 的干净 macOS Runner 以临时 Skia link stub 编译/链接 universal injector；Windows 通过仓库统一 resolver 准备固定 Qt 6.6.3 `msvc2019_64` SDK，现场构建 generic translator 与 QPA delegate，跑正式 smoke、Node/Rust check/test、显式 `x86_64-pc-windows-msvc` NSIS 构建及随机 TEMP 安装/同版本更新/卸载三文件哨兵守门，并上传 provenance 已复算的唯一 EXE 与 sidecar；tag/手动触发才在 macOS 生成双架构 Tauri DMG/`.app`，tag 最终以 `release.config.json` 与精确 CHANGELOG 区块发布两个 DMG 和一个 EXE并写回 badge。
+build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；release tag 在任何平台构建前必须证明 commit 已包含于 `origin/main`，source artifact 保留 injector/acceptance 源码并排除 dylib/DLL，Linux 跑版本/release/Node/翻译合同，PR/main 另在无 Cavalry.app 的干净 macOS Runner 编译/链接 universal product injector 及 host-arch acceptance drivers/exact-window helper，后者只防 producer 腐烂、不替代 live gate；Windows 通过统一 resolver 准备 Qt 6.6.3 SDK，现场构建 generic translator 与 QPA delegate，跑 Node/Rust/NSIS 安装态守门并上传 provenance 已复算的唯一 EXE 与 sidecar；tag/手动触发才生成双架构 Tauri DMG，最终以 `release.config.json` 与精确 CHANGELOG 区块发布三资产并写回 badge。
 
 依赖边界:
 workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。
@@ -35,5 +35,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-07-28: source artifact 显式排除平台生成的 dylib/DLL；macOS/Windows runner 分别从共享源码现场构建原生库，macOS artifact 只上传已嵌入 dylib 的 `.app`/DMG，不再发布冗余的独立 dylib。
 2026-07-28: Windows NSIS workflow gate 增加 hooks 无 Cavalry/QPA 写入入口合同与同一安装器 `/UPDATE` 重入，并在安装、同版本更新、卸载后校验独立 TEMP QPA 三文件哨兵未变；该门禁不替代任意真实 Cavalry 根或跨版本升级兼容验收。
 2026-07-29: release tag ancestry 前移为所有平台构建的共同 preflight，只接受已包含于 `origin/main` 的 commit；PR/main 新增无 vendor app 的 universal macOS injector 原生编译/链接门，避免 tag 成为 Transform ABI 适配器的第一道真实构建。
+2026-07-30: PR/main macOS job 增加 tracked acceptance producer 的 Qt-only compile smoke，在无 Cavalry.app 条件下编译、签名两枚 driver 并构建 exact-window helper；该门只防源码腐烂，不产生 live session 或 PASS。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

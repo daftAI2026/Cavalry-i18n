@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 PR #3 的 Windows Onboarding 调试 session、实现 commit 0710dc5、证据 commit 294acb6、三语 15/15 run note 与 GitHub Actions run 30544847020
-[OUTPUT]: 对外提供恢复工作区与登录态干扰、Onboarding 语义 driver、exact-PID/HWND helper、step 5 关闭边界、证据封存和 macOS 复用方式的维护交接
+[INPUT]: 依赖 PR #3 的 Windows Onboarding 调试 session、实现 commit 0710dc5、证据 commit 294acb6、三语 15/15 run note、GitHub Actions run 30544847020 与同 PR 的 tracked macOS producer
+[OUTPUT]: 对外提供恢复工作区与登录态干扰、Onboarding 语义 driver、exact-PID/HWND helper、step 5 关闭边界、证据封存和已落地的 macOS 对应实现方式
 [POS]: docs/audits 的 dated session handoff；解释本轮怎样得到可信结论，但不替代 live run note、当前代码或 GitHub 实时状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -112,7 +112,8 @@ Rust live-smoke 只修改带 sentinel 的 `%TEMP%` clone，结束时恢复 Engli
 
 macOS 已有的验证经验记录在
 [`pr3-macos-release-hardening-session-handoff-2026-07-30.md`](./pr3-macos-release-hardening-session-handoff-2026-07-30.md)。
-拿到 Mac 后，应把实际使用的 driver/helper、对应合同、GEB 地图和 dated run note 一起 commit 到 PR，不只提交最终截图。
+本轮已把实际使用的 macOS driver/helper、对应合同、GEB 地图和冻结媒体恢复到
+[`tools/macos-acceptance/`](../../tools/macos-acceptance/)，并把恢复 provenance 追加到原 macOS run note。源码进入 Git，编译产物与截图仍留在 session；这正是 Windows 工具落库经验在 Mac 上的完成态，而不是再写一套抽象框架。
 
 两端可以共享这些规则：
 

@@ -1,7 +1,7 @@
 <!--
-[INPUT]: 依赖 Acceptance.md 的 gate 定义、Anti-Patterns.md 的绕过证据
-[OUTPUT]: 对外提供 full-ui-100 的执行纪律、循环规则、run note 规范，以及跨平台实机验证交接清单与当前 macOS 完成证据入口
-[POS]: full-ui-100 工作流运行手册
+[INPUT]: 依赖 Acceptance.md 的 gate 定义、Anti-Patterns.md 的绕过证据、tracked macOS acceptance producer 与 session-scoped artifact 协议
+[OUTPUT]: 对外提供 full-ui-100 的执行纪律、循环规则、run note 规范、跨平台实机验证交接清单，以及 macOS 定向 matrix 的稳定入口与当前完成证据
+[POS]: full-ui-100 工作流运行手册；区分可复用 producer、单次运行证据和 repository-wide gate
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -208,6 +208,65 @@ Windows 与 macOS 共用同一份 `(context, source)` 翻译表，但两端的�
 [`runs/2026-07-29-macos-eight-surface-investigation.md`](./runs/2026-07-29-macos-eight-surface-investigation.md)。
 该勾选只对 run note 中冻结的目标、候选、injector 和 disposable Cavalry clone 身份有效；任一身份变化都必须按
 `Target Version Drift Rule` 重新打开，不得把本次勾选沿用到未来候选。
+
+### Tracked producer 与 session 边界
+
+macOS 定向验收器源码已进入
+[`tools/macos-acceptance/`](../../../tools/macos-acceptance/)：
+
+```text
+tracked Git source
+  = Node matrix + Objective-C++ semantic drivers + exact CGWindow helper
+    + deterministic media fixtures + static contracts
+
+ephemeral session
+  = disposable Cavalry clone + built dylibs/helper + PID/window records
+    + logs + screenshots + manual review + machine/final records
+```
+
+静态合同进入全平台 CI，只证明 producer 闭包和失败关闭规则：
+
+```bash
+npm run test:acceptance:macos:contracts
+```
+
+PR macOS job 另以 Qt-only compile smoke 证明两枚 driver 与 helper 可构建；它不需要 vendor app，只允许仓库外空目录输出，并从 `tools/cavalry_qt_target.json` 锁定 Qt `6.6.3`：
+
+```bash
+eval "$(node tools/resolve_cavalry_qt_sdk.js --print-env --ensure)"
+npm run test:acceptance:macos:compile -- \
+  --qt-prefix "$CAVALRY_QT_PREFIX" \
+  --out "$BUILD_OUT"
+```
+
+需要单独预编 live 工具时，改用 `build:acceptance:macos` 并额外传入 `/Applications` 外的
+`--clone "$CLONE_APP"`；完整 matrix 会在冻结源码后自行执行同一 live build。
+
+完整 matrix 只允许写入一个尚不存在的 session 目录；clone 父目录必须已有
+`.cavalry-i18n-disposable-live-target` sentinel，session 必须位于 repo 与 clone 之外。调用方还必须先冻结预期 clone executable SHA-256，避免“记录了某个 2.7.2”冒充“验证了本候选”：
+
+```bash
+# 先从将要复制为 disposable clone 的冻结候选取值，不要从未知 clone 临时自证。
+EXPECTED_EXECUTABLE_SHA256="$(
+  shasum -a 256 "$SOURCE_APP/Contents/MacOS/Cavalry" | awk '{print $1}'
+)"
+
+npm run test:acceptance:macos:live -- \
+  --repo "$PWD" \
+  --clone "$CLONE_APP" \
+  --expected-executable-sha256 "$EXPECTED_EXECUTABLE_SHA256" \
+  --qt-prefix "$CAVALRY_QT_PREFIX" \
+  --session-dir "$SESSION_DIR"
+
+npm run seal:acceptance:macos -- \
+  --session-dir "$SESSION_DIR" \
+  --review "$MANUAL_REVIEW"
+```
+
+`matrix/v5` 把入口 expected hash 视为受控变换的起点；每次语言 Guide staging 与 deep-sign 后重新冻结 executable/Qt runtime，并要求真实子进程与该 stage 完全一致。seal 复验最终 clone、Qt SDK/runtime 与每个 run→stage 关系，而不是错误要求签名前后字节永远相同。
+
+禁止在默认 CI 执行 matrix/seal 命令，禁止把 compile/static PASS 写成 live PASS，也禁止把本次源码入库改写成对历史
+`5bbc2099-...` session 的重新执行。
 
 任何尚未完成同等实机证据的候选，交接状态固定写作：
 

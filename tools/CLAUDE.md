@@ -28,6 +28,7 @@ verify_gate_inputs.js: full-ui 前置输入守门器，冻结 session artifact�
 capture_accessibility_inventory.js: live AX runtime 抓取器，写 `RUNTIME_DIR/<lang>-ax-inventory.json` 与 menuDepthMax/submenu path audit evidence。
 merge_runtime_inventory.js: runtime inventory 合并器，只接受 live-injector / live-accessibility 输入并产出 `live-merged` session 分母。
 run_live_full_ui_matrix.js: G-CAPTURE 编排器，启动真实 Cavalry、解析 launcher PID、拒绝弱抓取并写 session run record，支持无副作用 `--help`。
+macos-acceptance/: 可复用 macOS 定向 release-gate 工具；以 tracked Objective-C++ driver、exact CGWindow helper、冻结媒体与 target/stage 身份闭合的 Node matrix/v5 执行三语 21-run/48-point 验收，静态合同和无 vendor app 原生 compile 进入 CI，运行产物严格留在 repo/clone 外 session。
 freeze_extraction_inventory.js: G-X freeze 器，按 whitelist 噪声规则冻结 JSON/compiled/runtime 英文分母并写顶层 target identity。
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
 generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成带 GEB L3 契约的 injector 编译期翻译表，拒绝任何位于 `<context>` 外、运行时不可达的孤儿 `<message>`，并仅对显式 `xml:space="preserve"` 的 source/translation 保留首尾空白。
@@ -128,5 +129,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-29: macOS 定向合同锁定 parentless Assets ContextMenu 的单事件循环 owner 承接、Tag/Tracking owner 负边界、具体 Add Layer 快捷键隔离，以及 TransformTool 五 action 的双 slice caller/Skia ABI 防火墙。
 2026-07-29: Guide catalog 纳入 translation validator，固定 Cavalry 2.7.2 实际读取的 `en` slot、98-key 同构与引用完备性；生成翻译表同时保留 GEB L3 契约。
 2026-07-29: Windows NSIS provenance 比较 canonical file identity，修复 macOS `/var` 与 `/private/var` 指向同一安装器却被误拒绝的本地合同假阴性；bundle 边界与内容 fingerprint 不变。
+2026-07-30: 将 2026-07-29 现场使用的 macOS 21-run/48-point acceptance driver、exact-window helper、媒体输入和 harness 从可清理 Cache 恢复到 `macos-acceptance/`；CI 运行静态合同与无 vendor app compile，live PASS 仍只由显式 session 证据产生。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

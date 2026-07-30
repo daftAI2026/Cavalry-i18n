@@ -18,7 +18,7 @@ Cavalry-i18n/
 │   └── tests/                    # Rust contract tests for command/config/runtime behavior
 ├── injector/                     # macOS injector + Windows generic translator/QPA delegate + shared generated table
 ├── languages/                    # Runtime JSON language packs: en, zh-Hans, zh-Hant, ja_JP
-├── tools/                        # Build, extraction, translation, packaging, and gate scripts
+├── tools/                        # Build, extraction, translation, packaging, and tracked macOS/Windows gate producers
 ├── docs/                         # Translation rules, runtime capture workflow, audits, gates
 ├── output/                       # Derived JSON-surface audit artifacts; not runtime truth
 ├── desktop-patcher/              # Legacy injector artifact mirror; not current mainline
@@ -48,7 +48,8 @@ Cavalry-i18n/
 | Display-only model names | `tools/model_display_translations.json` | UI display translations for model names; do not write these into model identity data. |
 | JSON language packs | `languages/en`, `languages/zh-Hans`, `languages/zh-Hant`, `languages/ja_JP` | `en` is baseline. Target languages must stay structurally isomorphic. |
 | Translation policy | `docs/translation-guidelines.md`, `docs/cavalry-glossary.md`, `tools/translation-whitelist.json` | Field-level translate/no-translate boundaries and terminology. |
-| Full UI gate | `docs/workflows/cavalry-full-ui-100/Acceptance.md`, `Runbook.md`, `tools/run_live_full_ui_matrix.js` | Current live gate truth. CI does not run this gate. |
+| Full UI gate | `docs/workflows/cavalry-full-ui-100/Acceptance.md`, `Runbook.md`, `tools/run_live_full_ui_matrix.js` | Current repository-wide live gate truth. CI does not run this gate. |
+| macOS scoped acceptance | `tools/macos-acceptance/`, `docs/workflows/cavalry-full-ui-100/runs/2026-07-29-macos-eight-surface-investigation.md` | Tracked producer for the 21-run/48-point matrix; generated tools and live evidence remain session-scoped. |
 | Runtime capture | `docs/runtime-ui-live-capture-workflow.md`, `tools/capture_accessibility_inventory.js`, `tools/merge_runtime_inventory.js` | Session-scoped provenance is mandatory. |
 | Release protocol | `release.config.json`, `tools/release_metadata.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` tags drive release title and three assets: two DMGs plus Windows x64 NSIS EXE. |
 | Local build | `LOCAL_BUILD_SOP.md`, `src-tauri/tauri.*.conf.json`, `tools/cavalry_qt_target.json` | Tauri-only package path, per-platform Qt build, DMG/NSIS validation. |
@@ -138,6 +139,12 @@ npm run test:tauri
 npm run prepare:qt-sdk
 npm run prepare:qt-sdk:windows
 npm run build:injector
+
+# macOS scoped acceptance: CI-safe contract + vendor-free compile; live requires explicit disposable inputs
+npm run test:acceptance:macos:contracts
+npm run test:acceptance:macos:compile -- --qt-prefix "$CAVALRY_QT_PREFIX" --out "$BUILD_OUT"
+npm run build:acceptance:macos -- --clone "$CLONE_APP" --qt-prefix "$CAVALRY_QT_PREFIX" --out "$BUILD_OUT"
+npm run test:acceptance:macos:live -- --repo "$PWD" --clone "$CLONE_APP" --expected-executable-sha256 "$EXPECTED_EXECUTABLE_SHA256" --qt-prefix "$CAVALRY_QT_PREFIX" --session-dir "$SESSION_DIR"
 
 # Local Tauri build / package
 npm run tauri:dev

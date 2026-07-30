@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 PR #3 当前候选、Codex 任务 019faaa4-501d-7802-ae83-7bb494dd0995、Windows 移植复盘、macOS 48 点 run note 与 acceptance-v2 机器/人工证据
-[OUTPUT]: 对外提供 PR #3 macOS 发布加固的决策记录、踩坑复盘、可迁移验收方法、发布边界与下一位维护者最短路径
+[INPUT]: 依赖 PR #3 当前候选、Codex 任务 019faaa4-501d-7802-ae83-7bb494dd0995、Windows 移植复盘、macOS 48 点 run note/机器证据与后续 tracked acceptance producer
+[OUTPUT]: 对外提供 PR #3 macOS 发布加固的决策记录、踩坑复盘、可迁移验收方法、producer 交接边界、发布顺序与下一位维护者最短路径
 [POS]: docs/audits 的 dated 工程交接；压缩本轮长对话但不替代 Runbook、当前 run note、代码合同或 GitHub 实时状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -434,6 +434,33 @@ zh-Hant Enable Snapping         啓用抓取     -> 啟用吸附
 - 用旧 dylib/DLL 截图证明新 TS；
 - 把 JSON 语言包和 compiled/runtime Qt 表面混为一谈。
 
+## 验收 producer 必须进入 Git
+
+本次现场最严重的工程缺口不是某张截图失败，而是可复用 macOS driver/helper 最初只存在于
+`~/Library/Caches/Cavalry-i18n/acceptance-v2-src/`。最终 session 冻结了它们，因此当次结果可信；但 Cache 被清理后，另一台机器只能看到 run note，不能审查或复用 producer。
+
+现已从本任务 JSONL 中按成功补丁序列恢复，并纳入
+[`tools/macos-acceptance/`](../../tools/macos-acceptance/)：
+
+```text
+Git
+  Node matrix / schema / oracle
+  Objective-C++ semantic drivers
+  Swift exact native-window helper
+  deterministic media fixtures
+  static contracts + GEB maps
+
+session only
+  built dylibs/helper
+  disposable Cavalry clone
+  PID/window identity
+  logs/screenshots/manual review/final record
+```
+
+恢复过程与最终 hashes 追加在
+[`2026-07-29-macos-eight-surface-investigation.md`](../workflows/cavalry-full-ui-100/runs/2026-07-29-macos-eight-surface-investigation.md)。
+以后任何决定 release gate 成败的 producer 都必须与其合同和地图一起提交；只有单次机器身份、运行证据和生成物留在 cache/session。这个规则与 Windows 将 runtime driver、Rust 编排和 exact-HWND helper 提交进 PR 的做法同构。
+
 ## 协作工具经验
 
 Grok CLI 适合作为独立工程伙伴做失败归因、diff 审阅和发布顺序复核，但不应与主执行者并行重复跑同一套昂贵 matrix。它的全局 `pre_tool_use` hook 曾返回 `127`；CLI 以 fail-open 继续工作。该问题属于伙伴工具配置，不应被包装成产品失败或阻塞 Cavalry 证据。
@@ -483,12 +510,12 @@ Windows 邻接 producer -> PENDING-WINDOWS-PRODUCER
 2. 确认 worktree、HEAD、dirty/untracked 和 PR head 没有漂移；
 3. 保持内部版本 `0.6.0`，不要为未发布候选再 bump；
 4. 确认 TS、generated table 和 native injector 来源闭合；
-5. 不重复已经封存的 macOS 48 点，除非候选字节或目标身份变化；
-6. 把两个逻辑 commit 一次 push 到 PR #3；
-7. 只用新 PR head 的 CI 判断可合并性；
-8. Windows Onboarding 以独立 run note 的 `15/15` 为准，邻接 producer pending 不冒充 PASS；
-9. 合并与 tag 需维护者再次决定；
-10. 若最终发布，先确认 exact main SHA，再创建 `cavalry-2.7.2-p4`。
+5. 从 `tools/macos-acceptance/` 读取和构建 producer，不再依赖已清理 Cache；
+6. 不重复已经封存的 macOS 48 点，除非候选字节或目标身份变化；
+7. 一次性 push 当前逻辑提交到 PR #3；
+8. 只用新 PR head 的 CI 判断可合并性；
+9. Windows Onboarding 以独立 run note 的 `15/15` 为准，邻接 producer pending 不冒充 PASS；
+10. 合并与 tag 需维护者再次决定；若最终发布，先确认 exact main SHA，再创建 `cavalry-2.7.2-p4`。
 
 ## 一页避坑清单
 

@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 Runbook.md 的跨平台可见表面证据协议、PR #3 release-candidate 冻结源码，以及 acceptance-v2 的失败现场、机器记录、人工逐图复核与最终封存记录
-[OUTPUT]: 对外提供旧假绿失效、日语 Update 回归、验收器自校正与最终 macOS 48 点 PASS 的完整证据谱系
+[INPUT]: 依赖 Runbook.md 的跨平台可见表面证据协议、PR #3 release-candidate 冻结源码、acceptance-v2 的失败现场/机器记录/人工复核，以及后续 tracked producer 恢复记录
+[OUTPUT]: 对外提供旧假绿失效、日语 Update 回归、验收器自校正、最终 macOS 48 点 PASS 与 producer 入库边界的完整证据谱系
 [POS]: full-ui-100 的当前 macOS p4 定向验收 run note；只证明本候选的 macOS 范围，不替代 Windows producer 或 repository-wide G0-G4
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -23,7 +23,9 @@ Windows adjacent producers = PENDING-WINDOWS-PRODUCER
 repository-wide G0-G4      = NOT CLAIMED
 ```
 
-不得把本记录改写为 Windows 真机 PASS、repository-wide `ALL GATES PASS`，也不得用它给 detached/dirty PR head 直接打 tag。
+其中两条 Windows 行是本记录于 2026-07-29 封存时的历史快照；后续 Windows Onboarding 三语 `15/15` 由
+[`2026-07-30-windows-onboarding-live-validation.md`](./2026-07-30-windows-onboarding-live-validation.md)
+承接，Windows 邻接 producer 仍未完成。不得把本记录自身改写成 Windows 或 repository-wide `ALL GATES PASS`，也不得用它给 detached/dirty PR head 直接打 tag。
 
 ## Candidate identity
 
@@ -173,6 +175,36 @@ evidenceMode           = startup-cumulative
 - 若启动时已精确累计五条，则要求 exact per-source count/mask、零 fallback/renderer failure、caller/ABI 边界和最终 OS pixels；driver 仍通过 off/on 双切恢复目标状态。
 
 人工确认三语五行全部可读。第一行与 Cavalry 原有白色画布边界相交，但文字未丢失、未变英文、未出现缺字框。
+
+## Producer 恢复与入库（2026-07-30）
+
+本次 live matrix 执行时，acceptance producer 位于机器 Cache，并由 harness 冻结进每个 session；它没有随产品修复一起进入 Git。Cache 后来被正常清理，暴露出一个证据工程缺口：最终 record 能证明当次结果，但下一台机器拿不到生成该结果的 driver/helper。
+
+补救没有从 run note 反向手写“差不多”的工具，而是从 Codex 任务
+`019faaa4-501d-7802-ae83-7bb494dd0995` 的 JSONL 事件流恢复：
+
+1. 只重放同一日志中存在 `patch_apply_end.success=true` 的补丁；
+2. 对 harness 与 exact-window helper 使用最终完整 heredoc，再叠加后续成功补丁；
+3. 以 final `5bbc2099-...` 结束后的源码行数核对并发分片；
+4. 对 `macos_main_save_replace.inc` 从完整 stdout 基线精确重放，恢复为 725 行；
+5. 按保留的 ffmpeg 命令再生三份媒体，并与 final frozen fixture SHA-256 逐项一致；
+6. 在 Qt 6.6.3 下重新编译主/补充 driver，执行 Swift parse、Node syntax 与独立静态合同。
+
+稳定源码现在位于
+[`tools/macos-acceptance/`](../../../../tools/macos-acceptance/)。
+从 JSONL 精确恢复的基线身份如下；它们证明恢复过程，不把后续安全加固伪装成历史 live 输入：
+
+```text
+acceptance_harness.js       1f89ab1ce9695f240d0a6f9affe3dbdfb2a57a1dd647d0d1abbb41d1f9332903
+cgwindow_exact.swift        09434a03c9385bec8c404e4840e6dad417e34549736313d3af0a5e84ba2e1fdc
+macos_main_save_replace.inc 0e2af678f6d12cebc152c2a0ae3fd599794af59ea31191b3ec9d7a60b5a3efd0
+replace-source.png          6aa5145e9b04c05f8127e00b98917be02d7c014c004cbc19f6ca7b3fec1a07b2
+dynamic-proof-two.png       8198f751d1924c346d1f187ab4ebe7be694f06085437af495265ee8fb34d2add
+replace-source.mp4          35e723f8c3a8bd0818b3619d305c6db90e730f2cb1ee59c2fd02502f6d5a41ca
+```
+
+源码入库后额外把 build/session 输出强制移到仓库外，阻断 clone 内部 symlink 越界、review symlink 外部改权和 PID reuse 误杀，并以 matrix/v5 绑定 target contract、入口 executable hash 及每次 deep-sign 后的 executable/Qt runtime stage；这些维护性加固会改变当前 harness 字节，但不重写历史。上方
+`PASS-48-OF-48` 仍只绑定当时冻结的 candidate、injector、clone、machine record 与人工 seal；本节证明 producer 已可交接，不声称重新运行了一轮 live matrix。
 
 ## Release boundary
 
