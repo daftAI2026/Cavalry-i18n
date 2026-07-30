@@ -39,6 +39,7 @@
 2026-05-14-2.7.2-reverification.md: Cavalry 2.7.2 目标身份、session 数据与 gate 的独立复验记录。
 2026-05-14-cavalry-2.7.2-target-refresh.md: 当前目标切换到 Cavalry 2.7.2 时的版本、Qt 与旧 artifact 隔离决策。
 2026-07-29-macos-eight-surface-investigation.md: macOS p4 定向验收谱系；保留 F6B7C533 假绿失效与 d0d7cf38 日语 `Update -> ニュース` 人工拒绝，最终以 5bbc2099 的 21/21 runs、48/48 points、54/54 exact OS screenshots 和 `PASS-48-OF-48` 封存当前候选。
+2026-07-30-windows-onboarding-live-validation.md: PR #3 Windows Onboarding 定向 release gate；绑定实现 commit 0710dc5、Cavalry 2.7.2/Qt 6.6.3、三语 15/15 exact-PID/HWND PNG hash、`std::string` ABI、step5-ack-only、无盲键关闭、English restore 与零 PID 清理，并保留邻接 producer/repository-wide 未声明边界。
 archive/: 反模式与污染 run note 取证目录，含 fabrication-era over-claim、失效 NEXT-STEPS.md 与 2026-04-30 G-CAPTURE 历史诊断，仅供反向回归，不参与当前 gate。
 
 规则

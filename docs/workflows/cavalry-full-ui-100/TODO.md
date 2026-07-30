@@ -1,21 +1,21 @@
 <!--
 [INPUT]: 依赖 Acceptance.md、Runbook.md、当前 release candidate 与最新 run note
-[OUTPUT]: 对外提供本轮 macOS 定向验收、发布收口及明确未声明边界
+[OUTPUT]: 对外提供本轮 macOS 定向验收、Windows Onboarding live 收口及明确未声明边界
 [POS]: full-ui-100 当前任务索引；只列阻塞项，不复制证据系统实现
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
-# TODO — macOS p4 收口
+# TODO — p4 定向验收收口
 
 ## 当前状态
 
 ```text
-产品代码                 = IMPLEMENTED, TARGETED MACOS LIVE-ACCEPTED
+产品代码                 = IMPLEMENTED, TARGETED MACOS/WINDOWS-ONBOARDING LIVE-ACCEPTED
 macOS 8 条 ordinary Qt   = PASS (24/24)
 macOS 2 条邻接表面        = PASS (6/6)
 macOS Onboarding 五步    = PASS (15/15)
 Transform 自绘帮助        = PASS (3/3)
-Windows Onboarding live  = PENDING-NO-WINDOWS-HOST
+Windows Onboarding live  = PASS (15/15)
 Windows 两条邻接 producer = PENDING-WINDOWS-PRODUCER
 repository-wide G0-G4    = NOT CLAIMED
 ```
@@ -25,6 +25,9 @@ repository-wide G0-G4    = NOT CLAIMED
 它只用于定位 producer/owner，不能替代本轮验收。当前 macOS 真相源是
 session `5bbc2099-b9a5-41ef-89ed-6c16ca08105f` 的
 `matrix-final-record.json`，状态 `PASS-48-OF-48`。
+当前 Windows Onboarding 真相源是
+[`runs/2026-07-30-windows-onboarding-live-validation.md`](./runs/2026-07-30-windows-onboarding-live-validation.md)，
+绑定实现 commit `0710dc5` 与单一三语 final run 的 15 张 exact-PID/HWND PNG hash。
 
 ## 本轮只证明三件事
 
@@ -52,11 +55,12 @@ session `5bbc2099-b9a5-41ef-89ed-6c16ca08105f` 的
 - [x] Assets `Create Composition based on %1` 三语 `3/3`。
 - [x] 用 `replace-source` 与 `dynamic-proof-two` 两个真实素材 stem 证明 `%1` 是动态 identity，不是硬编码名字。
 
-### Onboarding — 15 点
+### Onboarding — macOS 15 点 + Windows 15 点
 
 - [x] 三语 `Learn/Guides/strings.json` 保持 Cavalry 固定读取的 `language: "en"` slot；98 keys 与 guide references 静态同构。
 - [x] 每语真实显示 step 1–5；标题、正文、Back/Next/Done 拓扑与独立硬编码语言 oracle 完全相等。
 - [x] 每步各一张绑定 exact native window 的截图，正文为空不能通过；合计 `15/15` 人工复核。
+- [x] Windows 额外以独立 live gate 完成三语 `15/15`：继承当前登录态但不复制 profile，以 `showGuides → guideSelected(std::string("firstLaunch")) → steps 1–4 nextClicked → step 5 ACK-only` 驱动；helper 只截 runtime 发布的 exact HWND，最终恢复 English 并清零 PID。
 
 ### Transform — 3 点
 
@@ -76,6 +80,6 @@ session `5bbc2099-b9a5-41ef-89ed-6c16ca08105f` 的
 
 ## 明确不在本轮冒充完成
 
-- Windows 使用同一份 Guide 语言包与静态合同，但尚无 Windows 主机运行真实 Cavalry 五步 Onboarding；状态保持 `PENDING-NO-WINDOWS-HOST`，它属于三资产发布前的 live release gate。
+- Windows Onboarding 只关闭此前 `PENDING-NO-WINDOWS-HOST`；它不扩张为 Windows 全表面 PASS。
 - Windows 共享表中已有 Tag/Assets 邻接译文，但 producer/caller/HWND/像素尚未采证，状态保持 `PENDING-WINDOWS-PRODUCER`。
 - 本轮没有重跑 repository-wide W-AUDIT、G-P、§P5、G-CAPTURE、G-X、G0-G4，因此不声明 `ALL GATES PASS`。

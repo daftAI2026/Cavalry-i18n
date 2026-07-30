@@ -76,6 +76,14 @@ status PASS-48-OF-48
 
 这组 PASS 只证明当前候选的 macOS 定向范围。它不证明 Windows 真机、不证明 repository-wide `ALL GATES PASS`，也不授权给 detached 或 dirty PR head 打 tag。
 
+### 后续 Windows live 补记（2026-07-30）
+
+本文上述 `PENDING-NO-WINDOWS-HOST` 是交接形成时的历史快照。随后 Windows 主机已用 PR #3 实现 commit `0710dc5` 完成真实 Cavalry 2.7.2 Onboarding 三语 `15/15`，并逐图绑定 exact PID/HWND、安装 catalog 的唯一标题/独立正文、`guideSelected(std::string)` ABI、steps 1–4 `nextClicked`、step 5 ACK-only、English restore 与零 PID 清理。
+
+当前 Windows Onboarding 状态由
+[`2026-07-30-windows-onboarding-live-validation.md`](../workflows/cavalry-full-ui-100/runs/2026-07-30-windows-onboarding-live-validation.md)
+承接；Windows Tag/Assets 邻接 producer 仍为 `PENDING-WINDOWS-PRODUCER`，repository-wide G0-G4 仍未声明。
+
 ## 首要决策：先形成可发布候选，再谈 tag
 
 本轮最早的问题是：先给 PR 打 tag，还是适配、ChangeLog、版本、合并后再打 tag。
@@ -448,9 +456,9 @@ Grok CLI 适合作为独立工程伙伴做失败归因、diff 审阅和发布顺
 
 本地 pre-commit 可能对两个 commit 分别运行，这是 index 边界检查，不等于远端 CI 两次。不得为了省本地检查而用 `git add .`、覆盖其他 worktree，或把两个逻辑边界压成无法审阅的提交。
 
-## Windows 未验证项如何处理
+## Windows 未验证项如何处理（形成时）
 
-Onboarding 修复位于 macOS/Windows 共用语言包，macOS 真实五步已经 `15/15 PASS`；Windows 仍缺真实 Cavalry 可见证据。
+以下记录本文形成时的决策。Onboarding 的 Windows 缺口后来已由上方补记链接的独立 run note 关闭；保留本节是为了说明没有 Windows 证据时为什么必须写 pending。
 
 当前处理：
 
@@ -467,7 +475,7 @@ Windows 邻接 producer -> PENDING-WINDOWS-PRODUCER
 1. 获得 Windows 环境并完成真实验收，再发布三资产 `p4`；
 2. 把该 patch 明确调整为 macOS-only，同步缩小 ChangeLog、工作流和发布资产，Windows 延后。
 
-未作出第二项决定前，默认保留三资产目标，但 Windows live 状态必须保持 pending。
+后续已完成第一项中的 Windows Onboarding `15/15`；它只关闭 Onboarding live 缺口，Windows 邻接 producer 仍保持 pending。
 
 ## 下一位维护者的最短路径
 
@@ -478,7 +486,7 @@ Windows 邻接 producer -> PENDING-WINDOWS-PRODUCER
 5. 不重复已经封存的 macOS 48 点，除非候选字节或目标身份变化；
 6. 把两个逻辑 commit 一次 push 到 PR #3；
 7. 只用新 PR head 的 CI 判断可合并性；
-8. Windows live pending 不冒充 PASS；
+8. Windows Onboarding 以独立 run note 的 `15/15` 为准，邻接 producer pending 不冒充 PASS；
 9. 合并与 tag 需维护者再次决定；
 10. 若最终发布，先确认 exact main SHA，再创建 `cavalry-2.7.2-p4`。
 

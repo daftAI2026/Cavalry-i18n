@@ -33,5 +33,6 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 2026-07-24: 新增 Windows 端口与注入路线图，明确任意安装根、JSON keyed overlay、Qt generic plugin、进程级环境、ExtensionLayer IAT 白名单和真机验收边界。
 2026-07-29: 新增 Windows x64 适配实施复盘与维护交接，沉淀 generic/QPA/UAC 最终架构、被证伪方案、构建发布经验、证据分级和仍需补齐的跨平台真机验证。
 2026-07-30: 新增 PR #3 macOS 发布加固复盘与维护交接，沉淀八条表面、Onboarding、Transform、验收器证据卫生、单次 CI 推送和 Windows live release gate 的可迁移经验。
+2026-07-30: 关闭 PR #3 Windows Onboarding `PENDING-NO-WINDOWS-HOST`，新增绑定 commit 0710dc5 的三语 15/15 exact-PID/HWND live run note；Windows 邻接 producer 与 repository-wide G0-G4 仍不冒充完成。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
