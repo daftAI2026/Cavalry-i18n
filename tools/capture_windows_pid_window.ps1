@@ -1,7 +1,7 @@
 ﻿<#
 [INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、显式 PID、位于带 sentinel 的 disposable `%TEMP%` clone 根内的 Cavalry.exe、runtime marker、带 sentinel 的 evidence `%TEMP%` 根与输出 PNG 路径
-[OUTPUT]: 对外提供 Inventory/Capture/Close 三个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；以 64 位 source mask 自动捕获三类场景，并以显式开关从零位图基线等待人工 Cogwheel 拖拽及严格诊断增量
-[POS]: tools 的 Windows GUI 取证边界；Edit Shape 与人工 CogPitch 通过有界 exact-HWND 前台门，Edit Shape 要求六条动作和三条长操作前缀完整命中，CogPitch 拒绝预置 bit 28 并保存前后诊断，不创建场景、不依赖 Qt UIA、不运行脚本，禁止坐标/鼠标回退、强杀、固定 sleep 或覆盖证据
+[OUTPUT]: 对外提供 Inventory/Capture/Close 三个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；捕获三类自绘场景和 runtime 发布的 exact-HWND Onboarding，并以显式开关从零位图基线等待人工 Cogwheel 拖拽及严格诊断增量
+[POS]: tools 的 Windows GUI 取证边界；Edit Shape 与人工 CogPitch 通过有界 exact-HWND 前台门，Onboarding 不重选主窗口，Close 只向 exact PID 的全部顶层 HWND 投递 WM_CLOSE 且不发送盲键；不创建场景、不依赖 Qt UIA、不运行脚本，禁止坐标/鼠标回退、强杀、固定 sleep 或覆盖证据
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -29,8 +29,11 @@ param(
     [string]$OutputPath,
 
     [Parameter(Mandatory = $false)]
-    [ValidateSet('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch')]
+    [ValidateSet('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch', 'Onboarding')]
     [string]$CaptureScenario = 'ViewportQuality',
+
+    [Parameter(Mandatory = $false)]
+    [string]$ExpectedWindowHandle,
 
     [Parameter(Mandatory = $false)]
     [switch]$AllowManualCogPitch,
@@ -96,14 +99,6 @@ public static class CavalryLiveWindow {
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
 
-    [DllImport("user32.dll")]
-    private static extern void keybd_event(
-        byte virtualKey,
-        byte scanCode,
-        uint flags,
-        UIntPtr extraInfo
-    );
-
     [DllImport("dwmapi.dll")]
     private static extern int DwmGetWindowAttribute(
         IntPtr window,
@@ -139,6 +134,19 @@ public static class CavalryLiveWindow {
         return windows.ToArray();
     }
 
+    public static IntPtr[] FindProcessWindows(uint targetProcessId) {
+        var windows = new System.Collections.Generic.List<IntPtr>();
+        EnumWindows(delegate(IntPtr window, IntPtr parameter) {
+            uint processId;
+            GetWindowThreadProcessId(window, out processId);
+            if (processId == targetProcessId) {
+                windows.Add(window);
+            }
+            return true;
+        }, IntPtr.Zero);
+        return windows.ToArray();
+    }
+
     public static IntPtr[] FindTopLevelWindows(uint targetProcessId) {
         var windows = new System.Collections.Generic.List<IntPtr>();
         foreach (IntPtr window in FindVisibleWindows(targetProcessId)) {
@@ -166,6 +174,21 @@ public static class CavalryLiveWindow {
             }
         }
         return bestWindow;
+    }
+
+    public static bool IsExactVisibleWindow(IntPtr window, uint targetProcessId) {
+        if (window == IntPtr.Zero || !IsWindowVisible(window)) {
+            return false;
+        }
+        uint processId;
+        GetWindowThreadProcessId(window, out processId);
+        if (processId != targetProcessId) {
+            return false;
+        }
+        int cloaked = 0;
+        return
+            DwmGetWindowAttribute(window, 14, out cloaked, sizeof(int)) != 0 ||
+            cloaked == 0;
     }
 
     public static bool RequestForegroundWindow(IntPtr window) {
@@ -201,16 +224,6 @@ public static class CavalryLiveWindow {
                 new IntPtr((long)virtualKey),
                 new IntPtr(upState)
             );
-    }
-
-    public static void ConfirmDiscardOfDisposableScene() {
-        const uint KEYEVENTF_KEYUP = 0x0002;
-        const byte VK_LEFT = 0x25;
-        const byte VK_RETURN = 0x0D;
-        keybd_event(VK_LEFT, 0, 0, UIntPtr.Zero);
-        keybd_event(VK_LEFT, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
-        keybd_event(VK_RETURN, 0, 0, UIntPtr.Zero);
-        keybd_event(VK_RETURN, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
     }
 
 }
@@ -692,16 +705,27 @@ function Capture-MainWindow {
         [Parameter(Mandatory = $true)]
         [System.DateTime]$Deadline,
         [Parameter(Mandatory = $true)]
-        [string]$Destination
+        [string]$Destination,
+        [Parameter(Mandatory = $true)]
+        [bool]$ResolveMainWindow
     )
 
     while ([System.DateTime]::UtcNow -lt $Deadline) {
         $Process.Refresh()
         Assert-Condition -Condition (-not $Process.HasExited) `
             -Message "Cavalry process $ExpectedProcessId exited before its window rendered."
-        $currentWindow = [CavalryLiveWindow]::FindMainWindow([uint32]$ExpectedProcessId)
-        if ($currentWindow -ne [IntPtr]::Zero) {
-            $Window = $currentWindow
+        if ($ResolveMainWindow) {
+            $currentWindow = [CavalryLiveWindow]::FindMainWindow([uint32]$ExpectedProcessId)
+            if ($currentWindow -ne [IntPtr]::Zero) {
+                $Window = $currentWindow
+            }
+        } else {
+            Assert-Condition `
+                -Condition ([CavalryLiveWindow]::IsExactVisibleWindow(
+                    $Window,
+                    [uint32]$ExpectedProcessId
+                )) `
+                -Message 'Requested exact Cavalry child window is no longer visible.'
         }
         $rectangle = [CavalryLiveWindow+Rect]::new()
         if ([CavalryLiveWindow]::GetWindowRect($Window, [ref]$rectangle)) {
@@ -794,25 +818,21 @@ function Close-ExactProcessWindows {
         [System.DateTime]$Deadline
     )
 
-    $discardConfirmationSent = $false
     while ([System.DateTime]::UtcNow -lt $Deadline) {
         $Process.Refresh()
         if ($Process.HasExited) {
             return $true
         }
-        $windows = [CavalryLiveWindow]::FindTopLevelWindows([uint32]$ExpectedProcessId)
+        $windows = [CavalryLiveWindow]::FindProcessWindows([uint32]$ExpectedProcessId)
         foreach ($window in $windows) {
-            Assert-Condition `
-                -Condition ([CavalryLiveWindow]::PostMessage(
-                    $window,
-                    [CavalryLiveWindow]::WM_CLOSE,
-                    [IntPtr]::Zero,
-                    [IntPtr]::Zero
-                )) `
-                -Message (
-                    "Cavalry process $ExpectedProcessId rejected WM_CLOSE on " +
-                    "exact window $($window.ToInt64())."
-                )
+            # EnumWindows 与 PostMessage 之间窗口可正常销毁；发送失败只表示
+            # 本轮竞态，不得阻断其余 exact-PID 顶层窗口的优雅关闭。
+            [void][CavalryLiveWindow]::PostMessage(
+                $window,
+                [CavalryLiveWindow]::WM_CLOSE,
+                [IntPtr]::Zero,
+                [IntPtr]::Zero
+            )
         }
         $remaining = [uint32][Math]::Max(
             1,
@@ -820,23 +840,6 @@ function Close-ExactProcessWindows {
         )
         if ([CavalryLiveWindow]::WaitForSingleObject($Process.Handle, $remaining) -eq 0) {
             return $true
-        }
-        if (-not $discardConfirmationSent) {
-            $focusWindow = [CavalryLiveWindow]::FindMainWindow(
-                [uint32]$ExpectedProcessId
-            )
-            if (
-                $focusWindow -ne [IntPtr]::Zero -and
-                [CavalryLiveWindow]::RequestForegroundWindow($focusWindow) -and
-                [CavalryLiveWindow]::ExactForegroundWindow(
-                    $focusWindow,
-                    [uint32]$ExpectedProcessId
-                )
-            ) {
-                # disposable clone 启动后的默认场景天然未保存；仅在前台 PID 再验证后确认“是”。
-                [CavalryLiveWindow]::ConfirmDiscardOfDisposableScene()
-                $discardConfirmationSent = $true
-            }
         }
     }
     return $false
@@ -866,10 +869,6 @@ if ($Action -eq 'Close') {
         exit 0
     }
     $deadline = [System.DateTime]::UtcNow.AddMilliseconds($TimeoutMilliseconds)
-    [void](Wait-ForMainWindow `
-        -Process $exact.process `
-        -ExpectedProcessId $TargetProcessId `
-        -Deadline $deadline)
     Assert-Condition `
         -Condition (Close-ExactProcessWindows `
             -Process $exact.process `
@@ -917,10 +916,29 @@ $marker = Wait-ForExtensionLayerMarker `
     -ExpectedLanguage $Language `
     -ExpectedProcessId $TargetProcessId `
     -Deadline $deadline
-$window = Wait-ForMainWindow `
-    -Process $exact.process `
-    -ExpectedProcessId $TargetProcessId `
-    -Deadline $deadline
+$resolveMainWindow = $CaptureScenario -cne 'Onboarding'
+if ($resolveMainWindow) {
+    $window = Wait-ForMainWindow `
+        -Process $exact.process `
+        -ExpectedProcessId $TargetProcessId `
+        -Deadline $deadline
+} else {
+    $parsedWindowHandle = 0L
+    Assert-Condition `
+        -Condition (
+            -not [string]::IsNullOrWhiteSpace($ExpectedWindowHandle) -and
+            [long]::TryParse($ExpectedWindowHandle, [ref]$parsedWindowHandle) -and
+            $parsedWindowHandle -ne 0
+        ) `
+        -Message 'Onboarding capture requires a non-zero decimal ExpectedWindowHandle.'
+    $window = [IntPtr]::new($parsedWindowHandle)
+    Assert-Condition `
+        -Condition ([CavalryLiveWindow]::IsExactVisibleWindow(
+            $window,
+            [uint32]$TargetProcessId
+        )) `
+        -Message 'Onboarding ExpectedWindowHandle is not a visible window owned by the exact Cavalry PID.'
+}
 $cogPitchBaseline = $null
 if ($CaptureScenario -ceq 'CogPitch') {
     Assert-Condition -Condition $AllowManualCogPitch.IsPresent `
@@ -971,6 +989,9 @@ $interactionEvidence = switch ($CaptureScenario) {
             -Operation 'manual Cogwheel Tool Pitch Radius evidence'
         'cog-pitch-trigger=manual-disposable-cogwheel-drag;path-pixels=manual-review-required'
     }
+    'Onboarding' {
+        'onboarding-window=runtime-exact-hwnd;path-pixels=manual-review-required'
+    }
 }
 $requiredTextPathMask = switch ($CaptureScenario) {
     'ViewportQuality' { 0x0001 }
@@ -995,7 +1016,8 @@ $capture = Capture-MainWindow `
     -Process $exact.process `
     -ExpectedProcessId $TargetProcessId `
     -Deadline $deadline `
-    -Destination $outputTarget
+    -Destination $outputTarget `
+    -ResolveMainWindow $resolveMainWindow
 Assert-NoReparseTargetChain -Root $evidence -Target $outputTarget -Role 'written screenshot'
 Assert-Condition -Condition (Test-Path -LiteralPath $outputTarget -PathType Leaf) `
     -Message "Screenshot was not written: $outputTarget"

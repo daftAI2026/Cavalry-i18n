@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主边界与编码、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PR 级 clean-macOS universal link gate、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、仅接受已包含于 origin/main 的 tag commit 所生成的 GitHub Release、系统语言/品牌及 GUI 安全合同
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable live 证据及 npm/Tauri 配置
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding exact-HWND 边界、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PR 级 clean-macOS universal link gate、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、Onboarding 窗口身份与无盲键关闭、仅接受已包含于 origin/main 的 tag commit 所生成的 GitHub Release、系统语言/品牌及 GUI 安全合同
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable full-surface/Onboarding live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -1487,8 +1487,14 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.doesNotMatch(helper, /'CogPitch'\s*\{\s*0x20000000\s*\}/);
   assert.match(
     helper,
-    /ValidateSet\('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch'\)/
+    /ValidateSet\('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch', 'Onboarding'\)/
   );
+  assert.match(live, /CAVALRY_I18N_WINDOWS_ONBOARDING_ACCEPTANCE_DIR/);
+  assert.match(live, /terminal=step5-ack-only/);
+  assert.match(live, /guide_parameter_type != "std::string"/);
+  assert.match(helper, /ExpectedWindowHandle/);
+  assert.match(helper, /IsExactVisibleWindow/);
+  assert.match(helper, /onboarding-window=runtime-exact-hwnd/);
   assert.match(helper, /AllowManualCogPitch/);
   assert.match(helper, /manual-disposable-cogwheel-drag/);
   assert.match(helper, /BaselineDiagnostics/);
@@ -1556,7 +1562,8 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /WM_CLOSE/);
   assert.match(helper, /RequestForegroundWindow/);
   assert.match(helper, /ExactForegroundWindow/);
-  assert.match(helper, /ConfirmDiscardOfDisposableScene/);
+  assert.match(helper, /FindProcessWindows/);
+  assert.doesNotMatch(helper, /ConfirmDiscardOfDisposableScene|keybd_event/);
   assert.match(helper, /hasRenderedContent/);
   assert.match(helper, /ImageFormat\]::Png/);
   assert.doesNotMatch(

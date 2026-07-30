@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖显式 disposable clone/evidence 环境变量、共享 Windows 路径守卫、apply_language_inner、RealCommandRunner、runtime marker 与 PowerShell PID 窗口证据 helper
- * [OUTPUT]: 对外提供 ignored Windows live-clone 冒烟：可选单语或默认三语 QPA 原生启动、隔离 AppData、三类带完整 64 位 source 位图的自动 PNG、带零位图基线与严格计数增量的人工 Cog Pitch PNG、PID 清理及显式 English 恢复
- * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；自动路径经有界 exact-HWND 前台门投递 A 键并锁定 EditShape 动作与长操作前缀，Cog Pitch 仅在 opt-in 后记录前后诊断并等待用户操作 sentinel clone，不创建场景、不运行脚本、不依赖 Qt UIA
+ * [INPUT]: 依赖显式 disposable clone/evidence 环境变量、共享 Windows 路径守卫、apply_language_inner、RealCommandRunner、runtime marker、Onboarding ready/ack 状态机与 PowerShell PID 窗口证据 helper
+ * [OUTPUT]: 对外提供两个 ignored Windows live-clone 门：既有隔离 profile 的三类自绘 PNG/可选 Cog Pitch，以及继承当前登录态的 firstLaunch 五步标题/正文语义断言与 exact-PID PNG；两者都清理 PID 并恢复 English
+ * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；full-surface 与 Onboarding 共享安全安装/清理骨架但独立启动，只有 Onboarding 沿用现有 profile，并只经 showGuides/guideSelected 与前四步 nextClicked 推进，第五步 ACK 后不触发完成/取消语义；两者都不创建场景、不运行脚本、不依赖 Qt UIA 或坐标
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(target_os = "windows")]
@@ -26,15 +26,19 @@ mod windows_live_smoke {
         collections::{BTreeMap, BTreeSet},
         env,
         ffi::OsString,
-        fs,
+        fs::{self, OpenOptions},
+        io::Write,
         panic::{catch_unwind, AssertUnwindSafe},
         path::{Path, PathBuf},
+        sync::mpsc,
+        time::{Duration, Instant},
     };
 
     const SMOKE_APP_ENV: &str = "CAVALRY_I18N_WINDOWS_SMOKE_APP";
     const EVIDENCE_ROOT_ENV: &str = "CAVALRY_I18N_WINDOWS_LIVE_EVIDENCE_DIR";
     const LANGUAGE_FILTER_ENV: &str = "CAVALRY_I18N_WINDOWS_LIVE_LANGUAGE";
     const MANUAL_COG_PITCH_ENV: &str = "CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH";
+    const ONBOARDING_ACCEPTANCE_ENV: &str = "CAVALRY_I18N_WINDOWS_ONBOARDING_ACCEPTANCE_DIR";
     const EXPECTED_JSON_COUNT: usize = 38;
     const PROCESS_TIMEOUT_MILLISECONDS: u32 = 45_000;
     const MANUAL_COG_PITCH_TIMEOUT_MILLISECONDS: u32 = 180_000;
@@ -91,6 +95,37 @@ mod windows_live_smoke {
         status: String,
     }
 
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct OnboardingAcceptanceMarker {
+        enabled: bool,
+        status: String,
+        message: String,
+        step: usize,
+        total_steps: usize,
+        guide_id: String,
+        action_object_name: String,
+        action_identity: String,
+        choice_class: String,
+        guide_parameter_type: String,
+        guide_class: String,
+        window_handle: String,
+        title: String,
+        body: String,
+        title_matches: bool,
+        body_matches: bool,
+        observed_actions: Vec<String>,
+        observed_texts: Vec<String>,
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct OnboardingRuntimeMarker {
+        language: String,
+        process_id: String,
+        onboarding_acceptance: OnboardingAcceptanceMarker,
+    }
+
     #[derive(Debug)]
     struct ScreenshotEvidence {
         language: String,
@@ -100,6 +135,12 @@ mod windows_live_smoke {
         width: u32,
         height: u32,
         interaction_evidence: String,
+    }
+
+    #[derive(Clone, Copy, Debug, Eq, PartialEq)]
+    enum LiveCaptureMode {
+        FullSurfaces,
+        Onboarding,
     }
 
     fn repo_root() -> PathBuf {
@@ -234,6 +275,7 @@ mod windows_live_smoke {
         marker: &Path,
         language: &str,
         capture_scenario: &str,
+        expected_window_handle: Option<&str>,
         output: &Path,
     ) -> Result<ScreenshotEvidence, String> {
         evidence_root.assert_write_target(marker)?;
@@ -271,6 +313,10 @@ mod windows_live_smoke {
         ];
         if capture_scenario == "CogPitch" {
             arguments.push("-AllowManualCogPitch".to_string());
+        }
+        if let Some(window_handle) = expected_window_handle {
+            arguments.push("-ExpectedWindowHandle".to_string());
+            arguments.push(window_handle.to_string());
         }
         let payload = invoke_helper(runner, helper, &arguments)?;
         let result = serde_json::from_str::<CaptureResult>(&payload)
@@ -350,6 +396,199 @@ mod windows_live_smoke {
             height: result.height,
             interaction_evidence: result.interaction_evidence,
         })
+    }
+
+    fn wait_for_onboarding_state(
+        marker: &Path,
+        language: &str,
+        process_id: u32,
+        expected_status: &str,
+        expected_step: usize,
+    ) -> Result<OnboardingAcceptanceMarker, String> {
+        let deadline = Instant::now() + Duration::from_millis(PROCESS_TIMEOUT_MILLISECONDS.into());
+        let (_wait_sender, wait_receiver) = mpsc::channel::<()>();
+        let mut last_payload = String::new();
+        while Instant::now() < deadline {
+            if let Ok(payload) = fs::read_to_string(marker) {
+                last_payload = payload.clone();
+                if let Ok(runtime) = serde_json::from_str::<OnboardingRuntimeMarker>(&payload) {
+                    let onboarding = runtime.onboarding_acceptance;
+                    if runtime.language != language
+                        || runtime.process_id.parse::<u32>().ok() != Some(process_id)
+                    {
+                        return Err(format!("Onboarding marker identity mismatch: {payload}"));
+                    }
+                    if onboarding.status == "error" {
+                        return Err(format!(
+                            "Onboarding runtime rejected the live gate: {} observed={:?}",
+                            onboarding.message, onboarding.observed_texts
+                        ));
+                    }
+                    if onboarding.status == expected_status && onboarding.step == expected_step {
+                        if !onboarding.enabled
+                            || onboarding.total_steps != 5
+                            || onboarding.guide_id != "firstLaunch"
+                            || !matches!(
+                                onboarding.action_identity.as_str(),
+                                "objectName:showGuides"
+                                    | "data:showGuides"
+                                    | "context-source:MenuBarManager/Getting Started Guides"
+                            )
+                            || (onboarding.action_identity == "objectName:showGuides"
+                                && onboarding.action_object_name != "showGuides")
+                            || onboarding.choice_class != "onboarding::OnboardingChoiceView"
+                            || onboarding.guide_parameter_type != "std::string"
+                            || onboarding.guide_class != "onboarding::OnboardingGuideView"
+                        {
+                            return Err(format!(
+                                "Onboarding marker reached {expected_status} step {expected_step} without the exact semantic identity contract: {payload}; observedActions={:?}",
+                                onboarding.observed_actions
+                            ));
+                        }
+                        if expected_status == "ready"
+                            && (!onboarding.title_matches
+                                || !onboarding.body_matches
+                                || onboarding.title.trim().is_empty()
+                                || onboarding.body.trim().is_empty()
+                                || onboarding.title == onboarding.body
+                                || !onboarding
+                                    .observed_texts
+                                    .iter()
+                                    .any(|value| value == &onboarding.title)
+                                || !onboarding
+                                    .observed_texts
+                                    .iter()
+                                    .any(|value| value == &onboarding.body)
+                                || onboarding.window_handle == "0"
+                                || onboarding
+                                    .window_handle
+                                    .parse::<u64>()
+                                    .ok()
+                                    .filter(|value| *value != 0)
+                                    .is_none())
+                        {
+                            return Err(format!(
+                                "Onboarding marker reached ready step {expected_step} without the exact title/body contract: {payload}"
+                            ));
+                        }
+                        return Ok(onboarding);
+                    }
+                }
+            }
+            let _ = wait_receiver.recv_timeout(Duration::from_millis(50));
+        }
+        Err(format!(
+            "timed out waiting for Onboarding {expected_status} step {expected_step}: {last_payload}"
+        ))
+    }
+
+    fn acknowledge_onboarding_screenshot(
+        evidence_root: &GuardedTempRoot,
+        acceptance_directory: &Path,
+        step: usize,
+    ) -> Result<(), String> {
+        let acknowledgement = acceptance_directory.join(format!("step-{step}.ack.json"));
+        evidence_root.assert_write_target(&acknowledgement)?;
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&acknowledgement)
+            .map_err(|error| {
+                format!(
+                    "could not create Onboarding acknowledgement {}: {error}",
+                    acknowledgement.display()
+                )
+            })?;
+        file.write_all(format!("{{\"step\":{step}}}\n").as_bytes())
+            .map_err(|error| {
+                format!(
+                    "could not write Onboarding acknowledgement {}: {error}",
+                    acknowledgement.display()
+                )
+            })?;
+        file.sync_all().map_err(|error| {
+            format!(
+                "could not flush Onboarding acknowledgement {}: {error}",
+                acknowledgement.display()
+            )
+        })
+    }
+
+    fn acknowledge_onboarding_foreground(
+        evidence_root: &GuardedTempRoot,
+        acceptance_directory: &Path,
+    ) -> Result<(), String> {
+        let acknowledgement = acceptance_directory.join("foreground-ready.json");
+        evidence_root.assert_write_target(&acknowledgement)?;
+        let mut file = OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&acknowledgement)
+            .map_err(|error| {
+                format!(
+                    "could not create Onboarding foreground acknowledgement {}: {error}",
+                    acknowledgement.display()
+                )
+            })?;
+        file.write_all(b"{\"ready\":true}\n").map_err(|error| {
+            format!(
+                "could not write Onboarding foreground acknowledgement {}: {error}",
+                acknowledgement.display()
+            )
+        })?;
+        file.sync_all().map_err(|error| {
+            format!(
+                "could not flush Onboarding foreground acknowledgement {}: {error}",
+                acknowledgement.display()
+            )
+        })
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn capture_onboarding_steps(
+        runner: &mut RealCommandRunner,
+        helper: &Path,
+        evidence_root: &GuardedTempRoot,
+        run_root: &Path,
+        process_id: u32,
+        executable: &Path,
+        marker: &Path,
+        acceptance_directory: &Path,
+        language: &str,
+    ) -> Result<Vec<ScreenshotEvidence>, String> {
+        let mut evidence = Vec::with_capacity(5);
+        for step in 1..=5 {
+            let onboarding =
+                wait_for_onboarding_state(marker, language, process_id, "ready", step)?;
+            let output = run_root.join(format!("{language}-onboarding-step-{step}.png"));
+            let mut screenshot = capture_main_window(
+                runner,
+                helper,
+                evidence_root,
+                process_id,
+                executable,
+                marker,
+                language,
+                "Onboarding",
+                Some(&onboarding.window_handle),
+                &output,
+            )?;
+            screenshot.scenario = format!("OnboardingStep{step}");
+            screenshot.interaction_evidence = format!(
+                "guide=firstLaunch;step={step}/5;title={};body={};qt-semantics=showGuides/guideSelected/nextClicked(steps1-4);terminal=step5-ack-only;path-pixels=manual-review-required",
+                onboarding.title, onboarding.body
+            );
+            evidence.push(screenshot);
+            acknowledge_onboarding_screenshot(evidence_root, acceptance_directory, step)?;
+        }
+        let completed = wait_for_onboarding_state(marker, language, process_id, "complete", 5)?;
+        if completed.message != "All five firstLaunch steps were acknowledged." {
+            return Err(format!(
+                "Onboarding completed with an unexpected terminal message: {}",
+                completed.message
+            ));
+        }
+        Ok(evidence)
     }
 
     fn find_node_type<'a>(
@@ -553,8 +792,8 @@ mod windows_live_smoke {
         layout: &InstallLayout,
         evidence_root: &GuardedTempRoot,
         run_root: &Path,
-        profile_root: &Path,
         language: &str,
+        capture_mode: LiveCaptureMode,
         runner: &mut RealCommandRunner,
         outstanding_processes: &mut BTreeSet<u32>,
     ) -> Result<Vec<ScreenshotEvidence>, String> {
@@ -564,30 +803,6 @@ mod windows_live_smoke {
             .ok_or_else(|| format!("state is missing before launching {language}"))?;
         let mut launch =
             windows_runtime::prepare_launch(layout, state_dir, &current_state, repo, repo)?;
-        let local_app_data = profile_root.join("Local");
-        let roaming_app_data = profile_root.join("Roaming");
-        evidence_root.assert_write_target(&local_app_data)?;
-        evidence_root.assert_write_target(&roaming_app_data)?;
-        fs::create_dir_all(&local_app_data).map_err(|error| {
-            format!(
-                "could not create isolated LOCALAPPDATA {}: {error}",
-                local_app_data.display()
-            )
-        })?;
-        fs::create_dir_all(&roaming_app_data).map_err(|error| {
-            format!(
-                "could not create isolated APPDATA {}: {error}",
-                roaming_app_data.display()
-            )
-        })?;
-        launch.environment.push((
-            OsString::from("LOCALAPPDATA"),
-            local_app_data.as_os_str().to_os_string(),
-        ));
-        launch.environment.push((
-            OsString::from("APPDATA"),
-            roaming_app_data.as_os_str().to_os_string(),
-        ));
         let marker = launch
             .diagnostic_marker
             .ok_or_else(|| format!("{language} launch did not request a diagnostic marker"))?;
@@ -598,6 +813,51 @@ mod windows_live_smoke {
             ));
         }
         evidence_root.assert_write_target(&marker)?;
+        let onboarding_acceptance_directory = if capture_mode == LiveCaptureMode::Onboarding {
+            let marker_parent = marker
+                .parent()
+                .ok_or_else(|| format!("diagnostic marker has no parent: {}", marker.display()))?;
+            let directory = marker_parent.join(format!("onboarding-{language}"));
+            evidence_root.assert_write_target(&directory)?;
+            fs::create_dir(&directory).map_err(|error| {
+                format!(
+                    "could not create Onboarding acceptance directory {}: {error}",
+                    directory.display()
+                )
+            })?;
+            launch.environment.push((
+                OsString::from(ONBOARDING_ACCEPTANCE_ENV),
+                directory.as_os_str().to_os_string(),
+            ));
+            Some(directory)
+        } else {
+            let profile_root = run_root.join("profile");
+            let local_app_data = profile_root.join("Local");
+            let roaming_app_data = profile_root.join("Roaming");
+            evidence_root.assert_write_target(&local_app_data)?;
+            evidence_root.assert_write_target(&roaming_app_data)?;
+            fs::create_dir_all(&local_app_data).map_err(|error| {
+                format!(
+                    "could not create isolated LOCALAPPDATA {}: {error}",
+                    local_app_data.display()
+                )
+            })?;
+            fs::create_dir_all(&roaming_app_data).map_err(|error| {
+                format!(
+                    "could not create isolated APPDATA {}: {error}",
+                    roaming_app_data.display()
+                )
+            })?;
+            launch.environment.push((
+                OsString::from("LOCALAPPDATA"),
+                local_app_data.as_os_str().to_os_string(),
+            ));
+            launch.environment.push((
+                OsString::from("APPDATA"),
+                roaming_app_data.as_os_str().to_os_string(),
+            ));
+            None
+        };
         let launch_arguments = Vec::new();
         let process_id = runner
             .spawn_detached_in_with_env_and_pid(
@@ -617,17 +877,11 @@ mod windows_live_smoke {
         }
         windows_runtime::wait_for_ready_marker(&marker, language, process_id)?;
 
-        let mut scenarios = vec![
-            ("ViewportQuality", "viewport-quality"),
-            ("TransformHelper", "transform-helper"),
-            ("EditShapeHelper", "edit-shape-helper"),
-        ];
-        if env::var(MANUAL_COG_PITCH_ENV).as_deref() == Ok("1") {
-            scenarios.push(("CogPitch", "cog-pitch"));
-        }
-        let mut evidence = Vec::with_capacity(scenarios.len());
-        for (capture_scenario, artifact) in scenarios {
-            let output = run_root.join(format!("{language}-{artifact}.png"));
+        let mut evidence = Vec::new();
+        if let Some(onboarding_directory) = onboarding_acceptance_directory.as_deref() {
+            // Windows 会拒绝后台进程自行夺取前台；Onboarding 复用 exact-HWND
+            // Transform 门先建立已验证前台所有权，runtime 才发送一次 Help 助记键。
+            let transform_output = run_root.join(format!("{language}-transform-helper.png"));
             evidence.push(capture_main_window(
                 runner,
                 helper,
@@ -636,9 +890,48 @@ mod windows_live_smoke {
                 &layout.executable,
                 &marker,
                 language,
-                capture_scenario,
-                &output,
+                "TransformHelper",
+                None,
+                &transform_output,
             )?);
+            acknowledge_onboarding_foreground(evidence_root, onboarding_directory)?;
+            evidence.extend(capture_onboarding_steps(
+                runner,
+                helper,
+                evidence_root,
+                run_root,
+                process_id,
+                &layout.executable,
+                &marker,
+                onboarding_directory,
+                language,
+            )?);
+        } else {
+            let mut scenarios = vec![
+                ("ViewportQuality", "viewport-quality"),
+                ("TransformHelper", "transform-helper"),
+                ("EditShapeHelper", "edit-shape-helper"),
+            ];
+            if env::var(MANUAL_COG_PITCH_ENV).as_deref() == Ok("1") {
+                scenarios.push(("CogPitch", "cog-pitch"));
+            }
+            let mut full_surface_evidence = Vec::with_capacity(scenarios.len());
+            for (capture_scenario, artifact) in scenarios {
+                let output = run_root.join(format!("{language}-{artifact}.png"));
+                full_surface_evidence.push(capture_main_window(
+                    runner,
+                    helper,
+                    evidence_root,
+                    process_id,
+                    &layout.executable,
+                    &marker,
+                    language,
+                    capture_scenario,
+                    None,
+                    &output,
+                )?);
+            }
+            evidence.extend(full_surface_evidence);
         }
         close_owned_process(runner, helper, process_id, &layout.executable)?;
         if !outstanding_processes.remove(&process_id) {
@@ -659,8 +952,8 @@ mod windows_live_smoke {
         guarded_clone: &GuardedTempRoot,
         evidence_root: &GuardedTempRoot,
         run_root: &Path,
-        profile_root: &Path,
         baseline_pairs: &[CopyPair],
+        capture_mode: LiveCaptureMode,
         runner: &mut RealCommandRunner,
         outstanding_processes: &mut BTreeSet<u32>,
     ) -> Result<Vec<ScreenshotEvidence>, String> {
@@ -702,8 +995,8 @@ mod windows_live_smoke {
                 layout,
                 evidence_root,
                 run_root,
-                profile_root,
                 language,
+                capture_mode,
                 runner,
                 outstanding_processes,
             )?);
@@ -836,6 +1129,8 @@ mod windows_live_smoke {
             "Viewport Settings",
             "Assert-ExactForegroundWindow",
             "Assert-ForegroundProcess",
+            "ConfirmDiscardOfDisposableScene",
+            "keybd_event",
         ] {
             assert!(
                 !helper.contains(forbidden),
@@ -870,9 +1165,7 @@ mod windows_live_smoke {
         }
     }
 
-    #[test]
-    #[ignore = "requires explicit disposable clone/evidence TEMP roots and produces PNGs that require human review; never run against a real installation"]
-    fn disposable_clone_captures_three_languages_for_required_manual_review() {
+    fn run_disposable_clone_gate(capture_mode: LiveCaptureMode) {
         let repo = repo_root();
         let helper = helper_path(&repo).unwrap_or_else(|error| panic!("{error}"));
         let (layout, guarded_clone) = disposable_install_layout(SMOKE_APP_ENV)
@@ -887,10 +1180,6 @@ mod windows_live_smoke {
             .unwrap_or_else(|error| panic!("{error}"));
         let run_root = evidence_root
             .create_unique_child_directory("windows-live")
-            .unwrap_or_else(|error| panic!("{error}"));
-        let profile_root = run_root.join("profile");
-        evidence_root
-            .assert_write_target(&profile_root)
             .unwrap_or_else(|error| panic!("{error}"));
         let english_source = repo.join("languages/en");
         let state_dir =
@@ -907,8 +1196,8 @@ mod windows_live_smoke {
                 &guarded_clone,
                 &evidence_root,
                 &run_root,
-                &profile_root,
                 &baseline_pairs,
+                capture_mode,
                 &mut runner,
                 &mut outstanding_processes,
             )
@@ -963,9 +1252,27 @@ mod windows_live_smoke {
                 screenshot.interaction_evidence
             );
         }
-        panic!(
-            "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language has exact-PID Viewport Quality and Transform PNGs from the initial empty scene plus an Edit Shape PNG staged only by exact-HWND PostMessage VK_A and requiring all actions plus the semantic operation prefixes while pure key tokens stay English below {}. When CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1, it also has a manually triggered Cogwheel Pitch PNG whose recorded baseline has bit 28 clear and whose final revision/canonical/whitelist/CJK-success counters all strictly increase with zero fallback. Manually verify their visible localized text and explicitly append screenshots for menus, dropdowns, four empty states, and Snippet before accepting Windows GUI translation.",
-            run_root.display()
-        );
+        match capture_mode {
+            LiveCaptureMode::FullSurfaces => panic!(
+                "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language has Viewport Quality/Transform/Edit Shape evidence below {}. When CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1, Cog Pitch retains its strict delta gate. Manually verify the visible localized text before accepting Windows GUI translation.",
+                run_root.display()
+            ),
+            LiveCaptureMode::Onboarding => panic!(
+                "MANUAL SCREENSHOT REVIEW REQUIRED: automated PID/Qt/table/lang/ExtensionLayer/window checks passed and English was restored, but no OCR assertion was performed. Each language has five exact-PID firstLaunch PNGs whose product Qt tree independently exposed the exact installed title and body below {}. Manually verify the five Onboarding images before accepting Windows Onboarding translation.",
+                run_root.display()
+            ),
+        }
+    }
+
+    #[test]
+    #[ignore = "requires explicit disposable clone/evidence TEMP roots and produces PNGs that require human review; never run against a real installation"]
+    fn disposable_clone_captures_three_languages_for_required_manual_review() {
+        run_disposable_clone_gate(LiveCaptureMode::FullSurfaces);
+    }
+
+    #[test]
+    #[ignore = "requires explicit disposable clone/evidence TEMP roots and produces five firstLaunch PNGs per language for human review; never run against a real installation"]
+    fn disposable_clone_captures_onboarding_for_required_manual_review() {
+        run_disposable_clone_gate(LiveCaptureMode::Onboarding);
     }
 }
