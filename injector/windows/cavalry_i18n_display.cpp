@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context 策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、单索引 QPlainTextEdit 占位文字和动态英文写回恢复
- * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系或 vendor 主窗口身份，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字和动态英文写回恢复
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系、producer 或 vendor 主窗口身份，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -378,6 +378,39 @@ QString controlledDynamicTranslation(
     return QString();
 }
 
+bool extractTemplateValue(
+    const QString &text,
+    const QString &pattern,
+    QString *value)
+{
+    static const QString kPlaceholder = QStringLiteral("%1");
+    const int placeholderIndex = pattern.indexOf(kPlaceholder);
+    if (placeholderIndex < 0
+        || pattern.indexOf(kPlaceholder, placeholderIndex + 2) >= 0) {
+        return false;
+    }
+
+    const QString prefix = pattern.left(placeholderIndex);
+    const QString suffix = pattern.mid(placeholderIndex + 2);
+    if (!text.startsWith(prefix) || !text.endsWith(suffix)
+        || text.size() < prefix.size() + suffix.size()) {
+        return false;
+    }
+
+    const QString candidate = text.mid(
+        prefix.size(),
+        text.size() - prefix.size() - suffix.size());
+    if (candidate.isEmpty() || candidate.size() > 255
+        || candidate != candidate.trimmed()
+        || candidate.contains(QChar('\r'))
+        || candidate.contains(QChar('\n'))) {
+        return false;
+    }
+
+    *value = candidate;
+    return true;
+}
+
 } // namespace
 
 #ifdef CAVALRY_I18N_TESTING
@@ -393,6 +426,65 @@ CavalryDisplayTranslator::CavalryDisplayTranslator(
     : QObject(parent)
     , translator_(translator)
 {
+}
+
+void CavalryDisplayTranslator::translateAssetsContextMenu(QMenu *menu)
+{
+    if (menu == nullptr) {
+        return;
+    }
+
+    const QString replaceSource =
+        QString::fromUtf8(cavalry_i18n::kAssetsWindowReplaceSource);
+    const QString replaceTranslation = translator_.translate(
+        cavalry_i18n::kAssetsWindowContext,
+        cavalry_i18n::kAssetsWindowReplaceSource);
+    const QString createSource = QString::fromUtf8(
+        cavalry_i18n::kAssetsWindowCreateCompositionSource);
+    const QString createTranslation = translator_.translate(
+        cavalry_i18n::kAssetsWindowContext,
+        cavalry_i18n::kAssetsWindowCreateCompositionSource);
+    if (replaceTranslation.isEmpty()
+        || !createTranslation.contains(QStringLiteral("%1"))) {
+        return;
+    }
+
+    QAction *replaceAction = nullptr;
+    QAction *createAction = nullptr;
+    QString createValue;
+    for (QAction *action : menu->actions()) {
+        if (action == nullptr || action->isSeparator()) {
+            continue;
+        }
+
+        const QString text = action->text();
+        if (text == replaceSource || text == replaceTranslation) {
+            if (replaceAction != nullptr) {
+                return;
+            }
+            replaceAction = action;
+            continue;
+        }
+
+        QString value;
+        if (extractTemplateValue(text, createSource, &value)
+            || extractTemplateValue(text, createTranslation, &value)) {
+            if (createAction != nullptr) {
+                return;
+            }
+            createAction = action;
+            createValue = value;
+        }
+    }
+
+    // 只有真实 Assets producer 的 Replace + 动态 Create 邻接形状同时存在，
+    // 才允许消费 exact-context 模板；避免同文 QAction 泄漏到其他菜单。
+    if (replaceAction == nullptr || createAction == nullptr) {
+        return;
+    }
+
+    replaceAction->setText(replaceTranslation);
+    createAction->setText(createTranslation.arg(createValue));
 }
 
 void CavalryDisplayTranslator::translateAction(QAction *action)

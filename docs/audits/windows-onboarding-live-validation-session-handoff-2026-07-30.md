@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 PR #3 的 Windows Onboarding 调试 session、实现 commit 0710dc5、证据 commit 294acb6、三语 15/15 run note、GitHub Actions run 30544847020 与同 PR 的 tracked macOS producer
-[OUTPUT]: 对外提供恢复工作区与登录态干扰、Onboarding 语义 driver、exact-PID/HWND helper、step 5 关闭边界、证据封存和已落地的 macOS 对应实现方式
+[INPUT]: 依赖 PR #3 的 Windows Onboarding 调试 session、2026-07-31 当前候选三语 15/15 run、同 PR 的 tracked macOS producer 与 Qt 测试档案实现
+[OUTPUT]: 对外提供登录/工作区隔离、Onboarding 语义 driver、真实页面转场确认、exact-PID/HWND helper、step 5 清理边界、证据封存和 macOS 对应实现方式
 [POS]: docs/audits 的 dated session handoff；解释本轮怎样得到可信结论，但不替代 live run note、当前代码或 GitHub 实时状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -19,7 +19,9 @@
 
 当前状态以
 [`2026-07-30-windows-onboarding-live-validation.md`](../workflows/cavalry-full-ui-100/runs/2026-07-30-windows-onboarding-live-validation.md)
-为准。该记录绑定实现 commit `0710dc5`、证据 commit `294acb6`、15 张最终 PNG 的 hash 和三语 `15/15` 人工复核。本交接只保留推理、失败边界和复用方法。
+为准。该记录已由 2026-07-31 当前 PR 候选的
+`windows-live-6612-1785457815698618300-0` 重验证，绑定 15 张最终 PNG 的 hash
+和三语 `15/15` 人工复核；历史 `0710dc5`/`294acb6` 只保留为谱系，不再证明当前 head。
 
 ## 用户看到的界面推翻了旧 oracle
 
@@ -38,13 +40,26 @@
 
 测试启动时可能出现恢复工作区确认框，也可能同时出现登录弹窗和 Onboarding。`Cancel` 在这条产品路径中带有退出语义，实际点击会关闭整个软件。按按钮文字猜语义会把“关闭干扰窗口”变成“终止被测进程”，也可能误把登录窗口截成 Onboarding。
 
-最终路径不再操作这些通用对话框。runtime 从 Cavalry 自己的 `showGuides` 语义 action 进入 chooser，再调用真实 Guide 槽位；截图 helper 只接受 runtime 发布的 Onboarding native HWND，并复核它可见、未 cloaked 且属于 exact PID。并存的恢复工作区或登录窗口不会成为截图候选。
+最终路径在 acceptance-only QPA 插件创建 driver 前调用
+`QStandardPaths::setTestModeEnabled(true)`。Cavalry 因而只读写 Qt 的
+`%LOCALAPPDATA%\qttest\Cavalry` / `%APPDATA%\qttest\Cavalry` 测试档案，
+不读取、不复制、不伪造真实登录 token，也不接触真实工作区。Rust gate 只创建带固定
+magic sentinel 的这两个目录；既有目录没有 sentinel、路径链出现 reparse point 或
+cleanup 身份不一致时都 fail closed。
 
-Onboarding 需要已有登录态才能稳定到达真实产品表面，因此这一种 capture 继承当前 Windows profile。它不复制、不清空、不删除 profile，也不把账号缓存写进证据目录。其他 full-surface capture 继续把 `LOCALAPPDATA` 和 `APPDATA` 指向 disposable profile，避免把 Onboarding 的例外扩大到整个 live-smoke。
+driver 等真实 `MainDock` 连续启动稳定 15 秒后才触发 `firstLaunch`。这之后若精确
+“重置工作区？”消息框仍出现，测试立即失败，既不点 `OK`，也不点 `Cancel`。登录/Welcome
+可以并存，但 Onboarding helper 只接受 runtime 发布、属于 exact PID、可见且未 cloaked
+的真实 Guide HWND，因此登录窗不会成为截图候选。
+
+最终两次当前候选 run 前后，真实
+`%LOCALAPPDATA%\Cavalry\workspace.json` 均保持 SHA-256
+`442ADFA89A1434E8FBA8A4B6CDDD0CB87ED13A4C6284900D22A5CBC66802FAE1`、
+507 bytes、最后写入 `2026-07-31 07:24:13`。这才是“没有碰真实 profile”的外部证明。
 
 ## Driver 走产品语义，不模拟一串猜测点击
 
-commit `0710dc5` 把 driver 放进
+PR #3 把 driver 放进
 `injector/windows/cavalry_i18n_runtime.cpp`，外部编排放进
 `src-tauri/tests/manual_windows_live_smoke.rs`。每种语言执行同一条状态机：
 
@@ -52,12 +67,13 @@ commit `0710dc5` 把 driver 放进
 apply language to disposable clone
 → launch exact Cavalry.exe and bind PID
 → establish exact-HWND foreground evidence
-→ trigger unique showGuides QAction
-→ invoke guideSelected(std::string("firstLaunch"))
+→ resolve OnboardingManager first, with unique showGuides/choice fallback
+→ invoke showGuide/guideSelected(std::string("firstLaunch"))
 → wait for exact title and body
 → publish ready(step, native HWND)
 → external screenshot and ACK
-→ steps 1-4 invoke nextClicked()
+→ steps 1-4 click the unique localized Next button
+→ confirm the next page's unique title and body before advancing state
 → step 5 ACK-only
 → exact-PID cleanup
 → restore English
@@ -65,19 +81,28 @@ apply language to disposable clone
 
 Chooser 的 `guideSelected` 会同步销毁 chooser。driver 在调用前冻结 class 和 owner identity，调用后不再解引用旧对象。Qt meta-object 暴露的参数必须精确为 `std::string`，只记录参数名而不阻止错误 ABI 仍可能造成未定义行为，因此 ABI 检查现在是调用前的硬门。
 
-driver 还修正了两个时序问题。验收定时器必须由 `QApplication` 所在线程创建和驱动，不能在 event dispatcher 就绪前启动；产品内部阶段超时从 external foreground ACK 后开始，避免外部等待 Windows 前台所有权时提前消耗内部预算。
+driver 还修正了三个时序问题。验收定时器必须由 `QApplication` 所在线程创建和驱动；
+首次触发必须等真实 `MainDock` 稳定；每次 Next 点击后进入独立
+`waiting-for-transition` 状态，只有下一页唯一标题和正文都出现才推进 step。旧页稳定
+1.5 秒才允许重试，最多三次，既不把“发过 click”当作成功，也避免无界连点跳页。
 
 ## 第 5 步只确认看见，不调用完成或取消
 
-steps 1-4 的唯一真实前进动作是 `nextClicked()`。第 5 步没有经过证明的安全“完成”语义，`Done`、`Cancel`、关闭按钮或猜测出的槽位都可能进入登录、退出或恢复工作区流程。
+steps 1-4 的唯一真实前进动作是唯一可见、可用、本地化 `Next` 按钮的
+`QAbstractButton::click()`；它走产品连接的 `nextClicked`，并由下一页真实标题/正文确认。
+第 5 步没有经过证明的安全“完成”语义，`Done`、`Cancel`、关闭按钮或猜测出的槽位都可能进入登录、退出或恢复工作区流程。
 
-因此第 5 步只做三件事：确认唯一标题与正文，截取 exact HWND，写 step 5 ACK。runtime 随后把状态记为 `complete`，不再点击任何完成或取消控件。测试清理由 helper 向 exact PID 拥有的全部顶层 HWND 投递 `WM_CLOSE`，不发送盲键、不强杀进程，也不等待某个可能已被其他弹窗遮住的“主窗口”。
+因此第 5 步只做三件事：确认唯一标题与正文，截取 exact HWND，写 step 5 ACK。runtime
+随后把状态记为 `complete`，不再点击任何完成或取消控件。逻辑证据完成后，测试清理由
+helper 向 exact PID 拥有的全部顶层 HWND 投递 `WM_CLOSE`；若无登录态的厂商
+`closeEvent` 拒绝退出，才在再次复核同一 executable/PID 后执行 `ForceStop`。该兜底
+只负责回收 disposable child，不参与翻译 PASS。
 
 这条边界来自真实失败，不是界面文案推断。以后若 Cavalry 增加了可证明的完成槽位，也要先独立取证其对象、调用语义和退出影响，再讨论是否修改 driver。
 
 ## Helper 绑定窗口身份和写入边界
 
-commit `0710dc5` 同时提交了
+PR #3 同时提交了
 `tools/capture_windows_pid_window.ps1`。Onboarding capture 不重新搜索最大窗口，也不按标题、坐标或焦点猜目标。它消费 runtime 给出的十进制 HWND，再核对：
 
 - HWND 非零、可见且未 cloaked；
@@ -86,11 +111,16 @@ commit `0710dc5` 同时提交了
 - clone 和 evidence 路径链没有 reparse point；
 - 已存在证据不被覆盖。
 
-Rust live-smoke 只修改带 sentinel 的 `%TEMP%` clone，结束时恢复 English marker，并审计 Cavalry、Cargo、Rust 进程归零。登录态只是运行上下文，marker、ACK 和 PNG 才能进入临时证据目录；账号、缓存、绝对机器路径和原始日志不进入 Git。
+Rust live-smoke 只修改带 sentinel 的 `%TEMP%` clone 和带独立 sentinel 的 Qt test
+profile，结束时恢复 English marker、删除临时 acceptance DLL/qttest 目录，并审计
+Cavalry 进程归零。marker、ACK 和 PNG 只进入临时证据目录；账号、缓存、绝对机器路径
+和原始日志不进入 Git。
 
 ## 证据怎样封存
 
-实现和证据分成两个 commit。`0710dc5` 包含 reusable driver/helper、合同和 GEB 地图，`294acb6` 只封存最终 run note 与状态地图。这样可以从证据记录回到 exact 实现，也能独立审阅“工具怎么证明”和“本次证明了什么”。
+当前 PR commit 同时携带 reusable driver/helper、合同、run note 和 GEB 地图；raw PNG、
+fixture 副本、ready/ack/done 与用户临时目录仍只属于 session artifact。这样仓库保留
+“怎么重跑、怎么判断”，又不会把一次机器现场当作长期源码。
 
 最终矩阵在实现 commit 冻结后，从 fresh disposable clone 连续跑完 `zh-Hans`、`zh-Hant`、`ja_JP` 的 steps 1-5。每张图都有独立 SHA-256，人工逐图确认没有乱码、截断、遮挡和正文缺失。测试末尾显示 `FAILED` 是预设的人工复核闸门；自动失败使用另一条明确错误消息，不能把这两个状态混写。
 
@@ -100,7 +130,7 @@ Rust live-smoke 只修改带 sentinel 的 `%TEMP%` clone，结束时恢复 Engli
 
 收口审阅发现并修正了几处容易留下长期债的问题：
 
-- profile 继承一度扩散到 full-surface，后来收回为 Onboarding-only；
+- 历史 Onboarding 曾继承真实 profile；当前已改为 acceptance-only Qt test profile；
 - `guideSelected` 曾只记录 ABI，没有在调用前 fail closed；
 - full-surface scenario 顺序被无意改变，合同测试把它恢复；
 - PowerShell `ValidateSet` 和旧 `ConfirmDiscard` 预期没有跟 helper 新边界同步；
@@ -122,11 +152,15 @@ macOS 已有的验证经验记录在
 - 标题和正文使用独立 oracle；
 - 产品写 ready，外部按 exact native window 截图，外部再写 ACK；
 - steps 1-4 前进，step 5 只 ACK；
-- 登录态不复制进证据，其他场景保持 profile 隔离；
+- 登录态不复制、不伪造；Onboarding/Adjacent 共用有 sentinel 的 Qt test profile；
+- Next 点击和 step 推进分离，后者只由真实下一页标题/正文确认；
 - 每张最终截图绑定 candidate、language、step 和 hash；
 - 候选或 oracle 改变后，从 fresh clone 重跑最终矩阵。
 
-平台实现各自保留。Windows 用 PID、HWND、DWM 和 `WM_CLOSE`；macOS 应继续用 bundle clone、PID、CGWindow/AppKit、签名与 quarantine 边界。共享的是状态机、身份校验和证据纪律，不是把 Windows API 翻写成 macOS API。
+平台实现各自保留。Windows 用 PID、HWND、DWM、Qt test profile 与
+`WM_CLOSE`/exact-PID 清理；macOS 继续用隔离 HOME、bundle clone、PID、
+CGWindow/AppKit、签名、quarantine 与 exact child SIGTERM。共享的是状态机、身份校验
+和证据纪律，不是把 Windows API 翻写成 macOS API。
 
 ## 这次留下的判断
 

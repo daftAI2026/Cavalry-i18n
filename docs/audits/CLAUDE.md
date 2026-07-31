@@ -12,7 +12,8 @@ runtime-performance-implementation-2026-07-13.md: Runtime 性能实施闭环报�
 runtime-translation-noise-triage-2026-05-19.md: 2026-05-19 运行时翻译噪声分诊审计报告，覆盖 20 个可疑 token（如 Rhu、Rfr）的排查结论与证据链。
 runtime-ui-tail-cleanup-run-2026-05-16.md: Runtime UI 收尾清理实跑记录，记录 zh-Hans live capture、FIX1/FIX2 对比、根因修复与残留分类。状态 BLOCKED。
 pr3-macos-release-hardening-session-handoff-2026-07-30.md: PR #3 macOS 发布加固复盘与维护交接，压缩八条表面、Onboarding、Transform、验收器假绿、生成物同步、PR/tag 顺序与 Windows live 决策，并固化 macOS producer 源码进 Git、运行证据留 session 的边界。
-windows-onboarding-live-validation-session-handoff-2026-07-30.md: Windows Onboarding live 验证复盘，记录恢复工作区与登录态干扰、语义 driver、exact-PID/HWND helper、step 5 ACK-only、证据封存边界，以及同 PR 已落地的 macOS driver/helper 对应实现。
+windows-onboarding-live-validation-session-handoff-2026-07-30.md: Windows Onboarding live 验证复盘，记录 Qt test profile 登录/工作区隔离、MainDock settle、真实 Next 页面确认、exact-PID/HWND helper、step 5 ACK-only、证据封存边界，以及同 PR 已落地的 macOS driver/helper 对应实现。
+windows-adjacent-producer-live-validation-session-handoff-2026-07-31.md: Windows Tag/Assets 三语真实 producer 验证交接，记录 Qt test profile、独立 acceptance plugin、Drop/ContextMenu 语义 driver、producer-side PNG、PID/HWND 锚点、exact child cleanup、证据哈希与发布隔离边界。
 windows-port-session-handoff-2026-07-29.md: Windows x64 适配实施复盘与维护交接，记录最终 generic/QPA/UAC 架构、被证伪路线、翻译表面边界、构建与发布经验、证据分级及后续验证债。
 
 依赖边界:

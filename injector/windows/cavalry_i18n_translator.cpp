@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖共享 generated_translations.inc、跨平台 exact-only/macOS owner-only 查询策略与 cavalry_i18n_translator.h 的 Qt 接口
+ * [INPUT]: 依赖共享 generated_translations.inc、跨平台 exact-only/owner-only 查询策略与 cavalry_i18n_translator.h 的 Qt 接口
  * [OUTPUT]: 对外实现精确键首条优先、过滤自绘及任一平台来源绑定词条的 source-only 末条覆盖兜底与语言标签查询
- * [POS]: injector/windows 的翻译真相投影，复用跨平台同源生成数据；跨平台 scoped 词条仅交给本平台 owner/context 显示门，当前仅有 macOS producer 证据的共享词条在 Windows 采证前只能精确查询、不得全局回退
+ * [POS]: injector/windows 的翻译真相投影，复用跨平台同源生成数据；双平台已采证的 scoped 词条仍只交给 owner/context 显示门，禁止全局 source 回退
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_translator.h"
@@ -60,7 +60,7 @@ CavalryEmbeddedTranslator::CavalryEmbeddedTranslator(const QString &language)
         if (!cavalry_i18n::requiresExactTranslationContext(
                 entry.context,
                 entry.sourceText)
-            && !cavalry_i18n::requiresMacOwnerTranslationContext(
+            && !cavalry_i18n::requiresOwnerTranslationContext(
                 entry.context,
                 entry.sourceText)) {
             const QByteArray sourceKey(entry.sourceText);

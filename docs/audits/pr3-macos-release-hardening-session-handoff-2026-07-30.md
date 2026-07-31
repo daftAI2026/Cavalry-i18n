@@ -82,7 +82,9 @@ status PASS-48-OF-48
 
 当前 Windows Onboarding 状态由
 [`2026-07-30-windows-onboarding-live-validation.md`](../workflows/cavalry-full-ui-100/runs/2026-07-30-windows-onboarding-live-validation.md)
-承接；Windows Tag/Assets 邻接 producer 仍为 `PENDING-WINDOWS-PRODUCER`，repository-wide G0-G4 仍未声明。
+承接。Windows Tag/Assets 邻接 producer 随后也在 2026-07-31 由
+[`windows-adjacent-producer-live-validation-session-handoff-2026-07-31.md`](./windows-adjacent-producer-live-validation-session-handoff-2026-07-31.md)
+关闭为三语 `6/6` 逻辑点、`9/9` producer-side PNG；repository-wide G0-G4 仍未声明。
 
 ## 首要决策：先形成可发布候选，再谈 tag
 
@@ -502,7 +504,7 @@ Windows 邻接 producer -> PENDING-WINDOWS-PRODUCER
 1. 获得 Windows 环境并完成真实验收，再发布三资产 `p4`；
 2. 把该 patch 明确调整为 macOS-only，同步缩小 ChangeLog、工作流和发布资产，Windows 延后。
 
-后续已完成第一项中的 Windows Onboarding `15/15`；它只关闭 Onboarding live 缺口，Windows 邻接 producer 仍保持 pending。
+后续已完成第一项中的 Windows Onboarding `15/15`；2026-07-31 又以独立 acceptance plugin 和真实 Tag/Assets producer 关闭邻接 `6/6` 缺口。两项定向 PASS 都不等于 repository-wide G0-G4。
 
 ## 下一位维护者的最短路径
 
@@ -514,7 +516,7 @@ Windows 邻接 producer -> PENDING-WINDOWS-PRODUCER
 6. 不重复已经封存的 macOS 48 点，除非候选字节或目标身份变化；
 7. 一次性 push 当前逻辑提交到 PR #3；
 8. 只用新 PR head 的 CI 判断可合并性；
-9. Windows Onboarding 以独立 run note 的 `15/15` 为准，邻接 producer pending 不冒充 PASS；
+9. Windows Onboarding 以独立 run note 的 `15/15` 为准，Tag/Assets 以 2026-07-31 交接的 `6/6` 与 9 张逐图复核为准；
 10. 合并与 tag 需维护者再次决定；若最终发布，先确认 exact main SHA，再创建 `cavalry-2.7.2-p4`。
 
 ## 一页避坑清单

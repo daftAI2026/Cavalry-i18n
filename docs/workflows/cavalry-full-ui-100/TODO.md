@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Acceptance.md、Runbook.md、当前 release candidate 与最新 run note
-[OUTPUT]: 对外提供本轮 macOS 定向验收、Windows Onboarding live 收口及明确未声明边界
+[OUTPUT]: 对外提供本轮 macOS 定向验收、Windows Onboarding/Tag/Assets live 收口及明确未声明边界
 [POS]: full-ui-100 当前任务索引；只列阻塞项，不复制证据系统实现
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -10,13 +10,13 @@
 ## 当前状态
 
 ```text
-产品代码                 = IMPLEMENTED, TARGETED MACOS/WINDOWS-ONBOARDING LIVE-ACCEPTED
+产品代码                 = IMPLEMENTED, TARGETED MACOS/WINDOWS LIVE-ACCEPTED
 macOS 8 条 ordinary Qt   = PASS (24/24)
 macOS 2 条邻接表面        = PASS (6/6)
 macOS Onboarding 五步    = PASS (15/15)
 Transform 自绘帮助        = PASS (3/3)
 Windows Onboarding live  = PASS (15/15)
-Windows 两条邻接 producer = PENDING-WINDOWS-PRODUCER
+Windows 两条邻接 producer = PASS (6/6; 9/9 PNG)
 repository-wide G0-G4    = NOT CLAIMED
 ```
 
@@ -27,7 +27,12 @@ session `5bbc2099-b9a5-41ef-89ed-6c16ca08105f` 的
 `matrix-final-record.json`，状态 `PASS-48-OF-48`。
 当前 Windows Onboarding 真相源是
 [`runs/2026-07-30-windows-onboarding-live-validation.md`](./runs/2026-07-30-windows-onboarding-live-validation.md)，
-绑定实现 commit `0710dc5` 与单一三语 final run 的 15 张 exact-PID/HWND PNG hash。
+绑定当前 PR 候选 run `windows-live-6612-1785457815698618300-0` 的 15 张
+exact-PID/HWND PNG hash。
+当前 Windows Tag/Assets 真相源是
+[`../../audits/windows-adjacent-producer-live-validation-session-handoff-2026-07-31.md`](../../audits/windows-adjacent-producer-live-validation-session-handoff-2026-07-31.md)，
+绑定 final run `windows-live-18396-1785457391693852000-0` 的三语 6 个逻辑 producer 点、
+9 张 producer-side PNG hash、PID/HWND 锚点、人工逐图复核与 English/零 PID 清理。
 
 ## 本轮只证明三件事
 
@@ -60,7 +65,13 @@ session `5bbc2099-b9a5-41ef-89ed-6c16ca08105f` 的
 - [x] 三语 `Learn/Guides/strings.json` 保持 Cavalry 固定读取的 `language: "en"` slot；98 keys 与 guide references 静态同构。
 - [x] 每语真实显示 step 1–5；标题、正文、Back/Next/Done 拓扑与独立硬编码语言 oracle 完全相等。
 - [x] 每步各一张绑定 exact native window 的截图，正文为空不能通过；合计 `15/15` 人工复核。
-- [x] Windows 额外以独立 live gate 完成三语 `15/15`：继承当前登录态但不复制 profile，以 `showGuides → guideSelected(std::string("firstLaunch")) → steps 1–4 nextClicked → step 5 ACK-only` 驱动；helper 只截 runtime 发布的 exact HWND，最终恢复 English 并清零 PID。
+- [x] Windows 额外以独立 live gate 完成三语 `15/15`：acceptance-only 插件先启用 sentinel-owned Qt test profile，不复制/伪造登录态；等待 MainDock 稳定后以 manager-first `firstLaunch → steps 1–4 unique localized Next → real title/body transition confirmation → step 5 ACK-only` 驱动。重置工作区框一旦出现即失败，helper 只截 runtime 发布的 exact HWND，最终恢复 English 并清零 PID。
+
+### Windows 邻接 producer — 6 点
+
+- [x] 以真实 `TagHeader` GroupButton click 创建 `PopOverView`，三语精确验证 Add/Assign 两标签与 owner-external 负例。
+- [x] 两份带 run nonce 的 fixture 真实 Drop 到 `assets::Window`，重新解析 exact row 后 post ContextMenu，三语精确验证 Replace 与动态 Create。
+- [x] 9 张 producer-side QWidget PNG 均绑定 exact PID/HWND 锚点并完成人工复核；每语重建 sentinel-owned Qt test profile，登录/Welcome 不成为 producer，结束恢复 English、零 PID 并删除临时 acceptance DLL/qttest 目录。
 
 ### Transform — 3 点
 
@@ -80,6 +91,6 @@ session `5bbc2099-b9a5-41ef-89ed-6c16ca08105f` 的
 
 ## 明确不在本轮冒充完成
 
-- Windows Onboarding 只关闭此前 `PENDING-NO-WINDOWS-HOST`；它不扩张为 Windows 全表面 PASS。
-- Windows 共享表中已有 Tag/Assets 邻接译文，但 producer/caller/HWND/像素尚未采证，状态保持 `PENDING-WINDOWS-PRODUCER`。
+- Windows Onboarding 与 Tag/Assets 只关闭各自定向 live 缺口；它们不扩张为 Windows 全表面 PASS。
+- Acceptance plugin、Qt test profile、窗口旁路和 exact-PID ForceStop 兜底只属于 ignored live gate，不进入产品 generic DLL、Tauri resources 或 NSIS，也不参与翻译 PASS。
 - 本轮没有重跑 repository-wide W-AUDIT、G-P、§P5、G-CAPTURE、G-X、G0-G4，因此不声明 `ALL GATES PASS`。

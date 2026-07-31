@@ -3666,7 +3666,7 @@ test('Windows EditShape/Transform operation prefixes and CogTool Pitch stay insi
   assert.match(translator, /!cavalry_i18n::requiresExactTranslationContext/);
   assert.match(
     macInjector,
-    /bool requiresMacExactTranslationContext\([\s\S]{0,320}requiresExactTranslationContext\([\s\S]{0,220}requiresMacOwnerTranslationContext\(/
+    /bool requiresMacExactTranslationContext\([\s\S]{0,320}requiresExactTranslationContext\([\s\S]{0,220}requiresOwnerTranslationContext\(/
   );
   assert.ok(
     (macInjector.match(/requiresMacExactTranslationContext/g) || []).length >= 5,
@@ -5204,7 +5204,7 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
 // macOS p4 定向合同：只锁产品边界，不在静态测试里复制现场证据系统。
 // ---------------------------------------------------------------------------
 
-test('macOS p4 ordinary Qt residuals stay inside exact producer owners', () => {
+test('p4 ordinary Qt residuals stay inside exact producer owners on both platforms', () => {
   const policy = fs.readFileSync(
     path.join(injectorRoot, 'cavalry_i18n_translation_policy.h'),
     'utf8'
@@ -5215,6 +5215,14 @@ test('macOS p4 ordinary Qt residuals stay inside exact producer owners', () => {
   );
   const windowsTranslator = fs.readFileSync(
     path.join(injectorRoot, 'windows', 'cavalry_i18n_translator.cpp'),
+    'utf8'
+  );
+  const windowsRuntime = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'cavalry_i18n_runtime.cpp'),
+    'utf8'
+  );
+  const windowsDisplay = fs.readFileSync(
+    path.join(injectorRoot, 'windows', 'cavalry_i18n_display.cpp'),
     'utf8'
   );
 
@@ -5229,8 +5237,8 @@ test('macOS p4 ordinary Qt residuals stay inside exact producer owners', () => {
     assert.match(policy, new RegExp(source.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
   assert.match(policy, /Add a layer to your Composition \(⌘\.\)/);
-  assert.match(policy, /requiresMacOwnerTranslationContext/);
-  assert.match(windowsTranslator, /!cavalry_i18n::requiresMacOwnerTranslationContext/);
+  assert.match(policy, /requiresOwnerTranslationContext/);
+  assert.match(windowsTranslator, /!cavalry_i18n::requiresOwnerTranslationContext/);
 
   assert.match(injector, /case QEvent::ContextMenu:[\s\S]{0,120}rememberScopedContextMenuOwner\(watched\)/);
   assert.match(injector, /dispatch_async\(dispatch_get_main_queue\(\)[\s\S]{0,220}gPendingScopedContextMenuOwner\.clear\(\)/);
@@ -5249,6 +5257,32 @@ test('macOS p4 ordinary Qt residuals stay inside exact producer owners', () => {
   assert.ok(
     initialWidgetTranslationIndex > scopedFilterIndex && initialWidgetTranslationIndex < fullFilterIndex,
     'initial widget translation must complete before broad runtime events are enabled'
+  );
+  assert.match(
+    windowsRuntime,
+    /event->type\(\)\s*==\s*QEvent::ContextMenu[\s\S]{0,180}hasAncestorClass\(widget,\s*"assets::Window"\)[\s\S]{0,220}assetsContextMenuProducer_/
+  );
+  assert.match(
+    windowsRuntime,
+    /case QEvent::Show:[\s\S]{0,300}translateAssetsContextMenu\(menu\)/
+  );
+  const assetsMenuStart = windowsDisplay.indexOf(
+    'void CavalryDisplayTranslator::translateAssetsContextMenu(QMenu *menu)'
+  );
+  const assetsMenuEnd = windowsDisplay.indexOf(
+    'void CavalryDisplayTranslator::translateAction(QAction *action)',
+    assetsMenuStart
+  );
+  assert.ok(
+    assetsMenuStart >= 0 && assetsMenuEnd > assetsMenuStart,
+    'Windows Assets menu translator must remain an isolated display boundary'
+  );
+  const assetsMenuBody = windowsDisplay.slice(assetsMenuStart, assetsMenuEnd);
+  assert.match(assetsMenuBody, /kAssetsWindowReplaceSource/);
+  assert.match(assetsMenuBody, /kAssetsWindowCreateCompositionSource/);
+  assert.match(
+    assetsMenuBody,
+    /replaceAction\s*==\s*nullptr\s*\|\|\s*createAction\s*==\s*nullptr[\s\S]*replaceAction->setText\(replaceTranslation\)[\s\S]*createAction->setText\(createTranslation\.arg\(createValue\)\)/
   );
 });
 

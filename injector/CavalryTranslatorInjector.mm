@@ -121,7 +121,7 @@ bool requiresMacExactTranslationContext(
     const char *sourceText) noexcept
 {
     return cavalry_i18n::requiresExactTranslationContext(context, sourceText)
-        || cavalry_i18n::requiresMacOwnerTranslationContext(
+        || cavalry_i18n::requiresOwnerTranslationContext(
             context,
             sourceText);
 }

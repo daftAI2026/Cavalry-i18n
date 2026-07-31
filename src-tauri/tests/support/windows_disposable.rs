@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖显式 smoke 环境变量、系统 `%TEMP%`、disposable sentinel、InstallLayout、CopyPair 与 Windows QPA 固定写入表面
- * [OUTPUT]: 提供 GuardedTempRoot、disposable_install_layout、兼容 verbatim/8.3 拼写的规范路径身份校验、逐级 reparse 拒绝、QPA 目标守卫及安全 evidence 子目录创建
- * [POS]: Windows ignored integration smoke 的共享路径信任边界；只证明临时克隆/证据根和明确写目标，不启动进程或执行产品操作
+ * [INPUT]: 依赖显式 smoke 环境变量、系统 `%TEMP%` 与 AppData、disposable/Qt-profile sentinel、InstallLayout、CopyPair 与 Windows QPA 固定写入表面
+ * [OUTPUT]: 提供 GuardedTempRoot、disposable_install_layout、Qt test profile 的排他准备/清理、兼容 verbatim/8.3 拼写的规范路径身份校验、逐级 reparse 拒绝、QPA 目标守卫及安全 evidence 子目录创建
+ * [POS]: Windows ignored integration smoke 的共享路径信任边界；只操作有固定 magic sentinel 的临时克隆、证据根和 qttest/Cavalry 档案，不启动进程或执行产品操作
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::{
@@ -11,7 +11,7 @@ use cavalry_i18n_tauri::{
 };
 use std::{
     env, fs,
-    io::ErrorKind,
+    io::{ErrorKind, Write},
     os::windows::fs::MetadataExt,
     path::{Path, PathBuf},
     process,
@@ -19,6 +19,8 @@ use std::{
 };
 
 pub const DISPOSABLE_SENTINEL: &str = ".cavalry-i18n-disposable-smoke";
+pub const QT_TEST_PROFILE_SENTINEL: &str = ".cavalry-i18n-acceptance-profile";
+const QT_TEST_PROFILE_SENTINEL_MAGIC: &str = "cavalry-i18n.windows-qt-test-profile/v1";
 const PLUGIN_FILE_NAME: &str = "cavalryi18n.dll";
 const FILE_ATTRIBUTE_REPARSE_POINT: u32 = 0x0400;
 
@@ -182,6 +184,131 @@ pub fn path_is_strictly_within(path: &Path, root: &Path) -> bool {
         && path
             .strip_prefix(&root)
             .is_some_and(|remainder| remainder.starts_with('\\'))
+}
+
+fn qt_test_profile_directories() -> Result<[PathBuf; 2], String> {
+    let local = env::var_os("LOCALAPPDATA")
+        .map(PathBuf::from)
+        .ok_or_else(|| "LOCALAPPDATA is unavailable for the Qt test profile".to_string())?;
+    let roaming = env::var_os("APPDATA")
+        .map(PathBuf::from)
+        .ok_or_else(|| "APPDATA is unavailable for the Qt test profile".to_string())?;
+    for root in [&local, &roaming] {
+        if !root.is_absolute() || !root.is_dir() {
+            return Err(format!(
+                "Qt test profile root must be an existing absolute directory: {}",
+                root.display()
+            ));
+        }
+        assert_absolute_existing_chain_has_no_reparse(root)?;
+    }
+    Ok([
+        local.join("qttest").join("Cavalry"),
+        roaming.join("qttest").join("Cavalry"),
+    ])
+}
+
+fn assert_tree_has_no_reparse(root: &Path) -> Result<(), String> {
+    let mut pending = vec![root.to_path_buf()];
+    while let Some(path) = pending.pop() {
+        reject_reparse(&path)?;
+        if path.is_dir() {
+            for entry in fs::read_dir(&path)
+                .map_err(|error| format!("could not enumerate {}: {error}", path.display()))?
+            {
+                pending.push(
+                    entry
+                        .map_err(|error| {
+                            format!("could not inspect child of {}: {error}", path.display())
+                        })?
+                        .path(),
+                );
+            }
+        }
+    }
+    Ok(())
+}
+
+pub fn cleanup_qt_test_profile() -> Result<(), String> {
+    for directory in qt_test_profile_directories()? {
+        if !directory.exists() {
+            continue;
+        }
+        assert_absolute_existing_chain_has_no_reparse(&directory)?;
+        let sentinel = directory.join(QT_TEST_PROFILE_SENTINEL);
+        let metadata = fs::symlink_metadata(&sentinel).map_err(|error| {
+            format!(
+                "refusing existing Qt test profile without owned sentinel {}: {error}",
+                sentinel.display()
+            )
+        })?;
+        if !metadata.file_type().is_file()
+            || metadata.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0
+        {
+            return Err(format!(
+                "refusing non-file Qt test profile sentinel {}",
+                sentinel.display()
+            ));
+        }
+        let identity = fs::read_to_string(&sentinel).map_err(|error| {
+            format!(
+                "could not read Qt test profile sentinel {}: {error}",
+                sentinel.display()
+            )
+        })?;
+        if identity.lines().next() != Some(QT_TEST_PROFILE_SENTINEL_MAGIC) {
+            return Err(format!(
+                "refusing foreign Qt test profile {}",
+                directory.display()
+            ));
+        }
+        assert_tree_has_no_reparse(&directory)?;
+        fs::remove_dir_all(&directory).map_err(|error| {
+            format!(
+                "could not remove owned Qt test profile {}: {error}",
+                directory.display()
+            )
+        })?;
+    }
+    Ok(())
+}
+
+pub fn prepare_qt_test_profile(identity: &str) -> Result<(), String> {
+    cleanup_qt_test_profile()?;
+    let directories = qt_test_profile_directories()?;
+    for directory in &directories {
+        fs::create_dir_all(directory).map_err(|error| {
+            format!(
+                "could not create Qt test profile {}: {error}",
+                directory.display()
+            )
+        })?;
+        assert_absolute_existing_chain_has_no_reparse(directory)?;
+        let sentinel = directory.join(QT_TEST_PROFILE_SENTINEL);
+        let mut file = fs::OpenOptions::new()
+            .write(true)
+            .create_new(true)
+            .open(&sentinel)
+            .map_err(|error| {
+                format!(
+                    "could not create Qt test profile sentinel {}: {error}",
+                    sentinel.display()
+                )
+            })?;
+        writeln!(file, "{QT_TEST_PROFILE_SENTINEL_MAGIC}\n{identity}").map_err(|error| {
+            format!(
+                "could not write Qt test profile sentinel {}: {error}",
+                sentinel.display()
+            )
+        })?;
+        file.sync_all().map_err(|error| {
+            format!(
+                "could not flush Qt test profile sentinel {}: {error}",
+                sentinel.display()
+            )
+        })?;
+    }
+    Ok(())
 }
 
 fn comparable_path(value: &Path) -> String {

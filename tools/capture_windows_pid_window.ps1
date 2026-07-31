@@ -1,13 +1,13 @@
 ﻿<#
 [INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、显式 PID、位于带 sentinel 的 disposable `%TEMP%` clone 根内的 Cavalry.exe、runtime marker、带 sentinel 的 evidence `%TEMP%` 根与输出 PNG 路径
-[OUTPUT]: 对外提供 Inventory/Capture/Close 三个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；捕获三类自绘场景和 runtime 发布的 exact-HWND Onboarding，并以显式开关从零位图基线等待人工 Cogwheel 拖拽及严格诊断增量
-[POS]: tools 的 Windows GUI 取证边界；Edit Shape 与人工 CogPitch 通过有界 exact-HWND 前台门，Onboarding 不重选主窗口，Close 只向 exact PID 的全部顶层 HWND 投递 WM_CLOSE 且不发送盲键；不创建场景、不依赖 Qt UIA、不运行脚本，禁止坐标/鼠标回退、强杀、固定 sleep 或覆盖证据
+[OUTPUT]: 对外提供 Inventory/Capture/WaitForExit/Close/ForceStop 五个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；捕获主窗口及 acceptance state 发布的 exact-HWND Onboarding，并在证据完成后提供 WM_CLOSE/受限强停清理
+[POS]: tools 的 Windows GUI 取证边界；Onboarding/Adjacent 不重选主窗口，正式 Adjacent gate 由 producer-side Qt grab 生成 PNG，本 helper 的 screen-copy 只作诊断且不参与交互；Close 只投递 WM_CLOSE，ForceStop 只在同一 executable/PID 复核且 WM_CLOSE 超时后使用，清理结果不参与翻译 PASS，禁止盲键、UIA、场景脚本、鼠标/坐标交互回退、固定 sleep 或覆盖证据
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)]
-    [ValidateSet('Inventory', 'Capture', 'Close')]
+    [ValidateSet('Inventory', 'Capture', 'WaitForExit', 'Close', 'ForceStop')]
     [string]$Action,
 
     [Parameter(Mandatory = $false)]
@@ -29,7 +29,7 @@ param(
     [string]$OutputPath,
 
     [Parameter(Mandatory = $false)]
-    [ValidateSet('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch', 'Onboarding')]
+    [ValidateSet('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch', 'Onboarding', 'Adjacent')]
     [string]$CaptureScenario = 'ViewportQuality',
 
     [Parameter(Mandatory = $false)]
@@ -707,7 +707,9 @@ function Capture-MainWindow {
         [Parameter(Mandatory = $true)]
         [string]$Destination,
         [Parameter(Mandatory = $true)]
-        [bool]$ResolveMainWindow
+        [bool]$ResolveMainWindow,
+        [Parameter(Mandatory = $true)]
+        [bool]$AllowScreenCopyFallback
     )
 
     while ([System.DateTime]::UtcNow -lt $Deadline) {
@@ -741,11 +743,35 @@ function Capture-MainWindow {
                 )
                 $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
                 $deviceContext = [IntPtr]::Zero
+                $captureMethod = 'print-window'
                 try {
-                    $deviceContext = $graphics.GetHdc()
-                    Assert-Condition `
-                        -Condition ([CavalryLiveWindow]::PrintWindow($Window, $deviceContext, 2)) `
-                        -Message 'PrintWindow failed for the exact Cavalry PID main window.'
+                    $printWindowSucceeded = $false
+                    try {
+                        $deviceContext = $graphics.GetHdc()
+                        $printWindowSucceeded = [CavalryLiveWindow]::PrintWindow(
+                            $Window,
+                            $deviceContext,
+                            2
+                        )
+                    } finally {
+                        if ($deviceContext -ne [IntPtr]::Zero) {
+                            $graphics.ReleaseHdc($deviceContext)
+                            $deviceContext = [IntPtr]::Zero
+                        }
+                    }
+                    if (-not $printWindowSucceeded) {
+                        Assert-Condition -Condition $AllowScreenCopyFallback `
+                            -Message 'PrintWindow failed for the exact Cavalry PID window.'
+                        $graphics.CopyFromScreen(
+                            $rectangle.Left,
+                            $rectangle.Top,
+                            0,
+                            0,
+                            [System.Drawing.Size]::new($width, $height),
+                            [System.Drawing.CopyPixelOperation]::SourceCopy
+                        )
+                        $captureMethod = 'screen-copy-exact-hwnd-bounds'
+                    }
                 } finally {
                     if ($deviceContext -ne [IntPtr]::Zero) {
                         $graphics.ReleaseHdc($deviceContext)
@@ -791,6 +817,7 @@ function Capture-MainWindow {
                         width = $width
                         height = $height
                         windowHandle = $Window.ToInt64().ToString()
+                        captureMethod = $captureMethod
                     }
                 }
                 $bitmap.Dispose()
@@ -882,6 +909,59 @@ if ($Action -eq 'Close') {
     exit 0
 }
 
+if ($Action -eq 'ForceStop') {
+    $exact = Get-ExactProcess `
+        -Id $TargetProcessId `
+        -ExpectedExecutable $ExecutablePath `
+        -AllowMissing
+    if ($null -eq $exact) {
+        ConvertTo-Json -InputObject ([PSCustomObject]@{
+            processId = $TargetProcessId
+            status = 'already-exited'
+        }) -Compress
+        exit 0
+    }
+    $processHandle = $exact.process.Handle
+    Stop-Process -Id $TargetProcessId -Force
+    $waitResult = [CavalryLiveWindow]::WaitForSingleObject(
+        $processHandle,
+        [uint32]$TimeoutMilliseconds
+    )
+    Assert-Condition `
+        -Condition ($waitResult -eq 0) `
+        -Message "Cavalry process $TargetProcessId did not exit after exact-PID ForceStop."
+    ConvertTo-Json -InputObject ([PSCustomObject]@{
+        processId = $TargetProcessId
+        status = 'force-stopped'
+    }) -Compress
+    exit 0
+}
+
+if ($Action -eq 'WaitForExit') {
+    $exact = Get-ExactProcess `
+        -Id $TargetProcessId `
+        -ExpectedExecutable $ExecutablePath `
+        -AllowMissing
+    if ($null -eq $exact) {
+        ConvertTo-Json -InputObject ([PSCustomObject]@{
+            processId = $TargetProcessId
+            status = 'already-exited'
+        }) -Compress
+        exit 0
+    }
+    $waitResult = [CavalryLiveWindow]::WaitForSingleObject(
+        $exact.process.Handle,
+        [uint32]$TimeoutMilliseconds
+    )
+    Assert-Condition -Condition ($waitResult -eq 0) `
+        -Message "Cavalry process $TargetProcessId did not exit by itself."
+    ConvertTo-Json -InputObject ([PSCustomObject]@{
+        processId = $TargetProcessId
+        status = 'exited'
+    }) -Compress
+    exit 0
+}
+
 foreach ($required in @(
     $MarkerPath,
     $Language,
@@ -916,7 +996,7 @@ $marker = Wait-ForExtensionLayerMarker `
     -ExpectedLanguage $Language `
     -ExpectedProcessId $TargetProcessId `
     -Deadline $deadline
-$resolveMainWindow = $CaptureScenario -cne 'Onboarding'
+$resolveMainWindow = @('Onboarding', 'Adjacent') -notcontains $CaptureScenario
 if ($resolveMainWindow) {
     $window = Wait-ForMainWindow `
         -Process $exact.process `
@@ -930,14 +1010,14 @@ if ($resolveMainWindow) {
             [long]::TryParse($ExpectedWindowHandle, [ref]$parsedWindowHandle) -and
             $parsedWindowHandle -ne 0
         ) `
-        -Message 'Onboarding capture requires a non-zero decimal ExpectedWindowHandle.'
+        -Message "$CaptureScenario capture requires a non-zero decimal ExpectedWindowHandle."
     $window = [IntPtr]::new($parsedWindowHandle)
     Assert-Condition `
         -Condition ([CavalryLiveWindow]::IsExactVisibleWindow(
             $window,
             [uint32]$TargetProcessId
         )) `
-        -Message 'Onboarding ExpectedWindowHandle is not a visible window owned by the exact Cavalry PID.'
+        -Message "$CaptureScenario ExpectedWindowHandle is not a visible window owned by the exact Cavalry PID."
 }
 $cogPitchBaseline = $null
 if ($CaptureScenario -ceq 'CogPitch') {
@@ -992,6 +1072,9 @@ $interactionEvidence = switch ($CaptureScenario) {
     'Onboarding' {
         'onboarding-window=runtime-exact-hwnd;path-pixels=manual-review-required'
     }
+    'Adjacent' {
+        'adjacent-producer=runtime-exact-hwnd;path-pixels=manual-review-required'
+    }
 }
 $requiredTextPathMask = switch ($CaptureScenario) {
     'ViewportQuality' { 0x0001 }
@@ -1017,7 +1100,8 @@ $capture = Capture-MainWindow `
     -ExpectedProcessId $TargetProcessId `
     -Deadline $deadline `
     -Destination $outputTarget `
-    -ResolveMainWindow $resolveMainWindow
+    -ResolveMainWindow $resolveMainWindow `
+    -AllowScreenCopyFallback ($CaptureScenario -ceq 'Adjacent')
 Assert-NoReparseTargetChain -Root $evidence -Target $outputTarget -Role 'written screenshot'
 Assert-Condition -Condition (Test-Path -LiteralPath $outputTarget -PathType Leaf) `
     -Message "Screenshot was not written: $outputTarget"
@@ -1039,5 +1123,6 @@ ConvertTo-Json -InputObject ([PSCustomObject]@{
     height = [int]$capture.height
     outputPath = $outputTarget
     captureScenario = $CaptureScenario
+    captureMethod = [string]$capture.captureMethod
     interactionEvidence = $interactionEvidence
 }) -Compress

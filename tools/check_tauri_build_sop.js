@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding exact-HWND 边界、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PR 级 clean-macOS universal link gate、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、Onboarding 窗口身份与无盲键关闭、仅接受已包含于 origin/main 的 tag commit 所生成的 GitHub Release、系统语言/品牌及 GUI 安全合同
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable full-surface/Onboarding live 证据及 npm/Tauri 配置
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PR 级 clean-macOS universal link gate、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、Qt 测试档案/Onboarding 实页转场/Adjacent producer/exact-PID 清理边界、仅接受已包含于 origin/main 的 tag commit 所生成的 GitHub Release、系统语言/品牌及 GUI 安全合同
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable full-surface/Onboarding/Adjacent live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -1276,9 +1276,18 @@ test('Windows production launch uses QPA state and preserves the caller profile/
 });
 
 test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-review only', () => {
-  const live = readText('src-tauri/tests/manual_windows_live_smoke.rs');
+  const liveEntry = readText('src-tauri/tests/manual_windows_live_smoke.rs');
+  const live = [
+    liveEntry,
+    readText('src-tauri/tests/support/windows_live_capture.inc.rs'),
+    readText('src-tauri/tests/support/windows_live_adjacent.inc.rs'),
+    readText('src-tauri/tests/support/windows_live_orchestration.inc.rs'),
+    readText('src-tauri/tests/support/windows_live_tests.inc.rs'),
+  ].join('\n');
   const guard = readText('src-tauri/tests/support/windows_disposable.rs');
   const helper = readText('tools/capture_windows_pid_window.ps1');
+  const acceptancePlugin = readText('injector/windows/cavalry_i18n_acceptance_plugin.cpp');
+  const onboardingDriver = readText('injector/windows/cavalry_i18n_runtime.cpp');
   const sop = readText('LOCAL_BUILD_SOP.md');
   const textPathSources = readText(
     'injector/windows/cavalry_i18n_extension_layer_sources.h'
@@ -1428,8 +1437,15 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(live, /outstanding_processes\.remove\(&process_id\)/);
   assert.match(
     live,
-    /close_owned_process\(runner, helper, process_id, &layout\.executable\)\?;\s+if !outstanding_processes\.remove\(&process_id\)/
+    /cleanup_owned_process\(runner, helper, process_id, &layout\.executable\)\?;[\s\S]*if !outstanding_processes\.remove\(&process_id\)/
   );
+  assert.match(
+    live,
+    /match close_owned_process\(runner, helper, process_id, executable\)[\s\S]*force_stop_owned_process\(runner, helper, process_id, executable\)/
+  );
+  assert.doesNotMatch(live, /wait_for_adjacent_shutdown|shutdown-main-close\.json|shutdown-event-loop\.json/);
+  assert.match(live, /cavalryi18n_acceptance:onboarding/);
+  assert.match(live, /capture_mode != LiveCaptureMode::FullSurfaces/);
   assert.doesNotMatch(live, /created_processes/);
   assert.match(live, /catch_unwind\(AssertUnwindSafe/);
   assert.match(live, /exercise panic:/);
@@ -1442,7 +1458,10 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(live, /MANUAL SCREENSHOT REVIEW REQUIRED/);
   assert.match(live, /no OCR assertion was performed/);
   assert.doesNotMatch(live, /thread::sleep|std::thread|Command::new/);
-  assert.match(sop, /临时 `APPDATA`\/`LOCALAPPDATA` 只维护测试文件卫生/);
+  assert.match(
+    sop,
+    /full-surface 门仍用临时 `APPDATA`\/`LOCALAPPDATA` 维护测试文件卫生/
+  );
   assert.match(sop, /默认生成的三类 PNG，以及 opt-in 时追加的 Cog Pitch PNG/);
   assert.match(sop, /CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1/);
   assert.match(sop, /菜单、属性编辑器、合成\/自动编号项、所有受控下拉显示项/);
@@ -1487,14 +1506,36 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.doesNotMatch(helper, /'CogPitch'\s*\{\s*0x20000000\s*\}/);
   assert.match(
     helper,
-    /ValidateSet\('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch', 'Onboarding'\)/
+    /ValidateSet\('ViewportQuality', 'TransformHelper', 'EditShapeHelper', 'CogPitch', 'Onboarding', 'Adjacent'\)/
   );
   assert.match(live, /CAVALRY_I18N_WINDOWS_ONBOARDING_ACCEPTANCE_DIR/);
+  assert.match(live, /CAVALRY_I18N_WINDOWS_ADJACENT_ACCEPTANCE_DIR/);
+  assert.match(
+    live,
+    /qt-widget-grab-exact-producer\+pid-hwnd-anchor/
+  );
   assert.match(live, /terminal=step5-ack-only/);
-  assert.match(live, /guide_parameter_type != "std::string"/);
+  assert.match(live, /guide_parameter_type == "std::string"/);
+  assert.match(live, /guide_parameter_type == "const std::string&"/);
+  assert.match(acceptancePlugin, /QStandardPaths::setTestModeEnabled\(true\)/);
+  assert.match(guard, /QT_TEST_PROFILE_SENTINEL/);
+  assert.match(guard, /cavalry-i18n\.windows-qt-test-profile\/v1/);
+  assert.match(guard, /prepare_qt_test_profile/);
+  assert.match(guard, /cleanup_qt_test_profile/);
+  assert.match(live, /prepare_qt_test_profile/);
+  assert.match(live, /cleanup_qt_test_profile/);
+  assert.match(onboardingDriver, /kOnboardingStartupSettleMilliseconds\s*=\s*15'000/);
+  assert.match(onboardingDriver, /waiting-for-transition/);
+  assert.match(onboardingDriver, /kOnboardingTransitionClickAttempts\s*=\s*3/);
+  assert.match(onboardingDriver, /expectedTitleHits == 1 && expectedBodyHits == 1/);
+  assert.match(onboardingDriver, /workspaceResetPromptObserved/);
+  assert.match(onboardingDriver, /neither Ok nor Cancel was invoked/);
+  assert.match(onboardingDriver, /forward->click\(\)/);
+  assert.doesNotMatch(onboardingDriver, /acceptButton->click|cancelButton->click|showStepImmediate|AddVectoredExceptionHandler/);
   assert.match(helper, /ExpectedWindowHandle/);
   assert.match(helper, /IsExactVisibleWindow/);
   assert.match(helper, /onboarding-window=runtime-exact-hwnd/);
+  assert.match(helper, /adjacent-producer=runtime-exact-hwnd/);
   assert.match(helper, /AllowManualCogPitch/);
   assert.match(helper, /manual-disposable-cogwheel-drag/);
   assert.match(helper, /BaselineDiagnostics/);
@@ -1560,6 +1601,15 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /PrintWindow/);
   assert.match(helper, /PostMessage/);
   assert.match(helper, /WM_CLOSE/);
+  assert.match(
+    helper,
+    /if \(\$Action -eq 'ForceStop'\)[\s\S]*Get-ExactProcess[\s\S]*Stop-Process -Id \$TargetProcessId -Force/
+  );
+  assert.equal(
+    (helper.match(/\bStop-Process\b/g) || []).length,
+    1,
+    'exact-PID ForceStop must remain the only Stop-Process call'
+  );
   assert.match(helper, /RequestForegroundWindow/);
   assert.match(helper, /ExactForegroundWindow/);
   assert.match(helper, /FindProcessWindows/);
@@ -1568,7 +1618,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /ImageFormat\]::Png/);
   assert.doesNotMatch(
     helper,
-    /\bStart-Sleep\b|\bStop-Process\b|\.Kill\(|TerminateProcess|\bRemove-Item\b/i
+    /\bStart-Sleep\b|\.Kill\(|TerminateProcess|\bRemove-Item\b/i
   );
 
   if (process.platform === 'win32') {

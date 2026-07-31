@@ -1,14 +1,19 @@
 /**
- * [INPUT]: 依赖 QPA 显式 requestedLanguage、嵌入生成表、四条精确 hook、受控 Qt 显示槽、可选绝对 marker，以及显式同目录 Onboarding 验收握手
- * [OUTPUT]: 对外安装 translator/显示投影、报告配置成功，并以事件重试 hook、按 text-path revision 写结构化诊断；验收开启时语义触发并逐步证明 firstLaunch 标题与独立正文
- * [POS]: injector/windows 的运行时状态机；正常语言只来自 manifest/hash gate，验收分支不使用坐标/UIA，且仅在受控证据目录存在时驱动产品 Qt 对象
+ * [INPUT]: 产品分区依赖 QPA 显式语言、嵌入生成表、四条精确 hook 与受控 Qt 显示槽；acceptance-only 编译分区依赖 Onboarding driver 契约、显式受控语言/证据目录与产品已安装 translator
+ * [OUTPUT]: 产品分区安装 translator/显示投影、传递真实 Assets producer 并写 text-path 诊断；acceptance-only 分区为不发布插件生成 firstLaunch 五步 driver，并以目标页标题/正文确认 Next 转场后才推进状态
+ * [POS]: injector/windows 的双目标源码分区；产品 target 永不编译验收分区，acceptance wrapper 只编译验收分区，防止 UI 驱动语义进入发布 DLL
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+#ifdef CAVALRY_I18N_ONBOARDING_ACCEPTANCE_ONLY
+#include "cavalry_i18n_onboarding_acceptance.h"
+#include "cavalry_i18n_translator.h"
+#include <QtCore/private/qobject_p.h>
+#else
 #include "cavalry_i18n_runtime.h"
-
 #include "cavalry_i18n_display.h"
 #include "cavalry_i18n_extension_layer_hook.h"
 #include "cavalry_i18n_translator.h"
+#endif
 
 #include <QtCore/QCoreApplication>
 #include <QtCore/QDir>
@@ -32,15 +37,18 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QAbstractButton>
 #include <QtWidgets/QComboBox>
+#include <QtWidgets/QDialog>
 #include <QtWidgets/QGroupBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QMessageBox>
 #include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QTabBar>
 #include <QtWidgets/QTextBrowser>
 #include <QtWidgets/QWidget>
 
+#include <array>
 #include <string>
 
 #define WIN32_LEAN_AND_MEAN
@@ -48,31 +56,60 @@
 
 namespace {
 
-constexpr auto kPluginKey = "cavalryi18n";
 constexpr auto kMarkerEnvironment = "CAVALRY_I18N_DIAGNOSTIC_MARKER";
+#ifdef CAVALRY_I18N_ONBOARDING_ACCEPTANCE_ONLY
 constexpr auto kOnboardingAcceptanceEnvironment =
     "CAVALRY_I18N_WINDOWS_ONBOARDING_ACCEPTANCE_DIR";
 constexpr auto kShowGuidesActionObjectName = "showGuides";
 constexpr auto kOnboardingChoiceClass =
     "onboarding::OnboardingChoiceView";
+constexpr auto kOnboardingManagerClass =
+    "onboarding::OnboardingManager";
 constexpr auto kOnboardingGuideClass =
     "onboarding::OnboardingGuideView";
 constexpr auto kFirstLaunchGuideId = "firstLaunch";
 constexpr int kOnboardingStepCount = 5;
 constexpr qint64 kOnboardingStageTimeoutMilliseconds = 45'000;
+constexpr qint64 kOnboardingStartupSettleMilliseconds = 15'000;
+constexpr qint64 kOnboardingTransitionRetryMilliseconds = 1'500;
+constexpr int kOnboardingTransitionClickAttempts = 3;
+constexpr auto kShowGuideSymbol =
+    "?showGuide@OnboardingManager@onboarding@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z";
+constexpr auto kOnboardingManagerGetterSymbol =
+    "?onboardingManager@Gui@@QEAAPEAVOnboardingManager@onboarding@@XZ";
+constexpr auto kOnboardingManagerIsDisabledSymbol =
+    "?isDisabled@OnboardingManager@onboarding@@QEBA_NXZ";
+constexpr auto kOnboardingManagerSetDisabledSymbol =
+    "?setDisabled@OnboardingManager@onboarding@@QEAAX_N@Z";
 
-bool invokeDirectStringMethod(
+using ShowGuideFunction =
+    void (*)(void *, const std::string &);
+using OnboardingManagerGetterFunction =
+    void *(*)(void *);
+using OnboardingManagerIsDisabledFunction =
+    bool (*)(void *);
+using OnboardingManagerSetDisabledFunction =
+    void (*)(void *, bool);
+
+struct OnboardingManagerTrigger
+{
+    QObject *manager = nullptr;
+};
+
+QMetaMethod resolveDirectStringMethod(
     QObject *object,
     const char *methodName,
-    const std::string &value,
     QByteArray *parameterType)
 {
     if (object == nullptr) {
-        return false;
+        return {};
     }
     const QMetaObject *metaObject = object->metaObject();
-    for (int index = 0; index < metaObject->methodCount(); ++index) {
-        const QMetaMethod method = metaObject->method(index);
+    for (int index = 0;
+         index < metaObject->methodCount();
+         ++index) {
+        const QMetaMethod method =
+            metaObject->method(index);
         const QList<QByteArray> parameterTypes =
             method.parameterTypes();
         if (method.name() != methodName
@@ -80,21 +117,219 @@ bool invokeDirectStringMethod(
             continue;
         }
         *parameterType = parameterTypes.first();
-        if (*parameterType != QByteArrayLiteral("std::string")) {
+        if (*parameterType
+            != QByteArrayLiteral("std::string")) {
             continue;
         }
-        return method.invoke(
-            object,
-            Qt::DirectConnection,
-            QGenericArgument(
-                parameterType->constData(),
-                &value));
+        return method;
+    }
+    return {};
+}
+
+FARPROC resolveExactOnboardingExport(
+    const char *symbol,
+    QString *error)
+{
+    HMODULE onboardingModule =
+        GetModuleHandleW(L"ExtensionLayer.dll");
+    if (onboardingModule == nullptr) {
+        *error = QStringLiteral(
+            "ExtensionLayer.dll is not loaded.");
+        return nullptr;
+    }
+    std::array<wchar_t, 32768> modulePath {};
+    const DWORD modulePathLength = GetModuleFileNameW(
+        onboardingModule,
+        modulePath.data(),
+        static_cast<DWORD>(modulePath.size()));
+    if (modulePathLength == 0
+        || modulePathLength >= modulePath.size()) {
+        *error = QStringLiteral(
+            "Could not resolve the loaded ExtensionLayer.dll path.");
+        return nullptr;
+    }
+    const QString loadedCore =
+        QFileInfo(
+            QString::fromWCharArray(
+                modulePath.data(),
+                static_cast<qsizetype>(modulePathLength)))
+            .canonicalFilePath();
+    const QString expectedCore =
+        QFileInfo(
+            QDir(QCoreApplication::applicationDirPath())
+                .filePath(QStringLiteral("ExtensionLayer.dll")))
+            .canonicalFilePath();
+    if (loadedCore.isEmpty()
+        || expectedCore.isEmpty()
+        || loadedCore.compare(
+               expectedCore,
+               Qt::CaseInsensitive) != 0) {
+        *error = QStringLiteral(
+            "Loaded Onboarding module escaped the exact Cavalry ExtensionLayer.dll.");
+        return nullptr;
+    }
+    FARPROC resolved =
+        GetProcAddress(onboardingModule, symbol);
+    if (resolved == nullptr) {
+        *error = QStringLiteral(
+            "Exact Cavalry 2.7.2 Onboarding export is missing: %1")
+                     .arg(QString::fromLatin1(symbol));
+    }
+    return resolved;
+}
+
+QObject *onboardingManagerFromGui(
+    QObject *gui,
+    QString *error)
+{
+    if (gui == nullptr
+        || gui->metaObject() == nullptr
+        || QString::fromLatin1(
+               gui->metaObject()->className())
+            != QStringLiteral("Gui")) {
+        *error = QStringLiteral(
+            "Gui::onboardingManager() requires the exact Gui runtime class.");
+        return nullptr;
+    }
+    FARPROC rawGetter =
+        resolveExactOnboardingExport(
+            kOnboardingManagerGetterSymbol,
+            error);
+    if (rawGetter == nullptr) {
+        return nullptr;
+    }
+    void *rawManager =
+        reinterpret_cast<OnboardingManagerGetterFunction>(
+            rawGetter)(
+                gui);
+    if (rawManager == nullptr) {
+        *error = QStringLiteral(
+            "Exact Gui::onboardingManager() returned null.");
+        return nullptr;
+    }
+    auto *manager =
+        reinterpret_cast<QObject *>(rawManager);
+    if (manager->metaObject() == nullptr
+        || QString::fromLatin1(
+               manager->metaObject()->className())
+            != QString::fromLatin1(
+                kOnboardingManagerClass)) {
+        *error = QStringLiteral(
+            "Gui::onboardingManager() returned an unexpected runtime class.");
+        return nullptr;
+    }
+    return manager;
+}
+
+bool resolveOnboardingManagerTrigger(
+    OnboardingManagerTrigger *trigger,
+    QString *error)
+{
+    QSet<QObject *> seen;
+    QList<QObject *> objects;
+    if (qApp != nullptr) {
+        objects.append(qApp);
+        objects.append(
+            qApp->findChildren<QObject *>(
+                QString(),
+                Qt::FindChildrenRecursively));
+    }
+    for (QWidget *widget : QApplication::allWidgets()) {
+        if (widget == nullptr) {
+            continue;
+        }
+        objects.append(widget);
+        for (QAction *action : widget->actions()) {
+            objects.append(action);
+        }
+        for (QAction *action :
+             widget->findChildren<QAction *>(
+                 QString(),
+                 Qt::FindChildrenRecursively)) {
+            objects.append(action);
+        }
+        objects.append(
+            widget->findChildren<QObject *>(
+                QString(),
+                Qt::FindChildrenRecursively));
+    }
+
+    QList<QObject *> managers;
+    QList<QObject *> guiObjects;
+    for (QObject *root : objects) {
+        for (QObject *object = root;
+             object != nullptr;
+             object = object->parent()) {
+            if (seen.contains(object)) {
+                continue;
+            }
+            seen.insert(object);
+            if (QString::fromLatin1(
+                    object->metaObject()->className())
+                == QString::fromLatin1(
+                    kOnboardingManagerClass)) {
+                managers.append(object);
+            } else if (QString::fromLatin1(
+                           object->metaObject()->className())
+                       == QStringLiteral("Gui")) {
+                guiObjects.append(object);
+            }
+        }
+    }
+    if (managers.size() > 1) {
+        *error = QStringLiteral(
+            "OnboardingManager identity is ambiguous: %1 candidates.")
+                     .arg(managers.size());
+        return false;
+    }
+    QObject *manager = managers.isEmpty()
+        ? nullptr
+        : managers.first();
+    if (manager == nullptr) {
+        if (guiObjects.isEmpty()) {
+            return false;
+        }
+        if (guiObjects.size() != 1) {
+            *error = QStringLiteral(
+                "Gui identity is ambiguous while resolving OnboardingManager: %1 candidates.")
+                         .arg(guiObjects.size());
+            return false;
+        }
+        manager = onboardingManagerFromGui(
+            guiObjects.first(),
+            error);
+        if (manager == nullptr) {
+            return false;
+        }
+    }
+
+    FARPROC rawShowGuide =
+        resolveExactOnboardingExport(kShowGuideSymbol, error);
+    if (rawShowGuide == nullptr) {
+        return false;
+    }
+    trigger->manager = manager;
+    return true;
+}
+
+#else
+constexpr auto kPluginKey = "cavalryi18n";
+bool hasAncestorClass(const QObject *object, const char *className)
+{
+    for (const QObject *candidate = object;
+         candidate != nullptr;
+         candidate = candidate->parent()) {
+        if (candidate->inherits(className)) {
+            return true;
+        }
     }
     return false;
 }
+#endif
 
 } // namespace
 
+#ifndef CAVALRY_I18N_ONBOARDING_ACCEPTANCE_ONLY
 CavalryI18nRuntime::CavalryI18nRuntime(
     const QString &requestedLanguage)
     : requestedLanguage_(requestedLanguage)
@@ -188,13 +423,12 @@ bool CavalryI18nRuntime::configure()
         std::make_unique<CavalryExtensionLayerHook>(*translator_);
     ensureExtensionLayerHook();
     application->installEventFilter(this);
-    configureOnboardingAcceptance();
     const QString diagnosticMarker =
         qEnvironmentVariable(kMarkerEnvironment).trimmed();
     if (QDir::isAbsolutePath(diagnosticMarker)) {
         // generic plugin 可能在 QApplication 的事件分发器启动前构造。
-        // 把轮询器的创建也投递给 application，确保登录/模态窗口并存时
-        // ready -> external screenshot -> ack 状态机仍由 GUI 线程持续推进。
+        // 把轮询器的创建也投递给 application，确保早期插件线程无事件
+        // 分发器时，ExtensionLayer/text-path 诊断仍由 GUI 线程持续推进。
         const QPointer<CavalryI18nRuntime> guardedRuntime(this);
         QMetaObject::invokeMethod(
             application,
@@ -211,11 +445,6 @@ bool CavalryI18nRuntime::configure()
                     [guardedRuntime]() {
                         if (guardedRuntime.isNull()) {
                             return;
-                        }
-                        if (!guardedRuntime->onboardingDriveActive_) {
-                            guardedRuntime->onboardingDriveActive_ = true;
-                            guardedRuntime->driveOnboardingAcceptance();
-                            guardedRuntime->onboardingDriveActive_ = false;
                         }
                         guardedRuntime->maybeWriteTextPathDiagnostic();
                     });
@@ -244,69 +473,10 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
         || watched == nullptr || event == nullptr) {
         return false;
     }
-
     if (event->type() == QEvent::ActionAdded) {
         auto *actionEvent = static_cast<QActionEvent *>(event);
         QAction *action = actionEvent->action();
         displayTranslator_->translateAction(action);
-        if (onboardingAcceptanceEnabled_
-            && onboardingAcceptanceStatus_
-                == QStringLiteral("waiting-for-action")
-            && action != nullptr) {
-            QString normalizedText = action->text().trimmed();
-            normalizedText.remove(QLatin1Char('&'));
-            const QString data = action->data().toString().trimmed();
-            const QString expectedText = translator_->translate(
-                "MenuBarManager",
-                "Getting Started Guides");
-            const bool exactObject =
-                action->objectName()
-                == QString::fromLatin1(kShowGuidesActionObjectName);
-            const bool exactData =
-                data == QString::fromLatin1(kShowGuidesActionObjectName);
-            const bool exactText =
-                !expectedText.isEmpty() && normalizedText == expectedText;
-            if (exactObject || exactData || exactText) {
-                onboardingActionObjectName_ = action->objectName();
-                onboardingActionIdentity_ = exactObject
-                    ? QStringLiteral("objectName:showGuides")
-                    : (exactData
-                        ? QStringLiteral("data:showGuides")
-                        : QStringLiteral(
-                            "context-source:MenuBarManager/Getting Started Guides"));
-                onboardingObservedActions_.append(
-                    QStringLiteral("object=%1|data=%2|text=%3")
-                        .arg(action->objectName(), data, normalizedText));
-                onboardingAcceptanceStatus_ =
-                    QStringLiteral("waiting-for-choice");
-                onboardingAcceptanceMessage_ =
-                    QStringLiteral(
-                        "Captured the exact lazy Getting Started Guides QAction; queued trigger.");
-                onboardingStageTimer_.restart();
-                const QPointer<QAction> guardedAction(action);
-                QMetaObject::invokeMethod(
-                    this,
-                    [this, guardedAction]() {
-                        if (!guardedAction.isNull()
-                            && onboardingAcceptanceStatus_
-                                == QStringLiteral(
-                                    "waiting-for-choice")) {
-                            guardedAction->trigger();
-                            writeDiagnostic(
-                                QStringLiteral("ready"),
-                                QStringLiteral(
-                                    "Embedded translation table installed; lazy Onboarding QAction triggered."),
-                                true);
-                        }
-                    },
-                    Qt::QueuedConnection);
-            }
-        }
-        if (!onboardingDriveActive_) {
-            onboardingDriveActive_ = true;
-            driveOnboardingAcceptance();
-            onboardingDriveActive_ = false;
-        }
         return false;
     }
 
@@ -323,9 +493,30 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
         return false;
     }
 
+    if (event->type() == QEvent::ContextMenu
+        && hasAncestorClass(widget, "assets::Window")) {
+        // QApplication event filter 先于目标对象处理 ContextMenu；其处理器会同步
+        // 创建并 Show QMenu。只把这一个事件回合的 producer 身份交给首帧菜单。
+        assetsContextMenuProducer_ = widget;
+        const QPointer<CavalryI18nRuntime> guardedRuntime(this);
+        QMetaObject::invokeMethod(
+            this,
+            [guardedRuntime]() {
+                if (!guardedRuntime.isNull()) {
+                    guardedRuntime->assetsContextMenuProducer_.clear();
+                }
+            },
+            Qt::QueuedConnection);
+    }
+
     switch (event->type()) {
     case QEvent::Show:
         // QMenu 必须在首帧前同步完成；普通控件也在自身 Show 前完成一次。
+        if (auto *menu = qobject_cast<QMenu *>(widget);
+            menu != nullptr && !assetsContextMenuProducer_.isNull()) {
+            displayTranslator_->translateAssetsContextMenu(menu);
+            assetsContextMenuProducer_.clear();
+        }
         displayTranslator_->translateWidget(widget);
         if (widget->isWindow() && qobject_cast<QMenu *>(widget) == nullptr) {
             queueRefresh(widget);
@@ -352,15 +543,312 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
         break;
     }
 
-    if (!onboardingDriveActive_
-        && (event->type() == QEvent::Show
-            || event->type() == QEvent::Paint)) {
-        onboardingDriveActive_ = true;
-        driveOnboardingAcceptance();
-        onboardingDriveActive_ = false;
+    return false;
+}
+#endif
+
+#ifdef CAVALRY_I18N_ONBOARDING_ACCEPTANCE_ONLY
+
+CavalryI18nOnboardingAcceptance::CavalryI18nOnboardingAcceptance(
+    const QString &language,
+    QObject *parent)
+    : QObject(parent)
+    , language_(language)
+    , translationLookup_(
+          std::make_unique<CavalryEmbeddedTranslator>(language))
+{
+    configureOnboardingAcceptance();
+}
+
+CavalryI18nOnboardingAcceptance::~CavalryI18nOnboardingAcceptance()
+{
+    if (QCoreApplication *application = QCoreApplication::instance()) {
+        application->removeEventFilter(this);
+    }
+    restoreOnboardingManagerDisabledState();
+    restoreQuitOnLastWindowClosed();
+}
+
+bool CavalryI18nOnboardingAcceptance::isEnabled() const
+{
+    return onboardingAcceptanceEnabled_;
+}
+
+void CavalryI18nOnboardingAcceptance::start()
+{
+    QCoreApplication *application = QCoreApplication::instance();
+    if (application == nullptr || !onboardingAcceptanceEnabled_) {
+        return;
+    }
+    quitOnLastWindowClosedWasEnabled_ =
+        QApplication::quitOnLastWindowClosed();
+    QApplication::setQuitOnLastWindowClosed(false);
+    quitOnLastWindowClosedOverridden_ = true;
+    application->installEventFilter(this);
+    auto *timer = new QTimer(this);
+    timer->setInterval(75);
+    QObject::connect(
+        timer,
+        &QTimer::timeout,
+        this,
+        [this]() {
+            if (!onboardingDriveActive_) {
+                onboardingDriveActive_ = true;
+                bypassBlockingWindows();
+                driveOnboardingAcceptance();
+                onboardingDriveActive_ = false;
+            }
+        });
+    timer->start();
+    bypassBlockingWindows();
+    driveOnboardingAcceptance();
+}
+
+bool CavalryI18nOnboardingAcceptance::eventFilter(
+    QObject *,
+    QEvent *event)
+{
+    if (event != nullptr
+        && event->type() == QEvent::Quit
+        && onboardingAcceptanceEnabled_
+        && onboardingAcceptanceStatus_ != QStringLiteral("complete")
+        && onboardingAcceptanceStatus_ != QStringLiteral("error")
+        && !onboardingQuitBypassed_) {
+        onboardingQuitBypassed_ = true;
+        onboardingAcceptanceMessage_ =
+            QStringLiteral(
+                "Suppressed one pre-completion application Quit requested by the login/welcome controller.");
+        writeDiagnostic(
+            QStringLiteral("ready"),
+            QStringLiteral(
+                "Onboarding acceptance suppressed one login-controller Quit."),
+            true);
+        return true;
+    }
+    return false;
+}
+
+#define CavalryI18nRuntime CavalryI18nOnboardingAcceptance
+
+void CavalryI18nRuntime::restoreOnboardingManagerDisabledState()
+{
+    if (!onboardingManagerTemporarilyEnabled_) {
+        onboardingManagerDisabledStateRestored_ = true;
+        return;
+    }
+    if (onboardingManager_.isNull()) {
+        return;
+    }
+    QString error;
+    FARPROC rawSetDisabled =
+        resolveExactOnboardingExport(
+            kOnboardingManagerSetDisabledSymbol,
+            &error);
+    if (rawSetDisabled == nullptr) {
+        qWarning().noquote()
+            << QStringLiteral(
+                   "[cavalryi18n_acceptance] Could not restore OnboardingManager disabled state: %1")
+                   .arg(error);
+        return;
+    }
+    reinterpret_cast<OnboardingManagerSetDisabledFunction>(
+        rawSetDisabled)(
+            onboardingManager_.data(),
+            onboardingManagerWasDisabled_);
+    onboardingManagerTemporarilyEnabled_ = false;
+    onboardingManagerDisabledStateRestored_ = true;
+}
+
+bool CavalryI18nRuntime::triggerFirstLaunchFromManager(
+    QObject *manager,
+    const QString &identity)
+{
+    if (manager == nullptr
+        || manager->metaObject() == nullptr
+        || QString::fromLatin1(
+               manager->metaObject()->className())
+            != QString::fromLatin1(
+                kOnboardingManagerClass)) {
+        failOnboardingAcceptance(
+            QStringLiteral(
+                "Onboarding manager trigger received the wrong runtime class."));
+        return false;
+    }
+    QString error;
+    FARPROC rawShowGuide =
+        resolveExactOnboardingExport(
+            kShowGuideSymbol,
+            &error);
+    FARPROC rawIsDisabled =
+        resolveExactOnboardingExport(
+            kOnboardingManagerIsDisabledSymbol,
+            &error);
+    FARPROC rawSetDisabled =
+        resolveExactOnboardingExport(
+            kOnboardingManagerSetDisabledSymbol,
+            &error);
+    if (rawShowGuide == nullptr
+        || rawIsDisabled == nullptr
+        || rawSetDisabled == nullptr) {
+        failOnboardingAcceptance(error);
+        return false;
     }
 
-    return false;
+    onboardingManager_ = manager;
+    onboardingManagerWasDisabled_ =
+        reinterpret_cast<OnboardingManagerIsDisabledFunction>(
+            rawIsDisabled)(
+                manager);
+    onboardingManagerTemporarilyEnabled_ =
+        onboardingManagerWasDisabled_;
+    onboardingManagerEnableBypassUsed_ =
+        onboardingManagerTemporarilyEnabled_;
+    onboardingManagerDisabledStateRestored_ =
+        !onboardingManagerTemporarilyEnabled_;
+    if (onboardingManagerTemporarilyEnabled_) {
+        reinterpret_cast<OnboardingManagerSetDisabledFunction>(
+            rawSetDisabled)(
+                manager,
+                false);
+    }
+
+    onboardingActionIdentity_ = identity;
+    onboardingChoiceProducerClass_ =
+        QString::fromLatin1(
+            manager->metaObject()->className());
+    onboardingGuideParameterType_ =
+        QStringLiteral("const std::string&");
+    onboardingAcceptanceStatus_ =
+        QStringLiteral("waiting-for-step");
+    onboardingAcceptanceMessage_ =
+        QStringLiteral(
+            "Queued exact ExtensionLayer.dll OnboardingManager::showGuide(firstLaunch); waiting for step 1 title/body.");
+    onboardingStep_ = 1;
+    onboardingStageTimer_.restart();
+    writeDiagnostic(
+        QStringLiteral("ready"),
+        QStringLiteral(
+            "OnboardingManager identity, disabled state, and exact export frozen before firstLaunch."),
+        true);
+    const QPointer<CavalryI18nRuntime> guardedRuntime(this);
+    const QPointer<QObject> guardedManager(manager);
+    const auto showGuide =
+        reinterpret_cast<ShowGuideFunction>(
+            rawShowGuide);
+    QTimer::singleShot(
+        0,
+        qApp,
+        [guardedRuntime, guardedManager, showGuide] {
+            if (guardedRuntime.isNull()
+                || guardedManager.isNull()) {
+                if (!guardedRuntime.isNull()) {
+                    guardedRuntime->failOnboardingAcceptance(
+                        QStringLiteral(
+                            "OnboardingManager disappeared before the queued firstLaunch call."));
+                }
+                return;
+            }
+            const std::string guideId(
+                kFirstLaunchGuideId);
+            showGuide(
+                guardedManager.data(),
+                guideId);
+        });
+    return true;
+}
+
+void CavalryI18nRuntime::restoreQuitOnLastWindowClosed()
+{
+    if (!quitOnLastWindowClosedOverridden_) {
+        return;
+    }
+    QApplication::setQuitOnLastWindowClosed(
+        quitOnLastWindowClosedWasEnabled_);
+    quitOnLastWindowClosedOverridden_ = false;
+}
+
+void CavalryI18nRuntime::bypassBlockingWindows()
+{
+    for (QWidget *widget : QApplication::topLevelWidgets()) {
+        if (widget == nullptr) {
+            continue;
+        }
+        const QString klass =
+            QString::fromLatin1(widget->metaObject()->className());
+        if (klass == QString::fromLatin1(kOnboardingChoiceClass)
+            || klass == QString::fromLatin1(kOnboardingGuideClass)
+            || klass == QStringLiteral("PopOverView")) {
+            continue;
+        }
+        const QString title = widget->windowTitle();
+        const bool welcome =
+            klass.contains(QStringLiteral("SignInDialog"))
+            || title.contains(
+                QStringLiteral("Welcome"),
+                Qt::CaseInsensitive)
+            || title.contains(QStringLiteral("欢迎"))
+            || title.contains(QStringLiteral("歡迎"))
+            || title.contains(QStringLiteral("ようこそ"));
+        const auto *dialog = qobject_cast<QDialog *>(widget);
+        const bool blockingDialog =
+            dialog != nullptr
+            && (dialog->isModal()
+                || dialog->windowModality() != Qt::NonModal);
+        if (!welcome && !blockingDialog) {
+            continue;
+        }
+        QString identity =
+            QStringLiteral("%1|%2").arg(klass, title);
+        if (auto *messageBox =
+                qobject_cast<QMessageBox *>(widget)) {
+            QStringList buttonTexts;
+            for (QAbstractButton *button :
+                 messageBox->buttons()) {
+                if (button != nullptr) {
+                    buttonTexts.append(
+                        button->text().trimmed());
+                }
+            }
+            identity.append(
+                QStringLiteral(
+                    "|text=%1|informative=%2|buttons=%3")
+                    .arg(
+                        messageBox->text().trimmed(),
+                        messageBox->informativeText().trimmed(),
+                        buttonTexts.join(
+                            QStringLiteral(","))));
+            const bool exactWorkspaceReset =
+                messageBox->text().trimmed()
+                    == onboardingResetWorkspaceTitle_
+                && messageBox->informativeText().trimmed()
+                    == onboardingResetWorkspaceBody_;
+            if (exactWorkspaceReset) {
+                QAbstractButton *acceptButton =
+                    messageBox->button(QMessageBox::Ok);
+                QAbstractButton *cancelButton =
+                    messageBox->button(QMessageBox::Cancel);
+                if (acceptButton == nullptr
+                    || cancelButton == nullptr
+                    || messageBox->buttons().size() != 2) {
+                    failOnboardingAcceptance(
+                        QStringLiteral(
+                            "Exact workspace-reset prompt did not expose only standard Ok/Cancel buttons."));
+                    return;
+                }
+                onboardingWorkspaceResetPromptObserved_ = true;
+                failOnboardingAcceptance(
+                    QStringLiteral(
+                        "Workspace-reset prompt appeared after the bounded MainDock settle; neither Ok nor Cancel was invoked."));
+                return;
+            }
+        }
+        if (!onboardingBypassedWindows_.contains(identity)) {
+            onboardingBypassedWindows_.append(identity);
+        }
+        // 登录、欢迎页和恢复工作区对话框可以与 Onboarding 共存。
+        // 不点击 Cancel、不隐藏、不改变模态状态；exact-HWND oracle
+        // 只接受真实 OnboardingGuideView 所属窗口。
+    }
 }
 
 void CavalryI18nRuntime::configureOnboardingAcceptance()
@@ -386,17 +874,26 @@ void CavalryI18nRuntime::configureOnboardingAcceptance()
     const QFileInfo markerInfo(QDir::cleanPath(markerPath));
     const QFileInfo acceptanceInfo(QDir::cleanPath(requestedDirectory));
     const QString markerParent = markerInfo.dir().canonicalPath();
-    const QString acceptanceParent = acceptanceInfo.dir().canonicalPath();
-    if (markerParent.isEmpty()
+    const QString acceptanceCanonical =
+        acceptanceInfo.canonicalFilePath();
+    const QString acceptanceParent =
+        QFileInfo(acceptanceCanonical).dir().canonicalPath();
+    if (!markerInfo.exists()
+        || !markerInfo.isFile()
+        || markerInfo.isSymLink()
+        || markerInfo.isJunction()
+        || markerParent.isEmpty()
         || !acceptanceInfo.isDir()
         || acceptanceInfo.isSymLink()
+        || acceptanceInfo.isJunction()
+        || acceptanceCanonical.isEmpty()
         || acceptanceParent != markerParent) {
         failOnboardingAcceptance(
             QStringLiteral(
-                "Onboarding acceptance directory must be a real direct child of the diagnostic marker directory."));
+                "Onboarding acceptance requires an existing real marker file and one real direct child evidence directory."));
         return;
     }
-    onboardingAcceptanceDirectory_ = acceptanceInfo.canonicalFilePath();
+    onboardingAcceptanceDirectory_ = acceptanceCanonical;
 
     const QString catalogPath =
         QDir(QCoreApplication::applicationDirPath())
@@ -432,6 +929,25 @@ void CavalryI18nRuntime::configureOnboardingAcceptance()
 
     const QJsonObject values =
         catalog.value(QStringLiteral("value")).toObject();
+    onboardingResetWorkspaceTitle_ =
+        values.value(
+            QStringLiteral(
+                "onboarding.dialog.resetWorkspace.title"))
+            .toString()
+            .trimmed();
+    onboardingResetWorkspaceBody_ =
+        values.value(
+            QStringLiteral(
+                "onboarding.dialog.resetWorkspace.body"))
+            .toString()
+            .trimmed();
+    if (onboardingResetWorkspaceTitle_.isEmpty()
+        || onboardingResetWorkspaceBody_.isEmpty()) {
+        failOnboardingAcceptance(
+            QStringLiteral(
+                "Installed Guide catalog is missing the exact workspace-reset prompt."));
+        return;
+    }
     for (int step = 0; step < kOnboardingStepCount; ++step) {
         const QString prefix =
             QStringLiteral("onboarding.firstLaunch.step%1.").arg(step);
@@ -454,13 +970,16 @@ void CavalryI18nRuntime::configureOnboardingAcceptance()
     }
 
     onboardingAcceptanceStatus_ =
-        QStringLiteral("waiting-for-foreground");
+        QStringLiteral("waiting-for-action");
     onboardingAcceptanceMessage_ =
         QStringLiteral(
-            "Waiting for the external exact-HWND foreground evidence acknowledgement.");
-    // 外部 helper 还可能在收集其他场景或等待 Windows 前台所有权；
-    // 产品内部阶段超时从 foreground ACK 后才开始计算。
-    onboardingStageTimer_.invalidate();
+            "Waiting for the initialized MainDock before resolving the unique semantic showGuides action.");
+    onboardingStageTimer_.start();
+    onboardingStartupTimer_.start();
+    writeDiagnostic(
+        QStringLiteral("ready"),
+        QStringLiteral("Onboarding acceptance configured."),
+        true);
 }
 
 QWidget *CavalryI18nRuntime::findVisibleWidgetByClass(
@@ -482,10 +1001,12 @@ void CavalryI18nRuntime::failOnboardingAcceptance(
 {
     onboardingAcceptanceStatus_ = QStringLiteral("error");
     onboardingAcceptanceMessage_ = message;
+    restoreOnboardingManagerDisabledState();
+    restoreQuitOnLastWindowClosed();
     writeDiagnostic(
         QStringLiteral("ready"),
         QStringLiteral("Embedded translation table installed; Onboarding acceptance failed."),
-        translatorInstalled_);
+        true);
 }
 
 void CavalryI18nRuntime::driveOnboardingAcceptance()
@@ -507,61 +1028,54 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
     }
 
     if (onboardingAcceptanceStatus_
-        == QStringLiteral("waiting-for-foreground")) {
-        const QString acknowledgementPath =
-            QDir(onboardingAcceptanceDirectory_)
-                .filePath(QStringLiteral("foreground-ready.json"));
-        const QFileInfo acknowledgementInfo(acknowledgementPath);
-        if (!acknowledgementInfo.exists()) {
-            return;
-        }
-        if (!acknowledgementInfo.isFile()
-            || acknowledgementInfo.isSymLink()
-            || acknowledgementInfo.dir().canonicalPath()
-                != onboardingAcceptanceDirectory_) {
-            failOnboardingAcceptance(
-                QStringLiteral(
-                    "Foreground acknowledgement escaped its evidence directory."));
-            return;
-        }
-        QFile acknowledgementFile(acknowledgementPath);
-        if (!acknowledgementFile.open(QIODevice::ReadOnly)) {
-            failOnboardingAcceptance(
-                QStringLiteral(
-                    "Cannot read foreground evidence acknowledgement."));
-            return;
-        }
-        QJsonParseError parseError;
-        const QJsonDocument acknowledgement =
-            QJsonDocument::fromJson(
-                acknowledgementFile.readAll(),
-                &parseError);
-        if (parseError.error != QJsonParseError::NoError
-            || !acknowledgement.isObject()
-            || !acknowledgement.object()
-                    .value(QStringLiteral("ready"))
-                    .toBool()) {
-            failOnboardingAcceptance(
-                QStringLiteral(
-                    "Foreground evidence acknowledgement is invalid."));
-            return;
-        }
-        onboardingAcceptanceStatus_ =
-            QStringLiteral("waiting-for-action");
-        onboardingAcceptanceMessage_ =
-            QStringLiteral(
-                "Exact-HWND foreground evidence acknowledged; waiting for showGuides.");
-        onboardingStageTimer_.start();
-        writeDiagnostic(
-            QStringLiteral("ready"),
-            QStringLiteral(
-                "Embedded translation table installed; foreground evidence acknowledged."),
-            true);
-        return;
-    }
-
-    if (onboardingAcceptanceStatus_
         == QStringLiteral("waiting-for-action")) {
+        if (!onboardingStartupSettled_) {
+            if (!onboardingStartupTimer_.isValid()
+                || onboardingStartupTimer_.elapsed()
+                    < kOnboardingStartupSettleMilliseconds) {
+                return;
+            }
+            bool mainDockVisible = false;
+            for (QWidget *widget :
+                 QApplication::topLevelWidgets()) {
+                if (widget != nullptr
+                    && widget->isVisible()
+                    && QString::fromLatin1(
+                           widget->metaObject()->className())
+                           .contains(QStringLiteral("MainDock"))) {
+                    mainDockVisible = true;
+                    break;
+                }
+            }
+            if (!mainDockVisible) {
+                return;
+            }
+            onboardingStartupSettled_ = true;
+            onboardingAcceptanceMessage_ =
+                QStringLiteral(
+                    "MainDock remained available after the bounded startup settle; resolving the semantic Onboarding producer.");
+            writeDiagnostic(
+                QStringLiteral("ready"),
+                QStringLiteral(
+                    "Onboarding startup readiness frozen before any workspace-reset request."),
+                true);
+        }
+        OnboardingManagerTrigger managerTrigger;
+        QString managerError;
+        if (resolveOnboardingManagerTrigger(
+                &managerTrigger,
+                &managerError)) {
+            triggerFirstLaunchFromManager(
+                managerTrigger.manager,
+                QStringLiteral(
+                    "manager-export:ExtensionLayer.dll/OnboardingManager::showGuide"));
+            return;
+        }
+        if (!managerError.isEmpty()) {
+            failOnboardingAcceptance(managerError);
+            return;
+        }
+
         QSet<QAction *> actions;
         const QWidgetList widgets = QApplication::allWidgets();
         for (QWidget *widget : widgets) {
@@ -586,12 +1100,16 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
             actions.unite(QSet<QAction *>(children.begin(), children.end()));
         }
 
-        const QString expectedText = translator_->translate(
+        QString expectedText = translationLookup_->translate(
             "MenuBarManager",
             "Getting Started Guides");
-        const QString expectedHelpText = translator_->translate(
+        QString expectedHelpText = translationLookup_->translate(
             "MenuBarManager",
             "Help");
+        expectedText = expectedText.trimmed();
+        expectedText.remove(QLatin1Char('&'));
+        expectedHelpText = expectedHelpText.trimmed();
+        expectedHelpText.remove(QLatin1Char('&'));
         QList<QAction *> exactCandidates;
         QList<QAction *> textCandidates;
         QSet<QMenu *> helpMenus;
@@ -635,6 +1153,17 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
                         .arg(action->objectName(), data, normalizedText));
             }
         }
+        for (QWidget *widget : widgets) {
+            auto *menu = qobject_cast<QMenu *>(widget);
+            if (menu == nullptr) {
+                continue;
+            }
+            QString title = menu->title().trimmed();
+            title.remove(QLatin1Char('&'));
+            if (title == expectedHelpText) {
+                helpMenus.insert(menu);
+            }
+        }
         observedActions.sort();
         observedActions.removeDuplicates();
         if (observedActions != onboardingObservedActions_) {
@@ -653,89 +1182,40 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
                     .arg(textCandidates.size()));
             return;
         }
+        if (helpMenus.size() > 1) {
+            failOnboardingAcceptance(
+                QStringLiteral(
+                    "MenuBarManager/Help menu identity is ambiguous."));
+            return;
+        }
+        if (!onboardingHelpProducerOpened_) {
+            if (helpMenus.size() == 1) {
+                QMenu *helpMenu = *helpMenus.constBegin();
+                if (helpMenu != nullptr) {
+                    // 通过真实 Help QMenu 触发 lazy producer，不向登录/
+                    // 恢复窗口发送键盘、坐标或按钮输入。
+                    helpMenu->popup(QPoint(-10000, -10000));
+                    onboardingHelpProducerOpened_ = true;
+                    onboardingAcceptanceMessage_ =
+                        QStringLiteral(
+                            "Opened the unique semantic Help menu offscreen to materialize showGuides.");
+                    onboardingStageTimer_.restart();
+                    writeDiagnostic(
+                        QStringLiteral("ready"),
+                        QStringLiteral(
+                            "Onboarding acceptance opened the semantic Help producer."),
+                        true);
+                }
+            }
+            return;
+        }
         QAction *action = exactCandidates.size() == 1
             ? exactCandidates.first()
             : (textCandidates.size() == 1
                 ? textCandidates.first()
                 : nullptr);
         if (action == nullptr) {
-            for (QWidget *widget : widgets) {
-                auto *menu = qobject_cast<QMenu *>(widget);
-                if (menu == nullptr) {
-                    continue;
-                }
-                QString title = menu->title().trimmed();
-                title.remove(QLatin1Char('&'));
-                if (title == expectedHelpText) {
-                    helpMenus.insert(menu);
-                }
-            }
-            if (helpMenus.size() > 1) {
-                failOnboardingAcceptance(
-                    QStringLiteral(
-                        "MenuBarManager/Help menu identity is ambiguous."));
-            } else if (!onboardingHelpMnemonicSent_) {
-                QWidget *mainWindow = nullptr;
-                qint64 mainWindowArea = 0;
-                bool mainWindowAmbiguous = false;
-                const QWidgetList topLevelWindows =
-                    QApplication::topLevelWidgets();
-                for (QWidget *widget : topLevelWindows) {
-                    if (widget == nullptr
-                        || !widget->isVisible()
-                        || qobject_cast<QMenu *>(widget) != nullptr) {
-                        continue;
-                    }
-                    const qint64 area =
-                        static_cast<qint64>(widget->width())
-                        * static_cast<qint64>(widget->height());
-                    if (area > mainWindowArea) {
-                        mainWindow = widget;
-                        mainWindowArea = area;
-                        mainWindowAmbiguous = false;
-                    } else if (area > 0 && area == mainWindowArea) {
-                        mainWindowAmbiguous = true;
-                    }
-                }
-                if (mainWindowAmbiguous) {
-                    failOnboardingAcceptance(
-                        QStringLiteral(
-                            "Largest visible Cavalry QWidget identity is ambiguous."));
-                    return;
-                }
-                if (mainWindow != nullptr) {
-                    const HWND nativeWindow =
-                        reinterpret_cast<HWND>(mainWindow->winId());
-                    if (GetForegroundWindow() != nativeWindow) {
-                        SetForegroundWindow(nativeWindow);
-                        onboardingAcceptanceMessage_ =
-                            QStringLiteral(
-                                "Requested foreground ownership for the unique largest Cavalry HWND before the Help mnemonic.");
-                        return;
-                    }
-                    constexpr DWORD kKeyUp = KEYEVENTF_KEYUP;
-                    keybd_event(VK_MENU, 0, 0, 0);
-                    keybd_event('H', 0, 0, 0);
-                    keybd_event('H', 0, kKeyUp, 0);
-                    keybd_event(VK_MENU, 0, kKeyUp, 0);
-                    onboardingHelpMnemonicSent_ = true;
-                    onboardingAcceptanceMessage_ =
-                        QStringLiteral(
-                            "Sent one native Alt+H after exact foreground-HWND confirmation.");
-                    onboardingStageTimer_.restart();
-                    writeDiagnostic(
-                        QStringLiteral("ready"),
-                        QStringLiteral(
-                            "Embedded translation table installed; exact-HWND Help mnemonic sent."),
-                        true);
-                }
-            }
             return;
-        }
-        for (QMenu *menu : helpMenus) {
-            if (menu != nullptr && menu->isVisible()) {
-                menu->hide();
-            }
         }
         onboardingActionObjectName_ = action->objectName();
         onboardingActionIdentity_ =
@@ -746,18 +1226,34 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
                 : QStringLiteral("data:showGuides"))
             : QStringLiteral(
                   "context-source:MenuBarManager/Getting Started Guides");
+        onboardingActionWasEnabled_ = action->isEnabled();
+        onboardingActionTemporarilyEnabled_ =
+            !onboardingActionWasEnabled_;
+        if (onboardingActionTemporarilyEnabled_) {
+            action->setEnabled(true);
+        }
         onboardingAcceptanceStatus_ =
             QStringLiteral("waiting-for-choice");
         onboardingAcceptanceMessage_ =
             QStringLiteral(
                 "Triggered the unique semantic Getting Started Guides QAction; waiting for chooser.");
         onboardingStageTimer_.restart();
-        action->trigger();
         writeDiagnostic(
             QStringLiteral("ready"),
             QStringLiteral(
                 "Embedded translation table installed; Onboarding chooser requested."),
             true);
+        const bool restoreDisabled =
+            onboardingActionTemporarilyEnabled_;
+        action->trigger();
+        if (restoreDisabled) {
+            action->setEnabled(false);
+        }
+        for (QMenu *menu : helpMenus) {
+            if (menu != nullptr && menu->isVisible()) {
+                menu->hide();
+            }
+        }
         return;
     }
 
@@ -770,18 +1266,96 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
         }
         onboardingChoiceClass_ =
             QString::fromLatin1(choice->metaObject()->className());
-        const std::string guideId(kFirstLaunchGuideId);
+        QObjectList choiceReceivers =
+            QObjectPrivate::get(choice)->receiverList(
+                SIGNAL(guideSelected(std::string)));
+        if (choiceReceivers.isEmpty()) {
+            choiceReceivers =
+                QObjectPrivate::get(choice)->receiverList(
+                    "guideSelected(std::string)");
+        }
+        QSet<QObject *> managerReceivers;
+        for (QObject *receiver : choiceReceivers) {
+            if (receiver != nullptr
+                && receiver->metaObject() != nullptr
+                && QString::fromLatin1(
+                       receiver->metaObject()->className())
+                    == QString::fromLatin1(
+                        kOnboardingManagerClass)) {
+                managerReceivers.insert(receiver);
+            }
+        }
+        if (managerReceivers.size() != 1) {
+            failOnboardingAcceptance(
+                QStringLiteral(
+                    "guideSelected must expose exactly one OnboardingManager receiver; found %1.")
+                    .arg(managerReceivers.size()));
+            return;
+        }
+        onboardingManager_ =
+            *managerReceivers.constBegin();
+        QStringList choiceWidgets;
+        QList<QWidget *> choiceChildren =
+            choice->findChildren<QWidget *>(
+                QString(),
+                Qt::FindChildrenRecursively);
+        choiceChildren.prepend(choice);
+        for (QWidget *candidate : choiceChildren) {
+            if (candidate == nullptr) {
+                continue;
+            }
+            QString text;
+            if (auto *button =
+                    qobject_cast<QAbstractButton *>(candidate)) {
+                text = button->text().trimmed();
+            } else if (auto *label =
+                           qobject_cast<QLabel *>(candidate)) {
+                text = label->text().trimmed();
+            }
+            choiceWidgets.append(
+                QStringLiteral(
+                    "class=%1|object=%2|visible=%3|text=%4|geometry=%5x%6")
+                    .arg(
+                        QString::fromLatin1(
+                            candidate->metaObject()->className()),
+                        candidate->objectName(),
+                        candidate->isVisibleTo(choice)
+                            ? QStringLiteral("true")
+                            : QStringLiteral("false"),
+                        text)
+                    .arg(candidate->width())
+                    .arg(candidate->height()));
+            const QMetaObject *candidateMeta =
+                candidate->metaObject();
+            const QString candidateClass =
+                QString::fromLatin1(candidateMeta->className());
+            if (candidateClass.startsWith(
+                    QStringLiteral("onboarding::"))) {
+                for (int index = candidateMeta->methodOffset();
+                     index < candidateMeta->methodCount();
+                     ++index) {
+                    choiceWidgets.append(
+                        QStringLiteral("meta-method=%1::%2")
+                            .arg(
+                                candidateClass,
+                                QString::fromLatin1(
+                                    candidateMeta->method(index)
+                                        .methodSignature())));
+                }
+            }
+        }
+        choiceWidgets.sort();
+        choiceWidgets.removeDuplicates();
+        onboardingObservedWidgets_ = choiceWidgets;
+        onboardingChoiceProducerClass_ =
+            onboardingChoiceClass_;
         QByteArray guideIdParameterType;
-        onboardingAcceptanceStatus_ =
-            QStringLiteral("selecting-guide");
-        onboardingAcceptanceMessage_ =
-            QStringLiteral(
-                "Invoking guideSelected(firstLaunch); chooser identity is frozen.");
-        if (!invokeDirectStringMethod(
+        const QMetaMethod guideSelected =
+            resolveDirectStringMethod(
                 choice,
                 "guideSelected",
-                guideId,
-                &guideIdParameterType)) {
+                &guideIdParameterType);
+        if (!guideSelected.isValid()) {
             failOnboardingAcceptance(
                 QStringLiteral(
                     "OnboardingChoiceView rejected guideSelected(%1).")
@@ -791,18 +1365,176 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
             return;
         }
         onboardingGuideParameterType_ =
-            QString::fromLatin1(guideIdParameterType);
-        // guideSelected 同步销毁 chooser；从这里开始不得再解引用 choice。
+            QString::fromLatin1(
+                guideIdParameterType);
         onboardingStep_ = 1;
         onboardingAcceptanceStatus_ =
             QStringLiteral("waiting-for-step");
         onboardingAcceptanceMessage_ =
-            QStringLiteral("firstLaunch selected; waiting for step 1 title/body.");
+            QStringLiteral(
+                "Queued exact OnboardingChoiceView::guideSelected(firstLaunch); waiting for step 1 title/body.");
         onboardingStageTimer_.restart();
         writeDiagnostic(
             QStringLiteral("ready"),
             QStringLiteral(
-                "Embedded translation table installed; firstLaunch selected."),
+                "Onboarding chooser identity, exact std::string ABI, and child inventory frozen before firstLaunch selection."),
+            true);
+        const QPointer<CavalryI18nRuntime> guardedRuntime(this);
+        const QPointer<QObject> guardedChoice(choice);
+        QTimer::singleShot(
+            0,
+            qApp,
+            [
+                guardedRuntime,
+                guardedChoice,
+                guideSelected,
+                guideIdParameterType
+            ] {
+                if (guardedRuntime.isNull()
+                    || guardedChoice.isNull()) {
+                    if (!guardedRuntime.isNull()) {
+                        guardedRuntime->failOnboardingAcceptance(
+                            QStringLiteral(
+                                "OnboardingChoiceView disappeared before the queued firstLaunch call."));
+                    }
+                    return;
+                }
+                const std::string guideId(
+                    kFirstLaunchGuideId);
+                if (!guideSelected.invoke(
+                        guardedChoice.data(),
+                        Qt::DirectConnection,
+                        QGenericArgument(
+                            guideIdParameterType.constData(),
+                            &guideId))) {
+                    guardedRuntime->failOnboardingAcceptance(
+                        QStringLiteral(
+                            "Exact OnboardingChoiceView::guideSelected(std::string) invocation failed."));
+                }
+                // guideSelected 可同步销毁 chooser；调用后不得解引用。
+            });
+        return;
+    }
+
+    if (onboardingAcceptanceStatus_
+        == QStringLiteral("waiting-for-transition")) {
+        QWidget *guide =
+            findVisibleWidgetByClass(kOnboardingGuideClass);
+        if (guide == nullptr
+            || onboardingPendingStep_ < 2
+            || onboardingPendingStep_ > kOnboardingStepCount) {
+            return;
+        }
+        const QString expectedTitle =
+            onboardingExpectedTitles_[onboardingPendingStep_ - 1];
+        QTextDocument expectedBodyDocument;
+        expectedBodyDocument.setHtml(
+            onboardingExpectedBodies_[onboardingPendingStep_ - 1]);
+        const QString expectedBody =
+            expectedBodyDocument.toPlainText().trimmed();
+        int expectedTitleHits = 0;
+        int sourceTitleHits = 0;
+        for (QLabel *label :
+             guide->findChildren<QLabel *>(
+                 QString(),
+                 Qt::FindChildrenRecursively)) {
+            if (label == nullptr || !label->isVisibleTo(guide)) {
+                continue;
+            }
+            const QString text = label->text().trimmed();
+            expectedTitleHits += text == expectedTitle;
+            sourceTitleHits +=
+                text == onboardingTransitionSourceTitle_;
+        }
+        int expectedBodyHits = 0;
+        int sourceBodyHits = 0;
+        for (QTextBrowser *browser :
+             guide->findChildren<QTextBrowser *>(
+                 QString(),
+                 Qt::FindChildrenRecursively)) {
+            if (browser == nullptr || !browser->isVisibleTo(guide)) {
+                continue;
+            }
+            const QString text = browser->toPlainText().trimmed();
+            expectedBodyHits += text == expectedBody;
+            sourceBodyHits +=
+                text == onboardingTransitionSourceBody_;
+        }
+        if (expectedTitleHits == 1 && expectedBodyHits == 1) {
+            onboardingStep_ = onboardingPendingStep_;
+            onboardingPendingStep_ = 0;
+            onboardingTransitionClickAttempts_ = 0;
+            onboardingTransitionSourceTitle_.clear();
+            onboardingTransitionSourceBody_.clear();
+            onboardingTitleMatches_ = false;
+            onboardingBodyMatches_ = false;
+            onboardingObservedTexts_.clear();
+            onboardingAcceptanceStatus_ =
+                QStringLiteral("waiting-for-step");
+            onboardingAcceptanceMessage_ =
+                QStringLiteral(
+                    "The real guide title/body confirmed transition to step %1.")
+                    .arg(onboardingStep_);
+            onboardingStageTimer_.restart();
+            writeDiagnostic(
+                QStringLiteral("ready"),
+                QStringLiteral(
+                    "Embedded translation table installed; real Onboarding transition confirmed."),
+                true);
+            return;
+        }
+        if (sourceTitleHits != 1
+            || sourceBodyHits != 1
+            || !onboardingTransitionTimer_.isValid()
+            || onboardingTransitionTimer_.elapsed()
+                < kOnboardingTransitionRetryMilliseconds) {
+            return;
+        }
+        if (onboardingTransitionClickAttempts_
+            >= kOnboardingTransitionClickAttempts) {
+            failOnboardingAcceptance(
+                QStringLiteral(
+                    "Localized Next click did not transition the real guide after %1 exact attempts.")
+                    .arg(onboardingTransitionClickAttempts_));
+            return;
+        }
+        const QString expectedNext =
+            translationLookup_
+                ->translate("MenuBarManager", "Next")
+                .trimmed();
+        QList<QAbstractButton *> forwardButtons;
+        for (QAbstractButton *button :
+             guide->findChildren<QAbstractButton *>(
+                 QString(),
+                 Qt::FindChildrenRecursively)) {
+            if (button != nullptr
+                && button->isVisibleTo(guide)
+                && button->isEnabled()
+                && button->text().trimmed() == expectedNext) {
+                forwardButtons.append(button);
+            }
+        }
+        if (expectedNext.isEmpty()
+            || forwardButtons.size() != 1) {
+            failOnboardingAcceptance(
+                QStringLiteral(
+                    "Onboarding transition retry requires exactly one enabled localized Next button; found %1.")
+                    .arg(forwardButtons.size()));
+            return;
+        }
+        QAbstractButton *const forward =
+            forwardButtons.first();
+        forward->click();
+        ++onboardingTransitionClickAttempts_;
+        onboardingTransitionTimer_.restart();
+        onboardingAcceptanceMessage_ =
+            QStringLiteral(
+                "The previous real guide page remained stable; localized Next retry %1 was invoked.")
+                .arg(onboardingTransitionClickAttempts_);
+        writeDiagnostic(
+            QStringLiteral("ready"),
+            QStringLiteral(
+                "Embedded translation table installed; bounded localized Next retry invoked."),
             true);
         return;
     }
@@ -812,6 +1544,35 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
         QWidget *guide =
             findVisibleWidgetByClass(kOnboardingGuideClass);
         QStringList observedWidgets;
+        const QWidgetList allWidgets = QApplication::allWidgets();
+        for (QWidget *candidate : allWidgets) {
+            if (candidate == nullptr) {
+                continue;
+            }
+            const QString candidateClass =
+                QString::fromLatin1(
+                    candidate->metaObject()->className());
+            if (!candidateClass.contains(
+                    QStringLiteral("Onboarding"),
+                    Qt::CaseInsensitive)) {
+                continue;
+            }
+            observedWidgets.append(
+                QStringLiteral(
+                    "class=%1|object=%2|visible=%3|windowVisible=%4|geometry=%5x%6")
+                    .arg(
+                        candidateClass,
+                        candidate->objectName(),
+                        candidate->isVisible()
+                            ? QStringLiteral("true")
+                            : QStringLiteral("false"),
+                        candidate->window() != nullptr
+                                && candidate->window()->isVisible()
+                            ? QStringLiteral("true")
+                            : QStringLiteral("false"))
+                    .arg(candidate->width())
+                    .arg(candidate->height()));
+        }
         if (guide != nullptr) {
             QList<QWidget *> guideWidgets =
                 guide->findChildren<QWidget *>(
@@ -838,7 +1599,8 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
         }
         observedWidgets.sort();
         observedWidgets.removeDuplicates();
-        if (observedWidgets != onboardingObservedWidgets_) {
+        if (!observedWidgets.isEmpty()
+            && observedWidgets != onboardingObservedWidgets_) {
             onboardingObservedWidgets_ = observedWidgets;
             writeDiagnostic(
                 QStringLiteral("ready"),
@@ -938,6 +1700,10 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
         }
         onboardingTitle_ = titleLabel->text().trimmed();
         onboardingBody_ = bodyBrowser->toPlainText().trimmed();
+        if (onboardingStep_ == 1) {
+            onboardingWorkspaceResetAvoided_ =
+                !onboardingWorkspaceResetPromptObserved_;
+        }
         onboardingAcceptanceStatus_ = QStringLiteral("ready");
         onboardingAcceptanceMessage_ =
             QStringLiteral(
@@ -1001,6 +1767,8 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
             onboardingAcceptanceMessage_ =
                 QStringLiteral(
                     "All five firstLaunch steps were acknowledged.");
+            restoreOnboardingManagerDisabledState();
+            restoreQuitOnLastWindowClosed();
             writeDiagnostic(
                 QStringLiteral("ready"),
                 QStringLiteral(
@@ -1016,35 +1784,246 @@ void CavalryI18nRuntime::driveOnboardingAcceptance()
                     "OnboardingGuideView disappeared before its acknowledged transition."));
             return;
         }
-        if (!QMetaObject::invokeMethod(
-                guide,
-                "nextClicked",
-                Qt::DirectConnection)) {
+        const QString expectedNext =
+            translationLookup_
+                ->translate("MenuBarManager", "Next")
+                .trimmed();
+        QList<QAbstractButton *> forwardButtons;
+        for (QAbstractButton *button :
+             guide->findChildren<QAbstractButton *>(
+                 QString(),
+                 Qt::FindChildrenRecursively)) {
+            if (button != nullptr
+                && button->isVisibleTo(guide)
+                && button->isEnabled()
+                && button->text().trimmed() == expectedNext) {
+                forwardButtons.append(button);
+            }
+        }
+        if (expectedNext.isEmpty()
+            || forwardButtons.size() != 1) {
             failOnboardingAcceptance(
                 QStringLiteral(
-                    "OnboardingGuideView rejected nextClicked()."));
+                    "Onboarding step %1 requires exactly one enabled localized Next button; found %2.")
+                    .arg(acknowledgedStep)
+                    .arg(forwardButtons.size()));
             return;
         }
-        // nextClicked 可同步销毁或重配 guide；从这里开始不得再解引用 guide。
-        onboardingTitleMatches_ = false;
-        onboardingBodyMatches_ = false;
-        onboardingObservedTexts_.clear();
-        onboardingStageTimer_.restart();
-        onboardingStep_ = acknowledgedStep + 1;
+        QAbstractButton *const forward =
+            forwardButtons.first();
+        onboardingPendingStep_ = acknowledgedStep + 1;
+        onboardingTransitionSourceTitle_ = onboardingTitle_;
+        onboardingTransitionSourceBody_ = onboardingBody_;
+        onboardingTransitionClickAttempts_ = 1;
+        onboardingTransitionTimer_.restart();
+        forward->click();
+        // click() 可同步发出 nextClicked 并销毁或重配 guide；调用后不再解引用。
         onboardingAcceptanceStatus_ =
-            QStringLiteral("waiting-for-step");
+            QStringLiteral("waiting-for-transition");
         onboardingAcceptanceMessage_ =
-            QStringLiteral("Waiting for step %1 title/body.")
-                .arg(onboardingStep_);
+            QStringLiteral(
+                "Localized Next was clicked; waiting for the real title/body transition to step %1.")
+                .arg(onboardingPendingStep_);
+        onboardingStageTimer_.restart();
         writeDiagnostic(
             QStringLiteral("ready"),
             QStringLiteral(
-                "Embedded translation table installed; Onboarding step acknowledged."),
+                "Embedded translation table installed; localized Next button click invoked."),
             true);
         return;
     }
 
 }
+
+void CavalryI18nRuntime::writeDiagnostic(
+    const QString &,
+    const QString &,
+    bool) const
+{
+    if (onboardingAcceptanceDirectory_.isEmpty()) {
+        return;
+    }
+
+    QJsonArray observedActions;
+    for (const QString &action : onboardingObservedActions_) {
+        observedActions.append(action);
+    }
+    QJsonArray observedTexts;
+    for (const QString &text : onboardingObservedTexts_) {
+        observedTexts.append(text);
+    }
+    QJsonArray observedWidgets;
+    for (const QString &widget : onboardingObservedWidgets_) {
+        observedWidgets.append(widget);
+    }
+    QJsonArray bypassedWindows;
+    for (const QString &window : onboardingBypassedWindows_) {
+        bypassedWindows.append(window);
+    }
+    const QJsonObject onboardingAcceptance {
+        {
+            QStringLiteral("enabled"),
+            onboardingAcceptanceEnabled_
+        },
+        {
+            QStringLiteral("status"),
+            onboardingAcceptanceStatus_
+        },
+        {
+            QStringLiteral("message"),
+            onboardingAcceptanceMessage_
+        },
+        {
+            QStringLiteral("step"),
+            onboardingStep_
+        },
+        {
+            QStringLiteral("totalSteps"),
+            kOnboardingStepCount
+        },
+        {
+            QStringLiteral("guideId"),
+            QString::fromLatin1(kFirstLaunchGuideId)
+        },
+        {
+            QStringLiteral("actionObjectName"),
+            onboardingActionObjectName_
+        },
+        {
+            QStringLiteral("actionIdentity"),
+            onboardingActionIdentity_
+        },
+        {
+            QStringLiteral("actionWasEnabled"),
+            onboardingActionWasEnabled_
+        },
+        {
+            QStringLiteral("actionTemporarilyEnabled"),
+            onboardingActionTemporarilyEnabled_
+        },
+        {
+            QStringLiteral("managerWasDisabled"),
+            onboardingManagerWasDisabled_
+        },
+        {
+            QStringLiteral("managerTemporarilyEnabled"),
+            onboardingManagerTemporarilyEnabled_
+        },
+        {
+            QStringLiteral("managerEnableBypassUsed"),
+            onboardingManagerEnableBypassUsed_
+        },
+        {
+            QStringLiteral("managerDisabledStateRestored"),
+            onboardingManagerDisabledStateRestored_
+        },
+        {
+            QStringLiteral("choiceClass"),
+            onboardingChoiceClass_
+        },
+        {
+            QStringLiteral("choiceProducerClass"),
+            onboardingChoiceProducerClass_
+        },
+        {
+            QStringLiteral("guideParameterType"),
+            onboardingGuideParameterType_
+        },
+        {
+            QStringLiteral("guideClass"),
+            onboardingGuideClass_
+        },
+        {
+            QStringLiteral("windowHandle"),
+            onboardingWindowHandle_
+        },
+        {
+            QStringLiteral("title"),
+            onboardingTitle_
+        },
+        {
+            QStringLiteral("body"),
+            onboardingBody_
+        },
+        {
+            QStringLiteral("titleMatches"),
+            onboardingTitleMatches_
+        },
+        {
+            QStringLiteral("bodyMatches"),
+            onboardingBodyMatches_
+        },
+        {
+            QStringLiteral("loginControllerQuitBypassed"),
+            onboardingQuitBypassed_
+        },
+        {
+            QStringLiteral("workspaceResetPromptObserved"),
+            onboardingWorkspaceResetPromptObserved_
+        },
+        {
+            QStringLiteral("workspaceResetAvoided"),
+            onboardingWorkspaceResetAvoided_
+        },
+        {
+            QStringLiteral("startupSettled"),
+            onboardingStartupSettled_
+        },
+        {
+            QStringLiteral("observedActions"),
+            observedActions
+        },
+        {
+            QStringLiteral("observedTexts"),
+            observedTexts
+        },
+        {
+            QStringLiteral("observedWidgets"),
+            observedWidgets
+        },
+        {
+            QStringLiteral("bypassedWindows"),
+            bypassedWindows
+        },
+    };
+    const QJsonObject marker {
+        {
+            QStringLiteral("schema"),
+            QStringLiteral(
+                "cavalry-i18n.windows-onboarding.acceptance-state/v1")
+        },
+        {
+            QStringLiteral("language"),
+            language_
+        },
+        {
+            QStringLiteral("processId"),
+            QString::number(QCoreApplication::applicationPid())
+        },
+        {
+            QStringLiteral("onboardingAcceptance"),
+            onboardingAcceptance
+        },
+    };
+
+    QSaveFile stateFile(
+        QDir(onboardingAcceptanceDirectory_)
+            .filePath(QStringLiteral("onboarding-state.json")));
+    if (!stateFile.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        return;
+    }
+    if (stateFile.write(
+            QJsonDocument(marker).toJson(QJsonDocument::Indented)) < 0) {
+        stateFile.cancelWriting();
+        return;
+    }
+    stateFile.commit();
+}
+
+#undef CavalryI18nRuntime
+#endif
+
+#ifndef CAVALRY_I18N_ONBOARDING_ACCEPTANCE_ONLY
 
 void CavalryI18nRuntime::ensureExtensionLayerHook()
 {
@@ -1208,97 +2187,6 @@ void CavalryI18nRuntime::writeDiagnostic(
         },
     };
 
-    QJsonArray onboardingObservedActions;
-    for (const QString &action : onboardingObservedActions_) {
-        onboardingObservedActions.append(action);
-    }
-    QJsonArray onboardingObservedTexts;
-    for (const QString &text : onboardingObservedTexts_) {
-        onboardingObservedTexts.append(text);
-    }
-    QJsonArray onboardingObservedWidgets;
-    for (const QString &widget : onboardingObservedWidgets_) {
-        onboardingObservedWidgets.append(widget);
-    }
-    const QJsonObject onboardingAcceptance {
-        {
-            QStringLiteral("enabled"),
-            onboardingAcceptanceEnabled_
-        },
-        {
-            QStringLiteral("status"),
-            onboardingAcceptanceStatus_
-        },
-        {
-            QStringLiteral("message"),
-            onboardingAcceptanceMessage_
-        },
-        {
-            QStringLiteral("step"),
-            onboardingStep_
-        },
-        {
-            QStringLiteral("totalSteps"),
-            kOnboardingStepCount
-        },
-        {
-            QStringLiteral("guideId"),
-            QString::fromLatin1(kFirstLaunchGuideId)
-        },
-        {
-            QStringLiteral("actionObjectName"),
-            onboardingActionObjectName_
-        },
-        {
-            QStringLiteral("actionIdentity"),
-            onboardingActionIdentity_
-        },
-        {
-            QStringLiteral("choiceClass"),
-            onboardingChoiceClass_
-        },
-        {
-            QStringLiteral("guideParameterType"),
-            onboardingGuideParameterType_
-        },
-        {
-            QStringLiteral("guideClass"),
-            onboardingGuideClass_
-        },
-        {
-            QStringLiteral("windowHandle"),
-            onboardingWindowHandle_
-        },
-        {
-            QStringLiteral("title"),
-            onboardingTitle_
-        },
-        {
-            QStringLiteral("body"),
-            onboardingBody_
-        },
-        {
-            QStringLiteral("titleMatches"),
-            onboardingTitleMatches_
-        },
-        {
-            QStringLiteral("bodyMatches"),
-            onboardingBodyMatches_
-        },
-        {
-            QStringLiteral("observedActions"),
-            onboardingObservedActions
-        },
-        {
-            QStringLiteral("observedTexts"),
-            onboardingObservedTexts
-        },
-        {
-            QStringLiteral("observedWidgets"),
-            onboardingObservedWidgets
-        },
-    };
-
     const QJsonObject marker {
         { QStringLiteral("plugin"), QString::fromLatin1(kPluginKey) },
         { QStringLiteral("status"), status },
@@ -1337,10 +2225,6 @@ void CavalryI18nRuntime::writeDiagnostic(
             QStringLiteral("extensionLayerTextPathDiagnostics"),
             textPathDiagnosticObject
         },
-        {
-            QStringLiteral("onboardingAcceptance"),
-            onboardingAcceptance
-        },
         { QStringLiteral("qtVersion"), QString::fromLatin1(qVersion()) },
         {
             QStringLiteral("processId"),
@@ -1367,3 +2251,5 @@ void CavalryI18nRuntime::writeDiagnostic(
                        markerFile.errorString());
     }
 }
+
+#endif

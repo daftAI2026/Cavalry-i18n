@@ -1,6 +1,6 @@
 # [INPUT]: 依赖 CMake 4.2+、Visual Studio 2022+ 的 MSVC v143、Qt 6.6.3 x64 SDK及版本化 QPA 头、Windows Psapi、本目录源码、../generated_translations.inc 与可选 vendor 根
-# [OUTPUT]: 对外构建 generic/cavalryi18n.dll 与 qpa/qwindows.dll，并注册显示/hook/vendor、QPA manifest、测试态 vendor 主窗口缝及环境/显式入口合同测试
-# [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构/manifest 前置检查约束通用翻译 runtime 与原生入口 QPA 代理
+# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册显示/hook/vendor、QPA manifest、测试态 vendor 主窗口缝及环境/显式入口合同测试
+# [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构/manifest 前置检查约束通用翻译 runtime 与原生入口 QPA 代理，并隔离验收 driver
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 4.2)
 
@@ -100,6 +100,56 @@ target_sources(cavalryi18n
         cavalry_i18n_translator.h
         cavalryi18n.json
 )
+
+qt_add_plugin(cavalryi18n_acceptance
+    SHARED
+    CLASS_NAME CavalryI18nAcceptancePlugin
+)
+
+target_sources(cavalryi18n_acceptance
+    PRIVATE
+        cavalry_i18n_acceptance_plugin.cpp
+        cavalry_i18n_acceptance_plugin.h
+        cavalry_i18n_adjacent_acceptance.cpp
+        cavalry_i18n_adjacent_acceptance.h
+        cavalry_i18n_adjacent_acceptance_lifecycle.inc
+        cavalry_i18n_adjacent_acceptance_assets.inc
+        cavalry_i18n_adjacent_acceptance_evidence.inc
+        cavalry_i18n_onboarding_acceptance.cpp
+        cavalry_i18n_onboarding_acceptance.h
+        cavalry_i18n_translator.cpp
+        cavalry_i18n_translator.h
+        cavalryi18n_acceptance.json
+)
+
+target_link_libraries(cavalryi18n_acceptance
+    PRIVATE
+        Qt6::Core
+        Qt6::CorePrivate
+        Qt6::Gui
+        Qt6::Widgets
+)
+
+target_include_directories(cavalryi18n_acceptance
+    PRIVATE
+        "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
+target_compile_definitions(cavalryi18n_acceptance PRIVATE QT_NO_KEYWORDS)
+
+set_target_properties(cavalryi18n_acceptance PROPERTIES
+    OUTPUT_NAME "cavalryi18n_acceptance"
+    PREFIX ""
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/acceptance/generic"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/acceptance/generic"
+)
+
+foreach(config DEBUG RELEASE RELWITHDEBINFO MINSIZEREL)
+    set_target_properties(cavalryi18n_acceptance PROPERTIES
+        "RUNTIME_OUTPUT_DIRECTORY_${config}" "${CMAKE_BINARY_DIR}/acceptance/generic"
+        "LIBRARY_OUTPUT_DIRECTORY_${config}" "${CMAKE_BINARY_DIR}/acceptance/generic"
+    )
+endforeach()
 
 target_link_libraries(cavalryi18n
     PRIVATE

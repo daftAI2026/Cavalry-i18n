@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖生成翻译表中的原始 context/source 键
- * [OUTPUT]: 对外提供自绘/动态 Qt 表面的精确 context/source 常量、8 条跨平台 owner-aware key、macOS TagHeader 邻接标签/Assets 动态菜单模板 key，以及具体快捷键与旧 MenuBarManager 静态前缀的 exact-only 判定
- * [POS]: injector 的翻译查询策略；共享专用词条与 macOS 已采证而 Windows producer 待证的邻接表面分层退出 source fallback，只能由精确 Qt 上下文或已验证的平台 owner 回补消费
+ * [OUTPUT]: 对外提供自绘/动态 Qt 表面的精确 context/source 常量、8 条跨平台 scoped key、已由 macOS/Windows 双端 producer 采证的 TagHeader 邻接标签/Assets 动态菜单模板 key，以及具体快捷键与旧 MenuBarManager 静态前缀的 exact-only 判定
+ * [POS]: injector 的翻译查询策略；共享专用词条与双平台邻接表面分层退出 source fallback，只能由精确 Qt 上下文或已验证的平台 owner/producer 回补消费
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #pragma once
@@ -161,7 +161,7 @@ static_assert(
         kTrackingWindowTitleSource),
     "MenuBarManager owner-scoped surfaces must never enter source fallback");
 
-inline constexpr bool requiresMacOwnerTranslationContext(
+inline constexpr bool requiresOwnerTranslationContext(
     const char *context,
     const char *sourceText) noexcept
 {

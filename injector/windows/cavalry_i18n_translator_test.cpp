@@ -279,7 +279,7 @@ bool verifyConcreteShortcutIsolation(
                "concrete shortcut null-context rejection");
 }
 
-bool verifyMacOwnerOnlyIsolation(
+bool verifyOwnerOnlyIsolation(
     const QString &language,
     const QString &expectedTagTranslation,
     const QString &expectedCreateCompositionTemplate)
@@ -292,37 +292,37 @@ bool verifyMacOwnerOnlyIsolation(
     return expectEqual(
                translator.translate("cavalry::TagHeader", kTagSource),
                expectedTagTranslation,
-               "mac owner-only Tag exact lookup")
+               "owner-only Tag exact lookup")
         && expectEqual(
                translator.translate("UnknownContext", kTagSource),
                QString(),
-               "mac owner-only Tag source rejection")
+               "owner-only Tag source rejection")
         && expectEqual(
                translator.translate(nullptr, kTagSource),
                QString(),
-               "mac owner-only Tag null-context rejection")
+               "owner-only Tag null-context rejection")
         && expectEqual(
                translator.translate(
                    "cavalry::TagHeader",
                    "Assign Tag to Selection:"),
                QString(),
-               "mac owner-only Tag trailing-space identity")
+               "owner-only Tag trailing-space identity")
         && expectEqual(
                translator.translate(
                    "assets::Window",
                    kCreateCompositionSource),
                expectedCreateCompositionTemplate,
-               "mac owner-only Assets template exact lookup")
+               "owner-only Assets template exact lookup")
         && expectEqual(
                translator.translate(
                    "UnknownContext",
                    kCreateCompositionSource),
                QString(),
-               "mac owner-only Assets template source rejection")
+               "owner-only Assets template source rejection")
         && expectEqual(
                translator.translate(nullptr, kCreateCompositionSource),
                QString(),
-               "mac owner-only Assets template null-context rejection")
+               "owner-only Assets template null-context rejection")
         && expectEqual(
                translator.translate(
                    "UnknownContext",
@@ -408,15 +408,15 @@ int main()
         || !verifyConcreteShortcutIsolation(
             QStringLiteral("ja_JP"),
             QStringLiteral("コンポジションにレイヤーを追加 (⌘.)"))
-        || !verifyMacOwnerOnlyIsolation(
+        || !verifyOwnerOnlyIsolation(
             QStringLiteral("zh-Hans"),
             QStringLiteral("为所选内容分配标签："),
             QStringLiteral("基于 %1 创建合成"))
-        || !verifyMacOwnerOnlyIsolation(
+        || !verifyOwnerOnlyIsolation(
             QStringLiteral("zh-Hant"),
             QStringLiteral("為所選內容分配標籤："),
             QStringLiteral("根據 %1 建立合成"))
-        || !verifyMacOwnerOnlyIsolation(
+        || !verifyOwnerOnlyIsolation(
             QStringLiteral("ja_JP"),
             QStringLiteral("選択範囲にタグを割り当て："),
             QStringLiteral("%1 を基にコンポジションを作成"))

@@ -33,8 +33,9 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 2026-07-24: 新增 Windows 端口与注入路线图，明确任意安装根、JSON keyed overlay、Qt generic plugin、进程级环境、ExtensionLayer IAT 白名单和真机验收边界。
 2026-07-29: 新增 Windows x64 适配实施复盘与维护交接，沉淀 generic/QPA/UAC 最终架构、被证伪方案、构建发布经验、证据分级和仍需补齐的跨平台真机验证。
 2026-07-30: 新增 PR #3 macOS 发布加固复盘与维护交接，沉淀八条表面、Onboarding、Transform、验收器证据卫生、单次 CI 推送和 Windows live release gate 的可迁移经验。
-2026-07-30: 关闭 PR #3 Windows Onboarding `PENDING-NO-WINDOWS-HOST`，新增绑定 commit 0710dc5 的三语 15/15 exact-PID/HWND live run note；Windows 邻接 producer 与 repository-wide G0-G4 仍不冒充完成。
-2026-07-30: 新增 Windows Onboarding live 验证 session 复盘，将恢复工作区/登录干扰、step 5 退出风险、可复用 driver/helper、证据封存和 macOS 迁移边界沉淀到 PR #3 的长期文档。
+2026-07-30: 关闭 PR #3 Windows Onboarding `PENDING-NO-WINDOWS-HOST`；2026-07-31 又以 sentinel-owned Qt test profile、MainDock settle、真实 Next 页面确认和 exact-PID cleanup 重验三语 15/15，历史 commit 0710dc5 只保留谱系。
+2026-07-30: 新增 Windows Onboarding live 验证 session 复盘，将恢复工作区/登录干扰、step 5 退出风险、可复用 driver/helper、证据封存和 macOS 迁移边界沉淀到 PR #3 的长期文档；2026-07-31 同步实际 Qt test profile 与 bounded transition retry。
 2026-07-30: 从任务事件流恢复 macOS 21-run/48-point acceptance producer 至 `tools/macos-acceptance/`，run note 与双平台 handoff 同步记录 tracked source、session artifact 和历史 PASS 的不可混写边界。
+2026-07-31: 关闭 PR #3 Windows Tag/Assets `PENDING-WINDOWS-PRODUCER`，新增绑定三语 6/6 逻辑点、9/9 producer-side PNG 与 exact PID/HWND 锚点的 session 交接；验收 driver 独立于产品 DLL，登录/工作区由 Qt test profile 隔离，cleanup 对 exact disposable PID 可受限强停但不参与 PASS，repository-wide G0-G4 仍不冒充完成。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -2,14 +2,14 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-check_app_contracts.js: Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙与 Guide 固定 `en` 加载槽位，不承载现场证据编排。
+check_app_contracts.js: Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS/Windows Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙与 Guide 固定 `en` 加载槽位，不承载现场证据编排。
 check_renderer_contract.js: Renderer contract 测试，以规范化 LF 冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面，避免 Git 换行策略制造假漂移。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、稳定 errorCode 四语本土化、平台 dataset、Apply 确认、提交后 cleanup warning、macOS openPrivacy/Windows requestElevation 权限恢复、不可写自定义根的无 UAC 错误、原地重试与自定义 select 原生 change 语义。
-check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试；除既有跨平台发布合同外，锁定 release tag 已进入 origin/main 的共同 preflight、PR/main 在无 vendor app 的 macOS Runner 编译 universal injector，以及 Windows live full-surface/Onboarding 的 exact-HWND、`std::string` ABI、step5-ack-only 与无盲键关闭边界。
+check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试；除既有跨平台发布合同外，锁定 release tag 已进入 origin/main 的共同 preflight、PR/main 在无 vendor app 的 macOS Runner 编译 universal injector，以及 Windows live full-surface/Onboarding/Adjacent 的 Qt test profile、真实 Next 转场、exact-HWND、producer-side PNG、step5-ack-only 与 exact-PID cleanup 边界。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer、languages、同次平台构建 injector 的哈希同一性与 Qt ABI、ad-hoc bundle seal 及 bundle size report。
 windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；拒绝 bundle 父链 symlink/junction，仅清本版本预期 EXE/sidecar；以 canonical file identity 接受同一安装器的路径别名，记录 renderer/languages/Tauri/Rust/Windows native C++/共享 translation policy/CMake/build/generated table/generic/QPA 的内容 fingerprint，安装前复算并拒绝源码或产物漂移。
 check_windows_nsis_install.ps1: 带 UTF-8 BOM 的 Windows x64 NSIS 安装态守门器；先以 `windows_nsis_provenance.js` 复算显式 `x86_64-pc-windows-msvc` target 的唯一 EXE/sidecar，再在固定 HKCU/快捷方式冲突即失败的前提下于唯一随机 `%TEMP%` 根静默安装、以同一安装器执行 `/UPDATE`、仅通过包内卸载器静默卸载并观察零残留；三阶段都要求独立 TEMP 根中 `qwindows.dll`、vendor backup 与 manifest 的长度/SHA-256 哨兵不变，漂移时保留证据，禁止递归删除掩盖失败。
-capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，自动截取 Viewport Quality/Transform 且 Transform 必须同时命中 action 与三条长操作前缀的 64 位位图，并在一次 best-effort 前台请求后的有界 exact-HWND 等待中以 `VK_A` 触发 Edit Shape，要求六条 action 与三条长操作前缀完整位图；Onboarding 只接受 runtime 发布的非零十进制 HWND，复核可见、未 cloaked 且属于 exact PID 后直接截图，避免把并存登录窗口误当目标；`Space` 等纯键位不计翻译命中，显式 `AllowManualCogPitch` 时先拒绝预置 bit 28，再把精确前台窗口交给用户选择 Cogwheel 并拖拽，要求 revision/canonical/whitelist/CJK-success 严格增长、零 fallback/renderer failure，并保存前后诊断与 PNG；Close 不等待可见主窗，只向 exact PID 的全部顶层 HWND 投递 WM_CLOSE，禁止盲键确认、场景脚本、Qt UIA、坐标/鼠标自动化、强杀、固定 sleep 和覆盖证据。
+capture_windows_pid_window.ps1: 带 UTF-8 BOM 的 Windows disposable live-smoke GUI 证据 helper；先验 `%TEMP%` sentinel clone/evidence、无 reparse 路径链与精确 PID，自动截取 Viewport Quality/Transform 且 Transform 必须同时命中 action 与三条长操作前缀的 64 位位图，并在一次 best-effort 前台请求后的有界 exact-HWND 等待中以 `VK_A` 触发 Edit Shape；Onboarding 只接受 runtime 发布的非零十进制 HWND，复核可见、未 cloaked 且属于 exact PID 后直接截图；Adjacent 正式 gate 由 producer-side Qt grab 封存瞬态 PNG，本 helper 的 exact-HWND screen-copy 只保留为诊断回退；Close 向 exact PID 全部顶层 HWND 投递 WM_CLOSE，ForceStop 只在超时且再次复核同 executable/PID 后用于 disposable child 清理，不参与 PASS；禁止盲键确认、场景脚本、Qt UIA、坐标/鼠标自动化、固定 sleep 和覆盖证据。
 check_dmg_layout.sh: DMG 布局与签名守门器，挂载真实 `.dmg` 并验证 `.DS_Store`、背景图、卷宗图标、custom-icon 标记、Applications 链接、DMG 内 app 与安装态 app 的 bundle seal/codesign strict 结果。
 window_contract_lib.js: 窗口回归公共库，通过明确 AX UI 查询判定辅助能力，封装窗口枚举、内容区截图与原生 `sips` 像素尺寸读取；Finder 无窗口不再导致空心 skip，也不依赖系统 Python/PIL。
 check_tauri_window_regression.js: packaged Tauri 主窗口回归测试，验证冻结窗口尺寸与内容截图尺寸。
@@ -130,5 +130,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-29: Guide catalog 纳入 translation validator，固定 Cavalry 2.7.2 实际读取的 `en` slot、98-key 同构与引用完备性；生成翻译表同时保留 GEB L3 契约。
 2026-07-29: Windows NSIS provenance 比较 canonical file identity，修复 macOS `/var` 与 `/private/var` 指向同一安装器却被误拒绝的本地合同假阴性；bundle 边界与内容 fingerprint 不变。
 2026-07-30: 将 2026-07-29 现场使用的 macOS 21-run/48-point acceptance driver、exact-window helper、媒体输入和 harness 从可清理 Cache 恢复到 `macos-acceptance/`；CI 运行静态合同与无 vendor app compile，live PASS 仍只由显式 session 证据产生。
+2026-07-31: Windows Adjacent gate 将 Tag/Assets producer driver、双素材与 exact-HWND 证据握手收进 tracked Rust/C++/PowerShell 边界；正式瞬态 PNG 改由 producer-side Qt grab，helper 只封存/诊断，三语动态 stem 带 run nonce 防止还原工作区污染。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

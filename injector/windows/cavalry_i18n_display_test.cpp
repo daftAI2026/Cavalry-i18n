@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树、QLineEdit 与 QPlainTextEdit
- * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
- * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系或对话框结构与显示属性，且通用规则不会改写编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
+ * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树、QLineEdit、QPlainTextEdit 与 QMenu
+ * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
+ * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性，且通用规则不会改写编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -20,6 +20,7 @@
 #include <QtWidgets/QDialog>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
+#include <QtWidgets/QMenu>
 #include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
@@ -579,6 +580,10 @@ bool verifyEvidencedResidualWidgets(const QString &language)
         translator.translate("ColorWindow", "Save...");
     const QString exactReplaceTranslation =
         translator.translate("assets::Window", "Replace...");
+    const QString exactCreateTranslation =
+        translator.translate(
+            "assets::Window",
+            "Create Composition based on %1");
     const QString exactComputeTimeTranslation =
         translator.translate("MenuBarManager", "Compute Time:");
     const QString exactDrawTimeTranslation =
@@ -646,6 +651,18 @@ bool verifyEvidencedResidualWidgets(const QString &language)
     saveAction.setText(QStringLiteral("Save..."));
     QAction replaceAction;
     replaceAction.setText(QStringLiteral("Replace..."));
+    QMenu assetsContextMenu;
+    QAction *assetsReplaceAction =
+        assetsContextMenu.addAction(QStringLiteral("Replace..."));
+    QAction *assetsCreateAction = assetsContextMenu.addAction(
+        QStringLiteral("Create Composition based on replace-source"));
+    QAction *assetsUnrelatedAction =
+        assetsContextMenu.addAction(QStringLiteral("Custom user action"));
+    QMenu unrelatedContextMenu;
+    QAction *unrelatedReplaceAction =
+        unrelatedContextMenu.addAction(QStringLiteral("Replace..."));
+    QAction *unrelatedCreateAction = unrelatedContextMenu.addAction(
+        QStringLiteral("Create Composition based on replace-source"));
     const QString addLayerWithShortcut =
         exactAddLayerTranslation.arg(QStringLiteral("Ctrl+."));
     const QString expectedAddLayerTranslation =
@@ -699,6 +716,8 @@ bool verifyEvidencedResidualWidgets(const QString &language)
     displayTranslator.translateAction(&addTagAction);
     displayTranslator.translateAction(&saveAction);
     displayTranslator.translateAction(&replaceAction);
+    displayTranslator.translateAssetsContextMenu(&assetsContextMenu);
+    displayTranslator.translateMenu(&unrelatedContextMenu);
 
     const bool passed = expectEqual(
                language + QStringLiteral(" palette input label"),
@@ -795,6 +814,27 @@ bool verifyEvidencedResidualWidgets(const QString &language)
                language + QStringLiteral(" source-only Replace isolation"),
                replaceAction.text(),
                QStringLiteral("Replace..."))
+        && expectEqual(
+               language + QStringLiteral(" Assets producer Replace"),
+               assetsReplaceAction->text(),
+               exactReplaceTranslation)
+        && expectEqual(
+               language + QStringLiteral(" Assets producer Create template"),
+               assetsCreateAction->text(),
+               exactCreateTranslation.arg(QStringLiteral("replace-source")))
+        && expectEqual(
+               language + QStringLiteral(" Assets producer unrelated isolation"),
+               assetsUnrelatedAction->text(),
+               QStringLiteral("Custom user action"))
+        && expectEqual(
+               language + QStringLiteral(" unrelated menu Replace isolation"),
+               unrelatedReplaceAction->text(),
+               QStringLiteral("Replace..."))
+        && expectEqual(
+               language + QStringLiteral(" unrelated menu Create isolation"),
+               unrelatedCreateAction->text(),
+               QStringLiteral(
+                   "Create Composition based on replace-source"))
         && expectEqual(
                language + QStringLiteral(" exact Tag Header Add Tag"),
                exactAddTagTranslation,
