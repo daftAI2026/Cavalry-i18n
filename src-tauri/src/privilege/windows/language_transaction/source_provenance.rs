@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 build.rs 编译期嵌入的四语/Windows runtime SHA-256、固定 payload schema、JSON overlay 规则与 QPA transition planner。
- * [OUTPUT]: 提供提权 worker 写入前 source provenance 证明；只接受当前 EXE 近邻发布根中与编译期锚一致、可精确重建的 staged payload。
- * [POS]: language_transaction 的只读信任边界；把“同一 EXE”提升为“同一发布资源集”，在关闭 Cavalry 与任何安装根写入前 fail closed。
+ * [OUTPUT]: 提供 worker 写前 provenance 证明；写入 payload 必须锚定当前发布，English 删除计划则从 ACL 保护的 live manifest 精确重建以兼容旧发行残留。
+ * [POS]: language_transaction 的只读信任边界；区分“当前包可写字节”与“历史 manifest 可删所有权”，在关闭 Cavalry 与安装根写入前 fail closed。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -376,15 +376,9 @@ fn verify_qpa_transition(
     runtime: &TrustedRuntime,
 ) -> Result<(), String> {
     match (&plan.language, &plan.qpa_transition) {
-        (Language::English, QpaTransitionPlan::EnglishRestore(restore)) => {
-            if restore.proxy_qwindows_sha256 != runtime.qpa_digest
-                || restore.generic_plugin_sha256 != runtime.generic_digest
-            {
-                return Err(
-                    "English restore hashes do not match the compiled runtime trust anchors."
-                        .to_string(),
-                );
-            }
+        (Language::English, QpaTransitionPlan::EnglishRestore(_)) => {
+            // English 清理的所有权来自 Program Files ACL 内的 durable manifest；更新后的
+            // Switcher 必须能移除旧发行版留下的精确哈希，不能把“当前包哈希”误当成“历史所有权”。
             verify_rebuilt_english_transition(plan, layout, runtime)
         }
         (Language::English, QpaTransitionPlan::Noop(_)) => {
@@ -431,6 +425,7 @@ fn verify_rebuilt_english_transition(
     let expected = crate::windows_qpa::build_english_transition(RestoreRequest {
         layout,
         proxy_source: &runtime.qpa_path,
+        generic_source: &runtime.generic_path,
         reason: RestoreReason::EnglishSelection,
     })?;
     if expected != plan.qpa_transition {

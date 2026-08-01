@@ -91,9 +91,9 @@ impl Fixture {
         }
     }
 
-    fn runtime_sources(&self, language: Language) -> RuntimeSources {
+    fn runtime_sources(&self, _language: Language) -> RuntimeSources {
         RuntimeSources {
-            generic: (language != Language::English).then(|| self.generic.clone()),
+            generic: self.generic.clone(),
             proxy: self.proxy.clone(),
         }
     }

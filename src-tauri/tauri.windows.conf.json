@@ -25,6 +25,12 @@
           "TradChinese",
           "Japanese"
         ],
+        "customLanguageFiles": {
+          "English": "nsis-languages/English.nsh",
+          "SimpChinese": "nsis-languages/SimpChinese.nsh",
+          "TradChinese": "nsis-languages/TradChinese.nsh",
+          "Japanese": "nsis-languages/Japanese.nsh"
+        },
         "displayLanguageSelector": false,
         "installerIcon": "icons/icon.ico"
       }

@@ -46,7 +46,7 @@ Cavalry-i18n は独立したコミュニティツールです。Scene Group、Ca
 
 macOS がこの権限を求めるのは、別の `.app` bundle を変更する操作が保護対象だからです。このビルドを信頼し、ローカルの Cavalry インストールにパッチ、再署名、再起動が行われることを理解した場合にのみ許可してください。クリーンな Cavalry インストーラーまたはバックアップを保持してください。未変更の公式 bundle に戻す最も安全な方法は Cavalry を再インストールすることです。
 
-Windows では、まずローカルのインストールを検出します。見つからない場合は `Cavalry.exe` またはそのインストールフォルダーを手動で選択してください。カスタムパスも利用できますが、現在のユーザーが書き込める必要があります。自動 UAC 昇格は、実際に Windows Program Files 配下にあるインストールだけに限定され、任意のカスタムパスには使われません。Cavalry または Switcher の通常終了、Switcher の同一バージョン `/UPDATE`、Switcher のアンインストールでは、選択中の言語を解除せず、Cavalry インストールルート側の外部 QPA ファイルを復元・削除しません。English を明示的に選んだ場合にのみ、英語アセットのスナップショットと検証済みの vendor QPA を復元します。すべての vendor ファイルを完全な初期状態へ戻す最も確実な方法は、引き続き Cavalry の再インストールです。
+Windows では、まずローカルのインストールを検出します。見つからない場合は `Cavalry.exe` またはそのインストールフォルダーを手動で選択してください。カスタムパスも利用できますが、現在のユーザーが書き込める必要があります。自動 UAC 昇格は Windows Program Files 配下のインストールだけに限定されます。通常終了と同一バージョン `/UPDATE` は現在の言語を保持します。対話式アンインストールでは「Switcher だけを削除して配置済み翻訳を残す」か、「先に English へ戻し、ハッシュで本プロジェクト所有と証明された generic/QPA runtime を削除する」かを選べます。silent、passive、update uninstall は既定で翻訳を残します。翻訳済み Cavalry の上から vendor installer を再実行した場合、全管理 JSON と正確な vendor QPA が英語状態を証明したときだけ Switcher は English と表示し、**Refresh English** が古い marker と所有済み runtime 残留を収束させます。不明な DLL は削除しません。
 
 ## Release からインストール
 
@@ -99,7 +99,7 @@ Windows 開発には Windows 10 x64 以降、Node.js 22+、PowerShell 5.1+、x64
 4. macOS の launcher wrapper と injector、または選択ルートの Windows `generic/cavalryi18n.dll` translator と root QPA delegate を **インストール**
 5. Cavalry を **再起動** してプラットフォーム固有の翻訳を読み込む。macOS では bundle の再署名と Gatekeeper quarantine の解除も行う
 
-パッチ後も、元の起動パスはそのまま使えます。macOS の launcher wrapper は `DYLD_INSERT_LIBRARIES` を設定します。Windows は Cavalry が必ず通る native QPA path から同じ翻訳 runtime を読み込み、グローバル環境変数や特定のショートカットには依存しません。元の `qwindows.dll` は hash-locked recovery directory に保持され、Cavalry/Switcher の通常終了、Switcher の同一バージョン `/UPDATE`、Switcher のアンインストールでは、この外部 QPA 状態を変更しません。English を明示的に選んだ場合にのみ、抽出済みアセットスナップショットと検証済みの vendor QPA を使って復元します。
+パッチ後も、元の起動パスはそのまま使えます。macOS の launcher wrapper は `DYLD_INSERT_LIBRARIES` を設定します。Windows は native QPA path から同じ翻訳 runtime を読み込み、グローバル環境変数や特定ショートカットには依存しません。通常終了と同一バージョン更新は配置済み翻訳を保持します。English の明示選択またはアンインストーラーの復元選択は、抽出済みアセットと検証済み vendor QPA を戻し、manifest が所有を証明する generic/recovery だけを削除します。不明な DLL は推測も削除もしません。
 
 ## 対応言語
 

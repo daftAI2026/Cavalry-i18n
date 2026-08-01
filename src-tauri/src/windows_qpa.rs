@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 InstallLayout、打包 QPA 代理、安装根 generic plugin 与 windows_qpa/storage 的原子文件能力。
- * [OUTPUT]: 提供严格 Cavalry 2.7.2/Qt 6.6.3/x64 QPA transition 计划、直接写入 preflight、纯文件 rollback 表面、四态检查，以及仅供明确 English 选择调用的原厂恢复。
- * [POS]: src-tauri/src 的 Windows QPA 持久部署边界；原厂 DLL 长期留在安装根恢复目录，普通 Cavalry 关闭不触发恢复，厂商覆盖代理时保留新文件并拒绝把未知 QPA 报为成功 English。
+ * [INPUT]: 依赖 InstallLayout、当前打包 QPA/generic 所有权锚、安装根 durable manifest 与 windows_qpa/storage 原子文件能力。
+ * [OUTPUT]: 提供严格 QPA transition/四态检查；显式 English 同时恢复原厂 qwindows、删除哈希自有 generic 与 recovery，未知文件在任何写入前拒绝。
+ * [POS]: Windows 持久部署边界；manifest 可证明旧发行版运行时归属，当前包只证明无 manifest 残留，厂商更新与未知 DLL 永不被覆盖或删除。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, io::ErrorKind, path::Path};
@@ -14,14 +14,16 @@ mod contract;
 mod identity;
 #[path = "windows_qpa/preflight.rs"]
 mod preflight;
+#[path = "windows_qpa/restore.rs"]
+mod restore;
 #[path = "windows_qpa/storage.rs"]
 mod storage;
 #[path = "windows_qpa/transition.rs"]
 mod transition;
 
 use contract::{
-    inspection, manifest_from_activation_plan, validate_activation_plan, validate_manifest,
-    validate_restore_plan, Policy, MANIFEST_SCHEMA_VERSION, PLAN_SCHEMA_VERSION,
+    inspection, manifest_from_activation_plan, validate_activation_plan, validate_manifest, Policy,
+    PLAN_SCHEMA_VERSION,
 };
 pub use contract::{
     ActivationOutcome, ActivationRequest, PreparedRestore, QpaActivationPlan, QpaDeploymentState,
@@ -31,18 +33,18 @@ pub use contract::{
     RECOVERY_DIRECTORY_NAME, SUPPORTED_ARCHITECTURE, SUPPORTED_CAVALRY_VERSION,
     SUPPORTED_QT_VERSION, VENDOR_QWINDOWS_FILE_NAME, VENDOR_QWINDOWS_SHA256,
 };
-use identity::{verify_runtime_identity, verify_target_files_with_generic};
+use identity::verify_target_files_with_generic;
 pub use preflight::{
     direct_write_requires_elevated_worker, managed_write_surface, manifest_path,
     preflight_direct_writable, recovery_directory, rollback_file_surface, vendor_qwindows_backup,
 };
+use restore::{build_restore_plan_with_policy, execute_writable_restore_with_policy};
 use storage::{
     copy_new_durable, create_missing_verified, create_recovery_directory,
     ensure_path_chain_has_no_reparse_points, ensure_regular_directory, ensure_regular_file,
-    publish_without_overwrite, remove_empty_directory, remove_if_hash_matches, remove_regular_file,
-    replace_existing_verified, require_hash, sha256_file, snapshot_hash, validate_x64_pe,
-    write_manifest_atomic, MANIFEST_REPLACE_BACKUP_FILE, MANIFEST_TEMP_FILE, REPLACE_BACKUP_FILE,
-    VENDOR_TEMP_FILE,
+    publish_without_overwrite, remove_if_hash_matches, remove_regular_file,
+    replace_existing_verified, require_hash, sha256_file, snapshot_hash, write_manifest_atomic,
+    MANIFEST_REPLACE_BACKUP_FILE, MANIFEST_TEMP_FILE, REPLACE_BACKUP_FILE, VENDOR_TEMP_FILE,
 };
 
 pub fn inspect(layout: &InstallLayout) -> Result<QpaInspection, String> {
@@ -359,198 +361,6 @@ fn execute_writable_activation_with_source(
     )
 }
 
-fn build_restore_plan_with_policy(
-    request: RestoreRequest<'_>,
-    policy: &Policy,
-) -> Result<PreparedRestore, String> {
-    require_windows_layout(request.layout)?;
-    ensure_path_chain_has_no_reparse_points(&request.layout.root)?;
-    validate_x64_pe(request.proxy_source, "packaged QPA proxy")?;
-    let packaged_proxy_hash = sha256_file(request.proxy_source)?;
-    let qwindows = request.layout.root.join(QWINDOWS_FILE_NAME);
-    let current = snapshot_hash(&qwindows, "installed qwindows.dll")?;
-    let recovery = recovery_directory(request.layout);
-    if !recovery.exists() {
-        return Ok(match current {
-            Some(hash) if hash == policy.vendor_hash => {
-                PreparedRestore::Complete(RestoreOutcome::AlreadyStock)
-            }
-            Some(hash) if hash == packaged_proxy_hash => {
-                return Err(
-                    "The QPA proxy is active but its durable vendor backup is missing.".to_string(),
-                )
-            }
-            None => {
-                return Err(
-                    "qwindows.dll is missing and there is no durable vendor backup to restore."
-                        .to_string(),
-                )
-            }
-            _ => PreparedRestore::Complete(RestoreOutcome::VendorUpdatePreserved),
-        });
-    }
-    ensure_regular_directory(&recovery, "QPA recovery directory")?;
-    require_hash(
-        &vendor_qwindows_backup(request.layout),
-        &policy.vendor_hash,
-        "durable vendor qwindows.dll backup",
-    )?;
-    let manifest = read_manifest(request.layout, policy).ok().flatten();
-    if let Some(manifest) = manifest.as_ref() {
-        let executable_hash = snapshot_hash(
-            &request.layout.executable,
-            "Cavalry executable during English restore",
-        )?;
-        if executable_hash.as_deref() != Some(manifest.cavalry_executable_sha256.as_str()) {
-            return Ok(PreparedRestore::Complete(
-                RestoreOutcome::VendorUpdatePreserved,
-            ));
-        }
-    }
-    let manifest_proxy_hash = manifest
-        .as_ref()
-        .map(|manifest| manifest.proxy_qwindows_sha256.clone());
-    let owned_proxy = manifest_proxy_hash
-        .as_deref()
-        .is_some_and(|hash| current.as_deref() == Some(hash))
-        || current.as_deref() == Some(packaged_proxy_hash.as_str());
-    if current
-        .as_deref()
-        .is_some_and(|hash| hash != policy.vendor_hash && !owned_proxy)
-    {
-        return Ok(PreparedRestore::Complete(
-            RestoreOutcome::VendorUpdatePreserved,
-        ));
-    }
-    let action = match current.as_deref() {
-        None => RestoreAction::CreateMissing,
-        Some(hash) if hash == policy.vendor_hash => RestoreAction::CleanupOnly,
-        Some(_) if owned_proxy => RestoreAction::ReplaceProxy,
-        Some(_) => {
-            return Ok(PreparedRestore::Complete(
-                RestoreOutcome::VendorUpdatePreserved,
-            ))
-        }
-    };
-    let generic_hash = manifest
-        .as_ref()
-        .map(|manifest| manifest.generic_plugin_sha256.clone())
-        .or_else(|| {
-            snapshot_hash(
-                &request.layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH),
-                "installed generic translation plugin",
-            )
-            .ok()
-            .flatten()
-        })
-        .unwrap_or_else(|| "0".repeat(64));
-    Ok(PreparedRestore::Execute(QpaRestorePlan {
-        schema_version: PLAN_SCHEMA_VERSION,
-        install_root: request.layout.root.to_string_lossy().to_string(),
-        reason: request.reason,
-        action,
-        cavalry_version: policy.cavalry_version.clone(),
-        cavalry_executable_sha256: sha256_file(&request.layout.executable)?,
-        qt_version: policy.qt_version.clone(),
-        architecture: policy.architecture.clone(),
-        expected_current_qwindows_sha256: current,
-        proxy_qwindows_sha256: manifest_proxy_hash.unwrap_or(packaged_proxy_hash),
-        vendor_qwindows_sha256: policy.vendor_hash.clone(),
-        generic_plugin_sha256: generic_hash,
-    }))
-}
-
-fn execute_writable_restore_with_policy(
-    plan: &QpaRestorePlan,
-    policy: &Policy,
-    verify_versions: bool,
-) -> Result<RestoreOutcome, String> {
-    validate_restore_plan(plan, policy)?;
-    let layout = InstallLayout::from_root(Path::new(&plan.install_root));
-    require_windows_layout(&layout)?;
-    ensure_path_chain_has_no_reparse_points(&layout.root)?;
-    if verify_versions {
-        verify_runtime_identity(&layout, policy)?;
-    } else {
-        validate_x64_pe(&layout.executable, "Cavalry.exe")?;
-        validate_x64_pe(&layout.root.join(QT_CORE_FILE_NAME), "Qt6Core.dll")?;
-    }
-    require_hash(
-        &layout.executable,
-        &plan.cavalry_executable_sha256,
-        "hash-locked Cavalry executable",
-    )?;
-    require_hash(
-        &vendor_qwindows_backup(&layout),
-        &policy.vendor_hash,
-        "durable vendor qwindows.dll backup",
-    )?;
-    let qwindows = layout.root.join(QWINDOWS_FILE_NAME);
-    let current = snapshot_hash(&qwindows, "installed qwindows.dll")?;
-    if current != plan.expected_current_qwindows_sha256 {
-        if current
-            .as_deref()
-            .is_some_and(|hash| hash != policy.vendor_hash && hash != plan.proxy_qwindows_sha256)
-        {
-            return Ok(RestoreOutcome::VendorUpdatePreserved);
-        }
-        return Err(
-            "qwindows.dll changed after the restore plan was built; refusing a stale write."
-                .to_string(),
-        );
-    }
-
-    if plan.action != RestoreAction::CleanupOnly {
-        let restoring = QpaManifest {
-            schema_version: MANIFEST_SCHEMA_VERSION,
-            phase: QpaManifestPhase::Restoring,
-            cavalry_version: policy.cavalry_version.clone(),
-            cavalry_executable_sha256: snapshot_hash(
-                &layout.executable,
-                "Cavalry executable during English restore",
-            )?
-            .unwrap_or_else(|| "0".repeat(64)),
-            qt_version: policy.qt_version.clone(),
-            architecture: policy.architecture.clone(),
-            vendor_qwindows_sha256: policy.vendor_hash.clone(),
-            proxy_qwindows_sha256: plan.proxy_qwindows_sha256.clone(),
-            generic_plugin_sha256: plan.generic_plugin_sha256.clone(),
-        };
-        write_manifest(&layout, &restoring, policy)?;
-    }
-
-    match plan.action {
-        RestoreAction::ReplaceProxy => replace_existing_verified(
-            &qwindows,
-            &vendor_qwindows_backup(&layout),
-            &recovery_directory(&layout),
-            &plan.proxy_qwindows_sha256,
-            &policy.vendor_hash,
-        )?,
-        RestoreAction::CreateMissing => create_missing_verified(
-            &qwindows,
-            &vendor_qwindows_backup(&layout),
-            &policy.vendor_hash,
-        )?,
-        RestoreAction::CleanupOnly => require_hash(
-            &qwindows,
-            &policy.vendor_hash,
-            "stock qwindows.dll before cleanup",
-        )?,
-    }
-    require_hash(
-        &qwindows,
-        &policy.vendor_hash,
-        "restored vendor qwindows.dll",
-    )?;
-    cleanup_recovery(&layout, policy)?;
-    Ok(if plan.action == RestoreAction::CleanupOnly {
-        RestoreOutcome::AlreadyStock
-    } else {
-        RestoreOutcome::Restored
-    })
-}
-
 fn prepare_vendor_backup(
     layout: &InstallLayout,
     current_hash: Option<&str>,
@@ -728,49 +538,6 @@ fn clear_completed_replace_artifacts(
         remove_if_hash_matches(&temporary, &hash, "completed QPA root temporary file")?;
     }
     Ok(())
-}
-
-fn cleanup_recovery(layout: &InstallLayout, policy: &Policy) -> Result<(), String> {
-    let recovery = recovery_directory(layout);
-    ensure_regular_directory(&recovery, "QPA recovery directory")?;
-    let allowed = [
-        MANIFEST_FILE_NAME,
-        VENDOR_QWINDOWS_FILE_NAME,
-        MANIFEST_TEMP_FILE,
-        MANIFEST_REPLACE_BACKUP_FILE,
-        VENDOR_TEMP_FILE,
-        REPLACE_BACKUP_FILE,
-    ];
-    for entry in fs::read_dir(&recovery)
-        .map_err(|error| format!("Could not enumerate {}: {error}", recovery.display()))?
-    {
-        let entry = entry.map_err(|error| {
-            format!("Could not inspect entry in {}: {error}", recovery.display())
-        })?;
-        let name = entry.file_name();
-        if !allowed.iter().any(|allowed| name == *allowed) {
-            return Err(format!(
-                "Refusing to clean QPA recovery directory with unknown entry: {}",
-                entry.path().display()
-            ));
-        }
-        ensure_regular_file(&entry.path(), "QPA recovery artifact")?;
-    }
-    remove_regular_file(&manifest_path(layout), "QPA manifest")?;
-    remove_if_hash_matches(
-        &vendor_qwindows_backup(layout),
-        &policy.vendor_hash,
-        "durable vendor qwindows.dll backup",
-    )?;
-    for name in [
-        MANIFEST_TEMP_FILE,
-        MANIFEST_REPLACE_BACKUP_FILE,
-        VENDOR_TEMP_FILE,
-        REPLACE_BACKUP_FILE,
-    ] {
-        remove_regular_file(&recovery.join(name), "known QPA recovery temporary file")?;
-    }
-    remove_empty_directory(&recovery)
 }
 
 fn require_windows_layout(layout: &InstallLayout) -> Result<(), String> {

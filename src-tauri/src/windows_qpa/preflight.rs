@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 InstallLayout、Windows known-folder 提升判定、QPA 固定路径与 storage 重解析/普通文件守卫。
- * [OUTPUT]: 提供 QPA durable 路径、完整固定写入表面、纯文件 rollback 表面、Program Files 静态判定与无残留直接写 preflight。
- * [POS]: windows_qpa 的写前能力边界；只验证目标安装根和 recovery 权限，不激活、恢复或改变任何 Cavalry 资源。
+ * [OUTPUT]: 提供含 generic 的完整固定写入/rollback 表面、QPA durable 路径、Program Files 静态判定与无残留直接写 preflight。
+ * [POS]: windows_qpa 的写前能力边界；只验证安装根、generic 与 recovery 权限，不激活、恢复或改变任何 Cavalry 资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -19,7 +19,8 @@ use super::{
         MANIFEST_REPLACE_BACKUP_FILE, MANIFEST_TEMP_FILE, REPLACE_BACKUP_FILE,
         ROOT_REPLACEMENT_TEMP, VENDOR_TEMP_FILE,
     },
-    MANIFEST_FILE_NAME, QWINDOWS_FILE_NAME, RECOVERY_DIRECTORY_NAME, VENDOR_QWINDOWS_FILE_NAME,
+    GENERIC_PLUGIN_RELATIVE_PATH, MANIFEST_FILE_NAME, QWINDOWS_FILE_NAME, RECOVERY_DIRECTORY_NAME,
+    VENDOR_QWINDOWS_FILE_NAME,
 };
 
 pub fn recovery_directory(layout: &InstallLayout) -> PathBuf {
@@ -41,6 +42,7 @@ pub fn managed_write_surface(layout: &InstallLayout) -> Vec<PathBuf> {
     vec![
         layout.root.join(QWINDOWS_FILE_NAME),
         layout.root.join(ROOT_REPLACEMENT_TEMP),
+        layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH),
         root_probe.join("probe"),
         root_probe,
         vendor_qwindows_backup(layout),
@@ -60,6 +62,7 @@ pub fn rollback_file_surface(layout: &InstallLayout) -> Vec<PathBuf> {
     vec![
         layout.root.join(QWINDOWS_FILE_NAME),
         layout.root.join(ROOT_REPLACEMENT_TEMP),
+        layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH),
         vendor_qwindows_backup(layout),
         manifest_path(layout),
         recovery.join(VENDOR_TEMP_FILE),
@@ -87,6 +90,11 @@ pub fn preflight_direct_writable(layout: &InstallLayout) -> Result<(), String> {
     let qwindows = layout.root.join(QWINDOWS_FILE_NAME);
     if qwindows.is_file() {
         verify_existing_file_writable(&qwindows, "installed qwindows.dll")?;
+    }
+    let generic = layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH);
+    if generic.exists() {
+        ensure_regular_file(&generic, "installed generic translation plugin")?;
+        verify_existing_file_writable(&generic, "installed generic translation plugin")?;
     }
 
     let recovery = recovery_directory(layout);

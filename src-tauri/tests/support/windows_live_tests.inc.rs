@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖四个 live support 分片、PowerShell/helper 源码与显式 disposable clone/evidence 环境
- * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门
- * [POS]: src-tauri/tests/support 的门入口分片；成功现场门故意以 MANUAL SCREENSHOT REVIEW REQUIRED 结束
+ * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门，并逐字守住真实用户 workspace.json
+ * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 污染真实 Active Workspace 都先于人工截图结论硬失败
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
     fn describe_panic(payload: &(dyn std::any::Any + Send)) -> String {
@@ -12,6 +12,47 @@
         } else {
             "non-string Rust panic payload".to_string()
         }
+    }
+
+    fn capture_real_workspace() -> Result<(PathBuf, Option<Vec<u8>>), String> {
+        let local_app_data = env::var_os("LOCALAPPDATA")
+            .map(PathBuf::from)
+            .ok_or_else(|| "LOCALAPPDATA is unavailable for the real workspace guard".to_string())?;
+        let workspace = local_app_data.join("Cavalry").join("workspace.json");
+        let bytes = match fs::read(&workspace) {
+            Ok(bytes) => Some(bytes),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+            Err(error) => {
+                return Err(format!(
+                    "could not snapshot real Cavalry workspace {}: {error}",
+                    workspace.display()
+                ))
+            }
+        };
+        Ok((workspace, bytes))
+    }
+
+    fn verify_real_workspace_unchanged(
+        workspace: &Path,
+        before: Option<&[u8]>,
+    ) -> Result<(), String> {
+        let after = match fs::read(workspace) {
+            Ok(bytes) => Some(bytes),
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
+            Err(error) => {
+                return Err(format!(
+                    "could not verify real Cavalry workspace {}: {error}",
+                    workspace.display()
+                ))
+            }
+        };
+        if after.as_deref() != before {
+            return Err(format!(
+                "disposable Windows live gate changed the real Cavalry Active Workspace: {}",
+                workspace.display()
+            ));
+        }
+        Ok(())
     }
 
     #[test]
@@ -244,6 +285,8 @@
     }
 
     fn run_disposable_clone_gate(capture_mode: LiveCaptureMode) {
+        let (real_workspace, real_workspace_before) =
+            capture_real_workspace().unwrap_or_else(|error| panic!("{error}"));
         let repo = repo_root();
         let helper = helper_path(&repo).unwrap_or_else(|error| panic!("{error}"));
         let (layout, guarded_clone) = disposable_install_layout(SMOKE_APP_ENV)
@@ -331,6 +374,11 @@
             if let Err(error) = remove_acceptance_plugin(&guarded_clone, path) {
                 failures.push(format!("acceptance plugin cleanup error: {error}"));
             }
+        }
+        if let Err(error) =
+            verify_real_workspace_unchanged(&real_workspace, real_workspace_before.as_deref())
+        {
+            failures.push(error);
         }
         if !failures.is_empty() {
             panic!(

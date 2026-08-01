@@ -1,7 +1,8 @@
 /**
- * [INPUT]: 依赖 detect/install/patch/state 和 context 的 packaged language source 定位。
- * [OUTPUT]: 提供 clean-English 证明、legacy provenance 迁移、快照提取及 apply 前快照门。
- * [POS]: commands 的 English snapshot 身份层；只在 packaged-English 内容证明后写入 provenance。
+ * [INPUT]: 依赖 detect/install/patch/state、Windows QPA 只读证据、CommandRunner 与 context 的 packaged language source 定位。
+ * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、采集后收敛、legacy provenance 迁移及 apply 前快照门。
+ * [POS]: commands 的 English 安装真相层；JSON 与原厂 QPA 共同证明现实，marker 仅可被判为待修元数据，任何未知/ACTIVE 运行时仍 fail closed。
+ * [FAIL-CLOSED]: Windows 仅接受 Stock，或带有有效 manifest phase 的 Recover；vendor hash 不能单独证明英文运行时，非法/缺失 manifest 必须在 snapshot 前拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, io::ErrorKind, path::Path};
@@ -10,16 +11,45 @@ use crate::{
     detect,
     install::{InstallLayout, InstallPlatform},
     patch,
+    privilege::CommandRunner,
     state::{self, EnglishSnapshotProvenance, State},
 };
 
-use super::{context::language_source_dir, status::sync_state_with_bundle};
+use super::{
+    context::language_source_dir, contract::ActionPayload, status::sync_state_with_bundle,
+};
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum CleanEnglishDisposition {
+    Clean,
+    NeedsWindowsReconciliation,
+}
 
 pub(crate) fn ensure_clean_english_install(
     repo_root: &Path,
     resource_dir: &Path,
     app_path: &Path,
-) -> Result<(), String> {
+) -> Result<CleanEnglishDisposition, String> {
+    #[cfg(target_os = "windows")]
+    {
+        let layout = InstallLayout::from_selection(app_path)?;
+        if layout.platform == InstallPlatform::Windows {
+            return ensure_clean_english_install_with_qpa_inspector(
+                repo_root,
+                resource_dir,
+                app_path,
+                crate::windows_qpa::inspect,
+            );
+        }
+    }
+    ensure_clean_english_install_for_platform(repo_root, resource_dir, app_path)
+}
+
+fn ensure_clean_english_install_for_platform(
+    repo_root: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+) -> Result<CleanEnglishDisposition, String> {
     let layout = InstallLayout::from_selection(app_path)?;
     match fs::read_to_string(&layout.language_marker) {
         Ok(marker)
@@ -48,7 +78,78 @@ pub(crate) fn ensure_clean_english_install(
                 .to_string(),
         );
     }
-    Ok(())
+    Ok(CleanEnglishDisposition::Clean)
+}
+
+#[cfg(target_os = "windows")]
+fn ensure_clean_english_install_with_qpa_inspector<F>(
+    repo_root: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    inspect_qpa: F,
+) -> Result<CleanEnglishDisposition, String>
+where
+    F: Fn(&InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String>,
+{
+    let layout = InstallLayout::from_selection(app_path)?;
+    let english_source = language_source_dir(repo_root, resource_dir, "en");
+    if !patch::install_matches_language_source(&english_source, &layout.root)? {
+        return Err(
+            "English extraction refused: installed Cavalry JSON assets do not match the packaged English source."
+                .to_string(),
+        );
+    }
+
+    let marker = match fs::read_to_string(&layout.language_marker) {
+        Ok(marker) => {
+            let marker = marker.trim();
+            if !matches!(marker, "en" | "zh-Hans" | "zh-Hant" | "ja_JP") {
+                return Err(format!(
+                    "English extraction refused: Cavalry language marker is {}.",
+                    if marker.is_empty() { "invalid" } else { marker }
+                ));
+            }
+            Some(marker.to_string())
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => None,
+        Err(error) => {
+            return Err(format!(
+                "English extraction refused: could not verify language marker {}: {error}",
+                layout.language_marker.display()
+            ));
+        }
+    };
+    let inspection = inspect_qpa(&layout).map_err(|error| {
+        format!("English extraction refused: could not verify the Windows QPA runtime: {error}")
+    })?;
+    let proven_stock_state = match inspection.state {
+        crate::windows_qpa::QpaDeploymentState::Stock => true,
+        crate::windows_qpa::QpaDeploymentState::Recover => inspection.phase.is_some(),
+        crate::windows_qpa::QpaDeploymentState::Active
+        | crate::windows_qpa::QpaDeploymentState::Drifted => false,
+    };
+    let vendor_runtime = proven_stock_state
+        && inspection.current_qwindows_sha256.as_deref()
+            == Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256);
+    if !vendor_runtime {
+        return Err(format!(
+            "English extraction refused: the Windows runtime is not proven stock. {}",
+            inspection.detail
+        ));
+    }
+
+    let generic_exists = layout
+        .root
+        .join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH)
+        .exists();
+    if marker.as_deref().is_some_and(|marker| marker != "en")
+        || inspection.state == crate::windows_qpa::QpaDeploymentState::Recover
+        || generic_exists
+    {
+        Ok(CleanEnglishDisposition::NeedsWindowsReconciliation)
+    } else {
+        Ok(CleanEnglishDisposition::Clean)
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -158,6 +259,72 @@ pub fn extract_english_inner(
     Ok(count)
 }
 
+pub(crate) fn refresh_english_inner<R: CommandRunner>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    runner: &mut R,
+    now: &str,
+) -> Result<ActionPayload, String> {
+    let app_path = detect::resolve_install(app_path)?.root;
+    let disposition = ensure_clean_english_install(repo_root, resource_dir, &app_path)?;
+    let count = extract_english_inner(repo_root, state_dir, resource_dir, &app_path)?;
+    if disposition != CleanEnglishDisposition::NeedsWindowsReconciliation {
+        return Ok(ActionPayload::ok_count(count));
+    }
+
+    let mut payload = super::apply::apply_language_inner(
+        repo_root,
+        state_dir,
+        resource_dir,
+        &app_path,
+        "en",
+        runner,
+        now,
+    )?;
+    if payload.ok {
+        payload.count = Some(count);
+    }
+    Ok(payload)
+}
+
+pub(crate) fn project_proven_english_state(
+    repo_root: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    mut state: State,
+) -> State {
+    if ensure_clean_english_install(repo_root, resource_dir, app_path).is_ok() {
+        state.current_lang = "en".to_string();
+    }
+    state
+}
+
+#[cfg(all(target_os = "windows", test))]
+fn project_proven_english_state_with_qpa_inspector<F>(
+    repo_root: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    mut state: State,
+    inspect_qpa: F,
+) -> State
+where
+    F: Fn(&InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String>,
+{
+    if ensure_clean_english_install_with_qpa_inspector(
+        repo_root,
+        resource_dir,
+        app_path,
+        inspect_qpa,
+    )
+    .is_ok()
+    {
+        state.current_lang = "en".to_string();
+    }
+    state
+}
+
 pub(crate) fn extract_english_snapshot_or_throw(
     repo_root: &Path,
     state_dir: &Path,
@@ -183,4 +350,109 @@ pub(crate) fn extract_english_snapshot_or_throw(
         immutable_revision,
     )?;
     Ok(state)
+}
+
+#[cfg(all(test, target_os = "windows"))]
+mod windows_reconciliation_tests {
+    use super::*;
+    use std::path::Path;
+
+    fn write(path: &Path, bytes: &[u8]) {
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, bytes).unwrap();
+    }
+
+    fn vendor_reinstall_recovery(
+        _layout: &InstallLayout,
+    ) -> Result<crate::windows_qpa::QpaInspection, String> {
+        Ok(crate::windows_qpa::QpaInspection {
+            state: crate::windows_qpa::QpaDeploymentState::Recover,
+            phase: Some(crate::windows_qpa::QpaManifestPhase::Active),
+            current_qwindows_sha256: Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256.to_string()),
+            detail: "vendor reinstall left owned recovery metadata".to_string(),
+        })
+    }
+
+    fn invalid_manifest_recovery(
+        _layout: &InstallLayout,
+    ) -> Result<crate::windows_qpa::QpaInspection, String> {
+        Ok(crate::windows_qpa::QpaInspection {
+            state: crate::windows_qpa::QpaDeploymentState::Recover,
+            phase: None,
+            current_qwindows_sha256: Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256.to_string()),
+            detail: "the durable QPA manifest is invalid".to_string(),
+        })
+    }
+
+    #[test]
+    fn proven_english_with_stale_translated_marker_requires_reconciliation() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("repo");
+        let app = temp.path().join("Cavalry");
+        write(&app.join("Cavalry.exe"), b"fixture executable");
+        for (source, target) in crate::patch::CORE_MAP {
+            write(
+                &repo.join("languages/en").join(source),
+                br#"{"value":"en"}"#,
+            );
+            write(&app.join("assets").join(target), br#"{"value":"en"}"#);
+        }
+        write(&app.join(crate::install::LANG_MARKER_NAME), b"zh-Hant\n");
+
+        let disposition = ensure_clean_english_install_with_qpa_inspector(
+            &repo,
+            &repo,
+            &app,
+            vendor_reinstall_recovery,
+        )
+        .unwrap();
+
+        assert_eq!(
+            disposition,
+            CleanEnglishDisposition::NeedsWindowsReconciliation
+        );
+
+        let projected = project_proven_english_state_with_qpa_inspector(
+            &repo,
+            &repo,
+            &app,
+            State {
+                current_lang: "zh-Hant".to_string(),
+                ..State::default()
+            },
+            vendor_reinstall_recovery,
+        );
+        assert_eq!(projected.current_lang, "en");
+        assert_eq!(
+            fs::read_to_string(app.join(crate::install::LANG_MARKER_NAME)).unwrap(),
+            "zh-Hant\n",
+            "read-only status projection must not mutate Program Files"
+        );
+    }
+
+    #[test]
+    fn invalid_manifest_recovery_is_rejected_before_english_snapshot_capture() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("repo");
+        let app = temp.path().join("Cavalry");
+        write(&app.join("Cavalry.exe"), b"fixture executable");
+        for (source, target) in crate::patch::CORE_MAP {
+            write(
+                &repo.join("languages/en").join(source),
+                br#"{"value":"en"}"#,
+            );
+            write(&app.join("assets").join(target), br#"{"value":"en"}"#);
+        }
+        write(&app.join(crate::install::LANG_MARKER_NAME), b"en\n");
+
+        let error = ensure_clean_english_install_with_qpa_inspector(
+            &repo,
+            &repo,
+            &app,
+            invalid_manifest_recovery,
+        )
+        .unwrap_err();
+
+        assert!(error.contains("not proven stock"), "{error}");
+    }
 }

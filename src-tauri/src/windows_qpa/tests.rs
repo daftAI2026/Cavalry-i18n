@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 windows_qpa 内部 policy seam、临时 x64 PE fixture 与真实 ReplaceFileW 文件语义。
- * [OUTPUT]: 证明激活持久化、显式 English 恢复、普通关闭不恢复、未知厂商漂移保留后 fail-closed、纯文件 rollback 表面、直接写 preflight、崩溃阶段识别及计划 CAS/hash 锁。
+ * [OUTPUT]: 证明激活持久化、English 同时清理自有 generic/recovery、旧发行 manifest 可恢复、未知 generic/QPA 保留、rollback 表面、preflight 与 CAS/hash 锁。
  * [POS]: windows_qpa 的 Windows 单元合同；只写 tempfile 安装根，不读取或修改真实 Cavalry。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -26,6 +26,7 @@ struct Fixture {
     _temp: tempfile::TempDir,
     layout: InstallLayout,
     proxy: std::path::PathBuf,
+    generic: std::path::PathBuf,
     policy: Policy,
     vendor_bytes: Vec<u8>,
     proxy_bytes: Vec<u8>,
@@ -45,17 +46,17 @@ impl Fixture {
         fs::write(root.join("Cavalry.exe"), fake_x64_pe(b"cavalry")).unwrap();
         fs::write(root.join("Qt6Core.dll"), fake_x64_pe(b"qt-core")).unwrap();
         fs::write(root.join("qwindows.dll"), &vendor_bytes).unwrap();
-        fs::write(
-            root.join("generic/cavalryi18n.dll"),
-            fake_x64_pe(b"generic-plugin"),
-        )
-        .unwrap();
+        let generic_bytes = fake_x64_pe(b"generic-plugin");
+        fs::write(root.join("generic/cavalryi18n.dll"), &generic_bytes).unwrap();
         let proxy = temp.path().join("packaged-qwindows.dll");
         fs::write(&proxy, &proxy_bytes).unwrap();
+        let generic = temp.path().join("packaged-cavalryi18n.dll");
+        fs::write(&generic, &generic_bytes).unwrap();
         let vendor_hash = sha256_file(&root.join("qwindows.dll")).unwrap();
         Self {
             layout: InstallLayout::from_root(&root),
             proxy,
+            generic,
             policy: Policy {
                 cavalry_version: "2.7.2".to_string(),
                 qt_version: "6.6.3".to_string(),
@@ -80,6 +81,7 @@ impl Fixture {
         RestoreRequest {
             layout: &self.layout,
             proxy_source: &self.proxy,
+            generic_source: &self.generic,
             reason,
         }
     }
@@ -95,6 +97,13 @@ impl Fixture {
 #[test]
 fn stock_english_transition_is_a_verified_noop_without_file_mutation() {
     let fixture = Fixture::new();
+    fs::remove_file(
+        fixture
+            .layout
+            .root
+            .join(super::GENERIC_PLUGIN_RELATIVE_PATH),
+    )
+    .unwrap();
     let before_qwindows = fs::read(fixture.layout.root.join("qwindows.dll")).unwrap();
     let transition = build_english_transition_with_policy(
         fixture.restore_request(RestoreReason::EnglishSelection),
@@ -112,6 +121,71 @@ fn stock_english_transition_is_a_verified_noop_without_file_mutation() {
         before_qwindows
     );
     assert!(!recovery_directory(&fixture.layout).exists());
+}
+
+#[test]
+fn stock_qpa_with_hash_owned_generic_builds_cleanup_transition() {
+    let fixture = Fixture::new();
+    let qwindows_before = fs::read(fixture.layout.root.join(QWINDOWS_FILE_NAME)).unwrap();
+
+    let transition = build_english_transition_with_policy(
+        fixture.restore_request(RestoreReason::EnglishSelection),
+        &fixture.policy,
+    )
+    .unwrap();
+    let QpaTransitionPlan::EnglishRestore(plan) = transition else {
+        panic!("a hash-owned generic residual must not be classified as a clean no-op");
+    };
+    assert_eq!(plan.action, super::RestoreAction::CleanupOnly);
+    assert_eq!(
+        execute_writable_restore_with_policy(&plan, &fixture.policy, false).unwrap(),
+        RestoreOutcome::AlreadyStock
+    );
+
+    assert_eq!(
+        fs::read(fixture.layout.root.join(QWINDOWS_FILE_NAME)).unwrap(),
+        qwindows_before
+    );
+    assert!(!fixture
+        .layout
+        .root
+        .join(super::GENERIC_PLUGIN_RELATIVE_PATH)
+        .exists());
+    assert!(!recovery_directory(&fixture.layout).exists());
+}
+
+#[test]
+fn corrupt_manifest_with_stock_qpa_fails_closed_without_cleanup() {
+    let fixture = Fixture::new();
+    fixture.activate();
+
+    let qwindows = fixture.layout.root.join(QWINDOWS_FILE_NAME);
+    let generic = fixture
+        .layout
+        .root
+        .join(super::GENERIC_PLUGIN_RELATIVE_PATH);
+    let recovery = recovery_directory(&fixture.layout);
+    let manifest = manifest_path(&fixture.layout);
+    let vendor_backup = recovery.join(VENDOR_QWINDOWS_FILE_NAME);
+    let corrupt_manifest = b"{ definitely not valid JSON";
+
+    fs::write(&qwindows, &fixture.vendor_bytes).unwrap();
+    fs::write(&manifest, corrupt_manifest).unwrap();
+    let generic_before = fs::read(&generic).unwrap();
+    let vendor_backup_before = fs::read(&vendor_backup).unwrap();
+
+    let error = build_restore_plan_with_policy(
+        fixture.restore_request(RestoreReason::EnglishSelection),
+        &fixture.policy,
+    )
+    .unwrap_err();
+    assert!(error.contains("QPA manifest JSON is invalid"), "{error}");
+
+    assert_eq!(fs::read(&qwindows).unwrap(), fixture.vendor_bytes);
+    assert_eq!(fs::read(&generic).unwrap(), generic_before);
+    assert_eq!(fs::read(&manifest).unwrap(), corrupt_manifest);
+    assert_eq!(fs::read(&vendor_backup).unwrap(), vendor_backup_before);
+    assert!(recovery.exists());
 }
 
 #[test]
@@ -161,6 +235,69 @@ fn activation_persists_until_explicit_english_restore() {
         fs::read(fixture.layout.root.join("qwindows.dll")).unwrap(),
         fixture.vendor_bytes
     );
+    assert!(
+        !fixture
+            .layout
+            .root
+            .join(super::GENERIC_PLUGIN_RELATIVE_PATH)
+            .exists(),
+        "explicit English restore must remove the hash-owned generic translator"
+    );
+    assert!(!recovery_directory(&fixture.layout).exists());
+}
+
+#[test]
+fn english_restore_refuses_and_preserves_an_unknown_generic_plugin() {
+    let fixture = Fixture::new();
+    fixture.activate();
+    let unknown_generic = fake_x64_pe(b"unknown-third-party-generic-plugin");
+    let generic_path = fixture
+        .layout
+        .root
+        .join(super::GENERIC_PLUGIN_RELATIVE_PATH);
+    fs::write(&generic_path, &unknown_generic).unwrap();
+    let proxy_before = fs::read(fixture.layout.root.join(QWINDOWS_FILE_NAME)).unwrap();
+
+    let error = build_restore_plan_with_policy(
+        fixture.restore_request(RestoreReason::EnglishSelection),
+        &fixture.policy,
+    )
+    .unwrap_err();
+
+    assert!(error.contains("generic"), "{error}");
+    assert_eq!(fs::read(&generic_path).unwrap(), unknown_generic);
+    assert_eq!(
+        fs::read(fixture.layout.root.join(QWINDOWS_FILE_NAME)).unwrap(),
+        proxy_before,
+        "unknown generic ownership must fail while the restore plan is still read-only"
+    );
+    assert!(recovery_directory(&fixture.layout).exists());
+}
+
+#[test]
+fn durable_manifest_allows_a_new_switcher_to_remove_an_older_owned_generic() {
+    let fixture = Fixture::new();
+    fixture.activate();
+    let installed_generic = fixture
+        .layout
+        .root
+        .join(super::GENERIC_PLUGIN_RELATIVE_PATH);
+    let old_hash = sha256_file(&installed_generic).unwrap();
+    fs::write(&fixture.generic, fake_x64_pe(b"new-switcher-generic-build")).unwrap();
+    assert_ne!(sha256_file(&fixture.generic).unwrap(), old_hash);
+
+    let prepared = build_restore_plan_with_policy(
+        fixture.restore_request(RestoreReason::EnglishSelection),
+        &fixture.policy,
+    )
+    .unwrap();
+    let PreparedRestore::Execute(plan) = prepared else {
+        panic!("manifest-owned older runtime must remain explicitly restorable");
+    };
+    assert_eq!(plan.generic_plugin_sha256, old_hash);
+    execute_writable_restore_with_policy(&plan, &fixture.policy, false).unwrap();
+
+    assert!(!installed_generic.exists());
     assert!(!recovery_directory(&fixture.layout).exists());
 }
 
@@ -413,7 +550,7 @@ fn fixture_paths_are_confined_to_temp() {
 }
 
 #[test]
-fn rollback_file_surface_contains_only_the_fixed_qpa_files() {
+fn rollback_file_surface_contains_only_the_owned_qpa_runtime_files() {
     let fixture = Fixture::new();
     let recovery = recovery_directory(&fixture.layout);
 
@@ -424,6 +561,10 @@ fn rollback_file_surface_contains_only_the_fixed_qpa_files() {
         vec![
             fixture.layout.root.join(QWINDOWS_FILE_NAME),
             fixture.layout.root.join(ROOT_REPLACEMENT_TEMP),
+            fixture
+                .layout
+                .root
+                .join(super::GENERIC_PLUGIN_RELATIVE_PATH),
             recovery.join(VENDOR_QWINDOWS_FILE_NAME),
             recovery.join(MANIFEST_FILE_NAME),
             recovery.join(VENDOR_TEMP_FILE),

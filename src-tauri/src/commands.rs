@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime 与 privilege facade。
- * [OUTPUT]: 保持六条稳定 Tauri command、commands::apply_language_inner 与 extract_english_inner 兼容路径。
- * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，单飞语义复用 crate 级 operation_lock。
+ * [OUTPUT]: 保持六条稳定 Tauri command、apply/extract 兼容入口，并让“刷新英文”在 stale Windows 部署上完成采集与 English 收敛事务。
+ * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod apply;
@@ -25,6 +25,8 @@ pub use contract::{
 };
 pub use restart::restart_cavalry_inner;
 pub use snapshot::extract_english_inner;
+#[cfg(target_os = "windows")]
+pub(crate) use snapshot::refresh_english_inner;
 
 pub fn registered_command_names() -> &'static [&'static str] {
     &contract::COMMAND_NAMES
@@ -53,16 +55,20 @@ pub async fn extract_english(app: tauri::AppHandle, app_path: String) -> ActionP
     };
     match tauri::async_runtime::spawn_blocking(move || {
         let _guard = guard;
-        snapshot::extract_english_inner(
+        let mut runner = privilege::RealCommandRunner;
+        let now = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
+        snapshot::refresh_english_inner(
             &paths.repo_root,
             &paths.state_dir,
             &paths.resource_dir,
             &app_path,
+            &mut runner,
+            &now,
         )
     })
     .await
     {
-        Ok(Ok(count)) => ActionPayload::ok_count(count),
+        Ok(Ok(payload)) => payload,
         Ok(Err(error)) => ActionPayload::error(&error),
         Err(error) => ActionPayload::error(&format!("English extraction task failed: {error}")),
     }

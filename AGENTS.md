@@ -1,6 +1,6 @@
 # CAVALRY-I18N KNOWLEDGE BASE
 
-Last verified: 2026-07-27 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
+Last verified: 2026-08-01 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
 
 ## OVERVIEW
 
@@ -15,6 +15,7 @@ Cavalry-i18n/
 ├── renderer/                     # Tauri WebView UI; see renderer/CLAUDE.md
 ├── src-tauri/                    # Tauri v2 shell, Rust commands, tests, packaging config
 │   ├── src/                      # Command layer, bundle patching, privilege boundary
+│   ├── nsis-languages/           # Four complete Tauri NSIS message tables with Switcher-scoped app-data copy
 │   └── tests/                    # Rust contract tests for command/config/runtime behavior
 ├── injector/                     # macOS injector + Windows generic translator/QPA delegate + shared generated table
 ├── languages/                    # Runtime JSON language packs: en, zh-Hans, zh-Hant, ja_JP
@@ -41,6 +42,7 @@ Cavalry-i18n/
 | Keychain patch | `src-tauri/src/keychain_patch.rs` | Mach-O/fat slice parser and NOP patcher for Keychain query attributes. |
 | macOS runtime files | `src-tauri/src/mac_runtime.rs` | Launcher wrapper, Info.plist rewrite, language marker, injector copy pairs. |
 | Windows runtime files | `src-tauri/src/windows_install.rs`, `windows_runtime.rs`, `windows_qpa.rs`, `windows_qpa/` | Discover arbitrary install roots, deploy the generic translator, and own the durable/atomic QPA activation and explicit restoration state machine. |
+| Windows uninstall | `src-tauri/nsis-hooks.nsh`, `src-tauri/nsis-languages/`, `src-tauri/src/uninstall_restore.rs` | Keep translation by default, offer explicit transactional English restore, and keep translation/app-data choices on their owning wizard pages; app-data deletion is Switcher-only. |
 | Windows port handoff | `docs/audits/windows-port-session-handoff-2026-07-29.md` | Final architecture, rejected approaches, evidence levels, build/release lessons, and remaining live-verification debt. |
 | Runtime injectors | `injector/CavalryTranslatorInjector.mm`, `injector/windows/` | macOS first-paint translator; Windows Qt generic translator plus a tiny vendor-QPA delegate with display whitelist and precise ExtensionLayer IAT boundary. |
 | Embedded compiled translations | `tools/zh-Hans.ts`, `tools/zh-Hant.ts`, `tools/ja_JP.ts` | Qt Linguist XML sources for compiled/runtime UI strings. |
@@ -78,7 +80,7 @@ Cavalry-i18n/
 - `detect.rs`, `install.rs`, `patch.rs`, `mac_runtime.rs`, `windows_runtime.rs`, `keychain_patch.rs`, and `state.rs` should stay mostly pure data/filesystem logic.
 - State may be redirected with `CAVALRY_I18N_STATE_DIR`; tests depend on this separation.
 - `Status.version` is display-only. English snapshot invalidation uses the immutable bundle revision plus `EnglishSnapshotProvenance`; ordinary state sync must never manufacture snapshot provenance.
-- English may be captured only after every `CORE_MAP` file passes packaged-English overlay equality. Missing markers require this proof; translated, pending, invalid, or Windows-empty markers fail closed.
+- English may be captured only after every `CORE_MAP` file passes packaged-English overlay equality. Windows additionally requires `Stock`, or `Recover` with a valid manifest phase, plus the exact vendor `qwindows.dll`; a known non-English marker, valid recovery state, or generic residue then converges through the normal `en` transaction, while a clean missing marker stays markerless. Active, drifted, invalid, or unreadable evidence fails closed.
 - Language writes bracket assets/runtime with a `pending` marker and force the final language marker last, so an interrupted transaction cannot masquerade as clean English.
 
 ### Translation surfaces
@@ -213,7 +215,7 @@ Windows packaging follows the same JSON source and generated translation table, 
 
 - This app modifies a selected local Cavalry installation: macOS writes `Cavalry.app`; Windows writes keyed JSON assets, one generic translator, and a QPA delegate under the selected install root while retaining the exact vendor `qwindows.dll` in `cavalry-i18n-qpa/`. macOS expects App Management permission; Windows uses direct writable-root operations or the restricted Program Files UAC path below.
 - Windows direct copy may target an explicitly selected custom install root, but elevation is restricted to canonical `FOLDERID_ProgramFiles`/`FOLDERID_ProgramFilesX86` roots from `SHGetKnownFolderPath`; never derive an elevation allowlist from process environment variables, and fail closed on any destination-chain reparse point. A complete Program Files language switch must use the current Switcher EXE as one headless `ShellExecuteExW("runas")` worker and must never fall through to the legacy PowerShell copy fallback. The worker re-derives every target, commits the final marker last, and never writes app state or restarts Cavalry; the core trust boundary remains the OS-known Program Files ACL.
-- Windows QPA activation is locked to Cavalry 2.7.2, the selected `Cavalry.exe` digest, Qt 6.6.3, x64, the verified vendor `qwindows.dll` digest, and a strict install-root manifest. Publish the durable vendor backup before atomically replacing the root DLL; `prepared`/`restoring` states delegate to the vendor QPA without translation, and `active` translates only when Cavalry/proxy/vendor/generic hashes plus the final language marker agree. Normal Cavalry/Switcher exit, same-version Switcher update, and Switcher uninstall never restore. Only explicit English selection restores the vendor DLL; if a vendor update has already replaced the proxy, preserve that newer DLL, never write the stale backup over it, and fail closed until a supported Cavalry install is proven.
+- Windows QPA activation is locked to Cavalry 2.7.2, the selected `Cavalry.exe` digest, Qt 6.6.3, x64, the verified vendor `qwindows.dll` digest, and a strict install-root manifest. Publish the durable vendor backup before atomically replacing the root DLL; `prepared`/`restoring` states delegate to the vendor QPA without translation, and `active` translates only when Cavalry/proxy/vendor/generic hashes plus the final language marker agree. Normal exit and same-version update preserve translation. Interactive uninstall defaults to removing only the Switcher and keeping translation; explicit restore runs the trusted English transaction and owned runtime cleanup, while the following app-data option affects only Switcher settings. Silent/passive/update uninstall preserves translation. A saved install whose `Cavalry.exe` is already absent succeeds idempotently; missing state or failed proof/cleanup aborts uninstall. Unknown generic/QPA files and newer vendor DLLs are never deleted or overwritten.
 - The release DMG is ad-hoc signed, not Apple Developer ID notarized. Do not claim notarization.
 - `DYLD_INSERT_LIBRARIES` injection is intentional and limited to the patched Cavalry launcher wrapper.
 - Keychain behavior is patched in `libExtensionLayer.dylib`; keep tests around per-function patch reports.

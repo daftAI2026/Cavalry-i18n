@@ -212,10 +212,10 @@ impl ProvenanceFixture {
         };
         let classified = classify_overlay_pairs(&self.layout, &target_pairs).unwrap();
         let runtime_sources = RuntimeSources {
-            generic: (language != Language::English).then(|| {
+            generic: {
                 self.package_root
                     .join("injector/windows/generic/cavalryi18n.dll")
-            }),
+            },
             proxy: self.package_root.join("injector/windows/qpa/qwindows.dll"),
         };
         prepare_parent_plan(
