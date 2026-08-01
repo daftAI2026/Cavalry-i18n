@@ -14,15 +14,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-08-01
+
 ### Added
 - **Choice-preserving Windows Uninstall**: Interactive uninstall now asks whether to remove only the Switcher and keep the deployed translation, or first restore English and remove the owned runtime; silent, passive, and update uninstalls preserve translation.
 
 ### Changed
 - **Complete English Runtime Cleanup**: Explicit English restoration now removes the manifest-owned generic translator and QPA recovery files in the same rollback surface, including runtime files owned by an older Switcher build.
+- **Uninstall Choice Ownership**: The translation decision now lives on its own four-language page, while Tauri's following confirmation page identifies application-data deletion as Switcher settings only.
 
 ### Fixed
 - **Vendor Reinstall State Reconciliation**: A vendor reinstall that restores all managed JSON and the exact stock QPA no longer remains blocked by a stale translated marker. Status projects the proven English reality read-only, while Refresh English commits the `en` marker and safely cleans owned residuals.
 - **Unknown Runtime Preservation**: English refresh and uninstall cleanup reject an unrecognized generic plugin before any Program Files mutation and never delete it or overwrite a newer vendor QPA.
+- **Reliable Uninstall Options Page**: Removed an early NSIS hook reference to Tauri's later-defined `${BUNDLEID}` macro that skipped the translation choice and exposed a dead Back button.
+- **Missing Cavalry Idempotence**: A requested uninstall-time English restore succeeds without error when state still contains a valid installation path but its `Cavalry.exe` has already been removed, allowing the Switcher to uninstall normally while missing or empty state still fails closed.
+- **Live Workspace Isolation**: Windows disposable live checks now verify the real `%LOCALAPPDATA%\Cavalry\workspace.json` byte-for-byte before and after the isolated run so test launches cannot silently persist a blank or focus-only workspace.
 
 ## [0.6.0] - 2026-07-29
 
