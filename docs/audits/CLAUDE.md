@@ -15,6 +15,7 @@ pr3-macos-release-hardening-session-handoff-2026-07-30.md: PR #3 macOS 发布加
 windows-onboarding-live-validation-session-handoff-2026-07-30.md: Windows Onboarding live 验证复盘，记录 Qt test profile 登录/工作区隔离、MainDock settle、真实 Next 页面确认、exact-PID/HWND helper、step 5 ACK-only、证据封存边界，以及同 PR 已落地的 macOS driver/helper 对应实现。
 windows-adjacent-producer-live-validation-session-handoff-2026-07-31.md: Windows Tag/Assets 三语真实 producer 验证交接，记录 Qt test profile、独立 acceptance plugin、Drop/ContextMenu 语义 driver、producer-side PNG、PID/HWND 锚点、exact child cleanup、证据哈希与发布隔离边界。
 windows-port-session-handoff-2026-07-29.md: Windows x64 适配实施复盘与维护交接，记录最终 generic/QPA/UAC 架构、被证伪路线、翻译表面边界、构建与发布经验、证据分级及后续验证债。
+windows-state-reconciliation-uninstall-session-handoff-2026-08-01.md: Windows 英文状态对账与卸载语义修复复盘，记录 stale marker 真相模型、控制面/数据面分离、所有权清理、NSIS 两页职责、工作区隔离、被证伪路线与四语实机证据。
 
 依赖边界:
 audits 保存阶段性检查结果与实跑记录；不驱动运行时，不决定 gate 通过。
