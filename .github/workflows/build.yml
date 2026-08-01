@@ -399,7 +399,7 @@ jobs:
           - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_AARCH64}) | [Intel 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_X64})
 
           ### Windows
-          - [Windows x64 安装器](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_WINDOWS_X64})
+          - [Windows x64](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_WINDOWS_X64})
 
           ### macOS 首次打开
           当前 DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID notarization。如果从浏览器下载后，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，请先把应用拖入 Applications，然后运行：

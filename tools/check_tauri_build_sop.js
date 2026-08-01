@@ -876,8 +876,9 @@ test('tag release publishes both macOS DMGs and the stable Windows x64 NSIS asse
   );
   assert.match(
     releaseJob[1],
-    /Windows x64 安装器[\s\S]*RELEASE_ASSET_NAME_WINDOWS_X64/
+    /\[Windows x64\][\s\S]*RELEASE_ASSET_NAME_WINDOWS_X64/
   );
+  assert.doesNotMatch(releaseJob[1], /\[Windows x64 安装器\]/);
   assert.doesNotMatch(releaseJob[1], /windowsX86|windows-x86|i686|win32/i);
   assert.match(releaseJob[1], /find dist -type f -name '\*\.dmg'/);
   assert.match(
