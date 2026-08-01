@@ -39,7 +39,9 @@ fn runtime_pairs_include_plist_wrapper_injector_marker() {
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().join("Cavalry.app");
     let staging = temp.path().join("stage");
-    let injector = temp.path().join("injector/libCavalryTranslatorInjector.dylib");
+    let injector = temp
+        .path()
+        .join("injector/libCavalryTranslatorInjector.dylib");
     write(
         &app.join("Contents/Info.plist"),
         "<key>CFBundleExecutable</key><string>Cavalry</string>",
@@ -57,14 +59,15 @@ fn runtime_pairs_include_plist_wrapper_injector_marker() {
     assert!(pairs.iter().any(|pair| pair
         .dst
         .ends_with(Path::new("Contents/Frameworks").join(INJECTOR_DYLIB_NAME))));
-    assert!(pairs
-        .iter()
-        .any(|pair| pair.dst.ends_with(Path::new("Contents/Resources").join(LANG_MARKER_NAME))));
+    assert!(pairs.iter().any(|pair| pair
+        .dst
+        .ends_with(Path::new("Contents/Resources").join(LANG_MARKER_NAME))));
     let wrapper = pairs
         .iter()
-        .find(|pair| pair
-            .dst
-            .ends_with(Path::new("Contents/MacOS").join(WRAPPER_EXECUTABLE_NAME)))
+        .find(|pair| {
+            pair.dst
+                .ends_with(Path::new("Contents/MacOS").join(WRAPPER_EXECUTABLE_NAME))
+        })
         .unwrap();
     #[cfg(unix)]
     assert_eq!(

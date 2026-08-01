@@ -1,10 +1,10 @@
 # CAVALRY-I18N KNOWLEDGE BASE
 
-Last verified: 2026-06-02 | Commit: bf733dd | Branch: main | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS only
+Last verified: 2026-07-27 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
 
 ## OVERVIEW
 
-Cavalry-i18n is a macOS-only Tauri desktop language switcher for Cavalry. It patches Cavalry JSON assets, installs a DYLD runtime translator, patches Keychain query behavior, re-signs the local `Cavalry.app`, clears quarantine, and relaunches Cavalry in English, Simplified Chinese, Traditional Chinese, or Japanese.
+Cavalry-i18n is a macOS and Windows x64 Tauri desktop language switcher for Cavalry. It patches keyed Cavalry JSON assets; macOS installs a DYLD runtime translator, patches Keychain query behavior, re-signs the local `Cavalry.app`, and clears quarantine; Windows installs a hash-locked Qt QPA delegate plus the existing generic translator, retaining the exact vendor `qwindows.dll` for explicit English restoration. It relaunches Cavalry in English, Simplified Chinese, Traditional Chinese, or Japanese.
 
 Stack: vanilla HTML/CSS/JS renderer + Tauri 2 Rust backend + Objective-C++ Qt injector + Node/Python/Bash gate tooling. This is not a generic i18n repo; it is a local app-bundle patcher with runtime UI translation gates.
 
@@ -16,13 +16,13 @@ Cavalry-i18n/
 ├── src-tauri/                    # Tauri v2 shell, Rust commands, tests, packaging config
 │   ├── src/                      # Command layer, bundle patching, privilege boundary
 │   └── tests/                    # Rust contract tests for command/config/runtime behavior
-├── injector/                     # Objective-C++ Qt runtime translator + generated table + dylib
+├── injector/                     # macOS injector + Windows generic translator/QPA delegate + shared generated table
 ├── languages/                    # Runtime JSON language packs: en, zh-Hans, zh-Hant, ja_JP
-├── tools/                        # Build, extraction, translation, packaging, and gate scripts
+├── tools/                        # Build, extraction, translation, packaging, and tracked macOS/Windows gate producers
 ├── docs/                         # Translation rules, runtime capture workflow, audits, gates
 ├── output/                       # Derived JSON-surface audit artifacts; not runtime truth
 ├── desktop-patcher/              # Legacy injector artifact mirror; not current mainline
-├── .github/workflows/            # CI/CD, macOS package job, release publishing
+├── .github/workflows/            # CI/CD, Windows NSIS / macOS package jobs, three-asset release publishing
 ├── LOCAL_BUILD_SOP.md            # Local Tauri packaging contract
 ├── release.config.json           # Cavalry target release tag/title/DMG asset truth source
 └── CLAUDE.md                     # L1 architecture map; update when this map changes
@@ -36,20 +36,23 @@ Cavalry-i18n/
 | Renderer UI | `renderer/index.html`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, localized shell text, custom select, modal, status panel. |
 | Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Payloads are camelCase only. |
 | IPC commands | `src-tauri/src/commands.rs` | Exactly 6 commands: status, browse, extract English, apply, open Privacy, restart. |
-| JSON asset mapping | `src-tauri/src/patch.rs` | `CORE_MAP`, `PLUGIN_DEFINITION_MAP`, plugin discovery, staging, snapshot completeness. |
-| System boundary | `src-tauri/src/privilege.rs` | Copy, admin fallback, re-signing, quarantine, Privacy & Security, restart commands. |
+| JSON asset mapping | `src-tauri/src/patch.rs` | `CORE_MAP`, keyed overlay, packaged-English content proof, snapshot completeness/provenance. |
+| System boundary | `src-tauri/src/privilege.rs`, `src-tauri/src/privilege/windows/language_transaction/` | Copy, same-EXE Program Files transaction, legacy admin fallback, re-signing, quarantine, Privacy & Security, restart commands. |
 | Keychain patch | `src-tauri/src/keychain_patch.rs` | Mach-O/fat slice parser and NOP patcher for Keychain query attributes. |
 | macOS runtime files | `src-tauri/src/mac_runtime.rs` | Launcher wrapper, Info.plist rewrite, language marker, injector copy pairs. |
-| Runtime injector | `injector/CavalryTranslatorInjector.mm` | Qt first-paint translation, dynamic text rules, inventory, menu/action/widget hooks. |
+| Windows runtime files | `src-tauri/src/windows_install.rs`, `windows_runtime.rs`, `windows_qpa.rs`, `windows_qpa/` | Discover arbitrary install roots, deploy the generic translator, and own the durable/atomic QPA activation and explicit restoration state machine. |
+| Windows port handoff | `docs/audits/windows-port-session-handoff-2026-07-29.md` | Final architecture, rejected approaches, evidence levels, build/release lessons, and remaining live-verification debt. |
+| Runtime injectors | `injector/CavalryTranslatorInjector.mm`, `injector/windows/` | macOS first-paint translator; Windows Qt generic translator plus a tiny vendor-QPA delegate with display whitelist and precise ExtensionLayer IAT boundary. |
 | Embedded compiled translations | `tools/zh-Hans.ts`, `tools/zh-Hant.ts`, `tools/ja_JP.ts` | Qt Linguist XML sources for compiled/runtime UI strings. |
 | Generated injector table | `injector/generated_translations.inc` | Generated by `tools/generate_embedded_translations.js`; never edit by hand. |
 | Display-only model names | `tools/model_display_translations.json` | UI display translations for model names; do not write these into model identity data. |
 | JSON language packs | `languages/en`, `languages/zh-Hans`, `languages/zh-Hant`, `languages/ja_JP` | `en` is baseline. Target languages must stay structurally isomorphic. |
 | Translation policy | `docs/translation-guidelines.md`, `docs/cavalry-glossary.md`, `tools/translation-whitelist.json` | Field-level translate/no-translate boundaries and terminology. |
-| Full UI gate | `docs/workflows/cavalry-full-ui-100/Acceptance.md`, `Runbook.md`, `tools/run_live_full_ui_matrix.js` | Current live gate truth. CI does not run this gate. |
+| Full UI gate | `docs/workflows/cavalry-full-ui-100/Acceptance.md`, `Runbook.md`, `tools/run_live_full_ui_matrix.js` | Current repository-wide live gate truth. CI does not run this gate. |
+| macOS scoped acceptance | `tools/macos-acceptance/`, `docs/workflows/cavalry-full-ui-100/runs/2026-07-29-macos-eight-surface-investigation.md` | Tracked producer for the 21-run/48-point matrix; generated tools and live evidence remain session-scoped. |
 | Runtime capture | `docs/runtime-ui-live-capture-workflow.md`, `tools/capture_accessibility_inventory.js`, `tools/merge_runtime_inventory.js` | Session-scoped provenance is mandatory. |
-| Release protocol | `release.config.json`, `tools/release_metadata.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` tags drive release title and DMG asset names. |
-| Local build | `LOCAL_BUILD_SOP.md`, `src-tauri/tauri.conf.json`, `tools/cavalry_qt_target.json` | Tauri-only package path, Qt SDK resolver, DMG validation. |
+| Release protocol | `release.config.json`, `tools/release_metadata.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` tags drive release title and three assets: two DMGs plus Windows x64 NSIS EXE. |
+| Local build | `LOCAL_BUILD_SOP.md`, `src-tauri/tauri.*.conf.json`, `tools/cavalry_qt_target.json` | Tauri-only package path, per-platform Qt build, DMG/NSIS validation. |
 
 ## CONVENTIONS
 
@@ -72,8 +75,11 @@ Cavalry-i18n/
 
 - `commands.rs` is the renderer-facing API layer. Keep command count and JSON shape stable unless renderer and contract tests change together.
 - `privilege.rs` is the only system-command boundary. Keep shell/admin/Finder fallback behavior there.
-- `detect.rs`, `patch.rs`, `mac_runtime.rs`, `keychain_patch.rs`, and `state.rs` should stay mostly pure data/filesystem logic.
+- `detect.rs`, `install.rs`, `patch.rs`, `mac_runtime.rs`, `windows_runtime.rs`, `keychain_patch.rs`, and `state.rs` should stay mostly pure data/filesystem logic.
 - State may be redirected with `CAVALRY_I18N_STATE_DIR`; tests depend on this separation.
+- `Status.version` is display-only. English snapshot invalidation uses the immutable bundle revision plus `EnglishSnapshotProvenance`; ordinary state sync must never manufacture snapshot provenance.
+- English may be captured only after every `CORE_MAP` file passes packaged-English overlay equality. Missing markers require this proof; translated, pending, invalid, or Windows-empty markers fail closed.
+- Language writes bracket assets/runtime with a `pending` marker and force the final language marker last, so an interrupted transaction cannot masquerade as clean English.
 
 ### Translation surfaces
 
@@ -85,18 +91,18 @@ Cavalry-i18n/
 
 ### Injector and Qt
 
-- The injector targets Cavalry 2.7.2's Qt 6.6.3 runtime. Do not add Qt API symbols without ABI verification.
+- Both injector paths target Cavalry 2.7.2's Qt 6.6.3 runtime. Do not add Qt API symbols without ABI verification; Windows plugin deployment must not carry a second Qt runtime.
 - `QMenu::aboutToShow`, `ActionAdded`, and `Show` are first-paint translation paths. Avoid delayed menu fixes that visibly flash English.
 - `QLineEdit` display translation must not mutate model identity. Time Editor item views and `QAbstractItemView` model roles preserve English where required.
 - `QTextEdit` MessageBar handling is append-time only. Do not scan full QTextEdit documents during Paint/Show or inventory.
-- ExtensionLayer self-painted UI is Latin-only and remains English; do not force CJK into that surface.
+- ExtensionLayer 只翻译经二进制调用点与真实界面共同证明的固定自绘 UI 提示；精确白名单之外的画布、模型及用户文本保持原文，禁止扩大为全局 `QPainter::drawText` 拦截。
 
 ### Build and release
 
 - Tauri is the only active desktop shell. Do not restore old Electron/fallback packaging paths.
 - Internal app version is SemVer in `CHANGELOG.md`, `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`; sync with `npm run sync:version`.
 - Public release tags are `cavalry-2.7.2-pN`, generated against `release.config.json`.
-- The injector must be built against Qt 6.6.3 via `npm run build:injector` or the Tauri `beforeBuildCommand`.
+- The platform injector must be built against Qt 6.6.3 via `npm run build:injector` (macOS) or `npm run build:injector:windows` (Windows) before its Tauri build.
 
 ## ANTI-PATTERNS
 
@@ -131,12 +137,20 @@ npm run test:tauri
 
 # Injector and Qt SDK
 npm run prepare:qt-sdk
+npm run prepare:qt-sdk:windows
 npm run build:injector
+
+# macOS scoped acceptance: CI-safe contract + vendor-free compile; live requires explicit disposable inputs
+npm run test:acceptance:macos:contracts
+npm run test:acceptance:macos:compile -- --qt-prefix "$CAVALRY_QT_PREFIX" --out "$BUILD_OUT"
+npm run build:acceptance:macos -- --clone "$CLONE_APP" --qt-prefix "$CAVALRY_QT_PREFIX" --out "$BUILD_OUT"
+npm run test:acceptance:macos:live -- --repo "$PWD" --clone "$CLONE_APP" --expected-executable-sha256 "$EXPECTED_EXECUTABLE_SHA256" --qt-prefix "$CAVALRY_QT_PREFIX" --session-dir "$SESSION_DIR"
 
 # Local Tauri build / package
 npm run tauri:dev
 npm run tauri:build
 npm run build:tauri
+npm run build:tauri:windows
 npm run test:tauri:packaged
 npm run test:tauri:dmg-layout
 npm run test:tauri:ui
@@ -165,7 +179,7 @@ tools/generate_embedded_translations.js
         ↓
 injector/generated_translations.inc
         ↓
-tools/build_translator_injector.sh  (Qt 6.6.3)
+tools/build_translator_injector.sh  (macOS Qt 6.6.3)
         ↓
 injector/libCavalryTranslatorInjector.dylib
         ↓
@@ -177,6 +191,8 @@ patch local Cavalry.app: JSON assets + wrapper + DYLD injector + re-sign + quara
         ↓
 live runtime inventory + full UI coverage gate
 ```
+
+Windows packaging follows the same JSON source and generated translation table, builds `injector/windows/generic/cavalryi18n.dll` plus `injector/windows/qpa/qwindows.dll`, and produces an NSIS installer. Applying a non-English language installs the generic translator and a hash-locked QPA delegate so Desktop, Start Menu, existing taskbar pins, direct EXE launches, and Switcher restarts converge on the same runtime path without global plugin variables. The Windows plugin/NSIS CI gate is not evidence of a live Cavalry UI pass.
 
 ## TOOLCHAIN
 
@@ -191,10 +207,13 @@ live runtime inventory + full UI coverage gate
 | Cavalry target | 2.7.2 | Release tag prefix `cavalry-2.7.2-p` |
 | Python | python3 | Translation validator and `aqtinstall` setup |
 | macOS tools | `codesign`, `hdiutil`, `xattr`, `osascript` | Required for package/sign/quarantine/runtime capture |
+| Windows build tools | Windows 10 x64+, Node.js 22+, PowerShell 5.1+, Visual Studio 2022+ x64 Build Tools with MSVC v143, CMake 4.2+, Qt 6.6.3 `msvc2019_64` | Developer build only; released NSIS users need none of Python/Rust/Qt/PowerShell |
 
 ## SECURITY
 
-- This app modifies a local `Cavalry.app` bundle. App Management permission is expected.
+- This app modifies a selected local Cavalry installation: macOS writes `Cavalry.app`; Windows writes keyed JSON assets, one generic translator, and a QPA delegate under the selected install root while retaining the exact vendor `qwindows.dll` in `cavalry-i18n-qpa/`. macOS expects App Management permission; Windows uses direct writable-root operations or the restricted Program Files UAC path below.
+- Windows direct copy may target an explicitly selected custom install root, but elevation is restricted to canonical `FOLDERID_ProgramFiles`/`FOLDERID_ProgramFilesX86` roots from `SHGetKnownFolderPath`; never derive an elevation allowlist from process environment variables, and fail closed on any destination-chain reparse point. A complete Program Files language switch must use the current Switcher EXE as one headless `ShellExecuteExW("runas")` worker and must never fall through to the legacy PowerShell copy fallback. The worker re-derives every target, commits the final marker last, and never writes app state or restarts Cavalry; the core trust boundary remains the OS-known Program Files ACL.
+- Windows QPA activation is locked to Cavalry 2.7.2, the selected `Cavalry.exe` digest, Qt 6.6.3, x64, the verified vendor `qwindows.dll` digest, and a strict install-root manifest. Publish the durable vendor backup before atomically replacing the root DLL; `prepared`/`restoring` states delegate to the vendor QPA without translation, and `active` translates only when Cavalry/proxy/vendor/generic hashes plus the final language marker agree. Normal Cavalry/Switcher exit, same-version Switcher update, and Switcher uninstall never restore. Only explicit English selection restores the vendor DLL; if a vendor update has already replaced the proxy, preserve that newer DLL, never write the stale backup over it, and fail closed until a supported Cavalry install is proven.
 - The release DMG is ad-hoc signed, not Apple Developer ID notarized. Do not claim notarization.
 - `DYLD_INSERT_LIBRARIES` injection is intentional and limited to the patched Cavalry launcher wrapper.
 - Keychain behavior is patched in `libExtensionLayer.dylib`; keep tests around per-function patch reports.

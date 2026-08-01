@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API 与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供桌面补丁器的系统语言本土化、状态渲染、语言选择、英文刷新、权限弹窗、应用并重启交互
- * [POS]: renderer 的唯一交互源，被 index.html 直接加载，UI 行为契约必须保持稳定
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置状态、语言选择、英文刷新、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明
+ * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode 本土化可恢复错误，且只在 requestElevation 时公开 Windows 管理员重试
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -30,6 +30,8 @@ const state = {
   languages: [],
   needsExtract: false,
   appManagementGranted: null,
+  platform: '',
+  permissionAction: 'none',
 };
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
@@ -41,40 +43,45 @@ const UI_TEXT = {
     appFoundNoVersion: 'Cavalry found',
     appNotFound: 'Cavalry not found',
     appPathFallback: 'Tried:\n{candidates}',
-    chooseAppAria: 'Choose Cavalry app',
+    chooseAppAria: 'Choose Cavalry installation',
     language: 'Language',
     current: 'Current',
     switchTo: 'Switch to',
     apply: 'Apply & Restart',
     retryApply: 'Retry Apply',
     refreshEnglish: 'Refresh English',
-    openPrivacySecurity: 'Open Privacy & Security',
+    openPrivacySecurity: 'Open permission settings',
+    requestElevation: 'Retry as administrator',
     close: 'Close',
-    readyPermission: 'Apply will require macOS permission to modify Cavalry.app.',
+    readyPermission: 'System permission may be required to modify the Cavalry installation.',
+    customRootNotWritable:
+      'The selected Cavalry folder is not writable. Windows administrator retry is only available for installations under Program Files; choose a writable copy or update this folder’s permissions.',
     readyToApply: 'Ready to apply a language pack.',
-    chooseAppToContinue: 'Choose a Cavalry.app to continue.',
+    chooseAppToContinue: 'Choose a Cavalry installation to continue.',
     needsExtract: 'English source files need to be refreshed before the next patch.',
-    chooseAppFirst: 'Choose a Cavalry.app first.',
+    chooseAppFirst: 'Choose a Cavalry installation first.',
     noLanguage: 'No language pack is available.',
     refreshingEnglish: 'Refreshing the English snapshot...',
     extractFailed: 'Could not refresh the English snapshot.',
     extractSuccess: 'English snapshot refreshed ({count} files).',
     applying: 'Applying {language}...',
-    waitingPermission: 'Waiting for macOS permission.',
+    waitingPermission: 'Waiting for system permission.',
     patchFailed: 'Patch failed.',
+    cavalryStillRunning:
+      'Cavalry is still running. Save your work, close Cavalry, and try again. The Cavalry installation was not changed.',
     restartWarning: 'Language applied, but Cavalry could not be restarted.',
     applied: 'Applied {language} and restarted Cavalry.{warning}',
-    openPrivacyFailed: 'Could not open Privacy & Security.',
+    openPrivacyFailed: 'Could not open permission settings.',
     bootstrapFailed: 'Bootstrap failed: {detail}',
     detail: ' Details: {detail}',
     confirmTitle: 'Install language pack?',
     confirmBody:
-      'Cavalry Language Switcher needs macOS permission to modify Cavalry.app. After you allow it, the selected language will be applied and Cavalry will restart.',
+      'The selected language pack will modify the chosen Cavalry installation. Cavalry will restart after the files are applied.',
     continue: 'Continue',
     cancel: 'Cancel',
-    permissionTitle: 'Waiting for macOS permission',
+    permissionTitle: 'System permission required',
     permissionBody:
-      'Open Privacy & Security, allow Cavalry Language Switcher to modify applications, then retry.',
+      'Approve the operating system permission request for Cavalry Language Switcher, then retry.',
   },
   'zh-Hans': {
     appTitle: 'Cavalry 语言切换器',
@@ -82,39 +89,43 @@ const UI_TEXT = {
     appFoundNoVersion: '已找到 Cavalry',
     appNotFound: '未找到 Cavalry',
     appPathFallback: '已尝试：\n{candidates}',
-    chooseAppAria: '选择 Cavalry 应用',
+    chooseAppAria: '选择 Cavalry 安装位置',
     language: '语言',
     current: '当前',
     switchTo: '切换为',
     apply: '应用并重启',
     retryApply: '重试应用',
     refreshEnglish: '刷新英文',
-    openPrivacySecurity: '打开隐私与安全性',
+    openPrivacySecurity: '打开权限设置',
+    requestElevation: '以管理员身份重试',
     close: '关闭',
-    readyPermission: '应用语言包需要 macOS 授权修改 Cavalry.app。',
+    readyPermission: '修改 Cavalry 安装目录可能需要系统授权。',
+    customRootNotWritable:
+      '所选 Cavalry 文件夹不可写。Windows 仅能为“Program Files”下的安装请求管理员重试；请选择可写副本或调整此文件夹的权限。',
     readyToApply: '可以开始应用语言包。',
-    chooseAppToContinue: '请选择 Cavalry.app 后继续。',
+    chooseAppToContinue: '请选择 Cavalry 安装位置后继续。',
     needsExtract: '下次补丁前需要先刷新英文源文件。',
-    chooseAppFirst: '请先选择 Cavalry.app。',
+    chooseAppFirst: '请先选择 Cavalry 安装位置。',
     noLanguage: '没有可用的语言包。',
     refreshingEnglish: '正在刷新英文快照...',
     extractFailed: '无法刷新英文快照。',
     extractSuccess: '英文快照已刷新（{count} 个文件）。',
     applying: '正在应用{language}...',
-    waitingPermission: '正在等待 macOS 授权。',
+    waitingPermission: '正在等待系统授权。',
     patchFailed: '应用语言包失败。',
+    cavalryStillRunning: 'Cavalry 仍在运行。请先保存工作并关闭 Cavalry，然后重试；Cavalry 安装内容未被修改。',
     restartWarning: '语言已应用，但无法重启 Cavalry。',
     applied: '已应用{language}并重启 Cavalry。{warning}',
-    openPrivacyFailed: '无法打开隐私与安全性。',
+    openPrivacyFailed: '无法打开权限设置。',
     bootstrapFailed: '启动失败：{detail}',
     detail: '详情：{detail}',
     confirmTitle: '安装语言包？',
     confirmBody:
-      'Cavalry 语言切换器需要 macOS 授权才能修改 Cavalry.app。授权后会应用所选语言并重启 Cavalry。',
+      '所选语言包会修改当前 Cavalry 安装目录；文件应用完成后将重启 Cavalry。',
     continue: '继续',
     cancel: '取消',
-    permissionTitle: '等待 macOS 授权',
-    permissionBody: '打开隐私与安全性，允许 Cavalry 语言切换器修改应用，然后重试。',
+    permissionTitle: '需要系统授权',
+    permissionBody: '请批准操作系统为 Cavalry 语言切换器显示的权限请求，然后重试。',
   },
   'zh-Hant': {
     appTitle: 'Cavalry 語言切換器',
@@ -122,39 +133,43 @@ const UI_TEXT = {
     appFoundNoVersion: '已找到 Cavalry',
     appNotFound: '未找到 Cavalry',
     appPathFallback: '已嘗試：\n{candidates}',
-    chooseAppAria: '選擇 Cavalry 應用程式',
+    chooseAppAria: '選擇 Cavalry 安裝位置',
     language: '語言',
     current: '目前',
     switchTo: '切換為',
     apply: '套用並重新啟動',
     retryApply: '重試套用',
     refreshEnglish: '重新整理英文',
-    openPrivacySecurity: '打開隱私權與安全性',
+    openPrivacySecurity: '打開權限設定',
+    requestElevation: '以系統管理員身分重試',
     close: '關閉',
-    readyPermission: '套用語言包需要 macOS 授權修改 Cavalry.app。',
+    readyPermission: '修改 Cavalry 安裝目錄可能需要系統授權。',
+    customRootNotWritable:
+      '所選 Cavalry 資料夾不可寫入。Windows 僅能為「Program Files」下的安裝要求以系統管理員身分重試；請選擇可寫入的副本或調整此資料夾的權限。',
     readyToApply: '可以開始套用語言包。',
-    chooseAppToContinue: '請先選擇 Cavalry.app 再繼續。',
+    chooseAppToContinue: '請先選擇 Cavalry 安裝位置再繼續。',
     needsExtract: '下次補丁前需要先重新整理英文來源檔案。',
-    chooseAppFirst: '請先選擇 Cavalry.app。',
+    chooseAppFirst: '請先選擇 Cavalry 安裝位置。',
     noLanguage: '沒有可用的語言包。',
     refreshingEnglish: '正在重新整理英文快照...',
     extractFailed: '無法重新整理英文快照。',
     extractSuccess: '英文快照已重新整理（{count} 個檔案）。',
     applying: '正在套用{language}...',
-    waitingPermission: '正在等待 macOS 授權。',
+    waitingPermission: '正在等待系統授權。',
     patchFailed: '套用語言包失敗。',
+    cavalryStillRunning: 'Cavalry 仍在執行。請先儲存工作並關閉 Cavalry，然後重試；Cavalry 安裝內容未被修改。',
     restartWarning: '語言已套用，但無法重新啟動 Cavalry。',
     applied: '已套用{language}並重新啟動 Cavalry。{warning}',
-    openPrivacyFailed: '無法打開隱私權與安全性。',
+    openPrivacyFailed: '無法打開權限設定。',
     bootstrapFailed: '啟動失敗：{detail}',
     detail: '詳情：{detail}',
     confirmTitle: '安裝語言包？',
     confirmBody:
-      'Cavalry 語言切換器需要 macOS 授權才能修改 Cavalry.app。授權後會套用所選語言並重新啟動 Cavalry。',
+      '所選語言包會修改目前 Cavalry 安裝目錄；檔案套用完成後將重新啟動 Cavalry。',
     continue: '繼續',
     cancel: '取消',
-    permissionTitle: '等待 macOS 授權',
-    permissionBody: '打開隱私權與安全性，允許 Cavalry 語言切換器修改應用程式，然後重試。',
+    permissionTitle: '需要系統授權',
+    permissionBody: '請允許作業系統為 Cavalry 語言切換器顯示的權限請求，然後重試。',
   },
   ja_JP: {
     appTitle: 'Cavalry 言語スイッチャー',
@@ -162,40 +177,45 @@ const UI_TEXT = {
     appFoundNoVersion: 'Cavalry が見つかりました',
     appNotFound: 'Cavalry が見つかりません',
     appPathFallback: '確認した場所:\n{candidates}',
-    chooseAppAria: 'Cavalry アプリを選択',
+    chooseAppAria: 'Cavalry のインストール先を選択',
     language: '言語',
     current: '現在',
     switchTo: '切り替え先',
     apply: '適用して再起動',
     retryApply: '適用を再試行',
     refreshEnglish: '英語を更新',
-    openPrivacySecurity: 'プライバシーとセキュリティを開く',
+    openPrivacySecurity: '権限設定を開く',
+    requestElevation: '管理者として再試行',
     close: '閉じる',
-    readyPermission: '言語パックの適用には Cavalry.app を変更する macOS 権限が必要です。',
+    readyPermission: 'Cavalry のインストール先を変更するにはシステム権限が必要な場合があります。',
+    customRootNotWritable:
+      '選択した Cavalry フォルダーには書き込めません。Windows で管理者として再試行できるのは Program Files 配下のインストールのみです。書き込み可能なコピーを選ぶか、このフォルダーのアクセス許可を変更してください。',
     readyToApply: '言語パックを適用できます。',
-    chooseAppToContinue: '続行するには Cavalry.app を選択してください。',
+    chooseAppToContinue: '続行するには Cavalry のインストール先を選択してください。',
     needsExtract: '次のパッチの前に英語ソースファイルを更新する必要があります。',
-    chooseAppFirst: '先に Cavalry.app を選択してください。',
+    chooseAppFirst: '先に Cavalry のインストール先を選択してください。',
     noLanguage: '利用できる言語パックがありません。',
     refreshingEnglish: '英語スナップショットを更新しています...',
     extractFailed: '英語スナップショットを更新できませんでした。',
     extractSuccess: '英語スナップショットを更新しました（{count} ファイル）。',
     applying: '{language}を適用しています...',
-    waitingPermission: 'macOS 権限を待っています。',
+    waitingPermission: 'システム権限を待っています。',
     patchFailed: '言語パックの適用に失敗しました。',
+    cavalryStillRunning:
+      'Cavalry がまだ起動しています。作業を保存して Cavalry を終了してから再試行してください。Cavalry のインストール内容は変更されていません。',
     restartWarning: '言語は適用されましたが、Cavalry を再起動できませんでした。',
     applied: '{language}を適用して Cavalry を再起動しました。{warning}',
-    openPrivacyFailed: 'プライバシーとセキュリティを開けませんでした。',
+    openPrivacyFailed: '権限設定を開けませんでした。',
     bootstrapFailed: '起動に失敗しました: {detail}',
     detail: ' 詳細: {detail}',
     confirmTitle: '言語パックをインストールしますか？',
     confirmBody:
-      'Cavalry 言語スイッチャーが Cavalry.app を変更するには macOS 権限が必要です。許可すると、選択した言語を適用して Cavalry を再起動します。',
+      '選択した言語パックは Cavalry のインストール先を変更します。ファイルの適用後に Cavalry を再起動します。',
     continue: '続行',
     cancel: 'キャンセル',
-    permissionTitle: 'macOS 権限を待っています',
+    permissionTitle: 'システム権限が必要です',
     permissionBody:
-      'プライバシーとセキュリティを開き、Cavalry 言語スイッチャーによるアプリの変更を許可してから再試行してください。',
+      'Cavalry 言語スイッチャーに対するオペレーティングシステムの権限要求を許可してから再試行してください。',
   },
 };
 
@@ -234,7 +254,11 @@ function withDetail(key, detail) {
 }
 
 function setPermissionWait(isWaiting) {
-  permissionButton.hidden = !isWaiting;
+  permissionButton.hidden = !isWaiting || state.permissionAction === 'none';
+  permissionButton.textContent =
+    state.permissionAction === 'requestElevation'
+      ? t('requestElevation')
+      : t('openPrivacySecurity');
   applyButton.textContent = isWaiting ? t('retryApply') : t('apply');
 }
 
@@ -305,18 +329,19 @@ function showApplyConfirmation(nextLanguage) {
 }
 
 function showPermissionWait(nextLanguage) {
+  const needsElevation = state.permissionAction === 'requestElevation';
   setStatus(t('waitingPermission'), 'warning');
   setPermissionWait(true);
   showModal({
     title: t('permissionTitle'),
     body: t('permissionBody'),
-    primary: t('retryApply'),
-    secondary: t('openPrivacySecurity'),
+    primary: needsElevation ? t('requestElevation') : t('retryApply'),
+    secondary: needsElevation ? t('cancel') : t('openPrivacySecurity'),
     onPrimary: () => {
       closeModal();
       runApply(nextLanguage);
     },
-    onSecondary: openPrivacySecurity,
+    onSecondary: needsElevation ? closeModal : openPrivacySecurity,
   });
 }
 
@@ -331,6 +356,9 @@ async function bootstrap() {
     typeof bootstrapState.appManagementGranted === 'boolean'
       ? bootstrapState.appManagementGranted
       : null;
+  state.platform = bootstrapState.platform || '';
+  state.permissionAction = bootstrapState.permissionAction || 'none';
+  document.documentElement.dataset.platform = state.platform;
 
   updateLanguageOptions(state.languages);
   languageSelect.value = state.currentLang;
@@ -361,6 +389,15 @@ async function bootstrap() {
 
   if (state.appManagementGranted === true) {
     setStatus(t('readyToApply'), 'success');
+    return;
+  }
+
+  if (
+    state.platform === 'windows' &&
+    state.appManagementGranted === false &&
+    state.permissionAction === 'none'
+  ) {
+    setStatus(t('customRootNotWritable'), 'error');
     return;
   }
 
@@ -426,6 +463,10 @@ async function runApply(nextLanguage) {
         showPermissionWait(nextLanguage);
         return;
       }
+      if (result.errorCode === 'cavalryStillRunning') {
+        setStatus(t('cavalryStillRunning'), 'error');
+        return;
+      }
       setStatus(withDetail('patchFailed', result.error), 'error');
       return;
     }
@@ -450,7 +491,7 @@ async function runApply(nextLanguage) {
 
 async function openPrivacySecurity() {
   if (!api.openPrivacySecurity) {
-    window.open('x-apple.systempreferences:com.apple.preference.security?Privacy_AppBundles');
+    setStatus(t('openPrivacyFailed'), 'error');
     return;
   }
 
@@ -460,7 +501,13 @@ async function openPrivacySecurity() {
   }
 }
 
-permissionButton.addEventListener('click', openPrivacySecurity);
+permissionButton.addEventListener('click', () => {
+  if (state.permissionAction === 'requestElevation') {
+    runApply(languageSelect.value);
+    return;
+  }
+  openPrivacySecurity();
+});
 modalPrimaryButton.addEventListener('click', () => modalPrimaryAction && modalPrimaryAction());
 modalSecondaryButton.addEventListener('click', () => modalSecondaryAction && modalSecondaryAction());
 modalCloseButton.addEventListener('click', closeModal);

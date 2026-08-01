@@ -1717,6 +1717,12 @@
         }
       },
       {
+        "nodeType": "smoother",
+        "attributes": {
+          "smoothingSteps": "スムージングステップ数"
+        }
+      },
+      {
         "nodeType": "motionStretch",
         "nodeInfo": "速度に基づいてシェイプを変形。",
         "attributes": {

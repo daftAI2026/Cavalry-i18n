@@ -124,8 +124,7 @@
     "^Name: .* Hex: #[0-9A-Fa-f]{8}(?: [RGBA]: \\d+)+$",
     "^Hex: #[0-9A-Fa-f]{8}(?: [RGBA]: \\d+)+$",
     "^\\d+(?:\\.\\d+)?fps$",
-    "^\\d+ x \\d+$",
-    "^Composition \\d+$"
+    "^\\d+ x \\d+$"
   ],
   "stripRegex": [
     "\\([a-z]\\)",

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-[INPUT]: 依赖 languages/* JSON、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
-[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率
+[INPUT]: 依赖 languages/* JSON（含 Learn/Guides 固定 `en` 加载槽位）、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
+[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 Guide catalog 槽位漂移、占位符（含裸 {}）漂移、FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率，并只对显式 source variant 集合豁免同义复用
 [POS]: tools 的 G1 / §P5 validator，被 full-ui gate 用来审判翻译资产与生成表
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import argparse
+import html
 import json
 import re
 import sys
@@ -37,6 +38,7 @@ FILE_GROUPS = {
     "appStrings": ["appStrings.json"],
     "tips": ["tips.json"],
     "onboarding": ["onboarding.json"],
+    "guideStrings": ["Learn/Guides/strings.json"],
     "theme": ["Style/theme.json"],
 }
 JSON_SURFACE_KEYS = {
@@ -46,7 +48,7 @@ JSON_SURFACE_KEYS = {
     "tips": "languages/en/tips.json",
 }
 
-PLACEHOLDER_RE = re.compile(r"\{[0-9]+\}|%[0-9]+|\{\{[^{}]+\}\}")
+PLACEHOLDER_RE = re.compile(r"\{\}|\{[0-9]+\}|%[0-9]+|\{\{[^{}]+\}\}")
 HTML_TAG_RE = re.compile(r"<[^>]+>")
 TS_MESSAGE_RE = re.compile(
     r"<message\b[\s\S]*?<source>([\s\S]*?)</source>[\s\S]*?<translation(?:\s+[^>]*)?>([\s\S]*?)</translation>[\s\S]*?</message>"
@@ -102,6 +104,7 @@ ALLOWED_EMBEDDED_ENGLISH = {
     "FBM",
     "FF",
     "FK",
+    "Finder",
     "FPS",
     "Forge",
     "Gamma",
@@ -336,7 +339,7 @@ def normalize_string(value: str) -> str:
 
 
 def visible_text(value: str) -> str:
-    return normalize_string(HTML_TAG_RE.sub(" ", value))
+    return normalize_string(html.unescape(HTML_TAG_RE.sub(" ", value)))
 
 
 def placeholder_tokens(value: str) -> list[str]:
@@ -651,6 +654,12 @@ def record_translation_reuse_issues(
     max_distinct_sources = int(contract.get("max_distinct_sources", 2))
     min_translation_length = int(contract.get("min_translation_length", 6))
     controlled = set(contract.get("controlled_vocabulary", []))
+    controlled_source_variants = {
+        normalize_string(target): {
+            normalize_string(source) for source in sources
+        }
+        for target, sources in contract.get("controlled_source_variants", {}).items()
+    }
 
     by_translation: dict[str, list[dict[str, str]]] = {}
     for record in records:
@@ -664,6 +673,11 @@ def record_translation_reuse_issues(
     for target, grouped_records in sorted(by_translation.items()):
         distinct_sources = sorted({record["source"] for record in grouped_records})
         if len(distinct_sources) <= max_distinct_sources:
+            continue
+        allowed_sources = controlled_source_variants.get(normalize_string(target))
+        if allowed_sources is not None and {
+            normalize_string(source) for source in distinct_sources
+        }.issubset(allowed_sources):
             continue
         first = grouped_records[0]
         detail = (
@@ -1053,7 +1067,7 @@ def build_report(root: Path, extraction_inventory_path: Path | None = None) -> d
         "B4": {
             "name": "Placeholder parity",
             "status": gate_status(b4_ok),
-            "detail": "Placeholder tokens like {0}, %1, {{...}} must be preserved.",
+            "detail": "Placeholder tokens like {}, {0}, %1, {{...}} must be preserved.",
         },
         "B9": {
             "name": "English residue",

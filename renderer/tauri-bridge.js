@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 Tauri 的 __TAURI__/__TAURI_INTERNALS__ invoke 能力
- * [OUTPUT]: 对外提供 window.cavalryI18n 兼容 API，将 camelCase Tauri payload 归一化为 app.js 消费面
- * [POS]: renderer 的非视觉 Tauri bridge，作为页面脚本前置兼容层，不暴露后端调试字段
+ * [OUTPUT]: 对外提供 window.cavalryI18n 兼容 API，将 camelCase Tauri payload、稳定 errorCode 与平台权限语义归一化为 app.js 消费面
+ * [POS]: renderer 的非视觉 Tauri bridge，作为页面脚本前置兼容层，保留六命令并隔离后端平台差异
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (() => {
@@ -49,6 +49,8 @@
       defaultAppCandidates: pick(result.defaultAppCandidates, []),
       languages: pick(result.languages, []),
       needsExtract: pick(result.needsExtract, false),
+      permissionAction: pick(result.permissionAction, 'none'),
+      platform: pick(result.platform, ''),
       version: pick(result.version, ''),
     };
   }
@@ -69,6 +71,7 @@
       warning: pick(result.warning, null),
       permissionRequired: pick(result.permissionRequired, false),
       error: pick(result.error, null),
+      errorCode: pick(result.errorCode, null),
     };
   }
 

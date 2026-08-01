@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 src-tauri/tauri.conf.json 与 capabilities/default.json
- * [OUTPUT]: 对外提供 Tauri 窗口、renderer、resources、capabilities 配置 contract tests
- * [POS]: src-tauri/tests 的配置守门，确保 vanilla renderer bridge 和打包资源不漂移
+ * [INPUT]: 依赖 tauri.conf.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
+ * [OUTPUT]: 对外提供公共窗口、macOS injector、Windows NSIS 双 DLL 资源映射/生成命令/provenance hook/系统语言与品牌图标合同
+ * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde_json::Value;
@@ -32,16 +32,8 @@ fn tauri_window_size_matches_frozen_contract() {
 }
 
 #[test]
-fn tauri_config_declares_capabilities_and_resource_access() {
+fn tauri_config_declares_capabilities() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
-    let config = read_json(&manifest_dir.join("tauri.conf.json"));
-    let resources = config["bundle"]["resources"].as_object().unwrap();
-    assert_eq!(resources["../languages"], "languages");
-    assert_eq!(
-        resources["../injector/libCavalryTranslatorInjector.dylib"],
-        "injector/libCavalryTranslatorInjector.dylib"
-    );
-
     let capabilities = read_json(&manifest_dir.join("capabilities/default.json"));
     assert!(capabilities["windows"]
         .as_array()
@@ -53,4 +45,77 @@ fn tauri_config_declares_capabilities_and_resource_access() {
         .unwrap()
         .iter()
         .any(|value| value == "core:default"));
+}
+
+#[test]
+fn macos_config_owns_injector_build_resources_and_signing() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let config = read_json(&manifest_dir.join("tauri.macos.conf.json"));
+    let resources = config["bundle"]["resources"].as_object().unwrap();
+
+    assert_eq!(
+        config["build"]["beforeBuildCommand"],
+        "npm run build:injector"
+    );
+    assert!(config["bundle"]["targets"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|value| value == "dmg"));
+    assert_eq!(resources["../languages"], "languages");
+    assert_eq!(
+        resources["../injector/libCavalryTranslatorInjector.dylib"],
+        "injector/libCavalryTranslatorInjector.dylib"
+    );
+    assert_eq!(config["bundle"]["macOS"]["signingIdentity"], "-");
+}
+
+#[test]
+fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let config = read_json(&manifest_dir.join("tauri.windows.conf.json"));
+    let resources = config["bundle"]["resources"].as_object().unwrap();
+    let nsis = &config["bundle"]["windows"]["nsis"];
+
+    assert_eq!(
+        config["build"]["beforeBuildCommand"],
+        "npm run prepare:tauri:windows-bundle"
+    );
+    assert!(config["bundle"]["targets"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|value| value == "nsis"));
+    assert!(config["bundle"]["icon"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|value| value == "icons/icon.ico"));
+    assert_eq!(resources["../languages"], "languages");
+    assert_eq!(
+        resources["../injector/windows/generic/cavalryi18n.dll"],
+        "injector/windows/generic/cavalryi18n.dll"
+    );
+    assert_eq!(
+        resources["../injector/windows/qpa/qwindows.dll"],
+        "injector/windows/qpa/qwindows.dll"
+    );
+    assert_eq!(nsis["installerHooks"], "nsis-hooks.nsh");
+    assert_eq!(
+        nsis["languages"],
+        serde_json::json!(["English", "SimpChinese", "TradChinese", "Japanese"])
+    );
+    assert_eq!(nsis["displayLanguageSelector"], false);
+    assert_eq!(nsis["installerIcon"], "icons/icon.ico");
+    assert!(manifest_dir.join("icons/icon.ico").is_file());
+    assert!(nsis.get("headerImage").is_none());
+    assert!(nsis.get("sidebarImage").is_none());
+    assert!(resources.keys().all(|key| !key.ends_with(".dylib")));
+    assert!(resources
+        .iter()
+        .all(|(source, destination)| !source.contains("Qt6")
+            && !destination.as_str().unwrap_or("").contains("Qt6")));
+    // generic/QPA 都是 beforeBuildCommand 在 Windows 生成的忽略产物；
+    // 宿主无关配置合同只锁定映射与生成命令，provenance/安装态 smoke
+    // 才在构建后证明真实字节、架构和摘要。
 }

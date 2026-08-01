@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 serde_json 与 state 目录，读取/写入 Tauri state.json
- * [OUTPUT]: 对外提供 State、normalize、read_state、write_state
- * [POS]: src-tauri/src 的状态模块，与 detect/commands 共享单一状态 schema
+ * [OUTPUT]: 对外提供 State、EnglishSnapshotProvenance、normalize、read_state、write_state
+ * [POS]: src-tauri/src 的状态模块，分离当前安装 revision 与只在成功采集后更新的 English 快照来源
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde::{Deserialize, Serialize};
@@ -9,11 +9,22 @@ use std::{fs, path::Path};
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
+pub struct EnglishSnapshotProvenance {
+    pub install_root: String,
+    pub immutable_revision: String,
+}
+
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct State {
     pub app_path: String,
     pub cavalry_version: String,
+    #[serde(default)]
+    pub cavalry_revision: String,
     pub current_lang: String,
     pub last_patched_at: String,
+    #[serde(default)]
+    pub english_snapshot_provenance: Option<EnglishSnapshotProvenance>,
 }
 
 impl Default for State {
@@ -21,8 +32,10 @@ impl Default for State {
         Self {
             app_path: String::new(),
             cavalry_version: String::new(),
+            cavalry_revision: String::new(),
             current_lang: "en".to_string(),
             last_patched_at: String::new(),
+            english_snapshot_provenance: None,
         }
     }
 }

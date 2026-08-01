@@ -1717,6 +1717,12 @@
         }
       },
       {
+        "nodeType": "smoother",
+        "attributes": {
+          "smoothingSteps": "Smoothing Steps"
+        }
+      },
+      {
         "nodeType": "motionStretch",
         "nodeInfo": "Deform a Shape based on its velocity.",
         "attributes": {

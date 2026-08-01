@@ -1,3 +1,10 @@
+<!--
+[INPUT]: 依赖当前版本线、已验证代码/打包行为与公开发布协议
+[OUTPUT]: 对外提供按 SemVer 组织的用户可见新增、变更与修复记录
+[POS]: 根目录发布历史真相；Unreleased 只记录已落地且具备验证证据的行为
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 # Changelog
 
 All notable changes to this project are documented in this file.
@@ -6,6 +13,46 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.6.0] - 2026-07-29
+
+### Added
+- **Windows x64 Support**: Cavalry Language Switcher now applies English, Simplified Chinese, Traditional Chinese, and Japanese to Cavalry 2.7.2 on Windows 10 x64 or newer, including custom install roots and protected Program Files installs.
+- **Native Cavalry Launches**: Desktop, Start Menu, existing taskbar pins, direct `Cavalry.exe`, and Switcher launches now converge on the selected language without replacing vendor shortcuts or setting global Qt environment variables.
+- **Localized Windows Installer**: The branded NSIS installer follows the Windows UI language for English, Simplified Chinese, Traditional Chinese, and Japanese, with English fallback for other locales.
+- **Windows Runtime UI Translation**: Added scoped translation for ordinary Qt controls, dynamic names and dropdown values, ExtensionLayer empty states and placeholders, tool help, MessageBar warnings, viewport text, and login prompts while preserving model identities, user text, and physical shortcut keys.
+- **Windows Verification Suite**: Added native CTest, Rust transaction contracts, disposable live-clone checks, and isolated NSIS install, same-version update, and uninstall smoke coverage.
+- **Reusable macOS Acceptance Harness**: Added tracked Objective-C++ semantic drivers, exact native-window capture, deterministic media fixtures, a target-locked fail-closed Node matrix, and a vendor-free PR compile gate for the scoped 21-run/48-point macOS release surfaces without storing live sessions or generated binaries in Git.
+- **Windows Scoped Live Acceptance**: Added reusable acceptance-only drivers and exact PID/HWND evidence capture for real Cavalry 2.7.2 Onboarding (15/15) and Tag/Assets producers (6/6 logical points, 9/9 reviewed PNGs) across Simplified Chinese, Traditional Chinese, and Japanese, with English restoration and exact-process cleanup; these scoped gates do not claim repository-wide G0-G4.
+
+### Changed
+- **Explicit English Recovery**: Windows keeps the selected language across normal Cavalry exit, Switcher update, and Switcher uninstall, and restores the exact vendor QPA only when the user selects English.
+- **Platform-built Native Injectors**: macOS and Windows runners now build their own native injector from the current source and generated translation table before Tauri development, packaging, or release.
+- **Windows Development Baseline**: Windows development supports PowerShell 5.1 or newer, Visual Studio 2022 or newer with x64 MSVC v143, CMake 4.2 or newer, and the exact Qt 6.6.3 `msvc2019_64` SDK without requiring PowerShell 7.
+- **Three-asset Releases**: Release metadata and CI now publish Apple Silicon and Intel macOS DMGs plus one Windows x64 NSIS installer, with each package bound to its current source and native runtime inputs.
+
+### Fixed
+- **Guide Onboarding Catalog Loading**: Kept localized Getting Started and five-step onboarding copy in Cavalry's required `en` catalog slot so titles, descriptions, and step bodies resolve instead of rendering blank; validation now checks the shared macOS/Windows language packs, all 98 keys, and every guide reference.
+- **macOS Eight-surface UI Residuals**: Localized the requested Search Bar Add Layer tooltip, Tag labels, Color Save action, Assets Replace action, Statistics labels, and Tracking dialog across Simplified Chinese, Traditional Chinese, and Japanese.
+- **Japanese Scene Statistics Update**: Corrected the `Update` action from the unrelated `ニュース` (“News”) to `更新`, with same-window live acceptance and a three-language catalog contract preventing recurrence.
+- **macOS Scoped Menu Ownership**: Carried the exact Assets window identity through its parentless transient context menu for one event-loop turn, allowing both `Replace...` and dynamic `Create Composition based on <asset>` actions to localize while preserving the asset identity and unrelated same-source menus.
+- **macOS Transform Tool Help**: Translated the five self-painted Transform Tool actions—including corrected Direct Layer Selection and Enable Snapping terms—with CJK-capable system fonts while preserving physical shortcut prefixes in English; both Apple Silicon and Intel/Rosetta paths require the exact Cavalry 2.7.2 Core/ExtensionLayer/Skia caller and ABI contract and fall back to the original English path on any mismatch.
+- **Add Layer Shortcut Isolation**: Kept the concrete `MenuBarManager` Add Layer shortcut text out of global source fallback while preserving exact-context and Search Bar tooltip translation.
+- **macOS Rust Build Restoration**: Restored platform gating for the Windows-only Qt runtime and corrected the nested macOS privilege imports so the shared Tauri crate compiles on macOS after the cross-platform module split.
+- **Complete Windows UI Surfaces**: Filled proven translation gaps for numbered compositions, controlled property values, Line, Pencil, Cog, Bone, Transform, and Edit Shape tool text, selection counts, and the offline login countdown.
+- **CJK Self-painted Text**: Rendered approved Skia text paths with CJK-capable Windows fonts so translated viewport and shortcut hints no longer appear in English, blank, or as missing-glyph boxes.
+- **Smoother Node Restoration**: Restored the real Cavalry 2.7.2 `smoother.smoothingSteps` node across all four language packs after matching macOS and Windows vendor assets disproved the earlier orphan-node assumption.
+- **Safe Windows Close Retry**: Language changes now leave the installation untouched while Cavalry has a visible target window and only terminate the same bound current-session, exact-path process after the approved close flow.
+- **Silent Windows Helpers**: Hidden auxiliary command windows during normal product operations and isolated PowerShell 5.1 fallback modules from a parent PowerShell 7 session.
+- **Login Context Preservation**: Production native-entry launches preserve the caller's Windows profile and Cavalry login context, while disposable live checks remain isolated from the real profile.
+- **Fresh Package Enforcement**: Windows packaging now rejects stale installers, orphan provenance, foreign executables, wrong target directories, and packages containing another Qt runtime.
+- **Index-safe Git Hooks**: Pre-commit checks now validate the staged bytes, preserve partial commits, locate the configured Node executable, and refuse hidden unstaged input drift.
+
+### Security
+- **Main-line Release Tags**: The release job now refuses any public tag whose commit is not contained in the fetched `origin/main` history, preventing a detached PR head from publishing release assets.
+- **Hash-locked QPA Activation**: Windows translation activation verifies Cavalry, Qt, vendor QPA, proxy, generic translator, manifest, and language-marker identity before loading localization code.
+- **Restricted Program Files Elevation**: A single headless Switcher worker revalidates OS-known Program Files roots, rejects reparse-point escapes, writes the final language marker last, and restores exact preimages on failure.
+- **Scoped Process Shutdown**: Windows restart handling binds one process handle and revalidates its session, executable path, PID, and visible-window state instead of using broad process-name or process-tree termination.
 
 ## [0.5.3] - 2026-07-14
 

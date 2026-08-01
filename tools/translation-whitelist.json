@@ -47,6 +47,16 @@
       "images"
     ]
   },
+  "guideStrings": {
+    "translate": [
+      "value"
+    ],
+    "no_translate": [
+      "type",
+      "language"
+    ],
+    "locale_sync": []
+  },
   "plugins": {
     "translate": [
       "layerInfo",
@@ -121,7 +131,15 @@
         "打开",
         "关闭",
         "關閉"
-      ]
+      ],
+      "controlled_source_variants": {
+        "将颜色拖到此处": [
+          "Drag colors here",
+          "Drag colors here.",
+          "Drag colours here",
+          "Drag colours here."
+        ]
+      }
     }
   },
   "_extraction_filters": {

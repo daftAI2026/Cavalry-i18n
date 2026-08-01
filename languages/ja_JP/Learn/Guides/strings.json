@@ -1,7 +1,7 @@
 [
   {
     "type": "strings",
-    "language": "ja_JP",
+    "language": "en",
     "value": {
       "onboarding.firstLaunch.step0.title": "Cavalry へようこそ 🎉",
       "onboarding.firstLaunch.step0.body": "ここは<b>ビューポート</b>です。デザインがここで動き出します。コンポジションをリアルタイムでプレビューし、操作できます。",
@@ -32,7 +32,7 @@
       "onboarding.animationBasics.step1.title": "プレイヘッドを移動",
       "onboarding.animationBasics.step1.body": "タイムラインの 50 フレーム付近をクリックして<b>プレイヘッド</b>を配置します。",
       "onboarding.animationBasics.step2.title": "シェイプを移動",
-      "onboarding.animationBasics.step2.body": "<b>My Shape</b> を横にドラッグして、ビューポートの右側の新しい位置に移動します。",
+      "onboarding.animationBasics.step2.body": "<b>マイシェイプ</b>を横にドラッグして、ビューポートの右側の新しい位置に移動します。",
       "onboarding.animationBasics.step3.title": "バウンスを追加",
       "onboarding.animationBasics.step3.body": "最初のキーフレーム（0 フレーム目）を右クリックし、<b>マジックイージング &rarr; バウンスアウト</b>を選択します。",
       "onboarding.animationBasics.step4.title": "再生してみよう！",
@@ -65,7 +65,7 @@
       "onboarding.dialog.resetWorkspace.title": "ワークスペースをリセットしますか？",
       "onboarding.dialog.resetWorkspace.body": "このガイドはデフォルトレイアウトで最適に動作します。今すぐリセットしますか？",
       "onboarding.comp.animationGuide.name": "アニメーションガイド",
-      "onboarding.layer.myShape.name": "My Shape",
+      "onboarding.layer.myShape.name": "マイシェイプ",
       "onboarding.button.next": "次へ",
       "onboarding.button.back": "戻る",
       "onboarding.button.skip": "閉じる",

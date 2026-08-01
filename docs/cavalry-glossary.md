@@ -1,3 +1,10 @@
+<!--
+[INPUT]: 依赖 Cavalry 运行时英文 source、translation-guidelines.md 的翻译边界与各平台产品名事实
+[OUTPUT]: 对外提供 en/zh-Hans/zh-Hant/ja_JP 四语术语、品牌保留与显示层例外的规范表
+[POS]: docs 的术语真相源，被三语 TS/JSON 翻译、质量检查与人工审校共同消费
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 | en | zh-Hans | zh-Hant | ja_JP | note |
 |---|---|---|---|---|
 | Language Switcher | 语言切换器 | 語言切換器 | 言語切り替え | UI name |
@@ -9,6 +16,8 @@
 | Anchor Point | 锚点 | 錨點 | アンカーポイント | |
 | Pivot | 锚点 | 錨點 | ピボット | Use same term as Anchor Point unless context requires distinction |
 | Keyframe | 关键帧 | 關鍵幀 | キーフレーム | Do not use "关键格" |
+| Direct Layer Selection | 直接选择图层 | 直接選取圖層 | レイヤーを直接選択 | Transform Tool action; “Direct” describes the selection mode, never “项目 / 項目” |
+| Snapping | 吸附 | 吸附 | スナップ | Graphics alignment behavior; do not translate as “抓取” |
 | Easing | 缓动 | 緩動 | イージング | |
 | Ease In | 缓入 | 緩入 | イーズイン | |
 | Ease Out | 缓出 | 緩出 | イーズアウト | |
@@ -19,6 +28,8 @@
 | Child | 子级 | 子級 | 子 | Hierarchy context |
 | Mask | 蒙版 | 遮罩 | マスク | zh-Hans: Prefer AE terminology over "遮罩" |
 | Stroke | 描边 | 描邊 | ストローク | |
+| Pen Tool | 钢笔工具 | 鋼筆工具 | ペンツール | Vector path editing tool |
+| Pencil Tool | 铅笔工具 | 鉛筆工具 | 鉛筆ツール | Freehand drawing tool |
 | Fill | 填充 | 填充 | 塗り | |
 | Bezier | 贝塞尔 | 貝茲 | ベジェ | Use standard Chinese graphics term |
 | Path | 路径 | 路徑 | パス | |
@@ -32,6 +43,9 @@
 | Null | 空对象 | 空物件 | ヌル | Do not shorten to "空" |
 | Duplicator | 复制器 | 複製器 | デュプリケーター | Cinema 4D terminology |
 | Node | 节点 | 節點 | ノード | |
+| Bone | 骨骼 | 骨骼 | ボーン | Rigging/Bone Tool display term; do not use “骨头 / 骨頭” or bare Japanese “骨” |
+| Smoothing Steps | 平滑步数 | 平滑步數 | スムージングステップ数 | Cavalry 2.7.2 cross-platform `smoother` attribute; align with existing Smooth / smoothing terminology |
+| Pitch Radius | 节圆半径 | 節圓半徑 | ピッチ半径 | Cog/gear geometry; JSON attribute and runtime CogTool prefix must stay aligned |
 | Basic Shape | 基本形状 | 基本形狀 | 基本シェイプ | |
 | Property | 属性 | 屬性 | プロパティ | |
 | Tooltip | 工具提示 | 工具提示 | ツールチップ | Microsoft UI terminology |
@@ -75,6 +89,8 @@
 | Lottie | Lottie | Lottie | Lottie | Product / format name |
 | Cavalry | Cavalry | Cavalry | Cavalry | Product name |
 | Canva | Canva | Canva | Canva | Brand name |
+| Finder | 访达 | Finder | Finder | macOS product name; use Apple’s localized Simplified Chinese name and preserve the product name in Traditional Chinese/Japanese |
+| QuickTime | QuickTime | QuickTime | QuickTime | Apple media format brand; preserve in render-format lists |
 | Excel | Excel | Excel | Excel | Product name; allow labels like "Excel 工作表" / "Excel シート" |
 | Forge Dynamics | Forge 动力学 | Forge 動力學 | フォージダイナミクス | UI display term; keep model niceName English |
 | Undo | 撤销 | 復原 | 元に戻す | |

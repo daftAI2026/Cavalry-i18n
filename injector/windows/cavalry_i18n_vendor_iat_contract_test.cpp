@@ -1,0 +1,1665 @@
+/**
+ * [INPUT]: 依赖指定 Cavalry 安装根的 ExtensionLayer.dll/CavalryUI.dll/Core.dll/skia.dll 只读 PE 文件、PE/IAT 解析器与 MessageBar/text-path 静态合同分片
+ * [OUTPUT]: 对外验证 Cavalry 2.7.2 的 ExtensionLayer/CavalryUI PE 身份及漂移拒绝、helper IAT、CavalryUI 导出、placeholder setter 链、普通 Qt 残留及其 Project Statistics/Tracking owner 与 receiver 寄存器包络、selected-count、受控 Qt、MessageBar append、ExtensionLayer 调用点与 Core/Skia CJK Path ABI
+ * [POS]: injector/windows 的 vendor 静态 ABI/import 合同；不加载、执行、修改或复制厂商 DLL，只把原始 PE 文件映射到测试内存并锁定来源绑定显示门所依赖的厂商事实
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+#include "cavalry_i18n_pe_iat.h"
+#include "cavalry_i18n_extension_layer_sources.h"
+#include "cavalry_i18n_vendor_messagebar_contract.h"
+#include "cavalry_i18n_vendor_skia_text_path_contract.h"
+#include "cavalry_i18n_vendor_text_path_contract.h"
+#include "../cavalry_i18n_translation_policy.h"
+
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+#include <windows.h>
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <cstdint>
+#include <cstdio>
+#include <cstring>
+#include <filesystem>
+#include <fstream>
+#include <limits>
+#include <string>
+#include <string_view>
+#include <vector>
+
+namespace {
+
+constexpr char kCavalryUiImportName[] = "CavalryUI.dll";
+constexpr char kTextAtWidgetCentreSymbol[] =
+    "?textAtWidgetCentre@ui@@YAXPEAVQWidget@@AEBVQString@@AEBVQColor@@PEBVQPixmap@@@Z";
+constexpr char kSetPlaceholderSymbol[] =
+    "?setPlaceholder@CustomListWidget@cavalry@@QEAAXAEBVQString@@@Z";
+constexpr char kQtCoreImportName[] = "Qt6Core.dll";
+constexpr char kQtWidgetsImportName[] = "Qt6Widgets.dll";
+constexpr char kQMetaObjectTrSymbol[] =
+    "?tr@QMetaObject@@QEBA?AVQString@@PEBD0H@Z";
+constexpr char kQStringFromUtf8Symbol[] =
+    "?fromUtf8@QString@@SA?AV1@VQByteArrayView@@@Z";
+constexpr char kQLabelSetTextSymbol[] =
+    "?setText@QLabel@@QEAAXAEBVQString@@@Z";
+constexpr char kQLabelTextConstructorSymbol[] =
+    "??0QLabel@@QEAA@AEBVQString@@PEAVQWidget@@V?$QFlags@W4WindowType@Qt@@@@@Z";
+constexpr char kQDialogConstructorSymbol[] =
+    "??0QDialog@@QEAA@PEAVQWidget@@V?$QFlags@W4WindowType@Qt@@@@@Z";
+constexpr char kQProgressBarConstructorSymbol[] =
+    "??0QProgressBar@@QEAA@PEAVQWidget@@@Z";
+constexpr char kQPushButtonTextConstructorSymbol[] =
+    "??0QPushButton@@QEAA@AEBVQString@@PEAVQWidget@@@Z";
+constexpr char kQWidgetSetWindowTitleSymbol[] =
+    "?setWindowTitle@QWidget@@QEAAXAEBVQString@@@Z";
+constexpr char kQWidgetSetAttributeSymbol[] =
+    "?setAttribute@QWidget@@QEAAXW4WidgetAttribute@Qt@@_N@Z";
+constexpr char kQWidgetSetWindowModalitySymbol[] =
+    "?setWindowModality@QWidget@@QEAAXW4WindowModality@Qt@@@Z";
+constexpr char kCavalryMainWindowSymbol[] =
+    "?gMainWindow@@3PEAVDockableGroup@@EA";
+constexpr char kQComboBoxInsertItemSymbol[] =
+    "?insertItem@QComboBox@@QEAAXHAEBVQIcon@@AEBVQString@@AEBVQVariant@@@Z";
+constexpr char kQPlainTextEditSetPlaceholderSymbol[] =
+    "?setPlaceholderText@QPlainTextEdit@@QEAAXAEBVQString@@@Z";
+constexpr std::uint32_t kExtensionLayerTimestamp = 0x6A0300E0;
+constexpr std::size_t kExtensionLayerImageSize = 0x01BBE000;
+constexpr std::uint32_t kCavalryUiTimestamp = 0x6A0300B6;
+constexpr std::size_t kCavalryUiImageSize = 0x002AF000;
+constexpr std::size_t kExpectedTextAtWidgetCentreIatRva = 0x01B26D68;
+constexpr std::size_t kExpectedQStringAssignmentIatRva = 0x01B2C860;
+constexpr std::uintptr_t kExpectedQStringAssignmentNameRva = 0x01B7CBD2;
+constexpr std::size_t kSetPlaceholderThunkRva = 0x00015A87;
+constexpr std::size_t kSetPlaceholderSetterRva = 0x002759F0;
+constexpr std::size_t kSnippetPlaceholderCallRva = 0x010E118A;
+constexpr std::size_t kExpectedSetPlaceholderDirectCallCount = 20;
+constexpr std::size_t kSelectedCountProducerRva = 0x00E815C0;
+constexpr std::array<std::uint8_t, 18> kSelectedCountProducerPrologue {{
+    0x55, 0x56, 0x57, 0x48, 0x81, 0xEC, 0xB0, 0x00, 0x00,
+    0x00, 0x48, 0x8D, 0xAC, 0x24, 0x80, 0x00, 0x00, 0x00,
+}};
+constexpr std::size_t kSelectedCountLiteralRva = 0x0157F6EE;
+constexpr std::size_t kSelectedCountLiteralLeaRva = 0x00E8161A;
+constexpr std::size_t kSelectedCountSetTextCallRva = 0x00E816A0;
+constexpr std::size_t kSelectedCountSetTextReturnRva = 0x00E816A6;
+constexpr std::size_t kExpectedQLabelSetTextIatRva = 0x01B2F6A0;
+constexpr std::size_t kExpectedQLabelTextConstructorIatRva = 0x01B2F478;
+constexpr std::size_t kExpectedQMetaObjectTrIatRva = 0x01B2C528;
+constexpr std::size_t kExpectedQStringFromUtf8IatRva = 0x01B2C738;
+constexpr std::size_t kExpectedQWidgetSetWindowTitleIatRva = 0x01B2F9D8;
+constexpr std::size_t kExpectedQDialogConstructorIatRva = 0x01B2F988;
+constexpr std::size_t kExpectedQProgressBarConstructorIatRva = 0x01B2F980;
+constexpr std::size_t kExpectedQPushButtonTextConstructorIatRva = 0x01B2E018;
+constexpr std::size_t kExpectedQWidgetSetAttributeIatRva = 0x01B2FC88;
+constexpr std::size_t kExpectedQWidgetSetWindowModalityIatRva = 0x01B2F978;
+constexpr std::size_t kExpectedCavalryMainWindowIatRva = 0x01B26C78;
+constexpr std::size_t kExpectedQComboBoxInsertItemIatRva = 0x01B2EF68;
+constexpr std::size_t kExpectedQPlainTextEditSetPlaceholderIatRva = 0x01B2EE98;
+struct MetaObjectTranslationContract
+{
+    const cavalry_i18n::ScopedTranslationKey *translation;
+    std::size_t metaObjectNameRva;
+    std::size_t metaObjectRva;
+    std::size_t metaObjectLeaRva;
+    std::size_t sourceRva;
+    std::size_t sourceLeaRva;
+    std::size_t translationCallRva;
+};
+constexpr std::array<MetaObjectTranslationContract, 4>
+    kMetaObjectTranslationContracts {{
+        {
+            &cavalry_i18n::kSearchBarAddLayerKey,
+            0x014BFEB0,
+            0x014BFED8,
+            0x00E8BD1C,
+            0x015804BE,
+            0x00E8BD23,
+            0x00E8BD34,
+        },
+        {
+            &cavalry_i18n::kAssetsWindowReplaceKey,
+            0x014BF2D8,
+            0x014BF4F0,
+            0x00EBC8B9,
+            0x01582CDD,
+            0x00EBC8C0,
+            0x00EBC8D1,
+        },
+        {
+            &cavalry_i18n::kColorWindowSaveKey,
+            0x014BE928,
+            0x014BE940,
+            0x00F176BA,
+            0x01585409,
+            0x00F176C1,
+            0x00F176CE,
+        },
+        {
+            &cavalry_i18n::kTagHeaderAddTagKey,
+            0x014C04F8,
+            0x014C0518,
+            0x01091915,
+            0x0159498C,
+            0x0109191C,
+            0x0109192D,
+        },
+    }};
+struct RawQLabelContract
+{
+    const cavalry_i18n::ScopedTranslationKey *translation;
+    std::size_t literalRva;
+    std::size_t literalLeaRva;
+    std::size_t fromUtf8CallRva;
+    std::size_t labelConstructorCallRva;
+};
+constexpr std::array<RawQLabelContract, 3>
+    kRawQLabelContracts {{
+        {
+            &cavalry_i18n::kProjectStatisticsComputeTimeKey,
+            0x015865D1,
+            0x00F3E0B8,
+            0x00F3E0CB,
+            0x00F3E0FE,
+        },
+        {
+            &cavalry_i18n::kProjectStatisticsDrawTimeKey,
+            0x01586642,
+            0x00F3E1DB,
+            0x00F3E1EE,
+            0x00F3E221,
+        },
+        {
+            &cavalry_i18n::kProjectStatisticsTotalNodesKey,
+            0x015866E0,
+            0x00F3E65D,
+            0x00F3E677,
+            0x00F3E6A8,
+        },
+    }};
+constexpr char kProjectStatisticsMetaObjectName[] =
+    "ProjectStatisticsWindow";
+constexpr std::size_t kProjectStatisticsMetaObjectNameRva = 0x014BF7B0;
+constexpr char kProjectStatisticsWindowTitleSource[] = "Scene Statistics";
+constexpr std::size_t kProjectStatisticsWindowTitleLiteralRva = 0x014D63D8;
+constexpr std::size_t kProjectStatisticsWindowTitleLiteralLeaRva = 0x00F3DAE1;
+constexpr std::size_t kProjectStatisticsWindowTitleFromUtf8CallRva =
+    0x00F3DAF4;
+constexpr std::size_t kProjectStatisticsWindowTitleSetterCallRva =
+    0x00F3DB1E;
+constexpr std::size_t kTrackingWindowTitleLiteralRva = 0x01562F35;
+constexpr std::size_t kTrackingWindowTitleLiteralLeaRva = 0x00C25C16;
+constexpr std::size_t kTrackingWindowTitleFromUtf8CallRva = 0x00C25C2F;
+constexpr std::size_t kTrackingWindowTitleSetterCallRva = 0x00C25C57;
+constexpr std::size_t kTrackingMainWindowLoadRva = 0x00C25B6A;
+constexpr std::size_t kTrackingDialogParentFlowRva = 0x00C25B71;
+constexpr std::array<std::uint8_t, 13> kTrackingDialogParentFlow {{
+    0x48, 0x8B, 0x10,
+    0x48, 0x89, 0x8D, 0xD0, 0x04, 0x00, 0x00,
+    0x45, 0x31, 0xC0,
+}};
+constexpr std::size_t kTrackingDialogConstructorCallRva = 0x00C25B7E;
+constexpr std::size_t kTrackingDialogStateFlowRva = 0x00C25B84;
+constexpr std::array<std::uint8_t, 35> kTrackingDialogStateFlow {{
+    0x4C, 0x8B, 0xB5, 0xD0, 0x04, 0x00, 0x00,
+    0x4C, 0x89, 0xF1,
+    0xFF, 0x15, 0x3C, 0x69, 0xF0, 0x00,
+    0x48, 0x8B, 0xB5, 0xE0, 0x04, 0x00, 0x00,
+    0x48, 0x8B, 0x5E, 0x30,
+    0x48, 0x89, 0x46, 0x30,
+    0x4C, 0x89, 0x76, 0x38,
+}};
+constexpr std::size_t kTrackingDeleteOnCloseReceiverFlowRva = 0x00C25BD3;
+constexpr std::array<std::uint8_t, 12>
+    kTrackingDeleteOnCloseReceiverFlow {{
+        0x48, 0x8B, 0x4E, 0x38,
+        0xBA, 0x37, 0x00, 0x00, 0x00,
+        0x41, 0xB0, 0x01,
+    }};
+constexpr std::size_t kTrackingDeleteOnCloseCallRva = 0x00C25BDF;
+constexpr std::size_t kTrackingProgressParentFlowRva = 0x00C25CAB;
+constexpr std::array<std::uint8_t, 18> kTrackingProgressParentFlow {{
+    0x48, 0x8B, 0x56, 0x38,
+    0xEB, 0x02,
+    0x31, 0xD2,
+    0x48, 0x89, 0xD9,
+    0x48, 0x89, 0x9D, 0xD0, 0x04, 0x00, 0x00,
+}};
+constexpr std::size_t kTrackingProgressBarConstructorCallRva = 0x00C25CBD;
+constexpr std::size_t kTrackingProgressStateFlowRva = 0x00C25CC3;
+constexpr std::array<std::uint8_t, 38> kTrackingProgressStateFlow {{
+    0x48, 0x8B, 0xB5, 0xD0, 0x04, 0x00, 0x00,
+    0x48, 0x89, 0xF1,
+    0xFF, 0x15, 0xFD, 0x67, 0xF0, 0x00,
+    0x48, 0x89, 0xF1,
+    0x48, 0x8B, 0xB5, 0xE0, 0x04, 0x00, 0x00,
+    0x48, 0x8B, 0x5E, 0x20,
+    0x48, 0x89, 0x46, 0x20,
+    0x48, 0x89, 0x4E, 0x28,
+}};
+constexpr std::size_t kTrackingWindowModalityReceiverFlowRva = 0x00C25D15;
+constexpr std::array<std::uint8_t, 9>
+    kTrackingWindowModalityReceiverFlow {{
+        0x48, 0x8B, 0x4E, 0x28,
+        0xBA, 0x01, 0x00, 0x00, 0x00,
+    }};
+constexpr std::size_t kTrackingWindowModalCallRva = 0x00C25D1E;
+constexpr char kTrackingCancelSource[] = "Cancel";
+constexpr std::size_t kTrackingCancelLiteralRva = 0x0150C38C;
+constexpr std::size_t kTrackingCancelLiteralLeaRva = 0x00C25DD8;
+constexpr std::size_t kTrackingCancelFromUtf8CallRva = 0x00C25DF1;
+constexpr std::size_t kTrackingCancelParentFlowRva = 0x00C25DC5;
+constexpr std::array<std::uint8_t, 91> kTrackingCancelParentFlow {{
+    0x48, 0x8B, 0x7E, 0x38, 0xEB, 0x02, 0x31, 0xFF,
+    0x48, 0xC7, 0x85, 0x20, 0x04, 0x00, 0x00, 0x06,
+    0x00, 0x00, 0x00, 0x48, 0x8D, 0x05, 0xAD, 0x65,
+    0x8E, 0x00, 0x48, 0x89, 0x85, 0x28, 0x04, 0x00,
+    0x00, 0x48, 0x8D, 0x4D, 0x20, 0x48, 0x8D, 0x95,
+    0x20, 0x04, 0x00, 0x00, 0xFF, 0x15, 0x41, 0x69,
+    0xF0, 0x00, 0x66, 0x0F, 0x6F, 0x45, 0x20, 0x66,
+    0x0F, 0x7F, 0x85, 0x50, 0x04, 0x00, 0x00, 0x48,
+    0x8B, 0x45, 0x30, 0x48, 0x89, 0x85, 0x60, 0x04,
+    0x00, 0x00, 0x48, 0x8D, 0x95, 0x50, 0x04, 0x00,
+    0x00, 0x48, 0x8B, 0x8D, 0xD0, 0x04, 0x00, 0x00,
+    0x49, 0x89, 0xF8,
+}};
+constexpr std::size_t kTrackingCancelConstructorCallRva = 0x00C25E20;
+
+constexpr bool ordinaryQtEvidenceCoversEveryScopedTranslation()
+{
+    for (const cavalry_i18n::ScopedTranslationKey *expected
+         : cavalry_i18n::kCrossPlatformScopedTranslationKeys) {
+        std::size_t matches =
+            expected == &cavalry_i18n::kTrackingWindowTitleKey ? 1 : 0;
+        for (const MetaObjectTranslationContract &contract
+             : kMetaObjectTranslationContracts) {
+            matches += contract.translation == expected ? 1 : 0;
+        }
+        for (const RawQLabelContract &contract
+             : kRawQLabelContracts) {
+            matches += contract.translation == expected ? 1 : 0;
+        }
+        if (matches != 1) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static_assert(
+    ordinaryQtEvidenceCoversEveryScopedTranslation(),
+    "Every scoped translation must retain one vendor evidence path.");
+constexpr std::size_t kColorSettingsTitleLiteralRva = 0x015977DA;
+constexpr std::size_t kColorSettingsTitleLeaRva = 0x010C6D8C;
+constexpr std::size_t kAutomaticTemplateLiteralRva = 0x015977F8;
+constexpr std::size_t kAutomaticTemplateLeaRva = 0x010C6EF4;
+constexpr std::size_t kAutomaticInsertItemCallRva = 0x010C70DB;
+constexpr std::size_t kSingleIndexPlaceholderLiteralRva = 0x0154AC4C;
+constexpr std::size_t kSingleIndexPlaceholderLeaRva = 0x00AA6BC6;
+constexpr std::size_t kSingleIndexSetPlaceholderCallRva = 0x00AA6BF6;
+constexpr std::size_t kMeshExplorerLabelFactoryRva = 0x010CF230;
+constexpr std::size_t kMeshExplorerQLabelConstructorCallRva = 0x010CF2C0;
+constexpr std::size_t kMeshExplorerRowMetaObjectNameRva = 0x014BEE60;
+constexpr std::size_t kAttributeEditorMetaObjectNameRva = 0x014BE848;
+struct MeshExplorerDynamicLabelContract
+{
+    const char *source;
+    std::size_t literalRva;
+    std::size_t literalLeaRva;
+    std::size_t labelFactoryCallRva;
+};
+constexpr std::array<MeshExplorerDynamicLabelContract, 4>
+    kMeshExplorerDynamicLabelContracts {{
+        { "Index: ", 0x0159812E, 0x010CD6CC, 0x010CD728 },
+        { "Points: %1", 0x015982F6, 0x010CDB23, 0x010CDBB1 },
+        { "Verbs: %1", 0x015983FC, 0x010CDCE1, 0x010CDD6F },
+        { "Child Meshes: %1", 0x01598408, 0x010CDE98, 0x010CDF26 },
+    }};
+constexpr std::size_t kMaximumMappedImageSize = 256U * 1024U * 1024U;
+constexpr std::array<std::uint8_t, 15> kSetPlaceholderSetterPrologue {{
+    0xB8, 0xA8, 0x00, 0x00, 0x00,
+    0x48, 0x03, 0x81, 0x90, 0x01, 0x00, 0x00,
+    0x48, 0x89, 0xC1,
+}};
+
+bool hasBytes(std::size_t size, std::size_t offset, std::size_t length)
+{
+    return offset <= size && length <= size - offset;
+}
+
+bool addSize(std::size_t left, std::size_t right, std::size_t *result)
+{
+    if (result == nullptr || left > std::numeric_limits<std::size_t>::max() - right) {
+        return false;
+    }
+    *result = left + right;
+    return true;
+}
+
+template <typename Value>
+bool readObject(
+    const std::vector<std::uint8_t> &image,
+    std::size_t offset,
+    Value *value)
+{
+    if (value == nullptr || !hasBytes(image.size(), offset, sizeof(Value))) {
+        return false;
+    }
+    std::memcpy(value, image.data() + offset, sizeof(Value));
+    return true;
+}
+
+bool readU16(
+    const std::vector<std::uint8_t> &image,
+    std::size_t offset,
+    std::uint16_t *value)
+{
+    if (value == nullptr || !hasBytes(image.size(), offset, sizeof(std::uint16_t))) {
+        return false;
+    }
+    *value = static_cast<std::uint16_t>(image[offset])
+        | (static_cast<std::uint16_t>(image[offset + 1]) << 8U);
+    return true;
+}
+
+bool readU32(
+    const std::vector<std::uint8_t> &image,
+    std::size_t offset,
+    std::uint32_t *value)
+{
+    if (value == nullptr || !hasBytes(image.size(), offset, sizeof(std::uint32_t))) {
+        return false;
+    }
+    *value = static_cast<std::uint32_t>(image[offset])
+        | (static_cast<std::uint32_t>(image[offset + 1]) << 8U)
+        | (static_cast<std::uint32_t>(image[offset + 2]) << 16U)
+        | (static_cast<std::uint32_t>(image[offset + 3]) << 24U);
+    return true;
+}
+
+bool readI32(
+    const std::vector<std::uint8_t> &image,
+    std::size_t offset,
+    std::int32_t *value)
+{
+    if (value == nullptr || !hasBytes(image.size(), offset, sizeof(std::int32_t))) {
+        return false;
+    }
+    std::memcpy(value, image.data() + offset, sizeof(*value));
+    return true;
+}
+
+bool asciiEquals(
+    const std::vector<std::uint8_t> &image,
+    std::size_t offset,
+    std::string_view expected)
+{
+    if (!hasBytes(image.size(), offset, expected.size() + 1)) {
+        return false;
+    }
+    for (std::size_t index = 0; index < expected.size(); ++index) {
+        if (image[offset + index]
+            != static_cast<std::uint8_t>(expected[index])) {
+            return false;
+        }
+    }
+    return image[offset + expected.size()] == '\0';
+}
+
+bool verifyMappedPeIdentity(
+    const std::vector<std::uint8_t> &image,
+    std::uint32_t expectedTimestamp,
+    std::size_t expectedImageSize,
+    std::string_view label,
+    std::string *failure)
+{
+    IMAGE_DOS_HEADER dosHeader {};
+    if (failure == nullptr
+        || !readObject(image, 0, &dosHeader)
+        || dosHeader.e_magic != IMAGE_DOS_SIGNATURE
+        || dosHeader.e_lfanew < 0) {
+        if (failure != nullptr) {
+            *failure = std::string(label)
+                + " has no valid mapped DOS header.";
+        }
+        return false;
+    }
+
+    const std::size_t ntOffset =
+        static_cast<std::size_t>(dosHeader.e_lfanew);
+    std::uint32_t signature = 0;
+    IMAGE_FILE_HEADER fileHeader {};
+    IMAGE_OPTIONAL_HEADER64 optionalHeader {};
+    const std::size_t optionalHeaderOffset =
+        ntOffset + sizeof(signature) + sizeof(fileHeader);
+    if (!readU32(image, ntOffset, &signature)
+        || signature != IMAGE_NT_SIGNATURE
+        || !readObject(
+            image,
+            ntOffset + sizeof(signature),
+            &fileHeader)
+        || !readObject(image, optionalHeaderOffset, &optionalHeader)
+        || fileHeader.Machine != IMAGE_FILE_MACHINE_AMD64
+        || optionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC
+        || fileHeader.TimeDateStamp != expectedTimestamp
+        || optionalHeader.SizeOfImage != expectedImageSize
+        || image.size() != expectedImageSize) {
+        *failure = std::string(label)
+            + " timestamp or image size differs from Cavalry 2.7.2.";
+        return false;
+    }
+    return true;
+}
+
+bool verifyMappedPeIdentityRejectsDrift(
+    const std::vector<std::uint8_t> &image,
+    std::uint32_t expectedTimestamp,
+    std::size_t expectedImageSize,
+    std::string_view label,
+    std::string *failure)
+{
+    if (failure == nullptr) {
+        return false;
+    }
+    if (expectedImageSize <= 0x1000U
+        || expectedImageSize
+            > std::numeric_limits<std::uint32_t>::max()) {
+        *failure = std::string(label)
+            + " negative identity fixture has an invalid expected image size.";
+        return false;
+    }
+    IMAGE_DOS_HEADER dosHeader {};
+    if (!readObject(image, 0, &dosHeader)
+        || dosHeader.e_magic != IMAGE_DOS_SIGNATURE
+        || dosHeader.e_lfanew < 0) {
+        *failure = std::string(label)
+            + " negative identity fixture has no DOS header.";
+        return false;
+    }
+
+    const std::size_t ntOffset =
+        static_cast<std::size_t>(dosHeader.e_lfanew);
+    const std::size_t fileHeaderOffset =
+        ntOffset + sizeof(std::uint32_t);
+    const std::size_t optionalHeaderOffset =
+        fileHeaderOffset + sizeof(IMAGE_FILE_HEADER);
+    const std::size_t timestampOffset =
+        fileHeaderOffset + offsetof(IMAGE_FILE_HEADER, TimeDateStamp);
+    const std::size_t imageSizeOffset =
+        optionalHeaderOffset
+        + offsetof(IMAGE_OPTIONAL_HEADER64, SizeOfImage);
+    if (!hasBytes(image.size(), timestampOffset, sizeof(std::uint32_t))
+        || !hasBytes(image.size(), imageSizeOffset, sizeof(std::uint32_t))) {
+        *failure = std::string(label)
+            + " negative identity fixture header is truncated.";
+        return false;
+    }
+
+    std::vector<std::uint8_t> drifted = image;
+    const std::uint32_t driftedTimestamp = expectedTimestamp ^ 1U;
+    std::memcpy(
+        drifted.data() + timestampOffset,
+        &driftedTimestamp,
+        sizeof(driftedTimestamp));
+    std::string rejection;
+    if (verifyMappedPeIdentity(
+            drifted,
+            expectedTimestamp,
+            expectedImageSize,
+            label,
+            &rejection)) {
+        *failure = std::string(label)
+            + " identity contract accepted a timestamp drift.";
+        return false;
+    }
+
+    drifted = image;
+    const std::uint32_t driftedImageSize =
+        static_cast<std::uint32_t>(expectedImageSize - 0x1000U);
+    std::memcpy(
+        drifted.data() + imageSizeOffset,
+        &driftedImageSize,
+        sizeof(driftedImageSize));
+    rejection.clear();
+    if (verifyMappedPeIdentity(
+            drifted,
+            expectedTimestamp,
+            expectedImageSize,
+            label,
+            &rejection)) {
+        *failure = std::string(label)
+            + " identity contract accepted a SizeOfImage drift.";
+        return false;
+    }
+    return true;
+}
+
+bool hasNulTerminatedAsciiLiteral(
+    const std::vector<std::uint8_t> &image,
+    std::string_view expected)
+{
+    if (expected.empty() || image.size() <= expected.size()) {
+        return false;
+    }
+
+    const auto found = std::search(
+        image.begin(),
+        image.end(),
+        expected.begin(),
+        expected.end());
+    return found != image.end()
+        && static_cast<std::size_t>(image.end() - found) > expected.size()
+        && *(found + expected.size()) == '\0';
+}
+
+bool readRawFile(
+    const std::filesystem::path &path,
+    std::vector<std::uint8_t> *raw,
+    std::string *failure)
+{
+    if (raw == nullptr || failure == nullptr) {
+        return false;
+    }
+
+    std::ifstream input(path, std::ios::binary | std::ios::ate);
+    if (!input) {
+        *failure = "Cannot open vendor binary.";
+        return false;
+    }
+    const std::streamsize length = input.tellg();
+    if (length <= 0) {
+        *failure = "Vendor binary is empty or unreadable.";
+        return false;
+    }
+    if (static_cast<unsigned long long>(length) > kMaximumMappedImageSize) {
+        *failure = "Vendor binary exceeds the static-contract size limit.";
+        return false;
+    }
+
+    raw->resize(static_cast<std::size_t>(length));
+    input.seekg(0, std::ios::beg);
+    if (!input.read(
+            reinterpret_cast<char *>(raw->data()),
+            static_cast<std::streamsize>(raw->size()))) {
+        *failure = "Cannot read vendor binary.";
+        return false;
+    }
+    return true;
+}
+
+bool mapRawPeImage(
+    const std::filesystem::path &path,
+    std::vector<std::uint8_t> *mapped,
+    std::string *failure)
+{
+    std::vector<std::uint8_t> raw;
+    if (!readRawFile(path, &raw, failure)) {
+        return false;
+    }
+
+    IMAGE_DOS_HEADER dosHeader {};
+    if (!readObject(raw, 0, &dosHeader)
+        || dosHeader.e_magic != IMAGE_DOS_SIGNATURE || dosHeader.e_lfanew < 0) {
+        *failure = "Vendor binary has an invalid DOS header.";
+        return false;
+    }
+
+    const std::size_t ntOffset = static_cast<std::size_t>(dosHeader.e_lfanew);
+    std::uint32_t ntSignature = 0;
+    IMAGE_FILE_HEADER fileHeader {};
+    if (!readU32(raw, ntOffset, &ntSignature)
+        || ntSignature != IMAGE_NT_SIGNATURE
+        || !readObject(raw, ntOffset + sizeof(ntSignature), &fileHeader)
+        || fileHeader.Machine != IMAGE_FILE_MACHINE_AMD64
+        || fileHeader.SizeOfOptionalHeader < sizeof(IMAGE_OPTIONAL_HEADER64)) {
+        *failure = "Vendor binary is not a supported PE64 image.";
+        return false;
+    }
+
+    std::size_t optionalHeaderOffset = 0;
+    if (!addSize(ntOffset, sizeof(ntSignature) + sizeof(fileHeader), &optionalHeaderOffset)) {
+        *failure = "Vendor binary header offset overflows.";
+        return false;
+    }
+    IMAGE_OPTIONAL_HEADER64 optionalHeader {};
+    if (!readObject(raw, optionalHeaderOffset, &optionalHeader)
+        || optionalHeader.Magic != IMAGE_NT_OPTIONAL_HDR64_MAGIC
+        || optionalHeader.SizeOfImage == 0
+        || optionalHeader.SizeOfImage > kMaximumMappedImageSize
+        || optionalHeader.SizeOfHeaders == 0
+        || optionalHeader.SizeOfHeaders > optionalHeader.SizeOfImage
+        || !hasBytes(raw.size(), 0, optionalHeader.SizeOfHeaders)) {
+        *failure = "Vendor binary has invalid PE64 image/header sizes.";
+        return false;
+    }
+
+    std::size_t sectionTableOffset = 0;
+    if (!addSize(
+            optionalHeaderOffset,
+            static_cast<std::size_t>(fileHeader.SizeOfOptionalHeader),
+            &sectionTableOffset)
+        || !hasBytes(
+            raw.size(),
+            sectionTableOffset,
+            static_cast<std::size_t>(fileHeader.NumberOfSections)
+                * sizeof(IMAGE_SECTION_HEADER))) {
+        *failure = "Vendor binary has an invalid PE section table.";
+        return false;
+    }
+
+    mapped->assign(optionalHeader.SizeOfImage, 0);
+    std::copy_n(
+        raw.data(),
+        optionalHeader.SizeOfHeaders,
+        mapped->data());
+
+    for (std::size_t index = 0; index < fileHeader.NumberOfSections; ++index) {
+        IMAGE_SECTION_HEADER section {};
+        const std::size_t sectionOffset =
+            sectionTableOffset + index * sizeof(IMAGE_SECTION_HEADER);
+        if (!readObject(raw, sectionOffset, &section)) {
+            *failure = "Vendor binary section header is truncated.";
+            return false;
+        }
+
+        const std::size_t virtualAddress = section.VirtualAddress;
+        const std::size_t virtualSize = section.Misc.VirtualSize;
+        const std::size_t rawSize = section.SizeOfRawData;
+        const std::size_t rawOffset = section.PointerToRawData;
+        const std::size_t sectionSpan = std::max(virtualSize, rawSize);
+        if (!hasBytes(mapped->size(), virtualAddress, sectionSpan)
+            || (rawSize != 0 && !hasBytes(raw.size(), rawOffset, rawSize))
+            || (rawSize != 0 && !hasBytes(mapped->size(), virtualAddress, rawSize))) {
+            *failure = "Vendor binary section range is invalid.";
+            return false;
+        }
+        if (rawSize != 0) {
+            std::copy_n(
+                raw.data() + rawOffset,
+                rawSize,
+                mapped->data() + virtualAddress);
+        }
+    }
+
+    return true;
+}
+
+bool hasNamedExport(
+    const std::vector<std::uint8_t> &image,
+    std::string_view expectedName,
+    std::string *failure)
+{
+    IMAGE_DOS_HEADER dosHeader {};
+    if (!readObject(image, 0, &dosHeader) || dosHeader.e_lfanew < 0) {
+        *failure = "Mapped vendor image has an invalid DOS header.";
+        return false;
+    }
+    const std::size_t ntOffset = static_cast<std::size_t>(dosHeader.e_lfanew);
+    std::size_t optionalHeaderOffset = 0;
+    if (!addSize(
+            ntOffset,
+            sizeof(std::uint32_t) + sizeof(IMAGE_FILE_HEADER),
+            &optionalHeaderOffset)) {
+        *failure = "Mapped vendor image header offset overflows.";
+        return false;
+    }
+
+    IMAGE_OPTIONAL_HEADER64 optionalHeader {};
+    if (!readObject(image, optionalHeaderOffset, &optionalHeader)
+        || optionalHeader.NumberOfRvaAndSizes <= IMAGE_DIRECTORY_ENTRY_EXPORT) {
+        *failure = "Mapped vendor image has no export directory.";
+        return false;
+    }
+    const IMAGE_DATA_DIRECTORY exportDirectory =
+        optionalHeader.DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
+    if (exportDirectory.VirtualAddress == 0
+        || exportDirectory.Size < sizeof(IMAGE_EXPORT_DIRECTORY)
+        || !hasBytes(
+            image.size(),
+            exportDirectory.VirtualAddress,
+            sizeof(IMAGE_EXPORT_DIRECTORY))) {
+        *failure = "Mapped vendor image export directory is invalid.";
+        return false;
+    }
+
+    IMAGE_EXPORT_DIRECTORY exports {};
+    if (!readObject(image, exportDirectory.VirtualAddress, &exports)
+        || exports.NumberOfNames == 0 || exports.NumberOfFunctions == 0
+        || !hasBytes(
+            image.size(),
+            exports.AddressOfNames,
+            static_cast<std::size_t>(exports.NumberOfNames) * sizeof(std::uint32_t))
+        || !hasBytes(
+            image.size(),
+            exports.AddressOfNameOrdinals,
+            static_cast<std::size_t>(exports.NumberOfNames) * sizeof(std::uint16_t))
+        || !hasBytes(
+            image.size(),
+            exports.AddressOfFunctions,
+            static_cast<std::size_t>(exports.NumberOfFunctions) * sizeof(std::uint32_t))) {
+        *failure = "Mapped vendor image export table is invalid.";
+        return false;
+    }
+
+    for (std::size_t index = 0; index < exports.NumberOfNames; ++index) {
+        std::uint32_t nameRva = 0;
+        std::uint16_t ordinal = 0;
+        if (!readU32(
+                image,
+                exports.AddressOfNames + index * sizeof(nameRva),
+                &nameRva)
+            || !readU16(
+                image,
+                exports.AddressOfNameOrdinals + index * sizeof(ordinal),
+                &ordinal)
+            || ordinal >= exports.NumberOfFunctions) {
+            *failure = "Mapped vendor image export name entry is invalid.";
+            return false;
+        }
+        if (!asciiEquals(image, nameRva, expectedName)) {
+            continue;
+        }
+
+        std::uint32_t functionRva = 0;
+        if (!readU32(
+                image,
+                exports.AddressOfFunctions
+                    + static_cast<std::size_t>(ordinal) * sizeof(functionRva),
+                &functionRva)
+            || functionRva == 0) {
+            *failure = "Expected vendor export has no function RVA.";
+            return false;
+        }
+        return true;
+    }
+
+    *failure = "Expected decorated export is absent.";
+    return false;
+}
+
+bool imageSectionTable(
+    const std::vector<std::uint8_t> &image,
+    std::size_t *sectionTableOffset,
+    std::uint16_t *sectionCount,
+    std::string *failure)
+{
+    if (sectionTableOffset == nullptr || sectionCount == nullptr || failure == nullptr) {
+        return false;
+    }
+
+    IMAGE_DOS_HEADER dosHeader {};
+    if (!readObject(image, 0, &dosHeader)
+        || dosHeader.e_magic != IMAGE_DOS_SIGNATURE || dosHeader.e_lfanew < 0) {
+        *failure = "Mapped vendor image has an invalid DOS header.";
+        return false;
+    }
+    const std::size_t ntOffset = static_cast<std::size_t>(dosHeader.e_lfanew);
+    std::uint32_t signature = 0;
+    IMAGE_FILE_HEADER fileHeader {};
+    if (!readU32(image, ntOffset, &signature)
+        || signature != IMAGE_NT_SIGNATURE
+        || !readObject(image, ntOffset + sizeof(signature), &fileHeader)) {
+        *failure = "Mapped vendor image has an invalid NT header.";
+        return false;
+    }
+
+    std::size_t optionalHeaderOffset = 0;
+    if (!addSize(
+            ntOffset,
+            sizeof(signature) + sizeof(fileHeader),
+            &optionalHeaderOffset)
+        || !addSize(
+            optionalHeaderOffset,
+            static_cast<std::size_t>(fileHeader.SizeOfOptionalHeader),
+            sectionTableOffset)
+        || !hasBytes(
+            image.size(),
+            *sectionTableOffset,
+            static_cast<std::size_t>(fileHeader.NumberOfSections)
+                * sizeof(IMAGE_SECTION_HEADER))) {
+        *failure = "Mapped vendor image has an invalid section table.";
+        return false;
+    }
+
+    *sectionCount = fileHeader.NumberOfSections;
+    return true;
+}
+
+bool directNearCallTargetsRva(
+    const std::vector<std::uint8_t> &image,
+    std::size_t callRva,
+    std::size_t expectedTargetRva)
+{
+    if (!hasBytes(image.size(), callRva, 5) || image[callRva] != 0xE8) {
+        return false;
+    }
+
+    std::int32_t displacement = 0;
+    if (!readI32(image, callRva + 1, &displacement)) {
+        return false;
+    }
+    const std::int64_t target =
+        static_cast<std::int64_t>(callRva) + 5 + displacement;
+    return target == static_cast<std::int64_t>(expectedTargetRva);
+}
+
+bool nearJumpTargetsRva(
+    const std::vector<std::uint8_t> &image,
+    std::size_t jumpRva,
+    std::size_t expectedTargetRva)
+{
+    if (!hasBytes(image.size(), jumpRva, 5) || image[jumpRva] != 0xE9) {
+        return false;
+    }
+
+    std::int32_t displacement = 0;
+    if (!readI32(image, jumpRva + 1, &displacement)) {
+        return false;
+    }
+    const std::int64_t target =
+        static_cast<std::int64_t>(jumpRva) + 5 + displacement;
+    return target == static_cast<std::int64_t>(expectedTargetRva);
+}
+
+bool ripRelativeLeaTargetsRva(
+    const std::vector<std::uint8_t> &image,
+    std::size_t leaRva,
+    std::size_t expectedTargetRva)
+{
+    if (!hasBytes(image.size(), leaRva, 7)
+        || (image[leaRva] & 0xF0) != 0x40
+        || image[leaRva + 1] != 0x8D
+        || (image[leaRva + 2] & 0xC7) != 0x05) {
+        return false;
+    }
+    std::int32_t displacement = 0;
+    if (!readI32(image, leaRva + 3, &displacement)) {
+        return false;
+    }
+    const std::int64_t target =
+        static_cast<std::int64_t>(leaRva) + 7 + displacement;
+    return target == static_cast<std::int64_t>(expectedTargetRva);
+}
+
+bool ripRelativeMovTargetsRva(
+    const std::vector<std::uint8_t> &image,
+    std::size_t movRva,
+    std::size_t expectedTargetRva)
+{
+    if (!hasBytes(image.size(), movRva, 7)
+        || image[movRva] != 0x48
+        || image[movRva + 1] != 0x8B
+        || image[movRva + 2] != 0x05) {
+        return false;
+    }
+    std::int32_t displacement = 0;
+    if (!readI32(image, movRva + 3, &displacement)) {
+        return false;
+    }
+    const std::int64_t target =
+        static_cast<std::int64_t>(movRva) + 7 + displacement;
+    return target == static_cast<std::int64_t>(expectedTargetRva);
+}
+
+template <std::size_t Size>
+bool bytesEqual(
+    const std::vector<std::uint8_t> &image,
+    std::size_t rva,
+    const std::array<std::uint8_t, Size> &expected)
+{
+    return hasBytes(image.size(), rva, Size)
+        && std::equal(
+            expected.begin(),
+            expected.end(),
+            image.begin() + static_cast<std::ptrdiff_t>(rva));
+}
+
+bool indirectCallTargetsRva(
+    const std::vector<std::uint8_t> &image,
+    std::size_t callRva,
+    std::size_t expectedTargetRva)
+{
+    if (!hasBytes(image.size(), callRva, 6)
+        || image[callRva] != 0xFF || image[callRva + 1] != 0x15) {
+        return false;
+    }
+    std::int32_t displacement = 0;
+    if (!readI32(image, callRva + 2, &displacement)) {
+        return false;
+    }
+    const std::int64_t target =
+        static_cast<std::int64_t>(callRva) + 6 + displacement;
+    return target == static_cast<std::int64_t>(expectedTargetRva);
+}
+
+bool countDirectNearCallsToRva(
+    const std::vector<std::uint8_t> &image,
+    std::size_t expectedTargetRva,
+    std::size_t *count,
+    std::string *failure)
+{
+    if (count == nullptr || failure == nullptr) {
+        return false;
+    }
+
+    std::size_t sectionTableOffset = 0;
+    std::uint16_t sectionCount = 0;
+    if (!imageSectionTable(image, &sectionTableOffset, &sectionCount, failure)) {
+        return false;
+    }
+
+    std::size_t result = 0;
+    for (std::size_t index = 0; index < sectionCount; ++index) {
+        IMAGE_SECTION_HEADER section {};
+        const std::size_t sectionOffset =
+            sectionTableOffset + index * sizeof(IMAGE_SECTION_HEADER);
+        if (!readObject(image, sectionOffset, &section)) {
+            *failure = "Mapped vendor image executable section is truncated.";
+            return false;
+        }
+        if ((section.Characteristics & IMAGE_SCN_MEM_EXECUTE) == 0) {
+            continue;
+        }
+
+        const std::size_t sectionRva = section.VirtualAddress;
+        const std::size_t sectionSize = std::max(
+            static_cast<std::size_t>(section.Misc.VirtualSize),
+            static_cast<std::size_t>(section.SizeOfRawData));
+        if (!hasBytes(image.size(), sectionRva, sectionSize)) {
+            *failure = "Mapped vendor executable section range is invalid.";
+            return false;
+        }
+
+        for (std::size_t offset = 0; offset + 5 <= sectionSize; ++offset) {
+            if (directNearCallTargetsRva(
+                    image,
+                    sectionRva + offset,
+                    expectedTargetRva)) {
+                ++result;
+            }
+        }
+    }
+
+    *count = result;
+    return true;
+}
+
+bool verifySetPlaceholderContract(
+    const std::vector<std::uint8_t> &image,
+    std::string *failure)
+{
+    if (!nearJumpTargetsRva(
+            image,
+            kSetPlaceholderThunkRva,
+            kSetPlaceholderSetterRva)) {
+        *failure = "setPlaceholder export thunk is not the canonical direct jump.";
+        return false;
+    }
+    if (!hasBytes(
+            image.size(),
+            kSetPlaceholderSetterRva,
+            kSetPlaceholderSetterPrologue.size() + 7)
+        || std::memcmp(
+               image.data() + kSetPlaceholderSetterRva,
+               kSetPlaceholderSetterPrologue.data(),
+               kSetPlaceholderSetterPrologue.size())
+            != 0) {
+        *failure = "setPlaceholder setter prologue differs from the Cavalry 2.7.2 ABI contract.";
+        return false;
+    }
+
+    const std::size_t tailJumpRva =
+        kSetPlaceholderSetterRva + kSetPlaceholderSetterPrologue.size();
+    if (image[tailJumpRva] != 0x48 || image[tailJumpRva + 1] != 0xFF
+        || image[tailJumpRva + 2] != 0x25) {
+        *failure = "setPlaceholder setter does not tail-jump through the canonical assignment slot.";
+        return false;
+    }
+    std::int32_t slotDisplacement = 0;
+    if (!readI32(image, tailJumpRva + 3, &slotDisplacement)) {
+        *failure = "setPlaceholder setter tail jump is truncated.";
+        return false;
+    }
+    const std::int64_t slotRva =
+        static_cast<std::int64_t>(tailJumpRva) + 7 + slotDisplacement;
+    if (slotRva != static_cast<std::int64_t>(kExpectedQStringAssignmentIatRva)) {
+        *failure = "setPlaceholder setter does not resolve to the canonical QString assignment slot RVA.";
+        return false;
+    }
+    if (!hasBytes(
+            image.size(),
+            kExpectedQStringAssignmentIatRva,
+            sizeof(kExpectedQStringAssignmentNameRva))) {
+        *failure = "setPlaceholder QString assignment slot is truncated.";
+        return false;
+    }
+    std::uintptr_t assignmentNameRva = 0;
+    std::memcpy(
+        &assignmentNameRva,
+        image.data() + kExpectedQStringAssignmentIatRva,
+        sizeof(assignmentNameRva));
+    if (assignmentNameRva != kExpectedQStringAssignmentNameRva) {
+        *failure = "setPlaceholder QString assignment slot does not start as the canonical import-by-name RVA.";
+        return false;
+    }
+
+    std::size_t directCallCount = 0;
+    if (!countDirectNearCallsToRva(
+            image,
+            kSetPlaceholderThunkRva,
+            &directCallCount,
+            failure)) {
+        return false;
+    }
+    if (directCallCount != kExpectedSetPlaceholderDirectCallCount) {
+        *failure = "setPlaceholder direct-call count differs from the Cavalry 2.7.2 contract.";
+        return false;
+    }
+    if (!directNearCallTargetsRva(
+            image,
+            kSnippetPlaceholderCallRva,
+            kSetPlaceholderThunkRva)) {
+        *failure = "Snippet source no longer reaches the canonical setPlaceholder export by a direct call.";
+        return false;
+    }
+    return true;
+}
+
+bool verifyPlaceholderSourceLiterals(
+    const std::vector<std::uint8_t> &image,
+    std::string *failure)
+{
+    for (const char *source
+         : cavalry_i18n::extension_layer_contract::kStaticPlaceholderSources) {
+        if (!hasNulTerminatedAsciiLiteral(image, source)) {
+            *failure = std::string("ExtensionLayer is missing an approved placeholder literal: ")
+                + source;
+            return false;
+        }
+    }
+    return true;
+}
+
+bool verifySelectedCountLabelContract(
+    const std::vector<std::uint8_t> &image,
+    std::string *failure)
+{
+    const CavalryPeIatLookupResult lookup = findCavalryPe64IatSlot(
+        image.data(),
+        image.size(),
+        kQtWidgetsImportName,
+        kQLabelSetTextSymbol);
+    if (lookup.status != CavalryPeIatLookupStatus::Found
+        || lookup.iatSlotOffset != kExpectedQLabelSetTextIatRva
+        || !hasBytes(
+            image.size(),
+            kSelectedCountProducerRva,
+            kSelectedCountProducerPrologue.size())
+        || std::memcmp(
+               image.data() + kSelectedCountProducerRva,
+               kSelectedCountProducerPrologue.data(),
+               kSelectedCountProducerPrologue.size())
+            != 0
+        || !asciiEquals(
+            image,
+            kSelectedCountLiteralRva,
+            "%1 selected")
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kSelectedCountLiteralLeaRva,
+            kSelectedCountLiteralRva)
+        || kSelectedCountSetTextCallRva + 6
+            != kSelectedCountSetTextReturnRva
+        || !indirectCallTargetsRva(
+            image,
+            kSelectedCountSetTextCallRva,
+            kExpectedQLabelSetTextIatRva)) {
+        *failure =
+            "Selection count producer no longer formats '%1 selected' into the canonical QLabel::setText call.";
+        return false;
+    }
+    return true;
+}
+
+bool verifyOrdinaryQtResidualContract(
+    const std::vector<std::uint8_t> &image,
+    std::string *failure)
+{
+    const CavalryPeIatLookupResult metaObjectTranslate =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtCoreImportName,
+            kQMetaObjectTrSymbol);
+    const CavalryPeIatLookupResult fromUtf8 =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtCoreImportName,
+            kQStringFromUtf8Symbol);
+    const CavalryPeIatLookupResult labelConstructor =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQLabelTextConstructorSymbol);
+    const CavalryPeIatLookupResult windowTitleSetter =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQWidgetSetWindowTitleSymbol);
+    const CavalryPeIatLookupResult dialogConstructor =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQDialogConstructorSymbol);
+    const CavalryPeIatLookupResult progressBarConstructor =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQProgressBarConstructorSymbol);
+    const CavalryPeIatLookupResult pushButtonConstructor =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQPushButtonTextConstructorSymbol);
+    const CavalryPeIatLookupResult setAttribute =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQWidgetSetAttributeSymbol);
+    const CavalryPeIatLookupResult setWindowModality =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQWidgetSetWindowModalitySymbol);
+    const CavalryPeIatLookupResult mainWindow =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kCavalryUiImportName,
+            kCavalryMainWindowSymbol);
+    if (metaObjectTranslate.status != CavalryPeIatLookupStatus::Found
+        || metaObjectTranslate.iatSlotOffset
+            != kExpectedQMetaObjectTrIatRva
+        || fromUtf8.status != CavalryPeIatLookupStatus::Found
+        || fromUtf8.iatSlotOffset != kExpectedQStringFromUtf8IatRva
+        || labelConstructor.status != CavalryPeIatLookupStatus::Found
+        || labelConstructor.iatSlotOffset
+            != kExpectedQLabelTextConstructorIatRva
+        || windowTitleSetter.status != CavalryPeIatLookupStatus::Found
+        || windowTitleSetter.iatSlotOffset
+            != kExpectedQWidgetSetWindowTitleIatRva
+        || dialogConstructor.status != CavalryPeIatLookupStatus::Found
+        || dialogConstructor.iatSlotOffset
+            != kExpectedQDialogConstructorIatRva
+        || progressBarConstructor.status != CavalryPeIatLookupStatus::Found
+        || progressBarConstructor.iatSlotOffset
+            != kExpectedQProgressBarConstructorIatRva
+        || pushButtonConstructor.status != CavalryPeIatLookupStatus::Found
+        || pushButtonConstructor.iatSlotOffset
+            != kExpectedQPushButtonTextConstructorIatRva
+        || setAttribute.status != CavalryPeIatLookupStatus::Found
+        || setAttribute.iatSlotOffset
+            != kExpectedQWidgetSetAttributeIatRva
+        || setWindowModality.status != CavalryPeIatLookupStatus::Found
+        || setWindowModality.iatSlotOffset
+            != kExpectedQWidgetSetWindowModalityIatRva
+        || mainWindow.status != CavalryPeIatLookupStatus::Found
+        || mainWindow.iatSlotOffset
+            != kExpectedCavalryMainWindowIatRva) {
+        *failure =
+            "Ordinary Qt residual imports differ from the Cavalry 2.7.2 contract.";
+        return false;
+    }
+
+    for (const MetaObjectTranslationContract &contract
+         : kMetaObjectTranslationContracts) {
+        const cavalry_i18n::ScopedTranslationKey &translation =
+            *contract.translation;
+        if (!asciiEquals(
+                image,
+                contract.metaObjectNameRva,
+                translation.context.data())
+            || !ripRelativeLeaTargetsRva(
+                image,
+                contract.metaObjectLeaRva,
+                contract.metaObjectRva)
+            || !asciiEquals(
+                image,
+                contract.sourceRva,
+                translation.source.data())
+            || !ripRelativeLeaTargetsRva(
+                image,
+                contract.sourceLeaRva,
+                contract.sourceRva)
+            || !indirectCallTargetsRva(
+                image,
+                contract.translationCallRva,
+                kExpectedQMetaObjectTrIatRva)) {
+            *failure =
+                std::string("Ordinary Qt meta-object translation path changed for: ")
+                + translation.context.data() + " / "
+                + translation.source.data();
+            return false;
+        }
+    }
+
+    for (const RawQLabelContract &contract : kRawQLabelContracts) {
+        const cavalry_i18n::ScopedTranslationKey &translation =
+            *contract.translation;
+        if (!asciiEquals(
+                image,
+                contract.literalRva,
+                translation.source.data())
+            || !ripRelativeLeaTargetsRva(
+                image,
+                contract.literalLeaRva,
+                contract.literalRva)
+            || !indirectCallTargetsRva(
+                image,
+                contract.fromUtf8CallRva,
+                kExpectedQStringFromUtf8IatRva)
+            || !indirectCallTargetsRva(
+                image,
+                contract.labelConstructorCallRva,
+                kExpectedQLabelTextConstructorIatRva)) {
+            *failure =
+                std::string("Ordinary Qt QLabel source path changed for: ")
+                + translation.source.data();
+            return false;
+        }
+    }
+
+    if (!asciiEquals(
+            image,
+            kProjectStatisticsMetaObjectNameRva,
+            kProjectStatisticsMetaObjectName)
+        || !asciiEquals(
+            image,
+            kProjectStatisticsWindowTitleLiteralRva,
+            kProjectStatisticsWindowTitleSource)
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kProjectStatisticsWindowTitleLiteralLeaRva,
+            kProjectStatisticsWindowTitleLiteralRva)
+        || !indirectCallTargetsRva(
+            image,
+            kProjectStatisticsWindowTitleFromUtf8CallRva,
+            kExpectedQStringFromUtf8IatRva)
+        || !indirectCallTargetsRva(
+            image,
+            kProjectStatisticsWindowTitleSetterCallRva,
+            kExpectedQWidgetSetWindowTitleIatRva)) {
+        *failure =
+            "Ordinary Qt Project Statistics owner/title path changed.";
+        return false;
+    }
+
+    const cavalry_i18n::ScopedTranslationKey &trackingTranslation =
+        cavalry_i18n::kTrackingWindowTitleKey;
+    if (!asciiEquals(
+            image,
+            kTrackingWindowTitleLiteralRva,
+            trackingTranslation.source.data())
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kTrackingWindowTitleLiteralLeaRva,
+            kTrackingWindowTitleLiteralRva)
+        || !indirectCallTargetsRva(
+            image,
+            kTrackingWindowTitleFromUtf8CallRva,
+            kExpectedQStringFromUtf8IatRva)
+        || !indirectCallTargetsRva(
+            image,
+            kTrackingWindowTitleSetterCallRva,
+            kExpectedQWidgetSetWindowTitleIatRva)
+        || !ripRelativeMovTargetsRva(
+            image,
+            kTrackingMainWindowLoadRva,
+            kExpectedCavalryMainWindowIatRva)
+        || !bytesEqual(
+            image,
+            kTrackingDialogParentFlowRva,
+            kTrackingDialogParentFlow)
+        || !indirectCallTargetsRva(
+            image,
+            kTrackingDialogConstructorCallRva,
+            kExpectedQDialogConstructorIatRva)
+        || !bytesEqual(
+            image,
+            kTrackingDialogStateFlowRva,
+            kTrackingDialogStateFlow)
+        || !bytesEqual(
+            image,
+            kTrackingDeleteOnCloseReceiverFlowRva,
+            kTrackingDeleteOnCloseReceiverFlow)
+        || !indirectCallTargetsRva(
+            image,
+            kTrackingDeleteOnCloseCallRva,
+            kExpectedQWidgetSetAttributeIatRva)
+        || !bytesEqual(
+            image,
+            kTrackingProgressParentFlowRva,
+            kTrackingProgressParentFlow)
+        || !indirectCallTargetsRva(
+            image,
+            kTrackingProgressBarConstructorCallRva,
+            kExpectedQProgressBarConstructorIatRva)
+        || !bytesEqual(
+            image,
+            kTrackingProgressStateFlowRva,
+            kTrackingProgressStateFlow)
+        || !bytesEqual(
+            image,
+            kTrackingWindowModalityReceiverFlowRva,
+            kTrackingWindowModalityReceiverFlow)
+        || !indirectCallTargetsRva(
+            image,
+            kTrackingWindowModalCallRva,
+            kExpectedQWidgetSetWindowModalityIatRva)
+        || !asciiEquals(
+            image,
+            kTrackingCancelLiteralRva,
+            kTrackingCancelSource)
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kTrackingCancelLiteralLeaRva,
+            kTrackingCancelLiteralRva)
+        || !indirectCallTargetsRva(
+            image,
+            kTrackingCancelFromUtf8CallRva,
+            kExpectedQStringFromUtf8IatRva)
+        || !bytesEqual(
+            image,
+            kTrackingCancelParentFlowRva,
+            kTrackingCancelParentFlow)
+        || !indirectCallTargetsRva(
+            image,
+            kTrackingCancelConstructorCallRva,
+            kExpectedQPushButtonTextConstructorIatRva)) {
+        *failure =
+            "Ordinary Qt Tracking ownership/receiver ABI envelope changed.";
+        return false;
+    }
+    return true;
+}
+
+bool verifyControlledDynamicQtContract(
+    const std::vector<std::uint8_t> &image,
+    std::string *failure)
+{
+    const CavalryPeIatLookupResult qLabelConstructor =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQLabelTextConstructorSymbol);
+    const CavalryPeIatLookupResult comboInsertItem =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQComboBoxInsertItemSymbol);
+    const CavalryPeIatLookupResult plainTextPlaceholder =
+        findCavalryPe64IatSlot(
+            image.data(),
+            image.size(),
+            kQtWidgetsImportName,
+            kQPlainTextEditSetPlaceholderSymbol);
+    if (qLabelConstructor.status != CavalryPeIatLookupStatus::Found
+        || qLabelConstructor.iatSlotOffset
+            != kExpectedQLabelTextConstructorIatRva
+        || comboInsertItem.status != CavalryPeIatLookupStatus::Found
+        || comboInsertItem.iatSlotOffset
+            != kExpectedQComboBoxInsertItemIatRva
+        || plainTextPlaceholder.status != CavalryPeIatLookupStatus::Found
+        || plainTextPlaceholder.iatSlotOffset
+            != kExpectedQPlainTextEditSetPlaceholderIatRva) {
+        *failure =
+            "Controlled dynamic Qt imports differ from the Cavalry 2.7.2 contract.";
+        return false;
+    }
+
+    if (!asciiEquals(
+            image,
+            kColorSettingsTitleLiteralRva,
+            "Color Settings")
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kColorSettingsTitleLeaRva,
+            kColorSettingsTitleLiteralRva)
+        || !asciiEquals(
+            image,
+            kAutomaticTemplateLiteralRva,
+            "Automatic (%1)")
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kAutomaticTemplateLeaRva,
+            kAutomaticTemplateLiteralRva)
+        || !indirectCallTargetsRva(
+            image,
+            kAutomaticInsertItemCallRva,
+            kExpectedQComboBoxInsertItemIatRva)) {
+        *failure =
+            "Color Settings no longer formats 'Automatic (%1)' into the canonical QComboBox DisplayRole path.";
+        return false;
+    }
+
+    if (!asciiEquals(
+            image,
+            kSingleIndexPlaceholderLiteralRva,
+            "Enter an index, e.g: 0")
+        || !ripRelativeLeaTargetsRva(
+            image,
+            kSingleIndexPlaceholderLeaRva,
+            kSingleIndexPlaceholderLiteralRva)
+        || !indirectCallTargetsRva(
+            image,
+            kSingleIndexSetPlaceholderCallRva,
+            kExpectedQPlainTextEditSetPlaceholderIatRva)) {
+        *failure =
+            "acrStringSingleIndex no longer writes its exact QPlainTextEdit placeholder.";
+        return false;
+    }
+
+    if (!indirectCallTargetsRva(
+            image,
+            kMeshExplorerQLabelConstructorCallRva,
+            kExpectedQLabelTextConstructorIatRva)
+        || !asciiEquals(
+            image,
+            kMeshExplorerRowMetaObjectNameRva,
+            "MeshExplorerRowWidget")
+        || !asciiEquals(
+            image,
+            kAttributeEditorMetaObjectNameRva,
+            "AttributeEditorWindow")) {
+        *failure =
+            "Dynamic Qt owner meta-objects or the Mesh Explorer QLabel factory changed.";
+        return false;
+    }
+    for (const MeshExplorerDynamicLabelContract &contract
+         : kMeshExplorerDynamicLabelContracts) {
+        if (!asciiEquals(image, contract.literalRva, contract.source)
+            || !ripRelativeLeaTargetsRva(
+                image,
+                contract.literalLeaRva,
+                contract.literalRva)
+            || !directNearCallTargetsRva(
+                image,
+                contract.labelFactoryCallRva,
+                kMeshExplorerLabelFactoryRva)) {
+            *failure =
+                std::string("Mesh Explorer dynamic QLabel path changed for: ")
+                + contract.source;
+            return false;
+        }
+    }
+    return true;
+}
+
+void fail(const std::string &message)
+{
+    std::fprintf(stderr, "%s\n", message.c_str());
+}
+
+} // namespace
+
+int main(int argc, char *argv[])
+{
+    if (argc != 5) {
+        fail("Usage: cavalryi18n_vendor_iat_contract_test <ExtensionLayer.dll> <CavalryUI.dll> <Core.dll> <skia.dll>");
+        return 1;
+    }
+
+    const std::filesystem::path extensionLayerPath = argv[1];
+    const std::filesystem::path cavalryUiPath = argv[2];
+    const std::filesystem::path corePath = argv[3];
+    const std::filesystem::path skiaPath = argv[4];
+    std::string failure;
+    std::vector<std::uint8_t> extensionLayerImage;
+    if (!mapRawPeImage(extensionLayerPath, &extensionLayerImage, &failure)) {
+        fail("ExtensionLayer vendor contract: " + failure);
+        return 1;
+    }
+    if (!verifyMappedPeIdentity(
+            extensionLayerImage,
+            kExtensionLayerTimestamp,
+            kExtensionLayerImageSize,
+            "ExtensionLayer.dll",
+            &failure)) {
+        fail("ExtensionLayer identity contract: " + failure);
+        return 1;
+    }
+    if (!verifyMappedPeIdentityRejectsDrift(
+            extensionLayerImage,
+            kExtensionLayerTimestamp,
+            kExtensionLayerImageSize,
+            "ExtensionLayer.dll",
+            &failure)) {
+        fail("ExtensionLayer identity negative contract: " + failure);
+        return 1;
+    }
+    if (!hasNamedExport(extensionLayerImage, kSetPlaceholderSymbol, &failure)) {
+        fail("ExtensionLayer placeholder export contract: " + failure);
+        return 1;
+    }
+    if (!verifySetPlaceholderContract(extensionLayerImage, &failure)) {
+        fail("ExtensionLayer placeholder ABI contract: " + failure);
+        return 1;
+    }
+    if (!verifyPlaceholderSourceLiterals(extensionLayerImage, &failure)) {
+        fail("ExtensionLayer placeholder source contract: " + failure);
+        return 1;
+    }
+    if (!verifySelectedCountLabelContract(extensionLayerImage, &failure)) {
+        fail("ExtensionLayer selected-count QLabel contract: " + failure);
+        return 1;
+    }
+    if (!verifyOrdinaryQtResidualContract(
+            extensionLayerImage,
+            &failure)) {
+        fail("ExtensionLayer ordinary Qt residual contract: " + failure);
+        return 1;
+    }
+    if (!verifyControlledDynamicQtContract(extensionLayerImage, &failure)) {
+        fail("ExtensionLayer controlled dynamic Qt contract: " + failure);
+        return 1;
+    }
+    if (!verifyCavalryExtensionLayerMessageBarContract(
+            extensionLayerImage,
+            &failure)) {
+        fail("ExtensionLayer MessageBar append contract: " + failure);
+        return 1;
+    }
+    if (!verifyCavalryExtensionLayerTextPathContract(
+            extensionLayerImage,
+            &failure)) {
+        fail("ExtensionLayer text-path contract: " + failure);
+        return 1;
+    }
+
+    const CavalryPeIatLookupResult lookup = findCavalryPe64IatSlot(
+        extensionLayerImage.data(),
+        extensionLayerImage.size(),
+        kCavalryUiImportName,
+        kTextAtWidgetCentreSymbol);
+    if (lookup.status != CavalryPeIatLookupStatus::Found) {
+        fail(
+            std::string("ExtensionLayer import contract: expected one exact IAT slot, got ")
+            + cavalryPeIatLookupStatusName(lookup.status)
+            + ".");
+        return 1;
+    }
+    if (lookup.iatSlotOffset != kExpectedTextAtWidgetCentreIatRva) {
+        char message[256] {};
+        std::snprintf(
+            message,
+            sizeof(message),
+            "ExtensionLayer import contract: expected IAT RVA 0x%zx, got 0x%zx.",
+            kExpectedTextAtWidgetCentreIatRva,
+            lookup.iatSlotOffset);
+        fail(message);
+        return 1;
+    }
+
+    std::vector<std::uint8_t> cavalryUiImage;
+    if (!mapRawPeImage(cavalryUiPath, &cavalryUiImage, &failure)) {
+        fail("CavalryUI vendor contract: " + failure);
+        return 1;
+    }
+    if (!verifyMappedPeIdentity(
+            cavalryUiImage,
+            kCavalryUiTimestamp,
+            kCavalryUiImageSize,
+            "CavalryUI.dll",
+            &failure)) {
+        fail("CavalryUI identity contract: " + failure);
+        return 1;
+    }
+    if (!verifyMappedPeIdentityRejectsDrift(
+            cavalryUiImage,
+            kCavalryUiTimestamp,
+            kCavalryUiImageSize,
+            "CavalryUI.dll",
+            &failure)) {
+        fail("CavalryUI identity negative contract: " + failure);
+        return 1;
+    }
+    if (!hasNamedExport(cavalryUiImage, kTextAtWidgetCentreSymbol, &failure)) {
+        fail("CavalryUI export contract: " + failure);
+        return 1;
+    }
+
+    std::vector<std::uint8_t> coreImage;
+    std::vector<std::uint8_t> skiaImage;
+    if (!mapRawPeImage(corePath, &coreImage, &failure)) {
+        fail("Core vendor contract: " + failure);
+        return 1;
+    }
+    if (!mapRawPeImage(skiaPath, &skiaImage, &failure)) {
+        fail("Skia vendor contract: " + failure);
+        return 1;
+    }
+    if (!verifyCavalryCoreSkiaTextPathContract(
+            coreImage,
+            skiaImage,
+            &failure)) {
+        fail("Core/Skia CJK text-path contract: " + failure);
+        return 1;
+    }
+
+    std::puts("Cavalry vendor helper, ordinary/controlled Qt display, placeholder, MessageBar, ExtensionLayer, and Core/Skia CJK text-path contracts passed.");
+    return 0;
+}

@@ -259,16 +259,18 @@ dependencies = [
 
 [[package]]
 name = "cavalry-i18n-tauri"
-version = "0.5.3"
+version = "0.6.0"
 dependencies = [
  "chrono",
  "libc",
  "rfd",
  "serde",
  "serde_json",
+ "sha2",
  "tauri",
  "tauri-build",
  "tempfile",
+ "windows",
 ]
 
 [[package]]

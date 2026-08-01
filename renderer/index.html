@@ -1,6 +1,6 @@
 <!--
   [INPUT]: 依赖 ./styles.css 提供布局样式，依赖 ./app.js 绑定界面行为与状态同步
-  [OUTPUT]: 对外提供桌面补丁器渲染层的静态 DOM 结构、权限弹窗与控件锚点
+  [OUTPUT]: 对外提供跨平台桌面补丁器渲染层的静态 DOM 结构、权限弹窗与控件锚点
   [POS]: renderer 的视图骨架，被 Tauri WebView 直接加载
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -26,9 +26,9 @@
     <div class="app-card">
       <div>
         <p id="appVersion" class="app-version">Cavalry not found</p>
-        <p id="appPath" class="app-path">Choose a Cavalry.app to begin.</p>
+        <p id="appPath" class="app-path">Choose a Cavalry installation to begin.</p>
       </div>
-      <button id="browseButton" type="button" class="icon-button" aria-label="Choose Cavalry app">
+      <button id="browseButton" type="button" class="icon-button" aria-label="Choose Cavalry installation">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
           stroke-linecap="round" stroke-linejoin="round">
           <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
@@ -66,7 +66,7 @@
     <section class="status-panel">
       <p class="status-label">sys.out</p>
       <p id="statusText" class="status-text">Ready.</p>
-      <button id="permissionButton" type="button" class="permission-button" hidden>Open Privacy &amp; Security</button>
+      <button id="permissionButton" type="button" class="permission-button" hidden>Open permission settings</button>
     </section>
   </main>
 

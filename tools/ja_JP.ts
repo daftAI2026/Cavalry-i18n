@@ -1920,11 +1920,14 @@
     <message><source>Click a Shape.</source><translation>シェイプをクリック。</translation></message>
     <message><source>Click and drag to define the cutting line</source><translation>クリックしてドラッグして切断ラインを定義する</translation></message>
     <message><source>Click and drag to start making a connection</source><translation>クリックしてドラッグして接続を開始</translation></message>
-    <message><source>Click bone</source><translation>骨クリック</translation></message>
+    <message><source>Click bone</source><translation>ボーンをクリック</translation></message>
     <message><source>Click drag a line between two vertices to create an edge</source><translation>2つの頂点間の線をドラッグしてエッジを作成する</translation></message>
     <message><source>Click drag a line between two vertices to create an edge.</source><translation>2つの頂点間の線をドラッグしてエッジを作成します。</translation></message>
     <message><source>Click drag to edit Soft Selection size</source><translation>ドラッグをクリックしてソフト選択サイズを編集</translation></message>
     <message><source>Click handle</source><translation>ハンドルをクリック</translation></message>
+    <message><source>Click handle + drag</source><translation>ハンドルをクリックしてドラッグ</translation></message>
+    <message><source>Alt + click handle + drag</source><translation>Alt + ハンドルをクリックしてドラッグ</translation></message>
+    <message><source>Start/finish adding bone</source><translation>ボーンの追加を開始/完了</translation></message>
     <message><source>Click to edit or remove the Attribute Expression</source><translation>クリックして属性エクスプレッションを編集または削除</translation></message>
     <message><source>Click to edit or remove the Attribute Expression.</source><translation>クリックして属性エクスプレッションを編集または削除します。</translation></message>
     <message><source>Click to isolate layers and reveal any animated attributes</source><translation>クリックしてレイヤーを分離し、任意のアニメーション属性を表示</translation></message>
@@ -1992,7 +1995,7 @@
     <message><source>Connections</source><translation>コネクション</translation></message>
     <message><source>Constant (Linear)</source><translation>定数(リニア)</translation></message>
     <message><source>Constrain Axis</source><translation>制約軸</translation></message>
-    <message><source>Constrain Proportions</source><translation>制約の報告</translation></message>
+    <message><source>Constrain Proportions</source><translation>縦横比を固定</translation></message>
     <message><source>Constrain the proportions of this Attribute based on the current values</source><translation>現在の値に基づいてこの属性の比率を制約</translation></message>
     <message><source>Constrain the proportions of this Attribute based on the current values.</source><translation>現在の値に基づいてこの属性の比率を制約します。</translation></message>
     <message><source>Context</source><translation>コンテンツ</translation></message>
@@ -2141,7 +2144,7 @@
     <message><source>Disable B</source><translation>バイトを無効化</translation></message>
     <message><source>Disable Playback Caching to use this feature</source><translation>この機能を使用する再生キャッシュを無効にする</translation></message>
     <message><source>Disable Playback Caching to use this feature.</source><translation>この機能を使用する再生キャッシュを無効にします。</translation></message>
-    <message><source>Disable Snapping</source><translation>無効なスナップ</translation></message>
+    <message><source>Disable Snapping</source><translation>スナップを無効にする</translation></message>
     <message><source>Disable Soft Selection</source><translation>無効なソフト選択</translation></message>
     <message><source>Disconnect</source><translation>接続解除</translation></message>
     <message><source>Disconnect All</source><translation>切断 すべて</translation></message>
@@ -2160,8 +2163,8 @@
     <message><source>doesn&apos;t exist.</source><translation>存在しない。</translation></message>
     <message><source>dom PPC kom</source><translation>内部識別三</translation></message>
     <message><source>Done</source><translation>完了</translation></message>
-    <message><source>Double click here to import Assets</source><translation>ここをダブルクリックしてアセットを読み込み</translation></message>
-    <message><source>Double click here to import Assets.</source><translation>ここをダブルクリックしてアセットを読み込み</translation></message>
+    <message><source>Double click here to import Assets</source><translation>ここをダブルクリックしてアセットをインポートします</translation></message>
+    <message><source>Double click here to import Assets.</source><translation>ここをダブルクリックしてアセットをインポートします</translation></message>
     <message><source>Double click on a Preset to rename it</source><translation>プリセットをダブルクリックして名前を変更</translation></message>
     <message><source>Double click on a Preset to rename it.</source><translation>プリセットをダブルクリックして名前を変更。</translation></message>
     <message><source>Double Click on layer</source><translation>レイヤーをダブルクリック</translation></message>
@@ -2172,19 +2175,21 @@
     <message><source>Drag an Asset here from the Asset Window</source><translation>アセットウィンドウからここにアセットをドラッグ</translation></message>
     <message><source>Drag an Asset here from the Asset Window.</source><translation>アセットウィンドウからここにアセットをドラッグします。</translation></message>
     <message><source>Drag an Attribute connection here</source><translation>ここに属性接続をドラッグ</translation></message>
-    <message><source>Drag an Attribute connection here.</source><translation>ここに属性接続をドラッグします。</translation></message>
-    <message><source>Drag at least two Shapes here</source><translation>少なくとも二つのシェイプをここにドラッグ</translation></message>
-    <message><source>Drag colors here</source><translation>ここでは色をドラッグします</translation></message>
-    <message><source>Drag colors here.</source><translation>ここでは色をドラッグします。</translation></message>
-    <message><source>Drag colours here</source><translation>ここに色をドラッグする</translation></message>
-    <message><source>Drag colours here.</source><translation>ここに色をドラッグします。</translation></message>
+    <message><source>Drag an Attribute connection here.</source><translation>ここに属性接続をドラッグします</translation></message>
+    <message><source>Drag at least two Shapes here</source><translation>ここに2つ以上のシェイプをドラッグ</translation></message>
+    <message><source>Drag colors here</source><translation>ここにカラーをドラッグします</translation></message>
+    <message><source>Drag colors here.</source><translation>ここにカラーをドラッグしてください</translation></message>
+    <message><source>Drag colours here</source><translation>ここにカラーをドラッグします</translation></message>
+    <message><source>Drag colours here.</source><translation>ここにカラーをドラッグしてください</translation></message>
+    <message><source>Drag in Compositions or use the '+ Current Composition' button.</source><translation>コンポジションをここにドラッグするか、「+ 現在のコンポジション」ボタンを使用します</translation></message>
     <message><source>Drag in a file from the Assets window</source><translation>アセットウィンドウからファイルをドラッグ</translation></message>
     <message><source>Drag in a Shape layer</source><translation>シェイプレイヤーをドラッグ</translation></message>
     <message><source>Drag in a Smart Folder</source><translation>スマートフォルダにドラッグ</translation></message>
     <message><source>Drag in a Spreadsheet from the Assets Window</source><translation>アセットウィンドウから表計算をドラッグ</translation></message>
     <message><source>Drag in or connect an Asset</source><translation>アセットをドラッグまたは接続</translation></message>
-    <message><source>Drag layers here to see their settings</source><translation>レイヤーをドラッグして設定を見る</translation></message>
-    <message><source>Drag layers here to see their settings.</source><translation>レイヤーをドラッグして設定を確認します</translation></message>
+    <message><source>Drag layers here to see their settings</source><translation>レイヤーをここにドラッグして設定を確認します</translation></message>
+    <message><source>Drag layers here to see their settings.</source><translation>レイヤーをここにドラッグして設定を確認します</translation></message>
+    <message><source>Drag some JavaScript here to make a Snippet.</source><translation>JavaScript をここにドラッグしてスニペットを作成してください</translation></message>
     <message><source>Draw</source><translation>ドロー</translation></message>
     <message><source>Draw a Straight Line</source><translation>直線線を引く</translation></message>
     <message><source>Draw Channel Names</source><translation>チャンネル名を描画する</translation></message>
@@ -2216,7 +2221,7 @@
     <message><source>Empty titles or invalid column data was found</source><translation>空のタイトルや無効な列データが見つかりました</translation></message>
     <message><source>Empty titles or invalid column data was found.</source><translation>タイトルや無効な列データが見つかりました。</translation></message>
     <message><source>Enable</source><translation>アクセス</translation></message>
-    <message><source>Enable B</source><translation>バイトを有効化</translation></message>
+    <message><source>Enable Bézier Angle Snapping</source><translation>ベジェ角度スナップを有効にする</translation></message>
     <message><source>Enable Color Management</source><translation>カラーマネジメントを有効にする</translation></message>
     <message><source>Enable Render Items</source><translation>レンダリングアイテムを有効にする</translation></message>
     <message><source>Enable Snapping</source><translation>スナップを有効にする</translation></message>
@@ -2742,10 +2747,10 @@
     <message><source>No audio file has been set for this decoder</source><translation>このデコーダーのためにオーディオファイルが設定されていない</translation></message>
     <message><source>No audio file has been set for this decoder.</source><translation>このデコーダーのためにオーディオファイルが設定されていない。</translation></message>
     <message><source>No bookmarks yet</source><translation>ブックマークはまだありません</translation></message>
-    <message><source>No bookmarks yet.</source><translation>ブックマークはまだありません。</translation></message>
+    <message><source>No bookmarks yet.</source><translation>ブックマークはまだありません</translation></message>
     <message><source>No Connection</source><translation>接続なし</translation></message>
     <message><source>No Connections</source><translation>接続なし</translation></message>
-    <message><source>No Connections.</source><translation>接続なし。</translation></message>
+    <message><source>No Connections.</source><translation>接続はありません</translation></message>
     <message><source>No Content</source><translation>コンテンツなし</translation></message>
     <message><source>No current preset</source><translation>現在のプリセットなし</translation></message>
     <message><source>No current preset.</source><translation>現在のプリセットはありません。</translation></message>
@@ -2768,9 +2773,9 @@
     <message><source>No Keyframe Layers</source><translation>キーフレームレイヤーなし</translation></message>
     <message><source>No licence available</source><translation>ライセンスなし</translation></message>
     <message><source>No presets yet</source><translation>プリセットなし</translation></message>
-    <message><source>No presets yet.</source><translation>プリセットはありません。</translation></message>
+    <message><source>No presets yet.</source><translation>プリセットはまだありません</translation></message>
     <message><source>No Project Set</source><translation>未設定プロジェクト</translation></message>
-    <message><source>No Project Set.</source><translation>未設定プロジェクト。</translation></message>
+    <message><source>No Project Set.</source><translation>プロジェクトが設定されていません</translation></message>
     <message><source>No Project Set...</source><translation>プロジェクト未設定...</translation></message>
     <message><source>No Recent Files</source><translation>最近のファイルはありません</translation></message>
     <message><source>No Render Format selected, please add one in the Format tab</source><translation>レンダー形式を選択せず、フォーマットタブに1つ追加してください。</translation></message>
@@ -2845,7 +2850,7 @@
     <message><source>Optional</source><translation>オプション</translation></message>
     <message><source>Orbit</source><translation>オービット</translation></message>
     <message><source>Organise Pre-Comp Overrides here</source><translation>組織プレコンオーバーライドはこちら</translation></message>
-    <message><source>Organise Pre-Comp Overrides here.</source><translation>組織プレコンオーバーライドはこちら。</translation></message>
+    <message><source>Organise Pre-Comp Overrides here.</source><translation>ここでプリコンポーズのオーバーライドを整理してください</translation></message>
     <message><source>Orient</source><translation>オリエント</translation></message>
     <message><source>Origin</source><translation>起源の場所</translation></message>
     <message><source>Orthogonal</source><translation>直交</translation></message>
@@ -3158,8 +3163,8 @@
     <message><source>Reveal</source><translation>リバイアル</translation></message>
     <message><source>Reveal Composition in Assets Window</source><translation>アセットウィンドウでコンポジションを表示</translation></message>
     <message><source>Reveal Generator</source><translation>リード発電機</translation></message>
-    <message><source>Reveal in Finder</source><translation>ファインダーの明らかに</translation></message>
-    <message><source>Reveal in Finder...</source><translation>在访达中表示...</translation></message>
+    <message><source>Reveal in Finder</source><translation>Finder に表示</translation></message>
+    <message><source>Reveal in Finder...</source><translation>Finder に表示...</translation></message>
     <message><source>Reveal in Scene Window</source><translation>在シーンウィンドウ中表示</translation></message>
     <message><source>Reveal Pre-Comp in Assets Window</source><translation>アセットウィンドウでプリコンポーズを表示</translation></message>
     <message><source>Reveal the Origin Layer</source><translation>表示原始レイヤー</translation></message>
@@ -3187,10 +3192,10 @@
     <message><source>Right Align Keys</source><translation>右アライナーキー</translation></message>
     <message><source>Right B</source><translation>右バイト</translation></message>
     <message><source>right click</source><translation>右クリック</translation></message>
-    <message><source>Right Click on Attributes to add them to this window</source><translation>属性を右クリックしてこのウィンドウに追加</translation></message>
-    <message><source>Right Click on Attributes to add them to this window.</source><translation>属性を右クリックしてこのウィンドウに追加します。</translation></message>
-    <message><source>Right click to add a Falloff</source><translation>右クリックでフォールオフを追加</translation></message>
-    <message><source>Right click to add a Modifier</source><translation>右クリックで修飾子を追加</translation></message>
+    <message><source>Right Click on Attributes to add them to this window</source><translation>属性を右クリックして、このウィンドウに追加します</translation></message>
+    <message><source>Right Click on Attributes to add them to this window.</source><translation>属性を右クリックして、このウィンドウに追加します</translation></message>
+    <message><source>Right click to add a Falloff</source><translation>右クリックしてフォールオフを追加</translation></message>
+    <message><source>Right click to add a Modifier</source><translation>右クリックしてモディファイアを追加</translation></message>
     <message><source>Start Frame</source><translation>開始フレーム</translation></message>
     <message><source>Seed</source><translation>シード</translation></message>
     <message><source>Lifespan</source><translation>寿命</translation></message>
@@ -3208,10 +3213,10 @@
     <message><source>Group By Parent</source><translation>親でグループ化</translation></message>
     <message><source>Parent Timing Mode</source><translation>親のタイミングモード</translation></message>
     <message><source>Reverse Parent Order</source><translation>親の順序を反転</translation></message>
-    <message><source>Right click to add a Shader</source><translation>右クリックでシェーダーを追加</translation></message>
+    <message><source>Right click to add a Shader</source><translation>右クリックしてシェーダーを追加</translation></message>
     <message><source>Robust</source><translation>ロバスト</translation></message>
     <message><source>Root node not found</source><translation>ルートノードが見つかりません</translation></message>
-    <message><source>Rotate bone</source><translation>骨を回転させる</translation></message>
+    <message><source>Rotate bone</source><translation>ボーンを回転させる</translation></message>
     <message><source>Rotate Selection</source><translation>回転選択</translation></message>
     <message><source>Rubber Hose</source><translation>ラバーホース</translation></message>
     <message><source>Ruler Guide</source><translation>ルーラーガイド</translation></message>
@@ -3440,7 +3445,6 @@
     <message><source>Some plugins require a newer version</source><translation>いくつかのプラグインは、新しいバージョンが必要です</translation></message>
     <message><source>Something went wrong during sign in. Please try again</source><translation>サインイン中に問題が発生しました。もう一度お試しください</translation></message>
     <message><source>Sort Order</source><translation>並び替え</translation></message>
-    <message><source>Space</source><translation>スペース</translation></message>
     <message><source>Speed In</source><translation>速度 で</translation></message>
     <message><source>Speed Out</source><translation>スピードアウト</translation></message>
     <message><source>Speed Strength</source><translation>速度の強さ</translation></message>
@@ -3448,8 +3452,8 @@
     <message><source>Split Clip</source><translation>スプリットクリップ</translation></message>
     <message><source>Split Complementary</source><translation>分割補完</translation></message>
     <message><source>Split Path</source><translation>パスを分割</translation></message>
-    <message><source>Split Path (B</source><translation>パスを分割（B</translation></message>
-    <message><source>Split Path (Corner)</source><translation>分割パス(角点)</translation></message>
+    <message><source>Split Path (Bézier)</source><translation>パスを分割（ベジェ）</translation></message>
+    <message><source>Split Path (Corner)</source><translation>パスを分割（コーナー）</translation></message>
     <message><source>Split Path command: Final Contour not found</source><translation>分割パス命令: 找不到最终轮廓</translation></message>
     <message><source>Split Path command: Final Contour not found.</source><translation>分割パス命令: 找不到最终轮廓。</translation></message>
     <message><source>Split Path command: Second EUID not found</source><translation>パス分割コマンド: 二番目の実体識別子が見つかりません</translation></message>
@@ -3520,7 +3524,7 @@
     <message><source>Staging</source><translation>ステージング</translation></message>
     <message><source>Standing End</source><translation>スタンドエンド</translation></message>
     <message><source>Standing Start</source><translation>スタンドスタート</translation></message>
-    <message><source>Start New Contour</source><translation>開始新轮廓</translation></message>
+    <message><source>Start New Contour</source><translation>新しい輪郭を開始</translation></message>
     <message><source>Start New Shape</source><translation>新規シェイプを開始</translation></message>
     <message><source>start reordering USE</source><translation>USE の並べ替えを開始</translation></message>
     <message><source>Start Rotation</source><translation>回転の開始</translation></message>
@@ -3530,7 +3534,7 @@
     <message><source>Straight</source><translation>ストレート</translation></message>
     <message><source>Stream length is zero</source><translation>ストリームの長さはゼロです</translation></message>
     <message><source>Stream length is zero.</source><translation>ストリームの長さはゼロです。</translation></message>
-    <message><source>Stretch bone</source><translation>ストレッチボーン</translation></message>
+    <message><source>Stretch bone</source><translation>ボーンを伸ばす</translation></message>
     <message><source>Stretch H</source><translation>H をストレッチ</translation></message>
     <message><source>string literal</source><translation>文字列 リテラル</translation></message>
     <message><source>Style Options.</source><translation>スタイルオプション。</translation></message>
@@ -3668,7 +3672,7 @@
     <message><source>Toggle the mini-map overview in the bottom-right corner.</source><translation>右下隅にあるミニマップの概要を切り替えます。</translation></message>
     <message><source>Toggle this mode with the &apos;U&apos; key</source><translation>U キーでこのモードを切り替えます</translation></message>
     <message><source>Toggle this mode with the &apos;U&apos; key.</source><translation>U キーでこのモードを切り替えます。</translation></message>
-    <message><source>Toggle Transform Tool</source><translation>トグル変換ツール</translation></message>
+    <message><source>Toggle Transform Tool</source><translation>トランスフォームツールを切り替え</translation></message>
     <message><source>Toggle Viewport Grid</source><translation>ビューポートグリッドを切り替え</translation></message>
     <message><source>Toggle Viewport Grid.</source><translation>ビューポートグリッドを切り替え。</translation></message>
     <message><source>Toggle Viewport Snapping</source><translation>ビューポートスナップを切り替え</translation></message>
@@ -3769,7 +3773,7 @@
     <message><source>Untitled</source><translation>未定</translation></message>
     <message><source>Untitled Script</source><translation>無題スクリプト</translation></message>
     <message><source>Unused</source><translation>未使用</translation></message>
-    <message><source>Update</source><translation>ニュース</translation></message>
+    <message><source>Update</source><translation>更新</translation></message>
     <message><source>Update Available</source><translation>利用できる更新</translation></message>
     <message><source>Update Cache</source><translation>キャッシュの更新</translation></message>
     <message><source>Update the UI during playback</source><translation>再生中に画面を更新</translation></message>
@@ -3788,8 +3792,8 @@
     <message><source>Use Proxy</source><translation>プロキシを使用する</translation></message>
     <message><source>Use Selection</source><translation>選択を使用する</translation></message>
     <message><source>Use Speed</source><translation>使用速度</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください</translation></message>
-    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>作成メニューを使用してコンポジションにレイヤーを追加してください</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition</source><translation>「作成」メニューを使用してコンポジションにレイヤーを追加します</translation></message>
+    <message><source>Use the Create menu to add a layer to your Composition.</source><translation>「作成」メニューを使用してコンポジションにレイヤーを追加します</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape</source><translation>トラッキングデータを使用して、選択したシェイプをコーナーピン固定します</translation></message>
     <message><source>Use the tracking data to corner pin the selected Shape.</source><translation>トラッキングデータを使用して、選択したシェイプをコーナーピン固定します。</translation></message>
     <message><source>Use this list to customise the Attribute order in Cavalry Control</source><translation>このリストを使用して Cavalry のコントロールでの属性順序をカスタマイズします</translation></message>
@@ -4126,10 +4130,6 @@
     <message>
       <source>Ctrl</source>
       <translation>Ctrl</translation>
-    </message>
-    <message>
-      <source>Shift</source>
-      <translation>シフト</translation>
     </message>
     <message>
       <source>Alt</source>
@@ -5318,7 +5318,7 @@
     </message>
     <message>
       <source>Clear Path</source>
-      <translation>クリアパス</translation>
+      <translation>パスをクリア</translation>
     </message>
     <message>
       <source>Clear Script</source>
@@ -5553,7 +5553,7 @@
       <translation>属性を削除</translation>
     </message>
     <message>
-      <source>Delete B</source><translation>B を削除</translation>
+      <source>Delete Bézier Handle</source><translation>ベジェハンドルを削除</translation>
     </message>
     <message>
       <source>Delete Backdrop</source>
@@ -5916,19 +5916,19 @@
     </message>
     <message>
       <source>Viewport Quality: Balanced</source>
-      <translation>ビューポート品質: バランス</translation>
+      <translation>ビューポート品質：バランス</translation>
     </message>
     <message>
       <source>Viewport Quality: High</source>
-      <translation>ビューポート品質: 高</translation>
+      <translation>ビューポート品質：高</translation>
     </message>
     <message>
       <source>Viewport Quality: Low</source>
-      <translation>ビューポート品質: 低</translation>
+      <translation>ビューポート品質：低</translation>
     </message>
     <message>
       <source>Viewport Quality: Lowest</source>
-      <translation>ビューポート品質: 最低</translation>
+      <translation>ビューポート品質：最低</translation>
     </message>
     <message>
       <source>Viewport Settings</source><translation>ビューポート設定</translation>
@@ -7778,6 +7778,18 @@
       <translation>S + パスをクリック</translation>
     </message>
     <message>
+      <source>S + double click</source>
+      <translation>S + ダブルクリック</translation>
+    </message>
+    <message>
+      <source>S + click</source>
+      <translation>S + クリック</translation>
+    </message>
+    <message>
+      <source>X + click</source>
+      <translation>X + クリック</translation>
+    </message>
+    <message>
       <source>Play / Stop</source>
       <translation>再生 / 停止</translation>
     </message>
@@ -7792,6 +7804,10 @@
     <message>
       <source>Manipulator:</source>
       <translation>マニピュレータ:</translation>
+    </message>
+    <message>
+      <source>Close Distance:</source>
+      <translation>閉じる距離:</translation>
     </message>
     <message>
       <source>Rectangle Tool</source>
@@ -7902,6 +7918,30 @@
       <translation>Alt/Option を押したままコンポジション全体に分布</translation>
     </message>
     <message>
+      <source>Enable the &apos;Update the UI during Playback&apos;</source>
+      <translation>「再生中に画面を更新」を有効にする</translation>
+    </message>
+    <message>
+      <source>The resolution of {} is too large for H.264/MP4 and will be scaled.</source>
+      <translation>{}の解像度はH.264/MP4には大きすぎるため、縮小されます。</translation>
+    </message>
+    <message>
+      <source>Materials are inherited by children - unless a child has their own material.</source>
+      <translation>子は親のマテリアルを継承します。ただし、独自のマテリアルがある子は除きます。</translation>
+    </message>
+    <message>
+      <source>Strokes are inherited by children - unless a child has their own stroke.</source>
+      <translation>子は親のストロークを継承します。ただし、独自のストロークがある子は除きます。</translation>
+    </message>
+    <message>
+      <source>This is useful to know when a feature requires matching verb counts between shapes (for example when using the Blend Shape).</source>
+      <translation>シェイプ間で描画命令数を一致させる必要がある機能では、この情報が役立ちます（たとえばブレンドシェイプを使用する場合）。</translation>
+    </message>
+    <message>
+      <source>Hold Alt/Option to run just the selected text.</source>
+      <translation>Alt/Optionを押したままにすると、選択したテキストのみを実行します。</translation>
+    </message>
+    <message>
       <source>Remember to set motion blur to 'Full' for each shape you wish to use this with.</source>
       <translation>この機能を使う各シェイプで、モーションブラーを「完全」に設定してください。</translation>
     </message>
@@ -7920,6 +7960,14 @@
     <message>
       <source>Tips and Tricks 🚀</source>
       <translation>ヒントとコツ 🚀</translation>
+    </message>
+    <message>
+      <source>ToolBox</source>
+      <translation>ツールボックス</translation>
+    </message>
+    <message>
+      <source>Exit</source>
+      <translation>終了</translation>
     </message>
     <message>
       <source>Click to see next message</source>
@@ -8486,33 +8534,129 @@
       <translation>シェルフ</translation>
     </message>
   </context>
-
-    <message>
-      <source>Invalid Path JSON in Clipboard, missing the 'path' key</source>
-      <translation>クリップボード内のパス JSON が無効です。'path'キーがありません</translation>
-    </message>
-    <message>
-      <source>Invalid Path JSON in Clipboard, missing the 'path' key.</source>
-      <translation>クリップボード内のパス JSON が無効です。'path'キーがありません。</translation>
-    </message>
-    <message>
-      <source>Missing 'name' or 'tag' argument</source>
-      <translation>'name' または 'tag' 引数がありません</translation>
-    </message>
-    <message>
-      <source>Missing 'name' or 'tag' argument.</source>
-      <translation>'name' または 'tag' 引数がありません。</translation>
-    </message>
-    <message>
-      <source>Node Preset dictionary must contain an 'id' key</source>
-      <translation>ノードプリセット辞書には 'id' キーが必要です</translation>
-    </message>
-    <message>
-      <source>Toggle this mode with the 'U' key</source>
-      <translation>'U' キーでこのモードを切り替えます</translation>
-    </message>
-    <message>
-      <source>Toggle this mode with the 'U' key.</source>
-      <translation>'U' キーでこのモードを切り替えます。</translation>
-    </message>
-  </TS>
+  <context>
+    <name>cavalry::PaletteListWidget</name>
+    <message><source>Palette Name:</source><translation>パレット名:</translation></message>
+  </context>
+  <context>
+    <name>Widget</name>
+    <message><source>Palette Name:</source><translation>パレット名:</translation></message>
+    <message><source>Reveal in Explorer...</source><translation>エクスプローラーで表示...</translation></message>
+    <message><source>New Name:</source><translation>新しい名前:</translation></message>
+    <message><source>Boundary Color</source><translation>境界色</translation></message>
+  </context>
+  <context>
+    <name>PaletteWidget</name>
+    <message><source>Palette Name:</source><translation>パレット名:</translation></message>
+    <message><source>Set W3C Name</source><translation>W3C 名を設定</translation></message>
+  </context>
+  <context>
+    <name>SearchBarContainerWidget</name>
+    <message><source>Add a layer to your Composition (%1)</source><translation>コンポジションにレイヤーを追加 (%1)</translation></message>
+  </context>
+  <context>
+    <name>cavalry::TagHeader</name>
+    <message><source>Add Tag:</source><translation>タグを追加：</translation></message>
+    <message><source xml:space="preserve">Assign Tag to Selection: </source><translation>選択範囲にタグを割り当て：</translation></message>
+  </context>
+  <context>
+    <name>ColorWindow</name>
+    <message><source>Save...</source><translation>保存…</translation></message>
+  </context>
+  <context>
+    <name>assets::Window</name>
+    <message><source>Reveal in Explorer...</source><translation>エクスプローラーで表示...</translation></message>
+    <message><source>Replace...</source><translation>置換…</translation></message>
+    <message><source>Create Composition based on %1</source><translation>%1 を基にコンポジションを作成</translation></message>
+  </context>
+  <context>
+    <name>cavalry::DGWindow</name>
+    <message><source>Bookmark Name:</source><translation>ブックマーク名:</translation></message>
+    <message><source>Bookmark %1</source><translation>ブックマーク %1</translation></message>
+  </context>
+  <context>
+    <name>MenuBarManager</name>
+    <message><source>This Scene has missing layer types:</source><translation>このシーンに次のレイヤータイプがありません：</translation></message>
+    <message><source>This Scene has corrupt References:</source><translation>このシーンには破損した参照があります：</translation></message>
+    <message><source>This Scene has missing assets:</source><translation>このシーンに不足しているアセットがあります：</translation></message>
+    <message><source>This Scene has missing fonts:</source><translation>このシーンに不足しているフォントがあります：</translation></message>
+    <message><source>Are you sure you want to delete the Render Item(s)?</source><translation>レンダリング項目を削除してもよろしいですか？</translation></message>
+    <message><source>Delete Render Item(s)</source><translation>レンダリング項目を削除</translation></message>
+    <message><source>Compute Time:</source><translation>計算時間：</translation></message>
+    <message><source>Draw Time:</source><translation>描画時間：</translation></message>
+    <message><source>Total Nodes:</source><translation>ノード総数：</translation></message>
+    <message><source>Tracking...</source><translation>トラッキング中…</translation></message>
+  </context>
+  <context>
+    <name>GraphicsViewportBase</name>
+    <message><source>Copy as PolyMesh</source><translation>ポリメッシュとしてコピー</translation></message>
+  </context>
+  <context>
+    <name>AttrControlRow</name>
+    <message><source>Duplicate &amp; Replace</source><translation>複製して置換</translation></message>
+    <message><source>Rename...</source><translation>名前を変更...</translation></message>
+  </context>
+  <context>
+    <name>acrOutput</name>
+    <message><source>Click the + button to add a background</source><translation>+ ボタンをクリックして背景を追加</translation></message>
+    <message><source>Click the + button to add a Placement Utility</source><translation>+ ボタンをクリックして配置ユーティリティを追加</translation></message>
+  </context>
+  <context>
+    <name>VelocityPresetManager</name>
+    <message><source>Edit...</source><translation>編集...</translation></message>
+    <message><source>Export...</source><translation>エクスポート...</translation></message>
+    <message><source>Import...</source><translation>インポート...</translation></message>
+    <message><source>Velocity Presets (*.json)</source><translation>速度プリセット (*.json)</translation></message>
+  </context>
+  <context>
+    <name>ColorSettingsDialog</name>
+    <message><source>Automatic (%1)</source><translation>自動（%1）</translation></message>
+  </context>
+  <context>
+    <name>acrStringSingleIndex</name>
+    <message><source>Enter an index, e.g: 0</source><translation>インデックスを入力（例：0）</translation></message>
+  </context>
+  <context>
+    <name>MeshExplorerRowWidget</name>
+    <message><source xml:space="preserve">Index: </source><translation>インデックス：</translation></message>
+    <message><source>Points: %1</source><translation>ポイント数：%1</translation></message>
+    <message><source>Verbs: %1</source><translation>描画命令：%1</translation></message>
+    <message><source>Child Meshes: %1</source><translation>子メッシュ数：%1</translation></message>
+  </context>
+  <context>
+    <name>MeshToolSettings</name>
+    <message><source xml:space="preserve">Soft Selection: </source><translation xml:space="preserve">ソフト選択： </translation></message>
+    <message><source xml:space="preserve">Soft Selection Size: </source><translation xml:space="preserve">ソフト選択サイズ： </translation></message>
+  </context>
+  <context>
+    <name>PencilToolSettings</name>
+    <message><source xml:space="preserve">Accuracy: </source><translation xml:space="preserve">精度： </translation></message>
+    <message><source xml:space="preserve">Stabiliser: </source><translation xml:space="preserve">スタビライザー： </translation></message>
+    <message><source xml:space="preserve">Stability Radius: </source><translation xml:space="preserve">安定化半径： </translation></message>
+  </context>
+  <context>
+    <name>PrimitiveToolSettingsBase</name>
+    <message><source xml:space="preserve">Draw in 2.5D: </source><translation xml:space="preserve">2.5Dで描画： </translation></message>
+  </context>
+  <context>
+    <name>LineToolSettings</name>
+    <message><source xml:space="preserve">Stroke Width: </source><translation xml:space="preserve">ストローク幅： </translation></message>
+    <message><source xml:space="preserve">Cap Style: </source><translation xml:space="preserve">キャップスタイル： </translation></message>
+    <message><source xml:space="preserve">Line Style: </source><translation xml:space="preserve">ラインスタイル： </translation></message>
+  </context>
+  <context>
+    <name>TrackingToolSettings</name>
+    <message><source xml:space="preserve">Supervision Strength: </source><translation xml:space="preserve">監督強度： </translation></message>
+    <message><source xml:space="preserve">Supervised: </source><translation xml:space="preserve">監督あり： </translation></message>
+    <message><source xml:space="preserve">Show Grid: </source><translation xml:space="preserve">グリッドを表示： </translation></message>
+    <message><source xml:space="preserve">Preset: </source><translation xml:space="preserve">プリセット： </translation></message>
+  </context>
+  <context>
+    <name>CogTool</name>
+    <message><source xml:space="preserve">Pitch Radius: </source><translation xml:space="preserve">ピッチ半径： </translation></message>
+  </context>
+  <context>
+    <name>MessageBar</name>
+    <message><source>Pencil Tool: You're drawing too far away from the camera, try drawing in 2d.</source><translation>鉛筆ツール：カメラから離れすぎのため2Dで描画してください</translation></message>
+  </context>
+</TS>

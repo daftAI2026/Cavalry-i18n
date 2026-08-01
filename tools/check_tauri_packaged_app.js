@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 npm run tauri:build 产出的 macOS .app、renderer 资产、runtime resource 候选路径、languages 与 injector dylib
- * [OUTPUT]: 对外提供 packaged Tauri .app 资源测试与 size report，证明发布包包含 UI 入口和运行时可解析资源
- * [POS]: tools 的 Phase 6 packaged 资源守门，只在打包后执行，失败即说明不能宣称 packaged 可用
+ * [INPUT]: 依赖 npm run tauri:build 同次产出的 macOS .app 与平台生成 injector dylib，以及 renderer、runtime resource 候选路径和 languages
+ * [OUTPUT]: 对外提供 packaged Tauri .app 资源、injector 内容同一性/Qt ABI 与 size report 测试，证明发布包只嵌入本次构建且运行时可解析的资源
+ * [POS]: tools 的 Phase 6 packaged 资源守门，把未追踪的 macOS 原生构建物与最终 bundle 建立哈希同一性，失败即说明不能宣称 packaged 可用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -22,6 +22,7 @@ const bundleRoot = process.env.PACKAGED_BUNDLE_ROOT
 const expectedArch = process.env.PACKAGED_EXPECTED_ARCH || '';
 const reportPath = path.join(bundleRoot, 'cavalry-i18n-tauri-size-report.json');
 const rendererRoot = path.join(repoRoot, 'renderer');
+const builtInjectorPath = path.join(repoRoot, 'injector', 'libCavalryTranslatorInjector.dylib');
 const expectedRendererHashes = {
   'index.html': sha256(path.join(rendererRoot, 'index.html')),
   'styles.css': sha256(path.join(rendererRoot, 'styles.css')),
@@ -133,11 +134,44 @@ test('tauri build contains languages resource tree', () => {
   }
 });
 
-test('tauri build contains injector dylib resource', () => {
+test('tauri build contains the exact platform-built injector dylib with a target-safe Qt ABI', () => {
   requirePackagedApp();
   const injector = findFile(appPath, 'libCavalryTranslatorInjector.dylib');
   assert.ok(injector, 'libCavalryTranslatorInjector.dylib missing from packaged app');
   assert.ok(fs.statSync(injector).size > 0, 'injector dylib is empty');
+  assert.ok(
+    fs.existsSync(builtInjectorPath),
+    `platform-built injector missing at ${builtInjectorPath}; the Tauri build hook must generate it`
+  );
+  assert.equal(
+    sha256(injector),
+    sha256(builtInjectorPath),
+    'packaged injector must match the dylib produced by this platform build'
+  );
+
+  if (process.platform !== 'darwin') {
+    return;
+  }
+
+  const nmResult = spawnSync('nm', ['-u', injector], { encoding: 'utf8' });
+  assert.equal(nmResult.status, 0, nmResult.stderr);
+  assert.doesNotMatch(
+    nmResult.stdout,
+    /__ZNK7QWidget(14accessibleName|21accessibleDescription)Ev/,
+    'built injector must not import QWidget accessibility accessors missing from Cavalry Qt 6.6.3'
+  );
+  const loadCommands = spawnSync('otool', ['-l', injector], { encoding: 'utf8' });
+  assert.equal(loadCommands.status, 0, loadCommands.stderr);
+  assert.match(
+    loadCommands.stdout,
+    /path @loader_path /,
+    'built injector must resolve Qt beside itself after it is copied into the selected Cavalry.app'
+  );
+  assert.doesNotMatch(
+    loadCommands.stdout,
+    /path .*qt_sdk.*\/lib /,
+    'built injector must not fall back to the build SDK and load a second Qt runtime into Cavalry'
+  );
 });
 
 test('tauri packaged executable matches the requested macOS architecture', { skip: process.platform !== 'darwin' || !expectedArch }, () => {

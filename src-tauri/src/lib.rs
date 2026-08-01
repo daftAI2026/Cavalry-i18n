@@ -1,17 +1,33 @@
 /**
- * [INPUT]: 依赖 tauri Builder、bridge 初始化脚本与 commands 模块
- * [OUTPUT]: 对外提供 run 函数和 Tauri command 注册表
- * [POS]: src-tauri/src 的应用装配层，承担 Tauri command 注册职责
+ * [INPUT]: 依赖 tauri Builder、bridge 初始化脚本、稳定 commands facade、Windows cfg 内的提升 worker/headless launch/QPA/runtime 持久部署、共享 operation_lock/runtime_paths 与私有 platform_runtime。
+ * [OUTPUT]: 对外提供 run 函数、Windows 提升事务与原生启动早期分流、稳定的六命令注册表、跨平台纯模块及平台门控的 Windows runtime。
+ * [POS]: src-tauri/src 的应用装配层；组合命令 facade、共享运行基础与进程入口边界，但不承载具体写入或系统命令业务。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 pub mod bridge;
 pub mod commands;
 pub mod detect;
+#[cfg(target_os = "windows")]
+pub mod headless_launch;
+pub mod install;
 pub mod keychain_patch;
 pub mod mac_runtime;
+mod operation_lock;
 pub mod patch;
+mod platform_runtime;
 pub mod privilege;
+mod runtime_paths;
 pub mod state;
+pub mod windows_install;
+#[cfg(target_os = "windows")]
+pub mod windows_qpa;
+#[cfg(target_os = "windows")]
+pub mod windows_runtime;
+
+#[cfg(target_os = "windows")]
+pub fn dispatch_elevated_language_worker_current_process() -> Option<u32> {
+    privilege::dispatch_elevated_language_worker_current_process()
+}
 
 pub fn run() {
     tauri::Builder::default()

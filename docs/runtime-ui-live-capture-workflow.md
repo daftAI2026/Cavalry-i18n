@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 tools/run_live_full_ui_matrix.js、injector/CavalryTranslatorInjector.mm 的 live inventory / cursorWidget / itemModels 诊断能力，以及 macOS Accessibility 窗口截图证据
-[OUTPUT]: 对外提供 Cavalry 运行中 UI 文本抓取、坐标反查、Qt item model / JSON 数据复用 / ModalDialog 诊断、闪烁根因定位、覆盖率复抓与 canary 验证流程
+[OUTPUT]: 对外提供 Cavalry 运行中 UI 文本抓取、坐标反查、Qt item model / JSON 数据复用 / ModalDialog 诊断、ExtensionLayer 平台精确边界、覆盖率复抓与 canary 验证流程
 [POS]: docs 的运行时抓取主流程文档，连接 injector 诊断能力、语言资源同步和 audits 实跑报告
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -419,10 +419,10 @@ Space + click + drag / Pan
 
 不要把所有 ExtensionLayer 字符串混成一类：
 
-- Panel 空状态提示可以显示 CJK，但原生绘制不会按译文重新测量居中，补丁后可能从居中变成偏左。已确认的三句是 `Double click here to import Assets.`、`Drag layers here to see their settings.`、`Use the Create menu to add a layer to your Composition.`。
-- Viewport 快捷键提示和 overlay 辅助文字更接近 Latin-only 自绘层，CJK 有显示为 `?` 的风险，例如 `S + click path / Insert Keyframe`、`Space + click + drag / Pan`。这批默认保持英文，除非有新的窗口级截图证明可读且不破坏布局。
+- Panel 空状态提示可以显示 CJK，但必须通过各平台已采证的精确绘制边界保留原中心点，不能靠改长字面量碰运气。已确认的三句是 `Double click here to import Assets.`、`Drag layers here to see their settings.`、`Use the Create menu to add a layer to your Composition.`。
+- Viewport 快捷键提示曾有 Latin-only/tofu 风险。Windows 2.7.2 只允许 vendor producer、canonical caller 与 Core/skia ABI 共同证明的六条长操作前缀进入 CJK Path：EditShapeTool 的 `S + double click`、`S + click`、`X + click`，以及 TransformTool 的 `S + click path`、`Hold S`、`Space + click + drag`。它们对应的动作文本也必须命中同一精确 source 表；`Control`、`Shift`、`H`、`S`、`Alt`、`Space` 等纯快捷键和所有未知 source 保持英文。
 
-因此，恢复 `__cstring` 补丁时只能按 surface 分层：空状态提示可作为低风险候选；快捷键 overlay 不得跟着旧表整批恢复。
+不得恢复 `__cstring` 内存补丁：厂商调用点把英文 byte length 编进机器码，原位写入更长的 UTF-8 会破坏相邻数据或继续按旧长度绘制。macOS 只使用已验证的定点绘制拦截；Windows 只使用 ExtensionLayer 精确 IAT caller/source 门和经 ABI 锁定的 CJK Path renderer。两端都禁止把旧词表整批扩成全局绘制 hook。
 
 诊断命令：
 
@@ -431,13 +431,16 @@ strings -a -t x /Applications/Cavalry.app/Contents/Frameworks/libExtensionLayer.
   | rg -C 8 "Double click here|Drag layers here|Use the Create menu|Insert Keyframe|Space \\+ click \\+ drag"
 ```
 
-正确修复路径是 injector 在 dyld 加载 `libExtensionLayer.dylib` 时扫描 Mach-O `__cstring`，用 `vm_protect(..., VM_PROT_COPY)` 做进程内 copy-on-write 字面量补丁。启动日志应出现：
+上面的 `strings` 命令只用于确认 macOS 厂商字面量 provenance，不是修复命令。Windows 真机证据必须读取同一 PID 的结构化 marker，并要求：
 
 ```text
-[cavalry-i18n] patched ExtensionLayer __cstring literals lang=zh-Hans patches=10
+extensionLayerHookStatus=installed
+translatedSourceMask 命中目标场景完整位图
+fallbackSourceMask=0
+rendererFailure=0
 ```
 
-如果只看到 `embedded translator installed`，但没有 `patched ExtensionLayer`，这批自绘提示仍然会保持英文。
+只看到 generic translator 已加载，不能证明这些自绘提示已经翻译；必须同时保存对应窗口截图和上述 marker。
 
 ## 增量修复
 

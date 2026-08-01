@@ -1,15 +1,15 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 runtime inventory、compiled source-map、extraction inventory、tools/check_runtime_ui_coverage.js 与 validate_translations.py
- * [OUTPUT]: 对外提供单语言 full-ui 覆盖率 gate，校验 JSON、compiled、runtime 与 §P5 翻译质量
- * [POS]: tools 的单语言矩阵单元，被 check_full_ui_matrix.js 和 npm check:full-ui:* 调用
+ * [INPUT]: 依赖 runtime inventory、compiled source-map、extraction inventory、tools/check_runtime_ui_coverage.js、python_command.js 与 validate_translations.py
+ * [OUTPUT]: 对外提供跨平台单语言 full-ui 覆盖率 gate，校验 JSON、compiled、runtime 与 §P5 翻译质量
+ * [POS]: tools 的单语言矩阵单元，被 check_full_ui_matrix.js 和 npm check:full-ui:* 调用，Python 进程统一经过平台命令边界
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const { spawnSync } = require('node:child_process');
+const { spawnPythonSync } = require('./python_command.js');
 const {
   buildCoverage,
   inferExtractionInventoryPath,
@@ -225,17 +225,13 @@ function runJsonValidator(repoRoot, language, extractionInventoryPath = '') {
   if (extractionInventoryPath) {
     args.push('--extraction-inventory', extractionInventoryPath);
   }
-  const result = spawnSync(
-    'python3',
-    args,
-    {
-      cwd: repoRoot,
-      encoding: 'utf8',
-    }
-  );
+  const result = spawnPythonSync(args, {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
 
   if (!fs.existsSync(jsonReportPath)) {
-    fail(result.stderr || result.stdout || 'validate_translations.py failed');
+    fail(result.error?.message || result.stderr || result.stdout || 'validate_translations.py failed');
   }
 
   const report = readJson(jsonReportPath);

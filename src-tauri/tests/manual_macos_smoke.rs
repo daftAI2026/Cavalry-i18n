@@ -260,7 +260,7 @@ fn real_macos_clone_apply_and_live_injector_matrix() {
     let now = "2026-07-13T00:00:00.000Z";
 
     clone_path(source, &app);
-    extract_english_inner(&app, &state_dir).unwrap();
+    extract_english_inner(&repo, &state_dir, &repo, &app).unwrap();
     replace_english_snapshot(&repo, &state_dir);
 
     for lang in ["zh-Hans", "zh-Hant", "ja_JP"] {

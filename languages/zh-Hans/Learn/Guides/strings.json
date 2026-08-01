@@ -1,7 +1,7 @@
 [
   {
     "type": "strings",
-    "language": "zh-Hans",
+    "language": "en",
     "value": {
       "onboarding.firstLaunch.step0.title": "欢迎使用 Cavalry 🎉",
       "onboarding.firstLaunch.step0.body": "这是<b>视口</b>，你的设计将在这里栩栩如生。使用它来实时预览和交互你的合成。",
