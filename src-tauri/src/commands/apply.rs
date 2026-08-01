@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English-baseline JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供 apply_language_inner、长度/只读位/Unix mode/内容感知的增量 pair 筛选、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning 与全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS 原始 English snapshot 与 marker→签名顺序。
+ * [OUTPUT]: 提供 apply_language_inner、仅对精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning 与全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS 原始 English snapshot 与 marker→签名顺序。
  * [POS]: commands 的语言写入编排；Windows 为 source provenance 统一规范化 English/翻译 payload，Program Files 仅在 worker 0/42 后写 state，所有 Windows 写入前关闭阻塞统一投影为可本土化重试结果，macOS 保持已验收快照行为。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,9 +23,36 @@ use crate::{
 use super::{
     context::{language_source_dir, next_staging_nonce},
     contract::{renderer_warning_for_copy, ActionPayload, CAVALRY_STILL_RUNNING_ERROR_CODE},
-    snapshot::extract_english_snapshot_or_throw,
+    snapshot::{extract_english_snapshot_or_throw, CleanEnglishDisposition},
     status::sync_state_with_bundle,
 };
+
+enum CleanEnglishFastPath {
+    Noop,
+    Continue(State),
+}
+
+fn prepare_clean_english_fast_path<C, I>(
+    current_state: State,
+    needs_snapshot: bool,
+    capture_snapshot: C,
+    inspect_clean_english: I,
+) -> Result<CleanEnglishFastPath, String>
+where
+    C: FnOnce(State) -> Result<State, String>,
+    I: FnOnce() -> Result<CleanEnglishDisposition, String>,
+{
+    let current_state = if needs_snapshot {
+        capture_snapshot(current_state)?
+    } else {
+        current_state
+    };
+    if matches!(inspect_clean_english(), Ok(CleanEnglishDisposition::Clean)) {
+        Ok(CleanEnglishFastPath::Noop)
+    } else {
+        Ok(CleanEnglishFastPath::Continue(current_state))
+    }
+}
 
 fn unique_staging_root() -> PathBuf {
     std::env::temp_dir().join(format!(
@@ -144,20 +171,25 @@ pub fn apply_language_inner<R: CommandRunner>(
             &app_path,
             &immutable_revision,
         );
-        if needs_snapshot {
-            let _ = extract_english_snapshot_or_throw(
-                repo_root,
-                state_dir,
-                resource_dir,
-                current_state,
-                &app_path,
-                &immutable_revision,
-            )?;
-            return Ok(ActionPayload::ok_lang("en", None));
-        }
-        if super::snapshot::ensure_clean_english_install(repo_root, resource_dir, &app_path).is_ok()
-        {
-            return Ok(ActionPayload::ok_lang("en", None));
+        match prepare_clean_english_fast_path(
+            current_state,
+            needs_snapshot,
+            |state| {
+                extract_english_snapshot_or_throw(
+                    repo_root,
+                    state_dir,
+                    resource_dir,
+                    state,
+                    &app_path,
+                    &immutable_revision,
+                )
+            },
+            || super::snapshot::ensure_clean_english_install(repo_root, resource_dir, &app_path),
+        )? {
+            CleanEnglishFastPath::Noop => {
+                return Ok(ActionPayload::ok_lang("en", None));
+            }
+            CleanEnglishFastPath::Continue(state) => current_state = state,
         }
     }
 
@@ -471,6 +503,104 @@ fn finish_program_files_result(
 #[cfg(all(test, target_os = "windows"))]
 mod program_files_result_tests {
     use super::*;
+
+    fn write(path: &Path, bytes: &[u8]) {
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, bytes).unwrap();
+    }
+
+    #[test]
+    fn stale_marker_after_snapshot_capture_reaches_the_final_english_marker() {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Cavalry");
+        let layout = InstallLayout::from_root(&app);
+        let state = State {
+            current_lang: "zh-Hant".to_string(),
+            ..State::default()
+        };
+
+        let state = match prepare_clean_english_fast_path(
+            state,
+            true,
+            |mut state| {
+                state.current_lang = "en".to_string();
+                Ok(state)
+            },
+            || Ok(CleanEnglishDisposition::NeedsWindowsReconciliation),
+        )
+        .unwrap()
+        {
+            CleanEnglishFastPath::Continue(state) => state,
+            CleanEnglishFastPath::Noop => {
+                panic!("stale marker was incorrectly accepted as a clean-English no-op")
+            }
+        };
+        assert_eq!(state.current_lang, "en");
+
+        let final_source = temp.path().join("final-marker.txt");
+        write(&final_source, b"en\n");
+        write(&layout.language_marker, b"zh-Hant\n");
+        let final_marker = patch::CopyPair {
+            src: final_source,
+            dst: layout.language_marker.clone(),
+        };
+        let transaction = marker_guarded_transaction_pairs(
+            &layout,
+            &temp.path().join("pending-marker"),
+            Vec::new(),
+            Some(&final_marker),
+            true,
+        )
+        .unwrap();
+        let staged = patch::stage_files(&transaction, &temp.path().join("staged")).unwrap();
+        let mut runner = crate::privilege::RecordingRunner::default();
+        privilege::copy_with_privilege_detailed(&staged, &mut runner).unwrap();
+        assert_eq!(
+            fs::read_to_string(&layout.language_marker).unwrap(),
+            "pending\n"
+        );
+
+        let staged_final = patch::stage_files(
+            std::slice::from_ref(&final_marker),
+            &temp.path().join("staged-final-marker"),
+        )
+        .unwrap();
+        privilege::copy_with_privilege_detailed(&staged_final, &mut runner).unwrap();
+
+        assert_eq!(fs::read_to_string(layout.language_marker).unwrap(), "en\n");
+    }
+
+    #[test]
+    fn stale_marker_with_existing_snapshot_also_bypasses_the_english_noop() {
+        let state = State {
+            current_lang: "en".to_string(),
+            ..State::default()
+        };
+
+        let outcome = prepare_clean_english_fast_path(
+            state,
+            false,
+            |_| panic!("an existing snapshot must not be captured again"),
+            || Ok(CleanEnglishDisposition::NeedsWindowsReconciliation),
+        )
+        .unwrap();
+
+        assert!(matches!(outcome, CleanEnglishFastPath::Continue(_)));
+        assert!(matches!(
+            prepare_clean_english_fast_path(State::default(), false, Ok, || Ok(
+                CleanEnglishDisposition::Clean
+            ),)
+            .unwrap(),
+            CleanEnglishFastPath::Noop
+        ));
+        assert!(matches!(
+            prepare_clean_english_fast_path(State::default(), false, Ok, || Err(
+                "unproven runtime".to_string()
+            ),)
+            .unwrap(),
+            CleanEnglishFastPath::Continue(_)
+        ));
+    }
 
     fn context() -> (tempfile::TempDir, PathBuf, PathBuf, State) {
         let temp = tempfile::tempdir().unwrap();
