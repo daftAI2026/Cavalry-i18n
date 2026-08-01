@@ -126,7 +126,10 @@ fn windows_uninstaller_separates_control_plane_removal_from_translation_cleanup(
     let hooks = fs::read_to_string(manifest_dir.join("nsis-hooks.nsh")).unwrap();
 
     assert!(hooks.contains("NSIS_HOOK_PREUNINSTALL"));
-    assert!(hooks.contains("MB_YESNOCANCEL"));
+    assert!(hooks.contains("UninstPage custom"));
+    assert!(hooks.contains("NSD_CreateCheckbox"));
+    assert!(hooks.contains("BST_UNCHECKED"));
+    assert!(!hooks.contains("MB_YESNOCANCEL"));
     assert!(hooks.contains("--uninstall-restore-english"));
     assert!(hooks.contains("$UpdateMode = 1"));
     assert!(hooks.contains("$PassiveMode = 1"));
@@ -134,6 +137,16 @@ fn windows_uninstaller_separates_control_plane_removal_from_translation_cleanup(
     assert!(hooks.contains("ExecWait"));
     assert!(hooks.contains("Abort"));
     assert!(hooks.contains("$APPDATA\\${BUNDLEID}\\state.json"));
+    let options_function = hooks
+        .split_once("Function un.CavalryI18nUninstallOptions")
+        .and_then(|(_, tail)| tail.split_once("FunctionEnd"))
+        .map(|(body, _)| body)
+        .expect("missing uninstaller options function");
+    assert!(options_function.contains("${Silent}"));
+    assert!(options_function.contains("${GetOptions} $CMDLINE \"/P\""));
+    assert!(options_function.contains("${GetOptions} $CMDLINE \"/UPDATE\""));
+    assert!(!options_function.contains("$UpdateMode"));
+    assert!(!options_function.contains("$PassiveMode"));
     for language_id in ["1033", "2052", "1028", "1041"] {
         assert!(
             hooks.contains(language_id),

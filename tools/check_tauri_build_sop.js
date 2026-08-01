@@ -1176,23 +1176,49 @@ test('Windows NSIS lifecycle preserves by default and restores English only thro
   assert.match(nsisHooks, /!macro NSIS_HOOK_PREUNINSTALL/);
   assert.match(nsisHooks, /!macro NSIS_HOOK_POSTUNINSTALL/);
   for (const languageId of ['1033', '2052', '1028', '1041']) {
+    for (const key of [
+      'UNINSTALL_OPTIONS_TITLE',
+      'UNINSTALL_OPTIONS_SUBTITLE',
+      'UNINSTALL_RESTORE_CHECKBOX',
+      'UNINSTALL_KEEP_DETAIL',
+      'UNINSTALL_RESTORE_FAILED',
+    ]) {
+      assert.match(nsisHooks, new RegExp(`LangString CAVALRY_I18N_${key} ${languageId}`));
+    }
+  }
+  assert.match(
+    nsisHooks,
+    /UninstPage custom un\.CavalryI18nUninstallOptions un\.CavalryI18nUninstallOptionsLeave/
+  );
+  assert.match(nsisHooks, /\$\{NSD_CreateCheckbox\}/);
+  assert.match(
+    nsisHooks,
+    /\$\{NSD_SetState\} \$CavalryI18nRestoreCheckbox \$\{BST_UNCHECKED\}/
+  );
+  assert.doesNotMatch(nsisHooks, /MB_YESNOCANCEL/);
+  const optionsFunction = nsisHooks.match(
+    /Function un\.CavalryI18nUninstallOptions\b([\s\S]*?)FunctionEnd/
+  );
+  assert.ok(optionsFunction, 'the uninstaller must own a dedicated options page');
+  for (const condition of [
+    /\$\{Silent\}/,
+    /\$\{GetOptions\} \$CMDLINE "\/P"/,
+    /\$\{GetOptions\} \$CMDLINE "\/UPDATE"/,
+  ]) {
     assert.match(
-      nsisHooks,
-      new RegExp(`LangString CAVALRY_I18N_UNINSTALL_CHOICE ${languageId}`)
-    );
-    assert.match(
-      nsisHooks,
-      new RegExp(`LangString CAVALRY_I18N_UNINSTALL_RESTORE_FAILED ${languageId}`)
+      optionsFunction[1],
+      condition,
+      'the early-parsed options page must mirror Tauri un.onInit command-line parsing'
     );
   }
+  assert.doesNotMatch(optionsFunction[1], /\$UpdateMode|\$PassiveMode/);
   assert.match(nsisHooks, /\$UpdateMode = 1/);
   assert.match(nsisHooks, /\$PassiveMode = 1/);
   assert.match(nsisHooks, /\$\{Silent\}/);
   assert.match(
     nsisHooks,
-    /IfFileExists "\$APPDATA\\\$\{BUNDLEID\}\\state\.json" 0 cavalry_i18n_keep_translation/
+    /IfFileExists "\$APPDATA\\\$\{BUNDLEID\}\\state\.json" cavalry_i18n_options_show/
   );
-  assert.match(nsisHooks, /MessageBox MB_YESNOCANCEL\|MB_ICONQUESTION/);
   assert.match(
     executableNsisHooks,
     /ExecWait '\"\$INSTDIR\\\$\{MAINBINARYNAME\}\.exe\" \"--uninstall-restore-english\"' \$0/

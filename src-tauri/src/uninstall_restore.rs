@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖精确 `--uninstall-restore-english` 参数、共享 state/runtime_paths/operation_lock、commands English 事务与真实 CommandRunner。
- * [OUTPUT]: 提供 NSIS 卸载前无 WebView English 恢复分流；只有完整语言事务成功才返回 0，缺失状态、UAC 取消、未知运行时或回滚均返回失败。
+ * [OUTPUT]: 提供 NSIS 卸载前无 WebView English 恢复分流；Cavalry 已被卸载时幂等成功，仍存在的安装只有完整语言事务成功才返回 0，缺失状态、UAC 取消、未知运行时或回滚均返回失败。
  * [POS]: src-tauri/src 的 Windows 控制面卸载边界；“保留翻译”由 NSIS 不调用本入口表达，本入口只承担用户明确选择的“恢复英文并移除自有运行时”。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -13,7 +13,8 @@ use std::{
 use chrono::{SecondsFormat, Utc};
 
 use crate::{
-    commands, detect, operation_lock, patch, privilege::RealCommandRunner, runtime_paths, state,
+    commands, detect, install::InstallLayout, operation_lock, patch, privilege::RealCommandRunner,
+    runtime_paths, state,
 };
 
 pub const UNINSTALL_RESTORE_ARGUMENT: &str = "--uninstall-restore-english";
@@ -65,6 +66,10 @@ fn restore_from_paths(
         );
     }
 
+    if saved_install_is_absent(Path::new(&saved.app_path))? {
+        return Ok(());
+    }
+
     let _operation_guard = operation_lock::try_begin_bundle_operation(state_dir)?;
     let mut runner = RealCommandRunner;
     let now = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
@@ -104,9 +109,19 @@ fn restore_from_paths(
     }
 }
 
+fn saved_install_is_absent(saved_app_path: &Path) -> Result<bool, String> {
+    let saved_layout = InstallLayout::from_selection(saved_app_path)?;
+    saved_layout.executable.try_exists().map(|exists| !exists).map_err(|error| {
+        format!(
+            "Could not determine whether the saved Cavalry installation still exists at {}: {error}",
+            saved_layout.executable.display()
+        )
+    })
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{restore_requested, UNINSTALL_RESTORE_ARGUMENT};
+    use super::{restore_requested, saved_install_is_absent, UNINSTALL_RESTORE_ARGUMENT};
     use std::ffi::OsString;
 
     #[test]
@@ -121,5 +136,16 @@ mod tests {
             OsString::from(UNINSTALL_RESTORE_ARGUMENT),
             OsString::from("extra"),
         ]));
+    }
+
+    #[test]
+    fn removed_cavalry_is_distinct_from_an_existing_install() {
+        let temp = tempfile::tempdir().unwrap();
+        assert!(saved_install_is_absent(&temp.path().join("Removed Cavalry")).unwrap());
+
+        let installed_root = temp.path().join("Installed Cavalry");
+        std::fs::create_dir_all(&installed_root).unwrap();
+        std::fs::write(installed_root.join("Cavalry.exe"), b"fixture").unwrap();
+        assert!(!saved_install_is_absent(&installed_root).unwrap());
     }
 }
