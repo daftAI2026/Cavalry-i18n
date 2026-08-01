@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 InstallLayout、serde 与绝对 Windows 路径/小写 SHA-256 约束。
- * [OUTPUT]: 定义 QPA manifest、hash-locked Activate/EnglishRestore/安全无操作计划、四态检查结果及仅显式 English 选择可表达的恢复原因。
+ * [OUTPUT]: 定义 QPA manifest、同时携带 proxy/generic 可信源的 hash-locked Activate/EnglishRestore、四态检查与安全无操作计划。
  * [POS]: windows_qpa 的稳定数据合同；Rust 普通写入与受限提升 worker 共用同一 transition schema，C++ 代理只消费其中同构 manifest。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -205,6 +205,8 @@ pub struct RestoreRequest<'a> {
     pub layout: &'a InstallLayout,
     /// manifest 可能受损；当前打包代理的哈希是证明“根 DLL 仍属于我们”的第二证据。
     pub proxy_source: &'a Path,
+    /// 当前 Switcher 打包的 generic DLL 只提供所有权哈希，不作为 English payload 写入安装根。
+    pub generic_source: &'a Path,
     pub reason: RestoreReason,
 }
 

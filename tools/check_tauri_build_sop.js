@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PR 级 clean-macOS universal link gate、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、由 C++ 源表派生的 live 命中掩码、Qt 测试档案/Onboarding 实页转场/Adjacent producer/exact-PID 清理边界、仅接受已包含于 origin/main 的 tag commit 所生成的 GitHub Release、系统语言/品牌及 GUI 安全合同
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 双 injector 安装态与外部 QPA 哨兵验证、disposable full-surface/Onboarding/Adjacent live 证据及 npm/Tauri 配置
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PR 级 clean-macOS universal link gate、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、交互卸载保留翻译或事务恢复英文的双语义边界、由 C++ 源表派生的 live 命中掩码、Qt 测试档案/Onboarding 实页转场/Adjacent producer/exact-PID 清理边界、仅接受已包含于 origin/main 的 tag commit 所生成的 GitHub Release、系统语言/品牌及 GUI 安全合同
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 双 injector 安装态/卸载选择与外部 QPA 哨兵验证、disposable full-surface/Onboarding/Adjacent live 证据及 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -1150,7 +1150,7 @@ test('PR and main CI compile and link the universal macOS injector without a ven
   assert.match(job[1], /otool -L[\s\S]*@rpath\/libskia\.dylib/);
 });
 
-test('Windows NSIS install/update/uninstall smoke preserves external Cavalry and has no destructive fallback', () => {
+test('Windows NSIS lifecycle preserves by default and restores English only through the trusted transaction', () => {
   const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
   for (const relativePath of [
     'injector/windows/build.ps1',
@@ -1173,23 +1173,46 @@ test('Windows NSIS install/update/uninstall smoke preserves external Cavalry and
     .join('\n');
 
   assert.equal(windowsConfig.bundle.windows.nsis.installerHooks, 'nsis-hooks.nsh');
+  assert.match(nsisHooks, /!macro NSIS_HOOK_PREUNINSTALL/);
   assert.match(nsisHooks, /!macro NSIS_HOOK_POSTUNINSTALL/);
+  for (const languageId of ['1033', '2052', '1028', '1041']) {
+    assert.match(
+      nsisHooks,
+      new RegExp(`LangString CAVALRY_I18N_UNINSTALL_CHOICE ${languageId}`)
+    );
+    assert.match(
+      nsisHooks,
+      new RegExp(`LangString CAVALRY_I18N_UNINSTALL_RESTORE_FAILED ${languageId}`)
+    );
+  }
+  assert.match(nsisHooks, /\$UpdateMode = 1/);
+  assert.match(nsisHooks, /\$PassiveMode = 1/);
+  assert.match(nsisHooks, /\$\{Silent\}/);
+  assert.match(
+    nsisHooks,
+    /IfFileExists "\$APPDATA\\\$\{BUNDLEID\}\\state\.json" 0 cavalry_i18n_keep_translation/
+  );
+  assert.match(nsisHooks, /MessageBox MB_YESNOCANCEL\|MB_ICONQUESTION/);
+  assert.match(
+    executableNsisHooks,
+    /ExecWait '\"\$INSTDIR\\\$\{MAINBINARYNAME\}\.exe\" \"--uninstall-restore-english\"' \$0/
+  );
+  assert.match(executableNsisHooks, /\$0 != 0[\s\S]*cavalry_i18n_restore_failed/);
+  assert.match(
+    executableNsisHooks,
+    /cavalry_i18n_restore_failed:[\s\S]*MessageBox MB_OK\|MB_ICONSTOP[\s\S]*Abort/
+  );
   assert.match(nsisHooks, /DeleteRegValue SHCTX "\$\{MANUPRODUCTKEY\}" ""/);
   assert.match(nsisHooks, /DeleteRegKey \/ifempty SHCTX "\$\{MANUPRODUCTKEY\}"/);
-  assert.deepEqual(executableNsisHooks.split('\n'), [
-    '!macro NSIS_HOOK_POSTUNINSTALL',
-    'DeleteRegValue SHCTX "${MANUPRODUCTKEY}" ""',
-    'DeleteRegValue HKCU "${MANUPRODUCTKEY}" "Installer Language"',
-    'DeleteRegKey /ifempty SHCTX "${MANUPRODUCTKEY}"',
-    'DeleteRegKey /ifempty HKCU "${MANUPRODUCTKEY}"',
-    'DeleteRegKey /ifempty SHCTX "${MANUKEY}"',
-    'DeleteRegKey /ifempty HKCU "${MANUKEY}"',
-    '!macroend',
-  ]);
   assert.doesNotMatch(
     executableNsisHooks,
-    /qwindows|cavalry-i18n-qpa|Cavalry\.exe|cavalry-i18n-lang/i,
-    'Switcher uninstall hooks must not name or mutate Cavalry runtime state'
+    /qwindows|cavalry-i18n-qpa|cavalry-i18n-lang|cavalryi18n\.dll/i,
+    'the NSIS hook must not know concrete Cavalry runtime paths or artifacts'
+  );
+  assert.doesNotMatch(
+    executableNsisHooks,
+    /(^|\n)(Delete|RMDir|Rename|CopyFiles)\b/i,
+    'the NSIS hook must delegate runtime mutation instead of manipulating files itself'
   );
   assert.match(script, /\$windowsTargetTriple = 'x86_64-pc-windows-msvc'/);
   assert.match(

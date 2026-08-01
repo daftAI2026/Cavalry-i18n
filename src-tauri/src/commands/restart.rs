@@ -1,14 +1,14 @@
 /**
- * [INPUT]: 依赖 detect/state/status 同步、platform_runtime.restart、共享 operation_lock 测试门与 CommandRunner。
- * [OUTPUT]: 提供 restart_cavalry_inner，保持 restart 前 revision/state 同步，并以显式 inspector seam 覆盖 QPA ACTIVE 测试。
- * [POS]: commands 的重启编排层；Windows QPA/plugin/诊断 marker 与 macOS launcher 全下沉 platform_runtime facade。
+ * [INPUT]: 依赖 detect/state/status 同步、snapshot English 真相投影、platform_runtime.restart、共享 operation_lock 测试门与 CommandRunner。
+ * [OUTPUT]: 提供 restart_cavalry_inner；重启前同步 revision 并按已证明现实覆盖 stale marker 状态，测试仍以显式 inspector seam 覆盖 QPA ACTIVE。
+ * [POS]: commands 的重启编排层；Windows QPA/plugin/诊断 marker 与 macOS launcher 下沉 platform_runtime，状态投影不写安装根。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::Path;
 
 use crate::{detect, platform_runtime, privilege::CommandRunner, state};
 
-use super::status::sync_state_with_bundle;
+use super::{snapshot::project_proven_english_state, status::sync_state_with_bundle};
 
 pub fn restart_cavalry_inner<R: CommandRunner>(
     repo_root: &Path,
@@ -27,6 +27,7 @@ pub fn restart_cavalry_inner<R: CommandRunner>(
         &version,
         &immutable_revision,
     );
+    let state = project_proven_english_state(repo_root, resource_dir, &app_path, state);
     platform_runtime::restart(
         repo_root,
         state_dir,
@@ -60,6 +61,7 @@ where
         &version,
         &immutable_revision,
     );
+    let state = project_proven_english_state(repo_root, resource_dir, &app_path, state);
     platform_runtime::restart_with_qpa_inspector(
         repo_root,
         state_dir,

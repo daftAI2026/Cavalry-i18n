@@ -14,6 +14,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Choice-preserving Windows Uninstall**: Interactive uninstall now asks whether to remove only the Switcher and keep the deployed translation, or first restore English and remove the owned runtime; silent, passive, and update uninstalls preserve translation.
+
+### Changed
+- **Complete English Runtime Cleanup**: Explicit English restoration now removes the manifest-owned generic translator and QPA recovery files in the same rollback surface, including runtime files owned by an older Switcher build.
+
+### Fixed
+- **Vendor Reinstall State Reconciliation**: A vendor reinstall that restores all managed JSON and the exact stock QPA no longer remains blocked by a stale translated marker. Status projects the proven English reality read-only, while Refresh English commits the `en` marker and safely cleans owned residuals.
+- **Unknown Runtime Preservation**: English refresh and uninstall cleanup reject an unrecognized generic plugin before any Program Files mutation and never delete it or overwrite a newer vendor QPA.
+
 ## [0.6.0] - 2026-07-29
 
 ### Added

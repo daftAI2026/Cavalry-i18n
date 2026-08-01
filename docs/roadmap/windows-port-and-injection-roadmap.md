@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖跨平台安装模型、Windows runtime/plugin/QPA/privilege 实现、语言包与 Tauri Windows 打包配置
-[OUTPUT]: 对外提供 Windows 移植的真实架构、阶段状态、原生启动入口一致性、权限边界、真机验收条件与跨平台验证债
+[OUTPUT]: 对外提供 Windows 移植的真实架构、阶段状态、原生启动入口一致性、控制面卸载双语义、权限边界、真机验收条件与跨平台验证债
 [POS]: docs/roadmap 的 Active 路线图；连接已落地的通用 plugin/安装契约与尚未完成的 Windows Cavalry 实机证据
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -19,7 +19,7 @@
 2. **JSON keyed overlay**：语言包继续按既有 JSON 映射覆盖到该安装根的 `assets/`；macOS DMG 与 Windows 2.7.2 安装中逐字节相同的 `nodeStrings.json` 键 `smoother.smoothingSteps` 保留在四语同构边界中，不能在跨平台补丁时丢失。
 3. **Qt runtime 翻译**：非 English 时，把已验证的 `cavalryi18n.dll` 部署到所选根的 `generic/`。它是 Qt 6.6.3 x64 MSVC `QGenericPlugin`，与 macOS injector 共享 `injector/generated_translations.inc`，但不携带、替换或部署第二套 Qt DLL。
 4. **原生入口汇合**：非 English Apply 在根 `qwindows.dll` 必经位置部署一个只负责委托原厂 QPA 的小代理，原厂 DLL 持久保存在同根恢复目录。代理在执行原厂代码前校验运行 Qt 6.6.3 与固定 vendor 摘要；原厂 integration 成功后，只有 strict manifest、Cavalry.exe/代理/原厂/generic 四项实际摘要、最终语言 marker、Cavalry 2.7.2 与 x64 全部吻合时才显式加载 generic translator。Cavalry.exe 漂移只关闭翻译，不阻断可信原厂窗口系统。桌面、开始菜单、任务栏固定项、直接 EXE 与 Switcher 启动均不修改入口而自然汇合；不依赖 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS` 或全局语言环境。
-5. **持久与恢复**：普通 Cavalry 退出、Switcher 关闭、升级和卸载都不恢复 QPA，翻译状态长期有效。只有明确选择 English 才生成 hash-locked restore plan；当前 DLL 仍为本工具代理时原子换回已证明的原厂备份。厂商更新若已覆盖代理，则保留新 DLL，不得把旧备份写回。`prepared`、`restoring`、缺失或漂移状态只委托原厂 QPA 并拒绝翻译。
+5. **持久与恢复**：普通 Cavalry 退出、Switcher 关闭、同版本更新以及 silent/passive/update uninstall 都保留翻译数据面。交互卸载明确询问：可只移除 Switcher 并保留翻译，也可将“恢复 English”作为一次显式用户选择，复用同一 hash-locked language transaction 恢复原厂 QPA 并删除 manifest/hash 证明自有的 generic/recovery；失败即中止卸载，未知 DLL 不删除。厂商更新若已覆盖代理，则保留新 DLL，不得把旧备份写回。`prepared`、`restoring`、缺失或漂移状态只委托原厂 QPA 并拒绝翻译。
 6. **显示层边界**：主动翻译既有和动态菜单、动作、窗口标题、严格 `N selected` QLabel 与受控显示属性；不修改输入值、item model、Time Editor 或其他模型身份数据。Search Bar、Tag Header、Color Window、Assets Window、Scene Statistics 与 Tracking 的 8 条普通 Qt 文本在两个平台都禁止 source-only fallback，只允许真实 context 或已采证的 owner/控件结构回补。Windows 的 Scene Statistics 还要求 `ProjectStatisticsWindow` 父系；Tracking 必须是 CavalryUI `gMainWindow` 直属的原生 `QDialog`，设置 `WA_DeleteOnClose`，并仅含一个直属 `Qt::WindowModal` 进度条和一个直属 Cancel 按钮。macOS 使用对应的 exact-context/owner-aware 回补，实际 QObject 拓扑另由 Mac 真机清单验证。ExtensionLayer 只保留四条实证边界：helper、placeholder、MessageBar 与 text-path；其中 MessageBar 仅批准 history/live 两个 `QTextEdit::append` return 和单条 Pencil HTML 尾部正文，明确排除 `js_logger`；text-path 的三十六条静态 source 只走 canonical caller，覆盖 Edit/Transform/Pencil/Pen/Centre 动作、EditShapeTool/TransformTool 长操作前缀与 SkeletonTool Bone Tool 四组提示；`Space`、纯修饰键和单字母快捷键保持英文。动态 `Pitch Radius: <int>` 只走 PrimitiveTool 首行/后续行两个 caller，并保留 canonical 32-bit 数值后缀；64 位命中掩码保持 Pitch bit 28，Bone 使用 bits 29–36。其他自绘或日志路径保持英文，禁止宽泛 hook。
 7. **重启与诊断**：Apply 先请求目标 `Cavalry.exe` 正常退出，再改写 runtime 文件并从同一安装根启动。非 English 启动只在同 PID、语言、Qt 版本、QPA 状态与嵌入表计数都匹配的原子 marker 就绪后报告成功；超时或插件错误必须显式失败，而不是假装已翻译。
 8. **权限**：当前用户可写的自定义安装根直接执行同一 QPA plan。只有目标确实位于 Windows OS-known Program Files 根时，才允许 UAC worker 消费该 plan；任何重解析点逃逸、计划摘要漂移或非 Program Files 目标都拒绝提权。
@@ -51,5 +51,5 @@
 2. current-HEAD 已依次应用简中、繁中、日语与 English，并在 English 后重新激活简中；继续补齐 JSON overlay、`smoother.smoothingSteps`、动态菜单、动态动作与全部白名单 ExtensionLayer 文本的逐类截图。
 3. 验证重启会等待匹配 marker；拒绝错误语言、错误 PID、错误 Qt 版本或不完整嵌入表。
 4. current-HEAD 简中已经从桌面、开始菜单、直接 EXE 与 Switcher `--launch-cavalry` 四条现有入口取得同路径、同模块、同语截图；另在一台确实已有任务栏固定项的机器复验。当前机器没有既有 pin，不能伪造该项已通过。
-5. 当前 profile 已完成 current-HEAD NSIS 显式 `/UPDATE`，且只有后续用户 Apply 才更新 `D:\cavalry`；显式 English 恢复原厂 QPA 与再次激活简中也已实跑。继续验证跨版本升级和真实卸载。关闭、升级与卸载都不得隐式恢复；厂商更新覆盖代理后不得回写旧备份。
-6. 确认卸载后不残留全局环境变量、第二套 Qt runtime 或 Switcher 安装目录越界文件；Cavalry 根的持久本地化只由显式 English 或厂商重装/升级改变。
+5. 当前 profile 已完成 current-HEAD NSIS 显式 `/UPDATE`，且只有后续用户 Apply 才更新 `D:\cavalry`；显式 English 恢复原厂 QPA 与再次激活简中也已实跑。继续验证跨版本升级和真实交互卸载的两个选择。关闭、升级以及 silent/passive/update uninstall 不得隐式恢复；交互卸载只有用户选择恢复 English 才可进入同一事务，厂商更新覆盖代理后不得回写旧备份。
+6. 确认卸载后不残留全局环境变量、第二套 Qt runtime 或 Switcher 安装目录越界文件；选择保留时 Cavalry 根必须继续本地化，选择恢复时只能删除 hash/manifest 证明自有的 runtime，未知文件必须保留并使卸载失败。

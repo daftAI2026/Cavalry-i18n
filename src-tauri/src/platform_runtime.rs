@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 install 布局、mac_runtime/windows_runtime/windows_qpa、privilege typed graceful close 与 state。
- * [OUTPUT]: 提供 prepare_apply、typed fail-before-mutation preflight、after_copy、English 早退判定与 restart 跨平台编排入口。
- * [POS]: commands 与平台差异之间的私有 facade；Windows Program Files 正常路径已提前分流，本层以拒绝提升目标的 backstop 守住自定义可写根，并让 Cavalry StillRunning 保持 typed 到统一 apply 边界。
+ * [OUTPUT]: 提供 prepare_apply、typed fail-before-mutation preflight、after_copy、无 generic 残留的 English 早退判定与 restart 跨平台编排入口。
+ * [POS]: commands 与平台差异之间的私有 facade；Windows English/翻译态都解析同一可信双 DLL 源，自定义根与 Program Files 共享 QPA 所有权语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -25,6 +25,8 @@ pub(crate) struct ApplyPlan {
     injector_target: Option<PathBuf>,
     #[cfg(target_os = "windows")]
     qpa_proxy_source: Option<PathBuf>,
+    #[cfg(target_os = "windows")]
+    qpa_generic_source: Option<PathBuf>,
     #[cfg(target_os = "windows")]
     cavalry_version: String,
 }
@@ -68,7 +70,6 @@ pub(crate) fn prepare_apply(
     #[cfg(target_os = "windows")]
     {
         if layout.platform == InstallPlatform::Windows {
-            let qpa_state = crate::windows_qpa::inspect(&layout)?.state;
             if lang != "en" {
                 plan.runtime_pairs
                     .push(crate::windows_runtime::build_plugin_copy_pair(
@@ -77,12 +78,14 @@ pub(crate) fn prepare_apply(
                         &layout,
                     )?);
             }
-            if lang != "en" || qpa_state != crate::windows_qpa::QpaDeploymentState::Stock {
-                plan.qpa_proxy_source = Some(crate::windows_runtime::resolve_qpa_proxy_source(
-                    resource_dir,
-                    repo_root,
-                )?);
-            }
+            plan.qpa_proxy_source = Some(crate::windows_runtime::resolve_qpa_proxy_source(
+                resource_dir,
+                repo_root,
+            )?);
+            plan.qpa_generic_source = Some(crate::windows_runtime::resolve_plugin_source(
+                resource_dir,
+                repo_root,
+            )?);
             plan.cavalry_version = cavalry_version.to_string();
             plan.defer_final_language_marker = true;
             plan.final_language_marker =
@@ -184,8 +187,14 @@ where
             inspection.detail
         )));
     }
-    let requires_qpa_transition =
-        lang != "en" || inspection.state != crate::windows_qpa::QpaDeploymentState::Stock;
+    let generic_cleanup_required = lang == "en"
+        && layout
+            .root
+            .join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH)
+            .exists();
+    let requires_qpa_transition = lang != "en"
+        || inspection.state != crate::windows_qpa::QpaDeploymentState::Stock
+        || generic_cleanup_required;
     if requires_qpa_transition && requires_elevated_worker(layout) {
         return Err(ApplyPreflightError::Other(
             "Windows Program Files QPA changes must be routed through the dedicated elevated language transaction before direct preflight. Cavalry was not closed and no files were changed."
@@ -215,7 +224,13 @@ pub(crate) fn english_runtime_is_stock(app_path: &Path) -> bool {
         let layout = InstallLayout::from_root(app_path);
         if layout.platform == InstallPlatform::Windows {
             return crate::windows_qpa::inspect(&layout)
-                .map(|inspection| inspection.state == crate::windows_qpa::QpaDeploymentState::Stock)
+                .map(|inspection| {
+                    inspection.state == crate::windows_qpa::QpaDeploymentState::Stock
+                        && !layout
+                            .root
+                            .join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH)
+                            .exists()
+                })
                 .unwrap_or(false);
         }
     }
@@ -239,6 +254,10 @@ pub(crate) fn after_copy<R: CommandRunner>(
                     crate::windows_qpa::restore_writable(crate::windows_qpa::RestoreRequest {
                         layout: &layout,
                         proxy_source,
+                        generic_source: plan.qpa_generic_source.as_deref().ok_or_else(|| {
+                            "Windows English apply has no trusted generic plugin source."
+                                .to_string()
+                        })?,
                         reason: crate::windows_qpa::RestoreReason::EnglishSelection,
                     })?;
                 } else if crate::windows_qpa::inspect(&layout)?.state
@@ -559,6 +578,35 @@ mod tests {
         );
         assert_eq!(runner.commands.len(), 1);
         assert_eq!(runner.commands[0].program, "powershell.exe");
+        assert_unchanged(&snapshots);
+    }
+
+    #[test]
+    fn english_stock_qpa_with_generic_residual_requires_write_preflight() {
+        let (_temp, layout, snapshots) = immutable_fixture();
+        let generic = layout
+            .root
+            .join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH);
+        fs::create_dir_all(generic.parent().unwrap()).unwrap();
+        fs::write(&generic, b"owned generic residual").unwrap();
+        let mut runner = RecordingRunner::default();
+
+        let error = preflight_windows_apply_with(
+            &layout,
+            "en",
+            &mut runner,
+            |_| inspection(QpaDeploymentState::Stock),
+            |_| false,
+            |_| Err("generic cleanup is not writable".to_string()),
+        )
+        .unwrap_err();
+
+        assert!(
+            matches!(&error, ApplyPreflightError::Other(detail) if detail.contains("generic cleanup is not writable")),
+            "{error}"
+        );
+        assert_eq!(runner.commands.len(), 1);
+        assert_eq!(fs::read(&generic).unwrap(), b"owned generic residual");
         assert_unchanged(&snapshots);
     }
 

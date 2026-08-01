@@ -3,13 +3,14 @@
 
 成员清单
 tauri_version_contract.rs: 断言 npm 与 Cargo Tauri 依赖 exact pin 到同一个 v2 minor。
-tauri_config_contract.rs: 以宿主无关方式断言公共 renderer/窗口/capabilities，以及 macOS dylib/签名资源与 Windows NSIS/languages/generic/QPA 双 DLL 严格隔离；Windows 配置必须声明平台生成命令与双资源映射且不得捆绑第二套 Qt runtime，真实 DLL 字节留给构建 provenance/安装态 smoke，安装器固定四语自动跟随系统、不弹选择器并复用品牌图标。
+tauri_config_contract.rs: 宿主无关断言 renderer/窗口/capabilities、平台资源隔离与 Windows 双 DLL；NSIS 固定四语自动跟随系统，并必须提供保留翻译/恢复 English 双语义、更新静默保留与失败中止合同。
 command_contract.rs: 断言 6 个 command 注册名、旧权限字段、`platform`/`permissionAction`、稳定 `errorCode`、成功后 cleanup warning 与 renderer 兼容 camelCase JSON shape。
 bridge_webview_contract.rs: 断言 bridge 预注入到 Tauri builder，并暴露 `window.cavalryI18n` 兼容 API 与 Privacy & Security 入口。
 detect_contract.rs: 断言保存路径优先、任意 Windows 安装根规范化、展示版本不伪造，并验证非 MSI 安装的不可变二进制 mutation 必然改变 revision。
 patch_contract.rs: 断言 English 提取、插件/copy pair/snapshot、packaged-English 逐叶内容证明与 revision provenance 失效，验证 keyed overlay 保留 smoother/未来节点，并锁定 smoother 属性的英简繁日四语同构。
 mac_runtime_contract.rs: 断言 wrapper、Info.plist 改写和 runtime pair 目标路径。
-privilege_contract.rs: 断言复制回退、Keychain/签名，以及 Windows UAC allowlist 只来自 Known Folder API、不读取可伪造 Program Files 环境变量、custom root 拒绝提权、same-EXE worker 先于 headless/WebView 分流、SHA-256 锁定 manifest、同 handle `FileShare.None` 源复制与脚本复核 reparse point、0/42/43/44 事务状态及 45 可重试关闭阻塞；restart 以两个不同根的同名 MainWindowHandle=0 进程锁定“仅收尾绝对路径目标、decoy 存活”，再用 MainWindowHandle=0 但拥有 exact-PID 可见 owned window 的不可激活屏幕外夹具证明不得强杀，并守住当前 Session、同一 SafeHandle 跨越复核/关闭、窗口 oracle fail closed、cwd/env 与 PID 链路。
+privilege_contract.rs: 断言复制/Keychain/签名、Windows Known Folder UAC、事务 SHA-256/reparse/typed exit 与 exact-PID 关闭边界。
+process_dispatch_contract.rs: 断言 Windows 进程入口按 same-EXE 提升 worker→uninstall English restore→headless Cavalry launch→Tauri WebView 的固定顺序消费保留参数。
 state_contract.rs: 断言 Tauri state.json 的当前 revision/快照 provenance schema、normalize、读写与旧 state serde-default 迁移。
 manual_macos_smoke.rs: 真实 macOS ignored smoke test，在 APFS 副本跑三语 apply、重复 apply、strict codesign 与 English 恢复，并将候选 injector 外加载到真实 Cavalry 进程，要求每种语言的三个菜单哨兵全部出现，输出日志/inventory 哈希，并核验 provenance、进程存活及原安装关键文件零变化。
 manual_windows_smoke.rs: 默认 ignored 的 Windows 克隆验收，只接受显式 `%TEMP%` disposable 安装；逐级守卫 JSON/plugin/marker/qwindows/recovery 写入链，依次验证简繁日全部资源、smoother、QPA ACTIVE，以及显式 English 对 38 JSON 与 vendor qwindows 的原始字节恢复；RecordingRunner 只允许一次 exact-path graceful close，禁止 UAC。

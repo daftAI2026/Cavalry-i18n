@@ -46,7 +46,7 @@ Cavalry-i18n 是独立的社区工具。它不是 Scene Group、Cavalry 或 Canv
 
 macOS 要求这个权限，是因为修改另一个 `.app` bundle 属于受保护操作。只有在你信任此构建，并理解它会补丁、重新签名并重新启动本机 Cavalry 安装时，才授予权限。请保留干净的 Cavalry 安装器或备份；重新安装 Cavalry 是恢复到未修改官方 bundle 的最安全方式。
 
-在 Windows 上，应用会先尝试发现本机安装；失败时请手动选择 `Cavalry.exe` 或其安装目录。支持自定义目录，但该目录必须允许当前用户写入。自动 UAC 提权严格限于实际位于 Windows Program Files 下的安装；任意自定义路径不会因此提权。正常关闭 Cavalry 或 Switcher、通过同版本 `/UPDATE` 路径更新 Switcher、卸载 Switcher，都不会撤销当前语言，也不会恢复或删除 Cavalry 安装根中的外部 QPA 文件。只有明确选择 English 才会恢复英文资源快照与已验证的原厂 QPA。若要把所有厂商文件恢复到完全原始状态，重新安装 Cavalry 仍是最稳妥的方式。
+在 Windows 上，应用会先尝试发现本机安装；失败时请手动选择 `Cavalry.exe` 或其安装目录。支持自定义目录，但该目录必须允许当前用户写入。自动 UAC 提权严格限于实际位于 Windows Program Files 下的安装；任意自定义路径不会因此提权。正常关闭 Cavalry/Switcher 与同版本 `/UPDATE` 都会保留当前语言。交互卸载时可明确选择“仅卸载 Switcher 并保留已部署翻译”，或“先恢复 English，再移除经哈希证明属于本项目的 generic/QPA 运行时”；静默、被动和更新卸载默认保留翻译。若 Cavalry 在翻译态上被重新安装，Switcher 只有在全部受管 JSON 与精确原厂 QPA 都证明现实为英文时才显示 English；点击“刷新英文”会安全收敛旧 marker 与自有运行时残留，未知 DLL 永不删除。
 
 ## 从 Release 安装
 
@@ -99,7 +99,7 @@ Windows 开发要求 Windows 10 x64 或更高版本、Node.js 22+、PowerShell 5
 4. **安装** macOS launcher wrapper 与 injector，或将 Windows `generic/cavalryi18n.dll` translator 与根 QPA 委托层部署到所选安装根
 5. **重新启动** Cavalry 并加载平台运行时翻译；macOS 还会重新签名 bundle 并清除 Gatekeeper 隔离标记
 
-补丁完成后，原来的启动路径仍然可用。macOS 的 launcher wrapper 会设置 `DYLD_INSERT_LIBRARIES`；Windows 从 Cavalry 原生 QPA 必经路径加载同一翻译运行时，不依赖全局环境或某个特定快捷方式。原厂 `qwindows.dll` 会保存在 hash-locked 恢复目录中；正常关闭 Cavalry/Switcher、Switcher 同版本 `/UPDATE` 与卸载 Switcher 都不会改动这份外部 QPA 状态。只有明确选择 English 才会使用提取出的资源快照与已验证的原厂 QPA 恢复英文，不会猜测 DLL。
+补丁完成后，原来的启动路径仍然可用。macOS 的 launcher wrapper 会设置 `DYLD_INSERT_LIBRARIES`；Windows 从 Cavalry 原生 QPA 必经路径加载同一翻译运行时，不依赖全局环境或特定快捷方式。原厂 `qwindows.dll` 会保存在 hash-locked 恢复目录中。正常退出与同版本更新保留已部署翻译；明确选择 English 或在卸载器中选择恢复，会还原资源与原厂 QPA，并只删除 manifest 证明属于本项目的 generic/recovery 文件，绝不猜测或删除未知 DLL。
 
 ## 支持语言
 

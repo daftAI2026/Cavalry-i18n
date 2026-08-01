@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch 与 snapshot provenance 迁移。
- * [OUTPUT]: 提供状态解析、安装选择、权限探测、renderer StatusPayload/BrowsePayload。
- * [POS]: commands 的只读状态层；显示版本不参与 English snapshot 身份判定。
+ * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch 与 snapshot 安装真相/provenance 迁移。
+ * [OUTPUT]: 提供状态解析、stale Windows marker 的只读 English 投影、安装选择、权限探测与 renderer payload。
+ * [POS]: commands 的只读状态层；显示版本不参与 English 身份判定，也不在轮询中修改 Cavalry 安装根。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::Utc;
@@ -24,7 +24,7 @@ use super::{
         language_choices_from_roots, language_root_candidates, next_staging_nonce, AppPaths,
     },
     contract::{BrowsePayload, BundleDiagnostics, StatusPayload},
-    snapshot::migrate_legacy_snapshot_provenance,
+    snapshot::{migrate_legacy_snapshot_provenance, project_proven_english_state},
 };
 
 fn platform_name() -> &'static str {
@@ -136,6 +136,7 @@ pub(crate) fn resolved_state(
         &version,
         &immutable_revision,
     );
+    let state = project_proven_english_state(repo_root, resource_dir, &app_path, state);
     let state = migrate_legacy_snapshot_provenance(
         repo_root,
         state_dir,

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 OS-known Program Files、固定 JSON 映射、Windows runtime 打包源、QPA transition 合同与 same-EXE RunAs launcher。
- * [OUTPUT]: 提供 Program Files 早分流、严格 payload staging、已证明 Noop 的零 UAC 快路、单次 UAC 调用，以及启动前/启动后错误、事务状态与 Cavalry 仍运行的可重试结果。
+ * [OUTPUT]: 提供 Program Files 早分流、严格 payload staging、English cleanup 的当前 generic 所有权输入、已证明 Noop 快路与单次 UAC typed 结果。
  * [POS]: language_transaction 的非提权父进程；只准备 hash-locked 计划并等待 worker，绝不关闭 Cavalry、写状态、重启或直接修改安装根。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -154,7 +154,7 @@ struct PreparedParentPlan {
 }
 
 struct RuntimeSources {
-    generic: Option<PathBuf>,
+    generic: PathBuf,
     proxy: PathBuf,
 }
 
@@ -177,14 +177,11 @@ pub(crate) fn apply_if_program_files(
     let result = (|| {
         let language = parse_language(request.language)?;
         let sources = RuntimeSources {
-            generic: if language == Language::English {
-                None
-            } else {
-                Some(
-                    windows_runtime::resolve_plugin_source(request.resource_dir, request.repo_root)
-                        .map_err(rejected)?,
-                )
-            },
+            generic: windows_runtime::resolve_plugin_source(
+                request.resource_dir,
+                request.repo_root,
+            )
+            .map_err(rejected)?,
             proxy: windows_runtime::resolve_qpa_proxy_source(
                 request.resource_dir,
                 request.repo_root,
@@ -413,9 +410,7 @@ where
         let mut staged_generic = None;
         let mut staged_proxy = None;
         if language != Language::English {
-            let generic = runtime_sources.generic.as_deref().ok_or_else(|| {
-                "Translated Windows apply has no trusted generic plugin source.".to_string()
-            })?;
+            let generic = runtime_sources.generic.as_path();
             let generic_destination = request.layout.root.join(GENERIC_PLUGIN_RELATIVE_PATH);
             let generic_preimage = snapshot_hash(&generic_destination)?;
             staged_generic = Some(stage_file_payload(
@@ -457,7 +452,9 @@ where
             request.layout,
             request.cavalry_version,
             proxy_for_plan,
-            staged_generic.as_deref(),
+            staged_generic
+                .as_deref()
+                .or(Some(runtime_sources.generic.as_path())),
         )?;
         let plan = ElevatedLanguagePlan {
             schema_version: PLAN_SCHEMA_VERSION,
@@ -493,6 +490,9 @@ fn build_qpa_transition(
         return windows_qpa::build_english_transition(RestoreRequest {
             layout,
             proxy_source,
+            generic_source: generic_source.ok_or_else(|| {
+                "English QPA cleanup is missing its trusted generic source.".to_string()
+            })?,
             reason: RestoreReason::EnglishSelection,
         });
     }
