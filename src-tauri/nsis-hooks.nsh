@@ -1,6 +1,6 @@
 ﻿; [INPUT]: 依赖 Tauri NSIS 提供的 SHCTX、MANUPRODUCTKEY 与 MANUKEY 宏，以及当前用户安装模式
-; [OUTPUT]: 对外提供卸载选项页、PREUNINSTALL 条件恢复与 POSTUNINSTALL 元数据清理；复选框可显式恢复英文并移除自有运行时
-; [POS]: src-tauri 的 Windows 卸载生命周期边界；普通卸载默认保留数据面，更新/静默/被动卸载无交互保留，显式 English 清理失败才中止卸载
+; [OUTPUT]: 对外提供翻译卸载选项页、PREUNINSTALL 条件恢复与 POSTUNINSTALL 元数据清理
+; [POS]: src-tauri 的 Windows 卸载生命周期边界；本页只解释 Cavalry 翻译取舍，更新/静默/被动卸载无交互保留，显式 English 清理失败才中止卸载
 ; [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 !include nsDialogs.nsh
@@ -23,10 +23,10 @@ LangString CAVALRY_I18N_UNINSTALL_RESTORE_CHECKBOX 2052 "将 Cavalry 恢复为�
 LangString CAVALRY_I18N_UNINSTALL_RESTORE_CHECKBOX 1028 "將 Cavalry 恢復為英文，並移除翻譯執行階段"
 LangString CAVALRY_I18N_UNINSTALL_RESTORE_CHECKBOX 1041 "Cavalry を英語に戻し、翻訳ランタイムを削除する"
 
-LangString CAVALRY_I18N_UNINSTALL_KEEP_DETAIL 1033 "Leave this unchecked to remove only the Switcher and keep Cavalry's current translation. If Cavalry has already been uninstalled, there is nothing to restore."
-LangString CAVALRY_I18N_UNINSTALL_KEEP_DETAIL 2052 "不勾选时只卸载切换器，并保留 Cavalry 当前翻译。如果 Cavalry 已经卸载，则无需恢复。"
-LangString CAVALRY_I18N_UNINSTALL_KEEP_DETAIL 1028 "不勾選時只解除安裝切換器，並保留 Cavalry 目前翻譯。如果 Cavalry 已經解除安裝，則無需恢復。"
-LangString CAVALRY_I18N_UNINSTALL_KEEP_DETAIL 1041 "未選択の場合はスイッチャーだけを削除し、Cavalry の現在の翻訳を残します。Cavalry が既に削除されている場合、復元は不要です。"
+LangString CAVALRY_I18N_UNINSTALL_KEEP_DETAIL 1033 "Unchecked: remove only the Switcher and keep the current translation."
+LangString CAVALRY_I18N_UNINSTALL_KEEP_DETAIL 2052 "不勾选：只卸载切换器，保留 Cavalry 当前翻译。"
+LangString CAVALRY_I18N_UNINSTALL_KEEP_DETAIL 1028 "不勾選：只解除安裝切換器，保留 Cavalry 目前翻譯。"
+LangString CAVALRY_I18N_UNINSTALL_KEEP_DETAIL 1041 "未選択：スイッチャーだけを削除し、現在の翻訳を残します。"
 
 LangString CAVALRY_I18N_UNINSTALL_RESTORE_FAILED 1033 "Cavalry could not be safely restored to English. No unknown runtime files were removed, and the Switcher will remain installed. Close Cavalry and try again, or choose to keep the translation."
 LangString CAVALRY_I18N_UNINSTALL_RESTORE_FAILED 2052 "无法安全地把 Cavalry 恢复为英文。未知运行时文件没有被删除，切换器也会保留。请关闭 Cavalry 后重试，或选择保留翻译。"
@@ -52,26 +52,22 @@ Function un.CavalryI18nUninstallOptions
   ${IfNot} ${Errors}
     Abort
   ${EndIf}
-  ; 从未管理过 Cavalry 时没有需要解释的卸载选项。
-  IfFileExists "$APPDATA\${BUNDLEID}\state.json" cavalry_i18n_options_show
-  Abort
+  ; 普通交互卸载始终显示选择；是否存在可恢复目标由可信 Rust 事务判定。
+  !insertmacro MUI_HEADER_TEXT "$(CAVALRY_I18N_UNINSTALL_OPTIONS_TITLE)" "$(CAVALRY_I18N_UNINSTALL_OPTIONS_SUBTITLE)"
+  nsDialogs::Create 1018
+  Pop $0
+  ${If} $0 == error
+    Abort
+  ${EndIf}
 
-  cavalry_i18n_options_show:
-    !insertmacro MUI_HEADER_TEXT "$(CAVALRY_I18N_UNINSTALL_OPTIONS_TITLE)" "$(CAVALRY_I18N_UNINSTALL_OPTIONS_SUBTITLE)"
-    nsDialogs::Create 1018
-    Pop $0
-    ${If} $0 == error
-      Abort
-    ${EndIf}
+  ${NSD_CreateCheckbox} 0 12u 100% 22u "$(CAVALRY_I18N_UNINSTALL_RESTORE_CHECKBOX)"
+  Pop $CavalryI18nRestoreCheckbox
+  ${NSD_SetState} $CavalryI18nRestoreCheckbox ${BST_UNCHECKED}
 
-    ${NSD_CreateCheckbox} 0 12u 100% 22u "$(CAVALRY_I18N_UNINSTALL_RESTORE_CHECKBOX)"
-    Pop $CavalryI18nRestoreCheckbox
-    ${NSD_SetState} $CavalryI18nRestoreCheckbox ${BST_UNCHECKED}
+  ${NSD_CreateLabel} 0 48u 100% 16u "$(CAVALRY_I18N_UNINSTALL_KEEP_DETAIL)"
+  Pop $0
 
-    ${NSD_CreateLabel} 0 48u 100% 48u "$(CAVALRY_I18N_UNINSTALL_KEEP_DETAIL)"
-    Pop $0
-
-    nsDialogs::Show
+  nsDialogs::Show
 FunctionEnd
 
 Function un.CavalryI18nUninstallOptionsLeave

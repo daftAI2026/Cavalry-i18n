@@ -101,6 +101,16 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
         "injector/windows/qpa/qwindows.dll"
     );
     assert_eq!(nsis["installerHooks"], "nsis-hooks.nsh");
+    let custom_languages = nsis["customLanguageFiles"].as_object().unwrap();
+    for (language, relative_path) in [
+        ("English", "nsis-languages/English.nsh"),
+        ("SimpChinese", "nsis-languages/SimpChinese.nsh"),
+        ("TradChinese", "nsis-languages/TradChinese.nsh"),
+        ("Japanese", "nsis-languages/Japanese.nsh"),
+    ] {
+        assert_eq!(custom_languages[language], relative_path);
+        assert!(manifest_dir.join(relative_path).is_file());
+    }
     assert_eq!(
         nsis["languages"],
         serde_json::json!(["English", "SimpChinese", "TradChinese", "Japanese"])
@@ -136,7 +146,6 @@ fn windows_uninstaller_separates_control_plane_removal_from_translation_cleanup(
     assert!(hooks.contains("${Silent}"));
     assert!(hooks.contains("ExecWait"));
     assert!(hooks.contains("Abort"));
-    assert!(hooks.contains("$APPDATA\\${BUNDLEID}\\state.json"));
     let options_function = hooks
         .split_once("Function un.CavalryI18nUninstallOptions")
         .and_then(|(_, tail)| tail.split_once("FunctionEnd"))
@@ -147,6 +156,37 @@ fn windows_uninstaller_separates_control_plane_removal_from_translation_cleanup(
     assert!(options_function.contains("${GetOptions} $CMDLINE \"/UPDATE\""));
     assert!(!options_function.contains("$UpdateMode"));
     assert!(!options_function.contains("$PassiveMode"));
+    assert!(!options_function.contains("${BUNDLEID}"));
+    assert!(!options_function.contains("IfFileExists"));
+    assert!(!options_function.contains("UNINSTALL_APP_DATA_CHECKBOX"));
+    assert!(!hooks.contains("CreateTimer"));
+    assert!(!hooks.contains("DecorateConfirmPage"));
+    assert!(!hooks.contains("WM_SETTEXT"));
+    for (relative_path, expected) in [
+        (
+            "nsis-languages/English.nsh",
+            "LangString deleteAppData ${LANG_ENGLISH} \"Delete Switcher application data (Switcher settings only)\"",
+        ),
+        (
+            "nsis-languages/SimpChinese.nsh",
+            "LangString deleteAppData ${LANG_SIMPCHINESE} \"删除切换器应用数据（仅切换器设置）\"",
+        ),
+        (
+            "nsis-languages/TradChinese.nsh",
+            "LangString deleteAppData ${LANG_TRADCHINESE} \"刪除切換器應用程式資料（僅切換器設定）\"",
+        ),
+        (
+            "nsis-languages/Japanese.nsh",
+            "LangString deleteAppData ${LANG_JAPANESE} \"スイッチャーのアプリデータを削除（スイッチャー設定のみ）\"",
+        ),
+    ] {
+        assert!(
+            fs::read_to_string(manifest_dir.join(relative_path))
+                .unwrap()
+                .contains(expected),
+            "missing localized app-data checkbox copy in {relative_path}"
+        );
+    }
     for language_id in ["1033", "2052", "1028", "1041"] {
         assert!(
             hooks.contains(language_id),

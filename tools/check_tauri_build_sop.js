@@ -1173,6 +1173,23 @@ test('Windows NSIS lifecycle preserves by default and restores English only thro
     .join('\n');
 
   assert.equal(windowsConfig.bundle.windows.nsis.installerHooks, 'nsis-hooks.nsh');
+  assert.deepEqual(windowsConfig.bundle.windows.nsis.customLanguageFiles, {
+    English: 'nsis-languages/English.nsh',
+    SimpChinese: 'nsis-languages/SimpChinese.nsh',
+    TradChinese: 'nsis-languages/TradChinese.nsh',
+    Japanese: 'nsis-languages/Japanese.nsh',
+  });
+  for (const [language, expectedLine] of Object.entries({
+    English: 'LangString deleteAppData ${LANG_ENGLISH} "Delete Switcher application data (Switcher settings only)"',
+    SimpChinese: 'LangString deleteAppData ${LANG_SIMPCHINESE} "删除切换器应用数据（仅切换器设置）"',
+    TradChinese: 'LangString deleteAppData ${LANG_TRADCHINESE} "刪除切換器應用程式資料（僅切換器設定）"',
+    Japanese: 'LangString deleteAppData ${LANG_JAPANESE} "スイッチャーのアプリデータを削除（スイッチャー設定のみ）"',
+  })) {
+    assert.match(
+      readText(`src-tauri/nsis-languages/${language}.nsh`),
+      new RegExp(expectedLine.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'))
+    );
+  }
   assert.match(nsisHooks, /!macro NSIS_HOOK_PREUNINSTALL/);
   assert.match(nsisHooks, /!macro NSIS_HOOK_POSTUNINSTALL/);
   for (const languageId of ['1033', '2052', '1028', '1041']) {
@@ -1212,13 +1229,20 @@ test('Windows NSIS lifecycle preserves by default and restores English only thro
     );
   }
   assert.doesNotMatch(optionsFunction[1], /\$UpdateMode|\$PassiveMode/);
+  assert.doesNotMatch(
+    optionsFunction[1],
+    /\$\{BUNDLEID\}|IfFileExists/,
+    'interactive uninstall must not hide the option behind a late-defined hook macro'
+  );
+  assert.doesNotMatch(optionsFunction[1], /UNINSTALL_APP_DATA_CHECKBOX/);
+  const optionsLeaveFunction = nsisHooks.match(
+    /Function un\.CavalryI18nUninstallOptionsLeave\b([\s\S]*?)FunctionEnd/
+  );
+  assert.ok(optionsLeaveFunction, 'missing uninstaller options leave callback');
+  assert.doesNotMatch(nsisHooks, /CreateTimer|DecorateConfirmPage|WM_SETTEXT/);
   assert.match(nsisHooks, /\$UpdateMode = 1/);
   assert.match(nsisHooks, /\$PassiveMode = 1/);
   assert.match(nsisHooks, /\$\{Silent\}/);
-  assert.match(
-    nsisHooks,
-    /IfFileExists "\$APPDATA\\\$\{BUNDLEID\}\\state\.json" cavalry_i18n_options_show/
-  );
   assert.match(
     executableNsisHooks,
     /ExecWait '\"\$INSTDIR\\\$\{MAINBINARYNAME\}\.exe\" \"--uninstall-restore-english\"' \$0/
