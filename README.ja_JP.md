@@ -36,7 +36,7 @@
 
 Cavalry-i18n は独立したコミュニティツールです。Scene Group、Cavalry、Canva が制作、承認、提携しているものではありません。
 
-このプロジェクトは **macOS と Windows x64** をサポートします。macOS では `Cavalry.app` bundle をパッチして再署名します。Windows では選択した Cavalry インストールルートに JSON overlay と hash-locked QPA delegate を適用し、元の `qwindows.dll` を永続バックアップします。デスクトップ、スタートメニュー、タスクバー、直接 EXE の各起動経路は書き換えません。Windows の build、installer、contract の経路はありますが、実際の Cavalry インストールでの完全な live acceptance は進行中です。Linux は未対応です。
+このプロジェクトは **macOS と Windows x64** をサポートします。macOS では `Cavalry.app` bundle をパッチして再署名します。Windows では選択した Cavalry インストールルートに JSON overlay と hash-locked QPA delegate を適用し、元の `qwindows.dll` を永続バックアップします。デスクトップ、スタートメニュー、タスクバー、直接 EXE の各起動経路は書き換えません。Linux は未対応です。
 
 このツールは、翻訳済みリソースで Cavalry を起動できるように、ローカルの `Cavalry.app` bundle 内のファイルを変更します。macOS では、この操作に **App Management** 権限が必要です。
 

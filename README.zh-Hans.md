@@ -36,7 +36,7 @@
 
 Cavalry-i18n 是独立的社区工具。它不是 Scene Group、Cavalry 或 Canva 制作、认可或关联的官方工具。
 
-本项目支持 **macOS 与 Windows x64**。macOS 会补丁并重新签名 `Cavalry.app` bundle；Windows 会在用户选定的 Cavalry 安装根应用 JSON overlay、安装 hash-locked QPA 委托层，并持久备份原厂 `qwindows.dll`。桌面、开始菜单、任务栏和直接 EXE 启动入口都不会被改写。Windows 的构建、安装器和合同链路已具备；针对真实 Cavalry 安装的完整现场验收仍在进行。Linux 暂不支持。
+本项目支持 **macOS 与 Windows x64**。macOS 会补丁并重新签名 `Cavalry.app` bundle；Windows 会在用户选定的 Cavalry 安装根应用 JSON overlay、安装 hash-locked QPA 委托层，并持久备份原厂 `qwindows.dll`。桌面、开始菜单、任务栏和直接 EXE 启动入口都不会被改写。Linux 暂不支持。
 
 这个工具会修改你本机 `Cavalry.app` bundle 内的文件，让 Cavalry 能以翻译后的资源启动。在 macOS 上，这需要 **App Management** 权限：
 
