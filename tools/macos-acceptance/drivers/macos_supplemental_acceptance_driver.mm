@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 完整 Qt 对象图中的 OnboardingManager、Qt 事件循环、真实 PopOverView/catalog、Transform Tool/Viewport 与产品诊断 C ABI，以及 harness 逐表面截图 ACK。
- * [OUTPUT]: Onboarding 五步和 Transform 五条自绘 action 的 write-once 像素、拓扑、诊断，以及不阻塞产品事件循环的异步 ACK 终态。
- * [POS]: acceptance-v2 补充驱动；firstLaunch 从真实 manager 语义触发，UI 可见性由控件/像素证明，自绘语义由逐 source 增量证明。
+ * [INPUT]: 完整 Qt 对象图中的 OnboardingManager、含嵌套 chooser 的 Qt 事件循环、真实 PopOverView/catalog、Transform Tool/Viewport 与产品诊断 C ABI，以及 harness 逐表面截图 ACK。
+ * [OUTPUT]: Onboarding 五步和 Transform 五条自绘 action 的 write-once 像素、拓扑、诊断，以及由 Qt timer 持续推进且不阻塞产品事件循环的异步 ACK 终态。
+ * [POS]: acceptance-v2 补充驱动；firstLaunch 从真实产品语义触发，状态机穿过 chooser 嵌套循环，UI 可见性由控件/像素证明，自绘语义由逐 source 增量证明。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -351,16 +351,14 @@ void processOnboarding() {
         return;
       }
     }
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC),
-                   dispatch_get_main_queue(), ^{ processOnboarding(); });
+    QTimer::singleShot(100, qApp, [] { processOnboarding(); });
     return;
   }
   const int step = onboardingStep(root);
   const int expectedStep = gOnboardingResults.size() + 1;
   if (step != expectedStep) {
     if (step == expectedStep - 1 && ++gTransitionAttempts <= 80) {
-      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC),
-                     dispatch_get_main_queue(), ^{ processOnboarding(); });
+      QTimer::singleShot(100, qApp, [] { processOnboarding(); });
       return;
     }
     markDone(QStringLiteral("ERROR onboarding sequence expected=%1 actual=%2")

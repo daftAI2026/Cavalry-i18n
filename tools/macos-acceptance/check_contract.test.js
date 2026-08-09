@@ -106,6 +106,19 @@ test('harness freezes the real source closure and exact-window evidence protocol
   assert.match(harness, /assertSameHostIdentity\(validateHostIdentity\(machine\.host\), collectMacHostIdentity\(\)\)/);
 });
 
+test('onboarding polling stays inside the Qt event loop', () => {
+  const driver = read('drivers/macos_supplemental_acceptance_driver.mm');
+  const start = driver.indexOf('void processOnboarding()');
+  const end = driver.indexOf('\nQJsonObject diagnosticsJson', start);
+  assert.ok(start >= 0 && end > start, 'onboarding state machine must remain inspectable');
+  const stateMachine = driver.slice(start, end);
+  assert.ok(
+    (stateMachine.match(/QTimer::singleShot\(\s*100,\s*qApp/g) || []).length >= 3,
+    'all onboarding polls and transitions must use Qt timers',
+  );
+  assert.doesNotMatch(stateMachine, /dispatch_after|dispatch_get_main_queue/);
+});
+
 test('live matrix host identity is collected from fixed sw_vers and fails closed on omission or tampering', () => {
   const calls = [];
   const spawn = (file, args) => {
