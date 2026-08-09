@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-08-09
 
 ### Added
 - **Recoverable macOS Apply Transactions**: Language assets, launcher/injector, Keychain patching, signing, quarantine, final marker or official-restore removals, and durable state now share an authenticated exact-preimage journal with startup recovery and phase fault/kill coverage.
