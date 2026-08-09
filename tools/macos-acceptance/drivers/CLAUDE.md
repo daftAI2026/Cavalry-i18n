@@ -10,8 +10,8 @@ macos_main_save.inc: 从 ColorWindow 当前语言 Generator 页打开 owner-scop
 macos_main_save_replace.inc: 用冻结双 stem fixture 驱动 Assets Drop、Replace 与 Create 动态模板。
 macos_main_search_tag.inc: 以目标控件有界就绪驱动 Search、Add Layer、Scene Statistics、Add Tag 与 Assign Tag 的真实 owner 表面，并以同窗 GroupButton 内唯一可见 Update 标签阻断相邻翻译回归。
 macos_main_tracking.inc: 从唯一新增 MP4 素材行推进 Scene、Tracking 设置与向前跟踪对话框。
-macos_supplemental_acceptance_driver.mm: Onboarding 五步与 Transform 五条自绘 action 的补充语义驱动和终态编排。
+macos_supplemental_acceptance_driver.mm: Onboarding 五步与 Transform 五条自绘 action 的补充语义驱动；先以产品 WidgetTagRegistry 证明五枚必需 workspace tag 连续稳定，再以 Qt 6.6.3 CorePrivate receiver identity 取得唯一 manager，并用 Qt timer 推进真实 guide 与终态。
 macos_supplemental_capture.inc: supplemental 场景不阻塞产品主线程的 write-once ready/ack 截图事务。
-macos_supplemental_onboarding_trigger.inc: 通过真实 Guide QAction、OnboardingChoiceView 与 firstLaunch signal 打开产品引导。
+macos_supplemental_onboarding_trigger.inc: 优先从对象图/Gui getter 解析 manager，必要时打开真实 chooser、验证 guideSelected 的唯一 manager receiver 并调用其精确 std::string signal；主线程 event filter 精确匹配三语 reset prompt 后驱动真实 Button。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

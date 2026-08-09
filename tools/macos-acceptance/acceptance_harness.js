@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 冻结同一 canonical repo 的产品/验收源码、现场 sw_vers host 身份、target contract、预期 executable SHA-256、fresh disposable Cavalry 2.7.2 clone 与 Qt 6.6.3 SDK/runtime。
- * [OUTPUT]: 从冻结源码构建 product injector 后，生成绑定 machine.host、逐语言 executable/Qt runtime stage 的 21 次产品操作、48 个逻辑表面及 exact-window OS 截图只读 session。
- * [POS]: acceptance-v2 的最小编排器；只做定向 Guide staging、单次同源构建、ready→截图→ack、身份和清理。
+ * [OUTPUT]: 从冻结源码构建 product injector 后，在 CFFIXED_USER_HOME 隔离的逐运行 profile 中生成绑定 machine.host、逐语言 executable/Qt runtime stage 的 21 次产品操作、48 个逻辑表面及 exact-window OS 截图只读 session。
+ * [POS]: acceptance-v2 的最小编排器；只做定向 Guide staging、单次同源构建、Foundation 用户目录隔离、ready→截图→ack、身份和清理。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -496,7 +496,8 @@ function runScenario(context) {
   const driver = MAIN_SCENARIOS.has(scenario) ? tools.main : tools.supplemental;
   const env = {
     ...process.env,
-    HOME: home, TMPDIR: temporary, CAVALRY_I18N_PROFILE_DIR: home,
+    HOME: home, CFFIXED_USER_HOME: home, TMPDIR: temporary,
+    CAVALRY_I18N_PROFILE_DIR: home,
     CAVALRY_I18N_RUN_UUID: uuid, CAVALRY_I18N_LANG: language,
     CAVALRY_I18N_ACCEPTANCE_SCENARIO: scenario,
     CAVALRY_I18N_SUPPLEMENTAL_SCENARIO: scenario,

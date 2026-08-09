@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 完整 Qt 对象图中的 OnboardingManager、Qt 事件循环、真实 PopOverView/catalog、Transform Tool/Viewport 与产品诊断 C ABI，以及 harness 逐表面截图 ACK。
- * [OUTPUT]: Onboarding 五步和 Transform 五条自绘 action 的 write-once 像素、拓扑、诊断，以及不阻塞产品事件循环的异步 ACK 终态。
- * [POS]: acceptance-v2 补充驱动；firstLaunch 从真实 manager 语义触发，UI 可见性由控件/像素证明，自绘语义由逐 source 增量证明。
+ * [INPUT]: 完整 Qt 对象图、Qt 6.6.3 CorePrivate receiver identity、产品 WidgetTagRegistry、真实 guide catalog、Transform Tool/Viewport 与产品诊断 C ABI，以及 harness 逐表面截图 ACK。
+ * [OUTPUT]: Onboarding 五步和 Transform 五条自绘 action 的 write-once 像素、拓扑、诊断，以及在五枚必需 widget tag 稳定后由 nested-loop event filter/Qt timer 推进且不阻塞产品事件循环的异步 ACK 终态。
+ * [POS]: acceptance-v2 补充驱动；firstLaunch 只在真实 workspace 注册完成后由 chooser receiver 绑定精确 manager ABI，reset prompt 只接受三语严格拓扑，UI 可见性由控件/像素证明，自绘语义由逐 source 增量证明。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -14,11 +14,13 @@
 #include <QtCore/qjsonarray.h>
 #include <QtCore/qjsondocument.h>
 #include <QtCore/qjsonobject.h>
+#include <QtCore/qmetaobject.h>
 #include <QtCore/qpointer.h>
 #include <QtCore/qregularexpression.h>
 #include <QtCore/qset.h>
 #include <QtCore/qtextstream.h>
 #include <QtCore/qtimer.h>
+#include <QtCore/private/qobject_p.h>
 #include <QtGui/qcursor.h>
 #include <QtGui/qevent.h>
 #include <QtGui/qtextdocument.h>
@@ -325,22 +327,15 @@ void processOnboarding() {
         return;
       }
     } else {
-      if (!gTriggerAttempted && gGuideChooserOpened)
-        gTriggerAttempted = triggerFirstLaunchFromChoiceView();
-      if (!gTriggerAttempted && !gGuideChooserOpened) {
-        gTriggerAttempted = triggerFirstLaunchGuide();
-        if (!gTriggerAttempted) {
-          const bool nativeTriggered =
-              triggerGuideInNativeMenu([NSApp mainMenu]);
-          const bool qtTriggered =
-              nativeTriggered ? false : triggerGuideInQtActions();
-          gGuideChooserOpened = qtTriggered || nativeTriggered;
-          appendLog(
-              QStringLiteral(
-                  "ONBOARDING_TRIGGER chooser qt=%1 native=%2")
-                  .arg(qtTriggered)
-                  .arg(nativeTriggered));
+      if (!gTriggerAttempted) {
+        bool rejected = false;
+        if (!onboardingWorkspaceReady(&rejected)) {
+          if (!rejected)
+            QTimer::singleShot(100, qApp, [] { processOnboarding(); });
+          return;
         }
+        gTriggerAttempted = triggerFirstLaunchGuide(&rejected);
+        if (rejected) return;
       }
       if (++gFindAttempts > 80) {
         markDone(gTriggerAttempted
@@ -351,16 +346,14 @@ void processOnboarding() {
         return;
       }
     }
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC),
-                   dispatch_get_main_queue(), ^{ processOnboarding(); });
+    QTimer::singleShot(100, qApp, [] { processOnboarding(); });
     return;
   }
   const int step = onboardingStep(root);
   const int expectedStep = gOnboardingResults.size() + 1;
   if (step != expectedStep) {
     if (step == expectedStep - 1 && ++gTransitionAttempts <= 80) {
-      dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 100 * NSEC_PER_MSEC),
-                     dispatch_get_main_queue(), ^{ processOnboarding(); });
+      QTimer::singleShot(100, qApp, [] { processOnboarding(); });
       return;
     }
     markDone(QStringLiteral("ERROR onboarding sequence expected=%1 actual=%2")

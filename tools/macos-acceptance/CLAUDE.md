@@ -2,9 +2,9 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-acceptance_harness.js: macOS 定向 live matrix/v6 的唯一编排器；要求 producer 与产品来自同一 canonical repo，以现场 `sw_vers` 的 product/build identity、target contract/预期 executable SHA-256 绑定入口，并在每次 deep-sign stage 后把实际 executable/Qt runtime 与 21 次产品操作、48 个逻辑点、exact native-window 截图及同机人工 seal 逐层闭合。
+acceptance_harness.js: macOS 定向 live matrix/v6 的唯一编排器；要求 producer 与产品来自同一 canonical repo，以现场 `sw_vers` 的 product/build identity、target contract/预期 executable SHA-256 绑定入口，用 `CFFIXED_USER_HOME` 把 Foundation/Cavalry profile 限定到逐运行 session，并在每次 deep-sign stage 后把实际 executable/Qt runtime 与 21 次产品操作、48 个逻辑点、exact native-window 截图及同机人工 seal 逐层闭合。
 artifact_identity.js: 证据身份原语；统一源码/记录/截图与 Mach-O 的 SHA-256、bytes、架构、UUID 和签名读取，保证 matrix 与 seal 不分叉计算。
-build_acceptance_v2.sh: 原生 driver/helper 的无污染构建边界；compile-only 只接受 target contract 对应的 Qt 6.6.3 与仓库外空输出，live 构建另要求 `/Applications` 外且 runtime Qt 同版的 clone，两种模式都不启动 Cavalry。
+build_acceptance_v2.sh: 原生 driver/helper 的无污染构建边界；compile-only 只接受 target contract 对应的 Qt 6.6.3 public/CorePrivate headers 与仓库外空输出，live 构建另要求 `/Applications` 外且 runtime Qt 同版的 clone，两种模式都不启动 Cavalry。
 check_contract.test.js: 跨平台静态合同；锁定 tracked source closure、GEB、800 行上限、host 缺失/篡改拒绝、真实媒体、exact-window 协议及 live 参数失败关闭，不冒充现场 PASS。
 host_identity.js: live-only host OS 身份边界；固定调用 `/usr/bin/sw_vers` 采集 `productVersion`/`buildVersion`，以 exact-key schema 校验并要求人工 seal 与 matrix 同机，compile-only 不调用。
 path_safety.js: 验收器的纯文件系统安全层；在写入/改权前统一拒绝 symlink 目标、真实路径越界及 repo/clone 内 session。
