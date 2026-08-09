@@ -17,7 +17,6 @@
       "../injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
     },
     "macOS": {
-      "signingIdentity": "-",
       "dmg": {
         "background": "icons/background.png",
         "windowSize": {

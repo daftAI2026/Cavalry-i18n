@@ -1,79 +1,88 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer 视图文件与 Tauri bridge，以规范化 LF 文本读取 hash、DOM id 和 API method 锚点
- * [OUTPUT]: 对外提供跨平台 renderer contract 测试，冻结 UI 真相源和 window.cavalryI18n 需求面
- * [POS]: tools 的 Phase 0 UI 冻结测试，确保 Tauri-only renderer 和 bridge 不因平台换行策略漂移
+ * [INPUT]: renderer 静态 DOM、CSP 配置与冻结 bridge API。
+ * [OUTPUT]: 守住固定 DOM anchors、local-only renderer 资源、无动态 HTML 注入、English UI/官方还原分离、可组合 warningCodes、durability retry 及最小 bridge 表面。
+ * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
 
 const repoRoot = path.resolve(__dirname, '..');
-const rendererRoot = path.join(repoRoot, 'renderer');
-
-const EXPECTED_HASHES = {
-  'index.html': 'ef7680a61014fb72db0afea39b41e2e3764038fdc9d14b2386858b27ef3ffd5e',
-  'styles.css': '29225329fc6ca2c15e4c315d46b837319f6c17decbf8144293f88b1ac2e14f54',
-  'app.js': '3e04c04ea66e0716e401c28ce89c62996c0664aeb98759c9209f8fddb209ae51',
-  'tauri-bridge.js': '14addaabd7d49bd297534ef855c55261951f9c0927b185f92ab2da39219c0e53',
-};
+const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
 
 const REQUIRED_IDS = [
-  'appVersion',
-  'appPath',
-  'languageSectionLabel',
-  'currentLabel',
-  'currentLanguage',
-  'switchToLabel',
-  'languageSelect',
-  'browseButton',
-  'extractButton',
-  'applyButton',
-  'permissionButton',
-  'modalBackdrop',
-  'modalTitle',
-  'modalBody',
-  'modalPrimaryButton',
-  'modalSecondaryButton',
-  'modalCloseButton',
-  'statusText',
+  'appVersion', 'appPath', 'languageSectionLabel', 'currentLabel', 'currentLanguage',
+  'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreButton',
+  'permissionButton', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
+  'modalSecondaryButton', 'modalCloseButton', 'statusText',
 ];
 
 const REQUIRED_API_METHODS = [
-  'getStatus',
-  'browseApp',
-  'extractEnglish',
-  'applyLanguage',
-  'restartCavalry',
+  'getStatus', 'browseApp', 'extractEnglish', 'applyLanguage', 'openPrivacySecurity',
 ];
 
-function sha256(filePath) {
-  const source = fs.readFileSync(filePath, 'utf8').replace(/\r\n?/g, '\n');
-  return crypto.createHash('sha256').update(source, 'utf8').digest('hex');
-}
-
-test('renderer source hashes stay frozen for the Tauri migration', () => {
-  for (const [fileName, expectedHash] of Object.entries(EXPECTED_HASHES)) {
-    assert.equal(sha256(path.join(rendererRoot, fileName)), expectedHash, `${fileName} changed`);
-  }
+test('renderer retains DOM anchors and uses only local resources', () => {
+  const html = read('renderer/index.html');
+  const styles = read('renderer/styles.css');
+  for (const id of REQUIRED_IDS) assert.match(html, new RegExp(`id="${id}"`), `#${id} missing`);
+  assert.doesNotMatch(html, /https?:\/\//, 'renderer HTML must not load remote resources');
+  assert.doesNotMatch(styles, /@import|url\([\"']?https?:/i, 'styles must not load remote resources');
 });
 
-test('renderer keeps the DOM ids required by app.js and future bridge tests', () => {
-  const html = fs.readFileSync(path.join(rendererRoot, 'index.html'), 'utf8');
-  for (const id of REQUIRED_IDS) {
-    assert.match(html, new RegExp(`id="${id}"`), `#${id} missing`);
-  }
+test('renderer builds language options safely and bridge API is frozen/minimal', () => {
+  const app = read('renderer/app.js');
+  const bridge = read('renderer/tauri-bridge.js');
+  assert.doesNotMatch(app, /\.innerHTML\s*=/, 'renderer must not interpolate backend data as HTML');
+  assert.match(app, /document\.createElement\('option'\)/);
+  assert.match(app, /option\.textContent\s*=/);
+  assert.match(app, /language\.value === 'en' \? t\('englishUi'\) : language\.label/);
+  assert.match(app, /runApply\('restore-official'\)/);
+  assert.match(app, /state\.installationMode === 'official'/);
+  assert.match(bridge, /Object\.freeze\(\{/);
+  assert.match(bridge, /LANGUAGE_MANIFEST/);
+  for (const method of REQUIRED_API_METHODS) assert.match(bridge, new RegExp(`${method}:`));
+  assert.doesNotMatch(bridge, /restartCavalry:/, 'restart is internal to apply, not a renderer API');
+  assert.doesNotMatch(app, /api\.restartCavalry\(/, 'renderer must not split apply/restart operations');
 });
 
-test('tauri bridge exposes the exact cavalryI18n API surface consumed by renderer app.js', () => {
-  const bridge = fs.readFileSync(path.join(rendererRoot, 'tauri-bridge.js'), 'utf8');
-  const renderer = fs.readFileSync(path.join(rendererRoot, 'app.js'), 'utf8');
+test('Tauri configuration disables global injection and declares a local-only CSP', () => {
+  const config = JSON.parse(read('src-tauri/tauri.conf.json'));
+  assert.equal(config.app.withGlobalTauri, false);
+  assert.equal(typeof config.app.security.csp, 'string');
+  assert.match(config.app.security.csp, /default-src 'self'/);
+  assert.match(config.app.security.csp, /script-src 'self'/);
+  assert.doesNotMatch(config.app.security.csp, /https?:\/\//);
+});
 
-  for (const method of REQUIRED_API_METHODS) {
-    assert.match(bridge, new RegExp(`${method}\\s*:`), `${method} not exposed in bridge`);
-    assert.match(renderer, new RegExp(`api\\.${method}\\(`), `${method} not consumed by renderer`);
+
+test('renderer localizes reinstall and composable warning-code paths without raw warning prose', () => {
+  const app = read('renderer/app.js');
+  const bridge = read('renderer/tauri-bridge.js');
+  const styles = read('renderer/styles.css');
+  assert.equal((app.match(/reinstallRequired:/g) || []).length, 4, 'all four UI locales must localize the reinstall route');
+  for (const key of [
+    'warningStateDurabilityPending',
+    'warningRecoveryCleanupPending',
+    'warningProtectedRecoveryEvidenceRetained',
+    'warningTemporaryCleanupPending',
+    'warningFinderFallbackUsed',
+    'warningNonFatalCleanup',
+    'appliedWithWarnings',
+    'officialRestoreWithWarnings',
+  ]) {
+    assert.equal((app.match(new RegExp(`${key}:`, 'g')) || []).length, 4, `${key} must cover four locales`);
   }
+  assert.match(app, /function requiresCavalryReinstall\(\)[\s\S]*modifiedOrUnverified[\s\S]*state\.needsExtract/);
+  assert.match(app, /setStatus\(t\('reinstallRequired'\), 'error'\)/);
+  assert.match(app, /warningCodes\.includes\('stateDurabilityPending'\)/);
+  assert.match(app, /browseButton\.disabled[\s\S]*durabilityPending/);
+  assert.match(app, /extractButton\.disabled = isBusy \|\| state\.controlsBlocked \|\| reinstallRequired/);
+  assert.doesNotMatch(app, /result\.warning(?!Codes)/, 'app.js must never render backend warning prose');
+  assert.match(bridge, /WARNING_CODE_MANIFEST/);
+  assert.match(bridge, /warning:\s*null/);
+  assert.match(bridge, /warningCodes:\s*Object\.freeze/);
+  assert.doesNotMatch(styles, /--text-muted/);
 });

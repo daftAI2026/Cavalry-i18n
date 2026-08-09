@@ -1,21 +1,127 @@
 /**
- * [INPUT]: 依赖 CommandRunner、macOS bundle 路径、codesign/xattr 与可回退的 administrator command。
- * [OUTPUT]: 提供嵌套代码签名、签名修复、Gatekeeper quarantine 清理。
- * [POS]: macOS apply 的提交后 bundle 收口；只接受 app bundle 内的代码对象。
+ * [INPUT]: 依赖 CommandRunner、macOS bundle 路径、直接 codesign 命令与不跟随 symlink 的 native xattr 清理。
+ * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
+ * [POS]: macOS apply 的 bundle 收口；禁止 `--deep` 重签任意 vendor nested code，quarantine 不跟随 bundle 内 symlink，任一失败交由外层 exact-preimage 事务回滚。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
     collections::HashSet,
     fs,
-    io::Read,
     os::unix::fs::MetadataExt,
     path::{Path, PathBuf},
 };
 
-use super::super::{
-    runner::{is_permission_error, shell_quote},
-    CommandRunner,
-};
+use super::super::CommandRunner;
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct BundleSignatureEvidence {
+    pub(crate) team_id: Option<String>,
+    pub(crate) designated_requirement: Option<String>,
+    pub(crate) cdhash: Option<String>,
+}
+
+impl BundleSignatureEvidence {
+    pub(crate) fn is_complete_vendor_identity(&self) -> bool {
+        [
+            self.team_id.as_deref(),
+            self.designated_requirement.as_deref(),
+            self.cdhash.as_deref(),
+        ]
+        .into_iter()
+        .all(|value| value.is_some_and(|value| !value.trim().is_empty()))
+    }
+
+    pub(crate) fn is_supported_cavalry_vendor_identity(&self) -> bool {
+        self.is_complete_vendor_identity()
+            && self.team_id.as_deref() == Some(crate::detect::SUPPORTED_CAVALRY_TEAM_ID)
+            && self
+                .designated_requirement
+                .as_deref()
+                .is_some_and(|requirement| {
+                    requirement.contains("anchor apple generic")
+                        && requirement.contains("identifier \"com.scenegroup.cavalry\"")
+                })
+    }
+
+    pub(crate) fn is_managed_ad_hoc_identity(&self) -> bool {
+        self.team_id.is_none()
+            && self
+                .designated_requirement
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+            && self
+                .cdhash
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+    }
+}
+
+pub(crate) fn inspect_bundle_signature<R: CommandRunner>(
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<BundleSignatureEvidence, String> {
+    if cfg!(not(target_os = "macos")) {
+        return Ok(BundleSignatureEvidence {
+            team_id: None,
+            designated_requirement: None,
+            cdhash: None,
+        });
+    }
+    let path = app_path.to_string_lossy().to_string();
+    let verification = runner.run_captured(
+        "codesign",
+        &[
+            "--verify".to_string(),
+            "--deep".to_string(),
+            "--strict".to_string(),
+            path.clone(),
+        ],
+    )?;
+    if verification.exit_code != Some(0) {
+        return Err(format!(
+            "Cavalry bundle signature verification failed. {}",
+            verification.diagnostic_summary()
+        ));
+    }
+    let details = runner.run_captured(
+        "codesign",
+        &["-dv".to_string(), "--verbose=4".to_string(), path.clone()],
+    )?;
+    if details.exit_code != Some(0) {
+        return Err(format!(
+            "Could not inspect Cavalry signature identity. {}",
+            details.diagnostic_summary()
+        ));
+    }
+    let requirement =
+        runner.run_captured("codesign", &["-dr".to_string(), "-".to_string(), path])?;
+    if requirement.exit_code != Some(0) {
+        return Err(format!(
+            "Could not inspect Cavalry designated requirement. {}",
+            requirement.diagnostic_summary()
+        ));
+    }
+    let detail_text = format!("{}\n{}", details.stdout, details.stderr);
+    let requirement_text = format!("{}\n{}", requirement.stdout, requirement.stderr);
+    Ok(BundleSignatureEvidence {
+        team_id: signature_field(&detail_text, "TeamIdentifier").filter(|value| value != "not set"),
+        designated_requirement: requirement_text
+            .lines()
+            .find_map(|line| line.trim().strip_prefix("designated => "))
+            .filter(|value| !value.trim().is_empty())
+            .map(str::to_string),
+        cdhash: signature_field(&detail_text, "CDHash"),
+    })
+}
+
+fn signature_field(contents: &str, field: &str) -> Option<String> {
+    let prefix = format!("{field}=");
+    contents
+        .lines()
+        .find_map(|line| line.trim().strip_prefix(&prefix))
+        .filter(|value| !value.trim().is_empty())
+        .map(str::to_string)
+}
 
 pub(crate) fn resign_patched_bundle<R: CommandRunner>(
     app_path: &Path,
@@ -26,28 +132,48 @@ pub(crate) fn resign_patched_bundle<R: CommandRunner>(
         return Ok(());
     }
 
-    let modified_nested_code = dedupe_code_paths(app_path, modified_nested_code, false)?;
-    let fast_result = (|| {
-        for code_path in modified_nested_code {
-            sign_code_object(&code_path, runner)?;
-        }
-        sign_code_object(app_path, runner)?;
-        verify_signed_bundle(app_path, runner)
-    })();
+    sign_modified_nested_code(app_path, modified_nested_code, runner)?;
+    seal_patched_bundle(app_path, runner)
+}
 
-    if let Err(fast_error) = fast_result {
-        repair_bundle_signatures(app_path, runner).map_err(|repair_error| {
-            format!(
-                "incremental signing or verification failed ({fast_error}); full signature repair failed: {repair_error}"
-            )
-        })?;
-        verify_signed_bundle(app_path, runner).map_err(|repair_verify_error| {
-            format!(
-                "incremental signing or verification failed ({fast_error}); full signature repair did not verify: {repair_verify_error}"
-            )
-        })?;
+pub(crate) fn sign_modified_nested_code<R: CommandRunner>(
+    app_path: &Path,
+    modified_nested_code: &[PathBuf],
+    runner: &mut R,
+) -> Result<(), String> {
+    if cfg!(not(target_os = "macos")) {
+        return Ok(());
+    }
+    for code_path in dedupe_code_paths(app_path, modified_nested_code)? {
+        sign_code_object(&code_path, runner)?;
+        verify_code_object(&code_path, runner)?;
     }
     Ok(())
+}
+
+pub(crate) fn verify_modified_nested_code<R: CommandRunner>(
+    app_path: &Path,
+    modified_nested_code: &[PathBuf],
+    runner: &mut R,
+) -> Result<(), String> {
+    if cfg!(not(target_os = "macos")) {
+        return Ok(());
+    }
+    for code_path in dedupe_code_paths(app_path, modified_nested_code)? {
+        verify_code_object(&code_path, runner)?;
+    }
+    Ok(())
+}
+
+pub(crate) fn seal_patched_bundle<R: CommandRunner>(
+    app_path: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    if cfg!(not(target_os = "macos")) {
+        return Ok(());
+    }
+    sign_code_object(app_path, runner)?;
+    verify_signed_bundle(app_path, runner)
 }
 
 pub(crate) fn ensure_bundle_signature<R: CommandRunner>(
@@ -57,23 +183,11 @@ pub(crate) fn ensure_bundle_signature<R: CommandRunner>(
     if cfg!(not(target_os = "macos")) {
         return Ok(());
     }
-    if let Err(verify_error) = verify_signed_bundle(app_path, runner) {
-        repair_bundle_signatures(app_path, runner).map_err(|repair_error| {
-            format!(
-                "bundle signature verification failed ({verify_error}); full signature repair failed: {repair_error}"
-            )
-        })?;
-        verify_signed_bundle(app_path, runner).map_err(|repair_verify_error| {
-            format!(
-                "bundle signature verification failed ({verify_error}); full signature repair did not verify: {repair_verify_error}"
-            )
-        })?;
-    }
-    Ok(())
+    verify_signed_bundle(app_path, runner)
 }
 
 fn sign_code_object<R: CommandRunner>(target_path: &Path, runner: &mut R) -> Result<(), String> {
-    run_maybe_admin(
+    run_direct_bundle_command(
         runner,
         "codesign",
         &[
@@ -97,31 +211,18 @@ fn verify_signed_bundle<R: CommandRunner>(app_path: &Path, runner: &mut R) -> Re
     )
 }
 
-fn repair_bundle_signatures<R: CommandRunner>(
-    app_path: &Path,
-    runner: &mut R,
-) -> Result<(), String> {
-    for code_path in collect_nested_code_paths(app_path)? {
-        sign_code_object(&code_path, runner)?;
-    }
-    run_maybe_admin(
-        runner,
+fn verify_code_object<R: CommandRunner>(path: &Path, runner: &mut R) -> Result<(), String> {
+    runner.run(
         "codesign",
         &[
-            "--force".to_string(),
-            "--deep".to_string(),
-            "--sign".to_string(),
-            "-".to_string(),
-            app_path.to_string_lossy().to_string(),
+            "--verify".to_string(),
+            "--strict".to_string(),
+            path.to_string_lossy().to_string(),
         ],
     )
 }
 
-fn dedupe_code_paths(
-    app_path: &Path,
-    candidates: &[PathBuf],
-    macho_only: bool,
-) -> Result<Vec<PathBuf>, String> {
+fn dedupe_code_paths(app_path: &Path, candidates: &[PathBuf]) -> Result<Vec<PathBuf>, String> {
     let canonical_app = fs::canonicalize(app_path).map_err(|error| {
         format!(
             "Could not resolve app bundle {} before signing: {error}",
@@ -148,9 +249,6 @@ fn dedupe_code_paths(
                 app_path.display(),
                 candidate.display()
             ));
-        }
-        if macho_only && !is_macho_binary(&canonical) {
-            continue;
         }
         if !canonical_seen.insert(canonical.clone()) {
             continue;
@@ -185,134 +283,17 @@ fn code_sign_order(left: &PathBuf, right: &PathBuf) -> std::cmp::Ordering {
         .cmp(&left.to_string_lossy().len())
 }
 
-fn collect_nested_code_paths(app_path: &Path) -> Result<Vec<PathBuf>, String> {
-    let roots = [
-        app_path.join("Contents").join("MacOS"),
-        app_path.join("Contents").join("Frameworks"),
-    ];
-    let candidates = roots
-        .iter()
-        .flat_map(|root| walk_files(root))
-        .collect::<Vec<_>>();
-    dedupe_code_paths(app_path, &candidates, true)
-}
-
-fn run_maybe_admin<R: CommandRunner>(
+fn run_direct_bundle_command<R: CommandRunner>(
     runner: &mut R,
     program: &str,
     args: &[String],
 ) -> Result<(), String> {
-    match runner.run(program, args) {
-        Ok(()) => Ok(()),
-        Err(error) if is_permission_error(&error) && cfg!(target_os = "macos") => {
-            let resolved = if program.contains('/') {
-                program.to_string()
-            } else {
-                format!("/usr/bin/{program}")
-            };
-            let shell_command = std::iter::once(resolved)
-                .chain(args.iter().cloned())
-                .map(shell_quote)
-                .collect::<Vec<_>>()
-                .join(" ");
-            let apple_script = [
-                "on run argv",
-                "  do shell script (item 1 of argv) with administrator privileges",
-                "end run",
-            ]
-            .join("\n");
-            runner.run(
-                "osascript",
-                &["-e".to_string(), apple_script, shell_command],
-            )
-        }
-        Err(error) => Err(error),
-    }
+    runner.run(program, args)
 }
 
 pub(crate) fn clear_gatekeeper_quarantine<R: CommandRunner>(
     app_path: &Path,
-    runner: &mut R,
+    _runner: &mut R,
 ) -> Result<(), String> {
-    if cfg!(not(target_os = "macos")) {
-        return Ok(());
-    }
-    match run_maybe_admin(
-        runner,
-        "xattr",
-        &[
-            "-dr".to_string(),
-            "com.apple.quarantine".to_string(),
-            app_path.to_string_lossy().to_string(),
-        ],
-    ) {
-        Ok(()) => Ok(()),
-        Err(error)
-            if error.contains("no such xattr")
-                || error.contains("does not have an attribute named com.apple.quarantine") =>
-        {
-            Ok(())
-        }
-        Err(error) => Err(format!(
-            "{} Run this in Terminal and try again: sudo xattr -dr com.apple.quarantine {}",
-            if error.is_empty() {
-                "Could not remove the macOS quarantine attribute from the patched app bundle."
-            } else {
-                &error
-            },
-            shell_quote(app_path.display())
-        )),
-    }
-}
-
-fn walk_files(root: &Path) -> Vec<PathBuf> {
-    if !root.exists() {
-        return Vec::new();
-    }
-    if root.is_file() {
-        return vec![root.to_path_buf()];
-    }
-    let mut paths = Vec::new();
-    let entries = match fs::read_dir(root) {
-        Ok(entries) => entries,
-        Err(_) => return paths,
-    };
-    for entry in entries.flatten() {
-        let name = entry.file_name();
-        if name.to_string_lossy().starts_with('.') {
-            continue;
-        }
-        let path = entry.path();
-        let kind = match entry.file_type() {
-            Ok(kind) => kind,
-            Err(_) => continue,
-        };
-        if kind.is_dir() {
-            paths.extend(walk_files(&path));
-        } else if kind.is_file() || (kind.is_symlink() && path.is_file()) {
-            paths.push(path);
-        }
-    }
-    paths
-}
-
-fn is_macho_binary(path: &Path) -> bool {
-    if !path.is_file() {
-        return false;
-    }
-    let mut file = match fs::File::open(path) {
-        Ok(file) => file,
-        Err(_) => return false,
-    };
-    let mut header = [0u8; 4];
-    if file.read_exact(&mut header).is_err() {
-        return false;
-    }
-    let be = u32::from_be_bytes(header);
-    let le = u32::from_le_bytes(header);
-    const MACHO_MAGICS: [u32; 8] = [
-        0xfeedface, 0xfeedfacf, 0xcefaedfe, 0xcffaedfe, 0xcafebabe, 0xbebafeca, 0xcafebabf,
-        0xbfbafeca,
-    ];
-    MACHO_MAGICS.contains(&be) || MACHO_MAGICS.contains(&le)
+    super::apply_transaction::clear_quarantine_tree(app_path)
 }

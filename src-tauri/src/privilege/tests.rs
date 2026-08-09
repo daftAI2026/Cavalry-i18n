@@ -4,19 +4,21 @@
  * [POS]: privilege 的 owner unit tests；安全契约在模块拆分后仍贴近实际事务所有者。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::fs;
+#[cfg(target_os = "windows")]
+use std::path::{Path, PathBuf};
 
 use crate::patch::CopyPair;
 
+#[cfg(target_os = "windows")]
+use super::CommandStatus;
 use super::{
     copy_transaction::{
-        copy_file_with_source_permissions, run_direct_copy_with_writer,
-        run_direct_copy_with_writer_and_cleanup, DirectCopyWriteError, PostCommitWarningCode,
+        begin_direct_copy_transaction, copy_file_with_source_permissions,
+        run_direct_copy_with_writer, run_direct_copy_with_writer_and_cleanup, DirectCopyWriteError,
+        PostCommitWarningCode,
     },
-    copy_with_privilege, CommandStatus, RecordingRunner,
+    copy_with_privilege, RecordingRunner,
 };
 
 #[test]
@@ -116,6 +118,42 @@ fn committed_direct_copy_exposes_typed_backup_cleanup_warning() {
         vec![retained_backup_root.clone().unwrap()]
     );
     fs::remove_dir_all(retained_backup_root.unwrap()).unwrap();
+}
+
+#[test]
+fn pending_direct_copy_restores_exact_preimages_after_a_downstream_failure() {
+    let temp = tempfile::tempdir().unwrap();
+    let existing_source = temp.path().join("existing.next");
+    let created_source = temp.path().join("created.next");
+    let existing = temp.path().join("Cavalry/assets/existing.json");
+    let created = temp.path().join("Cavalry/runtime/new-marker.txt");
+    fs::create_dir_all(existing.parent().unwrap()).unwrap();
+    fs::write(&existing_source, b"translated").unwrap();
+    fs::write(&created_source, b"new").unwrap();
+    fs::write(&existing, b"official").unwrap();
+
+    let transaction = begin_direct_copy_transaction(&[
+        CopyPair {
+            src: existing_source,
+            dst: existing.clone(),
+        },
+        CopyPair {
+            src: created_source,
+            dst: created.clone(),
+        },
+    ])
+    .unwrap();
+    assert_eq!(fs::read(&existing).unwrap(), b"translated");
+    assert_eq!(fs::read(&created).unwrap(), b"new");
+
+    let error = transaction.rollback_with_cause("simulated signing failure");
+    assert!(
+        error.contains("Exact bundle preimages were restored"),
+        "{error}"
+    );
+    assert_eq!(fs::read(&existing).unwrap(), b"official");
+    assert!(!created.exists());
+    assert!(!created.parent().unwrap().exists());
 }
 
 #[test]

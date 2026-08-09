@@ -8,6 +8,7 @@ use std::{
     fs,
     path::Path,
     sync::atomic::{AtomicBool, Ordering},
+    time::{Duration, Instant},
 };
 
 #[cfg(target_os = "macos")]
@@ -118,5 +119,21 @@ pub(crate) fn try_begin_bundle_operation(state_dir: &Path) -> Result<BundleOpera
     {
         let _ = state_dir;
         Ok(guard)
+    }
+}
+
+pub(crate) fn wait_begin_bundle_operation(
+    state_dir: &Path,
+    timeout: Duration,
+) -> Result<BundleOperationGuard, String> {
+    let started = Instant::now();
+    loop {
+        match try_begin_bundle_operation(state_dir) {
+            Ok(guard) => return Ok(guard),
+            Err(error) if error == BUSY_ERROR && started.elapsed() < timeout => {
+                std::thread::sleep(Duration::from_millis(50));
+            }
+            Err(error) => return Err(error),
+        }
     }
 }

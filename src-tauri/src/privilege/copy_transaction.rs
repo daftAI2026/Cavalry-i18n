@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 CopyPair、CommandRunner，以及各平台管理员复制适配器；接收已 staging 的文件对。
+ * [INPUT]: 依赖 CopyPair、CommandRunner 与 Windows typed elevation；接收已 staging 的文件对。
  * [OUTPUT]: 提供可回滚的 direct copy、CopyOutcome 兼容投影、结构化 CopyFailure 与 PostCommitWarning。
  * [POS]: privilege 的文件事务核心；把恢复残留和提交后清理从字符串协议提升为可合并的内部诊断。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -25,7 +25,9 @@ pub struct CopyOutcome {
 pub(crate) enum PostCommitWarningCode {
     DirectRecoveryResidual,
     TransactionBackupCleanup,
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     ElevatedTransactionCleanup,
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     ElevatedAdministratorCleanup,
     StagingCleanup,
 }
@@ -199,6 +201,7 @@ impl CopyFailure {
         self
     }
 
+    #[cfg(target_os = "windows")]
     pub(crate) fn merge_administrator_failure(mut self, administrator: Self) -> Self {
         self.message = format!(
             "Permission denied while writing Cavalry assets; administrator copy failed: {}",
@@ -252,6 +255,7 @@ impl CopyCompletion {
         self
     }
 
+    #[cfg(target_os = "windows")]
     pub(crate) fn extend_warnings(
         mut self,
         warnings: impl IntoIterator<Item = PostCommitWarning>,
@@ -340,11 +344,12 @@ pub(crate) fn copy_with_privilege_detailed<R: CommandRunner>(
             let recovery_warnings = direct_failure.recovery_warnings();
             #[cfg(target_os = "macos")]
             {
-                return super::macos::admin_copy::run_admin_copy(pairs, runner)
-                    .map(|completion| completion.extend_warnings(recovery_warnings))
-                    .map_err(|administrator| {
-                        direct_failure.merge_administrator_failure(administrator)
-                    });
+                // Never turn a mutable file path or dynamically assembled shell into
+                // a root command. App Management permission must make the direct,
+                // rollback-capable transaction succeed; otherwise surface the typed
+                // permission failure without performing a second mutation attempt.
+                let _ = (runner, recovery_warnings);
+                return Err(direct_failure);
             }
             #[cfg(target_os = "windows")]
             {
@@ -372,9 +377,97 @@ struct CopyTransactionBackup {
 }
 
 fn run_direct_copy(pairs: &[CopyPair]) -> Result<CopyCompletion, CopyFailure> {
-    run_direct_copy_with_writer(pairs, copy_file_with_source_permissions)
+    begin_direct_copy_transaction(pairs).map(DirectCopyTransaction::commit)
 }
 
+/// A direct copy whose exact preimages remain available until the caller has
+/// completed every dependent operation (runtime patching, signing and state).
+/// Dropping an active transaction is a last-resort rollback; callers should
+/// always use `commit` or `rollback_with_cause` so failures remain observable.
+#[derive(Debug)]
+pub(crate) struct DirectCopyTransaction {
+    backup_root: PathBuf,
+    backups: Vec<CopyTransactionBackup>,
+    created_parent_directories: Vec<PathBuf>,
+    active: bool,
+}
+
+impl DirectCopyTransaction {
+    pub(crate) fn commit(self) -> CopyCompletion {
+        self.commit_with_cleanup(|path| fs::remove_dir_all(path).map_err(|error| error.to_string()))
+    }
+
+    fn commit_with_cleanup<C>(mut self, mut cleanup_backup_root: C) -> CopyCompletion
+    where
+        C: FnMut(&Path) -> Result<(), String>,
+    {
+        // Once every dependent operation has succeeded, the backups stop being
+        // recovery material. Cleanup failure is therefore a typed warning.
+        let completion = match cleanup_backup_root(&self.backup_root) {
+            Ok(()) => CopyCompletion::new("direct"),
+            Err(error) => CopyCompletion::new("direct").with_warning(PostCommitWarning::new(
+                PostCommitWarningCode::TransactionBackupCleanup,
+                [self.backup_root.clone()],
+                Some(error),
+            )),
+        };
+        self.active = false;
+        completion
+    }
+
+    #[cfg(test)]
+    pub(crate) fn rollback_with_cause(mut self, cause: impl Into<String>) -> String {
+        let cause = cause.into();
+        let rollback = self.rollback_inner();
+        self.active = false;
+        match rollback {
+            Ok(()) => format!("{cause} Exact bundle preimages were restored."),
+            Err(rollback_error) => format!(
+                "{cause} Rollback also failed; recovery backups were retained at {}: {rollback_error}",
+                self.backup_root.display()
+            ),
+        }
+    }
+
+    fn rollback_inner(&mut self) -> Result<(), String> {
+        rollback_direct_copy_backups(&self.backups)?;
+
+        let mut cleanup_errors = cleanup_empty_directories(&self.created_parent_directories)
+            .into_iter()
+            .map(|(path, error)| format!("{}: {error}", path.display()))
+            .collect::<Vec<_>>();
+        if let Err(error) = fs::remove_dir_all(&self.backup_root) {
+            if error.kind() != ErrorKind::NotFound {
+                cleanup_errors.push(format!("{}: {error}", self.backup_root.display()));
+            }
+        }
+        if cleanup_errors.is_empty() {
+            Ok(())
+        } else {
+            Err(format!(
+                "rollback cleanup residuals: {}",
+                cleanup_errors.join(" | ")
+            ))
+        }
+    }
+}
+
+impl Drop for DirectCopyTransaction {
+    fn drop(&mut self) {
+        if self.active {
+            let _ = self.rollback_inner();
+            self.active = false;
+        }
+    }
+}
+
+pub(crate) fn begin_direct_copy_transaction(
+    pairs: &[CopyPair],
+) -> Result<DirectCopyTransaction, CopyFailure> {
+    begin_direct_copy_transaction_with_writer(pairs, copy_file_with_source_permissions)
+}
+
+#[cfg(test)]
 pub(crate) fn run_direct_copy_with_writer<F>(
     pairs: &[CopyPair],
     writer: F,
@@ -382,26 +475,36 @@ pub(crate) fn run_direct_copy_with_writer<F>(
 where
     F: FnMut(&CopyPair) -> Result<(), DirectCopyWriteError>,
 {
-    run_direct_copy_with_writer_and_cleanup(pairs, writer, |path| {
-        fs::remove_dir_all(path).map_err(|error| error.to_string())
-    })
+    begin_direct_copy_transaction_with_writer(pairs, writer).map(DirectCopyTransaction::commit)
 }
 
+#[cfg(test)]
 pub(crate) fn run_direct_copy_with_writer_and_cleanup<F, C>(
     pairs: &[CopyPair],
-    mut writer: F,
-    mut cleanup_backup_root: C,
+    writer: F,
+    cleanup_backup_root: C,
 ) -> Result<CopyCompletion, CopyFailure>
 where
     F: FnMut(&CopyPair) -> Result<(), DirectCopyWriteError>,
     C: FnMut(&Path) -> Result<(), String>,
+{
+    begin_direct_copy_transaction_with_writer(pairs, writer)
+        .map(|transaction| transaction.commit_with_cleanup(cleanup_backup_root))
+}
+
+fn begin_direct_copy_transaction_with_writer<F>(
+    pairs: &[CopyPair],
+    mut writer: F,
+) -> Result<DirectCopyTransaction, CopyFailure>
+where
+    F: FnMut(&CopyPair) -> Result<(), DirectCopyWriteError>,
 {
     let created_parent_directories = missing_copy_parent_directories(pairs)?;
     let backup_root = create_copy_transaction_backup_dir()?;
     let backups = match prepare_copy_transaction_backups(pairs, &backup_root) {
         Ok(backups) => backups,
         Err(error) => {
-            return match cleanup_backup_root(&backup_root) {
+            return match fs::remove_dir_all(&backup_root).map_err(|error| error.to_string()) {
                 Ok(()) => Err(error),
                 Err(cleanup_error) => Err(error.with_recovery_residual(
                     [backup_root],
@@ -423,8 +526,10 @@ where
             return match rollback_direct_copy_backups(&backups[..=index]) {
                 Ok(()) => {
                     let mut residual_paths = cleanup_empty_directories(&created_parent_directories);
-                    if let Err(error) = cleanup_backup_root(&backup_root) {
-                        residual_paths.push((backup_root.clone(), error));
+                    if let Err(error) = fs::remove_dir_all(&backup_root) {
+                        if error.kind() != ErrorKind::NotFound {
+                            residual_paths.push((backup_root.clone(), error.to_string()));
+                        }
                     }
                     if residual_paths.is_empty() {
                         failure
@@ -467,17 +572,12 @@ where
         }
     }
 
-    // 提交后备份不再是恢复材料；删除失败是 warning，绝不伪装成复制失败。
-    match cleanup_backup_root(&backup_root) {
-        Ok(()) => Ok(CopyCompletion::new("direct")),
-        Err(error) => Ok(
-            CopyCompletion::new("direct").with_warning(PostCommitWarning::new(
-                PostCommitWarningCode::TransactionBackupCleanup,
-                [backup_root],
-                Some(error),
-            )),
-        ),
-    }
+    Ok(DirectCopyTransaction {
+        backup_root,
+        backups,
+        created_parent_directories,
+        active: true,
+    })
 }
 
 fn missing_copy_parent_directories(pairs: &[CopyPair]) -> Result<Vec<PathBuf>, CopyFailure> {

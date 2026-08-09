@@ -9,6 +9,7 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[cfg(any(target_os = "windows", test))]
 const APP_DATA_DIRECTORY: &str = "com.daftai.cavalry-i18n";
 
 pub(crate) fn repo_root() -> PathBuf {

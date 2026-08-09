@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 InstallLayout、CommandRunner、平台运行环境以及 Windows hash-safe PowerShell 编码。
- * [OUTPUT]: 提供 restart_commands、typed 写入前 graceful close、当前会话原生进程句柄绑定且精确路径/持续无可见窗口时的 scoped termination，以及带 cwd/env/PID 的 Cavalry 重启。
- * [POS]: privilege 的跨平台重启适配器；Windows 从首次复核到退出都固定当前 Session 的同一 Process/SafeHandle，优先优雅关闭，exact-PID EnumWindows/DWM 发现可见窗口或跨会话实例即返回 StillRunning，仅在绝对 executable path 与无可见窗口二次成立时单进程收尾。
+ * [INPUT]: 依赖 InstallLayout、CommandRunner、macOS exact-PID 控制与 Windows hash-safe PowerShell 编码。
+ * [OUTPUT]: 提供 restart_commands、typed 写入前 graceful close、两平台 canonical executable/PID 绑定，以及带 cwd/env/PID 的 Cavalry 重启。
+ * [POS]: privilege 的跨平台重启适配器；macOS 通过 libproc+NSRunningApplication 有界等待，Windows 固定当前 Session 的同一 Process/SafeHandle。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{ffi::OsString, fmt, path::Path};
@@ -9,28 +9,16 @@ use std::{ffi::OsString, fmt, path::Path};
 #[cfg(target_os = "windows")]
 use super::windows::manifest::encode_powershell_command;
 use super::{CommandRunner, RecordedCommand};
+#[cfg(target_os = "windows")]
 use crate::install::InstallLayout;
 
 pub fn restart_commands(app_path: &Path) -> Vec<RecordedCommand> {
     #[cfg(target_os = "macos")]
     {
-        let app_name = app_path
-            .file_stem()
-            .map(|value| value.to_string_lossy().to_string())
-            .unwrap_or_else(|| "Cavalry".to_string());
-        return vec![
-            RecordedCommand {
-                program: "osascript".to_string(),
-                args: vec![
-                    "-e".to_string(),
-                    format!("tell application \"{app_name}\" to quit"),
-                ],
-            },
-            RecordedCommand {
-                program: "open".to_string(),
-                args: vec!["-n".to_string(), app_path.to_string_lossy().to_string()],
-            },
-        ];
+        return vec![RecordedCommand {
+            program: "open".to_string(),
+            args: vec!["-n".to_string(), app_path.to_string_lossy().to_string()],
+        }];
     }
 
     #[cfg(target_os = "windows")]
@@ -375,7 +363,7 @@ pub fn restart_cavalry<R: CommandRunner>(app_path: &Path, runner: &mut R) -> Res
     restart_cavalry_with_environment(app_path, &[], runner)
 }
 
-/// Windows 在修改 qwindows/JSON 前只关闭所选安装根的 Cavalry，并等待其自然退出；普通关闭不会恢复任何 DLL。
+/// 两平台在修改 bundle/JSON/QPA 前只关闭所选安装根的 Cavalry，并等待其自然退出；普通关闭不改变任何安装文件。
 pub fn close_cavalry_before_modification<R: CommandRunner>(
     app_path: &Path,
     runner: &mut R,
@@ -397,10 +385,15 @@ pub fn close_cavalry_before_modification<R: CommandRunner>(
             };
         }
     }
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "macos")]
+    {
+        return super::macos::process::close_exact_cavalry(app_path, runner);
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = (app_path, runner);
     }
+    #[allow(unreachable_code)]
     Ok(())
 }
 
@@ -431,8 +424,8 @@ fn restart_cavalry_with_environment_inner<R: CommandRunner>(
     #[cfg(target_os = "macos")]
     {
         let _ = environment;
-        runner.run(&commands[0].program, &commands[0].args)?;
-        runner.spawn_detached(&commands[1].program, &commands[1].args)?;
+        close_cavalry_before_modification(app_path, runner).map_err(|error| error.to_string())?;
+        runner.spawn_detached(&commands[0].program, &commands[0].args)?;
         return Ok(None);
     }
     #[cfg(target_os = "windows")]

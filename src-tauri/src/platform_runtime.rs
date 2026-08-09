@@ -1,6 +1,8 @@
+#[cfg(target_os = "macos")]
+use std::os::unix::fs::PermissionsExt;
 /**
- * [INPUT]: 依赖 install 布局、mac_runtime/windows_runtime/windows_qpa、privilege typed graceful close 与 state。
- * [OUTPUT]: 提供 prepare_apply、typed fail-before-mutation preflight、after_copy、无 generic 残留的 English 早退判定与 restart 跨平台编排入口。
+ * [INPUT]: 依赖 install 布局、verified vendor Info.plist、mac_runtime/windows_runtime/windows_qpa、privilege typed graceful close 与 state。
+ * [OUTPUT]: 提供 prepare_apply（macOS runtime 只从 trusted Info.plist 生成并含 Keychain staged pair）、typed fail-before-mutation preflight、payload 后 nested-code 签名、final marker 后 app seal、无 generic 残留的 English 早退判定与 restart 跨平台编排入口。
  * [POS]: commands 与平台差异之间的私有 facade；Windows English/翻译态都解析同一可信双 DLL 源，自定义根与 Program Files 共享 QPA 所有权语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,8 +11,10 @@ use std::{
     path::{Path, PathBuf},
 };
 
+#[cfg(target_os = "windows")]
+use crate::install::InstallPlatform;
 use crate::{
-    install::{InstallLayout, InstallPlatform},
+    install::InstallLayout,
     patch::CopyPair,
     privilege::{self, CommandRunner},
     state::State,
@@ -20,6 +24,7 @@ use crate::{
 pub(crate) struct ApplyPlan {
     pub(crate) runtime_pairs: Vec<CopyPair>,
     pub(crate) final_language_marker: Option<CopyPair>,
+    #[cfg_attr(target_os = "macos", allow(dead_code))]
     pub(crate) defer_final_language_marker: bool,
     #[cfg(target_os = "macos")]
     injector_target: Option<PathBuf>,
@@ -63,6 +68,8 @@ pub(crate) fn prepare_apply(
     lang: &str,
     cavalry_version: &str,
     staging_root: &Path,
+    trusted_macos_info_plist: Option<&Path>,
+    trusted_macos_info_mode: Option<u32>,
 ) -> Result<ApplyPlan, String> {
     let layout = InstallLayout::from_root(app_path);
     let mut plan = ApplyPlan::default();
@@ -99,22 +106,58 @@ pub(crate) fn prepare_apply(
 
     #[cfg(target_os = "macos")]
     {
-        let injector_source = crate::mac_runtime::injector_source_path(repo_root, resource_dir)?;
         let injector_target = app_path
             .join("Contents")
             .join("Frameworks")
             .join(crate::mac_runtime::INJECTOR_DYLIB_NAME);
-        for pair in crate::mac_runtime::build_runtime_pairs(
-            app_path,
-            lang,
-            &staging_root.join("runtime"),
-            &injector_source,
-        )
-        .map_err(|error| format!("Could not build macOS runtime patch files: {error}"))?
-        {
-            if pair.dst == layout.language_marker {
-                plan.final_language_marker = Some(pair);
-            } else {
+        if lang == "en" {
+            plan.final_language_marker = Some(crate::mac_runtime::build_language_marker_pair(
+                app_path,
+                "en",
+                &staging_root.join("runtime-marker"),
+            )?);
+        } else if lang != crate::commands::RESTORE_OFFICIAL_ACTION {
+            let injector_source =
+                crate::mac_runtime::injector_source_path(repo_root, resource_dir)?;
+            let trusted_info = trusted_macos_info_plist.ok_or_else(|| {
+                "macOS translated runtime requires the verified vendor Info.plist preimage."
+                    .to_string()
+            })?;
+            let trusted_info_mode = trusted_macos_info_mode.ok_or_else(|| {
+                "macOS translated runtime requires the vendor Info.plist mode.".to_string()
+            })?;
+            for pair in crate::mac_runtime::build_runtime_pairs_from_trusted_info_plist_path(
+                app_path,
+                lang,
+                &staging_root.join("runtime"),
+                &injector_source,
+                trusted_info,
+            )
+            .map_err(|error| format!("Could not build macOS runtime patch files: {error}"))?
+            {
+                if pair.dst == app_path.join("Contents/Info.plist") {
+                    std::fs::set_permissions(
+                        &pair.src,
+                        std::fs::Permissions::from_mode(trusted_info_mode),
+                    )
+                    .map_err(|error| {
+                        format!(
+                            "Could not restore vendor Info.plist mode on staged managed runtime: {error}"
+                        )
+                    })?;
+                }
+                if pair.dst == layout.language_marker {
+                    plan.final_language_marker = Some(pair);
+                } else {
+                    plan.runtime_pairs.push(pair);
+                }
+            }
+            let (keychain_pair, _) = privilege::stage_keychain_query_attributes_patch(
+                app_path,
+                &staging_root.join("keychain"),
+            )
+            .map_err(|error| format!("Could not stage Keychain query patch: {error}"))?;
+            if let Some(pair) = keychain_pair {
                 plan.runtime_pairs.push(pair);
             }
         }
@@ -135,6 +178,8 @@ pub(crate) fn prepare_apply(
 
     #[cfg(target_os = "macos")]
     let _ = cavalry_version;
+    #[cfg(not(target_os = "macos"))]
+    let _ = (trusted_macos_info_plist, trusted_macos_info_mode);
 
     Ok(plan)
 }
@@ -158,10 +203,26 @@ pub(crate) fn preflight_apply<R: CommandRunner>(
             );
         }
     }
-    #[cfg(not(target_os = "windows"))]
+    #[cfg(target_os = "macos")]
+    {
+        let _ = lang;
+        return match privilege::close_cavalry_before_modification(app_path, runner) {
+            Ok(()) => Ok(()),
+            Err(privilege::CloseCavalryError::StillRunning) => {
+                Err(ApplyPreflightError::CavalryStillRunning)
+            }
+            Err(privilege::CloseCavalryError::Command(detail)) => {
+                Err(ApplyPreflightError::Other(format!(
+                    "Could not close the selected Cavalry before applying language files: {detail}"
+                )))
+            }
+        };
+    }
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = (app_path, lang, runner);
     }
+    #[allow(unreachable_code)]
     Ok(())
 }
 
@@ -234,6 +295,8 @@ pub(crate) fn english_runtime_is_stock(app_path: &Path) -> bool {
                 .unwrap_or(false);
         }
     }
+    #[cfg(not(target_os = "windows"))]
+    let _ = app_path;
     true
 }
 
@@ -290,43 +353,16 @@ pub(crate) fn after_copy<R: CommandRunner>(
 
     #[cfg(target_os = "macos")]
     {
-        let injector_target = plan
-            .injector_target
-            .as_ref()
-            .expect("macOS ApplyPlan must retain its injector target");
-        let mut modified_nested_code = staged_pairs
-            .iter()
-            .filter(|pair| pair.dst == *injector_target)
-            .map(|pair| pair.dst.clone())
-            .collect::<Vec<_>>();
-        let mut bundle_changed = !staged_pairs.is_empty();
-        if lang != "en" {
-            let keychain_report = privilege::patch_keychain_query_attributes_with_privilege(
-                app_path,
-                &staging_root.join("keychain"),
-                runner,
-            )
-            .map_err(|error| format!("Could not patch Keychain query attributes: {error}"))?;
-            if keychain_report.patched_callsites > 0 {
-                bundle_changed = true;
-                modified_nested_code.push(
-                    app_path
-                        .join("Contents")
-                        .join("Frameworks")
-                        .join("libExtensionLayer.dylib"),
-                );
-            }
+        if lang == crate::commands::RESTORE_OFFICIAL_ACTION {
+            // English official restore copies the captured vendor executable, nested dylib,
+            // Info.plist and CodeResources preimages. Re-signing here would immediately replace
+            // that restored signature with a new ad-hoc identity; the command transaction verifies
+            // the captured signature evidence before committing instead.
+            return Ok(());
         }
-        if bundle_changed {
-            privilege::resign_patched_bundle(app_path, &modified_nested_code, runner)
-                .map_err(|error| format!("Could not re-sign patched Cavalry.app: {error}"))?;
-        } else {
-            privilege::ensure_bundle_signature(app_path, runner).map_err(|error| {
-                format!("Could not verify or repair Cavalry.app signature: {error}")
-            })?;
-        }
-        privilege::clear_gatekeeper_quarantine(app_path, runner)
-            .map_err(|error| format!("Could not clear Gatekeeper quarantine: {error}"))?;
+        let modified_nested_code = macos_modified_nested_code(plan, app_path, staged_pairs);
+        privilege::sign_modified_nested_code(app_path, &modified_nested_code, runner)
+            .map_err(|error| format!("Could not sign patched Cavalry nested code: {error}"))?;
     }
 
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
@@ -337,6 +373,68 @@ pub(crate) fn after_copy<R: CommandRunner>(
     #[cfg(target_os = "windows")]
     let _ = (staging_root, staged_pairs, runner);
 
+    #[cfg(target_os = "macos")]
+    let _ = staging_root;
+
+    Ok(())
+}
+
+#[cfg(target_os = "macos")]
+fn macos_modified_nested_code(
+    plan: &ApplyPlan,
+    app_path: &Path,
+    staged_pairs: &[CopyPair],
+) -> Vec<PathBuf> {
+    let injector_target = plan
+        .injector_target
+        .as_ref()
+        .expect("macOS ApplyPlan must retain its injector target");
+    let keychain_target = app_path
+        .join("Contents")
+        .join("Frameworks")
+        .join("libExtensionLayer.dylib");
+    staged_pairs
+        .iter()
+        .filter(|pair| pair.dst == *injector_target || pair.dst == keychain_target)
+        .map(|pair| pair.dst.clone())
+        .collect()
+}
+
+/// Re-run the bounded nested-code verification without signing again.  The macOS transaction
+/// uses this as its pre-marker proof before it records exact signing postimages.
+#[cfg(target_os = "macos")]
+pub(crate) fn verify_after_copy<R: CommandRunner>(
+    plan: &ApplyPlan,
+    app_path: &Path,
+    lang: &str,
+    staged_pairs: &[CopyPair],
+    runner: &mut R,
+) -> Result<(), String> {
+    if lang == crate::commands::RESTORE_OFFICIAL_ACTION {
+        return Ok(());
+    }
+    let modified_nested_code = macos_modified_nested_code(plan, app_path, staged_pairs);
+    privilege::verify_modified_nested_code(app_path, &modified_nested_code, runner)
+        .map_err(|error| format!("Patched Cavalry nested-code verification failed: {error}"))
+}
+
+pub(crate) fn after_final_language_marker<R: CommandRunner>(
+    app_path: &Path,
+    lang: &str,
+    runner: &mut R,
+) -> Result<(), String> {
+    #[cfg(target_os = "macos")]
+    {
+        if lang == crate::commands::RESTORE_OFFICIAL_ACTION {
+            return Ok(());
+        }
+        privilege::seal_patched_bundle(app_path, runner)
+            .map_err(|error| format!("Could not seal patched Cavalry.app: {error}"))?;
+    }
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = (app_path, lang, runner);
+    }
     Ok(())
 }
 

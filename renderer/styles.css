@@ -1,3 +1,9 @@
+/*
+ * [INPUT]: 依赖 renderer/index.html 的固定 DOM/class 与本地系统字体。
+ * [OUTPUT]: 定义单列卡片、原生 select、官方/受管安装态、独立还原按钮、状态/权限弹窗及响应式视觉。
+ * [POS]: renderer 的唯一视觉样式源；不加载远程字体或其他网络资源。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 /* ============================================================
    Cavalry Language Switcher
    Aesthetic: Swiss Instrument — precision, geometry, restraint
@@ -16,18 +22,12 @@
   75%      { transform: translate(-1%, -2%); }
 }
 
-/*
- * [INPUT]: 依赖 renderer/index.html 的 class/id 结构与 Google Fonts 字体族
- * [OUTPUT]: 对外提供桌面补丁器完整视觉样式、布局、状态色、按钮、权限弹窗和自定义 select 样式
- * [POS]: renderer 的唯一样式源，被 Tauri HTML 入口加载
- * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
- */
 :root {
   color-scheme: light;
 
   /* ── Typography ── */
-  --font-display: "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 
   /* ── Kumo Surfaces ── */
   --kumo-canvas: oklch(98.75% 0 0);
@@ -197,6 +197,13 @@ body {
   font-weight: 600;
 }
 
+.installation-mode {
+  margin: -10px 0 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-subtle);
+}
+
 /* ── Form elements ── */
 .field {
   display: flex;
@@ -213,148 +220,30 @@ body {
   color: var(--text-subtle);
 }
 
-/* ── Custom Select ── */
-.custom-select-wrap {
-  position: relative;
-}
-
-.custom-select-wrap > select {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border: 0;
-  padding: 0;
-}
-
-.select-trigger {
+/* ── Native select ── */
+.field > select {
   width: 100%;
   min-height: 40px;
-  padding: 0 36px 0 14px;
+  padding: 0 14px;
   border-radius: 10px;
-  border: none;
-  outline: 1px solid var(--kumo-line);
+  border: 1px solid var(--kumo-line);
   background: var(--kumo-control);
   color: var(--text-default);
   font-family: var(--font-display);
   font-size: 14px;
   font-weight: 500;
-  text-align: left;
   cursor: pointer;
   box-shadow: var(--kumo-shadow-xs);
-  display: flex;
-  align-items: center;
-  position: relative;
   transition: outline-color 150ms ease;
 }
 
-.select-trigger:hover {
-  outline-color: oklch(14.5% 0 0 / 0.16);
+.field > select:hover {
+  border-color: oklch(14.5% 0 0 / 0.16);
 }
 
-.select-trigger:focus-visible {
+.field > select:focus-visible {
   outline: 2px solid var(--kumo-contrast);
   outline-offset: 0;
-}
-
-.select-trigger[aria-expanded="true"] {
-  outline: 1.5px solid var(--kumo-contrast);
-}
-
-.select-trigger[aria-expanded="true"] .select-chevron {
-  transform: rotate(180deg);
-}
-
-.select-trigger-text {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.select-chevron {
-  position: absolute;
-  right: 14px;
-  top: 50%;
-  margin-top: -4px;
-  color: var(--text-subtle);
-  transition: transform 200ms ease;
-  pointer-events: none;
-}
-
-.select-trigger[disabled] {
-  opacity: 0.4;
-  pointer-events: none;
-}
-
-/* ── Popup ── */
-.select-popup {
-  display: none;
-  position: absolute;
-  z-index: 50;
-  top: calc(100% + 6px);
-  left: 0;
-  right: 0;
-  list-style: none;
-  margin: 0;
-  padding: 4px;
-  border-radius: 10px;
-  background: var(--kumo-base);
-  outline: 1px solid var(--kumo-line);
-  box-shadow: 0 8px 24px oklch(0% 0 0 / 0.1), 0 2px 6px oklch(0% 0 0 / 0.06);
-  max-height: 220px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-.select-popup[data-open] {
-  display: block;
-  animation: select-in 150ms ease;
-}
-
-@keyframes select-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-.select-option {
-  padding: 8px 12px;
-  border-radius: 6px;
-  font-family: var(--font-display);
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--text-default);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  transition: background 80ms ease;
-  user-select: none;
-}
-
-.select-option:hover,
-.select-option[data-focused] {
-  background: var(--kumo-tint);
-}
-
-.select-option:active {
-  background: var(--kumo-recessed);
-}
-
-.select-option[aria-selected="true"] {
-  font-weight: 600;
-}
-
-.select-option[aria-selected="true"]::after {
-  content: "";
-  width: 16px;
-  height: 16px;
-  flex-shrink: 0;
-  background-image: url("data:image/svg+xml,%3Csvg width='16' height='16' viewBox='0 0 16 16' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.5 8.5L6.5 11.5L12.5 4.5' stroke='%23222' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: center;
 }
 
 /* ── Buttons ── */
@@ -418,6 +307,15 @@ button.secondary:hover {
 
 .actions > * {
   flex: 1 1 0;
+}
+
+.restore-button {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.restore-button[hidden] {
+  display: none;
 }
 
 /* ── Status ── */
@@ -504,7 +402,7 @@ button.secondary:hover {
   padding: 0;
   border-radius: 8px;
   background: transparent;
-  color: var(--text-muted);
+  color: var(--text-subtle);
   font-size: 20px;
   line-height: 1;
 }
@@ -521,7 +419,7 @@ button.secondary:hover {
   margin-top: 10px;
   font-size: 13px;
   line-height: 1.65;
-  color: var(--text-muted);
+  color: var(--text-subtle);
 }
 
 .modal-actions {

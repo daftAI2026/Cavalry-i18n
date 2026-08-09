@@ -188,18 +188,28 @@ function makeFakeBundle(rootDir) {
 
 
 
-test('renderer only switches status to warning when the patch flow reports a real warning', () => {
+test('renderer localizes composable warning codes and never renders backend warning prose', () => {
   const rendererSource = fs.readFileSync(path.join(rendererRoot, 'app.js'), 'utf8');
 
   assert.match(
     rendererSource,
-    /result\.warning/,
-    'renderer should branch on applyLanguage warnings instead of showing a permanent warning note'
+    /localizedWarningMessages\(warningCodes\)\.join\(' '\)/,
+    'renderer should own localized presentation for every warning code'
   );
   assert.match(
     rendererSource,
-    /result\.warning\s*\?\s*'warning'\s*:\s*'success'/,
-    'renderer should downgrade the status tone only when applyLanguage returns a warning'
+    /warnings\s*\?\s*'warning'\s*:\s*'success'/,
+    'renderer should downgrade the status tone only when localized warnings are present'
+  );
+  assert.match(
+    rendererSource,
+    /state\.stateDurabilityPending\s*=\s*warningCodes\.includes\('stateDurabilityPending'\)/,
+    'durability uncertainty must remain a typed, control-blocking warning'
+  );
+  assert.doesNotMatch(
+    rendererSource,
+    /\bresult\.warning\b(?!Codes?)/,
+    'renderer must never branch on or display backend warning prose'
   );
 });
 

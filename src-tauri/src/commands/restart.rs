@@ -6,9 +6,12 @@
  */
 use std::path::Path;
 
-use crate::{detect, platform_runtime, privilege::CommandRunner, state};
+use crate::{detect, platform_runtime, privilege::CommandRunner};
 
-use super::{snapshot::project_proven_english_state, status::sync_state_with_bundle};
+use super::{
+    snapshot::project_proven_english_state,
+    status::{read_state_for_mutation, sync_state_with_bundle},
+};
 
 pub fn restart_cavalry_inner<R: CommandRunner>(
     repo_root: &Path,
@@ -17,16 +20,21 @@ pub fn restart_cavalry_inner<R: CommandRunner>(
     app_path: &Path,
     runner: &mut R,
 ) -> Result<(), String> {
-    let app_path = detect::resolve_install(app_path)?.root;
+    #[cfg(target_os = "macos")]
+    crate::privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
+    let app_path = detect::resolve_verified_install(app_path)
+        .map_err(|error| error.to_string())?
+        .root;
     let version = detect::read_bundle_version(&app_path).unwrap_or_default();
-    let immutable_revision = detect::read_bundle_revision(&app_path)?;
+    let immutable_revision =
+        detect::read_bundle_revision_for_write(&app_path).map_err(|error| error.to_string())?;
     let state = sync_state_with_bundle(
         state_dir,
-        state::read_state(state_dir).unwrap_or_default(),
+        read_state_for_mutation(state_dir)?,
         &app_path,
         &version,
         &immutable_revision,
-    );
+    )?;
     let state = project_proven_english_state(repo_root, resource_dir, &app_path, state);
     platform_runtime::restart(
         repo_root,
@@ -51,16 +59,19 @@ where
     R: CommandRunner,
     F: Fn(&crate::install::InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String>,
 {
-    let app_path = detect::resolve_install(app_path)?.root;
+    let app_path = detect::resolve_verified_install(app_path)
+        .map_err(|error| error.to_string())?
+        .root;
     let version = detect::read_bundle_version(&app_path).unwrap_or_default();
-    let immutable_revision = detect::read_bundle_revision(&app_path)?;
+    let immutable_revision =
+        detect::read_bundle_revision_for_write(&app_path).map_err(|error| error.to_string())?;
     let state = sync_state_with_bundle(
         state_dir,
-        state::read_state(state_dir).unwrap_or_default(),
+        read_state_for_mutation(state_dir)?,
         &app_path,
         &version,
         &immutable_revision,
-    );
+    )?;
     let state = project_proven_english_state(repo_root, resource_dir, &app_path, state);
     platform_runtime::restart_with_qpa_inspector(
         repo_root,

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 privilege facade、其按职责拆分的源码树，以及复制、重签、quarantine 与跨平台 restart 边界。
- * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名及 Windows Known Folder UAC、same-EXE worker 早分流、无控制台 PowerShell、当前会话 SafeHandle 绑定且 exact-PID 可见窗口 oracle 守护的精确进程收尾、45 可重试关闭阻塞、hash-locked loader 与 typed recovery diagnostics contract tests。
+ * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名/不跟随 symlink 的 quarantine 清理与 launch-gate/observe-only/tombstone transaction source contract，及 Windows Known Folder UAC、same-EXE worker 早分流、无控制台 PowerShell、当前会话 SafeHandle 绑定且 exact-PID 可见窗口 oracle 守护的精确进程收尾、45 可重试关闭阻塞、hash-locked loader 与 typed recovery diagnostics contract tests。
  * [POS]: src-tauri/tests 的系统边界守门；审计 facade 与子模块共同满足安全边界，避免文件拆分掩盖 Windows 提权约束。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -546,30 +546,102 @@ fn patch_keychain_missing_target_and_missing_string_are_distinct() {
 #[test]
 fn quarantine_clear_ignores_missing_xattr() {
     let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Cavalry.app");
+    fs::create_dir(&app).unwrap();
     let mut runner = RecordingRunner::default();
-    clear_gatekeeper_quarantine(temp.path(), &mut runner).unwrap();
-    if cfg!(target_os = "macos") {
-        assert_eq!(runner.commands[0].program, "xattr");
-    }
+    clear_gatekeeper_quarantine(&app, &mut runner).unwrap();
+    assert!(runner.commands.is_empty());
 }
 
 #[test]
 #[cfg(target_os = "macos")]
-fn restart_quits_then_opens_new_instance() {
+fn quarantine_clear_never_follows_bundle_symlinks() {
+    use std::os::unix::fs::symlink;
+
+    fn set_quarantine(path: &Path, value: &str) {
+        let status = std::process::Command::new("/usr/bin/xattr")
+            .args(["-w", "com.apple.quarantine", value])
+            .arg(path)
+            .status()
+            .unwrap();
+        assert!(status.success());
+    }
+
+    fn has_quarantine(path: &Path) -> bool {
+        std::process::Command::new("/usr/bin/xattr")
+            .args(["-p", "com.apple.quarantine"])
+            .arg(path)
+            .status()
+            .unwrap()
+            .success()
+    }
+
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Cavalry.app");
+    let inside = app.join("Contents/inside");
+    let outside = temp.path().join("outside");
+    write(&inside, b"inside");
+    fs::write(&outside, b"outside").unwrap();
+    symlink(&outside, app.join("Contents/outside-link")).unwrap();
+    set_quarantine(&app, "root");
+    set_quarantine(&inside, "inside");
+    set_quarantine(&outside, "outside");
+
+    clear_gatekeeper_quarantine(&app, &mut RecordingRunner::default()).unwrap();
+
+    assert!(!has_quarantine(&app));
+    assert!(!has_quarantine(&inside));
+    assert!(has_quarantine(&outside));
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn restart_command_opens_only_the_exact_selected_bundle() {
     let commands = restart_commands(Path::new("/Applications/Cavalry.app"));
     assert_eq!(
         commands,
-        vec![
-            RecordedCommand {
-                program: "osascript".into(),
-                args: vec!["-e".into(), "tell application \"Cavalry\" to quit".into()]
-            },
-            RecordedCommand {
-                program: "open".into(),
-                args: vec!["-n".into(), "/Applications/Cavalry.app".into()]
-            }
-        ]
+        vec![RecordedCommand {
+            program: "open".into(),
+            args: vec!["-n".into(), "/Applications/Cavalry.app".into()]
+        }]
     );
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn macos_privilege_has_no_administrator_shell_or_mutable_temp_execution_path() {
+    let source_root = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/privilege");
+    let macos_root = source_root.join("macos");
+    assert!(!macos_root.join("admin_copy.rs").exists());
+
+    let copy = fs::read_to_string(source_root.join("copy_transaction.rs")).unwrap();
+    let bundle = fs::read_to_string(macos_root.join("bundle.rs")).unwrap();
+    let process = fs::read_to_string(macos_root.join("process.rs")).unwrap();
+    let transaction = fs::read_to_string(macos_root.join("apply_transaction.rs")).unwrap();
+    let executable_admin_phrase = ["with administrator", " privileges"].concat();
+    let shell_escalation = ["do shell", " script"].concat();
+
+    fn production(source: &str) -> &str {
+        source.split("#[cfg(test)]").next().unwrap_or(source)
+    }
+    for source in [&copy, &bundle, &process, &transaction]
+        .into_iter()
+        .map(|source| production(source))
+    {
+        assert!(!source.contains(&executable_admin_phrase));
+        assert!(!source.contains(&shell_escalation));
+    }
+    assert!(!copy.contains("run_admin_copy"));
+    assert!(!bundle.contains("run_maybe_admin"));
+    assert!(process.contains("runningApplicationWithProcessIdentifier"));
+    assert!(process.contains("URLByResolvingSymlinksInPath"));
+    assert!(process.contains("actualPath !== argv[1]"));
+    assert!(transaction.contains("JournalPhase::Committed"));
+    assert!(transaction.contains("Exact bundle and state preimages were restored"));
+    assert!(transaction.contains("CLEANUP_TOMBSTONE_PREFIX"));
+    assert!(transaction.contains("retire_and_cleanup_journal"));
+    assert!(transaction.contains("observed_bundle_preimages"));
+    assert!(transaction.contains("launch_gate_pairs"));
 }
 
 #[cfg(target_os = "windows")]
@@ -913,7 +985,7 @@ fn resign_fast_path_signs_changed_code_then_verifies_bundle() {
 }
 
 #[test]
-fn resign_verify_failure_runs_deduplicated_full_repair_then_reverifies() {
+fn resign_verify_failure_refuses_unbounded_deep_repair() {
     let temp = tempfile::tempdir().unwrap();
     let app = make_signing_bundle(temp.path());
     #[cfg(unix)]
@@ -928,34 +1000,35 @@ fn resign_verify_failure_runs_deduplicated_full_repair_then_reverifies() {
         verify_failures: 1,
     };
 
-    resign_patched_bundle(&app, std::slice::from_ref(&changed), &mut runner).unwrap();
+    let error =
+        resign_patched_bundle(&app, std::slice::from_ref(&changed), &mut runner).unwrap_err();
 
     if cfg!(target_os = "macos") {
+        assert!(error.contains("nested code is not signed"), "{error}");
         let signing = runner
             .commands
             .iter()
             .filter(|command| command.args.iter().any(|arg| arg == "--sign"))
             .collect::<Vec<_>>();
-        assert_eq!(signing.len(), 6);
+        // Nested code is verified immediately; a failed nested seal must prevent the outer app
+        // seal from being written at all.
+        assert_eq!(signing.len(), 1);
         assert_eq!(
             runner
                 .commands
                 .iter()
                 .filter(|command| command.args.iter().any(|arg| arg == "--verify"))
                 .count(),
-            2
-        );
-        assert_eq!(
-            signing
-                .iter()
-                .filter(|command| command.args.iter().any(|arg| arg == "--deep"))
-                .count(),
             1
         );
-        assert!(!signing.iter().any(|command| command
-            .args
+        assert!(signing
             .iter()
-            .any(|arg| arg.ends_with("libCavalryFrameworkAlias.dylib"))));
+            .all(|command| !command.args.iter().any(|arg| arg == "--deep")));
+        assert!(
+            !signing.iter().any(|command| command.args.iter().any(|arg| {
+                arg.ends_with("libCavalryFrameworkAlias.dylib") || arg.ends_with("crashpad_handler")
+            }))
+        );
     }
 }
 
@@ -975,7 +1048,7 @@ fn unchanged_bundle_verifies_without_signing() {
 }
 
 #[test]
-fn unchanged_bundle_with_broken_seal_repairs_and_reverifies() {
+fn unchanged_bundle_with_broken_seal_fails_closed_without_signing() {
     let temp = tempfile::tempdir().unwrap();
     let app = make_signing_bundle(temp.path());
     let mut runner = VerifyFailsRunner {
@@ -983,16 +1056,17 @@ fn unchanged_bundle_with_broken_seal_repairs_and_reverifies() {
         verify_failures: 1,
     };
 
-    ensure_bundle_signature(&app, &mut runner).unwrap();
+    let error = ensure_bundle_signature(&app, &mut runner).unwrap_err();
 
     if cfg!(target_os = "macos") {
+        assert!(error.contains("nested code is not signed"), "{error}");
         assert_eq!(
             runner
                 .commands
                 .iter()
                 .filter(|command| command.args.iter().any(|arg| arg == "--verify"))
                 .count(),
-            2
+            1
         );
         assert_eq!(
             runner
@@ -1000,7 +1074,7 @@ fn unchanged_bundle_with_broken_seal_repairs_and_reverifies() {
                 .iter()
                 .filter(|command| command.args.iter().any(|arg| arg == "--sign"))
                 .count(),
-            4
+            0
         );
     }
 }

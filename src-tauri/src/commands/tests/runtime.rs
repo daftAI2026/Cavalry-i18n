@@ -9,7 +9,9 @@ use super::super::apply_language_inner;
 use super::super::restart_cavalry_inner;
 #[cfg(target_os = "windows")]
 use super::super::restart_cavalry_inner_with_qpa_inspector;
-use super::{make_bundle, make_english_snapshot, make_language, status_for_paths, write};
+#[cfg(not(target_os = "macos"))]
+use super::make_english_snapshot;
+use super::{make_bundle, make_language, status_for_paths, write};
 #[cfg(target_os = "windows")]
 use super::{make_windows_install, write_windows_runtime_state, WindowsRuntimeRestartRunner};
 use crate::privilege::RecordingRunner;
@@ -38,7 +40,7 @@ fn status_uses_packaged_resource_languages_when_repo_root_is_missing() {
     make_language(&resources, "zh-Hans");
     make_language(&resources, "ja_JP");
 
-    let status = status_for_paths(&repo, &state, &resources, Vec::new());
+    let status = status_for_paths(&repo, &state, &resources, Vec::new()).unwrap();
     let values = status
         .languages
         .iter()
@@ -60,14 +62,14 @@ fn status_finds_languages_when_tauri_stores_parent_resources_under_up_dir() {
     make_language(&resources.join("_up_"), "zh-Hant");
     make_language(&resources.join("_up_"), "ja_JP");
 
-    let status = status_for_paths(&repo, &state, &resources, Vec::new());
+    let status = status_for_paths(&repo, &state, &resources, Vec::new()).unwrap();
     let values = status
         .languages
         .iter()
         .map(|language| language.value.as_str())
         .collect::<Vec<_>>();
 
-    assert_eq!(values, vec!["en", "ja_JP", "zh-Hans", "zh-Hant"]);
+    assert_eq!(values, vec!["en", "zh-Hans", "zh-Hant", "ja_JP"]);
 }
 
 #[test]
@@ -159,14 +161,15 @@ fn apply_language_finds_sibling_injector_when_resource_dir_points_at_up_dir() {
 }
 
 #[test]
-fn apply_language_english_skips_keychain_patch() {
+#[cfg(not(target_os = "macos"))]
+fn non_macos_apply_language_english_skips_keychain_patch() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state = temp.path().join("state");
     let resources = temp.path().join("resources");
     let app = make_bundle(temp.path());
     make_language(&repo, "zh-Hans");
-    make_english_snapshot(&state);
+    make_english_snapshot(&state, &app);
     write(
         &resources.join("injector/libCavalryTranslatorInjector.dylib"),
         b"injector",
@@ -175,7 +178,7 @@ fn apply_language_english_skips_keychain_patch() {
     fs::write(
             state.join("state.json"),
             format!(
-                "{{\"appPath\":\"{}\",\"cavalryVersion\":\"2.3.4\",\"currentLang\":\"zh-Hans\",\"lastPatchedAt\":\"old\"}}\n",
+                "{{\"appPath\":\"{}\",\"cavalryVersion\":\"2.7.2\",\"currentLang\":\"zh-Hans\",\"lastPatchedAt\":\"old\"}}\n",
                 app.to_string_lossy()
             ),
         )
@@ -225,10 +228,7 @@ fn apply_language_patch_failure_aborts_resign() {
     )
     .unwrap_err();
 
-    assert!(
-        error.contains("libExtensionLayer.dylib not found"),
-        "{error}"
-    );
+    assert!(error.contains("libExtensionLayer.dylib"), "{error}");
     assert!(!runner
         .commands
         .iter()
@@ -356,6 +356,10 @@ fn restart_cavalry_inner_uses_runner() {
         &mut runner,
     )
     .unwrap();
-    assert_eq!(runner.commands[0].program, "osascript");
-    assert_eq!(runner.commands[1].program, "open");
+    assert_eq!(runner.commands.len(), 1);
+    assert_eq!(runner.commands[0].program, "open");
+    assert_eq!(
+        runner.commands[0].args,
+        vec!["-n", fs::canonicalize(app).unwrap().to_str().unwrap()]
+    );
 }

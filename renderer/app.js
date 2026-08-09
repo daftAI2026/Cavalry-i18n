@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API 与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置状态、语言选择、英文刷新、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明
- * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode 本土化可恢复错误，且只在 requestElevation 时公开 Windows 管理员重试
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置/官方或受管状态、English UI 与独立官方还原、可组合 warningCodes、state durability 显式刷新重试、本机重装指引、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明
+ * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode/warningCodes 本土化可恢复状态且从不显示 raw warning；官方还原使用非语言 manifest 的显式内部 action
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -9,11 +9,13 @@ const appPathText = document.querySelector('#appPath');
 const languageSectionLabel = document.querySelector('#languageSectionLabel');
 const currentLabel = document.querySelector('#currentLabel');
 const currentLanguage = document.querySelector('#currentLanguage');
+const installationModeText = document.querySelector('#installationMode');
 const switchToLabel = document.querySelector('#switchToLabel');
 const languageSelect = document.querySelector('#languageSelect');
 const browseButton = document.querySelector('#browseButton');
 const extractButton = document.querySelector('#extractButton');
 const applyButton = document.querySelector('#applyButton');
+const restoreButton = document.querySelector('#restoreButton');
 const permissionButton = document.querySelector('#permissionButton');
 const statusText = document.querySelector('#statusText');
 const modalBackdrop = document.querySelector('#modalBackdrop');
@@ -27,11 +29,17 @@ const api = window.cavalryI18n;
 const state = {
   appPath: '',
   currentLang: 'en',
+  installationMode: 'unknown',
   languages: [],
   needsExtract: false,
   appManagementGranted: null,
   platform: '',
   permissionAction: 'none',
+  pendingAction: '',
+  busy: false,
+  controlsBlocked: false,
+  startupRecoveryError: null,
+  stateDurabilityPending: false,
 };
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
@@ -47,9 +55,14 @@ const UI_TEXT = {
     language: 'Language',
     current: 'Current',
     switchTo: 'Switch to',
+    englishUi: 'English UI',
     apply: 'Apply & Restart',
+    restoreOfficial: 'Restore official Cavalry',
+    officialMode: 'Installation: verified official runtime',
+    modifiedMode: 'Installation: Switcher-managed or unverified runtime',
+    recoveryMode: 'Installation: recovery required before further changes',
     retryApply: 'Retry Apply',
-    refreshEnglish: 'Refresh English',
+    refreshEnglish: 'Refresh English Snapshot',
     openPrivacySecurity: 'Open permission settings',
     requestElevation: 'Retry as administrator',
     close: 'Close',
@@ -59,6 +72,19 @@ const UI_TEXT = {
     readyToApply: 'Ready to apply a language pack.',
     chooseAppToContinue: 'Choose a Cavalry installation to continue.',
     needsExtract: 'English source files need to be refreshed before the next patch.',
+    reinstallRequired: 'This Cavalry installation cannot be safely restored because its original English provenance is incomplete. Reinstall Cavalry from the official installer, then choose the new installation.',
+    warningStateDurabilityPending:
+      'State storage durability could not be confirmed. Refresh the English snapshot again before applying or restoring.',
+    warningRecoveryCleanupPending:
+      'Recovery cleanup is still pending. Keep the recovery files until the Switcher completes cleanup.',
+    warningProtectedRecoveryEvidenceRetained:
+      'Protected transaction recovery evidence remains. Do not delete it manually.',
+    warningTemporaryCleanupPending:
+      'Temporary cleanup is still pending. Close the Switcher before removing temporary files.',
+    warningFinderFallbackUsed:
+      'macOS used Finder-style replacement because direct copy was blocked.',
+    warningNonFatalCleanup: 'A non-fatal cleanup step still needs attention.',
+    extractSuccessWarning: 'English snapshot refreshed ({count} files). {warnings}',
     chooseAppFirst: 'Choose a Cavalry installation first.',
     noLanguage: 'No language pack is available.',
     refreshingEnglish: 'Refreshing the English snapshot...',
@@ -69,14 +95,23 @@ const UI_TEXT = {
     patchFailed: 'Patch failed.',
     cavalryStillRunning:
       'Cavalry is still running. Save your work, close Cavalry, and try again. The Cavalry installation was not changed.',
-    restartWarning: 'Language applied, but Cavalry could not be restarted.',
+    restartWarning: 'Cavalry could not be restarted.',
     applied: 'Applied {language} and restarted Cavalry.{warning}',
+    appliedWithWarnings: 'Applied {language}. {warnings}',
     openPrivacyFailed: 'Could not open permission settings.',
     bootstrapFailed: 'Bootstrap failed: {detail}',
+    operationFailed: 'Could not contact the desktop service. Try again.',
+    startupRecoveryFailed:
+      'An interrupted Cavalry update could not be recovered safely. Close Cavalry, relaunch the Switcher, and do not modify the installation manually.',
     detail: ' Details: {detail}',
     confirmTitle: 'Install language pack?',
     confirmBody:
       'The selected language pack will modify the chosen Cavalry installation. Cavalry will restart after the files are applied.',
+    restoreConfirmTitle: 'Restore the official Cavalry installation?',
+    restoreConfirmBody:
+      'This removes Switcher runtime files and restores the captured vendor files and signature. If any complete verified preimage is unavailable, the operation will stop and you must reinstall Cavalry.',
+    officialRestoreSuccess: 'The captured official Cavalry installation was restored and restarted.',
+    officialRestoreWithWarnings: 'The captured official Cavalry installation was restored. {warnings}',
     continue: 'Continue',
     cancel: 'Cancel',
     permissionTitle: 'System permission required',
@@ -93,9 +128,14 @@ const UI_TEXT = {
     language: '语言',
     current: '当前',
     switchTo: '切换为',
+    englishUi: '英文界面',
     apply: '应用并重启',
+    restoreOfficial: '恢复官方 Cavalry 安装',
+    officialMode: '安装状态：已验证的官方运行时',
+    modifiedMode: '安装状态：由切换器管理或尚未验证',
+    recoveryMode: '安装状态：必须先完成中断事务恢复',
     retryApply: '重试应用',
-    refreshEnglish: '刷新英文',
+    refreshEnglish: '刷新英文快照',
     openPrivacySecurity: '打开权限设置',
     requestElevation: '以管理员身份重试',
     close: '关闭',
@@ -105,6 +145,14 @@ const UI_TEXT = {
     readyToApply: '可以开始应用语言包。',
     chooseAppToContinue: '请选择 Cavalry 安装位置后继续。',
     needsExtract: '下次补丁前需要先刷新英文源文件。',
+    reinstallRequired: '此 Cavalry 安装的原始英文来源记录不完整，无法安全还原。请使用官方安装包重新安装 Cavalry，然后选择新的安装位置。',
+    warningStateDurabilityPending: '无法确认状态存储已经持久化。请再次刷新英文快照，再应用语言或恢复官方安装。',
+    warningRecoveryCleanupPending: '恢复清理仍未完成。请保留恢复文件，等待切换器完成清理。',
+    warningProtectedRecoveryEvidenceRetained: '受保护事务的恢复证据仍然存在，请勿手动删除。',
+    warningTemporaryCleanupPending: '临时清理仍未完成。请先关闭切换器，再移除临时文件。',
+    warningFinderFallbackUsed: 'macOS 阻止直接复制后，已改用 Finder 方式替换文件。',
+    warningNonFatalCleanup: '仍有一项非致命清理需要处理。',
+    extractSuccessWarning: '英文快照已刷新（{count} 个文件）。{warnings}',
     chooseAppFirst: '请先选择 Cavalry 安装位置。',
     noLanguage: '没有可用的语言包。',
     refreshingEnglish: '正在刷新英文快照...',
@@ -114,14 +162,22 @@ const UI_TEXT = {
     waitingPermission: '正在等待系统授权。',
     patchFailed: '应用语言包失败。',
     cavalryStillRunning: 'Cavalry 仍在运行。请先保存工作并关闭 Cavalry，然后重试；Cavalry 安装内容未被修改。',
-    restartWarning: '语言已应用，但无法重启 Cavalry。',
+    restartWarning: '无法重启 Cavalry。',
     applied: '已应用{language}并重启 Cavalry。{warning}',
+    appliedWithWarnings: '已应用{language}。{warnings}',
     openPrivacyFailed: '无法打开权限设置。',
     bootstrapFailed: '启动失败：{detail}',
+    operationFailed: '无法连接桌面服务，请重试。',
+    startupRecoveryFailed: '中断的 Cavalry 更新无法安全恢复。请关闭 Cavalry 后重新启动切换器，且不要手动修改安装目录。',
     detail: '详情：{detail}',
     confirmTitle: '安装语言包？',
     confirmBody:
       '所选语言包会修改当前 Cavalry 安装目录；文件应用完成后将重启 Cavalry。',
+    restoreConfirmTitle: '恢复官方 Cavalry 安装？',
+    restoreConfirmBody:
+      '此操作会移除切换器运行文件，并恢复已采集的原厂文件与签名。若任一完整且已验证的原始副本缺失，操作会停止，你需要重新安装 Cavalry。',
+    officialRestoreSuccess: '已恢复并重启采集时的官方 Cavalry 安装。',
+    officialRestoreWithWarnings: '已恢复采集时的官方 Cavalry 安装。{warnings}',
     continue: '继续',
     cancel: '取消',
     permissionTitle: '需要系统授权',
@@ -137,9 +193,14 @@ const UI_TEXT = {
     language: '語言',
     current: '目前',
     switchTo: '切換為',
+    englishUi: '英文介面',
     apply: '套用並重新啟動',
+    restoreOfficial: '還原官方 Cavalry 安裝',
+    officialMode: '安裝狀態：已驗證的官方執行環境',
+    modifiedMode: '安裝狀態：由切換器管理或尚未驗證',
+    recoveryMode: '安裝狀態：必須先完成中斷交易復原',
     retryApply: '重試套用',
-    refreshEnglish: '重新整理英文',
+    refreshEnglish: '重新整理英文快照',
     openPrivacySecurity: '打開權限設定',
     requestElevation: '以系統管理員身分重試',
     close: '關閉',
@@ -149,6 +210,14 @@ const UI_TEXT = {
     readyToApply: '可以開始套用語言包。',
     chooseAppToContinue: '請先選擇 Cavalry 安裝位置再繼續。',
     needsExtract: '下次補丁前需要先重新整理英文來源檔案。',
+    reinstallRequired: '此 Cavalry 安裝的原始英文來源記錄不完整，無法安全還原。請使用官方安裝程式重新安裝 Cavalry，然後選擇新的安裝位置。',
+    warningStateDurabilityPending: '無法確認狀態儲存已持久化。請再次重新整理英文快照，再套用語言或還原官方安裝。',
+    warningRecoveryCleanupPending: '復原清理仍未完成。請保留復原檔案，等待切換器完成清理。',
+    warningProtectedRecoveryEvidenceRetained: '受保護交易的復原證據仍然存在，請勿手動刪除。',
+    warningTemporaryCleanupPending: '暫存清理仍未完成。請先關閉切換器，再移除暫存檔案。',
+    warningFinderFallbackUsed: 'macOS 阻止直接複製後，已改用 Finder 方式替換檔案。',
+    warningNonFatalCleanup: '仍有一項非致命清理需要處理。',
+    extractSuccessWarning: '英文快照已重新整理（{count} 個檔案）。{warnings}',
     chooseAppFirst: '請先選擇 Cavalry 安裝位置。',
     noLanguage: '沒有可用的語言包。',
     refreshingEnglish: '正在重新整理英文快照...',
@@ -158,14 +227,22 @@ const UI_TEXT = {
     waitingPermission: '正在等待系統授權。',
     patchFailed: '套用語言包失敗。',
     cavalryStillRunning: 'Cavalry 仍在執行。請先儲存工作並關閉 Cavalry，然後重試；Cavalry 安裝內容未被修改。',
-    restartWarning: '語言已套用，但無法重新啟動 Cavalry。',
+    restartWarning: '無法重新啟動 Cavalry。',
     applied: '已套用{language}並重新啟動 Cavalry。{warning}',
+    appliedWithWarnings: '已套用{language}。{warnings}',
     openPrivacyFailed: '無法打開權限設定。',
     bootstrapFailed: '啟動失敗：{detail}',
+    operationFailed: '無法連線至桌面服務，請重試。',
+    startupRecoveryFailed: '中斷的 Cavalry 更新無法安全復原。請關閉 Cavalry 後重新啟動切換器，且不要手動修改安裝目錄。',
     detail: '詳情：{detail}',
     confirmTitle: '安裝語言包？',
     confirmBody:
       '所選語言包會修改目前 Cavalry 安裝目錄；檔案套用完成後將重新啟動 Cavalry。',
+    restoreConfirmTitle: '還原官方 Cavalry 安裝？',
+    restoreConfirmBody:
+      '此操作會移除切換器執行檔案，並還原已擷取的原廠檔案與簽章。若任何完整且已驗證的原始副本缺失，操作會停止，你需要重新安裝 Cavalry。',
+    officialRestoreSuccess: '已還原並重新啟動擷取時的官方 Cavalry 安裝。',
+    officialRestoreWithWarnings: '已還原擷取時的官方 Cavalry 安裝。{warnings}',
     continue: '繼續',
     cancel: '取消',
     permissionTitle: '需要系統授權',
@@ -181,9 +258,14 @@ const UI_TEXT = {
     language: '言語',
     current: '現在',
     switchTo: '切り替え先',
+    englishUi: '英語 UI',
     apply: '適用して再起動',
+    restoreOfficial: '公式 Cavalry を復元',
+    officialMode: 'インストール状態: 検証済みの公式ランタイム',
+    modifiedMode: 'インストール状態: Switcher 管理または未検証',
+    recoveryMode: 'インストール状態: 中断した処理の復旧が必要です',
     retryApply: '適用を再試行',
-    refreshEnglish: '英語を更新',
+    refreshEnglish: '英語スナップショットを更新',
     openPrivacySecurity: '権限設定を開く',
     requestElevation: '管理者として再試行',
     close: '閉じる',
@@ -193,6 +275,19 @@ const UI_TEXT = {
     readyToApply: '言語パックを適用できます。',
     chooseAppToContinue: '続行するには Cavalry のインストール先を選択してください。',
     needsExtract: '次のパッチの前に英語ソースファイルを更新する必要があります。',
+    reinstallRequired: 'この Cavalry インストールは元の英語データの来歴が不完全なため、安全に復元できません。公式インストーラーで Cavalry を再インストールしてから、新しいインストール先を選択してください。',
+    warningStateDurabilityPending:
+      '状態ストレージの永続化を確認できませんでした。言語の適用や公式版の復元を行う前に、英語スナップショットをもう一度更新してください。',
+    warningRecoveryCleanupPending:
+      '復旧用ファイルのクリーンアップがまだ完了していません。Switcher が完了するまで復旧用ファイルを残してください。',
+    warningProtectedRecoveryEvidenceRetained:
+      '保護されたトランザクションの復旧証跡が残っています。手動で削除しないでください。',
+    warningTemporaryCleanupPending:
+      '一時ファイルのクリーンアップがまだ完了していません。Switcher を終了してから一時ファイルを削除してください。',
+    warningFinderFallbackUsed:
+      'macOS が直接コピーを拒否したため、Finder 方式でファイルを置き換えました。',
+    warningNonFatalCleanup: '致命的ではないクリーンアップ処理が残っています。',
+    extractSuccessWarning: '英語スナップショットを更新しました（{count} ファイル）。{warnings}',
     chooseAppFirst: '先に Cavalry のインストール先を選択してください。',
     noLanguage: '利用できる言語パックがありません。',
     refreshingEnglish: '英語スナップショットを更新しています...',
@@ -203,14 +298,23 @@ const UI_TEXT = {
     patchFailed: '言語パックの適用に失敗しました。',
     cavalryStillRunning:
       'Cavalry がまだ起動しています。作業を保存して Cavalry を終了してから再試行してください。Cavalry のインストール内容は変更されていません。',
-    restartWarning: '言語は適用されましたが、Cavalry を再起動できませんでした。',
+    restartWarning: 'Cavalry を再起動できませんでした。',
     applied: '{language}を適用して Cavalry を再起動しました。{warning}',
+    appliedWithWarnings: '{language}を適用しました。{warnings}',
     openPrivacyFailed: '権限設定を開けませんでした。',
     bootstrapFailed: '起動に失敗しました: {detail}',
+    operationFailed: 'デスクトップサービスに接続できませんでした。もう一度お試しください。',
+    startupRecoveryFailed:
+      '中断した Cavalry 更新を安全に復旧できませんでした。Cavalry を終了して Switcher を再起動し、インストール先を手動で変更しないでください。',
     detail: ' 詳細: {detail}',
     confirmTitle: '言語パックをインストールしますか？',
     confirmBody:
       '選択した言語パックは Cavalry のインストール先を変更します。ファイルの適用後に Cavalry を再起動します。',
+    restoreConfirmTitle: '公式 Cavalry インストールを復元しますか？',
+    restoreConfirmBody:
+      'Switcher のランタイムファイルを削除し、取得済みのベンダーファイルと署名を復元します。完全で検証済みの原本が一つでもない場合は停止し、Cavalry の再インストールが必要です。',
+    officialRestoreSuccess: '取得時の公式 Cavalry インストールを復元して再起動しました。',
+    officialRestoreWithWarnings: '取得時の公式 Cavalry インストールを復元しました。{warnings}',
     continue: '続行',
     cancel: 'キャンセル',
     permissionTitle: 'システム権限が必要です',
@@ -253,6 +357,16 @@ function withDetail(key, detail) {
   return detail ? `${t(key)}${t('detail', { detail })}` : t(key);
 }
 
+async function recoverOperationFailure() {
+  try {
+    await bootstrap();
+  } catch (_) {
+    // The service is unavailable; the local, translated error below is the
+    // only safe presentation for a transport failure.
+  }
+  setStatus(t('operationFailed'), 'error');
+}
+
 function setPermissionWait(isWaiting) {
   permissionButton.hidden = !isWaiting || state.permissionAction === 'none';
   permissionButton.textContent =
@@ -267,20 +381,59 @@ function setStatus(message, tone = 'neutral') {
   statusText.dataset.tone = tone;
 }
 
+function requiresCavalryReinstall() {
+  return (
+    state.platform === 'macos' &&
+    state.installationMode === 'modifiedOrUnverified' &&
+    state.needsExtract
+  );
+}
+
+const WARNING_TEXT_KEYS = Object.freeze({
+  restartFailed: 'restartWarning',
+  stateDurabilityPending: 'warningStateDurabilityPending',
+  recoveryCleanupPending: 'warningRecoveryCleanupPending',
+  protectedRecoveryEvidenceRetained: 'warningProtectedRecoveryEvidenceRetained',
+  temporaryCleanupPending: 'warningTemporaryCleanupPending',
+  finderFallbackUsed: 'warningFinderFallbackUsed',
+  nonFatalCleanup: 'warningNonFatalCleanup',
+});
+
+function localizedWarningMessages(warningCodes) {
+  const codes = Array.isArray(warningCodes) ? warningCodes : [];
+  return codes.map((code) => t(WARNING_TEXT_KEYS[code] || 'warningNonFatalCleanup'));
+}
+
+function requireDurabilityRetry() {
+  setStatus(t('warningStateDurabilityPending'), 'warning');
+}
+
 function setBusy(isBusy) {
-  browseButton.disabled = isBusy;
-  extractButton.disabled = isBusy;
-  applyButton.disabled = isBusy;
-  languageSelect.disabled = isBusy;
+  state.busy = isBusy;
+  const durabilityPending = state.stateDurabilityPending;
+  browseButton.disabled = isBusy || state.controlsBlocked || durabilityPending;
+  const reinstallRequired = requiresCavalryReinstall();
+  extractButton.disabled = isBusy || state.controlsBlocked || reinstallRequired;
+  applyButton.disabled = isBusy || state.needsExtract || state.controlsBlocked || durabilityPending;
+  restoreButton.disabled =
+    isBusy || state.needsExtract || reinstallRequired || state.controlsBlocked || durabilityPending;
+  languageSelect.disabled = isBusy || state.controlsBlocked || durabilityPending;
 }
 
 function updateLanguageOptions(languages) {
-  languageSelect.innerHTML = languages
-    .map((language) => `<option value="${language.value}">${language.label}</option>`)
-    .join('');
+  languageSelect.replaceChildren();
+  for (const language of languages) {
+    const option = document.createElement('option');
+    option.value = language.value;
+    option.textContent =
+      state.platform === 'macos' && language.value === 'en' ? t('englishUi') : language.label;
+    languageSelect.append(option);
+  }
 }
 
 function languageLabel(code) {
+  if (code === 'restore-official') return t('restoreOfficial');
+  if (state.platform === 'macos' && code === 'en') return t('englishUi');
   const match = state.languages.find((language) => language.value === code);
   return match ? match.label : code;
 }
@@ -293,6 +446,7 @@ function localizeShell() {
   switchToLabel.textContent = t('switchTo');
   browseButton.setAttribute('aria-label', t('chooseAppAria'));
   extractButton.textContent = t('refreshEnglish');
+  restoreButton.textContent = t('restoreOfficial');
   permissionButton.textContent = t('openPrivacySecurity');
   modalCloseButton.setAttribute('aria-label', t('close'));
   setPermissionWait(false);
@@ -322,13 +476,28 @@ function showApplyConfirmation(nextLanguage) {
     secondary: t('cancel'),
     onPrimary: () => {
       closeModal();
-      runApply(nextLanguage);
+      void runApply(nextLanguage).catch(recoverOperationFailure);
+    },
+    onSecondary: closeModal,
+  });
+}
+
+function showRestoreConfirmation() {
+  showModal({
+    title: t('restoreConfirmTitle'),
+    body: t('restoreConfirmBody'),
+    primary: t('restoreOfficial'),
+    secondary: t('cancel'),
+    onPrimary: () => {
+      closeModal();
+      void runApply('restore-official').catch(recoverOperationFailure);
     },
     onSecondary: closeModal,
   });
 }
 
 function showPermissionWait(nextLanguage) {
+  state.pendingAction = nextLanguage;
   const needsElevation = state.permissionAction === 'requestElevation';
   setStatus(t('waitingPermission'), 'warning');
   setPermissionWait(true);
@@ -339,9 +508,11 @@ function showPermissionWait(nextLanguage) {
     secondary: needsElevation ? t('cancel') : t('openPrivacySecurity'),
     onPrimary: () => {
       closeModal();
-      runApply(nextLanguage);
+      void runApply(nextLanguage).catch(recoverOperationFailure);
     },
-    onSecondary: needsElevation ? closeModal : openPrivacySecurity,
+    onSecondary: needsElevation
+      ? closeModal
+      : () => void openPrivacySecurity().catch(recoverOperationFailure),
   });
 }
 
@@ -350,6 +521,9 @@ async function bootstrap() {
   const bootstrapState = await api.getStatus();
   state.appPath = bootstrapState.appPath || '';
   state.currentLang = bootstrapState.currentLang || 'en';
+  state.installationMode = bootstrapState.installationMode || 'unknown';
+  state.startupRecoveryError = bootstrapState.startupRecoveryError || null;
+  state.controlsBlocked = Boolean(state.startupRecoveryError);
   state.languages = bootstrapState.languages || [];
   state.needsExtract = Boolean(bootstrapState.needsExtract);
   state.appManagementGranted =
@@ -365,6 +539,17 @@ async function bootstrap() {
   currentLanguage.textContent = languageLabel(state.currentLang);
   setPermissionWait(false);
 
+  const showMacInstallationMode = state.platform === 'macos' && Boolean(state.appPath);
+  installationModeText.hidden = !showMacInstallationMode;
+  restoreButton.hidden = !showMacInstallationMode || state.installationMode === 'official';
+  installationModeText.textContent =
+    state.installationMode === 'official'
+      ? t('officialMode')
+      : state.installationMode === 'recoveryRequired'
+        ? t('recoveryMode')
+        : t('modifiedMode');
+  setBusy(state.busy);
+
   if (state.appPath) {
     appVersion.textContent = bootstrapState.version
       ? t('appFound', { version: bootstrapState.version })
@@ -377,13 +562,28 @@ async function bootstrap() {
     });
   }
 
+  if (state.startupRecoveryError) {
+    setStatus(withDetail('startupRecoveryFailed', state.startupRecoveryError), 'error');
+    return;
+  }
+
   if (!state.appPath) {
     setStatus(t('chooseAppToContinue'), 'warning');
     return;
   }
 
+  if (requiresCavalryReinstall()) {
+    setStatus(t('reinstallRequired'), 'error');
+    return;
+  }
+
   if (state.needsExtract) {
     setStatus(t('needsExtract'), 'warning');
+    return;
+  }
+
+  if (state.stateDurabilityPending) {
+    requireDurabilityRetry();
     return;
   }
 
@@ -404,16 +604,20 @@ async function bootstrap() {
   setStatus(t('readyPermission'), 'warning');
 }
 
-browseButton.addEventListener('click', async () => {
+async function browseForApp() {
+  if (state.stateDurabilityPending) {
+    requireDurabilityRetry();
+    return;
+  }
   const result = await api.browseApp();
   if (result.canceled) {
     return;
   }
 
   await bootstrap();
-});
+}
 
-extractButton.addEventListener('click', async () => {
+async function refreshEnglishSnapshot() {
   if (!state.appPath) {
     setStatus(t('chooseAppFirst'), 'warning');
     return;
@@ -432,13 +636,22 @@ extractButton.addEventListener('click', async () => {
     }
 
     await bootstrap();
-    setStatus(t('extractSuccess', { count: result.count }), 'success');
+    const warningCodes = result.warningCodes || [];
+    const warnings = localizedWarningMessages(warningCodes).join(' ');
+    state.stateDurabilityPending = warningCodes.includes('stateDurabilityPending');
+    setBusy(state.busy);
+    setStatus(
+      warnings
+        ? t('extractSuccessWarning', { count: result.count, warnings })
+        : t('extractSuccess', { count: result.count }),
+      warnings ? 'warning' : 'success'
+    );
   } finally {
     setBusy(false);
   }
-});
+}
 
-applyButton.addEventListener('click', async () => {
+function requestApply() {
   if (!state.appPath) {
     setStatus(t('chooseAppFirst'), 'warning');
     return;
@@ -447,11 +660,48 @@ applyButton.addEventListener('click', async () => {
     setStatus(t('noLanguage'), 'warning');
     return;
   }
+  if (requiresCavalryReinstall()) {
+    setStatus(t('reinstallRequired'), 'error');
+    return;
+  }
+  if (state.stateDurabilityPending) {
+    requireDurabilityRetry();
+    return;
+  }
+  if (state.needsExtract) {
+    setStatus(t('needsExtract'), 'warning');
+    return;
+  }
 
   showApplyConfirmation(languageSelect.value);
-});
+}
+
+function requestOfficialRestore() {
+  if (!state.appPath) {
+    setStatus(t('chooseAppFirst'), 'warning');
+    return;
+  }
+  if (requiresCavalryReinstall()) {
+    setStatus(t('reinstallRequired'), 'error');
+    return;
+  }
+  if (state.stateDurabilityPending) {
+    requireDurabilityRetry();
+    return;
+  }
+  if (state.needsExtract) {
+    setStatus(t('needsExtract'), 'warning');
+    return;
+  }
+  showRestoreConfirmation();
+}
 
 async function runApply(nextLanguage) {
+  if (state.stateDurabilityPending) {
+    requireDurabilityRetry();
+    return;
+  }
+  state.pendingAction = nextLanguage;
   setBusy(true);
   setPermissionWait(false);
   setStatus(t('applying', { language: languageLabel(nextLanguage) }));
@@ -471,18 +721,25 @@ async function runApply(nextLanguage) {
       return;
     }
 
-    const restart = await api.restartCavalry(state.appPath);
     await bootstrap();
 
-    if (!restart.ok) {
-      setStatus(withDetail('restartWarning', restart.error), 'warning');
+    const warningCodes = result.warningCodes || [];
+    const warnings = localizedWarningMessages(warningCodes).join(' ');
+    state.stateDurabilityPending = warningCodes.includes('stateDurabilityPending');
+    setBusy(state.busy);
+    state.pendingAction = '';
+    if (nextLanguage === 'restore-official') {
+      setStatus(
+        warnings ? t('officialRestoreWithWarnings', { warnings }) : t('officialRestoreSuccess'),
+        warnings ? 'warning' : 'success'
+      );
       return;
     }
-
-    const warningSuffix = result.warning ? ` ${result.warning}` : '';
     setStatus(
-      t('applied', { language: languageLabel(nextLanguage), warning: warningSuffix }),
-      result.warning ? 'warning' : 'success'
+      warnings
+        ? t('appliedWithWarnings', { language: languageLabel(nextLanguage), warnings })
+        : t('applied', { language: languageLabel(nextLanguage), warning: '' }),
+      warnings ? 'warning' : 'success'
     );
   } finally {
     setBusy(false);
@@ -501,124 +758,29 @@ async function openPrivacySecurity() {
   }
 }
 
-permissionButton.addEventListener('click', () => {
+function handlePermissionButton() {
   if (state.permissionAction === 'requestElevation') {
-    runApply(languageSelect.value);
+    void runApply(state.pendingAction || languageSelect.value).catch(recoverOperationFailure);
     return;
   }
-  openPrivacySecurity();
-});
-modalPrimaryButton.addEventListener('click', () => modalPrimaryAction && modalPrimaryAction());
-modalSecondaryButton.addEventListener('click', () => modalSecondaryAction && modalSecondaryAction());
+  void openPrivacySecurity().catch(recoverOperationFailure);
+}
+browseButton.addEventListener('click', () => void browseForApp().catch(recoverOperationFailure));
+extractButton.addEventListener('click', () => void refreshEnglishSnapshot().catch(recoverOperationFailure));
+applyButton.addEventListener('click', requestApply);
+restoreButton.addEventListener('click', requestOfficialRestore);
+permissionButton.addEventListener('click', handlePermissionButton);
+modalPrimaryButton.addEventListener('click', () =>
+  void Promise.resolve(modalPrimaryAction && modalPrimaryAction()).catch(recoverOperationFailure)
+);
+modalSecondaryButton.addEventListener('click', () =>
+  void Promise.resolve(modalSecondaryAction && modalSecondaryAction()).catch(recoverOperationFailure)
+);
 modalCloseButton.addEventListener('click', closeModal);
 modalBackdrop.addEventListener('click', (event) => {
   if (event.target === modalBackdrop) closeModal();
 });
 
-bootstrap().catch((error) => {
-  setStatus(t('bootstrapFailed', { detail: error.stack || error.message }), 'error');
+bootstrap().catch(() => {
+  setStatus(t('bootstrapFailed', { detail: t('operationFailed') }), 'error');
 });
-
-/* ── Custom Select: sync with native <select> ── */
-(function initCustomSelect() {
-  const trigger = document.querySelector('#selectTrigger');
-  const popup = document.querySelector('#selectPopup');
-  const triggerText = trigger.querySelector('.select-trigger-text');
-  let focusedIndex = -1;
-
-  function syncPopup() {
-    const options = Array.from(languageSelect.options);
-    popup.innerHTML = options
-      .map(
-        (opt, i) =>
-          `<li class="select-option" role="option" data-value="${opt.value}" aria-selected="${opt.value === languageSelect.value}" data-index="${i}">${opt.textContent}</li>`
-      )
-      .join('');
-    triggerText.textContent =
-      options.find((o) => o.value === languageSelect.value)?.textContent || '';
-    focusedIndex = -1;
-  }
-
-  function open() {
-    if (trigger.disabled) return;
-    syncPopup();
-    popup.setAttribute('data-open', '');
-    trigger.setAttribute('aria-expanded', 'true');
-    focusedIndex = Array.from(languageSelect.options).findIndex(
-      (o) => o.value === languageSelect.value
-    );
-    updateFocus();
-  }
-
-  function close() {
-    popup.removeAttribute('data-open');
-    trigger.setAttribute('aria-expanded', 'false');
-    focusedIndex = -1;
-  }
-
-  function isOpen() {
-    return popup.hasAttribute('data-open');
-  }
-
-  function pick(value) {
-    languageSelect.value = value;
-    languageSelect.dispatchEvent(new Event('change', { bubbles: true }));
-    close();
-  }
-
-  function updateFocus() {
-    popup.querySelectorAll('.select-option').forEach((el, i) => {
-      if (i === focusedIndex) el.setAttribute('data-focused', '');
-      else el.removeAttribute('data-focused');
-    });
-    const focused = popup.querySelector('[data-focused]');
-    if (focused) focused.scrollIntoView({ block: 'nearest' });
-  }
-
-  trigger.addEventListener('click', (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    isOpen() ? close() : open();
-  });
-
-  popup.addEventListener('click', (e) => {
-    const option = e.target.closest('.select-option');
-    if (option) pick(option.dataset.value);
-  });
-
-  document.addEventListener('click', (e) => {
-    if (isOpen() && !trigger.contains(e.target) && !popup.contains(e.target)) close();
-  });
-
-  trigger.addEventListener('keydown', (e) => {
-    const items = popup.querySelectorAll('.select-option');
-    if (!isOpen()) {
-      if (e.key === 'ArrowDown' || e.key === 'ArrowUp' || e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        open();
-      }
-      return;
-    }
-    if (e.key === 'Escape') { e.preventDefault(); close(); return; }
-    if (e.key === 'ArrowDown') { e.preventDefault(); focusedIndex = Math.min(focusedIndex + 1, items.length - 1); updateFocus(); return; }
-    if (e.key === 'ArrowUp') { e.preventDefault(); focusedIndex = Math.max(focusedIndex - 1, 0); updateFocus(); return; }
-    if (e.key === 'Enter' || e.key === ' ') {
-      e.preventDefault();
-      if (focusedIndex >= 0 && items[focusedIndex]) pick(items[focusedIndex].dataset.value);
-    }
-  });
-
-  new MutationObserver(syncPopup).observe(languageSelect, { childList: true, attributes: true });
-  languageSelect.addEventListener('change', syncPopup);
-
-  const origDisabledDesc = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'disabled');
-  Object.defineProperty(languageSelect, 'disabled', {
-    get() { return origDisabledDesc.get.call(this); },
-    set(v) {
-      origDisabledDesc.set.call(this, v);
-      trigger.disabled = v;
-    },
-  });
-
-  syncPopup();
-})();

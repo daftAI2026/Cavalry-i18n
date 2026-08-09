@@ -7,25 +7,87 @@
 #[cfg(target_os = "macos")]
 use super::{acquire_bundle_file_lock, injector_source_candidates};
 use super::{
-    apply_language_inner, extract_english_inner, is_app_management_error,
-    marker_guarded_transaction_pairs, permission_action, registered_command_names,
-    resource_candidates, restart_cavalry_guarded, status_for_paths, sync_state_with_bundle,
-    try_begin_bundle_operation, ActionPayload, BUSY_ERROR, COMMAND_NAMES,
+    apply_language_inner, extract_english_inner, marker_guarded_transaction_pairs,
+    registered_command_names, resource_candidates, restart_cavalry_guarded, status_for_paths,
+    sync_state_with_bundle, try_begin_bundle_operation, BUSY_ERROR, COMMAND_NAMES,
 };
+#[cfg(target_os = "windows")]
+use super::{is_app_management_error, permission_action, ActionPayload};
 use crate::privilege::{
-    CommandRunner, PostCommitWarning, PostCommitWarningCode, RecordedCommand, RecordingRunner,
+    CommandRunner, CommandStatus, PostCommitWarning, PostCommitWarningCode, RecordedCommand,
+    RecordingRunner,
 };
 use crate::state::{self, EnglishSnapshotProvenance, State};
-use std::{fs, path::Path};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+};
 
 #[cfg(target_os = "windows")]
-use std::{ffi::OsString, path::PathBuf};
+use std::ffi::OsString;
 
+#[cfg(target_os = "macos")]
 struct VerifyFailsOnceRunner {
     commands: Vec<RecordedCommand>,
     verify_failures: usize,
 }
 
+#[cfg(target_os = "macos")]
+struct SigningCommandsFailTwiceRunner {
+    commands: Vec<RecordedCommand>,
+    failures_remaining: usize,
+}
+
+#[cfg(target_os = "macos")]
+#[derive(Default)]
+struct WrongVendorSignatureRunner {
+    inner: RecordingRunner,
+}
+
+#[cfg(target_os = "macos")]
+#[derive(Default)]
+struct RestoreSignatureMismatchRunner {
+    inner: RecordingRunner,
+}
+
+#[cfg(target_os = "macos")]
+impl CommandRunner for SigningCommandsFailTwiceRunner {
+    fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
+        self.commands.push(RecordedCommand {
+            program: program.to_string(),
+            args: args.to_vec(),
+        });
+        if program == "codesign"
+            && args.iter().any(|arg| arg == "--sign")
+            && self.failures_remaining > 0
+        {
+            self.failures_remaining -= 1;
+            Err("simulated signing failure".to_string())
+        } else {
+            Ok(())
+        }
+    }
+
+    fn run_captured(&mut self, program: &str, args: &[String]) -> Result<CommandStatus, String> {
+        self.commands.push(RecordedCommand {
+            program: program.to_string(),
+            args: args.to_vec(),
+        });
+        let mut status = CommandStatus {
+            exit_code: Some(0),
+            stdout: String::new(),
+            stderr: String::new(),
+        };
+        if program == "codesign" && args.iter().any(|arg| arg == "-dv") {
+            status.stderr = "TeamIdentifier=TB4YVNQHVC\nCDHash=0123456789abcdef".to_string();
+        } else if program == "codesign" && args.iter().any(|arg| arg == "-dr") {
+            status.stderr = "designated => anchor apple generic and identifier \"com.scenegroup.cavalry\" and certificate leaf[subject.OU] = TB4YVNQHVC".to_string();
+        }
+        Ok(status)
+    }
+}
+
+#[cfg(target_os = "macos")]
 impl CommandRunner for VerifyFailsOnceRunner {
     fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
         self.commands.push(RecordedCommand {
@@ -41,6 +103,51 @@ impl CommandRunner for VerifyFailsOnceRunner {
         } else {
             Ok(())
         }
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl CommandRunner for WrongVendorSignatureRunner {
+    fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
+        self.inner.run(program, args)
+    }
+
+    fn run_captured(&mut self, program: &str, args: &[String]) -> Result<CommandStatus, String> {
+        let mut status = self.inner.run_captured(program, args)?;
+        if program == "codesign" && args.iter().any(|arg| arg == "-dv") {
+            status.stderr = "TeamIdentifier=EVILTEAM00\nCDHash=0123456789abcdef".to_string();
+        }
+        Ok(status)
+    }
+}
+
+#[cfg(target_os = "macos")]
+impl CommandRunner for RestoreSignatureMismatchRunner {
+    fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
+        self.inner.run(program, args)
+    }
+
+    fn run_captured(&mut self, program: &str, args: &[String]) -> Result<CommandStatus, String> {
+        let mut status = self.inner.run_captured(program, args)?;
+        if program == "codesign"
+            && args.iter().any(|arg| arg == "-dv")
+            && args.last().is_some_and(|path| {
+                plist::Value::from_file(Path::new(path).join("Contents/Info.plist"))
+                    .ok()
+                    .and_then(|value| {
+                        value
+                            .as_dictionary()
+                            .and_then(|dictionary| dictionary.get("CFBundleExecutable"))
+                            .and_then(plist::Value::as_string)
+                            .map(str::to_string)
+                    })
+                    .as_deref()
+                    == Some("Cavalry")
+            })
+        {
+            status.stderr = "TeamIdentifier=TB4YVNQHVC\nCDHash=ffffffffffffffff".to_string();
+        }
+        Ok(status)
     }
 }
 
@@ -123,6 +230,25 @@ fn registers_six_commands() {
 }
 
 #[test]
+fn language_manifest_is_fixed_and_rejects_unknown_resource_directories() {
+    use super::context::{is_supported_language, language_choices_from_roots};
+
+    let choices = language_choices_from_roots(&[
+        PathBuf::from("languages"),
+        PathBuf::from("untrusted-resource-root"),
+    ]);
+    assert_eq!(
+        choices
+            .iter()
+            .map(|choice| choice.value.as_str())
+            .collect::<Vec<_>>(),
+        ["en", "zh-Hans", "zh-Hant", "ja_JP"]
+    );
+    assert!(is_supported_language("ja_JP"));
+    assert!(!is_supported_language("attacker-pack"));
+}
+
+#[test]
 fn typed_cleanup_warning_never_leaks_infrastructure_paths_or_details_to_renderer() {
     let warning = PostCommitWarning::new(
         PostCommitWarningCode::TransactionBackupCleanup,
@@ -134,7 +260,9 @@ fn typed_cleanup_warning_never_leaks_infrastructure_paths_or_details_to_renderer
 
     assert!(!rendered.contains("C:/sensitive"));
     assert!(!rendered.contains("raw filesystem failure detail"));
-    assert!(rendered.contains("Language files were applied"));
+    assert!(rendered.contains("[cavalry-i18n-warning-code:"));
+    assert!(rendered.contains("temporaryCleanupPending"));
+    assert!(!rendered.contains("Language files were applied"));
 }
 
 #[test]
@@ -216,6 +344,21 @@ fn write_keychain_dylib(app: &Path) {
     );
 }
 
+fn signed_macho_arm64(signature: &[u8]) -> Vec<u8> {
+    let mut bytes = vec![0_u8; 64];
+    bytes[0..4].copy_from_slice(&0xfeedfacf_u32.to_le_bytes());
+    bytes[4..8].copy_from_slice(&0x0100_000c_u32.to_le_bytes());
+    bytes[16..20].copy_from_slice(&1_u32.to_le_bytes());
+    bytes[20..24].copy_from_slice(&16_u32.to_le_bytes());
+    bytes[32..36].copy_from_slice(&0x1d_u32.to_le_bytes());
+    bytes[36..40].copy_from_slice(&16_u32.to_le_bytes());
+    bytes[40..44].copy_from_slice(&64_u32.to_le_bytes());
+    bytes[44..48].copy_from_slice(&(signature.len() as u32).to_le_bytes());
+    bytes[60] = 0x41;
+    bytes.extend_from_slice(signature);
+    bytes
+}
+
 fn make_bundle(root: &Path) -> std::path::PathBuf {
     let app = root.join("Cavalry.app");
     write(
@@ -223,8 +366,12 @@ fn make_bundle(root: &Path) -> std::path::PathBuf {
         r#"<plist><dict>
   <key>CFBundleExecutable</key>
   <string>Cavalry</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.scenegroup.cavalry</string>
   <key>CFBundleShortVersionString</key>
-  <string>2.3.4</string>
+  <string>2.7.2</string>
+  <key>CFBundleVersion</key>
+  <string>2.7.2</string>
 </dict></plist>"#,
     );
     for (_, asset_rel) in crate::patch::CORE_MAP {
@@ -239,7 +386,7 @@ fn make_bundle(root: &Path) -> std::path::PathBuf {
     );
     write(
         &app.join("Contents/MacOS/Cavalry"),
-        [0xcf, 0xfa, 0xed, 0xfe],
+        signed_macho_arm64(b"vendor-signature"),
     );
     write(
         &app.join("Contents/MacOS/crashpad_handler"),
@@ -250,6 +397,10 @@ fn make_bundle(root: &Path) -> std::path::PathBuf {
         [0xcf, 0xfa, 0xed, 0xfe],
     );
     write_keychain_dylib(&app);
+    write(
+        &app.join("Contents/_CodeSignature/CodeResources"),
+        b"vendor code resources",
+    );
     fs::create_dir_all(app.join("Contents/Resources")).unwrap();
     app
 }
@@ -288,15 +439,9 @@ fn make_language(root: &Path, lang: &str) {
     }
 }
 
-fn make_english_snapshot(state: &Path) {
-    let base = state.join("en");
-    for (lang_rel, _) in crate::patch::CORE_MAP {
-        write(&base.join(lang_rel), br#"{"value":"en"}"#);
-    }
-    write(
-        &base.join("plugins/gaussianBlurFilter.json"),
-        br#"{"value":"en plugin"}"#,
-    );
+fn make_english_snapshot(state: &Path, app: &Path) {
+    let revision = crate::detect::read_bundle_revision_for_write(app).unwrap();
+    crate::patch::extract_english_generation(app, state, &revision).unwrap();
 }
 
 #[test]
@@ -378,13 +523,13 @@ fn legacy_state_preserves_language_for_same_app_and_semantic_version() {
     let state_dir = temp.path().join("state");
     let previous = State {
         app_path: app.to_string_lossy().to_string(),
-        cavalry_version: "2.3.4".into(),
+        cavalry_version: "2.7.2".into(),
         current_lang: "zh-Hans".into(),
         ..State::default()
     };
     let revision = crate::detect::read_bundle_revision(&app).unwrap();
 
-    let synced = sync_state_with_bundle(&state_dir, previous, &app, "2.3.4", &revision);
+    let synced = sync_state_with_bundle(&state_dir, previous, &app, "2.7.2", &revision).unwrap();
 
     assert_eq!(synced.current_lang, "zh-Hans");
     assert_eq!(synced.cavalry_revision, revision);
@@ -464,8 +609,9 @@ fn status_uses_snapshot_provenance_and_binary_revision_not_display_version() {
     let app = make_windows_install(temp.path());
     let app = crate::install::normalize_path(&app);
     make_language(&repo, "en");
-    make_english_snapshot(&state_dir);
+    make_english_snapshot(&state_dir, &app);
     let revision = crate::detect::read_bundle_revision(&app).unwrap();
+    let identity = crate::patch::english_snapshot_identity(&state_dir, &app, &revision).unwrap();
     state::write_state(
         &state_dir,
         &State {
@@ -477,29 +623,32 @@ fn status_uses_snapshot_provenance_and_binary_revision_not_display_version() {
             english_snapshot_provenance: Some(EnglishSnapshotProvenance {
                 install_root: app.to_string_lossy().to_string(),
                 immutable_revision: revision,
+                snapshot_generation: Some(identity.generation),
+                snapshot_manifest_sha256: Some(identity.manifest_sha256),
+                vendor_baseline_id: None,
             }),
         },
     )
     .unwrap();
 
-    let current = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]);
+    let current = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
     assert_eq!(current.version, "");
     assert!(!current.needs_extract);
 
     write(&app.join("Cavalry.exe"), b"binary-mutated");
-    let changed = status_for_paths(&repo, &state_dir, &resources, vec![app]);
+    let changed = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
     assert!(changed.needs_extract);
 }
 
 #[test]
-fn verified_legacy_snapshot_migrates_provenance_while_install_is_translated() {
+fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writing_state() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
     let resources = temp.path().join("resources");
     let app = crate::install::normalize_path(&make_bundle(temp.path()));
     make_language(&repo, "zh-Hans");
-    make_english_snapshot(&state_dir);
+    make_english_snapshot(&state_dir, &app);
     write(
         &app.join("Contents/Resources/cavalry-i18n-lang.txt"),
         b"zh-Hans\n",
@@ -508,24 +657,23 @@ fn verified_legacy_snapshot_migrates_provenance_while_install_is_translated() {
         &state_dir,
         &State {
             app_path: app.to_string_lossy().to_string(),
-            cavalry_version: "2.3.4".into(),
+            cavalry_version: "2.7.2".into(),
             current_lang: "zh-Hans".into(),
             ..State::default()
         },
     )
     .unwrap();
+    let state_before = fs::read(state_dir.join("state.json")).unwrap();
 
-    let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]);
-    let migrated = state::read_state(&state_dir).unwrap();
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
+    let durable = state::read_state(&state_dir).unwrap();
 
     assert_eq!(status.current_lang, "zh-Hans");
-    assert!(!status.needs_extract);
+    assert!(status.needs_extract);
+    assert!(durable.english_snapshot_provenance.is_none());
     assert_eq!(
-        migrated
-            .english_snapshot_provenance
-            .as_ref()
-            .map(|value| value.install_root.as_str()),
-        Some(app.to_string_lossy().as_ref())
+        fs::read(state_dir.join("state.json")).unwrap(),
+        state_before
     );
 }
 
@@ -537,7 +685,7 @@ fn unverified_legacy_snapshot_never_acquires_provenance_on_later_status_syncs() 
     let resources = temp.path().join("resources");
     let app = crate::install::normalize_path(&make_bundle(temp.path()));
     make_language(&repo, "zh-Hans");
-    make_english_snapshot(&state_dir);
+    make_english_snapshot(&state_dir, &app);
     write(
         &state_dir.join("en/appStrings.json"),
         br#"{"value":"translated"}"#,
@@ -550,7 +698,7 @@ fn unverified_legacy_snapshot_never_acquires_provenance_on_later_status_syncs() 
         &state_dir,
         &State {
             app_path: app.to_string_lossy().to_string(),
-            cavalry_version: "2.3.4".into(),
+            cavalry_version: "2.7.2".into(),
             current_lang: "zh-Hans".into(),
             ..State::default()
         },
@@ -558,7 +706,7 @@ fn unverified_legacy_snapshot_never_acquires_provenance_on_later_status_syncs() 
     .unwrap();
 
     for _ in 0..2 {
-        let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]);
+        let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
         assert!(status.needs_extract);
     }
     let state = state::read_state(&state_dir).unwrap();
@@ -669,11 +817,414 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
             .commands
             .iter()
             .any(|command| command.program == "codesign"));
-        assert!(runner
+        assert!(!runner
             .commands
             .iter()
             .any(|command| command.program == "xattr"));
     }
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn clean_looking_bundle_with_the_wrong_vendor_signature_is_rejected_before_mutation() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
+    );
+    let app_strings = app.join("Contents/assets/Definitions/appStrings.json");
+    let original = fs::read(&app_strings).unwrap();
+    let mut runner = WrongVendorSignatureRunner::default();
+
+    let error = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut runner,
+        "2026-04-23T00:00:00.000Z",
+    )
+    .unwrap_err();
+
+    assert!(
+        error.contains("not the supported vendor identity"),
+        "{error}"
+    );
+    assert_eq!(fs::read(app_strings).unwrap(), original);
+    assert!(!app.join("Contents/MacOS/CavalryLauncher").exists());
+    assert!(!state_dir.join("state.json").exists());
+    assert!(!runner.inner.commands.iter().any(|command| {
+        command.program == "xattr" || command.args.iter().any(|arg| arg == "--sign")
+    }));
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn quarantine_failure_rolls_back_bundle_and_never_commits_target_language_state() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
+    );
+    let app_strings = app.join("Contents/assets/Definitions/appStrings.json");
+    let info_plist = app.join("Contents/Info.plist");
+    let keychain = app.join("Contents/Frameworks/libExtensionLayer.dylib");
+    let original_json = fs::read(&app_strings).unwrap();
+    let original_plist = fs::read(&info_plist).unwrap();
+    let original_keychain = fs::read(&keychain).unwrap();
+    let protected = app.join("Contents/protected-quarantine");
+    write(&protected, b"protected");
+    let status = std::process::Command::new("/usr/bin/xattr")
+        .args(["-w", "com.apple.quarantine", "test-fixture"])
+        .arg(&protected)
+        .status()
+        .unwrap();
+    assert!(status.success());
+    let mut permissions = fs::metadata(&protected).unwrap().permissions();
+    permissions.set_readonly(true);
+    fs::set_permissions(&protected, permissions).unwrap();
+    let mut runner = RecordingRunner::default();
+
+    let error = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut runner,
+        "2026-04-23T00:00:00.000Z",
+    )
+    .unwrap_err();
+
+    assert!(
+        error.contains("Could not remove Gatekeeper quarantine"),
+        "{error}"
+    );
+    assert!(
+        error.contains("Exact bundle and state preimages were restored"),
+        "{error}"
+    );
+    assert_eq!(fs::read(app_strings).unwrap(), original_json);
+    assert_eq!(fs::read(info_plist).unwrap(), original_plist);
+    assert_eq!(fs::read(keychain).unwrap(), original_keychain);
+    assert!(!app.join("Contents/MacOS/CavalryLauncher").exists());
+    assert_ne!(
+        state::read_state(&state_dir).unwrap().current_lang,
+        "zh-Hans"
+    );
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn english_ui_and_official_restore_are_distinct_macos_actions() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
+    );
+    let info_path = app.join("Contents/Info.plist");
+    let keychain_path = app.join("Contents/Frameworks/libExtensionLayer.dylib");
+    let original_info = fs::read(&info_path).unwrap();
+    let original_keychain = fs::read(&keychain_path).unwrap();
+
+    apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:00:00.000Z",
+    )
+    .unwrap();
+    assert!(app.join("Contents/MacOS/CavalryLauncher").exists());
+    assert!(app
+        .join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")
+        .exists());
+
+    let english_ui = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "en",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:01:00.000Z",
+    )
+    .unwrap();
+
+    assert!(english_ui.ok);
+    assert_eq!(english_ui.current_lang.as_deref(), Some("en"));
+    assert_ne!(fs::read(&info_path).unwrap(), original_info);
+    assert_ne!(fs::read(&keychain_path).unwrap(), original_keychain);
+    assert!(app.join("Contents/MacOS/CavalryLauncher").exists());
+    assert!(app
+        .join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")
+        .exists());
+    assert_eq!(
+        fs::read_to_string(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap(),
+        "en\n"
+    );
+
+    let restored = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        super::context::RESTORE_OFFICIAL_ACTION,
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:02:00.000Z",
+    )
+    .unwrap();
+
+    assert!(restored.ok);
+    assert_eq!(restored.current_lang.as_deref(), Some("en"));
+    assert_eq!(fs::read(info_path).unwrap(), original_info);
+    assert_eq!(fs::read(keychain_path).unwrap(), original_keychain);
+    assert!(!app.join("Contents/MacOS/CavalryLauncher").exists());
+    assert!(!app
+        .join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")
+        .exists());
+    assert!(!app
+        .join("Contents/Resources/cavalry-i18n-lang.txt")
+        .exists());
+    assert_eq!(
+        fs::read(app.join("Contents/assets/Definitions/appStrings.json")).unwrap(),
+        br#"{"value":"en"}"#
+    );
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn official_restore_signature_mismatch_rolls_back_to_the_complete_managed_preimage() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
+    );
+    apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:00:00.000Z",
+    )
+    .unwrap();
+    let tracked = [
+        app.join("Contents/Info.plist"),
+        app.join("Contents/MacOS/CavalryLauncher"),
+        app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
+        app.join("Contents/Frameworks/libExtensionLayer.dylib"),
+        app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+        app.join("Contents/assets/Definitions/appStrings.json"),
+        state_dir.join("state.json"),
+    ];
+    let before = tracked
+        .iter()
+        .map(|path| fs::read(path).unwrap())
+        .collect::<Vec<_>>();
+    let mut runner = RestoreSignatureMismatchRunner::default();
+
+    let error = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        super::context::RESTORE_OFFICIAL_ACTION,
+        &mut runner,
+        "2026-04-23T00:01:00.000Z",
+    )
+    .unwrap_err();
+
+    assert!(error.contains("signature"), "{error}");
+    assert!(error.contains("does not match"), "{error}");
+    for (path, expected) in tracked.iter().zip(before) {
+        assert_eq!(fs::read(path).unwrap(), expected, "{}", path.display());
+    }
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn managed_second_apply_accepts_only_a_code_signature_blob_change() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    make_language(&repo, "zh-Hant");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
+    );
+    apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:00:00.000Z",
+    )
+    .unwrap();
+    let revision = state::read_state(&state_dir).unwrap().cavalry_revision;
+
+    // Real codesign changes the embedded signature bytes (and often their size)
+    // while leaving the selected vendor code region unchanged.
+    write(
+        &app.join("Contents/MacOS/Cavalry"),
+        signed_macho_arm64(b"different-sized-managed-ad-hoc-signature"),
+    );
+    let result = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hant",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:01:00.000Z",
+    )
+    .unwrap();
+
+    assert!(result.ok);
+    assert_eq!(result.current_lang.as_deref(), Some("zh-Hant"));
+    assert_eq!(
+        state::read_state(&state_dir).unwrap().cavalry_revision,
+        revision
+    );
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn managed_runtime_drift_is_rejected_before_a_second_bundle_mutation() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    make_language(&repo, "zh-Hant");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
+    );
+    apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:00:00.000Z",
+    )
+    .unwrap();
+    let app_strings = app.join("Contents/assets/Definitions/appStrings.json");
+    let before = fs::read(&app_strings).unwrap();
+    write(
+        &app.join("Contents/MacOS/CavalryLauncher"),
+        b"drifted wrapper",
+    );
+    let mut runner = RecordingRunner::default();
+
+    let error = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hant",
+        &mut runner,
+        "2026-04-23T00:01:00.000Z",
+    )
+    .unwrap_err();
+
+    assert!(error.contains("launcher wrapper has drifted"), "{error}");
+    assert_eq!(fs::read(app_strings).unwrap(), before);
+    assert!(!runner.commands.iter().any(|command| {
+        command.program == "xattr" || command.args.iter().any(|arg| arg == "--sign")
+    }));
+    assert_eq!(
+        state::read_state(&state_dir).unwrap().current_lang,
+        "zh-Hans"
+    );
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn macos_apply_rolls_back_json_runtime_keychain_and_state_when_signing_fails() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
+    );
+    let app_strings = app.join("Contents/assets/Definitions/appStrings.json");
+    let info_plist = app.join("Contents/Info.plist");
+    let keychain = app.join("Contents/Frameworks/libExtensionLayer.dylib");
+    let original_json = fs::read(&app_strings).unwrap();
+    let original_plist = fs::read(&info_plist).unwrap();
+    let original_keychain = fs::read(&keychain).unwrap();
+
+    let mut runner = SigningCommandsFailTwiceRunner {
+        commands: Vec::new(),
+        failures_remaining: 2,
+    };
+    let error = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut runner,
+        "2026-04-23T00:00:00.000Z",
+    )
+    .unwrap_err();
+
+    assert!(error.contains("simulated signing failure"), "{error}");
+    assert!(
+        error.contains("Exact bundle and state preimages were restored"),
+        "{error}"
+    );
+    assert_eq!(fs::read(app_strings).unwrap(), original_json);
+    assert_eq!(fs::read(info_plist).unwrap(), original_plist);
+    assert_eq!(fs::read(keychain).unwrap(), original_keychain);
+    assert!(!app.join("Contents/MacOS/CavalryLauncher").exists());
+    assert!(!app
+        .join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")
+        .exists());
+    assert!(!app
+        .join("Contents/Resources/cavalry-i18n-lang.txt")
+        .exists());
+    assert_ne!(
+        state::read_state(&state_dir).unwrap().current_lang,
+        "zh-Hans"
+    );
 }
 
 #[test]
@@ -698,6 +1249,8 @@ fn windows_apply_plan_stages_generic_and_defers_final_marker_for_qpa() {
         "zh-Hans",
         "2.7.2",
         &temp.path().join("staging"),
+        None,
+        None,
     )
     .unwrap();
 
@@ -715,7 +1268,8 @@ fn windows_apply_plan_stages_generic_and_defers_final_marker_for_qpa() {
 }
 
 #[test]
-fn repeated_identical_apply_repairs_broken_signature_and_keeps_injection_payload() {
+#[cfg(target_os = "macos")]
+fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state = temp.path().join("state");
@@ -736,11 +1290,15 @@ fn repeated_identical_apply_repairs_broken_signature_and_keeps_injection_payload
         "2026-04-23T00:00:00.000Z",
     )
     .unwrap();
+    let injector_before =
+        fs::read(app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")).unwrap();
+    let marker_before = fs::read(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap();
+    let state_before = fs::read(state.join("state.json")).unwrap();
     let mut second_runner = VerifyFailsOnceRunner {
         commands: Vec::new(),
         verify_failures: 1,
     };
-    let second = apply_language_inner(
+    let error = apply_language_inner(
         &repo,
         &state,
         &resources,
@@ -749,45 +1307,22 @@ fn repeated_identical_apply_repairs_broken_signature_and_keeps_injection_payload
         &mut second_runner,
         "2026-04-23T00:01:00.000Z",
     )
-    .unwrap();
+    .unwrap_err();
 
-    assert!(second.ok);
-    assert_eq!(second.current_lang.as_deref(), Some("zh-Hans"));
-    #[cfg(target_os = "macos")]
+    assert!(error.contains("bundle seal is damaged"), "{error}");
     assert_eq!(
         fs::read(app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")).unwrap(),
-        fs::read(injector_source).unwrap()
+        injector_before
     );
-    #[cfg(target_os = "macos")]
     assert_eq!(
-        fs::read_to_string(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap(),
-        "zh-Hans\n"
+        fs::read(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap(),
+        marker_before
     );
-    if cfg!(target_os = "macos") {
-        let verify_count = second_runner
-            .commands
-            .iter()
-            .filter(|command| command.args.iter().any(|arg| arg == "--verify"))
-            .count();
-        let signing = second_runner
-            .commands
-            .iter()
-            .filter(|command| command.args.iter().any(|arg| arg == "--sign"))
-            .collect::<Vec<_>>();
-        assert_eq!(verify_count, 2);
-        assert!(!signing.is_empty());
-        assert_eq!(
-            signing
-                .iter()
-                .filter(|command| command.args.iter().any(|arg| arg == "--deep"))
-                .count(),
-            1
-        );
-        assert!(second_runner
-            .commands
-            .iter()
-            .any(|command| command.program == "xattr"));
-    }
+    assert_eq!(fs::read(state.join("state.json")).unwrap(), state_before);
+    assert!(!second_runner
+        .commands
+        .iter()
+        .any(|command| command.args.iter().any(|arg| arg == "--sign")));
 }
 
 #[path = "tests/runtime.rs"]

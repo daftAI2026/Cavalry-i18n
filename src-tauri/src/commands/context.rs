@@ -11,9 +11,23 @@ use std::{
 
 use tauri::Manager;
 
-use crate::{detect, runtime_paths};
+use crate::runtime_paths;
 
 use super::contract::LanguageChoice;
+
+/// Shipped language manifest. Do not derive selectable packs from resource
+/// directory names: unexpected directories are not product language packs.
+pub(crate) const LANGUAGE_MANIFEST: [(&str, &str); 4] = [
+    ("en", "English"),
+    ("zh-Hans", "简体中文"),
+    ("zh-Hant", "繁體中文"),
+    ("ja_JP", "日本語"),
+];
+pub(crate) const RESTORE_OFFICIAL_ACTION: &str = "restore-official";
+
+pub(crate) fn is_supported_apply_action(code: &str) -> bool {
+    is_supported_language(code) || code == RESTORE_OFFICIAL_ACTION
+}
 
 static STAGING_COUNTER: AtomicU64 = AtomicU64::new(0);
 
@@ -54,14 +68,8 @@ pub(crate) fn resource_dir_for_app(app: &tauri::AppHandle) -> PathBuf {
     app.path().resource_dir().unwrap_or_else(|_| repo_root())
 }
 
-fn label(code: &str) -> &str {
-    match code {
-        "en" => "English",
-        "zh-Hans" => "简体中文",
-        "zh-Hant" => "繁體中文",
-        "ja_JP" => "日本語",
-        _ => code,
-    }
+pub(crate) fn is_supported_language(code: &str) -> bool {
+    LANGUAGE_MANIFEST.iter().any(|(value, _)| *value == code)
 }
 
 fn runtime_resource_roots(resource_dir: &Path) -> Vec<PathBuf> {
@@ -101,23 +109,14 @@ pub(crate) fn language_root_candidates(repo_root: &Path, resource_dir: &Path) ->
     )
 }
 
-pub(crate) fn language_choices_from_roots(roots: &[PathBuf]) -> Vec<LanguageChoice> {
-    let mut values = roots
+pub(crate) fn language_choices_from_roots(_roots: &[PathBuf]) -> Vec<LanguageChoice> {
+    LANGUAGE_MANIFEST
         .iter()
-        .flat_map(|root| detect::list_language_options(root))
-        .collect::<Vec<_>>();
-    values.sort();
-    values.dedup();
-
-    let mut choices = vec![LanguageChoice {
-        value: "en".to_string(),
-        label: label("en").to_string(),
-    }];
-    choices.extend(values.into_iter().map(|value| LanguageChoice {
-        label: label(&value).to_string(),
-        value,
-    }));
-    choices
+        .map(|(value, label)| LanguageChoice {
+            value: (*value).to_string(),
+            label: (*label).to_string(),
+        })
+        .collect()
 }
 
 pub(crate) fn language_source_dir(repo_root: &Path, resource_dir: &Path, lang: &str) -> PathBuf {

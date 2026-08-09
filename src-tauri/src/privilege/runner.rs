@@ -10,6 +10,7 @@ use std::{ffi::OsString, path::Path, process::Command};
 const WINDOWS_CREATE_NO_WINDOW: u32 = 0x08000000;
 
 pub(crate) fn captured_command(program: &str) -> Command {
+    #[allow(unused_mut)]
     let mut command = Command::new(program);
     #[cfg(windows)]
     {
@@ -207,6 +208,46 @@ impl CommandRunner for RecordingRunner {
         });
         Ok(())
     }
+
+    fn run_captured(&mut self, program: &str, args: &[String]) -> Result<CommandStatus, String> {
+        self.commands.push(RecordedCommand {
+            program: program.to_string(),
+            args: args.to_vec(),
+        });
+        let mut status = CommandStatus::success();
+        let managed_bundle = recording_bundle_uses_managed_launcher(args);
+        if program == "codesign" && args.iter().any(|arg| arg == "-dv") {
+            status.stderr = if managed_bundle {
+                "TeamIdentifier=not set\nCDHash=abcdef0123456789".to_string()
+            } else {
+                "TeamIdentifier=TB4YVNQHVC\nCDHash=0123456789abcdef".to_string()
+            };
+        } else if program == "codesign" && args.iter().any(|arg| arg == "-dr") {
+            status.stderr = if managed_bundle {
+                "designated => cdhash H\"abcdef0123456789\"".to_string()
+            } else {
+                "designated => anchor apple generic and identifier \"com.scenegroup.cavalry\" and certificate leaf[subject.OU] = TB4YVNQHVC".to_string()
+            };
+        }
+        Ok(status)
+    }
+}
+
+fn recording_bundle_uses_managed_launcher(args: &[String]) -> bool {
+    let Some(path) = args.last() else {
+        return false;
+    };
+    plist::Value::from_file(Path::new(path).join("Contents/Info.plist"))
+        .ok()
+        .and_then(|value| {
+            value
+                .as_dictionary()
+                .and_then(|dictionary| dictionary.get("CFBundleExecutable"))
+                .and_then(plist::Value::as_string)
+                .map(str::to_string)
+        })
+        .as_deref()
+        == Some(crate::mac_runtime::WRAPPER_EXECUTABLE_NAME)
 }
 
 pub(crate) fn is_permission_error(detail: &str) -> bool {
@@ -217,11 +258,6 @@ pub(crate) fn is_permission_error(detail: &str) -> bool {
         || lower.contains("os error 5")
         || lower.contains("eacces")
         || lower.contains("eperm")
-}
-
-#[cfg(target_os = "macos")]
-pub(crate) fn shell_quote<T: std::fmt::Display>(value: T) -> String {
-    format!("'{}'", value.to_string().replace('\'', "'\\''"))
 }
 
 #[cfg(all(test, windows))]

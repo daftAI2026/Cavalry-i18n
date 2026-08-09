@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供公共窗口、macOS injector、Windows NSIS 双 DLL/生成命令/四语卸载双语义 hook/系统语言与品牌图标合同
+ * [OUTPUT]: 提供公共窗口/本地 CSP/预注入 bridge、macOS injector 与外部签名身份、Windows NSIS 双 DLL/生成命令/四语卸载双语义 hook/系统语言与品牌图标合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,11 +12,15 @@ fn read_json(path: &Path) -> Value {
 }
 
 #[test]
-fn tauri_config_enables_global_api_for_vanilla_bridge() {
+fn tauri_config_disables_global_api_for_the_preloaded_bridge() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
-    assert_eq!(config["app"]["withGlobalTauri"], true);
+    assert_eq!(config["app"]["withGlobalTauri"], false);
     assert_eq!(config["build"]["frontendDist"], "../renderer");
+    assert!(config["app"]["security"]["csp"]
+        .as_str()
+        .unwrap()
+        .contains("default-src 'self'"));
 }
 
 #[test]
@@ -48,7 +52,7 @@ fn tauri_config_declares_capabilities() {
 }
 
 #[test]
-fn macos_config_owns_injector_build_resources_and_signing() {
+fn macos_config_owns_injector_resources_without_overriding_release_signing() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = read_json(&manifest_dir.join("tauri.macos.conf.json"));
     let resources = config["bundle"]["resources"].as_object().unwrap();
@@ -67,7 +71,11 @@ fn macos_config_owns_injector_build_resources_and_signing() {
         resources["../injector/libCavalryTranslatorInjector.dylib"],
         "injector/libCavalryTranslatorInjector.dylib"
     );
-    assert_eq!(config["bundle"]["macOS"]["signingIdentity"], "-");
+    assert!(config["bundle"]["macOS"]
+        .as_object()
+        .unwrap()
+        .get("signingIdentity")
+        .is_none());
 }
 
 #[test]
