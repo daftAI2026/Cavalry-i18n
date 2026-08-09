@@ -108,6 +108,7 @@ test('harness freezes the real source closure and exact-window evidence protocol
 
 test('onboarding polling stays inside the Qt event loop', () => {
   const driver = read('drivers/macos_supplemental_acceptance_driver.mm');
+  const trigger = read('drivers/macos_supplemental_onboarding_trigger.inc');
   const start = driver.indexOf('void processOnboarding()');
   const end = driver.indexOf('\nQJsonObject diagnosticsJson', start);
   assert.ok(start >= 0 && end > start, 'onboarding state machine must remain inspectable');
@@ -117,6 +118,16 @@ test('onboarding polling stays inside the Qt event loop', () => {
     'all onboarding polls and transitions must use Qt timers',
   );
   assert.doesNotMatch(stateMachine, /dispatch_after|dispatch_get_main_queue/);
+  for (const literal of [
+    'armWorkspaceResetModalPoll()',
+    'NSModalPanelRunLoopMode',
+    'className(widget) == QStringLiteral("PopOverView")',
+    'onboardingStep(widget) == 0',
+    'buttons.size() == 2',
+    'ONBOARDING_RESET_PROMPT accepted',
+  ]) {
+    assert.ok(trigger.includes(literal), `missing reset-prompt contract: ${literal}`);
+  }
 });
 
 test('live matrix host identity is collected from fixed sw_vers and fails closed on omission or tampering', () => {

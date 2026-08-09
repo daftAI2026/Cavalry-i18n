@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 完整 Qt 对象图中的 OnboardingManager、含嵌套 chooser 的 Qt 事件循环、真实 PopOverView/catalog、Transform Tool/Viewport 与产品诊断 C ABI，以及 harness 逐表面截图 ACK。
- * [OUTPUT]: Onboarding 五步和 Transform 五条自绘 action 的 write-once 像素、拓扑、诊断，以及由 Qt timer 持续推进且不阻塞产品事件循环的异步 ACK 终态。
- * [POS]: acceptance-v2 补充驱动；firstLaunch 从真实产品语义触发，状态机穿过 chooser 嵌套循环，UI 可见性由控件/像素证明，自绘语义由逐 source 增量证明。
+ * [INPUT]: 完整 Qt 对象图中的 OnboardingManager、含 chooser/reset PopOverView 的嵌套产品事件循环、真实 guide catalog、Transform Tool/Viewport 与产品诊断 C ABI，以及 harness 逐表面截图 ACK。
+ * [OUTPUT]: Onboarding 五步和 Transform 五条自绘 action 的 write-once 像素、拓扑、诊断，以及由 Qt/AppKit mode-aware timer 持续推进且不阻塞产品事件循环的异步 ACK 终态。
+ * [POS]: acceptance-v2 补充驱动；firstLaunch 从真实产品语义触发，状态机精确处理可选 workspace reset 后穿过嵌套循环，UI 可见性由控件/像素证明，自绘语义由逐 source 增量证明。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -354,6 +354,7 @@ void processOnboarding() {
     QTimer::singleShot(100, qApp, [] { processOnboarding(); });
     return;
   }
+  disarmWorkspaceResetModalPoll();
   const int step = onboardingStep(root);
   const int expectedStep = gOnboardingResults.size() + 1;
   if (step != expectedStep) {
