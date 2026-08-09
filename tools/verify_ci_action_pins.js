@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 tools/ci_action_pins.json、dependency_vulnerability_gate.json、两套 hash-locked Python requirements 与 .github/workflows/build.yml
- * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock，且 npm/Python/Cargo 漏洞输入及 tag runner image allowlist 皆 fail-closed
+ * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock、cargo-audit 显式消费精确 pinned Rust channel，且 npm/Python/Cargo 漏洞输入及 tag runner image allowlist 皆 fail-closed
  * [POS]: tools 的 GitHub Actions 供应链 pin 守门器（P2.5 / P2.6 / P2.8）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -256,10 +256,18 @@ function main() {
       !/^[a-f0-9]{40}$/.test(vulnerabilityPolicy.cargoAudit?.rustsecAdvisoryDb?.commit || '')) {
     fail('Dependency vulnerability policy must pin Node/npm and an immutable RustSec advisory DB commit.');
   }
+  const pinnedRustAssignment = 'rust_toolchain="$(node -p "require(\'./tools/ci_action_pins.json\').rust.channel")"';
+  const pinnedCargoAuditInstall = 'cargo +"$rust_toolchain" install cargo-audit --version';
+  if (!workflow.includes(pinnedRustAssignment) || !workflow.includes(pinnedCargoAuditInstall)) {
+    fail('cargo-audit must be installed with the exact pinned Rust toolchain from tools/ci_action_pins.json.');
+  }
+  if (/^\s*cargo\s+install\s+cargo-audit\b/m.test(workflow)) {
+    fail('cargo-audit must not use bare cargo install because rust-toolchain.toml component reconciliation is not part of the audit bootstrap.');
+  }
   for (const required of [
     'dependency_vulnerability_gate:',
     'npm audit --package-lock-only --json',
-    'cargo install cargo-audit --version',
+    pinnedCargoAuditInstall,
     'requirements-audit.txt',
     'pip-audit"',
     '--python-report "$RUNNER_TEMP/python-audit.json"',

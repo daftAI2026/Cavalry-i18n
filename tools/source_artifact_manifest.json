@@ -63,6 +63,7 @@
     "tools/create_sbom.js",
     "tools/verify_release_provenance.js",
     "tools/record_toolchain_evidence.js",
+    "tools/npm_command.js",
     "tools/create_toolchain_evidence_bundle.js",
     "tools/schemas/release_acceptance_seal.schema.json",
     "tools/schemas/release_toolchain_evidence.schema.json",

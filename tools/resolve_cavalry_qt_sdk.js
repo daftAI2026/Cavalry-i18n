@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 tools/cavalry_qt_target.json 的 macOS/Windows 平台投影及安装身份哈希、requirements-ci.txt 的 aqtinstall 完整 hash-lock、python_command.js 与可选 Cavalry.app
- * [OUTPUT]: 对外提供宿主感知或显式平台的 Qt SDK 探测、版本及关键安装文件 SHA-256 身份校验、项目内 hash-locked aqt bootstrap、按目标版本下载 SDK 与 shell env 输出
+ * [OUTPUT]: 对外提供宿主感知或显式平台的 Qt SDK 探测、版本及关键安装文件 SHA-256 身份校验、项目内 hash-locked aqt bootstrap、按目标版本下载 SDK；stdout 只承载机器可解析的 shell env/JSON，bootstrap 诊断统一写 stderr
  * [POS]: tools 的跨平台 injector SDK 解析器，被 package.json 的 prepare/build 脚本与 CI 共同消费，以单一 Cavalry/Qt 版本真相派生 clang_64 与 msvc2019_64 SDK
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -65,6 +65,13 @@ function run(command, args, options = {}) {
     stderr: result.stderr || '',
     status: result.status,
   };
+}
+
+function runDiagnostic(command, args, options = {}) {
+  return run(command, args, {
+    ...options,
+    stdio: ['inherit', 2, 2],
+  });
 }
 
 function resolvedPythonCommand() {
@@ -243,9 +250,7 @@ function ensureAqt() {
   if (!fs.existsSync(bootstrapPython)) {
     fs.mkdirSync(path.dirname(qtBootstrapRoot), { recursive: true });
     const basePython = resolvedPythonCommand();
-    const venv = run(basePython.command, [...basePython.args, '-m', 'venv', qtBootstrapRoot], {
-      stdio: 'inherit',
-    });
+    const venv = runDiagnostic(basePython.command, [...basePython.args, '-m', 'venv', qtBootstrapRoot]);
     if (!venv.ok || !fs.existsSync(bootstrapPython)) {
       fail(`Could not create the project-local Qt installer virtualenv at ${path.relative(repoRoot, qtBootstrapRoot)}.`);
     }
@@ -254,13 +259,12 @@ function ensureAqt() {
   // --force-reinstall is deliberate: merely importing an already-present top-level
   // aqtinstall would not revalidate a drifted transitive package. Every download
   // attempt synchronizes the complete lock closure through pip's hash verifier.
-  const install = run(
+  const install = runDiagnostic(
     bootstrapPython,
     [
       '-m', 'pip', 'install', '--disable-pip-version-check', '--force-reinstall',
       '--require-hashes', '--only-binary=:all:', '-r', requirementsPath,
-    ],
-    { stdio: 'inherit' }
+    ]
   );
   if (!install.ok) {
     fail(`Failed to reinstall and hash-verify the aqtinstall closure from ${path.relative(repoRoot, requirementsPath)}.`);
@@ -300,7 +304,7 @@ function ensureSdk(target, prefix) {
     args.push('--archives', ...target.aqt.archives);
   }
 
-  const result = run(aqtPython.command, [...aqtPython.args, ...args], { stdio: 'inherit' });
+  const result = runDiagnostic(aqtPython.command, [...aqtPython.args, ...args]);
   if (!result.ok) {
     fail(`Failed to download Qt ${target.qtVersion} SDK with the project-local hash-locked aqt.`);
   }
@@ -374,6 +378,7 @@ module.exports = {
   parseArgs,
   probeCavalry,
   resolve,
+  runDiagnostic,
   sdkQtVersion,
   sha256Tree,
   validateSdkIdentity,
