@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 tools/cavalry_qt_target.json 的 macOS/Windows 平台投影、python_command.js、可选 Cavalry.app 与 aqtinstall
- * [OUTPUT]: 对外提供宿主感知或显式平台的 Qt SDK 探测、严格版本校验、按目标版本下载 SDK 与 shell env 输出，Python 解释器可由 PYTHON 或平台默认入口解析
+ * [INPUT]: 依赖 tools/cavalry_qt_target.json 的 macOS/Windows 平台投影及安装身份哈希、requirements-ci.txt 的 aqtinstall 完整 hash-lock、python_command.js 与可选 Cavalry.app
+ * [OUTPUT]: 对外提供宿主感知或显式平台的 Qt SDK 探测、版本及关键安装文件 SHA-256 身份校验、项目内 hash-locked aqt bootstrap、按目标版本下载 SDK 与 shell env 输出
  * [POS]: tools 的跨平台 injector SDK 解析器，被 package.json 的 prepare/build 脚本与 CI 共同消费，以单一 Cavalry/Qt 版本真相派生 clang_64 与 msvc2019_64 SDK
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,6 +12,8 @@ const { resolvePythonCommand } = require('./python_command.js');
 
 const repoRoot = path.resolve(__dirname, '..');
 const targetPath = path.join(__dirname, 'cavalry_qt_target.json');
+const requirementsPath = path.join(repoRoot, 'requirements-ci.txt');
+const qtBootstrapRoot = path.join(repoRoot, 'qt_sdk', '.aqt-bootstrap');
 const SUPPORTED_PLATFORMS = Object.freeze(['macos', 'windows']);
 let pythonCommand = null;
 
@@ -81,6 +83,36 @@ function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, 'utf8'));
 }
 
+function sha256File(filePath) {
+  return require('node:crypto').createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
+}
+
+function sha256Tree(rootPath) {
+  const root = path.resolve(rootPath);
+  const records = [];
+  function visit(relativePath) {
+    const current = path.join(root, relativePath);
+    const entries = fs.readdirSync(current, { withFileTypes: true })
+      .sort((left, right) => Buffer.from(left.name).compare(Buffer.from(right.name)));
+    for (const entry of entries) {
+      const childRelative = path.posix.join(relativePath.split(path.sep).join('/'), entry.name);
+      const childPath = path.join(root, childRelative);
+      if (entry.isDirectory()) {
+        records.push(`D\0${childRelative}\n`);
+        visit(childRelative);
+      } else if (entry.isFile()) {
+        records.push(`F\0${childRelative}\0${sha256File(childPath)}\n`);
+      } else if (entry.isSymbolicLink()) {
+        records.push(`L\0${childRelative}\0${fs.readlinkSync(childPath)}\n`);
+      } else {
+        fail(`Unsupported special file in Qt SDK identity tree: ${path.relative(repoRoot, childPath)}.`);
+      }
+    }
+  }
+  visit('');
+  return require('node:crypto').createHash('sha256').update(records.join('')).digest('hex');
+}
+
 function readPlistValue(plistPath, key) {
   if (!fs.existsSync(plistPath)) {
     return '';
@@ -146,6 +178,14 @@ function validateTarget(target) {
         fail(`Missing platforms.${platform}.aqt.${key} in ${path.relative(repoRoot, targetPath)}.`);
       }
     }
+    // macOS injector packaging is a release path: version-only checks do not prove
+    // the downloaded Qt payload. Pin a small, high-value identity set from qtbase.
+    if (platform === 'macos') {
+      const treeSha256 = projection.aqt.identity && projection.aqt.identity.treeSha256;
+      if (!/^[a-f0-9]{64}$/i.test(treeSha256 || '')) {
+        fail(`Missing platforms.macos.identity.treeSha256 full-SDK hash in ${path.relative(repoRoot, targetPath)}.`);
+      }
+    }
   }
 }
 
@@ -189,26 +229,59 @@ function validateCavalryProbe(target, probe) {
   }
 }
 
+function bootstrapPythonBinary() {
+  return process.platform === 'win32'
+    ? path.join(qtBootstrapRoot, 'Scripts', 'python.exe')
+    : path.join(qtBootstrapRoot, 'bin', 'python');
+}
+
 function ensureAqt() {
-  const check = runPython(['-c', 'import aqt']);
-  if (check.ok) {
-    return;
+  // Never trust a globally installed aqt: a clean local build must consume the same
+  // complete hash-locked closure as CI. qt_sdk/ is ignored, so this bootstrap cannot
+  // become a release input by accident.
+  const bootstrapPython = bootstrapPythonBinary();
+  if (!fs.existsSync(bootstrapPython)) {
+    fs.mkdirSync(path.dirname(qtBootstrapRoot), { recursive: true });
+    const basePython = resolvedPythonCommand();
+    const venv = run(basePython.command, [...basePython.args, '-m', 'venv', qtBootstrapRoot], {
+      stdio: 'inherit',
+    });
+    if (!venv.ok || !fs.existsSync(bootstrapPython)) {
+      fail(`Could not create the project-local Qt installer virtualenv at ${path.relative(repoRoot, qtBootstrapRoot)}.`);
+    }
   }
 
-  const installArgs = ['-m', 'pip', 'install'];
-  if (!process.env.PYTHON && !process.env.VIRTUAL_ENV) {
-    installArgs.push('--user');
-  }
-  installArgs.push('aqtinstall');
-
-  const install = runPython(installArgs, {
-    stdio: 'inherit',
-  });
+  // --force-reinstall is deliberate: merely importing an already-present top-level
+  // aqtinstall would not revalidate a drifted transitive package. Every download
+  // attempt synchronizes the complete lock closure through pip's hash verifier.
+  const install = run(
+    bootstrapPython,
+    [
+      '-m', 'pip', 'install', '--disable-pip-version-check', '--force-reinstall',
+      '--require-hashes', '--only-binary=:all:', '-r', requirementsPath,
+    ],
+    { stdio: 'inherit' }
+  );
   if (!install.ok) {
-    const python = resolvedPythonCommand();
+    fail(`Failed to reinstall and hash-verify the aqtinstall closure from ${path.relative(repoRoot, requirementsPath)}.`);
+  }
+  const pipCheck = run(bootstrapPython, ['-m', 'pip', 'check']);
+  if (!pipCheck.ok) fail('Project-local Qt installer dependency closure is inconsistent.');
+  const verified = run(bootstrapPython, ['-c', 'import aqt; from importlib.metadata import version; assert version("aqtinstall") == "3.3.0"']);
+  if (!verified.ok) {
+    fail('Project-local Qt installer bootstrap did not provide aqtinstall==3.3.0.');
+  }
+  return { command: bootstrapPython, args: [] };
+}
+
+function validateSdkIdentity(target, prefix) {
+  const expectedDigest = target.aqt && target.aqt.identity && target.aqt.identity.treeSha256;
+  if (!expectedDigest) return;
+  const actualDigest = sha256Tree(prefix);
+  if (actualDigest !== expectedDigest) {
     fail(
-      `aqtinstall is required to download Qt. Install it with: ` +
-        `${[python.command, ...python.args, ...installArgs].join(' ')}`
+      `Qt SDK full-tree identity mismatch for ${path.relative(repoRoot, prefix)}. ` +
+      `Expected ${expectedDigest}, received ${actualDigest}.`
     );
   }
 }
@@ -218,25 +291,18 @@ function ensureSdk(target, prefix) {
     return;
   }
 
-  ensureAqt();
+  const aqtPython = ensureAqt();
   const args = [
-    '-m',
-    'aqt',
-    'install-qt',
-    target.aqt.host,
-    target.aqt.target,
-    target.qtVersion,
-    target.aqt.arch,
-    '--outputdir',
-    target.aqt.outputDir,
+    '-m', 'aqt', 'install-qt', target.aqt.host, target.aqt.target, target.qtVersion,
+    target.aqt.arch, '--outputdir', target.aqt.outputDir,
   ];
   if (Array.isArray(target.aqt.archives) && target.aqt.archives.length > 0) {
     args.push('--archives', ...target.aqt.archives);
   }
 
-  const result = runPython(args, { stdio: 'inherit' });
+  const result = run(aqtPython.command, [...aqtPython.args, ...args], { stdio: 'inherit' });
   if (!result.ok) {
-    fail(`Failed to download Qt ${target.qtVersion} SDK with aqt.`);
+    fail(`Failed to download Qt ${target.qtVersion} SDK with the project-local hash-locked aqt.`);
   }
 }
 
@@ -266,6 +332,7 @@ function resolve(options) {
   if (buildQtVersion !== target.qtVersion) {
     fail(`SDK at ${path.relative(repoRoot, prefix)} is Qt ${buildQtVersion || 'unknown'}, expected ${target.qtVersion}.`);
   }
+  validateSdkIdentity(target, prefix);
 
   return { target, prefix };
 }
@@ -308,6 +375,8 @@ module.exports = {
   probeCavalry,
   resolve,
   sdkQtVersion,
+  sha256Tree,
+  validateSdkIdentity,
   selectPlatformTarget,
   shellQuote,
 };

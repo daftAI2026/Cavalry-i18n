@@ -14,6 +14,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+
+### Added
+- **Recoverable macOS Apply Transactions**: Language assets, launcher/injector, Keychain patching, signing, quarantine, final marker or official-restore removals, and durable state now share an authenticated exact-preimage journal with startup recovery and phase fault/kill coverage.
+- **Verified Official Restore**: English UI and restoring the vendor Cavalry installation are separate actions; a unified immutable vendor/English generation now restores exact runtime bytes, modes, owned-file absence, JSON assets, and signature evidence or fails closed with reinstall guidance.
+- **Protected Release Evidence**: Tag publication now requires a detached offline Ed25519 acceptance attestation whose private key never enters candidate code, a separately keyed final release seal, two independent public-key fingerprints, deterministic CycloneDX SBOM, and byte-bound release provenance.
+- **Pinned Release Supply Chain Gates**: Release tags now fail closed on known npm/Python/Cargo dependency vulnerabilities, hollow audit reports, stale RustSec review snapshots, unapproved GitHub runner image fingerprints, or a drifted full Qt SDK installation.
+
+### Changed
+- **Strict macOS Mutation Boundary**: Before staging or shutdown, the backend now verifies canonical non-symlink paths, typed XML/binary plist identity, supported Mach-O architecture, vendor or baseline-derived code identity, exact JSON bytes/modes, and the selected bundle's exact running PIDs; the transaction rechecks process and preimage reality immediately before journal publication.
+- **Crash-Consistent State and Snapshots**: Versioned state generations retain a validated previous document and operation ID; English snapshots use immutable hash-manifest generations, atomic selection, exact plugin identities, and macOS Unix-mode restoration, while durability/recovery diagnostics require an explicit retry instead of being presented as success.
+- **Renderer Recovery Semantics**: Incomplete macOS provenance disables mutation controls and points directly to reinstalling Cavalry; snapshot durability warnings remain localized warnings rather than green success.
+- **Release Signing Boundary**: macOS release packaging runs in the protected release environment, removes imported key material on every outcome, re-verifies final DMG notarization/signature bytes after all package gates, and keeps a private draft until every release asset and sidecar is uploaded and read back exactly.
+- **Commit-Bound Source Artifact**: CI now uploads a mode-preserving source tar and independently compares every path, byte, type, and executable mode to the exact release commit instead of trusting a self-reported marker or lossy directory upload.
+
 ## [0.6.1] - 2026-08-01
 
 ### Added

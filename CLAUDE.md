@@ -4,6 +4,7 @@ HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows ge
 <directory>
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
 .github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同测试、PR 级无 vendor app 的 macOS universal product injector 与 acceptance producer 编译、Windows generic/QPA + NSIS 构建、隔离安装/更新/卸载哨兵门与 tag 双架构打包，并上传三种发布资产 (YAML)
+release-seals/ - release tag 前置的真实 macOS acceptance evidence 与独立签名 attestation 约定；仅提交按 tag 命名、由受控 session 派生的两份 JSON，不保存私钥或现场缓存 (Markdown, JSON)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
 docs/ - 架构计划、翻译规范、工作流协议与历史证据链 (Markdown, JS, Shell)
 injector/ - macOS DYLD 注入器、Cavalry 2.7.2 TransformTool Mach-O/Skia ABI 防火墙与 Windows Qt generic translator/QPA delegate；共享 policy 区分 8 条跨平台 exact-only 表面和双平台 owner-scoped 邻接 key，Windows 另构建不发布的 acceptance-only generic plugin，以 Qt test profile 隔离登录/工作区并驱动 Onboarding/Tag/Assets 真机证据，各平台 Runner 现场生成不入库的原生库 (C++, Objective-C++)
@@ -24,6 +25,10 @@ README.ja_JP.md - 日文 README，本地化主文档并保持命令、路径与�
 package.json - 项目元数据与核心构建/测试指令
 package-lock.json - npm 依赖锁定文件，冻结 Tauri CLI 与运行时 API 版本
 release.config.json - GitHub Release 协议真相源，声明 Cavalry 目标版本、tag 格式、标题模板与三种资产名（Apple Silicon DMG、Intel DMG、Windows x64 NSIS EXE）
+SECURITY.md - 支持渠道、私密漏洞上报、平台签名边界与 supply-chain 控制说明
+rust-toolchain.toml - CI/本地 Rust channel 固定入口，禁止 tag 构建漂移到浮动 stable
+requirements-ci.in / requirements-ci.txt - Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.12.6/Linux active set 另由漏洞策略精确绑定
+requirements-audit.in / requirements-audit.txt - `pip-audit==2.10.1` 自身的独立顶层声明与 universal hash-locked 工具闭包，避免漏洞扫描器通过未锁定安装进入 CI
 src-tauri/Cargo.toml - Rust crate、Tauri v2 与后端依赖声明
 src-tauri/Cargo.lock - Rust 依赖锁定文件，保证本地与 CI 构建同构
 src-tauri/tauri.conf.json - Tauri 共享运行配置

@@ -50,23 +50,18 @@ macOS 要求这个权限，是因为修改另一个 `.app` bundle 属于受保�
 
 ## 从 Release 安装
 
-请从 GitHub Releases 下载对应平台的资产。macOS 请按 Apple Silicon 或 Intel 下载 DMG。DMG 使用 ad-hoc 签名，但尚未经过 Apple Developer ID notarization。如果把 app 拖入 Applications 后，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，请先清除一次浏览器下载带来的 quarantine 标记：
+请从 GitHub Releases 下载对应平台的资产。macOS 请按 Apple Silicon 或 Intel 下载 DMG。新的加固 tag 流水线要求 Developer ID 签名、公证以及同次 Release 的 `SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、独立签名的 acceptance attestation 与最终 Ed25519 `ReleaseAcceptanceSeal.json`；**历史 p1-p5 Release 早于该流水线，不具备这些保证**。在 `SECURITY.md` 通过独立受保护渠道发布 acceptance authority 与 release seal 两枚不同 fingerprint 之前，不要把任一文件的内嵌公钥本身当作可信锚；加固验证必须先验 acceptance attestation，再验最终 seal。
 
-```bash
-xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
-open "/Applications/Cavalry Language Switcher.app"
-```
+Windows 请下载并运行 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`。NSIS 安装器只安装语言切换器；最终用户无需安装 Python、Rust、Qt 或 PowerShell 7。安装后选择自动发现到的 Cavalry，或浏览到当前用户可写的安装根。Windows Authenticode 签名另开 issue 跟踪；务必核对 `SHA256SUMS`。
 
-Windows 请下载并运行 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`。NSIS 安装器只安装语言切换器；最终用户无需安装 Python、Rust、Qt 或 PowerShell 7。安装后选择自动发现到的 Cavalry，或浏览到当前用户可写的安装根。
-
-开发者也可以从源码本地构建。本地构建遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)，不会带有浏览器下载产生的 quarantine 标记。
+开发者也可以从源码本地构建。本地构建遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)，仅使用 ad-hoc 签名供开发验证，不能代替 GitHub Release 分发。
 
 也可以把这段话发给你的 AI agent：
 
 ```text
 请从源码本地构建 Cavalry Language Switcher：
 
-1. 打开仓库 /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n。
+1. 打开仓库 <repository-path>。
 2. 严格按照 LOCAL_BUILD_SOP.md 执行。
 3. 运行标准 Tauri build、执行 DMG 卷宗图标盖章，并运行 SOP 里的 packaged checks。
 4. 完成后告诉我最终 DMG 路径。

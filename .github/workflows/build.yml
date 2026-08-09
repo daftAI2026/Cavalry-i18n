@@ -1,6 +1,6 @@
-# [INPUT]: 依赖仓库版本、CHANGELOG、release.config、跨平台 Tauri 配置、Qt generic/QPA 与 tracked macOS acceptance 构建入口、Windows NSIS provenance sidecar 及 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供不夹带原生构建物的源码闭包、Node/翻译合同、PR 级干净 macOS 双架构 product injector 与 acceptance producer 编译门、平台 Runner 现场生成的 Windows 双 DLL 与 macOS dylib、带当前输入 provenance 且 hooks 无 Cavalry/QPA 写入入口的 NSIS 隔离安装/同版本更新/卸载及 TEMP 三文件哨兵门、双架构 macOS 包、精确版本更新摘要、仅接受已包含于 origin/main 的 tag commit 所生成的跨平台 GitHub Release 与 README badge 写回
-# [POS]: .github/workflows 的唯一 CI/CD 编排器，将仓库源码真相分别投影为 Windows NSIS 与 macOS 发布包；release tag 在任何平台构建前验证 commit 已进入 origin/main，PR 则在无 Cavalry.app 的干净 macOS Runner 上闭合 product/acceptance native 编译，compile-only 不冒充 live gate
+# [INPUT]: 依赖仓库版本、CHANGELOG、release.config、跨平台 Tauri 配置、Qt generic/QPA 与 tracked macOS acceptance 构建入口、Windows NSIS provenance sidecar、release-seals acceptance evidence、pinned Actions SHA 与 toolchain 证据及 GitHub tag/artifact 环境
+# [OUTPUT]: 对外提供不夹带原生构建物且可自验证完整性的源码闭包、Node/翻译/schema 合同、PR 级干净 macOS 双架构 product injector 与 acceptance producer 编译门、平台 Runner 现场生成的 Windows 双 DLL 与 macOS dylib、带当前输入 provenance 的 NSIS 隔离安装门、tag 上 Developer ID+notarization fail-closed 的双架构 macOS 包、commit 绑定 live acceptance evidence + asset seal、幂等 GitHub Release（摘要冲突 fail-closed）与 badge PR 写回
+# [POS]: .github/workflows 的唯一 CI/CD 编排器；release tag 在任何平台构建前验证 commit 已进入 origin/main；PR/main 可编译验证但不得冒充可发布产物；Windows Authenticode 不在此 workflow 实现
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -12,16 +12,38 @@ on:
   pull_request:
     branches: [main]
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
+
+permissions:
+  contents: read
+
 jobs:
   release_tag_preflight:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    environment:
+      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
 
     steps:
       - name: Checkout release tag history
         if: startsWith(github.ref, 'refs/tags/cavalry-')
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+
+      - name: Set up Node.js for release preflight
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.23.1
+
+      - name: Enforce GitHub runner image identity (tag only)
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        env:
+          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
+        run: |
+          node tools/verify_runner_image.js --mode enforce --runner-label ubuntu-24.04 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
 
       - name: Verify release tag commit is contained in main
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -29,23 +51,146 @@ jobs:
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main
 
+      - name: Verify protected acceptance attestation (tag only)
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        env:
+          RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256 }}
+          RELEASE_SEAL_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_SEAL_PUBLIC_KEY_SHA256 }}
+        run: |
+          node tools/verify_release_trust_anchors.js
+          node tools/verify_release_acceptance_evidence.js \
+            --tag "$GITHUB_REF_NAME" \
+            --release-commit "$GITHUB_SHA" \
+            --check-tag-topology
+          node tools/verify_release_acceptance_attestation.js \
+            --tag "$GITHUB_REF_NAME" \
+            --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
+
       - name: Skip release ancestry gate for non-tag CI
         if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
-        run: echo "Not a Cavalry release tag; ancestry gate is not applicable."
+        run: echo "Not a Cavalry release tag; ancestry/acceptance gates are not applicable."
 
-  build:
+  dependency_vulnerability_gate:
     needs: release_tag_preflight
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    environment:
+      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+
+      - name: Set up pinned Node.js for npm audit
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.23.1
+          cache: npm
+
+      - name: Set up pinned Rust for cargo audit
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+        with:
+          toolchain: '1.97.1'
+
+      - name: Set up pinned Python for build-closure audit
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12.6'
+
+      - name: Record or enforce GitHub runner image identity
+        env:
+          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/cavalry-* ]]; then
+            node tools/verify_runner_image.js --mode enforce --runner-label ubuntu-24.04 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
+          else
+            node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04
+          fi
+
+      - name: Install app dependencies
+        run: npm ci
+
+      - name: Scan npm and Cargo known-vulnerability databases (fail closed)
+        run: |
+          set -euo pipefail
+          node tools/dependency_vulnerability_gate.js --check-policy
+          policy='tools/dependency_vulnerability_gate.json'
+          npm_registry="$(node -p "require('./' + process.argv[1]).npm.registry" "$policy")"
+          set +e
+          npm audit --package-lock-only --json --registry="$npm_registry" > "$RUNNER_TEMP/npm-audit.json"
+          audit_status=$?
+          set -e
+          if [ "$audit_status" -ne 0 ]; then
+            cat "$RUNNER_TEMP/npm-audit.json" >&2 || true
+            echo "npm audit found a vulnerability or could not complete; failing closed." >&2
+            exit "$audit_status"
+          fi
+          node tools/dependency_vulnerability_gate.js --npm-report "$RUNNER_TEMP/npm-audit.json"
+          python_audit_root="$RUNNER_TEMP/python-audit"
+          python -m venv "$python_audit_root"
+          "$python_audit_root/bin/python" -m pip install \
+            --disable-pip-version-check \
+            --require-hashes \
+            --only-binary=:all: \
+            -r requirements-audit.txt
+          "$python_audit_root/bin/pip-audit" \
+            --requirement requirements-ci.txt \
+            --no-deps \
+            --disable-pip \
+            --strict \
+            --format json \
+            --output "$RUNNER_TEMP/python-audit.json"
+          node tools/dependency_vulnerability_gate.js \
+            --python-report "$RUNNER_TEMP/python-audit.json"
+          cargo_audit_version="$(node -p "require('./' + process.argv[1]).cargoAudit.version" "$policy")"
+          advisory_repo="$(node -p "require('./' + process.argv[1]).cargoAudit.rustsecAdvisoryDb.repository" "$policy")"
+          advisory_commit="$(node -p "require('./' + process.argv[1]).cargoAudit.rustsecAdvisoryDb.commit" "$policy")"
+          cargo_tool_root="$RUNNER_TEMP/cargo-audit"
+          advisory_db="$RUNNER_TEMP/rustsec-advisory-db"
+          cargo install cargo-audit --version "$cargo_audit_version" --locked --root "$cargo_tool_root"
+          git init "$advisory_db"
+          git -C "$advisory_db" remote add origin "$advisory_repo"
+          git -C "$advisory_db" fetch --depth=1 origin "$advisory_commit"
+          git -C "$advisory_db" checkout --detach "$advisory_commit"
+          test "$(git -C "$advisory_db" rev-parse HEAD)" = "$advisory_commit"
+          advisory_timestamp="$(git -C "$advisory_db" show -s --format=%cI HEAD)"
+          node tools/dependency_vulnerability_gate.js \
+            --rustsec-commit-timestamp "$advisory_timestamp"
+          "$cargo_tool_root/bin/cargo-audit" audit \
+            --db "$advisory_db" \
+            --no-fetch \
+            --file src-tauri/Cargo.lock
+          test "$(git -C "$advisory_db" rev-parse HEAD)" = "$advisory_commit"
+
+  build:
+    needs: [release_tag_preflight, dependency_vulnerability_gate]
+    runs-on: ubuntu-24.04
+    environment:
+      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: 22.23.1
           cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12.6'
+
+      - name: Record or enforce GitHub runner image identity
+        env:
+          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/cavalry-* ]]; then
+            node tools/verify_runner_image.js --mode enforce --runner-label ubuntu-24.04 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
+          else
+            node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04
+          fi
 
       - name: Install app dependencies
         run: npm ci
@@ -55,6 +200,24 @@ jobs:
 
       - name: Validate release protocol
         run: npm run check:release
+
+      - name: Validate supply-chain pins and source completeness contracts
+        run: |
+          node --check tools/verify_ci_action_pins.js
+          node --check tools/verify_source_artifact.js
+          node --check tools/verify_release_acceptance_evidence.js
+          node --check tools/verify_release_acceptance_seal.js
+          node --check tools/release_publish.js
+          node --check tools/record_toolchain_evidence.js
+          node --check tools/create_toolchain_evidence_bundle.js
+          node --check tools/create_release_acceptance_evidence.js
+          node --check tools/create_release_acceptance_seal.js
+          node tools/verify_ci_action_pins.js
+          node tools/verify_source_artifact.js --check-repo --check-workflow
+          node tools/verify_release_acceptance_evidence.js --check-schema
+          node tools/verify_release_acceptance_seal.js --check-schema
+          node tools/verify_release_provenance.js --check-schema
+          node tools/create_toolchain_evidence_bundle.js --check-schema
 
       - name: Validate app contracts
         run: npm run test:contracts
@@ -90,7 +253,7 @@ jobs:
 
       - name: Upload translation gate report
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: translation-quality-report
           if-no-files-found: warn
@@ -105,52 +268,91 @@ jobs:
             echo "# Full UI gate"
             echo
             echo "- BLOCKED-NO-LIVE-CAVALRY"
-            echo "- GitHub Actions does not run live Cavalry capture; use a session-scoped local run before translation."
+            echo "- GitHub Actions does not run live Cavalry capture; tag releases require commit-bound release-seals/<tag>.evidence.json from a real local live PASS."
           } >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Record toolchain evidence
+        run: |
+          created_at="$(git show -s --format=%cI "$GITHUB_SHA")"
+          node tools/record_toolchain_evidence.js \
+            --commit "$GITHUB_SHA" \
+            --created-at "$created_at" \
+            --scope source-contracts \
+            --target source-contracts \
+            --output "$RUNNER_TEMP/toolchain-evidence-source-contracts.json"
+
+      - name: Upload toolchain evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolchain-evidence-source-contracts
+          path: ${{ runner.temp }}/toolchain-evidence-source-contracts.json
+          if-no-files-found: error
+
+      - name: Stage and verify deterministic source artifact
+        run: |
+          rm -f "$RUNNER_TEMP/cavalry-i18n-source.tar"
+          node tools/create_source_artifact.js \
+            --commit "$GITHUB_SHA" \
+            --output "$RUNNER_TEMP/cavalry-i18n-source.tar"
+
       - name: Upload app source artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cavalry-i18n-tauri-source
-          path: |
-            renderer/
-            injector/
-            !injector/**/*.dll
-            !injector/**/*.dylib
-            resources/
-            src-tauri/
-            languages/
-            README.md
-            CHANGELOG.md
-            LICENSE
-            package.json
-            package-lock.json
-            release.config.json
-            .gitattributes
-            tools/
-          include-hidden-files: true
+          path: ${{ runner.temp }}/cavalry-i18n-source.tar
+          if-no-files-found: error
+
+      - name: Download source artifact for round-trip verification
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: cavalry-i18n-tauri-source
+          path: ${{ runner.temp }}/cavalry-i18n-source-roundtrip
+
+      - name: Re-verify downloaded source artifact
+        run: |
+          node tools/verify_source_artifact.js \
+            --archive "$RUNNER_TEMP/cavalry-i18n-source-roundtrip/cavalry-i18n-source.tar" \
+            --commit "$GITHUB_SHA"
 
   windows_check:
-    needs: release_tag_preflight
-    runs-on: windows-latest
+    needs: [release_tag_preflight, dependency_vulnerability_gate]
+    runs-on: windows-2022
+    environment:
+      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: 22.23.1
           cache: npm
 
       - name: Set up Python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
-          python-version: '3.12'
+          python-version: '3.12.6'
+
+      - name: Install hash-locked Qt installer dependencies
+        run: "python -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-ci.txt"
 
       - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+        with:
+          toolchain: '1.97.1'
+
+      - name: Record or enforce GitHub runner image identity
+        shell: bash
+        env:
+          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/cavalry-* ]]; then
+            node tools/verify_runner_image.js --mode enforce --runner-label windows-2022 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
+          else
+            node tools/verify_runner_image.js --mode record --runner-label windows-2022
+          fi
 
       - name: Install app dependencies
         run: npm ci
@@ -179,7 +381,7 @@ jobs:
         run: npm run test:tauri:windows-nsis
 
       - name: Upload the Windows NSIS installer
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cavalry-i18n-windows-nsis
           path: |
@@ -190,24 +392,34 @@ jobs:
   macos_injector_check:
     needs: release_tag_preflight
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
-    runs-on: macos-latest
+    runs-on: macos-14
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: 22.23.1
           cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12.6'
 
       - name: Set up Qt installer Python environment
         run: |
-          python3 -m venv "$RUNNER_TEMP/aqt-venv"
-          "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install --upgrade pip
-          "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install aqtinstall
+          python -m venv "$RUNNER_TEMP/aqt-venv"
+          "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-ci.txt
           echo "PYTHON=$RUNNER_TEMP/aqt-venv/bin/python" >> "$GITHUB_ENV"
+
+      - name: Record GitHub runner image identity
+        env:
+          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
+        run: |
+          node tools/verify_runner_image.js --mode record --runner-label macos-14
 
       - name: Install app dependencies
         run: npm ci
@@ -236,9 +448,11 @@ jobs:
           done
 
   package_macos:
-    needs: release_tag_preflight
+    needs: [release_tag_preflight, dependency_vulnerability_gate]
     if: startsWith(github.ref, 'refs/tags/cavalry-') || github.event_name == 'workflow_dispatch'
-    runs-on: macos-latest
+    runs-on: macos-14
+    environment:
+      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
     strategy:
       fail-fast: false
       matrix:
@@ -252,26 +466,40 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22
+          node-version: 22.23.1
           cache: npm
 
-      - name: Set up Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Set up Python
+        uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
+        with:
+          python-version: '3.12.6'
 
-      - name: Add Rust target for ${{ matrix.label }}
-        run: rustup target add ${{ matrix.rust_target }}
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@4360b52568e2003a75bf9bc1d59f33a8e3fc893c # stable
+        with:
+          toolchain: '1.97.1'
+          targets: ${{ matrix.rust_target }}
 
       - name: Set up Qt installer Python environment
         run: |
-          python3 -m venv "$RUNNER_TEMP/aqt-venv"
-          "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install --upgrade pip
-          "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install aqtinstall
+          python -m venv "$RUNNER_TEMP/aqt-venv"
+          "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-ci.txt
           echo "PYTHON=$RUNNER_TEMP/aqt-venv/bin/python" >> "$GITHUB_ENV"
+
+      - name: Record or enforce GitHub runner image identity
+        env:
+          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/cavalry-* ]]; then
+            node tools/verify_runner_image.js --mode enforce --runner-label macos-14 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
+          else
+            node tools/verify_runner_image.js --mode record --runner-label macos-14
+          fi
 
       - name: Install app dependencies
         run: npm ci
@@ -286,17 +514,138 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/cavalry-')
         run: npm run release:metadata -- --github-env
 
+      - name: Require Developer ID secrets for tag release packaging
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          missing=()
+          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
+            if [ -z "${!name}" ]; then
+              missing+=("$name")
+            fi
+          done
+          if [ "${#missing[@]}" -ne 0 ]; then
+            echo "Tag release packaging fails closed without Developer ID/notarization secrets: ${missing[*]}" >&2
+            echo "PR/main compile gates may still run without these secrets; they must not be treated as publishable releases." >&2
+            exit 1
+          fi
+          if [ "$APPLE_SIGNING_IDENTITY" = "-" ]; then
+            echo "APPLE_SIGNING_IDENTITY must be a Developer ID Application identity for tag releases, not ad-hoc '-'." >&2
+            exit 1
+          fi
+          echo "RELEASE_MACOS_SIGNING=developer-id" >> "$GITHUB_ENV"
+
+      - name: Import Apple Developer ID certificate
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        env:
+          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+        run: |
+          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
+          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
+          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
+          echo -n "$APPLE_CERTIFICATE" | base64 --decode > "$CERTIFICATE_PATH"
+          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
+          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          security import "$CERTIFICATE_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
+          security list-keychain -d user -s "$KEYCHAIN_PATH"
+          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
+          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
+
       - name: Prepare target Qt SDK for injector build
         run: npm run prepare:qt-sdk
 
-      - name: Build packaged macOS app
+      - name: Build packaged macOS app (tag = Developer ID + notarize)
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: true
+          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          unset CI
+          npm run tauri:build -- --target ${{ matrix.rust_target }}
+          dmg_dir="src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg"
+          bash tools/stamp_dmg_icon.sh "$dmg_dir"
+          dmg_path="$(find "$dmg_dir" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          if [ -z "$dmg_path" ]; then
+            echo "No final stamped DMG found for notarization." >&2
+            exit 1
+          fi
+          # stamp_dmg_icon rewrites the container, so notarize and staple the final bytes.
+          xcrun notarytool submit "$dmg_path" \
+            --apple-id "$APPLE_ID" \
+            --password "$APPLE_PASSWORD" \
+            --team-id "$APPLE_TEAM_ID" \
+            --wait \
+            --output-format json > "$RUNNER_TEMP/notary-${{ matrix.label }}.json"
+          node -e '
+            const fs = require("node:fs");
+            const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
+            if (result.status !== "Accepted") {
+              throw new Error(`Final DMG notarization failed: ${result.status || "unknown"}`);
+            }
+          ' "$RUNNER_TEMP/notary-${{ matrix.label }}.json"
+          xcrun stapler staple "$dmg_path"
+
+      - name: Build packaged macOS app (workflow_dispatch = ad-hoc verification only)
+        if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
           APPLE_SIGNING_IDENTITY: "-"
         run: |
           unset CI
+          echo "workflow_dispatch packaging uses ad-hoc signing for build verification only; it is not a publishable release."
           npm run tauri:build -- --target ${{ matrix.rust_target }}
           bash tools/stamp_dmg_icon.sh src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg
+
+      - name: Verify Developer ID signature and notarization staple (tag only)
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        run: |
+          app_path="src-tauri/target/${{ matrix.rust_target }}/release/bundle/macos/Cavalry Language Switcher.app"
+          dmg_dir="src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          signing_info="$(codesign -dv --verbose=2 "$app_path" 2>&1 || true)"
+          echo "$signing_info"
+          if echo "$signing_info" | grep -Eq 'Signature=adhoc|flags=.*adhoc'; then
+            echo "Tag release app is still ad-hoc signed; Developer ID signing failed closed." >&2
+            exit 1
+          fi
+          if ! echo "$signing_info" | grep -Eq 'Authority=Developer ID Application:'; then
+            echo "Tag release app must show Developer ID Application authority." >&2
+            exit 1
+          fi
+          found_nested_dylib=0
+          while IFS= read -r -d '' nested_dylib; do
+            found_nested_dylib=1
+            codesign --verify --strict --verbose=2 "$nested_dylib"
+            nested_info="$(codesign -dv --verbose=2 "$nested_dylib" 2>&1 || true)"
+            if echo "$nested_info" | grep -Eq 'Signature=adhoc|flags=.*adhoc' || ! echo "$nested_info" | grep -Eq 'Authority=Developer ID Application:'; then
+              echo "Nested runtime library is not Developer ID signed: $nested_dylib" >&2
+              exit 1
+            fi
+          done < <(find "$app_path" -type f -name '*.dylib' -print0)
+          if [ "$found_nested_dylib" -ne 1 ]; then
+            echo "Expected bundled runtime dylibs are missing from $app_path" >&2
+            exit 1
+          fi
+          dmg_path="$(find "$dmg_dir" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
+          if [ -z "$dmg_path" ]; then
+            echo "No DMG found for notarization validation in $dmg_dir" >&2
+            exit 1
+          fi
+          xcrun stapler validate "$app_path"
+          xcrun stapler validate "$dmg_path"
+          spctl --assess --verbose=2 --type execute "$app_path"
+          spctl --assess --verbose=2 --type open --context context:primary-signature "$dmg_path"
 
       - name: Name release DMG asset
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -325,49 +674,218 @@ jobs:
           PACKAGED_APP_PATH="$app_path" PACKAGED_EXPECTED_ARCH="${{ matrix.expected_arch }}" npm run test:tauri:packaged
           bash tools/check_dmg_layout.sh "$bundle_root/dmg"
 
+      - name: Re-verify final notarized DMG bytes after all package gates (tag only)
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        run: |
+          bundle_root="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
+          app_path="$bundle_root/macos/Cavalry Language Switcher.app"
+          case "${{ matrix.label }}" in
+            aarch64) asset="$RELEASE_ASSET_NAME_AARCH64" ;;
+            x64) asset="$RELEASE_ASSET_NAME_X64" ;;
+            *) exit 1 ;;
+          esac
+          dmg_path="$bundle_root/dmg/$asset"
+          test -f "$dmg_path"
+          codesign --verify --deep --strict --verbose=2 "$app_path"
+          final_signing_info="$(codesign -dv --verbose=2 "$app_path" 2>&1 || true)"
+          if echo "$final_signing_info" | grep -Eq 'Signature=adhoc|flags=.*adhoc' || ! echo "$final_signing_info" | grep -Eq 'Authority=Developer ID Application:'; then
+            echo "Final app no longer has a valid Developer ID signature." >&2
+            exit 1
+          fi
+          xcrun stapler validate "$app_path"
+          xcrun stapler validate "$dmg_path"
+          spctl --assess --verbose=2 --type execute "$app_path"
+          spctl --assess --verbose=2 --type open --context context:primary-signature "$dmg_path"
+          (cd "$bundle_root/dmg" && shasum -a 256 "$asset" > "$asset.sha256")
+
+      - name: Remove Developer ID key material (always)
+        if: ${{ always() && startsWith(github.ref, 'refs/tags/cavalry-') }}
+        run: |
+          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true
+          rm -f "$RUNNER_TEMP/build_certificate.p12" "$RUNNER_TEMP"/notary-*.json
+
+      - name: Record macOS package producer toolchain evidence
+        run: |
+          created_at="$(git show -s --format=%cI "$GITHUB_SHA")"
+          node tools/record_toolchain_evidence.js \
+            --commit "$GITHUB_SHA" \
+            --created-at "$created_at" \
+            --scope "macos-${{ matrix.label }}" \
+            --target "${{ matrix.rust_target }}" \
+            --output "$RUNNER_TEMP/toolchain-evidence-macos-${{ matrix.label }}.json"
+
+      - name: Upload macOS package producer toolchain evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolchain-evidence-macos-${{ matrix.label }}
+          path: ${{ runner.temp }}/toolchain-evidence-macos-${{ matrix.label }}.json
+          if-no-files-found: error
+
       - name: Upload packaged macOS artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cavalry-patcher-macos-${{ matrix.label }}
           path: |
             src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg/*.dmg
+            src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg/*.dmg.sha256
             src-tauri/target/${{ matrix.rust_target }}/release/bundle/macos/Cavalry Language Switcher.app
             src-tauri/target/${{ matrix.rust_target }}/release/bundle/cavalry-i18n-tauri-size-report.json
 
   release:
     needs: [release_tag_preflight, build, windows_check, package_macos]
     if: startsWith(github.ref, 'refs/tags/cavalry-')
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
+    environment:
+      name: release-production
     permissions:
       contents: write
+      pull-requests: write
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22.23.1
+
+      - name: Enforce GitHub runner image identity (tag only)
+        if: startsWith(github.ref, 'refs/tags/cavalry-')
+        env:
+          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
+        run: |
+          node tools/verify_runner_image.js --mode enforce --runner-label ubuntu-24.04 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
 
       - name: Download packaged macOS artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           pattern: cavalry-patcher-macos-*
           path: dist
 
       - name: Download packaged Windows artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: cavalry-i18n-windows-nsis
           path: dist/windows
 
+      - name: Download source-contract producer toolchain evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: toolchain-evidence-source-contracts
+          path: dist/toolchain-records
+
+      - name: Download macOS aarch64 producer toolchain evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: toolchain-evidence-macos-aarch64
+          path: dist/toolchain-records
+
+      - name: Download macOS x64 producer toolchain evidence
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
+        with:
+          name: toolchain-evidence-macos-x64
+          path: dist/toolchain-records
+
       - name: Resolve release metadata
         run: npm run release:metadata -- --github-env
 
-      - name: Name Windows release asset
+      - name: Flatten release assets into dist/
         run: |
+          mkdir -p dist
+          # Collect DMGs that may sit in nested download-artifact folders.
+          mapfile -d '' -t dmg_files < <(find dist -type f -name '*.dmg' -print0)
+          if [ "${#dmg_files[@]}" -ne 2 ]; then
+            echo "Expected two DMG assets before rename, found ${#dmg_files[@]}" >&2
+            find dist -type f -print >&2
+            exit 1
+          fi
+          for dmg in "${dmg_files[@]}"; do
+            base="$(basename "$dmg")"
+            if [ "$dmg" != "dist/$base" ]; then
+              mv "$dmg" "dist/$base"
+            fi
+          done
           mapfile -d '' -t windows_installers < <(find dist/windows -type f -name '*.exe' -print0)
           if [ "${#windows_installers[@]}" -ne 1 ]; then
             echo "Expected exactly one Windows NSIS installer, found ${#windows_installers[@]}" >&2
             exit 1
           fi
           mv "${windows_installers[0]}" "dist/$RELEASE_ASSET_NAME_WINDOWS_X64"
+          # Ensure canonical names from release metadata exist.
+          test -f "dist/$RELEASE_ASSET_NAME_AARCH64"
+          test -f "dist/$RELEASE_ASSET_NAME_X64"
+          test -f "dist/$RELEASE_ASSET_NAME_WINDOWS_X64"
+          for name in "$RELEASE_ASSET_NAME_AARCH64" "$RELEASE_ASSET_NAME_X64"; do
+            sidecar="$(find dist -type f -name "$(basename "$name").sha256" -print -quit)"
+            test -n "$sidecar"
+            if [ "$sidecar" != "dist/$name.sha256" ]; then mv "$sidecar" "dist/$name.sha256"; fi
+            (cd dist && shasum -a 256 -c "$name.sha256")
+          done
+
+      - name: Create deterministic CycloneDX SBOM
+        run: |
+          node tools/create_sbom.js \
+            --tag "$GITHUB_REF_NAME" \
+            --release-commit "$GITHUB_SHA" \
+            --output dist/CycloneDX.json
+
+      - name: Aggregate exact producer toolchain evidence
+        run: |
+          node tools/create_toolchain_evidence_bundle.js \
+            --release-commit "$GITHUB_SHA" \
+            --windows-asset "$RELEASE_ASSET_NAME_WINDOWS_X64" \
+            --record dist/toolchain-records/toolchain-evidence-source-contracts.json \
+            --record dist/toolchain-records/toolchain-evidence-macos-aarch64.json \
+            --record dist/toolchain-records/toolchain-evidence-macos-x64.json \
+            --output dist/toolchain-evidence.json
+
+      - name: Re-verify acceptance evidence and mint full asset seal
+        env:
+          RELEASE_SEAL_PRIVATE_KEY: ${{ secrets.RELEASE_SEAL_PRIVATE_KEY }}
+          RELEASE_SEAL_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_SEAL_PUBLIC_KEY_SHA256 }}
+          RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256 }}
+        run: |
+          evidence="release-seals/${GITHUB_REF_NAME}.evidence.json"
+          attestation="release-seals/${GITHUB_REF_NAME}.acceptance-attestation.json"
+          node tools/verify_release_trust_anchors.js
+          node tools/verify_release_acceptance_evidence.js \
+            --tag "$GITHUB_REF_NAME" \
+            --release-commit "$GITHUB_SHA" \
+            --check-tag-topology
+          node tools/verify_release_acceptance_attestation.js \
+            --tag "$GITHUB_REF_NAME" \
+            --evidence "$evidence" \
+            --attestation "$attestation" \
+            --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
+          node tools/create_release_acceptance_seal.js \
+            --tag "$GITHUB_REF_NAME" \
+            --release-commit "$GITHUB_SHA" \
+            --evidence "$evidence" \
+            --acceptance-attestation "$attestation" \
+            --assets-dir dist \
+            --aarch64 "dist/$RELEASE_ASSET_NAME_AARCH64" \
+            --x64 "dist/$RELEASE_ASSET_NAME_X64" \
+            --windows-x64 "dist/$RELEASE_ASSET_NAME_WINDOWS_X64" \
+            --sbom dist/CycloneDX.json \
+            --toolchain-evidence dist/toolchain-evidence.json \
+            --output dist/ReleaseAcceptanceSeal.json \
+            --macos-notarized \
+            --trusted-public-key-sha256 "$RELEASE_SEAL_PUBLIC_KEY_SHA256" \
+            --created-by "github-actions"
+          node tools/verify_release_acceptance_seal.js \
+            --seal dist/ReleaseAcceptanceSeal.json \
+            --evidence "$evidence" \
+            --attestation "$attestation" \
+            --tag "$GITHUB_REF_NAME" \
+            --release-commit "$GITHUB_SHA" \
+            --assets-dir dist \
+            --sidecars-dir dist \
+            --trusted-public-key-sha256 "$RELEASE_SEAL_PUBLIC_KEY_SHA256"
+          cp "$evidence" "dist/${GITHUB_REF_NAME}.evidence.json"
+          cp "$attestation" "dist/${GITHUB_REF_NAME}.acceptance-attestation.json"
 
       - name: Extract version changelog
         run: |
@@ -401,22 +919,20 @@ jobs:
           ### Windows
           - [Windows x64](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_WINDOWS_X64})
 
-          ### macOS 首次打开
-          当前 DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID notarization。如果从浏览器下载后，macOS 提示 "Apple could not verify Cavalry Language Switcher is free of malware"，请先把应用拖入 Applications，然后运行：
+          ### 校验与 provenance
+          - \`SHA256SUMS\`、\`release-asset-provenance.json\` 与 \`ReleaseAcceptanceSeal.json\` 随本 Release 一并发布。
+          - macOS DMG 在 tag 流水线中要求 Developer ID 签名并完成 notarization staple；缺少证书/公证密钥时 release 会 fail-closed。
+          - Windows Authenticode 尚未纳入本流水线（单独 issue 跟踪），请结合 \`SHA256SUMS\` 校验下载完整性。
 
-          \`\`\`bash
-          xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
-          open "/Applications/Cavalry Language Switcher.app"
-          \`\`\`
-
-          开发者也可以按仓库内的 \`LOCAL_BUILD_SOP.md\` 从源码本地构建；本地构建产物不会携带浏览器下载写入的 quarantine 标记。
+          ### 从源码本地构建
+          开发者可按仓库内的 \`LOCAL_BUILD_SOP.md\` 从源码本地构建。本地 ad-hoc 构建仅供开发验证，不是 GitHub Release 分发路径。
 
           可把这段话发给你的 AI agent：
 
           \`\`\`text
           请从源码本地构建 Cavalry Language Switcher：
 
-          1. 打开仓库 /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n。
+          1. 打开仓库 <repository-path>。
           2. 严格按照 LOCAL_BUILD_SOP.md 执行。
           3. 运行标准 Tauri build、执行 DMG 卷宗图标盖章，并运行 SOP 里的 packaged checks。
           4. 完成后告诉我最终 DMG 路径。
@@ -429,7 +945,6 @@ jobs:
           - 日本語
 
           ## 使用前须知
-          - 当前 release 尚未经过 Apple Developer ID notarization；浏览器下载后首次打开可能需要手动清除 quarantine。
           - 首次应用语言包时，macOS 可能要求授予 App Management 权限。
           - Windows 版不要求 Cavalry 位于固定盘符；自动检测失败时可在应用内选择安装目录，写入受保护目录时可能请求 UAC 提权。
           - 建议保留一份干净的 Cavalry 安装包或备份；恢复到完全原始状态时，重新安装 Cavalry 是最稳妥的方式。
@@ -443,33 +958,51 @@ jobs:
 
           ## English
 
-          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva.
+          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva. macOS GitHub Release assets are Developer ID signed and notarized; verify downloads with SHA256SUMS and ReleaseAcceptanceSeal.json.
           EOF
           } > release-notes.md
 
-      - name: Create GitHub Release
+      - name: Publish GitHub Release (idempotent, digest fail-closed)
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_SEAL_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_SEAL_PUBLIC_KEY_SHA256 }}
+          RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256 }}
         run: |
-          mapfile -d '' -t dmg_assets < <(find dist -type f -name '*.dmg' -print0)
-          if [ "${#dmg_assets[@]}" -ne 2 ]; then
-            echo "Expected two DMG assets, found ${#dmg_assets[@]}" >&2
-            exit 1
-          fi
-          windows_asset="dist/$RELEASE_ASSET_NAME_WINDOWS_X64"
-          if [ ! -f "$windows_asset" ]; then
-            echo "Windows NSIS asset is missing: $windows_asset" >&2
-            exit 1
-          fi
-          assets=("${dmg_assets[@]}" "$windows_asset")
-          gh release create "$GITHUB_REF_NAME" "${assets[@]}" --title "$RELEASE_TITLE" --notes-file release-notes.md
+          evidence="dist/${GITHUB_REF_NAME}.evidence.json"
+          attestation="dist/${GITHUB_REF_NAME}.acceptance-attestation.json"
+          node tools/verify_release_trust_anchors.js
+          node tools/verify_release_acceptance_attestation.js \
+            --tag "$GITHUB_REF_NAME" \
+            --evidence "$evidence" \
+            --attestation "$attestation" \
+            --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
+          node tools/verify_release_acceptance_seal.js \
+            --seal dist/ReleaseAcceptanceSeal.json \
+            --evidence "$evidence" \
+            --attestation "$attestation" \
+            --tag "$GITHUB_REF_NAME" \
+            --release-commit "$GITHUB_SHA" \
+            --assets-dir dist \
+            --sidecars-dir dist \
+            --trusted-public-key-sha256 "$RELEASE_SEAL_PUBLIC_KEY_SHA256"
+          node tools/release_publish.js \
+            --tag "$GITHUB_REF_NAME" \
+            --release-commit "$GITHUB_SHA" \
+            --dist dist \
+            --notes release-notes.md \
+            --title "$RELEASE_TITLE"
 
-      - name: Update README release badge endpoint
+      - name: Open README release badge PR (no direct main push)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          branch="chore/release-badge-${GITHUB_REF_NAME}"
           git fetch origin main:refs/remotes/origin/main
-          git checkout -B main origin/main
+          remote_sha=""
+          if git fetch origin "refs/heads/${branch}:refs/remotes/origin/${branch}"; then
+            remote_sha="$(git rev-parse "refs/remotes/origin/${branch}")"
+          fi
+          git checkout -B "$branch" origin/main
           mkdir -p docs/badges
           cat > docs/badges/release.json <<EOF
           {
@@ -487,4 +1020,19 @@ jobs:
             exit 0
           fi
           git commit -m "docs: update release badge for ${GITHUB_REF_NAME}"
-          git push origin HEAD:main
+          if [ -n "$remote_sha" ]; then
+            git push \
+              --force-with-lease="refs/heads/${branch}:${remote_sha}" \
+              origin "HEAD:refs/heads/${branch}"
+          else
+            git push -u origin "HEAD:refs/heads/${branch}"
+          fi
+          if gh pr list --state open --head "$branch" --base main --json number --jq 'length' | grep -qx '0'; then
+            gh pr create \
+              --base main \
+              --head "$branch" \
+              --title "docs: update release badge for ${GITHUB_REF_NAME}" \
+              --body "Automated badge endpoint update after publishing ${GITHUB_REF_NAME}. No direct push to main."
+          else
+            echo "Badge PR already open for ${GITHUB_REF_NAME}."
+          fi

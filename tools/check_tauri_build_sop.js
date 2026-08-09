@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、平台 dev/build 前生成原生库的源码/产物隔离，以及覆盖共享 translation policy 的 Windows x64 generic+QPA 双资源 provenance、PR 级 clean-macOS universal link gate、PowerShell 5.1+ 宿主选择、Visual Studio 2022+ 加 x64/v143 工具链、隔离安装/更新/卸载不触碰外部 Cavalry、交互卸载保留翻译或事务恢复英文的双语义边界、由 C++ 源表派生的 live 命中掩码、Qt 测试档案/Onboarding 实页转场/Adjacent producer/exact-PID 清理边界、仅接受已包含于 origin/main 的 tag commit 所生成的 GitHub Release、系统语言/品牌及 GUI 安全合同
- * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 双 injector 安装态/卸载选择与外部 QPA 哨兵验证、disposable full-surface/Onboarding/Adjacent live 证据及 npm/Tauri 配置
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台 dev/build 前生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance（Authenticode 另跟踪）、PR 级 clean-macOS universal link gate、仅接受已包含于 origin/main 且带 live evidence 的 tag commit 所生成的 GitHub Release
+ * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -237,7 +237,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(qtTarget.platforms.windows.aqt.arch, 'win64_msvc2019_64');
   assert.equal(config.build.beforeBuildCommand, undefined);
   assert.equal(config.build.frontendDist, '../renderer');
-  assert.equal(config.app.withGlobalTauri, true);
+  assert.equal(config.app.withGlobalTauri, false);
   assert.equal(macConfig.build.beforeDevCommand, 'npm run build:injector');
   assert.equal(macConfig.build.beforeBuildCommand, 'npm run build:injector');
   assert.deepEqual(macConfig.bundle.targets, ['dmg', 'app']);
@@ -753,13 +753,18 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.ok(releaseJob, 'release job missing');
   assert.match(
     preflightJob[1],
-    /if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)[\s\S]*uses:\s*actions\/checkout@v4[\s\S]*fetch-depth:\s*0/,
-    'release ancestry needs a tag-only complete checkout'
+    /if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)[\s\S]*uses:\s*actions\/checkout@[0-9a-f]{40}[\s\S]*fetch-depth:\s*0/,
+    'release ancestry needs a tag-only complete checkout with full action SHA pin'
   );
   assert.match(
     preflightJob[1],
     /git fetch --no-tags origin \+refs\/heads\/main:refs\/remotes\/origin\/main[\s\S]*git merge-base --is-ancestor "\$GITHUB_SHA" refs\/remotes\/origin\/main/,
     'tag builds must fail closed unless the tag commit is already contained in origin/main'
+  );
+  assert.match(
+    preflightJob[1],
+    /node tools\/verify_release_acceptance_evidence\.js[\s\S]*--tag "\$GITHUB_REF_NAME"[\s\S]*--release-commit "\$GITHUB_SHA"[\s\S]*--check-tag-topology/,
+    'tag preflight must fail closed unless an evidence-only tag commit binds its live-tested source parent'
   );
   for (const jobName of ['build', 'windows_check', 'package_macos']) {
     const job = workflow.match(
@@ -768,7 +773,7 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     assert.ok(job, `${jobName} job missing`);
     assert.match(
       job[1],
-      /needs:\s*release_tag_preflight/,
+      /needs:\s*(?:\[release_tag_preflight|release_tag_preflight)/,
       `${jobName} must not start before the release-tag ancestry preflight`
     );
   }
@@ -786,7 +791,7 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   );
   assert.match(
     workflow,
-    /## p\$\{RELEASE_PATCH\} 更新内容 \/ Changes[\s\S]*cat release-changes\.md[\s\S]*gh release create/
+    /## p\$\{RELEASE_PATCH\} 更新内容 \/ Changes[\s\S]*cat release-changes\.md[\s\S]*node tools\/release_publish\.js/
   );
   assert.match(workflow, /RELEASE_ASSET_NAME_AARCH64/);
   assert.match(workflow, /RELEASE_ASSET_NAME_X64/);
@@ -883,7 +888,22 @@ test('tag release publishes both macOS DMGs and the stable Windows x64 NSIS asse
   assert.match(releaseJob[1], /find dist -type f -name '\*\.dmg'/);
   assert.match(
     releaseJob[1],
-    /windows_asset="dist\/\$RELEASE_ASSET_NAME_WINDOWS_X64"[\s\S]*assets=\("\$\{dmg_assets\[@\]\}" "\$windows_asset"\)[\s\S]*gh release create/
+    /node tools\/create_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"[\s\S]*--macos-notarized[\s\S]*node tools\/verify_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"/
+  );
+  assert.doesNotMatch(releaseJob[1], /--confirm-live-pass/);
+  assert.match(
+    releaseJob[1],
+    /node tools\/release_publish\.js[\s\S]*--dist dist[\s\S]*--notes release-notes\.md/
+  );
+  assert.match(
+    releaseJob[1],
+    /gh pr create[\s\S]*release badge/,
+    'badge updates must open a PR instead of pushing main directly'
+  );
+  assert.doesNotMatch(
+    releaseJob[1],
+    /git push origin HEAD:main/,
+    'release must not push badge commits directly to main'
   );
 });
 
@@ -977,13 +997,18 @@ test('README release badges use a generated Shields endpoint instead of the GitH
 
   assert.match(
     workflow,
-    /gh release create "\$GITHUB_REF_NAME" "\$\{assets\[@\]\}" --title "\$RELEASE_TITLE" --notes-file release-notes\.md[\s\S]*docs\/badges\/release\.json[\s\S]*"message": "\$\{GITHUB_REF_NAME\}"/,
-    'tag release workflow should update the endpoint badge JSON only after GitHub Release creation succeeds'
+    /node tools\/release_publish\.js[\s\S]*docs\/badges\/release\.json[\s\S]*"message": "\$\{GITHUB_REF_NAME\}"/,
+    'tag release workflow should update the endpoint badge JSON only after release publish succeeds'
   );
   assert.match(
     workflow,
+    /gh pr create[\s\S]*docs: update release badge/,
+    'tag release workflow should open a badge PR instead of pushing main directly'
+  );
+  assert.doesNotMatch(
+    workflow,
     /git push origin HEAD:main/,
-    'tag release workflow should publish the generated badge JSON back to main'
+    'tag release workflow must not push badge commits directly onto main'
   );
 });
 
@@ -1050,10 +1075,39 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
 });
 
-test('tauri macOS package uses explicit ad-hoc bundle signing for downloaded apps', () => {
+test('tauri macOS package defaults to ad-hoc locally while tag CI requires Developer ID', () => {
   const config = readJson('src-tauri/tauri.macos.conf.json');
+  const workflow = readText('.github/workflows/build.yml');
+  const packageJob = workflow.match(
+    /\r?\n  package_macos:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
 
-  assert.equal(config.bundle.macOS.signingIdentity, '-');
+  assert.equal(config.bundle.macOS.signingIdentity, undefined);
+  assert.ok(packageJob, 'package_macos job missing');
+  assert.match(
+    packageJob[1],
+    /Require Developer ID secrets for tag release packaging[\s\S]*APPLE_CERTIFICATE[\s\S]*exit 1/,
+    'tag packaging must fail closed without Developer ID secrets'
+  );
+  assert.match(
+    packageJob[1],
+    /APPLE_SIGNING_IDENTITY:\s*\$\{\{\s*secrets\.APPLE_SIGNING_IDENTITY\s*\}\}/,
+    'tag packaging must use the Developer ID secret identity'
+  );
+  assert.match(
+    packageJob[1],
+    /notarytool submit[\s\S]*stamp_dmg_icon|stamp_dmg_icon[\s\S]*notarytool submit[\s\S]*stapler staple[\s\S]*stapler validate/,
+    'tag packaging must notarize and staple the final post-stamp DMG bytes'
+  );
+  assert.match(
+    packageJob[1],
+    /workflow_dispatch packaging uses ad-hoc signing for build verification only/
+  );
+  // Tag build step must not set ad-hoc identity; only the non-tag workflow_dispatch step may.
+  assert.match(
+    packageJob[1],
+    /Build packaged macOS app \(tag = Developer ID \+ notarize\)[\s\S]*?APPLE_SIGNING_IDENTITY:\s*\$\{\{\s*secrets\.APPLE_SIGNING_IDENTITY\s*\}\}[\s\S]*?Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)[\s\S]*?APPLE_SIGNING_IDENTITY: "-"/
+  );
 });
 
 test('Windows injector selects the installed Visual Studio generator and locks the proven x64 v143 toolset', () => {
@@ -1069,12 +1123,12 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
   const workflow = readText('.github/workflows/build.yml');
   const job = workflow.match(/\r?\n  windows_check:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/);
   const sourceArtifact = workflow.match(
-    /- name: Upload app source artifact\r?\n([\s\S]*?)(?=\r?\n {6}- name:|\r?\n  windows_check:)/
+    /- name: Stage and verify deterministic source artifact\r?\n([\s\S]*?)(?=\r?\n  windows_check:)/
   );
 
   assert.ok(job, 'windows_check job missing');
-  assert.match(job[1], /runs-on:\s*windows-latest/);
-  assert.match(job[1], /actions\/setup-python@v5/);
+  assert.match(job[1], /runs-on:\s*windows-2022/);
+  assert.match(job[1], /actions\/setup-python@[0-9a-f]{40}/);
   assert.match(job[1], /npm run prepare:qt-sdk:windows/);
   assert.doesNotMatch(job[1], /python -m aqt install-qt/);
   assert.match(job[1], /npm ci/);
@@ -1099,6 +1153,8 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.provenance\.json/
   );
   assert.match(job[1], /if-no-files-found:\s*error/);
+  // Windows Authenticode is intentionally not implemented here (external issue).
+  assert.doesNotMatch(job[1], /signtool|Authenticode|osslsigncode/i);
   const pkg = readJson('package.json');
   assert.match(pkg.scripts['build:tauri:windows'], /^npm run prepare:qt-sdk:windows/);
   assert.equal(
@@ -1106,21 +1162,15 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     'npm run build:injector:windows && node tools/windows_nsis_provenance.js --prepare'
   );
   assert.ok(sourceArtifact, 'source artifact upload step missing');
-  assert.match(sourceArtifact[1], /^\s+\.gitattributes\s*$/m);
   assert.match(
     sourceArtifact[1],
-    /^\s+tools\/\s*$/m,
-    'source artifact should carry the complete tools dependency closure used by package scripts and hooks'
+    /create_source_artifact\.js[\s\S]*--commit "\$GITHUB_SHA"[\s\S]*--output "\$RUNNER_TEMP\/cavalry-i18n-source\.tar"/
   );
+  assert.match(sourceArtifact[1], /path:\s*\$\{\{ runner\.temp \}\}\/cavalry-i18n-source\.tar/);
+  assert.match(sourceArtifact[1], /Download source artifact for round-trip verification/);
   assert.match(
     sourceArtifact[1],
-    /^\s+!injector\/\*\*\/\*\.dll\s*$/m,
-    'source artifact must exclude platform-built Windows injector binaries'
-  );
-  assert.match(
-    sourceArtifact[1],
-    /^\s+!injector\/\*\*\/\*\.dylib\s*$/m,
-    'source artifact must exclude platform-built macOS injector binaries'
+    /verify_source_artifact\.js[\s\S]*--archive "\$RUNNER_TEMP\/cavalry-i18n-source-roundtrip\/cavalry-i18n-source\.tar"[\s\S]*--commit "\$GITHUB_SHA"/
   );
 });
 
@@ -1136,8 +1186,11 @@ test('PR and main CI compile and link the universal macOS injector without a ven
     job[1],
     /if:\s*github\.event_name == 'pull_request' \|\| github\.ref == 'refs\/heads\/main'/
   );
-  assert.match(job[1], /runs-on:\s*macos-latest/);
-  assert.match(job[1], /python3 -m venv[\s\S]*pip install aqtinstall/);
+  assert.match(job[1], /runs-on:\s*macos-14/);
+  assert.match(
+    job[1],
+    /python -m venv[\s\S]*pip install[^\n]*--require-hashes[^\n]*--only-binary=:all:[^\n]*-r requirements-ci\.txt/
+  );
   assert.match(
     job[1],
     /test ! -e \/Applications\/Cavalry\.app[\s\S]*npm run build:injector/,
@@ -1740,7 +1793,87 @@ test('tauri capability and SOP mention the bridge and packaged resource boundari
     'src-tauri/target/release/bundle',
     'DMG',
     '.app',
+    'release-seals',
+    'Developer ID',
+    'ReleaseAcceptanceSeal',
   ]) {
     assert.match(localSop, new RegExp(requiredText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
+});
+
+test('release supply-chain pins, source completeness, and seal schemas are executable', () => {
+  const pins = readJson('tools/ci_action_pins.json');
+  const workflow = readText('.github/workflows/build.yml');
+  const requirementsInput = readText('requirements-ci.in');
+  const requirements = readText('requirements-ci.txt');
+  const rustToolchain = readText('rust-toolchain.toml');
+
+  assert.equal(pins.kind, 'CiActionPins');
+  assert.match(requirementsInput, /^aqtinstall==3\.3\.0$/m);
+  assert.match(requirements, /^aqtinstall==3\.3\.0/m);
+  assert.match(requirements, /--hash=sha256:[a-f0-9]{64}/);
+  assert.match(rustToolchain, /channel\s*=\s*"1\.97\.1"/);
+  assert.match(readText('SECURITY.md'), /Developer ID/);
+  assert.match(readText('.github/CODEOWNERS'), /@singkia/);
+  assert.doesNotMatch(readText('README.md'), /\/Users\/luo\//);
+  assert.doesNotMatch(readText('LOCAL_BUILD_SOP.md'), /\/Users\/luo\//);
+  assert.match(readText('README.md'), /<repository-path>/);
+  assert.match(
+    workflow,
+    /pip install[^\n]*--require-hashes[^\n]*--only-binary=:all:[^\n]*-r requirements-ci\.txt/
+  );
+  assert.doesNotMatch(workflow, /pip install\s+--upgrade\s+pip/);
+  assert.match(workflow, /python-version:\s*'3\.12\.6'/);
+  assert.match(workflow, /concurrency:/);
+
+  const pinCheck = spawnSync(process.execPath, ['tools/verify_ci_action_pins.js'], {
+    cwd: repoRoot,
+    encoding: 'utf8',
+  });
+  assert.equal(pinCheck.status, 0, pinCheck.stderr || pinCheck.stdout);
+
+  const sourceCheck = spawnSync(
+    process.execPath,
+    ['tools/verify_source_artifact.js', '--check-repo', '--check-workflow'],
+    { cwd: repoRoot, encoding: 'utf8' }
+  );
+  assert.equal(sourceCheck.status, 0, sourceCheck.stderr || sourceCheck.stdout);
+
+  const evidenceSchema = spawnSync(
+    process.execPath,
+    ['tools/verify_release_acceptance_evidence.js', '--check-schema'],
+    { cwd: repoRoot, encoding: 'utf8' }
+  );
+  assert.equal(evidenceSchema.status, 0, evidenceSchema.stderr || evidenceSchema.stdout);
+
+  const sealSchema = spawnSync(
+    process.execPath,
+    ['tools/verify_release_acceptance_seal.js', '--check-schema'],
+    { cwd: repoRoot, encoding: 'utf8' }
+  );
+  assert.equal(sealSchema.status, 0, sealSchema.stderr || sealSchema.stdout);
+
+  const missingSeal = spawnSync(
+    process.execPath,
+    [
+      'tools/verify_release_acceptance_evidence.js',
+      '--tag',
+      'cavalry-2.7.2-p999999',
+      '--release-commit',
+      '0123456789abcdef0123456789abcdef01234567',
+    ],
+    { cwd: repoRoot, encoding: 'utf8' }
+  );
+  assert.notEqual(missingSeal.status, 0, 'missing evidence must fail closed');
+  assert.match(missingSeal.stderr, /present canonical release evidence|fail closed/i);
+});
+
+test('release acceptance seal cannot be minted from a manual confirmation flag', () => {
+  const source = readText('tools/create_release_acceptance_seal.js');
+  const schema = readJson('tools/schemas/release_acceptance_seal.schema.json');
+  assert.match(source, /--confirm-live-pass is forbidden/);
+  assert.match(source, /--evidence/);
+  assert.match(source, /--macos-notarized is required/);
+  assert.equal(schema.properties.schemaVersion.const, 4);
+  assert.equal(schema.properties.signing.properties.macosDeveloperIdNotarized.const, true);
 });

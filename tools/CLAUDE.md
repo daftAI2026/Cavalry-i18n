@@ -20,6 +20,13 @@ check_git_hooks.js: Windows 兼容 Git hook 合同测试，模拟 stale PATH、�
 python_command.js: Python 3 命令边界，优先尊重 `PYTHON`；Windows 先探测用户级 Python Launcher 的绝对路径，再回退 `py -3`/`python`，隔离 IDE/Codex 继承旧 PATH 与 Windows Store 假别名；其余平台使用 `python3`，供 Node 验证器与 Qt SDK 解析器复用。
 powershell_command.js: Windows 开发脚本宿主边界；优先单次启动 `pwsh.exe`，仅在宿主不存在时清除继承的 `PSModulePath` 并回退 `powershell.exe`，脚本非零或启动拒绝原样失败，供 injector 构建与 NSIS 安装态守门复用。
 release_metadata.js: GitHub Release 协议守门器，以 `release.config.json` 为真相源，校验 `cavalry-2.7.2-pN` tag 并生成 release 标题、双架构 DMG 与稳定 Windows x64 NSIS 资产名。
+release_publish.js: 幂等 GitHub Release 发布器；私有 draft 先补全并逐项回读所有资产/sidecar、最后一步才公开，公开 release 只读复验；本地资产写 SHA256SUMS/ReleaseAssetProvenance，并以 verifier 复核 signed seal、CycloneDX SBOM、toolchain evidence 与三主资产，冲突 fail-closed。
+create_release_acceptance_evidence.js / create_release_acceptance_attestation.js / verify_release_acceptance_evidence.js / verify_release_acceptance_attestation.js: tag 前置 live macOS acceptance evidence 与独立 Ed25519 protected-attestation；候选代码只在 repo 外 prepare canonical payload、接收 detached signature/public DER 后 assemble，长期私钥只存在于不运行候选代码的外部 signer；tag 只接受 evidence+attestation 两文件提交并以外部固定 fingerprint fail-closed 校验（commit/tag/Cavalry/Qt/OS/语言矩阵）。
+create_release_acceptance_seal.js / verify_release_acceptance_seal.js / release_seal_signature.js / verify_release_trust_anchors.js: 将 evidence、macOS notarization、三主资产、CycloneDX SBOM 与 toolchain evidence 绑定为受保护 Ed25519 密钥签名的 ReleaseAcceptanceSeal；release 与 acceptance 使用不同 fingerprint，缺失或同键复用均 fail-closed。
+create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确定性 CycloneDX 1.5 SBOM，并复核公开 ReleaseAssetProvenance 对 seal、SBOM、toolchain 与三主资产的精确字节绑定。
+create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；verifier 独立生成同 commit 的 `git archive`，逐 entry 拒绝 link/special/traversal/duplicate/secret 并精确比对路径、bytes、type 与 mode，marker 不能替代 tree 校验。
+verify_ci_action_pins.js + ci_action_pins.json: 以 strict unique-key YAML AST 枚举 job/step 全部 `uses`（含 unnamed、`if`-first、flow mapping 与 quoted key），执行 GitHub Actions 全量 40 位 SHA allowlist 及 Node/Python/aqt/Rust 精确 pin 合同。
+record_toolchain_evidence.js / create_toolchain_evidence_bundle.js: 前者在 source-contract/macOS 真实 producer 上 fail-closed 捕获无 secret 的版本与 runner 证据；后者要求 source-contracts、macOS aarch64/x64 三 scope 与 release commit/target 精确一致，聚合为 seal 绑定的 `toolchain-evidence.json`，并明确把 Windows producer evidence 留给 #15 而不伪装覆盖。
 extract_release_changelog.js: Release notes 内容守门器，按内部 SemVer 从 `CHANGELOG.md` 精确抽取单个已发布日期区块；缺失、重复、未标日期或空正文时失败关闭，防止固定产品模板吞掉版本更新。
 check_runtime_ui_coverage.js: runtime UI 覆盖率守门脚本，读取真实菜单 inventory 并按阈值阻塞未翻译文本。
 check_full_ui_coverage.js: 单语言全 UI 覆盖检查，组合 runtime、compiled、JSON-backed 校验，并通过共享 Python 命令边界启动验证器。
@@ -28,15 +35,17 @@ verify_gate_inputs.js: full-ui 前置输入守门器，冻结 session artifact�
 capture_accessibility_inventory.js: live AX runtime 抓取器，写 `RUNTIME_DIR/<lang>-ax-inventory.json` 与 menuDepthMax/submenu path audit evidence。
 merge_runtime_inventory.js: runtime inventory 合并器，只接受 live-injector / live-accessibility 输入并产出 `live-merged` session 分母。
 run_live_full_ui_matrix.js: G-CAPTURE 编排器，启动真实 Cavalry、解析 launcher PID、拒绝弱抓取并写 session run record，支持无副作用 `--help`。
-macos-acceptance/: 可复用 macOS 定向 release-gate 工具；以 tracked Objective-C++ driver、exact CGWindow helper、冻结媒体与 target/stage 身份闭合的 Node matrix/v5 执行三语 21-run/48-point 验收，静态合同和无 vendor app 原生 compile 进入 CI，运行产物严格留在 repo/clone 外 session。
+macos-acceptance/: 可复用 macOS 定向 release-gate 工具；以 `source_contract.js` 为 producer/verifier 共用的完整源码与 fixture closure，结合 tracked Objective-C++ driver、exact CGWindow helper、冻结媒体、现场 `sw_vers` host product/build identity 与 target/stage 身份闭合的 Node matrix/v6 执行三语 21-run/48-point 验收，静态合同和无 vendor app 原生 compile 进入 CI，运行产物严格留在 repo/clone 外 session。
 freeze_extraction_inventory.js: G-X freeze 器，按 whitelist 噪声规则冻结 JSON/compiled/runtime 英文分母并写顶层 target identity。
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
 generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成带 GEB L3 契约的 injector 编译期翻译表，拒绝任何位于 `<context>` 外、运行时不可达的孤儿 `<message>`，并仅对显式 `xml:space="preserve"` 的 source/translation 保留首尾空白。
 model_display_translations.json: display-only 模型名词典，保存 JSON niceName 英文化前的三语显示译名，只供 injector 翻译 Qt 浮动标题等显示层，不回写模型数据，并保持简繁中文 Latin/CJK 间距。
 runtime-noise-quarantine.json: Runtime 翻译噪声隔离清单，记录无资源/live-capture provenance 的短 token，并让生成器跳过这些项以保持英文。
-resolve_cavalry_qt_sdk.js: 从单一 Cavalry/Qt 版本真相解析宿主默认或显式 macOS/Windows SDK 投影；macOS 校验 Cavalry.app，clean CI 缺 SDK 时通过共享 Python 命令边界下载 `clang_64` 或 `msvc2019_64`。
+resolve_cavalry_qt_sdk.js: 从单一 Cavalry/Qt 版本真相解析宿主默认或显式 macOS/Windows SDK 投影；无论本地是否已有全局 aqt，都以 repo-local venv 和 `requirements-ci.txt` 完整 hash-lock bootstrap `aqtinstall==3.3.0`；macOS 除版本还校验 `cavalry_qt_target.json` 固定的完整 SDK tree SHA-256（所有目录、普通文件内容和 symlink target 的 canonical projection），不匹配即拒绝。
+dependency_vulnerability_gate.json / dependency_vulnerability_gate.js / dependency_vulnerability_gate.test.js: 三生态依赖漏洞门；固定 Node/npm 与 registry，hash-lock `pip-audit==2.10.1` 并要求报告精确等于 CPython 3.12.6/Linux 的 24 项 canonical active lock（拒绝截断/增项/重复/漏洞），Cargo 固定 cargo-audit 与 immutable RustSec commit/timestamp，并要求 30 天内重审 snapshot。
+verify_runner_image.js: 规范化 GitHub `ImageOS`/`ImageVersion` 及 runner OS/arch；PR/main 记录，tag 在受保护 environment 的 allowlist 缺失或不匹配时 fail-closed。
 stamp_dmg_icon.sh: DMG 卷宗图标盖章器，用 hdiutil 写入 `.VolumeIcon.icns` 与 custom-icon 标记，再用 Rez/SetFile best-effort 写本机 Finder 文件图标。
-cavalry_qt_target.json: 发布目标映射，唯一声明 Cavalry 2.7.2 与 Qt 6.6.3，并为 macOS `clang_64`、Windows `msvc2019_64` 提供 repo-local SDK 路径和 aqt 参数。
+cavalry_qt_target.json: 发布目标映射，唯一声明 Cavalry 2.7.2 与 Qt 6.6.3，并为 macOS `clang_64`、Windows `msvc2019_64` 提供 repo-local SDK 路径和 aqt 参数；macOS qtbase 安装身份是可复核的完整 SDK tree SHA-256，而非仅版本号。
 build_translator_injector.sh: 重生成共享翻译表后，以 `-O2/-fno-omit-frame-pointer` 合编 macOS injector 与 TransformTool ABI 适配器；真实运行绑定 `@rpath/libskia.dylib`，无 vendor app 的 CI 只使用不入包的临时链接桩。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
 validate_translations.py: JSON/TS/injector 翻译质量检查脚本；Guide catalog 纳入真实分母并固定 `en` loader slot，可见文本先解码 HTML entity，再执行既有占位符与 FP-1..12 审查。
@@ -131,5 +140,8 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-29: Windows NSIS provenance 比较 canonical file identity，修复 macOS `/var` 与 `/private/var` 指向同一安装器却被误拒绝的本地合同假阴性；bundle 边界与内容 fingerprint 不变。
 2026-07-30: 将 2026-07-29 现场使用的 macOS 21-run/48-point acceptance driver、exact-window helper、媒体输入和 harness 从可清理 Cache 恢复到 `macos-acceptance/`；CI 运行静态合同与无 vendor app compile，live PASS 仍只由显式 session 证据产生。
 2026-07-31: Windows Adjacent gate 将 Tag/Assets producer driver、双素材与 exact-HWND 证据握手收进 tracked Rust/C++/PowerShell 边界；正式瞬态 PNG 改由 producer-side Qt grab，helper 只封存/诊断，三语动态 stem 带 run nonce 防止还原工作区污染。
+2026-08-09: 新增 release acceptance evidence/seal、detached offline acceptance signer 与独立双 trust anchor、exact-commit/mode source tar、strict-YAML Actions SHA pin、toolchain evidence、三生态漏洞门与 private-draft 最后公开的幂等 release_publish；合同测试锁定 tag Developer ID fail-closed 与 badge PR 路径。
+
+2026-08-09: 本地 Qt ensure 取消裸 `pip install aqtinstall`，改用项目内 hash-locked bootstrap，并以 Qt 6.6.3 macOS 完整 SDK tree SHA-256 拒绝下载/安装漂移；新增 npm/Python/Cargo 已知漏洞、RustSec freshness 与 tag runner-image fingerprint 工具门。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

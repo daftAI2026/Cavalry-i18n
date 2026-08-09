@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/daftAI2026/Cavalry-i18n/tools/schemas/source_artifact_manifest.schema.json",
+  "title": "SourceArtifactManifest",
+  "description": "Allowlist of paths that a reproducible source artifact must include, plus binary exclusions for platform-built native libraries.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "requiredPaths",
+    "sourceArchivePaths",
+    "artifactIdentity",
+    "forbiddenPathPrefixes",
+    "forbiddenFileExtensions",
+    "forbiddenFileNames"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "kind": {
+      "type": "string",
+      "const": "SourceArtifactManifest"
+    },
+    "requiredPaths": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "sourceArchivePaths": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "artifactIdentity": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "markerPath"
+      ],
+      "properties": {
+        "schemaVersion": {
+          "type": "integer",
+          "const": 1
+        },
+        "kind": {
+          "type": "string",
+          "const": "CavalryI18nSourceArtifact"
+        },
+        "markerPath": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "forbiddenPathPrefixes": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "forbiddenFileExtensions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^\\.[A-Za-z0-9]+$"
+      }
+    },
+    "forbiddenFileNames": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  }
+}

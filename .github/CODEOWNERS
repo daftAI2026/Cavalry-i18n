@@ -1,0 +1,18 @@
+# Default owners for release, security, and supply-chain surfaces.
+# Reviewer count / two-person rule is a social process — CODEOWNERS only routes review requests.
+
+*       @singkia
+
+/.github/                       @singkia
+/tools/release_*.js             @singkia
+/tools/verify_*.js              @singkia
+/tools/schemas/                 @singkia
+/tools/ci_action_pins.json      @singkia
+/tools/source_artifact_manifest.json @singkia
+/release-seals/                 @singkia
+/SECURITY.md                    @singkia
+/LOCAL_BUILD_SOP.md             @singkia
+/release.config.json            @singkia
+/rust-toolchain.toml            @singkia
+/requirements-ci.txt            @singkia
+/requirements-ci.in             @singkia

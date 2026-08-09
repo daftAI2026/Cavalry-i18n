@@ -50,23 +50,18 @@ On Windows, the app first tries to discover a local installation; if it cannot, 
 
 ## Install From Release
 
-Download the matching release asset from GitHub Releases. On macOS, use the Apple Silicon or Intel DMG. The DMG is ad-hoc signed, but it is not Apple Developer ID notarized. If macOS shows "Apple could not verify Cavalry Language Switcher is free of malware" after you drag the app into Applications, remove the browser download quarantine flag once:
+Download the matching release asset from GitHub Releases. On macOS, use the Apple Silicon or Intel DMG. The hardened tag pipeline requires Developer ID signing/notarization plus `SHA256SUMS`, `CycloneDX.json`, `release-asset-provenance.json`, an independently signed acceptance attestation, and the final Ed25519-signed `ReleaseAcceptanceSeal.json`; **historical p1-p5 releases predate that pipeline and do not carry those guarantees**. Until `SECURITY.md` publishes the two independent acceptance-authority and release-seal fingerprints, do not treat either embedded public key as authenticated; hardened verification must validate the acceptance attestation first and the final seal second.
 
-```bash
-xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
-open "/Applications/Cavalry Language Switcher.app"
-```
+On Windows, download and run `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`. The NSIS installer installs the switcher; it does not require end users to install Python, Rust, Qt, or PowerShell 7. After installation, choose the detected Cavalry copy or browse to a writable installation root. Windows Authenticode signing is tracked separately; always check `SHA256SUMS`.
 
-On Windows, download and run `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`. The NSIS installer installs the switcher; it does not require end users to install Python, Rust, Qt, or PowerShell 7. After installation, choose the detected Cavalry copy or browse to a writable installation root.
-
-Developers can also build locally from source. Local builds follow [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) and do not carry the browser download quarantine flag.
+Developers can also build locally from source. Local builds follow [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md), use ad-hoc signing for development only, and are not a substitute for GitHub Release assets.
 
 Or paste this prompt to your AI agent:
 
 ```text
 Build Cavalry Language Switcher locally from source:
 
-1. Open the repository at /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n.
+1. Open the repository at <repository-path>.
 2. Follow LOCAL_BUILD_SOP.md exactly.
 3. Run the standard Tauri build, stamp the DMG icon, and run the packaged checks described in the SOP.
 4. Confirm the final DMG path when done.

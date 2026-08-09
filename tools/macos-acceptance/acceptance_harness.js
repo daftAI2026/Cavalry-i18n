@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 冻结同一 canonical repo 的产品/验收源码、target contract、预期 executable SHA-256、fresh disposable Cavalry 2.7.2 clone 与 Qt 6.6.3 SDK/runtime。
- * [OUTPUT]: 从冻结源码构建 product injector 后，生成逐语言绑定 executable/Qt runtime stage 的 21 次产品操作、48 个逻辑表面及 exact-window OS 截图只读 session。
+ * [INPUT]: 冻结同一 canonical repo 的产品/验收源码、现场 sw_vers host 身份、target contract、预期 executable SHA-256、fresh disposable Cavalry 2.7.2 clone 与 Qt 6.6.3 SDK/runtime。
+ * [OUTPUT]: 从冻结源码构建 product injector 后，生成绑定 machine.host、逐语言 executable/Qt runtime stage 的 21 次产品操作、48 个逻辑表面及 exact-window OS 截图只读 session。
  * [POS]: acceptance-v2 的最小编排器；只做定向 Guide staging、单次同源构建、ready→截图→ack、身份和清理。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,6 +18,10 @@ const {
 const {
   binaryIdentity, freezeIdentity, identity, sha256, verifyIdentity,
 } = require('./artifact_identity');
+const {
+  MATRIX_SCHEMA, assertSameHostIdentity, collectMacHostIdentity, validateHostIdentity,
+} = require('./host_identity');
+const { GUIDE_FILES, sourceEntries } = require('./source_contract');
 
 const ROOT = __dirname;
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
@@ -37,11 +41,6 @@ const EXPECTED_SURFACES = Object.freeze({
 const EXPECTED_CAPTURES = Object.freeze({
   search: 4, 'add-tag': 2, save: 1, replace: 4, tracking: 1, onboarding: 5, transform: 1,
 });
-const GUIDE_FILES = Object.freeze([
-  ['onboarding.json', 'Learn/onboarding.json'],
-  ['Learn/Guides/guides.json', 'Learn/Guides/guides.json'],
-  ['Learn/Guides/strings.json', 'Learn/Guides/strings.json'],
-]);
 
 function parseArgs() {
   const result = {};
@@ -142,39 +141,9 @@ function validateMp4(file) {
   }
   return { ...identity(file), duration: Number(payload.format.duration) };
 }
-function sourceEntries(repo) {
-  const acceptance = [
-    'acceptance_harness.js', 'artifact_identity.js', 'build_acceptance_v2.sh', 'path_safety.js',
-    ...fs.readdirSync(path.join(ROOT, 'drivers')).filter((name) => /\.(mm|inc)$/.test(name)).sort().map((name) => `drivers/${name}`),
-    ...fs.readdirSync(path.join(ROOT, 'helpers')).filter((name) => name.endsWith('.swift')).sort().map((name) => `helpers/${name}`),
-    'fixtures/replace-source.png', 'fixtures/replace-source.mp4', 'fixtures/dynamic-proof-two.png',
-  ].map((relative) => ({ source: path.join(ROOT, relative), destination: path.join('acceptance', relative) }));
-  const product = [
-    'injector/CavalryTranslatorInjector.mm',
-    'injector/cavalry_i18n_translation_policy.h',
-    'injector/cavalry_i18n_macos_tool_help_text_path.h',
-    'injector/cavalry_i18n_macos_tool_help_text_path.cpp',
-    'injector/generated_translations.inc',
-    'tools/build_translator_injector.sh',
-    'tools/generate_embedded_translations.js',
-    'tools/cavalry_qt_target.json',
-    'tools/model_display_translations.json',
-    'tools/runtime-noise-quarantine.json',
-    'tools/zh-Hans.ts', 'tools/zh-Hant.ts', 'tools/ja_JP.ts',
-  ].map((relative) => ({ source: path.join(repo, relative), destination: path.join('repo', relative) }));
-  for (const language of LANGUAGES) {
-    for (const [source] of GUIDE_FILES) {
-      product.push({
-        source: path.join(repo, 'languages', language, source),
-        destination: path.join('repo', 'languages', language, source),
-      });
-    }
-  }
-  return [...acceptance, ...product];
-}
 function freezeSources(repo, session) {
   const root = path.join(session, 'source-snapshot');
-  return sourceEntries(repo).map(({ source, destination }) => ({
+  return sourceEntries(repo, ROOT).map(({ source, destination }) => ({
     source: identity(source), frozen: copyExclusive(source, path.join(root, destination)),
   }));
 }
@@ -636,6 +605,7 @@ function runMatrix() {
   directory(repoInput, 'Repository');
   const repo = fs.realpathSync(repoInput);
   const repository = repositoryIdentity(repo);
+  const host = collectMacHostIdentity();
   const target = targetContract(repo);
   const expectedExecutableSha256 = requireSha256('expected-executable-sha256');
   const clone = resolveClone(
@@ -697,9 +667,9 @@ function runMatrix() {
     if (!sameArtifact(finalExecutable, finalStage.executable) ||
         !sameArtifact(finalRuntimeCore, finalStage.runtimeQtCore)) fail('Final clone identity drifted');
     const record = {
-      schema: 'cavalry-i18n.acceptance-v2.matrix/v5',
+      schema: MATRIX_SCHEMA,
       status: 'MACHINE-COMPLETE-MANUAL-PENDING', createdAtUtc: new Date().toISOString(),
-      repository, target, qt: { ...qt, finalRuntimeCore },
+      host, repository, target, qt: { ...qt, finalRuntimeCore },
       clone: {
         appPath: clone.appPath, version: clone.version,
         expectedExecutableSha256, originalExecutable: originalCloneExecutable,
@@ -729,11 +699,12 @@ function sealReview() {
   const machinePath = strictRealChild(session, machineInput, 'Machine record');
   const machine = JSON.parse(fs.readFileSync(machinePath, 'utf8'));
   const review = JSON.parse(fs.readFileSync(reviewPath, 'utf8'));
-  if (machine.schema !== 'cavalry-i18n.acceptance-v2.matrix/v5' ||
+  if (machine.schema !== MATRIX_SCHEMA ||
       machine.status !== 'MACHINE-COMPLETE-MANUAL-PENDING' ||
       review.schema !== 'cavalry-i18n.acceptance-v2.manual-review/v1' || !Array.isArray(review.points)) {
     fail('Machine/manual review schema mismatch');
   }
+  assertSameHostIdentity(validateHostIdentity(machine.host), collectMacHostIdentity());
   for (const source of machine.sources) verifyIdentity(source.frozen, 'Frozen source');
   for (const tool of Object.values(machine.tools)) verifyIdentity(tool, 'Built tool');
   for (const evidence of Object.values(machine.buildEvidence)) verifyIdentity(evidence, 'Build evidence');

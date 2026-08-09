@@ -50,23 +50,18 @@ Windows では、まずローカルのインストールを検出します。見
 
 ## Release からインストール
 
-GitHub Releases からプラットフォームに合うアセットをダウンロードしてください。macOS は Apple Silicon または Intel 用 DMG を選びます。DMG は ad-hoc 署名されていますが、Apple Developer ID notarization はまだ行っていません。app を Applications にドラッグした後に macOS が "Apple could not verify Cavalry Language Switcher is free of malware" と表示する場合は、ブラウザダウンロード由来の quarantine フラグを一度だけ削除してください。
+GitHub Releases からプラットフォームに合うアセットをダウンロードしてください。macOS は Apple Silicon または Intel 用 DMG を選びます。新しい hardened tag pipeline は Developer ID 署名、公証、同一 Release の `SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、独立署名された acceptance attestation、最終 Ed25519 `ReleaseAcceptanceSeal.json` を必須にします。**過去の p1-p5 Release はこの pipeline より前のもので、これらの保証はありません。** `SECURITY.md` が acceptance authority と release seal の独立した 2 つの fingerprint を保護された経路で公開するまでは、どちらの埋め込み公開鍵も trust anchor とみなさないでください。hardened verification は acceptance attestation を先に、最終 seal を次に検証します。
 
-```bash
-xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
-open "/Applications/Cavalry Language Switcher.app"
-```
+Windows では `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe` をダウンロードして実行します。NSIS インストーラーは language switcher のみをインストールします。エンドユーザーが Python、Rust、Qt、PowerShell 7 を入れる必要はありません。インストール後は検出された Cavalry を選ぶか、現在のユーザーが書き込めるインストールルートを指定してください。Windows Authenticode は別 issue で追跡中です。必ず `SHA256SUMS` を確認してください。
 
-Windows では `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe` をダウンロードして実行します。NSIS インストーラーは language switcher のみをインストールします。エンドユーザーが Python、Rust、Qt、PowerShell 7 を入れる必要はありません。インストール後は検出された Cavalry を選ぶか、現在のユーザーが書き込めるインストールルートを指定してください。
-
-開発者はソースからローカルビルドすることもできます。ローカルビルドは [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) に従い、ブラウザダウンロードの quarantine フラグを持ちません。
+開発者はソースからローカルビルドすることもできます。ローカルビルドは [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) に従い、開発検証用の ad-hoc 署名のみを使い、GitHub Release の代替にはなりません。
 
 AI agent にこのプロンプトを渡すこともできます。
 
 ```text
 Build Cavalry Language Switcher locally from source:
 
-1. Open the repository at /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n.
+1. Open the repository at <repository-path>.
 2. Follow LOCAL_BUILD_SOP.md exactly.
 3. Run the standard Tauri build, stamp the DMG icon, and run the packaged checks described in the SOP.
 4. Confirm the final DMG path when done.

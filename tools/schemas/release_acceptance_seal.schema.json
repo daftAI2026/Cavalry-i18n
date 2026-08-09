@@ -1,0 +1,250 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/daftAI2026/Cavalry-i18n/tools/schemas/release_acceptance_seal.schema.json",
+  "title": "ReleaseAcceptanceSeal",
+  "description": "Cryptographically signed final release commitment for verified live acceptance, supply-chain sidecars, and artifact digests.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "tag",
+    "releaseCommitSha",
+    "sourceCommitSha",
+    "targetCavalryVersion",
+    "qtVersion",
+    "languages",
+    "acceptanceEvidence",
+    "assets",
+    "supplyChain",
+    "signing",
+    "createdAtUtc",
+    "createdBy",
+    "signature",
+    "acceptanceAttestation"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 4
+    },
+    "kind": {
+      "type": "string",
+      "const": "ReleaseAcceptanceSeal"
+    },
+    "tag": {
+      "type": "string",
+      "pattern": "^cavalry-2\\.7\\.2-p[0-9]+$"
+    },
+    "releaseCommitSha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "sourceCommitSha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "targetCavalryVersion": {
+      "type": "string",
+      "const": "2.7.2"
+    },
+    "qtVersion": {
+      "type": "string",
+      "const": "6.6.3"
+    },
+    "languages": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "const": "zh-Hans"
+        },
+        {
+          "const": "zh-Hant"
+        },
+        {
+          "const": "ja_JP"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "acceptanceEvidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "bytes",
+        "sha256",
+        "sessionId",
+        "sessionManifestSha256",
+        "finalRecordSha256",
+        "host"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^cavalry-2\\.7\\.2-p[0-9]+\\.evidence\\.json$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "sessionId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+        },
+        "sessionManifestSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "finalRecordSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "host": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "productVersion",
+            "buildVersion"
+          ],
+          "properties": {
+            "productVersion": {
+              "type": "string",
+              "pattern": "^\\d+(?:\\.\\d+){1,2}$"
+            },
+            "buildVersion": {
+              "type": "string",
+              "pattern": "^\\d{2}[A-Z][0-9A-Za-z]{1,15}$"
+            }
+          }
+        }
+      }
+    },
+    "assets": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "aarch64",
+        "x64",
+        "windowsX64"
+      ],
+      "properties": {
+        "aarch64": {
+          "$ref": "#/$defs/asset"
+        },
+        "x64": {
+          "$ref": "#/$defs/asset"
+        },
+        "windowsX64": {
+          "$ref": "#/$defs/asset"
+        }
+      }
+    },
+    "signing": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "macosDeveloperIdNotarized",
+        "windowsAuthenticode"
+      ],
+      "properties": {
+        "macosDeveloperIdNotarized": {
+          "const": true
+        },
+        "windowsAuthenticode": {
+          "const": "required-but-tracked-as-issue"
+        }
+      }
+    },
+    "createdAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdBy": {
+      "type": "string",
+      "minLength": 1
+    },
+    "supplyChain": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "sbom",
+        "toolchainEvidence"
+      ],
+      "properties": {
+        "sbom": {
+          "$ref": "#/$defs/asset"
+        },
+        "toolchainEvidence": {
+          "$ref": "#/$defs/asset"
+        }
+      }
+    },
+    "signature": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "algorithm",
+        "payloadSha256",
+        "publicKeySpkiBase64",
+        "publicKeySha256",
+        "signatureBase64"
+      ],
+      "properties": {
+        "algorithm": {
+          "const": "ed25519"
+        },
+        "payloadSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "publicKeySpkiBase64": {
+          "type": "string",
+          "minLength": 1
+        },
+        "publicKeySha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "signatureBase64": {
+          "type": "string",
+          "minLength": 1
+        }
+      }
+    },
+    "acceptanceAttestation": {
+      "$ref": "#/$defs/asset"
+    }
+  },
+  "$defs": {
+    "asset": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "sha256",
+        "bytes"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        }
+      }
+    }
+  }
+}

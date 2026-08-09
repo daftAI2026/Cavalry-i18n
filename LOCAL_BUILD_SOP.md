@@ -1,7 +1,7 @@
 <!--
-[INPUT]: 依赖 Tauri 平台配置、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、NSIS provenance/安装态守门、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 macOS DMG、嵌入固定语言/runtime 摘要且带当前输入 provenance/系统语言界面/品牌图标的 Windows NSIS 构建与隔离安装/同版本更新/卸载验证、外部 Cavalry QPA 哨兵保护、Windows 原生入口一致性、clone 基础截图/逐类人工证据采集及真机验收边界
-[POS]: 仓库唯一桌面打包操作合同；区分开发机依赖、无真实 Cavalry 的安装态 gate、仅隔离安装根的临时 clone 证据门与最终用户发布验收
+[INPUT]: 依赖 Tauri 平台配置、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
+[OUTPUT]: 对外提供本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
+[POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分开发机 ad-hoc 验证、CI PR 编译门与 tag 可发布产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -12,8 +12,9 @@
 ## 1. 核心依赖
 
 - Node 依赖：`@tauri-apps/cli`、`@tauri-apps/api` 固定在 `2.10.1`。
-- Rust 依赖：`tauri` 固定在 `2.10.3`，`tauri-build` 固定在 `2.5.6`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。
-- Injector 依赖：当前发布目标与 macOS/Windows SDK 投影统一写在 `tools/cavalry_qt_target.json`；本机有 Cavalry.app 时校验其 Qt 版本，clean CI 按同一份配置分别准备 Qt `6.6.3` `clang_64` 或 `msvc2019_64` SDK。
+- Rust 依赖：`tauri` 固定在 `2.10.3`，`tauri-build` 固定在 `2.5.6`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。Rust **channel** 由根目录 `rust-toolchain.toml` 固定（当前 `1.97.1`）。
+- Qt bootstrap：`requirements-ci.txt` 固定 `aqtinstall==3.3.0` 及其完整依赖摘要；`prepare:qt-sdk` 创建 ignored 的 repo-local venv 并以 `--require-hashes` 安装，绝不信任全局 aqt。GitHub Actions 全量 pin 见 `tools/ci_action_pins.json`。
+- Injector 依赖：当前发布目标与 macOS/Windows SDK 投影统一写在 `tools/cavalry_qt_target.json`；本机有 Cavalry.app 时校验其 Qt 版本，clean CI 按同一份配置分别准备 Qt `6.6.3` `clang_64` 或 `msvc2019_64` SDK。macOS 还会验证整个 SDK tree 的 canonical SHA-256（文件内容、目录和 symlink target）；任一下载或安装漂移都 fail-closed。
 
 准备 Qt SDK；原命令在 macOS 保持兼容，Windows 构建使用显式平台入口：
 
@@ -29,7 +30,7 @@ npm run prepare:qt-sdk:windows  # Windows x64
 ```text
 请从源码本地构建 Cavalry Language Switcher：
 
-1. 打开仓库 /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n。
+1. 打开仓库 <repository-path>。
 2. 严格按照 LOCAL_BUILD_SOP.md 执行。
 3. 运行标准 Tauri build、执行 DMG 卷宗图标盖章，并运行 SOP 里的 packaged checks。
 4. 完成后告诉我最终 DMG 路径。
@@ -55,16 +56,94 @@ npm run prepare:qt-sdk:windows  # Windows x64
 npm run check:version
 npm run check:release
 npm run test:contracts
+node tools/verify_ci_action_pins.js
+node tools/verify_source_artifact.js --check-repo --check-workflow
 ```
 
-发布新补丁时只需要创建并推送新 tag；workflow 已固定读取 `release.config.json`，不需要每次改 `.github/workflows/build.yml`：
+### 3.1 Tag release runbook（fail-closed）
+
+1. 在干净的 **source commit S** 上完成 macOS live `21-run/48-point` acceptance，并执行人工 review seal，得到同一 session 下的 `matrix-final-record.json`。该 session 必须由 `tools/macos-acceptance` 产生；不得手写 PASS、session id 或摘要。
+2. 仍停留在 source commit S，用真实 session 生成 evidence：
+
+```bash
+SOURCE_COMMIT="$(git rev-parse HEAD)"
+node tools/create_release_acceptance_evidence.js \
+  --tag cavalry-2.7.2-pN \
+  --session-dir "$SESSION_DIR"
+
+# 候选仓库进程只准备 repo 外的 canonical payload；它不得看见或读取私钥。
+unset RELEASE_ACCEPTANCE_ATTESTATION_PRIVATE_KEY
+ATTESTATION_WORKDIR="$(mktemp -d "${TMPDIR:-/tmp}/cavalry-acceptance-signing.XXXXXX")"
+ATTESTATION_PAYLOAD="$ATTESTATION_WORKDIR/payload.json"
+node tools/create_release_acceptance_attestation.js \
+  --tag cavalry-2.7.2-pN \
+  --evidence release-seals/cavalry-2.7.2-pN.evidence.json \
+  --prepare "$ATTESTATION_PAYLOAD"
+shasum -a 256 "$ATTESTATION_PAYLOAD"
+```
+
+把该只读 payload 的**精确字节**交给另一套离线 OpenSSL/HSM signer；签名机不 checkout、加载或执行候选仓库代码。以下命令只在独立 signer 上运行，`acceptance-private.pem` 永不返回候选环境：
+
+```bash
+openssl pkeyutl -sign -rawin \
+  -inkey acceptance-private.pem \
+  -in "$ATTESTATION_PAYLOAD" \
+  -out acceptance-signature.bin
+openssl pkey -in acceptance-private.pem -pubout -outform DER \
+  -out acceptance-public-key.spki.der
+```
+
+只把 detached signature 与公开 SPKI DER 带回候选环境，再由无私钥的 assemble 模式验签并生成 canonical attestation：
+
+```bash
+node tools/create_release_acceptance_attestation.js \
+  --tag cavalry-2.7.2-pN \
+  --evidence release-seals/cavalry-2.7.2-pN.evidence.json \
+  --assemble \
+  --payload "$ATTESTATION_PAYLOAD" \
+  --signature ./acceptance-signature.bin \
+  --public-key-spki-der ./acceptance-public-key.spki.der \
+  --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
+node tools/verify_release_trust_anchors.js
+node tools/verify_release_acceptance_attestation.js \
+  --tag cavalry-2.7.2-pN \
+  --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
+git add release-seals/cavalry-2.7.2-pN.evidence.json release-seals/cavalry-2.7.2-pN.acceptance-attestation.json
+test "$(git diff --cached --name-only | wc -l | tr -d ' ')" = 2
+git commit -m "release: seal cavalry-2.7.2-pN acceptance"
+RELEASE_COMMIT="$(git rev-parse HEAD)"
+test "$(git rev-parse HEAD^)" = "$SOURCE_COMMIT"
+node tools/verify_release_acceptance_evidence.js \
+  --tag cavalry-2.7.2-pN \
+  --release-commit "$RELEASE_COMMIT" \
+  --check-tag-topology
+```
+
+这形成刻意的两提交协议：S 是被 live-tested 的源码；其唯一子提交 T **只新增 evidence 与其独立的受保护 Ed25519 attestation**，tag 指向 T。这样 evidence 能记录 S，而不需要在文件内自引用尚未生成的 T。CI 会以外部固定 fingerprint 验证 attestation，并拒绝 merge commit、额外文件、无签名/错误签名或错误父提交。
+
+3. 将 evidence-only 提交 T 合入并推送 `main`，再配置受保护 GitHub environment 的变量与 secrets（**只存 secrets，永不打印值**）：
+   - `RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256` 仅作为 GitHub environment variable 保存并与公开 trust policy 一致；对应私钥必须始终留在离线/独立受保护 signer，**不得**保存为 Actions secret、不得暴露给任何候选仓库进程。
+   - `RELEASE_SEAL_PUBLIC_KEY_SHA256` 作为另一项 GitHub environment variable 保存，并先通过 `SECURITY.md` 所述独立受保护渠道公开；`RELEASE_SEAL_PRIVATE_KEY` 才是 Actions secret。
+   - 两个 fingerprint 必须来自不同 Ed25519 密钥、不同授权角色，并由 `node tools/verify_release_trust_anchors.js` 拒绝缺失或复用；任一密钥轮换/撤销都必须独立发布、复核和更新，不能静默联动。
+   - `APPLE_CERTIFICATE`（base64 PKCS#12）
+   - `APPLE_CERTIFICATE_PASSWORD`
+   - `APPLE_SIGNING_IDENTITY`（`Developer ID Application: ...`，禁止 `-`）
+   - `APPLE_ID`
+   - `APPLE_APP_SPECIFIC_PASSWORD`
+   - `APPLE_TEAM_ID`
+4. 在 evidence-only 提交 T 上创建并推送 tag（T 必须已在 `origin/main`）：
 
 ```bash
 git tag -a cavalry-2.7.2-p12 -m "Cavalry Language Switcher for Cavalry 2.7.2 patch 12"
 git push origin cavalry-2.7.2-p12
 ```
 
+5. Tag 流水线会：复核 T 只有一个父提交 S 且只新增 canonical evidence+attestation 并验签 → 双架构 Developer ID 构建 → 卷宗图标写入后对**最终 DMG 字节**重新 notarize/staple/assess → 生成 `ReleaseAcceptanceSeal.json` / `SHA256SUMS` / provenance → 对 GitHub Release 元数据与全部 sidecar 做幂等摘要复验 → 以 PR 更新 README badge（不直接 push `main`）。
+6. **Windows Authenticode** 不在本 SOP 实现范围内，由维护者单独建 issue。
+
 ## 4. macOS 标准打包流程
+
+### 4.1 本地 / 开发验证（ad-hoc only）
 
 ```bash
 export CSC_IDENTITY_AUTO_DISCOVERY=false
@@ -80,9 +159,19 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 - `src-tauri/tauri.macos.conf.json` 执行 `npm run build:injector`，声明 DMG/`.app`、`languages`、macOS injector 与 DMG 布局。
 - `src-tauri/tauri.windows.conf.json` 先执行 `npm run build:injector:windows`，再声明 NSIS、`icon.ico`、`languages` 与 `injector/windows/generic/cavalryi18n.dll`；它不继承 macOS injector、签名或 DMG 行为。
 - macOS dylib 与 Windows generic/QPA DLL 都是对应平台现场生成的中间产物，不纳入 Git 或 source artifact；macOS build artifact 只交付已嵌入 dylib 的 `.app`/DMG，Windows 只交付已嵌入双 DLL 的 NSIS EXE。
-- `app.withGlobalTauri = true`，供 vanilla bridge 在页面加载前拿到 `window.__TAURI__.core.invoke`。
+- `app.withGlobalTauri = false`；vanilla bridge 只暴露冻结后的 `window.cavalryI18n`，页面业务代码不能访问全局 Tauri API。
 - main window 外框固定 `480x528`，最小 `420x528`，对应 `480x500` 内容区。
-- macOS 的 `bundle.macOS.signingIdentity = "-"` 与 `APPLE_SIGNING_IDENTITY="-"` 都指向同一个 Tauri ad-hoc pseudo-identity，不是 Developer ID；它让 Tauri 在生成 DMG 前对 `.app` 执行显式 bundle signing，写入 `_CodeSignature/CodeResources`，否则浏览器下载后的 quarantine 检查会把缺少 bundle seal 的 app 判定为 damaged。
+- `tauri.macos.conf.json` **不硬编码** signing identity；本地/`workflow_dispatch` 显式传入 `APPLE_SIGNING_IDENTITY="-"` 生成 ad-hoc 开发包。
+- **GitHub tag release** 显式传入 Developer ID Application secret，不能被配置文件里的 `-` 覆盖。DMG 卷宗图标脚本会重写容器，因此 tag job 必须在该步骤之后重新提交最终 DMG 给 notary service、staple 并用 `stapler`/`spctl` 双重验证；缺任一 secret、仍为 ad-hoc 或最终 ticket 无效都会 fail-closed。
+
+### 4.2 Tag release 签名/公证边界
+
+| 触发 | 签名 | 公证 | 可否作为 GitHub Release |
+| --- | --- | --- | --- |
+| 本地 `npm run tauri:build` | ad-hoc `-` | 否 | 否 |
+| PR / main CI | 不打包 DMG / 仅 injector compile | 否 | 否 |
+| `workflow_dispatch` package | ad-hoc 验证 | 否 | 否 |
+| `cavalry-*-p*` tag | Developer ID（secrets） | 是（staple 校验） | 是（另需 acceptance evidence） |
 
 ## 5. Windows NSIS 安装包
 

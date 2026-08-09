@@ -9,7 +9,14 @@
         "target": "desktop",
         "arch": "clang_64",
         "outputDir": "qt_sdk",
-        "archives": ["qtbase"]
+        "archives": [
+          "qtbase"
+        ],
+        "identity": {
+          "method": "Canonical full Qt SDK tree identity gate. Qt online repositories do not expose a stable archive checksum API consumable by aqt, so after download the resolver hashes every directory, regular file content, and symbolic-link target in lexical order and fails closed unless the complete tree matches this reviewed Qt 6.6.3 clang_64 identity.",
+          "capturedFrom": "Qt 6.6.3 macOS clang_64 qtbase, verified 2026-08-09",
+          "treeSha256": "6d2dddf9535a13ee0259f2412aaac4d4234b327b2960603df5add57ff993e9cf"
+        }
       }
     },
     "windows": {
@@ -19,7 +26,9 @@
         "target": "desktop",
         "arch": "win64_msvc2019_64",
         "outputDir": "qt_sdk",
-        "archives": ["qtbase"]
+        "archives": [
+          "qtbase"
+        ]
       }
     }
   }

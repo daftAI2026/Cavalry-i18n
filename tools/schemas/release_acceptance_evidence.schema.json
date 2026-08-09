@@ -1,0 +1,155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/daftAI2026/Cavalry-i18n/tools/schemas/release_acceptance_evidence.schema.json",
+  "title": "ReleaseAcceptanceEvidence",
+  "description": "Live-tested source commit plus verified macOS 21-run/48-point session digests. The release tag points to a later evidence-only commit to avoid a self-referential commit hash.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "kind",
+    "tag",
+    "sourceCommitSha",
+    "targetCavalryVersion",
+    "qtVersion",
+    "languages",
+    "macosAcceptance",
+    "createdAtUtc",
+    "createdBy"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "integer",
+      "const": 3
+    },
+    "kind": {
+      "type": "string",
+      "const": "ReleaseAcceptanceEvidence"
+    },
+    "tag": {
+      "type": "string",
+      "pattern": "^cavalry-2\\.7\\.2-p[0-9]+$"
+    },
+    "sourceCommitSha": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{40}$"
+    },
+    "targetCavalryVersion": {
+      "type": "string",
+      "const": "2.7.2"
+    },
+    "qtVersion": {
+      "type": "string",
+      "const": "6.6.3"
+    },
+    "languages": {
+      "type": "array",
+      "prefixItems": [
+        {
+          "const": "zh-Hans"
+        },
+        {
+          "const": "zh-Hant"
+        },
+        {
+          "const": "ja_JP"
+        }
+      ],
+      "items": false,
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "macosAcceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "result",
+        "matrix",
+        "producer",
+        "sessionId",
+        "finalRecord",
+        "machineRecord",
+        "manualReview",
+        "sessionManifestSha256",
+        "host"
+      ],
+      "properties": {
+        "result": {
+          "type": "string",
+          "const": "PASS-48-OF-48"
+        },
+        "matrix": {
+          "type": "string",
+          "const": "21-run/48-point"
+        },
+        "producer": {
+          "type": "string",
+          "const": "tools/macos-acceptance"
+        },
+        "sessionId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$"
+        },
+        "finalRecord": {
+          "$ref": "#/$defs/fileDigest"
+        },
+        "machineRecord": {
+          "$ref": "#/$defs/fileDigest"
+        },
+        "manualReview": {
+          "$ref": "#/$defs/fileDigest"
+        },
+        "sessionManifestSha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "host": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "productVersion",
+            "buildVersion"
+          ],
+          "properties": {
+            "productVersion": {
+              "type": "string",
+              "pattern": "^\\d+(?:\\.\\d+){1,2}$"
+            },
+            "buildVersion": {
+              "type": "string",
+              "pattern": "^\\d{2}[A-Z][0-9A-Za-z]{1,15}$"
+            }
+          }
+        }
+      }
+    },
+    "createdAtUtc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "createdBy": {
+      "type": "string",
+      "minLength": 1
+    }
+  },
+  "$defs": {
+    "fileDigest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "bytes",
+        "sha256"
+      ],
+      "properties": {
+        "bytes": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    }
+  }
+}

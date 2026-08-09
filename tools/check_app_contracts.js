@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG 发布摘要、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补及 Scene Statistics 同窗 Update 三语值、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、Guide 固定 loader slot、macOS Assets/Tag/Tracking owner 边界与 Transform 五 source ABI 防火墙
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG、发布供应链精确工具输入、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补及 Scene Statistics 同窗 Update 三语值、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、Guide 固定 loader slot、macOS Assets/Tag/Tracking owner 边界与 Transform 五 source ABI 防火墙
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1391,8 +1391,8 @@ test('Qt SDK contract preserves macOS builds and prepares the Windows x64 SDK fr
   );
   assert.match(
     resolver,
-    /resolvePythonCommand[\s\S]*import aqt[\s\S]*VIRTUAL_ENV/,
-    'resolver should route aqt through the shared Python command boundary without mutating the managed system Python'
+    /resolvePythonCommand[\s\S]*qtBootstrapRoot[\s\S]*-m', 'venv'[\s\S]*--require-hashes[\s\S]*import aqt/,
+    'resolver should create a project-local hash-locked aqt bootstrap from the shared Python command boundary'
   );
   assert.match(
     pythonResolver,
@@ -1401,8 +1401,8 @@ test('Qt SDK contract preserves macOS builds and prepares the Windows x64 SDK fr
   );
   assert.match(
     workflowSource,
-    /python3 -m venv "\$RUNNER_TEMP\/aqt-venv"[\s\S]*pip install aqtinstall[\s\S]*PYTHON=\$RUNNER_TEMP\/aqt-venv\/bin\/python/,
-    'macOS packaging should install aqtinstall inside a local venv and pass that Python to the resolver'
+    /python -m venv "\$RUNNER_TEMP\/aqt-venv"[\s\S]*pip install[^\n]*--require-hashes[^\n]*--only-binary=:all:[^\n]*requirements-ci\.txt[\s\S]*PYTHON=\$RUNNER_TEMP\/aqt-venv\/bin\/python/,
+    'macOS packaging should install the pinned aqt lock inside a local venv and pass that Python to the resolver'
   );
   assert.equal(
     packageScripts['build:tauri:windows'],
@@ -1446,7 +1446,7 @@ test('Qt SDK contract preserves macOS builds and prepares the Windows x64 SDK fr
   );
   assert.match(
     workflowSource,
-    /gh release create "\$GITHUB_REF_NAME" "\$\{assets\[@\]\}" --title "\$RELEASE_TITLE" --notes-file release-notes\.md/,
+    /node tools\/release_publish\.js[\s\S]*--tag "\$GITHUB_REF_NAME"[\s\S]*--notes release-notes\.md[\s\S]*--title "\$RELEASE_TITLE"/,
     'tag releases should use release.config.json metadata as the Release title while keeping the git tag machine-readable'
   );
   assert.doesNotMatch(
@@ -2614,7 +2614,7 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
   });
   assert.match(
     workflowSource,
-    /find dist -type f -name '\*\.dmg'[\s\S]*gh release create "\$GITHUB_REF_NAME" "\$\{assets\[@\]\}" --title "\$RELEASE_TITLE" --notes-file release-notes\.md/,
+    /find dist -type f -name '\*\.dmg'[\s\S]*node tools\/release_publish\.js[\s\S]*--title "\$RELEASE_TITLE"/,
     'tag releases should publish the direct DMG asset in the same shape users expect from GitHub app releases'
   );
 });
@@ -5170,8 +5170,8 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
 
   assert.match(
     workflow,
-    /runs-on:\s*macos-latest/,
-    'release pipeline should build the injector on macOS so end users do not need Qt locally'
+    /runs-on:\s*macos-14/,
+    'release pipeline should use a fixed macOS runner label so end users do not need Qt locally'
   );
   assert.match(
     workflow,
@@ -5180,8 +5180,8 @@ test('release workflow prebuilds the injector and publishes Tauri macOS artifact
   );
   assert.match(
     workflow,
-    /^\s+tools\/\s*$/m,
-    'release pipeline should upload the complete tools dependency closure with the source artifact'
+    /node tools\/create_source_artifact\.js[\s\S]*cavalry-i18n-source[\s\S]*Re-verify downloaded source artifact/,
+    'release pipeline should stage a tracked-only source closure and round-trip verify the uploaded artifact'
   );
   assert.equal(
     macConfig.build.beforeBuildCommand,
@@ -5384,4 +5384,33 @@ test('Guide catalogs keep Cavalry fixed en loader slot and resolve all 98 keys',
   assert.match(validator, /"guideStrings": \["Learn\/Guides\/strings\.json"\]/);
   assert.deepEqual(whitelist.guideStrings.translate, ['value']);
   assert.deepEqual(whitelist.guideStrings.no_translate, ['type', 'language']);
+});
+
+test('release supply-chain gates pin vulnerability inputs, Qt installer identity, and runner image identity', () => {
+  const resolver = fs.readFileSync(path.join(repoRoot, 'tools', 'resolve_cavalry_qt_sdk.js'), 'utf8');
+  const qtTarget = JSON.parse(fs.readFileSync(path.join(repoRoot, 'tools', 'cavalry_qt_target.json'), 'utf8'));
+  const dependencyPolicy = JSON.parse(fs.readFileSync(path.join(repoRoot, 'tools', 'dependency_vulnerability_gate.json'), 'utf8'));
+  const dependencyGate = fs.readFileSync(path.join(repoRoot, 'tools', 'dependency_vulnerability_gate.js'), 'utf8');
+  const runnerGate = fs.readFileSync(path.join(repoRoot, 'tools', 'verify_runner_image.js'), 'utf8');
+  const workflow = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
+
+  assert.match(resolver, /--require-hashes[\s\S]{0,240}requirementsPath/, 'local Qt bootstrap must use the project hash lock');
+  assert.doesNotMatch(resolver, /pip', 'install'[\s\S]{0,100}'aqtinstall'/, 'resolver must not issue a bare global aqtinstall install');
+  assert.match(resolver, /validateSdkIdentity\(target, prefix\)/, 'Qt resolver must validate installed payload identity after version validation');
+  assert.match(qtTarget.platforms.macos.aqt.identity.treeSha256, /^[a-f0-9]{64}$/i, 'macOS Qt target must pin a canonical full SDK tree digest');
+  assert.equal(dependencyPolicy.npm.nodeVersion, '22.23.1');
+  assert.equal(dependencyPolicy.npm.npmVersion, '10.9.8');
+  assert.equal(dependencyPolicy.npm.registry, 'https://registry.npmjs.org');
+  assert.equal(dependencyPolicy.cargoAudit.version, '0.22.2', 'cargo-audit must parse CVSS 4.0 records in the pinned RustSec DB');
+  assert.match(dependencyPolicy.cargoAudit.rustsecAdvisoryDb.commit, /^[a-f0-9]{40}$/);
+  assert.match(dependencyGate, /npm audit found known vulnerable dependencies/);
+  assert.match(runnerGate, /ImageOS[\s\S]*ImageVersion/);
+  assert.match(runnerGate, /not in the protected allowlist/);
+  assert.doesNotMatch(workflow, /runs-on:\s*[^#\n]*-latest\b/i, 'workflow must not use floating runner labels');
+  assert.match(workflow, /npm audit --package-lock-only --json/);
+  assert.match(workflow, /cargo-audit" audit[\s\\]+--db "\$advisory_db"[\s\\]+--no-fetch[\s\\]+--file src-tauri\/Cargo\.lock/);
+  assert.match(workflow, /toolchain-evidence-macos-aarch64/);
+  assert.match(workflow, /toolchain-evidence-macos-x64/);
+  assert.match(workflow, /create_toolchain_evidence_bundle\.js/);
+  assert.match(workflow, /RELEASE_RUNNER_IMAGE_FINGERPRINTS/);
 });

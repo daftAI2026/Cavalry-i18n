@@ -1,0 +1,6 @@
+# Pinned Rust toolchain for local and CI builds (P2.6 supply-chain freeze).
+# Keep in sync with dtolnay/rust-toolchain usage in .github/workflows/build.yml.
+[toolchain]
+channel = "1.97.1"
+profile = "minimal"
+components = ["rustfmt", "clippy"]

@@ -1,0 +1,2 @@
+# Direct CI dependency for Qt SDK bootstrap. Compile with the command recorded in requirements-ci.txt.
+aqtinstall==3.3.0

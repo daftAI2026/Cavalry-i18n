@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 macos-acceptance 的 tracked 源码闭包、冻结媒体 fixture、构建脚本与 Node harness
- * [OUTPUT]: 对外提供跨平台可运行的静态合同，阻断临时 Cache 依赖、源码树内构建物、弱窗口绑定与 live 命令假通过
+ * [INPUT]: 依赖 macos-acceptance 的 tracked 源码闭包、host 身份原语、冻结媒体 fixture、构建脚本与 Node harness
+ * [OUTPUT]: 对外提供跨平台可运行的静态合同，阻断缺失/篡改 host 身份、临时 Cache 依赖、源码树内构建物、弱窗口绑定与 live 命令假通过
  * [POS]: macos-acceptance 的 CI 边界；只验证可复现输入和 fail-closed 协议，不启动 Cavalry、不冒充真机 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,6 +12,9 @@ const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const test = require('node:test');
+const {
+  MATRIX_SCHEMA, assertSameHostIdentity, collectMacHostIdentity, validateHostIdentity,
+} = require('./host_identity');
 
 const ROOT = __dirname;
 const REPO = path.resolve(ROOT, '..', '..');
@@ -21,7 +24,9 @@ const TEXT_SOURCES = Object.freeze([
   'artifact_identity.js',
   'build_acceptance_v2.sh',
   'check_contract.test.js',
+  'host_identity.js',
   'path_safety.js',
+  'source_contract.js',
   'drivers/macos_main_acceptance_driver.mm',
   'drivers/macos_main_common.inc',
   'drivers/macos_main_entry.inc',
@@ -74,11 +79,11 @@ test('tracked macOS acceptance source closure is complete and GEB-aligned', () =
 
 test('harness freezes the real source closure and exact-window evidence protocol', () => {
   const harness = read('acceptance_harness.js');
+  const sourceContract = read('source_contract.js');
   for (const literal of [
     "'zh-Hans', 'zh-Hant', 'ja_JP'",
     "'search', 'add-tag', 'save', 'replace', 'tracking', 'onboarding', 'transform'",
-    "'fixtures/replace-source.png', 'fixtures/replace-source.mp4', 'fixtures/dynamic-proof-two.png'",
-    'cavalry-i18n.acceptance-v2.matrix/v5',
+    'MATRIX_SCHEMA',
     'MACHINE-COMPLETE-MANUAL-PENDING',
     'PASS-48-OF-48',
     'nativeWindowNumber',
@@ -90,9 +95,44 @@ test('harness freezes the real source closure and exact-window evidence protocol
   ]) {
     assert.ok(harness.includes(literal), `missing harness contract: ${literal}`);
   }
+  assert.ok(
+    sourceContract.includes("'fixtures/replace-source.png', 'fixtures/replace-source.mp4', 'fixtures/dynamic-proof-two.png'"),
+    'shared source contract must freeze all three real media fixtures'
+  );
   assert.match(harness, /points\.length !== 48 \|\| new Set\(keys\)\.size !== 48/);
   assert.match(harness, /seen\.size !== 48/);
   assert.doesNotMatch(harness, /cgwindow_all|dynamic-proof-two\.mp4/);
+  assert.match(harness, /host, repository, target/);
+  assert.match(harness, /assertSameHostIdentity\(validateHostIdentity\(machine\.host\), collectMacHostIdentity\(\)\)/);
+});
+
+test('live matrix host identity is collected from fixed sw_vers and fails closed on omission or tampering', () => {
+  const calls = [];
+  const spawn = (file, args) => {
+    calls.push([file, ...args]);
+    const values = { '-productVersion': '15.6.1\n', '-buildVersion': '24G90\n' };
+    return { status: 0, stdout: values[args[0]], stderr: '' };
+  };
+  const host = collectMacHostIdentity({ platform: 'darwin', spawnSync: spawn });
+  assert.equal(MATRIX_SCHEMA, 'cavalry-i18n.acceptance-v2.matrix/v6');
+  assert.deepEqual(host, { productVersion: '15.6.1', buildVersion: '24G90' });
+  assert.deepEqual(calls, [
+    ['/usr/bin/sw_vers', '-productVersion'],
+    ['/usr/bin/sw_vers', '-buildVersion'],
+  ]);
+  assert.throws(() => validateHostIdentity({ buildVersion: '24G90' }), /keys mismatch/);
+  assert.throws(
+    () => validateHostIdentity({ productVersion: '15.6.1', buildVersion: 'tampered' }),
+    /buildVersion is invalid/,
+  );
+  assert.throws(
+    () => assertSameHostIdentity(host, { ...host, buildVersion: '24G91' }),
+    /does not match the current live macOS host/,
+  );
+  assert.throws(
+    () => collectMacHostIdentity({ platform: 'linux', spawnSync: spawn }),
+    /requires darwin/,
+  );
 });
 
 test('source contains no machine-local acceptance dependency or generated binary', () => {

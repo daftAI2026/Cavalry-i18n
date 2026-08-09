@@ -2,12 +2,12 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，支持手动触发、main/PR/tag 自动触发；release tag 在任何平台构建前必须证明 commit 已包含于 `origin/main`，source artifact 保留 injector/acceptance 源码并排除 dylib/DLL，Linux 跑版本/release/Node/翻译合同，PR/main 另在无 Cavalry.app 的干净 macOS Runner 编译/链接 universal product injector 及 host-arch acceptance drivers/exact-window helper，后者只防 producer 腐烂、不替代 live gate；Windows 通过统一 resolver 准备 Qt 6.6.3 SDK，现场构建 generic translator 与 QPA delegate，跑 Node/Rust/NSIS 安装态守门并上传 provenance 已复算的唯一 EXE 与 sidecar；tag/手动触发才生成双架构 Tauri DMG，最终以 `release.config.json` 与精确 CHANGELOG 区块发布三资产并写回 badge。
+build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label；PR/main 记录 GitHub `ImageOS`/`ImageVersion`，tag 逐 job 对受保护 `release-production` environment 的 `RELEASE_RUNNER_IMAGE_FINGERPRINTS` allowlist fail-closed；独立 `dependency_vulnerability_gate` 以固定 Node/npm lock/report closure、hash-locked pip-audit 2.10.1 + CPython 3.12.6/Linux exact active closure、支持 CVSS 4.0 的 cargo-audit 与 immutable/fresh RustSec DB commit 扫描三生态，任一已知漏洞、空洞/截断报告或 stale snapshot 直接 fail-closed；支持手动触发、main/PR/tag 自动触发；全部 `uses:` 固定完整 commit SHA（`tools/ci_action_pins.json`）并由 strict YAML AST 全量枚举；release tag 在任何平台构建前必须证明 evidence-only commit T 已包含于 `origin/main`、仅改 canonical evidence + 外部 detached signer 产生的独立 Ed25519 attestation 且父提交 S 就是 live-tested source，并要求 acceptance/release 双 trust anchor 不同；source artifact 由 mode-preserving `git archive` tar 写 repo 外 commit marker，上传前后逐 entry 对同 commit 的独立 reference tree 复验，拒绝 dylib/DLL/target/secret/link/special/traversal/mode 漂移；Linux contract producer 与 macOS aarch64/x64 package producer 分别 fail-closed 捕获 toolchain evidence，release 聚合并明确声明 Windows producer evidence 仍由 #15 跟踪；PR/main 另在无 Cavalry.app 的干净 macOS Runner 编译 universal product injector 与 acceptance producer（不冒充 live/release）；Windows 行为保持既有 NSIS 构建与安装态门（Authenticode/producer toolchain evidence 不在此实现）；tag 的 Developer ID package matrix 位于受保护 release-production environment，限制 keychain ACL、always 清理 P12/keychain/notary 输出，并在全部 package gates 后重新 notarize/staple/assess/hash 最终 DMG；release 先在 private draft 补齐并回读 committed evidence、asset seal/`SHA256SUMS`/全部 sidecar，最后一步才公开，badge 用 lease-guarded PR 分支写回而非直推 main。
 
 依赖边界:
-workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。
+workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。release seal/Apple 等 CI 私钥只通过受保护 Actions secrets 引用且禁止打印；acceptance 私钥绝不进入 Actions，候选代码只消费 detached signature 与公开 fingerprint。
 
-法则: 脚本唯一·产物可追踪·release 不漂移
+法则: 脚本唯一·产物可追踪·release 不漂移·tag fail-closed
 
 变更日志
 2026-05-14: `build.yml` 增加 `workflow_dispatch` 与 `npm run check:version`，让 GitHub 可手动自助打包，同时阻止版本漂移进入 CI 产物。
@@ -36,5 +36,8 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-07-28: Windows NSIS workflow gate 增加 hooks 无 Cavalry/QPA 写入入口合同与同一安装器 `/UPDATE` 重入，并在安装、同版本更新、卸载后校验独立 TEMP QPA 三文件哨兵未变；该门禁不替代任意真实 Cavalry 根或跨版本升级兼容验收。
 2026-07-29: release tag ancestry 前移为所有平台构建的共同 preflight，只接受已包含于 `origin/main` 的 commit；PR/main 新增无 vendor app 的 universal macOS injector 原生编译/链接门，避免 tag 成为 Transform ABI 适配器的第一道真实构建。
 2026-07-30: PR/main macOS job 增加 tracked acceptance producer 的 Qt-only compile smoke，在无 Cavalry.app 条件下编译、签名两枚 driver 并构建 exact-window helper；该门只防源码腐烂，不产生 live session 或 PASS。
+2026-08-09: tag release 收敛为 source S + evidence/attestation-only T 两提交协议、真实 session 派生 evidence、候选代码不可接触私钥的外部 detached signer、acceptance/release 独立双 trust anchor、post-stamp 最终 DMG Developer ID/notarization fail-closed、exact-commit/mode source tar、strict-YAML Actions/toolchain pin、全部 sidecar private-draft 回读后最后公开与 lease-guarded badge PR；Windows Authenticode 明确不在本 workflow 实现。
+
+2026-08-09: 依赖漏洞门固定 npm lock/audit exact closure、hash-locked pip-audit 与 Python active closure、cargo-audit/RustSec DB/freshness 输入，tag 对任一已知 npm/Python/Cargo 漏洞及空洞报告直接 fail-closed；runner 从 `*-latest` 改为固定 OS label，tag 对实际 `ImageOS`/`ImageVersion` fingerprint allowlist fail-closed，PR/main 只记录。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
