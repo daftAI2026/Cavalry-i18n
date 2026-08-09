@@ -104,9 +104,10 @@ test('harness freezes the real source closure and exact-window evidence protocol
   assert.doesNotMatch(harness, /cgwindow_all|dynamic-proof-two\.mp4/);
   assert.match(harness, /host, repository, target/);
   assert.match(harness, /assertSameHostIdentity\(validateHostIdentity\(machine\.host\), collectMacHostIdentity\(\)\)/);
+  assert.match(harness, /HOME: home, CFFIXED_USER_HOME: home, TMPDIR: temporary/);
 });
 
-test('onboarding polling stays inside the Qt event loop', () => {
+test('onboarding uses the exact manager and keeps polling inside Qt', () => {
   const driver = read('drivers/macos_supplemental_acceptance_driver.mm');
   const trigger = read('drivers/macos_supplemental_onboarding_trigger.inc');
   const start = driver.indexOf('void processOnboarding()');
@@ -119,15 +120,34 @@ test('onboarding polling stays inside the Qt event loop', () => {
   );
   assert.doesNotMatch(stateMachine, /dispatch_after|dispatch_get_main_queue/);
   for (const literal of [
-    'armWorkspaceResetModalPoll()',
-    'NSModalPanelRunLoopMode',
-    'className(widget) == QStringLiteral("PopOverView")',
-    'onboardingStep(widget) == 0',
-    'buttons.size() == 2',
+    'kOnboardingManagerGetterSymbol',
+    '"_ZN3Gui17onboardingManagerEv"',
+    'kShowGuideSymbol',
+    'kGlobalWidgetTagRegistrySymbol',
+    'kFindTaggedWidgetSymbol',
+    '"viewport", "sceneTree", "attributeEditor", "timeline"',
+    '"projectAssets"',
+    'ONBOARDING_WORKSPACE_READY tags=5 stableTicks=5',
+    'kShowGuidesActionObjectName',
+    'runtimeClass == QString::fromLatin1(kGuiClass)',
+    'className(manager) != QString::fromLatin1(kOnboardingManagerClass)',
+    'QObjectPrivate::get(choice)->receiverList',
+    'SIGNAL(guideSelected(std::string))',
+    'parameters.front() == QByteArrayLiteral("std::string")',
+    'guideSelected.invoke(choice, Qt::DirectConnection',
+    'class WorkspaceResetEventFilter final',
+    '"了解", "キャンセル"',
+    'className(root) != QStringLiteral("QMessageBox")',
+    'qobject_cast<QAbstractButton *>(widget)',
     'ONBOARDING_RESET_PROMPT accepted',
+    'QMetaObject::invokeMethod(confirm, "click", Qt::QueuedConnection)',
+    'std::string("firstLaunch")',
   ]) {
-    assert.ok(trigger.includes(literal), `missing reset-prompt contract: ${literal}`);
+    assert.ok(trigger.includes(literal), `missing direct-manager contract: ${literal}`);
   }
+  assert.ok(stateMachine.includes('onboardingWorkspaceReady(&rejected)'));
+  assert.match(driver, /#include <QtCore\/private\/qobject_p\.h>/);
+  assert.doesNotMatch(trigger, /OnboardingChoiceView13guideSelected|triggerGuideInNativeMenu|NSTimer|dispatch_after/);
 });
 
 test('live matrix host identity is collected from fixed sw_vers and fails closed on omission or tampering', () => {

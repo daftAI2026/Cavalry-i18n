@@ -1,5 +1,5 @@
 #!/bin/zsh
-# [INPUT]: 依赖同源 repo-root 的 Cavalry/Qt target contract、Qt 6.6.3、仓库内 driver/helper 源码与系统 macOS frameworks；live 构建另要求显式 disposable Cavalry.app
+# [INPUT]: 依赖同源 repo-root 的 Cavalry/Qt target contract、Qt 6.6.3 public/CorePrivate headers、仓库内 driver/helper 源码与系统 macOS frameworks；live 构建另要求显式 disposable Cavalry.app
 # [OUTPUT]: 向显式仓库外空目录生成并 ad-hoc 签名两枚验收 dylib 与 exact-window helper；live 构建另验证 clone runtime Qt 与真实媒体，CI compile-only 不依赖 vendor app/ffprobe
 # [POS]: macos-acceptance 的唯一原生构建边界；compile-only 只证明 producer 可链接，live 构建也不启动或修改 /Applications/Cavalry.app
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -46,7 +46,10 @@ if [[ -e "$out" ]]; then
 else
   mkdir -m 700 "$out"
 fi
-common=(-dynamiclib -std=c++17 -fobjc-arc -I"$qt/include" -F"$qt/lib" "${vendor_frameworks[@]}" -framework QtCore -framework QtGui -framework QtWidgets -framework Foundation -framework AppKit -framework QuartzCore -Wl,-rpath,@loader_path)
+qt_private="$qt/lib/QtCore.framework/Versions/A/Headers/$expected_qt"
+qt_core_headers="$qt/lib/QtCore.framework/Versions/A/Headers"
+[[ -f "$qt_private/QtCore/private/qobject_p.h" ]] || { print -u2 'Qt CorePrivate qobject_p.h is required';exit 64; }
+common=(-dynamiclib -std=c++17 -fobjc-arc -I"$qt/include" -I"$qt_core_headers" -I"$qt_private" -I"$qt_private/QtCore" -F"$qt/lib" "${vendor_frameworks[@]}" -framework QtCore -framework QtGui -framework QtWidgets -framework Foundation -framework AppKit -framework QuartzCore -Wl,-rpath,@loader_path)
 clang++ "${common[@]}" "$root/drivers/macos_main_acceptance_driver.mm" -o "$out/macos_main_acceptance_driver.dylib"
 clang++ "${common[@]}" "$root/drivers/macos_supplemental_acceptance_driver.mm" -o "$out/macos_supplemental_acceptance_driver.dylib"
 swiftc "$root/helpers/cgwindow_exact.swift" -o "$out/cgwindow_exact"

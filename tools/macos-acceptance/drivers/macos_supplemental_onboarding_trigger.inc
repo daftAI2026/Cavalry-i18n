@@ -1,19 +1,79 @@
 /**
- * [INPUT]: Qt 完整对象图、AppKit modal run-loop mode、Qt/native 菜单、可选 reset PopOverView、OnboardingChoiceView 与 Cavalry 2.7.2 的 onboarding C++ ABI。
- * [OUTPUT]: 通过 manager、真实入门指南菜单或 choice signal 语义触发 firstLaunch guide，并只在精确匹配本地化 reset-workspace 对话框时确认默认布局。
- * [POS]: supplemental onboarding 的入口解析器；用 mode-aware timer 穿过同步产品弹窗后打开真实 guide，并对任何未知 modal 拓扑失败关闭，不构造验收 UI。
+ * [INPUT]: Qt 完整对象图、CorePrivate signal receiver identity、产品 WidgetTagRegistry，以及 Cavalry 2.7.2 导出的 onboarding C++ ABI。
+ * [OUTPUT]: 在 five-tag workspace 连续稳定后，经直接对象、Gui getter 或真实 chooser 的唯一 signal receiver 精确解析 manager，以产品 guideSelected/showGuide 语义触发 firstLaunch，并在嵌套事件循环内精确确认 workspace reset；同时提供内容拓扑诊断。
+ * [POS]: supplemental onboarding 的入口与就绪边界；先证明 guide 所需真实控件已注册，再优先让 chooser signal 完成自身生命周期，reset prompt 由主线程 event filter 驱动真实 Button，不构造验收 UI。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-bool isGuideActionText(QString title) {
-  title.remove(QLatin1Char('&'));
-  title = title.trimmed();
-  return title == QStringLiteral("Getting Started Guides") ||
-         title == QStringLiteral("入门指南") ||
-         title == QStringLiteral("入門指南") ||
-         title == QStringLiteral("スタートガイド");
-}
+constexpr auto kOnboardingManagerClass = "onboarding::OnboardingManager";
+constexpr auto kOnboardingChoiceClass = "onboarding::OnboardingChoiceView";
+constexpr auto kGuiClass = "Gui";
+constexpr auto kShowGuidesActionObjectName = "showGuides";
+constexpr auto kOnboardingManagerGetterSymbol =
+    "_ZN3Gui17onboardingManagerEv";
+constexpr auto kShowGuideSymbol =
+    "_ZN10onboarding17OnboardingManager9showGuideERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE";
+constexpr auto kGlobalWidgetTagRegistrySymbol =
+    "_ZN10onboarding23globalWidgetTagRegistryEv";
+constexpr auto kFindTaggedWidgetSymbol =
+    "_ZNK10onboarding17WidgetTagRegistry10findWidgetERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE";
 
-enum class WorkspaceResetPromptResult { Waiting, Accepted, Rejected };
+bool onboardingWorkspaceReady(bool *rejected) {
+  static int attempts = 0;
+  static int stableTicks = 0;
+  if (rejected) *rejected = false;
+  void *rawRegistry = dlsym(RTLD_DEFAULT, kGlobalWidgetTagRegistrySymbol);
+  void *rawFindWidget = dlsym(RTLD_DEFAULT, kFindTaggedWidgetSymbol);
+  if (!rawRegistry || !rawFindWidget) {
+    markDone(QStringLiteral("ERROR onboarding widget registry ABI missing"));
+    if (rejected) *rejected = true;
+    return false;
+  }
+  using GlobalWidgetTagRegistry = void *(*)();
+  using FindTaggedWidget = QWidget *(*)(const void *, const std::string &);
+  const void *registry =
+      reinterpret_cast<GlobalWidgetTagRegistry>(rawRegistry)();
+  if (!registry) {
+    markDone(QStringLiteral("ERROR onboarding widget registry unavailable"));
+    if (rejected) *rejected = true;
+    return false;
+  }
+
+  QList<QWidget *> mainDocks;
+  for (QWidget *widget : QApplication::allWidgets()) {
+    if (widget && widget->isVisible() &&
+        className(widget) == QStringLiteral("MainDock"))
+      mainDocks << widget;
+  }
+  if (mainDocks.size() > 1) {
+    markDone(QStringLiteral("ERROR onboarding MainDock ambiguous"));
+    if (rejected) *rejected = true;
+    return false;
+  }
+
+  static constexpr std::array<const char *, 5> tags = {
+      "viewport", "sceneTree", "attributeEditor", "timeline",
+      "projectAssets"};
+  QStringList missing;
+  const auto findWidget = reinterpret_cast<FindTaggedWidget>(rawFindWidget);
+  for (const char *tag : tags) {
+    if (!findWidget(registry, std::string(tag)))
+      missing << QString::fromLatin1(tag);
+  }
+  if (mainDocks.size() != 1 || !missing.isEmpty()) {
+    stableTicks = 0;
+    if (++attempts > 120) {
+      markDone(QStringLiteral("ERROR onboarding workspace readiness main=%1 missing=%2")
+                   .arg(mainDocks.size())
+                   .arg(missing.join(QLatin1Char(','))));
+      if (rejected) *rejected = true;
+    }
+    return false;
+  }
+  if (++stableTicks < 5) return false;
+  if (stableTicks == 5)
+    appendLog(QStringLiteral("ONBOARDING_WORKSPACE_READY tags=5 stableTicks=5"));
+  return true;
+}
 
 struct WorkspaceResetOracle {
   const char *language;
@@ -23,8 +83,6 @@ struct WorkspaceResetOracle {
   const char *cancel;
 };
 
-NSTimer *gWorkspaceResetModalTimer = nil;
-
 const WorkspaceResetOracle *currentWorkspaceResetOracle() {
   static const WorkspaceResetOracle oracles[] = {
       {"zh-Hans", "重置工作区？", "本指南在默认布局下效果最佳。是否立即重置？",
@@ -33,7 +91,7 @@ const WorkspaceResetOracle *currentWorkspaceResetOracle() {
        "確定", "取消"},
       {"ja_JP", "ワークスペースをリセットしますか？",
        "このガイドはデフォルトレイアウトで最適に動作します。今すぐリセットしますか？",
-       "OK", "キャンセル"},
+       "了解", "キャンセル"},
   };
   const QString language =
       QString::fromUtf8(std::getenv("CAVALRY_I18N_LANG") ?: "");
@@ -43,150 +101,118 @@ const WorkspaceResetOracle *currentWorkspaceResetOracle() {
   return nullptr;
 }
 
-void logWorkspaceResetTopology(QWidget *root) {
-  appendLog(QStringLiteral("ONBOARDING_RESET_PROMPT_MISMATCH root=%1")
-                .arg(className(root)));
-  for (QLabel *label : root->findChildren<QLabel *>()) {
-    if (label && label->isVisibleTo(root))
-      appendLog(QStringLiteral("ONBOARDING_RESET_PROMPT_VISIBLE_LABEL text=%1")
-                    .arg(normalizedPlainText(label->text())));
-  }
-  for (QAbstractButton *button : root->findChildren<QAbstractButton *>()) {
-    if (button && button->isVisibleTo(root))
-      appendLog(QStringLiteral("ONBOARDING_RESET_PROMPT_VISIBLE_BUTTON text=%1 enabled=%2")
-                    .arg(button->text())
-                    .arg(button->isEnabled()));
-  }
-}
-
-bool isGuideChoicePopOver(QWidget *root) {
-  if (!root) return false;
-  for (QWidget *child : root->findChildren<QWidget *>()) {
-    if (child && child->isVisibleTo(root) &&
-        className(child).contains(QStringLiteral("OnboardingChoiceView")))
-      return true;
-  }
-  return false;
-}
-
-bool hasVisibleGuideChoice() {
-  for (QWidget *widget : QApplication::allWidgets()) {
-    if (widget && widget->isVisible() &&
-        className(widget).contains(QStringLiteral("OnboardingChoiceView")))
-      return true;
-  }
-  return false;
-}
-
-bool exactWorkspaceResetPrompt(QWidget *root,
-                               const WorkspaceResetOracle &oracle,
-                               QPointer<QAbstractButton> *confirmOut) {
-  if (!root || !confirmOut) return false;
-  int titleHits = 0;
-  int bodyHits = 0;
-  for (QLabel *label : root->findChildren<QLabel *>()) {
-    if (!label || !label->isVisibleTo(root)) continue;
-    const QString text = normalizedPlainText(label->text());
-    titleHits += text == QString::fromUtf8(oracle.title);
-    bodyHits += text == QString::fromUtf8(oracle.body);
-  }
-  QList<QAbstractButton *> buttons;
-  QPointer<QAbstractButton> confirm;
-  int cancelHits = 0;
-  for (QAbstractButton *button : root->findChildren<QAbstractButton *>()) {
-    if (!button || !button->isVisibleTo(root) || !button->isEnabled()) continue;
-    buttons << button;
-    if (button->text() == QString::fromUtf8(oracle.confirm)) confirm = button;
-    cancelHits += button->text() == QString::fromUtf8(oracle.cancel);
-  }
-  const bool exact = titleHits == 1 && bodyHits == 1 && buttons.size() == 2 &&
-                     confirm && cancelHits == 1;
-  if (exact) *confirmOut = confirm;
-  return exact;
-}
-
-WorkspaceResetPromptResult handleWorkspaceResetPrompt() {
-  QList<QWidget *> prompts;
-  for (QWidget *widget : QApplication::allWidgets()) {
-    if (widget && widget->isVisible() &&
-        className(widget) == QStringLiteral("PopOverView") &&
-        onboardingStep(widget) == 0)
-      prompts << widget;
-  }
-  if (prompts.isEmpty()) return WorkspaceResetPromptResult::Waiting;
-  const WorkspaceResetOracle *oracle = currentWorkspaceResetOracle();
-  if (!oracle) {
-    markDone(QStringLiteral("ERROR onboarding reset workspace prompt language"));
-    return WorkspaceResetPromptResult::Rejected;
-  }
-  QPointer<QAbstractButton> confirm;
-  int resetHits = 0;
-  bool onlyGuideChoice = true;
-  for (QWidget *root : prompts) {
-    QPointer<QAbstractButton> candidate;
-    if (exactWorkspaceResetPrompt(root, *oracle, &candidate)) {
-      resetHits += 1;
-      confirm = candidate;
-    } else {
-      onlyGuideChoice = onlyGuideChoice && isGuideChoicePopOver(root);
+QString workspaceResetButtonText(QWidget *button) {
+  if (auto *abstractButton = qobject_cast<QAbstractButton *>(button))
+    return abstractButton->text().trimmed();
+  QString text = button ? button->property("text").toString().trimmed()
+                        : QString();
+  if (!text.isEmpty()) return text;
+  QList<QLabel *> labels = button->findChildren<QLabel *>();
+  for (QLabel *label : labels) {
+    if (label && label->isVisibleTo(button) && !label->text().trimmed().isEmpty()) {
+      if (!text.isEmpty()) return QString();
+      text = label->text().trimmed();
     }
   }
-  if (resetHits == 0 && onlyGuideChoice)
-    return WorkspaceResetPromptResult::Waiting;
-  if (resetHits != 1 || !confirm) {
-    for (QWidget *root : prompts) logWorkspaceResetTopology(root);
-    markDone(QStringLiteral("ERROR onboarding reset workspace prompt topology"));
-    return WorkspaceResetPromptResult::Rejected;
+  return text;
+}
+
+void logWorkspaceResetTopology(QWidget *root) {
+  appendLog(QStringLiteral("ONBOARDING_RESET_PROMPT_MISMATCH root=%1 title=%2")
+                .arg(className(root), normalizedPlainText(root->windowTitle())));
+  for (QWidget *widget : root->findChildren<QWidget *>()) {
+    if (!widget || !widget->isVisibleTo(root)) continue;
+    QString text;
+    if (auto *button = qobject_cast<QAbstractButton *>(widget))
+      text = button->text().trimmed();
+    else if (auto *label = qobject_cast<QLabel *>(widget))
+      text = normalizedPlainText(label->text());
+    else if (className(widget) == QStringLiteral("Button"))
+      text = workspaceResetButtonText(widget);
+    appendLog(QStringLiteral("ONBOARDING_RESET_WIDGET class=%1 text=%2")
+                  .arg(className(widget), text));
   }
-  appendLog(QStringLiteral("ONBOARDING_RESET_PROMPT accepted title=%1")
-                .arg(QString::fromUtf8(oracle->title)));
-  confirm->click();
-  return WorkspaceResetPromptResult::Accepted;
 }
 
-void disarmWorkspaceResetModalPoll() {
-  if (!gWorkspaceResetModalTimer) return;
-  [gWorkspaceResetModalTimer invalidate];
-  gWorkspaceResetModalTimer = nil;
+class WorkspaceResetEventFilter final : public QObject {
+ public:
+  using QObject::QObject;
+
+ protected:
+  bool eventFilter(QObject *watched, QEvent *event) override {
+    if (handled_ || !event || event->type() != QEvent::Paint) return false;
+    auto *painted = qobject_cast<QWidget *>(watched);
+    if (!painted) return false;
+    const WorkspaceResetOracle *oracle = currentWorkspaceResetOracle();
+    if (!oracle) return false;
+
+    QList<QWidget *> matchingRoots;
+    for (QWidget *root : QApplication::allWidgets()) {
+      if (!root || !root->isVisible() ||
+          className(root) != QStringLiteral("QMessageBox") ||
+          onboardingStep(root) != 0)
+        continue;
+      int titleHits = 0;
+      int bodyHits = 0;
+      for (QLabel *label : root->findChildren<QLabel *>()) {
+        if (!label || !label->isVisibleTo(root)) continue;
+        const QString text = normalizedPlainText(label->text());
+        titleHits += text == QString::fromUtf8(oracle->title);
+        bodyHits += text == QString::fromUtf8(oracle->body);
+      }
+      if (titleHits == 1 && bodyHits == 1) matchingRoots << root;
+    }
+    if (matchingRoots.isEmpty()) return false;
+    if (matchingRoots.size() != 1) {
+      handled_ = true;
+      markDone(QStringLiteral("ERROR onboarding reset prompt ambiguous"));
+      return false;
+    }
+
+    QWidget *root = matchingRoots.front();
+    QList<QWidget *> buttons;
+    QPointer<QWidget> confirm;
+    int cancelHits = 0;
+    for (QWidget *widget : root->findChildren<QWidget *>()) {
+      if (!widget || !widget->isVisibleTo(root) || !widget->isEnabled() ||
+          !qobject_cast<QAbstractButton *>(widget))
+        continue;
+      buttons << widget;
+      const QString text = workspaceResetButtonText(widget);
+      if (text == QString::fromUtf8(oracle->confirm)) confirm = widget;
+      cancelHits += text == QString::fromUtf8(oracle->cancel);
+    }
+    if (buttons.size() != 2 || !confirm || cancelHits != 1) {
+      if (qobject_cast<QAbstractButton *>(painted)) {
+        handled_ = true;
+        logWorkspaceResetTopology(root);
+        markDone(QStringLiteral("ERROR onboarding reset prompt controls"));
+      }
+      return false;
+    }
+
+    handled_ = true;
+    appendLog(QStringLiteral("ONBOARDING_RESET_PROMPT accepted title=%1")
+                  .arg(QString::fromUtf8(oracle->title)));
+    if (!QMetaObject::invokeMethod(confirm, "click", Qt::QueuedConnection))
+      markDone(QStringLiteral("ERROR onboarding reset prompt click queue"));
+    return false;
+  }
+
+ private:
+  bool handled_ = false;
+};
+
+void installWorkspaceResetEventFilter() {
+  static WorkspaceResetEventFilter *filter = nullptr;
+  if (!filter && qApp) {
+    filter = new WorkspaceResetEventFilter(qApp);
+    qApp->installEventFilter(filter);
+  }
 }
 
-bool triggerFirstLaunchFromChoiceView();
-
-void armWorkspaceResetModalPoll() {
-  if (gWorkspaceResetModalTimer) return;
-  gWorkspaceResetModalTimer =
-      [NSTimer timerWithTimeInterval:0.05
-                               repeats:YES
-                               block:^(NSTimer *) {
-                                 const WorkspaceResetPromptResult result =
-                                     handleWorkspaceResetPrompt();
-                                 if (result ==
-                                     WorkspaceResetPromptResult::Rejected) {
-                                   disarmWorkspaceResetModalPoll();
-                                   return;
-                                 }
-                                 if (result ==
-                                     WorkspaceResetPromptResult::Accepted) {
-                                   disarmWorkspaceResetModalPoll();
-                                   armWorkspaceResetModalPoll();
-                                   return;
-                                 }
-                                 if (hasVisibleGuideChoice()) {
-                                   disarmWorkspaceResetModalPoll();
-                                   gTriggerAttempted =
-                                       triggerFirstLaunchFromChoiceView();
-                                   if (!gTriggerAttempted)
-                                     markDone(QStringLiteral(
-                                         "ERROR onboarding choice trigger"));
-                                 }
-                               }];
-  [[NSRunLoop mainRunLoop] addTimer:gWorkspaceResetModalTimer
-                           forMode:NSRunLoopCommonModes];
-  [[NSRunLoop mainRunLoop] addTimer:gWorkspaceResetModalTimer
-                           forMode:NSModalPanelRunLoopMode];
-}
-
-QObject *findOnboardingManager() {
+QObject *findOnboardingManager(QString *error) {
+  if (error) error->clear();
   QSet<QObject *> seen;
   QList<QObject *> objects;
   if (qApp) {
@@ -196,62 +222,92 @@ QObject *findOnboardingManager() {
   for (QWidget *widget : QApplication::allWidgets()) {
     if (!widget) continue;
     objects << widget;
+    for (QAction *action : widget->actions()) objects << action;
+    for (QAction *action : widget->findChildren<QAction *>()) objects << action;
     objects.append(widget->findChildren<QObject *>());
   }
-  for (QObject *object : objects) {
-    if (!object || seen.contains(object)) continue;
-    seen.insert(object);
-    if (!className(object).contains(QStringLiteral("OnboardingManager")))
-      continue;
-    appendLog(
-        QStringLiteral("ONBOARDING_MANAGER class=%1 parent=%2 scanned=%3")
-            .arg(className(object), className(object->parent()))
-            .arg(seen.size()));
-    return object;
-  }
-  return nullptr;
-}
 
-bool triggerFirstLaunchGuide() {
-  QObject *manager = findOnboardingManager();
-  const char *symbol =
-      "_ZN10onboarding17OnboardingManager9showGuideERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE";
-  void *raw = manager ? dlsym(RTLD_DEFAULT, symbol) : nullptr;
-  if (!manager || !raw) return false;
-  armWorkspaceResetModalPoll();
-  using ShowGuide = void (*)(void *, const std::string &);
-  reinterpret_cast<ShowGuide>(raw)(
-      manager, std::string("firstLaunch"));
-  appendLog(QStringLiteral("ONBOARDING_TRIGGER manager id=firstLaunch"));
-  return true;
-}
-
-bool triggerFirstLaunchFromChoiceView() {
-  for (QWidget *widget : QApplication::allWidgets()) {
-    if (!widget || !widget->isVisible() ||
-        !className(widget).contains(QStringLiteral("OnboardingChoiceView"))) {
-      continue;
+  QList<QObject *> managers;
+  QList<QObject *> guiObjects;
+  for (QObject *root : objects) {
+    for (QObject *object = root; object; object = object->parent()) {
+      if (seen.contains(object)) continue;
+      seen.insert(object);
+      const QString runtimeClass = className(object);
+      if (runtimeClass == QString::fromLatin1(kOnboardingManagerClass))
+        managers << object;
+      else if (runtimeClass == QString::fromLatin1(kGuiClass))
+        guiObjects << object;
     }
-    const char *symbol =
-        "_ZN10onboarding20OnboardingChoiceView13guideSelectedERKNSt3__112basic_stringIcNS1_11char_traitsIcEENS1_9allocatorIcEEEE";
-    void *raw = dlsym(RTLD_DEFAULT, symbol);
-    if (!raw) return false;
-    armWorkspaceResetModalPoll();
-    using GuideSelected = void (*)(void *, const std::string &);
-    const QString choiceClass = className(widget);
-    reinterpret_cast<GuideSelected>(raw)(
-        widget, std::string("firstLaunch"));
-    appendLog(
-        QStringLiteral(
-            "ONBOARDING_TRIGGER choice-view class=%1 id=firstLaunch")
-            .arg(choiceClass));
-    return true;
   }
-  return false;
+
+  if (managers.size() > 1) {
+    if (error)
+      *error = QStringLiteral("OnboardingManager identity ambiguous count=%1")
+                   .arg(managers.size());
+    return nullptr;
+  }
+  if (managers.size() == 1) {
+    appendLog(QStringLiteral("ONBOARDING_MANAGER source=object-graph class=%1")
+                  .arg(className(managers.front())));
+    return managers.front();
+  }
+  if (guiObjects.isEmpty()) return nullptr;
+  if (guiObjects.size() != 1) {
+    if (error)
+      *error = QStringLiteral("Gui identity ambiguous count=%1")
+                   .arg(guiObjects.size());
+    return nullptr;
+  }
+
+  void *rawGetter = dlsym(RTLD_DEFAULT, kOnboardingManagerGetterSymbol);
+  if (!rawGetter) {
+    if (error) *error = QStringLiteral("Gui::onboardingManager export missing");
+    return nullptr;
+  }
+  using OnboardingManagerGetter = void *(*)(void *);
+  void *rawManager = reinterpret_cast<OnboardingManagerGetter>(rawGetter)(
+      guiObjects.front());
+  if (!rawManager) {
+    if (error) *error = QStringLiteral("Gui::onboardingManager returned null");
+    return nullptr;
+  }
+  auto *manager = reinterpret_cast<QObject *>(rawManager);
+  if (className(manager) != QString::fromLatin1(kOnboardingManagerClass)) {
+    if (error)
+      *error = QStringLiteral("Gui::onboardingManager class mismatch actual=%1")
+                   .arg(className(manager));
+    return nullptr;
+  }
+  appendLog(QStringLiteral("ONBOARDING_MANAGER source=gui-getter class=%1")
+                .arg(className(manager)));
+  return manager;
 }
 
-bool triggerGuideInQtActions() {
+bool isGuideActionText(QString title) {
+  title.remove(QLatin1Char('&'));
+  title = title.trimmed();
+  return title == QStringLiteral("Getting Started Guides") ||
+         title == QStringLiteral("入门指南") ||
+         title == QStringLiteral("入門指南") ||
+         title == QStringLiteral("スタートガイド");
+}
+
+QAction *findShowGuidesAction(QString *error) {
   QSet<QAction *> seen;
+  QList<QAction *> exact;
+  QList<QAction *> translated;
+  if (qApp) {
+    for (QAction *action : qApp->findChildren<QAction *>()) {
+      if (!action || seen.contains(action)) continue;
+      seen.insert(action);
+      if (action->objectName() ==
+          QString::fromLatin1(kShowGuidesActionObjectName))
+        exact << action;
+      else if (isGuideActionText(action->text()))
+        translated << action;
+    }
+  }
   for (QWidget *widget : QApplication::allWidgets()) {
     if (!widget) continue;
     QList<QAction *> actions = widget->actions();
@@ -259,20 +315,171 @@ bool triggerGuideInQtActions() {
     for (QAction *action : actions) {
       if (!action || seen.contains(action)) continue;
       seen.insert(action);
-      if (!action->isEnabled() || !isGuideActionText(action->text()))
-        continue;
-      const QString text = action->text();
-      const QPointer<QAction> guarded(action);
-      armWorkspaceResetModalPoll();
-      QTimer::singleShot(0, qApp, [guarded] {
-        if (guarded) guarded->trigger();
-      });
-      appendLog(
-          QStringLiteral("ONBOARDING_TRIGGER qt-action-queued text=%1 parent=%2")
-              .arg(text, className(action->parent())));
-      return true;
+      if (action->objectName() ==
+          QString::fromLatin1(kShowGuidesActionObjectName))
+        exact << action;
+      else if (isGuideActionText(action->text()))
+        translated << action;
     }
   }
+  const QList<QAction *> &candidates = exact.isEmpty() ? translated : exact;
+  if (candidates.size() > 1 && error)
+    *error = QStringLiteral("Getting Started Guides action ambiguous count=%1")
+                 .arg(candidates.size());
+  return candidates.size() == 1 ? candidates.front() : nullptr;
+}
+
+QWidget *findOnboardingChoice(QString *error) {
+  QList<QWidget *> choices;
+  for (QWidget *widget : QApplication::allWidgets()) {
+    if (widget && widget->isVisible() &&
+        className(widget) == QString::fromLatin1(kOnboardingChoiceClass))
+      choices << widget;
+  }
+  if (choices.size() > 1 && error)
+    *error = QStringLiteral("OnboardingChoiceView ambiguous count=%1")
+                 .arg(choices.size());
+  return choices.size() == 1 ? choices.front() : nullptr;
+}
+
+QObject *onboardingManagerFromChoice(QWidget *choice, QString *error) {
+  if (!choice ||
+      className(choice) != QString::fromLatin1(kOnboardingChoiceClass)) {
+    if (error) *error = QStringLiteral("OnboardingChoiceView class mismatch");
+    return nullptr;
+  }
+  QObjectList receivers = QObjectPrivate::get(choice)->receiverList(
+      SIGNAL(guideSelected(std::string)));
+  if (receivers.isEmpty())
+    receivers = QObjectPrivate::get(choice)->receiverList(
+        "guideSelected(std::string)");
+  QSet<QObject *> managers;
+  for (QObject *receiver : receivers) {
+    if (className(receiver) == QString::fromLatin1(kOnboardingManagerClass))
+      managers.insert(receiver);
+  }
+  if (managers.size() != 1) {
+    if (error)
+      *error = QStringLiteral("guideSelected manager receiver count=%1")
+                   .arg(managers.size());
+    return nullptr;
+  }
+  QObject *manager = *managers.constBegin();
+  appendLog(QStringLiteral("ONBOARDING_MANAGER source=choice-receiver class=%1")
+                .arg(className(manager)));
+  return manager;
+}
+
+bool triggerFirstLaunchFromChoice(QWidget *choice, QObject *manager,
+                                  bool *rejected) {
+  if (!choice || !manager) return false;
+  QMetaMethod guideSelected;
+  QByteArray parameterType;
+  const QMetaObject *metaObject = choice->metaObject();
+  for (int index = 0; index < metaObject->methodCount(); ++index) {
+    const QMetaMethod method = metaObject->method(index);
+    const QList<QByteArray> parameters = method.parameterTypes();
+    if (method.name() == QByteArrayLiteral("guideSelected") &&
+        parameters.size() == 1 &&
+        parameters.front() == QByteArrayLiteral("std::string")) {
+      guideSelected = method;
+      parameterType = parameters.front();
+      break;
+    }
+  }
+  if (!guideSelected.isValid()) {
+    markDone(QStringLiteral("ERROR onboarding guideSelected(std::string) ABI"));
+    if (rejected) *rejected = true;
+    return false;
+  }
+  installWorkspaceResetEventFilter();
+  const QString receiverClass = className(manager);
+  const std::string guideId("firstLaunch");
+  if (!guideSelected.invoke(choice, Qt::DirectConnection,
+                            QGenericArgument(parameterType.constData(),
+                                             &guideId))) {
+    markDone(QStringLiteral("ERROR onboarding guideSelected invocation"));
+    if (rejected) *rejected = true;
+    return false;
+  }
+  appendLog(QStringLiteral(
+      "ONBOARDING_TRIGGER choice id=firstLaunch receiver=%1")
+                .arg(receiverClass));
+  return true;
+}
+
+bool showFirstLaunchGuide(QObject *manager, bool *rejected) {
+  if (!manager ||
+      className(manager) != QString::fromLatin1(kOnboardingManagerClass)) {
+    markDone(QStringLiteral("ERROR onboarding manager class mismatch"));
+    if (rejected) *rejected = true;
+    return false;
+  }
+  installWorkspaceResetEventFilter();
+  void *rawShowGuide = dlsym(RTLD_DEFAULT, kShowGuideSymbol);
+  if (!rawShowGuide) {
+    markDone(QStringLiteral("ERROR onboarding showGuide export missing"));
+    if (rejected) *rejected = true;
+    return false;
+  }
+  using ShowGuide = void (*)(void *, const std::string &);
+  reinterpret_cast<ShowGuide>(rawShowGuide)(manager,
+                                            std::string("firstLaunch"));
+  appendLog(QStringLiteral("ONBOARDING_TRIGGER manager id=firstLaunch"));
+  return true;
+}
+
+bool triggerFirstLaunchGuide(bool *rejected) {
+  if (rejected) *rejected = false;
+  QString error;
+  QObject *manager = findOnboardingManager(&error);
+  if (!error.isEmpty()) {
+    appendLog(QStringLiteral("ONBOARDING_MANAGER_ERROR %1").arg(error));
+    markDone(QStringLiteral("ERROR onboarding manager resolution: %1")
+                 .arg(error));
+    if (rejected) *rejected = true;
+    return false;
+  }
+  if (manager) return showFirstLaunchGuide(manager, rejected);
+
+  QWidget *choice = findOnboardingChoice(&error);
+  if (!error.isEmpty()) {
+    markDone(QStringLiteral("ERROR onboarding choice resolution: %1")
+                 .arg(error));
+    if (rejected) *rejected = true;
+    return false;
+  }
+  if (choice) {
+    manager = onboardingManagerFromChoice(choice, &error);
+    if (!manager) {
+      markDone(QStringLiteral("ERROR onboarding choice manager: %1")
+                   .arg(error));
+      if (rejected) *rejected = true;
+      return false;
+    }
+    return triggerFirstLaunchFromChoice(choice, manager, rejected);
+  }
+
+  if (gGuideChooserOpened) return false;
+  QAction *action = findShowGuidesAction(&error);
+  if (!error.isEmpty()) {
+    markDone(QStringLiteral("ERROR onboarding action resolution: %1")
+                 .arg(error));
+    if (rejected) *rejected = true;
+    return false;
+  }
+  if (!action) return false;
+  const QString identity = action->objectName().isEmpty()
+                               ? action->text()
+                               : action->objectName();
+  const bool wasEnabled = action->isEnabled();
+  QPointer<QAction> guarded(action);
+  if (!wasEnabled) action->setEnabled(true);
+  action->trigger();
+  if (guarded && !wasEnabled) guarded->setEnabled(false);
+  gGuideChooserOpened = true;
+  appendLog(QStringLiteral("ONBOARDING_TRIGGER chooser action=%1")
+                .arg(identity));
   return false;
 }
 
@@ -293,29 +500,4 @@ void logOnboardingContentTopology(QWidget *root, int step) {
                        normalizedPlainText(browser->toPlainText()),
                        normalizedPlainText(browser->toHtml())));
   }
-}
-
-bool triggerGuideInNativeMenu(NSMenu *menu) {
-  if (menu == nil) return false;
-  for (NSMenuItem *item in [menu itemArray]) {
-    NSString *nativeTitle = [item title] ?: @"";
-    const QString title =
-        QString::fromUtf8([nativeTitle UTF8String]);
-    if ([item isEnabled] && [item action] != nil &&
-        isGuideActionText(title)) {
-      armWorkspaceResetModalPoll();
-      const BOOL sent =
-          [NSApp sendAction:[item action] to:[item target] from:item];
-      appendLog(
-          QStringLiteral("ONBOARDING_TRIGGER native-action text=%1 sent=%2")
-              .arg(title)
-              .arg(sent));
-      return sent;
-    }
-    if ([item hasSubmenu] &&
-        triggerGuideInNativeMenu([item submenu])) {
-      return true;
-    }
-  }
-  return false;
 }
