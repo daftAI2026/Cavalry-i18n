@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: verify_ci_action_pins.js 与临时复制的 workflow/policy/requirements/toolchain inputs
- * [OUTPUT]: 证明 baseline 通过，同时拒绝 unknown/wrong-SHA action、floating Rust setup 与 toolchain manifest/file 漂移
+ * [OUTPUT]: 证明 baseline 通过，同时拒绝 unknown/wrong-SHA action、floating Rust setup、toolchain manifest/file 漂移与绕过精确 channel 的裸 cargo-audit 安装
  * [POS]: GitHub Actions exact name+SHA allowlist 的离线回归测试
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -94,6 +94,21 @@ test('every Rust setup and rust-toolchain.toml must match the exact manifest cha
     const manifestDrift = run(temp);
     assert.notEqual(manifestDrift.status, 0);
     assert.match(manifestDrift.stderr, /must exactly pin Rust 1\.97\.1/);
+  } finally { fs.rmSync(temp, { recursive: true, force: true }); }
+});
+
+test('cargo-audit install must bypass project component reconciliation with the exact pinned channel', () => {
+  const temp = fixture();
+  try {
+    const workflowPath = path.join(temp, '.github/workflows/build.yml');
+    const workflow = fs.readFileSync(workflowPath, 'utf8');
+    fs.writeFileSync(
+      workflowPath,
+      workflow.replace('cargo +"$rust_toolchain" install cargo-audit', 'cargo install cargo-audit')
+    );
+    const result = run(temp);
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /cargo-audit must be installed with the exact pinned Rust toolchain/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
 
