@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 release commit、producer scope/target、tools/ci_action_pins.json、rust-toolchain.toml、requirements-ci.in/txt 与当前 producer 工具输出版本
+ * [INPUT]: 依赖 release commit、producer scope/target、tools/ci_action_pins.json、rust-toolchain.toml、requirements-ci.in/txt、npm_command.js 与当前 producer 工具输出版本
  * [OUTPUT]: fail-closed 写出单 producer ToolchainEvidenceRecord；任一版本命令失败/空输出即拒绝，且不记录任何 secret 值
  * [POS]: tools 的 CI/本地 producer toolchain 证据记录器；release 聚合由 create_toolchain_evidence_bundle.js 负责
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -11,6 +11,7 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { resolveNpmVersionCommand } = require('./npm_command.js');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
@@ -33,11 +34,13 @@ function readJson(relativePath) {
   return JSON.parse(readText(relativePath));
 }
 
-function capture(label, command, commandArgs) {
+function capture(label, command, commandArgs, spawnOptions = {}) {
   const result = spawnSync(command, commandArgs, {
     encoding: 'utf8',
     cwd: rootDir,
     env: process.env,
+    windowsHide: true,
+    ...spawnOptions,
   });
   if (result.error || result.status !== 0) {
     const detail = result.error?.message || (result.stderr || result.stdout || '').trim() || `status ${result.status}`;
@@ -76,6 +79,7 @@ function main() {
     throw new Error('--created-at must be an ISO-compatible timestamp.');
   }
 
+  const npmInvocation = resolveNpmVersionCommand();
   const evidence = {
     schemaVersion: 1,
     kind: 'ToolchainEvidenceRecord',
@@ -103,7 +107,7 @@ function main() {
     },
     runtime: {
       node: capture('node', process.execPath, ['--version']),
-      npm: capture('npm', 'npm', ['--version']),
+      npm: capture('npm', npmInvocation.command, npmInvocation.args, { shell: npmInvocation.shell }),
       rustc: capture('rustc', 'rustc', ['--version']),
       cargo: capture('cargo', 'cargo', ['--version']),
       python: capture('python', process.env.PYTHON || 'python3', ['--version']),

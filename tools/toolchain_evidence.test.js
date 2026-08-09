@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: record_toolchain_evidence.js、create_toolchain_evidence_bundle.js、当前工具链与临时 record fixtures
- * [OUTPUT]: 覆盖版本 capture fail-closed、三 producer/commit/target 完整聚合及 Windows 未覆盖面的显式 issue 声明
+ * [OUTPUT]: 覆盖跨平台 npm 版本 capture、命令缺失 fail-closed、三 producer/commit/target 完整聚合及 Windows 未覆盖面的显式 issue 声明
  * [POS]: release toolchain evidence producer/aggregator 的离线回归测试
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -33,7 +33,11 @@ function bundle(files, output, releaseCommit = commit) {
 test('recording fails closed when a required version command cannot run', () => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-toolchain-fail-'));
   try {
-    const result = record(path.join(temp, 'record.json'), 'source-contracts', 'source-contracts', { ...process.env, PATH: '/nonexistent' });
+    const result = record(path.join(temp, 'record.json'), 'source-contracts', 'source-contracts', {
+      ...process.env,
+      PATH: '/nonexistent',
+      npm_execpath: '',
+    });
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /required npm toolchain identity/i);
     assert.equal(fs.existsSync(path.join(temp, 'record.json')), false);

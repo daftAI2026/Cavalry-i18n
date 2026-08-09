@@ -18,6 +18,7 @@ install_git_hooks.js: 跨平台 Git hook 安装器，Windows 在 stale PATH 时�
 pre_commit_gate.js: 可测试的 Node pre-commit 执行层；先拒绝本次 gate 输入闭包中的未暂存/未跟踪差异，再按暂存路径运行 Rust `cargo fmt --check`、JS `node --check`、版本投影同步、语言 JSON 合同与嵌入翻译表一致性；禁止通配暂存，版本投影是唯一受控 `git add`。
 check_git_hooks.js: Windows 兼容 Git hook 合同测试，模拟 stale PATH、缺失 Git、非工作树，以及 JS/Rust/版本/语言/gate 自身的 partial-staged 漂移，并冻结快速门禁触发范围。
 python_command.js: Python 3 命令边界，优先尊重 `PYTHON`；Windows 先探测用户级 Python Launcher 的绝对路径，再回退 `py -3`/`python`，隔离 IDE/Codex 继承旧 PATH 与 Windows Store 假别名；其余平台使用 `python3`，供 Node 验证器与 Qt SDK 解析器复用。
+npm_command.js: npm 工具链身份命令边界，优先以当前 Node 执行 `npm_execpath` 保持无 shell；仅在缺少 CLI 路径的 Windows 宿主为固定 `npm --version` 使用 shell fallback，供漏洞门与 toolchain evidence recorder 复用。
 powershell_command.js: Windows 开发脚本宿主边界；优先单次启动 `pwsh.exe`，仅在宿主不存在时清除继承的 `PSModulePath` 并回退 `powershell.exe`，脚本非零或启动拒绝原样失败，供 injector 构建与 NSIS 安装态守门复用。
 release_metadata.js: GitHub Release 协议守门器，以 `release.config.json` 为真相源，校验 `cavalry-2.7.2-pN` tag 并生成 release 标题、双架构 DMG 与稳定 Windows x64 NSIS 资产名。
 release_publish.js: 幂等 GitHub Release 发布器；私有 draft 先补全并逐项回读所有资产/sidecar、最后一步才公开，公开 release 只读复验；本地资产写 SHA256SUMS/ReleaseAssetProvenance，并以 verifier 复核 signed seal、CycloneDX SBOM、toolchain evidence 与三主资产，冲突 fail-closed。
@@ -42,7 +43,7 @@ generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translati
 model_display_translations.json: display-only 模型名词典，保存 JSON niceName 英文化前的三语显示译名，只供 injector 翻译 Qt 浮动标题等显示层，不回写模型数据，并保持简繁中文 Latin/CJK 间距。
 runtime-noise-quarantine.json: Runtime 翻译噪声隔离清单，记录无资源/live-capture provenance 的短 token，并让生成器跳过这些项以保持英文。
 resolve_cavalry_qt_sdk.js: 从单一 Cavalry/Qt 版本真相解析宿主默认或显式 macOS/Windows SDK 投影；无论本地是否已有全局 aqt，都以 repo-local venv 和 `requirements-ci.txt` 完整 hash-lock bootstrap `aqtinstall==3.3.0`；stdout 只输出 shell env/JSON，venv/pip/aqt 诊断统一转 stderr，避免污染 `eval`；macOS 除版本还校验 `cavalry_qt_target.json` 固定的完整 SDK tree SHA-256（所有目录、普通文件内容和 symlink target 的 canonical projection），不匹配即拒绝。
-dependency_vulnerability_gate.json / dependency_vulnerability_gate.js / dependency_vulnerability_gate.test.js: 三生态依赖漏洞门；固定 Node/npm 与 registry，hash-lock `pip-audit==2.10.1` 并要求报告精确等于 CPython 3.12.6/Linux 的 24 项 canonical active lock（拒绝截断/增项/重复/漏洞），Cargo 固定 cargo-audit 与 immutable RustSec commit/timestamp，并要求 30 天内重审 snapshot。
+dependency_vulnerability_gate.json / dependency_vulnerability_gate.js / dependency_vulnerability_gate.test.js: 三生态依赖漏洞门；通过共享 npm 命令边界固定 Node/npm 与 registry，hash-lock `pip-audit==2.10.1` 并要求报告精确等于 CPython 3.12.6/Linux 的 24 项 canonical active lock（拒绝截断/增项/重复/漏洞），Cargo 固定 cargo-audit 与 immutable RustSec commit/timestamp，并要求 30 天内重审 snapshot。
 verify_runner_image.js: 规范化 GitHub `ImageOS`/`ImageVersion` 及 runner OS/arch；PR/main 记录，tag 在受保护 environment 的 allowlist 缺失或不匹配时 fail-closed。
 stamp_dmg_icon.sh: DMG 卷宗图标盖章器，用 hdiutil 写入 `.VolumeIcon.icns` 与 custom-icon 标记，再用 Rez/SetFile best-effort 写本机 Finder 文件图标。
 cavalry_qt_target.json: 发布目标映射，唯一声明 Cavalry 2.7.2 与 Qt 6.6.3，并为 macOS `clang_64`、Windows `msvc2019_64` 提供 repo-local SDK 路径和 aqt 参数；macOS qtbase 安装身份是可复核的完整 SDK tree SHA-256，而非仅版本号。
@@ -144,6 +145,6 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 
 2026-08-09: 本地 Qt ensure 取消裸 `pip install aqtinstall`，改用项目内 hash-locked bootstrap，并以 Qt 6.6.3 macOS 完整 SDK tree SHA-256 拒绝下载/安装漂移；新增 npm/Python/Cargo 已知漏洞、RustSec freshness 与 tag runner-image fingerprint 工具门。
 
-2026-08-10: Qt SDK resolver 将 venv/pip/aqt bootstrap 诊断统一路由到 stderr，保留 stdout 为可 `eval` 的机器输出；CI pin 守门器要求 cargo-audit 通过 manifest 中的精确 Rust channel 安装，避免项目组件调和污染独立审计工具 bootstrap。
+2026-08-10: Qt SDK resolver 将 venv/pip/aqt bootstrap 诊断统一路由到 stderr，保留 stdout 为可 `eval` 的机器输出；CI pin 守门器要求 cargo-audit 通过 manifest 中的精确 Rust channel 安装；新增 npm 工具链身份命令边界，修复 Windows Runner 无 shell 启动 `npm` shim 失败，三者共同隔离宿主 bootstrap 差异。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
