@@ -15,6 +15,11 @@ const {
   validateEvidence,
   verifyAcceptanceSession,
 } = require('./release_acceptance_contract');
+const {
+  toWindowsAcceptanceRecord,
+  validateWindowsAcceptanceRecord,
+  verifyWindowsAcceptanceSession,
+} = require('./windows-acceptance/acceptance_contract');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
@@ -31,6 +36,13 @@ function git(gitArgs) {
   const result = spawnSync('git', gitArgs, { cwd: rootDir, encoding: 'utf8' });
   if (result.status !== 0) fail(`git ${gitArgs.join(' ')} failed: ${(result.stderr || result.stdout).trim()}`);
   return result.stdout.trim();
+}
+
+function readRegularJson(file, label) {
+  const absolute = path.resolve(file);
+  const stat = fs.lstatSync(absolute);
+  if (!stat.isFile() || stat.isSymbolicLink() || stat.size < 1) fail(`${label} must be a regular non-symlink file.`);
+  return JSON.parse(fs.readFileSync(absolute, 'utf8'));
 }
 
 function main() {
@@ -55,6 +67,23 @@ function main() {
   if (summary.sourceCommitSha !== sourceHead) {
     fail(`Live session source commit ${summary.sourceCommitSha} does not match current HEAD ${sourceHead}.`);
   }
+  const windowsSessionDir = optionValue('--windows-session-dir');
+  const windowsSummaryPath = optionValue('--windows-acceptance');
+  if (windowsSessionDir && windowsSummaryPath) {
+    fail('pass either --windows-session-dir or --windows-acceptance, not both.');
+  }
+  let windowsAcceptance;
+  if (windowsSessionDir) {
+    windowsAcceptance = toWindowsAcceptanceRecord(
+      verifyWindowsAcceptanceSession(windowsSessionDir, { repoRoot: rootDir, expectedTag: tag })
+    );
+  } else if (windowsSummaryPath) {
+    windowsAcceptance = validateWindowsAcceptanceRecord(readRegularJson(windowsSummaryPath, 'Windows acceptance summary'));
+    if (windowsAcceptance.tag !== tag) fail(`Windows acceptance tag ${windowsAcceptance.tag} != ${tag}.`);
+    if (windowsAcceptance.sourceCommitSha !== sourceHead) {
+      fail(`Windows acceptance source commit ${windowsAcceptance.sourceCommitSha} does not match current HEAD ${sourceHead}.`);
+    }
+  }
   const evidence = validateEvidence({
     schemaVersion: 3,
     kind: 'ReleaseAcceptanceEvidence',
@@ -74,6 +103,7 @@ function main() {
       sessionManifestSha256: summary.sessionManifestSha256,
       host: summary.host,
     },
+    ...(windowsAcceptance ? { windowsAcceptance } : {}),
     createdAtUtc: new Date().toISOString(),
     createdBy: optionValue('--created-by') || process.env.USER || 'unknown',
   });

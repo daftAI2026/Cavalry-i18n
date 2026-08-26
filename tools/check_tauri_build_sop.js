@@ -769,6 +769,11 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     /node tools\/verify_release_acceptance_evidence\.js[\s\S]*--tag "\$GITHUB_REF_NAME"[\s\S]*--release-commit "\$GITHUB_SHA"[\s\S]*--check-tag-topology/,
     'tag preflight must fail closed unless an evidence-only tag commit binds its live-tested source parent'
   );
+  assert.match(
+    preflightJob[1],
+    /--check-tag-topology[\s\S]*--require-windows/,
+    'tag preflight must require Windows acceptance when publishing a Windows artifact'
+  );
   for (const jobName of ['build', 'windows_check', 'package_macos']) {
     const job = workflow.match(
       new RegExp(`\\r?\\n  ${jobName}:\\r?\\n([\\s\\S]*?)(?=\\r?\\n  [a-zA-Z_][a-zA-Z0-9_]*:|\\s*$)`)
@@ -781,6 +786,11 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     );
   }
   assert.match(releaseJob[1], /needs:\s*\[release_tag_preflight,/);
+  assert.match(
+    releaseJob[1],
+    /node tools\/verify_release_acceptance_evidence\.js[\s\S]*--check-tag-topology[\s\S]*--require-windows/,
+    'release must re-verify the Windows acceptance binding before sealing assets'
+  );
   assert.doesNotMatch(
     releaseJob[1],
     /merge-base --is-ancestor/,

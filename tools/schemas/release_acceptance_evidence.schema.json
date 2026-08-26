@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/daftAI2026/Cavalry-i18n/tools/schemas/release_acceptance_evidence.schema.json",
   "title": "ReleaseAcceptanceEvidence",
-  "description": "Live-tested source commit plus verified macOS 21-run/48-point session digests. The release tag points to a later evidence-only commit to avoid a self-referential commit hash.",
+  "description": "Live-tested source commit plus verified macOS session digests and an optional Windows release acceptance summary. A Windows artifact-bearing release must carry the Windows summary; the release tag points to a later evidence-only commit to avoid a self-referential commit hash.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -123,6 +123,9 @@
         }
       }
     },
+    "windowsAcceptance": {
+      "$ref": "#/$defs/windowsAcceptance"
+    },
     "createdAtUtc": {
       "type": "string",
       "format": "date-time"
@@ -149,6 +152,116 @@
           "type": "string",
           "pattern": "^[a-f0-9]{64}$"
         }
+      }
+    },
+    "windowsAcceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schemaVersion",
+        "kind",
+        "tag",
+        "result",
+        "matrix",
+        "profile",
+        "producer",
+        "sessionId",
+        "sourceCommitSha",
+        "targetCavalryVersion",
+        "qtVersion",
+        "architecture",
+        "finalRecord",
+        "machineRecord",
+        "manualReview",
+        "sessionSentinel",
+        "sessionManifestSha256",
+        "installer",
+        "provenance",
+        "shippedDlls",
+        "runner"
+      ],
+      "properties": {
+        "schemaVersion": { "const": 1 },
+        "kind": { "const": "WindowsReleaseAcceptance" },
+        "tag": { "type": "string", "pattern": "^cavalry-2\\.7\\.2-p[0-9]+$" },
+        "result": { "type": "string", "pattern": "^PASS-[1-9][0-9]*-OF-[1-9][0-9]*$" },
+        "matrix": { "type": "string", "pattern": "^[1-9][0-9]*-screenshot/[1-9][0-9]*-point$" },
+        "profile": {
+          "enum": [
+            "windows-onboarding-v1",
+            "windows-adjacent-v1",
+            "windows-onboarding-adjacent-v1"
+          ]
+        },
+        "producer": { "const": "tools/windows-acceptance" },
+        "sessionId": { "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$" },
+        "sourceCommitSha": { "type": "string", "pattern": "^[a-f0-9]{40}$" },
+        "targetCavalryVersion": { "const": "2.7.2" },
+        "qtVersion": { "const": "6.6.3" },
+        "architecture": { "const": "x86_64" },
+        "finalRecord": { "$ref": "#/$defs/fileDigest" },
+        "machineRecord": { "$ref": "#/$defs/fileDigest" },
+        "manualReview": { "$ref": "#/$defs/fileDigest" },
+        "sessionSentinel": { "$ref": "#/$defs/fileDigest" },
+        "sessionManifestSha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+        "installer": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fileName", "bytes", "sha256"],
+          "properties": {
+            "fileName": { "type": "string", "pattern": "^[^\\/]+x64-setup\\.exe$" },
+            "bytes": { "type": "integer", "minimum": 1 },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["fileName", "bytes", "sha256"],
+          "properties": {
+            "fileName": { "type": "string", "pattern": "^[^\\/]+\\.provenance\\.json$" },
+            "bytes": { "type": "integer", "minimum": 1 },
+            "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
+          }
+        },
+        "shippedDlls": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["generic", "qpa"],
+          "properties": {
+            "generic": { "$ref": "#/$defs/windowsShippedDll" },
+            "qpa": { "$ref": "#/$defs/windowsShippedDll" }
+          }
+        },
+        "runner": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["os", "arch", "runnerOs", "runnerArch", "imageOs", "imageVersion", "node", "npm", "rustc", "cargo", "cmake", "powershell"],
+          "properties": {
+            "os": { "const": "win32" },
+            "arch": { "const": "x64" },
+            "runnerOs": { "type": "string", "minLength": 1 },
+            "runnerArch": { "type": "string", "minLength": 1 },
+            "imageOs": { "type": "string", "minLength": 1 },
+            "imageVersion": { "type": "string", "minLength": 1 },
+            "node": { "type": "string", "minLength": 1 },
+            "npm": { "type": "string", "minLength": 1 },
+            "rustc": { "type": "string", "minLength": 1 },
+            "cargo": { "type": "string", "minLength": 1 },
+            "cmake": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+            "powershell": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    },
+    "windowsShippedDll": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["relativePath", "bytes", "sha256"],
+      "properties": {
+        "relativePath": { "enum": ["injector/windows/generic/cavalryi18n.dll", "injector/windows/qpa/qwindows.dll"] },
+        "bytes": { "type": "integer", "minimum": 1 },
+        "sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" }
       }
     }
   }

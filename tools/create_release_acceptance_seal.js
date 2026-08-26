@@ -62,6 +62,9 @@ function main() {
   if (!tag || !evidencePath || !fs.existsSync(evidencePath)) fail('--tag and --evidence are required.');
   const evidenceFile = readRegularJson(evidencePath, 'Acceptance evidence');
   const evidence = validateEvidence(evidenceFile.value);
+  if (!evidence.windowsAcceptance) {
+    fail('Windows acceptance summary is required because the release seal declares a Windows artifact.');
+  }
   if (evidence.tag !== tag) fail(`Evidence tag ${evidence.tag} != ${tag}.`);
   if (path.basename(evidencePath) !== `${tag}.evidence.json`) {
     fail(`Acceptance evidence filename must be ${tag}.evidence.json.`);
@@ -78,6 +81,12 @@ function main() {
     x64: assetInfo(optionValue('--x64') || ''),
     windowsX64: assetInfo(optionValue('--windows-x64') || ''),
   };
+  if (
+    evidence.windowsAcceptance.installer.bytes !== assets.windowsX64.bytes ||
+    evidence.windowsAcceptance.installer.sha256 !== assets.windowsX64.sha256
+  ) {
+    fail('Windows acceptance installer identity does not match the final Windows release asset.');
+  }
   const acceptanceAttestation = sidecarInfo(optionValue('--acceptance-attestation') || '', 'Acceptance attestation');
   if (acceptanceAttestation.name !== `${tag}.acceptance-attestation.json`) fail('Acceptance attestation filename is invalid.');
   const supplyChain = {
@@ -107,6 +116,7 @@ function main() {
       sessionManifestSha256: evidence.macosAcceptance.sessionManifestSha256,
       finalRecordSha256: evidence.macosAcceptance.finalRecord.sha256,
       host: evidence.macosAcceptance.host,
+      windowsAcceptance: evidence.windowsAcceptance,
     },
     assets,
     supplyChain,

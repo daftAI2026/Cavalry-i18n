@@ -4,6 +4,7 @@
  * [POS]: src-tauri/tests/support 的 Adjacent 协议分片；消费 acceptance-only plugin 证据，不承载产品运行时代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+// Adjacent captures now retain the exact process/window identity for release inventory output.
     fn adjacent_oracle(language: &str, key: &str, stem: &str) -> Option<String> {
         let value = match (language, key) {
             ("zh-Hans", "tagAdd") => "添加标签：".to_string(),
@@ -333,6 +334,8 @@
         Ok(ScreenshotEvidence {
             language: language.to_string(),
             scenario: scenario.to_string(),
+            process_id: ready.pid,
+            window_handle: ready.target.window_handle.clone(),
             path: output.to_path_buf(),
             sha256: format!("{:x}", Sha256::digest(&sealed)),
             width,

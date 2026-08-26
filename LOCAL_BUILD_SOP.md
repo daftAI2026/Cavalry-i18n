@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Tauri 平台配置、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.2.0 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
+[OUTPUT]: 对外提供本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分开发机 ad-hoc 验证、CI PR 编译门与 tag 可发布产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -67,9 +67,12 @@ node tools/verify_source_artifact.js --check-repo --check-workflow
 
 ```bash
 SOURCE_COMMIT="$(git rev-parse HEAD)"
+# 该文件由 Windows review/producer 在同一 source commit 生成，且位于仓库外。
+WINDOWS_ACCEPTANCE_SUMMARY='<outside-session Windows acceptance summary.json>'
 node tools/create_release_acceptance_evidence.js \
   --tag cavalry-2.7.2-pN \
-  --session-dir "$SESSION_DIR"
+  --session-dir "$SESSION_DIR" \
+  --windows-acceptance "$WINDOWS_ACCEPTANCE_SUMMARY"
 
 # 候选仓库进程只准备 repo 外的 canonical payload；它不得看见或读取私钥。
 unset RELEASE_ACCEPTANCE_ATTESTATION_PRIVATE_KEY
@@ -180,6 +183,7 @@ Windows CI 和本地开发使用同一个显式平台构建入口：
 ```powershell
 npm run build:tauri:windows
 npm run test:tauri:windows-nsis
+npm run test:acceptance:windows:contract
 ```
 
 第一条命令是唯一 Windows 用户入口：先解析/准备 Qt 6.6.3 `msvc2019_64`，再由 `tauri.windows.conf.json` 的 build hook 通过 `injector/windows/build.ps1` 从当前翻译源重生成共享 C++ 表；build 脚本经 `tools/resolve_windows_cmake.js` 使用官方 CMake 4.2.0 pin，不读取 runner PATH，并完成 plugin configure/build/ctest，随后在真正 bundle 前执行 provenance prepare。CI 还会在双 DLL 构建成功后由 `tools/record_windows_toolchain_evidence.js` 记录 CMake 版本、release URL、archive SHA-256 和实际版本输出。prepare 只删除当前 `package.json` 版本推导出的预期 EXE、同名 sidecar 和受控 intent；任意其他 EXE 或 `.exe.provenance.json` 残留都会失败，不会泛删。随后按固定 `x86_64-pc-windows-msvc` target 生成 `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe`，并立即写入同名 `.exe.provenance.json`：它绑定安装器 SHA-256/长度与当前 renderer、languages、Windows Tauri/Rust/config/Cargo/build 输入、package manifests、Windows native 源码、共享 `cavalry_i18n_translation_policy.h`、生成翻译表及已打包 generic/QPA 双 DLL 的内容 fingerprint，不取 Git HEAD 或 mtime 代替输入事实；安装包记录后单独修改共享 policy 也必须使 verify 失败。
@@ -257,6 +261,17 @@ $env:CAVALRY_I18N_WINDOWS_LIVE_EVIDENCE_DIR = '<absolute disposable %TEMP% evide
 $env:CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH = '1'
 npm run test:tauri:manual-windows-live-smoke
 ```
+
+要把 Windows live 结果用于 release acceptance，Onboarding 或 Adjacent ignored runner 还必须显式设置 `CAVALRY_I18N_WINDOWS_RELEASE_TAG`、`CAVALRY_I18N_WINDOWS_RELEASE_INSTALLER`、`CAVALRY_I18N_WINDOWS_RELEASE_PROVENANCE`、`CAVALRY_I18N_WINDOWS_RELEASE_GENERIC_DLL` 与 `CAVALRY_I18N_WINDOWS_RELEASE_QPA_DLL`。清理和真实 workspace 守卫成功后，Rust runner 才会在该 TEMP 子目录写入 session sentinel、`windows-machine-record.json` 和每张 PNG 的 PID/HWND inventory；它不会写 review 或 PASS。随后逐张查看已有 PNG 并运行：
+
+```powershell
+node tools/windows-acceptance/review_windows_acceptance.js --tag cavalry-2.7.2-pN --session-dir '<TEMP live session>' --reviewer '<name>' --repo-root '<clean source checkout>'
+node tools/windows-acceptance/record_windows_acceptance.js --tag cavalry-2.7.2-pN --session-dir '<TEMP live session>' --repo-root '<clean source checkout>' --output '<outside session summary.json>'
+```
+
+reviewer 命令只确认已有截图，自动派生 `manual-review`/`final` 记录；producer 再复核 installer、provenance、generic/QPA digest、tag/source/session 和目标版本。`create_release_acceptance_evidence.js --windows-acceptance '<summary.json>'` 可把摘要加入 evidence；带 Windows x64 artifact 的 release 必须同时通过 `--require-windows`，否则 release seal fail-closed。
+
+Windows release acceptance producer：上述 ignored live gate 结束后，Windows runner 必须把本轮输出整理为带 `SESSION_SENTINEL_MAGIC` 的 session，并由 `tools/windows-acceptance/review_windows_acceptance.js` 从已有截图派生 review/final，再由 `tools/windows-acceptance/record_windows_acceptance.js` 复验 `windows-machine-record.json`、`windows-manual-review.json`、`windows-final-record.json`。合同支持三语 Onboarding 五点、Adjacent 三点或两者合并；每个点都绑定 exact PID/HWND inventory、最终安装后 generic/QPA SHA-256；同时复验最终 x64 NSIS、相邻 provenance sidecar 与 Cavalry 2.7.2 disposable clone。命令只接受 Windows x64、干净 source worktree 和已存在的输出以外路径，不接受 `--confirm-live-pass`、手写结果或复用缺少 TEMP sentinel 的会话。Windows acceptance summary 可选进入普通 evidence，但 release 一旦声明 Windows artifact 就必须存在，并由 evidence/seal 绑定同一 tag、source commit、session、installer 和 DLL digest。
 
 `CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1` 是明确的人工交互开关：每种语言的 Cavalry 窗口获得前台焦点后，helper 先记录同一 PID 的诊断基线并要求 `translatedSourceMask` bit 28 尚未置位；验收者再从“工具”菜单选择“齿轮”，在视口拖拽一次。helper 不猜快捷键、不发送鼠标坐标，也不使用 UIA；它只在真实 vendor 路径令 bit 28 置位，且 `revision`、`canonicalCalls`、`whitelistCalls`、`cjkPathSuccess` 均相对基线严格增长、`fallbackSourceMask=0`、`rendererFailure=0` 后截取 Cog Pitch PNG，并把基线与最终诊断一同写入证据 JSON。未设置该开关时仍只跑三类自动场景，不能据此声称 Pitch 已通过真机验收。
 

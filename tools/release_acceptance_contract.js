@@ -13,6 +13,10 @@ const zlib = require('node:zlib');
 const { spawnSync } = require('node:child_process');
 const { isDeepStrictEqual } = require('node:util');
 const { GUIDE_FILES, sourceEntries } = require('./macos-acceptance/source_contract');
+const {
+  toWindowsAcceptanceRecord,
+  validateWindowsAcceptanceRecord,
+} = require('./windows-acceptance/acceptance_contract');
 
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
 const SCENARIOS = Object.freeze([
@@ -932,21 +936,27 @@ function verifyAcceptanceSession(sessionInput, options = {}) {
   return summary;
 }
 
-function validateEvidence(evidence) {
+function validateEvidence(evidence, options = {}) {
+  const fields = [
+    'schemaVersion',
+    'kind',
+    'tag',
+    'sourceCommitSha',
+    'targetCavalryVersion',
+    'qtVersion',
+    'languages',
+    'macosAcceptance',
+    'createdAtUtc',
+    'createdBy',
+  ];
+  const hasWindowsAcceptance = Object.prototype.hasOwnProperty.call(evidence || {}, 'windowsAcceptance');
+  if (hasWindowsAcceptance) fields.splice(fields.length - 2, 0, 'windowsAcceptance');
+  if (options.requireWindows && !hasWindowsAcceptance) {
+    fail('Windows acceptance is required when the release declares a Windows artifact.');
+  }
   assertExactKeys(
     evidence,
-    [
-      'schemaVersion',
-      'kind',
-      'tag',
-      'sourceCommitSha',
-      'targetCavalryVersion',
-      'qtVersion',
-      'languages',
-      'macosAcceptance',
-      'createdAtUtc',
-      'createdBy',
-    ],
+    fields,
     'evidence'
   );
   if (evidence.schemaVersion !== 3 || evidence.kind !== 'ReleaseAcceptanceEvidence') {
@@ -999,6 +1009,15 @@ function validateEvidence(evidence) {
     typeof acceptance.host.productVersion !== 'string' || !/^\d+(?:\.\d+){1,2}$/.test(acceptance.host.productVersion) ||
     typeof acceptance.host.buildVersion !== 'string' || !/^\d{2}[A-Z][0-9A-Za-z]{1,15}$/.test(acceptance.host.buildVersion)
   ) fail('macosAcceptance.host is invalid.');
+  if (hasWindowsAcceptance) {
+    validateWindowsAcceptanceRecord(evidence.windowsAcceptance);
+    if (evidence.windowsAcceptance.tag !== evidence.tag) {
+      fail('Windows acceptance tag does not match evidence tag.');
+    }
+    if (evidence.windowsAcceptance.sourceCommitSha !== evidence.sourceCommitSha) {
+      fail('Windows acceptance source commit does not match evidence source commit.');
+    }
+  }
   const created = Date.parse(evidence.createdAtUtc);
   if (!Number.isFinite(created)) fail('createdAtUtc must be a valid timestamp.');
   assertString(evidence.createdBy, 'createdBy');
@@ -1031,9 +1050,18 @@ function assertEvidenceMatchesSession(evidence, summary) {
   }
 }
 
+function assertWindowsEvidenceMatchesSession(evidence, summary) {
+  if (!evidence.windowsAcceptance) fail('Evidence has no Windows acceptance summary.');
+  const expected = toWindowsAcceptanceRecord(summary);
+  if (!isDeepStrictEqual(evidence.windowsAcceptance, expected)) {
+    fail('Evidence Windows acceptance summary does not match the verified live session.');
+  }
+}
+
 module.exports = {
   LANGUAGES,
   assertEvidenceMatchesSession,
+  assertWindowsEvidenceMatchesSession,
   assertHex,
   sha256File,
   validateEvidence,

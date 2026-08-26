@@ -67,6 +67,9 @@ function main() {
   const seal = readRegular(sealPath, 'Release seal').value;
   const evidenceFile = readRegular(evidencePath, 'Acceptance evidence');
   const evidence = validateEvidence(evidenceFile.value);
+  if (!evidence.windowsAcceptance) {
+    fail('Windows acceptance summary is required because the seal declares assets.windowsX64.');
+  }
   if (path.basename(evidencePath) !== `${evidence.tag}.evidence.json`) {
     fail(`Acceptance evidence filename must be ${evidence.tag}.evidence.json.`);
   }
@@ -116,6 +119,7 @@ function main() {
     sessionManifestSha256: evidence.macosAcceptance.sessionManifestSha256,
     finalRecordSha256: evidence.macosAcceptance.finalRecord.sha256,
     host: evidence.macosAcceptance.host,
+    windowsAcceptance: evidence.windowsAcceptance,
   };
   if (JSON.stringify(binding) !== JSON.stringify(expectedBinding)) {
     fail('Seal acceptanceEvidence binding does not match the committed evidence file.');
@@ -129,6 +133,12 @@ function main() {
   const assetsDir = optionValue('--assets-dir');
   for (const key of ['aarch64', 'x64', 'windowsX64']) {
     verifyAsset(seal.assets?.[key], assetsDir ? path.resolve(assetsDir) : null, `assets.${key}`);
+  }
+  if (
+    seal.acceptanceEvidence.windowsAcceptance.installer.bytes !== seal.assets.windowsX64.bytes ||
+    seal.acceptanceEvidence.windowsAcceptance.installer.sha256 !== seal.assets.windowsX64.sha256
+  ) {
+    fail('Signed Windows acceptance installer identity does not match assets.windowsX64.');
   }
   const sidecarsDir = optionValue('--sidecars-dir') || assetsDir;
   verifyAsset(seal.supplyChain?.sbom, sidecarsDir ? path.resolve(sidecarsDir) : null, 'supplyChain.sbom');

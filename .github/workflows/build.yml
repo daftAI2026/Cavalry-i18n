@@ -61,7 +61,8 @@ jobs:
           node tools/verify_release_acceptance_evidence.js \
             --tag "$GITHUB_REF_NAME" \
             --release-commit "$GITHUB_SHA" \
-            --check-tag-topology
+            --check-tag-topology \
+            --require-windows
           node tools/verify_release_acceptance_attestation.js \
             --tag "$GITHUB_REF_NAME" \
             --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
@@ -881,7 +882,8 @@ jobs:
           node tools/verify_release_acceptance_evidence.js \
             --tag "$GITHUB_REF_NAME" \
             --release-commit "$GITHUB_SHA" \
-            --check-tag-topology
+            --check-tag-topology \
+            --require-windows
           node tools/verify_release_acceptance_attestation.js \
             --tag "$GITHUB_REF_NAME" \
             --evidence "$evidence" \

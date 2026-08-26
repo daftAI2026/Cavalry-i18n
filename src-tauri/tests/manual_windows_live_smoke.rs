@@ -4,6 +4,7 @@
  * [POS]: src-tauri/tests 的 Windows GUI 现场证据门；薄入口把捕获、Adjacent、编排与测试拆入 support include，三类门共享安全安装/恢复骨架但独立启动；Onboarding/Adjacent 不复制登录态，Adjacent 冻结双 stem fixture 并走真实 Drop/ContextMenu，证据完成后采用 WM_CLOSE 加同 PID/EXE ForceStop 兜底，不依赖 Qt UIA、坐标脚本或 Cancel
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+// Release acceptance output is machine-derived; the Rust runner never writes a PASS result.
 #[cfg(target_os = "windows")]
 #[path = "support/windows_disposable.rs"]
 mod windows_disposable;
@@ -21,6 +22,7 @@ mod windows_live_smoke {
         privilege::{CommandRunner, RealCommandRunner, RecordingRunner},
         state, windows_runtime,
     };
+    use chrono::Utc;
     use serde::Deserialize;
     use sha2::{Digest, Sha256};
     use std::{
@@ -31,6 +33,7 @@ mod windows_live_smoke {
         io::Write,
         panic::{catch_unwind, AssertUnwindSafe},
         path::{Path, PathBuf},
+        process::Command as ProcessBuilder,
         sync::mpsc,
         time::{Duration, Instant},
     };

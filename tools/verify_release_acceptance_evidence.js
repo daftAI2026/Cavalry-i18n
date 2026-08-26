@@ -12,10 +12,15 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const {
   assertEvidenceMatchesSession,
+  assertWindowsEvidenceMatchesSession,
   assertHex,
   validateEvidence,
   verifyAcceptanceSession,
 } = require('./release_acceptance_contract');
+const {
+  validateWindowsAcceptanceRecord,
+  verifyWindowsAcceptanceSession,
+} = require('./windows-acceptance/acceptance_contract');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
@@ -36,6 +41,11 @@ function readJson(file) {
   const stat = fs.lstatSync(file);
   if (!stat.isFile() || stat.isSymbolicLink()) fail(`Evidence must be a regular non-symlink file: ${file}.`);
   return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+
+function readRegularJson(file, label) {
+  const value = readJson(file);
+  return validateWindowsAcceptanceRecord(value);
 }
 
 function verifyTagTopology(evidence, evidencePath, releaseCommit) {
@@ -84,7 +94,8 @@ function main() {
   if (!tag || !evidencePath || !fs.existsSync(evidencePath)) {
     fail('Pass --tag and a present canonical release evidence file.');
   }
-  const evidence = validateEvidence(readJson(evidencePath));
+  const requireWindows = args.includes('--require-windows');
+  const evidence = validateEvidence(readJson(evidencePath), { requireWindows });
   if (evidence.tag !== tag) fail(`Evidence tag ${evidence.tag} != required ${tag}.`);
   const sourceCommit = optionValue('--source-commit');
   if (sourceCommit) {
@@ -96,6 +107,21 @@ function main() {
   const sessionDir = optionValue('--session-dir');
   if (sessionDir) {
     assertEvidenceMatchesSession(evidence, verifyAcceptanceSession(sessionDir, { repoRoot: rootDir }));
+  }
+  const windowsSummaryPath = optionValue('--windows-acceptance');
+  if (windowsSummaryPath) {
+    if (!evidence.windowsAcceptance) fail('Windows acceptance summary input was supplied but evidence has no Windows acceptance.');
+    const summary = readRegularJson(windowsSummaryPath, 'Windows acceptance summary');
+    if (JSON.stringify(summary) !== JSON.stringify(evidence.windowsAcceptance)) {
+      fail('Windows acceptance summary input does not match the evidence file.');
+    }
+  }
+  const windowsSessionDir = optionValue('--windows-session-dir');
+  if (windowsSessionDir) {
+    assertWindowsEvidenceMatchesSession(
+      evidence,
+      verifyWindowsAcceptanceSession(windowsSessionDir, { repoRoot: rootDir, expectedTag: tag })
+    );
   }
 
   const releaseCommit = (optionValue('--release-commit') || process.env.GITHUB_SHA || '').toLowerCase();
