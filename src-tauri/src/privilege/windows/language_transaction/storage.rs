@@ -1,13 +1,7 @@
-/*
- * [INPUT]: 依赖 worker 已解析的固定 source/destination、lowercase SHA-256 preimage 与 OS-known install root；复用 Windows reparse/containment 守卫。
- * [OUTPUT]: 提供非序列化 payload/preimage、跨 payload/QPA/final marker 的 durable backup journal、写前 postimage 授权、原始父目录重建、同句柄验写与 marker-last hash-aware rollback。
- * [POS]: language_transaction 的文件事务内核；manifest、路径、postimage 与目录恢复由窄协作者投影，本模块不解析 plan、不启动进程，未知当前哈希永不被事后认领或旧备份覆盖。
- * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
- */
 /**
- * [INPUT]: worker 已验证的 payload/preimage、install root containment、固定 journal 和 Windows 文件 I/O 原语。
- * [OUTPUT]: 提供 durable journal、postimage ownership、原子 staged payload 应用、目录恢复及 fail-closed rollback。
- * [POS]: language_transaction 的事务编排核心；在首次目标变更前持久化 ownership，并协调目标目录与 journal 临时成员的恢复。
+ * [INPUT]: 依赖 worker 已验证的固定 payload/preimage、lowercase SHA-256、OS-known install root containment、固定 journal 与 Windows reparse-safe 文件 I/O 原语。
+ * [OUTPUT]: 提供跨 payload/QPA/final marker 的 durable journal、写前 postimage ownership、原子 staged payload 应用、原始目录恢复及 marker-last fail-closed rollback。
+ * [POS]: language_transaction 的事务编排核心；首次目标变更前持久化 ownership，并协调目标目录、journal 临时成员与窄 manifest/path 协作者，不解析 plan、不启动进程。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{

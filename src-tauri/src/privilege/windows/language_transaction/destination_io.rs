@@ -1,13 +1,7 @@
-/*
- * [INPUT]: 依赖 Windows FileShare.None、FILE_FLAG_OPEN_REPARSE_POINT、SetFileInformationByHandle 与普通文件句柄；接收已由事务层完成路径授权的目标文件。
- * [OUTPUT]: 提供普通源文件的 no-share/reparse-safe 打开，以及目标文件单句柄 CAS、覆盖、权限恢复后 fsync、复核与 delete-on-close；文件从校验到消费期间不会重新按路径打开。
- * [POS]: language_transaction/storage 的 handle-bound I/O 原语；正向写入与回滚共用，消除校验后重开路径或跟随重解析点造成的竞态窗口。
- * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
- */
 /**
- * [INPUT]: 已验证的普通源文件、目标 CAS 句柄、事务 journal 固定临时路径，以及 Windows 原子发布 API。
+ * [INPUT]: 依赖 Windows no-share/reparse-safe 文件句柄、已验证的普通源文件与目标 CAS、事务 journal 固定临时路径，以及 ReplaceFileW/MoveFileExW 原子发布能力。
  * [OUTPUT]: 提供 no-share/reparse-safe 打开、完整写入并 fsync 的 staged overwrite、ReplaceFileW/MoveFileExW 发布、postcondition 复核和 handle-bound 删除。
- * [POS]: language_transaction/storage 的文件 I/O 边界；目标句柄保护 CAS，临时文件在发布前完成哈希与目录持久化，发布后立即重新取得独占句柄。
+ * [POS]: language_transaction/storage 的 handle-bound I/O 原语；正向写入与回滚共用，目标句柄保护 CAS，临时文件发布前完成哈希与目录持久化，发布后立即重新取得独占句柄。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{

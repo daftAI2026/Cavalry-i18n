@@ -1,16 +1,7 @@
-/*
- * [INPUT]: DurableJournal 的路径、preimage/postimage、权限与 phase；Windows lstat、路径
- * containment、FileShare 与目录句柄能力。
- * [OUTPUT]: 提供版本化严格 manifest 的 handle-bound 持久化、读取、校验、startup/apply 前恢复，以及
- * 文件和目录 fsync；state 是已发布权威代、state.tmp 是提交候选，双代分歧时只采用 state，避免恢复采纳未提交 postimage。
- * [POS]: language_transaction/storage 的崩溃恢复内核；storage 保持事务写入/CAS，本文
- * 件负责将内存所有权投影为可重建的磁盘真相。
- * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
- */
 /**
- * [INPUT]: DurableJournal entries、phase、owned postimages 和其固定 journal 成员。
- * [OUTPUT]: 提供版本化 manifest 的持久化/恢复，并在 recovery 前清理仅属于当前 journal 的 staged replacement。
- * [POS]: language_transaction 崩溃恢复语义边界；不采纳未提交 postimage，固定临时成员仍按路径协议 fail-closed。
+ * [INPUT]: 依赖 DurableJournal 的路径、preimage/postimage、权限、phase 与固定成员，以及 Windows lstat、containment、FileShare 和目录句柄能力。
+ * [OUTPUT]: 提供版本化严格 manifest 的 handle-bound 持久化、读取、校验、文件/目录 fsync 与 startup/apply 前恢复；recovery 先清理当前 journal 的 staged replacement，双代分歧只采用已发布 state。
+ * [POS]: language_transaction/storage 的崩溃恢复语义边界；将内存所有权投影为可重建的磁盘真相，不采纳未提交 postimage，固定临时成员仍按路径协议 fail-closed。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
