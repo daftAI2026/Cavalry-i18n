@@ -1,14 +1,16 @@
 /**
  * [INPUT]: 依赖 serde_json 与 state 目录，读取/写入 Tauri state.json；旧版本状态保持顶层 camelCase 兼容。
  * [OUTPUT]: 对外提供 State、严格 EnglishSnapshotProvenance、带 schema/generation/operationId 的 StateDocument、诊断读取、last-known-good 恢复、StateControlReport/StateControlError、typed commit outcome 与显式目录 durability reconfirm。
- * [POS]: src-tauri/src 的状态模块；state.json 是控制面事实，任何新状态都先落盘、fsync、保留 prev 后再原子切换，rename 后的耐久化问题只能投影为 committed warning，并由显式 retry 重新 fsync；控制 API 不丢 recovery_diagnostic 或 warning。
+ * [POS]: src-tauri/src 的状态模块；state.json 是控制面事实，任何新状态都先落盘、fsync、保留 prev 后再原子切换；Windows 以可写 handle 刷新普通文件，rename 后的耐久化问题只能投影为 committed warning，并由显式 retry 重新 fsync；控制 API 不丢 recovery_diagnostic 或 warning。
  * [FAIL-CLOSED]: 当前/last-known-good state 损坏、generation identity 未绑定 installRoot/immutableRevision、部分存在或非小写 SHA-256 时拒绝读写；调用方应消费 strict read、StateControlReport 与 StateCommitOutcome。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde::{Deserialize, Serialize};
+#[cfg(unix)]
+use std::fs::File;
 use std::{
     fmt,
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions},
     io::{self, Write},
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
@@ -830,14 +832,12 @@ fn preserve_file(source: &Path, temp: &Path, destination: &Path) -> Result<(), S
             temp.display()
         )
     })?;
-    File::open(temp)
-        .and_then(|file| file.sync_all())
-        .map_err(|error| {
-            format!(
-                "could not sync previous state temp {}: {error}",
-                temp.display()
-            )
-        })?;
+    sync_file(temp).map_err(|error| {
+        format!(
+            "could not sync previous state temp {}: {error}",
+            temp.display()
+        )
+    })?;
     if let Err(error) = atomic_replace(temp, destination) {
         let _ = fs::remove_file(temp);
         return Err(format!(
@@ -868,6 +868,17 @@ fn sync_directory(path: &Path) -> io::Result<()> {
     {
         let _ = path;
         Ok(())
+    }
+}
+
+fn sync_file(path: &Path) -> io::Result<()> {
+    #[cfg(windows)]
+    {
+        OpenOptions::new().write(true).open(path)?.sync_all()
+    }
+    #[cfg(not(windows))]
+    {
+        File::open(path)?.sync_all()
     }
 }
 
@@ -971,7 +982,7 @@ pub(crate) fn new_operation_id() -> String {
 #[cfg(test)]
 mod tests {
     use super::{
-        confirm_state_directory_durability_using, normalize, read_state_strict,
+        confirm_state_directory_durability_using, normalize, read_state_strict, sync_file,
         write_state_with_operation_using, DirectorySyncPoint, State, StateWriteOutcome,
         StateWriteWarning,
     };
@@ -984,6 +995,16 @@ mod tests {
             ..State::default()
         });
         assert_eq!(state.current_lang, "en");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_file_durability_uses_a_write_capable_handle() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("state-temp.json");
+        std::fs::write(&path, b"durable").unwrap();
+
+        sync_file(&path).expect("FlushFileBuffers requires a write-capable Windows handle");
     }
 
     #[test]
