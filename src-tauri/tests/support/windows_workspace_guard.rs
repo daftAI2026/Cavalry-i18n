@@ -49,6 +49,12 @@ fn write_new_json(path: &Path, value: &serde_json::Value, label: &str) -> Result
     write_new_bytes(path, &bytes, label)
 }
 
+fn set_read_only(path: &Path, read_only: bool) -> Result<(), std::io::Error> {
+    let mut permissions = fs::metadata(path)?.permissions();
+    permissions.set_readonly(read_only);
+    fs::set_permissions(path, permissions)
+}
+
 pub fn verify_live_clone_completeness(
     evidence_root: &GuardedTempRoot,
     run_root: &Path,
@@ -230,9 +236,7 @@ pub fn restore_real_workspace(snapshot: &RealWorkspaceSnapshot) -> Result<(), St
                 ));
             }
             if target_read_only == Some(true) {
-                if let Err(error) =
-                    fs::set_permissions(&snapshot.path, fs::Permissions::from_readonly(false))
-                {
+                if let Err(error) = set_read_only(&snapshot.path, false) {
                     let _ = fs::remove_file(&temporary);
                     return Err(format!(
                         "could not make real workspace writable for atomic restore {}: {error}",
@@ -243,8 +247,7 @@ pub fn restore_real_workspace(snapshot: &RealWorkspaceSnapshot) -> Result<(), St
             if let Err(error) = fs::rename(&temporary, &snapshot.path) {
                 let _ = fs::remove_file(&temporary);
                 if target_read_only == Some(true) {
-                    let _ =
-                        fs::set_permissions(&snapshot.path, fs::Permissions::from_readonly(true));
+                    let _ = set_read_only(&snapshot.path, true);
                 }
                 return Err(format!(
                     "could not atomically restore real Cavalry workspace {}: {error}",
@@ -264,13 +267,12 @@ pub fn restore_real_workspace(snapshot: &RealWorkspaceSnapshot) -> Result<(), St
                 ));
             }
             if let Some(read_only) = snapshot.read_only {
-                fs::set_permissions(&snapshot.path, fs::Permissions::from_readonly(read_only))
-                    .map_err(|error| {
-                        format!(
-                            "could not restore real Cavalry workspace permissions {}: {error}",
-                            snapshot.path.display()
-                        )
-                    })?;
+                set_read_only(&snapshot.path, read_only).map_err(|error| {
+                    format!(
+                        "could not restore real Cavalry workspace permissions {}: {error}",
+                        snapshot.path.display()
+                    )
+                })?;
             }
         }
         None => match current {
