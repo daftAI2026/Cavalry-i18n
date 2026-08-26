@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde 序列化和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供六命令名称、renderer 兼容 payload DTO、启动恢复显式阻断诊断、Action/Status 的 Windows reconciliationRequired 标记，以及可组合的稳定 errorCode/warningCodes 投影。
+ * [OUTPUT]: 提供六命令名称、renderer 兼容 payload DTO、启动恢复显式阻断诊断、Action/Status 的 Windows residue reconciliationRequired 检测标记，以及可组合的稳定 errorCode/warningCodes 投影。
  * [POS]: commands 的外部契约层；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

@@ -1,6 +1,6 @@
 /*
  * [INPUT]: 依赖 renderer/index.html 的固定 DOM/class 与本地系统字体。
- * [OUTPUT]: 定义单列卡片、原生 select、官方/受管安装态、独立 Windows reconciliation/官方还原按钮、状态/权限弹窗及响应式视觉。
+ * [OUTPUT]: 定义单列卡片、原生 select、官方/受管安装态、英文快照/恢复与官方还原按钮、状态/权限弹窗及响应式视觉。
  * [POS]: renderer 的唯一视觉样式源；不加载远程字体或其他网络资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -309,13 +309,11 @@ button.secondary:hover {
   flex: 1 1 0;
 }
 
-.reconcile-button,
 .restore-button {
   width: 100%;
   margin-top: 10px;
 }
 
-.reconcile-button[hidden],
 .restore-button[hidden] {
   display: none;
 }

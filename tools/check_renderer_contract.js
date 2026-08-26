@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、CSP 配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、local-only renderer 资源、无动态 HTML 注入、English UI/官方还原分离、Windows 独立 reconciliation、可组合 warningCodes、durability retry 及最小 bridge 表面。
+ * [OUTPUT]: 守住固定 DOM anchors、local-only renderer 资源、无动态 HTML 注入、English UI/官方还原分离、Windows 只读快照检测、英文恢复入口、可组合 warningCodes、durability retry 及最小 bridge 表面。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -27,13 +27,13 @@ function uiLocaleBodies(source) {
 
 const REQUIRED_IDS = [
   'appVersion', 'appPath', 'languageSectionLabel', 'currentLabel', 'currentLanguage',
-  'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'reconcileButton', 'restoreButton',
-  'permissionButton', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
+  'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton',
+  'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
   'modalSecondaryButton', 'modalCloseButton', 'statusText',
 ];
 
 const REQUIRED_API_METHODS = [
-  'getStatus', 'browseApp', 'extractEnglish', 'applyLanguage', 'reconcileEnglish', 'openPrivacySecurity',
+  'getStatus', 'browseApp', 'extractEnglish', 'applyLanguage', 'openPrivacySecurity',
 ];
 
 test('renderer retains DOM anchors and uses only local resources', () => {
@@ -50,10 +50,11 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.doesNotMatch(app, /\.innerHTML\s*=/, 'renderer must not interpolate backend data as HTML');
   assert.match(app, /document\.createElement\('option'\)/);
   assert.match(app, /option\.textContent\s*=/);
-  assert.match(app, /language\.value === 'en' \? t\('englishUi'\) : language\.label/);
+  assert.match(app, /if \(language\.value === 'en'\) continue/);
   assert.match(app, /runApply\('restore-official'\)/);
-  assert.match(app, /runReconciliation\(\)/);
-  assert.match(app, /reconciliationConfirmBody/);
+  assert.match(app, /showApplyConfirmation\('en'\)/);
+  assert.match(app, /restoreEnglishButton\.addEventListener/);
+  assert.match(app, /statusLabel\.textContent = t\('statusLabel'\)/);
   assert.match(app, /state\.installationMode === 'official'/);
   assert.match(bridge, /Object\.freeze\(\{/);
   assert.match(bridge, /LANGUAGE_MANIFEST/);
@@ -78,12 +79,9 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const styles = read('renderer/styles.css');
   assert.equal((app.match(/reinstallRequired:/g) || []).length, 4, 'all four UI locales must localize the reinstall route');
   const localeBodies = uiLocaleBodies(app);
-  for (const key of ['reconcileEnglish', 'reconciliationPending']) {
-    for (const body of localeBodies) {
-      assert.match(body, new RegExp(`^\\s{4}${key}:`, 'm'), `${key} missing from a locale`);
-    }
-  }
   for (const key of [
+    'restoreEnglish',
+    'statusLabel',
     'warningStateDurabilityPending',
     'warningRecoveryCleanupPending',
     'warningProtectedRecoveryEvidenceRetained',
@@ -92,13 +90,8 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'warningNonFatalCleanup',
     'appliedWithWarnings',
     'officialRestoreWithWarnings',
-    'reconciliationRequired',
-    'reconciliationPending',
-    'reconcilingEnglish',
-    'reconciliationConfirmTitle',
-    'reconciliationConfirmBody',
-    'reconciliationSuccess',
-    'reconciliationSuccessWithWarnings',
+    'runtimeResidueWarning',
+    'runtimeResidueAfterRefresh',
   ]) {
     for (const body of localeBodies) {
       assert.match(body, new RegExp(`^\\s{4}${key}:`, 'm'), `${key} missing from a locale`);
@@ -109,11 +102,14 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(app, /warningCodes\.includes\('stateDurabilityPending'\)/);
   assert.match(app, /browseButton\.disabled[\s\S]*durabilityPending/);
   assert.match(app, /extractButton\.disabled = isBusy \|\| state\.controlsBlocked \|\| reinstallRequired/);
+  assert.match(app, /restoreEnglishButton\.disabled[\s\S]*state\.needsExtract/);
+  assert.doesNotMatch(app, /reconcileEnglish|reconcileButton|runReconciliation|showReconciliation/);
+  assert.doesNotMatch(app, /state\.reconciliationRequired/, 'residue detection must not become renderer mutation state');
   assert.doesNotMatch(app, /result\.warning(?!Codes)/, 'app.js must never render backend warning prose');
   assert.match(bridge, /WARNING_CODE_MANIFEST/);
   assert.match(bridge, /warning:\s*null/);
   assert.match(bridge, /warningCodes:\s*Object\.freeze/);
+  assert.doesNotMatch(bridge, /reconcileEnglish/);
   assert.doesNotMatch(styles, /--text-muted/);
-  assert.match(styles, /\.reconcile-button,\s*\.restore-button[\s\S]*width:\s*100%/);
-  assert.match(styles, /\.reconcile-button\[hidden\],\s*\.restore-button\[hidden\]/);
+  assert.doesNotMatch(styles, /reconcile-button/);
 });

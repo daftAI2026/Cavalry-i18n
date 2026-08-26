@@ -4,8 +4,8 @@
 成员清单
 main.rs: 二进制入口；Windows 依次消费 same-EXE 提升事务、`--uninstall-restore-english` 与 `--launch-cavalry` 精确参数并返回明确退出码，其余进入 Tauri runtime。
 lib.rs: Tauri Builder 装配层，注册 6 个 command、公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
-bridge.rs: pre-page-load JS bridge 的 Rust include 真相源，创建 `window.cavalryI18n` 并映射到 Tauri invoke；合同执行 Builder 实际消费的脚本，但不冒充 packaged WebView/CSP 现场门。
-commands.rs: renderer API facade；仅保留六条稳定 Tauri command、camelCase DTO 和兼容测试 seam；`extract_english` 只生成 English snapshot 并以 `reconciliationRequired` 标记待确认的 Windows runtime 修复，`get_status` 从安装现实重算该 typed 状态以便重启后恢复，`apply_language` 持有单一 operation lock 完成写入及重启，并在返回前将内部 warning prose 收敛为可组合 warningCodes；状态、快照与平台业务下沉至 `commands/`。
+bridge.rs: pre-page-load JS bridge 的 Rust include 真相源，创建 `window.cavalryI18n` 并映射到 Tauri invoke；合同执行 Builder 实际消费的脚本，保留 Windows residue typed 检测但不提供独立 reconcile API，不冒充 packaged WebView/CSP 现场门。
+commands.rs: renderer API facade；仅保留六条稳定 Tauri command、camelCase DTO 和兼容测试 seam；`extract_english` 只生成 English snapshot 并以 `reconciliationRequired` 标记 Windows runtime residue，`get_status` 从安装现实重算该 typed 状态，`apply_language` 持有单一 operation lock 完成包括 English 恢复在内的写入及重启，并在返回前将内部 warning prose 收敛为可组合 warningCodes；状态、快照与平台业务下沉至 `commands/`。
 commands/: command 领域模块图；apply/context/contract/restart/snapshot/status 各自只承担一个变化理由，tests/ 按基础契约与运行时领域拆分。
 install.rs: 跨平台安装模型，将 Cavalry.app、Cavalry.exe 或任意安装目录统一为 root/executable/assets/marker；兼容发现保留宽松入口，verified 入口先 canonicalize 并拒绝 symlink bundle/关键文件，并提供逐组件 lstat 的相对路径安全 helper。
 headless_launch.rs: Windows `--launch-cavalry` 原生快速入口；持有共享 operation lock，读取 state，校验 revision/marker/QPA ACTIVE/plugin 后以空参数启动 vendor EXE。

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、稳定 errorCode、可组合 warningCodes、reconciliationRequired 与 camelCase JSON shape contract tests
- * [POS]: src-tauri/tests 的 renderer API 守门，保持六命令和旧字段兼容，并显式暴露平台差异、可本土化错误、非致命清理 codes 与待确认的 Windows runtime reconciliation
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、稳定 errorCode、可组合 warningCodes、Windows residue reconciliationRequired 与 camelCase JSON shape contract tests
+ * [POS]: src-tauri/tests 的 renderer API 守门，保持六命令和旧字段兼容，并显式暴露平台差异、可本土化错误、非致命清理 codes 与只读 Windows runtime residue 检测
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::commands::{registered_command_names, ActionPayload, StatusPayload};
