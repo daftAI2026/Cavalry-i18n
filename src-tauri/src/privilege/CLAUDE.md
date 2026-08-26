@@ -8,7 +8,7 @@ restart.rs: 受控进程关闭/重启边界；macOS 使用 open/osascript；Wind
 runner.rs: CommandRunner 抽象及真实/记录实现；将系统进程副作用隔离为可审计、可替换的命令端口，Windows captured helper 统一附加 `CREATE_NO_WINDOW`。
 tests.rs: privilege owner unit tests；验证 direct rollback、typed cleanup warning、legacy CopyOutcome 投影和 Windows 0/42/43/44/45 事务状态。
 macos/: macOS durable apply transaction、bundle 维护与 exact-PID 适配器；承担 fd-bound copy/restore、首次 launch gate、codesign、quarantine 与 Privacy & Security 入口。
-windows/: Windows Known Folder/UAC 适配器；Program Files 完整语言切换使用 same-EXE、hash-locked plan 与 durable journal，旧 PowerShell manifest 仅保留兼容 copy fallback。
+windows/: Windows Known Folder/UAC 适配器；Program Files 完整语言切换使用 same-EXE、hash-locked plan 与 durable journal，English Noop 前先查询 pending journal，启动恢复只消费持久化所选安装根并以 typed uncertainty 阻止未证明的新 apply；旧 PowerShell manifest 仅保留兼容 copy fallback。
 
 法则: facade 不包含平台业务；事务失败优先恢复，已提交后的清理残留只能以稳定结构化诊断向上报告。
 

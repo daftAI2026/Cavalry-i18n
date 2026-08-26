@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读发现命令和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 typed 写入前 graceful close、有界 macOS 签名/只读 seal 验证、Windows 提升 worker 早期分流，并向 crate 内提供无控制台 captured command。
- * [POS]: src-tauri/src 的系统命令 facade；平台安全、提升事务与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 typed 写入前 graceful close、有界 macOS 签名/只读 seal 验证、Windows 提升 worker 早期分流，并向启动/应用调用方暴露所选安装根 pending journal 的只读查询、恢复与清理证明。
+ * [POS]: src-tauri/src 的跨平台系统命令 facade；平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod copy_transaction;
@@ -17,6 +17,9 @@ mod tests;
 mod windows;
 
 use std::path::{Path, PathBuf};
+
+#[cfg(target_os = "windows")]
+use std::time::Duration;
 
 pub use copy_transaction::{copy_with_privilege, CopyOutcome};
 pub use keychain::{
@@ -52,6 +55,13 @@ pub(crate) use windows::language_transaction::parent::{
     apply_if_program_files as apply_windows_program_files_language, ParentApplyError,
     ParentApplyOutcome, ParentApplyRequest,
 };
+
+#[cfg(target_os = "windows")]
+pub(crate) fn has_pending_windows_language_transaction(
+    install_root: &Path,
+) -> Result<bool, String> {
+    windows::language_transaction::storage::has_pending(install_root)
+}
 
 #[cfg(target_os = "windows")]
 pub(crate) fn dispatch_elevated_language_worker_current_process() -> Option<u32> {
@@ -192,4 +202,106 @@ pub(crate) fn finalize_verified_macos_apply_recovery(
     app_path: &Path,
 ) -> Result<(), String> {
     macos::apply_transaction::finalize_recovered(state_dir, app_path)
+}
+
+#[cfg(target_os = "windows")]
+pub(crate) fn recover_windows_language_transactions<R: CommandRunner>(
+    state_dir: &Path,
+    runner: &mut R,
+) -> Result<(), String> {
+    // 先用持久化 state 找到唯一受信安装根；没有已保存安装时不扫描任意磁盘目录。
+    if pending_windows_language_install_root(state_dir)?.is_none() {
+        return Ok(());
+    }
+    let _operation_guard = match crate::operation_lock::wait_begin_bundle_operation(
+        state_dir,
+        Duration::from_secs(15),
+    ) {
+        Ok(guard) => guard,
+        Err(error) if error == crate::operation_lock::BUSY_ERROR => return Ok(()),
+        Err(error) => return Err(error),
+    };
+
+    // 另一个 Switcher 可能已经完成了 journal；锁定后必须重新读取 state 和 journal。
+    let Some(install_root) = pending_windows_language_install_root(state_dir)? else {
+        return Ok(());
+    };
+    match close_cavalry_before_modification(&install_root, runner) {
+        Ok(()) => {}
+        Err(CloseCavalryError::StillRunning) => {
+            return Err(
+                "WINDOWS_RECOVERY_CAVALRY_STILL_RUNNING: Cavalry must exit before recovery."
+                    .to_string(),
+            )
+        }
+        Err(CloseCavalryError::Command(error)) => {
+            return Err(format!(
+                "WINDOWS_RECOVERY_CLOSE_FAILED: could not close Cavalry before recovery: {error}"
+            ))
+        }
+    }
+
+    windows::language_transaction::storage::recover_pending(&install_root)?;
+    if windows::language_transaction::storage::has_pending(&install_root)? {
+        return Err(
+            "WINDOWS_RECOVERY_UNCERTAIN: durable language journal remains after recovery."
+                .to_string(),
+        );
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn pending_windows_language_install_root(state_dir: &Path) -> Result<Option<PathBuf>, String> {
+    let report = match crate::state::read_state_with_recovery(state_dir) {
+        Ok(report) => report,
+        Err(error) if state_read_error_is_missing(&error) => return Ok(None),
+        Err(error) => {
+            return Err(format!(
+                "WINDOWS_RECOVERY_STATE_UNCERTAIN: could not load saved install state: {error}"
+            ))
+        }
+    };
+    let selected = report.document.state.app_path;
+    if selected.trim().is_empty() {
+        return Ok(None);
+    }
+    let layout = crate::install::InstallLayout::from_verified_selection(Path::new(&selected))?;
+    if layout.platform != crate::install::InstallPlatform::Windows {
+        return Ok(None);
+    }
+    match std::fs::symlink_metadata(&layout.root) {
+        Ok(metadata) if metadata.is_dir() => {}
+        Ok(_) => {
+            return Err(
+                "WINDOWS_RECOVERY_ROOT_UNCERTAIN: saved install root is not an ordinary directory."
+                    .to_string(),
+            )
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
+        Err(error) => {
+            return Err(format!(
+                "WINDOWS_RECOVERY_ROOT_UNCERTAIN: could not inspect saved install root: {error}"
+            ))
+        }
+    }
+    if windows::language_transaction::storage::has_pending(&layout.root)? {
+        Ok(Some(layout.root))
+    } else {
+        Ok(None)
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn state_read_error_is_missing(error: &crate::state::StateReadError) -> bool {
+    let crate::state::StateReadError::RecoveryFailed { current, previous } = error else {
+        return false;
+    };
+    matches!(
+        (current.as_ref(), previous.as_ref()),
+        (
+            crate::state::StateReadError::Missing { .. },
+            crate::state::StateReadError::Missing { .. }
+        )
+    )
 }

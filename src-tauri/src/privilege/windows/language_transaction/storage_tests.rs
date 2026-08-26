@@ -1,12 +1,13 @@
 /**
  * [INPUT]: 依赖 storage/destination_io 的 tempfile-free 测试 seam、真实 Windows FileShare.None 与文件系统。
- * [OUTPUT]: 证明目标 CAS 至写入/删除保持同一独占句柄、pending 标记最后回滚、未知 QPA postimage 保留、未知 journal 成员拒绝删除，以及 nonce journal 精确非递归清理。
- * [POS]: language_transaction/storage 的 Windows 单元合同；只修改当前用户 TEMP 下的隔离夹具。
+ * [OUTPUT]: 证明目标 CAS 至写入/删除保持同一独占句柄，并覆盖 prepare、apply-N、marker commit、rollback、cleanup、缺失 existing target 与篡改阻断等崩溃点；未知 postimage/成员/路径/摘要一律 fail closed。
+ * [POS]: language_transaction/storage 的 Windows durable recovery 单元合同；只修改当前用户 TEMP 下的隔离夹具，不接触真实安装。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{
-    destination_io::LockedDestination, lower_hex, CommitCleanup, DurableJournal, ResolvedPayload,
-    ResolvedPreimage, RollbackOutcome, JOURNAL_PREFIX,
+    destination_io::LockedDestination, lower_hex, recover_pending, CommitCleanup, DurableJournal,
+    JournalPhase, RecoveryOutcome, ResolvedPayload, ResolvedPreimage, RollbackOutcome,
+    JOURNAL_PREFIX,
 };
 use sha2::{Digest, Sha256};
 use std::{
@@ -61,6 +62,363 @@ fn payload(source: &Path, destination: &Path, original: Option<&[u8]>) -> Resolv
 
 fn nonce(character: char) -> String {
     character.to_string().repeat(64)
+}
+
+#[test]
+fn journal_state_persists_versioned_entry_provenance() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("translated.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"official");
+
+    let journal = DurableJournal::prepare(
+        &root,
+        &nonce('0'),
+        std::slice::from_ref(&payload(&source, &destination, Some(b"official"))),
+        &[],
+    )
+    .unwrap();
+    let state = fs::read_to_string(journal.journal_root().join("journal.state")).unwrap();
+    let manifest: serde_json::Value = serde_json::from_str(&state)
+        .expect("durable journal state must be a versioned JSON manifest");
+    let entry = &manifest["entries"][0];
+
+    assert_eq!(manifest["schemaVersion"], 2);
+    assert_eq!(manifest["phase"], "prepared");
+    assert_eq!(manifest["installRoot"], root.to_string_lossy().as_ref());
+    assert_eq!(entry["destination"], destination.to_string_lossy().as_ref());
+    assert_eq!(entry["preimageSha256"], hash(b"official"));
+    assert!(entry["postimageSha256"].is_array());
+    assert!(entry["backup"].as_str().is_some());
+    assert!(entry["permission"].is_object());
+}
+
+#[test]
+fn startup_recovery_rolls_back_a_prepared_journal_after_crash() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let marker_source = temp.0.join("marker.pending");
+    let source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let destination = root.join("assets/value.json");
+    write(&marker_source, b"pending\n");
+    write(&source, b"translated");
+    write(&marker, b"en\n");
+    write(&destination, b"official");
+    let marker_payload = payload(&marker_source, &marker, Some(b"en\n"));
+    let asset_payload = payload(&source, &destination, Some(b"official"));
+    let journal =
+        DurableJournal::prepare(&root, &nonce('6'), &[marker_payload, asset_payload], &[]).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+
+    let manifest: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(journal_root.join("journal.state")).unwrap())
+            .unwrap();
+    assert_eq!(manifest["phase"], "prepared");
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&destination).unwrap(), b"official");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_accepts_a_complete_temporary_manifest_after_publish_crash() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let marker_source = temp.0.join("marker.pending");
+    let asset_source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let asset = root.join("assets/value.json");
+    write(&marker_source, b"pending\n");
+    write(&asset_source, b"translated");
+    write(&marker, b"en\n");
+    write(&asset, b"official");
+    let marker_payload = payload(&marker_source, &marker, Some(b"en\n"));
+    let asset_payload = payload(&asset_source, &asset, Some(b"official"));
+    let journal =
+        DurableJournal::prepare(&root, &nonce('5'), &[marker_payload, asset_payload], &[]).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    fs::rename(
+        journal_root.join("journal.state"),
+        journal_root.join("journal.state.tmp"),
+    )
+    .unwrap();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&marker).unwrap(), b"en\n");
+    assert_eq!(fs::read(&asset).unwrap(), b"official");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_blocks_disagreeing_manifest_generations() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let marker_source = temp.0.join("marker.pending");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    write(&marker_source, b"pending\n");
+    write(&marker, b"en\n");
+    let marker_payload = payload(&marker_source, &marker, Some(b"en\n"));
+    let journal = DurableJournal::prepare(
+        &root,
+        &nonce('4'),
+        std::slice::from_ref(&marker_payload),
+        &[],
+    )
+    .unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    let mut different = fs::read(journal_root.join("journal.state")).unwrap();
+    different.extend_from_slice(b"\n");
+    fs::write(journal_root.join("journal.state.tmp"), different).unwrap();
+    std::mem::forget(journal);
+
+    let error = recover_pending(&root).unwrap_err();
+    assert!(error.contains("disagree"));
+    assert!(journal_root.exists());
+    assert_eq!(fs::read(&marker).unwrap(), b"en\n");
+}
+
+#[test]
+fn startup_recovery_rolls_back_after_an_interrupted_apply_n() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let marker_source = temp.0.join("marker.pending");
+    let first_source = temp.0.join("first.next");
+    let second_source = temp.0.join("second.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let first = root.join("assets/first.json");
+    let second = root.join("assets/second.json");
+    write(&marker_source, b"pending\n");
+    write(&first_source, b"first-translated");
+    write(&second_source, b"second-translated");
+    write(&marker, b"en\n");
+    write(&first, b"first-official");
+    write(&second, b"second-official");
+    let marker_payload = payload(&marker_source, &marker, Some(b"en\n"));
+    let first_payload = payload(&first_source, &first, Some(b"first-official"));
+    let second_payload = payload(&second_source, &second, Some(b"second-official"));
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('7'),
+        &[
+            marker_payload.clone(),
+            first_payload.clone(),
+            second_payload.clone(),
+        ],
+        &[],
+    )
+    .unwrap();
+    journal.apply_payload(&marker_payload).unwrap();
+    journal.apply_payload(&first_payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&marker).unwrap(), b"en\n");
+    assert_eq!(fs::read(&first).unwrap(), b"first-official");
+    assert_eq!(fs::read(&second).unwrap(), b"second-official");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_removes_directories_created_after_their_manifest_entry() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let marker_source = temp.0.join("marker.pending");
+    let asset_source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let asset = root.join("new/deep/value.json");
+    let created_parent = root.join("new");
+    write(&marker_source, b"pending\n");
+    write(&asset_source, b"translated");
+    write(&marker, b"en\n");
+    let marker_payload = payload(&marker_source, &marker, Some(b"en\n"));
+    let asset_payload = payload(&asset_source, &asset, None);
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('d'),
+        &[marker_payload.clone(), asset_payload.clone()],
+        &[],
+    )
+    .unwrap();
+    journal.apply_payload(&marker_payload).unwrap();
+    journal.apply_payload(&asset_payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    assert!(asset.is_file());
+    assert!(created_parent.is_dir());
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&marker).unwrap(), b"en\n");
+    assert!(!asset.exists());
+    assert!(!created_parent.exists());
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_rolls_back_an_interrupted_marker_commit() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let pending_source = temp.0.join("marker.pending");
+    let final_source = temp.0.join("marker.final");
+    let asset_source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let asset = root.join("assets/value.json");
+    write(&pending_source, b"pending\n");
+    write(&final_source, b"zh-Hans\n");
+    write(&asset_source, b"translated");
+    write(&marker, b"en\n");
+    write(&asset, b"official");
+    let pending = payload(&pending_source, &marker, Some(b"en\n"));
+    let asset_payload = payload(&asset_source, &asset, Some(b"official"));
+    let final_marker = payload(&final_source, &marker, Some(b"pending\n"));
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('8'),
+        &[pending.clone(), asset_payload.clone(), final_marker.clone()],
+        &[],
+    )
+    .unwrap();
+    journal.apply_payload(&pending).unwrap();
+    journal.apply_payload(&asset_payload).unwrap();
+    journal.apply_transition_payload(&final_marker).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&marker).unwrap(), b"en\n");
+    assert_eq!(fs::read(&asset).unwrap(), b"official");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_replays_a_rolling_back_journal_after_crash() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let marker_source = temp.0.join("marker.pending");
+    let asset_source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let asset = root.join("assets/value.json");
+    write(&marker_source, b"pending\n");
+    write(&asset_source, b"translated");
+    write(&marker, b"en\n");
+    write(&asset, b"official");
+    let pending = payload(&marker_source, &marker, Some(b"en\n"));
+    let asset_payload = payload(&asset_source, &asset, Some(b"official"));
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('9'),
+        &[pending.clone(), asset_payload.clone()],
+        &[],
+    )
+    .unwrap();
+    journal.apply_payload(&pending).unwrap();
+    journal.apply_payload(&asset_payload).unwrap();
+    journal.persist_manifest(JournalPhase::RollingBack).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&marker).unwrap(), b"en\n");
+    assert_eq!(fs::read(&asset).unwrap(), b"official");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_finishes_committed_cleanup_after_backup_delete_crash() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("asset.next");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"official");
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('a'),
+        std::slice::from_ref(&payload(&source, &destination, Some(b"official"))),
+        &[],
+    )
+    .unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    let backup = journal_root.join("0.preimage");
+    let payload = payload(&source, &destination, Some(b"official"));
+    journal.apply_payload(&payload).unwrap();
+    journal.persist_manifest(JournalPhase::Committed).unwrap();
+    fs::remove_file(backup).unwrap();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::Completed);
+    assert_eq!(fs::read(&destination).unwrap(), b"translated");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_blocks_an_unknown_hash_and_retains_the_journal() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let marker_source = temp.0.join("marker.pending");
+    let asset_source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let asset = root.join("assets/value.json");
+    write(&marker_source, b"pending\n");
+    write(&asset_source, b"translated");
+    write(&marker, b"en\n");
+    write(&asset, b"official");
+    let marker_payload = payload(&marker_source, &marker, Some(b"en\n"));
+    let asset_payload = payload(&asset_source, &asset, Some(b"official"));
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('b'),
+        &[marker_payload.clone(), asset_payload.clone()],
+        &[],
+    )
+    .unwrap();
+    journal.apply_payload(&marker_payload).unwrap();
+    journal.apply_payload(&asset_payload).unwrap();
+    fs::write(&asset, b"unknown-third-party").unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    std::mem::forget(journal);
+
+    let error = recover_pending(&root).unwrap_err();
+    assert!(error.contains("uncertain"));
+    assert_eq!(fs::read(&asset).unwrap(), b"unknown-third-party");
+    assert!(journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_blocks_a_tampered_manifest_path() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("asset.next");
+    let destination = root.join("assets/value.json");
+    let outside = temp.0.join("outside.txt");
+    write(&source, b"translated");
+    write(&destination, b"official");
+    write(&outside, b"must remain untouched");
+    let journal = DurableJournal::prepare(
+        &root,
+        &nonce('c'),
+        std::slice::from_ref(&payload(&source, &destination, Some(b"official"))),
+        &[],
+    )
+    .unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    std::mem::forget(journal);
+    let state_path = journal_root.join("journal.state");
+    let mut manifest: serde_json::Value =
+        serde_json::from_str(&fs::read_to_string(&state_path).unwrap()).unwrap();
+    manifest["entries"][0]["destination"] =
+        serde_json::Value::String(outside.to_string_lossy().to_string());
+    fs::write(&state_path, serde_json::to_vec_pretty(&manifest).unwrap()).unwrap();
+
+    let error = recover_pending(&root).unwrap_err();
+    assert!(error.contains("escaped") || error.contains("install root"));
+    assert_eq!(fs::read(&outside).unwrap(), b"must remain untouched");
+    assert!(journal_root.exists());
 }
 
 #[test]
@@ -136,6 +494,29 @@ fn destination_drift_is_rechecked_immediately_before_write() {
     assert_eq!(fs::read(&destination).unwrap(), b"external-drift");
     assert!(matches!(journal.rollback(), RollbackOutcome::Uncertain(_)));
     assert_eq!(fs::read(&destination).unwrap(), b"external-drift");
+}
+
+#[test]
+fn rollback_missing_existing_target_never_creates_an_empty_file() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("staged.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('9'), std::slice::from_ref(&payload), &[]).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    journal.apply_payload(&payload).unwrap();
+    fs::remove_file(&destination).unwrap();
+
+    assert!(matches!(journal.rollback(), RollbackOutcome::Uncertain(_)));
+    assert!(
+        !destination.exists(),
+        "missing expected-existing target must remain missing instead of becoming an empty file"
+    );
+    assert!(journal_root.is_dir());
 }
 
 #[test]

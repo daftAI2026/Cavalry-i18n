@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 Windows FileShare.None、FILE_FLAG_OPEN_REPARSE_POINT、SetFileInformationByHandle 与普通文件句柄；接收已由事务层完成路径授权的目标文件。
- * [OUTPUT]: 提供目标文件单句柄 CAS、覆盖、复核与 delete-on-close；目标从校验到变更期间不会重新按路径打开。
- * [POS]: language_transaction/storage 的目标 I/O 原语；正向写入与回滚共用，消除校验后重开路径造成的并发替换窗口。
+ * [OUTPUT]: 提供普通源文件的 no-share/reparse-safe 打开，以及目标文件单句柄 CAS、覆盖、权限恢复后 fsync、复核与 delete-on-close；文件从校验到消费期间不会重新按路径打开。
+ * [POS]: language_transaction/storage 的 handle-bound I/O 原语；正向写入与回滚共用，消除校验后重开路径或跟随重解析点造成的竞态窗口。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -21,6 +21,33 @@ use windows::Win32::{
 };
 
 use super::super::super::known_folders::metadata_is_reparse_point;
+
+pub(super) fn open_exclusive_ordinary_file(path: &Path, role: &str) -> Result<fs::File, String> {
+    let file = fs::OpenOptions::new()
+        .read(true)
+        .share_mode(0)
+        .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT.0)
+        .open(path)
+        .map_err(|error| {
+            format!(
+                "Could not exclusively open {role} {}: {error}",
+                path.display()
+            )
+        })?;
+    let metadata = file.metadata().map_err(|error| {
+        format!(
+            "Could not inspect opened {role} {}: {error}",
+            path.display()
+        )
+    })?;
+    if !metadata.is_file() || metadata_is_reparse_point(&metadata) {
+        return Err(format!(
+            "Refusing non-file or reparse {role}: {}",
+            path.display()
+        ));
+    }
+    Ok(file)
+}
 
 #[derive(Debug)]
 pub(super) struct MutationResult {
@@ -177,7 +204,13 @@ impl LockedDestination {
                         "Could not preserve permissions on {}: {error}",
                         self.path.display()
                     )
-                })
+                })?;
+            self.file.sync_all().map_err(|error| {
+                format!(
+                    "Could not persist permissions on {}: {error}",
+                    self.path.display()
+                )
+            })
         })();
         let observed = hash_open_file(&mut self.file, &self.path);
         match (mutation, observed) {

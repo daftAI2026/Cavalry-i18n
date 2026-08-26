@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖事务派生的 install root、nonce journal root 与已知 entry 数量，复用 Windows 路径 containment 和 reparse 检查。
- * [OUTPUT]: 提供有界 journal 成员枚举与精确非递归删除；未知成员、目录、重解析点或越界路径一律拒绝清理。
+ * [OUTPUT]: 提供有界 journal 成员枚举与 handle-bound 精确非递归删除；只识别双代 manifest 与固定 preimage 成员，每次删除后同步目录，未知成员、目录、重解析点或越界路径一律拒绝清理。
  * [POS]: language_transaction/storage 的最小清理内核；只删除本事务能证明拥有的固定文件，不参与 payload 写入或回滚决策。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,12 +11,13 @@ use std::{
     path::{Path, PathBuf},
 };
 
-use super::{JOURNAL_PREFIX, JOURNAL_STATE_FILE};
+use super::destination_io::LockedDestination;
+use super::{sync_directory, JOURNAL_PREFIX, JOURNAL_STATE_FILE, JOURNAL_STATE_TEMP_FILE};
 use crate::privilege::windows::known_folders::{metadata_is_reparse_point, path_is_within};
 
 const MAX_JOURNAL_ENTRIES: usize = 8192;
 
-pub(super) fn inspect_journal_root(
+pub(crate) fn inspect_journal_root(
     install_root: &Path,
     journal_root: &Path,
     entry_count: usize,
@@ -39,8 +40,9 @@ pub(super) fn inspect_journal_root(
         return Err("Journal cleanup target is not an ordinary directory.".to_string());
     }
 
-    let mut allowed = HashSet::<OsString>::with_capacity(entry_count + 1);
+    let mut allowed = HashSet::<OsString>::with_capacity(entry_count + 2);
     allowed.insert(OsString::from(JOURNAL_STATE_FILE));
+    allowed.insert(OsString::from(JOURNAL_STATE_TEMP_FILE));
     for index in 0..entry_count {
         allowed.insert(OsString::from(format!("{index}.preimage")));
     }
@@ -73,7 +75,7 @@ pub(super) fn inspect_journal_root(
     Ok(members)
 }
 
-pub(super) fn remove_journal_root(
+pub(crate) fn remove_journal_root(
     install_root: &Path,
     journal_root: &Path,
     entry_count: usize,
@@ -86,34 +88,18 @@ pub(super) fn remove_journal_root(
         if !ordinary_journal_root_exists(install_root, journal_root)? {
             return Err("Journal disappeared while owned members were being removed.".to_string());
         }
-        match fs::symlink_metadata(&member) {
-            Ok(metadata) if metadata.is_file() && !metadata_is_reparse_point(&metadata) => {}
-            Ok(_) => {
-                return Err(format!(
-                    "Owned journal member changed type before removal: {}",
-                    member.display()
-                ))
-            }
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
-            Err(error) => {
-                return Err(format!(
-                    "Could not re-inspect owned journal member {}: {error}",
-                    member.display()
-                ))
-            }
-        }
-        fs::remove_file(&member).map_err(|error| {
-            format!(
-                "Could not remove owned journal member {}: {error}",
-                member.display()
-            )
-        })?;
+        let Some(locked) = LockedDestination::open_existing_for_delete(&member)? else {
+            continue;
+        };
+        locked.delete_on_close()?;
+        sync_directory(journal_root)?;
     }
     if !ordinary_journal_root_exists(install_root, journal_root)? {
         return Err("Journal disappeared before its final directory removal.".to_string());
     }
     fs::remove_dir(journal_root)
-        .map_err(|error| format!("Could not remove empty durable journal: {error}"))
+        .map_err(|error| format!("Could not remove empty durable journal: {error}"))?;
+    sync_directory(install_root)
 }
 
 fn ordinary_journal_root_exists(install_root: &Path, journal_root: &Path) -> Result<bool, String> {

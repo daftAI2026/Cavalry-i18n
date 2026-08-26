@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 OS-known Program Files、固定 JSON 映射、Windows runtime 打包源、QPA transition 合同与 same-EXE RunAs launcher。
- * [OUTPUT]: 提供 Program Files 早分流、严格 payload staging、English cleanup 的当前 generic 所有权输入、已证明 Noop 快路与单次 UAC typed 结果。
+ * [OUTPUT]: 提供 Program Files 早分流、严格 payload staging、English cleanup 的当前 generic 所有权输入、仅在无 pending journal 时成立的 Noop 快路与单次 UAC typed 结果。
  * [POS]: language_transaction 的非提权父进程；只准备 hash-locked 计划并等待 worker，绝不关闭 Cavalry、写状态、重启或直接修改安装根。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -244,7 +244,10 @@ where
         &mut build_transition,
     )?;
 
-    if matches!(prepared.plan.qpa_transition, QpaTransitionPlan::Noop(_))
+    let has_pending_journal = super::storage::has_pending(&request.layout.root)
+        .map_err(|error| cleanup_rejected(request.staging_root, &prepared.directory, error))?;
+    if !has_pending_journal
+        && matches!(prepared.plan.qpa_transition, QpaTransitionPlan::Noop(_))
         && verify_payload_postconditions(&prepared.payloads).is_ok()
     {
         verify_qpa(request.layout, language, &prepared.plan.qpa_transition)

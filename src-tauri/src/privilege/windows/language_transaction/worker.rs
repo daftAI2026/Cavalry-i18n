@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 contract/transport 的 hash-locked plan、storage durable journal、OS Known Folder、固定资源映射与 windows_qpa transition。
- * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files 提权 worker；固定执行 pending→assets/generic→QPA→pre-final proof→final，以 0/42/43/44 表达事务状态，并在任何写入前以 45 单独表达 Cavalry 可见窗口仍未关闭。
+ * [INPUT]: 依赖 contract/transport 的 hash-locked plan、storage durable journal/recovery、OS Known Folder、固定资源映射与 windows_qpa transition。
+ * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files 提权 worker；新 apply 前先恢复并证明旧 journal 已清理，再固定执行 pending→assets/generic→QPA→pre-final proof→final，以 0/42/43/44 表达事务状态，并在任何写入前以 45 单独表达 Cavalry 可见窗口仍未关闭。
  * [POS]: privilege/windows/language_transaction 的唯一提权执行边界；不获取应用锁、不写 Tauri state、不重启 Cavalry，也不接受 plan 提供的任意目标路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -67,6 +67,24 @@ fn flatten_worker_result(result: Result<u32, u32>) -> u32 {
     }
 }
 
+fn recover_pending_before_apply(layout: &InstallLayout) -> Result<(), u32> {
+    let pending =
+        crate::privilege::windows::language_transaction::storage::has_pending(&layout.root)
+            .map_err(|_| WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN)?;
+    if !pending {
+        return Ok(());
+    }
+    let mut runner = RealCommandRunner;
+    match close_cavalry_before_modification(&layout.root, &mut runner) {
+        Ok(()) => {}
+        Err(CloseCavalryError::StillRunning) => return Err(WORKER_EXIT_CAVALRY_STILL_RUNNING),
+        Err(CloseCavalryError::Command(_)) => return Err(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN),
+    }
+    crate::privilege::windows::language_transaction::storage::recover_pending(&layout.root)
+        .map(|_| ())
+        .map_err(|_| WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN)
+}
+
 fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
     let plan = load_verified_plan(transport)
         .map_err(|_| WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)?;
@@ -75,6 +93,7 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
     verify_current_executable(&plan).map_err(|_| WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)?;
     let layout = validate_program_files_layout(&plan)
         .map_err(|_| WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)?;
+    recover_pending_before_apply(&layout)?;
     let resolved = resolve_transaction(&plan, &transport.plan_path, layout)
         .map_err(|_| WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)?;
     verify_staged_payloads(&plan, &transport.plan_path, &resolved)
@@ -118,6 +137,11 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
         &fixed_preimages,
     )
     .map_err(storage_error_exit)?;
+    if !recovery_existed {
+        journal
+            .record_created_directory(&recovery)
+            .map_err(storage_error_exit)?;
+    }
 
     let mut qpa_outcome = None;
     let mutation_result = (|| {
@@ -137,6 +161,7 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
                         resolved.qpa_proxy_source.as_deref(),
                     )
                     .map_err(storage_error)?;
+                    journal.record_postimages(&qpa_surface)?;
                     qpa_outcome = Some(outcome);
                 }
                 MutationStep::Final => {

@@ -1,4 +1,9 @@
 # privilege/windows/
+## Recovery boundary (2026-08-26)
+
+language_transaction now persists entry destination/preimage/postimage/backup/permission and phase data before mutation. Startup and a new same-EXE worker apply first recover only the selected, verified install root; ambiguous generations, hash drift, reparse paths, and rollback uncertainty remain typed blocking errors.
+
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
