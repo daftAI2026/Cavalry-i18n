@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+test_temp_dir.js: 合同测试 fixture 的临时目录所有权边界；仅创建并清理本进程在 os.tmpdir 直接子级、固定前缀且无 symlink/reparse 的注册目录
 check_app_contracts.js: Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS/Windows Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙与 Guide 固定 `en` 加载槽位，不承载现场证据编排。
 check_renderer_contract.js: Renderer contract 测试，以规范化 LF 冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面，覆盖 `reconcileButton` 与四语 reconciliation 文案，避免 Git 换行策略制造假漂移。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、稳定 errorCode 四语本土化、平台 dataset、Apply 确认、提交后 cleanup warning、macOS openPrivacy/Windows requestElevation 权限恢复、不可写自定义根的无 UAC 错误、Refresh 零 apply、独立确认 reconcile、bootstrap 恢复且 macOS 隔离 typed `reconciliationRequired` 与自定义 select 原生 change 语义。
@@ -149,4 +150,5 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 
 2026-08-10: Qt SDK resolver 将 venv/pip/aqt bootstrap 诊断统一路由到 stderr，保留 stdout 为可 `eval` 的机器输出；CI pin 守门器要求 cargo-audit 通过 manifest 中的精确 Rust channel 安装；新增 npm 工具链身份命令边界，修复 Windows Runner 无 shell 启动 `npm` shim 失败，三者共同隔离宿主 bootstrap 差异。
 
+2026-08-27: `test_temp_dir.js` 为合同测试注册本进程创建的有限 TEMP fixture；`check_app_contracts.js` 与 `check_tauri_build_sop.js` 在顶层 `after` 中仅清理直接位于 `os.tmpdir`、固定前缀且无 symlink/reparse 的目录，不扫描或删除历史/陌生路径。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
  * [OUTPUT]: 对外提供 Tauri-only 发布协议、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台 dev/build 前生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance（Authenticode 另跟踪）、PR 级 clean-macOS universal link gate、仅接受已包含于 origin/main 且带 live evidence 的 tag commit 所生成的 GitHub Release
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -14,6 +14,9 @@ const { spawnSync } = require('node:child_process');
 const { installGitHooks } = require('./install_git_hooks.js');
 const { runPowerShellScript } = require('./powershell_command.js');
 const { resolvePythonCommand } = require('./python_command.js');
+const { cleanupTempDirs, makeTempDir } = require('./test_temp_dir.js');
+
+test.after(cleanupTempDirs);
 
 const repoRoot = path.resolve(__dirname, '..');
 
@@ -32,7 +35,7 @@ function writeJson(filePath, value) {
 }
 
 function makeVersionFixture() {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-version-sync-'));
+  const tempRoot = makeTempDir('cavalry-version-sync-');
   fs.mkdirSync(path.join(tempRoot, 'tools'), { recursive: true });
   fs.mkdirSync(path.join(tempRoot, 'src-tauri'), { recursive: true });
 
@@ -102,7 +105,7 @@ function makeVersionFixture() {
 }
 
 function makeWindowsNsisProvenanceFixture() {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-windows-nsis-provenance-'));
+  const tempRoot = makeTempDir('cavalry-windows-nsis-provenance-');
   const write = (relativePath, content) => {
     const filePath = path.join(tempRoot, relativePath);
     fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -458,7 +461,7 @@ test('project version workflow exposes one synchronizer and a pre-commit hook in
   assert.equal(pkg.scripts.postinstall, 'npm run hooks:install');
   assert.doesNotMatch(pkg.scripts['hooks:install'], /\/dev\/null|&&|\|\||\btrue\b/);
 
-  const nonGitRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-hook-install-'));
+  const nonGitRoot = makeTempDir('cavalry-hook-install-');
   const result = spawnSync(process.execPath, [path.join(repoRoot, 'tools', 'install_git_hooks.js')], {
     cwd: nonGitRoot,
     encoding: 'utf8',
@@ -908,7 +911,7 @@ test('tag release publishes both macOS DMGs and the stable Windows x64 NSIS asse
 });
 
 test('release changelog extractor selects one exact released SemVer section and fails closed', () => {
-  const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-release-changelog-'));
+  const tempRoot = makeTempDir('cavalry-release-changelog-');
   const changelogPath = path.join(tempRoot, 'CHANGELOG.md');
   const outputPath = path.join(tempRoot, 'release-changes.md');
   const scriptPath = path.join(repoRoot, 'tools', 'extract_release_changelog.js');
