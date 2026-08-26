@@ -4,6 +4,12 @@
  * [POS]: privilege/windows/language_transaction 的唯一提权执行边界；父进程持有应用锁，worker 重验 Known Folder/EXE/root/journal，不写 Tauri state、不重启 Cavalry，也不接受任意目标路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+/**
+ * [INPUT]: hash-locked elevated plan, durable journal, and final-marker destination.
+ * [OUTPUT]: maps commit cleanup outcomes to committed, rolled-back, or state-uncertain worker exit codes; never treats an undurable commit as success.
+ * [POS]: the privileged transaction execution boundary; owns final-marker-last rollback selection but not renderer state or restart.
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 use std::{
     collections::HashSet,
     fs,
@@ -233,9 +239,11 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
             &resolved.pending.destination,
         ));
     }
-    match journal.commit() {
+    match journal.commit(Some(&resolved.final_marker.destination)) {
         CommitCleanup::Clean => Ok(WORKER_EXIT_COMMITTED_CLEAN),
         CommitCleanup::Residual(_) => Ok(WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL),
+        CommitCleanup::RolledBack => Ok(WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN),
+        CommitCleanup::Uncertain(_) => Ok(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN),
     }
 }
 

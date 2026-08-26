@@ -735,8 +735,68 @@ fn clean_commit_removes_the_nonce_derived_journal() {
     let path = journal.journal_root().to_path_buf();
     assert!(path.ends_with(format!("{JOURNAL_PREFIX}{}", nonce('e'))));
 
-    assert_eq!(journal.commit(), CommitCleanup::Clean);
+    assert_eq!(journal.commit(None), CommitCleanup::Clean);
     assert!(!path.exists());
+}
+
+#[test]
+fn committing_persist_failure_rolls_back_instead_of_reporting_cleanup_success() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("translated.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('6'), std::slice::from_ref(&payload), &[]).unwrap();
+    journal.apply_payload(&payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+
+    journal.fail_next_persist(JournalPhase::Committing);
+    assert_eq!(journal.commit(None), CommitCleanup::RolledBack);
+    assert_eq!(fs::read(&destination).unwrap(), b"original");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn rolling_back_persist_failure_never_mutates_owned_targets() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("translated.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('8'), std::slice::from_ref(&payload), &[]).unwrap();
+    journal.apply_payload(&payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+
+    journal.fail_next_persist(JournalPhase::RollingBack);
+    assert!(matches!(journal.rollback(), RollbackOutcome::Uncertain(_)));
+    assert_eq!(fs::read(&destination).unwrap(), b"translated");
+    assert!(journal_root.exists());
+}
+
+#[test]
+fn committed_postimage_drift_is_state_uncertain_not_cleanup_success() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("translated.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('7'), std::slice::from_ref(&payload), &[]).unwrap();
+    journal.apply_payload(&payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    fs::write(&destination, b"third-party-drift").unwrap();
+
+    assert!(matches!(journal.commit(None), CommitCleanup::Uncertain(_)));
+    assert_eq!(fs::read(&destination).unwrap(), b"third-party-drift");
+    assert!(journal_root.exists());
 }
 
 #[test]
@@ -779,7 +839,7 @@ fn commit_preserves_unknown_journal_member_as_cleanup_residual() {
     let unknown = journal_root.join("unknown.bin");
     fs::write(&unknown, b"not-owned").unwrap();
 
-    assert!(matches!(journal.commit(), CommitCleanup::Residual(_)));
+    assert!(matches!(journal.commit(None), CommitCleanup::Residual(_)));
     assert_eq!(fs::read(&unknown).unwrap(), b"not-owned");
     assert!(journal_root.is_dir());
 }
@@ -840,7 +900,7 @@ fn same_destination_pending_then_final_is_allowed_in_order() {
     journal.apply_transition_payload(&final_payload).unwrap();
 
     assert_eq!(fs::read(&marker).unwrap(), b"zh-Hans\n");
-    assert_eq!(journal.commit(), CommitCleanup::Clean);
+    assert_eq!(journal.commit(None), CommitCleanup::Clean);
 }
 
 #[test]

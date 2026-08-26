@@ -4,6 +4,12 @@
  * [POS]: language_transaction 的事务编排核心；首次目标变更前持久化 ownership，并协调目标目录、journal 临时成员与窄 manifest/path 协作者，不解析 plan、不启动进程。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+/**
+ * [INPUT]: validated payload/preimage ownership, journal phases, and final-marker rollback boundary.
+ * [OUTPUT]: durable commit classification; undurable Committing rolls back or becomes uncertain, while durable cleanup residuals remain distinct from state uncertainty.
+ * [POS]: language_transaction transaction core; coordinates manifest durability before every target mutation and final cleanup.
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
 use std::{
     collections::HashSet,
     fmt, fs,
@@ -82,6 +88,8 @@ pub(super) struct CleanupResidual {
 pub(super) enum CommitCleanup {
     Clean,
     Residual(CleanupResidual),
+    RolledBack,
+    Uncertain(CleanupResidual),
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -136,6 +144,8 @@ pub(super) struct DurableJournal {
     pub(super) entries: Vec<JournalEntry>,
     pub(super) created_directories: Vec<PathBuf>,
     pub(super) applied_payloads: usize,
+    #[cfg(test)]
+    pub(super) fail_next_persist: std::cell::Cell<Option<JournalPhase>>,
 }
 
 impl DurableJournal {
@@ -213,6 +223,8 @@ impl DurableJournal {
             entries,
             created_directories: Vec::new(),
             applied_payloads: 0,
+            #[cfg(test)]
+            fail_next_persist: std::cell::Cell::new(None),
         };
         if let Err(error) = journal.persist_manifest(JournalPhase::Prepared) {
             return Err(cleanup_failed_prepare(
@@ -369,7 +381,12 @@ impl DurableJournal {
     fn rollback_internal(mut self, marker: Option<&Path>) -> RollbackOutcome {
         let mut failures = Vec::<(PathBuf, String)>::new();
         if let Err(error) = self.persist_manifest(JournalPhase::RollingBack) {
-            failures.push((self.journal_root.clone(), error));
+            return RollbackOutcome::Uncertain(CleanupResidual {
+                paths: vec![self.journal_root.clone()],
+                detail: format!(
+                    "RollingBack manifest was not durable; no rollback mutation was attempted: {error}"
+                ),
+            });
         }
         let marker_index = marker.and_then(|marker| {
             self.entries
@@ -447,15 +464,21 @@ impl DurableJournal {
         }
     }
 
-    pub(super) fn commit(self) -> CommitCleanup {
+    pub(super) fn commit(self, marker: Option<&Path>) -> CommitCleanup {
         if let Err(error) = self.persist_manifest(JournalPhase::Committing) {
-            return CommitCleanup::Residual(CleanupResidual {
-                paths: vec![self.journal_root.clone()],
-                detail: error,
-            });
+            return match self.rollback_internal(marker) {
+                RollbackOutcome::Restored => CommitCleanup::RolledBack,
+                RollbackOutcome::Uncertain(mut residual) => {
+                    residual.detail = format!(
+                        "Committing manifest was not durable: {error}; {}",
+                        residual.detail
+                    );
+                    CommitCleanup::Uncertain(residual)
+                }
+            };
         }
         if let Err(error) = self.verify_committed_postimages() {
-            return CommitCleanup::Residual(CleanupResidual {
+            return CommitCleanup::Uncertain(CleanupResidual {
                 paths: vec![self.journal_root.clone()],
                 detail: error,
             });
@@ -536,7 +559,17 @@ impl DurableJournal {
     }
 
     fn persist_manifest(&self, phase: JournalPhase) -> Result<(), String> {
+        #[cfg(test)]
+        if self.fail_next_persist.get() == Some(phase) {
+            self.fail_next_persist.set(None);
+            return Err(format!("injected {phase:?} manifest persistence failure"));
+        }
         persist_manifest(self, phase)
+    }
+
+    #[cfg(test)]
+    pub(super) fn fail_next_persist(&self, phase: JournalPhase) {
+        self.fail_next_persist.set(Some(phase));
     }
 
     fn ensure_destination_parent(&mut self, destination: &Path) -> Result<(), StorageError> {

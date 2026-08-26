@@ -220,6 +220,8 @@ fn load_persisted_journal(
             entries,
             created_directories,
             applied_payloads: manifest.applied_payloads,
+            #[cfg(test)]
+            fail_next_persist: std::cell::Cell::new(None),
         },
         manifest.phase,
     ))
