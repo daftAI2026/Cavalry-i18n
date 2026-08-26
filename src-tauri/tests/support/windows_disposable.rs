@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖显式 smoke 环境变量、系统 `%TEMP%` 与 AppData、disposable/Qt-profile sentinel、InstallLayout、CopyPair 与 Windows QPA 固定写入表面
- * [OUTPUT]: 提供 GuardedTempRoot、disposable_install_layout、Qt test profile 的排他准备/清理、兼容 verbatim/8.3 拼写的规范路径身份校验、逐级 reparse 拒绝、QPA 目标守卫及安全 evidence 子目录创建
- * [POS]: Windows ignored integration smoke 的共享路径信任边界；只操作有固定 magic sentinel 的临时克隆、证据根和 qttest/Cavalry 档案，不启动进程或执行产品操作
+ * [OUTPUT]: 提供 GuardedTempRoot、disposable_install_layout、Qt test profile 的排他准备/清理、兼容 verbatim/8.3 拼写的规范路径身份校验、公开的逐级 reparse 拒绝、QPA 目标守卫及安全 evidence 子目录创建
+ * [POS]: Windows ignored integration smoke 的共享路径信任边界；只操作有固定 magic sentinel 的临时克隆、证据根和显式 acceptance-owned qttest/Cavalry 档案，不启动进程或执行产品操作
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::{
@@ -329,7 +329,7 @@ fn reject_reparse(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
-fn assert_absolute_existing_chain_has_no_reparse(target: &Path) -> Result<(), String> {
+pub fn assert_absolute_existing_chain_has_no_reparse(target: &Path) -> Result<(), String> {
     if !target.is_absolute() {
         return Err(format!(
             "{} must be absolute before checking its reparse chain",

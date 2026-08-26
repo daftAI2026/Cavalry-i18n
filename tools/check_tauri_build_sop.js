@@ -1459,6 +1459,9 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
     readText('src-tauri/tests/support/windows_live_tests.inc.rs'),
   ].join('\n');
   const guard = readText('src-tauri/tests/support/windows_disposable.rs');
+  const workspaceGuard = readText(
+    'src-tauri/tests/support/windows_workspace_guard.rs'
+  );
   const helper = readText('tools/capture_windows_pid_window.ps1');
   const acceptancePlugin = readText('injector/windows/cavalry_i18n_acceptance_plugin.cpp');
   const onboardingDriver = readText('injector/windows/cavalry_i18n_runtime.cpp');
@@ -1466,7 +1469,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   const textPathSources = readText(
     'injector/windows/cavalry_i18n_extension_layer_sources.h'
   );
-  const combined = `${live}\n${guard}\n${helper}`;
+  const combined = `${live}\n${guard}\n${workspaceGuard}\n${helper}`;
 
   assert.match(live, /#\[ignore = "requires explicit disposable clone\/evidence TEMP roots/);
   assert.match(live, /CAVALRY_I18N_WINDOWS_SMOKE_APP/);
@@ -1481,8 +1484,14 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(live, /assert_safe_write_surface/);
   assert.match(
     live,
-    /require_no_cavalry_processes\(&mut runner, &helper, "startup"\)[\s\S]*capture_english_baseline[\s\S]*create_unique_child_directory/
+    /require_no_cavalry_processes\(&mut runner, &helper, "startup"\)[\s\S]*create_unique_child_directory[\s\S]*verify_live_clone_completeness[\s\S]*capture_english_baseline[\s\S]*capture_real_workspace/
   );
+  assert.match(workspaceGuard, /assets\/Icons\/sign-in-bg\.png/);
+  assert.match(workspaceGuard, /assets\/Icons\/cavByCanva\.png/);
+  assert.match(workspaceGuard, /assets\/Icons\/tool_search\.png/);
+  assert.match(workspaceGuard, /real-workspace\.before/);
+  assert.match(workspaceGuard, /real-workspace-guard\.json/);
+  assert.match(workspaceGuard, /fs::rename\(&temporary, &snapshot\.path\)/);
   assert.match(live, /const EXPECTED_JSON_COUNT: usize = 38/);
   assert.match(live, /apply_language_inner/);
   assert.match(live, /RealCommandRunner/);
@@ -1638,7 +1647,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.doesNotMatch(live, /thread::sleep|std::thread|Command::new/);
   assert.match(
     sop,
-    /full-surface 门仍用临时 `APPDATA`\/`LOCALAPPDATA` 维护测试文件卫生/
+    /full-surface 门继承当前用户 `APPDATA`\/`LOCALAPPDATA` 登录 profile/
   );
   assert.match(sop, /默认生成的三类 PNG，以及 opt-in 时追加的 Cog Pitch PNG/);
   assert.match(sop, /CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1/);
@@ -1740,7 +1749,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(helper, /textPathBaselineDiagnostics\s*=\s*\$cogPitchBaseline/);
   assert.match(helper, /function Wait-ForExactForegroundWindow/);
   assert.match(helper, /function Prepare-ToolHelperEvidence/);
-  assert.match(helper, /PostVirtualKey\(\$Window, 0x41\)/);
+  assert.match(helper, /PostVirtualKey\(\s*\$Window,\s*0x41,\s*\[uint32\]\$ExpectedProcessId\s*\)/);
   assert.match(helper, /exact-hwnd-postmessage-vk-a/);
   const foregroundWait = helper.match(
     /function Wait-ForExactForegroundWindow[\s\S]*?\r?\n}\r?\n\r?\nfunction Prepare-ToolHelperEvidence/
@@ -1748,8 +1757,11 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.equal(
     (foregroundWait.match(/RequestForegroundWindow/g) || []).length,
     1,
-    'the helper should request foreground once, then wait for observed exact-HWND state'
+    'the helper should retry one foreground request at a time inside its bounded exact-HWND wait'
   );
+  assert.match(foregroundWait, /\$foregroundAttempt/);
+  assert.match(foregroundWait, /\$maxForegroundAttempts/);
+  assert.match(foregroundWait, /\$foregroundAttempt -lt \$maxForegroundAttempts/);
   assert.match(foregroundWait, /UtcNow -lt \$Deadline/);
   assert.match(
     foregroundWait,
@@ -1767,7 +1779,12 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(toolPreparation, /Wait-ForExactForegroundWindow/);
   assert.match(
     toolPreparation,
-    /Wait-ForExactForegroundWindow[\s\S]*PostVirtualKey\(\$Window, 0x41\)[\s\S]*ExactForegroundWindow/
+    /Wait-ForExactForegroundWindow[\s\S]*PostVirtualKey\([\s\S]*\$Window,[\s\S]*0x41,[\s\S]*ExpectedProcessId[\s\S]*\)/
+  );
+  assert.doesNotMatch(
+    toolPreparation,
+    /Refusing Edit Shape Tool evidence because focus changed during exact-HWND key delivery/,
+    'same-PID child/modal focus after key delivery is a valid Cavalry outcome'
   );
   assert.match(helper, /WM_KEYDOWN/);
   assert.match(helper, /WM_KEYUP/);

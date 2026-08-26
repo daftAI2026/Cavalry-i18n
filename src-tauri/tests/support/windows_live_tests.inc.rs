@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖四个 live support 分片、PowerShell/helper 源码与显式 disposable clone/evidence 环境；release 模式还依赖最终 NSIS/provenance 与双 DLL 字节
- * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门，并逐字守住真实用户 workspace.json；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
- * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 污染真实 Active Workspace 或使用不同于最终 NSIS 的 runtime DLL 都先于人工截图结论硬失败
+ * [INPUT]: 依赖 live support 分片、workspace/clone guard、PowerShell/helper 源码与显式 disposable clone/evidence 环境；release 模式还依赖最终 NSIS/provenance 与双 DLL 字节
+ * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门；FullSurfaces 只在真实登录 profile 的 workspace preimage 已封存且可恢复、关键登录窗资源已证明完整后启动；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
+ * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 资源不完整、真实 Active Workspace 无法精确恢复或使用不同于最终 NSIS 的 runtime DLL 都先于人工截图结论硬失败
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
     fn describe_panic(payload: &(dyn std::any::Any + Send)) -> String {
@@ -22,7 +22,6 @@
     const WINDOWS_GENERIC_RELATIVE_PATH: &str = "injector/windows/generic/cavalryi18n.dll";
     const WINDOWS_QPA_RELATIVE_PATH: &str = "injector/windows/qpa/qwindows.dll";
     const WINDOWS_RELEASE_SESSION_MAGIC: &str = "cavalry-i18n.windows-release-acceptance/v1";
-
     fn release_file_identity(path: &Path, label: &str) -> Result<serde_json::Value, String> {
         let metadata = fs::symlink_metadata(path)
             .map_err(|error| format!("could not inspect {label} {}: {error}", path.display()))?;
@@ -309,47 +308,6 @@
         Ok(true)
     }
 
-    fn capture_real_workspace() -> Result<(PathBuf, Option<Vec<u8>>), String> {
-        let local_app_data = env::var_os("LOCALAPPDATA")
-            .map(PathBuf::from)
-            .ok_or_else(|| "LOCALAPPDATA is unavailable for the real workspace guard".to_string())?;
-        let workspace = local_app_data.join("Cavalry").join("workspace.json");
-        let bytes = match fs::read(&workspace) {
-            Ok(bytes) => Some(bytes),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
-            Err(error) => {
-                return Err(format!(
-                    "could not snapshot real Cavalry workspace {}: {error}",
-                    workspace.display()
-                ))
-            }
-        };
-        Ok((workspace, bytes))
-    }
-
-    fn verify_real_workspace_unchanged(
-        workspace: &Path,
-        before: Option<&[u8]>,
-    ) -> Result<(), String> {
-        let after = match fs::read(workspace) {
-            Ok(bytes) => Some(bytes),
-            Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
-            Err(error) => {
-                return Err(format!(
-                    "could not verify real Cavalry workspace {}: {error}",
-                    workspace.display()
-                ))
-            }
-        };
-        if after.as_deref() != before {
-            return Err(format!(
-                "disposable Windows live gate changed the real Cavalry Active Workspace: {}",
-                workspace.display()
-            ));
-        }
-        Ok(())
-    }
-
     #[test]
     fn live_helper_uses_exact_hwnd_key_and_forbids_scene_automation() {
         let repo = repo_root();
@@ -374,6 +332,11 @@
         for required in [
             "PostVirtualKey",
             "Wait-ForExactForegroundWindow",
+            "foregroundAttempt",
+            "maxForegroundAttempts",
+            "ShowWindow",
+            "BringWindowToTop",
+            "SetActiveWindow",
             "WM_KEYDOWN",
             "WM_KEYUP",
             "0x41",
@@ -406,6 +369,36 @@
                 "live helper must retain fail-closed evidence token {required}"
             );
         }
+    }
+
+    #[test]
+    fn full_surface_uses_real_profile_minimal_workspace_guard_and_complete_clone() {
+        let repo = repo_root();
+        let guard = fs::read_to_string(repo.join("src-tauri/tests/support/windows_workspace_guard.rs"))
+            .expect("workspace guard must remain readable");
+        let orchestration = fs::read_to_string(
+            repo.join("src-tauri/tests/support/windows_live_orchestration.inc.rs"),
+        )
+        .expect("Windows live orchestration must remain readable");
+        let live = fs::read_to_string(repo.join("src-tauri/tests/support/windows_live_tests.inc.rs"))
+            .expect("Windows live test entry must remain readable");
+        for required in [
+            "assets/Icons/sign-in-bg.png",
+            "assets/Icons/cavByCanva.png",
+            "assets/Icons/tool_search.png",
+            "live-clone-resources.json",
+            "real-workspace.before",
+            "real-workspace-guard.json",
+            "exact-preimage-after-owned-process-cleanup",
+            "fs::rename(&temporary, &snapshot.path)",
+        ] {
+            assert!(guard.contains(required), "workspace guard must retain {required}");
+        }
+        assert!(!orchestration.contains("profile-full-surfaces-"));
+        assert!(orchestration.contains("if capture_mode != LiveCaptureMode::FullSurfaces"));
+        assert!(live.contains("verify_live_clone_completeness"));
+        assert!(live.contains("capture_real_workspace(&evidence_root, &run_root)"));
+        assert!(live.contains("verify_real_workspace_unchanged(&real_workspace)"));
     }
 
     #[test]
@@ -580,8 +573,6 @@
     }
 
     fn run_disposable_clone_gate(capture_mode: LiveCaptureMode) {
-        let (real_workspace, real_workspace_before) =
-            capture_real_workspace().unwrap_or_else(|error| panic!("{error}"));
         let repo = repo_root();
         let helper = helper_path(&repo).unwrap_or_else(|error| panic!("{error}"));
         let (layout, guarded_clone) = disposable_install_layout(SMOKE_APP_ENV)
@@ -592,10 +583,14 @@
 
         require_no_cavalry_processes(&mut runner, &helper, "startup")
             .unwrap_or_else(|error| panic!("{error}"));
-        let (baseline_pairs, baseline) = capture_english_baseline(&repo, &layout, &guarded_clone)
-            .unwrap_or_else(|error| panic!("{error}"));
         let run_root = evidence_root
             .create_unique_child_directory("windows-live")
+            .unwrap_or_else(|error| panic!("{error}"));
+        verify_live_clone_completeness(&evidence_root, &run_root, &layout, &guarded_clone)
+            .unwrap_or_else(|error| panic!("{error}"));
+        let (baseline_pairs, baseline) = capture_english_baseline(&repo, &layout, &guarded_clone)
+            .unwrap_or_else(|error| panic!("{error}"));
+        let real_workspace = capture_real_workspace(&evidence_root, &run_root)
             .unwrap_or_else(|error| panic!("{error}"));
         let english_source = repo.join("languages/en");
         let state_dir =
@@ -643,6 +638,8 @@
             &guarded_clone,
             &baseline_pairs,
             &baseline,
+            capture_mode,
+            &real_workspace,
             &mut runner,
             &mut outstanding_processes,
         );
@@ -670,9 +667,7 @@
                 failures.push(format!("acceptance plugin cleanup error: {error}"));
             }
         }
-        if let Err(error) =
-            verify_real_workspace_unchanged(&real_workspace, real_workspace_before.as_deref())
-        {
+        if let Err(error) = verify_real_workspace_unchanged(&real_workspace) {
             failures.push(error);
         }
         if !failures.is_empty() {
