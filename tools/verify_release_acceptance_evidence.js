@@ -28,6 +28,12 @@ function hasOption(name) {
   return args.some((arg) => arg === name || arg.startsWith(`${name}=`));
 }
 function optionValue(name) {
+  const inline = args.find((arg) => arg.startsWith(`${name}=`));
+  if (inline) {
+    const value = inline.slice(name.length + 1);
+    if (!value) fail(`${name} requires a value.`);
+    return value;
+  }
   const index = args.indexOf(name);
   if (index === -1) return null;
   const value = args[index + 1];

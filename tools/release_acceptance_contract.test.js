@@ -612,6 +612,12 @@ test('release evidence CLIs reject portable Windows summary inputs', () => {
     'tools/create_release_acceptance_evidence.js',
     'tools/verify_release_acceptance_evidence.js',
   ]) {
+    const source = fs.readFileSync(path.join(repoRoot, script), 'utf8');
+    assert.match(
+      source,
+      /args\.find\(\(arg\) => arg\.startsWith\(`\$\{name\}=`\)\)/,
+      `${script} must parse --windows-session-dir=<path> instead of silently skipping it`
+    );
     for (const option of ['--windows-acceptance', '--windows-acceptance=summary.json']) {
       const argv = option.includes('=') ? [option] : [option, 'summary.json'];
       const result = spawnSync(

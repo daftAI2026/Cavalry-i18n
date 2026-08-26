@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置/官方或受管状态、English UI 与英文/官方还原、Windows 只读快照检测、可组合 warningCodes、state durability 显式刷新重试、本机重装指引、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明；当前已是英文时禁用英文恢复
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置/官方或受管状态、English UI 与英文/官方还原、Windows 只读快照检测、可组合 warningCodes、state durability 显式刷新重试、本机重装指引、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明；干净英文态禁用英文恢复，Windows 英文残留态保留显式清理入口
  * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode/warningCodes 本土化可恢复状态且从不显示 raw warning；官方还原使用非语言 manifest 的显式内部 action
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -42,6 +42,7 @@ const state = {
   controlsBlocked: false,
   startupRecoveryError: null,
   stateDurabilityPending: false,
+  englishRestoreNeeded: false,
 };
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
@@ -142,7 +143,7 @@ function setBusy(isBusy) {
   restoreEnglishButton.disabled =
     isBusy ||
     !state.appPath ||
-    state.currentLang === 'en' ||
+    (state.currentLang === 'en' && !state.englishRestoreNeeded) ||
     state.needsExtract ||
     reinstallRequired ||
     state.controlsBlocked ||
@@ -267,6 +268,7 @@ async function bootstrap() {
   state.platform = bootstrapState.platform || '';
   const runtimeResidueDetected =
     state.platform === 'windows' && bootstrapState.reconciliationRequired === true;
+  state.englishRestoreNeeded = runtimeResidueDetected;
   state.permissionAction = bootstrapState.permissionAction || 'none';
   document.documentElement.dataset.platform = state.platform;
 
@@ -384,6 +386,7 @@ async function refreshEnglishSnapshot() {
     state.stateDurabilityPending = warningCodes.includes('stateDurabilityPending');
     const runtimeResidueDetected =
       state.platform === 'windows' && result.reconciliationRequired === true;
+    state.englishRestoreNeeded = state.englishRestoreNeeded || runtimeResidueDetected;
     setBusy(state.busy);
     const refreshed = runtimeResidueDetected
       ? t('runtimeResidueAfterRefresh', { count: result.count })
@@ -427,7 +430,11 @@ function requestApply() {
 }
 
 function requestEnglishRestore() {
-  if (state.busy || state.controlsBlocked || state.currentLang === 'en') {
+  if (
+    state.busy ||
+    state.controlsBlocked ||
+    (state.currentLang === 'en' && !state.englishRestoreNeeded)
+  ) {
     return;
   }
   if (!state.appPath) {

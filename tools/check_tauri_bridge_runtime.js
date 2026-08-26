@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与 typed residue warning、仅非英文运行态允许英文恢复且复用普通 apply、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与 typed residue warning、干净英文态禁用恢复但英文残留态保留显式清理且复用普通 apply、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -167,7 +167,7 @@ test('refresh detects Windows residue without mutation and only the explicit Eng
 
 test('bootstrap shows typed Windows residue warning without blocking apply or restore', async () => {
   const windows = boot({
-    status: { platform: 'windows', reconciliationRequired: true },
+    status: { platform: 'windows', currentLang: 'en', reconciliationRequired: true },
   });
   await flush();
   assert.equal(windows.elements['#restoreEnglishButton'].disabled, false);
@@ -178,6 +178,12 @@ test('bootstrap shows typed Windows residue warning without blocking apply or re
     0,
     'bootstrap must not apply implicitly'
   );
+  windows.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  windows.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(windows.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
 
   const macos = boot({
     status: { platform: 'macos', reconciliationRequired: true },
