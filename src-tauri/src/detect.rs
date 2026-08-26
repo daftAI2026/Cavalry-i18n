@@ -1,7 +1,7 @@
 #[cfg(target_os = "windows")]
 use std::collections::HashSet;
 /**
- * [INPUT]: 依赖 install 的跨平台布局、state 保存路径、windows_install 的只读发现线索，以及 Windows 稳定 Win32 handle 文件身份
+ * [INPUT]: 依赖 install 的跨平台布局、state 保存路径、windows_install 的只读发现线索，以及 Windows 稳定 Win32 handle 文件身份/ChangeTime
  * [OUTPUT]: 对外提供候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、签名区归一化 Mach-O code identity、不可变 revision、语言选项与安装诊断
  * [POS]: src-tauri/src 的安装探测模块；严格写入入口分离 canonical root、bundle/version/architecture 与不可变文件身份，不能只凭 bundle-version 接受伪造 Cavalry.app
  * [FAIL-CLOSED]: read_mac_bundle_identity/require_supported_mac_identity 缺少完整 Info.plist、主 executable、libExtensionLayer 或 Mach-O 架构时失败；Team ID/designated requirement 明确标为 unavailable，需 privilege runner 提供签名证据后才可升级为 verified
@@ -579,6 +579,7 @@ struct RevisionFileMetadata {
     size: u64,
     modified_nanos: u128,
     file_id: u128,
+    change_stamp: u128,
 }
 
 #[derive(Debug, Clone)]
@@ -626,6 +627,7 @@ fn revision_file_metadata(path: &Path) -> Result<RevisionFileMetadata, String> {
         size: metadata.len(),
         modified_nanos,
         file_id: revision_file_id(&file, &metadata)?,
+        change_stamp: revision_file_change_stamp(&file, &metadata)?,
     })
 }
 
@@ -655,6 +657,39 @@ fn revision_file_id(file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, S
 
 #[cfg(not(any(unix, windows)))]
 fn revision_file_id(_file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
+    Ok(0)
+}
+
+#[cfg(unix)]
+fn revision_file_change_stamp(_file: &fs::File, metadata: &fs::Metadata) -> Result<u128, String> {
+    use std::os::unix::fs::MetadataExt;
+    Ok((u128::from(metadata.ctime() as u64) << 64) | u128::from(metadata.ctime_nsec() as u64))
+}
+
+#[cfg(windows)]
+fn revision_file_change_stamp(file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
+    use std::{ffi::c_void, mem::size_of, os::windows::io::AsRawHandle};
+    use windows::Win32::{
+        Foundation::HANDLE,
+        Storage::FileSystem::{FileBasicInfo, GetFileInformationByHandleEx, FILE_BASIC_INFO},
+    };
+
+    let mut information = FILE_BASIC_INFO::default();
+    let handle = HANDLE(file.as_raw_handle());
+    unsafe {
+        GetFileInformationByHandleEx(
+            handle,
+            FileBasicInfo,
+            (&mut information as *mut FILE_BASIC_INFO).cast::<c_void>(),
+            size_of::<FILE_BASIC_INFO>() as u32,
+        )
+    }
+    .map_err(|error| format!("Could not read Windows revision file ChangeTime: {error}"))?;
+    Ok(u128::from(information.ChangeTime as u64))
+}
+
+#[cfg(not(any(unix, windows)))]
+fn revision_file_change_stamp(_file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
     Ok(0)
 }
 
