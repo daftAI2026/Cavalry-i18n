@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与 typed residue warning、英文恢复复用普通 apply、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与 typed residue warning、仅非英文运行态允许英文恢复且复用普通 apply、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -95,16 +95,22 @@ test('status panel label follows the selected UI locale', async () => {
   }
 });
 
-test('English restore uses the ordinary apply confirmation and stays separate from official restore', async () => {
+test('English restore is disabled in English and otherwise uses the ordinary apply confirmation', async () => {
   const english = boot({ status: { currentLang: 'en' } }); await flush();
   assert.equal(english.elements['#currentLanguage'].textContent, 'English UI');
   assert.equal(english.elements['#languageSelect'].value, 'zh-Hans', 'English current state keeps a stable target default');
-  assert.equal(english.elements['#restoreEnglishButton'].disabled, false);
+  assert.equal(english.elements['#restoreEnglishButton'].disabled, true);
   english.elements['#restoreEnglishButton'].listeners.get('click')[0]();
-  assert.equal(english.elements['#modalTitle'].textContent, 'Install language pack?');
-  english.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  assert.equal(english.elements['#modalTitle'].textContent, '');
+  assert.equal(english.calls.filter(({ command }) => command === 'apply_language').length, 0);
+
+  const translated = boot({ status: { currentLang: 'zh-Hans' } }); await flush();
+  assert.equal(translated.elements['#restoreEnglishButton'].disabled, false);
+  translated.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  assert.equal(translated.elements['#modalTitle'].textContent, 'Install language pack?');
+  translated.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
-  assert.deepEqual(JSON.parse(JSON.stringify(english.calls.filter(({ command }) => command === 'apply_language')[0])), {
+  assert.deepEqual(JSON.parse(JSON.stringify(translated.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
   });
 

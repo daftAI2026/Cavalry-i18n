@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置/官方或受管状态、English UI 与英文/官方还原、Windows 只读快照检测、可组合 warningCodes、state durability 显式刷新重试、本机重装指引、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置/官方或受管状态、English UI 与英文/官方还原、Windows 只读快照检测、可组合 warningCodes、state durability 显式刷新重试、本机重装指引、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明；当前已是英文时禁用英文恢复
  * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode/warningCodes 本土化可恢复状态且从不显示 raw warning；官方还原使用非语言 manifest 的显式内部 action
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -140,7 +140,13 @@ function setBusy(isBusy) {
   extractButton.disabled = isBusy || state.controlsBlocked || reinstallRequired;
   applyButton.disabled = isBusy || state.needsExtract || state.controlsBlocked || durabilityPending;
   restoreEnglishButton.disabled =
-    isBusy || !state.appPath || state.needsExtract || reinstallRequired || state.controlsBlocked || durabilityPending;
+    isBusy ||
+    !state.appPath ||
+    state.currentLang === 'en' ||
+    state.needsExtract ||
+    reinstallRequired ||
+    state.controlsBlocked ||
+    durabilityPending;
   restoreButton.disabled =
     isBusy || state.needsExtract || reinstallRequired || state.controlsBlocked || durabilityPending;
   languageSelect.disabled = isBusy || state.controlsBlocked || durabilityPending;
@@ -421,7 +427,7 @@ function requestApply() {
 }
 
 function requestEnglishRestore() {
-  if (state.busy || state.controlsBlocked) {
+  if (state.busy || state.controlsBlocked || state.currentLang === 'en') {
     return;
   }
   if (!state.appPath) {
