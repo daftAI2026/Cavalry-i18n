@@ -1,17 +1,21 @@
 #[cfg(target_os = "windows")]
 use std::collections::HashSet;
 /**
- * [INPUT]: 依赖 install 的跨平台布局、state 保存路径、windows_install 的只读发现线索，以及 Windows 稳定 Win32 handle 文件身份/ChangeTime
+ * [INPUT]: 依赖 install 的跨平台布局、state 保存路径与 windows_install 的只读发现线索
  * [OUTPUT]: 对外提供候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、签名区归一化 Mach-O code identity、不可变 revision、语言选项与安装诊断
  * [POS]: src-tauri/src 的安装探测模块；严格写入入口分离 canonical root、bundle/version/architecture 与不可变文件身份，不能只凭 bundle-version 接受伪造 Cavalry.app
  * [FAIL-CLOSED]: read_mac_bundle_identity/require_supported_mac_identity 缺少完整 Info.plist、主 executable、libExtensionLayer 或 Mach-O 架构时失败；Team ID/designated requirement 明确标为 unavailable，需 privilege runner 提供签名证据后才可升级为 verified
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
-    collections::HashMap,
     fs,
     io::Read,
     path::{Path, PathBuf},
+};
+
+#[cfg(not(windows))]
+use std::{
+    collections::HashMap,
     sync::{Mutex, OnceLock},
     time::UNIX_EPOCH,
 };
@@ -574,6 +578,7 @@ fn sha256_file_uncached(path: &Path) -> Result<String, String> {
     Ok(format!("{:x}", digest.finalize()))
 }
 
+#[cfg(not(windows))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct RevisionFileMetadata {
     size: u64,
@@ -582,22 +587,26 @@ struct RevisionFileMetadata {
     change_stamp: u128,
 }
 
+#[cfg(not(windows))]
 #[derive(Debug, Clone)]
 struct CachedRevisionHash {
     metadata: RevisionFileMetadata,
     sha256: String,
 }
 
+#[cfg(not(windows))]
 static REVISION_HASH_CACHE: OnceLock<Mutex<HashMap<PathBuf, CachedRevisionHash>>> = OnceLock::new();
 
 #[cfg(test)]
 static REVISION_UNCACHED_HASHES: std::sync::atomic::AtomicUsize =
     std::sync::atomic::AtomicUsize::new(0);
 
+#[cfg(not(windows))]
 fn revision_hash_cache() -> &'static Mutex<HashMap<PathBuf, CachedRevisionHash>> {
     REVISION_HASH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+#[cfg(not(windows))]
 fn revision_file_metadata(path: &Path) -> Result<RevisionFileMetadata, String> {
     let file = fs::File::open(path)
         .map_err(|error| format!("Could not open revision input {}: {error}", path.display()))?;
@@ -637,24 +646,6 @@ fn revision_file_id(_file: &fs::File, metadata: &fs::Metadata) -> Result<u128, S
     Ok((u128::from(metadata.dev()) << 64) | u128::from(metadata.ino()))
 }
 
-#[cfg(windows)]
-fn revision_file_id(file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
-    use std::os::windows::io::AsRawHandle;
-    use windows::Win32::{
-        Foundation::HANDLE,
-        Storage::FileSystem::{GetFileInformationByHandle, BY_HANDLE_FILE_INFORMATION},
-    };
-
-    let mut information = BY_HANDLE_FILE_INFORMATION::default();
-    let handle = HANDLE(file.as_raw_handle());
-    unsafe { GetFileInformationByHandle(handle, &mut information) }.map_err(|error| {
-        format!("Could not read stable Windows revision file identity: {error}")
-    })?;
-    let file_index =
-        (u128::from(information.nFileIndexHigh) << 32) | u128::from(information.nFileIndexLow);
-    Ok((u128::from(information.dwVolumeSerialNumber) << 64) | file_index)
-}
-
 #[cfg(not(any(unix, windows)))]
 fn revision_file_id(_file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
     Ok(0)
@@ -666,33 +657,20 @@ fn revision_file_change_stamp(_file: &fs::File, metadata: &fs::Metadata) -> Resu
     Ok((u128::from(metadata.ctime() as u64) << 64) | u128::from(metadata.ctime_nsec() as u64))
 }
 
-#[cfg(windows)]
-fn revision_file_change_stamp(file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
-    use std::{ffi::c_void, mem::size_of, os::windows::io::AsRawHandle};
-    use windows::Win32::{
-        Foundation::HANDLE,
-        Storage::FileSystem::{FileBasicInfo, GetFileInformationByHandleEx, FILE_BASIC_INFO},
-    };
-
-    let mut information = FILE_BASIC_INFO::default();
-    let handle = HANDLE(file.as_raw_handle());
-    unsafe {
-        GetFileInformationByHandleEx(
-            handle,
-            FileBasicInfo,
-            (&mut information as *mut FILE_BASIC_INFO).cast::<c_void>(),
-            size_of::<FILE_BASIC_INFO>() as u32,
-        )
-    }
-    .map_err(|error| format!("Could not read Windows revision file ChangeTime: {error}"))?;
-    Ok(u128::from(information.ChangeTime as u64))
-}
-
 #[cfg(not(any(unix, windows)))]
 fn revision_file_change_stamp(_file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
     Ok(0)
 }
 
+#[cfg(windows)]
+fn sha256_file_cached(path: &Path) -> Result<String, String> {
+    // NTFS metadata timestamps can collide across rapid same-size rewrites. Windows
+    // revision reads therefore use the content identity directly; write gates already
+    // use the same uncached path and never trust metadata as a content substitute.
+    sha256_file_uncached(path)
+}
+
+#[cfg(not(windows))]
 fn sha256_file_cached(path: &Path) -> Result<String, String> {
     let metadata = revision_file_metadata(path)?;
     let cache = revision_hash_cache();
@@ -721,8 +699,11 @@ fn sha256_file_cached(path: &Path) -> Result<String, String> {
 
 #[cfg(test)]
 fn clear_revision_hash_cache_for_tests() {
-    if let Some(cache) = REVISION_HASH_CACHE.get() {
-        cache.lock().unwrap().clear();
+    #[cfg(not(windows))]
+    {
+        if let Some(cache) = REVISION_HASH_CACHE.get() {
+            cache.lock().unwrap().clear();
+        }
     }
     REVISION_UNCACHED_HASHES.store(0, std::sync::atomic::Ordering::Relaxed);
 }
@@ -1200,9 +1181,16 @@ mod tests {
             REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed);
         let second = read_bundle_revision(&root).unwrap();
         assert_eq!(first, second);
+        #[cfg(not(windows))]
         assert_eq!(
             hashes_after_first,
             REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed)
+        );
+        #[cfg(windows)]
+        assert!(
+            REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed)
+                > hashes_after_first,
+            "Windows revision reads must not substitute mutable metadata for content identity"
         );
 
         write(&root.join("Cavalry.exe"), b"binary-v2");
