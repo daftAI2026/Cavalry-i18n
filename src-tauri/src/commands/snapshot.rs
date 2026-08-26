@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 detect/install/patch/state、Windows QPA 只读证据、CommandRunner 与 context 的 packaged language source 定位。
- * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、由单次采集快照 gate 返回分类的 typed reconciliationRequired 标记、显式 state-directory durability retry、legacy provenance 迁移及 apply 前快照门。
- * [POS]: commands 的 English 安装真相层；JSON 与原厂 QPA 共同证明现实，marker 仅可被判为待修元数据，任何未知/ACTIVE 运行时仍 fail closed。
+ * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、由单次采集快照 gate 返回分类的 typed reconciliationRequired 标记、显式 state-directory durability retry、legacy provenance 迁移及 apply 前快照门；用户触发的 refresh/extract 只验证并捕获备份，不恢复 pending 事务。
+ * [POS]: commands 的 English 安装真相层；JSON 与原厂 QPA 共同证明现实，marker 仅可被判为待修元数据，任何未知/ACTIVE 运行时仍 fail closed；pending macOS transaction recovery 由 apply/startup recovery 所有，避免刷新路径关闭 Cavalry 或写安装包。
  * [FAIL-CLOSED]: Windows 仅接受 Stock，或带有有效 manifest phase 的 Recover；vendor hash 不能单独证明英文运行时，非法/缺失 manifest 必须在 snapshot 前拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -416,8 +416,6 @@ where
     R: CommandRunner,
     F: Fn(&Path, &Path, &Path) -> Result<CleanEnglishDisposition, String>,
 {
-    #[cfg(target_os = "macos")]
-    crate::privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
     let app_path = detect::resolve_verified_install(app_path)
         .map_err(|error| error.to_string())?
         .root;
@@ -452,8 +450,6 @@ pub(crate) fn refresh_english_inner<R: CommandRunner>(
     runner: &mut R,
     now: &str,
 ) -> Result<ActionPayload, String> {
-    #[cfg(target_os = "macos")]
-    crate::privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
     let app_path = detect::resolve_verified_install(app_path)
         .map_err(|error| error.to_string())?
         .root;
@@ -613,6 +609,25 @@ mod snapshot_state_tests {
             .as_deref()
             .is_some_and(|warning| warning.contains("injected retry fsync failure")));
         assert!(temp.path().read_dir().unwrap().next().is_none());
+    }
+
+    #[test]
+    fn refresh_and_extract_do_not_own_macos_pending_recovery() {
+        let snapshot_source = include_str!("snapshot.rs");
+        let apply_source = include_str!("apply.rs");
+        let snapshot_production = snapshot_source
+            .split("#[cfg(test)]")
+            .next()
+            .expect("snapshot production source should precede its test module");
+
+        assert!(
+            !snapshot_production.contains("recover_macos_apply_for_selection"),
+            "refresh/extract must not recover pending macOS transactions"
+        );
+        assert!(
+            apply_source.contains("recover_macos_apply_for_selection"),
+            "apply must retain pending macOS recovery before mutation"
+        );
     }
 }
 
