@@ -131,7 +131,7 @@ helper、placeholder 与 MessageBar 三条 Qt callback 在安装时把原函数�
 ## 依赖
 
 - Windows 10 x64+
-- Node.js 22+ 与 PowerShell 5.1+
+- Node.js 24+ 与 PowerShell 5.1+
 - Visual Studio 2022+ Build Tools，启用 x64 MSVC v143 C++ 工具链
 - CMake 4.2+
 - Qt 6.6.3 `win64_msvc2019_64` SDK

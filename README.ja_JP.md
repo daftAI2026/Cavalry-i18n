@@ -82,7 +82,7 @@ Windows 開発ビルド:
 npm run build:tauri:windows    # Windows NSIS インストーラー
 ```
 
-Windows 開発には Windows 10 x64 以降、Node.js 22+、PowerShell 5.1+、x64 MSVC v143 を含む Visual Studio 2022+、CMake 4.2+ が必要です。ランチャーはインストール済みの `pwsh` を優先し、なければ標準搭載の Windows PowerShell を使用します。
+Windows 開発には Windows 10 x64 以降、Node.js 24+、PowerShell 5.1+、x64 MSVC v143 を含む Visual Studio 2022+、CMake 4.2+ が必要です。ランチャーはインストール済みの `pwsh` を優先し、なければ標準搭載の Windows PowerShell を使用します。
 
 > **注意**：両プラットフォームの injector は、Cavalry 2.7.2 に同梱されている Qt ブランチと一致する Qt 6.6.3 に対してビルドする必要があります。`tools/cavalry_qt_target.json` を唯一のバージョン情報源とし、macOS `clang_64` と Windows `msvc2019_64` へ投影します。clean Windows ビルドでは `npm run prepare:qt-sdk:windows` を使用します。
 

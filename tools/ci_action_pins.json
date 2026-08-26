@@ -39,8 +39,8 @@
     "version": "3.12.6"
   },
   "node": {
-    "version": "22.23.1",
-    "npmVersion": "10.9.8"
+    "version": "24.20.0",
+    "npmVersion": "11.19.0"
   },
   "aqtinstall": {
     "inputFile": "requirements-ci.in",

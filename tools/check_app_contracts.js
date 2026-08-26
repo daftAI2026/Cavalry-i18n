@@ -5430,8 +5430,8 @@ test('release supply-chain gates pin vulnerability inputs, Qt installer identity
   assert.doesNotMatch(resolver, /pip', 'install'[\s\S]{0,100}'aqtinstall'/, 'resolver must not issue a bare global aqtinstall install');
   assert.match(resolver, /validateSdkIdentity\(target, prefix\)/, 'Qt resolver must validate installed payload identity after version validation');
   assert.match(qtTarget.platforms.macos.aqt.identity.treeSha256, /^[a-f0-9]{64}$/i, 'macOS Qt target must pin a canonical full SDK tree digest');
-  assert.equal(dependencyPolicy.npm.nodeVersion, '22.23.1');
-  assert.equal(dependencyPolicy.npm.npmVersion, '10.9.8');
+  assert.equal(dependencyPolicy.npm.nodeVersion, '24.20.0');
+  assert.equal(dependencyPolicy.npm.npmVersion, '11.19.0');
   assert.equal(dependencyPolicy.npm.registry, 'https://registry.npmjs.org');
   assert.equal(dependencyPolicy.cargoAudit.version, '0.22.2', 'cargo-audit must parse CVSS 4.0 records in the pinned RustSec DB');
   assert.match(dependencyPolicy.cargoAudit.rustsecAdvisoryDb.commit, /^[a-f0-9]{40}$/);

@@ -152,4 +152,5 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-08-10: Qt SDK resolver 将 venv/pip/aqt bootstrap 诊断统一路由到 stderr，保留 stdout 为可 `eval` 的机器输出；CI pin 守门器要求 cargo-audit 通过 manifest 中的精确 Rust channel 安装；新增 npm 工具链身份命令边界，修复 Windows Runner 无 shell 启动 `npm` shim 失败，三者共同隔离宿主 bootstrap 差异。
 
 2026-08-27: `test_temp_dir.js` 为合同测试注册本进程创建的有限 TEMP fixture；`check_app_contracts.js` 与 `check_tauri_build_sop.js` 在顶层 `after` 中仅清理直接位于 `os.tmpdir`、固定前缀且无 symlink/reparse 的目录，不扫描或删除历史/陌生路径。
+2026-08-27: CI、action pin 与漏洞门共同升级到 Node.js 24.20.0 / npm 11.19.0；精确版本只存在于共享 policy/pin 及其 strict contract 中，开发文档统一声明 Node 24 LTS 下限。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
