@@ -1,7 +1,13 @@
-/**
+/*
  * [INPUT]: 依赖事务派生的 install root、nonce journal root 与已知 entry 数量，复用 Windows 路径 containment 和 reparse 检查。
- * [OUTPUT]: 提供有界 journal 成员枚举与 handle-bound 精确非递归删除；只识别双代 manifest 与固定 preimage 成员，每次删除后同步目录，未知成员、目录、重解析点或越界路径一律拒绝清理。
+ * [OUTPUT]: 提供有界 journal 成员枚举与 handle-bound 精确非递归删除；只识别 manifest、固定 preimage 和 staged replacement 成员，每次删除后同步目录，未知成员、目录、重解析点或越界路径一律拒绝清理。
  * [POS]: language_transaction/storage 的最小清理内核；只删除本事务能证明拥有的固定文件，不参与 payload 写入或回滚决策。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+/**
+ * [INPUT]: durable journal root、entry count 和固定 preimage/staged replacement 名称。
+ * [OUTPUT]: 仅枚举并 handle-bound 清理 state、preimage 与 `.payload-{apply|rollback}-N.tmp` 成员；未知成员或重解析点 fail-closed。
+ * [POS]: language_transaction 的 journal 成员清理边界，与 storage 的 staged publication 共享固定成员协议。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -45,6 +51,8 @@ pub(crate) fn inspect_journal_root(
     allowed.insert(OsString::from(JOURNAL_STATE_TEMP_FILE));
     for index in 0..entry_count {
         allowed.insert(OsString::from(format!("{index}.preimage")));
+        allowed.insert(OsString::from(format!(".payload-apply-{index}.tmp")));
+        allowed.insert(OsString::from(format!(".payload-rollback-{index}.tmp")));
     }
 
     let mut members = Vec::new();

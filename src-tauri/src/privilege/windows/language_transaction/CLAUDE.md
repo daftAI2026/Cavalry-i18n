@@ -29,3 +29,5 @@ worker_tests.rs: worker 纯合同测试；覆盖固定 core surface、执行顺�
 法则: UAC 只授予固定 Program Files 语言事务；父进程不关闭/写安装根，worker 不接受 CopyPair/任意 destination，不启动提升态 Cavalry；只有 0/42 可由父进程验证后提交应用 state。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+原子 payload 约束：storage.rs 只通过 destination_io 的固定 `.payload-{apply|rollback}-{entry}.tmp` journal 成员进行 staged 写入；临时内容、权限、哈希和目录必须先持久化，随后用 `ReplaceFileW`/不覆盖式 `MoveFileExW` 原子发布，并以 no-share 句柄复核。启动 inspector 必须允许且只允许这些声明成员；未知或重解析临时对象保持 fail-closed。

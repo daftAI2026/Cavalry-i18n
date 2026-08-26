@@ -1,7 +1,13 @@
-/**
+/*
  * [INPUT]: 依赖 worker 已解析的固定 source/destination、lowercase SHA-256 preimage 与 OS-known install root；复用 Windows reparse/containment 守卫。
  * [OUTPUT]: 提供非序列化 payload/preimage、跨 payload/QPA/final marker 的 durable backup journal、写前 postimage 授权、原始父目录重建、同句柄验写与 marker-last hash-aware rollback。
  * [POS]: language_transaction 的文件事务内核；manifest、路径、postimage 与目录恢复由窄协作者投影，本模块不解析 plan、不启动进程，未知当前哈希永不被事后认领或旧备份覆盖。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+/**
+ * [INPUT]: worker 已验证的 payload/preimage、install root containment、固定 journal 和 Windows 文件 I/O 原语。
+ * [OUTPUT]: 提供 durable journal、postimage ownership、原子 staged payload 应用、目录恢复及 fail-closed rollback。
+ * [POS]: language_transaction 的事务编排核心；在首次目标变更前持久化 ownership，并协调目标目录与 journal 临时成员的恢复。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -23,7 +29,9 @@ use super::path_validation::{
 mod destination_io;
 #[cfg(test)]
 use destination_io::lower_hex;
-use destination_io::{hash_open_file, open_exclusive_ordinary_file, LockedDestination};
+use destination_io::{
+    hash_open_file, journal_replacement_path, open_exclusive_ordinary_file, LockedDestination,
+};
 
 #[path = "journal_cleanup.rs"]
 pub(super) mod journal_cleanup;
@@ -45,6 +53,16 @@ pub(super) const JOURNAL_PREFIX: &str = ".cavalry-i18n-transaction-";
 pub(super) const JOURNAL_STATE_FILE: &str = "journal.state";
 pub(super) const JOURNAL_STATE_TEMP_FILE: &str = "journal.state.tmp";
 pub(super) const NONCE_HEX_LENGTH: usize = 64;
+
+fn replacement_path(
+    journal_root: &Path,
+    destination: &Path,
+    entry_index: usize,
+    phase: &str,
+) -> Result<PathBuf, StorageError> {
+    journal_replacement_path(journal_root, destination, entry_index, phase)
+        .map_err(StorageError::new)
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct ResolvedPayload {
@@ -295,7 +313,18 @@ impl DurableJournal {
         self.persist_manifest(JournalPhase::Applying)
             .map_err(StorageError::new)?;
 
-        let mutation = destination.overwrite_from(&mut source, &source_permissions);
+        let replacement = replacement_path(
+            &self.journal_root,
+            &payload.destination,
+            entry_index,
+            "apply",
+        )?;
+        let mutation = destination.overwrite_from(
+            &mut source,
+            &source_permissions,
+            &replacement,
+            &payload.source_sha256,
+        );
         let installed_hash = mutation.observed_sha256;
         if let Some(hash) = installed_hash.clone() {
             self.entries[entry_index]
@@ -375,7 +404,7 @@ impl DurableJournal {
             if marker_index == Some(index) {
                 continue;
             }
-            if let Err(error) = rollback_entry(entry) {
+            if let Err(error) = rollback_entry(&self.journal_root, entry, index) {
                 failures.push((entry.destination.clone(), error));
             }
         }
@@ -402,7 +431,7 @@ impl DurableJournal {
         if failures.is_empty() {
             if let Some(index) = marker_index {
                 let entry = &self.entries[index];
-                if let Err(error) = rollback_entry(entry) {
+                if let Err(error) = rollback_entry(&self.journal_root, entry, index) {
                     failures.push((entry.destination.clone(), error));
                 }
             }
@@ -460,6 +489,41 @@ impl DurableJournal {
                     "Committed transaction postimage changed unexpectedly: {}",
                     entry.destination.display()
                 ));
+            }
+        }
+        Ok(())
+    }
+
+    pub(super) fn cleanup_replacement_temps(&self) -> Result<(), String> {
+        for (index, entry) in self.entries.iter().enumerate() {
+            for phase in ["apply", "rollback"] {
+                let replacement =
+                    replacement_path(&self.journal_root, &entry.destination, index, phase)
+                        .map_err(|error| error.message)?;
+                let metadata = match fs::symlink_metadata(&replacement) {
+                    Ok(metadata) => metadata,
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
+                    Err(error) => {
+                        return Err(format!(
+                            "Could not inspect transaction replacement {}: {error}",
+                            replacement.display()
+                        ))
+                    }
+                };
+                if !metadata.is_file() || metadata_is_reparse_point(&metadata) {
+                    return Err(format!(
+                        "Transaction replacement is not an ordinary file: {}",
+                        replacement.display()
+                    ));
+                }
+                let Some(temporary) = LockedDestination::open_existing_for_delete(&replacement)?
+                else {
+                    continue;
+                };
+                temporary.delete_on_close()?;
+                if let Some(parent) = replacement.parent() {
+                    sync_directory(parent)?;
+                }
             }
         }
         Ok(())
@@ -670,7 +734,11 @@ fn backup_existing_file(
     Ok(permissions)
 }
 
-fn rollback_entry(entry: &JournalEntry) -> Result<(), String> {
+fn rollback_entry(
+    journal_root: &Path,
+    entry: &JournalEntry,
+    entry_index: usize,
+) -> Result<(), String> {
     match (
         entry.original_sha256.as_deref(),
         entry.backup.as_deref(),
@@ -715,7 +783,11 @@ fn rollback_entry(entry: &JournalEntry) -> Result<(), String> {
                     entry.destination.display()
                 ));
             }
-            let mutation = destination.overwrite_from(&mut source, permissions);
+            let replacement =
+                replacement_path(journal_root, &entry.destination, entry_index, "rollback");
+            let replacement = replacement.map_err(|error| error.message)?;
+            let mutation =
+                destination.overwrite_from(&mut source, permissions, &replacement, expected);
             if let Some(error) = mutation.error {
                 return Err(error);
             }

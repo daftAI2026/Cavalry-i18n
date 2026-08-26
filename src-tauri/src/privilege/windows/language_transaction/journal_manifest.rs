@@ -1,10 +1,16 @@
-/**
+/*
  * [INPUT]: DurableJournal 的路径、preimage/postimage、权限与 phase；Windows lstat、路径
  * containment、FileShare 与目录句柄能力。
  * [OUTPUT]: 提供版本化严格 manifest 的 handle-bound 持久化、读取、校验、startup/apply 前恢复，以及
  * 文件和目录 fsync；state 是已发布权威代、state.tmp 是提交候选，双代分歧时只采用 state，避免恢复采纳未提交 postimage。
  * [POS]: language_transaction/storage 的崩溃恢复内核；storage 保持事务写入/CAS，本文
  * 件负责将内存所有权投影为可重建的磁盘真相。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+/**
+ * [INPUT]: DurableJournal entries、phase、owned postimages 和其固定 journal 成员。
+ * [OUTPUT]: 提供版本化 manifest 的持久化/恢复，并在 recovery 前清理仅属于当前 journal 的 staged replacement。
+ * [POS]: language_transaction 崩溃恢复语义边界；不采纳未提交 postimage，固定临时成员仍按路径协议 fail-closed。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -150,6 +156,9 @@ pub(crate) fn recover_pending(install_root: &Path) -> Result<RecoveryOutcome, St
     // Unknown members are checked separately after the manifest is parsed. Never turn an
     // inspect failure into an empty journal: cleanup must retain the entire recovery root.
     inspect_journal_root(&install_root, journal_root, journal.entries.len())?;
+    // Replacement names are deterministic members of this journal.  A staged file left by a
+    // crash is removed only after the fixed member and ordinary-file checks succeed.
+    journal.cleanup_replacement_temps()?;
     match phase {
         JournalPhase::Committing | JournalPhase::Committed => {
             journal.verify_committed_postimages()?;

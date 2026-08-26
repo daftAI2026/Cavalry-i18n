@@ -12,6 +12,7 @@ use super::{
 use sha2::{Digest, Sha256};
 use std::{
     fs,
+    io::{Read, Write},
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
     time::{SystemTime, UNIX_EPOCH},
@@ -452,6 +453,93 @@ fn startup_recovery_blocks_a_tampered_manifest_path() {
 }
 
 #[test]
+fn interrupted_payload_copy_never_exposes_a_partial_destination() {
+    let temp = TestDirectory::new();
+    let destination = temp.0.join("destination.bin");
+    let source = temp.0.join("source.bin");
+    let replacement = temp.0.join(".payload-replacement.tmp");
+    write(&destination, b"original-content");
+    write(&source, b"translated-content");
+
+    let mut locked = LockedDestination::open_for_write(&destination, true).unwrap();
+    let mut source_file = fs::File::open(&source).unwrap();
+    let permissions = source_file.metadata().unwrap().permissions();
+    let mutation = locked.overwrite_from_with_copy(
+        &mut source_file,
+        &permissions,
+        &replacement,
+        |source, destination| {
+            let mut partial = [0_u8; 4];
+            source.read_exact(&mut partial).unwrap();
+            destination.write_all(&partial).unwrap();
+            Err("simulated power loss during payload copy".to_string())
+        },
+    );
+
+    assert!(
+        mutation
+            .error
+            .as_deref()
+            .is_some_and(|error| error.contains("simulated power loss")),
+        "{:?}",
+        mutation.error
+    );
+    drop(locked);
+    assert_eq!(fs::read(&destination).unwrap(), b"original-content");
+    assert!(!replacement.exists());
+}
+
+#[test]
+fn startup_recovery_removes_only_a_declared_staged_replacement() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("translated.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let marker = root.join(crate::install::LANG_MARKER_NAME);
+    let journal = DurableJournal::prepare(
+        &root,
+        &nonce('b'),
+        std::slice::from_ref(&payload),
+        &[ResolvedPreimage {
+            destination: marker,
+            expected_sha256: None,
+        }],
+    )
+    .unwrap();
+    let replacement =
+        super::replacement_path(&journal.journal_root, &destination, 0, "apply").unwrap();
+    write(&replacement, b"tran");
+    journal.persist_manifest(JournalPhase::Applying).unwrap();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&destination).unwrap(), b"original");
+    assert!(!replacement.exists());
+}
+
+#[test]
+fn missing_payload_destination_is_published_without_an_empty_intermediate() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("translated.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    fs::create_dir_all(destination.parent().unwrap()).unwrap();
+    let payload = payload(&source, &destination, None);
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('c'), std::slice::from_ref(&payload), &[]).unwrap();
+
+    assert!(!destination.exists());
+    journal.apply_payload(&payload).unwrap();
+    assert_eq!(fs::read(&destination).unwrap(), b"translated");
+    assert!(matches!(journal.rollback(), RollbackOutcome::Restored));
+    assert!(!destination.exists());
+}
+
+#[test]
 fn destination_cas_and_write_share_one_exclusive_handle() {
     let temp = TestDirectory::new();
     let destination = temp.0.join("destination.bin");
@@ -475,7 +563,12 @@ fn destination_cas_and_write_share_one_exclusive_handle() {
 
     let mut source_file = fs::File::open(&source).unwrap();
     let permissions = source_file.metadata().unwrap().permissions();
-    let mutation = locked.overwrite_from(&mut source_file, &permissions);
+    let mutation = locked.overwrite_from(
+        &mut source_file,
+        &permissions,
+        &temp.0.join(".payload-replacement.tmp"),
+        &hash(b"translated"),
+    );
     assert_eq!(mutation.error, None);
     assert_eq!(mutation.observed_sha256, Some(hash(b"translated")));
     assert!(
