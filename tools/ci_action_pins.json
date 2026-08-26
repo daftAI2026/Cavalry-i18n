@@ -51,6 +51,19 @@
       "--only-binary=:all:"
     ]
   },
+  "cmake": {
+    "platform": "windows-x86_64",
+    "version": "4.2.0",
+    "minimumVersion": "4.2.0",
+    "archive": "cmake-4.2.0-windows-x86_64.zip",
+    "url": "https://github.com/Kitware/CMake/releases/download/v4.2.0/cmake-4.2.0-windows-x86_64.zip",
+    "sha256": "cf35a516c4f5f4646b301e51c8e24b168cc012c3b1453b8f675303b54eb0ef45",
+    "releaseUrl": "https://github.com/Kitware/CMake/releases/tag/v4.2.0",
+    "rootDirectory": "cmake-4.2.0-windows-x86_64",
+    "executable": "cmake-4.2.0-windows-x86_64/bin/cmake.exe",
+    "ctest": "cmake-4.2.0-windows-x86_64/bin/ctest.exe",
+    "source": "Kitware/CMake GitHub release v4.2.0; archive SHA-256 verified before extraction"
+  },
   "rust": {
     "toolchainFile": "rust-toolchain.toml",
     "channel": "1.97.1"

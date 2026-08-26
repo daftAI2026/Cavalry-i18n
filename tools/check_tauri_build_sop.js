@@ -1119,6 +1119,27 @@ test('Windows injector selects the installed Visual Studio generator and locks t
   assert.match(windowsCmake, /cmake_minimum_required\(VERSION 4\.2\)/);
 });
 
+test('Windows CMake bootstrap rejects low, floating, and unproven toolchains', () => {
+  const pins = readJson('tools/ci_action_pins.json');
+  const cmake = require('./resolve_windows_cmake.js');
+  const pin = pins.cmake;
+
+  assert.ok(pin, 'CMake must have an explicit CI pin');
+  assert.equal(pin.version, '4.2.0');
+  assert.match(pin.url, /^https:\/\/github\.com\/Kitware\/CMake\/releases\/download\/v4\.2\.0\/cmake-4\.2\.0-windows-x86_64\.zip$/);
+  assert.match(pin.sha256, /^[a-f0-9]{64}$/);
+  assert.equal(cmake.parseCmakeVersion('cmake version 4.2.0'), '4.2.0');
+  assert.throws(() => cmake.validateCmakeVersion('cmake version 3.31.6'), /CMake 4\.2\.0 or newer is required/);
+  assert.throws(
+    () => cmake.validateCmakePin({ ...pin, url: pin.url.replace('v4.2.0', 'main') }),
+    /official CMake v4\.2\.0 archive URL/
+  );
+  assert.throws(
+    () => cmake.validateCmakePin({ ...pin, sha256: '' }),
+    /SHA-256 archive digest/
+  );
+});
+
 test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an installed NSIS smoke', () => {
   const workflow = readText('.github/workflows/build.yml');
   const job = workflow.match(/\r?\n  windows_check:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/);
@@ -1131,6 +1152,9 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
   assert.match(job[1], /actions\/setup-python@[0-9a-f]{40}/);
   assert.match(job[1], /npm run prepare:qt-sdk:windows/);
   assert.doesNotMatch(job[1], /python -m aqt install-qt/);
+  assert.match(job[1], /resolve_windows_cmake\.js --ensure --print-json/);
+  assert.match(job[1], /record_windows_toolchain_evidence\.js/);
+  assert.match(job[1], /toolchain-evidence-windows-x64\.json/);
   assert.match(job[1], /npm ci/);
   assert.match(job[1], /npm run test:contracts/);
   assert.match(job[1], /npm run build:injector:windows/);

@@ -365,10 +365,32 @@ jobs:
           npm run check:app
           npm run test:contracts
 
+      - name: Install and verify pinned Windows CMake
+        shell: pwsh
+        run: |
+          $identity = & node tools/resolve_windows_cmake.js --ensure --print-json --platform windows
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $identityPath = Join-Path $env:RUNNER_TEMP 'windows-cmake-identity.json'
+          $identity -join [Environment]::NewLine | Set-Content -LiteralPath $identityPath -Encoding utf8
+          Write-Output "Pinned Windows CMake identity: $identityPath"
+
       - name: Build Windows runtime trust anchors
         run: |
           npm run prepare:qt-sdk:windows
           npm run build:injector:windows
+
+      - name: Record Windows producer toolchain evidence
+        shell: pwsh
+        run: |
+          $createdAt = git show -s --format=%cI $env:GITHUB_SHA
+          node tools/record_windows_toolchain_evidence.js --commit "$env:GITHUB_SHA" --created-at "$createdAt" --cmake-identity "$env:RUNNER_TEMP/windows-cmake-identity.json" --output "$env:RUNNER_TEMP/toolchain-evidence-windows-x64.json"
+
+      - name: Upload Windows producer toolchain evidence
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: toolchain-evidence-windows-x64
+          path: ${{ runner.temp }}/toolchain-evidence-windows-x64.json
+          if-no-files-found: error
 
       - name: Check and test the Windows Rust target
         run: |
