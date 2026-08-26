@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API 与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置/官方或受管状态、English UI 与独立官方还原、可组合 warningCodes、state durability 显式刷新重试、本机重装指引、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的系统语言本土化、安装位置/官方或受管状态、English UI 与独立官方还原、Windows 只读快照后的显式 runtime reconciliation、可组合 warningCodes、state durability 显式刷新重试、本机重装指引、权限弹窗、应用并重启交互，以及 Windows 不可写根/Cavalry 仍运行的稳定状态说明
  * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode/warningCodes 本土化可恢复状态且从不显示 raw warning；官方还原使用非语言 manifest 的显式内部 action
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,6 +15,7 @@ const languageSelect = document.querySelector('#languageSelect');
 const browseButton = document.querySelector('#browseButton');
 const extractButton = document.querySelector('#extractButton');
 const applyButton = document.querySelector('#applyButton');
+const reconcileButton = document.querySelector('#reconcileButton');
 const restoreButton = document.querySelector('#restoreButton');
 const permissionButton = document.querySelector('#permissionButton');
 const statusText = document.querySelector('#statusText');
@@ -40,6 +41,7 @@ const state = {
   controlsBlocked: false,
   startupRecoveryError: null,
   stateDurabilityPending: false,
+  reconciliationRequired: false,
 };
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
@@ -63,6 +65,7 @@ const UI_TEXT = {
     recoveryMode: 'Installation: recovery required before further changes',
     retryApply: 'Retry Apply',
     refreshEnglish: 'Refresh English Snapshot',
+    reconcileEnglish: 'Reconcile English runtime',
     openPrivacySecurity: 'Open permission settings',
     requestElevation: 'Retry as administrator',
     close: 'Close',
@@ -90,6 +93,15 @@ const UI_TEXT = {
     refreshingEnglish: 'Refreshing the English snapshot...',
     extractFailed: 'Could not refresh the English snapshot.',
     extractSuccess: 'English snapshot refreshed ({count} files).',
+    reconciliationRequired:
+      'English snapshot refreshed ({count} files). Runtime reconciliation is required. Confirm the separate action below.',
+    reconciliationPending: 'Runtime reconciliation is required. Confirm the separate action below.',
+    reconcilingEnglish: 'Reconciling the English runtime...',
+    reconciliationConfirmTitle: 'Reconcile the English runtime?',
+    reconciliationConfirmBody:
+      'This action may request administrator permission, close Cavalry, modify its runtime files and language marker, then restart Cavalry.',
+    reconciliationSuccess: 'English runtime reconciled and Cavalry restarted.',
+    reconciliationSuccessWithWarnings: 'English runtime reconciled. {warnings}',
     applying: 'Applying {language}...',
     waitingPermission: 'Waiting for system permission.',
     patchFailed: 'Patch failed.',
@@ -136,6 +148,7 @@ const UI_TEXT = {
     recoveryMode: '安装状态：必须先完成中断事务恢复',
     retryApply: '重试应用',
     refreshEnglish: '刷新英文快照',
+    reconcileEnglish: '修复英文运行时',
     openPrivacySecurity: '打开权限设置',
     requestElevation: '以管理员身份重试',
     close: '关闭',
@@ -158,6 +171,14 @@ const UI_TEXT = {
     refreshingEnglish: '正在刷新英文快照...',
     extractFailed: '无法刷新英文快照。',
     extractSuccess: '英文快照已刷新（{count} 个文件）。',
+    reconciliationRequired: '英文快照已刷新（{count} 个文件）。仍需修复运行时，请确认下方的独立操作。',
+    reconciliationPending: '仍需修复运行时，请确认下方的独立操作。',
+    reconcilingEnglish: '正在修复英文运行时...',
+    reconciliationConfirmTitle: '修复英文运行时？',
+    reconciliationConfirmBody:
+      '此操作可能请求管理员权限，关闭 Cavalry，修改运行时文件和语言标记，然后重启 Cavalry。',
+    reconciliationSuccess: '英文运行时已修复，Cavalry 已重启。',
+    reconciliationSuccessWithWarnings: '英文运行时已修复。{warnings}',
     applying: '正在应用{language}...',
     waitingPermission: '正在等待系统授权。',
     patchFailed: '应用语言包失败。',
@@ -201,6 +222,7 @@ const UI_TEXT = {
     recoveryMode: '安裝狀態：必須先完成中斷交易復原',
     retryApply: '重試套用',
     refreshEnglish: '重新整理英文快照',
+    reconcileEnglish: '修復英文執行環境',
     openPrivacySecurity: '打開權限設定',
     requestElevation: '以系統管理員身分重試',
     close: '關閉',
@@ -223,6 +245,14 @@ const UI_TEXT = {
     refreshingEnglish: '正在重新整理英文快照...',
     extractFailed: '無法重新整理英文快照。',
     extractSuccess: '英文快照已重新整理（{count} 個檔案）。',
+    reconciliationRequired: '英文快照已重新整理（{count} 個檔案）。仍需修復執行環境，請確認下方的獨立操作。',
+    reconciliationPending: '仍需修復執行環境，請確認下方的獨立操作。',
+    reconcilingEnglish: '正在修復英文執行環境...',
+    reconciliationConfirmTitle: '修復英文執行環境？',
+    reconciliationConfirmBody:
+      '此操作可能要求系統管理員權限，關閉 Cavalry、修改執行環境檔案和語言標記，然後重新啟動 Cavalry。',
+    reconciliationSuccess: '英文執行環境已修復，Cavalry 已重新啟動。',
+    reconciliationSuccessWithWarnings: '英文執行環境已修復。{warnings}',
     applying: '正在套用{language}...',
     waitingPermission: '正在等待系統授權。',
     patchFailed: '套用語言包失敗。',
@@ -266,6 +296,7 @@ const UI_TEXT = {
     recoveryMode: 'インストール状態: 中断した処理の復旧が必要です',
     retryApply: '適用を再試行',
     refreshEnglish: '英語スナップショットを更新',
+    reconcileEnglish: '英語ランタイムを修復',
     openPrivacySecurity: '権限設定を開く',
     requestElevation: '管理者として再試行',
     close: '閉じる',
@@ -293,6 +324,15 @@ const UI_TEXT = {
     refreshingEnglish: '英語スナップショットを更新しています...',
     extractFailed: '英語スナップショットを更新できませんでした。',
     extractSuccess: '英語スナップショットを更新しました（{count} ファイル）。',
+    reconciliationRequired:
+      '英語スナップショットを更新しました（{count} ファイル）。ランタイムの修復が必要です。下の独立した操作を確認してください。',
+    reconciliationPending: 'ランタイムの修復が必要です。下の独立した操作を確認してください。',
+    reconcilingEnglish: '英語ランタイムを修復しています...',
+    reconciliationConfirmTitle: '英語ランタイムを修復しますか？',
+    reconciliationConfirmBody:
+      'この操作では管理者権限を要求し、Cavalry を終了し、ランタイムファイルと言語マーカーを変更してから Cavalry を再起動する場合があります。',
+    reconciliationSuccess: '英語ランタイムを修復し、Cavalry を再起動しました。',
+    reconciliationSuccessWithWarnings: '英語ランタイムを修復しました。{warnings}',
     applying: '{language}を適用しています...',
     waitingPermission: 'システム権限を待っています。',
     patchFailed: '言語パックの適用に失敗しました。',
@@ -414,9 +454,12 @@ function setBusy(isBusy) {
   browseButton.disabled = isBusy || state.controlsBlocked || durabilityPending;
   const reinstallRequired = requiresCavalryReinstall();
   extractButton.disabled = isBusy || state.controlsBlocked || reinstallRequired;
-  applyButton.disabled = isBusy || state.needsExtract || state.controlsBlocked || durabilityPending;
+  applyButton.disabled =
+    isBusy || state.needsExtract || state.reconciliationRequired || state.controlsBlocked || durabilityPending;
+  reconcileButton.disabled =
+    isBusy || !state.reconciliationRequired || state.controlsBlocked || durabilityPending;
   restoreButton.disabled =
-    isBusy || state.needsExtract || reinstallRequired || state.controlsBlocked || durabilityPending;
+    isBusy || state.needsExtract || state.reconciliationRequired || reinstallRequired || state.controlsBlocked || durabilityPending;
   languageSelect.disabled = isBusy || state.controlsBlocked || durabilityPending;
 }
 
@@ -446,6 +489,7 @@ function localizeShell() {
   switchToLabel.textContent = t('switchTo');
   browseButton.setAttribute('aria-label', t('chooseAppAria'));
   extractButton.textContent = t('refreshEnglish');
+  reconcileButton.textContent = t('reconcileEnglish');
   restoreButton.textContent = t('restoreOfficial');
   permissionButton.textContent = t('openPrivacySecurity');
   modalCloseButton.setAttribute('aria-label', t('close'));
@@ -482,6 +526,20 @@ function showApplyConfirmation(nextLanguage) {
   });
 }
 
+function showReconciliationConfirmation() {
+  showModal({
+    title: t('reconciliationConfirmTitle'),
+    body: t('reconciliationConfirmBody'),
+    primary: t('reconcileEnglish'),
+    secondary: t('cancel'),
+    onPrimary: () => {
+      closeModal();
+      void runReconciliation().catch(recoverOperationFailure);
+    },
+    onSecondary: closeModal,
+  });
+}
+
 function showRestoreConfirmation() {
   showModal({
     title: t('restoreConfirmTitle'),
@@ -498,6 +556,7 @@ function showRestoreConfirmation() {
 
 function showPermissionWait(nextLanguage) {
   state.pendingAction = nextLanguage;
+  const isReconciliation = nextLanguage === 'reconcile-english';
   const needsElevation = state.permissionAction === 'requestElevation';
   setStatus(t('waitingPermission'), 'warning');
   setPermissionWait(true);
@@ -508,7 +567,9 @@ function showPermissionWait(nextLanguage) {
     secondary: needsElevation ? t('cancel') : t('openPrivacySecurity'),
     onPrimary: () => {
       closeModal();
-      void runApply(nextLanguage).catch(recoverOperationFailure);
+      void (isReconciliation ? runReconciliation() : runApply(nextLanguage)).catch(
+        recoverOperationFailure
+      );
     },
     onSecondary: needsElevation
       ? closeModal
@@ -542,6 +603,7 @@ async function bootstrap() {
   const showMacInstallationMode = state.platform === 'macos' && Boolean(state.appPath);
   installationModeText.hidden = !showMacInstallationMode;
   restoreButton.hidden = !showMacInstallationMode || state.installationMode === 'official';
+  reconcileButton.hidden = !state.reconciliationRequired;
   installationModeText.textContent =
     state.installationMode === 'official'
       ? t('officialMode')
@@ -614,6 +676,7 @@ async function browseForApp() {
     return;
   }
 
+  state.reconciliationRequired = false;
   await bootstrap();
 }
 
@@ -639,12 +702,19 @@ async function refreshEnglishSnapshot() {
     const warningCodes = result.warningCodes || [];
     const warnings = localizedWarningMessages(warningCodes).join(' ');
     state.stateDurabilityPending = warningCodes.includes('stateDurabilityPending');
+    state.reconciliationRequired = result.reconciliationRequired === true;
+    reconcileButton.hidden = !state.reconciliationRequired;
     setBusy(state.busy);
+    const refreshed = state.reconciliationRequired
+      ? t('reconciliationRequired', { count: result.count })
+      : t('extractSuccess', { count: result.count });
     setStatus(
-      warnings
+      state.reconciliationRequired
+        ? `${refreshed}${warnings ? ` ${warnings}` : ''}`
+        : warnings
         ? t('extractSuccessWarning', { count: result.count, warnings })
-        : t('extractSuccess', { count: result.count }),
-      warnings ? 'warning' : 'success'
+        : refreshed,
+      state.reconciliationRequired || warnings ? 'warning' : 'success'
     );
   } finally {
     setBusy(false);
@@ -668,12 +738,34 @@ function requestApply() {
     requireDurabilityRetry();
     return;
   }
+  if (state.reconciliationRequired) {
+    setStatus(t('reconciliationPending'), 'warning');
+    return;
+  }
   if (state.needsExtract) {
     setStatus(t('needsExtract'), 'warning');
     return;
   }
 
   showApplyConfirmation(languageSelect.value);
+}
+
+function requestReconciliation() {
+  if (!state.appPath) {
+    setStatus(t('chooseAppFirst'), 'warning');
+    return;
+  }
+  if (!state.reconciliationRequired) {
+    return;
+  }
+  if (state.stateDurabilityPending) {
+    requireDurabilityRetry();
+    return;
+  }
+  if (state.controlsBlocked) {
+    return;
+  }
+  showReconciliationConfirmation();
 }
 
 function requestOfficialRestore() {
@@ -699,6 +791,10 @@ function requestOfficialRestore() {
 async function runApply(nextLanguage) {
   if (state.stateDurabilityPending) {
     requireDurabilityRetry();
+    return;
+  }
+  if (state.reconciliationRequired) {
+    setStatus(t('reconciliationPending'), 'warning');
     return;
   }
   state.pendingAction = nextLanguage;
@@ -746,6 +842,54 @@ async function runApply(nextLanguage) {
   }
 }
 
+async function runReconciliation() {
+  if (!state.reconciliationRequired) {
+    return;
+  }
+  if (state.stateDurabilityPending) {
+    requireDurabilityRetry();
+    return;
+  }
+  state.pendingAction = 'reconcile-english';
+  setBusy(true);
+  setPermissionWait(false);
+  setStatus(t('reconcilingEnglish'));
+
+  try {
+    const result = await api.reconcileEnglish(state.appPath);
+    if (!result.ok) {
+      if (result.permissionRequired) {
+        showPermissionWait('reconcile-english');
+        return;
+      }
+      if (result.errorCode === 'cavalryStillRunning') {
+        setStatus(t('cavalryStillRunning'), 'error');
+        return;
+      }
+      setStatus(withDetail('patchFailed', result.error), 'error');
+      return;
+    }
+
+    state.reconciliationRequired = false;
+    reconcileButton.hidden = true;
+    await bootstrap();
+
+    const warningCodes = result.warningCodes || [];
+    const warnings = localizedWarningMessages(warningCodes).join(' ');
+    state.stateDurabilityPending = warningCodes.includes('stateDurabilityPending');
+    setBusy(state.busy);
+    state.pendingAction = '';
+    setStatus(
+      warnings
+        ? t('reconciliationSuccessWithWarnings', { warnings })
+        : t('reconciliationSuccess'),
+      warnings ? 'warning' : 'success'
+    );
+  } finally {
+    setBusy(false);
+  }
+}
+
 async function openPrivacySecurity() {
   if (!api.openPrivacySecurity) {
     setStatus(t('openPrivacyFailed'), 'error');
@@ -760,7 +904,10 @@ async function openPrivacySecurity() {
 
 function handlePermissionButton() {
   if (state.permissionAction === 'requestElevation') {
-    void runApply(state.pendingAction || languageSelect.value).catch(recoverOperationFailure);
+    const pending = state.pendingAction || languageSelect.value;
+    void (pending === 'reconcile-english' ? runReconciliation() : runApply(pending)).catch(
+      recoverOperationFailure
+    );
     return;
   }
   void openPrivacySecurity().catch(recoverOperationFailure);
@@ -768,6 +915,7 @@ function handlePermissionButton() {
 browseButton.addEventListener('click', () => void browseForApp().catch(recoverOperationFailure));
 extractButton.addEventListener('click', () => void refreshEnglishSnapshot().catch(recoverOperationFailure));
 applyButton.addEventListener('click', requestApply);
+reconcileButton.addEventListener('click', requestReconciliation);
 restoreButton.addEventListener('click', requestOfficialRestore);
 permissionButton.addEventListener('click', handlePermissionButton);
 modalPrimaryButton.addEventListener('click', () =>

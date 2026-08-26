@@ -1550,6 +1550,7 @@ mod program_files_result_tests {
 
         assert!(!payload.ok);
         assert!(payload.permission_required);
+        assert_eq!(payload.error_code.as_deref(), Some("permissionRequired"));
         assert!(!state_dir.exists());
     }
 

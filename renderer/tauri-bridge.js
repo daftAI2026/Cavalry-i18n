@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke（或兼容 __TAURI__.core.invoke）能力。
- * [OUTPUT]: 冻结最小 window.cavalryI18n API；仅转发 camelCase payload（含 macOS 官方/受管安装态与可组合 warningCodes），丢弃 raw warning prose，并将 transport rejection 归一为 Error。
+ * [OUTPUT]: 冻结最小 window.cavalryI18n API；仅转发 camelCase payload（含 macOS 官方/受管安装态、Windows reconciliationRequired 与可组合 warningCodes），丢弃 raw warning prose，并将 transport rejection 归一为 Error。
  * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js 前加载；语言 manifest 与 warning code manifest 都不由后端原文决定。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -100,6 +100,7 @@
       warningCode: legacyWarningCode,
       warningCodes: Object.freeze(warningCodes),
       permissionRequired: pick(result.permissionRequired, false),
+      reconciliationRequired: result.reconciliationRequired === true,
       error: pick(result.error, null),
       errorCode: pick(result.errorCode, null),
     };
@@ -111,6 +112,8 @@
     extractEnglish: (appPath) => invoke('extract_english', { appPath }).then(normalizeAction),
     applyLanguage: (appPath, lang) =>
       invoke('apply_language', { appPath, lang }).then(normalizeAction),
+    reconcileEnglish: (appPath) =>
+      invoke('apply_language', { appPath, lang: 'en' }).then(normalizeAction),
     openPrivacySecurity: () => invoke('open_privacy_security').then(normalizeAction),
   });
 })();

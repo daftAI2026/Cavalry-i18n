@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::bridge 的实际 Rust include、src/lib.rs Builder 装配与 renderer/index.html 外部脚本顺序
- * [OUTPUT]: 执行 Builder 实际消费的 initialization script，并守住 Rust pre-page-load 注册顺序、冻结 API、camelCase payload 与 warningCodes
+ * [OUTPUT]: 执行 Builder 实际消费的 initialization script，并守住 Rust pre-page-load 注册顺序、冻结 API、camelCase payload、reconciliationRequired 与 warningCodes
  * [POS]: src-tauri/tests 的 bridge host-seam 守门；不虚称启动平台 WebView 或验证 packaged CSP，后者属于显式 Tauri UI 外部门
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -73,6 +73,12 @@ vm.runInNewContext(process.env.CAVALRY_BRIDGE_INITIALIZATION_SCRIPT, context, {
   assert.deepEqual(JSON.parse(JSON.stringify(calls[1])), {
     command: 'apply_language',
     payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
+  });
+  const reconciliation = await api.reconcileEnglish('/Applications/Cavalry.app');
+  assert.equal(reconciliation.ok, true);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls[2])), {
+    command: 'apply_language',
+    payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
   });
 })().catch((error) => {
   console.error(error && error.stack ? error.stack : error);

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与显式 reconciliation、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -28,7 +28,7 @@ function runtime({
   extract = { ok: true, count: 38 },
   locale = 'en-US',
 } = {}) {
-  const ids = ['appVersion', 'appPath', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreButton', 'permissionButton', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
+  const ids = ['appVersion', 'appPath', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'reconcileButton', 'restoreButton', 'permissionButton', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const document = {
@@ -114,6 +114,63 @@ test('apply invokes exactly one backend transaction and never exposes a second r
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
   });
   assert.equal(r.calls.some(({ command }) => command === 'restart_cavalry'), false);
+});
+
+test('refresh reports reconciliation without applying, and only the explicit confirmation reconciles', async () => {
+  const r = boot({
+    status: { platform: 'windows' },
+    extract: { ok: true, count: 38, reconciliationRequired: true },
+    apply: { ok: true, currentLang: 'en' },
+  });
+  await flush();
+
+  r.elements['#extractButton'].listeners.get('click')[0]();
+  await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+  assert.equal(r.elements['#reconcileButton'].hidden, false);
+  assert.equal(r.elements['#applyButton'].disabled, true);
+  assert.match(r.elements['#statusText'].textContent, /reconciliation is required/i);
+
+  r.elements['#reconcileButton'].listeners.get('click')[0]();
+  assert.match(r.elements['#modalBody'].textContent, /elevation|close Cavalry|modify|restart/i);
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
+  assert.equal(r.elements['#reconcileButton'].hidden, true);
+});
+
+test('bridge exposes typed reconciliation result and a dedicated reconciliation action', async () => {
+  const r = boot({ extract: { ok: true, count: 38, reconciliationRequired: true } });
+  await flush();
+  const action = await r.window.cavalryI18n.extractEnglish('/Applications/Cavalry.app');
+  assert.equal(action.reconciliationRequired, true);
+  assert.equal(typeof r.window.cavalryI18n.reconcileEnglish, 'function');
+  await r.window.cavalryI18n.reconcileEnglish('/Applications/Cavalry.app');
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.at(-1))), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
+});
+
+test('reconciliation permission cancellation stays typed and leaves the action available', async () => {
+  const r = boot({
+    status: { platform: 'windows', permissionAction: 'requestElevation' },
+    extract: { ok: true, count: 38, reconciliationRequired: true },
+    apply: { ok: false, permissionRequired: true, errorCode: 'permissionRequired' },
+  });
+  await flush();
+  r.elements['#extractButton'].listeners.get('click')[0]();
+  await flush();
+  r.elements['#reconcileButton'].listeners.get('click')[0]();
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.equal(r.elements['#modalTitle'].textContent, 'System permission required');
+  assert.equal(r.elements['#reconcileButton'].hidden, false);
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
+  r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
 });
 
 test('transport rejection becomes a localized stable status and re-bootstrap attempt', async () => {

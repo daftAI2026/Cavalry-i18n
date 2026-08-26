@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde 序列化和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供六命令名称、renderer 兼容 payload DTO、启动恢复显式阻断诊断，以及可组合的稳定 errorCode/warningCodes 投影。
+ * [OUTPUT]: 提供六命令名称、renderer 兼容 payload DTO、启动恢复显式阻断诊断、Windows reconciliationRequired 标记，以及可组合的稳定 errorCode/warningCodes 投影。
  * [POS]: commands 的外部契约层；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,6 +12,7 @@ const PROTECTED_TRANSACTION_WARNING: &str = "Language files were applied, but tr
 const TEMPORARY_CLEANUP_WARNING: &str = "Language files were applied, but temporary cleanup is still pending. Close Cavalry Language Switcher before removing temporary files.";
 const INTERNAL_WARNING_CODE_PREFIX: &str = "[cavalry-i18n-warning-code:";
 pub(crate) const CAVALRY_STILL_RUNNING_ERROR_CODE: &str = "cavalryStillRunning";
+pub(crate) const PERMISSION_REQUIRED_ERROR_CODE: &str = "permissionRequired";
 pub(crate) const RESTART_FAILED_WARNING_CODE: &str = "restartFailed";
 pub(crate) const STATE_DURABILITY_PENDING_WARNING_CODE: &str = "stateDurabilityPending";
 const RECOVERY_CLEANUP_PENDING_WARNING_CODE: &str = "recoveryCleanupPending";
@@ -92,6 +93,8 @@ pub struct ActionPayload {
     pub warning_codes: Vec<String>,
     #[serde(skip_serializing_if = "is_false")]
     pub permission_required: bool,
+    #[serde(skip_serializing_if = "is_false")]
+    pub reconciliation_required: bool,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub error: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -108,6 +111,7 @@ impl ActionPayload {
             warning_code: None,
             warning_codes: Vec::new(),
             permission_required: false,
+            reconciliation_required: false,
             error: None,
             error_code: None,
         }
@@ -122,6 +126,7 @@ impl ActionPayload {
             warning_code: None,
             warning_codes: Vec::new(),
             permission_required: false,
+            reconciliation_required: false,
             error: None,
             error_code: None,
         }
@@ -136,6 +141,7 @@ impl ActionPayload {
             warning_code: None,
             warning_codes: Vec::new(),
             permission_required: false,
+            reconciliation_required: false,
             error: None,
             error_code: None,
         }
@@ -150,6 +156,7 @@ impl ActionPayload {
             warning_code: None,
             warning_codes: Vec::new(),
             permission_required: false,
+            reconciliation_required: false,
             error: Some(message.to_string()),
             error_code: None,
         }
@@ -165,6 +172,7 @@ impl ActionPayload {
     pub(crate) fn permission_error(message: &str) -> Self {
         Self {
             permission_required: true,
+            error_code: Some(PERMISSION_REQUIRED_ERROR_CODE.to_string()),
             ..Self::error(message)
         }
     }
@@ -308,9 +316,10 @@ mod warning_tests {
 
     use super::{
         renderer_warning_for_copy, ActionPayload, INTERNAL_WARNING_CODE_PREFIX,
-        PROTECTED_RECOVERY_EVIDENCE_WARNING_CODE, PROTECTED_TRANSACTION_WARNING,
-        RESTART_FAILED_WARNING_CODE, STATE_DURABILITY_PENDING_WARNING_CODE,
-        TEMPORARY_CLEANUP_PENDING_WARNING_CODE, TEMPORARY_CLEANUP_WARNING,
+        PERMISSION_REQUIRED_ERROR_CODE, PROTECTED_RECOVERY_EVIDENCE_WARNING_CODE,
+        PROTECTED_TRANSACTION_WARNING, RESTART_FAILED_WARNING_CODE,
+        STATE_DURABILITY_PENDING_WARNING_CODE, TEMPORARY_CLEANUP_PENDING_WARNING_CODE,
+        TEMPORARY_CLEANUP_WARNING,
     };
 
     #[test]
@@ -412,5 +421,17 @@ mod warning_tests {
             [STATE_DURABILITY_PENDING_WARNING_CODE]
         );
         assert_eq!(payload.warning, None);
+    }
+
+    #[test]
+    fn permission_cancellation_has_a_stable_non_destructive_error_code() {
+        let payload = ActionPayload::permission_error("user canceled elevation");
+        assert!(!payload.ok);
+        assert!(payload.permission_required);
+        assert_eq!(
+            payload.error_code.as_deref(),
+            Some(PERMISSION_REQUIRED_ERROR_CODE)
+        );
+        assert!(!payload.reconciliation_required);
     }
 }

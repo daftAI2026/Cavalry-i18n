@@ -5,11 +5,11 @@
 main.rs: 二进制入口；Windows 依次消费 same-EXE 提升事务、`--uninstall-restore-english` 与 `--launch-cavalry` 精确参数并返回明确退出码，其余进入 Tauri runtime。
 lib.rs: Tauri Builder 装配层，注册 6 个 command、公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
 bridge.rs: pre-page-load JS bridge 的 Rust include 真相源，创建 `window.cavalryI18n` 并映射到 Tauri invoke；合同执行 Builder 实际消费的脚本，但不冒充 packaged WebView/CSP 现场门。
-commands.rs: renderer API facade；仅保留六条稳定 Tauri command、camelCase DTO 和兼容测试 seam；`apply_language` 持有单一 operation lock 完成写入及重启，并在返回前将内部 warning prose 收敛为可组合 warningCodes；状态、快照与平台业务下沉至 `commands/`。
+commands.rs: renderer API facade；仅保留六条稳定 Tauri command、camelCase DTO 和兼容测试 seam；`extract_english` 只生成 English snapshot 并以 `reconciliationRequired` 标记待确认的 Windows runtime 修复，`apply_language` 持有单一 operation lock 完成写入及重启，并在返回前将内部 warning prose 收敛为可组合 warningCodes；状态、快照与平台业务下沉至 `commands/`。
 commands/: command 领域模块图；apply/context/contract/restart/snapshot/status 各自只承担一个变化理由，tests/ 按基础契约与运行时领域拆分。
 install.rs: 跨平台安装模型，将 Cavalry.app、Cavalry.exe 或任意安装目录统一为 root/executable/assets/marker；兼容发现保留宽松入口，verified 入口先 canonicalize 并拒绝 symlink bundle/关键文件，并提供逐组件 lstat 的相对路径安全 helper。
 headless_launch.rs: Windows `--launch-cavalry` 原生快速入口；持有共享 operation lock，读取 state，校验 revision/marker/QPA ACTIVE/plugin 后以空参数启动 vendor EXE。
-uninstall_restore.rs: Windows `--uninstall-restore-english` 无 WebView 卸载入口；只消费保存的安装根，在共享 operation lock 内按 snapshot provenance 选择 refresh/apply English，并将 UAC 取消、未知运行时或未提交事务投影为非零退出码以阻止 NSIS 删除控制面。
+uninstall_restore.rs: Windows `--uninstall-restore-english` 无 WebView 卸载入口；只消费保存的安装根，在共享 operation lock 内按 snapshot provenance 选择 refresh/apply English，刷新返回 typed reconciliationRequired 时必须继续完成显式 English 事务，并将 UAC 取消、未知运行时或未提交修复投影为非零退出码以阻止 NSIS 删除控制面。
 windows_install.rs: Windows 只读发现边界，按无控制台运行进程查询、MSI advertised shortcut 与有限常见目录收集候选；非 MSI 克隆以有界流式扫描证明 Cavalry.exe 中唯一 NUL 分隔 `2.7.2` token，不扫描磁盘、不写安装目录，也不调用任何 MSI repair API。
 windows_runtime.rs: 仅在 Windows target 编译的 Qt generic plugin/QPA 资源装配，优先解析 Tauri 打包 DLL、回退开发资源并生成受控 copy pair；非 English 重启先流式比较安装 plugin 与当前可信源 SHA-256，再要求 QPA ACTIVE 和安装根语言 marker 一致，随后只准备诊断 marker 环境并以 deadline 校验 plugin、语言、PID、Qt、`embedded-generated-table` 来源和嵌入翻译表就绪；原生入口不依赖 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS` 或 `CAVALRY_I18N_LANG`。
 windows_qpa.rs: Windows 持久注入状态机；锁定 Cavalry/Qt/架构/原厂 qwindows，以 durable manifest 识别历史发行版所有权，并向外层 journal 投影写前精确 postimage；未知 generic/QPA 或厂商更新一律保留并 fail closed。
