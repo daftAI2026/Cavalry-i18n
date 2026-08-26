@@ -1078,12 +1078,22 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
 test('tauri macOS package defaults to ad-hoc locally while tag CI requires Developer ID', () => {
   const config = readJson('src-tauri/tauri.macos.conf.json');
   const workflow = readText('.github/workflows/build.yml');
+  const rustToolchain = readText('rust-toolchain.toml').match(/^channel\s*=\s*"([^"]+)"/m);
   const packageJob = workflow.match(
     /\r?\n  package_macos:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
   );
 
   assert.equal(config.bundle.macOS.signingIdentity, undefined);
+  assert.ok(rustToolchain, 'root Rust channel missing');
   assert.ok(packageJob, 'package_macos job missing');
+  const packageToolchain = packageJob[1].match(
+    /^    env:\r?\n(?:      #.*\r?\n)*      RUSTUP_TOOLCHAIN:\s*['"]?([^'"\s]+)['"]?\s*$/m
+  );
+  assert.ok(
+    packageToolchain,
+    'macOS packaging must bypass rust-toolchain component reconciliation with an explicit installed toolchain'
+  );
+  assert.equal(packageToolchain[1], rustToolchain[1]);
   assert.match(
     packageJob[1],
     /Require Developer ID secrets for tag release packaging[\s\S]*APPLE_CERTIFICATE[\s\S]*exit 1/,

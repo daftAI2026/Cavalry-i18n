@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖调用方提供的绝对 current_exe 与不含路径的 ASCII transport token，依赖 Win32 Shell/Threading API。
+ * [INPUT]: 依赖调用方提供的绝对 current_exe、apply/recovery ASCII transport token 与 Win32 Shell/Threading API。
  * [OUTPUT]: 提供 same-EXE RunAs 启动、UAC 取消结构化识别、启动前/启动后失败分型与 elevated worker 原始退出码回传。
- * [POS]: Windows language transaction 的唯一提权启动边界；只构造固定单参数，不解释 plan，也不拼接安装路径。
+ * [POS]: Windows language transaction 的唯一提权启动边界；只为 apply/recovery 构造各自固定单参数，不解释 plan，也不拼接安装路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{ffi::OsStr, fmt, os::windows::ffi::OsStrExt, path::Path};
@@ -21,7 +21,7 @@ use windows::{
     },
 };
 
-use super::contract::{MAX_TRANSPORT_TOKEN_LEN, WORKER_ARGUMENT_PREFIX};
+use super::contract::{MAX_TRANSPORT_TOKEN_LEN, RECOVERY_ARGUMENT_PREFIX, WORKER_ARGUMENT_PREFIX};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum LaunchError {
@@ -102,8 +102,20 @@ impl fmt::Display for LaunchError {
 impl std::error::Error for LaunchError {}
 
 pub(crate) fn launch_elevated_worker(exe: &Path, transport: &str) -> Result<u32, LaunchError> {
-    validate_executable(exe)?;
     let parameters = worker_argument(transport)?;
+    launch_elevated_with_parameters(exe, &parameters)
+}
+
+pub(crate) fn launch_elevated_recovery_worker(
+    exe: &Path,
+    transport: &str,
+) -> Result<u32, LaunchError> {
+    let parameters = recovery_worker_argument(transport)?;
+    launch_elevated_with_parameters(exe, &parameters)
+}
+
+fn launch_elevated_with_parameters(exe: &Path, parameters: &str) -> Result<u32, LaunchError> {
+    validate_executable(exe)?;
 
     let exe_wide = nul_terminated_wide(exe.as_os_str());
     let directory_wide = nul_terminated_wide(
@@ -177,6 +189,11 @@ fn worker_argument(transport: &str) -> Result<String, LaunchError> {
     Ok(format!("{WORKER_ARGUMENT_PREFIX}{transport}"))
 }
 
+fn recovery_worker_argument(transport: &str) -> Result<String, LaunchError> {
+    validate_transport(transport)?;
+    Ok(format!("{RECOVERY_ARGUMENT_PREFIX}{transport}"))
+}
+
 fn validate_transport(transport: &str) -> Result<(), LaunchError> {
     if transport.is_empty() {
         return Err(LaunchError::InvalidTransport("token must not be empty"));
@@ -218,6 +235,14 @@ mod tests {
         assert_eq!(
             worker_argument("abc-DEF_012.345").unwrap(),
             "--cavalry-i18n-elevated-apply=abc-DEF_012.345"
+        );
+    }
+
+    #[test]
+    fn recovery_worker_argument_is_exactly_one_fixed_ascii_parameter() {
+        assert_eq!(
+            recovery_worker_argument("v1.0043003a.abc").unwrap(),
+            "--cavalry-i18n-elevated-recover=v1.0043003a.abc"
         );
     }
 

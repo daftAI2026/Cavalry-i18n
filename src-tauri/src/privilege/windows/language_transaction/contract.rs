@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 serde/serde_json、SHA-256 与 windows_qpa 的封闭 QPA transition schema。
- * [OUTPUT]: 提供 Windows 提权语言事务 plan v1、固定 payload 记录、受 plan 路径约束的 QPA 源、单令牌编解码、0/42/43/44 事务状态与 45 可重试关闭阻塞状态。
- * [POS]: privilege/windows/language_transaction 的纯数据边界；父进程和同一 EXE 的提权 worker 只交换摘要与固定记录，不接受任意复制目标。
+ * [OUTPUT]: 提供 Windows 提权语言事务 plan v1、固定 payload 记录、apply/recovery 单令牌编解码、受 plan 路径约束的 QPA 源、0/42/43/44 事务状态与 45 可重试关闭阻塞状态。
+ * [POS]: privilege/windows/language_transaction 的纯数据边界；父进程和同一 EXE 的提权 worker 只交换摘要、固定记录或已验证安装根，不接受任意复制目标。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -19,8 +19,8 @@ use crate::windows_qpa::QpaTransitionPlan;
 #[path = "transport.rs"]
 mod transport;
 pub(crate) use transport::{
-    deserialize_bound_plan, parse_worker_argv, WorkerArgv, WorkerTransport,
-    MAX_TRANSPORT_TOKEN_LEN, WORKER_ARGUMENT_PREFIX,
+    deserialize_bound_plan, parse_worker_argv, RecoveryTransport, WorkerArgv, WorkerTransport,
+    MAX_TRANSPORT_TOKEN_LEN, RECOVERY_ARGUMENT_PREFIX, WORKER_ARGUMENT_PREFIX,
 };
 
 #[cfg(test)]

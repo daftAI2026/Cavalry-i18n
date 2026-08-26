@@ -42,5 +42,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 
 2026-08-10: 漏洞门从 `tools/ci_action_pins.json` 读取精确 Rust channel 并以 `cargo +<channel>` 隔离安装 cargo-audit，避免根目录 `rust-toolchain.toml` 的 rustfmt/clippy 组件调和与 runner 预装工具冲突。
 2026-08-26: Windows job 改为从 `tools/ci_action_pins.json` 固定的官方 CMake 4.2.0 Windows x64 archive 下载并校验 SHA-256，构建脚本不再读取 runner PATH 中的 CMake；双 DLL 构建后上传含 CMake 版本、来源与摘要的 Windows producer toolchain evidence。
+2026-08-27: macOS package matrix 显式设置与根 pin 同步的 `RUSTUP_TOOLCHAIN`，直接复用 action 已安装的最小 toolchain，避免 `rust-toolchain.toml` 自动补装 rustfmt/clippy 时与 GitHub ARM runner 镜像中的残留组件文件冲突。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

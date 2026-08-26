@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 parent 的可注入 QPA/launcher/postcondition seam 与 tempfile Windows fixture。
- * [OUTPUT]: 覆盖 Program Files 早分流、严格目标映射、AlreadyStock 零 UAC、单次 UAC、取消零目标写入、source provenance E2E 及 0/42/43/44/45/未知退出语义。
+ * [OUTPUT]: 覆盖 Program Files 早分流、严格目标映射、仅在无 journal 时成立的 AlreadyStock 零 UAC、pending journal 强制 worker、单次 UAC、取消零目标写入、source provenance E2E 及 0/42/43/44/45/未知退出语义。
  * [POS]: language_transaction parent 的隔离合同测试；不调用真实 UAC、不写真实 Program Files，并挂接真实 patch→stage→verifier 子合同。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -499,6 +499,42 @@ fn fully_applied_english_already_stock_is_success_without_uac() {
     assert_eq!(launches.get(), 0);
     assert_eq!(verifications.get(), 1);
     assert!(prepared_plan_directories(&fixture.staging).is_empty());
+}
+
+#[test]
+fn pending_journal_forces_worker_instead_of_english_noop() {
+    let fixture = Fixture::new();
+    for pair in &fixture.pairs {
+        fs::copy(&pair.src, &pair.dst).unwrap();
+    }
+    fs::write(&fixture.layout.language_marker, b"en\n").unwrap();
+    fs::create_dir(fixture.layout.root.join(format!(
+        "{}{}",
+        super::super::storage::JOURNAL_PREFIX,
+        "a".repeat(64)
+    )))
+    .unwrap();
+    let launches = Cell::new(0);
+
+    let result = apply_with_dependencies(
+        fixture.request("en"),
+        Language::English,
+        std::slice::from_ref(&fixture.program_files),
+        &fixture.worker_exe,
+        fixture.runtime_sources(Language::English),
+        synthetic_transition,
+        |_exe, _token| {
+            launches.set(launches.get() + 1);
+            Ok(WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)
+        },
+        |_layout, _language, _transition| Ok(()),
+    );
+
+    assert_eq!(launches.get(), 1);
+    assert!(matches!(
+        result,
+        Err(ParentApplyError::WorkerRolledBack { .. })
+    ));
 }
 
 #[test]

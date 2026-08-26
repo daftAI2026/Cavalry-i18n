@@ -278,7 +278,7 @@ fn process_path(pid: u32) -> Result<ProcessPathProbe, String> {
         .map_err(|_| format!("macOS process ID is outside c_int range: {pid}"))?;
     let mut buffer = [0_u8; PROC_PIDPATHINFO_MAXSIZE];
     // SAFETY: macOS exposes thread-local errno through `__error`; clearing it lets a zero
-    // proc_pidpath result distinguish ESRCH from permission/inspection failures.
+    // proc_pidpath result distinguish ENOENT/ESRCH from permission/inspection failures.
     unsafe { *libc::__error() = 0 };
     let length = unsafe {
         proc_pidpath(
@@ -289,7 +289,7 @@ fn process_path(pid: u32) -> Result<ProcessPathProbe, String> {
     };
     if length <= 0 {
         let errno = unsafe { *libc::__error() };
-        if errno == libc::ESRCH || process_has_exited(native_pid) {
+        if proc_pidpath_errno_is_vanished(errno) || process_has_exited(native_pid) {
             return Ok(ProcessPathProbe::Exited);
         }
         return Err(format!(
@@ -303,6 +303,10 @@ fn process_path(pid: u32) -> Result<ProcessPathProbe, String> {
     Ok(ProcessPathProbe::Path(PathBuf::from(OsString::from_vec(
         value.to_bytes().to_vec(),
     ))))
+}
+
+fn proc_pidpath_errno_is_vanished(errno: i32) -> bool {
+    matches!(errno, libc::ENOENT | libc::ESRCH)
 }
 
 fn process_has_exited(pid: c_int) -> bool {
@@ -377,6 +381,15 @@ mod tests {
         })
         .unwrap_err();
         assert!(error.contains("denied live process 42"), "{error}");
+    }
+
+    #[test]
+    fn proc_pidpath_vanished_errno_is_typed_exit_but_access_errors_fail_closed() {
+        assert!(proc_pidpath_errno_is_vanished(libc::ENOENT));
+        assert!(proc_pidpath_errno_is_vanished(libc::ESRCH));
+        assert!(!proc_pidpath_errno_is_vanished(libc::EPERM));
+        assert!(!proc_pidpath_errno_is_vanished(libc::EACCES));
+        assert!(!proc_pidpath_errno_is_vanished(libc::EIO));
     }
 
     #[test]

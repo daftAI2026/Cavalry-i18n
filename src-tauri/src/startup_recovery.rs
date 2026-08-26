@@ -1,9 +1,9 @@
 #[cfg(target_os = "macos")]
 use std::time::Duration;
 /**
- * [INPUT]: 依赖 macOS durable apply journal、只读 state generation、严格安装身份与 CommandRunner。
- * [OUTPUT]: 提供 Tauri 启动期一次性 exact-preimage 恢复、无 pending 的无锁快路与 transient-busy 非粘滞处理，以及可供 renderer 状态面板消费的显式阻断诊断。
- * [POS]: lib.rs 装配与 privilege transaction 之间的启动恢复协调层；真实 pending journal 由动态 status/apply 门继续阻断，但另一实例的正常 operation lock 竞争不得永久污染本进程启动状态。
+ * [INPUT]: 依赖 macOS durable apply journal、Windows privilege recovery facade、只读 state generation、严格安装身份与 CommandRunner。
+ * [OUTPUT]: 提供 Tauri 启动期一次性恢复门：无 pending 时走无锁快路，确定事务完成恢复与清理，不确定状态返回可供 renderer 消费的 typed 阻断诊断，transient-busy 不进入永久错误 latch。
+ * [POS]: lib.rs 装配与平台 privilege transaction 之间的跨平台启动协调层；不发现任意安装根，也不直接修改事务文件，真实 pending journal 继续由动态 status/apply 门阻断。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{path::Path, sync::Mutex};
@@ -41,7 +41,12 @@ pub(crate) fn recover_at_startup<R: CommandRunner>(
         recover_at_startup_with_timeout(state_dir, runner, Duration::from_secs(15))
     }
 
-    #[cfg(not(target_os = "macos"))]
+    #[cfg(target_os = "windows")]
+    {
+        crate::privilege::recover_windows_language_transactions(state_dir, runner)
+    }
+
+    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     {
         let _ = (state_dir, runner);
         Ok(())

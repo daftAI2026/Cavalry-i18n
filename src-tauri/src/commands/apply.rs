@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English-baseline JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供 apply_language_inner、仅对精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning 与全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS English UI/官方还原、首装 launcher gate、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门。
+ * [OUTPUT]: 提供 apply_language_inner、仅对无 pending journal 的精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、Windows 四语言 canonical pretty overlay/单次 UAC/typed cleanup warning 与全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS English UI/官方还原、首装 launcher gate、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门。
  * [POS]: commands 的语言写入编排；Windows 为 source provenance 统一规范化 English/翻译 payload，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -98,6 +98,7 @@ fn verify_macos_prewrite_trust(
 fn prepare_clean_english_fast_path<C, I>(
     current_state: State,
     needs_snapshot: bool,
+    has_pending_transaction: bool,
     capture_snapshot: C,
     inspect_clean_english: I,
 ) -> Result<CleanEnglishFastPath, String>
@@ -105,6 +106,9 @@ where
     C: FnOnce(State) -> Result<State, String>,
     I: FnOnce() -> Result<CleanEnglishDisposition, String>,
 {
+    if has_pending_transaction {
+        return Ok(CleanEnglishFastPath::Continue(current_state));
+    }
     let current_state = if needs_snapshot {
         capture_snapshot(current_state)?
     } else {
@@ -290,6 +294,11 @@ pub fn apply_language_inner<R: CommandRunner>(
         && current_state.current_lang == "en"
         && platform_runtime::english_runtime_is_stock(&app_path)
     {
+        #[cfg(target_os = "windows")]
+        let has_pending_transaction =
+            privilege::has_pending_windows_language_transaction(&app_path)?;
+        #[cfg(not(target_os = "windows"))]
+        let has_pending_transaction = false;
         let needs_snapshot = super::snapshot::needs_english_snapshot(
             state_dir,
             current_state.english_snapshot_provenance.as_ref(),
@@ -299,6 +308,7 @@ pub fn apply_language_inner<R: CommandRunner>(
         match prepare_clean_english_fast_path(
             current_state,
             needs_snapshot,
+            has_pending_transaction,
             |state| {
                 extract_english_snapshot_or_throw(
                     repo_root,
@@ -1327,6 +1337,7 @@ mod program_files_result_tests {
         let state = match prepare_clean_english_fast_path(
             state,
             true,
+            false,
             |mut state| {
                 state.current_lang = "en".to_string();
                 Ok(state)
@@ -1385,6 +1396,7 @@ mod program_files_result_tests {
         let outcome = prepare_clean_english_fast_path(
             state,
             false,
+            false,
             |_| panic!("an existing snapshot must not be captured again"),
             || Ok(CleanEnglishDisposition::NeedsWindowsReconciliation),
         )
@@ -1392,16 +1404,27 @@ mod program_files_result_tests {
 
         assert!(matches!(outcome, CleanEnglishFastPath::Continue(_)));
         assert!(matches!(
-            prepare_clean_english_fast_path(State::default(), false, Ok, || Ok(
+            prepare_clean_english_fast_path(State::default(), false, false, Ok, || Ok(
                 CleanEnglishDisposition::Clean
             ),)
             .unwrap(),
             CleanEnglishFastPath::Noop
         ));
         assert!(matches!(
-            prepare_clean_english_fast_path(State::default(), false, Ok, || Err(
+            prepare_clean_english_fast_path(State::default(), false, false, Ok, || Err(
                 "unproven runtime".to_string()
             ),)
+            .unwrap(),
+            CleanEnglishFastPath::Continue(_)
+        ));
+        assert!(matches!(
+            prepare_clean_english_fast_path(
+                State::default(),
+                true,
+                true,
+                |_| panic!("pending journal must bypass English snapshot capture"),
+                || panic!("pending journal must bypass clean-English inspection"),
+            )
             .unwrap(),
             CleanEnglishFastPath::Continue(_)
         ));
