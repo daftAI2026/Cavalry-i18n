@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 support/windows_disposable 路径守卫、显式 CAVALRY_I18N_WINDOWS_SMOKE_APP、repo 四语语言包与 Windows plugin
- * [OUTPUT]: 对外提供 ignored Windows 冒烟：三种非英语逐文件 apply、smoother/marker/plugin/QPA ACTIVE 验证与 English 资源及 vendor qwindows 原始字节回滚，并逐目标拒绝越界或 reparse 写入链
+ * [OUTPUT]: 对外提供 ignored Windows 冒烟：三种非英语逐文件 apply、immutable-generation English 快照、smoother/marker/plugin/QPA ACTIVE 验证与 English 资源及 vendor qwindows 原始字节回滚，并逐目标拒绝越界或 reparse 写入链
  * [POS]: src-tauri/tests 的人工 Windows 非 GUI 验收护栏，只写入用户明确提供且完整路径链可证的临时克隆，绝不启动 Cavalry 或触发 UAC
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -276,6 +276,13 @@ mod windows_smoke {
                     &source_plugin_bytes,
                 )?;
             }
+            let snapshot_state = state::read_state(state_dir.path())
+                .ok_or_else(|| "state is missing after the three-language exercise".to_string())?;
+            let snapshot_root = patch::english_snapshot_dir(
+                state_dir.path(),
+                app,
+                &snapshot_state.cavalry_revision,
+            )?;
             for pair in &baseline_pairs {
                 let relative = pair.src.strip_prefix(&english_source).map_err(|_| {
                     format!(
@@ -283,7 +290,7 @@ mod windows_smoke {
                         pair.src.display()
                     )
                 })?;
-                let snapshot = state_dir.path().join("en").join(relative);
+                let snapshot = snapshot_root.join(relative);
                 let snapshot_bytes = fs::read(&snapshot).map_err(|error| {
                     format!("could not read snapshot {}: {error}", snapshot.display())
                 })?;
