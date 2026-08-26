@@ -8,15 +8,17 @@ use cavalry_i18n_tauri::patch::CopyPair;
 #[cfg(target_os = "macos")]
 use cavalry_i18n_tauri::privilege::restart_commands;
 use cavalry_i18n_tauri::privilege::{
-    clear_gatekeeper_quarantine, copy_with_privilege, ensure_bundle_signature,
-    patch_keychain_query_attributes, patch_keychain_query_attributes_with_privilege,
-    resign_patched_bundle, CommandRunner, RecordedCommand, RecordingRunner,
+    clear_gatekeeper_quarantine, copy_with_privilege, patch_keychain_query_attributes,
+    patch_keychain_query_attributes_with_privilege, CommandRunner, RecordedCommand,
+    RecordingRunner,
 };
 #[cfg(target_os = "windows")]
 use cavalry_i18n_tauri::privilege::{
     close_cavalry_before_modification, restart_cavalry_with_environment, CloseCavalryError,
     RealCommandRunner,
 };
+#[cfg(target_os = "macos")]
+use cavalry_i18n_tauri::privilege::{ensure_bundle_signature, resign_patched_bundle};
 #[cfg(target_os = "windows")]
 use std::ffi::OsString;
 #[cfg(target_os = "windows")]
@@ -329,6 +331,7 @@ fn write_keychain_dylib(app: &Path, bytes: &[u8]) -> PathBuf {
     target
 }
 
+#[cfg(target_os = "macos")]
 fn make_signing_bundle(root: &Path) -> PathBuf {
     let app = root.join("Cavalry.app");
     for relative in [
@@ -341,11 +344,13 @@ fn make_signing_bundle(root: &Path) -> PathBuf {
     app
 }
 
+#[cfg(target_os = "macos")]
 struct VerifyFailsRunner {
     commands: Vec<RecordedCommand>,
     verify_failures: usize,
 }
 
+#[cfg(target_os = "macos")]
 impl CommandRunner for VerifyFailsRunner {
     fn run(&mut self, program: &str, args: &[String]) -> Result<(), String> {
         self.commands.push(RecordedCommand {
@@ -955,6 +960,7 @@ fn windows_uac_manifest_contract_keeps_payload_bounded_and_source_locked() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn resign_fast_path_signs_changed_code_then_verifies_bundle() {
     let temp = tempfile::tempdir().unwrap();
     let app = make_signing_bundle(temp.path());
@@ -985,6 +991,7 @@ fn resign_fast_path_signs_changed_code_then_verifies_bundle() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn resign_verify_failure_refuses_unbounded_deep_repair() {
     let temp = tempfile::tempdir().unwrap();
     let app = make_signing_bundle(temp.path());
@@ -1033,6 +1040,7 @@ fn resign_verify_failure_refuses_unbounded_deep_repair() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn unchanged_bundle_verifies_without_signing() {
     let temp = tempfile::tempdir().unwrap();
     let app = make_signing_bundle(temp.path());
@@ -1048,6 +1056,7 @@ fn unchanged_bundle_verifies_without_signing() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn unchanged_bundle_with_broken_seal_fails_closed_without_signing() {
     let temp = tempfile::tempdir().unwrap();
     let app = make_signing_bundle(temp.path());
