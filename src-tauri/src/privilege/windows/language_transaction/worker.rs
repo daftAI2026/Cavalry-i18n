@@ -1,13 +1,7 @@
 /**
  * [INPUT]: 依赖 contract/transport 的 hash-locked plan、storage durable journal/recovery、OS Known Folder、固定资源映射与 windows_qpa transition。
- * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files apply/recovery 提权 worker；QPA 首次写入前持久化精确 postimage，再固定执行 pending→assets/generic→QPA→pre-final proof→final，并以 0/42/43/44/45 表达可证明状态。
+ * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files apply/recovery 提权 worker；委托 preparation-root journal 的原子发布与 displaced CAS 证据，QPA 首次写入前持久化精确 postimage，再固定执行 pending→assets/generic→QPA→pre-final proof→final，并以 0/42/43/44/45 表达可证明状态。
  * [POS]: privilege/windows/language_transaction 的唯一提权执行边界；父进程持有应用锁，worker 重验 Known Folder/EXE/root/journal，不写 Tauri state、不重启 Cavalry，也不接受任意目标路径。
- * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
- */
-/**
- * [INPUT]: hash-locked elevated plan, durable journal, and final-marker destination.
- * [OUTPUT]: maps commit cleanup outcomes to committed, rolled-back, or state-uncertain worker exit codes; never treats an undurable commit as success.
- * [POS]: the privileged transaction execution boundary; owns final-marker-last rollback selection but not renderer state or restart.
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 DurableJournal 的路径、preimage/postimage、权限、phase 与固定成员，以及 Windows lstat、containment、FileShare 和目录句柄能力。
- * [OUTPUT]: 提供版本化严格 manifest 的 handle-bound 持久化、读取、校验、文件/目录 fsync 与 startup/apply 前恢复；recovery 先清理当前 journal 的 staged replacement，双代分歧只采用已发布 state。
+ * [OUTPUT]: 提供 schema v3 严格 manifest 的 handle-bound 持久化、读取、校验、文件/目录 fsync 与 startup/apply 前恢复；manifest 可先写隐藏 preparation root，恢复只发现已发布 state，并以双向 displaced intent 保留发布歧义证据。
  * [POS]: language_transaction/storage 的崩溃恢复语义边界；将内存所有权投影为可重建的磁盘真相，不采纳未提交 postimage，固定临时成员仍按路径协议 fail-closed。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -25,7 +25,7 @@ use super::storage::{
     JOURNAL_STATE_FILE, JOURNAL_STATE_TEMP_FILE,
 };
 
-const JOURNAL_SCHEMA_VERSION: u32 = 2;
+const JOURNAL_SCHEMA_VERSION: u32 = 3;
 const MAX_JOURNAL_ENTRIES: usize = 8192;
 const FILE_SHARE_ALL: u32 = 0x0000_0007;
 const FILE_FLAG_BACKUP_SEMANTICS: u32 = 0x0200_0000;
@@ -56,6 +56,9 @@ struct JournalEntryManifest {
     postimage_sha256: Vec<Option<String>>,
     backup: Option<String>,
     permission: Option<JournalPermission>,
+    displaced_publication_pending: bool,
+    displaced_publication_expected_before_sha256: Option<String>,
+    displaced_publication_expected_after_sha256: Option<String>,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
@@ -81,8 +84,16 @@ pub(super) fn persist_manifest(
     journal: &DurableJournal,
     phase: JournalPhase,
 ) -> Result<(), String> {
+    persist_manifest_at(journal, phase, &journal.journal_root)
+}
+
+pub(super) fn persist_manifest_at(
+    journal: &DurableJournal,
+    phase: JournalPhase,
+    journal_root: &Path,
+) -> Result<(), String> {
     let manifest = to_manifest(journal, phase)?;
-    write_journal_manifest(&journal.journal_root, &manifest)
+    write_journal_manifest(journal_root, &manifest)
 }
 
 fn to_manifest(journal: &DurableJournal, phase: JournalPhase) -> Result<JournalManifest, String> {
@@ -104,6 +115,13 @@ fn to_manifest(journal: &DurableJournal, phase: JournalPhase) -> Result<JournalM
                 .map(|permissions| JournalPermission {
                     readonly: permissions.readonly(),
                 }),
+            displaced_publication_pending: entry.displaced_publication_pending,
+            displaced_publication_expected_before_sha256: entry
+                .displaced_publication_expected_before_sha256
+                .clone(),
+            displaced_publication_expected_after_sha256: entry
+                .displaced_publication_expected_after_sha256
+                .clone(),
         });
     }
     Ok(JournalManifest {
@@ -143,12 +161,13 @@ pub(crate) fn recover_pending(install_root: &Path) -> Result<RecoveryOutcome, St
         ));
     }
 
-    let (journal, phase) = load_persisted_journal(&install_root, journal_root)?;
+    let (mut journal, phase) = load_persisted_journal(&install_root, journal_root)?;
     // Unknown members are checked separately after the manifest is parsed. Never turn an
     // inspect failure into an empty journal: cleanup must retain the entire recovery root.
     inspect_journal_root(&install_root, journal_root, journal.entries.len())?;
     // Replacement names are deterministic members of this journal.  A staged file left by a
     // crash is removed only after the fixed member and ordinary-file checks succeed.
+    journal.reconcile_pending_displaced_publications(phase)?;
     journal.cleanup_replacement_temps()?;
     match phase {
         JournalPhase::Committing | JournalPhase::Committed => {
@@ -285,6 +304,37 @@ fn manifest_entries(
             validate_optional_hash(hash.as_deref(), "journal postimage")
                 .map_err(|error| error.message)?;
         }
+        validate_optional_hash(
+            persisted
+                .displaced_publication_expected_before_sha256
+                .as_deref(),
+            "displaced publication preimage",
+        )
+        .map_err(|error| error.message)?;
+        validate_optional_hash(
+            persisted
+                .displaced_publication_expected_after_sha256
+                .as_deref(),
+            "displaced publication postimage",
+        )
+        .map_err(|error| error.message)?;
+        match (
+            persisted.displaced_publication_pending,
+            persisted
+                .displaced_publication_expected_before_sha256
+                .is_some(),
+            persisted
+                .displaced_publication_expected_after_sha256
+                .is_some(),
+        ) {
+            (true, true, true) | (false, false, false) => {}
+            _ => {
+                return Err(
+                    "Durable journal displaced publication intent is internally inconsistent."
+                        .to_string(),
+                )
+            }
+        }
 
         let (backup, permissions) = match persisted.preimage_sha256.as_deref() {
             Some(expected) => {
@@ -347,6 +397,13 @@ fn manifest_entries(
             backup,
             original_permissions: permissions,
             owned_postimages: persisted.postimage_sha256.iter().cloned().collect(),
+            displaced_publication_pending: persisted.displaced_publication_pending,
+            displaced_publication_expected_before_sha256: persisted
+                .displaced_publication_expected_before_sha256
+                .clone(),
+            displaced_publication_expected_after_sha256: persisted
+                .displaced_publication_expected_after_sha256
+                .clone(),
         });
     }
 

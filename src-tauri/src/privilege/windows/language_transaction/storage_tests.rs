@@ -1,13 +1,13 @@
 /**
  * [INPUT]: 依赖 storage/destination_io 的 tempfile-free 测试 seam、真实 Windows FileShare.None 与文件系统。
- * [OUTPUT]: 证明目标 CAS 至写入/删除保持同一独占句柄，并覆盖 prepare、apply-N、marker commit、rollback、cleanup、缺失 existing target 与篡改阻断等崩溃点；未知 postimage/成员/路径/摘要一律 fail closed。
+ * [OUTPUT]: 证明目标初始 CAS 与发布后置条件各由独占句柄复核，发布间隙由 displaced 前像证明并保全；并覆盖 prepare、apply-N、marker commit、rollback、cleanup、缺失 existing target 与篡改阻断等崩溃点；未知 postimage/成员/路径/摘要一律 fail closed。
  * [POS]: language_transaction/storage 的 Windows durable recovery 单元合同；只修改当前用户 TEMP 下的隔离夹具，不接触真实安装。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::{
-    destination_io::LockedDestination, lower_hex, recover_pending, CommitCleanup, DurableJournal,
-    JournalPhase, RecoveryOutcome, ResolvedPayload, ResolvedPreimage, RollbackOutcome,
-    JOURNAL_PREFIX,
+    destination_io::{journal_replacement_path, LockedDestination},
+    lower_hex, recover_pending, CommitCleanup, DurableJournal, JournalPhase, RecoveryOutcome,
+    ResolvedPayload, ResolvedPreimage, RollbackOutcome, JOURNAL_PREFIX, JOURNAL_PREPARATION_PREFIX,
 };
 use sha2::{Digest, Sha256};
 use std::{
@@ -65,6 +65,18 @@ fn nonce(character: char) -> String {
     character.to_string().repeat(64)
 }
 
+fn mark_displaced_publication_pending(
+    manifest: &mut serde_json::Value,
+    expected_before: &[u8],
+    expected_after: &[u8],
+) {
+    manifest["entries"][0]["displacedPublicationPending"] = serde_json::Value::Bool(true);
+    manifest["entries"][0]["displacedPublicationExpectedBeforeSha256"] =
+        serde_json::Value::String(hash(expected_before));
+    manifest["entries"][0]["displacedPublicationExpectedAfterSha256"] =
+        serde_json::Value::String(hash(expected_after));
+}
+
 #[test]
 fn journal_state_persists_versioned_entry_provenance() {
     let temp = TestDirectory::new();
@@ -86,7 +98,7 @@ fn journal_state_persists_versioned_entry_provenance() {
         .expect("durable journal state must be a versioned JSON manifest");
     let entry = &manifest["entries"][0];
 
-    assert_eq!(manifest["schemaVersion"], 2);
+    assert_eq!(manifest["schemaVersion"], 3);
     assert_eq!(manifest["phase"], "prepared");
     assert_eq!(manifest["installRoot"], root.to_string_lossy().as_ref());
     assert_eq!(entry["destination"], destination.to_string_lossy().as_ref());
@@ -94,6 +106,71 @@ fn journal_state_persists_versioned_entry_provenance() {
     assert!(entry["postimageSha256"].is_array());
     assert!(entry["backup"].as_str().is_some());
     assert!(entry["permission"].is_object());
+}
+
+#[test]
+fn incomplete_final_journal_prefix_must_block_startup_recovery() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    fs::create_dir(&root).unwrap();
+    let incomplete = root.join(format!("{JOURNAL_PREFIX}{}", nonce('f')));
+    fs::create_dir(&incomplete).unwrap();
+
+    assert!(recover_pending(&root).is_err());
+}
+
+#[test]
+fn incomplete_preparation_root_is_not_a_pending_journal() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    fs::create_dir(&root).unwrap();
+    let preparation = root.join(format!("{JOURNAL_PREPARATION_PREFIX}{}", nonce('f')));
+    fs::create_dir(&preparation).unwrap();
+    fs::write(preparation.join("partial.preimage"), b"partial").unwrap();
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::None);
+    assert!(preparation.exists());
+}
+
+#[test]
+fn prepare_rejects_final_or_preparation_collision_without_deleting_it() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("translated.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let final_root = root.join(format!("{JOURNAL_PREFIX}{}", nonce('1')));
+    fs::create_dir(&final_root).unwrap();
+    assert!(
+        DurableJournal::prepare(&root, &nonce('1'), std::slice::from_ref(&payload), &[]).is_err()
+    );
+    assert!(final_root.exists());
+
+    fs::remove_dir(&final_root).unwrap();
+    let preparation = root.join(format!("{JOURNAL_PREPARATION_PREFIX}{}", nonce('1')));
+    fs::create_dir(&preparation).unwrap();
+    fs::write(preparation.join("forged-member"), b"do-not-delete").unwrap();
+    assert!(DurableJournal::prepare(&root, &nonce('1'), &[payload], &[]).is_err());
+    assert!(preparation.exists());
+    assert!(preparation.join("forged-member").exists());
+}
+
+#[test]
+fn replacement_protocol_reserves_a_displaced_preimage_member() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    fs::create_dir(&root).unwrap();
+    let destination = root.join("asset.bin");
+    let journal = root.join(format!("{JOURNAL_PREFIX}{}", nonce('2')));
+    fs::create_dir(&journal).unwrap();
+
+    let displaced = journal_replacement_path(&journal, &destination, 0, "displaced").unwrap();
+    assert_eq!(
+        displaced.file_name().unwrap().to_string_lossy(),
+        ".payload-displaced-0.tmp"
+    );
 }
 
 #[test]
@@ -211,6 +288,181 @@ fn startup_recovery_never_adopts_uncommitted_postimages_from_temporary_generatio
     assert!(!error.contains("disagree"), "{error}");
     assert!(journal_root.exists());
     assert_eq!(fs::read(&marker).unwrap(), b"pending\n");
+}
+
+#[test]
+fn startup_recovery_retains_owned_target_when_displaced_publication_is_pending() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("asset.next");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('f'), std::slice::from_ref(&payload), &[]).unwrap();
+    journal.apply_payload(&payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    let state_path = journal_root.join("journal.state");
+    let mut manifest: serde_json::Value =
+        serde_json::from_slice(&fs::read(&state_path).unwrap()).unwrap();
+    mark_displaced_publication_pending(&mut manifest, b"original", b"translated");
+    fs::write(&state_path, serde_json::to_vec_pretty(&manifest).unwrap()).unwrap();
+    std::mem::forget(journal);
+
+    let error = recover_pending(&root).unwrap_err();
+    assert!(error.contains("Pending displaced publication"), "{error}");
+    assert_eq!(fs::read(&destination).unwrap(), b"translated");
+    assert!(journal_root.exists());
+}
+
+#[test]
+fn startup_recovery_converges_pending_displaced_publication_at_original_target() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&marker, b"en\n");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let fixed_marker = ResolvedPreimage {
+        destination: marker,
+        expected_sha256: Some(hash(b"en\n")),
+    };
+    let journal = DurableJournal::prepare(
+        &root,
+        &nonce('a'),
+        std::slice::from_ref(&payload),
+        std::slice::from_ref(&fixed_marker),
+    )
+    .unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    let state_path = journal_root.join("journal.state");
+    let mut manifest: serde_json::Value =
+        serde_json::from_slice(&fs::read(&state_path).unwrap()).unwrap();
+    mark_displaced_publication_pending(&mut manifest, b"original", b"translated");
+    fs::write(&state_path, serde_json::to_vec_pretty(&manifest).unwrap()).unwrap();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&destination).unwrap(), b"original");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn rolling_back_recovery_retains_original_target_when_displaced_is_missing() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&marker, b"en\n");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let fixed_marker = ResolvedPreimage {
+        destination: marker.clone(),
+        expected_sha256: Some(hash(b"en\n")),
+    };
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('b'),
+        std::slice::from_ref(&payload),
+        std::slice::from_ref(&fixed_marker),
+    )
+    .unwrap();
+    journal.apply_payload(&payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    let state_path = journal_root.join("journal.state");
+    let mut manifest: serde_json::Value =
+        serde_json::from_slice(&fs::read(&state_path).unwrap()).unwrap();
+    manifest["phase"] = serde_json::Value::String("rollingback".to_string());
+    mark_displaced_publication_pending(&mut manifest, b"translated", b"original");
+    fs::write(&state_path, serde_json::to_vec_pretty(&manifest).unwrap()).unwrap();
+    fs::write(&destination, b"original").unwrap();
+    std::mem::forget(journal);
+
+    let error = recover_pending(&root).unwrap_err();
+    assert!(error.contains("Pending displaced publication"), "{error}");
+    assert_eq!(fs::read(&destination).unwrap(), b"original");
+    assert!(journal_root.exists());
+}
+
+#[test]
+fn rolling_back_recovery_retries_when_pending_target_is_still_postimage() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&marker, b"en\n");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let fixed_marker = ResolvedPreimage {
+        destination: marker.clone(),
+        expected_sha256: Some(hash(b"en\n")),
+    };
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('c'),
+        std::slice::from_ref(&payload),
+        std::slice::from_ref(&fixed_marker),
+    )
+    .unwrap();
+    journal.apply_payload(&payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    let state_path = journal_root.join("journal.state");
+    let mut manifest: serde_json::Value =
+        serde_json::from_slice(&fs::read(&state_path).unwrap()).unwrap();
+    manifest["phase"] = serde_json::Value::String("rollingback".to_string());
+    mark_displaced_publication_pending(&mut manifest, b"translated", b"original");
+    fs::write(&state_path, serde_json::to_vec_pretty(&manifest).unwrap()).unwrap();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&destination).unwrap(), b"original");
+    assert!(!journal_root.exists());
+}
+
+#[test]
+fn rolling_back_recovery_cleans_a_verified_postimage_displaced_residue() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("asset.next");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&marker, b"en\n");
+    write(&destination, b"original");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let fixed_marker = ResolvedPreimage {
+        destination: marker,
+        expected_sha256: Some(hash(b"en\n")),
+    };
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('e'),
+        std::slice::from_ref(&payload),
+        std::slice::from_ref(&fixed_marker),
+    )
+    .unwrap();
+    journal.apply_payload(&payload).unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    journal.entries[0].displaced_publication_pending = true;
+    journal.entries[0].displaced_publication_expected_before_sha256 = Some(hash(b"translated"));
+    journal.entries[0].displaced_publication_expected_after_sha256 = Some(hash(b"original"));
+    journal.persist_manifest(JournalPhase::RollingBack).unwrap();
+    let displaced = journal_root.join(".payload-displaced-0.tmp");
+    write(&displaced, b"translated");
+    fs::write(&destination, b"original").unwrap();
+    std::mem::forget(journal);
+
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert_eq!(fs::read(&destination).unwrap(), b"original");
+    assert!(!journal_root.exists());
 }
 
 #[test]
@@ -540,7 +792,7 @@ fn missing_payload_destination_is_published_without_an_empty_intermediate() {
 }
 
 #[test]
-fn destination_cas_and_write_share_one_exclusive_handle() {
+fn destination_is_exclusive_before_and_after_atomic_publication() {
     let temp = TestDirectory::new();
     let destination = temp.0.join("destination.bin");
     let source = temp.0.join("source.bin");
@@ -553,12 +805,12 @@ fn destination_cas_and_write_share_one_exclusive_handle() {
     let external_write = fs::write(&destination, b"external-race");
     assert!(
         external_write.is_err(),
-        "FileShare.None must block a writer between CAS and mutation"
+        "FileShare.None must block a writer while the pre-publication handle is held"
     );
     let external_rename = fs::rename(&destination, temp.0.join("replacement.bin"));
     assert!(
         external_rename.is_err(),
-        "FileShare.None must block path replacement between CAS and mutation"
+        "FileShare.None must block path replacement while the pre-publication handle is held"
     );
 
     let mut source_file = fs::File::open(&source).unwrap();
@@ -567,16 +819,127 @@ fn destination_cas_and_write_share_one_exclusive_handle() {
         &mut source_file,
         &permissions,
         &temp.0.join(".payload-replacement.tmp"),
+        None,
         &hash(b"translated"),
     );
     assert_eq!(mutation.error, None);
     assert_eq!(mutation.observed_sha256, Some(hash(b"translated")));
     assert!(
         fs::write(&destination, b"external-after-write").is_err(),
-        "the target must remain exclusive through its postcondition"
+        "the published target must remain exclusive while its postcondition is checked"
     );
     drop(locked);
     assert_eq!(fs::read(&destination).unwrap(), b"translated");
+}
+
+#[test]
+fn atomic_replace_preserves_update_between_hash_and_publish() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let destination = root.join("asset.bin");
+    let source = temp.0.join("translated.bin");
+    write(&destination, b"original");
+    write(&source, b"translated");
+    let journal = root.join(format!("{JOURNAL_PREFIX}{}", nonce('3')));
+    fs::create_dir(&journal).unwrap();
+    let replacement = journal.join(".payload-apply-0.tmp");
+    let displaced = journal.join(".payload-displaced-0.tmp");
+    let mut locked = LockedDestination::open_for_write(&destination, true).unwrap();
+    let mut source_file = fs::File::open(&source).unwrap();
+    let permissions = source_file.metadata().unwrap().permissions();
+    let race_destination = destination.clone();
+
+    let mutation = locked.overwrite_from_with_publish_race(
+        &mut source_file,
+        &permissions,
+        &replacement,
+        Some(&displaced),
+        &hash(b"translated"),
+        move || fs::write(&race_destination, b"vendor-update").map_err(|error| error.to_string()),
+        |source, destination| {
+            std::io::copy(source, destination)
+                .map(|_| ())
+                .map_err(|error| error.to_string())
+        },
+    );
+
+    assert!(mutation.error.is_some());
+    drop(locked);
+    assert_eq!(fs::read(&destination).unwrap(), b"vendor-update");
+    assert_eq!(fs::read(&replacement).unwrap(), b"translated");
+    assert!(!displaced.exists());
+}
+
+#[test]
+fn failed_apply_does_not_claim_observed_external_update_for_rollback() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let destination = root.join("asset.bin");
+    let source = temp.0.join("translated.bin");
+    write(&destination, b"original");
+    write(&source, b"translated");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('d'), std::slice::from_ref(&payload), &[]).unwrap();
+    let race_destination = destination.clone();
+    let race_journal_root = journal.journal_root().to_path_buf();
+
+    let error = journal
+        .apply_payload_with_publish_race(&payload, move || {
+            let manifest: serde_json::Value =
+                serde_json::from_slice(&fs::read(race_journal_root.join("journal.state")).unwrap())
+                    .unwrap();
+            assert_eq!(manifest["entries"][0]["displacedPublicationPending"], true);
+            assert_eq!(
+                manifest["entries"][0]["displacedPublicationExpectedBeforeSha256"],
+                hash(b"original")
+            );
+            assert_eq!(
+                manifest["entries"][0]["displacedPublicationExpectedAfterSha256"],
+                hash(b"translated")
+            );
+            fs::write(&race_destination, b"vendor-update").map_err(|error| error.to_string())
+        })
+        .unwrap_err();
+    assert!(error.message.contains("preserved concurrent update"));
+    let claimed_external_update = journal.entries[0]
+        .owned_postimages
+        .contains(&Some(hash(b"vendor-update")));
+    assert!(journal.entries[0]
+        .owned_postimages
+        .contains(&Some(hash(b"translated"))));
+
+    let rollback = journal.rollback();
+    assert!(!claimed_external_update);
+    assert!(matches!(rollback, RollbackOutcome::Uncertain(_)));
+    assert_eq!(fs::read(&destination).unwrap(), b"vendor-update");
+}
+
+#[test]
+fn startup_recovery_preserves_unknown_target_and_staged_postimage_after_replace_race() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let destination = root.join("asset.bin");
+    let source = temp.0.join("translated.bin");
+    write(&destination, b"original");
+    write(&source, b"translated");
+    let payload = payload(&source, &destination, Some(b"original"));
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('4'), std::slice::from_ref(&payload), &[]).unwrap();
+    journal.entries[0]
+        .owned_postimages
+        .insert(Some(hash(b"translated")));
+    journal.persist_manifest(JournalPhase::Applying).unwrap();
+    let replacement = journal.journal_root().join(".payload-apply-0.tmp");
+    write(&replacement, b"translated");
+    fs::write(&destination, b"vendor-update").unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    std::mem::forget(journal);
+
+    assert!(recover_pending(&root).is_err());
+    assert_eq!(fs::read(&destination).unwrap(), b"vendor-update");
+    assert_eq!(fs::read(&replacement).unwrap(), b"translated");
+    assert!(journal_root.exists());
 }
 
 #[test]
@@ -737,6 +1100,35 @@ fn clean_commit_removes_the_nonce_derived_journal() {
 
     assert_eq!(journal.commit(None), CommitCleanup::Clean);
     assert!(!path.exists());
+}
+
+#[test]
+fn readonly_preimage_backup_is_deletable_after_clean_commit() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let source = temp.0.join("translated.bin");
+    let destination = root.join("assets/value.json");
+    write(&source, b"translated");
+    write(&destination, b"original");
+    let mut readonly = fs::metadata(&destination).unwrap().permissions();
+    readonly.set_readonly(true);
+    fs::set_permissions(&destination, readonly).unwrap();
+    let payload = payload(&source, &destination, Some(b"original"));
+    let mut journal =
+        DurableJournal::prepare(&root, &nonce('a'), std::slice::from_ref(&payload), &[]).unwrap();
+
+    let mut writable = fs::metadata(&destination).unwrap().permissions();
+    writable.set_readonly(false);
+    fs::set_permissions(&destination, writable).unwrap();
+    fs::write(&destination, b"translated").unwrap();
+    let mut readonly = fs::metadata(&destination).unwrap().permissions();
+    readonly.set_readonly(true);
+    fs::set_permissions(&destination, readonly).unwrap();
+    journal.entries[0]
+        .owned_postimages
+        .insert(Some(hash(b"translated")));
+    assert_eq!(journal.commit(None), CommitCleanup::Clean);
+    assert_eq!(fs::read(&destination).unwrap(), b"translated");
 }
 
 #[test]

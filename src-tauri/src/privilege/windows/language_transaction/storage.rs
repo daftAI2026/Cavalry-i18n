@@ -1,13 +1,7 @@
 /**
  * [INPUT]: 依赖 worker 已验证的固定 payload/preimage、lowercase SHA-256、OS-known install root containment、固定 journal 与 Windows reparse-safe 文件 I/O 原语。
- * [OUTPUT]: 提供跨 payload/QPA/final marker 的 durable journal、写前 postimage ownership、原子 staged payload 应用、原始目录恢复及 marker-last fail-closed rollback。
- * [POS]: language_transaction 的事务编排核心；首次目标变更前持久化 ownership，并协调目标目录、journal 临时成员与窄 manifest/path 协作者，不解析 plan、不启动进程。
- * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
- */
-/**
- * [INPUT]: validated payload/preimage ownership, journal phases, and final-marker rollback boundary.
- * [OUTPUT]: durable commit classification; undurable Committing rolls back or becomes uncertain, while durable cleanup residuals remain distinct from state uncertainty.
- * [POS]: language_transaction transaction core; coordinates manifest durability before every target mutation and final cleanup.
+ * [OUTPUT]: 在不可发现 preparation root 中持久化完整 preimage/manifest 后原子发布 durable journal；正向与回滚 ReplaceFileW 均先持久化带 expected before/after 的 displaced intent，再以 displaced 前像完成证明，目标写入与回滚保留精确 ownership 证据。
+ * [POS]: language_transaction 的事务编排核心；负责 preparation 发布、目标 CAS、marker-last 提交与 fail-closed recovery，不解析 plan、不启动进程。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -35,7 +29,7 @@ use destination_io::{
 
 #[path = "journal_cleanup.rs"]
 pub(super) mod journal_cleanup;
-use journal_cleanup::{inspect_journal_root, remove_journal_root};
+use journal_cleanup::{inspect_journal_root, remove_journal_root, remove_preparation_root};
 
 #[cfg(test)]
 pub(crate) use super::journal_manifest::RecoveryOutcome;
@@ -50,6 +44,7 @@ mod rollback_directories;
 use rollback_directories::restore_original_parent_directories;
 
 pub(super) const JOURNAL_PREFIX: &str = ".cavalry-i18n-transaction-";
+pub(super) const JOURNAL_PREPARATION_PREFIX: &str = ".cavalry-i18n-preparing-";
 pub(super) const JOURNAL_STATE_FILE: &str = "journal.state";
 pub(super) const JOURNAL_STATE_TEMP_FILE: &str = "journal.state.tmp";
 pub(super) const NONCE_HEX_LENGTH: usize = 64;
@@ -62,6 +57,34 @@ fn replacement_path(
 ) -> Result<PathBuf, StorageError> {
     journal_replacement_path(journal_root, destination, entry_index, phase)
         .map_err(StorageError::new)
+}
+
+fn remove_owned_replacement(path: &Path) -> Result<(), String> {
+    let metadata = match fs::symlink_metadata(path) {
+        Ok(metadata) => metadata,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        Err(error) => {
+            return Err(format!(
+                "Could not inspect transaction replacement {}: {error}",
+                path.display()
+            ))
+        }
+    };
+    if !metadata.is_file() || metadata_is_reparse_point(&metadata) {
+        return Err(format!(
+            "Transaction replacement is not an ordinary file: {}",
+            path.display()
+        ));
+    }
+    let Some(mut temporary) = LockedDestination::open_existing_for_delete(path)? else {
+        return Ok(());
+    };
+    temporary.clear_readonly_for_delete()?;
+    temporary.delete_on_close()?;
+    if let Some(parent) = path.parent() {
+        sync_directory(parent)?;
+    }
+    Ok(())
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -135,6 +158,9 @@ pub(super) struct JournalEntry {
     pub(super) backup: Option<PathBuf>,
     pub(super) original_permissions: Option<fs::Permissions>,
     pub(super) owned_postimages: HashSet<Option<String>>,
+    pub(super) displaced_publication_pending: bool,
+    pub(super) displaced_publication_expected_before_sha256: Option<String>,
+    pub(super) displaced_publication_expected_after_sha256: Option<String>,
 }
 
 #[derive(Debug)]
@@ -172,68 +198,137 @@ impl DurableJournal {
         }
 
         let journal_root = install_root.join(format!("{JOURNAL_PREFIX}{nonce}"));
+        let preparation_root = install_root.join(format!("{JOURNAL_PREPARATION_PREFIX}{nonce}"));
         validate_destination(&install_root, &journal_root)?;
-        match fs::create_dir(&journal_root) {
-            Ok(()) => {}
-            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+        validate_destination(&install_root, &preparation_root)?;
+        match fs::symlink_metadata(&journal_root) {
+            Ok(_) => {
                 return Err(StorageError::new(format!(
                     "Transaction journal already exists: {}",
                     journal_root.display()
                 )))
             }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
             Err(error) => {
                 return Err(StorageError::new(format!(
-                    "Could not create transaction journal {}: {error}",
+                    "Could not inspect transaction journal {}: {error}",
                     journal_root.display()
+                )))
+            }
+        }
+        match fs::symlink_metadata(&preparation_root) {
+            Ok(_) => {
+                return Err(StorageError::new(format!(
+                    "Transaction preparation already exists and was retained for inspection: {}",
+                    preparation_root.display()
+                )))
+            }
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+            Err(error) => {
+                return Err(StorageError::new(format!(
+                    "Could not inspect transaction preparation {}: {error}",
+                    preparation_root.display()
+                )))
+            }
+        }
+        match fs::create_dir(&preparation_root) {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                return Err(StorageError::new(format!(
+                    "Transaction preparation already exists: {}",
+                    preparation_root.display()
+                )))
+            }
+            Err(error) => {
+                return Err(StorageError::new(format!(
+                    "Could not create transaction preparation {}: {error}",
+                    preparation_root.display()
                 )))
             }
         }
         sync_directory(&install_root).map_err(|error| {
             cleanup_failed_prepare(
                 &install_root,
-                &journal_root,
+                &preparation_root,
                 0,
-                format!("Could not persist transaction journal directory: {error}"),
+                format!("Could not persist transaction preparation directory: {error}"),
             )
         })?;
-        sync_directory(&journal_root).map_err(|error| {
+        sync_directory(&preparation_root).map_err(|error| {
             cleanup_failed_prepare(
                 &install_root,
-                &journal_root,
+                &preparation_root,
                 0,
-                format!("Could not persist transaction journal directory: {error}"),
+                format!("Could not persist transaction preparation directory: {error}"),
             )
         })?;
 
         let targets = collect_targets(payloads, fixed_rollback_surface);
-        let entries = match snapshot_targets(&install_root, &journal_root, &targets) {
+        let mut entries = match snapshot_targets(&install_root, &preparation_root, &targets) {
             Ok(entries) => entries,
             Err(error) => {
                 return Err(cleanup_failed_prepare(
                     &install_root,
-                    &journal_root,
+                    &preparation_root,
                     targets.len(),
                     error,
                 ));
             }
         };
+        for entry in &mut entries {
+            if let Some(backup) = entry.backup.as_mut() {
+                let name = backup.file_name().ok_or_else(|| {
+                    StorageError::new("Durable preparation backup has no file name.")
+                })?;
+                *backup = journal_root.join(name);
+            }
+        }
         let journal = Self {
             install_root,
-            journal_root,
+            journal_root: journal_root.clone(),
             entries,
             created_directories: Vec::new(),
             applied_payloads: 0,
             #[cfg(test)]
             fail_next_persist: std::cell::Cell::new(None),
         };
-        if let Err(error) = journal.persist_manifest(JournalPhase::Prepared) {
+        if let Err(error) = super::journal_manifest::persist_manifest_at(
+            &journal,
+            JournalPhase::Prepared,
+            &preparation_root,
+        ) {
             return Err(cleanup_failed_prepare(
                 &journal.install_root,
-                &journal.journal_root,
+                &preparation_root,
                 targets.len(),
                 error,
             ));
         }
+        sync_directory(&preparation_root).map_err(|error| {
+            cleanup_failed_prepare(
+                &journal.install_root,
+                &preparation_root,
+                targets.len(),
+                format!("Could not persist transaction preparation: {error}"),
+            )
+        })?;
+        fs::rename(&preparation_root, &journal_root).map_err(|error| {
+            cleanup_failed_prepare(
+                &journal.install_root,
+                &preparation_root,
+                targets.len(),
+                format!("Could not publish durable transaction journal: {error}"),
+            )
+        })?;
+        sync_directory(&journal.install_root).map_err(|error| {
+            StorageError::with_residual(
+                "Durable transaction journal was published but its parent directory was not durable.",
+                CleanupResidual {
+                    paths: vec![journal.journal_root.clone()],
+                    detail: error,
+                },
+            )
+        })?;
         Ok(journal)
     }
 
@@ -243,20 +338,30 @@ impl DurableJournal {
     }
 
     pub(super) fn apply_payload(&mut self, payload: &ResolvedPayload) -> Result<(), StorageError> {
-        self.apply_payload_with_ownership(payload, false)
+        self.apply_payload_with_ownership(payload, false, None)
     }
 
     pub(super) fn apply_transition_payload(
         &mut self,
         payload: &ResolvedPayload,
     ) -> Result<(), StorageError> {
-        self.apply_payload_with_ownership(payload, true)
+        self.apply_payload_with_ownership(payload, true, None)
+    }
+
+    #[cfg(test)]
+    pub(super) fn apply_payload_with_publish_race(
+        &mut self,
+        payload: &ResolvedPayload,
+        race: impl FnOnce() -> Result<(), String> + 'static,
+    ) -> Result<(), StorageError> {
+        self.apply_payload_with_ownership(payload, false, Some(Box::new(race)))
     }
 
     fn apply_payload_with_ownership(
         &mut self,
         payload: &ResolvedPayload,
         allow_owned_preimage: bool,
+        before_publish: Option<Box<dyn FnOnce() -> Result<(), String>>>,
     ) -> Result<(), StorageError> {
         validate_lower_hash(&payload.source_sha256, "payload source hash")?;
         validate_optional_hash(
@@ -325,27 +430,52 @@ impl DurableJournal {
             entry_index,
             "apply",
         )?;
-        let mutation = destination.overwrite_from(
+        let displaced = replacement_path(
+            &self.journal_root,
+            &payload.destination,
+            entry_index,
+            "displaced",
+        )?;
+        let existing_target = if let Some(expected_before) =
+            payload.expected_destination_sha256.as_ref()
+        {
+            let entry = &mut self.entries[entry_index];
+            entry.displaced_publication_pending = true;
+            entry.displaced_publication_expected_before_sha256 = Some(expected_before.clone());
+            entry.displaced_publication_expected_after_sha256 = Some(payload.source_sha256.clone());
+            self.persist_manifest(JournalPhase::Applying)
+                .map_err(StorageError::new)?;
+            true
+        } else {
+            false
+        };
+        let mutation = destination.overwrite_from_with_before_publish(
             &mut source,
             &source_permissions,
             &replacement,
+            Some(&displaced),
+            before_publish,
             &payload.source_sha256,
         );
-        let installed_hash = mutation.observed_sha256;
-        if let Some(hash) = installed_hash.clone() {
-            self.entries[entry_index]
-                .owned_postimages
-                .insert(Some(hash));
-        }
         if let Some(error) = mutation.error {
             return Err(StorageError::new(error));
         }
+        let installed_hash = mutation.observed_sha256;
         if installed_hash.as_deref() != Some(payload.source_sha256.as_str()) {
             return Err(StorageError::new(format!(
                 "Payload destination hash verification failed: {}",
                 payload.destination.display()
             )));
         }
+        if existing_target {
+            let entry = &mut self.entries[entry_index];
+            entry.displaced_publication_pending = false;
+            entry.displaced_publication_expected_before_sha256 = None;
+            entry.displaced_publication_expected_after_sha256 = None;
+        }
+        self.entries[entry_index]
+            .owned_postimages
+            .insert(Some(payload.source_sha256.clone()));
         self.applied_payloads += 1;
         self.persist_manifest(JournalPhase::Applying)
             .map_err(StorageError::new)
@@ -388,6 +518,13 @@ impl DurableJournal {
                 ),
             });
         }
+        if let Err(error) = self.reconcile_pending_displaced_publications(JournalPhase::RollingBack)
+        {
+            return RollbackOutcome::Uncertain(CleanupResidual {
+                paths: vec![self.journal_root.clone()],
+                detail: error,
+            });
+        }
         let marker_index = marker.and_then(|marker| {
             self.entries
                 .iter()
@@ -411,12 +548,12 @@ impl DurableJournal {
         ) {
             failures.push((path, error));
         }
-        for (index, entry) in self.entries.iter().enumerate().rev() {
+        for index in (0..self.entries.len()).rev() {
             if marker_index == Some(index) {
                 continue;
             }
-            if let Err(error) = rollback_entry(&self.journal_root, entry, index) {
-                failures.push((entry.destination.clone(), error));
+            if let Err(error) = self.rollback_entry_durably(index) {
+                failures.push((self.entries[index].destination.clone(), error));
             }
         }
         self.created_directories
@@ -441,9 +578,8 @@ impl DurableJournal {
         }
         if failures.is_empty() {
             if let Some(index) = marker_index {
-                let entry = &self.entries[index];
-                if let Err(error) = rollback_entry(&self.journal_root, entry, index) {
-                    failures.push((entry.destination.clone(), error));
+                if let Err(error) = self.rollback_entry_durably(index) {
+                    failures.push((self.entries[index].destination.clone(), error));
                 }
             }
         }
@@ -513,34 +649,41 @@ impl DurableJournal {
 
     pub(super) fn cleanup_replacement_temps(&self) -> Result<(), String> {
         for (index, entry) in self.entries.iter().enumerate() {
+            let current = snapshot_hash(&entry.destination).map_err(|error| error.message)?;
+            let staged_member_exists = ["apply", "rollback", "displaced"].iter().any(|phase| {
+                replacement_path(&self.journal_root, &entry.destination, index, phase)
+                    .ok()
+                    .and_then(|path| fs::symlink_metadata(path).ok())
+                    .is_some()
+            });
+            if staged_member_exists
+                && current != entry.original_sha256
+                && !entry.owned_postimages.contains(&current)
+            {
+                return Err(format!(
+                    "Transaction target changed before staged-member cleanup; preserving evidence: {}",
+                    entry.destination.display()
+                ));
+            }
             for phase in ["apply", "rollback"] {
                 let replacement =
                     replacement_path(&self.journal_root, &entry.destination, index, phase)
                         .map_err(|error| error.message)?;
-                let metadata = match fs::symlink_metadata(&replacement) {
-                    Ok(metadata) => metadata,
-                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => continue,
-                    Err(error) => {
-                        return Err(format!(
-                            "Could not inspect transaction replacement {}: {error}",
-                            replacement.display()
-                        ))
-                    }
-                };
-                if !metadata.is_file() || metadata_is_reparse_point(&metadata) {
+                remove_owned_replacement(&replacement)?;
+            }
+            let displaced =
+                replacement_path(&self.journal_root, &entry.destination, index, "displaced")
+                    .map_err(|error| error.message)?;
+            if let Some(hash) = snapshot_hash(&displaced).map_err(|error| error.message)? {
+                let original_or_owned = entry.original_sha256.as_deref() == Some(hash.as_str())
+                    || entry.owned_postimages.contains(&Some(hash.clone()));
+                if !original_or_owned {
                     return Err(format!(
-                        "Transaction replacement is not an ordinary file: {}",
-                        replacement.display()
+                        "Displaced preimage changed outside the transaction; preserving evidence: {}",
+                        displaced.display()
                     ));
                 }
-                let Some(temporary) = LockedDestination::open_existing_for_delete(&replacement)?
-                else {
-                    continue;
-                };
-                temporary.delete_on_close()?;
-                if let Some(parent) = replacement.parent() {
-                    sync_directory(parent)?;
-                }
+                remove_owned_replacement(&displaced)?;
             }
         }
         Ok(())
@@ -565,6 +708,118 @@ impl DurableJournal {
             return Err(format!("injected {phase:?} manifest persistence failure"));
         }
         persist_manifest(self, phase)
+    }
+
+    pub(super) fn reconcile_pending_displaced_publications(
+        &mut self,
+        phase: JournalPhase,
+    ) -> Result<(), String> {
+        let mut changed = false;
+        for (index, entry) in self.entries.iter().enumerate() {
+            if !entry.displaced_publication_pending {
+                continue;
+            }
+            let current = snapshot_hash(&entry.destination).map_err(|error| error.message)?;
+            let displaced =
+                replacement_path(&self.journal_root, &entry.destination, index, "displaced")
+                    .map_err(|error| error.message)?;
+            let displaced_hash = snapshot_hash(&displaced).map_err(|error| error.message)?;
+            let expected_before = entry
+                .displaced_publication_expected_before_sha256
+                .as_deref()
+                .ok_or_else(|| {
+                    format!(
+                        "Pending displaced publication is missing its expected preimage for {}.",
+                        entry.destination.display()
+                    )
+                })?;
+            let expected_after = entry
+                .displaced_publication_expected_after_sha256
+                .as_deref()
+                .ok_or_else(|| {
+                    format!(
+                        "Pending displaced publication is missing its expected postimage for {}.",
+                        entry.destination.display()
+                    )
+                })?;
+            let publication_not_started =
+                current.as_deref() == Some(expected_before) && displaced_hash.is_none();
+            let publication_completed = current.as_deref() == Some(expected_after)
+                && displaced_hash.as_deref() == Some(expected_before);
+            if !publication_not_started && !publication_completed {
+                return Err(format!(
+                    "Pending displaced publication is not safely recoverable for {} (expected_before={expected_before}, expected_after={expected_after}, target={current:?}, displaced={displaced_hash:?}).",
+                    entry.destination.display()
+                ));
+            }
+            changed = true;
+        }
+        if changed {
+            for entry in &mut self.entries {
+                if entry.displaced_publication_pending {
+                    entry.displaced_publication_pending = false;
+                    entry.displaced_publication_expected_before_sha256 = None;
+                    entry.displaced_publication_expected_after_sha256 = None;
+                }
+            }
+            self.persist_manifest(phase)?;
+        }
+        Ok(())
+    }
+
+    fn rollback_entry_durably(&mut self, index: usize) -> Result<(), String> {
+        let intent = self.prepare_rollback_publication_intent(index)?;
+        if intent {
+            self.persist_manifest(JournalPhase::RollingBack)?;
+        }
+        let result = rollback_entry(&self.journal_root, &self.entries[index], index);
+        if let Err(error) = result {
+            return Err(error);
+        }
+        if intent {
+            let before = self.entries[index]
+                .displaced_publication_expected_before_sha256
+                .clone();
+            let after = self.entries[index]
+                .displaced_publication_expected_after_sha256
+                .clone();
+            self.entries[index].displaced_publication_pending = false;
+            self.entries[index].displaced_publication_expected_before_sha256 = None;
+            self.entries[index].displaced_publication_expected_after_sha256 = None;
+            if let Err(error) = self.persist_manifest(JournalPhase::RollingBack) {
+                self.entries[index].displaced_publication_pending = true;
+                self.entries[index].displaced_publication_expected_before_sha256 = before;
+                self.entries[index].displaced_publication_expected_after_sha256 = after;
+                return Err(error);
+            }
+        }
+        Ok(())
+    }
+
+    fn prepare_rollback_publication_intent(&mut self, index: usize) -> Result<bool, String> {
+        let current =
+            snapshot_hash(&self.entries[index].destination).map_err(|error| error.message)?;
+        let Some(original) = self.entries[index].original_sha256.clone() else {
+            return Ok(false);
+        };
+        if current.as_deref() == Some(original.as_str())
+            || !self.entries[index].owned_postimages.contains(&current)
+        {
+            return Ok(false);
+        }
+        let Some(before) = current else {
+            return Ok(false);
+        };
+        if self.entries[index].displaced_publication_pending {
+            return Err(format!(
+                "Rollback entry already has an unresolved displaced publication: {}",
+                self.entries[index].destination.display()
+            ));
+        }
+        self.entries[index].displaced_publication_pending = true;
+        self.entries[index].displaced_publication_expected_before_sha256 = Some(before);
+        self.entries[index].displaced_publication_expected_after_sha256 = Some(original);
+        Ok(true)
     }
 
     #[cfg(test)]
@@ -709,6 +964,9 @@ fn snapshot_targets(
             backup,
             original_permissions: permissions,
             owned_postimages: HashSet::new(),
+            displaced_publication_pending: false,
+            displaced_publication_expected_before_sha256: None,
+            displaced_publication_expected_after_sha256: None,
         });
     }
     Ok(entries)
@@ -813,8 +1071,16 @@ fn rollback_entry(
             let replacement =
                 replacement_path(journal_root, &entry.destination, entry_index, "rollback");
             let replacement = replacement.map_err(|error| error.message)?;
-            let mutation =
-                destination.overwrite_from(&mut source, permissions, &replacement, expected);
+            let displaced =
+                replacement_path(journal_root, &entry.destination, entry_index, "displaced")
+                    .map_err(|error| error.message)?;
+            let mutation = destination.overwrite_from(
+                &mut source,
+                permissions,
+                &replacement,
+                Some(&displaced),
+                expected,
+            );
             if let Some(error) = mutation.error {
                 return Err(error);
             }
@@ -867,17 +1133,17 @@ pub(super) fn snapshot_hash(path: &Path) -> Result<Option<String>, StorageError>
 
 fn cleanup_failed_prepare(
     install_root: &Path,
-    journal_root: &Path,
+    preparation_root: &Path,
     entry_count: usize,
     error: String,
 ) -> StorageError {
-    match remove_journal_root(install_root, journal_root, entry_count) {
+    match remove_preparation_root(install_root, preparation_root, entry_count) {
         Ok(()) => StorageError::new(error),
         Err(cleanup_error) => StorageError::with_residual(
             error,
             CleanupResidual {
-                paths: vec![journal_root.to_path_buf()],
-                detail: format!("Could not clean incomplete journal: {cleanup_error}"),
+                paths: vec![preparation_root.to_path_buf()],
+                detail: format!("Could not clean incomplete preparation: {cleanup_error}"),
             },
         ),
     }

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 Windows no-share/reparse-safe 文件句柄、已验证的普通源文件与目标 CAS、事务 journal 固定临时路径，以及 ReplaceFileW/MoveFileExW 原子发布能力。
- * [OUTPUT]: 提供 no-share/reparse-safe 打开、完整写入并 fsync 的 staged overwrite、ReplaceFileW/MoveFileExW 发布、postcondition 复核和 handle-bound 删除。
- * [POS]: language_transaction/storage 的 handle-bound I/O 原语；正向写入与回滚共用，目标句柄保护 CAS，临时文件发布前完成哈希与目录持久化，发布后立即重新取得独占句柄。
+ * [OUTPUT]: 提供 no-share/reparse-safe 打开、完整写入并 fsync 的 staged overwrite；既有目标经 ReplaceFileW 捕获 journal-owned displaced 前像并复核 postcondition，删除保持 handle-bound。
+ * [POS]: language_transaction/storage 的 I/O 原语；正向写入与回滚共用，目标句柄负责初始 CAS，发布间隙由 displaced 前像证明并保全外部更新。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -12,18 +12,19 @@ use std::{
 };
 
 use sha2::{Digest, Sha256};
-use windows::core::HSTRING;
+use windows::core::{HSTRING, PCWSTR};
 use windows::Win32::{
     Foundation::{GENERIC_READ, HANDLE},
     Storage::FileSystem::{
         FileDispositionInfo, MoveFileExW, ReplaceFileW, SetFileInformationByHandle, DELETE,
-        FILE_DISPOSITION_INFO, FILE_FLAG_OPEN_REPARSE_POINT, MOVEFILE_WRITE_THROUGH,
-        REPLACE_FILE_FLAGS,
+        FILE_DISPOSITION_INFO, FILE_FLAG_OPEN_REPARSE_POINT, FILE_WRITE_ATTRIBUTES,
+        MOVEFILE_WRITE_THROUGH, REPLACE_FILE_FLAGS,
     },
 };
 
 use super::super::super::known_folders::{metadata_is_reparse_point, path_is_within};
 use super::super::journal_manifest::sync_directory;
+use super::snapshot_hash;
 
 pub(super) fn open_exclusive_ordinary_file(path: &Path, role: &str) -> Result<fs::File, String> {
     let file = fs::OpenOptions::new()
@@ -103,7 +104,7 @@ impl LockedDestination {
         }
 
         let mut file = fs::OpenOptions::new()
-            .access_mode(GENERIC_READ.0 | DELETE.0)
+            .access_mode(GENERIC_READ.0 | DELETE.0 | FILE_WRITE_ATTRIBUTES.0)
             .share_mode(0)
             .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT.0)
             .open(path)
@@ -137,17 +138,56 @@ impl LockedDestination {
         self.preimage_sha256.as_deref()
     }
 
+    pub(super) fn clear_readonly_for_delete(&mut self) -> Result<(), String> {
+        let file = self.file.as_mut().ok_or_else(|| {
+            "Cannot change permissions on an unpublished destination.".to_string()
+        })?;
+        let mut permissions = file
+            .metadata()
+            .map_err(|error| format!("Could not inspect journal member permissions: {error}"))?
+            .permissions();
+        if permissions.readonly() {
+            permissions.set_readonly(false);
+            file.set_permissions(permissions).map_err(|error| {
+                format!("Could not clear journal member readonly flag: {error}")
+            })?;
+        }
+        Ok(())
+    }
+
     pub(super) fn overwrite_from(
         &mut self,
         source: &mut fs::File,
         permissions: &fs::Permissions,
         replacement: &Path,
+        displaced: Option<&Path>,
+        expected_after: &str,
+    ) -> MutationResult {
+        self.overwrite_from_with_before_publish(
+            source,
+            permissions,
+            replacement,
+            displaced,
+            None,
+            expected_after,
+        )
+    }
+
+    pub(super) fn overwrite_from_with_before_publish(
+        &mut self,
+        source: &mut fs::File,
+        permissions: &fs::Permissions,
+        replacement: &Path,
+        displaced: Option<&Path>,
+        before_publish: Option<Box<dyn FnOnce() -> Result<(), String>>>,
         expected_after: &str,
     ) -> MutationResult {
         self.overwrite_from_inner(
             source,
             permissions,
             replacement,
+            displaced,
+            before_publish,
             Some(expected_after),
             |source, destination| {
                 std::io::copy(source, destination)
@@ -168,7 +208,32 @@ impl LockedDestination {
     where
         F: FnOnce(&mut fs::File, &mut fs::File) -> Result<(), String>,
     {
-        self.overwrite_from_inner(source, permissions, replacement, None, copy)
+        self.overwrite_from_inner(source, permissions, replacement, None, None, None, copy)
+    }
+
+    #[cfg(test)]
+    pub(super) fn overwrite_from_with_publish_race<F>(
+        &mut self,
+        source: &mut fs::File,
+        permissions: &fs::Permissions,
+        replacement: &Path,
+        displaced: Option<&Path>,
+        expected_after: &str,
+        race: impl FnOnce() -> Result<(), String> + 'static,
+        copy: F,
+    ) -> MutationResult
+    where
+        F: FnOnce(&mut fs::File, &mut fs::File) -> Result<(), String>,
+    {
+        self.overwrite_from_inner(
+            source,
+            permissions,
+            replacement,
+            displaced,
+            Some(Box::new(race)),
+            Some(expected_after),
+            copy,
+        )
     }
 
     fn overwrite_from_inner<F>(
@@ -176,6 +241,8 @@ impl LockedDestination {
         source: &mut fs::File,
         permissions: &fs::Permissions,
         replacement: &Path,
+        displaced: Option<&Path>,
+        before_publish: Option<Box<dyn FnOnce() -> Result<(), String>>>,
         expected_after: Option<&str>,
         copy: F,
     ) -> MutationResult
@@ -192,6 +259,29 @@ impl LockedDestination {
                     "Refusing transaction replacement outside the destination directory: {}",
                     replacement.display()
                 ));
+            }
+            if let Some(displaced) = displaced {
+                if !authorized_displaced_path(&self.path, displaced) {
+                    return Err(format!(
+                        "Refusing an unauthorized displaced preimage path: {}",
+                        displaced.display()
+                    ));
+                }
+                match fs::symlink_metadata(displaced) {
+                    Ok(_) => {
+                        return Err(format!(
+                            "Refusing an occupied displaced preimage path: {}",
+                            displaced.display()
+                        ))
+                    }
+                    Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+                    Err(error) => {
+                        return Err(format!(
+                            "Could not inspect displaced preimage path {}: {error}",
+                            displaced.display()
+                        ))
+                    }
+                }
             }
             if let Some(file) = self.file.as_mut() {
                 let observed = hash_open_file(file, &self.path)?;
@@ -273,14 +363,22 @@ impl LockedDestination {
 
             let had_target = self.file.is_some();
             drop(self.file.take());
+            if let Some(before_publish) = before_publish {
+                before_publish()?;
+            }
             let target_arg = HSTRING::from(self.path.to_string_lossy().to_string());
             let replacement_arg = HSTRING::from(replacement.to_string_lossy().to_string());
             let publish_result = if had_target {
+                let displaced_arg =
+                    displaced.map(|path| HSTRING::from(path.to_string_lossy().to_string()));
+                let backup = displaced_arg
+                    .as_ref()
+                    .map_or_else(PCWSTR::null, |path| PCWSTR(path.as_ptr()));
                 unsafe {
                     ReplaceFileW(
                         &target_arg,
                         &replacement_arg,
-                        None,
+                        backup,
                         REPLACE_FILE_FLAGS(0),
                         None,
                         None,
@@ -297,6 +395,56 @@ impl LockedDestination {
             };
             if let Err(error) = publish_result {
                 return Err(with_temp_cleanup(error, replacement));
+            }
+            if had_target {
+                if let Some(displaced) = displaced {
+                    let expected_before = self.preimage_sha256.as_deref().ok_or_else(|| {
+                        "Atomic replacement lost its recorded destination preimage.".to_string()
+                    })?;
+                    let displaced_hash = snapshot_hash(displaced).map_err(|error| error.message)?;
+                    if displaced_hash.as_deref() != Some(expected_before) {
+                        let displaced_arg = HSTRING::from(displaced.to_string_lossy().to_string());
+                        let staged_arg = HSTRING::from(replacement.to_string_lossy().to_string());
+                        let restore = unsafe {
+                            ReplaceFileW(
+                                &target_arg,
+                                &displaced_arg,
+                                PCWSTR(staged_arg.as_ptr()),
+                                REPLACE_FILE_FLAGS(0),
+                                None,
+                                None,
+                            )
+                        };
+                        if restore.is_err() {
+                            return Err(format!(
+                                "Destination changed before atomic replacement; displaced preimage was retained at {}.",
+                                displaced.display()
+                            ));
+                        }
+                        sync_directory(parent)?;
+                        if let Some(replacement_parent) = replacement.parent() {
+                            sync_directory(replacement_parent)?;
+                        }
+                        let mut reopened =
+                            open_locked_existing(&self.path, "restored concurrent destination")?;
+                        let restored = hash_open_file(&mut reopened, &self.path)?;
+                        self.preimage_sha256 = Some(restored);
+                        self.file = Some(reopened);
+                        return Err(format!(
+                            "Destination changed before atomic replacement; preserved concurrent update at {}.",
+                            self.path.display()
+                        ));
+                    }
+                    if let Some(mut displaced_file) =
+                        LockedDestination::open_existing_for_delete(displaced)?
+                    {
+                        displaced_file.clear_readonly_for_delete()?;
+                        displaced_file.delete_on_close()?;
+                        if let Some(displaced_parent) = displaced.parent() {
+                            sync_directory(displaced_parent)?;
+                        }
+                    }
+                }
             }
             sync_directory(parent)?;
             if let Some(replacement_parent) = replacement.parent() {
@@ -481,7 +629,9 @@ fn authorized_replacement_path(destination: &Path, replacement: &Path) -> bool {
             .file_name()
             .and_then(|name| name.to_str())
             .is_some_and(|name| {
-                (name.starts_with(".payload-apply-") || name.starts_with(".payload-rollback-"))
+                (name.starts_with(".payload-apply-")
+                    || name.starts_with(".payload-rollback-")
+                    || name.starts_with(".payload-displaced-"))
                     && name.ends_with(".tmp")
             })
 }
@@ -492,13 +642,21 @@ pub(super) fn journal_replacement_path(
     entry_index: usize,
     phase: &str,
 ) -> Result<PathBuf, String> {
-    if !matches!(phase, "apply" | "rollback") {
+    if !matches!(phase, "apply" | "rollback" | "displaced") {
         return Err("Transaction replacement phase is not fixed.".to_string());
     }
     if !journal_root.is_absolute() || destination.is_relative() {
         return Err("Transaction replacement path inputs are not absolute.".to_string());
     }
     Ok(journal_root.join(format!(".payload-{phase}-{entry_index}.tmp")))
+}
+
+fn authorized_displaced_path(destination: &Path, displaced: &Path) -> bool {
+    authorized_replacement_path(destination, displaced)
+        && displaced
+            .file_name()
+            .and_then(|name| name.to_str())
+            .is_some_and(|name| name.starts_with(".payload-displaced-"))
 }
 
 fn ensure_ordinary_existing_file(path: &Path) -> Result<(), String> {
