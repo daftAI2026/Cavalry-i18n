@@ -1459,8 +1459,8 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
     readText('src-tauri/tests/support/windows_live_tests.inc.rs'),
   ].join('\n');
   const guard = readText('src-tauri/tests/support/windows_disposable.rs');
-  const workspaceGuard = readText(
-    'src-tauri/tests/support/windows_workspace_guard.rs'
+  const cloneGuard = readText(
+    'src-tauri/tests/support/windows_clone_guard.rs'
   );
   const helper = readText('tools/capture_windows_pid_window.ps1');
   const acceptancePlugin = readText('injector/windows/cavalry_i18n_acceptance_plugin.cpp');
@@ -1469,7 +1469,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   const textPathSources = readText(
     'injector/windows/cavalry_i18n_extension_layer_sources.h'
   );
-  const combined = `${live}\n${guard}\n${workspaceGuard}\n${helper}`;
+  const combined = `${live}\n${guard}\n${cloneGuard}\n${helper}`;
 
   assert.match(live, /#\[ignore = "requires explicit disposable clone\/evidence TEMP roots/);
   assert.match(live, /CAVALRY_I18N_WINDOWS_SMOKE_APP/);
@@ -1484,14 +1484,19 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(live, /assert_safe_write_surface/);
   assert.match(
     live,
-    /require_no_cavalry_processes\(&mut runner, &helper, "startup"\)[\s\S]*create_unique_child_directory[\s\S]*verify_live_clone_completeness[\s\S]*capture_english_baseline[\s\S]*capture_real_workspace/
+    /require_no_cavalry_processes\(&mut runner, &helper, "startup"\)[\s\S]*create_unique_child_directory[\s\S]*verify_live_clone_completeness[\s\S]*capture_english_baseline/
   );
-  assert.match(workspaceGuard, /assets\/Icons\/sign-in-bg\.png/);
-  assert.match(workspaceGuard, /assets\/Icons\/cavByCanva\.png/);
-  assert.match(workspaceGuard, /assets\/Icons\/tool_search\.png/);
-  assert.match(workspaceGuard, /real-workspace\.before/);
-  assert.match(workspaceGuard, /real-workspace-guard\.json/);
-  assert.match(workspaceGuard, /fs::rename\(&temporary, &snapshot\.path\)/);
+  assert.match(live, /profile-full-surfaces-/);
+  assert.match(live, /OsString::from\("LOCALAPPDATA"\)/);
+  assert.match(live, /OsString::from\("APPDATA"\)/);
+  assert.match(cloneGuard, /assets\/Icons\/sign-in-bg\.png/);
+  assert.match(cloneGuard, /assets\/Icons\/cavByCanva\.png/);
+  assert.match(cloneGuard, /assets\/Icons\/tool_search\.png/);
+  assert.match(cloneGuard, /live-clone-resources\.json/);
+  assert.doesNotMatch(
+    `${live}\n${cloneGuard}`,
+    /capture_real_workspace|restore_real_workspace|verify_real_workspace|RealWorkspaceSnapshot|workspace\.json|windows_workspace_guard/
+  );
   assert.match(live, /const EXPECTED_JSON_COUNT: usize = 38/);
   assert.match(live, /apply_language_inner/);
   assert.match(live, /RealCommandRunner/);
@@ -1647,7 +1652,7 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.doesNotMatch(live, /thread::sleep|std::thread|Command::new/);
   assert.match(
     sop,
-    /full-surface 门继承当前用户 `APPDATA`\/`LOCALAPPDATA` 登录 profile/
+    /full-surface 门必须把每次 Cavalry launch 的 `APPDATA`\/`LOCALAPPDATA` 指向 run-root 下、由 harness 自己创建的 TEMP-owned profile/
   );
   assert.match(sop, /默认生成的三类 PNG，以及 opt-in 时追加的 Cog Pitch PNG/);
   assert.match(sop, /CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1/);

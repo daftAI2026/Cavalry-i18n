@@ -249,15 +249,15 @@ function verifyTarget(target, session) {
     target,
     [
       'cavalryVersion', 'qtVersion', 'architecture', 'clonePath', 'cloneSentinel', 'executable',
-      'restoredEnglish', 'realWorkspaceUnchanged', 'zeroOwnedProcesses',
+      'restoredEnglish', 'zeroOwnedProcesses',
     ],
     'machine.target'
   );
   if (target.cavalryVersion !== '2.7.2' || target.qtVersion !== '6.6.3' || target.architecture !== 'x86_64') {
     fail('acceptance target must be Cavalry 2.7.2 / Qt 6.6.3 / x86_64.');
   }
-  if (target.restoredEnglish !== true || target.realWorkspaceUnchanged !== true || target.zeroOwnedProcesses !== true) {
-    fail('Cavalry clone must finish restored to English with no owned process and unchanged real workspace.');
+  if (target.restoredEnglish !== true || target.zeroOwnedProcesses !== true) {
+    fail('Cavalry clone must finish restored to English with no owned process.');
   }
   const clone = directory(target.clonePath, 'disposable Cavalry clone');
   const tempRoot = directory(os.tmpdir(), 'Windows TEMP root');

@@ -135,7 +135,6 @@ function makeSession() {
       cloneSentinel,
       executable,
       restoredEnglish: true,
-      realWorkspaceUnchanged: true,
       zeroOwnedProcesses: true,
     },
     installer: { fileName: installerName, artifact: installer },

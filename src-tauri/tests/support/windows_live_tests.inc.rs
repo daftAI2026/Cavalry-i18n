@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 live support 分片、workspace/clone guard、PowerShell/helper 源码与显式 disposable clone/evidence 环境；release 模式还依赖最终 NSIS/provenance 与双 DLL 字节
- * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门；FullSurfaces 只在真实登录 profile 的 workspace preimage 已封存且可恢复、关键登录窗资源已证明完整后启动；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
- * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 资源不完整、真实 Active Workspace 无法精确恢复或使用不同于最终 NSIS 的 runtime DLL 都先于人工截图结论硬失败
+ * [INPUT]: 依赖 live support 分片、clone guard、PowerShell/helper 源码与显式 disposable clone/evidence 环境；release 模式还依赖最终 NSIS/provenance 与双 DLL 字节
+ * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门；FullSurfaces 只在 TEMP-owned profile 与关键 clone 资源已证明完整后启动；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
+ * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 资源不完整、FullSurfaces 未绑定 TEMP-owned profile 或使用不同于最终 NSIS 的 runtime DLL 都先于人工截图结论硬失败
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
     fn describe_panic(payload: &(dyn std::any::Any + Send)) -> String {
@@ -123,7 +123,6 @@
         layout: &InstallLayout,
         guarded_clone: &GuardedTempRoot,
         screenshots: &[ScreenshotEvidence],
-        real_workspace_unchanged: bool,
         zero_owned_processes: bool,
     ) -> Result<bool, String> {
         let Some(release_tag) = env::var_os(WINDOWS_RELEASE_TAG_ENV).map(|value| value.to_string_lossy().to_string()) else {
@@ -134,8 +133,8 @@
                 "{WINDOWS_RELEASE_TAG_ENV} is only supported by the Onboarding or Adjacent release acceptance profiles"
             ));
         }
-        if !real_workspace_unchanged || !zero_owned_processes {
-            return Err("refusing to write Windows release machine evidence before cleanup/workspace guards pass".to_string());
+        if !zero_owned_processes {
+            return Err("refusing to write Windows release machine evidence before cleanup process guard passes".to_string());
         }
         let required = [
             (WINDOWS_RELEASE_INSTALLER_ENV, "final Windows NSIS installer"),
@@ -274,7 +273,6 @@
                 "cloneSentinel": clone_sentinel,
                 "executable": executable,
                 "restoredEnglish": true,
-                "realWorkspaceUnchanged": real_workspace_unchanged,
                 "zeroOwnedProcesses": zero_owned_processes,
             },
             "installer": { "fileName": installer_path.file_name().and_then(|value| value.to_str()).ok_or_else(|| "installer filename is not valid UTF-8".to_string())?, "artifact": artifacts[WINDOWS_RELEASE_INSTALLER_ENV] },
@@ -372,10 +370,10 @@
     }
 
     #[test]
-    fn full_surface_uses_real_profile_minimal_workspace_guard_and_complete_clone() {
+    fn full_surface_uses_owned_profile_and_complete_clone() {
         let repo = repo_root();
-        let guard = fs::read_to_string(repo.join("src-tauri/tests/support/windows_workspace_guard.rs"))
-            .expect("workspace guard must remain readable");
+        let guard = fs::read_to_string(repo.join("src-tauri/tests/support/windows_clone_guard.rs"))
+            .expect("clone guard must remain readable");
         let orchestration = fs::read_to_string(
             repo.join("src-tauri/tests/support/windows_live_orchestration.inc.rs"),
         )
@@ -387,18 +385,14 @@
             "assets/Icons/cavByCanva.png",
             "assets/Icons/tool_search.png",
             "live-clone-resources.json",
-            "real-workspace.before",
-            "real-workspace-guard.json",
-            "exact-preimage-after-owned-process-cleanup",
-            "fs::rename(&temporary, &snapshot.path)",
         ] {
-            assert!(guard.contains(required), "workspace guard must retain {required}");
+            assert!(guard.contains(required), "clone guard must retain {required}");
         }
-        assert!(!orchestration.contains("profile-full-surfaces-"));
-        assert!(orchestration.contains("if capture_mode != LiveCaptureMode::FullSurfaces"));
+        assert!(orchestration.contains("profile-full-surfaces-"));
+        assert!(orchestration.contains("OsString::from(\"LOCALAPPDATA\")"));
+        assert!(orchestration.contains("OsString::from(\"APPDATA\")"));
+        assert!(orchestration.contains("if capture_mode == LiveCaptureMode::FullSurfaces"));
         assert!(live.contains("verify_live_clone_completeness"));
-        assert!(live.contains("capture_real_workspace(&evidence_root, &run_root)"));
-        assert!(live.contains("verify_real_workspace_unchanged(&real_workspace)"));
     }
 
     #[test]
@@ -590,8 +584,6 @@
             .unwrap_or_else(|error| panic!("{error}"));
         let (baseline_pairs, baseline) = capture_english_baseline(&repo, &layout, &guarded_clone)
             .unwrap_or_else(|error| panic!("{error}"));
-        let real_workspace = capture_real_workspace(&evidence_root, &run_root)
-            .unwrap_or_else(|error| panic!("{error}"));
         let english_source = repo.join("languages/en");
         let state_dir =
             prepare_state_surface(&evidence_root, &run_root, &baseline_pairs, &english_source)
@@ -639,7 +631,6 @@
             &baseline_pairs,
             &baseline,
             capture_mode,
-            &real_workspace,
             &mut runner,
             &mut outstanding_processes,
         );
@@ -667,9 +658,6 @@
                 failures.push(format!("acceptance plugin cleanup error: {error}"));
             }
         }
-        if let Err(error) = verify_real_workspace_unchanged(&real_workspace) {
-            failures.push(error);
-        }
         if !failures.is_empty() {
             panic!(
                 "Windows live-clone automated evidence failed: {}; evidence_root={}",
@@ -686,7 +674,6 @@
             &layout,
             &guarded_clone,
             &screenshots,
-            true,
             outstanding_processes.is_empty(),
         )
         .unwrap_or_else(|error| panic!("Windows live-clone release machine record failed: {error}; evidence_root={}", run_root.display()));
