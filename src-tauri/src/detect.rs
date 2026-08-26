@@ -1,7 +1,7 @@
 #[cfg(target_os = "windows")]
 use std::collections::HashSet;
 /**
- * [INPUT]: 依赖 install 的跨平台布局、state 保存路径以及 windows_install 的只读发现线索
+ * [INPUT]: 依赖 install 的跨平台布局、state 保存路径、windows_install 的只读发现线索，以及 Windows 稳定 Win32 handle 文件身份
  * [OUTPUT]: 对外提供候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、签名区归一化 Mach-O code identity、不可变 revision、语言选项与安装诊断
  * [POS]: src-tauri/src 的安装探测模块；严格写入入口分离 canonical root、bundle/version/architecture 与不可变文件身份，不能只凭 bundle-version 接受伪造 Cavalry.app
  * [FAIL-CLOSED]: read_mac_bundle_identity/require_supported_mac_identity 缺少完整 Info.plist、主 executable、libExtensionLayer 或 Mach-O 架构时失败；Team ID/designated requirement 明确标为 unavailable，需 privilege runner 提供签名证据后才可升级为 verified
@@ -598,7 +598,9 @@ fn revision_hash_cache() -> &'static Mutex<HashMap<PathBuf, CachedRevisionHash>>
 }
 
 fn revision_file_metadata(path: &Path) -> Result<RevisionFileMetadata, String> {
-    let metadata = fs::metadata(path).map_err(|error| {
+    let file = fs::File::open(path)
+        .map_err(|error| format!("Could not open revision input {}: {error}", path.display()))?;
+    let metadata = file.metadata().map_err(|error| {
         format!(
             "Could not inspect revision input {}: {error}",
             path.display()
@@ -623,26 +625,37 @@ fn revision_file_metadata(path: &Path) -> Result<RevisionFileMetadata, String> {
     Ok(RevisionFileMetadata {
         size: metadata.len(),
         modified_nanos,
-        file_id: revision_file_id(&metadata),
+        file_id: revision_file_id(&file, &metadata)?,
     })
 }
 
 #[cfg(unix)]
-fn revision_file_id(metadata: &fs::Metadata) -> u128 {
+fn revision_file_id(_file: &fs::File, metadata: &fs::Metadata) -> Result<u128, String> {
     use std::os::unix::fs::MetadataExt;
-    (u128::from(metadata.dev()) << 64) | u128::from(metadata.ino())
+    Ok((u128::from(metadata.dev()) << 64) | u128::from(metadata.ino()))
 }
 
 #[cfg(windows)]
-fn revision_file_id(metadata: &fs::Metadata) -> u128 {
-    use std::os::windows::fs::MetadataExt;
-    (u128::from(metadata.volume_serial_number().unwrap_or_default()) << 64)
-        | u128::from(metadata.file_index().unwrap_or_default())
+fn revision_file_id(file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
+    use std::os::windows::io::AsRawHandle;
+    use windows::Win32::{
+        Foundation::HANDLE,
+        Storage::FileSystem::{GetFileInformationByHandle, BY_HANDLE_FILE_INFORMATION},
+    };
+
+    let mut information = BY_HANDLE_FILE_INFORMATION::default();
+    let handle = HANDLE(file.as_raw_handle());
+    unsafe { GetFileInformationByHandle(handle, &mut information) }.map_err(|error| {
+        format!("Could not read stable Windows revision file identity: {error}")
+    })?;
+    let file_index =
+        (u128::from(information.nFileIndexHigh) << 32) | u128::from(information.nFileIndexLow);
+    Ok((u128::from(information.dwVolumeSerialNumber) << 64) | file_index)
 }
 
 #[cfg(not(any(unix, windows)))]
-fn revision_file_id(_metadata: &fs::Metadata) -> u128 {
-    0
+fn revision_file_id(_file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
+    Ok(0)
 }
 
 fn sha256_file_cached(path: &Path) -> Result<String, String> {
