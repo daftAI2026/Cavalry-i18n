@@ -72,6 +72,7 @@ fn status_payload_exposes_app_management_probe_result() {
         needs_extract: false,
         permission_action: "openPrivacy".into(),
         platform: "macos".into(),
+        reconciliation_required: true,
         repo_root: "/repo".into(),
         version: "2.3.4".into(),
     };
@@ -79,6 +80,7 @@ fn status_payload_exposes_app_management_probe_result() {
     assert_eq!(value["appManagementGranted"], true);
     assert_eq!(value["permissionAction"], "openPrivacy");
     assert_eq!(value["platform"], "macos");
+    assert_eq!(value["reconciliationRequired"], true);
     assert_eq!(value["installationMode"], "official");
     assert!(value.get("app_management_granted").is_none());
 }

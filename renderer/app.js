@@ -592,6 +592,8 @@ async function bootstrap() {
       ? bootstrapState.appManagementGranted
       : null;
   state.platform = bootstrapState.platform || '';
+  state.reconciliationRequired =
+    state.platform === 'windows' && bootstrapState.reconciliationRequired === true;
   state.permissionAction = bootstrapState.permissionAction || 'none';
   document.documentElement.dataset.platform = state.platform;
 
@@ -649,6 +651,11 @@ async function bootstrap() {
     return;
   }
 
+  if (state.reconciliationRequired) {
+    setStatus(t('reconciliationPending'), 'warning');
+    return;
+  }
+
   if (state.appManagementGranted === true) {
     setStatus(t('readyToApply'), 'success');
     return;
@@ -702,7 +709,8 @@ async function refreshEnglishSnapshot() {
     const warningCodes = result.warningCodes || [];
     const warnings = localizedWarningMessages(warningCodes).join(' ');
     state.stateDurabilityPending = warningCodes.includes('stateDurabilityPending');
-    state.reconciliationRequired = result.reconciliationRequired === true;
+    state.reconciliationRequired =
+      state.platform === 'windows' && result.reconciliationRequired === true;
     reconcileButton.hidden = !state.reconciliationRequired;
     setBusy(state.busy);
     const refreshed = state.reconciliationRequired

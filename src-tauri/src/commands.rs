@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持六条稳定 Tauri command、apply/extract 兼容入口；extract 只生成 English snapshot 并返回 typed reconciliationRequired，独立 renderer reconciliation 复用既有 apply transaction；get_status 显式投影启动恢复阻断，apply 在同一 operation guard 内完成成功后的 restart，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes。
+ * [OUTPUT]: 保持六条稳定 Tauri command、apply/extract 兼容入口；extract 只生成 English snapshot 并返回 typed reconciliationRequired，独立 renderer reconciliation 复用既有 apply transaction；get_status 从安装现实重算该 typed 状态并显式投影启动恢复阻断，apply 在同一 operation guard 内完成成功后的 restart，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

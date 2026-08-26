@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与显式 reconciliation、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与显式 reconciliation、bootstrap 恢复且 macOS 隔离 typed 状态、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -139,6 +139,28 @@ test('refresh reports reconciliation without applying, and only the explicit con
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
   });
   assert.equal(r.elements['#reconcileButton'].hidden, true);
+});
+
+test('bootstrap restores typed reconciliation and ignores it on macOS', async () => {
+  const windows = boot({
+    status: { platform: 'windows', reconciliationRequired: true },
+  });
+  await flush();
+  assert.equal(windows.elements['#reconcileButton'].hidden, false);
+  assert.equal(windows.elements['#applyButton'].disabled, true);
+  assert.match(windows.elements['#statusText'].textContent, /reconciliation is required/i);
+  assert.equal(
+    windows.calls.filter(({ command }) => command === 'apply_language').length,
+    0,
+    'bootstrap must not reconcile implicitly'
+  );
+
+  const macos = boot({
+    status: { platform: 'macos', reconciliationRequired: true },
+  });
+  await flush();
+  assert.equal(macos.elements['#reconcileButton'].hidden, true);
+  assert.equal(macos.elements['#applyButton'].disabled, false);
 });
 
 test('bridge exposes typed reconciliation result and a dedicated reconciliation action', async () => {
