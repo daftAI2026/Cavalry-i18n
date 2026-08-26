@@ -262,14 +262,14 @@ $env:CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH = '1'
 npm run test:tauri:manual-windows-live-smoke
 ```
 
-要把 Windows live 结果用于 release acceptance，Onboarding 或 Adjacent ignored runner 还必须显式设置 `CAVALRY_I18N_WINDOWS_RELEASE_TAG`、`CAVALRY_I18N_WINDOWS_RELEASE_INSTALLER`、`CAVALRY_I18N_WINDOWS_RELEASE_PROVENANCE`、`CAVALRY_I18N_WINDOWS_RELEASE_GENERIC_DLL` 与 `CAVALRY_I18N_WINDOWS_RELEASE_QPA_DLL`。清理和真实 workspace 守卫成功后，Rust runner 才会在该 TEMP 子目录写入 session sentinel、`windows-machine-record.json` 和每张 PNG 的 PID/HWND inventory；它不会写 review 或 PASS。随后逐张查看已有 PNG 并运行：
+要把 Windows live 结果用于 release acceptance，Onboarding 或 Adjacent ignored runner 还必须显式设置 `CAVALRY_I18N_WINDOWS_RELEASE_TAG`、`CAVALRY_I18N_WINDOWS_RELEASE_INSTALLER`、`CAVALRY_I18N_WINDOWS_RELEASE_PROVENANCE`、`CAVALRY_I18N_WINDOWS_RELEASE_GENERIC_DLL` 与 `CAVALRY_I18N_WINDOWS_RELEASE_QPA_DLL`。其中最后两个路径必须指向本次最终 NSIS 使用的已发布 DLL；runner 在开始写证据前会把它们与当前 clean checkout 中 `injector/windows/{generic,qpa}` 的实际运行时 source 逐字节比对，任何漂移都 fail-closed。清理和真实 workspace 守卫成功后，Rust runner 才会在该 TEMP 子目录写入 session sentinel、`windows-machine-record.json` 和每张 PNG 的 PID/HWND inventory；它不会写 review 或 PASS。随后逐张查看已有 PNG 并运行：
 
 ```powershell
 node tools/windows-acceptance/review_windows_acceptance.js --tag cavalry-2.7.2-pN --session-dir '<TEMP live session>' --reviewer '<name>' --repo-root '<clean source checkout>'
 node tools/windows-acceptance/record_windows_acceptance.js --tag cavalry-2.7.2-pN --session-dir '<TEMP live session>' --repo-root '<clean source checkout>' --output '<outside session summary.json>'
 ```
 
-reviewer 命令只确认已有截图，自动派生 `manual-review`/`final` 记录；producer 再复核 installer、provenance、generic/QPA digest、tag/source/session 和目标版本。`create_release_acceptance_evidence.js --windows-acceptance '<summary.json>'` 可把摘要加入 evidence；带 Windows x64 artifact 的 release 必须同时通过 `--require-windows`，否则 release seal fail-closed。
+reviewer 命令只确认已有截图，自动派生 `manual-review`/`final` 记录；producer 再复核 installer、provenance、generic/QPA digest、tag/source/session 和目标版本。live runner 通过 source Rust apply 路径启动同一份 Cavalry 2.7.2 disposable clone，但只在 source DLL 与最终 NSIS shipped DLL 完全一致时将 inventory 标为 `packaged-nsis`；这证明了最终包内 runtime 字节与现场运行时相同，不把人工或另一份构建的截图冒充发布证据。`create_release_acceptance_evidence.js --windows-acceptance '<summary.json>'` 可把摘要加入 evidence；带 Windows x64 artifact 的 release 必须同时通过 `--require-windows`，否则 release seal fail-closed。
 
 Windows release acceptance producer：上述 ignored live gate 结束后，Windows runner 必须把本轮输出整理为带 `SESSION_SENTINEL_MAGIC` 的 session，并由 `tools/windows-acceptance/review_windows_acceptance.js` 从已有截图派生 review/final，再由 `tools/windows-acceptance/record_windows_acceptance.js` 复验 `windows-machine-record.json`、`windows-manual-review.json`、`windows-final-record.json`。合同支持三语 Onboarding 五点、Adjacent 三点或两者合并；每个点都绑定 exact PID/HWND inventory、最终安装后 generic/QPA SHA-256；同时复验最终 x64 NSIS、相邻 provenance sidecar 与 Cavalry 2.7.2 disposable clone。命令只接受 Windows x64、干净 source worktree 和已存在的输出以外路径，不接受 `--confirm-live-pass`、手写结果或复用缺少 TEMP sentinel 的会话。Windows acceptance summary 可选进入普通 evidence，但 release 一旦声明 Windows artifact 就必须存在，并由 evidence/seal 绑定同一 tag、source commit、session、installer 和 DLL digest。
 

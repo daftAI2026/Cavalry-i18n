@@ -3,7 +3,7 @@
 
 成员清单
 test_temp_dir.js: 合同测试 fixture 的临时目录所有权边界；仅创建并清理本进程在 os.tmpdir 直接子级、固定前缀且无 symlink/reparse 的注册目录
-windows-acceptance/: Windows x64 Cavalry 2.7.2 release acceptance contract/producer; Rust live tests emit the TEMP machine record, the interactive reviewer only confirms existing screenshots and derives review/final records, and the producer verifies final NSIS/provenance, generic/QPA DLL identities, live inventory, exact PID/HWND matrix, tag/source/session bindings before deriving a portable release summary.
+windows-acceptance/: Windows x64 Cavalry 2.7.2 release acceptance contract/producer; Rust live tests emit the TEMP machine record only after the runtime source DLL bytes match the final NSIS inputs, the interactive reviewer only confirms existing screenshots and derives review/final records, and the producer verifies final NSIS/provenance, generic/QPA DLL identities, live inventory, exact PID/HWND matrix, tag/source/session bindings before deriving a portable release summary.
 check_app_contracts.js: Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS/Windows Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙与 Guide 固定 `en` 加载槽位，不承载现场证据编排。
 check_renderer_contract.js: Renderer contract 测试，以规范化 LF 冻结 UI 三文件 hash、DOM id 锚点与 `window.cavalryI18n` API 需求面，覆盖英文恢复按钮、状态标签、三语言下拉与 typed residue warning，避免 Git 换行策略制造假漂移。
 check_tauri_bridge_runtime.js: Tauri bridge 运行时测试，在 fake DOM 中直接执行 bridge 和 renderer/app.js，覆盖 camelCase-only payload、稳定 errorCode 四语本土化、平台 dataset、Apply/English restore 确认、提交后 cleanup warning、macOS openPrivacy/Windows requestElevation 权限恢复、不可写自定义根的无 UAC 错误、Refresh 零 apply/零 runtime mutation、bootstrap residue warning 不锁定普通 apply 与自定义 select 原生 change 语义。

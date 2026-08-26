@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖四个 live support 分片、PowerShell/helper 源码与显式 disposable clone/evidence 环境
- * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门，并逐字守住真实用户 workspace.json
- * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 污染真实 Active Workspace 都先于人工截图结论硬失败
+ * [INPUT]: 依赖四个 live support 分片、PowerShell/helper 源码与显式 disposable clone/evidence 环境；release 模式还依赖最终 NSIS/provenance 与双 DLL 字节
+ * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门，并逐字守住真实用户 workspace.json；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
+ * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 污染真实 Active Workspace 或使用不同于最终 NSIS 的 runtime DLL 都先于人工截图结论硬失败
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
     fn describe_panic(payload: &(dyn std::any::Any + Send)) -> String {
@@ -19,6 +19,8 @@
     const WINDOWS_RELEASE_PROVENANCE_ENV: &str = "CAVALRY_I18N_WINDOWS_RELEASE_PROVENANCE";
     const WINDOWS_RELEASE_GENERIC_ENV: &str = "CAVALRY_I18N_WINDOWS_RELEASE_GENERIC_DLL";
     const WINDOWS_RELEASE_QPA_ENV: &str = "CAVALRY_I18N_WINDOWS_RELEASE_QPA_DLL";
+    const WINDOWS_GENERIC_RELATIVE_PATH: &str = "injector/windows/generic/cavalryi18n.dll";
+    const WINDOWS_QPA_RELATIVE_PATH: &str = "injector/windows/qpa/qwindows.dll";
     const WINDOWS_RELEASE_SESSION_MAGIC: &str = "cavalry-i18n.windows-release-acceptance/v1";
 
     fn release_file_identity(path: &Path, label: &str) -> Result<serde_json::Value, String> {
@@ -80,6 +82,40 @@
             .ok_or_else(|| format!("could not parse concrete CMake version from {output}"))
     }
 
+    fn require_release_runtime_sources(
+        repo: &Path,
+        artifacts: &BTreeMap<&str, serde_json::Value>,
+    ) -> Result<(), String> {
+        for (relative_path, environment, label) in [
+            (
+                WINDOWS_GENERIC_RELATIVE_PATH,
+                WINDOWS_RELEASE_GENERIC_ENV,
+                "generic translator DLL",
+            ),
+            (
+                WINDOWS_QPA_RELATIVE_PATH,
+                WINDOWS_RELEASE_QPA_ENV,
+                "QPA delegate DLL",
+            ),
+        ] {
+            let source = repo.join(relative_path);
+            let source_identity = release_file_identity(&source, &format!("live runner {label} source"))?;
+            let shipped_identity = artifacts
+                .get(environment)
+                .ok_or_else(|| format!("release artifact identity missing for {environment}"))?;
+            if source_identity["bytes"] != shipped_identity["bytes"]
+                || source_identity["sha256"] != shipped_identity["sha256"]
+            {
+                return Err(format!(
+                    "refusing Windows release evidence: live runner {label} source {} does not match final NSIS shipped bytes {}",
+                    source.display(),
+                    shipped_identity["path"].as_str().unwrap_or("<unknown>")
+                ));
+            }
+        }
+        Ok(())
+    }
+
     fn write_windows_release_machine_record(
         capture_mode: LiveCaptureMode,
         repo: &Path,
@@ -115,6 +151,9 @@
                 .ok_or_else(|| format!("{variable} must identify the {label}"))?;
             artifacts.insert(variable, release_file_identity(&value, label)?);
         }
+        // apply_language_inner resolves both runtime sources from this clean checkout.  Bind
+        // those exact bytes to the final NSIS inputs before publishing any machine evidence.
+        require_release_runtime_sources(repo, &artifacts)?;
         let clone_sentinel_path = guarded_clone.root().join(".cavalry-i18n-disposable-smoke");
         let clone_sentinel = release_file_identity(&clone_sentinel_path, "disposable clone sentinel")?;
         let executable = release_file_identity(&layout.executable, "disposable Cavalry executable")?;
@@ -242,8 +281,8 @@
             "installer": { "fileName": installer_path.file_name().and_then(|value| value.to_str()).ok_or_else(|| "installer filename is not valid UTF-8".to_string())?, "artifact": artifacts[WINDOWS_RELEASE_INSTALLER_ENV] },
             "provenance": { "artifact": artifacts[WINDOWS_RELEASE_PROVENANCE_ENV] },
             "shippedDlls": {
-                "generic": { "relativePath": "injector/windows/generic/cavalryi18n.dll", "artifact": artifacts[WINDOWS_RELEASE_GENERIC_ENV] },
-                "qpa": { "relativePath": "injector/windows/qpa/qwindows.dll", "artifact": artifacts[WINDOWS_RELEASE_QPA_ENV] },
+                "generic": { "relativePath": WINDOWS_GENERIC_RELATIVE_PATH, "artifact": artifacts[WINDOWS_RELEASE_GENERIC_ENV] },
+                "qpa": { "relativePath": WINDOWS_QPA_RELATIVE_PATH, "artifact": artifacts[WINDOWS_RELEASE_QPA_ENV] },
             },
             "runner": runner,
             "matrix": {
