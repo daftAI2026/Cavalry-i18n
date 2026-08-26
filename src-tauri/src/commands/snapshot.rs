@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 detect/install/patch/state、Windows QPA 只读证据、CommandRunner 与 context 的 packaged language source 定位。
- * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、由单次采集快照 gate 返回分类的 typed reconciliationRequired 标记、显式 state-directory durability retry、legacy provenance 迁移及 apply 前快照门；用户触发的 refresh/extract 只验证并捕获备份，不恢复 pending 事务。
+ * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、由单次采集快照 gate 返回分类的 typed reconciliationRequired 标记、显式 state-directory durability retry、apply 前快照门，并委托 snapshot_legacy 识别/迁移旧 provenance；用户触发的 refresh/extract 只验证并捕获备份，不恢复 pending 事务。
  * [POS]: commands 的 English 安装真相层；JSON 与原厂 QPA 共同证明现实，marker 仅可被判为待修元数据，任何未知/ACTIVE 运行时仍 fail closed；pending macOS transaction recovery 由 apply/startup recovery 所有，避免刷新路径关闭 Cavalry 或写安装包。
  * [FAIL-CLOSED]: Windows 仅接受 Stock，或带有有效 manifest phase 的 Recover；vendor hash 不能单独证明英文运行时，非法/缺失 manifest 必须在 snapshot 前拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -19,6 +19,14 @@ use super::{
     context::language_source_dir,
     contract::ActionPayload,
     status::{project_state_with_bundle, read_state_for_mutation},
+};
+
+#[path = "snapshot_legacy.rs"]
+mod snapshot_legacy;
+#[cfg(all(test, target_os = "windows"))]
+pub(crate) use snapshot_legacy::legacy_snapshot_is_proven_with_qpa_inspector;
+pub(crate) use snapshot_legacy::{
+    has_complete_snapshot_identity, legacy_snapshot_is_proven, migrate_legacy_snapshot_if_proven,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -190,7 +198,10 @@ pub(crate) fn project_legacy_snapshot_provenance(
     version: &str,
     immutable_revision: &str,
 ) -> State {
-    if current.english_snapshot_provenance.is_some()
+    if current
+        .english_snapshot_provenance
+        .as_ref()
+        .is_some_and(has_complete_snapshot_identity)
         || app_path.as_os_str().is_empty()
         || immutable_revision.is_empty()
     {

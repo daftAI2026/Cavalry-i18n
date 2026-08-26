@@ -308,6 +308,21 @@ pub(crate) fn status_for_paths(
             false
         }
     };
+    let needs_extract = !app_path.as_os_str().is_empty()
+        && super::snapshot::needs_english_snapshot(
+            state_dir,
+            state.english_snapshot_provenance.as_ref(),
+            &app_path,
+            &immutable_revision,
+        )
+        && !super::snapshot::legacy_snapshot_is_proven(
+            repo_root,
+            state_dir,
+            resource_dir,
+            &state,
+            &app_path,
+            &immutable_revision,
+        );
     Ok(StatusPayload {
         app_management_granted: permission_granted,
         app_path: app_path.to_string_lossy().to_string(),
@@ -320,13 +335,7 @@ pub(crate) fn status_for_paths(
             .collect(),
         diagnostics,
         languages: language_choices_from_roots(&language_roots),
-        needs_extract: !app_path.as_os_str().is_empty()
-            && super::snapshot::needs_english_snapshot(
-                state_dir,
-                state.english_snapshot_provenance.as_ref(),
-                &app_path,
-                &immutable_revision,
-            ),
+        needs_extract,
         permission_action: permission_action(&app_path, permission_granted).to_string(),
         platform: platform_name().to_string(),
         reconciliation_required,

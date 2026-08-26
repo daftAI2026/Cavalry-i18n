@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 install::InstallLayout、serde_json 与 std fs/path，读取 Cavalry 跨平台 assets
- * [OUTPUT]: 对外提供无路径碰撞的资源映射、逐组件 lstat 的 macOS asset 安全门、hash-manifest English immutable generations/原子指针、严格复制计划与只替换字符串且保留安装元数据/版本增量的覆盖合并计划
+ * [OUTPUT]: 对外提供无路径碰撞的资源映射、逐组件 lstat 的 macOS asset 安全门、hash-manifest English immutable generations/原子指针、旧无 manifest 快照的 keyed overlay 证明与安全提升、严格复制计划及只替换字符串且保留安装元数据/版本增量的覆盖合并计划
  * [POS]: src-tauri/src 的 JSON patch 核心，以 exact asset identity、无 symlink regular-file 门、Windows 可写 durability handle、current/prev 缺失与损坏区分及 string-only keyed overlay 同时守住 clean-English 恢复材料及当前/未来 Cavalry 安装元数据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -558,12 +558,26 @@ fn extract_snapshot_contents(
     mappings: &[SnapshotMapping],
 ) -> Result<usize, String> {
     let root = assets_root(app_path);
+    extract_snapshot_contents_from(app_path, output_dir, mappings, |mapping| {
+        root.join(&mapping.asset_relative_path)
+    })
+}
+
+fn extract_snapshot_contents_from<F>(
+    app_path: &Path,
+    output_dir: &Path,
+    mappings: &[SnapshotMapping],
+    source_for_mapping: F,
+) -> Result<usize, String>
+where
+    F: Fn(&SnapshotMapping) -> PathBuf,
+{
     let _ = fs::remove_dir_all(output_dir);
     fs::create_dir_all(output_dir).map_err(|error| error.to_string())?;
 
     for mapping in mappings {
         validate_mac_asset_components(app_path, Path::new(&mapping.asset_relative_path))?;
-        let src = root.join(&mapping.asset_relative_path);
+        let src = source_for_mapping(mapping);
         let dst = output_dir.join(&mapping.language_relative_path);
         if !is_regular_file_without_symlink(&src)? {
             return Err(format!(
@@ -589,7 +603,7 @@ fn extract_snapshot_contents(
             .iter()
             .map(|mapping| {
                 let path = output_dir.join(&mapping.language_relative_path);
-                let source = root.join(&mapping.asset_relative_path);
+                let source = source_for_mapping(mapping);
                 Ok(EnglishSnapshotEntry {
                     language_relative_path: mapping.language_relative_path.clone(),
                     asset_relative_path: mapping.asset_relative_path.clone(),
@@ -604,6 +618,89 @@ fn extract_snapshot_contents(
         return Err("Freshly extracted English snapshot failed manifest validation".to_string());
     }
     Ok(mappings.len())
+}
+
+fn publish_snapshot_generation(
+    canonical_app: &Path,
+    state_dir: &Path,
+    immutable_revision: &str,
+    mappings: &[SnapshotMapping],
+    temporary: &Path,
+    count: usize,
+) -> Result<EnglishSnapshotCapture, String> {
+    protect_and_sync_snapshot_tree(temporary)?;
+
+    let install_root = canonical_app
+        .to_str()
+        .ok_or_else(|| "Cavalry canonical path is not valid UTF-8.".to_string())?
+        .to_string();
+    let manifest_bytes = fs::read(temporary.join(ENGLISH_SNAPSHOT_MANIFEST_NAME))
+        .map_err(|error| error.to_string())?;
+    let mut generation_digest = Sha256::new();
+    generation_digest.update(immutable_revision.as_bytes());
+    generation_digest.update(install_root.as_bytes());
+    generation_digest.update(&manifest_bytes);
+    let manifest_sha256 = format!("{:x}", Sha256::digest(&manifest_bytes));
+    let generation = format!("{:x}", generation_digest.finalize());
+    let generations = state_dir.join(ENGLISH_GENERATIONS_DIRECTORY);
+    let generation_dir = generations.join(&generation);
+    match fs::symlink_metadata(&generation_dir) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_dir() {
+                let _ = fs::remove_dir_all(temporary);
+                return Err(format!(
+                    "English snapshot generation path is not a regular directory: {}",
+                    generation_dir.display()
+                ));
+            }
+            if !validate_snapshot_manifest(
+                &generation_dir,
+                mappings,
+                requires_unix_mode(canonical_app),
+            )? {
+                let _ = fs::remove_dir_all(temporary);
+                return Err(format!(
+                    "Existing English snapshot generation failed validation: {}",
+                    generation_dir.display()
+                ));
+            }
+            fs::remove_dir_all(temporary).map_err(|error| error.to_string())?;
+        }
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
+            fs::rename(temporary, &generation_dir).map_err(|error| {
+                format!(
+                    "Could not publish English snapshot generation {}: {error}",
+                    generation_dir.display()
+                )
+            })?;
+            sync_directory(&generations)?;
+        }
+        Err(error) => {
+            let _ = fs::remove_dir_all(temporary);
+            return Err(format!(
+                "Could not inspect English snapshot generation {}: {error}",
+                generation_dir.display()
+            ));
+        }
+    }
+
+    let pointer = EnglishSnapshotPointer {
+        schema_version: ENGLISH_POINTER_SCHEMA_VERSION,
+        generation: generation.clone(),
+        install_root,
+        immutable_revision: immutable_revision.to_string(),
+    };
+    publish_snapshot_pointer(state_dir, &pointer)?;
+    if !validate_english_snapshot_manifest(state_dir, canonical_app)? {
+        return Err("Published English snapshot generation failed validation.".to_string());
+    }
+    Ok(EnglishSnapshotCapture {
+        count,
+        identity: EnglishSnapshotIdentity {
+            generation,
+            manifest_sha256,
+        },
+    })
 }
 
 /// Build a complete immutable generation, verify every path/hash, and publish only its small
@@ -623,10 +720,6 @@ pub fn extract_english_generation_with_identity(
     let canonical_app = fs::canonicalize(app_path).map_err(|error| {
         format!("Could not canonicalize Cavalry before English snapshot generation: {error}")
     })?;
-    let install_root = canonical_app
-        .to_str()
-        .ok_or_else(|| "Cavalry canonical path is not valid UTF-8.".to_string())?
-        .to_string();
     let mappings = snapshot_mappings(&canonical_app)?;
     let generations = state_dir.join(ENGLISH_GENERATIONS_DIRECTORY);
     create_private_directory_chain(state_dir, &generations)?;
@@ -645,77 +738,81 @@ pub fn extract_english_generation_with_identity(
             return Err(error);
         }
     };
-    if let Err(error) = protect_and_sync_snapshot_tree(&temporary) {
-        let _ = fs::remove_dir_all(&temporary);
-        return Err(error);
-    }
-
-    let manifest_bytes = fs::read(temporary.join(ENGLISH_SNAPSHOT_MANIFEST_NAME))
-        .map_err(|error| error.to_string())?;
-    let mut generation_digest = Sha256::new();
-    generation_digest.update(immutable_revision.as_bytes());
-    generation_digest.update(install_root.as_bytes());
-    generation_digest.update(&manifest_bytes);
-    let manifest_sha256 = format!("{:x}", Sha256::digest(&manifest_bytes));
-    let generation = format!("{:x}", generation_digest.finalize());
-    let generation_dir = generations.join(&generation);
-    match fs::symlink_metadata(&generation_dir) {
-        Ok(metadata) => {
-            if metadata.file_type().is_symlink() || !metadata.is_dir() {
-                let _ = fs::remove_dir_all(&temporary);
-                return Err(format!(
-                    "English snapshot generation path is not a regular directory: {}",
-                    generation_dir.display()
-                ));
-            }
-            if !validate_snapshot_manifest(
-                &generation_dir,
-                &mappings,
-                requires_unix_mode(&canonical_app),
-            )? {
-                let _ = fs::remove_dir_all(&temporary);
-                return Err(format!(
-                    "Existing English snapshot generation failed validation: {}",
-                    generation_dir.display()
-                ));
-            }
-            fs::remove_dir_all(&temporary).map_err(|error| error.to_string())?;
-        }
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {
-            fs::rename(&temporary, &generation_dir).map_err(|error| {
-                format!(
-                    "Could not publish English snapshot generation {}: {error}",
-                    generation_dir.display()
-                )
-            })?;
-            sync_directory(&generations)?;
-        }
-        Err(error) => {
-            let _ = fs::remove_dir_all(&temporary);
-            return Err(format!(
-                "Could not inspect English snapshot generation {}: {error}",
-                generation_dir.display()
-            ));
-        }
-    }
-
-    let pointer = EnglishSnapshotPointer {
-        schema_version: ENGLISH_POINTER_SCHEMA_VERSION,
-        generation: generation.clone(),
-        install_root,
-        immutable_revision: immutable_revision.to_string(),
-    };
-    publish_snapshot_pointer(state_dir, &pointer)?;
-    if !validate_english_snapshot_manifest(state_dir, &canonical_app)? {
-        return Err("Published English snapshot generation failed validation.".to_string());
-    }
-    Ok(EnglishSnapshotCapture {
+    publish_snapshot_generation(
+        &canonical_app,
+        state_dir,
+        immutable_revision,
+        &mappings,
+        &temporary,
         count,
-        identity: EnglishSnapshotIdentity {
-            generation,
-            manifest_sha256,
-        },
-    })
+    )
+}
+
+/// Promote a trusted pre-immutable `state_dir/en` snapshot into the current generation protocol.
+/// The caller's packaged English source is part of this gate; the installed Cavalry assets are
+/// never read as the migration source, so a translated installation cannot overwrite its own
+/// English baseline. Existing immutable pointers are never replaced by this compatibility path.
+pub fn migrate_legacy_english_generation_with_identity(
+    packaged_english_dir: &Path,
+    state_dir: &Path,
+    app_path: &Path,
+    immutable_revision: &str,
+) -> Result<EnglishSnapshotCapture, String> {
+    if immutable_revision.is_empty() {
+        return Err(
+            "Cannot migrate a legacy English snapshot without an immutable revision.".to_string(),
+        );
+    }
+    if snapshot_pointer_with_recovery(state_dir)?.is_some() {
+        return Err(
+            "Cannot migrate a legacy English snapshot while an immutable pointer exists."
+                .to_string(),
+        );
+    }
+    let canonical_app = fs::canonicalize(app_path).map_err(|error| {
+        format!("Could not canonicalize Cavalry before legacy English migration: {error}")
+    })?;
+    if requires_unix_mode(&canonical_app) {
+        return Err(
+            "Legacy macOS English snapshots cannot be stitched into the unified vendor baseline."
+                .to_string(),
+        );
+    }
+    if !legacy_snapshot_matches_language_source(packaged_english_dir, state_dir, &canonical_app)? {
+        return Err(
+            "Legacy English snapshot failed the packaged English overlay and path gate."
+                .to_string(),
+        );
+    }
+    let legacy_dir = resolve_snapshot_directory(state_dir, &canonical_app, None)?;
+    let mappings = snapshot_mappings(&canonical_app)?;
+    let generations = state_dir.join(ENGLISH_GENERATIONS_DIRECTORY);
+    create_private_directory_chain(state_dir, &generations)?;
+    let nonce = format!(
+        "{:x}-{:x}",
+        std::process::id(),
+        SNAPSHOT_GENERATION_SEQUENCE.fetch_add(1, Ordering::Relaxed)
+    );
+    let temporary = generations.join(format!(".generation-{nonce}.tmp"));
+    reject_existing_path(&temporary, "English snapshot temporary generation")?;
+    let count =
+        match extract_snapshot_contents_from(&canonical_app, &temporary, &mappings, |mapping| {
+            legacy_dir.join(&mapping.language_relative_path)
+        }) {
+            Ok(count) => count,
+            Err(error) => {
+                let _ = fs::remove_dir_all(&temporary);
+                return Err(error);
+            }
+        };
+    publish_snapshot_generation(
+        &canonical_app,
+        state_dir,
+        immutable_revision,
+        &mappings,
+        &temporary,
+        count,
+    )
 }
 
 pub fn extract_english_generation(
@@ -2179,10 +2276,41 @@ pub fn snapshot_matches_language_source(
     app_path: &Path,
 ) -> Result<bool, String> {
     ensure_complete_core_source(source_dir)?;
-    if !validate_english_snapshot_manifest(state_dir, app_path)? {
-        return Ok(false);
-    }
     let snapshot_dir = resolve_snapshot_directory(state_dir, app_path, None)?;
+    let mappings = snapshot_mappings(app_path)?;
+    let has_immutable_pointer = snapshot_pointer_with_recovery(state_dir)?.is_some();
+    if has_immutable_pointer {
+        if !validate_english_snapshot_manifest(state_dir, app_path)? {
+            return Ok(false);
+        }
+    } else {
+        let manifest_path = snapshot_dir.join(ENGLISH_SNAPSHOT_MANIFEST_NAME);
+        match snapshot_path_presence(&manifest_path)? {
+            SnapshotPathPresence::Present => {
+                if !validate_snapshot_manifest(
+                    &snapshot_dir,
+                    &mappings,
+                    requires_unix_mode(app_path),
+                )? {
+                    return Ok(false);
+                }
+            }
+            SnapshotPathPresence::Symlink => {
+                return Err(format!(
+                    "Legacy English snapshot manifest is a symlink and cannot be trusted: {}",
+                    manifest_path.display()
+                ));
+            }
+            SnapshotPathPresence::Missing => {
+                let structure =
+                    validate_legacy_snapshot_structure(state_dir, &snapshot_dir, &mappings)?;
+                let surface = validate_legacy_snapshot_file_surface(&snapshot_dir, &mappings)?;
+                if !structure || !surface {
+                    return Ok(false);
+                }
+            }
+        }
+    }
 
     for pair in build_copy_pairs_checked(source_dir, app_path)? {
         let relative = pair.src.strip_prefix(source_dir).map_err(|_| {
@@ -2205,6 +2333,40 @@ pub fn snapshot_matches_language_source(
         }
     }
     Ok(true)
+}
+
+/// The compatibility proof is intentionally separate from the ordinary snapshot matcher so a
+/// caller can require that it is looking at the pre-generation `state_dir/en` tree. A malformed
+/// or already-published pointer never falls back to the legacy path.
+pub fn legacy_snapshot_matches_language_source(
+    source_dir: &Path,
+    state_dir: &Path,
+    app_path: &Path,
+) -> Result<bool, String> {
+    if snapshot_pointer_with_recovery(state_dir)?.is_some() {
+        return Ok(false);
+    }
+    snapshot_matches_language_source(source_dir, state_dir, app_path)
+}
+
+fn validate_legacy_snapshot_file_surface(
+    snapshot_dir: &Path,
+    mappings: &[SnapshotMapping],
+) -> Result<bool, String> {
+    let mut files = Vec::new();
+    collect_snapshot_files(snapshot_dir, snapshot_dir, &mut files)?;
+    let expected = mappings
+        .iter()
+        .map(|mapping| mapping.language_relative_path.clone())
+        .collect::<HashSet<_>>();
+    let actual = files.into_iter().collect::<HashSet<_>>();
+    Ok(actual == expected
+        || actual
+            == expected
+                .iter()
+                .cloned()
+                .chain(std::iter::once(ENGLISH_SNAPSHOT_MANIFEST_NAME.to_string()))
+                .collect())
 }
 
 fn ensure_complete_core_source(source_dir: &Path) -> Result<(), String> {

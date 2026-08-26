@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::patch 的 English 内容证明/immutable generation、snapshot provenance、overlay/staging 能力与仓库四语语言包
- * [OUTPUT]: 对外提供 clean-English 逐叶证明、世代指针 crash recovery/revision 失效、无 symlink/component-boundary staging、原始 Unix mode 恢复、已安装版本增量保留与 smoother 四语同构 contract tests
+ * [OUTPUT]: 对外提供 clean-English 逐叶证明、无 manifest legacy English overlay 证明与 immutable generation 迁移、世代指针 crash recovery/revision 失效、无 symlink/component-boundary staging、原始 Unix mode 恢复、已安装版本增量保留与 smoother 四语同构 contract tests
  * [POS]: src-tauri/tests 的 patch 守门，确保未知安装内容、部分 generation、路径替换或 0600 snapshot store mode 不能污染/切换 English 快照
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,10 +10,12 @@ use cavalry_i18n_tauri::patch::{
     build_copy_pairs, build_copy_pairs_checked, build_mac_english_restore_pairs,
     build_mac_overlay_pairs_exact, build_overlay_pairs, discover_plugins, english_snapshot_dir,
     english_snapshot_identity, extract_english, extract_english_generation, has_english_snapshot,
-    install_matches_language_source, merge_translation_overlay, needs_english_snapshot,
-    observe_clean_english_assets, snapshot_matches_language_source, stage_english_snapshot_exact,
-    try_discover_plugins, validate_english_snapshot, validate_english_snapshot_at,
-    validate_english_snapshot_manifest, verify_installed_asset_preimages, EnglishSnapshotManifest,
+    install_matches_language_source, legacy_snapshot_matches_language_source,
+    merge_translation_overlay, migrate_legacy_english_generation_with_identity,
+    needs_english_snapshot, observe_clean_english_assets, snapshot_matches_language_source,
+    stage_english_snapshot_exact, try_discover_plugins, validate_english_snapshot,
+    validate_english_snapshot_at, validate_english_snapshot_manifest,
+    verify_installed_asset_preimages, EnglishSnapshotManifest,
 };
 use cavalry_i18n_tauri::state::EnglishSnapshotProvenance;
 use std::{fs, path::Path};
@@ -31,6 +33,18 @@ fn make_complete_asset_app(root: &Path) -> std::path::PathBuf {
     for (_, asset_relative) in cavalry_i18n_tauri::patch::CORE_MAP {
         write(
             &app.join("Contents/assets").join(asset_relative),
+            br#"{"value":"English"}"#,
+        );
+    }
+    app
+}
+
+fn make_complete_windows_asset_app(root: &Path) -> std::path::PathBuf {
+    let app = root.join("Cavalry");
+    write(&app.join("Cavalry.exe"), b"cavalry executable");
+    for (_, asset_relative) in cavalry_i18n_tauri::patch::CORE_MAP {
+        write(
+            &app.join("assets").join(asset_relative),
             br#"{"value":"English"}"#,
         );
     }
@@ -98,6 +112,76 @@ fn extract_english_copies_core_files() {
     let count = extract_english(&app, &out).unwrap();
     assert!(count >= cavalry_i18n_tauri::patch::CORE_MAP.len());
     assert!(out.join("nodeStrings.json").exists());
+}
+
+#[test]
+fn legacy_windows_snapshot_without_manifest_migrates_only_after_overlay_proof() {
+    let temp = tempfile::tempdir().unwrap();
+    let app = make_complete_windows_asset_app(temp.path());
+    let packaged = temp.path().join("languages/en");
+    let state = temp.path().join("state");
+    for (language_relative, _) in cavalry_i18n_tauri::patch::CORE_MAP {
+        let source = packaged.join(language_relative);
+        write(&source, br#"{"value":"English"}"#);
+        write(
+            &state.join("en").join(language_relative),
+            br#"{
+  "value": "English"
+}"#,
+        );
+    }
+
+    assert!(legacy_snapshot_matches_language_source(&packaged, &state, &app).unwrap());
+    assert!(!state.join("english-snapshots/current.json").exists());
+
+    let capture =
+        migrate_legacy_english_generation_with_identity(&packaged, &state, &app, "legacy-revision")
+            .unwrap();
+    assert_eq!(capture.count, cavalry_i18n_tauri::patch::CORE_MAP.len());
+    assert!(state.join("english-snapshots/current.json").is_file());
+    assert_eq!(
+        english_snapshot_identity(&state, &app, "legacy-revision")
+            .unwrap()
+            .generation,
+        capture.identity.generation
+    );
+    assert!(!state.join("en/manifest.json").exists());
+
+    let tampered_temp = tempfile::tempdir().unwrap();
+    let tampered_app = make_complete_windows_asset_app(tampered_temp.path());
+    let tampered_packaged = tampered_temp.path().join("languages/en");
+    let tampered_state = tampered_temp.path().join("state");
+    for (language_relative, _) in cavalry_i18n_tauri::patch::CORE_MAP {
+        write(
+            &tampered_packaged.join(language_relative),
+            br#"{"value":"English"}"#,
+        );
+        write(
+            &tampered_state.join("en").join(language_relative),
+            br#"{"value":"English"}"#,
+        );
+    }
+    write(
+        &tampered_state.join("en/appStrings.json"),
+        br#"{"value":"tampered"}"#,
+    );
+    assert!(!legacy_snapshot_matches_language_source(
+        &tampered_packaged,
+        &tampered_state,
+        &tampered_app,
+    )
+    .unwrap());
+    let error = migrate_legacy_english_generation_with_identity(
+        &tampered_packaged,
+        &tampered_state,
+        &tampered_app,
+        "another-revision",
+    )
+    .unwrap_err();
+    assert!(error.contains("overlay and path gate"));
+    assert!(!tampered_state
+        .join("english-snapshots/current.json")
+        .exists());
 }
 
 #[test]

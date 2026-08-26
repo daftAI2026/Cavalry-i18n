@@ -289,6 +289,14 @@ pub fn apply_language_inner<R: CommandRunner>(
         &version,
         &immutable_revision,
     );
+    current_state = super::snapshot::migrate_legacy_snapshot_if_proven(
+        repo_root,
+        state_dir,
+        resource_dir,
+        current_state,
+        &app_path,
+        &immutable_revision,
+    )?;
 
     if lang == "en"
         && current_state.current_lang == "en"
