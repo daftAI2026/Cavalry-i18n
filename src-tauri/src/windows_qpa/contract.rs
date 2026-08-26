@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 InstallLayout、serde 与绝对 Windows 路径/小写 SHA-256 约束。
- * [OUTPUT]: 定义 QPA manifest、同时携带 proxy/generic 可信源的 hash-locked Activate/EnglishRestore、四态检查与安全无操作计划。
+ * [OUTPUT]: 定义 QPA manifest、由 activate/restore plan 唯一导出的 manifest 字节、hash-locked Activate/EnglishRestore、四态检查与安全无操作计划。
  * [POS]: windows_qpa 的稳定数据合同；Rust 普通写入与受限提升 worker 共用同一 transition schema，C++ 代理只消费其中同构 manifest。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -62,6 +62,20 @@ pub(super) fn manifest_from_activation_plan(
     QpaManifest {
         schema_version: MANIFEST_SCHEMA_VERSION,
         phase,
+        cavalry_version: plan.cavalry_version.clone(),
+        cavalry_executable_sha256: plan.cavalry_executable_sha256.clone(),
+        qt_version: plan.qt_version.clone(),
+        architecture: plan.architecture.clone(),
+        vendor_qwindows_sha256: plan.vendor_qwindows_sha256.clone(),
+        proxy_qwindows_sha256: plan.proxy_qwindows_sha256.clone(),
+        generic_plugin_sha256: plan.generic_plugin_sha256.clone(),
+    }
+}
+
+pub(super) fn manifest_from_restore_plan(plan: &QpaRestorePlan) -> QpaManifest {
+    QpaManifest {
+        schema_version: MANIFEST_SCHEMA_VERSION,
+        phase: QpaManifestPhase::Restoring,
         cavalry_version: plan.cavalry_version.clone(),
         cavalry_executable_sha256: plan.cavalry_executable_sha256.clone(),
         qt_version: plan.qt_version.clone(),

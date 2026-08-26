@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 contract 的有界 plan/摘要校验，以及 Windows OsString 的 UTF-16 原样转换。
- * [OUTPUT]: 提供 UTF-16LE-hex 单令牌、plan/nonce/worker 摘要绑定和 fail-closed worker argv 分类。
- * [POS]: Windows 提权语言事务的无 shell 传输层；命令行只携一个 ASCII-safe token，不携复制目标或可执行脚本。
+ * [OUTPUT]: 提供 apply 的 plan/nonce/worker 摘要令牌、recovery 的 install-root/worker 摘要令牌，以及 fail-closed worker argv 分类。
+ * [POS]: Windows 提权语言事务的无 shell 传输层；命令行只携一个 UTF-16LE-hex ASCII-safe token，不携任意复制目标或可执行脚本。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -18,6 +18,7 @@ use super::{
 
 pub(crate) const MAX_TRANSPORT_TOKEN_LEN: usize = 4096;
 pub(crate) const WORKER_ARGUMENT_PREFIX: &str = "--cavalry-i18n-elevated-apply=";
+pub(crate) const RECOVERY_ARGUMENT_PREFIX: &str = "--cavalry-i18n-elevated-recover=";
 
 const WORKER_ARGUMENT_STEM: &str = "--cavalry-i18n-elevated";
 const TOKEN_VERSION: &str = "v1";
@@ -31,9 +32,16 @@ pub(crate) struct WorkerTransport {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct RecoveryTransport {
+    pub install_root: PathBuf,
+    pub expected_worker_exe_sha256: String,
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) enum WorkerArgv {
     NotWorker,
     Apply(WorkerTransport),
+    Recover(RecoveryTransport),
     HandledError(ContractError),
 }
 
@@ -145,6 +153,57 @@ impl WorkerTransport {
     }
 }
 
+impl RecoveryTransport {
+    pub(crate) fn new(
+        install_root: PathBuf,
+        expected_worker_exe_sha256: String,
+    ) -> Result<Self, ContractError> {
+        let transport = Self {
+            install_root,
+            expected_worker_exe_sha256,
+        };
+        transport.validate()?;
+        Ok(transport)
+    }
+
+    pub(crate) fn encode(&self) -> Result<String, ContractError> {
+        self.validate()?;
+        let token = format!(
+            "{TOKEN_VERSION}.{}.{}",
+            encode_utf16le_hex(&self.install_root)?,
+            self.expected_worker_exe_sha256
+        );
+        validate_token_ascii(&token)?;
+        Ok(token)
+    }
+
+    pub(crate) fn decode(token: &str) -> Result<Self, ContractError> {
+        validate_token_ascii(token)?;
+        let fields = token.split('.').collect::<Vec<_>>();
+        if fields.len() != 3 || fields[0] != TOKEN_VERSION {
+            return Err(ContractError::InvalidToken(
+                "recovery token must contain exactly three v1 fields",
+            ));
+        }
+        Self::new(decode_utf16le_hex(fields[1])?, fields[2].to_string())
+            .map_err(|_| ContractError::InvalidToken("recovery token fields failed validation"))
+    }
+
+    fn validate(&self) -> Result<(), ContractError> {
+        validate_local_windows_path(&self.install_root, "install root").map_err(|_| {
+            ContractError::InvalidToken("install root is not a local absolute path")
+        })?;
+        validate_lower_hex(
+            &self.expected_worker_exe_sha256,
+            HASH_HEX_LEN,
+            "expectedWorkerExeSha256",
+        )
+        .map_err(|_| {
+            ContractError::InvalidToken("worker executable hash must be lowercase SHA-256")
+        })
+    }
+}
+
 pub(crate) fn parse_worker_argv(args: &[OsString]) -> WorkerArgv {
     let reserved = args.iter().any(has_reserved_worker_stem);
     if !reserved {
@@ -160,15 +219,21 @@ pub(crate) fn parse_worker_argv(args: &[OsString]) -> WorkerArgv {
             "worker argument must be Unicode",
         ));
     };
-    let Some(token) = argument.strip_prefix(WORKER_ARGUMENT_PREFIX) else {
-        return WorkerArgv::HandledError(ContractError::InvalidWorkerArguments(
-            "reserved worker argument has an invalid shape",
-        ));
-    };
-    match WorkerTransport::decode(token) {
-        Ok(transport) => WorkerArgv::Apply(transport),
-        Err(error) => WorkerArgv::HandledError(error),
+    if let Some(token) = argument.strip_prefix(WORKER_ARGUMENT_PREFIX) {
+        return match WorkerTransport::decode(token) {
+            Ok(transport) => WorkerArgv::Apply(transport),
+            Err(error) => WorkerArgv::HandledError(error),
+        };
     }
+    if let Some(token) = argument.strip_prefix(RECOVERY_ARGUMENT_PREFIX) {
+        return match RecoveryTransport::decode(token) {
+            Ok(transport) => WorkerArgv::Recover(transport),
+            Err(error) => WorkerArgv::HandledError(error),
+        };
+    }
+    WorkerArgv::HandledError(ContractError::InvalidWorkerArguments(
+        "reserved worker argument has an invalid shape",
+    ))
 }
 
 fn has_reserved_worker_stem(argument: &OsString) -> bool {

@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 hash-locked RestoreRequest/QpaRestorePlan、安装根 durable manifest、当前打包 proxy/generic 所有权锚与 storage 原子文件能力。
+ * [INPUT]: 依赖 hash-locked RestoreRequest/QpaRestorePlan、contract 唯一 restoring manifest 投影、当前打包 proxy/generic 所有权锚与 storage 原子文件能力。
  * [OUTPUT]: 提供 English 恢复计划构建与可写执行；恢复原厂 qwindows，删除精确归属的 generic/recovery，并对未知文件和厂商更新 fail closed。
  * [POS]: windows_qpa 的显式 English 收敛域；将历史 manifest 所有权与当前包 fallback 分开，父级状态机和提升 worker 共用这一实现。
  * [FAIL-CLOSED]: manifest.json 仅在真实缺失时走无 manifest fallback；存在但解析或校验失败必须在任何写入前返回错误。
@@ -10,7 +10,7 @@ use std::{fs, path::Path};
 use crate::install::InstallLayout;
 
 use super::{
-    contract::{validate_restore_plan, Policy, MANIFEST_SCHEMA_VERSION, PLAN_SCHEMA_VERSION},
+    contract::{manifest_from_restore_plan, validate_restore_plan, Policy, PLAN_SCHEMA_VERSION},
     identity::verify_runtime_identity,
     manifest_path, read_manifest, recovery_directory, require_windows_layout,
     storage::{
@@ -19,9 +19,9 @@ use super::{
         replace_existing_verified, require_hash, sha256_file, snapshot_hash, validate_x64_pe,
         MANIFEST_REPLACE_BACKUP_FILE, MANIFEST_TEMP_FILE, REPLACE_BACKUP_FILE, VENDOR_TEMP_FILE,
     },
-    vendor_qwindows_backup, write_manifest, PreparedRestore, QpaManifest, QpaManifestPhase,
-    QpaRestorePlan, RestoreAction, RestoreOutcome, RestoreRequest, GENERIC_PLUGIN_RELATIVE_PATH,
-    MANIFEST_FILE_NAME, QT_CORE_FILE_NAME, QWINDOWS_FILE_NAME, VENDOR_QWINDOWS_FILE_NAME,
+    vendor_qwindows_backup, write_manifest, PreparedRestore, QpaRestorePlan, RestoreAction,
+    RestoreOutcome, RestoreRequest, GENERIC_PLUGIN_RELATIVE_PATH, MANIFEST_FILE_NAME,
+    QT_CORE_FILE_NAME, QWINDOWS_FILE_NAME, VENDOR_QWINDOWS_FILE_NAME,
 };
 
 pub(super) fn build_restore_plan_with_policy(
@@ -216,21 +216,7 @@ pub(super) fn execute_writable_restore_with_policy(
     }
 
     if plan.action != RestoreAction::CleanupOnly {
-        let restoring = QpaManifest {
-            schema_version: MANIFEST_SCHEMA_VERSION,
-            phase: QpaManifestPhase::Restoring,
-            cavalry_version: policy.cavalry_version.clone(),
-            cavalry_executable_sha256: snapshot_hash(
-                &layout.executable,
-                "Cavalry executable during English restore",
-            )?
-            .unwrap_or_else(|| "0".repeat(64)),
-            qt_version: policy.qt_version.clone(),
-            architecture: policy.architecture.clone(),
-            vendor_qwindows_sha256: policy.vendor_hash.clone(),
-            proxy_qwindows_sha256: plan.proxy_qwindows_sha256.clone(),
-            generic_plugin_sha256: plan.generic_plugin_sha256.clone(),
-        };
+        let restoring = manifest_from_restore_plan(plan);
         write_manifest(&layout, &restoring, policy)?;
     }
 

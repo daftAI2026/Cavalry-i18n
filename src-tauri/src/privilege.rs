@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读发现命令和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 typed 写入前 graceful close、有界 macOS 签名/只读 seal 验证、Windows 提升 worker 早期分流，并向启动/应用调用方暴露所选安装根 pending journal 的只读查询、恢复与清理证明。
- * [POS]: src-tauri/src 的跨平台系统命令 facade；平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 typed 写入前 graceful close、有界 macOS 签名/只读 seal 验证、Windows apply/recovery 提升 worker 早期分流，并让 Program Files 启动恢复只经 same-EXE RunAs 边界执行。
+ * [POS]: src-tauri/src 的跨平台系统命令 facade；平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript，受保护安装根禁止回退为未提权写入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod copy_transaction;
@@ -75,6 +75,9 @@ pub(crate) fn dispatch_elevated_language_worker_current_process() -> Option<u32>
         WorkerArgv::Apply(transport) => Some(
             windows::language_transaction::worker::run_elevated_worker(&transport),
         ),
+        WorkerArgv::Recover(transport) => {
+            Some(windows::language_transaction::worker::run_elevated_recovery_worker(&transport))
+        }
         WorkerArgv::HandledError(_) => Some(WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN),
     }
 }
@@ -226,6 +229,14 @@ pub(crate) fn recover_windows_language_transactions<R: CommandRunner>(
     let Some(install_root) = pending_windows_language_install_root(state_dir)? else {
         return Ok(());
     };
+    let trusted_roots = windows::known_folders::windows_trusted_program_files_roots()
+        .map_err(|error| format!("WINDOWS_RECOVERY_KNOWN_FOLDER_UNCERTAIN: {error}"))?;
+    if windows::known_folders::windows_elevation_supported_for_install_with_roots(
+        &install_root,
+        &trusted_roots,
+    ) {
+        return recover_program_files_language_transaction(&install_root);
+    }
     match close_cavalry_before_modification(&install_root, runner) {
         Ok(()) => {}
         Err(CloseCavalryError::StillRunning) => {
@@ -245,6 +256,77 @@ pub(crate) fn recover_windows_language_transactions<R: CommandRunner>(
     if windows::language_transaction::storage::has_pending(&install_root)? {
         return Err(
             "WINDOWS_RECOVERY_UNCERTAIN: durable language journal remains after recovery."
+                .to_string(),
+        );
+    }
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+fn recover_program_files_language_transaction(install_root: &Path) -> Result<(), String> {
+    let current_exe = std::env::current_exe()
+        .map_err(|error| format!("WINDOWS_RECOVERY_WORKER_UNAVAILABLE: {error}"))?;
+    recover_program_files_language_transaction_with_launcher(
+        install_root,
+        &current_exe,
+        windows::language_transaction::launcher::launch_elevated_recovery_worker,
+    )
+}
+
+#[cfg(target_os = "windows")]
+fn recover_program_files_language_transaction_with_launcher<L>(
+    install_root: &Path,
+    current_exe: &Path,
+    launch: L,
+) -> Result<(), String>
+where
+    L: FnOnce(&Path, &str) -> Result<u32, windows::language_transaction::launcher::LaunchError>,
+{
+    use windows::language_transaction::{
+        contract::{
+            RecoveryTransport, WORKER_EXIT_CAVALRY_STILL_RUNNING, WORKER_EXIT_COMMITTED_CLEAN,
+            WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN,
+        },
+        launcher::LaunchError,
+    };
+
+    let worker_hash = windows::language_transaction::worker::hash_locked_file(current_exe)
+        .map_err(|error| format!("WINDOWS_RECOVERY_WORKER_UNCERTAIN: {error}"))?;
+    let token = RecoveryTransport::new(install_root.to_path_buf(), worker_hash)
+        .and_then(|transport| transport.encode())
+        .map_err(|error| format!("WINDOWS_RECOVERY_TRANSPORT_INVALID: {error}"))?;
+    let exit_code = match launch(current_exe, &token) {
+        Ok(code) => code,
+        Err(LaunchError::Cancelled(code)) => {
+            return Err(format!(
+            "WINDOWS_RECOVERY_PERMISSION_REQUIRED: administrator consent was cancelled ({code})."
+        ))
+        }
+        Err(error) => return Err(format!("WINDOWS_RECOVERY_WORKER_LAUNCH_FAILED: {error}")),
+    };
+    match exit_code {
+        WORKER_EXIT_COMMITTED_CLEAN => {}
+        WORKER_EXIT_CAVALRY_STILL_RUNNING => {
+            return Err(
+                "WINDOWS_RECOVERY_CAVALRY_STILL_RUNNING: Cavalry must exit before recovery."
+                    .to_string(),
+            )
+        }
+        WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN => {
+            return Err(
+                "WINDOWS_RECOVERY_STATE_UNCERTAIN: elevated recovery could not prove completion."
+                    .to_string(),
+            )
+        }
+        code => {
+            return Err(format!(
+                "WINDOWS_RECOVERY_WORKER_FAILED: elevated recovery returned exit code {code}."
+            ))
+        }
+    }
+    if windows::language_transaction::storage::has_pending(install_root)? {
+        return Err(
+            "WINDOWS_RECOVERY_STATE_UNCERTAIN: pending journal remained after elevated recovery."
                 .to_string(),
         );
     }

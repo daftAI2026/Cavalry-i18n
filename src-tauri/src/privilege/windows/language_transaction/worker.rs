@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 contract/transport 的 hash-locked plan、storage durable journal/recovery、OS Known Folder、固定资源映射与 windows_qpa transition。
- * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files 提权 worker；新 apply 前先恢复并证明旧 journal 已清理，再固定执行 pending→assets/generic→QPA→pre-final proof→final，以 0/42/43/44 表达事务状态，并在任何写入前以 45 单独表达 Cavalry 可见窗口仍未关闭。
- * [POS]: privilege/windows/language_transaction 的唯一提权执行边界；不获取应用锁、不写 Tauri state、不重启 Cavalry，也不接受 plan 提供的任意目标路径。
+ * [OUTPUT]: 提供同一 Switcher EXE 的 Program Files apply/recovery 提权 worker；QPA 首次写入前持久化精确 postimage，再固定执行 pending→assets/generic→QPA→pre-final proof→final，并以 0/42/43/44/45 表达可证明状态。
+ * [POS]: privilege/windows/language_transaction 的唯一提权执行边界；父进程持有应用锁，worker 重验 Known Folder/EXE/root/journal，不写 Tauri state、不重启 Cavalry，也不接受任意目标路径。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -17,11 +17,15 @@ use sha2::{Digest, Sha256};
 use super::{
     contract::{
         deserialize_bound_plan, payload_source_path, ElevatedLanguagePlan, Language, PayloadKind,
-        PayloadRecord, WorkerTransport, MAX_PLAN_BYTES, WORKER_EXIT_CAVALRY_STILL_RUNNING,
-        WORKER_EXIT_COMMITTED_CLEAN, WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL,
+        PayloadRecord, RecoveryTransport, WorkerTransport, MAX_PLAN_BYTES,
+        WORKER_EXIT_CAVALRY_STILL_RUNNING, WORKER_EXIT_COMMITTED_CLEAN,
+        WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL,
         WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN, WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN,
     },
-    storage::{CommitCleanup, DurableJournal, ResolvedPayload, ResolvedPreimage, RollbackOutcome},
+    storage::{
+        CommitCleanup, DurableJournal, ResolvedPayload, ResolvedPostimage, ResolvedPreimage,
+        RollbackOutcome,
+    },
 };
 use crate::{
     install::{normalize_path, InstallLayout},
@@ -59,6 +63,31 @@ enum MutationStep {
 
 pub(crate) fn run_elevated_worker(transport: &WorkerTransport) -> u32 {
     flatten_worker_result(run_elevated_worker_inner(transport))
+}
+
+pub(crate) fn run_elevated_recovery_worker(transport: &RecoveryTransport) -> u32 {
+    let result: Result<u32, String> = (|| {
+        verify_worker_executable_hash(&transport.expected_worker_exe_sha256)?;
+        let layout = validate_program_files_root(&transport.install_root)?;
+        if !super::storage::has_pending(&layout.root)? {
+            return Ok(WORKER_EXIT_COMMITTED_CLEAN);
+        }
+        let mut runner = RealCommandRunner;
+        match close_cavalry_before_modification(&layout.root, &mut runner) {
+            Ok(()) => {}
+            Err(CloseCavalryError::StillRunning) => return Ok(WORKER_EXIT_CAVALRY_STILL_RUNNING),
+            Err(CloseCavalryError::Command(_)) => {
+                return Ok(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN)
+            }
+        }
+        super::storage::recover_pending(&layout.root)
+            .map_err(|_| "Elevated recovery could not prove a complete transaction.".to_string())?;
+        if super::storage::has_pending(&layout.root)? {
+            return Ok(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN);
+        }
+        Ok(WORKER_EXIT_COMMITTED_CLEAN)
+    })();
+    result.unwrap_or(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN)
 }
 
 fn flatten_worker_result(result: Result<u32, u32>) -> u32 {
@@ -129,6 +158,21 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
     let qpa_surface = crate::windows_qpa::rollback_file_surface(&resolved.layout);
     let fixed_preimages = snapshot_fixed_surface(&resolved.layout.root, &qpa_surface)
         .map_err(|_| WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)?;
+    let qpa_postimages = crate::windows_qpa::expected_transition_postimages(
+        &resolved.layout,
+        &plan.qpa_transition,
+        &fixed_preimages
+            .iter()
+            .map(|entry| entry.expected_sha256.clone())
+            .collect::<Vec<_>>(),
+    )
+    .map_err(|_| WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN)?
+    .into_iter()
+    .map(|postimage| ResolvedPostimage {
+        destination: postimage.path,
+        expected_sha256: postimage.sha256,
+    })
+    .collect::<Vec<_>>();
     let pre_qpa_payloads = pre_qpa_payloads(&resolved);
     let mut journal = DurableJournal::prepare(
         &resolved.layout.root,
@@ -142,6 +186,9 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
             .record_created_directory(&recovery)
             .map_err(storage_error_exit)?;
     }
+    journal
+        .record_expected_postimages(&qpa_postimages)
+        .map_err(storage_error_exit)?;
 
     let mut qpa_outcome = None;
     let mutation_result = (|| {
@@ -161,7 +208,7 @@ fn run_elevated_worker_inner(transport: &WorkerTransport) -> Result<u32, u32> {
                         resolved.qpa_proxy_source.as_deref(),
                     )
                     .map_err(storage_error)?;
-                    journal.record_postimages(&qpa_surface)?;
+                    journal.verify_expected_postimages(&qpa_surface)?;
                     qpa_outcome = Some(outcome);
                 }
                 MutationStep::Final => {
@@ -201,17 +248,25 @@ fn load_verified_plan(transport: &WorkerTransport) -> Result<ElevatedLanguagePla
 }
 
 fn verify_current_executable(plan: &ElevatedLanguagePlan) -> Result<(), String> {
+    verify_worker_executable_hash(&plan.expected_worker_exe_sha256)
+}
+
+fn verify_worker_executable_hash(expected: &str) -> Result<(), String> {
     let current = std::env::current_exe()
         .map_err(|error| format!("Could not resolve elevated worker executable: {error}"))?;
     let actual = hash_locked_file(&current)?;
-    if actual != plan.expected_worker_exe_sha256 {
+    if actual != expected {
         return Err("Elevated worker executable hash does not match the plan.".to_string());
     }
     Ok(())
 }
 
 fn validate_program_files_layout(plan: &ElevatedLanguagePlan) -> Result<InstallLayout, String> {
-    let lexical = lexically_absolute_windows_path(Path::new(&plan.install_root))?;
+    validate_program_files_root(Path::new(&plan.install_root))
+}
+
+fn validate_program_files_root(install_root: &Path) -> Result<InstallLayout, String> {
+    let lexical = lexically_absolute_windows_path(install_root)?;
     let trusted_roots = windows_trusted_program_files_roots()?;
     let trusted = trusted_root_for_destination(&lexical, &trusted_roots)
         .ok_or_else(|| "Install root is outside OS-known Program Files roots.".to_string())?;
@@ -637,7 +692,7 @@ fn read_locked_bounded(path: &Path, limit: usize) -> Result<(Vec<u8>, String), S
     Ok((bytes, hash))
 }
 
-fn hash_locked_file(path: &Path) -> Result<String, String> {
+pub(crate) fn hash_locked_file(path: &Path) -> Result<String, String> {
     let metadata = fs::symlink_metadata(path)
         .map_err(|error| format!("Could not inspect hash-locked file: {error}"))?;
     if !metadata.is_file() || metadata_is_reparse_point(&metadata) {
@@ -682,132 +737,5 @@ fn storage_error_exit(error: super::storage::StorageError) -> u32 {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn elevated_plan_requires_the_exact_core_map_surface() {
-        let mut payloads = CORE_MAP
-            .iter()
-            .map(|(_, target)| PayloadRecord {
-                id: (*target).to_string(),
-                kind: PayloadKind::CoreAsset,
-                source_sha256: "a".repeat(64),
-                expected_destination_sha256: Some("b".repeat(64)),
-            })
-            .collect::<Vec<_>>();
-        assert!(require_complete_core_surface(&payloads).is_ok());
-
-        payloads.push(payloads[0].clone());
-        assert!(require_complete_core_surface(&payloads).is_err());
-        payloads.pop();
-        payloads.pop();
-        assert!(require_complete_core_surface(&payloads).is_err());
-    }
-
-    #[test]
-    fn mutation_order_is_fixed_and_final_is_last() {
-        assert_eq!(
-            mutation_order(2, true),
-            vec![
-                MutationStep::Pending,
-                MutationStep::Asset(0),
-                MutationStep::Asset(1),
-                MutationStep::Generic,
-                MutationStep::Qpa,
-                MutationStep::Final,
-            ]
-        );
-    }
-
-    #[test]
-    fn exit_codes_are_stable_and_distinct() {
-        assert_eq!(
-            [
-                WORKER_EXIT_COMMITTED_CLEAN,
-                WORKER_EXIT_COMMITTED_WITH_CLEANUP_RESIDUAL,
-                WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN,
-                WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN,
-                WORKER_EXIT_CAVALRY_STILL_RUNNING
-            ],
-            [0, 42, 43, 44, 45]
-        );
-    }
-
-    #[test]
-    fn uncertain_inner_exit_is_never_collapsed_into_exact_rollback() {
-        assert_eq!(
-            flatten_worker_result(Err(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN)),
-            WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN
-        );
-        assert_ne!(
-            flatten_worker_result(Err(WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN)),
-            WORKER_EXIT_ROLLED_BACK_OR_ZERO_MUTATION_CLEAN
-        );
-    }
-
-    #[test]
-    fn english_stock_classification_skips_mutation() {
-        assert!(should_skip_mutation(
-            &QpaTransitionPlan::Noop(crate::windows_qpa::QpaNoopPlan {
-                schema_version: 1,
-                install_root: r"C:\Program Files\Cavalry".to_string(),
-                reason: QpaNoopReason::AlreadyStock,
-                cavalry_version: "2.7.2".to_string(),
-                cavalry_executable_sha256: "a".repeat(64),
-                qt_version: "6.6.3".to_string(),
-                architecture: "x86_64".to_string(),
-                expected_current_qwindows_sha256: Some("b".repeat(64)),
-            }),
-            true
-        ));
-    }
-
-    #[test]
-    fn canonical_verbatim_prefix_is_removed_before_known_folder_checks() {
-        let normalized = normalize_path(Path::new(r"\\?\C:\Program Files\Cavalry"));
-        assert!(paths_equal(
-            &normalized,
-            Path::new(r"C:\Program Files\Cavalry")
-        ));
-    }
-
-    #[test]
-    fn rollback_recovery_directory_is_recreated_and_new_empty_directory_is_removed() {
-        let root = tempfile::tempdir().unwrap();
-        let recovery = root.path().join("cavalry-i18n-qpa");
-
-        ensure_recovery_for_rollback(root.path(), &recovery).unwrap();
-        assert!(ordinary_directory_state(&recovery).unwrap());
-        remove_new_empty_recovery(root.path(), &recovery).unwrap();
-        assert!(!recovery.exists());
-    }
-
-    #[test]
-    fn prepare_cleanup_residual_maps_to_uncertain_exit() {
-        let error = super::super::storage::StorageError {
-            message: "prepare failed".to_string(),
-            cleanup_residual: Some(super::super::storage::CleanupResidual {
-                paths: vec![PathBuf::from(r"C:\Program Files\Cavalry\journal")],
-                detail: "journal remains".to_string(),
-            }),
-        };
-        assert_eq!(
-            storage_error_exit(error),
-            WORKER_EXIT_STATE_OR_CLEANUP_UNCERTAIN
-        );
-    }
-
-    #[test]
-    fn worker_source_has_no_restart_state_or_application_lock_sink() {
-        let source = include_str!("worker.rs");
-        for forbidden in [
-            ["restart", "_cavalry"].concat(),
-            ["write", "_state"].concat(),
-            ["acquire_instance", "_lock"].concat(),
-            ["try", "_lock"].concat(),
-        ] {
-            assert!(!source.contains(&forbidden), "{forbidden}");
-        }
-    }
-}
+#[path = "worker_tests.rs"]
+mod tests;

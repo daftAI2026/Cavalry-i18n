@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 worker 已解析的固定 source/destination、lowercase SHA-256 preimage 与 OS-known install root；复用 Windows reparse/containment 守卫。
- * [OUTPUT]: 提供非序列化 ResolvedPayload、跨 payload/QPA/final marker 的 durable backup journal、逐 phase 版本化持久化、源与目标同句柄验写、缺失 existing target 不创建空占位的 marker-last hash-aware rollback 与精确非递归 cleanup residual。
- * [POS]: language_transaction 的文件事务内核；manifest 格式、路径准入与有界清理由协作者负责，本模块不解析 plan、不授权目标、不启动进程，未知当前哈希永不被旧备份覆盖。
+ * [OUTPUT]: 提供非序列化 payload/preimage、跨 payload/QPA/final marker 的 durable backup journal、写前 postimage 授权、原始父目录重建、同句柄验写与 marker-last hash-aware rollback。
+ * [POS]: language_transaction 的文件事务内核；manifest、路径、postimage 与目录恢复由窄协作者投影，本模块不解析 plan、不启动进程，未知当前哈希永不被事后认领或旧备份覆盖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -33,6 +33,13 @@ use journal_cleanup::{inspect_journal_root, remove_journal_root};
 pub(crate) use super::journal_manifest::RecoveryOutcome;
 pub(crate) use super::journal_manifest::{has_pending, recover_pending};
 use super::journal_manifest::{persist_manifest, sync_directory, JournalPhase};
+
+#[path = "postimage_ownership.rs"]
+mod postimage_ownership;
+pub(super) use postimage_ownership::ResolvedPostimage;
+#[path = "rollback_directories.rs"]
+mod rollback_directories;
+use rollback_directories::restore_original_parent_directories;
 
 pub(super) const JOURNAL_PREFIX: &str = ".cavalry-i18n-transaction-";
 pub(super) const JOURNAL_STATE_FILE: &str = "journal.state";
@@ -326,16 +333,6 @@ impl DurableJournal {
         Ok(())
     }
 
-    pub(super) fn record_postimages(&mut self, paths: &[PathBuf]) -> Result<(), StorageError> {
-        for path in paths {
-            let index = self.entry_index(path)?;
-            let postimage = snapshot_hash(path)?;
-            self.entries[index].owned_postimages.insert(postimage);
-        }
-        self.persist_manifest(JournalPhase::Applying)
-            .map_err(StorageError::new)
-    }
-
     #[cfg(test)]
     pub(super) fn rollback(self) -> RollbackOutcome {
         self.rollback_internal(None)
@@ -366,6 +363,13 @@ impl DurableJournal {
             inspect_journal_root(&self.install_root, &self.journal_root, self.entries.len())
         {
             failures.push((self.journal_root.clone(), error));
+        }
+        if let Err((path, error)) = restore_original_parent_directories(
+            &self.install_root,
+            &self.entries,
+            &self.created_directories,
+        ) {
+            failures.push((path, error));
         }
         for (index, entry) in self.entries.iter().enumerate().rev() {
             if marker_index == Some(index) {
@@ -673,17 +677,27 @@ fn rollback_entry(entry: &JournalEntry) -> Result<(), String> {
         entry.original_permissions.as_ref(),
     ) {
         (Some(expected), Some(backup), Some(permissions)) => {
-            let mut destination = LockedDestination::open_for_write(&entry.destination, true)?;
-            let current = destination.preimage_sha256().map(str::to_owned);
-            if current.as_deref() == Some(expected) {
-                return Ok(());
-            }
-            if !entry.owned_postimages.contains(&current) {
+            let observed = snapshot_hash(&entry.destination).map_err(|error| error.message)?;
+            if observed.as_deref() != Some(expected) && !entry.owned_postimages.contains(&observed)
+            {
                 return Err(format!(
                     "Current hash is not owned by this transaction; refusing to overwrite {}.",
                     entry.destination.display()
                 ));
             }
+            if observed.as_deref() == Some(expected) {
+                let destination = LockedDestination::open_for_write(&entry.destination, true)?;
+                let current = destination.preimage_sha256().map(str::to_owned);
+                if current != observed {
+                    return Err(format!(
+                        "Transaction destination changed while rollback acquired its handle: {}.",
+                        entry.destination.display()
+                    ));
+                }
+                return Ok(());
+            }
+            // 先证明 durable backup 可读且哈希正确，再打开或创建目标文件。
+            // 否则目标原本缺失时，损坏的 backup 会留下事务自身制造的空文件。
             let mut source = open_exclusive_ordinary_file(backup, "durable rollback backup")?;
             let actual = hash_open_file(&mut source, backup)?;
             if actual != expected {
@@ -692,6 +706,15 @@ fn rollback_entry(entry: &JournalEntry) -> Result<(), String> {
             source
                 .seek(SeekFrom::Start(0))
                 .map_err(|error| format!("Could not rewind rollback backup: {error}"))?;
+            let mut destination =
+                LockedDestination::open_for_write(&entry.destination, observed.is_some())?;
+            let current = destination.preimage_sha256().map(str::to_owned);
+            if current != observed {
+                return Err(format!(
+                    "Transaction destination changed while rollback acquired its handle: {}.",
+                    entry.destination.display()
+                ));
+            }
             let mutation = destination.overwrite_from(&mut source, permissions);
             if let Some(error) = mutation.error {
                 return Err(error);
@@ -778,6 +801,9 @@ fn residual_from_failures(failures: Vec<(PathBuf, String)>) -> CleanupResidual {
     }
 }
 
+#[cfg(test)]
+#[path = "qpa_journal_tests.rs"]
+mod qpa_journal_tests;
 #[cfg(test)]
 #[path = "storage_tests.rs"]
 mod tests;

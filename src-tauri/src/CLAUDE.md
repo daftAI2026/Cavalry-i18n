@@ -12,7 +12,7 @@ headless_launch.rs: Windows `--launch-cavalry` 原生快速入口；持有共享
 uninstall_restore.rs: Windows `--uninstall-restore-english` 无 WebView 卸载入口；只消费保存的安装根，在共享 operation lock 内按 snapshot provenance 选择 refresh/apply English，并将 UAC 取消、未知运行时或未提交事务投影为非零退出码以阻止 NSIS 删除控制面。
 windows_install.rs: Windows 只读发现边界，按无控制台运行进程查询、MSI advertised shortcut 与有限常见目录收集候选；非 MSI 克隆以有界流式扫描证明 Cavalry.exe 中唯一 NUL 分隔 `2.7.2` token，不扫描磁盘、不写安装目录，也不调用任何 MSI repair API。
 windows_runtime.rs: 仅在 Windows target 编译的 Qt generic plugin/QPA 资源装配，优先解析 Tauri 打包 DLL、回退开发资源并生成受控 copy pair；非 English 重启先流式比较安装 plugin 与当前可信源 SHA-256，再要求 QPA ACTIVE 和安装根语言 marker 一致，随后只准备诊断 marker 环境并以 deadline 校验 plugin、语言、PID、Qt、`embedded-generated-table` 来源和嵌入翻译表就绪；原生入口不依赖 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS` 或 `CAVALRY_I18N_LANG`。
-windows_qpa.rs: Windows 持久注入状态机；锁定 Cavalry/Qt/架构/原厂 qwindows，以 durable manifest 识别历史发行版 proxy/generic 所有权；显式 English 原子恢复 qwindows 并删除自有 generic/recovery，未知 generic/QPA 或厂商更新一律保留并 fail closed。
+windows_qpa.rs: Windows 持久注入状态机；锁定 Cavalry/Qt/架构/原厂 qwindows，以 durable manifest 识别历史发行版所有权，并向外层 journal 投影写前精确 postimage；未知 generic/QPA 或厂商更新一律保留并 fail closed。
 windows_qpa/: QPA 数据合同、身份验证、Windows 文件适配器、普通/提升共用 transition 与 tempfile 合同测试；可写自定义根直接执行，Program Files same-EXE worker 消费同一 hash-locked plan；qwindows 禁止进入截断 CopyPair。
 operation_lock.rs: bundle operation 单飞边界；GUI extract/apply/restart、Windows uninstall restore 与 headless launch 共享进程内及跨进程锁，避免 English 恢复、卸载和启动交错；macOS startup 仅在确有 canonical pending journal 时等待，busy timeout 作为瞬态交给动态状态门而不写入进程生命周期错误。
 runtime_paths.rs: repo/state 路径真相源；GUI command 与无 WebView 启动/恢复入口不得各自推导同一 state 路径，测试仍可用 `CAVALRY_I18N_STATE_DIR` 隔离。
@@ -22,9 +22,9 @@ mac_official.rs: macOS vendor baseline 真相层；从严格 identity、vendor c
 mac_runtime.rs: macOS runtime patch 模块，生成 launcher wrapper、trusted bytes/path 驱动的 typed Info.plist rewrite、语言 marker/injector copy pairs，并以 wrapper→Info 顺序提供首次 journal-aware launch gate；集中解析 Resources、`_up_`、repo 三层 injector 来源；wrapper 仅拥有项目语言变量与 injector DYLD 项，保留调用者其它注入，并在 exec 前始终检查默认及 override state 下的 `macos-apply-transaction` journal，存在即以 75 拒绝运行。
 platform_runtime.rs: 私有平台运行时编排 facade；Windows Program Files 已由 commands 提前分流，剩余自定义可写根在 payload 前拒绝 drift、以 typed 结果精确关闭 Cavalry 并验证直接写权限，在 pending JSON/generic 后执行 QPA ACTIVE 或显式 English 恢复，最后才允许 final marker；restart 只交付诊断子进程环境。
 keychain_patch.rs: Mach-O Keychain query callsite 补丁模块，解析 fat/thin slice 并将 5 个函数的 accessGroup/synchronizable 写入调用替换为 NOP；production 入口消费 owned Vec，避免大 dylib 二次复制。
-privilege.rs: 唯一系统命令 facade；保持既有 public API，公开 typed Cavalry graceful-close 结果，并向 commands 暴露 Windows Program Files typed parent outcome 与 durable journal pending 查询；事务、runner、Keychain、restart 与 macOS/Windows 适配器下沉至 `privilege/`。
+privilege.rs: 唯一系统命令 facade；保持既有 public API，公开 typed graceful-close 与 Windows Program Files apply outcome，并让 startup recovery 持锁后通过独立 same-EXE RunAs action 恢复受保护 journal。
 privilege/: 系统命令领域模块图；copy_transaction 保持 direct rollback/typed warning，runner 隔离进程副作用，windows/language_transaction 以 same-EXE worker 和 durable journal 守住单次 UAC 完整语言事务。
-startup_recovery.rs: Tauri 启动期跨平台 transaction recovery 协调层；macOS 无 canonical pending journal 时走无锁快路，确有 journal 才等待共享 operation lock，busy timeout 不进入永久错误 latch；Windows 从保存状态解析已验证安装根，并在关闭 Cavalry 后委托 privilege 的 durable language journal 恢复；两平台都让不确定状态 fail closed，journal 解析、精确 rollback/commit 与路径/hash 防线仍归各自 privilege 子模块。
+startup_recovery.rs: Tauri 启动期跨平台 transaction recovery 协调层；无 pending 时走快路，确有 journal 才等待共享 operation lock；Windows 从保存状态解析已验证安装根，自定义可写根直接恢复，Program Files 委托 privilege 的 same-EXE RunAs recovery，且不确定状态一律 fail closed。
 state.rs: Tauri state.json schema、normalize 与读写函数；StateDocument 以 schemaVersion/generation/operationId/lastKnownGood 保存控制面元数据，同目录 temp+fsync+atomic rename+目录 fsync，并保留 state.json.prev；Windows 普通文件 fsync 使用可写 handle 以满足 FlushFileBuffers，rename 后 directory warning 由不重写 generation 的显式 durability reconfirm 重试；严格读取提供 typed error/recovery report，`read_state_for_control_report` 暴露 recovery diagnostic 与 `StateCommitOutcome` warning，cavalryRevision 描述当前安装，EnglishSnapshotProvenance 只在成功采集或安全验证旧快照后更新。
 
 依赖边界:

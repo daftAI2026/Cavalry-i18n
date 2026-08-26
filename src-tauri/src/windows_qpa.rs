@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 InstallLayout、当前打包 QPA/generic 所有权锚、安装根 durable manifest 与 windows_qpa/storage 原子文件能力。
- * [OUTPUT]: 提供严格 QPA transition/四态检查；显式 English 同时恢复原厂 qwindows、删除哈希自有 generic 与 recovery，未知文件在任何写入前拒绝。
- * [POS]: Windows 持久部署边界；manifest 可证明旧发行版运行时归属，当前包只证明无 manifest 残留，厂商更新与未知 DLL 永不被覆盖或删除。
+ * [OUTPUT]: 提供严格 QPA transition/四态检查与逐路径预期 postimage 投影；显式 English 恢复原厂 qwindows 并删除哈希自有 generic/recovery。
+ * [POS]: Windows 持久部署边界；自身状态机定义唯一可写字节身份并投影给外层 journal，厂商更新与未知 DLL 永不被覆盖、删除或事后认领。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, io::ErrorKind, path::Path};
@@ -12,6 +12,8 @@ use crate::install::{InstallLayout, InstallPlatform};
 mod contract;
 #[path = "windows_qpa/identity.rs"]
 mod identity;
+#[path = "windows_qpa/postimages.rs"]
+mod postimages;
 #[path = "windows_qpa/preflight.rs"]
 mod preflight;
 #[path = "windows_qpa/restore.rs"]
@@ -34,6 +36,7 @@ pub use contract::{
     SUPPORTED_QT_VERSION, VENDOR_QWINDOWS_FILE_NAME, VENDOR_QWINDOWS_SHA256,
 };
 use identity::verify_target_files_with_generic;
+pub(crate) use postimages::expected_transition_postimages;
 pub use preflight::{
     direct_write_requires_elevated_worker, managed_write_surface, manifest_path,
     preflight_direct_writable, recovery_directory, rollback_file_surface, vendor_qwindows_backup,

@@ -335,6 +335,24 @@ fn worker_argv_is_exact_and_reserved_failures_never_fall_back_to_ui() {
 }
 
 #[test]
+fn recovery_worker_argv_is_single_token_and_never_falls_back_to_ui() {
+    let transport = RecoveryTransport::new(PathBuf::from(INSTALL_ROOT), hash('e')).unwrap();
+    let argument = OsString::from(format!(
+        "{RECOVERY_ARGUMENT_PREFIX}{}",
+        transport.encode().unwrap()
+    ));
+
+    assert!(matches!(
+        parse_worker_argv(&[argument.clone()]),
+        WorkerArgv::Recover(decoded) if decoded == transport
+    ));
+    assert!(matches!(
+        parse_worker_argv(&[argument, OsString::from("--extra")]),
+        WorkerArgv::HandledError(_)
+    ));
+}
+
+#[test]
 fn language_wire_values_are_exact() {
     for (language, expected) in [
         (Language::English, "\"en\""),

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 privilege 子模块、临时文件夹、CopyPair 和 fake CommandRunner。
- * [OUTPUT]: 覆盖 direct 事务回滚、typed cleanup warning、Windows 0/42/43/44 UAC 边界。
+ * [OUTPUT]: 覆盖 direct 事务回滚、typed cleanup warning、Windows apply 退出码与 Program Files startup recovery same-EXE launcher 边界。
  * [POS]: privilege 的 owner unit tests；安全契约在模块拆分后仍贴近实际事务所有者。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -83,6 +83,38 @@ fn direct_copy_transaction_restores_existing_and_new_targets_after_write_failure
     );
     assert!(!plugin.exists());
     assert!(!plugin.parent().unwrap().exists());
+}
+
+#[cfg(target_os = "windows")]
+#[test]
+fn program_files_startup_recovery_uses_the_same_exe_recovery_worker() {
+    use std::cell::Cell;
+
+    use super::windows::language_transaction::{
+        contract::RecoveryTransport, launcher::LaunchError,
+    };
+
+    let temp = tempfile::tempdir().unwrap();
+    let install_root = temp.path().join("Program Files").join("Cavalry");
+    let worker = temp.path().join("switcher.exe");
+    std::fs::create_dir_all(&install_root).unwrap();
+    std::fs::write(&worker, b"same-exe-worker").unwrap();
+    let launched = Cell::new(false);
+
+    let error = super::recover_program_files_language_transaction_with_launcher(
+        &install_root,
+        &worker,
+        |_exe, token| -> Result<u32, LaunchError> {
+            let transport = RecoveryTransport::decode(token).unwrap();
+            assert_eq!(transport.install_root, install_root);
+            launched.set(true);
+            Ok(super::windows::language_transaction::contract::WORKER_EXIT_CAVALRY_STILL_RUNNING)
+        },
+    )
+    .unwrap_err();
+
+    assert!(launched.get());
+    assert!(error.starts_with("WINDOWS_RECOVERY_CAVALRY_STILL_RUNNING:"));
 }
 
 #[test]
