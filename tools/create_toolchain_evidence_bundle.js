@@ -93,7 +93,7 @@ function main() {
       platform: 'windows-x64',
       assetName: windowsAssetName,
       status: 'tracked-as-issue',
-      issueUrl: 'https://github.com/daftAI2026/Cavalry-i18n/issues/15',
+      issueUrl: 'https://github.com/daftAI2026/Cavalry-i18n/issues/16',
     }],
   };
   const output = path.resolve(optionValue('--output') || path.join(process.cwd(), 'dist/toolchain-evidence.json'));

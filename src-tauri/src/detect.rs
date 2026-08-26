@@ -478,9 +478,9 @@ pub fn read_bundle_version(app_path: &Path) -> Result<String, String> {
     }
 }
 
-/// Read-only status revision.  Windows file hashes may be reused only when each input's
-/// size/mtime/file-id remains unchanged and the fixed input set is unchanged; write callers must
-/// use `read_bundle_revision_for_write`, which intentionally bypasses this cache.
+/// Read-only status revision. Windows always streams the fixed binary set because NTFS metadata
+/// can collide across rapid same-size rewrites; non-Windows hosts may reuse metadata-keyed hashes.
+/// Write callers use `read_bundle_revision_for_write`, which always bypasses the cache.
 pub fn read_bundle_revision(app_path: &Path) -> Result<String, String> {
     if app_path.as_os_str().is_empty() {
         return Ok(String::new());
