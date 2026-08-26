@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读发现命令和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 typed 写入前 graceful close、有界 macOS 签名/只读 seal 验证、Windows apply/recovery 提升 worker 早期分流，并让 Program Files 启动恢复只经 same-EXE RunAs 边界执行。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 typed 写入前 graceful close、有界 macOS 签名/只读 seal 验证、Windows apply/recovery 提升 worker 早期分流，并让 Program Files 启动恢复先以不跟随 reparse 的保存根只读探针确认 journal，再经 same-EXE RunAs 边界执行。
  * [POS]: src-tauri/src 的跨平台系统命令 facade；平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript，受保护安装根禁止回退为未提权写入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -348,30 +348,99 @@ fn pending_windows_language_install_root(state_dir: &Path) -> Result<Option<Path
     if selected.trim().is_empty() {
         return Ok(None);
     }
-    let layout = crate::install::InstallLayout::from_verified_selection(Path::new(&selected))?;
+    // Probe the saved root lexically before requiring a complete Cavalry identity. A removed or
+    // moved install is a normal no-journal startup state; the probe is lstat-only and rejects
+    // every existing reparse/non-directory ancestor before storage enumerates journal children.
+    let candidate = lexical_windows_install_root(Path::new(&selected))?;
+    if !probe_windows_install_root(&candidate)? {
+        return Ok(None);
+    }
+    if !windows::language_transaction::storage::has_pending(&candidate)? {
+        return Ok(None);
+    }
+
+    let layout = crate::install::InstallLayout::from_verified_selection(&candidate)?;
     if layout.platform != crate::install::InstallPlatform::Windows {
         return Ok(None);
     }
-    match std::fs::symlink_metadata(&layout.root) {
-        Ok(metadata) if metadata.is_dir() => {}
-        Ok(_) => {
-            return Err(
-                "WINDOWS_RECOVERY_ROOT_UNCERTAIN: saved install root is not an ordinary directory."
-                    .to_string(),
-            )
-        }
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(None),
-        Err(error) => {
-            return Err(format!(
-                "WINDOWS_RECOVERY_ROOT_UNCERTAIN: could not inspect saved install root: {error}"
-            ))
-        }
+    if !windows::known_folders::paths_equal(&layout.root, &candidate) {
+        return Err(
+            "WINDOWS_RECOVERY_ROOT_UNCERTAIN: verified saved install root changed during recovery probe."
+                .to_string(),
+        );
+    }
+    if !probe_windows_install_root(&layout.root)? {
+        return Ok(None);
     }
     if windows::language_transaction::storage::has_pending(&layout.root)? {
         Ok(Some(layout.root))
     } else {
         Ok(None)
     }
+}
+
+#[cfg(target_os = "windows")]
+fn lexical_windows_install_root(selection: &Path) -> Result<PathBuf, String> {
+    let selection = windows::known_folders::lexically_absolute_windows_path(selection)?;
+    let is_executable = selection
+        .file_name()
+        .and_then(|name| name.to_str())
+        .is_some_and(|name| name.eq_ignore_ascii_case("Cavalry.exe"));
+    if is_executable {
+        selection.parent().map(Path::to_path_buf).ok_or_else(|| {
+            "WINDOWS_RECOVERY_ROOT_UNCERTAIN: saved executable has no parent.".to_string()
+        })
+    } else {
+        Ok(selection)
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn probe_windows_install_root(root: &Path) -> Result<bool, String> {
+    if !root.is_absolute() {
+        return Err(
+            "WINDOWS_RECOVERY_ROOT_UNCERTAIN: saved install root is not an absolute path."
+                .to_string(),
+        );
+    }
+    let mut ancestors = root
+        .ancestors()
+        .filter(|path| !path.as_os_str().is_empty())
+        .collect::<Vec<_>>();
+    ancestors.reverse();
+    if ancestors.is_empty() {
+        return Err(
+            "WINDOWS_RECOVERY_ROOT_UNCERTAIN: saved install root is not an absolute path."
+                .to_string(),
+        );
+    }
+
+    for path in ancestors {
+        let metadata = match std::fs::symlink_metadata(path) {
+            Ok(metadata) => metadata,
+            Err(error) if error.kind() == std::io::ErrorKind::NotFound => return Ok(false),
+            Err(error) => {
+                let message = format!(
+                    "WINDOWS_RECOVERY_ROOT_UNCERTAIN: could not inspect saved install path {}: {error}",
+                    path.display()
+                );
+                return Err(message);
+            }
+        };
+        if windows::known_folders::metadata_is_reparse_point(&metadata) {
+            return Err(format!(
+                "WINDOWS_RECOVERY_ROOT_UNCERTAIN: saved install path contains a reparse point: {}",
+                path.display()
+            ));
+        }
+        if !metadata.is_dir() {
+            return Err(format!(
+                "WINDOWS_RECOVERY_ROOT_UNCERTAIN: saved install path component is not a directory: {}",
+                path.display()
+            ));
+        }
+    }
+    Ok(true)
 }
 
 #[cfg(target_os = "windows")]

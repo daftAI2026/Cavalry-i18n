@@ -155,7 +155,7 @@ fn startup_recovery_accepts_a_complete_temporary_manifest_after_publish_crash() 
 }
 
 #[test]
-fn startup_recovery_blocks_disagreeing_manifest_generations() {
+fn startup_recovery_prefers_authoritative_state_when_temporary_generation_differs() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -176,10 +176,40 @@ fn startup_recovery_blocks_disagreeing_manifest_generations() {
     fs::write(journal_root.join("journal.state.tmp"), different).unwrap();
     std::mem::forget(journal);
 
-    let error = recover_pending(&root).unwrap_err();
-    assert!(error.contains("disagree"));
-    assert!(journal_root.exists());
+    assert_eq!(recover_pending(&root).unwrap(), RecoveryOutcome::RolledBack);
+    assert!(!journal_root.exists());
     assert_eq!(fs::read(&marker).unwrap(), b"en\n");
+}
+
+#[test]
+fn startup_recovery_never_adopts_uncommitted_postimages_from_temporary_generation() {
+    let temp = TestDirectory::new();
+    let root = temp.0.join("Cavalry");
+    let marker_source = temp.0.join("marker.pending");
+    let marker = root.join("cavalry-i18n-lang.txt");
+    write(&marker_source, b"pending\n");
+    write(&marker, b"en\n");
+    let marker_payload = payload(&marker_source, &marker, Some(b"en\n"));
+    let mut journal = DurableJournal::prepare(
+        &root,
+        &nonce('e'),
+        std::slice::from_ref(&marker_payload),
+        &[],
+    )
+    .unwrap();
+    let journal_root = journal.journal_root().to_path_buf();
+    let prepared = fs::read(journal_root.join("journal.state")).unwrap();
+    journal.apply_payload(&marker_payload).unwrap();
+    let applying = fs::read(journal_root.join("journal.state")).unwrap();
+    fs::write(journal_root.join("journal.state"), prepared).unwrap();
+    fs::write(journal_root.join("journal.state.tmp"), applying).unwrap();
+    std::mem::forget(journal);
+
+    let error = recover_pending(&root).unwrap_err();
+    assert!(error.contains("uncertain"), "{error}");
+    assert!(!error.contains("disagree"), "{error}");
+    assert!(journal_root.exists());
+    assert_eq!(fs::read(&marker).unwrap(), b"pending\n");
 }
 
 #[test]

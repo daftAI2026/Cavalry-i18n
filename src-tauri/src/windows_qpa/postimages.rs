@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 hash-locked QPA transition、固定 rollback 文件表面及同一时刻采集的 journal preimage 摘要。
- * [OUTPUT]: 提供逐路径、逐摘要的 QPA 预期中间/最终 postimage 集合，供外层 durable journal 在首次写入前授权。
+ * [OUTPUT]: 提供固定 QPA surface 的精确 preimage baseline，并叠加逐路径、逐摘要的预期中间/最终 postimage 集合，供外层 durable journal 在首次写入前授权。
  * [POS]: windows_qpa 与 Program Files language transaction 的所有权投影层；只描述既有状态机可能写出的精确字节身份，不执行文件操作。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -66,6 +66,13 @@ pub(crate) fn expected_transition_postimages(
             });
         }
     };
+
+    // The worker verifies every fixed QPA surface path after the transition, including paths
+    // that a Noop or CleanupOnly plan intentionally leaves untouched. Keep each exact preimage
+    // as an owned postimage baseline, then add only the hashes for states this plan may mutate.
+    for (path, hash) in surface.iter().zip(preimage_hashes.iter()) {
+        add(path, hash.clone());
+    }
 
     match plan {
         QpaTransitionPlan::Activate(plan) => {
@@ -238,8 +245,10 @@ mod tests {
     }
 
     #[test]
-    fn qpa_noop_declares_no_mutation_ownership() {
+    fn qpa_noop_declares_fixed_surface_preimages_as_ownership() {
         let layout = layout();
+        let expected = "e".repeat(64);
+        let preimages = vec![Some(expected.clone()); rollback_file_surface(&layout).len()];
         let plan = QpaTransitionPlan::Noop(QpaNoopPlan {
             schema_version: 1,
             install_root: layout.root.to_string_lossy().to_string(),
@@ -250,12 +259,31 @@ mod tests {
             architecture: "x86_64".to_string(),
             expected_current_qwindows_sha256: Some("b".repeat(64)),
         });
-        assert!(expected_transition_postimages(
+        let states = expected_transition_postimages(&layout, &plan, &preimages).unwrap();
+        assert_eq!(states.len(), rollback_file_surface(&layout).len());
+        assert!(states
+            .iter()
+            .all(|state| state.sha256.as_deref() == Some(expected.as_str())));
+    }
+
+    #[test]
+    fn cleanup_only_declares_unchanged_qpa_surface_before_deleting_owned_files() {
+        let layout = layout();
+        let preimage = "e".repeat(64);
+        let states = expected_transition_postimages(
             &layout,
-            &plan,
-            &vec![None; rollback_file_surface(&layout).len()],
+            &restore(RestoreAction::CleanupOnly),
+            &vec![Some(preimage.clone()); rollback_file_surface(&layout).len()],
         )
-        .unwrap()
-        .is_empty());
+        .unwrap();
+
+        assert!(states.iter().any(|state| {
+            state.path == layout.root.join(QWINDOWS_FILE_NAME)
+                && state.sha256.as_deref() == Some(preimage.as_str())
+        }));
+        assert!(states.iter().any(|state| {
+            state.path == layout.root.join(ROOT_REPLACEMENT_TEMP)
+                && state.sha256.as_deref() == Some(preimage.as_str())
+        }));
     }
 }

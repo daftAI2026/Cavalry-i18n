@@ -1,7 +1,7 @@
 # privilege/windows/
 ## Recovery boundary (2026-08-26)
 
-language_transaction persists entry destination/preimage/postimage/backup/permission and phase data before mutation. Program Files startup recovery is a distinct same-EXE RunAs action; QPA intermediate/final hashes are declared before first write, and rollback recreates only preimage-proven original directories. Ambiguous generations, hash drift, reparse paths, and rollback uncertainty remain typed blocking errors.
+language_transaction persists entry destination/preimage/postimage/backup/permission and phase data before mutation. Program Files startup recovery is a distinct same-EXE RunAs action; QPA intermediate/final hashes are declared before first write, and rollback recreates only preimage-proven original directories. A published `journal.state` remains authoritative over an uncommitted differing `.tmp`; hash drift, reparse paths, and rollback uncertainty remain typed blocking errors.
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 > L2 | 父级: ../CLAUDE.md

@@ -2,7 +2,7 @@
  * [INPUT]: DurableJournal 的路径、preimage/postimage、权限与 phase；Windows lstat、路径
  * containment、FileShare 与目录句柄能力。
  * [OUTPUT]: 提供版本化严格 manifest 的 handle-bound 持久化、读取、校验、startup/apply 前恢复，以及
- * 文件和目录 fsync；恢复只接受 install-root 直属 nonce journal 的单一 durable generation，或内容一致的 state/state.tmp 双代。
+ * 文件和目录 fsync；state 是已发布权威代、state.tmp 是提交候选，双代分歧时只采用 state，避免恢复采纳未提交 postimage。
  * [POS]: language_transaction/storage 的崩溃恢复内核；storage 保持事务写入/CAS，本文
  * 件负责将内存所有权投影为可重建的磁盘真相。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -377,8 +377,11 @@ fn read_journal_manifest(journal_root: &Path) -> Result<JournalManifest, String>
     let bytes = match (state, temporary) {
         (Some(state), None) | (None, Some(state)) => state,
         (Some(state), Some(temporary)) if state == temporary => state,
-        (Some(_), Some(_)) => {
-            return Err("Durable journal state and its temporary generation disagree.".to_string())
+        (Some(state), Some(_temporary)) => {
+            // `journal.state` is the last published generation. The temporary file is written
+            // and synced before publication, so when both survive a crash its differing bytes
+            // are an uncommitted candidate and must never grant ownership of new postimages.
+            state
         }
         (None, None) => return Err("Durable journal state is missing.".to_string()),
     };

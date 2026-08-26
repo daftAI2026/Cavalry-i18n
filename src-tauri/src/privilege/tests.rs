@@ -117,6 +117,38 @@ fn program_files_startup_recovery_uses_the_same_exe_recovery_worker() {
     assert!(error.starts_with("WINDOWS_RECOVERY_CAVALRY_STILL_RUNNING:"));
 }
 
+#[cfg(target_os = "windows")]
+#[test]
+fn startup_recovery_ignores_a_missing_saved_install_without_a_pending_journal() {
+    let temp = tempfile::tempdir().unwrap();
+    let state_dir = temp.path().join("state");
+    let missing_install = temp.path().join("moved-away").join("Cavalry");
+    crate::state::write_state(
+        &state_dir,
+        &crate::state::State {
+            app_path: missing_install.to_string_lossy().to_string(),
+            ..crate::state::State::default()
+        },
+    )
+    .unwrap();
+
+    assert_eq!(
+        super::pending_windows_language_install_root(&state_dir).unwrap(),
+        None
+    );
+}
+
+#[cfg(target_os = "windows")]
+#[test]
+fn startup_recovery_probe_rejects_a_non_directory_ancestor() {
+    let temp = tempfile::tempdir().unwrap();
+    let blocker = temp.path().join("not-a-directory");
+    std::fs::write(&blocker, b"blocker").unwrap();
+
+    let error = super::probe_windows_install_root(&blocker.join("Cavalry")).unwrap_err();
+    assert!(error.contains("not a directory"), "{error}");
+}
+
 #[test]
 fn committed_direct_copy_exposes_typed_backup_cleanup_warning() {
     let temp = tempfile::tempdir().unwrap();
