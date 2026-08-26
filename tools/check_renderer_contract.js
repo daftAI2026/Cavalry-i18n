@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、CSP 配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、local-only renderer 资源、无动态 HTML 注入、English UI/官方还原分离、Windows 只读快照检测、英文恢复入口、可组合 warningCodes、durability retry 及最小 bridge 表面。
+ * [INPUT]: renderer 静态 DOM、稳定文案脚本、CSP 配置与冻结 bridge API。
+ * [OUTPUT]: 守住固定 DOM anchors、local-only renderer 资源与 packaged renderer hash 面、无动态 HTML 注入、English UI/官方还原分离、Windows 只读快照检测、英文恢复入口、可组合 warningCodes、durability retry 及最小 bridge 表面。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -39,9 +39,19 @@ const REQUIRED_API_METHODS = [
 test('renderer retains DOM anchors and uses only local resources', () => {
   const html = read('renderer/index.html');
   const styles = read('renderer/styles.css');
+  const app = read('renderer/app.js');
+  const uiText = read('renderer/ui-text.js');
   for (const id of REQUIRED_IDS) assert.match(html, new RegExp(`id="${id}"`), `#${id} missing`);
   assert.doesNotMatch(html, /https?:\/\//, 'renderer HTML must not load remote resources');
   assert.doesNotMatch(styles, /@import|url\([\"']?https?:/i, 'styles must not load remote resources');
+  assert.match(
+    html,
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    'renderer scripts must load bridge, stable text, then app'
+  );
+  assert.match(uiText, /const UI_TEXT = \{/);
+  assert.doesNotMatch(app, /const UI_TEXT = \{/);
+  assert.ok(app.split(/\r?\n/).length <= 800, 'renderer/app.js must stay within the 800-line contract');
 });
 
 test('renderer builds language options safely and bridge API is frozen/minimal', () => {
@@ -75,10 +85,11 @@ test('Tauri configuration disables global injection and declares a local-only CS
 
 test('renderer localizes reinstall and composable warning-code paths without raw warning prose', () => {
   const app = read('renderer/app.js');
+  const uiText = read('renderer/ui-text.js');
   const bridge = read('renderer/tauri-bridge.js');
   const styles = read('renderer/styles.css');
-  assert.equal((app.match(/reinstallRequired:/g) || []).length, 4, 'all four UI locales must localize the reinstall route');
-  const localeBodies = uiLocaleBodies(app);
+  assert.equal((uiText.match(/reinstallRequired:/g) || []).length, 4, 'all four UI locales must localize the reinstall route');
+  const localeBodies = uiLocaleBodies(uiText);
   for (const key of [
     'restoreEnglish',
     'statusLabel',

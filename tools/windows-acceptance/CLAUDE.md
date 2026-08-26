@@ -8,7 +8,7 @@ Member map
 - `review_windows_acceptance.js`: interactive review boundary; presents only machine-record screenshot paths, derives approved review/final records after each existing image is confirmed, and never accepts a user-supplied PASS/result/point set.
 - `check_contract.test.js`: fixture-only mutation tests for the verifier and summary projection; never launches Cavalry or touches Program Files.
 
-The session producer is intentionally separate from the acceptance-only Qt plugin. Rust writes machine evidence only; the reviewer creates review/final records; the portable producer verifies the result. A valid summary is not release evidence until the release evidence/seal workflow consumes it and binds the same tag/source/session plus installer and DLL digests. The summary is optional for non-Windows evidence, but a Windows-artifact release must carry it.
+The session producer is intentionally separate from the acceptance-only Qt plugin. Rust writes machine evidence only; the reviewer creates review/final records; the portable producer verifies the result. A valid summary is a derived session artifact, not an input to release evidence/verify; those boundaries accept `--windows-session-dir` only, re-verify the raw session, and derive/compare the embedded summary. The summary is optional for non-Windows evidence, but a Windows-artifact release must carry it.
 
 法则: 现场证据必须来自 disposable `%TEMP%`；路径、字节、版本和矩阵均 fail-closed。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/app.js 与最小 fake DOM、Tauri invoke fake。
+ * [INPUT]: renderer bridge/ui-text/app.js 与最小 fake DOM、Tauri invoke fake。
  * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与 typed residue warning、英文恢复复用普通 apply、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -61,6 +61,7 @@ async function flush() { await Promise.resolve(); await new Promise((resolve) =>
 function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
+  vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
   vm.runInNewContext(read('renderer/app.js'), r.context, { filename: 'app.js' });
   return r;
 }

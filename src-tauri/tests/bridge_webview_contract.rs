@@ -119,11 +119,14 @@ fn builder_and_html_keep_the_actual_initialization_order() {
     let fallback_bridge = html
         .find("<script src=\"./tauri-bridge.js\"></script>")
         .expect("HTML must retain the local bridge fallback");
+    let text_script = html
+        .find("<script src=\"./ui-text.js\"></script>")
+        .expect("HTML must load ui-text.js");
     let app_script = html
         .find("<script src=\"./app.js\"></script>")
         .expect("HTML must load app.js");
     assert!(
-        fallback_bridge < app_script,
-        "HTML bridge fallback must precede app.js"
+        fallback_bridge < text_script && text_script < app_script,
+        "HTML bridge and ui-text fallback scripts must precede app.js"
     );
 }

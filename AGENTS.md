@@ -34,7 +34,7 @@ Cavalry-i18n/
 | Task | Location | Notes |
 | --- | --- | --- |
 | Project map | `CLAUDE.md` + module `CLAUDE.md` | Read before touching a directory. L2/L3 docs are part of the contract. |
-| Renderer UI | `renderer/index.html`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, localized shell text, custom select, modal, status panel. |
+| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, stable localized shell copy, custom select, modal, status panel. |
 | Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Payloads are camelCase only. |
 | IPC commands | `src-tauri/src/commands.rs` | Exactly 6 commands: status, browse, extract English, apply, open Privacy, restart. |
 | JSON asset mapping | `src-tauri/src/patch.rs` | `CORE_MAP`, keyed overlay, packaged-English content proof, snapshot completeness/provenance. |
@@ -71,7 +71,7 @@ Cavalry-i18n/
 - `app.js` must not know Tauri internals. It talks only to `window.cavalryI18n`.
 - `tauri-bridge.js` normalizes camelCase payloads only. Do not reintroduce snake_case fallbacks or debug fields.
 - `index.html` ids are test anchors. Rename only with `tools/check_renderer_contract.js` and bridge/runtime tests updated.
-- UI text is localized in `app.js`; translated Cavalry runtime UI belongs to `languages/` and `tools/*.ts`, not renderer shell copy.
+- Stable renderer shell copy is localized in `ui-text.js`; translated Cavalry runtime UI belongs to `languages/` and `tools/*.ts`, not renderer shell copy.
 
 ### Tauri backend
 

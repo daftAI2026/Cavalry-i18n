@@ -67,12 +67,12 @@ node tools/verify_source_artifact.js --check-repo --check-workflow
 
 ```bash
 SOURCE_COMMIT="$(git rev-parse HEAD)"
-# 该文件由 Windows review/producer 在同一 source commit 生成，且位于仓库外。
-WINDOWS_ACCEPTANCE_SUMMARY='<outside-session Windows acceptance summary.json>'
+# Windows evidence 只接受并重新验证本轮原始 session；summary 由 verifier 派生，不能作为输入。
+WINDOWS_SESSION_DIR='<outside-session Windows acceptance directory>'
 node tools/create_release_acceptance_evidence.js \
   --tag cavalry-2.7.2-pN \
   --session-dir "$SESSION_DIR" \
-  --windows-acceptance "$WINDOWS_ACCEPTANCE_SUMMARY"
+  --windows-session-dir "$WINDOWS_SESSION_DIR"
 
 # 候选仓库进程只准备 repo 外的 canonical payload；它不得看见或读取私钥。
 unset RELEASE_ACCEPTANCE_ATTESTATION_PRIVATE_KEY
@@ -269,9 +269,9 @@ node tools/windows-acceptance/review_windows_acceptance.js --tag cavalry-2.7.2-p
 node tools/windows-acceptance/record_windows_acceptance.js --tag cavalry-2.7.2-pN --session-dir '<TEMP live session>' --repo-root '<clean source checkout>' --output '<outside session summary.json>'
 ```
 
-reviewer 命令只确认已有截图，自动派生 `manual-review`/`final` 记录；producer 再复核 installer、provenance、generic/QPA digest、tag/source/session 和目标版本。live runner 通过 source Rust apply 路径启动同一份 Cavalry 2.7.2 disposable clone，但只在 source DLL 与最终 NSIS shipped DLL 完全一致时将 inventory 标为 `packaged-nsis`；这证明了最终包内 runtime 字节与现场运行时相同，不把人工或另一份构建的截图冒充发布证据。`create_release_acceptance_evidence.js --windows-acceptance '<summary.json>'` 可把摘要加入 evidence；带 Windows x64 artifact 的 release 必须同时通过 `--require-windows`，否则 release seal fail-closed。
+reviewer 命令只确认已有截图，自动派生 `manual-review`/`final` 记录；producer 再复核 installer、provenance、generic/QPA digest、tag/source/session 和目标版本。live runner 通过 source Rust apply 路径启动同一份 Cavalry 2.7.2 disposable clone，但只在 source DLL 与最终 NSIS shipped DLL 完全一致时将 inventory 标为 `packaged-nsis`；这证明了最终包内 runtime 字节与现场运行时相同，不把人工或另一份构建的截图冒充发布证据。Windows summary 仅是 `record_windows_acceptance.js` 从原始 session 派生的产物；`create_release_acceptance_evidence.js` 与 `verify_release_acceptance_evidence.js` 不接受 summary 路径，只接受 `--windows-session-dir` 并重新验证原始 session。带 Windows x64 artifact 的 release 必须同时通过 `--require-windows`，否则 release seal fail-closed。
 
-Windows release acceptance producer：上述 ignored live gate 结束后，Windows runner 必须把本轮输出整理为带 `SESSION_SENTINEL_MAGIC` 的 session，并由 `tools/windows-acceptance/review_windows_acceptance.js` 从已有截图派生 review/final，再由 `tools/windows-acceptance/record_windows_acceptance.js` 复验 `windows-machine-record.json`、`windows-manual-review.json`、`windows-final-record.json`。合同支持三语 Onboarding 五点、Adjacent 三点或两者合并；每个点都绑定 exact PID/HWND inventory、最终安装后 generic/QPA SHA-256；同时复验最终 x64 NSIS、相邻 provenance sidecar 与 Cavalry 2.7.2 disposable clone。命令只接受 Windows x64、干净 source worktree 和已存在的输出以外路径，不接受 `--confirm-live-pass`、手写结果或复用缺少 TEMP sentinel 的会话。Windows acceptance summary 可选进入普通 evidence，但 release 一旦声明 Windows artifact 就必须存在，并由 evidence/seal 绑定同一 tag、source commit、session、installer 和 DLL digest。
+Windows release acceptance producer：上述 ignored live gate 结束后，Windows runner 必须把本轮输出整理为带 `SESSION_SENTINEL_MAGIC` 的 session，并由 `tools/windows-acceptance/review_windows_acceptance.js` 从已有截图派生 review/final，再由 `tools/windows-acceptance/record_windows_acceptance.js` 复验 `windows-machine-record.json`、`windows-manual-review.json`、`windows-final-record.json`。合同支持三语 Onboarding 五点、Adjacent 三点或两者合并；每个点都绑定 exact PID/HWND inventory、最终安装后 generic/QPA SHA-256；同时复验最终 x64 NSIS、相邻 provenance sidecar 与 Cavalry 2.7.2 disposable clone。命令只接受 Windows x64、干净 source worktree 和已存在的输出以外路径，不接受 `--confirm-live-pass`、手写结果或复用缺少 TEMP sentinel 的会话。summary 只能作为该 session verifier 的派生产物；普通 evidence 若携带 Windows 结果，必须在创建时通过 `--windows-session-dir` 重新验证原始 session，release 一旦声明 Windows artifact 就必须存在，并由 evidence/seal 绑定同一 tag、source commit、session、installer 和 DLL digest。
 
 `CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1` 是明确的人工交互开关：每种语言的 Cavalry 窗口获得前台焦点后，helper 先记录同一 PID 的诊断基线并要求 `translatedSourceMask` bit 28 尚未置位；验收者再从“工具”菜单选择“齿轮”，在视口拖拽一次。helper 不猜快捷键、不发送鼠标坐标，也不使用 UIA；它只在真实 vendor 路径令 bit 28 置位，且 `revision`、`canonicalCalls`、`whitelistCalls`、`cjkPathSuccess` 均相对基线严格增长、`fallbackSourceMask=0`、`rendererFailure=0` 后截取 Cog Pitch PNG，并把基线与最终诊断一同写入证据 JSON。未设置该开关时仍只跑三类自动场景，不能据此声称 Pitch 已通过真机验收。
 

@@ -33,6 +33,7 @@
     "tools/schemas/release_acceptance_evidence.schema.json",
     "renderer/index.html",
     "renderer/app.js",
+    "renderer/ui-text.js",
     "renderer/styles.css",
     "renderer/tauri-bridge.js",
     "src-tauri/Cargo.toml",
