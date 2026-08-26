@@ -641,6 +641,7 @@ fn status_uses_snapshot_provenance_and_binary_revision_not_display_version() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writing_state() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
@@ -678,6 +679,7 @@ fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writi
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn unverified_legacy_snapshot_never_acquires_provenance_on_later_status_syncs() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");

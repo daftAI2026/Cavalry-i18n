@@ -28,7 +28,7 @@
           "platform": { "const": "windows-x64" },
           "assetName": { "type": "string", "pattern": "^[^/\\\\]+$" },
           "status": { "const": "tracked-as-issue" },
-          "issueUrl": { "const": "https://github.com/daftAI2026/Cavalry-i18n/issues/15" }
+          "issueUrl": { "const": "https://github.com/daftAI2026/Cavalry-i18n/issues/16" }
         }
       }
     }

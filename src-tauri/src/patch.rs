@@ -1,17 +1,19 @@
 /**
  * [INPUT]: 依赖 install::InstallLayout、serde_json 与 std fs/path，读取 Cavalry 跨平台 assets
  * [OUTPUT]: 对外提供无路径碰撞的资源映射、逐组件 lstat 的 macOS asset 安全门、hash-manifest English immutable generations/原子指针、严格复制计划与只替换字符串且保留安装元数据/版本增量的覆盖合并计划
- * [POS]: src-tauri/src 的 JSON patch 核心，以 exact asset identity、无 symlink regular-file 门、current/prev 缺失与损坏区分及 string-only keyed overlay 同时守住 clean-English 恢复材料及当前/未来 Cavalry 安装元数据
+ * [POS]: src-tauri/src 的 JSON patch 核心，以 exact asset identity、无 symlink regular-file 门、Windows 可写 durability handle、current/prev 缺失与损坏区分及 string-only keyed overlay 同时守住 clean-English 恢复材料及当前/未来 Cavalry 安装元数据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
     collections::{HashMap, HashSet},
-    fs::{self, File, OpenOptions},
+    fs::{self, OpenOptions},
     io::Write,
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
 };
 
+#[cfg(unix)]
+use std::fs::File;
 #[cfg(unix)]
 use std::os::unix::fs::{OpenOptionsExt, PermissionsExt};
 
@@ -929,14 +931,12 @@ fn protect_and_sync_snapshot_tree(path: &Path) -> Result<(), String> {
                 path.display()
             )
         })?;
-        File::open(path)
-            .and_then(|file| file.sync_all())
-            .map_err(|error| {
-                format!(
-                    "Could not sync English snapshot {}: {error}",
-                    path.display()
-                )
-            })?;
+        sync_file(path).map_err(|error| {
+            format!(
+                "Could not sync English snapshot {}: {error}",
+                path.display()
+            )
+        })?;
         return Ok(());
     }
     if !metadata.is_dir() {
@@ -969,6 +969,17 @@ fn sync_directory(path: &Path) -> Result<(), String> {
     {
         let _ = path;
         Ok(())
+    }
+}
+
+fn sync_file(path: &Path) -> std::io::Result<()> {
+    #[cfg(windows)]
+    {
+        OpenOptions::new().write(true).open(path)?.sync_all()
+    }
+    #[cfg(not(windows))]
+    {
+        File::open(path)?.sync_all()
     }
 }
 
@@ -2412,7 +2423,7 @@ pub fn needs_english_snapshot(
 
 #[cfg(test)]
 mod tests {
-    use super::{build_copy_pairs, discover_plugins, extract_english, CORE_MAP};
+    use super::{build_copy_pairs, discover_plugins, extract_english, sync_file, CORE_MAP};
     use std::fs;
 
     fn write_json(path: &std::path::Path, value: &str) {
@@ -2429,6 +2440,16 @@ mod tests {
             "{}",
         );
         assert_eq!(discover_plugins(&app)[0].camel_name, "gaussianBlurFilter");
+    }
+
+    #[cfg(windows)]
+    #[test]
+    fn windows_snapshot_durability_uses_a_write_capable_handle() {
+        let temp = tempfile::tempdir().unwrap();
+        let path = temp.path().join("snapshot.json");
+        fs::write(&path, b"durable").unwrap();
+
+        sync_file(&path).expect("FlushFileBuffers requires a write-capable Windows handle");
     }
 
     #[test]

@@ -1,7 +1,7 @@
 ﻿<#
-[INPUT]: 依赖 PowerShell 5.1+ 的 UTF-8 BOM 宿主边界、Node.js 翻译表生成器、CMake 4.2+ 与 Visual Studio 2022+ 的 MSVC v143 x64 工具集、Qt 6.6.3 SDK 及版本化 QPA 头、共享翻译源与可选 vendor root
-[OUTPUT]: 对外先重生成共享翻译表，再由 CMake 选择当前可用 Visual Studio 生成器并锁定 x64/v143，从经过边界验证的干净目录执行 Release configure/build/ctest，经无重解析点父链发布两个无 Qt runtime 产物
-[POS]: injector/windows 的可重复构建入口，以源码生成表为唯一编译输入，拒绝陈旧增量产物并连接同一翻译 runtime/QPA 代理/只读 vendor 合同与受工作区约束的资源路径
+[INPUT]: 依赖 PowerShell 5.1+ 的 UTF-8 BOM 宿主边界、Node.js 翻译表生成器与 Windows CMake resolver、官方 CMake 4.2.0 archive 摘要、Visual Studio 2022+ 的 MSVC v143 x64 工具集、Qt 6.6.3 SDK 及版本化 QPA 头、共享翻译源与可选 vendor root
+[OUTPUT]: 对外先重生成共享翻译表，再使用 pin manifest 解包并验证官方 CMake/CTest，由 CMake 选择当前可用 Visual Studio 生成器并锁定 x64/v143，从经过边界验证的干净目录执行 Release configure/build/ctest，经无重解析点父链发布两个无 Qt runtime 产物
+[POS]: injector/windows 的可重复构建入口，以源码生成表和经过摘要证明的 CMake 为唯一编译输入，拒绝 runner PATH、陈旧增量产物与未经证明的工具链，并连接同一翻译 runtime/QPA 代理/只读 vendor 合同与受工作区约束的资源路径
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -21,6 +21,7 @@ $publishedPlugin = Join-Path $genericPublishDirectory 'cavalryi18n.dll'
 $publishedQpaProxy = Join-Path $qpaPublishDirectory 'qwindows.dll'
 $translationGenerator = Join-Path $repositoryRoot 'tools\generate_embedded_translations.js'
 $generatedTranslations = Join-Path $repositoryRoot 'injector\generated_translations.inc'
+$cmakeResolver = Join-Path $repositoryRoot 'tools\resolve_windows_cmake.js'
 
 function Assert-NoReparsePathChain {
     [CmdletBinding()]
@@ -89,34 +90,42 @@ if (-not (Test-Path -LiteralPath $qtConfig -PathType Leaf)) {
 
 $vendorRoot = [Environment]::GetEnvironmentVariable('CAVALRY_VENDOR_ROOT')
 
-$cmakeCommand = Get-Command cmake.exe -ErrorAction SilentlyContinue
-if ($null -ne $cmakeCommand) {
-    $cmake = $cmakeCommand.Source
-} else {
-    $cmakeCandidates = @(
-        'C:\Program Files\CMake\bin\cmake.exe',
-        'C:\Program Files (x86)\Microsoft Visual Studio\2022\BuildTools\Common7\IDE\CommonExtensions\Microsoft\CMake\CMake\bin\cmake.exe'
-    )
-    $cmake = $cmakeCandidates |
-        Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } |
-        Select-Object -First 1
-}
-
-if ([string]::IsNullOrWhiteSpace($cmake)) {
-    throw 'CMake was not found. Install CMake 4.2 or newer.'
-}
-
-$ctest = Join-Path (Split-Path -Parent $cmake) 'ctest.exe'
-if (-not (Test-Path -LiteralPath $ctest -PathType Leaf)) {
-    throw "CTest was not found next to '$cmake'."
-}
-
 $nodeCommand = Get-Command node.exe -ErrorAction SilentlyContinue
 if ($null -eq $nodeCommand) {
     throw 'Node.js was not found. Install the package.json toolchain before building the Windows injector.'
 }
 if (-not (Test-Path -LiteralPath $translationGenerator -PathType Leaf)) {
     throw "Translation generator not found at '$translationGenerator'."
+}
+if (-not (Test-Path -LiteralPath $cmakeResolver -PathType Leaf)) {
+    throw "Pinned Windows CMake resolver not found at '$cmakeResolver'."
+}
+
+# 由仓库 pin manifest 安装并验证官方 CMake archive；绝不消费 runner PATH 中的偶然版本。
+$cmakeIdentityOutput = & $nodeCommand.Source $cmakeResolver '--platform' 'windows' '--ensure' '--print-json'
+if ($LASTEXITCODE -ne 0) {
+    throw "Pinned Windows CMake resolver failed with exit code $LASTEXITCODE."
+}
+try {
+    $cmakeIdentity = ($cmakeIdentityOutput -join [Environment]::NewLine) | ConvertFrom-Json
+} catch {
+    throw "Pinned Windows CMake resolver returned invalid identity JSON: $($_.Exception.Message)"
+}
+if ($null -eq $cmakeIdentity -or
+    $cmakeIdentity.kind -ne 'WindowsCMakeToolchainIdentity' -or
+    $cmakeIdentity.platform -ne 'windows-x86_64' -or
+    $cmakeIdentity.architecture -ne 'x86_64' -or
+    $cmakeIdentity.version -ne '4.2.0' -or
+    $cmakeIdentity.minimumVersion -ne '4.2.0') {
+    throw 'Pinned Windows CMake resolver did not return the required Windows x64 CMake 4.2.0 identity.'
+}
+$cmake = [System.IO.Path]::GetFullPath([string]$cmakeIdentity.executable)
+$ctest = [System.IO.Path]::GetFullPath([string]$cmakeIdentity.ctest)
+if (-not (Test-Path -LiteralPath $cmake -PathType Leaf)) {
+    throw "Verified CMake executable was not found at '$cmake'."
+}
+if (-not (Test-Path -LiteralPath $ctest -PathType Leaf)) {
+    throw "Verified CTest executable was not found at '$ctest'."
 }
 
 $cmakeConfigureArguments = @(

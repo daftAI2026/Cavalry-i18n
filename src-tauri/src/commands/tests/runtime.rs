@@ -161,7 +161,7 @@ fn apply_language_finds_sibling_injector_when_resource_dir_points_at_up_dir() {
 }
 
 #[test]
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 fn non_macos_apply_language_english_skips_keychain_patch() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");

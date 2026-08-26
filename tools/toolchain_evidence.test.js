@@ -66,6 +66,7 @@ test('bundle requires exact producer scopes, successful captures, and one releas
     assert.deepEqual(value.records.map((recordValue) => recordValue.scope), ['macos-aarch64', 'macos-x64', 'source-contracts']);
     assert.equal(value.uncoveredArtifacts[0].platform, 'windows-x64');
     assert.equal(value.uncoveredArtifacts[0].status, 'tracked-as-issue');
+    assert.equal(value.uncoveredArtifacts[0].issueUrl, 'https://github.com/daftAI2026/Cavalry-i18n/issues/16');
     const mismatch = bundle(files, path.join(temp, 'mismatch.json'), 'b'.repeat(40));
     assert.notEqual(mismatch.status, 0);
     assert.match(mismatch.stderr, /does not bind release commit/);

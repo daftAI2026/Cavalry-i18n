@@ -1,17 +1,21 @@
 #[cfg(target_os = "windows")]
 use std::collections::HashSet;
 /**
- * [INPUT]: 依赖 install 的跨平台布局、state 保存路径以及 windows_install 的只读发现线索
+ * [INPUT]: 依赖 install 的跨平台布局、state 保存路径与 windows_install 的只读发现线索
  * [OUTPUT]: 对外提供候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、签名区归一化 Mach-O code identity、不可变 revision、语言选项与安装诊断
  * [POS]: src-tauri/src 的安装探测模块；严格写入入口分离 canonical root、bundle/version/architecture 与不可变文件身份，不能只凭 bundle-version 接受伪造 Cavalry.app
  * [FAIL-CLOSED]: read_mac_bundle_identity/require_supported_mac_identity 缺少完整 Info.plist、主 executable、libExtensionLayer 或 Mach-O 架构时失败；Team ID/designated requirement 明确标为 unavailable，需 privilege runner 提供签名证据后才可升级为 verified
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
-    collections::HashMap,
     fs,
     io::Read,
     path::{Path, PathBuf},
+};
+
+#[cfg(not(windows))]
+use std::{
+    collections::HashMap,
     sync::{Mutex, OnceLock},
     time::UNIX_EPOCH,
 };
@@ -474,9 +478,9 @@ pub fn read_bundle_version(app_path: &Path) -> Result<String, String> {
     }
 }
 
-/// Read-only status revision.  Windows file hashes may be reused only when each input's
-/// size/mtime/file-id remains unchanged and the fixed input set is unchanged; write callers must
-/// use `read_bundle_revision_for_write`, which intentionally bypasses this cache.
+/// Read-only status revision. Windows always streams the fixed binary set because NTFS metadata
+/// can collide across rapid same-size rewrites; non-Windows hosts may reuse metadata-keyed hashes.
+/// Write callers use `read_bundle_revision_for_write`, which always bypasses the cache.
 pub fn read_bundle_revision(app_path: &Path) -> Result<String, String> {
     if app_path.as_os_str().is_empty() {
         return Ok(String::new());
@@ -574,31 +578,39 @@ fn sha256_file_uncached(path: &Path) -> Result<String, String> {
     Ok(format!("{:x}", digest.finalize()))
 }
 
+#[cfg(not(windows))]
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct RevisionFileMetadata {
     size: u64,
     modified_nanos: u128,
     file_id: u128,
+    change_stamp: u128,
 }
 
+#[cfg(not(windows))]
 #[derive(Debug, Clone)]
 struct CachedRevisionHash {
     metadata: RevisionFileMetadata,
     sha256: String,
 }
 
+#[cfg(not(windows))]
 static REVISION_HASH_CACHE: OnceLock<Mutex<HashMap<PathBuf, CachedRevisionHash>>> = OnceLock::new();
 
 #[cfg(test)]
 static REVISION_UNCACHED_HASHES: std::sync::atomic::AtomicUsize =
     std::sync::atomic::AtomicUsize::new(0);
 
+#[cfg(not(windows))]
 fn revision_hash_cache() -> &'static Mutex<HashMap<PathBuf, CachedRevisionHash>> {
     REVISION_HASH_CACHE.get_or_init(|| Mutex::new(HashMap::new()))
 }
 
+#[cfg(not(windows))]
 fn revision_file_metadata(path: &Path) -> Result<RevisionFileMetadata, String> {
-    let metadata = fs::metadata(path).map_err(|error| {
+    let file = fs::File::open(path)
+        .map_err(|error| format!("Could not open revision input {}: {error}", path.display()))?;
+    let metadata = file.metadata().map_err(|error| {
         format!(
             "Could not inspect revision input {}: {error}",
             path.display()
@@ -623,28 +635,42 @@ fn revision_file_metadata(path: &Path) -> Result<RevisionFileMetadata, String> {
     Ok(RevisionFileMetadata {
         size: metadata.len(),
         modified_nanos,
-        file_id: revision_file_id(&metadata),
+        file_id: revision_file_id(&file, &metadata)?,
+        change_stamp: revision_file_change_stamp(&file, &metadata)?,
     })
 }
 
 #[cfg(unix)]
-fn revision_file_id(metadata: &fs::Metadata) -> u128 {
+fn revision_file_id(_file: &fs::File, metadata: &fs::Metadata) -> Result<u128, String> {
     use std::os::unix::fs::MetadataExt;
-    (u128::from(metadata.dev()) << 64) | u128::from(metadata.ino())
-}
-
-#[cfg(windows)]
-fn revision_file_id(metadata: &fs::Metadata) -> u128 {
-    use std::os::windows::fs::MetadataExt;
-    (u128::from(metadata.volume_serial_number().unwrap_or_default()) << 64)
-        | u128::from(metadata.file_index().unwrap_or_default())
+    Ok((u128::from(metadata.dev()) << 64) | u128::from(metadata.ino()))
 }
 
 #[cfg(not(any(unix, windows)))]
-fn revision_file_id(_metadata: &fs::Metadata) -> u128 {
-    0
+fn revision_file_id(_file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
+    Ok(0)
 }
 
+#[cfg(unix)]
+fn revision_file_change_stamp(_file: &fs::File, metadata: &fs::Metadata) -> Result<u128, String> {
+    use std::os::unix::fs::MetadataExt;
+    Ok((u128::from(metadata.ctime() as u64) << 64) | u128::from(metadata.ctime_nsec() as u64))
+}
+
+#[cfg(not(any(unix, windows)))]
+fn revision_file_change_stamp(_file: &fs::File, _metadata: &fs::Metadata) -> Result<u128, String> {
+    Ok(0)
+}
+
+#[cfg(windows)]
+fn sha256_file_cached(path: &Path) -> Result<String, String> {
+    // NTFS metadata timestamps can collide across rapid same-size rewrites. Windows
+    // revision reads therefore use the content identity directly; write gates already
+    // use the same uncached path and never trust metadata as a content substitute.
+    sha256_file_uncached(path)
+}
+
+#[cfg(not(windows))]
 fn sha256_file_cached(path: &Path) -> Result<String, String> {
     let metadata = revision_file_metadata(path)?;
     let cache = revision_hash_cache();
@@ -673,8 +699,11 @@ fn sha256_file_cached(path: &Path) -> Result<String, String> {
 
 #[cfg(test)]
 fn clear_revision_hash_cache_for_tests() {
-    if let Some(cache) = REVISION_HASH_CACHE.get() {
-        cache.lock().unwrap().clear();
+    #[cfg(not(windows))]
+    {
+        if let Some(cache) = REVISION_HASH_CACHE.get() {
+            cache.lock().unwrap().clear();
+        }
     }
     REVISION_UNCACHED_HASHES.store(0, std::sync::atomic::Ordering::Relaxed);
 }
@@ -1152,9 +1181,16 @@ mod tests {
             REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed);
         let second = read_bundle_revision(&root).unwrap();
         assert_eq!(first, second);
+        #[cfg(not(windows))]
         assert_eq!(
             hashes_after_first,
             REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed)
+        );
+        #[cfg(windows)]
+        assert!(
+            REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed)
+                > hashes_after_first,
+            "Windows revision reads must not substitute mutable metadata for content identity"
         );
 
         write(&root.join("Cavalry.exe"), b"binary-v2");
