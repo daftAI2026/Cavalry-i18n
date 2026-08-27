@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供 apply_language_inner、仅对无 pending journal 的精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、Windows English 原字节恢复与三语 canonical pretty overlay/单次 UAC/typed cleanup warning、全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS English UI/官方还原、首装 launcher gate、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门。
+ * [OUTPUT]: 提供 apply_language_inner、仅对无 pending journal 的精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、生产与测试共用的 Windows English 原字节/三语 canonical overlay pair 构造、单次 UAC/typed cleanup warning、全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS English UI/官方还原、首装 launcher gate、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门。
  * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -128,6 +128,21 @@ fn unique_staging_root() -> PathBuf {
         Utc::now().timestamp_millis(),
         next_staging_nonce()
     ))
+}
+
+#[cfg(target_os = "windows")]
+pub(crate) fn build_windows_language_pairs(
+    effective_lang: &str,
+    source_dir: &Path,
+    english_snapshot_dir: &Path,
+    app_path: &Path,
+    overlay_dir: &Path,
+) -> Result<Vec<patch::CopyPair>, String> {
+    if effective_lang == "en" {
+        patch::build_copy_pairs_checked(source_dir, app_path)
+    } else {
+        patch::build_overlay_pairs(source_dir, english_snapshot_dir, app_path, overlay_dir)
+    }
 }
 
 fn files_match(source: &Path, destination: &Path) -> bool {
@@ -444,16 +459,13 @@ pub fn apply_language_inner<R: CommandRunner>(
         }
     };
     #[cfg(target_os = "windows")]
-    let pairs = if effective_lang == "en" {
-        patch::build_copy_pairs_checked(&source_dir, &app_path)?
-    } else {
-        patch::build_overlay_pairs(
-            &source_dir,
-            &english_snapshot_dir,
-            &app_path,
-            &staging_root.join("overlay"),
-        )?
-    };
+    let pairs = build_windows_language_pairs(
+        effective_lang,
+        &source_dir,
+        &english_snapshot_dir,
+        &app_path,
+        &staging_root.join("overlay"),
+    )?;
     #[cfg(not(any(target_os = "macos", target_os = "windows")))]
     let pairs = if effective_lang == "en" {
         patch::build_copy_pairs_checked(&source_dir, &app_path)?

@@ -13,7 +13,7 @@ parent_storage.rs: 父进程 staging/哈希与保守清理；来源以独占句�
 parent_tests.rs: 父进程隔离合同；覆盖 NotApplicable、取消、无 journal 的零 UAC Noop、pending journal 强制 worker、启动前清理、启动后 staging 保留、0/42/43/44/45/未知、严格映射与连续 marker preimage。
 source_provenance.rs: worker 写入前的只读来源证明；从当前 EXE 有界上溯近邻包根，以编译期四语/runtime 摘要验证普通文件，非 English 重建 current→anchored English→target canonical overlay，English 则要求快照原字节解析值等于同一 anchored English postimage，并验证 QPA action。
 source_provenance_tests.rs: 来源证明对抗合同；覆盖自洽恶意 x64 DLL、字符串/marker 篡改、正确 overlay、四语 catalog 与缺失/重解析 package root。
-source_provenance_parent_tests.rs: patch/parent/verifier 端到端合同；覆盖 zh-Hans→ja canonical overlay、Windows English 快照原字节、真实数字 staging 与 prepare 后篡改拒绝。
+source_provenance_parent_tests.rs: commands 生产 pair 选择/parent/verifier 端到端合同；覆盖 zh-Hans→ja canonical overlay、Windows 非规范格式 English 快照原字节逐字节 staging 与 prepare 后篡改拒绝。
 path_validation.rs: live apply 与 recovery 共用的路径/摘要准入；将 install root containment、root/self 与 dot traversal 拒绝、逐组件 reparse 检查及 lowercase SHA-256 格式收敛为单一 fail-closed 合同。
 journal_manifest.rs: schema v3 版本化 `journal.state`/`.tmp` 崩溃恢复真相；manifest 以 no-share + OPEN_REPARSE_POINT 句柄读取/写入并严格验证每个 entry 的路径、pre/postimage、backup、权限、双向 displaced intent 与 phase；state 是已发布权威代，state.tmp 是提交候选，双代分歧时保守采用 state，state 缺失才接受完整 tmp，并决定下次启动的 commit/rollback/cleanup。
 storage.rs: worker durable journal 与 handle-bound CAS 编排；只消费写前声明的精确 postimage，正向/回滚 Replace 前持久化带 expected before/after 的 displaced intent，文件回滚前恢复由 preimage 证明的原始父目录，全部确定后才恢复 marker，未知当前内容永不覆盖。

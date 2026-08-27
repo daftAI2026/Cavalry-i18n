@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 patch::build_copy_pairs_checked/build_overlay_pairs、parent 真实 classify/prepare/stage 路径、编译期 catalog 与 source_provenance test seam。
- * [OUTPUT]: 证明 zh-Hans 当前态到 ja_JP 的 canonical overlay 与 English 快照原字节经真实 parent staging 后都被 verifier 接受，且同一 staged payload 篡改后被拒绝。
- * [POS]: parent tests 的端到端来源合同；连接上游 canonical overlay、数字 payload staging 与提权 worker 只读 provenance，不模拟复制算法。
+ * [INPUT]: 依赖 commands 生产 Windows pair 构造、parent 真实 classify/prepare/stage 路径、编译期 catalog 与 source_provenance test seam。
+ * [OUTPUT]: 证明 zh-Hans 当前态到 ja_JP 的 canonical overlay 与非规范格式 English 快照原字节经真实生产选择及 parent staging 后都被 verifier 接受并逐字节保真，且同一 staged payload 篡改后被拒绝。
+ * [POS]: parent tests 的端到端来源合同；连接生产语言分支、数字 payload staging 与提权 worker 只读 provenance，不在 fixture 中复制 pair 选择算法。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -10,6 +10,7 @@ use std::{
 };
 
 use crate::{
+    commands::build_windows_language_pairs,
     install::InstallLayout,
     patch::{self, CORE_MAP},
 };
@@ -41,6 +42,27 @@ fn real_parent_staging_accepts_cross_language_zh_hans_to_japanese() {
 fn real_parent_staging_accepts_exact_english_snapshot_bytes() {
     let fixture = ProvenanceFixture::new();
     let prepared = fixture.prepare(Language::English);
+
+    let snapshot = fixture.state_dir.join("en").join(CORE_MAP[0].0);
+    let snapshot_bytes = fs::read(&snapshot).unwrap();
+    let parsed = serde_json::from_slice::<serde_json::Value>(&snapshot_bytes).unwrap();
+    assert_ne!(
+        snapshot_bytes,
+        serde_json::to_vec_pretty(&parsed).unwrap(),
+        "fixture must retain non-canonical English bytes"
+    );
+    let asset_index = prepared
+        .plan
+        .payloads
+        .iter()
+        .position(|record| record.kind == PayloadKind::CoreAsset && record.id == CORE_MAP[0].1)
+        .unwrap();
+    let staged = payload_source_path(&prepared.plan_path, asset_index).unwrap();
+    assert_eq!(
+        fs::read(staged).unwrap(),
+        snapshot_bytes,
+        "English staging must preserve immutable snapshot bytes exactly"
+    );
 
     verify_payload_records_for_test(
         &prepared.plan,
@@ -189,20 +211,17 @@ impl ProvenanceFixture {
             }
             source
         };
-        let target_pairs = if language == Language::English {
-            patch::build_copy_pairs_checked(&source_dir, &self.layout.root).unwrap()
-        } else {
-            patch::build_overlay_pairs(
-                &source_dir,
-                &self.state_dir.join("en"),
-                &self.layout.root,
-                &self
-                    ._temp
-                    .path()
-                    .join(format!("target-overlay-{}", language.as_str())),
-            )
-            .unwrap()
-        };
+        let target_pairs = build_windows_language_pairs(
+            language.as_str(),
+            &source_dir,
+            &self.state_dir.join("en"),
+            &self.layout.root,
+            &self
+                ._temp
+                .path()
+                .join(format!("target-overlay-{}", language.as_str())),
+        )
+        .unwrap();
         assert_eq!(target_pairs.len(), CORE_MAP.len());
         let request = ParentApplyRequest {
             repo_root: &self.package_root,
