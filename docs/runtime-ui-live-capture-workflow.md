@@ -417,6 +417,63 @@ Space + click + drag / Pan
 
 这些字符串来自 `/Applications/Cavalry.app/Contents/Frameworks/libExtensionLayer.dylib` 的 `__TEXT,__cstring`，Cavalry 在 panel/viewport 内部绘制它们，不暴露为 `QLabel::text()`、`QAction::text()` 或 AX 文本节点。翻译表里有不等于会生效；Qt translator 和 widget 遍历都碰不到。
 
+### `Viewport Quality: High`：已批准的 macOS 英文边界
+
+> **范围：macOS-only。** 以下结论仅来自 Cavalry `2.7.2` 在 macOS 上的 runtime/live
+> session。Windows 尚未对 `Viewport Quality: High` 执行对应的 runtime 验证；不得把本记录的
+> 英文保留、`ACCEPTED-ENGLISH-BOUNDARY`、五 action evidence 或截图推断到 Windows，也不得为
+> Windows 作 PASS/ACCEPTED 结论。Windows 必须单独完成该字符串的 runtime 验收后再裁决。
+
+在当前 macOS Transform live session 的三语截图中，`GraphicsViewportWindow` 自绘区域仍可见
+`Viewport Quality: High`。三份 `tools/*.ts` 与 `injector/generated_translations.inc` 都已经存在对应条目：
+
+```text
+zh-Hans  视口质量：高
+zh-Hant  檢視區品質：高
+ja_JP    ビューポート品質：高
+```
+
+这不等于该文字已经注入成功。macOS 当前已证明的 Transform 自绘入口只有以下五个
+`MenuBarManager` action source：
+
+```text
+Insert Keyframe
+Direct Layer Selection
+Play/ Stop
+Pan
+Enable Snapping
+```
+
+它们由 `injector/cavalry_i18n_macos_tool_help_text_path.{h,cpp}` 的 caller/ABI 防火墙
+承接，五位 source mask 为 `0x1f`（31）。`Viewport Quality: High` 不属于这五个入口，
+也没有独立的 macOS vendor caller/ABI 适配路径；因此当前 fail-open，保留厂商英文原文。
+
+证据边界如下：
+
+- `tools/macos-acceptance/drivers/macos_supplemental_acceptance_driver.mm` 的
+  `currentTransformTranslationOracle()` 只验证上述五条译文；`expectedTranslations` 长度为 5，
+  诊断要求五位 mask、零 fallback 和零 renderer failure。
+- `docs/workflows/cavalry-full-ui-100/runs/2026-07-29-macos-eight-surface-investigation.md`
+  的 Transform 记录证明的是五条 approved action，不覆盖 `Viewport Quality: High`；本次 session
+  的对应截图位于 `runs/{lang}/transform/captures/01-transform-tool-help-window-os.png`，属于
+  session-scoped 证据，不是仓库内的 allowlist 输入。
+- `tools/runtime_ui_allowlist.json` 没有声明该字符串；不得为了消除英文残留而把它加入已覆盖翻译
+  allowlist。
+
+当前裁决状态明确记录为：
+
+```text
+ACCEPTED-ENGLISH-BOUNDARY / 需人工裁决
+```
+
+这里的 `ACCEPTED-ENGLISH-BOUNDARY` 只表示“在当前已证明的 macOS 自绘范围之外，英文回退是
+允许且安全的边界”，不表示该字符串已经翻译，也不表示该截图点获得翻译 PASS。若产品范围未来
+要求覆盖它，必须先采证新的精确 vendor caller/ABI 绘制路径，再同步实现、oracle 与 live evidence；
+不能只扩大 `expectedTranslations` 制造必然失败或自证的 oracle。
+
+禁止：全局拦截 `QPainter::drawText`、恢复 `__cstring` 内存替换、仅为通过 coverage 修改
+allowlist，或让未知自绘 source 绕过 fail-open。未知自绘 source 必须继续转发厂商英文原路径。
+
 不要把所有 ExtensionLayer 字符串混成一类：
 
 - Panel 空状态提示可以显示 CJK，但必须通过各平台已采证的精确绘制边界保留原中心点，不能靠改长字面量碰运气。已确认的三句是 `Double click here to import Assets.`、`Drag layers here to see their settings.`、`Use the Create menu to add a layer to your Composition.`。
