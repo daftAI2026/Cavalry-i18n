@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 live support 分片、clone guard、PowerShell/helper 源码与显式 disposable clone/evidence 环境；release 模式还依赖最终 NSIS/provenance 与双 DLL 字节
- * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门；FullSurfaces 只在 TEMP-owned profile 与关键 clone 资源已证明完整后启动；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
- * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 资源不完整、FullSurfaces 未绑定 TEMP-owned profile 或使用不同于最终 NSIS 的 runtime DLL 都先于人工截图结论硬失败
+ * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门；FullSurfaces 只在 TEMP-owned profile 与关键 clone 资源已证明完整后启动；Onboarding/Adjacent 记录验收插件目录是否由本次创建并交给清理事务恢复拓扑；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
+ * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 资源不完整、FullSurfaces 未绑定 TEMP-owned profile、验收插件或其测试创建目录清理失败，或使用不同于最终 NSIS 的 runtime DLL，都先于人工截图结论硬失败
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
     fn describe_panic(payload: &(dyn std::any::Any + Send)) -> String {
@@ -656,11 +656,14 @@
         } else {
             None
         };
+        let mut acceptance_plugin_directory_created = false;
 
         let mut outstanding_processes = BTreeSet::new();
         let exercise = catch_unwind(AssertUnwindSafe(|| {
             if acceptance_plugin.is_some() {
-                let installed = install_acceptance_plugin(&repo, &layout, &guarded_clone)?;
+                let (installed, created_directory) =
+                    install_acceptance_plugin(&repo, &layout, &guarded_clone)?;
+                acceptance_plugin_directory_created = created_directory;
                 if acceptance_plugin.as_deref() != Some(installed.as_path()) {
                     return Err(format!(
                         "acceptance plugin destination mismatch: {}",
@@ -714,7 +717,11 @@
             failures.push(format!("cleanup error: {error}"));
         }
         if let Some(path) = acceptance_plugin.as_deref() {
-            if let Err(error) = remove_acceptance_plugin(&guarded_clone, path) {
+            if let Err(error) = remove_acceptance_plugin(
+                &guarded_clone,
+                path,
+                acceptance_plugin_directory_created,
+            ) {
                 failures.push(format!("acceptance plugin cleanup error: {error}"));
             }
         }
