@@ -11,7 +11,7 @@ windows_live_toolchain.inc.rs: release machine record 的 Windows 工具链命�
 windows_live_tests.inc.rs: Windows live 门入口分片；冻结 helper/driver 禁用原语、profile/Next 转场/清理顺序，在每个 disposable gate 前调用 clone 关键资源 hash guard，并暴露 FullSurfaces、Onboarding、Adjacent 三个 ignored 人工像素复核门；显式 release 环境下只在清理成功后调用 toolchain 分片写入 machine record/inventory，绝不写人工 PASS。
 
 依赖边界:
-support 只服务 ignored integration smoke；`windows_disposable.rs` 不启动进程，四个 `windows_live_*.inc.rs` 只作为父测试模块的职责分片编译，可调用既有 apply/runner，并只读消费 `tools/macos-acceptance/fixtures` 两枚跨平台最小 Assets PNG；所有写入、插件临时部署和 PID 清理都必须经过显式 `%TEMP%` sentinel 与精确身份守卫。
+support 只服务 ignored integration smoke；`windows_disposable.rs` 不启动进程，五个 `windows_live_*.inc.rs` 只作为父测试模块的职责分片编译，可调用既有 apply/runner，并只读消费 `tools/macos-acceptance/fixtures` 两枚跨平台最小 Assets PNG；所有写入、插件临时部署和 PID 清理都必须经过显式 `%TEMP%` sentinel 与精确身份守卫。
 
 法则: 显式目标·双重证明·逐目标守卫·破坏性兜底只限 exact disposable PID
 
