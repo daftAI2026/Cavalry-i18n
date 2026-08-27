@@ -143,6 +143,12 @@ function directory(directoryPath, field) {
   return absolute;
 }
 
+function windowsTempRoot() {
+  // Windows runners may expose TEMP through an 8.3 alias. Canonicalize this
+  // trusted OS root before checking caller-supplied session and clone paths.
+  return directory(fs.realpathSync.native(os.tmpdir()), 'Windows TEMP root');
+}
+
 function sha256File(filePath) {
   return crypto.createHash('sha256').update(fs.readFileSync(filePath)).digest('hex');
 }
@@ -210,10 +216,7 @@ function verifyPngIdentity(value, field, root) {
 
 function resolveSession(input) {
   const root = directory(input, 'Windows acceptance session');
-  // Windows runners may expose TEMP through an 8.3 alias.  Canonicalize the
-  // trusted OS root before enforcing that the caller-supplied session is both
-  // canonical and a strict child of it.
-  const tempRoot = directory(fs.realpathSync.native(os.tmpdir()), 'Windows TEMP root');
+  const tempRoot = windowsTempRoot();
   if (!isStrictChild(root, tempRoot)) fail(`session must be strictly below TEMP: ${root}`);
   const sessionId = path.basename(root);
   if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(sessionId)) fail(`unsafe session id: ${sessionId}`);
@@ -263,7 +266,7 @@ function verifyTarget(target, session) {
     fail('Cavalry clone must finish restored to English with no owned process.');
   }
   const clone = directory(target.clonePath, 'disposable Cavalry clone');
-  const tempRoot = directory(os.tmpdir(), 'Windows TEMP root');
+  const tempRoot = windowsTempRoot();
   if (!isStrictChild(clone, tempRoot)) fail(`disposable Cavalry clone must be below TEMP: ${clone}`);
   const sentinelPath = path.join(clone, CLONE_SENTINEL);
   const sentinel = verifyIdentity(target.cloneSentinel, 'machine.target.cloneSentinel', null, sentinelPath);
