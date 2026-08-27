@@ -1,7 +1,7 @@
 ﻿<#
 [INPUT]: 依赖 Windows PowerShell 5.1 的 UTF-8 BOM 解码约束、显式 PID、位于带 sentinel 的 disposable `%TEMP%` clone 根内的 Cavalry.exe、runtime marker、带 sentinel 的 evidence `%TEMP%` 根与输出 PNG 路径
 [OUTPUT]: 对外提供 Inventory/Capture/WaitForExit/Close/ForceStop 五个 live-smoke 动作：验证 sentinel TEMP clone、精确 PID、marker、DWM 与 evidence 写入链；捕获主窗口及 acceptance state 发布的 exact-HWND Onboarding，并在证据完成后提供 WM_CLOSE/受限强停清理
-[POS]: tools 的 Windows GUI 取证边界；Onboarding/Adjacent 不重选主窗口，正式 Adjacent gate 由 producer-side Qt grab 生成 PNG，本 helper 的 screen-copy 只作诊断且不参与交互；Close 只投递 WM_CLOSE，ForceStop 只在同一 executable/PID 复核且 WM_CLOSE 超时后使用，清理结果不参与翻译 PASS，禁止盲键、UIA、场景脚本、鼠标/坐标交互回退、固定 sleep 或覆盖证据
+[POS]: tools 的 Windows GUI 取证边界；Onboarding/Adjacent 不重选主窗口，正式 Adjacent gate 由 producer-side Qt grab 生成 PNG，本 helper 的 screen-copy 只作诊断且不参与交互；Close 只投递 WM_CLOSE，ForceStop 只在同一 executable/PID 复核且 WM_CLOSE 超时后使用，清理结果不参与翻译 PASS；交互键只能在 exact-HWND 前台门内投递，前台获取采用有界重试，禁止盲键、UIA、场景脚本、鼠标/坐标交互回退、固定 sleep 或覆盖证据
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
 [CmdletBinding()]
@@ -95,6 +95,15 @@ public static class CavalryLiveWindow {
 
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr window);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr window, int command);
+
+    [DllImport("user32.dll")]
+    private static extern bool BringWindowToTop(IntPtr window);
+
+    [DllImport("user32.dll")]
+    private static extern IntPtr SetActiveWindow(IntPtr window);
 
     [DllImport("user32.dll")]
     private static extern IntPtr GetForegroundWindow();
@@ -192,6 +201,14 @@ public static class CavalryLiveWindow {
     }
 
     public static bool RequestForegroundWindow(IntPtr window) {
+        if (window == IntPtr.Zero) {
+            return false;
+        }
+        // Restore/top/active are bounded, best-effort hints; ExactForegroundWindow remains the
+        // only success oracle and the caller never posts a key after a failed exact check.
+        ShowWindow(window, 9);
+        BringWindowToTop(window);
+        SetActiveWindow(window);
         return SetForegroundWindow(window);
     }
 
@@ -205,7 +222,10 @@ public static class CavalryLiveWindow {
         return foregroundProcessId == targetProcessId;
     }
 
-    public static bool PostVirtualKey(IntPtr window, uint virtualKey) {
+    public static bool PostVirtualKey(IntPtr window, uint virtualKey, uint targetProcessId) {
+        if (!ExactForegroundWindow(window, targetProcessId)) {
+            return false;
+        }
         const uint WM_KEYDOWN = 0x0100;
         const uint WM_KEYUP = 0x0101;
         uint scanCode = MapVirtualKey(virtualKey, 0);
@@ -439,7 +459,8 @@ function Wait-ForExactForegroundWindow {
         [string]$Operation
     )
 
-    [void][CavalryLiveWindow]::RequestForegroundWindow($Window)
+    $foregroundAttempt = 0
+    $maxForegroundAttempts = 32
     while ([System.DateTime]::UtcNow -lt $Deadline) {
         $Process.Refresh()
         Assert-Condition -Condition (-not $Process.HasExited) `
@@ -452,6 +473,11 @@ function Wait-ForExactForegroundWindow {
         ) {
             return
         }
+        Assert-Condition `
+            -Condition ($foregroundAttempt -lt $maxForegroundAttempts) `
+            -Message "Could not acquire exact Cavalry HWND focus for $Operation after $maxForegroundAttempts bounded attempts."
+        $foregroundAttempt++
+        [void][CavalryLiveWindow]::RequestForegroundWindow($Window)
         [void][CavalryLiveWindow]::WaitForSingleObject($Process.Handle, 100)
     }
     throw (
@@ -485,14 +511,12 @@ function Prepare-ToolHelperEvidence {
         -Deadline $Deadline `
         -Operation "$Tool Tool preparation"
     Assert-Condition `
-        -Condition ([CavalryLiveWindow]::PostVirtualKey($Window, 0x41)) `
-        -Message 'PostMessage failed while sending the default Edit Shape Tool key A.'
-    Assert-Condition `
-        -Condition ([CavalryLiveWindow]::ExactForegroundWindow(
+        -Condition ([CavalryLiveWindow]::PostVirtualKey(
             $Window,
+            0x41,
             [uint32]$ExpectedProcessId
         )) `
-        -Message 'Refusing Edit Shape Tool evidence because focus changed during exact-HWND key delivery.'
+        -Message 'PostMessage failed while sending the default Edit Shape Tool key A.'
     return 'edit-shape-helper-trigger=exact-hwnd-postmessage-vk-a;path-pixels=manual-review-required'
 }
 

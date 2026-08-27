@@ -82,7 +82,7 @@ Windows development build:
 npm run build:tauri:windows    # Windows NSIS installer
 ```
 
-Windows development requires Windows 10 x64 or newer, Node.js 22+, PowerShell 5.1+, Visual Studio 2022+ with x64 MSVC v143, and CMake 4.2+. The launcher prefers an installed `pwsh` host and otherwise uses the built-in Windows PowerShell.
+Windows development requires Windows 10 x64 or newer, Node.js 24+, PowerShell 5.1+, Visual Studio 2022+ with x64 MSVC v143, and CMake 4.2+. The launcher prefers an installed `pwsh` host and otherwise uses the built-in Windows PowerShell.
 
 > **Note**: Both platform injectors must be built against Qt 6.6.3, matching Cavalry 2.7.2's shipped Qt branch. `tools/cavalry_qt_target.json` is the single version source and maps it to macOS `clang_64` and Windows `msvc2019_64`; use `npm run prepare:qt-sdk:windows` for a clean Windows build.
 

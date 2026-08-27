@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖精确 `--uninstall-restore-english` 参数、共享 state/runtime_paths/operation_lock、commands English 事务与真实 CommandRunner。
- * [OUTPUT]: 提供 NSIS 卸载前无 WebView English 恢复分流；Cavalry 已被卸载时幂等成功，仍存在的安装只有完整语言事务成功才返回 0，缺失状态、UAC 取消、未知运行时或回滚均返回失败。
+ * [OUTPUT]: 提供 NSIS 卸载前无 WebView English 恢复分流；Cavalry 已被卸载或刷新已证明无需修复时幂等成功，typed reconciliationRequired 必须继续完成 English 事务才返回 0，缺失状态、UAC 取消、未知运行时或回滚均返回失败。
  * [POS]: src-tauri/src 的 Windows 控制面卸载边界；“保留翻译”由 NSIS 不调用本入口表达，本入口只承担用户明确选择的“恢复英文并移除自有运行时”。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -75,36 +75,71 @@ fn restore_from_paths(
     let now = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
     let app_path = detect::resolve_install(Path::new(&saved.app_path))?.root;
     let immutable_revision = detect::read_bundle_revision(&app_path)?;
-    let payload = if patch::needs_english_snapshot(
+    if patch::needs_english_snapshot(
         state_dir,
         saved.english_snapshot_provenance.as_ref(),
         &app_path,
         &immutable_revision,
     ) {
-        commands::refresh_english_inner(
+        let refresh = commands::refresh_english_inner(
             repo_root,
             state_dir,
             resource_dir,
             &app_path,
             &mut runner,
             &now,
-        )?
-    } else {
-        commands::apply_language_inner(
-            repo_root,
-            state_dir,
-            resource_dir,
-            &app_path,
-            "en",
-            &mut runner,
-            &now,
-        )?
-    };
-    if payload.ok {
+        )?;
+        return finish_refresh_for_uninstall(refresh, || {
+            commands::apply_language_inner(
+                repo_root,
+                state_dir,
+                resource_dir,
+                &app_path,
+                "en",
+                &mut runner,
+                &now,
+            )
+        });
+    }
+
+    finish_uninstall_action(commands::apply_language_inner(
+        repo_root,
+        state_dir,
+        resource_dir,
+        &app_path,
+        "en",
+        &mut runner,
+        &now,
+    )?)
+}
+
+fn finish_refresh_for_uninstall<F>(
+    refresh: commands::ActionPayload,
+    reconcile: F,
+) -> Result<(), String>
+where
+    F: FnOnce() -> Result<commands::ActionPayload, String>,
+{
+    if !refresh.ok {
+        return finish_uninstall_action(refresh);
+    }
+    if refresh.reconciliation_required {
+        return finish_uninstall_action(reconcile()?);
+    }
+    finish_uninstall_action(refresh)
+}
+
+fn finish_uninstall_action(payload: commands::ActionPayload) -> Result<(), String> {
+    if payload.ok && !payload.reconciliation_required {
         Ok(())
     } else {
         Err(payload.error.unwrap_or_else(|| {
-            "Cavalry English restoration did not commit; uninstall was stopped.".to_string()
+            if payload.reconciliation_required {
+                "Cavalry English restoration still requires runtime reconciliation; uninstall was stopped."
+                    .to_string()
+            } else {
+                "Cavalry English restoration did not commit; uninstall was stopped.".to_string()
+            }
         }))
     }
 }
@@ -121,7 +156,11 @@ fn saved_install_is_absent(saved_app_path: &Path) -> Result<bool, String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{restore_requested, saved_install_is_absent, UNINSTALL_RESTORE_ARGUMENT};
+    use super::{
+        finish_refresh_for_uninstall, finish_uninstall_action, restore_requested,
+        saved_install_is_absent, UNINSTALL_RESTORE_ARGUMENT,
+    };
+    use crate::commands::ActionPayload;
     use std::ffi::OsString;
 
     #[test]
@@ -147,5 +186,40 @@ mod tests {
         std::fs::create_dir_all(&installed_root).unwrap();
         std::fs::write(installed_root.join("Cavalry.exe"), b"fixture").unwrap();
         assert!(!saved_install_is_absent(&installed_root).unwrap());
+    }
+
+    #[test]
+    fn refresh_reconciliation_must_commit_before_uninstall_can_finish() {
+        let mut refresh = ActionPayload::ok_count(38);
+        refresh.reconciliation_required = true;
+        let mut reconciled = false;
+
+        finish_refresh_for_uninstall(refresh, || {
+            reconciled = true;
+            Ok(ActionPayload::ok_lang("en", None))
+        })
+        .unwrap();
+
+        assert!(reconciled);
+    }
+
+    #[test]
+    fn unresolved_reconciliation_never_counts_as_uninstall_success() {
+        let mut payload = ActionPayload::ok_count(38);
+        payload.reconciliation_required = true;
+
+        let error = finish_uninstall_action(payload).unwrap_err();
+
+        assert!(error.contains("still requires runtime reconciliation"));
+    }
+
+    #[test]
+    fn clean_refresh_does_not_run_a_reconciliation_transaction() {
+        let refresh = ActionPayload::ok_count(38);
+
+        finish_refresh_for_uninstall(refresh, || {
+            panic!("clean refresh must not invoke runtime reconciliation")
+        })
+        .unwrap();
     }
 }

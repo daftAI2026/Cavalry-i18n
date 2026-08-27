@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 clean source commit、真实 macos-acceptance PASS-48-OF-48 session、release.config 与目标 tag
- * [OUTPUT]: 写出仅绑定 source commit 与已复验 session 摘要的 evidence；拒绝手工 PASS/摘要参数和自引用 tag commit
+ * [INPUT]: 依赖 clean source commit、真实 macos-acceptance PASS-48-OF-48 session、可选 Windows 原始 session、release.config 与目标 tag
+ * [OUTPUT]: 写出仅绑定 source commit 与已复验 session 摘要的 evidence；Windows 摘要只从重新验证的原始 session 派生，拒绝手工 PASS/摘要参数和自引用 tag commit
  * [POS]: release 两提交协议的 evidence 生成器：先验 source commit，再由唯一 evidence-only commit 承载 tag
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,12 +15,25 @@ const {
   validateEvidence,
   verifyAcceptanceSession,
 } = require('./release_acceptance_contract');
+const {
+  toWindowsAcceptanceRecord,
+  verifyWindowsAcceptanceSession,
+} = require('./windows-acceptance/acceptance_contract');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
 
 function fail(message) { throw new Error(message); }
+function hasOption(name) {
+  return args.some((arg) => arg === name || arg.startsWith(`${name}=`));
+}
 function optionValue(name) {
+  const inline = args.find((arg) => arg.startsWith(`${name}=`));
+  if (inline) {
+    const value = inline.slice(name.length + 1);
+    if (!value) fail(`${name} requires a value.`);
+    return value;
+  }
   const index = args.indexOf(name);
   if (index === -1) return null;
   const value = args[index + 1];
@@ -39,6 +52,9 @@ function main() {
       fail(`${forbidden} is not accepted; evidence is derived only from a verified live session.`);
     }
   }
+  if (hasOption('--windows-acceptance')) {
+    fail('--windows-acceptance is not accepted; pass --windows-session-dir for raw Windows session verification.');
+  }
   const tag = optionValue('--tag');
   const sessionDir = optionValue('--session-dir');
   if (!tag || !sessionDir) fail('--tag and --session-dir are required.');
@@ -54,6 +70,13 @@ function main() {
   const summary = verifyAcceptanceSession(sessionDir, { repoRoot: rootDir });
   if (summary.sourceCommitSha !== sourceHead) {
     fail(`Live session source commit ${summary.sourceCommitSha} does not match current HEAD ${sourceHead}.`);
+  }
+  const windowsSessionDir = optionValue('--windows-session-dir');
+  let windowsAcceptance;
+  if (windowsSessionDir) {
+    windowsAcceptance = toWindowsAcceptanceRecord(
+      verifyWindowsAcceptanceSession(windowsSessionDir, { repoRoot: rootDir, expectedTag: tag })
+    );
   }
   const evidence = validateEvidence({
     schemaVersion: 3,
@@ -74,6 +97,7 @@ function main() {
       sessionManifestSha256: summary.sessionManifestSha256,
       host: summary.host,
     },
+    ...(windowsAcceptance ? { windowsAcceptance } : {}),
     createdAtUtc: new Date().toISOString(),
     createdBy: optionValue('--created-by') || process.env.USER || 'unknown',
   });

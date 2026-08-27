@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
+ * [INPUT]: renderer bridge/ui-text/app.js 与最小 fake DOM、Tauri invoke fake。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与 typed residue warning、干净英文态禁用恢复但英文残留态保留显式清理且复用普通 apply、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -28,7 +28,7 @@ function runtime({
   extract = { ok: true, count: 38 },
   locale = 'en-US',
 } = {}) {
-  const ids = ['appVersion', 'appPath', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreButton', 'permissionButton', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
+  const ids = ['appVersion', 'appPath', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const document = {
@@ -61,6 +61,7 @@ async function flush() { await Promise.resolve(); await new Promise((resolve) =>
 function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
+  vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
   vm.runInNewContext(read('renderer/app.js'), r.context, { filename: 'app.js' });
   return r;
 }
@@ -74,19 +75,42 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
     { value: 'en', label: 'English' }, { value: 'zh-Hans', label: '简体中文' },
     { value: 'zh-Hant', label: '繁體中文' }, { value: 'ja_JP', label: '日本語' },
   ]);
-  assert.equal(r.elements['#languageSelect'].children.length, 4);
-  assert.equal(r.elements['#languageSelect'].children[0].textContent, 'English UI');
+  assert.equal(r.elements['#languageSelect'].children.length, 3);
+  assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hans', 'zh-Hant', 'ja_JP']);
+  assert.equal(r.elements['#languageSelect'].children[0].textContent, '简体中文');
+  assert.equal(r.elements['#statusLabel'].textContent, 'Status');
   assert.equal(status.installationMode, 'modifiedOrUnverified');
   assert.equal(Object.hasOwn(status, 'repoRoot'), false);
 });
 
-test('macOS English UI and official restore are separate explicit transactions', async () => {
-  const english = boot(); await flush();
-  english.elements['#languageSelect'].value = 'en';
-  english.elements['#applyButton'].listeners.get('click')[0]();
-  english.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+test('status panel label follows the selected UI locale', async () => {
+  for (const [locale, expected] of [
+    ['zh-CN', '操作状态'],
+    ['zh-TW', '操作狀態'],
+    ['ja-JP', '操作状況'],
+  ]) {
+    const r = boot({ locale });
+    await flush();
+    assert.equal(r.elements['#statusLabel'].textContent, expected, locale);
+  }
+});
+
+test('English restore is disabled in English and otherwise uses the ordinary apply confirmation', async () => {
+  const english = boot({ status: { currentLang: 'en' } }); await flush();
+  assert.equal(english.elements['#currentLanguage'].textContent, 'English UI');
+  assert.equal(english.elements['#languageSelect'].value, 'zh-Hans', 'English current state keeps a stable target default');
+  assert.equal(english.elements['#restoreEnglishButton'].disabled, true);
+  english.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  assert.equal(english.elements['#modalTitle'].textContent, '');
+  assert.equal(english.calls.filter(({ command }) => command === 'apply_language').length, 0);
+
+  const translated = boot({ status: { currentLang: 'zh-Hans' } }); await flush();
+  assert.equal(translated.elements['#restoreEnglishButton'].disabled, false);
+  translated.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  assert.equal(translated.elements['#modalTitle'].textContent, 'Install language pack?');
+  translated.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
-  assert.deepEqual(JSON.parse(JSON.stringify(english.calls.filter(({ command }) => command === 'apply_language')[0])), {
+  assert.deepEqual(JSON.parse(JSON.stringify(translated.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
   });
 
@@ -116,6 +140,88 @@ test('apply invokes exactly one backend transaction and never exposes a second r
   assert.equal(r.calls.some(({ command }) => command === 'restart_cavalry'), false);
 });
 
+test('refresh detects Windows residue without mutation and only the explicit English restore applies', async () => {
+  const r = boot({
+    status: { platform: 'windows' },
+    extract: { ok: true, count: 38, reconciliationRequired: true },
+    apply: { ok: true, currentLang: 'en' },
+  });
+  await flush();
+
+  r.elements['#extractButton'].listeners.get('click')[0]();
+  await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+  assert.equal(r.elements['#restoreEnglishButton'].disabled, false);
+  assert.equal(r.elements['#applyButton'].disabled, false);
+  assert.match(r.elements['#statusText'].textContent, /runtime residue/i);
+  assert.match(r.elements['#statusText'].textContent, /made no runtime changes/i);
+
+  r.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalTitle'].textContent, 'Install language pack?');
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
+});
+
+test('bootstrap shows typed Windows residue warning without blocking apply or restore', async () => {
+  const windows = boot({
+    status: { platform: 'windows', currentLang: 'en', reconciliationRequired: true },
+  });
+  await flush();
+  assert.equal(windows.elements['#restoreEnglishButton'].disabled, false);
+  assert.equal(windows.elements['#applyButton'].disabled, false);
+  assert.match(windows.elements['#statusText'].textContent, /runtime residue/i);
+  assert.equal(
+    windows.calls.filter(({ command }) => command === 'apply_language').length,
+    0,
+    'bootstrap must not apply implicitly'
+  );
+  windows.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  windows.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(windows.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
+
+  const macos = boot({
+    status: { platform: 'macos', reconciliationRequired: true },
+  });
+  await flush();
+  assert.equal(macos.elements['#applyButton'].disabled, false);
+  assert.doesNotMatch(macos.elements['#statusText'].textContent, /runtime residue/i);
+});
+
+test('bridge exposes typed residue detection without a dedicated reconciliation action', async () => {
+  const r = boot({ extract: { ok: true, count: 38, reconciliationRequired: true } });
+  await flush();
+  const action = await r.window.cavalryI18n.extractEnglish('/Applications/Cavalry.app');
+  assert.equal(action.reconciliationRequired, true);
+  assert.equal(typeof r.window.cavalryI18n.reconcileEnglish, 'undefined');
+});
+
+test('English restore reuses the ordinary UAC retry path', async () => {
+  const r = boot({
+    status: { platform: 'windows', permissionAction: 'requestElevation' },
+    apply: [
+      { ok: false, permissionRequired: true, errorCode: 'permissionRequired' },
+      { ok: true, currentLang: 'en' },
+    ],
+  });
+  await flush();
+  r.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.equal(r.elements['#modalTitle'].textContent, 'System permission required');
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[1])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
+});
+
 test('transport rejection becomes a localized stable status and re-bootstrap attempt', async () => {
   const r = boot({ reject: 'browse_app' }); await flush();
   r.elements['#browseButton'].listeners.get('click')[0]();
@@ -131,7 +237,7 @@ test('startup recovery failure blocks every installation mutation control with a
     startupRecoveryError: 'Cavalry is still running',
   } });
   await flush();
-  for (const id of ['#browseButton', '#extractButton', '#applyButton', '#restoreButton', '#languageSelect']) {
+  for (const id of ['#browseButton', '#extractButton', '#applyButton', '#restoreEnglishButton', '#restoreButton', '#languageSelect']) {
     assert.equal(r.elements[id].disabled, true, `${id} must be blocked`);
   }
   assert.match(r.elements['#statusText'].textContent, /could not be recovered safely/);
@@ -144,6 +250,7 @@ test('macOS incomplete provenance gives a direct reinstall route and never confi
   const r = boot({ status: { installationMode: 'modifiedOrUnverified', needsExtract: true } }); await flush();
   assert.equal(r.elements['#restoreButton'].hidden, false, 'the unavailable restore route remains visible');
   assert.equal(r.elements['#restoreButton'].disabled, true, 'official restore must be unavailable with incomplete provenance');
+  assert.equal(r.elements['#restoreEnglishButton'].disabled, true, 'English restore must be unavailable without a trusted snapshot');
   assert.equal(r.elements['#extractButton'].disabled, true, 'refreshing English must not be offered as a substitute for a required reinstall');
   assert.equal(r.elements['#applyButton'].disabled, true);
   assert.match(r.elements['#statusText'].textContent, /Reinstall Cavalry from the official installer/);
@@ -151,6 +258,8 @@ test('macOS incomplete provenance gives a direct reinstall route and never confi
   r.elements['#restoreButton'].listeners.get('click')[0]();
   assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false, 'a synthetic click cannot bypass the disabled restore route');
   assert.match(r.elements['#statusText'].textContent, /cannot be safely restored/);
+  r.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false, 'English restore must not bypass missing snapshot proof');
 });
 
 test('apply composes localized warning codes and never renders backend warning prose', async () => {
@@ -193,7 +302,7 @@ test('state durability warning blocks mutations until an explicit successful sna
   assert.equal(r.elements['#statusText'].dataset.tone, 'warning');
   assert.match(r.elements['#statusText'].textContent, /Refresh the English snapshot again/);
   assert.doesNotMatch(r.elements['#statusText'].textContent, /state path|raw fsync/i);
-  for (const id of ['#browseButton', '#applyButton', '#restoreButton', '#languageSelect']) {
+  for (const id of ['#browseButton', '#applyButton', '#restoreEnglishButton', '#restoreButton', '#languageSelect']) {
     assert.equal(r.elements[id].disabled, true, `${id} must stay blocked pending durability`);
   }
   assert.equal(r.elements['#extractButton'].disabled, false, 'Refresh is the only retry control');
@@ -211,7 +320,7 @@ test('state durability warning blocks mutations until an explicit successful sna
   assert.equal(r.calls.filter(({ command }) => command === 'extract_english').length, 2);
   assert.equal(r.elements['#statusText'].dataset.tone, 'success');
   assert.match(r.elements['#statusText'].textContent, /English snapshot refreshed \(38 files\)/);
-  for (const id of ['#browseButton', '#applyButton', '#restoreButton', '#languageSelect']) {
+  for (const id of ['#browseButton', '#applyButton', '#restoreEnglishButton', '#restoreButton', '#languageSelect']) {
     assert.equal(r.elements[id].disabled, false, `${id} should unlock after durability retry`);
   }
 });

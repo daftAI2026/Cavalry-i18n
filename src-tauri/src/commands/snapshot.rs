@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 detect/install/patch/state、Windows QPA 只读证据、CommandRunner 与 context 的 packaged language source 定位。
- * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、采集后收敛、显式 state-directory durability retry、legacy provenance 迁移及 apply 前快照门。
- * [POS]: commands 的 English 安装真相层；JSON 与原厂 QPA 共同证明现实，marker 仅可被判为待修元数据，任何未知/ACTIVE 运行时仍 fail closed。
+ * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、由单次采集快照 gate 返回分类的 typed reconciliationRequired 标记、显式 state-directory durability retry、apply 前快照门，并委托 snapshot_legacy 识别/迁移旧 provenance；用户触发的 refresh/extract 只验证并捕获备份，不恢复 pending 事务。
+ * [POS]: commands 的 English 安装真相层；JSON 与原厂 QPA 共同证明现实，marker 仅可被判为待修元数据，任何未知/ACTIVE 运行时仍 fail closed；pending macOS transaction recovery 由 apply/startup recovery 所有，避免刷新路径关闭 Cavalry 或写安装包。
  * [FAIL-CLOSED]: Windows 仅接受 Stock，或带有有效 manifest phase 的 Recover；vendor hash 不能单独证明英文运行时，非法/缺失 manifest 必须在 snapshot 前拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -19,6 +19,14 @@ use super::{
     context::language_source_dir,
     contract::ActionPayload,
     status::{project_state_with_bundle, read_state_for_mutation},
+};
+
+#[path = "snapshot_legacy.rs"]
+mod snapshot_legacy;
+#[cfg(all(test, target_os = "windows"))]
+pub(crate) use snapshot_legacy::legacy_snapshot_is_proven_with_qpa_inspector;
+pub(crate) use snapshot_legacy::{
+    has_complete_snapshot_identity, legacy_snapshot_is_proven, migrate_legacy_snapshot_if_proven,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -190,7 +198,10 @@ pub(crate) fn project_legacy_snapshot_provenance(
     version: &str,
     immutable_revision: &str,
 ) -> State {
-    if current.english_snapshot_provenance.is_some()
+    if current
+        .english_snapshot_provenance
+        .as_ref()
+        .is_some_and(has_complete_snapshot_identity)
         || app_path.as_os_str().is_empty()
         || immutable_revision.is_empty()
     {
@@ -250,13 +261,43 @@ fn capture_clean_english_snapshot<R: CommandRunner>(
     immutable_revision: &str,
     runner: &mut R,
 ) -> Result<(usize, State, Option<String>), String> {
+    let ensure_clean = |repo_root: &Path, resource_dir: &Path, app_path: &Path| {
+        ensure_clean_english_install(repo_root, resource_dir, app_path)
+    };
+    capture_clean_english_snapshot_with_check(
+        repo_root,
+        state_dir,
+        resource_dir,
+        state,
+        app_path,
+        immutable_revision,
+        runner,
+        &ensure_clean,
+    )
+    .map(|(count, state, warning, _disposition)| (count, state, warning))
+}
+
+fn capture_clean_english_snapshot_with_check<R, F>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    state: State,
+    app_path: &Path,
+    immutable_revision: &str,
+    runner: &mut R,
+    ensure_clean: &F,
+) -> Result<(usize, State, Option<String>, CleanEnglishDisposition), String>
+where
+    R: CommandRunner,
+    F: Fn(&Path, &Path, &Path) -> Result<CleanEnglishDisposition, String>,
+{
     if immutable_revision.is_empty() {
         return Err(
             "English extraction refused: Cavalry immutable revision could not be established."
                 .to_string(),
         );
     }
-    ensure_clean_english_install(repo_root, resource_dir, app_path)?;
+    let disposition = ensure_clean(repo_root, resource_dir, app_path)?;
     #[cfg(target_os = "macos")]
     if InstallLayout::from_root(app_path).platform == InstallPlatform::Macos {
         let english_source = language_source_dir(repo_root, resource_dir, "en");
@@ -281,7 +322,7 @@ fn capture_clean_english_snapshot<R: CommandRunner>(
             ..state.clone()
         };
         let (next, warning) = commit_or_confirm_snapshot_state(state_dir, state, candidate)?;
-        return Ok((prepared.english_count, next, warning));
+        return Ok((prepared.english_count, next, warning, disposition));
     }
 
     #[cfg(not(target_os = "macos"))]
@@ -308,7 +349,7 @@ fn capture_clean_english_snapshot<R: CommandRunner>(
         },
     )?;
     let warning = outcome.warning().map(ToString::to_string);
-    Ok((capture.count, outcome.into_state(), warning))
+    Ok((capture.count, outcome.into_state(), warning, disposition))
 }
 
 fn commit_or_confirm_snapshot_state(
@@ -360,8 +401,32 @@ fn extract_english_inner_with_runner<R: CommandRunner>(
     app_path: &Path,
     runner: &mut R,
 ) -> Result<(usize, Option<String>), String> {
-    #[cfg(target_os = "macos")]
-    crate::privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
+    let ensure_clean = |repo_root: &Path, resource_dir: &Path, app_path: &Path| {
+        ensure_clean_english_install(repo_root, resource_dir, app_path)
+    };
+    extract_english_inner_with_runner_and_check(
+        repo_root,
+        state_dir,
+        resource_dir,
+        app_path,
+        runner,
+        &ensure_clean,
+    )
+    .map(|(count, warning, _disposition)| (count, warning))
+}
+
+fn extract_english_inner_with_runner_and_check<R, F>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    runner: &mut R,
+    ensure_clean: &F,
+) -> Result<(usize, Option<String>, CleanEnglishDisposition), String>
+where
+    R: CommandRunner,
+    F: Fn(&Path, &Path, &Path) -> Result<CleanEnglishDisposition, String>,
+{
     let app_path = detect::resolve_verified_install(app_path)
         .map_err(|error| error.to_string())?
         .root;
@@ -375,7 +440,7 @@ fn extract_english_inner_with_runner<R: CommandRunner>(
         &version,
         &immutable_revision,
     );
-    let (count, _, warning) = capture_clean_english_snapshot(
+    let (count, _, warning, disposition) = capture_clean_english_snapshot_with_check(
         repo_root,
         state_dir,
         resource_dir,
@@ -383,8 +448,9 @@ fn extract_english_inner_with_runner<R: CommandRunner>(
         &app_path,
         &immutable_revision,
         runner,
+        ensure_clean,
     )?;
-    Ok((count, warning))
+    Ok((count, warning, disposition))
 }
 
 pub(crate) fn refresh_english_inner<R: CommandRunner>(
@@ -395,38 +461,47 @@ pub(crate) fn refresh_english_inner<R: CommandRunner>(
     runner: &mut R,
     now: &str,
 ) -> Result<ActionPayload, String> {
-    #[cfg(target_os = "macos")]
-    crate::privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
     let app_path = detect::resolve_verified_install(app_path)
         .map_err(|error| error.to_string())?
         .root;
-    let disposition = ensure_clean_english_install(repo_root, resource_dir, &app_path)?;
-    let (count, state_warning) =
-        extract_english_inner_with_runner(repo_root, state_dir, resource_dir, &app_path, runner)?;
-    if disposition != CleanEnglishDisposition::NeedsWindowsReconciliation {
-        let mut payload = ActionPayload::ok_count(count);
-        payload.warning = state_warning;
-        return Ok(payload);
-    }
-
-    let mut payload = super::apply::apply_language_inner(
+    let _ = now;
+    let ensure_clean = |repo_root: &Path, resource_dir: &Path, app_path: &Path| {
+        ensure_clean_english_install(repo_root, resource_dir, app_path)
+    };
+    refresh_english_inner_with_clean_check(
         repo_root,
         state_dir,
         resource_dir,
         &app_path,
-        "en",
         runner,
-        now,
+        &ensure_clean,
+    )
+}
+
+fn refresh_english_inner_with_clean_check<R, F>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    runner: &mut R,
+    ensure_clean: &F,
+) -> Result<ActionPayload, String>
+where
+    R: CommandRunner,
+    F: Fn(&Path, &Path, &Path) -> Result<CleanEnglishDisposition, String>,
+{
+    let (count, state_warning, disposition) = extract_english_inner_with_runner_and_check(
+        repo_root,
+        state_dir,
+        resource_dir,
+        app_path,
+        runner,
+        ensure_clean,
     )?;
-    if payload.ok {
-        payload.count = Some(count);
-        payload.warning = match (payload.warning, state_warning) {
-            (Some(existing), Some(state_warning)) => Some(format!("{existing} {state_warning}")),
-            (Some(existing), None) => Some(existing),
-            (None, Some(state_warning)) => Some(state_warning),
-            (None, None) => None,
-        };
-    }
+    let mut payload = ActionPayload::ok_count(count);
+    payload.warning = state_warning;
+    payload.reconciliation_required =
+        disposition == CleanEnglishDisposition::NeedsWindowsReconciliation;
     Ok(payload)
 }
 
@@ -513,142 +588,5 @@ pub(crate) fn extract_english_snapshot_or_throw<R: CommandRunner>(
 }
 
 #[cfg(test)]
-mod snapshot_state_tests {
-    use super::*;
-
-    #[test]
-    fn unchanged_snapshot_reconfirms_directory_durability_and_surfaces_failure() {
-        let temp = tempfile::tempdir().unwrap();
-        let current = State {
-            app_path: "/Applications/Cavalry.app".to_string(),
-            cavalry_revision: "revision".to_string(),
-            ..State::default()
-        };
-        let mut called = false;
-        let (next, warning) = commit_or_confirm_snapshot_state_with(
-            temp.path(),
-            current.clone(),
-            current.clone(),
-            |path| {
-                called = true;
-                Ok(Some(state::StateWriteWarning::DirectorySyncAfterCommit {
-                    directory: path.to_path_buf(),
-                    detail: "injected retry fsync failure".to_string(),
-                }))
-            },
-        )
-        .unwrap();
-
-        assert!(called, "no-op snapshot must execute the durability retry");
-        assert_eq!(next, current);
-        assert!(warning
-            .as_deref()
-            .is_some_and(|warning| warning.contains("injected retry fsync failure")));
-        assert!(temp.path().read_dir().unwrap().next().is_none());
-    }
-}
-
-#[cfg(all(test, target_os = "windows"))]
-mod windows_reconciliation_tests {
-    use super::*;
-    use std::path::Path;
-
-    fn write(path: &Path, bytes: &[u8]) {
-        fs::create_dir_all(path.parent().unwrap()).unwrap();
-        fs::write(path, bytes).unwrap();
-    }
-
-    fn vendor_reinstall_recovery(
-        _layout: &InstallLayout,
-    ) -> Result<crate::windows_qpa::QpaInspection, String> {
-        Ok(crate::windows_qpa::QpaInspection {
-            state: crate::windows_qpa::QpaDeploymentState::Recover,
-            phase: Some(crate::windows_qpa::QpaManifestPhase::Active),
-            current_qwindows_sha256: Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256.to_string()),
-            detail: "vendor reinstall left owned recovery metadata".to_string(),
-        })
-    }
-
-    fn invalid_manifest_recovery(
-        _layout: &InstallLayout,
-    ) -> Result<crate::windows_qpa::QpaInspection, String> {
-        Ok(crate::windows_qpa::QpaInspection {
-            state: crate::windows_qpa::QpaDeploymentState::Recover,
-            phase: None,
-            current_qwindows_sha256: Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256.to_string()),
-            detail: "the durable QPA manifest is invalid".to_string(),
-        })
-    }
-
-    #[test]
-    fn proven_english_with_stale_translated_marker_requires_reconciliation() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("repo");
-        let app = temp.path().join("Cavalry");
-        write(&app.join("Cavalry.exe"), b"fixture executable");
-        for (source, target) in crate::patch::CORE_MAP {
-            write(
-                &repo.join("languages/en").join(source),
-                br#"{"value":"en"}"#,
-            );
-            write(&app.join("assets").join(target), br#"{"value":"en"}"#);
-        }
-        write(&app.join(crate::install::LANG_MARKER_NAME), b"zh-Hant\n");
-
-        let disposition = ensure_clean_english_install_with_qpa_inspector(
-            &repo,
-            &repo,
-            &app,
-            vendor_reinstall_recovery,
-        )
-        .unwrap();
-
-        assert_eq!(
-            disposition,
-            CleanEnglishDisposition::NeedsWindowsReconciliation
-        );
-
-        let projected = project_proven_english_state_with_qpa_inspector(
-            &repo,
-            &repo,
-            &app,
-            State {
-                current_lang: "zh-Hant".to_string(),
-                ..State::default()
-            },
-            vendor_reinstall_recovery,
-        );
-        assert_eq!(projected.current_lang, "en");
-        assert_eq!(
-            fs::read_to_string(app.join(crate::install::LANG_MARKER_NAME)).unwrap(),
-            "zh-Hant\n",
-            "read-only status projection must not mutate Program Files"
-        );
-    }
-
-    #[test]
-    fn invalid_manifest_recovery_is_rejected_before_english_snapshot_capture() {
-        let temp = tempfile::tempdir().unwrap();
-        let repo = temp.path().join("repo");
-        let app = temp.path().join("Cavalry");
-        write(&app.join("Cavalry.exe"), b"fixture executable");
-        for (source, target) in crate::patch::CORE_MAP {
-            write(
-                &repo.join("languages/en").join(source),
-                br#"{"value":"en"}"#,
-            );
-            write(&app.join("assets").join(target), br#"{"value":"en"}"#);
-        }
-        write(&app.join(crate::install::LANG_MARKER_NAME), b"en\n");
-
-        let error = ensure_clean_english_install_with_qpa_inspector(
-            &repo,
-            &repo,
-            &app,
-            invalid_manifest_recovery,
-        )
-        .unwrap_err();
-
-        assert!(error.contains("not proven stock"), "{error}");
-    }
-}
+#[path = "snapshot_tests.rs"]
+mod snapshot_tests;

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖安装布局、语言 apply、English baseline、Qt 测试 profile、acceptance-only plugin 字节、tools/macos-acceptance/fixtures 的双平台 Assets 媒体与 exact-PID/HWND 清理
- * [OUTPUT]: 在父测试模块内提供语言安装/验证、现场启动、验收插件临时部署、三语编排、WM_CLOSE/ForceStop 清理及失败后 English 恢复
- * [POS]: src-tauri/tests/support 的 live-clone 事务编排分片；所有写入均经过 disposable TEMP 根与 reparse 守卫
+ * [INPUT]: 依赖安装布局、语言 apply、English baseline、Onboarding/Adjacent 专用 Qt 测试 profile、TEMP-owned FullSurfaces profile、acceptance-only plugin 字节、clone guard、tools/macos-acceptance/fixtures 的双平台 Assets 媒体与 exact-PID/HWND 清理
+ * [OUTPUT]: 在父测试模块内提供语言安装/验证、现场启动、验收插件临时部署、三语编排、WM_CLOSE/ForceStop 清理与 English 恢复
+ * [POS]: src-tauri/tests/support 的 live-clone 事务编排分片；FullSurfaces launch 覆盖到 run-root 下的 disposable TEMP profile，Onboarding/Adjacent 使用 sentinel-owned qttest，所有 clone/evidence 写入均经过 disposable TEMP 根与 reparse 守卫
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
     fn find_node_type<'a>(
@@ -652,6 +652,7 @@
         guarded_clone: &GuardedTempRoot,
         baseline_pairs: &[CopyPair],
         baseline: &BTreeMap<PathBuf, Vec<u8>>,
+        capture_mode: LiveCaptureMode,
         runner: &mut RealCommandRunner,
         outstanding_processes: &mut BTreeSet<u32>,
     ) -> Result<(), String> {
@@ -734,8 +735,10 @@
         if let Err(error) = require_no_cavalry_processes(runner, helper, "final global audit") {
             failures.push(error);
         }
-        if let Err(error) = cleanup_qt_test_profile() {
-            failures.push(format!("Qt test profile cleanup failed: {error}"));
+        if capture_mode != LiveCaptureMode::FullSurfaces {
+            if let Err(error) = cleanup_qt_test_profile() {
+                failures.push(format!("Qt test profile cleanup failed: {error}"));
+            }
         }
         if failures.is_empty() {
             Ok(())

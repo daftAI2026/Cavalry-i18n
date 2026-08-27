@@ -82,7 +82,7 @@ Windows 開發構建：
 npm run build:tauri:windows    # Windows NSIS 安裝器
 ```
 
-Windows 開發要求 Windows 10 x64 或更高版本、Node.js 22+、PowerShell 5.1+、帶 x64 MSVC v143 的 Visual Studio 2022+，以及 CMake 4.2+。啟動器優先使用已安裝的 `pwsh`，否則使用系統內建的 Windows PowerShell。
+Windows 開發要求 Windows 10 x64 或更高版本、Node.js 24+、PowerShell 5.1+、帶 x64 MSVC v143 的 Visual Studio 2022+，以及 CMake 4.2+。啟動器優先使用已安裝的 `pwsh`，否則使用系統內建的 Windows PowerShell。
 
 > **注意**：兩條平台 injector 都必須基於 Qt 6.6.3 構建，以匹配 Cavalry 2.7.2 隨附的 Qt 分支。`tools/cavalry_qt_target.json` 是唯一版本真相，並分別投影到 macOS `clang_64` 與 Windows `msvc2019_64`；clean Windows 構建使用 `npm run prepare:qt-sdk:windows`。
 

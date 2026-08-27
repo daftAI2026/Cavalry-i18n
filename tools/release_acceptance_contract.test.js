@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: release_acceptance_contract、evidence/seal CLI 与临时 21-run/48-point session fixture
- * [OUTPUT]: 覆盖真实 session 关系复验、证据附加字段/篡改拒绝、seal evidence/asset/notarization 绑定
+ * [OUTPUT]: 覆盖真实 session 关系复验、Windows 原始 session 入口、证据附加字段/篡改拒绝、seal evidence/asset/notarization 绑定
  * [POS]: release-bound live acceptance 的对抗回归测试；不启动 Cavalry、不制造可发布 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -593,14 +593,87 @@ test('evidence schema is exact and cannot add a hand-written PASS note', () => {
   }
 });
 
+test('Windows acceptance stays optional for ordinary evidence but is mandatory for a Windows release check', () => {
+  const fixture = makeSession();
+  try {
+    const evidence = evidenceFrom(verifyAcceptanceSession(fixture.session));
+    assert.doesNotThrow(() => validateEvidence(evidence));
+    assert.throws(
+      () => validateEvidence(evidence, { requireWindows: true }),
+      /Windows acceptance is required when the release declares a Windows artifact/
+    );
+  } finally {
+    fs.rmSync(fixture.temp, { recursive: true, force: true });
+  }
+});
+
+test('release evidence CLIs reject portable Windows summary inputs', () => {
+  for (const script of [
+    'tools/create_release_acceptance_evidence.js',
+    'tools/verify_release_acceptance_evidence.js',
+  ]) {
+    const source = fs.readFileSync(path.join(repoRoot, script), 'utf8');
+    assert.match(
+      source,
+      /args\.find\(\(arg\) => arg\.startsWith\(`\$\{name\}=`\)\)/,
+      `${script} must parse --windows-session-dir=<path> instead of silently skipping it`
+    );
+    for (const option of ['--windows-acceptance', '--windows-acceptance=summary.json']) {
+      const argv = option.includes('=') ? [option] : [option, 'summary.json'];
+      const result = spawnSync(
+        process.execPath,
+        [path.join(repoRoot, script), ...argv],
+        { cwd: repoRoot, encoding: 'utf8' }
+      );
+      assert.notEqual(result.status, 0, `${script} must reject summary input`);
+      assert.match(
+        `${result.stderr}\n${result.stdout}`,
+        /--windows-acceptance is not accepted; pass --windows-session-dir for raw Windows session verification\./,
+        `${script} must direct callers to raw session verification`
+      );
+    }
+  }
+});
+
 test('seal creator consumes evidence, notarization, and exact asset bytes', () => {
   const fixture = makeSession();
   try {
     const summary = verifyAcceptanceSession(fixture.session);
     const evidencePath = path.join(fixture.temp, `${TAG}.evidence.json`);
-    fs.writeFileSync(evidencePath, `${JSON.stringify(evidenceFrom(summary), null, 2)}\n`);
     const assets = ['a.dmg', 'x.dmg', 'w.exe'].map((name) => path.join(fixture.temp, name));
     assets.forEach((file, index) => fs.writeFileSync(file, `asset-${index}`));
+    const windowsAcceptance = {
+      schemaVersion: 1,
+      kind: 'WindowsReleaseAcceptance',
+      tag: TAG,
+      result: 'PASS-24-OF-24',
+      matrix: '24-screenshot/24-point',
+      profile: 'windows-onboarding-adjacent-v1',
+      producer: 'tools/windows-acceptance',
+      sessionId: 'WINDOWS_SESSION_001',
+      sourceCommitSha: SOURCE_COMMIT,
+      targetCavalryVersion: '2.7.2',
+      qtVersion: '6.6.3',
+      architecture: 'x86_64',
+      finalRecord: { bytes: 1, sha256: '1'.repeat(64) },
+      machineRecord: { bytes: 1, sha256: '2'.repeat(64) },
+      manualReview: { bytes: 1, sha256: '3'.repeat(64) },
+      sessionSentinel: { bytes: 1, sha256: '4'.repeat(64) },
+      sessionManifestSha256: '5'.repeat(64),
+      installer: { fileName: 'Cavalry.Language.Switcher_x64-setup.exe', bytes: fs.statSync(assets[2]).size, sha256: sha256(assets[2]) },
+      provenance: { fileName: 'Cavalry.Language.Switcher_x64-setup.exe.provenance.json', bytes: 1, sha256: '6'.repeat(64) },
+      shippedDlls: {
+        generic: { relativePath: 'injector/windows/generic/cavalryi18n.dll', bytes: 1, sha256: '7'.repeat(64) },
+        qpa: { relativePath: 'injector/windows/qpa/qwindows.dll', bytes: 1, sha256: '8'.repeat(64) },
+      },
+      runner: {
+        os: 'win32', arch: 'x64', runnerOs: 'Windows Server 2022', runnerArch: 'X64', imageOs: 'win22', imageVersion: '20260801.1',
+        node: 'v22.14.0', npm: '10.9.2', rustc: 'rustc 1.97.1', cargo: 'cargo 1.97.1', cmake: '4.2.0', powershell: '5.1.19041.6456',
+      },
+    };
+    const evidence = evidenceFrom(summary);
+    evidence.windowsAcceptance = windowsAcceptance;
+    fs.writeFileSync(evidencePath, `${JSON.stringify(evidence, null, 2)}\n`);
     const sealPath = path.join(fixture.temp, 'ReleaseAcceptanceSeal.json');
     const attestationPath = path.join(fixture.temp, `${TAG}.acceptance-attestation.json`);
     const sbomPath = path.join(fixture.temp, 'CycloneDX.json');

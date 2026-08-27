@@ -4,6 +4,7 @@
  * [POS]: src-tauri/tests/support 的现场捕获分片；只编入 ignored Windows live gate，不单独启动进程或写未守卫路径
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+// ScreenshotEvidence carries PID/HWND so the release machine record can be derived without hand-written inventory.
     const SMOKE_APP_ENV: &str = "CAVALRY_I18N_WINDOWS_SMOKE_APP";
     const EVIDENCE_ROOT_ENV: &str = "CAVALRY_I18N_WINDOWS_LIVE_EVIDENCE_DIR";
     const LANGUAGE_FILTER_ENV: &str = "CAVALRY_I18N_WINDOWS_LIVE_LANGUAGE";
@@ -150,6 +151,8 @@
     struct ScreenshotEvidence {
         language: String,
         scenario: String,
+        process_id: u32,
+        window_handle: String,
         path: PathBuf,
         sha256: String,
         width: u32,
@@ -472,6 +475,8 @@
         Ok(ScreenshotEvidence {
             language: language.to_string(),
             scenario: capture_scenario.to_string(),
+            process_id,
+            window_handle: result.window_handle,
             path: output.to_path_buf(),
             sha256,
             width: result.width,

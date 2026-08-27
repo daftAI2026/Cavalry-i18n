@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch、startup recovery 诊断与 snapshot 安装真相/provenance 迁移。
- * [OUTPUT]: 提供状态解析、pending macOS recovery 的零写入阻断 payload、stale Windows marker 的只读 English 投影、安装选择、Windows 权限探测与 renderer payload。
- * [POS]: commands 的状态层；pending recovery 时禁止普通同步写入，macOS 轮询始终只读且不以探针文件破坏 bundle seal。
+ * [OUTPUT]: 提供状态解析、pending macOS recovery 的零写入阻断 payload、stale Windows marker 的只读 English 投影与每次 status 重算的 reconciliationRequired、安装选择、Windows 权限探测与 renderer payload。
+ * [POS]: commands 的状态层；pending recovery 时禁止普通同步写入，macOS 轮询始终只读且不以探针文件破坏 bundle seal，Windows typed reconciliation 不依赖一次会话内存。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(not(target_os = "macos"))]
@@ -22,7 +22,9 @@ use crate::{
 use super::{
     context::{language_choices_from_roots, language_root_candidates, AppPaths},
     contract::{BrowsePayload, BundleDiagnostics, StatusPayload},
-    snapshot::{project_legacy_snapshot_provenance, project_proven_english_state},
+    snapshot::{
+        ensure_clean_english_install, project_legacy_snapshot_provenance, CleanEnglishDisposition,
+    },
 };
 
 #[cfg(not(target_os = "macos"))]
@@ -196,7 +198,16 @@ pub(crate) fn resolved_state(
     state_dir: &Path,
     resource_dir: &Path,
     candidates: impl IntoIterator<Item = PathBuf>,
-) -> Result<(PathBuf, State, String, String), String> {
+) -> Result<
+    (
+        PathBuf,
+        State,
+        String,
+        String,
+        Option<CleanEnglishDisposition>,
+    ),
+    String,
+> {
     let existing_state = read_state_projection(state_dir)?;
     let discovered = detect::find_cavalry_app_from_candidates(&existing_state.app_path, candidates);
     let app_path = if discovered.as_os_str().is_empty() {
@@ -217,7 +228,7 @@ pub(crate) fn resolved_state(
         &version,
         &immutable_revision,
     );
-    let state = project_legacy_snapshot_provenance(
+    let mut state = project_legacy_snapshot_provenance(
         repo_root,
         state_dir,
         resource_dir,
@@ -227,8 +238,17 @@ pub(crate) fn resolved_state(
         &version,
         &immutable_revision,
     );
-    let state = project_proven_english_state(repo_root, resource_dir, &app_path, state);
-    Ok((app_path, state, version, immutable_revision))
+    let clean_disposition = ensure_clean_english_install(repo_root, resource_dir, &app_path).ok();
+    if clean_disposition.is_some() {
+        state.current_lang = "en".to_string();
+    }
+    Ok((
+        app_path,
+        state,
+        version,
+        immutable_revision,
+        clean_disposition,
+    ))
 }
 
 fn read_state_projection(state_dir: &Path) -> Result<State, String> {
@@ -253,7 +273,7 @@ pub(crate) fn status_for_paths(
     candidates: Vec<PathBuf>,
 ) -> Result<StatusPayload, String> {
     let language_roots = language_root_candidates(repo_root, resource_dir);
-    let (app_path, state, version, immutable_revision) = resolved_state(
+    let (app_path, state, version, immutable_revision, clean_disposition) = resolved_state(
         repo_root,
         state_dir,
         resource_dir,
@@ -275,6 +295,34 @@ pub(crate) fn status_for_paths(
     };
 
     let permission_granted = probe_app_management_permission(&app_path);
+    let reconciliation_required = {
+        #[cfg(target_os = "windows")]
+        {
+            matches!(
+                clean_disposition,
+                Some(CleanEnglishDisposition::NeedsWindowsReconciliation)
+            )
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            false
+        }
+    };
+    let needs_extract = !app_path.as_os_str().is_empty()
+        && super::snapshot::needs_english_snapshot(
+            state_dir,
+            state.english_snapshot_provenance.as_ref(),
+            &app_path,
+            &immutable_revision,
+        )
+        && !super::snapshot::legacy_snapshot_is_proven(
+            repo_root,
+            state_dir,
+            resource_dir,
+            &state,
+            &app_path,
+            &immutable_revision,
+        );
     Ok(StatusPayload {
         app_management_granted: permission_granted,
         app_path: app_path.to_string_lossy().to_string(),
@@ -287,15 +335,10 @@ pub(crate) fn status_for_paths(
             .collect(),
         diagnostics,
         languages: language_choices_from_roots(&language_roots),
-        needs_extract: !app_path.as_os_str().is_empty()
-            && super::snapshot::needs_english_snapshot(
-                state_dir,
-                state.english_snapshot_provenance.as_ref(),
-                &app_path,
-                &immutable_revision,
-            ),
+        needs_extract,
         permission_action: permission_action(&app_path, permission_granted).to_string(),
         platform: platform_name().to_string(),
+        reconciliation_required,
         repo_root: repo_root.to_string_lossy().to_string(),
         version,
     })
@@ -374,6 +417,7 @@ fn startup_recovery_blocked_status(
         needs_extract: true,
         permission_action: "none".to_string(),
         platform: platform_name().to_string(),
+        reconciliation_required: false,
         repo_root: paths.repo_root.to_string_lossy().to_string(),
         version,
     }

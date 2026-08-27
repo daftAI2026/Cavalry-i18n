@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、稳定 errorCode、可组合 warningCodes 与 camelCase JSON shape contract tests
- * [POS]: src-tauri/tests 的 renderer API 守门，保持六命令和旧字段兼容，并显式暴露平台差异、可本土化错误与非致命清理 codes
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、稳定 errorCode、可组合 warningCodes、Windows residue reconciliationRequired 与 camelCase JSON shape contract tests
+ * [POS]: src-tauri/tests 的 renderer API 守门，保持六命令和旧字段兼容，并显式暴露平台差异、可本土化错误、非致命清理 codes 与只读 Windows runtime residue 检测
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::commands::{registered_command_names, ActionPayload, StatusPayload};
@@ -31,6 +31,7 @@ fn command_payload_uses_renderer_compatible_camel_case() {
             "Language files were applied; cleanup residual remains at C:\\Temp\\backup".into(),
         ),
         permission_required: true,
+        reconciliation_required: true,
         error: None,
         error_code: Some("cavalryStillRunning".into()),
         warning_code: Some("restartFailed".into()),
@@ -44,6 +45,7 @@ fn command_payload_uses_renderer_compatible_camel_case() {
         "Language files were applied; cleanup residual remains at C:\\Temp\\backup"
     );
     assert_eq!(value["permissionRequired"], true);
+    assert_eq!(value["reconciliationRequired"], true);
     assert_eq!(value["errorCode"], "cavalryStillRunning");
     assert_eq!(value["warningCode"], "restartFailed");
     assert_eq!(
@@ -70,6 +72,7 @@ fn status_payload_exposes_app_management_probe_result() {
         needs_extract: false,
         permission_action: "openPrivacy".into(),
         platform: "macos".into(),
+        reconciliation_required: true,
         repo_root: "/repo".into(),
         version: "2.3.4".into(),
     };
@@ -77,6 +80,7 @@ fn status_payload_exposes_app_management_probe_result() {
     assert_eq!(value["appManagementGranted"], true);
     assert_eq!(value["permissionAction"], "openPrivacy");
     assert_eq!(value["platform"], "macos");
+    assert_eq!(value["reconciliationRequired"], true);
     assert_eq!(value["installationMode"], "official");
     assert!(value.get("app_management_granted").is_none());
 }

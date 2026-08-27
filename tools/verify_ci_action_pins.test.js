@@ -118,17 +118,17 @@ test('Node and Python pins belong to their own setup steps, not global decoy cou
       mutate(workflow) {
         return workflow
           .replace("python-version: '3.12.6'", "python-version: '3.13.0'")
-          .replace('node-version: 22.23.1', "node-version: 22.23.1\n          python-version: '3.12.6'");
+          .replace('node-version: 24.20.0', "node-version: 24.20.0\n          python-version: '3.12.6'");
       },
       expected: /actions\/setup-python step .*python-version: '3\.12\.6'/,
     },
     {
       mutate(workflow) {
         return workflow
-          .replace('node-version: 22.23.1', 'node-version: 23.0.0')
-          .replace("python-version: '3.12.6'", "python-version: '3.12.6'\n          node-version: 22.23.1");
+          .replace('node-version: 24.20.0', 'node-version: 23.0.0')
+          .replace("python-version: '3.12.6'", "python-version: '3.12.6'\n          node-version: 24.20.0");
       },
-      expected: /actions\/setup-node step .*node-version: '22\.23\.1'/,
+      expected: /actions\/setup-node step .*node-version: '24\.20\.0'/,
     },
   ]) {
     const temp = fixture();

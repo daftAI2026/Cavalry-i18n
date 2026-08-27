@@ -289,6 +289,14 @@ pub fn apply_language_inner<R: CommandRunner>(
         &version,
         &immutable_revision,
     );
+    current_state = super::snapshot::migrate_legacy_snapshot_if_proven(
+        repo_root,
+        state_dir,
+        resource_dir,
+        current_state,
+        &app_path,
+        &immutable_revision,
+    )?;
 
     if lang == "en"
         && current_state.current_lang == "en"
@@ -1550,6 +1558,7 @@ mod program_files_result_tests {
 
         assert!(!payload.ok);
         assert!(payload.permission_required);
+        assert_eq!(payload.error_code.as_deref(), Some("permissionRequired"));
         assert!(!state_dir.exists());
     }
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 schema v3 evidence、可选真实 session，以及 tag commit 的单父提交拓扑
+ * [INPUT]: 依赖 schema v3 evidence、可选真实 macOS/Windows 原始 session，以及 tag commit 的单父提交拓扑
  * [OUTPUT]: 校验 source commit/session 摘要；tag 模式只接受“source commit + evidence + protected attestation”的两提交协议
  * [POS]: tag preflight 的 release-bound live acceptance 守门器，消除 commit SHA 自引用与自报 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -12,15 +12,28 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const {
   assertEvidenceMatchesSession,
+  assertWindowsEvidenceMatchesSession,
   assertHex,
   validateEvidence,
   verifyAcceptanceSession,
 } = require('./release_acceptance_contract');
+const {
+  verifyWindowsAcceptanceSession,
+} = require('./windows-acceptance/acceptance_contract');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
 function fail(message) { throw new Error(message); }
+function hasOption(name) {
+  return args.some((arg) => arg === name || arg.startsWith(`${name}=`));
+}
 function optionValue(name) {
+  const inline = args.find((arg) => arg.startsWith(`${name}=`));
+  if (inline) {
+    const value = inline.slice(name.length + 1);
+    if (!value) fail(`${name} requires a value.`);
+    return value;
+  }
   const index = args.indexOf(name);
   if (index === -1) return null;
   const value = args[index + 1];
@@ -69,6 +82,9 @@ function verifyTagTopology(evidence, evidencePath, releaseCommit) {
 }
 
 function main() {
+  if (hasOption('--windows-acceptance')) {
+    fail('--windows-acceptance is not accepted; pass --windows-session-dir for raw Windows session verification.');
+  }
   if (args.includes('--check-schema')) {
     const schema = readJson(path.join(rootDir, 'tools/schemas/release_acceptance_evidence.schema.json'));
     if (schema.title !== 'ReleaseAcceptanceEvidence' || schema.properties?.schemaVersion?.const !== 3) {
@@ -84,7 +100,8 @@ function main() {
   if (!tag || !evidencePath || !fs.existsSync(evidencePath)) {
     fail('Pass --tag and a present canonical release evidence file.');
   }
-  const evidence = validateEvidence(readJson(evidencePath));
+  const requireWindows = args.includes('--require-windows');
+  const evidence = validateEvidence(readJson(evidencePath), { requireWindows });
   if (evidence.tag !== tag) fail(`Evidence tag ${evidence.tag} != required ${tag}.`);
   const sourceCommit = optionValue('--source-commit');
   if (sourceCommit) {
@@ -96,6 +113,13 @@ function main() {
   const sessionDir = optionValue('--session-dir');
   if (sessionDir) {
     assertEvidenceMatchesSession(evidence, verifyAcceptanceSession(sessionDir, { repoRoot: rootDir }));
+  }
+  const windowsSessionDir = optionValue('--windows-session-dir');
+  if (windowsSessionDir) {
+    assertWindowsEvidenceMatchesSession(
+      evidence,
+      verifyWindowsAcceptanceSession(windowsSessionDir, { repoRoot: rootDir, expectedTag: tag })
+    );
   }
 
   const releaseCommit = (optionValue('--release-commit') || process.env.GITHUB_SHA || '').toLowerCase();

@@ -1,6 +1,6 @@
 <!--
-  [INPUT]: 依赖 ./styles.css 提供布局样式，依赖 ./tauri-bridge.js 建立冻结 API，并由 ./app.js 绑定界面行为与状态同步
-  [OUTPUT]: 对外提供跨平台桌面补丁器渲染层的静态 DOM 结构、macOS 官方/受管安装态与独立官方还原入口、权限弹窗及控件锚点
+  [INPUT]: 依赖 ./styles.css 提供布局样式、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供稳定文案，并由 ./app.js 绑定界面行为与状态同步
+  [OUTPUT]: 对外提供跨平台桌面补丁器渲染层的静态 DOM 结构、macOS 官方/受管安装态、英文快照/恢复入口、独立官方还原入口、可本地化状态标签、权限弹窗及控件锚点
   [POS]: renderer 的视图骨架，被 Tauri WebView 直接加载
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -45,13 +45,14 @@
     <div class="actions">
       <button id="applyButton" type="button" class="primary">Apply & Restart</button>
       <button id="extractButton" type="button" class="secondary">Refresh English</button>
+      <button id="restoreEnglishButton" type="button" class="secondary" disabled>Restore English</button>
     </div>
     <button id="restoreButton" type="button" class="secondary restore-button" hidden>Restore official Cavalry</button>
 
     <div class="divider"></div>
 
     <section class="status-panel">
-      <p class="status-label">sys.out</p>
+      <p id="statusLabel" class="status-label">Status</p>
       <p id="statusText" class="status-text">Ready.</p>
       <button id="permissionButton" type="button" class="permission-button" hidden>Open permission settings</button>
     </section>
@@ -70,6 +71,7 @@
   </div>
 
   <script src="./tauri-bridge.js"></script>
+  <script src="./ui-text.js"></script>
   <script src="./app.js"></script>
 </body>
 

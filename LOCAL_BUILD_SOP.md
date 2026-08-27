@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Tauri 平台配置、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.2.0 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
+[OUTPUT]: 对外提供本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分开发机 ad-hoc 验证、CI PR 编译门与 tag 可发布产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -67,9 +67,12 @@ node tools/verify_source_artifact.js --check-repo --check-workflow
 
 ```bash
 SOURCE_COMMIT="$(git rev-parse HEAD)"
+# Windows evidence 只接受并重新验证本轮原始 session；summary 由 verifier 派生，不能作为输入。
+WINDOWS_SESSION_DIR='<outside-session Windows acceptance directory>'
 node tools/create_release_acceptance_evidence.js \
   --tag cavalry-2.7.2-pN \
-  --session-dir "$SESSION_DIR"
+  --session-dir "$SESSION_DIR" \
+  --windows-session-dir "$WINDOWS_SESSION_DIR"
 
 # 候选仓库进程只准备 repo 外的 canonical payload；它不得看见或读取私钥。
 unset RELEASE_ACCEPTANCE_ATTESTATION_PRIVATE_KEY
@@ -180,6 +183,7 @@ Windows CI 和本地开发使用同一个显式平台构建入口：
 ```powershell
 npm run build:tauri:windows
 npm run test:tauri:windows-nsis
+npm run test:acceptance:windows:contract
 ```
 
 第一条命令是唯一 Windows 用户入口：先解析/准备 Qt 6.6.3 `msvc2019_64`，再由 `tauri.windows.conf.json` 的 build hook 通过 `injector/windows/build.ps1` 从当前翻译源重生成共享 C++ 表；build 脚本经 `tools/resolve_windows_cmake.js` 使用官方 CMake 4.2.0 pin，不读取 runner PATH，并完成 plugin configure/build/ctest，随后在真正 bundle 前执行 provenance prepare。CI 还会在双 DLL 构建成功后由 `tools/record_windows_toolchain_evidence.js` 记录 CMake 版本、release URL、archive SHA-256 和实际版本输出。prepare 只删除当前 `package.json` 版本推导出的预期 EXE、同名 sidecar 和受控 intent；任意其他 EXE 或 `.exe.provenance.json` 残留都会失败，不会泛删。随后按固定 `x86_64-pc-windows-msvc` target 生成 `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe`，并立即写入同名 `.exe.provenance.json`：它绑定安装器 SHA-256/长度与当前 renderer、languages、Windows Tauri/Rust/config/Cargo/build 输入、package manifests、Windows native 源码、共享 `cavalry_i18n_translation_policy.h`、生成翻译表及已打包 generic/QPA 双 DLL 的内容 fingerprint，不取 Git HEAD 或 mtime 代替输入事实；安装包记录后单独修改共享 policy 也必须使 verify 失败。
@@ -196,7 +200,7 @@ Switcher 的同版本 `/UPDATE` 重入、Switcher 卸载、普通 Cavalry 退出
 
 该 gate 会真实安装、同版本更新并卸载 **Cavalry Language Switcher 自身**，但不会启动或写入真实 Cavalry；三文件哨兵只是一份独立的临时字节合同，不代表任意用户 Cavalry 安装根都已经实测。它适合 GitHub 临时 Windows 用户；本地运行必须先确保没有已安装的 Cavalry Language Switcher。静态 hooks 无 Cavalry/QPA 写入入口与这次真实 install → 同版本 `/UPDATE` → uninstall 哨兵不变证据共同守住安装器边界，但不能替代真实 Cavalry GUI、Program Files/UAC、任意安装路径或跨版本升级验收。macOS 对应的 `npm run tauri:build` 也显式加载 `tauri.macos.conf.json`，两个平台不会依赖调用机器的隐式配置选择。
 
-Windows **开发机**下限为 Windows 10 x64、Node.js 22+、PowerShell 5.1+、Python 3、stable MSVC Rust、带 x64 MSVC v143 的 Visual Studio 2022+、由 `tools/resolve_windows_cmake.js` 下载/验证的固定 CMake 4.2.0 与精确 Qt 6.6.3 `msvc2019_64` SDK。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
+Windows **开发机**下限为 Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带 x64 MSVC v143 的 Visual Studio 2022+、由 `tools/resolve_windows_cmake.js` 下载/验证的固定 CMake 4.2.0 与精确 Qt 6.6.3 `msvc2019_64` SDK。CI 与漏洞证据精确固定 Node.js 24.20.0 / npm 11.19.0；本地开发机允许同一 Node 24 LTS 主线的新补丁版。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
 
 ## 6. DMG 增强修饰 (卷宗图标盖章)
 
@@ -258,11 +262,22 @@ $env:CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH = '1'
 npm run test:tauri:manual-windows-live-smoke
 ```
 
+要把 Windows live 结果用于 release acceptance，Onboarding 或 Adjacent ignored runner 还必须显式设置 `CAVALRY_I18N_WINDOWS_RELEASE_TAG`、`CAVALRY_I18N_WINDOWS_RELEASE_INSTALLER`、`CAVALRY_I18N_WINDOWS_RELEASE_PROVENANCE`、`CAVALRY_I18N_WINDOWS_RELEASE_GENERIC_DLL` 与 `CAVALRY_I18N_WINDOWS_RELEASE_QPA_DLL`。其中最后两个路径必须指向本次最终 NSIS 使用的已发布 DLL；runner 在开始写证据前会把它们与当前 clean checkout 中 `injector/windows/{generic,qpa}` 的实际运行时 source 逐字节比对，任何漂移都 fail-closed。清理成功且 owned process 为零后，Rust runner 才会在该 TEMP 子目录写入 session sentinel、`windows-machine-record.json` 和每张 PNG 的 PID/HWND inventory；它不会写 review 或 PASS。随后逐张查看已有 PNG 并运行：
+
+```powershell
+node tools/windows-acceptance/review_windows_acceptance.js --tag cavalry-2.7.2-pN --session-dir '<TEMP live session>' --reviewer '<name>' --repo-root '<clean source checkout>'
+node tools/windows-acceptance/record_windows_acceptance.js --tag cavalry-2.7.2-pN --session-dir '<TEMP live session>' --repo-root '<clean source checkout>' --output '<outside session summary.json>'
+```
+
+reviewer 命令只确认已有截图，自动派生 `manual-review`/`final` 记录；producer 再复核 installer、provenance、generic/QPA digest、tag/source/session 和目标版本。live runner 通过 source Rust apply 路径启动同一份 Cavalry 2.7.2 disposable clone，但只在 source DLL 与最终 NSIS shipped DLL 完全一致时将 inventory 标为 `packaged-nsis`；这证明了最终包内 runtime 字节与现场运行时相同，不把人工或另一份构建的截图冒充发布证据。Windows summary 仅是 `record_windows_acceptance.js` 从原始 session 派生的产物；`create_release_acceptance_evidence.js` 只接受 `--windows-session-dir` 并从复验后的原始 session 派生 summary，`verify_release_acceptance_evidence.js` 在提供该参数时重新验证并比较 summary，tag/publish 阶段则由独立 Ed25519 acceptance attestation 绑定 evidence 精确字节，再由 release seal 绑定实际 Windows installer。两者均拒绝 summary 文件作为输入。带 Windows x64 artifact 的 release 必须同时通过 `--require-windows` 与 protected attestation/seal，否则 fail-closed。
+
+Windows release acceptance producer：上述 ignored live gate 结束后，Windows runner 必须把本轮输出整理为带 `SESSION_SENTINEL_MAGIC` 的 session，并由 `tools/windows-acceptance/review_windows_acceptance.js` 从已有截图派生 review/final，再由 `tools/windows-acceptance/record_windows_acceptance.js` 复验 `windows-machine-record.json`、`windows-manual-review.json`、`windows-final-record.json`。合同支持三语 Onboarding 五点、Adjacent 三点或两者合并；每个点都绑定 exact PID/HWND inventory、最终安装后 generic/QPA SHA-256；同时复验最终 x64 NSIS、相邻 provenance sidecar 与 Cavalry 2.7.2 disposable clone。命令只接受 Windows x64、干净 source worktree 和已存在的输出以外路径，不接受 `--confirm-live-pass`、手写结果或复用缺少 TEMP sentinel 的会话。summary 只能作为该 session verifier 的派生产物；普通 evidence 若携带 Windows 结果，必须在创建时通过 `--windows-session-dir` 重新验证原始 session，release 一旦声明 Windows artifact 就必须存在，并由 evidence/seal 绑定同一 tag、source commit、session、installer 和 DLL digest。
+
 `CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1` 是明确的人工交互开关：每种语言的 Cavalry 窗口获得前台焦点后，helper 先记录同一 PID 的诊断基线并要求 `translatedSourceMask` bit 28 尚未置位；验收者再从“工具”菜单选择“齿轮”，在视口拖拽一次。helper 不猜快捷键、不发送鼠标坐标，也不使用 UIA；它只在真实 vendor 路径令 bit 28 置位，且 `revision`、`canonicalCalls`、`whitelistCalls`、`cjkPathSuccess` 均相对基线严格增长、`fallbackSourceMask=0`、`rendererFailure=0` 后截取 Cog Pitch PNG，并把基线与最终诊断一同写入证据 JSON。未设置该开关时仍只跑三类自动场景，不能据此声称 Pitch 已通过真机验收。
 
-该 ignored harness 启动前发现任意 `Cavalry.exe` 即拒绝运行。它记录 38 个 English JSON 原始字节，逐轮应用简中/繁中/日语，以 `RealCommandRunner` 启动 clone，要求 runtime marker 的 PID、Qt 6.6.3、嵌入表、语言以及 `extensionLayerHookStatus=installed` 全部命中，再以 input-idle 作为可选延迟提示、以精确 PID 顶层窗口和非空像素成帧作为强制 oracle，并在 `DwmFlush` 后写 PNG。Transform 截图不要求前台；Edit Shape 的 exact-HWND `A` 键和人工 Cog Pitch 只做一次 best-effort 前台请求，随后有界等待同一 HWND 获得前台，并在按键后再次验证焦点未转移。每轮证据完成后，仅向仍由本轮持有、且 executable path 已再次证明为 `%TEMP%` sentinel clone 内 `Cavalry.exe` 的全部顶层窗口发送标准 `WM_CLOSE`；若厂商 closeEvent 在 5 秒内未令同 PID 退出，helper 会再次复核 exact executable/PID，再执行唯一受限 `ForceStop`。该兜底只清理 disposable child，不创建 ready/ack/done，也不参与翻译 PASS。普通 Rust `Result` 错误或 unwind panic 都会进入相同 cleanup，恢复 English、逐一比较 38 文件原始字节并要求全局 Cavalry PID 为 0；Ctrl+C、进程强制终止、断电或 panic=abort 无法承诺执行 finally。
+该 ignored harness 启动前发现任意 `Cavalry.exe` 即拒绝运行。它记录 38 个 English JSON 原始字节，逐轮应用简中/繁中/日语，以 `RealCommandRunner` 启动 clone，要求 runtime marker 的 PID、Qt 6.6.3、嵌入表、语言以及 `extensionLayerHookStatus=installed` 全部命中，再以 input-idle 作为可选延迟提示、以精确 PID 顶层窗口和非空像素成帧作为强制 oracle，并在 `DwmFlush` 后写 PNG。Transform 截图不要求前台；Edit Shape 的 exact-HWND `A` 键和人工 Cog Pitch 在 `ShowWindow`/`BringWindowToTop`/`SetForegroundWindow` 提示后的有界重试中获取前台，且 `PostVirtualKey` 自身在投递前复核同一 HWND/PID；按键后 Cavalry 合法切换到同 PID 子窗/模态窗不被误判。每轮证据完成后，仅向仍由本轮持有、且 executable path 已再次证明为 `%TEMP%` sentinel clone 内 `Cavalry.exe` 的全部顶层窗口发送标准 `WM_CLOSE`；若厂商 closeEvent 在 5 秒内未令同 PID 退出，helper 会再次复核 exact executable/PID，再执行唯一受限 `ForceStop`。该兜底只清理 disposable child，不创建 ready/ack/done，也不参与翻译 PASS。普通 Rust `Result` 错误或 unwind panic 都会进入相同 cleanup，恢复 English、逐一比较 38 文件原始字节并要求全局 Cavalry PID 为 0；Ctrl+C、进程强制终止、断电或 panic=abort 无法承诺执行 finally。
 
-full-surface 门仍用临时 `APPDATA`/`LOCALAPPDATA` 维护测试文件卫生；Onboarding 与 Adjacent 则由 acceptance-only plugin 在任何 driver 创建前调用 `QStandardPaths::setTestModeEnabled(true)`，每语重建 `%LOCALAPPDATA%\qttest\Cavalry` 和 `%APPDATA%\qttest\Cavalry`。Rust 只创建、清理带 `.cavalry-i18n-acceptance-profile` 固定 magic sentinel 的目录，拒绝既有外来目录和任何 reparse 链。此路径不复制或伪造登录态；Onboarding 等真实 `MainDock` 稳定 15 秒后才触发，精确工作区重置框一旦出现即失败，绝不点 `OK`/`Cancel`，前四步 Next 也必须由下一页唯一标题/正文确认后才推进。生产 `--launch-cavalry` 验收仍使用正常启动链并继承当前用户登录 profile，不能与 acceptance test profile 混写。每轮 apply 前后都会重验 containment/reparse 链，但同一用户下的恶意并发换链仍不是被完整消除的 TOCTOU；这里保持 fail-closed 的重复校验，不为理论攻击引入复杂的 handle-relative NT 文件架构。
+full-surface 门必须把每次 Cavalry launch 的 `APPDATA`/`LOCALAPPDATA` 指向 run-root 下、由 harness 自己创建的 TEMP-owned profile，不继承当前用户登录 profile，也不读取、备份或恢复真实档案；启动前要求 disposable clone 的 `assets/Icons/sign-in-bg.png`、`cavByCanva.png`、`tool_search.png` 为非空普通文件，并把其字节哈希写入 evidence。这样完整 clone 的关键登录窗资源仍有哈希 preflight，GUI 运行时写入只会落在 disposable profile。Onboarding 与 Adjacent 则由 acceptance-only plugin 在任何 driver 创建前调用 `QStandardPaths::setTestModeEnabled(true)`，每语重建 `%LOCALAPPDATA%\qttest\Cavalry` 和 `%APPDATA%\qttest\Cavalry`。Rust 只创建、清理带 `.cavalry-i18n-acceptance-profile` 固定 magic sentinel 的目录，拒绝既有外来目录和任何 reparse 链。此路径不复制或伪造登录态；Onboarding 等真实 `MainDock` 稳定 15 秒后才触发，精确工作区重置框一旦出现即失败，绝不点 `OK`/`Cancel`，前四步 Next 也必须由下一页唯一标题/正文确认后才推进。生产 `--launch-cavalry` 验收仍使用正常启动链并继承当前用户登录 profile，不能与 acceptance test profile 混写。每轮 apply 前后都会重验 containment/reparse 链，但同一用户下的恶意并发换链仍不是被完整消除的 TOCTOU；这里保持 fail-closed 的重复校验，不为理论攻击引入复杂的 handle-relative NT 文件架构。
 
 当前环境没有可靠的 Cavalry UI OCR oracle，因此 harness 默认生成的三类 PNG，以及 opt-in 时追加的 Cog Pitch PNG，都只是基础证据，并会明确以 `MANUAL SCREENSHOT REVIEW REQUIRED` 结束，而不是返回虚假的 GUI 翻译绿灯。人工验收还必须逐类显式展开并追加截图：菜单、属性编辑器、合成/自动编号项、所有受控下拉显示项、四条 ExtensionLayer 空状态、Snippet 提示、Viewport Quality 与左下快捷提示（helper）；只有这些表面逐类可见后才能通过。`--no-run` 编译、marker PASS 或主窗截图都不能替代这一步。
 

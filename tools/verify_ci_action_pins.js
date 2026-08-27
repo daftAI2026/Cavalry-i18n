@@ -221,8 +221,8 @@ function main() {
       );
     }
   }
-  if (pins.node?.version !== '22.23.1' || pins.node?.npmVersion !== '10.9.8') {
-    fail('tools/ci_action_pins.json must exactly pin Node 22.23.1 and npm 10.9.8 for the vulnerability gate.');
+  if (pins.node?.version !== '24.20.0' || pins.node?.npmVersion !== '11.19.0') {
+    fail('tools/ci_action_pins.json must exactly pin Node 24.20.0 and npm 11.19.0 for the vulnerability gate.');
   }
   verifyExactActionInput('actions/setup-node', 'node-version', pins.node.version, 5);
   if (pins.python.version !== '3.12.6') {

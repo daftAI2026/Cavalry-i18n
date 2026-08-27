@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 npm run tauri:build 同次产出的 macOS .app 与平台生成 injector dylib，以及 renderer、runtime resource 候选路径和 languages
+ * [INPUT]: 依赖 npm run tauri:build 同次产出的 macOS .app 与平台生成 injector dylib，以及 renderer（含稳定文案脚本）、runtime resource 候选路径和 languages
  * [OUTPUT]: 对外提供 packaged Tauri .app 资源、injector 内容同一性/Qt ABI 与 size report 测试，证明发布包只嵌入本次构建且运行时可解析的资源
  * [POS]: tools 的 Phase 6 packaged 资源守门，把未追踪的 macOS 原生构建物与最终 bundle 建立哈希同一性，失败即说明不能宣称 packaged 可用
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -26,6 +26,7 @@ const builtInjectorPath = path.join(repoRoot, 'injector', 'libCavalryTranslatorI
 const expectedRendererHashes = {
   'index.html': sha256(path.join(rendererRoot, 'index.html')),
   'styles.css': sha256(path.join(rendererRoot, 'styles.css')),
+  'ui-text.js': sha256(path.join(rendererRoot, 'ui-text.js')),
   'app.js': sha256(path.join(rendererRoot, 'app.js')),
 };
 
@@ -115,7 +116,7 @@ test('tauri build contains renderer assets or embeds their Tauri routes', () => 
   const binary = packagedBinary();
   assert.ok(fs.existsSync(binary), 'Tauri executable missing from packaged app');
   const binaryText = fs.readFileSync(binary, 'latin1');
-  for (const token of ['index.html', '/styles.css', '/app.js']) {
+  for (const token of ['index.html', '/styles.css', '/ui-text.js', '/app.js']) {
     assert.ok(binaryText.includes(token), `Tauri executable should embed route token ${token}`);
   }
 });

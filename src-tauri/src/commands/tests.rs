@@ -641,6 +641,137 @@ fn status_uses_snapshot_provenance_and_binary_revision_not_display_version() {
 }
 
 #[test]
+#[cfg(target_os = "windows")]
+fn legacy_snapshot_proof_accepts_active_or_owned_stock_cleanup_evidence() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let app = crate::install::normalize_path(&make_windows_install(temp.path()));
+    make_language(&repo, "en");
+    for (language_relative, _) in crate::patch::CORE_MAP {
+        write(
+            &state_dir.join("en").join(language_relative),
+            br#"{
+  "value": "en"
+}"#,
+        );
+    }
+    write(
+        &state_dir.join("en/plugins/gaussianBlurFilter.json"),
+        br#"{
+  "value": "en plugin"
+}"#,
+    );
+    let revision = "legacy-revision";
+    let current = State {
+        app_path: app.to_string_lossy().to_string(),
+        cavalry_revision: revision.to_string(),
+        current_lang: "zh-Hans".to_string(),
+        english_snapshot_provenance: Some(EnglishSnapshotProvenance {
+            install_root: app.to_string_lossy().to_string(),
+            immutable_revision: revision.to_string(),
+            snapshot_generation: None,
+            snapshot_manifest_sha256: None,
+            vendor_baseline_id: None,
+        }),
+        ..State::default()
+    };
+    let active = crate::windows_qpa::QpaInspection {
+        state: crate::windows_qpa::QpaDeploymentState::Active,
+        phase: Some(crate::windows_qpa::QpaManifestPhase::Active),
+        current_qwindows_sha256: Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256.to_string()),
+        detail: "fixture has an active manifest and exact vendor backup".to_string(),
+    };
+
+    let snapshot_proof = crate::patch::legacy_snapshot_matches_language_source(
+        &repo.join("languages/en"),
+        &state_dir,
+        &app,
+    );
+    assert_eq!(
+        crate::patch::validate_english_snapshot(&state_dir, &app),
+        Ok(true)
+    );
+    assert_eq!(snapshot_proof, Ok(true));
+
+    assert!(
+        super::snapshot::legacy_snapshot_is_proven_with_qpa_inspector(
+            &repo,
+            &state_dir,
+            &repo,
+            &current,
+            &app,
+            revision,
+            |_| Ok(active.clone()),
+            false,
+        )
+    );
+    let stock = crate::windows_qpa::QpaInspection {
+        state: crate::windows_qpa::QpaDeploymentState::Stock,
+        phase: None,
+        current_qwindows_sha256: Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256.to_string()),
+        detail: "fixture has stock vendor QPA and an owned generic cleanup plan".to_string(),
+    };
+    assert!(
+        super::snapshot::legacy_snapshot_is_proven_with_qpa_inspector(
+            &repo,
+            &state_dir,
+            &repo,
+            &current,
+            &app,
+            revision,
+            |_| Ok(stock.clone()),
+            true,
+        )
+    );
+    assert!(
+        !super::snapshot::legacy_snapshot_is_proven_with_qpa_inspector(
+            &repo,
+            &state_dir,
+            &repo,
+            &current,
+            &app,
+            revision,
+            |_| Ok(stock.clone()),
+            false,
+        )
+    );
+    let stock_with_unknown_qpa = crate::windows_qpa::QpaInspection {
+        current_qwindows_sha256: Some("unknown-qpa-hash".to_string()),
+        ..stock
+    };
+    assert!(
+        !super::snapshot::legacy_snapshot_is_proven_with_qpa_inspector(
+            &repo,
+            &state_dir,
+            &repo,
+            &current,
+            &app,
+            revision,
+            |_| Ok(stock_with_unknown_qpa.clone()),
+            true,
+        )
+    );
+    assert!(
+        !super::snapshot::legacy_snapshot_is_proven_with_qpa_inspector(
+            &repo,
+            &state_dir,
+            &repo,
+            &current,
+            &app,
+            revision,
+            |_| Ok(crate::windows_qpa::QpaInspection {
+                state: crate::windows_qpa::QpaDeploymentState::Drifted,
+                phase: None,
+                current_qwindows_sha256: None,
+                detail: "untrusted fixture".to_string(),
+            }),
+            false,
+        )
+    );
+}
+
+#[test]
 #[cfg(target_os = "macos")]
 fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writing_state() {
     let temp = tempfile::tempdir().unwrap();

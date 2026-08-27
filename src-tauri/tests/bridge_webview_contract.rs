@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::bridge 的实际 Rust include、src/lib.rs Builder 装配与 renderer/index.html 外部脚本顺序
- * [OUTPUT]: 执行 Builder 实际消费的 initialization script，并守住 Rust pre-page-load 注册顺序、冻结 API、camelCase payload 与 warningCodes
+ * [OUTPUT]: 执行 Builder 实际消费的 initialization script，并守住 Rust pre-page-load 注册顺序、冻结 API、camelCase payload、Windows residue 检测与 warningCodes
  * [POS]: src-tauri/tests 的 bridge host-seam 守门；不虚称启动平台 WebView 或验证 packaged CSP，后者属于显式 Tauri UI 外部门
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -74,6 +74,7 @@ vm.runInNewContext(process.env.CAVALRY_BRIDGE_INITIALIZATION_SCRIPT, context, {
     command: 'apply_language',
     payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
   });
+  assert.equal(Object.hasOwn(api, 'reconcileEnglish'), false);
 })().catch((error) => {
   console.error(error && error.stack ? error.stack : error);
   process.exitCode = 1;
@@ -118,11 +119,14 @@ fn builder_and_html_keep_the_actual_initialization_order() {
     let fallback_bridge = html
         .find("<script src=\"./tauri-bridge.js\"></script>")
         .expect("HTML must retain the local bridge fallback");
+    let text_script = html
+        .find("<script src=\"./ui-text.js\"></script>")
+        .expect("HTML must load ui-text.js");
     let app_script = html
         .find("<script src=\"./app.js\"></script>")
         .expect("HTML must load app.js");
     assert!(
-        fallback_bridge < app_script,
-        "HTML bridge fallback must precede app.js"
+        fallback_bridge < text_script && text_script < app_script,
+        "HTML bridge and ui-text fallback scripts must precede app.js"
     );
 }

@@ -36,7 +36,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/cavalry-')
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.23.1
+          node-version: 24.20.0
 
       - name: Enforce GitHub runner image identity (tag only)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -61,7 +61,8 @@ jobs:
           node tools/verify_release_acceptance_evidence.js \
             --tag "$GITHUB_REF_NAME" \
             --release-commit "$GITHUB_SHA" \
-            --check-tag-topology
+            --check-tag-topology \
+            --require-windows
           node tools/verify_release_acceptance_attestation.js \
             --tag "$GITHUB_REF_NAME" \
             --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
@@ -83,7 +84,7 @@ jobs:
       - name: Set up pinned Node.js for npm audit
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.23.1
+          node-version: 24.20.0
           cache: npm
 
       - name: Set up pinned Rust for cargo audit
@@ -175,7 +176,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.23.1
+          node-version: 24.20.0
           cache: npm
 
       - name: Set up Python
@@ -328,7 +329,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.23.1
+          node-version: 24.20.0
           cache: npm
 
       - name: Set up Python
@@ -424,7 +425,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.23.1
+          node-version: 24.20.0
           cache: npm
 
       - name: Set up Python
@@ -498,7 +499,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.23.1
+          node-version: 24.20.0
           cache: npm
 
       - name: Set up Python
@@ -777,7 +778,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: 22.23.1
+          node-version: 24.20.0
 
       - name: Enforce GitHub runner image identity (tag only)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -881,7 +882,8 @@ jobs:
           node tools/verify_release_acceptance_evidence.js \
             --tag "$GITHUB_REF_NAME" \
             --release-commit "$GITHUB_SHA" \
-            --check-tag-topology
+            --check-tag-topology \
+            --require-windows
           node tools/verify_release_acceptance_attestation.js \
             --tag "$GITHUB_REF_NAME" \
             --evidence "$evidence" \
