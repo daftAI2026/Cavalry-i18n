@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖安装布局、语言 apply、English baseline、Onboarding/Adjacent 专用 Qt 测试 profile、TEMP-owned FullSurfaces profile、acceptance-only plugin 字节、clone guard、tools/macos-acceptance/fixtures 的双平台 Assets 媒体与 exact-PID/HWND 清理
- * [OUTPUT]: 在父测试模块内提供语言安装/验证、现场启动、验收插件临时部署、三语编排、WM_CLOSE/ForceStop 清理与 English 恢复
- * [POS]: src-tauri/tests/support 的 live-clone 事务编排分片；FullSurfaces launch 覆盖到 run-root 下的 disposable TEMP profile，Onboarding/Adjacent 使用 sentinel-owned qttest，所有 clone/evidence 写入均经过 disposable TEMP 根与 reparse 守卫
+ * [OUTPUT]: 在父测试模块内提供语言安装/验证、现场启动、可重建缺失 generic 目录的验收插件临时部署、三语编排、WM_CLOSE/ForceStop 清理与 English 恢复
+ * [POS]: src-tauri/tests/support 的 live-clone 事务编排分片；FullSurfaces launch 覆盖到 run-root 下的 disposable TEMP profile，Onboarding/Adjacent 使用 sentinel-owned qttest，并允许已恢复 English 的 clone 在受守卫目录中重复安装验收插件；所有 clone/evidence 写入均经过 disposable TEMP 根与 reparse 守卫
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
     fn find_node_type<'a>(
@@ -480,7 +480,27 @@
                 source.display()
             ));
         }
-        let destination = layout.root.join("generic/cavalryi18n_acceptance.dll");
+        let plugin_directory = layout.root.join("generic");
+        guarded_clone.assert_write_target(&plugin_directory)?;
+        match fs::create_dir(&plugin_directory) {
+            Ok(()) => {}
+            Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
+                if !plugin_directory.is_dir() {
+                    return Err(format!(
+                        "refusing non-directory Windows generic plugin path {}",
+                        plugin_directory.display()
+                    ));
+                }
+            }
+            Err(error) => {
+                return Err(format!(
+                    "could not create Windows generic plugin directory {}: {error}",
+                    plugin_directory.display()
+                ));
+            }
+        }
+        guarded_clone.assert_write_target(&plugin_directory)?;
+        let destination = plugin_directory.join("cavalryi18n_acceptance.dll");
         guarded_clone.assert_write_target(&destination)?;
         let bytes = fs::read(&source).map_err(|error| {
             format!(
