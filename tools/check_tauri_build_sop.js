@@ -1501,6 +1501,17 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   assert.match(live, /apply_language_inner/);
   assert.match(live, /RealCommandRunner/);
   assert.match(live, /require_release_runtime_sources/);
+  assert.match(live, /tools\/resolve_windows_cmake\.js/);
+  assert.match(
+    live,
+    /"tools\/resolve_windows_cmake\.js",\s*"--ensure",\s*"--print-json",\s*"--platform",\s*"windows"/
+  );
+  assert.match(live, /WindowsCMakeToolchainIdentity/);
+  assert.match(live, /command_first_line_path\([\s\S]*verified pinned Windows CMake/);
+  assert.doesNotMatch(
+    live,
+    /command_first_line\(\s*"cmake",\s*&\["--version"\]/
+  );
   assert.match(live, /WINDOWS_GENERIC_RELATIVE_PATH: &str = "injector\/windows\/generic\/cavalryi18n\.dll"/);
   assert.match(live, /WINDOWS_QPA_RELATIVE_PATH: &str = "injector\/windows\/qpa\/qwindows\.dll"/);
   assert.match(live, /live runner .* source .* does not match final NSIS shipped bytes/);

@@ -1,4 +1,5 @@
 /**
+ * [INPUT-TOOLCHAIN]: 依赖 tools/resolve_windows_cmake.js --ensure --print-json --platform windows 提供已验证的 Windows x64 CMake executable/version；release evidence 不读取 PATH 中的裸 cmake。
  * [INPUT]: 依赖 live support 分片、clone guard、PowerShell/helper 源码与显式 disposable clone/evidence 环境；release 模式还依赖最终 NSIS/provenance 与双 DLL 字节
  * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门；FullSurfaces 只在 TEMP-owned profile 与关键 clone 资源已证明完整后启动；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
  * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 资源不完整、FullSurfaces 未绑定 TEMP-owned profile 或使用不同于最终 NSIS 的 runtime DLL 都先于人工截图结论硬失败
@@ -51,7 +52,7 @@
             .map_err(|error| format!("could not flush release machine record {}: {error}", path.display()))
     }
 
-    fn command_first_line(program: &str, arguments: &[&str], label: &str) -> Result<String, String> {
+    fn command_first_line_path(program: &Path, arguments: &[&str], label: &str) -> Result<String, String> {
         let output = ProcessBuilder::new(program)
             .args(arguments)
             .output()
@@ -68,6 +69,66 @@
             .find(|line| !line.trim().is_empty())
             .map(|line| line.trim().to_string())
             .ok_or_else(|| format!("{label} returned no version output"))
+    }
+
+    fn command_first_line(program: &str, arguments: &[&str], label: &str) -> Result<String, String> {
+        command_first_line_path(Path::new(program), arguments, label)
+    }
+
+    #[derive(Debug, Deserialize)]
+    #[serde(rename_all = "camelCase")]
+    struct WindowsCMakeToolchainIdentity {
+        schema_version: u8,
+        kind: String,
+        platform: String,
+        architecture: String,
+        version: String,
+        executable: PathBuf,
+    }
+
+    fn resolve_pinned_cmake_version(repo: &Path) -> Result<String, String> {
+        let output = ProcessBuilder::new("node")
+            .args([
+                "tools/resolve_windows_cmake.js",
+                "--ensure",
+                "--print-json",
+                "--platform",
+                "windows",
+            ])
+            .current_dir(repo)
+            .output()
+            .map_err(|error| format!("could not execute pinned Windows CMake resolver: {error}"))?;
+        if !output.status.success() {
+            return Err(format!(
+                "pinned Windows CMake resolver failed with {:?}: {}",
+                output.status.code(),
+                String::from_utf8_lossy(&output.stderr).trim()
+            ));
+        }
+        let identity: WindowsCMakeToolchainIdentity = serde_json::from_slice(&output.stdout)
+            .map_err(|error| format!("pinned Windows CMake resolver returned invalid identity JSON: {error}"))?;
+        if identity.schema_version != 1
+            || identity.kind != "WindowsCMakeToolchainIdentity"
+            || identity.platform != "windows-x86_64"
+            || identity.architecture != "x86_64"
+            || identity.executable.as_os_str().is_empty()
+            || identity.version.is_empty()
+        {
+            return Err("pinned Windows CMake resolver returned an invalid x64 identity".to_string());
+        }
+        let cmake_line = command_first_line_path(
+            &identity.executable,
+            &["--version"],
+            "verified pinned Windows CMake",
+        )?;
+        let observed_version = cmake_version(&cmake_line)?;
+        if observed_version != identity.version {
+            return Err(format!(
+                "verified pinned Windows CMake reported {observed_version}, resolver identity reported {}",
+                identity.version
+            ));
+        }
+        Ok(identity.version)
     }
 
     fn cmake_version(output: &str) -> Result<String, String> {
@@ -233,7 +294,7 @@
                 worktree_status.join(" | ")
             ));
         }
-        let cmake_line = command_first_line("cmake", &["--version"], "CMake version")?;
+        let cmake_version = resolve_pinned_cmake_version(repo)?;
         let powershell_version = command_first_line(
             "powershell.exe",
             &["-NoLogo", "-NoProfile", "-NonInteractive", "-Command", "$PSVersionTable.PSVersion.ToString()"],
@@ -250,7 +311,7 @@
             "npm": command_first_line("npm", &["--version"], "npm version")?,
             "rustc": command_first_line("rustc", &["--version"], "rustc version")?,
             "cargo": command_first_line("cargo", &["--version"], "cargo version")?,
-            "cmake": cmake_version(&cmake_line)?,
+            "cmake": cmake_version,
             "powershell": powershell_version,
         });
         let profile = match capture_mode {
