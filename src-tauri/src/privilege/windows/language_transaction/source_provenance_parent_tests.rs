@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 patch::build_overlay_pairs、parent 真实 classify/prepare/stage 路径、编译期 catalog 与 source_provenance test seam。
- * [OUTPUT]: 证明 zh-Hans 当前态到 ja_JP/English 的真实 parent staged bytes 被 verifier 精确接受，且同一 staged payload 篡改后被拒绝。
+ * [INPUT]: 依赖 patch::build_copy_pairs_checked/build_overlay_pairs、parent 真实 classify/prepare/stage 路径、编译期 catalog 与 source_provenance test seam。
+ * [OUTPUT]: 证明 zh-Hans 当前态到 ja_JP 的 canonical overlay 与 English 快照原字节经真实 parent staging 后都被 verifier 接受，且同一 staged payload 篡改后被拒绝。
  * [POS]: parent tests 的端到端来源合同；连接上游 canonical overlay、数字 payload staging 与提权 worker 只读 provenance，不模拟复制算法。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -38,7 +38,7 @@ fn real_parent_staging_accepts_cross_language_zh_hans_to_japanese() {
 }
 
 #[test]
-fn real_parent_staging_accepts_canonical_explicit_english() {
+fn real_parent_staging_accepts_exact_english_snapshot_bytes() {
     let fixture = ProvenanceFixture::new();
     let prepared = fixture.prepare(Language::English);
 
@@ -189,16 +189,20 @@ impl ProvenanceFixture {
             }
             source
         };
-        let target_pairs = patch::build_overlay_pairs(
-            &source_dir,
-            &self.state_dir.join("en"),
-            &self.layout.root,
-            &self
-                ._temp
-                .path()
-                .join(format!("target-overlay-{}", language.as_str())),
-        )
-        .unwrap();
+        let target_pairs = if language == Language::English {
+            patch::build_copy_pairs_checked(&source_dir, &self.layout.root).unwrap()
+        } else {
+            patch::build_overlay_pairs(
+                &source_dir,
+                &self.state_dir.join("en"),
+                &self.layout.root,
+                &self
+                    ._temp
+                    .path()
+                    .join(format!("target-overlay-{}", language.as_str())),
+            )
+            .unwrap()
+        };
         assert_eq!(target_pairs.len(), CORE_MAP.len());
         let request = ParentApplyRequest {
             repo_root: &self.package_root,
