@@ -199,6 +199,9 @@ test('Windows acceptance fixture uses the verifier native canonical TEMP path', 
     const actual = process.platform === 'win32' ? fixture.session.toLowerCase() : fixture.session;
     const canonical = fs.realpathSync.native(fixture.session);
     assert.equal(actual, process.platform === 'win32' ? canonical.toLowerCase() : canonical);
+    const canonicalTemp = fs.realpathSync.native(os.tmpdir());
+    const relative = path.relative(canonicalTemp, fixture.session);
+    assert.ok(relative && relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative));
   } finally {
     fs.rmSync(fixture.temp, { recursive: true, force: true });
   }

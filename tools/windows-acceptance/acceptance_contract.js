@@ -210,7 +210,10 @@ function verifyPngIdentity(value, field, root) {
 
 function resolveSession(input) {
   const root = directory(input, 'Windows acceptance session');
-  const tempRoot = directory(os.tmpdir(), 'Windows TEMP root');
+  // Windows runners may expose TEMP through an 8.3 alias.  Canonicalize the
+  // trusted OS root before enforcing that the caller-supplied session is both
+  // canonical and a strict child of it.
+  const tempRoot = directory(fs.realpathSync.native(os.tmpdir()), 'Windows TEMP root');
   if (!isStrictChild(root, tempRoot)) fail(`session must be strictly below TEMP: ${root}`);
   const sessionId = path.basename(root);
   if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,127}$/.test(sessionId)) fail(`unsafe session id: ${sessionId}`);
