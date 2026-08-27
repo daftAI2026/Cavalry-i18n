@@ -661,9 +661,12 @@
         let mut outstanding_processes = BTreeSet::new();
         let exercise = catch_unwind(AssertUnwindSafe(|| {
             if acceptance_plugin.is_some() {
-                let (installed, created_directory) =
-                    install_acceptance_plugin(&repo, &layout, &guarded_clone)?;
-                acceptance_plugin_directory_created = created_directory;
+                let installed = install_acceptance_plugin(
+                    &repo,
+                    &layout,
+                    &guarded_clone,
+                    &mut acceptance_plugin_directory_created,
+                )?;
                 if acceptance_plugin.as_deref() != Some(installed.as_path()) {
                     return Err(format!(
                         "acceptance plugin destination mismatch: {}",

@@ -470,7 +470,8 @@
         repo: &Path,
         layout: &InstallLayout,
         guarded_clone: &GuardedTempRoot,
-    ) -> Result<(PathBuf, bool), String> {
+        plugin_directory_created: &mut bool,
+    ) -> Result<PathBuf, String> {
         let source = repo.join(
             "build/windows-injector/acceptance/generic/cavalryi18n_acceptance.dll",
         );
@@ -482,7 +483,7 @@
         }
         let plugin_directory = layout.root.join("generic");
         guarded_clone.assert_write_target(&plugin_directory)?;
-        let plugin_directory_created = match fs::create_dir(&plugin_directory) {
+        *plugin_directory_created = match fs::create_dir(&plugin_directory) {
             Ok(()) => true,
             Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {
                 if !plugin_directory.is_dir() {
@@ -572,7 +573,7 @@
                 destination.display()
             ));
         }
-        Ok((destination, plugin_directory_created))
+        Ok(destination)
     }
 
     fn remove_acceptance_plugin(
