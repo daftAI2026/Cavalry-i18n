@@ -61,7 +61,9 @@ function fingerprint(entries) {
 }
 
 function makeSession() {
-  const temp = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-windows-release-')));
+  // Windows 的 os.tmpdir() 可能使用 8.3 短路径；fixture 必须把根目录固定为
+  // verifier 使用的 native canonical 形式，否则测试会在真正的 mutation 断言前失败。
+  const temp = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-windows-release-')));
   const session = path.join(temp, 'SESSION_001');
   const clone = path.join(temp, 'cavalry-clone');
   fs.mkdirSync(session);
@@ -190,6 +192,17 @@ function makeSession() {
     identities: { installer, generic, qpa, machineIdentity, reviewIdentity, finalIdentity, sentinel },
   };
 }
+
+test('Windows acceptance fixture uses the verifier native canonical TEMP path', () => {
+  const fixture = makeSession();
+  try {
+    const actual = process.platform === 'win32' ? fixture.session.toLowerCase() : fixture.session;
+    const canonical = fs.realpathSync.native(fixture.session);
+    assert.equal(actual, process.platform === 'win32' ? canonical.toLowerCase() : canonical);
+  } finally {
+    fs.rmSync(fixture.temp, { recursive: true, force: true });
+  }
+});
 
 test('Windows release producer verifies final NSIS, shipped DLLs, clone and 24-point matrix', () => {
   const fixture = makeSession();
