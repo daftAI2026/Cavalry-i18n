@@ -1,5 +1,4 @@
 /**
- * [INPUT-TOOLCHAIN]: 依赖 tools/resolve_windows_cmake.js --ensure --print-json --platform windows 提供已验证的 Windows x64 CMake executable/version；release evidence 不读取 PATH 中的裸 cmake。
  * [INPUT]: 依赖 live support 分片、clone guard、PowerShell/helper 源码与显式 disposable clone/evidence 环境；release 模式还依赖最终 NSIS/provenance 与双 DLL 字节
  * [OUTPUT]: 在父测试模块内提供静态安全合同和 full-surface/Onboarding/Adjacent 三个 ignored 人工复核门；FullSurfaces 只在 TEMP-owned profile 与关键 clone 资源已证明完整后启动；release machine record 只接受 live runner 源 DLL 与最终 shipped DLL 完全一致
  * [POS]: src-tauri/tests/support 的门入口分片；任何 live clone 资源不完整、FullSurfaces 未绑定 TEMP-owned profile 或使用不同于最终 NSIS 的 runtime DLL 都先于人工截图结论硬失败
@@ -308,7 +307,7 @@
             "imageOs": env::var("ImageOS").unwrap_or_else(|_| "Windows Server 2022".to_string()),
             "imageVersion": env::var("ImageVersion").unwrap_or_else(|_| "local-disposable-runner".to_string()),
             "node": command_first_line("node", &["--version"], "Node version")?,
-            "npm": command_first_line("npm", &["--version"], "npm version")?,
+            "npm": npm_version()?,
             "rustc": command_first_line("rustc", &["--version"], "rustc version")?,
             "cargo": command_first_line("cargo", &["--version"], "cargo version")?,
             "cmake": cmake_version,
