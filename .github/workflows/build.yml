@@ -987,7 +987,7 @@ jobs:
 
           ## English
 
-          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva. macOS GitHub Release assets are Developer ID signed and notarized; verify downloads with SHA256SUMS and ReleaseAcceptanceSeal.json.
+          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva. The protected tag workflow must complete its signing, notarization, and acceptance gates before publication; verify downloads with SHA256SUMS and ReleaseAcceptanceSeal.json.
           EOF
           } > release-notes.md
 

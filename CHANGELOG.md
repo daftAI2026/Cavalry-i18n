@@ -29,6 +29,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Release Signing Boundary**: macOS release packaging runs in the protected release environment, removes imported key material on every outcome, re-verifies final DMG notarization/signature bytes after all package gates, and keeps a private draft until every release asset and sidecar is uploaded and read back exactly.
 - **Commit-Bound Source Artifact**: CI now uploads a mode-preserving source tar and independently compares every path, byte, type, and executable mode to the exact release commit instead of trusting a self-reported marker or lossy directory upload.
 
+### Fixed
+- **Traditional Chinese Guide Viewport Terminology**: Replaced the three glossary-inconsistent `視埠` occurrences with `檢視區` in the Traditional Chinese Guide catalog and synchronized the macOS onboarding acceptance oracle.
+
+### Documented
+- **macOS-only Self-painted Boundary**: Documented the current macOS-only `ACCEPTED-ENGLISH-BOUNDARY` for `Viewport Quality: High` outside the five proven Transform self-painted action paths. This is an English fail-open boundary, not a translation-pass claim; the corresponding Windows runtime behavior remains untested.
+
+### Verification Scope
+- **Targeted checks**: JSON parsing, translation validation, macOS acceptance contracts (`13/13`), app contracts (`118/118`), and `git diff --check` passed for this update.
+- **Evidence boundary**: No new macOS live session is claimed for this update. These targeted checks do not constitute full-platform acceptance, Windows runtime PASS, or Apple notarization.
+
 ## [0.6.1] - 2026-08-01
 
 ### Added
