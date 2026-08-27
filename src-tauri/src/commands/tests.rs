@@ -642,7 +642,7 @@ fn status_uses_snapshot_provenance_and_binary_revision_not_display_version() {
 
 #[test]
 #[cfg(target_os = "windows")]
-fn legacy_snapshot_proof_accepts_incomplete_provenance_only_with_active_qpa_evidence() {
+fn legacy_snapshot_proof_accepts_active_or_owned_stock_cleanup_evidence() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
@@ -703,6 +703,53 @@ fn legacy_snapshot_proof_accepts_incomplete_provenance_only_with_active_qpa_evid
             &app,
             revision,
             |_| Ok(active.clone()),
+            false,
+        )
+    );
+    let stock = crate::windows_qpa::QpaInspection {
+        state: crate::windows_qpa::QpaDeploymentState::Stock,
+        phase: None,
+        current_qwindows_sha256: Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256.to_string()),
+        detail: "fixture has stock vendor QPA and an owned generic cleanup plan".to_string(),
+    };
+    assert!(
+        super::snapshot::legacy_snapshot_is_proven_with_qpa_inspector(
+            &repo,
+            &state_dir,
+            &repo,
+            &current,
+            &app,
+            revision,
+            |_| Ok(stock.clone()),
+            true,
+        )
+    );
+    assert!(
+        !super::snapshot::legacy_snapshot_is_proven_with_qpa_inspector(
+            &repo,
+            &state_dir,
+            &repo,
+            &current,
+            &app,
+            revision,
+            |_| Ok(stock.clone()),
+            false,
+        )
+    );
+    let stock_with_unknown_qpa = crate::windows_qpa::QpaInspection {
+        current_qwindows_sha256: Some("unknown-qpa-hash".to_string()),
+        ..stock
+    };
+    assert!(
+        !super::snapshot::legacy_snapshot_is_proven_with_qpa_inspector(
+            &repo,
+            &state_dir,
+            &repo,
+            &current,
+            &app,
+            revision,
+            |_| Ok(stock_with_unknown_qpa.clone()),
+            true,
         )
     );
     assert!(
@@ -719,6 +766,7 @@ fn legacy_snapshot_proof_accepts_incomplete_provenance_only_with_active_qpa_evid
                 current_qwindows_sha256: None,
                 detail: "untrusted fixture".to_string(),
             }),
+            false,
         )
     );
 }

@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 snapshot 的 packaged English source 定位、patch 的 legacy/immutable snapshot gate、install identity 与 Windows QPA 只读证据。
+ * [INPUT]: 依赖 snapshot 的 packaged English source 定位、patch 的 legacy/immutable snapshot gate、install identity、Windows QPA 只读证据与 windows_runtime 的打包 QPA/generic 源解析；Stock 旧状态通过只读 restore plan 同时证明 vendor qwindows 和 generic 所有权。
  * [OUTPUT]: 提供 legacy provenance 完整性判定、只读旧快照可信识别，以及 apply 阶段的 immutable generation 迁移。
  * [POS]: commands 的兼容迁移子模块；status 只消费纯证明，apply/restore 才接管 generation 发布与 provenance 落盘，绝不从当前翻译安装反向生成英文备份。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -44,8 +44,9 @@ fn legacy_state_matches_install(
 
 /// Read-only proof used by status projection. It accepts only a legacy state/snapshot that still
 /// names this exact install and revision, matches the packaged English keyed overlay, and has a
-/// hash-locked Windows runtime with a durable vendor backup. No generation or state file is
-/// published here; apply owns that mutation.
+/// hash-locked Windows runtime: Active/Recover retain the durable vendor backup, while Stock
+/// must yield a CleanupOnly restore plan proving vendor qwindows and packaged generic ownership.
+/// No generation or state file is published here; apply owns that mutation.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn legacy_snapshot_is_proven(
     repo_root: &Path,
@@ -74,7 +75,10 @@ pub(crate) fn legacy_snapshot_is_proven(
                 let Ok(inspection) = crate::windows_qpa::inspect(&layout) else {
                     return false;
                 };
-                return qpa_inspection_proves_vendor_backup(&inspection);
+                let stock_cleanup_is_proven = inspection.state
+                    == crate::windows_qpa::QpaDeploymentState::Stock
+                    && stock_cleanup_plan_is_proven(repo_root, resource_dir, &layout);
+                return qpa_inspection_proves_runtime(&inspection, stock_cleanup_is_proven);
             }
             #[cfg(not(target_os = "windows"))]
             {
@@ -119,13 +123,47 @@ where
 }
 
 #[cfg(target_os = "windows")]
-fn qpa_inspection_proves_vendor_backup(inspection: &crate::windows_qpa::QpaInspection) -> bool {
+fn stock_cleanup_plan_is_proven(
+    repo_root: &Path,
+    resource_dir: &Path,
+    layout: &InstallLayout,
+) -> bool {
+    let Ok(proxy_source) =
+        crate::windows_runtime::resolve_qpa_proxy_source(resource_dir, repo_root)
+    else {
+        return false;
+    };
+    let Ok(generic_source) = crate::windows_runtime::resolve_plugin_source(resource_dir, repo_root)
+    else {
+        return false;
+    };
     matches!(
-        inspection.state,
-        crate::windows_qpa::QpaDeploymentState::Active
-            | crate::windows_qpa::QpaDeploymentState::Recover
-    ) && (inspection.state != crate::windows_qpa::QpaDeploymentState::Recover
-        || inspection.phase.is_some())
+        crate::windows_qpa::build_restore_plan(crate::windows_qpa::RestoreRequest {
+            layout,
+            proxy_source: &proxy_source,
+            generic_source: &generic_source,
+            reason: crate::windows_qpa::RestoreReason::EnglishSelection,
+        }),
+        Ok(crate::windows_qpa::PreparedRestore::Execute(plan))
+            if plan.action == crate::windows_qpa::RestoreAction::CleanupOnly
+    )
+}
+
+#[cfg(target_os = "windows")]
+fn qpa_inspection_proves_runtime(
+    inspection: &crate::windows_qpa::QpaInspection,
+    stock_cleanup_is_proven: bool,
+) -> bool {
+    match inspection.state {
+        crate::windows_qpa::QpaDeploymentState::Stock => {
+            stock_cleanup_is_proven
+                && inspection.current_qwindows_sha256.as_deref()
+                    == Some(crate::windows_qpa::VENDOR_QWINDOWS_SHA256)
+        }
+        crate::windows_qpa::QpaDeploymentState::Active => true,
+        crate::windows_qpa::QpaDeploymentState::Recover => inspection.phase.is_some(),
+        crate::windows_qpa::QpaDeploymentState::Drifted => false,
+    }
 }
 
 #[cfg(all(test, target_os = "windows"))]
@@ -137,6 +175,7 @@ pub(crate) fn legacy_snapshot_is_proven_with_qpa_inspector<F>(
     app_path: &Path,
     immutable_revision: &str,
     inspect_qpa: F,
+    stock_cleanup_is_proven: bool,
 ) -> bool
 where
     F: Fn(&InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String>,
@@ -152,9 +191,9 @@ where
             let Ok(layout) = InstallLayout::from_selection(app_path) else {
                 return false;
             };
-            inspect_qpa(&layout)
-                .ok()
-                .is_some_and(|inspection| qpa_inspection_proves_vendor_backup(&inspection))
+            inspect_qpa(&layout).ok().is_some_and(|inspection| {
+                qpa_inspection_proves_runtime(&inspection, stock_cleanup_is_proven)
+            })
         },
     )
 }
