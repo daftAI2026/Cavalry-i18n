@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供 apply_language_inner、仅对无 pending journal 的精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、生产与测试共用的 Windows English 原字节/三语 canonical overlay pair 构造、单次 UAC/typed cleanup warning、全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS English UI/官方还原、首装 launcher gate、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门。
- * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage。
+ * [OUTPUT]: 提供 apply_language_inner、仅对无 pending journal 的精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、生产与测试共用的 Windows English 原字节/三语 canonical overlay pair 构造、English manifest entry SHA 到 UAC parent staging 的连续 evidence、单次 UAC/typed cleanup warning、全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS English UI/官方还原、首装 launcher gate、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门。
+ * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::Utc;
@@ -435,6 +435,27 @@ pub fn apply_language_inner<R: CommandRunner>(
         current_language_source.as_deref(),
     )?;
 
+    #[cfg(target_os = "windows")]
+    let windows_english_manifest = if effective_lang == "en" {
+        let expected_manifest_sha256 = current_state
+            .english_snapshot_provenance
+            .as_ref()
+            .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
+            .ok_or_else(|| {
+                "Windows English restore requires a manifest-bound immutable snapshot.".to_string()
+            })?;
+        Some(
+            patch::validate_english_snapshot_at(
+                &english_snapshot_dir,
+                &app_path,
+                expected_manifest_sha256,
+            )?
+            .manifest,
+        )
+    } else {
+        None
+    };
+
     let staging_root = unique_staging_root();
     #[cfg(target_os = "macos")]
     let pairs = {
@@ -494,6 +515,7 @@ pub fn apply_language_inner<R: CommandRunner>(
                 cavalry_version: &version,
                 staging_root: &staging_root,
                 overlay_pairs: &pairs,
+                english_snapshot_manifest: windows_english_manifest.as_ref(),
             });
         if let Some(payload) = finish_program_files_result(
             program_files_result,

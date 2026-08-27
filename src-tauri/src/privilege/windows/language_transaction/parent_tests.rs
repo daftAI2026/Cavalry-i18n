@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 parent 的可注入 QPA/launcher/postcondition seam 与 tempfile Windows fixture。
- * [OUTPUT]: 覆盖 Program Files 早分流、严格目标映射、仅在无 journal 时成立的 AlreadyStock 零 UAC、pending journal 强制 worker、单次 UAC、取消零目标写入、source provenance E2E 及 0/42/43/44/45/未知退出语义。
+ * [INPUT]: 依赖 parent 的可注入 QPA/launcher/postcondition seam、English snapshot manifest evidence 与 tempfile Windows fixture。
+ * [OUTPUT]: 覆盖 Program Files 早分流、严格目标映射、English source SHA 绑定、仅在无 journal 时成立的 AlreadyStock 零 UAC、pending journal 强制 worker、单次 UAC、取消零目标写入、source provenance E2E 及 0/42/43/44/45/未知退出语义。
  * [POS]: language_transaction parent 的隔离合同测试；不调用真实 UAC、不写真实 Program Files，并挂接真实 patch→stage→verifier 子合同。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,7 +12,9 @@ use std::{
 
 use super::*;
 use crate::install::LANG_MARKER_NAME;
-use crate::patch::CORE_MAP;
+use crate::patch::{
+    EnglishSnapshotEntry, EnglishSnapshotManifest, CORE_MAP, ENGLISH_SNAPSHOT_SCHEMA_VERSION,
+};
 use crate::windows_qpa::{
     QpaActivationPlan, QpaNoopPlan, QpaNoopReason, QpaTransitionPlan, SUPPORTED_ARCHITECTURE,
     SUPPORTED_CAVALRY_VERSION, SUPPORTED_QT_VERSION,
@@ -28,6 +30,7 @@ struct Fixture {
     proxy: PathBuf,
     generic: PathBuf,
     pairs: Vec<CopyPair>,
+    english_manifest: EnglishSnapshotManifest,
 }
 
 impl Fixture {
@@ -58,6 +61,19 @@ impl Fixture {
                 dst: destination,
             });
         }
+        let english_manifest = EnglishSnapshotManifest {
+            schema_version: ENGLISH_SNAPSHOT_SCHEMA_VERSION,
+            entries: pairs
+                .iter()
+                .enumerate()
+                .map(|(index, pair)| EnglishSnapshotEntry {
+                    language_relative_path: format!("fixture/{index}.json"),
+                    asset_relative_path: CORE_MAP[index].1.to_string(),
+                    sha256: hex_digest(&fs::read(&pair.src).unwrap()),
+                    unix_mode: None,
+                })
+                .collect(),
+        };
 
         let worker_exe = temp.path().join("switcher.exe");
         fs::write(&worker_exe, b"switcher").unwrap();
@@ -75,6 +91,7 @@ impl Fixture {
             proxy,
             generic,
             pairs,
+            english_manifest,
         }
     }
 
@@ -88,6 +105,7 @@ impl Fixture {
             cavalry_version: "2.7.2",
             staging_root: &self.staging,
             overlay_pairs: &self.pairs,
+            english_snapshot_manifest: (language == "en").then_some(&self.english_manifest),
         }
     }
 

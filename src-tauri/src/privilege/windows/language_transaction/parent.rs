@@ -1,10 +1,11 @@
 /**
- * [INPUT]: 依赖 OS-known Program Files、固定 JSON 映射、Windows runtime 打包源、QPA transition 合同与 same-EXE RunAs launcher。
- * [OUTPUT]: 提供 Program Files 早分流、严格 payload staging、English cleanup 的当前 generic 所有权输入、仅在无 pending journal 时成立的 Noop 快路与单次 UAC typed 结果。
- * [POS]: language_transaction 的非提权父进程；只准备 hash-locked 计划并等待 worker，绝不关闭 Cavalry、写状态、重启或直接修改安装根。
+ * [INPUT]: 依赖 OS-known Program Files、固定 JSON 映射、已验证 English snapshot manifest entry SHA、Windows runtime 打包源、QPA transition 合同与 same-EXE RunAs launcher。
+ * [OUTPUT]: 提供 Program Files 早分流、manifest-bound English 独占读取/staging、严格 payload staging、English cleanup 的当前 generic 所有权输入、仅在无 pending journal 时成立的 Noop 快路与单次 UAC typed 结果。
+ * [POS]: language_transaction 的非提权父进程；把内存中的快照 evidence 连续绑定到 hash-locked 计划并等待 worker，绝不关闭 Cavalry、写状态、重启或直接修改安装根。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
+    collections::HashMap,
     fmt, fs,
     path::{Path, PathBuf},
     sync::atomic::{AtomicU64, Ordering},
@@ -13,7 +14,7 @@ use std::{
 
 use crate::{
     install::{InstallLayout, InstallPlatform},
-    patch::CopyPair,
+    patch::{CopyPair, EnglishSnapshotManifest},
     windows_qpa::{
         self, ActivationRequest, QpaDeploymentState, QpaNoopReason, QpaTransitionPlan,
         RestoreReason, RestoreRequest, GENERIC_PLUGIN_RELATIVE_PATH,
@@ -61,6 +62,7 @@ pub(crate) struct ParentApplyRequest<'a> {
     pub(crate) cavalry_version: &'a str,
     pub(crate) staging_root: &'a Path,
     pub(crate) overlay_pairs: &'a [CopyPair],
+    pub(crate) english_snapshot_manifest: Option<&'a EnglishSnapshotManifest>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -371,6 +373,7 @@ where
         Option<&Path>,
     ) -> Result<QpaTransitionPlan, String>,
 {
+    let expected_english_hashes = expected_english_source_hashes(request, language, &classified)?;
     let worker_hash = sha256_file(current_exe).map_err(rejected)?;
     let nonce = next_plan_nonce(current_exe, request.staging_root, &worker_hash);
     let directory = request
@@ -408,6 +411,25 @@ where
                 Some(pair.destination),
                 preimage,
             )?;
+            if let Some(expected_hashes) = expected_english_hashes.as_ref() {
+                let expected = expected_hashes.get(&pair.id).ok_or_else(|| {
+                    format!(
+                        "English snapshot manifest has no staging evidence for {}.",
+                        pair.id
+                    )
+                })?;
+                let actual = &payloads
+                    .last()
+                    .ok_or_else(|| "English payload staging produced no record.".to_string())?
+                    .record
+                    .source_sha256;
+                if actual != expected {
+                    return Err(format!(
+                        "English snapshot bytes changed before elevated staging for {}.",
+                        pair.id
+                    ));
+                }
+            }
         }
 
         let mut staged_generic = None;
@@ -480,6 +502,56 @@ where
     })();
 
     result.map_err(|error: String| cleanup_rejected(request.staging_root, &directory, error))
+}
+
+fn expected_english_source_hashes(
+    request: &ParentApplyRequest<'_>,
+    language: Language,
+    classified: &[ClassifiedPair],
+) -> Result<Option<HashMap<String, String>>, ParentApplyError> {
+    if language != Language::English {
+        if request.english_snapshot_manifest.is_some() {
+            return Err(rejected(
+                "Non-English elevated staging must not carry English snapshot evidence.",
+            ));
+        }
+        return Ok(None);
+    }
+
+    let manifest = request.english_snapshot_manifest.ok_or_else(|| {
+        rejected("English elevated staging requires verified snapshot manifest evidence.")
+    })?;
+    let mut hashes = HashMap::with_capacity(manifest.entries.len());
+    for entry in &manifest.entries {
+        if entry.sha256.len() != 64
+            || !entry
+                .sha256
+                .bytes()
+                .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
+        {
+            return Err(rejected(format!(
+                "English snapshot manifest has an invalid SHA-256 for {}.",
+                entry.asset_relative_path
+            )));
+        }
+        if hashes
+            .insert(entry.asset_relative_path.clone(), entry.sha256.clone())
+            .is_some()
+        {
+            return Err(rejected(format!(
+                "English snapshot manifest repeats asset identity {}.",
+                entry.asset_relative_path
+            )));
+        }
+    }
+    if hashes.len() != classified.len()
+        || classified.iter().any(|pair| !hashes.contains_key(&pair.id))
+    {
+        return Err(rejected(
+            "English snapshot manifest does not match the complete elevated asset surface.",
+        ));
+    }
+    Ok(Some(hashes))
 }
 
 fn build_qpa_transition(
