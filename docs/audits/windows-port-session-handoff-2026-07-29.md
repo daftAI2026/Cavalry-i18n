@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 Cavalry 2.7.2 Windows x64 实现、PR #3、Issue #1、Windows 合同/真机/安装器证据与 Codex 任务 019f8f54-14c8-7022-b951-2fdd56459d48 的决策记录
-[OUTPUT]: 对外提供 Windows 移植的实施复盘、维护心智模型、被证伪方案、证据分级、发布交接与未闭环验证清单
+[INPUT]: 依赖 Cavalry 2.7.2 Windows x64 实现、PR #3/#28/#29/#30、Issue #1/#16、Windows 合同、真机、安装器证据与发布验收修复记录
+[OUTPUT]: 对外提供 Windows 移植与发布验收复盘、维护心智模型、被证伪方案、证据分级、原始 session 生命周期和 macOS 发布交接
 [POS]: docs/audits 的 dated 工程审计；补充 roadmap 的状态与 SOP 的命令，不替代代码、合同或实时发布状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -8,6 +8,8 @@
 # Windows x64 适配实施复盘与维护交接
 
 > 审计日期：2026-07-29
+>
+> 收尾更新：2026-08-28
 >
 > 目标：Cavalry 2.7.2、Qt 6.6.3、Windows x64
 >
@@ -256,7 +258,7 @@ GitHub 的实际故障发生在 DLL 构建和 CTest 已成功之后：外层 pws
 | 项目 | 合同 | 原因 |
 | --- | --- | --- |
 | Windows | 10 x64+ | 当前开发和产品支持下限 |
-| Node.js | 22+ | 项目脚本与 Tauri CLI 开发环境 |
+| Node.js | 24+ | 开发机使用 Node 24 LTS；CI 与漏洞证据精确固定 24.20.0 / npm 11.19.0 |
 | Python | 3 | 翻译验证与 Qt SDK 准备 |
 | PowerShell | 5.1+ | Windows 开发脚本 |
 | Visual Studio | 2022+ | 需要 x64 MSVC v143 workload |
@@ -361,17 +363,7 @@ provenance sidecar 绑定安装器字节与当前打包输入，不依赖 Git HE
 | NSIS install/update/uninstall | 包内容、安装生命周期和零越界 | 跨版本升级与真实用户配置组合 |
 | 用户手测 | 实际机器的主要语言切换路径 | 全量表面和其他机器环境 |
 
-截至本文：
-
-- 项目合同为 161/161；
-- Windows injector CTest 为 9/9；
-- 本机 PowerShell 5.1 fallback 已完成真实 injector 构建；
-- GitHub PowerShell 7 路径已通过原生 DLL 构建、hash 输出和 Windows Rust 全套；
-- GitHub Actions [run 30395405903](https://github.com/daftAI2026/Cavalry-i18n/actions/runs/30395405903) 已通过 Windows DLL、Rust、NSIS 构建及 install/update/uninstall 生命周期检查；
-- 用户已手测 English、简中、繁中和日语切换，未发现问题；
-- 后续提交仍以 PR 最新 GitHub 检查为准，不能拿这次成功代替新 HEAD 的结果。
-
-数字只描述这个审计节点。新增合同时，维护者应更新当前测试结果，不把这里的旧计数当固定门槛。
+2026-08-28 的 Windows 发布候选以 `9e293df26191bc638e81f343033b2dbada8c8aba` 为 source commit。PR #28、#29、#30 已合并，最终 PR CI 和 Codex review 通过；本机完成 NSIS 安装、同版本更新、Switcher 可见窗口启动、三语 Onboarding `15/15`、English 恢复和零 Cavalry PID。具体安装器、provenance、generic/QPA 和截图摘要保存在该轮 acceptance 记录中，不把一次构建的哈希抄成长期常量。
 
 ## 被证伪或放弃的方向
 
@@ -393,29 +385,27 @@ provenance sidecar 绑定安装器字节与当前打包输入，不依赖 Git HE
 | 跟踪预编译原生库 | runner 现场构建并绑定 provenance | 无可用平台 runner 且发布协议重设 |
 | CI green 等于 full UI pass | CI 无真实 Cavalry，永远不能替代 live gate | CI runner 获得合法 live Cavalry 环境 |
 
-## 仍需保留的验证债
+## 2026-08-27 至 2026-08-28 发布验收收尾
 
-这些项不否定 Windows x64 当前实现，但不能从记录中删除：
+Windows 发布验收最后关闭了 npm 工具链身份、临时插件目录所有权和人工 seal 三类问题。
 
-- 在真实受保护 Program Files 安装上补一次人工 UAC 对照；
-- 在确实已有 Cavalry 任务栏固定项的机器上补原生入口截图；
-- 用未来真实版本执行跨版本 Switcher 更新；
-- 在干净用户 profile 上复验真实卸载后 QPA 持久状态；
-- 按 [full UI Runbook](../workflows/cavalry-full-ui-100/Runbook.md) 在 macOS 复验 8 条 exact-only/owner-aware QObject 拓扑，状态保持 `PENDING-MAC-LIVE`；
-- Cavalry 目标版本变化时重新提取资源、Qt 版本、PE 身份、caller/source 和 vendor QPA 摘要，不能只改版本字符串。
+PR #28 让 English 恢复使用 immutable snapshot 的原始字节，非 English 仍走 canonical overlay。PR #29 修复 live machine record 的 npm 身份采集：优先让当前 Node 执行 `npm_execpath`，Windows 仅在缺少该入口时使用受控 shell fallback。不能把 PowerShell 里可运行的 `npm` 想当然地当作 `spawn` 可执行文件，也不能只测字符串拼装而不执行真实入口。
 
-登录测试不需要专用测试账号。disposable clone 隔离的是安装根，不应清空正常用户 profile；任何账号、token、Keychain/Windows 凭据、个人 profile 路径都不能进入仓库证据。
+PR #30 来自合并后真实重跑。干净 English clone 没有根 `generic/` 是合法状态，acceptance runner 却在缺少父目录时直接创建临时 DLL。修复遵守三个所有权条件：只在 sentinel 保护的 disposable clone 内创建；目录创建成功的瞬间记录本轮所有权，后续任何 `?` 失败都能清理；只删除本轮创建且仍为空的目录，已有 vendor 目录永不删除。资源所有权若等到最后一步才登记，失败路径就已经失去清理依据。
 
-## 下一位维护者的最短路径
+完整 live runner 以 `MACHINE-COMPLETE-MANUAL-PENDING` 结束是设计行为。机器记录先证明进程、窗口、截图、installer、DLL、English restore 和清理，人工 review 再把已有 15 张截图封成 `PASS-15-OF-15`。不能把“需要人工复核”误报成产品失败，也不能跳过人工记录直接把机器完成写成 PASS。
 
-1. 先读 [PR #3](https://github.com/daftAI2026/Cavalry-i18n/pull/3) 的最新检查和未解决 review，不从聊天摘要猜状态。
-2. 读 [Windows roadmap](../roadmap/windows-port-and-injection-roadmap.md) 的待验项，再读 [LOCAL_BUILD_SOP](../../LOCAL_BUILD_SOP.md) 运行对应平台命令。
-3. 翻译残余先归类为 JSON、普通 Qt、动态显示值或 ExtensionLayer 自绘，再找最接近业务文本的入口。
-4. 新 ExtensionLayer source 必须补 vendor 二进制合同、synthetic callback 反例和 live UI 证据，不能只补 TS。
-5. 修改 QPA、Program Files 事务或进程关闭边界时，先验证 exact preimage rollback、reparse、hash、marker 顺序和失败可见性。
-6. 打包前确认原生库由当前平台现场构建，NSIS provenance 与当前输入一致。
-7. 公开发布前整理 `CHANGELOG.md`，同步内部 SemVer，再按 `release.config.json` 创建 `cavalry-2.7.2-pN` 标签。内部版本与公开 Cavalry patch 标签是两层协议。
-8. 没有用户授权时不要 merge、打 tag 或发布 Release。
+PR 流程只在候选发生变化时重跑必要检查。先用定向红测证明 npm 入口和缺失 `generic/`，修复后跑对应 Rust/Node 合同；最终候选只跑一次完整 CI。Codex 对失败路径所有权的 P2 意见修复后重新复核并解决 thread，合并后的重复 main CI 被取消，避免用过期 run 消耗时间。
+
+### 原始 session 的生命周期
+
+Windows acceptance summary 是便于阅读的派生产物，不是 release evidence 输入。`create_release_acceptance_evidence.js --windows-session-dir` 会重新读取原始 session，并复核 disposable clone、installer、provenance、已安装 DLL、截图和 inventory。只复制 summary，或先清理 clone，再把 session 带到另一台机器，都无法通过当前 fail-closed verifier。
+
+本轮在生成 summary 后按临时目录清理要求删除了 disposable clone。因此现存 final record 仍能证明当次 Windows `15/15`，却不能直接参与后续 combined evidence 生成。macOS 发布前必须二选一：在最终 source commit 上重建完整 Windows 原始 session，并保留所有 verifier 依赖直到 evidence 生成；或先通过有回归测试的 PR 把双平台 session 改成可搬移的自包含证据包。不得修改 JSON 路径或拿 summary 冒充原始 session。
+
+文档提交同样会改变 commit identity。当前 Windows session 绑定 source commit `9e293df26191bc638e81f343033b2dbada8c8aba`，所以本次经验文档 PR 不能在 macOS acceptance 和 release evidence 之前合并。若 source commit 改变，Windows 与 macOS live evidence 都必须重新绑定新 commit。
+
+当前远端只剩 [Issue #12](https://github.com/daftAI2026/Cavalry-i18n/issues/12) 和总跟踪 [Issue #13](https://github.com/daftAI2026/Cavalry-i18n/issues/13)。Windows [Issue #16](https://github.com/daftAI2026/Cavalry-i18n/issues/16) 已关闭；Mac 验证、combined evidence、外部 attestation、tag 和公开发布统一由 [`release-seals/TODO.md`](../../release-seals/TODO.md) 维护。
 
 ## 证据卫生
 

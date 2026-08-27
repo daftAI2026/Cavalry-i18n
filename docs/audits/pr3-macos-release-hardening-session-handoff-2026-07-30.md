@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 PR #3 当前候选、Codex 任务 019faaa4-501d-7802-ae83-7bb494dd0995、Windows 移植复盘、macOS 48 点 run note/机器证据与后续 tracked acceptance producer
-[OUTPUT]: 对外提供 PR #3 macOS 发布加固的决策记录、踩坑复盘、可迁移验收方法、producer 交接边界、发布顺序与下一位维护者最短路径
+[INPUT]: 依赖 PR #3 历史候选、Codex 任务 019faaa4-501d-7802-ae83-7bb494dd0995、Windows 移植/最终发布验收复盘、macOS 48 点 run note 与 tracked acceptance producer
+[OUTPUT]: 对外提供 PR #3 macOS 发布加固的决策记录、踩坑复盘、可迁移验收方法、producer 交接边界、发布顺序与 2026-08-28 接续状态
 [POS]: docs/audits 的 dated 工程交接；压缩本轮长对话但不替代 Runbook、当前 run note、代码合同或 GitHub 实时状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -485,39 +485,13 @@ Grok CLI 适合作为独立工程伙伴做失败归因、diff 审阅和发布顺
 
 本地 pre-commit 可能对两个 commit 分别运行，这是 index 边界检查，不等于远端 CI 两次。不得为了省本地检查而用 `git add .`、覆盖其他 worktree，或把两个逻辑边界压成无法审阅的提交。
 
-## Windows 未验证项如何处理（形成时）
+## 2026-08-28 接续状态
 
-以下记录本文形成时的决策。Onboarding 的 Windows 缺口后来已由上方补记链接的独立 run note 关闭；保留本节是为了说明没有 Windows 证据时为什么必须写 pending。
+PR #3 形成时的 Windows pending 已成为历史。后续 PR #28、#29、#30 合并到 `main`，Windows release candidate 在 source commit `9e293df26191bc638e81f343033b2dbada8c8aba` 上完成 NSIS 安装、Switcher 可见启动、三语 Onboarding `15/15`、English restore 和零进程清理，Issue #16 已关闭。
 
-当前处理：
+Mac 不能用旧 `5bbc2099-...` session 证明当前 source commit。下一轮必须在同一个 source commit 上重新执行 tracked `tools/macos-acceptance/` 的 21-run/48-point matrix 和人工 seal。Windows summary 也不能直接并入 release evidence；当前 verifier 要重新读取原始 Windows session 依赖的 clone、installer、provenance 和 DLL。本轮 clone 已清理，因此 Mac 发布前还要重建 Windows 原始 session，或先实现并验证可搬移的自包含双平台证据包。
 
-```text
-代码和共享资源        -> 留在 PR #3
-Windows 自动合同      -> PR gate
-Windows live Onboarding -> PENDING-NO-WINDOWS-HOST
-Windows 邻接 producer -> PENDING-WINDOWS-PRODUCER
-真实 Windows 验收     -> exact main release candidate 的 release gate
-```
-
-没有 Windows 主机时不搭建复杂体系伪造“真机”，也不无限扩大当前代码。发布前只有两个诚实选择：
-
-1. 获得 Windows 环境并完成真实验收，再发布三资产 `p4`；
-2. 把该 patch 明确调整为 macOS-only，同步缩小 ChangeLog、工作流和发布资产，Windows 延后。
-
-后续已完成第一项中的 Windows Onboarding `15/15`；2026-07-31 又以独立 acceptance plugin 和真实 Tag/Assets producer 关闭邻接 `6/6` 缺口。两项定向 PASS 都不等于 repository-wide G0-G4。
-
-## 下一位维护者的最短路径
-
-1. 读本文，但把 run note、代码和远端状态当作当前真相；
-2. 确认 worktree、HEAD、dirty/untracked 和 PR head 没有漂移；
-3. 保持内部版本 `0.6.0`，不要为未发布候选再 bump；
-4. 确认 TS、generated table 和 native injector 来源闭合；
-5. 从 `tools/macos-acceptance/` 读取和构建 producer，不再依赖已清理 Cache；
-6. 不重复已经封存的 macOS 48 点，除非候选字节或目标身份变化；
-7. 一次性 push 当前逻辑提交到 PR #3；
-8. 只用新 PR head 的 CI 判断可合并性；
-9. Windows Onboarding 以独立 run note 的 `15/15` 为准，Tag/Assets 以 2026-07-31 交接的 `6/6` 与 9 张逐图复核为准；
-10. 合并与 tag 需维护者再次决定；若最终发布，先确认 exact main SHA，再创建 `cavalry-2.7.2-p4`。
+当前操作顺序和未完成项只由 [`release-seals/TODO.md`](../../release-seals/TODO.md) 维护。本文后续只保留已经证实的机制与失败经验，不再保存旧 PR head、旧 p4 操作清单或已关闭的 Windows pending。
 
 ## 一页避坑清单
 
