@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 build.rs 编译期嵌入的四语/Windows runtime SHA-256、固定 payload schema、JSON overlay 规则与 QPA transition planner。
- * [OUTPUT]: 提供 worker 写前 provenance 证明；写入 payload 必须锚定当前发布，English 删除计划则从 ACL 保护的 live manifest 精确重建以兼容旧发行残留。
+ * [INPUT]: 依赖 build.rs 编译期嵌入的四语/Windows runtime SHA-256、固定 payload schema、JSON keyed overlay 语义与 QPA transition planner。
+ * [OUTPUT]: 提供 worker 写前 provenance 证明；非 English payload 必须等于当前发布的 canonical merge，English payload 保留快照原字节但其解析值必须等于 anchored English postimage，删除计划则从 ACL 保护的 live manifest 精确重建以兼容旧发行残留。
  * [POS]: language_transaction 的只读信任边界；区分“当前包可写字节”与“历史 manifest 可删所有权”，在关闭 Cavalry 与安装根写入前 fail closed。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -297,18 +297,25 @@ fn verify_json_payload(
     let translation: Value = serde_json::from_slice(&translation_bytes)
         .map_err(|error| format!("Packaged language JSON is invalid: {error}"))?;
     let english_baseline = merge_translation_overlay(&installed, &english);
-    let rebuilt =
-        serde_json::to_vec_pretty(&merge_translation_overlay(&english_baseline, &translation))
-            .map_err(|error| format!("Could not rebuild trusted language overlay: {error}"))?;
     let staged = read_locked_bounded(
         staging_root,
         source,
         MAX_JSON_BYTES,
         "staged language overlay",
     )?;
-    if staged != rebuilt || sha256_bytes(&staged) != record.source_sha256 {
+    let trusted = if language == Language::English {
+        serde_json::from_slice::<Value>(&staged)
+            .map_err(|error| format!("Staged English snapshot JSON is invalid: {error}"))?
+            == english_baseline
+    } else {
+        let rebuilt =
+            serde_json::to_vec_pretty(&merge_translation_overlay(&english_baseline, &translation))
+                .map_err(|error| format!("Could not rebuild trusted language overlay: {error}"))?;
+        staged == rebuilt
+    };
+    if !trusted || sha256_bytes(&staged) != record.source_sha256 {
         return Err(format!(
-            "Staged language overlay {} is not the exact trusted merge result.",
+            "Staged language payload {} is not the trusted target result.",
             record.id
         ));
     }

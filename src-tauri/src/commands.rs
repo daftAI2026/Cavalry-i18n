@@ -172,6 +172,8 @@ pub(crate) use crate::mac_runtime::injector_source_candidates;
 pub(crate) use crate::operation_lock::acquire_bundle_file_lock;
 #[cfg(test)]
 pub(crate) use crate::operation_lock::{try_begin_bundle_operation, BUSY_ERROR};
+#[cfg(all(test, target_os = "windows"))]
+pub(crate) use apply::build_windows_language_pairs;
 #[cfg(test)]
 pub(crate) use apply::marker_guarded_transaction_pairs;
 #[cfg(test)]

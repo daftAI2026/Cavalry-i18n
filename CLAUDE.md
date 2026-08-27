@@ -10,7 +10,7 @@ docs/ - 架构计划、翻译规范、工作流协议与历史证据链 (Markdow
 injector/ - macOS DYLD 注入器、Cavalry 2.7.2 TransformTool Mach-O/Skia ABI 防火墙与 Windows Qt generic translator/QPA delegate；共享 policy 区分 8 条跨平台 exact-only 表面和双平台 owner-scoped 邻接 key，Windows 另构建不发布的 acceptance-only generic plugin，以 Qt test profile 隔离登录/工作区并驱动 Onboarding/Tag/Assets 真机证据，各平台 Runner 现场生成不入库的原生库 (C++, Objective-C++)
 languages/ - 运行时 JSON 语言包，保存 English 基线与三语同构翻译资产 (JSON)
 renderer/ - Tauri 前端 UI，提供多语言补丁的管理界面 (HTML, JS)
-src-tauri/ - Tauri 后端；分离 renderer 契约、安装真相、受控系统命令与平台运行时，Windows 以 durable manifest/backup、含 generic 的原子 English 清理、same-EXE 单次 UAC 与可选保留翻译的 NSIS 生命周期统一控制面和数据面 (Rust, NSIS)
+src-tauri/ - Tauri 后端；分离 renderer 契约、安装真相、受控系统命令与平台运行时，Windows 以 immutable snapshot 原字节恢复、durable manifest/backup、含 generic 的原子 English 清理、same-EXE 单次 UAC 与可选保留翻译的 NSIS 生命周期统一控制面和数据面 (Rust, NSIS)
 tools/ - 自动化工具链，涵盖翻译提取、校验、SDK 解析、Windows NSIS 安装态、exact PID/HWND/受限 cleanup 与 producer-side PNG 证据，以及 tracked macOS Objective-C++/CGWindow 21-run/48-point 定向验收器；原生库和 live session 现场生成而不入库 (Node.js, PowerShell, Bash, Objective-C++, Swift)
 output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿 (JSON, PNG)
 </directory>
