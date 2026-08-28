@@ -1,6 +1,6 @@
 <!--
-  [INPUT]: 依赖 ./styles.css 与本地 Geist 字体提供离线视觉系统、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
-  [OUTPUT]: 对外提供原生 macOS 窗口控件下的可拖拽标题区、安装对象卡、语言主任务、三个独立维护动作、持久状态 Alert、更新 tooltip 与原生 alert dialog 锚点
+  [INPUT]: 依赖 ./styles.css 与本地 Geist 字体提供离线视觉系统、./select-control.js 提供 Base UI 语义的轻量选择状态机、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
+  [OUTPUT]: 对外提供原生 macOS 窗口控件下的可拖拽标题区、安装对象卡、自绘语言选择器、三个独立维护动作、持久状态 Alert、更新 tooltip 与原生 alert dialog 锚点
   [POS]: renderer 的唯一视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，不伪造交通灯或后端状态
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -66,8 +66,15 @@
           <h2 id="languageSectionLabel" class="section-title"><span id="switchToLabel">Switch to</span></h2>
         </div>
         <div class="language-control-row">
-          <div class="select-wrap">
-            <select id="languageSelect" aria-labelledby="languageSectionLabel" disabled></select>
+          <div id="languageSelectRoot" class="select-root" data-state="closed">
+            <select id="languageSelect" class="sr-only" tabindex="-1" aria-hidden="true" disabled></select>
+            <button id="languageSelectTrigger" type="button" class="select-trigger" role="combobox" aria-labelledby="languageSectionLabel languageSelectValue" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageSelectList" disabled>
+              <span id="languageSelectValue" class="select-value"></span>
+              <span class="select-chevron" aria-hidden="true"></span>
+            </button>
+            <div id="languageSelectPopup" class="select-popup" hidden>
+              <div id="languageSelectList" class="select-list" role="listbox" aria-labelledby="languageSectionLabel"></div>
+            </div>
           </div>
           <button id="applyButton" type="button" class="button button-primary" disabled>Apply &amp; Restart</button>
         </div>
@@ -116,6 +123,7 @@
 
   <script src="./tauri-bridge.js"></script>
   <script src="./ui-text.js"></script>
+  <script src="./select-control.js"></script>
   <script src="./app.js"></script>
 </body>
 

@@ -78,6 +78,21 @@ fn tauri_config_declares_capabilities() {
         .unwrap()
         .iter()
         .any(|value| value == "core:default"));
+    assert!(capabilities["permissions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|value| value == "core:window:allow-start-dragging"));
+}
+
+#[test]
+fn macos_native_titlebar_alignment_and_resize_reapply_are_frozen() {
+    let source = include_str!("../src/lib.rs");
+    assert!(source.contains("const MACOS_TRAFFIC_LIGHT_X: f64 = 12.0;"));
+    assert!(source.contains("const MACOS_TRAFFIC_LIGHT_Y: f64 = 25.0;"));
+    assert!(source.contains("align_macos_traffic_lights(&main_window)?;"));
+    assert!(source.contains("tauri::WindowEvent::Resized(_)"));
+    assert!(source.contains("tauri::WindowEvent::ScaleFactorChanged { .. }"));
 }
 
 #[test]

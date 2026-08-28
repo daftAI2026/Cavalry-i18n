@@ -1980,6 +1980,7 @@ test('tauri capability and SOP mention the bridge and packaged resource boundari
   assert.ok(capabilities.windows.includes('main'));
   assert.ok(capabilities.permissions.includes('core:default'));
   assert.ok(capabilities.permissions.includes('core:window:default'));
+  assert.ok(capabilities.permissions.includes('core:window:allow-start-dragging'));
   assert.ok(capabilities.permissions.includes('core:webview:default'));
 
   for (const requiredText of [

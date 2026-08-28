@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/ui-text/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes 与 updater error manifest、默认隐藏且仅由预览或真实可用更新展示的图标/tooltip、脱敏更新确认/安装、原生 dialog 生命周期、English UI/官方还原分离、Windows residue、durability retry 及 rejection 恢复。
+ * [INPUT]: renderer bridge/ui-text/select-control/app.js 与最小 fake DOM、Tauri invoke fake。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes 与 updater error manifest、Base UI 语义选择状态机、默认隐藏且仅由预览或真实可用更新展示的图标/tooltip、脱敏更新确认/安装、原生 dialog 生命周期、English UI/官方还原分离、Windows residue、durability retry 及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,6 +23,7 @@ class Element {
   close() { this.open = false; this.removeAttribute('open'); for (const callback of this.listeners.get('close') || []) callback(); }
   append(child) { this.children.push(child); this.options = this.children; }
   replaceChildren() { this.children = []; this.options = this.children; }
+  contains(target) { return target === this || this.children.some((child) => child.contains?.(target)); }
 }
 
 function runtime({
@@ -36,13 +37,16 @@ function runtime({
   preview = false,
   statusRequest = null,
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const document = {
     documentElement: new Element(), body: new Element(), activeElement: null, title: '',
+    listeners: new Map(),
     querySelector(selector) { return elements[selector]; },
     createElement() { return new Element(); },
+    createElementNS() { return new Element(); },
+    addEventListener(type, callback) { this.listeners.set(type, [...(this.listeners.get(type) || []), callback]); },
   };
   for (const element of [...Object.values(elements), document.documentElement, document.body]) {
     element.ownerDocument = document;
@@ -78,6 +82,7 @@ function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
   vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
+  vm.runInNewContext(read('renderer/select-control.js'), r.context, { filename: 'select-control.js' });
   vm.runInNewContext(read('renderer/app.js'), r.context, { filename: 'app.js' });
   return r;
 }
@@ -97,6 +102,38 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(r.elements['#statusLabel'].textContent, 'Status');
   assert.equal(status.installationMode, 'modifiedOrUnverified');
   assert.equal(Object.hasOwn(status, 'repoRoot'), false);
+});
+
+test('custom language select keeps Base UI open, active, selected, and keyboard states coherent', async () => {
+  const r = boot();
+  await flush();
+  const trigger = r.elements['#languageSelectTrigger'];
+  const popup = r.elements['#languageSelectPopup'];
+  const list = r.elements['#languageSelectList'];
+  const nativeSelect = r.elements['#languageSelect'];
+  const key = (value) => ({
+    key: value,
+    metaKey: false,
+    ctrlKey: false,
+    altKey: false,
+    preventDefault() {},
+  });
+
+  assert.equal(trigger.disabled, false);
+  assert.equal(r.elements['#languageSelectValue'].textContent, '简体中文');
+  trigger.listeners.get('click')[0]();
+  assert.equal(trigger.attributes.get('aria-expanded'), 'true');
+  assert.equal(popup.hidden, false);
+  assert.equal(list.children[0].attributes.get('aria-selected'), 'true');
+
+  trigger.listeners.get('keydown')[0](key('ArrowDown'));
+  assert.equal(trigger.attributes.get('aria-activedescendant'), 'languageSelectOption-1');
+  trigger.listeners.get('keydown')[0](key('Enter'));
+  assert.equal(nativeSelect.value, 'zh-Hant');
+  assert.equal(r.elements['#languageSelectValue'].textContent, '繁體中文');
+  assert.equal(trigger.attributes.get('aria-expanded'), 'false');
+  assert.equal(popup.hidden, true);
+  assert.equal(trigger.focused, true);
 });
 
 test('status panel label follows the selected UI locale', async () => {

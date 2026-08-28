@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 index.html 的标题区、安装 Item、Native Select、Button Group、Alert 与原生 dialog 语义，依赖 assets/fonts 的本地 Geist Sans/Mono
- * [OUTPUT]: 对外提供 460×402 桌面工具窗口的离线视觉系统；使用 36px 控件、7/9px 圆角、9px 动作间距和语义色，不绘制 macOS 交通灯
+ * [INPUT]: 依赖 index.html 的标题区、安装 Item、自绘 Select、Button Group、Alert 与原生 dialog 语义，依赖 assets/fonts 的本地 Geist Sans/Mono
+ * [OUTPUT]: 对外提供 460×440 桌面工具窗口的离线视觉系统；使用 36px 控件、7/9px 圆角、9px 动作间距和语义色，不绘制 macOS 交通灯
  * [POS]: renderer 的唯一视觉实现；参照 shadcn/Base UI 组件几何与状态，但不引入 CSS/JS 运行时或 CDN
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -83,8 +83,7 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-button,
-select {
+button {
   font: inherit;
 }
 
@@ -158,7 +157,7 @@ button {
   min-width: 0;
   flex: 1 1 auto;
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 7px;
   pointer-events: none;
 }
@@ -176,6 +175,9 @@ button {
 .tooltip-anchor {
   position: relative;
   flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .update-button {
@@ -369,30 +371,32 @@ button {
   gap: 9px;
 }
 
-.select-wrap {
+.select-root {
   position: relative;
   min-width: 0;
   grid-column: span 2;
 }
 
-.select-wrap::after {
-  content: "";
-  position: absolute;
-  top: 50%;
-  right: 13px;
+.select-chevron {
+  flex: 0 0 auto;
   width: 6px;
   height: 6px;
   border-right: 1.5px solid var(--text-secondary);
   border-bottom: 1.5px solid var(--text-secondary);
   pointer-events: none;
-  transform: translateY(-70%) rotate(45deg);
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 120ms ease;
 }
 
-select {
+.select-trigger {
   width: 100%;
   height: var(--control-height);
-  padding: 0 34px 0 11px;
-  appearance: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 11px;
+  position: relative;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   outline: none;
@@ -405,9 +409,82 @@ select {
   transition: border-color 140ms ease, background-color 140ms ease, box-shadow 140ms ease;
 }
 
-select:hover:not(:disabled) {
+.select-trigger:hover:not(:disabled),
+.select-root[data-state="open"] .select-trigger {
   border-color: rgba(0, 0, 0, 0.30);
   background: #fdfdfd;
+}
+
+.select-trigger:focus-visible {
+  border-color: rgba(0, 0, 0, 0.42);
+  background: #fdfdfd;
+}
+
+.select-root[data-state="open"] .select-chevron {
+  transform: translateY(2px) rotate(225deg);
+}
+
+.select-value {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.select-popup {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 5px);
+  left: 0;
+  width: 100%;
+  padding: 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-raised);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+}
+
+.select-list {
+  max-height: 160px;
+  overflow-y: auto;
+}
+
+.select-item {
+  position: relative;
+  min-height: 30px;
+  display: flex;
+  align-items: center;
+  padding: 0 30px 0 9px;
+  border-radius: 4px;
+  color: var(--text);
+  font-size: 12.5px;
+  font-weight: 520;
+  cursor: default;
+  user-select: none;
+}
+
+.select-item[data-highlighted="true"] {
+  background: var(--surface-hover);
+}
+
+.select-item-indicator {
+  position: absolute;
+  right: 9px;
+  width: 14px;
+  height: 14px;
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  opacity: 0;
+}
+
+.select-item-indicator svg {
+  width: 14px;
+  height: 14px;
+}
+
+.select-item[aria-selected="true"] .select-item-indicator {
+  opacity: 1;
 }
 
 .button {
@@ -434,7 +511,7 @@ select:hover:not(:disabled) {
 }
 
 .button:disabled,
-select:disabled {
+.select-trigger:disabled {
   cursor: default;
   opacity: 0.42;
 }
@@ -663,7 +740,7 @@ select:disabled {
   white-space: nowrap;
 }
 
-:where(button, select):focus-visible {
+:where(button:not(.select-trigger)):focus-visible {
   outline: 2px solid var(--focus);
   outline-offset: 2px;
 }

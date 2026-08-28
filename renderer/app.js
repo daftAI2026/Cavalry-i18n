@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/主任务/Maintenance/Alert 状态、初始化 fail-closed 门禁、安装 Badge 语义、English UI/官方还原、更新 tooltip/无障碍通知与签名冷更新交互；开发预览不访问网络。
+ * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、window.createSelectControl 的无依赖选择状态机、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/主任务/Maintenance/Alert 状态、初始化 fail-closed 门禁、安装 Badge 语义、受控语言选择、English UI/官方还原、更新 tooltip/无障碍通知与签名冷更新交互；开发预览不访问网络。
  * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode/warningCodes 本土化可恢复状态且从不显示 raw backend/updater 数据；原生 dialog 的 close 事件独占清理与焦点归还。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,7 +18,12 @@ const currentLabel = document.querySelector('#currentLabel');
 const currentLanguage = document.querySelector('#currentLanguage');
 const installationModeText = document.querySelector('#installationMode');
 const switchToLabel = document.querySelector('#switchToLabel');
+const languageSelectRoot = document.querySelector('#languageSelectRoot');
 const languageSelect = document.querySelector('#languageSelect');
+const languageSelectTrigger = document.querySelector('#languageSelectTrigger');
+const languageSelectValue = document.querySelector('#languageSelectValue');
+const languageSelectPopup = document.querySelector('#languageSelectPopup');
+const languageSelectList = document.querySelector('#languageSelectList');
 const browseButton = document.querySelector('#browseButton');
 const extractButton = document.querySelector('#extractButton');
 const applyButton = document.querySelector('#applyButton');
@@ -34,6 +39,15 @@ const modalBody = document.querySelector('#modalBody');
 const modalPrimaryButton = document.querySelector('#modalPrimaryButton');
 const modalSecondaryButton = document.querySelector('#modalSecondaryButton');
 const modalCloseButton = document.querySelector('#modalCloseButton');
+
+const languageSelectControl = window.createSelectControl({
+  root: languageSelectRoot,
+  select: languageSelect,
+  trigger: languageSelectTrigger,
+  value: languageSelectValue,
+  popup: languageSelectPopup,
+  list: languageSelectList,
+});
 
 const api = window.cavalryI18n;
 const state = {
@@ -189,19 +203,14 @@ function setBusy(isBusy) {
     reinstallRequired ||
     state.controlsBlocked ||
     durabilityPending;
-  languageSelect.disabled = notReady || isBusy || state.controlsBlocked || durabilityPending;
+  languageSelectControl.setDisabled(
+    notReady || isBusy || state.controlsBlocked || durabilityPending
+  );
   updateButton.disabled = notReady || isBusy;
 }
 
 function updateLanguageOptions(languages) {
-  languageSelect.replaceChildren();
-  for (const language of languages) {
-    if (language.value === 'en') continue;
-    const option = document.createElement('option');
-    option.value = language.value;
-    option.textContent = language.label;
-    languageSelect.append(option);
-  }
+  languageSelectControl.setOptions(languages.filter((language) => language.value !== 'en'));
 }
 
 function languageLabel(code) {
@@ -447,8 +456,9 @@ async function bootstrap() {
 
   updateLanguageOptions(state.languages);
   const firstTargetLanguage = state.languages.find((language) => language.value !== 'en');
-  languageSelect.value =
-    state.currentLang === 'en' ? firstTargetLanguage?.value || '' : state.currentLang;
+  languageSelectControl.setValue(
+    state.currentLang === 'en' ? firstTargetLanguage?.value || '' : state.currentLang
+  );
   currentLanguage.textContent = languageLabel(state.currentLang);
   setPermissionWait(false);
 
