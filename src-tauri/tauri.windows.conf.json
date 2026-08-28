@@ -4,6 +4,24 @@
     "beforeDevCommand": "npm run build:injector:windows",
     "beforeBuildCommand": "npm run prepare:tauri:windows-bundle"
   },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Cavalry Language Switcher",
+        "url": "./index.html",
+        "useHttpsScheme": false,
+        "width": 460,
+        "height": 404,
+        "minWidth": 420,
+        "minHeight": 390,
+        "resizable": true,
+        "decorations": false,
+        "shadow": true,
+        "center": true
+      }
+    ]
+  },
   "bundle": {
     "targets": [
       "nsis"

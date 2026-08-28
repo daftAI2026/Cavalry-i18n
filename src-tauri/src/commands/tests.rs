@@ -214,7 +214,7 @@ impl CommandRunner for WindowsRuntimeRestartRunner {
 }
 
 #[test]
-fn registers_eight_commands() {
+fn registers_nine_commands() {
     assert_eq!(
         registered_command_names(),
         &[
@@ -223,12 +223,21 @@ fn registers_eight_commands() {
             "extract_english",
             "apply_language",
             "open_privacy_security",
+            "open_project_link",
             "restart_cavalry",
             "check_update",
             "install_update"
         ]
     );
-    assert_eq!(COMMAND_NAMES.len(), 8);
+    assert_eq!(COMMAND_NAMES.len(), 9);
+}
+
+#[test]
+fn project_link_command_rejects_renderer_supplied_urls() {
+    let payload = super::open_project_link("https://attacker.invalid".to_string());
+
+    assert!(!payload.ok);
+    assert_eq!(payload.error.as_deref(), Some("Unsupported project link."));
 }
 
 #[test]

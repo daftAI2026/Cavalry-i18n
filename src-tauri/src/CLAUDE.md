@@ -3,9 +3,9 @@
 
 成员清单
 main.rs: 二进制入口；Windows 依次消费 same-EXE 提升事务、`--uninstall-restore-english` 与 `--launch-cavalry` 精确参数并返回明确退出码，其余进入 Tauri runtime。
-lib.rs: Tauri Builder 装配层，注册官方 updater plugin、Updater State 与 8 个 command；macOS 在 WebView 挂载后将 16px 原生交通灯对齐 40px 标题栏的 20px 中心，使其上下各留 12px，并在 resize/scale 变化后重放，避开静态 `trafficLightPosition` 导致的空白 WebView；同时公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
+lib.rs: Tauri Builder 装配层，注册官方 updater plugin、Updater State 与 9 个 command；macOS 在 WebView 挂载后将 16px 原生交通灯对齐 40px 标题栏的 20px 中心，使其上下各留 12px，并在 resize/scale 变化后重放，同时以固定 menu id 将默认 About 替换为 renderer 自绘 Dialog 入口；公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
 bridge.rs: pre-page-load JS bridge 的 Rust include 真相源，创建 `window.cavalryI18n` 并映射到 Tauri invoke；合同执行 Builder 实际消费的脚本，保留 Windows residue typed 检测但不提供更新检查或独立 reconcile API，不冒充 packaged WebView/CSP 现场门。
-commands.rs: renderer API facade；保留八条稳定 Tauri command、camelCase DTO 和兼容测试 seam；`extract_english` 只生成 English snapshot并标记 Windows runtime residue，`apply_language` 持有单一 operation lock 完成写入及重启，`check_update/install_update` 只消费 Rust State 中签名验证后的 pending Update；内部 warning prose 与 updater 错误均在出界前收敛为稳定 code。
+commands.rs: renderer API facade；保留九条稳定 Tauri command、camelCase DTO 和兼容测试 seam；`extract_english` 只生成 English snapshot并标记 Windows runtime residue，`apply_language` 持有单一 operation lock 完成写入及重启，`open_project_link` 只接受固定枚举，`check_update/install_update` 只消费 Rust State 中签名验证后的 pending Update；内部 warning prose 与 updater 错误均在出界前收敛为稳定 code。
 commands/: command 领域模块图；apply/context/contract/restart/snapshot/status/update 各自只承担一个变化理由，snapshot_legacy 负责旧快照可信识别与 apply-only generation 迁移，tests/ 按基础契约与运行时领域拆分。
 install.rs: 跨平台安装模型，将 Cavalry.app、Cavalry.exe 或任意安装目录统一为 root/executable/assets/marker；兼容发现保留宽松入口，verified 入口先 canonicalize 并拒绝 symlink bundle/关键文件，并提供逐组件 lstat 的相对路径安全 helper。
 headless_launch.rs: Windows `--launch-cavalry` 原生快速入口；持有共享 operation lock，读取 state，校验 revision/marker/QPA ACTIVE/plugin 后以空参数启动 vendor EXE。
@@ -22,7 +22,7 @@ mac_official.rs: macOS vendor baseline 真相层；从严格 identity、vendor c
 mac_runtime.rs: macOS runtime patch 模块，生成 launcher wrapper、trusted bytes/path 驱动的 typed Info.plist rewrite、语言 marker/injector copy pairs，并以 wrapper→Info 顺序提供首次 journal-aware launch gate；集中解析 Resources、`_up_`、repo 三层 injector 来源；wrapper 仅拥有项目语言变量与 injector DYLD 项，保留调用者其它注入，并在 exec 前始终检查默认及 override state 下的 `macos-apply-transaction` journal，存在即以 75 拒绝运行。
 platform_runtime.rs: 私有平台运行时编排 facade；Windows Program Files 已由 commands 提前分流，剩余自定义可写根在 payload 前拒绝 drift、以 typed 结果精确关闭 Cavalry 并验证直接写权限，在 pending JSON/generic 后执行 QPA ACTIVE 或显式 English 恢复，最后才允许 final marker；restart 只交付诊断子进程环境。
 keychain_patch.rs: Mach-O Keychain query callsite 补丁模块，解析 fat/thin slice 并将 5 个函数的 accessGroup/synchronizable 写入调用替换为 NOP；production 入口消费 owned Vec，避免大 dylib 二次复制。
-privilege.rs: 唯一系统命令 facade；保持既有 public API，公开 typed graceful-close 与 Windows Program Files apply outcome，并让 startup recovery 先以不跟随 reparse 的保存根只读探针确认 journal，再持锁通过独立 same-EXE RunAs action 恢复受保护 journal。
+privilege.rs: 唯一系统命令 facade；保持既有 public API，公开 typed graceful-close、固定项目外链与 Windows Program Files apply outcome，并让 startup recovery 先以不跟随 reparse 的保存根只读探针确认 journal，再持锁通过独立 same-EXE RunAs action 恢复受保护 journal。
 privilege/: 系统命令领域模块图；copy_transaction 保持 direct rollback/typed warning，runner 隔离进程副作用，windows/language_transaction 以 same-EXE worker 和 durable journal 守住单次 UAC 完整语言事务。
 startup_recovery.rs: Tauri 启动期跨平台 transaction recovery 协调层；无 pending 时走快路，确有 journal 才等待共享 operation lock；Windows 从保存状态解析已验证安装根，自定义可写根直接恢复，Program Files 委托 privilege 的 same-EXE RunAs recovery，且不确定状态一律 fail closed。
 state.rs: Tauri state.json schema、normalize 与读写函数；StateDocument 以 schemaVersion/generation/operationId/lastKnownGood 保存控制面元数据，同目录 temp+fsync+atomic rename+目录 fsync，并保留 state.json.prev；Windows 普通文件 fsync 使用可写 handle 以满足 FlushFileBuffers，rename 后 directory warning 由不重写 generation 的显式 durability reconfirm 重试；严格读取提供 typed error/recovery report，`read_state_for_control_report` 暴露 recovery diagnostic 与 `StateCommitOutcome` warning，cavalryRevision 描述当前安装，EnglishSnapshotProvenance 只在成功采集或安全验证旧快照后更新。

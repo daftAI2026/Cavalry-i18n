@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-default.json: 仅授予 `main` 窗口基础 core/window/webview 能力与标题区 `start_dragging`；拖动权限只服务本地 `data-tauri-drag-region`，不开放任意窗口变更 API。
+default.json: 仅授予 `main` 窗口基础 core/window/webview、标题区 `start_dragging` 及 Windows caption 明确消费的 minimize/toggle-maximize/close；不开放任意定位、尺寸、装饰或创建窗口权限。
 
 依赖边界:
 

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke（或兼容 __TAURI__.core.invoke）能力。
- * [OUTPUT]: 冻结最小 window.cavalryI18n API；仅转发 camelCase payload（含安装态、可组合 warningCodes 与脱敏 Update DTO），丢弃 raw warning、updater URL/签名/原始响应，并将 transport rejection 归一为 Error。
- * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js 前加载；语言、warning 与 updater error manifest 都不由后端原文决定，安装更新只消费 Rust 保存的已检查对象。
+ * [OUTPUT]: 冻结最小 window.cavalryI18n API；仅转发 camelCase 业务 payload、固定 project-link id、应用版本与 main-window caption 操作，丢弃 raw warning、updater URL/签名/原始响应，并将 transport rejection 归一为 Error。
+ * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js 前加载；业务只消费稳定 DTO，Windows caption 只消费标签固定的 Tauri window 命令。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (() => {
@@ -31,6 +31,7 @@
     'updateBusy',
     'updateStateUnavailable',
   ]);
+  const PROJECT_LINK_MANIFEST = Object.freeze(['repository', 'license']);
 
   function resolveInvoke() {
     const internals = window.__TAURI_INTERNALS__;
@@ -40,17 +41,27 @@
     throw new Error('Tauri invoke bridge is not ready.');
   }
 
-  function invoke(command, payload) {
+  function invokeCommand(command, payload, requireResult) {
     return Promise.resolve()
       .then(() => resolveInvoke()(command, payload))
       .then((result) => {
-        if (typeof result === 'undefined') throw new Error(`${command} returned undefined`);
+        if (requireResult && typeof result === 'undefined') {
+          throw new Error(`${command} returned undefined`);
+        }
         return result;
       })
       .catch((error) => {
         const detail = (error && (error.message || String(error))) || 'unknown invoke error';
         throw new Error(`${command} failed: ${detail}`);
       });
+  }
+
+  function invoke(command, payload) {
+    return invokeCommand(command, payload, true);
+  }
+
+  function invokeWindow(command) {
+    return invokeCommand(`plugin:window|${command}`, { label: 'main' }, false);
   }
 
   function pick(value, fallback) {
@@ -140,9 +151,18 @@
     applyLanguage: (appPath, lang) =>
       invoke('apply_language', { appPath, lang }).then(normalizeAction),
     openPrivacySecurity: () => invoke('open_privacy_security').then(normalizeAction),
+    openProjectLink: (link) => {
+      if (!PROJECT_LINK_MANIFEST.includes(link)) return Promise.reject(new Error('Unsupported project link.'));
+      return invoke('open_project_link', { link }).then(normalizeAction);
+    },
+    getSwitcherVersion: () => invoke('plugin:app|version').then((version) => String(version || '').slice(0, 64)),
     checkUpdate: () =>
       invoke('check_update').then((result) => normalizeUpdate(result, 'updateCheckFailed')),
     installUpdate: () =>
       invoke('install_update').then((result) => normalizeUpdate(result, 'updateInstallFailed')),
+    minimizeWindow: () => invokeWindow('minimize'),
+    toggleMaximizeWindow: () => invokeWindow('toggle_maximize'),
+    isWindowMaximized: () => invokeWindow('is_maximized').then((result) => result === true),
+    closeWindow: () => invokeWindow('close'),
   });
 })();

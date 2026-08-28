@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持八条稳定 Tauri command 与 apply/extract 兼容入口；extract 只验证并生成 English snapshot、返回 Windows residue 的 typed reconciliationRequired 检测结果且不恢复 pending transaction，renderer 的 English restore 直接复用既有 apply transaction；get_status 从安装现实重算该 typed 状态并显式投影启动恢复阻断，apply 在同一 operation guard 内完成成功后的 restart，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；更新 command 只消费 Rust State 中的已检查 Update。
+ * [OUTPUT]: 保持九条稳定 Tauri command 与 apply/extract 兼容入口；extract 只验证并生成 English snapshot、返回 Windows residue 的 typed reconciliationRequired 检测结果且不恢复 pending transaction，renderer 的 English restore 直接复用既有 apply transaction；get_status 从安装现实重算该 typed 状态并显式投影启动恢复阻断，apply 在同一 operation guard 内完成成功后的 restart，project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；更新 command 只消费 Rust State 中的已检查 Update。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -146,6 +146,18 @@ pub async fn install_update(app: tauri::AppHandle) -> UpdatePayload {
 pub fn open_privacy_security() -> ActionPayload {
     let mut runner = privilege::RealCommandRunner;
     match privilege::open_privacy_security(&mut runner) {
+        Ok(()) => ActionPayload::ok(),
+        Err(error) => ActionPayload::error(&error),
+    }
+}
+
+#[tauri::command(rename_all = "camelCase")]
+pub fn open_project_link(link: String) -> ActionPayload {
+    let Some(link) = privilege::ProjectLink::from_id(&link) else {
+        return ActionPayload::error("Unsupported project link.");
+    };
+    let mut runner = privilege::RealCommandRunner;
+    match privilege::open_project_link(link, &mut runner) {
         Ok(()) => ActionPayload::ok(),
         Err(error) => ActionPayload::error(&error),
     }

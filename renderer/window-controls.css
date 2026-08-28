@@ -1,0 +1,83 @@
+/**
+ * [INPUT]: 依赖 tokens.css 的 Windows caption/颜色 token、styles.css 的共享标题栏布局与 index.html 的 Windows caption controls 语义
+ * [OUTPUT]: 对外提供右侧 Windows 原生语义控件的 40px 标题栏布局、最大化图标切换、危险关闭态与高对比度状态
+ * [POS]: renderer 的平台专属窗口控件样式；只绘制 caption 内容，外框、阴影与外圆角继续由 HWND/DWM 所有
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+.windows-window-controls {
+  flex: 0 0 auto;
+  align-self: stretch;
+  display: flex;
+  align-items: stretch;
+}
+
+.window-control-button {
+  width: var(--windows-caption-button-width);
+  min-width: var(--windows-caption-button-width);
+  height: var(--titlebar-height);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--text);
+  cursor: default;
+  transition: background-color var(--duration-window-control) ease, color var(--duration-window-control) ease;
+}
+
+.window-control-button:hover {
+  background: var(--surface-hover);
+}
+
+.window-control-button:active {
+  background: color-mix(in srgb, var(--surface-hover) var(--surface-pressed-mix), var(--text));
+}
+
+.window-control-button:focus-visible {
+  outline: var(--stroke-focus) solid var(--focus);
+  outline-offset: var(--windows-caption-focus-offset);
+}
+
+.window-control-button svg {
+  width: var(--windows-caption-icon-size);
+  height: var(--windows-caption-icon-size);
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--stroke-window-icon);
+  vector-effect: non-scaling-stroke;
+}
+
+.window-control-close:hover {
+  background: var(--danger);
+  color: var(--text-on-strong);
+}
+
+.window-control-close:active {
+  background: color-mix(in srgb, var(--danger) var(--danger-pressed-mix), var(--danger-pressed-target));
+  color: var(--text-on-strong);
+}
+
+.windows-window-controls[data-maximized="false"] .window-icon-restore,
+.windows-window-controls[data-maximized="true"] .window-icon-maximize {
+  display: none;
+}
+
+body:not([data-platform="windows"]) .windows-window-controls {
+  display: none;
+}
+
+@media (forced-colors: active) {
+  .window-control-button {
+    color: ButtonText;
+  }
+
+  .window-control-button:hover,
+  .window-control-button:active,
+  .window-control-close:hover,
+  .window-control-close:active {
+    background: Highlight;
+    color: HighlightText;
+  }
+}

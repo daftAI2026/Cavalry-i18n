@@ -8,7 +8,7 @@
 # Switcher 更新提示与可信分发路线图
 
 状态: Active
-实现状态: R0 行为边界已完成但最终视觉待第二轮精修；R1 Rust/bridge/renderer、最终公钥/endpoint、GitHub updater Secrets、manifest producer 与 tag 发布闭包已实现，真实签名构建与跨版本实机证据仍阻塞
+实现状态: R0 行为与视觉几何已完成；R1 Rust/bridge/renderer、最终公钥/endpoint、GitHub updater Secrets、manifest producer 与 tag 发布闭包已实现，受保护 macOS 双架构签名 smoke 已通过，当前候选重打包、Windows 签名/真机与跨版本实机证据仍待完成
 记录日期: 2026-08-28
 目标 Cavalry: 2.7.2
 依据: [`release.config.json`](../../release.config.json)、[`release-seals/README.md`](../../release-seals/README.md)、[Tauri Updater 文档](https://v2.tauri.app/plugin/updater/)
@@ -23,31 +23,31 @@
 
 ### R0 — 更新提示 UI / preview state
 
-状态: Behavior done / Visual refinement pending
+状态: Done / Production hidden by default
 范围:
 
-- Switcher 顶部身份区预留一个更新图标位置；生产默认完全隐藏，只有 localhost `?preview=update` 或测试专用显式 hook 才显示“有新版本”，禁止误报线上版本。
-- 图标使用用户提供的圆圈向上箭头原始 SVG path，视觉尺寸 16×16，外层绿色按钮保持 32×32 点击区；绿色只编码“更新可用”，同时以图标、辅助名称和 tooltip 提供非颜色线索。
+- Switcher 标题栏预留一个更新图标位置；生产默认完全隐藏，只有 localhost `?preview=update` 或测试专用显式 hook 才显示“有新版本”，禁止误报线上版本。
+- 图标使用用户提供的圆圈向上箭头原始 SVG path，视觉尺寸 `18×18px`，外层保持 `24×24px` 纯圆点击区；macOS 与 Windows 均以交通灯同源的 `7px` 间距紧随标题，平台只决定原生窗口控件的位置；绿色只编码“更新可用”，同时以图标、辅助名称和 tooltip 提供非颜色线索。
 - 四语 tooltip 与点击后的状态明确：R0 不访问网络、不打开 GitHub、不下载、不安装、不替换，也不执行热更新；macOS ad-hoc 约束保留在路线图/发布说明，不长期占据主界面。
 - preview 分支不触发 bridge/network；生产分支只在 Rust 返回签名验证后的可用 Update 时展示入口。
 
 验收门槛:
 
 - 默认没有更新入口，也不产生网络/Tauri update 调用；显式 preview 才显示图标，点击后仅写入本地化状态，不暗示已经下载或升级。
-- 四语 tooltip、按钮辅助名称和状态文本均来自 `ui-text.js`；更新箭头保持用户提供的 exact SVG path，并以 16px 图形置于 32px 操作区。
+- 四语 tooltip、按钮辅助名称和状态文本均来自 `ui-text.js`；更新箭头保持用户提供的 exact SVG path，并以 18px 图形置于 24px 纯圆操作区。
 - 现有发布 SOP、DMG/NSIS 资产和 release seal 不因提示功能改变。
 
 实现与证据:
 
 - UI：`renderer/index.html`、`renderer/styles.css`、`renderer/app.js`、`renderer/ui-text.js`；单一更新图标与 tooltip 位于顶部身份区，保留可见焦点、hover/focus tooltip、响应式布局与可访问名称。
 - 预览：`renderer/app.js` 的显式开发/测试 hook 只解除图标隐藏并允许写入本地状态；不经过 update bridge，不调用网络、GitHub 或 Rust command。
-- 合同：`tools/check_renderer_contract.js` 与 `tools/check_tauri_bridge_runtime.js` 覆盖 exact SVG path、16/32px 几何、四语 tooltip、默认隐藏、preview 状态、无网络与无 update API。
+- 合同：`tools/check_renderer_contract.js` 与 `tools/check_tauri_bridge_runtime.js` 覆盖 exact SVG path、18/24px 几何、四语 tooltip、默认隐藏、preview 状态，以及 updater 请求只经冻结 bridge/Rust command 的边界。
 
 ## 完整自更新的前置条件
 
 ### R1 — Tauri updater 基础设施
 
-状态: In progress / Distribution blocked
+状态: Code complete / Release verification pending
 
 已实现:
 
@@ -66,8 +66,8 @@
 
 仍必须完成:
 
-- GitHub `release-production` Environment 及 `TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 两项 Secrets 已创建；GitHub 只提供名称与更新时间，不回显值。
-- 用最终密钥在 macOS 双架构与 Windows x64 真实 tag-shape build 中复验已接入的产物路径、签名 sidecar 与九资产发布闭包。
+- GitHub `release-production` Environment 及 `TAURI_SIGNING_PRIVATE_KEY` / `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 两项 Secrets 已创建；GitHub 只提供名称与更新时间，不回显值。无 tag signing smoke 已证明受保护密钥可生成并验签 macOS x64/arm64 updater archive，且没有创建 Release。
+- 重产当前 UI 候选的 macOS 包；在 Windows x64 真机复验签名 updater artifact、安装/重启、失败回退和跨版本升级。最终 tag 仍需按九资产闭包执行，不把 smoke 当正式发布。
 
 ### R2 — 版本与首次升级策略
 

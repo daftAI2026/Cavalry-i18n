@@ -28,12 +28,12 @@
 | E03 | `Viewport Quality: High` 边界 | Done | `CHANGELOG.md` 明确为 macOS-only `ACCEPTED-ENGLISH-BOUNDARY`，不是翻译 PASS；Windows 未测试 | 后续 Windows 实机验证前不得扩大为跨平台结论 |
 | E04 | Restore English / Restore official 语义核查 | Done | Renderer 分别走 `showApplyConfirmation('en')` 与 `runApply('restore-official')`；Rust 精确测试 `english_ui_and_official_restore_are_distinct_macos_actions` 1/1 PASS | 保持两个 action 与确认文案分离，不能因视觉整理合并业务语义 |
 | E05 | 工作隔离 | Done | 所有当前改动位于 `codex/update-ui-updater`；该分支已合并 Windows handoff，`main`/`origin/main` 仍停在 `f8d29bc` 且未被修改 | 后续签名 smoke 仍复用本 feature，不新建分支、不提前创建 tag |
-| E06 | design.md 全面 UI 对齐 | Done | 第二轮以用户提供的 `preview.html` 为几何基线：安装 Item、2:1 语言主任务、可回流 Maintenance、持久 Alert、36px 控件与 7/9px 圆角已落地；窗口四周 padding 独立为 20px，板块/分割线节奏为 16px，二维对齐/回流使用 Grid，单行标题/徽章/按钮内部关系使用 Flex；字体回归平台系统栈，标题为 normal；安装 Item 的语言/安装双徽章只消费真实 Rust 状态并以四语合同验证；逐条审计 `app.js → tauri-bridge.js → Rust StatusPayload/ActionPayload` 后，Alert 从固定“操作状态”改为真实状态驱动的四语结果/风险/动作标题，正文只保留影响和恢复路径，`result.error`/`startupRecoveryError` 不再进入用户文案；正式生产 `reinstallRequired` 在 460×428 配置窗口完整呈现；原生交通灯按实机 AX 外框而非 AppKit 局部常量校正，目标为 460×429 原生外框、红灯相对窗口 `(12,12,16,16)`，使 40px 标题区上下各 12px、内容 20px 左缘与红灯中心线同轴，第三盏灯到标题的净距继续等于 7px 灯间净距；自绘 Select 原生 WebView 展开无外圈 | UI 源码与生产内容基线已冻结；进入 E10 后只接受真实 packaged 回归发现的修复，不再以假文案扩大布局 |
-| E07 | shadcn / Base UI 源码与状态机审计 | Done | 复查 shadcn 当前 Select 与 Base UI Select store/trigger/item 源码；选择器按 open/active/selected 分层落成独立 `renderer/select-control.js`，包含 combobox/listbox/option ARIA、方向键/Home/End/Enter/Space/Escape/typeahead/外部点击；视觉复用 shadcn 的 36px trigger、4px popup viewport、30px item、右侧 Lucide check、highlight/selected 分离，再服从项目 7px 圆角、平台系统字体和用户裁决的无外圈焦点；不引入 React/Radix/Base UI/Tailwind/CDN；静态与 fake-DOM 运行合同 25/25 PASS，原生 WebView 已目视打开三语菜单 | 继续保持组件状态与业务状态分离；不复制 Base UI 的多选、portal、滚动箭头等当前不需要能力 |
-| E08 | 更新提示 R0 | Done | 生产默认隐藏；显式 localhost preview 才显示用户给定 SVG 的 18px 图形/28px 绿色点击区与四语 tooltip；标题栏 Flex 让该点击区与标题文字共享局部 y=20 中心线；renderer/bridge/Select 合同 25/25 PASS | 只在 updater 返回签名验证后的可用版本时展示生产入口，不把 preview 宣称为真实更新 |
-| E09 | Tauri Updater R1 | In progress | 已固定官方 updater plugin，命令扩展为 8 个；Rust State 保存签名验证后的 pending Update，bridge 只暴露脱敏 DTO，renderer 完成生产隐藏、可用通知、确认与安装重启状态机；最终公钥/endpoint 已固定，E19 已以 GitHub Secrets 真实完成双架构签名与验签 | 代码、配置与签名边界已收口；仍需 E10/E11 真实打包与跨版本实机验证 |
-| E10 | macOS 实机打包证据 | Pending | 本轮 UI 修改后只完成原生 dev window 与 Rust/config/renderer 合同；不能沿用旧包证明当前工作树 | UI 与 Updater 范围冻结后按 `LOCAL_BUILD_SOP.md` 重新产包和验证；没有新证据不得声称当前候选包通过 |
-| E11 | Windows 实机更新证据 | Pending | 当前没有 Tauri updater 跨版本 Windows 实机证据；现有 NSIS 同版本 `/UPDATE` 不能替代。共享 renderer 会带入 20px/16px 内部节奏与 7/9px 控件圆角，但 macOS AppKit 交通灯代码受 `cfg(target_os = "macos")` 隔离，Windows CSS 也隐藏其占位；Windows 仍由 DWM/原生 decorations 拥有外圆角与 caption，因此可能呈现“系统标题栏 + 40px 产品标题区”两层 | R1 完成后在真实 Windows 验证 user-wide、Program Files/UAC、状态保留和失败回退；截图裁决双标题层级，不以 macOS 外框推断 Windows 结果 |
+| E06 | design.md 全面 UI 对齐 | Done | 第二轮以用户提供的 `preview.html` 为几何基线：安装 Item、2:1 语言主任务、可回流 Recovery、持久 Alert、36px 控件与 7/9px 圆角已落地；窗口四周 padding 独立为 20px，板块节奏 token 为 16px，复合轨道/列回流使用 Grid，一维内容流/标题关系使用 Flex；`renderer/tokens.css` 已成为颜色、排印、几何、阴影、状态与动效的唯一可调真相源，`styles.css`/`window-controls.css` 不定义私有变量且不保留可调的裸颜色或 `px/ms/em/deg`；按对象/操作/佐证三种阅读任务，主内容排印只保留 14/12/10px 三级字号与 400/600 两级字重，所有元数据文本统一为 10px/400，徽章仅靠色彩、边框与形状表达状态；安装名称与 Section 单行标题通过标准 text-box-trim 按字体度量收紧，Section 父级不再用 20px min-height 把裁紧字形重新居中，板块底边到下一标题字形盒由两个 16px token 组成真实 32px，标题到控件由独立 8px token 拥有；Alert 标题保留 16px 行盒拥有标题→正文间距，多行正文保留 17px 行距，旧 WebView 安全回退；删除全部业务 divider，默认窗口按新排印闭包收敛为 460×404；当前语言统一使用 Geist purple-subtle 类别色，安装信任/翻译状态只使用 green/blue/amber，Switcher transaction recovery 只进入阻断 Alert，不冒充 Cavalry 本体状态；字体回归平台系统栈，标题为 normal，并按 2× 截图像素重心相对原生控件上移 1px；安装 Item 的语言/安装双徽章只消费真实 Rust 状态并以四语合同验证；逐条审计 `app.js → tauri-bridge.js → Rust StatusPayload/ActionPayload` 后，Alert 从固定“操作状态”改为真实状态驱动的四语结果/风险/动作标题，正文只保留影响和恢复路径，`result.error`/`startupRecoveryError` 不再进入用户文案；原生交通灯按实机 AX 外框而非 AppKit 局部常量校正，红灯相对窗口目标 `(12,12,16,16)`，使 40px 标题区上下各 12px、内容 20px 左缘与红灯中心线同轴，第三盏灯到标题及标题到更新入口均复用 7px 灯间净距；macOS 27 外角与 Windows 自绘标题栏的最终口径见 `docs/audits/switcher-ui-final-build-2026-08-28.md` | UI 源码与生产内容基线已冻结；进入 E10 后只接受真实 packaged 回归发现的修复，不再以假文案扩大布局 |
+| E07 | shadcn / Base UI 源码与状态机审计 | Done | 逐行复查 shadcn 当前 Base UI Select 的 Nova 源码；选择器按 open/active/selected 分层落成独立 `renderer/select-control.js`，包含 combobox/listbox/option ARIA、方向键/Home/End/Enter/Space/Escape/typeahead/外部点击；视觉复刻 10px Trigger/Popup、8px Item 圆角、4px viewport、28px Item、10/8px Trigger padding、6/32px Item padding、16px Lucide chevron/check 与 ring + shadow，项目只保留 36px 相邻控件等高及 12px Body 排印；Popup 由真实 layout box 推导 top，`460×404` 渲染实测 Trigger 与选中 Item 中心同为 y=190；不引入 React/Radix/Base UI/Tailwind/CDN；静态与 fake-DOM 合同 27/27 PASS，原生 WebView 已重新拉起 | 继续保持组件状态与业务状态分离；不复制 Base UI 的多选、portal、滚动箭头等当前不需要能力 |
+| E08 | 更新提示 R0 | Done | 生产默认隐藏；显式 localhost preview 才显示用户给定 SVG 的 18px 图形/24px 纯圆点击区与四语 tooltip；图标盒四周留 3px，macOS 与 Windows 均让入口以交通灯同源的 7px 关系间距紧随标题，Windows 标题从左侧 12px 起；renderer/bridge/Select/About/Windows caption 合同 27/27 PASS | 只在 updater 返回签名验证后的可用版本时展示生产入口，不把 preview 宣称为真实更新 |
+| E09 | Tauri Updater R1 | In progress | 已固定官方 updater plugin；Updater 令 command 表达到 8 个，随后 E20 固定 About 外链使当前总数为 9；Rust State 保存签名验证后的 pending Update，bridge 只暴露脱敏 DTO，renderer 完成生产隐藏、可用通知、确认与安装重启状态机；最终公钥/endpoint 已固定，E19 已以 GitHub Secrets 真实完成双架构签名与验签 | 代码、配置与签名边界已收口；仍需 E10/E11 真实打包与跨版本实机验证 |
+| E10 | macOS 实机打包证据 | In progress | exact `fa778d3` clean release build 已生成 ad-hoc `.app`/DMG；packaged 5 PASS/1 architecture skip、DMG layout PASS、UI regression PASS。实机 AX 为窗口 `460×429`、close 相对 `(12,12,16,16)`，证明 x 校正与 40px 标题栏成立。随后新增 Windows caption renderer 文件，故该包不再代表当前工作树；真实 Cavalry manual smoke 还因 `/Applications/Cavalry.app` marker=`zh-Hans` 被 English source guard 正确阻断 | Windows 代码冻结后重产当前候选包；另准备可验证 English 的 disposable Cavalry 输入再跑 ignored manual smoke，不能把阻断写成 PASS |
+| E11 | Windows 实机更新证据 | Pending | 已实现 Windows `decorations:false + shadow:true` 完整窗口 override、左侧 12px 标题与随后的更新入口、右侧 minimize/maximize-or-restore/close、固定 main-window bridge、最小 capability、四语可访问名称与最大化状态同步；Node runtime/static 合同 27/27 PASS。macOS AppKit 交通灯仍由 `cfg(target_os = "macos")` 隔离，DWM 继续拥有外框；尚无 Windows 真机截图、Snap、scaling 或 updater 跨版本证据 | 在真实 Windows 验证 user-wide、Program Files/UAC、100/125/150% scaling、拖动/双击/缩放/Snap、高对比度、状态保留和 updater 失败回退；不得用 macOS 或 fake DOM 推断 PASS |
 | E12 | Release 内容 | Pending | 已确认 release 内容应按现有发布协议从真实变更与验证边界生成，不手写虚假 PASS | 候选版本、资产和证据冻结后，按 release SOP 生成并人工审阅正文 |
 | E13 | 调试/构建/预览产物清理 | Done | 已删除 `.playwright-mcp`、`output/playwright`、旧生成目录与日志；临时 updater 密钥由 trap 删除；曾执行 `cargo clean --manifest-path src-tauri/Cargo.toml` 删除 11.6 GiB/35,484 个 target 产物。本轮为 E06 实机裁决重新启动 Tauri dev，截图/CGEvent 脚本只写 `/tmp`，不进入仓库 | 保留 `qt_sdk`/`node_modules` 这两类有效开发依赖；E06 裁决结束后停止 dev，发布前重新执行工作树与受控产物检查 |
 | E14 | 新 tag / GitHub Release | Blocked | 未创建、未推送新 tag；远端最新仍是 `p5` | 仅当 E06、E09 至 E13、E15 至 E17 按本轮最终范围完成且用户再次授权，才按 SOP 创建下一个 tag |
@@ -42,29 +42,42 @@
 | E17 | 首个 updater-enabled SemVer bootstrap | Pending | 当前内部版本为 `0.7.0`；远端 `p5` 没有 updater 公钥/命令，无法被新 manifest 反向唤起；公开 tag 的 `pN` 不能参与 updater 版本比较 | 发布边界冻结后用现有 `sync:version` 升到 `0.7.1`；该版本是未来更新链的人工 bootstrap，旧 `p5` 用户仍需手动安装一次 |
 | E18 | Windows release handoff 合并 | Done | 远端唯一提交 `82385e1` 已通过 merge commit `e75a114` 进入当前 feature；`git merge-base --is-ancestor` PASS；`release-seals/TODO.md` 保留 source `9e293df` 债务并明确当前状态以本事件簿为准 | 远端 handoff 分支在当前 feature 推送/落地前保留；不用旧 source 证据代替新候选的实机验收 |
 | E19 | 无 tag updater 签名验证 | Done | run `33164618098` 在 exact commit `4682323` 上整体 success；x64/arm64 两个受保护 macOS job 的 updater archive 签名和内嵌公钥验签均 PASS，Windows 普通包门亦 PASS；`release` 明确 skipped，无 tag/Release；临时 branch policy `58474196` 已删除，environment 仅余 `cavalry-2.7.2-p*` tag policy `58471815` | 后续发布只能由 tag policy 进入 Secrets；本 smoke 不替代 E10/E11 真实跨版本更新验收 |
+| E20 | About 与固定项目链接 | Done | 本机 `/Applications/Maipo.app` 证明其 About 由 `WMAboutWindowController.nib`/`openAboutWindow:` 自定义而非标准面板；Switcher 把 macOS 默认应用菜单中的标准 About 替换为自绘 Dialog 入口，Windows 才显示标题栏信息按钮，避免双入口；2026-08-29 已从真实 macOS 应用菜单点击 `About Cavalry Language Switcher` 并打开同一 WebView Dialog；Dialog 显示 GitHub 标识、`plugin:app|version` 的真实版本、完整项目地址与 MIT License；bridge、command 与 privilege 三层只接受 repository/license 枚举，任意 renderer URL 的 facade 拒绝测试 1/1 PASS；Node 27/27、Rust 外链 2/2、command contract 6/6 PASS | 保持 About 为低频独立组件；Windows packaged 时复核默认浏览器跳转，不用 macOS 结果冒充 Windows live PASS |
 
 ## 当前验证记录
 
 ```text
 node --check renderer/app.js                                      PASS
 node --check renderer/select-control.js                           PASS
-node --check renderer/ui-text.js                                 PASS
+node --check renderer/about-dialog.js                             PASS
+node --check renderer/ui-text.js                                  PASS
+node --check renderer/window-controls.js                          PASS
 node --test tools/check_renderer_contract.js \
-  tools/check_tauri_bridge_runtime.js                            25/25 PASS (custom Select + four-locale dynamic Alert/install badge)
-cargo test --test command_contract                              5/5 PASS
+  tools/check_tauri_bridge_runtime.js                             27/27 PASS (Select + About + Recovery/Alert/install badge + Windows caption)
+cargo test --test command_contract                              6/6 PASS
 cargo test commands::update::tests                              5/5 PASS
-cargo test --manifest-path src-tauri/Cargo.toml                 PASS (lib 134/134; integration 全部通过；manual macOS smoke 1 ignored)
-mise x node@24.20.0 -- npm run test:contracts                   238/238 PASS
+cargo test commands::tests::project_link_command_rejects_renderer_supplied_urls 1/1 PASS
+cargo test --manifest-path src-tauri/Cargo.toml                 PASS (lib 137/137; integration 全部通过；updater artifact smoke 1 ignored)
+mise x node@24.20.0 -- npm run test:contracts                    240/240 PASS
 node --test tools/check_tauri_build_sop.js                       31/31 PASS
 cargo test --test updater_signature_contract \
   embedded_updater_public_key_is_valid_minisign_material         1/1 PASS
 cargo test --test tauri_config_contract \
   tauri_window_size_matches_frozen_contract                      1/1 PASS
-native Tauri dev AX production                                  target window 460×429; close (12,12,16,16); titlebar 40
+native Tauri dev AX production                                  current config 460×404; AX outer frame 460×405; close (12,12,16,16); titlebar 40
 native Tauri dev CGEvent title drag                              (+60,+40) PASS
 native Tauri dev custom Select pointer-open screenshot           PASS
-native Tauri dev production dynamic `Reinstall Cavalry` Alert    PASS (460×428 config, 20px outer padding, complete copy)
+native Tauri dev production dynamic `Reinstall Cavalry` Alert    PASS at current 460×404 config
 native Tauri dev language/install double badge                    PASS
+native Tauri dev title optical center                             40.5px at 2× vs native controls 39.5px; integer -1pt correction
+native Tauri dev update geometry                                  18px SVG / 24px circle / 7px after title; macOS + Windows shared
+native Tauri dev section hierarchy                                Recovery four-locale copy; no business divider; block-to-next-title 32px whitespace; column Flex content
+native Tauri dev macOS application-menu About                     PASS; custom Dialog opened from system application menu
+exact `fa778d3` clean macOS release `.app` + DMG                  BUILT (ad-hoc, not notarized)
+packaged app contract                                             5 PASS / 1 architecture skip
+DMG layout / packaged UI regression                              PASS / PASS
+packaged macOS AX                                                 window 460×429; close relative (12,12,16,16)
+Windows caption static + fake-DOM runtime                         27/27 PASS (not Windows live evidence)
 cargo test --test tauri_config_contract                           8/8 PASS
 cargo test english_ui_and_official_restore_are_distinct_macos_actions 1/1 PASS
 git diff --check                                                  PASS

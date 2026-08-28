@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、稳定文案脚本、轻量 Select 状态机、CSP 配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、原生 macOS 交通灯与可拖拽标题区、Item/自绘 Select/Button Group/动态语义 Alert、系统字体与统一 spacing token、真实语言/安装双徽章、单一更新图标/tooltip/无障碍通知、脱敏 updater bridge、原生 dialog 状态边界、English UI/官方还原分离及最小 bridge 表面。
+ * [INPUT]: renderer 静态 DOM、独立语义 token 表、稳定文案脚本、Select/About/Windows caption 状态机、CSP/平台窗口配置与冻结 bridge API。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Item/Select/Button Group/动态 Alert、双徽章、更新/About tooltip、固定项目外链、脱敏 updater bridge、原生 dialog、English UI/官方还原分离及最小 bridge 表面。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,6 +29,8 @@ function uiLocaleBodies(source) {
 const REQUIRED_IDS = [
   'skipLink', 'mainContent', 'windowTitle', 'appVersion', 'appPath', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage', 'installationBadge',
   'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement',
+  'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutDialog', 'aboutTitle', 'aboutVersion', 'aboutCloseButton', 'aboutRepositoryLink', 'aboutRepositoryLabel', 'aboutLicenseLink', 'aboutLicenseLabel',
+  'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton',
   'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton',
   'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
   'modalSecondaryButton', 'modalCloseButton', 'statusText',
@@ -36,41 +38,68 @@ const REQUIRED_IDS = [
 
 const REQUIRED_API_METHODS = [
   'getStatus', 'browseApp', 'extractEnglish', 'applyLanguage', 'openPrivacySecurity',
+  'openProjectLink', 'getSwitcherVersion',
   'checkUpdate', 'installUpdate',
+  'minimizeWindow', 'toggleMaximizeWindow', 'isWindowMaximized', 'closeWindow',
 ];
 
 test('renderer retains DOM anchors and uses only local resources', () => {
   const html = read('renderer/index.html');
+  const tokens = read('renderer/tokens.css');
   const styles = read('renderer/styles.css');
+  const aboutStyles = read('renderer/about.css');
+  const windowControlStyles = read('renderer/window-controls.css');
   const app = read('renderer/app.js');
   const uiText = read('renderer/ui-text.js');
   for (const id of REQUIRED_IDS) assert.match(html, new RegExp(`id="${id}"`), `#${id} missing`);
   const htmlWithoutSvgNamespace = html.replace(/\s+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '');
+  const implementationCss = `${styles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
   assert.doesNotMatch(htmlWithoutSvgNamespace, /https?:\/\//, 'renderer HTML must not load remote resources');
+  assert.doesNotMatch(tokens, /@import|url\(["']?https?:/i, 'tokens must not load remote resources');
   assert.doesNotMatch(styles, /@import|url\([\"']?https?:/i, 'styles must not load remote resources');
+  assert.doesNotMatch(aboutStyles, /@import|url\([\"']?https?:/i, 'about styles must not load remote resources');
+  assert.doesNotMatch(windowControlStyles, /@import|url\([\"']?https?:/i, 'window controls must not load remote resources');
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
-    'renderer scripts must load bridge, stable text, select state machine, then app'
+    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
+    'semantic tokens must load before shared and platform visual implementations'
+  );
+  assert.match(
+    html,
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/about-dialog\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    'renderer scripts must load bridge, stable text, component state machines, then app'
   );
   assert.match(uiText, /const UI_TEXT = \{/);
   assert.doesNotMatch(app, /const UI_TEXT = \{/);
-  assert.doesNotMatch(styles, /@font-face|Geist|assets\/fonts/, 'renderer must use the platform font stack');
-  assert.match(styles, /--font-sans:\s*-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif/);
-  assert.match(styles, /--font-mono:\s*ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace/);
+  assert.doesNotMatch(`${tokens}\n${styles}`, /@font-face|Geist|assets\/fonts/, 'renderer must use the platform font stack');
+  assert.match(tokens, /--font-sans:\s*-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif/);
+  assert.match(tokens, /--font-mono:\s*ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace/);
+  assert.doesNotMatch(styles, /--[a-z0-9-]+\s*:/i, 'shared implementation must consume tokens instead of defining private constants');
+  assert.doesNotMatch(aboutStyles, /--[a-z0-9-]+\s*:/i, 'about implementation must consume tokens instead of defining private constants');
+  assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
+  assert.doesNotMatch(implementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
+  const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
+  const tokenReferences = `${tokens}\n${styles}\n${aboutStyles}\n${windowControlStyles}`;
+  assert.deepEqual(tokenDefinitions.filter((name) => !tokenReferences.includes(`var(${name})`)), [], 'semantic tokens must have a real consumer');
   assert.equal(fs.existsSync(path.join(repoRoot, 'renderer/assets')), false, 'unused bundled font assets must stay removed');
   assert.ok(app.split(/\r?\n/).length <= 800, 'renderer/app.js must stay within the 800-line contract');
 });
 
 test('update control preserves the supplied small icon and accessible tooltip contract', () => {
   const html = read('renderer/index.html');
+  const tokens = read('renderer/tokens.css');
   const styles = read('renderer/styles.css');
+  const windowControlStyles = read('renderer/window-controls.css');
   const app = read('renderer/app.js');
+  const bridge = read('renderer/tauri-bridge.js');
+  const selectControl = read('renderer/select-control.js');
+  const windowControls = read('renderer/window-controls.js');
+  const aboutDialog = read('renderer/about-dialog.js');
   const updateButton = html.match(/<button id="updateButton"[\s\S]*?<\/button>/)?.[0];
   assert.ok(updateButton, '#updateButton block missing');
   assert.match(
     updateButton,
-    /<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">/
+    /<svg xmlns="http:\/\/www\.w3\.org\/2000\/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">/
   );
   assert.match(updateButton, /id="updateButton"[^>]*aria-label="[^"]+"/);
   assert.match(updateButton, /aria-describedby="updateTooltip"/);
@@ -81,7 +110,17 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /id="updateTooltip"[^>]*role="tooltip"/);
   assert.match(html, /id="updateAnnouncement"[^>]*role="status"[^>]*aria-live="polite"/);
   assert.match(styles, /\.update-button\s*\{[\s\S]*?background: transparent;[\s\S]*?color: var\(--tone-update\)/);
-  assert.match(styles, /\.update-button svg\s*\{[\s\S]*?width: 18px;[\s\S]*?height: 18px;/);
+  assert.match(tokens, /--titlebar-native-control-size:\s*16px/);
+  assert.match(tokens, /--update-icon-visual-size:\s*18px/);
+  assert.match(tokens, /--titlebar-action-hit-size:\s*24px/);
+  assert.match(html, /class="titlebar-copy"[\s\S]*?id="windowTitle"[\s\S]*?id="updateControl"[\s\S]*?<\/div>/);
+  assert.match(styles, /\.update-button\s*\{[\s\S]*?width: var\(--titlebar-action-hit-size\);[\s\S]*?height: var\(--titlebar-action-hit-size\);[\s\S]*?border-radius: var\(--radius-circle\)/);
+  assert.match(styles, /\.update-button svg\s*\{[\s\S]*?width: var\(--update-icon-visual-size\);[\s\S]*?height: var\(--update-icon-visual-size\)/);
+  assert.doesNotMatch(styles, /--update-icon-path-scale|\.update-button svg path\s*\{[\s\S]*?transform:/);
+  assert.match(styles, /body\[data-platform="windows"\] \.native-controls-space\s*\{[\s\S]*?display:\s*none/);
+  const updateHoverBlock = styles.match(/\.update-button:hover:not\(:disabled\)\s*\{([^}]*)\}/)?.[1];
+  assert.ok(updateHoverBlock, 'update hover state missing');
+  assert.doesNotMatch(updateHoverBlock, /translateY/);
   assert.match(styles, /\.tooltip-anchor\[data-tooltip-state="open"\] \.tooltip/);
   assert.match(styles, /\.tooltip\s*\{[\s\S]*?visibility: hidden/);
   assert.doesNotMatch(styles, /transition:\s*all/);
@@ -93,32 +132,113 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.doesNotMatch(selectFocusBlock, /outline:|box-shadow:/, 'select must not draw a focus ring');
   assert.match(html, /<section class="language-section" aria-labelledby="languageSectionLabel">/);
   assert.match(html, /id="languageSelectTrigger"[^>]*role="combobox"[^>]*aria-haspopup="listbox"[^>]*aria-expanded="false"/);
+  assert.match(html, /class="select-chevron"[^>]*>[\s\S]*?<svg[^>]*viewBox="0 0 24 24"[\s\S]*?<path d="m6 9 6 6 6-6"><\/path>/);
   assert.match(html, /id="languageSelectList"[^>]*role="listbox"/);
   assert.match(html, /class="maintenance-group"[^>]*role="group"/);
   assert.match(html, /<dialog id="modalBackdrop"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*role="status"[^>]*aria-labelledby="statusLabel"/);
-  assert.match(styles, /--control-height:\s*36px/);
-  assert.match(styles, /--padding-window:\s*20px/);
-  assert.match(styles, /--gap-section:\s*16px/);
-  assert.match(styles, /--titlebar-native-control-size:\s*16px/);
-  assert.match(styles, /--titlebar-native-controls-width:\s*62px/);
-  assert.match(styles, /--titlebar-block-padding:\s*12px/);
-  assert.match(styles, /--titlebar-height:\s*calc\(var\(--titlebar-native-control-size\) \+ var\(--titlebar-block-padding\) \+ var\(--titlebar-block-padding\)\)/);
-  assert.match(styles, /--padding-panel:\s*12px/);
-  assert.match(styles, /--padding-control-inline:\s*12px/);
+  assert.match(tokens, /--control-height:\s*36px/);
+  assert.match(tokens, /--padding-window:\s*20px/);
+  assert.match(tokens, /--gap-section:\s*16px/);
+  assert.match(tokens, /--line-height-heading:\s*20px/);
+  assert.match(tokens, /--line-height-meta:\s*14px/);
+  assert.match(tokens, /--line-height-label:\s*16px/);
+  assert.match(tokens, /--gap-meta-stack:\s*4px/);
+  assert.match(tokens, /--badge-height:\s*20px/);
+  assert.match(tokens, /--badge-padding-inline:\s*6px/);
+  assert.match(tokens, /--radius-pill:\s*999px/);
+  assert.match(tokens, /--radius-select-trigger:\s*10px/);
+  assert.match(tokens, /--radius-select-popup:\s*10px/);
+  assert.match(tokens, /--radius-select-item:\s*8px/);
+  assert.match(tokens, /--select-chevron-size:\s*16px/);
+  assert.match(tokens, /--select-item-height:\s*28px/);
+  assert.match(tokens, /--select-item-padding-leading:\s*6px/);
+  assert.match(tokens, /--select-item-padding-trailing:\s*32px/);
+  assert.match(tokens, /--select-indicator-size:\s*16px/);
+  assert.match(styles, /\.select-popup\s*\{[\s\S]*?border:\s*0;[\s\S]*?border-radius:\s*var\(--radius-select-popup\)[\s\S]*?box-shadow:\s*var\(--shadow-select-popup\)/);
+  assert.match(selectControl, /function alignPopupToSelectedItem\(selected\)[\s\S]*?getBoundingClientRect\(\)[\s\S]*?alignedTop/);
+  assert.match(html, /id="aboutDialog"[^>]*aria-labelledby="aboutTitle"[^>]*aria-describedby="aboutVersion"/);
+  assert.match(html, /id="aboutControl"[^>]*data-tooltip-state="closed"[^>]*hidden/);
+  assert.match(aboutDialog, /const REPOSITORY_URL = 'https:\/\/github\.com\/daftAI2026\/Cavalry-i18n'/);
+  assert.match(aboutDialog, /openLink\('repository'\)/);
+  assert.match(aboutDialog, /openLink\('license'\)/);
+  assert.match(aboutDialog, /Object\.defineProperty\(global, 'cavalryI18nShowAbout'/);
+  assert.match(aboutDialog, /control\.hidden = platform !== 'windows'/);
+  assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['repository', 'license'\]\)/);
+  assert.match(bridge, /invoke\('open_project_link', \{ link \}\)/);
+  assert.match(bridge, /invoke\('plugin:app\|version'\)/);
+  assert.doesNotMatch(bridge, /openProjectLink:\s*\(url\)/, 'bridge must expose a fixed link id, never a renderer URL');
+  assert.match(tokens, /--recovery-action-min-width:\s*120px/);
+  for (const token of [
+    '--type-title: 14px',
+    '--type-body: 12px',
+    '--type-meta: 10px',
+    '--weight-regular: 400',
+    '--weight-semibold: 600',
+  ]) {
+    assert.ok(tokens.includes(token), `missing renderer type role: ${token}`);
+  }
+  assert.match(tokens, /--titlebar-control-gap:\s*7px/);
+  assert.match(tokens, /--titlebar-native-control-size:\s*16px/);
+  assert.match(tokens, /--titlebar-text-optical-offset:\s*-1px/);
+  assert.match(tokens, /--titlebar-native-controls-width:\s*62px/);
+  assert.match(tokens, /--titlebar-block-padding:\s*12px/);
+  assert.match(tokens, /--titlebar-height:\s*calc\(var\(--titlebar-native-control-size\) \+ var\(--titlebar-block-padding\) \+ var\(--titlebar-block-padding\)\)/);
+  assert.match(tokens, /--padding-panel:\s*12px/);
+  assert.match(tokens, /--padding-control-inline:\s*12px/);
+  assert.match(styles, /\.titlebar\s*\{[\s\S]*?padding:\s*0 var\(--padding-panel\)/);
+  assert.match(styles, /\.window-title\s*\{[\s\S]*?font-size:\s*var\(--type-title\)[\s\S]*?font-weight:\s*var\(--weight-regular\)/);
   assert.match(styles, /\.content\s*\{[\s\S]*?padding:\s*var\(--padding-window\)/);
+  assert.match(styles, /\.content\s*>\s*section,[\s\S]*?\.content\s*>\s*\.status-panel\s*\{[\s\S]*?flex:\s*0\s+0\s+auto/);
+  assert.match(styles, /\.content\s*>\s*section:first-child\s*\{[\s\S]*?margin-bottom:\s*calc\(var\(--gap-section\) \* 2\)/);
+  assert.doesNotMatch(styles, /\.separator\s*\{/);
+  assert.doesNotMatch(html, /class="separator"/, 'business sections must use spacing rather than decorative dividers');
+  assert.match(styles, /\.maintenance-group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(auto-fit,\s*minmax\(var\(--recovery-action-min-width\),\s*1fr\)\)/);
+  assert.match(styles, /\.maintenance-group:has\(#restoreButton\[hidden\]\)\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2,\s*minmax\(0,\s*var\(--action-max-width\)\)\)/);
+  assert.match(styles, /\.language-section\s*\{[\s\S]*?margin-bottom:\s*calc\(var\(--gap-section\) \* 2\)/);
+  assert.doesNotMatch(styles, /\.section-head\s*\{[^}]*min-height:/, 'trimmed section headings must not be vertically centered inside a synthetic line slot');
+  assert.match(styles, /@supports \(text-box-trim:\s*trim-both\) and \(text-box-edge:\s*text\)/);
+  assert.match(styles, /\.installation-name,[\s\S]*?\.section-title\s*\{[\s\S]*?text-box-trim:\s*trim-both;[\s\S]*?text-box-edge:\s*text/);
+  assert.match(styles, /\.installation-name:lang\(en\),[\s\S]*?\.section-title:lang\(en\)\s*\{[\s\S]*?text-box-edge:\s*cap alphabetic/);
+  assert.match(styles, /\.installation-name\s*\{[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
+  assert.match(styles, /\.status-label\s*\{[\s\S]*?font-size:\s*var\(--type-body\)[\s\S]*?font-weight:\s*var\(--weight-semibold\)[\s\S]*?line-height:\s*var\(--line-height-label\)/);
+  assert.match(styles, /\.skip-link,\s*\.tooltip,\s*\.badge,\s*\.app-path\s*\{[\s\S]*?font-size:\s*var\(--type-meta\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-meta\)[\s\S]*?font-synthesis:\s*none/);
+  assert.match(styles, /\.app-path\s*\{[\s\S]*?margin:\s*var\(--gap-meta-stack\)\s+0\s+0/);
+  assert.match(styles, /\.badge\s*\{[\s\S]*?min-height:\s*var\(--badge-height\)[\s\S]*?padding:\s*0 var\(--badge-padding-inline\)[\s\S]*?border-radius:\s*var\(--radius-pill\)/);
+  assert.match(tokens, /--badge-language-bg:\s*#f9f1fe/);
+  assert.match(tokens, /--badge-language-border:\s*#eddcf9/);
+  assert.match(tokens, /--badge-language-text:\s*#7820bc/);
+  assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-language-border\)[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
   assert.match(styles, /\.installation-item\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
   assert.match(styles, /\.status-panel\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
   assert.match(html, /class="titlebar" data-tauri-drag-region/);
-  assert.doesNotMatch(html, /traffic-light|aria-label="Window controls"/, 'macOS traffic lights must remain native');
+  assert.doesNotMatch(html, /traffic-light/, 'macOS traffic lights must remain native');
+  assert.match(html, /id="windowsWindowControls"[^>]*data-maximized="false"[^>]*hidden/);
+  assert.match(html, /id="windowMinimizeButton"[^>]*class="window-control-button"/);
+  assert.match(html, /id="windowMaximizeButton"[^>]*class="window-control-button"/);
+  assert.match(html, /id="windowCloseButton"[^>]*class="window-control-button window-control-close"/);
+  assert.match(windowControls, /platform === 'windows'/);
+  assert.match(windowControls, /api\.isWindowMaximized\(\)/);
+  assert.match(windowControlStyles, /height:\s*var\(--titlebar-height\)/);
+  assert.match(windowControlStyles, /background:\s*var\(--surface-hover\)/);
+  assert.match(windowControlStyles, /background:\s*var\(--danger\)/);
+  assert.doesNotMatch(windowControlStyles, /--windows-caption-(?:hover|active|close)/);
+  assert.equal((html.match(/class="window-control-button(?: window-control-close)?"/g) || []).length, 3, 'Windows caption must have exactly three buttons');
+  assert.match(tokens, /--windows-caption-button-width:\s*32px/);
+  assert.match(windowControlStyles, /\.window-control-button\s*\{[\s\S]*?width:\s*var\(--windows-caption-button-width\)/);
   assert.match(styles, /\.titlebar\s*\{[\s\S]*?display:\s*flex/);
   assert.match(styles, /\.titlebar\s*\{[\s\S]*?align-items:\s*center/);
+  assert.match(styles, /\.titlebar\s*\{[\s\S]*?border-bottom:\s*0;[\s\S]*?box-shadow:\s*var\(--shadow-titlebar-divider\)/);
   assert.match(styles, /\.titlebar-copy\s*\{[\s\S]*?align-items:\s*center/);
+  assert.match(styles, /\.titlebar-copy\s*\{[\s\S]*?gap:\s*var\(--titlebar-control-gap\)/);
+  assert.match(styles, /\.window-title\s*\{[\s\S]*?transform:\s*translateY\(var\(--titlebar-text-optical-offset\)\)/);
+  assert.match(styles, /\.content\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-direction:\s*column/);
   assert.match(styles, /\.tooltip-anchor\s*\{[\s\S]*?display:\s*inline-flex;[\s\S]*?align-items:\s*center/);
+  assert.match(styles, /\.tooltip-anchor\s*\{[\s\S]*?pointer-events:\s*auto/, 'update control must remain interactive inside non-interactive title copy');
   assert.match(styles, /\.installation-item\s*\{[\s\S]*?display:\s*grid/);
   assert.match(styles, /\.language-control-row\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);
-  assert.match(styles, /\.maintenance-group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(auto-fit, minmax\(120px, 1fr\)\)/);
-  assert.match(styles, /\.status-panel\s*\{[\s\S]*?grid-template-columns:\s*16px minmax\(0, 1fr\) auto/);
+  assert.match(styles, /\.maintenance-group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(auto-fit, minmax\(var\(--recovery-action-min-width\), 1fr\)\)/);
+  assert.match(styles, /\.status-panel\s*\{[\s\S]*?grid-template-columns:\s*var\(--alert-icon-size\) minmax\(0, 1fr\) auto/);
   assert.match(app, /document\.body\.dataset\.platform = state\.platform/);
   assert.match(app, /updateControl\.addEventListener\('mouseenter'/);
   assert.match(app, /updateControl\.addEventListener\('focusin'/);
@@ -169,6 +289,18 @@ test('Tauri configuration disables global injection and declares a local-only CS
   assert.equal(window.hiddenTitle, true);
   const capabilities = JSON.parse(read('src-tauri/capabilities/default.json'));
   assert.ok(capabilities.permissions.includes('core:window:allow-start-dragging'));
+  for (const permission of [
+    'core:window:allow-minimize',
+    'core:window:allow-toggle-maximize',
+    'core:window:allow-close',
+  ]) assert.ok(capabilities.permissions.includes(permission));
+  const windowsConfig = JSON.parse(read('src-tauri/tauri.windows.conf.json'));
+  const windowsWindow = windowsConfig.app.windows.find((candidate) => candidate.label === 'main');
+  for (const key of ['title', 'url', 'useHttpsScheme', 'width', 'height', 'minWidth', 'minHeight', 'resizable', 'center']) {
+    assert.equal(windowsWindow[key], window[key], `Windows ${key} must reuse the shared window contract`);
+  }
+  assert.equal(windowsWindow.decorations, false);
+  assert.equal(windowsWindow.shadow, true);
 });
 
 
@@ -180,16 +312,22 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.equal((uiText.match(/^\s{4}reinstallRequired:/gm) || []).length, 4, 'all four UI locales must localize the reinstall route');
   const localeBodies = uiLocaleBodies(uiText);
   assert.doesNotMatch(uiText, /Managed \/ Unverified|已管理|未验证|未驗證|管理済み \/ 未検証/);
+  for (const label of ["maintenance: 'Recovery'", "maintenance: '恢复'", "maintenance: '復原'", "maintenance: '復旧'"]) {
+    assert.match(uiText, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${label} recovery label missing`);
+  }
   for (const key of [
     'restoreEnglish',
     'restoreOfficialShort',
     'officialBadge',
     'translatedBadge',
     'modifiedBadge',
-    'recoveryBadge',
     'maintenance',
     'refreshEnglishAria',
     'statusLabel',
+    'minimizeWindow',
+    'maximizeWindow',
+    'restoreWindow',
+    'closeWindow',
     'readyToApplyTitle',
     'reinstallCavalryTitle',
     'refreshEnglishFailedTitle',

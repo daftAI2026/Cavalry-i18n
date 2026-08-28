@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供公共窗口/原生 macOS 交通灯 Overlay/显式 renderer 文档入口/本地 CSP/预注入 bridge、固定 updater 公钥/HTTPS endpoint、macOS injector 与外部签名身份、Windows NSIS 双 DLL/生成命令/四语卸载双语义 hook/系统语言与品牌图标合同
+ * [OUTPUT]: 提供公共窗口/原生 macOS 交通灯 Overlay/Windows 无系统 caption + DWM shadow/显式 renderer 入口/本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,7 +29,7 @@ fn tauri_window_size_matches_frozen_contract() {
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let window = &config["app"]["windows"][0];
     assert_eq!(window["width"], 460);
-    assert_eq!(window["height"], 428);
+    assert_eq!(window["height"], 404);
     assert_eq!(window["minWidth"], 420);
     assert_eq!(window["minHeight"], 390);
     assert_eq!(window["decorations"], true);
@@ -83,6 +83,17 @@ fn tauri_config_declares_capabilities() {
         .unwrap()
         .iter()
         .any(|value| value == "core:window:allow-start-dragging"));
+    for permission in [
+        "core:window:allow-minimize",
+        "core:window:allow-toggle-maximize",
+        "core:window:allow-close",
+    ] {
+        assert!(capabilities["permissions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|value| value == permission));
+    }
 }
 
 #[test]
@@ -125,14 +136,33 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
 #[test]
 fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let shared_config = read_json(&manifest_dir.join("tauri.conf.json"));
     let config = read_json(&manifest_dir.join("tauri.windows.conf.json"));
     let resources = config["bundle"]["resources"].as_object().unwrap();
     let nsis = &config["bundle"]["windows"]["nsis"];
+    let window = &config["app"]["windows"][0];
+    let shared_window = &shared_config["app"]["windows"][0];
 
     assert_eq!(
         config["build"]["beforeBuildCommand"],
         "npm run prepare:tauri:windows-bundle"
     );
+    for key in [
+        "label",
+        "title",
+        "url",
+        "useHttpsScheme",
+        "width",
+        "height",
+        "minWidth",
+        "minHeight",
+        "resizable",
+        "center",
+    ] {
+        assert_eq!(window[key], shared_window[key], "Windows {key} drifted");
+    }
+    assert_eq!(window["decorations"], false);
+    assert_eq!(window["shadow"], true);
     assert!(config["bundle"]["targets"]
         .as_array()
         .unwrap()

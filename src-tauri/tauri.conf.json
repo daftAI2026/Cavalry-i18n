@@ -15,7 +15,7 @@
         "url": "./index.html",
         "useHttpsScheme": false,
         "width": 460,
-        "height": 428,
+        "height": 404,
         "minWidth": 420,
         "minHeight": 390,
         "resizable": true,

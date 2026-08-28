@@ -1,7 +1,7 @@
 <!--
-  [INPUT]: 依赖 ./styles.css 与系统字体栈提供离线视觉系统、./select-control.js 提供 Base UI 语义的轻量选择状态机、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
-  [OUTPUT]: 对外提供原生 macOS 窗口控件下的可拖拽标题区、语言与安装状态双徽章的安装对象卡、自绘语言选择器、三个独立维护动作、持久状态 Alert、更新 tooltip 与原生 alert dialog 锚点
-  [POS]: renderer 的唯一视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，不伪造交通灯或后端状态
+  [INPUT]: 依赖 ./tokens.css 先建立离线设计角色、./styles.css、./about.css 与 ./window-controls.css 消费角色实现跨平台视觉系统、./select-control.js、./about-dialog.js 与 ./window-controls.js 提供独立状态机、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
+  [OUTPUT]: 对外提供 macOS 原生交通灯后的标题/更新入口、Windows 左起标题/更新/About 入口与右侧 caption controls、可拖拽标题区、语言与安装状态双徽章、自绘语言选择器、以纯留白分层的主任务与三个恢复动作、持久 Alert、更新 tooltip、About 与确认 dialog 锚点
+  [POS]: renderer 的唯一视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起且不伪造交通灯，Windows 只自绘原生语义按钮而不伪造系统外框
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 <!doctype html>
@@ -11,7 +11,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Cavalry Language Switcher</title>
+  <link rel="stylesheet" href="./tokens.css" />
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./about.css" />
+  <link rel="stylesheet" href="./window-controls.css" />
 </head>
 
 <body>
@@ -22,16 +25,36 @@
       <div class="native-controls-space" aria-hidden="true" data-tauri-drag-region></div>
       <div class="titlebar-copy" data-tauri-drag-region>
         <span id="windowTitle" class="window-title" data-tauri-drag-region>Cavalry Language Switcher</span>
+        <span id="updateControl" class="tooltip-anchor" data-tooltip-state="closed" hidden>
+          <button id="updateButton" type="button" class="update-button" aria-label="New version available" aria-describedby="updateTooltip">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
+              <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-101.66a8,8,0,0,1-11.32,11.32L136,107.31V168a8,8,0,0,1-16,0V107.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Z"></path>
+            </svg>
+          </button>
+          <span id="updateTooltip" class="tooltip" role="tooltip">New version available</span>
+        </span>
+        <span id="aboutControl" class="tooltip-anchor" data-tooltip-state="closed" hidden>
+          <button id="aboutButton" type="button" class="about-button" aria-label="About Cavalry Language Switcher" aria-describedby="aboutTooltip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+              <circle cx="12" cy="12" r="9"></circle><path d="M12 11v5"></path><path d="M12 8h.01"></path>
+            </svg>
+          </button>
+          <span id="aboutTooltip" class="tooltip" role="tooltip">About</span>
+        </span>
       </div>
-      <span id="updateControl" class="tooltip-anchor" data-tooltip-state="closed" hidden>
-        <button id="updateButton" type="button" class="update-button" aria-label="New version available" aria-describedby="updateTooltip">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 256 256" aria-hidden="true" focusable="false">
-            <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-101.66a8,8,0,0,1-11.32,11.32L136,107.31V168a8,8,0,0,1-16,0V107.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Z"></path>
-          </svg>
-        </button>
-        <span id="updateTooltip" class="tooltip" role="tooltip">New version available</span>
-      </span>
       <span id="updateAnnouncement" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></span>
+      <div id="windowsWindowControls" class="windows-window-controls" data-maximized="false" hidden>
+        <button id="windowMinimizeButton" type="button" class="window-control-button" aria-label="Minimize" title="Minimize">
+          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M1.5 6.5h9"></path></svg>
+        </button>
+        <button id="windowMaximizeButton" type="button" class="window-control-button" aria-label="Maximize" title="Maximize">
+          <svg class="window-icon-maximize" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><rect x="1.75" y="1.75" width="8.5" height="8.5"></rect></svg>
+          <svg class="window-icon-restore" viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M3.25 1.75h7v7h-2"></path><rect x="1.75" y="3.25" width="7" height="7"></rect></svg>
+        </button>
+        <button id="windowCloseButton" type="button" class="window-control-button window-control-close" aria-label="Close" title="Close">
+          <svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="m2 2 8 8M10 2 2 10"></path></svg>
+        </button>
+      </div>
     </header>
 
     <main id="mainContent" class="content">
@@ -60,8 +83,6 @@
         </div>
       </section>
 
-      <div class="separator" role="separator" aria-hidden="true"></div>
-
       <section class="language-section" aria-labelledby="languageSectionLabel">
         <div class="section-head">
           <h2 id="languageSectionLabel" class="section-title"><span id="switchToLabel">Switch to</span></h2>
@@ -71,7 +92,11 @@
             <select id="languageSelect" class="sr-only" tabindex="-1" aria-hidden="true" disabled></select>
             <button id="languageSelectTrigger" type="button" class="select-trigger" role="combobox" aria-labelledby="languageSectionLabel languageSelectValue" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageSelectList" disabled>
               <span id="languageSelectValue" class="select-value"></span>
-              <span class="select-chevron" aria-hidden="true"></span>
+              <span class="select-chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
+                  <path d="m6 9 6 6 6-6"></path>
+                </svg>
+              </span>
             </button>
             <div id="languageSelectPopup" class="select-popup" hidden>
               <div id="languageSelectList" class="select-list" role="listbox" aria-labelledby="languageSectionLabel"></div>
@@ -81,11 +106,9 @@
         </div>
       </section>
 
-      <div class="separator" role="separator" aria-hidden="true"></div>
-
       <section aria-labelledby="maintenanceHeading">
         <div class="section-head">
-          <h2 id="maintenanceHeading" class="section-title">Maintenance</h2>
+          <h2 id="maintenanceHeading" class="section-title">Recovery</h2>
         </div>
         <div class="maintenance-group" role="group" aria-labelledby="maintenanceHeading">
           <button id="extractButton" type="button" class="button button-outline" aria-label="Refresh English Snapshot" disabled>Refresh English</button>
@@ -122,9 +145,28 @@
     </section>
   </dialog>
 
+  <dialog id="aboutDialog" class="modal-backdrop about-backdrop" aria-labelledby="aboutTitle" aria-describedby="aboutVersion">
+    <section class="modal-dialog about-dialog">
+      <button id="aboutCloseButton" type="button" class="about-close" aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true" focusable="false"><path d="m7 7 10 10M17 7 7 17"></path></svg>
+      </button>
+      <svg class="about-mark" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+        <path d="M12 2a10 10 0 0 0-3.16 19.49c.5.09.68-.22.68-.48v-1.87c-2.78.6-3.37-1.18-3.37-1.18-.45-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.61.07-.61 1 .07 1.53 1.03 1.53 1.03.9 1.53 2.35 1.09 2.92.83.09-.65.35-1.09.64-1.34-2.22-.25-4.55-1.11-4.55-4.94 0-1.09.39-1.98 1.03-2.68-.1-.25-.45-1.27.1-2.64 0 0 .84-.27 2.75 1.02A9.58 9.58 0 0 1 12 6.82c.85 0 1.71.11 2.51.34 1.91-1.29 2.75-1.02 2.75-1.02.55 1.37.2 2.39.1 2.64.64.7 1.03 1.59 1.03 2.68 0 3.84-2.34 4.69-4.57 4.94.36.31.68.92.68 1.86v2.76c0 .27.18.58.69.48A10 10 0 0 0 12 2Z"></path>
+      </svg>
+      <h2 id="aboutTitle" class="modal-title about-title">Cavalry Language Switcher</h2>
+      <p id="aboutVersion" class="about-version"></p>
+      <nav class="about-links" aria-label="Project links">
+        <a id="aboutRepositoryLink" class="about-link" href="#repository"><span id="aboutRepositoryLabel"></span></a>
+        <a id="aboutLicenseLink" class="about-link" href="#license"><span id="aboutLicenseLabel">MIT License</span></a>
+      </nav>
+    </section>
+  </dialog>
+
   <script src="./tauri-bridge.js"></script>
   <script src="./ui-text.js"></script>
   <script src="./select-control.js"></script>
+  <script src="./about-dialog.js"></script>
+  <script src="./window-controls.js"></script>
   <script src="./app.js"></script>
 </body>
 

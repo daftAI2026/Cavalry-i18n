@@ -5,6 +5,7 @@
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 mod copy_transaction;
+mod external_link;
 mod keychain;
 #[cfg(target_os = "macos")]
 mod macos;
@@ -22,6 +23,7 @@ use std::path::{Path, PathBuf};
 use std::time::Duration;
 
 pub use copy_transaction::{copy_with_privilege, CopyOutcome};
+pub use external_link::{open_project_link, ProjectLink};
 pub use keychain::{
     patch_keychain_query_attributes, patch_keychain_query_attributes_with_privilege,
     KeychainPatchReport,

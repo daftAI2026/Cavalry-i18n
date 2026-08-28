@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde 序列化和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供八命令名称、renderer 兼容 payload DTO、启动恢复显式阻断诊断、Action/Status 的 Windows residue reconciliationRequired 检测标记，以及可组合的稳定 errorCode/warningCodes 投影。
+ * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、启动恢复显式阻断诊断、Action/Status 的 Windows residue reconciliationRequired 检测标记，以及可组合的稳定 errorCode/warningCodes 投影。
  * [POS]: commands 的外部契约层；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -21,12 +21,13 @@ const TEMPORARY_CLEANUP_PENDING_WARNING_CODE: &str = "temporaryCleanupPending";
 const FINDER_FALLBACK_USED_WARNING_CODE: &str = "finderFallbackUsed";
 const NON_FATAL_CLEANUP_WARNING_CODE: &str = "nonFatalCleanup";
 
-pub const COMMAND_NAMES: [&str; 8] = [
+pub const COMMAND_NAMES: [&str; 9] = [
     "get_status",
     "browse_app",
     "extract_english",
     "apply_language",
     "open_privacy_security",
+    "open_project_link",
     "restart_cavalry",
     "check_update",
     "install_update",

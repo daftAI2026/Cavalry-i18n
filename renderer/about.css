@@ -1,0 +1,117 @@
+/**
+ * [INPUT]: 依赖 tokens.css 的标题栏动作、Dialog、排印与状态角色，依赖 index.html 的 About 入口、GitHub 标识与项目链接语义。
+ * [OUTPUT]: 对外提供与主界面同构的 About 标题栏按钮、自绘 Dialog、可见项目地址和许可证链接视觉状态。
+ * [POS]: renderer 的 About 专属视觉层；复用共享 Dialog/Tooltip 基础，不向 styles.css 塞入低频组件细节，也不加载远程资源。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+.about-button {
+  width: var(--titlebar-action-hit-size);
+  height: var(--titlebar-action-hit-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-circle);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color var(--duration-control) ease, background-color var(--duration-control) ease, transform var(--duration-control) ease;
+}
+
+.about-button:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.about-button:active {
+  transform: scale(var(--update-active-scale));
+}
+
+.about-button svg {
+  width: var(--about-icon-size);
+  height: var(--about-icon-size);
+}
+
+.about-dialog {
+  text-align: center;
+}
+
+.about-close {
+  position: absolute;
+  top: var(--padding-panel);
+  right: var(--padding-panel);
+  width: var(--titlebar-action-hit-size);
+  height: var(--titlebar-action-hit-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-circle);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.about-close:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.about-close svg {
+  width: var(--about-close-icon-size);
+  height: var(--about-close-icon-size);
+}
+
+.about-mark {
+  width: var(--about-mark-size);
+  height: var(--about-mark-size);
+  color: var(--text);
+}
+
+.about-title {
+  margin-top: var(--about-copy-gap);
+  padding-right: 0;
+}
+
+.about-version {
+  margin: var(--about-copy-gap) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-meta);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-meta);
+}
+
+.about-links {
+  display: grid;
+  gap: var(--dialog-body-gap);
+  margin-top: var(--dialog-actions-offset);
+}
+
+.about-link {
+  min-height: var(--control-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--padding-control-inline);
+  border: var(--stroke-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: var(--type-body);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-body);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: border-color var(--duration-control) ease, background-color var(--duration-control) ease;
+}
+
+.about-link:hover {
+  border-color: var(--border-outline-hover);
+  background: var(--surface-hover);
+}
+
+.about-link:focus-visible {
+  outline: var(--stroke-focus) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/ui-text/select-control/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语动态 Alert 标题/正文、稳定 warningCodes 与 updater error manifest、Base UI 语义选择状态机、语言/安装双徽章真实状态投影、默认隐藏且仅由预览或真实可用更新展示的图标/tooltip、脱敏更新确认/安装、原生 dialog 生命周期、English UI/官方还原分离、Windows residue、durability retry 及 rejection 恢复。
+ * [INPUT]: renderer bridge/ui-text/select/about/window-controls/app.js 与最小 fake DOM、Tauri invoke fake。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语动态 Alert、warningCodes/updater manifest、Select/About 状态机、双徽章、更新交互、固定项目外链、原生 dialog、English UI/官方还原、Windows caption controls/residue、durability retry 及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -37,7 +37,7 @@ function runtime({
   preview = false,
   statusRequest = null,
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutDialog', 'aboutTitle', 'aboutVersion', 'aboutCloseButton', 'aboutRepositoryLink', 'aboutRepositoryLabel', 'aboutLicenseLink', 'aboutLicenseLabel', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const document = {
@@ -59,8 +59,11 @@ function runtime({
   const applyResults = Array.isArray(apply) ? [...apply] : [apply];
   const extractResults = Array.isArray(extract) ? [...extract] : [extract];
   const nextResult = (results) => (results.length > 1 ? results.shift() : results[0]);
+  let maximized = false;
+  const windowListeners = new Map();
   const window = {
     location: { protocol: 'http:', hostname: '127.0.0.1', search: preview ? '?preview=update' : '' },
+    addEventListener(type, callback) { windowListeners.set(type, [...(windowListeners.get(type) || []), callback]); },
     __TAURI_INTERNALS__: { invoke(command, payload) {
     calls.push({ command, payload });
     if (reject === command) return Promise.reject(new Error('transport failure'));
@@ -69,6 +72,11 @@ function runtime({
     if (command === 'extract_english') return Promise.resolve(nextResult(extractResults));
     if (command === 'check_update') return Promise.resolve(update);
     if (command === 'install_update') return Promise.resolve(install);
+    if (command === 'plugin:app|version') return Promise.resolve('0.7.0');
+    if (command === 'open_project_link') return Promise.resolve({ ok: true });
+    if (command === 'plugin:window|is_maximized') return Promise.resolve(maximized);
+    if (command === 'plugin:window|toggle_maximize') { maximized = !maximized; return Promise.resolve(); }
+    if (command === 'plugin:window|minimize' || command === 'plugin:window|close') return Promise.resolve();
     return Promise.resolve({ ok: true });
     } },
   };
@@ -83,9 +91,47 @@ function boot(options) {
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
   vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
   vm.runInNewContext(read('renderer/select-control.js'), r.context, { filename: 'select-control.js' });
+  vm.runInNewContext(read('renderer/about-dialog.js'), r.context, { filename: 'about-dialog.js' });
+  vm.runInNewContext(read('renderer/window-controls.js'), r.context, { filename: 'window-controls.js' });
   vm.runInNewContext(read('renderer/app.js'), r.context, { filename: 'app.js' });
   return r;
 }
+
+test('Windows caption controls keep right-side native semantics and localized maximize state', async () => {
+  const r = boot({ status: { platform: 'windows' }, locale: 'zh-CN' });
+  await flush();
+  const root = r.elements['#windowsWindowControls'];
+  const minimize = r.elements['#windowMinimizeButton'];
+  const maximize = r.elements['#windowMaximizeButton'];
+  const close = r.elements['#windowCloseButton'];
+
+  assert.equal(root.hidden, false);
+  assert.equal(root.dataset.maximized, 'false');
+  assert.equal(minimize.attributes.get('aria-label'), '最小化');
+  assert.equal(maximize.attributes.get('aria-label'), '最大化');
+  assert.equal(close.attributes.get('aria-label'), '关闭');
+
+  maximize.listeners.get('click')[0]();
+  await flush();
+  assert.equal(root.dataset.maximized, 'true');
+  assert.equal(maximize.attributes.get('aria-label'), '还原');
+  minimize.listeners.get('click')[0]();
+  close.listeners.get('click')[0]();
+  await flush();
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(r.calls
+      .filter(({ command }) => command.startsWith('plugin:window|'))
+      .map(({ command, payload }) => ({ command, payload })))),
+    [
+      { command: 'plugin:window|is_maximized', payload: { label: 'main' } },
+      { command: 'plugin:window|toggle_maximize', payload: { label: 'main' } },
+      { command: 'plugin:window|is_maximized', payload: { label: 'main' } },
+      { command: 'plugin:window|minimize', payload: { label: 'main' } },
+      { command: 'plugin:window|close', payload: { label: 'main' } },
+    ]
+  );
+});
 
 test('bridge exposes frozen camelCase-only manifest and ignores unknown backend languages', async () => {
   const r = boot(); await flush();
@@ -138,6 +184,42 @@ test('custom language select keeps Base UI open, active, selected, and keyboard 
   assert.equal(trigger.attributes.get('aria-expanded'), 'false');
   assert.equal(popup.hidden, true);
   assert.equal(trigger.focused, true);
+});
+
+test('About dialog shows the Switcher version and opens only fixed project links', async () => {
+  const r = boot({ locale: 'zh-CN' });
+  await flush();
+  const button = r.elements['#aboutButton'];
+  const dialog = r.elements['#aboutDialog'];
+  const close = r.elements['#aboutCloseButton'];
+
+  assert.equal(button.attributes.get('aria-label'), '关于 Cavalry 语言切换器');
+  assert.equal(r.elements['#aboutControl'].hidden, true, 'macOS About belongs to the system application menu');
+  assert.equal(r.elements['#aboutRepositoryLabel'].textContent, 'https://github.com/daftAI2026/Cavalry-i18n');
+  r.window.cavalryI18nShowAbout();
+  await flush();
+  assert.equal(dialog.open, true);
+  assert.equal(r.elements['#aboutVersion'].textContent, '版本 0.7.0');
+  assert.equal(close.focused, true);
+
+  r.elements['#aboutRepositoryLink'].listeners.get('click')[0]({ preventDefault() {} });
+  r.elements['#aboutLicenseLink'].listeners.get('click')[0]({ preventDefault() {} });
+  await flush();
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'open_project_link'))),
+    [
+      { command: 'open_project_link', payload: { link: 'repository' } },
+      { command: 'open_project_link', payload: { link: 'license' } },
+    ]
+  );
+  await assert.rejects(() => r.window.cavalryI18n.openProjectLink('https://attacker.invalid'), /Unsupported project link/);
+  close.listeners.get('click')[0]();
+  assert.equal(dialog.open, false);
+  assert.equal(button.focused, true);
+
+  const windows = boot({ status: { platform: 'windows' } });
+  await flush();
+  assert.equal(windows.elements['#aboutControl'].hidden, false, 'Windows needs the in-window About entry');
 });
 
 test('status panel title describes the actual ready state in each UI locale', async () => {
@@ -458,8 +540,7 @@ test('startup recovery failure blocks mutations without exposing raw backend dia
   assert.match(r.elements['#statusText'].textContent, /could not be recovered safely/);
   assert.doesNotMatch(r.elements['#statusText'].textContent, /Cavalry is still running/);
   assert.equal(r.elements['#statusText'].dataset.tone, 'error');
-  assert.equal(r.elements['#installationBadge'].textContent, 'Recovery Required');
-  assert.equal(r.elements['#installationBadge'].dataset.state, 'recoveryRequired');
+  assert.equal(r.elements['#installationBadge'].hidden, true, 'transaction recovery must stay in the actionable Alert instead of masquerading as installation classification');
 });
 
 

@@ -34,11 +34,11 @@ Cavalry-i18n/
 | Task | Location | Notes |
 | --- | --- | --- |
 | Project map | `CLAUDE.md` + module `CLAUDE.md` | Read before touching a directory. L2/L3 docs are part of the contract. |
-| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, platform system typography, custom semantic select, language/install badges, single update icon/tooltip preview, modal, and four-locale semantic Alert titles/bodies. |
-| Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Payloads are camelCase only; updater installation consumes only Rust-held checked state, never renderer artifact inputs. |
-| IPC commands | `src-tauri/src/commands.rs` | Exactly 8 commands: status, browse, extract English, apply, open Privacy, restart, check update, install update. |
+| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css`, `renderer/window-controls.*` | Static DOM ids, platform typography, custom semantic select, badges/update/modal/Alert；macOS keeps native traffic lights, Windows draws only right-side native-semantic caption controls while DWM owns the frame. |
+| Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Business payloads are camelCase only; updater consumes Rust-held checked state, while Windows caption methods target only the fixed `main` window. |
+| IPC commands | `src-tauri/src/commands.rs` | Exactly 9 commands: status, browse, extract English, apply, open Privacy, open fixed project link, restart, check update, install update. |
 | JSON asset mapping | `src-tauri/src/patch.rs` | `CORE_MAP`, keyed overlay, packaged-English content proof, snapshot completeness/provenance. |
-| System boundary | `src-tauri/src/privilege.rs`, `src-tauri/src/privilege/windows/language_transaction/` | Copy, same-EXE Program Files transaction, legacy admin fallback, re-signing, quarantine, Privacy & Security, restart commands. |
+| System boundary | `src-tauri/src/privilege.rs`, `src-tauri/src/privilege/windows/language_transaction/` | Copy, same-EXE Program Files transaction, legacy admin fallback, re-signing, quarantine, Privacy & Security, fixed project links, restart commands. |
 | Keychain patch | `src-tauri/src/keychain_patch.rs` | Mach-O/fat slice parser and NOP patcher for Keychain query attributes. |
 | macOS runtime files | `src-tauri/src/mac_runtime.rs` | Launcher wrapper, Info.plist rewrite, language marker, injector copy pairs. |
 | Windows runtime files | `src-tauri/src/windows_install.rs`, `windows_runtime.rs`, `windows_qpa.rs`, `windows_qpa/` | Discover arbitrary install roots, deploy the generic translator, and own the durable/atomic QPA activation and explicit restoration state machine. |
@@ -70,6 +70,7 @@ Cavalry-i18n/
 
 - `app.js` must not know Tauri internals. It talks only to `window.cavalryI18n`.
 - `tauri-bridge.js` normalizes camelCase payloads only. Do not reintroduce snake_case fallbacks or debug fields.
+- `window-controls.js` is the only platform-window consumer. Keep it limited to the fixed `main` label and the explicit minimize/toggle-maximize/is-maximized/close surface.
 - `index.html` ids are test anchors. Rename only with `tools/check_renderer_contract.js` and bridge/runtime tests updated.
 - Stable renderer shell copy is localized in `ui-text.js`; translated Cavalry runtime UI belongs to `languages/` and `tools/*.ts`, not renderer shell copy.
 

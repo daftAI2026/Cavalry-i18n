@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 index.html 的原生 select 数据槽、combobox trigger、listbox popup 与 option 容器，依赖浏览器键盘/指针事件和 ARIA 属性。
- * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 open/active/selected 状态边界实现单选菜单、方向键/Home/End/Enter/Space/Escape/typeahead 与外部点击收口。
+ * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 open/active/selected 状态边界和选中项锚定触发器的 positioner 语义实现单选菜单、方向键/Home/End/Enter/Space/Escape/typeahead 与外部点击收口。
  * [POS]: renderer 的无依赖选择器组件状态机；只管理选择交互和无障碍投影，不读取业务状态、不调用 Tauri，也不引入 React、组件库或 CDN。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,8 +18,22 @@
       return options.findIndex((option) => option.value === select.value);
     }
 
+    function alignPopupToSelectedItem(selected) {
+      const item = list.children[selected];
+      if (!item || !popup.style || typeof trigger.getBoundingClientRect !== 'function' || typeof item.getBoundingClientRect !== 'function') return;
+
+      // Base UI 默认让选中项的视觉中心与 Trigger 对齐。这里先归零，再由真实布局盒推导偏移，
+      // 避免复制一组只对单一字体或语言成立的位置魔法数。
+      popup.style.top = '0px';
+      const triggerRect = trigger.getBoundingClientRect();
+      const itemRect = item.getBoundingClientRect();
+      const alignedTop = triggerRect.top + triggerRect.height / 2 - itemRect.top - itemRect.height / 2;
+      popup.style.top = `${alignedTop}px`;
+    }
+
     function renderState() {
       root.dataset.state = open ? 'open' : 'closed';
+      popup.dataset.state = open ? 'open' : 'closed';
       trigger.setAttribute('aria-expanded', String(open));
       popup.hidden = !open;
       const selected = selectedIndex();
@@ -34,8 +48,10 @@
 
       if (open && activeIndex >= 0) {
         trigger.setAttribute('aria-activedescendant', list.children[activeIndex].id);
+        alignPopupToSelectedItem(selected >= 0 ? selected : activeIndex);
       } else {
         trigger.removeAttribute('aria-activedescendant');
+        popup.style?.removeProperty?.('top');
       }
     }
 

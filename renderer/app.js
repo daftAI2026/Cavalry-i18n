@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、window.createSelectControl 的无依赖选择状态机、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/主任务/Maintenance/动态语义 Alert、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、English UI/官方还原、更新 tooltip/无障碍通知与签名冷更新交互；开发预览不访问网络。
+ * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、window.createSelectControl/window.createAboutDialog/window.createWindowControls 的独立状态机、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/主任务/Recovery/动态语义 Alert、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、English UI/官方还原、About、更新 tooltip/无障碍通知与签名冷更新交互；开发预览不访问网络。
  * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实可达状态映射为具体结果/风险/恢复动作，以稳定 errorCode/warningCodes 本土化且从不显示 raw backend/updater 数据；原生 dialog 的 close 事件独占清理与焦点归还。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -72,9 +72,13 @@ const state = {
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
 let modalReturnFocus = null;
-
-
 const uiLocale = detectUiLocale();
+const windowControls = window.createWindowControls({ api, text: t });
+const aboutDialog = window.createAboutDialog({
+  api,
+  text: t,
+  onError: () => setStatus('openProjectLinkFailed', 'error'),
+});
 
 function updatePreviewRequested() {
   const location = window.location;
@@ -246,18 +250,19 @@ function localizeShell() {
   permissionButton.textContent = t('openPrivacySecurity');
   statusLabel.textContent = t('loadingTitle');
   modalCloseButton.setAttribute('aria-label', t('close'));
+  aboutDialog.localize();
+  windowControls.localize();
   setPermissionWait(false);
 }
 
 function installationBadgeText(mode) {
   if (mode === 'official') return t('officialBadge');
-  if (mode === 'recoveryRequired') return t('recoveryBadge');
   if (state.currentLang !== 'en') return t('translatedBadge');
   return t('modifiedBadge');
 }
 
 function installationBadgeState(mode) {
-  if (mode === 'official' || mode === 'recoveryRequired') return mode;
+  if (mode === 'official') return mode;
   return state.currentLang === 'en' ? 'modified' : 'translated';
 }
 
@@ -265,7 +270,10 @@ function syncInstallationBadges() {
   const visualState = state.appPath ? state.installationMode : 'unknown';
   const language = languageLabel(state.currentLang);
   const installation = installationModeText.textContent;
-  const showInstallation = state.platform === 'macos' && Boolean(state.appPath);
+  const showInstallation =
+    state.platform === 'macos' &&
+    Boolean(state.appPath) &&
+    visualState !== 'recoveryRequired';
   currentLanguage.setAttribute('aria-label', `${t('current')}: ${language}`);
   currentLanguage.title = language;
   installationBadge.hidden = !showInstallation;
@@ -465,6 +473,8 @@ async function bootstrap() {
   state.permissionAction = bootstrapState.permissionAction || 'none';
   document.documentElement.dataset.platform = state.platform;
   document.body.dataset.platform = state.platform;
+  aboutDialog.setPlatform(state.platform);
+  windowControls.setPlatform(state.platform);
 
   updateLanguageOptions(state.languages);
   const firstTargetLanguage = state.languages.find((language) => language.value !== 'en');
