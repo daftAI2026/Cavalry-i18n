@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、人工安装/updater 资产命名、显式 renderer 文档入口、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1141,6 +1141,7 @@ test('project version check treats CRLF and LF metadata as the same content', ()
 
 test('tauri bundle config preserves the frozen Tauri window contract', () => {
   const config = readJson('src-tauri/tauri.conf.json');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
   const macConfig = readJson('src-tauri/tauri.macos.conf.json');
   const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
   const updaterArtifactsConfig = readJson('src-tauri/tauri.updater-artifacts.conf.json');
@@ -1152,6 +1153,8 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.equal(window.height, 440);
   assert.equal(window.minWidth, 420);
   assert.equal(window.minHeight, 402);
+  assert.match(localSop, /main window 外框固定 `460x440`，最小 `420x402`/);
+  assert.doesNotMatch(localSop, /main window 外框固定 `480x528`/);
   assert.equal(window.decorations, true);
   assert.equal(window.titleBarStyle, 'Overlay');
   assert.equal(window.hiddenTitle, true);

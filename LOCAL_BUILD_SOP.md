@@ -163,7 +163,7 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 - `src-tauri/tauri.windows.conf.json` 先执行 `npm run build:injector:windows`，再声明 NSIS、`icon.ico`、`languages` 与 `injector/windows/generic/cavalryi18n.dll`；它不继承 macOS injector、签名或 DMG 行为。
 - macOS dylib 与 Windows generic/QPA DLL 都是对应平台现场生成的中间产物，不纳入 Git 或 source artifact；macOS build artifact 只交付已嵌入 dylib 的 `.app`/DMG，Windows 只交付已嵌入双 DLL 的 NSIS EXE。
 - `app.withGlobalTauri = false`；vanilla bridge 只暴露冻结后的 `window.cavalryI18n`，页面业务代码不能访问全局 Tauri API。
-- main window 外框固定 `480x528`，最小 `420x528`，对应 `480x500` 内容区。
+- main window 外框固定 `460x440`，最小 `420x402`；macOS Overlay 原生标题栏覆盖在同一内容坐标系中，不额外增加 WebView 内容高度。
 - `tauri.macos.conf.json` **不硬编码** signing identity；本地/`workflow_dispatch` 显式传入 `APPLE_SIGNING_IDENTITY="-"` 生成 ad-hoc 开发包。
 - **GitHub tag release** 显式传入 Developer ID Application secret，不能被配置文件里的 `-` 覆盖。DMG 卷宗图标脚本会重写容器，因此 tag job 必须在该步骤之后重新提交最终 DMG 给 notary service、staple 并用 `stapler`/`spctl` 双重验证；缺任一 secret、仍为 ad-hoc 或最终 ticket 无效都会 fail-closed。
 
