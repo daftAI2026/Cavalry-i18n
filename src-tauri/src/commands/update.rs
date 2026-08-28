@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Tauri AppHandle、官方 tauri-plugin-updater 2.10.1 的 Update、Updater 单飞状态，以及安装阶段复用的 bundle operation lock。
- * [OUTPUT]: 提供 check_update/install_update 两条 renderer-facing command、只暴露 currentVersion/version/notes/pubDate/available/errorCode 的 DTO，以及进程内 pending Update 状态。
- * [POS]: commands 的更新领域边界；检查网络不占用 Cavalry bundle 锁，检查与安装彼此单飞；安装只消费 Rust State 中最近一次签名验证通过的 Update，并与语言写入互斥。
+ * [INPUT]: 依赖 Tauri AppHandle/IPC Channel、官方 tauri-plugin-updater 2.10.1 的 Update、Updater 单飞状态，以及安装阶段复用的 bundle operation lock。
+ * [OUTPUT]: 提供 check_update/install_update 两条 renderer-facing command、只暴露 currentVersion/version/notes/pubDate/available/errorCode 的 DTO、三阶段脱敏更新事件，以及进程内 pending Update 状态。
+ * [POS]: commands 的更新领域边界；检查网络不占用 Cavalry bundle 锁，检查与安装彼此单飞；安装只消费 Rust State 中最近一次签名验证通过的 Update，并以 Channel 观察下载、安装和重启边界。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 /* -------------------------------------------------------------------------- */
@@ -9,12 +9,12 @@
 /* 因此 Mutex<Option<Update>> 可以安全交给 Tauri State，且不把插件对象出界。   */
 /* -------------------------------------------------------------------------- */
 use chrono::{DateTime, SecondsFormat, Utc};
-use serde::Serialize;
+use serde::{Serialize, Serializer};
 use std::sync::{
     atomic::{AtomicBool, Ordering},
-    Mutex,
+    Arc, Mutex,
 };
-use tauri::{AppHandle, Manager};
+use tauri::{ipc::Channel, AppHandle, Manager};
 use tauri_plugin_updater::{Error as UpdaterError, Update, UpdaterExt};
 
 use crate::operation_lock;
@@ -28,6 +28,118 @@ pub(crate) const UPDATE_INSTALL_FAILED_ERROR_CODE: &str = "updateInstallFailed";
 pub(crate) const UPDATE_NOT_CHECKED_ERROR_CODE: &str = "updateNotChecked";
 pub(crate) const UPDATE_BUSY_ERROR_CODE: &str = "updateBusy";
 pub(crate) const UPDATE_STATE_UNAVAILABLE_ERROR_CODE: &str = "updateStateUnavailable";
+
+pub(crate) const UPDATE_DOWNLOADING_PHASE: &str = "downloading";
+pub(crate) const UPDATE_INSTALLING_PHASE: &str = "installing";
+pub(crate) const UPDATE_RESTARTING_PHASE: &str = "restarting";
+
+/* -------------------------------------------------------------------------- */
+/* 只把 renderer 需要的阶段和下载计数送出；URL、签名、路径和原始响应留在 Rust。 */
+/* -------------------------------------------------------------------------- */
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum UpdatePhase {
+    Downloading,
+    Installing,
+    Restarting,
+}
+
+impl UpdatePhase {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::Downloading => UPDATE_DOWNLOADING_PHASE,
+            Self::Installing => UPDATE_INSTALLING_PHASE,
+            Self::Restarting => UPDATE_RESTARTING_PHASE,
+        }
+    }
+}
+
+impl Serialize for UpdatePhase {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        serializer.serialize_str(self.as_str())
+    }
+}
+
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateEvent {
+    pub phase: UpdatePhase,
+    pub downloaded: Option<u64>,
+    pub content_length: Option<u64>,
+}
+
+impl UpdateEvent {
+    pub(crate) const fn downloading(downloaded: u64, content_length: Option<u64>) -> Self {
+        Self {
+            phase: UpdatePhase::Downloading,
+            downloaded: Some(downloaded),
+            content_length,
+        }
+    }
+
+    pub(crate) const fn installing() -> Self {
+        Self {
+            phase: UpdatePhase::Installing,
+            downloaded: None,
+            content_length: None,
+        }
+    }
+
+    pub(crate) const fn restarting() -> Self {
+        Self {
+            phase: UpdatePhase::Restarting,
+            downloaded: None,
+            content_length: None,
+        }
+    }
+}
+
+/// 与传输方式无关的更新进度报告协议；更新事务不依赖 Tauri Channel 是否仍然可用。
+pub(crate) trait UpdateProgressReporter: Clone + Send + Sync + 'static {
+    fn report(&self, event: UpdateEvent);
+}
+
+#[derive(Clone)]
+pub(crate) struct TauriUpdateProgressReporter {
+    channel: Channel<UpdateEvent>,
+}
+
+impl TauriUpdateProgressReporter {
+    pub(crate) fn new(channel: Channel<UpdateEvent>) -> Self {
+        Self { channel }
+    }
+}
+
+impl UpdateProgressReporter for TauriUpdateProgressReporter {
+    fn report(&self, event: UpdateEvent) {
+        // Channel 是观察面；关闭或拒收只丢弃进度，不改变下载、验证、安装或重启结果。
+        let _ = self.channel.send(event);
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+struct DownloadProgress {
+    downloaded: u64,
+    content_length: Option<u64>,
+}
+
+impl DownloadProgress {
+    fn started_event(self) -> UpdateEvent {
+        UpdateEvent::downloading(self.downloaded, self.content_length)
+    }
+
+    fn chunk_event(&mut self, chunk_length: usize, content_length: Option<u64>) -> UpdateEvent {
+        let chunk_length = u64::try_from(chunk_length).unwrap_or(u64::MAX);
+        self.downloaded = self.downloaded.saturating_add(chunk_length);
+        if content_length.is_some() {
+            self.content_length = content_length;
+        }
+        UpdateEvent::downloading(self.downloaded, self.content_length)
+    }
+}
 
 #[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
@@ -177,7 +289,10 @@ pub(crate) async fn check_update_inner(app: AppHandle) -> UpdatePayload {
     }
 }
 
-pub(crate) async fn install_update_inner(app: AppHandle) -> UpdatePayload {
+pub(crate) async fn install_update_inner<R>(app: AppHandle, reporter: R) -> UpdatePayload
+where
+    R: UpdateProgressReporter,
+{
     if !updater_is_configured(&app) {
         return UpdatePayload::error(current_version(&app), UPDATER_NOT_CONFIGURED_ERROR_CODE);
     }
@@ -200,8 +315,40 @@ pub(crate) async fn install_update_inner(app: AppHandle) -> UpdatePayload {
         Err(()) => return state_error_payload(&app),
     };
 
-    match update.download_and_install(|_, _| {}, || {}).await {
-        Ok(()) => app.restart(),
+    let progress = Arc::new(Mutex::new(DownloadProgress::default()));
+    reporter.report(
+        progress
+            .lock()
+            .map(|progress| progress.started_event())
+            .unwrap_or_else(|_| DownloadProgress::default().started_event()),
+    );
+
+    let chunk_progress = Arc::clone(&progress);
+    let chunk_reporter = reporter.clone();
+    let finish_reporter = reporter.clone();
+    match update
+        .download_and_install(
+            move |chunk_length, content_length| {
+                let event = {
+                    let Ok(mut progress) = chunk_progress.lock() else {
+                        return;
+                    };
+                    progress.chunk_event(chunk_length, content_length)
+                };
+                chunk_reporter.report(event);
+            },
+            move || {
+                // 官方回调在签名验证前触发；此阶段同时覆盖验证与随后安装，不伪造 verified。
+                finish_reporter.report(UpdateEvent::installing());
+            },
+        )
+        .await
+    {
+        Ok(()) => {
+            // download_and_install 已完成签名验证和安装；restart 通常不再返回成功 DTO。
+            reporter.report(UpdateEvent::restarting());
+            app.restart()
+        }
         Err(_) => UpdatePayload::from_update(&update, Some(UPDATE_INSTALL_FAILED_ERROR_CODE)),
     }
 }
@@ -209,6 +356,18 @@ pub(crate) async fn install_update_inner(app: AppHandle) -> UpdatePayload {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::sync::{Arc, Mutex};
+
+    #[derive(Clone, Default)]
+    struct RecordingUpdateProgressReporter {
+        events: Arc<Mutex<Vec<UpdateEvent>>>,
+    }
+
+    impl UpdateProgressReporter for RecordingUpdateProgressReporter {
+        fn report(&self, event: UpdateEvent) {
+            self.events.lock().unwrap().push(event);
+        }
+    }
 
     #[test]
     fn update_resource_meets_managed_state_bounds() {
@@ -274,5 +433,63 @@ mod tests {
         assert!(value.get("url").is_none());
         assert!(value.get("signature").is_none());
         assert!(value.get("rawJson").is_none());
+    }
+
+    #[test]
+    fn update_event_contract_is_camel_case_and_contains_no_updater_details() {
+        let downloading =
+            serde_json::to_value(UpdateEvent::downloading(4096, Some(16384))).unwrap();
+        assert_eq!(
+            downloading,
+            serde_json::json!({
+                "phase": "downloading",
+                "downloaded": 4096,
+                "contentLength": 16384
+            })
+        );
+
+        let installing = serde_json::to_value(UpdateEvent::installing()).unwrap();
+        assert_eq!(
+            installing,
+            serde_json::json!({
+                "phase": "installing",
+                "downloaded": null,
+                "contentLength": null
+            })
+        );
+        assert!(installing.get("url").is_none());
+        assert!(installing.get("signature").is_none());
+        assert!(installing.get("path").is_none());
+        assert!(installing.get("rawJson").is_none());
+        assert_eq!(UpdatePhase::Restarting.as_str(), "restarting");
+    }
+
+    #[test]
+    fn download_progress_seam_accumulates_bytes_and_keeps_real_phase_order() {
+        let reporter = RecordingUpdateProgressReporter::default();
+        let mut progress = DownloadProgress::default();
+
+        reporter.report(progress.started_event());
+        reporter.report(progress.chunk_event(4, None));
+        reporter.report(progress.chunk_event(6, Some(100)));
+        reporter.report(UpdateEvent::installing());
+        reporter.report(UpdateEvent::restarting());
+
+        assert_eq!(
+            *reporter.events.lock().unwrap(),
+            [
+                UpdateEvent::downloading(0, None),
+                UpdateEvent::downloading(4, None),
+                UpdateEvent::downloading(10, Some(100)),
+                UpdateEvent::installing(),
+                UpdateEvent::restarting(),
+            ]
+        );
+    }
+
+    #[test]
+    fn tauri_channel_rejection_does_not_escape_the_progress_reporter() {
+        let channel = Channel::<UpdateEvent>::new(|_| Err(tauri::Error::FailedToReceiveMessage));
+        TauriUpdateProgressReporter::new(channel).report(UpdateEvent::installing());
     }
 }

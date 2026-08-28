@@ -1,6 +1,6 @@
 <!--
-  [INPUT]: 依赖 ./tokens.css 先建立离线设计角色、./styles.css/./operation-log.css/./about.css/./window-controls.css 消费角色实现跨平台视觉系统、./app-icon.png 提供与安装包同源的本地应用标识、./select-control.js/./tooltip-control.js/./path-display.js/./operation-log.js/./about-control.js/./window-controls.js 提供独立状态机、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
-  [OUTPUT]: 对外提供 macOS 原生交通灯后的标题/更新入口、Windows 左起标题/更新/About 入口与右侧 caption controls、可拖拽标题区、语言与安装状态双徽章、保留路径末段的中部省略摘要、自绘语言选择器、全宽 Select 后并列 Apply/Restore 的单任务流、共享 Tooltip、持久 Activity Log 与 AlertDialog 锚点；About 内容由独立本地页面承载
+  [INPUT]: 依赖 ./tokens.css 先建立离线设计角色、./styles.css/./operation-log.css/./about.css/./window-controls.css 消费角色实现跨平台视觉系统、./app-icon.png 提供与安装包同源的本地应用标识、./select-control.js/./tooltip-control.js/./path-display.js/./operation-log.js/./update-progress.js/./about-control.js/./window-controls.js 提供独立状态机与更新事件语义投影、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
+  [OUTPUT]: 对外提供 macOS 原生交通灯后的标题/更新入口、Windows 左起标题/更新/About 入口与右侧 caption controls、可拖拽标题区、语言与安装状态双徽章、保留路径末段的中部省略摘要、自绘语言选择器、全宽 Select 后并列 Apply/Restore 的单任务流、无可见泛化标题的有界任务事件视窗与 AlertDialog 锚点；About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起独立原生装饰窗口，Windows 只自绘原生语义按钮而不伪造系统外框
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -118,8 +118,10 @@
       </section>
 
       <section id="statusPanel" class="status-panel" data-state="neutral" aria-labelledby="statusLabel">
-        <h2 id="statusLabel" class="status-label">Activity</h2>
-        <ol id="statusText" class="status-text" role="log" aria-live="polite" aria-relevant="additions text"></ol>
+        <h2 id="statusLabel" class="sr-only">Operation progress</h2>
+        <div id="statusViewport" class="status-viewport">
+          <ol id="statusText" class="status-text" role="log" aria-live="polite" aria-relevant="additions text"></ol>
+        </div>
         <button id="permissionButton" type="button" class="button button-outline permission-button" hidden>Open permission settings</button>
       </section>
     </main>
@@ -144,6 +146,7 @@
   <script src="./tooltip-control.js"></script>
   <script src="./path-display.js"></script>
   <script src="./operation-log.js"></script>
+  <script src="./update-progress.js"></script>
   <script src="./about-control.js"></script>
   <script src="./window-controls.js"></script>
   <script src="./app.js"></script>

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖标准 DOM 的列表/SVG/文本节点能力，消费 app.js 提供的稳定本地化事件标题、说明、状态与可选语义图标
- * [OUTPUT]: 对外提供 createOperationLog；按 shadcn Marker/MarkerIcon/MarkerContent 组合投影有序记录，运行态使用真实 Spinner 图标并由 CSS shimmer 扫过标题，静态图标仅表达事件语义
- * [POS]: renderer 的无依赖操作记录投影器；位于业务状态映射与 operation-log.css 之间，不读取 Tauri、语言包或 Cavalry 安装状态，也不自行推进操作阶段
+ * [INPUT]: 依赖标准 DOM 的视窗/列表/SVG/文本节点能力，消费 app.js 提供的稳定本地化任务标题、事件说明、状态与可选语义图标
+ * [OUTPUT]: 对外提供 createOperationLog；以空分隔线表达 idle，以带标签 separator 建立任务上下文，再按 shadcn Marker/MarkerIcon/MarkerContent 有序 upsert 事件；运行态使用 Spinner 与 shimmer，新增事件始终把有界视窗跟随到底部
+ * [POS]: renderer 的无依赖任务事件投影器；位于业务语义映射与 operation-log.css 之间，不读取 Tauri、语言包或 Cavalry 安装状态，也不虚构或自行推进业务阶段
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (() => {
@@ -85,17 +85,19 @@
     return icon;
   }
 
-  function createOperationLog({ root, list }) {
+  function createOperationLog({ root, viewport, list }) {
     const entries = new Map();
 
     function scrollToLatest() {
-      list.scrollTop = list.scrollHeight;
+      viewport.dataset.overflowing = viewport.scrollHeight > viewport.clientHeight ? 'true' : 'false';
+      viewport.scrollTop = viewport.scrollHeight;
     }
 
-    function createEntry(id) {
+    function createEntry(id, variant = 'default') {
       const row = document.createElement('li');
       row.className = 'operation-event';
       row.dataset.eventId = id;
+      row.dataset.variant = variant;
 
       const marker = document.createElement('span');
       marker.className = 'operation-event-marker';
@@ -128,17 +130,20 @@
       entry.marker.replaceChildren(...(icon ? [icon] : []));
     }
 
-    function upsert({ id, title, description = '', state = 'neutral', icon }) {
-      if (!id || !title) return;
-      const entry = entries.get(id) || createEntry(id);
+    function upsert({ id, title, description = '', state = 'neutral', icon, variant = 'default' }) {
+      if (!id || (!title && variant !== 'separator')) return;
+      const entry = entries.get(id) || createEntry(id, variant);
       const iconName = icon === undefined ? DEFAULT_ICON_BY_STATE[state] || '' : icon;
+      entry.row.dataset.variant = variant;
       entry.row.dataset.state = state;
       entry.row.dataset.hasDescription = description ? 'true' : 'false';
+      entry.row.dataset.empty = title ? 'false' : 'true';
       entry.title.textContent = title;
       entry.description.textContent = description;
       entry.description.hidden = !description;
       setMarker(entry, iconName);
       root.dataset.state = state;
+      root.dataset.mode = 'events';
       scrollToLatest();
     }
 
@@ -146,11 +151,28 @@
       entries.clear();
       list.replaceChildren();
       root.dataset.state = 'neutral';
+      root.dataset.mode = 'idle';
+      viewport.dataset.overflowing = 'false';
     }
 
     function replace(event) {
       clear();
       upsert(event);
+    }
+
+    function idle() {
+      clear();
+      const entry = createEntry('idle', 'separator');
+      entry.row.dataset.state = 'neutral';
+      entry.row.dataset.empty = 'true';
+      entry.row.setAttribute('aria-hidden', 'true');
+      setMarker(entry, '');
+      root.dataset.mode = 'idle';
+    }
+
+    function start({ id = 'operation', title }) {
+      clear();
+      upsert({ id, title, variant: 'separator', state: 'neutral', icon: '' });
     }
 
     function finishRunning(state = 'error') {
@@ -162,7 +184,7 @@
       root.dataset.state = state;
     }
 
-    return Object.freeze({ clear, replace, upsert, finishRunning });
+    return Object.freeze({ clear, idle, start, replace, upsert, finishRunning });
   }
 
   window.createOperationLog = createOperationLog;

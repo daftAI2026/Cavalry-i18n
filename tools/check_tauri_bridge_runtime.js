@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/ui-text/select/tooltip/path/operation-log/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语 Activity Log、apply/restart 有序 Channel、warningCodes/updater manifest、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
+ * [INPUT]: renderer bridge/ui-text/select/tooltip/path/operation-log/update-progress/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语任务 separator/事件、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -35,14 +35,20 @@ function runtime({
   apply = { ok: true, currentLang: 'zh-Hans' },
   update = { currentVersion: '0.7.0', version: null, notes: null, pubDate: null, available: false, errorCode: null },
   install = { currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null, available: true, errorCode: 'updateInstallFailed' },
+  installEvents = [
+    { phase: 'downloading', downloaded: 0, contentLength: null },
+    { phase: 'downloading', downloaded: 50, contentLength: 100 },
+    { phase: 'installing', downloaded: null, contentLength: null },
+  ],
   locale = 'en-US',
   preview = false,
   statusRequest = null,
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusViewport', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
+  const updateChannels = [];
   const callbacks = new Map();
   let nextCallbackId = 1;
   const document = {
@@ -75,6 +81,9 @@ function runtime({
     if (command === 'apply_language') {
       channels.push(payload.onEvent);
       calls.push({ command, payload: { appPath: payload.appPath, lang: payload.lang } });
+    } else if (command === 'install_update') {
+      updateChannels.push(payload.onEvent);
+      calls.push({ command, payload: { onEvent: Boolean(payload.onEvent) } });
     } else {
       calls.push({ command, payload });
     }
@@ -105,7 +114,14 @@ function runtime({
       return Promise.resolve(result);
     }
     if (command === 'check_update') return Promise.resolve(update);
-    if (command === 'install_update') return Promise.resolve(install);
+    if (command === 'install_update') {
+      const callback = callbacks.get(payload.onEvent.id);
+      if (callback) {
+        installEvents.forEach((message, index) => callback({ index, message }));
+        callback({ index: installEvents.length, end: true });
+      }
+      return Promise.resolve(install);
+    }
     if (command === 'plugin:app|version') return Promise.resolve('0.7.0');
     if (command === 'open_project_link') return Promise.resolve({ ok: true });
     if (command === 'show_about') return Promise.resolve({ ok: true });
@@ -117,7 +133,7 @@ function runtime({
   };
   const context = { window, document, navigator: { language: locale, languages: [locale] }, Promise, console, setTimeout, clearTimeout };
   context.globalThis = context;
-  return { elements, calls, channels, window, context };
+  return { elements, calls, channels, updateChannels, window, context };
 }
 async function flush() { await Promise.resolve(); await new Promise((resolve) => setImmediate(resolve)); await Promise.resolve(); }
 
@@ -133,6 +149,7 @@ function boot(options) {
   vm.runInNewContext(read('renderer/tooltip-control.js'), r.context, { filename: 'tooltip-control.js' });
   vm.runInNewContext(read('renderer/path-display.js'), r.context, { filename: 'path-display.js' });
   vm.runInNewContext(read('renderer/operation-log.js'), r.context, { filename: 'operation-log.js' });
+  vm.runInNewContext(read('renderer/update-progress.js'), r.context, { filename: 'update-progress.js' });
   vm.runInNewContext(read('renderer/about-control.js'), r.context, { filename: 'about-control.js' });
   vm.runInNewContext(read('renderer/window-controls.js'), r.context, { filename: 'window-controls.js' });
   vm.runInNewContext(read('renderer/app.js'), r.context, { filename: 'app.js' });
@@ -199,8 +216,10 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(r.elements['#languageSelect'].children.length, 3);
   assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hans', 'zh-Hant', 'ja_JP']);
   assert.equal(r.elements['#languageSelect'].children[0].textContent, '简体中文');
-  assert.equal(r.elements['#statusLabel'].textContent, 'Activity');
-  assert.equal(activityTitle(r), 'Ready to apply');
+  assert.equal(r.elements['#statusLabel'].textContent, 'Task progress');
+  assert.equal(activityRows(r).length, 1);
+  assert.equal(activityRows(r)[0].dataset.variant, 'separator');
+  assert.equal(activityRows(r)[0].dataset.empty, 'true');
   assert.equal(r.elements['#currentLanguage'].textContent, '简体中文');
   assert.equal(r.elements['#installationBadge'].textContent, 'Translated');
   assert.equal(r.elements['#installationBadge'].dataset.state, 'translated');
@@ -267,24 +286,33 @@ test('About entry delegates to one native window command and keeps links fixed',
   );
 });
 
-test('Activity heading stays stable while each locale describes the actual ready state in its first row', async () => {
-  for (const [locale, heading, expected] of [
-    ['zh-CN', '操作记录', '可以应用语言包'],
-    ['zh-TW', '操作記錄', '可以套用語言包'],
-    ['ja-JP', '操作履歴', '言語パックを適用できます'],
+test('idle task viewport keeps only a localized screen-reader label and decorative separator', async () => {
+  for (const [locale, label] of [
+    ['zh-CN', '任务进度'],
+    ['zh-TW', '任務進度'],
+    ['ja-JP', 'タスクの進行状況'],
   ]) {
     const r = boot({ locale });
     await flush();
-    assert.equal(r.elements['#statusLabel'].textContent, heading, locale);
-    assert.equal(activityTitle(r), expected, locale);
+    assert.equal(r.elements['#statusLabel'].textContent, label, locale);
+    assert.equal(activityRows(r).length, 1, locale);
+    assert.equal(activityRows(r)[0].dataset.variant, 'separator', locale);
+    assert.equal(activityRows(r)[0].attributes.get('aria-hidden'), 'true', locale);
   }
 });
 
 test('Marker composition swaps Spinner for the event icon without appending a duplicate row', async () => {
   const r = boot();
   await flush();
+  const viewport = r.elements['#statusViewport'];
+  viewport.clientHeight = 1;
+  Object.defineProperty(viewport, 'scrollHeight', {
+    configurable: true,
+    get: () => activityRows(r).length,
+  });
   const log = r.window.createOperationLog({
     root: r.elements['#statusPanel'],
+    viewport,
     list: r.elements['#statusText'],
   });
   log.replace({ id: 'verifyInstallation', title: 'Checking', state: 'running' });
@@ -293,6 +321,9 @@ test('Marker composition swaps Spinner for the event icon without appending a du
   log.upsert({ id: 'verifyInstallation', title: 'Checked', state: 'completed', icon: 'inspect' });
   assert.equal(activityRows(r).length, 1);
   assert.equal(activityRows(r)[0].children[0].dataset.icon, 'inspect');
+  log.upsert({ id: 'ensureBaseline', title: 'Preparing recovery files', state: 'running' });
+  assert.equal(viewport.dataset.overflowing, 'true');
+  assert.equal(viewport.scrollTop, 2, 'new events must keep the bounded viewport at the latest row');
 });
 
 test('translated installation badge follows the selected UI locale', async () => {
@@ -389,7 +420,7 @@ test('installation location keeps the macOS bundle and reduces a long Windows ex
   assert.equal(mac.elements['#appPathLeaf'].textContent, '/Cavalry.app');
 });
 
-test('signed update result is announced, confirmed, and installed without renderer-controlled artifact data', async () => {
+test('checked update is announced, confirmed, and installed without renderer-controlled artifact data', async () => {
   const r = boot({
     update: {
       currentVersion: '0.7.0',
@@ -429,9 +460,63 @@ test('signed update result is announced, confirmed, and installed without render
   await flush();
   const installs = r.calls.filter(({ command }) => command === 'install_update');
   assert.equal(installs.length, 1);
-  assert.equal(installs[0].payload, undefined);
+  assert.deepEqual(JSON.parse(JSON.stringify(installs[0].payload)), { onEvent: true });
+  assert.equal(r.updateChannels.length, 1, 'update install must attach one ordered Tauri Channel');
+  assert.equal(activityTitle(r), 'Update to 0.7.1');
+  assert.match(activityText(r), /Update downloaded/);
+  assert.match(activityText(r), /Verifying and installing/);
   assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
   assert.match(activityText(r), /could not be installed/i);
+});
+
+test('successful updater events advance one task through download, install, and restart', async () => {
+  const r = boot({
+    update: {
+      currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null,
+      available: true, errorCode: null,
+    },
+    install: {
+      currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null,
+      available: true, errorCode: null,
+    },
+    installEvents: [
+      { phase: 'downloading', downloaded: 25, contentLength: 100 },
+      { phase: 'installing', downloaded: null, contentLength: null },
+      { phase: 'restarting', downloaded: null, contentLength: null },
+    ],
+  });
+  await flush();
+  dispatch(r.elements['#updateButton'], 'click');
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+
+  assert.equal(activityTitle(r), 'Update to 0.7.1');
+  assert.equal(activityRows(r).length, 4, 'one separator and three stable phase rows');
+  assert.equal(activityRows(r)[1].children[0].dataset.icon, 'archive');
+  assert.equal(activityRows(r)[2].children[0].dataset.icon, 'check');
+  assert.equal(activityRows(r)[3].children[0].dataset.icon, 'spinner');
+  assert.match(activityText(r), /Restarting the Switcher/);
+});
+
+test('updater refusal never fabricates a downloading phase before the backend emits one', async () => {
+  const r = boot({
+    update: {
+      currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null,
+      available: true, errorCode: null,
+    },
+    install: {
+      currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null,
+      available: true, errorCode: 'updateBusy',
+    },
+    installEvents: [],
+  });
+  await flush();
+  dispatch(r.elements['#updateButton'], 'click');
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+
+  assert.doesNotMatch(activityText(r), /Downloading version/);
+  assert.match(activityText(r), /Another operation is running/);
 });
 
 test('bootstrap keeps mutation controls disabled until status is ready', async () => {
@@ -502,7 +587,7 @@ test('single Restore maps to the platform transaction and remains visible when n
   });
   await flush();
   assert.equal(windows.elements['#restoreButton'].disabled, false);
-  assert.equal(windows.elements['#statusLabel'].textContent, 'Activity');
+  assert.equal(windows.elements['#statusLabel'].textContent, 'Task progress');
   assert.equal(activityTitle(windows), 'Restore Cavalry to finish cleanup');
   windows.elements['#restoreButton'].listeners.get('click')[0]();
   assert.equal(windows.elements['#modalTitle'].textContent, 'Restore Cavalry?');
@@ -532,11 +617,12 @@ test('clean official macOS install with needsExtract allows Apply to establish i
   r.elements['#applyButton'].listeners.get('click')[0]();
   assert.equal(r.elements['#modalTitle'].textContent, 'Install language pack?');
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
-  assert.equal(r.elements['#statusLabel'].textContent, 'Activity');
-  assert.equal(activityTitle(r), 'Checking the Cavalry installation');
+  assert.equal(r.elements['#statusLabel'].textContent, 'Task progress');
+  assert.equal(activityTitle(r), 'Apply 简体中文');
+  assert.equal(activityTitle(r, 1), 'Checking the Cavalry installation');
   await flush();
   assert.deepEqual(activityRows(r).map((row) => row.children[0].dataset.icon), [
-    'inspect', 'archive', 'translate', 'restart',
+    '', 'inspect', 'archive', 'translate', 'restart',
   ]);
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },

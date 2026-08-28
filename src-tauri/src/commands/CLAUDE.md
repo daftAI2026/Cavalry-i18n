@@ -12,7 +12,7 @@ snapshot_tests.rs: snapshot.rs 的隔离测试合同；覆盖 state durability�
 status.rs: 安装发现、只读状态投影、显式 control-state recovery 与权限动作判定；display version 与 immutable revision/provenance 分离，macOS official 模式必须同时证明严格 bundle identity、clean runtime 与 vendor signature；每次 status 都从安装现实重算 Windows `reconciliationRequired` 供 renderer 显示 warning，但不锁定普通 apply 或 English apply。
 tests.rs: commands 基础契约 owner tests；覆盖 DTO、锁、marker、snapshot、四阶段真实 apply/clean-English no-op 边界、稳定 manifest、RAII 未完成阶段收口与 Tauri Channel rejection 隔离，并挂载运行时领域子模块。
 tests/runtime.rs: 打包资源、语言 apply 与 macOS/Windows restart 边界回归；Windows 断言 QPA ACTIVE 且子进程环境只含诊断 marker，复用父级 fixture，不在磁盘写魔法 ACTIVE sentinel。
-update.rs: Switcher 自更新领域边界；通过官方 updater plugin 检查更新，把签名已验证的 `Update` 仅保存在 Rust State，renderer 只取得脱敏 camelCase DTO；检查/安装使用独立单飞状态避免竞态，网络检查不占用 Cavalry bundle 锁，安装命令拒绝外部 URL/签名/版本输入并与语言写入共用全局 operation lock。
+update.rs: Switcher 自更新领域边界；通过官方 updater plugin 检查版本并把待验证的 `Update` 仅保存在 Rust State，renderer 只取得脱敏 camelCase DTO；安装命令拒绝外部 URL/签名/版本输入，与语言写入共用全局 operation lock，并以 camelCase Channel 只发送 downloading、verifying/installing、restarting 三个真实边界，其中下载结束回调先于签名验证，故绝不虚构独立 verified 事件，Channel 失效也不改变更新事务。
 
 法则: facade 只保留稳定命令与兼容 seam；领域逻辑按状态、快照、写入、平台运行时单向下沉。
 

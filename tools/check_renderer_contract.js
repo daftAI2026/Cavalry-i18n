@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token 表、稳定文案脚本、Select/Tooltip/Path/About/Windows caption 状态机、Activity 第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Item/Select/Tooltip/Button Group/Activity Log、中部省略路径、MarkerIcon/Spinner/shimmer 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 updater/Channel bridge、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动与旧 Recovery/Refresh 操作残留。
+ * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token 表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group/任务事件视窗、中部省略路径、separator/MarkerIcon/Spinner/shimmer/scroll-fade 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -57,7 +57,7 @@ const REQUIRED_IDS = [
   'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText',
   'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton',
   'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton',
-  'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
+  'permissionButton', 'statusLabel', 'statusViewport', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
   'modalSecondaryButton', 'statusText',
 ];
 
@@ -74,6 +74,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const styles = read('renderer/styles.css');
   const operationStyles = read('renderer/operation-log.css');
   const operationLog = read('renderer/operation-log.js');
+  const updateProgress = read('renderer/update-progress.js');
   const tooltipControl = read('renderer/tooltip-control.js');
   const thirdPartyNotices = read('renderer/THIRD_PARTY_NOTICES.md');
   const aboutStyles = read('renderer/about.css');
@@ -88,6 +89,13 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   );
   const htmlWithoutSvgNamespace = html.replace(/\s+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '');
   const implementationCss = `${styles}\n${operationStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
+  const operationWithoutRuntimeState = operationStyles.replace(
+    /--operation-(?:scroll-fade-(?:top|bottom)|shimmer-(?:base|highlight))\s*:[^;]+;/g,
+    ''
+  );
+  const tunableImplementationCss = implementationCss
+    .replace(/@property\s+--operation-scroll-fade-(?:top|bottom)\s*\{[\s\S]*?\}/g, '')
+    .replace(/@keyframes\s+operation-scroll-fade-[^{]+\{[\s\S]*?\n\}/g, '');
   assert.doesNotMatch(htmlWithoutSvgNamespace, /https?:\/\//, 'renderer HTML must not load remote resources');
   assert.doesNotMatch(tokens, /@import|url\(["']?https?:/i, 'tokens must not load remote resources');
   assert.doesNotMatch(styles, /@import|url\([\"']?https?:/i, 'styles must not load remote resources');
@@ -103,7 +111,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   );
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
     'renderer scripts must load bridge, stable text, component state machines, then app'
   );
   assert.match(uiText, /const UI_TEXT = \{/);
@@ -112,10 +120,10 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(tokens, /--font-sans:\s*-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif/);
   assert.match(tokens, /--font-mono:\s*ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace/);
   assert.doesNotMatch(styles, /--[a-z0-9-]+\s*:/i, 'shared implementation must consume tokens instead of defining private constants');
-  assert.doesNotMatch(operationStyles, /--[a-z0-9-]+\s*:/i, 'operation implementation must consume tokens instead of defining private constants');
+  assert.doesNotMatch(operationWithoutRuntimeState, /--[a-z0-9-]+\s*:/i, 'operation implementation may own runtime CSS state, but no private design constants');
   assert.doesNotMatch(aboutStyles, /--[a-z0-9-]+\s*:/i, 'about implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
-  assert.doesNotMatch(implementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
+  assert.doesNotMatch(tunableImplementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
   const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
   const tokenReferences = `${tokens}\n${styles}\n${operationStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}`;
   assert.deepEqual(
@@ -127,6 +135,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   );
   assert.equal(fs.existsSync(path.join(repoRoot, 'renderer/assets')), false, 'unused bundled font assets must stay removed');
   assert.ok(app.split(/\r?\n/).length <= 800, 'renderer/app.js must stay within the 800-line contract');
+  assert.ok(updateProgress.split(/\r?\n/).length <= 800, 'renderer/update-progress.js must stay within the 800-line contract');
   assert.ok(tooltipControl.split(/\r?\n/).length <= 800, 'renderer/tooltip-control.js must stay within the 800-line contract');
   assert.match(cssRule(styles, 'html,\nbody'), /overflow:\s*hidden;/, 'the window must not scroll as a whole');
   assert.match(cssRule(styles, '.content'), /overflow:\s*hidden;/, 'the main content must not scroll');
@@ -134,7 +143,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(selectListRule, /max-height:\s*var\(--select-popup-max-height\);/);
   assert.match(selectListRule, /overflow-y:\s*auto;/, 'the Select list must own its bounded scroll');
   assert.doesNotMatch(selectListRule, /overflow:\s*hidden;/, 'Select list scrolling must not be clipped');
-  assert.match(cssRule(operationStyles, '.status-text'), /overflow-y:\s*auto;/, 'the Activity viewport must own its bounded scroll');
+  assert.match(cssRule(operationStyles, '.status-viewport'), /overflow-y:\s*auto;/, 'the task event viewport must own its bounded scroll');
 });
 
 test('update control preserves the supplied small icon and accessible tooltip contract', () => {
@@ -146,6 +155,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   const aboutStyles = read('renderer/about.css');
   const windowControlStyles = read('renderer/window-controls.css');
   const app = read('renderer/app.js');
+  const updateProgress = read('renderer/update-progress.js');
   const bridge = read('renderer/tauri-bridge.js');
   const selectControl = read('renderer/select-control.js');
   const tooltipControl = read('renderer/tooltip-control.js');
@@ -211,7 +221,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[\s\S]*?id="restoreButton"/);
   assert.match(html, /<dialog id="modalBackdrop"[^>]*role="alertdialog"[^>]*aria-modal="true"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*aria-labelledby="statusLabel"/);
-  assert.match(html, /<h2 id="statusLabel"[^>]*>Activity<\/h2>\s*<ol id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?<button id="permissionButton"/, 'Activity heading, live log, and optional recovery action must remain in source order');
+  assert.match(html, /<h2 id="statusLabel" class="sr-only">Operation progress<\/h2>\s*<div id="statusViewport" class="status-viewport">\s*<ol id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?<button id="permissionButton"/, 'screen-reader task label, bounded live log, and optional recovery action must remain in source order');
   assert.match(tokens, /--control-height:\s*36px/);
   assert.match(tokens, /--space-5:\s*20px/);
   assert.match(tokens, /--padding-window:\s*var\(--space-5\)/);
@@ -304,20 +314,22 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--section-heading-control-gap:\s*var\(--space-2\)/);
   assert.match(styles, /\.language-control-row\s*\{[\s\S]*?gap:\s*var\(--gap-flow\)/);
   assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?min-height:\s*0;[\s\S]*?margin-top:\s*var\(--gap-flow\)/);
-  assert.match(operationStyles, /\.status-label\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?font-weight:\s*var\(--weight-medium\)/);
+  assert.doesNotMatch(operationStyles, /\.status-label\s*\{/, 'the generic task heading must not be visible');
   assert.match(operationStyles, /\.operation-event-title\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?line-height:\s*var\(--line-height-compact\)/);
   assert.doesNotMatch(tokens, /--alert-(?:height|icon|padding|column|copy)/);
   assert.match(tokens, /--operation-marker-size:\s*var\(--space-4\)/);
-  assert.match(tokens, /--operation-panel-padding:\s*var\(--space-2\)/);
   assert.match(tokens, /--operation-marker-gap:\s*var\(--space-2\)/);
   assert.match(tokens, /--operation-scrollbar-size:\s*10px/);
   assert.match(tokens, /--operation-marker-description-offset:\s*2px/);
+  assert.match(tokens, /--operation-scroll-fade-size:\s*min\(12%, calc\(var\(--space-1\) \* 10\)\)/);
+  assert.match(tokens, /--operation-scroll-fade-reveal:\s*calc\(var\(--space-6\) \* 4\)/);
+  assert.match(tokens, /--operation-shimmer-angle:\s*20deg/);
+  assert.match(tokens, /--operation-shimmer-spread:\s*calc\(3ch \+ var\(--space-1\) \* 10\)/);
   assert.doesNotMatch(styles, /\.separator\s*\{/);
   assert.doesNotMatch(html, /class="separator"/, 'business sections must use spacing rather than decorative dividers');
   assert.doesNotMatch(styles, /text-box-trim/, 'cross-platform layout must not depend on experimental glyph-box trimming');
   assert.doesNotMatch(styles, /\.installation-heading\s*\{[^}]*min-height:/, 'installation typography must size its parent without a duplicate height constraint');
   assert.match(styles, /\.installation-name\s*\{[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
-  assert.match(operationStyles, /\.status-label\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?font-weight:\s*var\(--weight-medium\)[\s\S]*?line-height:\s*var\(--line-height-compact\)/);
   assert.match(styles, /\.skip-link,\s*\.tooltip,\s*\.app-path\s*\{[\s\S]*?font-size:\s*var\(--type-metadata\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-metadata\)[\s\S]*?font-synthesis:\s*none/);
   assert.match(styles, /\.badge\s*\{[\s\S]*?font-size:\s*var\(--type-label\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-label\)/);
   assert.match(styles, /\.app-path\s*\{[\s\S]*?margin:\s*var\(--gap-meta-stack\)\s+0\s+0/);
@@ -327,8 +339,13 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--badge-language-text:\s*#7820bc/);
   assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-language-border\)[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
   assert.match(styles, /\.installation-item\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
-  assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0,\s*1fr\) auto;[\s\S]*?padding:\s*var\(--operation-panel-padding\)/);
-  assert.match(operationStyles, /\.status-text\s*\{[\s\S]*?display:\s*flex;[\s\S]*?overflow-y:\s*auto/);
+  assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0,\s*1fr\) auto;/);
+  assert.match(operationStyles, /\.status-viewport\s*\{[\s\S]*?overflow-y:\s*auto/);
+  assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\][\s\S]*?mask-image:\s*linear-gradient/);
+  assert.match(operationStyles, /animation-timeline:\s*scroll\(self y\), scroll\(self y\)/);
+  assert.match(operationStyles, /\.status-text\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-direction:\s*column/);
+  assert.match(operationStyles, /\.operation-event:first-child\s*\{[\s\S]*?margin-top:\s*auto/);
+  assert.match(operationStyles, /\.operation-event\[data-variant="separator"\][\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
   assert.match(operationStyles, /\.operation-event\s*\{[\s\S]*?display:\s*flex;[\s\S]*?gap:\s*var\(--operation-marker-gap\)/);
   assert.match(operationStyles, /\.operation-event-marker\s*\{[\s\S]*?width:\s*var\(--operation-marker-size\);[\s\S]*?height:\s*var\(--operation-marker-size\)/);
   assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-marker\[data-icon="spinner"\] svg\s*\{[\s\S]*?animation:\s*operation-spin/);
@@ -364,7 +381,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.select-root\s*\{[\s\S]*?grid-column:\s*1\s*\/\s*-1/);
   assert.match(cssRule(styles, '.content'), /overflow:\s*hidden/);
   assert.match(cssRule(styles, '.select-list'), /overflow-y:\s*auto/);
-  assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\) auto/);
+  assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\) auto/);
   assert.match(app, /document\.body\.dataset\.platform = state\.platform/);
   assert.match(app, /window\.createTooltipControl/);
   assert.doesNotMatch(app, /updateControl\.addEventListener\('(?:mouseenter|focusin)'/);
@@ -393,7 +410,9 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   );
   assert.match(app, /restoreButton\.addEventListener\('click', requestRestore\)/);
   assert.doesNotMatch(app, /maintenanceHeading|extractButton|restoreEnglishButton|refreshEnglish/);
-  assert.match(app, /statusLabel\.textContent = t\('activityTitle'\)/);
+  assert.match(app, /statusLabel\.textContent = t\('taskProgressLabel'\)/);
+  assert.match(app, /operationLog\.start\(\{[\s\S]*?restoreTaskTitle[\s\S]*?applyTaskTitle/);
+  assert.match(app, /operationLog\.idle\(\)/);
   assert.match(app, /operationLog\.replace\(\{/);
   assert.match(app, /operationLog\.upsert\(operationPhaseCopy\(event, context\)\)/);
   assert.match(app, /installationBadge\.dataset\.state = installationBadgeState\(visualState\)/);
@@ -457,7 +476,10 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'translatedBadge',
     'modifiedBadge',
     'statusLabel',
-    'activityTitle',
+    'taskProgressLabel',
+    'applyTaskTitle',
+    'restoreTaskTitle',
+    'updateTaskTitle',
     'minimizeWindow',
     'maximizeWindow',
     'restoreWindow',
@@ -506,7 +528,12 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'updateConfirmBody',
     'updateMacAdhocNote',
     'installUpdate',
-    'installingUpdate',
+    'updateDownloadRunningTitle',
+    'updateDownloadProgress',
+    'updateDownloadCompletedTitle',
+    'updateInstallRunningTitle',
+    'updateInstallCompletedTitle',
+    'updateRestartRunningTitle',
     'updaterNotConfigured',
     'updaterUnsupportedPlatform',
     'updateCheckFailed',
@@ -586,9 +613,10 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.doesNotMatch(styles, /reconcile-button/);
 });
 
-test('update icon stays hidden until preview or a signed updater result and renderer has no network client', () => {
+test('update icon stays hidden until preview or an updater check result and renderer has no network client', () => {
   const html = read('renderer/index.html');
   const app = read('renderer/app.js');
+  const updateProgress = read('renderer/update-progress.js');
   const bridge = read('renderer/tauri-bridge.js');
   const uiText = read('renderer/ui-text.js');
   assert.match(html, /id="updateControl"[^>]*hidden/);
@@ -601,10 +629,16 @@ test('update icon stays hidden until preview or a signed updater result and rend
   assert.doesNotMatch(app, /alertPreview|previewLocale|showLongestAlertPreview/);
   assert.match(app, /if \(updatePreviewEnabled \|\| typeof api\.checkUpdate !== 'function'\) return/);
   assert.match(app, /const result = await api\.checkUpdate\(\)/);
-  assert.match(app, /const result = await api\.installUpdate\(\)/);
+  assert.match(app, /const result = await api\.installUpdate\(\(event\) => updateProgress\.project\(event, update\)\)/);
+  assert.match(updateProgress, /function createUpdateProgress/);
+  assert.match(updateProgress, /phase === 'downloading'/);
+  assert.match(updateProgress, /phase === 'installing'/);
+  assert.match(updateProgress, /phase === 'restarting'/);
   assert.match(bridge, /invoke\('check_update'\)/);
-  assert.match(bridge, /invoke\('install_update'\)/);
+  assert.match(bridge, /invoke\('install_update', \{ onEvent: channel \}\)/);
   assert.match(bridge, /UPDATE_ERROR_CODE_MANIFEST/);
+  assert.match(bridge, /UPDATE_PHASE_MANIFEST/);
+  assert.match(bridge, /normalizeUpdateEvent/);
   assert.match(bridge, /class OrderedChannel/);
   assert.match(bridge, /transformCallback/);
   assert.match(bridge, /OPERATION_PHASE_MANIFEST/);

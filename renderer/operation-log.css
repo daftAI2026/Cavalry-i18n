@@ -1,52 +1,101 @@
 /**
- * [INPUT]: 依赖 tokens.css 的 Activity/排印/状态/滚动角色，依赖 operation-log.js 生成的稳定 Marker/Item DOM 状态
- * [OUTPUT]: 对外提供固定轨道内的 Activity Log 视觉实现；按 shadcn Base Nova 的 Marker、MarkerIcon、MarkerContent、ScrollArea 与 Spinner 组合复刻 16px 图标槽、8px 间距、运行态 Spinner/文字 shimmer 和 10px 自滚动轨，保留项目自身语义色与无障碍减弱动效
- * [POS]: renderer 的无依赖操作记录组件样式；从共享 styles.css 拆出以守住单文件职责和 800 行上限，不拥有窗口布局、业务状态或 AlertDialog
+ * [INPUT]: 依赖 tokens.css 的任务事件/排印/状态/滚动角色，依赖 operation-log.js 生成的 separator、MarkerIcon、MarkerContent 与有界视窗状态
+ * [OUTPUT]: 对外提供无泛化标题的任务事件视窗；复刻 shadcn Base Marker separator、Spinner、shimmer 与 scroll-fade，短记录贴底，溢出记录向上推进并保留 10px 内部滚动轨
+ * [POS]: renderer 的无依赖任务事件视觉层；从共享 styles.css 拆出以守住单文件职责，不拥有业务阶段、AlertDialog 或窗口外层滚动
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+@property --operation-scroll-fade-top {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
+@property --operation-scroll-fade-bottom {
+  syntax: "<length-percentage>";
+  inherits: false;
+  initial-value: 0px;
+}
+
 .status-panel {
   width: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr) auto;
   gap: var(--operation-group-gap);
   margin-top: var(--gap-flow);
-  padding: var(--operation-panel-padding);
-  border: var(--stroke-hairline) solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--surface-raised);
 }
 
-.status-label {
+.status-viewport {
   min-width: 0;
-  margin: 0;
-  font-size: var(--type-compact);
-  font-weight: var(--weight-medium);
-  line-height: var(--line-height-compact);
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: var(--operation-scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+}
+
+.status-viewport[data-overflowing="true"] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    var(--mask-opaque) var(--operation-scroll-fade-top),
+    var(--mask-opaque) calc(100% - var(--operation-scroll-fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    var(--mask-opaque) var(--operation-scroll-fade-top),
+    var(--mask-opaque) calc(100% - var(--operation-scroll-fade-bottom)),
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+@supports (animation-timeline: scroll()) {
+  .status-viewport[data-overflowing="true"] {
+    animation:
+      operation-scroll-fade-reveal-top var(--duration-scroll-linked) ease-in-out,
+      operation-scroll-fade-reveal-bottom var(--duration-scroll-linked) ease-in-out;
+    animation-timeline: scroll(self y), scroll(self y);
+    animation-range:
+      0 var(--operation-scroll-fade-reveal),
+      calc(100% - var(--operation-scroll-fade-reveal)) 100%;
+    animation-fill-mode: both;
+  }
+}
+
+@supports not (animation-timeline: scroll()) {
+  .status-viewport[data-overflowing="true"] {
+    --operation-scroll-fade-top: var(--operation-scroll-fade-size);
+    --operation-scroll-fade-bottom: var(--operation-scroll-fade-size);
+  }
+}
+
+.status-viewport::-webkit-scrollbar {
+  width: var(--operation-scrollbar-size);
+}
+
+.status-viewport::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--operation-scrollbar-thumb);
 }
 
 .status-text {
   min-width: 0;
-  min-height: 0;
+  min-height: 100%;
   margin: 0;
   padding: 0;
   display: flex;
   flex-direction: column;
   gap: var(--operation-group-gap);
-  overflow-x: hidden;
-  overflow-y: auto;
   list-style: none;
-  scrollbar-color: var(--operation-scrollbar-thumb) transparent;
-  scrollbar-width: thin;
 }
 
-.status-text::-webkit-scrollbar {
-  width: var(--operation-scrollbar-size);
-}
-
-.status-text::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-pill);
-  background: var(--operation-scrollbar-thumb);
+/* 首项只在内容不足时吸收顶部余量；溢出时保持正常流，避免 flex-end 吞掉旧事件。 */
+.operation-event:first-child {
+  margin-top: auto;
 }
 
 .operation-event {
@@ -56,6 +105,46 @@
   align-items: flex-start;
   gap: var(--operation-marker-gap);
   color: var(--text-secondary);
+}
+
+.operation-event[data-variant="separator"] {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--operation-marker-gap);
+  color: var(--text-secondary);
+}
+
+.operation-event[data-variant="separator"]::before,
+.operation-event[data-variant="separator"]::after {
+  height: var(--stroke-hairline);
+  background: var(--border);
+  content: "";
+}
+
+.operation-event[data-variant="separator"][data-empty="true"] {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.operation-event[data-variant="separator"][data-empty="true"]::after {
+  display: none;
+}
+
+.operation-event[data-variant="separator"] .operation-event-marker,
+.operation-event[data-variant="separator"][data-empty="true"] .operation-event-copy {
+  display: none;
+}
+
+.operation-event[data-variant="separator"] .operation-event-copy {
+  flex: 0 0 auto;
+}
+
+.operation-event[data-variant="separator"] .operation-event-title {
+  color: var(--text-secondary);
+  font-size: var(--type-metadata);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-metadata);
+  white-space: nowrap;
 }
 
 .operation-event-marker {
@@ -120,18 +209,29 @@
 }
 
 .operation-event[data-state="running"] .operation-event-title {
-  background-image: linear-gradient(
-    var(--operation-shimmer-angle),
-    var(--text-secondary),
-    var(--text),
-    var(--text-secondary)
+  --operation-shimmer-base: currentColor;
+  --operation-shimmer-highlight: color-mix(
+    in oklch,
+    currentColor var(--operation-shimmer-highlight-opacity),
+    transparent
   );
-  background-position: var(--operation-shimmer-size) 0;
-  background-size: var(--operation-shimmer-size) 100%;
+  background-image: linear-gradient(
+    calc(var(--operation-shimmer-axis) + var(--operation-shimmer-angle)),
+    var(--operation-shimmer-base) calc(50% - var(--operation-shimmer-spread)),
+    color-mix(in oklch, var(--operation-shimmer-highlight), var(--operation-shimmer-base) 50%)
+      calc(50% - var(--operation-shimmer-spread) * 0.5),
+    var(--operation-shimmer-highlight) 50%,
+    color-mix(in oklch, var(--operation-shimmer-highlight), var(--operation-shimmer-base) 50%)
+      calc(50% + var(--operation-shimmer-spread) * 0.5),
+    var(--operation-shimmer-base) calc(50% + var(--operation-shimmer-spread))
+  );
+  background-repeat: no-repeat;
+  background-position: 100% 0;
+  background-size: calc(200% + var(--operation-shimmer-spread) * 2) 100%;
   background-clip: text;
-  color: transparent;
   animation: operation-shimmer var(--duration-shimmer) linear infinite;
   -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .operation-event-description {
@@ -150,7 +250,17 @@
 }
 
 @keyframes operation-shimmer {
-  to { background-position: calc(-1 * var(--operation-shimmer-size)) 0; }
+  to { background-position: 0 0; }
+}
+
+@keyframes operation-scroll-fade-reveal-top {
+  from { --operation-scroll-fade-top: 0px; }
+  to { --operation-scroll-fade-top: var(--operation-scroll-fade-size); }
+}
+
+@keyframes operation-scroll-fade-reveal-bottom {
+  from { --operation-scroll-fade-bottom: var(--operation-scroll-fade-size); }
+  to { --operation-scroll-fade-bottom: 0px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -162,5 +272,6 @@
   .operation-event[data-state="running"] .operation-event-title {
     background: none;
     color: var(--text);
+    -webkit-text-fill-color: currentColor;
   }
 }

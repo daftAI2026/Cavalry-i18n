@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 window.cavalryI18n 的 Promise/有序阶段事件 API、window.createOperationLog/window.createSelectControl/window.createTooltipControl/window.createPathDisplay/window.createAboutControl/window.createWindowControls 的独立状态机、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/单任务流/持久 Activity Log、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、平台统一 Restore、AlertDialog 确认、About、更新 tooltip/无障碍通知与签名冷更新交互；首次 Apply 由后端在写事务前自动建立恢复基线，loopback 开发预览只点亮更新入口且不访问网络。
- * [POS]: renderer 的唯一业务交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实 verify/baseline/apply/restart 阶段与稳定 errorCode/warningCodes 映射为本地化 Activity 行，非阻断结果不冒充 Alert，只有必须立即选择的确认与权限动作进入 AlertDialog；About 由独立 native window owner 管理。
+ * [INPUT]: 依赖 window.cavalryI18n 的 Promise/有序阶段事件 API、window.createOperationLog/window.createUpdateProgress/window.createSelectControl/window.createTooltipControl/window.createPathDisplay/window.createAboutControl/window.createWindowControls 的独立状态机与语义投影、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/单任务流/有界任务事件视窗、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、平台统一 Restore、AlertDialog 确认、About、更新 tooltip/无障碍通知与签名冷更新交互；首次 Apply 由后端在写事务前自动建立恢复基线，loopback 开发预览只点亮更新入口且不访问网络。
+ * [POS]: renderer 的唯一业务交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实后端事件压缩为面向用户的任务阶段，不暴露内部函数名、不虚构结果；持久阻塞留在事件视窗，只有必须立即选择的确认与权限动作进入 AlertDialog，About 由独立 native window owner 管理。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -34,6 +34,7 @@ const permissionButton = document.querySelector('#permissionButton');
 const statusLabel = document.querySelector('#statusLabel');
 const statusText = document.querySelector('#statusText');
 const statusPanel = document.querySelector('#statusPanel');
+const statusViewport = document.querySelector('#statusViewport');
 const modalBackdrop = document.querySelector('#modalBackdrop');
 const modalTitle = document.querySelector('#modalTitle');
 const modalBody = document.querySelector('#modalBody');
@@ -48,7 +49,12 @@ const languageSelectControl = window.createSelectControl({
   popup: languageSelectPopup,
   list: languageSelectList,
 });
-const operationLog = window.createOperationLog({ root: statusPanel, list: statusText });
+const operationLog = window.createOperationLog({
+  root: statusPanel,
+  viewport: statusViewport,
+  list: statusText,
+});
+const updateProgress = window.createUpdateProgress({ log: operationLog, text: t });
 const pathDisplay = window.createPathDisplay({ root: appPathText, prefix: appPathPrefix, leaf: appPathLeaf });
 const updateTooltipControl = window.createTooltipControl({
   root: updateControl,
@@ -325,7 +331,7 @@ function localizeShell() {
   restoreButton.textContent = t('restore');
   restoreButton.setAttribute('aria-label', t('restore'));
   permissionButton.textContent = t('openPrivacySecurity');
-  statusLabel.textContent = t('activityTitle');
+  statusLabel.textContent = t('taskProgressLabel');
   aboutControl.localize();
   windowControls.localize();
   setPermissionWait(false);
@@ -376,6 +382,17 @@ function updateConfirmationBody(update) {
   return parts.join('\n\n');
 }
 
+function showUpdateFailure(errorCode = 'updateInstallFailed') {
+  operationLog.finishRunning('error');
+  upsertStatus(
+    updateErrorKey(errorCode, 'updateInstallFailed'),
+    'error',
+    {},
+    null,
+    'updateFailure'
+  );
+}
+
 function showUpdateConfirmation() {
   updateTooltipControl.close();
   if (updatePreviewEnabled) {
@@ -391,9 +408,7 @@ function showUpdateConfirmation() {
     secondary: t('cancel'),
     onPrimary: () => {
       closeModal();
-      void installCheckedUpdate(update).catch(() => {
-        setStatus('updateInstallFailed', 'error');
-      });
+      void installCheckedUpdate(update);
     },
     onSecondary: closeModal,
   });
@@ -421,16 +436,18 @@ async function checkForUpdates() {
 
 async function installCheckedUpdate(update) {
   setBusy(true);
-  setStatus('installingUpdate', 'neutral', { version: update.version });
+  updateProgress.start(update);
   try {
-    const result = await api.installUpdate();
+    const result = await api.installUpdate((event) => updateProgress.project(event, update));
     if (result.errorCode) {
-      setStatus(updateErrorKey(result.errorCode, 'updateInstallFailed'), 'error');
+      showUpdateFailure(result.errorCode);
       if (result.errorCode === 'updateNotChecked') {
         state.updateInfo = null;
         updateControl.hidden = true;
       }
     }
+  } catch (_) {
+    showUpdateFailure();
   } finally {
     setBusy(false);
   }
@@ -620,7 +637,7 @@ async function bootstrap({ renderActivity = true } = {}) {
   }
 
   if (state.appManagementGranted === true) {
-    presentStatus('readyToApply', 'success');
+    if (renderActivity) operationLog.idle();
     return;
   }
 
@@ -701,7 +718,9 @@ async function runApply(nextLanguage) {
   const language = languageLabel(nextLanguage);
   const restoring = isRestoreAction(nextLanguage);
   const operationContext = { language, restoring };
-  operationLog.clear();
+  operationLog.start({
+    title: t(restoring ? 'restoreTaskTitle' : 'applyTaskTitle', { language }),
+  });
   updateOperationPhase({ phase: 'verifyInstallation', state: 'running' }, operationContext);
 
   try {
@@ -773,12 +792,8 @@ modalSecondaryButton.addEventListener('click', () =>
   void Promise.resolve(modalSecondaryAction && modalSecondaryAction()).catch(recoverOperationFailure)
 );
 modalBackdrop.addEventListener('close', finalizeModalClose);
-modalBackdrop.addEventListener('cancel', (event) => {
-  event.preventDefault();
-});
+modalBackdrop.addEventListener('cancel', (event) => event.preventDefault());
 
 bootstrap()
   .then(() => checkForUpdates())
-  .catch(() => {
-    setStatus('bootstrapFailed', 'error', { detail: t('operationFailed') });
-  });
+  .catch(() => setStatus('bootstrapFailed', 'error', { detail: t('operationFailed') }));

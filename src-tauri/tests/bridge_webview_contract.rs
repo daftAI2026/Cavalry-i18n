@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::bridge 的实际 Rust include、src/lib.rs Builder 装配与 renderer/index.html 外部脚本顺序
- * [OUTPUT]: 执行 Builder 实际消费的 initialization script，并守住 Rust pre-page-load 注册顺序、冻结 API、camelCase payload、有序 verify/baseline/apply/restart Channel、Windows residue 检测与 warningCodes
+ * [OUTPUT]: 执行 Builder 实际消费的 initialization script，并守住 Rust pre-page-load 注册顺序、冻结 API、camelCase payload、Apply 四阶段与 Updater 三阶段有序 Channel、Windows residue 检测、warningCodes 及 renderer 组件加载顺序
  * [POS]: src-tauri/tests 的 bridge host-seam 守门；不虚称启动平台 WebView 或验证 packaged CSP，后者属于显式 Tauri UI 外部门
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -62,6 +62,20 @@ const context = {
             warningCodes: ['temporaryCleanupPending'],
           });
         }
+        if (command === 'install_update') {
+          const callback = callbacks.get(payload.onEvent.id);
+          callback({ index: 1, message: { phase: 'installing', downloaded: 9, contentLength: -1 } });
+          callback({ index: 0, message: { phase: 'downloading', downloaded: 4096, contentLength: 16384 } });
+          callback({ index: 2, message: { phase: 'restarting', path: '/private/tmp/update' } });
+          callback({ index: 3, end: true });
+          return Promise.resolve({
+            currentVersion: '0.7.0',
+            version: '0.7.1',
+            available: true,
+            errorCode: null,
+            signature: 'must-not-cross',
+          });
+        }
         return Promise.resolve({ ok: true });
       },
     },
@@ -105,10 +119,22 @@ vm.runInNewContext(process.env.CAVALRY_BRIDGE_INITIALIZATION_SCRIPT, context, {
     command: 'apply_language',
     payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans', onEvent: '__CHANNEL__:1' },
   });
+  const updateEvents = [];
+  const update = await api.installUpdate((event) => updateEvents.push(event));
+  assert.deepEqual(JSON.parse(JSON.stringify(updateEvents)), [
+    { phase: 'downloading', downloaded: 4096, contentLength: 16384 },
+    { phase: 'installing', downloaded: 9, contentLength: null },
+    { phase: 'restarting', downloaded: null, contentLength: null },
+  ]);
+  assert.equal(Object.hasOwn(update, 'signature'), false);
+  assert.deepEqual(JSON.parse(JSON.stringify(calls[2])), {
+    command: 'install_update',
+    payload: { onEvent: '__CHANNEL__:2' },
+  });
   assert.equal(Object.hasOwn(api, 'showAbout'), true);
   const about = await api.showAbout();
   assert.equal(about.ok, true);
-  assert.deepEqual(calls[2], { command: 'show_about', payload: undefined });
+  assert.deepEqual(calls[3], { command: 'show_about', payload: undefined });
   assert.equal(Object.hasOwn(api, 'reconcileEnglish'), false);
 })().catch((error) => {
   console.error(error && error.stack ? error.stack : error);
@@ -160,13 +186,17 @@ fn builder_and_html_keep_the_actual_initialization_order() {
     let operation_script = html
         .find("<script src=\"./operation-log.js\"></script>")
         .expect("HTML must load operation-log.js");
+    let update_progress_script = html
+        .find("<script src=\"./update-progress.js\"></script>")
+        .expect("HTML must load update-progress.js");
     let app_script = html
         .find("<script src=\"./app.js\"></script>")
         .expect("HTML must load app.js");
     assert!(
         fallback_bridge < text_script
             && text_script < operation_script
-            && operation_script < app_script,
-        "HTML bridge, ui-text, and operation-log scripts must precede app.js"
+            && operation_script < update_progress_script
+            && update_progress_script < app_script,
+        "HTML bridge, ui-text, operation-log, and update-progress scripts must precede app.js"
     );
 }

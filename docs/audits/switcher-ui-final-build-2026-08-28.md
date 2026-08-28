@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer 生产源码、Tauri 平台窗口配置、AppKit 实机 AX/像素轮廓、Windows DWM/Tauri 官方窗口合同与本轮 UI 裁决
-[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、单一 Apply/Restore 任务流、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
+[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、单一 Apply/Restore 任务流、底部跟随的任务事件视窗、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
 [POS]: docs/audits 的 UI 事实基线；约束实现与评审，但不替代 LOCAL_BUILD_SOP、packaged gate 或 Windows 实机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -9,14 +9,14 @@
 
 状态: Active — 当前候选的 400×480 几何已有 macOS native dev 证据；当前 package/manual smoke 与 Windows 真机验收仍待完成
 适用版本: Cavalry Language Switcher `0.7.0` 候选
-视觉真相源: `renderer/index.html`、`renderer/tokens.css`、`renderer/styles.css`、`renderer/operation-log.css`、`renderer/operation-log.js`、`renderer/select-control.js`、`renderer/about.css`、`renderer/about-control.js`、`renderer/about.html`、`renderer/about-window.js`
+视觉真相源: `renderer/index.html`、`renderer/tokens.css`、`renderer/styles.css`、`renderer/operation-log.css`、`renderer/operation-log.js`、`renderer/update-progress.js`、`renderer/select-control.js`、`renderer/about.css`、`renderer/about-control.js`、`renderer/about.html`、`renderer/about-window.js`
 窗口真相源: `src-tauri/tauri.conf.json`、`src-tauri/src/lib.rs`、平台覆盖配置
 最新现场证据: 正确 Tauri 配置重新编译并拉起的 native dev 为 AX/CGWindow 外框 `400×481`（逻辑配置 `400×480`，AppKit 允许 `1px` 报告差异）；`/tmp/cavalry-titlebar-visual-gap.png` 显示 16px 交通灯、20px 更新图形/24px 点击圆、20px 内容外边距与 `170+20+170` 动作轨道。2x 截图按实体着色边缘测得绿灯右缘到标题首字形空白 24px、标题末字形到升级圆环左缘空白 25px，即逻辑约 12px 且仅有抗锯齿边界的半像素差；此证据只证明 current native dev，不证明 current package 或 manual smoke。
 
 ## 1. 设计原则
 
 1. 内容层跨平台共用，系统外框按平台所有权分流。
-2. Grid 管窗口 shell、安装卡片、Select/双动作复合轨道与 AlertDialog 的复合结构；Flex 管标题、徽章、按钮和 Activity 行等一维关系。
+2. Grid 管窗口 shell、安装卡片、Select/双动作复合轨道、任务事件视窗与 AlertDialog 的复合结构；Flex 管标题、徽章、按钮和 Marker 行等一维关系。
 3. macOS 不伪造交通灯；Windows 不照搬交通灯，而在右侧提供 Windows 原生语义的最小化、最大化/还原、关闭。
 4. 不用透明 WebView 手画系统阴影和外轮廓。macOS 交给 AppKit/WindowServer；Windows 交给 HWND/DWM。
 5. 数值必须有语义 token 或原生几何来源，禁止用散落魔法数字微调截图；`renderer/tokens.css` 是唯一可调设计常量源，`styles.css`、`operation-log.css` 与 `window-controls.css` 不得定义私有设计变量。4px 是默认节奏；少量组件源码特有值必须先 token 化并在消费处注明来源。
@@ -27,7 +27,7 @@
 | 语义 | 值 | 依据 |
 | --- | ---: | --- |
 | 默认窗口 | `400 × 480px` | 当前 Tauri 逻辑配置；不是旧 `333 × 420` 候选的延续 |
-| 最小窗口 | `400 × 480px` | 主任务一屏完成；主窗口禁止滚动，Select 与 Activity Log 各自处理内部溢出 |
+| 最小窗口 | `400 × 480px` | 主任务一屏完成；主窗口禁止滚动，Select 与任务事件视窗各自处理内部溢出 |
 | 内容轨道 | `360px` | `400 - 20 - 20`；内容四边 padding 均为 `20px` |
 | 标题栏 | `40px` | `12 + 16 + 12`：交通灯上下留白各 `12px` |
 | macOS 交通灯 | `16 × 16px` | 原生 AppKit 控件；目标中心线为 `y = 20px` |
@@ -38,7 +38,7 @@
 | Windows caption | `3 × 32pt` 点击目标，`12pt` 图形，右边距 `12pt` | 保留 Windows 图形/危险关闭语义；位置服从 macOS 的 40/20/12 标题栏几何 |
 | 动作轨道 | `170px + 20px + 170px` | 两枚按钮在 `360px` 内容轨道内等宽；不因语言改变列定义 |
 | 主任务节奏 | 以 `4px` token 组合 | 板块之间、字段关系和内边距均由语义 token 组合，不以未命名数字补偿字形 |
-| 面板内边距 | 安装 Item 使用 panel token；Activity Log 使用 `8px` | Activity 的 `8px` 对照 Item xs 的局部 padding，但不重复叠加窗口 `20px` 外边距 |
+| 面板内边距 | 安装 Item 使用 panel token；任务事件视窗不再额外套卡片 padding | 事件区直接沿用 `360px` 内容轨道，行内 Marker 间距为 `8px`，避免窗口 `20px` 外边距与第二层面板 padding 重复 |
 | 主控件高度 | `36pt` | Select 与动作 Button 共用 |
 | Button / 面板圆角 | `7pt / 9pt` | 动作控件与容器层级分离 |
 | Select 圆角 | Trigger `10pt`、Popup `10pt`、Item `8pt` | 复刻 shadcn Nova/Base UI Select 当前源码角色，不再强行套用 Button 圆角 |
@@ -51,8 +51,8 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 | 角色 | 字号 / 字重 | 消费者 |
 | --- | --- | --- |
 | Heading | `16px / 450`；独立 Dialog 标题按组件语义可用 `500` | 窗口标题、Cavalry 安装名称、AlertDialog 标题 |
-| Body | `14px / 400` 或 `500` | Section 标题、Select、动作、AlertDialog 正文与 Activity 标题 |
-| Meta | `13px / 400` 或 `500` | 路径、徽章、Tooltip、Activity 说明与辅助文本；徽章依靠颜色、边框和形状表达状态 |
+| Body | `14px / 400` 或 `500` | Section 标题、Select、动作、AlertDialog 正文与任务事件标题 |
+| Meta | `13px / 400` 或 `500` | 路径、徽章、Tooltip、任务说明与辅助文本；徽章依靠颜色、边框和形状表达状态 |
 
 不再使用 `10/12px`、`600` 或其他临时中间级别。字体继续使用平台系统栈而非引入 Geist：`design.md` 的报告网站品牌合同要求 Geist，但本项目是离线原生工具，应遵循其“角色一致、对等元素同规格、强调稀缺”的排印原则，而不是照搬报告品牌字体或远程资源。[Vercel design.md](https://vercel.com/design.md)
 
@@ -60,11 +60,11 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 
 安装摘要表达“安装位置”而不是重复文件选择结果。macOS 保留 `.app` bundle 路径，标准 `/Applications/Cavalry.app` 可完整显示；Windows 将末尾 `.exe` 降为其所在安装目录。不超过 36 个 Unicode 字符时完整展示，超限后按路径层级从中间省略，至少保留盘符/根和末级安装文件夹，例如 `C:\Users\…\Cavalry`。完整语义位置只进入 `aria-label`，不设置会触发 WebView 原生悬浮窗的 HTML `title`；CSS 的弹性省略只是窗口像素继续不足时的第二道兜底。
 
-安装摘要、Switch to、Select、双动作行与 Activity Log 属于同一主任务流。`Switch to` 到 Select 使用唯一的 `8px` 字段关系 token；Activity Log 是有界结果输出。必要确认、权限和危险操作才进入独立 AlertDialog；因此主窗口高度不由某条异常正文无限撑开。
+安装摘要、Switch to、Select、双动作行与任务事件视窗属于同一主任务流。`Switch to` 到 Select 使用唯一的 `8px` 字段关系 token；事件视窗是有界过程与结果输出。持久阻塞直接留在视窗，不再用 toast 重复同一事实；必要确认、权限和危险操作才进入独立 AlertDialog。因此主窗口高度不由某条异常正文无限撑开。
 
-当前实现用 Grid 固定主窗口的复合轨道，并让 Activity Log 的中间行成为 `minmax(0, 1fr)`；`operation-log.css` 再以 Flex 管每条 Marker/Item。`html/body/.content` 禁止窗口级滚动，Select 列表和 Activity Log 只在自身边界内滚动。业务分割线不承担层级，层级由留白与边界 token 表达。
+当前实现用 Grid 固定主窗口的复合轨道，并让任务事件视窗成为 `minmax(0, 1fr)`；`operation-log.css` 再以 Flex 管每条 Marker。`html/body/.content` 禁止窗口级滚动，Select 列表和事件视窗只在自身边界内滚动。业务分割线不承担层级，层级由留白与边界 token 表达。
 
-当前语言徽章是类别元数据，不是信任状态。四种语言统一使用 Geist `purple-subtle` 的 `purple-200 / purple-400 / purple-900` 角色；安装徽章只使用 green / blue / amber 表达 Official / Translated / Modified。Switcher 的 pending journal 或启动恢复失败不是 Cavalry 本体状态，不进入安装徽章，只通过红色 Activity 结果行、独立 AlertDialog、操作锁和恢复路径表达。两枚徽章即使相邻也不会混写维度，且文字仍是颜色之外的必要语义线索。[Geist Badge](https://vercel.com/geist/badge) [Geist Colors](https://vercel.com/geist/colors)
+当前语言徽章是类别元数据，不是信任状态。四种语言统一使用 Geist `purple-subtle` 的 `purple-200 / purple-400 / purple-900` 角色；安装徽章只使用 green / blue / amber 表达 Official / Translated / Modified。Switcher 的 pending journal 或启动恢复失败不是 Cavalry 本体状态，不进入安装徽章，只通过事件视窗中的红色结果行、独立 AlertDialog、操作锁和恢复路径表达。两枚徽章即使相邻也不会混写维度，且文字仍是颜色之外的必要语义线索。[Geist Badge](https://vercel.com/geist/badge) [Geist Colors](https://vercel.com/geist/colors)
 
 ### 2.1 Select 源码对齐
 
@@ -72,15 +72,21 @@ Select 不引入 React、Base UI、shadcn、Tailwind 或 CDN。实现只借鉴 s
 
 Base UI 默认 `alignItemWithTrigger=true` 不是“菜单固定出现在控件下方”。`select-control.js` 在 Popup 显示后读取 Trigger 与选中 Item 的真实 layout box，推导 Popup top，使两者视觉中心重合；不为不同字体和语言硬编码偏移。键盘、typeahead、指针高亮、selected 与 active 状态仍保持分离，列表只在自己的 max-height 内滚动。[shadcn Base UI Select](https://ui.shadcn.com/docs/components/base/select)
 
-### 2.2 Activity Log 源码对齐
+### 2.2 任务事件视窗源码对齐
 
-主界面的结果区是有界 Activity Log。`operation-log.js` 只维护稳定 id 的 ordered upsert/replace/clear 与安全文本投影；Marker 仅承担行布局，MarkerIcon/MarkerContent 承担图标与文案，组件不拥有业务编排。`app.js` 把后端强类型 Channel 映射为 `verifyInstallation`、`ensureBaseline`、`applyTransaction`、`restartCavalry` 四个真实阶段；Channel 关闭或发送失败不改变事务结果。运行态组合 Spinner 与文字 shimmer，完成后换回阶段自己的 Phosphor 图标，warning/error 使用各自语义图标，不用一枚通用勾伪装所有事件。`operation-log.css` 参考 shadcn Base Nova 的 Marker、Item xs、ScrollArea、Spinner 结构，以 Flex 管单条记录，以内部 `overflow-y` 处理长记录；所有几何值仍来自项目 token。
+主界面的下半区不是 Alert，也不是无差别日志，而是当前用户任务的有界事件视窗。idle 时只显示无文字 separator；动作开始后先用带标签 separator 建立“应用某语言”“恢复 Cavalry”或“更新到某版本”的上下文，再追加真实阶段。没有可见的 `Action`、`Status`、`Log` 泛化标题，屏幕阅读器仍通过隐藏标题获得区域名称。
 
-参考源码：[Marker](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/marker.tsx)、[Marker examples](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/examples/marker-example.tsx)、[Item](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/item.tsx)、[ScrollArea](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/scroll-area.tsx)、[Spinner](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/spinner.tsx)、[Phosphor core](https://github.com/phosphor-icons/core)。项目只内嵌所需 SVG path，不引入完整图标包、React、Tailwind 或 CDN；许可证投影见 `renderer/THIRD_PARTY_NOTICES.md`。
+`operation-log.js` 只维护稳定 id 的 ordered upsert/replace、separator 和安全文本投影；MarkerIcon/MarkerContent 承担图标与文案，组件不拥有业务编排。运行态组合 Spinner 与文字 shimmer，完成后原位换成该事件自己的 Phosphor 图标。短记录通过首项 `margin-top:auto` 贴住视窗底部；不能使用容器 `justify-content:flex-end`，否则溢出时顶部旧事件可能落入不可滚动的负空间。新增事件把内部 scrollTop 跟随到底部，超过固定高度后旧事件自然向上推进；scroll-fade 只在真实溢出时出现，上下边缘提示仍有内容，内部保留滚动条。
+
+Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`applyTransaction`、`restartCavalry` Channel。Updater 的三阶段来自 `downloading`、`installing`、`restarting` Channel：下载结束回调发生在签名验证之前，因此 UI 把第二阶段写成“正在验证并安装”，绝不虚构“已验证”事件；下载 URL、签名、临时路径和原始响应不进入 renderer。后端事件可以压缩成面向用户的任务语言，但不能提前声明尚未成立的结果。
+
+持久启动阻塞继续使用同一事件视窗，因为用户需要在采取恢复动作前持续看到它。项目不额外引入 toast：toast 会让同一事实同时出现在临时层和常驻层，产生重复与消失时序。AlertDialog 只用于必须立即作出选择的确认、权限或危险操作。
+
+结构与动画对照 shadcn/ui 官方 Marker、shimmer、scroll-fade 源码，审查基线为上游提交 `683a5a9b370acdb7785a0529434e6a3b8c7e0441`；项目只内嵌所需结构、CSS 与 Phosphor SVG path，不引入 React、Base UI、Tailwind、CDN 或完整图标包。参考：[Marker](https://ui.shadcn.com/docs/components/base/marker)、[shimmer](https://ui.shadcn.com/docs/utils/shimmer)、[scroll-fade](https://ui.shadcn.com/docs/utils/scroll-fade)、[Phosphor Icons](https://phosphoricons.com/)。许可证投影见 `renderer/THIRD_PARTY_NOTICES.md`。
 
 ### 2.3 AlertDialog 与 About 边界
 
-AlertDialog 只承载必要确认、权限请求、危险操作和不可恢复错误，不替代 Activity Log。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions；项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供，标题使用 `16px` 角色，正文使用 `14px` 角色，不能把源组件的默认值直接散落到 CSS。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
+AlertDialog 只承载必要确认、权限请求、危险操作和不可恢复错误，不替代任务事件视窗。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions；项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供，标题使用 `16px` 角色，正文使用 `14px` 角色，不能把源组件的默认值直接散落到 CSS。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
 
 About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用窗口内自定义内容”方向，不使用 Tauri 原生 `AboutMetadata`：后者在 macOS 不支持 `website`、`website_label` 和 `license`，Windows 也不能满足可点击项目链接。macOS 将默认应用菜单中的标准 About 替换为固定 id，菜单事件与 Windows 标题栏信息入口共同调用同一个 Rust `about` WebviewWindow owner；窗口使用系统原生装饰、非 modal、固定尺寸且不可 resize/maximize/minimize，主窗口不被锁住。About 本地页面使用现有 token，顶部显示 64px、与安装包同源的应用图标和 `plugin:app|version` 真实版本；项目行只显示 `Cavalry-i18n`，GitHub 图形进入该行作为目的地提示，MIT License 独立成行，原生标题栏提供关闭行为。
 
@@ -176,7 +182,7 @@ Windows:
 
 跨平台组件:
 
-- 主窗口不得出现横向或纵向滚动，`400×480` 内必须完整显示正式四语主任务与 Activity Log；Select 列表和 Activity Log 的独立滚动不计入窗口滚动，必要确认/权限/危险操作使用独立 AlertDialog。
+- 主窗口不得出现横向或纵向滚动，`400×480` 内必须完整显示正式四语主任务与任务事件视窗；Select 列表和事件视窗的独立滚动不计入窗口滚动，必要确认/权限/危险操作使用独立 AlertDialog。
 - 主任务只有全宽 Select 与等宽 `Apply & Restart` / `Restore`；Restore 的平台映射与自动恢复基线合同见 `switcher-auto-baseline-and-restore-decision-2026-08-29.md`。
 - Select 必须保持 Trigger 与当前选中 Item 的视觉中心对齐；不能退回固定 top 偏移或浏览器原生弹出层。
 - macOS 从系统应用菜单、Windows 从标题栏信息入口打开同一个 `about` 原生 WebviewWindow；两者共用四语本地页面、真实应用版本和固定项目链接枚举，重复触发只 show+focus，主窗口不进入 modal 状态。

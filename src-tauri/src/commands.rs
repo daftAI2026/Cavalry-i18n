@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段并完成成功后的 restart，project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
+ * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段并完成成功后的 restart；install_update 通过 camelCase onEvent Channel 投影 downloading、installing、restarting 三个真实更新边界；project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -30,8 +30,8 @@ pub use restart::restart_cavalry_inner;
 pub use snapshot::extract_english_inner;
 #[cfg(target_os = "windows")]
 pub(crate) use snapshot::refresh_english_inner;
-pub use update::UpdatePayload;
 pub(crate) use update::UpdaterState;
+pub use update::{UpdateEvent, UpdatePayload, UpdatePhase};
 
 pub fn registered_command_names() -> &'static [&'static str] {
     &contract::COMMAND_NAMES
@@ -130,9 +130,12 @@ pub async fn check_update(app: tauri::AppHandle) -> UpdatePayload {
     update::check_update_inner(app).await
 }
 
-#[tauri::command]
-pub async fn install_update(app: tauri::AppHandle) -> UpdatePayload {
-    update::install_update_inner(app).await
+#[tauri::command(rename_all = "camelCase")]
+pub async fn install_update(
+    app: tauri::AppHandle,
+    on_event: tauri::ipc::Channel<UpdateEvent>,
+) -> UpdatePayload {
+    update::install_update_inner(app, update::TauriUpdateProgressReporter::new(on_event)).await
 }
 
 #[tauri::command]

@@ -9,8 +9,8 @@ desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物
 docs/ - 架构计划、翻译规范、工作流协议与历史证据链 (Markdown, JS, Shell)
 injector/ - macOS DYLD 注入器、Cavalry 2.7.2 TransformTool Mach-O/Skia ABI 防火墙与 Windows Qt generic translator/QPA delegate；共享 policy 区分 8 条跨平台 exact-only 表面和双平台 owner-scoped 邻接 key，Windows 另构建不发布的 acceptance-only generic plugin，以 Qt test profile 隔离登录/工作区并驱动 Onboarding/Tag/Assets 真机证据，各平台 Runner 现场生成不入库的原生库 (C++, Objective-C++)
 languages/ - 运行时 JSON 语言包，保存 English 基线与三语同构翻译资产 (JSON)
-renderer/ - Tauri 前端 UI，以独立语义 token 真相源、系统字体与只消费角色的离线 HTML/CSS/JS 提供安装对象双徽章、跨平台路径中部省略、无依赖 Base UI 语义 Select/Tooltip、自动恢复基线的 Apply/平台统一 Restore 单任务流、固定项目外链 About、由四阶段 Channel 驱动且组合 shadcn Marker/Spinner 与内嵌 Phosphor 语义图标的四语 Activity Log，以及独立 AlertDialog；About 内容由独立本地页面承载，主窗口禁止滚动，macOS 保留原生交通灯，Windows 使用右侧原生语义 caption 状态机且不接管系统外框 (HTML, CSS, JS)
-src-tauri/ - Tauri 后端；分离 renderer 契约、安装真相、受控系统命令与平台运行时，macOS 以最小 AppKit 桥维持原生交通灯中心，Windows 以无系统 caption + DWM 外框承载右侧 renderer 控件，并以 immutable snapshot、durable manifest/backup、原子 English 清理、same-EXE UAC 与 NSIS 生命周期统一控制面和数据面 (Rust, NSIS)
+renderer/ - Tauri 前端 UI，以独立语义 token 真相源、系统字体与只消费角色的离线 HTML/CSS/JS 提供安装对象双徽章、跨平台路径中部省略、无依赖 Base UI 语义 Select/Tooltip、自动恢复基线的 Apply/平台统一 Restore 单任务流、固定项目外链 About，以及由真实 Apply/Updater Channel 驱动、组合 shadcn separator/Marker/Spinner/shimmer/scroll-fade 与内嵌 Phosphor 图标的四语任务事件视窗；持久阻塞留在视窗，只有确认/权限/风险进入 AlertDialog，主窗口禁止滚动，macOS 保留原生交通灯，Windows 使用右侧原生语义 caption 状态机且不接管系统外框 (HTML, CSS, JS)
+src-tauri/ - Tauri 后端；分离 renderer 契约、安装真相、受控系统命令与平台运行时，macOS 以最小 AppKit 桥维持原生交通灯中心，Windows 以无系统 caption + DWM 外框承载右侧 renderer 控件；语言事务通过四阶段 Channel 投影真实边界，Updater 只从 Rust State 消费已检查 Update 并通过 downloading/installing/restarting 三阶段脱敏 Channel 报告进度，签名验证留在官方插件下载事务内；immutable snapshot、durable manifest/backup、原子 English 清理、same-EXE UAC 与 NSIS 生命周期统一控制面和数据面 (Rust, NSIS)
 tools/ - 自动化工具链，涵盖翻译提取、校验、SDK 解析、Windows NSIS 安装态、exact PID/HWND/受限 cleanup 与 producer-side PNG 证据，以及 tracked macOS Objective-C++/CGWindow 21-run/48-point 定向验收器；原生库和 live session 现场生成而不入库 (Node.js, PowerShell, Bash, Objective-C++, Swift)
 output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿 (JSON, PNG)
 </directory>
