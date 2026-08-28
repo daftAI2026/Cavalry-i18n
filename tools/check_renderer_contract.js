@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、稳定文案脚本、轻量 Select 状态机、CSP 配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、原生 macOS 交通灯与可拖拽标题区、Item/自绘 Select/Button Group/Alert 语义层、local-only renderer/Geist 字体、单一更新图标/tooltip/无障碍通知、脱敏 updater bridge、原生 dialog 状态边界、English UI/官方还原分离及最小 bridge 表面。
+ * [OUTPUT]: 守住固定 DOM anchors、原生 macOS 交通灯与可拖拽标题区、Item/自绘 Select/Button Group/动态语义 Alert、系统字体与统一 spacing token、真实语言/安装双徽章、单一更新图标/tooltip/无障碍通知、脱敏 updater bridge、原生 dialog 状态边界、English UI/官方还原分离及最小 bridge 表面。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -27,7 +27,7 @@ function uiLocaleBodies(source) {
 }
 
 const REQUIRED_IDS = [
-  'skipLink', 'mainContent', 'windowTitle', 'appVersion', 'appPath', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage',
+  'skipLink', 'mainContent', 'windowTitle', 'appVersion', 'appPath', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage', 'installationBadge',
   'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement',
   'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton',
   'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
@@ -55,11 +55,10 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   );
   assert.match(uiText, /const UI_TEXT = \{/);
   assert.doesNotMatch(app, /const UI_TEXT = \{/);
-  assert.match(styles, /@font-face[\s\S]*Geist-Variable\.woff2/);
-  assert.match(styles, /@font-face[\s\S]*GeistMono-Variable\.woff2/);
-  for (const font of ['Geist-Variable.woff2', 'GeistMono-Variable.woff2', 'OFL.txt']) {
-    assert.ok(fs.existsSync(path.join(repoRoot, 'renderer/assets/fonts', font)), `${font} missing`);
-  }
+  assert.doesNotMatch(styles, /@font-face|Geist|assets\/fonts/, 'renderer must use the platform font stack');
+  assert.match(styles, /--font-sans:\s*-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif/);
+  assert.match(styles, /--font-mono:\s*ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace/);
+  assert.equal(fs.existsSync(path.join(repoRoot, 'renderer/assets')), false, 'unused bundled font assets must stay removed');
   assert.ok(app.split(/\r?\n/).length <= 800, 'renderer/app.js must stay within the 800-line contract');
 });
 
@@ -92,7 +91,6 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.ok(selectFocusBlock, 'select focus state missing');
   assert.match(selectFocusBlock, /border-color:[\s\S]*?background:/);
   assert.doesNotMatch(selectFocusBlock, /outline:|box-shadow:/, 'select must not draw a focus ring');
-  assert.match(styles, /@media \(max-width: 420px\)/);
   assert.match(html, /<section class="language-section" aria-labelledby="languageSectionLabel">/);
   assert.match(html, /id="languageSelectTrigger"[^>]*role="combobox"[^>]*aria-haspopup="listbox"[^>]*aria-expanded="false"/);
   assert.match(html, /id="languageSelectList"[^>]*role="listbox"/);
@@ -100,6 +98,12 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /<dialog id="modalBackdrop"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*role="status"[^>]*aria-labelledby="statusLabel"/);
   assert.match(styles, /--control-height:\s*36px/);
+  assert.match(styles, /--padding-window:\s*16px 18px/);
+  assert.match(styles, /--padding-panel:\s*12px/);
+  assert.match(styles, /--padding-control-inline:\s*12px/);
+  assert.match(styles, /\.content\s*\{[\s\S]*?padding:\s*var\(--padding-window\)/);
+  assert.match(styles, /\.installation-item\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
+  assert.match(styles, /\.status-panel\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
   assert.match(html, /class="titlebar" data-tauri-drag-region/);
   assert.doesNotMatch(html, /traffic-light|aria-label="Window controls"/, 'macOS traffic lights must remain native');
   assert.match(styles, /\.titlebar\s*\{[\s\S]*?display:\s*flex/);
@@ -108,9 +112,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.tooltip-anchor\s*\{[\s\S]*?display:\s*inline-flex;[\s\S]*?align-items:\s*center/);
   assert.match(styles, /\.installation-item\s*\{[\s\S]*?display:\s*grid/);
   assert.match(styles, /\.language-control-row\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);
-  assert.match(styles, /\.maintenance-group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);
+  assert.match(styles, /\.maintenance-group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(auto-fit, minmax\(120px, 1fr\)\)/);
   assert.match(styles, /\.status-panel\s*\{[\s\S]*?grid-template-columns:\s*16px minmax\(0, 1fr\) auto/);
-  assert.match(styles, /@media \(max-width: 420px\)[\s\S]*?\.maintenance-group \.button\s*\{[\s\S]*?padding-inline: 8px/);
   assert.match(app, /document\.body\.dataset\.platform = state\.platform/);
   assert.match(app, /updateControl\.addEventListener\('mouseenter'/);
   assert.match(app, /updateControl\.addEventListener\('focusin'/);
@@ -119,6 +122,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
 });
 
 test('renderer builds language options safely and bridge API is frozen/minimal', () => {
+  const html = read('renderer/index.html');
   const app = read('renderer/app.js');
   const selectControl = read('renderer/select-control.js');
   const bridge = read('renderer/tauri-bridge.js');
@@ -131,9 +135,11 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /runApply\('restore-official'\)/);
   assert.match(app, /showApplyConfirmation\('en'\)/);
   assert.match(app, /restoreEnglishButton\.addEventListener/);
-  assert.match(app, /statusLabel\.textContent = t\('statusLabel'\)/);
+  assert.match(app, /statusLabel\.textContent = t\(STATUS_TITLE_KEYS\[key\] \|\| 'statusLabel', params\)/);
   assert.match(app, /maintenanceHeading\.textContent = t\('maintenance'\)/);
-  assert.match(app, /currentLanguage\.dataset\.state = visualState/);
+  assert.match(app, /installationBadge\.dataset\.state = installationBadgeState\(visualState\)/);
+  assert.match(app, /state\.currentLang !== 'en'\) return t\('translatedBadge'\)/);
+  assert.match(html, /id="currentLanguage"[^>]*data-kind="language"[\s\S]*id="installationBadge"[^>]*data-kind="installation"/);
   assert.match(app, /updateButton\.addEventListener/);
   assert.match(app, /updateControl\.hidden = !\(updatePreviewEnabled \|\| state\.updateInfo\?\.available\)/);
   assert.match(app, /updateTooltip\.textContent = t\('updateTooltip'\)/);
@@ -166,14 +172,25 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const uiText = read('renderer/ui-text.js');
   const bridge = read('renderer/tauri-bridge.js');
   const styles = read('renderer/styles.css');
-  assert.equal((uiText.match(/reinstallRequired:/g) || []).length, 4, 'all four UI locales must localize the reinstall route');
+  assert.equal((uiText.match(/^\s{4}reinstallRequired:/gm) || []).length, 4, 'all four UI locales must localize the reinstall route');
   const localeBodies = uiLocaleBodies(uiText);
+  assert.doesNotMatch(uiText, /Managed \/ Unverified|已管理|未验证|未驗證|管理済み \/ 未検証/);
   for (const key of [
     'restoreEnglish',
     'restoreOfficialShort',
+    'officialBadge',
+    'translatedBadge',
+    'modifiedBadge',
+    'recoveryBadge',
     'maintenance',
     'refreshEnglishAria',
     'statusLabel',
+    'readyToApplyTitle',
+    'reinstallCavalryTitle',
+    'refreshEnglishFailedTitle',
+    'closeCavalryTitle',
+    'officialRestoredTitle',
+    'appliedTitle',
     'warningStateDurabilityPending',
     'warningRecoveryCleanupPending',
     'warningProtectedRecoveryEvidenceRetained',
@@ -203,7 +220,9 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     }
   }
   assert.match(app, /function requiresCavalryReinstall\(\)[\s\S]*modifiedOrUnverified[\s\S]*state\.needsExtract/);
-  assert.match(app, /setStatus\(t\('reinstallRequired'\), 'error'\)/);
+  assert.match(app, /setStatus\('reinstallRequired', 'error'\)/);
+  assert.match(uiText, /const STATUS_TITLE_KEYS = Object\.freeze\(\{/);
+  assert.match(uiText, /reinstallRequired: 'reinstallCavalryTitle'/);
   assert.match(app, /warningCodes\.includes\('stateDurabilityPending'\)/);
   assert.match(app, /browseButton\.disabled[\s\S]*durabilityPending/);
   assert.match(
@@ -214,6 +233,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.doesNotMatch(app, /reconcileEnglish|reconcileButton|runReconciliation|showReconciliation/);
   assert.doesNotMatch(app, /state\.reconciliationRequired/, 'residue detection must not become renderer mutation state');
   assert.doesNotMatch(app, /result\.warning(?!Codes)/, 'app.js must never render backend warning prose');
+  assert.doesNotMatch(app, /result\.error\b/, 'app.js must never render backend error prose');
   assert.match(bridge, /WARNING_CODE_MANIFEST/);
   assert.match(bridge, /warning:\s*null/);
   assert.match(bridge, /warningCodes:\s*Object\.freeze/);

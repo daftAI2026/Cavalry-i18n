@@ -1,25 +1,9 @@
 /**
- * [INPUT]: 依赖 index.html 的标题区、安装 Item、自绘 Select、Button Group、Alert 与原生 dialog 语义，依赖 assets/fonts 的本地 Geist Sans/Mono
- * [OUTPUT]: 对外提供 460×440 桌面工具窗口的离线视觉系统；使用 36px 控件、7/9px 圆角、9px 动作间距和语义色，不绘制 macOS 交通灯
+ * [INPUT]: 依赖 index.html 的标题区、安装 Item、自绘 Select、Button Group、Alert 与原生 dialog 语义，依赖操作系统 UI/等宽字体栈
+ * [OUTPUT]: 对外提供 460×440 桌面工具窗口的离线视觉系统；统一窗口/面板/控件 padding token，以 Grid 管二维对齐、Flex 管单行关系，不绘制 macOS 交通灯
  * [POS]: renderer 的唯一视觉实现；参照 shadcn/Base UI 组件几何与状态，但不引入 CSS/JS 运行时或 CDN
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-@font-face {
-  font-family: "Geist";
-  src: url("./assets/fonts/Geist-Variable.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Geist Mono";
-  src: url("./assets/fonts/GeistMono-Variable.woff2") format("woff2");
-  font-style: normal;
-  font-weight: 100 900;
-  font-display: swap;
-}
-
 :root {
   color-scheme: light;
   --window: #ffffff;
@@ -51,12 +35,24 @@
   --badge-red-border: #efb5b5;
   --badge-red-text: #c62a2f;
   --control-height: 36px;
+  --titlebar-control-gap: 7px;
+  --titlebar-native-controls-width: 61px;
+  --titlebar-native-control-size: 16px;
+  --padding-window: 16px 18px;
+  --padding-panel: 12px;
+  --padding-control-inline: 12px;
+  --padding-menu: 4px;
+  --padding-dialog: 18px;
+  --padding-overlay: 24px;
+  --gap-inline: 7px;
+  --gap-control: 9px;
+  --gap-section: 14px;
   --radius-md: 7px;
   --radius-lg: 9px;
   --action-max-width: 142px;
   --shadow-control: 0 1px 1px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);
-  --font-sans: "Geist", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  --font-mono: "Geist Mono", "SFMono-Regular", Consolas, monospace;
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
 }
 
 * {
@@ -140,8 +136,8 @@ button {
   min-height: 46px;
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 12px;
+  gap: var(--titlebar-control-gap);
+  padding: 0 var(--padding-panel);
   border-bottom: 1px solid var(--border);
   background: rgba(250, 250, 250, 0.96);
   user-select: none;
@@ -149,8 +145,8 @@ button {
 }
 
 .native-controls-space {
-  width: 58px;
-  flex: 0 0 58px;
+  width: var(--titlebar-native-controls-width);
+  flex: 0 0 var(--titlebar-native-controls-width);
 }
 
 .titlebar-copy {
@@ -158,16 +154,16 @@ button {
   flex: 1 1 auto;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--gap-inline);
   pointer-events: none;
 }
 
 .window-title {
   min-width: 0;
   overflow: hidden;
-  font-size: 12.5px;
-  font-weight: 620;
-  line-height: 1;
+  font-size: 14px;
+  font-weight: normal;
+  line-height: var(--titlebar-native-control-size);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -248,7 +244,7 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   align-content: start;
-  padding: 15px 18px 14px;
+  padding: var(--padding-window);
   overflow: auto;
 }
 
@@ -257,8 +253,8 @@ button {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
-  padding: 11px 12px;
+  gap: var(--gap-section);
+  padding: var(--padding-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface);
@@ -273,7 +269,7 @@ button {
 .installation-heading {
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: var(--gap-inline);
 }
 
 .installation-name {
@@ -305,7 +301,7 @@ button {
   white-space: nowrap;
 }
 
-.badge[data-state="managed"] {
+.badge[data-state="translated"] {
   border-color: var(--badge-blue-border);
   background: var(--badge-blue-bg);
   color: var(--badge-blue-text);
@@ -317,7 +313,7 @@ button {
   color: var(--badge-green-text);
 }
 
-.badge[data-state="modifiedOrUnverified"] {
+.badge[data-state="modified"] {
   border-color: var(--badge-amber-border);
   background: var(--badge-amber-bg);
   color: var(--badge-amber-text);
@@ -345,7 +341,7 @@ button {
 .separator {
   width: 100%;
   height: 1px;
-  margin: 14px 0;
+  margin: var(--gap-section) 0;
   background: var(--border);
 }
 
@@ -368,7 +364,8 @@ button {
 .language-control-row {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 9px;
+  align-items: stretch;
+  gap: var(--gap-control);
 }
 
 .select-root {
@@ -395,7 +392,7 @@ button {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  padding: 0 11px;
+  padding: 0 var(--padding-control-inline);
   position: relative;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
@@ -437,7 +434,7 @@ button {
   top: calc(100% + 5px);
   left: 0;
   width: 100%;
-  padding: 4px;
+  padding: var(--padding-menu);
   border: 1px solid var(--border-strong);
   border-radius: var(--radius-md);
   background: var(--surface-raised);
@@ -493,8 +490,8 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
-  padding: 0 12px;
+  gap: var(--gap-inline);
+  padding: 0 var(--padding-control-inline);
   border: 1px solid transparent;
   border-radius: var(--radius-md);
   outline: none;
@@ -556,8 +553,8 @@ button {
 
 .maintenance-group {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 9px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: var(--gap-control);
 }
 
 .maintenance-group:has(#restoreButton[hidden]) {
@@ -606,8 +603,8 @@ button {
   grid-template-columns: 16px minmax(0, 1fr) auto;
   align-items: start;
   column-gap: 10px;
-  margin-top: 14px;
-  padding: 12px;
+  margin-top: var(--gap-section);
+  padding: var(--padding-panel);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
@@ -679,7 +676,7 @@ button {
   height: 100%;
   max-height: none;
   margin: 0;
-  padding: 24px;
+  padding: var(--padding-overlay);
   border: 0;
   background: rgba(0, 0, 0, 0.28);
 }
@@ -696,7 +693,7 @@ button {
 .modal-dialog {
   position: relative;
   width: min(100%, 366px);
-  padding: 18px;
+  padding: var(--padding-dialog);
   border: 1px solid var(--border-strong);
   border-radius: 10px;
   background: var(--surface-raised);
@@ -747,20 +744,6 @@ button {
 
 body[data-platform="windows"] .native-controls-space {
   display: none;
-}
-
-@media (max-width: 420px) {
-  .content {
-    padding-inline: 14px;
-  }
-
-  .maintenance-group {
-    gap: 7px;
-  }
-
-  .maintenance-group .button {
-    padding-inline: 8px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

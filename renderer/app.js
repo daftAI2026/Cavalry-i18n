@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、window.createSelectControl 的无依赖选择状态机、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/主任务/Maintenance/Alert 状态、初始化 fail-closed 门禁、安装 Badge 语义、受控语言选择、English UI/官方还原、更新 tooltip/无障碍通知与签名冷更新交互；开发预览不访问网络。
- * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode/warningCodes 本土化可恢复状态且从不显示 raw backend/updater 数据；原生 dialog 的 close 事件独占清理与焦点归还。
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/主任务/Maintenance/动态语义 Alert、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、English UI/官方还原、更新 tooltip/无障碍通知与签名冷更新交互；开发预览不访问网络。
+ * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实可达状态映射为具体结果/风险/恢复动作，以稳定 errorCode/warningCodes 本土化且从不显示 raw backend/updater 数据；原生 dialog 的 close 事件独占清理与焦点归还。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -16,6 +16,7 @@ const languageSectionLabel = document.querySelector('#languageSectionLabel');
 const maintenanceHeading = document.querySelector('#maintenanceHeading');
 const currentLabel = document.querySelector('#currentLabel');
 const currentLanguage = document.querySelector('#currentLanguage');
+const installationBadge = document.querySelector('#installationBadge');
 const installationModeText = document.querySelector('#installationMode');
 const switchToLabel = document.querySelector('#switchToLabel');
 const languageSelectRoot = document.querySelector('#languageSelectRoot');
@@ -113,10 +114,6 @@ function t(key, params = {}) {
   return text.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ''));
 }
 
-function withDetail(key, detail) {
-  return detail ? `${t(key)}${t('detail', { detail })}` : t(key);
-}
-
 async function recoverOperationFailure() {
   try {
     await bootstrap();
@@ -124,7 +121,7 @@ async function recoverOperationFailure() {
     // The service is unavailable; the local, translated error below is the
     // only safe presentation for a transport failure.
   }
-  setStatus(t('operationFailed'), 'error');
+  setStatus('operationFailed', 'error');
 }
 
 function setPermissionWait(isWaiting) {
@@ -136,8 +133,11 @@ function setPermissionWait(isWaiting) {
   applyButton.textContent = isWaiting ? t('retryApply') : t('apply');
 }
 
-function setStatus(message, tone = 'neutral') {
+function setStatus(key, tone = 'neutral', params = {}, messageOverride = null) {
+  const message = messageOverride ?? t(key, params);
+  statusLabel.textContent = t(STATUS_TITLE_KEYS[key] || 'statusLabel', params);
   statusText.textContent = message;
+  statusText.hidden = !message;
   statusText.dataset.tone = tone;
   statusPanel.dataset.tone = tone;
 }
@@ -175,7 +175,7 @@ function localizedWarningMessages(warningCodes) {
 }
 
 function requireDurabilityRetry() {
-  setStatus(t('warningStateDurabilityPending'), 'warning');
+  setStatus('warningStateDurabilityPending', 'warning');
 }
 
 function setBusy(isBusy) {
@@ -244,33 +244,45 @@ function localizeShell() {
   restoreButton.textContent = t('restoreOfficialShort');
   restoreButton.setAttribute('aria-label', t('restoreOfficial'));
   permissionButton.textContent = t('openPrivacySecurity');
-  statusLabel.textContent = t('statusLabel');
+  statusLabel.textContent = t('loadingTitle');
   modalCloseButton.setAttribute('aria-label', t('close'));
   setPermissionWait(false);
 }
 
-function syncInstallationBadge() {
+function installationBadgeText(mode) {
+  if (mode === 'official') return t('officialBadge');
+  if (mode === 'recoveryRequired') return t('recoveryBadge');
+  if (state.currentLang !== 'en') return t('translatedBadge');
+  return t('modifiedBadge');
+}
+
+function installationBadgeState(mode) {
+  if (mode === 'official' || mode === 'recoveryRequired') return mode;
+  return state.currentLang === 'en' ? 'modified' : 'translated';
+}
+
+function syncInstallationBadges() {
   const visualState = state.appPath ? state.installationMode : 'unknown';
   const language = languageLabel(state.currentLang);
   const installation = installationModeText.textContent;
-  currentLanguage.dataset.state = visualState;
-  currentLanguage.setAttribute(
-    'aria-label',
-    installation
-      ? `${t('current')}: ${language}. ${installation}`
-      : `${t('current')}: ${language}`
-  );
-  currentLanguage.title = installation ? `${language} · ${installation}` : language;
+  const showInstallation = state.platform === 'macos' && Boolean(state.appPath);
+  currentLanguage.setAttribute('aria-label', `${t('current')}: ${language}`);
+  currentLanguage.title = language;
+  installationBadge.hidden = !showInstallation;
+  installationBadge.dataset.state = installationBadgeState(visualState);
+  installationBadge.textContent = showInstallation ? installationBadgeText(visualState) : '';
+  installationBadge.setAttribute('aria-label', installation || installationBadge.textContent);
+  installationBadge.title = installation;
 }
 
 function showUpdatePreview() {
   if (!updatePreviewEnabled) return;
   setUpdateTooltipOpen(false);
-  setStatus(t('updatePreviewAvailable'), 'success');
+  setStatus('updatePreviewAvailable', 'success');
 }
 
-function updateErrorText(errorCode, fallback = 'updateCheckFailed') {
-  return t(UPDATE_ERROR_TEXT_KEYS[errorCode] || fallback);
+function updateErrorKey(errorCode, fallback = 'updateCheckFailed') {
+  return UPDATE_ERROR_TEXT_KEYS[errorCode] || fallback;
 }
 
 function updateConfirmationBody(update) {
@@ -296,7 +308,7 @@ function showUpdateConfirmation() {
     onPrimary: () => {
       closeModal();
       void installCheckedUpdate(update).catch(() => {
-        setStatus(t('updateInstallFailed'), 'error');
+        setStatus('updateInstallFailed', 'error');
       });
     },
     onSecondary: closeModal,
@@ -325,11 +337,11 @@ async function checkForUpdates() {
 
 async function installCheckedUpdate(update) {
   setBusy(true);
-  setStatus(t('installingUpdate', { version: update.version }));
+  setStatus('installingUpdate', 'neutral', { version: update.version });
   try {
     const result = await api.installUpdate();
     if (result.errorCode) {
-      setStatus(updateErrorText(result.errorCode, 'updateInstallFailed'), 'error');
+      setStatus(updateErrorKey(result.errorCode, 'updateInstallFailed'), 'error');
       if (result.errorCode === 'updateNotChecked') {
         state.updateInfo = null;
         updateControl.hidden = true;
@@ -347,7 +359,7 @@ function setUpdateTooltipOpen(isOpen) {
 function showModal({ title, body, primary, secondary, onPrimary, onSecondary }) {
   if (modalBackdrop.open) return;
   if (typeof modalBackdrop.showModal !== 'function') {
-    setStatus(t('operationFailed'), 'error');
+    setStatus('operationFailed', 'error');
     return;
   }
   modalTitle.textContent = title;
@@ -413,7 +425,7 @@ function showRestoreConfirmation() {
 function showPermissionWait(nextLanguage) {
   state.pendingAction = nextLanguage;
   const needsElevation = state.permissionAction === 'requestElevation';
-  setStatus(t('waitingPermission'), 'warning');
+  setStatus('waitingPermission', 'warning');
   setPermissionWait(true);
   showModal({
     title: t('permissionTitle'),
@@ -471,7 +483,7 @@ async function bootstrap() {
       : state.installationMode === 'recoveryRequired'
         ? t('recoveryMode')
         : t('modifiedMode');
-  syncInstallationBadge();
+  syncInstallationBadges();
   state.ready = true;
   setBusy(state.busy);
 
@@ -490,22 +502,22 @@ async function bootstrap() {
   }
 
   if (state.startupRecoveryError) {
-    setStatus(withDetail('startupRecoveryFailed', state.startupRecoveryError), 'error');
+    setStatus('startupRecoveryFailed', 'error');
     return;
   }
 
   if (!state.appPath) {
-    setStatus(t('chooseAppToContinue'), 'warning');
+    setStatus('chooseAppToContinue', 'warning');
     return;
   }
 
   if (requiresCavalryReinstall()) {
-    setStatus(t('reinstallRequired'), 'error');
+    setStatus('reinstallRequired', 'error');
     return;
   }
 
   if (state.needsExtract) {
-    setStatus(t('needsExtract'), 'warning');
+    setStatus('needsExtract', 'warning');
     return;
   }
 
@@ -515,12 +527,12 @@ async function bootstrap() {
   }
 
   if (runtimeResidueDetected) {
-    setStatus(t('runtimeResidueWarning'), 'warning');
+    setStatus('runtimeResidueWarning', 'warning');
     return;
   }
 
   if (state.appManagementGranted === true) {
-    setStatus(t('readyToApply'), 'success');
+    setStatus('readyToApply', 'success');
     return;
   }
 
@@ -529,11 +541,11 @@ async function bootstrap() {
     state.appManagementGranted === false &&
     state.permissionAction === 'none'
   ) {
-    setStatus(t('customRootNotWritable'), 'error');
+    setStatus('customRootNotWritable', 'error');
     return;
   }
 
-  setStatus(t('readyPermission'), 'warning');
+  setStatus('readyPermission', 'warning');
 }
 
 async function browseForApp() {
@@ -551,19 +563,19 @@ async function browseForApp() {
 
 async function refreshEnglishSnapshot() {
   if (!state.appPath) {
-    setStatus(t('chooseAppFirst'), 'warning');
+    setStatus('chooseAppFirst', 'warning');
     return;
   }
 
   setBusy(true);
   setPermissionWait(false);
   closeModal();
-  setStatus(t('refreshingEnglish'));
+  setStatus('refreshingEnglish');
 
   try {
     const result = await api.extractEnglish(state.appPath);
     if (!result.ok) {
-      setStatus(withDetail('extractFailed', result.error), 'error');
+      setStatus('extractFailed', 'error');
       return;
     }
 
@@ -575,16 +587,19 @@ async function refreshEnglishSnapshot() {
       state.platform === 'windows' && result.reconciliationRequired === true;
     state.englishRestoreNeeded = state.englishRestoreNeeded || runtimeResidueDetected;
     setBusy(state.busy);
-    const refreshed = runtimeResidueDetected
-      ? t('runtimeResidueAfterRefresh', { count: result.count })
-      : t('extractSuccess', { count: result.count });
+    const statusKey = runtimeResidueDetected
+      ? 'runtimeResidueAfterRefresh'
+      : warnings
+        ? 'extractSuccessWarning'
+        : 'extractSuccess';
+    const message = `${t(statusKey, { count: result.count, warnings })}${
+      runtimeResidueDetected && warnings ? ` ${warnings}` : ''
+    }`;
     setStatus(
-      runtimeResidueDetected
-        ? `${refreshed}${warnings ? ` ${warnings}` : ''}`
-        : warnings
-        ? t('extractSuccessWarning', { count: result.count, warnings })
-        : refreshed,
-      runtimeResidueDetected || warnings ? 'warning' : 'success'
+      statusKey,
+      runtimeResidueDetected || warnings ? 'warning' : 'success',
+      { count: result.count, warnings },
+      message
     );
   } finally {
     setBusy(false);
@@ -593,15 +608,15 @@ async function refreshEnglishSnapshot() {
 
 function requestApply() {
   if (!state.appPath) {
-    setStatus(t('chooseAppFirst'), 'warning');
+    setStatus('chooseAppFirst', 'warning');
     return;
   }
   if (!languageSelect.value) {
-    setStatus(t('noLanguage'), 'warning');
+    setStatus('noLanguage', 'warning');
     return;
   }
   if (requiresCavalryReinstall()) {
-    setStatus(t('reinstallRequired'), 'error');
+    setStatus('reinstallRequired', 'error');
     return;
   }
   if (state.stateDurabilityPending) {
@@ -609,7 +624,7 @@ function requestApply() {
     return;
   }
   if (state.needsExtract) {
-    setStatus(t('needsExtract'), 'warning');
+    setStatus('needsExtract', 'warning');
     return;
   }
 
@@ -625,11 +640,11 @@ function requestEnglishRestore() {
     return;
   }
   if (!state.appPath) {
-    setStatus(t('chooseAppFirst'), 'warning');
+    setStatus('chooseAppFirst', 'warning');
     return;
   }
   if (requiresCavalryReinstall()) {
-    setStatus(t('reinstallRequired'), 'error');
+    setStatus('reinstallRequired', 'error');
     return;
   }
   if (state.stateDurabilityPending) {
@@ -637,7 +652,7 @@ function requestEnglishRestore() {
     return;
   }
   if (state.needsExtract) {
-    setStatus(t('needsExtract'), 'warning');
+    setStatus('needsExtract', 'warning');
     return;
   }
   showApplyConfirmation('en');
@@ -645,11 +660,11 @@ function requestEnglishRestore() {
 
 function requestOfficialRestore() {
   if (!state.appPath) {
-    setStatus(t('chooseAppFirst'), 'warning');
+    setStatus('chooseAppFirst', 'warning');
     return;
   }
   if (requiresCavalryReinstall()) {
-    setStatus(t('reinstallRequired'), 'error');
+    setStatus('reinstallRequired', 'error');
     return;
   }
   if (state.stateDurabilityPending) {
@@ -657,7 +672,7 @@ function requestOfficialRestore() {
     return;
   }
   if (state.needsExtract) {
-    setStatus(t('needsExtract'), 'warning');
+    setStatus('needsExtract', 'warning');
     return;
   }
   showRestoreConfirmation();
@@ -671,7 +686,8 @@ async function runApply(nextLanguage) {
   state.pendingAction = nextLanguage;
   setBusy(true);
   setPermissionWait(false);
-  setStatus(t('applying', { language: languageLabel(nextLanguage) }));
+  const language = languageLabel(nextLanguage);
+  setStatus('applying', 'neutral', { language });
 
   try {
     const result = await api.applyLanguage(state.appPath, nextLanguage);
@@ -681,10 +697,10 @@ async function runApply(nextLanguage) {
         return;
       }
       if (result.errorCode === 'cavalryStillRunning') {
-        setStatus(t('cavalryStillRunning'), 'error');
+        setStatus('cavalryStillRunning', 'error');
         return;
       }
-      setStatus(withDetail('patchFailed', result.error), 'error');
+      setStatus('patchFailed', 'error');
       return;
     }
 
@@ -697,16 +713,16 @@ async function runApply(nextLanguage) {
     state.pendingAction = '';
     if (nextLanguage === 'restore-official') {
       setStatus(
-        warnings ? t('officialRestoreWithWarnings', { warnings }) : t('officialRestoreSuccess'),
-        warnings ? 'warning' : 'success'
+        warnings ? 'officialRestoreWithWarnings' : 'officialRestoreSuccess',
+        warnings ? 'warning' : 'success',
+        { warnings }
       );
       return;
     }
     setStatus(
-      warnings
-        ? t('appliedWithWarnings', { language: languageLabel(nextLanguage), warnings })
-        : t('applied', { language: languageLabel(nextLanguage), warning: '' }),
-      warnings ? 'warning' : 'success'
+      warnings ? 'appliedWithWarnings' : 'applied',
+      warnings ? 'warning' : 'success',
+      { language, warnings, warning: '' }
     );
   } finally {
     setBusy(false);
@@ -715,13 +731,13 @@ async function runApply(nextLanguage) {
 
 async function openPrivacySecurity() {
   if (!api.openPrivacySecurity) {
-    setStatus(t('openPrivacyFailed'), 'error');
+    setStatus('openPrivacyFailed', 'error');
     return;
   }
 
   const result = await api.openPrivacySecurity();
   if (!result.ok) {
-    setStatus(withDetail('openPrivacyFailed', result.error), 'error');
+    setStatus('openPrivacyFailed', 'error');
   }
 }
 
@@ -768,5 +784,5 @@ modalBackdrop.addEventListener('click', (event) => {
 bootstrap()
   .then(() => checkForUpdates())
   .catch(() => {
-    setStatus(t('bootstrapFailed', { detail: t('operationFailed') }), 'error');
+    setStatus('bootstrapFailed', 'error', { detail: t('operationFailed') });
   });

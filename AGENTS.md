@@ -34,7 +34,7 @@ Cavalry-i18n/
 | Task | Location | Notes |
 | --- | --- | --- |
 | Project map | `CLAUDE.md` + module `CLAUDE.md` | Read before touching a directory. L2/L3 docs are part of the contract. |
-| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, local Geist typography, native select, single update icon/tooltip preview, modal, status panel. |
+| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, platform system typography, custom semantic select, language/install badges, single update icon/tooltip preview, modal, and four-locale semantic Alert titles/bodies. |
 | Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Payloads are camelCase only; updater installation consumes only Rust-held checked state, never renderer artifact inputs. |
 | IPC commands | `src-tauri/src/commands.rs` | Exactly 8 commands: status, browse, extract English, apply, open Privacy, restart, check update, install update. |
 | JSON asset mapping | `src-tauri/src/patch.rs` | `CORE_MAP`, keyed overlay, packaged-English content proof, snapshot completeness/provenance. |

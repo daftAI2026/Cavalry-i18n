@@ -1,6 +1,6 @@
 <!--
-  [INPUT]: 依赖 ./styles.css 与本地 Geist 字体提供离线视觉系统、./select-control.js 提供 Base UI 语义的轻量选择状态机、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
-  [OUTPUT]: 对外提供原生 macOS 窗口控件下的可拖拽标题区、安装对象卡、自绘语言选择器、三个独立维护动作、持久状态 Alert、更新 tooltip 与原生 alert dialog 锚点
+  [INPUT]: 依赖 ./styles.css 与系统字体栈提供离线视觉系统、./select-control.js 提供 Base UI 语义的轻量选择状态机、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
+  [OUTPUT]: 对外提供原生 macOS 窗口控件下的可拖拽标题区、语言与安装状态双徽章的安装对象卡、自绘语言选择器、三个独立维护动作、持久状态 Alert、更新 tooltip 与原生 alert dialog 锚点
   [POS]: renderer 的唯一视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，不伪造交通灯或后端状态
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -40,7 +40,8 @@
           <div class="installation-main">
             <div class="installation-heading">
               <h1 id="appVersion" class="installation-name" translate="no">Cavalry not found</h1>
-              <span id="currentLanguage" class="badge" data-state="unknown">English</span>
+              <span id="currentLanguage" class="badge" data-kind="language">English</span>
+              <span id="installationBadge" class="badge" data-kind="installation" data-state="unknown" hidden></span>
             </div>
             <p id="appPath" class="app-path">Choose a Cavalry installation to begin.</p>
             <span id="currentLabel" class="sr-only">Current</span>
