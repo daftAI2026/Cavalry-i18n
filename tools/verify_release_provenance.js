@@ -1,13 +1,15 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: release-asset-provenance.json、signed ReleaseAcceptanceSeal、CycloneDX SBOM、toolchain evidence and primary assets.
- * [OUTPUT]: validates public provenance records point to the same tag/source/release commits and exact signed supply-chain/primary artifact bytes.
+ * [INPUT]: release-asset-provenance.json、schema v5 signed ReleaseAcceptanceSeal、CycloneDX SBOM、toolchain evidence 与人工安装/updater 九项分发资产
+ * [OUTPUT]: 校验公开 provenance 与 tag/source/release commit、signed supply-chain 及完整人工安装/updater 分发字节一致
  * [POS]: last local provenance gate before GitHub Release upload.
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
 const fs = require('node:fs'); const path = require('node:path'); const crypto = require('node:crypto');
 const { verifySealSignature } = require('./release_seal_signature');
+const { loadConfig, metadataForTag } = require('./release_metadata');
+const { verifyManifestClosure } = require('./create_updater_manifest');
 const args = process.argv.slice(2);
 function fail(message) { throw new Error(message); }
 function optionValue(name) { const i = args.indexOf(name); if (i === -1) return null; const value = args[i + 1]; if (!value || value.startsWith('--')) fail(`${name} requires a value.`); return value; }
@@ -46,9 +48,27 @@ function main() {
    names.add(asset.name);
    if (!same(asset, info(path.join(dist, asset.name)))) fail(`Provenance primary asset mismatch: ${asset.name || '<missing>'}`);
  }
- exactKeys(seal.assets, ['aarch64', 'x64', 'windowsX64'], 'Signed seal assets');
+ exactKeys(seal.assets, [
+   'aarch64', 'x64', 'windowsX64',
+   'updaterManifest', 'updaterAarch64', 'updaterAarch64Signature',
+   'updaterX64', 'updaterX64Signature', 'updaterWindowsX64Signature',
+ ], 'Signed seal assets');
  const sealedAssets = Object.values(seal.assets);
  if (sealedAssets.length !== provenance.assets.length || sealedAssets.some((asset) => !provenance.assets.some((candidate) => same(candidate, asset)))) fail('Provenance primary assets do not match the signed seal assets.');
+ verifyManifestClosure({
+   manifestPath: path.join(dist, seal.assets.updaterManifest.name),
+   metadata: metadataForTag(loadConfig(), provenance.tag),
+   artifacts: {
+     'darwin-aarch64': path.join(dist, seal.assets.updaterAarch64.name),
+     'darwin-x86_64': path.join(dist, seal.assets.updaterX64.name),
+     'windows-x86_64': path.join(dist, seal.assets.windowsX64.name),
+   },
+   signatures: {
+     'darwin-aarch64': path.join(dist, seal.assets.updaterAarch64Signature.name),
+     'darwin-x86_64': path.join(dist, seal.assets.updaterX64Signature.name),
+     'windows-x86_64': path.join(dist, seal.assets.updaterWindowsX64Signature.name),
+   },
+ });
  const expectedPrimary = repeated('--primary');
  if (expectedPrimary.length && (expectedPrimary.length !== names.size || expectedPrimary.some((name) => !names.has(name)))) fail('Provenance primary asset set does not match required assets.');
  console.log(`[verify-release-provenance] OK: ${provenance.tag} binds signed seal, SBOM, toolchain and ${provenance.assets.length} assets`);

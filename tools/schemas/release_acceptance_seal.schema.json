@@ -26,7 +26,7 @@
   "properties": {
     "schemaVersion": {
       "type": "integer",
-      "const": 4
+      "const": 5
     },
     "kind": {
       "type": "string",
@@ -136,7 +136,13 @@
       "required": [
         "aarch64",
         "x64",
-        "windowsX64"
+        "windowsX64",
+        "updaterManifest",
+        "updaterAarch64",
+        "updaterAarch64Signature",
+        "updaterX64",
+        "updaterX64Signature",
+        "updaterWindowsX64Signature"
       ],
       "properties": {
         "aarch64": {
@@ -146,6 +152,24 @@
           "$ref": "#/$defs/asset"
         },
         "windowsX64": {
+          "$ref": "#/$defs/asset"
+        },
+        "updaterManifest": {
+          "$ref": "#/$defs/asset"
+        },
+        "updaterAarch64": {
+          "$ref": "#/$defs/asset"
+        },
+        "updaterAarch64Signature": {
+          "$ref": "#/$defs/asset"
+        },
+        "updaterX64": {
+          "$ref": "#/$defs/asset"
+        },
+        "updaterX64Signature": {
+          "$ref": "#/$defs/asset"
+        },
+        "updaterWindowsX64Signature": {
           "$ref": "#/$defs/asset"
         }
       }

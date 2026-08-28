@@ -2,8 +2,8 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-README.md: release tag 前置 acceptance evidence/attestation 与最终资产 seal 的操作合同；说明 source commit、evidence-only commit、外部 detached signer、双 trust anchor 及 tag/release 的 fail-closed 顺序。
-TODO.md: 下一次 Cavalry 2.7.2 发布的临时执行清单；集中维护 Mac live、可复验 Windows 原始 session、双平台 evidence、外部 attestation、tag 和发布状态。
+README.md: release tag 前置 acceptance evidence/attestation 与 schema v5 最终资产 seal 的操作合同；说明 source/evidence-only commit、外部 detached signer、双 trust anchor，以及人工安装/updater 九项分发资产进入 private-draft exact readback 的 fail-closed 顺序。
+TODO.md: 从 Windows release acceptance handoff 合并的临时执行清单；保留 source commit `9e293df` 的 Mac live、可复验 Windows 原始 session、双平台 evidence 与外部 attestation 债务，当前候选执行状态以 `docs/roadmap/switcher-update-release-event-ledger.md` 为准。
 
 依赖边界:
 - 本目录只跟踪流程合同和发布待办，不保存 live session、截图、私钥或最终发布资产。

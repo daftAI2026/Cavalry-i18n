@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 package.json 与 src-tauri/Cargo.toml 的版本声明
- * [OUTPUT]: 对外提供 Tauri v2 minor pinning contract test
+ * [OUTPUT]: 对外提供 Tauri v2 minor 与 updater plugin 固定版本 contract test
  * [POS]: src-tauri/tests 的版本守门，阻止 npm 与 Rust Tauri 依赖漂移
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -45,6 +45,10 @@ fn tauri_versions_are_pinned_to_one_v2_minor() {
     assert_eq!(dev_deps["@tauri-apps/cli"], "2.10.1");
     assert_eq!(dependency_version(&cargo_toml, "tauri"), "=2.10.3");
     assert_eq!(dependency_version(&cargo_toml, "tauri-build"), "=2.5.6");
+    assert_eq!(
+        dependency_version(&cargo_toml, "tauri-plugin-updater"),
+        "=2.10.1"
+    );
     assert!(!dependency_version(&cargo_toml, "tauri").starts_with('^'));
     assert!(!dependency_version(&cargo_toml, "tauri-build").starts_with('^'));
 }

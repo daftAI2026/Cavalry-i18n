@@ -214,7 +214,7 @@ impl CommandRunner for WindowsRuntimeRestartRunner {
 }
 
 #[test]
-fn registers_six_commands() {
+fn registers_eight_commands() {
     assert_eq!(
         registered_command_names(),
         &[
@@ -223,10 +223,12 @@ fn registers_six_commands() {
             "extract_english",
             "apply_language",
             "open_privacy_security",
-            "restart_cavalry"
+            "restart_cavalry",
+            "check_update",
+            "install_update"
         ]
     );
-    assert_eq!(COMMAND_NAMES.len(), 6);
+    assert_eq!(COMMAND_NAMES.len(), 8);
 }
 
 #[test]

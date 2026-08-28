@@ -1,6 +1,6 @@
 # CAVALRY-I18N KNOWLEDGE BASE
 
-Last verified: 2026-08-01 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
+Last verified: 2026-08-28 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
 
 ## OVERVIEW
 
@@ -23,9 +23,9 @@ Cavalry-i18n/
 ├── docs/                         # Translation rules, runtime capture workflow, audits, gates
 ├── output/                       # Derived JSON-surface audit artifacts; not runtime truth
 ├── desktop-patcher/              # Legacy injector artifact mirror; not current mainline
-├── .github/workflows/            # CI/CD, Windows NSIS / macOS package jobs, three-asset release publishing
+├── .github/workflows/            # CI/CD, manual installers plus signed three-platform updater release closure
 ├── LOCAL_BUILD_SOP.md            # Local Tauri packaging contract
-├── release.config.json           # Cavalry target release tag/title/DMG asset truth source
+├── release.config.json           # Tag/title/manual assets plus updater manifest/archive naming truth
 └── CLAUDE.md                     # L1 architecture map; update when this map changes
 ```
 
@@ -34,9 +34,9 @@ Cavalry-i18n/
 | Task | Location | Notes |
 | --- | --- | --- |
 | Project map | `CLAUDE.md` + module `CLAUDE.md` | Read before touching a directory. L2/L3 docs are part of the contract. |
-| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, stable localized shell copy, custom select, modal, status panel. |
-| Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Payloads are camelCase only. |
-| IPC commands | `src-tauri/src/commands.rs` | Exactly 6 commands: status, browse, extract English, apply, open Privacy, restart. |
+| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, local Geist typography, native select, single update icon/tooltip preview, modal, status panel. |
+| Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Payloads are camelCase only; updater installation consumes only Rust-held checked state, never renderer artifact inputs. |
+| IPC commands | `src-tauri/src/commands.rs` | Exactly 8 commands: status, browse, extract English, apply, open Privacy, restart, check update, install update. |
 | JSON asset mapping | `src-tauri/src/patch.rs` | `CORE_MAP`, keyed overlay, packaged-English content proof, snapshot completeness/provenance. |
 | System boundary | `src-tauri/src/privilege.rs`, `src-tauri/src/privilege/windows/language_transaction/` | Copy, same-EXE Program Files transaction, legacy admin fallback, re-signing, quarantine, Privacy & Security, restart commands. |
 | Keychain patch | `src-tauri/src/keychain_patch.rs` | Mach-O/fat slice parser and NOP patcher for Keychain query attributes. |
@@ -53,7 +53,7 @@ Cavalry-i18n/
 | Full UI gate | `docs/workflows/cavalry-full-ui-100/Acceptance.md`, `Runbook.md`, `tools/run_live_full_ui_matrix.js` | Current repository-wide live gate truth. CI does not run this gate. |
 | macOS scoped acceptance | `tools/macos-acceptance/`, `docs/workflows/cavalry-full-ui-100/runs/2026-07-29-macos-eight-surface-investigation.md` | Tracked producer for the 21-run/48-point matrix; generated tools and live evidence remain session-scoped. |
 | Runtime capture | `docs/runtime-ui-live-capture-workflow.md`, `tools/capture_accessibility_inventory.js`, `tools/merge_runtime_inventory.js` | Session-scoped provenance is mandatory. |
-| Release protocol | `release.config.json`, `tools/release_metadata.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` tags drive release title and three assets: two DMGs plus Windows x64 NSIS EXE. |
+| Release protocol | `release.config.json`, `tools/release_metadata.js`, `tools/create_updater_manifest.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` drives title/manual assets; package SemVer drives three-platform `latest.json`; tag publishing seals and exact-readbacks nine distribution assets. Shared public key/endpoint and protected updater secrets are configured; real signed-build and update evidence remain blocked. |
 | Local build | `LOCAL_BUILD_SOP.md`, `src-tauri/tauri.*.conf.json`, `tools/cavalry_qt_target.json` | Tauri-only package path, per-platform Qt build, DMG/NSIS validation. |
 
 ## CONVENTIONS

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/daftAI2026/Cavalry-i18n/tools/schemas/release_asset_provenance.schema.json",
   "title": "ReleaseAssetProvenance",
-  "description": "Public byte identities for the signed release seal, SBOM, toolchain evidence, and primary installers.",
+  "description": "Public byte identities for the signed release seal, SBOM, toolchain evidence, and the complete manual-installer/updater distribution closure.",
   "type": "object",
   "additionalProperties": false,
   "required": [

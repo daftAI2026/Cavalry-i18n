@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes manifest、macOS English UI/官方还原分离、Windows 只读刷新与 typed residue warning、干净英文态禁用恢复但英文残留态保留显式清理且复用普通 apply、apply warning 组合、state durability 显式刷新重试及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语/稳定 warningCodes 与 updater error manifest、默认隐藏且仅由预览或真实可用更新展示的图标/tooltip、脱敏更新确认/安装、原生 dialog 生命周期、English UI/官方还原分离、Windows residue、durability retry 及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,9 +14,13 @@ const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
 
 class Element {
-  constructor() { this.textContent = ''; this.dataset = {}; this.listeners = new Map(); this.attributes = new Map(); this.children = []; this.hidden = false; this.disabled = false; this.value = ''; }
+  constructor() { this.textContent = ''; this.dataset = {}; this.listeners = new Map(); this.attributes = new Map(); this.children = []; this.hidden = false; this.disabled = false; this.value = ''; this.open = false; this.focused = false; this.isConnected = true; this.ownerDocument = null; }
   addEventListener(type, callback) { this.listeners.set(type, [...(this.listeners.get(type) || []), callback]); }
   setAttribute(key, value = '') { this.attributes.set(key, String(value)); }
+  removeAttribute(key) { this.attributes.delete(key); }
+  focus() { this.focused = true; if (this.ownerDocument) this.ownerDocument.activeElement = this; }
+  showModal() { this.open = true; this.setAttribute('open', ''); }
+  close() { this.open = false; this.removeAttribute('open'); for (const callback of this.listeners.get('close') || []) callback(); }
   append(child) { this.children.push(child); this.options = this.children; }
   replaceChildren() { this.children = []; this.options = this.children; }
 }
@@ -26,16 +30,23 @@ function runtime({
   reject = null,
   apply = { ok: true, currentLang: 'zh-Hans' },
   extract = { ok: true, count: 38 },
+  update = { currentVersion: '0.7.0', version: null, notes: null, pubDate: null, available: false, errorCode: null },
+  install = { currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null, available: true, errorCode: 'updateInstallFailed' },
   locale = 'en-US',
+  preview = false,
+  statusRequest = null,
 } = {}) {
-  const ids = ['appVersion', 'appPath', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
+  const ids = ['skipLink', 'appVersion', 'appPath', 'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const document = {
-    documentElement: new Element(), title: '',
+    documentElement: new Element(), body: new Element(), activeElement: null, title: '',
     querySelector(selector) { return elements[selector]; },
     createElement() { return new Element(); },
   };
+  for (const element of [...Object.values(elements), document.documentElement, document.body]) {
+    element.ownerDocument = document;
+  }
   const defaultStatus = {
     appManagementGranted: true, appPath: '/Applications/Cavalry.app', currentLang: 'zh-Hans',
     defaultAppCandidates: ['/Applications/Cavalry.app'], languages: [{ value: 'attacker', label: '<img>' }],
@@ -44,14 +55,19 @@ function runtime({
   const applyResults = Array.isArray(apply) ? [...apply] : [apply];
   const extractResults = Array.isArray(extract) ? [...extract] : [extract];
   const nextResult = (results) => (results.length > 1 ? results.shift() : results[0]);
-  const window = { __TAURI_INTERNALS__: { invoke(command, payload) {
+  const window = {
+    location: { protocol: 'http:', hostname: '127.0.0.1', search: preview ? '?preview=update' : '' },
+    __TAURI_INTERNALS__: { invoke(command, payload) {
     calls.push({ command, payload });
     if (reject === command) return Promise.reject(new Error('transport failure'));
-    if (command === 'get_status') return Promise.resolve(defaultStatus);
+    if (command === 'get_status') return statusRequest ? statusRequest(defaultStatus) : Promise.resolve(defaultStatus);
     if (command === 'apply_language') return Promise.resolve(nextResult(applyResults));
     if (command === 'extract_english') return Promise.resolve(nextResult(extractResults));
+    if (command === 'check_update') return Promise.resolve(update);
+    if (command === 'install_update') return Promise.resolve(install);
     return Promise.resolve({ ok: true });
-  } } };
+    } },
+  };
   const context = { window, document, navigator: { language: locale, languages: [locale] }, Promise, console, setTimeout, clearTimeout };
   context.globalThis = context;
   return { elements, calls, window, context };
@@ -95,6 +111,140 @@ test('status panel label follows the selected UI locale', async () => {
   }
 });
 
+test('update icon stays hidden by default and exposes an explicit development-only tooltip preview', async () => {
+  for (const [locale, tooltip] of [
+    ['en-US', 'New version available'],
+    ['zh-CN', '发现新版本'],
+    ['zh-TW', '發現新版本'],
+    ['ja-JP', '新しいバージョンがあります'],
+  ]) {
+    const r = boot({ locale });
+    await flush();
+    assert.equal(r.elements['#updateTooltip'].textContent, tooltip, locale);
+    assert.equal(r.elements['#updateControl'].hidden, true, locale);
+    const statusBeforeClick = r.elements['#statusText'].textContent;
+    const toneBeforeClick = r.elements['#statusText'].dataset.tone;
+    r.elements['#updateButton'].listeners.get('click')[0]();
+    assert.equal(r.elements['#statusText'].textContent, statusBeforeClick, locale);
+    assert.equal(r.elements['#statusText'].dataset.tone, toneBeforeClick, locale);
+    assert.deepEqual(
+      r.calls.filter(({ command }) => command !== 'get_status').map(({ command }) => command),
+      ['check_update']
+    );
+  }
+
+  const preview = boot({ preview: true });
+  await flush();
+  assert.equal(preview.elements['#updateControl'].hidden, false);
+  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
+  preview.elements['#updateControl'].listeners.get('mouseenter')[0]();
+  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
+  preview.elements['#updateControl'].listeners.get('mouseleave')[0]();
+  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
+  preview.elements['#updateControl'].listeners.get('focusin')[0]();
+  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
+  preview.elements['#updateButton'].listeners.get('keydown')[0]({ key: 'Escape' });
+  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
+  preview.elements['#updateControl'].listeners.get('focusin')[0]();
+  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
+  preview.elements['#updateButton'].listeners.get('click')[0]();
+  assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
+  assert.equal(preview.elements['#statusText'].dataset.tone, 'success');
+  assert.match(preview.elements['#statusText'].textContent, /preview is active/i);
+  assert.equal(preview.calls.filter(({ command }) => command !== 'get_status').length, 0);
+});
+
+test('signed update result is announced, confirmed, and installed without renderer-controlled artifact data', async () => {
+  const r = boot({
+    update: {
+      currentVersion: '0.7.0',
+      version: '0.7.1',
+      notes: 'Security and UI fixes',
+      pubDate: '2026-08-28T00:00:00.000Z',
+      available: true,
+      errorCode: null,
+      url: 'https://attacker.invalid/update',
+      signature: 'must-not-cross',
+      rawJson: '<script>',
+    },
+    install: {
+      currentVersion: '0.7.0',
+      version: '0.7.1',
+      available: true,
+      errorCode: 'futureBackendFailure',
+    },
+  });
+  await flush();
+
+  assert.equal(r.elements['#updateControl'].hidden, false);
+  assert.match(r.elements['#updateAnnouncement'].textContent, /0\.7\.1/);
+  const checked = await r.window.cavalryI18n.checkUpdate();
+  assert.deepEqual(Object.keys(checked), [
+    'currentVersion', 'version', 'notes', 'pubDate', 'available', 'errorCode',
+  ]);
+
+  r.context.document.activeElement = r.elements['#updateButton'];
+  r.elements['#updateButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalBackdrop'].open, true);
+  assert.match(r.elements['#modalTitle'].textContent, /Update the Switcher/);
+  assert.match(r.elements['#modalBody'].textContent, /Security and UI fixes/);
+  assert.match(r.elements['#modalBody'].textContent, /ad-hoc/);
+
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  const installs = r.calls.filter(({ command }) => command === 'install_update');
+  assert.equal(installs.length, 1);
+  assert.equal(installs[0].payload, undefined);
+  assert.equal(r.elements['#statusText'].dataset.tone, 'error');
+  assert.match(r.elements['#statusText'].textContent, /could not be installed/i);
+});
+
+test('bootstrap keeps mutation controls disabled until status is ready', async () => {
+  let resolveStatus;
+  const pendingStatus = new Promise((resolve) => { resolveStatus = resolve; });
+  const r = boot({ statusRequest: () => pendingStatus });
+  for (const id of ['#browseButton', '#extractButton', '#applyButton', '#restoreEnglishButton', '#restoreButton', '#languageSelect']) {
+    assert.equal(r.elements[id].disabled, true, `${id} must fail closed before getStatus resolves`);
+  }
+  resolveStatus({
+    appManagementGranted: true,
+    appPath: '/Applications/Cavalry.app',
+    currentLang: 'zh-Hans',
+    installationMode: 'official',
+    startupRecoveryError: null,
+    defaultAppCandidates: ['/Applications/Cavalry.app'],
+    needsExtract: false,
+    permissionAction: 'none',
+    platform: 'macos',
+    reconciliationRequired: false,
+    version: '2.7.2',
+  });
+  await flush();
+  assert.equal(r.elements['#browseButton'].disabled, false);
+  assert.equal(r.elements['#applyButton'].disabled, false);
+  assert.equal(r.elements['#languageSelect'].disabled, false);
+});
+
+test('native dialog has one close owner, ignores right-click backdrop, and restores focus', async () => {
+  const r = boot({ status: { currentLang: 'zh-Hans' } });
+  await flush();
+  const trigger = r.elements['#applyButton'];
+  r.context.document.activeElement = trigger;
+  trigger.listeners.get('click')[0]();
+  assert.equal(r.elements['#modalBackdrop'].open, true);
+  assert.equal(r.context.document.activeElement, r.elements['#modalPrimaryButton']);
+
+  const backdropClick = r.elements['#modalBackdrop'].listeners.get('click')[0];
+  backdropClick({ target: r.elements['#modalBackdrop'], button: 2, defaultPrevented: false });
+  assert.equal(r.elements['#modalBackdrop'].open, true, 'right-click must not dismiss the dialog');
+  backdropClick({ target: new Element(), button: 0, defaultPrevented: false });
+  assert.equal(r.elements['#modalBackdrop'].open, true, 'inside click must not dismiss the dialog');
+  backdropClick({ target: r.elements['#modalBackdrop'], button: 0, defaultPrevented: false });
+  assert.equal(r.elements['#modalBackdrop'].open, false);
+  assert.equal(trigger.focused, true, 'the original trigger regains focus after close');
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+});
+
 test('English restore is disabled in English and otherwise uses the ordinary apply confirmation', async () => {
   const english = boot({ status: { currentLang: 'en' } }); await flush();
   assert.equal(english.elements['#currentLanguage'].textContent, 'English UI');
@@ -108,8 +258,11 @@ test('English restore is disabled in English and otherwise uses the ordinary app
   assert.equal(translated.elements['#restoreEnglishButton'].disabled, false);
   translated.elements['#restoreEnglishButton'].listeners.get('click')[0]();
   assert.equal(translated.elements['#modalTitle'].textContent, 'Install language pack?');
+  assert.equal(translated.elements['#modalBackdrop'].open, true);
+  assert.equal(translated.elements['#modalPrimaryButton'].focused, true);
   translated.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
+  assert.equal(translated.elements['#modalBackdrop'].open, false);
   assert.deepEqual(JSON.parse(JSON.stringify(translated.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
   });

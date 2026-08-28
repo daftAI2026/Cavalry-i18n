@@ -3,7 +3,7 @@ HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows ge
 
 <directory>
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
-.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同测试、PR 级无 vendor app 的 macOS universal product injector 与 acceptance producer 编译、Windows generic/QPA + NSIS 构建、隔离安装/更新/卸载哨兵门与 tag 双架构打包，并上传三种发布资产 (YAML)
+.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同/原生/漏洞/acceptance 门；tag 汇合三项人工安装与六项 updater manifest/archive/signature 资产，经 schema v5 seal/private-draft exact readback 后发布 (YAML)
 release-seals/ - release tag 前置的真实 macOS acceptance evidence 与独立签名 attestation 约定；仅提交按 tag 命名、由受控 session 派生的两份 JSON，不保存私钥或现场缓存 (Markdown, JSON)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
 docs/ - 架构计划、翻译规范、工作流协议与历史证据链 (Markdown, JS, Shell)
@@ -24,7 +24,7 @@ README.zh-Hant.md - 繁体中文 README，本地化主文档并保持命令、�
 README.ja_JP.md - 日文 README，本地化主文档并保持命令、路径与版本不漂移
 package.json - 项目元数据与核心构建/测试指令
 package-lock.json - npm 依赖锁定文件，冻结 Tauri CLI 与运行时 API 版本
-release.config.json - GitHub Release 协议真相源，声明 Cavalry 目标版本、tag 格式、标题模板与三种资产名（Apple Silicon DMG、Intel DMG、Windows x64 NSIS EXE）
+release.config.json - GitHub Release 协议真相源，声明 Cavalry 目标版本、tag/标题、三种人工安装资产及 updater manifest/download/archive 的唯一命名；线上更新仍由共享 Tauri 配置中的最终公钥/endpoint 独立启用
 SECURITY.md - 支持渠道、私密漏洞上报、平台签名边界与 supply-chain 控制说明
 rust-toolchain.toml - CI/本地 Rust channel 固定入口，禁止 tag 构建漂移到浮动 stable
 requirements-ci.in / requirements-ci.txt - Qt SDK bootstrap 的 Python 顶层声明与完整 `--require-hashes` 锁定闭包；固定 CPython 3.12.6/Linux active set 另由漏洞策略精确绑定
@@ -34,6 +34,7 @@ src-tauri/Cargo.lock - Rust 依赖锁定文件，保证本地与 CI 构建同构
 src-tauri/tauri.conf.json - Tauri 共享运行配置
 src-tauri/tauri.macos.conf.json - macOS 覆盖配置，声明 DMG/bundle 与 dylib 资源
 src-tauri/tauri.windows.conf.json - Windows 覆盖配置，声明 NSIS/x64 与 generic translator/QPA delegate 资源
+src-tauri/tauri.updater-artifacts.conf.json - updater 产物覆盖，仅启用签名 archive/sidecar 生成；与共享配置中已固定的最终公钥/endpoint 合并，并只由 tag 或受保护的无发布签名 smoke 使用
 injector/generated_translations.inc - 编译期嵌入的翻译静态表
 injector/cavalry_i18n_macos_tool_help_text_path.{h,cpp} - macOS TransformTool 五条自绘 action 的双 slice Mach-O/caller/Skia ABI 适配边界
 </config>

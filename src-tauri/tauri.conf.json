@@ -12,7 +12,7 @@
       {
         "label": "main",
         "title": "Cavalry Language Switcher",
-        "url": "index.html",
+        "url": "./index.html",
         "useHttpsScheme": false,
         "width": 480,
         "height": 528,
@@ -31,5 +31,13 @@
   },
   "bundle": {
     "active": true
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVDRDdFNUIyRTIzQjk1QzQKUldURWxUdmlzdVhYN05HcFozNDdLeE1mMlAyakdZRWtrRktLNFk1SmpqSmptNDN6U0JmNFJSQ0wK",
+      "endpoints": [
+        "https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download/latest.json"
+      ]
+    }
   }
 }

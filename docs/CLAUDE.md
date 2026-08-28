@@ -10,7 +10,7 @@ runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义�
 translation-guidelines.md: 翻译规范，约束语言风格、保留词、快捷键身份原文/操作本地化例外、Forge Dynamics 显示层/模型层分流与界面一致性。
 user-story-status.xlsx: canonical 用户故事状态表，按代码反推 Cavalry-i18n 功能、预期行为、测试证据、错误与修复状态。
 audits/: 审计报告与实跑记录目录，保存阶段性人工/自动检查结果；新问题先沉淀 dated report，再决定是否升格为 workflow。
-roadmap/: 路线图目录，保存 proposed/active 的未来优化主题；当前含 Windows 移植与注入路线，每个主题链接对应事实依据并拆出阶段性验收标准。
+roadmap/: 路线图目录，保存 proposed/active 的未来优化主题与本轮执行事件簿；当前含本地化搜索、Runtime 性能、Windows 移植与注入、已完成 R0 单图标/tooltip preview 但仍保留完整 updater 未实现边界的 Switcher 更新与可信分发路线，以及 UI/Updater/实机/release/tag/清理事项的证据化跟踪，每个主题链接对应事实依据并拆出阶段性验收标准。
 workflows/: 文档化工作流，当前仅 `cavalry-full-ui-100/` 为 full-ui gate 主线；早期 `cavalry-i18n/` 已归档到 `archive/workflows-cavalry-i18n/`。
 img/: 静态资源库，存放 README 截图与文档示意图。
 badges/: README badge endpoint 数据源目录，保存发布 workflow 写回的 Shields JSON 投影。
@@ -37,5 +37,6 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 2026-07-30: 新增 Windows Onboarding live 验证 session 复盘，将恢复工作区/登录干扰、step 5 退出风险、可复用 driver/helper、证据封存和 macOS 迁移边界沉淀到 PR #3 的长期文档；2026-07-31 同步实际 Qt test profile 与 bounded transition retry。
 2026-07-30: 从任务事件流恢复 macOS 21-run/48-point acceptance producer 至 `tools/macos-acceptance/`，run note 与双平台 handoff 同步记录 tracked source、session artifact 和历史 PASS 的不可混写边界。
 2026-07-31: 关闭 PR #3 Windows Tag/Assets `PENDING-WINDOWS-PRODUCER`，新增绑定三语 6/6 逻辑点、9/9 producer-side PNG 与 exact PID/HWND 锚点的 session 交接；验收 driver 独立于产品 DLL，登录/工作区由 Qt test profile 隔离，cleanup 对 exact disposable PID 可受限强停但不参与 PASS，repository-wide G0-G4 仍不冒充完成。
+2026-08-28: 新增并完成 Switcher 更新提示 R0 单图标/tooltip preview，生产默认隐藏，明确不接网络、GitHub、bridge、Rust command 或 updater；Tauri updater、独立签名、Apple Developer ID/notarization、Windows Authenticode、SemVer bootstrap 与跨版本实机验收仍未实现；不改变当前发布 SOP。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

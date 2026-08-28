@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Update Availability Surface**: Added a four-language update icon, tooltip, screen-reader announcement, confirmation dialog, and macOS new-bundle ad-hoc/Gatekeeper reminder. The 16px user-supplied arrow appears in a 32px green action only for an explicit local preview or a signed updater result.
+- **Tauri Updater Foundation**: Added pinned `tauri-plugin-updater` Rust commands for checking and installing updates. Renderer payloads omit artifact URLs, signatures, and raw responses; installation accepts no renderer-controlled artifact input and consumes only the most recently checked `Update` held in Rust State. The final public key and GitHub `latest.json` endpoint are pinned in shared configuration; protected updater secrets are provisioned, while real signed-build and cross-version evidence remain required before automatic updates can ship.
+- **Signed Updater Release Closure**: Added deterministic three-platform `latest.json` generation and tag-only Tauri artifact signing. The schema v5 release seal, provenance, `SHA256SUMS`, and private-draft exact readback now bind three manual installers plus macOS archives/signatures and the Windows NSIS signature; ordinary PR/main builds never receive the updater private key.
+
+### Changed
+- **Switcher Task Hierarchy, First Pass**: Reorganized the compact desktop UI around the selected Cavalry installation, one primary language action, secondary English maintenance, and quiet status feedback. The renderer now uses the Vercel design.md spacing/type/control scale, native select and dialog behavior, localized non-wrapping maintenance labels with complete accessible names, stable top alignment, and explicit keyboard focus states without adding a component runtime. Final visual refinement remains open.
+
 ## [0.7.0] - 2026-08-09
 
 ### Added

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持六条稳定 Tauri command、apply/extract 兼容入口；extract 只验证并生成 English snapshot、返回 Windows residue 的 typed reconciliationRequired 检测结果且不恢复 pending transaction，renderer 的 English restore 直接复用既有 apply transaction；get_status 从安装现实重算该 typed 状态并显式投影启动恢复阻断，apply 在同一 operation guard 内完成成功后的 restart，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes。
+ * [OUTPUT]: 保持八条稳定 Tauri command 与 apply/extract 兼容入口；extract 只验证并生成 English snapshot、返回 Windows residue 的 typed reconciliationRequired 检测结果且不恢复 pending transaction，renderer 的 English restore 直接复用既有 apply transaction；get_status 从安装现实重算该 typed 状态并显式投影启动恢复阻断，apply 在同一 operation guard 内完成成功后的 restart，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；更新 command 只消费 Rust State 中的已检查 Update。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -13,6 +13,7 @@ mod status;
 #[cfg(test)]
 #[path = "commands/tests.rs"]
 mod tests;
+mod update;
 
 use chrono::{SecondsFormat, Utc};
 use std::path::PathBuf;
@@ -28,6 +29,8 @@ pub use restart::restart_cavalry_inner;
 pub use snapshot::extract_english_inner;
 #[cfg(target_os = "windows")]
 pub(crate) use snapshot::refresh_english_inner;
+pub use update::UpdatePayload;
+pub(crate) use update::UpdaterState;
 
 pub fn registered_command_names() -> &'static [&'static str] {
     &contract::COMMAND_NAMES
@@ -127,6 +130,16 @@ pub async fn apply_language(
         Ok(Err(error)) => ActionPayload::error(&error),
         Err(error) => ActionPayload::error(&format!("Language apply task failed: {error}")),
     }
+}
+
+#[tauri::command]
+pub async fn check_update(app: tauri::AppHandle) -> UpdatePayload {
+    update::check_update_inner(app).await
+}
+
+#[tauri::command]
+pub async fn install_update(app: tauri::AppHandle) -> UpdatePayload {
+    update::install_update_inner(app).await
 }
 
 #[tauri::command]

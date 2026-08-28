@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台 dev/build 前生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance（Authenticode 另跟踪）、PR 级 clean-macOS universal link gate、仅接受已包含于 origin/main 且带 live evidence 的 tag commit 所生成的 GitHub Release
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、人工安装/updater 资产命名、显式 renderer 文档入口、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -142,6 +142,9 @@ function makeWindowsNsisProvenanceFixture() {
         },
       },
     },
+  });
+  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.updater-artifacts.conf.json'), {
+    bundle: { createUpdaterArtifacts: true },
   });
   writeJson(path.join(tempRoot, 'src-tauri', 'capabilities', 'default.json'), { permissions: [] });
   write('renderer/index.html', '<!doctype html><title>fixture</title>');
@@ -320,6 +323,7 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   assert.equal(provenance.version, '9.8.7');
   assert.equal(provenance.installer.fileName, installerName);
   assert.equal(provenance.installer.bytes, Buffer.byteLength('fresh-installer-bytes'));
+  assert.equal(provenance.updaterSignature, null);
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'renderer/index.html'));
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'languages/en/appStrings.json'));
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'src-tauri/src/lib.rs'));
@@ -333,6 +337,7 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
     'src-tauri/build.rs',
     'src-tauri/tauri.conf.json',
     'src-tauri/tauri.windows.conf.json',
+    'src-tauri/tauri.updater-artifacts.conf.json',
     'src-tauri/nsis-hooks.nsh',
     'src-tauri/capabilities/default.json',
     'src-tauri/icons/icon.ico',
@@ -397,6 +402,44 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   const staleInputs = run('--verify', installerPath);
   assert.notEqual(staleInputs.status, 0, 'a dirty packaging input must invalidate the old installer sidecar');
   assert.match(staleInputs.stderr, /sidecar does not match the current installer bytes and packaging input fingerprint/);
+});
+
+test('Windows NSIS provenance binds an updater signature only when tag intent requires it', () => {
+  const tempRoot = makeWindowsNsisProvenanceFixture();
+  const script = path.join(tempRoot, 'tools', 'windows_nsis_provenance.js');
+  const bundleRoot = path.join(
+    tempRoot,
+    'src-tauri',
+    'target',
+    'x86_64-pc-windows-msvc',
+    'release',
+    'bundle',
+    'nsis'
+  );
+  const installerPath = path.join(bundleRoot, 'Cavalry Language Switcher_9.8.7_x64-setup.exe');
+  const signaturePath = `${installerPath}.sig`;
+  const run = (...args) => spawnSync(process.execPath, [script, ...args], {
+    cwd: tempRoot,
+    encoding: 'utf8',
+    env: { ...process.env, CAVALRY_I18N_EXPECT_UPDATER_SIGNATURE: '1' },
+  });
+
+  fs.mkdirSync(bundleRoot, { recursive: true });
+  const prepared = run('--prepare');
+  assert.equal(prepared.status, 0, prepared.stderr || prepared.stdout);
+  fs.writeFileSync(installerPath, 'tag-installer');
+  fs.writeFileSync(signaturePath, `${Buffer.from('tag-updater-signature').toString('base64')}\n`);
+  const recorded = run('--record');
+  assert.equal(recorded.status, 0, recorded.stderr || recorded.stdout);
+  const provenance = JSON.parse(fs.readFileSync(`${installerPath}.provenance.json`, 'utf8'));
+  assert.equal(provenance.schemaVersion, 2);
+  assert.equal(provenance.updaterSignature.fileName, path.basename(signaturePath));
+  const verified = run('--verify', installerPath);
+  assert.equal(verified.status, 0, verified.stderr || verified.stdout);
+  fs.appendFileSync(signaturePath, 'tamper');
+  const tampered = run('--verify', installerPath);
+  assert.notEqual(tampered.status, 0);
+  assert.match(tampered.stderr, /sidecar does not match/);
 });
 
 test('Windows NSIS provenance refuses foreign stale installers instead of broad deletion', () => {
@@ -697,6 +740,14 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     windowsX64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_windows-x64-setup.exe',
   });
   assert.deepEqual(Object.keys(releaseConfig.assetNameTemplates).sort(), ['aarch64', 'windowsX64', 'x64']);
+  assert.deepEqual(releaseConfig.updater, {
+    manifestAssetName: 'latest.json',
+    downloadBaseUrl: 'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download',
+    macOSAssetNameTemplates: {
+      aarch64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.app.tar.gz',
+      x64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.app.tar.gz',
+    },
+  });
   assert.match(windowsBuild, /'-A', 'x64'/);
   assert.match(windowsBuild, /function Assert-NoReparsePathChain/);
   assert.match(windowsBuild, /function Reset-GeneratedBuildDirectory/);
@@ -842,6 +893,19 @@ test('release metadata script renders GitHub release fields from the patch tag',
     RELEASE_ASSET_NAME_X64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.dmg',
     RELEASE_ASSET_NAME_WINDOWS_X64:
       'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_windows-x64-setup.exe',
+    RELEASE_UPDATER_MANIFEST_NAME: 'latest.json',
+    RELEASE_UPDATER_DOWNLOAD_BASE_URL:
+      'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download',
+    RELEASE_UPDATER_ASSET_NAME_AARCH64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.app.tar.gz',
+    RELEASE_UPDATER_ASSET_NAME_X64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.app.tar.gz',
+    RELEASE_UPDATER_SIGNATURE_NAME_AARCH64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.app.tar.gz.sig',
+    RELEASE_UPDATER_SIGNATURE_NAME_X64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.app.tar.gz.sig',
+    RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_windows-x64-setup.exe.sig',
   });
   assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
   assert.match(invalid.stderr, /does not match/);
@@ -879,7 +943,7 @@ test('release metadata refuses x86 and i686 asset templates', () => {
   }
 });
 
-test('tag release publishes both macOS DMGs and the stable Windows x64 NSIS asset', () => {
+test('tag release publishes manual installers plus the signed three-platform updater closure', () => {
   const workflow = readText('.github/workflows/build.yml');
   const releaseJob = workflow.match(
     /\r?\n  release:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
@@ -897,8 +961,11 @@ test('tag release publishes both macOS DMGs and the stable Windows x64 NSIS asse
     /\[Windows x64\][\s\S]*RELEASE_ASSET_NAME_WINDOWS_X64/
   );
   assert.doesNotMatch(releaseJob[1], /\[Windows x64 安装器\]/);
-  assert.doesNotMatch(releaseJob[1], /windowsX86|windows-x86|i686|win32/i);
+  assert.doesNotMatch(releaseJob[1], /windowsX86|windows-x86(?!_64)|i686|win32/i);
   assert.match(releaseJob[1], /find dist -type f -name '\*\.dmg'/);
+  assert.match(releaseJob[1], /create_updater_manifest\.js/);
+  assert.match(releaseJob[1], /--darwin-aarch64[\s\S]*--darwin-x86_64[\s\S]*--windows-x86_64/);
+  assert.match(releaseJob[1], /--updater-manifest[\s\S]*--updater-windows-x64-signature/);
   assert.match(
     releaseJob[1],
     /node tools\/create_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"[\s\S]*--macos-notarized[\s\S]*node tools\/verify_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"/
@@ -1076,16 +1143,19 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   const config = readJson('src-tauri/tauri.conf.json');
   const macConfig = readJson('src-tauri/tauri.macos.conf.json');
   const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
+  const updaterArtifactsConfig = readJson('src-tauri/tauri.updater-artifacts.conf.json');
   const window = config.app.windows.find((candidate) => candidate.label === 'main');
 
   assert.ok(window, 'main window missing');
-  assert.equal(window.url, 'index.html');
+  assert.equal(window.url, './index.html');
   assert.equal(window.width, 480);
   assert.equal(window.height, 528);
   assert.equal(window.minWidth, 420);
   assert.equal(window.minHeight, 528);
   assert.deepEqual(macConfig.bundle.targets, ['dmg', 'app']);
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
+  assert.equal(config.bundle.createUpdaterArtifacts, undefined);
+  assert.deepEqual(updaterArtifactsConfig.bundle, { createUpdaterArtifacts: true });
 });
 
 test('tauri macOS package defaults to ad-hoc locally while tag CI requires Developer ID', () => {
@@ -1117,6 +1187,8 @@ test('tauri macOS package defaults to ad-hoc locally while tag CI requires Devel
     /APPLE_SIGNING_IDENTITY:\s*\$\{\{\s*secrets\.APPLE_SIGNING_IDENTITY\s*\}\}/,
     'tag packaging must use the Developer ID secret identity'
   );
+  assert.match(packageJob[1], /TAURI_SIGNING_PRIVATE_KEY:\s*\$\{\{\s*secrets\.TAURI_SIGNING_PRIVATE_KEY\s*\}\}/);
+  assert.match(packageJob[1], /--config src-tauri\/tauri\.updater-artifacts\.conf\.json/);
   assert.match(
     packageJob[1],
     /notarytool submit[\s\S]*stamp_dmg_icon|stamp_dmg_icon[\s\S]*notarytool submit[\s\S]*stapler staple[\s\S]*stapler validate/,
@@ -1131,6 +1203,41 @@ test('tauri macOS package defaults to ad-hoc locally while tag CI requires Devel
     packageJob[1],
     /Build packaged macOS app \(tag = Developer ID \+ notarize\)[\s\S]*?APPLE_SIGNING_IDENTITY:\s*\$\{\{\s*secrets\.APPLE_SIGNING_IDENTITY\s*\}\}[\s\S]*?Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)[\s\S]*?APPLE_SIGNING_IDENTITY: "-"/
   );
+});
+
+test('manual updater signing smoke uses protected secrets without creating a tag or Release', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const packageJob = workflow.match(
+    /\r?\n  package_macos:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  const releaseJob = workflow.match(
+    /\r?\n  release:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+
+  assert.match(
+    workflow,
+    /workflow_dispatch:\s*\r?\n\s+inputs:\s*\r?\n\s+updater_signing_smoke:[\s\S]*?default:\s*false[\s\S]*?type:\s*boolean/
+  );
+  assert.ok(packageJob, 'package_macos job missing');
+  assert.match(
+    packageJob[1],
+    /inputs\.updater_signing_smoke[\s\S]*release-production[\s\S]*Require updater signing secrets for tag or signing smoke/
+  );
+  assert.match(
+    packageJob[1],
+    /Build signed updater artifact \(workflow_dispatch smoke, no release\)[\s\S]*TAURI_SIGNING_PRIVATE_KEY:[\s\S]*TAURI_SIGNING_PRIVATE_KEY_PASSWORD:[\s\S]*--config src-tauri\/tauri\.updater-artifacts\.conf\.json/
+  );
+  assert.match(
+    packageJob[1],
+    /Verify signed updater artifact against embedded public key \(workflow_dispatch smoke\)[\s\S]*CAVALRY_I18N_UPDATER_ARTIFACT=[\s\S]*CAVALRY_I18N_UPDATER_SIGNATURE=[\s\S]*--test updater_signature_contract[\s\S]*verifies_external_updater_signature -- --ignored --exact/
+  );
+  assert.match(
+    packageJob[1],
+    /Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)[\s\S]*!inputs\.updater_signing_smoke[\s\S]*workflow_dispatch packaging uses ad-hoc signing for build verification only/
+  );
+  assert.ok(releaseJob, 'release job missing');
+  assert.match(releaseJob[1], /^    if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)\s*$/m);
+  assert.doesNotMatch(releaseJob[1], /updater_signing_smoke/);
 });
 
 test('Windows injector selects the installed Visual Studio generator and locks the proven x64 v143 toolset', () => {
@@ -1199,6 +1306,12 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     job[1],
     /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.provenance\.json/
   );
+  assert.match(
+    job[1],
+    /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.sig/
+  );
+  assert.match(job[1], /TAURI_SIGNING_PRIVATE_KEY_PASSWORD/);
+  assert.match(job[1], /--config src-tauri\/tauri\.updater-artifacts\.conf\.json/);
   assert.match(job[1], /if-no-files-found:\s*error/);
   // Windows Authenticode is intentionally not implemented here (external issue).
   assert.doesNotMatch(job[1], /signtool|Authenticode|osslsigncode/i);
@@ -1958,6 +2071,6 @@ test('release acceptance seal cannot be minted from a manual confirmation flag',
   assert.match(source, /--confirm-live-pass is forbidden/);
   assert.match(source, /--evidence/);
   assert.match(source, /--macos-notarized is required/);
-  assert.equal(schema.properties.schemaVersion.const, 4);
+  assert.equal(schema.properties.schemaVersion.const, 5);
   assert.equal(schema.properties.signing.properties.macosDeveloperIdNotarized.const, true);
 });

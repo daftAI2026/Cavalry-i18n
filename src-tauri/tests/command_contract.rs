@@ -1,13 +1,16 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、稳定 errorCode、可组合 warningCodes、Windows residue reconciliationRequired 与 camelCase JSON shape contract tests
- * [POS]: src-tauri/tests 的 renderer API 守门，保持六命令和旧字段兼容，并显式暴露平台差异、可本土化错误、非致命清理 codes 与只读 Windows runtime residue 检测
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、稳定 errorCode、可组合 warningCodes、Windows residue reconciliationRequired、Updater DTO 与 camelCase JSON shape contract tests
+ * [POS]: src-tauri/tests 的 renderer API 守门，保持八命令和旧字段兼容，并显式暴露平台差异、可本土化错误、非致命清理 codes、只读 Windows runtime residue 检测与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-use cavalry_i18n_tauri::commands::{registered_command_names, ActionPayload, StatusPayload};
+use cavalry_i18n_tauri::commands::{
+    registered_command_names, ActionPayload, StatusPayload, UpdatePayload,
+};
+use std::{fs, path::Path};
 
 #[test]
-fn registers_six_commands_for_renderer_bridge() {
+fn registers_eight_commands_for_renderer_bridge() {
     assert_eq!(
         registered_command_names(),
         &[
@@ -16,9 +19,46 @@ fn registers_six_commands_for_renderer_bridge() {
             "extract_english",
             "apply_language",
             "open_privacy_security",
-            "restart_cavalry"
+            "restart_cavalry",
+            "check_update",
+            "install_update"
         ]
     );
+}
+
+#[test]
+fn updater_commands_are_registered_in_the_rust_builder() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let lib_rs = fs::read_to_string(manifest_dir.join("src/lib.rs")).unwrap();
+
+    assert!(lib_rs.contains("tauri_plugin_updater::Builder::new().build()"));
+    assert!(lib_rs.contains("commands::check_update"));
+    assert!(lib_rs.contains("commands::install_update"));
+}
+
+#[test]
+fn updater_payload_is_camel_case_and_never_exposes_plugin_secrets() {
+    let payload = UpdatePayload {
+        current_version: "0.7.0".into(),
+        version: Some("0.7.1".into()),
+        notes: Some("Bug fixes".into()),
+        pub_date: Some("2026-08-28T00:00:00.000Z".into()),
+        available: true,
+        error_code: None,
+    };
+    let value = serde_json::to_value(payload).unwrap();
+    let object = value.as_object().unwrap();
+
+    assert_eq!(object.len(), 6);
+    assert_eq!(value["currentVersion"], "0.7.0");
+    assert_eq!(value["version"], "0.7.1");
+    assert_eq!(value["notes"], "Bug fixes");
+    assert_eq!(value["pubDate"], "2026-08-28T00:00:00.000Z");
+    assert_eq!(value["available"], true);
+    assert_eq!(value["errorCode"], serde_json::Value::Null);
+    assert!(value.get("url").is_none());
+    assert!(value.get("signature").is_none());
+    assert!(value.get("rawJson").is_none());
 }
 
 #[test]

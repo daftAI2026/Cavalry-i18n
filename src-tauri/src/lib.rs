@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri Builder、稳定 commands facade、macOS 启动恢复、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths 与 platform_runtime。
- * [OUTPUT]: 提供 run、macOS pending journal 启动恢复/显式阻断状态、Windows 三类早期分流、稳定六命令注册表、跨平台纯模块及平台门控 runtime。
+ * [OUTPUT]: 提供 run、macOS pending journal 启动恢复/显式阻断状态、Windows 三类早期分流、Updater plugin、稳定八命令注册表、跨平台纯模块及平台门控 runtime。
  * [POS]: src-tauri/src 的应用装配层；组合命令 facade、启动恢复、共享运行基础与进程入口边界，但不承载具体写入或系统命令业务。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -41,9 +41,17 @@ pub fn dispatch_uninstall_restore_current_process() -> Option<i32> {
 
 pub fn run() {
     tauri::Builder::default()
+        .manage(commands::UpdaterState::default())
         .manage(startup_recovery::StartupRecoveryStatus::default())
         .setup(|app| {
             use tauri::Manager;
+
+            // 共享配置存在时才装配官方 updater；保留缺配置时的可启动失败关闭边界。
+            if app.config().plugins.0.contains_key("updater") {
+                app.handle()
+                    .plugin(tauri_plugin_updater::Builder::new().build())
+                    .map_err(|error| format!("Failed to initialize updater plugin: {error}"))?;
+            }
 
             let state_dir = runtime_paths::resolve_state_dir(app.path().app_data_dir().ok());
             let mut runner = privilege::RealCommandRunner;
@@ -60,7 +68,9 @@ pub fn run() {
             commands::extract_english,
             commands::apply_language,
             commands::open_privacy_security,
-            commands::restart_cavalry
+            commands::restart_cavalry,
+            commands::check_update,
+            commands::install_update
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Cavalry-i18n Tauri app");

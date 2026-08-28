@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 schema v4 Ed25519 seal、committed acceptance evidence、supply-chain sidecars、release/source commit 与最终资产目录。
- * [OUTPUT]: fail-closed 校验 cryptographic signature、trust anchor、evidence/supply-chain/asset digest、两提交身份及 macOS Developer ID notarization=true。
+ * [INPUT]: 依赖 schema v5 Ed25519 seal、committed acceptance evidence、人工安装/updater 完整分发闭包、supply-chain sidecars、release/source commit 与最终资产目录
+ * [OUTPUT]: fail-closed 校验签名/trust anchor、evidence/supply-chain、九项分发字节、updater manifest 语义、两提交身份及 macOS Developer ID notarization=true
  * [POS]: GitHub Release 发布前与本地复验的最终 seal 守门器
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,6 +11,8 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { assertHex, sha256File, validateEvidence } = require('./release_acceptance_contract');
 const { verifySealSignature } = require('./release_seal_signature');
+const { loadConfig, metadataForTag } = require('./release_metadata');
+const { verifyManifestClosure } = require('./create_updater_manifest');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
@@ -53,10 +55,10 @@ function main() {
       path.join(rootDir, 'tools/schemas/release_acceptance_seal.schema.json'),
       'Seal schema'
     ).value;
-    if (schema.title !== 'ReleaseAcceptanceSeal' || schema.properties?.schemaVersion?.const !== 4) {
-      fail('ReleaseAcceptanceSeal schema v4 is required.');
+    if (schema.title !== 'ReleaseAcceptanceSeal' || schema.properties?.schemaVersion?.const !== 5) {
+      fail('ReleaseAcceptanceSeal schema v5 is required.');
     }
-    console.log('[verify-release-acceptance-seal] OK: schema v4 present');
+    console.log('[verify-release-acceptance-seal] OK: schema v5 present');
     return;
   }
   const sealPath = path.resolve(optionValue('--seal') || '');
@@ -81,7 +83,7 @@ function main() {
   if (JSON.stringify(Object.keys(seal).sort()) !== JSON.stringify(requiredTop)) {
     fail('Release seal contains missing or unexpected top-level fields.');
   }
-  if (seal.schemaVersion !== 4 || seal.kind !== 'ReleaseAcceptanceSeal') fail('Seal schema/kind mismatch.');
+  if (seal.schemaVersion !== 5 || seal.kind !== 'ReleaseAcceptanceSeal') fail('Seal schema/kind mismatch.');
   verifySealSignature(
     seal,
     optionValue('--trusted-public-key-sha256') || process.env.RELEASE_SEAL_PUBLIC_KEY_SHA256 || null
@@ -131,7 +133,21 @@ function main() {
     fail('Seal signing contract requires notarized Developer ID macOS assets and tracked Windows Authenticode debt.');
   }
   const assetsDir = optionValue('--assets-dir');
-  for (const key of ['aarch64', 'x64', 'windowsX64']) {
+  const assetKeys = [
+    'aarch64',
+    'x64',
+    'windowsX64',
+    'updaterManifest',
+    'updaterAarch64',
+    'updaterAarch64Signature',
+    'updaterX64',
+    'updaterX64Signature',
+    'updaterWindowsX64Signature',
+  ];
+  if (JSON.stringify(Object.keys(seal.assets || {}).sort()) !== JSON.stringify([...assetKeys].sort())) {
+    fail('Signed seal assets contain missing or unexpected fields.');
+  }
+  for (const key of assetKeys) {
     verifyAsset(seal.assets?.[key], assetsDir ? path.resolve(assetsDir) : null, `assets.${key}`);
   }
   if (
@@ -139,6 +155,23 @@ function main() {
     seal.acceptanceEvidence.windowsAcceptance.installer.sha256 !== seal.assets.windowsX64.sha256
   ) {
     fail('Signed Windows acceptance installer identity does not match assets.windowsX64.');
+  }
+  if (assetsDir) {
+    const directory = path.resolve(assetsDir);
+    verifyManifestClosure({
+      manifestPath: path.join(directory, seal.assets.updaterManifest.name),
+      metadata: metadataForTag(loadConfig(), seal.tag),
+      artifacts: {
+        'darwin-aarch64': path.join(directory, seal.assets.updaterAarch64.name),
+        'darwin-x86_64': path.join(directory, seal.assets.updaterX64.name),
+        'windows-x86_64': path.join(directory, seal.assets.windowsX64.name),
+      },
+      signatures: {
+        'darwin-aarch64': path.join(directory, seal.assets.updaterAarch64Signature.name),
+        'darwin-x86_64': path.join(directory, seal.assets.updaterX64Signature.name),
+        'windows-x86_64': path.join(directory, seal.assets.updaterWindowsX64Signature.name),
+      },
+    });
   }
   const sidecarsDir = optionValue('--sidecars-dir') || assetsDir;
   verifyAsset(seal.supplyChain?.sbom, sidecarsDir ? path.resolve(sidecarsDir) : null, 'supplyChain.sbom');

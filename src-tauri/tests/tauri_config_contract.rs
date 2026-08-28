@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri.conf.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供公共窗口/本地 CSP/预注入 bridge、macOS injector 与外部签名身份、Windows NSIS 双 DLL/生成命令/四语卸载双语义 hook/系统语言与品牌图标合同
+ * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
+ * [OUTPUT]: 提供公共窗口/显式 renderer 文档入口/本地 CSP/预注入 bridge、固定 updater 公钥/HTTPS endpoint、macOS injector 与外部签名身份、Windows NSIS 双 DLL/生成命令/四语卸载双语义 hook/系统语言与品牌图标合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -32,7 +32,33 @@ fn tauri_window_size_matches_frozen_contract() {
     assert_eq!(window["height"], 528);
     assert_eq!(window["minWidth"], 420);
     assert_eq!(window["minHeight"], 528);
-    assert_eq!(window["url"], "index.html");
+    assert_eq!(window["url"], "./index.html");
+}
+
+#[test]
+fn tauri_updater_uses_the_final_public_key_and_release_manifest_endpoint() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let config = read_json(&manifest_dir.join("tauri.conf.json"));
+    let release_config = read_json(&manifest_dir.join("../release.config.json"));
+    let updater = &config["plugins"]["updater"];
+    let expected_endpoint = format!(
+        "{}/{}",
+        release_config["updater"]["downloadBaseUrl"]
+            .as_str()
+            .unwrap()
+            .trim_end_matches('/'),
+        release_config["updater"]["manifestAssetName"]
+            .as_str()
+            .unwrap()
+    );
+
+    assert_eq!(
+        updater["pubkey"],
+        "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVDRDdFNUIyRTIzQjk1QzQKUldURWxUdmlzdVhYN05HcFozNDdLeE1mMlAyakdZRWtrRktLNFk1SmpqSmptNDN6U0JmNFJSQ0wK"
+    );
+    assert_eq!(updater["endpoints"].as_array().unwrap().len(), 1);
+    assert_eq!(updater["endpoints"][0], expected_endpoint);
+    assert!(expected_endpoint.starts_with("https://"));
 }
 
 #[test]

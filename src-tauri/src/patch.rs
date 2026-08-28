@@ -2585,7 +2585,9 @@ pub fn needs_english_snapshot(
 
 #[cfg(test)]
 mod tests {
-    use super::{build_copy_pairs, discover_plugins, extract_english, sync_file, CORE_MAP};
+    #[cfg(windows)]
+    use super::sync_file;
+    use super::{build_copy_pairs, discover_plugins, extract_english, CORE_MAP};
     use std::fs;
 
     fn write_json(path: &std::path::Path, value: &str) {

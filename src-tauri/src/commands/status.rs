@@ -295,6 +295,8 @@ pub(crate) fn status_for_paths(
     };
 
     let permission_granted = probe_app_management_permission(&app_path);
+    #[cfg(not(target_os = "windows"))]
+    let _ = clean_disposition;
     let reconciliation_required = {
         #[cfg(target_os = "windows")]
         {

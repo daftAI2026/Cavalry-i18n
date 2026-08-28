@@ -5,9 +5,11 @@
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
-# 下一次 Cavalry 2.7.2 发布待办
+# Cavalry 2.7.2 发布验收 handoff 待办
 
-## 当前状态
+> 本文保留 source commit `9e293df` 时的 Windows/macOS acceptance 交接债务，不代表当前候选已回到该提交。当前 UI/Updater/tag 执行状态以 [`docs/roadmap/switcher-update-release-event-ledger.md`](../docs/roadmap/switcher-update-release-event-ledger.md) 为准；新候选改变 source commit 后，本文的旧证据不得直接复用。
+
+## Handoff 时的状态
 
 ```text
 source commit S            = 9e293df26191bc638e81f343033b2dbada8c8aba

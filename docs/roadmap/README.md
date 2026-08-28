@@ -25,7 +25,12 @@
 | --- | --- | --- | --- |
 | [`localized-search-index.md`](localized-search-index.md) | Proposed | [`add-layer-localized-search-2026-05-21.md`](../audits/add-layer-localized-search-2026-05-21.md) | 执行 R1：抓取 QuickAdd 搜索框、列表模型与中英文 query 行为 |
 | [`runtime-refresh-performance.md`](runtime-refresh-performance.md) | Proposed | [`runtime-refresh-performance-2026-05-21.md`](../audits/runtime-refresh-performance-2026-05-21.md) | 执行 R1/R2：收敛合同测试，移除普通交互全局刷新 |
+| [`switcher-update-and-trusted-distribution-roadmap.md`](switcher-update-and-trusted-distribution-roadmap.md) | Active | R0 UI、R1 Rust/bridge/renderer、最终公钥/endpoint、受保护 updater Secrets、deterministic manifest 与九资产发布闭包已实现；真实签名构建与实机更新证据仍未满足 | 执行 macOS/Windows tag-shape 签名与跨版本验收 |
 | [`windows-port-and-injection-roadmap.md`](windows-port-and-injection-roadmap.md) | Active | Windows Qt generic plugin、NSIS 与跨平台安装根合同 | 以真实 Windows Cavalry 完成安装、切换、重启、升级与卸载闭环 |
+
+## 执行事件簿
+
+- [`switcher-update-release-event-ledger.md`](switcher-update-release-event-ledger.md)：跟踪本轮 UI、组件状态机、Updater、实机证据、release/tag 与清理事项。它是临时执行控制面，不是新的发布 SOP。
 
 ## 归档规则
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: release_acceptance_contract、evidence/seal CLI 与临时 21-run/48-point session fixture
- * [OUTPUT]: 覆盖真实 session 关系复验、Windows 原始 session 入口、证据附加字段/篡改拒绝、seal evidence/asset/notarization 绑定
+ * [INPUT]: release_acceptance_contract、evidence/seal/updater manifest CLI 与临时 21-run/48-point session fixture
+ * [OUTPUT]: 覆盖真实 session 关系复验、Windows 原始 session 入口、证据附加字段/篡改拒绝，以及 seal 对人工安装/updater/notarization 字节的绑定
  * [POS]: release-bound live acceptance 的对抗回归测试；不启动 Cavalry、不制造可发布 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,6 +17,7 @@ const zlib = require('node:zlib');
 const { sha256: sha256Buffer } = require('./release_seal_signature');
 const { GUIDE_FILES } = require('./macos-acceptance/source_contract');
 const { spawnSync } = require('node:child_process');
+const { loadConfig, metadataForTag } = require('./release_metadata');
 const {
   LANGUAGES,
   assertEvidenceMatchesSession,
@@ -640,8 +641,45 @@ test('seal creator consumes evidence, notarization, and exact asset bytes', () =
   try {
     const summary = verifyAcceptanceSession(fixture.session);
     const evidencePath = path.join(fixture.temp, `${TAG}.evidence.json`);
-    const assets = ['a.dmg', 'x.dmg', 'w.exe'].map((name) => path.join(fixture.temp, name));
+    const metadata = metadataForTag(loadConfig(), TAG);
+    const assets = [
+      metadata.RELEASE_ASSET_NAME_AARCH64,
+      metadata.RELEASE_ASSET_NAME_X64,
+      metadata.RELEASE_ASSET_NAME_WINDOWS_X64,
+    ].map((name) => path.join(fixture.temp, name));
     assets.forEach((file, index) => fs.writeFileSync(file, `asset-${index}`));
+    const updater = {
+      manifest: path.join(fixture.temp, metadata.RELEASE_UPDATER_MANIFEST_NAME),
+      arm: path.join(fixture.temp, metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64),
+      intel: path.join(fixture.temp, metadata.RELEASE_UPDATER_ASSET_NAME_X64),
+      windows: assets[2],
+    };
+    fs.writeFileSync(updater.arm, 'updater-arm');
+    fs.writeFileSync(updater.intel, 'updater-intel');
+    const updaterSignatures = {
+      arm: `${updater.arm}.sig`,
+      intel: `${updater.intel}.sig`,
+      windows: `${updater.windows}.sig`,
+    };
+    for (const [key, file] of Object.entries(updaterSignatures)) {
+      fs.writeFileSync(file, `${Buffer.from(`signature-${key}`).toString('base64')}\n`);
+    }
+    const updaterNotes = path.join(fixture.temp, 'updater-notes.md');
+    fs.writeFileSync(updaterNotes, 'Updater acceptance fixture\n');
+    const createManifest = spawnSync(process.execPath, [
+      path.join(repoRoot, 'tools/create_updater_manifest.js'),
+      '--tag', TAG,
+      '--output', updater.manifest,
+      '--notes', updaterNotes,
+      '--pub-date', '2026-08-09T00:00:00Z',
+      '--darwin-aarch64', updater.arm,
+      '--darwin-aarch64-signature', updaterSignatures.arm,
+      '--darwin-x86_64', updater.intel,
+      '--darwin-x86_64-signature', updaterSignatures.intel,
+      '--windows-x86_64', updater.windows,
+      '--windows-x86_64-signature', updaterSignatures.windows,
+    ], { cwd: repoRoot, encoding: 'utf8' });
+    assert.equal(createManifest.status, 0, createManifest.stderr || createManifest.stdout);
     const windowsAcceptance = {
       schemaVersion: 1,
       kind: 'WindowsReleaseAcceptance',
@@ -660,8 +698,8 @@ test('seal creator consumes evidence, notarization, and exact asset bytes', () =
       manualReview: { bytes: 1, sha256: '3'.repeat(64) },
       sessionSentinel: { bytes: 1, sha256: '4'.repeat(64) },
       sessionManifestSha256: '5'.repeat(64),
-      installer: { fileName: 'Cavalry.Language.Switcher_x64-setup.exe', bytes: fs.statSync(assets[2]).size, sha256: sha256(assets[2]) },
-      provenance: { fileName: 'Cavalry.Language.Switcher_x64-setup.exe.provenance.json', bytes: 1, sha256: '6'.repeat(64) },
+      installer: { fileName: metadata.RELEASE_ASSET_NAME_WINDOWS_X64, bytes: fs.statSync(assets[2]).size, sha256: sha256(assets[2]) },
+      provenance: { fileName: `${metadata.RELEASE_ASSET_NAME_WINDOWS_X64}.provenance.json`, bytes: 1, sha256: '6'.repeat(64) },
       shippedDlls: {
         generic: { relativePath: 'injector/windows/generic/cavalryi18n.dll', bytes: 1, sha256: '7'.repeat(64) },
         qpa: { relativePath: 'injector/windows/qpa/qwindows.dll', bytes: 1, sha256: '8'.repeat(64) },
@@ -691,6 +729,12 @@ test('seal creator consumes evidence, notarization, and exact asset bytes', () =
       '--release-commit', RELEASE_COMMIT,
       '--evidence', evidencePath,
       '--aarch64', assets[0], '--x64', assets[1], '--windows-x64', assets[2],
+      '--updater-manifest', updater.manifest,
+      '--updater-aarch64', updater.arm,
+      '--updater-aarch64-signature', updaterSignatures.arm,
+      '--updater-x64', updater.intel,
+      '--updater-x64-signature', updaterSignatures.intel,
+      '--updater-windows-x64-signature', updaterSignatures.windows,
       '--acceptance-attestation', attestationPath, '--sbom', sbomPath, '--toolchain-evidence', toolchainPath,
       '--trusted-public-key-sha256', trust,
       '--macos-notarized', '--created-at', '2026-08-09T00:00:00Z',

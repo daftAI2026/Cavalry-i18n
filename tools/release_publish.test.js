@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: release_publish.js、临时 dist/remote 资产与显式 test-only fake gh script
- * [OUTPUT]: 覆盖跨平台 fake、confirmed-404 private draft、上传中断恢复、公开前全资产回读、tag/commit/sidecar/额外资产/鉴权错误 fail-closed
+ * [INPUT]: release_publish.js、临时人工安装/updater dist/remote 资产与显式 test-only fake gh script
+ * [OUTPUT]: 覆盖跨平台 fake、confirmed-404 private draft、上传中断恢复、公开前九项分发资产与 sidecar 回读、tag/commit/额外资产/鉴权错误 fail-closed
  * [POS]: 幂等 GitHub Release draft-to-public 边界的离线对抗测试；绝不解析 PATH 或触碰真实 gh
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,13 +15,28 @@ const path = require('node:path');
 const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
 const { signSeal } = require('./release_seal_signature');
+const { loadConfig, metadataForTag } = require('./release_metadata');
 
 const repoRoot = path.resolve(__dirname, '..');
 const tag = 'cavalry-2.7.2-p999';
 const commit = spawnSync('git', ['rev-parse', 'HEAD'], { cwd: repoRoot, encoding: 'utf8' }).stdout.trim();
 const createdAtUtc = spawnSync('git', ['show', '-s', '--format=%cI', commit], { cwd: repoRoot, encoding: 'utf8' }).stdout.trim();
 const title = 'Cavalry Language Switcher for Cavalry 2.7.2 (Patch 999)';
-const primary = ['mac-arm.dmg', 'mac-intel.dmg', 'windows.exe'];
+const metadata = metadataForTag(loadConfig(), tag);
+const manualAssets = [
+  metadata.RELEASE_ASSET_NAME_AARCH64,
+  metadata.RELEASE_ASSET_NAME_X64,
+  metadata.RELEASE_ASSET_NAME_WINDOWS_X64,
+];
+const distribution = [
+  ...manualAssets,
+  metadata.RELEASE_UPDATER_MANIFEST_NAME,
+  metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64,
+  metadata.RELEASE_UPDATER_SIGNATURE_NAME_AARCH64,
+  metadata.RELEASE_UPDATER_ASSET_NAME_X64,
+  metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64,
+  metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64,
+];
 
 function fixture() {
   const root = fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-release-publish-')));
@@ -29,7 +44,32 @@ function fixture() {
   const remote = path.join(root, 'remote');
   fs.mkdirSync(dist);
   fs.mkdirSync(remote);
-  primary.forEach((name, index) => fs.writeFileSync(path.join(dist, name), `primary-${index}\n`));
+  manualAssets.forEach((name, index) => fs.writeFileSync(path.join(dist, name), `manual-${index}\n`));
+  fs.writeFileSync(path.join(dist, metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64), 'updater-arm\n');
+  fs.writeFileSync(path.join(dist, metadata.RELEASE_UPDATER_ASSET_NAME_X64), 'updater-intel\n');
+  for (const [name, value] of [
+    [metadata.RELEASE_UPDATER_SIGNATURE_NAME_AARCH64, 'signature-arm'],
+    [metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64, 'signature-intel'],
+    [metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64, 'signature-windows'],
+  ]) {
+    fs.writeFileSync(path.join(dist, name), `${Buffer.from(value).toString('base64')}\n`);
+  }
+  const updaterNotes = path.join(root, 'updater-notes.md');
+  fs.writeFileSync(updaterNotes, 'Updater release fixture\n');
+  const manifestResult = spawnSync(process.execPath, [
+    path.join(repoRoot, 'tools/create_updater_manifest.js'),
+    '--tag', tag,
+    '--output', path.join(dist, metadata.RELEASE_UPDATER_MANIFEST_NAME),
+    '--notes', updaterNotes,
+    '--pub-date', createdAtUtc,
+    '--darwin-aarch64', path.join(dist, metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64),
+    '--darwin-aarch64-signature', path.join(dist, metadata.RELEASE_UPDATER_SIGNATURE_NAME_AARCH64),
+    '--darwin-x86_64', path.join(dist, metadata.RELEASE_UPDATER_ASSET_NAME_X64),
+    '--darwin-x86_64-signature', path.join(dist, metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64),
+    '--windows-x86_64', path.join(dist, metadata.RELEASE_ASSET_NAME_WINDOWS_X64),
+    '--windows-x86_64-signature', path.join(dist, metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64),
+  ], { cwd: repoRoot, encoding: 'utf8' });
+  assert.equal(manifestResult.status, 0, manifestResult.stderr || manifestResult.stdout);
   fs.writeFileSync(path.join(dist, `${tag}.evidence.json`), '{"evidence":true}\n');
   fs.writeFileSync(path.join(dist, `${tag}.acceptance-attestation.json`), '{"attestation":true}\n');
   fs.writeFileSync(path.join(dist, 'toolchain-evidence.json'), `${JSON.stringify({
@@ -58,9 +98,15 @@ function fixture() {
     acceptanceAttestation: identity(`${tag}.acceptance-attestation.json`),
     acceptanceEvidence: identity(`${tag}.evidence.json`),
     assets: {
-      aarch64: identity(primary[0]),
-      x64: identity(primary[1]),
-      windowsX64: identity(primary[2]),
+      aarch64: identity(manualAssets[0]),
+      x64: identity(manualAssets[1]),
+      windowsX64: identity(manualAssets[2]),
+      updaterManifest: identity(metadata.RELEASE_UPDATER_MANIFEST_NAME),
+      updaterAarch64: identity(metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64),
+      updaterAarch64Signature: identity(metadata.RELEASE_UPDATER_SIGNATURE_NAME_AARCH64),
+      updaterX64: identity(metadata.RELEASE_UPDATER_ASSET_NAME_X64),
+      updaterX64Signature: identity(metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64),
+      updaterWindowsX64Signature: identity(metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64),
     },
     supplyChain: {
       sbom: identity('CycloneDX.json'),
@@ -149,9 +195,15 @@ function run(f, mode, releaseCommit = commit) {
       CAVALRY_I18N_TEST_GH_SCRIPT: f.fakeGh,
       CAVALRY_I18N_TEST_TAG_COMMIT_SHA: commit,
       RELEASE_SEAL_PUBLIC_KEY_SHA256: f.trust,
-      RELEASE_ASSET_NAME_AARCH64: primary[0],
-      RELEASE_ASSET_NAME_X64: primary[1],
-      RELEASE_ASSET_NAME_WINDOWS_X64: primary[2],
+      RELEASE_ASSET_NAME_AARCH64: manualAssets[0],
+      RELEASE_ASSET_NAME_X64: manualAssets[1],
+      RELEASE_ASSET_NAME_WINDOWS_X64: manualAssets[2],
+      RELEASE_UPDATER_MANIFEST_NAME: metadata.RELEASE_UPDATER_MANIFEST_NAME,
+      RELEASE_UPDATER_ASSET_NAME_AARCH64: metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64,
+      RELEASE_UPDATER_SIGNATURE_NAME_AARCH64: metadata.RELEASE_UPDATER_SIGNATURE_NAME_AARCH64,
+      RELEASE_UPDATER_ASSET_NAME_X64: metadata.RELEASE_UPDATER_ASSET_NAME_X64,
+      RELEASE_UPDATER_SIGNATURE_NAME_X64: metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64,
+      RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64: metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64,
       FAKE_GH_MODE: mode,
       FAKE_GH_REMOTE: f.remote,
       FAKE_GH_STATE: f.remoteState,
@@ -166,7 +218,7 @@ function run(f, mode, releaseCommit = commit) {
 function verifyProvenance(f) {
   return spawnSync(process.execPath, [
     path.join(repoRoot, 'tools/verify_release_provenance.js'), '--dist', f.dist,
-    ...primary.flatMap((name) => ['--primary', name]),
+    ...distribution.flatMap((name) => ['--primary', name]),
   ], { cwd: repoRoot, encoding: 'utf8', env: { ...process.env, RELEASE_SEAL_PUBLIC_KEY_SHA256: f.trust } });
 }
 
@@ -193,7 +245,7 @@ test('confirmed 404 uses a private draft, publishes only after exact readback, a
 
     const repeated = run(f, 'existing');
     assert.equal(repeated.status, 0, repeated.stderr || repeated.stdout);
-    const primaryPath = path.join(f.dist, primary[0]);
+    const primaryPath = path.join(f.dist, manualAssets[0]);
     const primaryBytes = fs.readFileSync(primaryPath);
     fs.writeFileSync(primaryPath, 'post-seal tamper\n');
     const primaryTamper = run(f, 'existing');

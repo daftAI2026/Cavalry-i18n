@@ -981,8 +981,10 @@ pub(crate) fn new_operation_id() -> String {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(windows)]
+    use super::sync_file;
     use super::{
-        confirm_state_directory_durability_using, normalize, read_state_strict, sync_file,
+        confirm_state_directory_durability_using, normalize, read_state_strict,
         write_state_with_operation_using, DirectorySyncPoint, State, StateWriteOutcome,
         StateWriteWarning,
     };

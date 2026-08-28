@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 gh CLI、release metadata 环境、最终三资产及全部强制 sidecar
- * [OUTPUT]: 先创建/恢复 private draft、上传并逐字节回读完整资产后才公开；既有 public release 只读复验，冲突/缺件/非 404 查询错误 fail-closed
+ * [INPUT]: 依赖 gh CLI、release metadata 环境、三项人工安装资产、六项 updater manifest/archive/signature 资产及全部强制 sidecar
+ * [OUTPUT]: 先创建/恢复 private draft、上传并逐字节回读九项分发资产与强制 sidecar 后才公开；既有 public release 只读复验，冲突/缺件/非 404 查询错误 fail-closed
  * [POS]: GitHub Release 幂等发布边界；公开面绝不出现脚本制造的半成品，也不覆盖远端资产或把网络/鉴权失败误判为“不存在”
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -86,11 +86,11 @@ function localAssets(distDir, names) {
   });
 }
 
-function writeChecksums(primary, output) {
-  fs.writeFileSync(output, `${primary.map((item) => `${item.sha256}  ${item.name}`).join('\n')}\n`);
+function writeChecksums(distribution, output) {
+  fs.writeFileSync(output, `${distribution.map((item) => `${item.sha256}  ${item.name}`).join('\n')}\n`);
 }
 
-function writeProvenance(primary, output, meta) {
+function writeProvenance(distribution, output, meta) {
   const identity = (file) => {
     const stat = fs.lstatSync(file);
     if (!stat.isFile() || stat.isSymbolicLink() || stat.size < 1) fail(`Invalid provenance input: ${file}.`);
@@ -103,7 +103,7 @@ function writeProvenance(primary, output, meta) {
     releaseCommitSha: meta.commitSha,
     sourceCommitSha: meta.sourceCommitSha,
     createdAtUtc: meta.createdAtUtc,
-    assets: primary.map(({ name, bytes, sha256 }) => ({ name, bytes, sha256 })),
+    assets: distribution.map(({ name, bytes, sha256 }) => ({ name, bytes, sha256 })),
     signedSeal: identity(meta.sealPath),
     acceptanceAttestation: identity(meta.attestationPath),
     supplyChain: { sbom: identity(meta.sbomPath), toolchainEvidence: identity(meta.toolchainPath) },
@@ -235,10 +235,16 @@ function main() {
   const notesFile = path.resolve(optionValue('--notes') || path.join(rootDir, 'release-notes.md'));
   if (!title || !fs.existsSync(notesFile)) fail('Release title and notes file are required.');
   const notes = fs.readFileSync(notesFile, 'utf8').replace(/\r\n/g, '\n');
-  const primaryNames = [
+  const distributionNames = [
     requireEnv('RELEASE_ASSET_NAME_AARCH64'),
     requireEnv('RELEASE_ASSET_NAME_X64'),
     requireEnv('RELEASE_ASSET_NAME_WINDOWS_X64'),
+    requireEnv('RELEASE_UPDATER_MANIFEST_NAME'),
+    requireEnv('RELEASE_UPDATER_ASSET_NAME_AARCH64'),
+    requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_AARCH64'),
+    requireEnv('RELEASE_UPDATER_ASSET_NAME_X64'),
+    requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_X64'),
+    requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64'),
   ];
   const evidenceName = `${tag}.evidence.json`;
   const attestationName = `${tag}.acceptance-attestation.json`;
@@ -251,12 +257,12 @@ function main() {
     'toolchain-evidence.json',
     'CycloneDX.json',
   ];
-  const primary = localAssets(distDir, primaryNames);
-  writeChecksums(primary, path.join(distDir, 'SHA256SUMS'));
+  const distribution = localAssets(distDir, distributionNames);
+  writeChecksums(distribution, path.join(distDir, 'SHA256SUMS'));
   const seal = JSON.parse(fs.readFileSync(path.join(distDir, 'ReleaseAcceptanceSeal.json'), 'utf8'));
   if (seal.tag !== tag || seal.releaseCommitSha !== commitSha) fail('Release seal does not bind the requested tag/commit.');
   const createdAtUtc = git(['show', '-s', '--format=%cI', commitSha]);
-  writeProvenance(primary, path.join(distDir, 'release-asset-provenance.json'), {
+  writeProvenance(distribution, path.join(distDir, 'release-asset-provenance.json'), {
     tag,
     commitSha,
     sourceCommitSha: seal.sourceCommitSha,
@@ -268,9 +274,9 @@ function main() {
   });
   run(process.execPath, [
     path.join(rootDir, 'tools/verify_release_provenance.js'), '--dist', distDir,
-    ...primaryNames.flatMap((name) => ['--primary', name]),
+    ...distributionNames.flatMap((name) => ['--primary', name]),
   ]);
-  const local = localAssets(distDir, [...primaryNames, ...mandatorySidecars]);
+  const local = localAssets(distDir, [...distributionNames, ...mandatorySidecars]);
   const meta = { tag, commitSha, title, notes };
   const remote = remoteRelease(tag);
   if (remote) {

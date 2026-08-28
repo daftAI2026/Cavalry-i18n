@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖已验证的 evidence-only release commit、三份最终资产、SBOM/toolchain 摘要、macOS 公证信号及受保护 Ed25519 密钥。
- * [OUTPUT]: 写出由 Ed25519 签名的 source/release/evidence/supply-chain/资产 seal。
+ * [INPUT]: 依赖已验证的 evidence-only release commit、三份人工安装资产、完整 updater manifest/artifact/signature 闭包、SBOM/toolchain 摘要、macOS 公证信号及受保护 Ed25519 密钥
+ * [OUTPUT]: 写出由 Ed25519 签名并同时绑定人工安装与自更新分发字节的 source/release/evidence/supply-chain 资产 seal
  * [POS]: CI 最终资产 seal 生成器；禁止以 confirm flag 代替真实 committed evidence
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,6 +12,8 @@ const path = require('node:path');
 const { spawnSync } = require('node:child_process');
 const { assertHex, sha256File, validateEvidence } = require('./release_acceptance_contract');
 const { signSeal } = require('./release_seal_signature');
+const { loadConfig, metadataForTag } = require('./release_metadata');
+const { verifyManifestClosure } = require('./create_updater_manifest');
 
 const rootDir = process.cwd();
 const args = process.argv.slice(2);
@@ -70,7 +72,8 @@ function main() {
     fail(`Acceptance evidence filename must be ${tag}.evidence.json.`);
   }
 
-  const releaseConfig = JSON.parse(fs.readFileSync(path.join(rootDir, 'release.config.json'), 'utf8'));
+  const releaseConfig = loadConfig();
+  const releaseMetadata = metadataForTag(releaseConfig, tag);
   const expectedNames = {
     aarch64: process.env.RELEASE_ASSET_NAME_AARCH64,
     x64: process.env.RELEASE_ASSET_NAME_X64,
@@ -80,7 +83,27 @@ function main() {
     aarch64: assetInfo(optionValue('--aarch64') || ''),
     x64: assetInfo(optionValue('--x64') || ''),
     windowsX64: assetInfo(optionValue('--windows-x64') || ''),
+    updaterManifest: assetInfo(optionValue('--updater-manifest') || ''),
+    updaterAarch64: assetInfo(optionValue('--updater-aarch64') || ''),
+    updaterAarch64Signature: assetInfo(optionValue('--updater-aarch64-signature') || ''),
+    updaterX64: assetInfo(optionValue('--updater-x64') || ''),
+    updaterX64Signature: assetInfo(optionValue('--updater-x64-signature') || ''),
+    updaterWindowsX64Signature: assetInfo(optionValue('--updater-windows-x64-signature') || ''),
   };
+  verifyManifestClosure({
+    manifestPath: path.resolve(optionValue('--updater-manifest') || ''),
+    metadata: releaseMetadata,
+    artifacts: {
+      'darwin-aarch64': path.resolve(optionValue('--updater-aarch64') || ''),
+      'darwin-x86_64': path.resolve(optionValue('--updater-x64') || ''),
+      'windows-x86_64': path.resolve(optionValue('--windows-x64') || ''),
+    },
+    signatures: {
+      'darwin-aarch64': path.resolve(optionValue('--updater-aarch64-signature') || ''),
+      'darwin-x86_64': path.resolve(optionValue('--updater-x64-signature') || ''),
+      'windows-x86_64': path.resolve(optionValue('--updater-windows-x64-signature') || ''),
+    },
+  });
   if (
     evidence.windowsAcceptance.installer.bytes !== assets.windowsX64.bytes ||
     evidence.windowsAcceptance.installer.sha256 !== assets.windowsX64.sha256
@@ -99,7 +122,7 @@ function main() {
     }
   }
   const seal = {
-    schemaVersion: 4,
+    schemaVersion: 5,
     kind: 'ReleaseAcceptanceSeal',
     tag,
     releaseCommitSha,
