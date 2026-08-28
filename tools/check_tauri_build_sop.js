@@ -1229,7 +1229,7 @@ test('manual updater signing smoke uses protected secrets without creating a tag
   );
   assert.match(
     packageJob[1],
-    /Verify signed updater artifact against embedded public key \(workflow_dispatch smoke\)[\s\S]*CAVALRY_I18N_UPDATER_ARTIFACT=[\s\S]*CAVALRY_I18N_UPDATER_SIGNATURE=[\s\S]*--test updater_signature_contract[\s\S]*verifies_external_updater_signature -- --ignored --exact/
+    /Verify signed updater artifact against embedded public key \(workflow_dispatch smoke\)[\s\S]*pwd -P[\s\S]*CAVALRY_I18N_UPDATER_ARTIFACT=[\s\S]*CAVALRY_I18N_UPDATER_SIGNATURE=[\s\S]*--test updater_signature_contract[\s\S]*verifies_external_updater_signature -- --ignored --exact/
   );
   assert.match(
     packageJob[1],

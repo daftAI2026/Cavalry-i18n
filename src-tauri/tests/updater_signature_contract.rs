@@ -40,6 +40,9 @@ fn required_regular_file(variable: &str) -> Result<PathBuf, String> {
     let path = PathBuf::from(
         env::var_os(variable).ok_or_else(|| format!("{variable} must name a candidate file"))?,
     );
+    if !path.is_absolute() {
+        return Err(format!("{variable} must use an absolute candidate path"));
+    }
     let metadata = fs::symlink_metadata(&path)
         .map_err(|error| format!("inspect {}: {error}", path.display()))?;
     if metadata.file_type().is_symlink() || !metadata.is_file() {

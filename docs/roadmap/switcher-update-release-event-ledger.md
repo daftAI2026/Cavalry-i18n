@@ -41,7 +41,7 @@
 | E16 | Updater 发布资产与 manifest 门 | In progress | 已扩展唯一命名与三平台 manifest 语义复验；schema v5 seal、provenance、SHA256SUMS/private-draft exact readback 绑定九项分发资产；tag workflow 已接入受保护 updater secrets、tag-only overlay、macOS archive/signature、Windows EXE signature 与 deterministic `latest.json`；Windows provenance v2 将 tag `.exe.sig` 纳入 build intent/fingerprint；最终公钥/endpoint 与 GitHub updater Secrets 均已就绪 | 用真实 key 跑平台 tag-shape 和 E10/E11 跨版本实机验证；之前不允许 tag |
 | E17 | 首个 updater-enabled SemVer bootstrap | Pending | 当前内部版本为 `0.7.0`；远端 `p5` 没有 updater 公钥/命令，无法被新 manifest 反向唤起；公开 tag 的 `pN` 不能参与 updater 版本比较 | 发布边界冻结后用现有 `sync:version` 升到 `0.7.1`；该版本是未来更新链的人工 bootstrap，旧 `p5` 用户仍需手动安装一次 |
 | E18 | Windows release handoff 合并 | Done | 远端唯一提交 `82385e1` 已通过 merge commit `e75a114` 进入当前 feature；`git merge-base --is-ancestor` PASS；`release-seals/TODO.md` 保留 source `9e293df` 债务并明确当前状态以本事件簿为准 | 远端 handoff 分支在当前 feature 推送/落地前保留；不用旧 source 证据代替新候选的实机验收 |
-| E19 | 无 tag updater 签名验证 | In progress | `build.yml` 已增加显式 `updater_signing_smoke`：只在受保护 environment 生成 macOS updater archive/`.sig`，随后由 `updater_signature_contract.rs` 解开 Tauri 外层 Base64 并以共享配置内嵌 minisign 公钥流式验签；release job 仍严格 tag-only；本地公钥解析门 1/1 与 workflow 合同 31/31 PASS | 提交并仅推当前 feature；临时允许该精确分支访问 Environment，手动触发 smoke，确认双架构验签成功且 Release job skipped，随后删除临时分支策略 |
+| E19 | 无 tag updater 签名验证 | In progress | `build.yml` 已增加显式 `updater_signing_smoke`：只在受保护 environment 生成 macOS updater archive/`.sig`，随后由 `updater_signature_contract.rs` 解开 Tauri 外层 Base64 并以共享配置内嵌 minisign 公钥流式验签；release job 仍严格 tag-only；首次 run `33163798811` 的双架构签名构建均成功，验签门因 Cargo 测试工作目录重复解释仓库相对路径而在读取产物前失败，已收敛为显式绝对路径合同，不构成密钥失败证据 | 推送路径修复后重跑 smoke，确认双架构验签成功且 Release job skipped，随后删除临时分支策略 |
 
 ## 当前验证记录
 

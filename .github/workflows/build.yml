@@ -717,6 +717,7 @@ jobs:
             exit 1
           fi
           updater_artifact="$(find "$bundle_dir" -type f -name '*.app.tar.gz' -print -quit)"
+          updater_artifact="$(cd "$(dirname "$updater_artifact")" && pwd -P)/$(basename "$updater_artifact")"
           updater_signature="$updater_artifact.sig"
           if [ ! -f "$updater_signature" ] || [ -L "$updater_signature" ]; then
             echo "Updater signature is missing or unsafe: $updater_signature" >&2
