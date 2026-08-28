@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供非模块脚本全局 UI_TEXT 文案目录，供 renderer/app.js 读取；包含跳转导航、单一更新图标 tooltip/安装确认/错误状态、macOS 新包 ad-hoc 提醒、紧凑维护动作及其完整无障碍名称。
+ * [OUTPUT]: 对外提供非模块脚本全局 UI_TEXT 文案目录，供 renderer/app.js 读取；包含标题区、主任务/维护层级、更新 tooltip/安装确认/错误状态、macOS 新包 ad-hoc 提醒及完整无障碍名称。
  * [POS]: renderer 的视觉文案数据层；由 index.html 在 app.js 前加载，保持交互逻辑与稳定 copy 分离。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -32,9 +32,11 @@ const UI_TEXT = {
     language: 'Language',
     current: 'Current',
     switchTo: 'Switch to',
+    maintenance: 'Maintenance',
     englishUi: 'English UI',
     apply: 'Apply & Restart',
     restoreOfficial: 'Restore official Cavalry',
+    restoreOfficialShort: 'Restore Official',
     officialMode: 'Installation: verified official runtime',
     modifiedMode: 'Installation: Switcher-managed or unverified runtime',
     recoveryMode: 'Installation: recovery required before further changes',
@@ -129,9 +131,11 @@ const UI_TEXT = {
     language: '语言',
     current: '当前',
     switchTo: '切换为',
+    maintenance: '维护',
     englishUi: '英文界面',
     apply: '应用并重启',
     restoreOfficial: '恢复官方 Cavalry 安装',
+    restoreOfficialShort: '恢复官方版',
     officialMode: '安装状态：已验证的官方运行时',
     modifiedMode: '安装状态：由切换器管理或尚未验证',
     recoveryMode: '安装状态：必须先完成中断事务恢复',
@@ -218,9 +222,11 @@ const UI_TEXT = {
     language: '語言',
     current: '目前',
     switchTo: '切換為',
+    maintenance: '維護',
     englishUi: '英文介面',
     apply: '套用並重新啟動',
     restoreOfficial: '還原官方 Cavalry 安裝',
+    restoreOfficialShort: '還原官方版',
     officialMode: '安裝狀態：已驗證的官方執行環境',
     modifiedMode: '安裝狀態：由切換器管理或尚未驗證',
     recoveryMode: '安裝狀態：必須先完成中斷交易復原',
@@ -307,9 +313,11 @@ const UI_TEXT = {
     language: '言語',
     current: '現在',
     switchTo: '切り替え先',
+    maintenance: 'メンテナンス',
     englishUi: '英語 UI',
     apply: '適用して再起動',
     restoreOfficial: '公式 Cavalry を復元',
+    restoreOfficialShort: '公式版を復元',
     officialMode: 'インストール状態: 検証済みの公式ランタイム',
     modifiedMode: 'インストール状態: Switcher 管理または未検証',
     recoveryMode: 'インストール状態: 中断した処理の復旧が必要です',

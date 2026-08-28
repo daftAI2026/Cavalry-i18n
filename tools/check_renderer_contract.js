@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、稳定文案脚本、CSP 配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、对象/主任务/维护/反馈语义层、local-only renderer/Geist 字体、单一更新图标/tooltip/无障碍通知、脱敏 updater bridge、原生 dialog 状态边界、English UI/官方还原分离、可组合 warningCodes、durability retry 及最小 bridge 表面。
+ * [OUTPUT]: 守住固定 DOM anchors、原生 macOS 交通灯与可拖拽标题区、Item/主任务/Button Group/Alert 语义层、local-only renderer/Geist 字体、单一更新图标/tooltip/无障碍通知、脱敏 updater bridge、原生 dialog 状态边界、English UI/官方还原分离及最小 bridge 表面。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -27,7 +27,7 @@ function uiLocaleBodies(source) {
 }
 
 const REQUIRED_IDS = [
-  'skipLink', 'mainContent', 'appVersion', 'appPath', 'languageSectionLabel', 'currentLabel', 'currentLanguage',
+  'skipLink', 'mainContent', 'windowTitle', 'appVersion', 'appPath', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage',
   'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement',
   'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton',
   'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
@@ -81,24 +81,27 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /id="updateControl"[^>]*data-tooltip-state="closed"[^>]*hidden/);
   assert.match(html, /id="updateTooltip"[^>]*role="tooltip"/);
   assert.match(html, /id="updateAnnouncement"[^>]*role="status"[^>]*aria-live="polite"/);
-  assert.match(styles, /\.update-button\s*\{[\s\S]*?background: var\(--tone-update\)/);
-  assert.match(styles, /\.update-button svg\s*\{[\s\S]*?width: 16px;[\s\S]*?height: 16px;/);
+  assert.match(styles, /\.update-button\s*\{[\s\S]*?background: transparent;[\s\S]*?color: var\(--tone-update\)/);
+  assert.match(styles, /\.update-button svg\s*\{[\s\S]*?width: 18px;[\s\S]*?height: 18px;/);
   assert.match(styles, /\.tooltip-anchor\[data-tooltip-state="open"\] \.tooltip/);
   assert.match(styles, /\.tooltip\s*\{[\s\S]*?visibility: hidden/);
   assert.doesNotMatch(styles, /transition:\s*all/);
   assert.doesNotMatch(styles, /grain|@keyframes\s+fade-up/);
-  assert.match(styles, /button:focus-visible\s*\{/);
+  assert.match(styles, /:where\(button, select\):focus-visible\s*\{/);
   assert.match(styles, /@media \(max-width: 420px\)/);
   assert.match(html, /<section class="language-section" aria-labelledby="languageSectionLabel">/);
-  assert.match(html, /class="maintenance-actions"/);
+  assert.match(html, /class="maintenance-group"[^>]*role="group"/);
   assert.match(html, /<dialog id="modalBackdrop"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
-  assert.match(html, /id="statusText"[^>]*role="status"[^>]*aria-live="polite"/);
+  assert.match(html, /id="statusPanel"[^>]*role="status"[^>]*aria-labelledby="statusLabel"/);
   assert.match(styles, /--control-height:\s*36px/);
-  assert.match(styles, /\.app-header\s*\{[\s\S]*?display:\s*grid/);
-  assert.match(styles, /\.app-actions\s*\{[\s\S]*?display:\s*flex/);
-  assert.match(styles, /\.task-actions\s*\{[\s\S]*?display:\s*grid/);
-  assert.match(styles, /\.maintenance-actions\s*\{[\s\S]*?display:\s*contents/);
-  assert.match(styles, /@media \(max-width: 420px\)[\s\S]*?\.task-actions button\s*\{[\s\S]*?padding-inline: var\(--space-2\)/);
+  assert.match(html, /class="titlebar" data-tauri-drag-region/);
+  assert.doesNotMatch(html, /traffic-light|aria-label="Window controls"/, 'macOS traffic lights must remain native');
+  assert.match(styles, /\.titlebar\s*\{[\s\S]*?display:\s*flex/);
+  assert.match(styles, /\.installation-item\s*\{[\s\S]*?display:\s*grid/);
+  assert.match(styles, /\.language-control-row\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);
+  assert.match(styles, /\.maintenance-group\s*\{[\s\S]*?grid-template-columns:\s*repeat\(3/);
+  assert.match(styles, /\.status-panel\s*\{[\s\S]*?grid-template-columns:\s*16px minmax\(0, 1fr\) auto/);
+  assert.match(styles, /@media \(max-width: 420px\)[\s\S]*?\.maintenance-group \.button\s*\{[\s\S]*?padding-inline: 8px/);
   assert.match(app, /document\.body\.dataset\.platform = state\.platform/);
   assert.match(app, /updateControl\.addEventListener\('mouseenter'/);
   assert.match(app, /updateControl\.addEventListener\('focusin'/);
@@ -117,6 +120,8 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /showApplyConfirmation\('en'\)/);
   assert.match(app, /restoreEnglishButton\.addEventListener/);
   assert.match(app, /statusLabel\.textContent = t\('statusLabel'\)/);
+  assert.match(app, /maintenanceHeading\.textContent = t\('maintenance'\)/);
+  assert.match(app, /currentLanguage\.dataset\.state = visualState/);
   assert.match(app, /updateButton\.addEventListener/);
   assert.match(app, /updateControl\.hidden = !\(updatePreviewEnabled \|\| state\.updateInfo\?\.available\)/);
   assert.match(app, /updateTooltip\.textContent = t\('updateTooltip'\)/);
@@ -135,6 +140,10 @@ test('Tauri configuration disables global injection and declares a local-only CS
   assert.match(config.app.security.csp, /default-src 'self'/);
   assert.match(config.app.security.csp, /script-src 'self'/);
   assert.doesNotMatch(config.app.security.csp, /https?:\/\//);
+  const window = config.app.windows.find((candidate) => candidate.label === 'main');
+  assert.equal(window.decorations, true);
+  assert.equal(window.titleBarStyle, 'Overlay');
+  assert.equal(window.hiddenTitle, true);
 });
 
 
@@ -147,6 +156,8 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const localeBodies = uiLocaleBodies(uiText);
   for (const key of [
     'restoreEnglish',
+    'restoreOfficialShort',
+    'maintenance',
     'refreshEnglishAria',
     'statusLabel',
     'warningStateDurabilityPending',

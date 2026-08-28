@@ -1148,10 +1148,13 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
 
   assert.ok(window, 'main window missing');
   assert.equal(window.url, './index.html');
-  assert.equal(window.width, 480);
-  assert.equal(window.height, 528);
+  assert.equal(window.width, 460);
+  assert.equal(window.height, 440);
   assert.equal(window.minWidth, 420);
-  assert.equal(window.minHeight, 528);
+  assert.equal(window.minHeight, 402);
+  assert.equal(window.decorations, true);
+  assert.equal(window.titleBarStyle, 'Overlay');
+  assert.equal(window.hiddenTitle, true);
   assert.deepEqual(macConfig.bundle.targets, ['dmg', 'app']);
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
   assert.equal(config.bundle.createUpdaterArtifacts, undefined);

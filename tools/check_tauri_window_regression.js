@@ -24,9 +24,9 @@ const {
 const FROZEN_WINDOW = {
   title: 'Cavalry Language Switcher',
   processName: 'cavalry-i18n-tauri',
-  outerWidth: 480,
-  outerHeight: 528,
-  chromeHeight: 28,
+  outerWidth: 460,
+  outerHeight: 440,
+  chromeHeight: 0,
 };
 
 test('tauri window regression stays within the frozen Tauri contract', async (t) => {

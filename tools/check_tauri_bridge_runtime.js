@@ -36,7 +36,7 @@ function runtime({
   preview = false,
   statusRequest = null,
 } = {}) {
-  const ids = ['skipLink', 'appVersion', 'appPath', 'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage', 'installationMode', 'switchToLabel', 'languageSelect', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const document = {

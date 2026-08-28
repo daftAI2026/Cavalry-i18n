@@ -1,17 +1,19 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语界面、初始化 fail-closed 控件门禁、English UI/官方还原、可组合 warningCodes、单一更新图标/tooltip/无障碍通知、签名更新确认与冷安装重启交互；开发预览不访问网络，真实安装只调用 bridge 保存的已检查 Update。
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/主任务/Maintenance/Alert 状态、初始化 fail-closed 门禁、安装 Badge 语义、English UI/官方还原、更新 tooltip/无障碍通知与签名冷更新交互；开发预览不访问网络。
  * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，以稳定 errorCode/warningCodes 本土化可恢复状态且从不显示 raw backend/updater 数据；原生 dialog 的 close 事件独占清理与焦点归还。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
 const appPathText = document.querySelector('#appPath');
 const skipLink = document.querySelector('#skipLink');
+const windowTitle = document.querySelector('#windowTitle');
 const updateControl = document.querySelector('#updateControl');
 const updateButton = document.querySelector('#updateButton');
 const updateTooltip = document.querySelector('#updateTooltip');
 const updateAnnouncement = document.querySelector('#updateAnnouncement');
 const languageSectionLabel = document.querySelector('#languageSectionLabel');
+const maintenanceHeading = document.querySelector('#maintenanceHeading');
 const currentLabel = document.querySelector('#currentLabel');
 const currentLanguage = document.querySelector('#currentLanguage');
 const installationModeText = document.querySelector('#installationMode');
@@ -25,6 +27,7 @@ const restoreButton = document.querySelector('#restoreButton');
 const permissionButton = document.querySelector('#permissionButton');
 const statusLabel = document.querySelector('#statusLabel');
 const statusText = document.querySelector('#statusText');
+const statusPanel = document.querySelector('#statusPanel');
 const modalBackdrop = document.querySelector('#modalBackdrop');
 const modalTitle = document.querySelector('#modalTitle');
 const modalBody = document.querySelector('#modalBody');
@@ -122,6 +125,7 @@ function setPermissionWait(isWaiting) {
 function setStatus(message, tone = 'neutral') {
   statusText.textContent = message;
   statusText.dataset.tone = tone;
+  statusPanel.dataset.tone = tone;
 }
 
 function requiresCavalryReinstall() {
@@ -210,23 +214,44 @@ function languageLabel(code) {
 function localizeShell() {
   document.documentElement.lang = uiLocale === 'ja_JP' ? 'ja' : uiLocale;
   document.title = t('appTitle');
+  windowTitle.textContent = t('appTitle');
+  if (!state.ready && !state.appPath) {
+    appVersion.textContent = t('appNotFound');
+    appPathText.textContent = t('chooseAppToContinue');
+  }
   skipLink.textContent = t('skipToControls');
   updateControl.hidden = !(updatePreviewEnabled || state.updateInfo?.available);
   setUpdateTooltipOpen(false);
   updateButton.setAttribute('aria-label', t('updateButtonAria'));
   updateTooltip.textContent = t('updateTooltip');
-  languageSectionLabel.textContent = t('language');
+  languageSectionLabel.setAttribute('aria-label', t('switchTo'));
   currentLabel.textContent = t('current');
   switchToLabel.textContent = t('switchTo');
+  maintenanceHeading.textContent = t('maintenance');
   browseButton.setAttribute('aria-label', t('chooseAppAria'));
   extractButton.textContent = t('refreshEnglish');
   extractButton.setAttribute('aria-label', t('refreshEnglishAria'));
   restoreEnglishButton.textContent = t('restoreEnglish');
-  restoreButton.textContent = t('restoreOfficial');
+  restoreButton.textContent = t('restoreOfficialShort');
+  restoreButton.setAttribute('aria-label', t('restoreOfficial'));
   permissionButton.textContent = t('openPrivacySecurity');
   statusLabel.textContent = t('statusLabel');
   modalCloseButton.setAttribute('aria-label', t('close'));
   setPermissionWait(false);
+}
+
+function syncInstallationBadge() {
+  const visualState = state.appPath ? state.installationMode : 'unknown';
+  const language = languageLabel(state.currentLang);
+  const installation = installationModeText.textContent;
+  currentLanguage.dataset.state = visualState;
+  currentLanguage.setAttribute(
+    'aria-label',
+    installation
+      ? `${t('current')}: ${language}. ${installation}`
+      : `${t('current')}: ${language}`
+  );
+  currentLanguage.title = installation ? `${language} · ${installation}` : language;
 }
 
 function showUpdatePreview() {
@@ -436,6 +461,7 @@ async function bootstrap() {
       : state.installationMode === 'recoveryRequired'
         ? t('recoveryMode')
         : t('modifiedMode');
+  syncInstallationBadge();
   state.ready = true;
   setBusy(state.busy);
 
@@ -444,11 +470,13 @@ async function bootstrap() {
       ? t('appFound', { version: bootstrapState.version })
       : t('appFoundNoVersion');
     appPathText.textContent = state.appPath;
+    appPathText.title = state.appPath;
   } else {
     appVersion.textContent = t('appNotFound');
     appPathText.textContent = t('appPathFallback', {
       candidates: bootstrapState.defaultAppCandidates.join('\n'),
     });
+    appPathText.removeAttribute('title');
   }
 
   if (state.startupRecoveryError) {

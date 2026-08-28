@@ -14,11 +14,14 @@
         "title": "Cavalry Language Switcher",
         "url": "./index.html",
         "useHttpsScheme": false,
-        "width": 480,
-        "height": 528,
+        "width": 460,
+        "height": 440,
         "minWidth": 420,
-        "minHeight": 528,
+        "minHeight": 402,
         "resizable": true,
+        "decorations": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true,
         "center": true
       }
     ],

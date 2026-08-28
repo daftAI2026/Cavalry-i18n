@@ -11,7 +11,7 @@ const path = require('node:path');
 const { spawn, spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
-const expectedContentSize = { width: 480, height: 500 };
+const expectedContentSize = { width: 460, height: 440 };
 
 function fail(message) {
   throw new Error(message);

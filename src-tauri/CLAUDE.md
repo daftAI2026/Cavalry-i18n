@@ -5,7 +5,7 @@
 Cargo.toml: Rust crate 与 Tauri v2 依赖声明，`tauri`/`tauri-build` 保持精确版本线；`sha2` 同时服务 build-time 发布资源 trust anchor、流式安装 revision 与 hash-locked manifest，测试依赖以固定 base64/minisign 版本复验 updater 产物，Windows API crate 仅启用 QPA durable/atomic 文件事务所需 feature。
 Cargo.lock: Rust 依赖锁定文件，冻结 Tauri、serde、chrono、libc、sha2 与 Windows API 等后端依赖版本。
 build.rs: Tauri build script 入口；生成 runtime context，并在 Windows 编译时枚举四语 JSON 与已构建 generic/QPA DLL，把固定 SHA-256 catalog 写入 `OUT_DIR` 供提权 worker 嵌入，release 缺 runtime 时 fail closed。
-tauri.conf.json: Tauri 公共配置，以显式 `./index.html` 文档 URL 进入 renderer、关闭 `withGlobalTauri`、设置本地 CSP，固定 updater 最终 minisign 公钥与 GitHub `latest.json` HTTPS endpoint，并固定窗口尺寸与 capability 边界；相对文档路径避免 dev asset server 将目录根解释为非 HTML MIME。
+tauri.conf.json: Tauri 公共配置，以显式 `./index.html` 进入 renderer、关闭 `withGlobalTauri`、设置本地 CSP，固定 updater 公钥与 GitHub `latest.json` endpoint；主窗默认 460×440，macOS 使用 decorations + Overlay + hiddenTitle 保留系统原生交通灯，renderer 只承担拖拽区与标题内容。
 tauri.macos.conf.json: macOS 合并配置，在 dev/build 前生成 injector，独占 dylib/languages 资源与 DMG；不硬编码 signing identity，本地 ad-hoc 与 tag Developer ID 由显式环境分流。
 tauri.windows.conf.json: Windows 合并配置，在 dev/bundle 前构建 generic + QPA，绑定四语双语义卸载 hook 与四份 NSIS 消息表，独占系统语言 NSIS、品牌 ico、languages 与双 DLL 资源；禁止携带 macOS dylib。
 tauri.updater-artifacts.conf.json: updater 产物覆盖；仅打开 Tauri v2 `createUpdaterArtifacts`，必须叠加已含最终 updater 公钥/endpoint 的共享配置并由受保护私钥环境执行，只允许 tag 发布或受保护的无发布 signing smoke 加载，普通本地/PR 构建不得加载。
