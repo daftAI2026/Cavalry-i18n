@@ -23,25 +23,25 @@
 
 | ID | 事项 | 状态 | 已确认事实 / 证据 | 下一动作 / 完成条件 |
 | --- | --- | --- | --- | --- |
-| E01 | 远端与 tag 真相 | Done | `origin/main` 为 `f8d29bc`；当前 feature `HEAD` 为合并 handoff 后的 `e75a114`；本地与远端只有 `cavalry-2.7.2-p1` 至 `p5`，不存在 `p6` | 打 tag 前重新执行 `git fetch --tags`、比较候选/`origin/main` 拓扑与远端 tags |
+| E01 | 远端与 tag 真相 | Done | `origin/main` 为 `f8d29bc`；当前 feature 已包含 handoff 与 updater 路径修复 `4682323`；本地/远端及 GitHub Release 仍只有 `cavalry-2.7.2-p1` 至 `p5`，无 `p6` | 打 tag 前重新执行 `git fetch --tags`、比较候选/`origin/main` 拓扑与远端 tags |
 | E02 | zh-Hant glossary 修复 | Done | `CHANGELOG.md` 记录 `視埠` → `檢視區` 三处修复及 macOS onboarding oracle 同步 | 保持翻译合同通过，不为该纯文案修复重复跑全量构建 |
 | E03 | `Viewport Quality: High` 边界 | Done | `CHANGELOG.md` 明确为 macOS-only `ACCEPTED-ENGLISH-BOUNDARY`，不是翻译 PASS；Windows 未测试 | 后续 Windows 实机验证前不得扩大为跨平台结论 |
 | E04 | Restore English / Restore official 语义核查 | Done | Renderer 分别走 `showApplyConfirmation('en')` 与 `runApply('restore-official')`；Rust 精确测试 `english_ui_and_official_restore_are_distinct_macos_actions` 1/1 PASS | 保持两个 action 与确认文案分离，不能因视觉整理合并业务语义 |
 | E05 | 工作隔离 | Done | 所有当前改动位于 `codex/update-ui-updater`；该分支已合并 Windows handoff，`main`/`origin/main` 仍停在 `f8d29bc` 且未被修改 | 后续签名 smoke 仍复用本 feature，不新建分支、不提前创建 tag |
-| E06 | design.md 全面 UI 对齐 | In progress | 第一轮已引入本地 Geist、Vercel 色阶/4px 间距/6-8px 圆角/36px 控件，并完成原生 Tauri 420/480px 与四语浏览器矩阵检查；用户 2026-08-28 明确裁决当前视觉仍需调整，不能视为最终 UI | 暂停视觉改动，先完成非 UI 发布基础；之后单独进行第二轮语义层级、几何与细节精修并重新目视验收 |
+| E06 | design.md 全面 UI 对齐 | In progress | 第二轮以用户提供的 `preview.html` 为几何基线：安装 Item、2:1 语言主任务、三列 Maintenance、持久 Alert、36px 控件与 7/9px 圆角已落地；Tauri 默认窗收敛为 460×440，Overlay 保留 macOS 系统原生交通灯；实机 dev 窗 AX 为 460×441（含 1px 窗框）且完整展示最长安全错误 | 等待用户对当前原生窗目视裁决；通过后再冻结并进入 E10 真实打包 |
 | E07 | shadcn / Base UI 源码与状态机审计 | Done | 已读取 shadcn `683a5a9` 与 Base UI `772b7c1` 的 Button、Native Select、Tooltip、Dialog 源码/测试；吸收 ready fail-closed、tooltip 显式 open/closed、Escape/click 关闭和 dialog 单一 close owner；合同 22/22 PASS | 不引入 React、Radix、Base UI、Tailwind 或运行时组件库；后续状态扩展继续保持原生语义 |
 | E08 | 更新提示 R0 | Done | 生产默认隐藏；显式 localhost preview 才显示用户给定 SVG 的 16px 图形/32px 绿色点击区与四语 tooltip；renderer/bridge 合同 22/22 PASS | 只在 updater 返回签名验证后的可用版本时展示生产入口，不把 preview 宣称为真实更新 |
-| E09 | Tauri Updater R1 | In progress | 已固定官方 updater plugin，命令扩展为 8 个；Rust State 保存签名验证后的 pending Update，bridge 只暴露脱敏 DTO，renderer 完成生产隐藏、可用通知、确认与安装重启状态机；最终公钥/endpoint 已进入共享配置并由合同固定；早期无配置原生 dev window 验证仅证明失败关闭边界 | 代码与配置边界已收口；仍需 E15 GitHub 私钥 Secrets、E10/E11 真实打包与跨版本实机验证 |
+| E09 | Tauri Updater R1 | In progress | 已固定官方 updater plugin，命令扩展为 8 个；Rust State 保存签名验证后的 pending Update，bridge 只暴露脱敏 DTO，renderer 完成生产隐藏、可用通知、确认与安装重启状态机；最终公钥/endpoint 已固定，E19 已以 GitHub Secrets 真实完成双架构签名与验签 | 代码、配置与签名边界已收口；仍需 E10/E11 真实打包与跨版本实机验证 |
 | E10 | macOS 实机打包证据 | Pending | 本轮 UI 修改后只完成原生 dev window 与 Rust/config/renderer 合同；不能沿用旧包证明当前工作树 | UI 与 Updater 范围冻结后按 `LOCAL_BUILD_SOP.md` 重新产包和验证；没有新证据不得声称当前候选包通过 |
 | E11 | Windows 实机更新证据 | Pending | 当前没有 Tauri updater 跨版本 Windows 实机证据；现有 NSIS 同版本 `/UPDATE` 不能替代 | R1 完成后在真实 Windows 验证 user-wide、Program Files/UAC、状态保留和失败回退 |
 | E12 | Release 内容 | Pending | 已确认 release 内容应按现有发布协议从真实变更与验证边界生成，不手写虚假 PASS | 候选版本、资产和证据冻结后，按 release SOP 生成并人工审阅正文 |
 | E13 | 调试/构建/预览产物清理 | Done | 已删除 `.playwright-mcp`、`output/playwright`，停止 8765/8766 与原生 Tauri dev；临时 updater 密钥由 trap 删除；最终执行 `cargo clean --manifest-path src-tauri/Cargo.toml` 删除 11.6 GiB/35,484 个 target 产物，并按显式 allowlist 删除 `src-tauri/gen`、`aqtinstall.log` 与六个 `.DS_Store` | 保留 `qt_sdk`/`node_modules` 这两类有效开发依赖；后续新构建若产生临时文件，发布前重复同一 allowlist 检查 |
 | E14 | 新 tag / GitHub Release | Blocked | 未创建、未推送新 tag；远端最新仍是 `p5` | 仅当 E06、E09 至 E13、E15 至 E17 按本轮最终范围完成且用户再次授权，才按 SOP 创建下一个 tag |
 | E15 | Updater 独立签名密钥 | Done | 用户已生成最终独立密钥对；公钥文件 SHA-256 为 `95a22cd49c1efa14fec74c555a4eefa30daa90b8ae2570614fd0b8336ca82945`，已嵌入共享 Tauri 配置；本机私钥内容未读取，文件权限已从 `0644` 收紧为 `0600`；远程 `release-production` Environment 已创建，`gh secret list --env release-production` 确认两项 updater Secret 名称与更新时间存在；Environment 已启用 custom deployment policy，只允许 `cavalry-2.7.2-p*` tag | GitHub 不回显 Secret 值是正常安全边界；不再传输或重新生成该密钥，后续只通过真实签名 build 验证公私钥/口令匹配 |
-| E16 | Updater 发布资产与 manifest 门 | In progress | 已扩展唯一命名与三平台 manifest 语义复验；schema v5 seal、provenance、SHA256SUMS/private-draft exact readback 绑定九项分发资产；tag workflow 已接入受保护 updater secrets、tag-only overlay、macOS archive/signature、Windows EXE signature 与 deterministic `latest.json`；Windows provenance v2 将 tag `.exe.sig` 纳入 build intent/fingerprint；最终公钥/endpoint 与 GitHub updater Secrets 均已就绪 | 用真实 key 跑平台 tag-shape 和 E10/E11 跨版本实机验证；之前不允许 tag |
+| E16 | Updater 发布资产与 manifest 门 | In progress | 已扩展唯一命名与三平台 manifest 语义复验；schema v5 seal、provenance、SHA256SUMS/private-draft exact readback 绑定九项分发资产；tag workflow 已接入受保护 updater secrets、tag-only overlay、macOS archive/signature、Windows EXE signature 与 deterministic `latest.json`；E19 已使用真实 key 证明 macOS 双架构 archive/signature 闭环 | 仍需 E10/E11 跨版本实机验证和最终 tag-shape 发布门；之前不允许 tag |
 | E17 | 首个 updater-enabled SemVer bootstrap | Pending | 当前内部版本为 `0.7.0`；远端 `p5` 没有 updater 公钥/命令，无法被新 manifest 反向唤起；公开 tag 的 `pN` 不能参与 updater 版本比较 | 发布边界冻结后用现有 `sync:version` 升到 `0.7.1`；该版本是未来更新链的人工 bootstrap，旧 `p5` 用户仍需手动安装一次 |
 | E18 | Windows release handoff 合并 | Done | 远端唯一提交 `82385e1` 已通过 merge commit `e75a114` 进入当前 feature；`git merge-base --is-ancestor` PASS；`release-seals/TODO.md` 保留 source `9e293df` 债务并明确当前状态以本事件簿为准 | 远端 handoff 分支在当前 feature 推送/落地前保留；不用旧 source 证据代替新候选的实机验收 |
-| E19 | 无 tag updater 签名验证 | In progress | `build.yml` 已增加显式 `updater_signing_smoke`：只在受保护 environment 生成 macOS updater archive/`.sig`，随后由 `updater_signature_contract.rs` 解开 Tauri 外层 Base64 并以共享配置内嵌 minisign 公钥流式验签；release job 仍严格 tag-only；首次 run `33163798811` 的双架构签名构建均成功，验签门因 Cargo 测试工作目录重复解释仓库相对路径而在读取产物前失败，已收敛为显式绝对路径合同，不构成密钥失败证据 | 推送路径修复后重跑 smoke，确认双架构验签成功且 Release job skipped，随后删除临时分支策略 |
+| E19 | 无 tag updater 签名验证 | Done | run `33164618098` 在 exact commit `4682323` 上整体 success；x64/arm64 两个受保护 macOS job 的 updater archive 签名和内嵌公钥验签均 PASS，Windows 普通包门亦 PASS；`release` 明确 skipped，无 tag/Release；临时 branch policy `58474196` 已删除，environment 仅余 `cavalry-2.7.2-p*` tag policy `58471815` | 后续发布只能由 tag policy 进入 Secrets；本 smoke 不替代 E10/E11 真实跨版本更新验收 |
 
 ## 当前验证记录
 
@@ -49,7 +49,7 @@
 node --check renderer/app.js                                      PASS
 node --check renderer/ui-text.js                                 PASS
 node --test tools/check_renderer_contract.js \
-  tools/check_tauri_bridge_runtime.js                            23/23 PASS
+  tools/check_tauri_bridge_runtime.js                            23/23 PASS (preview-based UI v2)
 cargo test --test command_contract                              5/5 PASS
 cargo test commands::update::tests                              5/5 PASS
 cargo test --manifest-path src-tauri/Cargo.toml                 PASS (lib 134/134; integration 全部通过；manual macOS smoke 1 ignored)
@@ -59,6 +59,7 @@ cargo test --test updater_signature_contract \
   embedded_updater_public_key_is_valid_minisign_material         1/1 PASS
 cargo test --test tauri_config_contract \
   tauri_window_size_matches_frozen_contract                      1/1 PASS
+native Tauri dev AX window / screenshot                          460x441, native traffic lights PASS
 cargo test --test tauri_config_contract                           7/7 PASS
 cargo test english_ui_and_official_restore_are_distinct_macos_actions 1/1 PASS
 git diff --check                                                  PASS
