@@ -1,0 +1,151 @@
+<!--
+[INPUT]: 依赖 renderer/app.js 的任务状态机、src-tauri/src/commands/apply.rs 与 snapshot.rs 的恢复基线闸门、macOS 官方还原和 Windows English/QPA 清理事务，以及 2026-08-29 产品与 UX Writing 裁决
+[OUTPUT]: 对外提供“首次 Apply 自动建立恢复基线、单一 Restore、400×480 无窗口滚动布局”的详细产品/工程决策、平台映射、失败边界与验收合同
+[POS]: docs/audits 的决策证据；事件簿只保留摘要并链接本文，代码与后续回归以本文解释为何删除手动 Refresh 和双恢复入口
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
+# Switcher 自动恢复基线与单一 Restore 决策
+
+日期：2026-08-29
+状态：已批准，代码、静态合同与 macOS native dev 已验证；macOS package/manual smoke 与 Windows live 待补
+
+## 1. 问题
+
+旧界面把底层实现拆成三个用户动作：
+
+1. `Refresh English`
+2. `Restore English`
+3. `Restore Official`
+
+这套表面结构把恢复基线、语言结果和安装实现细节混为一谈。用户必须先理解 snapshot、managed runtime、官方 runtime/signature 等内部概念，才能判断应点哪个按钮。更严重的是，后端早已在非英文 Apply 写事务前自动建立或复用恢复基线，renderer 却用 `needsExtract` 禁用并拦截 Apply，制造了一个并非业务必需的手动步骤。
+
+## 2. 当前代码事实
+
+### 2.1 Apply 已拥有自动基线能力
+
+`src-tauri/src/commands/apply.rs` 的非英文事务在写入语言资产、runtime 或 marker 前调用 `extract_english_snapshot_or_throw`。该闸门只接受以下证据：
+
+- 可验证的 clean vendor English 安装，可据此建立 immutable generation；或
+- 与当前 Cavalry immutable revision 匹配、provenance 完整的既有恢复基线。
+
+若证据不足，事务在任何 Cavalry 写入前失败。自动化不降低 fail-closed 标准，也不把当前已翻译文件误采为原始英文。renderer 的 `needsExtract` 只用于说明准备状态，不再阻断 clean official install 的 Apply。
+
+### 2.2 “恢复基线”不是备份整个 Cavalry
+
+保存范围只覆盖本项目将修改、恢复或删除时需要证明的原始材料：keyed English JSON、平台 runtime/QPA preimage、macOS Info/main/CodeResources/ExtensionLayer 与签名身份等。产品文案不得使用没有范围限定的“备份 Cavalry”，也不得向普通用户暴露 snapshot/provenance。
+
+### 2.3 两种旧恢复动作在 macOS 的内部结果不同
+
+- 旧 `en`：写回 English JSON 与 English marker，但保留 Switcher 管理的 launcher、injector、Keychain patch 和本地重签状态。
+- `restore-official`：恢复官方 English 文件与 vendor runtime/signature preimage，并移除 Switcher 自有 runtime。
+
+用户目标只有一个：让 Cavalry 回到可理解、可退出的官方英文状态。因此 UI 不再让用户裁决内部恢复等级；平台 transaction 名称的差异只留在 renderer→Rust 边界之后。
+
+### 2.4 重复 Apply 的签名范围根因与修复证据
+
+`src-tauri/src/detect.rs` 当前的 code identity 只把签名载荷、`LC_CODE_SIGNATURE` 字段，以及由签名末端明确证明的 `__LINKEDIT` extent 视为可归一化内容；无关的 `__LINKEDIT` extent 仍是身份材料。
+
+根因是允许的 re-sign 会改变签名载荷大小，并同步改变签名末端的 `__LINKEDIT` `vmsize/filesize`。若把这些签名相关范围按原始字节直接比较，第二次 Apply 会把同一份可执行代码误判为 drifted。当前 `detect::tests` 5/5 PASS，且 `/tmp` disposable Cavalry 副本的首次/重复 Apply 均成功。以上是 focused evidence：它证明身份归一化与重复 Apply 路径，不证明当前候选已完成正式 macOS manual smoke 或 packaged/native PASS。
+
+### 2.5 Renderer 与 command 边界
+
+当前 Tauri renderer-facing command registry 与 Rust builder 均为 9 条：status、browse、apply、privacy、固定 project link、show About、restart、check update、install update。手动 English extraction 不是 bridge/API 能力；`extract_english_inner` 仅保留为 Rust 测试内部 seam，不能由 renderer 触发。
+
+## 3. 产品决策
+
+### 3.1 单一任务流
+
+```text
+Switch to
+[ Select：占满两列总宽 ]
+[ Apply & Restart ][ Restore ]
+[ Activity Log ]
+```
+
+删除 `Recovery` 标题、手动 `Refresh English`、`Restore English` 与 `Restore Official` 双入口。两个动作等宽，Select 与两个按钮加间距后的总宽一致。
+
+### 3.2 平台映射
+
+| 用户动作 | macOS 内部 action | Windows 内部 action | 用户可见结果 |
+| --- | --- | --- | --- |
+| Apply & Restart | 目标语言，例如 `zh-Hans` | 目标语言，例如 `zh-Hans` | 自动保存必要原文件，应用语言并重启 Cavalry |
+| Restore | `restore-official` | `en` | 恢复官方英文可运行状态，清理 Switcher 翻译 runtime，并重启 Cavalry |
+
+这里统一的是用户意图与结果，不是强迫两平台共享同一内部 transaction 名称。保留现有、已验证的平台事务，比新造一个跨平台伪抽象更简单可靠。
+
+### 3.3 可见状态
+
+- clean official English：Apply 可用；若尚无基线，首次 Apply 自动准备。Restore 禁用，因为没有需要恢复的修改。
+- translated/managed：Apply 可继续切换；Restore 可用。
+- Windows residue/reconciliation required：Alert 明确要求 Restore；Restore 映射为 English + vendor QPA/generic cleanup。
+- macOS modified/unverified 且无可信基线：Apply 和 Restore 均 fail closed，Alert 要求从官方安装包重新安装。
+- state durability pending：禁止继续写操作，Alert 要求重启 Switcher，不再要求用户刷新英文。
+- startup transaction recovery failed：所有 Cavalry mutation 阻断，底层错误不直接显示给用户。
+
+## 4. 文案合同
+
+- 按钮只写具体动作：`Apply & Restart`、`Restore`。
+- 首次 Apply 的临时状态标题为 `Preparing {language}`，正文说明“修改 Cavalry 前，将保存恢复所需的原始文件”。
+- Restore 确认标题直接问 `Restore Cavalry?`；正文说明恢复官方英文、移除翻译文件和重启结果。
+- Alert 标题表达结果、风险或下一动作；正文只补充影响和恢复路径。
+- 禁用用户文案：`Refresh English`、`Backup Cavalry`、`snapshot`、`provenance`、`managed runtime`。
+
+## 5. 布局与滚动合同
+
+- Tauri 窗口配置：`400×480`，`minWidth=400`、`minHeight=480`。
+- 标题栏高度由 16px 交通灯与上下各 12px 推导为 40px；内容四周 padding 为 20px。
+- 主任务流通常使用 20px 间距，`Switch to` 与 Select 使用 8px 字段关系；Select 与按钮高度为 36px；双动作轨道为 `170px + 20px + 170px = 360px`，正好等于 `400px - 2×20px`。
+- 复合二维关系由 Grid 管理（Select 跨两列、Apply/Restore 同行）；一维标题/内容流由 Flex 管理。
+- 主窗口禁止横向和纵向滚动：`html`、`body` 与 `.content` 均不得成为窗口滚动容器。窗口尺寸必须容纳正式四语内容，不得以裁剪或隐藏必要内容换取无滚动。
+- Select 弹层与 Activity Log 各自在自身有界区域内滚动，不属于窗口滚动。
+- Activity Log 保持固定结果区域；只有必要确认、权限和危险操作进入独立 AlertDialog，正式四语文案不得撑开主窗口。
+
+## 6. 被否决的方案
+
+1. **保留 Refresh 作为“高级功能”**：没有独立用户目标，只重复 Apply 的前置能力，增加状态分叉。
+2. **把按钮改成 Backup / Restore**：保存范围不是整个应用，`Backup` 会制造错误承诺。
+3. **保留 Restore English 和 Restore Official**：要求用户理解实现状态，两个结果在体感上高度重叠，且容易留下“英文但仍被管理”的中间态。
+4. **新造统一 Rust action 名称后再实现**：当前平台事务已存在且语义明确；只在 renderer 意图层统一，符合 KISS/YAGNI。
+5. **让主窗口滚动兜底**：紧凑桌面工具的主任务必须一屏完成；滚动会隐藏 Alert 或动作，掩盖窗口尺寸和文案失控。若列表选项过多，只允许 Select 弹层自身滚动。
+
+## 7. 当前验收清单
+
+- [x] renderer 不再查询 `extractButton` / `restoreEnglishButton` / `maintenanceHeading`；当前 renderer/bridge 合同 30/30 PASS。
+- [x] `window.cavalryI18n` 和 Tauri command 注册表不再暴露独立 `extractEnglish` / `extract_english`；内部测试 seam 不属于 bridge/API。
+- [x] clean official + `needsExtract=true` 时 Apply 仍可点击并调用 `apply_language`；renderer/bridge 测试覆盖该路径。
+- [x] macOS Restore 调用 `restore-official`；Windows Restore 调用 `en`；renderer/bridge 测试覆盖两个映射。
+- [x] official English 且无 residue 时 Restore 禁用但不隐藏，布局不跳动；renderer/bridge 测试覆盖该状态。
+- [x] 四语按钮、确认、准备、恢复、成功和失败文案合同通过；renderer contract 与 30/30 runtime contract 通过。
+- [x] `html/body/.content` 不产生窗口滚动；Select 与 Activity Log 各自独立滚动；renderer contract 检查 CSS 边界。
+- [x] Node renderer/bridge 合同 30/30；全量 contracts 243/243 PASS。
+- [x] macOS native dev 已从当前工作树重新编译并拉起；源配置 `400×480`，AX/CGWindow 外框 `400×481`，`/tmp/cavalry-titlebar-visual-gap.png` 现场截图确认更新入口、实体标题间距、20px 内容边距和无窗口滚动。
+- [ ] 当前源码的 macOS package 与 ignored manual smoke；旧 `9766ee3` 的 `460×404` 只作历史且已失效。
+- [ ] Windows live：真机窗口、scaling、Snap、状态保留与 updater 跨版本验证。
+
+## 8. 当前验证证据
+
+```text
+node --test tools/check_renderer_contract.js \
+  tools/check_tauri_bridge_runtime.js                             30/30 PASS
+cargo test --manifest-path src-tauri/Cargo.toml \
+  --test command_contract                                             6/6 PASS
+cargo test --manifest-path src-tauri/Cargo.toml \
+  --test tauri_config_contract                                         8/8 PASS
+cargo test --manifest-path src-tauri/Cargo.toml \
+  --lib commands::tests::registers_nine_commands                    1/1 PASS
+cargo test --manifest-path src-tauri/Cargo.toml \
+  --lib detect::tests                                             5/5 PASS
+cargo check --manifest-path src-tauri/Cargo.toml                      PASS
+mise x node@24.20.0 -- npm run test:contracts                    243/243 PASS
+cargo test --manifest-path src-tauri/Cargo.toml                  242 PASS / 2 explicit live-artifact tests ignored
+native Tauri dev AX / CGWindow                                    400×481 outer; config 400×480
+```
+
+这组验证证明当前代码、静态 renderer/bridge 行为、9-command 注册、Tauri `400×480` 配置、macOS native dev 几何与签名范围 focused tests；它们不证明当前候选已经完成 macOS package/manual smoke 或 Windows live。
+
+历史 `9766ee3` packaged 记录：
+
+- 旧窗口为 `460×404`，与当前源配置不一致。
+- 该提交之后存在未提交 UI/逻辑变化，所以旧 packaged 结果不能推断当前候选；不写作当前 packaged PASS。
+- 正式 ignored macOS manual smoke 仍需可验证 English 的 disposable Cavalry 输入。

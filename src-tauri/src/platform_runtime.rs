@@ -385,6 +385,7 @@ fn macos_modified_nested_code(
     app_path: &Path,
     staged_pairs: &[CopyPair],
 ) -> Vec<PathBuf> {
+    let main_executable = app_path.join("Contents/MacOS/Cavalry");
     let injector_target = plan
         .injector_target
         .as_ref()
@@ -393,10 +394,15 @@ fn macos_modified_nested_code(
         .join("Contents")
         .join("Frameworks")
         .join("libExtensionLayer.dylib");
-    staged_pairs
-        .iter()
-        .filter(|pair| pair.dst == *injector_target || pair.dst == keychain_target)
-        .map(|pair| pair.dst.clone())
+    // 首装会把 CFBundleExecutable 切到 CavalryLauncher；原厂 Cavalry 签名绑定旧
+    // Info.plist，必须在外层 bundle seal 前进入同一有界 nested-code 重签计划。
+    std::iter::once(main_executable)
+        .chain(
+            staged_pairs
+                .iter()
+                .filter(|pair| pair.dst == *injector_target || pair.dst == keychain_target)
+                .map(|pair| pair.dst.clone()),
+        )
         .collect()
 }
 
@@ -749,5 +755,36 @@ mod tests {
 
         assert_eq!(error, ApplyPreflightError::CavalryStillRunning);
         assert_unchanged(&snapshots);
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+mod macos_tests {
+    use super::{macos_modified_nested_code, ApplyPlan};
+    use crate::patch::CopyPair;
+    use std::path::PathBuf;
+
+    #[test]
+    fn first_install_resigns_the_vendor_main_binary_before_outer_bundle_seal() {
+        let app = PathBuf::from("/tmp/Cavalry.app");
+        let injector = app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib");
+        let extension = app.join("Contents/Frameworks/libExtensionLayer.dylib");
+        let mut plan = ApplyPlan::default();
+        plan.injector_target = Some(injector.clone());
+        let pairs = [
+            CopyPair {
+                src: PathBuf::from("/tmp/injector"),
+                dst: injector.clone(),
+            },
+            CopyPair {
+                src: PathBuf::from("/tmp/extension"),
+                dst: extension.clone(),
+            },
+        ];
+
+        assert_eq!(
+            macos_modified_nested_code(&plan, &app, &pairs),
+            [app.join("Contents/MacOS/Cavalry"), injector, extension,]
+        );
     }
 }

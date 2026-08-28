@@ -1,6 +1,7 @@
+mod about_window;
 /**
- * [INPUT]: 依赖 tauri Builder/默认菜单、稳定 commands facade、macOS AppKit 原生窗口控件/自绘 About 唤起/启动恢复、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths 与 platform_runtime。
- * [OUTPUT]: 提供 run、macOS 系统应用菜单中的自绘 About 入口、40px 标题区内上下各留 12px 的原生交通灯对齐与 pending journal 恢复、Windows 三类早期分流、Updater plugin、稳定九命令注册表及平台门控 runtime。
+ * [INPUT]: 依赖 tauri Builder/默认菜单、稳定 commands facade、macOS AppKit 原生窗口控件/统一 About 窗口 owner/启动恢复、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths 与 platform_runtime。
+ * [OUTPUT]: 提供 run、macOS 系统应用菜单与 Windows renderer 共用的独立原生 About 窗口、40px 标题区内上下各留 12px 的原生交通灯对齐与 pending journal 恢复、Windows 三类早期分流、Updater plugin、稳定九命令注册表及平台门控 runtime。
  * [POS]: src-tauri/src 的应用装配层；组合命令 facade、启动恢复、共享运行基础与进程入口边界，但不承载具体写入或系统命令业务。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -116,13 +117,8 @@ pub fn run() {
 
     #[cfg(target_os = "macos")]
     let builder = builder.menu(build_macos_menu).on_menu_event(|app, event| {
-        use tauri::Manager;
-
         if event.id().as_ref() == MACOS_ABOUT_MENU_ID {
-            if let Some(window) = app.get_webview_window("main") {
-                let _ = window.eval("window.cavalryI18nShowAbout?.()");
-                let _ = window.set_focus();
-            }
+            let _ = about_window::show_about_window(app);
         }
     });
 
@@ -167,10 +163,10 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_status,
             commands::browse_app,
-            commands::extract_english,
             commands::apply_language,
             commands::open_privacy_security,
             commands::open_project_link,
+            commands::show_about,
             commands::restart_cavalry,
             commands::check_update,
             commands::install_update

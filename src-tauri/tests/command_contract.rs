@@ -16,10 +16,10 @@ fn registers_nine_commands_for_renderer_bridge() {
         &[
             "get_status",
             "browse_app",
-            "extract_english",
             "apply_language",
             "open_privacy_security",
             "open_project_link",
+            "show_about",
             "restart_cavalry",
             "check_update",
             "install_update"
@@ -38,14 +38,27 @@ fn updater_commands_are_registered_in_the_rust_builder() {
 }
 
 #[test]
-fn macos_default_about_is_replaced_by_the_renderer_about_dialog() {
+fn macos_and_windows_about_entries_share_one_native_window_owner() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let lib_rs = fs::read_to_string(manifest_dir.join("src/lib.rs")).unwrap();
+    let about_rs = fs::read_to_string(manifest_dir.join("src/about_window.rs")).unwrap();
 
     assert!(lib_rs.contains("fn build_macos_menu"));
     assert!(lib_rs.contains("app_menu.remove_at(0)?"));
     assert!(lib_rs.contains("MACOS_ABOUT_MENU_ID"));
-    assert!(lib_rs.contains("window.cavalryI18nShowAbout?.()"));
+    assert!(lib_rs.contains("about_window::show_about_window(app)"));
+    assert!(lib_rs.contains("commands::show_about"));
+    assert!(!lib_rs.contains("cavalryI18nShowAbout"));
+    assert!(about_rs.contains("ABOUT_WINDOW_LABEL: &str = \"about\""));
+    assert!(about_rs.contains("WebviewUrl::App(\"about.html\".into())"));
+    for option in [
+        ".resizable(false)",
+        ".maximizable(false)",
+        ".minimizable(false)",
+        ".decorations(true)",
+    ] {
+        assert!(about_rs.contains(option), "About owner must set {option}");
+    }
 }
 
 #[test]

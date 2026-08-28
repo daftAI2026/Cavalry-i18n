@@ -1,10 +1,11 @@
 /**
- * [INPUT]: 依赖 serde 序列化和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、启动恢复显式阻断诊断、Action/Status 的 Windows residue reconciliationRequired 检测标记，以及可组合的稳定 errorCode/warningCodes 投影。
- * [POS]: commands 的外部契约层；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
+ * [INPUT]: 依赖 serde 序列化、Tauri IPC Channel 和 privilege 的 typed post-commit warning code。
+ * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、四阶段有序进度事件、启动恢复显式阻断诊断、Action/Status 的 Windows residue reconciliationRequired 检测标记，以及可组合的稳定 errorCode/warningCodes 投影。
+ * [POS]: commands 的外部契约层；OperationReporter 是 transport-neutral 进度抽象，Tauri Channel 只在本文件的适配器中出现；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde::Serialize;
+use tauri::ipc::Channel;
 
 use crate::privilege::PostCommitWarning;
 
@@ -24,14 +25,152 @@ const NON_FATAL_CLEANUP_WARNING_CODE: &str = "nonFatalCleanup";
 pub const COMMAND_NAMES: [&str; 9] = [
     "get_status",
     "browse_app",
-    "extract_english",
     "apply_language",
     "open_privacy_security",
     "open_project_link",
+    "show_about",
     "restart_cavalry",
     "check_update",
     "install_update",
 ];
+
+pub(crate) const VERIFY_INSTALLATION_PHASE: &str = "verifyInstallation";
+pub(crate) const ENSURE_BASELINE_PHASE: &str = "ensureBaseline";
+pub(crate) const APPLY_TRANSACTION_PHASE: &str = "applyTransaction";
+pub(crate) const RESTART_CAVALRY_PHASE: &str = "restartCavalry";
+
+/// 阶段顺序是 renderer 与后端共同消费的稳定合同；不要按实现方便重排。
+pub(crate) const OPERATION_PHASE_MANIFEST: [&str; 4] = [
+    VERIFY_INSTALLATION_PHASE,
+    ENSURE_BASELINE_PHASE,
+    APPLY_TRANSACTION_PHASE,
+    RESTART_CAVALRY_PHASE,
+];
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum OperationPhase {
+    VerifyInstallation,
+    EnsureBaseline,
+    ApplyTransaction,
+    RestartCavalry,
+}
+
+impl OperationPhase {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::VerifyInstallation => VERIFY_INSTALLATION_PHASE,
+            Self::EnsureBaseline => ENSURE_BASELINE_PHASE,
+            Self::ApplyTransaction => APPLY_TRANSACTION_PHASE,
+            Self::RestartCavalry => RESTART_CAVALRY_PHASE,
+        }
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(crate) enum OperationState {
+    Running,
+    Completed,
+    Warning,
+    Error,
+}
+
+impl OperationState {
+    pub(crate) const fn as_str(self) -> &'static str {
+        match self {
+            Self::Running => "running",
+            Self::Completed => "completed",
+            Self::Warning => "warning",
+            Self::Error => "error",
+        }
+    }
+}
+
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct OperationEvent {
+    pub phase: String,
+    pub state: String,
+}
+
+/// 与传输方式无关的进度报告协议；领域事务不依赖 Tauri。
+pub(crate) trait OperationReporter: Clone + Send + Sync + 'static {
+    fn report(&self, phase: OperationPhase, state: OperationState);
+}
+
+#[derive(Clone)]
+pub(crate) struct TauriOperationReporter {
+    channel: Channel<OperationEvent>,
+}
+
+impl TauriOperationReporter {
+    pub(crate) fn new(channel: Channel<OperationEvent>) -> Self {
+        Self { channel }
+    }
+}
+
+impl OperationReporter for TauriOperationReporter {
+    fn report(&self, phase: OperationPhase, state: OperationState) {
+        // Channel 是观察面；关闭或拒收只丢弃进度，不改变事务结果。
+        let _ = self.channel.send(OperationEvent {
+            phase: phase.as_str().to_string(),
+            state: state.as_str().to_string(),
+        });
+    }
+}
+
+#[derive(Clone, Copy, Debug, Default)]
+pub(crate) struct NoopReporter;
+
+impl OperationReporter for NoopReporter {
+    fn report(&self, _phase: OperationPhase, _state: OperationState) {}
+}
+
+/// 阶段一旦开始，离开作用域前若没有明确终态，自动以 error 收口。
+pub(crate) struct OperationPhaseGuard<R: OperationReporter> {
+    reporter: R,
+    phase: OperationPhase,
+    terminal: bool,
+}
+
+impl<R: OperationReporter> OperationPhaseGuard<R> {
+    pub(crate) fn start(reporter: &R, phase: OperationPhase) -> Self {
+        debug_assert!(OPERATION_PHASE_MANIFEST.contains(&phase.as_str()));
+        reporter.report(phase, OperationState::Running);
+        Self {
+            reporter: reporter.clone(),
+            phase,
+            terminal: false,
+        }
+    }
+
+    pub(crate) fn completed(&mut self) {
+        self.finish(OperationState::Completed);
+    }
+
+    pub(crate) fn warning(&mut self) {
+        self.finish(OperationState::Warning);
+    }
+
+    pub(crate) fn error(&mut self) {
+        self.finish(OperationState::Error);
+    }
+
+    fn finish(&mut self, state: OperationState) {
+        if self.terminal {
+            return;
+        }
+        self.terminal = true;
+        self.reporter.report(self.phase, state);
+    }
+}
+
+impl<R: OperationReporter> Drop for OperationPhaseGuard<R> {
+    fn drop(&mut self) {
+        if !self.terminal {
+            self.reporter.report(self.phase, OperationState::Error);
+        }
+    }
+}
 
 #[derive(Debug, Serialize, PartialEq, Eq)]
 pub struct LanguageChoice {
@@ -122,6 +261,7 @@ impl ActionPayload {
         }
     }
 
+    #[cfg(any(target_os = "windows", test))]
     pub(crate) fn ok_count(count: usize) -> Self {
         Self {
             ok: true,

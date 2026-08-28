@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/ui-text/select/about/window-controls/app.js 与最小 fake DOM、Tauri invoke fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语动态 Alert、warningCodes/updater manifest、Select/About 状态机、双徽章、更新交互、固定项目外链、原生 dialog、English UI/官方还原、Windows caption controls/residue、durability retry 及 rejection 恢复。
+ * [INPUT]: renderer bridge/ui-text/select/tooltip/path/operation-log/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语 Activity Log、apply/restart 有序 Channel、warningCodes/updater manifest、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,15 +14,18 @@ const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
 
 class Element {
-  constructor() { this.textContent = ''; this.dataset = {}; this.listeners = new Map(); this.attributes = new Map(); this.children = []; this.hidden = false; this.disabled = false; this.value = ''; this.open = false; this.focused = false; this.isConnected = true; this.ownerDocument = null; }
+  constructor() { this.children = []; this._textContent = ''; this.dataset = {}; this.listeners = new Map(); this.attributes = new Map(); this.hidden = false; this.disabled = false; this.value = ''; this.open = false; this.focused = false; this.isConnected = true; this.ownerDocument = null; this.className = ''; this.scrollTop = 0; this.title = ''; }
+  get textContent() { return this.children.length ? this.children.map((child) => child.textContent).join('') : this._textContent; }
+  set textContent(value) { this._textContent = String(value ?? ''); }
+  get scrollHeight() { return this.children.length; }
   addEventListener(type, callback) { this.listeners.set(type, [...(this.listeners.get(type) || []), callback]); }
   setAttribute(key, value = '') { this.attributes.set(key, String(value)); }
   removeAttribute(key) { this.attributes.delete(key); }
   focus() { this.focused = true; if (this.ownerDocument) this.ownerDocument.activeElement = this; }
   showModal() { this.open = true; this.setAttribute('open', ''); }
   close() { this.open = false; this.removeAttribute('open'); for (const callback of this.listeners.get('close') || []) callback(); }
-  append(child) { this.children.push(child); this.options = this.children; }
-  replaceChildren() { this.children = []; this.options = this.children; }
+  append(...children) { this.children.push(...children); this.options = this.children; }
+  replaceChildren(...children) { this.children = children; this.options = this.children; }
   contains(target) { return target === this || this.children.some((child) => child.contains?.(target)); }
 }
 
@@ -30,16 +33,18 @@ function runtime({
   status = {},
   reject = null,
   apply = { ok: true, currentLang: 'zh-Hans' },
-  extract = { ok: true, count: 38 },
   update = { currentVersion: '0.7.0', version: null, notes: null, pubDate: null, available: false, errorCode: null },
   install = { currentVersion: '0.7.0', version: '0.7.1', notes: null, pubDate: null, available: true, errorCode: 'updateInstallFailed' },
   locale = 'en-US',
   preview = false,
   statusRequest = null,
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'updateControl', 'updateButton', 'updateTooltip', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutDialog', 'aboutTitle', 'aboutVersion', 'aboutCloseButton', 'aboutRepositoryLink', 'aboutRepositoryLabel', 'aboutLicenseLink', 'aboutLicenseLabel', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'maintenanceHeading', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'extractButton', 'applyButton', 'restoreEnglishButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'modalCloseButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
+  const channels = [];
+  const callbacks = new Map();
+  let nextCallbackId = 1;
   const document = {
     documentElement: new Element(), body: new Element(), activeElement: null, title: '',
     listeners: new Map(),
@@ -57,23 +62,53 @@ function runtime({
     installationMode: 'modifiedOrUnverified', needsExtract: false, permissionAction: 'none', platform: 'macos', version: '2.7.2', ...status,
   };
   const applyResults = Array.isArray(apply) ? [...apply] : [apply];
-  const extractResults = Array.isArray(extract) ? [...extract] : [extract];
   const nextResult = (results) => (results.length > 1 ? results.shift() : results[0]);
   let maximized = false;
   const windowListeners = new Map();
   const window = {
     location: { protocol: 'http:', hostname: '127.0.0.1', search: preview ? '?preview=update' : '' },
     addEventListener(type, callback) { windowListeners.set(type, [...(windowListeners.get(type) || []), callback]); },
-    __TAURI_INTERNALS__: { invoke(command, payload) {
-    calls.push({ command, payload });
+    __TAURI_INTERNALS__: {
+    transformCallback(callback) { const id = nextCallbackId++; callbacks.set(id, callback); return id; },
+    unregisterCallback(id) { callbacks.delete(id); },
+    invoke(command, payload) {
+    if (command === 'apply_language') {
+      channels.push(payload.onEvent);
+      calls.push({ command, payload: { appPath: payload.appPath, lang: payload.lang } });
+    } else {
+      calls.push({ command, payload });
+    }
     if (reject === command) return Promise.reject(new Error('transport failure'));
     if (command === 'get_status') return statusRequest ? statusRequest(defaultStatus) : Promise.resolve(defaultStatus);
-    if (command === 'apply_language') return Promise.resolve(nextResult(applyResults));
-    if (command === 'extract_english') return Promise.resolve(nextResult(extractResults));
+    if (command === 'apply_language') {
+      const result = nextResult(applyResults);
+      const callback = callbacks.get(payload.onEvent.id);
+      if (callback) {
+        const events = result.ok
+          ? [
+              { phase: 'verifyInstallation', state: 'running' },
+              { phase: 'verifyInstallation', state: 'completed' },
+              { phase: 'ensureBaseline', state: 'running' },
+              { phase: 'ensureBaseline', state: 'completed' },
+              { phase: 'applyTransaction', state: 'running' },
+              { phase: 'applyTransaction', state: (result.warningCodes || []).some((code) => code !== 'restartFailed') ? 'warning' : 'completed' },
+              { phase: 'restartCavalry', state: 'running' },
+              { phase: 'restartCavalry', state: (result.warningCodes || []).includes('restartFailed') || result.warningCode === 'restartFailed' ? 'warning' : 'completed' },
+            ]
+          : [
+              { phase: 'verifyInstallation', state: 'running' },
+              { phase: 'verifyInstallation', state: 'error' },
+            ];
+        events.forEach((message, index) => callback({ index, message }));
+        callback({ index: events.length, end: true });
+      }
+      return Promise.resolve(result);
+    }
     if (command === 'check_update') return Promise.resolve(update);
     if (command === 'install_update') return Promise.resolve(install);
     if (command === 'plugin:app|version') return Promise.resolve('0.7.0');
     if (command === 'open_project_link') return Promise.resolve({ ok: true });
+    if (command === 'show_about') return Promise.resolve({ ok: true });
     if (command === 'plugin:window|is_maximized') return Promise.resolve(maximized);
     if (command === 'plugin:window|toggle_maximize') { maximized = !maximized; return Promise.resolve(); }
     if (command === 'plugin:window|minimize' || command === 'plugin:window|close') return Promise.resolve();
@@ -82,19 +117,38 @@ function runtime({
   };
   const context = { window, document, navigator: { language: locale, languages: [locale] }, Promise, console, setTimeout, clearTimeout };
   context.globalThis = context;
-  return { elements, calls, window, context };
+  return { elements, calls, channels, window, context };
 }
 async function flush() { await Promise.resolve(); await new Promise((resolve) => setImmediate(resolve)); await Promise.resolve(); }
+
+function dispatch(element, type, event = {}) {
+  for (const listener of element.listeners.get(type) || []) listener(event);
+}
 
 function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
   vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
   vm.runInNewContext(read('renderer/select-control.js'), r.context, { filename: 'select-control.js' });
-  vm.runInNewContext(read('renderer/about-dialog.js'), r.context, { filename: 'about-dialog.js' });
+  vm.runInNewContext(read('renderer/tooltip-control.js'), r.context, { filename: 'tooltip-control.js' });
+  vm.runInNewContext(read('renderer/path-display.js'), r.context, { filename: 'path-display.js' });
+  vm.runInNewContext(read('renderer/operation-log.js'), r.context, { filename: 'operation-log.js' });
+  vm.runInNewContext(read('renderer/about-control.js'), r.context, { filename: 'about-control.js' });
   vm.runInNewContext(read('renderer/window-controls.js'), r.context, { filename: 'window-controls.js' });
   vm.runInNewContext(read('renderer/app.js'), r.context, { filename: 'app.js' });
   return r;
+}
+
+function activityRows(runtimeState) {
+  return runtimeState.elements['#statusText'].children;
+}
+
+function activityText(runtimeState) {
+  return runtimeState.elements['#statusText'].textContent;
+}
+
+function activityTitle(runtimeState, index = 0) {
+  return activityRows(runtimeState)[index]?.children[1]?.children[0]?.textContent || '';
 }
 
 test('Windows caption controls keep right-side native semantics and localized maximize state', async () => {
@@ -145,7 +199,8 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(r.elements['#languageSelect'].children.length, 3);
   assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hans', 'zh-Hant', 'ja_JP']);
   assert.equal(r.elements['#languageSelect'].children[0].textContent, '简体中文');
-  assert.equal(r.elements['#statusLabel'].textContent, 'Ready to apply');
+  assert.equal(r.elements['#statusLabel'].textContent, 'Activity');
+  assert.equal(activityTitle(r), 'Ready to apply');
   assert.equal(r.elements['#currentLanguage'].textContent, '简体中文');
   assert.equal(r.elements['#installationBadge'].textContent, 'Translated');
   assert.equal(r.elements['#installationBadge'].dataset.state, 'translated');
@@ -186,52 +241,58 @@ test('custom language select keeps Base UI open, active, selected, and keyboard 
   assert.equal(trigger.focused, true);
 });
 
-test('About dialog shows the Switcher version and opens only fixed project links', async () => {
+test('About entry delegates to one native window command and keeps links fixed', async () => {
   const r = boot({ locale: 'zh-CN' });
   await flush();
   const button = r.elements['#aboutButton'];
-  const dialog = r.elements['#aboutDialog'];
-  const close = r.elements['#aboutCloseButton'];
 
   assert.equal(button.attributes.get('aria-label'), '关于 Cavalry 语言切换器');
   assert.equal(r.elements['#aboutControl'].hidden, true, 'macOS About belongs to the system application menu');
-  assert.equal(r.elements['#aboutRepositoryLabel'].textContent, 'https://github.com/daftAI2026/Cavalry-i18n');
-  r.window.cavalryI18nShowAbout();
-  await flush();
-  assert.equal(dialog.open, true);
-  assert.equal(r.elements['#aboutVersion'].textContent, '版本 0.7.0');
-  assert.equal(close.focused, true);
-
-  r.elements['#aboutRepositoryLink'].listeners.get('click')[0]({ preventDefault() {} });
-  r.elements['#aboutLicenseLink'].listeners.get('click')[0]({ preventDefault() {} });
+  dispatch(button, 'click');
   await flush();
   assert.deepEqual(
-    JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'open_project_link'))),
-    [
-      { command: 'open_project_link', payload: { link: 'repository' } },
-      { command: 'open_project_link', payload: { link: 'license' } },
-    ]
+    JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'show_about'))),
+    [{ command: 'show_about' }]
   );
   await assert.rejects(() => r.window.cavalryI18n.openProjectLink('https://attacker.invalid'), /Unsupported project link/);
-  close.listeners.get('click')[0]();
-  assert.equal(dialog.open, false);
-  assert.equal(button.focused, true);
 
   const windows = boot({ status: { platform: 'windows' } });
   await flush();
   assert.equal(windows.elements['#aboutControl'].hidden, false, 'Windows needs the in-window About entry');
+  dispatch(windows.elements['#aboutButton'], 'click');
+  await flush();
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(windows.calls.filter(({ command }) => command === 'show_about'))),
+    [{ command: 'show_about' }]
+  );
 });
 
-test('status panel title describes the actual ready state in each UI locale', async () => {
-  for (const [locale, expected] of [
-    ['zh-CN', '可以应用语言包'],
-    ['zh-TW', '可以套用語言包'],
-    ['ja-JP', '言語パックを適用できます'],
+test('Activity heading stays stable while each locale describes the actual ready state in its first row', async () => {
+  for (const [locale, heading, expected] of [
+    ['zh-CN', '操作记录', '可以应用语言包'],
+    ['zh-TW', '操作記錄', '可以套用語言包'],
+    ['ja-JP', '操作履歴', '言語パックを適用できます'],
   ]) {
     const r = boot({ locale });
     await flush();
-    assert.equal(r.elements['#statusLabel'].textContent, expected, locale);
+    assert.equal(r.elements['#statusLabel'].textContent, heading, locale);
+    assert.equal(activityTitle(r), expected, locale);
   }
+});
+
+test('Marker composition swaps Spinner for the event icon without appending a duplicate row', async () => {
+  const r = boot();
+  await flush();
+  const log = r.window.createOperationLog({
+    root: r.elements['#statusPanel'],
+    list: r.elements['#statusText'],
+  });
+  log.replace({ id: 'verifyInstallation', title: 'Checking', state: 'running' });
+  assert.equal(activityRows(r).length, 1);
+  assert.equal(activityRows(r)[0].children[0].dataset.icon, 'spinner');
+  log.upsert({ id: 'verifyInstallation', title: 'Checked', state: 'completed', icon: 'inspect' });
+  assert.equal(activityRows(r).length, 1);
+  assert.equal(activityRows(r)[0].children[0].dataset.icon, 'inspect');
 });
 
 test('translated installation badge follows the selected UI locale', async () => {
@@ -257,13 +318,13 @@ test('update icon stays hidden by default and exposes an explicit development-on
   ]) {
     const r = boot({ locale });
     await flush();
-    assert.equal(r.elements['#updateTooltip'].textContent, tooltip, locale);
+    assert.equal(r.elements['#updateTooltipText'].textContent, tooltip, locale);
     assert.equal(r.elements['#updateControl'].hidden, true, locale);
-    const statusBeforeClick = r.elements['#statusText'].textContent;
-    const toneBeforeClick = r.elements['#statusText'].dataset.tone;
-    r.elements['#updateButton'].listeners.get('click')[0]();
-    assert.equal(r.elements['#statusText'].textContent, statusBeforeClick, locale);
-    assert.equal(r.elements['#statusText'].dataset.tone, toneBeforeClick, locale);
+    const statusBeforeClick = activityText(r);
+    const stateBeforeClick = r.elements['#statusPanel'].dataset.state;
+    dispatch(r.elements['#updateButton'], 'click');
+    assert.equal(activityText(r), statusBeforeClick, locale);
+    assert.equal(r.elements['#statusPanel'].dataset.state, stateBeforeClick, locale);
     assert.deepEqual(
       r.calls.filter(({ command }) => command !== 'get_status').map(({ command }) => command),
       ['check_update']
@@ -274,21 +335,58 @@ test('update icon stays hidden by default and exposes an explicit development-on
   await flush();
   assert.equal(preview.elements['#updateControl'].hidden, false);
   assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
-  preview.elements['#updateControl'].listeners.get('mouseenter')[0]();
+  preview.elements['#updateControl'].listeners.get('pointerenter')[0]({ pointerType: 'mouse' });
   assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
-  preview.elements['#updateControl'].listeners.get('mouseleave')[0]();
+  assert.equal(preview.elements['#updateButton'].attributes.get('aria-describedby'), 'updateTooltip');
+  preview.elements['#updateControl'].listeners.get('pointerleave')[0]();
   assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
+  assert.equal(preview.elements['#updateButton'].attributes.has('aria-describedby'), false);
   preview.elements['#updateControl'].listeners.get('focusin')[0]();
   assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
   preview.elements['#updateButton'].listeners.get('keydown')[0]({ key: 'Escape' });
   assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
   preview.elements['#updateControl'].listeners.get('focusin')[0]();
   assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'open');
-  preview.elements['#updateButton'].listeners.get('click')[0]();
+  dispatch(preview.elements['#updateButton'], 'click');
   assert.equal(preview.elements['#updateControl'].dataset.tooltipState, 'closed');
-  assert.equal(preview.elements['#statusText'].dataset.tone, 'success');
-  assert.match(preview.elements['#statusText'].textContent, /preview is active/i);
+  assert.equal(preview.elements['#statusPanel'].dataset.state, 'completed');
+  assert.equal(activityRows(preview)[0].children[0].dataset.icon, 'update');
+  assert.match(activityText(preview), /preview is active/i);
   assert.equal(preview.calls.filter(({ command }) => command !== 'get_status').length, 0);
+});
+
+test('Tooltip filters touch and keeps only one titlebar popup open', async () => {
+  const r = boot({ preview: true, status: { platform: 'windows' } });
+  await flush();
+  const update = r.elements['#updateControl'];
+  const about = r.elements['#aboutControl'];
+
+  update.listeners.get('pointerenter')[0]({ pointerType: 'touch' });
+  assert.equal(update.dataset.tooltipState, 'closed');
+  update.listeners.get('pointerenter')[0]({ pointerType: 'mouse' });
+  assert.equal(update.dataset.tooltipState, 'open');
+  about.listeners.get('pointerenter')[0]({ pointerType: 'mouse' });
+  assert.equal(update.dataset.tooltipState, 'closed');
+  assert.equal(about.dataset.tooltipState, 'open');
+});
+
+test('installation location keeps the macOS bundle and reduces a long Windows executable to drive plus install folder', async () => {
+  const windowsPath = 'C:\\Users\\A-Very-Long-Account-Name\\AppData\\Local\\Cavalry\\Cavalry.exe';
+  const r = boot({ status: { appPath: windowsPath, platform: 'windows' } });
+  await flush();
+  assert.equal(r.elements['#appPathPrefix'].textContent, 'C:\\Users\\…');
+  assert.equal(r.elements['#appPathLeaf'].textContent, '\\Cavalry');
+  assert.equal(r.elements['#appPath'].attributes.get('aria-label'), 'C:\\Users\\A-Very-Long-Account-Name\\AppData\\Local\\Cavalry');
+  assert.ok(
+    Array.from(`${r.elements['#appPathPrefix'].textContent}${r.elements['#appPathLeaf'].textContent}`).length <= 36
+  );
+  assert.equal(r.elements['#appPath'].title, '');
+  assert.equal(r.elements['#appPath'].attributes.has('title'), false);
+
+  const mac = boot({ status: { appPath: '/Applications/Cavalry.app', platform: 'macos' } });
+  await flush();
+  assert.equal(mac.elements['#appPathPrefix'].textContent, '/Applications');
+  assert.equal(mac.elements['#appPathLeaf'].textContent, '/Cavalry.app');
 });
 
 test('signed update result is announced, confirmed, and installed without renderer-controlled artifact data', async () => {
@@ -321,7 +419,7 @@ test('signed update result is announced, confirmed, and installed without render
   ]);
 
   r.context.document.activeElement = r.elements['#updateButton'];
-  r.elements['#updateButton'].listeners.get('click')[0]();
+  dispatch(r.elements['#updateButton'], 'click');
   assert.equal(r.elements['#modalBackdrop'].open, true);
   assert.match(r.elements['#modalTitle'].textContent, /Update the Switcher/);
   assert.match(r.elements['#modalBody'].textContent, /Security and UI fixes/);
@@ -332,15 +430,15 @@ test('signed update result is announced, confirmed, and installed without render
   const installs = r.calls.filter(({ command }) => command === 'install_update');
   assert.equal(installs.length, 1);
   assert.equal(installs[0].payload, undefined);
-  assert.equal(r.elements['#statusText'].dataset.tone, 'error');
-  assert.match(r.elements['#statusText'].textContent, /could not be installed/i);
+  assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
+  assert.match(activityText(r), /could not be installed/i);
 });
 
 test('bootstrap keeps mutation controls disabled until status is ready', async () => {
   let resolveStatus;
   const pendingStatus = new Promise((resolve) => { resolveStatus = resolve; });
   const r = boot({ statusRequest: () => pendingStatus });
-  for (const id of ['#browseButton', '#extractButton', '#applyButton', '#restoreEnglishButton', '#restoreButton', '#languageSelect']) {
+  for (const id of ['#browseButton', '#applyButton', '#restoreButton', '#languageSelect']) {
     assert.equal(r.elements[id].disabled, true, `${id} must fail closed before getStatus resolves`);
   }
   resolveStatus({
@@ -362,7 +460,7 @@ test('bootstrap keeps mutation controls disabled until status is ready', async (
   assert.equal(r.elements['#languageSelect'].disabled, false);
 });
 
-test('native dialog has one close owner, ignores right-click backdrop, and restores focus', async () => {
+test('AlertDialog requires an explicit action, blocks Escape dismissal, and restores focus', async () => {
   const r = boot({ status: { currentLang: 'zh-Hans' } });
   await flush();
   const trigger = r.elements['#applyButton'];
@@ -371,56 +469,79 @@ test('native dialog has one close owner, ignores right-click backdrop, and resto
   assert.equal(r.elements['#modalBackdrop'].open, true);
   assert.equal(r.context.document.activeElement, r.elements['#modalPrimaryButton']);
 
-  const backdropClick = r.elements['#modalBackdrop'].listeners.get('click')[0];
-  backdropClick({ target: r.elements['#modalBackdrop'], button: 2, defaultPrevented: false });
-  assert.equal(r.elements['#modalBackdrop'].open, true, 'right-click must not dismiss the dialog');
-  backdropClick({ target: new Element(), button: 0, defaultPrevented: false });
-  assert.equal(r.elements['#modalBackdrop'].open, true, 'inside click must not dismiss the dialog');
-  backdropClick({ target: r.elements['#modalBackdrop'], button: 0, defaultPrevented: false });
+  let cancelPrevented = false;
+  r.elements['#modalBackdrop'].listeners.get('cancel')[0]({ preventDefault() { cancelPrevented = true; } });
+  assert.equal(cancelPrevented, true);
+  assert.equal(r.elements['#modalBackdrop'].open, true, 'Escape must not dismiss an AlertDialog');
+  r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
   assert.equal(r.elements['#modalBackdrop'].open, false);
   assert.equal(trigger.focused, true, 'the original trigger regains focus after close');
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
 });
 
-test('English restore is disabled in English and otherwise uses the ordinary apply confirmation', async () => {
-  const english = boot({ status: { currentLang: 'en' } }); await flush();
-  assert.equal(english.elements['#currentLanguage'].textContent, 'English UI');
-  assert.equal(english.elements['#installationBadge'].textContent, 'Modified');
-  assert.equal(english.elements['#installationBadge'].dataset.state, 'modified');
-  assert.equal(english.elements['#languageSelect'].value, 'zh-Hans', 'English current state keeps a stable target default');
-  assert.equal(english.elements['#restoreEnglishButton'].disabled, true);
-  english.elements['#restoreEnglishButton'].listeners.get('click')[0]();
-  assert.equal(english.elements['#modalTitle'].textContent, '');
-  assert.equal(english.calls.filter(({ command }) => command === 'apply_language').length, 0);
-
-  const translated = boot({ status: { currentLang: 'zh-Hans' } }); await flush();
-  assert.equal(translated.elements['#restoreEnglishButton'].disabled, false);
-  translated.elements['#restoreEnglishButton'].listeners.get('click')[0]();
-  assert.equal(translated.elements['#modalTitle'].textContent, 'Install language pack?');
-  assert.equal(translated.elements['#modalBackdrop'].open, true);
-  assert.equal(translated.elements['#modalPrimaryButton'].focused, true);
-  translated.elements['#modalPrimaryButton'].listeners.get('click')[0]();
-  await flush();
-  assert.equal(translated.elements['#modalBackdrop'].open, false);
-  assert.deepEqual(JSON.parse(JSON.stringify(translated.calls.filter(({ command }) => command === 'apply_language')[0])), {
-    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+test('single Restore maps to the platform transaction and remains visible when not needed', async () => {
+  const macos = boot({
+    status: { platform: 'macos', currentLang: 'zh-Hans', installationMode: 'modifiedOrUnverified' },
   });
-
-  const restore = boot(); await flush();
-  assert.equal(restore.elements['#restoreButton'].hidden, false);
-  restore.elements['#restoreButton'].listeners.get('click')[0]();
-  assert.equal(restore.elements['#modalTitle'].textContent, 'Restore the official Cavalry installation?');
-  restore.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
-  assert.deepEqual(JSON.parse(JSON.stringify(restore.calls.filter(({ command }) => command === 'apply_language')[0])), {
+  assert.equal(macos.elements['#restoreButton'].textContent, 'Restore');
+  assert.equal(macos.elements['#restoreButton'].hidden, false);
+  assert.equal(macos.elements['#restoreButton'].disabled, false);
+  macos.elements['#restoreButton'].listeners.get('click')[0]();
+  assert.equal(macos.elements['#modalTitle'].textContent, 'Restore Cavalry?');
+  assert.equal(macos.elements['#modalPrimaryButton'].textContent, 'Restore');
+  macos.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(macos.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'restore-official' },
   });
 
-  const official = boot({ status: { installationMode: 'official', currentLang: 'en' } }); await flush();
-  assert.equal(official.elements['#restoreButton'].hidden, true);
+  const windows = boot({
+    status: { platform: 'windows', currentLang: 'en', reconciliationRequired: true },
+    apply: { ok: true, currentLang: 'en' },
+  });
+  await flush();
+  assert.equal(windows.elements['#restoreButton'].disabled, false);
+  assert.equal(windows.elements['#statusLabel'].textContent, 'Activity');
+  assert.equal(activityTitle(windows), 'Restore Cavalry to finish cleanup');
+  windows.elements['#restoreButton'].listeners.get('click')[0]();
+  assert.equal(windows.elements['#modalTitle'].textContent, 'Restore Cavalry?');
+  windows.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(windows.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
+
+  const official = boot({ status: { installationMode: 'official', currentLang: 'en' } });
+  await flush();
+  assert.equal(official.elements['#restoreButton'].hidden, false);
+  assert.equal(official.elements['#restoreButton'].disabled, true);
   assert.equal(official.elements['#installationMode'].textContent, 'Installation: verified official runtime');
   assert.equal(official.elements['#installationBadge'].textContent, 'Official');
   assert.equal(official.elements['#installationBadge'].dataset.state, 'official');
+});
+
+test('clean official macOS install with needsExtract allows Apply to establish its baseline', async () => {
+  const r = boot({
+    status: { platform: 'macos', currentLang: 'en', installationMode: 'official', needsExtract: true },
+    apply: { ok: true, currentLang: 'zh-Hans' },
+  });
+  await flush();
+  assert.equal(r.elements['#applyButton'].disabled, false);
+  assert.equal(r.elements['#restoreButton'].disabled, true);
+  r.elements['#applyButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalTitle'].textContent, 'Install language pack?');
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#statusLabel'].textContent, 'Activity');
+  assert.equal(activityTitle(r), 'Checking the Cavalry installation');
+  await flush();
+  assert.deepEqual(activityRows(r).map((row) => row.children[0].dataset.icon), [
+    'inspect', 'archive', 'translate', 'restart',
+  ]);
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
+  });
+  assert.equal(r.channels.length, 1, 'apply must attach one ordered Tauri Channel');
 });
 
 test('apply invokes exactly one backend transaction and never exposes a second restart call', async () => {
@@ -434,25 +555,18 @@ test('apply invokes exactly one backend transaction and never exposes a second r
   assert.equal(r.calls.some(({ command }) => command === 'restart_cavalry'), false);
 });
 
-test('refresh detects Windows residue without mutation and only the explicit English restore applies', async () => {
+test('Windows englishRestoreNeeded residue is actionable through Restore despite needsExtract', async () => {
   const r = boot({
-    status: { platform: 'windows' },
-    extract: { ok: true, count: 38, reconciliationRequired: true },
+    status: { platform: 'windows', currentLang: 'en', needsExtract: true, reconciliationRequired: true },
     apply: { ok: true, currentLang: 'en' },
   });
   await flush();
   assert.equal(r.elements['#installationBadge'].hidden, true, 'macOS-only installation trust badge stays hidden on Windows');
-
-  r.elements['#extractButton'].listeners.get('click')[0]();
-  await flush();
-  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
-  assert.equal(r.elements['#restoreEnglishButton'].disabled, false);
+  assert.equal(r.elements['#restoreButton'].disabled, false, 'Windows residue may restore without a baseline snapshot');
   assert.equal(r.elements['#applyButton'].disabled, false);
-  assert.equal(r.elements['#statusLabel'].textContent, 'Restore English to finish cleanup');
-  assert.match(r.elements['#statusText'].textContent, /previous Windows language setup/i);
-
-  r.elements['#restoreEnglishButton'].listeners.get('click')[0]();
-  assert.equal(r.elements['#modalTitle'].textContent, 'Install language pack?');
+  assert.equal(activityTitle(r), 'Restore Cavalry to finish cleanup');
+  assert.match(activityText(r), /previous Windows language setup/i);
+  r.elements['#restoreButton'].listeners.get('click')[0]();
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
@@ -460,53 +574,16 @@ test('refresh detects Windows residue without mutation and only the explicit Eng
   });
 });
 
-test('bootstrap shows typed Windows residue warning without blocking apply or restore', async () => {
-  const windows = boot({
-    status: { platform: 'windows', currentLang: 'en', reconciliationRequired: true },
-  });
-  await flush();
-  assert.equal(windows.elements['#restoreEnglishButton'].disabled, false);
-  assert.equal(windows.elements['#applyButton'].disabled, false);
-  assert.equal(windows.elements['#statusLabel'].textContent, 'Restore English to finish cleanup');
-  assert.match(windows.elements['#statusText'].textContent, /previous Windows language setup/i);
-  assert.equal(
-    windows.calls.filter(({ command }) => command === 'apply_language').length,
-    0,
-    'bootstrap must not apply implicitly'
-  );
-  windows.elements['#restoreEnglishButton'].listeners.get('click')[0]();
-  windows.elements['#modalPrimaryButton'].listeners.get('click')[0]();
-  await flush();
-  assert.deepEqual(JSON.parse(JSON.stringify(windows.calls.filter(({ command }) => command === 'apply_language')[0])), {
-    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
-  });
-
-  const macos = boot({
-    status: { platform: 'macos', reconciliationRequired: true },
-  });
-  await flush();
-  assert.equal(macos.elements['#applyButton'].disabled, false);
-  assert.doesNotMatch(macos.elements['#statusText'].textContent, /previous Windows language setup/i);
-});
-
-test('bridge exposes typed residue detection without a dedicated reconciliation action', async () => {
-  const r = boot({ extract: { ok: true, count: 38, reconciliationRequired: true } });
-  await flush();
-  const action = await r.window.cavalryI18n.extractEnglish('/Applications/Cavalry.app');
-  assert.equal(action.reconciliationRequired, true);
-  assert.equal(typeof r.window.cavalryI18n.reconcileEnglish, 'undefined');
-});
-
-test('English restore reuses the ordinary UAC retry path', async () => {
+test('single Windows Restore reuses the ordinary UAC retry path', async () => {
   const r = boot({
-    status: { platform: 'windows', permissionAction: 'requestElevation' },
+    status: { platform: 'windows', currentLang: 'en', reconciliationRequired: true, permissionAction: 'requestElevation' },
     apply: [
       { ok: false, permissionRequired: true, errorCode: 'permissionRequired' },
       { ok: true, currentLang: 'en' },
     ],
   });
   await flush();
-  r.elements['#restoreEnglishButton'].listeners.get('click')[0]();
+  r.elements['#restoreButton'].listeners.get('click')[0]();
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
   assert.equal(r.elements['#modalTitle'].textContent, 'System permission required');
@@ -518,12 +595,44 @@ test('English restore reuses the ordinary UAC retry path', async () => {
   });
 });
 
+test('permission AlertDialog exposes the recovery action and preserves Apply/Restore labels', async () => {
+  const r = boot({
+    status: { platform: 'macos', currentLang: 'zh-Hans', permissionAction: 'none' },
+    apply: [
+      { ok: false, permissionRequired: true, errorCode: 'permissionRequired' },
+      { ok: true, currentLang: 'zh-Hans' },
+    ],
+  });
+  await flush();
+  const labels = {
+    apply: r.elements['#applyButton'].textContent,
+    restore: r.elements['#restoreButton'].textContent,
+  };
+  assert.deepEqual(labels, { apply: 'Apply & Restart', restore: 'Restore' });
+
+  r.elements['#applyButton'].listeners.get('click')[0]();
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+
+  assert.equal(r.elements['#modalTitle'].textContent, 'System permission required');
+  assert.equal(r.elements['#modalPrimaryButton'].textContent, 'Open Settings');
+  assert.equal(r.elements['#modalSecondaryButton'].textContent, 'Cancel');
+  assert.notEqual(r.elements['#modalPrimaryButton'].textContent, 'Retry Apply');
+  assert.equal(r.elements['#applyButton'].textContent, labels.apply);
+  assert.equal(r.elements['#restoreButton'].textContent, labels.restore);
+
+  r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.equal(r.elements['#applyButton'].textContent, labels.apply);
+  assert.equal(r.elements['#restoreButton'].textContent, labels.restore);
+});
+
 test('transport rejection becomes a localized stable status and re-bootstrap attempt', async () => {
   const r = boot({ reject: 'browse_app' }); await flush();
   r.elements['#browseButton'].listeners.get('click')[0]();
   await flush();
-  assert.equal(r.elements['#statusText'].textContent, 'Could not contact the desktop service. Try again.');
-  assert.equal(r.elements['#statusText'].dataset.tone, 'error');
+  assert.match(activityText(r), /Could not contact the desktop service\. Try again\./);
+  assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
   assert.equal(r.calls.filter(({ command }) => command === 'get_status').length, 2);
 });
 
@@ -533,32 +642,28 @@ test('startup recovery failure blocks mutations without exposing raw backend dia
     startupRecoveryError: 'Cavalry is still running',
   } });
   await flush();
-  for (const id of ['#browseButton', '#extractButton', '#applyButton', '#restoreEnglishButton', '#restoreButton', '#languageSelect']) {
+  for (const id of ['#browseButton', '#applyButton', '#restoreButton', '#languageSelect']) {
     assert.equal(r.elements[id].disabled, true, `${id} must be blocked`);
   }
-  assert.equal(r.elements['#statusLabel'].textContent, 'Couldn’t recover the interrupted operation');
-  assert.match(r.elements['#statusText'].textContent, /could not be recovered safely/);
-  assert.doesNotMatch(r.elements['#statusText'].textContent, /Cavalry is still running/);
-  assert.equal(r.elements['#statusText'].dataset.tone, 'error');
+  assert.equal(activityTitle(r), 'Couldn’t recover the interrupted operation');
+  assert.match(activityText(r), /couldn.t recover an interrupted update/i);
+  assert.doesNotMatch(activityText(r), /Cavalry is still running/);
+  assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
   assert.equal(r.elements['#installationBadge'].hidden, true, 'transaction recovery must stay in the actionable Alert instead of masquerading as installation classification');
 });
 
 
-test('macOS incomplete provenance gives a direct reinstall route and never confirms official restore', async () => {
+test('macOS incomplete provenance gives a direct reinstall route and blocks Restore', async () => {
   const r = boot({ status: { installationMode: 'modifiedOrUnverified', needsExtract: true } }); await flush();
   assert.equal(r.elements['#restoreButton'].hidden, false, 'the unavailable restore route remains visible');
   assert.equal(r.elements['#restoreButton'].disabled, true, 'official restore must be unavailable with incomplete provenance');
-  assert.equal(r.elements['#restoreEnglishButton'].disabled, true, 'English restore must be unavailable without a trusted snapshot');
-  assert.equal(r.elements['#extractButton'].disabled, true, 'refreshing English must not be offered as a substitute for a required reinstall');
   assert.equal(r.elements['#applyButton'].disabled, true);
-  assert.equal(r.elements['#statusLabel'].textContent, 'Reinstall Cavalry');
-  assert.match(r.elements['#statusText'].textContent, /Reinstall Cavalry from the official installer/);
-  assert.equal(r.elements['#statusText'].dataset.tone, 'error');
+  assert.equal(activityTitle(r), 'Reinstall Cavalry');
+  assert.match(activityText(r), /Reinstall Cavalry from the official installer/);
+  assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
   r.elements['#restoreButton'].listeners.get('click')[0]();
   assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false, 'a synthetic click cannot bypass the disabled restore route');
-  assert.match(r.elements['#statusText'].textContent, /original English files cannot be verified/);
-  r.elements['#restoreEnglishButton'].listeners.get('click')[0]();
-  assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false, 'English restore must not bypass missing snapshot proof');
+  assert.match(activityText(r), /original English files cannot be verified/);
 });
 
 test('apply composes localized warning codes and never renders backend warning prose', async () => {
@@ -576,50 +681,31 @@ test('apply composes localized warning codes and never renders backend warning p
   r.elements['#applyButton'].listeners.get('click')[0]();
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
-  assert.equal(r.elements['#statusText'].dataset.tone, 'warning');
-  assert.match(r.elements['#statusText'].textContent, /无法重启 Cavalry/);
-  assert.match(r.elements['#statusText'].textContent, /临时清理仍未完成/);
-  assert.doesNotMatch(r.elements['#statusText'].textContent, /untrusted backend prose/);
+  assert.equal(r.elements['#statusPanel'].dataset.state, 'warning');
+  assert.match(activityText(r), /Cavalry 未重启/);
+  assert.match(activityText(r), /临时清理尚未完成/);
+  assert.doesNotMatch(activityText(r), /untrusted backend prose/);
 });
 
-test('state durability warning blocks mutations until an explicit successful snapshot retry', async () => {
+test('state durability warning blocks mutations and requires a Switcher restart', async () => {
   const r = boot({
-    extract: [
-      {
-        ok: true,
-        count: 38,
-        warning: 'state path and raw fsync failure must stay private',
-        warningCodes: ['stateDurabilityPending'],
-      },
-      { ok: true, count: 38, warningCodes: [] },
-    ],
+    apply: {
+      ok: true,
+      currentLang: 'zh-Hans',
+      warning: 'state path and raw fsync failure must stay private',
+      warningCodes: ['stateDurabilityPending'],
+    },
   });
   await flush();
 
-  r.elements['#extractButton'].listeners.get('click')[0]();
+  r.elements['#applyButton'].listeners.get('click')[0]();
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
-  assert.equal(r.elements['#statusText'].dataset.tone, 'warning');
-  assert.match(r.elements['#statusText'].textContent, /Refresh English again/);
-  assert.doesNotMatch(r.elements['#statusText'].textContent, /state path|raw fsync/i);
-  for (const id of ['#browseButton', '#applyButton', '#restoreEnglishButton', '#restoreButton', '#languageSelect']) {
+  assert.equal(r.elements['#statusPanel'].dataset.state, 'warning');
+  assert.match(activityText(r), /Restart the Switcher/);
+  assert.doesNotMatch(activityText(r), /state path|raw fsync/i);
+  for (const id of ['#browseButton', '#applyButton', '#restoreButton', '#languageSelect']) {
     assert.equal(r.elements[id].disabled, true, `${id} must stay blocked pending durability`);
   }
-  assert.equal(r.elements['#extractButton'].disabled, false, 'Refresh is the only retry control');
-
-  r.elements['#applyButton'].listeners.get('click')[0]();
-  assert.equal(
-    r.calls.some(({ command }) => command === 'apply_language'),
-    false,
-    'synthetic clicks cannot bypass the durability guard'
-  );
-  assert.match(r.elements['#statusText'].textContent, /Refresh English again/);
-
-  r.elements['#extractButton'].listeners.get('click')[0]();
-  await flush();
-  assert.equal(r.calls.filter(({ command }) => command === 'extract_english').length, 2);
-  assert.equal(r.elements['#statusText'].dataset.tone, 'success');
-  assert.match(r.elements['#statusText'].textContent, /English snapshot refreshed \(38 files\)/);
-  for (const id of ['#browseButton', '#applyButton', '#restoreEnglishButton', '#restoreButton', '#languageSelect']) {
-    assert.equal(r.elements[id].disabled, false, `${id} should unlock after durability retry`);
-  }
+  assert.equal(r.window.cavalryI18n.extractEnglish, undefined, 'the renderer must not expose manual baseline refresh');
 });

@@ -168,8 +168,11 @@ SESSION_DIR="$HOME/Library/Caches/Cavalry-i18n/sessions/<session-uuid>" npm run 
 Manual smoke is intentionally ignored by default:
 
 ```bash
+CAVALRY_I18N_MACOS_SMOKE_APP="/Volumes/Cavalry/Cavalry.app" \
 npm run test:tauri:manual-smoke
 ```
+
+Prefer a read-only mounted official Cavalry 2.7.2 DMG for that explicit path. The compatibility fallback is `/Applications/Cavalry.app`; never use a translated or ad-hoc source as English evidence.
 
 ## BUILD PIPELINE
 

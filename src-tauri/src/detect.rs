@@ -2,7 +2,7 @@
 use std::collections::HashSet;
 /**
  * [INPUT]: 依赖 install 的跨平台布局、state 保存路径与 windows_install 的只读发现线索
- * [OUTPUT]: 对外提供候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、签名区归一化 Mach-O code identity、不可变 revision、语言选项与安装诊断
+ * [OUTPUT]: 对外提供候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、仅归一 LC_CODE_SIGNATURE 与签名末端所证明 __LINKEDIT extent 的 Mach-O code identity、不可变 revision、语言选项与安装诊断
  * [POS]: src-tauri/src 的安装探测模块；严格写入入口分离 canonical root、bundle/version/architecture 与不可变文件身份，不能只凭 bundle-version 接受伪造 Cavalry.app
  * [FAIL-CLOSED]: read_mac_bundle_identity/require_supported_mac_identity 缺少完整 Info.plist、主 executable、libExtensionLayer 或 Mach-O 架构时失败；Team ID/designated requirement 明确标为 unavailable，需 privilege runner 提供签名证据后才可升级为 verified
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -720,9 +720,25 @@ enum MachEndian {
     Little,
 }
 
+const LC_SEGMENT: u32 = 0x1;
+const LC_SEGMENT_64: u32 = 0x19;
+const LC_CODE_SIGNATURE: u32 = 0x1d;
+const LINKEDIT_SEGMENT_NAME: &[u8; 16] = b"__LINKEDIT\0\0\0\0\0\0";
+
+#[derive(Clone, Copy)]
+struct LinkeditSegment {
+    vmsize_offset: usize,
+    filesize_offset: usize,
+    field_width: usize,
+    fileoff: u64,
+    filesize: u64,
+    vmsize: u64,
+}
+
 /// Hash the executable contents of a Mach-O while deliberately excluding only the
-/// `LC_CODE_SIGNATURE` command fields and signature payload.  Callers use this to prove
-/// that an allowed re-sign changed signature material rather than executable code.
+/// `LC_CODE_SIGNATURE` command fields, its signature payload, and the signature-dependent
+/// `__LINKEDIT` extent. Callers use this to prove that an allowed re-sign changed signature
+/// material rather than executable code.
 pub(crate) fn macho_code_identity_sha256(bytes: &[u8]) -> Result<String, String> {
     if bytes.len() < 8 {
         return Err("Mach-O input is too small to identify signed code bytes".to_string());
@@ -840,6 +856,7 @@ fn normalized_macho_slice_sha256(slice: &[u8]) -> Result<String, String> {
 
     let mut cursor = header_size;
     let mut code_signature = None;
+    let mut linkedit = None;
     for _ in 0..commands {
         let command = read_u32(slice, cursor, endian)?;
         let command_size = usize::try_from(read_u32(slice, cursor + 4, endian)?)
@@ -850,7 +867,49 @@ fn normalized_macho_slice_sha256(slice: &[u8]) -> Result<String, String> {
         if command_size < 8 || command_end > commands_end {
             return Err("Mach-O load command is truncated".to_string());
         }
-        if command == 0x1d {
+        if matches!(command, LC_SEGMENT | LC_SEGMENT_64) {
+            let segment_command_size = if command == LC_SEGMENT_64 { 72 } else { 56 };
+            if command_size < segment_command_size {
+                return Err("Mach-O segment command is truncated".to_string());
+            }
+            let segment_name = slice
+                .get(cursor + 8..cursor + 24)
+                .ok_or_else(|| "Mach-O segment name is truncated".to_string())?;
+            if segment_name == LINKEDIT_SEGMENT_NAME {
+                if linkedit.is_some() {
+                    return Err("Mach-O contains repeated __LINKEDIT segments".to_string());
+                }
+                let (vmsize_offset, filesize_offset, field_width, vmsize, fileoff, filesize) =
+                    if command == LC_SEGMENT_64 {
+                        (
+                            cursor + 32,
+                            cursor + 48,
+                            8,
+                            read_u64(slice, cursor + 32, endian)?,
+                            read_u64(slice, cursor + 40, endian)?,
+                            read_u64(slice, cursor + 48, endian)?,
+                        )
+                    } else {
+                        (
+                            cursor + 28,
+                            cursor + 36,
+                            4,
+                            u64::from(read_u32(slice, cursor + 28, endian)?),
+                            u64::from(read_u32(slice, cursor + 32, endian)?),
+                            u64::from(read_u32(slice, cursor + 36, endian)?),
+                        )
+                    };
+                linkedit = Some(LinkeditSegment {
+                    vmsize_offset,
+                    filesize_offset,
+                    field_width,
+                    fileoff,
+                    filesize,
+                    vmsize,
+                });
+            }
+        }
+        if command == LC_CODE_SIGNATURE {
             if command_size < 16 || code_signature.is_some() {
                 return Err("Mach-O LC_CODE_SIGNATURE is malformed or repeated".to_string());
             }
@@ -872,11 +931,45 @@ fn normalized_macho_slice_sha256(slice: &[u8]) -> Result<String, String> {
         return Err("Mach-O load-command size does not match its command table".to_string());
     }
 
+    // codesign shrinks or grows __LINKEDIT to the end of the newly written signature. Only
+    // canonicalize this extent when it is demonstrably derived from the signature range at the
+    // end of the slice; unrelated segment metadata remains part of the code identity.
+    let normalized_linkedit = match (linkedit, code_signature) {
+        (Some(linkedit), Some((_, signature_offset, signature_end)))
+            if signature_end == slice.len()
+                && linkedit.fileoff.checked_add(linkedit.filesize)
+                    == u64::try_from(signature_end).ok()
+                && linkedit.vmsize >= linkedit.filesize =>
+        {
+            usize::try_from(linkedit.fileoff)
+                .ok()
+                .and_then(|fileoff| signature_offset.checked_sub(fileoff))
+                .map(|canonical_size| (linkedit, canonical_size))
+        }
+        _ => None,
+    };
+
     let mut digest = Sha256::new();
     digest.update(b"macho-slice-code-v1\0");
     if let Some((command_offset, signature_offset, signature_end)) = code_signature {
         let mut prefix = slice[..signature_offset].to_vec();
         prefix[command_offset + 8..command_offset + 16].fill(0);
+        if let Some((linkedit, canonical_size)) = normalized_linkedit {
+            write_macho_integer(
+                &mut prefix,
+                linkedit.vmsize_offset,
+                linkedit.field_width,
+                canonical_size,
+                endian,
+            )?;
+            write_macho_integer(
+                &mut prefix,
+                linkedit.filesize_offset,
+                linkedit.field_width,
+                canonical_size,
+                endian,
+            )?;
+        }
         digest.update(prefix);
         digest.update(b"\0signature-payload-omitted\0");
         digest.update(&slice[signature_end..]);
@@ -884,6 +977,43 @@ fn normalized_macho_slice_sha256(slice: &[u8]) -> Result<String, String> {
         digest.update(slice);
     }
     Ok(format!("{:x}", digest.finalize()))
+}
+
+fn write_macho_integer(
+    bytes: &mut [u8],
+    offset: usize,
+    width: usize,
+    value: usize,
+    endian: MachEndian,
+) -> Result<(), String> {
+    match width {
+        4 => {
+            let value = u32::try_from(value)
+                .map_err(|_| "Mach-O 32-bit field cannot hold canonical size".to_string())?;
+            let encoded = match endian {
+                MachEndian::Big => value.to_be_bytes(),
+                MachEndian::Little => value.to_le_bytes(),
+            };
+            bytes
+                .get_mut(offset..offset + 4)
+                .ok_or_else(|| "Mach-O canonical field is truncated".to_string())?
+                .copy_from_slice(&encoded);
+        }
+        8 => {
+            let value = u64::try_from(value)
+                .map_err(|_| "Mach-O 64-bit field cannot hold canonical size".to_string())?;
+            let encoded = match endian {
+                MachEndian::Big => value.to_be_bytes(),
+                MachEndian::Little => value.to_le_bytes(),
+            };
+            bytes
+                .get_mut(offset..offset + 8)
+                .ok_or_else(|| "Mach-O canonical field is truncated".to_string())?
+                .copy_from_slice(&encoded);
+        }
+        _ => return Err("Mach-O canonical field has an unsupported width".to_string()),
+    }
+    Ok(())
 }
 
 fn thin_endian_and_header(bytes: &[u8]) -> Result<(MachEndian, usize), String> {
@@ -1114,7 +1244,8 @@ fn dedupe_paths(paths: Vec<PathBuf>) -> Vec<PathBuf> {
 mod tests {
     use super::{
         clear_revision_hash_cache_for_tests, find_cavalry_app_from_candidates,
-        read_bundle_revision, read_bundle_revision_for_write, read_bundle_version,
+        macho_code_identity_sha256, read_bundle_revision, read_bundle_revision_for_write,
+        read_bundle_version, LC_CODE_SIGNATURE, LC_SEGMENT_64, LINKEDIT_SEGMENT_NAME,
         REVISION_UNCACHED_HASHES,
     };
     use std::fs;
@@ -1211,5 +1342,89 @@ mod tests {
 
         fs::remove_file(root.join("CavalryFramework.dll")).unwrap();
         assert_ne!(changed, read_bundle_revision(&root).unwrap());
+    }
+
+    fn synthetic_signed_macho(
+        signature_len: usize,
+        linkedit_filesize_override: Option<u64>,
+    ) -> Vec<u8> {
+        const HEADER_SIZE: usize = 32;
+        const SEGMENT_COMMAND_SIZE: usize = 72;
+        const CODE_SIGNATURE_COMMAND_SIZE: usize = 16;
+        const COMMANDS_SIZE: usize = SEGMENT_COMMAND_SIZE + CODE_SIGNATURE_COMMAND_SIZE;
+        const LINKEDIT_FILE_OFFSET: usize = 0x1000;
+        const CODE_SIGNATURE_OFFSET: usize = 0x1100;
+
+        let signature_end = CODE_SIGNATURE_OFFSET + signature_len;
+        let actual_linkedit_filesize = (signature_end - LINKEDIT_FILE_OFFSET) as u64;
+        let linkedit_filesize = linkedit_filesize_override.unwrap_or(actual_linkedit_filesize);
+        let linkedit_vmsize = (linkedit_filesize + 0xfff) & !0xfff;
+        let mut bytes = vec![0_u8; signature_end];
+        for (index, byte) in bytes.iter_mut().enumerate() {
+            *byte = (index as u8).wrapping_mul(31).wrapping_add(7);
+        }
+
+        bytes[0..4].copy_from_slice(&0xfeed_facfu32.to_le_bytes());
+        bytes[4..8].copy_from_slice(&0x0100_000cu32.to_le_bytes());
+        bytes[8..12].copy_from_slice(&0_u32.to_le_bytes());
+        bytes[12..16].copy_from_slice(&2_u32.to_le_bytes());
+        bytes[16..20].copy_from_slice(&2_u32.to_le_bytes());
+        bytes[20..24].copy_from_slice(&(COMMANDS_SIZE as u32).to_le_bytes());
+
+        let segment = HEADER_SIZE;
+        bytes[segment..segment + 4].copy_from_slice(&LC_SEGMENT_64.to_le_bytes());
+        bytes[segment + 4..segment + 8]
+            .copy_from_slice(&(SEGMENT_COMMAND_SIZE as u32).to_le_bytes());
+        bytes[segment + 8..segment + 24].copy_from_slice(LINKEDIT_SEGMENT_NAME);
+        bytes[segment + 32..segment + 40].copy_from_slice(&linkedit_vmsize.to_le_bytes());
+        bytes[segment + 40..segment + 48]
+            .copy_from_slice(&(LINKEDIT_FILE_OFFSET as u64).to_le_bytes());
+        bytes[segment + 48..segment + 56].copy_from_slice(&linkedit_filesize.to_le_bytes());
+
+        let signature = segment + SEGMENT_COMMAND_SIZE;
+        bytes[signature..signature + 4].copy_from_slice(&LC_CODE_SIGNATURE.to_le_bytes());
+        bytes[signature + 4..signature + 8]
+            .copy_from_slice(&(CODE_SIGNATURE_COMMAND_SIZE as u32).to_le_bytes());
+        bytes[signature + 8..signature + 12]
+            .copy_from_slice(&(CODE_SIGNATURE_OFFSET as u32).to_le_bytes());
+        bytes[signature + 12..signature + 16]
+            .copy_from_slice(&(signature_len as u32).to_le_bytes());
+        for (index, byte) in bytes[CODE_SIGNATURE_OFFSET..].iter_mut().enumerate() {
+            *byte = (index as u8).wrapping_mul(17).wrapping_add(0xa5);
+        }
+        bytes
+    }
+
+    #[test]
+    fn macho_code_identity_ignores_codesign_linkedit_extent_but_not_code_bytes() {
+        let vendor = synthetic_signed_macho(0x2300, None);
+        let managed = synthetic_signed_macho(0x100, None);
+
+        assert_eq!(
+            macho_code_identity_sha256(&vendor).unwrap(),
+            macho_code_identity_sha256(&managed).unwrap(),
+            "a codesign-only signature resize must not create a new executable identity"
+        );
+
+        let mut code_changed = managed;
+        code_changed[0x500] ^= 0x01;
+        assert_ne!(
+            macho_code_identity_sha256(&vendor).unwrap(),
+            macho_code_identity_sha256(&code_changed).unwrap(),
+            "bytes outside the signature payload must remain identity material"
+        );
+    }
+
+    #[test]
+    fn macho_code_identity_does_not_normalize_unrelated_linkedit_extent() {
+        let vendor = synthetic_signed_macho(0x2300, None);
+        let actual_linkedit_filesize = (0x1100_u64 + 0x2300) - 0x1000;
+        let unrelated_extent = synthetic_signed_macho(0x2300, Some(actual_linkedit_filesize - 1));
+
+        assert_ne!(
+            macho_code_identity_sha256(&vendor).unwrap(),
+            macho_code_identity_sha256(&unrelated_extent).unwrap(),
+            "a segment extent not ending at the signature must not be treated as a re-sign delta"
+        );
     }
 }

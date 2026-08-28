@@ -25,8 +25,8 @@ const {
 const FROZEN_WINDOW = {
   title: 'Cavalry Language Switcher',
   processName: 'cavalry-i18n-tauri',
-  outerWidth: 460,
-  outerHeight: 404,
+  outerWidth: 400,
+  outerHeight: 480,
   chromeHeight: 0,
 };
 

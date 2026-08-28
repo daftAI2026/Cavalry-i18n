@@ -14,10 +14,10 @@
         "title": "Cavalry Language Switcher",
         "url": "./index.html",
         "useHttpsScheme": false,
-        "width": 460,
-        "height": 404,
-        "minWidth": 420,
-        "minHeight": 390,
+        "width": 400,
+        "height": 480,
+        "minWidth": 400,
+        "minHeight": 480,
         "resizable": true,
         "decorations": true,
         "titleBarStyle": "Overlay",
@@ -28,7 +28,8 @@
     "security": {
       "csp": "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; font-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'none'; frame-src 'none'",
       "capabilities": [
-        "default"
+        "default",
+        "about"
       ]
     }
   },

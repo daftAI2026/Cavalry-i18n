@@ -1,19 +1,21 @@
 /**
- * [INPUT]: 依赖 window.cavalryI18n 的 Promise API、window.createSelectControl/window.createAboutDialog/window.createWindowControls 的独立状态机、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/主任务/Recovery/动态语义 Alert、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、English UI/官方还原、About、更新 tooltip/无障碍通知与签名冷更新交互；开发预览不访问网络。
- * [POS]: renderer 的唯一交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实可达状态映射为具体结果/风险/恢复动作，以稳定 errorCode/warningCodes 本土化且从不显示 raw backend/updater 数据；原生 dialog 的 close 事件独占清理与焦点归还。
+ * [INPUT]: 依赖 window.cavalryI18n 的 Promise/有序阶段事件 API、window.createOperationLog/window.createSelectControl/window.createTooltipControl/window.createPathDisplay/window.createAboutControl/window.createWindowControls 的独立状态机、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/单任务流/持久 Activity Log、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、平台统一 Restore、AlertDialog 确认、About、更新 tooltip/无障碍通知与签名冷更新交互；首次 Apply 由后端在写事务前自动建立恢复基线，loopback 开发预览只点亮更新入口且不访问网络。
+ * [POS]: renderer 的唯一业务交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实 verify/baseline/apply/restart 阶段与稳定 errorCode/warningCodes 映射为本地化 Activity 行，非阻断结果不冒充 Alert，只有必须立即选择的确认与权限动作进入 AlertDialog；About 由独立 native window owner 管理。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
 const appPathText = document.querySelector('#appPath');
+const appPathPrefix = document.querySelector('#appPathPrefix');
+const appPathLeaf = document.querySelector('#appPathLeaf');
 const skipLink = document.querySelector('#skipLink');
 const windowTitle = document.querySelector('#windowTitle');
 const updateControl = document.querySelector('#updateControl');
 const updateButton = document.querySelector('#updateButton');
 const updateTooltip = document.querySelector('#updateTooltip');
+const updateTooltipText = document.querySelector('#updateTooltipText');
 const updateAnnouncement = document.querySelector('#updateAnnouncement');
 const languageSectionLabel = document.querySelector('#languageSectionLabel');
-const maintenanceHeading = document.querySelector('#maintenanceHeading');
 const currentLabel = document.querySelector('#currentLabel');
 const currentLanguage = document.querySelector('#currentLanguage');
 const installationBadge = document.querySelector('#installationBadge');
@@ -26,9 +28,7 @@ const languageSelectValue = document.querySelector('#languageSelectValue');
 const languageSelectPopup = document.querySelector('#languageSelectPopup');
 const languageSelectList = document.querySelector('#languageSelectList');
 const browseButton = document.querySelector('#browseButton');
-const extractButton = document.querySelector('#extractButton');
 const applyButton = document.querySelector('#applyButton');
-const restoreEnglishButton = document.querySelector('#restoreEnglishButton');
 const restoreButton = document.querySelector('#restoreButton');
 const permissionButton = document.querySelector('#permissionButton');
 const statusLabel = document.querySelector('#statusLabel');
@@ -39,7 +39,6 @@ const modalTitle = document.querySelector('#modalTitle');
 const modalBody = document.querySelector('#modalBody');
 const modalPrimaryButton = document.querySelector('#modalPrimaryButton');
 const modalSecondaryButton = document.querySelector('#modalSecondaryButton');
-const modalCloseButton = document.querySelector('#modalCloseButton');
 
 const languageSelectControl = window.createSelectControl({
   root: languageSelectRoot,
@@ -48,6 +47,14 @@ const languageSelectControl = window.createSelectControl({
   value: languageSelectValue,
   popup: languageSelectPopup,
   list: languageSelectList,
+});
+const operationLog = window.createOperationLog({ root: statusPanel, list: statusText });
+const pathDisplay = window.createPathDisplay({ root: appPathText, prefix: appPathPrefix, leaf: appPathLeaf });
+const updateTooltipControl = window.createTooltipControl({
+  root: updateControl,
+  trigger: updateButton,
+  popup: updateTooltip,
+  descriptionId: 'updateTooltip',
 });
 
 const api = window.cavalryI18n;
@@ -74,10 +81,10 @@ let modalSecondaryAction = null;
 let modalReturnFocus = null;
 const uiLocale = detectUiLocale();
 const windowControls = window.createWindowControls({ api, text: t });
-const aboutDialog = window.createAboutDialog({
+const aboutControl = window.createAboutControl({
   api,
   text: t,
-  onError: () => setStatus('openProjectLinkFailed', 'error'),
+  onError: () => setStatus('aboutOpenFailed', 'error'),
 });
 
 function updatePreviewRequested() {
@@ -119,13 +126,14 @@ function t(key, params = {}) {
 }
 
 async function recoverOperationFailure() {
+  operationLog.finishRunning('error');
   try {
-    await bootstrap();
+    await bootstrap({ renderActivity: false });
   } catch (_) {
     // The service is unavailable; the local, translated error below is the
     // only safe presentation for a transport failure.
   }
-  setStatus('operationFailed', 'error');
+  upsertStatus('operationFailed', 'error', {}, null, 'transportFailure');
 }
 
 function setPermissionWait(isWaiting) {
@@ -134,16 +142,35 @@ function setPermissionWait(isWaiting) {
     state.permissionAction === 'requestElevation'
       ? t('requestElevation')
       : t('openPrivacySecurity');
-  applyButton.textContent = isWaiting ? t('retryApply') : t('apply');
+  applyButton.textContent = t('apply');
+  restoreButton.textContent = t('restore');
 }
 
 function setStatus(key, tone = 'neutral', params = {}, messageOverride = null) {
   const message = messageOverride ?? t(key, params);
-  statusLabel.textContent = t(STATUS_TITLE_KEYS[key] || 'statusLabel', params);
-  statusText.textContent = message;
-  statusText.hidden = !message;
-  statusText.dataset.tone = tone;
-  statusPanel.dataset.tone = tone;
+  operationLog.replace({
+    id: 'status',
+    title: t(STATUS_TITLE_KEYS[key] || 'statusLabel', params),
+    description: message,
+    state: operationStateForTone(tone),
+    icon: key === 'updatePreviewAvailable' ? 'update' : undefined,
+  });
+}
+
+function upsertStatus(key, tone = 'neutral', params = {}, messageOverride = null, id = key) {
+  const message = messageOverride ?? t(key, params);
+  operationLog.upsert({
+    id,
+    title: t(STATUS_TITLE_KEYS[key] || 'statusLabel', params),
+    description: message,
+    state: operationStateForTone(tone),
+  });
+}
+
+function operationStateForTone(tone) {
+  if (tone === 'success') return 'completed';
+  if (tone === 'warning' || tone === 'error') return tone;
+  return 'neutral';
 }
 
 function requiresCavalryReinstall() {
@@ -152,6 +179,22 @@ function requiresCavalryReinstall() {
     state.installationMode === 'modifiedOrUnverified' &&
     state.needsExtract
   );
+}
+
+function restoreIsNeeded() {
+  if (!state.appPath) return false;
+  if (state.platform === 'macos') {
+    return state.installationMode !== 'official';
+  }
+  return state.currentLang !== 'en' || state.englishRestoreNeeded;
+}
+
+function isRestoreAction(action) {
+  return action === 'restore-official' || (state.platform === 'windows' && action === 'en');
+}
+
+function restoreIsBlockedByMissingBaseline() {
+  return state.needsExtract && !(state.platform === 'windows' && state.englishRestoreNeeded);
 }
 
 const WARNING_TEXT_KEYS = Object.freeze({
@@ -163,6 +206,12 @@ const WARNING_TEXT_KEYS = Object.freeze({
   finderFallbackUsed: 'warningFinderFallbackUsed',
   nonFatalCleanup: 'warningNonFatalCleanup',
 });
+const PHASE_ICONS = Object.freeze({
+  verifyInstallation: 'inspect',
+  ensureBaseline: 'archive',
+  applyTransaction: 'translate',
+  restartCavalry: 'restart',
+});
 const UPDATE_ERROR_TEXT_KEYS = Object.freeze({
   updaterNotConfigured: 'updaterNotConfigured',
   updaterUnsupportedPlatform: 'updaterUnsupportedPlatform',
@@ -173,13 +222,49 @@ const UPDATE_ERROR_TEXT_KEYS = Object.freeze({
   updateStateUnavailable: 'updateStateUnavailable',
 });
 
-function localizedWarningMessages(warningCodes) {
-  const codes = Array.isArray(warningCodes) ? warningCodes : [];
-  return codes.map((code) => t(WARNING_TEXT_KEYS[code] || 'warningNonFatalCleanup'));
-}
-
 function requireDurabilityRetry() {
   setStatus('warningStateDurabilityPending', 'warning');
+}
+
+function operationPhaseCopy({ phase, state: phaseState }, context) {
+  const { language, restoring } = context;
+  if (phase !== 'restartCavalry') {
+    const prefix = phase === 'verifyInstallation'
+      ? 'phaseVerifyInstallation'
+      : phase === 'ensureBaseline'
+        ? 'phaseEnsureRecovery'
+        : restoring
+          ? 'phaseRestore'
+          : 'phaseApply';
+    const copyState = phaseState === 'warning' ? 'completed' : phaseState;
+    return {
+      id: phase,
+      title: t(`${prefix}${copyState[0].toUpperCase()}${copyState.slice(1)}Title`, { language }),
+      description: phaseState === 'error' ? t('operationFailed') : '',
+      state: phaseState,
+      icon: phaseState === 'completed' ? PHASE_ICONS[phase] : undefined,
+    };
+  }
+  return {
+    id: phase,
+    title: t(`phaseRestart${phaseState[0].toUpperCase()}${phaseState.slice(1)}Title`),
+    description: phaseState === 'warning' || phaseState === 'error' ? t('restartRecovery') : '',
+    state: phaseState,
+    icon: phaseState === 'completed' ? PHASE_ICONS[phase] : undefined,
+  };
+}
+
+function updateOperationPhase(event, context) {
+  operationLog.upsert(operationPhaseCopy(event, context));
+}
+
+function appendPostCommitWarnings(warningCodes) {
+  const codes = Array.isArray(warningCodes) ? warningCodes : [];
+  for (const code of codes) {
+    if (code === 'restartFailed') continue;
+    const key = WARNING_TEXT_KEYS[code] || 'warningNonFatalCleanup';
+    upsertStatus(key, 'warning', {}, null, `warning-${code}`);
+  }
 }
 
 function setBusy(isBusy) {
@@ -188,27 +273,23 @@ function setBusy(isBusy) {
   const durabilityPending = state.stateDurabilityPending;
   browseButton.disabled = notReady || isBusy || state.controlsBlocked || durabilityPending;
   const reinstallRequired = requiresCavalryReinstall();
-  extractButton.disabled = notReady || isBusy || state.controlsBlocked || reinstallRequired;
   applyButton.disabled =
-    notReady || isBusy || state.needsExtract || state.controlsBlocked || durabilityPending;
-  restoreEnglishButton.disabled =
     notReady ||
     isBusy ||
     !state.appPath ||
-    (state.currentLang === 'en' && !state.englishRestoreNeeded) ||
-    state.needsExtract ||
     reinstallRequired ||
     state.controlsBlocked ||
     durabilityPending;
   restoreButton.disabled =
     notReady ||
     isBusy ||
-    state.needsExtract ||
+    !restoreIsNeeded() ||
+    restoreIsBlockedByMissingBaseline() ||
     reinstallRequired ||
     state.controlsBlocked ||
     durabilityPending;
   languageSelectControl.setDisabled(
-    notReady || isBusy || state.controlsBlocked || durabilityPending
+    notReady || isBusy || reinstallRequired || state.controlsBlocked || durabilityPending
   );
   updateButton.disabled = notReady || isBusy;
 }
@@ -218,7 +299,7 @@ function updateLanguageOptions(languages) {
 }
 
 function languageLabel(code) {
-  if (code === 'restore-official') return t('restoreOfficial');
+  if (code === 'restore-official') return t('restore');
   if (code === 'en') return t('englishUi');
   const match = state.languages.find((language) => language.value === code);
   return match ? match.label : code;
@@ -230,27 +311,22 @@ function localizeShell() {
   windowTitle.textContent = t('appTitle');
   if (!state.ready && !state.appPath) {
     appVersion.textContent = t('appNotFound');
-    appPathText.textContent = t('chooseAppToContinue');
+    pathDisplay.setMessage(t('chooseAppToContinue'));
   }
   skipLink.textContent = t('skipToControls');
   updateControl.hidden = !(updatePreviewEnabled || state.updateInfo?.available);
-  setUpdateTooltipOpen(false);
+  updateTooltipControl.close();
   updateButton.setAttribute('aria-label', t('updateButtonAria'));
-  updateTooltip.textContent = t('updateTooltip');
+  updateTooltipText.textContent = t('updateTooltip');
   languageSectionLabel.setAttribute('aria-label', t('switchTo'));
   currentLabel.textContent = t('current');
   switchToLabel.textContent = t('switchTo');
-  maintenanceHeading.textContent = t('maintenance');
   browseButton.setAttribute('aria-label', t('chooseAppAria'));
-  extractButton.textContent = t('refreshEnglish');
-  extractButton.setAttribute('aria-label', t('refreshEnglishAria'));
-  restoreEnglishButton.textContent = t('restoreEnglish');
-  restoreButton.textContent = t('restoreOfficialShort');
-  restoreButton.setAttribute('aria-label', t('restoreOfficial'));
+  restoreButton.textContent = t('restore');
+  restoreButton.setAttribute('aria-label', t('restore'));
   permissionButton.textContent = t('openPrivacySecurity');
-  statusLabel.textContent = t('loadingTitle');
-  modalCloseButton.setAttribute('aria-label', t('close'));
-  aboutDialog.localize();
+  statusLabel.textContent = t('activityTitle');
+  aboutControl.localize();
   windowControls.localize();
   setPermissionWait(false);
 }
@@ -285,7 +361,7 @@ function syncInstallationBadges() {
 
 function showUpdatePreview() {
   if (!updatePreviewEnabled) return;
-  setUpdateTooltipOpen(false);
+  updateTooltipControl.close();
   setStatus('updatePreviewAvailable', 'success');
 }
 
@@ -301,7 +377,7 @@ function updateConfirmationBody(update) {
 }
 
 function showUpdateConfirmation() {
-  setUpdateTooltipOpen(false);
+  updateTooltipControl.close();
   if (updatePreviewEnabled) {
     showUpdatePreview();
     return;
@@ -360,10 +436,6 @@ async function installCheckedUpdate(update) {
   }
 }
 
-function setUpdateTooltipOpen(isOpen) {
-  updateControl.dataset.tooltipState = isOpen ? 'open' : 'closed';
-}
-
 function showModal({ title, body, primary, secondary, onPrimary, onSecondary }) {
   if (modalBackdrop.open) return;
   if (typeof modalBackdrop.showModal !== 'function') {
@@ -417,14 +489,15 @@ function showApplyConfirmation(nextLanguage) {
 }
 
 function showRestoreConfirmation() {
+  const restoreAction = state.platform === 'macos' ? 'restore-official' : 'en';
   showModal({
     title: t('restoreConfirmTitle'),
     body: t('restoreConfirmBody'),
-    primary: t('restoreOfficial'),
+    primary: t('restore'),
     secondary: t('cancel'),
     onPrimary: () => {
       closeModal();
-      void runApply('restore-official').catch(recoverOperationFailure);
+      void runApply(restoreAction).catch(recoverOperationFailure);
     },
     onSecondary: closeModal,
   });
@@ -433,27 +506,40 @@ function showRestoreConfirmation() {
 function showPermissionWait(nextLanguage) {
   state.pendingAction = nextLanguage;
   const needsElevation = state.permissionAction === 'requestElevation';
-  setStatus('waitingPermission', 'warning');
+  upsertStatus('waitingPermission', 'warning', {}, null, 'permissionRequired');
   setPermissionWait(true);
   showModal({
     title: t('permissionTitle'),
     body: t('permissionBody'),
-    primary: needsElevation ? t('requestElevation') : t('retryApply'),
-    secondary: needsElevation ? t('cancel') : t('openPrivacySecurity'),
+    primary: needsElevation ? t('requestElevation') : t('openSettings'),
+    secondary: t('cancel'),
     onPrimary: () => {
       closeModal();
-      void runApply(nextLanguage).catch(recoverOperationFailure);
+      if (needsElevation) {
+        void runApply(nextLanguage).catch(recoverOperationFailure);
+      } else {
+        void openPrivacySecurity().catch(recoverOperationFailure);
+      }
     },
-    onSecondary: needsElevation
-      ? closeModal
-      : () => void openPrivacySecurity().catch(recoverOperationFailure),
+    onSecondary: closeModal,
   });
 }
 
-async function bootstrap() {
+async function bootstrap({ renderActivity = true } = {}) {
   state.ready = false;
   setBusy(state.busy);
   localizeShell();
+  if (renderActivity) {
+    operationLog.replace({
+      id: 'bootstrap',
+      title: t('loadingTitle'),
+      description: '',
+      state: 'running',
+    });
+  }
+  const presentStatus = (...args) => {
+    if (renderActivity) setStatus(...args);
+  };
   const bootstrapState = await api.getStatus();
   state.appPath = bootstrapState.appPath || '';
   state.currentLang = bootstrapState.currentLang || 'en';
@@ -473,7 +559,7 @@ async function bootstrap() {
   state.permissionAction = bootstrapState.permissionAction || 'none';
   document.documentElement.dataset.platform = state.platform;
   document.body.dataset.platform = state.platform;
-  aboutDialog.setPlatform(state.platform);
+  aboutControl.setPlatform(state.platform);
   windowControls.setPlatform(state.platform);
 
   updateLanguageOptions(state.languages);
@@ -486,7 +572,6 @@ async function bootstrap() {
 
   const showMacInstallationMode = state.platform === 'macos' && Boolean(state.appPath);
   installationModeText.hidden = !showMacInstallationMode;
-  restoreButton.hidden = !showMacInstallationMode || state.installationMode === 'official';
   installationModeText.textContent =
     state.installationMode === 'official'
       ? t('officialMode')
@@ -501,48 +586,41 @@ async function bootstrap() {
     appVersion.textContent = bootstrapState.version
       ? t('appFound', { version: bootstrapState.version })
       : t('appFoundNoVersion');
-    appPathText.textContent = state.appPath;
-    appPathText.title = state.appPath;
+    pathDisplay.setPath(state.appPath);
   } else {
     appVersion.textContent = t('appNotFound');
-    appPathText.textContent = t('appPathFallback', {
+    pathDisplay.setMessage(t('appPathFallback', {
       candidates: bootstrapState.defaultAppCandidates.join('\n'),
-    });
-    appPathText.removeAttribute('title');
+    }));
   }
 
   if (state.startupRecoveryError) {
-    setStatus('startupRecoveryFailed', 'error');
+    presentStatus('startupRecoveryFailed', 'error');
     return;
   }
 
   if (!state.appPath) {
-    setStatus('chooseAppToContinue', 'warning');
+    presentStatus('chooseAppToContinue', 'warning');
     return;
   }
 
   if (requiresCavalryReinstall()) {
-    setStatus('reinstallRequired', 'error');
-    return;
-  }
-
-  if (state.needsExtract) {
-    setStatus('needsExtract', 'warning');
+    presentStatus('reinstallRequired', 'error');
     return;
   }
 
   if (state.stateDurabilityPending) {
-    requireDurabilityRetry();
+    presentStatus('warningStateDurabilityPending', 'warning');
     return;
   }
 
   if (runtimeResidueDetected) {
-    setStatus('runtimeResidueWarning', 'warning');
+    presentStatus('runtimeResidueWarning', 'warning');
     return;
   }
 
   if (state.appManagementGranted === true) {
-    setStatus('readyToApply', 'success');
+    presentStatus('readyToApply', 'success');
     return;
   }
 
@@ -551,11 +629,11 @@ async function bootstrap() {
     state.appManagementGranted === false &&
     state.permissionAction === 'none'
   ) {
-    setStatus('customRootNotWritable', 'error');
+    presentStatus('customRootNotWritable', 'error');
     return;
   }
 
-  setStatus('readyPermission', 'warning');
+  presentStatus('readyPermission', 'warning');
 }
 
 async function browseForApp() {
@@ -569,51 +647,6 @@ async function browseForApp() {
   }
 
   await bootstrap();
-}
-
-async function refreshEnglishSnapshot() {
-  if (!state.appPath) {
-    setStatus('chooseAppFirst', 'warning');
-    return;
-  }
-
-  setBusy(true);
-  setPermissionWait(false);
-  closeModal();
-  setStatus('refreshingEnglish');
-
-  try {
-    const result = await api.extractEnglish(state.appPath);
-    if (!result.ok) {
-      setStatus('extractFailed', 'error');
-      return;
-    }
-
-    await bootstrap();
-    const warningCodes = result.warningCodes || [];
-    const warnings = localizedWarningMessages(warningCodes).join(' ');
-    state.stateDurabilityPending = warningCodes.includes('stateDurabilityPending');
-    const runtimeResidueDetected =
-      state.platform === 'windows' && result.reconciliationRequired === true;
-    state.englishRestoreNeeded = state.englishRestoreNeeded || runtimeResidueDetected;
-    setBusy(state.busy);
-    const statusKey = runtimeResidueDetected
-      ? 'runtimeResidueAfterRefresh'
-      : warnings
-        ? 'extractSuccessWarning'
-        : 'extractSuccess';
-    const message = `${t(statusKey, { count: result.count, warnings })}${
-      runtimeResidueDetected && warnings ? ` ${warnings}` : ''
-    }`;
-    setStatus(
-      statusKey,
-      runtimeResidueDetected || warnings ? 'warning' : 'success',
-      { count: result.count, warnings },
-      message
-    );
-  } finally {
-    setBusy(false);
-  }
 }
 
 function requestApply() {
@@ -633,22 +666,11 @@ function requestApply() {
     requireDurabilityRetry();
     return;
   }
-  if (state.needsExtract) {
-    setStatus('needsExtract', 'warning');
-    return;
-  }
-
   showApplyConfirmation(languageSelect.value);
 }
 
-function requestEnglishRestore() {
-  if (
-    state.busy ||
-    state.controlsBlocked ||
-    (state.currentLang === 'en' && !state.englishRestoreNeeded)
-  ) {
-    return;
-  }
+function requestRestore() {
+  if (state.busy || state.controlsBlocked || !restoreIsNeeded()) return;
   if (!state.appPath) {
     setStatus('chooseAppFirst', 'warning');
     return;
@@ -661,28 +683,8 @@ function requestEnglishRestore() {
     requireDurabilityRetry();
     return;
   }
-  if (state.needsExtract) {
-    setStatus('needsExtract', 'warning');
-    return;
-  }
-  showApplyConfirmation('en');
-}
-
-function requestOfficialRestore() {
-  if (!state.appPath) {
-    setStatus('chooseAppFirst', 'warning');
-    return;
-  }
-  if (requiresCavalryReinstall()) {
+  if (restoreIsBlockedByMissingBaseline()) {
     setStatus('reinstallRequired', 'error');
-    return;
-  }
-  if (state.stateDurabilityPending) {
-    requireDurabilityRetry();
-    return;
-  }
-  if (state.needsExtract) {
-    setStatus('needsExtract', 'warning');
     return;
   }
   showRestoreConfirmation();
@@ -697,43 +699,43 @@ async function runApply(nextLanguage) {
   setBusy(true);
   setPermissionWait(false);
   const language = languageLabel(nextLanguage);
-  setStatus('applying', 'neutral', { language });
+  const restoring = isRestoreAction(nextLanguage);
+  const operationContext = { language, restoring };
+  operationLog.clear();
+  updateOperationPhase({ phase: 'verifyInstallation', state: 'running' }, operationContext);
 
   try {
-    const result = await api.applyLanguage(state.appPath, nextLanguage);
+    const result = await api.applyLanguage(state.appPath, nextLanguage, (event) => {
+      updateOperationPhase(event, operationContext);
+    });
     if (!result.ok) {
       if (result.permissionRequired) {
+        operationLog.finishRunning('error');
         showPermissionWait(nextLanguage);
         return;
       }
       if (result.errorCode === 'cavalryStillRunning') {
-        setStatus('cavalryStillRunning', 'error');
+        operationLog.upsert({
+          id: 'applyTransaction',
+          title: t('closeCavalryTitle'),
+          description: t('cavalryStillRunning'),
+          state: 'error',
+        });
+        state.pendingAction = '';
         return;
       }
-      setStatus('patchFailed', 'error');
+      operationLog.finishRunning('error');
+      state.pendingAction = '';
       return;
     }
 
-    await bootstrap();
-
     const warningCodes = result.warningCodes || [];
-    const warnings = localizedWarningMessages(warningCodes).join(' ');
+    await bootstrap({ renderActivity: false });
+
     state.stateDurabilityPending = warningCodes.includes('stateDurabilityPending');
     setBusy(state.busy);
     state.pendingAction = '';
-    if (nextLanguage === 'restore-official') {
-      setStatus(
-        warnings ? 'officialRestoreWithWarnings' : 'officialRestoreSuccess',
-        warnings ? 'warning' : 'success',
-        { warnings }
-      );
-      return;
-    }
-    setStatus(
-      warnings ? 'appliedWithWarnings' : 'applied',
-      warnings ? 'warning' : 'success',
-      { language, warnings, warning: '' }
-    );
+    appendPostCommitWarnings(warningCodes);
   } finally {
     setBusy(false);
   }
@@ -760,18 +762,9 @@ function handlePermissionButton() {
   void openPrivacySecurity().catch(recoverOperationFailure);
 }
 updateButton.addEventListener('click', showUpdateConfirmation);
-updateControl.addEventListener('mouseenter', () => setUpdateTooltipOpen(true));
-updateControl.addEventListener('mouseleave', () => setUpdateTooltipOpen(false));
-updateControl.addEventListener('focusin', () => setUpdateTooltipOpen(true));
-updateControl.addEventListener('focusout', () => setUpdateTooltipOpen(false));
-updateButton.addEventListener('keydown', (event) => {
-  if (event.key === 'Escape') setUpdateTooltipOpen(false);
-});
 browseButton.addEventListener('click', () => void browseForApp().catch(recoverOperationFailure));
-extractButton.addEventListener('click', () => void refreshEnglishSnapshot().catch(recoverOperationFailure));
 applyButton.addEventListener('click', requestApply);
-restoreEnglishButton.addEventListener('click', requestEnglishRestore);
-restoreButton.addEventListener('click', requestOfficialRestore);
+restoreButton.addEventListener('click', requestRestore);
 permissionButton.addEventListener('click', handlePermissionButton);
 modalPrimaryButton.addEventListener('click', () =>
   void Promise.resolve(modalPrimaryAction && modalPrimaryAction()).catch(recoverOperationFailure)
@@ -779,16 +772,9 @@ modalPrimaryButton.addEventListener('click', () =>
 modalSecondaryButton.addEventListener('click', () =>
   void Promise.resolve(modalSecondaryAction && modalSecondaryAction()).catch(recoverOperationFailure)
 );
-modalCloseButton.addEventListener('click', closeModal);
 modalBackdrop.addEventListener('close', finalizeModalClose);
-modalBackdrop.addEventListener('click', (event) => {
-  if (
-    !event.defaultPrevented &&
-    (typeof event.button !== 'number' || event.button === 0) &&
-    event.target === modalBackdrop
-  ) {
-    closeModal();
-  }
+modalBackdrop.addEventListener('cancel', (event) => {
+  event.preventDefault();
 });
 
 bootstrap()

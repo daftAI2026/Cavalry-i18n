@@ -1,0 +1,10 @@
+{
+  "identifier": "about",
+  "description": "Allow the independent About renderer to read the Switcher version and use fixed project links.",
+  "windows": [
+    "about"
+  ],
+  "permissions": [
+    "core:app:allow-version"
+  ]
+}

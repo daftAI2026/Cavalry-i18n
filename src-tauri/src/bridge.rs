@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Tauri v2 pre-page-load window.__TAURI_INTERNALS__.invoke，并保留旧 global core.invoke 兼容读取
- * [OUTPUT]: 对外提供 Builder 实际嵌入的 bridge initialization script，创建最小冻结 window.cavalryI18n、Windows residue 检测与 warningCodes 兼容层
+ * [INPUT]: 依赖 Tauri v2 pre-page-load window.__TAURI_INTERNALS__.invoke/transformCallback/unregisterCallback，并保留旧 global core.invoke 兼容读取
+ * [OUTPUT]: 对外提供 Builder 实际嵌入的 bridge initialization script，创建最小冻结 window.cavalryI18n、有序 apply/restart Channel、Windows residue 检测与 warningCodes 兼容层
  * [POS]: src-tauri/src 的 renderer 桥；integration contract 执行此实际 Rust include，packaged WebView/CSP 仍由外部 UI gate 验证
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -19,7 +19,6 @@ mod tests {
             "window.cavalryI18n",
             "getStatus",
             "browseApp",
-            "extractEnglish",
             "applyLanguage",
             "openPrivacySecurity",
             "warningCodes",

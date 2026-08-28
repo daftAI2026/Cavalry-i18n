@@ -163,7 +163,7 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 - `src-tauri/tauri.windows.conf.json` 先执行 `npm run build:injector:windows`，再声明 NSIS、`icon.ico`、`languages` 与 `injector/windows/generic/cavalryi18n.dll`；它不继承 macOS injector、签名或 DMG 行为。
 - macOS dylib 与 Windows generic/QPA DLL 都是对应平台现场生成的中间产物，不纳入 Git 或 source artifact；macOS build artifact 只交付已嵌入 dylib 的 `.app`/DMG，Windows 只交付已嵌入双 DLL 的 NSIS EXE。
 - `app.withGlobalTauri = false`；vanilla bridge 只暴露冻结后的 `window.cavalryI18n`，页面业务代码不能访问全局 Tauri API。
-- main window 外框固定 `460x404`，最小 `420x390`；macOS Overlay 原生标题栏覆盖在同一内容坐标系中，不额外增加 WebView 内容高度；16px 交通灯在 40px 标题栏内上下各留 12px，内容四周 20px 与红灯中心线对齐；相邻主板块 token 为 16px，但两个 token 合成前一板块底边到下一标题字形盒顶部的真实 32px 留白。
+- main window 逻辑尺寸固定 `400x480`，最小 `400x480`；内容宽 360px、四边保留 20px，主任务流通常使用 20px 间距，`Switch to` 与其 Select 作为同一字段使用 8px 紧密关系间距，两枚动作在 360px 内容轨道内以 `170 + 20 + 170` 等宽分配。主内容结果区是有界 Activity Log，由 `operation-log.css/js` 负责并在自身范围内滚动；必要确认、权限和危险操作使用独立 AlertDialog。主窗口禁止横向与纵向滚动；macOS Overlay 原生标题栏覆盖在同一内容坐标系中，不额外增加 WebView 内容高度，16px 交通灯在 40px 标题栏内上下各留 12px，内容左缘继续与红灯中心线对齐。排印只使用 16/14/13px、400/450/500 和系统字体，间距以 4px token 为默认节奏。AppKit/WindowServer 的 AX/CGWindow 外框可能比逻辑高度多报告 1pt，不能据此改写 Tauri 配置。
 - `tauri.macos.conf.json` **不硬编码** signing identity；本地/`workflow_dispatch` 显式传入 `APPLE_SIGNING_IDENTITY="-"` 生成 ad-hoc 开发包。
 - **GitHub tag release** 显式传入 Developer ID Application secret，不能被配置文件里的 `-` 覆盖。DMG 卷宗图标脚本会重写容器，因此 tag job 必须在该步骤之后重新提交最终 DMG 给 notary service、staple 并用 `stapler`/`spctl` 双重验证；缺任一 secret、仍为 ad-hoc 或最终 ticket 无效都会 fail-closed。
 
@@ -206,7 +206,16 @@ Windows **开发机**下限为 Windows 10 x64、Node.js 24+、PowerShell 5.1+、
 
 Tauri 原生 DMG 配置（`tauri.macos.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸与图标坐标，无需手动干预。
 
-`src-tauri/icons/icon.png` 是 Tauri 图标源图 contract，必须保持 `1024x1024`、8-bit、RGBA；`32x32.png`、`128x128.png`、`icon.icns`、`icon.ico`、`ios/*` 与 `android/*` 是由 `npx tauri icon` 从源图生成的派生图标。若验证发现尺寸不一致，应恢复 `icon.png` 源图，不得把 `tools/check_tauri_build_sop.js` 改成迁就派生尺寸。
+`src-tauri/icons/icon.png` 是 Tauri 开发态 runtime 与图标生成器共享的源图 contract，必须保持 `512x512`、8-bit、RGBA 和透明圆角；正式 macOS `.app` 读取 `icon.icns`，开发态裸二进制读取 `icon.png`，两者的 512px 解码像素必须同构。此前 `icon.png` 被孤立替换成四角不透明的 1024px 图，导致开发态 Dock 图标显大，但已安装 `.app` 的 `icon.icns` 一直正确；禁止再根据开发态异常重缩放整套正式发布图标。
+
+需要重生成全平台投影时使用：
+
+```bash
+npx tauri icon src-tauri/icons/icon.png --output src-tauri/icons
+cp src-tauri/icons/128x128.png renderer/app-icon.png
+```
+
+第二条命令让 About 精确复用打包图标而非维护另一张品牌资产。`tools/check_tauri_build_sop.js` 验证开发态 `icon.png` 的透明圆角，并要求 About 与 tracked `128x128.png` 字节同源；若失败，应恢复平台投影，不得修改 gate 迁就漂移。
 
 盖章脚本补充 Tauri 不稳定覆盖的 **卷宗图标嵌入**：
 
@@ -230,6 +239,17 @@ npm run test:tauri:dmg-layout
 npm run test:tauri:ui
 npm run test:tauri:manual-smoke
 ```
+
+macOS ignored smoke 的优先输入是只读挂载的官方 Cavalry 2.7.2 DMG，而不是当前可能已经翻译或 ad-hoc 重签的 `/Applications/Cavalry.app`：
+
+```bash
+hdiutil attach /path/to/Cavalry.dmg -nobrowse -readonly -noverify -noautoopen
+CAVALRY_I18N_MACOS_SMOKE_APP="/Volumes/Cavalry/Cavalry.app" \
+  npm run test:tauri:manual-smoke
+hdiutil detach "/Volumes/Cavalry"
+```
+
+`CAVALRY_I18N_MACOS_SMOKE_APP` 必须是绝对 `Cavalry.app` 路径。harness 在任何 mutation 前重验官方版本、English 资产与 bundle identity，把全部写入限制在临时副本，并在三语 live injector capture 后逐字节复核源 bundle 的关键文件未变化；未设置该变量时才兼容回退 `/Applications/Cavalry.app`。任一 Cavalry 进程已存在时拒绝启动，避免把真实用户会话混入证据。
 
 Windows 基线验证：
 

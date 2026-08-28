@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command 与 apply/extract 兼容入口；extract 只验证并生成 English snapshot、返回 Windows residue 的 typed reconciliationRequired 检测结果且不恢复 pending transaction，renderer 的 English restore 直接复用既有 apply transaction；get_status 从安装现实重算该 typed 状态并显式投影启动恢复阻断，apply 在同一 operation guard 内完成成功后的 restart，project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；更新 command 只消费 Rust State 中的已检查 Update。
+ * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
+ * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段并完成成功后的 restart，project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,9 +23,10 @@ use crate::{operation_lock, privilege};
 pub use apply::apply_language_inner;
 pub(crate) use context::RESTORE_OFFICIAL_ACTION;
 pub use contract::{
-    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, StatusPayload,
+    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, OperationEvent, StatusPayload,
 };
 pub use restart::restart_cavalry_inner;
+#[cfg(test)]
 pub use snapshot::extract_english_inner;
 #[cfg(target_os = "windows")]
 pub(crate) use snapshot::refresh_english_inner;
@@ -50,54 +51,31 @@ pub fn browse_app(app: tauri::AppHandle) -> Result<BrowsePayload, String> {
 }
 
 #[tauri::command(rename_all = "camelCase")]
-pub async fn extract_english(app: tauri::AppHandle, app_path: String) -> ActionPayload {
-    let app_path = PathBuf::from(app_path);
-    let paths = context::AppPaths::for_app(&app);
-    let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
-        Ok(guard) => guard,
-        Err(error) => return ActionPayload::error(&error.to_string()),
-    };
-    match tauri::async_runtime::spawn_blocking(move || -> Result<ActionPayload, String> {
-        let _guard = guard;
-        let mut runner = privilege::RealCommandRunner;
-        let now = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
-        snapshot::refresh_english_inner(
-            &paths.repo_root,
-            &paths.state_dir,
-            &paths.resource_dir,
-            &app_path,
-            &mut runner,
-            &now,
-        )
-    })
-    .await
-    {
-        Ok(Ok(payload)) => payload.into_renderer_contract(),
-        Ok(Err(error)) => ActionPayload::error(&error),
-        Err(error) => ActionPayload::error(&format!("English extraction task failed: {error}")),
-    }
-}
-
-#[tauri::command(rename_all = "camelCase")]
 pub async fn apply_language(
     app: tauri::AppHandle,
     app_path: String,
     lang: String,
+    on_event: tauri::ipc::Channel<OperationEvent>,
 ) -> ActionPayload {
-    let paths = context::AppPaths::for_app(&app);
-    let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
-        Ok(guard) => guard,
-        Err(error) => return ActionPayload::error(&error.to_string()),
-    };
-    let app_path = PathBuf::from(app_path);
+    let progress = contract::TauriOperationReporter::new(on_event);
+    // 锁冲突与非法语言都属于 admission；在任何业务阶段开始前直接返回。
     if !context::is_supported_apply_action(&lang) {
         return ActionPayload::error_with_code("Unsupported language pack.", "unsupportedLanguage");
     }
+    let paths = context::AppPaths::for_app(&app);
+    let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
+        Ok(guard) => guard,
+        Err(error) => {
+            return ActionPayload::error(&error.to_string());
+        }
+    };
+    let app_path = PathBuf::from(app_path);
     let now = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
+    let worker_progress = progress.clone();
     match tauri::async_runtime::spawn_blocking(move || -> Result<ActionPayload, String> {
         let _guard = guard;
         let mut runner = privilege::RealCommandRunner;
-        let applied = apply::apply_language_inner(
+        let applied = match apply::apply_language_inner_with_reporter(
             &paths.repo_root,
             &paths.state_dir,
             &paths.resource_dir,
@@ -105,11 +83,19 @@ pub async fn apply_language(
             &lang,
             &mut runner,
             &now,
-        )?
-        .into_renderer_contract();
+            worker_progress.clone(),
+        ) {
+            Ok(payload) => payload.into_renderer_contract(),
+            Err(error) => return Err(error),
+        };
         if !applied.ok {
             return Ok(applied);
         }
+
+        let mut restart_phase = contract::OperationPhaseGuard::start(
+            &worker_progress,
+            contract::OperationPhase::RestartCavalry,
+        );
         match restart::restart_cavalry_inner(
             &paths.repo_root,
             &paths.state_dir,
@@ -117,8 +103,15 @@ pub async fn apply_language(
             &app_path,
             &mut runner,
         ) {
-            Ok(()) => Ok(applied),
-            Err(_) => Ok(applied.with_warning_code(contract::RESTART_FAILED_WARNING_CODE)),
+            Ok(()) => {
+                restart_phase.completed();
+                Ok(applied)
+            }
+            Err(_) => {
+                // apply 已经提交；重启失败只能是可恢复 warning，不能回写为 apply error。
+                restart_phase.warning();
+                Ok(applied.with_warning_code(contract::RESTART_FAILED_WARNING_CODE))
+            }
         }
     })
     .await
@@ -160,6 +153,16 @@ pub fn open_project_link(link: String) -> ActionPayload {
     match privilege::open_project_link(link, &mut runner) {
         Ok(()) => ActionPayload::ok(),
         Err(error) => ActionPayload::error(&error),
+    }
+}
+
+#[tauri::command]
+pub async fn show_about(app: tauri::AppHandle) -> ActionPayload {
+    match crate::about_window::show_about_window(&app) {
+        Ok(()) => ActionPayload::ok(),
+        Err(_) => {
+            ActionPayload::error_with_code("About window could not be opened.", "aboutOpenFailed")
+        }
     }
 }
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,6 +10,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const zlib = require('node:zlib');
 const { spawnSync } = require('node:child_process');
 const { installGitHooks } = require('./install_git_hooks.js');
 const { runPowerShellScript } = require('./powershell_command.js');
@@ -27,6 +28,79 @@ function readJson(relativePath) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+}
+
+function rgbaPngAlphaContract(relativePath, threshold = 128) {
+  const png = fs.readFileSync(path.join(repoRoot, relativePath));
+  assert.equal(png.toString('hex', 0, 8), '89504e470d0a1a0a');
+  let offset = 8;
+  let width = 0;
+  let height = 0;
+  const idat = [];
+  while (offset < png.length) {
+    const length = png.readUInt32BE(offset);
+    const type = png.toString('ascii', offset + 4, offset + 8);
+    const data = png.subarray(offset + 8, offset + 8 + length);
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      assert.equal(data.readUInt8(8), 8, `${relativePath} must be 8-bit`);
+      assert.equal(data.readUInt8(9), 6, `${relativePath} must be RGBA`);
+      assert.equal(data.readUInt8(12), 0, `${relativePath} must not be interlaced`);
+    } else if (type === 'IDAT') {
+      idat.push(data);
+    }
+    offset += length + 12;
+  }
+
+  const bytesPerPixel = 4;
+  const scanlineLength = width * bytesPerPixel;
+  const inflated = zlib.inflateSync(Buffer.concat(idat));
+  assert.equal(inflated.length, (scanlineLength + 1) * height);
+  let previous = Buffer.alloc(scanlineLength);
+  let firstDecoded = null;
+  let sourceOffset = 0;
+  let bounds = null;
+
+  function paeth(left, above, upperLeft) {
+    const estimate = left + above - upperLeft;
+    const leftDistance = Math.abs(estimate - left);
+    const aboveDistance = Math.abs(estimate - above);
+    const upperLeftDistance = Math.abs(estimate - upperLeft);
+    if (leftDistance <= aboveDistance && leftDistance <= upperLeftDistance) return left;
+    return aboveDistance <= upperLeftDistance ? above : upperLeft;
+  }
+
+  for (let y = 0; y < height; y += 1) {
+    const filter = inflated[sourceOffset];
+    sourceOffset += 1;
+    const current = Buffer.alloc(scanlineLength);
+    for (let x = 0; x < scanlineLength; x += 1) {
+      const raw = inflated[sourceOffset + x];
+      const left = x >= bytesPerPixel ? current[x - bytesPerPixel] : 0;
+      const above = previous[x];
+      const upperLeft = x >= bytesPerPixel ? previous[x - bytesPerPixel] : 0;
+      const predictor = [0, left, above, Math.floor((left + above) / 2), paeth(left, above, upperLeft)][filter];
+      assert.notEqual(predictor, undefined, `${relativePath} uses unsupported PNG filter ${filter}`);
+      current[x] = (raw + predictor) & 0xff;
+    }
+    sourceOffset += scanlineLength;
+    if (y === 0) firstDecoded = Buffer.from(current);
+    for (let x = 0; x < width; x += 1) {
+      if (current[(x * bytesPerPixel) + 3] > threshold) {
+        bounds = bounds
+          ? [Math.min(bounds[0], x), Math.min(bounds[1], y), Math.max(bounds[2], x + 1), Math.max(bounds[3], y + 1)]
+          : [x, y, x + 1, y + 1];
+      }
+    }
+    previous = current;
+  }
+  const cornerAlpha = [
+    3,
+    ((width - 1) * bytesPerPixel) + 3,
+  ].map((index) => previous[index]);
+  cornerAlpha.unshift(firstDecoded[3], firstDecoded[((width - 1) * bytesPerPixel) + 3]);
+  return { width, height, bounds, cornerAlpha };
 }
 
 function writeJson(filePath, value) {
@@ -175,6 +249,7 @@ function makeWindowsNsisProvenanceFixture() {
 
 test('tauri local build SOP is the only release path', () => {
   const localSop = readText('LOCAL_BUILD_SOP.md');
+  const manualMacSmoke = readText('src-tauri/tests/manual_macos_smoke.rs');
 
   assert.match(localSop, /Tauri/i);
   assert.match(localSop, /npm run tauri:build/);
@@ -183,6 +258,11 @@ test('tauri local build SOP is the only release path', () => {
   assert.match(localSop, /APPLE_SIGNING_IDENTITY="-"/);
   assert.match(localSop, /tools\/cavalry_qt_target\.json/);
   assert.match(localSop, /6\.6\.3/);
+  assert.match(localSop, /CAVALRY_I18N_MACOS_SMOKE_APP="\/Volumes\/Cavalry\/Cavalry\.app"/);
+  assert.match(localSop, /只读挂载的官方 Cavalry 2\.7\.2 DMG/);
+  assert.match(manualMacSmoke, /const SOURCE_APP_ENV: &str = "CAVALRY_I18N_MACOS_SMOKE_APP"/);
+  assert.match(manualMacSmoke, /requested\.is_absolute\(\)/);
+  assert.match(manualMacSmoke, /critical_source_snapshot\(&source\)/);
   assert.doesNotMatch(localSop, /Electron|electron-builder|test:desktop|check:desktop|desktop-patcher/);
 });
 
@@ -1149,11 +1229,11 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
 
   assert.ok(window, 'main window missing');
   assert.equal(window.url, './index.html');
-  assert.equal(window.width, 460);
-  assert.equal(window.height, 404);
-  assert.equal(window.minWidth, 420);
-  assert.equal(window.minHeight, 390);
-  assert.match(localSop, /main window 外框固定 `460x404`，最小 `420x390`/);
+  assert.equal(window.width, 400);
+  assert.equal(window.height, 480);
+  assert.equal(window.minWidth, 400);
+  assert.equal(window.minHeight, 480);
+  assert.match(localSop, /main window 逻辑尺寸固定 `400x480`，最小 `400x480`/);
   assert.doesNotMatch(localSop, /main window 外框固定 `480x528`/);
   assert.equal(window.decorations, true);
   assert.equal(window.titleBarStyle, 'Overlay');
@@ -1967,24 +2047,41 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   }
 });
 
-test('tauri window icon is an 8-bit PNG compatible with generate_context', () => {
-  const icon = fs.readFileSync(path.join(repoRoot, 'src-tauri/icons/icon.png'));
-  assert.equal(icon.toString('hex', 0, 8), '89504e470d0a1a0a');
-  assert.equal(icon.readUInt32BE(16), 1024);
-  assert.equal(icon.readUInt32BE(20), 1024);
-  assert.equal(icon.readUInt8(24), 8, 'Tauri rejects the original 16-bit PNG at runtime');
-  assert.equal(icon.readUInt8(25), 6, 'icon.png must be RGBA');
+test('tauri development icon keeps the packaged transparency contract and About projection aligned', () => {
+  const runtime = rgbaPngAlphaContract('src-tauri/icons/icon.png');
+  const about = rgbaPngAlphaContract('renderer/app-icon.png');
+  assert.deepEqual(runtime, {
+    width: 512,
+    height: 512,
+    bounds: [0, 0, 512, 512],
+    cornerAlpha: [0, 0, 0, 0],
+  });
+  assert.deepEqual(about, {
+    width: 128,
+    height: 128,
+    bounds: [0, 0, 128, 128],
+    cornerAlpha: [0, 0, 0, 0],
+  });
+  assert.deepEqual(
+    fs.readFileSync(path.join(repoRoot, 'renderer/app-icon.png')),
+    fs.readFileSync(path.join(repoRoot, 'src-tauri/icons/128x128.png'))
+  );
 });
 
 test('tauri capability and SOP mention the bridge and packaged resource boundaries', () => {
   const localSop = readText('LOCAL_BUILD_SOP.md');
   const capabilities = readJson('src-tauri/capabilities/default.json');
+  const aboutCapabilities = readJson('src-tauri/capabilities/about.json');
 
   assert.ok(capabilities.windows.includes('main'));
   assert.ok(capabilities.permissions.includes('core:default'));
   assert.ok(capabilities.permissions.includes('core:window:default'));
   assert.ok(capabilities.permissions.includes('core:window:allow-start-dragging'));
   assert.ok(capabilities.permissions.includes('core:webview:default'));
+  assert.deepEqual(aboutCapabilities.windows, ['about']);
+  assert.deepEqual(aboutCapabilities.permissions, ['core:app:allow-version']);
+  assert.equal(aboutCapabilities.permissions.includes('core:window:default'), false);
+  assert.equal(aboutCapabilities.permissions.includes('core:webview:default'), false);
 
   for (const requiredText of [
     'tauri.conf.json',

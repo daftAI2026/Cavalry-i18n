@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CommandRunner、macOS bundle 路径、直接 codesign 命令与不跟随 symlink 的 native xattr 清理。
- * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
+ * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、vendor/ad-hoc requirement 证据解析、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
  * [POS]: macOS apply 的 bundle 收口；禁止 `--deep` 重签任意 vendor nested code，quarantine 不跟随 bundle 内 symlink，任一失败交由外层 exact-preimage 事务回滚。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -107,11 +107,17 @@ pub(crate) fn inspect_bundle_signature<R: CommandRunner>(
         team_id: signature_field(&detail_text, "TeamIdentifier").filter(|value| value != "not set"),
         designated_requirement: requirement_text
             .lines()
-            .find_map(|line| line.trim().strip_prefix("designated => "))
+            .find_map(designated_requirement)
             .filter(|value| !value.trim().is_empty())
             .map(str::to_string),
         cdhash: signature_field(&detail_text, "CDHash"),
     })
+}
+
+fn designated_requirement(line: &str) -> Option<&str> {
+    let line = line.trim();
+    let line = line.strip_prefix("# ").unwrap_or(line);
+    line.strip_prefix("designated => ")
 }
 
 fn signature_field(contents: &str, field: &str) -> Option<String> {
@@ -289,6 +295,26 @@ fn run_direct_bundle_command<R: CommandRunner>(
     args: &[String],
 ) -> Result<(), String> {
     runner.run(program, args)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::designated_requirement;
+
+    #[test]
+    fn designated_requirement_accepts_vendor_and_codesign_ad_hoc_output() {
+        assert_eq!(
+            designated_requirement(
+                "designated => anchor apple generic and identifier \"com.scenegroup.cavalry\""
+            ),
+            Some("anchor apple generic and identifier \"com.scenegroup.cavalry\"")
+        );
+        assert_eq!(
+            designated_requirement("# designated => cdhash H\"0123456789abcdef\""),
+            Some("cdhash H\"0123456789abcdef\"")
+        );
+        assert_eq!(designated_requirement("Executable=/tmp/Cavalry"), None);
+    }
 }
 
 pub(crate) fn clear_gatekeeper_quarantine<R: CommandRunner>(

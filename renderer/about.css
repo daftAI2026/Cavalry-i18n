@@ -1,9 +1,33 @@
 /**
- * [INPUT]: 依赖 tokens.css 的标题栏动作、Dialog、排印与状态角色，依赖 index.html 的 About 入口、GitHub 标识与项目链接语义。
- * [OUTPUT]: 对外提供与主界面同构的 About 标题栏按钮、自绘 Dialog、可见项目地址和许可证链接视觉状态。
- * [POS]: renderer 的 About 专属视觉层；复用共享 Dialog/Tooltip 基础，不向 styles.css 塞入低频组件细节，也不加载远程资源。
+ * [INPUT]: 依赖 tokens.css 的 Vercel 排印角色、4px 节奏、共享边界与交互角色；主窗口只提供 About 入口，about.html 提供独立页面语义。
+ * [OUTPUT]: 对外提供 Windows 标题栏 About 入口，以及独立原生 About 窗口的应用图标、版本、项目链接与许可证链接视觉层。
+ * [POS]: renderer 的 About 视觉层；与主窗口 Dialog 解耦，不绘制自定义关闭按钮，不声明私有设计常量，也不加载远程资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--window);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--type-compact);
+  line-height: var(--line-height-compact);
+  -webkit-font-smoothing: antialiased;
+}
+
 .about-button {
   width: var(--titlebar-action-hit-size);
   height: var(--titlebar-action-hit-size);
@@ -33,60 +57,46 @@
   height: var(--about-icon-size);
 }
 
-.about-dialog {
+.about-window {
+  width: 100%;
+  min-height: 100%;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  align-items: center;
+  padding: var(--padding-window);
+  overflow: hidden;
   text-align: center;
 }
 
-.about-close {
-  position: absolute;
-  top: var(--padding-panel);
-  right: var(--padding-panel);
-  width: var(--titlebar-action-hit-size);
-  height: var(--titlebar-action-hit-size);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-circle);
-  background: transparent;
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.about-close:hover {
-  background: var(--surface-hover);
-  color: var(--text);
-}
-
-.about-close svg {
-  width: var(--about-close-icon-size);
-  height: var(--about-close-icon-size);
-}
-
-.about-mark {
-  width: var(--about-mark-size);
-  height: var(--about-mark-size);
-  color: var(--text);
+.about-app-icon {
+  width: var(--about-app-icon-size);
+  height: var(--about-app-icon-size);
+  display: block;
 }
 
 .about-title {
-  margin-top: var(--about-copy-gap);
-  padding-right: 0;
+  margin: var(--gap-section) 0 0;
+  font-size: var(--type-heading);
+  font-weight: var(--weight-heading);
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--line-height-heading);
 }
 
 .about-version {
-  margin: var(--about-copy-gap) 0 0;
+  margin: var(--gap-meta-stack) 0 0;
   color: var(--text-secondary);
-  font-size: var(--type-meta);
+  font-size: var(--type-metadata);
   font-weight: var(--weight-regular);
-  line-height: var(--line-height-meta);
+  line-height: var(--line-height-metadata);
+  font-synthesis: none;
 }
 
 .about-links {
+  width: 100%;
   display: grid;
-  gap: var(--dialog-body-gap);
-  margin-top: var(--dialog-actions-offset);
+  gap: var(--gap-control);
+  margin: var(--gap-section) 0 0;
 }
 
 .about-link {
@@ -94,16 +104,23 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: var(--gap-inline);
   padding: 0 var(--padding-control-inline);
   border: var(--stroke-hairline) solid var(--border);
   border-radius: var(--radius-md);
   color: var(--text);
-  font-size: var(--type-body);
-  font-weight: var(--weight-regular);
-  line-height: var(--line-height-body);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-compact);
   text-decoration: none;
   overflow-wrap: anywhere;
   transition: border-color var(--duration-control) ease, background-color var(--duration-control) ease;
+}
+
+.about-link-icon {
+  width: var(--about-link-icon-size);
+  height: var(--about-link-icon-size);
+  flex: 0 0 auto;
 }
 
 .about-link:hover {

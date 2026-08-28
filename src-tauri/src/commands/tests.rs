@@ -1,9 +1,13 @@
 /**
  * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、事务 marker 与平台 runtime apply/restart。
- * [POS]: commands 的 owner unit tests；通过 facade 公开的 crate-private seam 验证跨模块编排。
+ * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、事务 marker、四阶段进度事件与平台 runtime apply/restart。
+ * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+use super::contract::{
+    OperationEvent, OperationPhase, OperationPhaseGuard, OperationReporter, OperationState,
+    TauriOperationReporter, OPERATION_PHASE_MANIFEST, RESTART_CAVALRY_PHASE,
+};
 #[cfg(target_os = "macos")]
 use super::{acquire_bundle_file_lock, injector_source_candidates};
 use super::{
@@ -21,10 +25,121 @@ use crate::state::{self, EnglishSnapshotProvenance, State};
 use std::{
     fs,
     path::{Path, PathBuf},
+    sync::{Arc, Mutex},
 };
 
 #[cfg(target_os = "windows")]
 use std::ffi::OsString;
+
+#[derive(Clone, Default)]
+struct RecordingOperationReporter {
+    events: Arc<Mutex<Vec<(String, String)>>>,
+}
+
+impl OperationReporter for RecordingOperationReporter {
+    fn report(&self, phase: OperationPhase, state: OperationState) {
+        self.events
+            .lock()
+            .unwrap()
+            .push((phase.as_str().to_string(), state.as_str().to_string()));
+    }
+}
+
+#[test]
+fn operation_reporter_has_stable_manifest_and_never_owns_transaction_success() {
+    assert_eq!(
+        OPERATION_PHASE_MANIFEST,
+        [
+            "verifyInstallation",
+            "ensureBaseline",
+            "applyTransaction",
+            "restartCavalry",
+        ]
+    );
+
+    let received = Arc::new(Mutex::new(Vec::<(String, String)>::new()));
+    let received_for_channel = Arc::clone(&received);
+    let channel = tauri::ipc::Channel::<OperationEvent>::new(move |body| {
+        let tauri::ipc::InvokeResponseBody::Json(json) = body else {
+            return Err(tauri::Error::FailedToReceiveMessage);
+        };
+        let value: serde_json::Value = serde_json::from_str(&json)?;
+        received_for_channel.lock().unwrap().push((
+            value["phase"].as_str().unwrap().to_string(),
+            value["state"].as_str().unwrap().to_string(),
+        ));
+        Ok(())
+    });
+    let reporter = TauriOperationReporter::new(channel);
+
+    reporter.report(OperationPhase::VerifyInstallation, OperationState::Running);
+    reporter.report(
+        OperationPhase::VerifyInstallation,
+        OperationState::Completed,
+    );
+    reporter.report(OperationPhase::RestartCavalry, OperationState::Running);
+    reporter.report(OperationPhase::RestartCavalry, OperationState::Warning);
+
+    assert_eq!(
+        *received.lock().unwrap(),
+        [
+            ("verifyInstallation".to_string(), "running".to_string()),
+            ("verifyInstallation".to_string(), "completed".to_string()),
+            (RESTART_CAVALRY_PHASE.to_string(), "running".to_string()),
+            (RESTART_CAVALRY_PHASE.to_string(), "warning".to_string()),
+        ]
+    );
+
+    let rejecting_channel =
+        tauri::ipc::Channel::<OperationEvent>::new(|_| Err(tauri::Error::FailedToReceiveMessage));
+    TauriOperationReporter::new(rejecting_channel)
+        .report(OperationPhase::ApplyTransaction, OperationState::Error);
+}
+
+#[test]
+fn operation_phase_guard_closes_unfinished_phase_as_error_once() {
+    let reporter = RecordingOperationReporter::default();
+
+    {
+        let mut phase = OperationPhaseGuard::start(&reporter, OperationPhase::VerifyInstallation);
+        phase.completed();
+        phase.error();
+    }
+    {
+        let _phase = OperationPhaseGuard::start(&reporter, OperationPhase::EnsureBaseline);
+    }
+
+    assert_eq!(
+        *reporter.events.lock().unwrap(),
+        [
+            ("verifyInstallation".to_string(), "running".to_string()),
+            ("verifyInstallation".to_string(), "completed".to_string()),
+            ("ensureBaseline".to_string(), "running".to_string()),
+            ("ensureBaseline".to_string(), "error".to_string()),
+        ]
+    );
+}
+
+#[test]
+fn unsupported_language_is_rejected_before_any_phase_event() {
+    let temp = tempfile::tempdir().unwrap();
+    let progress = RecordingOperationReporter::default();
+
+    let error = super::apply::apply_language_inner_with_reporter(
+        &temp.path().join("repo"),
+        &temp.path().join("state"),
+        &temp.path().join("resources"),
+        &temp.path().join("Cavalry"),
+        "not-a-language",
+        &mut RecordingRunner::default(),
+        "now",
+        progress.clone(),
+    )
+    .unwrap_err();
+
+    assert!(error.contains("Unsupported language"), "{error}");
+    assert!(progress.events.lock().unwrap().is_empty());
+}
 
 #[cfg(target_os = "macos")]
 struct VerifyFailsOnceRunner {
@@ -220,10 +335,10 @@ fn registers_nine_commands() {
         &[
             "get_status",
             "browse_app",
-            "extract_english",
             "apply_language",
             "open_privacy_security",
             "open_project_link",
+            "show_about",
             "restart_cavalry",
             "check_update",
             "install_update"
@@ -910,6 +1025,97 @@ fn resource_candidates_use_one_packaged_root_order_before_repo_fallback() {
 }
 
 #[test]
+fn clean_english_noop_reports_verification_and_baseline_only() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state = temp.path().join("state");
+    let resources = temp.path().join("resources");
+
+    #[cfg(target_os = "macos")]
+    let app = {
+        let app = make_bundle(temp.path());
+        make_language(&repo, "zh-Hans");
+        write(
+            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+            b"injector",
+        );
+        apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "zh-Hans",
+            &mut RecordingRunner::default(),
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap();
+        apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            super::context::RESTORE_OFFICIAL_ACTION,
+            &mut RecordingRunner::default(),
+            "2026-04-23T00:01:00.000Z",
+        )
+        .unwrap();
+        app
+    };
+
+    #[cfg(not(target_os = "macos"))]
+    let app = {
+        let app = make_windows_install(temp.path());
+        make_language(&repo, "zh-Hans");
+        apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "zh-Hans",
+            &mut RecordingRunner::default(),
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap();
+        apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "en",
+            &mut RecordingRunner::default(),
+            "2026-04-23T00:01:00.000Z",
+        )
+        .unwrap();
+        app
+    };
+
+    let progress = RecordingOperationReporter::default();
+    let result = super::apply::apply_language_inner_with_reporter(
+        &repo,
+        &state,
+        &resources,
+        &app,
+        "en",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:02:00.000Z",
+        progress.clone(),
+    )
+    .unwrap();
+
+    assert!(result.ok);
+    assert_eq!(result.current_lang.as_deref(), Some("en"));
+    assert_eq!(
+        *progress.events.lock().unwrap(),
+        [
+            ("verifyInstallation".to_string(), "running".to_string()),
+            ("verifyInstallation".to_string(), "completed".to_string()),
+            ("ensureBaseline".to_string(), "running".to_string()),
+            ("ensureBaseline".to_string(), "completed".to_string()),
+        ]
+    );
+}
+
+#[test]
 fn apply_language_patches_fake_bundle_and_records_macos_commands() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
@@ -923,7 +1129,8 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
     );
 
     let mut runner = RecordingRunner::default();
-    let result = apply_language_inner(
+    let progress = RecordingOperationReporter::default();
+    let result = super::apply::apply_language_inner_with_reporter(
         &repo,
         &state,
         &resources,
@@ -931,6 +1138,7 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
         "zh-Hans",
         &mut runner,
         "2026-04-23T00:00:00.000Z",
+        progress.clone(),
     )
     .unwrap();
 
@@ -941,6 +1149,17 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
         .unwrap()
         .get("warning")
         .is_none());
+    assert_eq!(
+        *progress.events.lock().unwrap(),
+        [
+            ("verifyInstallation".to_string(), "running".to_string()),
+            ("verifyInstallation".to_string(), "completed".to_string()),
+            ("ensureBaseline".to_string(), "running".to_string()),
+            ("ensureBaseline".to_string(), "completed".to_string()),
+            ("applyTransaction".to_string(), "running".to_string()),
+            ("applyTransaction".to_string(), "completed".to_string()),
+        ]
+    );
     #[cfg(target_os = "macos")]
     {
         assert_eq!(

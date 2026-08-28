@@ -1,0 +1,166 @@
+/**
+ * [INPUT]: 依赖 tokens.css 的 Activity/排印/状态/滚动角色，依赖 operation-log.js 生成的稳定 Marker/Item DOM 状态
+ * [OUTPUT]: 对外提供固定轨道内的 Activity Log 视觉实现；按 shadcn Base Nova 的 Marker、MarkerIcon、MarkerContent、ScrollArea 与 Spinner 组合复刻 16px 图标槽、8px 间距、运行态 Spinner/文字 shimmer 和 10px 自滚动轨，保留项目自身语义色与无障碍减弱动效
+ * [POS]: renderer 的无依赖操作记录组件样式；从共享 styles.css 拆出以守住单文件职责和 800 行上限，不拥有窗口布局、业务状态或 AlertDialog
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+.status-panel {
+  width: 100%;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: var(--operation-group-gap);
+  margin-top: var(--gap-flow);
+  padding: var(--operation-panel-padding);
+  border: var(--stroke-hairline) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+}
+
+.status-label {
+  min-width: 0;
+  margin: 0;
+  font-size: var(--type-compact);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-compact);
+}
+
+.status-text {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--operation-group-gap);
+  overflow-x: hidden;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-color: var(--operation-scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+}
+
+.status-text::-webkit-scrollbar {
+  width: var(--operation-scrollbar-size);
+}
+
+.status-text::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--operation-scrollbar-thumb);
+}
+
+.operation-event {
+  width: 100%;
+  min-height: var(--operation-marker-size);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--operation-marker-gap);
+  color: var(--text-secondary);
+}
+
+.operation-event-marker {
+  width: var(--operation-marker-size);
+  height: var(--operation-marker-size);
+  flex: 0 0 var(--operation-marker-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-circle);
+  color: var(--text-secondary);
+}
+
+.operation-event-marker[hidden] {
+  display: none;
+}
+
+.operation-event-marker svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.operation-event[data-has-description="true"] .operation-event-marker {
+  transform: translateY(var(--operation-marker-description-offset));
+}
+
+.operation-event[data-state="running"] .operation-event-marker[data-icon="spinner"] svg {
+  animation: operation-spin var(--duration-spinner) linear infinite;
+}
+
+.operation-event[data-state="completed"] .operation-event-marker {
+  color: var(--badge-green-text);
+}
+
+.operation-event[data-state="warning"] .operation-event-marker {
+  color: var(--badge-amber-text);
+}
+
+.operation-event[data-state="error"] .operation-event-marker {
+  color: var(--badge-red-text);
+}
+
+.operation-event-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.operation-event-title,
+.operation-event-description {
+  overflow-wrap: anywhere;
+  text-wrap: wrap;
+}
+
+.operation-event-title {
+  color: var(--text);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-compact);
+}
+
+.operation-event[data-state="running"] .operation-event-title {
+  background-image: linear-gradient(
+    var(--operation-shimmer-angle),
+    var(--text-secondary),
+    var(--text),
+    var(--text-secondary)
+  );
+  background-position: var(--operation-shimmer-size) 0;
+  background-size: var(--operation-shimmer-size) 100%;
+  background-clip: text;
+  color: transparent;
+  animation: operation-shimmer var(--duration-shimmer) linear infinite;
+  -webkit-background-clip: text;
+}
+
+.operation-event-description {
+  color: var(--text-secondary);
+  font-size: var(--type-metadata);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-metadata);
+}
+
+.permission-button {
+  width: 100%;
+}
+
+@keyframes operation-spin {
+  to { transform: rotate(var(--spinner-turn)); }
+}
+
+@keyframes operation-shimmer {
+  to { background-position: calc(-1 * var(--operation-shimmer-size)) 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operation-event[data-state="running"] .operation-event-marker[data-icon="spinner"] svg,
+  .operation-event[data-state="running"] .operation-event-title {
+    animation: none;
+  }
+
+  .operation-event[data-state="running"] .operation-event-title {
+    background: none;
+    color: var(--text);
+  }
+}

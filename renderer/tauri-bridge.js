@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke（或兼容 __TAURI__.core.invoke）能力。
- * [OUTPUT]: 冻结最小 window.cavalryI18n API；仅转发 camelCase 业务 payload、固定 project-link id、应用版本与 main-window caption 操作，丢弃 raw warning、updater URL/签名/原始响应，并将 transport rejection 归一为 Error。
- * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js 前加载；业务只消费稳定 DTO，Windows caption 只消费标签固定的 Tauri window 命令。
+ * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke/transformCallback/unregisterCallback（或兼容 __TAURI__.core.invoke）能力。
+ * [OUTPUT]: 冻结最小 window.cavalryI18n API；以 Tauri Channel 同构的有序回调只转发 verify/baseline/apply/restart 四个稳定阶段，其他接口仅转发 camelCase 业务 payload、固定 project-link id、应用版本、独立 About 唤起与 main-window caption 操作，丢弃 raw warning、updater URL/签名/原始响应，并将 transport rejection 归一为 Error。
+ * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js/about-window.js 前加载；业务只消费稳定 DTO，About 只消费单一 Rust owner 命令，Windows caption 只消费标签固定的 Tauri window 命令。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (() => {
@@ -32,6 +32,70 @@
     'updateStateUnavailable',
   ]);
   const PROJECT_LINK_MANIFEST = Object.freeze(['repository', 'license']);
+  const OPERATION_PHASE_MANIFEST = Object.freeze([
+    'verifyInstallation',
+    'ensureBaseline',
+    'applyTransaction',
+    'restartCavalry',
+  ]);
+  const OPERATION_STATE_MANIFEST = Object.freeze(['running', 'completed', 'warning', 'error']);
+  const SERIALIZE_TO_IPC_FN = '__TAURI_TO_IPC_KEY__';
+
+  class OrderedChannel {
+    constructor(onmessage) {
+      const internals = window.__TAURI_INTERNALS__;
+      if (
+        !internals ||
+        typeof internals.transformCallback !== 'function' ||
+        typeof internals.unregisterCallback !== 'function'
+      ) {
+        throw new Error('Tauri channel bridge is not ready.');
+      }
+      this.nextMessageIndex = 0;
+      this.pendingMessages = new Map();
+      this.messageEndIndex = null;
+      this.onmessage = onmessage;
+      this.id = internals.transformCallback((rawMessage) => this.receive(rawMessage));
+    }
+
+    receive(rawMessage) {
+      if (!rawMessage || !Number.isInteger(rawMessage.index)) return;
+      const { index } = rawMessage;
+      if (Object.prototype.hasOwnProperty.call(rawMessage, 'end')) {
+        if (index === this.nextMessageIndex) this.cleanup();
+        else this.messageEndIndex = index;
+        return;
+      }
+      if (index !== this.nextMessageIndex) {
+        this.pendingMessages.set(index, rawMessage.message);
+        return;
+      }
+      this.deliver(rawMessage.message);
+      while (this.pendingMessages.has(this.nextMessageIndex)) {
+        const message = this.pendingMessages.get(this.nextMessageIndex);
+        this.pendingMessages.delete(this.nextMessageIndex);
+        this.deliver(message);
+      }
+      if (this.nextMessageIndex === this.messageEndIndex) this.cleanup();
+    }
+
+    deliver(message) {
+      this.onmessage(message);
+      this.nextMessageIndex += 1;
+    }
+
+    cleanup() {
+      window.__TAURI_INTERNALS__.unregisterCallback(this.id);
+    }
+
+    [SERIALIZE_TO_IPC_FN]() {
+      return `__CHANNEL__:${this.id}`;
+    }
+
+    toJSON() {
+      return this[SERIALIZE_TO_IPC_FN]();
+    }
+  }
 
   function resolveInvoke() {
     const internals = window.__TAURI_INTERNALS__;
@@ -127,6 +191,13 @@
     };
   }
 
+  function normalizeOperationEvent(result) {
+    if (!result || typeof result !== 'object') return null;
+    if (!OPERATION_PHASE_MANIFEST.includes(result.phase)) return null;
+    if (!OPERATION_STATE_MANIFEST.includes(result.state)) return null;
+    return Object.freeze({ phase: result.phase, state: result.state });
+  }
+
   function normalizeUpdate(result, fallbackErrorCode) {
     const errorCode = typeof result.errorCode === 'string'
       ? UPDATE_ERROR_CODE_MANIFEST.includes(result.errorCode)
@@ -147,14 +218,19 @@
   window.cavalryI18n = Object.freeze({
     getStatus: () => invoke('get_status').then(normalizeStatus),
     browseApp: () => invoke('browse_app').then(normalizeBrowse),
-    extractEnglish: (appPath) => invoke('extract_english', { appPath }).then(normalizeAction),
-    applyLanguage: (appPath, lang) =>
-      invoke('apply_language', { appPath, lang }).then(normalizeAction),
+    applyLanguage: (appPath, lang, onEvent = () => {}) => {
+      const channel = new OrderedChannel((result) => {
+        const event = normalizeOperationEvent(result);
+        if (event) onEvent(event);
+      });
+      return invoke('apply_language', { appPath, lang, onEvent: channel }).then(normalizeAction);
+    },
     openPrivacySecurity: () => invoke('open_privacy_security').then(normalizeAction),
     openProjectLink: (link) => {
       if (!PROJECT_LINK_MANIFEST.includes(link)) return Promise.reject(new Error('Unsupported project link.'));
       return invoke('open_project_link', { link }).then(normalizeAction);
     },
+    showAbout: () => invoke('show_about').then(normalizeAction),
     getSwitcherVersion: () => invoke('plugin:app|version').then((version) => String(version || '').slice(0, 64)),
     checkUpdate: () =>
       invoke('check_update').then((result) => normalizeUpdate(result, 'updateCheckFailed')),
