@@ -27,14 +27,14 @@
 范围:
 
 - Switcher 标题栏预留一个更新图标位置；生产默认完全隐藏，只有 localhost `?preview=update` 或测试专用显式 hook 才显示“有新版本”，禁止误报线上版本。
-- 图标使用用户提供的圆圈向上箭头原始 SVG path，视觉尺寸 `18×18px`，外层保持 `24×24px` 纯圆点击区；macOS 与 Windows 均以交通灯同源的 `7px` 间距紧随标题，平台只决定原生窗口控件的位置；绿色只编码“更新可用”，同时以图标、辅助名称和 tooltip 提供非颜色线索。
+- 图标使用用户提供的圆圈向上箭头原始 SVG path，视觉尺寸 `20×20px`，外层保持 `24×24px` 纯圆点击区；macOS 与 Windows 均以 `8px` Flex 结构 gap 紧随标题，macOS 再以 64px 原生占位把绿灯—标题与标题—圆环的实体视觉间距统一为约 `12px`；绿色只编码“更新可用”，同时以图标、辅助名称和 tooltip 提供非颜色线索。
 - 四语 tooltip 与点击后的状态明确：R0 不访问网络、不打开 GitHub、不下载、不安装、不替换，也不执行热更新；macOS ad-hoc 约束保留在路线图/发布说明，不长期占据主界面。
 - preview 分支不触发 bridge/network；生产分支只在 Rust 返回签名验证后的可用 Update 时展示入口。
 
 验收门槛:
 
 - 默认没有更新入口，也不产生网络/Tauri update 调用；显式 preview 才显示图标，点击后仅写入本地化状态，不暗示已经下载或升级。
-- 四语 tooltip、按钮辅助名称和状态文本均来自 `ui-text.js`；更新箭头保持用户提供的 exact SVG path，并以 18px 图形置于 24px 纯圆操作区。
+- 四语 tooltip、按钮辅助名称和状态文本均来自 `ui-text.js`；更新箭头保持用户提供的 exact SVG path，并以 20px 图形置于 24px 纯圆操作区。
 - 现有发布 SOP、DMG/NSIS 资产和 release seal 不因提示功能改变。
 
 实现与证据:
