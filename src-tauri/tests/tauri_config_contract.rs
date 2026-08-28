@@ -29,9 +29,9 @@ fn tauri_window_size_matches_frozen_contract() {
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let window = &config["app"]["windows"][0];
     assert_eq!(window["width"], 460);
-    assert_eq!(window["height"], 440);
+    assert_eq!(window["height"], 428);
     assert_eq!(window["minWidth"], 420);
-    assert_eq!(window["minHeight"], 402);
+    assert_eq!(window["minHeight"], 390);
     assert_eq!(window["decorations"], true);
     assert_eq!(window["titleBarStyle"], "Overlay");
     assert_eq!(window["hiddenTitle"], true);
@@ -88,8 +88,8 @@ fn tauri_config_declares_capabilities() {
 #[test]
 fn macos_native_titlebar_alignment_and_resize_reapply_are_frozen() {
     let source = include_str!("../src/lib.rs");
-    assert!(source.contains("const MACOS_TRAFFIC_LIGHT_X: f64 = 12.0;"));
-    assert!(source.contains("const MACOS_TRAFFIC_LIGHT_Y: f64 = 25.0;"));
+    assert!(source.contains("const MACOS_TRAFFIC_LIGHT_X: f64 = 13.0;"));
+    assert!(source.contains("const MACOS_TRAFFIC_LIGHT_Y: f64 = 22.0;"));
     assert!(source.contains("align_macos_traffic_lights(&main_window)?;"));
     assert!(source.contains("tauri::WindowEvent::Resized(_)"));
     assert!(source.contains("tauri::WindowEvent::ScaleFactorChanged { .. }"));

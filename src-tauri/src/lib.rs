@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri Builder、稳定 commands facade、macOS AppKit 原生窗口控件/启动恢复、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths 与 platform_runtime。
- * [OUTPUT]: 提供 run、macOS 46px 标题区的原生交通灯对齐与 pending journal 恢复、Windows 三类早期分流、Updater plugin、稳定八命令注册表及平台门控 runtime。
+ * [OUTPUT]: 提供 run、macOS 40px 标题区内上下各留 12px 的原生交通灯对齐与 pending journal 恢复、Windows 三类早期分流、Updater plugin、稳定八命令注册表及平台门控 runtime。
  * [POS]: src-tauri/src 的应用装配层；组合命令 facade、启动恢复、共享运行基础与进程入口边界，但不承载具体写入或系统命令业务。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -30,9 +30,10 @@ pub mod windows_qpa;
 pub mod windows_runtime;
 
 #[cfg(target_os = "macos")]
-const MACOS_TRAFFIC_LIGHT_X: f64 = 12.0;
+// AppKit 的交通灯容器相对 AX 外框左移 1pt；13pt 局部坐标在实机外框投影为 12pt。
+const MACOS_TRAFFIC_LIGHT_X: f64 = 13.0;
 #[cfg(target_os = "macos")]
-const MACOS_TRAFFIC_LIGHT_Y: f64 = 25.0;
+const MACOS_TRAFFIC_LIGHT_Y: f64 = 22.0;
 
 #[cfg(target_os = "macos")]
 fn align_macos_traffic_lights(window: &tauri::WebviewWindow) -> Result<(), String> {

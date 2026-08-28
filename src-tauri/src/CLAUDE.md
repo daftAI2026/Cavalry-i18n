@@ -3,7 +3,7 @@
 
 成员清单
 main.rs: 二进制入口；Windows 依次消费 same-EXE 提升事务、`--uninstall-restore-english` 与 `--launch-cavalry` 精确参数并返回明确退出码，其余进入 Tauri runtime。
-lib.rs: Tauri Builder 装配层，注册官方 updater plugin、Updater State 与 8 个 command；macOS 在 WebView 挂载后将原生交通灯对齐 46px 标题栏的 23px 中心，并在 resize/scale 变化后重放，避开静态 `trafficLightPosition` 导致的空白 WebView；同时公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
+lib.rs: Tauri Builder 装配层，注册官方 updater plugin、Updater State 与 8 个 command；macOS 在 WebView 挂载后将 16px 原生交通灯对齐 40px 标题栏的 20px 中心，使其上下各留 12px，并在 resize/scale 变化后重放，避开静态 `trafficLightPosition` 导致的空白 WebView；同时公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
 bridge.rs: pre-page-load JS bridge 的 Rust include 真相源，创建 `window.cavalryI18n` 并映射到 Tauri invoke；合同执行 Builder 实际消费的脚本，保留 Windows residue typed 检测但不提供更新检查或独立 reconcile API，不冒充 packaged WebView/CSP 现场门。
 commands.rs: renderer API facade；保留八条稳定 Tauri command、camelCase DTO 和兼容测试 seam；`extract_english` 只生成 English snapshot并标记 Windows runtime residue，`apply_language` 持有单一 operation lock 完成写入及重启，`check_update/install_update` 只消费 Rust State 中签名验证后的 pending Update；内部 warning prose 与 updater 错误均在出界前收敛为稳定 code。
 commands/: command 领域模块图；apply/context/contract/restart/snapshot/status/update 各自只承担一个变化理由，snapshot_legacy 负责旧快照可信识别与 apply-only generation 迁移，tests/ 按基础契约与运行时领域拆分。

@@ -98,7 +98,12 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /<dialog id="modalBackdrop"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*role="status"[^>]*aria-labelledby="statusLabel"/);
   assert.match(styles, /--control-height:\s*36px/);
-  assert.match(styles, /--padding-window:\s*16px 18px/);
+  assert.match(styles, /--padding-window:\s*20px/);
+  assert.match(styles, /--gap-section:\s*16px/);
+  assert.match(styles, /--titlebar-native-control-size:\s*16px/);
+  assert.match(styles, /--titlebar-native-controls-width:\s*62px/);
+  assert.match(styles, /--titlebar-block-padding:\s*12px/);
+  assert.match(styles, /--titlebar-height:\s*calc\(var\(--titlebar-native-control-size\) \+ var\(--titlebar-block-padding\) \+ var\(--titlebar-block-padding\)\)/);
   assert.match(styles, /--padding-panel:\s*12px/);
   assert.match(styles, /--padding-control-inline:\s*12px/);
   assert.match(styles, /\.content\s*\{[\s\S]*?padding:\s*var\(--padding-window\)/);

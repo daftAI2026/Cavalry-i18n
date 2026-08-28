@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 index.html 的标题区、安装 Item、自绘 Select、Button Group、Alert 与原生 dialog 语义，依赖操作系统 UI/等宽字体栈
- * [OUTPUT]: 对外提供 460×440 桌面工具窗口的离线视觉系统；统一窗口/面板/控件 padding token，以 Grid 管二维对齐、Flex 管单行关系，不绘制 macOS 交通灯
+ * [OUTPUT]: 对外提供 460×428 桌面工具窗口的离线视觉系统；以 40px 标题栏容纳上下各 12px 的 16px 原生交通灯，窗口四周 20px 与红灯中心共线，板块节奏独立为 16px
  * [POS]: renderer 的唯一视觉实现；参照 shadcn/Base UI 组件几何与状态，但不引入 CSS/JS 运行时或 CDN
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -36,9 +36,11 @@
   --badge-red-text: #c62a2f;
   --control-height: 36px;
   --titlebar-control-gap: 7px;
-  --titlebar-native-controls-width: 61px;
+  --titlebar-native-controls-width: 62px;
   --titlebar-native-control-size: 16px;
-  --padding-window: 16px 18px;
+  --titlebar-block-padding: 12px;
+  --titlebar-height: calc(var(--titlebar-native-control-size) + var(--titlebar-block-padding) + var(--titlebar-block-padding));
+  --padding-window: 20px;
   --padding-panel: 12px;
   --padding-control-inline: 12px;
   --padding-menu: 4px;
@@ -46,7 +48,7 @@
   --padding-overlay: 24px;
   --gap-inline: 7px;
   --gap-control: 9px;
-  --gap-section: 14px;
+  --gap-section: 16px;
   --radius-md: 7px;
   --radius-lg: 9px;
   --action-max-width: 142px;
@@ -126,14 +128,14 @@ button {
   width: 100%;
   height: 100%;
   display: grid;
-  grid-template-rows: 46px minmax(0, 1fr);
+  grid-template-rows: var(--titlebar-height) minmax(0, 1fr);
   background: var(--window);
 }
 
 .titlebar {
   position: relative;
   z-index: 5;
-  min-height: 46px;
+  min-height: var(--titlebar-height);
   display: flex;
   align-items: center;
   gap: var(--titlebar-control-gap);

@@ -3,7 +3,7 @@
 
 成员清单
 tauri_version_contract.rs: 断言 npm 与 Cargo Tauri 依赖 exact pin 到同一个 v2 minor。
-tauri_config_contract.rs: 宿主无关断言 renderer/460×440 窗口/macOS 原生交通灯 Overlay、AppKit 23px 中心及 resize/scale 重放、local CSP/禁用 global Tauri/最小拖动 capability、macOS 配置不覆盖外部 release signing identity、平台资源隔离与 Windows 双 DLL；NSIS 固定四语、保留翻译/恢复 English 双语义、更新保留与失败中止合同。
+tauri_config_contract.rs: 宿主无关断言 renderer/460×428 窗口/macOS 原生交通灯 Overlay、AppKit 40px 标题区上下 12px 对齐及 resize/scale 重放、local CSP/禁用 global Tauri/最小拖动 capability、macOS 配置不覆盖外部 release signing identity、平台资源隔离与 Windows 双 DLL；NSIS 固定四语、保留翻译/恢复 English 双语义、更新保留与失败中止合同。
 updater_signature_contract.rs: 解析共享配置内嵌的 updater minisign 公钥；ignored 真实产物门接收显式 artifact/`.sig` 路径，解开 Tauri 外层 Base64 后流式验签，不读取私钥且不创建 tag/Release。
 command_contract.rs: 断言 8 个 command 注册名、旧权限字段、`platform`/`permissionAction`、稳定 `errorCode`、可组合 `warningCodes`、脱敏 updater DTO 与 renderer 兼容 camelCase JSON shape。
 bridge_webview_contract.rs: 通过 Node 执行 `bridge::script()` 返回的实际 Rust initialization include，断言冻结 `window.cavalryI18n`、camelCase/warningCodes 与 Builder/HTML source 顺序；明确不替代 packaged WebView/CSP 外部门。
