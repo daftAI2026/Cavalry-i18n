@@ -365,10 +365,12 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--operation-marker-gap:\s*var\(--space-2\)/);
   assert.match(tokens, /--operation-scrollbar-size:\s*10px/);
   assert.match(tokens, /--operation-marker-description-offset:\s*2px/);
+  assert.match(tokens, /--operation-scroll-fade-none:\s*0px/);
   assert.match(tokens, /--operation-scroll-fade-size:\s*var\(--space-2\)/);
   assert.match(tokens, /--duration-message-delta:\s*40ms/);
   assert.match(tokens, /--operation-live-edge-tolerance:\s*var\(--space-1\)/);
-  assert.match(tokens, /--operation-scroll-fade-reveal:\s*calc\(var\(--space-6\) \* 4\)/);
+  assert.match(tokens, /--operation-scroll-edge-tolerance:\s*var\(--stroke-hairline\)/);
+  assert.doesNotMatch(tokens, /--operation-scroll-fade-reveal:/);
   assert.match(tokens, /--operation-shimmer-angle:\s*20deg/);
   assert.match(tokens, /--operation-shimmer-spread:\s*calc\(3ch \+ var\(--space-1\) \* 10\)/);
   assert.match(tokens, /--operation-shimmer-highlight-alpha:\s*0\.2/);
@@ -396,7 +398,9 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationStyles, /\.status-message\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)/);
   assert.match(operationStyles, /\.status-viewport\s*\{[\s\S]*?overflow-y:\s*auto/);
   assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\][\s\S]*?mask-image:\s*linear-gradient/);
-  assert.match(operationStyles, /animation-timeline:\s*scroll\(self y\), scroll\(self y\)/);
+  assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\]\[data-at-start="true"\]\s*\{[\s\S]*?--operation-scroll-fade-top:\s*var\(--operation-scroll-fade-none\)/);
+  assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\]\[data-at-end="true"\]\s*\{[\s\S]*?--operation-scroll-fade-bottom:\s*var\(--operation-scroll-fade-none\)/);
+  assert.doesNotMatch(operationStyles, /animation-timeline:\s*scroll\(self y\)/);
   assert.match(operationStyles, /\.status-text\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-direction:\s*column/);
   assert.doesNotMatch(operationStyles, /\.operation-event:first-child\s*\{[\s\S]*?margin-top:\s*auto/, 'short event streams must begin at the padded top edge');
   assert.doesNotMatch(operationStyles, /data-variant="separator"/, 'the approved idle and task intro replace decorative separators');
@@ -410,6 +414,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationLog, /DEFAULT_ICON_BY_STATE[\s\S]*?running:\s*'spinner'/);
   assert.match(icons, /const ICONS = Object\.freeze\(\{/);
   assert.match(operationLog, /const remaining = viewport\.scrollHeight - viewport\.clientHeight - viewport\.scrollTop;[\s\S]*?followLiveEdge = remaining <= cssNumber\('--operation-live-edge-tolerance'\)/);
+  assert.match(operationLog, /function syncScrollFade\(\)[\s\S]*?viewport\.dataset\.atStart[\s\S]*?viewport\.dataset\.atEnd/);
   assert.match(operationLog, /String\(text \|\| ''\)\.match\(\/\\S\+\\s\*\/g\)/);
   assert.match(operationLog, /motionDuration\('--duration-message-delta'\)/);
   assert.match(operationLog, /motionDuration\('--duration-operation-running-min'\)/);

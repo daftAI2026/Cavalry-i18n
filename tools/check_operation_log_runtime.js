@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer/icons.js 与 renderer/operation-log.js、最小 DOM/时钟 fixture。
- * [OUTPUT]: 验证 Marker 稳定 upsert、live-edge、快事件可读串行、结果排队与错误立即抢占。
+ * [OUTPUT]: 验证 Marker 稳定 upsert、live-edge、首尾 Message 改变三轨布局后的溢出/起止边缘回算、快事件可读串行、结果排队与错误立即抢占。
  * [POS]: tools 的任务反馈专属运行时合同；从综合 bridge 测试拆出，避免 renderer 业务 fixture 承担组件内部时序。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -65,10 +65,36 @@ test('Marker swaps Spinner in place and follows only while the reader stays at t
   assert.equal(elements.list.children[0].children[0].dataset.icon, 'verify');
   log.upsert({ id: 'baseline', title: 'Preparing recovery files', state: 'running' });
   assert.equal(elements.viewport.scrollTop, 40);
+  assert.equal(elements.viewport.dataset.atEnd, 'true');
   elements.viewport.scrollTop = 0;
   for (const callback of elements.viewport.listeners.get('scroll') || []) callback();
+  assert.equal(elements.viewport.dataset.atStart, 'true');
+  assert.equal(elements.viewport.dataset.atEnd, 'false');
   log.upsert({ id: 'apply', title: 'Applying', state: 'running' });
   assert.equal(elements.viewport.scrollTop, 0);
+});
+
+test('outcome track recalculates overflow when it shrinks the middle viewport', () => {
+  const { elements, log } = fixture();
+  Object.defineProperty(elements.viewport, 'clientHeight', {
+    configurable: true,
+    get: () => elements.root.dataset.hasOutcome === 'true' ? 20 : 40,
+  });
+  Object.defineProperty(elements.viewport, 'scrollHeight', {
+    configurable: true,
+    get: () => elements.list.children.length * 20,
+  });
+
+  log.start({ intro: 'Preparing the task.' });
+  log.upsert({ id: 'verify', title: 'Installation verified', state: 'completed', icon: 'verify' });
+  log.upsert({ id: 'apply', title: 'Language switched', state: 'completed', icon: 'translate' });
+  assert.equal(elements.viewport.dataset.overflowing, 'false');
+
+  log.complete('Task complete.');
+  assert.equal(elements.root.dataset.hasOutcome, 'true');
+  assert.equal(elements.viewport.dataset.overflowing, 'true');
+  assert.equal(elements.viewport.dataset.atEnd, 'true');
+  assert.equal(elements.viewport.scrollTop, 40);
 });
 
 test('fast events stay sequential, outcome waits, and terminal error preempts delays', async () => {

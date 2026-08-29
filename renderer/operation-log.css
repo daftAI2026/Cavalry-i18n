@@ -1,21 +1,9 @@
 /**
- * [INPUT]: 依赖 tokens.css 的任务反馈/排印/状态/滚动角色，依赖 operation-log.js 投影的 idle、首尾 Message、中段 MarkerIcon/MarkerContent 与有界视窗状态
- * [OUTPUT]: 对外提供无泛化标题的中性三轨任务容器；外框与 12px panel padding 保持稳定，idle 双轴居中，running 固定首尾并让中段事件从顶部逐行落位、溢出后按 live edge 跟随，8px scroll-fade 只裁切中段；权限按钮隐藏时不保留零高 Grid 轨道及伪间距
+ * [INPUT]: 依赖 tokens.css 的任务反馈/排印/状态/滚动角色，依赖 operation-log.js 投影的 idle、首尾 Message、中段 MarkerIcon/MarkerContent、溢出与起止边缘状态
+ * [OUTPUT]: 对外提供无泛化标题的中性三轨任务容器；外框与 12px panel padding 保持稳定，idle 双轴居中，running 固定首尾并让中段事件从顶部逐行落位、溢出后按 live edge 跟随，8px scroll-fade 只在尚有内容的边缘裁切中段；权限按钮隐藏时不保留零高 Grid 轨道及伪间距
  * [POS]: renderer 的任务反馈视觉层；从共享 styles.css 拆出以守住单文件职责，不拥有业务阶段、AlertDialog 或窗口外层滚动
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-@property --operation-scroll-fade-top {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 0px;
-}
-
-@property --operation-scroll-fade-bottom {
-  syntax: "<length-percentage>";
-  inherits: false;
-  initial-value: 0px;
-}
-
 .status-panel {
   width: 100%;
   min-height: 0;
@@ -83,6 +71,8 @@
 }
 
 .status-viewport[data-overflowing="true"] {
+  --operation-scroll-fade-top: var(--operation-scroll-fade-size);
+  --operation-scroll-fade-bottom: var(--operation-scroll-fade-size);
   -webkit-mask-image: linear-gradient(
     to bottom,
     transparent 0,
@@ -101,24 +91,12 @@
   mask-repeat: no-repeat;
 }
 
-@supports (animation-timeline: scroll()) {
-  .status-viewport[data-overflowing="true"] {
-    animation:
-      operation-scroll-fade-reveal-top var(--duration-scroll-linked) ease-in-out,
-      operation-scroll-fade-reveal-bottom var(--duration-scroll-linked) ease-in-out;
-    animation-timeline: scroll(self y), scroll(self y);
-    animation-range:
-      0 var(--operation-scroll-fade-reveal),
-      calc(100% - var(--operation-scroll-fade-reveal)) 100%;
-    animation-fill-mode: both;
-  }
+.status-viewport[data-overflowing="true"][data-at-start="true"] {
+  --operation-scroll-fade-top: var(--operation-scroll-fade-none);
 }
 
-@supports not (animation-timeline: scroll()) {
-  .status-viewport[data-overflowing="true"] {
-    --operation-scroll-fade-top: var(--operation-scroll-fade-size);
-    --operation-scroll-fade-bottom: var(--operation-scroll-fade-size);
-  }
+.status-viewport[data-overflowing="true"][data-at-end="true"] {
+  --operation-scroll-fade-bottom: var(--operation-scroll-fade-none);
 }
 
 .status-viewport::-webkit-scrollbar {
@@ -254,16 +232,6 @@
     opacity: 0;
     transform: translateY(var(--space-1));
   }
-}
-
-@keyframes operation-scroll-fade-reveal-top {
-  from { --operation-scroll-fade-top: 0px; }
-  to { --operation-scroll-fade-top: var(--operation-scroll-fade-size); }
-}
-
-@keyframes operation-scroll-fade-reveal-bottom {
-  from { --operation-scroll-fade-bottom: var(--operation-scroll-fade-size); }
-  to { --operation-scroll-fade-bottom: 0px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

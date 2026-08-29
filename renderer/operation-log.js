@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖标准 DOM 的文本/滚动节点与 icons.js 的冻结语义 SVG 工厂，消费 app.js 提供的本地化任务引言、整体结果、阶段说明、状态与可选图标名
- * [OUTPUT]: 对外提供 createOperationLog；idle 以完整面板双轴居中，running 固定首尾 Message 并只让中段 Marker 视窗滚动，首尾按词组 text delta 非阻塞更新同一节点，真实阶段按稳定 id 串行投影并让错误立即抢占
+ * [OUTPUT]: 对外提供 createOperationLog；idle 以完整面板双轴居中，running 固定首尾 Message 并只让中段 Marker 视窗滚动，首尾按词组 text delta 非阻塞更新同一节点且每次布局变化重算中段溢出与起止边缘，真实阶段按稳定 id 串行投影并让错误立即抢占
  * [POS]: renderer 的任务反馈状态机；位于业务语义映射与 operation-log.css 之间，不读取 Tauri、语言包或 Cavalry 安装状态，不阻塞后端事务，只把已到达的机器事件按可读节奏投影
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -81,20 +81,23 @@
       if (slot === 'outcome') root.dataset.hasOutcome = 'false';
     }
 
-    function streamMessage(slot, target, text) {
+    function streamMessage(slot, target, text, onLayoutChange) {
       const deltas = splitTextDeltas(text);
       const token = ++messageTokens[slot];
       target.textContent = '';
       target.hidden = deltas.length === 0;
+      onLayoutChange?.();
       const interval = motionDuration('--duration-message-delta');
       if (interval === 0) {
         target.textContent = deltas.join('');
+        onLayoutChange?.();
         return;
       }
       let index = 0;
       function writeNextDelta() {
         if (token !== messageTokens[slot] || index >= deltas.length) return;
         target.textContent = `${target.textContent}${deltas[index]}`;
+        onLayoutChange?.();
         index += 1;
         if (index < deltas.length) setTimeout(writeNextDelta, interval);
       }
@@ -111,6 +114,8 @@
       entries.clear();
       list.replaceChildren();
       viewport.dataset.overflowing = 'false';
+      viewport.dataset.atStart = 'true';
+      viewport.dataset.atEnd = 'true';
       viewport.scrollTop = 0;
       followLiveEdge = true;
     }
@@ -122,14 +127,24 @@
       viewport.hidden = mode === 'idle';
     }
 
-    function scrollToLatest() {
-      const overflowing = viewport.scrollHeight > viewport.clientHeight;
+    function syncScrollFade() {
+      const maxScroll = Math.max(0, viewport.scrollHeight - viewport.clientHeight);
+      const edgeTolerance = cssNumber('--operation-scroll-edge-tolerance');
+      const overflowing = maxScroll > edgeTolerance;
       viewport.dataset.overflowing = overflowing ? 'true' : 'false';
+      viewport.dataset.atStart = String(!overflowing || viewport.scrollTop <= edgeTolerance);
+      viewport.dataset.atEnd = String(!overflowing || viewport.scrollTop >= maxScroll - edgeTolerance);
+      return overflowing;
+    }
+
+    function scrollToLatest() {
+      const overflowing = syncScrollFade();
       if (!overflowing) {
         viewport.scrollTop = 0;
         followLiveEdge = true;
       } else if (followLiveEdge) {
         viewport.scrollTop = viewport.scrollHeight;
+        syncScrollFade();
       }
     }
 
@@ -203,7 +218,7 @@
         if (item.kind === 'event') renderEvent(item.event);
         else if (!['warning', 'error'].includes(root.dataset.state)) {
           root.dataset.hasOutcome = 'true';
-          streamMessage('outcome', outcome, item.message);
+          streamMessage('outcome', outcome, item.message, scrollToLatest);
         }
         activeVisualItem = null;
       }
@@ -258,7 +273,7 @@
       clearMessages();
       root.dataset.state = 'running';
       setMode('running');
-      streamMessage('intro', intro, message);
+      streamMessage('intro', intro, message, scrollToLatest);
     }
 
     function complete(message) {
@@ -280,6 +295,7 @@
     viewport.addEventListener('scroll', () => {
       const remaining = viewport.scrollHeight - viewport.clientHeight - viewport.scrollTop;
       followLiveEdge = remaining <= cssNumber('--operation-live-edge-tolerance');
+      syncScrollFade();
     });
     setMode('idle');
 

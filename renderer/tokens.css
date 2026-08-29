@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印角色、字重与 4px 间距序列，依赖 macOS AppKit 与 Windows DWM 的原生窗口几何及平台系统字体策略
- * [OUTPUT]: 对外提供语言类别与验证通过的 Official 徽章色、13px 可读下限排印、4px 节奏、窗口 Chrome、控件几何、shadcn Base Nova Tooltip/Select/AlertDialog/Marker、紧凑 8px scroll-fade、shimmer 与任务事件可读节奏的单一语义 token 真相源
+ * [OUTPUT]: 对外提供语言类别与验证通过的 Official 徽章色、13px 可读下限排印、4px 节奏、窗口 Chrome、控件几何、shadcn Base Nova Tooltip/Select/AlertDialog/Marker、8px 紧凑 scroll-fade 与边缘判定、shimmer 与任务事件可读节奏的单一语义 token 真相源
  * [POS]: renderer 视觉系统的基础层；styles.css 与 window-controls.css 只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -129,13 +129,14 @@
   --operation-group-gap: var(--space-2);
   --operation-marker-gap: var(--space-2);
   --operation-live-edge-tolerance: var(--space-1);
+  --operation-scroll-edge-tolerance: var(--stroke-hairline);
   /* shadcn Base Nova ScrollArea 的 w-2.5；组件滚动轨宽，不属于通用间距。 */
   --operation-scrollbar-size: 10px;
   /* shadcn Item 有说明时 media translate-y-0.5。 */
   --operation-marker-description-offset: 2px;
-  /* 紧凑任务视窗覆盖 shadcn --scroll-fade-size API 为 scroll-fade-2。 */
+  /* 紧凑任务视窗覆盖 shadcn fade 深度；边缘显隐由真实 scroll state 控制。 */
+  --operation-scroll-fade-none: 0px;
   --operation-scroll-fade-size: var(--space-2);
-  --operation-scroll-fade-reveal: calc(var(--space-6) * 4);
   /* shadcn 4.19.0 shimmer 默认 20deg、3ch + 40px spread 与 currentColor alpha × 0.2。 */
   --operation-shimmer-angle: 20deg;
   --operation-shimmer-axis: 90deg;
@@ -209,7 +210,6 @@
   /* 后端不等待这些时序；仅保证人眼至少看见 running，并让相邻 Marker 分开落位。 */
   --duration-operation-running-min: 360ms;
   --duration-operation-step-gap: var(--duration-feedback);
-  --duration-scroll-linked: 1ms;
   --duration-reduced-motion: 0.01ms;
   --spinner-turn: 1turn;
 }

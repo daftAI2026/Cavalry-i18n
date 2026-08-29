@@ -25,6 +25,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Automatic Recovery Baseline**: Before the first non-English Apply, the backend creates or reuses a trusted recovery baseline and stops before any file write if that preparation fails. The baseline contains only the files needed to reverse the managed transaction, not a full Cavalry backup. Restore maps to complete official English bundle/runtime/signature restoration on macOS, and to English assets plus verified vendor QPA restoration and manifest-owned generic/QPA cleanup on Windows.
 - **Development Icon Consistency**: Restored the transparent 512px runtime icon used by the unbundled Tauri development process without changing the already-correct packaged macOS/Windows icon projections; About reuses the tracked 128px package projection exactly.
 
+### Fixed
+- **Activity Scroll Fade**: Recalculate the Marker viewport after streamed intro/result layout changes, keep the final result outside the scroll layer, and drive the 8px mask from explicit start/end edge state. Short completed tasks now move earlier stages upward and render the same visible fade as the approved task-feedback prototype instead of retaining a stale non-overflow state or an imperceptible fractional mask.
+
 ## [0.7.0] - 2026-08-09
 
 ### Added
