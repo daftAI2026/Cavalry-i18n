@@ -348,6 +348,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--titlebar-block-padding:\s*var\(--space-3\)/);
   assert.match(tokens, /--titlebar-height:\s*calc\(var\(--titlebar-native-control-size\) \+ var\(--titlebar-block-padding\) \+ var\(--titlebar-block-padding\)\)/);
   assert.match(tokens, /--padding-panel:\s*var\(--space-3\)/);
+  assert.match(tokens, /--radius-lg:\s*10px/);
   assert.match(tokens, /--padding-control-inline:\s*var\(--space-3\)/);
   assert.match(styles, /\.titlebar\s*\{[\s\S]*?padding:\s*0 var\(--padding-panel\)/);
   assert.match(styles, /\.window-title\s*\{[\s\S]*?font-size:\s*var\(--type-heading\)[\s\S]*?font-weight:\s*var\(--weight-heading\)[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
@@ -378,7 +379,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.doesNotMatch(html, /class="separator"/, 'business sections must use spacing rather than decorative dividers');
   assert.doesNotMatch(styles, /text-box-trim/, 'cross-platform layout must not depend on experimental glyph-box trimming');
   assert.doesNotMatch(styles, /\.installation-heading\s*\{[^}]*min-height:/, 'installation typography must size its parent without a duplicate height constraint');
-  assert.match(styles, /\.installation-name\s*\{[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
+  assert.match(styles, /\.installation-name\s*\{[\s\S]*?line-height:\s*var\(--line-height-compact\)/);
   assert.match(styles, /\.skip-link,\s*\.tooltip,\s*\.app-path\s*\{[\s\S]*?font-size:\s*var\(--type-metadata\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-metadata\)[\s\S]*?font-synthesis:\s*none/);
   assert.match(styles, /\.badge\s*\{[\s\S]*?font-size:\s*var\(--type-label\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-label\)/);
   assert.match(styles, /\.app-path\s*\{[\s\S]*?margin:\s*var\(--gap-meta-stack\)\s+0\s+0/);

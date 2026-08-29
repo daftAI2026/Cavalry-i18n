@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印角色、字重与 4px 间距序列，依赖 macOS AppKit 与 Windows DWM 的原生窗口几何及平台系统字体策略
- * [OUTPUT]: 对外提供语言类别与验证通过的 Official 徽章色、13px 可读下限排印、4px 节奏、窗口 Chrome、控件几何、shadcn Base Nova Tooltip/Select/AlertDialog/Marker、8px 紧凑 scroll-fade 与边缘判定、shimmer 与任务事件可读节奏的单一语义 token 真相源
+ * [OUTPUT]: 对外提供语言类别与验证通过的 Official 徽章色、13px 可读下限排印、4px 节奏、窗口 Chrome、10px 大容器圆角、控件几何、shadcn Base Nova Tooltip/Select/AlertDialog/Marker、8px 紧凑 scroll-fade 与边缘判定、shimmer 与任务事件可读节奏的单一语义 token 真相源
  * [POS]: renderer 视觉系统的基础层；styles.css 与 window-controls.css 只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -82,7 +82,7 @@
   --radius-skip-link: 6px;
   --radius-tooltip: 6px;
   --radius-md: 8px;
-  --radius-lg: 8px;
+  --radius-lg: 10px;
   --radius-dialog: 12px;
   --radius-pill: 999px;
   --shadow-control: 0 1px 1px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);

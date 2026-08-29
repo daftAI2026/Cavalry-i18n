@@ -283,7 +283,7 @@ button {
   overflow: hidden;
   font-size: var(--type-heading);
   font-weight: var(--weight-heading);
-  line-height: var(--line-height-heading);
+  line-height: var(--line-height-compact);
   text-overflow: ellipsis;
   white-space: nowrap;
 }

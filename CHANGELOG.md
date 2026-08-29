@@ -26,7 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Development Icon Consistency**: Restored the transparent 512px runtime icon used by the unbundled Tauri development process without changing the already-correct packaged macOS/Windows icon projections; About reuses the tracked 128px package projection exactly.
 
 ### Fixed
-- **Activity Scroll Fade**: Recalculate the Marker viewport after streamed intro/result layout changes, keep the final result outside the scroll layer, and drive the 8px mask from explicit start/end edge state. Short completed tasks now move earlier stages upward and render the same visible fade as the approved task-feedback prototype instead of retaining a stale non-overflow state or an imperceptible fractional mask.
+- **Activity Scroll Fade**: Recalculate the Marker viewport after streamed intro/result layout changes, keep the final result outside the scroll layer, and drive the 8px mask from explicit start/end edge state. The production shell now shares the approved prototype's explicit 16/20 installation heading and 10px large-container radius, leaving the same 90px middle viewport so short completed tasks move earlier stages upward without swallowing an extra row.
 
 ## [0.7.0] - 2026-08-09
 
