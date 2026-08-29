@@ -21,19 +21,19 @@
 
 | 场景 | 承载 | 状态 | 裁决 |
 | --- | --- | --- | --- |
-| 健康且尚未开始任务 | Event 空闲态 | Approved proposal | 框内水平/垂直居中，只显示一句任务邀请 |
-| Apply / Restore / Update 已确认 | Event 任务引言 | Approved proposal | 深色正文按上游语义 chunk 增长；不延迟后端事务 |
-| Apply / Restore 四阶段 | Event Marker | Current | 稳定 phase 原位更新 running → terminal |
+| 健康且尚未开始任务 | Event 空闲态 | Current | 框内水平/垂直居中，只显示一句任务邀请 |
+| Apply / Restore / Update 已确认 | Event 任务引言 | Current | 深色正文按上游语义 chunk 增长；不延迟后端事务 |
+| Apply / Restore 四阶段 | Event Marker | Current | 稳定 phase 原位更新 running → terminal；只对已到达的快事件串行投影，错误立即抢占 |
 | 阶段内文件/对象进度 | Marker 次行 description | Blocked | 当前 Apply Channel 只有 phase/state；必须增加受控 detail code 后才能上线 |
 | Updater 下载百分比 | Marker 次行 description | Current | 使用后端 downloaded/contentLength，不伪造进度 |
-| Apply / Restore 整体成功 | Event 结果 Message | Approved proposal | 位于 scroll-fade 外；四阶段全部完成后出现，失败路径不得显示 |
+| Apply / Restore 整体成功 | Event 结果 Message | Current | 位于 scroll-fade 外；四阶段全部完成且没有 warning 后出现，失败路径不得显示 |
 | Update 整体成功 | Event 结果 Message | Blocked | 安装后当前进程退出；没有跨重启确认前不伪造不可见的成功结果 |
 | 启动阻塞、事务警告、失败与恢复路径 | Event Marker | Current | 必须可回看，不允许只用会消失的 Toast |
 | Apply / Restore / Update / 权限确认 | AlertDialog | Current | 用户必须继续或取消；打开时不叠 Toast |
 | 更新可用、首次选择、独立 About/外链失败 | Toast | Approved proposal | 标题 + 说明 + 可选 Action + Close；右下向上 |
 | 长任务 loading/success | 不使用 Toast | Approved proposal | Event 已拥有事实，避免重复反馈 |
 
-## 3. 空闲态、任务引言与结语（Approved proposal）
+## 3. 空闲态、任务引言与结语（Current）
 
 | ID | English | 简体中文 | 繁體中文 | 日本語 |
 | --- | --- | --- | --- | --- |
@@ -46,6 +46,8 @@
 | `updateOutcome` | — | — | — | — |
 
 任务引言是一条 Message-like 行，下面才出现 Marker；整体结果复用同一 Message 结构。预览按 shadcn helper 的 `word + trailing whitespace` delta 模型持续更新同一文本节点，不给每个 delta 添加 opacity/transform 动画。由于文字是确定性的本地文案，生产不得把该视觉模拟描述成后端文本流。
+
+Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度。后端 Channel 仍实时执行，表现队列只消费已经到达的真实事件：首个阶段立即出现，过快的 `running → terminal` 至少保留 `360ms` 可读时间，相邻新阶段以 `120ms` 分隔；若后端本身更慢则不增加等待。任何 error 立即取消等待，先同步已经到达的前序事实，再投影错误；尚未到达的阶段和成功结果句都不出现。`prefers-reduced-motion` 下上述表现等待与入场动画归零，但业务顺序不变。
 
 任务容器保留一层外边框，并显式区分两个布局状态：idle 使用覆盖完整内容区的单轨，任务邀请以整个外框为参照水平/垂直居中；running 才拆为顶部任务引言 Message、中部无边框 Marker scroll-fade、底部整体结果 Message 三轨。引言与结果不参与滚动、不受 fade 遮罩；只有中间阶段记录在内容溢出时滚动。引言说明“要做什么”，阶段说明“做到哪里”，结果说明“最终发生了什么”。结果是完整 Body Message 句子，因此 English 用 `.`、简繁中文与日本語用 `。` 收尾；标题、按钮和 Marker 短标签继续不加句号。结果只能由完整成功路径追加，任何 warning/error 都必须终止成功结语。Updater 会在安装后结束当前进程，现有合同无法证明用户看到了重启后的新版本，因此 `updateOutcome` 保持 Blocked；未来只能由新进程读取一次性、版本绑定的更新完成凭据后补写。
 

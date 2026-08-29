@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token/图标表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group/顶部起排且触底跟随的任务事件视窗、中部省略路径、单一 Phosphor 图标注册表、MarkerIcon/Spinner/shimmer/仅作用于内层滚动区的 scroll-fade 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh 残留。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、中部省略路径、单一 Phosphor 图标注册表、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -58,8 +58,8 @@ const REQUIRED_IDS = [
   'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText',
   'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton',
   'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton',
-  'permissionButton', 'statusLabel', 'statusViewport', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton',
-  'modalSecondaryButton', 'statusText',
+  'permissionButton', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome',
+  'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText',
 ];
 
 const REQUIRED_API_METHODS = [
@@ -156,10 +156,10 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(tunableImplementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
   const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
-  const tokenReferences = `${tokens}\n${styles}\n${operationStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}`;
+  const tokenReferences = `${tokens}\n${styles}\n${operationStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}`;
   assert.deepEqual(
     tokenDefinitions.filter(
-      (name) => !tokenReferences.includes(`var(${name})`) && !tooltipControl.includes(`'${name}'`)
+      (name) => !tokenReferences.includes(`var(${name})`) && !tokenReferences.includes(`'${name}'`)
     ),
     [],
     'semantic tokens must have a real consumer'
@@ -257,7 +257,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[\s\S]*?id="restoreButton"/);
   assert.match(html, /<dialog id="modalBackdrop"[^>]*role="alertdialog"[^>]*aria-modal="true"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*aria-labelledby="statusLabel"/);
-  assert.match(html, /<h2 id="statusLabel" class="sr-only">Operation progress<\/h2>\s*<div id="statusViewport" class="status-viewport">\s*<ol id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?<button id="permissionButton"/, 'screen-reader task label, bounded live log, and optional recovery action must remain in source order');
+  assert.match(html, /id="statusLabel"[\s\S]*?id="statusIdle"[\s\S]*?id="statusIntro"[^>]*hidden[\s\S]*?id="statusViewport"[\s\S]*?id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?id="statusOutcome"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden[\s\S]*?id="permissionButton"/, 'idle, fixed intro, bounded live log, fixed outcome, and recovery action must remain in source order');
   assert.match(tokens, /--control-height:\s*36px/);
   assert.match(tokens, /--space-5:\s*20px/);
   assert.match(tokens, /--padding-window:\s*var\(--space-5\)/);
@@ -357,10 +357,13 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--operation-marker-gap:\s*var\(--space-2\)/);
   assert.match(tokens, /--operation-scrollbar-size:\s*10px/);
   assert.match(tokens, /--operation-marker-description-offset:\s*2px/);
-  assert.match(tokens, /--operation-scroll-fade-size:\s*min\(12%, calc\(var\(--space-1\) \* 10\)\)/);
+  assert.match(tokens, /--operation-scroll-fade-size:\s*var\(--space-2\)/);
+  assert.match(tokens, /--duration-message-delta:\s*40ms/);
+  assert.match(tokens, /--operation-live-edge-tolerance:\s*var\(--space-1\)/);
   assert.match(tokens, /--operation-scroll-fade-reveal:\s*calc\(var\(--space-6\) \* 4\)/);
   assert.match(tokens, /--operation-shimmer-angle:\s*20deg/);
   assert.match(tokens, /--operation-shimmer-spread:\s*calc\(3ch \+ var\(--space-1\) \* 10\)/);
+  assert.match(tokens, /--operation-shimmer-highlight-alpha:\s*0\.2/);
   assert.doesNotMatch(styles, /\.separator\s*\{/);
   assert.doesNotMatch(html, /class="separator"/, 'business sections must use spacing rather than decorative dividers');
   assert.doesNotMatch(styles, /text-box-trim/, 'cross-platform layout must not depend on experimental glyph-box trimming');
@@ -375,22 +378,36 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--badge-language-text:\s*#7820bc/);
   assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-language-border\)[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
   assert.match(styles, /\.installation-item\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
-  assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0,\s*1fr\) auto;/);
+  assert.match(operationStyles, /\.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\)/);
+  assert.match(operationStyles, /\.status-panel\[data-mode="running"\] \.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\)/);
+  assert.match(operationStyles, /\.status-panel\[data-mode="running"\]\[data-has-outcome="true"\] \.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\) auto/);
+  assert.match(operationStyles, /\.status-idle-message\s*\{[\s\S]*?place-items:\s*center/);
+  assert.match(operationStyles, /\.status-message\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)/);
   assert.match(operationStyles, /\.status-viewport\s*\{[\s\S]*?overflow-y:\s*auto/);
   assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\][\s\S]*?mask-image:\s*linear-gradient/);
   assert.match(operationStyles, /animation-timeline:\s*scroll\(self y\), scroll\(self y\)/);
   assert.match(operationStyles, /\.status-text\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-direction:\s*column/);
   assert.doesNotMatch(operationStyles, /\.operation-event:first-child\s*\{[\s\S]*?margin-top:\s*auto/, 'short event streams must begin at the padded top edge');
-  assert.match(operationStyles, /\.operation-event\[data-variant="separator"\][\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
+  assert.doesNotMatch(operationStyles, /data-variant="separator"/, 'the approved idle and task intro replace decorative separators');
   assert.match(operationStyles, /\.operation-event\s*\{[\s\S]*?display:\s*flex;[\s\S]*?align-items:\s*center;[\s\S]*?gap:\s*var\(--operation-marker-gap\)[\s\S]*?color:\s*var\(--text-secondary\)/);
   assert.match(operationStyles, /\.operation-event-marker\s*\{[\s\S]*?width:\s*var\(--operation-marker-size\);[\s\S]*?height:\s*var\(--operation-marker-size\)/);
   assert.doesNotMatch(operationStyles, /\.operation-event\[data-state="(?:completed|warning|error)"\] \.operation-event-marker\s*\{[\s\S]*?color:/, 'Marker icons must stay monochrome instead of becoming status badges');
   assert.match(operationStyles, /\.operation-event-title\s*\{[\s\S]*?color:\s*inherit;[\s\S]*?font-weight:\s*var\(--weight-regular\)/);
   assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-marker\[data-icon="spinner"\] svg\s*\{[\s\S]*?animation:\s*operation-spin/);
-  assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-title\s*\{[\s\S]*?background-image:\s*linear-gradient[\s\S]*?animation:\s*operation-shimmer/);
+  assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-title\s*\{[\s\S]*?oklch\([\s\S]*?from currentColor l c h \/ calc\(alpha \* var\(--operation-shimmer-highlight-alpha\)\)[\s\S]*?background-image:\s*linear-gradient[\s\S]*?background-position:\s*0 0[\s\S]*?animation:\s*operation-shimmer/);
+  assert.match(operationStyles, /@keyframes operation-shimmer\s*\{[\s\S]*?from\s*\{\s*background-position:\s*100% 0;\s*\}[\s\S]*?to\s*\{\s*background-position:\s*0 0;\s*\}/);
   assert.match(operationLog, /DEFAULT_ICON_BY_STATE[\s\S]*?running:\s*'spinner'/);
   assert.match(icons, /const ICONS = Object\.freeze\(\{/);
-  assert.match(operationLog, /const overflowing = viewport\.scrollHeight > viewport\.clientHeight;[\s\S]*?viewport\.scrollTop = overflowing \? viewport\.scrollHeight : 0;/);
+  assert.match(operationLog, /const remaining = viewport\.scrollHeight - viewport\.clientHeight - viewport\.scrollTop;[\s\S]*?followLiveEdge = remaining <= cssNumber\('--operation-live-edge-tolerance'\)/);
+  assert.match(operationLog, /String\(text \|\| ''\)\.match\(\/\\S\+\\s\*\/g\)/);
+  assert.match(operationLog, /motionDuration\('--duration-message-delta'\)/);
+  assert.match(operationLog, /motionDuration\('--duration-operation-running-min'\)/);
+  assert.match(operationLog, /motionDuration\('--duration-operation-step-gap'\)/);
+  assert.match(operationLog, /cancelVisualQueue\(\{ flushEvents: true \}\);[\s\S]*?renderEvent\(event\)/);
+  assert.match(operationStyles, /\.operation-event\s*\{[\s\S]*?animation:\s*operation-marker-enter var\(--duration-feedback\) ease-out both/);
+  assert.match(tokens, /--duration-operation-running-min:\s*360ms/);
+  assert.match(tokens, /--duration-operation-step-gap:\s*var\(--duration-feedback\)/);
+  assert.match(operationLog, /cssNumber\('--operation-live-edge-tolerance'\)/);
   assert.match(app, /verifyInstallation:\s*'verify'[\s\S]*?ensureBaseline:\s*'archive'[\s\S]*?applyTransaction:\s*'translate'[\s\S]*?restartCavalry:\s*'restart'/);
   assert.match(app, /restoring && phase === 'applyTransaction' \? 'restore' : PHASE_ICONS\[phase\]/);
   assert.match(updateProgress, /updateDownloadCompletedTitle[\s\S]*?icon:\s*'download'/);
@@ -425,7 +442,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.select-root\s*\{[\s\S]*?grid-column:\s*1\s*\/\s*-1/);
   assert.match(cssRule(styles, '.content'), /overflow:\s*hidden/);
   assert.match(cssRule(styles, '.select-list'), /overflow-y:\s*auto/);
-  assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\) auto/);
+  assert.match(operationStyles, /\.status-panel\[data-mode="running"\] \.status-task-shell/);
   assert.match(app, /document\.body\.dataset\.platform = state\.platform/);
   assert.match(app, /window\.createTooltipControl/);
   assert.doesNotMatch(app, /updateControl\.addEventListener\('(?:mouseenter|focusin)'/);
@@ -455,7 +472,8 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /restoreButton\.addEventListener\('click', requestRestore\)/);
   assert.doesNotMatch(app, /maintenanceHeading|extractButton|restoreEnglishButton|refreshEnglish/);
   assert.match(app, /statusLabel\.textContent = t\('taskProgressLabel'\)/);
-  assert.match(app, /operationLog\.start\(\{[\s\S]*?restoreTaskTitle[\s\S]*?applyTaskTitle/);
+  assert.match(app, /operationLog\.start\(\{[\s\S]*?restoreIntro[\s\S]*?applyIntro/);
+  assert.match(app, /operationLog\.complete\(\s*t\(restoring \? 'restoreOutcome' : 'applyOutcome'/);
   assert.match(app, /operationLog\.idle\(\)/);
   assert.match(app, /operationLog\.replace\(\{/);
   assert.match(app, /operationLog\.upsert\(operationPhaseCopy\(event, context\)\)/);
@@ -521,9 +539,12 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'modifiedBadge',
     'statusLabel',
     'taskProgressLabel',
-    'applyTaskTitle',
-    'restoreTaskTitle',
-    'updateTaskTitle',
+    'idlePrompt',
+    'applyIntro',
+    'restoreIntro',
+    'updateIntro',
+    'applyOutcome',
+    'restoreOutcome',
     'minimizeWindow',
     'maximizeWindow',
     'restoreWindow',

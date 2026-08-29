@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 tokens.css 的任务事件/排印/状态/滚动角色，依赖 operation-log.js 生成的 separator、MarkerIcon、MarkerContent 与有界视窗状态
- * [OUTPUT]: 对外提供无泛化标题的中性任务事件容器；外框与 12px panel padding 保持稳定，事件从 padding 后的顶部起排并在触底后向上推进，框内复刻 shadcn Base Marker 的 16px 单色图标、8px 关系间距、Spinner、shimmer 与 scroll-fade
- * [POS]: renderer 的无依赖任务事件视觉层；从共享 styles.css 拆出以守住单文件职责，不拥有业务阶段、AlertDialog 或窗口外层滚动
+ * [INPUT]: 依赖 tokens.css 的任务反馈/排印/状态/滚动角色，依赖 operation-log.js 投影的 idle、首尾 Message、中段 MarkerIcon/MarkerContent 与有界视窗状态
+ * [OUTPUT]: 对外提供无泛化标题的中性三轨任务容器；外框与 12px panel padding 保持稳定，idle 双轴居中，running 固定首尾并让中段事件从顶部逐行落位、溢出后按 live edge 跟随，8px scroll-fade 只裁切中段
+ * [POS]: renderer 的任务反馈视觉层；从共享 styles.css 拆出以守住单文件职责，不拥有业务阶段、AlertDialog 或窗口外层滚动
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 @property --operation-scroll-fade-top {
@@ -27,6 +27,45 @@
   border: var(--stroke-hairline) solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
+}
+
+.status-task-shell {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.status-panel[data-mode="running"] .status-task-shell {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--operation-group-gap);
+}
+
+.status-panel[data-mode="running"][data-has-outcome="true"] .status-task-shell {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.status-idle-message {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-compact);
+  text-align: center;
+}
+
+.status-message {
+  min-width: 0;
+  margin: 0;
+  color: var(--text-primary);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-compact);
+  overflow-wrap: anywhere;
 }
 
 .status-viewport {
@@ -104,50 +143,11 @@
   align-items: center;
   gap: var(--operation-marker-gap);
   color: var(--text-secondary);
+  animation: operation-marker-enter var(--duration-feedback) ease-out both;
 }
 
 .operation-event[data-has-description="true"] {
   align-items: flex-start;
-}
-
-.operation-event[data-variant="separator"] {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
-  align-items: center;
-  gap: var(--operation-marker-gap);
-  color: var(--text-secondary);
-}
-
-.operation-event[data-variant="separator"]::before,
-.operation-event[data-variant="separator"]::after {
-  height: var(--stroke-hairline);
-  background: var(--border);
-  content: "";
-}
-
-.operation-event[data-variant="separator"][data-empty="true"] {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.operation-event[data-variant="separator"][data-empty="true"]::after {
-  display: none;
-}
-
-.operation-event[data-variant="separator"] .operation-event-marker,
-.operation-event[data-variant="separator"][data-empty="true"] .operation-event-copy {
-  display: none;
-}
-
-.operation-event[data-variant="separator"] .operation-event-copy {
-  flex: 0 0 auto;
-}
-
-.operation-event[data-variant="separator"] .operation-event-title {
-  color: var(--text-secondary);
-  font-size: var(--type-metadata);
-  font-weight: var(--weight-regular);
-  line-height: var(--line-height-metadata);
-  white-space: nowrap;
 }
 
 .operation-event-marker {
@@ -184,6 +184,7 @@
   flex: 1 1 auto;
   display: flex;
   flex-direction: column;
+  gap: var(--operation-group-gap);
 }
 
 .operation-event-title,
@@ -201,10 +202,8 @@
 
 .operation-event[data-state="running"] .operation-event-title {
   --operation-shimmer-base: currentColor;
-  --operation-shimmer-highlight: color-mix(
-    in oklch,
-    currentColor var(--operation-shimmer-highlight-opacity),
-    transparent
+  --operation-shimmer-highlight: oklch(
+    from currentColor l c h / calc(alpha * var(--operation-shimmer-highlight-alpha))
   );
   background-image: linear-gradient(
     calc(var(--operation-shimmer-axis) + var(--operation-shimmer-angle)),
@@ -217,7 +216,7 @@
     var(--operation-shimmer-base) calc(50% + var(--operation-shimmer-spread))
   );
   background-repeat: no-repeat;
-  background-position: 100% 0;
+  background-position: 0 0;
   background-size: calc(200% + var(--operation-shimmer-spread) * 2) 100%;
   background-clip: text;
   animation: operation-shimmer var(--duration-shimmer) linear infinite;
@@ -227,9 +226,9 @@
 
 .operation-event-description {
   color: var(--text-secondary);
-  font-size: var(--type-metadata);
+  font-size: var(--type-compact);
   font-weight: var(--weight-regular);
-  line-height: var(--line-height-metadata);
+  line-height: var(--line-height-compact);
 }
 
 .permission-button {
@@ -241,7 +240,15 @@
 }
 
 @keyframes operation-shimmer {
+  from { background-position: 100% 0; }
   to { background-position: 0 0; }
+}
+
+@keyframes operation-marker-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1));
+  }
 }
 
 @keyframes operation-scroll-fade-reveal-top {
@@ -256,7 +263,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .operation-event[data-state="running"] .operation-event-marker[data-icon="spinner"] svg,
-  .operation-event[data-state="running"] .operation-event-title {
+  .operation-event[data-state="running"] .operation-event-title,
+  .operation-event {
     animation: none;
   }
 

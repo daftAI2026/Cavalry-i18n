@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase-only 转换、冻结语义图标工厂、四语任务 separator/事件、事件顶部起排与触底跟随、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、冻结语义图标工厂、四语 idle/首尾 Message/中段 Marker、live-edge 不抢位、快事件可读串行与错误抢占、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -43,8 +43,9 @@ function runtime({
   locale = 'en-US',
   preview = false,
   statusRequest = null,
+  styleValues = {},
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusViewport', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -131,16 +132,13 @@ function runtime({
     return Promise.resolve({ ok: true });
     } },
   };
-  const context = { window, document, navigator: { language: locale, languages: [locale] }, Promise, console, setTimeout, clearTimeout };
+  const context = { window, document, navigator: { language: locale, languages: [locale] }, Promise, console, setTimeout, clearTimeout, getComputedStyle: () => ({ getPropertyValue: (name) => styleValues[name] || '0ms' }) };
   context.globalThis = context;
   return { elements, calls, channels, updateChannels, window, context };
 }
 async function flush() { await Promise.resolve(); await new Promise((resolve) => setImmediate(resolve)); await Promise.resolve(); }
 
-function dispatch(element, type, event = {}) {
-  for (const listener of element.listeners.get(type) || []) listener(event);
-}
-
+function dispatch(element, type, event = {}) { for (const listener of element.listeners.get(type) || []) listener(event); }
 function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
@@ -157,17 +155,9 @@ function boot(options) {
   return r;
 }
 
-function activityRows(runtimeState) {
-  return runtimeState.elements['#statusText'].children;
-}
-
-function activityText(runtimeState) {
-  return runtimeState.elements['#statusText'].textContent;
-}
-
-function activityTitle(runtimeState, index = 0) {
-  return activityRows(runtimeState)[index]?.children[1]?.children[0]?.textContent || '';
-}
+function activityRows(runtimeState) { return runtimeState.elements['#statusText'].children; }
+function activityText(runtimeState) { return runtimeState.elements['#statusText'].textContent; }
+function activityTitle(runtimeState, index = 0) { return activityRows(runtimeState)[index]?.children[1]?.children[0]?.textContent || ''; }
 
 test('Windows caption controls keep right-side native semantics and localized maximize state', async () => {
   const r = boot({ status: { platform: 'windows' }, locale: 'zh-CN' });
@@ -218,9 +208,9 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hans', 'zh-Hant', 'ja_JP']);
   assert.equal(r.elements['#languageSelect'].children[0].textContent, '简体中文');
   assert.equal(r.elements['#statusLabel'].textContent, 'Task progress');
-  assert.equal(activityRows(r).length, 1);
-  assert.equal(activityRows(r)[0].dataset.variant, 'separator');
-  assert.equal(activityRows(r)[0].dataset.empty, 'true');
+  assert.equal(activityRows(r).length, 0);
+  assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle');
+  assert.equal(r.elements['#statusIdle'].textContent, 'What would you like to do?');
   assert.equal(r.elements['#currentLanguage'].textContent, '简体中文');
   assert.equal(r.elements['#installationBadge'].textContent, 'Translated');
   assert.equal(r.elements['#installationBadge'].dataset.state, 'translated');
@@ -287,45 +277,20 @@ test('About entry delegates to one native window command and keeps links fixed',
   );
 });
 
-test('idle task viewport keeps only a localized screen-reader label and decorative separator', async () => {
-  for (const [locale, label] of [
-    ['zh-CN', '任务进度'],
-    ['zh-TW', '任務進度'],
-    ['ja-JP', 'タスクの進行状況'],
+test('idle task viewport centers one localized prompt without creating event rows', async () => {
+  for (const [locale, label, prompt] of [
+    ['zh-CN', '任务进度', '这次想做什么？'],
+    ['zh-TW', '任務進度', '這次想做什麼？'],
+    ['ja-JP', 'タスクの進行状況', '今回は何をしますか？'],
   ]) {
     const r = boot({ locale });
     await flush();
     assert.equal(r.elements['#statusLabel'].textContent, label, locale);
-    assert.equal(activityRows(r).length, 1, locale);
-    assert.equal(activityRows(r)[0].dataset.variant, 'separator', locale);
-    assert.equal(activityRows(r)[0].attributes.get('aria-hidden'), 'true', locale);
+    assert.equal(activityRows(r).length, 0, locale);
+    assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle', locale);
+    assert.equal(r.elements['#statusIdle'].textContent, prompt, locale);
+    assert.equal(r.elements['#statusViewport'].hidden, true, locale);
   }
-});
-
-test('Marker composition swaps Spinner for the event icon without appending a duplicate row', async () => {
-  const r = boot();
-  await flush();
-  const viewport = r.elements['#statusViewport'];
-  viewport.clientHeight = 1;
-  Object.defineProperty(viewport, 'scrollHeight', {
-    configurable: true,
-    get: () => activityRows(r).length,
-  });
-  const log = r.window.createOperationLog({
-    root: r.elements['#statusPanel'],
-    viewport,
-    list: r.elements['#statusText'],
-  });
-  log.replace({ id: 'verifyInstallation', title: 'Checking', state: 'running' });
-  assert.equal(activityRows(r).length, 1);
-  assert.equal(activityRows(r)[0].children[0].dataset.icon, 'spinner');
-  assert.equal(viewport.scrollTop, 0, 'a short event stream must begin at the padded top edge');
-  log.upsert({ id: 'verifyInstallation', title: 'Checked', state: 'completed', icon: 'verify' });
-  assert.equal(activityRows(r).length, 1);
-  assert.equal(activityRows(r)[0].children[0].dataset.icon, 'verify');
-  log.upsert({ id: 'ensureBaseline', title: 'Preparing recovery files', state: 'running' });
-  assert.equal(viewport.dataset.overflowing, 'true');
-  assert.equal(viewport.scrollTop, 2, 'new events must keep the bounded viewport at the latest row');
 });
 
 test('translated installation badge follows the selected UI locale', async () => {
@@ -464,7 +429,8 @@ test('checked update is announced, confirmed, and installed without renderer-con
   assert.equal(installs.length, 1);
   assert.deepEqual(JSON.parse(JSON.stringify(installs[0].payload)), { onEvent: true });
   assert.equal(r.updateChannels.length, 1, 'update install must attach one ordered Tauri Channel');
-  assert.equal(activityTitle(r), 'Update to 0.7.1');
+  assert.equal(activityTitle(r), 'Update downloaded');
+  assert.match(r.elements['#statusIntro'].textContent, /^Preparing/);
   assert.match(activityText(r), /Update downloaded/);
   assert.match(activityText(r), /Verifying and installing/);
   assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
@@ -492,11 +458,11 @@ test('successful updater events advance one task through download, install, and 
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
 
-  assert.equal(activityTitle(r), 'Update to 0.7.1');
-  assert.equal(activityRows(r).length, 4, 'one separator and three stable phase rows');
-  assert.equal(activityRows(r)[1].children[0].dataset.icon, 'download');
-  assert.equal(activityRows(r)[2].children[0].dataset.icon, 'package');
-  assert.equal(activityRows(r)[3].children[0].dataset.icon, 'spinner');
+  assert.match(r.elements['#statusIntro'].textContent, /^Preparing/);
+  assert.equal(activityRows(r).length, 3, 'the running task keeps exactly three stable phase rows');
+  assert.equal(activityRows(r)[0].children[0].dataset.icon, 'download');
+  assert.equal(activityRows(r)[1].children[0].dataset.icon, 'package');
+  assert.equal(activityRows(r)[2].children[0].dataset.icon, 'spinner');
   assert.match(activityText(r), /Restarting the Switcher/);
 });
 
@@ -620,12 +586,13 @@ test('clean official macOS install with needsExtract allows Apply to establish i
   assert.equal(r.elements['#modalTitle'].textContent, 'Install language pack?');
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   assert.equal(r.elements['#statusLabel'].textContent, 'Task progress');
-  assert.equal(activityTitle(r), 'Apply 简体中文');
-  assert.equal(activityTitle(r, 1), 'Checking the Cavalry installation');
+  assert.match(r.elements['#statusIntro'].textContent, /^Preparing/);
+  assert.equal(activityTitle(r), 'Checking the Cavalry installation');
   await flush();
   assert.deepEqual(activityRows(r).map((row) => row.children[0].dataset.icon), [
-    '', 'verify', 'archive', 'translate', 'restart',
+    'verify', 'archive', 'translate', 'restart',
   ]);
+  assert.equal(r.elements['#statusOutcome'].textContent, 'Applied 简体中文 and restarted Cavalry.');
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
   });

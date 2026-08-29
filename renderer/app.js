@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise/有序阶段事件 API、window.createOperationLog/window.createUpdateProgress/window.createSelectControl/window.createTooltipControl/window.createPathDisplay/window.createAboutControl/window.createWindowControls 的独立状态机与语义投影、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/单任务流/有界任务事件视窗与阶段专属语义图标、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、平台统一 Restore、AlertDialog 确认、About、更新 tooltip/无障碍通知与签名冷更新交互；首次 Apply 由后端在写事务前自动建立恢复基线，loopback 开发预览只点亮更新入口且不访问网络。
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/单任务流/有界三轨任务视窗与阶段专属语义图标、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、平台统一 Restore、AlertDialog 确认、About、更新 tooltip/无障碍通知与签名冷更新交互；首次 Apply 由后端在写事务前自动建立恢复基线，loopback 开发预览只点亮更新入口且不访问网络。
  * [POS]: renderer 的唯一业务交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实后端事件压缩为面向用户的任务阶段，不暴露内部函数名、不虚构结果；持久阻塞留在事件视窗，只有必须立即选择的确认与权限动作进入 AlertDialog，About 由独立 native window owner 管理。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -50,9 +50,9 @@ const languageSelectControl = window.createSelectControl({
   list: languageSelectList,
 });
 const operationLog = window.createOperationLog({
-  root: statusPanel,
-  viewport: statusViewport,
-  list: statusText,
+  root: statusPanel, idleMessage: document.querySelector('#statusIdle'),
+  intro: document.querySelector('#statusIntro'), viewport: statusViewport,
+  list: statusText, outcome: document.querySelector('#statusOutcome'),
 });
 const updateProgress = window.createUpdateProgress({ log: operationLog, text: t });
 const pathDisplay = window.createPathDisplay({ root: appPathText, prefix: appPathPrefix, leaf: appPathLeaf });
@@ -102,7 +102,6 @@ function updatePreviewRequested() {
 }
 
 const updatePreviewEnabled = updatePreviewRequested();
-
 function detectUiLocale() {
   const languages = navigator.languages && navigator.languages.length
     ? navigator.languages
@@ -125,7 +124,6 @@ function normalizeLocale(language) {
   if (value.startsWith('en')) return 'en';
   return '';
 }
-
 function t(key, params = {}) {
   const text = (UI_TEXT[uiLocale] && UI_TEXT[uiLocale][key]) || UI_TEXT.en[key] || key;
   return text.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ''));
@@ -332,6 +330,7 @@ function localizeShell() {
   restoreButton.setAttribute('aria-label', t('restore'));
   permissionButton.textContent = t('openPrivacySecurity');
   statusLabel.textContent = t('taskProgressLabel');
+  operationLog.setIdleMessage(t('idlePrompt'));
   aboutControl.localize();
   windowControls.localize();
   setPermissionWait(false);
@@ -719,7 +718,7 @@ async function runApply(nextLanguage) {
   const restoring = isRestoreAction(nextLanguage);
   const operationContext = { language, restoring };
   operationLog.start({
-    title: t(restoring ? 'restoreTaskTitle' : 'applyTaskTitle', { language }),
+    intro: t(restoring ? 'restoreIntro' : 'applyIntro', { language }),
   });
   updateOperationPhase({ phase: 'verifyInstallation', state: 'running' }, operationContext);
 
@@ -755,6 +754,7 @@ async function runApply(nextLanguage) {
     setBusy(state.busy);
     state.pendingAction = '';
     appendPostCommitWarnings(warningCodes);
+    if (warningCodes.length === 0) operationLog.complete(t(restoring ? 'restoreOutcome' : 'applyOutcome', { language }));
   } finally {
     setBusy(false);
   }
