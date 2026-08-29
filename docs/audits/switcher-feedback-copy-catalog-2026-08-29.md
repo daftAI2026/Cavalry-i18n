@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer/ui-text.js、renderer/app.js、renderer/operation-log.js、renderer/update-progress.js、Tauri apply/updater Channel 合同与已批准 UX Writing/反馈分层裁决
-[OUTPUT]: 对外提供 Switcher 空闲引导、任务引言、Event/AlertDialog/Toast 的完整归属清单与四语审阅快照，并区分当前生产事实、已批准提案和缺少后端事件的阻塞项
+[OUTPUT]: 对外提供 Switcher 无确认直达主动作、空闲引导、任务引言、Event/必要 AlertDialog/Toast 的完整归属清单与四语审阅快照，并区分当前生产事实、已批准提案和缺少后端事件的阻塞项
 [POS]: docs/audits 的反馈语义审阅面；供产品逐条裁决文案与承载组件，不替代 renderer/ui-text.js 运行时真相、后端 DTO 合同或 packaged 验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -22,14 +22,14 @@
 | 场景 | 承载 | 状态 | 裁决 |
 | --- | --- | --- | --- |
 | 健康且尚未开始任务 | Event 空闲态 | Current | 框内水平/垂直居中，只显示一句任务邀请 |
-| Apply / Restore / Update 已确认 | Event 任务引言 | Current | 深色正文按上游语义 chunk 增长；不延迟后端事务 |
-| Apply / Restore 四阶段 | Event Marker | Current | 稳定 phase 原位更新 running → terminal；只对已到达的快事件串行投影，错误立即抢占 |
+| Switch 直接开始；Restore / Update 已确认 | Event 任务引言 | Current | 深色正文按上游语义 chunk 增长；不延迟后端事务 |
+| Switch / Restore 四阶段 | Event Marker | Current | 稳定 phase 原位更新 running → terminal；只对已到达的快事件串行投影，错误立即抢占 |
 | 阶段内文件/对象进度 | Marker 次行 description | Blocked | 当前 Apply Channel 只有 phase/state；必须增加受控 detail code 后才能上线 |
 | Updater 下载百分比 | Marker 次行 description | Current | 使用后端 downloaded/contentLength，不伪造进度 |
-| Apply / Restore 整体成功 | Event 结果 Message | Current | 位于 scroll-fade 外；四阶段全部完成且没有 warning 后出现，失败路径不得显示 |
+| Switch / Restore 整体成功 | Event 结果 Message | Current | 位于 scroll-fade 外；四阶段全部完成且没有 warning 后出现，失败路径不得显示 |
 | Update 整体成功 | Event 结果 Message | Blocked | 安装后当前进程退出；没有跨重启确认前不伪造不可见的成功结果 |
 | 启动阻塞、事务警告、失败与恢复路径 | Event Marker | Current | 必须可回看，不允许只用会消失的 Toast |
-| Apply / Restore / Update / 权限确认 | AlertDialog | Current | 用户必须继续或取消；打开时不叠 Toast |
+| Restore / Update / 权限确认 | AlertDialog | Current | 用户必须继续或取消；打开时不叠 Toast；Switch 因运行中 fail-before-mutation 而直接执行 |
 | 更新可用、首次选择、独立 About/外链失败 | Toast | Approved proposal | 标题 + 说明 + 可选 Action + Close；右下向上 |
 | 长任务 loading/success | 不使用 Toast | Approved proposal | Event 已拥有事实，避免重复反馈 |
 
@@ -38,11 +38,11 @@
 | ID | English | 简体中文 | 繁體中文 | 日本語 |
 | --- | --- | --- | --- | --- |
 | `idlePrompt` | What would you like to do? | 这次想做什么？ | 這次想做什麼？ | 今回は何をしますか？ |
-| `applyIntro` | Preparing to apply {language}… | 正在准备应用{language}…… | 正在準備套用{language}…… | {language}の適用を準備しています… |
+| `applyIntro` | Preparing to switch to {language}… | 正在准备切换为{language}…… | 正在準備切換為{language}…… | {language}への切り替えを準備しています… |
 | `restoreIntro` | Preparing to restore Cavalry… | 正在准备恢复 Cavalry…… | 正在準備還原 Cavalry…… | Cavalry の復元を準備しています… |
 | `updateIntro` | Preparing the update… | 正在准备更新…… | 正在準備更新…… | 更新を準備しています… |
-| `applyOutcome` | Applied {language} and restarted Cavalry. | 已应用{language}并重启 Cavalry。 | 已套用{language}並重新啟動 Cavalry。 | {language}を適用し、Cavalry を再起動しました。 |
-| `restoreOutcome` | Restored official English and restarted Cavalry. | 已恢复官方英文状态并重启 Cavalry。 | 已還原官方英文狀態並重新啟動 Cavalry。 | 公式の英語状態に戻し、Cavalry を再起動しました。 |
+| `applyOutcome` | Switched to {language}. Cavalry is now open. | 已切换为{language}，Cavalry 已打开。 | 已切換為{language}，Cavalry 已開啟。 | {language}に切り替えました。Cavalry は起動済みです。 |
+| `restoreOutcome` | Restored official English. Cavalry is now open. | 已恢复官方英文状态，Cavalry 已打开。 | 已還原官方英文狀態，Cavalry 已開啟。 | 公式の英語状態に戻しました。Cavalry は起動済みです。 |
 | `updateOutcome` | — | — | — | — |
 
 任务引言是一条 Message-like 行，下面才出现 Marker；整体结果复用同一 Message 结构。预览按 shadcn helper 的 `word + trailing whitespace` delta 模型持续更新同一文本节点，不给每个 delta 添加 opacity/transform 动画。由于文字是确定性的本地文案，生产不得把该视觉模拟描述成后端文本流。
@@ -62,16 +62,16 @@ Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度�
 | `apply.baseline.running` | Preparing recovery files | 正在准备恢复文件 | 正在準備還原檔案 | 復元ファイルを準備中 |
 | `apply.baseline.completed` | Recovery files ready | 恢复文件已就绪 | 還原檔案已就緒 | 復元ファイルの準備ができました |
 | `apply.baseline.error` | Couldn’t prepare recovery files | 无法准备恢复文件 | 無法準備還原檔案 | 復元ファイルを準備できません |
-| `apply.transaction.running` | Applying {language} | 正在应用{language} | 正在套用{language} | {language}を適用中 |
-| `apply.transaction.completed` | {language} applied | 已应用{language} | 已套用{language} | {language}を適用しました |
-| `apply.transaction.error` | Couldn’t apply {language} | 无法应用{language} | 無法套用{language} | {language}を適用できません |
+| `apply.transaction.running` | Switching Cavalry to {language} | 正在将 Cavalry 切换为{language} | 正在將 Cavalry 切換為{language} | Cavalry を{language}に切り替え中 |
+| `apply.transaction.completed` | Switched to {language} | 已切换为{language} | 已切換為{language} | {language}に切り替えました |
+| `apply.transaction.error` | Couldn’t switch to {language} | 无法切换为{language} | 無法切換為{language} | {language}に切り替えられません |
 | `restore.transaction.running` | Restoring Cavalry | 正在恢复 Cavalry | 正在還原 Cavalry | Cavalry を復元中 |
 | `restore.transaction.completed` | Cavalry restored | 已恢复 Cavalry | 已還原 Cavalry | Cavalry を復元しました |
 | `restore.transaction.error` | Couldn’t restore Cavalry | 无法恢复 Cavalry | 無法還原 Cavalry | Cavalry を復元できません |
-| `restart.running` | Restarting Cavalry | 正在重启 Cavalry | 正在重新啟動 Cavalry | Cavalry を再起動中 |
-| `restart.completed` | Cavalry restarted | Cavalry 已重启 | Cavalry 已重新啟動 | Cavalry を再起動しました |
-| `restart.warning` | Cavalry did not restart | Cavalry 未重启 | Cavalry 未重新啟動 | Cavalry を再起動できませんでした |
-| `restart.error` | Cavalry did not restart | Cavalry 未重启 | Cavalry 未重新啟動 | Cavalry を再起動できませんでした |
+| `restart.running` | Opening Cavalry | 正在打开 Cavalry | 正在開啟 Cavalry | Cavalry を起動中 |
+| `restart.completed` | Cavalry opened | Cavalry 已打开 | Cavalry 已開啟 | Cavalry を起動しました |
+| `restart.warning` | Cavalry did not open | Cavalry 未打开 | Cavalry 未開啟 | Cavalry を起動できませんでした |
+| `restart.error` | Cavalry did not open | Cavalry 未打开 | Cavalry 未開啟 | Cavalry を起動できませんでした |
 | `update.download.running` | Downloading version {version} | 正在下载版本 {version} | 正在下載版本 {version} | バージョン {version} をダウンロード中 |
 | `update.download.detail` | {percent}% downloaded | 已下载 {percent}% | 已下載 {percent}% | {percent}% ダウンロード済み |
 | `update.download.completed` | Update downloaded | 更新已下载 | 更新已下載 | 更新をダウンロードしました |
@@ -82,7 +82,7 @@ Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度�
 ### 4.1 阶段内次行
 
 - Updater 下载百分比已经有真实字节计数，可直接在当前 Marker 次行原位更新。
-- Apply/Restore 当前 `OperationEvent` 只有 `phase` 与 `state`，没有文件名、索引或总数。预览里的 `appStrings.json` 等仅用于评审信息层级，不是生产证据。
+- Switch/Restore 当前 `OperationEvent` 只有 `phase` 与 `state`，没有文件名、索引或总数。预览里的 `appStrings.json` 等仅用于评审信息层级，不是生产证据。
 - 正确扩展应发送稳定、受控的 detail code 或已验证 manifest item id；renderer 再本地化为可读叶名称。禁止发送任意绝对路径、临时目录、签名内容或底层错误原文。
 
 ## 5. 持久 Event 状态（Current）
@@ -120,8 +120,8 @@ Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度�
 
 | 场景 | English | 简体中文 | 繁體中文 | 日本語 |
 | --- | --- | --- | --- | --- |
-| `apply.confirm` | <strong>Install language pack?</strong><br>The selected language pack will modify the chosen Cavalry installation. Cavalry will restart after the files are applied.<br><code>Cancel · Continue</code> | <strong>安装语言包？</strong><br>所选语言包会修改当前 Cavalry 安装目录；文件应用完成后将重启 Cavalry。<br><code>取消 · 继续</code> | <strong>安裝語言包？</strong><br>所選語言包會修改目前 Cavalry 安裝目錄；檔案套用完成後將重新啟動 Cavalry。<br><code>取消 · 繼續</code> | <strong>言語パックをインストールしますか？</strong><br>選択した言語パックは Cavalry のインストール先を変更します。ファイルの適用後に Cavalry を再起動します。<br><code>キャンセル · 続行</code> |
-| `restore.confirm` | <strong>Restore Cavalry?</strong><br>Cavalry will return to its official English state. Switcher translation files will be removed, and Cavalry will restart.<br><code>Cancel · Restore</code> | <strong>恢复 Cavalry？</strong><br>Cavalry 将恢复为官方英文状态。语言切换器添加的翻译文件会被移除，随后 Cavalry 将重启。<br><code>取消 · 恢复</code> | <strong>還原 Cavalry？</strong><br>Cavalry 將還原為官方英文狀態。語言切換器加入的翻譯檔案會被移除，隨後 Cavalry 將重新啟動。<br><code>取消 · 還原</code> | <strong>Cavalry を復元しますか？</strong><br>Cavalry を公式の英語状態に戻します。言語スイッチャーが追加した翻訳ファイルを削除し、Cavalry を再起動します。<br><code>キャンセル · 復元</code> |
+| `switch.confirm` | —（直接进入任务流） | —（直接进入任务流） | —（直接進入任務流程） | —（直接タスクを開始） |
+| `restore.confirm` | <strong>Restore Cavalry?</strong><br>Cavalry will return to its official English state. Switcher translation files will be removed, then Cavalry will open.<br><code>Cancel · Restore</code> | <strong>恢复 Cavalry？</strong><br>Cavalry 将恢复为官方英文状态。语言切换器添加的翻译文件会被移除，随后 Cavalry 将打开。<br><code>取消 · 恢复</code> | <strong>還原 Cavalry？</strong><br>Cavalry 將還原為官方英文狀態。語言切換器加入的翻譯檔案會被移除，隨後 Cavalry 將開啟。<br><code>取消 · 還原</code> | <strong>Cavalry を復元しますか？</strong><br>Cavalry を公式の英語状態に戻します。言語スイッチャーが追加した翻訳ファイルを削除してから、Cavalry を起動します。<br><code>キャンセル · 復元</code> |
 | `update.confirm` | <strong>Update the Switcher?</strong><br>Version {version} is ready. The Switcher will download, verify, replace itself, and restart.<br><em>macOS:</em> This update installs a new macOS app bundle. If the release is not Developer ID notarized, complete the documented local ad-hoc and Gatekeeper step again for the new bundle.<br><code>Cancel · Update & Restart</code> | <strong>更新语言切换器？</strong><br>版本 {version} 已准备好。语言切换器将下载并验证更新，替换自身后重新启动。<br><em>macOS:</em> 此次更新会安装一个新的 macOS 应用包。若发布版本没有 Developer ID 公证，新包仍需重新执行发布说明中的本地 ad-hoc 与 Gatekeeper 步骤。<br><code>取消 · 更新并重启</code> | <strong>更新語言切換器？</strong><br>版本 {version} 已準備好。語言切換器將下載並驗證更新，替換自身後重新啟動。<br><em>macOS:</em> 此次更新會安裝一個新的 macOS 應用程式套件。若發布版本沒有 Developer ID 公證，新套件仍需重新執行發布說明中的本機 ad-hoc 與 Gatekeeper 步驟。<br><code>取消 · 更新並重新啟動</code> | <strong>言語スイッチャーを更新しますか？</strong><br>バージョン {version} を利用できます。更新をダウンロードして検証し、アプリを置き換えて再起動します。<br><em>macOS:</em> この更新では新しい macOS アプリバンドルがインストールされます。Developer ID で公証されていないリリースでは、新しいバンドルに対してリリース案内のローカル ad-hoc と Gatekeeper の手順をもう一度実行してください。<br><code>キャンセル · 更新して再起動</code> |
 | `permission.confirm` | <strong>System permission required</strong><br>Approve the operating system permission request for Cavalry Language Switcher, then retry.<br><code>Cancel · Open Settings / Retry as administrator</code> | <strong>需要系统授权</strong><br>请批准操作系统为 Cavalry 语言切换器显示的权限请求，然后重试。<br><code>取消 · 打开设置 / 以管理员身份重试</code> | <strong>需要系統授權</strong><br>請允許作業系統為 Cavalry 語言切換器顯示的權限請求，然後重試。<br><code>取消 · 打開設定 / 以系統管理員身分重試</code> | <strong>システム権限が必要です</strong><br>Cavalry 言語スイッチャーに対するオペレーティングシステムの権限要求を許可してから再試行してください。<br><code>キャンセル · 設定を開く / 管理者として再試行</code> |
 
@@ -141,7 +141,7 @@ Toast 的 `success` 与 `loading` 虽是 Base Toast 内置类型，但当前产�
 ## 8. 当前阻塞与下一步
 
 1. 先由产品审阅本目录中的承载组件与四语语感。
-2. 任务引言、空闲态、Apply/Restore 成功结语和 live-edge 跟随可在不改后端合同的前提下接入；成功结语必须绑定完整 terminal success。
+2. 任务引言、空闲态、Switch/Restore 成功结语和 live-edge 跟随已接入；成功结语必须继续绑定完整 terminal success。
 3. 文件级轮换必须先扩展 Rust `OperationReporter` 与 bridge allowlist，并证明每条 detail 对应真实处理边界。
 4. Toast 状态机接入前仍需冻结停留时间、队列上限、关闭/Action 键盘行为、live region 与 reduced-motion。
 5. 任何生产接入都必须同步 L3、renderer L2、docs L2 与合同测试；动画预览不得冒充 packaged/native PASS。

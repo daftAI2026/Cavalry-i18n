@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token/图标表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、权限按钮可见时才创建的条件轨道、中部省略路径、单一 Phosphor 图标注册表、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、Cavalry 当前语言及条件式 Official 徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止隐藏轨道残留伪间距、组合状态徽章、窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、权限按钮可见时才创建的条件轨道、中部省略路径、单一 Phosphor 图标注册表、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、Cavalry 当前语言及条件式 Official 徽章、直接 Switch、独立 About 页面与固定项目外链、脱敏 Updater Channel、必要 AlertDialog，以及全宽 Select + Switch/Restore 单任务流；禁止隐藏轨道残留伪间距、组合状态徽章、冗余 Switch 确认、窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -262,7 +262,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /id="languageSelectTrigger"[^>]*role="combobox"[^>]*aria-haspopup="listbox"[^>]*aria-expanded="false"/);
   assert.match(html, /class="select-chevron"[^>]*>[\s\S]*?<svg[^>]*viewBox="0 0 24 24"[\s\S]*?<path d="m6 9 6 6 6-6"><\/path>/);
   assert.match(html, /id="languageSelectList"[^>]*role="listbox"/);
-  assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[\s\S]*?id="restoreButton"/);
+  assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[^>]*>Switch<\/button>[\s\S]*?id="restoreButton"/);
   assert.match(html, /<dialog id="modalBackdrop"[^>]*role="alertdialog"[^>]*aria-modal="true"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*aria-labelledby="statusLabel"/);
   assert.match(html, /id="statusLabel"[\s\S]*?id="statusIdle"[\s\S]*?id="statusIntro"[^>]*hidden[\s\S]*?id="statusViewport"[\s\S]*?id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?id="statusOutcome"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden[\s\S]*?id="permissionButton"/, 'idle, fixed intro, bounded live log, fixed outcome, and recovery action must remain in source order');
@@ -482,6 +482,13 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
     /const restoreAction = state\.platform === 'macos' \? 'restore-official' : 'en';/
   );
   assert.match(app, /restoreButton\.addEventListener\('click', requestRestore\)/);
+  const requestApplyFunction = sourceFunction(app, 'function requestApply() {', 'function requestRestore');
+  assert.match(requestApplyFunction, /void runApply\(languageSelect\.value\)\.catch\(recoverOperationFailure\);/);
+  assert.doesNotMatch(app, /showApplyConfirmation|t\('confirmTitle'\)|t\('confirmBody'\)/);
+  for (const body of uiLocaleBodies(uiText)) {
+    assert.match(body, /apply: '(?:Switch|切换|切換|切り替える)'/);
+    assert.doesNotMatch(body, /confirmTitle:|confirmBody:|continue:/);
+  }
   assert.doesNotMatch(app, /maintenanceHeading|extractButton|restoreEnglishButton|refreshEnglish/);
   assert.match(app, /statusLabel\.textContent = t\('taskProgressLabel'\)/);
   assert.match(app, /operationLog\.start\(\{[\s\S]*?restoreIntro[\s\S]*?applyIntro/);

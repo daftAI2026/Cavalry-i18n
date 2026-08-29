@@ -22,7 +22,7 @@
 
 ## Features
 
-- 🎯 **One-click switch**: Pick a language, click apply, relaunch — Cavalry opens translated
+- 🎯 **One-click switch**: Close Cavalry, pick a language, and select Switch — the language changes and Cavalry opens automatically
 - 🍎🪟 **macOS and Windows**: Supports the macOS `Cavalry.app` path and Windows Cavalry installation roots
 - 🔌 **Platform-native runtime translation**: macOS uses `DYLD_INSERT_LIBRARIES`; Windows deploys a Qt generic translator behind a tiny vendor-QPA delegate
 - 📦 **Two translation surfaces**: JSON asset files + compiled Qt/UI strings, both handled automatically
@@ -30,12 +30,12 @@
 - 🔑 **macOS Keychain-safe**: Binary-patches `libExtensionLayer.dylib` so login credentials survive language switching
 - 🔐 **macOS signing path**: Re-signs the patched bundle and clears Gatekeeper flags so macOS does not block it
 - 📍 **Windows discovery and selection**: Finds known installations when possible; otherwise choose `Cavalry.exe` or its installation folder
-- 🛡️ **Automatic recovery baseline**: Before the first non-English apply, the backend creates or reuses a trusted baseline; if that cannot be completed, it writes nothing. Use one **Restore** action to return to official English—macOS restores the complete bundle, runtime, and signature, while Windows restores the vendor QPA and removes only manifest-owned generic runtime files.
+- 🛡️ **Automatic recovery baseline**: Before the first non-English switch, the backend creates or reuses a trusted baseline; if that cannot be completed, it writes nothing. Use one **Restore** action to return to official English—macOS restores the complete bundle, runtime, and signature, while Windows restores the vendor QPA and removes only manifest-owned generic runtime files.
 - 🌐 **Four languages**: English, 简体中文, 繁體中文, 日本語
 
 ## Switcher Window
 
-The Switcher uses a fixed 400×480 px window and does not scroll. Its compact flow is: choose a language, then select **Apply & Restart** or **Restore**; result feedback appears below the actions.
+The Switcher uses a fixed 400×480 px window and does not scroll. Its compact flow is: choose a language, then select **Switch** or **Restore**; Switch starts directly, and result feedback appears below the actions.
 
 ## Safety & Permissions
 
@@ -47,9 +47,9 @@ This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can l
 
 1. Open **System Settings → Privacy & Security → App Management**
 2. Enable **Cavalry Language Switcher**
-3. Return to the app and apply the language pack again
+3. Return to the app and select Switch again
 
-macOS asks for this permission because changing another `.app` bundle is a protected operation. Only grant it if you trust this build and understand that the tool will patch, re-sign, and relaunch your local Cavalry installation. Keep a clean Cavalry installer or backup available; reinstalling Cavalry is the safest way to return to an untouched official bundle.
+macOS asks for this permission because changing another `.app` bundle is a protected operation. Only grant it if you trust this build and understand that the tool will patch and re-sign your local Cavalry installation, then open Cavalry when the transaction completes. Keep a clean Cavalry installer or backup available; reinstalling Cavalry is the safest way to return to an untouched official bundle.
 
 On Windows, the app first tries to discover a local installation; if it cannot, select `Cavalry.exe` or its installation folder yourself. A custom location is supported only when the current user can write to it. Automatic UAC elevation is deliberately limited to an installation that is actually under Windows Program Files; it is not used for arbitrary custom paths. Closing Cavalry or the Switcher and same-version `/UPDATE` operations keep the selected language. Interactive uninstall asks whether to remove only the Switcher and keep the deployed translation, or first restore the official English state and remove the hash-owned generic/QPA runtime; silent, passive, and update uninstalls preserve translation. If Cavalry was reinstalled over a translated copy, the Switcher reports English only after all managed JSON and the exact vendor QPA prove that reality. Use **Restore** to return to the official English state; it removes only the manifest-owned generic/QPA runtime, and unknown DLLs are never deleted.
 
@@ -94,10 +94,10 @@ Windows development requires Windows 10 x64 or newer, Node.js 24+, PowerShell 5.
 ## How It Works
 
 1. **Detect** a local `Cavalry.app` on macOS, or discover/select a Windows `Cavalry.exe` installation root
-2. Before the first non-English Apply, automatically **create or reuse** a trusted, versioned recovery baseline. If validation fails, the operation stops before any file is written.
+2. Before the first non-English Switch, automatically **create or reuse** a trusted, versioned recovery baseline. If validation fails, the operation stops before any file is written.
 3. **Patch** translated JSON files from `languages/` into the app assets
 4. **Install** the macOS launcher wrapper and injector, or the Windows `generic/cavalryi18n.dll` translator plus root QPA delegate at the selected installation root
-5. **Relaunch** Cavalry with platform-specific runtime translation; macOS also re-signs the bundle and clears Gatekeeper quarantine
+5. **Open** Cavalry with platform-specific runtime translation; macOS also re-signs the bundle and clears Gatekeeper quarantine
 
 The baseline covers only the files required to reverse the managed transaction; it is not a full Cavalry backup, and users do not need to refresh it manually. After patching, the original launch path continues to work. macOS uses a launcher wrapper with `DYLD_INSERT_LIBRARIES`; Windows loads the same translation runtime from Cavalry's native QPA path without global or shortcut-specific environment variables. The original `qwindows.dll` remains in a hash-locked recovery directory. Normal exit and same-version updates leave the deployed translation untouched. **Restore** returns macOS to the complete official English bundle, runtime, and signature; on Windows it restores English assets and the verified vendor QPA, then removes only manifest-owned generic/QPA files. It never substitutes or deletes an unknown DLL.
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase-only 转换、冻结语义图标工厂、四语 idle/首尾 Message/中段 Marker、live-edge 不抢位、快事件可读串行与错误抢占、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、当前语言及条件式 Official 徽章、更新 Tooltip 关闭后由 AlertDialog 接管焦点的交互、固定项目外链、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、冻结语义图标工厂、四语 idle/首尾 Message/中段 Marker、live-edge 不抢位、快事件可读串行与错误抢占、Switch 无确认直达 Apply 四阶段、Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、当前语言及条件式 Official 徽章、更新 Tooltip 关闭后由 AlertDialog 接管焦点的交互、固定项目外链、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -524,10 +524,10 @@ test('bootstrap keeps mutation controls disabled until status is ready', async (
   assert.equal(r.elements['#languageSelect'].disabled, false);
 });
 
-test('AlertDialog requires an explicit action, blocks Escape dismissal, and restores focus', async () => {
+test('Restore AlertDialog requires an explicit action, blocks Escape dismissal, and restores focus', async () => {
   const r = boot({ status: { currentLang: 'zh-Hans' } });
   await flush();
-  const trigger = r.elements['#applyButton'];
+  const trigger = r.elements['#restoreButton'];
   r.context.document.activeElement = trigger;
   trigger.listeners.get('click')[0]();
   assert.equal(r.elements['#modalBackdrop'].open, true);
@@ -594,8 +594,7 @@ test('clean official macOS install with needsExtract allows Apply to establish i
   assert.equal(r.elements['#applyButton'].disabled, false);
   assert.equal(r.elements['#restoreButton'].disabled, true);
   r.elements['#applyButton'].listeners.get('click')[0]();
-  assert.equal(r.elements['#modalTitle'].textContent, 'Install language pack?');
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  assert.equal(r.elements['#modalBackdrop'].open, false, 'Switch must enter the task directly');
   assert.equal(r.elements['#statusLabel'].textContent, 'Task progress');
   assert.match(r.elements['#statusIntro'].textContent, /^Preparing/);
   assert.equal(activityTitle(r), 'Checking the Cavalry installation');
@@ -603,7 +602,7 @@ test('clean official macOS install with needsExtract allows Apply to establish i
   assert.deepEqual(activityRows(r).map((row) => row.children[0].dataset.icon), [
     'verify', 'archive', 'translate', 'restart',
   ]);
-  assert.equal(r.elements['#statusOutcome'].textContent, 'Applied 简体中文 and restarted Cavalry.');
+  assert.equal(r.elements['#statusOutcome'].textContent, 'Switched to 简体中文. Cavalry is now open.');
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
   });
@@ -613,7 +612,6 @@ test('clean official macOS install with needsExtract allows Apply to establish i
 test('apply invokes exactly one backend transaction and never exposes a second restart call', async () => {
   const r = boot(); await flush();
   r.elements['#applyButton'].listeners.get('click')[0]();
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
@@ -674,10 +672,9 @@ test('permission AlertDialog exposes the recovery action and preserves Apply/Res
     apply: r.elements['#applyButton'].textContent,
     restore: r.elements['#restoreButton'].textContent,
   };
-  assert.deepEqual(labels, { apply: 'Apply & Restart', restore: 'Restore' });
+  assert.deepEqual(labels, { apply: 'Switch', restore: 'Restore' });
 
   r.elements['#applyButton'].listeners.get('click')[0]();
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
 
   assert.equal(r.elements['#modalTitle'].textContent, 'System permission required');
@@ -745,10 +742,9 @@ test('apply composes localized warning codes and never renders backend warning p
   });
   await flush();
   r.elements['#applyButton'].listeners.get('click')[0]();
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
   assert.equal(r.elements['#statusPanel'].dataset.state, 'warning');
-  assert.match(activityText(r), /Cavalry 未重启/);
+  assert.match(activityText(r), /Cavalry 未打开/);
   assert.match(activityText(r), /临时清理尚未完成/);
   assert.doesNotMatch(activityText(r), /untrusted backend prose/);
 });
@@ -765,7 +761,6 @@ test('state durability warning blocks mutations and requires a Switcher restart'
   await flush();
 
   r.elements['#applyButton'].listeners.get('click')[0]();
-  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
   assert.equal(r.elements['#statusPanel'].dataset.state, 'warning');
   assert.match(activityText(r), /Restart the Switcher/);

@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer 生产源码、Tauri 平台窗口配置、AppKit 实机 AX/像素轮廓、Windows DWM/Tauri 官方窗口合同与本轮 UI 裁决
-[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、单一 Apply/Restore 任务流、idle 居中/首尾 Message/中段 Marker 三轨任务视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
+[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、直接 Switch/单一 Restore 任务流、idle 居中/首尾 Message/中段 Marker 三轨任务视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
 [POS]: docs/audits 的 UI 事实基线；约束实现与评审，但不替代 LOCAL_BUILD_SOP、packaged gate 或 Windows 实机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -60,7 +60,7 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 
 安装摘要表达“安装位置”而不是重复文件选择结果。macOS 保留 `.app` bundle 路径，标准 `/Applications/Cavalry.app` 可完整显示；Windows 将末尾 `.exe` 降为其所在安装目录。不超过 36 个 Unicode 字符时完整展示，超限后按路径层级从中间省略，至少保留盘符/根和末级安装文件夹，例如 `C:\Users\…\Cavalry`。完整语义位置只进入 `aria-label`，不设置会触发 WebView 原生悬浮窗的 HTML `title`；CSS 的弹性省略只是窗口像素继续不足时的第二道兜底。
 
-安装摘要、Switch to、Select、双动作行与任务事件视窗属于同一主任务流。`Switch to` 到 Select 使用唯一的 `8px` 字段关系 token；事件视窗是有界过程与结果输出。持久阻塞直接留在视窗，不再用 toast 重复同一事实；必要确认、权限和危险操作才进入独立 AlertDialog。因此主窗口高度不由某条异常正文无限撑开。
+安装摘要、Switch to、Select、双动作行与任务事件视窗属于同一主任务流。`Switch to` 到 Select 使用唯一的 `8px` 字段关系 token；事件视窗是有界过程与结果输出。持久阻塞直接留在视窗，不再用 toast 重复同一事实；Switch 直接开始，只有 Restore、Updater、权限和危险操作才进入独立 AlertDialog。因此主窗口高度不由某条异常正文无限撑开。
 
 当前实现用 Grid 固定主窗口的复合轨道，并让任务事件视窗成为 `minmax(0, 1fr)`；`operation-log.css` 再以 Flex 管每条 Marker。`html/body/.content` 禁止窗口级滚动，Select 列表和事件视窗只在自身边界内滚动。业务分割线不承担层级，层级由留白与边界 token 表达。
 
@@ -76,7 +76,7 @@ Base UI 默认 `alignItemWithTrigger=true` 不是“菜单固定出现在控件�
 
 主界面的下半区不是 Alert，也不是无差别日志，而是当前用户任务的有界三轨视窗。它保留原结果框的外边界、圆角与内部 padding，以稳定空间层级；容器本身保持中性，不因某一行失败而整体冒充 Alert。健康 idle 在完整内容区双轴居中显示一句四语任务邀请；Apply、Restore 或 Update 经 AlertDialog 确认后，固定顶部任务引言 Message、中段 Marker 视窗和底部整体结果 Message。流式范围严格限定为首尾 Message；Marker 标题、阶段次行、Toast 与 AlertDialog 不流式。Message 不显示机械光标，也不让每个 chunk 单独淡入，而是按 shadcn helper 的 `word + trailing whitespace` text delta 更新同一文本节点；表现层不被 await，因此不延迟真实事务。没有可见的 `Action`、`Status`、`Log` 泛化标题，屏幕阅读器仍通过隐藏标题获得区域名称。
 
-任务必须有首尾闭环：引言说明意图，Marker 记录过程，Apply/Restore 四阶段全部成功后再出现一条整体结果 Message，例如“已应用简体中文并重启 Cavalry。”或“已恢复官方英文状态并重启 Cavalry。”。结果是完整 Body Message 句子，English 用 `.`、简繁中文与日本語用 `。` 收尾；Marker 短标签不加句号。容器保留一层外边框并显式建模布局状态：idle 是覆盖完整内容区的单轨，任务邀请以整个外框为参照双轴居中；running 才使用 `auto minmax(0, 1fr) auto` 三轨，顶部引言 Message 与底部结果 Message 固定在 scroll-fade 外，中间无边框视窗只滚动四个阶段 Marker。禁止依赖隐藏元素是否参与 Grid 排版来碰巧实现居中。这条结语不是最后一个阶段的改名，也不能在 warning/error 路径出现。Updater 安装后会终止当前进程；在新进程尚无一次性、版本绑定的完成凭据前，不显示不可验证且通常不可见的 Update 成功结语。
+任务必须有首尾闭环：引言说明意图，Marker 记录过程，Switch/Restore 四阶段全部成功后再出现一条整体结果 Message，例如“已切换为简体中文，Cavalry 已打开。”或“已恢复官方英文状态，Cavalry 已打开。”。结果是完整 Body Message 句子，English 用 `.`、简繁中文与日本語用 `。` 收尾；Marker 短标签不加句号。容器保留一层外边框并显式建模布局状态：idle 是覆盖完整内容区的单轨，任务邀请以整个外框为参照双轴居中；running 才使用 `auto minmax(0, 1fr) auto` 三轨，顶部引言 Message 与底部结果 Message 固定在 scroll-fade 外，中间无边框视窗只滚动四个阶段 Marker。禁止依赖隐藏元素是否参与 Grid 排版来碰巧实现居中。这条结语不是最后一个阶段的改名，也不能在 warning/error 路径出现。Updater 安装后会终止当前进程；在新进程尚无一次性、版本绑定的完成凭据前，不显示不可验证且通常不可见的 Update 成功结语。
 
 `operation-log.js` 只维护 idle/events/running 布局、稳定 id 的 ordered upsert/replace、首尾 Message delta、安全文本投影与已到达事件的表现队列；MarkerIcon/MarkerContent 承担图标与文案，组件不拥有业务编排。后端事务不等待动画：首个真实阶段立即出现，若 `running → terminal` 快于 `360ms`，只在视觉层补足剩余时间；相邻新 Marker 至少隔开 `120ms`。后端本来更慢时不叠加延迟，error 则立即中断等待、同步已到达前序事实并抢占当前阶段，未来阶段与成功结语不得出现。新行入场只动画 opacity/transform，不改变 height/margin/padding；reduced-motion 下表现时序和入场归零。第一条记录从外框 `12px` panel padding 后的中段顶部开始，未溢出时明确保持 `scrollTop=0`；记录逐条向下增长，只有读者仍处于 live edge 时，新事件才让中段跟随到底部。用户滚离底部后不再抢位，重新回到底部才恢复跟随。scroll-fade 只在中段真实溢出时出现，内部保留滚动条；紧凑视窗将官方 `--scroll-fade-size` 覆盖为 `8px`（等价 `scroll-fade-2`），只缩短遮罩深度，不修改内容 padding，并在起点/终点分别保持对应边缘清晰。[fade size](https://ui.shadcn.com/docs/utils/scroll-fade#fade-size)
 
@@ -96,7 +96,7 @@ Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`app
 
 ### 2.3 AlertDialog 与 About 边界
 
-AlertDialog 只承载必要确认、权限请求和危险操作，不替代任务事件视窗，也不用于只有“知道了”而没有真实选择的错误。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions；项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供，标题使用 `16px` 角色，正文使用 `14px` 角色，不能把源组件的默认值直接散落到 CSS。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
+AlertDialog 只承载 Restore、Updater、权限请求和危险操作，不替代任务事件视窗，也不用于可逆且已有 fail-before-mutation 保护的 Switch，更不用于只有“知道了”而没有真实选择的错误。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions；项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供，标题使用 `16px` 角色，正文使用 `14px` 角色，不能把源组件的默认值直接散落到 CSS。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
 
 About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用窗口内自定义内容”方向，不使用 Tauri 原生 `AboutMetadata`：后者在 macOS 不支持 `website`、`website_label` 和 `license`，Windows 也不能满足可点击项目链接。macOS 将默认应用菜单中的标准 About 替换为固定 id，菜单事件与 Windows 标题栏信息入口共同调用同一个 Rust `about` WebviewWindow owner；窗口使用系统原生装饰、非 modal、固定尺寸且不可 resize/maximize/minimize，主窗口不被锁住。About 本地页面使用现有 token，顶部显示 64px、与安装包同源的应用图标和 `plugin:app|version` 真实版本；项目行只显示 `Cavalry-i18n`，GitHub 图形进入该行作为目的地提示，MIT License 独立成行，原生标题栏提供关闭行为。
 
@@ -112,8 +112,9 @@ About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用�
 | 未选择 Cavalry | `chooseAppToContinue` 持久 warning | Event + 待实现 Toast | Event 保留完整下一步；Toast 仅首次提示“选择安装” |
 | English 基线不可验证，必须重装 | `reinstallRequired` 持久 error | Event + 待实现 Toast | Event 保留官方重装与重新选择路径；Toast 只负责启动时吸引注意 |
 | 启动恢复失败、state durability、Windows residue、自定义目录不可写 | 稳定 error/warning code | Event | 属于持续阻塞或恢复债务，不使用会自动消失的唯一提示；是否加一次摘要 Toast 后续逐项裁决 |
-| Apply / Restore 开始前 | 已有 confirm handler | AlertDialog | 用户必须明确继续或取消；此时不再叠 Toast |
-| Apply / Restore 执行 | 四个真实 Channel phase | Event Scroll | `verifyInstallation → ensureBaseline → applyTransaction → restartCavalry`，运行态与完成态原位切换 |
+| Switch 开始 | 运行中 fail-before-mutation，关闭态可逆 | Event Scroll | 无冗余确认，点击后直接进入真实 Channel；不提供“稍后重启”半状态 |
+| Restore 开始前 | 已有 confirm handler | AlertDialog | 用户必须明确继续或取消；此时不再叠 Toast |
+| Switch / Restore 执行 | 四个真实 Channel phase | Event Scroll | `verifyInstallation → ensureBaseline → applyTransaction → restartCavalry`，用户文案把末阶段投影为“打开 Cavalry”，运行态与完成态原位切换 |
 | 运行中需要系统权限 | `permissionRequired` + 明确 Open Settings / Elevation 动作 | Event + AlertDialog | Event 留下任务为何停住；AlertDialog 提供立即选择，不叠 Toast |
 | Cavalry 仍在运行 | `cavalryStillRunning` | Event + 待实现 Toast | Event 保留“保存并关闭后重试”；Toast 可提醒一次，但没有安全自动关闭动作，因此不伪装成确认框 |
 | Apply 后 cleanup/restart warning | `warningCodes` | Event | 已发生事务的后续结果必须可回看；默认不叠 Toast |
@@ -215,8 +216,8 @@ Windows:
 
 跨平台组件:
 
-- 主窗口不得出现横向或纵向滚动，`400×480` 内必须完整显示正式四语主任务与任务事件视窗；Select 列表和事件视窗的独立滚动不计入窗口滚动，必要确认/权限/危险操作使用独立 AlertDialog。
-- 主任务只有全宽 Select 与等宽 `Apply & Restart` / `Restore`；Restore 的平台映射与自动恢复基线合同见 `switcher-auto-baseline-and-restore-decision-2026-08-29.md`。
+- 主窗口不得出现横向或纵向滚动，`400×480` 内必须完整显示正式四语主任务与任务事件视窗；Select 列表和事件视窗的独立滚动不计入窗口滚动，Restore/Updater/权限/危险操作使用独立 AlertDialog。
+- 主任务只有全宽 Select 与等宽 `Switch` / `Restore`；Switch 直接执行、Restore 的平台映射与自动恢复基线合同见 `switcher-auto-baseline-and-restore-decision-2026-08-29.md`。
 - Select 必须保持 Trigger 与当前选中 Item 的视觉中心对齐；不能退回固定 top 偏移或浏览器原生弹出层。
 - macOS 从系统应用菜单、Windows 从标题栏信息入口打开同一个 `about` 原生 WebviewWindow；两者共用四语本地页面、真实应用版本和固定项目链接枚举，重复触发只 show+focus，主窗口不进入 modal 状态。
 - renderer 只能提交 `repository` 或 `license`，Rust command 与 privilege 适配器必须再次拒绝任意 URL；默认浏览器跳转不允许引入第二套 opener。

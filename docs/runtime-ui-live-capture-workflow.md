@@ -105,7 +105,7 @@ lang marker == 当前目标语言
 repo injector hash == app injector hash
 ```
 
-如果 hash 不一致，先通过 Language Switcher 重新 Apply & Restart。这个不一致会直接造成“抓取 session 已修好，但用户双击 Cavalry 仍看到旧行为”：例如 repo 当前 injector 已经能把属性编辑器里的 `RolloverLabel.text = Particle Shape` 显示为 `粒子形狀/粒子形状`，但 `/Applications/Cavalry.app` 仍加载旧 dylib 时，浮动标题会继续显示英文。
+如果 hash 不一致，先通过 Language Switcher 重新执行 Switch。这个不一致会直接造成“抓取 session 已修好，但用户双击 Cavalry 仍看到旧行为”：例如 repo 当前 injector 已经能把属性编辑器里的 `RolloverLabel.text = Particle Shape` 显示为 `粒子形狀/粒子形状`，但 `/Applications/Cavalry.app` 仍加载旧 dylib 时，浮动标题会继续显示英文。
 
 只有本机诊断时，才可以手动同步 app 内 injector：
 

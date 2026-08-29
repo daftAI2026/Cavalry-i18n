@@ -22,7 +22,7 @@
 
 ## 機能
 
-- 🎯 **ワンクリック切り替え**：言語を選び、適用をクリックして再起動すると、Cavalry が翻訳済み UI で開きます
+- 🎯 **ワンクリック切り替え**：Cavalry を終了し、言語を選んで「切り替える」をクリックすると、完了後に Cavalry が自動で起動します
 - 🍎🪟 **macOS と Windows**：macOS の `Cavalry.app` と Windows の Cavalry インストールルートに対応します
 - 🔌 **プラットフォーム固有のランタイム翻訳**：macOS は `DYLD_INSERT_LIBRARIES`、Windows は小さな vendor QPA delegate の背後で Qt generic translator を使います
 - 📦 **2 つの翻訳サーフェス**：JSON アセットファイルと compiled Qt/UI 文字列を自動で処理します
@@ -30,12 +30,12 @@
 - 🔑 **macOS の Keychain-safe**：`libExtensionLayer.dylib` にバイナリパッチを適用し、言語切り替え後もログイン認証情報を維持します
 - 🔐 **macOS の署名パス**：パッチ済み bundle を再署名し、Gatekeeper フラグを消して macOS にブロックされないようにします
 - 📍 **Windows の自動検出と手動選択**：既知のインストールを検出し、見つからない場合は `Cavalry.exe` またはインストールフォルダーを選択できます
-- 🛡️ **自動リカバリーベースライン**：最初に英語以外を適用する前に、バックエンドが信頼できるベースラインを自動作成または再利用します。作成できない場合はファイルを書き込みません。単一の **「復元」** 操作で公式 English 状態に戻せます。macOS は bundle、runtime、署名を完全に戻し、Windows は vendor QPA を復元して manifest が所有を証明する generic runtime ファイルだけを削除します。
+- 🛡️ **自動リカバリーベースライン**：最初に英語以外へ切り替える前に、バックエンドが信頼できるベースラインを自動作成または再利用します。作成できない場合はファイルを書き込みません。単一の **「復元」** 操作で公式 English 状態に戻せます。macOS は bundle、runtime、署名を完全に戻し、Windows は vendor QPA を復元して manifest が所有を証明する generic runtime ファイルだけを削除します。
 - 🌐 **4 言語対応**：English、简体中文、繁體中文、日本語
 
 ## Switcher ウィンドウ
 
-Switcher は固定の 400×480 px ウィンドウで、ウィンドウ自体はスクロールしません。コンパクトな流れは、言語を選び、**「適用して再起動」** または **「復元」** を選択することです。結果のフィードバックは操作の下に表示されます。
+Switcher は固定の 400×480 px ウィンドウで、ウィンドウ自体はスクロールしません。言語を選び、**「切り替える」** または **「復元」** を選択します。切り替えはすぐに始まり、結果のフィードバックは操作の下に表示されます。
 
 ## 安全性と権限
 
@@ -47,9 +47,9 @@ Cavalry-i18n は独立したコミュニティツールです。Scene Group、Ca
 
 1. **System Settings → Privacy & Security → App Management** を開く
 2. **Cavalry Language Switcher** を有効にする
-3. アプリに戻り、もう一度 language pack を適用する
+3. アプリに戻り、もう一度「切り替える」をクリックする
 
-macOS がこの権限を求めるのは、別の `.app` bundle を変更する操作が保護対象だからです。このビルドを信頼し、ローカルの Cavalry インストールにパッチ、再署名、再起動が行われることを理解した場合にのみ許可してください。クリーンな Cavalry インストーラーまたはバックアップを保持してください。未変更の公式 bundle に戻す最も安全な方法は Cavalry を再インストールすることです。
+macOS がこの権限を求めるのは、別の `.app` bundle を変更する操作が保護対象だからです。このビルドを信頼し、ローカルの Cavalry インストールにパッチと再署名が行われ、処理完了後に Cavalry が起動することを理解した場合にのみ許可してください。クリーンな Cavalry インストーラーまたはバックアップを保持してください。未変更の公式 bundle に戻す最も安全な方法は Cavalry を再インストールすることです。
 
 Windows では、まずローカルのインストールを検出します。見つからない場合は `Cavalry.exe` またはそのインストールフォルダーを手動で選択してください。カスタムパスも利用できますが、現在のユーザーが書き込める必要があります。自動 UAC 昇格は Windows Program Files 配下のインストールだけに限定されます。通常終了と同一バージョン `/UPDATE` は現在の言語を保持します。対話式アンインストールでは「Switcher だけを削除して配置済み翻訳を残す」か、「先に公式 English 状態へ戻し、ハッシュで本プロジェクト所有と証明された generic/QPA runtime を削除する」かを選べます。silent、passive、update uninstall は既定で翻訳を残します。翻訳済み Cavalry の上から vendor installer を再実行した場合、全管理 JSON と正確な vendor QPA が英語状態を証明したときだけ Switcher は English と表示します。**「復元」** で公式 English 状態へ戻せます。manifest が所有を証明する generic/QPA runtime だけを削除し、不明な DLL は削除しません。
 
@@ -94,10 +94,10 @@ Windows 開発には Windows 10 x64 以降、Node.js 24+、PowerShell 5.1+、x64
 ## 仕組み
 
 1. macOS の `Cavalry.app` を **検出**、または Windows の `Cavalry.exe` インストールルートを検出/選択
-2. 最初に英語以外を適用する前に、信頼できるバージョン付きリカバリーベースラインを自動で**作成または再利用**します。検証に失敗した場合は、ファイルを書き込む前に停止します
+2. 最初に英語以外へ切り替える前に、信頼できるバージョン付きリカバリーベースラインを自動で**作成または再利用**します。検証に失敗した場合は、ファイルを書き込む前に停止します
 3. `languages/` の翻訳 JSON ファイルをアプリの assets に **パッチ適用**
 4. macOS の launcher wrapper と injector、または選択ルートの Windows `generic/cavalryi18n.dll` translator と root QPA delegate を **インストール**
-5. Cavalry を **再起動** してプラットフォーム固有の翻訳を読み込む。macOS では bundle の再署名と Gatekeeper quarantine の解除も行う
+5. Cavalry を **起動** してプラットフォーム固有の翻訳を読み込む。macOS では bundle の再署名と Gatekeeper quarantine の解除も行う
 
 このベースラインは管理対象トランザクションを戻すために必要なファイルだけを含み、Cavalry 全体のバックアップではありません。ユーザーが手動で更新する必要もありません。パッチ後も、元の起動パスはそのまま使えます。macOS の launcher wrapper は `DYLD_INSERT_LIBRARIES` を設定します。Windows は native QPA path から同じ翻訳 runtime を読み込み、グローバル環境変数や特定ショートカットには依存しません。通常終了と同一バージョン更新は配置済み翻訳を保持します。**「復元」** は macOS を公式 English bundle、runtime、署名へ完全に戻します。Windows では English アセットと検証済み vendor QPA を戻し、manifest が所有を証明する generic/QPA だけを削除します。不明な DLL は推測も削除もしません。
 
