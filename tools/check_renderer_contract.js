@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token 表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group/顶部起排且触底跟随的任务事件视窗、中部省略路径、单色 Phosphor MarkerIcon/Spinner/shimmer/仅作用于内层滚动区的 scroll-fade 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh 残留。
+ * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token/图标表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group/顶部起排且触底跟随的任务事件视窗、中部省略路径、单一 Phosphor 图标注册表、MarkerIcon/Spinner/shimmer/仅作用于内层滚动区的 scroll-fade 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -9,6 +9,7 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const vm = require('node:vm');
 
 const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
@@ -68,11 +69,34 @@ const REQUIRED_API_METHODS = [
   'minimizeWindow', 'toggleMaximizeWindow', 'isWindowMaximized', 'closeWindow',
 ];
 
+test('semantic icon registry is frozen, defensive, and returns independent accessible SVG nodes', () => {
+  const createNode = () => ({
+    attributes: new Map(), children: [],
+    setAttribute(key, value) { this.attributes.set(key, String(value)); },
+    append(...children) { this.children.push(...children); },
+  });
+  const window = {};
+  vm.runInNewContext(read('renderer/icons.js'), {
+    window,
+    document: { createElementNS: createNode },
+  });
+  const first = window.cavalryIcons.create('verify');
+  const second = window.cavalryIcons.create('verify');
+  assert.equal(Object.isFrozen(window.cavalryIcons), true);
+  assert.notEqual(first, second, 'each consumer must receive an independent SVG node');
+  assert.deepEqual(Object.fromEntries(first.attributes), {
+    viewBox: '0 0 256 256', 'aria-hidden': 'true', focusable: 'false', fill: 'currentColor',
+  });
+  assert.ok(first.children[0].attributes.get('d'));
+  assert.equal(window.cavalryIcons.create('unknown'), null, 'unknown semantic names must fail closed');
+});
+
 test('renderer retains DOM anchors and uses only local resources', () => {
   const html = read('renderer/index.html');
   const tokens = read('renderer/tokens.css');
   const styles = read('renderer/styles.css');
   const operationStyles = read('renderer/operation-log.css');
+  const icons = read('renderer/icons.js');
   const operationLog = read('renderer/operation-log.js');
   const updateProgress = read('renderer/update-progress.js');
   const tooltipControl = read('renderer/tooltip-control.js');
@@ -100,6 +124,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(tokens, /@import|url\(["']?https?:/i, 'tokens must not load remote resources');
   assert.doesNotMatch(styles, /@import|url\([\"']?https?:/i, 'styles must not load remote resources');
   assert.doesNotMatch(operationStyles, /@import|url\([\"']?https?:/i, 'operation log styles must not load remote resources');
+  assert.doesNotMatch(icons, /@import|url\([\"']?https?:/i, 'icon registry must not load remote resources');
   assert.doesNotMatch(aboutStyles, /@import|url\([\"']?https?:/i, 'about styles must not load remote resources');
   assert.doesNotMatch(windowControlStyles, /@import|url\([\"']?https?:/i, 'window controls must not load remote resources');
   assert.match(thirdPartyNotices, /## shadcn\/ui[\s\S]*Licensed under the MIT License/);
@@ -111,9 +136,15 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   );
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
-    'renderer scripts must load bridge, stable text, component state machines, then app'
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    'renderer scripts must load bridge, stable text, icons, component state machines, then app'
   );
+  assert.match(icons, /window\.cavalryIcons = Object\.freeze\(\{ create: createIcon \}\)/);
+  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'restart', 'download', 'package', 'update']) {
+    assert.match(icons, new RegExp(`\\b${iconName}: \\{`), `${iconName} must stay in the semantic icon registry`);
+  }
+  assert.doesNotMatch(operationLog, /const ICONS|createElementNS|<path/, 'operation log must consume icon names without owning SVG path data');
+  assert.match(operationLog, /const createIcon = window\.cavalryIcons\.create;/);
   assert.match(uiText, /const UI_TEXT = \{/);
   assert.doesNotMatch(app, /const UI_TEXT = \{/);
   assert.doesNotMatch(`${tokens}\n${styles}`, /@font-face|Geist|assets\/fonts/, 'renderer must use the platform font stack');
@@ -155,6 +186,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   const tokens = read('renderer/tokens.css');
   const styles = read('renderer/styles.css');
   const operationStyles = read('renderer/operation-log.css');
+  const icons = read('renderer/icons.js');
   const operationLog = read('renderer/operation-log.js');
   const aboutStyles = read('renderer/about.css');
   const windowControlStyles = read('renderer/window-controls.css');
@@ -357,6 +389,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-marker\[data-icon="spinner"\] svg\s*\{[\s\S]*?animation:\s*operation-spin/);
   assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-title\s*\{[\s\S]*?background-image:\s*linear-gradient[\s\S]*?animation:\s*operation-shimmer/);
   assert.match(operationLog, /DEFAULT_ICON_BY_STATE[\s\S]*?running:\s*'spinner'/);
+  assert.match(icons, /const ICONS = Object\.freeze\(\{/);
   assert.match(operationLog, /const overflowing = viewport\.scrollHeight > viewport\.clientHeight;[\s\S]*?viewport\.scrollTop = overflowing \? viewport\.scrollHeight : 0;/);
   assert.match(app, /verifyInstallation:\s*'verify'[\s\S]*?ensureBaseline:\s*'archive'[\s\S]*?applyTransaction:\s*'translate'[\s\S]*?restartCavalry:\s*'restart'/);
   assert.match(app, /restoring && phase === 'applyTransaction' \? 'restore' : PHASE_ICONS\[phase\]/);

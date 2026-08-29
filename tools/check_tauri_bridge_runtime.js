@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/ui-text/select/tooltip/path/operation-log/update-progress/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语任务 separator/事件、事件顶部起排与触底跟随、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
+ * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
+ * [OUTPUT]: 验证 camelCase-only 转换、冻结语义图标工厂、四语任务 separator/事件、事件顶部起排与触底跟随、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -145,6 +145,7 @@ function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
   vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
+  vm.runInNewContext(read('renderer/icons.js'), r.context, { filename: 'icons.js' });
   vm.runInNewContext(read('renderer/select-control.js'), r.context, { filename: 'select-control.js' });
   vm.runInNewContext(read('renderer/tooltip-control.js'), r.context, { filename: 'tooltip-control.js' });
   vm.runInNewContext(read('renderer/path-display.js'), r.context, { filename: 'path-display.js' });

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::bridge 的实际 Rust include、src/lib.rs Builder 装配与 renderer/index.html 外部脚本顺序
- * [OUTPUT]: 执行 Builder 实际消费的 initialization script，并守住 Rust pre-page-load 注册顺序、冻结 API、camelCase payload、Apply 四阶段与 Updater 三阶段有序 Channel、Windows residue 检测、warningCodes 及 renderer 组件加载顺序
+ * [OUTPUT]: 执行 Builder 实际消费的 initialization script，并守住 Rust pre-page-load 注册顺序、冻结 API、camelCase payload、Apply 四阶段与 Updater 三阶段有序 Channel、Windows residue 检测、warningCodes 及 icons→operation-log→update-progress→app 加载顺序
  * [POS]: src-tauri/tests 的 bridge host-seam 守门；不虚称启动平台 WebView 或验证 packaged CSP，后者属于显式 Tauri UI 外部门
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -183,6 +183,9 @@ fn builder_and_html_keep_the_actual_initialization_order() {
     let text_script = html
         .find("<script src=\"./ui-text.js\"></script>")
         .expect("HTML must load ui-text.js");
+    let icons_script = html
+        .find("<script src=\"./icons.js\"></script>")
+        .expect("HTML must load icons.js");
     let operation_script = html
         .find("<script src=\"./operation-log.js\"></script>")
         .expect("HTML must load operation-log.js");
@@ -194,9 +197,10 @@ fn builder_and_html_keep_the_actual_initialization_order() {
         .expect("HTML must load app.js");
     assert!(
         fallback_bridge < text_script
-            && text_script < operation_script
+            && text_script < icons_script
+            && icons_script < operation_script
             && operation_script < update_progress_script
             && update_progress_script < app_script,
-        "HTML bridge, ui-text, operation-log, and update-progress scripts must precede app.js"
+        "HTML bridge, ui-text, icons, operation-log, and update-progress scripts must precede app.js"
     );
 }
