@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印角色、字重与 4px 间距序列，依赖 macOS AppKit 与 Windows DWM 的原生窗口几何及平台系统字体策略
- * [OUTPUT]: 对外提供语言类别与验证通过的 Official 徽章色、13px 可读下限排印、4px 节奏、窗口 Chrome、10px 大容器圆角、176px Activity 最小框、控件几何、shadcn Base Nova Tooltip/Select/AlertDialog/Marker、8px 紧凑 scroll-fade 与边缘判定、shimmer 与任务事件可读节奏的单一语义 token 真相源
+ * [OUTPUT]: 对外提供 informational blue-subtle 语言类别与验证通过的 green-subtle Official 徽章色、13px 可读下限排印、4px 节奏、窗口 Chrome、10px 大容器圆角、176px Activity 最小框、控件几何、shadcn Base Nova Tooltip/Select/AlertDialog/Marker、8px 紧凑 scroll-fade 与边缘判定、shimmer 与任务事件可读节奏的单一语义 token 真相源
  * [POS]: renderer 视觉系统的基础层；styles.css 与 window-controls.css 只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -39,9 +39,9 @@
   --badge-gray-bg: #f2f2f2;
   --badge-gray-border: #dedede;
   --badge-gray-text: #5f5f5f;
-  --badge-language-bg: #f9f1fe;
-  --badge-language-border: #eddcf9;
-  --badge-language-text: #7820bc;
+  --badge-language-bg: #edf6ff;
+  --badge-language-border: #b7d9f7;
+  --badge-language-text: #0068d6;
   --badge-green-bg: #edf9f0;
   --badge-green-border: #b7dfc2;
   --badge-green-text: #18794e;

@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer/ui-text.js、renderer/app.js、renderer/operation-log.js、renderer/update-progress.js、Tauri apply/updater Channel 合同与已批准 UX Writing/反馈分层裁决
-[OUTPUT]: 对外提供 Switcher 无确认直达主动作、空闲引导、任务引言、Event/必要 AlertDialog/Toast 的完整归属清单与四语审阅快照，并区分当前生产事实、已批准提案和缺少后端事件的阻塞项
+[OUTPUT]: 对外提供 Switcher 无确认直达主动作、空闲引导、任务引言、Event/必要 AlertDialog/Toast 的完整归属清单与四语审阅快照，冻结“更新可用只用持久标题栏入口而不重复 Toast”的裁决，并区分当前生产事实、已批准提案和缺少后端事件的阻塞项
 [POS]: docs/audits 的反馈语义审阅面；供产品逐条裁决文案与承载组件，不替代 renderer/ui-text.js 运行时真相、后端 DTO 合同或 packaged 验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -30,7 +30,8 @@
 | Update 整体成功 | Event 结果 Message | Blocked | 安装后当前进程退出；没有跨重启确认前不伪造不可见的成功结果 |
 | 启动阻塞、事务警告、失败与恢复路径 | Event Marker | Current | 必须可回看，不允许只用会消失的 Toast |
 | Restore / Update / 权限确认 | AlertDialog | Current | 用户必须继续或取消；打开时不叠 Toast；Switch 因运行中 fail-before-mutation 而直接执行 |
-| 更新可用、首次选择、独立 About/外链失败 | Toast | Approved proposal | 标题 + 说明 + 可选 Action + Close；右下向上 |
+| 更新可用 | 标题栏绿色入口 + Tooltip + `aria-live` | Current | 持久状态已有稳定入口；点击后由 AlertDialog 承担版本、影响与操作，不重复 Toast |
+| 首次选择、独立 About/外链失败 | Toast | Approved proposal | 仅限没有常驻承载位置的瞬时注意；标题 + 说明 + 可选 Action + Close，右下向上 |
 | 长任务 loading/success | 不使用 Toast | Approved proposal | Event 已拥有事实，避免重复反馈 |
 
 ## 3. 空闲态、任务引言与结语（Current）
@@ -129,14 +130,15 @@ Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度�
 
 | ID / type | English | 简体中文 | 繁體中文 | 日本語 |
 | --- | --- | --- | --- | --- |
-| `update.available`<br>`info` | <strong>Update available</strong><br>Version {version} is available.<br><code>View update</code> | <strong>有可用更新</strong><br>发现版本 {version}。<br><code>查看更新</code> | <strong>有可用更新</strong><br>發現版本 {version}。<br><code>查看更新</code> | <strong>更新があります</strong><br>バージョン {version} を利用できます。<br><code>更新を表示</code> |
 | `installation.missing`<br>`info` | <strong>Choose Cavalry</strong><br>Select an installation to begin.<br><code>Choose</code> | <strong>选择 Cavalry</strong><br>选择一个安装位置后开始。<br><code>选择</code> | <strong>選擇 Cavalry</strong><br>選擇一個安裝位置後開始。<br><code>選擇</code> | <strong>Cavalry を選択</strong><br>インストール先を選択して開始します。<br><code>選択</code> |
 | `reinstall.required`<br>`error` | <strong>Reinstall Cavalry</strong><br>Use the official installer, then choose the new installation.<br><code>—</code> | <strong>重新安装 Cavalry</strong><br>使用官方安装包重新安装，然后选择新的安装位置。<br><code>—</code> | <strong>重新安裝 Cavalry</strong><br>使用官方安裝程式重新安裝，然後選擇新的安裝位置。<br><code>—</code> | <strong>Cavalry を再インストール</strong><br>公式インストーラーで再インストールしてから、新しいインストール先を選択してください。<br><code>—</code> |
 | `cavalry.running`<br>`warning` | <strong>Cavalry is still open</strong><br>Save your work and close Cavalry to continue.<br><code>—</code> | <strong>Cavalry 仍在运行</strong><br>保存工作并关闭 Cavalry 后继续。<br><code>—</code> | <strong>Cavalry 仍在執行</strong><br>儲存工作並關閉 Cavalry 後繼續。<br><code>—</code> | <strong>Cavalry が起動中です</strong><br>作業を保存して Cavalry を終了してから続行してください。<br><code>—</code> |
 | `about.openFailed`<br>`error` | <strong>Couldn’t open About</strong><br>Try again.<br><code>Retry</code> | <strong>无法打开“关于”窗口</strong><br>请重试。<br><code>重试</code> | <strong>無法開啟「關於」視窗</strong><br>請重試。<br><code>重試</code> | <strong>「このアプリについて」を開けません</strong><br>もう一度お試しください。<br><code>再試行</code> |
 | `projectLink.openFailed`<br>`error` | <strong>Couldn’t open the project link</strong><br>Check your default browser, then try again.<br><code>Retry</code> | <strong>无法打开项目链接</strong><br>检查默认浏览器后重试。<br><code>重试</code> | <strong>無法開啟專案連結</strong><br>檢查預設瀏覽器後重試。<br><code>重試</code> | <strong>プロジェクトリンクを開けません</strong><br>既定のブラウザーを確認してから、もう一度お試しください。<br><code>再試行</code> |
 
-Toast 的 `success` 与 `loading` 虽是 Base Toast 内置类型，但当前产品没有独立使用理由：持续任务与最终结果已经由 Event 持有。除非未来出现不属于任务流的瞬时成功，否则不接入。
+更新可用不进入 Toast：绿色标题栏入口已经同时承担持久状态和操作入口，Tooltip 解释含义，现有 `role="status"` / `aria-live` 文案负责非视觉公告，点击后的 AlertDialog 再承担版本、影响与明确动作。应用内 Toast 既不能覆盖用户不在查看窗口的情况，也只会重复同一事实；若未来需要跨应用提醒，应另行评估系统通知，而不是借 Toast 假装完成。
+
+Toast 的 `success` 与 `loading` 虽是 Base Toast 内置类型，但当前产品没有独立使用理由：持续任务与最终结果已经由 Event 持有。除非未来出现不属于任务流且没有持久入口的瞬时成功，否则不接入。
 
 ## 8. 当前阻塞与下一步
 

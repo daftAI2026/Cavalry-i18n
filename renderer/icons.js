@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖标准 DOM 的 SVG namespace 与元素创建能力，内嵌经 THIRD_PARTY_NOTICES.md 归因的精简 Phosphor Regular path
- * [OUTPUT]: 对外提供冻结 window.cavalryIcons.create(name)，按受控语义名创建 aria-hidden、不可聚焦且继承 currentColor 的独立 SVG 节点
+ * [OUTPUT]: 对外提供冻结 window.cavalryIcons.create(name)，按受控语义名创建 aria-hidden、不可聚焦且继承 currentColor 的独立 SVG 节点；Restore 使用 Phosphor Regular FloppyDiskBack 表达从恢复基线写回
  * [POS]: renderer 的单一语义图标资产注册表；只拥有可复用 UI glyph，不包含应用 Logo、macOS 交通灯或 Windows caption 图形，业务组件只消费名称而不复制 path
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -45,7 +45,7 @@
     restore: {
       viewBox: '0 0 256 256',
       fill: true,
-      paths: ['M224,128a96,96,0,0,1-94.71,96H128A95.38,95.38,0,0,1,62.1,197.8a8,8,0,0,1,11-11.63A80,80,0,1,0,71.43,71.39a3.07,3.07,0,0,1-.26.25L44.59,96H72a8,8,0,0,1,0,16H24a8,8,0,0,1-8-8V56a8,8,0,0,1,16,0V85.8L60.25,60A96,96,0,0,1,224,128Z'],
+      paths: ['M208,32H83.31A15.86,15.86,0,0,0,72,36.69L36.69,72A15.86,15.86,0,0,0,32,83.31V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM88,48h80V80H88ZM208,208H48V83.31l24-24V80A16,16,0,0,0,88,96h80a16,16,0,0,0,16-16V48h24Zm-80-96a40,40,0,1,0,40,40A40,40,0,0,0,128,112Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,176Z'],
     },
     restart: {
       viewBox: '0 0 256 256',

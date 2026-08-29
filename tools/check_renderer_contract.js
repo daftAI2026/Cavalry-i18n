@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token/图标表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、400×484 平台窗口与 176px Activity、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、权限按钮可见时才创建的条件轨道、中部省略路径、单一 Phosphor 图标注册表、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、Cavalry 当前语言及条件式 Official 徽章、直接 Switch、独立 About 页面与固定项目外链、脱敏 Updater Channel、必要 AlertDialog，以及全宽 Select + Switch/Restore 单任务流；禁止隐藏轨道残留伪间距、组合状态徽章、冗余 Switch 确认、窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、400×484 平台窗口与 176px Activity、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、权限按钮可见时才创建的条件轨道、中部省略路径、单一 Phosphor 图标注册表与 Restore→FloppyDiskBack 精确路径、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、Cavalry 当前语言 informational blue-subtle 及条件式 Official green-subtle 徽章、直接 Switch、独立 About 页面与固定项目外链、脱敏 Updater Channel、必要 AlertDialog，以及全宽 Select + Switch/Restore 单任务流；禁止隐藏轨道残留伪间距、组合状态徽章、冗余 Switch 确认、窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,6 +15,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
 const UI_LOCALE_MARKERS = ['  en: {', "  'zh-Hans': {", "  'zh-Hant': {", '  ja_JP: {'];
 const UPDATE_ICON_PATH = 'M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-101.66a8,8,0,0,1-11.32,11.32L136,107.31V168a8,8,0,0,1-16,0V107.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Z';
+const RESTORE_ICON_PATH = 'M208,32H83.31A15.86,15.86,0,0,0,72,36.69L36.69,72A15.86,15.86,0,0,0,32,83.31V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32ZM88,48h80V80H88ZM208,208H48V83.31l24-24V80A16,16,0,0,0,88,96h80a16,16,0,0,0,16-16V48h24Zm-80-96a40,40,0,1,0,40,40A40,40,0,0,0,128,112Zm0,64a24,24,0,1,1,24-24A24,24,0,0,1,128,176Z';
 
 function uiLocaleBodies(source) {
   return UI_LOCALE_MARKERS.map((marker, index) => {
@@ -88,6 +89,11 @@ test('semantic icon registry is frozen, defensive, and returns independent acces
     viewBox: '0 0 256 256', 'aria-hidden': 'true', focusable: 'false', fill: 'currentColor',
   });
   assert.ok(first.children[0].attributes.get('d'));
+  assert.equal(
+    window.cavalryIcons.create('restore').children[0].attributes.get('d'),
+    RESTORE_ICON_PATH,
+    'Restore must use the pinned Phosphor Regular FloppyDiskBack path'
+  );
   assert.equal(window.cavalryIcons.create('unknown'), null, 'unknown semantic names must fail closed');
 });
 
@@ -385,9 +391,9 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.badge\s*\{[\s\S]*?font-size:\s*var\(--type-label\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-label\)/);
   assert.match(styles, /\.app-path\s*\{[\s\S]*?margin:\s*var\(--gap-meta-stack\)\s+0\s+0/);
   assert.match(styles, /\.badge\s*\{[\s\S]*?min-height:\s*var\(--badge-height\)[\s\S]*?padding:\s*0 var\(--badge-padding-inline\)[\s\S]*?border-radius:\s*var\(--radius-pill\)/);
-  assert.match(tokens, /--badge-language-bg:\s*#f9f1fe/);
-  assert.match(tokens, /--badge-language-border:\s*#eddcf9/);
-  assert.match(tokens, /--badge-language-text:\s*#7820bc/);
+  assert.match(tokens, /--badge-language-bg:\s*#edf6ff/);
+  assert.match(tokens, /--badge-language-border:\s*#b7d9f7/);
+  assert.match(tokens, /--badge-language-text:\s*#0068d6/);
   assert.match(tokens, /--badge-green-bg:\s*#edf9f0/);
   assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-language-border\)[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
   assert.match(styles, /\.badge\[data-state="official"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-green-border\)[\s\S]*?background:\s*var\(--badge-green-bg\)[\s\S]*?color:\s*var\(--badge-green-text\)/);

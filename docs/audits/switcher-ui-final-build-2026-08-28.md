@@ -65,7 +65,7 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 
 当前实现用 Grid 固定主窗口的复合轨道，并让任务事件视窗成为 `minmax(0, 1fr)`；`operation-log.css` 再以 Flex 管每条 Marker。`html/body/.content` 禁止窗口级滚动，Select 列表和事件视窗只在自身边界内滚动。业务分割线不承担层级，层级由留白与边界 token 表达。
 
-当前语言徽章是类别元数据，不是信任状态。四种语言统一使用 Geist `purple-subtle` 的 `purple-200 / purple-400 / purple-900` 角色；安装徽章只使用 green / blue / amber 表达 Official / Translated / Modified。Switcher 的 pending journal 或启动恢复失败不是 Cavalry 本体状态，不进入安装徽章，只通过事件视窗中的红色结果行、独立 AlertDialog、操作锁和恢复路径表达。两枚徽章即使相邻也不会混写维度，且文字仍是颜色之外的必要语义线索。[Geist Badge](https://vercel.com/geist/badge) [Geist Colors](https://vercel.com/geist/colors)
+当前语言徽章是说明性类别元数据，不是信任状态。`design.md` 要求先以单色建立层级，只有颜色增加状态、动作或数据信息时才使用；Geist Badge 又明确把 blue 定义为 informational，因此四种语言统一使用 `blue-subtle` 的 `blue-200 / blue-400 / blue-900` 角色。gray 在语义上同样成立，但当前界面的路径、禁用控件、次级文字与边框已经大量使用灰阶，语言徽章继续用 gray 会退成背景噪声；紫色则制造无来源的分类强调。green 继续只属于验证通过的 Official 与更新动作，amber/red 保留给警告/错误。Switcher 的 pending journal 或启动恢复失败不是 Cavalry 本体状态，不进入安装徽章，只通过事件视窗、独立 AlertDialog、操作锁和恢复路径表达。两枚徽章即使相邻也不会混写维度，且文字仍是颜色之外的必要语义线索。[Vercel design.md](https://vercel.com/design.md) [Geist Badge](https://vercel.com/geist/badge) [Geist Colors](https://vercel.com/geist/colors)
 
 ### 2.1 Select 源码对齐
 
@@ -83,7 +83,7 @@ Base UI 默认 `alignItemWithTrigger=true` 不是“菜单固定出现在控件�
 
 下一版跟随策略继续对齐 Message Scroller 的 live edge，而不是每次更新都强制 `scrollTop=scrollHeight`：只有读者仍贴近最新内容时，Message chunk、Marker 新增或次行变化才自动跟随；滚轮、触控、键盘或拖动滚动条离开底部后，后续内容允许在屏外继续增长，不抢走阅读位置。回到底部后才重新跟随。[shadcn Message Scroller](https://ui.shadcn.com/docs/components/base/message-scroller)
 
-Marker 视觉直接投影 shadcn Base Nova 的 `gap-2 text-sm text-muted-foreground min-h-4`：图标盒 `16px`、图文间距 `8px`、文字 `14px/20px` 常规字重，图标与文字统一继承中性色，不把完成/警告/错误染成第二套 Badge。运行态组合 Phosphor `SpinnerGap` 与 shadcn `4.19.0` 原始 shimmer 算法：`currentColor` 基色、`alpha × 0.2` 高光、`20deg`、`3ch + 40px` spread、`2s linear infinite`，从 `100% 0` 扫到 `0 0`，reduced-motion 下移除背景并恢复 `currentColor`；这里只把 Tailwind utility 改写为项目语义 token，不另造渐变。完成后原位换成该步骤自己的图标，而不是统一打勾：验证安装 `ShieldCheck`、准备恢复 `Archive`、应用语言 `Translate`、恢复官方状态 `ArrowCounterClockwise`、下载 `DownloadSimple`、安装 `Package`、重启 `ArrowClockwise`。只有缺少更具体业务语义的整体成功状态才使用 `CheckCircle`。
+Marker 视觉直接投影 shadcn Base Nova 的 `gap-2 text-sm text-muted-foreground min-h-4`：图标盒 `16px`、图文间距 `8px`、文字 `14px/20px` 常规字重，图标与文字统一继承中性色，不把完成/警告/错误染成第二套 Badge。运行态组合 Phosphor `SpinnerGap` 与 shadcn `4.19.0` 原始 shimmer 算法：`currentColor` 基色、`alpha × 0.2` 高光、`20deg`、`3ch + 40px` spread、`2s linear infinite`，从 `100% 0` 扫到 `0 0`，reduced-motion 下移除背景并恢复 `currentColor`；这里只把 Tailwind utility 改写为项目语义 token，不另造渐变。完成后原位换成该步骤自己的图标，而不是统一打勾：验证安装 `ShieldCheck`、准备恢复 `Archive`、应用语言 `Translate`、恢复官方状态 `FloppyDiskBack`、下载 `DownloadSimple`、安装 `Package`、重启 `ArrowClockwise`。只有缺少更具体业务语义的整体成功状态才使用 `CheckCircle`。
 
 Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`applyTransaction`、`restartCavalry` Channel。Updater 的三阶段来自 `downloading`、`installing`、`restarting` Channel：下载结束回调发生在签名验证之前，因此 UI 把第二阶段写成“正在验证并安装”，绝不虚构“已验证”事件；下载 URL、签名、临时路径和原始响应不进入 renderer。后端事件可以压缩成面向用户的任务语言，但不能提前声明尚未成立的结果。
 
@@ -119,7 +119,7 @@ About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用�
 | 运行中需要系统权限 | `permissionRequired` + 明确 Open Settings / Elevation 动作 | Event + AlertDialog | Event 留下任务为何停住；AlertDialog 提供立即选择，不叠 Toast |
 | Cavalry 仍在运行 | `cavalryStillRunning` | Event + 待实现 Toast | Event 保留“保存并关闭后重试”；Toast 可提醒一次，但没有安全自动关闭动作，因此不伪装成确认框 |
 | Apply 后 cleanup/restart warning | `warningCodes` | Event | 已发生事务的后续结果必须可回看；默认不叠 Toast |
-| 发现可用更新 | updater check DTO + 标题栏图标 | 标题栏入口 + 待实现 Toast | Toast 可首次宣布版本可用；详细说明等用户点击后再展示 |
+| 发现可用更新 | updater check DTO + 标题栏绿色图标 + `aria-live` 公告 | 标题栏入口 + Tooltip | 非紧急持久状态已有稳定入口；点击后再由 AlertDialog 展示版本、影响与操作，不重复 Toast |
 | 安装更新前 | 版本说明、macOS ad-hoc 风险 | AlertDialog | 用户明确 Update & Restart / Cancel；不叠 Toast |
 | 安装更新中 | 三个真实 Updater phase | Event Scroll | `downloading → verifying/installing → restarting`，不虚构 verified |
 | 更新失败 | 稳定 updater error code | Event | 保留失败与重试路径；只有窗口失焦等明确需求出现时再考虑 Toast |
