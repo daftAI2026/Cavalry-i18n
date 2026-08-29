@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 Tauri 平台配置、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.2.0 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
+[INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.2.0 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
+[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分开发机 ad-hoc 验证、CI PR 编译门与 tag 可发布产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -155,6 +155,18 @@ export APPLE_SIGNING_IDENTITY="-"
 rm -rf src-tauri/target/release/bundle
 npm run tauri:build
 ```
+
+#### 4.1.1 renderer 视觉验收必须使用新进程
+
+本项目的 renderer 是本地静态 `frontendDist`，不把浏览器 HMR 当作 Tauri WebView 的新鲜度合同。修改 `renderer/*.html`、`renderer/*.css` 或 `renderer/*.js` 后，仅刷新、抢前台或继续观察已有窗口都可能看到旧资源；任何视觉结论和截图前都必须完整结束本项目的 Tauri CLI 与 app 进程，再重新启动：
+
+```bash
+pkill -f 'target/debug/cavalry-i18n-tauri' || true
+pkill -f '/Cavalry-i18n/node_modules/.bin/tauri dev' || true
+npm run tauri:dev
+```
+
+必须看到旧窗口关闭、新进程重新编译并重新打开。截图前用 `pgrep -fal 'cavalry-i18n-tauri|/Cavalry-i18n/node_modules/.bin/tauri dev'` 记录当前进程，并确认其启动发生在本轮 renderer 修改之后。无法证明该顺序时，截图只能标记为 `STALE-RESOURCE-UNVERIFIED`，不得用于 UI 裁决或 packaged/release 证据。
 
 Tauri 配置按“公共合同 + 平台覆盖”拆分：
 

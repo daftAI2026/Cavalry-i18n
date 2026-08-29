@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -258,6 +258,9 @@ test('tauri local build SOP is the only release path', () => {
   assert.match(localSop, /APPLE_SIGNING_IDENTITY="-"/);
   assert.match(localSop, /tools\/cavalry_qt_target\.json/);
   assert.match(localSop, /6\.6\.3/);
+  assert.match(localSop, /renderer 视觉验收必须使用新进程/);
+  assert.match(localSop, /pkill -f 'target\/debug\/cavalry-i18n-tauri'/);
+  assert.match(localSop, /STALE-RESOURCE-UNVERIFIED/);
   assert.match(localSop, /CAVALRY_I18N_MACOS_SMOKE_APP="\/Volumes\/Cavalry\/Cavalry\.app"/);
   assert.match(localSop, /只读挂载的官方 Cavalry 2\.7\.2 DMG/);
   assert.match(manualMacSmoke, /const SOURCE_APP_ENV: &str = "CAVALRY_I18N_MACOS_SMOKE_APP"/);
