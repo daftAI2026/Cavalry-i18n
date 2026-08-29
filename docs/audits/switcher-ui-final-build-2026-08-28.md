@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer 生产源码、Tauri 平台窗口配置、AppKit 实机 AX/像素轮廓、Windows DWM/Tauri 官方窗口合同与本轮 UI 裁决
-[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、单一 Apply/Restore 任务流、底部跟随的任务事件视窗、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
+[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、单一 Apply/Restore 任务流、底部跟随的任务事件视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
 [POS]: docs/audits 的 UI 事实基线；约束实现与评审，但不替代 LOCAL_BUILD_SOP、packaged gate 或 Windows 实机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -38,7 +38,7 @@
 | Windows caption | `3 × 32pt` 点击目标，`12pt` 图形，右边距 `12pt` | 保留 Windows 图形/危险关闭语义；位置服从 macOS 的 40/20/12 标题栏几何 |
 | 动作轨道 | `170px + 20px + 170px` | 两枚按钮在 `360px` 内容轨道内等宽；不因语言改变列定义 |
 | 主任务节奏 | 以 `4px` token 组合 | 板块之间、字段关系和内边距均由语义 token 组合，不以未命名数字补偿字形 |
-| 面板内边距 | 安装 Item 使用 panel token；任务事件视窗不再额外套卡片 padding | 事件区直接沿用 `360px` 内容轨道，行内 Marker 间距为 `8px`，避免窗口 `20px` 外边距与第二层面板 padding 重复 |
+| 面板内边距 | 安装 Item 与任务事件容器都使用 `padding-panel` | 任务容器保留中性 border/radius 与统一内边距；scroll-fade 只作用于 padding 内的滚动视窗，不遮蔽外框，也不继承 Alert 的红色风险语义 |
 | 主控件高度 | `36pt` | Select 与动作 Button 共用 |
 | Button / 面板圆角 | `7pt / 9pt` | 动作控件与容器层级分离 |
 | Select 圆角 | Trigger `10pt`、Popup `10pt`、Item `8pt` | 复刻 shadcn Nova/Base UI Select 当前源码角色，不再强行套用 Button 圆角 |
@@ -74,7 +74,7 @@ Base UI 默认 `alignItemWithTrigger=true` 不是“菜单固定出现在控件�
 
 ### 2.2 任务事件视窗源码对齐
 
-主界面的下半区不是 Alert，也不是无差别日志，而是当前用户任务的有界事件视窗。idle 时只显示无文字 separator；动作开始后先用带标签 separator 建立“应用某语言”“恢复 Cavalry”或“更新到某版本”的上下文，再追加真实阶段。没有可见的 `Action`、`Status`、`Log` 泛化标题，屏幕阅读器仍通过隐藏标题获得区域名称。
+主界面的下半区不是 Alert，也不是无差别日志，而是当前用户任务的有界事件视窗。它保留原结果框的外边界、圆角与内部 padding，以稳定空间层级；容器本身保持中性，不因某一行失败而整体冒充 Alert。scroll-fade 只施加在 padding 内的滚动内容层。idle 时只显示无文字 separator；动作开始后先用带标签 separator 建立“应用某语言”“恢复 Cavalry”或“更新到某版本”的上下文，再追加真实阶段。没有可见的 `Action`、`Status`、`Log` 泛化标题，屏幕阅读器仍通过隐藏标题获得区域名称。
 
 `operation-log.js` 只维护稳定 id 的 ordered upsert/replace、separator 和安全文本投影；MarkerIcon/MarkerContent 承担图标与文案，组件不拥有业务编排。运行态组合 Spinner 与文字 shimmer，完成后原位换成该事件自己的 Phosphor 图标。短记录通过首项 `margin-top:auto` 贴住视窗底部；不能使用容器 `justify-content:flex-end`，否则溢出时顶部旧事件可能落入不可滚动的负空间。新增事件把内部 scrollTop 跟随到底部，超过固定高度后旧事件自然向上推进；scroll-fade 只在真实溢出时出现，上下边缘提示仍有内容，内部保留滚动条。
 
@@ -86,11 +86,34 @@ Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`app
 
 ### 2.3 AlertDialog 与 About 边界
 
-AlertDialog 只承载必要确认、权限请求、危险操作和不可恢复错误，不替代任务事件视窗。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions；项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供，标题使用 `16px` 角色，正文使用 `14px` 角色，不能把源组件的默认值直接散落到 CSS。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
+AlertDialog 只承载必要确认、权限请求和危险操作，不替代任务事件视窗，也不用于只有“知道了”而没有真实选择的错误。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions；项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供，标题使用 `16px` 角色，正文使用 `14px` 角色，不能把源组件的默认值直接散落到 CSS。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
 
 About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用窗口内自定义内容”方向，不使用 Tauri 原生 `AboutMetadata`：后者在 macOS 不支持 `website`、`website_label` 和 `license`，Windows 也不能满足可点击项目链接。macOS 将默认应用菜单中的标准 About 替换为固定 id，菜单事件与 Windows 标题栏信息入口共同调用同一个 Rust `about` WebviewWindow owner；窗口使用系统原生装饰、非 modal、固定尺寸且不可 resize/maximize/minimize，主窗口不被锁住。About 本地页面使用现有 token，顶部显示 64px、与安装包同源的应用图标和 `plugin:app|version` 真实版本；项目行只显示 `Cavalry-i18n`，GitHub 图形进入该行作为目的地提示，MIT License 独立成行，原生标题栏提供关闭行为。
 
 外部导航不引入 opener 组件，也不让 renderer 传 URL。bridge 只接受 `repository` / `license` 两个 id；Rust `ProjectLink` 再映射为编译期 HTTPS 地址，最终经 privilege 的既有 `CommandRunner` 调用平台默认浏览器。这个双重白名单是安全边界，不可退化为 `open(url)`。
+
+### 2.4 Event、AlertDialog 与 Toast 语义矩阵
+
+三者不是互斥组件，而是不同时间尺度：Event 是可回看的任务事实，AlertDialog 是必须立即作出的选择，Toast 是短暂的注意力提示。允许组合，但不允许逐字重复，也不允许 Toast 成为唯一恢复说明。
+
+| 实际情境 | 当前代码事实 | 正确承载 | 组合裁决 |
+| --- | --- | --- | --- |
+| 启动读取状态 | `bootstrap` running | Event | 短暂任务事实，不弹 Toast、不阻塞 |
+| 未选择 Cavalry | `chooseAppToContinue` 持久 warning | Event + 待实现 Toast | Event 保留完整下一步；Toast 仅首次提示“选择安装” |
+| English 基线不可验证，必须重装 | `reinstallRequired` 持久 error | Event + 待实现 Toast | Event 保留官方重装与重新选择路径；Toast 只负责启动时吸引注意 |
+| 启动恢复失败、state durability、Windows residue、自定义目录不可写 | 稳定 error/warning code | Event | 属于持续阻塞或恢复债务，不使用会自动消失的唯一提示；是否加一次摘要 Toast 后续逐项裁决 |
+| Apply / Restore 开始前 | 已有 confirm handler | AlertDialog | 用户必须明确继续或取消；此时不再叠 Toast |
+| Apply / Restore 执行 | 四个真实 Channel phase | Event Scroll | `verifyInstallation → ensureBaseline → applyTransaction → restartCavalry`，运行态与完成态原位切换 |
+| 运行中需要系统权限 | `permissionRequired` + 明确 Open Settings / Elevation 动作 | Event + AlertDialog | Event 留下任务为何停住；AlertDialog 提供立即选择，不叠 Toast |
+| Cavalry 仍在运行 | `cavalryStillRunning` | Event + 待实现 Toast | Event 保留“保存并关闭后重试”；Toast 可提醒一次，但没有安全自动关闭动作，因此不伪装成确认框 |
+| Apply 后 cleanup/restart warning | `warningCodes` | Event | 已发生事务的后续结果必须可回看；默认不叠 Toast |
+| 发现可用更新 | updater check DTO + 标题栏图标 | 标题栏入口 + 待实现 Toast | Toast 可首次宣布版本可用；详细说明等用户点击后再展示 |
+| 安装更新前 | 版本说明、macOS ad-hoc 风险 | AlertDialog | 用户明确 Update & Restart / Cancel；不叠 Toast |
+| 安装更新中 | 三个真实 Updater phase | Event Scroll | `downloading → verifying/installing → restarting`，不虚构 verified |
+| 更新失败 | 稳定 updater error code | Event | 保留失败与重试路径；只有窗口失焦等明确需求出现时再考虑 Toast |
+| About / 外链打开失败 | 独立、短时、非任务操作 | 待实现 Toast | 不应清空主任务事件流；Toast 比把错误塞进任务框更符合局部操作语义 |
+
+待实现 Toast 只是已批准语义方向，不代表当前生产代码已经接入 Toast 状态机。实现前必须确定位置、停留时间、队列/替换规则、键盘关闭、屏幕阅读器 live region 与 reduced-motion 行为，并继续复用项目 token。
 
 ## 3. macOS 外圆角：事实、测量与绘制模型
 

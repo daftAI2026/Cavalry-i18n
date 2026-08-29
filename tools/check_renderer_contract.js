@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token 表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group/任务事件视窗、中部省略路径、separator/MarkerIcon/Spinner/shimmer/scroll-fade 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh 残留。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group/带稳定外框与 panel padding 的任务事件视窗、中部省略路径、separator/MarkerIcon/Spinner/shimmer/仅作用于内层滚动区的 scroll-fade 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -143,6 +143,10 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(selectListRule, /max-height:\s*var\(--select-popup-max-height\);/);
   assert.match(selectListRule, /overflow-y:\s*auto;/, 'the Select list must own its bounded scroll');
   assert.doesNotMatch(selectListRule, /overflow:\s*hidden;/, 'Select list scrolling must not be clipped');
+  const statusPanelRule = cssRule(operationStyles, '.status-panel');
+  assert.match(statusPanelRule, /padding:\s*var\(--padding-panel\);/);
+  assert.match(statusPanelRule, /border:\s*var\(--stroke-hairline\) solid var\(--border\);/);
+  assert.match(statusPanelRule, /border-radius:\s*var\(--radius-lg\);/);
   assert.match(cssRule(operationStyles, '.status-viewport'), /overflow-y:\s*auto;/, 'the task event viewport must own its bounded scroll');
 });
 

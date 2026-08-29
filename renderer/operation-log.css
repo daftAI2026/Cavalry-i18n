@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tokens.css 的任务事件/排印/状态/滚动角色，依赖 operation-log.js 生成的 separator、MarkerIcon、MarkerContent 与有界视窗状态
- * [OUTPUT]: 对外提供无泛化标题的任务事件视窗；复刻 shadcn Base Marker separator、Spinner、shimmer 与 scroll-fade，短记录贴底，溢出记录向上推进并保留 10px 内部滚动轨
+ * [OUTPUT]: 对外提供无泛化标题的中性任务事件容器；外框与 panel padding 保持稳定，框内复刻 shadcn Base Marker separator、Spinner、shimmer 与 scroll-fade，短记录贴底，溢出记录向上推进并保留 10px 内部滚动轨
  * [POS]: renderer 的无依赖任务事件视觉层；从共享 styles.css 拆出以守住单文件职责，不拥有业务阶段、AlertDialog 或窗口外层滚动
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,6 +23,10 @@
   grid-template-rows: minmax(0, 1fr) auto;
   gap: var(--operation-group-gap);
   margin-top: var(--gap-flow);
+  padding: var(--padding-panel);
+  border: var(--stroke-hairline) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
 }
 
 .status-viewport {
