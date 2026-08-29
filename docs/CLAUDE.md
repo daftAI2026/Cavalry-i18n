@@ -39,6 +39,6 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 2026-07-30: 从任务事件流恢复 macOS 21-run/48-point acceptance producer 至 `tools/macos-acceptance/`，run note 与双平台 handoff 同步记录 tracked source、session artifact 和历史 PASS 的不可混写边界。
 2026-07-31: 关闭 PR #3 Windows Tag/Assets `PENDING-WINDOWS-PRODUCER`，新增绑定三语 6/6 逻辑点、9/9 producer-side PNG 与 exact PID/HWND 锚点的 session 交接；验收 driver 独立于产品 DLL，登录/工作区由 Qt test profile 隔离，cleanup 对 exact disposable PID 可受限强停但不参与 PASS，repository-wide G0-G4 仍不冒充完成。
 2026-08-28: 新增并完成 Switcher 更新提示 R0 单图标/tooltip preview；随后在独立 feature 接入官方 Tauri updater、独立签名资产、脱敏三阶段 Channel 与底部跟随任务事件视窗。Apple Developer ID/notarization、Windows Authenticode、SemVer bootstrap 和双平台跨版本实机验收仍是独立未完成门禁，不改变当前发布 SOP。
-2026-08-29: 新增 Switcher 反馈语义与四语审阅目录，把 Event / AlertDialog / Toast、空闲态和任务引言逐条映射到真实代码；Message-like 引言采用词组 chunk 而非逐字符打字机，文件级轮换在后端只有 phase/state 时保持 Blocked。
+2026-08-29: 新增 Switcher 反馈语义与四语审阅目录，把 Event / AlertDialog / Toast、空闲态、任务引言和整体结果逐条映射到真实代码；仅引言/结果固定在 Marker scroll-fade 外并按 text delta 更新同一节点，不让 Marker/Toast/Dialog 流式化，文件级轮换在后端只有 phase/state 时保持 Blocked。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

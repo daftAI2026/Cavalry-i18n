@@ -15,7 +15,7 @@
 - **Approved proposal**：交互方向已确认，但尚未接入生产。
 - **Blocked**：视觉方向成立，但后端尚无足够真实事件，禁止前端伪造。
 - Event 记录持续任务、持久阻塞和可恢复结果；AlertDialog 只承载必须立即作出的选择；Toast 只承载短暂摘要和安全即时动作。
-- 任务引言按上游 chunk 增长，不使用逐字符打字机；滚动只在读者仍处于 live edge 时跟随，用户滚离后停止抢位置。参照 [shadcn Message Scroller](https://ui.shadcn.com/docs/components/base/message-scroller)。
+- 只有任务引言与整体结果 Message 按 text delta 增长，不使用逐字符打字机，也不为每个 delta 添加入场动画；Marker 标题与次行只按真实阶段原位更新。滚动只在读者仍处于 live edge 时跟随，用户滚离后停止抢位置。参照 [shadcn Message Scroller](https://ui.shadcn.com/docs/components/base/message-scroller)。
 
 ## 2. 组件归属总表
 
@@ -26,8 +26,8 @@
 | Apply / Restore 四阶段 | Event Marker | Current | 稳定 phase 原位更新 running → terminal |
 | 阶段内文件/对象进度 | Marker 次行 description | Blocked | 当前 Apply Channel 只有 phase/state；必须增加受控 detail code 后才能上线 |
 | Updater 下载百分比 | Marker 次行 description | Current | 使用后端 downloaded/contentLength，不伪造进度 |
-| Apply / Restore 整体成功 | Event 结语 Marker | Approved proposal | 四阶段全部完成后新增一行整体结果；失败路径不得显示 |
-| Update 整体成功 | Event 结语 Marker | Blocked | 安装后当前进程退出；没有跨重启确认前不伪造不可见的成功结果 |
+| Apply / Restore 整体成功 | Event 结果 Message | Approved proposal | 位于 scroll-fade 外；四阶段全部完成后出现，失败路径不得显示 |
+| Update 整体成功 | Event 结果 Message | Blocked | 安装后当前进程退出；没有跨重启确认前不伪造不可见的成功结果 |
 | 启动阻塞、事务警告、失败与恢复路径 | Event Marker | Current | 必须可回看，不允许只用会消失的 Toast |
 | Apply / Restore / Update / 权限确认 | AlertDialog | Current | 用户必须继续或取消；打开时不叠 Toast |
 | 更新可用、首次选择、独立 About/外链失败 | Toast | Approved proposal | 标题 + 说明 + 可选 Action + Close；右下向上 |
@@ -41,13 +41,13 @@
 | `applyIntro` | Preparing to apply {language}… | 正在准备应用{language}…… | 正在準備套用{language}…… | {language}の適用を準備しています… |
 | `restoreIntro` | Preparing to restore Cavalry… | 正在准备恢复 Cavalry…… | 正在準備還原 Cavalry…… | Cavalry の復元を準備しています… |
 | `updateIntro` | Preparing the update… | 正在准备更新…… | 正在準備更新…… | 更新を準備しています… |
-| `applyOutcome` | Applied {language} and restarted Cavalry | 已应用{language}并重启 Cavalry | 已套用{language}並重新啟動 Cavalry | {language}を適用し、Cavalry を再起動しました |
-| `restoreOutcome` | Restored official English and restarted Cavalry | 已恢复官方英文状态并重启 Cavalry | 已還原官方英文狀態並重新啟動 Cavalry | 公式の英語状態に戻し、Cavalry を再起動しました |
+| `applyOutcome` | Applied {language} and restarted Cavalry. | 已应用{language}并重启 Cavalry。 | 已套用{language}並重新啟動 Cavalry。 | {language}を適用し、Cavalry を再起動しました。 |
+| `restoreOutcome` | Restored official English and restarted Cavalry. | 已恢复官方英文状态并重启 Cavalry。 | 已還原官方英文狀態並重新啟動 Cavalry。 | 公式の英語状態に戻し、Cavalry を再起動しました。 |
 | `updateOutcome` | — | — | — | — |
 
-任务引言是一条 Message-like 行，下面才出现 Marker。由于文字是确定性的本地文案，预览按语义词组 chunk 模拟流入；生产不得把该视觉模拟描述成后端文本流。
+任务引言是一条 Message-like 行，下面才出现 Marker；整体结果复用同一 Message 结构。预览按 shadcn helper 的 `word + trailing whitespace` delta 模型持续更新同一文本节点，不给每个 delta 添加 opacity/transform 动画。由于文字是确定性的本地文案，生产不得把该视觉模拟描述成后端文本流。
 
-Apply/Restore 的结语是独立于四个阶段的整体结果 Marker：引言说明“要做什么”，阶段说明“做到哪里”，结语说明“最终发生了什么”。它只能由完整成功路径追加，任何 warning/error 都必须终止成功结语。Updater 会在安装后结束当前进程，现有合同无法证明用户看到了重启后的新版本，因此 `updateOutcome` 保持 Blocked；未来只能由新进程读取一次性、版本绑定的更新完成凭据后补写。
+任务容器保留一层外边框，并显式区分两个布局状态：idle 使用覆盖完整内容区的单轨，任务邀请以整个外框为参照水平/垂直居中；running 才拆为顶部任务引言 Message、中部无边框 Marker scroll-fade、底部整体结果 Message 三轨。引言与结果不参与滚动、不受 fade 遮罩；只有中间阶段记录在内容溢出时滚动。引言说明“要做什么”，阶段说明“做到哪里”，结果说明“最终发生了什么”。结果是完整 Body Message 句子，因此 English 用 `.`、简繁中文与日本語用 `。` 收尾；标题、按钮和 Marker 短标签继续不加句号。结果只能由完整成功路径追加，任何 warning/error 都必须终止成功结语。Updater 会在安装后结束当前进程，现有合同无法证明用户看到了重启后的新版本，因此 `updateOutcome` 保持 Blocked；未来只能由新进程读取一次性、版本绑定的更新完成凭据后补写。
 
 ## 4. 任务阶段 Event（Current）
 

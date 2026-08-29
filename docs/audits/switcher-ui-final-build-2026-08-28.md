@@ -76,11 +76,11 @@ Base UI 默认 `alignItemWithTrigger=true` 不是“菜单固定出现在控件�
 
 主界面的下半区不是 Alert，也不是无差别日志，而是当前用户任务的有界事件视窗。它保留原结果框的外边界、圆角与内部 padding，以稳定空间层级；容器本身保持中性，不因某一行失败而整体冒充 Alert。scroll-fade 只施加在 padding 内的滚动内容层。idle 时只显示无文字 separator；动作开始后先用带标签 separator 建立“应用某语言”“恢复 Cavalry”或“更新到某版本”的上下文，再追加真实阶段。没有可见的 `Action`、`Status`、`Log` 泛化标题，屏幕阅读器仍通过隐藏标题获得区域名称。
 
-上述 separator 是当前生产事实；下一版交互已经批准但尚未接入：健康 idle 改为在框内水平/垂直居中显示一句 `What would you like to do?` 的四语任务邀请；Apply、Restore 或 Update 经 AlertDialog 确认后，先出现一条深色 Body Message，再在其下追加 Marker。该 Message 不是逐字符打字机，不显示机械光标，而是按上游 chunk 增长；当前文案是确定性本地字符串，因此预览只能按词组模拟 chunk，不能冒充后端文本流，也不能让装饰效果延迟真实事务。
+上述 separator 是当前生产事实；下一版交互已经批准但尚未接入：健康 idle 改为在框内水平/垂直居中显示一句 `What would you like to do?` 的四语任务邀请；Apply、Restore 或 Update 经 AlertDialog 确认后，先出现一条深色 Body Message，再在其下追加 Marker。流式范围严格限定为顶部任务引言与底部整体结果 Message；Marker 标题、阶段次行、Toast 与 AlertDialog 不流式。Message 不是逐字符打字机，不显示机械光标，也不让每个 chunk 单独淡入；它按 shadcn helper 的 `word + trailing whitespace` text delta 持续更新同一个文本节点。当前文案是确定性本地字符串，因此预览只能模拟 delta，不能冒充后端文本流，也不能让表现层延迟真实事务。
 
-任务必须有首尾闭环：引言说明意图，Marker 记录过程，Apply/Restore 四阶段全部成功后再新增一条整体结果 Marker，例如“已应用简体中文并重启 Cavalry”或“已恢复官方英文状态并重启 Cavalry”。这条结语不是最后一个阶段的改名，也不能在 warning/error 路径出现。Updater 安装后会终止当前进程；在新进程尚无一次性、版本绑定的完成凭据前，不显示不可验证且通常不可见的 Update 成功结语。
+任务必须有首尾闭环：引言说明意图，Marker 记录过程，Apply/Restore 四阶段全部成功后再出现一条整体结果 Message，例如“已应用简体中文并重启 Cavalry。”或“已恢复官方英文状态并重启 Cavalry。”。结果是完整 Body Message 句子，English 用 `.`、简繁中文与日本語用 `。` 收尾；Marker 短标签不加句号。容器保留一层外边框并显式建模布局状态：idle 是覆盖完整内容区的单轨，任务邀请以整个外框为参照双轴居中；running 才使用 `auto minmax(0, 1fr) auto` 三轨，顶部引言 Message 与底部结果 Message 固定在 scroll-fade 外，中间无边框视窗只滚动四个阶段 Marker。禁止依赖隐藏元素是否参与 Grid 排版来碰巧实现居中。这条结语不是最后一个阶段的改名，也不能在 warning/error 路径出现。Updater 安装后会终止当前进程；在新进程尚无一次性、版本绑定的完成凭据前，不显示不可验证且通常不可见的 Update 成功结语。
 
-`operation-log.js` 只维护稳定 id 的 ordered upsert/replace、separator 和安全文本投影；MarkerIcon/MarkerContent 承担图标与文案，组件不拥有业务编排。第一条记录从外框 `12px` panel padding 后的内容顶部开始，未溢出时明确保持 `scrollTop=0`；记录逐条向下增长，只有触达可视区底部后，新事件才让内部视窗跟随到底部并推动旧事件向上。禁止首项 `margin-top:auto` 和容器 `justify-content:flex-end`，前者会把短记录错误吸到底部，后者会让溢出的顶部记录落入不可滚动负空间。scroll-fade 只在真实溢出时出现，内部保留滚动条。
+`operation-log.js` 只维护稳定 id 的 ordered upsert/replace、separator 和安全文本投影；MarkerIcon/MarkerContent 承担图标与文案，组件不拥有业务编排。第一条记录从外框 `12px` panel padding 后的内容顶部开始，未溢出时明确保持 `scrollTop=0`；记录逐条向下增长，只有触达可视区底部后，新事件才让内部视窗跟随到底部并推动旧事件向上。禁止首项 `margin-top:auto` 和容器 `justify-content:flex-end`，前者会把短记录错误吸到底部，后者会让溢出的顶部记录落入不可滚动负空间。scroll-fade 只在真实溢出时出现，内部保留滚动条；紧凑视窗将官方 `--scroll-fade-size` 覆盖为 `8px`（等价 `scroll-fade-2`），只缩短遮罩深度，不修改内容 padding，并在起点/终点分别保持对应边缘清晰。[fade size](https://ui.shadcn.com/docs/utils/scroll-fade#fade-size)
 
 下一版跟随策略继续对齐 Message Scroller 的 live edge，而不是每次更新都强制 `scrollTop=scrollHeight`：只有读者仍贴近最新内容时，Message chunk、Marker 新增或次行变化才自动跟随；滚轮、触控、键盘或拖动滚动条离开底部后，后续内容允许在屏外继续增长，不抢走阅读位置。回到底部后才重新跟随。[shadcn Message Scroller](https://ui.shadcn.com/docs/components/base/message-scroller)
 
@@ -88,7 +88,7 @@ Marker 视觉直接投影 shadcn Base Nova 的 `gap-2 text-sm text-muted-foregro
 
 Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`applyTransaction`、`restartCavalry` Channel。Updater 的三阶段来自 `downloading`、`installing`、`restarting` Channel：下载结束回调发生在签名验证之前，因此 UI 把第二阶段写成“正在验证并安装”，绝不虚构“已验证”事件；下载 URL、签名、临时路径和原始响应不进入 renderer。后端事件可以压缩成面向用户的任务语言，但不能提前声明尚未成立的结果。
 
-阶段内动态说明属于同一 Marker 的 description，不是额外同级 Marker：下载主行保持“正在下载版本”，次行更新真实百分比；准备恢复文件或恢复 Cavalry 也可以在次行原位轮换当前对象，终态再把主行改为“恢复文件已就绪”或“Cavalry 已恢复”。但当前 Apply `OperationEvent` 只有 `phase/state`，没有文件、索引或总数，因此生产不得轮播假文件名。正确实现必须让 Rust 事务从真实处理边界发出受控 detail code / manifest item id，bridge 拒绝任意路径和底层原文，renderer 再本地化显示名称。
+阶段内动态说明属于同一 Marker 的 description，不是额外同级 Marker：下载主行保持“正在下载版本”，次行更新真实百分比；准备恢复文件或恢复 Cavalry 也可以在次行原位轮换当前对象，终态再把主行改为“恢复文件已就绪”或“Cavalry 已恢复”。description 与主步骤统一使用 `14px/20px` 和 `8px` 垂直节奏；层级由缩进与所属关系表达，不靠缩成脚注字号或压缩行距。但当前 Apply `OperationEvent` 只有 `phase/state`，没有文件、索引或总数，因此生产不得轮播假文件名。正确实现必须让 Rust 事务从真实处理边界发出受控 detail code / manifest item id，bridge 拒绝任意路径和底层原文，renderer 再本地化显示名称。
 
 持久启动阻塞继续使用同一事件视窗，因为用户需要在采取恢复动作前持续看到它。后续 Toast 只允许承担不重复恢复正文的一次性注意摘要，不能替代或逐字复制 Event；AlertDialog 只用于必须立即作出选择的确认、权限或危险操作。
 
