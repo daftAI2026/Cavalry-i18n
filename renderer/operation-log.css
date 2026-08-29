@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tokens.css 的任务事件/排印/状态/滚动角色，依赖 operation-log.js 生成的 separator、MarkerIcon、MarkerContent 与有界视窗状态
- * [OUTPUT]: 对外提供无泛化标题的中性任务事件容器；外框与 panel padding 保持稳定，框内复刻 shadcn Base Marker separator、Spinner、shimmer 与 scroll-fade，短记录贴底，溢出记录向上推进并保留 10px 内部滚动轨
+ * [OUTPUT]: 对外提供无泛化标题的中性任务事件容器；外框与 12px panel padding 保持稳定，事件从 padding 后的顶部起排并在触底后向上推进，框内复刻 shadcn Base Marker 的 16px 单色图标、8px 关系间距、Spinner、shimmer 与 scroll-fade
  * [POS]: renderer 的无依赖任务事件视觉层；从共享 styles.css 拆出以守住单文件职责，不拥有业务阶段、AlertDialog 或窗口外层滚动
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -97,18 +97,17 @@
   list-style: none;
 }
 
-/* 首项只在内容不足时吸收顶部余量；溢出时保持正常流，避免 flex-end 吞掉旧事件。 */
-.operation-event:first-child {
-  margin-top: auto;
-}
-
 .operation-event {
   width: 100%;
   min-height: var(--operation-marker-size);
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: var(--operation-marker-gap);
   color: var(--text-secondary);
+}
+
+.operation-event[data-has-description="true"] {
+  align-items: flex-start;
 }
 
 .operation-event[data-variant="separator"] {
@@ -180,18 +179,6 @@
   animation: operation-spin var(--duration-spinner) linear infinite;
 }
 
-.operation-event[data-state="completed"] .operation-event-marker {
-  color: var(--badge-green-text);
-}
-
-.operation-event[data-state="warning"] .operation-event-marker {
-  color: var(--badge-amber-text);
-}
-
-.operation-event[data-state="error"] .operation-event-marker {
-  color: var(--badge-red-text);
-}
-
 .operation-event-copy {
   min-width: 0;
   flex: 1 1 auto;
@@ -206,9 +193,9 @@
 }
 
 .operation-event-title {
-  color: var(--text);
+  color: inherit;
   font-size: var(--type-compact);
-  font-weight: var(--weight-medium);
+  font-weight: var(--weight-regular);
   line-height: var(--line-height-compact);
 }
 
@@ -275,7 +262,7 @@
 
   .operation-event[data-state="running"] .operation-event-title {
     background: none;
-    color: var(--text);
+    color: inherit;
     -webkit-text-fill-color: currentColor;
   }
 }

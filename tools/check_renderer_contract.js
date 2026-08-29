@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token 表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group/带稳定外框与 panel padding 的任务事件视窗、中部省略路径、separator/MarkerIcon/Spinner/shimmer/仅作用于内层滚动区的 scroll-fade 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh 残留。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group/顶部起排且触底跟随的任务事件视窗、中部省略路径、单色 Phosphor MarkerIcon/Spinner/shimmer/仅作用于内层滚动区的 scroll-fade 与 MIT 来源、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -348,13 +348,20 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\][\s\S]*?mask-image:\s*linear-gradient/);
   assert.match(operationStyles, /animation-timeline:\s*scroll\(self y\), scroll\(self y\)/);
   assert.match(operationStyles, /\.status-text\s*\{[\s\S]*?display:\s*flex;[\s\S]*?flex-direction:\s*column/);
-  assert.match(operationStyles, /\.operation-event:first-child\s*\{[\s\S]*?margin-top:\s*auto/);
+  assert.doesNotMatch(operationStyles, /\.operation-event:first-child\s*\{[\s\S]*?margin-top:\s*auto/, 'short event streams must begin at the padded top edge');
   assert.match(operationStyles, /\.operation-event\[data-variant="separator"\][\s\S]*?grid-template-columns:\s*minmax\(0, 1fr\) auto minmax\(0, 1fr\)/);
-  assert.match(operationStyles, /\.operation-event\s*\{[\s\S]*?display:\s*flex;[\s\S]*?gap:\s*var\(--operation-marker-gap\)/);
+  assert.match(operationStyles, /\.operation-event\s*\{[\s\S]*?display:\s*flex;[\s\S]*?align-items:\s*center;[\s\S]*?gap:\s*var\(--operation-marker-gap\)[\s\S]*?color:\s*var\(--text-secondary\)/);
   assert.match(operationStyles, /\.operation-event-marker\s*\{[\s\S]*?width:\s*var\(--operation-marker-size\);[\s\S]*?height:\s*var\(--operation-marker-size\)/);
+  assert.doesNotMatch(operationStyles, /\.operation-event\[data-state="(?:completed|warning|error)"\] \.operation-event-marker\s*\{[\s\S]*?color:/, 'Marker icons must stay monochrome instead of becoming status badges');
+  assert.match(operationStyles, /\.operation-event-title\s*\{[\s\S]*?color:\s*inherit;[\s\S]*?font-weight:\s*var\(--weight-regular\)/);
   assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-marker\[data-icon="spinner"\] svg\s*\{[\s\S]*?animation:\s*operation-spin/);
   assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-title\s*\{[\s\S]*?background-image:\s*linear-gradient[\s\S]*?animation:\s*operation-shimmer/);
   assert.match(operationLog, /DEFAULT_ICON_BY_STATE[\s\S]*?running:\s*'spinner'/);
+  assert.match(operationLog, /const overflowing = viewport\.scrollHeight > viewport\.clientHeight;[\s\S]*?viewport\.scrollTop = overflowing \? viewport\.scrollHeight : 0;/);
+  assert.match(app, /verifyInstallation:\s*'verify'[\s\S]*?ensureBaseline:\s*'archive'[\s\S]*?applyTransaction:\s*'translate'[\s\S]*?restartCavalry:\s*'restart'/);
+  assert.match(app, /restoring && phase === 'applyTransaction' \? 'restore' : PHASE_ICONS\[phase\]/);
+  assert.match(updateProgress, /updateDownloadCompletedTitle[\s\S]*?icon:\s*'download'/);
+  assert.match(updateProgress, /updateInstallCompletedTitle[\s\S]*?icon:\s*'package'/);
   assert.match(app, /key === 'updatePreviewAvailable'/);
   assert.match(html, /class="titlebar" data-tauri-drag-region/);
   assert.doesNotMatch(html, /traffic-light/, 'macOS traffic lights must remain native');

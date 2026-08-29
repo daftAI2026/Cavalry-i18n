@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/select/tooltip/path/operation-log/update-progress/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase-only 转换、四语任务 separator/事件、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、四语任务 separator/事件、事件顶部起排与触底跟随、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -318,9 +318,10 @@ test('Marker composition swaps Spinner for the event icon without appending a du
   log.replace({ id: 'verifyInstallation', title: 'Checking', state: 'running' });
   assert.equal(activityRows(r).length, 1);
   assert.equal(activityRows(r)[0].children[0].dataset.icon, 'spinner');
-  log.upsert({ id: 'verifyInstallation', title: 'Checked', state: 'completed', icon: 'inspect' });
+  assert.equal(viewport.scrollTop, 0, 'a short event stream must begin at the padded top edge');
+  log.upsert({ id: 'verifyInstallation', title: 'Checked', state: 'completed', icon: 'verify' });
   assert.equal(activityRows(r).length, 1);
-  assert.equal(activityRows(r)[0].children[0].dataset.icon, 'inspect');
+  assert.equal(activityRows(r)[0].children[0].dataset.icon, 'verify');
   log.upsert({ id: 'ensureBaseline', title: 'Preparing recovery files', state: 'running' });
   assert.equal(viewport.dataset.overflowing, 'true');
   assert.equal(viewport.scrollTop, 2, 'new events must keep the bounded viewport at the latest row');
@@ -492,8 +493,8 @@ test('successful updater events advance one task through download, install, and 
 
   assert.equal(activityTitle(r), 'Update to 0.7.1');
   assert.equal(activityRows(r).length, 4, 'one separator and three stable phase rows');
-  assert.equal(activityRows(r)[1].children[0].dataset.icon, 'archive');
-  assert.equal(activityRows(r)[2].children[0].dataset.icon, 'check');
+  assert.equal(activityRows(r)[1].children[0].dataset.icon, 'download');
+  assert.equal(activityRows(r)[2].children[0].dataset.icon, 'package');
   assert.equal(activityRows(r)[3].children[0].dataset.icon, 'spinner');
   assert.match(activityText(r), /Restarting the Switcher/);
 });
@@ -622,7 +623,7 @@ test('clean official macOS install with needsExtract allows Apply to establish i
   assert.equal(activityTitle(r, 1), 'Checking the Cavalry installation');
   await flush();
   assert.deepEqual(activityRows(r).map((row) => row.children[0].dataset.icon), [
-    '', 'inspect', 'archive', 'translate', 'restart',
+    '', 'verify', 'archive', 'translate', 'restart',
   ]);
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },

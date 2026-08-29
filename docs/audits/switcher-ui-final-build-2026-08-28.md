@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer 生产源码、Tauri 平台窗口配置、AppKit 实机 AX/像素轮廓、Windows DWM/Tauri 官方窗口合同与本轮 UI 裁决
-[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、单一 Apply/Restore 任务流、底部跟随的任务事件视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
+[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、单一 Apply/Restore 任务流、顶部起排且触底后跟随的任务事件视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
 [POS]: docs/audits 的 UI 事实基线；约束实现与评审，但不替代 LOCAL_BUILD_SOP、packaged gate 或 Windows 实机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -76,13 +76,15 @@ Base UI 默认 `alignItemWithTrigger=true` 不是“菜单固定出现在控件�
 
 主界面的下半区不是 Alert，也不是无差别日志，而是当前用户任务的有界事件视窗。它保留原结果框的外边界、圆角与内部 padding，以稳定空间层级；容器本身保持中性，不因某一行失败而整体冒充 Alert。scroll-fade 只施加在 padding 内的滚动内容层。idle 时只显示无文字 separator；动作开始后先用带标签 separator 建立“应用某语言”“恢复 Cavalry”或“更新到某版本”的上下文，再追加真实阶段。没有可见的 `Action`、`Status`、`Log` 泛化标题，屏幕阅读器仍通过隐藏标题获得区域名称。
 
-`operation-log.js` 只维护稳定 id 的 ordered upsert/replace、separator 和安全文本投影；MarkerIcon/MarkerContent 承担图标与文案，组件不拥有业务编排。运行态组合 Spinner 与文字 shimmer，完成后原位换成该事件自己的 Phosphor 图标。短记录通过首项 `margin-top:auto` 贴住视窗底部；不能使用容器 `justify-content:flex-end`，否则溢出时顶部旧事件可能落入不可滚动的负空间。新增事件把内部 scrollTop 跟随到底部，超过固定高度后旧事件自然向上推进；scroll-fade 只在真实溢出时出现，上下边缘提示仍有内容，内部保留滚动条。
+`operation-log.js` 只维护稳定 id 的 ordered upsert/replace、separator 和安全文本投影；MarkerIcon/MarkerContent 承担图标与文案，组件不拥有业务编排。第一条记录从外框 `12px` panel padding 后的内容顶部开始，未溢出时明确保持 `scrollTop=0`；记录逐条向下增长，只有触达可视区底部后，新事件才让内部视窗跟随到底部并推动旧事件向上。禁止首项 `margin-top:auto` 和容器 `justify-content:flex-end`，前者会把短记录错误吸到底部，后者会让溢出的顶部记录落入不可滚动负空间。scroll-fade 只在真实溢出时出现，内部保留滚动条。
+
+Marker 视觉直接投影 shadcn Base Nova 的 `gap-2 text-sm text-muted-foreground min-h-4`：图标盒 `16px`、图文间距 `8px`、文字 `14px/20px` 常规字重，图标与文字统一继承中性色，不把完成/警告/错误染成第二套 Badge。运行态组合 Phosphor `SpinnerGap` 与文字 shimmer；完成后原位换成该步骤自己的图标，而不是统一打勾：验证安装 `ShieldCheck`、准备恢复 `Archive`、应用语言 `Translate`、恢复官方状态 `ArrowCounterClockwise`、下载 `DownloadSimple`、安装 `Package`、重启 `ArrowClockwise`。只有缺少更具体业务语义的整体成功状态才使用 `CheckCircle`。
 
 Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`applyTransaction`、`restartCavalry` Channel。Updater 的三阶段来自 `downloading`、`installing`、`restarting` Channel：下载结束回调发生在签名验证之前，因此 UI 把第二阶段写成“正在验证并安装”，绝不虚构“已验证”事件；下载 URL、签名、临时路径和原始响应不进入 renderer。后端事件可以压缩成面向用户的任务语言，但不能提前声明尚未成立的结果。
 
-持久启动阻塞继续使用同一事件视窗，因为用户需要在采取恢复动作前持续看到它。项目不额外引入 toast：toast 会让同一事实同时出现在临时层和常驻层，产生重复与消失时序。AlertDialog 只用于必须立即作出选择的确认、权限或危险操作。
+持久启动阻塞继续使用同一事件视窗，因为用户需要在采取恢复动作前持续看到它。后续 Toast 只允许承担不重复恢复正文的一次性注意摘要，不能替代或逐字复制 Event；AlertDialog 只用于必须立即作出选择的确认、权限或危险操作。
 
-结构与动画对照 shadcn/ui 官方 Marker、shimmer、scroll-fade 源码，审查基线为上游提交 `683a5a9b370acdb7785a0529434e6a3b8c7e0441`；项目只内嵌所需结构、CSS 与 Phosphor SVG path，不引入 React、Base UI、Tailwind、CDN 或完整图标包。参考：[Marker](https://ui.shadcn.com/docs/components/base/marker)、[shimmer](https://ui.shadcn.com/docs/utils/shimmer)、[scroll-fade](https://ui.shadcn.com/docs/utils/scroll-fade)、[Phosphor Icons](https://phosphoricons.com/)。许可证投影见 `renderer/THIRD_PARTY_NOTICES.md`。
+结构与动画对照 shadcn/ui 官方 Marker、shimmer、scroll-fade 源码，审查基线为上游提交 `683a5a9b370acdb7785a0529434e6a3b8c7e0441`；Phosphor Regular 图标来自提交 `2b75f3ad12b420c9504ef05df8d2564a28f8500e`。项目只内嵌所需结构、CSS 与 SVG path，不引入 React、Base UI、Tailwind、CDN 或完整图标包。参考：[Marker](https://ui.shadcn.com/docs/components/base/marker)、[shimmer](https://ui.shadcn.com/docs/utils/shimmer)、[scroll-fade](https://ui.shadcn.com/docs/utils/scroll-fade)、[Phosphor Icons](https://phosphoricons.com/)。许可证投影见 `renderer/THIRD_PARTY_NOTICES.md`。
 
 ### 2.3 AlertDialog 与 About 边界
 
