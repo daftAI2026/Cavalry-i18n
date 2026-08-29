@@ -1,16 +1,17 @@
 /**
  * [INPUT]: 依赖 index.html 的原生 select 数据槽、combobox trigger、listbox popup 与 option 容器，依赖浏览器键盘/指针事件和 ARIA 属性。
- * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 open/active/selected 状态边界和选中项锚定触发器的 positioner 语义实现单选菜单、方向键/Home/End/Enter/Space/Escape/typeahead 与外部点击收口。
- * [POS]: renderer 的无依赖选择器组件状态机；只管理选择交互和无障碍投影，不读取业务状态、不调用 Tauri，也不引入 React、组件库或 CDN。
+ * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected 状态边界和选中项锚定触发器的 positioner 语义实现单选菜单、方向键/Home/End/Enter/Space/Escape/typeahead、值变更通知与外部点击收口。
+ * [POS]: renderer 的无依赖选择器组件状态机；只管理显式选择交互和无障碍投影，不替业务预选默认值、不读取业务状态、不调用 Tauri，也不引入 React、组件库或 CDN。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (function attachSelectControl(global) {
   'use strict';
 
-  function createSelectControl({ root, select, trigger, value, popup, list }) {
+  function createSelectControl({ root, select, trigger, value, popup, list, onValueChange = () => {} }) {
     let open = false;
     let activeIndex = -1;
     let options = [];
+    let placeholder = '';
     let typeahead = '';
     let typeaheadTimer = null;
 
@@ -37,7 +38,10 @@
       trigger.setAttribute('aria-expanded', String(open));
       popup.hidden = !open;
       const selected = selectedIndex();
-      value.textContent = selected >= 0 ? options[selected].label : '';
+      const hasSelection = selected >= 0;
+      root.dataset.placeholder = String(!hasSelection);
+      value.dataset.placeholder = String(!hasSelection);
+      value.textContent = hasSelection ? options[selected].label : placeholder;
 
       for (const [index, item] of Array.from(list.children).entries()) {
         const isSelected = index === selected;
@@ -77,6 +81,7 @@
       select.value = options[index].value;
       activeIndex = index;
       setOpen(false);
+      onValueChange(select.value);
       trigger.focus();
     }
 
@@ -115,6 +120,7 @@
     }
 
     function setOptions(nextOptions) {
+      const previousValue = select.value;
       options = nextOptions.map(({ value: optionValue, label }) => ({
         value: String(optionValue),
         label: String(label),
@@ -128,14 +134,18 @@
         select.append(nativeOption);
         list.append(createItem(option, index));
       }
-      if (!options.some((option) => option.value === select.value)) {
-        select.value = options[0]?.value || '';
-      }
+      select.value = options.some((option) => option.value === previousValue) ? previousValue : '';
       renderState();
     }
 
     function setValue(nextValue) {
       select.value = String(nextValue || '');
+      renderState();
+      onValueChange(select.value);
+    }
+
+    function setPlaceholder(nextPlaceholder) {
+      placeholder = String(nextPlaceholder || '');
       renderState();
     }
 
@@ -199,7 +209,7 @@
     });
 
     renderState();
-    return Object.freeze({ setOptions, setValue, setDisabled });
+    return Object.freeze({ setOptions, setValue, setPlaceholder, setDisabled });
   }
 
   global.createSelectControl = createSelectControl;

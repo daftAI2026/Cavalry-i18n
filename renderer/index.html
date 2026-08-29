@@ -1,6 +1,6 @@
 <!--
   [INPUT]: 依赖 tokens.css 及共享 shell/Activity/About/Toast/窗口控件视觉层，依赖 icons/select/tooltip/path/operation/update/toast/about/window-controls 状态机、冻结 bridge 与四语文案
-  [OUTPUT]: 对外提供原生标题区、安装摘要、Select + Switch/Restore 主任务流、三轨 Activity、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；About 内容由独立本地页面承载
+  [OUTPUT]: 对外提供原生标题区、安装摘要、带占位态的 Select + Switch/Restore English 主任务流、三轨 Activity、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起独立原生装饰窗口，Windows 只自绘原生语义按钮而不伪造系统外框
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -102,7 +102,7 @@
           <div id="languageSelectRoot" class="select-root" data-state="closed">
             <select id="languageSelect" class="sr-only" tabindex="-1" aria-hidden="true" disabled></select>
             <button id="languageSelectTrigger" type="button" class="select-trigger" role="combobox" aria-labelledby="languageSectionLabel languageSelectValue" aria-haspopup="listbox" aria-expanded="false" aria-controls="languageSelectList" disabled>
-              <span id="languageSelectValue" class="select-value"></span>
+              <span id="languageSelectValue" class="select-value" data-placeholder="true">Choose a language</span>
               <span class="select-chevron" aria-hidden="true">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" focusable="false">
                   <path d="m6 9 6 6 6-6"></path>
@@ -114,7 +114,7 @@
             </div>
           </div>
           <button id="applyButton" type="button" class="button button-primary" disabled>Switch</button>
-          <button id="restoreButton" type="button" class="button button-outline" disabled>Restore</button>
+          <button id="restoreButton" type="button" class="button button-outline" disabled>Restore English</button>
         </div>
       </section>
 

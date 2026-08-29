@@ -1,11 +1,11 @@
 <!--
 [INPUT]: 依赖 renderer/app.js 的任务状态机、src-tauri/src/commands/apply.rs 与 snapshot.rs 的恢复基线闸门、macOS 官方还原和 Windows English/QPA 清理事务，以及 2026-08-29 产品与 UX Writing 裁决
-[OUTPUT]: 对外提供“首次 Switch 自动建立恢复基线、Switch 无确认直达、单一 Restore、400×484 无窗口滚动布局”的详细产品/工程决策、平台映射、失败边界与验收合同
+[OUTPUT]: 对外提供“首次 Switch 自动建立恢复基线、显式选择目标语言、Switch 无确认直达、单一 Restore English、400×484 无窗口滚动布局”的详细产品/工程决策、平台映射、失败边界与验收合同
 [POS]: docs/audits 的决策证据；事件簿只保留摘要并链接本文，代码与后续回归以本文解释为何删除手动 Refresh 和双恢复入口
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
-# Switcher 直接 Switch、自动恢复基线与单一 Restore 决策
+# Switcher 直接 Switch、自动恢复基线与单一 Restore English 决策
 
 日期：2026-08-29
 状态：已批准并接入代码；静态/运行时合同已验证，直接 Switch 的 macOS native 视觉复核、package/manual smoke 与 Windows live 待补
@@ -58,19 +58,19 @@
 
 ```text
 Switch to
-[ Select：占满两列总宽 ]
-[ Switch ][ Restore ]
+[ Select：未选择时显示本地化占位文案，占满两列总宽 ]
+[ Switch ][ Restore English ]
 [ Activity Log ]
 ```
 
-删除 `Recovery` 标题、手动 `Refresh English`、`Restore English` 与 `Restore Official` 双入口。两个动作等宽，Select 与两个按钮加间距后的总宽一致。
+删除 `Recovery` 标题、手动 `Refresh English`、旧 `Restore English` 与 `Restore Official` 双入口；只保留一个结果明确的 `Restore English` 动作。Select 初始不暗中预选语言，显示本地化占位文案；用户明确选择后才启用 Switch。两个动作等宽，Select 与两个按钮加间距后的总宽一致。
 
 ### 3.2 平台映射
 
 | 用户动作 | macOS 内部 action | Windows 内部 action | 用户可见结果 |
 | --- | --- | --- | --- |
 | Switch | 目标语言，例如 `zh-Hans` | 目标语言，例如 `zh-Hans` | 自动保存必要原文件，切换语言并打开 Cavalry |
-| Restore | `restore-official` | `en` | 恢复官方英文可运行状态，清理 Switcher 翻译 runtime，并打开 Cavalry |
+| Restore English | `restore-official` | `en` | 恢复官方英文可运行状态，清理 Switcher 翻译 runtime，并打开 Cavalry |
 
 这里统一的是用户意图与结果，不是强迫两平台共享同一内部 transaction 名称。保留现有、已验证的平台事务，比新造一个跨平台伪抽象更简单可靠。
 
@@ -89,16 +89,17 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 
 ### 3.4 可见状态
 
-- clean official English：Switch 可用；若尚无基线，首次 Switch 自动准备。Restore 禁用，因为没有需要恢复的修改。
-- translated/managed：Apply 可继续切换；Restore 可用。
-- Windows residue/reconciliation required：Alert 明确要求 Restore；Restore 映射为 English + vendor QPA/generic cleanup。
+- clean official English：Select 可用；用户明确选择目标语言后 Switch 才启用，若尚无基线，首次 Switch 自动准备。Restore English 禁用，因为没有需要恢复的修改。
+- translated/managed：Select 可继续选择目标语言；Restore English 可用。
+- Windows residue/reconciliation required：Event 明确要求 Restore English；该动作映射为 English + vendor QPA/generic cleanup。
 - macOS modified/unverified 且无可信基线：Apply 和 Restore 均 fail closed，Alert 要求从官方安装包重新安装。
 - state durability pending：禁止继续写操作，Alert 要求重启 Switcher，不再要求用户刷新英文。
 - startup transaction recovery failed：所有 Cavalry mutation 阻断，底层错误不直接显示给用户。
 
 ## 4. 文案合同
 
-- 按钮只写用户目标：`Switch`、`切换`、`切換`、`切り替える` 与 `Restore`；不把 restart 实现塞入按钮。
+- Select 初始使用 `Choose a language / 选择语言 / 選擇語言 / 言語を選択` 占位文案，不把列表第一项伪装成用户选择；Switch 在选择前禁用。
+- 按钮只写用户目标：`Switch / 切换 / 切換 / 切り替える` 与 `Restore English / 恢复英文 / 還原英文 / 英語に戻す`；恢复按钮必须写明对象，但不把 restart 或平台事务实现塞入按钮。
 - Switch 不弹确认框；任务引言先写 `Preparing to switch to {language}…`，正文阶段说明恢复文件与切换进度。
 - Restore 确认标题直接问 `Restore Cavalry?`；正文说明恢复官方英文、移除翻译文件并重新打开 Cavalry。
 - 后端 restart phase 统一显示为“打开 Cavalry”；只有 Switcher 自身更新才继续使用“重启 Switcher”。
@@ -119,7 +120,7 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 
 1. **保留 Refresh 作为“高级功能”**：没有独立用户目标，只重复 Apply 的前置能力，增加状态分叉。
 2. **把按钮改成 Backup / Restore**：保存范围不是整个应用，`Backup` 会制造错误承诺。
-3. **保留 Restore English 和 Restore Official**：要求用户理解实现状态，两个结果在体感上高度重叠，且容易留下“英文但仍被管理”的中间态。
+3. **保留 Restore English 和 Restore Official 两个按钮**：要求用户理解实现状态，两个结果在体感上高度重叠，且容易留下“英文但仍被管理”的中间态。只保留一个名为 Restore English 的入口不属于该方案。
 4. **新造统一 Rust action 名称后再实现**：当前平台事务已存在且语义明确；只在 renderer 意图层统一，符合 KISS/YAGNI。
 5. **让主窗口滚动兜底**：紧凑桌面工具的主任务必须一屏完成；滚动会隐藏 Alert 或动作，掩盖窗口尺寸和文案失控。若列表选项过多，只允许 Select 弹层自身滚动。
 6. **保留 Switch 确认框**：语言切换可由 Restore 退出，且运行中 preflight 在写入前阻断；重复确认没有保护新增风险，只延迟主任务。
@@ -128,16 +129,16 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 
 ## 7. 当前验收清单
 
-- [x] renderer 不再查询 `extractButton` / `restoreEnglishButton` / `maintenanceHeading`；当前 renderer/bridge 合同 32/32 PASS。
+- [x] renderer 不再查询 `extractButton` / `restoreEnglishButton` / `maintenanceHeading`；当前 renderer/bridge 合同 36/36 PASS。
 - [x] `window.cavalryI18n` 和 Tauri command 注册表不再暴露独立 `extractEnglish` / `extract_english`；内部测试 seam 不属于 bridge/API。
-- [x] clean official + `needsExtract=true` 时 Apply 仍可点击并调用 `apply_language`；renderer/bridge 测试覆盖该路径。
+- [x] clean official + `needsExtract=true` 时 Select 仍可用；用户明确选择后 Switch 可点击并调用 `apply_language`，renderer/bridge 测试覆盖该路径。
 - [x] macOS Restore 调用 `restore-official`；Windows Restore 调用 `en`；renderer/bridge 测试覆盖两个映射。
-- [x] official English 且无 residue 时 Restore 禁用但不隐藏，布局不跳动；renderer/bridge 测试覆盖该状态。
-- [x] 四语主按钮已收敛为 `Switch / 切换 / 切換 / 切り替える`，点击不经过确认框而直接调用唯一 `apply_language` transaction；Restore/Updater/权限 AlertDialog 保留。
+- [x] official English 且无 residue 时 Restore English 禁用但不隐藏，布局不跳动；renderer/bridge 测试覆盖该状态。
+- [x] 四语主按钮已收敛为 `Switch / 切换 / 切換 / 切り替える` 与单一 `Restore English / 恢复英文 / 還原英文 / 英語に戻す`；Switch 点击不经过确认框而直接调用唯一 `apply_language` transaction，Restore/Updater/权限 AlertDialog 保留。
 - [x] 运行中 fail-before-mutation 仍由后端 `cavalryStillRunning` 路径守住；renderer 不增加独立 restart 调用或 pending restart 状态。
 - [x] Switch 准备、阶段、打开 Cavalry、成功和失败文案合同通过；内部 `restartCavalry` phase 不再直接暴露成用户“重启”文案。
 - [x] `html/body/.content` 不产生窗口滚动；Select 与 Activity Log 各自独立滚动；renderer contract 检查 CSS 边界。
-- [x] Node renderer/bridge 合同 32/32；全量 contracts 247/247 PASS。
+- [x] Node renderer/bridge 合同 36/36；全量 contracts 252/252 PASS。
 - [x] 按当前 `400×484` 工作树重新拉起 macOS native dev；AX/CGWindow 外框为 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 与加高后的 Activity。生产/原型无外框复核另确认 Activity `360×176`、12px padding、94px 中段。
 - [ ] 当前源码的 macOS package 与 ignored manual smoke；旧 `9766ee3` 的 `460×404` 只作历史且已失效。
 - [ ] Windows live：真机窗口、scaling、Snap、状态保留与 updater 跨版本验证。
@@ -146,7 +147,7 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 
 ```text
 mise x node@24.20.0 -- node --test tools/check_renderer_contract.js \
-  tools/check_tauri_bridge_runtime.js                             32/32 PASS
+  tools/check_tauri_bridge_runtime.js                             36/36 PASS
 cargo test --manifest-path src-tauri/Cargo.toml \
   --test command_contract                                             6/6 PASS
 cargo test --manifest-path src-tauri/Cargo.toml \
@@ -156,7 +157,7 @@ cargo test --manifest-path src-tauri/Cargo.toml \
 cargo test --manifest-path src-tauri/Cargo.toml \
   --lib detect::tests                                             5/5 PASS
 cargo check --manifest-path src-tauri/Cargo.toml                      PASS
-mise x node@24.20.0 -- npm run test:contracts                    247/247 PASS
+mise x node@24.20.0 -- npm run test:contracts                    252/252 PASS
 cargo test --manifest-path src-tauri/Cargo.toml                  242 PASS / 2 explicit live-artifact tests ignored
 current native Tauri dev AX / CGWindow                            400×485 outer; config 400×484; `/tmp/cavalry-native-400x484.png`
 ```

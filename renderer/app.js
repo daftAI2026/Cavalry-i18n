@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖冻结 bridge、有序阶段事件、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、三轨 Activity、语言/Official Badge、直接 Switch、统一 Restore、必要 AlertDialog、Updater 与不污染任务流的 About 失败 Toast。
- * [POS]: renderer 唯一业务交互源；持久事实进入 Activity，必须决策的风险进入 AlertDialog，独立低频操作失败进入 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、显式目标语言选择、三轨 Activity、语言/Official Badge、直接 Switch、单一 Restore English、必要 AlertDialog、Updater 与不污染任务流的 About 失败 Toast。
+ * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，持久事实进入 Activity，必须决策的风险进入 AlertDialog，独立低频操作失败进入 Toast。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -48,6 +48,7 @@ const languageSelectControl = window.createSelectControl({
   value: languageSelectValue,
   popup: languageSelectPopup,
   list: languageSelectList,
+  onValueChange: () => setBusy(state.busy),
 });
 const operationLog = window.createOperationLog({
   root: statusPanel, idleMessage: document.querySelector('#statusIdle'),
@@ -289,6 +290,7 @@ function setBusy(isBusy) {
     notReady ||
     isBusy ||
     !state.appPath ||
+    !languageSelect.value ||
     reinstallRequired ||
     state.controlsBlocked ||
     durabilityPending;
@@ -333,6 +335,7 @@ function localizeShell() {
   languageSectionLabel.setAttribute('aria-label', t('switchTo'));
   currentLabel.textContent = t('current');
   switchToLabel.textContent = t('switchTo');
+  languageSelectControl.setPlaceholder(t('chooseLanguage'));
   browseButton.setAttribute('aria-label', t('chooseAppAria'));
   restoreButton.textContent = t('restore');
   restoreButton.setAttribute('aria-label', t('restore'));
@@ -567,10 +570,7 @@ async function bootstrap({ renderActivity = true } = {}) {
   windowControls.setPlatform(state.platform);
 
   updateLanguageOptions(state.languages);
-  const firstTargetLanguage = state.languages.find((language) => language.value !== 'en');
-  languageSelectControl.setValue(
-    state.currentLang === 'en' ? firstTargetLanguage?.value || '' : state.currentLang
-  );
+  languageSelectControl.setValue('');
   currentLanguage.textContent = languageLabel(state.currentLang);
   setPermissionWait(false);
 

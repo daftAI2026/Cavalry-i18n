@@ -63,7 +63,7 @@ button {
 
 .badge {
   font-size: var(--type-label);
-  font-weight: var(--weight-regular);
+  font-weight: var(--weight-heading);
   line-height: var(--line-height-label);
   font-synthesis: none;
 }
@@ -426,6 +426,10 @@ button {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.select-value[data-placeholder="true"] {
+  color: var(--text-secondary);
 }
 
 .select-popup {

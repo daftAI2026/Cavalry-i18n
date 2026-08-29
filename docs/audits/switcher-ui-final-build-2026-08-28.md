@@ -53,7 +53,7 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 | --- | --- | --- |
 | Heading | `16px / 450`；独立 Dialog 标题按组件语义可用 `500` | 窗口标题、Cavalry 安装名称、AlertDialog 标题 |
 | Body | `14px / 400` 或 `500` | Section 标题、Select、动作、AlertDialog 正文与任务事件标题 |
-| Meta | `13px / 400` 或 `500` | 路径、徽章、Tooltip、任务说明与辅助文本；徽章依靠文字、填充色和胶囊形状表达类别 |
+| Meta | `13px / 400`；徽章使用 `450`，必要强调可用 `500` | 路径、徽章、Tooltip、任务说明与辅助文本；小尺寸徽章提升一级字重保证可读性，仍依靠文字、填充色和胶囊形状共同表达类别 |
 
 不再使用 `10/12px`、`600` 或其他临时中间级别。字体继续使用平台系统栈而非引入 Geist：`design.md` 的报告网站品牌合同要求 Geist，但本项目是离线原生工具，应遵循其“角色一致、对等元素同规格、强调稀缺”的排印原则，而不是照搬报告品牌字体或远程资源。[Vercel design.md](https://vercel.com/design.md)
 
@@ -65,11 +65,11 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 
 当前实现用 Grid 固定主窗口的复合轨道，并让任务事件视窗成为 `minmax(0, 1fr)`；`operation-log.css` 再以 Flex 管每条 Marker。`html/body/.content` 禁止窗口级滚动，Select 列表和事件视窗只在自身边界内滚动。业务分割线不承担层级，层级由留白与边界 token 表达。
 
-当前语言徽章是说明性类别元数据，不是信任状态。`design.md` 要求先以单色建立层级，只有颜色增加状态、动作或数据信息时才使用；Geist Badge 又明确把 blue 定义为 informational，因此四种语言统一使用 `blue-subtle`。gray 在语义上同样成立，但当前界面的路径、禁用控件、次级文字与边框已经大量使用灰阶，语言徽章继续用 gray 会退成背景噪声；紫色则制造无来源的分类强调。green 继续只属于验证通过的 Official 与更新动作，amber/red 保留给警告/错误。对照 shadcn Badge variant 后，blue/green 填充变体使用透明边界，不再额外绘制同色描边；基础 gray/outline 变体仍可保留可见边线。透明 `1px` 只维持既有 20px 盒模型，不形成视觉描边。Switcher 的 pending journal 或启动恢复失败不是 Cavalry 本体状态，不进入安装徽章，只通过事件视窗、独立 AlertDialog、操作锁和恢复路径表达。两枚徽章即使相邻也不会混写维度，且文字仍是颜色之外的必要语义线索。[Vercel design.md](https://vercel.com/design.md) [Geist Badge](https://vercel.com/geist/badge) [Geist Colors](https://vercel.com/geist/colors)
+当前语言徽章是说明性类别元数据，不是信任状态。`design.md` 只提供“颜色必须增加语义”的上位原则，并不直接发布本项目使用的 Badge HEX；具体角色来自 Geist Badge/Colors：四种语言统一投影 informational `blue-subtle`，Official 投影 `green-subtle`，再由 `tokens.css` 固化为本项目 `--badge-language-*` / `--badge-green-*` 语义 token。gray 在语义上同样成立，但当前界面的路径、禁用控件、次级文字与边框已经大量使用灰阶，语言徽章继续用 gray 会退成背景噪声；紫色则制造无来源的分类强调。green 继续只属于验证通过的 Official 与更新动作，amber/red 保留给警告/错误。对照 shadcn Badge variant 后，blue/green 填充变体使用透明边界，不再额外绘制同色描边；基础 gray/outline 变体仍可保留可见边线。透明 `1px` 只维持既有 20px 盒模型，不形成视觉描边。Badge 文字颜色使用不带 alpha 的实色，并以 `13px / 450` 提升小尺寸可读性；不能通过透明度制造弱层级。Switcher 的 pending journal 或启动恢复失败不是 Cavalry 本体状态，不进入安装徽章，只通过事件视窗、独立 AlertDialog、操作锁和恢复路径表达。两枚徽章即使相邻也不会混写维度，且文字仍是颜色之外的必要语义线索。[Vercel design.md](https://vercel.com/design.md) [Geist Badge](https://vercel.com/geist/badge) [Geist Colors](https://vercel.com/geist/colors)
 
 ### 2.1 Select 源码对齐
 
-Select 不引入 React、Base UI、shadcn、Tailwind 或 CDN。实现只借鉴 shadcn Base Nova 的语义结构与状态边界：Trigger、Popup、Item、selected indicator 分层，`open/active/selected` 不混用；项目自身几何由 `tokens.css` 约束为 `36px` 控件高度、`14px` 文字、`8px` 内容关系和 `16px` chevron。源码特有的 Item 高度、指示器位置和弹层 padding 也只能通过 Select token 表达，不能在业务脚本中散落偏移。
+Select 不引入 React、Base UI、shadcn、Tailwind 或 CDN。实现只借鉴 shadcn Base Nova 的语义结构与状态边界：Trigger、Popup、Item、selected indicator 分层，`placeholder/open/active/selected` 不混用；项目自身几何由 `tokens.css` 约束为 `36px` 控件高度、`14px` 文字、`8px` 内容关系和 `16px` chevron。初始状态显示本地化占位文案，不暗中选择第一种语言；只有用户明确 commit 选项后才启用 Switch。源码特有的 Item 高度、指示器位置和弹层 padding 也只能通过 Select token 表达，不能在业务脚本中散落偏移。
 
 Base UI 默认 `alignItemWithTrigger=true` 不是“菜单固定出现在控件下方”。`select-control.js` 在 Popup 显示后读取 Trigger 与选中 Item 的真实 layout box，推导 Popup top，使两者视觉中心重合；不为不同字体和语言硬编码偏移。键盘、typeahead、指针高亮、selected 与 active 状态仍保持分离，列表只在自己的 max-height 内滚动。[shadcn Base UI Select](https://ui.shadcn.com/docs/components/base/select)
 

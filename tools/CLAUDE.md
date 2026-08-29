@@ -7,8 +7,10 @@ windows-acceptance/: Windows x64 Cavalry 2.7.2 release acceptance contract/produ
 check_app_contracts.js: Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS/Windows Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙与 Guide 固定 `en` 加载槽位，不承载现场证据编排。
 check_renderer_contract.js: Renderer 静态合同，冻结 token 单向依赖、平台 chrome、Grid/Flex、Activity/Select/Tooltip/AlertDialog/Toast、无描边彩色 Badge、Phosphor 图标、固定外链与 400×484 capability；Toast 另锁定 Base UI 默认值和 Activity 隔离。
 check_operation_log_runtime.js: 任务反馈专属运行时合同，以最小 DOM/时钟执行真实 icons/operation-log 源，隔离验证 Marker 稳定原位更新、live-edge、首尾固定轨道改变中段高度后的溢出与起止边缘回算、快事件可读串行、结果排队和错误立即抢占，不重复 bridge 业务 fixture。
-check_tauri_bridge_runtime.js: Tauri bridge fake-DOM 运行合同，执行真实组件和 app 源；覆盖主任务/Updater/About/窗口控件，并证明 About/外链失败进入局部 Toast 而不覆盖 Activity。
-ui_review_server.js: localhost UI Review 工作台；每次请求直接读取真实 renderer/index.html 与 CSS/JS，只在 frozen bridge 前注入 fake API，以场景 fixture 驱动官方/翻译/重装及 Switch/Restore/Update/错误流程，源码变化自动刷新 iframe，不维护第二套产品 DOM/CSS。
+check_tauri_bridge_runtime.js: Tauri bridge fake-DOM 运行合同，执行真实组件和 app 源；覆盖 Select 占位与显式选择、主任务/Updater/About/窗口控件，并证明 About/外链失败进入局部 Toast 而不覆盖 Activity。
+ui_review_workspace.js: localhost UI Review 的纯导航壳；以一个侧栏切换真实主窗口/About 的成功、阻塞、警告、失败场景与反馈/图标/徽章总览，只持有 iframe 尺寸、locale/scenario query 和 revision 刷新，不复制产品 DOM/CSS/文案或图标。
+ui_review_server.js: localhost UI Review 编排入口；每次请求直接读取真实 renderer 主窗口/About 与动态生产目录，只在 frozen bridge 前注入 fake API，以场景 fixture 驱动未找到/官方/翻译/重装/恢复失败、更新可用 Tooltip、AlertDialog、Toast 及 Switch/Restore English/Update 成功和失败流程，源码变化自动刷新 iframe。
+ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles/ui-text/icons 读取并投影四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试；除跨平台发布、updater 资产、tag preflight、macOS/Windows 打包门外，冻结 SOP/配置同构的 400×484 固定最小窗口、主窗口无滚动而 Select/任务事件视窗可内部滚动、macOS decorations/Overlay/hiddenTitle 原生窗口合同与显式标题拖动 capability。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer 关键 shell/语义图标/任务事件/Updater 投影、languages、同次平台构建 injector 的哈希同一性与 Qt ABI、ad-hoc bundle seal 及 bundle size report。
 windows_nsis_provenance.js: Windows x64 NSIS 当前输入自证器；schema v2 intent 区分普通构建与 tag updater 构建，前者拒绝任意 `.exe.sig`，后者要求并绑定 exact base64 signature；只清本版本受控 EXE/provenance/signature，拒绝外国输出，并对 renderer/languages/Tauri/updater overlay/Rust/native/shared policy/generated table/generic/QPA 复算 fingerprint。

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast；覆盖 Toast 的 Base UI 默认值、暂停/恢复、三条上限及 Activity 隔离。
+ * [OUTPUT]: 验证 bridge、Select 显式占位/选择、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast；覆盖 Toast 的 Base UI 默认值、暂停/恢复、三条上限及 Activity 隔离。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -142,6 +142,10 @@ function runtime({
 async function flush() { await Promise.resolve(); await new Promise((resolve) => setImmediate(resolve)); await Promise.resolve(); }
 
 function dispatch(element, type, event = {}) { for (const listener of element.listeners.get(type) || []) listener(event); }
+function chooseLanguage(runtimeState, index = 0) {
+  dispatch(runtimeState.elements['#languageSelectTrigger'], 'click');
+  dispatch(runtimeState.elements['#languageSelectList'].children[index], 'click');
+}
 function boot(options) {
   const r = runtime(options);
   vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
@@ -250,11 +254,13 @@ test('custom language select keeps Base UI open, active, selected, and keyboard 
   });
 
   assert.equal(trigger.disabled, false);
-  assert.equal(r.elements['#languageSelectValue'].textContent, '简体中文');
+  assert.equal(r.elements['#languageSelectValue'].textContent, 'Choose a language');
+  assert.equal(r.elements['#languageSelectValue'].dataset.placeholder, 'true');
+  assert.equal(r.elements['#applyButton'].disabled, true);
   trigger.listeners.get('click')[0]();
   assert.equal(trigger.attributes.get('aria-expanded'), 'true');
   assert.equal(popup.hidden, false);
-  assert.equal(list.children[0].attributes.get('aria-selected'), 'true');
+  assert.equal(list.children[0].attributes.get('aria-selected'), 'false');
 
   trigger.listeners.get('keydown')[0](key('ArrowDown'));
   assert.equal(trigger.attributes.get('aria-activedescendant'), 'languageSelectOption-1');
@@ -326,8 +332,8 @@ test('project links keep fixed bridge ids and report browser failure inside the 
 
 test('idle task viewport centers one localized prompt without creating event rows', async () => {
   for (const [locale, label, prompt] of [
-    ['zh-CN', '任务进度', '这次想做什么？'],
-    ['zh-TW', '任務進度', '這次想做什麼？'],
+    ['zh-CN', '任务进度', '这次你想做什么？'],
+    ['zh-TW', '任務進度', '這次你想做什麼？'],
     ['ja-JP', 'タスクの進行状況', '今回は何をしますか？'],
   ]) {
     const r = boot({ locale });
@@ -570,8 +576,10 @@ test('bootstrap keeps mutation controls disabled until status is ready', async (
   });
   await flush();
   assert.equal(r.elements['#browseButton'].disabled, false);
-  assert.equal(r.elements['#applyButton'].disabled, false);
+  assert.equal(r.elements['#applyButton'].disabled, true);
   assert.equal(r.elements['#languageSelect'].disabled, false);
+  chooseLanguage(r);
+  assert.equal(r.elements['#applyButton'].disabled, false);
 });
 
 test('Restore AlertDialog requires an explicit action, blocks Escape dismissal, and restores focus', async () => {
@@ -598,12 +606,12 @@ test('single Restore maps to the platform transaction and remains visible when n
     status: { platform: 'macos', currentLang: 'zh-Hans', installationMode: 'modifiedOrUnverified' },
   });
   await flush();
-  assert.equal(macos.elements['#restoreButton'].textContent, 'Restore');
+  assert.equal(macos.elements['#restoreButton'].textContent, 'Restore English');
   assert.equal(macos.elements['#restoreButton'].hidden, false);
   assert.equal(macos.elements['#restoreButton'].disabled, false);
   macos.elements['#restoreButton'].listeners.get('click')[0]();
   assert.equal(macos.elements['#modalTitle'].textContent, 'Restore Cavalry?');
-  assert.equal(macos.elements['#modalPrimaryButton'].textContent, 'Restore');
+  assert.equal(macos.elements['#modalPrimaryButton'].textContent, 'Restore English');
   macos.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(macos.calls.filter(({ command }) => command === 'apply_language')[0])), {
@@ -641,6 +649,7 @@ test('clean official macOS install with needsExtract allows Apply to establish i
     apply: { ok: true, currentLang: 'zh-Hans' },
   });
   await flush();
+  chooseLanguage(r);
   assert.equal(r.elements['#applyButton'].disabled, false);
   assert.equal(r.elements['#restoreButton'].disabled, true);
   r.elements['#applyButton'].listeners.get('click')[0]();
@@ -661,6 +670,7 @@ test('clean official macOS install with needsExtract allows Apply to establish i
 
 test('apply invokes exactly one backend transaction and never exposes a second restart call', async () => {
   const r = boot(); await flush();
+  chooseLanguage(r);
   r.elements['#applyButton'].listeners.get('click')[0]();
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
@@ -677,7 +687,7 @@ test('Windows englishRestoreNeeded residue is actionable through Restore despite
   await flush();
   assert.equal(r.elements['#installationBadge'].hidden, true, 'macOS-only installation trust badge stays hidden on Windows');
   assert.equal(r.elements['#restoreButton'].disabled, false, 'Windows residue may restore without a baseline snapshot');
-  assert.equal(r.elements['#applyButton'].disabled, false);
+  assert.equal(r.elements['#applyButton'].disabled, true, 'Restore remains actionable without silently choosing a new target language');
   assert.equal(activityTitle(r), 'Restore Cavalry to finish cleanup');
   assert.match(activityText(r), /previous Windows language setup/i);
   r.elements['#restoreButton'].listeners.get('click')[0]();
@@ -722,8 +732,9 @@ test('permission AlertDialog exposes the recovery action and preserves Apply/Res
     apply: r.elements['#applyButton'].textContent,
     restore: r.elements['#restoreButton'].textContent,
   };
-  assert.deepEqual(labels, { apply: 'Switch', restore: 'Restore' });
+  assert.deepEqual(labels, { apply: 'Switch', restore: 'Restore English' });
 
+  chooseLanguage(r);
   r.elements['#applyButton'].listeners.get('click')[0]();
   await flush();
 
@@ -791,6 +802,7 @@ test('apply composes localized warning codes and never renders backend warning p
     },
   });
   await flush();
+  chooseLanguage(r);
   r.elements['#applyButton'].listeners.get('click')[0]();
   await flush();
   assert.equal(r.elements['#statusPanel'].dataset.state, 'warning');
@@ -810,6 +822,7 @@ test('state durability warning blocks mutations and requires a Switcher restart'
   });
   await flush();
 
+  chooseLanguage(r);
   r.elements['#applyButton'].listeners.get('click')[0]();
   await flush();
   assert.equal(r.elements['#statusPanel'].dataset.state, 'warning');

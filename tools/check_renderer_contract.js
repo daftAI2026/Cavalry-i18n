@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、组件状态、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；工作台必须实时消费生产 renderer，禁止复制产品 DOM/CSS、魔法视觉常量、重复反馈和旧 Recovery 残留。
+ * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录、来源通知、窗口配置与冻结 bridge API。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、显式 Select 占位、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；工作台必须实时消费生产 renderer，禁止复制产品 DOM/CSS、魔法视觉常量、重复反馈和旧 Recovery 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,6 +15,11 @@ const {
   renderReviewDocument,
   workspaceHtml,
 } = require('./ui_review_server');
+const {
+  badgeCatalogHtml,
+  feedbackCatalogHtml,
+  iconCatalogHtml,
+} = require('./ui_review_catalogs');
 
 const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
@@ -52,6 +57,8 @@ function sourceStatement(source, marker) {
 test('UI Review renders the exact production shell and replaces only the data bridge', () => {
   const production = read('renderer/index.html');
   const review = renderReviewDocument();
+  const aboutProduction = read('renderer/about.html');
+  const aboutReview = renderReviewDocument('about.html');
   const workspace = workspaceHtml();
   const fixture = fixtureSource();
   const normalized = review
@@ -59,15 +66,40 @@ test('UI Review renders the exact production shell and replaces only the data br
     .replace('<script src="/fixture.js"></script>\n  ', '');
 
   assert.equal(normalized, production, 'review app may inject a base and fixture bridge, but may not copy or edit production UI');
+  assert.equal(
+    aboutReview.replace('\n  <base href="/renderer/" />', '').replace('<script src="/fixture.js"></script>\n  ', ''),
+    aboutProduction,
+    'review About may inject a base and fixture bridge, but may not copy or edit production UI'
+  );
   assert.match(review, /<script src="\/fixture\.js"><\/script>\s*<script src="\.\/tauri-bridge\.js"><\/script>/);
   assert.match(workspace, /<iframe id="reviewFrame"[^>]*><\/iframe>/);
+  assert.match(workspace, /data-scenario="updateAvailable"[^>]*><span>更新可用 · Tooltip<\/span>/);
+  for (const view of ['feedback', 'icons', 'badges']) {
+    assert.match(workspace, new RegExp(`data-view="${view}"`));
+    assert.match(workspace, new RegExp(`${view}: '/catalog/${view}'`));
+  }
   assert.doesNotMatch(workspace, /id="(?:appVersion|currentLanguage|statusPanel|languageSelectRoot)"/);
   assert.doesNotMatch(workspace, /class="(?:badge|status-panel|toast)"/);
   assert.match(workspace, /fetch\('\/revision'/);
   assert.match(fixture, /window\.cavalryI18n = Object\.freeze/);
+  assert.match(fixture, /\['updateAvailable', 'updateConfirm', 'update', 'updateFailure'\]\.includes\(scenario\)/);
+  assert.match(fixture, /scenario === 'permissionMac' \? 'openPrivacy' : 'none'/);
+  assert.match(fixture, /installationMode: windowsScenario[\s\S]*?\? 'unknown'/);
   assert.match(fixture, /\['verifyInstallation', 'ensureBaseline', 'applyTransaction', 'restartCavalry'\]/);
   assert.match(fixture, /onEvent\(\{ phase: 'downloading', downloaded, contentLength: total \}\)/);
   assert.doesNotMatch(fixture, /<main|<header|class="badge"|class="status-panel"/, 'fixture owns data only, never product markup');
+
+  const feedbackCatalog = feedbackCatalogHtml();
+  const iconCatalog = iconCatalogHtml();
+  const badgeCatalog = badgeCatalogHtml();
+  for (const catalog of [feedbackCatalog, iconCatalog, badgeCatalog]) {
+    assert.match(catalog, /\/renderer\/tokens\.css/);
+    assert.match(catalog, /\/renderer\/styles\.css/);
+  }
+  assert.match(feedbackCatalog, /\/renderer\/ui-text\.js/);
+  assert.match(iconCatalog, /\/renderer\/icons\.js/);
+  assert.match(badgeCatalog, /\/renderer\/ui-text\.js/);
+  assert.doesNotMatch(iconCatalog, /<path\s+d=/, 'icon catalog must use the production icon factory rather than copied paths');
 });
 
 function cssRule(source, selector) {
@@ -332,9 +364,10 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.doesNotMatch(selectFocusBlock, /outline:|box-shadow:/, 'select must not draw a focus ring');
   assert.match(html, /<section class="language-section" aria-labelledby="languageSectionLabel">/);
   assert.match(html, /id="languageSelectTrigger"[^>]*role="combobox"[^>]*aria-haspopup="listbox"[^>]*aria-expanded="false"/);
+  assert.match(html, /id="languageSelectValue"[^>]*data-placeholder="true"[^>]*>Choose a language<\/span>/);
   assert.match(html, /class="select-chevron"[^>]*>[\s\S]*?<svg[^>]*viewBox="0 0 24 24"[\s\S]*?<path d="m6 9 6 6 6-6"><\/path>/);
   assert.match(html, /id="languageSelectList"[^>]*role="listbox"/);
-  assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[^>]*>Switch<\/button>[\s\S]*?id="restoreButton"/);
+  assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[^>]*>Switch<\/button>[\s\S]*?id="restoreButton"[^>]*>Restore English<\/button>/);
   assert.match(html, /<dialog id="modalBackdrop"[^>]*role="alertdialog"[^>]*aria-modal="true"[^>]*aria-labelledby="modalTitle"[^>]*aria-describedby="modalBody">/);
   assert.match(html, /id="statusPanel"[^>]*aria-labelledby="statusLabel"/);
   assert.match(html, /id="statusLabel"[\s\S]*?id="statusIdle"[\s\S]*?id="statusIntro"[^>]*hidden[\s\S]*?id="statusViewport"[\s\S]*?id="statusText"[^>]*role="log"[^>]*aria-live="polite"[\s\S]*?id="statusOutcome"[^>]*role="status"[^>]*aria-live="polite"[^>]*hidden[\s\S]*?id="permissionButton"/, 'idle, fixed intro, bounded live log, fixed outcome, and recovery action must remain in source order');
@@ -359,6 +392,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--select-indicator-size:\s*16px/);
   assert.match(styles, /\.select-popup\s*\{[\s\S]*?border:\s*0;[\s\S]*?border-radius:\s*var\(--radius-select-popup\)[\s\S]*?box-shadow:\s*var\(--shadow-select-popup\)/);
   assert.match(selectControl, /function alignPopupToSelectedItem\(selected\)[\s\S]*?getBoundingClientRect\(\)[\s\S]*?alignedTop/);
+  assert.match(selectControl, /root\.dataset\.placeholder = String\(!hasSelection\)/);
+  assert.match(selectControl, /select\.value = options\.some\([\s\S]*?\? previousValue : '';/);
   assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');
   assert.match(html, /id="aboutControl"[^>]*data-tooltip-state="closed"[^>]*hidden/);
   assert.match(aboutControl, /createAboutControl/);
@@ -457,7 +492,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.doesNotMatch(styles, /\.installation-heading\s*\{[^}]*min-height:/, 'installation typography must size its parent without a duplicate height constraint');
   assert.match(styles, /\.installation-name\s*\{[\s\S]*?line-height:\s*var\(--line-height-compact\)/);
   assert.match(styles, /\.skip-link,\s*\.tooltip,\s*\.app-path\s*\{[\s\S]*?font-size:\s*var\(--type-metadata\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-metadata\)[\s\S]*?font-synthesis:\s*none/);
-  assert.match(styles, /\.badge\s*\{[\s\S]*?font-size:\s*var\(--type-label\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-label\)/);
+  assert.match(styles, /\.badge\s*\{[\s\S]*?font-size:\s*var\(--type-label\)[\s\S]*?font-weight:\s*var\(--weight-heading\)[\s\S]*?line-height:\s*var\(--line-height-label\)/);
   assert.match(styles, /\.app-path\s*\{[\s\S]*?margin:\s*var\(--gap-meta-stack\)\s+0\s+0/);
   assert.match(styles, /\.badge\s*\{[\s\S]*?min-height:\s*var\(--badge-height\)[\s\S]*?padding:\s*0 var\(--badge-padding-inline\)[\s\S]*?border-radius:\s*var\(--radius-pill\)/);
   assert.match(tokens, /--badge-language-bg:\s*#edf6ff/);
@@ -732,6 +767,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(app, /browseButton\.disabled[\s\S]*durabilityPending/);
   const setBusyFunction = sourceFunction(app, 'function setBusy(isBusy) {', 'function updateLanguageOptions');
   const applyDisabledStatement = sourceStatement(setBusyFunction, 'applyButton.disabled =');
+  assert.match(applyDisabledStatement, /!languageSelect\.value/, 'Switch must require an explicit target-language choice');
   assert.match(applyDisabledStatement, /reinstallRequired[\s\S]*state\.controlsBlocked[\s\S]*durabilityPending;/);
   assert.doesNotMatch(
     applyDisabledStatement,
@@ -762,6 +798,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     /const runtimeResidueDetected =\s*state\.platform === 'windows' && bootstrapState\.reconciliationRequired === true;/
   );
   assert.match(bootstrapFunction, /state\.englishRestoreNeeded = runtimeResidueDetected;/);
+  assert.match(bootstrapFunction, /languageSelectControl\.setValue\(''\)/, 'bootstrap must not silently preselect a target language');
   const permissionWaitFunction = sourceFunction(
     app,
     'function showPermissionWait(nextLanguage) {',
