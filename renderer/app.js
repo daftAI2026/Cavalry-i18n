@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 window.cavalryI18n 的 Promise/有序阶段事件 API、window.createOperationLog/window.createUpdateProgress/window.createSelectControl/window.createTooltipControl/window.createPathDisplay/window.createAboutControl/window.createWindowControls 的独立状态机与语义投影、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/单任务流/有界三轨任务视窗与阶段专属语义图标、初始化 fail-closed 门禁、语言/安装状态双 Badge 语义、受控语言选择、平台统一 Restore、AlertDialog 确认、About、更新 tooltip/无障碍通知与签名冷更新交互；首次 Apply 由后端在写事务前自动建立恢复基线，loopback 开发预览只点亮更新入口且不访问网络。
+ * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/单任务流/有界三轨任务视窗与阶段专属语义图标、初始化 fail-closed 门禁、Cavalry 当前语言 Badge 与仅在验证通过时出现的 Official Badge、受控语言选择、平台统一 Restore、AlertDialog 确认、About、更新 tooltip/无障碍通知与签名冷更新交互；首次 Apply 由后端在写事务前自动建立恢复基线，loopback 开发预览只点亮更新入口且不访问网络。
  * [POS]: renderer 的唯一业务交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实后端事件压缩为面向用户的任务阶段，不暴露内部函数名、不虚构结果；持久阻塞留在事件视窗，只有必须立即选择的确认与权限动作进入 AlertDialog，About 由独立 native window owner 管理。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -304,9 +304,9 @@ function updateLanguageOptions(languages) {
 
 function languageLabel(code) {
   if (code === 'restore-official') return t('restore');
-  if (code === 'en') return t('englishUi');
   const match = state.languages.find((language) => language.value === code);
-  return match ? match.label : code;
+  if (match) return match.label;
+  return code === 'en' ? 'English' : code;
 }
 
 function localizeShell() {
@@ -336,17 +336,6 @@ function localizeShell() {
   setPermissionWait(false);
 }
 
-function installationBadgeText(mode) {
-  if (mode === 'official') return t('officialBadge');
-  if (state.currentLang !== 'en') return t('translatedBadge');
-  return t('modifiedBadge');
-}
-
-function installationBadgeState(mode) {
-  if (mode === 'official') return mode;
-  return state.currentLang === 'en' ? 'modified' : 'translated';
-}
-
 function syncInstallationBadges() {
   const visualState = state.appPath ? state.installationMode : 'unknown';
   const language = languageLabel(state.currentLang);
@@ -354,14 +343,19 @@ function syncInstallationBadges() {
   const showInstallation =
     state.platform === 'macos' &&
     Boolean(state.appPath) &&
-    visualState !== 'recoveryRequired';
+    visualState === 'official';
   currentLanguage.setAttribute('aria-label', `${t('current')}: ${language}`);
   currentLanguage.title = language;
   installationBadge.hidden = !showInstallation;
-  installationBadge.dataset.state = installationBadgeState(visualState);
-  installationBadge.textContent = showInstallation ? installationBadgeText(visualState) : '';
-  installationBadge.setAttribute('aria-label', installation || installationBadge.textContent);
-  installationBadge.title = installation;
+  installationBadge.dataset.state = showInstallation ? 'official' : 'unknown';
+  installationBadge.textContent = showInstallation ? t('officialBadge') : '';
+  if (showInstallation) {
+    installationBadge.setAttribute('aria-label', installation || installationBadge.textContent);
+    installationBadge.title = installation;
+  } else {
+    installationBadge.removeAttribute('aria-label');
+    installationBadge.removeAttribute('title');
+  }
 }
 
 function showUpdatePreview() {

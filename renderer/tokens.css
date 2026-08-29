@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印角色、字重与 4px 间距序列，依赖 macOS AppKit 与 Windows DWM 的原生窗口几何及平台系统字体策略
- * [OUTPUT]: 对外提供类别/状态徽章色、13px 可读下限排印、4px 节奏、窗口 Chrome、控件几何、shadcn Base Nova Tooltip/Select/AlertDialog/Marker、紧凑 8px scroll-fade、shimmer 与任务事件可读节奏的单一语义 token 真相源
+ * [OUTPUT]: 对外提供语言类别与验证通过的 Official 徽章色、13px 可读下限排印、4px 节奏、窗口 Chrome、控件几何、shadcn Base Nova Tooltip/Select/AlertDialog/Marker、紧凑 8px scroll-fade、shimmer 与任务事件可读节奏的单一语义 token 真相源
  * [POS]: renderer 视觉系统的基础层；styles.css 与 window-controls.css 只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -42,15 +42,9 @@
   --badge-language-bg: #f9f1fe;
   --badge-language-border: #eddcf9;
   --badge-language-text: #7820bc;
-  --badge-blue-bg: #edf6ff;
-  --badge-blue-border: #b7d9f7;
-  --badge-blue-text: #0068d6;
   --badge-green-bg: #edf9f0;
   --badge-green-border: #b7dfc2;
   --badge-green-text: #18794e;
-  --badge-amber-bg: #fff7e6;
-  --badge-amber-border: #f0cf92;
-  --badge-amber-text: #8a5700;
   /* ---------- 排印角色：Vercel 发布角色的紧凑桌面子集 ---------- */
   --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
   --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;

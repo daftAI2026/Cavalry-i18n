@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token/图标表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、中部省略路径、单一 Phosphor 图标注册表、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、双徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、权限按钮可见时才创建的条件轨道、中部省略路径、单一 Phosphor 图标注册表、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、Cavalry 当前语言及条件式 Official 徽章、独立 About 页面与固定项目外链、脱敏 Updater Channel、AlertDialog，以及全宽 Select + Apply/Restore 单任务流；禁止隐藏轨道残留伪间距、组合状态徽章、窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -175,6 +175,14 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(selectListRule, /overflow-y:\s*auto;/, 'the Select list must own its bounded scroll');
   assert.doesNotMatch(selectListRule, /overflow:\s*hidden;/, 'Select list scrolling must not be clipped');
   const statusPanelRule = cssRule(operationStyles, '.status-panel');
+  const statusPanelWithPermissionRule = cssRule(
+    operationStyles,
+    '.status-panel:has(> .permission-button:not([hidden]))'
+  );
+  assert.match(statusPanelRule, /grid-template-rows:\s*minmax\(0,\s*1fr\);/);
+  assert.match(statusPanelRule, /gap:\s*0;/, 'a hidden permission row must not retain a grid gap');
+  assert.match(statusPanelWithPermissionRule, /grid-template-rows:\s*minmax\(0,\s*1fr\) auto;/);
+  assert.match(statusPanelWithPermissionRule, /gap:\s*var\(--operation-group-gap\);/);
   assert.match(statusPanelRule, /padding:\s*var\(--padding-panel\);/);
   assert.match(statusPanelRule, /border:\s*var\(--stroke-hairline\) solid var\(--border\);/);
   assert.match(statusPanelRule, /border-radius:\s*var\(--radius-lg\);/);
@@ -376,7 +384,10 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--badge-language-bg:\s*#f9f1fe/);
   assert.match(tokens, /--badge-language-border:\s*#eddcf9/);
   assert.match(tokens, /--badge-language-text:\s*#7820bc/);
+  assert.match(tokens, /--badge-green-bg:\s*#edf9f0/);
   assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-language-border\)[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
+  assert.match(styles, /\.badge\[data-state="official"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-green-border\)[\s\S]*?background:\s*var\(--badge-green-bg\)[\s\S]*?color:\s*var\(--badge-green-text\)/);
+  assert.doesNotMatch(styles, /\.badge\[data-state="(?:translated|modified)"\]/);
   assert.match(styles, /\.installation-item\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
   assert.match(operationStyles, /\.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\)/);
   assert.match(operationStyles, /\.status-panel\[data-mode="running"\] \.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\)/);
@@ -452,6 +463,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
 test('renderer builds language options safely and bridge API is frozen/minimal', () => {
   const html = read('renderer/index.html');
   const app = read('renderer/app.js');
+  const uiText = read('renderer/ui-text.js');
   const selectControl = read('renderer/select-control.js');
   const bridge = read('renderer/tauri-bridge.js');
   assert.doesNotMatch(app, /\.innerHTML\s*=/, 'renderer must not interpolate backend data as HTML');
@@ -477,8 +489,11 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /operationLog\.idle\(\)/);
   assert.match(app, /operationLog\.replace\(\{/);
   assert.match(app, /operationLog\.upsert\(operationPhaseCopy\(event, context\)\)/);
-  assert.match(app, /installationBadge\.dataset\.state = installationBadgeState\(visualState\)/);
-  assert.match(app, /state\.currentLang !== 'en'\) return t\('translatedBadge'\)/);
+  assert.match(app, /visualState === 'official'/);
+  assert.match(app, /installationBadge\.dataset\.state = showInstallation \? 'official' : 'unknown'/);
+  assert.doesNotMatch(app, /translatedBadge|modifiedBadge|installationBadgeState/);
+  assert.match(app, /return code === 'en' \? 'English' : code/);
+  assert.doesNotMatch(uiText, /englishUi:/, 'English is a stable Cavalry language identity, not localized shell copy');
   assert.match(html, /id="currentLanguage"[^>]*data-kind="language"[\s\S]*id="installationBadge"[^>]*data-kind="installation"/);
   assert.match(app, /updateButton\.addEventListener/);
   assert.match(app, /updateControl\.hidden = !\(updatePreviewEnabled \|\| state\.updateInfo\?\.available\)/);
@@ -535,8 +550,6 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   );
   for (const key of [
     'officialBadge',
-    'translatedBadge',
-    'modifiedBadge',
     'statusLabel',
     'taskProgressLabel',
     'idlePrompt',

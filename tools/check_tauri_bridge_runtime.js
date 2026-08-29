@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase-only 转换、冻结语义图标工厂、四语 idle/首尾 Message/中段 Marker、live-edge 不抢位、快事件可读串行与错误抢占、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、双徽章、更新交互、固定项目外链、AlertDialog、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
+ * [OUTPUT]: 验证 camelCase-only 转换、冻结语义图标工厂、四语 idle/首尾 Message/中段 Marker、live-edge 不抢位、快事件可读串行与错误抢占、Apply 四阶段与 Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、当前语言及条件式 Official 徽章、更新 Tooltip 关闭后由 AlertDialog 接管焦点的交互、固定项目外链、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -212,9 +212,9 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle');
   assert.equal(r.elements['#statusIdle'].textContent, 'What would you like to do?');
   assert.equal(r.elements['#currentLanguage'].textContent, '简体中文');
-  assert.equal(r.elements['#installationBadge'].textContent, 'Translated');
-  assert.equal(r.elements['#installationBadge'].dataset.state, 'translated');
-  assert.equal(r.elements['#installationBadge'].hidden, false);
+  assert.equal(r.elements['#installationBadge'].textContent, '');
+  assert.equal(r.elements['#installationBadge'].dataset.state, 'unknown');
+  assert.equal(r.elements['#installationBadge'].hidden, true);
   assert.equal(status.installationMode, 'modifiedOrUnverified');
   assert.equal(Object.hasOwn(status, 'repoRoot'), false);
 });
@@ -293,18 +293,25 @@ test('idle task viewport centers one localized prompt without creating event row
   }
 });
 
-test('translated installation badge follows the selected UI locale', async () => {
+test('installation badge is reserved for a verified official macOS runtime', async () => {
   for (const [locale, expected] of [
-    ['en-US', 'Translated'],
-    ['zh-CN', '已翻译'],
-    ['zh-TW', '已翻譯'],
-    ['ja-JP', '翻訳済み'],
+    ['en-US', 'Official'],
+    ['zh-CN', '官方'],
+    ['zh-TW', '官方'],
+    ['ja-JP', '公式'],
   ]) {
-    const r = boot({ locale });
+    const r = boot({ locale, status: { currentLang: 'en', installationMode: 'official' } });
     await flush();
     assert.equal(r.elements['#installationBadge'].textContent, expected, locale);
-    assert.equal(r.elements['#installationBadge'].dataset.state, 'translated', locale);
+    assert.equal(r.elements['#installationBadge'].dataset.state, 'official', locale);
+    assert.equal(r.elements['#installationBadge'].hidden, false, locale);
   }
+
+  const managed = boot({ status: { currentLang: 'en', installationMode: 'modifiedOrUnverified' } });
+  await flush();
+  assert.equal(managed.elements['#currentLanguage'].textContent, 'English');
+  assert.equal(managed.elements['#installationBadge'].hidden, true);
+  assert.equal(managed.elements['#installationBadge'].textContent, '');
 });
 
 test('update icon stays hidden by default and exposes an explicit development-only tooltip preview', async () => {
@@ -416,9 +423,13 @@ test('checked update is announced, confirmed, and installed without renderer-con
     'currentVersion', 'version', 'notes', 'pubDate', 'available', 'errorCode',
   ]);
 
+  r.elements['#updateControl'].listeners.get('pointerenter')[0]({ pointerType: 'mouse' });
+  assert.equal(r.elements['#updateControl'].dataset.tooltipState, 'open');
   r.context.document.activeElement = r.elements['#updateButton'];
   dispatch(r.elements['#updateButton'], 'click');
+  assert.equal(r.elements['#updateControl'].dataset.tooltipState, 'closed');
   assert.equal(r.elements['#modalBackdrop'].open, true);
+  assert.equal(r.context.document.activeElement, r.elements['#modalPrimaryButton']);
   assert.match(r.elements['#modalTitle'].textContent, /Update the Switcher/);
   assert.match(r.elements['#modalBody'].textContent, /Security and UI fixes/);
   assert.match(r.elements['#modalBody'].textContent, /ad-hoc/);

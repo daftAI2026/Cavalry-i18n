@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 tokens.css 的语义设计角色，依赖 index.html 的标题区、安装 Item、中部省略路径、自绘 Select、共享 Tooltip、Button Group 与原生 AlertDialog 语义；任务事件视窗由 operation-log.css 独立实现
+ * [INPUT]: 依赖 tokens.css 的语义设计角色，依赖 index.html 的标题区、安装 Item、当前语言/验证通过的 Official Badge、中部省略路径、自绘 Select、共享 Tooltip、Button Group 与原生 AlertDialog 语义；任务事件视窗由 operation-log.css 独立实现
  * [OUTPUT]: 对外提供禁止窗口级滚动的紧凑桌面工具共享视觉系统；Grid 管二维共享轨道与纵向 Stack，Flex 管单行 Cluster，13px 可读下限、Vercel 字号/字重角色与 4px 节奏统一排印和间距，标题文字经实机像素证据做 -1px 光学校正并与原生控件共享 y=20 几何中心线；路径保留末段，Tooltip 与 AlertDialog 对齐 shadcn Base Nova 的结构层级
  * [POS]: renderer 的跨平台共享视觉实现；上游只读 tokens.css，下游由 window-controls.css 追加 Windows caption 变体，不引入 CSS/JS 运行时或 CDN
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -309,22 +309,10 @@ button {
   color: var(--badge-language-text);
 }
 
-.badge[data-state="translated"] {
-  border-color: var(--badge-blue-border);
-  background: var(--badge-blue-bg);
-  color: var(--badge-blue-text);
-}
-
 .badge[data-state="official"] {
   border-color: var(--badge-green-border);
   background: var(--badge-green-bg);
   color: var(--badge-green-text);
-}
-
-.badge[data-state="modified"] {
-  border-color: var(--badge-amber-border);
-  background: var(--badge-amber-bg);
-  color: var(--badge-amber-text);
 }
 
 .app-path {

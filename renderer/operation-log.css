@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tokens.css 的任务反馈/排印/状态/滚动角色，依赖 operation-log.js 投影的 idle、首尾 Message、中段 MarkerIcon/MarkerContent 与有界视窗状态
- * [OUTPUT]: 对外提供无泛化标题的中性三轨任务容器；外框与 12px panel padding 保持稳定，idle 双轴居中，running 固定首尾并让中段事件从顶部逐行落位、溢出后按 live edge 跟随，8px scroll-fade 只裁切中段
+ * [OUTPUT]: 对外提供无泛化标题的中性三轨任务容器；外框与 12px panel padding 保持稳定，idle 双轴居中，running 固定首尾并让中段事件从顶部逐行落位、溢出后按 live edge 跟随，8px scroll-fade 只裁切中段；权限按钮隐藏时不保留零高 Grid 轨道及伪间距
  * [POS]: renderer 的任务反馈视觉层；从共享 styles.css 拆出以守住单文件职责，不拥有业务阶段、AlertDialog 或窗口外层滚动
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -20,13 +20,18 @@
   width: 100%;
   min-height: 0;
   display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: var(--operation-group-gap);
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
   margin-top: var(--gap-flow);
   padding: var(--padding-panel);
   border: var(--stroke-hairline) solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--surface-raised);
+}
+
+.status-panel:has(> .permission-button:not([hidden])) {
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--operation-group-gap);
 }
 
 .status-task-shell {
