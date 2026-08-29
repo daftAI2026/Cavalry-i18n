@@ -115,7 +115,7 @@ About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用�
 | 更新失败 | 稳定 updater error code | Event | 保留失败与重试路径；只有窗口失焦等明确需求出现时再考虑 Toast |
 | About / 外链打开失败 | 独立、短时、非任务操作 | 待实现 Toast | 不应清空主任务事件流；Toast 比把错误塞进任务框更符合局部操作语义 |
 
-待实现 Toast 只是已批准语义方向，不代表当前生产代码已经接入 Toast 状态机。位置与运动方向已经冻结：Toast 固定在窗口右下角，由下向上进入；多条通知从右下向上堆叠，不采用右上向下的 Web 通知模式。该方向对照 [shadcn Base Toast 源码](https://github.com/shadcn-ui/ui/blob/683a5a9b370acdb7785a0529434e6a3b8c7e0441/apps/v4/registry/bases/base/ui/toast.tsx) 的 `bottom/right` viewport、`origin-bottom` 与 `translateY(150%)` 进入模型；具体停留时间、队列/替换、关闭、屏幕阅读器 live region 与 reduced-motion 行为仍须在接入生产前冻结，并继续复用项目 token。
+待实现 Toast 只是已批准语义方向，不代表当前生产代码已经接入 Toast 状态机。位置与运动方向已经冻结：Toast 固定在窗口右下角，由下向上进入；多条通知从右下向上堆叠，不采用右上向下的 Web 通知模式。组件结构对照 [shadcn Base Toast 文档](https://ui.shadcn.com/docs/components/base/toast#types) 与[固定源码](https://github.com/shadcn-ui/ui/blob/683a5a9b370acdb7785a0529434e6a3b8c7e0441/apps/v4/registry/bases/base/ui/toast.tsx)：内容由可选状态图标、标题、说明、可选 Action 与关闭控件组成；内置类型只投影 `success`、`info`、`warning`、`error`、`loading`。Action 只在存在安全且明确的即时下一步时出现，不能替代 Event 中持久的恢复路径，也不能伪造后端并不存在的能力。布局继续采用 `bottom/right` viewport、`origin-bottom` 与 `translateY(150%)` 进入模型；具体停留时间、队列/替换、键盘关闭、屏幕阅读器 live region 与 reduced-motion 行为仍须在接入生产前冻结，并继续复用项目 token。
 
 ## 3. macOS 外圆角：事实、测量与绘制模型
 
