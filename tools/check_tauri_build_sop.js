@@ -1233,10 +1233,10 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.ok(window, 'main window missing');
   assert.equal(window.url, './index.html');
   assert.equal(window.width, 400);
-  assert.equal(window.height, 480);
+  assert.equal(window.height, 484);
   assert.equal(window.minWidth, 400);
-  assert.equal(window.minHeight, 480);
-  assert.match(localSop, /main window 逻辑尺寸固定 `400x480`，最小 `400x480`/);
+  assert.equal(window.minHeight, 484);
+  assert.match(localSop, /main window 逻辑尺寸固定 `400x484`，最小 `400x484`/);
   assert.doesNotMatch(localSop, /main window 外框固定 `480x528`/);
   assert.equal(window.decorations, true);
   assert.equal(window.titleBarStyle, 'Overlay');

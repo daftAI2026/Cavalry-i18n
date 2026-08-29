@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token/图标表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、权限按钮可见时才创建的条件轨道、中部省略路径、单一 Phosphor 图标注册表、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、Cavalry 当前语言及条件式 Official 徽章、直接 Switch、独立 About 页面与固定项目外链、脱敏 Updater Channel、必要 AlertDialog，以及全宽 Select + Switch/Restore 单任务流；禁止隐藏轨道残留伪间距、组合状态徽章、冗余 Switch 确认、窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
+ * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、400×484 平台窗口与 176px Activity、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、权限按钮可见时才创建的条件轨道、中部省略路径、单一 Phosphor 图标注册表、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、Cavalry 当前语言及条件式 Official 徽章、直接 Switch、独立 About 页面与固定项目外链、脱敏 Updater Channel、必要 AlertDialog，以及全宽 Select + Switch/Restore 单任务流；禁止隐藏轨道残留伪间距、组合状态徽章、冗余 Switch 确认、窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -358,11 +358,12 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.language-section\s*\{[\s\S]*?display:\s*grid;[\s\S]*?gap:\s*var\(--section-heading-control-gap\)/);
   assert.match(tokens, /--section-heading-control-gap:\s*var\(--space-2\)/);
   assert.match(styles, /\.language-control-row\s*\{[\s\S]*?gap:\s*var\(--gap-flow\)/);
-  assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?min-height:\s*0;[\s\S]*?margin-top:\s*var\(--gap-flow\)/);
+  assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?min-height:\s*var\(--operation-panel-min-height\);[\s\S]*?margin-top:\s*var\(--gap-flow\)/);
   assert.doesNotMatch(operationStyles, /\.status-label\s*\{/, 'the generic task heading must not be visible');
   assert.match(operationStyles, /\.operation-event-title\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?line-height:\s*var\(--line-height-compact\)/);
   assert.doesNotMatch(tokens, /--alert-(?:height|icon|padding|column|copy)/);
   assert.match(tokens, /--operation-marker-size:\s*var\(--space-4\)/);
+  assert.match(tokens, /--operation-panel-min-height:\s*176px/);
   assert.match(tokens, /--operation-marker-gap:\s*var\(--space-2\)/);
   assert.match(tokens, /--operation-scrollbar-size:\s*10px/);
   assert.match(tokens, /--operation-marker-description-offset:\s*2px/);
@@ -530,6 +531,10 @@ test('Tauri configuration disables global injection and declares a local-only CS
   assert.equal(window.decorations, true);
   assert.equal(window.titleBarStyle, 'Overlay');
   assert.equal(window.hiddenTitle, true);
+  assert.equal(window.width, 400);
+  assert.equal(window.height, 484);
+  assert.equal(window.minWidth, 400);
+  assert.equal(window.minHeight, 484);
   const capabilities = JSON.parse(read('src-tauri/capabilities/default.json'));
   assert.ok(capabilities.permissions.includes('core:window:allow-start-dragging'));
   for (const permission of [

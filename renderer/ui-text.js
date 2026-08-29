@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供非模块脚本全局 UI_TEXT 四语文案目录与 STATUS_TITLE_KEYS 状态标题路由；包含标题区、Windows caption controls、当前语言与验证通过的 Official Badge、任务空态、Switch/Restore/Update 首尾 Message、真实阶段事件、必要 AlertDialog、macOS 新包 ad-hoc 提醒及完整无障碍名称。
+ * [OUTPUT]: 对外提供非模块脚本全局 UI_TEXT 四语文案目录与 STATUS_TITLE_KEYS 状态标题路由；包含标题区、Windows caption controls、当前语言与验证通过的 Official Badge、任务空态、Switch/Restore/Update 首尾 Message、真实阶段事件、纯百分比下载次行、必要 AlertDialog、macOS 新包 ad-hoc 提醒及完整无障碍名称。
  * [POS]: renderer 的视觉文案与状态语义数据层；由 index.html 在业务脚本前加载，把后端稳定边界压缩为用户可理解的任务事件，把持久阻塞留在视窗、把必须立即选择的风险送入 AlertDialog，隔离交互逻辑与产品 copy。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -27,8 +27,8 @@ const UI_TEXT = {
     updateConfirmBody: 'Version {version} is ready. The Switcher will download, verify, replace itself, and restart.',
     updateMacAdhocNote: 'This update installs a new macOS app bundle. If the release is not Developer ID notarized, complete the documented local ad-hoc and Gatekeeper step again for the new bundle.',
     installUpdate: 'Update & Restart',
-    updateDownloadRunningTitle: 'Downloading version {version}',
-    updateDownloadProgress: '{percent}% downloaded',
+    updateDownloadRunningTitle: 'Downloading update',
+    updateDownloadProgress: '{percent}%',
     updateDownloadCompletedTitle: 'Update downloaded',
     updateInstallRunningTitle: 'Verifying and installing the update',
     updateInstallCompletedTitle: 'Update installed',
@@ -185,8 +185,8 @@ const UI_TEXT = {
     updateConfirmBody: '版本 {version} 已准备好。语言切换器将下载并验证更新，替换自身后重新启动。',
     updateMacAdhocNote: '此次更新会安装一个新的 macOS 应用包。若发布版本没有 Developer ID 公证，新包仍需重新执行发布说明中的本地 ad-hoc 与 Gatekeeper 步骤。',
     installUpdate: '更新并重启',
-    updateDownloadRunningTitle: '正在下载版本 {version}',
-    updateDownloadProgress: '已下载 {percent}%',
+    updateDownloadRunningTitle: '正在下载更新',
+    updateDownloadProgress: '{percent}%',
     updateDownloadCompletedTitle: '更新已下载',
     updateInstallRunningTitle: '正在验证并安装更新',
     updateInstallCompletedTitle: '更新已安装',
@@ -336,8 +336,8 @@ const UI_TEXT = {
     updateConfirmBody: '版本 {version} 已準備好。語言切換器將下載並驗證更新，替換自身後重新啟動。',
     updateMacAdhocNote: '此次更新會安裝一個新的 macOS 應用程式套件。若發布版本沒有 Developer ID 公證，新套件仍需重新執行發布說明中的本機 ad-hoc 與 Gatekeeper 步驟。',
     installUpdate: '更新並重新啟動',
-    updateDownloadRunningTitle: '正在下載版本 {version}',
-    updateDownloadProgress: '已下載 {percent}%',
+    updateDownloadRunningTitle: '正在下載更新',
+    updateDownloadProgress: '{percent}%',
     updateDownloadCompletedTitle: '更新已下載',
     updateInstallRunningTitle: '正在驗證並安裝更新',
     updateInstallCompletedTitle: '更新已安裝',
@@ -487,8 +487,8 @@ const UI_TEXT = {
     updateConfirmBody: 'バージョン {version} を利用できます。更新をダウンロードして検証し、アプリを置き換えて再起動します。',
     updateMacAdhocNote: 'この更新では新しい macOS アプリバンドルがインストールされます。Developer ID で公証されていないリリースでは、新しいバンドルに対してリリース案内のローカル ad-hoc と Gatekeeper の手順をもう一度実行してください。',
     installUpdate: '更新して再起動',
-    updateDownloadRunningTitle: 'バージョン {version} をダウンロード中',
-    updateDownloadProgress: '{percent}% ダウンロード済み',
+    updateDownloadRunningTitle: 'アップデートをダウンロード中',
+    updateDownloadProgress: '{percent}%',
     updateDownloadCompletedTitle: '更新をダウンロードしました',
     updateInstallRunningTitle: '更新を検証してインストール中',
     updateInstallCompletedTitle: '更新をインストールしました',

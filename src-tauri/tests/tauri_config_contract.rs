@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供公共 400×480 可读窗口/原生 macOS 交通灯 Overlay/Windows 无系统 caption + DWM shadow/显式 renderer 入口/本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
+ * [OUTPUT]: 提供公共 400×484 可读窗口/原生 macOS 交通灯 Overlay/Windows 无系统 caption + DWM shadow/显式 renderer 入口/本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,9 +29,9 @@ fn tauri_window_size_matches_frozen_contract() {
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let window = &config["app"]["windows"][0];
     assert_eq!(window["width"], 400);
-    assert_eq!(window["height"], 480);
+    assert_eq!(window["height"], 484);
     assert_eq!(window["minWidth"], 400);
-    assert_eq!(window["minHeight"], 480);
+    assert_eq!(window["minHeight"], 484);
     assert_eq!(window["decorations"], true);
     assert_eq!(window["titleBarStyle"], "Overlay");
     assert_eq!(window["hiddenTitle"], true);

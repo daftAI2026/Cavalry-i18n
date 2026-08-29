@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer/app.js 的任务状态机、src-tauri/src/commands/apply.rs 与 snapshot.rs 的恢复基线闸门、macOS 官方还原和 Windows English/QPA 清理事务，以及 2026-08-29 产品与 UX Writing 裁决
-[OUTPUT]: 对外提供“首次 Switch 自动建立恢复基线、Switch 无确认直达、单一 Restore、400×480 无窗口滚动布局”的详细产品/工程决策、平台映射、失败边界与验收合同
+[OUTPUT]: 对外提供“首次 Switch 自动建立恢复基线、Switch 无确认直达、单一 Restore、400×484 无窗口滚动布局”的详细产品/工程决策、平台映射、失败边界与验收合同
 [POS]: docs/audits 的决策证据；事件簿只保留摘要并链接本文，代码与后续回归以本文解释为何删除手动 Refresh 和双恢复入口
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -107,7 +107,7 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 
 ## 5. 布局与滚动合同
 
-- Tauri 窗口配置：`400×480`，`minWidth=400`、`minHeight=480`。
+- Tauri 窗口配置：`400×484`，`minWidth=400`、`minHeight=484`；新增 4px 全部归入 176px Activity 框。
 - 标题栏高度由 16px 交通灯与上下各 12px 推导为 40px；内容四周 padding 为 20px。
 - 主任务流通常使用 20px 间距，`Switch to` 与 Select 使用 8px 字段关系；Select 与按钮高度为 36px；双动作轨道为 `170px + 20px + 170px = 360px`，正好等于 `400px - 2×20px`。
 - 复合二维关系由 Grid 管理（Select 跨两列、Switch/Restore 同行）；一维标题/内容流由 Flex 管理。
@@ -138,7 +138,7 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 - [x] Switch 准备、阶段、打开 Cavalry、成功和失败文案合同通过；内部 `restartCavalry` phase 不再直接暴露成用户“重启”文案。
 - [x] `html/body/.content` 不产生窗口滚动；Select 与 Activity Log 各自独立滚动；renderer contract 检查 CSS 边界。
 - [x] Node renderer/bridge 合同 32/32；全量 contracts 247/247 PASS。
-- [x] macOS native dev 已从当前工作树重新编译并拉起；源配置 `400×480`，AX/CGWindow 外框 `400×481`，`/tmp/cavalry-titlebar-visual-gap.png` 现场截图确认更新入口、实体标题间距、20px 内容边距和无窗口滚动。
+- [x] 按当前 `400×484` 工作树重新拉起 macOS native dev；AX/CGWindow 外框为 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 与加高后的 Activity。生产/原型无外框复核另确认 Activity `360×176`、12px padding、94px 中段。
 - [ ] 当前源码的 macOS package 与 ignored manual smoke；旧 `9766ee3` 的 `460×404` 只作历史且已失效。
 - [ ] Windows live：真机窗口、scaling、Snap、状态保留与 updater 跨版本验证。
 
@@ -158,10 +158,10 @@ cargo test --manifest-path src-tauri/Cargo.toml \
 cargo check --manifest-path src-tauri/Cargo.toml                      PASS
 mise x node@24.20.0 -- npm run test:contracts                    247/247 PASS
 cargo test --manifest-path src-tauri/Cargo.toml                  242 PASS / 2 explicit live-artifact tests ignored
-native Tauri dev AX / CGWindow                                    400×481 outer; config 400×480
+current native Tauri dev AX / CGWindow                            400×485 outer; config 400×484; `/tmp/cavalry-native-400x484.png`
 ```
 
-这组验证证明当前代码、静态 renderer/bridge 行为、9-command 注册、Tauri `400×480` 配置、macOS native dev 几何与签名范围 focused tests；它们不证明当前候选已经完成 macOS package/manual smoke 或 Windows live。
+旧记录证明当时的静态 renderer/bridge 行为、9-command 注册和 `400×480` native 几何；当前 `400×484` 已重新运行合同和 native dev 取证，但仍不证明 package/manual smoke 或 Windows live。
 
 历史 `9766ee3` packaged 记录：
 

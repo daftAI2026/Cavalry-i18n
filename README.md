@@ -35,7 +35,7 @@
 
 ## Switcher Window
 
-The Switcher uses a fixed 400×480 px window and does not scroll. Its compact flow is: choose a language, then select **Switch** or **Restore**; Switch starts directly, and result feedback appears below the actions.
+The Switcher uses a fixed 400×484 px window and does not scroll. Its compact flow is: choose a language, then select **Switch** or **Restore**; Switch starts directly, and result feedback appears below the actions.
 
 ## Safety & Permissions
 

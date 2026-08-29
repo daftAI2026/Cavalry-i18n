@@ -3,7 +3,7 @@
 
 成员清单
 tauri_version_contract.rs: 断言 npm 与 Cargo Tauri 依赖 exact pin 到同一个 v2 minor。
-tauri_config_contract.rs: 宿主无关断言 renderer/共享 400×480 无滚动窗口、360px 内容宽度与双动作轨道、macOS 原生交通灯 Overlay 与 resize/scale 重放、Windows 完整无 caption + DWM shadow override、local CSP/禁用 global Tauri/最小 `main`/`about` capability、平台资源隔离与双 DLL；NSIS 固定四语、保留翻译/恢复 English 双语义、更新保留与失败中止合同。
+tauri_config_contract.rs: 宿主无关断言 renderer/共享 400×484 无滚动窗口、360px 内容宽度与双动作轨道、macOS 原生交通灯 Overlay 与 resize/scale 重放、Windows 完整无 caption + DWM shadow override、local CSP/禁用 global Tauri/最小 `main`/`about` capability、平台资源隔离与双 DLL；NSIS 固定四语、保留翻译/恢复 English 双语义、更新保留与失败中止合同。
 updater_signature_contract.rs: 解析共享配置内嵌的 updater minisign 公钥；ignored 真实产物门接收显式 artifact/`.sig` 路径，解开 Tauri 外层 Base64 后流式验签，不读取私钥且不创建 tag/Release。
 command_contract.rs: 断言 9 个 command 注册名、固定项目外链、旧权限字段、`platform`/`permissionAction`、稳定 `errorCode`、可组合 `warningCodes`、脱敏 updater DTO、renderer 兼容 camelCase JSON shape 与 verify/baseline/apply/restart 四阶段事件合同。
 bridge_webview_contract.rs: 通过 Node 执行 `bridge::script()` 返回的实际 Rust initialization include，断言冻结 `window.cavalryI18n`、camelCase/warningCodes、Apply 四阶段与 Updater 三阶段强类型有序 Channel 的脱敏投影，以及 Builder/HTML 中 icons→operation-log→update-progress→app 的 source 顺序；明确不替代 packaged WebView/CSP 外部门。

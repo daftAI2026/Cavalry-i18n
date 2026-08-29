@@ -441,6 +441,8 @@ test('checked update is announced, confirmed, and installed without renderer-con
   assert.deepEqual(JSON.parse(JSON.stringify(installs[0].payload)), { onEvent: true });
   assert.equal(r.updateChannels.length, 1, 'update install must attach one ordered Tauri Channel');
   assert.equal(activityTitle(r), 'Update downloaded');
+  assert.equal(activityRows(r)[0].children[1].children[1].textContent, '100%');
+  assert.equal(activityRows(r)[0].children[1].children[1].hidden, false);
   assert.match(r.elements['#statusIntro'].textContent, /^Preparing/);
   assert.match(activityText(r), /Update downloaded/);
   assert.match(activityText(r), /Verifying and installing/);
@@ -472,6 +474,7 @@ test('successful updater events advance one task through download, install, and 
   assert.match(r.elements['#statusIntro'].textContent, /^Preparing/);
   assert.equal(activityRows(r).length, 3, 'the running task keeps exactly three stable phase rows');
   assert.equal(activityRows(r)[0].children[0].dataset.icon, 'download');
+  assert.equal(activityRows(r)[0].children[1].children[1].textContent, '100%');
   assert.equal(activityRows(r)[1].children[0].dataset.icon, 'package');
   assert.equal(activityRows(r)[2].children[0].dataset.icon, 'spinner');
   assert.match(activityText(r), /Restarting the Switcher/);

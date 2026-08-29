@@ -7,11 +7,11 @@
 
 # Switcher UI 最终构建规格（2026-08-28）
 
-状态: Active — 当前候选的 400×480 几何已有 macOS native dev 证据；当前 package/manual smoke 与 Windows 真机验收仍待完成
+状态: Active — 当前代码几何为 400×484，macOS native dev 已按新高度重验；package 与 Windows 真机证据仍待验证
 适用版本: Cavalry Language Switcher `0.7.0` 候选
 视觉真相源: `renderer/index.html`、`renderer/tokens.css`、`renderer/styles.css`、`renderer/operation-log.css`、`renderer/operation-log.js`、`renderer/update-progress.js`、`renderer/select-control.js`、`renderer/about.css`、`renderer/about-control.js`、`renderer/about.html`、`renderer/about-window.js`
 窗口真相源: `src-tauri/tauri.conf.json`、`src-tauri/src/lib.rs`、平台覆盖配置
-最新现场证据: 正确 Tauri 配置重新编译并拉起的 native dev 为 AX/CGWindow 外框 `400×481`（逻辑配置 `400×480`，AppKit 允许 `1px` 报告差异）；`/tmp/cavalry-titlebar-visual-gap.png` 显示 16px 交通灯、20px 更新图形/24px 点击圆、20px 内容外边距与 `170+20+170` 动作轨道。2x 截图按实体着色边缘测得绿灯右缘到标题首字形空白 24px、标题末字形到升级圆环左缘空白 25px，即逻辑约 12px 且仅有抗锯齿边界的半像素差；此证据只证明 current native dev，不证明 current package 或 manual smoke。
+最新现场证据: 当前 native dev 的 Tauri 逻辑配置为 `400×484`，AX/CGWindow 外框按 AppKit 语义报告 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 投影与加高后的 Activity。生产 renderer 与反馈原型的无浏览器外框几何复核为 Activity `360×176`、12px padding、94px 中段；更新反馈截图为 `/tmp/cavalry-update-feedback-176.png`。这些不替代 package/manual smoke 或 Windows live。
 
 ## 1. 设计原则
 
@@ -26,8 +26,9 @@
 
 | 语义 | 值 | 依据 |
 | --- | ---: | --- |
-| 默认窗口 | `400 × 480px` | 当前 Tauri 逻辑配置；不是旧 `333 × 420` 候选的延续 |
-| 最小窗口 | `400 × 480px` | 主任务一屏完成；主窗口禁止滚动，Select 与任务事件视窗各自处理内部溢出 |
+| 默认窗口 | `400 × 484px` | 当前 Tauri 逻辑配置；新增 4px 全部归入 Activity，不挤占既有间距 |
+| 最小窗口 | `400 × 484px` | 主任务一屏完成；主窗口禁止滚动，Select 与任务事件视窗各自处理内部溢出 |
+| Activity | 外框 `360 × 176px`；padding `12px`；中段视窗 `94px` | 生产与反馈原型同构；首尾 Message、8px 关系与上游几何不变 |
 | 内容轨道 | `360px` | `400 - 20 - 20`；内容四边 padding 均为 `20px` |
 | 标题栏 | `40px` | `12 + 16 + 12`：交通灯上下留白各 `12px` |
 | macOS 交通灯 | `16 × 16px` | 原生 AppKit 控件；目标中心线为 `y = 20px` |
@@ -138,7 +139,7 @@ About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用�
 
 - macOS `27.0`，build `26A5416b`
 - 内建 Liquid Retina，截图 backing scale `2×`
-- 外角取证时窗口配置为 `460 × 428pt`、CGWindow/AX 外框为 `460 × 429pt`；该数据只用于曲线测量，属于外角历史测量。当前候选已改为逻辑 `400 × 480px`，最新 native dev 外框为 `400 × 481px`；仍允许同一 AppKit/WindowServer 的 1px 报告差异，package/manual smoke 另行复核
+- 外角取证时窗口配置为 `460 × 428pt`、CGWindow/AX 外框为 `460 × 429pt`；该数据只用于曲线测量。上一版逻辑 `400 × 480px` / native `400 × 481px` 同样只保留为历史；当前候选是 `400 × 484px`，package/manual smoke 另行复核。
 - 使用 `screencapture -o -l <CGWindowID>` 排除阴影，再读取 PNG alpha 轮廓；不以白色背景目测边缘
 
 当前左上角 alpha 轮廓在顶边和左边各占约 `24pt` 后进入直线段。因此应记录为：
@@ -216,7 +217,7 @@ Windows:
 
 跨平台组件:
 
-- 主窗口不得出现横向或纵向滚动，`400×480` 内必须完整显示正式四语主任务与任务事件视窗；Select 列表和事件视窗的独立滚动不计入窗口滚动，Restore/Updater/权限/危险操作使用独立 AlertDialog。
+- 主窗口不得出现横向或纵向滚动，`400×484` 内必须完整显示正式四语主任务与 176px 任务事件视窗；Select 列表和事件视窗的独立滚动不计入窗口滚动，Restore/Updater/权限/危险操作使用独立 AlertDialog。
 - 主任务只有全宽 Select 与等宽 `Switch` / `Restore`；Switch 直接执行、Restore 的平台映射与自动恢复基线合同见 `switcher-auto-baseline-and-restore-decision-2026-08-29.md`。
 - Select 必须保持 Trigger 与当前选中 Item 的视觉中心对齐；不能退回固定 top 偏移或浏览器原生弹出层。
 - macOS 从系统应用菜单、Windows 从标题栏信息入口打开同一个 `about` 原生 WebviewWindow；两者共用四语本地页面、真实应用版本和固定项目链接枚举，重复触发只 show+focus，主窗口不进入 modal 状态。
