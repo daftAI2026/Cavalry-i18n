@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/about-control/about-window/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 camelCase-only 转换、冻结语义图标工厂、四语 idle/首尾 Message/中段 Marker、live-edge 不抢位、快事件可读串行与错误抢占、Switch 无确认直达 Apply 四阶段、Updater 三阶段有序 Channel、warningCodes、Select/Tooltip/Path/About 状态机、当前语言及条件式 Official 徽章、更新 Tooltip 关闭后由 AlertDialog 接管焦点的交互、固定项目外链、单一 Restore 的跨平台映射、needsExtract 自动基线入口、Windows caption controls/residue、durability 门禁及 rejection 恢复。
+ * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
+ * [OUTPUT]: 验证 bridge、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast；覆盖 Toast 的 Base UI 默认值、暂停/恢复、三条上限及 Activity 隔离。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,7 +14,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
 
 class Element {
-  constructor() { this.children = []; this._textContent = ''; this.dataset = {}; this.listeners = new Map(); this.attributes = new Map(); this.hidden = false; this.disabled = false; this.value = ''; this.open = false; this.focused = false; this.isConnected = true; this.ownerDocument = null; this.className = ''; this.scrollTop = 0; this.title = ''; }
+  constructor() { this.children = []; this._textContent = ''; this.dataset = {}; this.listeners = new Map(); this.attributes = new Map(); this.hidden = false; this.disabled = false; this.value = ''; this.open = false; this.focused = false; this.isConnected = true; this.ownerDocument = null; this.className = ''; this.scrollTop = 0; this.title = ''; this.style = { values: new Map(), setProperty: (key, value) => this.style.values.set(key, value) }; this.offsetHeight = 64; }
   get textContent() { return this.children.length ? this.children.map((child) => child.textContent).join('') : this._textContent; }
   set textContent(value) { this._textContent = String(value ?? ''); }
   get scrollHeight() { return this.children.length; }
@@ -26,6 +26,7 @@ class Element {
   close() { this.open = false; this.removeAttribute('open'); for (const callback of this.listeners.get('close') || []) callback(); }
   append(...children) { this.children.push(...children); this.options = this.children; }
   replaceChildren(...children) { this.children = children; this.options = this.children; }
+  remove() { this.isConnected = false; this.hidden = true; }
   contains(target) { return target === this || this.children.some((child) => child.contains?.(target)); }
 }
 
@@ -45,7 +46,7 @@ function runtime({
   statusRequest = null,
   styleValues = {},
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -56,8 +57,8 @@ function runtime({
     documentElement: new Element(), body: new Element(), activeElement: null, title: '',
     listeners: new Map(),
     querySelector(selector) { return elements[selector]; },
-    createElement() { return new Element(); },
-    createElementNS() { return new Element(); },
+    createElement() { const element = new Element(); element.ownerDocument = this; return element; },
+    createElementNS() { const element = new Element(); element.ownerDocument = this; return element; },
     addEventListener(type, callback) { this.listeners.set(type, [...(this.listeners.get(type) || []), callback]); },
   };
   for (const element of [...Object.values(elements), document.documentElement, document.body]) {
@@ -72,7 +73,9 @@ function runtime({
   const nextResult = (results) => (results.length > 1 ? results.shift() : results[0]);
   let maximized = false;
   const windowListeners = new Map();
+  const navigator = { language: locale, languages: [locale] };
   const window = {
+    navigator,
     location: { protocol: 'http:', hostname: '127.0.0.1', search: preview ? '?preview=update' : '' },
     addEventListener(type, callback) { windowListeners.set(type, [...(windowListeners.get(type) || []), callback]); },
     __TAURI_INTERNALS__: {
@@ -132,7 +135,7 @@ function runtime({
     return Promise.resolve({ ok: true });
     } },
   };
-  const context = { window, document, navigator: { language: locale, languages: [locale] }, Promise, console, setTimeout, clearTimeout, getComputedStyle: () => ({ getPropertyValue: (name) => styleValues[name] || '0ms' }) };
+  const context = { window, document, navigator, Promise, console, setTimeout, clearTimeout, getComputedStyle: () => ({ getPropertyValue: (name) => styleValues[name] || '0ms' }) };
   context.globalThis = context;
   return { elements, calls, channels, updateChannels, window, context };
 }
@@ -149,15 +152,27 @@ function boot(options) {
   vm.runInNewContext(read('renderer/path-display.js'), r.context, { filename: 'path-display.js' });
   vm.runInNewContext(read('renderer/operation-log.js'), r.context, { filename: 'operation-log.js' });
   vm.runInNewContext(read('renderer/update-progress.js'), r.context, { filename: 'update-progress.js' });
+  vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
   vm.runInNewContext(read('renderer/about-control.js'), r.context, { filename: 'about-control.js' });
   vm.runInNewContext(read('renderer/window-controls.js'), r.context, { filename: 'window-controls.js' });
   vm.runInNewContext(read('renderer/app.js'), r.context, { filename: 'app.js' });
   return r;
 }
 
+function bootAbout(options) {
+  const r = runtime(options);
+  vm.runInNewContext(read('renderer/tauri-bridge.js'), r.context, { filename: 'bridge.js' });
+  vm.runInNewContext(read('renderer/ui-text.js'), r.context, { filename: 'ui-text.js' });
+  vm.runInNewContext(read('renderer/icons.js'), r.context, { filename: 'icons.js' });
+  vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
+  vm.runInNewContext(read('renderer/about-window.js'), r.context, { filename: 'about-window.js' });
+  return r;
+}
+
 function activityRows(runtimeState) { return runtimeState.elements['#statusText'].children; }
 function activityText(runtimeState) { return runtimeState.elements['#statusText'].textContent; }
 function activityTitle(runtimeState, index = 0) { return activityRows(runtimeState)[index]?.children[1]?.children[0]?.textContent || ''; }
+function toastViewport(runtimeState) { return runtimeState.context.document.body.children.find((child) => child.className === 'toast-viewport'); }
 
 test('Windows caption controls keep right-side native semantics and localized maximize state', async () => {
   const r = boot({ status: { platform: 'windows' }, locale: 'zh-CN' });
@@ -275,6 +290,38 @@ test('About entry delegates to one native window command and keeps links fixed',
     JSON.parse(JSON.stringify(windows.calls.filter(({ command }) => command === 'show_about'))),
     [{ command: 'show_about' }]
   );
+});
+
+test('About window failure uses a local Toast without overwriting the task Activity', async () => {
+  const r = boot({ locale: 'zh-CN', reject: 'show_about', status: { platform: 'windows' } });
+  await flush();
+  const activityBefore = activityText(r);
+  dispatch(r.elements['#aboutButton'], 'click');
+  await flush();
+
+  const viewport = toastViewport(r);
+  assert.ok(viewport, 'the shared Toast viewport must be mounted');
+  assert.equal(viewport.attributes.get('aria-label'), '通知');
+  assert.equal(viewport.children.length, 1);
+  assert.match(viewport.children[0].textContent, /无法打开关于窗口/);
+  assert.equal(viewport.children[0].dataset.type, 'error');
+  assert.equal(activityText(r), activityBefore, 'a peripheral About failure must preserve the task history');
+});
+
+test('project links keep fixed bridge ids and report browser failure inside the About window', async () => {
+  const r = bootAbout({ locale: 'en-US', reject: 'open_project_link' });
+  await flush();
+  dispatch(r.elements['#aboutRepositoryLink'], 'click', { preventDefault() {} });
+  await flush();
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'open_project_link'))),
+    [{ command: 'open_project_link', payload: { link: 'repository' } }]
+  );
+  const viewport = toastViewport(r);
+  assert.equal(viewport.children.length, 1);
+  assert.match(viewport.children[0].textContent, /Couldn’t open the project link/);
+  assert.match(viewport.children[0].textContent, /default browser/);
 });
 
 test('idle task viewport centers one localized prompt without creating event rows', async () => {

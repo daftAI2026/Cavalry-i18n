@@ -6,7 +6,7 @@ localized-search-index.md: 本地化搜索索引路线图，链接 Add Layer 中
 README.md: Roadmap 总索引，定义状态口径、当前路线入口与归档规则。
 runtime-refresh-performance.md: 已完成的 Runtime 刷新性能路线，连接 2026-05-21 根因与 2026-07-13 实施证据，闭环交互局部刷新、capture gate、重复写回规避、增量签名和真实 Cavalry 验证。
 switcher-update-and-trusted-distribution-roadmap.md: Switcher 更新提示、自更新与可信分发路线，记录已落地的 R0 UI、R1 Rust/bridge/renderer、最终公钥/endpoint、deterministic manifest 与九资产 tag 发布闭包；区分后续受保护私钥 Secrets、Apple Developer ID/notarization、Windows Authenticode、SemVer bootstrap 与跨版本实机验收；完整自动更新仍未验收且不改变发布 SOP。
-switcher-update-release-event-ledger.md: 本轮 Switcher UI、组件源码审计、Updater、macOS/Windows 实机证据、release/tag 与构建产物清理的执行事件簿；以状态、证据和下一动作防止跨主题待办遗失，不替代 SOP 或发布门禁。
+switcher-update-release-event-ledger.md: 本轮 Switcher UI、组件/Toast 源码审计、Updater、双平台实机证据、release/tag 与清理执行事件簿；以状态、证据和下一动作防止待办遗失。
 windows-port-and-injection-roadmap.md: Active 的 Windows 移植路线，规定任意安装根 JSON keyed overlay、Qt generic translator + QPA delegate 原生入口汇合、交互卸载保留翻译或显式事务恢复 English 的双语义、silent/passive/update 默认保留、含动态 Pitch caller/source 门的受限 ExtensionLayer IAT hook、权限边界、marker 事务与真机验收。
 
 依赖边界:

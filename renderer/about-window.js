@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 about.html 的固定信息节点、ui-text.js 的四语文案与冻结 bridge 的 getSwitcherVersion/openProjectLink 能力。
- * [OUTPUT]: 对外提供 About 页面本地化、真实 Switcher 版本呈现与固定 repository/license 点击分发；不创建窗口、不暴露 URL、不负责窗口唤起。
- * [POS]: 独立 About WebviewWindow 的页面控制器；只消费已有 bridge 能力，和主窗口业务/确认 dialog 的生命周期完全分离。
+ * [INPUT]: 依赖 about.html 信息节点、四语文案、共享 Toast 状态机与冻结 bridge 的 getSwitcherVersion/openProjectLink 能力。
+ * [OUTPUT]: 对外提供 About 本地化、真实版本、固定 repository/license 点击分发及默认浏览器失败 Toast；不暴露 URL。
+ * [POS]: 独立 About WebviewWindow 页面控制器；外链失败留在本窗口的短时反馈，不污染主任务 Activity 或 AlertDialog。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (function attachAboutWindow(global) {
@@ -57,17 +57,31 @@
     }
   }
 
-  function wireProjectLink(selector, link) {
+  function wireProjectLink(selector, link, onError) {
     const element = document.querySelector(selector);
-    element.addEventListener('click', (event) => {
+    element.addEventListener('click', async (event) => {
       event.preventDefault();
-      void global.cavalryI18n.openProjectLink(link).catch(() => {});
+      try {
+        const result = await global.cavalryI18n.openProjectLink(link);
+        if (!result?.ok) onError();
+      } catch (_) {
+        onError();
+      }
     });
   }
 
   const locale = detectLocale();
   localize(locale);
-  wireProjectLink('#aboutRepositoryLink', 'repository');
-  wireProjectLink('#aboutLicenseLink', 'license');
+  const toast = global.createToastControl({
+    label: text(locale, 'notifications'),
+    closeLabel: text(locale, 'close'),
+  });
+  const showProjectLinkError = () => toast.show({
+    type: 'error',
+    title: text(locale, 'projectLinkFailedTitle'),
+    description: text(locale, 'openProjectLinkFailed'),
+  });
+  wireProjectLink('#aboutRepositoryLink', 'repository', showProjectLinkError);
+  wireProjectLink('#aboutLicenseLink', 'license', showProjectLinkError);
   void loadVersion(locale);
 })(window);

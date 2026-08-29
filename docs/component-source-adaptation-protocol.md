@@ -1,7 +1,7 @@
 <!--
 [INPUT]: 依赖项目 Design token、renderer 现有无框架组件状态机、锁定版本的 shadcn/ui 与 Phosphor 上游源码及其许可证。
-[OUTPUT]: 对外提供从开源组件源码到本项目原生 HTML/CSS/JS 的统一调查、抽象、适配、验证和归因协议。
-[POS]: docs 的 UI 工程知识基线；约束 Select、Tooltip、AlertDialog、Marker、Spinner、shimmer、scroll-fade 与后续 Toast 等自写组件，避免凭截图仿制或引入第二套设计系统。
+[OUTPUT]: 对外提供从开源组件源码到本项目原生 HTML/CSS/JS 的统一调查、抽象、适配、验证和归因协议，并冻结 Toast 的 Base UI 1.6.0 行为闭包。
+[POS]: docs 的 UI 工程知识基线；约束 Select、Tooltip、AlertDialog、Marker、Spinner、shimmer、scroll-fade 与 Toast，避免凭截图仿制或引入第二套设计系统。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -38,9 +38,11 @@
 
 - **原样投影**：公式或状态语义不变，只翻译技术载体。例如 shimmer 的渐变算法、Select 的 active/selected 分层、Tooltip 的 Escape 收口。
 - **项目化适配**：保留行为，数值和结构接入现有 token/DOM。例如 shadcn `gap-2` 映射为项目 `--space-2`，React slot 映射为稳定 HTML anchor。
-- **明确拒绝**：当前产品不需要的能力不复制。例如多选 Select、远程 portal 框架、任意 URL updater、泛化日志、未实现 Toast 队列。
+- **明确拒绝**：当前产品不需要的能力不复制。例如多选 Select、远程 portal 框架、任意 URL updater、泛化日志，以及 Toast 的 Swipe、Action、Promise 等未被真实任务需要的扩展能力。
 
 “以后可能会用”不是复制理由。新增能力必须有当前用户任务、真实数据源和测试入口。
+
+UI Review 工作台遵守同一边界：允许替换 bridge 数据、事件顺序与表现时序，不允许复制 renderer DOM、组件 CSS 或状态机。进入生产收敛期后，工作台每次请求直接读取当前 `renderer/index.html` 与其真实本地资源；原型差异只能存在于 fixture，不能形成第二套界面实现。
 
 ## 4. Tailwind 到语义 CSS
 
@@ -64,6 +66,7 @@
 - AlertDialog 管确认、取消、焦点恢复与阻塞语义；它不知道权限如何授予。
 - Marker 管图标槽、内容槽、running/terminal 视觉；它不知道后端下一阶段是什么。
 - scroll-fade 和 live-edge 管可视位置；它们不能制造或丢弃事件。
+- Toast 管短时通知的计时、堆叠、焦点与关闭；它不能复制 Activity 中的持久事实，也不能替代 AlertDialog 的即时决策。
 
 对于快速后端事件，表现层可以让**已经到达**的状态按人类可读节奏串行显示，但不能阻塞事务、预铺未来步骤或延迟错误。终态错误优先于动画；成功结语只能排在真实阶段之后。
 
@@ -83,11 +86,16 @@
 
 | 来源 | 锁定版本 | 当前用途 |
 | --- | --- | --- |
-| shadcn/ui | commit `683a5a9b370acdb7785a0529434e6a3b8c7e0441` | Marker、Select、Tooltip、AlertDialog、示例与 accessibility 基线 |
+| shadcn/ui | commit `683a5a9b370acdb7785a0529434e6a3b8c7e0441` | Marker、Select、Tooltip、AlertDialog、Toast 结构/动画、示例与 accessibility 基线 |
+| `@base-ui/react` | `1.6.0` | Toast 的 5000ms 默认 timeout、3 条 limit、loading 常驻、hover/focus/window blur 暂停与剩余时间恢复、F6/Escape/live-region 行为 |
 | `shadcn` npm package | `4.19.0` | `tailwind.css` 中 shimmer/scroll-fade 最终 utility 公式 |
 | Phosphor Icons Core | commit `2b75f3ad12b420c9504ef05df8d2564a28f8500e` | `renderer/icons.js` 中精选 Regular SVG path |
 
 运行时不依赖这些包；版本只用于源码审计和归因。适配代码与许可见 `renderer/THIRD_PARTY_NOTICES.md`。
+
+### Toast 项目化适配
+
+Toast 只服务 About 窗口或固定项目链接等低频、局部、非主任务失败。行为保持 Base UI 默认值：普通通知 5 秒、最多 3 条、交互或窗口失焦时暂停并保留剩余时间，`loading` 不自动关闭；视觉保持 shadcn 的 16px viewport inset、16px 内容 padding、12px 图文间距、4px 标题/说明间距和 `500/250/150ms` 动画层级。颜色、圆角、阴影、14px/500 排印继续消费本项目 token。16px inset 是有意保留的组件源码例外，用来与 20px 主内容网格错层；Toast 不与 Activity 外框对齐成同一竖线。
 
 ## 8. 新组件进入仓库的最短路径
 

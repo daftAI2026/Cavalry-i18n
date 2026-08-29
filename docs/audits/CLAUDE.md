@@ -11,9 +11,9 @@ runtime-refresh-performance-2026-05-21.md: Runtime 刷新性能审计报告，�
 runtime-performance-implementation-2026-07-13.md: Runtime 性能实施闭环报告，记录 dirty-only/capture gate、哈希翻译、可搬移 Qt RPATH、异步增量签名、真实 Cavalry 三语 inventory 与 APFS 副本 apply/codesign 证据。
 runtime-translation-noise-triage-2026-05-19.md: 2026-05-19 运行时翻译噪声分诊审计报告，覆盖 20 个可疑 token（如 Rhu、Rfr）的排查结论与证据链。
 runtime-ui-tail-cleanup-run-2026-05-16.md: Runtime UI 收尾清理实跑记录，记录 zh-Hans live capture、FIX1/FIX2 对比、根因修复与残留分类。状态 BLOCKED。
-switcher-ui-final-build-2026-08-28.md: Switcher 最终 UI 跨平台构建规格，冻结 400×484 主窗、360px 内容、20px 外边距、170+20+170 动作轨道、40px 标题栏、8px 结构 gap 与约 12px 实体标题关系、16/14/13px 与 400/450/500 排印和 4px 节奏，并记录 shadcn/Base UI 对齐的 Select、Activity Log、独立 AlertDialog、系统菜单/Windows 入口共用的原生 About WebviewWindow、macOS 27 AppKit continuous 外角和 Windows caption/DWM 所有权；当前 macOS package/native 证据仍由事件簿单独判定。
+switcher-ui-final-build-2026-08-28.md: Switcher 最终 UI 跨平台规格，冻结 400×484、20px 主网格、排印/间距、无描边彩色 Badge、Select、三轨 Activity、必要 AlertDialog、Base UI 对齐的 16px inset Toast、原生 About 与平台窗口所有权；native/package 证据由事件簿单独判定。
 switcher-auto-baseline-and-restore-decision-2026-08-29.md: Switcher 恢复与主动作语义决策证据，沿 renderer→apply→snapshot→平台事务证明首次 Switch 自动建立基线、运行中 fail-before-mutation、无确认直达与完成后打开 Cavalry，冻结单一 Restore 的 macOS/Windows 映射、双按钮布局、窗口无滚动与验收合同。
-switcher-feedback-copy-catalog-2026-08-29.md: Switcher 四语反馈语义审阅目录，逐项区分生产 Event、必要 AlertDialog、未实现 Toast 与后端事件阻塞；冻结更新可用只由持久标题栏入口、Tooltip、`aria-live` 和点击后 AlertDialog 承担，不用 Toast 重复同一事实。
+switcher-feedback-copy-catalog-2026-08-29.md: Switcher 四语反馈语义目录，区分生产 Event、必要 AlertDialog、已接入的 About/外链 Toast 与后端事件阻塞；冻结更新可用和持续阻塞不重复 Toast。
 pr3-macos-release-hardening-session-handoff-2026-07-30.md: PR #3 macOS 发布加固复盘与维护交接，压缩八条表面、Onboarding、Transform、验收器假绿、生成物同步、PR/tag 顺序与 Windows live 决策，并固化 macOS producer 源码进 Git、运行证据留 session 的边界。
 windows-onboarding-live-validation-session-handoff-2026-07-30.md: Windows Onboarding live 验证复盘，记录 Qt test profile 登录/工作区隔离、MainDock settle、真实 Next 页面确认、exact-PID/HWND helper、step 5 ACK-only、证据封存边界，以及同 PR 已落地的 macOS driver/helper 对应实现。
 windows-adjacent-producer-live-validation-session-handoff-2026-07-31.md: Windows Tag/Assets 三语真实 producer 验证交接，记录 Qt test profile、独立 acceptance plugin、Drop/ContextMenu 语义 driver、producer-side PNG、PID/HWND 锚点、exact child cleanup、证据哈希与发布隔离边界。

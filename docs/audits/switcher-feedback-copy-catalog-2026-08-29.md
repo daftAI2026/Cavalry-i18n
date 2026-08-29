@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 renderer/ui-text.js、renderer/app.js、renderer/operation-log.js、renderer/update-progress.js、Tauri apply/updater Channel 合同与已批准 UX Writing/反馈分层裁决
-[OUTPUT]: 对外提供 Switcher 无确认直达主动作、空闲引导、任务引言、Event/必要 AlertDialog/Toast 的完整归属清单与四语审阅快照，冻结“更新可用只用持久标题栏入口而不重复 Toast”的裁决，并区分当前生产事实、已批准提案和缺少后端事件的阻塞项
+[INPUT]: 依赖 renderer 的四语文案、Activity/Updater/Toast 状态机、Tauri Channel 合同与已批准 UX Writing/反馈分层裁决
+[OUTPUT]: 对外提供 Event/AlertDialog/Toast 的生产归属与四语审阅快照，冻结“持久事实不叠 Toast、外围失败只用 Toast、更新可用只用标题栏入口”的裁决
 [POS]: docs/audits 的反馈语义审阅面；供产品逐条裁决文案与承载组件，不替代 renderer/ui-text.js 运行时真相、后端 DTO 合同或 packaged 验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -31,7 +31,7 @@
 | 启动阻塞、事务警告、失败与恢复路径 | Event Marker | Current | 必须可回看，不允许只用会消失的 Toast |
 | Restore / Update / 权限确认 | AlertDialog | Current | 用户必须继续或取消；打开时不叠 Toast；Switch 因运行中 fail-before-mutation 而直接执行 |
 | 更新可用 | 标题栏绿色入口 + Tooltip + `aria-live` | Current | 持久状态已有稳定入口；点击后由 AlertDialog 承担版本、影响与操作，不重复 Toast |
-| 首次选择、独立 About/外链失败 | Toast | Approved proposal | 仅限没有常驻承载位置的瞬时注意；标题 + 说明 + 可选 Action + Close，右下向上 |
+| 独立 About/外链失败 | Toast | Current | 没有主任务承载位置的瞬时外围失败；标题 + 说明 + Close，右下向上，不增加重复 Retry Action |
 | 长任务 loading/success | 不使用 Toast | Approved proposal | Event 已拥有事实，避免重复反馈 |
 
 ## 3. 空闲态、任务引言与结语（Current）
@@ -115,7 +115,6 @@ Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度�
 | `noLanguage` | <strong>No language pack available</strong><br>No language pack is available. | <strong>没有可用的语言包</strong><br>没有可用的语言包。 | <strong>沒有可用的語言包</strong><br>沒有可用的語言包。 | <strong>利用できる言語パックがありません</strong><br>利用できる言語パックがありません。 |
 | `cavalryStillRunning` | <strong>Close Cavalry before retrying</strong><br>Cavalry is still running. Save your work, close Cavalry, and try again. The Cavalry installation was not changed. | <strong>关闭 Cavalry 后重试</strong><br>Cavalry 仍在运行。请先保存工作并关闭 Cavalry，然后重试；Cavalry 安装内容未被修改。 | <strong>關閉 Cavalry 後重試</strong><br>Cavalry 仍在執行。請先儲存工作並關閉 Cavalry，然後重試；Cavalry 安裝內容未被修改。 | <strong>Cavalry を終了して再試行</strong><br>Cavalry がまだ起動しています。作業を保存して Cavalry を終了してから再試行してください。Cavalry のインストール内容は変更されていません。 |
 | `openPrivacyFailed` | <strong>Couldn’t open permission settings</strong><br>Open Privacy & Security in System Settings, then allow the Switcher to modify Cavalry. | <strong>无法打开权限设置</strong><br>请在系统设置中打开“隐私与安全性”，允许语言切换器修改 Cavalry。 | <strong>無法打開權限設定</strong><br>請在系統設定中打開「隱私權與安全性」，允許語言切換器修改 Cavalry。 | <strong>権限設定を開けません</strong><br>システム設定で「プライバシーとセキュリティ」を開き、Switcher に Cavalry の変更を許可してください。 |
-| `aboutOpenFailed` | <strong>Couldn’t open About</strong><br>Could not open About. Try again. | <strong>无法打开关于窗口</strong><br>无法打开“关于”窗口，请重试。 | <strong>無法開啟關於視窗</strong><br>無法開啟「關於」視窗，請重試。 | <strong>「このアプリについて」を開けませんでした</strong><br>「このアプリについて」を開けませんでした。もう一度お試しください。 |
 
 ## 6. AlertDialog（Current）
 
@@ -126,24 +125,22 @@ Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度�
 | `update.confirm` | <strong>Update the Switcher?</strong><br>Version {version} is ready. The Switcher will download, verify, replace itself, and restart.<br><em>macOS:</em> This update installs a new macOS app bundle. If the release is not Developer ID notarized, complete the documented local ad-hoc and Gatekeeper step again for the new bundle.<br><code>Cancel · Update & Restart</code> | <strong>更新语言切换器？</strong><br>版本 {version} 已准备好。语言切换器将下载并验证更新，替换自身后重新启动。<br><em>macOS:</em> 此次更新会安装一个新的 macOS 应用包。若发布版本没有 Developer ID 公证，新包仍需重新执行发布说明中的本地 ad-hoc 与 Gatekeeper 步骤。<br><code>取消 · 更新并重启</code> | <strong>更新語言切換器？</strong><br>版本 {version} 已準備好。語言切換器將下載並驗證更新，替換自身後重新啟動。<br><em>macOS:</em> 此次更新會安裝一個新的 macOS 應用程式套件。若發布版本沒有 Developer ID 公證，新套件仍需重新執行發布說明中的本機 ad-hoc 與 Gatekeeper 步驟。<br><code>取消 · 更新並重新啟動</code> | <strong>言語スイッチャーを更新しますか？</strong><br>バージョン {version} を利用できます。更新をダウンロードして検証し、アプリを置き換えて再起動します。<br><em>macOS:</em> この更新では新しい macOS アプリバンドルがインストールされます。Developer ID で公証されていないリリースでは、新しいバンドルに対してリリース案内のローカル ad-hoc と Gatekeeper の手順をもう一度実行してください。<br><code>キャンセル · 更新して再起動</code> |
 | `permission.confirm` | <strong>System permission required</strong><br>Approve the operating system permission request for Cavalry Language Switcher, then retry.<br><code>Cancel · Open Settings / Retry as administrator</code> | <strong>需要系统授权</strong><br>请批准操作系统为 Cavalry 语言切换器显示的权限请求，然后重试。<br><code>取消 · 打开设置 / 以管理员身份重试</code> | <strong>需要系統授權</strong><br>請允許作業系統為 Cavalry 語言切換器顯示的權限請求，然後重試。<br><code>取消 · 打開設定 / 以系統管理員身分重試</code> | <strong>システム権限が必要です</strong><br>Cavalry 言語スイッチャーに対するオペレーティングシステムの権限要求を許可してから再試行してください。<br><code>キャンセル · 設定を開く / 管理者として再試行</code> |
 
-## 7. Toast 候选（Approved proposal）
+## 7. Toast（Current）
 
 | ID / type | English | 简体中文 | 繁體中文 | 日本語 |
 | --- | --- | --- | --- | --- |
-| `installation.missing`<br>`info` | <strong>Choose Cavalry</strong><br>Select an installation to begin.<br><code>Choose</code> | <strong>选择 Cavalry</strong><br>选择一个安装位置后开始。<br><code>选择</code> | <strong>選擇 Cavalry</strong><br>選擇一個安裝位置後開始。<br><code>選擇</code> | <strong>Cavalry を選択</strong><br>インストール先を選択して開始します。<br><code>選択</code> |
-| `reinstall.required`<br>`error` | <strong>Reinstall Cavalry</strong><br>Use the official installer, then choose the new installation.<br><code>—</code> | <strong>重新安装 Cavalry</strong><br>使用官方安装包重新安装，然后选择新的安装位置。<br><code>—</code> | <strong>重新安裝 Cavalry</strong><br>使用官方安裝程式重新安裝，然後選擇新的安裝位置。<br><code>—</code> | <strong>Cavalry を再インストール</strong><br>公式インストーラーで再インストールしてから、新しいインストール先を選択してください。<br><code>—</code> |
-| `cavalry.running`<br>`warning` | <strong>Cavalry is still open</strong><br>Save your work and close Cavalry to continue.<br><code>—</code> | <strong>Cavalry 仍在运行</strong><br>保存工作并关闭 Cavalry 后继续。<br><code>—</code> | <strong>Cavalry 仍在執行</strong><br>儲存工作並關閉 Cavalry 後繼續。<br><code>—</code> | <strong>Cavalry が起動中です</strong><br>作業を保存して Cavalry を終了してから続行してください。<br><code>—</code> |
-| `about.openFailed`<br>`error` | <strong>Couldn’t open About</strong><br>Try again.<br><code>Retry</code> | <strong>无法打开“关于”窗口</strong><br>请重试。<br><code>重试</code> | <strong>無法開啟「關於」視窗</strong><br>請重試。<br><code>重試</code> | <strong>「このアプリについて」を開けません</strong><br>もう一度お試しください。<br><code>再試行</code> |
-| `projectLink.openFailed`<br>`error` | <strong>Couldn’t open the project link</strong><br>Check your default browser, then try again.<br><code>Retry</code> | <strong>无法打开项目链接</strong><br>检查默认浏览器后重试。<br><code>重试</code> | <strong>無法開啟專案連結</strong><br>檢查預設瀏覽器後重試。<br><code>重試</code> | <strong>プロジェクトリンクを開けません</strong><br>既定のブラウザーを確認してから、もう一度お試しください。<br><code>再試行</code> |
+| `about.openFailed`<br>`error` | <strong>Couldn’t open About</strong><br>Could not open About. Try again.<br><code>Close</code> | <strong>无法打开关于窗口</strong><br>无法打开“关于”窗口，请重试。<br><code>关闭</code> | <strong>無法開啟關於視窗</strong><br>無法開啟「關於」視窗，請重試。<br><code>關閉</code> | <strong>「このアプリについて」を開けませんでした</strong><br>「このアプリについて」を開けませんでした。もう一度お試しください。<br><code>閉じる</code> |
+| `projectLink.openFailed`<br>`error` | <strong>Couldn’t open the project link</strong><br>Check your default browser, then try again.<br><code>Close</code> | <strong>无法打开项目链接</strong><br>检查默认浏览器后重试。<br><code>关闭</code> | <strong>無法打開專案連結</strong><br>檢查預設瀏覽器後重試。<br><code>關閉</code> | <strong>プロジェクトリンクを開けませんでした</strong><br>既定のブラウザを確認して、再試行してください。<br><code>閉じる</code> |
 
 更新可用不进入 Toast：绿色标题栏入口已经同时承担持久状态和操作入口，Tooltip 解释含义，现有 `role="status"` / `aria-live` 文案负责非视觉公告，点击后的 AlertDialog 再承担版本、影响与明确动作。应用内 Toast 既不能覆盖用户不在查看窗口的情况，也只会重复同一事实；若未来需要跨应用提醒，应另行评估系统通知，而不是借 Toast 假装完成。
 
 Toast 的 `success` 与 `loading` 虽是 Base Toast 内置类型，但当前产品没有独立使用理由：持续任务与最终结果已经由 Event 持有。除非未来出现不属于任务流且没有持久入口的瞬时成功，否则不接入。
+
+生产 Toast 对齐 shadcn 固定源码与其 `@base-ui/react 1.6.0` primitive：普通通知默认停留 `5000ms`，最多 `3` 条，`loading` 不自动关闭；鼠标悬停、键盘焦点进入或窗口失焦时暂停，并按剩余时间恢复。Viewport 保留上游 `16px` inset，与主内容 `20px` 网格有意错层；内容继续消费项目的 14px/500、颜色、圆角和阴影 token。
 
 ## 8. 当前阻塞与下一步
 
 1. 先由产品审阅本目录中的承载组件与四语语感。
 2. 任务引言、空闲态、Switch/Restore 成功结语和 live-edge 跟随已接入；成功结语必须继续绑定完整 terminal success。
 3. 文件级轮换必须先扩展 Rust `OperationReporter` 与 bridge allowlist，并证明每条 detail 对应真实处理边界。
-4. Toast 状态机接入前仍需冻结停留时间、队列上限、关闭/Action 键盘行为、live region 与 reduced-motion。
-5. 任何生产接入都必须同步 L3、renderer L2、docs L2 与合同测试；动画预览不得冒充 packaged/native PASS。
+4. Toast 已完成静态与 Node VM 合同；原生窗口视觉仍需和其他 UI 一起审核，不能把合同冒充 packaged/native PASS。

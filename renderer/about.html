@@ -1,6 +1,6 @@
 <!--
-  [INPUT]: 依赖 ./tokens.css 与 ./about.css 的共享视觉角色、./app-icon.png 的本地应用标识、./tauri-bridge.js 的冻结 bridge、./ui-text.js 的四语文案与 ./about-window.js 的页面状态机。
-  [OUTPUT]: 提供独立原生 About WebviewWindow 的本地页面；显示 64px 应用图标、Switcher 真实版本、Cavalry-i18n 项目入口与 MIT License，不持有窗口管理或外部 URL。
+  [INPUT]: 依赖 tokens/about/toast 视觉层、同源应用标识、冻结 bridge、四语文案、共享图标/Toast 状态机与 About 页面控制器。
+  [OUTPUT]: 提供独立原生 About 页面、固定项目/许可证入口，以及默认浏览器调用失败时不打断页面的局部 Toast。
   [POS]: renderer 的独立信息窗口页面，与主 index.html 的业务状态和 dialog 生命周期隔离；宿主窗口使用 Tauri 原生装饰与原生关闭行为。
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -13,6 +13,7 @@
   <title>About Cavalry Language Switcher</title>
   <link rel="stylesheet" href="./tokens.css" />
   <link rel="stylesheet" href="./about.css" />
+  <link rel="stylesheet" href="./toast.css" />
 </head>
 
 <body>
@@ -33,6 +34,8 @@
 
   <script src="./tauri-bridge.js"></script>
   <script src="./ui-text.js"></script>
+  <script src="./icons.js"></script>
+  <script src="./toast-control.js"></script>
   <script src="./about-window.js"></script>
 </body>
 

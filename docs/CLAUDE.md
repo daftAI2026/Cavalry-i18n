@@ -10,8 +10,8 @@ runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义�
 translation-guidelines.md: 翻译规范，约束语言风格、保留词、快捷键身份原文/操作本地化例外、Forge Dynamics 显示层/模型层分流与界面一致性。
 user-story-status.xlsx: canonical 用户故事状态表，按代码反推 Cavalry-i18n 功能、预期行为、测试证据、错误与修复状态。
 audits/: 审计报告与实跑记录目录，保存阶段性人工/自动检查结果；新问题先沉淀 dated report，再决定是否升格为 workflow。
-audits/switcher-feedback-copy-catalog-2026-08-29.md: Switcher 反馈语义与四语审阅目录，逐条区分 Current / Approved proposal / Blocked，覆盖无确认直达 Switch、空闲引导、任务引言、阶段 Event、持久 Event、必要 AlertDialog 与 Toast，并明确文件级动态说明缺少真实后端 detail 事件。
-component-source-adaptation-protocol.md: 开源组件源码适配知识基线，定义 Design token、shadcn/Base UI 组件行为与 Cavalry 业务三层所有权，要求锁定上游源码闭包、把 Tailwind 最终规则映射为既有语义 token，并以静态/状态机/原生/打包证据防止截图式仿制；当前锁定 shadcn/ui commit、shadcn 4.19.0 utility 与 Phosphor commit。
+audits/switcher-feedback-copy-catalog-2026-08-29.md: Switcher 反馈语义与四语目录，冻结持久 Event、必要 AlertDialog、外围失败 Toast 的生产边界；未选择安装/重装/运行中不叠 Toast，更新可用只用持久入口。
+component-source-adaptation-protocol.md: 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit。
 roadmap/: 路线图目录，保存 proposed/active 的未来优化主题与本轮执行事件簿；当前含本地化搜索、Runtime 性能、Windows 移植与注入，以及已完成 R0 提示并进入 R1 真实 Updater Channel/任务事件视窗与可信分发实机验收阶段的路线；UI/Updater/实机/release/tag/清理事项均由事件簿证据化跟踪，每个主题链接对应事实依据并拆出阶段性验收标准。
 workflows/: 文档化工作流，当前仅 `cavalry-full-ui-100/` 为 full-ui gate 主线；早期 `cavalry-i18n/` 已归档到 `archive/workflows-cavalry-i18n/`。
 img/: 静态资源库，存放 README 截图与文档示意图。
@@ -41,6 +41,6 @@ docs 只描述现实，不驱动运行时；按仓库策略保持本地忽略。
 2026-07-31: 关闭 PR #3 Windows Tag/Assets `PENDING-WINDOWS-PRODUCER`，新增绑定三语 6/6 逻辑点、9/9 producer-side PNG 与 exact PID/HWND 锚点的 session 交接；验收 driver 独立于产品 DLL，登录/工作区由 Qt test profile 隔离，cleanup 对 exact disposable PID 可受限强停但不参与 PASS，repository-wide G0-G4 仍不冒充完成。
 2026-08-28: 新增并完成 Switcher 更新提示 R0 单图标/tooltip preview；随后在独立 feature 接入官方 Tauri updater、独立签名资产、脱敏三阶段 Channel 与底部跟随任务事件视窗。Apple Developer ID/notarization、Windows Authenticode、SemVer bootstrap 和双平台跨版本实机验收仍是独立未完成门禁，不改变当前发布 SOP。
 2026-08-29: 新增 Switcher 反馈语义与四语审阅目录，并把 idle 单轨居中、首尾 Message/中段 Marker 三轨、非阻塞 text delta、8px fade 与 live-edge 接入真实 renderer；仅无 warning 的 Switch/Restore 完整路径输出本地化结果，Updater 跨重启结果、Toast 与文件级 detail 继续按真实证据保持 Blocked/未实现。
-2026-08-29: 新增开源组件源码适配协议；Marker/shimmer 审计锁定 shadcn/ui commit 与 shadcn 4.19.0 最终 utility，明确 Design token、组件状态机与业务事件三层所有权，禁止继续凭截图或记忆仿写。
+2026-08-29: 新增开源组件源码适配协议；Marker/shimmer 审计锁定 shadcn/ui commit 与 shadcn 4.19.0 utility；随后把 Toast 闭包锁定到 shadcn 同提交与 Base UI 1.6.0，并明确 5 秒/3 条/暂停剩余时间和 16px 组件 inset。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -1,3 +1,10 @@
+<!--
+[INPUT]: 依赖 renderer 实际适配的 shadcn/ui、Base UI 与 Phosphor 固定源码及其 MIT 许可证。
+[OUTPUT]: 对外提供 renderer 内组件行为与 SVG path 的来源、锁定版本和版权通知。
+[POS]: renderer 的第三方归因边界；只记录进入本地源码的材料，不引入运行时依赖。
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 # Renderer third-party notices
 
 The renderer contains adapted component behavior and selected SVG path data from the following MIT-licensed projects.
@@ -14,6 +21,18 @@ Adapted renderer behavior is reviewed against upstream commit
 
 Licensed under the MIT License. The full license text is available at:
 https://github.com/shadcn-ui/ui/blob/main/LICENSE.md
+
+## Base UI
+
+Copyright (c) 2019 Material-UI SAS
+
+Source: https://github.com/mui/base-ui
+
+Toast timing, limit, pause/resume, focus, and live-region behavior is adapted
+from `@base-ui/react` 1.6.0.
+
+Licensed under the MIT License. The full license text is available at:
+https://github.com/mui/base-ui/blob/v1.6.0/LICENSE
 
 ## Phosphor Icons
 

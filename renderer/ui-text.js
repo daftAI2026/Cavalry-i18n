@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供非模块脚本全局 UI_TEXT 四语文案目录与 STATUS_TITLE_KEYS 状态标题路由；包含标题区、Windows caption controls、当前语言与验证通过的 Official Badge、任务空态、Switch/Restore/Update 首尾 Message、真实阶段事件、纯百分比下载次行、必要 AlertDialog、macOS 新包 ad-hoc 提醒及完整无障碍名称。
- * [POS]: renderer 的视觉文案与状态语义数据层；由 index.html 在业务脚本前加载，把后端稳定边界压缩为用户可理解的任务事件，把持久阻塞留在视窗、把必须立即选择的风险送入 AlertDialog，隔离交互逻辑与产品 copy。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖任务 Event、必要 AlertDialog、About/项目链接失败 Toast 及完整无障碍名称。
+ * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const UI_TEXT = {
@@ -55,6 +55,7 @@ const UI_TEXT = {
     openPrivacySecurity: 'Open permission settings',
     requestElevation: 'Retry as administrator',
     close: 'Close',
+    notifications: 'Notifications',
     minimizeWindow: 'Minimize',
     maximizeWindow: 'Maximize',
     restoreWindow: 'Restore',
@@ -213,6 +214,7 @@ const UI_TEXT = {
     openPrivacySecurity: '打开权限设置',
     requestElevation: '以管理员身份重试',
     close: '关闭',
+    notifications: '通知',
     minimizeWindow: '最小化',
     maximizeWindow: '最大化',
     restoreWindow: '还原',
@@ -364,6 +366,7 @@ const UI_TEXT = {
     openPrivacySecurity: '打開權限設定',
     requestElevation: '以系統管理員身分重試',
     close: '關閉',
+    notifications: '通知',
     minimizeWindow: '最小化',
     maximizeWindow: '最大化',
     restoreWindow: '還原',
@@ -515,6 +518,7 @@ const UI_TEXT = {
     openPrivacySecurity: '権限設定を開く',
     requestElevation: '管理者として再試行',
     close: '閉じる',
+    notifications: '通知',
     minimizeWindow: '最小化',
     maximizeWindow: '最大化',
     restoreWindow: '元に戻す',

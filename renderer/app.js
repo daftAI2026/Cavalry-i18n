@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 window.cavalryI18n 的 Promise/有序阶段事件 API、window.createOperationLog/window.createUpdateProgress/window.createSelectControl/window.createTooltipControl/window.createPathDisplay/window.createAboutControl/window.createWindowControls 的独立状态机与语义投影、renderer/ui-text.js 的稳定文案与 renderer/index.html 的固定控件 id
- * [OUTPUT]: 对外提供跨平台桌面补丁器的四语标题/单任务流/有界三轨任务视窗与阶段专属语义图标、初始化 fail-closed 门禁、Cavalry 当前语言 Badge 与仅在验证通过时出现的 Official Badge、直接 Switch、平台统一 Restore、必要 AlertDialog、About、更新 tooltip/无障碍通知与签名冷更新交互；首次 Switch 由后端在写事务前自动建立恢复基线，loopback 开发预览只点亮更新入口且不访问网络。
- * [POS]: renderer 的唯一业务交互源，被 index.html 直接加载；只消费平台中立 bridge 契约，把真实后端事件压缩为面向用户的任务阶段，不暴露内部函数名、不虚构结果；可逆且运行中 fail-closed 的 Switch 直接进入任务流，持久阻塞留在事件视窗，只有权限、Restore 与更新风险进入 AlertDialog，About 由独立 native window owner 管理。
+ * [INPUT]: 依赖冻结 bridge、有序阶段事件、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
+ * [OUTPUT]: 对外提供跨平台单任务流、三轨 Activity、语言/Official Badge、直接 Switch、统一 Restore、必要 AlertDialog、Updater 与不污染任务流的 About 失败 Toast。
+ * [POS]: renderer 唯一业务交互源；持久事实进入 Activity，必须决策的风险进入 AlertDialog，独立低频操作失败进入 Toast。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -87,10 +87,18 @@ let modalSecondaryAction = null;
 let modalReturnFocus = null;
 const uiLocale = detectUiLocale();
 const windowControls = window.createWindowControls({ api, text: t });
+const toastControl = window.createToastControl({
+  label: t('notifications'),
+  closeLabel: t('close'),
+});
 const aboutControl = window.createAboutControl({
   api,
   text: t,
-  onError: () => setStatus('aboutOpenFailed', 'error'),
+  onError: () => toastControl.show({
+    type: 'error',
+    title: t('aboutOpenFailedTitle'),
+    description: t('aboutOpenFailed'),
+  }),
 });
 
 function updatePreviewRequested() {

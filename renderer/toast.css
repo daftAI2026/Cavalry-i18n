@@ -1,0 +1,143 @@
+/**
+ * [INPUT]: 依赖 tokens.css 的排印、4px 间距、弹层层级、颜色、圆角、阴影与 Toast 专属时序角色。
+ * [OUTPUT]: 对外提供 shadcn Base Toast 的右下视窗、底部堆叠、状态图标、标题/说明/关闭槽位及进入退出视觉；16px 视窗 inset 是组件源码例外。
+ * [POS]: renderer 的共享短时通知视觉层；主窗口与 About 页面共同消费，不改变 20px 主内容网格，也不复用 Activity 的持久反馈外框。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+.toast-viewport {
+  position: fixed;
+  right: var(--toast-viewport-inset);
+  bottom: var(--toast-viewport-inset);
+  z-index: var(--z-toast);
+  width: min(var(--toast-max-width), calc(100vw - var(--toast-viewport-inset) * 2));
+  height: 0;
+  pointer-events: none;
+  outline: none;
+}
+
+.toast {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  overflow: hidden;
+  border: var(--stroke-hairline) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-toast);
+  pointer-events: auto;
+  outline: none;
+  transform: translateY(calc(var(--toast-index) * var(--toast-stack-peek) * -1)) scale(calc(1 - var(--toast-index) * var(--toast-scale-step)));
+  transform-origin: bottom;
+  transition:
+    transform var(--duration-toast-transform) var(--ease-toast),
+    opacity var(--duration-toast-transform) var(--ease-toast),
+    height var(--duration-toast-height) ease;
+  will-change: transform;
+}
+
+.toast-viewport[data-expanded="true"] .toast {
+  transform: translateY(calc(var(--toast-offset-y) * -1));
+}
+
+.toast[data-state="starting"],
+.toast[data-state="ending"] {
+  transform: translateY(var(--toast-entry-distance));
+  opacity: 0;
+}
+
+.toast:focus-visible {
+  border-color: var(--focus);
+  box-shadow: var(--shadow-toast), 0 0 0 var(--stroke-focus) color-mix(in srgb, var(--focus) 38%, transparent);
+}
+
+.toast-content {
+  display: flex;
+  align-items: center;
+  gap: var(--toast-content-gap);
+  padding: var(--toast-content-padding);
+  overflow: hidden;
+  transition: opacity var(--duration-toast-content) var(--ease-toast);
+}
+
+.toast-icon {
+  width: var(--toast-icon-size);
+  height: var(--toast-icon-size);
+  flex: 0 0 auto;
+  color: var(--text-secondary);
+}
+
+.toast[data-type="error"] .toast-icon {
+  color: var(--danger);
+}
+
+.toast-icon svg,
+.toast-close svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.toast-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--toast-copy-gap);
+}
+
+.toast-title,
+.toast-description {
+  margin: 0;
+  font-size: var(--type-compact);
+  line-height: var(--line-height-compact);
+  overflow-wrap: anywhere;
+}
+
+.toast-title {
+  font-weight: var(--weight-medium);
+}
+
+.toast-description {
+  color: var(--text-secondary);
+  font-weight: var(--weight-regular);
+}
+
+.toast-close {
+  position: relative;
+  width: var(--toast-close-size);
+  height: var(--toast-close-size);
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.toast-close::after {
+  position: absolute;
+  inset: calc(var(--toast-close-hit-expansion) * -1);
+  content: "";
+}
+
+.toast-close:hover {
+  color: var(--text);
+}
+
+.toast-close:focus-visible {
+  outline: var(--stroke-focus) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast,
+  .toast-content {
+    transition-duration: var(--duration-reduced-motion);
+  }
+}

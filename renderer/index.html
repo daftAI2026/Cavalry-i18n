@@ -1,6 +1,6 @@
 <!--
-  [INPUT]: 依赖 ./tokens.css 先建立离线设计角色、./styles.css/./operation-log.css/./about.css/./window-controls.css 消费角色实现跨平台视觉系统、./app-icon.png 提供与安装包同源的本地应用标识、./icons.js 提供单一语义 SVG 注册表、./select-control.js/./tooltip-control.js/./path-display.js/./operation-log.js/./update-progress.js/./about-control.js/./window-controls.js 提供独立状态机与更新事件语义投影、./tauri-bridge.js 建立冻结 API、./ui-text.js 提供四语文案，并由 ./app.js 绑定真实业务状态
-  [OUTPUT]: 对外提供 macOS 原生交通灯后的标题/更新入口、Windows 左起标题/更新/About 入口与右侧 caption controls、可拖拽标题区、Cavalry 当前语言徽章与条件式 Official 徽章、保留路径末段的中部省略摘要、自绘语言选择器、全宽 Select 后并列 Switch/Restore 的单任务流、idle/首尾 Message/中段 Marker 三轨任务视窗与 AlertDialog 锚点；About 内容由独立本地页面承载
+  [INPUT]: 依赖 tokens.css 及共享 shell/Activity/About/Toast/窗口控件视觉层，依赖 icons/select/tooltip/path/operation/update/toast/about/window-controls 状态机、冻结 bridge 与四语文案
+  [OUTPUT]: 对外提供原生标题区、安装摘要、Select + Switch/Restore 主任务流、三轨 Activity、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起独立原生装饰窗口，Windows 只自绘原生语义按钮而不伪造系统外框
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="./tokens.css" />
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./operation-log.css" />
+  <link rel="stylesheet" href="./toast.css" />
   <link rel="stylesheet" href="./about.css" />
   <link rel="stylesheet" href="./window-controls.css" />
 </head>
@@ -153,6 +154,7 @@
   <script src="./path-display.js"></script>
   <script src="./operation-log.js"></script>
   <script src="./update-progress.js"></script>
+  <script src="./toast-control.js"></script>
   <script src="./about-control.js"></script>
   <script src="./window-controls.js"></script>
   <script src="./app.js"></script>

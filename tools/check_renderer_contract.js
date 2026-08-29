@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、本地应用图标、独立语义 token/图标表、稳定文案脚本、Select/Tooltip/Path/任务事件/Updater/About/Windows caption 状态机、第三方来源通知、CSP/平台窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住固定 DOM anchors、token→共享/组件/平台视觉层单向依赖、400×484 平台窗口与 176px Activity、macOS 原生交通灯/Windows caption controls、Grid/Flex 分工、Select/Tooltip/Button Group、idle 居中与首尾 Message/中段 Marker 三轨任务视窗、权限按钮可见时才创建的条件轨道、中部省略路径、单一 Phosphor 图标注册表与 Restore→FloppyDiskBack 精确路径、Spinner/shimmer/8px scroll-fade/live-edge、真实事件可读节奏与错误抢占、Cavalry 当前语言 informational blue-subtle 及条件式 Official green-subtle 徽章、直接 Switch、独立 About 页面与固定项目外链、脱敏 Updater Channel、必要 AlertDialog，以及全宽 Select + Switch/Restore 单任务流；禁止隐藏轨道残留伪间距、组合状态徽章、冗余 Switch 确认、窗口主内容滚动、不可达旧事件与旧 Recovery/Refresh/separator 残留。
+ * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge、来源通知、窗口配置与冻结 bridge API。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、组件状态、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；工作台必须实时消费生产 renderer，禁止复制产品 DOM/CSS、魔法视觉常量、重复反馈和旧 Recovery 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,6 +10,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const vm = require('node:vm');
+const {
+  fixtureSource,
+  renderReviewDocument,
+  workspaceHtml,
+} = require('./ui_review_server');
 
 const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
@@ -43,6 +48,27 @@ function sourceStatement(source, marker) {
   assert.notEqual(end, -1, `${marker} terminator missing`);
   return source.slice(start, end + 1);
 }
+
+test('UI Review renders the exact production shell and replaces only the data bridge', () => {
+  const production = read('renderer/index.html');
+  const review = renderReviewDocument();
+  const workspace = workspaceHtml();
+  const fixture = fixtureSource();
+  const normalized = review
+    .replace('\n  <base href="/renderer/" />', '')
+    .replace('<script src="/fixture.js"></script>\n  ', '');
+
+  assert.equal(normalized, production, 'review app may inject a base and fixture bridge, but may not copy or edit production UI');
+  assert.match(review, /<script src="\/fixture\.js"><\/script>\s*<script src="\.\/tauri-bridge\.js"><\/script>/);
+  assert.match(workspace, /<iframe id="reviewFrame"[^>]*><\/iframe>/);
+  assert.doesNotMatch(workspace, /id="(?:appVersion|currentLanguage|statusPanel|languageSelectRoot)"/);
+  assert.doesNotMatch(workspace, /class="(?:badge|status-panel|toast)"/);
+  assert.match(workspace, /fetch\('\/revision'/);
+  assert.match(fixture, /window\.cavalryI18n = Object\.freeze/);
+  assert.match(fixture, /\['verifyInstallation', 'ensureBaseline', 'applyTransaction', 'restartCavalry'\]/);
+  assert.match(fixture, /onEvent\(\{ phase: 'downloading', downloaded, contentLength: total \}\)/);
+  assert.doesNotMatch(fixture, /<main|<header|class="badge"|class="status-panel"/, 'fixture owns data only, never product markup');
+});
 
 function cssRule(source, selector) {
   const start = source.indexOf(selector);
@@ -97,11 +123,48 @@ test('semantic icon registry is frozen, defensive, and returns independent acces
   assert.equal(window.cavalryIcons.create('unknown'), null, 'unknown semantic names must fail closed');
 });
 
+test('Toast follows the pinned shadcn/Base UI timing while consuming local design tokens', () => {
+  const tokens = read('renderer/tokens.css');
+  const styles = read('renderer/toast.css');
+  const control = read('renderer/toast-control.js');
+  const app = read('renderer/app.js');
+  const aboutWindow = read('renderer/about-window.js');
+
+  assert.match(control, /const DEFAULT_TIMEOUT_MS = 5000;/);
+  assert.match(control, /const DEFAULT_LIMIT = 3;/);
+  assert.match(control, /record\.type === 'loading'/, 'loading Toast must not auto-dismiss');
+  assert.match(control, /record\.remaining = Math\.max\(record\.remaining - \(now - record\.startedAt\), 0\)/);
+  assert.match(control, /viewport\.addEventListener\('mouseenter',[\s\S]*?pauseTimers\(\)/);
+  assert.match(control, /viewport\.addEventListener\('focusin',[\s\S]*?pauseTimers\(\)/);
+  assert.match(control, /global\.addEventListener\('blur',[\s\S]*?pauseTimers\(\)/);
+  assert.match(control, /event\.key !== 'F6'/);
+  assert.match(control, /event\.key === 'Escape'/);
+  assert.match(control, /while \(records\.length > limit\)/);
+
+  assert.match(tokens, /--toast-viewport-inset:\s*var\(--space-4\)/, 'Toast keeps the approved 16px source inset');
+  assert.match(tokens, /--toast-content-padding:\s*var\(--space-4\)/);
+  assert.match(tokens, /--toast-content-gap:\s*var\(--space-3\)/);
+  assert.match(tokens, /--toast-copy-gap:\s*var\(--space-1\)/);
+  assert.match(tokens, /--duration-toast-transform:\s*500ms/);
+  assert.match(tokens, /--duration-toast-content:\s*250ms/);
+  assert.match(tokens, /--duration-toast-height:\s*150ms/);
+  assert.match(styles, /right:\s*var\(--toast-viewport-inset\);[\s\S]*?bottom:\s*var\(--toast-viewport-inset\)/);
+  assert.match(styles, /padding:\s*var\(--toast-content-padding\)/);
+  assert.match(styles, /inset:\s*calc\(var\(--toast-close-hit-expansion\) \* -1\)/);
+  assert.match(styles, /translateY\(var\(--toast-entry-distance\)\)/);
+
+  assert.match(app, /onError:\s*\(\) => toastControl\.show\(/);
+  assert.doesNotMatch(app, /onError:\s*\(\) => setStatus\('aboutOpenFailed'/, 'About failure must not overwrite Activity');
+  assert.match(aboutWindow, /description:\s*text\(locale, 'openProjectLinkFailed'\)/);
+});
+
 test('renderer retains DOM anchors and uses only local resources', () => {
   const html = read('renderer/index.html');
   const tokens = read('renderer/tokens.css');
   const styles = read('renderer/styles.css');
   const operationStyles = read('renderer/operation-log.css');
+  const toastStyles = read('renderer/toast.css');
+  const toastControl = read('renderer/toast-control.js');
   const icons = read('renderer/icons.js');
   const operationLog = read('renderer/operation-log.js');
   const updateProgress = read('renderer/update-progress.js');
@@ -118,7 +181,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
     'the single-task UI must not retain the old Recovery controls'
   );
   const htmlWithoutSvgNamespace = html.replace(/\s+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '');
-  const implementationCss = `${styles}\n${operationStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
+  const implementationCss = `${styles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
   const operationWithoutRuntimeState = operationStyles.replace(
     /--operation-(?:scroll-fade-(?:top|bottom)|shimmer-(?:base|highlight))\s*:[^;]+;/g,
     ''
@@ -130,6 +193,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.doesNotMatch(tokens, /@import|url\(["']?https?:/i, 'tokens must not load remote resources');
   assert.doesNotMatch(styles, /@import|url\([\"']?https?:/i, 'styles must not load remote resources');
   assert.doesNotMatch(operationStyles, /@import|url\([\"']?https?:/i, 'operation log styles must not load remote resources');
+  assert.doesNotMatch(toastStyles, /@import|url\([\"']?https?:/i, 'Toast styles must not load remote resources');
   assert.doesNotMatch(icons, /@import|url\([\"']?https?:/i, 'icon registry must not load remote resources');
   assert.doesNotMatch(aboutStyles, /@import|url\([\"']?https?:/i, 'about styles must not load remote resources');
   assert.doesNotMatch(windowControlStyles, /@import|url\([\"']?https?:/i, 'window controls must not load remote resources');
@@ -137,16 +201,16 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(thirdPartyNotices, /## Phosphor Icons[\s\S]*Licensed under the MIT License/);
   assert.match(
     html,
-    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/operation-log\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
+    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/operation-log\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
     'semantic tokens must load before shared and platform visual implementations'
   );
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
     'renderer scripts must load bridge, stable text, icons, component state machines, then app'
   );
   assert.match(icons, /window\.cavalryIcons = Object\.freeze\(\{ create: createIcon \}\)/);
-  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'restart', 'download', 'package', 'update']) {
+  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'infoCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'restart', 'download', 'package', 'update', 'close']) {
     assert.match(icons, new RegExp(`\\b${iconName}: \\{`), `${iconName} must stay in the semantic icon registry`);
   }
   assert.doesNotMatch(operationLog, /const ICONS|createElementNS|<path/, 'operation log must consume icon names without owning SVG path data');
@@ -158,11 +222,12 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(tokens, /--font-mono:\s*ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace/);
   assert.doesNotMatch(styles, /--[a-z0-9-]+\s*:/i, 'shared implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(operationWithoutRuntimeState, /--[a-z0-9-]+\s*:/i, 'operation implementation may own runtime CSS state, but no private design constants');
+  assert.doesNotMatch(toastStyles, /--[a-z0-9-]+\s*:/i, 'Toast implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(aboutStyles, /--[a-z0-9-]+\s*:/i, 'about implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(tunableImplementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
   const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
-  const tokenReferences = `${tokens}\n${styles}\n${operationStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}`;
+  const tokenReferences = `${tokens}\n${styles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}`;
   assert.deepEqual(
     tokenDefinitions.filter(
       (name) => !tokenReferences.includes(`var(${name})`) && !tokenReferences.includes(`'${name}'`)
@@ -174,6 +239,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.ok(app.split(/\r?\n/).length <= 800, 'renderer/app.js must stay within the 800-line contract');
   assert.ok(updateProgress.split(/\r?\n/).length <= 800, 'renderer/update-progress.js must stay within the 800-line contract');
   assert.ok(tooltipControl.split(/\r?\n/).length <= 800, 'renderer/tooltip-control.js must stay within the 800-line contract');
+  assert.ok(toastControl.split(/\r?\n/).length <= 800, 'renderer/toast-control.js must stay within the 800-line contract');
   assert.match(cssRule(styles, 'html,\nbody'), /overflow:\s*hidden;/, 'the window must not scroll as a whole');
   assert.match(cssRule(styles, '.content'), /overflow:\s*hidden;/, 'the main content must not scroll');
   const selectListRule = cssRule(styles, '.select-list');
@@ -299,13 +365,16 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(aboutControl, /api\.showAbout\(\)/);
   assert.match(aboutControl, /control\.hidden = platform !== 'windows'/);
   assert.doesNotMatch(aboutControl, /https?:\/\//, 'About entry must not own an external URL');
-  assert.match(aboutPage, /<script src="\.\/about-window\.js"><\/script>/);
+  assert.match(aboutPage, /<link rel="stylesheet" href="\.\/toast\.css" \/>/);
+  assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
   assert.match(aboutPage, /<img class="about-app-icon" src="\.\/app-icon\.png" alt="" aria-hidden="true" \/>/);
   assert.match(aboutPage, /id="aboutRepositoryLink"[\s\S]*?class="about-link-icon"[\s\S]*?id="aboutRepositoryLabel"/);
   assert.match(aboutWindow, /getSwitcherVersion\(\)/);
   assert.match(aboutWindow, /openProjectLink\(link\)/);
-  assert.match(aboutWindow, /wireProjectLink\('#aboutRepositoryLink', 'repository'\)/);
-  assert.match(aboutWindow, /wireProjectLink\('#aboutLicenseLink', 'license'\)/);
+  assert.match(aboutWindow, /wireProjectLink\('#aboutRepositoryLink', 'repository', showProjectLinkError\)/);
+  assert.match(aboutWindow, /wireProjectLink\('#aboutLicenseLink', 'license', showProjectLinkError\)/);
+  assert.match(aboutWindow, /createToastControl/);
+  assert.match(aboutWindow, /projectLinkFailedTitle/);
   assert.doesNotMatch(aboutWindow, /showAbout/);
   assert.doesNotMatch(aboutPage, /https?:\/\//, 'About page must use fixed bridge ids, not renderer URLs');
   assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['repository', 'license'\]\)/);
@@ -392,11 +461,11 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.app-path\s*\{[\s\S]*?margin:\s*var\(--gap-meta-stack\)\s+0\s+0/);
   assert.match(styles, /\.badge\s*\{[\s\S]*?min-height:\s*var\(--badge-height\)[\s\S]*?padding:\s*0 var\(--badge-padding-inline\)[\s\S]*?border-radius:\s*var\(--radius-pill\)/);
   assert.match(tokens, /--badge-language-bg:\s*#edf6ff/);
-  assert.match(tokens, /--badge-language-border:\s*#b7d9f7/);
   assert.match(tokens, /--badge-language-text:\s*#0068d6/);
   assert.match(tokens, /--badge-green-bg:\s*#edf9f0/);
-  assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-language-border\)[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
-  assert.match(styles, /\.badge\[data-state="official"\]\s*\{[\s\S]*?border-color:\s*var\(--badge-green-border\)[\s\S]*?background:\s*var\(--badge-green-bg\)[\s\S]*?color:\s*var\(--badge-green-text\)/);
+  assert.doesNotMatch(tokens, /--badge-(?:language|green)-border:/, 'filled semantic badges must not own a visible outline token');
+  assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*transparent;[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
+  assert.match(styles, /\.badge\[data-state="official"\]\s*\{[\s\S]*?border-color:\s*transparent;[\s\S]*?background:\s*var\(--badge-green-bg\)[\s\S]*?color:\s*var\(--badge-green-text\)/);
   assert.doesNotMatch(styles, /\.badge\[data-state="(?:translated|modified)"\]/);
   assert.match(styles, /\.installation-item\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
   assert.match(operationStyles, /\.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\)/);

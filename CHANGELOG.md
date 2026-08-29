@@ -28,6 +28,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - **Activity Geometry and Update Progress**: Recalculate the Marker viewport after streamed intro/result layout changes, keep the final result outside the scroll layer, and drive the 8px mask from explicit start/end edge state. Production and the approved prototype now use a 176px Activity panel with a 94px middle viewport. Updater download progress remains a second line on its stage, preserves `100%` after completion, and omits file-level/internal detail before the next stage appears.
+- **Peripheral Feedback and Badge Contrast**: About-window and fixed project-link failures now use a localized five-second Toast without replacing the task Activity or opening a modal. The Toast preserves Base UI pause/resume, three-item limit, keyboard, live-region, and bottom-up behavior while consuming local design tokens. Filled language and Official badges no longer draw an extra colored outline; the neutral gray variant retains its border.
 
 ## [0.7.0] - 2026-08-09
 

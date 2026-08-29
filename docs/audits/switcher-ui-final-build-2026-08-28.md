@@ -11,7 +11,7 @@
 适用版本: Cavalry Language Switcher `0.7.0` 候选
 视觉真相源: `renderer/index.html`、`renderer/tokens.css`、`renderer/styles.css`、`renderer/operation-log.css`、`renderer/operation-log.js`、`renderer/update-progress.js`、`renderer/select-control.js`、`renderer/about.css`、`renderer/about-control.js`、`renderer/about.html`、`renderer/about-window.js`
 窗口真相源: `src-tauri/tauri.conf.json`、`src-tauri/src/lib.rs`、平台覆盖配置
-最新现场证据: 当前 native dev 的 Tauri 逻辑配置为 `400×484`，AX/CGWindow 外框按 AppKit 语义报告 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 投影与加高后的 Activity。生产 renderer 与反馈原型的无浏览器外框几何复核为 Activity `360×176`、12px padding、94px 中段；更新反馈截图为 `/tmp/cavalry-update-feedback-176.png`。这些不替代 package/manual smoke 或 Windows live。
+最新现场证据: 当前 native dev 的 Tauri 逻辑配置为 `400×484`，AX/CGWindow 外框按 AppKit 语义报告 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 投影与加高后的 Activity。localhost UI Review 已改为直接加载同一生产 renderer，只用 fixture bridge 切换场景；其 Activity 因而天然复用 `360×176`、12px padding、94px 中段，不再以独立手绘原型声称同构。这些不替代 package/manual smoke 或 Windows live。
 
 ## 1. 设计原则
 
@@ -28,7 +28,7 @@
 | --- | ---: | --- |
 | 默认窗口 | `400 × 484px` | 当前 Tauri 逻辑配置；新增 4px 全部归入 Activity，不挤占既有间距 |
 | 最小窗口 | `400 × 484px` | 主任务一屏完成；主窗口禁止滚动，Select 与任务事件视窗各自处理内部溢出 |
-| Activity | 外框 `360 × 176px`；padding `12px`；中段视窗 `94px` | 生产与反馈原型同构；首尾 Message、8px 关系与上游几何不变 |
+| Activity | 外框 `360 × 176px`；padding `12px`；中段视窗 `94px` | UI Review 直接消费生产实现；首尾 Message、8px 关系与上游几何不变 |
 | 内容轨道 | `360px` | `400 - 20 - 20`；内容四边 padding 均为 `20px` |
 | 标题栏 | `40px` | `12 + 16 + 12`：交通灯上下留白各 `12px` |
 | macOS 交通灯 | `16 × 16px` | 原生 AppKit 控件；目标中心线为 `y = 20px` |
@@ -53,7 +53,7 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 | --- | --- | --- |
 | Heading | `16px / 450`；独立 Dialog 标题按组件语义可用 `500` | 窗口标题、Cavalry 安装名称、AlertDialog 标题 |
 | Body | `14px / 400` 或 `500` | Section 标题、Select、动作、AlertDialog 正文与任务事件标题 |
-| Meta | `13px / 400` 或 `500` | 路径、徽章、Tooltip、任务说明与辅助文本；徽章依靠颜色、边框和形状表达状态 |
+| Meta | `13px / 400` 或 `500` | 路径、徽章、Tooltip、任务说明与辅助文本；徽章依靠文字、填充色和胶囊形状表达类别 |
 
 不再使用 `10/12px`、`600` 或其他临时中间级别。字体继续使用平台系统栈而非引入 Geist：`design.md` 的报告网站品牌合同要求 Geist，但本项目是离线原生工具，应遵循其“角色一致、对等元素同规格、强调稀缺”的排印原则，而不是照搬报告品牌字体或远程资源。[Vercel design.md](https://vercel.com/design.md)
 
@@ -65,7 +65,7 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 
 当前实现用 Grid 固定主窗口的复合轨道，并让任务事件视窗成为 `minmax(0, 1fr)`；`operation-log.css` 再以 Flex 管每条 Marker。`html/body/.content` 禁止窗口级滚动，Select 列表和事件视窗只在自身边界内滚动。业务分割线不承担层级，层级由留白与边界 token 表达。
 
-当前语言徽章是说明性类别元数据，不是信任状态。`design.md` 要求先以单色建立层级，只有颜色增加状态、动作或数据信息时才使用；Geist Badge 又明确把 blue 定义为 informational，因此四种语言统一使用 `blue-subtle` 的 `blue-200 / blue-400 / blue-900` 角色。gray 在语义上同样成立，但当前界面的路径、禁用控件、次级文字与边框已经大量使用灰阶，语言徽章继续用 gray 会退成背景噪声；紫色则制造无来源的分类强调。green 继续只属于验证通过的 Official 与更新动作，amber/red 保留给警告/错误。Switcher 的 pending journal 或启动恢复失败不是 Cavalry 本体状态，不进入安装徽章，只通过事件视窗、独立 AlertDialog、操作锁和恢复路径表达。两枚徽章即使相邻也不会混写维度，且文字仍是颜色之外的必要语义线索。[Vercel design.md](https://vercel.com/design.md) [Geist Badge](https://vercel.com/geist/badge) [Geist Colors](https://vercel.com/geist/colors)
+当前语言徽章是说明性类别元数据，不是信任状态。`design.md` 要求先以单色建立层级，只有颜色增加状态、动作或数据信息时才使用；Geist Badge 又明确把 blue 定义为 informational，因此四种语言统一使用 `blue-subtle`。gray 在语义上同样成立，但当前界面的路径、禁用控件、次级文字与边框已经大量使用灰阶，语言徽章继续用 gray 会退成背景噪声；紫色则制造无来源的分类强调。green 继续只属于验证通过的 Official 与更新动作，amber/red 保留给警告/错误。对照 shadcn Badge variant 后，blue/green 填充变体使用透明边界，不再额外绘制同色描边；基础 gray/outline 变体仍可保留可见边线。透明 `1px` 只维持既有 20px 盒模型，不形成视觉描边。Switcher 的 pending journal 或启动恢复失败不是 Cavalry 本体状态，不进入安装徽章，只通过事件视窗、独立 AlertDialog、操作锁和恢复路径表达。两枚徽章即使相邻也不会混写维度，且文字仍是颜色之外的必要语义线索。[Vercel design.md](https://vercel.com/design.md) [Geist Badge](https://vercel.com/geist/badge) [Geist Colors](https://vercel.com/geist/colors)
 
 ### 2.1 Select 源码对齐
 
@@ -89,7 +89,7 @@ Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`app
 
 阶段内动态说明属于同一 Marker 的 description，不是额外同级 Marker：下载主行保持“正在下载版本”，次行更新真实百分比；准备恢复文件或恢复 Cavalry 也可以在次行原位轮换当前对象，终态再把主行改为“恢复文件已就绪”或“Cavalry 已恢复”。description 与主步骤统一使用 `14px/20px` 和 `8px` 垂直节奏；层级由缩进与所属关系表达，不靠缩成脚注字号或压缩行距。但当前 Apply `OperationEvent` 只有 `phase/state`，没有文件、索引或总数，因此生产不得轮播假文件名。正确实现必须让 Rust 事务从真实处理边界发出受控 detail code / manifest item id，bridge 拒绝任意路径和底层原文，renderer 再本地化显示名称。
 
-持久启动阻塞继续使用同一事件视窗，因为用户需要在采取恢复动作前持续看到它。后续 Toast 只允许承担不重复恢复正文的一次性注意摘要，不能替代或逐字复制 Event；AlertDialog 只用于必须立即作出选择的确认、权限或危险操作。
+持久启动阻塞继续使用同一事件视窗，因为用户需要在采取恢复动作前持续看到它；未选择安装、必须重装、Cavalry 仍在运行都不再叠加 Toast。Toast 只承担 About/固定项目链接等没有主任务承载位置的短时外围失败；AlertDialog 只用于必须立即作出选择的确认、权限或危险操作。
 
 全部当前与提案文案、四语版本及组件归属集中在 [Switcher 反馈语义与四语文案审阅目录](./switcher-feedback-copy-catalog-2026-08-29.md)，避免聊天裁决散落后再次混淆 Event、AlertDialog 与 Toast。
 
@@ -110,22 +110,22 @@ About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用�
 | 实际情境 | 当前代码事实 | 正确承载 | 组合裁决 |
 | --- | --- | --- | --- |
 | 启动读取状态 | `bootstrap` running | Event | 短暂任务事实，不弹 Toast、不阻塞 |
-| 未选择 Cavalry | `chooseAppToContinue` 持久 warning | Event + 待实现 Toast | Event 保留完整下一步；Toast 仅首次提示“选择安装” |
-| English 基线不可验证，必须重装 | `reinstallRequired` 持久 error | Event + 待实现 Toast | Event 保留官方重装与重新选择路径；Toast 只负责启动时吸引注意 |
-| 启动恢复失败、state durability、Windows residue、自定义目录不可写 | 稳定 error/warning code | Event | 属于持续阻塞或恢复债务，不使用会自动消失的唯一提示；是否加一次摘要 Toast 后续逐项裁决 |
+| 未选择 Cavalry | `chooseAppToContinue` 持久 warning | Event | 操作控件已禁用且安装选择入口可见；不为同一事实叠 Toast 或 AlertDialog |
+| English 基线不可验证，必须重装 | `reinstallRequired` 持久 error | Event | 外部重装与重新选择是持续恢复路径，不使用会消失的 Toast |
+| 启动恢复失败、state durability、Windows residue、自定义目录不可写 | 稳定 error/warning code | Event | 属于持续阻塞或恢复债务，不使用会自动消失的唯一提示，也不叠摘要 Toast |
 | Switch 开始 | 运行中 fail-before-mutation，关闭态可逆 | Event Scroll | 无冗余确认，点击后直接进入真实 Channel；不提供“稍后重启”半状态 |
 | Restore 开始前 | 已有 confirm handler | AlertDialog | 用户必须明确继续或取消；此时不再叠 Toast |
 | Switch / Restore 执行 | 四个真实 Channel phase | Event Scroll | `verifyInstallation → ensureBaseline → applyTransaction → restartCavalry`，用户文案把末阶段投影为“打开 Cavalry”，运行态与完成态原位切换 |
 | 运行中需要系统权限 | `permissionRequired` + 明确 Open Settings / Elevation 动作 | Event + AlertDialog | Event 留下任务为何停住；AlertDialog 提供立即选择，不叠 Toast |
-| Cavalry 仍在运行 | `cavalryStillRunning` | Event + 待实现 Toast | Event 保留“保存并关闭后重试”；Toast 可提醒一次，但没有安全自动关闭动作，因此不伪装成确认框 |
+| Cavalry 仍在运行 | `cavalryStillRunning` | Event | 保存、关闭、重试的恢复路径必须可回看；既不叠 Toast，也不伪装成确认框 |
 | Apply 后 cleanup/restart warning | `warningCodes` | Event | 已发生事务的后续结果必须可回看；默认不叠 Toast |
 | 发现可用更新 | updater check DTO + 标题栏绿色图标 + `aria-live` 公告 | 标题栏入口 + Tooltip | 非紧急持久状态已有稳定入口；点击后再由 AlertDialog 展示版本、影响与操作，不重复 Toast |
 | 安装更新前 | 版本说明、macOS ad-hoc 风险 | AlertDialog | 用户明确 Update & Restart / Cancel；不叠 Toast |
 | 安装更新中 | 三个真实 Updater phase | Event Scroll | `downloading → verifying/installing → restarting`，不虚构 verified |
 | 更新失败 | 稳定 updater error code | Event | 保留失败与重试路径；只有窗口失焦等明确需求出现时再考虑 Toast |
-| About / 外链打开失败 | 独立、短时、非任务操作 | 待实现 Toast | 不应清空主任务事件流；Toast 比把错误塞进任务框更符合局部操作语义 |
+| About / 外链打开失败 | 独立、短时、非任务操作 | Toast | 在发生操作的窗口显示 5 秒 error Toast，不清空主任务事件流，不弹 AlertDialog |
 
-待实现 Toast 只是已批准语义方向，不代表当前生产代码已经接入 Toast 状态机。位置与运动方向已经冻结：Toast 固定在窗口右下角，由下向上进入；多条通知从右下向上堆叠，不采用右上向下的 Web 通知模式。组件结构对照 [shadcn Base Toast 文档](https://ui.shadcn.com/docs/components/base/toast#types) 与[固定源码](https://github.com/shadcn-ui/ui/blob/683a5a9b370acdb7785a0529434e6a3b8c7e0441/apps/v4/registry/bases/base/ui/toast.tsx)：内容由可选状态图标、标题、说明、可选 Action 与关闭控件组成；内置类型只投影 `success`、`info`、`warning`、`error`、`loading`。Action 只在存在安全且明确的即时下一步时出现，不能替代 Event 中持久的恢复路径，也不能伪造后端并不存在的能力。布局继续采用 `bottom/right` viewport、`origin-bottom` 与 `translateY(150%)` 进入模型；具体停留时间、队列/替换、键盘关闭、屏幕阅读器 live region 与 reduced-motion 行为仍须在接入生产前冻结，并继续复用项目 token。
+生产 Toast 固定在窗口右下角，由下向上进入；最多三条，从右下向上堆叠。结构对照 [shadcn Base Toast 文档](https://ui.shadcn.com/docs/components/base/toast#types) 与[固定源码](https://github.com/shadcn-ui/ui/blob/683a5a9b370acdb7785a0529434e6a3b8c7e0441/apps/v4/registry/bases/base/ui/toast.tsx)，计时/焦点闭包锁定 `@base-ui/react 1.6.0`：普通 Toast `5000ms`，`loading` 常驻，hover/focus/window blur 暂停并保留剩余时间，F6 进入、Escape 关闭，viewport 使用 polite live region。视觉保持 16px viewport inset、16px padding、12px 图文间距、4px标题/说明间距及 `500/250/150ms` 动画层级；16px inset 有意与 20px 主内容网格错开，颜色、圆角、阴影和排印仍服从项目 token。当前两个外围错误不提供 Retry Action，因为原按钮/链接仍在原位，重复入口只增加噪声。
 
 ## 3. macOS 外圆角：事实、测量与绘制模型
 
