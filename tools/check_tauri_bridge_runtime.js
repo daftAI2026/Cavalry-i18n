@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast；覆盖 Toast 的 Base UI 默认值、暂停/恢复、三条上限及 Activity 隔离。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -241,6 +241,26 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(status.supportedVersion, '2.7.2');
   assert.equal(status.versionCompatibility, 'supported');
   assert.equal(Object.hasOwn(status, 'repoRoot'), false);
+});
+
+test('permission capability does not fabricate a startup warning before an operation fails', async () => {
+  const macUnknown = boot({ status: {
+    platform: 'macos', appManagementGranted: null, permissionAction: 'none',
+  } });
+  const windowsElevation = boot({ status: {
+    platform: 'windows', appManagementGranted: false, permissionAction: 'requestElevation',
+  } });
+  const windowsUnwritable = boot({ status: {
+    platform: 'windows', appManagementGranted: false, permissionAction: 'none',
+  } });
+  await flush();
+
+  for (const runtimeState of [macUnknown, windowsElevation]) {
+    assert.equal(activityRows(runtimeState).length, 0);
+    assert.equal(runtimeState.elements['#statusPanel'].dataset.mode, 'idle');
+    assert.equal(runtimeState.elements['#statusIdle'].textContent, 'What would you like to do?');
+  }
+  assert.equal(activityTitle(windowsUnwritable), 'Cavalry folder isn’t writable');
 });
 
 test('custom language select keeps Base UI open, active, selected, and keyboard states coherent', async () => {

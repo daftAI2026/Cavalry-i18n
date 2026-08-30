@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、必要 AlertDialog、Updater 与外围失败 Toast。
- * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，持久事实进入 Activity，必须决策的风险进入 AlertDialog。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、操作失败后才显露的权限 AlertDialog、Updater 与外围失败 Toast。
+ * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，也不把只读权限未知伪装为警告；持久事实进入 Activity，必须决策的风险进入 AlertDialog。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -634,11 +634,6 @@ async function bootstrap({ renderActivity = true } = {}) {
     return;
   }
 
-  if (state.appManagementGranted === true) {
-    if (renderActivity) operationLog.idle();
-    return;
-  }
-
   if (
     state.platform === 'windows' &&
     state.appManagementGranted === false &&
@@ -648,7 +643,7 @@ async function bootstrap({ renderActivity = true } = {}) {
     return;
   }
 
-  presentStatus('readyPermission', 'warning');
+  if (renderActivity) operationLog.idle();
 }
 
 async function browseForApp() {

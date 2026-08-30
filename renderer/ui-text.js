@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、任务 Event、必要 AlertDialog、外围 Toast 及完整无障碍名称。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、任务 Event、真实权限失败 AlertDialog、外围 Toast 及完整无障碍名称。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -85,7 +85,6 @@ const UI_TEXT = {
     checkUpdateAgainTitle: 'Check for updates again',
     operationInProgressTitle: 'Another operation is running',
     permissionRequiredTitle: 'System permission required',
-    permissionMayBeRequiredTitle: 'System permission may be required',
     recoveryFailedTitle: 'Couldn’t recover the interrupted operation',
     chooseAppTitle: 'Choose Cavalry',
     reinstallCavalryTitle: 'Reinstall Cavalry',
@@ -122,7 +121,6 @@ const UI_TEXT = {
     projectLinkFailedTitle: 'Couldn’t open the project link',
     aboutOpenFailedTitle: 'Couldn’t open About',
     startupFailedTitle: 'Couldn’t start the Switcher',
-    readyPermission: 'System permission may be required to modify the Cavalry installation.',
     customRootNotWritable:
       'Cavalry’s folder isn’t writable. Administrator retry only supports Program Files. Choose a writable copy or change the folder permissions.',
     readyToApply: 'Choose a language, then switch.',
@@ -251,7 +249,6 @@ const UI_TEXT = {
     checkUpdateAgainTitle: '重新检查更新',
     operationInProgressTitle: '正在执行其他操作',
     permissionRequiredTitle: '需要系统权限',
-    permissionMayBeRequiredTitle: '可能需要系统权限',
     recoveryFailedTitle: '无法恢复中断的操作',
     chooseAppTitle: '选择 Cavalry 安装位置',
     reinstallCavalryTitle: '重新安装 Cavalry',
@@ -288,7 +285,6 @@ const UI_TEXT = {
     projectLinkFailedTitle: '无法打开项目链接',
     aboutOpenFailedTitle: '无法打开关于窗口',
     startupFailedTitle: '无法启动语言切换器',
-    readyPermission: '修改 Cavalry 安装目录可能需要系统授权。',
     customRootNotWritable:
       'Cavalry 文件夹不可写。仅“Program Files”中的安装可以管理员身份重试。请选择可写副本或修改文件夹权限。',
     readyToApply: '选择语言，然后切换。',
@@ -410,7 +406,6 @@ const UI_TEXT = {
     checkUpdateAgainTitle: '重新檢查更新',
     operationInProgressTitle: '正在執行其他操作',
     permissionRequiredTitle: '需要系統權限',
-    permissionMayBeRequiredTitle: '可能需要系統權限',
     recoveryFailedTitle: '無法復原中斷的操作',
     chooseAppTitle: '選擇 Cavalry 安裝位置',
     reinstallCavalryTitle: '重新安裝 Cavalry',
@@ -447,7 +442,6 @@ const UI_TEXT = {
     projectLinkFailedTitle: '無法打開專案連結',
     aboutOpenFailedTitle: '無法開啟關於視窗',
     startupFailedTitle: '無法啟動語言切換器',
-    readyPermission: '修改 Cavalry 安裝目錄可能需要系統授權。',
     customRootNotWritable:
       'Cavalry 資料夾無法寫入。只有「Program Files」中的安裝可用系統管理員身分重試。請選擇可寫入的副本或修改資料夾權限。',
     readyToApply: '選擇語言，然後切換。',
@@ -569,7 +563,6 @@ const UI_TEXT = {
     checkUpdateAgainTitle: '更新をもう一度確認',
     operationInProgressTitle: '別の操作を実行中です',
     permissionRequiredTitle: 'システム権限が必要です',
-    permissionMayBeRequiredTitle: 'システム権限が必要な場合があります',
     recoveryFailedTitle: '中断した操作を復旧できません',
     chooseAppTitle: 'Cavalry のインストール先を選択',
     reinstallCavalryTitle: 'Cavalry を再インストール',
@@ -606,7 +599,6 @@ const UI_TEXT = {
     projectLinkFailedTitle: 'プロジェクトリンクを開けませんでした',
     aboutOpenFailedTitle: '「このアプリについて」を開けませんでした',
     startupFailedTitle: '言語スイッチャーを起動できません',
-    readyPermission: 'Cavalry のインストール先を変更するにはシステム権限が必要な場合があります。',
     customRootNotWritable:
       'Cavalry フォルダーに書き込めません。管理者として再試行できるのは Program Files 内だけです。書き込み可能なコピーを選ぶか、アクセス権を変更してください。',
     readyToApply: '言語を選んで切り替えます。',
@@ -684,7 +676,6 @@ const STATUS_TITLE_KEYS = Object.freeze({
   runtimeResidueWarning: 'finishRuntimeCleanupTitle',
   readyToApply: 'readyToApplyTitle',
   customRootNotWritable: 'folderNotWritableTitle',
-  readyPermission: 'permissionMayBeRequiredTitle',
   preparingApply: 'preparingApplyTitle',
   restoring: 'restoringTitle',
   noLanguage: 'noLanguageTitle',

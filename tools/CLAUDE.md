@@ -7,7 +7,7 @@ windows-acceptance/: Windows x64 Cavalry 2.7.2 release acceptance contract/produ
 check_app_contracts.js: Tauri-only Node 合同测试；在既有跨平台/翻译/打包边界上，定向锁定 macOS/Windows Assets 瞬态 owner、Tag/Tracking 负边界、Add Layer 具体快捷键隔离、Scene Statistics 同窗 Update 三语值、Transform 五 action ABI 防火墙与 Guide 固定 `en` 加载槽位，不承载现场证据编排。
 check_renderer_contract.js: Renderer 静态合同，冻结 token 单向依赖、平台 chrome、Grid/Flex、Activity、Trigger/popup 双占位且开启后不漂移的 Select、Tooltip/AlertDialog/Toast、无描边彩色 Badge、Phosphor 图标、固定外链与 400×484 capability；Toast 另锁定 Base UI 默认值和 Activity 隔离。
 check_operation_log_runtime.js: 任务反馈专属运行时合同，以最小 DOM/时钟执行真实 icons/operation-log 源，隔离验证 Marker 稳定原位更新、live-edge、首尾固定轨道改变中段高度后的溢出与起止边缘回算、快事件可读串行、结果排队和错误立即抢占，不重复 bridge 业务 fixture。
-check_tauri_bridge_runtime.js: Tauri bridge fake-DOM 运行合同，执行真实组件和 app 源；覆盖手动安装入口、Select Trigger/popup 占位与显式选择、Managed Legacy 受管英文恢复、旧/新/未知版本只读门禁、主任务/Updater/About/窗口控件，并证明 About/外链失败进入局部 Toast 而不覆盖 Activity。
+check_tauri_bridge_runtime.js: Tauri bridge fake-DOM 运行合同，执行真实组件和 app 源；覆盖手动安装入口、Select Trigger/popup 占位与显式选择、Managed Legacy 受管英文恢复、旧/新/未知版本只读门禁、只读权限未知的 idle 投影、主任务/Updater/About/窗口控件，并证明 About/外链失败进入局部 Toast 而不覆盖 Activity。
 ui_review_workspace.js: localhost UI Review 的纯导航壳；以一个侧栏切换真实主窗口/About 的成功、Managed Legacy、版本不兼容、阻塞、警告、失败场景与反馈/图标/徽章总览，只持有 iframe 尺寸、locale/scenario query 和 revision 刷新，不复制产品 DOM/CSS/文案或图标。
 ui_review_server.js: localhost UI Review 编排入口；每次请求直接读取真实 renderer 主窗口/About 与动态生产目录，只在 frozen bridge 前注入 fake API，以场景 fixture 驱动未找到/官方/翻译/Managed Legacy/旧新版本/重装/恢复失败、更新 Tooltip、AlertDialog、Toast 及 Switch/Restore English/Update 流程，源码变化自动刷新 iframe。
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles/ui-text/icons 读取并投影四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。

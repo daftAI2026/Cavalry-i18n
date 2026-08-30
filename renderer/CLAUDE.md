@@ -22,9 +22,9 @@ about-control.js: 无依赖主窗口 About 入口状态机，仅在 Windows 展�
 about.html: 独立 About WebviewWindow 页面，复用 tokens/about/toast，显示同源图标、真实版本、项目与许可证入口。
 about-window.js: About 页面控制器，固定 repository/license 枚举；默认浏览器失败只在本窗口显示 error Toast，不暴露 URL。
 window-controls.js: 无依赖 Windows caption 状态机，只在 `platform=windows` 展示右侧最小化/最大化或还原/关闭，消费 bridge 固定 main-window 操作并在 toggle/resize 后同步最大化状态、四语可访问名称；失败不污染业务任务事件视窗或 AlertDialog，macOS 路径不执行窗口 mutation。
-app.js: 唯一业务交互源；文件夹动作只在后端未发现安装、`appPath` 为空时显露，任何已发现安装都保持摘要只读，恢复阻塞由 Activity/AlertDialog 承载；Select 初始只显示本地化占位并在明确选择前禁用 Switch，旧/新/未知 Cavalry 版本统一进入只读门禁，Managed Legacy 继续四语切换且 Restore English 自动退化为受管英文事务；持久任务进入 Activity，Restore English/更新/权限进入 AlertDialog，About 唤起失败进入 Toast。
+app.js: 唯一业务交互源；文件夹动作只在后端未发现安装、`appPath` 为空时显露，任何已发现安装都保持摘要只读，恢复阻塞由 Activity/AlertDialog 承载；Select 初始只显示本地化占位并在明确选择前禁用 Switch，旧/新/未知 Cavalry 版本统一进入只读门禁，Managed Legacy 继续四语切换且 Restore English 自动退化为受管英文事务；macOS 只读权限未知保持 idle，只有真实写事务拒绝才显露权限 AlertDialog；About 唤起失败进入 Toast。
 tauri-bridge.js: 非视觉兼容桥，在业务脚本前定义最小冻结 API；归一化 camelCase payload、稳定 `warningCodes`/updater error codes、四态 `versionCompatibility`、`officialRecoveryAvailable`、Action/Status、脱敏 Update DTO 与 downloading/installing/restarting 有序事件，不暴露独立 snapshot mutation，并将单一 About 唤起、固定 `main` label 的 minimize/toggle/is-maximized/close 暴露给各自状态机；更新安装不接收 renderer 提供的 URL、版本或签名，未知阶段和不安全计数在边界丢弃。
-ui-text.js: 稳定的 English/简体中文/繁体中文/日文 renderer 文案与 `STATUS_TITLE_KEYS` 状态标题路由；标题、Windows caption 可访问名称、Select 占位、条件式 Official 徽章、Switch/Restore English/Update 任务上下文与真实阶段事件全部本地化；Switch 文案只表达用户目标，把后端 restart phase 诚实投影为“打开 Cavalry”，Restore 只承诺英文结果而不伪称所有路径都恢复官方 runtime，旧/新/未知版本分别保持用户升级方向与安装只读；重装路径要求重装后重新打开 Switcher，AlertDialog 遵循“结果/风险在标题，影响/恢复在正文”，不暴露 Refresh/snapshot/provenance。
+ui-text.js: 稳定的 English/简体中文/繁体中文/日文 renderer 文案与 `STATUS_TITLE_KEYS` 状态标题路由；标题、Windows caption 可访问名称、Select 占位、条件式 Official 徽章、Switch/Restore English/Update 任务上下文与真实阶段事件全部本地化；Switch 文案只表达用户目标，把后端 restart phase 诚实投影为“打开 Cavalry”，Restore 只承诺英文结果而不伪称所有路径都恢复官方 runtime，旧/新/未知版本分别保持用户升级方向与安装只读；权限文案只服务真实拒绝，不保留“可能需要”式启动噪声；AlertDialog 遵循“结果/风险在标题，影响/恢复在正文”。
 
 依赖边界:
 

@@ -72,8 +72,6 @@ const feedbackGroups = Object.freeze([
       'customRootNotWritable',
       'permissionRequiredTitle',
       'waitingPermission',
-      'permissionMayBeRequiredTitle',
-      'readyPermission',
       'closeCavalryTitle',
       'cavalryStillRunning',
       'applyFailedTitle',
