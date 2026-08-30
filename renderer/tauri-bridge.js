@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke/transformCallback/unregisterCallback（或兼容 __TAURI__.core.invoke）能力。
- * [OUTPUT]: 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Updater Channel 只转发 downloading/installing/restarting 与安全下载计数；其他接口仅转发 camelCase 业务 payload、固定 project-link id、应用版本、独立 About 唤起与 main-window caption 操作，丢弃 raw warning、updater URL/签名/路径/原始响应，并将 transport rejection 归一为 Error。
+ * [OUTPUT]: 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Status 只保留安装/版本兼容/官方恢复能力等稳定字段，Updater Channel 只转发安全阶段与计数；其余接口仅转发固定 project-link、About 与 main-window caption，丢弃 raw warning、URL/签名/路径/原始响应。
  * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js/about-window.js 前加载；业务只消费稳定 DTO，About 只消费单一 Rust owner 命令，Windows caption 只消费标签固定的 Tauri window 命令。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,6 +12,9 @@
     Object.freeze({ value: 'zh-Hans', label: '简体中文' }),
     Object.freeze({ value: 'zh-Hant', label: '繁體中文' }),
     Object.freeze({ value: 'ja_JP', label: '日本語' }),
+  ]);
+  const VERSION_COMPATIBILITY = new Set([
+    'supported', 'olderUnsupported', 'newerUnsupported', 'unknownUnsupported',
   ]);
   const WARNING_CODE_MANIFEST = Object.freeze([
     'restartFailed',
@@ -135,6 +138,7 @@
 
   function normalizeStatus(result) {
     const granted = result.appManagementGranted;
+    const compatibility = pick(result.versionCompatibility, 'supported');
     return {
       appManagementGranted: typeof granted === 'boolean' ? granted : null,
       appPath: pick(result.appPath, ''),
@@ -142,6 +146,9 @@
         ? result.currentLang
         : 'en',
       installationMode: pick(result.installationMode, 'unknown'),
+      officialRecoveryAvailable: typeof result.officialRecoveryAvailable === 'boolean'
+        ? result.officialRecoveryAvailable
+        : result.installationMode !== 'managedLegacy',
       startupRecoveryError: pick(result.startupRecoveryError, null),
       defaultAppCandidates: Array.isArray(result.defaultAppCandidates)
         ? result.defaultAppCandidates.filter((candidate) => typeof candidate === 'string')
@@ -151,7 +158,11 @@
       permissionAction: pick(result.permissionAction, 'none'),
       platform: pick(result.platform, ''),
       reconciliationRequired: result.reconciliationRequired === true,
+      supportedVersion: pick(result.supportedVersion, '2.7.2'),
       version: pick(result.version, ''),
+      versionCompatibility: VERSION_COMPATIBILITY.has(compatibility)
+        ? compatibility
+        : 'unknownUnsupported',
     };
   }
 

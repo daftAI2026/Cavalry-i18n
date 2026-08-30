@@ -1,6 +1,6 @@
 <!--
   [INPUT]: 依赖 tokens.css 及共享 shell/Activity/About/Toast/窗口控件视觉层，依赖 icons/select/tooltip/path/operation/update/toast/about/window-controls 状态机、冻结 bridge 与四语文案
-  [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、带占位态的 Select + Switch/Restore English 主任务流、三轨 Activity、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；About 内容由独立本地页面承载
+  [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、Trigger 与空值 popup 均保留占位语义的 Select + Switch/Restore English 主任务流、三轨 Activity、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起独立原生装饰窗口，Windows 只自绘原生语义按钮而不伪造系统外框
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -110,6 +110,7 @@
               </span>
             </button>
             <div id="languageSelectPopup" class="select-popup" hidden>
+              <div id="languageSelectPopupPlaceholder" class="select-popup-placeholder" aria-hidden="true" hidden>Choose a language</div>
               <div id="languageSelectList" class="select-list" role="listbox" aria-labelledby="languageSectionLabel"></div>
             </div>
           </div>

@@ -1,13 +1,13 @@
 /**
- * [INPUT]: 依赖 index.html 的原生 select 数据槽、combobox trigger、listbox popup 与 option 容器，依赖浏览器键盘/指针事件和 ARIA 属性。
- * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected 状态边界和选中项锚定触发器的 positioner 语义实现单选菜单、方向键/Home/End/Enter/Space/Escape/typeahead、值变更通知与外部点击收口。
+ * [INPUT]: 依赖 index.html 的原生 select 数据槽、combobox trigger、只读 popup placeholder、listbox popup 与 option 容器，依赖浏览器键盘/指针事件和 ARIA 属性。
+ * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected 状态边界和只在开启瞬间定位的 item-aligned positioner 语义实现单选菜单；空值弹层仍投影占位行，方向键/Home/End/Enter/Space/Escape/typeahead、值变更通知与外部点击收口保持完整。
  * [POS]: renderer 的无依赖选择器组件状态机；只管理显式选择交互和无障碍投影，不替业务预选默认值、不读取业务状态、不调用 Tauri，也不引入 React、组件库或 CDN。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (function attachSelectControl(global) {
   'use strict';
 
-  function createSelectControl({ root, select, trigger, value, popup, list, onValueChange = () => {} }) {
+  function createSelectControl({ root, select, trigger, value, popup, popupPlaceholder, list, onValueChange = () => {} }) {
     let open = false;
     let activeIndex = -1;
     let options = [];
@@ -19,8 +19,7 @@
       return options.findIndex((option) => option.value === select.value);
     }
 
-    function alignPopupToSelectedItem(selected) {
-      const item = list.children[selected];
+    function alignPopupItemToTrigger(item) {
       if (!item || !popup.style || typeof trigger.getBoundingClientRect !== 'function' || typeof item.getBoundingClientRect !== 'function') return;
 
       // Base UI 默认让选中项的视觉中心与 Trigger 对齐。这里先归零，再由真实布局盒推导偏移，
@@ -42,6 +41,8 @@
       root.dataset.placeholder = String(!hasSelection);
       value.dataset.placeholder = String(!hasSelection);
       value.textContent = hasSelection ? options[selected].label : placeholder;
+      popupPlaceholder.hidden = !(open && !hasSelection);
+      popupPlaceholder.textContent = placeholder;
 
       for (const [index, item] of Array.from(list.children).entries()) {
         const isSelected = index === selected;
@@ -52,10 +53,6 @@
 
       if (open && activeIndex >= 0) {
         trigger.setAttribute('aria-activedescendant', list.children[activeIndex].id);
-        // 有明确值时才让选中项与 Trigger 对齐；占位态菜单固定从 Trigger 下方展开。
-        // 若用 activeIndex 重新锚定，指针移动会反过来改变菜单位置，导致选项在鼠标下跳动。
-        if (selected >= 0) alignPopupToSelectedItem(selected);
-        else popup.style?.removeProperty?.('top');
       } else {
         trigger.removeAttribute('aria-activedescendant');
         popup.style?.removeProperty?.('top');
@@ -68,6 +65,11 @@
       if (open) {
         const selected = selectedIndex();
         activeIndex = selected >= 0 ? selected : 0;
+        renderState();
+        // Base UI 的 item-aligned positioner 只在弹层开启时确定锚点。
+        // 指针移动只改变 active item；若随 activeIndex 重算 top，菜单会在鼠标下跳动。
+        alignPopupItemToTrigger(selected >= 0 ? list.children[activeIndex] : popupPlaceholder);
+        return;
       }
       renderState();
     }

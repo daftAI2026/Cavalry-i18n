@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、显式 Select 占位、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；工作台必须实时消费生产 renderer，禁止复制产品 DOM/CSS、魔法视觉常量、重复反馈和旧 Recovery 残留。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；工作台必须实时消费生产 renderer，禁止复制产品 DOM/CSS、魔法视觉常量、重复反馈和旧 Recovery 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -362,17 +362,11 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.ok(selectFocusBlock, 'select focus state missing');
   assert.match(selectFocusBlock, /border-color:[\s\S]*?background:/);
   assert.doesNotMatch(selectFocusBlock, /outline:|box-shadow:/, 'select must not draw a focus ring');
-  assert.match(
-    styles,
-    /\.select-popup\s*\{[\s\S]*?top:\s*calc\(100% \+ var\(--select-popup-offset\)\)/,
-    'an empty Select must open below its Trigger'
-  );
-  assert.match(selectControl, /if \(selected >= 0\) alignPopupToSelectedItem\(selected\)/);
-  assert.doesNotMatch(
-    selectControl,
-    /alignPopupToSelectedItem\(selected >= 0 \? selected : activeIndex\)/,
-    'pointer movement must not reposition an unselected popup'
-  );
+  assert.match(styles, /\.select-popup\s*\{[\s\S]*?top:\s*0;/);
+  assert.match(selectControl, /renderState\(\);[\s\S]*?alignPopupItemToTrigger\(selected >= 0 \? list\.children\[activeIndex\] : popupPlaceholder\);[\s\S]*?return;/);
+  const selectRenderState = selectControl.match(/function renderState\(\)\s*\{([\s\S]*?)\n\s*\}\n\n\s*function setOpen/)?.[1];
+  assert.ok(selectRenderState, 'Select renderState boundary missing');
+  assert.doesNotMatch(selectRenderState, /alignPopupItemToTrigger/, 'pointer movement must not reposition the popup through renderState');
   const modalPrimaryFocusBlock = styles.match(/\.modal-actions \.button-primary:focus-visible\s*\{([^}]*)\}/)?.[1];
   assert.ok(modalPrimaryFocusBlock, 'AlertDialog primary focus override missing');
   assert.match(modalPrimaryFocusBlock, /outline:\s*none/);
@@ -385,6 +379,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /<section class="language-section" aria-labelledby="languageSectionLabel">/);
   assert.match(html, /id="languageSelectTrigger"[^>]*role="combobox"[^>]*aria-haspopup="listbox"[^>]*aria-expanded="false"/);
   assert.match(html, /id="languageSelectValue"[^>]*data-placeholder="true"[^>]*>Choose a language<\/span>/);
+  assert.match(html, /id="languageSelectPopupPlaceholder"[^>]*aria-hidden="true"[^>]*hidden>Choose a language<\/div>/);
   assert.match(html, /class="select-chevron"[^>]*>[\s\S]*?<svg[^>]*viewBox="0 0 24 24"[\s\S]*?<path d="m6 9 6 6 6-6"><\/path>/);
   assert.match(html, /id="languageSelectList"[^>]*role="listbox"/);
   assert.match(html, /class="language-control-row"[\s\S]*?id="applyButton"[^>]*>Switch<\/button>[\s\S]*?id="restoreButton"[^>]*>Restore English<\/button>/);
@@ -409,10 +404,11 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--select-item-height:\s*28px/);
   assert.match(tokens, /--select-item-padding-leading:\s*var\(--space-2\)/);
   assert.match(tokens, /--select-item-padding-trailing:\s*var\(--space-8\)/);
-  assert.match(tokens, /--select-popup-offset:\s*var\(--space-1\)/);
   assert.match(tokens, /--select-indicator-size:\s*16px/);
   assert.match(styles, /\.select-popup\s*\{[\s\S]*?border:\s*0;[\s\S]*?border-radius:\s*var\(--radius-select-popup\)[\s\S]*?box-shadow:\s*var\(--shadow-select-popup\)/);
-  assert.match(selectControl, /function alignPopupToSelectedItem\(selected\)[\s\S]*?getBoundingClientRect\(\)[\s\S]*?alignedTop/);
+  assert.match(selectControl, /function alignPopupItemToTrigger\(item\)[\s\S]*?getBoundingClientRect\(\)[\s\S]*?alignedTop/);
+  assert.match(selectControl, /popupPlaceholder\.hidden = !\(open && !hasSelection\)/);
+  assert.match(selectControl, /alignPopupItemToTrigger\(selected >= 0 \? list\.children\[activeIndex\] : popupPlaceholder\)/);
   assert.match(selectControl, /root\.dataset\.placeholder = String\(!hasSelection\)/);
   assert.match(selectControl, /select\.value = options\.some\([\s\S]*?\? previousValue : '';/);
   assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');
@@ -630,7 +626,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   );
   assert.match(
     restoreConfirmationFunction,
-    /const restoreAction = state\.platform === 'macos' \? 'restore-official' : 'en';/
+    /const restoreAction = state\.platform === 'macos' && state\.officialRecoveryAvailable[\s\S]*?\? 'restore-official'[\s\S]*?: 'en';/
   );
   assert.match(app, /restoreButton\.addEventListener\('click', requestRestore\)/);
   const requestApplyFunction = sourceFunction(app, 'function requestApply() {', 'function requestRestore');

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖冻结 bridge、有序阶段事件、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、仅在未发现安装时显露的手动安装选择、显式目标语言选择、三轨 Activity、语言/Official Badge、直接 Switch、单一 Restore English、必要 AlertDialog、Updater 与不污染任务流的 About 失败 Toast。
- * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，持久事实进入 Activity，必须决策的风险进入 AlertDialog，独立低频操作失败进入 Toast。
+ * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、必要 AlertDialog、Updater 与外围失败 Toast。
+ * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，持久事实进入 Activity，必须决策的风险进入 AlertDialog。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -26,6 +26,7 @@ const languageSelect = document.querySelector('#languageSelect');
 const languageSelectTrigger = document.querySelector('#languageSelectTrigger');
 const languageSelectValue = document.querySelector('#languageSelectValue');
 const languageSelectPopup = document.querySelector('#languageSelectPopup');
+const languageSelectPopupPlaceholder = document.querySelector('#languageSelectPopupPlaceholder');
 const languageSelectList = document.querySelector('#languageSelectList');
 const browseButton = document.querySelector('#browseButton');
 const applyButton = document.querySelector('#applyButton');
@@ -47,6 +48,7 @@ const languageSelectControl = window.createSelectControl({
   trigger: languageSelectTrigger,
   value: languageSelectValue,
   popup: languageSelectPopup,
+  popupPlaceholder: languageSelectPopupPlaceholder,
   list: languageSelectList,
   onValueChange: () => setBusy(state.busy),
 });
@@ -66,22 +68,12 @@ const updateTooltipControl = window.createTooltipControl({
 
 const api = window.cavalryI18n;
 const state = {
-  appPath: '',
-  currentLang: 'en',
-  installationMode: 'unknown',
-  languages: [],
-  needsExtract: false,
-  appManagementGranted: null,
-  platform: '',
-  permissionAction: 'none',
-  pendingAction: '',
-  ready: false,
-  busy: false,
-  controlsBlocked: false,
-  startupRecoveryError: null,
-  stateDurabilityPending: false,
-  englishRestoreNeeded: false,
-  updateInfo: null,
+  appPath: '', currentLang: 'en', installationMode: 'unknown', languages: [],
+  versionCompatibility: 'supported', supportedVersion: '2.7.2',
+  officialRecoveryAvailable: false, needsExtract: false, appManagementGranted: null,
+  platform: '', permissionAction: 'none', pendingAction: '',
+  ready: false, busy: false, controlsBlocked: false, startupRecoveryError: null,
+  stateDurabilityPending: false, englishRestoreNeeded: false, updateInfo: null,
 };
 let modalPrimaryAction = null;
 let modalSecondaryAction = null;
@@ -187,31 +179,29 @@ function operationStateForTone(tone) {
 }
 
 function requiresCavalryReinstall() {
-  return (
-    state.platform === 'macos' &&
-    state.installationMode === 'modifiedOrUnverified' &&
-    state.needsExtract
-  );
+  return state.platform === 'macos' &&
+    state.installationMode === 'modifiedOrUnverified' && state.needsExtract;
 }
 
-function installationSelectionIsRequired() {
-  return !state.appPath;
-}
+function installationSelectionIsRequired() { return !state.appPath; }
 
-function syncInstallationSelection() {
-  browseButton.hidden = !installationSelectionIsRequired();
-}
+function syncInstallationSelection() { browseButton.hidden = !installationSelectionIsRequired(); }
 
 function restoreIsNeeded() {
   if (!state.appPath) return false;
-  if (state.platform === 'macos') {
-    return state.installationMode !== 'official';
-  }
+  if (state.platform === 'macos') return state.installationMode !== 'official';
   return state.currentLang !== 'en' || state.englishRestoreNeeded;
 }
 
 function isRestoreAction(action) {
-  return action === 'restore-official' || (state.platform === 'windows' && action === 'en');
+  return action === 'restore-official' || action === 'en';
+}
+
+function unsupportedVersionStatusKey() {
+  if (state.versionCompatibility === 'olderUnsupported') return 'olderVersionUnsupported';
+  if (state.versionCompatibility === 'newerUnsupported') return 'newerVersionUnsupported';
+  if (state.versionCompatibility === 'unknownUnsupported') return 'unknownVersionUnsupported';
+  return null;
 }
 
 function restoreIsBlockedByMissingBaseline() {
@@ -504,7 +494,9 @@ function closeModal() {
 }
 
 function showRestoreConfirmation() {
-  const restoreAction = state.platform === 'macos' ? 'restore-official' : 'en';
+  const restoreAction = state.platform === 'macos' && state.officialRecoveryAvailable
+    ? 'restore-official'
+    : 'en';
   showModal({
     title: t('restoreConfirmTitle'),
     body: t('restoreConfirmBody'),
@@ -552,15 +544,16 @@ async function bootstrap({ renderActivity = true } = {}) {
       state: 'running',
     });
   }
-  const presentStatus = (...args) => {
-    if (renderActivity) setStatus(...args);
-  };
+  const presentStatus = (...args) => { if (renderActivity) setStatus(...args); };
   const bootstrapState = await api.getStatus();
   state.appPath = bootstrapState.appPath || '';
   state.currentLang = bootstrapState.currentLang || 'en';
   state.installationMode = bootstrapState.installationMode || 'unknown';
+  state.versionCompatibility = bootstrapState.versionCompatibility || 'supported';
+  state.supportedVersion = bootstrapState.supportedVersion || '2.7.2';
+  state.officialRecoveryAvailable = bootstrapState.officialRecoveryAvailable === true;
   state.startupRecoveryError = bootstrapState.startupRecoveryError || null;
-  state.controlsBlocked = Boolean(state.startupRecoveryError);
+  state.controlsBlocked = Boolean(state.startupRecoveryError) || Boolean(unsupportedVersionStatusKey());
   state.languages = bootstrapState.languages || [];
   state.needsExtract = Boolean(bootstrapState.needsExtract);
   state.appManagementGranted =
@@ -614,6 +607,15 @@ async function bootstrap({ renderActivity = true } = {}) {
 
   if (!state.appPath) {
     presentStatus('chooseAppToContinue', 'warning');
+    return;
+  }
+
+  const versionStatusKey = unsupportedVersionStatusKey();
+  if (versionStatusKey) {
+    presentStatus(versionStatusKey, 'warning', {
+      version: bootstrapState.version || '',
+      supportedVersion: state.supportedVersion,
+    });
     return;
   }
 

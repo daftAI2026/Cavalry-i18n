@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/ui_review_catalogs 的审查壳层，依赖 Node http/fs/path；仅以 localhost query 选择受控 fixture 状态。
- * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录及成功/阻塞/警告/失败状态矩阵的 UI Review；每次请求读取真实 renderer，只在 bridge 前注入 fake API。
+ * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录及安装/版本兼容/成功/阻塞/警告/失败状态矩阵的 UI Review；每次请求读取真实 renderer，只在 bridge 前注入 fake API。
  * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，只解耦状态、事件和时序，目录页只枚举生产真相，不进入 Tauri bundle、不伪造 native/package 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -67,7 +67,7 @@ function fixtureSource() {
   });
   const windowsScenario = ['windowsClean', 'permissionWindows', 'aboutOpenToast'].includes(scenario);
   const permissionScenario = ['permissionMac', 'permissionWindows'].includes(scenario);
-  let currentLang = ['translated', 'restore', 'restoreConfirm', 'reinstall'].includes(scenario) ? 'zh-Hans' : 'en';
+  let currentLang = ['translated', 'managedLegacy', 'restore', 'restoreConfirm', 'reinstall'].includes(scenario) ? 'zh-Hans' : 'en';
   const wait = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
   const success = () => ({
     ok: true, count: 1, currentLang, warning: null, warningCode: null,
@@ -86,7 +86,10 @@ function fixtureSource() {
         ? 'recoveryRequired'
         : scenario === 'reinstall'
           ? 'modifiedOrUnverified'
+          : scenario === 'managedLegacy'
+            ? 'managedLegacy'
           : currentLang === 'en' ? 'official' : 'modifiedOrUnverified',
+    officialRecoveryAvailable: scenario !== 'managedLegacy',
     startupRecoveryError: scenario === 'startupRecovery' ? 'fixture-private-error' : null,
     defaultAppCandidates: ['/Applications/Cavalry.app'],
     languages,
@@ -94,7 +97,11 @@ function fixtureSource() {
     permissionAction: scenario === 'permissionWindows' ? 'requestElevation' : scenario === 'permissionMac' ? 'openPrivacy' : 'none',
     platform: windowsScenario ? 'windows' : 'macos',
     reconciliationRequired: false,
-    version: '2.7.2',
+    supportedVersion: '2.7.2',
+    version: scenario === 'olderVersion' ? '2.7.1' : scenario === 'newerVersion' ? '2.7.3' : '2.7.2',
+    versionCompatibility: scenario === 'olderVersion'
+      ? 'olderUnsupported'
+      : scenario === 'newerVersion' ? 'newerUnsupported' : 'supported',
   });
 
   window.cavalryI18n = Object.freeze({

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select 显式占位/选择、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast；覆盖 Toast 的 Base UI 默认值、暂停/恢复、三条上限及 Activity 隔离。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast；覆盖 Toast 的 Base UI 默认值、暂停/恢复、三条上限及 Activity 隔离。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -46,7 +46,7 @@ function runtime({
   statusRequest = null,
   styleValues = {},
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -67,7 +67,9 @@ function runtime({
   const defaultStatus = {
     appManagementGranted: true, appPath: '/Applications/Cavalry.app', currentLang: 'zh-Hans',
     defaultAppCandidates: ['/Applications/Cavalry.app'], languages: [{ value: 'attacker', label: '<img>' }],
-    installationMode: 'modifiedOrUnverified', needsExtract: false, permissionAction: 'none', platform: 'macos', version: '2.7.2', ...status,
+    installationMode: 'modifiedOrUnverified', officialRecoveryAvailable: true,
+    needsExtract: false, permissionAction: 'none', platform: 'macos', supportedVersion: '2.7.2',
+    version: '2.7.2', versionCompatibility: 'supported', ...status,
   };
   const applyResults = Array.isArray(apply) ? [...apply] : [apply];
   const nextResult = (results) => (results.length > 1 ? results.shift() : results[0]);
@@ -235,6 +237,9 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(r.elements['#installationBadge'].dataset.state, 'unknown');
   assert.equal(r.elements['#installationBadge'].hidden, true);
   assert.equal(status.installationMode, 'modifiedOrUnverified');
+  assert.equal(status.officialRecoveryAvailable, true);
+  assert.equal(status.supportedVersion, '2.7.2');
+  assert.equal(status.versionCompatibility, 'supported');
   assert.equal(Object.hasOwn(status, 'repoRoot'), false);
 });
 
@@ -243,6 +248,7 @@ test('custom language select keeps Base UI open, active, selected, and keyboard 
   await flush();
   const trigger = r.elements['#languageSelectTrigger'];
   const popup = r.elements['#languageSelectPopup'];
+  const popupPlaceholder = r.elements['#languageSelectPopupPlaceholder'];
   const list = r.elements['#languageSelectList'];
   const nativeSelect = r.elements['#languageSelect'];
   const key = (value) => ({
@@ -260,6 +266,8 @@ test('custom language select keeps Base UI open, active, selected, and keyboard 
   trigger.listeners.get('click')[0]();
   assert.equal(trigger.attributes.get('aria-expanded'), 'true');
   assert.equal(popup.hidden, false);
+  assert.equal(popupPlaceholder.hidden, false);
+  assert.equal(popupPlaceholder.textContent, 'Choose a language');
   assert.equal(list.children[0].attributes.get('aria-selected'), 'false');
 
   trigger.listeners.get('keydown')[0](key('ArrowDown'));
@@ -269,6 +277,7 @@ test('custom language select keeps Base UI open, active, selected, and keyboard 
   assert.equal(r.elements['#languageSelectValue'].textContent, '繁體中文');
   assert.equal(trigger.attributes.get('aria-expanded'), 'false');
   assert.equal(popup.hidden, true);
+  assert.equal(popupPlaceholder.hidden, true);
   assert.equal(trigger.focused, true);
 });
 
@@ -660,6 +669,53 @@ test('single Restore maps to the platform transaction and remains visible when n
   assert.equal(official.elements['#installationMode'].textContent, 'Installation: verified official runtime');
   assert.equal(official.elements['#installationBadge'].textContent, 'Official');
   assert.equal(official.elements['#installationBadge'].dataset.state, 'official');
+});
+
+test('managed legacy macOS remains actionable and Restore returns to managed English', async () => {
+  const r = boot({
+    status: {
+      platform: 'macos', currentLang: 'zh-Hans', installationMode: 'managedLegacy',
+      officialRecoveryAvailable: false, needsExtract: false,
+    },
+    apply: { ok: true, currentLang: 'en' },
+  });
+  await flush();
+
+  assert.equal(r.elements['#applyButton'].disabled, true, 'Switch waits for an explicit language selection');
+  assert.equal(r.elements['#restoreButton'].disabled, false, 'known legacy management evidence remains recoverable');
+  assert.notEqual(activityTitle(r), 'Reinstall Cavalry');
+  chooseLanguage(r);
+  assert.equal(r.elements['#applyButton'].disabled, false);
+
+  r.elements['#restoreButton'].listeners.get('click')[0]();
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
+  assert.equal(r.elements['#statusOutcome'].textContent, 'Restored English. Cavalry is now open.');
+});
+
+test('unsupported Cavalry versions are read-only and preserve the user\'s upgrade direction', async () => {
+  const older = boot({ status: { version: '2.7.1', versionCompatibility: 'olderUnsupported' } });
+  const newer = boot({ status: { version: '2.7.3', versionCompatibility: 'newerUnsupported' } });
+  const unknown = boot({ status: { version: 'preview', versionCompatibility: 'unknownUnsupported' } });
+  await flush();
+
+  for (const r of [older, newer, unknown]) {
+    assert.equal(r.elements['#languageSelect'].disabled, true);
+    assert.equal(r.elements['#applyButton'].disabled, true);
+    assert.equal(r.elements['#restoreButton'].disabled, true);
+    assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false);
+  }
+  assert.equal(activityTitle(older), 'Cavalry 2.7.1 isn’t supported');
+  assert.match(activityText(older), /update Cavalry to 2\.7\.2/i);
+  assert.equal(activityTitle(newer), 'Cavalry 2.7.3 isn’t supported yet');
+  assert.match(activityText(newer), /won’t modify your newer installation/i);
+  assert.match(activityText(newer), /keep using Cavalry normally/i);
+  assert.doesNotMatch(activityText(newer), /downgrade|reinstall Cavalry/i);
+  assert.equal(activityTitle(unknown), 'This Cavalry version isn’t supported');
+  assert.match(activityText(unknown), /has not changed your installation/i);
 });
 
 test('clean official macOS install with needsExtract allows Apply to establish its baseline', async () => {

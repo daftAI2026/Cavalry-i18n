@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、成功/阻塞/警告/失败 fixture 矩阵与 feedback/icons/badges 三个动态审查目录，依赖 localhost query 传递 locale/scenario。
+ * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/成功/阻塞/警告/失败 fixture 矩阵与 feedback/icons/badges 三个动态审查目录，依赖 localhost query 传递 locale/scenario。
  * [OUTPUT]: 对外提供 workspaceHtml；以单一侧栏在生产界面场景与三类审查总览间切换，不拥有任何产品 DOM、组件 CSS、文案或图标 path。
  * [POS]: tools UI Review 的纯工作台壳层；只编排 iframe、视图尺寸和审查导航，产品视觉始终由 renderer 或动态目录直接读取生产真相源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -73,6 +73,9 @@ function workspaceHtml() {
         <button class="scenario" data-scenario="notFound"><span>未找到 Cavalry</span></button>
         <button class="scenario" data-scenario="translated"><span>已翻译</span></button>
         <button class="scenario" data-scenario="official"><span>官方英文</span></button>
+        <button class="scenario" data-scenario="managedLegacy"><span>旧版受管安装</span></button>
+        <button class="scenario" data-scenario="olderVersion"><span>旧版 Cavalry</span></button>
+        <button class="scenario" data-scenario="newerVersion"><span>新版 Cavalry</span></button>
         <button class="scenario" data-scenario="windowsClean"><span>Windows clean</span></button>
         <button class="scenario" data-scenario="reinstall"><span>需要重装</span></button>
         <button class="scenario" data-scenario="startupRecovery"><span>启动恢复失败</span></button>
