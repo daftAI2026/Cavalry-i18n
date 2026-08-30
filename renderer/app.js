@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge、有序阶段事件、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、显式目标语言选择、三轨 Activity、语言/Official Badge、直接 Switch、单一 Restore English、必要 AlertDialog、Updater 与不污染任务流的 About 失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、按恢复需要显露的手动安装选择、显式目标语言选择、三轨 Activity、语言/Official Badge、直接 Switch、单一 Restore English、必要 AlertDialog、Updater 与不污染任务流的 About 失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，持久事实进入 Activity，必须决策的风险进入 AlertDialog，独立低频操作失败进入 Toast。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -192,6 +192,17 @@ function requiresCavalryReinstall() {
     state.installationMode === 'modifiedOrUnverified' &&
     state.needsExtract
   );
+}
+
+function installationSelectionIsRequired() {
+  const unwritableCustomRoot = state.platform === 'windows' &&
+    state.appManagementGranted === false &&
+    state.permissionAction === 'none';
+  return !state.appPath || requiresCavalryReinstall() || unwritableCustomRoot;
+}
+
+function syncInstallationSelection() {
+  browseButton.hidden = !installationSelectionIsRequired();
 }
 
 function restoreIsNeeded() {
@@ -583,6 +594,7 @@ async function bootstrap({ renderActivity = true } = {}) {
         ? t('recoveryMode')
         : t('modifiedMode');
   syncInstallationBadges();
+  syncInstallationSelection();
   state.ready = true;
   setBusy(state.busy);
 

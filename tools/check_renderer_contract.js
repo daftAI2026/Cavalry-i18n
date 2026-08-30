@@ -508,7 +508,12 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*transparent;[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
   assert.match(styles, /\.badge\[data-state="official"\]\s*\{[\s\S]*?border-color:\s*transparent;[\s\S]*?background:\s*var\(--badge-green-bg\)[\s\S]*?color:\s*var\(--badge-green-text\)/);
   assert.doesNotMatch(styles, /\.badge\[data-state="(?:translated|modified)"\]/);
-  assert.match(styles, /\.installation-item\s*\{[\s\S]*?padding:\s*var\(--padding-panel\)/);
+  assert.match(cssRule(styles, '.installation-item'), /display:\s*flex;[\s\S]*?padding:\s*var\(--padding-panel\)/);
+  assert.doesNotMatch(cssRule(styles, '.installation-item'), /grid-template-columns:/, 'an optional folder action must not leave an empty grid track');
+  assert.match(html, /id="browseButton"[^>]*disabled hidden/);
+  assert.match(app, /function installationSelectionIsRequired\(\)\s*\{[\s\S]*?!state\.appPath[\s\S]*?requiresCavalryReinstall\(\)[\s\S]*?state\.platform === 'windows'[\s\S]*?state\.appManagementGranted === false[\s\S]*?state\.permissionAction === 'none'/);
+  assert.match(app, /function syncInstallationSelection\(\)\s*\{[\s\S]*?browseButton\.hidden = !installationSelectionIsRequired\(\)/);
+  assert.match(app, /syncInstallationBadges\(\);\s*syncInstallationSelection\(\);\s*state\.ready = true/);
   assert.match(operationStyles, /\.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\)/);
   assert.match(operationStyles, /\.status-panel\[data-mode="running"\] \.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\)/);
   assert.match(operationStyles, /\.status-panel\[data-mode="running"\]\[data-has-outcome="true"\] \.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\) auto/);
@@ -571,7 +576,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.content\s*\{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-rows:\s*auto auto minmax\(0,\s*1fr\)/);
   assert.match(styles, /\.tooltip-anchor\s*\{[\s\S]*?display:\s*inline-flex;[\s\S]*?align-items:\s*center/);
   assert.match(styles, /\.tooltip-anchor\s*\{[\s\S]*?pointer-events:\s*auto/, 'update control must remain interactive inside non-interactive title copy');
-  assert.match(styles, /\.installation-item\s*\{[\s\S]*?display:\s*grid/);
+  assert.match(styles, /\.installation-item\s*\{[\s\S]*?display:\s*flex/);
   assert.match(styles, /\.language-control-row\s*\{[\s\S]*?grid-template-columns:\s*repeat\(2/);
   assert.match(styles, /\.select-root\s*\{[\s\S]*?grid-column:\s*1\s*\/\s*-1/);
   assert.match(cssRule(styles, '.content'), /overflow:\s*hidden/);

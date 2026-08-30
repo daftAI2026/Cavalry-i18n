@@ -1,6 +1,6 @@
 <!--
   [INPUT]: 依赖 tokens.css 及共享 shell/Activity/About/Toast/窗口控件视觉层，依赖 icons/select/tooltip/path/operation/update/toast/about/window-controls 状态机、冻结 bridge 与四语文案
-  [OUTPUT]: 对外提供原生标题区、安装摘要、带占位态的 Select + Switch/Restore English 主任务流、三轨 Activity、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；About 内容由独立本地页面承载
+  [OUTPUT]: 对外提供原生标题区、按需显露安装选择入口的安装摘要、带占位态的 Select + Switch/Restore English 主任务流、三轨 Activity、必要 AlertDialog 与局部失败 Toast 的稳定语义锚点；About 内容由独立本地页面承载
   [POS]: renderer 的主窗口视图骨架，被 Tauri WebView 直接加载；保留稳定 DOM id 作为测试与交互合同，macOS About 由系统应用菜单唤起独立原生装饰窗口，Windows 只自绘原生语义按钮而不伪造系统外框
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -81,7 +81,7 @@
             <span id="currentLabel" class="sr-only">Current</span>
             <span id="installationMode" class="sr-only"></span>
           </div>
-          <button id="browseButton" type="button" class="button button-outline folder-button" aria-label="Choose Cavalry installation" disabled>
+          <button id="browseButton" type="button" class="button button-outline folder-button" aria-label="Choose Cavalry installation" disabled hidden>
             <span class="folder-icon" aria-hidden="true">
               <svg class="folder-icon-closed" xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="currentColor" viewBox="0 0 256 256" focusable="false">
                 <path d="M216,72H131.31L104,44.69A15.86,15.86,0,0,0,92.69,40H40A16,16,0,0,0,24,56V200.62A15.4,15.4,0,0,0,39.38,216H216.89A15.13,15.13,0,0,0,232,200.89V88A16,16,0,0,0,216,72ZM40,56H92.69l16,16H40ZM216,200H40V88H216Z"></path>

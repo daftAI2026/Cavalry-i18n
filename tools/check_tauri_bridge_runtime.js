@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、Select 显式占位/选择、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast；覆盖 Toast 的 Base UI 默认值、暂停/恢复、三条上限及 Activity 隔离。
+ * [OUTPUT]: 验证 bridge、按恢复需要显露的安装选择、Select 显式占位/选择、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast；覆盖 Toast 的 Base UI 默认值、暂停/恢复、三条上限及 Activity 隔离。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -580,6 +580,25 @@ test('bootstrap keeps mutation controls disabled until status is ready', async (
   assert.equal(r.elements['#languageSelect'].disabled, false);
   chooseLanguage(r);
   assert.equal(r.elements['#applyButton'].disabled, false);
+});
+
+test('manual installation selection appears only when it is a real recovery path', async () => {
+  const healthy = boot();
+  const missing = boot({ status: { appPath: '' } });
+  const reinstall = boot({ status: { installationMode: 'modifiedOrUnverified', needsExtract: true } });
+  const unwritableCustomRoot = boot({ status: {
+    platform: 'windows', appManagementGranted: false, permissionAction: 'none',
+  } });
+  const elevationAvailable = boot({ status: {
+    platform: 'windows', appManagementGranted: false, permissionAction: 'requestElevation',
+  } });
+  await flush();
+
+  assert.equal(healthy.elements['#browseButton'].hidden, true);
+  assert.equal(missing.elements['#browseButton'].hidden, false);
+  assert.equal(reinstall.elements['#browseButton'].hidden, false);
+  assert.equal(unwritableCustomRoot.elements['#browseButton'].hidden, false);
+  assert.equal(elevationAvailable.elements['#browseButton'].hidden, true);
 });
 
 test('Restore AlertDialog requires an explicit action, blocks Escape dismissal, and restores focus', async () => {

@@ -16,7 +16,7 @@
 ## 1. 设计原则
 
 1. 内容层跨平台共用，系统外框按平台所有权分流。
-2. Grid 管窗口 shell、安装卡片、Select/双动作复合轨道、任务事件视窗与 AlertDialog 的复合结构；Flex 管标题、徽章、按钮和 Marker 行等一维关系。
+2. Grid 管窗口 shell、Select/双动作复合轨道、任务事件视窗与 AlertDialog 的复合结构；Flex 管安装摘要与可选手动入口、标题、徽章、按钮和 Marker 行等一维关系。
 3. macOS 不伪造交通灯；Windows 不照搬交通灯，而在右侧提供 Windows 原生语义的最小化、最大化/还原、关闭。
 4. 不用透明 WebView 手画系统阴影和外轮廓。macOS 交给 AppKit/WindowServer；Windows 交给 HWND/DWM。
 5. 数值必须有语义 token 或原生几何来源，禁止用散落魔法数字微调截图；`renderer/tokens.css` 是唯一可调设计常量源，`styles.css`、`operation-log.css` 与 `window-controls.css` 不得定义私有设计变量。4px 是默认节奏；少量组件源码特有值必须先 token 化并在消费处注明来源。
@@ -61,7 +61,7 @@ Apple 当前 App icon 合同是开发者提供居中的未遮罩图层，由系�
 
 安装摘要表达“安装位置”而不是重复文件选择结果。macOS 保留 `.app` bundle 路径，标准 `/Applications/Cavalry.app` 可完整显示；Windows 将末尾 `.exe` 降为其所在安装目录。不超过 36 个 Unicode 字符时完整展示，超限后按路径层级从中间省略，至少保留盘符/根和末级安装文件夹，例如 `C:\Users\…\Cavalry`。完整语义位置只进入 `aria-label`，不设置会触发 WebView 原生悬浮窗的 HTML `title`；CSS 的弹性省略只是窗口像素继续不足时的第二道兜底。
 
-安装摘要、Switch to、Select、双动作行与任务事件视窗属于同一主任务流。`Switch to` 到 Select 使用唯一的 `8px` 字段关系 token；事件视窗是有界过程与结果输出。持久阻塞直接留在视窗，不再用 toast 重复同一事实；Switch 直接开始，只有 Restore、Updater、权限和危险操作才进入独立 AlertDialog。因此主窗口高度不由某条异常正文无限撑开。
+安装摘要、Switch to、Select、双动作行与任务事件视窗属于同一主任务流。正常路径由后端自动发现唯一 Cavalry 安装，安装摘要只陈述事实，不常驻手动维护动作；文件夹选择入口默认隐藏，只在未找到安装、macOS 安装不可验证且必须重装重选，或 Windows 自定义目录不可写且改选安装可恢复时出现。可选入口与摘要使用一维 Flex，隐藏后不保留空 Grid 轨道或假间距。`Switch to` 到 Select 使用唯一的 `8px` 字段关系 token；事件视窗是有界过程与结果输出。持久阻塞直接留在视窗，不再用 toast 重复同一事实；Switch 直接开始，只有 Restore、Updater、权限和危险操作才进入独立 AlertDialog。因此主窗口高度不由某条异常正文无限撑开。
 
 当前实现用 Grid 固定主窗口的复合轨道，并让任务事件视窗成为 `minmax(0, 1fr)`；`operation-log.css` 再以 Flex 管每条 Marker。`html/body/.content` 禁止窗口级滚动，Select 列表和事件视窗只在自身边界内滚动。业务分割线不承担层级，层级由留白与边界 token 表达。
 
