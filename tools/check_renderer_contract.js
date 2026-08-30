@@ -470,6 +470,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--dialog-width:\s*320px/);
   assert.match(tokens, /--dialog-header-gap:\s*var\(--space-2\)/);
   assert.match(tokens, /--dialog-content-gap:\s*var\(--space-4\)/);
+  assert.match(cssRule(styles, '.modal-backdrop'), /position:\s*fixed;[\s\S]*?inset:\s*var\(--titlebar-height\) 0 0;[\s\S]*?height:\s*auto;/);
+  assert.doesNotMatch(cssRule(styles, '.modal-backdrop'), /height:\s*100%/, 'AlertDialog must preserve the desktop titlebar identity layer');
   assert.match(styles, /\.modal-title\s*\{[\s\S]*?font-size:\s*var\(--type-heading\)[\s\S]*?font-weight:\s*var\(--weight-medium\)[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
   assert.match(styles, /\.modal-body\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-compact\)[\s\S]*?text-wrap:\s*wrap;[\s\S]*?white-space:\s*pre-line/);
   assert.doesNotMatch(styles, /\.modal-body\s*\{[\s\S]*?text-wrap:\s*balance/, 'AlertDialog prose must preserve natural wrapping');
