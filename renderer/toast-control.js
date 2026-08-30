@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖标准 DOM/Window 事件、tokens.css/toast.css 的视觉状态与 cavalryIcons 的受控语义图标工厂。
+ * [INPUT]: 依赖标准 DOM/Window 事件、button.css/tokens.css/toast.css 的视觉状态与 cavalryIcons 的受控语义图标工厂。
  * [OUTPUT]: 对外提供 createToastControl；以 Base UI 1.6.0 的 5 秒/3 条默认值管理右下 Toast，悬停、键盘焦点或窗口失焦时暂停并保留剩余时间。
  * [POS]: renderer 的共享短时通知状态机；只承载不属于主任务流的局部失败，不读取 Tauri、不覆盖 Activity、不承担 AlertDialog 的决策职责。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -164,8 +164,9 @@
       copy.append(titleNode, descriptionNode);
 
       closeButton.type = 'button';
-      closeButton.className = 'toast-close';
+      closeButton.className = 'ui-button toast-close';
       closeButton.setAttribute('data-slot', 'toast-close');
+      closeButton.setAttribute('data-variant', 'ghost');
       closeButton.setAttribute('aria-label', closeLabel);
       const closeIcon = global.cavalryIcons?.create('close');
       if (closeIcon) closeButton.append(closeIcon);

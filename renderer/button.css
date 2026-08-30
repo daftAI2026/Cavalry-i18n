@@ -1,0 +1,58 @@
+/**
+ * [INPUT]: 依赖 tokens.css 的控件尺寸、颜色、圆角、动效与禁用态角色；各业务样式仅追加 variant 特有视觉。
+ * [OUTPUT]: 对外提供 ui-button 基础 primitive，以及 shadcn Base Button 对齐的 ghost、icon-xs、icon-sm 组合规则。
+ * [POS]: renderer 的共享按钮基础层；所有普通按钮、标题栏图标按钮与 Toast 关闭动作共同消费，Select Trigger 保持独立 Select 状态机。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+.ui-button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-inline);
+  padding: 0;
+  border: 0;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  white-space: nowrap;
+  user-select: none;
+  -webkit-user-select: none;
+  cursor: pointer;
+  transition: background-color var(--duration-control) ease, border-color var(--duration-control) ease, color var(--duration-control) ease, transform var(--duration-control) ease, opacity var(--duration-control) ease;
+}
+
+.ui-button:disabled {
+  pointer-events: none;
+  opacity: var(--opacity-control-disabled);
+}
+
+.ui-button > svg {
+  flex: 0 0 auto;
+  pointer-events: none;
+}
+
+.ui-button[data-variant="ghost"] {
+  background: transparent;
+  color: var(--text-secondary);
+}
+
+.ui-button[data-variant="ghost"]:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text);
+}
+
+.ui-button[data-size="icon-xs"] {
+  width: var(--titlebar-action-hit-size);
+  height: var(--titlebar-action-hit-size);
+  border-radius: var(--radius-circle);
+}
+
+.ui-button[data-size="icon-sm"] {
+  width: var(--windows-caption-button-size);
+  height: var(--windows-caption-button-size);
+  border-radius: var(--radius-md);
+}

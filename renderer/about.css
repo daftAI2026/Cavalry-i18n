@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 tokens.css 的 Vercel 排印/4px 节奏与 styles.css 的共享 Overlay 标题栏；about.html 只提供独立页面语义。
+ * [INPUT]: 依赖 tokens.css/button.css 的共享控件与 styles.css 的 Overlay 标题栏；about.html 只提供独立页面语义。
  * [OUTPUT]: 对外提供 Windows 主标题栏 About 入口，以及 macOS 复用主标题栏、内容上下等距的独立 About 视觉层。
  * [POS]: renderer 的 About 视觉层；与主窗口 Dialog 解耦，只选择平台 Chrome 显隐，不复制标题栏几何、不绘制自定义关闭按钮、不加载远程资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -45,18 +45,7 @@ html[data-platform="macos"] .about-titlebar {
 }
 
 .about-button {
-  width: var(--titlebar-action-hit-size);
-  height: var(--titlebar-action-hit-size);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
-  border-radius: var(--radius-circle);
-  background: transparent;
   color: var(--text-secondary);
-  cursor: pointer;
-  transition: color var(--duration-control) ease, background-color var(--duration-control) ease, transform var(--duration-control) ease;
 }
 
 .about-button:hover {

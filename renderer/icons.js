@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖标准 DOM 的 SVG namespace 与元素创建能力，内嵌经 THIRD_PARTY_NOTICES.md 归因的精简 Phosphor Regular path
- * [OUTPUT]: 对外提供冻结 window.cavalryIcons.create(name)，按受控语义名创建 aria-hidden、不可聚焦且继承 currentColor 的独立 SVG 节点；Restore 使用 FloppyDiskBack，Toast 关闭复用 X
- * [POS]: renderer 的单一语义图标资产注册表；只拥有可复用 UI glyph，不包含应用 Logo、macOS 交通灯或 Windows caption 图形，业务组件只消费名称而不复制 path
+ * [OUTPUT]: 对外提供冻结 window.cavalryIcons.create(name)，按受控语义名创建 aria-hidden、不可聚焦且继承 currentColor 的独立 SVG 节点；Restore 使用 FloppyDiskBack，Windows caption 复用 Minus/Square/Copy/X
+ * [POS]: renderer 的单一语义图标资产注册表；只拥有可复用 UI glyph，不包含应用 Logo 或 macOS 交通灯，业务组件只消费名称而不复制 path
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (() => {
@@ -71,6 +71,21 @@
       viewBox: '0 0 256 256',
       fill: true,
       paths: ['M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-101.66a8,8,0,0,1-11.32,11.32L136,107.31V168a8,8,0,0,1-16,0V107.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Z'],
+    },
+    minimizeWindow: {
+      viewBox: '0 0 256 256',
+      fill: true,
+      paths: ['M224,128a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128Z'],
+    },
+    maximizeWindow: {
+      viewBox: '0 0 256 256',
+      fill: true,
+      paths: ['M208,32H48A16,16,0,0,0,32,48V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V48A16,16,0,0,0,208,32Zm0,176H48V48H208V208Z'],
+    },
+    restoreWindow: {
+      viewBox: '0 0 256 256',
+      fill: true,
+      paths: ['M216,32H88a8,8,0,0,0-8,8V80H40a8,8,0,0,0-8,8V216a8,8,0,0,0,8,8H168a8,8,0,0,0,8-8V176h40a8,8,0,0,0,8-8V40A8,8,0,0,0,216,32ZM160,208H48V96H160Zm48-48H176V88a8,8,0,0,0-8-8H96V48H208Z'],
     },
     close: {
       viewBox: '0 0 256 256',

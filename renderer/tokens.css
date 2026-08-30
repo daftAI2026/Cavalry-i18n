@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印角色、字重与 4px 间距序列，依赖 macOS AppKit 与 Windows DWM 的原生窗口几何及平台系统字体策略
- * [OUTPUT]: 对外提供无可见描边的 informational blue-subtle 语言类别与 green-subtle Official 徽章、13px 可读下限排印、4px 节奏、窗口 Chrome、68px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级与动效真相源
- * [POS]: renderer 视觉系统的基础层；styles.css 与 window-controls.css 只消费角色，不再持有可调设计常量
+ * [OUTPUT]: 对外提供无可见描边的 informational blue-subtle 语言类别与 green-subtle Official 徽章、13px 可读下限排印、4px 节奏、窗口 Chrome、共享 Button、68px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级与动效真相源
+ * [POS]: renderer 视觉系统的基础层；button/styles/window-controls 等组件层只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 :root {
@@ -72,7 +72,6 @@
   /* ---------- 边界、圆角与阴影 ---------- */
   --stroke-hairline: 1px;
   --stroke-focus: 2px;
-  --stroke-window-icon: 1.25;
   --radius-circle: 50%;
   --radius-select-trigger: 8px;
   --radius-select-popup: 8px;
@@ -100,9 +99,9 @@
   --titlebar-height: calc(var(--titlebar-native-control-size) + var(--titlebar-block-padding) + var(--titlebar-block-padding));
   --update-icon-visual-size: 20px;
   --titlebar-action-hit-size: 24px;
-  --windows-caption-button-width: 32px;
-  --windows-caption-icon-size: 12px;
-  --windows-caption-focus-offset: -3px;
+  --windows-caption-button-size: var(--space-8);
+  --windows-caption-button-gap: var(--space-1);
+  --windows-caption-icon-size: var(--space-4);
   --surface-pressed-mix: 72%;
   --danger-pressed-mix: 84%;
 

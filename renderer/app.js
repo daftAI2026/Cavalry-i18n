@@ -79,7 +79,7 @@ let modalPrimaryAction = null;
 let modalSecondaryAction = null;
 let modalReturnFocus = null;
 const uiLocale = detectUiLocale();
-const windowControls = window.createWindowControls({ api, text: t });
+const windowControls = window.createWindowControls({ api, text: t, icons: window.cavalryIcons });
 const toastControl = window.createToastControl({
   label: t('notifications'),
   closeLabel: t('close'),

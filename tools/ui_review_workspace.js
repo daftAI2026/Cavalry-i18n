@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/成功/阻塞/警告/失败 fixture 矩阵与 feedback/icons/badges 三个动态审查目录，依赖 localhost query 传递 locale/scenario。
- * [OUTPUT]: 对外提供 workspaceHtml；以单一侧栏在生产界面场景与三类审查总览间切换，不拥有任何产品 DOM、组件 CSS、文案或图标 path。
- * [POS]: tools UI Review 的纯工作台壳层；只编排 iframe、视图尺寸和审查导航，产品视觉始终由 renderer 或动态目录直接读取生产真相源。
+ * [OUTPUT]: 对外提供 workspaceHtml；以单一侧栏在生产界面场景与三类审查总览间切换，并让外围窗口示意服从 fixture 平台，不拥有任何产品 DOM、组件 CSS、文案或图标 path。
+ * [POS]: tools UI Review 的纯工作台壳层；只编排 iframe、平台外框提示、视图尺寸和审查导航，产品视觉始终由 renderer 或动态目录直接读取生产真相源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -45,6 +45,8 @@ function workspaceHtml() {
     .window[data-surface="about"]::before { content: "About Cavalry Language Switcher"; position: absolute; z-index: 4; inset: 0 0 auto; height: 28px; display: grid; place-items: center; border-bottom: 1px solid var(--line); background: #f7f7f7; font-size: 11px; line-height: 16px; }
     .window[data-surface="about"] .lights { top: 8px; left: 8px; gap: 6px; }
     .window[data-surface="about"] .lights i { width: 12px; height: 12px; }
+    .window[data-platform="windows"] { border-radius: 8px; }
+    .window[data-platform="windows"] .lights { display: none; }
     .stage[data-kind="catalog"] { display: block; padding: 0; }
     .stage[data-kind="catalog"] .window { width: 100%; height: 100%; border: 0; border-radius: 12px; box-shadow: none; }
     .stage[data-kind="catalog"] .lights { display: none; }
@@ -117,6 +119,7 @@ function workspaceHtml() {
     const localeButtons = [...document.querySelectorAll('[data-locale]')];
     const catalogs = Object.freeze({ feedback: '/catalog/feedback', icons: '/catalog/icons', badges: '/catalog/badges' });
     const aboutScenarios = new Set(['aboutPage', 'aboutVersionFailure', 'aboutLinkToast']);
+    const windowsScenarios = new Set(['windowsClean', 'permissionWindows']);
     let view = 'app';
     let scenario = 'translated';
     let locale = localStorage.getItem('cavalry-review-locale') || 'zh-Hans';
@@ -127,6 +130,7 @@ function workspaceHtml() {
       const surface = aboutScenarios.has(scenario) ? 'about' : 'main';
       stage.dataset.kind = catalog ? 'catalog' : 'app';
       windowFrame.dataset.surface = catalog ? 'catalog' : surface;
+      windowFrame.dataset.platform = windowsScenarios.has(scenario) ? 'windows' : 'macos';
       scenarios.hidden = Boolean(catalog);
       frame.src = catalog
         ? catalog + '?locale=' + encodeURIComponent(locale)

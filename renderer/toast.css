@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 tokens.css 的排印、4px 间距、弹层层级、颜色、圆角、阴影与 Toast 专属时序角色。
+ * [INPUT]: 依赖 button.css/tokens.css 的共享 Button 状态、排印、4px 间距、弹层层级、颜色、圆角、阴影与 Toast 专属时序角色。
  * [OUTPUT]: 对外提供 shadcn Base Toast 的右下视窗、底部堆叠、状态图标、标题/说明/关闭槽位及进入退出视觉；16px 视窗 inset 是组件源码例外。
  * [POS]: renderer 的共享短时通知视觉层；主窗口与 About 页面共同消费，不改变 20px 主内容网格，也不复用 Activity 的持久反馈外框。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -108,16 +108,8 @@
   position: relative;
   width: var(--toast-close-size);
   height: var(--toast-close-size);
-  flex: 0 0 auto;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 0;
   border-radius: var(--radius-md);
-  background: transparent;
   color: var(--text-secondary);
-  cursor: pointer;
 }
 
 .toast-close::after {

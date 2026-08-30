@@ -1,7 +1,7 @@
 <!--
 [INPUT]: 依赖项目 Design token、renderer 现有无框架组件状态机、锁定版本的 shadcn/ui 与 Phosphor 上游源码及其许可证。
-[OUTPUT]: 对外提供从开源组件源码到本项目原生 HTML/CSS/JS 的统一调查、抽象、适配、验证和归因协议，并冻结 Toast 的 Base UI 1.6.0 行为闭包。
-[POS]: docs 的 UI 工程知识基线；约束 Select、Tooltip、AlertDialog、Marker、Spinner、shimmer、scroll-fade 与 Toast，避免凭截图仿制或引入第二套设计系统。
+[OUTPUT]: 对外提供从开源组件源码到本项目原生 HTML/CSS/JS 的统一调查、抽象、适配、验证和归因协议，并冻结 Button 与 Toast 的源码适配边界。
+[POS]: docs 的 UI 工程知识基线；约束 Button、Select、Tooltip、AlertDialog、Marker、Spinner、shimmer、scroll-fade 与 Toast，避免凭截图仿制或引入第二套设计系统。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -62,6 +62,7 @@ UI Review 工作台遵守同一边界：允许替换 bridge 数据、事件顺�
 组件状态与业务状态必须分层：
 
 - Select 管 `closed/open`、`active`、`selected`、键盘与焦点；它不知道语言如何应用。
+- Button 管原生按钮的对齐、disabled、SVG、variant 与 size；它不知道点击后应调用窗口 API、业务事务还是关闭 Toast。
 - Tooltip 管 hover/focus/Escape/触摸与 portal 定位；它不知道更新是否可用。
 - AlertDialog 管确认、取消、焦点恢复与阻塞语义；它不知道权限如何授予。
 - Marker 管图标槽、内容槽、running/terminal 视觉；它不知道后端下一阶段是什么。
@@ -86,12 +87,18 @@ UI Review 工作台遵守同一边界：允许替换 bridge 数据、事件顺�
 
 | 来源 | 锁定版本 | 当前用途 |
 | --- | --- | --- |
-| shadcn/ui | commit `683a5a9b370acdb7785a0529434e6a3b8c7e0441` | Marker、Select、Tooltip、AlertDialog、Toast 结构/动画、示例与 accessibility 基线 |
+| shadcn/ui | commit `683a5a9b370acdb7785a0529434e6a3b8c7e0441` | Button、Marker、Select、Tooltip、AlertDialog、Toast 结构/动画、示例与 accessibility 基线 |
 | `@base-ui/react` | `1.6.0` | Toast 的 5000ms 默认 timeout、3 条 limit、loading 常驻、hover/focus/window blur 暂停与剩余时间恢复、F6/Escape/live-region 行为 |
 | `shadcn` npm package | `4.19.0` | `tailwind.css` 中 shimmer/scroll-fade 最终 utility 公式 |
 | Phosphor Icons Core | commit `2b75f3ad12b420c9504ef05df8d2564a28f8500e` | `renderer/icons.js` 中精选 Regular SVG path |
 
 运行时不依赖这些包；版本只用于源码审计和归因。适配代码与许可见 `renderer/THIRD_PARTY_NOTICES.md`。
+
+### Button 项目化适配
+
+`renderer/button.css` 是唯一共享 Button primitive。它从锁定的 shadcn Base Button 源码投影 `inline-flex` 双轴对齐、不可收缩/不换行、disabled、SVG 不接管指针，以及 `ghost`、`icon-xs`、`icon-sm` 组合规则；颜色、圆角、尺寸与时序全部回到项目 token，不复制 Tailwind 原子类或 React slot。主界面的十一枚普通静态动作与动态 Toast 关闭动作共同消费该 primitive；Select Trigger 明确例外，因为它是拥有 combobox、popup、active/selected 与键盘语义的 Select 状态机，而不是普通动作按钮。
+
+Windows 标题栏只把三枚 renderer caption 动作切换为 `ghost + icon-sm` 变体：每枚 `32×32px`，相邻 `4px`，图形使用 Phosphor Regular 的 Minus、Square、Copy 与 X，只有关闭按钮在 hover/active 进入危险色。Button 只拥有视觉与原生按钮状态；最小化、最大化/还原和关闭仍由 `window-controls.js` 映射到冻结的 Tauri main-window API，绝不在 CSS 或图标层复制系统行为。其他按钮继续保持原有主次视觉，不被改造成 caption 外观。
 
 ### Toast 项目化适配
 

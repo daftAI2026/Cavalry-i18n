@@ -80,6 +80,9 @@ test('UI Review renders the exact production shell and replaces only the data br
   }
   assert.doesNotMatch(workspace, /id="(?:appVersion|currentLanguage|statusPanel|languageSelectRoot)"/);
   assert.doesNotMatch(workspace, /class="(?:badge|status-panel|toast)"/);
+  assert.match(workspace, /const windowsScenarios = new Set\(\['windowsClean', 'permissionWindows'\]\)/);
+  assert.match(workspace, /windowFrame\.dataset\.platform = windowsScenarios\.has\(scenario\) \? 'windows' : 'macos'/);
+  assert.match(workspace, /\.window\[data-platform="windows"\] \.lights \{ display: none; \}/);
   assert.match(workspace, /fetch\('\/revision'/);
   assert.match(fixture, /window\.cavalryI18n = Object\.freeze/);
   assert.match(fixture, /\['updateAvailable', 'updateConfirm', 'update', 'updateFailure'\]\.includes\(scenario\)/);
@@ -193,6 +196,7 @@ test('Toast follows the pinned shadcn/Base UI timing while consuming local desig
 test('renderer retains DOM anchors and uses only local resources', () => {
   const html = read('renderer/index.html');
   const tokens = read('renderer/tokens.css');
+  const buttonStyles = read('renderer/button.css');
   const styles = read('renderer/styles.css');
   const operationStyles = read('renderer/operation-log.css');
   const toastStyles = read('renderer/toast.css');
@@ -207,13 +211,18 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   const app = read('renderer/app.js');
   const uiText = read('renderer/ui-text.js');
   for (const id of REQUIRED_IDS) assert.match(html, new RegExp(`id="${id}"`), `#${id} missing`);
+  const staticButtons = [...html.matchAll(/<button\b[^>]*>/g)].map((match) => match[0]);
+  assert.equal(staticButtons.length, 12, 'production shell must keep twelve static button elements');
+  assert.equal(staticButtons.filter((tag) => /class="[^"]*\bui-button\b/.test(tag)).length, 11, 'every static action except the Select Trigger must consume ui-button');
+  assert.match(staticButtons.find((tag) => tag.includes('id="languageSelectTrigger"')) || '', /class="select-trigger"/, 'Select Trigger must preserve its independent component state');
+  assert.match(toastControl, /closeButton\.className = 'ui-button toast-close'[\s\S]*?setAttribute\('data-variant', 'ghost'\)/, 'runtime Toast close must consume the ghost ui-button variant');
   assert.doesNotMatch(
     html,
     /id="(?:maintenanceHeading|extractButton|restoreEnglishButton)"/,
     'the single-task UI must not retain the old Recovery controls'
   );
   const htmlWithoutSvgNamespace = html.replace(/\s+xmlns="http:\/\/www\.w3\.org\/2000\/svg"/g, '');
-  const implementationCss = `${styles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
+  const implementationCss = `${buttonStyles}\n${styles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}`.replace(/\/\*[\s\S]*?\*\//g, '');
   const operationWithoutRuntimeState = operationStyles.replace(
     /--operation-(?:scroll-fade-(?:top|bottom)|shimmer-(?:base|highlight))\s*:[^;]+;/g,
     ''
@@ -223,17 +232,21 @@ test('renderer retains DOM anchors and uses only local resources', () => {
     .replace(/@keyframes\s+operation-scroll-fade-[^{]+\{[\s\S]*?\n\}/g, '');
   assert.doesNotMatch(htmlWithoutSvgNamespace, /https?:\/\//, 'renderer HTML must not load remote resources');
   assert.doesNotMatch(tokens, /@import|url\(["']?https?:/i, 'tokens must not load remote resources');
+  assert.doesNotMatch(buttonStyles, /@import|url\(["']?https?:/i, 'Button styles must not load remote resources');
   assert.doesNotMatch(styles, /@import|url\([\"']?https?:/i, 'styles must not load remote resources');
   assert.doesNotMatch(operationStyles, /@import|url\([\"']?https?:/i, 'operation log styles must not load remote resources');
   assert.doesNotMatch(toastStyles, /@import|url\([\"']?https?:/i, 'Toast styles must not load remote resources');
   assert.doesNotMatch(icons, /@import|url\([\"']?https?:/i, 'icon registry must not load remote resources');
   assert.doesNotMatch(aboutStyles, /@import|url\([\"']?https?:/i, 'about styles must not load remote resources');
   assert.doesNotMatch(windowControlStyles, /@import|url\([\"']?https?:/i, 'window controls must not load remote resources');
+  assert.match(buttonStyles, /\.ui-button\s*\{[\s\S]*?display:\s*inline-flex;[\s\S]*?align-items:\s*center;[\s\S]*?justify-content:\s*center;[\s\S]*?appearance:\s*none;[\s\S]*?background:\s*transparent;[\s\S]*?white-space:\s*nowrap;[\s\S]*?user-select:\s*none;[\s\S]*?cursor:\s*pointer/);
+  assert.match(buttonStyles, /\.ui-button:disabled\s*\{[\s\S]*?pointer-events:\s*none;[\s\S]*?opacity:\s*var\(--opacity-control-disabled\)/);
+  assert.match(buttonStyles, /\.ui-button > svg\s*\{[\s\S]*?flex:\s*0 0 auto;[\s\S]*?pointer-events:\s*none/);
   assert.match(thirdPartyNotices, /## shadcn\/ui[\s\S]*Licensed under the MIT License/);
   assert.match(thirdPartyNotices, /## Phosphor Icons[\s\S]*Licensed under the MIT License/);
   assert.match(
     html,
-    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/operation-log\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
+    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/button\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/operation-log\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>/,
     'semantic tokens must load before shared and platform visual implementations'
   );
   assert.match(
@@ -242,7 +255,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
     'renderer scripts must load bridge, stable text, icons, component state machines, then app'
   );
   assert.match(icons, /window\.cavalryIcons = Object\.freeze\(\{ create: createIcon \}\)/);
-  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'infoCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'restart', 'download', 'package', 'update', 'close']) {
+  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'infoCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'restart', 'download', 'package', 'update', 'minimizeWindow', 'maximizeWindow', 'restoreWindow', 'close']) {
     assert.match(icons, new RegExp(`\\b${iconName}: \\{`), `${iconName} must stay in the semantic icon registry`);
   }
   assert.doesNotMatch(operationLog, /const ICONS|createElementNS|<path/, 'operation log must consume icon names without owning SVG path data');
@@ -253,13 +266,14 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   assert.match(tokens, /--font-sans:\s*-apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif/);
   assert.match(tokens, /--font-mono:\s*ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace/);
   assert.doesNotMatch(styles, /--[a-z0-9-]+\s*:/i, 'shared implementation must consume tokens instead of defining private constants');
+  assert.doesNotMatch(buttonStyles, /--[a-z0-9-]+\s*:/i, 'Button implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(operationWithoutRuntimeState, /--[a-z0-9-]+\s*:/i, 'operation implementation may own runtime CSS state, but no private design constants');
   assert.doesNotMatch(toastStyles, /--[a-z0-9-]+\s*:/i, 'Toast implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(aboutStyles, /--[a-z0-9-]+\s*:/i, 'about implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(windowControlStyles, /--[a-z0-9-]+\s*:/i, 'platform implementation must consume tokens instead of defining private constants');
   assert.doesNotMatch(tunableImplementationCss, /#[0-9a-f]{3,8}|rgba?\(|[+-]?(?:\d+\.?\d*|\.\d+)(?:px|ms|em|deg)|:\s*(?:black|white)(?:\s|;|,)/i, 'implementation CSS must not own tunable design literals');
   const tokenDefinitions = [...tokens.matchAll(/(--[a-z0-9-]+)\s*:/gi)].map((match) => match[1]);
-  const tokenReferences = `${tokens}\n${styles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}`;
+  const tokenReferences = `${tokens}\n${buttonStyles}\n${styles}\n${operationStyles}\n${toastStyles}\n${aboutStyles}\n${windowControlStyles}\n${tooltipControl}\n${operationLog}\n${toastControl}`;
   assert.deepEqual(
     tokenDefinitions.filter(
       (name) => !tokenReferences.includes(`var(${name})`) && !tokenReferences.includes(`'${name}'`)
@@ -296,6 +310,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
 test('update control preserves the supplied small icon and accessible tooltip contract', () => {
   const html = read('renderer/index.html');
   const tokens = read('renderer/tokens.css');
+  const buttonStyles = read('renderer/button.css');
   const styles = read('renderer/styles.css');
   const operationStyles = read('renderer/operation-log.css');
   const icons = read('renderer/icons.js');
@@ -326,12 +341,13 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /id="updateControl"[^>]*data-tooltip-state="closed"[^>]*hidden/);
   assert.match(html, /id="updateTooltip"[^>]*data-slot="tooltip-content"[^>]*role="tooltip"[^>]*aria-hidden="true"[\s\S]*?<div class="tooltip-arrow" data-slot="tooltip-arrow" aria-hidden="true"><\/div>/);
   assert.match(html, /id="updateAnnouncement"[^>]*role="status"[^>]*aria-live="polite"/);
-  assert.match(styles, /\.update-button\s*\{[\s\S]*?background: transparent;[\s\S]*?color: var\(--tone-update\)/);
+  assert.match(updateButton, /class="ui-button update-button"[^>]*data-variant="ghost"[^>]*data-size="icon-xs"/);
+  assert.match(styles, /\.update-button\s*\{[\s\S]*?color: var\(--tone-update\)/);
   assert.match(tokens, /--titlebar-native-control-size:\s*16px/);
   assert.match(tokens, /--update-icon-visual-size:\s*20px/);
   assert.match(tokens, /--titlebar-action-hit-size:\s*24px/);
   assert.match(html, /class="titlebar-copy"[\s\S]*?id="windowTitle"[\s\S]*?id="updateControl"[\s\S]*?<\/div>/);
-  assert.match(styles, /\.update-button\s*\{[\s\S]*?width: var\(--titlebar-action-hit-size\);[\s\S]*?height: var\(--titlebar-action-hit-size\);[\s\S]*?border-radius: var\(--radius-circle\)/);
+  assert.match(buttonStyles, /\.ui-button\[data-size="icon-xs"\]\s*\{[\s\S]*?width: var\(--titlebar-action-hit-size\);[\s\S]*?height: var\(--titlebar-action-hit-size\);[\s\S]*?border-radius: var\(--radius-circle\)/);
   assert.match(styles, /\.update-button svg\s*\{[\s\S]*?width: var\(--update-icon-visual-size\);[\s\S]*?height: var\(--update-icon-visual-size\)/);
   assert.doesNotMatch(styles, /--update-icon-path-scale|\.update-button svg path\s*\{[\s\S]*?transform:/);
   assert.match(styles, /body\[data-platform="windows"\] \.native-controls-space\s*\{[\s\S]*?display:\s*none/);
@@ -420,7 +436,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(aboutPage, /<link rel="stylesheet" href="\.\/toast\.css" \/>/);
   assert.match(
     aboutPage,
-    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>/,
+    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/button\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>/,
     'About must consume the shared titlebar implementation before its page-specific layer',
   );
   assert.match(aboutPage, /class="window-surface about-surface"/);
@@ -585,18 +601,31 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /class="titlebar" data-tauri-drag-region/);
   assert.doesNotMatch(html, /traffic-light/, 'macOS traffic lights must remain native');
   assert.match(html, /id="windowsWindowControls"[^>]*data-maximized="false"[^>]*hidden/);
-  assert.match(html, /id="windowMinimizeButton"[^>]*class="window-control-button"/);
-  assert.match(html, /id="windowMaximizeButton"[^>]*class="window-control-button"/);
-  assert.match(html, /id="windowCloseButton"[^>]*class="window-control-button window-control-close"/);
+  assert.match(html, /id="windowMinimizeButton"[^>]*class="ui-button window-control-button"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
+  assert.match(html, /id="windowMaximizeButton"[^>]*class="ui-button window-control-button"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
+  assert.match(html, /id="windowCloseButton"[^>]*class="ui-button window-control-button window-control-close"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
+  const windowControlsMarkup = html.match(/<div id="windowsWindowControls"[\s\S]*?<\/div>\s*<\/header>/)?.[0];
+  assert.ok(windowControlsMarkup, 'Windows caption markup missing');
+  assert.doesNotMatch(windowControlsMarkup, /<svg/, 'Windows caption glyphs must come from the shared icon registry');
   assert.match(windowControls, /platform === 'windows'/);
   assert.match(windowControls, /api\.isWindowMaximized\(\)/);
+  assert.match(windowControls, /appendIcon\(minimizeButton, 'minimizeWindow'\)/);
+  assert.match(windowControls, /appendIcon\(maximizeButton, 'maximizeWindow', 'window-icon-maximize'\)/);
+  assert.match(windowControls, /appendIcon\(maximizeButton, 'restoreWindow', 'window-icon-restore'\)/);
+  assert.match(windowControls, /appendIcon\(closeButton, 'close'\)/);
+  assert.match(app, /createWindowControls\(\{ api, text: t, icons: window\.cavalryIcons \}\)/);
   assert.match(windowControlStyles, /height:\s*var\(--titlebar-height\)/);
+  assert.match(windowControlStyles, /gap:\s*var\(--windows-caption-button-gap\)/);
+  assert.match(windowControlStyles, /\.window-control-button\s*\{[\s\S]*?cursor:\s*default/);
   assert.match(windowControlStyles, /background:\s*var\(--surface-hover\)/);
   assert.match(windowControlStyles, /background:\s*var\(--danger\)/);
   assert.doesNotMatch(windowControlStyles, /--windows-caption-(?:hover|active|close)/);
-  assert.equal((html.match(/class="window-control-button(?: window-control-close)?"/g) || []).length, 3, 'Windows caption must have exactly three buttons');
-  assert.match(tokens, /--windows-caption-button-width:\s*32px/);
-  assert.match(windowControlStyles, /\.window-control-button\s*\{[\s\S]*?width:\s*var\(--windows-caption-button-width\)/);
+  assert.equal((html.match(/class="ui-button window-control-button(?: window-control-close)?"/g) || []).length, 3, 'Windows caption must have exactly three shared Button consumers');
+  assert.match(tokens, /--windows-caption-button-size:\s*var\(--space-8\)/);
+  assert.match(tokens, /--windows-caption-button-gap:\s*var\(--space-1\)/);
+  assert.match(tokens, /--windows-caption-icon-size:\s*var\(--space-4\)/);
+  assert.match(buttonStyles, /\.ui-button\[data-size="icon-sm"\]\s*\{[\s\S]*?width:\s*var\(--windows-caption-button-size\);[\s\S]*?height:\s*var\(--windows-caption-button-size\);[\s\S]*?border-radius:\s*var\(--radius-md\)/);
+  assert.match(windowControlStyles, /\.window-control-button svg\s*\{[\s\S]*?fill:\s*currentColor/);
   assert.match(styles, /\.titlebar\s*\{[\s\S]*?display:\s*flex/);
   assert.match(styles, /\.titlebar\s*\{[\s\S]*?align-items:\s*center/);
   assert.match(styles, /\.titlebar\s*\{[\s\S]*?border-bottom:\s*0;[\s\S]*?box-shadow:\s*var\(--shadow-titlebar-divider\)/);

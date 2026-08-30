@@ -1,5 +1,5 @@
 <!--
-  [INPUT]: 依赖 tokens/styles/about/toast 视觉层、同源应用标识、冻结 bridge、四语文案、共享图标/Toast 状态机与 About 页面控制器。
+  [INPUT]: 依赖 tokens/button/styles/about/toast 视觉层、同源应用标识、冻结 bridge、四语文案、共享图标/Toast 状态机与 About 页面控制器。
   [OUTPUT]: 提供复用主窗口标题栏的独立 About 页面、固定项目/许可证入口，以及默认浏览器调用失败时不打断页面的局部 Toast。
   [POS]: renderer 的独立信息窗口页面，与主 index.html 的业务状态和 dialog 生命周期隔离；macOS 复用主窗口 Overlay 标题栏与原生交通灯，Windows 保留系统原生装饰。
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -12,6 +12,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>About Cavalry Language Switcher</title>
   <link rel="stylesheet" href="./tokens.css" />
+  <link rel="stylesheet" href="./button.css" />
   <link rel="stylesheet" href="./styles.css" />
   <link rel="stylesheet" href="./about.css" />
   <link rel="stylesheet" href="./toast.css" />

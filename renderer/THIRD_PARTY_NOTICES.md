@@ -17,7 +17,7 @@ Source: https://github.com/shadcn-ui/ui
 
 Adapted renderer behavior is reviewed against upstream commit
 `683a5a9b370acdb7785a0529434e6a3b8c7e0441` and the `shadcn` 4.19.0
-`tailwind.css` Marker, shimmer, and scroll-fade utilities.
+`tailwind.css` Button, Marker, shimmer, and scroll-fade sources/utilities.
 
 Licensed under the MIT License. The full license text is available at:
 https://github.com/shadcn-ui/ui/blob/main/LICENSE.md
@@ -39,6 +39,9 @@ https://github.com/mui/base-ui/blob/v1.6.0/LICENSE
 Copyright (c) 2023 Phosphor Icons
 
 Source: https://github.com/phosphor-icons/core
+
+Selected Regular SVG paths are adapted into the local semantic icon registry,
+including the Windows caption Minus, Square, Copy, and X glyphs.
 
 Licensed under the MIT License. The full license text is available at:
 https://github.com/phosphor-icons/core/blob/main/LICENSE

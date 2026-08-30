@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 renderer 生产源码、Tauri 平台窗口配置、AppKit 实机 AX/像素轮廓、Windows DWM/Tauri 官方窗口合同与本轮 UI 裁决
-[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、直接 Switch/单一 Restore 任务流、idle 居中/首尾 Message/中段 Marker 三轨任务视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
+[INPUT]: 依赖 renderer 生产源码、共享 Button/语义图标、Tauri 平台窗口配置、AppKit 实机 AX/像素轮廓、Windows DWM/Tauri 官方窗口合同与本轮 UI 裁决
+[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、直接 Switch/单一 Restore 任务流、idle 居中/首尾 Message/中段 Marker 三轨任务视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Button/Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
 [POS]: docs/audits 的 UI 事实基线；约束实现与评审，但不替代 LOCAL_BUILD_SOP、packaged gate 或 Windows 实机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -9,7 +9,7 @@
 
 状态: Active — 当前代码几何为 400×484，macOS native dev 已按新高度重验；package 与 Windows 真机证据仍待验证
 适用版本: Cavalry Language Switcher `0.7.0` 候选
-视觉真相源: `renderer/index.html`、`renderer/tokens.css`、`renderer/styles.css`、`renderer/operation-log.css`、`renderer/operation-log.js`、`renderer/update-progress.js`、`renderer/select-control.js`、`renderer/about.css`、`renderer/about-control.js`、`renderer/about.html`、`renderer/about-window.js`
+视觉真相源: `renderer/index.html`、`renderer/tokens.css`、`renderer/button.css`、`renderer/styles.css`、`renderer/icons.js`、`renderer/window-controls.css`、`renderer/window-controls.js`、`renderer/operation-log.css`、`renderer/operation-log.js`、`renderer/update-progress.js`、`renderer/select-control.js`、`renderer/about.css`、`renderer/about-control.js`、`renderer/about.html`、`renderer/about-window.js`
 窗口真相源: `src-tauri/tauri.conf.json`、`src-tauri/src/lib.rs`、平台覆盖配置
 最新现场证据: 当前 native dev 的 Tauri 逻辑配置为 `400×484`，AX/CGWindow 外框按 AppKit 语义报告 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 投影与加高后的 Activity。localhost UI Review 已改为直接加载同一生产 renderer，只用 fixture bridge 切换场景；其 Activity 因而天然复用 `360×176`、12px padding、94px 中段，不再以独立手绘原型声称同构。这些不替代 package/manual smoke 或 Windows live。
 
@@ -19,7 +19,7 @@
 2. Grid 管窗口 shell、Select/双动作复合轨道、任务事件视窗与 AlertDialog 的复合结构；Flex 管安装摘要与可选手动入口、标题、徽章、按钮和 Marker 行等一维关系。
 3. macOS 不伪造交通灯；Windows 不照搬交通灯，而在右侧提供 Windows 原生语义的最小化、最大化/还原、关闭。
 4. 不用透明 WebView 手画系统阴影和外轮廓。macOS 交给 AppKit/WindowServer；Windows 交给 HWND/DWM。
-5. 数值必须有语义 token 或原生几何来源，禁止用散落魔法数字微调截图；`renderer/tokens.css` 是唯一可调设计常量源，`styles.css`、`operation-log.css` 与 `window-controls.css` 不得定义私有设计变量。4px 是默认节奏；少量组件源码特有值必须先 token 化并在消费处注明来源。
+5. 数值必须有语义 token 或原生几何来源，禁止用散落魔法数字微调截图；`renderer/tokens.css` 是唯一可调设计常量源，`button.css`、`styles.css`、`operation-log.css` 与 `window-controls.css` 不得定义私有设计变量。4px 是默认节奏；少量组件源码特有值必须先 token 化并在消费处注明来源。
 6. Vercel Design MD 负责角色、层级、系统字体与节奏原则；shadcn/Base UI 源码只提供需要的结构和状态参考。项目不引入组件库、Tailwind、CDN 或第二套 token。
 
 ## 2. 冻结几何
@@ -36,12 +36,12 @@
 | 标题结构间距 | `8px` | Flex 盒关系使用同一 4px 节奏；实体图形还需计入原生灯位与 SVG 在点击盒内的留白 |
 | 标题栏中心线 | `y = 20px` | 标题、更新图形及 Windows caption 图形共享视觉中心 |
 | 应用图标路径 | 开发态 `icon.png` / 正式包 `icon.icns` / About `128x128.png` | 系统负责最终圆角 mask、尺寸和效果，但不替开发者重新决定内部 artwork 比例；本项目不拿裸 debug 进程的外观改写正式包，只要求开发态 512px 图与 `icns` 同尺寸表示像素同构，About 字节复用 tracked 128px 投影 |
-| Windows caption | `3 × 32pt` 点击目标，`12pt` 图形，右边距 `12pt` | 保留 Windows 图形/危险关闭语义；位置服从 macOS 的 40/20/12 标题栏几何 |
+| Windows caption | `3 × 32px` 点击目标，`4px` 相邻间距，`16px` 图形，右边距 `12px` | 三枚动作消费共享 Button 的 `ghost + icon-sm`；只替换视觉，不接管系统行为 |
 | 动作轨道 | `170px + 20px + 170px` | 两枚按钮在 `360px` 内容轨道内等宽；不因语言改变列定义 |
 | 主任务节奏 | 以 `4px` token 组合 | 板块之间、字段关系和内边距均由语义 token 组合，不以未命名数字补偿字形 |
 | 面板内边距 | 安装 Item 与任务事件容器都使用 `padding-panel` | 任务容器保留中性 border/radius 与统一内边距；scroll-fade 只作用于 padding 内的滚动视窗，不遮蔽外框，也不继承 Alert 的红色风险语义 |
 | 主控件高度 | `36pt` | Select 与动作 Button 共用 |
-| Button / 面板圆角 | `7pt / 9pt` | 动作控件与容器层级分离 |
+| Button / 面板圆角 | `8px / 10px` | `radius-md` 与 `radius-lg` 分离动作控件和容器层级 |
 | Select 圆角 | Trigger `10pt`、Popup `10pt`、Item `8pt` | 复刻 shadcn Nova/Base UI Select 当前源码角色，不再强行套用 Button 圆角 |
 | macOS 实体标题关系 | 约 `12px` | 比较绿灯可见右缘、标题字形与升级 SVG 圆环，不比较 DOM 占位盒；结构 gap 保持 `8px`，64px 原生占位吸收两侧图形内缩 |
 
@@ -99,7 +99,7 @@ Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`app
 
 AlertDialog 只承载 Restore、Updater、权限请求和危险操作，不替代任务事件视窗，也不用于可逆且已有 fail-before-mutation 保护的 Switch，更不用于只有“知道了”而没有真实选择的错误。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions，但不照搬网页全视口遮罩：Switcher 标题栏是窗口身份与系统 Chrome，视觉遮罩从既有 `--titlebar-height` 以下开始，只覆盖当前任务内容；原生 `showModal()`、焦点锁、文档 inert 与不可绕过的确认语义保持不变。项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供。当前冻结规格为 `320px` 弹窗盒宽、`16px` 内边距、标题与正文 `8px`、正文与 actions `16px`，扣除边框后正文可用宽度为 `286px`：标题 `16px/24px/500`，正文 `14px/20px/400`。正文使用自然换行，禁止会重新平衡 CJK 行长的 `text-wrap: balance`；`white-space: pre-line` 只保留 Updater 版本说明等文案显式给出的段落边界。不能把源组件默认值散落到 CSS，也不能用硬编码换行修补单一语言。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
 
-About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用窗口内自定义内容”方向，不使用 Tauri 原生 `AboutMetadata`：后者在 macOS 不支持 `website`、`website_label` 和 `license`，Windows 也不能满足可点击项目链接。macOS 将默认应用菜单中的标准 About 替换为固定 id，菜单事件与 Windows 标题栏信息入口共同调用同一个 Rust `about` WebviewWindow owner；窗口使用系统原生装饰、非 modal、固定尺寸且不可 resize/maximize/minimize，主窗口不被锁住。About 本地页面使用现有 token，顶部显示 64px、与安装包同源的应用图标和 `plugin:app|version` 真实版本；项目行只显示 `Cavalry-i18n`，GitHub 图形进入该行作为目的地提示，MIT License 独立成行，原生标题栏提供关闭行为。
+About 采用和本机 Maipo 同类的“系统应用菜单入口 + 独立应用窗口内自定义内容”方向，不使用 Tauri 原生 `AboutMetadata`：后者在 macOS 不支持 `website`、`website_label` 和 `license`，Windows 也不能满足可点击项目链接。macOS 将默认应用菜单中的标准 About 替换为固定 id，菜单事件与 Windows 标题栏信息入口共同调用同一个 Rust `about` WebviewWindow owner；窗口非 modal、固定 `320×308px` 且不可 resize/maximize/minimize，主窗口不被锁住，并与主窗口复用同一 40px Overlay 标题栏和 AppKit 交通灯 owner。About 本地页面使用现有 token，顶部显示 68px、与安装包同源的应用图标和 `plugin:app|version` 真实版本；项目行只显示 `Cavalry-i18n`，GitHub 图形进入该行作为目的地提示，MIT License 独立成行，系统交通灯提供关闭行为。
 
 外部导航不引入 opener 组件，也不让 renderer 传 URL。bridge 只接受 `repository` / `license` 两个 id；Rust `ProjectLink` 再映射为编译期 HTTPS 地址，最终经 privilege 的既有 `CommandRunner` 调用平台默认浏览器。这个双重白名单是安全边界，不可退化为 `open(url)`。
 
@@ -191,11 +191,11 @@ Windows DWM：系统边界、阴影、Windows 11 外圆角
 
 Windows 三个按钮使用 Windows 原生语义与图形，不移植 macOS 交通灯；位置关系服从本规格的 `40pt` 标题栏与 `y=20pt` 中心线。右侧点击目标应满足 Windows 操作习惯，关闭按钮保留独立危险 hover/active 状态。外圆角由 DWM 决定：Windows 11 顶层窗口通常为约 `8px`，最大化或贴靠时为 `0`；Windows 10 不伪造同一外观。[Microsoft Windows geometry](https://learn.microsoft.com/en-sg/windows/apps/design/signature-experiences/geometry)、[Microsoft DWM rounded corners](https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/ui/apply-rounded-corners)
 
-当前实现让 Windows 产品标题从标题栏左侧 `12px` 起排；更新入口位于标题右侧，Flex 结构 gap 使用跨平台 `8px` token，升级 SVG 在 24px 点击盒内的留白使标题字形到圆环实体约为 `12px`。三枚按钮仍固定在最右侧，依次为最小化、最大化/还原、关闭，标题栏 `12px` 右内边距形成外侧 inset。按钮高度直接继承 `40px` 标题栏，图形中心固定在 `y=20px`。`32px` 是 Windows 指针目标 token，不拿 macOS 交通灯的 16px 可见尺寸冒充 Windows 点击区。最大化状态由 Tauri `is_maximized` 查询，并在 toggle 与 resize 后同步图形及四语可访问名称。
+当前实现让 Windows 产品标题从标题栏左侧 `12px` 起排；更新入口位于标题右侧，Flex 结构 gap 使用跨平台 `8px` token，升级 SVG 在 24px 点击盒内的留白使标题字形到圆环实体约为 `12px`。三枚按钮仍固定在最右侧，依次为最小化、最大化/还原、关闭，标题栏 `12px` 右内边距形成外侧 inset。它们共同消费 `ui-button` 的 `ghost + icon-sm` 变体：点击目标 `32×32px`、相邻间距 `4px`、Phosphor Regular 图形 `16px`，在 40px 标题栏中双轴居中，因此图形中心固定在 `y=20px`；只有关闭按钮的 hover/active 使用危险色。最大化状态由 Tauri `is_maximized` 查询，并在 toggle 与 resize 后同步 Square/Copy 图形及四语可访问名称。CSS 只替换视觉，最小化、最大化/还原和关闭仍由 Tauri/TAO 系统窗口 API 执行。
 
 `tauri.windows.conf.json` 必须完整覆盖 `app.windows` 数组。Tauri 平台配置按 JSON Merge Patch 合并，数组不是按 `label` 深合并；只写 `{ decorations: false }` 会丢失共享窗口的 URL、尺寸与最小尺寸。因此这里的完整重复是平台边界的显式快照，并由 Rust 配置合同锁定共享几何，不能为追求表面 DRY 改成不完整数组。
 
-实现继续遵守 renderer bridge 边界：`app.js` 不裸调 Tauri；`window-controls.js` 只消费冻结 bridge 的固定 `main` label 窗口操作，capability 只新增 minimize/toggle-maximize/close。源码合同已覆盖四命令、最大化图标与四语名称；拖拽、双击标题栏、键盘焦点、高对比度及真实 Windows Snap/缩放仍需真机验收。
+实现继续遵守 renderer bridge 边界：`app.js` 不裸调 Tauri；`window-controls.js` 只消费冻结 bridge 的固定 `main` label 窗口操作，capability 只新增 minimize/toggle-maximize/close。共享 `button.css` 统一普通动作的布局、disabled、SVG 与 variant/size，Select Trigger 因拥有 combobox 状态机而保持隔离。源码合同已覆盖四命令、按钮 primitive、Phosphor caption 图标、最大化状态与四语名称；拖拽、双击标题栏、键盘焦点、高对比度及真实 Windows Snap/缩放仍需真机验收。
 
 ## 5. 验收口径
 
