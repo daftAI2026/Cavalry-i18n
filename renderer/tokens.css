@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印角色、字重与 4px 间距序列，依赖 macOS AppKit 与 Windows DWM 的原生窗口几何及平台系统字体策略
- * [OUTPUT]: 对外提供无可见描边的 informational blue-subtle 语言类别与 green-subtle Official 徽章、13px 可读下限排印、4px 节奏、窗口 Chrome、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级与动效真相源
+ * [OUTPUT]: 对外提供无可见描边的 informational blue-subtle 语言类别与 green-subtle Official 徽章、13px 可读下限排印、4px 节奏、窗口 Chrome、68px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级与动效真相源
  * [POS]: renderer 视觉系统的基础层；styles.css 与 window-controls.css 只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -145,7 +145,7 @@
 
   /* ---------- About 组件契约 ---------- */
   --about-icon-size: 16px;
-  --about-app-icon-size: 64px;
+  --about-app-icon-size: calc(var(--space-16) + var(--space-1));
   --about-link-icon-size: 16px;
 
   /* ---------- Select 组件契约 ---------- */

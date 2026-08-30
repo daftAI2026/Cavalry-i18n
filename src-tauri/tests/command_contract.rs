@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力、共享 About Overlay Chrome、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
  * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、Managed Legacy/版本只读字段、固定项目外链、可本土化错误、Windows runtime residue 与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -51,6 +51,13 @@ fn macos_and_windows_about_entries_share_one_native_window_owner() {
     assert!(!lib_rs.contains("cavalryI18nShowAbout"));
     assert!(about_rs.contains("ABOUT_WINDOW_LABEL: &str = \"about\""));
     assert!(about_rs.contains("WebviewUrl::App(\"about.html\".into())"));
+    assert!(about_rs.contains(".initialization_script(ABOUT_PLATFORM_INIT_SCRIPT)"));
+    assert!(about_rs.contains(".title_bar_style(tauri::TitleBarStyle::Overlay)"));
+    assert!(about_rs.contains(".hidden_title(true)"));
+    assert!(
+        about_rs.contains("crate::window_chrome::install_macos_traffic_light_alignment(&window)?")
+    );
+    assert!(about_rs.contains("crate::window_chrome::TITLEBAR_HEIGHT"));
     for option in [
         ".resizable(false)",
         ".maximizable(false)",

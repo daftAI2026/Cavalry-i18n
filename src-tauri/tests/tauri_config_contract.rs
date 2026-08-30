@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供公共 400×484 可读窗口/原生 macOS 交通灯 Overlay/Windows 无系统 caption + DWM shadow/显式 renderer 入口/本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
+ * [OUTPUT]: 提供公共 400×484 可读窗口、主窗口/About 共享的 macOS 交通灯 Overlay、Windows 无系统 caption + DWM shadow、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -114,12 +114,16 @@ fn tauri_config_declares_capabilities() {
 
 #[test]
 fn macos_native_titlebar_alignment_and_resize_reapply_are_frozen() {
-    let source = include_str!("../src/lib.rs");
-    assert!(source.contains("const MACOS_TRAFFIC_LIGHT_X: f64 = 13.0;"));
-    assert!(source.contains("const MACOS_TRAFFIC_LIGHT_Y: f64 = 22.0;"));
-    assert!(source.contains("align_macos_traffic_lights(&main_window)?;"));
-    assert!(source.contains("tauri::WindowEvent::Resized(_)"));
-    assert!(source.contains("tauri::WindowEvent::ScaleFactorChanged { .. }"));
+    let lib_source = include_str!("../src/lib.rs");
+    let chrome_source = include_str!("../src/window_chrome.rs");
+    assert!(chrome_source.contains("pub(crate) const TITLEBAR_HEIGHT: f64 = 40.0;"));
+    assert!(chrome_source.contains("const MACOS_TRAFFIC_LIGHT_X: f64 = 13.0;"));
+    assert!(chrome_source.contains("const MACOS_TRAFFIC_LIGHT_Y: f64 = 22.0;"));
+    assert!(
+        lib_source.contains("window_chrome::install_macos_traffic_light_alignment(&main_window)?;")
+    );
+    assert!(chrome_source.contains("tauri::WindowEvent::Resized(_)"));
+    assert!(chrome_source.contains("tauri::WindowEvent::ScaleFactorChanged { .. }"));
 }
 
 #[test]

@@ -418,6 +418,15 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(aboutControl, /control\.hidden = platform !== 'windows'/);
   assert.doesNotMatch(aboutControl, /https?:\/\//, 'About entry must not own an external URL');
   assert.match(aboutPage, /<link rel="stylesheet" href="\.\/toast\.css" \/>/);
+  assert.match(
+    aboutPage,
+    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>/,
+    'About must consume the shared titlebar implementation before its page-specific layer',
+  );
+  assert.match(aboutPage, /class="window-surface about-surface"/);
+  assert.match(aboutPage, /class="titlebar about-titlebar" data-tauri-drag-region/);
+  assert.match(aboutPage, /class="native-controls-space"[^>]*data-tauri-drag-region/);
+  assert.match(aboutPage, /class="window-title"[^>]*data-tauri-drag-region>Cavalry Language Switcher<\/span>/);
   assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
   assert.match(aboutPage, /<img class="about-app-icon" src="\.\/app-icon\.png" alt="" aria-hidden="true" \/>/);
   assert.match(aboutPage, /id="aboutRepositoryLink"[\s\S]*?class="about-link-icon"[\s\S]*?id="aboutRepositoryLabel"/);
@@ -434,10 +443,12 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(bridge, /showAbout:\s*\(\) => invoke\('show_about'\)\.then\(normalizeAction\)/);
   assert.match(bridge, /invoke\('plugin:app\|version'\)/);
   assert.doesNotMatch(bridge, /openProjectLink:\s*\(url\)/, 'bridge must expose a fixed link id, never a renderer URL');
-  assert.match(tokens, /--about-app-icon-size:\s*64px/);
+  assert.match(tokens, /--about-app-icon-size:\s*calc\(var\(--space-16\) \+ var\(--space-1\)\)/);
   assert.match(tokens, /--about-link-icon-size:\s*16px/);
   assert.doesNotMatch(aboutStyles, /\.about-(?:dialog|close)\b/);
-  assert.match(aboutStyles, /\.about-window\s*\{[\s\S]*?padding:\s*var\(--padding-window\)[\s\S]*?overflow:\s*hidden/);
+  assert.match(aboutStyles, /html\[data-platform="macos"\] \.about-surface\s*\{[\s\S]*?grid-template-rows:\s*var\(--titlebar-height\) minmax\(0, 1fr\)/);
+  assert.match(aboutStyles, /html\[data-platform="macos"\] \.about-titlebar\s*\{[\s\S]*?display:\s*flex/);
+  assert.match(aboutStyles, /\.about-window\s*\{[\s\S]*?align-content:\s*center;[\s\S]*?padding:\s*var\(--padding-window\)[\s\S]*?overflow:\s*hidden/);
   assert.match(aboutStyles, /\.about-app-icon\s*\{[\s\S]*?width:\s*var\(--about-app-icon-size\)[\s\S]*?height:\s*var\(--about-app-icon-size\)/);
   assert.deepEqual(
     fs.readFileSync(path.join(repoRoot, 'renderer/app-icon.png')),

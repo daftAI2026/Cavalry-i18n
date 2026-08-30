@@ -3,8 +3,8 @@
 
 成员清单
 main.rs: 二进制入口；Windows 依次消费 same-EXE 提升事务、`--uninstall-restore-english` 与 `--launch-cavalry` 精确参数并返回明确退出码，其余进入 Tauri runtime。
-lib.rs: Tauri Builder 装配层，注册官方 updater plugin、Updater State 与 9 个 command；macOS 在 WebView 挂载后将 16px 原生交通灯对齐 40px 标题栏的 20px 中心，使其上下各留 12px，并在 resize/scale 变化后重放，同时以固定 menu id 将默认 About 替换为独立原生窗口入口；公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
-about_window.rs: 独立 About WebviewWindow 的唯一 Rust owner；按固定 `about` label 懒创建本地 `about.html`，锁定原生装饰、固定尺寸与不可 resize/maximize/minimize，重复调用只 show+focus，供 macOS 菜单和 Windows `show_about` command 共用。
+lib.rs: Tauri Builder 装配层，注册官方 updater plugin、Updater State 与 9 个 command；macOS 主窗口在 WebView 挂载后委托共享 Chrome 对齐原生交通灯，同时以固定 menu id 将默认 About 替换为独立窗口入口；公开 Windows 提升事务/uninstall restore/headless launch/QPA/runtime 早期分流与跨平台纯模块。
+about_window.rs: 独立 About WebviewWindow 的唯一 Rust owner；按固定 `about` label 懒创建本地 `about.html`，macOS 复用主窗口 Overlay/hidden-title 与共享交通灯几何，Windows 保留原生装饰；窗口不可 resize/maximize/minimize，重复调用只 show+focus，供系统菜单和 `show_about` command 共用。
 bridge.rs: pre-page-load JS bridge 的 Rust include 真相源，创建 `window.cavalryI18n` 并映射到 Tauri invoke；合同执行 Builder 实际消费的脚本，保留 Windows residue typed 检测但不提供更新检查或独立 reconcile API，不冒充 packaged WebView/CSP 现场门。
 commands.rs: renderer API facade；保留九条稳定 Tauri command、camelCase DTO 和兼容测试 seam；恢复基线只由 `apply_language` 在同一 operation lock 的写入前自动建立，renderer 不再拥有独立 snapshot mutation command；`apply_language` 以 transport-neutral reporter 和强类型有序 Channel 报告 `verifyInstallation`、`ensureBaseline`、`applyTransaction`、`restartCavalry` 四个真实阶段，Channel 发送失败不改变事务结果；`open_project_link` 只接受固定枚举，`show_about` 只调用 About window owner，`check_update/install_update` 只消费 Rust State 中签名验证后的 pending Update；内部 warning prose 与 updater 错误均在出界前收敛为稳定 code。
 commands/: command 领域模块图；apply/context/contract/restart/snapshot/status/update 各自只承担一个变化理由，snapshot_legacy 负责旧快照可信识别与 apply-only generation 迁移，tests/ 按基础契约与运行时领域拆分。
@@ -13,6 +13,7 @@ headless_launch.rs: Windows `--launch-cavalry` 原生快速入口；持有共享
 uninstall_restore.rs: Windows `--uninstall-restore-english` 无 WebView 卸载入口；只消费保存的安装根，在共享 operation lock 内按 snapshot provenance 选择 refresh/apply English，刷新返回 typed reconciliationRequired 时必须继续完成显式 English 事务，并将 UAC 取消、未知运行时或未提交修复投影为非零退出码以阻止 NSIS 删除控制面。
 windows_install.rs: Windows 只读发现边界，按无控制台运行进程查询、MSI advertised shortcut 与有限常见目录收集候选；非 MSI 克隆以有界流式扫描证明 Cavalry.exe 中唯一 NUL 分隔 `2.7.2` token，不扫描磁盘、不写安装目录，也不调用任何 MSI repair API。
 windows_runtime.rs: 仅在 Windows target 编译的 Qt generic plugin/QPA 资源装配，优先解析 Tauri 打包 DLL、回退开发资源并生成受控 copy pair；非 English 重启先流式比较安装 plugin 与当前可信源 SHA-256，再要求 QPA ACTIVE 和安装根语言 marker 一致，随后只准备诊断 marker 环境并以 deadline 校验 plugin、语言、PID、Qt、`embedded-generated-table` 来源和嵌入翻译表就绪；原生入口不依赖 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS` 或 `CAVALRY_I18N_LANG`。
+window_chrome.rs: macOS Overlay 窗口 Chrome 的共享 AppKit 边界；集中持有 40px 标题栏高度与实机校准后的交通灯偏移，首次对齐后在 resize/scale 变化重放，主窗口与 About 禁止复制原生按钮定位逻辑。
 windows_qpa.rs: Windows 持久注入状态机；锁定 Cavalry/Qt/架构/原厂 qwindows，以 durable manifest 识别历史发行版所有权，并向外层 journal 投影写前精确 postimage；未知 generic/QPA 或厂商更新一律保留并 fail closed。
 windows_qpa/: QPA 数据合同、身份验证、Windows 文件适配器、普通/提升共用 transition 与 tempfile 合同测试；可写自定义根直接执行，Program Files same-EXE worker 消费同一 hash-locked plan；qwindows 禁止进入截断 CopyPair。
 operation_lock.rs: bundle operation 单飞边界；GUI extract/apply/restart、Windows uninstall restore 与 headless launch 共享进程内及跨进程锁，避免 English 恢复、卸载和启动交错；macOS startup 仅在确有 canonical pending journal 时等待，busy timeout 作为瞬态交给动态状态门而不写入进程生命周期错误。

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 tokens.css 的 Vercel 排印角色、4px 节奏、共享边界与交互角色；主窗口只提供 About 入口，about.html 提供独立页面语义。
- * [OUTPUT]: 对外提供 Windows 标题栏 About 入口，以及独立原生 About 窗口的应用图标、版本、项目链接与许可证链接视觉层。
- * [POS]: renderer 的 About 视觉层；与主窗口 Dialog 解耦，不绘制自定义关闭按钮，不声明私有设计常量，也不加载远程资源。
+ * [INPUT]: 依赖 tokens.css 的 Vercel 排印/4px 节奏与 styles.css 的共享 Overlay 标题栏；about.html 只提供独立页面语义。
+ * [OUTPUT]: 对外提供 Windows 主标题栏 About 入口，以及 macOS 复用主标题栏、内容上下等距的独立 About 视觉层。
+ * [POS]: renderer 的 About 视觉层；与主窗口 Dialog 解耦，只选择平台 Chrome 显隐，不复制标题栏几何、不绘制自定义关闭按钮、不加载远程资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 *,
@@ -26,6 +26,22 @@ body {
   font-size: var(--type-compact);
   line-height: var(--line-height-compact);
   -webkit-font-smoothing: antialiased;
+}
+
+.about-surface {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.about-titlebar {
+  display: none;
+}
+
+html[data-platform="macos"] .about-surface {
+  grid-template-rows: var(--titlebar-height) minmax(0, 1fr);
+}
+
+html[data-platform="macos"] .about-titlebar {
+  display: flex;
 }
 
 .about-button {
@@ -61,7 +77,7 @@ body {
   width: 100%;
   min-height: 100%;
   display: grid;
-  align-content: start;
+  align-content: center;
   justify-items: center;
   align-items: center;
   padding: var(--padding-window);
