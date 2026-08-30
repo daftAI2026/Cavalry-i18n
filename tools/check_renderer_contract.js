@@ -379,6 +379,9 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(modalPrimaryFocusBlock, /outline-offset:\s*0/);
   assert.match(styles, /:where\(button:not\(\.select-trigger\)\):focus-visible\s*\{/);
   assert.match(app, /modalBackdrop\.showModal\(\);\s*modalPrimaryButton\.focus\(\)/);
+  assert.match(app, /modalBackdrop\.addEventListener\('close', finalizeModalClose\)/);
+  assert.match(app, /modalBackdrop\.addEventListener\('cancel', \(event\) => event\.preventDefault\(\)\)/);
+  assert.match(app, /const returnFocus = modalReturnFocus;[\s\S]*?returnFocus\.focus\(\)/);
   assert.match(html, /<section class="language-section" aria-labelledby="languageSectionLabel">/);
   assert.match(html, /id="languageSelectTrigger"[^>]*role="combobox"[^>]*aria-haspopup="listbox"[^>]*aria-expanded="false"/);
   assert.match(html, /id="languageSelectValue"[^>]*data-placeholder="true"[^>]*>Choose a language<\/span>/);
