@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 renderer 生产源码、共享 Button/语义图标、Tauri 平台窗口配置、AppKit 实机 AX/像素轮廓、Windows DWM/Tauri 官方窗口合同与本轮 UI 裁决
-[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、直接 Switch/单一 Restore 任务流、idle 居中/首尾 Message/中段 Marker 三轨任务视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Button/Select/About 组件边界、macOS 外圆角测量口径与 Windows 自绘标题栏边界
+[INPUT]: 依赖 renderer 生产源码、共享 Button/语义图标、UI Review fixture platform、Tauri 平台窗口配置、AppKit 实机 AX/像素轮廓、Windows DWM/Tauri 官方窗口合同与本轮 UI 裁决
+[OUTPUT]: 对外提供 Switcher 最终 UI 的跨平台构建规格、直接 Switch/单一 Restore 任务流、idle 居中/首尾 Message/中段 Marker 三轨任务视窗、Event/AlertDialog/Toast 反馈语义矩阵、无滚动窗口、原生窗口所有权、几何 token、Button/Select/About 组件边界、UI Review 平台外壳同步、三类证据分层、macOS 外圆角测量口径与 Windows 自绘标题栏边界
 [POS]: docs/audits 的 UI 事实基线；约束实现与评审，但不替代 LOCAL_BUILD_SOP、packaged gate 或 Windows 实机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -11,7 +11,7 @@
 适用版本: Cavalry Language Switcher `0.7.0` 候选
 视觉真相源: `renderer/index.html`、`renderer/tokens.css`、`renderer/button.css`、`renderer/styles.css`、`renderer/icons.js`、`renderer/window-controls.css`、`renderer/window-controls.js`、`renderer/operation-log.css`、`renderer/operation-log.js`、`renderer/update-progress.js`、`renderer/select-control.js`、`renderer/about.css`、`renderer/about-control.js`、`renderer/about.html`、`renderer/about-window.js`
 窗口真相源: `src-tauri/tauri.conf.json`、`src-tauri/src/lib.rs`、平台覆盖配置
-最新现场证据: 当前 native dev 的 Tauri 逻辑配置为 `400×484`，AX/CGWindow 外框按 AppKit 语义报告 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 投影与加高后的 Activity。localhost UI Review 已改为直接加载同一生产 renderer，只用 fixture bridge 切换场景；其 Activity 因而天然复用 `360×176`、12px padding、94px 中段，不再以独立手绘原型声称同构。这些不替代 package/manual smoke 或 Windows live。
+最新现场证据: 当前 native dev 的 Tauri 逻辑配置为 `400×484`，AX/CGWindow 外框按 AppKit 语义报告 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 投影与加高后的 Activity。localhost UI Review 已改为直接加载同一生产 renderer，只用 fixture bridge 切换场景；其 Activity 因而天然复用 `360×176`、12px padding、94px 中段，不再以独立手绘原型声称同构。UI Review 的外围平台示意必须与同一 fixture 的 `platform` 同步：Windows fixture 不得出现 macOS 交通灯或占位，macOS fixture 不得出现 Windows caption。这些不替代 package/manual smoke 或 Windows live。
 
 ## 1. 设计原则
 
@@ -193,11 +193,23 @@ Windows 三个按钮使用 Windows 原生语义与图形，不移植 macOS 交�
 
 当前实现让 Windows 产品标题从标题栏左侧 `12px` 起排；更新入口位于标题右侧，Flex 结构 gap 使用跨平台 `8px` token，升级 SVG 在 24px 点击盒内的留白使标题字形到圆环实体约为 `12px`。三枚按钮仍固定在最右侧，依次为最小化、最大化/还原、关闭，标题栏 `12px` 右内边距形成外侧 inset。它们共同消费 `ui-button` 的 `ghost + icon-sm` 变体：点击目标 `32×32px`、相邻间距 `4px`、Phosphor Regular 图形 `16px`，在 40px 标题栏中双轴居中，因此图形中心固定在 `y=20px`；只有关闭按钮的 hover/active 使用危险色。最大化状态由 Tauri `is_maximized` 查询，并在 toggle 与 resize 后同步 Square/Copy 图形及四语可访问名称。CSS 只替换视觉，最小化、最大化/还原和关闭仍由 Tauri/TAO 系统窗口 API 执行。
 
+UI Review 只验证生产 renderer 在受控 fixture 下的视觉合同。`fixture.platform` 是外围 frame 的唯一平台输入，平台示意与 fixture state 不一致时，预览作废；它不能被当作 Windows DWM、原生标题栏、Snap、缩放或真实 caption 行为的替代证据。
+
 `tauri.windows.conf.json` 必须完整覆盖 `app.windows` 数组。Tauri 平台配置按 JSON Merge Patch 合并，数组不是按 `label` 深合并；只写 `{ decorations: false }` 会丢失共享窗口的 URL、尺寸与最小尺寸。因此这里的完整重复是平台边界的显式快照，并由 Rust 配置合同锁定共享几何，不能为追求表面 DRY 改成不完整数组。
 
 实现继续遵守 renderer bridge 边界：`app.js` 不裸调 Tauri；`window-controls.js` 只消费冻结 bridge 的固定 `main` label 窗口操作，capability 只新增 minimize/toggle-maximize/close。共享 `button.css` 统一普通动作的布局、disabled、SVG 与 variant/size，Select Trigger 因拥有 combobox 状态机而保持隔离。源码合同已覆盖四命令、按钮 primitive、Phosphor caption 图标、最大化状态与四语名称；拖拽、双击标题栏、键盘焦点、高对比度及真实 Windows Snap/缩放仍需真机验收。
 
 ## 5. 验收口径
+
+验收报告必须把三类证据分开记录：
+
+| 证据 | 证明边界 | 禁止替代 |
+| --- | --- | --- |
+| 视觉合同 | 生产 renderer 在 fixture 中的布局、排印、颜色、间距和平台示意 | 不得声称 native/package/live PASS |
+| 静态合同 | DOM、token、状态机、bridge 与平台行为所有权的源代码不变量 | 不得声称像素或真实系统行为通过 |
+| 真机证据 | 指定平台上的真实 Tauri/系统窗口、权限、安装、重启或发布资产 | 不得外推到未测试平台或不同构建 |
+
+三者可以互相引用，但不能互相升级；尤其 UI Review 的 Windows 外壳截图不能证明 Windows 真机，macOS native 的交通灯结果不能证明 Windows caption。
 
 macOS:
 
