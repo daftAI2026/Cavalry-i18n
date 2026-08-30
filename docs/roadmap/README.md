@@ -24,6 +24,7 @@
 | Roadmap | 状态 | 依据 | 下一步 |
 | --- | --- | --- | --- |
 | [`localized-search-index.md`](localized-search-index.md) | Proposed | [`add-layer-localized-search-2026-05-21.md`](../audits/add-layer-localized-search-2026-05-21.md) | 执行 R1：抓取 QuickAdd 搜索框、列表模型与中英文 query 行为 |
+| [`macos-app-management-handoff-animation.md`](macos-app-management-handoff-animation.md) | Active / Research | 当前写事务只有 App Management typed denial；匿名仓库外取证与锁定 MIT 参考源码证明跨应用视觉 handoff 可行，但不是授权证明 | 用真实权限卡片制作 UI Review 动画原型，人工裁决后再进入 native AppKit owner |
 | [`runtime-refresh-performance.md`](runtime-refresh-performance.md) | Proposed | [`runtime-refresh-performance-2026-05-21.md`](../audits/runtime-refresh-performance-2026-05-21.md) | 执行 R1/R2：收敛合同测试，移除普通交互全局刷新 |
 | [`switcher-update-and-trusted-distribution-roadmap.md`](switcher-update-and-trusted-distribution-roadmap.md) | Active | R0 UI、R1 Rust/bridge/renderer、最终公钥/endpoint、受保护 updater Secrets、deterministic manifest 与九资产发布闭包已实现；真实签名构建与实机更新证据仍未满足 | 执行 macOS/Windows tag-shape 签名与跨版本验收 |
 | [`windows-port-and-injection-roadmap.md`](windows-port-and-injection-roadmap.md) | Active | Windows Qt generic plugin、NSIS 与跨平台安装根合同 | 以真实 Windows Cavalry 完成安装、切换、重启、升级与卸载闭环 |
