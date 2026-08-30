@@ -438,7 +438,7 @@ button {
 .select-popup {
   position: absolute;
   z-index: var(--z-select-popup);
-  top: 0;
+  top: calc(100% + var(--select-popup-offset));
   left: 0;
   width: 100%;
   padding: var(--padding-menu);
@@ -660,6 +660,12 @@ button {
 :where(button:not(.select-trigger)):focus-visible {
   outline: var(--stroke-focus) solid var(--focus);
   outline-offset: var(--focus-offset);
+}
+
+/* AlertDialog 初始焦点仍保留给主动作，但不让确认框被蓝色环改变视觉层级。 */
+.modal-actions .button-primary:focus-visible {
+  outline: none;
+  outline-offset: 0;
 }
 
 body[data-platform="windows"] .native-controls-space {

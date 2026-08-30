@@ -362,6 +362,23 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.ok(selectFocusBlock, 'select focus state missing');
   assert.match(selectFocusBlock, /border-color:[\s\S]*?background:/);
   assert.doesNotMatch(selectFocusBlock, /outline:|box-shadow:/, 'select must not draw a focus ring');
+  assert.match(
+    styles,
+    /\.select-popup\s*\{[\s\S]*?top:\s*calc\(100% \+ var\(--select-popup-offset\)\)/,
+    'an empty Select must open below its Trigger'
+  );
+  assert.match(selectControl, /if \(selected >= 0\) alignPopupToSelectedItem\(selected\)/);
+  assert.doesNotMatch(
+    selectControl,
+    /alignPopupToSelectedItem\(selected >= 0 \? selected : activeIndex\)/,
+    'pointer movement must not reposition an unselected popup'
+  );
+  const modalPrimaryFocusBlock = styles.match(/\.modal-actions \.button-primary:focus-visible\s*\{([^}]*)\}/)?.[1];
+  assert.ok(modalPrimaryFocusBlock, 'AlertDialog primary focus override missing');
+  assert.match(modalPrimaryFocusBlock, /outline:\s*none/);
+  assert.match(modalPrimaryFocusBlock, /outline-offset:\s*0/);
+  assert.match(styles, /:where\(button:not\(\.select-trigger\)\):focus-visible\s*\{/);
+  assert.match(app, /modalBackdrop\.showModal\(\);\s*modalPrimaryButton\.focus\(\)/);
   assert.match(html, /<section class="language-section" aria-labelledby="languageSectionLabel">/);
   assert.match(html, /id="languageSelectTrigger"[^>]*role="combobox"[^>]*aria-haspopup="listbox"[^>]*aria-expanded="false"/);
   assert.match(html, /id="languageSelectValue"[^>]*data-placeholder="true"[^>]*>Choose a language<\/span>/);
@@ -389,6 +406,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--select-item-height:\s*28px/);
   assert.match(tokens, /--select-item-padding-leading:\s*var\(--space-2\)/);
   assert.match(tokens, /--select-item-padding-trailing:\s*var\(--space-8\)/);
+  assert.match(tokens, /--select-popup-offset:\s*var\(--space-1\)/);
   assert.match(tokens, /--select-indicator-size:\s*16px/);
   assert.match(styles, /\.select-popup\s*\{[\s\S]*?border:\s*0;[\s\S]*?border-radius:\s*var\(--radius-select-popup\)[\s\S]*?box-shadow:\s*var\(--shadow-select-popup\)/);
   assert.match(selectControl, /function alignPopupToSelectedItem\(selected\)[\s\S]*?getBoundingClientRect\(\)[\s\S]*?alignedTop/);

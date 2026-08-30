@@ -152,6 +152,7 @@
   --select-trigger-content-gap: var(--space-2);
   --select-trigger-padding-leading: var(--space-3);
   --select-trigger-padding-trailing: var(--space-3);
+  --select-popup-offset: var(--space-1);
   --select-chevron-size: 16px;
   --select-popup-max-height: 160px;
   --select-item-height: 28px;

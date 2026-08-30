@@ -52,7 +52,10 @@
 
       if (open && activeIndex >= 0) {
         trigger.setAttribute('aria-activedescendant', list.children[activeIndex].id);
-        alignPopupToSelectedItem(selected >= 0 ? selected : activeIndex);
+        // 有明确值时才让选中项与 Trigger 对齐；占位态菜单固定从 Trigger 下方展开。
+        // 若用 activeIndex 重新锚定，指针移动会反过来改变菜单位置，导致选项在鼠标下跳动。
+        if (selected >= 0) alignPopupToSelectedItem(selected);
+        else popup.style?.removeProperty?.('top');
       } else {
         trigger.removeAttribute('aria-activedescendant');
         popup.style?.removeProperty?.('top');
