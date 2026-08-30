@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖标准 DOM 的 SVG namespace 与元素创建能力，内嵌经 THIRD_PARTY_NOTICES.md 归因的精简 Phosphor Regular path
- * [OUTPUT]: 对外提供冻结 window.cavalryIcons.create(name)，按受控语义名创建 aria-hidden、不可聚焦且继承 currentColor 的独立 SVG 节点；Restore 使用 FloppyDiskBack，Windows caption 复用 Minus/Square/Copy/X
+ * [OUTPUT]: 对外提供冻结 window.cavalryIcons.create(name)，按受控语义名创建 aria-hidden、不可聚焦且继承 currentColor 的独立 SVG 节点；Restore 使用 FloppyDiskBack，Windows caption 复用 Minus/Square/Copy/X，权限交接另有项目自有实心箭头候选
  * [POS]: renderer 的单一语义图标资产注册表；只拥有可复用 UI glyph，不包含应用 Logo 或 macOS 交通灯，业务组件只消费名称而不复制 path
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -71,6 +71,16 @@
       viewBox: '0 0 256 256',
       fill: true,
       paths: ['M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm37.66-101.66a8,8,0,0,1-11.32,11.32L136,107.31V168a8,8,0,0,1-16,0V107.31l-18.34,18.35a8,8,0,0,1-11.32-11.32l32-32a8,8,0,0,1,11.32,0Z'],
+    },
+    dragUp: {
+      viewBox: '0 0 256 256',
+      fill: true,
+      paths: ['M205.66,117.66a8,8,0,0,1-11.32,0L136,59.31V208a8,8,0,0,1-16,0V59.31L61.66,117.66a8,8,0,0,1-11.32-11.32l72-72a8,8,0,0,1,11.32,0l72,72A8,8,0,0,1,205.66,117.66Z'],
+    },
+    handoffArrow: {
+      viewBox: '0 0 256 256',
+      fill: true,
+      paths: ['M128,20,232,116a11.31,11.31,0,0,1,0,16l-32,32a11.31,11.31,0,0,1-16,0l-24-24v84a8,8,0,0,1-8,8H104a8,8,0,0,1-8-8V140L72,164a11.31,11.31,0,0,1-16,0L24,132a11.31,11.31,0,0,1,0-16Z'],
     },
     minimizeWindow: {
       viewBox: '0 0 256 256',

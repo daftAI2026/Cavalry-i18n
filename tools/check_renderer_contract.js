@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；工作台必须实时消费生产 renderer，禁止复制产品 DOM/CSS、魔法视觉常量、重复反馈和旧 Recovery 残留。
+ * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结当前 50pt 弧线/双图/项目自绘箭头节奏、真实拖拽边界、写事务重试结果及不入库的本机视觉对照，工作台必须实时消费生产 renderer 且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -56,6 +56,10 @@ function sourceStatement(source, marker) {
 }
 
 test('UI Review renders the exact production shell and replaces only the data bridge', () => {
+  const reviewServerSource = read('tools/ui_review_server.js');
+  const workspaceModulePath = require.resolve('./ui_review_workspace');
+  require(workspaceModulePath);
+  require.cache[workspaceModulePath].exports = Object.freeze({ workspaceHtml: () => '<stale-workspace />' });
   const production = read('renderer/index.html');
   const review = renderReviewDocument();
   const aboutProduction = read('renderer/about.html');
@@ -67,6 +71,7 @@ test('UI Review renders the exact production shell and replaces only the data br
     .replace('<script src="/fixture.js"></script>\n  ', '');
 
   assert.equal(normalized, production, 'review app may inject a base and fixture bridge, but may not copy or edit production UI');
+  assert.notEqual(workspace, '<stale-workspace />', 'review server must evict stale workspace modules before rendering');
   assert.equal(
     aboutReview.replace('\n  <base href="/renderer/" />', '').replace('<script src="/fixture.js"></script>\n  ', ''),
     aboutProduction,
@@ -87,6 +92,17 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(workspace, /windowFrame\.dataset\.platform = windowsScenarios\.has\(scenario\) \? 'windows' : 'macos'/);
   assert.match(workspace, /\.window\[data-platform="windows"\] \.lights \{ display: none; \}/);
   assert.match(workspace, /fetch\('\/revision'/);
+  assert.match(reviewServerSource, /for \(const request of reviewModuleRequests\) delete require\.cache\[require\.resolve\(request\)\]/);
+  assert.match(reviewServerSource, /const reviewSourcePaths = Object\.freeze\(reviewModuleRequests\.map\(\(request\) => require\.resolve\(request\)\)\)/);
+  assert.match(reviewServerSource, /return \[\.\.\.rendererSources, \.\.\.reviewSourcePaths\]/);
+  assert.match(reviewServerSource, /process\.env\.CAVALRY_UI_REVIEW_REFERENCE_ROOT/);
+  assert.match(reviewServerSource, /path\.join\(os\.tmpdir\(\), 'cavalry-i18n-ui-review'\)/);
+  assert.match(reviewServerSource, /'\/local-reference\/hint-arrow\.png'/);
+  assert.match(reviewServerSource, /'\/local-reference\/system-settings\.png'/);
+  assert.match(reviewServerSource, /url\.pathname === '\/favicon\.ico'/);
+  assert.match(reviewServerSource, /Local reference unavailable/);
+  assert.doesNotMatch(reviewServerSource, /const \{ workspaceHtml, permissionHandoffHtml \} = require\('\.\/ui_review_workspace'\)/);
+  assert.doesNotMatch(reviewServerSource, /function rendererRevision\(\)/);
   assert.match(fixture, /window\.cavalryI18n = Object\.freeze/);
   assert.match(fixture, /\['updateAvailable', 'updateConfirm', 'update', 'updateFailure'\]\.includes\(scenario\)/);
   assert.match(fixture, /scenario === 'permissionMac' \? 'openPrivacy' : 'none'/);
@@ -115,18 +131,29 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /\/renderer\/button\.css/);
   assert.match(handoff, /\/renderer\/icons\.js/);
   assert.match(handoff, /\/renderer\/app-icon\.png/);
-  assert.match(handoff, /window\.cavalryIcons\.create\('infoCircle'\)/);
+  assert.match(handoff, /window\.cavalryIcons\.create\('handoffArrow'\)/);
+  assert.match(handoff, /id="handoffReferenceTitle">本机视觉参考/);
+  assert.match(handoff, /src="\/local-reference\/hint-arrow\.png"/);
+  assert.match(handoff, /src="\/local-reference\/system-settings\.png\?v=2"/);
+  assert.match(handoff, /账户头像、侧栏与其他 App 已从截图源头排除/);
+  assert.match(handoff, /不进入仓库、构建或发布包/);
   assert.match(handoff, /class="ui-button button button-primary handoff-control-button"/);
-  assert.match(handoff, /durationSeconds: 0\.72/);
   assert.match(handoff, /responseSeconds: 0\.72/);
-  assert.match(handoff, /initialAlpha: 0\.9/);
-  assert.match(handoff, /minimumLaunchScale: 0\.58/);
-  assert.match(handoff, /liftRatio: 0\.18/);
-  assert.match(handoff, /liftMinimumPx: 44/);
-  assert.match(handoff, /liftMaximumPx: 140/);
-  assert.match(handoff, /return 1 - Math\.exp\(-omega \* seconds\) \* \(1 \+ omega \* seconds\)/);
-  assert.match(handoff, /Math\.hypot\(targetCenter\.x - sourceCenter\.x, targetCenter\.y - sourceCenter\.y\)/);
-  assert.match(handoff, /clamp\(distance \* MOTION\.liftRatio, MOTION\.liftMinimumPx, MOTION\.liftMaximumPx\)/);
+  assert.match(handoff, /dampingFraction: 1/);
+  assert.match(handoff, /arcHeightCssPx: 50/);
+  assert.match(handoff, /maxBlurPx: 12/);
+  assert.match(handoff, /arrowInitialDelayMs: 500/);
+  assert.match(handoff, /arrowStretchMs: 250/);
+  assert.match(handoff, /arrowIdleMs: 4000/);
+  assert.match(handoff, /arrowScaleX: 1\.15/);
+  assert.match(handoff, /arrowScaleY: 1\.6/);
+  assert.match(handoff, /arrowMass: 1/);
+  assert.match(handoff, /arrowStiffness: 200/);
+  assert.match(handoff, /arrowDamping: 11/);
+  assert.match(handoff, /const decay = MOTION\.dampingFraction \* omega/);
+  assert.match(handoff, /return 1 - Math\.exp\(-decay \* seconds\) \* \(1 \+ decay \* seconds\)/);
+  assert.match(handoff, /const apexY = Math\.min\(sourceCenter\.y, targetCenter\.y\) - MOTION\.arcHeightCssPx/);
+  assert.match(handoff, /y: 2 \* apexY - 0\.5 \* sourceCenter\.y - 0\.5 \* targetCenter\.y/);
   assert.match(handoff, /iframeRect\.width - borderLeft - borderRight/);
   assert.match(handoff, /iframeRect\.height - borderTop - borderBottom/);
   assert.match(handoff, /sourceActionSelectors: Object\.freeze\(\['#modalPrimaryButton', '#permissionButton'\]\)/);
@@ -136,19 +163,42 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /sourceObserver\.observe\(sourceDocument\.documentElement/);
   assert.match(handoff, /replaceClone\(proxySource, source\.element\)/);
   assert.match(handoff, /replaceClone\(proxyDestination, target\.element\)/);
-  assert.match(handoff, /function startForward\(\)[\s\S]*?captureGeometry\(\)/);
-  assert.match(handoff, /function startReverse\(\)[\s\S]*?captureGeometry\(\)/);
+  assert.match(handoff, /selector: '#draggableAppRow'/);
+  assert.match(handoff, /function startOpenSettings\(\)[\s\S]*?captureGeometry\(\)/);
+  assert.match(handoff, /function startRetry\(\)[\s\S]*?captureGeometry\(\)/);
   assert.match(handoff, /proxySource\.style\.opacity/);
   assert.match(handoff, /proxyDestination\.style\.opacity/);
+  assert.match(handoff, /const visualProgress = clamp\(progress, 0, 1\)/);
+  assert.match(handoff, /proxySource\.style\.filter = 'blur\('/);
+  assert.match(handoff, /proxyDestination\.style\.filter = 'blur\('/);
   assert.match(handoff, /prefers-reduced-motion: reduce/);
   assert.match(handoff, /function animateReduced\(target\)/);
   assert.match(handoff, /function animateSpring\(target\)/);
-  assert.match(handoff, /function finish\(target\)[\s\S]*?setPhase\(target === 1 \? 'presented' : 'idle'\)[\s\S]*?proxy\.hidden = true/);
+  assert.match(handoff, /let transitionPhase = 'idle'[\s\S]*?let workflowState = 'denied'/);
+  assert.match(handoff, /function finish\(target\)[\s\S]*?setTransitionPhase\(target === 1 \? 'presented' : 'idle'\)[\s\S]*?proxy\.hidden = true/);
+  const handoffFinish = sourceFunction(handoff, 'function finish(target)', 'function animateReduced(target)');
+  assert.doesNotMatch(handoffFinish, /appDropAccepted|operationVerified/, 'visual completion must not manufacture drop or permission success');
+  for (const eventName of ['transactionDenied', 'sourceCaptured', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'operationVerified', 'permissionStillMissing', 'typedError']) {
+    assert.match(handoff, new RegExp(`${eventName}: Object\\.freeze|appendWorkflowEvent\\('${eventName}'\\)|occurredWorkflowEvents = \\['${eventName}'\\]`));
+  }
+  assert.match(handoff, /sourceActionDocument\.addEventListener\('click', handleSourceActionClick, true\)/);
+  assert.match(handoff, /handleSourceActionClick\(event\)[\s\S]*?event\.preventDefault\(\)[\s\S]*?startOpenSettings\(\)/);
+  assert.match(handoff, /function resolveRetry\(result\)[\s\S]*?workflowState !== 'retrying'/);
+  assert.match(handoff, /resultError: document\.querySelector\('\[data-action="result-error"\]'\)/);
+  assert.match(handoff, /actionButtons\.resultError\.disabled = workflowState !== 'retrying'/);
+  assert.match(handoff, /resolveRetry\('error'\)/);
+  assert.match(handoff, /draggableAppRow\.addEventListener\('dragstart', handleDragStart\)/);
+  assert.match(handoff, /destinationDropZone\.addEventListener\('drop', handleDrop\)/);
+  assert.match(handoff, /event\.dataTransfer\.effectAllowed = 'copy'/);
+  assert.match(handoff, /event\.dataTransfer\.setData\('text\/uri-list', 'file:\/\/\/Applications\/Cavalry%20Language%20Switcher\.app'\)/);
+  assert.match(handoff, /appDropAccepted[\s\S]*?尚未验证权限/);
+  assert.match(handoff, /function setAccessoryVisibility\(visible\)[\s\S]*?accessoryWrap\.inert = !visible/);
+  assert.match(handoff, /const sessionGeneration = \+\+handoffSessionGeneration[\s\S]*?sessionGeneration !== handoffSessionGeneration/);
+  assert.match(handoff, /function dispose\(\)[\s\S]*?sourceObserver\?\.disconnect\(\)[\s\S]*?proxy\.hidden = true/);
   assert.match(handoff, /requestAnimationFrame\(frame\)/);
-  assert.doesNotMatch(handoff, /arcToken|arcValue|motionArcLift|arcLift|springDampingRatio|dampedOmega|settleProgress|proxyBlur|sourceAnchor|handoff-proxy-line|source surface|destination surface/, 'handoff must not contain tunable arc, generic damping, or hand-written proxy content');
+  assert.doesNotMatch(handoff, /durationSeconds: 0\.72|initialAlpha: 0\.9|minimumLaunchScale: 0\.58|liftRatio: 0\.18|liftMinimumPx: 44|liftMaximumPx: 140/, 'handoff must not retain public-replica motion constants as current sample truth');
   assert.doesNotMatch(handoff, /<span class="handoff-target-glyph"|<span[^>]*>✓<\/span>|<span[^>]*>↗<\/span>/, 'review icons must reuse production assets instead of handwritten glyphs');
-  assert.match(handoff, /destinationAnchor\.dataset\.reached = String\(phase === 'presented'\)/);
-  assert.doesNotMatch(handoff, /handoff-target-row\[data-(?:active|reached)="true"\] \.handoff-target-switch|data-active=/, 'reaching the settings target must not pretend App Management is granted');
+  assert.doesNotMatch(handoff, /destinationAnchor|dataset\.reached|data-active=/, 'handoff completion must land on the helper rather than pretend the System Settings row is granted');
   assert.doesNotMatch(handoff, /<dialog|modal-backdrop|modal-dialog/, 'handoff must use the production iframe instead of copying the permission dialog');
 });
 
@@ -202,6 +252,7 @@ test('semantic icon registry is frozen, defensive, and returns independent acces
     RESTORE_ICON_PATH,
     'Restore must use the pinned Phosphor Regular FloppyDiskBack path'
   );
+  assert.ok(window.cavalryIcons.create('dragUp')?.children[0]?.attributes.get('d'), 'permission drag hint must resolve through the shared icon registry');
   assert.equal(window.cavalryIcons.create('unknown'), null, 'unknown semantic names must fail closed');
 });
 
@@ -595,7 +646,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.app-path\s*\{[\s\S]*?margin:\s*var\(--gap-meta-stack\)\s+0\s+0/);
   assert.match(styles, /\.badge\s*\{[\s\S]*?min-height:\s*var\(--badge-height\)[\s\S]*?padding:\s*0 var\(--badge-padding-inline\)[\s\S]*?border-radius:\s*var\(--radius-pill\)/);
   assert.match(tokens, /--badge-language-bg:\s*#edf6ff/);
-  assert.match(tokens, /--badge-language-text:\s*#0068d6/);
+  assert.match(tokens, /--tone-info:\s*oklch\(57\.61% 0\.2508 258\.23\)/);
+  assert.match(tokens, /--badge-language-text:\s*var\(--tone-info\)/);
   assert.match(tokens, /--badge-green-bg:\s*#edf9f0/);
   assert.doesNotMatch(tokens, /--badge-(?:language|green)-border:/, 'filled semantic badges must not own a visible outline token');
   assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*transparent;[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
@@ -928,7 +980,11 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'async function bootstrap'
   );
   assert.match(permissionWaitFunction, /primary: needsElevation \? t\('requestElevation'\) : t\('openSettings'\)/);
+  assert.match(permissionWaitFunction, /title: t\(needsElevation \? 'permissionWindowsTitle' : 'permissionMacTitle'\)/);
+  assert.match(permissionWaitFunction, /body: t\(needsElevation \? 'permissionWindowsBody' : 'permissionMacBody'\)/);
   assert.match(permissionWaitFunction, /secondary: t\('cancel'\)/);
+  assert.match(permissionWaitFunction, /setStatus\('waitingPermission', 'warning'\)/);
+  assert.doesNotMatch(permissionWaitFunction, /upsertStatus\('waitingPermission'/);
   assert.doesNotMatch(permissionWaitFunction, /retryApply|Retry Apply/);
   assert.doesNotMatch(app, /maintenanceHeading|extractButton|restoreEnglishButton|refreshEnglish/);
   assert.doesNotMatch(app, /reconcileEnglish|reconcileButton|runReconciliation|showReconciliation/);

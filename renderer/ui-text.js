@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、任务 Event、真实权限失败 AlertDialog、外围 Toast 及完整无障碍名称。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、任务 Event、macOS 设置与 Windows UAC 分流的真实权限失败 AlertDialog、外围 Toast 及完整无障碍名称。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -145,7 +145,7 @@ const UI_TEXT = {
     restoring: 'Cavalry will open after its official English files and runtime are restored.',
     runtimeResidueWarning: 'Files from a previous Windows language setup are still active. Choose Restore English to finish cleanup.',
     applying: 'Cavalry will open when the language files are ready.',
-    waitingPermission: 'Approve the system request, then retry.',
+    waitingPermission: 'Allow the Switcher to modify Cavalry, then retry.',
     patchFailed: 'Cavalry was not changed. Try again.',
     restoreFailed: 'Cavalry was not restored. Try again.',
     cavalryStillRunning:
@@ -165,9 +165,10 @@ const UI_TEXT = {
     restoreSuccess: 'Cavalry opened.',
     restoreWithWarnings: '{warnings}',
     cancel: 'Cancel',
-    permissionTitle: 'System permission required',
-    permissionBody:
-      'Approve the operating system permission request for Cavalry Language Switcher, then retry.',
+    permissionMacTitle: 'Allow changes to Cavalry',
+    permissionMacBody: 'In System Settings, allow Cavalry Language Switcher to modify Cavalry, then retry.',
+    permissionWindowsTitle: 'Administrator permission required',
+    permissionWindowsBody: 'Retry as administrator, then allow the change when Windows asks.',
   },
   'zh-Hans': {
     appTitle: 'Cavalry 语言切换器',
@@ -305,7 +306,7 @@ const UI_TEXT = {
     restoring: '恢复官方英文文件和运行环境后，将打开 Cavalry。',
     runtimeResidueWarning: '之前的 Windows 语言设置仍有文件在生效。选择“恢复英文”以完成清理。',
     applying: '语言文件就绪后，Cavalry 将自动打开。',
-    waitingPermission: '批准系统权限请求，然后重试。',
+    waitingPermission: '允许语言切换器修改 Cavalry，然后重试。',
     patchFailed: 'Cavalry 未被修改，请重试。',
     restoreFailed: '未恢复 Cavalry，请重试。',
     cavalryStillRunning: 'Cavalry 仍在运行。请先保存工作并关闭 Cavalry，然后重试；Cavalry 安装内容未被修改。',
@@ -323,8 +324,10 @@ const UI_TEXT = {
     restoreSuccess: 'Cavalry 已打开。',
     restoreWithWarnings: '{warnings}',
     cancel: '取消',
-    permissionTitle: '需要系统授权',
-    permissionBody: '请批准操作系统为 Cavalry 语言切换器显示的权限请求，然后重试。',
+    permissionMacTitle: '允许修改 Cavalry',
+    permissionMacBody: '请在系统设置中允许语言切换器修改 Cavalry，然后重试。',
+    permissionWindowsTitle: '需要管理员权限',
+    permissionWindowsBody: '请以管理员身份重试，并在 Windows 提示时允许此次更改。',
   },
   'zh-Hant': {
     appTitle: 'Cavalry 語言切換器',
@@ -462,7 +465,7 @@ const UI_TEXT = {
     restoring: '還原官方英文檔案和執行環境後，將開啟 Cavalry。',
     runtimeResidueWarning: '之前的 Windows 語言設定仍有檔案在生效。選擇「還原英文」以完成清理。',
     applying: '語言檔案就緒後，Cavalry 將自動開啟。',
-    waitingPermission: '允許系統權限要求，然後重試。',
+    waitingPermission: '允許語言切換器修改 Cavalry，然後重試。',
     patchFailed: 'Cavalry 未被修改，請重試。',
     restoreFailed: '未還原 Cavalry，請重試。',
     cavalryStillRunning: 'Cavalry 仍在執行。請先儲存工作並關閉 Cavalry，然後重試；Cavalry 安裝內容未被修改。',
@@ -480,8 +483,10 @@ const UI_TEXT = {
     restoreSuccess: 'Cavalry 已開啟。',
     restoreWithWarnings: '{warnings}',
     cancel: '取消',
-    permissionTitle: '需要系統授權',
-    permissionBody: '請允許作業系統為 Cavalry 語言切換器顯示的權限請求，然後重試。',
+    permissionMacTitle: '允許修改 Cavalry',
+    permissionMacBody: '請在系統設定中允許語言切換器修改 Cavalry，然後重試。',
+    permissionWindowsTitle: '需要系統管理員權限',
+    permissionWindowsBody: '請以系統管理員身分重試，並在 Windows 提示時允許這項變更。',
   },
   ja_JP: {
     appTitle: 'Cavalry 言語スイッチャー',
@@ -623,7 +628,7 @@ const UI_TEXT = {
     restoring: '公式の英語ファイルとランタイムを復元した後、Cavalry を起動します。',
     runtimeResidueWarning: '以前の Windows 言語設定のファイルがまだ有効です。「英語に戻す」を選んでクリーンアップを完了してください。',
     applying: '言語ファイルの準備ができると Cavalry が起動します。',
-    waitingPermission: 'システムの権限要求を許可してから再試行してください。',
+    waitingPermission: '言語スイッチャーによる Cavalry の変更を許可してから、再試行してください。',
     patchFailed: 'Cavalry は変更されていません。もう一度お試しください。',
     restoreFailed: 'Cavalry は復元されていません。もう一度お試しください。',
     cavalryStillRunning:
@@ -643,9 +648,10 @@ const UI_TEXT = {
     restoreSuccess: 'Cavalry を起動しました。',
     restoreWithWarnings: '{warnings}',
     cancel: 'キャンセル',
-    permissionTitle: 'システム権限が必要です',
-    permissionBody:
-      'Cavalry 言語スイッチャーに対するオペレーティングシステムの権限要求を許可してから再試行してください。',
+    permissionMacTitle: 'Cavalry の変更を許可',
+    permissionMacBody: 'システム設定で、言語スイッチャーによる Cavalry の変更を許可してから再試行してください。',
+    permissionWindowsTitle: '管理者権限が必要です',
+    permissionWindowsBody: '管理者として再試行し、Windows の確認画面で変更を許可してください。',
   },
 };
 

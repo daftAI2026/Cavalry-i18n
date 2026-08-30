@@ -1,20 +1,34 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace 的工作台/handoff 舞台、ui_review_catalogs 的动态目录，以及 Node http/fs/path；仅以 localhost query 选择受控 fixture 状态。
- * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/成功/阻塞/警告/失败状态矩阵的 UI Review；每次请求读取真实 renderer，只在 bridge 前注入 fake API。
- * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，/handoff 只提供真实 renderer iframe、匿名 native mock 与运行时 DOM clone 的视觉审查，不进入 Tauri bundle、不伪造 native/package 证据。
+ * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/handoff/catalogs 审查模块，以及 Node http/fs/path/os；仅以 localhost query 选择受控 fixture 状态，并从系统临时目录或 CAVALRY_UI_REVIEW_REFERENCE_ROOT 指定目录只读展示本机参考截图。
+ * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/成功/阻塞/警告/失败状态矩阵的 UI Review；每次请求重读 renderer 并失效审查模块缓存，revision 同时覆盖两类源码，只在 bridge 前注入 fake API；两个固定 local-reference 路由缺图即 404，浏览器默认 favicon 请求静默返回空响应。
+ * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，/handoff 只提供真实 renderer iframe、匿名 native mock、运行时 DOM clone 与不入库的本机视觉参考，不进入 Tauri bundle、不伪造 native/package 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const http = require('node:http');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
-const { workspaceHtml, permissionHandoffHtml } = require('./ui_review_workspace');
-const { badgeCatalogHtml, feedbackCatalogHtml, iconCatalogHtml } = require('./ui_review_catalogs');
 
 const repoRoot = path.resolve(__dirname, '..');
 const rendererRoot = path.join(repoRoot, 'renderer');
+const reviewModuleRequests = Object.freeze([
+  './ui_review_permission_handoff_runtime',
+  './ui_review_permission_handoff',
+  './ui_review_workspace',
+  './ui_review_catalogs',
+]);
+const reviewSourcePaths = Object.freeze(reviewModuleRequests.map((request) => require.resolve(request)));
 const defaultPort = 4319;
 const host = '127.0.0.1';
+const localReferenceRoot = path.resolve(
+  process.env.CAVALRY_UI_REVIEW_REFERENCE_ROOT
+    || path.join(os.tmpdir(), 'cavalry-i18n-ui-review')
+);
+const localReferenceAssets = Object.freeze({
+  '/local-reference/hint-arrow.png': path.join(localReferenceRoot, 'hint-arrow.png'),
+  '/local-reference/system-settings.png': path.join(localReferenceRoot, 'system-settings.png'),
+});
 const mimeByExtension = Object.freeze({
   '.css': 'text/css; charset=utf-8',
   '.html': 'text/html; charset=utf-8',
@@ -22,6 +36,34 @@ const mimeByExtension = Object.freeze({
   '.md': 'text/markdown; charset=utf-8',
   '.png': 'image/png',
 });
+
+function loadReviewModules() {
+  for (const request of reviewModuleRequests) delete require.cache[require.resolve(request)];
+  return Object.freeze({
+    ...require('./ui_review_workspace'),
+    ...require('./ui_review_catalogs'),
+  });
+}
+
+function workspaceHtml(...args) {
+  return loadReviewModules().workspaceHtml(...args);
+}
+
+function permissionHandoffHtml(...args) {
+  return loadReviewModules().permissionHandoffHtml(...args);
+}
+
+function badgeCatalogHtml(...args) {
+  return loadReviewModules().badgeCatalogHtml(...args);
+}
+
+function feedbackCatalogHtml(...args) {
+  return loadReviewModules().feedbackCatalogHtml(...args);
+}
+
+function iconCatalogHtml(...args) {
+  return loadReviewModules().iconCatalogHtml(...args);
+}
 
 function renderReviewDocument(documentName = 'index.html') {
   if (!['index.html', 'about.html'].includes(documentName)) throw new Error('unsupported review document');
@@ -112,7 +154,7 @@ function fixtureSource() {
       for (const phase of phases) {
         onEvent({ phase, state: 'running' });
         await wait(timing.phase);
-        if (permissionScenario && phase === 'verifyInstallation') {
+        if (permissionScenario && phase === 'applyTransaction') {
           onEvent({ phase, state: 'error' });
           return { ...success(), ok: false, permissionRequired: true, errorCode: 'permissionRequired' };
         }
@@ -193,10 +235,12 @@ function fixtureSource() {
 })();`;
 }
 
-function rendererRevision() {
-  return fs.readdirSync(rendererRoot)
+function reviewRevision() {
+  const rendererSources = fs.readdirSync(rendererRoot)
     .filter((name) => /\.(?:css|html|js)$/.test(name))
-    .map((name) => fs.statSync(path.join(rendererRoot, name)).mtimeMs)
+    .map((name) => path.join(rendererRoot, name));
+  return [...rendererSources, ...reviewSourcePaths]
+    .map((source) => fs.statSync(source).mtimeMs)
     .reduce((latest, mtime) => Math.max(latest, mtime), 0)
     .toString(36);
 }
@@ -227,6 +271,15 @@ function serveRenderer(pathname, response) {
   send(response, 200, type, fs.readFileSync(target));
 }
 
+function serveLocalReference(pathname, response) {
+  const target = localReferenceAssets[pathname];
+  if (!target || !fs.existsSync(target) || !fs.statSync(target).isFile()) {
+    send(response, 404, 'text/plain; charset=utf-8', 'Local reference unavailable');
+    return;
+  }
+  send(response, 200, 'image/png', fs.readFileSync(target));
+}
+
 function createUiReviewServer() {
   return http.createServer((request, response) => {
     if (!['GET', 'HEAD'].includes(request.method)) {
@@ -251,7 +304,11 @@ function createUiReviewServer() {
     } else if (url.pathname === '/fixture.js') {
       send(response, 200, 'text/javascript; charset=utf-8', fixtureSource());
     } else if (url.pathname === '/revision') {
-      send(response, 200, 'text/plain; charset=utf-8', rendererRevision());
+      send(response, 200, 'text/plain; charset=utf-8', reviewRevision());
+    } else if (url.pathname === '/favicon.ico') {
+      send(response, 204, 'image/x-icon', '');
+    } else if (url.pathname.startsWith('/local-reference/')) {
+      serveLocalReference(url.pathname, response);
     } else if (url.pathname.startsWith('/renderer/')) {
       serveRenderer(url.pathname, response);
     } else {

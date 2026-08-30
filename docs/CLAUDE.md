@@ -13,7 +13,7 @@ audits/: 审计报告与实跑记录目录，保存阶段性人工/自动检查�
 audits/switcher-feedback-copy-catalog-2026-08-29.md: Switcher 反馈语义与四语目录，冻结持久 Event、必要 AlertDialog、外围失败 Toast 的生产边界；未选择安装/重装/运行中不叠 Toast，更新可用只用持久入口。
 component-source-adaptation-protocol.md: 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn Button/Marker/Select/Tooltip/AlertDialog/Toast commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit，并规定 Button/业务 variant 分层、Select combobox 隔离、平台外壳与 UI Review fixture 同步、视觉/静态/真机证据边界及 GEB 回环。
 roadmap/: 路线图目录，保存 proposed/active 的未来优化主题与本轮执行事件簿；当前含本地化搜索、Runtime 性能、Windows 移植与注入，以及已完成 R0 提示并进入 R1 真实 Updater Channel/任务事件视窗与可信分发实机验收阶段的路线；UI/Updater/实机/release/tag/清理事项均由事件簿证据化跟踪，每个主题链接对应事实依据并拆出阶段性验收标准。
-roadmap/macos-app-management-handoff-animation.md: macOS App Management 单权限授权引导路线，区分分发信任、权限真相与视觉动画，以 typed 写事务作为唯一成功 oracle，并分层记录匿名仓库外取证、Apple API、MIT 参考源码和洁净室实现验收。
+roadmap/macos-app-management-handoff-animation.md: macOS App Management 单权限授权引导路线，区分分发信任、权限工作流与视觉转场，以 typed 写事务作为唯一成功 oracle，并用匿名锁定样本的单次 handoff、真实拖拽、当前动画参数、point/backing-pixel/每屏 panel 模型及 MIT/Apple 证据约束洁净室实现与验收。
 workflows/: 文档化工作流，当前仅 `cavalry-full-ui-100/` 为 full-ui gate 主线；早期 `cavalry-i18n/` 已归档到 `archive/workflows-cavalry-i18n/`。
 img/: 静态资源库，存放 README 截图与文档示意图。
 badges/: README badge endpoint 数据源目录，保存发布 workflow 写回的 Shields JSON 投影。

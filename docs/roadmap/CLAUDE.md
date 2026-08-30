@@ -3,7 +3,7 @@
 
 成员清单
 localized-search-index.md: 本地化搜索索引路线图，链接 Add Layer 中文搜索调研报告，并把 QuickAdd 现场抓取、反向翻译索引、scoped query bridge 与 live canary 拆成阶段验收。
-macos-app-management-handoff-animation.md: macOS App Management 单权限授权引导路线，区分分发信任与 TCC 权限，冻结未知→真实写事务→typed denial→设置 handoff→重试的诚实状态机，并以匿名仓库外证据、Apple API 与锁定 MIT 参考源码规划洁净室动画和分阶段实机验收。
+macos-app-management-handoff-animation.md: macOS App Management 单权限授权引导路线，区分分发信任与 TCC 权限，以独立 permission workflow / visual transition 冻结 typed 拒绝→设置定位→单次快照 handoff→真实用户拖拽→返回重试分支，并用匿名锁定样本的当前几何/双图/阴影/箭头节奏、point/backing-pixel/每屏 panel 模型、Apple API、现有九命令/WebView-AppKit 接线缝与 MIT 参考源码约束洁净室实现和实机验收。
 README.md: Roadmap 总索引，定义状态口径、当前路线入口与归档规则。
 runtime-refresh-performance.md: 已完成的 Runtime 刷新性能路线，连接 2026-05-21 根因与 2026-07-13 实施证据，闭环交互局部刷新、capture gate、重复写回规避、增量签名和真实 Cavalry 验证。
 switcher-update-and-trusted-distribution-roadmap.md: Switcher 更新提示、自更新与可信分发路线，记录已落地的 R0 UI、R1 Rust/bridge/renderer、最终公钥/endpoint、deterministic manifest 与九资产 tag 发布闭包；区分后续受保护私钥 Secrets、Apple Developer ID/notarization、Windows Authenticode、SemVer bootstrap 与跨版本实机验收；完整自动更新仍未验收且不改变发布 SOP。

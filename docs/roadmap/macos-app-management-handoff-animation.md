@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖当前 macOS 写事务与权限错误路径、Apple App Management 文档、仓库外跨应用授权动画取证和锁定版本 MIT 参考源码
-[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、诚实状态机、跨应用授权动画的证据边界、洁净室架构与分阶段验收路线
+[INPUT]: 依赖当前 macOS 写事务与权限错误路径、Apple App Management 文档、本机 System Settings 只读复核、仓库外跨应用授权动画取证和锁定版本 MIT 参考源码
+[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、自动 handoff/用户拖拽/真实重试的逐步状态机、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、当前代码接线缝、洁净室架构与分阶段验收路线
 [POS]: docs/roadmap 的未来交互路线；约束 App Management 授权引导但不冒充已实现的生产功能或稳定 SOP
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -61,6 +61,43 @@ unknown
 3. 动画是解释“去哪里完成操作”的视觉桥，不是授权证明，也不自动点击系统设置。
 4. 自定义可写安装根可能不触发 App Management；只有 typed error 出现时才进入该分支。
 
+### 3.1 事件链与两个正交状态机
+
+权限生命周期不能塞进动画 phase。生产编排必须同时维护两条彼此独立的状态：
+
+```text
+permission workflow:
+denied → opening-settings → locating-settings → handoff-presented
+       → awaiting-user → dragging? → returning → retrying
+       → verified | still-denied | typed-error
+
+visual transition:
+idle → preparing → presenting → presented → reversing → idle
+```
+
+主链事件按因果顺序固定为：
+
+| 顺序 | 事件 | 真实来源 | 用户可见结果 |
+| --- | --- | --- | --- |
+| 1 | `permissionRequired` | Switch / Restore 写事务 | AlertDialog 解释为何需要 App Management |
+| 2 | `source-captured` | 用户点击真实 `Open Settings` 动作时捕获 source rect/视觉 | 为 handoff 冻结源，而不是复制另一份 Dialog |
+| 3 | `open-settings-requested` | 固定 bridge 命令 | 打开固定 `Privacy_AppBundles`，不得接受任意 URL |
+| 4 | `settings-target-located` + `destination-captured` | 原生 coordinator 找到可见 System Settings 窗口并冻结目标 | 允许开始视觉 handoff；找不到则走静态 fallback |
+| 5 | `handoff-presented` | forward session 完成 | 视觉代理只落到非激活 helper，**没有自动飞进 Apple 权限列表** |
+| 6a | `existing-row-enabled` | 用户发现列表已有 Switcher 并开启开关 | 只表示用户完成系统设置动作，仍不宣称权限已验证 |
+| 6b | `app-drag-started` | 用户按住 helper 内真实 app row 并移动鼠标 | 生成 app bundle file URL 的系统 drag session；helper 不再挡住目标 |
+| 6c | `app-drop-accepted` | System Settings 接受 copy drop | 只表示 app 对象已交给系统列表；取消/失败必须回弹并恢复 source row |
+| 7 | `handoff-dismissed` + `retry-requested` | 用户返回 Switcher，reverse session 完成并清理 | 重放原始 Switch / Restore 一次 |
+| 8a | `operation-verified` | 重试写事务成功 | 才能宣布权限已由实际操作验证，并继续正常结果流 |
+| 8b | `permission-still-missing` | 重试仍返回 typed `permissionRequired` | 回到等待设置，不显示虚假成功 |
+| 8c | `typed-error` | 重试返回其他错误 | 进入现有错误语义，不归因于权限 |
+
+目标窗口丢失、System Settings 被关闭、显示器变化和 app 退出是 session 清理事件，不是授权结果；它们必须幂等撤销 overlay，并保留用户可重试的业务状态。
+
+当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，但 handoff 单独落到 helper 中的 draggable app row，不再把 Apple 列表行当动画终点；原型可独立审查 HTML copy drop 成功/取消、已有行、返回重试与 Reduce Motion，并把 `app-drop-accepted` 明写为“尚未验证权限”。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。这里的 HTML Drag and Drop 与 CSS/RAF 只证明状态和视觉规格可审查，**不是**原生 `NSDraggingSession`、SwiftUI spring 或 packaged 权限证据；结果注入按钮也仍只用于审查 `verified/still-denied/typed-error` 三个真实重试分支，R4 必须由 Rust 写事务提供结果。
+
+工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机 Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
+
 ## 4. 参考实现的证据分层
 
 ### 4.1 仓库外参考应用：当前与历史样本的本机证据
@@ -75,23 +112,42 @@ unknown
 - transition controller 同时持有 source 与 destination capture，不是只移动一个 live view；
 - overlay 由每块屏幕的 non-key/non-main `NSPanel` replicant 组成，并持有 clipping、stroke 与三组 shadow layer/mask；
 - content model 持有 source image、target image、progress、corner radius 与最大 blur 半径；
-- 动画结束后由包含应用身份、权限说明、hosting view、drag delegate 与返回动作的真实 accessory UI 接管；
+- 动画结束后由包含应用身份、权限说明、hosting view、drag delegate 与返回动作的真实 accessory UI 接管；coordinator 另持有 drag continuation，并明确等待用户把 app 拖到 System Settings；
 - 当前仍有 transition session、正向、反向与无动画分支；历史样本恢复了 preparing/presented/reversing 三阶段语义，当前具体内部枚举名称不作为本项目合同。
+
+按对象关系可恢复的参考链路是：权限请求进入 coordinator → source probe/capture → 启动或定位 System Settings → destination capture → forward session → accessory window 接管 → 用户从 accessory 拖出 app → System Settings 接收 copy drop → coordinator 继续等待/验证 → reverse session → completion cleanup。前半段是程序自动完成的视觉 handoff，拖入列表则是用户鼠标动作；两者之间有 checked continuation 形成的硬等待边界。飞行代理与落稳后的可拖控件视觉连续，但不是同一个 live 对象：前者由 source/target 快照和每屏 replicant 构成，后者才是 Hosted AppKit drag source。
+
+当前样本的拖拽细节可直接确认；Apple 的 [`NSDraggingSession`](https://developer.apple.com/documentation/appkit/nsdraggingsession) 与 [`beginDraggingSession`](https://developer.apple.com/documentation/appkit/nsview/begindraggingsession%28with%3Aevent%3Asource%3A%29) 文档也确认真实 drag 在下一轮 run loop 开始，并通过 source 的 ended-operation 回调结束：
+
+- `mouseDown:` 建立 `NSDraggingSession`；
+- pasteboard provider 输出应用 bundle 的 `NSPasteboardTypeFileURL`；
+- drag begin 隐藏 accessory 中的真实 app row；
+- cancel/fail 开启系统回弹；
+- end 只有在 copy operation 成功时才通知 delegate，随后恢复 app row；
+- drop 完成信号与权限是否真正生效不是同一件事。
+
+它与本项目需要的视觉中段一致，但参考应用的权限请求模型和成功 oracle 不能直接照搬；Cavalry-i18n 必须在两端保留自己的 typed 写事务拒绝与真实重试结果。
 
 因此它不是视频、GIF、Lottie，也不是把 SwiftUI 视图跨进程搬进 System Settings；它用自己的 AppKit 窗口制造跨应用视觉连续性，并且不会成为 key/main window。
 
-动画参数必须按版本分栏：
+当前锁定样本的动画参数已经从同一份 ARM64 二进制重新取证；机器地址只用于兄弟 reference 的复核，不进入本项目合同：
 
-| 参数 | 当前参考样本 | 历史参考样本 | 可用结论 |
-| --- | --- | --- | --- |
-| spring response | 权限转场代码区域加载 `0.72` | 已确认 `0.72` | 当前为高置信；私有 helper 完整签名未恢复 |
-| damping | 同一路径加载 `1.0` | 已确认 `1.0` | 当前为高置信临界阻尼 |
-| arc | 存在弧高字段/参数 | 历史样本恢复过具体值 | 当前数值未知；本项目不能照抄历史常量 |
-| blur | 存在 `maxBlurRadius` | 存在但曲线未知 | 只能确认效果结构 |
-| shadow | 三套 layer + mask 直接存在 | 历史研究确认 | 数值、opacity、offset 未知 |
-| alpha / scale / radius | 有相应几何或状态结构 | 不完整 | 当前具体曲线与数值未知 |
-| 固定时长 / 60fps | 未确认 | 未确认 | 不能把公开样本参数倒灌成参考应用事实 |
-| Reduce Motion | 未发现当前直接证据 | 未确认 | 我们仍必须自行正确实现降级 |
+| 参数 | 当前样本直接证据 | 可用结论 |
+| --- | --- | --- |
+| spring | `SpringParameters(response:dampingFraction:)` 接收 `0.72 / 1.0`，progress 从 `0 → 1` | 临界阻尼；`0.72` 是 response，不是固定 720ms 时长 |
+| 轨迹 | 二次 Bézier helper 接收 `arcHeight = 50pt` | 起终点为两 capture 中心；控制点被反解为 `t=0.5` 时到达较高端点再上抬 50pt |
+| 尺寸 / 圆角 | width、height 与 corner radius 都按 progress 线性插值，frame 最终 integral 化 | 几何连续且避免半像素边界 |
+| source image | opacity `1-p`；blur `12p` | 从清晰源图连续退出，不在顶点突然切图 |
+| target image | opacity `p`；blur `12(1-p)` | 从模糊目标图连续进入；`p=.5` 时两图各 0.5 alpha / 6pt blur |
+| destination shadow | shadow opacity `0.06`、radius `2`、offset `(0,-3)`；整层 opacity 随 `p` | 目标接近时渐入 |
+| key shadow | shadow opacity `0.09`、radius `15`、offset `(0,-5)` | 与 ambient shadow 分层，不把阴影烘进快照 |
+| ambient shadow | shadow opacity `0.20`、radius `3`、offset `(0,0)` | 提供近场接触阴影 |
+| stroke | 0.5pt 黑色描边；整层 opacity `0.15p` | 只在接近目标时逐渐建立边界 |
+| 自动次数 | 每个请求一次 forward；返回/取消时至多一次 reverse | shared-element flight 不循环；完成由 spring session callback 驱动 |
+| 提示箭头节奏 | 出现 0.5s 后开始；stretch 0.25s、idle 4s 循环；hover 触发一次 0.25s stretch | 循环的是独立提示箭头，不是 app 卡片或假拖拽 |
+| Reduce Motion | 当前参考样本未找到可归因的直接分支 | 本项目仍必须自行正确实现静态降级 |
+
+提示箭头使用资源目录中的独立 raster，不是通用软件光标。其当前视觉为 `28×28`、底部锚点、stretch 时 `x=1.15 / y=1.6`、黑色 23% 阴影 `radius=7, x=0, y=4`、垂直偏移 `-10`；所有伸缩使用 `interpolatingSpring(mass:1, stiffness:200, damping:11, initialVelocity:0)`。这套 0.5/0.25/4 秒节奏只解释“请在这里拖”，不得被实现成自动移动 app 对象，更不得作为授权完成计时器。
 
 参考应用还包含另一套截图 presentation 动画。它服务于应用截图展示，不是权限行到 System Settings 的授权转场，禁止交叉套用参数。
 
@@ -102,13 +158,45 @@ unknown
 | 能力 | 源码事实 | 对本项目的意义 |
 | --- | --- | --- |
 | App Management | `.appManagement` 打开 `Privacy_AppBundles`，status capability 为 unsupported | 与当前 `None` 状态模型相互印证 |
+| App Management drag | `.appManagement` 未被排除出 floating authorization panel；panel 的主卡片是可拖 app bundle | 公开样本直接支持“helper 落稳后由用户拖入列表”的产品路径 |
 | 设置窗口跟踪 | 30Hz polling；无 AX 时使用 `CGWindowListCopyWindowInfo`，已有 AX 时才加 observer | 动画本身不应要求 Accessibility |
 | 浮动窗口 | borderless + nonactivating `NSPanel`，不成为 key/main，支持所有 Space | 不抢走 System Settings 焦点 |
 | 飞行动画 | 60fps Timer；公开样本使用临界阻尼、alpha 与 minimum scale | 可作为低复杂度 MVP 行为参考，不能描述外部参考应用的当前参数 |
 | 轨迹 | 二次 Bezier；弧高随距离 clamp | 比固定直线自然，但不是任何私有实现参数的证明 |
 | 目标布局 | 跟随 System Settings 主窗口，在 trailing content 邻接 helper panel | 不需要截取或修改系统设置内容 |
+| Drag source | 4pt 移动阈值、Finder 风格 file URL/filename payload、56pt drag icon、cancel/fail 回弹 | 可用公开 AppKit 独立实现；这些数值不等于私有参考参数 |
+| Drag passthrough | drag 时 helper `ignoresMouseEvents=true`、置后并降 alpha，结束恢复 | 让 System Settings 而非 helper 接收 drop |
 
 公开实现的最终 panel 从点击位置飞向目标；仓库外参考应用的当前/历史样本则有源/目标图像和多屏 replicant。两者不能混写成同一种实现。
+
+### 4.2.1 本机 App Management 目标页复核
+
+在 macOS 27.0 上只读打开固定 `Privacy_AppBundles` 页面并截取 System Settings 自身窗口，当前页面直接显示：
+
+- app 列表；
+- 每个 app 的独立开关；
+- 列表底部的添加/移除控件；
+- 本机 Switcher 已经存在于列表中。
+
+这带来一个不能忽略的产品分支：**已有行时只需启用，不应强迫用户再次拖拽；缺少行时才展示 draggable app row。** 当前不请求 Accessibility，因此不能靠读取 System Settings 内部 AX tree 自动决定分支。第一版 helper 应同时给出两条简洁指引：“列表中已有时开启；没有时拖入下方 App”，最终仍由返回后的写事务验证。
+
+本轮没有为了证明 drop 而向真实 TCC 列表写入新的测试 app，也没有修改任何开关。Apple 公开支持文档确认 App Management 的用途，但没有逐字承诺 drag 行为；“App Management 可走 floating drag panel”目前由锁定 MIT 源码与真实页面的 app-list/add-control 结构交叉支持，仍需在 disposable 测试账户完成一次 R5 live drop 验收。
+
+### 4.2.2 point、backing pixel 与跨屏归属
+
+公开源码给出了可直接审计的坐标管线，不能把它简化成“乘一个 Retina 比例”：
+
+1. `CGWindowListCopyWindowInfo` 与 AX window attribute 提供全局、左上原点的窗口 rect；布局单位仍是 point，不是资源像素。
+2. 为每个 `NSScreen` 读取 `NSScreenNumber → CGDisplayBounds`，找到与目标 rect **交叠面积最大**的屏幕，避免窗口横跨显示器时随数组顺序误归属。
+3. 先求 rect 相对该屏 `CGDisplayBounds` 的局部 `x/y`，再用该屏的 `NSScreen.frame.maxY - localY - height` 转成 AppKit 左下原点坐标。
+4. helper 最终 frame 使用目标屏 `visibleFrame` 做 clamp，避免落到菜单栏、Dock 或屏幕外；公开样本中的 `-3pt` 与视觉边框补偿属于样本局部调参，不能进入本项目通用转换函数。
+5. `NSScreen.frame`、窗口 frame、圆角、阴影半径与 28pt 箭头容器都保持 point；真正绘制时由窗口/视图所在屏幕的 `backingScaleFactor` 决定 backing pixel。矢量 path 自动重栅格，位图则由 asset catalog 在 1x/2x rendition 间选择。
+
+这解释了“29×33 的 Raster 为什么能放进 28×28 的视图”：前者是图片自身 logical size/rendition 身份，后者是布局容器；`aspectFit`、裁切或视图内缩放决定最终视觉，不应把 57×66 的 2x 像素尺寸直接当 CSS/AppKit frame。
+
+公开样本只维护一扇 helper panel：选择与目标相交的屏幕并 clamp，足够解释单屏 MVP，但它不能证明跨屏飞行期间每个像素都稳定。生产级参考采用每个 `NSScreen` 一扇 non-key/non-main replicant panel，共享一个全局 transition model，每扇 panel 只绘制运动 rect 与自身 `screenFrame` 的交集。这样不同 backing scale、color space、负坐标、Space 和屏幕边界裁切各自留在所属 panel，不让一扇超大窗口跨越所有显示器。
+
+本机只读复核时主屏为 `1710×1107pt`、`backingScaleFactor=2`，System Settings 最大 layer-0 window 的 CG bounds 为 `740×625pt`。窗口截图包含系统阴影，PNG 像素边界不能反推内容 frame；生产测试必须同时记录 point frame、backing scale 与内容截图，禁止仅凭 PNG 宽高判断缩放是否正确。
 
 ### 4.3 Apple API 边界
 
@@ -132,38 +220,53 @@ macos_permission_handoff.rs
   ├─ 打开 Privacy_AppBundles
   ├─ 跟踪 System Settings window
   ├─ 持有非激活 NSPanel / animation session
+  ├─ 在 helper 中承载真实可拖 app bundle URL
+  ├─ 区分 drag accepted 与 permission verified
   ├─ cleanup / cancel / Reduce Motion
   └─ 不判断“已授权”
 ```
 
 不要把实现塞进 `window_chrome.rs`。标题栏与权限 handoff 是两个独立变更理由；新的原生模块只暴露固定 permission enum 与有界 session 生命周期。
 
-### 5.2 第一版应做什么
+### 5.2 当前仓库的最短接线缝
+
+本轮继续沿真实代码查到的生产接线，不应在 R2 再重新发明：
+
+1. **保持九命令不变。** `open_privacy_security` 已是固定 App Management 入口；只把它从无参数动作扩成异步的 `AppHandle + PermissionHandoffRequest → PermissionHandoffPayload`，不新增第十条 command，也不接受任意 URL。command 在 native session 返回/取消/失败时只回传 typed `retryRequested/dismissed/error`，不另建全局 event bus。
+2. **renderer 只给局部 CSS rect。** `renderer/app.js` 必须在现有 `closeModal()` **之前**冻结本次触发元素的 `getBoundingClientRect()`：Dialog 路径使用真实 `#modalPrimaryButton`，常驻权限动作使用 `#permissionButton`。bridge 只接受有限、非负、有限数值的 `x/y/width/height`。renderer 不计算全局屏幕坐标，也不获得新的 window capability。
+3. **原生层完成坐标转换。** `WebviewWindow::ns_view/ns_window` 与 AppKit `convertRect` 负责把 CSS y-down 局部矩形投影到全局 AppKit y-up 坐标；禁止把标题栏高度、设备像素比或屏幕原点写成 renderer 魔法偏移。source rect 缺失或越界时仍打开固定设置页，只跳过飞行动画并显示静态 helper。
+4. **独立 owner 持有生命周期。** 新建 `macos_permission_handoff.rs`，由 `lib.rs` 装配并由 command facade 调用；`window_chrome.rs` 不扩职责，`privilege::open_privacy_security` 继续只负责固定系统 URL。owner 负责 panel、CGWindow 跟踪、drag session、generation token 与幂等 cleanup。
+5. **依赖必须直接、精确。** 当前锁中已有 `objc2-app-kit 0.3.2` 与 `core-graphics 0.25.0`，但前者只启用了标题栏所需最小 feature，后者只是传递依赖。R2 必须在 macOS target 下直接声明需要的 AppKit/Foundation/CoreGraphics API，不能依赖 Tauri 偶然带入。
+6. **本地化进入 bundle，而非 renderer JSON。** 默认 `Info.plist` 持有英文 `NSAppBundlesUsageDescription`；`en/zh-Hans/zh-Hant/ja.lproj/InfoPlist.strings` 提供系统权限文案投影，并在 dev/app/DMG 最终 `Info.plist` 和资源目录逐项 readback。它不是 Cavalry runtime translation，也不进入 `languages/`。
+7. **授权仍由原事务判定。** helper 的 copy drop、已有行开关、System Settings 关闭都只改变引导 session；`open_privacy_security` 返回 `retryRequested` 后，renderer 只调用一次现有 `runApply(state.pendingAction)`，只有 `ActionPayload.ok` 才是 verified。其他 typed error 退出权限链，不回到“仍需授权”；native owner 绝不直接调用 apply transaction。
+
+### 5.3 第一版应做什么
 
 推荐先做一个窄而真实的单权限版本：
 
 1. `permissionRequired` AlertDialog 内展示一行 App Management 目的说明和 `Open System Settings` 动作。
 2. 从这行的真实矩形生成视觉代理；如果 WebView 局部快照不稳定，第一版复制同一视觉 token 到 native proxy，而不是截整个窗口。
 3. 打开 `Privacy_AppBundles`，通过 CGWindow 找到最大的可见 layer-0 System Settings window。
-4. 用不激活的透明 panel 沿临界阻尼弧线路径过渡到设置窗口旁的静态 helper；响应与弧高都作为本项目原型 token 人工裁决，不把外部历史常量写成生产真相。
-5. helper 只说“在 App Management 中允许 Cavalry Language Switcher，然后返回重试”，不显示虚假的实时授权状态。
-6. System Settings 关闭、目标窗口消失、显示器切换或主 app 退出时幂等清理。
+4. 用不激活的透明 panel 沿临界阻尼弧线路径过渡到设置窗口旁的真实 helper；坐标转换集中在 native owner，并始终保留 point/backing-pixel 分层。自动动画止于 helper，绝不能自动飞入 Apple 列表。
+5. helper 显示一个真实 draggable Switcher app row，并说明“列表已有时开启；没有时拖入”；drag payload 是 app bundle file URL，取消/失败回弹，drop 时 panel 必须让出鼠标给 System Settings。
+6. drag accepted 只更新引导阶段，不显示授权成功；用户返回后重试原始 Switch / Restore，只有写事务成功才进入 verified。
+7. System Settings 关闭、目标窗口消失、显示器切换、drag 取消或主 app 退出时幂等清理。
 
-### 5.3 第一版明确不做什么
+### 5.4 第一版明确不做什么
 
 - 不引入整套 Swift Package 或第二套组件库；只学习经过锁定的状态和几何。
 - 不为动画请求 Accessibility、Screen Recording 或 Automation。
 - 不读写 TCC 数据库，不尝试自动拨动权限开关。
 - 不同时实现多权限通用框架；YAGNI，当前只有 App Management。
-- 不把每屏 replicant、反向 shared-element 和完整系统设置 accessory 一次性全部堆入 MVP。
+- 不在第一版复制完整三层 shadow/multi-display replicant；但真实 draggable app row、cancel/fail 回弹和 drop/permission 两种完成信号属于核心语义，不能以“先做动画”删掉。
 
 ## 6. 分阶段验收
 
 | 阶段 | 产物 | 通过条件 |
 | --- | --- | --- |
 | R0 证据冻结 | 本文 + 当前 Computer Use 复核 | 直接证据、公开源码、推断、产品方案四层不混写 |
-| R1 UI Review 原型 | 复用真实权限 Dialog/card 的动画场景 | 文案、源元素、轨迹、结束 helper、Reduce Motion 可人工审查；不冒充 native |
-| R2 native 单屏 MVP | 独立 AppKit owner + fixed bridge | 不抢焦点；打开准确 pane；设置窗口移动时 helper 跟随；取消幂等 |
+| R1 UI Review 原型 | 复用真实权限 Dialog/card 的动画场景 | 自动 handoff 只落到 helper；用户可拖 app row 到列表；drop 成功/失败、已有行、返回重试与 Reduce Motion 可独立审查；不冒充 native |
+| R2 native 单屏 MVP | 独立 AppKit owner + fixed bridge | 不抢焦点；打开准确 pane；真实 file URL drag 可被设置接收；失败回弹；设置窗口移动时 helper 跟随；取消幂等 |
 | R3 native 鲁棒性 | 多显示器、Space、窗口关闭/重开、目标丢失 | 无孤儿 panel、无焦点劫持、无额外权限、无崩溃 |
 | R4 生产接线 | typed `permissionRequired` → handoff → retry | 只有真实事务成功才显示成功；四语目的说明进入最终包 |
 | R5 packaged evidence | ad-hoc/package 实机 | 验证最终 Info.plist、首次拒绝、打开设置、允许、重试成功和 Reduce Motion |
@@ -173,9 +276,12 @@ macos_permission_handoff.rs
 至少覆盖：
 
 - 权限未知、已拒绝、用户在设置中允许、用户不允许直接返回；
+- App 已在列表只需开启 / App 不在列表需要拖入；
+- drag 成功、目标拒绝、半途取消、释放在错误位置；
 - System Settings 已打开 / 未打开 / 打开后立刻关闭；
 - source rect 缺失时静态降级；
 - 单屏、双屏、目标窗口跨屏；
+- 1x/2x 或不同缩放显示器之间移动窗口、动画中热插拔显示器，并记录 point frame、backing scale 与截图三项证据；
 - Reduce Motion 开启；
 - Cavalry 位于 `/Applications` 与明确可写自定义根；
 - AlertDialog 键盘焦点仍留在正确结果界面，overlay 永不成为 key window；

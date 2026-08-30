@@ -11,7 +11,7 @@ injector/ - macOS DYLD 注入器、Cavalry 2.7.2 TransformTool Mach-O/Skia ABI �
 languages/ - 运行时 JSON 语言包，保存 English 基线与三语同构翻译资产 (JSON)
 renderer/ - Tauri 前端 UI，以单一 token、共享 Button primitive、系统字体和离线 HTML/CSS/JS 提供无描边彩色 Badge、显式占位 Select/Tooltip、直接 Switch/单一 Restore English、真实 Channel 驱动的三轨 Activity、必要 AlertDialog，以及 Base UI 对齐的外围失败 Toast；Select Trigger 保持独立 combobox 状态机，Windows caption 仅替换视觉而由系统窗口 API 执行动作，持久事实不叠 Toast，About/固定外链失败不污染任务流 (HTML, CSS, JS)
 src-tauri/ - Tauri 后端；分离 renderer 契约、安装真相、受控系统命令与平台运行时，macOS 以最小 AppKit 桥维持原生交通灯中心，Windows 以无系统 caption + DWM 外框承载右侧 renderer 控件；语言事务通过四阶段 Channel 投影真实边界，Updater 只从 Rust State 消费已检查 Update 并通过 downloading/installing/restarting 三阶段脱敏 Channel 报告进度，签名验证留在官方插件下载事务内；immutable snapshot、durable manifest/backup、原子 English 清理、same-EXE UAC 与 NSIS 生命周期统一控制面和数据面 (Rust, NSIS)
-tools/ - 自动化工具链，涵盖翻译提取、校验、SDK 解析、真实 renderer + fixture bridge 的 UI Review、Windows NSIS 安装态、exact PID/HWND/受限 cleanup 与 producer-side PNG 证据，以及 tracked macOS Objective-C++/CGWindow 21-run/48-point 定向验收器；原生库和 live session 现场生成而不入库 (Node.js, PowerShell, Bash, Objective-C++, Swift)
+tools/ - 自动化工具链，涵盖翻译提取、校验、SDK 解析、真实 renderer + fixture bridge 的 UI Review 及权限工作流/视觉转场双状态原型、Windows NSIS 安装态、exact PID/HWND/受限 cleanup 与 producer-side PNG 证据，以及 tracked macOS Objective-C++/CGWindow 21-run/48-point 定向验收器；原生库和 live session 现场生成而不入库 (Node.js, PowerShell, Bash, Objective-C++, Swift)
 output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿 (JSON, PNG)
 </directory>
 

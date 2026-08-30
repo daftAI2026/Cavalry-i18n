@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且不冒充 transport 失败的权限恢复、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -110,10 +110,19 @@ function runtime({
               { phase: 'restartCavalry', state: 'running' },
               { phase: 'restartCavalry', state: (result.warningCodes || []).includes('restartFailed') || result.warningCode === 'restartFailed' ? 'warning' : 'completed' },
             ]
-          : [
-              { phase: 'verifyInstallation', state: 'running' },
-              { phase: 'verifyInstallation', state: 'error' },
-            ];
+          : result.permissionRequired
+            ? [
+                { phase: 'verifyInstallation', state: 'running' },
+                { phase: 'verifyInstallation', state: 'completed' },
+                { phase: 'ensureBaseline', state: 'running' },
+                { phase: 'ensureBaseline', state: 'completed' },
+                { phase: 'applyTransaction', state: 'running' },
+                { phase: 'applyTransaction', state: 'error' },
+              ]
+            : [
+                { phase: 'verifyInstallation', state: 'running' },
+                { phase: 'verifyInstallation', state: 'error' },
+              ];
         events.forEach((message, index) => callback({ index, message }));
         callback({ index: events.length, end: true });
       }
@@ -805,7 +814,8 @@ test('single Windows Restore reuses the ordinary UAC retry path', async () => {
   r.elements['#restoreButton'].listeners.get('click')[0]();
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
-  assert.equal(r.elements['#modalTitle'].textContent, 'System permission required');
+  assert.equal(r.elements['#modalTitle'].textContent, 'Administrator permission required');
+  assert.equal(r.elements['#modalBody'].textContent, 'Retry as administrator, then allow the change when Windows asks.');
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
@@ -833,12 +843,16 @@ test('permission AlertDialog exposes the recovery action and preserves Apply/Res
   r.elements['#applyButton'].listeners.get('click')[0]();
   await flush();
 
-  assert.equal(r.elements['#modalTitle'].textContent, 'System permission required');
+  assert.equal(r.elements['#modalTitle'].textContent, 'Allow changes to Cavalry');
+  assert.equal(r.elements['#modalBody'].textContent, 'In System Settings, allow Cavalry Language Switcher to modify Cavalry, then retry.');
   assert.equal(r.elements['#modalPrimaryButton'].textContent, 'Open Settings');
   assert.equal(r.elements['#modalSecondaryButton'].textContent, 'Cancel');
   assert.notEqual(r.elements['#modalPrimaryButton'].textContent, 'Retry Apply');
   assert.equal(r.elements['#applyButton'].textContent, labels.apply);
   assert.equal(r.elements['#restoreButton'].textContent, labels.restore);
+  assert.equal(activityTitle(r), 'System permission required');
+  assert.match(activityText(r), /Allow the Switcher to modify Cavalry, then retry\./);
+  assert.doesNotMatch(activityText(r), /desktop service|verify the Cavalry installation/i);
 
   r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
   await flush();
