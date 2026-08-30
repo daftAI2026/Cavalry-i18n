@@ -97,7 +97,7 @@ Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`app
 
 ### 2.3 AlertDialog 与 About 边界
 
-AlertDialog 只承载 Restore、Updater、权限请求和危险操作，不替代任务事件视窗，也不用于可逆且已有 fail-before-mutation 保护的 Switch，更不用于只有“知道了”而没有真实选择的错误。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions；项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供，标题使用 `16px` 角色，正文使用 `14px` 角色，不能把源组件的默认值直接散落到 CSS。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
+AlertDialog 只承载 Restore、Updater、权限请求和危险操作，不替代任务事件视窗，也不用于可逆且已有 fail-before-mutation 保护的 Switch，更不用于只有“知道了”而没有真实选择的错误。结构对照 shadcn Base Nova 的 `AlertDialog`：overlay、content、header、title/description、footer/actions；项目实际尺寸、间距、圆角和排印均由 `tokens.css` 提供。当前冻结规格为 `320px` 弹窗盒宽、`16px` 内边距、标题与正文 `8px`、正文与 actions `16px`，扣除边框后正文可用宽度为 `286px`：标题 `16px/24px/500`，正文 `14px/20px/400`。正文使用自然换行，禁止会重新平衡 CJK 行长的 `text-wrap: balance`；`white-space: pre-line` 只保留 Updater 版本说明等文案显式给出的段落边界。不能把源组件默认值散落到 CSS，也不能用硬编码换行修补单一语言。[shadcn Base Nova AlertDialog](https://raw.githubusercontent.com/shadcn-ui/ui/main/apps/v4/registry/bases/base/ui/alert-dialog.tsx)
 
 About 采用和本机 Maipo 同类的“系统应用菜单入口 + 原生应用窗口内自定义内容”方向，不使用 Tauri 原生 `AboutMetadata`：后者在 macOS 不支持 `website`、`website_label` 和 `license`，Windows 也不能满足可点击项目链接。macOS 将默认应用菜单中的标准 About 替换为固定 id，菜单事件与 Windows 标题栏信息入口共同调用同一个 Rust `about` WebviewWindow owner；窗口使用系统原生装饰、非 modal、固定尺寸且不可 resize/maximize/minimize，主窗口不被锁住。About 本地页面使用现有 token，顶部显示 64px、与安装包同源的应用图标和 `plugin:app|version` 真实版本；项目行只显示 `Cavalry-i18n`，GitHub 图形进入该行作为目的地提示，MIT License 独立成行，原生标题栏提供关闭行为。
 

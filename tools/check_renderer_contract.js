@@ -467,6 +467,12 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.content\s*>\s*section:first-child\s*\{[\s\S]*?margin-bottom:\s*var\(--gap-flow\)/);
   assert.match(styles, /\.language-section\s*\{[\s\S]*?display:\s*grid;[\s\S]*?gap:\s*var\(--section-heading-control-gap\)/);
   assert.match(tokens, /--section-heading-control-gap:\s*var\(--space-2\)/);
+  assert.match(tokens, /--dialog-width:\s*320px/);
+  assert.match(tokens, /--dialog-header-gap:\s*var\(--space-2\)/);
+  assert.match(tokens, /--dialog-content-gap:\s*var\(--space-4\)/);
+  assert.match(styles, /\.modal-title\s*\{[\s\S]*?font-size:\s*var\(--type-heading\)[\s\S]*?font-weight:\s*var\(--weight-medium\)[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
+  assert.match(styles, /\.modal-body\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-compact\)[\s\S]*?text-wrap:\s*wrap;[\s\S]*?white-space:\s*pre-line/);
+  assert.doesNotMatch(styles, /\.modal-body\s*\{[\s\S]*?text-wrap:\s*balance/, 'AlertDialog prose must preserve natural wrapping');
   assert.match(styles, /\.language-control-row\s*\{[\s\S]*?gap:\s*var\(--gap-flow\)/);
   assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?min-height:\s*var\(--operation-panel-min-height\);[\s\S]*?margin-top:\s*var\(--gap-flow\)/);
   assert.doesNotMatch(operationStyles, /\.status-label\s*\{/, 'the generic task heading must not be visible');
