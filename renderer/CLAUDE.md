@@ -22,9 +22,9 @@ about-control.js: 无依赖主窗口 About 入口状态机，仅在 Windows 展�
 about.html: 独立 About WebviewWindow 页面，复用 tokens/about/toast，显示同源图标、真实版本、项目与许可证入口。
 about-window.js: About 页面控制器，固定 repository/license 枚举；默认浏览器失败只在本窗口显示 error Toast，不暴露 URL。
 window-controls.js: 无依赖 Windows caption 状态机，只在 `platform=windows` 展示右侧最小化/最大化或还原/关闭，消费 bridge 固定 main-window 操作并在 toggle/resize 后同步最大化状态、四语可访问名称；失败不污染业务任务事件视窗或 AlertDialog，macOS 路径不执行窗口 mutation。
-app.js: 唯一业务交互源；健康自动发现态隐藏文件夹动作，只在未找到、macOS 必须重装重选或 Windows 自定义目录不可写时显露手动选择；Select 初始只显示本地化占位并在明确选择前禁用 Switch，持久任务进入 Activity，Restore English/更新/权限进入 AlertDialog，About 唤起失败进入 Toast。保持直接 Switch、单一恢复入口、Updater 与 fail-closed 门禁。
+app.js: 唯一业务交互源；文件夹动作只在后端未发现安装、`appPath` 为空时显露，任何已发现安装都保持摘要只读，恢复阻塞由 Activity/AlertDialog 承载；Select 初始只显示本地化占位并在明确选择前禁用 Switch，持久任务进入 Activity，Restore English/更新/权限进入 AlertDialog，About 唤起失败进入 Toast。保持直接 Switch、单一恢复入口、Updater 与 fail-closed 门禁。
 tauri-bridge.js: 非视觉兼容桥，在业务脚本前定义最小冻结 API；归一化 camelCase payload、稳定 `warningCodes`/updater error codes、Action/Status、脱敏 Update DTO 与 downloading/installing/restarting 有序事件，不暴露独立 snapshot mutation，并将单一 About 唤起、固定 `main` label 的 minimize/toggle/is-maximized/close 暴露给各自状态机；更新安装不接收 renderer 提供的 URL、版本或签名，未知阶段和不安全计数在边界丢弃。
-ui-text.js: 稳定的 English/简体中文/繁体中文/日文 renderer 文案与 `STATUS_TITLE_KEYS` 状态标题路由；标题、Windows caption 可访问名称、Select 占位、条件式 Official 徽章、Switch/Restore English/Update 任务上下文与真实阶段事件全部本地化；Switch 文案只表达用户目标，把后端 restart phase 诚实投影为“打开 Cavalry”，AlertDialog 遵循“结果/风险在标题，影响/恢复在正文”，不暴露 Refresh/snapshot/provenance；更新文案覆盖 tooltip、确认、下载/验证安装/重启、稳定错误与 macOS 新包 ad-hoc/Gatekeeper 提醒。
+ui-text.js: 稳定的 English/简体中文/繁体中文/日文 renderer 文案与 `STATUS_TITLE_KEYS` 状态标题路由；标题、Windows caption 可访问名称、Select 占位、条件式 Official 徽章、Switch/Restore English/Update 任务上下文与真实阶段事件全部本地化；Switch 文案只表达用户目标，把后端 restart phase 诚实投影为“打开 Cavalry”，重装恢复路径要求重装后重新打开 Switcher 触发探测而不指向已隐藏的文件入口，AlertDialog 遵循“结果/风险在标题，影响/恢复在正文”，不暴露 Refresh/snapshot/provenance；更新文案覆盖 tooltip、确认、下载/验证安装/重启、稳定错误与 macOS 新包 ad-hoc/Gatekeeper 提醒。
 
 依赖边界:
 

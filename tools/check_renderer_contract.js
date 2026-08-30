@@ -511,7 +511,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(cssRule(styles, '.installation-item'), /display:\s*flex;[\s\S]*?padding:\s*var\(--padding-panel\)/);
   assert.doesNotMatch(cssRule(styles, '.installation-item'), /grid-template-columns:/, 'an optional folder action must not leave an empty grid track');
   assert.match(html, /id="browseButton"[^>]*disabled hidden/);
-  assert.match(app, /function installationSelectionIsRequired\(\)\s*\{[\s\S]*?!state\.appPath[\s\S]*?requiresCavalryReinstall\(\)[\s\S]*?state\.platform === 'windows'[\s\S]*?state\.appManagementGranted === false[\s\S]*?state\.permissionAction === 'none'/);
+  assert.match(app, /function installationSelectionIsRequired\(\)\s*\{\s*return !state\.appPath;\s*\}/);
   assert.match(app, /function syncInstallationSelection\(\)\s*\{[\s\S]*?browseButton\.hidden = !installationSelectionIsRequired\(\)/);
   assert.match(app, /syncInstallationBadges\(\);\s*syncInstallationSelection\(\);\s*state\.ready = true/);
   assert.match(operationStyles, /\.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\)/);
