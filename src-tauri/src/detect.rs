@@ -1,5 +1,3 @@
-#[cfg(target_os = "windows")]
-use std::collections::HashSet;
 /**
  * [INPUT]: 依赖 install 的跨平台布局、state 保存路径与 windows_install 的只读发现线索
  * [OUTPUT]: 对外提供候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、仅归一 LC_CODE_SIGNATURE 与签名末端所证明 __LINKEDIT extent 的 Mach-O code identity、不可变 revision、语言选项与安装诊断
@@ -7,6 +5,8 @@ use std::collections::HashSet;
  * [FAIL-CLOSED]: read_mac_bundle_identity/require_supported_mac_identity 缺少完整 Info.plist、主 executable、libExtensionLayer 或 Mach-O 架构时失败；Team ID/designated requirement 明确标为 unavailable，需 privilege runner 提供签名证据后才可升级为 verified
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+#[cfg(target_os = "windows")]
+use std::collections::HashSet;
 use std::{
     fs,
     io::Read,
@@ -561,7 +561,14 @@ pub fn read_bundle_revision_for_write(app_path: &Path) -> Result<String, MacIden
 
 fn sha256_file_uncached(path: &Path) -> Result<String, String> {
     #[cfg(test)]
-    REVISION_UNCACHED_HASHES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    {
+        let counts = REVISION_UNCACHED_HASHES.get_or_init(|| Mutex::new(HashMap::new()));
+        *counts
+            .lock()
+            .unwrap()
+            .entry(path.to_path_buf())
+            .or_default() += 1;
+    }
     let mut file = fs::File::open(path)
         .map_err(|error| format!("Could not open revision input {}: {error}", path.display()))?;
     let mut digest = Sha256::new();
@@ -598,8 +605,7 @@ struct CachedRevisionHash {
 static REVISION_HASH_CACHE: OnceLock<Mutex<HashMap<PathBuf, CachedRevisionHash>>> = OnceLock::new();
 
 #[cfg(test)]
-static REVISION_UNCACHED_HASHES: std::sync::atomic::AtomicUsize =
-    std::sync::atomic::AtomicUsize::new(0);
+static REVISION_UNCACHED_HASHES: OnceLock<Mutex<HashMap<PathBuf, usize>>> = OnceLock::new();
 
 #[cfg(not(windows))]
 fn revision_hash_cache() -> &'static Mutex<HashMap<PathBuf, CachedRevisionHash>> {
@@ -705,7 +711,26 @@ fn clear_revision_hash_cache_for_tests() {
             cache.lock().unwrap().clear();
         }
     }
-    REVISION_UNCACHED_HASHES.store(0, std::sync::atomic::Ordering::Relaxed);
+    if let Some(counts) = REVISION_UNCACHED_HASHES.get() {
+        counts.lock().unwrap().clear();
+    }
+}
+
+#[cfg(test)]
+fn revision_uncached_hash_count_for_tests(root: &Path) -> usize {
+    let normalized_root = crate::install::normalize_path(root);
+    REVISION_UNCACHED_HASHES
+        .get()
+        .map(|counts| {
+            counts
+                .lock()
+                .unwrap()
+                .iter()
+                .filter(|(path, _)| path.starts_with(root) || path.starts_with(&normalized_root))
+                .map(|(_, count)| count)
+                .sum()
+        })
+        .unwrap_or_default()
 }
 
 fn sha256_bytes(bytes: &[u8]) -> String {
@@ -1245,8 +1270,8 @@ mod tests {
     use super::{
         clear_revision_hash_cache_for_tests, find_cavalry_app_from_candidates,
         macho_code_identity_sha256, read_bundle_revision, read_bundle_revision_for_write,
-        read_bundle_version, LC_CODE_SIGNATURE, LC_SEGMENT_64, LINKEDIT_SEGMENT_NAME,
-        REVISION_UNCACHED_HASHES,
+        read_bundle_version, revision_uncached_hash_count_for_tests, LC_CODE_SIGNATURE,
+        LC_SEGMENT_64, LINKEDIT_SEGMENT_NAME,
     };
     use std::fs;
 
@@ -1308,35 +1333,31 @@ mod tests {
         write(&root.join("assets/Definitions/nodeStrings.json"), b"{}");
 
         let first = read_bundle_revision(&root).unwrap();
-        let hashes_after_first =
-            REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed);
+        let hashes_after_first = revision_uncached_hash_count_for_tests(&root);
         let second = read_bundle_revision(&root).unwrap();
         assert_eq!(first, second);
         #[cfg(not(windows))]
         assert_eq!(
             hashes_after_first,
-            REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed)
+            revision_uncached_hash_count_for_tests(&root)
         );
         #[cfg(windows)]
         assert!(
-            REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed)
-                > hashes_after_first,
+            revision_uncached_hash_count_for_tests(&root) > hashes_after_first,
             "Windows revision reads must not substitute mutable metadata for content identity"
         );
 
         write(&root.join("Cavalry.exe"), b"binary-v2");
         let changed = read_bundle_revision(&root).unwrap();
         assert_ne!(first, changed);
-        let hashes_before_write =
-            REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed);
+        let hashes_before_write = revision_uncached_hash_count_for_tests(&root);
         assert_eq!(
             read_bundle_revision_for_write(&root).unwrap(),
             changed,
             "the write gate must preserve the public revision format"
         );
         assert!(
-            REVISION_UNCACHED_HASHES.load(std::sync::atomic::Ordering::Relaxed)
-                > hashes_before_write,
+            revision_uncached_hash_count_for_tests(&root) > hashes_before_write,
             "write revision must hash inputs without using the read-only cache"
         );
 

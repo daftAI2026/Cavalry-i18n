@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、稳定 errorCode、可组合 warningCodes、Windows residue reconciliationRequired、Updater DTO 与 camelCase JSON shape contract tests
- * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、固定项目外链、可本土化错误、非致命清理 codes、只读 Windows runtime residue 检测与脱敏更新状态
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
+ * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、Managed Legacy/版本只读字段、固定项目外链、可本土化错误、Windows runtime residue 与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::commands::{
@@ -130,6 +130,7 @@ fn status_payload_exposes_app_management_probe_result() {
         app_path: "/Applications/Cavalry.app".into(),
         current_lang: "en".into(),
         installation_mode: "official".into(),
+        official_recovery_available: true,
         startup_recovery_error: None,
         default_app_candidates: Vec::new(),
         diagnostics: None,
@@ -139,7 +140,9 @@ fn status_payload_exposes_app_management_probe_result() {
         platform: "macos".into(),
         reconciliation_required: true,
         repo_root: "/repo".into(),
+        supported_version: "2.7.2".into(),
         version: "2.3.4".into(),
+        version_compatibility: "olderUnsupported".into(),
     };
     let value = serde_json::to_value(payload).unwrap();
     assert_eq!(value["appManagementGranted"], true);
@@ -147,5 +150,8 @@ fn status_payload_exposes_app_management_probe_result() {
     assert_eq!(value["platform"], "macos");
     assert_eq!(value["reconciliationRequired"], true);
     assert_eq!(value["installationMode"], "official");
+    assert_eq!(value["officialRecoveryAvailable"], true);
+    assert_eq!(value["supportedVersion"], "2.7.2");
+    assert_eq!(value["versionCompatibility"], "olderUnsupported");
     assert!(value.get("app_management_granted").is_none());
 }

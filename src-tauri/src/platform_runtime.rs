@@ -1,11 +1,11 @@
-#[cfg(target_os = "macos")]
-use std::os::unix::fs::PermissionsExt;
 /**
- * [INPUT]: 依赖 install 布局、verified vendor Info.plist、mac_runtime/windows_runtime/windows_qpa、privilege typed graceful close 与 state。
- * [OUTPUT]: 提供 prepare_apply（macOS runtime 只从 trusted Info.plist 生成并含 Keychain staged pair）、typed fail-before-mutation preflight、payload 后 nested-code 签名、final marker 后 app seal、无 generic 残留的 English 早退判定与 restart 跨平台编排入口。
+ * [INPUT]: 依赖 install 布局、verified vendor Info.plist 或严格证明的 Managed Legacy runtime、mac_runtime/windows_runtime/windows_qpa、privilege typed graceful close 与 state。
+ * [OUTPUT]: 提供 prepare_apply（macOS 新管理态从 trusted Info 生成；Managed Legacy 只更新 marker/JSON 而不改写无 vendor preimage 的 runtime）、typed preflight、签名/app seal、English 早退与 restart 编排入口。
  * [POS]: commands 与平台差异之间的私有 facade；Windows English/翻译态都解析同一可信双 DLL 源，自定义根与 Program Files 共享 QPA 所有权语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+#[cfg(target_os = "macos")]
+use std::os::unix::fs::PermissionsExt;
 use std::{
     fmt,
     path::{Path, PathBuf},
@@ -70,6 +70,7 @@ pub(crate) fn prepare_apply(
     staging_root: &Path,
     trusted_macos_info_plist: Option<&Path>,
     trusted_macos_info_mode: Option<u32>,
+    reuse_managed_macos_runtime: bool,
 ) -> Result<ApplyPlan, String> {
     let layout = InstallLayout::from_root(app_path);
     let mut plan = ApplyPlan::default();
@@ -114,6 +115,12 @@ pub(crate) fn prepare_apply(
             plan.final_language_marker = Some(crate::mac_runtime::build_language_marker_pair(
                 app_path,
                 "en",
+                &staging_root.join("runtime-marker"),
+            )?);
+        } else if lang != crate::commands::RESTORE_OFFICIAL_ACTION && reuse_managed_macos_runtime {
+            plan.final_language_marker = Some(crate::mac_runtime::build_language_marker_pair(
+                app_path,
+                lang,
                 &staging_root.join("runtime-marker"),
             )?);
         } else if lang != crate::commands::RESTORE_OFFICIAL_ACTION {
@@ -179,7 +186,11 @@ pub(crate) fn prepare_apply(
     #[cfg(target_os = "macos")]
     let _ = cavalry_version;
     #[cfg(not(target_os = "macos"))]
-    let _ = (trusted_macos_info_plist, trusted_macos_info_mode);
+    let _ = (
+        trusted_macos_info_plist,
+        trusted_macos_info_mode,
+        reuse_managed_macos_runtime,
+    );
 
     Ok(plan)
 }

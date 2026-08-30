@@ -185,6 +185,63 @@ fn legacy_windows_snapshot_without_manifest_migrates_only_after_overlay_proof() 
 }
 
 #[test]
+#[cfg(unix)]
+fn legacy_macos_json_generation_requires_packaged_snapshot_and_installed_modes_to_match() {
+    fn prepare(root: &Path) -> (std::path::PathBuf, std::path::PathBuf, std::path::PathBuf) {
+        let app = make_complete_asset_app(root);
+        let packaged = root.join("languages/en");
+        let state = root.join("state");
+        for (language_relative, _) in cavalry_i18n_tauri::patch::CORE_MAP {
+            write(&packaged.join(language_relative), br#"{"value":"English"}"#);
+            write(
+                &state.join("en").join(language_relative),
+                br#"{"value":"English"}"#,
+            );
+        }
+        (app, packaged, state)
+    }
+
+    let temp = tempfile::tempdir().unwrap();
+    let (app, packaged, state) = prepare(temp.path());
+    let capture = migrate_legacy_english_generation_with_identity(
+        &packaged,
+        &state,
+        &app,
+        "managed-legacy-revision",
+    )
+    .unwrap();
+    assert_eq!(capture.count, cavalry_i18n_tauri::patch::CORE_MAP.len());
+    assert!(validate_english_snapshot_manifest(&state, &app).unwrap());
+    let generation_dir =
+        cavalry_i18n_tauri::patch::english_snapshot_dir(&state, &app, "managed-legacy-revision")
+            .unwrap();
+    let manifest: EnglishSnapshotManifest =
+        serde_json::from_slice(&fs::read(generation_dir.join("manifest.json")).unwrap()).unwrap();
+    assert!(manifest
+        .entries
+        .iter()
+        .all(|entry| entry.unix_mode == Some(0o644)));
+
+    let drifted = tempfile::tempdir().unwrap();
+    let (drifted_app, drifted_packaged, drifted_state) = prepare(drifted.path());
+    let drifted_snapshot = drifted_state
+        .join("en")
+        .join(cavalry_i18n_tauri::patch::CORE_MAP[0].0);
+    fs::set_permissions(&drifted_snapshot, fs::Permissions::from_mode(0o600)).unwrap();
+    let error = migrate_legacy_english_generation_with_identity(
+        &drifted_packaged,
+        &drifted_state,
+        &drifted_app,
+        "managed-legacy-mode-drift",
+    )
+    .unwrap_err();
+    assert!(error.contains("mode does not match"), "{error}");
+    assert!(!drifted_state
+        .join("english-snapshots/current.json")
+        .exists());
+}
+
+#[test]
 fn caller_owned_exact_snapshot_staging_never_publishes_a_standalone_pointer() {
     let temp = tempfile::tempdir().unwrap();
     let app = make_complete_asset_app(temp.path());

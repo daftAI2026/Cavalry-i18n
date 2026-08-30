@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、事务 marker、四阶段进度事件与平台 runtime apply/restart。
+ * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、Managed Legacy postimage、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
  * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -727,43 +727,39 @@ fn automatic_snapshot_refresh_rejects_a_translated_install() {
 }
 
 #[test]
-fn status_uses_snapshot_provenance_and_binary_revision_not_display_version() {
+fn snapshot_provenance_uses_binary_revision_not_display_version() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
-    let resources = temp.path().join("resources");
     let app = make_windows_install(temp.path());
     let app = crate::install::normalize_path(&app);
     make_language(&repo, "en");
     make_english_snapshot(&state_dir, &app);
     let revision = crate::detect::read_bundle_revision(&app).unwrap();
     let identity = crate::patch::english_snapshot_identity(&state_dir, &app, &revision).unwrap();
-    state::write_state(
+    let provenance = EnglishSnapshotProvenance {
+        install_root: app.to_string_lossy().to_string(),
+        immutable_revision: revision.clone(),
+        snapshot_generation: Some(identity.generation),
+        snapshot_manifest_sha256: Some(identity.manifest_sha256),
+        vendor_baseline_id: None,
+    };
+    assert!(!super::snapshot::needs_english_snapshot(
         &state_dir,
-        &State {
-            app_path: app.to_string_lossy().to_string(),
-            cavalry_version: String::new(),
-            cavalry_revision: revision.clone(),
-            current_lang: "en".into(),
-            last_patched_at: String::new(),
-            english_snapshot_provenance: Some(EnglishSnapshotProvenance {
-                install_root: app.to_string_lossy().to_string(),
-                immutable_revision: revision,
-                snapshot_generation: Some(identity.generation),
-                snapshot_manifest_sha256: Some(identity.manifest_sha256),
-                vendor_baseline_id: None,
-            }),
-        },
-    )
-    .unwrap();
-
-    let current = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
-    assert_eq!(current.version, "");
-    assert!(!current.needs_extract);
+        Some(&provenance),
+        &app,
+        &revision,
+    ));
 
     write(&app.join("Cavalry.exe"), b"binary-mutated");
-    let changed = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
-    assert!(changed.needs_extract);
+    let changed_revision = crate::detect::read_bundle_revision_for_write(&app).unwrap();
+    assert_ne!(changed_revision, revision);
+    assert!(super::snapshot::needs_english_snapshot(
+        &state_dir,
+        Some(&provenance),
+        &app,
+        &changed_revision,
+    ));
 }
 
 #[test]
@@ -1614,6 +1610,7 @@ fn windows_apply_plan_stages_generic_and_defers_final_marker_for_qpa() {
         &temp.path().join("staging"),
         None,
         None,
+        false,
     )
     .unwrap();
 

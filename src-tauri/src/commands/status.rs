@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch、startup recovery 诊断与 snapshot 安装真相/provenance 迁移。
- * [OUTPUT]: 提供状态解析、pending macOS recovery 的零写入阻断 payload、stale Windows marker 的只读 English 投影与每次 status 重算的 reconciliationRequired、安装选择、Windows 权限探测与 renderer payload。
- * [POS]: commands 的状态层；pending recovery 时禁止普通同步写入，macOS 轮询始终只读且不以探针文件破坏 bundle seal，Windows typed reconciliation 不依赖一次会话内存。
+ * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch、startup recovery 诊断、snapshot 安装真相/legacy postimage 与 provenance 迁移。
+ * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Managed Legacy/官方恢复能力、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload。
+ * [POS]: commands 的状态层；unsupported Cavalry 与 pending recovery 均保持安装只读，macOS 轮询不以探针文件破坏 bundle seal，Windows typed reconciliation 不依赖一次会话内存。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #[cfg(not(target_os = "macos"))]
@@ -43,35 +43,104 @@ fn platform_name() -> &'static str {
     "unknown"
 }
 
-fn installation_mode(app_path: &Path) -> &'static str {
+fn version_triplet(version: &str) -> Option<(u64, u64, u64)> {
+    let core = version.split(['-', '+']).next()?;
+    let mut parts = core.split('.');
+    let triplet = (
+        parts.next()?.parse().ok()?,
+        parts.next()?.parse().ok()?,
+        parts.next()?.parse().ok()?,
+    );
+    parts.next().is_none().then_some(triplet)
+}
+
+fn version_compatibility(version: &str) -> &'static str {
+    if version == detect::SUPPORTED_CAVALRY_VERSION {
+        return "supported";
+    }
+    match (
+        version_triplet(version),
+        version_triplet(detect::SUPPORTED_CAVALRY_VERSION),
+    ) {
+        (Some(actual), Some(supported)) if actual < supported => "olderUnsupported",
+        (Some(actual), Some(supported)) if actual > supported => "newerUnsupported",
+        _ => "unknownUnsupported",
+    }
+}
+
+fn installation_mode(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    state: &State,
+    app_path: &Path,
+    immutable_revision: &str,
+) -> &'static str {
     if app_path.as_os_str().is_empty() {
         return "unknown";
     }
     #[cfg(target_os = "macos")]
     {
         let mut runner = privilege::RealCommandRunner;
-        return installation_mode_with_runner(app_path, &mut runner);
+        return installation_mode_with_runner(
+            repo_root,
+            state_dir,
+            resource_dir,
+            state,
+            app_path,
+            immutable_revision,
+            &mut runner,
+        );
     }
     #[cfg(not(target_os = "macos"))]
     {
-        let _ = app_path;
+        let _ = (
+            repo_root,
+            state_dir,
+            resource_dir,
+            state,
+            app_path,
+            immutable_revision,
+        );
         "unknown"
     }
 }
 
 #[cfg(target_os = "macos")]
 fn installation_mode_with_runner<R: privilege::CommandRunner>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    state: &State,
     app_path: &Path,
+    immutable_revision: &str,
     runner: &mut R,
 ) -> &'static str {
-    if detect::require_supported_mac_identity(app_path).is_err()
-        || crate::mac_official::verify_clean_vendor_runtime(app_path).is_err()
-    {
+    if detect::require_supported_mac_identity(app_path).is_err() {
         return "modifiedOrUnverified";
     }
-    match privilege::inspect_bundle_signature(app_path, runner) {
-        Ok(signature) if signature.is_supported_cavalry_vendor_identity() => "official",
-        _ => "modifiedOrUnverified",
+    let signature = match privilege::inspect_bundle_signature(app_path, runner) {
+        Ok(signature) => signature,
+        Err(_) => return "modifiedOrUnverified",
+    };
+    if crate::mac_official::verify_clean_vendor_runtime(app_path).is_ok()
+        && signature.is_supported_cavalry_vendor_identity()
+    {
+        return "official";
+    }
+    if signature.is_managed_ad_hoc_identity()
+        && super::snapshot::legacy_snapshot_is_proven(
+            repo_root,
+            state_dir,
+            resource_dir,
+            state,
+            app_path,
+            immutable_revision,
+        )
+    {
+        "managedLegacy"
+    } else {
+        "modifiedOrUnverified"
     }
 }
 
@@ -119,14 +188,18 @@ pub(crate) fn sync_state_with_bundle(
     if next == state {
         Ok(state)
     } else {
-        let outcome = state::write_state_outcome(state_dir, &next)?;
-        if let Some(warning) = outcome.warning() {
-            return Err(format!(
-                "Application state changed, but its directory durability could not be confirmed: {warning}. Retry before continuing."
-            ));
-        }
-        Ok(outcome.into_state())
+        persist_selected_state(state_dir, &next)
     }
+}
+
+fn persist_selected_state(state_dir: &Path, next: &State) -> Result<State, String> {
+    let outcome = state::write_state_outcome(state_dir, next)?;
+    if let Some(warning) = outcome.warning() {
+        return Err(format!(
+            "Application state changed, but its directory durability could not be confirmed: {warning}. Retry before continuing."
+        ));
+    }
+    Ok(outcome.into_state())
 }
 
 /// Mutation callers must not silently continue after control-state recovery.  The typed state
@@ -213,14 +286,19 @@ pub(crate) fn resolved_state(
     let app_path = if discovered.as_os_str().is_empty() {
         discovered
     } else {
-        detect::resolve_verified_install(&discovered)
-            .map_err(|error| format!("Selected Cavalry identity is not supported: {error}"))?
+        detect::resolve_install(&discovered)
+            .map_err(|error| format!("Selected Cavalry installation could not be read: {error}"))?
             .root
     };
     let version = detect::read_bundle_version(&app_path)
         .map_err(|error| format!("Could not read selected Cavalry display version: {error}"))?;
-    let immutable_revision = detect::read_bundle_revision(&app_path)
-        .map_err(|error| format!("Could not establish selected Cavalry identity: {error}"))?;
+    let compatibility = version_compatibility(&version);
+    let immutable_revision = if app_path.as_os_str().is_empty() || compatibility != "supported" {
+        String::new()
+    } else {
+        detect::read_bundle_revision(&app_path)
+            .map_err(|error| format!("Could not establish selected Cavalry identity: {error}"))?
+    };
     let state = project_state_with_bundle(
         state_dir,
         existing_state.clone(),
@@ -228,17 +306,23 @@ pub(crate) fn resolved_state(
         &version,
         &immutable_revision,
     );
-    let mut state = project_legacy_snapshot_provenance(
-        repo_root,
-        state_dir,
-        resource_dir,
-        &existing_state,
-        state,
-        &app_path,
-        &version,
-        &immutable_revision,
-    );
-    let clean_disposition = ensure_clean_english_install(repo_root, resource_dir, &app_path).ok();
+    let mut state = if compatibility == "supported" {
+        project_legacy_snapshot_provenance(
+            repo_root,
+            state_dir,
+            resource_dir,
+            &existing_state,
+            state,
+            &app_path,
+            &version,
+            &immutable_revision,
+        )
+    } else {
+        state
+    };
+    let clean_disposition = (compatibility == "supported")
+        .then(|| ensure_clean_english_install(repo_root, resource_dir, &app_path).ok())
+        .flatten();
     if clean_disposition.is_some() {
         state.current_lang = "en".to_string();
     }
@@ -310,14 +394,9 @@ pub(crate) fn status_for_paths(
             false
         }
     };
-    let needs_extract = !app_path.as_os_str().is_empty()
-        && super::snapshot::needs_english_snapshot(
-            state_dir,
-            state.english_snapshot_provenance.as_ref(),
-            &app_path,
-            &immutable_revision,
-        )
-        && !super::snapshot::legacy_snapshot_is_proven(
+    let compatibility = version_compatibility(&version);
+    let legacy_snapshot_proven = compatibility == "supported"
+        && super::snapshot::legacy_snapshot_is_proven(
             repo_root,
             state_dir,
             resource_dir,
@@ -325,11 +404,52 @@ pub(crate) fn status_for_paths(
             &app_path,
             &immutable_revision,
         );
+    let needs_extract = compatibility == "supported"
+        && !app_path.as_os_str().is_empty()
+        && super::snapshot::needs_english_snapshot(
+            state_dir,
+            state.english_snapshot_provenance.as_ref(),
+            &app_path,
+            &immutable_revision,
+        )
+        && !legacy_snapshot_proven;
+    let installation_mode = installation_mode(
+        repo_root,
+        state_dir,
+        resource_dir,
+        &state,
+        &app_path,
+        &immutable_revision,
+    );
+    let official_recovery_available = {
+        #[cfg(target_os = "macos")]
+        {
+            installation_mode == "official"
+                || state
+                    .english_snapshot_provenance
+                    .as_ref()
+                    .is_some_and(|provenance| {
+                        provenance.vendor_baseline_id.is_some()
+                            && crate::mac_official::load_vendor_baseline(
+                                state_dir,
+                                &app_path,
+                                &immutable_revision,
+                                provenance,
+                            )
+                            .is_ok()
+                    })
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            false
+        }
+    };
     Ok(StatusPayload {
         app_management_granted: permission_granted,
         app_path: app_path.to_string_lossy().to_string(),
         current_lang: state.current_lang.clone(),
-        installation_mode: installation_mode(&app_path).to_string(),
+        installation_mode: installation_mode.to_string(),
+        official_recovery_available,
         startup_recovery_error: None,
         default_app_candidates: candidates
             .into_iter()
@@ -342,7 +462,9 @@ pub(crate) fn status_for_paths(
         platform: platform_name().to_string(),
         reconciliation_required,
         repo_root: repo_root.to_string_lossy().to_string(),
+        supported_version: detect::SUPPORTED_CAVALRY_VERSION.to_string(),
         version,
+        version_compatibility: compatibility.to_string(),
     })
 }
 
@@ -409,6 +531,7 @@ fn startup_recovery_blocked_status(
         app_path: app_path.to_string_lossy().to_string(),
         current_lang,
         installation_mode: "recoveryRequired".to_string(),
+        official_recovery_available: false,
         startup_recovery_error: Some(error),
         default_app_candidates: candidates
             .into_iter()
@@ -421,6 +544,8 @@ fn startup_recovery_blocked_status(
         platform: platform_name().to_string(),
         reconciliation_required: false,
         repo_root: paths.repo_root.to_string_lossy().to_string(),
+        supported_version: detect::SUPPORTED_CAVALRY_VERSION.to_string(),
+        version_compatibility: version_compatibility(&version).to_string(),
         version,
     }
 }
@@ -438,9 +563,26 @@ pub(crate) fn browse_for_app(app: &tauri::AppHandle) -> Result<BrowsePayload, St
                 .to_string(),
         );
     }
-    let layout = detect::resolve_verified_install(&selection).map_err(|error| error.to_string())?;
+    let layout = detect::resolve_install(&selection).map_err(|error| error.to_string())?;
     let path = layout.root;
     let version = detect::read_bundle_version(&path).unwrap_or_default();
+    if version_compatibility(&version) != "supported" {
+        let previous = read_state_for_mutation(&state_dir)?;
+        let next = State {
+            app_path: path.to_string_lossy().to_string(),
+            cavalry_version: version.clone(),
+            cavalry_revision: String::new(),
+            current_lang: detect::read_installed_language(&path, "en"),
+            last_patched_at: previous.last_patched_at,
+            english_snapshot_provenance: None,
+        };
+        persist_selected_state(&state_dir, &next)?;
+        return Ok(BrowsePayload {
+            canceled: false,
+            app_path: path.to_string_lossy().to_string(),
+            version,
+        });
+    }
     let immutable_revision =
         detect::read_bundle_revision_for_write(&path).map_err(|error| error.to_string())?;
     let previous = read_state_for_mutation(&state_dir)?;
@@ -617,6 +759,10 @@ mod tests {
     fn installation_mode_requires_clean_runtime_and_supported_vendor_signature() {
         let temp = tempfile::tempdir().unwrap();
         let app = temp.path().join("Cavalry.app");
+        let repo = temp.path().join("repo");
+        let state_dir = temp.path().join("state");
+        let resources = temp.path().join("resources");
+        let state = State::default();
         write_clean_bundle(&app);
 
         let mut supported = privilege::RecordingRunner::default();
@@ -626,7 +772,15 @@ mod tests {
             .unwrap()
             .is_supported_cavalry_vendor_identity());
         assert_eq!(
-            installation_mode_with_runner(&app, &mut supported),
+            installation_mode_with_runner(
+                &repo,
+                &state_dir,
+                &resources,
+                &state,
+                &app,
+                "revision",
+                &mut supported,
+            ),
             "official"
         );
 
@@ -638,15 +792,39 @@ mod tests {
         }
         let mut incomplete = IncompleteSignatureRunner;
         assert_eq!(
-            installation_mode_with_runner(&app, &mut incomplete),
+            installation_mode_with_runner(
+                &repo,
+                &state_dir,
+                &resources,
+                &state,
+                &app,
+                "revision",
+                &mut incomplete,
+            ),
             "modifiedOrUnverified"
         );
 
         fs::write(app.join("Contents/MacOS/CavalryLauncher"), b"managed").unwrap();
         let mut supported = privilege::RecordingRunner::default();
         assert_eq!(
-            installation_mode_with_runner(&app, &mut supported),
+            installation_mode_with_runner(
+                &repo,
+                &state_dir,
+                &resources,
+                &state,
+                &app,
+                "revision",
+                &mut supported,
+            ),
             "modifiedOrUnverified"
         );
+    }
+
+    #[test]
+    fn version_compatibility_preserves_user_direction() {
+        assert_eq!(version_compatibility("2.7.2"), "supported");
+        assert_eq!(version_compatibility("2.7.1"), "olderUnsupported");
+        assert_eq!(version_compatibility("2.7.3"), "newerUnsupported");
+        assert_eq!(version_compatibility("unknown"), "unknownUnsupported");
     }
 }

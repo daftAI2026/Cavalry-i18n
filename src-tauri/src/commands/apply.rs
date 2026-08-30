@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供保持原签名的 apply_language_inner（由 NoopReporter 包装）、带 transport-neutral reporter 的 apply_language_inner_with_reporter、仅对无 pending journal 的精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、生产与测试共用的 Windows English 原字节/三语 canonical overlay pair 构造、English manifest entry SHA 到 UAC parent staging 的连续 evidence、单次 UAC/typed cleanup warning、全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS English UI/官方还原、首装 launcher gate、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口。
+ * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS Managed Legacy/official baseline 分级、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
+ * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口。
  * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -61,6 +61,16 @@ fn verify_macos_prewrite_trust(
             "Modified Cavalry is not signed with the expected managed ad-hoc identity; no files were written. Reinstall Cavalry before retrying."
                 .to_string(),
         );
+    }
+    if super::snapshot::legacy_snapshot_is_proven(
+        repo_root,
+        state_dir,
+        resource_dir,
+        previous_state,
+        app_path,
+        immutable_revision,
+    ) {
+        return Ok(());
     }
     let provenance = previous_state
         .english_snapshot_provenance
@@ -342,6 +352,16 @@ where
         &version,
         &immutable_revision,
     );
+    #[cfg(target_os = "macos")]
+    let managed_legacy = app_platform == crate::install::InstallPlatform::Macos
+        && super::snapshot::legacy_snapshot_is_proven(
+            repo_root,
+            state_dir,
+            resource_dir,
+            &current_state,
+            &app_path,
+            &immutable_revision,
+        );
     current_state = super::snapshot::migrate_legacy_snapshot_if_proven(
         repo_root,
         state_dir,
@@ -429,12 +449,21 @@ where
                 .ok_or_else(|| {
                     "macOS apply requires a unified vendor/English baseline provenance.".to_string()
                 })?;
-            Some(crate::mac_official::load_vendor_baseline(
-                state_dir,
-                &app_path,
-                &immutable_revision,
-                provenance,
-            )?)
+            if provenance.vendor_baseline_id.is_some() {
+                Some(crate::mac_official::load_vendor_baseline(
+                    state_dir,
+                    &app_path,
+                    &immutable_revision,
+                    provenance,
+                )?)
+            } else if managed_legacy {
+                None
+            } else {
+                return Err(
+                    "macOS apply has neither a verified official baseline nor a proven Managed Legacy postimage."
+                        .to_string(),
+                );
+            }
         } else {
             None
         };
@@ -465,14 +494,23 @@ where
         });
         #[cfg(target_os = "macos")]
         let mac_asset_preimages = {
-            let baseline = mac_baseline.as_ref().ok_or_else(|| {
-                "macOS asset verification lost its verified unified vendor generation.".to_string()
-            })?;
+            let manifest_sha256 = mac_baseline
+                .as_ref()
+                .map(|baseline| baseline.english_manifest_sha256())
+                .or_else(|| {
+                    current_state
+                        .english_snapshot_provenance
+                        .as_ref()
+                        .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
+                })
+                .ok_or_else(|| {
+                    "macOS asset verification lost its immutable English manifest.".to_string()
+                })?;
             patch::verify_installed_asset_preimages_at_exact(
-                baseline.english_dir(),
+                &english_snapshot_dir,
                 &app_path,
                 current_language_source.as_deref(),
-                baseline.english_manifest_sha256(),
+                manifest_sha256,
             )?
         };
         #[cfg(not(target_os = "macos"))]
@@ -508,15 +546,24 @@ where
         let staging_root = unique_staging_root();
         #[cfg(target_os = "macos")]
         let pairs = {
-            let baseline = mac_baseline.as_ref().ok_or_else(|| {
-                "macOS JSON apply lost its verified unified vendor generation.".to_string()
-            })?;
+            let manifest_sha256 = mac_baseline
+                .as_ref()
+                .map(|baseline| baseline.english_manifest_sha256())
+                .or_else(|| {
+                    current_state
+                        .english_snapshot_provenance
+                        .as_ref()
+                        .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
+                })
+                .ok_or_else(|| {
+                    "macOS JSON apply lost its immutable English manifest.".to_string()
+                })?;
             if effective_lang == "en" {
                 patch::build_mac_english_restore_pairs(
                     &english_snapshot_dir,
                     &app_path,
                     &staging_root.join("english-restore"),
-                    baseline.english_manifest_sha256(),
+                    manifest_sha256,
                 )?
             } else {
                 patch::build_mac_overlay_pairs_exact(
@@ -524,7 +571,7 @@ where
                     &english_snapshot_dir,
                     &app_path,
                     &staging_root.join("overlay"),
-                    baseline.english_manifest_sha256(),
+                    manifest_sha256,
                 )?
             }
         };
@@ -603,6 +650,7 @@ where
             &staging_root,
             trusted_macos_info_plist.as_deref(),
             trusted_macos_info_mode,
+            managed_legacy,
         )?;
         if let Some(payload) = finish_direct_preflight_result(platform_runtime::preflight_apply(
             &app_path, lang, runner,
