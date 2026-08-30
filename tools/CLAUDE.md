@@ -8,8 +8,8 @@ check_app_contracts.js: Tauri-only Node 合同测试；在既有跨平台/翻译
 check_renderer_contract.js: Renderer 静态合同，冻结 token 单向依赖、平台 chrome、Grid/Flex、Activity、Trigger/popup 双占位且开启后不漂移的 Select、Tooltip/AlertDialog/Toast、无描边彩色 Badge、Phosphor 图标、固定外链与 400×484 capability；Toast 另锁定 Base UI 默认值和 Activity 隔离。
 check_operation_log_runtime.js: 任务反馈专属运行时合同，以最小 DOM/时钟执行真实 icons/operation-log 源，隔离验证 Marker 稳定原位更新、live-edge、首尾固定轨道改变中段高度后的溢出与起止边缘回算、快事件可读串行、结果排队和错误立即抢占，不重复 bridge 业务 fixture。
 check_tauri_bridge_runtime.js: Tauri bridge fake-DOM 运行合同，执行真实组件和 app 源；覆盖手动安装入口、Select Trigger/popup 占位与显式选择、Managed Legacy 受管英文恢复、旧/新/未知版本只读门禁、只读权限未知的 idle 投影、主任务/Updater/About/窗口控件，并证明 About/外链失败进入局部 Toast 而不覆盖 Activity。
-ui_review_workspace.js: localhost UI Review 的纯导航壳；以一个侧栏切换真实主窗口/About 的成功、Managed Legacy、版本不兼容、阻塞、警告、失败场景与反馈/图标/徽章总览，只持有 iframe 尺寸、locale/scenario query、平台外框提示和 revision 刷新；Windows fixture 不再叠加 macOS 交通灯，产品 DOM/CSS/文案或图标仍不复制。
-ui_review_server.js: localhost UI Review 编排入口；每次请求直接读取真实 renderer 主窗口/About 与动态生产目录，只在 frozen bridge 前注入 fake API，以场景 fixture 驱动未找到/官方/翻译/Managed Legacy/旧新版本/重装/恢复失败、更新 Tooltip、AlertDialog、Toast 及 Switch/Restore English/Update 流程，源码变化自动刷新 iframe。
+ui_review_workspace.js: localhost UI Review 的导航壳与 clean-room 权限 handoff 舞台；侧栏切换真实主窗口/About、反馈/图标/徽章总览及权限交接原型，handoff 以内嵌真实 `permissionMac` renderer iframe 为源，以匿名 native mock 表示系统设置目标，运行时捕获/递归克隆真实权限动作与目标 row 的 DOM/computed style，复用生产 tokens/Button/语义图标/应用标识，并用固定 motion contract 演示 forward/reverse、几何/视觉层 morph、静态 accessory takeover 与 Reduce Motion。
+ui_review_server.js: localhost UI Review 编排入口；每次请求直接读取真实 renderer 主窗口/About 与动态生产目录，只在 frozen bridge 前注入 fake API，以场景 fixture 驱动未找到/官方/翻译/Managed Legacy/旧新版本/重装/恢复失败、更新 Tooltip、AlertDialog、Toast 及 Switch/Restore English/Update 流程；`/handoff` 只提供匿名 clean-room 原型，不伪造 native/package 证据。
 ui_review_catalogs.js: UI Review 三类动态总览；从生产 tokens/styles/ui-text/icons 读取并投影四语反馈文案、语义图标和 Badge 状态，不维护第二套产品视觉资产。
 check_tauri_build_sop.js: Tauri 打包 SOP 与配置 contract 测试；除跨平台发布、updater 资产、tag preflight、macOS/Windows 打包门外，冻结 SOP/配置同构的 400×484 固定最小窗口、主窗口无滚动而 Select/任务事件视窗可内部滚动、macOS decorations/Overlay/hiddenTitle 原生窗口合同与显式标题拖动 capability。
 check_tauri_packaged_app.js: packaged Tauri `.app` 资源测试，打包后按 runtime resource 候选检查 renderer 关键 shell/语义图标/任务事件/Updater 投影、languages、同次平台构建 injector 的哈希同一性与 Qt ABI、ad-hoc bundle seal 及 bundle size report。
@@ -159,4 +159,5 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 
 2026-08-27: `test_temp_dir.js` 为合同测试注册本进程创建的有限 TEMP fixture；`check_app_contracts.js` 与 `check_tauri_build_sop.js` 在顶层 `after` 中仅清理直接位于 `os.tmpdir`、固定前缀且无 symlink/reparse 的目录，不扫描或删除历史/陌生路径。
 2026-08-27: CI、action pin 与漏洞门共同升级到 Node.js 24.20.0 / npm 11.19.0；精确版本只存在于共享 policy/pin 及其 strict contract 中，开发文档统一声明 Node 24 LTS 下限。
+2026-08-31: UI Review 收敛匿名 macOS 权限 handoff 原型；复用真实 `permissionMac` renderer iframe 作为源，独立模拟系统设置目标，运行时捕获/递归克隆真实权限动作与目标 row，固定 duration/response 0.72、1.0 临界阻尼公式、initialAlpha/minimumLaunchScale 与距离比例 lift，保留正反向状态机、静态 accessory takeover 和 Reduce Motion snap/crossfade；禁止固定 arc 滑杆、通用阻尼分支、手绘 proxy 内容与新增外部具体身份信息。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

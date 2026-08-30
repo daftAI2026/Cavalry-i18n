@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/ui_review_catalogs 的审查壳层，依赖 Node http/fs/path；仅以 localhost query 选择受控 fixture 状态。
- * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录及安装/版本兼容/成功/阻塞/警告/失败状态矩阵的 UI Review；每次请求读取真实 renderer，只在 bridge 前注入 fake API。
- * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，只解耦状态、事件和时序，目录页只枚举生产真相，不进入 Tauri bundle、不伪造 native/package 证据。
+ * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace 的工作台/handoff 舞台、ui_review_catalogs 的动态目录，以及 Node http/fs/path；仅以 localhost query 选择受控 fixture 状态。
+ * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/成功/阻塞/警告/失败状态矩阵的 UI Review；每次请求读取真实 renderer，只在 bridge 前注入 fake API。
+ * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，/handoff 只提供真实 renderer iframe、匿名 native mock 与运行时 DOM clone 的视觉审查，不进入 Tauri bundle、不伪造 native/package 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
-const { workspaceHtml } = require('./ui_review_workspace');
+const { workspaceHtml, permissionHandoffHtml } = require('./ui_review_workspace');
 const { badgeCatalogHtml, feedbackCatalogHtml, iconCatalogHtml } = require('./ui_review_catalogs');
 
 const repoRoot = path.resolve(__dirname, '..');
@@ -236,6 +236,8 @@ function createUiReviewServer() {
     const url = new URL(request.url, `http://${host}`);
     if (url.pathname === '/' || url.pathname === '/index.html') {
       send(response, 200, 'text/html; charset=utf-8', workspaceHtml());
+    } else if (url.pathname === '/handoff') {
+      send(response, 200, 'text/html; charset=utf-8', permissionHandoffHtml());
     } else if (url.pathname === '/app') {
       send(response, 200, 'text/html; charset=utf-8', renderReviewDocument());
     } else if (url.pathname === '/about') {
@@ -273,4 +275,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = Object.freeze({ createUiReviewServer, fixtureSource, renderReviewDocument, workspaceHtml });
+module.exports = Object.freeze({ createUiReviewServer, fixtureSource, permissionHandoffHtml, renderReviewDocument, workspaceHtml });

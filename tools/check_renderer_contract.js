@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；工作台必须实时消费生产 renderer，禁止复制产品 DOM/CSS、魔法视觉常量、重复反馈和旧 Recovery 残留。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；工作台必须实时消费生产 renderer，禁止复制产品 DOM/CSS、魔法视觉常量、重复反馈和旧 Recovery 残留。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,6 +12,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 const {
   fixtureSource,
+  permissionHandoffHtml,
   renderReviewDocument,
   workspaceHtml,
 } = require('./ui_review_server');
@@ -73,6 +74,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   );
   assert.match(review, /<script src="\/fixture\.js"><\/script>\s*<script src="\.\/tauri-bridge\.js"><\/script>/);
   assert.match(workspace, /<iframe id="reviewFrame"[^>]*><\/iframe>/);
+  assert.match(workspace, /data-view="handoff"[^>]*><span>权限 handoff<\/span>/);
+  assert.match(workspace, /const reviewPages = Object\.freeze\(\{ handoff: '\/handoff' \}\)/);
   assert.match(workspace, /data-scenario="updateAvailable"[^>]*><span>更新可用 · Tooltip<\/span>/);
   for (const view of ['feedback', 'icons', 'badges']) {
     assert.match(workspace, new RegExp(`data-view="${view}"`));
@@ -103,6 +106,50 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(iconCatalog, /\/renderer\/icons\.js/);
   assert.match(badgeCatalog, /\/renderer\/ui-text\.js/);
   assert.doesNotMatch(iconCatalog, /<path\s+d=/, 'icon catalog must use the production icon factory rather than copied paths');
+
+  const handoff = permissionHandoffHtml();
+  assert.match(handoff, /sourceFrame\.src = '\/app\?scenario=' \+ REVIEW\.sourceScenario/);
+  assert.match(handoff, /sourceScenario: 'permissionMac'/);
+  assert.match(handoff, /native mock/);
+  assert.match(handoff, /\/renderer\/tokens\.css/);
+  assert.match(handoff, /\/renderer\/button\.css/);
+  assert.match(handoff, /\/renderer\/icons\.js/);
+  assert.match(handoff, /\/renderer\/app-icon\.png/);
+  assert.match(handoff, /window\.cavalryIcons\.create\('infoCircle'\)/);
+  assert.match(handoff, /class="ui-button button button-primary handoff-control-button"/);
+  assert.match(handoff, /durationSeconds: 0\.72/);
+  assert.match(handoff, /responseSeconds: 0\.72/);
+  assert.match(handoff, /initialAlpha: 0\.9/);
+  assert.match(handoff, /minimumLaunchScale: 0\.58/);
+  assert.match(handoff, /liftRatio: 0\.18/);
+  assert.match(handoff, /liftMinimumPx: 44/);
+  assert.match(handoff, /liftMaximumPx: 140/);
+  assert.match(handoff, /return 1 - Math\.exp\(-omega \* seconds\) \* \(1 \+ omega \* seconds\)/);
+  assert.match(handoff, /Math\.hypot\(targetCenter\.x - sourceCenter\.x, targetCenter\.y - sourceCenter\.y\)/);
+  assert.match(handoff, /clamp\(distance \* MOTION\.liftRatio, MOTION\.liftMinimumPx, MOTION\.liftMaximumPx\)/);
+  assert.match(handoff, /iframeRect\.width - borderLeft - borderRight/);
+  assert.match(handoff, /iframeRect\.height - borderTop - borderBottom/);
+  assert.match(handoff, /sourceActionSelectors: Object\.freeze\(\['#modalPrimaryButton', '#permissionButton'\]\)/);
+  assert.match(handoff, /document\.importNode\(sourceElement, true\)/);
+  assert.match(handoff, /sourceElement\.querySelectorAll\('\*'\)/);
+  assert.match(handoff, /sourceObserver = new MutationObserver\(scheduleGeometryCapture\)/);
+  assert.match(handoff, /sourceObserver\.observe\(sourceDocument\.documentElement/);
+  assert.match(handoff, /replaceClone\(proxySource, source\.element\)/);
+  assert.match(handoff, /replaceClone\(proxyDestination, target\.element\)/);
+  assert.match(handoff, /function startForward\(\)[\s\S]*?captureGeometry\(\)/);
+  assert.match(handoff, /function startReverse\(\)[\s\S]*?captureGeometry\(\)/);
+  assert.match(handoff, /proxySource\.style\.opacity/);
+  assert.match(handoff, /proxyDestination\.style\.opacity/);
+  assert.match(handoff, /prefers-reduced-motion: reduce/);
+  assert.match(handoff, /function animateReduced\(target\)/);
+  assert.match(handoff, /function animateSpring\(target\)/);
+  assert.match(handoff, /function finish\(target\)[\s\S]*?setPhase\(target === 1 \? 'presented' : 'idle'\)[\s\S]*?proxy\.hidden = true/);
+  assert.match(handoff, /requestAnimationFrame\(frame\)/);
+  assert.doesNotMatch(handoff, /arcToken|arcValue|motionArcLift|arcLift|springDampingRatio|dampedOmega|settleProgress|proxyBlur|sourceAnchor|handoff-proxy-line|source surface|destination surface/, 'handoff must not contain tunable arc, generic damping, or hand-written proxy content');
+  assert.doesNotMatch(handoff, /<span class="handoff-target-glyph"|<span[^>]*>✓<\/span>|<span[^>]*>↗<\/span>/, 'review icons must reuse production assets instead of handwritten glyphs');
+  assert.match(handoff, /destinationAnchor\.dataset\.reached = String\(phase === 'presented'\)/);
+  assert.doesNotMatch(handoff, /handoff-target-row\[data-(?:active|reached)="true"\] \.handoff-target-switch|data-active=/, 'reaching the settings target must not pretend App Management is granted');
+  assert.doesNotMatch(handoff, /<dialog|modal-backdrop|modal-dialog/, 'handoff must use the production iframe instead of copying the permission dialog');
 });
 
 function cssRule(source, selector) {
@@ -564,7 +611,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationStyles, /\.status-panel\[data-mode="running"\] \.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\)/);
   assert.match(operationStyles, /\.status-panel\[data-mode="running"\]\[data-has-outcome="true"\] \.status-task-shell\s*\{[\s\S]*?grid-template-rows:\s*auto minmax\(0, 1fr\) auto/);
   assert.match(operationStyles, /\.status-idle-message\s*\{[\s\S]*?place-items:\s*center/);
-  assert.match(operationStyles, /\.status-message\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)/);
+  assert.match(operationStyles, /\.status-message\s*\{[\s\S]*?color:\s*var\(--text\)[\s\S]*?font-size:\s*var\(--type-compact\)/);
+  assert.doesNotMatch(operationStyles, /var\(--text-primary\)/, 'Activity must consume the canonical text token rather than a missing alias');
   assert.match(operationStyles, /\.status-viewport\s*\{[\s\S]*?overflow-y:\s*auto/);
   assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\][\s\S]*?mask-image:\s*linear-gradient/);
   assert.match(operationStyles, /\.status-viewport\[data-overflowing="true"\]\[data-at-start="true"\]\s*\{[\s\S]*?--operation-scroll-fade-top:\s*var\(--operation-scroll-fade-none\)/);
@@ -575,7 +623,12 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.doesNotMatch(operationStyles, /data-variant="separator"/, 'the approved idle and task intro replace decorative separators');
   assert.match(operationStyles, /\.operation-event\s*\{[\s\S]*?display:\s*flex;[\s\S]*?align-items:\s*center;[\s\S]*?gap:\s*var\(--operation-marker-gap\)[\s\S]*?color:\s*var\(--text-secondary\)/);
   assert.match(operationStyles, /\.operation-event-marker\s*\{[\s\S]*?width:\s*var\(--operation-marker-size\);[\s\S]*?height:\s*var\(--operation-marker-size\)/);
-  assert.doesNotMatch(operationStyles, /\.operation-event\[data-state="(?:completed|warning|error)"\] \.operation-event-marker\s*\{[\s\S]*?color:/, 'Marker icons must stay monochrome instead of becoming status badges');
+  assert.match(tokens, /--warning:\s*oklch\(52\.79% 0\.1496 54\.65\)/);
+  assert.match(operationStyles, /\.operation-event\[data-state="warning"\] \.operation-event-marker\s*\{[\s\S]*?color:\s*var\(--warning\)/);
+  assert.match(operationStyles, /\.operation-event\[data-state="error"\] \.operation-event-marker\s*\{[\s\S]*?color:\s*var\(--danger\)/);
+  assert.match(operationStyles, /\.operation-event:is\(\[data-state="warning"\], \[data-state="error"\]\) \.operation-event-title\s*\{[\s\S]*?color:\s*var\(--text\)/);
+  assert.doesNotMatch(operationStyles, /\.operation-event\[data-state="(?:warning|error)"\]\s*\{[\s\S]*?(?:background|border|color):/, 'severity belongs to the marker, not an Alert-like event row');
+  assert.doesNotMatch(operationStyles, /\.operation-event(?::is\([^}]+\)|\[data-state="(?:warning|error)"\]) \.operation-event-(?:title|description)\s*\{[\s\S]*?color:\s*var\(--(?:warning|danger)\)/, 'severity hue must not overwhelm readable event copy');
   assert.match(operationStyles, /\.operation-event-title\s*\{[\s\S]*?color:\s*inherit;[\s\S]*?font-weight:\s*var\(--weight-regular\)/);
   assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-marker\[data-icon="spinner"\] svg\s*\{[\s\S]*?animation:\s*operation-spin/);
   assert.match(operationStyles, /\.operation-event\[data-state="running"\] \.operation-event-title\s*\{[\s\S]*?oklch\([\s\S]*?from currentColor l c h \/ calc\(alpha \* var\(--operation-shimmer-highlight-alpha\)\)[\s\S]*?background-image:\s*linear-gradient[\s\S]*?background-position:\s*0 0[\s\S]*?animation:\s*operation-shimmer/);
