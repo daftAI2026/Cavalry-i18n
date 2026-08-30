@@ -1,14 +1,14 @@
 <!--
-[INPUT]: 依赖 renderer/app.js 的任务状态机、src-tauri/src/commands/apply.rs 与 snapshot.rs 的恢复基线闸门、macOS 官方还原和 Windows English/QPA 清理事务，以及 2026-08-29 产品与 UX Writing 裁决
-[OUTPUT]: 对外提供“首次 Switch 自动建立恢复基线、显式选择目标语言、Switch 无确认直达、单一 Restore English、400×484 无窗口滚动布局”的详细产品/工程决策、平台映射、失败边界与验收合同
-[POS]: docs/audits 的决策证据；事件簿只保留摘要并链接本文，代码与后续回归以本文解释为何删除手动 Refresh 和双恢复入口
+[INPUT]: 依赖 renderer/app.js 的任务状态机、src-tauri/src/commands/apply.rs 与 snapshot.rs 的恢复基线闸门、macOS 官方/受管旧版还原、Windows English/QPA 清理事务，以及 2026-08-29 至 2026-08-31 产品与 UX Writing 裁决
+[OUTPUT]: 对外提供“首次 Switch 自动建立恢复基线、显式选择目标语言、Switch 无确认直达、单一 Restore English、Managed Legacy 与版本兼容门禁、400×484 无窗口滚动布局”的详细产品/工程决策、平台映射、失败边界与验收合同
+[POS]: docs/audits 的决策证据；事件簿只保留摘要并链接本文，代码与后续回归以本文解释为何删除手动 Refresh/双恢复入口，以及为何受管旧安装不得被误报为必须重装
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
 # Switcher 直接 Switch、自动恢复基线与单一 Restore English 决策
 
 日期：2026-08-29
-状态：已批准并接入代码；静态/运行时合同已验证，直接 Switch 的 macOS native 视觉复核、package/manual smoke 与 Windows live 待补
+状态：2026-08-31 兼容性修订已落地并通过 focused 回归；当前 macOS native 只读状态、package/manual smoke 与 Windows live 仍按各自证据门补齐
 
 ## 1. 问题
 
@@ -35,20 +35,39 @@
 
 保存范围只覆盖本项目将修改、恢复或删除时需要证明的原始材料：keyed English JSON、平台 runtime/QPA preimage、macOS Info/main/CodeResources/ExtensionLayer 与签名身份等。产品文案不得使用没有范围限定的“备份 Cavalry”，也不得向普通用户暴露 snapshot/provenance。
 
-### 2.3 两种旧恢复动作在 macOS 的内部结果不同
+### 2.3 macOS 恢复结果取决于可证明的基线等级
 
-- 旧 `en`：写回 English JSON 与 English marker，但保留 Switcher 管理的 launcher、injector、Keychain patch 和本地重签状态。
-- `restore-official`：恢复官方 English 文件与 vendor runtime/signature preimage，并移除 Switcher 自有 runtime。
+- 受管英文恢复：写回已证明的 English JSON 与 English marker，但保留 Switcher 管理的 launcher、injector、Keychain patch 和本地重签状态。
+- 官方恢复：只有完整 vendor runtime/signature preimage 可证明时，才恢复官方 English 文件与 vendor runtime/signature，并移除 Switcher 自有 runtime。
 
-用户目标只有一个：让 Cavalry 回到可理解、可退出的官方英文状态。因此 UI 不再让用户裁决内部恢复等级；平台 transaction 名称的差异只留在 renderer→Rust 边界之后。
+用户目标只有一个：恢复英文。UI 不让用户裁决内部恢复等级；后端依据证据选择最强且诚实的结果。没有完整 vendor baseline 时，不得把“受管英文”谎称为“官方英文”，也不得因此拒绝一个已经由本项目管理、仍可安全切换的旧安装。
 
-### 2.4 重复 Apply 的签名范围根因与修复证据
+### 2.4 “受管证据”与“官方恢复证据”必须分离
+
+旧版 Switcher 生成的 macOS 安装可能同时满足：
+
+- 当前 Cavalry 仍能正常启动；
+- state、语言 marker、旧 English JSON、launcher、injector、Keychain patch 与 ad-hoc 签名共同证明这是本项目的已知 postimage；
+- 但旧版本没有保存后来才引入的完整 vendor runtime/signature baseline。
+
+这类状态定义为 **Managed Legacy**。它证明“本项目可以继续管理”，却不证明“可以逐字节恢复官方 vendor runtime”。旧实现把两种证明压成 `modifiedOrUnverified + needsExtract`，于是把自己的已知安装误报为 `Reinstall Cavalry`。修订后的模型必须分别表达：
+
+1. 是否是 Switcher 可证明的受管安装；
+2. 是否有可用的 English language baseline；
+3. 是否有完整 official recovery baseline；
+4. 是否处于未知 drift 或事务恢复状态。
+
+Managed Legacy 可以继续四语切换，也可以恢复到受管英文；未知修改仍 fail closed。仅“应用能打开”不是受管证明，不能替代上述严格证据组合。
+
+首次真实 Apply/Restore 不得只在 UI 上宣称可用：它会把已证明的旧 `state_dir/en` 提升为 immutable JSON-only generation，并将 generation + manifest 写入 provenance。macOS 提升前还要求 packaged English、旧快照与当前已安装 JSON 三方 Unix mode 完全一致；迁移字节只来自旧 English 快照，绝不从当前翻译安装反向提取。迁移后的后续启动继续用同一 generation、已发布 runtime postimage 与 marker 复证，`vendorBaselineId` 仍为空，因此 Restore 只能诚实地表示受管英文恢复。
+
+### 2.5 重复 Apply 的签名范围根因与修复证据
 
 `src-tauri/src/detect.rs` 当前的 code identity 只把签名载荷、`LC_CODE_SIGNATURE` 字段，以及由签名末端明确证明的 `__LINKEDIT` extent 视为可归一化内容；无关的 `__LINKEDIT` extent 仍是身份材料。
 
 根因是允许的 re-sign 会改变签名载荷大小，并同步改变签名末端的 `__LINKEDIT` `vmsize/filesize`。若把这些签名相关范围按原始字节直接比较，第二次 Apply 会把同一份可执行代码误判为 drifted。当前 `detect::tests` 5/5 PASS，且 `/tmp` disposable Cavalry 副本的首次/重复 Apply 均成功。以上是 focused evidence：它证明身份归一化与重复 Apply 路径，不证明当前候选已完成正式 macOS manual smoke 或 packaged/native PASS。
 
-### 2.5 Renderer 与 command 边界
+### 2.6 Renderer 与 command 边界
 
 当前 Tauri renderer-facing command registry 与 Rust builder 均为 9 条：status、browse、apply、privacy、固定 project link、show About、restart、check update、install update。手动 English extraction 不是 bridge/API 能力；`extract_english_inner` 仅保留为 Rust 测试内部 seam，不能由 renderer 触发。
 
@@ -70,7 +89,8 @@ Switch to
 | 用户动作 | macOS 内部 action | Windows 内部 action | 用户可见结果 |
 | --- | --- | --- | --- |
 | Switch | 目标语言，例如 `zh-Hans` | 目标语言，例如 `zh-Hans` | 自动保存必要原文件，切换语言并打开 Cavalry |
-| Restore English | `restore-official` | `en` | 恢复官方英文可运行状态，清理 Switcher 翻译 runtime，并打开 Cavalry |
+| Restore English（完整官方基线） | 官方恢复事务 | `en` | 恢复官方英文可运行状态，清理 Switcher 翻译 runtime，并打开 Cavalry |
+| Restore English（Managed Legacy） | 受管英文事务 | 不适用 | 写回可信 English JSON、停用当前翻译状态并打开 Cavalry；不虚假宣称 vendor 官方恢复 |
 
 这里统一的是用户意图与结果，不是强迫两平台共享同一内部 transaction 名称。保留现有、已验证的平台事务，比新造一个跨平台伪抽象更简单可靠。
 
@@ -92,7 +112,11 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 - clean official English：Select 可用；用户明确选择目标语言后 Switch 才启用，若尚无基线，首次 Switch 自动准备。Restore English 禁用，因为没有需要恢复的修改。
 - translated/managed：Select 可继续选择目标语言；Restore English 可用。
 - Windows residue/reconciliation required：Event 明确要求 Restore English；该动作映射为 English + vendor QPA/generic cleanup。
-- macOS modified/unverified 且无可信基线：Apply 和 Restore 均 fail closed，Alert 要求从官方安装包重新安装。
+- macOS Managed Legacy：Select、Switch 与 Restore English 均可用；不显示重装警告，不显示会暴露内部实现的“旧版受管”徽章。
+- macOS unknown modified 且没有可信受管/英文/官方基线：Apply 和 Restore 均 fail closed，Activity 说明无法安全修改；只有确实需要替换安装时才要求官方重装。
+- 版本低于 2.7.2：保持只读，不修改安装；说明当前 Switcher 只支持 2.7.2，若要使用本工具需安装 2.7.2。
+- 版本高于 2.7.2：保持只读，不修改安装；明确“尚未支持”，不要求用户降级，允许用户继续正常使用当前 Cavalry，并等待兼容的 Switcher 更新。
+- 无法比较版本：保持只读，说明当前安装未被修改以及唯一受支持版本，不猜测升级/降级方向。
 - state durability pending：禁止继续写操作，Alert 要求重启 Switcher，不再要求用户刷新英文。
 - startup transaction recovery failed：所有 Cavalry mutation 阻断，底层错误不直接显示给用户。
 
@@ -101,7 +125,9 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 - Select 初始使用 `Choose a language / 选择语言 / 選擇語言 / 言語を選択` 占位文案，不把列表第一项伪装成用户选择；Switch 在选择前禁用。
 - 按钮只写用户目标：`Switch / 切换 / 切換 / 切り替える` 与 `Restore English / 恢复英文 / 還原英文 / 英語に戻す`；恢复按钮必须写明对象，但不把 restart 或平台事务实现塞入按钮。
 - Switch 不弹确认框；任务引言先写 `Preparing to switch to {language}…`，正文阶段说明恢复文件与切换进度。
-- Restore 确认标题直接问 `Restore Cavalry?`；正文说明恢复官方英文、移除翻译文件并重新打开 Cavalry。
+- Restore 确认标题直接问 `Restore Cavalry?`；正文只承诺“恢复英文并重新打开 Cavalry”。仅完整官方基线路径可以补充“移除翻译 runtime/恢复官方状态”。
+- 新版本不兼容提示必须以用户现状为中心：说明“此 Switcher 尚未支持该版本、没有修改安装、可以继续使用 Cavalry、等待兼容更新”，禁止把“降级到 2.7.2”写成默认恢复路径。
+- 旧版本提示可以把 2.7.2 作为使用本工具的前提，但不能暗示当前 Cavalry 已损坏。
 - 后端 restart phase 统一显示为“打开 Cavalry”；只有 Switcher 自身更新才继续使用“重启 Switcher”。
 - Alert 标题表达结果、风险或下一动作；正文只补充影响和恢复路径。
 - 禁用用户文案：`Refresh English`、`Backup Cavalry`、`snapshot`、`provenance`、`managed runtime`。
@@ -126,20 +152,24 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 6. **保留 Switch 确认框**：语言切换可由 Restore 退出，且运行中 preflight 在写入前阻断；重复确认没有保护新增风险，只延迟主任务。
 7. **提供“现在重启 / 稍后重启”**：后端并不强停运行中的 Cavalry；已关闭时重新打开是完成用户目标的一部分。拆分只会制造 pending 半状态和额外状态机。
 8. **把另一按钮写成“取消翻译”**：操作发生前应是普通 Cancel，操作完成后撤销结果应是 Restore；“取消翻译”既不对应稳定时态，也误导为内容翻译任务。
+9. **凡无完整官方 baseline 都要求重装**：把恢复能力误当受管能力，惩罚已使用旧版 Switcher 的正常用户。
+10. **对 2.7.3 用户要求降级**：以维护者实现边界替用户作版本选择；正确行为是停止写入、说明尚未兼容并让用户继续使用现有 Cavalry。
 
 ## 7. 当前验收清单
 
-- [x] renderer 不再查询 `extractButton` / `restoreEnglishButton` / `maintenanceHeading`；当前 renderer/bridge 合同 36/36 PASS。
+- [x] renderer 不再查询 `extractButton` / `restoreEnglishButton` / `maintenanceHeading`；当前 renderer/bridge focused 合同 39/39 PASS。
 - [x] `window.cavalryI18n` 和 Tauri command 注册表不再暴露独立 `extractEnglish` / `extract_english`；内部测试 seam 不属于 bridge/API。
 - [x] clean official + `needsExtract=true` 时 Select 仍可用；用户明确选择后 Switch 可点击并调用 `apply_language`，renderer/bridge 测试覆盖该路径。
-- [x] macOS Restore 调用 `restore-official`；Windows Restore 调用 `en`；renderer/bridge 测试覆盖两个映射。
+- [x] macOS 有完整 vendor baseline 时 Restore 调用 `restore-official`；Managed Legacy 与 Windows 调用 `en`；renderer/bridge 测试覆盖三种映射，并验证受管英文结果不伪称官方恢复。
 - [x] official English 且无 residue 时 Restore English 禁用但不隐藏，布局不跳动；renderer/bridge 测试覆盖该状态。
 - [x] 四语主按钮已收敛为 `Switch / 切换 / 切換 / 切り替える` 与单一 `Restore English / 恢复英文 / 還原英文 / 英語に戻す`；Switch 点击不经过确认框而直接调用唯一 `apply_language` transaction，Restore/Updater/权限 AlertDialog 保留。
 - [x] 运行中 fail-before-mutation 仍由后端 `cavalryStillRunning` 路径守住；renderer 不增加独立 restart 调用或 pending restart 状态。
 - [x] Switch 准备、阶段、打开 Cavalry、成功和失败文案合同通过；内部 `restartCavalry` phase 不再直接暴露成用户“重启”文案。
 - [x] `html/body/.content` 不产生窗口滚动；Select 与 Activity Log 各自独立滚动；renderer contract 检查 CSS 边界。
-- [x] Node renderer/bridge 合同 36/36；全量 contracts 252/252 PASS。
-- [x] 按当前 `400×484` 工作树重新拉起 macOS native dev；AX/CGWindow 外框为 `400×485`，截图 `/tmp/cavalry-native-400x484.png` 显示当前真实 blocker 与加高后的 Activity。生产/原型无外框复核另确认 Activity `360×176`、12px padding、94px 中段。
+- [x] Node renderer/bridge focused 合同 39/39、Rust lib 151/151、command contract 6/6 PASS；Node 24.20 全量 `test:contracts` 255/255 PASS，Rust 全量 249 PASS / 2 个显式 live-artifact 测试 ignored。
+- [x] p1-p5 macOS wrapper 字节与三组 release injector code identity 被固定为 allowlist；Managed Legacy 还要求匹配 marker、完整 Keychain postimage、历史 state/revision 与 38 份 packaged-English overlay。首次写操作只在 packaged/legacy/installed mode 三方一致后发布 JSON-only generation；迁移后复证与 Switch/Restore marker-only runtime plan 均有聚焦测试，未知 injector、marker drift、generation tamper 与 mode drift 全部拒绝。
+- [x] 2.7.1、2.7.3 与不可比较版本分别投影 older/newer/unknown 只读状态；新版本文案不要求降级，三态 renderer 测试均阻断 Switch/Restore。
+- [x] 按当前 `400×484` 工作树重新拉起 macOS native dev；AX/CGWindow 外框为 `400×485`。真实旧 Switcher 管理态的只读截图 `/tmp/cavalry-managed-legacy-native.png` 显示 Select 与 Restore English 可用、不再出现 Reinstall；没有点击任何写操作。Activity 仍为 `360×176`、12px padding、94px 中段。
 - [ ] 当前源码的 macOS package 与 ignored manual smoke；旧 `9766ee3` 的 `460×404` 只作历史且已失效。
 - [ ] Windows live：真机窗口、scaling、Snap、状态保留与 updater 跨版本验证。
 
@@ -147,9 +177,10 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 
 ```text
 mise x node@24.20.0 -- node --test tools/check_renderer_contract.js \
-  tools/check_tauri_bridge_runtime.js                             36/36 PASS
+  tools/check_tauri_bridge_runtime.js                             39/39 PASS
 cargo test --manifest-path src-tauri/Cargo.toml \
   --test command_contract                                             6/6 PASS
+cargo test --manifest-path src-tauri/Cargo.toml --lib             151/151 PASS
 cargo test --manifest-path src-tauri/Cargo.toml \
   --test tauri_config_contract                                         8/8 PASS
 cargo test --manifest-path src-tauri/Cargo.toml \
@@ -157,9 +188,9 @@ cargo test --manifest-path src-tauri/Cargo.toml \
 cargo test --manifest-path src-tauri/Cargo.toml \
   --lib detect::tests                                             5/5 PASS
 cargo check --manifest-path src-tauri/Cargo.toml                      PASS
-mise x node@24.20.0 -- npm run test:contracts                    252/252 PASS
-cargo test --manifest-path src-tauri/Cargo.toml                  242 PASS / 2 explicit live-artifact tests ignored
-current native Tauri dev AX / CGWindow                            400×485 outer; config 400×484; `/tmp/cavalry-native-400x484.png`
+mise x node@24.20.0 -- npm run test:contracts                    255/255 PASS
+cargo test --manifest-path src-tauri/Cargo.toml                  249 PASS / 2 explicit live-artifact tests ignored
+current native Tauri dev AX / CGWindow                            400×485 outer; Managed Legacy read-only screenshot `/tmp/cavalry-managed-legacy-native.png`
 ```
 
 旧记录证明当时的静态 renderer/bridge 行为、9-command 注册和 `400×480` native 几何；当前 `400×484` 已重新运行合同和 native dev 取证，但仍不证明 package/manual smoke 或 Windows live。
