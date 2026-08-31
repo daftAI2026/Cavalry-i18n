@@ -749,8 +749,8 @@ test('unsupported Cavalry versions are read-only and preserve the user\'s upgrad
   assert.equal(activityTitle(older), 'Cavalry 2.7.1 isn’t supported');
   assert.match(activityText(older), /update Cavalry to 2\.7\.2/i);
   assert.equal(activityTitle(newer), 'Cavalry 2.7.3 isn’t supported yet');
-  assert.match(activityText(newer), /won’t modify your newer installation/i);
-  assert.match(activityText(newer), /keep using Cavalry normally/i);
+  assert.match(activityText(newer), /won’t modify this installation/i);
+  assert.match(activityText(newer), /keep using Cavalry/i);
   assert.doesNotMatch(activityText(newer), /downgrade|reinstall Cavalry/i);
   assert.equal(activityTitle(unknown), 'This Cavalry version isn’t supported');
   assert.match(activityText(unknown), /has not changed your installation/i);
@@ -1000,7 +1000,8 @@ test('startup recovery failure blocks mutations without exposing raw backend dia
     assert.equal(r.elements[id].disabled, true, `${id} must be blocked`);
   }
   assert.equal(activityTitle(r), 'Couldn’t recover the interrupted operation');
-  assert.match(activityText(r), /couldn.t recover an interrupted update/i);
+  assert.match(activityText(r), /Close Cavalry, then restart the Switcher/i);
+  assert.match(activityText(r), /preserve the recovery data/i);
   assert.doesNotMatch(activityText(r), /Cavalry is still running/);
   assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
   assert.equal(r.elements['#installationBadge'].hidden, true, 'transaction recovery must stay in the actionable Alert instead of masquerading as installation classification');
@@ -1019,7 +1020,7 @@ test('macOS incomplete provenance gives a direct reinstall route and blocks Rest
   assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
   r.elements['#restoreButton'].listeners.get('click')[0]();
   assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false, 'a synthetic click cannot bypass the disabled restore route');
-  assert.match(activityText(r), /original English files cannot be verified/);
+  assert.match(activityText(r), /can’t verify the original English files needed for recovery/);
 });
 
 test('apply composes localized warning codes and never renders backend warning prose', async () => {

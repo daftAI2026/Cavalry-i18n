@@ -911,6 +911,14 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.equal((uiText.match(/^\s{4}reinstallRequired:/gm) || []).length, 4, 'all four UI locales must localize the reinstall route');
   const localeBodies = uiLocaleBodies(uiText);
   assert.doesNotMatch(uiText, /Managed \/ Unverified|已管理|未验证|未驗證|管理済み \/ 未検証/);
+  assert.doesNotMatch(
+    uiText,
+    /interrupted update|中断的更新|中斷的更新|中断した更新/,
+    'startup transaction recovery must not be mislabeled as an updater failure'
+  );
+  assert.match(uiText, /closeCavalryTitle: 'Cavalry 正在运行'/);
+  assert.match(uiText, /cavalryStillRunning: '保存工作并退出 Cavalry 后重试。安装内容未被修改。'/);
+  assert.match(uiText, /newerVersionUnsupported: '语言切换器目前支持 Cavalry \{supportedVersion\}，不会修改此安装。你可以继续使用 Cavalry；请在兼容更新发布后再试。'/);
   assert.equal((uiText.match(/^\s{4}restore:/gm) || []).length, 4, 'all four UI locales must localize the single Restore action');
   assert.doesNotMatch(
     uiText,
