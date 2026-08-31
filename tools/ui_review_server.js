@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 renderer/index.html/about.html 与 renderer 下真实 CSS/JS，依赖 ui_review_workspace/handoff/catalogs 审查模块，以及 Node http/fs/path/os；仅以 localhost query 选择受控 fixture 状态，并从系统临时目录或 CAVALRY_UI_REVIEW_REFERENCE_ROOT 指定目录只读展示本机参考截图。
- * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/成功/阻塞/警告/失败状态矩阵的 UI Review；每次请求重读 renderer 并失效审查模块缓存，revision 同时覆盖两类源码，只在 bridge 前注入实现同一 handoff 请求/结果合同的 fake API；两个固定 local-reference 路由缺图即 404，浏览器默认 favicon 请求静默返回空响应。
+ * [OUTPUT]: 对外提供 createUiReviewServer/renderReviewDocument，并在 CLI 模式启动包含主界面、About、反馈/图标/徽章目录、权限 handoff 原型及安装/版本兼容/成功/阻塞/警告/失败状态矩阵的 UI Review；每次请求重读 renderer 并失效审查模块缓存，revision 同时覆盖两类源码，只在 bridge 前注入同一 handoff 合同的 fake API，并以 applyTransaction 提交作为 success settled、让 reverse 与后续 restart 同时可审查；两个固定 local-reference 路由缺图即 404，浏览器默认 favicon 请求静默返回空响应。
  * [POS]: tools 的本地 UI 审查编排入口；生产界面与组件资产保持同源，/handoff 只提供真实 renderer iframe、匿名 native mock、运行时 DOM clone 与不入库的本机视觉参考，不进入 Tauri bundle、不伪造 native/package 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -181,11 +181,11 @@ function fixtureSource() {
           return { ...success(), ok: false, errorCode: 'cavalryStillRunning' };
         }
         onEvent({ phase, state: 'completed' });
+        if (permissionScenario && reviewOutcome === 'success' && phase === 'applyTransaction') {
+          window.parent.postMessage({ type: permissionReviewSettledMessage, result: 'success' }, location.origin);
+        }
       }
       currentLang = language === 'restore-official' ? 'en' : language;
-      if (permissionScenario && reviewOutcome === 'success') {
-        window.parent.postMessage({ type: permissionReviewSettledMessage, result: 'success' }, location.origin);
-      }
       return scenario === 'warning'
         ? { ...success(), warningCode: 'restartFailed', warningCodes: ['restartFailed'] }
         : success();

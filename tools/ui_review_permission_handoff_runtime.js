@@ -99,7 +99,7 @@ function permissionHandoffRuntimeScript() {
         existingRowEnabled: Object.freeze({ icon: 'verify', tone: 'neutral', text: '用户模拟开启已有 App 行，尚未验证权限' }),
         handoffDismissed: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '反向转场完成并清理视觉层' }),
         retryRequested: Object.freeze({ icon: 'spinner', tone: 'neutral', text: '原型返回并重试写事务' }),
-        operationVerified: Object.freeze({ icon: 'checkCircle', tone: 'success', text: 'fixture 写事务成功；原型进入 verified' }),
+        protectedApplyCommitted: Object.freeze({ icon: 'checkCircle', tone: 'success', text: 'fixture 受保护写事务已提交；原型开始回收视觉层' }),
         permissionStillMissing: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: 'fixture 重试仍返回 permissionRequired' }),
         typedError: Object.freeze({ icon: 'errorCircle', tone: 'warning', text: 'fixture 重试返回其他错误，退出权限链路' }),
       });
@@ -629,7 +629,7 @@ function permissionHandoffRuntimeScript() {
         }
         if (event.data?.type !== REVIEW.settledMessage || workflowState !== 'retrying') return;
         if (event.data.result === 'success') {
-          reverseAfterSettled('verified', 'operationVerified');
+          reverseAfterSettled('verified', 'protectedApplyCommitted');
           return;
         }
         if (event.data.result === 'error') {

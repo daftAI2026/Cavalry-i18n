@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖当前 macOS 写事务与权限错误路径、Apple App Management 文档、本机 System Settings 只读复核、仓库外跨应用授权动画取证和锁定版本 MIT 参考源码
-[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、自动 handoff/用户拖拽/真实重试的逐步状态机、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、typed 权限处理、当前生产实现、洁净室架构与分阶段验收路线
+[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、自动 handoff/用户拖拽/真实重试的逐步状态机、受保护写事务 commit→reverse→restart 因果边界、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、typed 权限处理、当前生产实现、洁净室架构与分阶段验收路线
 [POS]: docs/roadmap 的 App Management 实施账本；工作台复用生产 renderer，当前 macOS 包用于验证真实 AppKit 生命周期，不承担 release 级首次授权取证
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -45,13 +45,13 @@ App Management 没有可靠的只读预检 API。状态必须建模为“未知�
 ```text
 unknown
   └─ 用户执行 Switch / Restore
-       ├─ 写事务成功 ───────────────► verified-by-operation
+       ├─ 受保护写事务 commit ───────► 内部 oracle；reverse → restart → 最终业务结果
        ├─ 非权限错误 ───────────────► typed-error
        └─ permissionRequired ───────► denied-or-missing
                                          └─ Open System Settings
                                               └─ 视觉 handoff + 用户操作
                                                    └─ 返回后 Retry
-                                                        ├─ 成功 ► verified-by-operation
+                                                        ├─ 受保护写事务 commit ► 内部 oracle；reverse → restart → 最终业务结果
                                                         └─ 仍拒绝 ► denied-or-missing
 ```
 
@@ -70,7 +70,8 @@ unknown
 permission workflow:
 denied → opening-settings → locating-settings → handoff-presented
        → awaiting-user → dragging? → retrying
-       → returning → verified | still-denied | typed-error
+       → returning → protected-apply-committed (internal oracle)
+                   | still-denied | typed-error
 
 visual transition:
 idle → preparing → presenting → presented → reversing → idle
@@ -88,17 +89,17 @@ idle → preparing → presenting → presented → reversing → idle
 | 6a | `existing-row-enabled` | 用户发现列表已有 Switcher 并开启开关 | 只表示用户完成系统设置动作，仍不宣称权限已验证 |
 | 6b | `app-drag-started` | 用户按住 helper 内真实 app row 并移动鼠标 | 生成 app bundle file URL 的系统 drag session；helper 不再挡住目标 |
 | 6c | `app-drop-accepted` | System Settings 整个接收窗口返回 copy operation | app 对象已交给系统列表，helper 恢复 source row；取消/失败必须回弹；drop 仍不等于权限已验证 |
-| 7 | `retry-requested` | copy drop / 已有行确认后由 coordinator 继续，或用户显式重试 | helper 保持 presented，重放原始 Switch / Restore 一次；动画不能抢在业务 oracle 前收口 |
-| 8a | `operation-verified` | 重试写事务成功 | 才能宣布权限已由实际操作验证，并触发单次 reverse；原 Activity 继续显示真实阶段与结果 |
-| 8b | `permission-still-missing` | 重试仍返回 typed `permissionRequired` | helper 保持 presented 并回到等待设置，不反向回收、不显示虚假成功 |
-| 8c | `typed-error` | 重试返回其他错误 | 触发 reverse/cleanup 后进入现有错误语义，不归因于权限 |
-| 9 | `handoff-dismissed` | 已有业务结论后的 reverse session completion | 幂等清理视觉层；成功没有另造烟花或打勾，reverse 本身就是已确认的成功收口动画 |
+| 7 | `retry-requested` | copy drop / 已有行确认后由 coordinator 继续，或用户显式重试 | 为本次重试分配唯一 `attemptId`，Activity 追加四语 `resumeAfterPermission` 后重放原始 Switch / Restore；不重新 `start`，不清空既有历史 |
+| 8a | `protected-apply-committed`（内部边界，非产品事件） | 受保护写事务真实 commit 成功 | Rust 立即启动单次 reverse，然后继续既有 `restartCavalry` 阶段与最终业务结果；不新增“权限已验证” Marker、文案或独立事件 |
+| 8b | `permission-still-missing` | 重试仍返回 typed `permissionRequired` | 保留既有 Activity 历史，把当前失败继续作为链尾阻断；helper 保持 presented 并回到等待设置，不反向回收、不显示虚假成功 |
+| 8c | `typed-error` | 重试返回其他错误 | 保留既有 Activity 历史，进入现有错误语义并按既有规则 reverse/cleanup，不归因于权限成功 |
+| 9 | `handoff-dismissed` | 已有业务结论后的 reverse session completion | 幂等清理视觉层；成功不另造烟花或打勾，reverse 只是视觉收口，最终成功仍由既有业务结果表达 |
 
 目标窗口丢失、System Settings 被关闭、显示器变化和 app 退出是 session 清理事件，不是授权结果；它们必须幂等撤销 overlay，并保留用户可重试的业务状态。
 
-当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，权限拒绝先在共享 Activity 中完成 1200ms 可读停顿；handoff 单独落到 helper 中的实时 draggable app row，不再把 Apple 列表行当动画终点。source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。浏览器 drag 使用独立 App 图标而非整卡截图作为 drag image，整个 System Settings mock 都是接收区域；copy drop 后模拟系统行更新并自动继续原事务验证，不再要求审查者额外点击开关或理解内部重试门禁。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级；source 缺失时也不再中止，而是直接显示静态 helper。fixture 成功先跑真实 Activity 组件的阶段/结果，再以同一 shared-element 做 reverse/cleanup；仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。系统行的 mock 更新只表达“设置接收了 App”，**仍不是权限证明**；这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
+当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，权限拒绝先在共享 Activity 中完成 1200ms 可读停顿；handoff 单独落到 helper 中的实时 draggable app row，不再把 Apple 列表行当动画终点。source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。浏览器 drag 使用独立 App 图标而非整卡截图作为 drag image，整个 System Settings mock 都是接收区域；copy drop 后只模拟引导阶段并把重试交给真实 renderer。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级；source 缺失时也不再中止，而是直接显示静态 helper。fixture 在 `applyTransaction` 完成（代表保护写入 commit）后、进入 `restartCavalry` 前发送 success-settled 控制消息，再驱动 review-only reverse；这不是生产 Activity 事件，也不新增“权限已验证”文案。生产 retry 使用唯一 `attemptId` 与四语 `resumeAfterPermission`，保留原 Activity；Rust 在保护写事务 commit 后启动 reverse，再继续 restart 与最终结果。仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。系统行的 mock 更新只表达“设置接收了 App”，**仍不是权限证明**；这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
 
-2026-08-31 以 UI Review revision `mtgsrup7.mj` 对当前浏览器实现重新逐分支审查。审查先暴露了一个真实原型竞态：点击“重置”后，旧 source document 仍可能在同一 URL 导航提交前短暂可见，导致下一次交接误走静态 fallback。现在重置会重载同一生产 renderer fixture，并在**新 document 的非零权限动作重新出现前**保持交接入口禁用，不再让上一轮成功态或旧 DOM 污染下一轮。随后 Playwright 实跑确认：Reduce Motion 只产生 `full→reduced` 状态变化，正向直接进入 helper，成功后立即回到 idle；仍拒绝保留 helper 且事件止于 `permissionStillMissing`；其他 typed error 执行 reverse、清除 helper 并进入 `typedError`。完整成功 reverse 捕获 66 个 RAF 样本、约 1084ms，目标 opacity 从 `1` 单调下降到 `0.001`，中点 `p=0.5089 / 1-p=0.4911`，双图 opacity 互补最大误差小于 `5.1e-7`，对向 blur 和为 12px 的最大误差小于 `5.1e-5`；阶段只经过“反向动画→待命”。真实 Playwright `dragTo` 还闭合 `appDragStarted→appDropAccepted→retryRequested→operationVerified→handoffDismissed`，目标行 checked、helper 清理，console 为 0 error / 0 warning。该记录证明浏览器状态机、公式和可重复审查入口成立，仍不把 HTML drop 或 fixture success 冒充 macOS 授权。
+2026-08-31 以 UI Review revision `mtgsrup7.mj` 对当前浏览器实现重新逐分支审查。审查先暴露了一个真实原型竞态：点击“重置”后，旧 source document 仍可能在同一 URL 导航提交前短暂可见，导致下一次交接误走静态 fallback。现在重置会重载同一生产 renderer fixture，并在**新 document 的非零权限动作重新出现前**保持交接入口禁用，不再让上一轮成功态或旧 DOM 污染下一轮。随后 Playwright 实跑确认：Reduce Motion 只产生 `full→reduced` 状态变化，正向直接进入 helper，成功后立即回到 idle；仍拒绝保留 helper 且事件止于 `permissionStillMissing`；其他 typed error 执行 reverse、清除 helper 并进入 `typedError`。完整成功 reverse 捕获 66 个 RAF 样本、约 1084ms，目标 opacity 从 `1` 单调下降到 `0.001`，中点 `p=0.5089 / 1-p=0.4911`，双图 opacity 互补最大误差小于 `5.1e-7`，对向 blur 和为 12px 的最大误差小于 `5.1e-5`；阶段只经过“反向动画→待命”。真实 Playwright `dragTo` 还闭合 `appDragStarted→appDropAccepted→retryRequested→protectedApplyCommitted（仅 review trace，代表 fixture settled）→handoffDismissed`，目标行 checked、helper 清理，console 为 0 error / 0 warning。该记录证明浏览器状态机、公式和可重复审查入口成立，仍不把 HTML drop、fixture settled 或 review trace 冒充 macOS 授权或生产 Activity 事件。
 
 当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求重试，renderer 将同一 session 在前次事务完成前重复到达的 Retry/drop 折叠为一次，真实写事务成功才 reverse，仍缺权限则保留 helper，其他错误/取消才 cleanup。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer retry→reverse。最终 ad-hoc `.app`/DMG 仍按项目 SOP 验证四语用途说明、签名与包结构，但这里不再建设独立账户、官方 DMG 封存或首次 TCC release 证明。
 
@@ -141,15 +142,15 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | 整个设置目标接收 copy drop、且与权限授予分离 | 已确认 operation + 目标几何约束；私有精确命中条件未知 | 整窗 mock 接收并更新系统行，已做 | R2 由原生 drop operation/屏幕几何裁决；R4 仍以写事务为唯一 oracle |
 | 已有列表行只需开启的分支 | 已确认产品必要；原样本逐条件未知 | 已做人工分支 | 无 AX 时不能自动声称已检测到系统行 |
 | status provider / permission oracle | 已确认原样本存在 | fixture 经真实 renderer 任务序列驱动，未接 TCC | 生产必须由 Cavalry 原写事务替代；两产品 oracle 不同，不复制状态判断 |
-| 成功后 reverse / reverse completion | 已确认存在 | **已纠正为 fixture 业务成功后触发** | 生产接线后改由真实任务成功触发；精确私有条件仍未知，不得另造成功特效 |
+| 成功后 reverse / reverse completion | 已确认存在 | fixture 在 `applyTransaction` commit 后、`restartCavalry` 前发送 success-settled，再驱动 review-only reverse | 生产由 Rust 在受保护写事务 commit 后启动单次 reverse；随后继续 restart 与最终业务结果，不新增“权限已验证”产品事件 |
 | reverse 使用最新 destination | 已确认 | reverse 前重采 helper 目标，已做 | R2/R3 验证窗口移动后的连续性 |
 | reverse completion 恢复 source / cleanup | 已确认 | 已做状态回收 | R2 必须 generation token + 幂等释放 panel |
 | no-transition fallback | 已确认存在 | Reduce Motion 与 source 缺失走静态 helper，部分 | target 缺失、设置关闭也必须走明确 fallback |
 | 原样本 Reduce Motion 行为 | **未知** | 项目自定义静态降级 | 这是无障碍产品决策，不声称复刻私有行为 |
 | 关闭、取消、Space、预授权、热插拔显示器全部分支 | 部分结构可证，逐条件未知 | 缺失或仅 reset | R3/R5；隔离账户逐分支验收 |
-| 成功后的业务反馈 | 原样本更新 granted 状态；未发现独立烟花/打勾动画证据 | fixture 经真实 Cavalry Activity 组件投影阶段 + 结果句 | 产品层反馈，不冒充原样本私有视觉或 packaged 证据 |
+| 成功后的业务反馈 | 原样本更新 granted 状态；未发现独立烟花/打勾动画证据 | fixture 经真实 Cavalry Activity 组件投影阶段 + 结果句；success-settled 仅为审查控制消息 | 真实受保护写事务 commit 是 App Management oracle；不新增“权限已验证”产品事件，最终反馈仍由既有阶段与结果句承担 |
 
-结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏与拖拽/授权分离的语义边界**；尚未恢复的是原生窗口/拖拽、多屏与所有异常分支。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；这是原型顺序错误，现已改为 fixture 业务成功驱动 reverse，而不是补一个无证据的成功 glyph。
+结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏与拖拽/授权分离的语义边界**；尚未恢复的是原生窗口/拖拽、多屏与所有异常分支。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；现在改为 fixture 在 `applyTransaction` commit 后、`restartCavalry` 前发送 review-only settled 控制消息，生产则由 Rust 的保护写事务 commit 边界启动 reverse。该边界不生成新的权限成功事件，失败保留既有 Activity 并继续阻断。
 
 ### 4.1 仓库外参考应用：当前与历史样本的本机证据
 
@@ -166,7 +167,7 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 - 动画结束后由包含应用身份、权限说明、hosting view、drag delegate 与返回动作的真实 accessory UI 接管；coordinator 另持有 drag continuation，并明确等待用户把 app 拖到 System Settings；
 - 当前仍有 transition session、正向、反向与无动画分支；历史样本恢复了 preparing/presented/reversing 三阶段语义，当前具体内部枚举名称不作为本项目合同。
 
-按对象关系可恢复的参考链路是：权限请求进入 coordinator → source probe/capture → 启动或定位 System Settings → destination capture → forward session → accessory window 接管 → 用户从 accessory 拖出 app → System Settings 接收 copy drop → coordinator 继续等待/验证 → reverse session → completion cleanup。前半段是程序自动完成的视觉 handoff，拖入列表则是用户鼠标动作；两者之间有 checked continuation 形成的硬等待边界。飞行代理与落稳后的可拖控件视觉连续，但不是同一个 live 对象：前者由 source/target 快照和每屏 replicant 构成，后者才是 Hosted AppKit drag source。
+按对象关系可恢复的参考链路是：权限请求进入 coordinator → source probe/capture → 启动或定位 System Settings → destination capture → forward session → accessory window 接管 → 用户从 accessory 拖出 app → System Settings 接收 copy drop → coordinator 继续等待受保护写事务结果 → reverse session → completion cleanup。前半段是程序自动完成的视觉 handoff，拖入列表则是用户鼠标动作；两者之间有 checked continuation 形成的硬等待边界。飞行代理与落稳后的可拖控件视觉连续，但不是同一个 live 对象：前者由 source/target 快照和每屏 replicant 构成，后者才是 Hosted AppKit drag source。
 
 当前样本的拖拽细节可直接确认；Apple 的 [`NSDraggingSession`](https://developer.apple.com/documentation/appkit/nsdraggingsession) 与 [`beginDraggingSession`](https://developer.apple.com/documentation/appkit/nsview/begindraggingsession%28with%3Aevent%3Asource%3A%29) 文档也确认真实 drag 在下一轮 run loop 开始，并通过 source 的 ended-operation 回调结束：
 
@@ -282,7 +283,7 @@ macos_permission_handoff.rs
   ├─ 跟踪 System Settings window
   ├─ 持有非激活 NSPanel / animation session
   ├─ 在 helper 中承载真实可拖 app bundle URL
-  ├─ 区分 drag accepted 与 permission verified
+  ├─ 区分 drag accepted 与 protected apply commit
   ├─ cleanup / cancel / Reduce Motion
   └─ 不判断“已授权”
 ```
@@ -299,7 +300,7 @@ macos_permission_handoff.rs
 4. **独立 owner 持有生命周期。** 新建 `macos_permission_handoff.rs`，由 `lib.rs` 装配并由 command facade 调用；`window_chrome.rs` 不扩职责，`privilege::open_privacy_security` 继续只负责固定系统 URL。owner 负责 panel、CGWindow 跟踪、drag session、generation token 与幂等 cleanup。
 5. **依赖必须直接、精确。** 当前锁中已有 `objc2-app-kit 0.3.2` 与 `core-graphics 0.25.0`，但前者只启用了标题栏所需最小 feature，后者只是传递依赖。R2 必须在 macOS target 下直接声明需要的 AppKit/Foundation/CoreGraphics API，不能依赖 Tauri 偶然带入。
 6. **本地化进入 bundle，而非 renderer JSON。** 默认 `Info.plist` 持有英文 `NSAppBundlesUsageDescription`；`en/zh-Hans/zh-Hant/ja.lproj/InfoPlist.strings` 提供系统权限文案投影，并在 dev/app/DMG 最终 `Info.plist` 和资源目录逐项 readback。它不是 Cavalry runtime translation，也不进入 `languages/`。
-7. **授权仍由原事务判定。** helper 的 copy drop、已有行开关、System Settings 关闭都只改变引导 session；`open_privacy_security` 返回 `retryRequested` 后，renderer 只调用一次现有 `runApply(state.pendingAction)`，只有 `ActionPayload.ok` 才是 verified。其他 typed error 退出权限链，不回到“仍需授权”；native owner 绝不直接调用 apply transaction。
+7. **授权仍由原事务判定。** helper 的 copy drop、已有行开关、System Settings 关闭都只改变引导 session；`retryRequested` 到达后，renderer 为本次重试生成唯一 `attemptId`，追加四语 `resumeAfterPermission` 并调用带 resume 选项的原始 `runApply`，不清空 Activity。受保护 apply commit 后 Rust 立即触发单次 reverse，再继续 `restartCavalry` 与最终业务结果；最终 finalizer 只处理非权限失败的 cleanup，不在 success 再次触发 reverse。不存在新的“权限已验证”产品事件；native owner 绝不直接调用 apply transaction。
 
 ### 5.3 第一版应做什么
 
@@ -310,7 +311,7 @@ macos_permission_handoff.rs
 3. 打开 `Privacy_AppBundles`，通过 CGWindow 找到最大的可见 layer-0 System Settings window。
 4. 用不激活的透明 panel 沿临界阻尼弧线路径过渡到设置窗口旁的真实 helper；坐标转换集中在 native owner，并始终保留 point/backing-pixel 分层。自动动画止于 helper，绝不能自动飞入 Apple 列表。
 5. helper 显示一个真实 draggable Switcher app row，并说明“列表已有时开启；没有时拖入”；drag payload 是 app bundle file URL，取消/失败回弹，drop 时 panel 必须让出鼠标给 System Settings。
-6. drag accepted 只更新引导阶段，不显示授权成功；用户返回后重试原始 Switch / Restore，只有写事务成功才进入 verified。
+6. drag accepted 只更新引导阶段，不显示授权成功；用户返回后以唯一 attempt 重试原始 Switch / Restore，保留 Activity 历史并追加四语 resume 文案；只有受保护写事务 commit 才启动 reverse，且不新增“权限已验证”产品事件。
 7. System Settings 关闭、目标窗口消失、显示器切换、drag 取消或主 app 退出时幂等清理。
 
 ### 5.4 第一版明确不做什么

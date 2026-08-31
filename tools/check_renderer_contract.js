@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结当前 50pt 弧线/双图/项目自绘箭头节奏、HTML drag 审查边界、写事务重试结果及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer 且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结当前 50pt 弧线/双图/项目自绘箭头节奏、HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -110,6 +110,11 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(fixture, /installationMode: windowsScenario[\s\S]*?\? 'unknown'/);
   assert.match(fixture, /\['verifyInstallation', 'ensureBaseline', 'applyTransaction', 'restartCavalry'\]/);
   assert.match(fixture, /onEvent\(\{ phase: 'downloading', downloaded, contentLength: total \}\)/);
+  assert.match(
+    fixture,
+    /onEvent\(\{ phase, state: 'completed' \}\);\s*if \(permissionScenario && reviewOutcome === 'success' && phase === 'applyTransaction'\) \{\s*window\.parent\.postMessage\(\{ type: permissionReviewSettledMessage, result: 'success' \}, location\.origin\);\s*\}\s*\}\s*currentLang/,
+    'permission review success must settle after applyTransaction commit and before restart'
+  );
   assert.doesNotMatch(fixture, /<main|<header|class="badge"|class="status-panel"/, 'fixture owns data only, never product markup');
 
   const feedbackCatalog = feedbackCatalogHtml();
@@ -200,8 +205,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /let transitionPhase = 'idle'[\s\S]*?let workflowState = 'denied'/);
   assert.match(handoff, /function finish\(target\)[\s\S]*?setTransitionPhase\(target === 1 \? 'presented' : 'idle'\)[\s\S]*?proxy\.hidden = true/);
   const handoffFinish = sourceFunction(handoff, 'function finish(target)', 'function animateReduced(target)');
-  assert.doesNotMatch(handoffFinish, /appDropAccepted|operationVerified/, 'visual completion must not manufacture drop or permission success');
-  for (const eventName of ['transactionDenied', 'sourceCaptured', 'sourceUnavailable', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'appDropRejected', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'operationVerified', 'permissionStillMissing', 'typedError']) {
+  assert.doesNotMatch(handoffFinish, /appDropAccepted|protectedApplyCommitted/, 'visual completion must not manufacture drop or protected-write success');
+  for (const eventName of ['transactionDenied', 'sourceCaptured', 'sourceUnavailable', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'appDropRejected', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'protectedApplyCommitted', 'permissionStillMissing', 'typedError']) {
     assert.match(handoff, new RegExp(`${eventName}: Object\\.freeze|appendWorkflowEvent\\('${eventName}'\\)|occurredWorkflowEvents = \\['${eventName}'\\]`));
   }
   assert.match(handoff, /openMessage: 'cavalry-ui-review:permission-handoff-open'/);
@@ -903,6 +908,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'applyIntro',
     'restoreIntro',
     'updateIntro',
+    'resumeAfterPermission',
     'applyOutcome',
     'restoreOutcome',
     'minimizeWindow',
@@ -997,11 +1003,31 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(restoreDisabledStatement, /restoreIsNeeded\(\)/);
   assert.match(restoreDisabledStatement, /restoreIsBlockedByMissingBaseline\(\)/);
   assert.match(restoreDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
-  const runApplyFunction = sourceFunction(app, 'async function runApply(nextLanguage) {', 'function handlePermissionButton');
+  const retryCallback = sourceFunction(app, 'onRetry: () => {', 'onError:');
+  assert.match(app, /permissionRetryAttempt: 0/);
+  assert.match(retryCallback, /state\.permissionRetryAttempt \+= 1;/);
+  assert.match(retryCallback, /resumeAfterPermission: true/);
+  assert.match(retryCallback, /attemptId:\s*`permission-retry-\$\{state\.permissionRetryAttempt\}`/);
+  const runApplyFunction = sourceFunction(
+    app,
+    "async function runApply(nextLanguage, { resumeAfterPermission = false, attemptId = '' } = {}) {",
+    'function handlePermissionButton'
+  );
   assert.match(runApplyFunction, /const restoring = isRestoreAction\(nextLanguage\);/);
+  assert.match(runApplyFunction, /const operationContext = \{ language, restoring, attemptId \};/);
+  assert.match(app, /const id = attemptId \? `\$\{attemptId\}:\$\{phase\}` : phase;/);
   assert.match(runApplyFunction, /phase: 'verifyInstallation', state: 'running'/);
   assert.match(runApplyFunction, /api\.applyLanguage\(state\.appPath, nextLanguage, \(event\) => \{/);
   assert.match(runApplyFunction, /updateOperationPhase\(event, operationContext\)/);
+  const resumeBranchStart = runApplyFunction.indexOf('if (resumeAfterPermission) {');
+  const resumeBranchEnd = runApplyFunction.indexOf('} else {', resumeBranchStart);
+  assert.ok(resumeBranchStart >= 0 && resumeBranchEnd > resumeBranchStart, 'permission resume branch must be explicit');
+  const resumeBranch = runApplyFunction.slice(resumeBranchStart, resumeBranchEnd);
+  assert.match(resumeBranch, /operationLog\.upsert\(/);
+  assert.match(resumeBranch, /id: `\$\{attemptId\}:resume`/);
+  assert.match(resumeBranch, /t\('resumeAfterPermission'\)/);
+  assert.doesNotMatch(resumeBranch, /operationLog\.start\(|clearEntries\(|clearMessages\(/, 'permission retry must preserve Activity history');
+  assert.match(runApplyFunction, /state\.permissionRetryAttempt = 0;\s*operationLog\.start\(/);
   const restoreConfirmationFunction = sourceFunction(
     app,
     'function showRestoreConfirmation() {',
@@ -1028,7 +1054,9 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(permissionWaitFunction, /body: t\(needsElevation \? 'permissionWindowsBody' : 'permissionMacBody'\)/);
   assert.match(permissionWaitFunction, /secondary: t\('cancel'\)/);
   assert.match(permissionWaitFunction, /await operationLog\.presentBlocking\(\{[\s\S]*?id: phaseId,[\s\S]*?state: 'warning'/);
-  assert.match(runApplyFunction, /await showPermissionWait\(nextLanguage, terminalPhaseEvent\?\.phase\)/);
+  assert.match(runApplyFunction, /await showPermissionWait\(nextLanguage, terminalPhaseEvent\?\.id\)/);
+  assert.match(runApplyFunction, /operationLog\.complete\(t\(restoring \? 'restoreOutcome' : 'applyOutcome'/);
+  assert.doesNotMatch(app, /operationVerified|permissionVerified|permission-verified/, 'permission success must not add a product Activity event');
   assert.doesNotMatch(permissionWaitFunction, /setStatus\('waitingPermission'/);
   assert.doesNotMatch(permissionWaitFunction, /retryApply|Retry Apply/);
   assert.doesNotMatch(app, /maintenanceHeading|extractButton|restoreEnglishButton|refreshEnglish/);

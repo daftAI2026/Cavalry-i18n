@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、先让链尾阻断完成可读停顿再按 macOS 设置/Windows UAC 分流的权限 AlertDialog、Updater 与外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、保留阻断前历史并从权限回环续跑的 macOS 设置/Windows UAC 分流、Updater 与外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，也不把只读权限未知伪装为警告；typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -65,7 +65,6 @@ const updateTooltipControl = window.createTooltipControl({
   popup: updateTooltip,
   descriptionId: 'updateTooltip',
 });
-
 const api = window.cavalryI18n;
 const state = {
   appPath: '', currentLang: 'en', installationMode: 'unknown', languages: [],
@@ -73,13 +72,16 @@ const state = {
   officialRecoveryAvailable: false, needsExtract: false, appManagementGranted: null,
   platform: '', permissionAction: 'none', pendingAction: '',
   ready: false, busy: false, controlsBlocked: false, startupRecoveryError: null,
-  stateDurabilityPending: false, englishRestoreNeeded: false, updateInfo: null,
+  stateDurabilityPending: false, englishRestoreNeeded: false, updateInfo: null, permissionRetryAttempt: 0,
 };
 const permissionHandoff = window.createPermissionHandoffController({
   api,
   onRetry: () => {
     const pending = state.pendingAction || languageSelect.value;
-    return pending ? runApply(pending) : Promise.resolve();
+    if (!pending) return Promise.resolve();
+    state.permissionRetryAttempt += 1;
+    return runApply(pending, { resumeAfterPermission: true,
+      attemptId: `permission-retry-${state.permissionRetryAttempt}` });
   },
   onError: () => setStatus('openPrivacyFailed', 'error'),
 });
@@ -240,13 +242,13 @@ const UPDATE_ERROR_TEXT_KEYS = Object.freeze({
   updateBusy: 'updateBusy',
   updateStateUnavailable: 'updateStateUnavailable',
 });
-
 function requireDurabilityRetry() {
   setStatus('warningStateDurabilityPending', 'warning');
 }
 
 function operationPhaseCopy({ phase, state: phaseState }, context) {
-  const { language, restoring } = context;
+  const { language, restoring, attemptId = '' } = context;
+  const id = attemptId ? `${attemptId}:${phase}` : phase;
   if (phase !== 'restartCavalry') {
     const prefix = phase === 'verifyInstallation'
       ? 'phaseVerifyInstallation'
@@ -257,7 +259,7 @@ function operationPhaseCopy({ phase, state: phaseState }, context) {
           : 'phaseApply';
     const copyState = phaseState === 'warning' ? 'completed' : phaseState;
     return {
-      id: phase,
+      id,
       title: t(`${prefix}${copyState[0].toUpperCase()}${copyState.slice(1)}Title`, { language }),
       description: '',
       state: phaseState,
@@ -265,14 +267,13 @@ function operationPhaseCopy({ phase, state: phaseState }, context) {
     };
   }
   return {
-    id: phase,
+    id,
     title: t(`phaseRestart${phaseState[0].toUpperCase()}${phaseState.slice(1)}Title`),
     description: phaseState === 'warning' || phaseState === 'error' ? t('restartRecovery') : '',
     state: phaseState,
     icon: phaseState === 'completed' ? PHASE_ICONS[phase] : undefined,
   };
 }
-
 function updateOperationPhase(event, context) {
   operationLog.upsert(operationPhaseCopy(event, context));
 }
@@ -709,7 +710,7 @@ function requestRestore() {
   showRestoreConfirmation();
 }
 
-async function runApply(nextLanguage) {
+async function runApply(nextLanguage, { resumeAfterPermission = false, attemptId = '' } = {}) {
   if (state.stateDurabilityPending) {
     requireDurabilityRetry();
     return;
@@ -719,29 +720,32 @@ async function runApply(nextLanguage) {
   setPermissionWait(false);
   const language = languageLabel(nextLanguage);
   const restoring = isRestoreAction(nextLanguage);
-  const operationContext = { language, restoring };
+  const operationContext = { language, restoring, attemptId };
   let terminalPhaseEvent = null;
-  operationLog.start({
-    intro: t(restoring ? 'restoreIntro' : 'applyIntro', { language }),
-  });
+  if (resumeAfterPermission) {
+    operationLog.upsert({ id: `${attemptId}:resume`, title: t('resumeAfterPermission'),
+      state: 'completed', icon: 'infoCircle' });
+  } else {
+    state.permissionRetryAttempt = 0;
+    operationLog.start({ intro: t(restoring ? 'restoreIntro' : 'applyIntro', { language }) });
+  }
   updateOperationPhase({ phase: 'verifyInstallation', state: 'running' }, operationContext);
-
   try {
     const result = await api.applyLanguage(state.appPath, nextLanguage, (event) => {
       if (event.state === 'error') {
-        terminalPhaseEvent = event;
+        terminalPhaseEvent = operationPhaseCopy(event, operationContext);
         return;
       }
       updateOperationPhase(event, operationContext);
     });
     if (!result.ok) {
       if (result.permissionRequired) {
-        await showPermissionWait(nextLanguage, terminalPhaseEvent?.phase);
+        await showPermissionWait(nextLanguage, terminalPhaseEvent?.id);
         return;
       }
       if (result.errorCode === 'cavalryStillRunning') {
         operationLog.upsert({
-          id: terminalPhaseEvent?.phase || 'applyTransaction',
+          id: terminalPhaseEvent?.id || (attemptId ? `${attemptId}:applyTransaction` : 'applyTransaction'),
           title: t('closeCavalryTitle'),
           description: t('cavalryStillRunning'),
           state: 'error',
@@ -749,7 +753,7 @@ async function runApply(nextLanguage) {
         state.pendingAction = '';
         return;
       }
-      if (terminalPhaseEvent) updateOperationPhase(terminalPhaseEvent, operationContext);
+      if (terminalPhaseEvent) operationLog.upsert(terminalPhaseEvent);
       else operationLog.finishRunning('error');
       state.pendingAction = '';
       return;

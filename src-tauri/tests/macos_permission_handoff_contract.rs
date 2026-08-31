@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands/contract、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、真实 apply oracle、只在实时 System Settings 整窗内接受的公开 file-URL Copy drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、受保护写事务 commit 后先 reverse 再 restart 的真实 apply oracle、finalizer 不重复触发成功 reverse、只在实时 System Settings 整窗内接受的公开 file-URL Copy drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -42,6 +42,53 @@ fn handoff_stays_inside_the_fixed_command_and_real_apply_oracle() {
     assert!(contract.contains("(None, None) => true"));
     assert!(commands.contains("finish_app_management_handoff(true)"));
     assert!(rust_owner.contains("PermissionHandoffEvent"));
+}
+
+#[test]
+fn protected_commit_starts_reverse_before_restart_and_finalizer_only_cleans_failures() {
+    let commands = read("src/commands.rs");
+
+    let finalizer_start = commands
+        .find("fn finalize_permission_handoff(payload: ActionPayload)")
+        .expect("permission finalizer missing");
+    let finalizer_end = commands
+        .find("fn complete_permission_handoff_after_commit()")
+        .expect("protected-commit handoff helper missing");
+    let finalizer = &commands[finalizer_start..finalizer_end];
+    assert!(finalizer.contains("if !payload.ok && !payload.permission_required"));
+    assert!(!finalizer.contains("finish_app_management_handoff(true)"));
+
+    let apply_start = commands
+        .find("let applied = match apply::apply_language_inner_with_reporter")
+        .expect("protected apply call missing");
+    let apply_gate = commands[apply_start..]
+        .find("if !applied.ok")
+        .map(|offset| apply_start + offset)
+        .expect("protected apply result gate missing");
+    let reverse_start = commands
+        .find("complete_permission_handoff_after_commit();")
+        .expect("commit reverse trigger missing");
+    let restart_start = commands
+        .find("let mut restart_phase = contract::OperationPhaseGuard::start")
+        .expect("restart phase missing");
+
+    assert!(apply_start < apply_gate);
+    assert!(
+        apply_gate < reverse_start,
+        "reverse must follow the protected apply result"
+    );
+    assert!(
+        reverse_start < restart_start,
+        "reverse must begin before restart"
+    );
+    assert!(commands[apply_gate..reverse_start].contains("return Ok(applied);"));
+    assert_eq!(
+        commands
+            .matches("finish_app_management_handoff(true)")
+            .count(),
+        1,
+        "successful reverse must have one commit-time call site"
+    );
 }
 
 #[test]

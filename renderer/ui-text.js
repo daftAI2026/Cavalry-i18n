@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、任务 Event、macOS 设置与 Windows UAC 分流的真实权限失败 AlertDialog、外围 Toast 及完整无障碍名称。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、任务 Event、权限回环续跑提示、macOS 设置与 Windows UAC 分流的真实权限失败 AlertDialog、外围 Toast 及完整无障碍名称。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -69,6 +69,7 @@ const UI_TEXT = {
     updateIntro: 'Preparing the update…',
     applyOutcome: 'Switched to {language}. Cavalry is now open.',
     restoreOutcome: 'Restored English. Cavalry is now open.',
+    resumeAfterPermission: 'Continuing your task',
     phaseVerifyInstallationRunningTitle: 'Checking the Cavalry installation',
     phaseVerifyInstallationCompletedTitle: 'Cavalry installation verified',
     phaseVerifyInstallationErrorTitle: 'Couldn’t verify the Cavalry installation',
@@ -234,6 +235,7 @@ const UI_TEXT = {
     updateIntro: '正在准备更新……',
     applyOutcome: '已切换为{language}，Cavalry 已打开。',
     restoreOutcome: '已恢复英文，Cavalry 已打开。',
+    resumeAfterPermission: '继续刚才的任务',
     phaseVerifyInstallationRunningTitle: '正在检查 Cavalry 安装',
     phaseVerifyInstallationCompletedTitle: '已验证 Cavalry 安装',
     phaseVerifyInstallationErrorTitle: '无法验证 Cavalry 安装',
@@ -393,6 +395,7 @@ const UI_TEXT = {
     updateIntro: '正在準備更新……',
     applyOutcome: '已切換為{language}，Cavalry 已開啟。',
     restoreOutcome: '已還原英文，Cavalry 已開啟。',
+    resumeAfterPermission: '繼續剛才的操作',
     phaseVerifyInstallationRunningTitle: '正在檢查 Cavalry 安裝',
     phaseVerifyInstallationCompletedTitle: '已驗證 Cavalry 安裝',
     phaseVerifyInstallationErrorTitle: '無法驗證 Cavalry 安裝',
@@ -552,6 +555,7 @@ const UI_TEXT = {
     updateIntro: '更新を準備しています…',
     applyOutcome: '{language}に切り替えました。Cavalry は起動済みです。',
     restoreOutcome: '英語に戻しました。Cavalry は起動済みです。',
+    resumeAfterPermission: '先ほどの操作を続けています',
     phaseVerifyInstallationRunningTitle: 'Cavalry のインストールを確認中',
     phaseVerifyInstallationCompletedTitle: 'Cavalry のインストールを確認しました',
     phaseVerifyInstallationErrorTitle: 'Cavalry のインストールを確認できません',
