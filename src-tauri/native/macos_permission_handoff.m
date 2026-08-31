@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS source rect、viewport 尺寸与一次性 C callback。
- * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、项目自绘箭头和整条实时 App row 快照承载的 file-URL NSDraggingSession 完成权限交接，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
+ * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、独立非激活箭头 panel 和整条实时 App row 快照承载的 file-URL NSDraggingSession 完成权限交接，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
  * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 实现洁净室 handoff，不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -36,6 +36,7 @@ static NSString *const CAVTextArrowLabel = @"arrowLabel";
 @interface CAVNonActivatingPanel : NSPanel
 @end
 @interface CAVHandoffArrowView : NSView
+@property(nonatomic, strong) NSTrackingArea *hoverArea; @property(nonatomic, copy) dispatch_block_t onHover;
 @end
 @interface CAVReplicantView : NSView
 @property(nonatomic, strong) NSImageView *sourceImageView; @property(nonatomic, strong) NSImageView *targetImageView;
@@ -62,7 +63,7 @@ static NSString *const CAVTextArrowLabel = @"arrowLabel";
 @property(nonatomic, assign) CAVPermissionHandoffCallback callback; @property(nonatomic, assign) void *callbackContext;
 @property(nonatomic, weak) NSView *sourceView; @property(nonatomic, assign) NSRect sourceScreenRect;
 @property(nonatomic, strong) NSImage *sourceImage; @property(nonatomic, strong) NSImage *targetImage;
-@property(nonatomic, strong) CAVNonActivatingPanel *helperPanel; @property(nonatomic, strong) CAVDragSourceView *dragView;
+@property(nonatomic, strong) CAVNonActivatingPanel *helperPanel; @property(nonatomic, strong) CAVNonActivatingPanel *arrowPanel; @property(nonatomic, strong) CAVDragSourceView *dragView;
 @property(nonatomic, strong) CAVHandoffArrowView *arrowView; @property(nonatomic, strong) NSButton *retryButton;
 @property(nonatomic, strong) NSButton *cancelButton; @property(nonatomic, strong) NSMutableArray<CAVScreenReplicant *> *replicants;
 @property(nonatomic, strong) NSDraggingSession *dragSession; @property(nonatomic, strong) NSTimer *animationTimer;
@@ -290,6 +291,8 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
 @end
 @implementation CAVHandoffArrowView
 - (BOOL)isFlipped { return YES; }
+- (void)updateTrackingAreas { [super updateTrackingAreas]; if (self.hoverArea) [self removeTrackingArea:self.hoverArea]; self.hoverArea = [[NSTrackingArea alloc] initWithRect:self.bounds options:NSTrackingMouseEnteredAndExited | NSTrackingActiveAlways | NSTrackingInVisibleRect owner:self userInfo:nil]; [self addTrackingArea:self.hoverArea]; }
+- (void)mouseEntered:(NSEvent *)event { if (self.onHover) self.onHover(); }
 - (void)drawRect:(NSRect)dirtyRect {
   CGFloat extent = MIN(NSWidth(self.bounds), NSHeight(self.bounds)) - CAVTwo * CAVArrowDrawingInset;
   CGFloat scale = extent / CAVArrowDesignSize;
@@ -577,13 +580,18 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   cancel.frame = NSMakeRect(firstActionX + CAVActionWidth + CAVActionGap, CAVActionBottomInset, CAVActionWidth, CAVActionHeight);
   [surface addSubview:cancel];
   self.cancelButton = cancel;
-  CAVHandoffArrowView *arrow = [[CAVHandoffArrowView alloc]
-    initWithFrame:NSMakeRect(NSMidX(row.frame) - CAVArrowSize * CAVHalf,
-                             CAVInstructionY + CAVInstructionHeight + CAVArrowGap, CAVArrowSize, CAVArrowSize)];
-  arrow.wantsLayer = YES;
-  arrow.toolTip = CAVHelperText(CAVTextArrowLabel);
-  [surface addSubview:arrow];
-  self.arrowView = arrow;
+  NSRect arrowLocalFrame = NSMakeRect(NSMidX(row.frame) - CAVArrowSize * CAVHalf,
+                                      CAVInstructionY + CAVInstructionHeight + CAVArrowGap, CAVArrowSize, CAVArrowSize);
+  NSRect arrowScreenFrame = NSOffsetRect(arrowLocalFrame, NSMinX(frame), NSMinY(frame));
+  CAVNonActivatingPanel *arrowPanel = [[CAVNonActivatingPanel alloc]
+    initWithContentRect:arrowScreenFrame styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel backing:NSBackingStoreBuffered defer:NO];
+  arrowPanel.releasedWhenClosed = NO; arrowPanel.opaque = NO; arrowPanel.backgroundColor = NSColor.clearColor;
+  arrowPanel.hasShadow = NO; arrowPanel.ignoresMouseEvents = NO; arrowPanel.level = NSFloatingWindowLevel;
+  CAVHandoffArrowView *arrow = [[CAVHandoffArrowView alloc] initWithFrame:NSMakeRect(CAVZero, CAVZero, CAVArrowSize, CAVArrowSize)];
+  arrow.wantsLayer = YES; arrow.toolTip = CAVHelperText(CAVTextArrowLabel);
+  __weak CAVPermissionHandoffCoordinator *weakSelf = self; arrow.onHover = ^{ [weakSelf stretchArrow:nil]; };
+  arrowPanel.contentView = arrow; [panel addChildWindow:arrowPanel ordered:NSWindowAbove];
+  self.arrowPanel = arrowPanel; self.arrowView = arrow;
   self.helperPanel = panel;
   [self updateTargetGeometry];
   if (!self.reducedMotion) [self scheduleArrowCycleAfter:CAVArrowInitialDelay];
@@ -613,6 +621,7 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
                                                     repeats:NO];
 }
 - (void)stretchArrow:(NSTimer *)timer {
+  [self.arrowTimer invalidate]; self.arrowTimer = nil;
   if (!self.helperPanel.isVisible || self.dragging || !self.arrowView) {
     [self scheduleArrowCycleAfter:CAVArrowIdleDuration];
     return;
@@ -753,8 +762,10 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   for (CAVScreenReplicant *replicant in self.replicants) [replicant orderOut];
   [self.replicants removeAllObjects];
   [self.helperPanel orderOut:nil];
-  self.helperPanel.contentView = nil;
-  self.helperPanel = nil;
+  [self.arrowPanel orderOut:nil];
+  [self.helperPanel removeChildWindow:self.arrowPanel];
+  self.helperPanel.contentView = nil; self.arrowPanel.contentView = nil;
+  self.helperPanel = nil; self.arrowPanel = nil;
   self.dragView = nil;
   self.arrowView = nil;
   self.sourceImage = nil;

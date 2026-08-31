@@ -110,6 +110,10 @@ fn native_owner_uses_public_dragging_and_never_edits_permission_state() {
         "CAVArrowDamping",
         "NSRect screenFrame = CAVIntegralRectForScale(screen.frame, scale)",
         "initWithScreen:screen frame:screenFrame",
+        "[panel addChildWindow:arrowPanel ordered:NSWindowAbove]",
+        "arrowPanel.ignoresMouseEvents = NO",
+        "NSTrackingMouseEnteredAndExited",
+        "arrow.onHover = ^{ [weakSelf stretchArrow:nil]; }",
         "NSPasteboardItemDataProvider",
         "[pasteboardItem setDataProvider:self forTypes:@[NSPasteboardTypeFileURL]]",
         "provideDataForType:(NSPasteboardType)type",
@@ -131,6 +135,7 @@ fn native_owner_uses_public_dragging_and_never_edits_permission_state() {
         "mouseDragged:(NSEvent *)event",
         "CAVTransitionCorridor",
         "sliceFrame",
+        "[surface addSubview:arrow]",
     ] {
         assert!(
             !native.contains(rejected_target_mismatch),

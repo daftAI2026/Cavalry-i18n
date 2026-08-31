@@ -136,7 +136,7 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | destination/key/ambient shadow 与 0.5pt stroke | 已确认 | 已做单层浏览器投影 | R2 才能验证 CALayer mask/clipping |
 | 每屏 non-key/non-main replicant 与跨屏裁切 | 已确认每屏窗口覆盖各自 `screenFrame` | 浏览器缺失；原生已改为每屏完整透明窗口并在本地坐标绘制运动内容 | 工作台不得称跨屏证明；混合倍率/热插拔仍需原生 live 验证 |
 | forward completion 后 live accessory 接管 | 已确认 | 已做结构替身 | R2 需真实 nonactivating `NSPanel`/hosting view |
-| 独立 HintArrow raster、0.5/0.25/4s 节奏 | 已确认 | 项目自绘 glyph + 已确认节奏，部分 | 私有 raster 不进入开源产品；只复刻行为语法 |
+| 独立 HintArrow window/raster、0.5/0.25/4s 节奏 | 已确认 | 原生使用独立非激活 child panel + 项目自绘 glyph + 已确认节奏；浏览器仅作结构替身 | 私有 raster 不进入开源产品；窗口生命周期与行为语法对齐，像素轮廓不复制 |
 | app row 的真实 `NSDraggingSession` 与整行 drag snapshot | 已确认：`appRowView.bounds → bitmapImageRepForCachingDisplayInRect → cacheDisplayInRect → NSImage → setDraggingFrame:contents:` | HTML DnD 克隆整行 App row；原生对整行实时 `NSView` 调用同类 AppKit snapshot | file URL pasteboard + drag source 已对齐；浏览器替身不冒充 native 证据 |
 | 系统 drag 接管与 cancel bounce | 目标样本确认 `mouseDown:` 直接建立 session，并启用系统回弹 | 原生同样从 `mouseDown:` 交给 AppKit；不再复制公开样本的自定义 4pt 门槛 | 目标样本已确认的 drag visual 是整行而非 56pt icon |
 | 整个设置目标接收 copy drop、且与权限授予分离 | 已确认 operation + 目标几何约束；私有精确命中条件未知 | 整窗 mock 接收并更新系统行，已做 | R2 由原生 drop operation/屏幕几何裁决；R4 仍以写事务为唯一 oracle |
