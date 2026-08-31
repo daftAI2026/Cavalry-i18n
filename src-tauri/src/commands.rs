@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；open_privacy_security 只接受固定 App Management 与有限 source rect；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段并完成成功后的 restart；install_update 通过 camelCase onEvent Channel 投影 downloading、installing、restarting 三个真实更新边界；project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
+ * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；open_privacy_security 只接受固定 App Management 与有限 source rect；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段并完成成功后的 restart；macOS 权限只消费 apply 层 typed payload，不再以错误字符串猜测；install_update 通过 camelCase onEvent Channel 投影 downloading、installing、restarting 三个真实更新边界；project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -133,6 +133,7 @@ pub async fn apply_language(
         .await
         {
             Ok(Ok(payload)) => payload,
+            #[cfg(not(target_os = "macos"))]
             Ok(Err(error)) if status::is_app_management_error(&error) => {
                 ActionPayload::permission_error(&error)
             }

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CopyPair、CommandRunner 与 Windows typed elevation；接收已 staging 的文件对。
- * [OUTPUT]: 提供可回滚的 direct copy、CopyOutcome 兼容投影、结构化 CopyFailure 与 PostCommitWarning。
- * [POS]: privilege 的文件事务核心；把恢复残留和提交后清理从字符串协议提升为可合并的内部诊断。
+ * [OUTPUT]: 提供可回滚的 direct copy、CopyOutcome 兼容投影、可在回滚补充说明后保留类别的结构化 CopyFailure 与 PostCommitWarning。
+ * [POS]: privilege 的文件事务核心；把权限拒绝、恢复残留和提交后清理从字符串协议提升为可合并的内部诊断。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -156,6 +156,12 @@ pub(crate) struct CopyFailure {
     diagnostics: Vec<CopyDiagnostic>,
 }
 
+impl std::fmt::Display for CopyFailure {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.display())
+    }
+}
+
 impl CopyFailure {
     pub(crate) fn other(message: impl Into<String>) -> Self {
         Self {
@@ -184,6 +190,12 @@ impl CopyFailure {
 
     pub(crate) fn allows_administrator_retry(&self) -> bool {
         self.kind == CopyFailureKind::PermissionDenied
+    }
+
+    /// 保留底层强类型失败类别，只替换经过事务回滚补充后的可读说明。
+    pub(crate) fn with_message(mut self, message: impl Into<String>) -> Self {
+        self.message = message.into();
+        self
     }
 
     pub(crate) fn with_recovery_residual(

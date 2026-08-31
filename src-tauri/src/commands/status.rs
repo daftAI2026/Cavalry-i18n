@@ -631,6 +631,7 @@ fn pick_cavalry_install() -> Option<PathBuf> {
     None
 }
 
+#[cfg(not(target_os = "macos"))]
 pub(crate) fn is_app_management_error(error: &str) -> bool {
     let lower = error.to_ascii_lowercase();
     if lower.contains("outside windows known program files roots")

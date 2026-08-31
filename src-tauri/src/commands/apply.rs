@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS Managed Legacy/official baseline 分级、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口。
- * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage。
+ * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
+ * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage；回滚说明不得抹掉原始权限类别，也不得用任意错误文本冒充 App Management。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::Utc;
@@ -1023,13 +1023,19 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
                 return Ok(payload);
             }
             Err(error) => {
-                return Err(with_staging_cleanup(
+                let permission_denied = error.is_permission_denied();
+                let message = with_staging_cleanup(
                     format!(
                         "Could not begin the protected Cavalry transaction: {}",
                         error.display()
                     ),
                     staging_root,
-                ));
+                );
+                return if permission_denied {
+                    Ok(ActionPayload::permission_error(&message))
+                } else {
+                    Err(message)
+                };
             }
         };
     let transaction_operation_id = transaction.operation_id().to_string();
@@ -1095,6 +1101,7 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
             }
         };
         if let Err(error) = transaction.apply_deferred_pair(official_info) {
+            let permission_denied = error.allows_administrator_retry();
             let error = rollback_macos_apply(
                 transaction,
                 format!("Could not publish the commit-gated vendor Info.plist: {error}"),
@@ -1102,7 +1109,12 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
                 app_path,
                 runner,
             );
-            return Err(with_staging_cleanup(error, staging_root));
+            let message = with_staging_cleanup(error, staging_root);
+            return if permission_denied {
+                Ok(ActionPayload::permission_error(&message))
+            } else {
+                Err(message)
+            };
         }
         if let Err(error) = transaction.apply_deferred_removals() {
             let error = rollback_macos_apply(
@@ -1116,6 +1128,7 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
         }
     } else if let Some(final_marker) = staged_final_marker {
         if let Err(error) = transaction.apply_deferred_pair(final_marker) {
+            let permission_denied = error.allows_administrator_retry();
             let error = rollback_macos_apply(
                 transaction,
                 format!("Could not publish the final macOS language marker: {error}"),
@@ -1123,7 +1136,12 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
                 app_path,
                 runner,
             );
-            return Err(with_staging_cleanup(error, staging_root));
+            let message = with_staging_cleanup(error, staging_root);
+            return if permission_denied {
+                Ok(ActionPayload::permission_error(&message))
+            } else {
+                Err(message)
+            };
         }
     }
     if let Err(error) = platform_runtime::after_final_language_marker(app_path, action_lang, runner)

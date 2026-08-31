@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-apply.rs: 语言写入事务编排；保持 `apply_language_inner` 公开测试 seam 并用 NoopReporter 包装 reporter 版本；在真实验证、English 基线、跨平台事务提交三个边界使用 RAII phase guard，English 快速返回仅接受无 pending journal 的精确 Clean disposition，stale marker 或未完成 Windows transaction 必须继续 pending→runtime→final 事务；Windows 的生产/测试共用 pair 构造；macOS 官方路径继续使用完整 vendor baseline，而严格证明的 Managed Legacy 只复用 immutable English JSON 与已发布 runtime postimage、仅更新 final marker，绝不从缺失的 vendor preimage 伪造官方恢复。
+apply.rs: 语言写入事务编排；保持 `apply_language_inner` 公开测试 seam 并用 NoopReporter 包装 reporter 版本；在真实验证、English 基线、跨平台事务提交三个边界使用 RAII phase guard，English 快速返回仅接受无 pending journal 的精确 Clean disposition，stale marker 或未完成 Windows transaction 必须继续 pending→runtime→final 事务；Windows 的生产/测试共用 pair 构造；macOS 官方路径继续使用完整 vendor baseline，而严格证明的 Managed Legacy 只复用 immutable English JSON 与已发布 runtime postimage、仅更新 final marker，绝不从缺失的 vendor preimage 伪造官方恢复；App Management 只由事务层保留下来的 typed PermissionDenied 进入 renderer，其他失败保持普通错误。
 context.rs: Tauri 应用路径与资源候选解析；复用 root 级 runtime_paths，把 repo、state、Resources 以及 `_up_` 打包布局统一为 command 可消费的路径上下文，并只发布固定四语 manifest。
 contract.rs: renderer 兼容 DTO、九命令常量与操作事件合同；集中 camelCase JSON 序列化、稳定 errorCode/可组合 warningCodes，以及 Status 的 `managedLegacy`、`officialRecoveryAvailable`、四态 `versionCompatibility`、`supportedVersion` 与 Windows residue/UAC 投影；`OperationReporter` 是不绑定传输层的报告 trait，固定四阶段真实事件，Channel 关闭或发送失败只丢弃进度通知，不改变已提交事务；facade 返回前清空原文，禁止把底层临时路径泄漏到 UI。
 restart.rs: 重启 command 编排；同步持久 state 后用安装真相只读投影 stale Windows marker，再委托 platform_runtime；`apply_language` 在同一 operation guard 内复用它，避免 renderer 竞态。
