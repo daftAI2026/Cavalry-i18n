@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS source rect、viewport 尺寸与一次性 C callback。
- * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、项目自绘箭头和真实 file-URL NSDraggingSession 完成权限交接。
- * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 实现洁净室 handoff，不读写 TCC 或自动拨动系统开关。
+ * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、项目自绘箭头和真实 file-URL NSDraggingSession 完成权限交接，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
+ * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 实现洁净室 handoff，不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -84,7 +84,7 @@ static NSString *const CAVTextArrowLabel = @"arrowLabel";
 - (void)finishWithReverse:(BOOL)reverse;
 - (void)retainDragSession:(NSDraggingSession *)session;
 - (void)dragDidBegin;
-- (void)dragDidEndWithOperation:(NSDragOperation)operation;
+- (void)dragDidEndWithOperation:(NSDragOperation)operation atScreenPoint:(NSPoint)screenPoint;
 @end
 static CAVPermissionHandoffCoordinator *CAVActiveCoordinator = nil;
 static NSColor *CAVSeparatorColor(void) { if (@available(macOS 10.14, *)) return NSColor.separatorColor; return NSColor.gridColor; }
@@ -470,7 +470,7 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
 }
 - (BOOL)ignoreModifierKeysForDraggingSession:(NSDraggingSession *)session { return YES; }
 - (void)draggingSession:(NSDraggingSession *)session endedAtPoint:(NSPoint)screenPoint operation:(NSDragOperation)operation {
-  [self.coordinator dragDidEndWithOperation:operation];
+  [self.coordinator dragDidEndWithOperation:operation atScreenPoint:screenPoint];
 }
 @end
 @implementation CAVPermissionHandoffCoordinator
@@ -732,12 +732,19 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   [self.arrowView.layer removeAnimationForKey:@"cavalry-handoff-arrow"]; self.arrowView.layer.transform = CATransform3DIdentity;
   [self.helperPanel orderOut:nil];
 }
-- (void)dragDidEndWithOperation:(NSDragOperation)operation {
+- (void)dragDidEndWithOperation:(NSDragOperation)operation atScreenPoint:(NSPoint)screenPoint {
   self.dragging = NO;
   self.dragSession = nil;
   [self.helperPanel orderFront:nil];
   if (!self.reducedMotion) [self scheduleArrowCycleAfter:CAVArrowIdleDuration];
-  if ((operation & NSDragOperationCopy) != CAVZero) {
+
+  /* 只有真实 System Settings 主窗口的完整窗口区域才会触发重试。 */
+  NSRect currentSettingsFrame = CAVSystemSettingsWindowFrame();
+  if (!NSIsEmptyRect(currentSettingsFrame)) self.settingsFrame = currentSettingsFrame;
+  BOOL copyAccepted = operation == NSDragOperationCopy;
+  BOOL endedInsideSettings = !NSIsEmptyRect(currentSettingsFrame) &&
+                             NSPointInRect(screenPoint, currentSettingsFrame);
+  if (copyAccepted && endedInsideSettings) {
     [self sendOutcome:CAVOutcomeRetryRequested terminal:NO];
   }
 }

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands/contract、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、真实 apply oracle、公开 file-URL drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、真实 apply oracle、只在实时 System Settings 整窗内接受的公开 file-URL Copy drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -80,6 +80,20 @@ fn native_owner_uses_public_dragging_and_never_edits_permission_state() {
             "forbidden permission automation: {forbidden}"
         );
     }
+}
+
+#[test]
+fn native_drop_retry_requires_copy_inside_the_live_settings_window() {
+    let native = read("native/macos_permission_handoff.m");
+
+    assert!(native.contains(
+        "dragDidEndWithOperation:(NSDragOperation)operation atScreenPoint:(NSPoint)screenPoint"
+    ));
+    assert!(native.contains("NSRect currentSettingsFrame = CAVSystemSettingsWindowFrame();"));
+    assert!(native.contains("BOOL copyAccepted = operation == NSDragOperationCopy;"));
+    assert!(native.contains("NSPointInRect(screenPoint, currentSettingsFrame)"));
+    assert!(native.contains("if (copyAccepted && endedInsideSettings)"));
+    assert!(!native.contains("if ((operation & NSDragOperationCopy) != CAVZero)"));
 }
 
 #[test]
