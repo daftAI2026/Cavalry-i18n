@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 install 的跨平台布局、state 保存路径与 windows_install 的只读发现线索
- * [OUTPUT]: 对外提供候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、仅归一 LC_CODE_SIGNATURE 与签名末端所证明 __LINKEDIT extent 的 Mach-O code identity、不可变 revision、语言选项与安装诊断
+ * [OUTPUT]: 对外提供保存路径优先、macOS 用户域先于系统域的候选发现、安装根解析、展示版本、macOS 2.7.2 typed identity/official baseline fingerprint、仅归一 LC_CODE_SIGNATURE 与签名末端所证明 __LINKEDIT extent 的 Mach-O code identity、不可变 revision、语言选项与安装诊断
  * [POS]: src-tauri/src 的安装探测模块；严格写入入口分离 canonical root、bundle/version/architecture 与不可变文件身份，不能只凭 bundle-version 接受伪造 Cavalry.app
  * [FAIL-CLOSED]: read_mac_bundle_identity/require_supported_mac_identity 缺少完整 Info.plist、主 executable、libExtensionLayer 或 Mach-O 架构时失败；Team ID/designated requirement 明确标为 unavailable，需 privilege runner 提供签名证据后才可升级为 verified
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -135,10 +135,11 @@ impl std::error::Error for MacIdentityError {}
 pub fn default_app_candidates() -> Vec<PathBuf> {
     #[cfg(target_os = "macos")]
     {
-        let mut candidates = vec![PathBuf::from("/Applications/Cavalry.app")];
+        let mut candidates = Vec::with_capacity(2);
         if let Some(home) = env::var_os("HOME") {
             candidates.push(PathBuf::from(home).join("Applications").join("Cavalry.app"));
         }
+        candidates.push(PathBuf::from("/Applications/Cavalry.app"));
         return candidates;
     }
 
