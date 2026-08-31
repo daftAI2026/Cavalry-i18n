@@ -63,6 +63,8 @@ Managed Legacy 可以继续四语切换，也可以恢复到受管英文；未�
 
 generation 发布与语言写事务不是同一个原子动作：系统权限可能在 generation 已经持久发布、但最终语言事务尚未把其 identity 写回 `state.json` 时阻断。这个状态不是“无法备份”，也不能再次迁移。下一次 Apply 必须用当前安装根、immutable revision、manifest/hash、packaged English overlay、已发布 runtime postimage 与 marker 重新证明该 generation；全部成立后，把同一 identity 投影回本次事务继续执行。任一证据不成立才 fail closed。
 
+关联完成后仍有第二个边界：macOS 的 `provenance_needs_refresh` 只回答“完整 official vendor baseline 是否新鲜”，不能回答“Managed Legacy 的 JSON-only English generation 是否可用于本次语言恢复”。Apply 必须先用上述 Managed Legacy 全套证据复证；若 provenance 已包含 generation + manifest、`vendorBaselineId` 为空且复证通过，就直接复用该 generation。只有它不是可信 Managed Legacy 时，才进入 clean vendor capture。否则系统会错误地尝试从当前已翻译安装重新捕获英文，并把合法旧安装误报为“无法准备恢复文件”。Restore English 使用同一判断，不能在同一恢复基线上与 Switch 产生不对称结果。
+
 ### 2.5 恢复基线状态拓扑与用户事件
 
 ```mermaid
@@ -196,7 +198,7 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 - [x] Switch 准备、阶段、打开 Cavalry、成功和失败文案合同通过；内部 `restartCavalry` phase 不再直接暴露成用户“重启”文案。
 - [x] `html/body/.content` 不产生窗口滚动；Select 与 Activity Log 各自独立滚动；renderer contract 检查 CSS 边界。
 - [x] Node renderer/bridge focused 合同 44/44、Rust lib 153/153、command contract 6/6 PASS；Node 24.20 全量 `test:contracts` 263/263 PASS，Rust 全量 256 PASS / 2 个显式 live-artifact 测试 ignored。
-- [x] p1-p5 macOS wrapper 字节与三组 release injector code identity 被固定为 allowlist；Managed Legacy 还要求匹配 marker、完整 Keychain postimage、历史 state/revision 与 38 份 packaged-English overlay。首次写操作以 packaged English 证明内容、以 legacy snapshot 与 installed asset 的 mode 互证本机厂商元数据后发布 JSON-only generation；语言包 checkout mode 不参与 vendor mode 判定。迁移后复证与 Switch/Restore marker-only runtime plan 均有聚焦测试，未知 injector、marker drift、generation tamper 与本机 mode drift 全部拒绝。
+- [x] p1-p5 macOS wrapper 字节与三组 release injector code identity 被固定为 allowlist；Managed Legacy 还要求匹配 marker、完整 Keychain postimage、历史 state/revision 与 38 份 packaged-English overlay。首次写操作以 packaged English 证明内容、以 legacy snapshot 与 installed asset 的 mode 互证本机厂商元数据后发布 JSON-only generation；语言包 checkout mode 不参与 vendor mode 判定。迁移后复证、已关联 generation 在 baseline 阶段的直接复用，以及 Switch/Restore marker-only runtime plan 均有聚焦测试，未知 injector、marker drift、generation tamper 与本机 mode drift 全部拒绝。
 - [x] 2.7.1、2.7.3 与不可比较版本分别投影 older/newer/unknown 只读状态；新版本文案不要求降级，三态 renderer 测试均阻断 Switch/Restore。
 - [x] 按当前 `400×484` 工作树重新拉起 macOS native dev；AX/CGWindow 外框为 `400×485`。真实旧 Switcher 管理态的只读截图 `/tmp/cavalry-managed-legacy-native.png` 显示 Select 与 Restore English 可用、不再出现 Reinstall；没有点击任何写操作。Activity 仍为 `360×176`、12px padding、94px 中段。
 - [ ] 当前源码的 macOS package 与 ignored manual smoke；旧 `9766ee3` 的 `460×404` 只作历史且已失效。

@@ -362,13 +362,16 @@ where
     )?;
     #[cfg(target_os = "macos")]
     let managed_legacy = app_platform == crate::install::InstallPlatform::Macos
-        && super::snapshot::legacy_snapshot_is_proven(
-            repo_root,
-            state_dir,
-            resource_dir,
-            &current_state,
-            &app_path,
-            &immutable_revision,
+        && super::snapshot::managed_legacy_baseline_is_usable(
+            current_state.english_snapshot_provenance.as_ref(),
+            super::snapshot::legacy_snapshot_is_proven(
+                repo_root,
+                state_dir,
+                resource_dir,
+                &current_state,
+                &app_path,
+                &immutable_revision,
+            ),
         );
 
     verify_phase.completed();
@@ -429,7 +432,8 @@ where
         current_state.english_snapshot_provenance.as_ref(),
         &app_path,
         &immutable_revision,
-    ) {
+    ) && !managed_legacy
+    {
         return Err(
             "English recovery baseline is missing or stale for this Cavalry revision. Restore a clean English installation before applying it."
                 .to_string(),

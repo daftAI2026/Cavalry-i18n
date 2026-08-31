@@ -1,10 +1,36 @@
 /**
  * [INPUT]: 依赖 snapshot.rs 的 English gate、state durability helper、refresh gate 与 Windows QPA 只读证据 seam。
- * [OUTPUT]: 提供 snapshot 状态耐久性、refresh 零写入、Windows residue/recovery fail-closed 的单元合同。
+ * [OUTPUT]: 提供 snapshot 状态耐久性、Managed Legacy 基线复用、refresh 零写入、Windows residue/recovery fail-closed 的单元合同。
  * [POS]: commands/snapshot.rs 的测试投影；与生产快照逻辑分离，保持领域文件低于 800 行且不扩大运行时 API。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
+
+#[test]
+fn only_complete_json_only_managed_legacy_provenance_is_reusable() {
+    let managed = EnglishSnapshotProvenance {
+        install_root: "/Applications/Cavalry.app".to_string(),
+        immutable_revision: "macos-identity:fixture".to_string(),
+        snapshot_generation: Some("generation".to_string()),
+        snapshot_manifest_sha256: Some("manifest".to_string()),
+        vendor_baseline_id: None,
+    };
+    assert!(managed_legacy_baseline_is_usable(Some(&managed), true));
+    assert!(!managed_legacy_baseline_is_usable(Some(&managed), false));
+
+    let official = EnglishSnapshotProvenance {
+        vendor_baseline_id: Some("official-generation".to_string()),
+        ..managed.clone()
+    };
+    assert!(!managed_legacy_baseline_is_usable(Some(&official), true));
+
+    let incomplete = EnglishSnapshotProvenance {
+        snapshot_manifest_sha256: None,
+        ..managed
+    };
+    assert!(!managed_legacy_baseline_is_usable(Some(&incomplete), true));
+    assert!(!managed_legacy_baseline_is_usable(None, true));
+}
 
 #[test]
 fn unchanged_snapshot_reconfirms_directory_durability_and_surfaces_failure() {
