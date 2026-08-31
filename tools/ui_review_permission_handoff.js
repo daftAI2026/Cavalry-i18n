@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实 permissionMac renderer iframe，依赖 renderer 的 tokens/Button/语义图标/应用标识，并注入 ui_review_permission_handoff_runtime 的独立行为层。
- * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、真实用户拖拽边界、生产任务重试、成功后反向回收及不入库的本机 Raster/System Settings 对照区。
- * [POS]: tools UI Review 的独立权限动画舞台结构/样式层；只模拟系统设置目标和后端结果，本机参考缺失时降级为说明文字，不伪造 native 授权，并与工作台导航壳及行为层保持单向依赖。
+ * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、浏览器拖拽审查边界、生产任务重试、成功后反向回收及不入库的本机 Raster/System Settings 对照区。
+ * [POS]: tools UI Review 的独立权限动画舞台结构/样式层；只用 DOM/HTML 替身审查系统设置目标、视觉连续性和后端结果，本机参考缺失时降级为说明文字，不伪造 NSImage/NSPanel/NSDraggingSession 或 native 授权，并与工作台导航壳及行为层保持单向依赖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -69,7 +69,10 @@ function permissionHandoffHtml() {
     .handoff-target-copy { min-width: 0; display: flex; flex-direction: column; gap: var(--gap-meta-stack); font-size: var(--type-compact); line-height: var(--line-height-compact); }
     .handoff-target-copy strong { font-weight: var(--weight-medium); }
     .handoff-target-copy span { color: var(--text-secondary); font-size: var(--type-label); line-height: var(--line-height-label); }
-    .handoff-target-switch { inline-size: var(--space-8); block-size: var(--badge-height); border: 0; border-radius: var(--radius-pill); background: var(--border-strong); }
+    .handoff-target-switch { position: relative; inline-size: var(--space-8); block-size: var(--badge-height); border: 0; border-radius: var(--radius-pill); background: var(--border-strong); transition: background-color var(--duration-feedback) ease; }
+    .handoff-target-switch::after { content: ''; position: absolute; inset-block-start: var(--stroke-hairline); inset-inline-start: var(--stroke-hairline); inline-size: calc(var(--badge-height) - var(--stroke-hairline) - var(--stroke-hairline)); block-size: calc(var(--badge-height) - var(--stroke-hairline) - var(--stroke-hairline)); border-radius: var(--radius-circle); background: var(--surface-raised); box-shadow: var(--shadow-control); transition: transform var(--duration-feedback) ease; }
+    .handoff-target-switch[aria-checked="true"] { background: var(--tone-update); }
+    .handoff-target-switch[aria-checked="true"]::after { transform: translateX(calc(var(--space-8) - var(--badge-height))); }
     .handoff-accessory-wrap { position: relative; inline-size: min(100%, var(--handoff-target-viewport-width)); align-self: center; visibility: hidden; pointer-events: none; opacity: 0; }
     .handoff-accessory-wrap[data-visible="true"] { visibility: visible; pointer-events: auto; opacity: 1; }
     .handoff-accessory { display: flex; align-items: center; gap: var(--gap-inline); padding: var(--padding-panel); border: var(--stroke-hairline) solid var(--border-strong); border-radius: var(--radius-lg); background: var(--surface-raised); box-shadow: var(--shadow-dialog); }
@@ -139,7 +142,7 @@ function permissionHandoffHtml() {
       <div>
         <p class="handoff-eyebrow">权限交接原型 · clean-room UI Review</p>
         <h1>macOS App Management 权限交接动画</h1>
-        <p class="handoff-lede">左侧是实时生产 renderer iframe；右侧只模拟系统设置目标。中间 proxy 只表达源/目标几何与视觉层 morph，不复制生产权限 Dialog。</p>
+        <p class="handoff-lede">左侧是实时生产 renderer iframe；右侧只模拟系统设置目标。中间 DOM proxy 只审查源/目标几何与视觉层 morph；原生实现必须改用 NSImage capture、每屏 NSPanel replicant 与落稳后的实时 accessory。</p>
       </div>
       <div class="handoff-state-labels">
         <output id="workflowLabel" class="handoff-phase" data-state="denied" aria-live="polite">等待打开设置</output>
@@ -171,7 +174,7 @@ function permissionHandoffHtml() {
             <div id="destinationDropZone" class="handoff-target-row" data-drag-over="false">
               <img class="handoff-target-app-icon" src="/renderer/app-icon.png" alt="" />
               <span class="handoff-target-copy"><strong>Language Switcher</strong><span>Allow changes to the selected app.</span></span>
-              <button id="existingRowSwitch" class="handoff-target-switch" type="button" aria-label="模拟开启已有 App 行"></button>
+              <button id="existingRowSwitch" class="handoff-target-switch" type="button" role="switch" aria-checked="false" aria-label="模拟开启已有 App 行"></button>
             </div>
             <p class="handoff-settings-kicker">The real authorization remains owned by macOS. This panel is only a visual target for review.</p>
           </div>
@@ -208,14 +211,14 @@ function permissionHandoffHtml() {
       <button class="ui-button button button-outline handoff-control-button" data-action="result-error" type="button">注入：其他错误</button>
       <button class="ui-button button button-outline handoff-control-button" data-action="reset" type="button">重置</button>
       <div class="handoff-motion-control">
-        <label><input id="reduceMotion" type="checkbox" /> 减少动效（静态交接）</label>
+        <label><input id="reduceMotion" type="checkbox" /> 项目无障碍降级：静态交接</label>
       </div>
     </section>
     <section class="handoff-chain" aria-labelledby="handoffChainTitle">
       <h2 id="handoffChainTitle" class="handoff-chain-title">本次链路事件</h2>
       <ol id="workflowEvents" class="handoff-event-list" aria-live="polite"></ol>
     </section>
-    <div class="handoff-inspector"><span id="geometryText">源 / 目标几何：等待真实权限动作</span><span id="motionText">response 0.72 · damping 1.0 · apex 50 · blur 12 · RAF</span></div>
+    <div class="handoff-inspector"><span id="geometryText">源 / 目标几何：等待真实权限动作</span><span id="motionText">R1 单屏 DOM 替身 · 不验证 backing scale / 多屏</span></div>
     <section class="handoff-reference" aria-labelledby="handoffReferenceTitle">
       <div class="handoff-reference-heading">
         <h2 id="handoffReferenceTitle">本机视觉参考</h2>
@@ -245,7 +248,7 @@ function permissionHandoffHtml() {
         </article>
       </div>
     </section>
-    <footer class="handoff-footer"><span><strong>边界：</strong>native mock，不打开真实系统设置，不宣称 native/package evidence。</span><span>proxy：运行时 computed style clone · clean-room</span></footer>
+    <footer class="handoff-footer"><span><strong>边界：</strong>DOM/HTML mock，不打开真实系统设置，不宣称 drop、授权、多屏或混合倍率证据。</span><span>R2 目标：NSImage snapshots → per-screen NSPanel replicants → live AppKit accessory</span></footer>
   </main>
   <script>${permissionHandoffRuntimeScript()}</script>
 </body>

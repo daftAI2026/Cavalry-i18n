@@ -95,7 +95,7 @@ idle → preparing → presenting → presented → reversing → idle
 
 目标窗口丢失、System Settings 被关闭、显示器变化和 app 退出是 session 清理事件，不是授权结果；它们必须幂等撤销 overlay，并保留用户可重试的业务状态。
 
-当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，但 handoff 单独落到 helper 中的 draggable app row，不再把 Apple 列表行当动画终点；source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。原型可独立审查 HTML copy drop 成功/取消、已有行、真实 renderer 重试与 Reduce Motion，并把 `app-drop-accepted` 明写为“尚未验证权限”。重试结果由 fixture 驱动真实生产 Activity：成功先跑真实阶段/结果，再以同一 shared-element 做 reverse/cleanup；仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。这里的 HTML Drag and Drop、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSDraggingSession`、SwiftUI spring 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
+当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，但 handoff 单独落到 helper 中的 draggable app row，不再把 Apple 列表行当动画终点；source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级，并把 mock `app-drop-accepted` 明写为“权限尚未验证”；source 缺失时也不再中止，而是直接显示静态 helper。fixture 成功先跑真实 Activity 组件的阶段/结果，再以同一 shared-element 做 reverse/cleanup；仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
 
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
@@ -123,16 +123,16 @@ idle → preparing → presenting → presented → reversing → idle
 | 4pt 阈值、56pt drag image、cancel bounce | 仅公开 MIT 样本确认，非原样本参数 | 缺失 | 可 clean-room 采用但必须标注公开来源，不冒充私有参数 |
 | copy drop 与权限授予分离 | 已确认 | 已做 | R4 仍以写事务为唯一 oracle |
 | 已有列表行只需开启的分支 | 已确认产品必要；原样本逐条件未知 | 已做人工分支 | 无 AX 时不能自动声称已检测到系统行 |
-| status provider / permission oracle | 已确认原样本存在 | Cavalry 用真实写事务替代 | 两产品 oracle 不同，不复制状态判断 |
-| 成功后 reverse / reverse completion | 已确认存在 | **已纠正为真实任务成功后触发** | 精确私有触发条件仍未知；不得另造成功特效 |
+| status provider / permission oracle | 已确认原样本存在 | fixture 经真实 renderer 任务序列驱动，未接 TCC | 生产必须由 Cavalry 原写事务替代；两产品 oracle 不同，不复制状态判断 |
+| 成功后 reverse / reverse completion | 已确认存在 | **已纠正为 fixture 业务成功后触发** | 生产接线后改由真实任务成功触发；精确私有条件仍未知，不得另造成功特效 |
 | reverse 使用最新 destination | 已确认 | reverse 前重采 helper 目标，已做 | R2/R3 验证窗口移动后的连续性 |
 | reverse completion 恢复 source / cleanup | 已确认 | 已做状态回收 | R2 必须 generation token + 幂等释放 panel |
-| no-transition fallback | 已确认存在 | Reduce Motion 静态跳转近似，部分 | source/target 缺失、设置关闭也必须走明确 fallback |
+| no-transition fallback | 已确认存在 | Reduce Motion 与 source 缺失走静态 helper，部分 | target 缺失、设置关闭也必须走明确 fallback |
 | 原样本 Reduce Motion 行为 | **未知** | 项目自定义静态降级 | 这是无障碍产品决策，不声称复刻私有行为 |
 | 关闭、取消、Space、预授权、热插拔显示器全部分支 | 部分结构可证，逐条件未知 | 缺失或仅 reset | R3/R5；隔离账户逐分支验收 |
-| 成功后的业务反馈 | 原样本更新 granted 状态；未发现独立烟花/打勾动画证据 | 真实 Cavalry Activity 阶段 + 结果句 | 产品层反馈，不冒充原样本私有视觉 |
+| 成功后的业务反馈 | 原样本更新 granted 状态；未发现独立烟花/打勾动画证据 | fixture 经真实 Cavalry Activity 组件投影阶段 + 结果句 | 产品层反馈，不冒充原样本私有视觉或 packaged 证据 |
 
-结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏与真实拖拽边界**；尚未恢复的是原生窗口/拖拽、多屏与所有异常分支。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；这是原型顺序错误，现已改为业务成功驱动 reverse，而不是补一个无证据的成功 glyph。
+结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏与拖拽/授权分离的语义边界**；尚未恢复的是原生窗口/拖拽、多屏与所有异常分支。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；这是原型顺序错误，现已改为 fixture 业务成功驱动 reverse，而不是补一个无证据的成功 glyph。
 
 ### 4.1 仓库外参考应用：当前与历史样本的本机证据
 

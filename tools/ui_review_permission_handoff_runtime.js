@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop API，并以锁定研究证据约束转场数学、箭头提示节奏和真实用户操作边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的视觉状态机、真实 renderer 重试握手、本机参考可用性与项目自绘箭头脚本。
- * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的真实任务结果才能驱动成功 reverse；本机参考、HTML drop 或动画完成都不冒充原生授权证据。
+ * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop/Reduced Motion API，并以锁定研究证据约束转场数学、箭头提示节奏和用户操作语义边界。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、file URL 受限 HTML drag 审查、fixture 经真实 renderer 的重试握手、本机参考可用性与项目自绘箭头脚本。
+ * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动成功 reverse；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale 或原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -32,6 +32,7 @@ function permissionHandoffRuntimeScript() {
         sourceActionSelectors: Object.freeze(['#modalPrimaryButton', '#permissionButton']),
         defaultLocale: 'zh-Hans',
         reducedMotionMedia: '(prefers-reduced-motion: reduce)',
+        appBundleFileUrl: 'file:///Applications/Cavalry%20Language%20Switcher.app',
         retryMessage: 'cavalry-ui-review:permission-retry',
         settledMessage: 'cavalry-ui-review:permission-retry-settled',
       });
@@ -66,36 +67,39 @@ function permissionHandoffRuntimeScript() {
         reset: document.querySelector('[data-action="reset"]'),
       });
       const transitionLabels = Object.freeze({
-        idle: '待命', preparing: '准备交接', presenting: '正向动画', presented: '目标接管', reversing: '反向动画',
+        idle: '待命', preparing: '准备交接', presenting: '正向动画', presented: '辅助面板接管', reversing: '反向动画',
       });
       const workflowLabels = Object.freeze({
         denied: '等待打开设置',
-        openingSettings: '正在打开系统设置',
-        locatingSettings: '正在定位系统设置',
-        awaitingUser: '等待用户在系统设置中完成',
+        openingSettings: '原型：正在打开系统设置',
+        locatingSettings: '原型：正在定位系统设置',
+        awaitingUser: '原型：等待用户完成设置',
         returning: '正在返回',
-        retrying: '正在用原操作验证',
-        verified: '已由实际操作验证',
+        retrying: '原型：正在用原操作验证',
+        verified: '原型：事务成功',
         stillDenied: '仍需 App Management',
-        typedError: '写事务返回其他错误',
+        typedError: '原型：写事务返回其他错误',
       });
       const workflowEventDefinitions = Object.freeze({
-        transactionDenied: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: '写事务返回 permissionRequired' }),
+        transactionDenied: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: 'fixture 写事务返回 permissionRequired' }),
         sourceCaptured: Object.freeze({ icon: 'verify', tone: 'neutral', text: '捕获真实权限动作' }),
-        settingsRequested: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '请求打开 App Management' }),
-        settingsLocated: Object.freeze({ icon: 'verify', tone: 'neutral', text: '定位系统设置目标' }),
-        destinationCaptured: Object.freeze({ icon: 'verify', tone: 'neutral', text: '捕获目标窗口布局' }),
+        sourceUnavailable: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '源动作不可用，改用静态辅助面板' }),
+        settingsRequested: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '原型请求打开 App Management' }),
+        settingsLocated: Object.freeze({ icon: 'verify', tone: 'neutral', text: '原型定位系统设置目标' }),
+        destinationCaptured: Object.freeze({ icon: 'verify', tone: 'neutral', text: '原型捕获目标窗口布局' }),
         handoffPresented: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '视觉交接完成，等待用户操作' }),
-        appDragStarted: Object.freeze({ icon: 'dragUp', tone: 'neutral', text: '用户开始拖入 App' }),
-        appDropAccepted: Object.freeze({ icon: 'verify', tone: 'neutral', text: '系统设置接受 copy drop，尚未验证权限' }),
+        appDragStarted: Object.freeze({ icon: 'dragUp', tone: 'neutral', text: '原型开始 HTML App 拖入' }),
+        appDropAccepted: Object.freeze({ icon: 'verify', tone: 'neutral', text: '原型模拟 copy drop；权限尚未验证' }),
+        appDropRejected: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: '原型拒绝未知拖拽源' }),
         dragCancelled: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '拖入取消，恢复 App 行' }),
         existingRowEnabled: Object.freeze({ icon: 'verify', tone: 'neutral', text: '用户模拟开启已有 App 行，尚未验证权限' }),
         handoffDismissed: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '反向转场完成并清理视觉层' }),
-        retryRequested: Object.freeze({ icon: 'spinner', tone: 'neutral', text: '返回并重试原始写事务' }),
-        operationVerified: Object.freeze({ icon: 'checkCircle', tone: 'success', text: '写事务成功，权限已由操作验证' }),
-        permissionStillMissing: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: '重试仍返回 permissionRequired' }),
-        typedError: Object.freeze({ icon: 'errorCircle', tone: 'warning', text: '重试返回其他错误，退出权限链路' }),
+        retryRequested: Object.freeze({ icon: 'spinner', tone: 'neutral', text: '原型返回并重试写事务' }),
+        operationVerified: Object.freeze({ icon: 'checkCircle', tone: 'success', text: 'fixture 写事务成功；原型进入 verified' }),
+        permissionStillMissing: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: 'fixture 重试仍返回 permissionRequired' }),
+        typedError: Object.freeze({ icon: 'errorCircle', tone: 'warning', text: 'fixture 重试返回其他错误，退出权限链路' }),
       });
+      const reducedMotionQuery = window.matchMedia?.(REVIEW.reducedMotionMedia) || null;
       const locale = new URLSearchParams(location.search).get('locale') || REVIEW.defaultLocale;
       let transitionPhase = 'idle';
       let workflowState = 'denied';
@@ -112,7 +116,7 @@ function permissionHandoffRuntimeScript() {
       let arrowAnimationGeneration = 0;
       let arrowStretch = 0;
       let arrowHovering = false;
-      let dragAccepted = false;
+      let dragOutcome = 'idle';
       let settledWorkflowState = null;
 
       hintArrow.replaceChildren(window.cavalryIcons.create('handoffArrow'));
@@ -238,6 +242,7 @@ function permissionHandoffRuntimeScript() {
         if (!source) {
           captures = null;
           proxy.hidden = true;
+          sourceState.textContent = '源动作不可用';
           geometryText.textContent = '源 / 目标几何：等待真实权限动作';
           setActionAvailability();
           return null;
@@ -348,13 +353,17 @@ function permissionHandoffRuntimeScript() {
         proxyDestination.style.filter = 'blur(' + (MOTION.maxBlurPx * oneMinus) + 'px)';
         proxyDestinationShadow.style.opacity = String(visualProgress);
         proxyStroke.style.opacity = String(MOTION.strokeMaxOpacity * visualProgress);
-        motionText.textContent = 'response 0.72 · damping 1.0 · apex 50 · blur 12 · RAF · progress ' + visualProgress.toFixed(2);
+        motionText.textContent = 'R1 DOM 替身 · apex 50 CSS px / blur 12 CSS px · 原生目标 50pt / 12pt · progress ' + visualProgress.toFixed(2);
       }
 
       function renderArrow() {
         const scaleX = lerp(1, MOTION.arrowScaleX, arrowStretch);
         const scaleY = lerp(1, MOTION.arrowScaleY, arrowStretch);
         hintArrow.style.transform = 'translate(-50%, ' + MOTION.arrowOffsetYPx + 'px) scale(' + scaleX + ', ' + scaleY + ')';
+      }
+
+      function prefersReducedMotion() {
+        return reduceMotion.checked || reducedMotionQuery?.matches === true;
       }
 
       function arrowSpringProgress(seconds) {
@@ -411,7 +420,7 @@ function permissionHandoffRuntimeScript() {
       }
 
       function startArrowLoop() {
-        if (reduceMotion.checked || window.matchMedia?.(REVIEW.reducedMotionMedia).matches) {
+        if (prefersReducedMotion()) {
           stopArrowLoop();
           return;
         }
@@ -420,7 +429,7 @@ function permissionHandoffRuntimeScript() {
 
       function setActionAvailability() {
         const transitionBusy = ['preparing', 'presenting', 'reversing'].includes(transitionPhase);
-        actionButtons.openSettings.disabled = !captures || !['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle' || transitionBusy;
+        actionButtons.openSettings.disabled = !['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle' || transitionBusy;
         actionButtons.retry.disabled = !['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented';
         actionButtons.resultSuccess.disabled = workflowState !== 'retrying';
         actionButtons.resultDenied.disabled = workflowState !== 'retrying';
@@ -523,15 +532,30 @@ function permissionHandoffRuntimeScript() {
           finish(target);
           return;
         }
-        if (reduceMotion.checked || window.matchMedia?.(REVIEW.reducedMotionMedia).matches) animateReduced(target);
+        if (prefersReducedMotion()) animateReduced(target);
         else animateSpring(target);
+      }
+
+      function presentStaticFallback() {
+        appendWorkflowEvent('sourceUnavailable');
+        appendWorkflowEvent('settingsRequested');
+        setWorkflowState('openingSettings');
+        progress = 1;
+        proxy.hidden = true;
+        motionText.textContent = 'R1 静态 fallback · source capture unavailable · no flight';
+        setTransitionPhase('presented');
+        appendWorkflowEvent('handoffPresented');
+        setWorkflowState('awaitingUser');
       }
 
       function startOpenSettings() {
         if (!['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle') return;
         const sessionGeneration = ++handoffSessionGeneration;
         const sourceGeometry = captureSourceGeometry();
-        if (!sourceGeometry) return;
+        if (!sourceGeometry) {
+          presentStaticFallback();
+          return;
+        }
         appendWorkflowEvent('sourceCaptured');
         appendWorkflowEvent('settingsRequested');
         setWorkflowState('openingSettings');
@@ -559,8 +583,15 @@ function permissionHandoffRuntimeScript() {
       }
 
       function reverseAfterSettled(nextState, eventName) {
-        if (workflowState !== 'retrying' || transitionPhase !== 'presented' || !captures) return;
+        if (workflowState !== 'retrying' || transitionPhase !== 'presented') return;
         appendWorkflowEvent(eventName);
+        if (!captures) {
+          appendWorkflowEvent('handoffDismissed');
+          progress = 0;
+          setTransitionPhase('idle');
+          setWorkflowState(nextState);
+          return;
+        }
         settledWorkflowState = nextState;
         const stageRect = stage.getBoundingClientRect();
         captureTargetGeometry({ source: captures.source, stageRect });
@@ -595,9 +626,9 @@ function permissionHandoffRuntimeScript() {
           event.preventDefault();
           return;
         }
-        dragAccepted = false;
+        dragOutcome = 'pending';
         event.dataTransfer.effectAllowed = 'copy';
-        event.dataTransfer.setData('text/uri-list', 'file:///Applications/Cavalry%20Language%20Switcher.app');
+        event.dataTransfer.setData('text/uri-list', REVIEW.appBundleFileUrl);
         event.dataTransfer.setData('text/plain', 'Cavalry Language Switcher.app');
         appendWorkflowEvent('appDragStarted');
         stopArrowLoop();
@@ -605,20 +636,29 @@ function permissionHandoffRuntimeScript() {
       }
 
       function handleDragEnd() {
-        if (!dragAccepted) appendWorkflowEvent('dragCancelled');
+        if (dragOutcome === 'pending') appendWorkflowEvent('dragCancelled');
+        dragOutcome = 'idle';
         restoreDraggedApp();
       }
 
       function handleDrop(event) {
         if (workflowState !== 'awaitingUser' || transitionPhase !== 'presented') return;
         event.preventDefault();
-        dragAccepted = true;
+        const isKnownAppSource = dragOutcome === 'pending';
+        if (!isKnownAppSource) {
+          dragOutcome = 'rejected';
+          appendWorkflowEvent('appDropRejected');
+          restoreDraggedApp();
+          return;
+        }
+        dragOutcome = 'accepted';
         appendWorkflowEvent('appDropAccepted');
         restoreDraggedApp();
       }
 
       function handleExistingRowEnabled() {
         if (workflowState !== 'awaitingUser' || transitionPhase !== 'presented') return;
+        existingRowSwitch.setAttribute('aria-checked', 'true');
         appendWorkflowEvent('existingRowEnabled');
       }
 
@@ -627,11 +667,12 @@ function permissionHandoffRuntimeScript() {
         ++animationGeneration;
         stopArrowLoop();
         progress = 0;
-        dragAccepted = false;
+        dragOutcome = 'idle';
         settledWorkflowState = null;
         arrowHovering = false;
         draggableAppRow.dataset.dragging = 'false';
         destinationDropZone.dataset.dragOver = 'false';
+        existingRowSwitch.setAttribute('aria-checked', 'false');
         occurredWorkflowEvents = ['transactionDenied'];
         captureGeometry();
         setTransitionPhase('idle');
@@ -648,6 +689,7 @@ function permissionHandoffRuntimeScript() {
         geometryFrame = 0;
         sourceObserver?.disconnect();
         sourceActionDocument?.removeEventListener('click', handleSourceActionClick, true);
+        reducedMotionQuery?.removeEventListener?.('change', handleReducedMotionChange);
         sourceObserver = null;
         sourceActionDocument = null;
         proxy.hidden = true;
@@ -678,7 +720,7 @@ function permissionHandoffRuntimeScript() {
       destinationDropZone.addEventListener('drop', handleDrop);
       existingRowSwitch.addEventListener('click', handleExistingRowEnabled);
       accessory.addEventListener('mouseenter', () => {
-        if (workflowState !== 'awaitingUser' || reduceMotion.checked) return;
+        if (workflowState !== 'awaitingUser' || prefersReducedMotion()) return;
         arrowHovering = true;
         animateArrowTo(1);
         clearTimeout(arrowHoverTimer);
@@ -686,10 +728,15 @@ function permissionHandoffRuntimeScript() {
       });
       accessory.addEventListener('mouseleave', () => { arrowHovering = false; });
       reduceMotion.addEventListener('change', () => {
-        if (reduceMotion.checked) stopArrowLoop();
+        if (prefersReducedMotion()) stopArrowLoop();
         else if (workflowState === 'awaitingUser' && transitionPhase === 'presented') startArrowLoop();
       });
-      reduceMotion.checked = window.matchMedia?.(REVIEW.reducedMotionMedia).matches === true;
+      function handleReducedMotionChange() {
+        if (prefersReducedMotion()) stopArrowLoop();
+        else if (workflowState === 'awaitingUser' && transitionPhase === 'presented') startArrowLoop();
+      }
+      reduceMotion.checked = reducedMotionQuery?.matches === true;
+      reducedMotionQuery?.addEventListener?.('change', handleReducedMotionChange);
       sourceFrame.addEventListener('load', () => {
         watchSourceDocument();
         scheduleGeometryCapture();

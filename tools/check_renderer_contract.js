@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结当前 50pt 弧线/双图/项目自绘箭头节奏、真实拖拽边界、写事务重试结果及不入库的本机视觉对照，工作台必须实时消费生产 renderer 且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结当前 50pt 弧线/双图/项目自绘箭头节奏、HTML drag 审查边界、写事务重试结果及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer 且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -127,6 +127,9 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /sourceFrame\.src = '\/app\?scenario=' \+ REVIEW\.sourceScenario/);
   assert.match(handoff, /sourceScenario: 'permissionMac'/);
   assert.match(handoff, /native mock/);
+  assert.match(handoff, /R1 单屏 DOM 替身 · 不验证 backing scale \/ 多屏/);
+  assert.match(handoff, /R2 目标：NSImage snapshots → per-screen NSPanel replicants → live AppKit accessory/);
+  assert.match(handoff, /项目无障碍降级：静态交接/);
   assert.match(handoff, /\/renderer\/tokens\.css/);
   assert.match(handoff, /\/renderer\/button\.css/);
   assert.match(handoff, /\/renderer\/icons\.js/);
@@ -176,13 +179,20 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /proxySource\.style\.filter = 'blur\('/);
   assert.match(handoff, /proxyDestination\.style\.filter = 'blur\('/);
   assert.match(handoff, /prefers-reduced-motion: reduce/);
+  assert.match(handoff, /function prefersReducedMotion\(\)[\s\S]*?reducedMotionQuery\?\.matches === true/);
+  assert.match(handoff, /reducedMotionQuery\?\.addEventListener\?\.\('change', handleReducedMotionChange\)/);
+  assert.match(handoff, /mouseenter[\s\S]*?prefersReducedMotion\(\)/);
   assert.match(handoff, /function animateReduced\(target\)/);
   assert.match(handoff, /function animateSpring\(target\)/);
+  assert.match(handoff, /function presentStaticFallback\(\)[\s\S]*?sourceUnavailable[\s\S]*?setTransitionPhase\('presented'\)/);
+  assert.match(handoff, /if \(!sourceGeometry\) \{[\s\S]*?presentStaticFallback\(\)/);
+  assert.match(handoff, /if \(!source\) \{[\s\S]*?sourceState\.textContent = '源动作不可用'/);
+  assert.match(handoff, /R1 静态 fallback · source capture unavailable · no flight/);
   assert.match(handoff, /let transitionPhase = 'idle'[\s\S]*?let workflowState = 'denied'/);
   assert.match(handoff, /function finish\(target\)[\s\S]*?setTransitionPhase\(target === 1 \? 'presented' : 'idle'\)[\s\S]*?proxy\.hidden = true/);
   const handoffFinish = sourceFunction(handoff, 'function finish(target)', 'function animateReduced(target)');
   assert.doesNotMatch(handoffFinish, /appDropAccepted|operationVerified/, 'visual completion must not manufacture drop or permission success');
-  for (const eventName of ['transactionDenied', 'sourceCaptured', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'operationVerified', 'permissionStillMissing', 'typedError']) {
+  for (const eventName of ['transactionDenied', 'sourceCaptured', 'sourceUnavailable', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'appDropRejected', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'operationVerified', 'permissionStillMissing', 'typedError']) {
     assert.match(handoff, new RegExp(`${eventName}: Object\\.freeze|appendWorkflowEvent\\('${eventName}'\\)|occurredWorkflowEvents = \\['${eventName}'\\]`));
   }
   assert.match(handoff, /sourceActionDocument\.addEventListener\('click', handleSourceActionClick, true\)/);
@@ -194,8 +204,13 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /draggableAppRow\.addEventListener\('dragstart', handleDragStart\)/);
   assert.match(handoff, /destinationDropZone\.addEventListener\('drop', handleDrop\)/);
   assert.match(handoff, /event\.dataTransfer\.effectAllowed = 'copy'/);
-  assert.match(handoff, /event\.dataTransfer\.setData\('text\/uri-list', 'file:\/\/\/Applications\/Cavalry%20Language%20Switcher\.app'\)/);
-  assert.match(handoff, /appDropAccepted[\s\S]*?尚未验证权限/);
+  assert.match(handoff, /appBundleFileUrl: 'file:\/\/\/Applications\/Cavalry%20Language%20Switcher\.app'/);
+  assert.match(handoff, /event\.dataTransfer\.setData\('text\/uri-list', REVIEW\.appBundleFileUrl\)/);
+  assert.match(handoff, /const isKnownAppSource = dragOutcome === 'pending'[\s\S]*?if \(!isKnownAppSource\)[\s\S]*?appDropRejected/);
+  assert.match(handoff, /appDropAccepted[\s\S]*?原型模拟 copy drop；权限尚未验证/);
+  assert.doesNotMatch(handoff, /系统设置接受 copy drop/, 'browser review must not present an HTML drop as native System Settings evidence');
+  assert.match(handoff, /id="existingRowSwitch"[\s\S]*?role="switch" aria-checked="false"/);
+  assert.match(handoff, /existingRowSwitch\.setAttribute\('aria-checked', 'true'\)/);
   assert.match(handoff, /function setAccessoryVisibility\(visible\)[\s\S]*?accessoryWrap\.inert = !visible/);
   assert.match(handoff, /const sessionGeneration = \+\+handoffSessionGeneration[\s\S]*?sessionGeneration !== handoffSessionGeneration/);
   assert.match(handoff, /function dispose\(\)[\s\S]*?sourceObserver\?\.disconnect\(\)[\s\S]*?proxy\.hidden = true/);
