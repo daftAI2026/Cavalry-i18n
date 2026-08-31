@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop/Reduced Motion API，并以锁定研究证据约束转场数学、箭头提示节奏和用户操作语义边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、file URL 受限 HTML drag 审查、fixture 经真实 renderer 的重试握手、本机参考可用性与项目自绘箭头脚本。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管与整窗 file URL copy-drop 审查、drop 后自动验证和完整结果回环的 fixture 握手、本机参考可用性与项目自绘箭头脚本。
  * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动成功 reverse；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale 或原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -49,6 +49,7 @@ function permissionHandoffRuntimeScript() {
       const accessoryWrap = document.querySelector('#accessoryWrap');
       const accessory = document.querySelector('#accessory');
       const draggableAppRow = document.querySelector('#draggableAppRow');
+      const appDragImage = document.querySelector('#appDragImage');
       const hintArrow = document.querySelector('#hintArrow');
       const referenceProjectArrow = document.querySelector('#referenceProjectArrow');
       const reverseFromAccessory = document.querySelector('#reverseFromAccessory');
@@ -89,7 +90,7 @@ function permissionHandoffRuntimeScript() {
         destinationCaptured: Object.freeze({ icon: 'verify', tone: 'neutral', text: '原型捕获目标窗口布局' }),
         handoffPresented: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '视觉交接完成，等待用户操作' }),
         appDragStarted: Object.freeze({ icon: 'dragUp', tone: 'neutral', text: '原型开始 HTML App 拖入' }),
-        appDropAccepted: Object.freeze({ icon: 'verify', tone: 'neutral', text: '原型模拟 copy drop；权限尚未验证' }),
+        appDropAccepted: Object.freeze({ icon: 'verify', tone: 'neutral', text: 'System Settings 模拟接收 App；正在验证权限' }),
         appDropRejected: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: '原型拒绝未知拖拽源' }),
         dragCancelled: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '拖入取消，恢复 App 行' }),
         existingRowEnabled: Object.freeze({ icon: 'verify', tone: 'neutral', text: '用户模拟开启已有 App 行，尚未验证权限' }),
@@ -429,11 +430,13 @@ function permissionHandoffRuntimeScript() {
 
       function setActionAvailability() {
         const transitionBusy = ['preparing', 'presenting', 'reversing'].includes(transitionPhase);
+        const resultCanBeInjected = ['awaitingUser', 'retrying', 'stillDenied'].includes(workflowState)
+          && transitionPhase === 'presented';
         actionButtons.openSettings.disabled = !['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle' || transitionBusy;
         actionButtons.retry.disabled = !['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented';
-        actionButtons.resultSuccess.disabled = workflowState !== 'retrying';
-        actionButtons.resultDenied.disabled = workflowState !== 'retrying';
-        actionButtons.resultError.disabled = workflowState !== 'retrying';
+        actionButtons.resultSuccess.disabled = !resultCanBeInjected;
+        actionButtons.resultDenied.disabled = !resultCanBeInjected;
+        actionButtons.resultError.disabled = !resultCanBeInjected;
         actionButtons.reset.disabled = transitionBusy;
         reverseFromAccessory.disabled = !['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented';
       }
@@ -582,6 +585,11 @@ function permissionHandoffRuntimeScript() {
         sourceFrame.contentWindow?.postMessage({ type: REVIEW.retryMessage, result }, location.origin);
       }
 
+      function demonstrateRetryResult(result) {
+        if (['awaitingUser', 'stillDenied'].includes(workflowState) && transitionPhase === 'presented') startRetry();
+        resolveRetry(result);
+      }
+
       function reverseAfterSettled(nextState, eventName) {
         if (workflowState !== 'retrying' || transitionPhase !== 'presented') return;
         appendWorkflowEvent(eventName);
@@ -630,6 +638,7 @@ function permissionHandoffRuntimeScript() {
         event.dataTransfer.effectAllowed = 'copy';
         event.dataTransfer.setData('text/uri-list', REVIEW.appBundleFileUrl);
         event.dataTransfer.setData('text/plain', 'Cavalry Language Switcher.app');
+        event.dataTransfer.setDragImage?.(appDragImage, appDragImage.width / 2, appDragImage.height / 2);
         appendWorkflowEvent('appDragStarted');
         stopArrowLoop();
         requestAnimationFrame(() => { draggableAppRow.dataset.dragging = 'true'; });
@@ -652,14 +661,17 @@ function permissionHandoffRuntimeScript() {
           return;
         }
         dragOutcome = 'accepted';
+        existingRowSwitch.setAttribute('aria-checked', 'true');
         appendWorkflowEvent('appDropAccepted');
         restoreDraggedApp();
+        demonstrateRetryResult('success');
       }
 
       function handleExistingRowEnabled() {
         if (workflowState !== 'awaitingUser' || transitionPhase !== 'presented') return;
         existingRowSwitch.setAttribute('aria-checked', 'true');
         appendWorkflowEvent('existingRowEnabled');
+        demonstrateRetryResult('success');
       }
 
       function reset() {
@@ -699,9 +711,9 @@ function permissionHandoffRuntimeScript() {
 
       actionButtons.openSettings.addEventListener('click', startOpenSettings);
       actionButtons.retry.addEventListener('click', startRetry);
-      actionButtons.resultSuccess.addEventListener('click', () => resolveRetry('success'));
-      actionButtons.resultDenied.addEventListener('click', () => resolveRetry('denied'));
-      actionButtons.resultError.addEventListener('click', () => resolveRetry('error'));
+      actionButtons.resultSuccess.addEventListener('click', () => demonstrateRetryResult('success'));
+      actionButtons.resultDenied.addEventListener('click', () => demonstrateRetryResult('denied'));
+      actionButtons.resultError.addEventListener('click', () => demonstrateRetryResult('error'));
       actionButtons.reset.addEventListener('click', reset);
       reverseFromAccessory.addEventListener('click', startRetry);
       draggableAppRow.addEventListener('dragstart', handleDragStart);
@@ -716,7 +728,9 @@ function permissionHandoffRuntimeScript() {
         event.preventDefault();
         event.dataTransfer.dropEffect = 'copy';
       });
-      destinationDropZone.addEventListener('dragleave', () => { destinationDropZone.dataset.dragOver = 'false'; });
+      destinationDropZone.addEventListener('dragleave', (event) => {
+        if (!destinationDropZone.contains(event.relatedTarget)) destinationDropZone.dataset.dragOver = 'false';
+      });
       destinationDropZone.addEventListener('drop', handleDrop);
       existingRowSwitch.addEventListener('click', handleExistingRowEnabled);
       accessory.addEventListener('mouseenter', () => {

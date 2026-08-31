@@ -79,15 +79,15 @@ idle → preparing → presenting → presented → reversing → idle
 
 | 顺序 | 事件 | 真实来源 | 用户可见结果 |
 | --- | --- | --- | --- |
-| 1 | `permissionRequired` | Switch / Restore 写事务 | AlertDialog 解释为何需要 App Management |
+| 1 | `permissionRequired` | Switch / Restore 写事务 | Activity 先把红色链尾阻断及说明完整落位并保持 1200ms 可读停顿，再由 AlertDialog 接管注意力 |
 | 2 | `source-captured` | 用户点击真实 `Open Settings` 动作时捕获 source rect/视觉 | 为 handoff 冻结源，而不是复制另一份 Dialog |
 | 3 | `open-settings-requested` | 固定 bridge 命令 | 打开固定 `Privacy_AppBundles`，不得接受任意 URL |
 | 4 | `settings-target-located` + `destination-captured` | 原生 coordinator 找到可见 System Settings 窗口并冻结目标 | 允许开始视觉 handoff；找不到则走静态 fallback |
 | 5 | `handoff-presented` | forward session 完成 | 视觉代理只落到非激活 helper，**没有自动飞进 Apple 权限列表** |
 | 6a | `existing-row-enabled` | 用户发现列表已有 Switcher 并开启开关 | 只表示用户完成系统设置动作，仍不宣称权限已验证 |
 | 6b | `app-drag-started` | 用户按住 helper 内真实 app row 并移动鼠标 | 生成 app bundle file URL 的系统 drag session；helper 不再挡住目标 |
-| 6c | `app-drop-accepted` | System Settings 接受 copy drop | 只表示 app 对象已交给系统列表；取消/失败必须回弹并恢复 source row |
-| 7 | `retry-requested` | 用户返回 Switcher 或点击 helper 的重试动作 | helper 仍保持 presented，重放原始 Switch / Restore 一次；动画不能抢在业务 oracle 前收口 |
+| 6c | `app-drop-accepted` | System Settings 整个接收窗口返回 copy operation | app 对象已交给系统列表，helper 恢复 source row；取消/失败必须回弹；drop 仍不等于权限已验证 |
+| 7 | `retry-requested` | copy drop / 已有行确认后由 coordinator 继续，或用户显式重试 | helper 保持 presented，重放原始 Switch / Restore 一次；动画不能抢在业务 oracle 前收口 |
 | 8a | `operation-verified` | 重试写事务成功 | 才能宣布权限已由实际操作验证，并触发单次 reverse；原 Activity 继续显示真实阶段与结果 |
 | 8b | `permission-still-missing` | 重试仍返回 typed `permissionRequired` | helper 保持 presented 并回到等待设置，不反向回收、不显示虚假成功 |
 | 8c | `typed-error` | 重试返回其他错误 | 触发 reverse/cleanup 后进入现有错误语义，不归因于权限 |
@@ -95,7 +95,7 @@ idle → preparing → presenting → presented → reversing → idle
 
 目标窗口丢失、System Settings 被关闭、显示器变化和 app 退出是 session 清理事件，不是授权结果；它们必须幂等撤销 overlay，并保留用户可重试的业务状态。
 
-当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，但 handoff 单独落到 helper 中的 draggable app row，不再把 Apple 列表行当动画终点；source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级，并把 mock `app-drop-accepted` 明写为“权限尚未验证”；source 缺失时也不再中止，而是直接显示静态 helper。fixture 成功先跑真实 Activity 组件的阶段/结果，再以同一 shared-element 做 reverse/cleanup；仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
+当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，权限拒绝先在共享 Activity 中完成 1200ms 可读停顿；handoff 单独落到 helper 中的实时 draggable app row，不再把 Apple 列表行当动画终点。source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。浏览器 drag 使用独立 App 图标而非整卡截图作为 drag image，整个 System Settings mock 都是接收区域；copy drop 后模拟系统行更新并自动继续原事务验证，不再要求审查者额外点击开关或理解内部重试门禁。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级；source 缺失时也不再中止，而是直接显示静态 helper。fixture 成功先跑真实 Activity 组件的阶段/结果，再以同一 shared-element 做 reverse/cleanup；仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。系统行的 mock 更新只表达“设置接收了 App”，**仍不是权限证明**；这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
 
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
@@ -119,9 +119,9 @@ idle → preparing → presenting → presented → reversing → idle
 | 每屏 non-key/non-main replicant 与跨屏裁切 | 已确认 | 缺失 | R3；当前 R1 不得称像素级跨屏复刻 |
 | forward completion 后 live accessory 接管 | 已确认 | 已做结构替身 | R2 需真实 nonactivating `NSPanel`/hosting view |
 | 独立 HintArrow raster、0.5/0.25/4s 节奏 | 已确认 | 项目自绘 glyph + 已确认节奏，部分 | 私有 raster 不进入开源产品；只复刻行为语法 |
-| app row 的真实 `NSDraggingSession` | 已确认 | HTML DnD 替身 | R2 必须 file URL pasteboard + drag source |
+| app row 的真实 `NSDraggingSession` | 已确认 | HTML DnD + 独立 App 图标 drag image 替身 | R2 必须 file URL pasteboard + drag source |
 | 4pt 阈值、56pt drag image、cancel bounce | 仅公开 MIT 样本确认，非原样本参数 | 缺失 | 可 clean-room 采用但必须标注公开来源，不冒充私有参数 |
-| copy drop 与权限授予分离 | 已确认 | 已做 | R4 仍以写事务为唯一 oracle |
+| 整个设置目标接收 copy drop、且与权限授予分离 | 已确认 operation + 目标几何约束；私有精确命中条件未知 | 整窗 mock 接收并更新系统行，已做 | R2 由原生 drop operation/屏幕几何裁决；R4 仍以写事务为唯一 oracle |
 | 已有列表行只需开启的分支 | 已确认产品必要；原样本逐条件未知 | 已做人工分支 | 无 AX 时不能自动声称已检测到系统行 |
 | status provider / permission oracle | 已确认原样本存在 | fixture 经真实 renderer 任务序列驱动，未接 TCC | 生产必须由 Cavalry 原写事务替代；两产品 oracle 不同，不复制状态判断 |
 | 成功后 reverse / reverse completion | 已确认存在 | **已纠正为 fixture 业务成功后触发** | 生产接线后改由真实任务成功触发；精确私有条件仍未知，不得另造成功特效 |

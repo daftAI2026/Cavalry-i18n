@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、保留已完成阶段并按 macOS 设置/Windows UAC 分流的权限 AlertDialog、Updater 与外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、先让链尾阻断完成可读停顿再按 macOS 设置/Windows UAC 分流的权限 AlertDialog、Updater 与外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，也不把只读权限未知伪装为警告；typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -149,8 +149,8 @@ function setPermissionWait(isWaiting) {
       : t('openPrivacySecurity');
   applyButton.textContent = t('apply');
   restoreButton.textContent = t('restore');
+  operationLog.remeasure();
 }
-
 function setStatus(key, tone = 'neutral', params = {}, messageOverride = null) {
   const message = messageOverride ?? t(key, params);
   operationLog.replace({
@@ -510,10 +510,11 @@ function showRestoreConfirmation() {
   });
 }
 
-function showPermissionWait(nextLanguage, phaseId = 'permissionRequired') {
+async function showPermissionWait(nextLanguage, phaseId = 'permissionRequired') {
   state.pendingAction = nextLanguage;
   const needsElevation = state.permissionAction === 'requestElevation';
-  operationLog.upsert({ id: phaseId, title: t('permissionRequiredTitle'), description: t('waitingPermission'), state: 'warning', urgent: true });
+  await operationLog.presentBlocking({ id: phaseId, title: t('permissionRequiredTitle'),
+    description: t('waitingPermission'), state: 'warning' });
   setPermissionWait(true);
   showModal({
     title: t(needsElevation ? 'permissionWindowsTitle' : 'permissionMacTitle'),
@@ -727,7 +728,7 @@ async function runApply(nextLanguage) {
     });
     if (!result.ok) {
       if (result.permissionRequired) {
-        showPermissionWait(nextLanguage, terminalPhaseEvent?.phase);
+        await showPermissionWait(nextLanguage, terminalPhaseEvent?.phase);
         return;
       }
       if (result.errorCode === 'cavalryStillRunning') {

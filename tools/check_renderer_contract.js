@@ -199,15 +199,21 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /handleSourceActionClick\(event\)[\s\S]*?event\.preventDefault\(\)[\s\S]*?startOpenSettings\(\)/);
   assert.match(handoff, /function resolveRetry\(result\)[\s\S]*?workflowState !== 'retrying'/);
   assert.match(handoff, /resultError: document\.querySelector\('\[data-action="result-error"\]'\)/);
-  assert.match(handoff, /actionButtons\.resultError\.disabled = workflowState !== 'retrying'/);
-  assert.match(handoff, /resolveRetry\('error'\)/);
+  assert.match(handoff, /const resultCanBeInjected = \['awaitingUser', 'retrying', 'stillDenied'\]\.includes\(workflowState\)/);
+  assert.match(handoff, /actionButtons\.resultError\.disabled = !resultCanBeInjected/);
+  assert.match(handoff, /function demonstrateRetryResult\(result\)[\s\S]*?startRetry\(\)[\s\S]*?resolveRetry\(result\)/);
+  assert.match(handoff, /demonstrateRetryResult\('error'\)/);
+  assert.match(handoff, /演示：成功回环/);
   assert.match(handoff, /draggableAppRow\.addEventListener\('dragstart', handleDragStart\)/);
   assert.match(handoff, /destinationDropZone\.addEventListener\('drop', handleDrop\)/);
   assert.match(handoff, /event\.dataTransfer\.effectAllowed = 'copy'/);
   assert.match(handoff, /appBundleFileUrl: 'file:\/\/\/Applications\/Cavalry%20Language%20Switcher\.app'/);
   assert.match(handoff, /event\.dataTransfer\.setData\('text\/uri-list', REVIEW\.appBundleFileUrl\)/);
   assert.match(handoff, /const isKnownAppSource = dragOutcome === 'pending'[\s\S]*?if \(!isKnownAppSource\)[\s\S]*?appDropRejected/);
-  assert.match(handoff, /appDropAccepted[\s\S]*?原型模拟 copy drop；权限尚未验证/);
+  assert.match(handoff, /appDropAccepted[\s\S]*?System Settings 模拟接收 App；正在验证权限/);
+  assert.match(handoff, /id="destinationDropZone" class="handoff-settings-window" data-drag-over="false"/);
+  assert.match(handoff, /event\.dataTransfer\.setDragImage\?\.\(appDragImage/);
+  assert.match(handoff, /function handleDrop\(event\)[\s\S]*?existingRowSwitch\.setAttribute\('aria-checked', 'true'\)[\s\S]*?demonstrateRetryResult\('success'\)/);
   assert.doesNotMatch(handoff, /系统设置接受 copy drop/, 'browser review must not present an HTML drop as native System Settings evidence');
   assert.match(handoff, /id="existingRowSwitch"[\s\S]*?role="switch" aria-checked="false"/);
   assert.match(handoff, /existingRowSwitch\.setAttribute\('aria-checked', 'true'\)/);
@@ -716,6 +722,10 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationStyles, /\.operation-event\s*\{[\s\S]*?animation:\s*operation-marker-enter var\(--duration-feedback\) ease-out both/);
   assert.match(tokens, /--duration-operation-running-min:\s*360ms/);
   assert.match(tokens, /--duration-operation-step-gap:\s*var\(--duration-feedback\)/);
+  assert.match(tokens, /--duration-operation-blocking-dwell:\s*1200ms/);
+  assert.match(operationLog, /async function presentBlocking\(event\)[\s\S]*?urgent: true[\s\S]*?--duration-operation-blocking-dwell/);
+  assert.match(operationLog, /remeasure: syncAfterLayout/);
+  assert.match(app, /permissionButton\.hidden =[\s\S]*?operationLog\.remeasure\(\)/);
   assert.match(operationLog, /cssNumber\('--operation-live-edge-tolerance'\)/);
   assert.match(app, /verifyInstallation:\s*'verify'[\s\S]*?ensureBaseline:\s*'archive'[\s\S]*?applyTransaction:\s*'translate'[\s\S]*?restartCavalry:\s*'restart'/);
   assert.match(app, /restoring && phase === 'applyTransaction' \? 'restore' : PHASE_ICONS\[phase\]/);
@@ -786,7 +796,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   const restoreConfirmationFunction = sourceFunction(
     app,
     'function showRestoreConfirmation() {',
-    'function showPermissionWait'
+    'async function showPermissionWait'
   );
   assert.match(
     restoreConfirmationFunction,
@@ -995,14 +1005,15 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(bootstrapFunction, /languageSelectControl\.setValue\(''\)/, 'bootstrap must not silently preselect a target language');
   const permissionWaitFunction = sourceFunction(
     app,
-    "function showPermissionWait(nextLanguage, phaseId = 'permissionRequired') {",
+    "async function showPermissionWait(nextLanguage, phaseId = 'permissionRequired') {",
     'async function bootstrap'
   );
   assert.match(permissionWaitFunction, /primary: needsElevation \? t\('requestElevation'\) : t\('openSettings'\)/);
   assert.match(permissionWaitFunction, /title: t\(needsElevation \? 'permissionWindowsTitle' : 'permissionMacTitle'\)/);
   assert.match(permissionWaitFunction, /body: t\(needsElevation \? 'permissionWindowsBody' : 'permissionMacBody'\)/);
   assert.match(permissionWaitFunction, /secondary: t\('cancel'\)/);
-  assert.match(permissionWaitFunction, /operationLog\.upsert\(\{ id: phaseId,[\s\S]*?state: 'warning',[\s\S]*?urgent: true/);
+  assert.match(permissionWaitFunction, /await operationLog\.presentBlocking\(\{[\s\S]*?id: phaseId,[\s\S]*?state: 'warning'/);
+  assert.match(runApplyFunction, /await showPermissionWait\(nextLanguage, terminalPhaseEvent\?\.phase\)/);
   assert.doesNotMatch(permissionWaitFunction, /setStatus\('waitingPermission'/);
   assert.doesNotMatch(permissionWaitFunction, /retryApply|Retry Apply/);
   assert.doesNotMatch(app, /maintenanceHeading|extractButton|restoreEnglishButton|refreshEnglish/);

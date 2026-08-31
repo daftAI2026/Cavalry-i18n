@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer/icons.js 与 renderer/operation-log.js、最小 DOM/时钟 fixture。
- * [OUTPUT]: 验证 Marker 稳定 upsert、浏览器下一帧布局收敛后的 live-edge、首尾 Message 改变三轨布局后的溢出/起止边缘回算、快事件可读串行、结果排队与错误立即抢占。
+ * [OUTPUT]: 验证 Marker 稳定 upsert、浏览器下一帧布局收敛后的 live-edge、首尾 Message 或外部权限轨改变布局后的溢出/起止边缘回算、快事件可读串行、结果排队与错误立即抢占。
  * [POS]: tools 的任务反馈专属运行时合同；从综合 bridge 测试拆出，避免 renderer 业务 fixture 承担组件内部时序。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -130,6 +130,28 @@ test('a blocker description remeasures after layout and pushes the live edge upw
 
   assert.equal(elements.viewport.dataset.overflowing, 'false');
   committedScrollHeight = 104;
+  flushAnimationFrames();
+  assert.equal(elements.viewport.dataset.overflowing, 'true');
+  assert.equal(elements.viewport.dataset.atEnd, 'true');
+  assert.equal(elements.viewport.scrollTop, 104);
+});
+
+test('external permission controls can shrink the viewport without clipping the blocker', () => {
+  const { elements, log, flushAnimationFrames } = fixture();
+  let viewportHeight = 122;
+  elements.viewport.scrollTop = 0;
+  Object.defineProperty(elements.viewport, 'clientHeight', {
+    configurable: true, get: () => viewportHeight,
+  });
+  Object.defineProperty(elements.viewport, 'scrollHeight', {
+    configurable: true, get: () => 104,
+  });
+  log.replace({ id: 'verify', title: 'Installation verified', state: 'completed' });
+  log.upsert({ id: 'baseline', title: 'Recovery files ready', state: 'completed' });
+  log.upsert({ id: 'apply', title: 'System permission required', description: 'Allow changes, then retry.', state: 'warning', urgent: true });
+  assert.equal(elements.viewport.dataset.overflowing, 'false');
+  viewportHeight = 78;
+  log.remeasure();
   flushAnimationFrames();
   assert.equal(elements.viewport.dataset.overflowing, 'true');
   assert.equal(elements.viewport.dataset.atEnd, 'true');

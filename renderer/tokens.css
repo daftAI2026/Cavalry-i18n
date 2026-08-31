@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印、字重、4px 间距及 vbg-blue-700 informational 颜色角色，依赖 macOS AppKit 与 Windows DWM 的原生窗口几何及平台系统字体策略
- * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 节奏、窗口 Chrome、共享 Button、68px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级与动效真相源
+ * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 节奏、窗口 Chrome、共享 Button、68px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级、权限阻断可读停顿与动效真相源
  * [POS]: renderer 视觉系统的基础层；button/styles/window-controls 等组件层只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -228,6 +228,8 @@
   /* 后端不等待这些时序；仅保证人眼至少看见 running，并让相邻 Marker 分开落位。 */
   --duration-operation-running-min: 360ms;
   --duration-operation-step-gap: var(--duration-feedback);
+  /* 阻断先在 Activity 中完整落位，再让 AlertDialog 接管注意力；这不是装饰动画，Reduce Motion 不应移除。 */
+  --duration-operation-blocking-dwell: 1200ms;
   --duration-reduced-motion: 0.01ms;
   --spinner-turn: 1turn;
 }

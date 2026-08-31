@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实 permissionMac renderer iframe，依赖 renderer 的 tokens/Button/语义图标/应用标识，并注入 ui_review_permission_handoff_runtime 的独立行为层。
- * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、浏览器拖拽审查边界、生产任务重试、成功后反向回收及不入库的本机 Raster/System Settings 对照区。
+ * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、整窗 copy-drop 审查、生产任务重试、成功后反向回收及不入库的本机 Raster/System Settings 对照区。
  * [POS]: tools UI Review 的独立权限动画舞台结构/样式层；只用 DOM/HTML 替身审查系统设置目标、视觉连续性和后端结果，本机参考缺失时降级为说明文字，不伪造 NSImage/NSPanel/NSDraggingSession 或 native 授权，并与工作台导航壳及行为层保持单向依赖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -31,6 +31,8 @@ function permissionHandoffHtml() {
       --handoff-target-viewport-height: 484px;
       --handoff-arrow-size: 28px;
       --handoff-arrow-offset-y: -10px;
+      /* 公开 AppKit 样本的 Finder 风格 drag image 规格；不冒充私有样本参数。 */
+      --handoff-drag-image-size: 56px;
     }
     *, *::before, *::after { box-sizing: border-box; }
     html, body { min-width: 100%; min-height: 100%; margin: 0; }
@@ -57,14 +59,14 @@ function permissionHandoffHtml() {
     .handoff-source-frame-wrap, .handoff-settings-window { min-width: 0; min-height: 0; border: var(--stroke-hairline) solid var(--border); border-radius: var(--radius-lg); background: var(--surface-raised); box-shadow: var(--shadow-dialog); }
     .handoff-source-frame-wrap { position: relative; flex: 1 1 auto; display: grid; place-items: center; padding: var(--padding-dialog); overflow: hidden; }
     #sourceFrame { display: block; inline-size: min(100%, var(--handoff-source-viewport-width)); block-size: min(100%, var(--handoff-source-viewport-height)); border: var(--stroke-hairline) solid var(--border-strong); border-radius: var(--radius-dialog); background: var(--window); box-shadow: var(--shadow-control); }
-    .handoff-settings-window { inline-size: min(100%, var(--handoff-target-viewport-width)); block-size: min(100%, var(--handoff-target-viewport-height)); align-self: center; overflow: hidden; }
+    .handoff-settings-window { inline-size: min(100%, var(--handoff-target-viewport-width)); block-size: min(100%, var(--handoff-target-viewport-height)); align-self: center; overflow: hidden; transition: border-color var(--duration-feedback) ease, box-shadow var(--duration-feedback) ease; }
+    .handoff-settings-window[data-drag-over="true"] { border-color: var(--tone-info); box-shadow: 0 0 0 var(--stroke-focus) color-mix(in oklch, var(--tone-info), transparent 68%), var(--shadow-dialog); }
     .handoff-settings-titlebar { min-height: var(--control-height); display: flex; align-items: center; gap: var(--gap-inline); padding: 0 var(--padding-dialog); border-bottom: var(--stroke-hairline) solid var(--border); background: var(--surface); font-size: var(--type-label); font-weight: var(--weight-medium); }
     .handoff-settings-dot { inline-size: var(--space-2); block-size: var(--space-2); border-radius: var(--radius-circle); background: var(--border-strong); }
     .handoff-settings-content { display: flex; flex-direction: column; gap: var(--gap-section); padding: var(--space-6); }
     .handoff-settings-kicker { margin: 0; color: var(--text-secondary); font-size: var(--type-label); line-height: var(--line-height-label); }
     .handoff-settings-heading { margin: 0; font-size: var(--type-heading); font-weight: var(--weight-heading); line-height: var(--line-height-heading); }
-    .handoff-target-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--gap-inline); min-height: calc(var(--control-height) + var(--space-6)); padding: var(--padding-panel); border: var(--stroke-hairline) solid var(--border); border-radius: var(--radius-md); background: var(--surface-raised); transition: border-color var(--duration-feedback) ease, background-color var(--duration-feedback) ease; }
-    .handoff-target-row[data-drag-over="true"] { border-color: var(--border-control-focus); background: var(--surface-hover); }
+    .handoff-target-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--gap-inline); min-height: calc(var(--control-height) + var(--space-6)); padding: var(--padding-panel); border: var(--stroke-hairline) solid var(--border); border-radius: var(--radius-md); background: var(--surface-raised); }
     .handoff-target-app-icon { inline-size: var(--space-6); block-size: var(--space-6); display: block; object-fit: contain; }
     .handoff-target-copy { min-width: 0; display: flex; flex-direction: column; gap: var(--gap-meta-stack); font-size: var(--type-compact); line-height: var(--line-height-compact); }
     .handoff-target-copy strong { font-weight: var(--weight-medium); }
@@ -79,6 +81,7 @@ function permissionHandoffHtml() {
     .handoff-draggable-app { min-width: 0; flex: 1 1 auto; display: flex; align-items: center; gap: var(--gap-inline); padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: grab; }
     .handoff-draggable-app:active { cursor: grabbing; }
     .handoff-draggable-app[data-dragging="true"] { opacity: 0; }
+    .handoff-drag-image { position: fixed; inset: -9999px auto auto -9999px; inline-size: var(--handoff-drag-image-size); block-size: var(--handoff-drag-image-size); object-fit: contain; pointer-events: none; }
     .handoff-accessory-icon { inline-size: var(--space-8); block-size: var(--space-8); flex: 0 0 auto; object-fit: contain; }
     .handoff-accessory-copy { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: var(--gap-meta-stack); font-size: var(--type-compact); line-height: var(--line-height-compact); }
     .handoff-accessory-copy strong { font-weight: var(--weight-medium); }
@@ -166,12 +169,12 @@ function permissionHandoffHtml() {
           <span class="handoff-pane-title">Destination · system settings</span>
           <span class="handoff-native-note">native mock</span>
         </div>
-        <div class="handoff-settings-window">
+        <div id="destinationDropZone" class="handoff-settings-window" data-drag-over="false">
           <div class="handoff-settings-titlebar"><span class="handoff-settings-dot" aria-hidden="true"></span><span>System Settings</span></div>
           <div class="handoff-settings-content">
             <p class="handoff-settings-kicker">Privacy &amp; Security</p>
             <h2 class="handoff-settings-heading">App Management</h2>
-            <div id="destinationDropZone" class="handoff-target-row" data-drag-over="false">
+            <div id="destinationPermissionRow" class="handoff-target-row">
               <img class="handoff-target-app-icon" src="/renderer/app-icon.png" alt="" />
               <span class="handoff-target-copy"><strong>Language Switcher</strong><span>Allow changes to the selected app.</span></span>
               <button id="existingRowSwitch" class="handoff-target-switch" type="button" role="switch" aria-checked="false" aria-label="模拟开启已有 App 行"></button>
@@ -188,6 +191,7 @@ function permissionHandoffHtml() {
             </button>
             <button id="reverseFromAccessory" class="ui-button button button-outline handoff-control-button" type="button">重试原操作</button>
           </section>
+          <img id="appDragImage" class="handoff-drag-image" src="/renderer/app-icon.png" alt="" />
         </div>
       </article>
 
@@ -206,9 +210,9 @@ function permissionHandoffHtml() {
     <section class="handoff-controls" aria-label="动画控制">
       <button class="ui-button button button-primary handoff-control-button" data-action="open-settings" type="button">打开设置并交接</button>
       <button class="ui-button button button-outline handoff-control-button" data-action="retry" type="button">重试原操作</button>
-      <button class="ui-button button button-outline handoff-control-button" data-action="result-success" type="button">注入：事务成功</button>
-      <button class="ui-button button button-outline handoff-control-button" data-action="result-denied" type="button">注入：仍需权限</button>
-      <button class="ui-button button button-outline handoff-control-button" data-action="result-error" type="button">注入：其他错误</button>
+      <button class="ui-button button button-outline handoff-control-button" data-action="result-success" type="button">演示：成功回环</button>
+      <button class="ui-button button button-outline handoff-control-button" data-action="result-denied" type="button">演示：仍需权限</button>
+      <button class="ui-button button button-outline handoff-control-button" data-action="result-error" type="button">演示：其他错误</button>
       <button class="ui-button button button-outline handoff-control-button" data-action="reset" type="button">重置</button>
       <div class="handoff-motion-control">
         <label><input id="reduceMotion" type="checkbox" /> 项目无障碍降级：静态交接</label>

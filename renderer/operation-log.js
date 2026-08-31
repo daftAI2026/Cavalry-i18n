@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖标准 DOM 的文本/滚动节点与 icons.js 的冻结语义 SVG 工厂，消费 app.js 提供的本地化任务引言、整体结果、阶段说明、状态与可选图标名
- * [OUTPUT]: 对外提供 createOperationLog；idle 以完整面板双轴居中，running 固定首尾 Message 并只让中段 Marker 视窗滚动，首尾按词组 text delta 非阻塞更新同一节点且在浏览器完成布局后复测中段溢出与 live edge，真实阶段按稳定 id 串行投影并让错误或显式阻塞项立即抢占
+ * [OUTPUT]: 对外提供 createOperationLog；idle 以完整面板双轴居中，running 固定首尾 Message 并只让中段 Marker 视窗滚动，首尾按词组 text delta 非阻塞更新同一节点且在浏览器完成布局后复测中段溢出与 live edge，真实阶段按稳定 id 串行投影并让错误或显式阻塞项立即抢占；阻断项可返回完成落位后的共享可读停顿，外部权限轨显隐后可显式触发同一重测
  * [POS]: renderer 的任务反馈状态机；位于业务语义映射与 operation-log.css 之间，不读取 Tauri、语言包或 Cavalry 安装状态，不阻塞后端事务，只把已到达的机器事件按可读节奏投影
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -256,6 +256,12 @@
       enqueueVisual({ kind: 'event', event });
     }
 
+    async function presentBlocking(event) {
+      upsert({ ...event, urgent: true });
+      const dwell = cssNumber('--duration-operation-blocking-dwell');
+      if (dwell > 0) await new Promise((resolve) => setTimeout(resolve, dwell));
+    }
+
     function clear() {
       clearEntries();
       clearMessages();
@@ -309,7 +315,7 @@
     });
     setMode('idle');
 
-    return Object.freeze({ clear, idle, setIdleMessage, start, complete, replace, upsert, finishRunning });
+    return Object.freeze({ clear, idle, setIdleMessage, start, complete, replace, upsert, presentBlocking, remeasure: syncAfterLayout, finishRunning });
   }
 
   window.createOperationLog = createOperationLog;
