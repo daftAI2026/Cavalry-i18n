@@ -9,6 +9,7 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 
 const ROOT = path.resolve(__dirname, '..', '..');
@@ -109,6 +110,98 @@ test('non-read-only initialization requires the complete explicit artifact contr
     () => recorder.expectedContractFromArgs({ ...LIVE_ARGS, 'expected-language': 'fr' }, 'fresh-drop-success'),
     /--expected-language/,
   );
+  assert.throws(
+    () => recorder.expectedContractFromArgs({ ...LIVE_ARGS, 'expected-language': 'en' }, 'fresh-drop-success'),
+    /non-English live target/,
+  );
+});
+
+test('fresh initialization rejects any existing current-user state or translator residue', () => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-r5-contract-'));
+  const cavalryPath = path.join(root, 'Cavalry.app');
+  const statePath = path.join(root, 'Application Support', 'state.json');
+  const markerPath = path.join(cavalryPath, 'Contents', 'Resources', recorder.CAVALRY_LANGUAGE_MARKER);
+  const injectorPath = path.join(cavalryPath, 'Contents', 'Frameworks', recorder.CAVALRY_INJECTOR);
+  fs.mkdirSync(path.dirname(markerPath), { recursive: true });
+  fs.mkdirSync(path.dirname(injectorPath), { recursive: true });
+  fs.mkdirSync(path.dirname(statePath), { recursive: true });
+  const cavalry = {
+    path: cavalryPath,
+    codesign: { path: cavalryPath, strict: true },
+    vendorTeamId: 'TEAM123456',
+    executable: { sha256: SHA256 },
+    runtimeExecutable: { sha256: SHA256 },
+  };
+  try {
+    const proof = recorder.assertFreshInstallation(cavalry, statePath);
+    assert.equal(proof.state.absent, true);
+    assert.equal(proof.marker.absent, true);
+    assert.equal(proof.injector.absent, true);
+    for (const [label, residue] of [
+      ['state.json', statePath],
+      ['language marker', markerPath],
+      ['translator injector', injectorPath],
+    ]) {
+      fs.writeFileSync(residue, 'residue');
+      assert.throws(
+        () => recorder.assertFreshInstallation(cavalry, statePath),
+        /must be absent before initialization/,
+        label,
+      );
+      fs.rmSync(residue);
+    }
+  } finally {
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+});
+
+test('fresh-installation proof binds empty state to strict vendor identity and exact hashes', () => {
+  const manifest = {
+    expected: {
+      cavalryExecutableSha256: SHA256,
+      cavalryRuntimeSha256: SHA256,
+      vendorTeamId: 'TEAM123456',
+    },
+    user: {
+      applicationSupportStatePath: '/Users/test-user/Library/Application Support/com.daftai.cavalry-i18n/state.json',
+    },
+    cavalry: { path: '/Users/test-user/Applications/Cavalry.app' },
+  };
+  const valid = {
+    state: { path: manifest.user.applicationSupportStatePath, absent: true },
+    marker: {
+      path: path.join(manifest.cavalry.path, 'Contents', 'Resources', recorder.CAVALRY_LANGUAGE_MARKER),
+      absent: true,
+    },
+    injector: {
+      path: path.join(manifest.cavalry.path, 'Contents', 'Frameworks', recorder.CAVALRY_INJECTOR),
+      absent: true,
+    },
+    vendor: {
+      codesign: { path: manifest.cavalry.path, strict: true },
+      teamId: 'TEAM123456',
+      executableSha256: SHA256,
+      runtimeSha256: SHA256,
+    },
+  };
+  assert.equal(recorder.validateFreshInstallationProof(valid, manifest), valid);
+  for (const [label, mutate] of [
+    ['state absence', (proof) => { proof.state.absent = false; }],
+    ['marker absence', (proof) => { proof.marker.absent = false; }],
+    ['injector absence', (proof) => { proof.injector.absent = false; }],
+    ['strict codesign', (proof) => { proof.vendor.codesign.strict = false; }],
+    ['team identity', (proof) => { proof.vendor.teamId = 'OTHER'; }],
+    ['executable hash', (proof) => { proof.vendor.executableSha256 = 'c'.repeat(64); }],
+    ['runtime hash', (proof) => { proof.vendor.runtimeSha256 = 'c'.repeat(64); }],
+  ]) {
+    const invalid = structuredClone(valid);
+    mutate(invalid);
+    assert.throws(
+      () => recorder.validateFreshInstallationProof(invalid, manifest),
+      /fresh-installation proof/,
+      label,
+    );
+  }
 });
 
 test('state proof accepts only the target app, expected language and a non-empty operation id', () => {
@@ -174,7 +267,10 @@ test('producer records system settings as metadata but screenshots only switcher
 });
 
 test('session output stays outside repository and both app bundles', () => {
-  const source = read('tools/macos-handoff-acceptance/record_checkpoint.js');
+  const source = [
+    read('tools/macos-handoff-acceptance/record_checkpoint.js'),
+    read('tools/macos-handoff-acceptance/session_contract.js'),
+  ].join('\n');
   assert.equal(recorder.MANIFEST_SCHEMA, 3);
   assert.equal(recorder.CHECKPOINT_SCHEMA, 2);
   assert.equal(recorder.SEAL_SCHEMA, 3);
@@ -192,6 +288,10 @@ test('session output stays outside repository and both app bundles', () => {
   assert.match(source, /Applications', 'Cavalry\.app'/);
   assert.match(source, /applicationSupportStatePath/);
   assert.match(source, /Contents', 'Resources', CAVALRY_LANGUAGE_MARKER/);
+  assert.match(source, /Contents', 'Frameworks', CAVALRY_INJECTOR/);
+  assert.match(source, /lstatSync\(file\)/);
+  assert.match(source, /freshInstallation/);
+  assert.match(source, /strict vendor codesign proof/);
   assert.match(source, /strictCodesign\(manifest\.cavalry\.path/);
   assert.match(source, /permissionState: 'not-recorded'/);
   assert.match(source, /PERMISSION_BLOCKED_ASSERTION/);
@@ -219,7 +319,10 @@ test('producer and probe never automate privacy state or synthesize user input',
 });
 
 test('permission-blocked remains an observation-only checkpoint', () => {
-  const source = read('tools/macos-handoff-acceptance/record_checkpoint.js');
+  const source = [
+    read('tools/macos-handoff-acceptance/record_checkpoint.js'),
+    read('tools/macos-handoff-acceptance/session_contract.js'),
+  ].join('\n');
   assert.match(source, /phase === 'permission-blocked'[\s\S]*PERMISSION_BLOCKED_ASSERTION/);
   assert.match(source, /Only the real Switcher UI was observed/);
   assert.doesNotMatch(source, /permissionGranted\s*:/);
@@ -231,6 +334,7 @@ test('new module keeps L2/L3 protocol and parent navigation', () => {
   const files = [
     'tools/macos-handoff-acceptance/CLAUDE.md',
     'tools/macos-handoff-acceptance/record_checkpoint.js',
+    'tools/macos-handoff-acceptance/session_contract.js',
     'tools/macos-handoff-acceptance/window_probe.swift',
     'tools/macos-handoff-acceptance/check_contract.test.js',
   ];

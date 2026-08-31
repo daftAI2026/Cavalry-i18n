@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖精确 packaged Switcher/Cavalry app、显式仓库外 session、严格 source/artifact/user contract、window_probe.swift 与 macOS codesign/screencapture。
- * [OUTPUT]: 对外提供 initialize/checkpoint/seal/verify 四动作；冻结 clean detached source、bundle/host/场景顺序，记录 WindowServer point/backing-scale，并只封存 Switcher 自有窗口 PNG。
- * [POS]: packaged App Management handoff 的只读证据 producer；不操作 System Settings、不读写 TCC；permission-blocked 只记录真实 Switcher UI，retry-verified 才回读真实 marker/codesign/state。
+ * [INPUT]: 依赖 session_contract 的数据合同、精确 packaged Switcher/Cavalry app、显式仓库外 session、window_probe.swift 与 macOS codesign/screencapture。
+ * [OUTPUT]: 对外提供 initialize/checkpoint/seal/verify 四动作；冻结 clean detached source、bundle/host/场景顺序，并记录真正空安装、WindowServer point/backing-scale 与仅 Switcher 自有窗口 PNG。
+ * [POS]: packaged App Management handoff 的现场证据 producer；initialize 先证明当前用户 state.json、语言 marker 与 injector 均不存在，随后才允许人工权限链；不操作 System Settings、不读写 TCC。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -26,72 +26,38 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const PROBE = path.join(__dirname, 'window_probe.swift');
 const MANIFEST = 'manifest.json';
 const SEAL = 'seal.json';
-const MANIFEST_SCHEMA = 3;
-const CHECKPOINT_SCHEMA = 2;
-const SEAL_SCHEMA = 3;
-const RETRY_VERIFICATION_SCHEMA = 1;
-const READ_ONLY_SCENARIO = 'read-only-baseline';
-const CAVALRY_RUNTIME_EXECUTABLE = 'Cavalry';
-const CAVALRY_LANGUAGE_MARKER = 'cavalry-i18n-lang.txt';
-const APP_DATA_DIRECTORY = 'com.daftai.cavalry-i18n';
-const SUPPORTED_LANGUAGES = new Set(['en', 'zh-Hans', 'zh-Hant', 'ja_JP']);
-const OPERATION_ID_PATTERN = /^[A-Za-z0-9][A-Za-z0-9._-]*$/;
-const EXPECTED_FIELDS = Object.freeze([
-  Object.freeze({ key: 'sourceCommit', argument: 'expected-source-commit', label: '--expected-source-commit' }),
-  Object.freeze({ key: 'switcherExecutableSha256', argument: 'expected-switcher-executable-sha256', label: '--expected-switcher-executable-sha256' }),
-  Object.freeze({ key: 'cavalryExecutableSha256', argument: 'expected-cavalry-executable-sha256', label: '--expected-cavalry-executable-sha256' }),
-  Object.freeze({ key: 'cavalryRuntimeSha256', argument: 'expected-cavalry-runtime-sha256', label: '--expected-cavalry-runtime-sha256' }),
-  Object.freeze({ key: 'vendorTeamId', argument: 'expected-vendor-team-id', label: '--expected-vendor-team-id' }),
-  Object.freeze({ key: 'language', argument: 'expected-language', label: '--expected-language' }),
-]);
-const VALUE_ARGUMENTS = new Set([
-  'session-dir', 'switcher-app', 'cavalry-app', 'scenario', 'checkpoint',
-  ...EXPECTED_FIELDS.map(({ argument }) => argument),
-]);
-const BOOLEAN_ARGUMENTS = new Set(['initialize', 'seal', 'verify']);
-const PERMISSION_BLOCKED_ASSERTION =
-  'Only the real Switcher UI was observed; this checkpoint records no permission truth.';
-const OBSERVATION_CONTRACT = Object.freeze({ switcherOnly: true, permissionState: 'not-recorded' });
-const SCENARIOS = Object.freeze({
-  'read-only-baseline': Object.freeze(['baseline']),
-  'fresh-drop-success': Object.freeze([
-    'baseline', 'permission-blocked', 'helper-presented', 'drop-accepted',
-    'retry-verified', 'reverse-complete',
-  ]),
-  'fresh-drop-still-denied': Object.freeze([
-    'baseline', 'permission-blocked', 'helper-presented', 'drop-accepted',
-    'retry-still-denied',
-  ]),
-  'manual-retry-still-denied': Object.freeze([
-    'baseline', 'permission-blocked', 'helper-presented', 'retry-still-denied',
-  ]),
-  'drag-cancel': Object.freeze([
-    'baseline', 'permission-blocked', 'helper-presented', 'drag-cancelled',
-  ]),
-  'existing-row-success': Object.freeze([
-    'baseline', 'permission-blocked', 'helper-presented', 'existing-row',
-    'retry-verified', 'reverse-complete',
-  ]),
-  'existing-row-still-denied': Object.freeze([
-    'baseline', 'permission-blocked', 'helper-presented', 'existing-row',
-    'retry-still-denied',
-  ]),
-  'target-lost': Object.freeze([
-    'baseline', 'permission-blocked', 'helper-presented', 'target-lost',
-  ]),
-  'reduced-motion-drop-success': Object.freeze([
-    'baseline', 'permission-blocked', 'reduced-motion-helper', 'drop-accepted',
-    'retry-verified', 'reduced-motion-complete',
-  ]),
-  'reduced-motion-existing-row-success': Object.freeze([
-    'baseline', 'permission-blocked', 'reduced-motion-helper', 'existing-row',
-    'retry-verified', 'reduced-motion-complete',
-  ]),
-});
-const PHASES = Object.freeze(new Set(Object.values(SCENARIOS).flat()));
+const {
+  APP_DATA_DIRECTORY,
+  BOOLEAN_ARGUMENTS,
+  CAVALRY_INJECTOR,
+  CAVALRY_LANGUAGE_MARKER,
+  CAVALRY_RUNTIME_EXECUTABLE,
+  CHECKPOINT_SCHEMA,
+  EXPECTED_FIELDS,
+  MANIFEST_SCHEMA,
+  OBSERVATION_CONTRACT,
+  PERMISSION_BLOCKED_ASSERTION,
+  PHASES,
+  READ_ONLY_SCENARIO,
+  RETRY_VERIFICATION_SCHEMA,
+  SCENARIOS,
+  SEAL_SCHEMA,
+  SUPPORTED_LANGUAGES,
+  VALUE_ARGUMENTS,
+  expectedContractFromArgs,
+  isReadOnlyScenario,
+  manifestSequence,
+  scenarioPhases,
+  validateCheckpointRecord,
+  validateExpectedContract,
+  validateFreshInstallationProof,
+  validateLowerHex,
+  validateManifestContract,
+  validateRetryVerification,
+  validateStatePayload,
+} = require('./session_contract');
 
 function fail(message) { throw new Error(message); }
-function isReadOnlyScenario(scenario) { return scenario === READ_ONLY_SCENARIO; }
 
 function parseArgs(argv) {
   const result = {};
@@ -124,68 +90,6 @@ function writeExclusive(file, value) {
 function readJson(file) {
   regular(file);
   return JSON.parse(fs.readFileSync(file, 'utf8'));
-}
-
-function validateLowerHex(value, length, label) {
-  if (typeof value !== 'string' || !new RegExp(`^[0-9a-f]{${length}}$`).test(value)) {
-    fail(`${label} must be lowercase hexadecimal with ${length} characters`);
-  }
-  return value;
-}
-
-function validateTeamId(value, label) {
-  if (typeof value !== 'string' || !/^[A-Za-z0-9][A-Za-z0-9_-]*$/.test(value) || value === 'not-set') {
-    fail(`${label} must be a concrete vendor Team ID`);
-  }
-  return value;
-}
-
-function validateLanguage(value, label) {
-  if (typeof value !== 'string' || !SUPPORTED_LANGUAGES.has(value)) {
-    fail(`${label} must be one of ${[...SUPPORTED_LANGUAGES].join(', ')}`);
-  }
-  return value;
-}
-
-function validateExpectedContract(contract, required) {
-  if (!contract || typeof contract !== 'object' || Array.isArray(contract)) {
-    fail('Expected evidence contract is missing');
-  }
-  const normalized = {};
-  let present = 0;
-  for (const { key, label } of EXPECTED_FIELDS) {
-    const value = contract[key] == null ? null : contract[key];
-    if (value !== null) present += 1;
-    normalized[key] = value;
-  }
-  if (required && present !== EXPECTED_FIELDS.length) {
-    const missing = EXPECTED_FIELDS.filter(({ key }) => normalized[key] === null)
-      .map(({ label }) => label).join(', ');
-    fail(`Non-read-only scenario requires explicit evidence contract: ${missing}`);
-  }
-  if (!required && present !== 0 && present !== EXPECTED_FIELDS.length) {
-    fail('Read-only scenario accepts either no live contract or all expected contract fields');
-  }
-  if (normalized.sourceCommit !== null) validateLowerHex(normalized.sourceCommit, 40, '--expected-source-commit');
-  if (normalized.switcherExecutableSha256 !== null) {
-    validateLowerHex(normalized.switcherExecutableSha256, 64, '--expected-switcher-executable-sha256');
-  }
-  if (normalized.cavalryExecutableSha256 !== null) {
-    validateLowerHex(normalized.cavalryExecutableSha256, 64, '--expected-cavalry-executable-sha256');
-  }
-  if (normalized.cavalryRuntimeSha256 !== null) {
-    validateLowerHex(normalized.cavalryRuntimeSha256, 64, '--expected-cavalry-runtime-sha256');
-  }
-  if (normalized.vendorTeamId !== null) validateTeamId(normalized.vendorTeamId, '--expected-vendor-team-id');
-  if (normalized.language !== null) validateLanguage(normalized.language, '--expected-language');
-  return normalized;
-}
-
-function expectedContractFromArgs(args, scenario) {
-  const contract = Object.fromEntries(EXPECTED_FIELDS.map(({ key, argument }) => [
-    key, args[argument] === undefined ? null : args[argument],
-  ]));
-  return validateExpectedContract(contract, !isReadOnlyScenario(scenario));
 }
 
 function currentUserIdentity() {
@@ -243,6 +147,35 @@ function applicationSupportStatePath(user) {
   return path.join(user.home, 'Library', 'Application Support', APP_DATA_DIRECTORY, 'state.json');
 }
 
+function assertAbsent(file, label) {
+  try {
+    fs.lstatSync(file);
+  } catch (error) {
+    if (error && error.code === 'ENOENT') return;
+    throw error;
+  }
+  fail(`${label} must be absent before initialization: ${file}`);
+}
+
+function assertFreshInstallation(cavalry, statePath) {
+  const markerPath = path.join(cavalry.path, 'Contents', 'Resources', CAVALRY_LANGUAGE_MARKER);
+  const injectorPath = path.join(cavalry.path, 'Contents', 'Frameworks', CAVALRY_INJECTOR);
+  assertAbsent(statePath, 'Current-user state.json');
+  assertAbsent(markerPath, 'Cavalry language marker');
+  assertAbsent(injectorPath, 'Cavalry translator injector');
+  return {
+    state: { path: statePath, absent: true },
+    marker: { path: markerPath, absent: true },
+    injector: { path: injectorPath, absent: true },
+    vendor: {
+      codesign: cavalry.codesign,
+      teamId: cavalry.vendorTeamId,
+      executableSha256: cavalry.executable.sha256,
+      runtimeSha256: cavalry.runtimeExecutable.sha256,
+    },
+  };
+}
+
 function gitSymbolicHead() {
   const result = cp.spawnSync('/usr/bin/git', ['-C', ROOT, 'symbolic-ref', '--quiet', '--short', 'HEAD'], {
     encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
@@ -291,19 +224,6 @@ function verifyRepositoryLock(repository, user = null) {
     fail(`Source tree owner must differ from current UID ${user.uid}`);
   }
   return current;
-}
-function scenarioPhases(name) {
-  const phases = SCENARIOS[name];
-  if (!phases) fail(`Unknown scenario: ${name || '<missing>'}`);
-  return phases;
-}
-function manifestSequence(manifest) {
-  validateManifestContract(manifest);
-  const sequence = scenarioPhases(manifest.scenario);
-  if (JSON.stringify(manifest.sequence) !== JSON.stringify(sequence)) {
-    fail('Manifest scenario contract drifted');
-  }
-  return sequence;
 }
 function recordedPhases(session, sequence) {
   const prefix = [];
@@ -358,7 +278,7 @@ function appIdentity(appPath, expectedKind, runtimeExecutableName = null, option
   const executable = path.join(resolved, 'Contents', 'MacOS', plistValue(resolved, 'CFBundleExecutable'));
   regular(executable);
   strictChild(resolved, executable, `${expectedKind} executable`);
-  strictCodesign(resolved, expectedKind);
+  const codesign = strictCodesign(resolved, expectedKind);
   const result = {
     path: resolved,
     executableName: path.basename(executable),
@@ -366,6 +286,7 @@ function appIdentity(appPath, expectedKind, runtimeExecutableName = null, option
     version: plistValue(resolved, 'CFBundleShortVersionString'),
     infoPlist: identity(path.join(resolved, 'Contents', 'Info.plist')),
     executable: binaryIdentity(executable),
+    codesign,
   };
   if (runtimeExecutableName) {
     const runtimeExecutable = path.join(resolved, 'Contents', 'MacOS', runtimeExecutableName);
@@ -397,70 +318,6 @@ function assertExpectedIdentities(switcher, cavalry, expected) {
   if (expected.vendorTeamId !== null && cavalry.vendorTeamId !== expected.vendorTeamId) {
     fail(`Cavalry vendor Team ID does not match --expected-vendor-team-id: ${cavalry.vendorTeamId || '<missing>'}`);
   }
-}
-
-function validateManifestContract(manifest) {
-  if (!manifest || manifest.schema !== MANIFEST_SCHEMA) {
-    fail(`Manifest schema ${MANIFEST_SCHEMA} required`);
-  }
-  const readOnly = isReadOnlyScenario(manifest.scenario);
-  const expected = validateExpectedContract(manifest.expected, !readOnly);
-  if (!manifest.repository || typeof manifest.repository.root !== 'string' ||
-      typeof manifest.repository.head !== 'string' ||
-      manifest.repository.expectedHead !== (expected.sourceCommit || null) ||
-      manifest.repository.clean !== true || manifest.repository.detached !== true ||
-      !Array.isArray(manifest.repository.status) || manifest.repository.status.length !== 0 ||
-      !Number.isInteger(manifest.repository.sourceTreeOwnerUid)) {
-    fail('Manifest source lock is invalid');
-  }
-  validateLowerHex(manifest.repository.head, 40, 'manifest source commit');
-  if (expected.sourceCommit !== null && manifest.repository.head !== expected.sourceCommit) {
-    fail('Manifest source commit does not match the explicit expected source commit');
-  }
-  if (!manifest.switcher || !manifest.cavalry ||
-      !manifest.switcher.executable || !manifest.cavalry.executable ||
-      !manifest.cavalry.runtimeExecutable) {
-    fail('Manifest app identity is incomplete');
-  }
-  if (!readOnly) {
-    if (!manifest.user || !Number.isInteger(manifest.user.uid) ||
-        typeof manifest.user.home !== 'string' ||
-        typeof manifest.user.cavalryAppPath !== 'string' ||
-        typeof manifest.user.applicationSupportStatePath !== 'string' ||
-        manifest.cavalry.path !== manifest.user.cavalryAppPath ||
-        manifest.user.cavalryAppPath !== path.join(manifest.user.home, 'Applications', 'Cavalry.app') ||
-        manifest.user.applicationSupportStatePath !== path.join(manifest.user.home, 'Library', 'Application Support', APP_DATA_DIRECTORY, 'state.json') ||
-        manifest.repository.sourceTreeOwnerUid === manifest.user.uid) {
-      fail('Manifest current-user application contract is incomplete');
-    }
-    if (manifest.cavalry.vendorTeamId !== expected.vendorTeamId ||
-        !manifest.cavalry.ownership ||
-        manifest.cavalry.ownership.bundleUid !== manifest.user.uid ||
-        manifest.cavalry.ownership.executableUid !== manifest.user.uid ||
-        manifest.cavalry.ownership.runtimeExecutableUid !== manifest.user.uid) {
-      fail('Manifest Cavalry ownership or vendor identity is invalid');
-    }
-  }
-  return manifest;
-}
-
-function validateStatePayload(state, expectedAppPath, expectedLanguage) {
-  if (!state || typeof state !== 'object' || Array.isArray(state)) fail('state.json must contain an object');
-  if (state.appPath !== expectedAppPath) {
-    fail(`state.json appPath does not match target: ${state.appPath || '<missing>'}`);
-  }
-  if (state.currentLang !== expectedLanguage) {
-    fail(`state.json currentLang does not match expected language: ${state.currentLang || '<missing>'}`);
-  }
-  if (typeof state.operationId !== 'string' || !state.operationId ||
-      !OPERATION_ID_PATTERN.test(state.operationId)) {
-    fail('state.json operationId must be a non-empty filename-safe value');
-  }
-  return {
-    appPath: state.appPath,
-    currentLang: state.currentLang,
-    operationId: state.operationId,
-  };
 }
 
 function verifyCurrentUserManifest(manifest) {
@@ -508,41 +365,6 @@ function verifyRetryOutcome(manifest) {
   };
 }
 
-function validateRetryVerification(record, manifest) {
-  if (!record || record.schema !== RETRY_VERIFICATION_SCHEMA ||
-      record.expectedLanguage !== manifest.expected.language ||
-      !record.marker || record.marker.language !== manifest.expected.language ||
-      !record.codesign || record.codesign.strict !== true ||
-      !record.state || record.state.path !== manifest.user.applicationSupportStatePath ||
-      record.state.ownerUid !== manifest.user.uid ||
-      record.state.appPath !== manifest.user.cavalryAppPath ||
-      record.state.currentLang !== manifest.expected.language ||
-      typeof record.state.operationId !== 'string' ||
-      !OPERATION_ID_PATTERN.test(record.state.operationId)) {
-    fail('retry-verified record does not contain the required post-retry proof');
-  }
-  return record;
-}
-
-function validateCheckpointRecord(record, phase, manifestPath, manifest) {
-  if (!record || record.schema !== CHECKPOINT_SCHEMA || record.phase !== phase ||
-      !record.manifest || record.manifest.path !== manifestPath ||
-      !Array.isArray(record.captures) || record.captures.length === 0 ||
-      !record.observation || record.observation.switcherOnly !== true ||
-      record.observation.permissionState !== 'not-recorded') {
-    fail(`${phase} checkpoint record is invalid`);
-  }
-  if (phase === 'permission-blocked') {
-    if (record.assertion !== PERMISSION_BLOCKED_ASSERTION) {
-      fail('permission-blocked must not fabricate permission truth');
-    }
-  } else if (record.assertion !== 'Window metadata and images are observations only; permission truth remains the real Switch/Restore result.') {
-    fail(`${phase} checkpoint assertion drifted`);
-  }
-  if (phase === 'retry-verified') validateRetryVerification(record.verification, manifest);
-  else if (record.verification !== null) fail(`${phase} cannot contain retry verification`);
-  return record;
-}
 function initialize(args) {
   if (!args['session-dir'] || !args['switcher-app'] || !args['cavalry-app'] || !args.scenario) {
     fail('--initialize requires --session-dir, --switcher-app, --cavalry-app and --scenario');
@@ -577,6 +399,7 @@ function initialize(args) {
   }
   assertExpectedIdentities(switcher, cavalry, expected);
   const applicationStatePath = user ? applicationSupportStatePath(user) : null;
+  const freshInstallation = readOnly ? null : assertFreshInstallation(cavalry, applicationStatePath);
   const session = resolveNewSession(args['session-dir'], [ROOT, switcher.path, cavalry.path]);
   fs.mkdirSync(session, { mode: 0o700 });
   const manifest = {
@@ -592,10 +415,12 @@ function initialize(args) {
       cavalryAppPath: cavalry.path,
       applicationSupportStatePath: applicationStatePath,
     } : null,
+    freshInstallation,
     host: collectMacHostIdentity(),
     switcher,
     cavalry,
   };
+  validateManifestContract(manifest);
   writeExclusive(path.join(session, MANIFEST), manifest);
   return session;
 }
@@ -772,6 +597,8 @@ function main(argv = process.argv) {
 
 if (require.main === module) main();
 module.exports = {
+  CAVALRY_INJECTOR,
+  CAVALRY_LANGUAGE_MARKER,
   CHECKPOINT_SCHEMA,
   MANIFEST_SCHEMA,
   PHASES,
@@ -781,6 +608,7 @@ module.exports = {
   SUPPORTED_LANGUAGES,
   appIdentity,
   applicationSupportStatePath,
+  assertFreshInstallation,
   checkpoint,
   currentUserIdentity,
   expectedContractFromArgs,
@@ -793,6 +621,8 @@ module.exports = {
   seal,
   validateCheckpointRecord,
   validateExpectedContract,
+  validateFreshInstallationProof,
+  validateManifestContract,
   validateRetryVerification,
   validateStatePayload,
   verify,
