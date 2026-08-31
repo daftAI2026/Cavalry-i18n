@@ -10,6 +10,7 @@ runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义�
 translation-guidelines.md: 翻译规范，约束语言风格、保留词、快捷键身份原文/操作本地化例外、Forge Dynamics 显示层/模型层分流与界面一致性。
 user-story-status.xlsx: canonical 用户故事状态表，按代码反推 Cavalry-i18n 功能、预期行为、测试证据、错误与修复状态。
 audits/: 审计报告与实跑记录目录，保存阶段性人工/自动检查结果；新问题先沉淀 dated report，再决定是否升格为 workflow。
+audits/macos-native-app-management-implementation-2026-08-31.md: macOS App Management handoff 原生实施边界审计，冻结 Rust/Objective-C++ 最短路径、九命令、CSS→AppKit 坐标、per-screen NSPanel、NSDraggingSession、真实 apply reverse/cleanup、Reduce Motion 与 Info.plist；未知私有行为不写成事实。
 audits/switcher-feedback-copy-catalog-2026-08-29.md: Switcher 反馈语义与四语目录，冻结持久 Event、必要 AlertDialog、外围失败 Toast 的生产边界；未选择安装/重装/运行中不叠 Toast，更新可用只用持久入口。
 component-source-adaptation-protocol.md: 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn Button/Marker/Select/Tooltip/AlertDialog/Toast commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit，并规定 Button/业务 variant 分层、Select combobox 隔离、平台外壳与 UI Review fixture 同步、视觉/静态/真机证据边界及 GEB 回环。
 roadmap/: 路线图目录，保存 proposed/active 的未来优化主题与本轮执行事件簿；当前含本地化搜索、Runtime 性能、Windows 移植与注入，以及已完成 R0 提示并进入 R1 真实 Updater Channel/任务事件视窗与可信分发实机验收阶段的路线；UI/Updater/实机/release/tag/清理事项均由事件簿证据化跟踪，每个主题链接对应事实依据并拆出阶段性验收标准。
@@ -49,5 +50,6 @@ UI 知识归属:
 2026-08-31: 将锁定 shadcn Base Button 源码投影为本地共享 primitive；普通动作共用布局/disabled/SVG/variant/size，Select Trigger 保持独立状态机，Windows caption 只替换视觉而不接管系统窗口行为。
 2026-08-31: 将本轮 UI 适配经验提升为可迁移规则：primitive 与业务 variant 分层，Select Trigger 不冒充普通 Button，Windows caption 只替换视觉且由系统/Tauri 拥有行为，UI Review 外壳必须跟随 fixture platform，并把视觉合同、静态合同、真机证据与 GEB L3→L2→L1 回环分开记录。
 2026-08-31: 新增 macOS App Management 授权引导路线，确认正常安装写事务只有一个 TCC 权限，Gatekeeper/ad-hoc 属于分发信任；禁止以写探针伪造启动态授权状态，并以匿名仓库外取证、Apple API 和锁定 MIT 参考源码规划不新增 Accessibility 的洁净室 handoff 动画。
+2026-08-31: 新增 macOS App Management 原生实施审计，裁决以 Rust session/事务 + Objective-C++ AppKit shim 为最短路径，不引入 Swift、不增加第十条 command，并冻结 CSS→AppKit 坐标、per-screen non-key NSPanel、live NSDraggingSession、真实 apply reverse/cleanup、Reduce Motion 与最终 Info.plist readback 边界。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
