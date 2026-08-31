@@ -357,7 +357,7 @@ npm run record:handoff:macos -- --verify --session-dir "$SESSION"
 
 首次授权链必须在独立 macOS 测试用户手工完成：先记录真实 `permissionRequired`，再观察 1200ms 阻断停顿和 helper；如果列表已有行则开启，如果没有则把 helper 的真实 app row 拖到整个 System Settings 窗口；完成设置后由 Retry 重放原 Switch/Restore，只有该事务成功才记录 `retry-verified` 与 reverse。拒绝、拖拽取消、目标关闭、已有行和 Reduce Motion 各用独立 session/分支记录；没有 1x/双屏硬件时明确保留未验证，不用合成坐标升级结论。
 
-当前主账户只建立并 seal 了一个只读 baseline session：`/private/tmp/cavalry-handoff-evidence-current`。它在洁净提交 `2555b9c` 上绑定当前 packaged PID `16652`、Switcher Mach-O `4c64055a…`、Cavalry 2.7.2 launcher `24aa5932…` 与通用 runtime Mach-O `63b50bba…`，同时记录单屏 `1710×1107pt @2x`、Reduce Motion/Transparency 均关闭，以及 System Settings `740×625pt` / Switcher `400×485pt` 的 WindowServer 几何；System Settings 没有被截图或修改。`seal.json` SHA-256 为 `4d8715484e4e0eb1efc27c1e0d5cc2fcdabebf5e0a35f12ea5368e4bf025ddb8`，独立 verify 已回放通过。该记录验证 producer 真能在当前包和真实 Cavalry runtime 上闭合身份，仍不是权限链 PASS。
+当前主账户只建立并 seal 了一个只读 baseline session：`/private/tmp/cavalry-handoff-evidence-current`。它在洁净提交 `a100ea2` 上绑定当前 packaged PID `16652`、Switcher Mach-O `4c64055a…`、Cavalry 2.7.2 launcher `24aa5932…` 与通用 runtime Mach-O `63b50bba…`，同时记录单屏 `1710×1107pt @2x`、Reduce Motion/Transparency 均关闭，以及 System Settings `740×625pt` / Switcher `400×485pt` 的 WindowServer 几何；System Settings 没有被截图或修改。`seal.json` SHA-256 为 `613798083e400aab6a8b5cecd368af8300755988ac608e1580d778ab1a502c69`，独立 verify 已回放通过。该记录验证 producer 真能在当前包和真实 Cavalry runtime 上闭合身份，仍不是权限链 PASS。
 
 ## 7. 验证矩阵
 
