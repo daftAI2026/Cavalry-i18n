@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段并完成成功后的 restart；install_update 通过 camelCase onEvent Channel 投影 downloading、installing、restarting 三个真实更新边界；project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
+ * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；open_privacy_security 只接受固定 App Management 与有限 source rect；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段并完成成功后的 restart；install_update 通过 camelCase onEvent Channel 投影 downloading、installing、restarting 三个真实更新边界；project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,7 +23,9 @@ use crate::{operation_lock, privilege};
 pub use apply::apply_language_inner;
 pub(crate) use context::RESTORE_OFFICIAL_ACTION;
 pub use contract::{
-    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, OperationEvent, StatusPayload,
+    ActionPayload, BrowsePayload, BundleDiagnostics, LanguageChoice, OperationEvent,
+    PermissionHandoffEvent, PermissionHandoffPayload, PermissionHandoffRequest,
+    PermissionSourceRect, PermissionViewportSize, StatusPayload,
 };
 pub use restart::restart_cavalry_inner;
 #[cfg(test)]
@@ -35,6 +37,16 @@ pub use update::{UpdateEvent, UpdatePayload, UpdatePhase};
 
 pub fn registered_command_names() -> &'static [&'static str] {
     &contract::COMMAND_NAMES
+}
+
+fn finalize_permission_handoff(payload: ActionPayload) -> ActionPayload {
+    #[cfg(target_os = "macos")]
+    if payload.ok {
+        crate::macos_permission_handoff::finish_app_management_handoff(true);
+    } else if !payload.permission_required {
+        crate::macos_permission_handoff::finish_app_management_handoff(false);
+    }
+    payload
 }
 
 #[tauri::command]
@@ -60,69 +72,74 @@ pub async fn apply_language(
     let progress = contract::TauriOperationReporter::new(on_event);
     // 锁冲突与非法语言都属于 admission；在任何业务阶段开始前直接返回。
     if !context::is_supported_apply_action(&lang) {
-        return ActionPayload::error_with_code("Unsupported language pack.", "unsupportedLanguage");
+        return finalize_permission_handoff(ActionPayload::error_with_code(
+            "Unsupported language pack.",
+            "unsupportedLanguage",
+        ));
     }
     let paths = context::AppPaths::for_app(&app);
     let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
         Err(error) => {
-            return ActionPayload::error(&error.to_string());
+            return finalize_permission_handoff(ActionPayload::error(&error.to_string()));
         }
     };
     let app_path = PathBuf::from(app_path);
     let now = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
     let worker_progress = progress.clone();
-    match tauri::async_runtime::spawn_blocking(move || -> Result<ActionPayload, String> {
-        let _guard = guard;
-        let mut runner = privilege::RealCommandRunner;
-        let applied = match apply::apply_language_inner_with_reporter(
-            &paths.repo_root,
-            &paths.state_dir,
-            &paths.resource_dir,
-            &app_path,
-            &lang,
-            &mut runner,
-            &now,
-            worker_progress.clone(),
-        ) {
-            Ok(payload) => payload.into_renderer_contract(),
-            Err(error) => return Err(error),
-        };
-        if !applied.ok {
-            return Ok(applied);
-        }
+    let result =
+        match tauri::async_runtime::spawn_blocking(move || -> Result<ActionPayload, String> {
+            let _guard = guard;
+            let mut runner = privilege::RealCommandRunner;
+            let applied = match apply::apply_language_inner_with_reporter(
+                &paths.repo_root,
+                &paths.state_dir,
+                &paths.resource_dir,
+                &app_path,
+                &lang,
+                &mut runner,
+                &now,
+                worker_progress.clone(),
+            ) {
+                Ok(payload) => payload.into_renderer_contract(),
+                Err(error) => return Err(error),
+            };
+            if !applied.ok {
+                return Ok(applied);
+            }
 
-        let mut restart_phase = contract::OperationPhaseGuard::start(
-            &worker_progress,
-            contract::OperationPhase::RestartCavalry,
-        );
-        match restart::restart_cavalry_inner(
-            &paths.repo_root,
-            &paths.state_dir,
-            &paths.resource_dir,
-            &app_path,
-            &mut runner,
-        ) {
-            Ok(()) => {
-                restart_phase.completed();
-                Ok(applied)
+            let mut restart_phase = contract::OperationPhaseGuard::start(
+                &worker_progress,
+                contract::OperationPhase::RestartCavalry,
+            );
+            match restart::restart_cavalry_inner(
+                &paths.repo_root,
+                &paths.state_dir,
+                &paths.resource_dir,
+                &app_path,
+                &mut runner,
+            ) {
+                Ok(()) => {
+                    restart_phase.completed();
+                    Ok(applied)
+                }
+                Err(_) => {
+                    // apply 已经提交；重启失败只能是可恢复 warning，不能回写为 apply error。
+                    restart_phase.warning();
+                    Ok(applied.with_warning_code(contract::RESTART_FAILED_WARNING_CODE))
+                }
             }
-            Err(_) => {
-                // apply 已经提交；重启失败只能是可恢复 warning，不能回写为 apply error。
-                restart_phase.warning();
-                Ok(applied.with_warning_code(contract::RESTART_FAILED_WARNING_CODE))
+        })
+        .await
+        {
+            Ok(Ok(payload)) => payload,
+            Ok(Err(error)) if status::is_app_management_error(&error) => {
+                ActionPayload::permission_error(&error)
             }
-        }
-    })
-    .await
-    {
-        Ok(Ok(payload)) => payload,
-        Ok(Err(error)) if status::is_app_management_error(&error) => {
-            ActionPayload::permission_error(&error)
-        }
-        Ok(Err(error)) => ActionPayload::error(&error),
-        Err(error) => ActionPayload::error(&format!("Language apply task failed: {error}")),
-    }
+            Ok(Err(error)) => ActionPayload::error(&error),
+            Err(error) => ActionPayload::error(&format!("Language apply task failed: {error}")),
+        };
+    finalize_permission_handoff(result)
 }
 
 #[tauri::command]
@@ -139,12 +156,34 @@ pub async fn install_update(
 }
 
 #[tauri::command]
-pub fn open_privacy_security() -> ActionPayload {
-    let mut runner = privilege::RealCommandRunner;
-    match privilege::open_privacy_security(&mut runner) {
-        Ok(()) => ActionPayload::ok(),
-        Err(error) => ActionPayload::error(&error),
+pub fn open_privacy_security(
+    app: tauri::AppHandle,
+    request: PermissionHandoffRequest,
+    on_event: tauri::ipc::Channel<PermissionHandoffEvent>,
+) -> PermissionHandoffPayload {
+    if !request.is_valid() {
+        return PermissionHandoffPayload::error("invalidPermissionHandoffRequest");
     }
+    #[cfg(target_os = "macos")]
+    if crate::macos_permission_handoff::start_app_management_handoff(
+        &app,
+        request.source_rect,
+        request.viewport_css,
+        on_event,
+    )
+    .is_err()
+    {
+        return PermissionHandoffPayload::error("permissionHandoffStartFailed");
+    }
+    #[cfg(not(target_os = "macos"))]
+    let _ = (app, on_event);
+    let mut runner = privilege::RealCommandRunner;
+    if privilege::open_privacy_security(&mut runner).is_err() {
+        #[cfg(target_os = "macos")]
+        crate::macos_permission_handoff::finish_app_management_handoff(false);
+        return PermissionHandoffPayload::error("permissionSettingsOpenFailed");
+    }
+    PermissionHandoffPayload::opened()
 }
 
 #[tauri::command(rename_all = "camelCase")]

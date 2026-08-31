@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop/Reduced Motion API，并以锁定研究证据约束转场数学、箭头提示节奏和用户操作语义边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管与整窗 file URL copy-drop 审查、drop 后自动验证和完整结果回环的 fixture 握手、本机参考可用性与项目自绘箭头脚本。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动自动验证和完整结果回环。
  * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动成功 reverse；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale 或原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -35,6 +35,9 @@ function permissionHandoffRuntimeScript() {
         appBundleFileUrl: 'file:///Applications/Cavalry%20Language%20Switcher.app',
         retryMessage: 'cavalry-ui-review:permission-retry',
         settledMessage: 'cavalry-ui-review:permission-retry-settled',
+        openMessage: 'cavalry-ui-review:permission-handoff-open',
+        openedMessage: 'cavalry-ui-review:permission-handoff-opened',
+        eventMessage: 'cavalry-ui-review:permission-handoff-event',
       });
       const sourceFrame = document.querySelector('#sourceFrame');
       const sourceState = document.querySelector('#sourceState');
@@ -119,6 +122,7 @@ function permissionHandoffRuntimeScript() {
       let arrowHovering = false;
       let dragOutcome = 'idle';
       let settledWorkflowState = null;
+      let requestedSourceRect = null;
 
       hintArrow.replaceChildren(window.cavalryIcons.create('handoffArrow'));
       referenceProjectArrow.replaceChildren(window.cavalryIcons.create('handoffArrow'));
@@ -210,7 +214,12 @@ function permissionHandoffRuntimeScript() {
         const contentHeight = sourceFrame.clientHeight || iframeRect.height;
         const scaleX = (iframeRect.width - borderLeft - borderRight) / contentWidth;
         const scaleY = (iframeRect.height - borderTop - borderBottom) / contentHeight;
-        const sourceRect = found.candidate.getBoundingClientRect();
+        const liveSourceRect = found.candidate.getBoundingClientRect();
+        const supplied = requestedSourceRect;
+        const suppliedValues = supplied && [supplied.x, supplied.y, supplied.width, supplied.height];
+        const sourceRect = suppliedValues?.every(Number.isFinite) ? {
+          left: supplied.x, top: supplied.y, width: supplied.width, height: supplied.height,
+        } : liveSourceRect;
         const pageRect = {
           left: iframeRect.left + borderLeft + sourceRect.left * scaleX,
           top: iframeRect.top + borderTop + sourceRect.top * scaleY,
@@ -283,11 +292,9 @@ function permissionHandoffRuntimeScript() {
 
       function watchSourceDocument() {
         sourceObserver?.disconnect();
-        sourceActionDocument?.removeEventListener('click', handleSourceActionClick, true);
         const sourceDocument = sourceFrame.contentDocument;
         if (!sourceDocument?.documentElement || !window.MutationObserver) return;
         sourceActionDocument = sourceDocument;
-        sourceActionDocument.addEventListener('click', handleSourceActionClick, true);
         sourceObserver = new MutationObserver(scheduleGeometryCapture);
         sourceObserver.observe(sourceDocument.documentElement, {
           attributes: true,
@@ -295,16 +302,6 @@ function permissionHandoffRuntimeScript() {
           characterData: true,
           subtree: true,
         });
-      }
-
-      function handleSourceActionClick(event) {
-        const action = REVIEW.sourceActionSelectors
-          .map((selector) => event.target.closest?.(selector))
-          .find(Boolean);
-        if (!action || action.hidden) return;
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        startOpenSettings();
       }
 
       function criticalDampingProgress(seconds) {
@@ -551,10 +548,12 @@ function permissionHandoffRuntimeScript() {
         setWorkflowState('awaitingUser');
       }
 
-      function startOpenSettings() {
+      function startOpenSettings(sourceRect = null) {
         if (!['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle') return;
+        requestedSourceRect = sourceRect;
         const sessionGeneration = ++handoffSessionGeneration;
         const sourceGeometry = captureSourceGeometry();
+        sourceFrame.contentWindow?.postMessage({ type: REVIEW.openedMessage }, location.origin);
         if (!sourceGeometry) {
           presentStaticFallback();
           return;
@@ -583,6 +582,13 @@ function permissionHandoffRuntimeScript() {
       function resolveRetry(result) {
         if (workflowState !== 'retrying') return;
         sourceFrame.contentWindow?.postMessage({ type: REVIEW.retryMessage, result }, location.origin);
+        sourceFrame.contentWindow?.postMessage({ type: REVIEW.eventMessage, outcome: 'retryRequested' }, location.origin);
+      }
+
+      function requestOpenFromSource() {
+        const found = findSourceElement();
+        if (found) found.candidate.click();
+        else startOpenSettings();
       }
 
       function demonstrateRetryResult(result) {
@@ -608,8 +614,12 @@ function permissionHandoffRuntimeScript() {
         animateTo(0);
       }
 
-      function handleSourceRetrySettled(event) {
+      function handleSourceMessage(event) {
         if (event.origin !== location.origin || event.source !== sourceFrame.contentWindow) return;
+        if (event.data?.type === REVIEW.openMessage) {
+          startOpenSettings(event.data.sourceRect || null);
+          return;
+        }
         if (event.data?.type !== REVIEW.settledMessage || workflowState !== 'retrying') return;
         if (event.data.result === 'success') {
           reverseAfterSettled('verified', 'operationVerified');
@@ -681,6 +691,7 @@ function permissionHandoffRuntimeScript() {
         progress = 0;
         dragOutcome = 'idle';
         settledWorkflowState = null;
+        requestedSourceRect = null;
         arrowHovering = false;
         draggableAppRow.dataset.dragging = 'false';
         destinationDropZone.dataset.dragOver = 'false';
@@ -700,7 +711,6 @@ function permissionHandoffRuntimeScript() {
         if (geometryFrame) cancelAnimationFrame(geometryFrame);
         geometryFrame = 0;
         sourceObserver?.disconnect();
-        sourceActionDocument?.removeEventListener('click', handleSourceActionClick, true);
         reducedMotionQuery?.removeEventListener?.('change', handleReducedMotionChange);
         sourceObserver = null;
         sourceActionDocument = null;
@@ -709,7 +719,7 @@ function permissionHandoffRuntimeScript() {
         destinationDropZone.dataset.dragOver = 'false';
       }
 
-      actionButtons.openSettings.addEventListener('click', startOpenSettings);
+      actionButtons.openSettings.addEventListener('click', requestOpenFromSource);
       actionButtons.retry.addEventListener('click', startRetry);
       actionButtons.resultSuccess.addEventListener('click', () => demonstrateRetryResult('success'));
       actionButtons.resultDenied.addEventListener('click', () => demonstrateRetryResult('denied'));
@@ -756,7 +766,7 @@ function permissionHandoffRuntimeScript() {
         scheduleGeometryCapture();
       });
       window.addEventListener('resize', scheduleGeometryCapture);
-      window.addEventListener('message', handleSourceRetrySettled);
+      window.addEventListener('message', handleSourceMessage);
       window.addEventListener('pagehide', dispose, { once: true });
       if (window.ResizeObserver) new ResizeObserver(scheduleGeometryCapture).observe(stage);
       sourceFrame.src = '/app?scenario=' + REVIEW.sourceScenario + '&locale=' + encodeURIComponent(locale);

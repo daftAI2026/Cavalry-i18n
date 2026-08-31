@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri_build、sha2、四语言 JSON 源与 Windows generic/QPA 发布 DLL。
- * [OUTPUT]: 生成 Tauri runtime context，并把发布资源的 SHA-256 信任锚写入 OUT_DIR 供提权 worker 编译期嵌入。
+ * [INPUT]: 依赖 tauri_build、cc、sha2、macOS AppKit handoff 源、四语言 JSON 源与 Windows generic/QPA 发布 DLL。
+ * [OUTPUT]: 生成 Tauri runtime context，macOS 目标编译并链接权限 handoff owner，并把发布资源的 SHA-256 信任锚写入 OUT_DIR 供提权 worker 编译期嵌入。
  * [POS]: src-tauri 的构建钩子；在用户可写安装资源之外固定 Windows source provenance，不参与运行时路径发现。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -18,8 +18,25 @@ const GENERIC_RELATIVE_PATH: &str = "injector/windows/generic/cavalryi18n.dll";
 const QPA_RELATIVE_PATH: &str = "injector/windows/qpa/qwindows.dll";
 
 fn main() {
+    build_macos_permission_handoff();
     generate_source_provenance_catalog();
     tauri_build::build();
+}
+
+fn build_macos_permission_handoff() {
+    if env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("macos") {
+        return;
+    }
+    let source = Path::new("native/macos_permission_handoff.m");
+    println!("cargo:rerun-if-changed={}", source.display());
+    cc::Build::new()
+        .file(source)
+        .flag("-fobjc-arc")
+        .flag("-fmodules")
+        .compile("cavalry_permission_handoff");
+    for framework in ["AppKit", "CoreGraphics", "QuartzCore"] {
+        println!("cargo:rustc-link-lib=framework={framework}");
+    }
 }
 
 fn generate_source_provenance_catalog() {

@@ -17,6 +17,12 @@
       "../injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
     },
     "macOS": {
+      "files": {
+        "Resources/en.lproj/InfoPlist.strings": "en.lproj/InfoPlist.strings",
+        "Resources/zh-Hans.lproj/InfoPlist.strings": "zh-Hans.lproj/InfoPlist.strings",
+        "Resources/zh-Hant.lproj/InfoPlist.strings": "zh-Hant.lproj/InfoPlist.strings",
+        "Resources/ja.lproj/InfoPlist.strings": "ja.lproj/InfoPlist.strings"
+      },
       "dmg": {
         "background": "icons/background.png",
         "windowSize": {

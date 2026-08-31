@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.2.0 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
+[INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.2.0 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
+[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、本地 ad-hoc 开发包、macOS App Management 用途说明的 bundle readback、本地化资源路径合同、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分开发机 ad-hoc 验证、CI PR 编译门与 tag 可发布产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -156,7 +156,36 @@ rm -rf src-tauri/target/release/bundle
 npm run tauri:build
 ```
 
-#### 4.1.1 renderer 视觉验收必须使用新进程
+#### 4.1.1 macOS App Management 用途说明资源闭环（本地验证）
+
+Tauri CLI `2.10.1` 的 macOS schema 将 `bundle.macOS.infoPlist` 定义为可选覆盖路径，并且会自动发现与 `tauri.macos.conf.json` 同目录的 `Info.plist`。本项目采用后者：`src-tauri/Info.plist` 只提供默认英文 `NSAppBundlesUsageDescription`，不把权限逻辑或运行时状态写进 plist。
+
+`InfoPlist.strings` 不能只留在源码目录；Tauri 的 `bundle.macOS.files` 是相对于 `Contents` 的目标映射。因此 `tauri.macos.conf.json` 将四个源文件明确写入：
+
+```text
+src-tauri/en.lproj/InfoPlist.strings       -> Contents/Resources/en.lproj/InfoPlist.strings
+src-tauri/zh-Hans.lproj/InfoPlist.strings  -> Contents/Resources/zh-Hans.lproj/InfoPlist.strings
+src-tauri/zh-Hant.lproj/InfoPlist.strings  -> Contents/Resources/zh-Hant.lproj/InfoPlist.strings
+src-tauri/ja.lproj/InfoPlist.strings       -> Contents/Resources/ja.lproj/InfoPlist.strings
+```
+
+这是打包资源路径的构建合同，不代表任何公开发布或签名状态。完成本地 `.app` 构建后，用 Node 24 对**同一个最终 bundle**做 readback：
+
+```bash
+APP_BUNDLE="$PWD/src-tauri/target/release/bundle/macos/Cavalry Language Switcher.app"
+CAVALRY_I18N_TAURI_APP_BUNDLE="$APP_BUNDLE" \
+  node --test tools/check_tauri_build_sop.js
+
+/usr/libexec/PlistBuddy -c 'Print :NSAppBundlesUsageDescription' \
+  "$APP_BUNDLE/Contents/Info.plist"
+for locale in en zh-Hans zh-Hant ja; do
+  test -f "$APP_BUNDLE/Contents/Resources/$locale.lproj/InfoPlist.strings"
+done
+```
+
+readback 必须同时证明默认 plist 键存在，以及四个 `Contents/Resources/*.lproj/InfoPlist.strings` 都是本轮源码内容；缺任一文件即失败。该命令只读验证本地构建产物，不上传、不打 tag、不创建 GitHub Release。
+
+#### 4.1.2 renderer 视觉验收必须使用新进程
 
 本项目的 renderer 是本地静态 `frontendDist`，不把浏览器 HMR 当作 Tauri WebView 的新鲜度合同。修改 `renderer/*.html`、`renderer/*.css` 或 `renderer/*.js` 后，仅刷新、抢前台或继续观察已有窗口都可能看到旧资源；任何视觉结论和截图前都必须完整结束本项目的 Tauri CLI 与 app 进程，再重新启动：
 

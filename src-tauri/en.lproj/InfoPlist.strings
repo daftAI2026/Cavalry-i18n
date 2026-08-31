@@ -1,0 +1,9 @@
+/*
+----------------------------------------------------------------
+[INPUT]: macOS App Management 权限上下文与 Cavalry Language Switcher 的语言切换职责
+[OUTPUT]: 英文 NSAppBundlesUsageDescription 本地化字符串
+[POS]: Contents/Resources/en.lproj 的系统权限文案；与默认 Info.plist 保持同义
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+----------------------------------------------------------------
+*/
+"NSAppBundlesUsageDescription" = "Allow Cavalry Language Switcher to modify Cavalry's local app files to switch its interface language.";

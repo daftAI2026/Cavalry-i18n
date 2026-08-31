@@ -1,13 +1,15 @@
 /**
  * [INPUT]: 依赖 serde 序列化、Tauri IPC Channel 和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、四阶段有序进度事件、启动恢复显式阻断诊断、Status 的版本兼容/官方恢复能力与 Windows residue 标记，以及可组合的稳定 errorCode/warningCodes 投影。
+ * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、固定 App Management handoff 请求/结果、四阶段有序进度事件、启动恢复显式阻断诊断、Status 的版本兼容/官方恢复能力与 Windows residue 标记，以及可组合的稳定 errorCode/warningCodes 投影。
  * [POS]: commands 的外部契约层；OperationReporter 是 transport-neutral 进度抽象，Tauri Channel 只在本文件的适配器中出现；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::ipc::Channel;
 
 use crate::privilege::PostCommitWarning;
+
+const MAX_PERMISSION_VIEWPORT_CSS_PX: f64 = 16_384.0;
 
 const PROTECTED_TRANSACTION_WARNING: &str = "Language files were applied, but transaction recovery evidence remains in the protected Cavalry installation. Do not delete it manually.";
 const TEMPORARY_CLEANUP_WARNING: &str = "Language files were applied, but temporary cleanup is still pending. Close Cavalry Language Switcher before removing temporary files.";
@@ -222,6 +224,157 @@ pub struct BrowsePayload {
     pub app_path: String,
     #[serde(skip_serializing_if = "String::is_empty")]
     pub version: String,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct PermissionSourceRect {
+    pub x: f64,
+    pub y: f64,
+    pub width: f64,
+    pub height: f64,
+}
+
+#[derive(Clone, Copy, Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct PermissionViewportSize {
+    pub width: f64,
+    pub height: f64,
+}
+
+impl PermissionViewportSize {
+    pub(crate) fn is_valid(self) -> bool {
+        [self.width, self.height].into_iter().all(f64::is_finite)
+            && self.width > 0.0
+            && self.height > 0.0
+    }
+}
+
+impl PermissionSourceRect {
+    pub(crate) fn is_valid(self) -> bool {
+        [self.x, self.y, self.width, self.height]
+            .into_iter()
+            .all(f64::is_finite)
+            && self.x >= 0.0
+            && self.y >= 0.0
+            && self.width > 0.0
+            && self.height > 0.0
+    }
+}
+
+#[derive(Debug, Deserialize, PartialEq)]
+#[serde(rename_all = "camelCase")]
+pub struct PermissionHandoffRequest {
+    pub permission: String,
+    pub source_rect: Option<PermissionSourceRect>,
+    pub viewport_css: Option<PermissionViewportSize>,
+}
+
+impl PermissionHandoffRequest {
+    pub(crate) fn is_valid(&self) -> bool {
+        let geometry_is_valid = match (self.source_rect, self.viewport_css) {
+            (None, None) => true,
+            (Some(rect), Some(viewport)) => {
+                rect.is_valid()
+                    && viewport.is_valid()
+                    && viewport.width <= MAX_PERMISSION_VIEWPORT_CSS_PX
+                    && viewport.height <= MAX_PERMISSION_VIEWPORT_CSS_PX
+                    && rect.x + rect.width <= viewport.width
+                    && rect.y + rect.height <= viewport.height
+            }
+            _ => false,
+        };
+        self.permission == "appManagement"
+            && self.source_rect.is_none_or(PermissionSourceRect::is_valid)
+            && self
+                .viewport_css
+                .is_none_or(PermissionViewportSize::is_valid)
+            && geometry_is_valid
+    }
+}
+
+#[derive(Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct PermissionHandoffPayload {
+    pub ok: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub handoff_outcome: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error_code: Option<String>,
+}
+
+#[derive(Clone, Debug, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+pub struct PermissionHandoffEvent {
+    pub outcome: String,
+}
+
+impl PermissionHandoffPayload {
+    pub(crate) fn opened() -> Self {
+        Self {
+            ok: true,
+            handoff_outcome: Some("opened".to_string()),
+            error_code: None,
+        }
+    }
+
+    pub(crate) fn error(code: &str) -> Self {
+        Self {
+            ok: false,
+            handoff_outcome: None,
+            error_code: Some(code.to_string()),
+        }
+    }
+}
+
+#[cfg(test)]
+mod permission_handoff_tests {
+    use super::{PermissionHandoffRequest, PermissionSourceRect, PermissionViewportSize};
+
+    fn valid_request() -> PermissionHandoffRequest {
+        PermissionHandoffRequest {
+            permission: "appManagement".to_string(),
+            source_rect: Some(PermissionSourceRect {
+                x: 10.0,
+                y: 12.0,
+                width: 100.0,
+                height: 32.0,
+            }),
+            viewport_css: Some(PermissionViewportSize {
+                width: 400.0,
+                height: 484.0,
+            }),
+        }
+    }
+
+    #[test]
+    fn handoff_request_requires_fixed_permission_and_complete_geometry() {
+        assert!(valid_request().is_valid());
+
+        let mut wrong_permission = valid_request();
+        wrong_permission.permission = "screenRecording".to_string();
+        assert!(!wrong_permission.is_valid());
+
+        let mut incomplete_geometry = valid_request();
+        incomplete_geometry.viewport_css = None;
+        assert!(!incomplete_geometry.is_valid());
+
+        let mut invalid_viewport = valid_request();
+        invalid_viewport.viewport_css = Some(PermissionViewportSize {
+            width: 0.0,
+            height: 484.0,
+        });
+        assert!(!invalid_viewport.is_valid());
+
+        let mut offscreen_source = valid_request();
+        offscreen_source.source_rect = Some(PermissionSourceRect {
+            x: 390.0,
+            y: 12.0,
+            width: 100.0,
+            height: 32.0,
+        });
+        assert!(!offscreen_source.is_valid());
+    }
 }
 
 #[derive(Debug, Serialize, PartialEq, Eq)]

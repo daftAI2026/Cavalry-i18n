@@ -66,6 +66,7 @@ test('UI Review renders the exact production shell and replaces only the data br
   const aboutReview = renderReviewDocument('about.html');
   const workspace = workspaceHtml();
   const fixture = fixtureSource();
+  const permissionHandoff = read('renderer/permission-handoff.js');
   const normalized = review
     .replace('\n  <base href="/renderer/" />', '')
     .replace('<script src="/fixture.js"></script>\n  ', '');
@@ -171,8 +172,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /replaceClone\(proxySource, source\.element\)/);
   assert.match(handoff, /replaceClone\(proxyDestination, target\.element\)/);
   assert.match(handoff, /selector: '#draggableAppRow'/);
-  assert.match(handoff, /function startOpenSettings\(\)[\s\S]*?captureGeometry\(\)/);
-  assert.match(handoff, /function startRetry\(\)[\s\S]*?captureGeometry\(\)/);
+  assert.match(handoff, /function startOpenSettings\(sourceRect = null\)[\s\S]*?captureSourceGeometry\(\)/);
+  assert.match(handoff, /requestedSourceRect = sourceRect/);
   assert.match(handoff, /proxySource\.style\.opacity/);
   assert.match(handoff, /proxyDestination\.style\.opacity/);
   assert.match(handoff, /const visualProgress = clamp\(progress, 0, 1\)/);
@@ -195,8 +196,14 @@ test('UI Review renders the exact production shell and replaces only the data br
   for (const eventName of ['transactionDenied', 'sourceCaptured', 'sourceUnavailable', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'appDropRejected', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'operationVerified', 'permissionStillMissing', 'typedError']) {
     assert.match(handoff, new RegExp(`${eventName}: Object\\.freeze|appendWorkflowEvent\\('${eventName}'\\)|occurredWorkflowEvents = \\['${eventName}'\\]`));
   }
-  assert.match(handoff, /sourceActionDocument\.addEventListener\('click', handleSourceActionClick, true\)/);
-  assert.match(handoff, /handleSourceActionClick\(event\)[\s\S]*?event\.preventDefault\(\)[\s\S]*?startOpenSettings\(\)/);
+  assert.match(handoff, /openMessage: 'cavalry-ui-review:permission-handoff-open'/);
+  assert.match(handoff, /function handleSourceMessage\(event\)[\s\S]*?startOpenSettings\(event\.data\.sourceRect \|\| null\)/);
+  assert.match(handoff, /postMessage\(\{ type: REVIEW\.openedMessage \}/);
+  assert.match(handoff, /postMessage\(\{ type: REVIEW\.eventMessage, outcome: 'retryRequested' \}/);
+  assert.match(permissionHandoff, /function captureSourceRect\(element\)/);
+  assert.match(permissionHandoff, /function captureViewport\(\)/);
+  assert.match(permissionHandoff, /api\.openPrivacySecurity\(\{ sourceRect, viewportCss \}, \(event\) =>/);
+  assert.match(permissionHandoff, /event\.outcome === 'retryRequested'[\s\S]*?onRetry/);
   assert.match(handoff, /function resolveRetry\(result\)[\s\S]*?workflowState !== 'retrying'/);
   assert.match(handoff, /resultError: document\.querySelector\('\[data-action="result-error"\]'\)/);
   assert.match(handoff, /const resultCanBeInjected = \['awaitingUser', 'retrying', 'stillDenied'\]\.includes\(workflowState\)/);
@@ -374,7 +381,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
   );
   assert.match(
     html,
-    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
+    /<script src="\.\/tauri-bridge\.js"><\/script>\s*<script src="\.\/ui-text\.js"><\/script>\s*<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/select-control\.js"><\/script>\s*<script src="\.\/tooltip-control\.js"><\/script>\s*<script src="\.\/path-display\.js"><\/script>\s*<script src="\.\/operation-log\.js"><\/script>\s*<script src="\.\/permission-handoff\.js"><\/script>\s*<script src="\.\/update-progress\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-control\.js"><\/script>\s*<script src="\.\/window-controls\.js"><\/script>\s*<script src="\.\/app\.js"><\/script>/,
     'renderer scripts must load bridge, stable text, icons, component state machines, then app'
   );
   assert.match(icons, /window\.cavalryIcons = Object\.freeze\(\{ create: createIcon \}\)/);
@@ -982,7 +989,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(restoreDisabledStatement, /restoreIsNeeded\(\)/);
   assert.match(restoreDisabledStatement, /restoreIsBlockedByMissingBaseline\(\)/);
   assert.match(restoreDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
-  const runApplyFunction = sourceFunction(app, 'async function runApply(nextLanguage) {', 'async function openPrivacySecurity');
+  const runApplyFunction = sourceFunction(app, 'async function runApply(nextLanguage) {', 'function handlePermissionButton');
   assert.match(runApplyFunction, /const restoring = isRestoreAction\(nextLanguage\);/);
   assert.match(runApplyFunction, /phase: 'verifyInstallation', state: 'running'/);
   assert.match(runApplyFunction, /api\.applyLanguage\(state\.appPath, nextLanguage, \(event\) => \{/);

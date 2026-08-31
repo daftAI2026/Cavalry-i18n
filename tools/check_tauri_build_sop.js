@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,6 +29,122 @@ function readJson(relativePath) {
 function readText(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
 }
+
+const MACOS_APP_MANAGEMENT_KEY = 'NSAppBundlesUsageDescription';
+const MACOS_APP_MANAGEMENT_LOCALES = [
+  {
+    directory: 'en.lproj',
+    value:
+      "Allow Cavalry Language Switcher to modify Cavalry's local app files to switch its interface language.",
+  },
+  {
+    directory: 'zh-Hans.lproj',
+    value: '允许 Cavalry 语言切换器修改 Cavalry 的本地应用文件，以切换界面语言。',
+  },
+  {
+    directory: 'zh-Hant.lproj',
+    value: '允許 Cavalry 語言切換器修改 Cavalry 的本機應用程式檔案，以切換介面語言。',
+  },
+  {
+    directory: 'ja.lproj',
+    value:
+      'Cavalry Language Switcher が Cavalry のローカルアプリファイルを変更し、表示言語を切り替えることを許可します。',
+  },
+];
+
+function decodeXmlText(value) {
+  return value
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+function readPlistString(plistText, key) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = plistText.match(
+    new RegExp(`<key>${escapedKey}</key>\\s*<string>([\\s\\S]*?)</string>`)
+  );
+  return match ? decodeXmlText(match[1].trim()) : null;
+}
+
+function readStringsFileValue(stringsText, key) {
+  const entries = [];
+  const entryPattern = /^\s*"((?:\\.|[^"])*)"\s*=\s*"((?:\\.|[^"])*)"\s*;\s*$/gm;
+  for (const match of stringsText.matchAll(entryPattern)) {
+    entries.push({ key: match[1], value: match[2] });
+  }
+
+  const matches = entries.filter((entry) => entry.key === key);
+  assert.equal(matches.length, 1, `${key} must occur once in InfoPlist.strings`);
+  assert.equal(entries.length, 1, 'InfoPlist.strings must contain only the declared purpose key');
+  return matches[0].value.replace(/\\([\\"])/g, '$1');
+}
+
+function expectedMacOSInfoPlistFiles() {
+  return Object.fromEntries(
+    MACOS_APP_MANAGEMENT_LOCALES.map(({ directory }) => [
+      `Resources/${directory}/InfoPlist.strings`,
+      `${directory}/InfoPlist.strings`,
+    ])
+  );
+}
+
+function assertMacOSAppManagementSource() {
+  const sourcePlist = readText('src-tauri/Info.plist');
+  assert.deepEqual(
+    [...sourcePlist.matchAll(/<key>([^<]+)<\/key>/g)].map((match) => match[1]),
+    [MACOS_APP_MANAGEMENT_KEY],
+    'the custom plist must add only the App Management purpose key'
+  );
+  assert.equal(
+    readPlistString(sourcePlist, MACOS_APP_MANAGEMENT_KEY),
+    MACOS_APP_MANAGEMENT_LOCALES[0].value
+  );
+
+  for (const { directory, value } of MACOS_APP_MANAGEMENT_LOCALES) {
+    const relativePath = path.join('src-tauri', directory, 'InfoPlist.strings');
+    assert.equal(readStringsFileValue(readText(relativePath), MACOS_APP_MANAGEMENT_KEY), value);
+  }
+}
+
+function assertMacOSAppManagementBundle(bundlePath) {
+  const contents = path.join(bundlePath, 'Contents');
+  const bundlePlist = path.join(contents, 'Info.plist');
+  assert.equal(fs.existsSync(bundlePlist), true, `missing bundle Info.plist: ${bundlePlist}`);
+  assert.equal(
+    readPlistString(fs.readFileSync(bundlePlist, 'utf8'), MACOS_APP_MANAGEMENT_KEY),
+    MACOS_APP_MANAGEMENT_LOCALES[0].value
+  );
+
+  for (const { directory, value } of MACOS_APP_MANAGEMENT_LOCALES) {
+    const resourcePath = path.join(contents, 'Resources', directory, 'InfoPlist.strings');
+    const sourcePath = path.join(repoRoot, 'src-tauri', directory, 'InfoPlist.strings');
+    assert.equal(fs.existsSync(resourcePath), true, `missing localized resource: ${resourcePath}`);
+    assert.deepEqual(
+      fs.readFileSync(resourcePath),
+      fs.readFileSync(sourcePath),
+      `${directory}/InfoPlist.strings must be copied byte-for-byte`
+    );
+    assert.equal(
+      readStringsFileValue(fs.readFileSync(resourcePath, 'utf8'), MACOS_APP_MANAGEMENT_KEY),
+      value
+    );
+  }
+}
+
+test('macOS App Management purpose resources are source-complete and bundle-readable', () => {
+  const macConfig = readJson('src-tauri/tauri.macos.conf.json');
+
+  assertMacOSAppManagementSource();
+  assert.deepEqual(macConfig.bundle.macOS.files, expectedMacOSInfoPlistFiles());
+
+  const bundlePath = process.env.CAVALRY_I18N_TAURI_APP_BUNDLE;
+  if (bundlePath) {
+    assertMacOSAppManagementBundle(path.resolve(bundlePath));
+  }
+});
 
 function rgbaPngAlphaContract(relativePath, threshold = 128) {
   const png = fs.readFileSync(path.join(repoRoot, relativePath));

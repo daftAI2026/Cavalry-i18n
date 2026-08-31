@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且不冒充 transport 失败的权限恢复、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast。
+ * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -28,6 +28,7 @@ class Element {
   replaceChildren(...children) { this.children = children; this.options = this.children; }
   remove() { this.isConnected = false; this.hidden = true; }
   contains(target) { return target === this || this.children.some((child) => child.contains?.(target)); }
+  getBoundingClientRect() { return { x: 10, y: 10, left: 10, top: 10, width: 100, height: 32, right: 110, bottom: 42 }; }
 }
 
 function runtime({
@@ -51,6 +52,7 @@ function runtime({
   const calls = [];
   const channels = [];
   const updateChannels = [];
+  const handoffChannels = [];
   const callbacks = new Map();
   let nextCallbackId = 1;
   const document = {
@@ -78,6 +80,8 @@ function runtime({
   const navigator = { language: locale, languages: [locale] };
   const window = {
     navigator,
+    innerWidth: 400,
+    innerHeight: 484,
     location: { protocol: 'http:', hostname: '127.0.0.1', search: preview ? '?preview=update' : '' },
     addEventListener(type, callback) { windowListeners.set(type, [...(windowListeners.get(type) || []), callback]); },
     __TAURI_INTERNALS__: {
@@ -90,6 +94,9 @@ function runtime({
     } else if (command === 'install_update') {
       updateChannels.push(payload.onEvent);
       calls.push({ command, payload: { onEvent: Boolean(payload.onEvent) } });
+    } else if (command === 'open_privacy_security') {
+      handoffChannels.push(payload.onEvent);
+      calls.push({ command, payload: { request: payload.request, onEvent: Boolean(payload.onEvent) } });
     } else {
       calls.push({ command, payload });
     }
@@ -138,6 +145,7 @@ function runtime({
       return Promise.resolve(install);
     }
     if (command === 'plugin:app|version') return Promise.resolve('0.7.0');
+    if (command === 'open_privacy_security') return Promise.resolve({ ok: true, handoffOutcome: 'opened' });
     if (command === 'open_project_link') return Promise.resolve({ ok: true });
     if (command === 'show_about') return Promise.resolve({ ok: true });
     if (command === 'plugin:window|is_maximized') return Promise.resolve(maximized);
@@ -148,7 +156,7 @@ function runtime({
   };
   const context = { window, document, navigator, Promise, console, setTimeout, clearTimeout, getComputedStyle: () => ({ getPropertyValue: (name) => styleValues[name] || '0ms' }) };
   context.globalThis = context;
-  return { elements, calls, channels, updateChannels, window, context };
+  return { elements, calls, channels, updateChannels, handoffChannels, callbacks, window, context };
 }
 async function flush() { await Promise.resolve(); await new Promise((resolve) => setImmediate(resolve)); await Promise.resolve(); }
 
@@ -166,6 +174,7 @@ function boot(options) {
   vm.runInNewContext(read('renderer/tooltip-control.js'), r.context, { filename: 'tooltip-control.js' });
   vm.runInNewContext(read('renderer/path-display.js'), r.context, { filename: 'path-display.js' });
   vm.runInNewContext(read('renderer/operation-log.js'), r.context, { filename: 'operation-log.js' });
+  vm.runInNewContext(read('renderer/permission-handoff.js'), r.context, { filename: 'permission-handoff.js' });
   vm.runInNewContext(read('renderer/update-progress.js'), r.context, { filename: 'update-progress.js' });
   vm.runInNewContext(read('renderer/toast-control.js'), r.context, { filename: 'toast-control.js' });
   vm.runInNewContext(read('renderer/about-control.js'), r.context, { filename: 'about-control.js' });
@@ -861,6 +870,38 @@ test('permission AlertDialog exposes the recovery action and preserves Apply/Res
   await flush();
   assert.equal(r.elements['#applyButton'].textContent, labels.apply);
   assert.equal(r.elements['#restoreButton'].textContent, labels.restore);
+});
+
+test('macOS handoff captures the real action and only its session Channel retries the original operation', async () => {
+  const r = boot({
+    status: { platform: 'macos', currentLang: 'en', permissionAction: 'openPrivacy' },
+    apply: [
+      { ok: false, permissionRequired: true, errorCode: 'permissionRequired' },
+      { ok: true, currentLang: 'zh-Hans' },
+    ],
+  });
+  await flush();
+  chooseLanguage(r);
+  dispatch(r.elements['#applyButton'], 'click');
+  await flush();
+  assert.equal(r.elements['#modalBackdrop'].open, true);
+
+  dispatch(r.elements['#modalPrimaryButton'], 'click');
+  await flush();
+  const call = r.calls.find(({ command }) => command === 'open_privacy_security');
+  assert.deepEqual(JSON.parse(JSON.stringify(call.payload.request)), {
+    permission: 'appManagement',
+    sourceRect: { x: 10, y: 10, width: 100, height: 32 },
+    viewportCss: { width: 400, height: 484 },
+  });
+  assert.equal(call.payload.onEvent, true);
+  assert.equal(r.elements['#modalBackdrop'].open, false, 'native start acknowledgement closes the source only after capture');
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 1);
+
+  const channel = r.handoffChannels[0];
+  r.callbacks.get(channel.id)({ index: 0, message: { outcome: 'retryRequested' } });
+  await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 2);
 });
 
 test('transport rejection becomes a localized stable status and re-bootstrap attempt', async () => {

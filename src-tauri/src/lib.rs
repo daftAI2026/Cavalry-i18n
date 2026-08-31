@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri Builder/默认菜单、稳定 commands facade、共享 window_chrome/统一 About 窗口 owner/启动恢复、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths 与 platform_runtime。
- * [OUTPUT]: 提供 run、macOS 系统应用菜单与 Windows renderer 共用的独立 About 窗口、共享 Overlay 标题栏装配与 pending journal 恢复、Windows 三类早期分流、Updater plugin、稳定九命令注册表及平台门控 runtime。
+ * [INPUT]: 依赖 tauri Builder/默认菜单、稳定 commands facade、共享 window_chrome/统一 About 窗口 owner/macOS permission handoff/启动恢复、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths 与 platform_runtime。
+ * [OUTPUT]: 提供 run、macOS 系统应用菜单与 Windows renderer 共用的独立 About 窗口、共享 Overlay 标题栏装配、App Management 原生交接与 pending journal 恢复、Windows 三类早期分流、Updater plugin、稳定九命令注册表及平台门控 runtime。
  * [POS]: src-tauri/src 的应用装配层；组合命令 facade、启动恢复、共享运行基础与进程入口边界，但不承载具体写入或系统命令业务。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,6 +15,8 @@ pub mod keychain_patch;
 #[cfg(target_os = "macos")]
 mod mac_official;
 pub mod mac_runtime;
+#[cfg(target_os = "macos")]
+mod macos_permission_handoff;
 mod operation_lock;
 pub mod patch;
 mod platform_runtime;

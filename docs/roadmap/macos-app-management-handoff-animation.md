@@ -1,13 +1,13 @@
 <!--
 [INPUT]: 依赖当前 macOS 写事务与权限错误路径、Apple App Management 文档、本机 System Settings 只读复核、仓库外跨应用授权动画取证和锁定版本 MIT 参考源码
-[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、自动 handoff/用户拖拽/真实重试的逐步状态机、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、当前代码接线缝、洁净室架构与分阶段验收路线
-[POS]: docs/roadmap 的未来交互路线；约束 App Management 授权引导但不冒充已实现的生产功能或稳定 SOP
+[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、自动 handoff/用户拖拽/真实重试的逐步状态机、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、当前生产实现、洁净室架构与分阶段验收路线
+[POS]: docs/roadmap 的 App Management 实施与证据账本；代码已进入生产路径，但在 packaged 首次授权、多屏和 Reduce Motion 实机证据闭合前不得写成发布结论
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
 # macOS App Management 授权引导动画
 
-状态: Active / Research
+状态: Active / Native implemented / Packaged evidence pending
 建立日期: 2026-08-31
 适用范围: Cavalry-i18n macOS Switch / Restore 写事务
 
@@ -33,7 +33,8 @@
 | 状态读取 | `src-tauri/src/commands/status.rs::probe_app_management_permission` 在 macOS 固定返回 `None` | 启动时不能诚实显示 Granted/Denied |
 | 真正验证 | Switch / Restore 写事务遇到权限拒绝后返回 typed `permissionRequired` | 实际事务才是当前可靠 oracle |
 | 关闭 Cavalry | `src-tauri/src/privilege/macos/process.rs` 通过固定 JXA 调用 `NSRunningApplication.terminate` | 不是控制 System Events 的自动化流程，不构成第二个正常权限 |
-| 配置缺口 | 当前 bundle 配置没有 `NSAppBundlesUsageDescription` | 原生实现前必须补充四语目的说明并验证最终 Info.plist |
+| 用途说明 | `src-tauri/Info.plist` 与四个 `.lproj/InfoPlist.strings` 由 macOS bundle 配置映射 | 源码合同已闭合；最终 `.app` 仍必须 readback |
+| 原生 owner | `src-tauri/native/macos_permission_handoff.m` + `src-tauri/src/macos_permission_handoff.rs` | AppKit 只负责视觉/拖拽，真实 `apply_language` 仍是唯一授权 oracle |
 
 错误解析器保留 `not authorized to send apple events` 只是一条历史兼容分类；不能以一个错误字符串反推当前产品有第二项常规授权。
 
@@ -97,13 +98,15 @@ idle → preparing → presenting → presented → reversing → idle
 
 当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，权限拒绝先在共享 Activity 中完成 1200ms 可读停顿；handoff 单独落到 helper 中的实时 draggable app row，不再把 Apple 列表行当动画终点。source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。浏览器 drag 使用独立 App 图标而非整卡截图作为 drag image，整个 System Settings mock 都是接收区域；copy drop 后模拟系统行更新并自动继续原事务验证，不再要求审查者额外点击开关或理解内部重试门禁。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级；source 缺失时也不再中止，而是直接显示静态 helper。fixture 成功先跑真实 Activity 组件的阶段/结果，再以同一 shared-element 做 reverse/cleanup；仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。系统行的 mock 更新只表达“设置接收了 App”，**仍不是权限证明**；这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
 
+当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求重试，真实写事务成功才 reverse，仍缺权限则保留 helper，其他错误/取消才 cleanup。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer retry→reverse。**这仍不是首次授权、System Settings 真 drop、混合倍率或 packaged app 的 live PASS**；这些结论只允许由 R5 实机证据给出。
+
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
 ## 4. 参考实现的证据分层
 
-### 4.0 完整性审计：原样本、当前 R1 与生产债务
+### 4.0 完整性审计：原样本、当前实现与证据债务
 
-“看见过一段动画”不等于复刻完成。下表冻结每个环节的证据等级和当前缺口；`未知` 项禁止用想象补齐，`R1` 只表示浏览器可审查，不表示原生或像素级通过。
+“代码已编译”也不等于实机授权通过。下表冻结每个环节的证据等级和当前缺口；`未知` 项禁止用想象补齐，浏览器与源码门都不能替代 packaged live 证据。
 
 | 能力 / 行为 | 原样本证据 | 当前 R1 | 原生阶段 / 声明边界 |
 | --- | --- | --- | --- |
@@ -302,7 +305,7 @@ macos_permission_handoff.rs
 - 不为动画请求 Accessibility、Screen Recording 或 Automation。
 - 不读写 TCC 数据库，不尝试自动拨动权限开关。
 - 不同时实现多权限通用框架；YAGNI，当前只有 App Management。
-- 不在第一版复制完整三层 shadow/multi-display replicant；但真实 draggable app row、cancel/fail 回弹和 drop/permission 两种完成信号属于核心语义，不能以“先做动画”删掉。
+- 三层 shadow 与 multi-display replicant 已进入原生源码；在跨屏、混合倍率与热插拔实机通过前，只能称为实现，不得称像素级证据。
 
 ## 6. 分阶段验收
 
@@ -314,6 +317,8 @@ macos_permission_handoff.rs
 | R3 native 鲁棒性 | 多显示器、Space、窗口关闭/重开、目标丢失 | 无孤儿 panel、无焦点劫持、无额外权限、无崩溃 |
 | R4 生产接线 | typed `permissionRequired` → handoff → retry | 只有真实事务成功才显示成功；四语目的说明进入最终包 |
 | R5 packaged evidence | ad-hoc/package 实机 | 验证最终 Info.plist、首次拒绝、打开设置、允许、重试成功和 Reduce Motion |
+
+当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，正在进入 R5。未完成的 R5 不能被工作台、Node VM、`cargo check` 或 ad-hoc bundle 静态 readback 代替。
 
 ## 7. 验证矩阵
 
@@ -333,6 +338,6 @@ macos_permission_handoff.rs
 
 ## 8. 发布与许可边界
 
-- 本路线不会改变当前 tag 或 release 门；未实现、未打包、未实机验证前不得写入发布 SOP。
+- 本功能不会改变当前 tag 或 release 门；packaged 首次授权与多屏证据未闭合前不得写入发布说明或宣称可发布。
 - 若后续直接移植公开 MIT 参考实现的实质代码，必须保留 copyright/许可并更新第三方 notices；仅学习公开行为后独立实现，也要在兄弟 reference 中保留 commit 与证据链以便审计。
 - 仓库外二进制研究只用于行为理解和洁净室设计，不复制私有实现，也不在本开源仓库暴露具体研究对象身份。

@@ -271,6 +271,7 @@ name = "cavalry-i18n-tauri"
 version = "0.7.0"
 dependencies = [
  "base64 0.22.1",
+ "cc",
  "chrono",
  "libc",
  "minisign-verify",
