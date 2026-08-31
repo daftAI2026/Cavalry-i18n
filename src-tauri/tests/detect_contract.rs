@@ -8,7 +8,7 @@ use cavalry_i18n_tauri::detect::{
 };
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::detect/install 的候选顺序、安装根规范化、展示版本、revision 与 marker 读取能力
- * [OUTPUT]: 对外提供保存路径优先、macOS 用户域先于系统域的默认候选与 Windows 非 MSI 内容身份 contract tests
+ * [OUTPUT]: 对外提供保存路径优先、macOS 默认候选与 Windows 非 MSI 内容身份 contract tests
  * [POS]: src-tauri/tests 的探测守门，确保展示版本不伪造且快照身份随不可变二进制变化
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -74,14 +74,14 @@ fn read_bundle_version_from_info_plist() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn default_candidates_prefer_the_current_users_application_domain() {
+fn default_candidates_include_system_and_user_applications() {
     let home = env::var("HOME").unwrap();
     let candidates = default_app_candidates();
+    assert_eq!(candidates[0], Path::new("/Applications/Cavalry.app"));
     assert_eq!(
-        candidates[0],
+        candidates[1],
         Path::new(&home).join("Applications").join("Cavalry.app")
     );
-    assert_eq!(candidates[1], Path::new("/Applications/Cavalry.app"));
 }
 
 #[test]
