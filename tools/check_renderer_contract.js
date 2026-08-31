@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结当前 50pt 弧线/双图/项目自绘箭头节奏、整条 App row snapshot 的 HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、整条 App row snapshot 的 HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -82,6 +82,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(workspace, /<iframe id="reviewFrame"[^>]*><\/iframe>/);
   assert.match(workspace, /data-view="handoff"[^>]*><span>权限 handoff<\/span>/);
   assert.match(workspace, /const reviewPages = Object\.freeze\(\{ handoff: '\/handoff' \}\)/);
+  assert.match(workspace, /\.window\[data-surface="handoff"\] \{ width: 100%; height: 100%; border: 0;/);
+  assert.match(workspace, /\.stage\[data-kind="handoff"\] \{ display: block; padding: 0; \}/);
   assert.match(workspace, /data-scenario="updateAvailable"[^>]*><span>更新可用 · Tooltip<\/span>/);
   for (const view of ['feedback', 'icons', 'badges']) {
     assert.match(workspace, new RegExp(`data-view="${view}"`));
@@ -93,6 +95,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(workspace, /windowFrame\.dataset\.platform = windowsScenarios\.has\(scenario\) \? 'windows' : 'macos'/);
   assert.match(workspace, /\.window\[data-platform="windows"\] \.lights \{ display: none; \}/);
   assert.match(workspace, /fetch\('\/revision'/);
+  assert.match(workspace, /if \(revision && next !== revision\) location\.reload\(\)/);
+  assert.doesNotMatch(workspace, /revision && next !== revision\) frame\.contentWindow\.location\.reload/);
   assert.match(reviewServerSource, /for \(const request of reviewModuleRequests\) delete require\.cache\[require\.resolve\(request\)\]/);
   assert.match(reviewServerSource, /const reviewSourcePaths = Object\.freeze\(reviewModuleRequests\.map\(\(request\) => require\.resolve\(request\)\)\)/);
   assert.match(reviewServerSource, /return \[\.\.\.rendererSources, \.\.\.reviewSourcePaths\]/);
@@ -130,6 +134,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.doesNotMatch(iconCatalog, /<path\s+d=/, 'icon catalog must use the production icon factory rather than copied paths');
 
   const handoff = permissionHandoffHtml();
+  assert.match(handoff, /--handoff-stage-min-height: 604px/);
+  assert.match(handoff, /\.handoff-shell > \* \{ min-width: 0; \}/);
   assert.match(handoff, /const sourceScenarioUrl = '\/app\?scenario=' \+ REVIEW\.sourceScenario/);
   assert.match(handoff, /actionButtons\.reset\.addEventListener\('click', \(\) => reset\(\{ reloadSource: true \}\)\)/);
   assert.match(handoff, /if \(reloadSource\) \{[\s\S]*?sourceReloadPending = true[\s\S]*?sourceFrame\.src = sourceScenarioUrl/);

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/成功/阻塞/警告/失败 fixture 矩阵、feedback/icons/badges 目录，以及 ui_review_permission_handoff 的独立权限审查页；依赖 localhost query 传递 locale/scenario。
- * [OUTPUT]: 对外提供 workspaceHtml，并兼容转发 permissionHandoffHtml；以单一侧栏切换生产界面、审查总览和独立 macOS 权限交接原型。
- * [POS]: tools UI Review 的纯导航壳；只拥有页面选择、fixture/locale 路由与审查窗口外框，权限动画状态机由兄弟模块独立承担。
+ * [OUTPUT]: 对外提供 workspaceHtml，并兼容转发 permissionHandoffHtml；以单一侧栏切换生产界面、审查总览和占满可用 stage 的独立 macOS 权限交接原型，revision 变化时重载整个工作台而非只刷新 iframe。
+ * [POS]: tools UI Review 的纯导航壳；只拥有页面选择、fixture/locale 路由与主/About 审查窗口外框，权限页不再套用会压缩原型的假窗口，动画状态机由兄弟模块独立承担。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -17,7 +17,7 @@ function workspaceHtml() {
   <link rel="icon" href="data:," />
   <title>Cavalry UI Review Workspace</title>
   <style>
-    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; --line: #dededb; --surface: #fff; --canvas: #f5f5f3; --text: #1d1d1f; --muted: #6e6e73; --review-handoff-window-width: 1120px; --review-handoff-window-height: 840px; --review-handoff-window-radius: 18px; }
+    :root { color-scheme: light; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; --line: #dededb; --surface: #fff; --canvas: #f5f5f3; --text: #1d1d1f; --muted: #6e6e73; }
     * { box-sizing: border-box; }
     html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; }
     body { background: var(--canvas); color: var(--text); }
@@ -49,9 +49,10 @@ function workspaceHtml() {
     .window[data-surface="about"]::before { content: "About Cavalry Language Switcher"; position: absolute; z-index: 4; inset: 0 0 auto; height: 28px; display: grid; place-items: center; border-bottom: 1px solid var(--line); background: #f7f7f7; font-size: 11px; line-height: 16px; }
     .window[data-surface="about"] .lights { top: 8px; left: 8px; gap: 6px; }
     .window[data-surface="about"] .lights i { width: 12px; height: 12px; }
-    .window[data-surface="handoff"] { width: min(var(--review-handoff-window-width), 100%); height: min(var(--review-handoff-window-height), 100%); border-radius: var(--review-handoff-window-radius); }
+    .window[data-surface="handoff"] { width: 100%; height: 100%; border: 0; border-radius: 12px; box-shadow: none; }
     .window[data-surface="handoff"] iframe { height: 100%; }
     .window[data-surface="handoff"] .lights { display: none; }
+    .stage[data-kind="handoff"] { display: block; padding: 0; }
     .window[data-platform="windows"] { border-radius: 8px; }
     .window[data-platform="windows"] .lights { display: none; }
     .stage[data-kind="catalog"] { display: block; padding: 0; }
@@ -161,7 +162,7 @@ function workspaceHtml() {
     async function pollRevision() {
       try {
         const next = await fetch('/revision', { cache: 'no-store' }).then((response) => response.text());
-        if (revision && next !== revision) frame.contentWindow.location.reload();
+        if (revision && next !== revision) location.reload();
         revision = next;
       } catch (_) {}
     }

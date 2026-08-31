@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实 permissionMac renderer iframe，依赖 renderer 的 tokens/Button/语义图标/应用标识，并注入 ui_review_permission_handoff_runtime 的独立行为层。
- * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、整条 App row 快照拖拽、整窗 copy-drop 审查、同进程 oracle、Later 重开提示、系统 Quit & Reopen 后 fresh-session 投影及不入库的本机 Raster/System Settings 对照区。
+ * [OUTPUT]: 对外提供 permissionHandoffHtml；以不压缩 400×484 source、484px 设置目标及 82px helper 的完整舞台组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、整条 App row 快照拖拽、整窗 copy-drop 审查、同进程 oracle、Later 重开提示、系统 Quit & Reopen 后 fresh-session 投影及不入库的本机 Raster/System Settings 对照区。
  * [POS]: tools UI Review 的独立权限动画舞台结构/样式层；只用 DOM/HTML 替身审查系统设置目标、视觉连续性和后端结果，本机参考缺失时降级为说明文字，不伪造 NSImage/NSPanel/NSDraggingSession 或 native 授权，并与工作台导航壳及行为层保持单向依赖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -24,7 +24,7 @@ function permissionHandoffHtml() {
       color-scheme: light;
       font-family: var(--font-sans);
       --handoff-stage-gap: var(--space-6);
-      --handoff-stage-min-height: 540px;
+      --handoff-stage-min-height: 604px;
       --handoff-source-viewport-width: 400px;
       --handoff-source-viewport-height: 484px;
       --handoff-target-viewport-width: 360px;
@@ -39,6 +39,7 @@ function permissionHandoffHtml() {
     button { cursor: pointer; }
     button:disabled { cursor: default; }
     .handoff-shell { min-height: 100%; display: grid; grid-template-rows: auto minmax(0, 1fr) auto auto auto auto auto; gap: var(--space-4); padding: var(--space-6); }
+    .handoff-shell > * { min-width: 0; }
     .handoff-header { display: flex; align-items: flex-start; justify-content: space-between; gap: var(--space-6); }
     .handoff-eyebrow { margin: 0 0 var(--space-1); color: var(--tone-update); font-size: var(--type-label); font-weight: var(--weight-medium); }
     h1 { margin: 0; font-size: var(--type-heading); font-weight: var(--weight-heading); line-height: var(--line-height-heading); }
