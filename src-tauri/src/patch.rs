@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 install::InstallLayout、serde_json 与 std fs/path，读取 Cavalry 跨平台 assets
- * [OUTPUT]: 对外提供无路径碰撞的资源映射、逐组件 lstat 的 macOS asset 安全门、hash-manifest English immutable generations/原子指针、旧无 manifest 快照的 keyed overlay 证明与 mode-bound JSON-only 安全提升、严格复制计划及只替换字符串且保留安装元数据/版本增量的覆盖合并计划
+ * [OUTPUT]: 对外提供无路径碰撞的资源映射、逐组件 lstat 的 macOS asset 安全门、hash-manifest English immutable generations/原子指针、旧无 manifest 快照的 keyed overlay 证明与由本机 snapshot/install mode 互证的 JSON-only 安全提升、严格复制计划及只替换字符串且保留安装元数据/版本增量的覆盖合并计划
  * [POS]: src-tauri/src 的 JSON patch 核心，以 exact asset identity、无 symlink regular-file 门、Windows 可写 durability handle、current/prev 缺失与损坏区分及 string-only keyed overlay 同时守住 clean-English 恢复材料及当前/未来 Cavalry 安装元数据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -751,8 +751,10 @@ pub fn extract_english_generation_with_identity(
 /// Promote a trusted pre-immutable `state_dir/en` snapshot into the current generation protocol.
 /// The caller's packaged English source is part of this gate; the installed Cavalry assets are
 /// never read as the migration byte source, so a translated installation cannot overwrite its
-/// own English baseline. On macOS, legacy/package/installed Unix modes must agree before that mode
-/// is bound into the JSON-only generation. This does not create a vendor runtime baseline.
+/// own English baseline. Packaged language files prove JSON content only; their checkout mode is
+/// not vendor metadata. On macOS, the local legacy snapshot and installed asset must agree, and
+/// the generation binds the mode copied from that proven local snapshot. This does not create a
+/// vendor runtime baseline.
 /// Existing immutable pointers are never replaced by this compatibility path.
 pub fn migrate_legacy_english_generation_with_identity(
     packaged_english_dir: &Path,
@@ -785,18 +787,13 @@ pub fn migrate_legacy_english_generation_with_identity(
     if requires_unix_mode(&canonical_app) {
         let installed_assets = assets_root(&canonical_app);
         for mapping in &mappings {
-            let packaged = packaged_english_dir.join(&mapping.language_relative_path);
             let legacy = legacy_dir.join(&mapping.language_relative_path);
             let installed = installed_assets.join(&mapping.asset_relative_path);
-            let expected_mode = original_unix_mode(&packaged)?;
             let legacy_mode = original_unix_mode(&legacy)?;
             let installed_mode = original_unix_mode(&installed)?;
-            if expected_mode.is_none()
-                || legacy_mode != expected_mode
-                || installed_mode != expected_mode
-            {
+            if legacy_mode.is_none() || installed_mode != legacy_mode {
                 return Err(format!(
-                    "Legacy macOS English snapshot mode does not match the packaged and installed JSON surface: {}",
+                    "Legacy macOS English snapshot mode does not match the installed JSON surface: {}",
                     mapping.language_relative_path
                 ));
             }

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、排除当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -243,9 +243,9 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
     { value: 'en', label: 'English' }, { value: 'zh-Hans', label: '简体中文' },
     { value: 'zh-Hant', label: '繁體中文' }, { value: 'ja_JP', label: '日本語' },
   ]);
-  assert.equal(r.elements['#languageSelect'].children.length, 3);
-  assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hans', 'zh-Hant', 'ja_JP']);
-  assert.equal(r.elements['#languageSelect'].children[0].textContent, '简体中文');
+  assert.equal(r.elements['#languageSelect'].children.length, 2);
+  assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hant', 'ja_JP']);
+  assert.equal(r.elements['#languageSelect'].children[0].textContent, '繁體中文');
   assert.equal(r.elements['#statusLabel'].textContent, 'Task progress');
   assert.equal(activityRows(r).length, 0);
   assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle');
@@ -311,8 +311,8 @@ test('custom language select keeps Base UI open, active, selected, and keyboard 
   trigger.listeners.get('keydown')[0](key('ArrowDown'));
   assert.equal(trigger.attributes.get('aria-activedescendant'), 'languageSelectOption-1');
   trigger.listeners.get('keydown')[0](key('Enter'));
-  assert.equal(nativeSelect.value, 'zh-Hant');
-  assert.equal(r.elements['#languageSelectValue'].textContent, '繁體中文');
+  assert.equal(nativeSelect.value, 'ja_JP');
+  assert.equal(r.elements['#languageSelectValue'].textContent, '日本語');
   assert.equal(trigger.attributes.get('aria-expanded'), 'false');
   assert.equal(popup.hidden, true);
   assert.equal(popupPlaceholder.hidden, true);
@@ -787,9 +787,26 @@ test('apply invokes exactly one backend transaction and never exposes a second r
   r.elements['#applyButton'].listeners.get('click')[0]();
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
-    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hans' },
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hant' },
   });
   assert.equal(r.calls.some(({ command }) => command === 'restart_cavalry'), false);
+});
+
+test('installation verification failure gives a reopen-first and official-reinstall fallback', async () => {
+  const r = boot({
+    status: { supportedVersion: '2.7.2' },
+    apply: { ok: false, error: 'private backend diagnostic', errorCode: null },
+  });
+  await flush();
+  chooseLanguage(r);
+  dispatch(r.elements['#applyButton'], 'click');
+  await flush();
+
+  assert.equal(activityTitle(r), 'Couldn’t verify the Cavalry installation');
+  assert.match(activityText(r), /Reopen the Switcher and try again/);
+  assert.match(activityText(r), /official installer/);
+  assert.match(activityText(r), /Cavalry 2\.7\.2/);
+  assert.doesNotMatch(activityText(r), /private backend diagnostic/);
 });
 
 test('Windows englishRestoreNeeded residue is actionable through Restore despite needsExtract', async () => {

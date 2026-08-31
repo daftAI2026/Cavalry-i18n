@@ -27,6 +27,7 @@ const feedbackGroups = Object.freeze([
       'phaseVerifyInstallationRunningTitle',
       'phaseVerifyInstallationCompletedTitle',
       'phaseVerifyInstallationErrorTitle',
+      'verifyInstallationRecovery',
       'phaseEnsureRecoveryRunningTitle',
       'phaseEnsureRecoveryCompletedTitle',
       'phaseEnsureRecoveryErrorTitle',

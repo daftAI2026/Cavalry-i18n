@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、真实任务 Event、macOS App Management 重开与 Windows UAC 分流、外围 Toast 及完整无障碍名称。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、验证失败的分级恢复路径、真实任务 Event、macOS App Management 重开与 Windows UAC 分流、外围 Toast 及完整无障碍名称。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -72,6 +72,7 @@ const UI_TEXT = {
     phaseVerifyInstallationRunningTitle: 'Checking the Cavalry installation',
     phaseVerifyInstallationCompletedTitle: 'Cavalry installation verified',
     phaseVerifyInstallationErrorTitle: 'Couldn’t verify the Cavalry installation',
+    verifyInstallationRecovery: 'Reopen the Switcher and try again. If verification still fails, reinstall Cavalry {supportedVersion} from the official installer.',
     phaseEnsureRecoveryRunningTitle: 'Preparing recovery files',
     phaseEnsureRecoveryCompletedTitle: 'Recovery files ready',
     phaseEnsureRecoveryErrorTitle: 'Couldn’t prepare recovery files',
@@ -240,6 +241,7 @@ const UI_TEXT = {
     phaseVerifyInstallationRunningTitle: '正在检查 Cavalry 安装',
     phaseVerifyInstallationCompletedTitle: '已验证 Cavalry 安装',
     phaseVerifyInstallationErrorTitle: '无法验证 Cavalry 安装',
+    verifyInstallationRecovery: '重新打开语言切换器后重试。如果仍无法验证，请使用官方安装包重新安装 Cavalry {supportedVersion}。',
     phaseEnsureRecoveryRunningTitle: '正在准备恢复文件',
     phaseEnsureRecoveryCompletedTitle: '恢复文件已就绪',
     phaseEnsureRecoveryErrorTitle: '无法准备恢复文件',
@@ -402,6 +404,7 @@ const UI_TEXT = {
     phaseVerifyInstallationRunningTitle: '正在檢查 Cavalry 安裝',
     phaseVerifyInstallationCompletedTitle: '已驗證 Cavalry 安裝',
     phaseVerifyInstallationErrorTitle: '無法驗證 Cavalry 安裝',
+    verifyInstallationRecovery: '重新開啟語言切換器後重試。如果仍無法驗證，請使用官方安裝程式重新安裝 Cavalry {supportedVersion}。',
     phaseEnsureRecoveryRunningTitle: '正在準備還原檔案',
     phaseEnsureRecoveryCompletedTitle: '還原檔案已就緒',
     phaseEnsureRecoveryErrorTitle: '無法準備還原檔案',
@@ -564,6 +567,7 @@ const UI_TEXT = {
     phaseVerifyInstallationRunningTitle: 'Cavalry のインストールを確認中',
     phaseVerifyInstallationCompletedTitle: 'Cavalry のインストールを確認しました',
     phaseVerifyInstallationErrorTitle: 'Cavalry のインストールを確認できません',
+    verifyInstallationRecovery: '言語スイッチャーを開き直して再試行してください。確認できない場合は、公式インストーラーから Cavalry {supportedVersion} を再インストールしてください。',
     phaseEnsureRecoveryRunningTitle: '復元ファイルを準備中',
     phaseEnsureRecoveryCompletedTitle: '復元ファイルの準備ができました',
     phaseEnsureRecoveryErrorTitle: '復元ファイルを準備できません',

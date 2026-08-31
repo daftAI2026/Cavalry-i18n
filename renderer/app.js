@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、保留阻断前历史且折叠同进程 oracle 重复前置成功阶段的 macOS 设置/Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、排除当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、保留阻断前历史且折叠同进程 oracle 重复前置成功阶段的 macOS 设置/Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，也不把只读权限未知伪装为警告；typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -257,10 +257,11 @@ function operationPhaseCopy({ phase, state: phaseState }, context) {
           ? 'phaseRestore'
           : 'phaseApply';
     const copyState = phaseState === 'warning' ? 'completed' : phaseState;
+    const description = phase === 'verifyInstallation' && phaseState === 'error' ? t('verifyInstallationRecovery', { supportedVersion: state.supportedVersion }) : '';
     return {
       id,
       title: t(`${prefix}${copyState[0].toUpperCase()}${copyState.slice(1)}Title`, { language }),
-      description: '',
+      description,
       state: phaseState,
       icon: phaseState === 'completed' ? (restoring && phase === 'applyTransaction' ? 'restore' : PHASE_ICONS[phase]) : undefined,
     };
@@ -315,9 +316,9 @@ function setBusy(isBusy) {
 }
 
 function updateLanguageOptions(languages) {
-  languageSelectControl.setOptions(languages.filter((language) => language.value !== 'en'));
+  const options = languages.filter((language) => language.value !== 'en' && language.value !== state.currentLang);
+  languageSelectControl.setOptions(options);
 }
-
 function languageLabel(code) {
   if (code === 'restore-official') return t('restore');
   const match = state.languages.find((language) => language.value === code);

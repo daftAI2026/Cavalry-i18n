@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer 的四语文案、Activity/Updater/Toast 状态机、Managed Legacy/四态版本 Status 合同、Tauri Channel 合同与已批准 UX Writing/反馈分层裁决
-[OUTPUT]: 对外提供 Event/AlertDialog/Toast 的生产归属与四语审阅快照，冻结“恢复只承诺可证明结果、版本不兼容保持只读、持久事实不叠 Toast、外围失败只用 Toast、紧凑更新确认不内嵌 changelog”的裁决
+[OUTPUT]: 对外提供 Event/AlertDialog/Toast 的生产归属与四语审阅快照，冻结“恢复只承诺可证明结果、安装验证失败提供重开优先/官方重装兜底、版本不兼容保持只读、持久事实不叠 Toast、外围失败只用 Toast、紧凑更新确认不内嵌 changelog”的裁决
 [POS]: docs/audits 的反馈语义审阅面；供产品逐条裁决文案与承载组件，不替代 renderer/ui-text.js 运行时真相、后端 DTO 合同或 packaged 验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -80,7 +80,14 @@ Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度�
 | `update.install.completed` | Update installed | 更新已安装 | 更新已安裝 | 更新をインストールしました |
 | `update.restart.running` | Restarting the Switcher | 正在重启语言切换器 | 正在重新啟動語言切換器 | 言語スイッチャーを再起動中 |
 
-### 4.1 阶段内次行
+### 4.1 安装验证失败的恢复正文
+
+- **English:** Reopen the Switcher and try again. If verification still fails, reinstall Cavalry {supportedVersion} from the official installer.
+- **简体中文：** 重新打开语言切换器后重试。如果仍无法验证，请使用官方安装包重新安装 Cavalry {supportedVersion}。
+- **繁體中文：** 重新開啟語言切換器後重試。如果仍無法驗證，請使用官方安裝程式重新安裝 Cavalry {supportedVersion}。
+- **日本語：** 言語スイッチャーを開き直して再試行してください。確認できない場合は、公式インストーラーから Cavalry {supportedVersion} を再インストールしてください。
+
+### 4.2 阶段内次行
 
 - Updater 下载百分比已经有真实字节计数，可直接在当前 Marker 次行原位更新。
 - Switch/Restore 当前 `OperationEvent` 只有 `phase` 与 `state`，没有文件名、索引或总数。预览里的 `appStrings.json` 等仅用于评审信息层级，不是生产证据。

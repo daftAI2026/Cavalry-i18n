@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、整条 App row snapshot 的 HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移并排除当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、整条 App row snapshot 的 HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -828,7 +828,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(selectControl, /nativeOption\.textContent\s*=/);
   assert.match(selectControl, /createElementNS\('http:\/\/www\.w3\.org\/2000\/svg', 'svg'\)/);
   assert.match(selectControl, /path\.setAttribute\('d', 'm20 6-11 11-5-5'\)/);
-  assert.match(app, /languages\.filter\(\(language\) => language\.value !== 'en'\)/);
+  assert.match(app, /language\.value !== 'en' && language\.value !== state\.currentLang/);
   const restoreConfirmationFunction = sourceFunction(
     app,
     'function showRestoreConfirmation() {',
@@ -941,6 +941,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'phaseVerifyInstallationRunningTitle',
     'phaseVerifyInstallationCompletedTitle',
     'phaseVerifyInstallationErrorTitle',
+    'verifyInstallationRecovery',
     'phaseEnsureRecoveryRunningTitle',
     'phaseEnsureRecoveryCompletedTitle',
     'phaseEnsureRecoveryErrorTitle',
