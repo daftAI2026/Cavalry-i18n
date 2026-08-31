@@ -2222,7 +2222,7 @@ test('release supply-chain pins, source completeness, and seal schemas are execu
   assert.match(requirementsInput, /^aqtinstall==3\.3\.0$/m);
   assert.match(requirements, /^aqtinstall==3\.3\.0/m);
   assert.match(requirements, /--hash=sha256:[a-f0-9]{64}/);
-  assert.match(rustToolchain, /channel\s*=\s*"1\.97\.1"/);
+  assert.match(rustToolchain, /channel\s*=\s*"1\.98\.0"/);
   assert.match(readText('SECURITY.md'), /ad-hoc signed and not notarized/);
   assert.match(readText('SECURITY.md'), /Tauri Updater signature/);
   assert.match(readText('.github/CODEOWNERS'), /@singkia/);

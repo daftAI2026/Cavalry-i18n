@@ -72,19 +72,19 @@ test('every Rust setup and rust-toolchain.toml must match the exact manifest cha
   try {
     const workflowPath = path.join(temp, '.github/workflows/build.yml');
     const workflow = fs.readFileSync(workflowPath, 'utf8');
-    fs.writeFileSync(workflowPath, workflow.replaceAll("toolchain: '1.97.1'", 'toolchain: stable'));
+    fs.writeFileSync(workflowPath, workflow.replaceAll("toolchain: '1.98.0'", 'toolchain: stable'));
     const floating = run(temp);
     assert.notEqual(floating.status, 0);
-    assert.match(floating.stderr, /must declare exactly toolchain: '1\.97\.1'/);
+    assert.match(floating.stderr, /must declare exactly toolchain: '1\.98\.0'/);
 
     fs.writeFileSync(workflowPath, workflow);
     fs.writeFileSync(
       path.join(temp, 'rust-toolchain.toml'),
-      fs.readFileSync(path.join(temp, 'rust-toolchain.toml'), 'utf8').replace('1.97.1', 'stable')
+      fs.readFileSync(path.join(temp, 'rust-toolchain.toml'), 'utf8').replace('1.98.0', 'stable')
     );
     const fileDrift = run(temp);
     assert.notEqual(fileDrift.status, 0);
-    assert.match(fileDrift.stderr, /must declare exactly channel = "1\.97\.1"/);
+    assert.match(fileDrift.stderr, /must declare exactly channel = "1\.98\.0"/);
 
     fs.copyFileSync(path.join(root, 'rust-toolchain.toml'), path.join(temp, 'rust-toolchain.toml'));
     const pinsPath = path.join(temp, 'tools/ci_action_pins.json');
@@ -93,7 +93,7 @@ test('every Rust setup and rust-toolchain.toml must match the exact manifest cha
     fs.writeFileSync(pinsPath, `${JSON.stringify(pins, null, 2)}\n`);
     const manifestDrift = run(temp);
     assert.notEqual(manifestDrift.status, 0);
-    assert.match(manifestDrift.stderr, /must exactly pin Rust 1\.97\.1/);
+    assert.match(manifestDrift.stderr, /must exactly pin Rust 1\.98\.0/);
   } finally { fs.rmSync(temp, { recursive: true, force: true }); }
 });
 

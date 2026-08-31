@@ -12,7 +12,7 @@
 ## 1. 核心依赖
 
 - Node 依赖：`@tauri-apps/cli`、`@tauri-apps/api` 固定在 `2.10.1`。
-- Rust 依赖：`tauri` 固定在 `2.10.3`，`tauri-build` 固定在 `2.5.6`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。Rust **channel** 由根目录 `rust-toolchain.toml` 固定（当前 `1.97.1`）。
+- Rust 依赖：`tauri` 固定在 `2.10.3`，`tauri-build` 固定在 `2.5.6`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。Rust **channel** 由根目录 `rust-toolchain.toml` 固定（当前 `1.98.0`）。
 - Qt bootstrap：`requirements-ci.txt` 固定 `aqtinstall==3.3.0` 及其完整依赖摘要；`prepare:qt-sdk` 创建 ignored 的 repo-local venv 并以 `--require-hashes` 安装，绝不信任全局 aqt。Windows CMake bootstrap 由 `tools/resolve_windows_cmake.js` 消费 `tools/ci_action_pins.json` 中官方 Kitware/CMake v4.2.0 Windows x64 zip 的固定 URL/SHA-256，重新解包，执行 `cmake --version` 并验证 CTest 同包布局；不会消费 runner PATH 中的预装版本。GitHub Actions 全量 pin 见 `tools/ci_action_pins.json`。
 - Injector 依赖：当前发布目标与 macOS/Windows SDK 投影统一写在 `tools/cavalry_qt_target.json`；本机有 Cavalry.app 时校验其 Qt 版本，clean CI 按同一份配置分别准备 Qt `6.6.3` `clang_64` 或 `msvc2019_64` SDK。macOS 还会验证整个 SDK tree 的 canonical SHA-256（文件内容、目录和 symlink target）；任一下载或安装漂移都 fail-closed。
 
