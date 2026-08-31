@@ -55,7 +55,7 @@ Windows では、まずローカルのインストールを検出します。見
 
 ## Release からインストール
 
-GitHub Releases からプラットフォームに合うアセットをダウンロードしてください。macOS は Apple Silicon または Intel 用 DMG を選びます。現在の macOS アセットは ad-hoc 署名で、Developer ID の公証は受けていません。updater archive は別の Tauri updater key で署名されます。Tag pipeline は `SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、独立署名された acceptance attestation、最終 Ed25519 `ReleaseAcceptanceSeal.json` も公開します。`SECURITY.md` が acceptance authority と release seal の独立した 2 つの fingerprint を保護された経路で公開するまでは、どちらの埋め込み公開鍵も trust anchor とみなさないでください。検証は acceptance attestation を先に、最終 seal を次に確認します。
+GitHub Releases からプラットフォームに合うアセットをダウンロードしてください。updater 閉包より前の Release には 3 つの手動インストーラーしかない場合があり、自動更新機能が遡って追加されることはありません。現在の tag pipeline が生成する updater-enabled Release は、`latest.json`、6 つの updater archive／署名アセット、verification sidecar がそろっていることで識別できます。macOS DMG は Developer ID 公証ではなく ad-hoc 署名、updater archive は別の Tauri updater key で署名され、`SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、独立署名された acceptance attestation、最終 Ed25519 `ReleaseAcceptanceSeal.json` も同時に公開されます。`SECURITY.md` が acceptance authority と release seal の独立した 2 つの fingerprint を保護された経路で公開するまでは、どちらの埋め込み公開鍵も trust anchor とみなさないでください。検証は acceptance attestation を先に、最終 seal を次に確認します。
 
 Windows では `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe` をダウンロードして実行します。NSIS インストーラーは language switcher のみをインストールします。エンドユーザーが Python、Rust、Qt、PowerShell 7 を入れる必要はありません。インストール後は検出された Cavalry を選ぶか、現在のユーザーが書き込めるインストールルートを指定してください。Windows Authenticode は別 issue で追跡中です。必ず `SHA256SUMS` を確認してください。
 

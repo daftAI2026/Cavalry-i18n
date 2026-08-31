@@ -45,7 +45,7 @@ UI 知识归属:
 2026-07-30: 新增 Windows Onboarding live 验证 session 复盘，将恢复工作区/登录干扰、step 5 退出风险、可复用 driver/helper、证据封存和 macOS 迁移边界沉淀到 PR #3 的长期文档；2026-07-31 同步实际 Qt test profile 与 bounded transition retry。
 2026-07-30: 从任务事件流恢复 macOS 21-run/48-point acceptance producer 至 `tools/macos-acceptance/`，run note 与双平台 handoff 同步记录 tracked source、session artifact 和历史 PASS 的不可混写边界。
 2026-07-31: 关闭 PR #3 Windows Tag/Assets `PENDING-WINDOWS-PRODUCER`，新增绑定三语 6/6 逻辑点、9/9 producer-side PNG 与 exact PID/HWND 锚点的 session 交接；验收 driver 独立于产品 DLL，登录/工作区由 Qt test profile 隔离，cleanup 对 exact disposable PID 可受限强停但不参与 PASS，repository-wide G0-G4 仍不冒充完成。
-2026-08-28: 新增并完成 Switcher 更新提示 R0 单图标/tooltip preview；随后在独立 feature 接入官方 Tauri updater、独立签名资产、脱敏三阶段 Channel 与底部跟随任务事件视窗。Apple Developer ID/notarization、Windows Authenticode、SemVer bootstrap 和双平台跨版本实机验收仍是独立未完成门禁，不改变当前发布 SOP。
+2026-08-28: 新增并完成 Switcher 更新提示 R0 单图标/tooltip preview；随后在独立 feature 接入官方 Tauri updater、独立签名资产、脱敏三阶段 Channel 与底部跟随任务事件视窗。2026-09-01 已把受保护 updater Secrets、无 tag macOS 双架构签名 smoke 与 schema v6/v4 ad-hoc tag SOP 同步为当前事实；Apple Developer ID/notarization、Windows Authenticode、SemVer bootstrap、真实 tag 和双平台跨版本实机验收仍各自未完成。
 2026-08-29: 新增 Switcher 反馈语义与四语审阅目录，并把 idle 单轨居中、首尾 Message/中段 Marker 三轨、非阻塞 text delta、8px fade 与 live-edge 接入真实 renderer；仅无 warning 的 Switch/Restore 完整路径输出本地化结果，Updater 跨重启结果、Toast 与文件级 detail 继续按真实证据保持 Blocked/未实现。
 2026-08-29: 新增开源组件源码适配协议；Marker/shimmer 审计锁定 shadcn/ui commit 与 shadcn 4.19.0 utility；随后把 Toast 闭包锁定到 shadcn 同提交与 Base UI 1.6.0，并明确 5 秒/3 条/暂停剩余时间和 16px 组件 inset。
 2026-08-31: 将锁定 shadcn Base Button 源码投影为本地共享 primitive；普通动作共用布局/disabled/SVG/variant/size，Select Trigger 保持独立状态机，Windows caption 只替换视觉而不接管系统窗口行为。

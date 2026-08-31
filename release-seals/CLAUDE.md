@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-README.md: release tag 前置 acceptance evidence/attestation 与 schema v5 最终资产 seal 的操作合同；说明 source/evidence-only commit、外部 detached signer、双 trust anchor，以及人工安装/updater 九项分发资产进入 private-draft exact readback 的 fail-closed 顺序。
+README.md: release tag 前置 acceptance evidence/attestation 与 schema v6 最终资产 seal 的操作合同；说明 source/evidence-only commit、外部 detached signer、双 trust anchor、macOS ad-hoc 声明，以及人工安装/updater 九项分发资产进入 private-draft exact readback 的 fail-closed 顺序。
 TODO.md: 从 Windows release acceptance handoff 合并的临时执行清单；保留 source commit `9e293df` 的 Mac live、可复验 Windows 原始 session、双平台 evidence 与外部 attestation 债务，当前候选执行状态以 `docs/roadmap/switcher-update-release-event-ledger.md` 为准。
 
 依赖边界:

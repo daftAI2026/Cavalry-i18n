@@ -154,7 +154,7 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-07-29: Windows NSIS provenance 比较 canonical file identity，修复 macOS `/var` 与 `/private/var` 指向同一安装器却被误拒绝的本地合同假阴性；bundle 边界与内容 fingerprint 不变。
 2026-07-30: 将 2026-07-29 现场使用的 macOS 21-run/48-point acceptance driver、exact-window helper、媒体输入和 harness 从可清理 Cache 恢复到 `macos-acceptance/`；CI 运行静态合同与无 vendor app compile，live PASS 仍只由显式 session 证据产生。
 2026-07-31: Windows Adjacent gate 将 Tag/Assets producer driver、双素材与 exact-HWND 证据握手收进 tracked Rust/C++/PowerShell 边界；正式瞬态 PNG 改由 producer-side Qt grab，helper 只封存/诊断，三语动态 stem 带 run nonce 防止还原工作区污染。
-2026-08-09: 新增 release acceptance evidence/seal、detached offline acceptance signer 与独立双 trust anchor、exact-commit/mode source tar、strict-YAML Actions SHA pin、toolchain evidence、三生态漏洞门与 private-draft 最后公开的幂等 release_publish；合同测试锁定 tag Developer ID fail-closed 与 badge PR 路径。
+2026-08-09: 新增 release acceptance evidence/seal、detached offline acceptance signer 与独立双 trust anchor、exact-commit/mode source tar、strict-YAML Actions SHA pin、toolchain evidence、三生态漏洞门与 private-draft 最后公开的幂等 release_publish；当时合同测试曾锁定 tag Developer ID fail-closed 与 badge PR 路径，前者已由 2026-09-01 的 ad-hoc 事实修正撤销。
 
 2026-08-09: 本地 Qt ensure 取消裸 `pip install aqtinstall`，改用项目内 hash-locked bootstrap，并以 Qt 6.6.3 macOS 完整 SDK tree SHA-256 拒绝下载/安装漂移；新增 npm/Python/Cargo 已知漏洞、RustSec freshness 与 tag runner-image fingerprint 工具门。
 

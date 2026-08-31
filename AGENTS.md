@@ -1,6 +1,6 @@
 # CAVALRY-I18N KNOWLEDGE BASE
 
-Last verified: 2026-08-28 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
+Last verified: 2026-09-01 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
 
 ## OVERVIEW
 
@@ -53,7 +53,7 @@ Cavalry-i18n/
 | Full UI gate | `docs/workflows/cavalry-full-ui-100/Acceptance.md`, `Runbook.md`, `tools/run_live_full_ui_matrix.js` | Current repository-wide live gate truth. CI does not run this gate. |
 | macOS scoped acceptance | `tools/macos-acceptance/`, `docs/workflows/cavalry-full-ui-100/runs/2026-07-29-macos-eight-surface-investigation.md` | Tracked producer for the 21-run/48-point matrix; generated tools and live evidence remain session-scoped. |
 | Runtime capture | `docs/runtime-ui-live-capture-workflow.md`, `tools/capture_accessibility_inventory.js`, `tools/merge_runtime_inventory.js` | Session-scoped provenance is mandatory. |
-| Release protocol | `release.config.json`, `tools/release_metadata.js`, `tools/create_updater_manifest.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` drives title/manual assets; package SemVer drives three-platform `latest.json`; tag publishing seals and exact-readbacks nine distribution assets. Shared public key/endpoint and protected updater secrets are configured; real signed-build and update evidence remain blocked. |
+| Release protocol | `release.config.json`, `tools/release_metadata.js`, `tools/create_updater_manifest.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` drives title/manual assets; package SemVer drives three-platform `latest.json`; tag publishing seals and exact-readbacks nine distribution assets. Shared public key/endpoint and protected updater secrets are configured, but configuration alone never proves a published updater release; current package/tag/cross-version evidence belongs in `docs/roadmap/switcher-update-release-event-ledger.md`. |
 | Local build | `LOCAL_BUILD_SOP.md`, `src-tauri/tauri.*.conf.json`, `tools/cavalry_qt_target.json` | Tauri-only package path, per-platform Qt build, DMG/NSIS validation. |
 
 ## CONVENTIONS

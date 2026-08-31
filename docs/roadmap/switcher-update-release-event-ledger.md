@@ -23,7 +23,7 @@
 
 | ID | 事项 | 状态 | 已确认事实 / 证据 | 下一动作 / 完成条件 |
 | --- | --- | --- | --- | --- |
-| E01 | 远端与 tag 真相 | Done | `origin/main` 为 `f8d29bc`；当前 feature 已包含 handoff 与 updater 路径修复 `4682323`；本地/远端及 GitHub Release 仍只有 `cavalry-2.7.2-p1` 至 `p5`，无 `p6` | 打 tag 前重新执行 `git fetch --tags`、比较候选/`origin/main` 拓扑与远端 tags |
+| E01 | 远端与 tag 真相 | Done | 2026-09-01 文档修正开始时复核：`origin/main` 仍为 `f8d29bc`，feature 代码基线为 `016486a`；GitHub 最新公开 Release 仍是 `cavalry-2.7.2-p5`，仅含双架构 DMG 与 Windows NSIS 三项人工安装资产，没有 `p6`、`latest.json` 或 updater artifacts | 打 tag 前重新执行 `git fetch --tags`、比较候选/`origin/main` 拓扑与远端 tags |
 | E02 | zh-Hant glossary 修复 | Done | `CHANGELOG.md` 记录 `視埠` → `檢視區` 三处修复及 macOS onboarding oracle 同步 | 保持翻译合同通过，不为该纯文案修复重复跑全量构建 |
 | E03 | `Viewport Quality: High` 边界 | Done | `CHANGELOG.md` 明确为 macOS-only `ACCEPTED-ENGLISH-BOUNDARY`，不是翻译 PASS；Windows 未测试 | 后续 Windows 实机验证前不得扩大为跨平台结论 |
 | E04 | 自动恢复基线 / Restore 产品语义收敛 | Done | Renderer → Rust apply → snapshot/platform transaction 已闭合：首次 Switch 自动建立可信基线，UI 只保留 `Restore English`。macOS 有完整 vendor baseline 时映射 `restore-official`；旧 Switcher 安装只有在 p1-p5 精确 wrapper、三组已发布 injector code identity、匹配 marker、完整 Keychain postimage、历史 state/revision 与 38 份 English overlay 全部成立时分类为 `managedLegacy`，继续四语切换并用普通 `en` 恢复受管英文，不伪称官方恢复；Windows `en` 继续恢复 vendor QPA 并清理 owned runtime。2.7.1/2.7.3/未知版本分别保持只读，且新版本不要求降级。renderer 40/40、Rust lib 151/151、command contract 6/6 focused PASS；正式 native/package 证据由 E10/E11 追踪 | 保持 fail-closed：未知修改仍阻断，只有完整 vendor baseline 才能承诺官方恢复；不恢复第二个用户按钮，不让 2.7.3 用户为 Switcher 降级 |
@@ -32,13 +32,13 @@
 | E07 | shadcn / Base UI 源码与状态机审计 | Done | `button.css` 从锁定 shadcn Base Button 源码投影 inline-flex、disabled、SVG、ghost 与 icon size，共享给十一枚普通静态动作和动态 Toast 关闭；Select Trigger 因拥有 combobox 状态机明确隔离。Windows 三枚 caption 只消费 `ghost + icon-sm` 视觉，32px 目标/4px 间距/16px Phosphor Minus、Square、Copy、X，不改变 Tauri 系统窗口行为。`select-control.js` 保留 Base UI Select 的 placeholder/open/active/selected 与键盘/ARIA 状态；初始占位不等于 selection，用户明确 commit 前 Switch 禁用。任务事件实现对照 shadcn 官方 Marker、shimmer、scroll-fade 提交 `683a5a9b370acdb7785a0529434e6a3b8c7e0441` 与 Phosphor Regular 提交 `2b75f3ad12b420c9504ef05df8d2564a28f8500e`：Marker 使用 16px 单色语义图标、8px 间距、14/20 常规中性色文字，运行态 SpinnerGap + shimmer，终态原位切换语义图标。Toast 另锁定 shadcn 同提交与 `@base-ui/react 1.6.0`：5 秒、3 条、hover/focus/window blur 暂停剩余时间、F6/Escape/live region，并保留 16px 组件 inset 与 20px 主网格错层。 | 保持组件投影与业务编排分离；不复制当前不需要的多选、portal 或任意日志能力，也不以 fake DOM 代替 native/live 证据 |
 | E08 | 更新提示 R0 | Done | 生产默认隐藏；显式 localhost preview 才显示用户给定 SVG 的 20px 图形/24px 纯圆点击区与四语 tooltip；正式入口只在官方 updater 检查返回可用版本后显示，签名验证仍发生在后续下载事务中，不能把“发现版本”写成“签名已验证”。 | current native dev 更新入口几何沿用既有证据；真实安装进度与签名失败路径由 E09/E10/E11 验证 |
 | E09 | Tauri Updater R1 | In progress | 官方 updater plugin、最终公钥/endpoint、9 条 command registry 与 Rust-only pending Update 已接入。`install_update` 不接收 renderer 的 URL/签名/版本，只消费 Rust State，并通过 camelCase Channel 发送 `downloading`、`installing`、`restarting`；下载结束回调先于签名验证，因此第二阶段文案为“正在验证并安装”，不虚构 verified。bridge 丢弃未知阶段与 URL/签名/路径/raw，`update-progress.js` 将真实事件投影为用户任务；Channel 失败不改变更新事务。Rust updater focused 8/8、renderer/bridge 40/40 与 Node 24.20 全量 contracts 256/256 PASS。 | 代码边界已收口；仍需 E10/E11 真实打包、签名失败及跨版本更新验证，未完成前不宣称完整 updater PASS |
-| E10 | macOS 实机打包证据 | In progress | 旧 `333×420`、旧 package 与误报 `Reinstall Cavalry` 的截图均已作废。当前生产候选已从空 bundle 目录按 SOP 以显式 ad-hoc identity 重建 `.app`/DMG；packaged renderer/injector、四语 App Management purpose resources、`CodeResources`、strict codesign、DMG 内与安装态 seal 全部回读通过。WindowServer 只读证据确认该精确 bundle 的 PID 与 `400×485` 外框，生产首屏显示 2.7.2/简体中文、空 Select、`Switch`/`Restore English` 与 176px Activity；未点击 Switch/Restore，不把静态 bundle 证据升级为写事务或权限链 smoke。 | 仍需以 disposable Cavalry 输入触发真实 Switch/Restore Channel，复核逐行节奏、错误抢占、触底推进、App Management handoff 与受管英文事务；随后运行 ignored manual smoke |
+| E10 | macOS 实机打包证据 | In progress | 旧 `333×420`、旧 package 与误报 `Reinstall Cavalry` 的截图均已作废。2026-08-31 16:43 生成的 ad-hoc `.app`/DMG 曾通过 renderer/injector、四语 App Management purpose resources、`CodeResources`、strict codesign、DMG 内与安装态 seal 回读，WindowServer 记录为 `400×485`；但该磁盘产物早于随后权限生命周期与 release 修正提交，不能证明当前 HEAD。 | 从空 bundle 目录重打当前 HEAD；再以 disposable Cavalry 输入触发真实 Switch/Restore Channel，复核逐行节奏、错误抢占、触底推进、App Management handoff 与受管英文事务，随后运行 ignored manual smoke |
 | E11 | Windows 实机更新证据 | Pending | 已实现 Windows `decorations:false + shadow:true` 完整窗口 override、左侧 12px 标题与随后的更新入口、右侧 minimize/maximize-or-restore/close、固定 main-window bridge、最小 capability、四语可访问名称与最大化状态同步；三枚 caption 已切到共享 Button 的 32px ghost icon-sm、4px 间距与 16px Phosphor 图形，系统 API 行为未改，当前 renderer/bridge 合同 40/40 PASS。macOS AppKit 交通灯仍由 `cfg(target_os = "macos")` 隔离，DWM 继续拥有外框；尚无 Windows 真机截图、Snap、scaling 或 updater 跨版本证据 | 在真实 Windows 验证 user-wide、Program Files/UAC、100/125/150% scaling、拖动/双击/缩放/Snap、高对比度、状态保留和 updater 失败回退；不得用 macOS 或 fake DOM 推断 PASS |
 | E12 | Release 内容 | Pending | 已确认 release 内容应按现有发布协议从真实变更与验证边界生成，不手写虚假 PASS | 候选版本、资产和证据冻结后，按 release SOP 生成并人工审阅正文 |
 | E13 | 调试/构建/预览产物清理 | Done | 已删除 `.playwright-mcp`、`output/playwright`、旧生成目录与日志；临时 updater 密钥由 trap 删除；曾执行 `cargo clean --manifest-path src-tauri/Cargo.toml` 删除 11.6 GiB/35,484 个 target 产物。2026-08-31 再次按项目边界删除 1.2 GiB 过期 `src-tauri/target/release`（含旧 `0.7.0` DMG）、`src-tauri/gen`、Python/Playwright 审查缓存；保留当前 Tauri dev 正在消费的 4.4 GiB `target/debug`，截图只写 `/tmp`。 | 保留 `qt_sdk`/`node_modules` 与运行中的 debug 增量缓存；UI/native 裁决结束并停止 dev 后再决定是否清理 debug，发布前重新执行工作树与受控产物检查 |
 | E14 | 新 tag / GitHub Release | Blocked | 未创建、未推送新 tag；远端最新仍是 `p5` | 仅当 E06、E09 至 E13、E15 至 E17 按本轮最终范围完成且用户再次授权，才按 SOP 创建下一个 tag |
 | E15 | Updater 独立签名密钥 | Done | 用户已生成最终独立密钥对；公钥文件 SHA-256 为 `95a22cd49c1efa14fec74c555a4eefa30daa90b8ae2570614fd0b8336ca82945`，已嵌入共享 Tauri 配置；本机私钥内容未读取，文件权限已从 `0644` 收紧为 `0600`；远程 `release-production` Environment 已创建，`gh secret list --env release-production` 确认两项 updater Secret 名称与更新时间存在；Environment 已启用 custom deployment policy，只允许 `cavalry-2.7.2-p*` tag | GitHub 不回显 Secret 值是正常安全边界；不再传输或重新生成该密钥，后续只通过真实签名 build 验证公私钥/口令匹配 |
-| E16 | Updater 发布资产与 manifest 门 | In progress | 已扩展唯一命名与三平台 manifest 语义复验；schema v5 seal、provenance、SHA256SUMS/private-draft exact readback 绑定九项分发资产；tag workflow 已接入受保护 updater secrets、tag-only overlay、macOS archive/signature、Windows EXE signature 与 deterministic `latest.json`；E19 已使用真实 key 证明 macOS 双架构 archive/signature 闭环 | 仍需 E10/E11 跨版本实机验证和最终 tag-shape 发布门；之前不允许 tag |
+| E16 | Updater 发布资产与 manifest 门 | In progress | 已扩展唯一命名与三平台 manifest 语义复验；schema v6 seal、provenance v4、SHA256SUMS/private-draft exact readback 绑定九项分发资产并声明 `macos: ad-hoc`；tag workflow 已接入受保护 updater secrets、tag-only overlay、macOS archive/signature、Windows EXE signature 与 deterministic `latest.json`；E19 已使用真实 key 证明 macOS 双架构 archive/signature 闭环 | 仍需 E10/E11 跨版本实机验证和最终 tag-shape 发布门；之前不允许 tag |
 | E17 | 首个 updater-enabled SemVer bootstrap | Pending | 当前内部版本为 `0.7.0`；远端 `p5` 没有 updater 公钥/命令，无法被新 manifest 反向唤起；公开 tag 的 `pN` 不能参与 updater 版本比较 | 发布边界冻结后用现有 `sync:version` 升到 `0.7.1`；该版本是未来更新链的人工 bootstrap，旧 `p5` 用户仍需手动安装一次 |
 | E18 | Windows release handoff 合并 | Done | 远端唯一提交 `82385e1` 已通过 merge commit `e75a114` 进入当前 feature；`git merge-base --is-ancestor` PASS；`release-seals/TODO.md` 保留 source `9e293df` 债务并明确当前状态以本事件簿为准 | 远端 handoff 分支在当前 feature 推送/落地前保留；不用旧 source 证据代替新候选的实机验收 |
 | E19 | 无 tag updater 签名验证 | Done | run `33164618098` 在 exact commit `4682323` 上整体 success；x64/arm64 两个受保护 macOS job 的 updater archive 签名和内嵌公钥验签均 PASS，Windows 普通包门亦 PASS；`release` 明确 skipped，无 tag/Release；临时 branch policy `58474196` 已删除，environment 仅余 `cavalry-2.7.2-p*` tag policy `58471815` | 后续发布只能由 tag policy 进入 Secrets；本 smoke 不替代 E10/E11 真实跨版本更新验收 |
@@ -50,7 +50,7 @@
 
 ## 当前验证记录
 
-以下记录均针对当前工作树（不是 `9766ee3` 历史打包产物）：
+以下自动检查记录针对当时列明的工作树；源码继续变化后必须重跑，不能把数字机械继承为当前 HEAD 的发布证据：
 
 ```text
 PATH="$(brew --prefix node@24)/bin:$PATH" npm run test:contracts        261/261 PASS
@@ -82,7 +82,7 @@ Focused、非发布证据：
 
 - `detect` 的 5/5 focused tests 覆盖签名载荷及签名末端 `__LINKEDIT` extent 的安全归一化；无关 `__LINKEDIT` extent 仍参与身份比较。
 - `/tmp` disposable Cavalry 副本的首次/重复 Apply 已成功，证明本次重复 Apply 根因修复路径；这不是正式 macOS manual smoke，也不是当前 packaged PASS。
-- 当前工作树已有新的 macOS native dev 几何/截图证据，但没有新的 packaged PASS；`9766ee3` 的 `460×404` packaged 证据仍只作历史记录。
+- 当前磁盘上的 2026-08-31 ad-hoc DMG 早于后续权限生命周期与发布修正提交；它与 `9766ee3` 的旧 packaged 证据都只能作历史记录，当前 HEAD 仍需重打包。
 - Windows 仍只有静态/fake-DOM 证据，未作 Windows live 结论。
 
 已知非失败警告:

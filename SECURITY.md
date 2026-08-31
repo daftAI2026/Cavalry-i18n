@@ -1,13 +1,20 @@
+<!--
+[INPUT]: 依赖当前 GitHub Release 资产、tag workflow、Tauri updater/acceptance/release-seal 信任边界与平台签名现状
+[OUTPUT]: 对外提供受支持分发渠道、漏洞上报方式、双 trust anchor 验证顺序与当前未具备的平台信任声明
+[POS]: 根目录安全政策；描述公开资产的真实信任能力，不替代 LOCAL_BUILD_SOP 的发布操作步骤
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 # Security Policy
 
 ## Supported releases
 
-Only GitHub Releases published from `cavalry-2.7.2-p*` tags on commits already contained in `origin/main` and carrying the current verification sidecars are supported distribution channels.
+GitHub Releases is the only supported binary distribution channel. A release is covered by the current updater/sidecar closure only when its `cavalry-2.7.2-p*` tag commit is already contained in `origin/main` and the protected workflow has produced and exactly read back the current verification sidecars and nine distribution assets. Older releases that contain only the three manual installers predate this closure and must not be interpreted as updater-enabled or hardened by the newer workflow.
 
 - **macOS tag releases are currently ad-hoc signed and not notarized.** The Tauri Updater signature authenticates updater bytes against the public key embedded in the client; it does not create Apple platform trust. Users may need to repeat the documented Gatekeeper/ad-hoc steps after installing a new app bundle.
-- **Windows Authenticode** signing and RFC3161 timestamping are required for production distribution but are tracked as a separate maintainer issue; do not treat an unsigned Windows EXE as a fully hardened release.
+- **Windows tag installers are currently not Authenticode signed.** Authenticode and RFC3161 timestamping remain a separate future capability, not a current tag prerequisite; do not treat the unsigned EXE as Windows platform-trusted.
 
-Neither production trust anchor has been published as of 2026-08-09, so no current release qualifies as a hardened release. A hardened tag requires **two different Ed25519 keys and two independently protected fingerprints**:
+The repository does not currently publish the two independent production fingerprints below, so no current release qualifies as a hardened release under this policy. A hardened tag requires **two different Ed25519 keys and two independently protected fingerprints**:
 
 1. `RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256`: the offline acceptance authority signs only the repo-external canonical payload. Its private key never enters GitHub Actions and candidate repository code is never executed while that key is accessible.
 2. `RELEASE_SEAL_PUBLIC_KEY_SHA256`: the release system signs the final asset/provenance seal. Its private key is a protected Actions secret and must not be the acceptance key.

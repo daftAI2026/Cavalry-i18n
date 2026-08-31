@@ -42,16 +42,16 @@ tag / GitHub Release       = NOT CREATED
 - [ ] 带回 detached signature 与 public SPKI DER，完成 trust-anchor、attestation 和 evidence 校验。
 - [ ] 创建 evidence commit T。T 的唯一父提交必须是 S，唯一 diff 必须是对应 tag 的 evidence 与 acceptance-attestation 两个 JSON。
 
-## 4. 仅从 Mac 发布主机完成发布
+## 4. 从受保护 tag 流水线完成发布
 
 - [ ] 选择新的 `cavalry-2.7.2-pN`，不复用历史示例编号。
-- [ ] 合并或推送 T 后检查 tag topology，再由 Mac 或受保护 GitHub environment 完成 Developer ID、notarization、staple、双架构 DMG、Windows NSIS、SBOM、toolchain evidence、provenance、seal 和三资产 readback。
+- [ ] 合并或推送 T 后检查 tag topology，再由受保护 GitHub environment 完成双架构 ad-hoc DMG、macOS updater archive/签名、Windows NSIS/签名、`latest.json`、SBOM、toolchain evidence、schema v4 provenance、schema v6 seal 和九项分发资产 exact readback。Apple Developer ID/notarization 与 Windows Authenticode 均不冒充当前前提。
 - [ ] 发布成功后关闭 #12，再关闭总跟踪 #13。
 - [ ] 发布完成后更新本次经验文档，再单独提交；该文档提交不能插入 S 与 T 之间。
 
 ## 当前禁止动作
 
-- 不从 Windows 机器创建 tag 或 GitHub Release。
+- 不从未进入 `origin/main` 的旁支、dirty worktree 或非 evidence commit T 创建 tag；GitHub Release 只由受保护 tag workflow 发布。
 - 不在 Mac live acceptance 前合并会改变 source commit S 的提交。
 - 不用旧 Mac session、Windows summary、手写 PASS 或修改记录路径绕过 verifier。
 - 不把 Windows `15/15` 扩写成 Windows 全表面或 repository-wide `ALL GATES PASS`。

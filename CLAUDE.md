@@ -17,7 +17,8 @@ output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿
 
 <config>
 AGENTS.md - 根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
-CHANGELOG.md - SemVer 发布历史与 Unreleased 用户可见变更真相源
+CHANGELOG.md - SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
+LOCAL_BUILD_SOP.md - 唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份
 README.md - 英文主入口，链接三语本地化 README 并描述当前构建、运行与验证路径
 README.zh-Hans.md - 简体中文 README，本地化主文档并保持命令、路径与版本不漂移
 README.zh-Hant.md - 繁体中文 README，本地化主文档并保持命令、路径与版本不漂移
