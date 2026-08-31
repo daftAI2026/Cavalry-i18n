@@ -108,6 +108,8 @@ R2 单屏原生视觉子门另用仓库外临时 AppKit harness **直接编译�
 
 R3 可在不改变安全设置的失败分支也由同一 harness 补齐了单屏 live evidence：`hasSourceRect=false` 时不创建飞行代理，直接显示同一 helper；helper 已呈现后关闭 System Settings，owner 回送 `outcome=2 / terminal=1` 并移除 helper，只剩 source；设置页完全未出现时，50 次有界探测结束后回送 `outcome=3 / terminal=1`，且 WindowServer 从未留下 helper/replicant。对应源码合同现以 4/4 测试固定静态降级、目标丢失宽限、定位超时、non-key/non-main panel 与 terminal→cleanup 顺序。该证据关闭的是 source 缺失和目标丢失的单屏生命周期分支，Space、显示器拓扑变化与真实 drag cancel 仍不在其证明范围内。
 
+Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibilityDisplayShouldReduceMotion=true` 替身执行同一 `.m`，没有写入系统偏好：保留真实 source 时以 10ms 间隔采样 600 次，WindowServer 只出现 source 与 `320×200` helper，`SAW_REPLICANT=false`；调用生产 `finish(true)` 后第一个后续采样即只剩 source，全程仍无 reverse replicant，native 回读 `outcome=0 / terminal=1`。这证明 reduced-motion 代码路径确实把 forward/reverse 降级为静态接管/即时清理，而非只在源码里保留一个未消费布尔值；它**不证明 packaged app 从真实 macOS 无障碍设置读到该值**，系统级 Reduce Motion PASS 仍须在用户确认临时改动后完成。
+
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
 ## 4. 参考实现的证据分层
