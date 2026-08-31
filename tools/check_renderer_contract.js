@@ -134,6 +134,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /window\.cavalryIcons\.create\('handoffArrow'\)/);
   assert.match(handoff, /id="handoffReferenceTitle">本机视觉参考/);
   assert.match(handoff, /src="\/local-reference\/hint-arrow\.png"/);
+  assert.match(handoff, /私有箭头 Raster（仅箭头）/);
+  assert.match(handoff, /App 权限项是实时可拖控件，不是截图/);
   assert.match(handoff, /src="\/local-reference\/system-settings\.png\?v=2"/);
   assert.match(handoff, /账户头像、侧栏与其他 App 已从截图源头排除/);
   assert.match(handoff, /不进入仓库、构建或发布包/);
@@ -161,6 +163,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /sourceElement\.querySelectorAll\('\*'\)/);
   assert.match(handoff, /sourceObserver = new MutationObserver\(scheduleGeometryCapture\)/);
   assert.match(handoff, /sourceObserver\.observe\(sourceDocument\.documentElement/);
+  assert.match(handoff, /transitionPhase === 'presented' && captures\?\.source[\s\S]*?captureTargetGeometry\(\{ source: captures\.source/);
+  assert.match(handoff, /if \(transitionPhase === 'idle'\) captureGeometry\(\)/);
   assert.match(handoff, /replaceClone\(proxySource, source\.element\)/);
   assert.match(handoff, /replaceClone\(proxyDestination, target\.element\)/);
   assert.match(handoff, /selector: '#draggableAppRow'/);
@@ -976,15 +980,15 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(bootstrapFunction, /languageSelectControl\.setValue\(''\)/, 'bootstrap must not silently preselect a target language');
   const permissionWaitFunction = sourceFunction(
     app,
-    'function showPermissionWait(nextLanguage) {',
+    "function showPermissionWait(nextLanguage, phaseId = 'permissionRequired') {",
     'async function bootstrap'
   );
   assert.match(permissionWaitFunction, /primary: needsElevation \? t\('requestElevation'\) : t\('openSettings'\)/);
   assert.match(permissionWaitFunction, /title: t\(needsElevation \? 'permissionWindowsTitle' : 'permissionMacTitle'\)/);
   assert.match(permissionWaitFunction, /body: t\(needsElevation \? 'permissionWindowsBody' : 'permissionMacBody'\)/);
   assert.match(permissionWaitFunction, /secondary: t\('cancel'\)/);
-  assert.match(permissionWaitFunction, /setStatus\('waitingPermission', 'warning'\)/);
-  assert.doesNotMatch(permissionWaitFunction, /upsertStatus\('waitingPermission'/);
+  assert.match(permissionWaitFunction, /operationLog\.upsert\(\{ id: phaseId,[\s\S]*?state: 'warning',[\s\S]*?urgent: true/);
+  assert.doesNotMatch(permissionWaitFunction, /setStatus\('waitingPermission'/);
   assert.doesNotMatch(permissionWaitFunction, /retryApply|Retry Apply/);
   assert.doesNotMatch(app, /maintenanceHeading|extractButton|restoreEnglishButton|refreshEnglish/);
   assert.doesNotMatch(app, /reconcileEnglish|reconcileButton|runReconciliation|showReconciliation/);

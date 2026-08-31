@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、按 macOS 设置/Windows UAC 分流且收敛阶段错误的权限 AlertDialog、Updater 与外围失败 Toast。
- * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，也不把只读权限未知伪装为警告；业务阶段失败不得冒充桌面服务断线，持久事实进入 Activity，必须决策的风险进入 AlertDialog。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、保留已完成阶段并按 macOS 设置/Windows UAC 分流的权限 AlertDialog、Updater 与外围失败 Toast。
+ * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，也不把只读权限未知伪装为警告；typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -510,10 +510,10 @@ function showRestoreConfirmation() {
   });
 }
 
-function showPermissionWait(nextLanguage) {
+function showPermissionWait(nextLanguage, phaseId = 'permissionRequired') {
   state.pendingAction = nextLanguage;
   const needsElevation = state.permissionAction === 'requestElevation';
-  setStatus('waitingPermission', 'warning');
+  operationLog.upsert({ id: phaseId, title: t('permissionRequiredTitle'), description: t('waitingPermission'), state: 'warning', urgent: true });
   setPermissionWait(true);
   showModal({
     title: t(needsElevation ? 'permissionWindowsTitle' : 'permissionMacTitle'),
@@ -711,6 +711,7 @@ async function runApply(nextLanguage) {
   const language = languageLabel(nextLanguage);
   const restoring = isRestoreAction(nextLanguage);
   const operationContext = { language, restoring };
+  let terminalPhaseEvent = null;
   operationLog.start({
     intro: t(restoring ? 'restoreIntro' : 'applyIntro', { language }),
   });
@@ -718,17 +719,20 @@ async function runApply(nextLanguage) {
 
   try {
     const result = await api.applyLanguage(state.appPath, nextLanguage, (event) => {
+      if (event.state === 'error') {
+        terminalPhaseEvent = event;
+        return;
+      }
       updateOperationPhase(event, operationContext);
     });
     if (!result.ok) {
       if (result.permissionRequired) {
-        operationLog.finishRunning('error');
-        showPermissionWait(nextLanguage);
+        showPermissionWait(nextLanguage, terminalPhaseEvent?.phase);
         return;
       }
       if (result.errorCode === 'cavalryStillRunning') {
         operationLog.upsert({
-          id: 'applyTransaction',
+          id: terminalPhaseEvent?.phase || 'applyTransaction',
           title: t('closeCavalryTitle'),
           description: t('cavalryStillRunning'),
           state: 'error',
@@ -736,7 +740,8 @@ async function runApply(nextLanguage) {
         state.pendingAction = '';
         return;
       }
-      operationLog.finishRunning('error');
+      if (terminalPhaseEvent) updateOperationPhase(terminalPhaseEvent, operationContext);
+      else operationLog.finishRunning('error');
       state.pendingAction = '';
       return;
     }

@@ -68,8 +68,8 @@ unknown
 ```text
 permission workflow:
 denied → opening-settings → locating-settings → handoff-presented
-       → awaiting-user → dragging? → returning → retrying
-       → verified | still-denied | typed-error
+       → awaiting-user → dragging? → retrying
+       → returning → verified | still-denied | typed-error
 
 visual transition:
 idle → preparing → presenting → presented → reversing → idle
@@ -87,18 +87,52 @@ idle → preparing → presenting → presented → reversing → idle
 | 6a | `existing-row-enabled` | 用户发现列表已有 Switcher 并开启开关 | 只表示用户完成系统设置动作，仍不宣称权限已验证 |
 | 6b | `app-drag-started` | 用户按住 helper 内真实 app row 并移动鼠标 | 生成 app bundle file URL 的系统 drag session；helper 不再挡住目标 |
 | 6c | `app-drop-accepted` | System Settings 接受 copy drop | 只表示 app 对象已交给系统列表；取消/失败必须回弹并恢复 source row |
-| 7 | `handoff-dismissed` + `retry-requested` | 用户返回 Switcher，reverse session 完成并清理 | 重放原始 Switch / Restore 一次 |
-| 8a | `operation-verified` | 重试写事务成功 | 才能宣布权限已由实际操作验证，并继续正常结果流 |
-| 8b | `permission-still-missing` | 重试仍返回 typed `permissionRequired` | 回到等待设置，不显示虚假成功 |
-| 8c | `typed-error` | 重试返回其他错误 | 进入现有错误语义，不归因于权限 |
+| 7 | `retry-requested` | 用户返回 Switcher 或点击 helper 的重试动作 | helper 仍保持 presented，重放原始 Switch / Restore 一次；动画不能抢在业务 oracle 前收口 |
+| 8a | `operation-verified` | 重试写事务成功 | 才能宣布权限已由实际操作验证，并触发单次 reverse；原 Activity 继续显示真实阶段与结果 |
+| 8b | `permission-still-missing` | 重试仍返回 typed `permissionRequired` | helper 保持 presented 并回到等待设置，不反向回收、不显示虚假成功 |
+| 8c | `typed-error` | 重试返回其他错误 | 触发 reverse/cleanup 后进入现有错误语义，不归因于权限 |
+| 9 | `handoff-dismissed` | 已有业务结论后的 reverse session completion | 幂等清理视觉层；成功没有另造烟花或打勾，reverse 本身就是已确认的成功收口动画 |
 
 目标窗口丢失、System Settings 被关闭、显示器变化和 app 退出是 session 清理事件，不是授权结果；它们必须幂等撤销 overlay，并保留用户可重试的业务状态。
 
-当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，但 handoff 单独落到 helper 中的 draggable app row，不再把 Apple 列表行当动画终点；原型可独立审查 HTML copy drop 成功/取消、已有行、返回重试与 Reduce Motion，并把 `app-drop-accepted` 明写为“尚未验证权限”。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。这里的 HTML Drag and Drop 与 CSS/RAF 只证明状态和视觉规格可审查，**不是**原生 `NSDraggingSession`、SwiftUI spring 或 packaged 权限证据；结果注入按钮也仍只用于审查 `verified/still-denied/typed-error` 三个真实重试分支，R4 必须由 Rust 写事务提供结果。
+当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，但 handoff 单独落到 helper 中的 draggable app row，不再把 Apple 列表行当动画终点；source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。原型可独立审查 HTML copy drop 成功/取消、已有行、真实 renderer 重试与 Reduce Motion，并把 `app-drop-accepted` 明写为“尚未验证权限”。重试结果由 fixture 驱动真实生产 Activity：成功先跑真实阶段/结果，再以同一 shared-element 做 reverse/cleanup；仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。这里的 HTML Drag and Drop、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSDraggingSession`、SwiftUI spring 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
 
-工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机 Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
+工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
 ## 4. 参考实现的证据分层
+
+### 4.0 完整性审计：原样本、当前 R1 与生产债务
+
+“看见过一段动画”不等于复刻完成。下表冻结每个环节的证据等级和当前缺口；`未知` 项禁止用想象补齐，`R1` 只表示浏览器可审查，不表示原生或像素级通过。
+
+| 能力 / 行为 | 原样本证据 | 当前 R1 | 原生阶段 / 声明边界 |
+| --- | --- | --- | --- |
+| source probe 随布局记录权限动作 | 已确认 | 真实 renderer DOM 观察，部分 | R2 用 AppKit/WebView 坐标桥；浏览器 DOM 不是原生证明 |
+| 点击时冻结 source rect/image/radius | 已确认 contract；具体 snapshot API 未知 | computed DOM clone，部分 | R2 必须选定公开 capture API；不得声称与原样本采集方式相同 |
+| 固定打开目标隐私页 | 已确认 | mock | 生产只允许 `Privacy_AppBundles` 枚举 |
+| 观察 System Settings 与最新目标几何 | 已确认存在 observer；频率/优先级未知 | 单页 ResizeObserver，部分 | R2/R3 用 CGWindow，目标移动与跨 Space 实机验收 |
+| 双 capture shared-element morph | 已确认 | 已做 | R1 只证明视觉公式可审查 |
+| spring `.72 / 1.0` 与 50pt 二次 Bézier apex | 已确认 | 已做 | response 不是固定 720ms；逐帧 settle 仍待隔离录屏 |
+| 尺寸、圆角线性插值与 integral frame | 已确认 | 已做近似 | CSS pixel 不能冒充 AppKit point/backing pixel |
+| source/target `1-p / p` 与 12pt 对向 blur | 已确认 | 已做 | 原生材质、色彩空间与 rasterization 待 R2/R3 |
+| destination/key/ambient shadow 与 0.5pt stroke | 已确认 | 已做单层浏览器投影 | R2 才能验证 CALayer mask/clipping |
+| 每屏 non-key/non-main replicant 与跨屏裁切 | 已确认 | 缺失 | R3；当前 R1 不得称像素级跨屏复刻 |
+| forward completion 后 live accessory 接管 | 已确认 | 已做结构替身 | R2 需真实 nonactivating `NSPanel`/hosting view |
+| 独立 HintArrow raster、0.5/0.25/4s 节奏 | 已确认 | 项目自绘 glyph + 已确认节奏，部分 | 私有 raster 不进入开源产品；只复刻行为语法 |
+| app row 的真实 `NSDraggingSession` | 已确认 | HTML DnD 替身 | R2 必须 file URL pasteboard + drag source |
+| 4pt 阈值、56pt drag image、cancel bounce | 仅公开 MIT 样本确认，非原样本参数 | 缺失 | 可 clean-room 采用但必须标注公开来源，不冒充私有参数 |
+| copy drop 与权限授予分离 | 已确认 | 已做 | R4 仍以写事务为唯一 oracle |
+| 已有列表行只需开启的分支 | 已确认产品必要；原样本逐条件未知 | 已做人工分支 | 无 AX 时不能自动声称已检测到系统行 |
+| status provider / permission oracle | 已确认原样本存在 | Cavalry 用真实写事务替代 | 两产品 oracle 不同，不复制状态判断 |
+| 成功后 reverse / reverse completion | 已确认存在 | **已纠正为真实任务成功后触发** | 精确私有触发条件仍未知；不得另造成功特效 |
+| reverse 使用最新 destination | 已确认 | reverse 前重采 helper 目标，已做 | R2/R3 验证窗口移动后的连续性 |
+| reverse completion 恢复 source / cleanup | 已确认 | 已做状态回收 | R2 必须 generation token + 幂等释放 panel |
+| no-transition fallback | 已确认存在 | Reduce Motion 静态跳转近似，部分 | source/target 缺失、设置关闭也必须走明确 fallback |
+| 原样本 Reduce Motion 行为 | **未知** | 项目自定义静态降级 | 这是无障碍产品决策，不声称复刻私有行为 |
+| 关闭、取消、Space、预授权、热插拔显示器全部分支 | 部分结构可证，逐条件未知 | 缺失或仅 reset | R3/R5；隔离账户逐分支验收 |
+| 成功后的业务反馈 | 原样本更新 granted 状态；未发现独立烟花/打勾动画证据 | 真实 Cavalry Activity 阶段 + 结果句 | 产品层反馈，不冒充原样本私有视觉 |
+
+结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏与真实拖拽边界**；尚未恢复的是原生窗口/拖拽、多屏与所有异常分支。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；这是原型顺序错误，现已改为业务成功驱动 reverse，而不是补一个无证据的成功 glyph。
 
 ### 4.1 仓库外参考应用：当前与历史样本的本机证据
 
@@ -155,6 +189,8 @@ idle → preparing → presenting → presented → reversing → idle
 
 仓库外已锁定一份公开 MIT 源码作为洁净室工程样本；具体项目名、commit 与许可文本保存在兄弟项目 reference 中。本项目只吸收经独立验证的公开 AppKit 行为，不建立源码依赖。
 
+本轮逐文件审计了该锁定 revision 的全部库、示例、测试与本地化 Swift 源码，并实际执行其 13 项契约测试。必须先钉死两个边界：其 floating panel 是同进程、nonactivating 的真实 `NSPanel`，内部 app card 是由 SwiftUI hosting view 承载的真实 `NSDraggingSource`，**不是截图**；但公开实现没有 System Settings drop-success oracle、目标行 AX 检测、成功反向动画、成功后自动关闭或 Reduce Motion 分支。`onDrop` 只登记宿主传入的候选 app，不等于系统设置接受了拖放；静态 granted checkmark 只反映 status provider 的再次读取，也不等于成功动画。
+
 | 能力 | 源码事实 | 对本项目的意义 |
 | --- | --- | --- |
 | App Management | `.appManagement` 打开 `Privacy_AppBundles`，status capability 为 unsupported | 与当前 `None` 状态模型相互印证 |
@@ -166,6 +202,8 @@ idle → preparing → presenting → presented → reversing → idle
 | 目标布局 | 跟随 System Settings 主窗口，在 trailing content 邻接 helper panel | 不需要截取或修改系统设置内容 |
 | Drag source | 4pt 移动阈值、Finder 风格 file URL/filename payload、56pt drag icon、cancel/fail 回弹 | 可用公开 AppKit 独立实现；这些数值不等于私有参考参数 |
 | Drag passthrough | drag 时 helper `ignoresMouseEvents=true`、置后并降 alpha，结束恢复 | 让 System Settings 而非 helper 接收 drop |
+| 成功边界 | drag source 的 ended callback 收到 operation 但公开实现忽略其值；没有 destination/drop callback 与成功动画 | 本项目必须用真实 Cavalry 写事务重试作为最终 oracle，不能用 drop 或计时器制造成功 |
+| 关闭与恢复 | helper 关闭、设置退出与返回前台应用是显式控制分支；没有成功自动收口 | reverse/cleanup 若采用，属于本项目经私有样本独立取证后的设计，不能冒充公开实现行为 |
 
 公开实现的最终 panel 从点击位置飞向目标；仓库外参考应用的当前/历史样本则有源/目标图像和多屏 replicant。两者不能混写成同一种实现。
 
@@ -197,6 +235,12 @@ idle → preparing → presenting → presented → reversing → idle
 公开样本只维护一扇 helper panel：选择与目标相交的屏幕并 clamp，足够解释单屏 MVP，但它不能证明跨屏飞行期间每个像素都稳定。生产级参考采用每个 `NSScreen` 一扇 non-key/non-main replicant panel，共享一个全局 transition model，每扇 panel 只绘制运动 rect 与自身 `screenFrame` 的交集。这样不同 backing scale、color space、负坐标、Space 和屏幕边界裁切各自留在所属 panel，不让一扇超大窗口跨越所有显示器。
 
 本机只读复核时主屏为 `1710×1107pt`、`backingScaleFactor=2`，System Settings 最大 layer-0 window 的 CG bounds 为 `740×625pt`。窗口截图包含系统阴影，PNG 像素边界不能反推内容 frame；生产测试必须同时记录 point frame、backing scale 与内容截图，禁止仅凭 PNG 宽高判断缩放是否正确。
+
+### 4.2.3 实机动态证据边界
+
+当前主机只有单块 2x、60Hz 内置屏，主账户也已存在相关系统授权和系统级辅助组件；它可以验证静态二进制结构、单屏 2x 布局和最多 60 个真实显示状态/秒，却不能提供“干净首次授权”、1x、多屏或真实 120Hz 的完整证据。向 ScreenCaptureKit 请求 `1/120s` 只会产生至多 60Hz 的真实画面与可能的重复帧，禁止据此宣称 120fps 通过。
+
+完整动态取证必须在独立 macOS 测试用户中保留参考样本原签名，由用户手工覆盖成功、拒绝、关闭与拖拽取消；若要验证首次安装而不只是首次授权，则使用干净外置系统或另一台 Mac。采集同时记录 monotonic timestamp、窗口 point frame、display id、backing scale、原始无损帧、帧 hash、重复/丢帧与真实事务结果；不得执行 `tccutil reset`、修改 TCC 数据库、自动拨动系统开关或把主账户授权当成目标 Bundle 的证明。
 
 ### 4.3 Apple API 边界
 

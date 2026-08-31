@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实 permissionMac renderer iframe，依赖 renderer 的 tokens/Button/语义图标/应用标识，并注入 ui_review_permission_handoff_runtime 的独立行为层。
- * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、真实用户拖拽边界、返回重试、结果验证及不入库的本机 Raster/System Settings 对照区。
+ * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、真实用户拖拽边界、生产任务重试、成功后反向回收及不入库的本机 Raster/System Settings 对照区。
  * [POS]: tools UI Review 的独立权限动画舞台结构/样式层；只模拟系统设置目标和后端结果，本机参考缺失时降级为说明文字，不伪造 native 授权，并与工作台导航壳及行为层保持单向依赖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -183,7 +183,7 @@ function permissionHandoffHtml() {
               <img class="handoff-accessory-icon" src="/renderer/app-icon.png" alt="" />
               <span class="handoff-accessory-copy"><strong>Language Switcher</strong><span>列表中没有时，把 App 拖入上方列表。</span></span>
             </button>
-            <button id="reverseFromAccessory" class="ui-button button button-outline handoff-control-button" type="button">返回并重试</button>
+            <button id="reverseFromAccessory" class="ui-button button button-outline handoff-control-button" type="button">重试原操作</button>
           </section>
         </div>
       </article>
@@ -202,7 +202,7 @@ function permissionHandoffHtml() {
 
     <section class="handoff-controls" aria-label="动画控制">
       <button class="ui-button button button-primary handoff-control-button" data-action="open-settings" type="button">打开设置并交接</button>
-      <button class="ui-button button button-outline handoff-control-button" data-action="retry" type="button">返回并重试</button>
+      <button class="ui-button button button-outline handoff-control-button" data-action="retry" type="button">重试原操作</button>
       <button class="ui-button button button-outline handoff-control-button" data-action="result-success" type="button">注入：事务成功</button>
       <button class="ui-button button button-outline handoff-control-button" data-action="result-denied" type="button">注入：仍需权限</button>
       <button class="ui-button button button-outline handoff-control-button" data-action="result-error" type="button">注入：其他错误</button>
@@ -231,12 +231,12 @@ function permissionHandoffHtml() {
           <small>仅保留真实目标行；账户头像、侧栏与其他 App 已从截图源头排除。窗口几何以 point 表达。</small>
         </article>
         <article class="handoff-reference-card" data-local-reference-card data-available="pending">
-          <strong>私有 Raster 参考</strong>
+          <strong>私有箭头 Raster（仅箭头）</strong>
           <div class="handoff-reference-media">
             <img class="handoff-reference-raster" data-local-reference src="/local-reference/hint-arrow.png" alt="本机私有引导箭头视觉参考" />
             <span class="handoff-reference-fallback">本机参考图尚未生成。</span>
           </div>
-          <small>逻辑尺寸 29×33 pt；1x/2x 资源由系统按 backing scale 选择。</small>
+          <small>只用于核对提示箭头。箭头下方的 App 权限项是实时可拖控件，不是截图。</small>
         </article>
         <article class="handoff-reference-card" data-available="true">
           <strong>项目自绘候选</strong>

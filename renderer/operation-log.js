@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖标准 DOM 的文本/滚动节点与 icons.js 的冻结语义 SVG 工厂，消费 app.js 提供的本地化任务引言、整体结果、阶段说明、状态与可选图标名
- * [OUTPUT]: 对外提供 createOperationLog；idle 以完整面板双轴居中，running 固定首尾 Message 并只让中段 Marker 视窗滚动，首尾按词组 text delta 非阻塞更新同一节点且每次布局变化重算中段溢出与起止边缘，真实阶段按稳定 id 串行投影并让错误立即抢占
+ * [OUTPUT]: 对外提供 createOperationLog；idle 以完整面板双轴居中，running 固定首尾 Message 并只让中段 Marker 视窗滚动，首尾按词组 text delta 非阻塞更新同一节点且在浏览器完成布局后复测中段溢出与 live edge，真实阶段按稳定 id 串行投影并让错误或显式阻塞项立即抢占
  * [POS]: renderer 的任务反馈状态机；位于业务语义映射与 operation-log.css 之间，不读取 Tauri、语言包或 Cavalry 安装状态，不阻塞后端事务，只把已到达的机器事件按可读节奏投影
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,6 +29,7 @@
     let pendingTimer = null;
     let releasePendingTimer = null;
     let lastVisualChangeAt = 0;
+    let layoutFrame = null;
 
     function cssNumber(name) {
       return Math.max(0, Number.parseFloat(getComputedStyle(root).getPropertyValue(name)) || 0);
@@ -148,6 +149,15 @@
       }
     }
 
+    function syncAfterLayout() {
+      scrollToLatest();
+      if (layoutFrame !== null || typeof window.requestAnimationFrame !== 'function') return;
+      layoutFrame = window.requestAnimationFrame(() => {
+        layoutFrame = null;
+        scrollToLatest();
+      });
+    }
+
     function createEntry(id) {
       const row = document.createElement('li');
       row.className = 'operation-event';
@@ -190,7 +200,7 @@
       entry.lastStateAt = now();
       root.dataset.state = state;
       lastVisualChangeAt = entry.lastStateAt;
-      scrollToLatest();
+      syncAfterLayout();
     }
 
     function visualDelayFor(event) {
@@ -218,7 +228,7 @@
         if (item.kind === 'event') renderEvent(item.event);
         else if (!['warning', 'error'].includes(root.dataset.state)) {
           root.dataset.hasOutcome = 'true';
-          streamMessage('outcome', outcome, item.message, scrollToLatest);
+          streamMessage('outcome', outcome, item.message, syncAfterLayout);
         }
         activeVisualItem = null;
       }
@@ -238,7 +248,7 @@
         renderEvent(event);
         return;
       }
-      if (event.state === 'error') {
+      if (event.state === 'error' || event.urgent === true) {
         cancelVisualQueue({ flushEvents: true });
         renderEvent(event);
         return;
@@ -273,7 +283,7 @@
       clearMessages();
       root.dataset.state = 'running';
       setMode('running');
-      streamMessage('intro', intro, message, scrollToLatest);
+      streamMessage('intro', intro, message, syncAfterLayout);
     }
 
     function complete(message) {

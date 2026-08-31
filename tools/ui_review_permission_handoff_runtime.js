@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop API，并以锁定研究证据约束转场数学、箭头提示节奏和真实用户操作边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、视觉状态机、本机参考可用性与项目自绘箭头脚本。
- * [POS]: tools UI Review 权限原型的行为层；不创建页面结构、不调用 Tauri、不把本机参考、HTML drop 或动画完成冒充原生授权证据。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的视觉状态机、真实 renderer 重试握手、本机参考可用性与项目自绘箭头脚本。
+ * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的真实任务结果才能驱动成功 reverse；本机参考、HTML drop 或动画完成都不冒充原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -32,6 +32,8 @@ function permissionHandoffRuntimeScript() {
         sourceActionSelectors: Object.freeze(['#modalPrimaryButton', '#permissionButton']),
         defaultLocale: 'zh-Hans',
         reducedMotionMedia: '(prefers-reduced-motion: reduce)',
+        retryMessage: 'cavalry-ui-review:permission-retry',
+        settledMessage: 'cavalry-ui-review:permission-retry-settled',
       });
       const sourceFrame = document.querySelector('#sourceFrame');
       const sourceState = document.querySelector('#sourceState');
@@ -111,6 +113,7 @@ function permissionHandoffRuntimeScript() {
       let arrowStretch = 0;
       let arrowHovering = false;
       let dragAccepted = false;
+      let settledWorkflowState = null;
 
       hintArrow.replaceChildren(window.cavalryIcons.create('handoffArrow'));
       referenceProjectArrow.replaceChildren(window.cavalryIcons.create('handoffArrow'));
@@ -264,7 +267,11 @@ function permissionHandoffRuntimeScript() {
         if (geometryFrame || ['preparing', 'presenting', 'reversing'].includes(transitionPhase)) return;
         geometryFrame = requestAnimationFrame(() => {
           geometryFrame = 0;
-          captureGeometry();
+          if (transitionPhase === 'presented' && captures?.source) {
+            captureTargetGeometry({ source: captures.source, stageRect: stage.getBoundingClientRect() });
+            return;
+          }
+          if (transitionPhase === 'idle') captureGeometry();
         });
       }
 
@@ -413,13 +420,13 @@ function permissionHandoffRuntimeScript() {
 
       function setActionAvailability() {
         const transitionBusy = ['preparing', 'presenting', 'reversing'].includes(transitionPhase);
-        actionButtons.openSettings.disabled = !captures || !['denied', 'stillDenied'].includes(workflowState) || transitionBusy;
-        actionButtons.retry.disabled = workflowState !== 'awaitingUser' || transitionPhase !== 'presented';
+        actionButtons.openSettings.disabled = !captures || !['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle' || transitionBusy;
+        actionButtons.retry.disabled = !['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented';
         actionButtons.resultSuccess.disabled = workflowState !== 'retrying';
         actionButtons.resultDenied.disabled = workflowState !== 'retrying';
         actionButtons.resultError.disabled = workflowState !== 'retrying';
         actionButtons.reset.disabled = transitionBusy;
-        reverseFromAccessory.disabled = workflowState !== 'awaitingUser' || transitionPhase !== 'presented';
+        reverseFromAccessory.disabled = !['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented';
       }
 
       function renderWorkflowEvents() {
@@ -453,7 +460,7 @@ function permissionHandoffRuntimeScript() {
         workflowState = nextState;
         workflowLabel.dataset.state = workflowState;
         workflowLabel.textContent = workflowLabels[workflowState] || workflowState;
-        const accessoryVisible = workflowState === 'awaitingUser' && transitionPhase === 'presented';
+        const accessoryVisible = ['awaitingUser', 'retrying', 'stillDenied'].includes(workflowState) && transitionPhase === 'presented';
         setAccessoryVisibility(accessoryVisible);
         setActionAvailability();
       }
@@ -461,7 +468,7 @@ function permissionHandoffRuntimeScript() {
       function setTransitionPhase(nextPhase) {
         transitionPhase = nextPhase;
         transitionLabel.textContent = '视觉：' + (transitionLabels[transitionPhase] || transitionPhase);
-        const accessoryVisible = workflowState === 'awaitingUser' && transitionPhase === 'presented';
+        const accessoryVisible = ['awaitingUser', 'retrying', 'stillDenied'].includes(workflowState) && transitionPhase === 'presented';
         setAccessoryVisibility(accessoryVisible);
         setActionAvailability();
         renderProxy();
@@ -479,8 +486,8 @@ function permissionHandoffRuntimeScript() {
           setWorkflowState('awaitingUser');
         } else if (workflowState === 'returning') {
           appendWorkflowEvent('handoffDismissed');
-          appendWorkflowEvent('retryRequested');
-          setWorkflowState('retrying');
+          setWorkflowState(settledWorkflowState || 'typedError');
+          settledWorkflowState = null;
         }
       }
 
@@ -541,22 +548,36 @@ function permissionHandoffRuntimeScript() {
       }
 
       function startRetry() {
-        if (workflowState !== 'awaitingUser' || transitionPhase !== 'presented' || !captureGeometry()) return;
+        if (!['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented') return;
+        appendWorkflowEvent('retryRequested');
+        setWorkflowState('retrying');
+      }
+
+      function resolveRetry(result) {
+        if (workflowState !== 'retrying') return;
+        sourceFrame.contentWindow?.postMessage({ type: REVIEW.retryMessage, result }, location.origin);
+      }
+
+      function reverseAfterSettled(nextState, eventName) {
+        if (workflowState !== 'retrying' || transitionPhase !== 'presented' || !captures) return;
+        appendWorkflowEvent(eventName);
+        settledWorkflowState = nextState;
+        const stageRect = stage.getBoundingClientRect();
+        captureTargetGeometry({ source: captures.source, stageRect });
         setWorkflowState('returning');
         setTransitionPhase('reversing');
         animateTo(0);
       }
 
-      function resolveRetry(result) {
-        if (workflowState !== 'retrying') return;
-        if (result === 'success') {
-          appendWorkflowEvent('operationVerified');
-          setWorkflowState('verified');
+      function handleSourceRetrySettled(event) {
+        if (event.origin !== location.origin || event.source !== sourceFrame.contentWindow) return;
+        if (event.data?.type !== REVIEW.settledMessage || workflowState !== 'retrying') return;
+        if (event.data.result === 'success') {
+          reverseAfterSettled('verified', 'operationVerified');
           return;
         }
-        if (result === 'error') {
-          appendWorkflowEvent('typedError');
-          setWorkflowState('typedError');
+        if (event.data.result === 'error') {
+          reverseAfterSettled('typedError', 'typedError');
           return;
         }
         appendWorkflowEvent('permissionStillMissing');
@@ -607,6 +628,7 @@ function permissionHandoffRuntimeScript() {
         stopArrowLoop();
         progress = 0;
         dragAccepted = false;
+        settledWorkflowState = null;
         arrowHovering = false;
         draggableAppRow.dataset.dragging = 'false';
         destinationDropZone.dataset.dragOver = 'false';
@@ -673,6 +695,7 @@ function permissionHandoffRuntimeScript() {
         scheduleGeometryCapture();
       });
       window.addEventListener('resize', scheduleGeometryCapture);
+      window.addEventListener('message', handleSourceRetrySettled);
       window.addEventListener('pagehide', dispose, { once: true });
       if (window.ResizeObserver) new ResizeObserver(scheduleGeometryCapture).observe(stage);
       sourceFrame.src = '/app?scenario=' + REVIEW.sourceScenario + '&locale=' + encodeURIComponent(locale);

@@ -109,6 +109,9 @@ function fixtureSource() {
   });
   const windowsScenario = ['windowsClean', 'permissionWindows', 'aboutOpenToast'].includes(scenario);
   const permissionScenario = ['permissionMac', 'permissionWindows'].includes(scenario);
+  const permissionReviewMessage = 'cavalry-ui-review:permission-retry';
+  const permissionReviewSettledMessage = 'cavalry-ui-review:permission-retry-settled';
+  let permissionReviewOutcome = null;
   let currentLang = ['translated', 'managedLegacy', 'restore', 'restoreConfirm', 'reinstall'].includes(scenario) ? 'zh-Hans' : 'en';
   const wait = (duration) => new Promise((resolve) => setTimeout(resolve, duration));
   const success = () => ({
@@ -150,12 +153,22 @@ function fixtureSource() {
     getStatus: async () => status(),
     browseApp: async () => ({ canceled: false, appPath: status().appPath, version: '2.7.2' }),
     applyLanguage: async (_appPath, language, onEvent = () => {}) => {
+      const reviewOutcome = permissionReviewOutcome;
+      permissionReviewOutcome = null;
       const phases = ['verifyInstallation', 'ensureBaseline', 'applyTransaction', 'restartCavalry'];
       for (const phase of phases) {
         onEvent({ phase, state: 'running' });
         await wait(timing.phase);
-        if (permissionScenario && phase === 'applyTransaction') {
+        if (permissionScenario && reviewOutcome === 'error' && phase === 'verifyInstallation') {
           onEvent({ phase, state: 'error' });
+          window.parent.postMessage({ type: permissionReviewSettledMessage, result: 'error' }, location.origin);
+          return { ...success(), ok: false, errorCode: 'cavalryStillRunning' };
+        }
+        if (permissionScenario && reviewOutcome !== 'success' && phase === 'applyTransaction') {
+          onEvent({ phase, state: 'error' });
+          if (reviewOutcome === 'denied') {
+            window.parent.postMessage({ type: permissionReviewSettledMessage, result: 'denied' }, location.origin);
+          }
           return { ...success(), ok: false, permissionRequired: true, errorCode: 'permissionRequired' };
         }
         if (scenario === 'error' && phase === 'verifyInstallation') {
@@ -165,6 +178,9 @@ function fixtureSource() {
         onEvent({ phase, state: 'completed' });
       }
       currentLang = language === 'restore-official' ? 'en' : language;
+      if (permissionScenario && reviewOutcome === 'success') {
+        window.parent.postMessage({ type: permissionReviewSettledMessage, result: 'success' }, location.origin);
+      }
       return scenario === 'warning'
         ? { ...success(), warningCode: 'restartFailed', warningCodes: ['restartFailed'] }
         : success();
@@ -207,6 +223,15 @@ function fixtureSource() {
     }
     return null;
   }
+
+  window.addEventListener('message', async (event) => {
+    if (event.origin !== location.origin || event.source !== window.parent) return;
+    if (scenario !== 'permissionMac' || event.data?.type !== permissionReviewMessage) return;
+    if (!['success', 'denied', 'error'].includes(event.data.result)) return;
+    permissionReviewOutcome = event.data.result;
+    document.querySelector('#modalBackdrop')?.close();
+    (await waitForReady('#applyButton'))?.click();
+  });
 
   window.addEventListener('load', async () => {
     if (scenario === 'aboutLinkToast') {

@@ -850,9 +850,12 @@ test('permission AlertDialog exposes the recovery action and preserves Apply/Res
   assert.notEqual(r.elements['#modalPrimaryButton'].textContent, 'Retry Apply');
   assert.equal(r.elements['#applyButton'].textContent, labels.apply);
   assert.equal(r.elements['#restoreButton'].textContent, labels.restore);
-  assert.equal(activityTitle(r), 'System permission required');
+  const permissionRows = activityRows(r);
+  assert.equal(activityTitle(r, 0), 'Cavalry installation verified');
+  assert.equal(activityTitle(r, 1), 'Recovery files ready');
+  assert.equal(activityTitle(r, permissionRows.length - 1), 'System permission required');
   assert.match(activityText(r), /Allow the Switcher to modify Cavalry, then retry\./);
-  assert.doesNotMatch(activityText(r), /desktop service|verify the Cavalry installation/i);
+  assert.doesNotMatch(activityText(r), /desktop service|could not verify the Cavalry installation/i);
 
   r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
   await flush();

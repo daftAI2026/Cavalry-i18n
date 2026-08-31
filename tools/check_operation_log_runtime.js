@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer/icons.js 与 renderer/operation-log.js、最小 DOM/时钟 fixture。
- * [OUTPUT]: 验证 Marker 稳定 upsert、live-edge、首尾 Message 改变三轨布局后的溢出/起止边缘回算、快事件可读串行、结果排队与错误立即抢占。
+ * [OUTPUT]: 验证 Marker 稳定 upsert、浏览器下一帧布局收敛后的 live-edge、首尾 Message 改变三轨布局后的溢出/起止边缘回算、快事件可读串行、结果排队与错误立即抢占。
  * [POS]: tools 的任务反馈专属运行时合同；从综合 bridge 测试拆出，避免 renderer 业务 fixture 承担组件内部时序。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -33,7 +33,15 @@ function fixture(styleValues = {}) {
     ['root', 'idle', 'intro', 'viewport', 'list', 'outcome'].map((name) => [name, new Element()])
   );
   const document = { createElement: () => new Element(), createElementNS: () => new Element() };
-  const window = {};
+  let nextFrameId = 1;
+  const animationFrames = new Map();
+  const window = {
+    requestAnimationFrame(callback) {
+      const id = nextFrameId++;
+      animationFrames.set(id, callback);
+      return id;
+    },
+  };
   const context = {
     window, document, Date, Promise, setTimeout, clearTimeout,
     getComputedStyle: () => ({ getPropertyValue: (name) => styleValues[name] || '0ms' }),
@@ -45,7 +53,12 @@ function fixture(styleValues = {}) {
     root: elements.root, idleMessage: elements.idle, intro: elements.intro,
     viewport: elements.viewport, list: elements.list, outcome: elements.outcome,
   });
-  return { elements, log };
+  const flushAnimationFrames = () => {
+    const callbacks = [...animationFrames.values()];
+    animationFrames.clear();
+    callbacks.forEach((callback) => callback(Date.now()));
+  };
+  return { elements, log, flushAnimationFrames };
 }
 
 function titleAt(elements, index) {
@@ -95,6 +108,32 @@ test('outcome track recalculates overflow when it shrinks the middle viewport', 
   assert.equal(elements.viewport.dataset.overflowing, 'true');
   assert.equal(elements.viewport.dataset.atEnd, 'true');
   assert.equal(elements.viewport.scrollTop, 40);
+});
+
+test('a blocker description remeasures after layout and pushes the live edge upward', () => {
+  const { elements, log, flushAnimationFrames } = fixture();
+  let committedScrollHeight = 56;
+  elements.viewport.clientHeight = 78;
+  Object.defineProperty(elements.viewport, 'scrollHeight', {
+    configurable: true, get: () => committedScrollHeight,
+  });
+
+  log.replace({ id: 'verify', title: 'Installation verified', state: 'completed' });
+  log.upsert({ id: 'baseline', title: 'Recovery files ready', state: 'completed' });
+  log.upsert({
+    id: 'apply',
+    title: 'System permission required',
+    description: 'Allow Language Switcher to modify Cavalry, then retry.',
+    state: 'warning',
+    urgent: true,
+  });
+
+  assert.equal(elements.viewport.dataset.overflowing, 'false');
+  committedScrollHeight = 104;
+  flushAnimationFrames();
+  assert.equal(elements.viewport.dataset.overflowing, 'true');
+  assert.equal(elements.viewport.dataset.atEnd, 'true');
+  assert.equal(elements.viewport.scrollTop, 104);
 });
 
 test('fast events stay sequential, outcome waits, and terminal error preempts delays', async () => {
