@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop/Reduced Motion API，并以锁定研究证据约束转场数学、箭头提示节奏和用户操作语义边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动自动验证、完整结果回环和等待新真实动作就绪的 source fixture 重置。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管、整行 DOM snapshot drag image 与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动自动验证、完整结果回环和等待新真实动作就绪的 source fixture 重置。
  * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动成功 reverse；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale 或原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -52,7 +52,13 @@ function permissionHandoffRuntimeScript() {
       const accessoryWrap = document.querySelector('#accessoryWrap');
       const accessory = document.querySelector('#accessory');
       const draggableAppRow = document.querySelector('#draggableAppRow');
-      const appDragImage = document.querySelector('#appDragImage');
+      const appDragImageHost = document.querySelector('#appDragImageHost');
+      const appDragImage = draggableAppRow.cloneNode(true);
+      appDragImage.removeAttribute('id');
+      appDragImage.removeAttribute('draggable');
+      appDragImage.tabIndex = -1;
+      appDragImage.classList.add('handoff-drag-image');
+      appDragImageHost.appendChild(appDragImage);
       const hintArrow = document.querySelector('#hintArrow');
       const referenceProjectArrow = document.querySelector('#referenceProjectArrow');
       const reverseFromAccessory = document.querySelector('#reverseFromAccessory');
@@ -140,19 +146,15 @@ function permissionHandoffRuntimeScript() {
       function clamp(value, minimum, maximum) {
         return Math.min(Math.max(value, minimum), maximum);
       }
-
       function lerp(start, end, amount) {
         return start + (end - start) * amount;
       }
-
       function localRect(rect, stageRect) {
         return { left: rect.left - stageRect.left, top: rect.top - stageRect.top, width: rect.width, height: rect.height };
       }
-
       function center(rect) {
         return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
       }
-
       function findSourceElement() {
         const sourceDocument = sourceFrame.contentDocument;
         const sourceWindow = sourceFrame.contentWindow;
@@ -655,7 +657,12 @@ function permissionHandoffRuntimeScript() {
         event.dataTransfer.effectAllowed = 'copy';
         event.dataTransfer.setData('text/uri-list', REVIEW.appBundleFileUrl);
         event.dataTransfer.setData('text/plain', 'Cavalry Language Switcher.app');
-        event.dataTransfer.setDragImage?.(appDragImage, appDragImage.width / 2, appDragImage.height / 2);
+        const rowRect = draggableAppRow.getBoundingClientRect();
+        appDragImage.style.inlineSize = rowRect.width + 'px';
+        appDragImage.style.blockSize = rowRect.height + 'px';
+        const dragOffsetX = clamp(event.clientX - rowRect.left, 0, rowRect.width);
+        const dragOffsetY = clamp(event.clientY - rowRect.top, 0, rowRect.height);
+        event.dataTransfer.setDragImage?.(appDragImage, dragOffsetX, dragOffsetY);
         appendWorkflowEvent('appDragStarted');
         stopArrowLoop();
         requestAnimationFrame(() => { draggableAppRow.dataset.dragging = 'true'; });

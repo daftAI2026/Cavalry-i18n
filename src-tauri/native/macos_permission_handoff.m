@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS source rect、viewport 尺寸与一次性 C callback。
- * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、项目自绘箭头和真实 file-URL NSDraggingSession 完成权限交接，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
+ * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、项目自绘箭头和整条实时 App row 快照承载的 file-URL NSDraggingSession 完成权限交接，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
  * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 实现洁净室 handoff，不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,13 +14,13 @@ static const NSInteger CAVOutcomeRetryRequested = 1; static const NSInteger CAVO
 static const CGFloat CAVOne = 1.0; static const CGFloat CAVTwo = 2.0; static const CGFloat CAVHalf = 0.5; static const CGFloat CAVPi = 3.141592653589793;
 static const NSTimeInterval CAVSpringResponse = 0.72; static const CGFloat CAVSpringDamping = 1.0; static const CGFloat CAVArcApex = 50.0; static const CGFloat CAVMaximumBlur = 12.0;
 static const CGFloat CAVHelperWidth = 320.0; static const CGFloat CAVHelperHeight = 200.0; static const CGFloat CAVPanelInset = 20.0; static const CGFloat CAVRowHeight = 56.0;
-static const CGFloat CAVCornerRadius = 12.0; static const CGFloat CAVProxyStrokeWidth = 0.5; static const CGFloat CAVProxyStrokeOpacity = 0.15; static const CGFloat CAVDragThreshold = 4.0;
-static const CGFloat CAVDragImageSize = 56.0; static const CGFloat CAVArrowSize = 28.0; static const CGFloat CAVArrowGap = 2.0; static const CGFloat CAVArrowStrokeWidth = 2.0;
+static const CGFloat CAVCornerRadius = 12.0; static const CGFloat CAVProxyStrokeWidth = 0.5; static const CGFloat CAVProxyStrokeOpacity = 0.15;
+static const CGFloat CAVArrowSize = 28.0; static const CGFloat CAVArrowGap = 2.0; static const CGFloat CAVArrowStrokeWidth = 2.0;
 static const CGFloat CAVArrowDesignSize = 256.0; static const CGFloat CAVArrowDrawingInset = 2.0; static const CGFloat CAVInfoBlueGreen = 107.0 / 255.0;
 static const CGFloat CAVArrowScaleX = 1.15; static const CGFloat CAVArrowScaleY = 1.6; static const CGFloat CAVArrowMass = 1.0; static const CGFloat CAVArrowStiffness = 200.0; static const CGFloat CAVArrowDamping = 11.0; static const NSTimeInterval CAVArrowInitialDelay = 0.5; static const NSTimeInterval CAVArrowStretchDuration = 0.25;
 static const NSTimeInterval CAVArrowIdleDuration = 4.0; static const NSTimeInterval CAVSettingsProbeInterval = 0.10; static const NSUInteger CAVSettingsProbeLimit = 50; static const NSUInteger CAVSettingsMissingGrace = 10;
 static const NSUInteger CAVIndexStep = 1;
-static const CGFloat CAVTransitionOverscan = 32.0; static const CGFloat CAVEffectOverscan = 24.0; static const CGFloat CAVAnimationFrameRate = 60.0; static const CGFloat CAVAnimationTolerance = 0.001;
+static const CGFloat CAVAnimationFrameRate = 60.0; static const CGFloat CAVAnimationTolerance = 0.001;
 static const CGFloat CAVInstructionY = 132.0; static const CGFloat CAVInstructionHeight = 18.0; static const CGFloat CAVRowY = 64.0; static const CGFloat CAVActionBottomInset = 16.0;
 static const CGFloat CAVActionHeight = 30.0; static const CGFloat CAVActionWidth = 88.0; static const CGFloat CAVActionGap = 8.0; static const CGFloat CAVShadowDestinationOpacity = 0.06;
 static const CGFloat CAVShadowDestinationRadius = 2.0; static const CGFloat CAVShadowDestinationY = -3.0; static const CGFloat CAVShadowKeyOpacity = 0.09; static const CGFloat CAVShadowKeyRadius = 15.0;
@@ -29,12 +29,7 @@ static const CGFloat CAVStrokeZPosition = 3.0; static const CGFloat CAVShadowDes
 static const CGFloat CAVInstructionFontSize = 13.0; static const CGFloat CAVDetailFontSize = 12.0; static const CGFloat CAVRowIconInset = 12.0; static const CGFloat CAVRowIconSize = 32.0;
 static const CGFloat CAVRowTextOriginX = 56.0; static const CGFloat CAVRowTextRightInset = 12.0; static const CGFloat CAVRowTitleY = 9.0; static const CGFloat CAVRowDetailY = 29.0; static const CGFloat CAVRowLabelHeight = 18.0;
 static NSString *const CAVSystemSettingsBundleIdentifier = @"com.apple.systempreferences";
-typedef NS_ENUM(NSInteger, CAVLocaleKind) {
-  CAVLocaleEnglish,
-  CAVLocaleSimplifiedChinese,
-  CAVLocaleTraditionalChinese,
-  CAVLocaleJapanese,
-};
+typedef NS_ENUM(NSInteger, CAVLocaleKind) { CAVLocaleEnglish, CAVLocaleSimplifiedChinese, CAVLocaleTraditionalChinese, CAVLocaleJapanese };
 static NSString *const CAVTextInstruction = @"instruction"; static NSString *const CAVTextDragDetail = @"dragDetail"; static NSString *const CAVTextRetry = @"retry"; static NSString *const CAVTextCancel = @"cancel";
 static NSString *const CAVTextArrowLabel = @"arrowLabel";
 @class CAVPermissionHandoffCoordinator;
@@ -52,14 +47,14 @@ static NSString *const CAVTextArrowLabel = @"arrowLabel";
 @end
 @interface CAVScreenReplicant : NSObject
 @property(nonatomic, strong) NSScreen *screen; @property(nonatomic, strong) CAVNonActivatingPanel *panel;
-@property(nonatomic, strong) CAVReplicantView *view; @property(nonatomic, assign) NSRect sliceFrame;
+@property(nonatomic, strong) CAVReplicantView *view; @property(nonatomic, assign) NSRect screenFrame;
 - (instancetype)initWithScreen:(NSScreen *)screen frame:(NSRect)frame sourceImage:(NSImage *)sourceImage targetImage:(NSImage *)targetImage allowsBlur:(BOOL)allowsBlur;
 - (void)setMotionFrame:(NSRect)motionFrame progress:(CGFloat)progress;
 - (void)orderFront;
 - (void)orderOut;
 @end
-@interface CAVDragSourceView : NSView <NSDraggingSource>
-@property(nonatomic, weak) CAVPermissionHandoffCoordinator *coordinator; @property(nonatomic, strong) NSEvent *initialEvent;
+@interface CAVDragSourceView : NSView <NSDraggingSource, NSPasteboardItemDataProvider>
+@property(nonatomic, weak) CAVPermissionHandoffCoordinator *coordinator; @property(nonatomic, strong) NSURL *applicationBundleURL;
 @property(nonatomic, strong) NSImageView *iconView; @property(nonatomic, strong) NSTextField *titleField;
 @property(nonatomic, strong) NSTextField *detailField;
 @end
@@ -257,11 +252,6 @@ static NSRect CAVHelperFrame(NSRect settingsFrame) {
           MIN(y, NSMaxY(visible) - CAVHelperHeight - CAVPanelInset));
   return CAVIntegralRectForScale(NSMakeRect(x, y, CAVHelperWidth, CAVHelperHeight), screen.backingScaleFactor);
 }
-static NSRect CAVTransitionCorridor(NSRect sourceRect, NSRect targetRect) {
-  NSRect bounds = NSUnionRect(sourceRect, targetRect);
-  CGFloat padding = CAVArcApex + CAVTransitionOverscan;
-  return NSInsetRect(bounds, -padding, -padding);
-}
 static NSString *CAVScreenTopologyKey(void) {
   NSMutableString *key = [NSMutableString string];
   for (NSScreen *screen in NSScreen.screens) {
@@ -391,7 +381,7 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   self = [super init];
   if (!self) return nil;
   _screen = screen;
-  _sliceFrame = frame;
+  _screenFrame = frame;
   _panel = [[CAVNonActivatingPanel alloc]
     initWithContentRect:frame
               styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel
@@ -413,7 +403,7 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   return self;
 }
 - (void)setMotionFrame:(NSRect)motionFrame progress:(CGFloat)progress {
-  NSRect localFrame = NSOffsetRect(motionFrame, -NSMinX(self.sliceFrame), -NSMinY(self.sliceFrame));
+  NSRect localFrame = NSOffsetRect(motionFrame, -NSMinX(self.screenFrame), -NSMinY(self.screenFrame));
   [self.view setMotionFrame:localFrame progress:progress];
 }
 - (void)orderFront { [self.panel orderFront:nil]; }
@@ -442,35 +432,32 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   [self addSubview:_detailField];
   return self;
 }
-- (void)mouseDown:(NSEvent *)event { self.initialEvent = event; }
-- (void)mouseUp:(NSEvent *)event { self.initialEvent = nil; }
-- (void)mouseDragged:(NSEvent *)event {
-  if (!self.initialEvent) return;
-  NSPoint start = [self convertPoint:self.initialEvent.locationInWindow fromView:nil];
-  NSPoint current = [self convertPoint:event.locationInWindow fromView:nil];
-  if (hypot(current.x - start.x, current.y - start.y) < CAVDragThreshold) return;
-  NSURL *bundleURL = NSBundle.mainBundle.bundleURL;
+- (void)mouseDown:(NSEvent *)event {
+  self.applicationBundleURL = NSBundle.mainBundle.bundleURL;
+  if (!self.applicationBundleURL) return;
   NSPasteboardItem *pasteboardItem = [[NSPasteboardItem alloc] init];
-  [pasteboardItem setString:bundleURL.absoluteString forType:NSPasteboardTypeFileURL];
+  [pasteboardItem setDataProvider:self forTypes:@[NSPasteboardTypeFileURL]];
   NSDraggingItem *item = [[NSDraggingItem alloc] initWithPasteboardWriter:pasteboardItem];
-  NSImage *icon = [NSWorkspace.sharedWorkspace iconForFile:bundleURL.path];
-  icon.size = NSMakeSize(CAVDragImageSize, CAVDragImageSize);
-  [item setDraggingFrame:NSMakeRect(current.x - CAVDragImageSize * CAVHalf,
-                                    current.y - CAVDragImageSize * CAVHalf,
-                                    CAVDragImageSize, CAVDragImageSize)
-                 contents:icon];
-  [self.coordinator dragDidBegin];
+  NSRect dragFrame = self.bounds;
+  NSImage *dragImage = CAVSnapshot(self, dragFrame);
+  if (!dragImage) return;
+  [item setDraggingFrame:dragFrame contents:dragImage];
   NSDraggingSession *session = [self beginDraggingSessionWithItems:@[item] event:event source:self];
   session.animatesToStartingPositionsOnCancelOrFail = YES;
   [self.coordinator retainDragSession:session];
-  self.initialEvent = nil;
+}
+- (void)pasteboard:(NSPasteboard *)pasteboard item:(NSPasteboardItem *)item provideDataForType:(NSPasteboardType)type {
+  if ([type isEqualToString:NSPasteboardTypeFileURL] && self.applicationBundleURL) [item setString:self.applicationBundleURL.absoluteString forType:NSPasteboardTypeFileURL];
 }
 - (NSDragOperation)draggingSession:(NSDraggingSession *)session sourceOperationMaskForDraggingContext:(NSDraggingContext)context {
   return NSDragOperationCopy;
 }
 - (BOOL)ignoreModifierKeysForDraggingSession:(NSDraggingSession *)session { return YES; }
+- (void)draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint { self.hidden = YES; [self.coordinator dragDidBegin]; }
 - (void)draggingSession:(NSDraggingSession *)session endedAtPoint:(NSPoint)screenPoint operation:(NSDragOperation)operation {
   [self.coordinator dragDidEndWithOperation:operation atScreenPoint:screenPoint];
+  self.hidden = NO;
+  self.applicationBundleURL = nil;
 }
 @end
 @implementation CAVPermissionHandoffCoordinator
@@ -639,17 +626,12 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
 - (void)rebuildReplicants {
   for (CAVScreenReplicant *replicant in self.replicants) [replicant orderOut];
   [self.replicants removeAllObjects];
-  NSRect corridor = CAVTransitionCorridor(self.sourceScreenRect, self.targetScreenRect);
-  CGFloat effectPadding = CAVEffectOverscan + CAVMaximumBlur + CAVShadowAmbientRadius;
-  NSRect expanded = NSInsetRect(corridor, -effectPadding, -effectPadding);
   BOOL allowsBlur = !self.reducedTransparency;
   for (NSScreen *screen in NSScreen.screens) {
-    NSRect slice = NSIntersectionRect(expanded, screen.frame);
-    if (NSIsEmptyRect(slice)) continue;
     CGFloat scale = screen.backingScaleFactor;
-    slice = CAVIntegralRectForScale(slice, scale);
+    NSRect screenFrame = CAVIntegralRectForScale(screen.frame, scale);
     CAVScreenReplicant *replicant = [[CAVScreenReplicant alloc]
-      initWithScreen:screen frame:slice sourceImage:self.sourceImage targetImage:self.targetImage allowsBlur:allowsBlur];
+      initWithScreen:screen frame:screenFrame sourceImage:self.sourceImage targetImage:self.targetImage allowsBlur:allowsBlur];
     [self.replicants addObject:replicant];
   }
   self.screenTopologyKey = CAVScreenTopologyKey();
@@ -730,14 +712,14 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   [self.arrowTimer invalidate];
   self.arrowTimer = nil;
   [self.arrowView.layer removeAnimationForKey:@"cavalry-handoff-arrow"]; self.arrowView.layer.transform = CATransform3DIdentity;
-  [self.helperPanel orderOut:nil];
+  self.helperPanel.ignoresMouseEvents = YES;
 }
 - (void)dragDidEndWithOperation:(NSDragOperation)operation atScreenPoint:(NSPoint)screenPoint {
   self.dragging = NO;
   self.dragSession = nil;
+  self.helperPanel.ignoresMouseEvents = NO;
   [self.helperPanel orderFront:nil];
   if (!self.reducedMotion) [self scheduleArrowCycleAfter:CAVArrowIdleDuration];
-
   /* 只有真实 System Settings 主窗口的完整窗口区域才会触发重试。 */
   NSRect currentSettingsFrame = CAVSystemSettingsWindowFrame();
   if (!NSIsEmptyRect(currentSettingsFrame)) self.settingsFrame = currentSettingsFrame;

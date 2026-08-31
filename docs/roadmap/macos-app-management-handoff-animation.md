@@ -7,7 +7,7 @@
 
 # macOS App Management 授权引导动画
 
-状态: Active / Native implemented / Browser and packaged visual verification pending
+状态: Active / Native implemented / Browser verified / Packaged shell verified / First-denied live pending
 建立日期: 2026-08-31
 适用范围: Cavalry-i18n macOS Switch / Restore 写事务
 
@@ -97,7 +97,7 @@ idle → preparing → presenting → presented → reversing → idle
 
 目标窗口丢失、System Settings 被关闭、显示器变化和 app 退出是 session 清理事件，不是授权结果；它们必须幂等撤销 overlay，并保留用户可重试的业务状态。
 
-当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，权限拒绝先在共享 Activity 中完成 1200ms 可读停顿；handoff 单独落到 helper 中的实时 draggable app row，不再把 Apple 列表行当动画终点。source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。浏览器 drag 使用独立 App 图标而非整卡截图作为 drag image，整个 System Settings mock 都是接收区域；copy drop 后只模拟引导阶段并把重试交给真实 renderer。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级；source 缺失时也不再中止，而是直接显示静态 helper。fixture 在 `applyTransaction` 完成（代表保护写入 commit）后、进入 `restartCavalry` 前发送 success-settled 控制消息，再驱动 review-only reverse；这不是生产 Activity 事件，也不新增“权限已验证”文案。生产 retry 使用唯一 `attemptId` 与四语 `resumeAfterPermission`，保留原 Activity；Rust 在保护写事务 commit 后启动 reverse，再继续 restart 与最终结果。仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。系统行的 mock 更新只表达“设置接收了 App”，**仍不是权限证明**；这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
+当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，权限拒绝先在共享 Activity 中完成 1200ms 可读停顿；handoff 单独落到 helper 中的实时 draggable app row，不再把 Apple 列表行当动画终点。source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。浏览器 drag 在 `dragstart` 时克隆整条 live App row 并保持鼠标在行内的相对锚点，整个 System Settings mock 都是接收区域；copy drop 后只模拟引导阶段并把重试交给真实 renderer。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级；source 缺失时也不再中止，而是直接显示静态 helper。fixture 在 `applyTransaction` 完成（代表保护写入 commit）后、进入 `restartCavalry` 前发送 success-settled 控制消息，再驱动 review-only reverse；这不是生产 Activity 事件，也不新增“权限已验证”文案。生产 retry 使用唯一 `attemptId` 与四语 `resumeAfterPermission`，保留原 Activity；Rust 在保护写事务 commit 后启动 reverse，再继续 restart 与最终结果。仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。系统行的 mock 更新只表达“设置接收了 App”，**仍不是权限证明**；这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
 
 2026-08-31 以 UI Review revision `mtgsrup7.mj` 对当前浏览器实现重新逐分支审查。审查先暴露了一个真实原型竞态：点击“重置”后，旧 source document 仍可能在同一 URL 导航提交前短暂可见，导致下一次交接误走静态 fallback。现在重置会重载同一生产 renderer fixture，并在**新 document 的非零权限动作重新出现前**保持交接入口禁用，不再让上一轮成功态或旧 DOM 污染下一轮。随后 Playwright 实跑确认：Reduce Motion 只产生 `full→reduced` 状态变化，正向直接进入 helper，成功后立即回到 idle；仍拒绝保留 helper 且事件止于 `permissionStillMissing`；其他 typed error 执行 reverse、清除 helper 并进入 `typedError`。完整成功 reverse 捕获 66 个 RAF 样本、约 1084ms，目标 opacity 从 `1` 单调下降到 `0.001`，中点 `p=0.5089 / 1-p=0.4911`，双图 opacity 互补最大误差小于 `5.1e-7`，对向 blur 和为 12px 的最大误差小于 `5.1e-5`；阶段只经过“反向动画→待命”。真实 Playwright `dragTo` 还闭合 `appDragStarted→appDropAccepted→retryRequested→protectedApplyCommitted（仅 review trace，代表 fixture settled）→handoffDismissed`，目标行 checked、helper 清理，console 为 0 error / 0 warning。该记录证明浏览器状态机、公式和可重复审查入口成立，仍不把 HTML drop、fixture settled 或 review trace 冒充 macOS 授权或生产 Activity 事件。
 
@@ -105,11 +105,11 @@ idle → preparing → presenting → presented → reversing → idle
 
 生产链只保留两项必要的 fail-closed 约束：`openat`/`renameatx_np` 的原始 `PermissionDenied` 在回滚补充说明后仍保留 typed 类别，macOS command 不解析任意错误文案；原生 drag 只有在 copy operation 的释放点位于实时 System Settings 整窗内时才请求重试，Finder 或其他接受 Copy 的目标不会推进权限链。
 
-R2 单屏原生视觉子门另用仓库外临时 AppKit harness **直接编译同一份生产 `.m`**，连接本机真实 System Settings 而不写 TCC。首次截图发现 164pt helper 中箭头与说明重叠，四语矩阵又发现日文 `キャンセル` 在 68pt action 中截断；生产源码随后收敛为 200pt、20pt 外边距的 Arrow→Instruction→App Row→Action 非重叠层级，并把共享 action width 提升到 88pt。英文、简中、繁中、日文四张 2x helper readback 均无截断；WindowServer 记录到 source window、`320×200` helper 及 `1412×485` 单屏 replicant，连续捕获的 replicant PNG 显示 source/target 双快照沿走廊交接。箭头 70 帧采样从基础 `36×35px` 进入 `43×62px` overshoot、回摆至 `34×29px` 后归位，证明 native 已消费锁定的 `mass=1 / stiffness=200 / damping=11`，而非旧 `NSAnimationContext` 插值。该子门证明真实 AppKit/WindowServer 渲染和四语几何，仍不证明 System Settings 接受 file URL、权限已允许或业务重试成功。
+R2 单屏原生视觉子门另用仓库外临时 AppKit harness **直接编译同一份生产 `.m`**，连接本机真实 System Settings 而不写 TCC。首次截图发现 164pt helper 中箭头与说明重叠，四语矩阵又发现日文 `キャンセル` 在 68pt action 中截断；生产源码随后收敛为 200pt、20pt 外边距的 Arrow→Instruction→App Row→Action 非重叠层级，并把共享 action width 提升到 88pt。英文、简中、繁中、日文四张 2x helper readback 均无截断；当时的 WindowServer 记录到 source window、`320×200` helper 及 `1412×485` 走廊切片 replicant，连续 PNG 显示 source/target 双快照沿走廊交接。箭头 70 帧采样从基础 `36×35px` 进入 `43×62px` overshoot、回摆至 `34×29px` 后归位，证明 native 已消费锁定的 `mass=1 / stiffness=200 / damping=11`，而非旧 `NSAnimationContext` 插值。二次目标复审后生产拓扑已从走廊切片改为每屏完整 `screenFrame` panel，本段旧窗口尺寸只保留为 shared-element/四语历史证据，不能替代新拓扑的跨屏 live readback；System Settings 接受 file URL、权限已允许或业务重试成功也仍未由该子门证明。
 
 helper 呈现后的原生焦点 readback 同样不依赖 Accessibility：`NSWorkspace.frontmostApplication` 保持 `com.apple.systempreferences`，harness 进程 `keyWindow=none / sourceKey=0`，同时 WindowServer 仍显示 layer-3 helper。结合 `CAVNonActivatingPanel.canBecomeKeyWindow/canBecomeMainWindow = NO`，这证明辅助层在真实设置窗口前没有把前台或 key/main 身份抢回本进程；它不证明跨 Space 或全屏切换分支。
 
-同一 harness 又只通过生产公开收口入口 `cavalry_permission_handoff_finish(true)` 触发 reverse，没有修改 TCC 或另写测试动画。WindowServer 连续序列先记录 `320×200` helper（window `26411`），随后 7 帧记录覆盖 source→target 走廊的 `1412×485` reverse replicant（window `26412`），第 9 帧起 helper 与 replicant 均消失，只剩原 `400×516` source（window `26399`）；native terminal event 同时回读 `outcome=0 / terminal=1`。这闭合了**同一原生实现的 reverse→completion→视觉层清理子门**，证明收口不是工作台 DOM 特效，也没有残留 overlay。它仍是 marker 驱动的视觉/lifecycle harness，不等于用户真实 copy drop、System Settings 行更新、权限打开或原业务重试成功。
+同一 harness 又只通过生产公开收口入口 `cavalry_permission_handoff_finish(true)` 触发 reverse，没有修改 TCC 或另写测试动画。旧走廊切片 revision 的 WindowServer 连续序列先记录 `320×200` helper（window `26411`），随后 7 帧记录 `1412×485` reverse replicant（window `26412`），第 9 帧起 helper 与 replicant 均消失，只剩原 `400×516` source（window `26399`）；native terminal event 同时回读 `outcome=0 / terminal=1`。这证明 reverse→completion→视觉层清理不是工作台 DOM 特效；但每屏完整 `screenFrame` 拓扑取代旧 revision 后，该尺寸不再是当前窗口证据，仍需后续 native live readback。该 harness 也不等于用户真实 copy drop、System Settings 行更新、权限打开或原业务重试成功。
 
 R3 可在不改变安全设置的失败分支也由同一 harness 补齐了单屏 live evidence：`hasSourceRect=false` 时不创建飞行代理，直接显示同一 helper；helper 已呈现后关闭 System Settings，owner 回送 `outcome=2 / terminal=1` 并移除 helper，只剩 source；设置页完全未出现时，50 次有界探测结束后回送 `outcome=3 / terminal=1`，且 WindowServer 从未留下 helper/replicant。对应源码合同现以 4/4 测试固定静态降级、目标丢失宽限、定位超时、non-key/non-main panel 与 terminal→cleanup 顺序。该证据关闭的是 source 缺失和目标丢失的单屏生命周期分支，Space、显示器拓扑变化与真实 drag cancel 仍不在其证明范围内。
 
@@ -134,11 +134,11 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | 尺寸、圆角线性插值与 integral frame | 已确认 | 已做近似 | CSS pixel 不能冒充 AppKit point/backing pixel |
 | source/target `1-p / p` 与 12pt 对向 blur | 已确认 | 已做 | 原生材质、色彩空间与 rasterization 待 R2/R3 |
 | destination/key/ambient shadow 与 0.5pt stroke | 已确认 | 已做单层浏览器投影 | R2 才能验证 CALayer mask/clipping |
-| 每屏 non-key/non-main replicant 与跨屏裁切 | 已确认 | 缺失 | R3；当前 R1 不得称像素级跨屏复刻 |
+| 每屏 non-key/non-main replicant 与跨屏裁切 | 已确认每屏窗口覆盖各自 `screenFrame` | 浏览器缺失；原生已改为每屏完整透明窗口并在本地坐标绘制运动内容 | 工作台不得称跨屏证明；混合倍率/热插拔仍需原生 live 验证 |
 | forward completion 后 live accessory 接管 | 已确认 | 已做结构替身 | R2 需真实 nonactivating `NSPanel`/hosting view |
 | 独立 HintArrow raster、0.5/0.25/4s 节奏 | 已确认 | 项目自绘 glyph + 已确认节奏，部分 | 私有 raster 不进入开源产品；只复刻行为语法 |
-| app row 的真实 `NSDraggingSession` | 已确认 | HTML DnD + 独立 App 图标 drag image 替身 | R2 必须 file URL pasteboard + drag source |
-| 4pt 阈值、56pt drag image、cancel bounce | 仅公开 MIT 样本确认，非原样本参数 | 缺失 | 可 clean-room 采用但必须标注公开来源，不冒充私有参数 |
+| app row 的真实 `NSDraggingSession` 与整行 drag snapshot | 已确认：`appRowView.bounds → bitmapImageRepForCachingDisplayInRect → cacheDisplayInRect → NSImage → setDraggingFrame:contents:` | HTML DnD 克隆整行 App row；原生对整行实时 `NSView` 调用同类 AppKit snapshot | file URL pasteboard + drag source 已对齐；浏览器替身不冒充 native 证据 |
+| 系统 drag 接管与 cancel bounce | 目标样本确认 `mouseDown:` 直接建立 session，并启用系统回弹 | 原生同样从 `mouseDown:` 交给 AppKit；不再复制公开样本的自定义 4pt 门槛 | 目标样本已确认的 drag visual 是整行而非 56pt icon |
 | 整个设置目标接收 copy drop、且与权限授予分离 | 已确认 operation + 目标几何约束；私有精确命中条件未知 | 整窗 mock 接收并更新系统行，已做 | R2 由原生 drop operation/屏幕几何裁决；R4 仍以写事务为唯一 oracle |
 | 已有列表行只需开启的分支 | 已确认产品必要；原样本逐条件未知 | 已做人工分支 | 无 AX 时不能自动声称已检测到系统行 |
 | status provider / permission oracle | 已确认原样本存在 | fixture 经真实 renderer 任务序列驱动，未接 TCC | 生产必须由 Cavalry 原写事务替代；两产品 oracle 不同，不复制状态判断 |
@@ -218,7 +218,7 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | 飞行动画 | 60fps Timer；公开样本使用临界阻尼、alpha 与 minimum scale | 可作为低复杂度 MVP 行为参考，不能描述外部参考应用的当前参数 |
 | 轨迹 | 二次 Bezier；弧高随距离 clamp | 比固定直线自然，但不是任何私有实现参数的证明 |
 | 目标布局 | 跟随 System Settings 主窗口，在 trailing content 邻接 helper panel | 不需要截取或修改系统设置内容 |
-| Drag source | 4pt 移动阈值、Finder 风格 file URL/filename payload、56pt drag icon、cancel/fail 回弹 | 可用公开 AppKit 独立实现；这些数值不等于私有参考参数 |
+| Drag source | 公开样本自有 4pt 移动阈值、Finder 风格多类型 payload、56pt icon-only drag image 与 cancel/fail 回弹 | 只作公开工程对照；当前产品按目标样本采用 `mouseDown:` 系统 session、file-URL provider 与整行 snapshot，不复制这组 4pt/56pt 方案 |
 | Drag passthrough | drag 时 helper `ignoresMouseEvents=true`、置后并降 alpha，结束恢复 | 让 System Settings 而非 helper 接收 drop |
 | 成功边界 | drag source 的 ended callback 收到 operation 但公开实现忽略其值；没有 destination/drop callback 与成功动画 | 本项目必须用真实 Cavalry 写事务重试作为最终 oracle，不能用 drop 或计时器制造成功 |
 | 关闭与恢复 | helper 关闭、设置退出与返回前台应用是显式控制分支；没有成功自动收口 | reverse/cleanup 若采用，属于本项目经私有样本独立取证后的设计，不能冒充公开实现行为 |
@@ -333,7 +333,7 @@ macos_permission_handoff.rs
 | R4 生产接线 | typed `permissionRequired` → handoff → retry | 只有真实事务成功才显示成功；四语目的说明进入最终包 |
 | R5 packaged visual check | 当前 ad-hoc/package 实机 | 从干净 bundle 目录构建，检查四语资源、签名、窗口、helper/drop/retry/reverse；系统当前权限状态不允许出现的分支由共享工作台审查，不另造账户或证据系统 |
 
-当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，单屏 helper/forward/reverse/cleanup、source 缺失、目标关闭、定位超时已有原生验证。当前任务剩余的是逐分支复核共享工作台，并从干净 bundle 目录构建当前 macOS 包做视觉与生命周期检查；多屏/Space/热插拔属于后续鲁棒性验证，不阻塞本次 UI 落地。
+当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码、编译与单屏原生子门，helper/forward/reverse/cleanup、source 缺失、目标关闭、定位超时均有验证。共享工作台的成功、仍拒绝、typed error、Reduce Motion 与整行 drag snapshot 分支已通过；当前 ad-hoc `.app`/DMG 的包结构、四语权限用途说明、签名、资源与窗口 shell 也已通过。当前账户尚未自然重现首次拒绝后的真实 System Settings 接收、写事务重试与 reverse 全链，因此该 live 分支仍待用户后续实机检查；多屏/Space/热插拔属于后续鲁棒性验证，不阻塞本次 UI 落地。
 
 ### 6.1 macOS 实机查看
 

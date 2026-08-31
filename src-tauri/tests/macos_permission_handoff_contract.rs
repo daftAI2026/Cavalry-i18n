@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands/contract、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、受保护写事务 commit 后先 reverse 再 restart 的真实 apply oracle、finalizer 不重复触发成功 reverse、只在实时 System Settings 整窗内接受的公开 file-URL Copy drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、受保护写事务 commit 后先 reverse 再 restart 的真实 apply oracle、finalizer 不重复触发成功 reverse、整条实时 App row 快照承载且只在 System Settings 整窗内接受的 file-URL Copy drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -108,10 +108,33 @@ fn native_owner_uses_public_dragging_and_never_edits_permission_state() {
         "CAVArrowMass",
         "CAVArrowStiffness",
         "CAVArrowDamping",
+        "NSRect screenFrame = CAVIntegralRectForScale(screen.frame, scale)",
+        "initWithScreen:screen frame:screenFrame",
+        "NSPasteboardItemDataProvider",
+        "[pasteboardItem setDataProvider:self forTypes:@[NSPasteboardTypeFileURL]]",
+        "provideDataForType:(NSPasteboardType)type",
+        "NSImage *dragImage = CAVSnapshot(self, dragFrame)",
+        "[item setDraggingFrame:dragFrame contents:dragImage]",
+        "draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint",
+        "self.hidden = YES",
+        "self.hidden = NO",
     ] {
         assert!(
             native.contains(required),
             "missing native boundary: {required}"
+        );
+    }
+    for rejected_target_mismatch in [
+        "CAVDragImageSize",
+        "icon.size = NSMakeSize",
+        "CAVDragThreshold",
+        "mouseDragged:(NSEvent *)event",
+        "CAVTransitionCorridor",
+        "sliceFrame",
+    ] {
+        assert!(
+            !native.contains(rejected_target_mismatch),
+            "target sample contract forbids this drag/overlay mismatch: {rejected_target_mismatch}"
         );
     }
     for forbidden in [

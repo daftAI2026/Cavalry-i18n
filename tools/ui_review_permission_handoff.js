@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实 permissionMac renderer iframe，依赖 renderer 的 tokens/Button/语义图标/应用标识，并注入 ui_review_permission_handoff_runtime 的独立行为层。
- * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、整窗 copy-drop 审查、生产任务重试、成功后反向回收及不入库的本机 Raster/System Settings 对照区。
+ * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、整条 App row 快照拖拽、整窗 copy-drop 审查、生产任务重试、成功后反向回收及不入库的本机 Raster/System Settings 对照区。
  * [POS]: tools UI Review 的独立权限动画舞台结构/样式层；只用 DOM/HTML 替身审查系统设置目标、视觉连续性和后端结果，本机参考缺失时降级为说明文字，不伪造 NSImage/NSPanel/NSDraggingSession 或 native 授权，并与工作台导航壳及行为层保持单向依赖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -31,8 +31,6 @@ function permissionHandoffHtml() {
       --handoff-target-viewport-height: 484px;
       --handoff-arrow-size: 28px;
       --handoff-arrow-offset-y: -10px;
-      /* 公开 AppKit 样本的 Finder 风格 drag image 规格；不冒充私有样本参数。 */
-      --handoff-drag-image-size: 56px;
     }
     *, *::before, *::after { box-sizing: border-box; }
     html, body { min-width: 100%; min-height: 100%; margin: 0; }
@@ -81,7 +79,8 @@ function permissionHandoffHtml() {
     .handoff-draggable-app { min-width: 0; flex: 1 1 auto; display: flex; align-items: center; gap: var(--gap-inline); padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: grab; }
     .handoff-draggable-app:active { cursor: grabbing; }
     .handoff-draggable-app[data-dragging="true"] { opacity: 0; }
-    .handoff-drag-image { position: fixed; inset: -9999px auto auto -9999px; inline-size: var(--handoff-drag-image-size); block-size: var(--handoff-drag-image-size); object-fit: contain; pointer-events: none; }
+    .handoff-drag-image-host { position: fixed; inset: -9999px auto auto -9999px; pointer-events: none; }
+    .handoff-drag-image { inline-size: max-content; block-size: auto; }
     .handoff-accessory-icon { inline-size: var(--space-8); block-size: var(--space-8); flex: 0 0 auto; object-fit: contain; }
     .handoff-accessory-copy { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: var(--gap-meta-stack); font-size: var(--type-compact); line-height: var(--line-height-compact); }
     .handoff-accessory-copy strong { font-weight: var(--weight-medium); }
@@ -191,7 +190,7 @@ function permissionHandoffHtml() {
             </button>
             <button id="reverseFromAccessory" class="ui-button button button-outline handoff-control-button" type="button">重试原操作</button>
           </section>
-          <img id="appDragImage" class="handoff-drag-image" src="/renderer/app-icon.png" alt="" />
+          <span id="appDragImageHost" class="handoff-drag-image-host" aria-hidden="true" inert></span>
         </div>
       </article>
 
@@ -252,7 +251,7 @@ function permissionHandoffHtml() {
         </article>
       </div>
     </section>
-    <footer class="handoff-footer"><span><strong>边界：</strong>DOM/HTML mock，不打开真实系统设置，不宣称 drop、授权、多屏或混合倍率证据。</span><span>R2 目标：NSImage snapshots → per-screen NSPanel replicants → live AppKit accessory</span></footer>
+    <footer class="handoff-footer"><span><strong>边界：</strong>DOM/HTML mock，不打开真实系统设置，不宣称 drop、授权、多屏或混合倍率证据。</span><span>生产边界：NSImage snapshots → per-screen NSPanel replicants → live AppKit accessory</span></footer>
   </main>
   <script>${permissionHandoffRuntimeScript()}</script>
 </body>
