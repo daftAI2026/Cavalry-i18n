@@ -332,6 +332,32 @@ macos_permission_handoff.rs
 
 当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，R2 单屏 helper/forward/reverse/cleanup 及 R3 source 缺失/目标关闭/定位超时的原生 WindowServer 子门与 R5 最终 bundle 静态资源/签名子门已闭合。首次权限拒绝、真实 drop、业务重试、Reduce Motion、多屏/Space/热插拔仍未完成，不能被工作台、仓库外 harness、Node VM、`cargo check` 或 ad-hoc bundle 静态 readback 代替。
 
+### 6.1 R5 packaged 人工取证协议
+
+R5 不允许用主账户 `tccutil reset` 制造“首次授权”，也不允许 producer 自动拖放、拨开关或截取 System Settings 权限列表。`tools/macos-handoff-acceptance/record_checkpoint.js` 只冻结精确 Switcher/Cavalry bundle、Git/host 身份和人工阶段；其 Swift probe 记录单调时间、Reduce Motion/Transparency、每屏 point/backing scale、前台 bundle 及 Switcher/System Settings 的无标题窗口几何，PNG 只取 Switcher 自有窗口。因此，session 能证明“哪一个包在什么宿主几何下呈现了什么”，不能单独证明授权。
+
+```bash
+SESSION="/private/tmp/cavalry-handoff-<session-id>"
+
+npm run record:handoff:macos -- --initialize \
+  --session-dir "$SESSION" \
+  --switcher-app "/path/to/Cavalry Language Switcher.app" \
+  --cavalry-app "/Applications/Cavalry.app"
+
+# 每个命令只在独立测试用户手工达到该真实阶段后执行；阶段不能预填或倒序伪造。
+npm run record:handoff:macos -- --checkpoint permission-blocked --session-dir "$SESSION"
+npm run record:handoff:macos -- --checkpoint helper-presented --session-dir "$SESSION"
+npm run record:handoff:macos -- --checkpoint drop-accepted --session-dir "$SESSION"
+npm run record:handoff:macos -- --checkpoint retry-verified --session-dir "$SESSION"
+npm run record:handoff:macos -- --checkpoint reverse-complete --session-dir "$SESSION"
+npm run record:handoff:macos -- --seal --session-dir "$SESSION"
+npm run record:handoff:macos -- --verify --session-dir "$SESSION"
+```
+
+首次授权链必须在独立 macOS 测试用户手工完成：先记录真实 `permissionRequired`，再观察 1200ms 阻断停顿和 helper；如果列表已有行则开启，如果没有则把 helper 的真实 app row 拖到整个 System Settings 窗口；完成设置后由 Retry 重放原 Switch/Restore，只有该事务成功才记录 `retry-verified` 与 reverse。拒绝、拖拽取消、目标关闭、已有行和 Reduce Motion 各用独立 session/分支记录；没有 1x/双屏硬件时明确保留未验证，不用合成坐标升级结论。
+
+当前主账户只建立了一个未 seal 的只读 baseline session：`/private/tmp/cavalry-handoff-evidence-current`。它绑定当前 packaged PID `16652`、Cavalry 2.7.2、单屏 `1710×1107pt @2x`、Reduce Motion/Transparency 均关闭，以及 System Settings `740×625pt` / Switcher `400×485pt` 的 WindowServer 几何；System Settings 没有被截图或修改。该记录验证 producer 真能在当前包上工作，仍不是权限链 PASS。
+
 ## 7. 验证矩阵
 
 至少覆盖：
