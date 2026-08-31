@@ -100,6 +100,8 @@ idle → preparing → presenting → presented → reversing → idle
 
 当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求重试，真实写事务成功才 reverse，仍缺权限则保留 helper，其他错误/取消才 cleanup。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer retry→reverse。最终 ad-hoc `.app`/DMG 已从空 bundle 目录按 SOP 重建，四语 `InfoPlist.strings`、默认用途说明、`CodeResources`、strict codesign、DMG 内与安装态 bundle seal 均已回读通过。**这仍不是首次授权、System Settings 真 drop、混合倍率或 packaged app 的权限链 live PASS**；这些结论只允许由 R5 实机证据给出。
 
+R2 单屏原生视觉子门另用仓库外临时 AppKit harness **直接编译同一份生产 `.m`**，连接本机真实 System Settings 而不写 TCC。首次截图发现 164pt helper 中箭头与说明重叠，四语矩阵又发现日文 `キャンセル` 在 68pt action 中截断；生产源码随后收敛为 200pt、20pt 外边距的 Arrow→Instruction→App Row→Action 非重叠层级，并把共享 action width 提升到 88pt。英文、简中、繁中、日文四张 2x helper readback 均无截断；WindowServer 记录到 source window、`320×200` helper 及 `1412×485` 单屏 replicant，连续捕获的 replicant PNG 显示 source/target 双快照沿走廊交接。箭头 70 帧采样从基础 `36×35px` 进入 `43×62px` overshoot、回摆至 `34×29px` 后归位，证明 native 已消费锁定的 `mass=1 / stiffness=200 / damping=11`，而非旧 `NSAnimationContext` 插值。该子门证明真实 AppKit/WindowServer 渲染和四语几何，仍不证明 System Settings 接受 file URL、权限已允许或业务重试成功。
+
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
 ## 4. 参考实现的证据分层

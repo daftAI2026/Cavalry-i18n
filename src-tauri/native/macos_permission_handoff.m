@@ -13,16 +13,16 @@ typedef void (*CAVPermissionHandoffCallback)(void *context, int outcome, bool te
 static const NSInteger CAVOutcomeRetryRequested = 1; static const NSInteger CAVOutcomeDismissed = 2; static const NSInteger CAVOutcomeError = 3; static const CGFloat CAVZero = 0.0;
 static const CGFloat CAVOne = 1.0; static const CGFloat CAVTwo = 2.0; static const CGFloat CAVHalf = 0.5; static const CGFloat CAVPi = 3.141592653589793;
 static const NSTimeInterval CAVSpringResponse = 0.72; static const CGFloat CAVSpringDamping = 1.0; static const CGFloat CAVArcApex = 50.0; static const CGFloat CAVMaximumBlur = 12.0;
-static const CGFloat CAVHelperWidth = 320.0; static const CGFloat CAVHelperHeight = 164.0; static const CGFloat CAVPanelInset = 20.0; static const CGFloat CAVRowHeight = 56.0;
+static const CGFloat CAVHelperWidth = 320.0; static const CGFloat CAVHelperHeight = 200.0; static const CGFloat CAVPanelInset = 20.0; static const CGFloat CAVRowHeight = 56.0;
 static const CGFloat CAVCornerRadius = 12.0; static const CGFloat CAVProxyStrokeWidth = 0.5; static const CGFloat CAVProxyStrokeOpacity = 0.15; static const CGFloat CAVDragThreshold = 4.0;
 static const CGFloat CAVDragImageSize = 56.0; static const CGFloat CAVArrowSize = 28.0; static const CGFloat CAVArrowGap = 2.0; static const CGFloat CAVArrowStrokeWidth = 2.0;
 static const CGFloat CAVArrowDesignSize = 256.0; static const CGFloat CAVArrowDrawingInset = 2.0; static const CGFloat CAVInfoBlueGreen = 107.0 / 255.0;
-static const CGFloat CAVArrowStretchX = 2.0; static const CGFloat CAVArrowStretchY = 8.0; static const NSTimeInterval CAVArrowInitialDelay = 0.5; static const NSTimeInterval CAVArrowStretchDuration = 0.25;
+static const CGFloat CAVArrowScaleX = 1.15; static const CGFloat CAVArrowScaleY = 1.6; static const CGFloat CAVArrowMass = 1.0; static const CGFloat CAVArrowStiffness = 200.0; static const CGFloat CAVArrowDamping = 11.0; static const NSTimeInterval CAVArrowInitialDelay = 0.5; static const NSTimeInterval CAVArrowStretchDuration = 0.25;
 static const NSTimeInterval CAVArrowIdleDuration = 4.0; static const NSTimeInterval CAVSettingsProbeInterval = 0.10; static const NSUInteger CAVSettingsProbeLimit = 50; static const NSUInteger CAVSettingsMissingGrace = 10;
 static const NSUInteger CAVIndexStep = 1;
 static const CGFloat CAVTransitionOverscan = 32.0; static const CGFloat CAVEffectOverscan = 24.0; static const CGFloat CAVAnimationFrameRate = 60.0; static const CGFloat CAVAnimationTolerance = 0.001;
 static const CGFloat CAVInstructionY = 132.0; static const CGFloat CAVInstructionHeight = 18.0; static const CGFloat CAVRowY = 64.0; static const CGFloat CAVActionBottomInset = 16.0;
-static const CGFloat CAVActionHeight = 30.0; static const CGFloat CAVActionWidth = 68.0; static const CGFloat CAVActionGap = 8.0; static const CGFloat CAVShadowDestinationOpacity = 0.06;
+static const CGFloat CAVActionHeight = 30.0; static const CGFloat CAVActionWidth = 88.0; static const CGFloat CAVActionGap = 8.0; static const CGFloat CAVShadowDestinationOpacity = 0.06;
 static const CGFloat CAVShadowDestinationRadius = 2.0; static const CGFloat CAVShadowDestinationY = -3.0; static const CGFloat CAVShadowKeyOpacity = 0.09; static const CGFloat CAVShadowKeyRadius = 15.0;
 static const CGFloat CAVShadowKeyY = -5.0; static const CGFloat CAVShadowAmbientOpacity = 0.20; static const CGFloat CAVShadowAmbientRadius = 3.0; static const CGFloat CAVShadowAmbientY = 0.0;
 static const CGFloat CAVStrokeZPosition = 3.0; static const CGFloat CAVShadowDestinationZPosition = -1.0; static const CGFloat CAVShadowKeyZPosition = -2.0; static const CGFloat CAVShadowAmbientZPosition = -3.0;
@@ -118,17 +118,17 @@ static CAVLocaleKind CAVPreferredLocaleKind(void) {
 static NSString *CAVHelperText(NSString *key) {
   CAVLocaleKind locale = CAVPreferredLocaleKind();
   NSArray<NSDictionary<NSString *, NSString *> *> *texts = @[
-    @{CAVTextInstruction: @"Allow the Switcher to modify Cavalry",
-      CAVTextDragDetail: @"Drag this app into App Management", CAVTextRetry: @"Retry",
+    @{CAVTextInstruction: @"Enable the Switcher in App Management",
+      CAVTextDragDetail: @"Not listed? Drag this app in", CAVTextRetry: @"Retry",
       CAVTextCancel: @"Cancel", CAVTextArrowLabel: @"Drag into App Management"},
-    @{CAVTextInstruction: @"允许切换器修改 Cavalry",
-      CAVTextDragDetail: @"将此应用拖入“App 管理”", CAVTextRetry: @"重试",
+    @{CAVTextInstruction: @"在“App 管理”中启用语言切换器",
+      CAVTextDragDetail: @"列表中没有？将此应用拖入", CAVTextRetry: @"重试",
       CAVTextCancel: @"取消", CAVTextArrowLabel: @"拖入 App 管理"},
-    @{CAVTextInstruction: @"允許切換器修改 Cavalry",
-      CAVTextDragDetail: @"將此 App 拖入「App 管理」", CAVTextRetry: @"重試",
+    @{CAVTextInstruction: @"在「App 管理」中啟用語言切換器",
+      CAVTextDragDetail: @"列表中沒有？將此 App 拖入", CAVTextRetry: @"重試",
       CAVTextCancel: @"取消", CAVTextArrowLabel: @"拖入 App 管理"},
-    @{CAVTextInstruction: @"スイッチャーによる Cavalry の変更を許可",
-      CAVTextDragDetail: @"このアプリを「アプリケーション管理」にドラッグ",
+    @{CAVTextInstruction: @"アプリケーション管理でスイッチャーを許可",
+      CAVTextDragDetail: @"一覧にない場合はここからドラッグ",
       CAVTextRetry: @"再試行", CAVTextCancel: @"キャンセル",
       CAVTextArrowLabel: @"アプリケーション管理へドラッグ"},
   ];
@@ -275,23 +275,24 @@ static CGPathRef CAVRoundedPath(NSRect bounds) {
 }
 static id CAVBlurFilter(CGFloat radius) {
   if (radius <= CAVZero) return nil;
-  Class filterClass = NSClassFromString(@"CIFilter");
-  if (!filterClass) return nil;
-  SEL selector = NSSelectorFromString(@"filterWithName:");
-  id (*factory)(id, SEL, id) = (id (*)(id, SEL, id))[filterClass methodForSelector:selector];
-  id filter = factory ? factory(filterClass, selector, @"CIGaussianBlur") : nil;
-  [filter setValue:@(radius) forKey:@"inputRadius"];
+  Class filterClass = NSClassFromString(@"CIFilter"); if (!filterClass) return nil;
+  SEL selector = NSSelectorFromString(@"filterWithName:"); id (*factory)(id, SEL, id) = (id (*)(id, SEL, id))[filterClass methodForSelector:selector];
+  id filter = factory ? factory(filterClass, selector, @"CIGaussianBlur") : nil; [filter setValue:@(radius) forKey:@"inputRadius"];
   return filter;
 }
 static void CAVSetBlur(NSImageView *imageView, CGFloat radius, BOOL enabled) {
-  imageView.layer.filters = nil;
-  imageView.layer.shouldRasterize = NO;
+  imageView.layer.filters = nil; imageView.layer.shouldRasterize = NO;
   if (!enabled || radius <= CAVZero) return;
-  id filter = CAVBlurFilter(radius);
-  if (!filter) return;
-  imageView.layer.filters = @[filter];
-  imageView.layer.shouldRasterize = YES;
+  id filter = CAVBlurFilter(radius); if (!filter) return;
+  imageView.layer.filters = @[filter]; imageView.layer.shouldRasterize = YES;
   imageView.layer.rasterizationScale = imageView.window.backingScaleFactor;
+}
+static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if (!layer) return;
+  CALayer *presentation = layer.presentationLayer; CATransform3D from = presentation ? presentation.transform : layer.transform;
+  CATransform3D to = CATransform3DMakeScale(scaleX, scaleY, CAVOne); CASpringAnimation *spring = [CASpringAnimation animationWithKeyPath:@"transform"];
+  spring.mass = CAVArrowMass; spring.stiffness = CAVArrowStiffness; spring.damping = CAVArrowDamping; spring.initialVelocity = CAVZero;
+  spring.fromValue = [NSValue valueWithCATransform3D:from]; spring.toValue = [NSValue valueWithCATransform3D:to]; spring.duration = spring.settlingDuration;
+  layer.transform = to; [layer addAnimation:spring forKey:@"cavalry-handoff-arrow"];
 }
 @implementation CAVNonActivatingPanel
 - (BOOL)canBecomeKeyWindow { return NO; }
@@ -591,7 +592,8 @@ static void CAVSetBlur(NSImageView *imageView, CGFloat radius, BOOL enabled) {
   self.cancelButton = cancel;
   CAVHandoffArrowView *arrow = [[CAVHandoffArrowView alloc]
     initWithFrame:NSMakeRect(NSMidX(row.frame) - CAVArrowSize * CAVHalf,
-                             NSMaxY(row.frame) + CAVArrowGap, CAVArrowSize, CAVArrowSize)];
+                             CAVInstructionY + CAVInstructionHeight + CAVArrowGap, CAVArrowSize, CAVArrowSize)];
+  arrow.wantsLayer = YES;
   arrow.toolTip = CAVHelperText(CAVTextArrowLabel);
   [surface addSubview:arrow];
   self.arrowView = arrow;
@@ -628,15 +630,11 @@ static void CAVSetBlur(NSImageView *imageView, CGFloat radius, BOOL enabled) {
     [self scheduleArrowCycleAfter:CAVArrowIdleDuration];
     return;
   }
-  [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
-    context.duration = CAVArrowStretchDuration;
-    self.arrowView.animator.frame = NSInsetRect(self.arrowView.frame, -CAVArrowStretchX, -CAVArrowStretchY);
-  } completionHandler:^{
-    [NSAnimationContext runAnimationGroup:^(NSAnimationContext *context) {
-      context.duration = CAVArrowStretchDuration;
-      self.arrowView.animator.frame = NSInsetRect(self.arrowView.frame, CAVArrowStretchX, CAVArrowStretchY);
-    } completionHandler:^{ [self scheduleArrowCycleAfter:CAVArrowIdleDuration]; }];
-  }];
+  CAVAnimateArrow(self.arrowView.layer, CAVArrowScaleX, CAVArrowScaleY);
+  dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CAVArrowStretchDuration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    if (self.helperPanel.isVisible && !self.dragging) CAVAnimateArrow(self.arrowView.layer, CAVOne, CAVOne);
+    [self scheduleArrowCycleAfter:CAVArrowIdleDuration];
+  });
 }
 - (void)rebuildReplicants {
   for (CAVScreenReplicant *replicant in self.replicants) [replicant orderOut];
@@ -731,12 +729,14 @@ static void CAVSetBlur(NSImageView *imageView, CGFloat radius, BOOL enabled) {
   self.dragging = YES;
   [self.arrowTimer invalidate];
   self.arrowTimer = nil;
+  [self.arrowView.layer removeAnimationForKey:@"cavalry-handoff-arrow"]; self.arrowView.layer.transform = CATransform3DIdentity;
   [self.helperPanel orderOut:nil];
 }
 - (void)dragDidEndWithOperation:(NSDragOperation)operation {
   self.dragging = NO;
   self.dragSession = nil;
   [self.helperPanel orderFront:nil];
+  if (!self.reducedMotion) [self scheduleArrowCycleAfter:CAVArrowIdleDuration];
   if ((operation & NSDragOperationCopy) != CAVZero) {
     [self sendOutcome:CAVOutcomeRetryRequested terminal:NO];
   }
