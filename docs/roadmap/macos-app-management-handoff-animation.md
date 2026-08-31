@@ -102,7 +102,9 @@ idle → preparing → presenting → presented → reversing → idle
 
 当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求重试，renderer 将同一 session 在前次事务完成前重复到达的 Retry/drop 折叠为一次，真实写事务成功才 reverse，仍缺权限则保留 helper，其他错误/取消才 cleanup。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer retry→reverse。最终 ad-hoc `.app`/DMG 已从空 bundle 目录按 SOP 重建，四语 `InfoPlist.strings`、默认用途说明、`CodeResources`、strict codesign、DMG 内与安装态 bundle seal 均已回读通过。**这仍不是首次授权、System Settings 真 drop、混合倍率或 packaged app 的权限链 live PASS**；这些结论只允许由 R5 实机证据给出。
 
-retry 串行化进入 renderer 后，旧 packaged 进程已按 SOP 结束，并从空 `src-tauri/target/release/bundle` 在源码提交 `145bd60` 上重新生成 ad-hoc `.app` 与 DMG。当前 DMG SHA-256 为 `3849dedeab74adc9431089d9566542ce3a1b507119bc46cb6107e4643fda4e4b`；构建合同 32/32、packaged 6 PASS/1 架构项按环境 SKIP、DMG layout、strict codesign、四语 plist lint 与 `400×485` window regression 均通过。packaged gate 现进一步把当前 `renderer/permission-handoff.js` 与 Tauri Brotli codegen asset 逐字节解压比对，再要求该压缩字节在最终 Mach-O 中恰好出现一次，避免用 route token 或旧 rlib 冒充新 controller 已入包；长期运行的 UI Review server 对同一路由返回 `Cache-Control: no-store`，其 HTTP 响应与源码 SHA-256 同为 `8eded74aa7092e3297c30448b2657224f0680f8a999745fc9ff73263a79f6988`。因此工作台 fixture 与 packaged app 消费的是同一个 controller 字节，不是两套“看起来相同”的实现。新进程 PID `16652` 的 WindowServer readback 为 `400×485`，截图 `/tmp/cavalry-packaged-main-current.png` 只作本机临时视觉证据；这些仍是 ad-hoc 本地包证据，不构成 Developer ID/notarization 或真实权限链结论。
+隔离用户验证暴露了与 TCC 正交的 POSIX 所有权边界：当前系统级 `/Applications/Cavalry.app` 由 `luo:admin` 持有，目录 `755`、写入文件 `644`；App Management 不会把另一个标准用户提升为该 bundle 的 owner，而 macOS 路径又明确拒绝 root/admin shell fallback。因此默认发现现保持已保存路径第一，其后遵循 macOS application domain 的 `~/Applications/Cavalry.app`→`/Applications/Cavalry.app` 次序；独立用户必须先复制一份由自己拥有的 Cavalry 到用户域，真实权限事务才能同时满足 TCC 与 POSIX 两条边界。候选顺序由 Rust 合同锁定，不为测试加入专用入口或写权限探针。
+
+该修复进入洁净提交 `b0c784d` 后，旧 packaged 进程与旧 bundle 已按 SOP 清理，并从空 `src-tauri/target/release/bundle` 重新生成 ad-hoc `.app` 与 DMG。当前 Switcher Mach-O SHA-256 为 `d1d2e3c9d4f7474d0fb64a7df99f5c4d830b0966ea42466d2c8138f62154c985`，DMG SHA-256 为 `d1bd5318c54863dcb90f54d77785d128c7b2cf1bd9af3407c362f8fb196ad248`；构建合同 32/32、packaged 6 PASS/1 架构项按环境 SKIP、DMG layout、strict ad-hoc codesign、四语 plist lint 与 `400×485` window regression 均通过。packaged gate 继续把当前 `renderer/permission-handoff.js` 与 Tauri Brotli codegen asset 逐字节解压比对，并要求该压缩字节在最终 Mach-O 中恰好出现一次；UI Review HTTP 响应与源码 SHA-256 仍同为 `8eded74aa7092e3297c30448b2657224f0680f8a999745fc9ff73263a79f6988`。新进程 PID `63112` 的 WindowServer readback 为 `400×485`；这些仍是 ad-hoc 本地包证据，不构成 Developer ID/notarization 或真实权限链结论。
 
 R2 单屏原生视觉子门另用仓库外临时 AppKit harness **直接编译同一份生产 `.m`**，连接本机真实 System Settings 而不写 TCC。首次截图发现 164pt helper 中箭头与说明重叠，四语矩阵又发现日文 `キャンセル` 在 68pt action 中截断；生产源码随后收敛为 200pt、20pt 外边距的 Arrow→Instruction→App Row→Action 非重叠层级，并把共享 action width 提升到 88pt。英文、简中、繁中、日文四张 2x helper readback 均无截断；WindowServer 记录到 source window、`320×200` helper 及 `1412×485` 单屏 replicant，连续捕获的 replicant PNG 显示 source/target 双快照沿走廊交接。箭头 70 帧采样从基础 `36×35px` 进入 `43×62px` overshoot、回摆至 `34×29px` 后归位，证明 native 已消费锁定的 `mass=1 / stiffness=200 / damping=11`，而非旧 `NSAnimationContext` 插值。该子门证明真实 AppKit/WindowServer 渲染和四语几何，仍不证明 System Settings 接受 file URL、权限已允许或业务重试成功。
 
@@ -340,11 +342,19 @@ R5 不允许用主账户 `tccutil reset` 制造“首次授权”，也不允许
 
 ```bash
 SESSION="/private/tmp/cavalry-handoff-<session-id>"
+CAVALRY_APP="$HOME/Applications/Cavalry.app"
+
+# 独立用户先从已验证的 2.7.2 输入复制自己的 bundle；必须回读 owner，TCC 不替代 POSIX 权限。
+test ! -e "$CAVALRY_APP"
+mkdir -p "$HOME/Applications"
+ditto "/path/to/verified/Cavalry.app" "$CAVALRY_APP"
+test "$(stat -f '%Su' "$CAVALRY_APP/Contents/MacOS/Cavalry")" = "$(id -un)"
+codesign --verify --deep --strict "$CAVALRY_APP"
 
 npm run record:handoff:macos -- --initialize \
   --session-dir "$SESSION" \
   --switcher-app "/path/to/Cavalry Language Switcher.app" \
-  --cavalry-app "/Applications/Cavalry.app" \
+  --cavalry-app "$CAVALRY_APP" \
   --scenario fresh-drop-success
 
 # 每个命令只在独立测试用户手工达到该真实阶段后执行；阶段不能预填或倒序伪造。
@@ -360,9 +370,9 @@ npm run record:handoff:macos -- --verify --session-dir "$SESSION"
 
 首次授权链必须在独立 macOS 测试用户手工完成：先记录真实 `permissionRequired`，再观察 1200ms 阻断停顿和 helper；如果列表已有行则开启，如果没有则把 helper 的真实 app row 拖到整个 System Settings 窗口；完成设置后由 Retry 重放原 Switch/Restore，只有该事务成功才记录 `retry-verified` 与 reverse。拒绝、拖拽取消、目标关闭、已有行和 Reduce Motion 各用独立 session/分支记录；没有 1x/双屏硬件时明确保留未验证，不用合成坐标升级结论。
 
-当前主账户只建立并 seal 了一个只读 baseline session：`/private/tmp/cavalry-handoff-evidence-current`。它在洁净提交 `a100ea2` 上绑定当前 packaged PID `16652`、Switcher Mach-O `4c64055a…`、Cavalry 2.7.2 launcher `24aa5932…` 与通用 runtime Mach-O `63b50bba…`，同时记录单屏 `1710×1107pt @2x`、Reduce Motion/Transparency 均关闭，以及 System Settings `740×625pt` / Switcher `400×485pt` 的 WindowServer 几何；System Settings 没有被截图或修改。`seal.json` SHA-256 为 `613798083e400aab6a8b5cecd368af8300755988ac608e1580d778ab1a502c69`，独立 verify 已回放通过。该记录验证 producer 真能在当前包和真实 Cavalry runtime 上闭合身份，仍不是权限链 PASS。
+当前主账户已为新候选建立并 seal 只读 baseline：`/private/tmp/cavalry-handoff-evidence-b0c784d`。它绑定洁净提交 `b0c784d`、packaged PID `63112`、Switcher Mach-O `d1d2e3c…`、Cavalry 2.7.2 launcher `24aa5932…` 与 runtime `63b50bba…`，记录单屏 `1710×1107pt @2x`、Reduce Motion/Transparency 均关闭，以及 System Settings `740×625pt` / Switcher `400×485pt` 几何；System Settings 没有被截图或修改。`seal.json` SHA-256 为 `4b07c97101299cd2b71e6c05dad24fd2501f4dcfe78d2cfaaa20969484f733c7`，独立 verify 已回放通过。旧 `a100ea2`/`4c64055a…` baseline 只保留历史，不再代表当前候选。
 
-隔离账户执行入口已在本机 `/Users/Shared/Cavalry-i18n-r5-19ea6f3` 冻结：它包含提交 `19ea6f3` 的独立 clean-detached Git clone、同一 packaged Switcher（Mach-O SHA-256 `4c64055a…`）、Node `24.20.0`（SHA-256 `9d050fd4…`）及只注入 `safe.directory` 环境的 recorder wrapper；不依赖当前账户权限为 `700` 的 Desktop，也不修改测试用户的全局 Git 配置。外部 `README-FIRST-AUTH.txt` 按固定 scenario 列出人工步骤，并要求 seal 后只增加 session 的读取权限。该 kit 已实际完成 initialize preflight：repository status 为空、Cavalry `2.7.2`、runtime `63b50bba…`、Switcher strict codesign 均回读通过；它只消除了“新用户无法访问候选和 producer”的执行阻塞，当前机器仍只有 `luo` 一个交互账户，因此不构成首次授权 PASS。
+隔离账户执行入口已重建为 `/Users/Shared/Cavalry-i18n-r5-b0c784d`：包含提交 `b0c784d` 的 clean-detached Git clone、同一 packaged Switcher `d1d2e3c…`、Node `24.20.0` `9d050fd4…`、只注入 `safe.directory` 环境的 recorder wrapper 与外部人工 runbook；不依赖当前账户权限为 `700` 的 Desktop，也不修改测试用户全局 Git 配置。preflight 已用一个当前用户拥有的临时 Cavalry clone 实际执行 initialize，回读 source status 为空、Cavalry `2.7.2`/runtime `63b50bba…`、Switcher strict codesign 与 clone owner 均正确，随后只清理该受控临时 clone/session。runbook 要求新用户复制自己的 `~/Applications/Cavalry.app`、首屏复核该路径，并在 seal 后仅增加 session 读取权限。该 kit 闭合的是隔离账户可访问且可写的执行路径；本机仍只有 `luo` 一个交互账户，因此不是首次授权 PASS。
 
 ## 7. 验证矩阵
 
