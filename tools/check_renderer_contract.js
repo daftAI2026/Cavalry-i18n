@@ -414,7 +414,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
     'renderer scripts must load bridge, stable text, icons, component state machines, then app'
   );
   assert.match(icons, /window\.cavalryIcons = Object\.freeze\(\{ create: createIcon \}\)/);
-  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'infoCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'restart', 'download', 'package', 'update', 'minimizeWindow', 'maximizeWindow', 'restoreWindow', 'close']) {
+  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'infoCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'open', 'download', 'package', 'update', 'minimizeWindow', 'maximizeWindow', 'restoreWindow', 'close']) {
     assert.match(icons, new RegExp(`\\b${iconName}: \\{`), `${iconName} must stay in the semantic icon registry`);
   }
   assert.doesNotMatch(operationLog, /const ICONS|createElementNS|<path/, 'operation log must consume icon names without owning SVG path data');
@@ -763,7 +763,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(operationLog, /remeasure: syncAfterLayout/);
   assert.match(app, /permissionButton\.hidden =[\s\S]*?operationLog\.remeasure\(\)/);
   assert.match(operationLog, /cssNumber\('--operation-live-edge-tolerance'\)/);
-  assert.match(app, /verifyInstallation:\s*'verify'[\s\S]*?ensureBaseline:\s*'archive'[\s\S]*?applyTransaction:\s*'translate'[\s\S]*?restartCavalry:\s*'restart'/);
+  assert.match(app, /verifyInstallation:\s*'verify'[\s\S]*?ensureBaseline:\s*'archive'[\s\S]*?applyTransaction:\s*'translate'[\s\S]*?restartCavalry:\s*'open'/);
   assert.match(app, /restoring && phase === 'applyTransaction' \? 'restore' : PHASE_ICONS\[phase\]/);
   assert.match(updateProgress, /updateDownloadCompletedTitle[\s\S]*?icon:\s*'download'/);
   assert.match(updateProgress, /updateInstallCompletedTitle[\s\S]*?icon:\s*'package'/);
@@ -923,6 +923,19 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(uiText, /cavalryStillRunning: '保存工作并退出 Cavalry 后重试。安装内容未被修改。'/);
   assert.match(uiText, /newerVersionUnsupported: '语言切换器目前支持 Cavalry \{supportedVersion\}，不会修改此安装。你可以继续使用 Cavalry；请在兼容更新发布后再试。'/);
   assert.equal((uiText.match(/^\s{4}restore:/gm) || []).length, 4, 'all four UI locales must localize the single Restore action');
+  for (const copy of [
+    "restoreConfirmTitle: 'Restore English?'",
+    "restoreConfirmBody: 'Cavalry will return to English and reopen.'",
+    "restoreConfirmTitle: '恢复英文？'",
+    "restoreConfirmBody: 'Cavalry 将恢复为英文并重新打开。'",
+    "restoreConfirmTitle: '還原英文？'",
+    "restoreConfirmBody: 'Cavalry 將還原為英文並重新開啟。'",
+    "restoreConfirmTitle: '英語に戻しますか？'",
+    "restoreConfirmBody: 'Cavalry を英語に戻して、もう一度開きます。'",
+  ]) {
+    assert.match(uiText, new RegExp(copy.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+  }
+  assert.doesNotMatch(uiText, /restoreConfirmTitle: ['\"](?:Restore|恢复|還原).*Cavalry/);
   assert.doesNotMatch(
     uiText,
     /maintenance|refreshEnglish|restoreEnglish|restoreOfficialShort|officialRestore|runtimeResidueAfterRefresh/,

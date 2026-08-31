@@ -41,7 +41,8 @@ Copyright (c) 2023 Phosphor Icons
 Source: https://github.com/phosphor-icons/core
 
 Selected Regular SVG paths are adapted into the local semantic icon registry,
-including the Windows caption Minus, Square, Copy, and X glyphs.
+including the Cavalry launch Play glyph and the Windows caption Minus, Square,
+Copy, and X glyphs.
 
 Licensed under the MIT License. The full license text is available at:
 https://github.com/phosphor-icons/core/blob/main/LICENSE

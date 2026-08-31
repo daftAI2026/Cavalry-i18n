@@ -154,7 +154,7 @@ const iconPurposes = Object.freeze({
   archive: 'recovery baseline marker',
   translate: 'language switch marker',
   restore: 'restore task marker',
-  restart: 'Cavalry launch marker',
+  open: 'Cavalry launch marker',
   download: 'updater download marker',
   package: 'updater installation marker',
   update: 'available update action',

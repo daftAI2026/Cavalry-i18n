@@ -230,7 +230,7 @@ const PHASE_ICONS = Object.freeze({
   verifyInstallation: 'verify',
   ensureBaseline: 'archive',
   applyTransaction: 'translate',
-  restartCavalry: 'restart',
+  restartCavalry: 'open',
 });
 const UPDATE_ERROR_TEXT_KEYS = Object.freeze({
   updaterNotConfigured: 'updaterNotConfigured',

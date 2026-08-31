@@ -83,7 +83,7 @@ Base UI 默认 `alignItemWithTrigger=true` 不是“菜单固定出现在控件�
 
 下一版跟随策略继续对齐 Message Scroller 的 live edge，而不是每次更新都强制 `scrollTop=scrollHeight`：只有读者仍贴近最新内容时，Message chunk、Marker 新增或次行变化才自动跟随；滚轮、触控、键盘或拖动滚动条离开底部后，后续内容允许在屏外继续增长，不抢走阅读位置。回到底部后才重新跟随。[shadcn Message Scroller](https://ui.shadcn.com/docs/components/base/message-scroller)
 
-Marker 视觉直接投影 shadcn Base Nova 的 `gap-2 text-sm text-muted-foreground min-h-4`：图标盒 `16px`、图文间距 `8px`、文字 `14px/20px` 常规字重，图标与文字统一继承中性色，不把完成/警告/错误染成第二套 Badge。运行态组合 Phosphor `SpinnerGap` 与 shadcn `4.19.0` 原始 shimmer 算法：`currentColor` 基色、`alpha × 0.2` 高光、`20deg`、`3ch + 40px` spread、`2s linear infinite`，从 `100% 0` 扫到 `0 0`，reduced-motion 下移除背景并恢复 `currentColor`；这里只把 Tailwind utility 改写为项目语义 token，不另造渐变。完成后原位换成该步骤自己的图标，而不是统一打勾：验证安装 `ShieldCheck`、准备恢复 `Archive`、应用语言 `Translate`、恢复官方状态 `FloppyDiskBack`、下载 `DownloadSimple`、安装 `Package`、重启 `ArrowClockwise`。只有缺少更具体业务语义的整体成功状态才使用 `CheckCircle`。
+Marker 视觉直接投影 shadcn Base Nova 的 `gap-2 text-sm text-muted-foreground min-h-4`：图标盒 `16px`、图文间距 `8px`、文字 `14px/20px` 常规字重，图标与文字统一继承中性色，不把完成/警告/错误染成第二套 Badge。运行态组合 Phosphor `SpinnerGap` 与 shadcn `4.19.0` 原始 shimmer 算法：`currentColor` 基色、`alpha × 0.2` 高光、`20deg`、`3ch + 40px` spread、`2s linear infinite`，从 `100% 0` 扫到 `0 0`，reduced-motion 下移除背景并恢复 `currentColor`；这里只把 Tailwind utility 改写为项目语义 token，不另造渐变。完成后原位换成该步骤自己的图标，而不是统一打勾：验证安装 `ShieldCheck`、准备恢复 `Archive`、应用语言 `Translate`、恢复英文 `FloppyDiskBack`、下载 `DownloadSimple`、安装 `Package`、打开 Cavalry `Play`。只有缺少更具体业务语义的整体成功状态才使用 `CheckCircle`。
 
 Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`applyTransaction`、`restartCavalry` Channel。Updater 的三阶段来自 `downloading`、`installing`、`restarting` Channel：下载结束回调发生在签名验证之前，因此 UI 把第二阶段写成“正在验证并安装”，绝不虚构“已验证”事件；下载 URL、签名、临时路径和原始响应不进入 renderer。后端事件可以压缩成面向用户的任务语言，但不能提前声明尚未成立的结果。
 
@@ -93,7 +93,7 @@ Apply 的四阶段只来自后端 `verifyInstallation`、`ensureBaseline`、`app
 
 全部当前与提案文案、四语版本及组件归属集中在 [Switcher 反馈语义与四语文案审阅目录](./switcher-feedback-copy-catalog-2026-08-29.md)，避免聊天裁决散落后再次混淆 Event、AlertDialog 与 Toast。
 
-结构与动画对照 shadcn/ui 官方 Marker、shimmer、scroll-fade 源码，审查基线为上游提交 `683a5a9b370acdb7785a0529434e6a3b8c7e0441`；Phosphor Regular 图标来自提交 `2b75f3ad12b420c9504ef05df8d2564a28f8500e`。项目只内嵌所需结构、CSS 与 SVG path，不引入 React、Base UI、Tailwind、CDN 或完整图标包。参考：[Marker](https://ui.shadcn.com/docs/components/base/marker)、[shimmer](https://ui.shadcn.com/docs/utils/shimmer)、[scroll-fade](https://ui.shadcn.com/docs/utils/scroll-fade)、[Phosphor Icons](https://phosphoricons.com/)。许可证投影见 `renderer/THIRD_PARTY_NOTICES.md`。
+结构与动画对照 shadcn/ui 官方 Marker、shimmer、scroll-fade 源码，审查基线为上游提交 `683a5a9b370acdb7785a0529434e6a3b8c7e0441`；Phosphor Regular 图标来自提交 `2b75f3ad12b420c9504ef05df8d2564a28f8500e`，其中 `restartCavalry` 面向用户表示打开 Cavalry，因此采用 Play 而非会误导为循环重启的 ArrowClockwise。项目只内嵌所需结构、CSS 与 SVG path，不引入 React、Base UI、Tailwind、CDN 或完整图标包。参考：[Marker](https://ui.shadcn.com/docs/components/base/marker)、[shimmer](https://ui.shadcn.com/docs/utils/shimmer)、[scroll-fade](https://ui.shadcn.com/docs/utils/scroll-fade)、[Phosphor Icons](https://phosphoricons.com/)。许可证投影见 `renderer/THIRD_PARTY_NOTICES.md`。
 
 ### 2.3 AlertDialog 与 About 边界
 

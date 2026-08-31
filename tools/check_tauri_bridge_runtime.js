@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、排除当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -686,7 +686,8 @@ test('single Restore maps to the platform transaction and remains visible when n
   assert.equal(macos.elements['#restoreButton'].hidden, false);
   assert.equal(macos.elements['#restoreButton'].disabled, false);
   macos.elements['#restoreButton'].listeners.get('click')[0]();
-  assert.equal(macos.elements['#modalTitle'].textContent, 'Restore Cavalry?');
+  assert.equal(macos.elements['#modalTitle'].textContent, 'Restore English?');
+  assert.equal(macos.elements['#modalBody'].textContent, 'Cavalry will return to English and reopen.');
   assert.equal(macos.elements['#modalPrimaryButton'].textContent, 'Restore English');
   macos.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
@@ -703,7 +704,7 @@ test('single Restore maps to the platform transaction and remains visible when n
   assert.equal(windows.elements['#statusLabel'].textContent, 'Task progress');
   assert.equal(activityTitle(windows), 'Restore Cavalry to finish cleanup');
   windows.elements['#restoreButton'].listeners.get('click')[0]();
-  assert.equal(windows.elements['#modalTitle'].textContent, 'Restore Cavalry?');
+  assert.equal(windows.elements['#modalTitle'].textContent, 'Restore English?');
   windows.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(windows.calls.filter(({ command }) => command === 'apply_language')[0])), {
@@ -782,7 +783,7 @@ test('clean official macOS install with needsExtract allows Apply to establish i
   assert.equal(activityTitle(r), 'Checking the Cavalry installation');
   await flush();
   assert.deepEqual(activityRows(r).map((row) => row.children[0].dataset.icon), [
-    'verify', 'archive', 'translate', 'restart',
+    'verify', 'archive', 'translate', 'open',
   ]);
   assert.equal(r.elements['#statusOutcome'].textContent, 'Switched to 简体中文. Cavalry is now open.');
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {

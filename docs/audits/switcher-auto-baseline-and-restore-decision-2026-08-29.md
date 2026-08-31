@@ -156,7 +156,7 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 - 当前已生效语言留在 Select 列表中并以 disabled 状态表达“这是有效语言，但无需重复切换”；不得删除该选项，也不得允许再次提交。
 - 按钮只写用户目标：`Switch / 切换 / 切換 / 切り替える` 与 `Restore English / 恢复英文 / 還原英文 / 英語に戻す`；恢复按钮必须写明对象，但不把 restart 或平台事务实现塞入按钮。
 - Switch 不弹确认框；任务引言先写 `Preparing to switch to {language}…`，正文阶段说明恢复文件与切换进度。
-- Restore 确认标题直接问 `Restore Cavalry?`；正文只承诺“恢复英文并重新打开 Cavalry”。仅完整官方基线路径可以补充“移除翻译 runtime/恢复官方状态”。
+- Restore 确认的标题、正文与主按钮统一围绕 `Restore English`：标题直接问 `Restore English?`，正文只承诺“Cavalry 恢复为英文并重新打开”。不得用 `Restore Cavalry?` 暗示整个应用会恢复为逐字节官方状态；仅完整官方基线路径可以在扩展说明中补充“移除翻译 runtime/恢复官方状态”。
 - 新版本不兼容提示必须以用户现状为中心：说明“此 Switcher 尚未支持该版本、没有修改安装、可以继续使用 Cavalry、等待兼容更新”，禁止把“降级到 2.7.2”写成默认恢复路径。
 - 旧版本提示可以把 2.7.2 作为使用本工具的前提，但不能暗示当前 Cavalry 已损坏。
 - 后端 restart phase 统一显示为“打开 Cavalry”；只有 Switcher 自身更新才继续使用“重启 Switcher”。
