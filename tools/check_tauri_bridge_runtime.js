@@ -904,6 +904,40 @@ test('macOS handoff captures the real action and only its session Channel retrie
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 2);
 });
 
+test('macOS handoff allows only one retry transaction in flight per session', async () => {
+  const r = runtime();
+  vm.runInNewContext(read('renderer/permission-handoff.js'), r.context, { filename: 'permission-handoff.js' });
+  let emit;
+  let releaseRetry;
+  let retryCount = 0;
+  const retryPending = new Promise((resolve) => { releaseRetry = resolve; });
+  const controller = r.window.createPermissionHandoffController({
+    api: {
+      openPrivacySecurity: async (_request, onEvent) => {
+        emit = onEvent;
+        return { ok: true };
+      },
+    },
+    onRetry: () => {
+      retryCount += 1;
+      return retryPending;
+    },
+    onError: () => assert.fail('retry guard must not create an error'),
+  });
+
+  await controller.open(r.elements['#modalPrimaryButton']);
+  emit({ outcome: 'retryRequested' });
+  emit({ outcome: 'retryRequested' });
+  await flush();
+  assert.equal(retryCount, 1, 'duplicate native Retry/drop events must share the active transaction');
+
+  releaseRetry();
+  await flush();
+  emit({ outcome: 'retryRequested' });
+  await flush();
+  assert.equal(retryCount, 2, 'a still-denied result may retry after the prior transaction settles');
+});
+
 test('transport rejection becomes a localized stable status and re-bootstrap attempt', async () => {
   const r = boot({ reject: 'browse_app' }); await flush();
   r.elements['#browseButton'].listeners.get('click')[0]();
