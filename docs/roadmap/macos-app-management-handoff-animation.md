@@ -334,7 +334,7 @@ macos_permission_handoff.rs
 
 ### 6.1 R5 packaged 人工取证协议
 
-R5 不允许用主账户 `tccutil reset` 制造“首次授权”，也不允许 producer 自动拖放、拨开关或截取 System Settings 权限列表。`tools/macos-handoff-acceptance/record_checkpoint.js` 只冻结精确 Switcher/Cavalry bundle、Git/host 身份和人工阶段；其 Swift probe 记录单调时间、Reduce Motion/Transparency、每屏 point/backing scale、前台 bundle 及 Switcher/System Settings 的无标题窗口几何，PNG 只取 Switcher 自有窗口。因此，session 能证明“哪一个包在什么宿主几何下呈现了什么”，不能单独证明授权。
+R5 不允许用主账户 `tccutil reset` 制造“首次授权”，也不允许 producer 自动拖放、拨开关或截取 System Settings 权限列表。`tools/macos-handoff-acceptance/record_checkpoint.js` 只冻结精确 Switcher/Cavalry bundle、Git/host 身份和人工阶段；其 Swift probe 记录单调时间、Reduce Motion/Transparency、每屏 point/backing scale、前台 bundle 及 Switcher/System Settings 的无标题窗口几何，PNG 只取 Switcher 自有窗口。initialize 必须选择固定 scenario；producer 拒绝跳步、倒序与未完成 seal，seal/verify 再按场景原顺序回放 checkpoint 身份。因此，session 能证明“哪一个包在什么宿主几何下按哪条因果链呈现了什么”，不能单独证明授权。
 
 ```bash
 SESSION="/private/tmp/cavalry-handoff-<session-id>"
@@ -342,7 +342,8 @@ SESSION="/private/tmp/cavalry-handoff-<session-id>"
 npm run record:handoff:macos -- --initialize \
   --session-dir "$SESSION" \
   --switcher-app "/path/to/Cavalry Language Switcher.app" \
-  --cavalry-app "/Applications/Cavalry.app"
+  --cavalry-app "/Applications/Cavalry.app" \
+  --scenario fresh-drop-success
 
 # 每个命令只在独立测试用户手工达到该真实阶段后执行；阶段不能预填或倒序伪造。
 npm run record:handoff:macos -- --checkpoint permission-blocked --session-dir "$SESSION"

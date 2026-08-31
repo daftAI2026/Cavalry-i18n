@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖精确 packaged Switcher/Cavalry app、显式仓库外 session、人工阶段名、window_probe.swift 与 macOS codesign/screencapture。
- * [OUTPUT]: 对外提供 initialize/checkpoint/seal 三动作；冻结 bundle/host 身份，记录 WindowServer point/backing-scale，并只封存 Switcher 自有窗口 PNG。
+ * [OUTPUT]: 对外提供 initialize/checkpoint/seal/verify 四动作；冻结 bundle/host/场景顺序，记录 WindowServer point/backing-scale，并只封存 Switcher 自有窗口 PNG。
  * [POS]: packaged App Management handoff 的只读证据 producer；不操作 System Settings、不读写 TCC、不把 drop 或截图伪装成权限成功。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -26,20 +26,43 @@ const PROBE = path.join(__dirname, 'window_probe.swift');
 const MANIFEST = 'manifest.json';
 const SEAL = 'seal.json';
 const CAVALRY_RUNTIME_EXECUTABLE = 'Cavalry';
-const PHASES = Object.freeze(new Set([
-  'baseline',
-  'permission-blocked',
-  'helper-presented',
-  'drag-cancelled',
-  'drop-accepted',
-  'retry-still-denied',
-  'retry-verified',
-  'reverse-complete',
-  'existing-row',
-  'target-lost',
-  'reduced-motion-helper',
-  'reduced-motion-complete',
-]));
+const SCENARIOS = Object.freeze({
+  'read-only-baseline': Object.freeze(['baseline']),
+  'fresh-drop-success': Object.freeze([
+    'baseline', 'permission-blocked', 'helper-presented', 'drop-accepted',
+    'retry-verified', 'reverse-complete',
+  ]),
+  'fresh-drop-still-denied': Object.freeze([
+    'baseline', 'permission-blocked', 'helper-presented', 'drop-accepted',
+    'retry-still-denied',
+  ]),
+  'manual-retry-still-denied': Object.freeze([
+    'baseline', 'permission-blocked', 'helper-presented', 'retry-still-denied',
+  ]),
+  'drag-cancel': Object.freeze([
+    'baseline', 'permission-blocked', 'helper-presented', 'drag-cancelled',
+  ]),
+  'existing-row-success': Object.freeze([
+    'baseline', 'permission-blocked', 'helper-presented', 'existing-row',
+    'retry-verified', 'reverse-complete',
+  ]),
+  'existing-row-still-denied': Object.freeze([
+    'baseline', 'permission-blocked', 'helper-presented', 'existing-row',
+    'retry-still-denied',
+  ]),
+  'target-lost': Object.freeze([
+    'baseline', 'permission-blocked', 'helper-presented', 'target-lost',
+  ]),
+  'reduced-motion-drop-success': Object.freeze([
+    'baseline', 'permission-blocked', 'reduced-motion-helper', 'drop-accepted',
+    'retry-verified', 'reduced-motion-complete',
+  ]),
+  'reduced-motion-existing-row-success': Object.freeze([
+    'baseline', 'permission-blocked', 'reduced-motion-helper', 'existing-row',
+    'retry-verified', 'reduced-motion-complete',
+  ]),
+});
+const PHASES = Object.freeze(new Set(Object.values(SCENARIOS).flat()));
 
 function fail(message) { throw new Error(message); }
 function parseArgs(argv) {
@@ -65,6 +88,33 @@ function writeExclusive(file, value) {
 function readJson(file) {
   regular(file);
   return JSON.parse(fs.readFileSync(file, 'utf8'));
+}
+function scenarioPhases(name) {
+  const phases = SCENARIOS[name];
+  if (!phases) fail(`Unknown scenario: ${name || '<missing>'}`);
+  return phases;
+}
+function manifestSequence(manifest) {
+  const sequence = scenarioPhases(manifest.scenario);
+  if (JSON.stringify(manifest.sequence) !== JSON.stringify(sequence)) {
+    fail('Manifest scenario contract drifted');
+  }
+  return sequence;
+}
+function recordedPhases(session, sequence) {
+  const prefix = [];
+  let gap = false;
+  for (const phase of sequence) {
+    const exists = fs.existsSync(path.join(session, `checkpoint-${phase}`));
+    if (exists && gap) fail(`Scenario checkpoint order is invalid at ${phase}`);
+    if (exists) prefix.push(phase);
+    else gap = true;
+  }
+  const allowed = new Set(sequence.map((phase) => `checkpoint-${phase}`));
+  const unknown = fs.readdirSync(session).filter((name) =>
+    (name.startsWith('checkpoint-') && !allowed.has(name)) || name.startsWith('.checkpoint-'));
+  if (unknown.length > 0) fail(`Unexpected checkpoint directories: ${unknown.join(', ')}`);
+  return prefix;
 }
 function plistValue(appPath, key) {
   return exec('/usr/libexec/PlistBuddy', ['-c', `Print :${key}`, path.join(appPath, 'Contents', 'Info.plist')]);
@@ -98,17 +148,21 @@ function appIdentity(appPath, expectedKind, runtimeExecutableName = null) {
   return result;
 }
 function initialize(args) {
-  if (!args['session-dir'] || !args['switcher-app'] || !args['cavalry-app']) {
-    fail('--initialize requires --session-dir, --switcher-app and --cavalry-app');
+  if (!args['session-dir'] || !args['switcher-app'] || !args['cavalry-app'] || !args.scenario) {
+    fail('--initialize requires --session-dir, --switcher-app, --cavalry-app and --scenario');
   }
+  const scenario = args.scenario;
+  const sequence = scenarioPhases(scenario);
   const switcher = appIdentity(args['switcher-app'], 'Switcher app');
   const cavalry = appIdentity(args['cavalry-app'], 'Cavalry app', CAVALRY_RUNTIME_EXECUTABLE);
   if (cavalry.version !== '2.7.2') fail(`Cavalry 2.7.2 required, got ${cavalry.version}`);
   const session = resolveNewSession(args['session-dir'], [ROOT, switcher.path, cavalry.path]);
   fs.mkdirSync(session, { mode: 0o700 });
   const manifest = {
-    schema: 1,
+    schema: 2,
     createdAt: new Date().toISOString(),
+    scenario,
+    sequence,
     repository: {
       root: ROOT,
       head: exec('/usr/bin/git', ['-C', ROOT, 'rev-parse', 'HEAD']),
@@ -149,6 +203,12 @@ function checkpoint(args) {
   rejectInside(ROOT, session, 'Session directory');
   if (fs.existsSync(path.join(session, SEAL))) fail('Session is sealed');
   const manifest = readJson(path.join(session, MANIFEST));
+  const sequence = manifestSequence(manifest);
+  const completed = recordedPhases(session, sequence);
+  const expectedPhase = sequence[completed.length];
+  if (phase !== expectedPhase) {
+    fail(`Scenario ${manifest.scenario} expects ${expectedPhase || '<complete>'}, got ${phase}`);
+  }
   verifyIdentity(manifest.switcher.executable, 'Switcher executable');
   verifyIdentity(manifest.cavalry.executable, 'Cavalry executable');
   verifyIdentity(manifest.cavalry.runtimeExecutable, 'Cavalry runtime executable');
@@ -188,8 +248,13 @@ function seal(args) {
   directory(session, 'Session');
   rejectInside(ROOT, session, 'Session directory');
   if (fs.existsSync(path.join(session, SEAL))) fail('Session is already sealed');
-  const entries = fs.readdirSync(session).filter((name) => name.startsWith('checkpoint-')).sort();
-  if (entries.length === 0) fail('At least one checkpoint is required before seal');
+  const manifestPayload = readJson(path.join(session, MANIFEST));
+  const sequence = manifestSequence(manifestPayload);
+  const completed = recordedPhases(session, sequence);
+  if (completed.length !== sequence.length) {
+    fail(`Scenario ${manifestPayload.scenario} is incomplete; next phase is ${sequence[completed.length]}`);
+  }
+  const entries = sequence.map((phase) => `checkpoint-${phase}`);
   const checkpoints = entries.map((name) => {
     const folder = path.join(session, name);
     directory(folder, 'Checkpoint');
@@ -201,8 +266,10 @@ function seal(args) {
     };
   });
   return writeExclusive(path.join(session, SEAL), {
-    schema: 1,
+    schema: 2,
     sealedAt: new Date().toISOString(),
+    scenario: manifestPayload.scenario,
+    sequence,
     manifest: identity(path.join(session, MANIFEST)),
     checkpoints,
   });
@@ -214,6 +281,17 @@ function verify(args) {
   rejectInside(ROOT, session, 'Session directory');
   const sealRecord = readJson(path.join(session, SEAL));
   verifyIdentity(sealRecord.manifest, 'Sealed manifest');
+  const manifestPayload = readJson(sealRecord.manifest.path);
+  const sequence = manifestSequence(manifestPayload);
+  if (sealRecord.scenario !== manifestPayload.scenario ||
+      JSON.stringify(sealRecord.sequence) !== JSON.stringify(sequence)) {
+    fail('Sealed scenario contract drifted');
+  }
+  const sealedNames = sealRecord.checkpoints.map(({ name }) => name);
+  const expectedNames = sequence.map((phase) => `checkpoint-${phase}`);
+  if (JSON.stringify(sealedNames) !== JSON.stringify(expectedNames)) {
+    fail('Sealed checkpoint order drifted');
+  }
   for (const checkpointRecord of sealRecord.checkpoints) {
     verifyIdentity(checkpointRecord.record, `${checkpointRecord.name} record`);
     const checkpointPayload = readJson(checkpointRecord.record.path);
@@ -244,4 +322,7 @@ function main(argv = process.argv) {
 }
 
 if (require.main === module) main();
-module.exports = { PHASES, appIdentity, checkpoint, initialize, main, parseArgs, seal, verify };
+module.exports = {
+  PHASES, SCENARIOS, appIdentity, checkpoint, initialize, main, manifestSequence,
+  parseArgs, recordedPhases, scenarioPhases, seal, verify,
+};

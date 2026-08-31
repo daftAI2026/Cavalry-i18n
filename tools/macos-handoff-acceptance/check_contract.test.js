@@ -15,13 +15,24 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const read = (relative) => fs.readFileSync(path.join(ROOT, relative), 'utf8');
 
 test('producer keeps a fixed human-authored evidence vocabulary', () => {
-  const { PHASES, verify } = require('./record_checkpoint');
+  const { PHASES, SCENARIOS, verify } = require('./record_checkpoint');
   assert.equal(typeof verify, 'function');
   for (const phase of [
     'permission-blocked', 'helper-presented', 'drag-cancelled', 'drop-accepted',
     'retry-still-denied', 'retry-verified', 'reverse-complete', 'existing-row',
     'target-lost', 'reduced-motion-helper', 'reduced-motion-complete',
   ]) assert.equal(PHASES.has(phase), true, phase);
+  assert.deepEqual(SCENARIOS['fresh-drop-success'], [
+    'baseline', 'permission-blocked', 'helper-presented', 'drop-accepted',
+    'retry-verified', 'reverse-complete',
+  ]);
+  assert.deepEqual(SCENARIOS['existing-row-success'], [
+    'baseline', 'permission-blocked', 'helper-presented', 'existing-row',
+    'retry-verified', 'reverse-complete',
+  ]);
+  assert.deepEqual(SCENARIOS['manual-retry-still-denied'], [
+    'baseline', 'permission-blocked', 'helper-presented', 'retry-still-denied',
+  ]);
 });
 
 test('producer records system settings as metadata but screenshots only switcher-owned windows', () => {
@@ -43,6 +54,10 @@ test('session output stays outside repository and both app bundles', () => {
   assert.match(source, /verifyIdentity\(manifest\.cavalry\.runtimeExecutable, 'Cavalry runtime executable'\)/);
   assert.match(source, /verifyIdentity\(sealRecord\.manifest, 'Sealed manifest'\)/);
   assert.match(source, /capture identity drifted/);
+  assert.match(source, /expects \$\{expectedPhase \|\| '<complete>'\}, got \$\{phase\}/);
+  assert.match(source, /Sealed checkpoint order drifted/);
+  assert.match(source, /Manifest scenario contract drifted/);
+  assert.match(source, /name\.startsWith\('\.checkpoint-'\)/);
 });
 
 test('producer and probe never automate privacy state or synthesize user input', () => {
