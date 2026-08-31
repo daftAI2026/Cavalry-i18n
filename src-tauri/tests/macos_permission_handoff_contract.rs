@@ -115,3 +115,22 @@ fn native_helper_keeps_arrow_instruction_row_and_actions_disjoint() {
     );
     assert!(native.contains("CAVInstructionY + CAVInstructionHeight + CAVArrowGap"));
 }
+
+#[test]
+fn native_owner_falls_back_without_a_source_and_cleans_up_lost_settings() {
+    let native = read("native/macos_permission_handoff.m");
+
+    assert!(native.contains(
+        "BOOL staticFallback = self.reducedMotion || !self.sourceImage || NSIsEmptyRect(self.sourceScreenRect);"
+    ));
+    assert!(native.contains("if (staticFallback)"));
+    assert!(native.contains("[self.helperPanel orderFront:nil]"));
+    assert!(native.contains("self.missingSettingsAttempts < CAVSettingsMissingGrace"));
+    assert!(native
+        .contains("[self sendOutcome:CAVOutcomeDismissed terminal:YES];\n    [self cleanup];"));
+    assert!(
+        native.contains("[self sendOutcome:CAVOutcomeError terminal:YES];\n    [self cleanup];")
+    );
+    assert!(native.contains("- (BOOL)canBecomeKeyWindow { return NO; }"));
+    assert!(native.contains("- (BOOL)canBecomeMainWindow { return NO; }"));
+}

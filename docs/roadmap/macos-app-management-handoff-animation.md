@@ -104,6 +104,8 @@ R2 单屏原生视觉子门另用仓库外临时 AppKit harness **直接编译�
 
 同一 harness 又只通过生产公开收口入口 `cavalry_permission_handoff_finish(true)` 触发 reverse，没有修改 TCC 或另写测试动画。WindowServer 连续序列先记录 `320×200` helper（window `26411`），随后 7 帧记录覆盖 source→target 走廊的 `1412×485` reverse replicant（window `26412`），第 9 帧起 helper 与 replicant 均消失，只剩原 `400×516` source（window `26399`）；native terminal event 同时回读 `outcome=0 / terminal=1`。这闭合了**同一原生实现的 reverse→completion→视觉层清理子门**，证明收口不是工作台 DOM 特效，也没有残留 overlay。它仍是 marker 驱动的视觉/lifecycle harness，不等于用户真实 copy drop、System Settings 行更新、权限打开或原业务重试成功。
 
+R3 可在不改变安全设置的失败分支也由同一 harness 补齐了单屏 live evidence：`hasSourceRect=false` 时不创建飞行代理，直接显示同一 helper；helper 已呈现后关闭 System Settings，owner 回送 `outcome=2 / terminal=1` 并移除 helper，只剩 source；设置页完全未出现时，50 次有界探测结束后回送 `outcome=3 / terminal=1`，且 WindowServer 从未留下 helper/replicant。对应源码合同现以 4/4 测试固定静态降级、目标丢失宽限、定位超时、non-key/non-main panel 与 terminal→cleanup 顺序。该证据关闭的是 source 缺失和目标丢失的单屏生命周期分支，Space、显示器拓扑变化与真实 drag cancel 仍不在其证明范围内。
+
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
 ## 4. 参考实现的证据分层
@@ -322,7 +324,7 @@ macos_permission_handoff.rs
 | R4 生产接线 | typed `permissionRequired` → handoff → retry | 只有真实事务成功才显示成功；四语目的说明进入最终包 |
 | R5 packaged evidence | ad-hoc/package 实机 | 最终 Info.plist、四语资源和 bundle seal 已静态回读；仍需首次拒绝、打开设置、允许、重试成功和 Reduce Motion |
 
-当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，R2 单屏 helper/forward/reverse/cleanup 的原生 WindowServer 视觉子门与 R5 最终 bundle 静态资源/签名子门已闭合。首次权限拒绝、真实 drop、业务重试、Reduce Motion 和多屏仍未完成，不能被工作台、仓库外 harness、Node VM、`cargo check` 或 ad-hoc bundle 静态 readback 代替。
+当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，R2 单屏 helper/forward/reverse/cleanup 及 R3 source 缺失/目标关闭/定位超时的原生 WindowServer 子门与 R5 最终 bundle 静态资源/签名子门已闭合。首次权限拒绝、真实 drop、业务重试、Reduce Motion、多屏/Space/热插拔仍未完成，不能被工作台、仓库外 harness、Node VM、`cargo check` 或 ad-hoc bundle 静态 readback 代替。
 
 ## 7. 验证矩阵
 
