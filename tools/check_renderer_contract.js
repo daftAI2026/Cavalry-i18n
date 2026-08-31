@@ -495,7 +495,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /id="updateTooltip"[^>]*data-slot="tooltip-content"[^>]*role="tooltip"[^>]*aria-hidden="true"[\s\S]*?<div class="tooltip-arrow" data-slot="tooltip-arrow" aria-hidden="true"><\/div>/);
   assert.match(html, /id="updateAnnouncement"[^>]*role="status"[^>]*aria-live="polite"/);
   assert.match(updateButton, /class="ui-button update-button"[^>]*data-variant="ghost"[^>]*data-size="icon-xs"/);
-  assert.match(styles, /\.update-button\s*\{[\s\S]*?color: var\(--tone-update\)/);
+  assert.match(styles, /\.ui-button\.update-button\s*\{[\s\S]*?color: var\(--tone-update\)/);
   assert.match(tokens, /--titlebar-native-control-size:\s*16px/);
   assert.match(tokens, /--update-icon-visual-size:\s*20px/);
   assert.match(tokens, /--titlebar-action-hit-size:\s*24px/);
@@ -504,7 +504,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.update-button svg\s*\{[\s\S]*?width: var\(--update-icon-visual-size\);[\s\S]*?height: var\(--update-icon-visual-size\)/);
   assert.doesNotMatch(styles, /--update-icon-path-scale|\.update-button svg path\s*\{[\s\S]*?transform:/);
   assert.match(styles, /body\[data-platform="windows"\] \.native-controls-space\s*\{[\s\S]*?display:\s*none/);
-  const updateHoverBlock = styles.match(/\.update-button:hover:not\(:disabled\)\s*\{([^}]*)\}/)?.[1];
+  const updateHoverBlock = styles.match(/\.ui-button\.update-button:hover:not\(:disabled\)\s*\{([^}]*)\}/)?.[1];
   assert.ok(updateHoverBlock, 'update hover state missing');
   assert.doesNotMatch(updateHoverBlock, /translateY/);
   assert.match(styles, /\.tooltip\[data-state="open"\]/);

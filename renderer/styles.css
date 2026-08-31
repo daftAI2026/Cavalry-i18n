@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tokens.css、button.css 与 index.html 的标题区、安装 Item、无可见描边的彩色 Badge、路径、带只读 popup placeholder 的 Select、Tooltip、Button Group 和 AlertDialog；Activity/Toast 由独立视觉层实现
- * [OUTPUT]: 对外提供无窗口滚动的共享 Grid/Flex 布局、可选手动入口不留空轨的安装摘要、系统排印、原生标题中心线、路径截断、无描边 blue/green Badge、稳定 item-aligned Select、Tooltip 与保留窗口 Chrome 的内容区 AlertDialog 视觉
+ * [OUTPUT]: 对外提供无窗口滚动的共享 Grid/Flex 布局、可选手动入口不留空轨的安装摘要、系统排印、原生标题中心线、路径截断、无描边 blue/green Badge、保持绿色语义的更新入口、稳定 item-aligned Select、Tooltip 与保留窗口 Chrome 的内容区 AlertDialog 视觉
  * [POS]: renderer 的跨平台共享视觉实现；上游只读 tokens.css，下游由 window-controls.css 追加 Windows caption 变体，不引入 CSS/JS 运行时或 CDN
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -143,11 +143,11 @@ button {
   pointer-events: auto;
 }
 
-.update-button {
+.ui-button.update-button {
   color: var(--tone-update);
 }
 
-.update-button:hover:not(:disabled) {
+.ui-button.update-button:hover:not(:disabled) {
   background: var(--tone-update-surface);
   color: var(--tone-update-hover);
 }
