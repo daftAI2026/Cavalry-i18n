@@ -110,7 +110,8 @@ function permissionHandoffRuntimeScript() {
         dragCancelled: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '拖入取消，恢复 App 行' }),
         existingRowEnabled: Object.freeze({ icon: 'verify', tone: 'neutral', text: '用户模拟开启已有 App 行，尚未验证权限' }),
         handoffDismissed: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '反向转场完成并清理视觉层' }),
-        retryRequested: Object.freeze({ icon: 'spinner', tone: 'neutral', text: '原型返回并重试写事务' }),
+        retryRequested: Object.freeze({ icon: 'spinner', tone: 'neutral', text: '运行一次当前进程写事务验证' }),
+        laterChosen: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '用户选择稍后；当前进程仍不能使用新权限' }),
         protectedApplyCommitted: Object.freeze({ icon: 'checkCircle', tone: 'success', text: 'fixture 受保护写事务已提交；原型开始回收视觉层' }),
         permissionStillMissing: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: '当前进程仍无 App Management；需要重新打开语言切换器' }),
         systemQuitAndReopen: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '原型模拟 macOS 退出并重新打开语言切换器' }),
@@ -616,6 +617,12 @@ function permissionHandoffRuntimeScript() {
         resolveRetry(result);
       }
 
+      function simulateLater() {
+        if (!['awaitingUser', 'retrying'].includes(workflowState)) return;
+        appendWorkflowEvent('laterChosen');
+        demonstrateRetryResult('denied');
+      }
+
       function reverseAfterSettled(nextState, eventName) {
         if (workflowState !== 'retrying' || transitionPhase !== 'presented') return;
         appendWorkflowEvent(eventName);
@@ -729,7 +736,7 @@ ${sessionScript}
       actionButtons.openSettings.addEventListener('click', requestOpenFromSource);
       actionButtons.retry.addEventListener('click', startRetry);
       actionButtons.resultSuccess.addEventListener('click', () => demonstrateRetryResult('success'));
-      actionButtons.resultDenied.addEventListener('click', () => demonstrateRetryResult('denied'));
+      actionButtons.resultDenied.addEventListener('click', simulateLater);
       actionButtons.resultReopen.addEventListener('click', simulateSystemQuitAndReopen);
       actionButtons.resultError.addEventListener('click', () => demonstrateRetryResult('error'));
       actionButtons.reset.addEventListener('click', () => reset({ reloadSource: true }));

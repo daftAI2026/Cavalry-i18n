@@ -206,7 +206,7 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /function finish\(target\)[\s\S]*?setTransitionPhase\(target === 1 \? 'presented' : 'idle'\)[\s\S]*?proxy\.hidden = true/);
   const handoffFinish = sourceFunction(handoff, 'function finish(target)', 'function animateReduced(target)');
   assert.doesNotMatch(handoffFinish, /appDropAccepted|protectedApplyCommitted/, 'visual completion must not manufacture drop or protected-write success');
-  for (const eventName of ['transactionDenied', 'sourceCaptured', 'sourceUnavailable', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'appDropRejected', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'protectedApplyCommitted', 'permissionStillMissing', 'systemQuitAndReopen', 'freshSessionStarted', 'typedError']) {
+  for (const eventName of ['transactionDenied', 'sourceCaptured', 'sourceUnavailable', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'appDropRejected', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'laterChosen', 'protectedApplyCommitted', 'permissionStillMissing', 'systemQuitAndReopen', 'freshSessionStarted', 'typedError']) {
     assert.match(handoff, new RegExp(`${eventName}: Object\\.freeze|appendWorkflowEvent\\('${eventName}'\\)|occurredWorkflowEvents = \\['${eventName}'\\]`));
   }
   assert.match(handoff, /openMessage: 'cavalry-ui-review:permission-handoff-open'/);
@@ -223,6 +223,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /const reopenCanBeInjected = \['awaitingUser', 'retrying', 'stillDenied'\]\.includes\(workflowState\)/);
   assert.match(handoff, /actionButtons\.resultError\.disabled = !resultCanBeInjected/);
   assert.match(handoff, /function demonstrateRetryResult\(result\)[\s\S]*?startRetry\(\)[\s\S]*?resolveRetry\(result\)/);
+  assert.match(handoff, /function simulateLater\(\)[\s\S]*?laterChosen[\s\S]*?demonstrateRetryResult\('denied'\)/);
+  assert.match(handoff, /actionButtons\.resultDenied\.addEventListener\('click', simulateLater\)/);
   assert.match(handoff, /demonstrateRetryResult\('error'\)/);
   assert.match(handoff, /演示：同进程已生效/);
   assert.match(handoff, /演示：选择稍后/);
