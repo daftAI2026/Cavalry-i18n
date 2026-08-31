@@ -1,13 +1,16 @@
 #!/bin/bash
 set -euo pipefail
 
-# [INPUT]: 依赖磁盘上的 DMG 文件、icon.icns、hdiutil、Rez 与 SetFile
-# [OUTPUT]: 写入卷宗图标后的 DMG 文件，本机再附加 Finder 文件图标
-# [POS]: tools/ 下的高鲁棒性 DMG 卷宗图标修饰脚本
+# [INPUT]: 依赖磁盘上的架构后缀 DMG、dmg_volume_identity.js、package.json、icon.icns、hdiutil、diskutil、Rez 与 SetFile
+# [OUTPUT]: 写入 `Cavalry Switcher <SemVer> <arch>` 卷标与卷宗图标后的 DMG，本机再附加 Finder 文件图标
+# [POS]: tools/ 下的 DMG 身份与卷宗图标 producer，本地构建和 CI 发布共同调用
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 DIST_DIR="${1:-dist}"
-ICNS="src-tauri/icons/icon.icns"
+SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)
+REPO_ROOT=$(cd "$SCRIPT_DIR/.." && pwd -P)
+ICNS="$REPO_ROOT/src-tauri/icons/icon.icns"
+VOLUME_IDENTITY_TOOL="$SCRIPT_DIR/dmg_volume_identity.js"
 TMPRSRC=""
 WORKDIR=""
 mount_point=""
@@ -46,16 +49,32 @@ for dmg in "$DIST_DIR"/*.dmg; do
   WORKDIR=$(mktemp -d /tmp/dmg-volume-icon-XXXXXX)
   rw_dmg="$WORKDIR/readwrite.dmg"
   final_dmg="$WORKDIR/final.dmg"
+  volume_name=$(node "$VOLUME_IDENTITY_TOOL" --dmg "$dmg")
 
   hdiutil convert "$dmg" -format UDRW -o "$rw_dmg" -quiet
-  mount_point=$(
-    hdiutil attach "$rw_dmg" -readwrite -nobrowse -noverify -noautoopen |
-      awk '/\/Volumes\// { print substr($0, index($0, "/Volumes/")); exit }'
-  )
+  attach_output=$(hdiutil attach "$rw_dmg" -readwrite -nobrowse -noverify -noautoopen)
+  mount_line=$(printf '%s\n' "$attach_output" | awk '/\/Volumes\// { print; exit }')
+  device_name=$(printf '%s\n' "$mount_line" | awk '{ print $1 }')
+  mount_point=$(printf '%s\n' "$mount_line" | awk '{ print substr($0, index($0, "/Volumes/")) }')
   if [ -z "$mount_point" ] || [ ! -d "$mount_point" ]; then
     echo "Unable to mount writable DMG: $dmg" >&2
     exit 1
   fi
+
+  /usr/sbin/diskutil rename "$device_name" "$volume_name" >/dev/null
+  mount_point=$(
+    /usr/sbin/diskutil info "$device_name" |
+      awk -F: '/Mount Point/ { sub(/^[[:space:]]+/, "", $2); print $2; exit }'
+  )
+  actual_volume_name=$(
+    /usr/sbin/diskutil info "$device_name" |
+      awk -F: '/Volume Name/ { sub(/^[[:space:]]+/, "", $2); print $2; exit }'
+  )
+  if [ "$actual_volume_name" != "$volume_name" ] || [ -z "$mount_point" ] || [ ! -d "$mount_point" ]; then
+    echo "Unable to set DMG volume title to '$volume_name': $dmg" >&2
+    exit 1
+  fi
+  echo "  - Set mounted volume title: $volume_name"
 
   cp "$ICNS" "$mount_point/.VolumeIcon.icns"
   SetFile -a C "$mount_point"

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -16,6 +16,10 @@ const { installGitHooks } = require('./install_git_hooks.js');
 const { runPowerShellScript } = require('./powershell_command.js');
 const { resolvePythonCommand } = require('./python_command.js');
 const { cleanupTempDirs, makeTempDir } = require('./test_temp_dir.js');
+const {
+  createDmgVolumeName,
+  resolveDmgArchitecture,
+} = require('./dmg_volume_identity.js');
 
 test.after(cleanupTempDirs);
 
@@ -133,6 +137,44 @@ function assertMacOSAppManagementBundle(bundlePath) {
     );
   }
 }
+
+test('macOS DMG mounted volume identity is product, Switcher SemVer, and architecture', () => {
+  const pkg = readJson('package.json');
+  const producer = readText('tools/stamp_dmg_icon.sh');
+  const verifier = readText('tools/check_dmg_layout.sh');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
+  const workflow = readText('.github/workflows/build.yml');
+
+  assert.equal(
+    createDmgVolumeName('Cavalry Language Switcher_0.7.0_aarch64.dmg', {
+      version: pkg.version,
+    }),
+    `Cavalry Switcher ${pkg.version} arm64`
+  );
+  assert.equal(
+    createDmgVolumeName('Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.dmg', {
+      version: pkg.version,
+    }),
+    `Cavalry Switcher ${pkg.version} x64`
+  );
+  assert.equal(resolveDmgArchitecture('local-arm64.dmg'), 'arm64');
+  assert.throws(
+    () => resolveDmgArchitecture('Cavalry Language Switcher.dmg'),
+    /supported macOS architecture/
+  );
+  assert.match(producer, /dmg_volume_identity\.js/);
+  assert.match(producer, /diskutil rename "\$device_name" "\$volume_name"/);
+  assert.match(verifier, /actual_volume_name/);
+  assert.match(verifier, /DMG volume title mismatch/);
+  assert.match(
+    localSop,
+    /挂载卷标固定为 `Cavalry Switcher <SemVer> <arch>`/
+  );
+  assert.match(
+    workflow,
+    /npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh[\s\S]*Name release DMG asset/
+  );
+});
 
 test('macOS App Management purpose resources are source-complete and bundle-readable', () => {
   const macConfig = readJson('src-tauri/tauri.macos.conf.json');

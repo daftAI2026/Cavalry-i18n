@@ -239,7 +239,7 @@ Switcher 的同版本 `/UPDATE` 重入、Switcher 卸载、普通 Cavalry 退出
 
 Windows **开发机**下限为 Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带 x64 MSVC v143 的 Visual Studio 2022+、由 `tools/resolve_windows_cmake.js` 下载/验证的固定 CMake 4.2.0 与精确 Qt 6.6.3 `msvc2019_64` SDK。CI 与漏洞证据精确固定 Node.js 24.20.0 / npm 11.19.0；本地开发机允许同一 Node 24 LTS 主线的新补丁版。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
 
-## 6. DMG 增强修饰 (卷宗图标盖章)
+## 6. DMG 增强修饰（卷标与卷宗图标）
 
 Tauri 原生 DMG 配置（`tauri.macos.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸与图标坐标，无需手动干预。
 
@@ -254,13 +254,15 @@ cp src-tauri/icons/128x128.png renderer/app-icon.png
 
 第二条命令让 About 精确复用打包图标而非维护另一张品牌资产。`tools/check_tauri_build_sop.js` 验证开发态 `icon.png` 的透明圆角，并要求 About 与 tracked `128x128.png` 字节同源；若失败，应恢复平台投影，不得修改 gate 迁就漂移。
 
-盖章脚本补充 Tauri 不稳定覆盖的 **卷宗图标嵌入**：
+盖章脚本补充 Tauri 未提供的 **发布卷标身份** 与不稳定覆盖的 **卷宗图标嵌入**：
 
 ```bash
 bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 ```
 
-该脚本会把 DMG 转为临时可写镜像，挂载后复制 `src-tauri/icons/icon.icns` 为卷宗根目录 `.VolumeIcon.icns`，对挂载卷宗执行 `SetFile -a C`，再压回发布用 UDZO 镜像。这个图标写进 DMG 内部文件系统，裸 `.dmg` 经 GitHub Release 下载后仍可在挂载时生效。
+该脚本会先由 `tools/dmg_volume_identity.js` 从 `package.json` 读取 Switcher SemVer，并从 Tauri DMG 文件名的 `_aarch64` / `_x64` 后缀解析架构。挂载卷标固定为 `Cavalry Switcher <SemVer> <arch>`，例如 `Cavalry Switcher 0.7.0 arm64`；DMG 已经是 macOS 专属容器，因此卷标不重复写 `macOS`，Cavalry 兼容目标仍只属于 Release 标题和发布资产文件名。解析不到受支持架构时必须失败，不能发布身份模糊的镜像。
+
+随后脚本把 DMG 转为临时可写镜像，复制 `src-tauri/icons/icon.icns` 为卷宗根目录 `.VolumeIcon.icns`，对挂载卷宗执行 `SetFile -a C`，再压回发布用 UDZO 镜像。卷标和图标都写进 DMG 内部文件系统，裸 `.dmg` 经 GitHub Release 下载后仍可在挂载时生效。本地 `npm run build:tauri` 与 GitHub Actions macOS producer 调用同一脚本；这不是只写在 CI 中的发布特例。
 
 脚本最后仍会 best-effort 对本机 DMG 文件自身写入 Rez/SetFile resource fork。该外壳图标只对当前 macOS 文件系统可靠，GitHub 上传/下载链路会丢弃 `com.apple.ResourceFork`，不作为发布阻塞项。
 
@@ -343,7 +345,7 @@ full-surface 门必须把每次 Cavalry launch 的 `APPDATA`/`LOCALAPPDATA` 指�
 - `.app` 位于 `src-tauri/target/release/bundle/macos/`。
 - DMG 内 `.app` 与从 DMG 拷贝出的安装态 `.app` 都必须包含 `Contents/_CodeSignature/CodeResources`，并通过 `codesign --verify --deep --strict`。
 - DMG 位于 `src-tauri/target/release/bundle/dmg/`。
-- DMG 挂载后必须包含 `.DS_Store`、`.background/background.png`、`.VolumeIcon.icns`、卷宗 custom-icon 标记、`Applications` 链接与 `.app`。
+- DMG 挂载后卷标必须精确等于 `Cavalry Switcher <SemVer> <arch>`，并包含 `.DS_Store`、`.background/background.png`、`.VolumeIcon.icns`、卷宗 custom-icon 标记、`Applications` 链接与 `.app`。
 - `.app/Contents/Resources/` 内包含 `languages` 与 `libCavalryTranslatorInjector.dylib`。
 - 主窗口截图、字体加载状态、核心控件 bounding box、按钮顺序与状态文本必须满足冻结的 Tauri window contract。
 
