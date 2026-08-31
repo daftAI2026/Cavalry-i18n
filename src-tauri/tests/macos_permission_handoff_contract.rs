@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 commands/contract、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、受保护写事务 commit 后先 reverse 再 restart 的真实 apply oracle、finalizer 不重复触发成功 reverse、整条实时 App row 快照承载且只在 System Settings 整窗内接受的 file-URL Copy drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用。
+ * [INPUT]: 依赖 commands/contract/update、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、drop 后同进程 oracle、任何失败均 cleanup、受保护写事务 commit 后先 reverse 再打开 Cavalry、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,12 +29,13 @@ fn handoff_stays_inside_the_fixed_command_and_real_apply_oracle() {
     let commands = read("src/commands.rs");
     let contract = read("src/commands/contract.rs");
     let rust_owner = read("src/macos_permission_handoff.rs");
+    let update = read("src/commands/update.rs");
 
     assert!(commands.contains("pub fn open_privacy_security("));
     assert!(commands.contains("request: PermissionHandoffRequest"));
     assert!(commands.contains("on_event: tauri::ipc::Channel<PermissionHandoffEvent>"));
     assert!(commands.contains("finalize_permission_handoff(result)"));
-    assert!(commands.contains("payload.permission_required"));
+    assert!(!commands.contains("!payload.permission_required"));
     assert!(!commands.contains("start_permission_handoff"));
     assert!(contract.contains("self.permission == \"appManagement\""));
     assert!(contract.contains("viewport_css"));
@@ -42,10 +43,19 @@ fn handoff_stays_inside_the_fixed_command_and_real_apply_oracle() {
     assert!(contract.contains("(None, None) => true"));
     assert!(commands.contains("finish_app_management_handoff(true)"));
     assert!(rust_owner.contains("PermissionHandoffEvent"));
+    assert!(
+        !commands.contains("app.restart()"),
+        "permission commands must not duplicate macOS-managed Quit & Reopen"
+    );
+    assert_eq!(
+        update.matches("app.restart()").count(),
+        1,
+        "programmatic Switcher self-restart belongs only to the completed updater install path"
+    );
 }
 
 #[test]
-fn protected_commit_starts_reverse_before_restart_and_finalizer_only_cleans_failures() {
+fn protected_commit_starts_reverse_before_restart_and_finalizer_cleans_every_failure() {
     let commands = read("src/commands.rs");
 
     let finalizer_start = commands
@@ -55,7 +65,8 @@ fn protected_commit_starts_reverse_before_restart_and_finalizer_only_cleans_fail
         .find("fn complete_permission_handoff_after_commit()")
         .expect("protected-commit handoff helper missing");
     let finalizer = &commands[finalizer_start..finalizer_end];
-    assert!(finalizer.contains("if !payload.ok && !payload.permission_required"));
+    assert!(finalizer.contains("if !payload.ok"));
+    assert!(!finalizer.contains("payload.permission_required"));
     assert!(!finalizer.contains("finish_app_management_handoff(true)"));
 
     let apply_start = commands
@@ -117,11 +128,16 @@ fn native_owner_uses_public_dragging_and_never_edits_permission_state() {
         "NSPasteboardItemDataProvider",
         "[pasteboardItem setDataProvider:self forTypes:@[NSPasteboardTypeFileURL]]",
         "provideDataForType:(NSPasteboardType)type",
-        "NSImage *dragImage = CAVSnapshot(self, dragFrame)",
+        "NSImage *dragImage = CAVSnapshot(self.appRowView, self.appRowView.bounds)",
         "[item setDraggingFrame:dragFrame contents:dragImage]",
         "draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint",
-        "self.hidden = YES",
-        "self.hidden = NO",
+        "self.appRowView.hidden = YES",
+        "self.appRowView.hidden = NO",
+        "NSBox *box",
+        "NSView *appRowView",
+        "[_appRowView addSubview:_iconView]",
+        "[_appRowView addSubview:_titleField]",
+        "[_appRowView addSubview:_detailField]",
     ] {
         assert!(
             native.contains(required),
@@ -155,6 +171,13 @@ fn native_owner_uses_public_dragging_and_never_edits_permission_state() {
             "forbidden permission automation: {forbidden}"
         );
     }
+    assert!(native.contains("[self addSubview:_box]"));
+    assert!(native.contains("[self addSubview:_appRowView]"));
+    assert!(native.find("[self addSubview:_box]") < native.find("[self addSubview:_appRowView]"));
+    assert!(
+        !native.contains("CAVSnapshot(self, dragFrame)"),
+        "the drag image must exclude the sibling NSBox background"
+    );
 }
 
 #[test]

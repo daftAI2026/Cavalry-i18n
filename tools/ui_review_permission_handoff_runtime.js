@@ -1,11 +1,14 @@
 /**
  * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop/Reduced Motion API，并以锁定研究证据约束转场数学、箭头提示节奏和用户操作语义边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管、整行 DOM snapshot drag image 与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动自动验证、完整结果回环和等待新真实动作就绪的 source fixture 重置。
- * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动成功 reverse；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale 或原生授权证据。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管、整行 DOM snapshot drag image 与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动同进程 oracle、Later 阻断与系统 Quit & Reopen 后 fresh-session 投影。
+ * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动 reverse 或重开提示，系统重开只投影为新 renderer 会话；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale、真实系统退出重开或原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
+const { permissionHandoffSessionScript } = require('./ui_review_permission_handoff_session');
+
 function permissionHandoffRuntimeScript() {
+  const sessionScript = permissionHandoffSessionScript();
   return String.raw`    (() => {
       'use strict';
       const MOTION = Object.freeze({
@@ -29,6 +32,7 @@ function permissionHandoffRuntimeScript() {
       });
       const REVIEW = Object.freeze({
         sourceScenario: 'permissionMac',
+        freshSessionScenario: 'official',
         sourceActionSelectors: Object.freeze(['#modalPrimaryButton', '#permissionButton']),
         defaultLocale: 'zh-Hans',
         reducedMotionMedia: '(prefers-reduced-motion: reduce)',
@@ -73,6 +77,7 @@ function permissionHandoffRuntimeScript() {
         retry: document.querySelector('[data-action="retry"]'),
         resultSuccess: document.querySelector('[data-action="result-success"]'),
         resultDenied: document.querySelector('[data-action="result-denied"]'),
+        resultReopen: document.querySelector('[data-action="result-reopen"]'),
         resultError: document.querySelector('[data-action="result-error"]'),
         reset: document.querySelector('[data-action="reset"]'),
       });
@@ -87,7 +92,8 @@ function permissionHandoffRuntimeScript() {
         returning: '正在返回',
         retrying: '原型：正在用原操作验证',
         verified: '原型：事务成功',
-        stillDenied: '仍需 App Management',
+        stillDenied: '等待重新打开语言切换器',
+        freshSession: '新会话：等待用户选择操作',
         typedError: '原型：写事务返回其他错误',
       });
       const workflowEventDefinitions = Object.freeze({
@@ -106,12 +112,15 @@ function permissionHandoffRuntimeScript() {
         handoffDismissed: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '反向转场完成并清理视觉层' }),
         retryRequested: Object.freeze({ icon: 'spinner', tone: 'neutral', text: '原型返回并重试写事务' }),
         protectedApplyCommitted: Object.freeze({ icon: 'checkCircle', tone: 'success', text: 'fixture 受保护写事务已提交；原型开始回收视觉层' }),
-        permissionStillMissing: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: 'fixture 重试仍返回 permissionRequired' }),
+        permissionStillMissing: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: '当前进程仍无 App Management；需要重新打开语言切换器' }),
+        systemQuitAndReopen: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '原型模拟 macOS 退出并重新打开语言切换器' }),
+        freshSessionStarted: Object.freeze({ icon: 'verify', tone: 'neutral', text: '新会话进入普通首屏，不续跑旧任务' }),
         typedError: Object.freeze({ icon: 'errorCircle', tone: 'warning', text: 'fixture 重试返回其他错误，退出权限链路' }),
       });
       const reducedMotionQuery = window.matchMedia?.(REVIEW.reducedMotionMedia) || null;
       const locale = new URLSearchParams(location.search).get('locale') || REVIEW.defaultLocale;
       const sourceScenarioUrl = '/app?scenario=' + REVIEW.sourceScenario + '&locale=' + encodeURIComponent(locale);
+      const freshSessionUrl = '/app?scenario=' + REVIEW.freshSessionScenario + '&locale=' + encodeURIComponent(locale);
       let transitionPhase = 'idle';
       let workflowState = 'denied';
       let occurredWorkflowEvents = [];
@@ -436,15 +445,17 @@ function permissionHandoffRuntimeScript() {
 
       function setActionAvailability() {
         const transitionBusy = ['preparing', 'presenting', 'reversing'].includes(transitionPhase);
-        const resultCanBeInjected = ['awaitingUser', 'retrying', 'stillDenied'].includes(workflowState)
+        const resultCanBeInjected = ['awaitingUser', 'retrying'].includes(workflowState)
           && transitionPhase === 'presented';
-        actionButtons.openSettings.disabled = sourceReloadPending || !['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle' || transitionBusy;
-        actionButtons.retry.disabled = !['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented';
+        const reopenCanBeInjected = ['awaitingUser', 'retrying', 'stillDenied'].includes(workflowState);
+        actionButtons.openSettings.disabled = sourceReloadPending || workflowState !== 'denied' || transitionPhase !== 'idle' || transitionBusy;
+        actionButtons.retry.disabled = workflowState !== 'awaitingUser' || transitionPhase !== 'presented';
         actionButtons.resultSuccess.disabled = !resultCanBeInjected;
         actionButtons.resultDenied.disabled = !resultCanBeInjected;
+        actionButtons.resultReopen.disabled = !reopenCanBeInjected;
         actionButtons.resultError.disabled = !resultCanBeInjected;
         actionButtons.reset.disabled = transitionBusy;
-        reverseFromAccessory.disabled = !['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented';
+        reverseFromAccessory.disabled = workflowState !== 'awaitingUser' || transitionPhase !== 'presented';
       }
 
       function renderWorkflowEvents() {
@@ -478,7 +489,7 @@ function permissionHandoffRuntimeScript() {
         workflowState = nextState;
         workflowLabel.dataset.state = workflowState;
         workflowLabel.textContent = workflowLabels[workflowState] || workflowState;
-        const accessoryVisible = ['awaitingUser', 'retrying', 'stillDenied'].includes(workflowState) && transitionPhase === 'presented';
+        const accessoryVisible = ['awaitingUser', 'retrying'].includes(workflowState) && transitionPhase === 'presented';
         setAccessoryVisibility(accessoryVisible);
         setActionAvailability();
       }
@@ -486,7 +497,7 @@ function permissionHandoffRuntimeScript() {
       function setTransitionPhase(nextPhase) {
         transitionPhase = nextPhase;
         transitionLabel.textContent = '视觉：' + (transitionLabels[transitionPhase] || transitionPhase);
-        const accessoryVisible = ['awaitingUser', 'retrying', 'stillDenied'].includes(workflowState) && transitionPhase === 'presented';
+        const accessoryVisible = ['awaitingUser', 'retrying'].includes(workflowState) && transitionPhase === 'presented';
         setAccessoryVisibility(accessoryVisible);
         setActionAvailability();
         renderProxy();
@@ -558,7 +569,7 @@ function permissionHandoffRuntimeScript() {
       }
 
       function startOpenSettings(sourceRect = null) {
-        if (!['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle') return;
+        if (workflowState !== 'denied' || transitionPhase !== 'idle') return;
         requestedSourceRect = sourceRect;
         const sessionGeneration = ++handoffSessionGeneration;
         const sourceGeometry = captureSourceGeometry();
@@ -583,7 +594,7 @@ function permissionHandoffRuntimeScript() {
       }
 
       function startRetry() {
-        if (!['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented') return;
+        if (workflowState !== 'awaitingUser' || transitionPhase !== 'presented') return;
         appendWorkflowEvent('retryRequested');
         setWorkflowState('retrying');
       }
@@ -601,7 +612,7 @@ function permissionHandoffRuntimeScript() {
       }
 
       function demonstrateRetryResult(result) {
-        if (['awaitingUser', 'stillDenied'].includes(workflowState) && transitionPhase === 'presented') startRetry();
+        if (workflowState === 'awaitingUser' && transitionPhase === 'presented') startRetry();
         resolveRetry(result);
       }
 
@@ -688,42 +699,17 @@ function permissionHandoffRuntimeScript() {
         existingRowSwitch.setAttribute('aria-checked', 'true');
         appendWorkflowEvent('appDropAccepted');
         restoreDraggedApp();
-        demonstrateRetryResult('success');
+        demonstrateRetryResult('denied');
       }
 
       function handleExistingRowEnabled() {
         if (workflowState !== 'awaitingUser' || transitionPhase !== 'presented') return;
         existingRowSwitch.setAttribute('aria-checked', 'true');
         appendWorkflowEvent('existingRowEnabled');
-        demonstrateRetryResult('success');
+        demonstrateRetryResult('denied');
       }
 
-      function reset({ reloadSource = false } = {}) {
-        ++handoffSessionGeneration;
-        ++animationGeneration;
-        stopArrowLoop();
-        progress = 0;
-        dragOutcome = 'idle';
-        settledWorkflowState = null;
-        requestedSourceRect = null;
-        arrowHovering = false;
-        proxy.dataset.motion = prefersReducedMotion() ? 'reduced' : 'full';
-        draggableAppRow.dataset.dragging = 'false';
-        destinationDropZone.dataset.dragOver = 'false';
-        existingRowSwitch.setAttribute('aria-checked', 'false');
-        occurredWorkflowEvents = ['transactionDenied'];
-        captureGeometry();
-        setTransitionPhase('idle');
-        setWorkflowState('denied');
-        renderWorkflowEvents();
-        renderProxy();
-        if (reloadSource) {
-          sourceReloadPending = true;
-          sourceReloadDocument = null;
-          setActionAvailability();
-          sourceFrame.src = sourceScenarioUrl;
-        }
-      }
+${sessionScript}
 
       function dispose() {
         ++handoffSessionGeneration;
@@ -744,6 +730,7 @@ function permissionHandoffRuntimeScript() {
       actionButtons.retry.addEventListener('click', startRetry);
       actionButtons.resultSuccess.addEventListener('click', () => demonstrateRetryResult('success'));
       actionButtons.resultDenied.addEventListener('click', () => demonstrateRetryResult('denied'));
+      actionButtons.resultReopen.addEventListener('click', simulateSystemQuitAndReopen);
       actionButtons.resultError.addEventListener('click', () => demonstrateRetryResult('error'));
       actionButtons.reset.addEventListener('click', () => reset({ reloadSource: true }));
       reverseFromAccessory.addEventListener('click', startRetry);

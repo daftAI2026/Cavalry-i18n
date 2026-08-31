@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实 permissionMac renderer iframe，依赖 renderer 的 tokens/Button/语义图标/应用标识，并注入 ui_review_permission_handoff_runtime 的独立行为层。
- * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、整条 App row 快照拖拽、整窗 copy-drop 审查、生产任务重试、成功后反向回收及不入库的本机 Raster/System Settings 对照区。
+ * [OUTPUT]: 对外提供 permissionHandoffHtml；组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、整条 App row 快照拖拽、整窗 copy-drop 审查、同进程 oracle、Later 重开提示、系统 Quit & Reopen 后 fresh-session 投影及不入库的本机 Raster/System Settings 对照区。
  * [POS]: tools UI Review 的独立权限动画舞台结构/样式层；只用 DOM/HTML 替身审查系统设置目标、视觉连续性和后端结果，本机参考缺失时降级为说明文字，不伪造 NSImage/NSPanel/NSDraggingSession 或 native 授权，并与工作台导航壳及行为层保持单向依赖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -208,9 +208,10 @@ function permissionHandoffHtml() {
 
     <section class="handoff-controls" aria-label="动画控制">
       <button class="ui-button button button-primary handoff-control-button" data-action="open-settings" type="button">打开设置并交接</button>
-      <button class="ui-button button button-outline handoff-control-button" data-action="retry" type="button">重试原操作</button>
-      <button class="ui-button button button-outline handoff-control-button" data-action="result-success" type="button">演示：成功回环</button>
-      <button class="ui-button button button-outline handoff-control-button" data-action="result-denied" type="button">演示：仍需权限</button>
+      <button class="ui-button button button-outline handoff-control-button" data-action="retry" type="button">验证当前进程权限</button>
+      <button class="ui-button button button-outline handoff-control-button" data-action="result-success" type="button">演示：同进程已生效</button>
+      <button class="ui-button button button-outline handoff-control-button" data-action="result-denied" type="button">演示：选择稍后</button>
+      <button class="ui-button button button-outline handoff-control-button" data-action="result-reopen" type="button">演示：退出并重新打开</button>
       <button class="ui-button button button-outline handoff-control-button" data-action="result-error" type="button">演示：其他错误</button>
       <button class="ui-button button button-outline handoff-control-button" data-action="reset" type="button">重置</button>
       <div class="handoff-motion-control">

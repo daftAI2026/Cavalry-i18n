@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、保留阻断前历史并从权限回环续跑的 macOS 设置/Windows UAC 分流、Updater 与外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、保留阻断前历史的 macOS 设置/Windows UAC 分流、App Management 同进程 oracle 仍拒绝后的明确重开提示、Updater 与外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 误报为重装，也不把只读权限未知伪装为警告；typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -80,8 +80,7 @@ const permissionHandoff = window.createPermissionHandoffController({
     const pending = state.pendingAction || languageSelect.value;
     if (!pending) return Promise.resolve();
     state.permissionRetryAttempt += 1;
-    return runApply(pending, { resumeAfterPermission: true,
-      attemptId: `permission-retry-${state.permissionRetryAttempt}` });
+    return runApply(pending, { attemptId: `permission-retry-${state.permissionRetryAttempt}` });
   },
   onError: () => setStatus('openPrivacyFailed', 'error'),
 });
@@ -710,7 +709,7 @@ function requestRestore() {
   showRestoreConfirmation();
 }
 
-async function runApply(nextLanguage, { resumeAfterPermission = false, attemptId = '' } = {}) {
+async function runApply(nextLanguage, { attemptId = '' } = {}) {
   if (state.stateDurabilityPending) {
     requireDurabilityRetry();
     return;
@@ -722,10 +721,7 @@ async function runApply(nextLanguage, { resumeAfterPermission = false, attemptId
   const restoring = isRestoreAction(nextLanguage);
   const operationContext = { language, restoring, attemptId };
   let terminalPhaseEvent = null;
-  if (resumeAfterPermission) {
-    operationLog.upsert({ id: `${attemptId}:resume`, title: t('resumeAfterPermission'),
-      state: 'completed', icon: 'infoCircle' });
-  } else {
+  if (!attemptId) {
     state.permissionRetryAttempt = 0;
     operationLog.start({ intro: t(restoring ? 'restoreIntro' : 'applyIntro', { language }) });
   }
@@ -740,6 +736,10 @@ async function runApply(nextLanguage, { resumeAfterPermission = false, attemptId
     });
     if (!result.ok) {
       if (result.permissionRequired) {
+        if (attemptId && state.platform === 'macos') {
+          state.pendingAction = ''; setPermissionWait(false);
+          await operationLog.presentBlocking({ id: terminalPhaseEvent?.id, title: t('permissionRestartRequiredTitle'), description: t('permissionRestartRequiredBody'), state: 'warning' }); return;
+        }
         await showPermissionWait(nextLanguage, terminalPhaseEvent?.id);
         return;
       }

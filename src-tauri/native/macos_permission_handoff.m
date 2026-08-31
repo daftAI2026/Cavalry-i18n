@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS source rect、viewport 尺寸与一次性 C callback。
- * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、独立非激活箭头 panel 和整条实时 App row 快照承载的 file-URL NSDraggingSession 完成权限交接，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
+ * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、独立非激活箭头 panel 和不含 NSBox 背景的整条实时 App row 快照承载 file-URL NSDraggingSession，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
  * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 实现洁净室 handoff，不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -56,6 +56,7 @@ static NSString *const CAVTextArrowLabel = @"arrowLabel";
 @end
 @interface CAVDragSourceView : NSView <NSDraggingSource, NSPasteboardItemDataProvider>
 @property(nonatomic, weak) CAVPermissionHandoffCoordinator *coordinator; @property(nonatomic, strong) NSURL *applicationBundleURL;
+@property(nonatomic, strong) NSBox *box; @property(nonatomic, strong) NSView *appRowView;
 @property(nonatomic, strong) NSImageView *iconView; @property(nonatomic, strong) NSTextField *titleField;
 @property(nonatomic, strong) NSTextField *detailField;
 @end
@@ -417,22 +418,22 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
 - (instancetype)initWithFrame:(NSRect)frameRect {
   self = [super initWithFrame:frameRect];
   if (!self) return nil;
-  self.wantsLayer = YES;
-  self.layer.backgroundColor = NSColor.controlBackgroundColor.CGColor;
-  self.layer.borderColor = CAVSeparatorColor().CGColor;
-  self.layer.borderWidth = CAVProxyStrokeWidth;
-  self.layer.cornerRadius = CAVCornerRadius;
+  _box = [[NSBox alloc] initWithFrame:self.bounds]; _box.boxType = NSBoxCustom;
+  _box.borderColor = CAVSeparatorColor(); _box.borderWidth = CAVProxyStrokeWidth;
+  _box.fillColor = NSColor.controlBackgroundColor; _box.cornerRadius = CAVCornerRadius;
+  [self addSubview:_box];
+  _appRowView = [[NSView alloc] initWithFrame:self.bounds]; [self addSubview:_appRowView];
   _iconView = [[NSImageView alloc] initWithFrame:NSMakeRect(CAVRowIconInset, CAVRowIconInset, CAVRowIconSize, CAVRowIconSize)];
   _iconView.image = [NSWorkspace.sharedWorkspace iconForFile:NSBundle.mainBundle.bundlePath];
   _iconView.imageScaling = NSImageScaleProportionallyUpOrDown;
-  [self addSubview:_iconView];
+  [_appRowView addSubview:_iconView];
   NSString *bundleName = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleName"];
   _titleField = CAVLabel(bundleName ?: @"Cavalry Language Switcher", CAVInstructionFontSize, NSFontWeightMedium, NSColor.labelColor);
   _titleField.frame = NSMakeRect(CAVRowTextOriginX, CAVRowTitleY, NSWidth(frameRect) - CAVRowTextOriginX - CAVRowTextRightInset, CAVRowLabelHeight);
-  [self addSubview:_titleField];
+  [_appRowView addSubview:_titleField];
   _detailField = CAVLabel(CAVHelperText(CAVTextDragDetail), CAVDetailFontSize, NSFontWeightRegular, NSColor.secondaryLabelColor);
   _detailField.frame = NSMakeRect(CAVRowTextOriginX, CAVRowDetailY, NSWidth(frameRect) - CAVRowTextOriginX - CAVRowTextRightInset, CAVRowLabelHeight);
-  [self addSubview:_detailField];
+  [_appRowView addSubview:_detailField];
   return self;
 }
 - (void)mouseDown:(NSEvent *)event {
@@ -441,8 +442,7 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   NSPasteboardItem *pasteboardItem = [[NSPasteboardItem alloc] init];
   [pasteboardItem setDataProvider:self forTypes:@[NSPasteboardTypeFileURL]];
   NSDraggingItem *item = [[NSDraggingItem alloc] initWithPasteboardWriter:pasteboardItem];
-  NSRect dragFrame = self.bounds;
-  NSImage *dragImage = CAVSnapshot(self, dragFrame);
+  NSRect dragFrame = self.appRowView.frame; NSImage *dragImage = CAVSnapshot(self.appRowView, self.appRowView.bounds);
   if (!dragImage) return;
   [item setDraggingFrame:dragFrame contents:dragImage];
   NSDraggingSession *session = [self beginDraggingSessionWithItems:@[item] event:event source:self];
@@ -456,10 +456,10 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   return NSDragOperationCopy;
 }
 - (BOOL)ignoreModifierKeysForDraggingSession:(NSDraggingSession *)session { return YES; }
-- (void)draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint { self.hidden = YES; [self.coordinator dragDidBegin]; }
+- (void)draggingSession:(NSDraggingSession *)session willBeginAtPoint:(NSPoint)screenPoint { self.appRowView.hidden = YES; [self.coordinator dragDidBegin]; }
 - (void)draggingSession:(NSDraggingSession *)session endedAtPoint:(NSPoint)screenPoint operation:(NSDragOperation)operation {
   [self.coordinator dragDidEndWithOperation:operation atScreenPoint:screenPoint];
-  self.hidden = NO;
+  self.appRowView.hidden = NO;
   self.applicationBundleURL = nil;
 }
 @end

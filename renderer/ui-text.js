@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、任务 Event、权限回环续跑提示、macOS 设置与 Windows UAC 分流的真实权限失败 AlertDialog、外围 Toast 及完整无障碍名称。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、真实任务 Event、macOS App Management 重开与 Windows UAC 分流、外围 Toast 及完整无障碍名称。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -69,7 +69,6 @@ const UI_TEXT = {
     updateIntro: 'Preparing the update…',
     applyOutcome: 'Switched to {language}. Cavalry is now open.',
     restoreOutcome: 'Restored English. Cavalry is now open.',
-    resumeAfterPermission: 'Continuing your task',
     phaseVerifyInstallationRunningTitle: 'Checking the Cavalry installation',
     phaseVerifyInstallationCompletedTitle: 'Cavalry installation verified',
     phaseVerifyInstallationErrorTitle: 'Couldn’t verify the Cavalry installation',
@@ -86,6 +85,7 @@ const UI_TEXT = {
     checkUpdateAgainTitle: 'Check for updates again',
     operationInProgressTitle: 'Another operation is running',
     permissionRequiredTitle: 'System permission required',
+    permissionRestartRequiredTitle: 'Reopen the Switcher',
     recoveryFailedTitle: 'Couldn’t recover the interrupted operation',
     chooseAppTitle: 'Choose Cavalry',
     reinstallCavalryTitle: 'Reinstall Cavalry',
@@ -147,6 +147,8 @@ const UI_TEXT = {
     runtimeResidueWarning: 'Files from a previous Windows language setup are still active. Choose Restore English to finish cleanup.',
     applying: 'Cavalry will open when the language files are ready.',
     waitingPermission: 'Allow the Switcher to modify Cavalry, then retry.',
+    permissionRestartRequiredBody:
+      'The new permission takes effect after the Switcher quits. Quit and reopen it, then choose a language again.',
     patchFailed: 'Cavalry was not changed. Try again.',
     restoreFailed: 'Cavalry was not restored. Try again.',
     cavalryStillRunning:
@@ -235,7 +237,6 @@ const UI_TEXT = {
     updateIntro: '正在准备更新……',
     applyOutcome: '已切换为{language}，Cavalry 已打开。',
     restoreOutcome: '已恢复英文，Cavalry 已打开。',
-    resumeAfterPermission: '继续刚才的任务',
     phaseVerifyInstallationRunningTitle: '正在检查 Cavalry 安装',
     phaseVerifyInstallationCompletedTitle: '已验证 Cavalry 安装',
     phaseVerifyInstallationErrorTitle: '无法验证 Cavalry 安装',
@@ -252,6 +253,7 @@ const UI_TEXT = {
     checkUpdateAgainTitle: '重新检查更新',
     operationInProgressTitle: '正在执行其他操作',
     permissionRequiredTitle: '需要系统权限',
+    permissionRestartRequiredTitle: '重新打开语言切换器',
     recoveryFailedTitle: '无法恢复中断的操作',
     chooseAppTitle: '选择 Cavalry 安装位置',
     reinstallCavalryTitle: '重新安装 Cavalry',
@@ -309,6 +311,8 @@ const UI_TEXT = {
     runtimeResidueWarning: '之前的 Windows 语言设置仍有文件在生效。选择“恢复英文”以完成清理。',
     applying: '语言文件就绪后，Cavalry 将自动打开。',
     waitingPermission: '允许语言切换器修改 Cavalry，然后重试。',
+    permissionRestartRequiredBody:
+      '新权限会在语言切换器退出后生效。请退出并重新打开，然后再次选择语言。',
     patchFailed: 'Cavalry 未被修改，请重试。',
     restoreFailed: '未恢复 Cavalry，请重试。',
     cavalryStillRunning: 'Cavalry 仍在运行。请先保存工作并关闭 Cavalry，然后重试；Cavalry 安装内容未被修改。',
@@ -395,7 +399,6 @@ const UI_TEXT = {
     updateIntro: '正在準備更新……',
     applyOutcome: '已切換為{language}，Cavalry 已開啟。',
     restoreOutcome: '已還原英文，Cavalry 已開啟。',
-    resumeAfterPermission: '繼續剛才的操作',
     phaseVerifyInstallationRunningTitle: '正在檢查 Cavalry 安裝',
     phaseVerifyInstallationCompletedTitle: '已驗證 Cavalry 安裝',
     phaseVerifyInstallationErrorTitle: '無法驗證 Cavalry 安裝',
@@ -412,6 +415,7 @@ const UI_TEXT = {
     checkUpdateAgainTitle: '重新檢查更新',
     operationInProgressTitle: '正在執行其他操作',
     permissionRequiredTitle: '需要系統權限',
+    permissionRestartRequiredTitle: '重新打開語言切換器',
     recoveryFailedTitle: '無法復原中斷的操作',
     chooseAppTitle: '選擇 Cavalry 安裝位置',
     reinstallCavalryTitle: '重新安裝 Cavalry',
@@ -469,6 +473,8 @@ const UI_TEXT = {
     runtimeResidueWarning: '之前的 Windows 語言設定仍有檔案在生效。選擇「還原英文」以完成清理。',
     applying: '語言檔案就緒後，Cavalry 將自動開啟。',
     waitingPermission: '允許語言切換器修改 Cavalry，然後重試。',
+    permissionRestartRequiredBody:
+      '新權限會在語言切換器結束後生效。請結束並重新打開，然後再次選擇語言。',
     patchFailed: 'Cavalry 未被修改，請重試。',
     restoreFailed: '未還原 Cavalry，請重試。',
     cavalryStillRunning: 'Cavalry 仍在執行。請先儲存工作並關閉 Cavalry，然後重試；Cavalry 安裝內容未被修改。',
@@ -555,7 +561,6 @@ const UI_TEXT = {
     updateIntro: '更新を準備しています…',
     applyOutcome: '{language}に切り替えました。Cavalry は起動済みです。',
     restoreOutcome: '英語に戻しました。Cavalry は起動済みです。',
-    resumeAfterPermission: '先ほどの操作を続けています',
     phaseVerifyInstallationRunningTitle: 'Cavalry のインストールを確認中',
     phaseVerifyInstallationCompletedTitle: 'Cavalry のインストールを確認しました',
     phaseVerifyInstallationErrorTitle: 'Cavalry のインストールを確認できません',
@@ -572,6 +577,7 @@ const UI_TEXT = {
     checkUpdateAgainTitle: '更新をもう一度確認',
     operationInProgressTitle: '別の操作を実行中です',
     permissionRequiredTitle: 'システム権限が必要です',
+    permissionRestartRequiredTitle: '言語スイッチャーを開き直す',
     recoveryFailedTitle: '中断した操作を復旧できません',
     chooseAppTitle: 'Cavalry のインストール先を選択',
     reinstallCavalryTitle: 'Cavalry を再インストール',
@@ -633,6 +639,8 @@ const UI_TEXT = {
     runtimeResidueWarning: '以前の Windows 言語設定のファイルがまだ有効です。「英語に戻す」を選んでクリーンアップを完了してください。',
     applying: '言語ファイルの準備ができると Cavalry が起動します。',
     waitingPermission: '言語スイッチャーによる Cavalry の変更を許可してから、再試行してください。',
+    permissionRestartRequiredBody:
+      '新しい権限は、言語スイッチャーを終了した後に有効になります。言語スイッチャーを終了して開き直し、もう一度言語を選択してください。',
     patchFailed: 'Cavalry は変更されていません。もう一度お試しください。',
     restoreFailed: 'Cavalry は復元されていません。もう一度お試しください。',
     cavalryStillRunning:

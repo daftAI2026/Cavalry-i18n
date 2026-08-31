@@ -206,7 +206,7 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /function finish\(target\)[\s\S]*?setTransitionPhase\(target === 1 \? 'presented' : 'idle'\)[\s\S]*?proxy\.hidden = true/);
   const handoffFinish = sourceFunction(handoff, 'function finish(target)', 'function animateReduced(target)');
   assert.doesNotMatch(handoffFinish, /appDropAccepted|protectedApplyCommitted/, 'visual completion must not manufacture drop or protected-write success');
-  for (const eventName of ['transactionDenied', 'sourceCaptured', 'sourceUnavailable', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'appDropRejected', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'protectedApplyCommitted', 'permissionStillMissing', 'typedError']) {
+  for (const eventName of ['transactionDenied', 'sourceCaptured', 'sourceUnavailable', 'settingsRequested', 'settingsLocated', 'destinationCaptured', 'handoffPresented', 'appDragStarted', 'appDropAccepted', 'appDropRejected', 'dragCancelled', 'existingRowEnabled', 'handoffDismissed', 'retryRequested', 'protectedApplyCommitted', 'permissionStillMissing', 'systemQuitAndReopen', 'freshSessionStarted', 'typedError']) {
     assert.match(handoff, new RegExp(`${eventName}: Object\\.freeze|appendWorkflowEvent\\('${eventName}'\\)|occurredWorkflowEvents = \\['${eventName}'\\]`));
   }
   assert.match(handoff, /openMessage: 'cavalry-ui-review:permission-handoff-open'/);
@@ -219,11 +219,14 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(permissionHandoff, /event\.outcome === 'retryRequested'[\s\S]*?onRetry/);
   assert.match(handoff, /function resolveRetry\(result\)[\s\S]*?workflowState !== 'retrying'/);
   assert.match(handoff, /resultError: document\.querySelector\('\[data-action="result-error"\]'\)/);
-  assert.match(handoff, /const resultCanBeInjected = \['awaitingUser', 'retrying', 'stillDenied'\]\.includes\(workflowState\)/);
+  assert.match(handoff, /const resultCanBeInjected = \['awaitingUser', 'retrying'\]\.includes\(workflowState\)/);
+  assert.match(handoff, /const reopenCanBeInjected = \['awaitingUser', 'retrying', 'stillDenied'\]\.includes\(workflowState\)/);
   assert.match(handoff, /actionButtons\.resultError\.disabled = !resultCanBeInjected/);
   assert.match(handoff, /function demonstrateRetryResult\(result\)[\s\S]*?startRetry\(\)[\s\S]*?resolveRetry\(result\)/);
   assert.match(handoff, /demonstrateRetryResult\('error'\)/);
-  assert.match(handoff, /演示：成功回环/);
+  assert.match(handoff, /演示：同进程已生效/);
+  assert.match(handoff, /演示：选择稍后/);
+  assert.match(handoff, /演示：退出并重新打开/);
   assert.match(handoff, /draggableAppRow\.addEventListener\('dragstart', handleDragStart\)/);
   assert.match(handoff, /destinationDropZone\.addEventListener\('drop', handleDrop\)/);
   assert.match(handoff, /event\.dataTransfer\.effectAllowed = 'copy'/);
@@ -237,7 +240,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /appDragImage\.style\.inlineSize = rowRect\.width \+ 'px'/);
   assert.match(handoff, /event\.dataTransfer\.setDragImage\?\.\(appDragImage, dragOffsetX, dragOffsetY\)/);
   assert.doesNotMatch(handoff, /handoff-drag-image-size|56px/, 'target sample drags the live app-row snapshot, not an icon-only proxy');
-  assert.match(handoff, /function handleDrop\(event\)[\s\S]*?existingRowSwitch\.setAttribute\('aria-checked', 'true'\)[\s\S]*?demonstrateRetryResult\('success'\)/);
+  assert.match(handoff, /function handleDrop\(event\)[\s\S]*?existingRowSwitch\.setAttribute\('aria-checked', 'true'\)[\s\S]*?demonstrateRetryResult\('denied'\)/);
+  assert.match(handoff, /function simulateSystemQuitAndReopen\(\)[\s\S]*?sourceFrame\.src = freshSessionUrl[\s\S]*?freshSessionStarted/);
   assert.doesNotMatch(handoff, /系统设置接受 copy drop/, 'browser review must not present an HTML drop as native System Settings evidence');
   assert.match(handoff, /id="existingRowSwitch"[\s\S]*?role="switch" aria-checked="false"/);
   assert.match(handoff, /existingRowSwitch\.setAttribute\('aria-checked', 'true'\)/);
@@ -912,7 +916,6 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'applyIntro',
     'restoreIntro',
     'updateIntro',
-    'resumeAfterPermission',
     'applyOutcome',
     'restoreOutcome',
     'minimizeWindow',
@@ -1010,11 +1013,11 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const retryCallback = sourceFunction(app, 'onRetry: () => {', 'onError:');
   assert.match(app, /permissionRetryAttempt: 0/);
   assert.match(retryCallback, /state\.permissionRetryAttempt \+= 1;/);
-  assert.match(retryCallback, /resumeAfterPermission: true/);
   assert.match(retryCallback, /attemptId:\s*`permission-retry-\$\{state\.permissionRetryAttempt\}`/);
+  assert.doesNotMatch(retryCallback, /resumeAfterPermission/, 'permission retry must not insert synthetic narration');
   const runApplyFunction = sourceFunction(
     app,
-    "async function runApply(nextLanguage, { resumeAfterPermission = false, attemptId = '' } = {}) {",
+    "async function runApply(nextLanguage, { attemptId = '' } = {}) {",
     'function handlePermissionButton'
   );
   assert.match(runApplyFunction, /const restoring = isRestoreAction\(nextLanguage\);/);
@@ -1023,15 +1026,8 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(runApplyFunction, /phase: 'verifyInstallation', state: 'running'/);
   assert.match(runApplyFunction, /api\.applyLanguage\(state\.appPath, nextLanguage, \(event\) => \{/);
   assert.match(runApplyFunction, /updateOperationPhase\(event, operationContext\)/);
-  const resumeBranchStart = runApplyFunction.indexOf('if (resumeAfterPermission) {');
-  const resumeBranchEnd = runApplyFunction.indexOf('} else {', resumeBranchStart);
-  assert.ok(resumeBranchStart >= 0 && resumeBranchEnd > resumeBranchStart, 'permission resume branch must be explicit');
-  const resumeBranch = runApplyFunction.slice(resumeBranchStart, resumeBranchEnd);
-  assert.match(resumeBranch, /operationLog\.upsert\(/);
-  assert.match(resumeBranch, /id: `\$\{attemptId\}:resume`/);
-  assert.match(resumeBranch, /t\('resumeAfterPermission'\)/);
-  assert.doesNotMatch(resumeBranch, /operationLog\.start\(|clearEntries\(|clearMessages\(/, 'permission retry must preserve Activity history');
-  assert.match(runApplyFunction, /state\.permissionRetryAttempt = 0;\s*operationLog\.start\(/);
+  assert.match(runApplyFunction, /if \(!attemptId\) \{\s*state\.permissionRetryAttempt = 0;\s*operationLog\.start\(/);
+  assert.doesNotMatch(runApplyFunction, /:resume|resumeAfterPermission/, 'permission retry must append only real backend phases');
   const restoreConfirmationFunction = sourceFunction(
     app,
     'function showRestoreConfirmation() {',
@@ -1059,6 +1055,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(permissionWaitFunction, /secondary: t\('cancel'\)/);
   assert.match(permissionWaitFunction, /await operationLog\.presentBlocking\(\{[\s\S]*?id: phaseId,[\s\S]*?state: 'warning'/);
   assert.match(runApplyFunction, /await showPermissionWait\(nextLanguage, terminalPhaseEvent\?\.id\)/);
+  assert.match(runApplyFunction, /if \(attemptId && state\.platform === 'macos'\)[\s\S]*?state\.pendingAction = ''[\s\S]*?setPermissionWait\(false\)[\s\S]*?permissionRestartRequiredTitle[\s\S]*?permissionRestartRequiredBody/);
   assert.match(runApplyFunction, /operationLog\.complete\(t\(restoring \? 'restoreOutcome' : 'applyOutcome'/);
   assert.doesNotMatch(app, /operationVerified|permissionVerified|permission-verified/, 'permission success must not add a product Activity event');
   assert.doesNotMatch(permissionWaitFunction, /setStatus\('waitingPermission'/);

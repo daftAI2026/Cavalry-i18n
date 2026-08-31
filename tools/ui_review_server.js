@@ -13,6 +13,7 @@ const path = require('node:path');
 const repoRoot = path.resolve(__dirname, '..');
 const rendererRoot = path.join(repoRoot, 'renderer');
 const reviewModuleRequests = Object.freeze([
+  './ui_review_permission_handoff_session',
   './ui_review_permission_handoff_runtime',
   './ui_review_permission_handoff',
   './ui_review_workspace',
