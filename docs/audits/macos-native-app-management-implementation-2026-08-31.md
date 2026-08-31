@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖根 CLAUDE.md、src-tauri/CLAUDE.md、src-tauri/src/CLAUDE.md、docs/roadmap/macos-app-management-handoff-animation.md、src-tauri/Cargo.toml、src-tauri/src/lib.rs、commands.rs、commands/contract.rs、privilege/restart.rs、window_chrome.rs、Tauri 2.10.3 本地源码，以及 Apple AppKit/CoreGraphics 公开 API 文档
-[OUTPUT]: 对外提供 macOS App Management handoff 原生落地的最短实施路径、九命令边界、CSS→AppKit 坐标转换、per-screen NSPanel/live NSDraggingSession 生命周期、真实 apply reverse/cleanup、Reduce Motion/Info.plist 与证据分级
+[OUTPUT]: 对外提供 macOS App Management handoff 原生落地的最短实施路径、九命令边界、CSS→AppKit 坐标转换、per-screen NSPanel/live NSDraggingSession 生命周期、单次 apply oracle 后的 reverse 或 restart-required cleanup、Reduce Motion/Info.plist 与证据分级
 [POS]: docs/audits 的 dated 原生边界审计；只描述如何把已冻结的 handoff 状态机接入 Tauri，不修改 renderer、tools 或既有 roadmap，也不把未知的私有行为写成事实
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -173,7 +173,7 @@ ActionPayload.ok && !permissionRequired
         └─ verified：handoff.finish_success(sessionId)
 
 !ok && permissionRequired
-        └─ permission-still-missing：helper 保持 presented，不 reverse
+        └─ permission-still-missing：cleanup helper，Activity 收敛为 restart-required
 
 !ok && !permissionRequired
         └─ typed-error：reverse/cleanup，再把既有错误交给 renderer
@@ -339,7 +339,7 @@ session.animatesToStartingPositionsOnCancelOrFail = YES
 - 用户把 app 放在错误位置、取消 drag、设置窗口关闭，都必须有取消/失败回弹或静态 fallback。
 - App 已在列表时，用户可以手动开启；没有 AX 证据时，不要向用户声称我们已经探测到“已有行”。
 
-后续 renderer 可以给出“返回后重试”动作；无论 drag 分支还是已有行分支，最终都只回到同一 `apply_language`。
+drop accepted 后只允许 renderer 调用一次原有 `apply_language` 作为同进程 oracle。若再次返回 typed `permissionRequired`，当前进程不能继续 Retry：必须 cleanup helper，在 Activity 链尾提示重新打开语言切换器，不持久化或自动续跑旧任务。
 
 ## 8 真实 apply 结果驱动 reverse/cleanup
 
@@ -462,7 +462,7 @@ codesign --verify --deep --strict "$APP"
 2. 加 Rust session state 和固定 command DTO；验证九命令列表不变。
 3. 接入 source rect conversion；缺 rect 时仍能打开设置并显示静态 helper。
 4. 实现一个 non-key/non-main panel + live file URL drag；不做跨屏承诺，不自动切换权限。
-5. 让 `apply_language` 的真实结果驱动 finish；验证 success reverse、permission-still-missing 保留 helper、error/cancel 幂等 cleanup。
+5. 让 `apply_language` 的真实结果驱动 finish；验证 success reverse、permission-still-missing cleanup + restart-required，以及 error/cancel 幂等 cleanup。
 6. 加 Info.plist merge/四语资源，并 readback 最终 app。
 
 ### R3：鲁棒性
