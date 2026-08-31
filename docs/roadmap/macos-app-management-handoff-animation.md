@@ -7,7 +7,7 @@
 
 # macOS App Management 授权引导动画
 
-状态: Active / Native implemented / Packaged evidence pending
+状态: Active / Native implemented / Packaged static evidence closed / Live permission evidence pending
 建立日期: 2026-08-31
 适用范围: Cavalry-i18n macOS Switch / Restore 写事务
 
@@ -98,7 +98,7 @@ idle → preparing → presenting → presented → reversing → idle
 
 当前 R1 UI Review 已按上表纠正：工作台仍嵌入真实 `permissionMac` renderer 作为 source，权限拒绝先在共享 Activity 中完成 1200ms 可读停顿；handoff 单独落到 helper 中的实时 draggable app row，不再把 Apple 列表行当动画终点。source 在正向交接开始时冻结，renderer 随后的弹窗关闭与任务事件只能刷新 target，不能销毁反向动画所需的源。浏览器 drag 使用独立 App 图标而非整卡截图作为 drag image，整个 System Settings mock 都是接收区域；copy drop 后模拟系统行更新并自动继续原事务验证，不再要求审查者额外点击开关或理解内部重试门禁。原型可独立审查 HTML copy drop 成功/拒绝/取消、已有行、fixture 经真实 renderer 的重试序列与项目自定的 Reduce Motion 降级；source 缺失时也不再中止，而是直接显示静态 helper。fixture 成功先跑真实 Activity 组件的阶段/结果，再以同一 shared-element 做 reverse/cleanup；仍拒绝则保留 helper；其他错误回收后进入真实错误语义。其视觉层已切换到当前锁定样本的 50pt apex、线性尺寸/圆角、`1-p / p` 双图 opacity、12pt 对向 blur、分层 shadow/stroke 和独立箭头节奏。系统行的 mock 更新只表达“设置接收了 App”，**仍不是权限证明**；这里的 DOM clone、HTML Drag and Drop、单屏 CSS 几何、CSS/RAF 与 fixture 结果只证明状态和视觉规格可审查，**不是**原生 `NSImage` capture、per-screen `NSPanel` replicant、`NSDraggingSession`、混合 backing-scale 或 packaged 权限证据，R4 必须由 Rust 写事务提供结果。
 
-当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求重试，真实写事务成功才 reverse，仍缺权限则保留 helper，其他错误/取消才 cleanup。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer retry→reverse。**这仍不是首次授权、System Settings 真 drop、混合倍率或 packaged app 的 live PASS**；这些结论只允许由 R5 实机证据给出。
+当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求重试，真实写事务成功才 reverse，仍缺权限则保留 helper，其他错误/取消才 cleanup。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer retry→reverse。最终 ad-hoc `.app`/DMG 已从空 bundle 目录按 SOP 重建，四语 `InfoPlist.strings`、默认用途说明、`CodeResources`、strict codesign、DMG 内与安装态 bundle seal 均已回读通过。**这仍不是首次授权、System Settings 真 drop、混合倍率或 packaged app 的权限链 live PASS**；这些结论只允许由 R5 实机证据给出。
 
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
@@ -316,9 +316,9 @@ macos_permission_handoff.rs
 | R2 native 单屏 MVP | 独立 AppKit owner + fixed bridge | 不抢焦点；打开准确 pane；真实 file URL drag 可被设置接收；失败回弹；设置窗口移动时 helper 跟随；取消幂等 |
 | R3 native 鲁棒性 | 多显示器、Space、窗口关闭/重开、目标丢失 | 无孤儿 panel、无焦点劫持、无额外权限、无崩溃 |
 | R4 生产接线 | typed `permissionRequired` → handoff → retry | 只有真实事务成功才显示成功；四语目的说明进入最终包 |
-| R5 packaged evidence | ad-hoc/package 实机 | 验证最终 Info.plist、首次拒绝、打开设置、允许、重试成功和 Reduce Motion |
+| R5 packaged evidence | ad-hoc/package 实机 | 最终 Info.plist、四语资源和 bundle seal 已静态回读；仍需首次拒绝、打开设置、允许、重试成功和 Reduce Motion |
 
-当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，正在进入 R5。未完成的 R5 不能被工作台、Node VM、`cargo check` 或 ad-hoc bundle 静态 readback 代替。
+当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，R5 的最终 bundle 静态资源/签名子门已闭合。首次权限拒绝、真实 drop、业务重试、Reduce Motion 和多屏仍未完成，不能被工作台、Node VM、`cargo check` 或 ad-hoc bundle 静态 readback 代替。
 
 ## 7. 验证矩阵
 
