@@ -125,7 +125,13 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.doesNotMatch(iconCatalog, /<path\s+d=/, 'icon catalog must use the production icon factory rather than copied paths');
 
   const handoff = permissionHandoffHtml();
-  assert.match(handoff, /sourceFrame\.src = '\/app\?scenario=' \+ REVIEW\.sourceScenario/);
+  assert.match(handoff, /const sourceScenarioUrl = '\/app\?scenario=' \+ REVIEW\.sourceScenario/);
+  assert.match(handoff, /actionButtons\.reset\.addEventListener\('click', \(\) => reset\(\{ reloadSource: true \}\)\)/);
+  assert.match(handoff, /if \(reloadSource\) \{[\s\S]*?sourceReloadPending = true[\s\S]*?sourceFrame\.src = sourceScenarioUrl/);
+  assert.match(handoff, /sourceFrame\.addEventListener\('load',[\s\S]*?sourceReloadDocument = sourceFrame\.contentDocument/);
+  assert.match(handoff, /sourceReloadPending && sourceFrame\.contentDocument === sourceReloadDocument/);
+  assert.match(handoff, /actionButtons\.openSettings\.disabled = sourceReloadPending \|\|/);
+  assert.match(handoff, /sourceFrame\.src = sourceScenarioUrl/);
   assert.match(handoff, /sourceScenario: 'permissionMac'/);
   assert.match(handoff, /native mock/);
   assert.match(handoff, /R1 单屏 DOM 替身 · 不验证 backing scale \/ 多屏/);
@@ -185,6 +191,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /mouseenter[\s\S]*?prefersReducedMotion\(\)/);
   assert.match(handoff, /function animateReduced\(target\)/);
   assert.match(handoff, /function animateSpring\(target\)/);
+  assert.match(handoff, /function animateReduced\(target\)[\s\S]*?proxy\.dataset\.motion = 'reduced'/);
+  assert.match(handoff, /function animateSpring\(target\)[\s\S]*?proxy\.dataset\.motion = 'full'/);
   assert.match(handoff, /function presentStaticFallback\(\)[\s\S]*?sourceUnavailable[\s\S]*?setTransitionPhase\('presented'\)/);
   assert.match(handoff, /if \(!sourceGeometry\) \{[\s\S]*?presentStaticFallback\(\)/);
   assert.match(handoff, /if \(!source\) \{[\s\S]*?sourceState\.textContent = '源动作不可用'/);

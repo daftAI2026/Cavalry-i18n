@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop/Reduced Motion API，并以锁定研究证据约束转场数学、箭头提示节奏和用户操作语义边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动自动验证和完整结果回环。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动自动验证、完整结果回环和等待新真实动作就绪的 source fixture 重置。
  * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动成功 reverse；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale 或原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -105,6 +105,7 @@ function permissionHandoffRuntimeScript() {
       });
       const reducedMotionQuery = window.matchMedia?.(REVIEW.reducedMotionMedia) || null;
       const locale = new URLSearchParams(location.search).get('locale') || REVIEW.defaultLocale;
+      const sourceScenarioUrl = '/app?scenario=' + REVIEW.sourceScenario + '&locale=' + encodeURIComponent(locale);
       let transitionPhase = 'idle';
       let workflowState = 'denied';
       let occurredWorkflowEvents = [];
@@ -114,6 +115,8 @@ function permissionHandoffRuntimeScript() {
       let geometryFrame = 0;
       let sourceObserver = null;
       let sourceActionDocument = null;
+      let sourceReloadPending = false;
+      let sourceReloadDocument = null;
       let handoffSessionGeneration = 0;
       let arrowTimer = 0;
       let arrowHoverTimer = 0;
@@ -203,6 +206,10 @@ function permissionHandoffRuntimeScript() {
         if (!found) {
           sourceState.textContent = '等待真实权限动作';
           return null;
+        }
+        if (sourceReloadPending && sourceFrame.contentDocument === sourceReloadDocument) {
+          sourceReloadPending = false;
+          sourceReloadDocument = null;
         }
         const iframeRect = sourceFrame.getBoundingClientRect();
         const iframeStyle = getComputedStyle(sourceFrame);
@@ -429,7 +436,7 @@ function permissionHandoffRuntimeScript() {
         const transitionBusy = ['preparing', 'presenting', 'reversing'].includes(transitionPhase);
         const resultCanBeInjected = ['awaitingUser', 'retrying', 'stillDenied'].includes(workflowState)
           && transitionPhase === 'presented';
-        actionButtons.openSettings.disabled = !['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle' || transitionBusy;
+        actionButtons.openSettings.disabled = sourceReloadPending || !['denied', 'stillDenied'].includes(workflowState) || transitionPhase !== 'idle' || transitionBusy;
         actionButtons.retry.disabled = !['awaitingUser', 'stillDenied'].includes(workflowState) || transitionPhase !== 'presented';
         actionButtons.resultSuccess.disabled = !resultCanBeInjected;
         actionButtons.resultDenied.disabled = !resultCanBeInjected;
@@ -486,7 +493,6 @@ function permissionHandoffRuntimeScript() {
       function finish(target) {
         progress = target;
         proxy.style.opacity = '1';
-        proxy.dataset.motion = 'full';
         setTransitionPhase(target === 1 ? 'presented' : 'idle');
         renderProxy();
         proxy.hidden = true;
@@ -509,6 +515,7 @@ function permissionHandoffRuntimeScript() {
       }
 
       function animateSpring(target) {
+        proxy.dataset.motion = 'full';
         const generation = ++animationGeneration;
         const start = progress;
         const startedAt = performance.now();
@@ -684,7 +691,7 @@ function permissionHandoffRuntimeScript() {
         demonstrateRetryResult('success');
       }
 
-      function reset() {
+      function reset({ reloadSource = false } = {}) {
         ++handoffSessionGeneration;
         ++animationGeneration;
         stopArrowLoop();
@@ -693,6 +700,7 @@ function permissionHandoffRuntimeScript() {
         settledWorkflowState = null;
         requestedSourceRect = null;
         arrowHovering = false;
+        proxy.dataset.motion = prefersReducedMotion() ? 'reduced' : 'full';
         draggableAppRow.dataset.dragging = 'false';
         destinationDropZone.dataset.dragOver = 'false';
         existingRowSwitch.setAttribute('aria-checked', 'false');
@@ -702,6 +710,12 @@ function permissionHandoffRuntimeScript() {
         setWorkflowState('denied');
         renderWorkflowEvents();
         renderProxy();
+        if (reloadSource) {
+          sourceReloadPending = true;
+          sourceReloadDocument = null;
+          setActionAvailability();
+          sourceFrame.src = sourceScenarioUrl;
+        }
       }
 
       function dispose() {
@@ -724,7 +738,7 @@ function permissionHandoffRuntimeScript() {
       actionButtons.resultSuccess.addEventListener('click', () => demonstrateRetryResult('success'));
       actionButtons.resultDenied.addEventListener('click', () => demonstrateRetryResult('denied'));
       actionButtons.resultError.addEventListener('click', () => demonstrateRetryResult('error'));
-      actionButtons.reset.addEventListener('click', reset);
+      actionButtons.reset.addEventListener('click', () => reset({ reloadSource: true }));
       reverseFromAccessory.addEventListener('click', startRetry);
       draggableAppRow.addEventListener('dragstart', handleDragStart);
       draggableAppRow.addEventListener('dragend', handleDragEnd);
@@ -762,6 +776,7 @@ function permissionHandoffRuntimeScript() {
       reduceMotion.checked = reducedMotionQuery?.matches === true;
       reducedMotionQuery?.addEventListener?.('change', handleReducedMotionChange);
       sourceFrame.addEventListener('load', () => {
+        if (sourceReloadPending) sourceReloadDocument = sourceFrame.contentDocument;
         watchSourceDocument();
         scheduleGeometryCapture();
       });
@@ -769,7 +784,7 @@ function permissionHandoffRuntimeScript() {
       window.addEventListener('message', handleSourceMessage);
       window.addEventListener('pagehide', dispose, { once: true });
       if (window.ResizeObserver) new ResizeObserver(scheduleGeometryCapture).observe(stage);
-      sourceFrame.src = '/app?scenario=' + REVIEW.sourceScenario + '&locale=' + encodeURIComponent(locale);
+      sourceFrame.src = sourceScenarioUrl;
       reset();
     })();`;
 }
