@@ -1028,6 +1028,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(runApplyFunction, /phase: 'verifyInstallation', state: 'running'/);
   assert.match(runApplyFunction, /api\.applyLanguage\(state\.appPath, nextLanguage, \(event\) => \{/);
   assert.match(runApplyFunction, /updateOperationPhase\(event, operationContext\)/);
+  assert.match(app, /function updateOperationPhase\(event, context\) \{\s*if \(context\.attemptId && \['verifyInstallation', 'ensureBaseline'\]\.includes\(event\.phase\) && \['running', 'completed'\]\.includes\(event\.state\)\) return;/);
   assert.match(runApplyFunction, /if \(!attemptId\) \{\s*state\.permissionRetryAttempt = 0;\s*operationLog\.start\(/);
   assert.doesNotMatch(runApplyFunction, /:resume|resumeAfterPermission/, 'permission retry must append only real backend phases');
   const restoreConfirmationFunction = sourceFunction(

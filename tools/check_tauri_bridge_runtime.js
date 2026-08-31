@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -902,6 +902,32 @@ test('macOS handoff captures the real action and only its session Channel retrie
   r.callbacks.get(channel.id)({ index: 0, message: { outcome: 'retryRequested' } });
   await flush();
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 2);
+});
+
+test('macOS handoff keeps one prerequisite history when the in-process oracle is still denied', async () => {
+  const r = boot({
+    status: { platform: 'macos', currentLang: 'en', permissionAction: 'openPrivacy' },
+    apply: [
+      { ok: false, permissionRequired: true, errorCode: 'permissionRequired' },
+      { ok: false, permissionRequired: true, errorCode: 'permissionRequired' },
+    ],
+  });
+  await flush();
+  chooseLanguage(r);
+  dispatch(r.elements['#applyButton'], 'click');
+  await flush();
+  dispatch(r.elements['#modalPrimaryButton'], 'click');
+  await flush();
+
+  const channel = r.handoffChannels[0];
+  r.callbacks.get(channel.id)({ index: 0, message: { outcome: 'retryRequested' } });
+  await flush();
+
+  const titles = activityRows(r).map((_row, index) => activityTitle(r, index));
+  assert.equal(titles.filter((title) => title === 'Cavalry installation verified').length, 1);
+  assert.equal(titles.filter((title) => title === 'Recovery files ready').length, 1);
+  assert.equal(titles.at(-1), 'Reopen the Switcher');
+  assert.match(activityText(r), /The new permission takes effect after the Switcher quits/);
 });
 
 test('macOS handoff allows only one retry transaction in flight per session', async () => {
