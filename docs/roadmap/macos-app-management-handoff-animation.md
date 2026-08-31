@@ -102,6 +102,8 @@ idle → preparing → presenting → presented → reversing → idle
 
 R2 单屏原生视觉子门另用仓库外临时 AppKit harness **直接编译同一份生产 `.m`**，连接本机真实 System Settings 而不写 TCC。首次截图发现 164pt helper 中箭头与说明重叠，四语矩阵又发现日文 `キャンセル` 在 68pt action 中截断；生产源码随后收敛为 200pt、20pt 外边距的 Arrow→Instruction→App Row→Action 非重叠层级，并把共享 action width 提升到 88pt。英文、简中、繁中、日文四张 2x helper readback 均无截断；WindowServer 记录到 source window、`320×200` helper 及 `1412×485` 单屏 replicant，连续捕获的 replicant PNG 显示 source/target 双快照沿走廊交接。箭头 70 帧采样从基础 `36×35px` 进入 `43×62px` overshoot、回摆至 `34×29px` 后归位，证明 native 已消费锁定的 `mass=1 / stiffness=200 / damping=11`，而非旧 `NSAnimationContext` 插值。该子门证明真实 AppKit/WindowServer 渲染和四语几何，仍不证明 System Settings 接受 file URL、权限已允许或业务重试成功。
 
+同一 harness 又只通过生产公开收口入口 `cavalry_permission_handoff_finish(true)` 触发 reverse，没有修改 TCC 或另写测试动画。WindowServer 连续序列先记录 `320×200` helper（window `26411`），随后 7 帧记录覆盖 source→target 走廊的 `1412×485` reverse replicant（window `26412`），第 9 帧起 helper 与 replicant 均消失，只剩原 `400×516` source（window `26399`）；native terminal event 同时回读 `outcome=0 / terminal=1`。这闭合了**同一原生实现的 reverse→completion→视觉层清理子门**，证明收口不是工作台 DOM 特效，也没有残留 overlay。它仍是 marker 驱动的视觉/lifecycle harness，不等于用户真实 copy drop、System Settings 行更新、权限打开或原业务重试成功。
+
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
 ## 4. 参考实现的证据分层
@@ -320,7 +322,7 @@ macos_permission_handoff.rs
 | R4 生产接线 | typed `permissionRequired` → handoff → retry | 只有真实事务成功才显示成功；四语目的说明进入最终包 |
 | R5 packaged evidence | ad-hoc/package 实机 | 最终 Info.plist、四语资源和 bundle seal 已静态回读；仍需首次拒绝、打开设置、允许、重试成功和 Reduce Motion |
 
-当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，R5 的最终 bundle 静态资源/签名子门已闭合。首次权限拒绝、真实 drop、业务重试、Reduce Motion 和多屏仍未完成，不能被工作台、Node VM、`cargo check` 或 ad-hoc bundle 静态 readback 代替。
+当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码与编译门，R2 单屏 helper/forward/reverse/cleanup 的原生 WindowServer 视觉子门与 R5 最终 bundle 静态资源/签名子门已闭合。首次权限拒绝、真实 drop、业务重试、Reduce Motion 和多屏仍未完成，不能被工作台、仓库外 harness、Node VM、`cargo check` 或 ad-hoc bundle 静态 readback 代替。
 
 ## 7. 验证矩阵
 
