@@ -55,7 +55,7 @@
 - 固定 `tauri-plugin-updater = 2.10.1`，注册 `check_update` / `install_update`；加上随后落地的固定项目链接 command，当前 registry 精确为 9 条。
 - `Update` 只保存在 Rust State；renderer 只取得 `currentVersion/version/notes/pubDate/available/errorCode`，安装不接收 URL、签名或版本参数。
 - 检查/安装使用 updater 单飞状态；网络检查不占用 Cavalry bundle lock，真正安装与语言写入复用全局 operation lock。
-- bridge 截断非可信 notes/version/date 长度并丢弃 raw response；renderer 生产默认隐藏，发现更新后通过 live announcement、tooltip 与原生 dialog 完成冷更新确认。
+- bridge 截断非可信 notes/version/date 长度并丢弃 raw response；renderer 生产默认隐藏，发现更新后通过 live announcement、tooltip 与原生 dialog 完成冷更新确认。`latest.json.notes` 继续作为已审阅的发布元数据存在，但紧凑确认框不直接内嵌 changelog，避免未设计的 Markdown/长文本破坏决策层级。
 - `release.config.json` / `release_metadata.js` 统一人工安装与 updater 资产命名；`create_updater_manifest.js` 从 package SemVer、三平台 artifact/signature 与已审阅 changelog 确定性生成 `latest.json`。
 - tag workflow 只在受保护环境加载 updater artifact overlay，生成 macOS 双架构 `.app.tar.gz/.sig` 与 Windows NSIS `.exe.sig`；普通 PR/main 构建不接触私钥。
 - ReleaseAcceptanceSeal v6、ReleaseAssetProvenance v4、`SHA256SUMS` 与 private-draft exact readback 已统一绑定三项人工安装与六项 updater 分发资产，并如实记录 `macos: ad-hoc`；Windows provenance v2 同时约束 tag signature intent。

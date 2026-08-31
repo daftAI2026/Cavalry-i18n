@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel、Badge 与 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -531,7 +531,7 @@ test('checked update is announced, confirmed, and installed without renderer-con
   assert.equal(r.elements['#modalBackdrop'].open, true);
   assert.equal(r.context.document.activeElement, r.elements['#modalPrimaryButton']);
   assert.match(r.elements['#modalTitle'].textContent, /Update the Switcher/);
-  assert.match(r.elements['#modalBody'].textContent, /Security and UI fixes/);
+  assert.doesNotMatch(r.elements['#modalBody'].textContent, /Security and UI fixes/);
   assert.match(r.elements['#modalBody'].textContent, /ad-hoc/);
 
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();

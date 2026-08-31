@@ -855,6 +855,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(html, /id="currentLanguage"[^>]*data-kind="language"[\s\S]*id="installationBadge"[^>]*data-kind="installation"/);
   assert.match(app, /updateButton\.addEventListener/);
   assert.match(app, /updateControl\.hidden = !\(updatePreviewEnabled \|\| state\.updateInfo\?\.available\)/);
+  assert.doesNotMatch(app, /parts\.push\(update\.notes\)/, 'the compact update confirmation must not inline manifest changelog text');
   assert.match(app, /updateTooltipText\.textContent = t\('updateTooltip'\)/);
   assert.match(app, /state\.installationMode === 'official'/);
   assert.match(bridge, /Object\.freeze\(\{/);

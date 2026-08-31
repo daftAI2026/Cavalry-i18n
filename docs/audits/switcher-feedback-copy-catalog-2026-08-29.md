@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 renderer 的四语文案、Activity/Updater/Toast 状态机、Managed Legacy/四态版本 Status 合同、Tauri Channel 合同与已批准 UX Writing/反馈分层裁决
-[OUTPUT]: 对外提供 Event/AlertDialog/Toast 的生产归属与四语审阅快照，冻结“恢复只承诺可证明结果、版本不兼容保持只读、持久事实不叠 Toast、外围失败只用 Toast”的裁决
+[OUTPUT]: 对外提供 Event/AlertDialog/Toast 的生产归属与四语审阅快照，冻结“恢复只承诺可证明结果、版本不兼容保持只读、持久事实不叠 Toast、外围失败只用 Toast、紧凑更新确认不内嵌 changelog”的裁决
 [POS]: docs/audits 的反馈语义审阅面；供产品逐条裁决文案与承载组件，不替代 renderer/ui-text.js 运行时真相、后端 DTO 合同或 packaged 验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -125,6 +125,8 @@ Marker 不预铺未来阶段，也不把机器速度误当成人类可读速度�
 | `switch.confirm` | —（直接进入任务流） | —（直接进入任务流） | —（直接進入任務流程） | —（直接タスクを開始） |
 | `restore.confirm` | <strong>Restore Cavalry?</strong><br>Cavalry will return to English, then open again.<br><code>Cancel · Restore English</code> | <strong>恢复 Cavalry？</strong><br>Cavalry 将恢复为英文，随后重新打开。<br><code>取消 · 恢复英文</code> | <strong>還原 Cavalry？</strong><br>Cavalry 將還原為英文，隨後重新開啟。<br><code>取消 · 還原英文</code> | <strong>Cavalry を復元しますか？</strong><br>Cavalry を英語に戻してから、もう一度起動します。<br><code>キャンセル · 英語に戻す</code> |
 | `update.confirm` | <strong>Update the Switcher?</strong><br>Version {version} is ready. The Switcher will download, verify, replace itself, and restart.<br><em>macOS:</em> This update installs a new macOS app bundle. If the release is not Developer ID notarized, complete the documented local ad-hoc and Gatekeeper step again for the new bundle.<br><code>Cancel · Update & Restart</code> | <strong>更新语言切换器？</strong><br>版本 {version} 已准备好。语言切换器将下载并验证更新，替换自身后重新启动。<br><em>macOS:</em> 此次更新会安装一个新的 macOS 应用包。若发布版本没有 Developer ID 公证，新包仍需重新执行发布说明中的本地 ad-hoc 与 Gatekeeper 步骤。<br><code>取消 · 更新并重启</code> | <strong>更新語言切換器？</strong><br>版本 {version} 已準備好。語言切換器將下載並驗證更新，替換自身後重新啟動。<br><em>macOS:</em> 此次更新會安裝一個新的 macOS 應用程式套件。若發布版本沒有 Developer ID 公證，新套件仍需重新執行發布說明中的本機 ad-hoc 與 Gatekeeper 步驟。<br><code>取消 · 更新並重新啟動</code> | <strong>言語スイッチャーを更新しますか？</strong><br>バージョン {version} を利用できます。更新をダウンロードして検証し、アプリを置き換えて再起動します。<br><em>macOS:</em> この更新では新しい macOS アプリバンドルがインストールされます。Developer ID で公証されていないリリースでは、新しいバンドルに対してリリース案内のローカル ad-hoc と Gatekeeper の手順をもう一度実行してください。<br><code>キャンセル · 更新して再起動</code> |
+
+`latest.json.notes` 仍由已审阅的版本 changelog 生成，但不直接进入这个紧凑 AlertDialog。更新公告需要独立的信息层级与 Markdown/长文本布局；在该表面完成前，确认框只回答版本、动作、影响与 macOS 恢复路径，不展示任何审查占位文案。
 | `permission.confirm.macos` | <strong>Allow changes to Cavalry</strong><br>In System Settings, allow Cavalry Language Switcher to modify Cavalry, then retry.<br><code>Cancel · Open Settings</code> | <strong>允许修改 Cavalry</strong><br>请在系统设置中允许语言切换器修改 Cavalry，然后重试。<br><code>取消 · 打开设置</code> | <strong>允許修改 Cavalry</strong><br>請在系統設定中允許語言切換器修改 Cavalry，然後重試。<br><code>取消 · 打開設定</code> | <strong>Cavalry の変更を許可</strong><br>システム設定で、言語スイッチャーによる Cavalry の変更を許可してから再試行してください。<br><code>キャンセル · 設定を開く</code> |
 | `permission.confirm.windows` | <strong>Administrator permission required</strong><br>Retry as administrator, then allow the change when Windows asks.<br><code>Cancel · Retry as administrator</code> | <strong>需要管理员权限</strong><br>请以管理员身份重试，并在 Windows 提示时允许此次更改。<br><code>取消 · 以管理员身份重试</code> | <strong>需要系統管理員權限</strong><br>請以系統管理員身分重試，並在 Windows 提示時允許這項變更。<br><code>取消 · 以系統管理員身分重試</code> | <strong>管理者権限が必要です</strong><br>管理者として再試行し、Windows の確認画面で変更を許可してください。<br><code>キャンセル · 管理者として再試行</code> |
 
