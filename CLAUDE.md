@@ -3,7 +3,7 @@ HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows ge
 
 <directory>
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
-.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同/原生/漏洞/acceptance 门；tag 汇合三项人工安装与六项 updater manifest/archive/signature 资产，经 schema v5 seal/private-draft exact readback 后发布 (YAML)
+.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同/原生/漏洞/acceptance 门；tag 以 ad-hoc macOS 包配合独立 Tauri updater 签名，汇合三项人工安装与六项 updater manifest/archive/signature 资产，经 schema v6 seal/private-draft exact readback 后发布 (YAML)
 release-seals/ - release tag 前置的真实 macOS acceptance evidence 与独立签名 attestation 约定；仅提交按 tag 命名、由受控 session 派生的两份 JSON，不保存私钥或现场缓存 (Markdown, JSON)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
 docs/ - 架构计划、翻译规范、工作流协议与历史证据链 (Markdown, JS, Shell)

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 gh CLI、release metadata 环境、三项人工安装资产、六项 updater manifest/archive/signature 资产及全部强制 sidecar
- * [OUTPUT]: 先创建/恢复 private draft、上传并逐字节回读九项分发资产与强制 sidecar 后才公开；既有 public release 只读复验，冲突/缺件/非 404 查询错误 fail-closed
+ * [OUTPUT]: 生成声明 macOS ad-hoc 状态的 v4 provenance，先创建/恢复 private draft、上传并逐字节回读九项分发资产与强制 sidecar 后才公开；既有 public release 只读复验，冲突/缺件/非 404 查询错误 fail-closed
  * [POS]: GitHub Release 幂等发布边界；公开面绝不出现脚本制造的半成品，也不覆盖远端资产或把网络/鉴权失败误判为“不存在”
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -97,7 +97,7 @@ function writeProvenance(distribution, output, meta) {
     return { name: path.basename(file), bytes: stat.size, sha256: sha256File(file) };
   };
   fs.writeFileSync(output, `${JSON.stringify({
-    schemaVersion: 3,
+    schemaVersion: 4,
     kind: 'ReleaseAssetProvenance',
     tag: meta.tag,
     releaseCommitSha: meta.commitSha,
@@ -108,7 +108,7 @@ function writeProvenance(distribution, output, meta) {
     acceptanceAttestation: identity(meta.attestationPath),
     supplyChain: { sbom: identity(meta.sbomPath), toolchainEvidence: identity(meta.toolchainPath) },
     signing: {
-      macos: 'developer-id-notarized',
+      macos: 'ad-hoc',
       windows: 'authenticode-required-but-tracked-as-issue',
     },
   }, null, 2)}\n`);

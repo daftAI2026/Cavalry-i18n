@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: release_acceptance_contract、evidence/seal/updater manifest CLI 与临时 21-run/48-point session fixture
- * [OUTPUT]: 覆盖真实 session 关系复验、Windows 原始 session 入口、证据附加字段/篡改拒绝，以及 seal 对人工安装/updater/notarization 字节的绑定
+ * [OUTPUT]: 覆盖真实 session 关系复验、Windows 原始 session 入口、证据附加字段/篡改拒绝，以及 seal 对人工安装/updater 字节与显式 macOS ad-hoc 状态的绑定
  * [POS]: release-bound live acceptance 的对抗回归测试；不启动 Cavalry、不制造可发布 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -636,7 +636,7 @@ test('release evidence CLIs reject portable Windows summary inputs', () => {
   }
 });
 
-test('seal creator consumes evidence, notarization, and exact asset bytes', () => {
+test('seal creator consumes evidence, declared macOS signing, and exact asset bytes', () => {
   const fixture = makeSession();
   try {
     const summary = verifyAcceptanceSession(fixture.session);
@@ -737,7 +737,7 @@ test('seal creator consumes evidence, notarization, and exact asset bytes', () =
       '--updater-windows-x64-signature', updaterSignatures.windows,
       '--acceptance-attestation', attestationPath, '--sbom', sbomPath, '--toolchain-evidence', toolchainPath,
       '--trusted-public-key-sha256', trust,
-      '--macos-notarized', '--created-at', '2026-08-09T00:00:00Z',
+      '--macos-signing', 'ad-hoc', '--created-at', '2026-08-09T00:00:00Z',
       '--output', sealPath,
     ], { cwd: repoRoot, encoding: 'utf8', env: { ...process.env, RELEASE_SEAL_PRIVATE_KEY: privateKey } });
     assert.equal(create.status, 0, create.stderr || create.stdout);

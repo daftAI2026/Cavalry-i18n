@@ -26,7 +26,7 @@
   "properties": {
     "schemaVersion": {
       "type": "integer",
-      "const": 5
+      "const": 6
     },
     "kind": {
       "type": "string",
@@ -178,12 +178,12 @@
       "type": "object",
       "additionalProperties": false,
       "required": [
-        "macosDeveloperIdNotarized",
+        "macos",
         "windowsAuthenticode"
       ],
       "properties": {
-        "macosDeveloperIdNotarized": {
-          "const": true
+        "macos": {
+          "const": "ad-hoc"
         },
         "windowsAuthenticode": {
           "const": "required-but-tracked-as-issue"

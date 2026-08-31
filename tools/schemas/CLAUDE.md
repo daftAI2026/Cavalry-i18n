@@ -3,8 +3,8 @@
 
 成员清单
 release_acceptance_evidence.schema.json: ReleaseAcceptanceEvidence v3 的结构合同；固定 Cavalry 2.7.2、Qt 6.6.3、三语矩阵及 macOS 21-run/48-point 证据摘要。
-release_acceptance_seal.schema.json: ReleaseAcceptanceSeal v5 的结构合同；固定 source/release commit、acceptance evidence、三项人工安装资产、六项 updater manifest/archive/signature 资产、供应链 sidecar、签名与平台发布状态。
-release_asset_provenance.schema.json: 公开 ReleaseAssetProvenance v3 的资产与 sidecar 字节身份合同；数组现在必须由 verifier 与 schema v5 seal 对齐为三项人工安装加六项 updater 分发资产。
+release_acceptance_seal.schema.json: ReleaseAcceptanceSeal v6 的结构合同；固定 source/release commit、acceptance evidence、三项人工安装资产、六项 updater manifest/archive/signature 资产、供应链 sidecar 及真实 macOS ad-hoc/Windows 未签名发布状态。
+release_asset_provenance.schema.json: 公开 ReleaseAssetProvenance v4 的资产与 sidecar 字节身份合同；数组必须由 verifier 与 schema v6 seal 对齐为三项人工安装加六项 updater 分发资产，并如实声明平台签名状态。
 release_toolchain_evidence.schema.json: ReleaseToolchainEvidence 的构建工具链身份合同，供 source/macOS/Windows producer evidence 聚合使用。
 windows_release_acceptance.schema.json: WindowsReleaseAcceptance 原始 session 派生摘要合同；供 Windows producer 与 release evidence/seal verifier 复验 tag/source/session、installer、generic/QPA 和现场矩阵绑定。
 source_artifact_manifest.schema.json: source artifact manifest 的 entry、类型、模式与提交身份合同，供源码归档校验使用。

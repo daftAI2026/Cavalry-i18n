@@ -1,7 +1,7 @@
 <!--
 [INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.2.0 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、本地 ad-hoc 开发包、macOS App Management 用途说明的 bundle readback、本地化资源路径合同、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
-[POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分开发机 ad-hoc 验证、CI PR 编译门与 tag 可发布产物
+[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
+[POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分本地 ad-hoc 验证、CI PR 编译门与带 updater/证据闭包的 ad-hoc tag 产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -128,12 +128,8 @@ node tools/verify_release_acceptance_evidence.js \
    - `RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256` 仅作为 GitHub environment variable 保存并与公开 trust policy 一致；对应私钥必须始终留在离线/独立受保护 signer，**不得**保存为 Actions secret、不得暴露给任何候选仓库进程。
    - `RELEASE_SEAL_PUBLIC_KEY_SHA256` 作为另一项 GitHub environment variable 保存，并先通过 `SECURITY.md` 所述独立受保护渠道公开；`RELEASE_SEAL_PRIVATE_KEY` 才是 Actions secret。
    - 两个 fingerprint 必须来自不同 Ed25519 密钥、不同授权角色，并由 `node tools/verify_release_trust_anchors.js` 拒绝缺失或复用；任一密钥轮换/撤销都必须独立发布、复核和更新，不能静默联动。
-   - `APPLE_CERTIFICATE`（base64 PKCS#12）
-   - `APPLE_CERTIFICATE_PASSWORD`
-   - `APPLE_SIGNING_IDENTITY`（`Developer ID Application: ...`，禁止 `-`）
-   - `APPLE_ID`
-   - `APPLE_APP_SPECIFIC_PASSWORD`
-   - `APPLE_TEAM_ID`
+   - `TAURI_SIGNING_PRIVATE_KEY` 是 Tauri Updater 的 Ed25519 私钥；只用于 tag 与显式无 tag signing smoke。
+   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 是上述私钥口令。它与 Apple Developer ID 无关。
 4. 在 evidence-only 提交 T 上创建并推送 tag（T 必须已在 `origin/main`）：
 
 ```bash
@@ -141,12 +137,12 @@ git tag -a cavalry-2.7.2-p12 -m "Cavalry Language Switcher for Cavalry 2.7.2 pat
 git push origin cavalry-2.7.2-p12
 ```
 
-5. Tag 流水线会：复核 T 只有一个父提交 S 且只新增 canonical evidence+attestation 并验签 → 双架构 Developer ID 构建 → 卷宗图标写入后对**最终 DMG 字节**重新 notarize/staple/assess → 生成 `ReleaseAcceptanceSeal.json` / `SHA256SUMS` / provenance → 对 GitHub Release 元数据与全部 sidecar 做幂等摘要复验 → 以 PR 更新 README badge（不直接 push `main`）。
-6. **Windows Authenticode** 不在本 SOP 实现范围内，由维护者单独建 issue。
+5. Tag 流水线会：复核 T 只有一个父提交 S 且只新增 canonical evidence+attestation 并验签 → 双架构 ad-hoc app/DMG 与 Tauri updater archive/signature 构建 → 回读最终 app 的 ad-hoc seal 并验证 updater 闭包 → 生成 `ReleaseAcceptanceSeal.json` / `SHA256SUMS` / provenance，且在 sidecar 中如实声明 `macos: ad-hoc` → 对 GitHub Release 元数据与全部 sidecar 做幂等摘要复验 → 以 PR 更新 README badge（不直接 push `main`）。
+6. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。
 
 ## 4. macOS 标准打包流程
 
-### 4.1 本地 / 开发验证（ad-hoc only）
+### 4.1 macOS ad-hoc 构建
 
 ```bash
 export CSC_IDENTITY_AUTO_DISCOVERY=false
@@ -205,17 +201,17 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 - macOS dylib 与 Windows generic/QPA DLL 都是对应平台现场生成的中间产物，不纳入 Git 或 source artifact；macOS build artifact 只交付已嵌入 dylib 的 `.app`/DMG，Windows 只交付已嵌入双 DLL 的 NSIS EXE。
 - `app.withGlobalTauri = false`；vanilla bridge 只暴露冻结后的 `window.cavalryI18n`，页面业务代码不能访问全局 Tauri API。
 - main window 逻辑尺寸固定 `400x484`，最小 `400x484`；内容宽 360px、四边保留 20px，主任务流通常使用 20px 间距，`Switch to` 与其 Select 作为同一字段使用 8px 紧密关系间距，`Switch` / `Restore` 在 360px 内容轨道内以 `170 + 20 + 170` 等宽分配。Switch 不经确认直接进入 fail-before-mutation 事务；Restore、Updater、权限和危险操作使用独立 AlertDialog。主内容结果区是有界 Activity Log，由 `operation-log.css/js` 负责并在自身范围内滚动；主窗口禁止横向与纵向滚动；macOS Overlay 原生标题栏覆盖在同一内容坐标系中，不额外增加 WebView 内容高度，16px 交通灯在 40px 标题栏内上下各留 12px，内容左缘继续与红灯中心线对齐。排印只使用 16/14/13px、400/450/500 和系统字体，间距以 4px token 为默认节奏。AppKit/WindowServer 的 AX/CGWindow 外框可能比逻辑高度多报告 1pt，不能据此改写 Tauri 配置。
-- `tauri.macos.conf.json` **不硬编码** signing identity；本地/`workflow_dispatch` 显式传入 `APPLE_SIGNING_IDENTITY="-"` 生成 ad-hoc 开发包。
-- **GitHub tag release** 显式传入 Developer ID Application secret，不能被配置文件里的 `-` 覆盖。DMG 卷宗图标脚本会重写容器，因此 tag job 必须在该步骤之后重新提交最终 DMG 给 notary service、staple 并用 `stapler`/`spctl` 双重验证；缺任一 secret、仍为 ad-hoc 或最终 ticket 无效都会 fail-closed。
+- `tauri.macos.conf.json` **不硬编码** signing identity；本地、`workflow_dispatch` 与当前 tag 均显式传入 `APPLE_SIGNING_IDENTITY="-"`，避免误用 runner 钥匙串身份。
+- **GitHub tag release** 仍要求独立 Tauri updater 私钥，为 `.app.tar.gz`/NSIS 生成客户端可验证的 Ed25519 sidecar；该签名不等于 Apple Developer ID，也不提供 notarization。最终 seal/provenance 必须如实声明 macOS `ad-hoc`，禁止把 updater 签名冒充系统可信分发。
 
-### 4.2 Tag release 签名/公证边界
+### 4.2 Tag release 信任边界
 
 | 触发 | 签名 | 公证 | 可否作为 GitHub Release |
 | --- | --- | --- | --- |
 | 本地 `npm run tauri:build` | ad-hoc `-` | 否 | 否 |
 | PR / main CI | 不打包 DMG / 仅 injector compile | 否 | 否 |
 | `workflow_dispatch` package | ad-hoc 验证 | 否 | 否 |
-| `cavalry-*-p*` tag | Developer ID（secrets） | 是（staple 校验） | 是（另需 acceptance evidence） |
+| `cavalry-*-p*` tag | ad-hoc `-`；Updater 另用 Ed25519 | 否 | 是（另需 acceptance evidence，且 Release 明示未公证） |
 
 ## 5. Windows NSIS 安装包
 

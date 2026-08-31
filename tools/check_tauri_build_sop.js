@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1167,7 +1167,7 @@ test('tag release publishes manual installers plus the signed three-platform upd
   assert.match(releaseJob[1], /--updater-manifest[\s\S]*--updater-windows-x64-signature/);
   assert.match(
     releaseJob[1],
-    /node tools\/create_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"[\s\S]*--macos-notarized[\s\S]*node tools\/verify_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"/
+    /node tools\/create_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"[\s\S]*--macos-signing ad-hoc[\s\S]*node tools\/verify_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"/
   );
   assert.doesNotMatch(releaseJob[1], /--confirm-live-pass/);
   assert.match(
@@ -1363,7 +1363,7 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.deepEqual(updaterArtifactsConfig.bundle, { createUpdaterArtifacts: true });
 });
 
-test('tauri macOS package defaults to ad-hoc locally while tag CI requires Developer ID', () => {
+test('tauri macOS package uses ad-hoc signing while tag updater artifacts require the independent Tauri key', () => {
   const config = readJson('src-tauri/tauri.macos.conf.json');
   const workflow = readText('.github/workflows/build.yml');
   const rustToolchain = readText('rust-toolchain.toml').match(/^channel\s*=\s*"([^"]+)"/m);
@@ -1382,31 +1382,21 @@ test('tauri macOS package defaults to ad-hoc locally while tag CI requires Devel
     'macOS packaging must bypass rust-toolchain component reconciliation with an explicit installed toolchain'
   );
   assert.equal(packageToolchain[1], rustToolchain[1]);
-  assert.match(
-    packageJob[1],
-    /Require Developer ID secrets for tag release packaging[\s\S]*APPLE_CERTIFICATE[\s\S]*exit 1/,
-    'tag packaging must fail closed without Developer ID secrets'
-  );
-  assert.match(
-    packageJob[1],
-    /APPLE_SIGNING_IDENTITY:\s*\$\{\{\s*secrets\.APPLE_SIGNING_IDENTITY\s*\}\}/,
-    'tag packaging must use the Developer ID secret identity'
-  );
+  assert.doesNotMatch(packageJob[1], /APPLE_CERTIFICATE|APPLE_ID|APPLE_TEAM_ID|notarytool|stapler/);
   assert.match(packageJob[1], /TAURI_SIGNING_PRIVATE_KEY:\s*\$\{\{\s*secrets\.TAURI_SIGNING_PRIVATE_KEY\s*\}\}/);
   assert.match(packageJob[1], /--config src-tauri\/tauri\.updater-artifacts\.conf\.json/);
   assert.match(
     packageJob[1],
-    /notarytool submit[\s\S]*stamp_dmg_icon|stamp_dmg_icon[\s\S]*notarytool submit[\s\S]*stapler staple[\s\S]*stapler validate/,
-    'tag packaging must notarize and staple the final post-stamp DMG bytes'
+    /Build packaged macOS app \(tag = ad-hoc \+ signed updater\)[\s\S]*CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*APPLE_SIGNING_IDENTITY:\s*"-"[\s\S]*TAURI_SIGNING_PRIVATE_KEY:/,
+    'tag packaging must pair an ad-hoc app signature with the independent updater key'
   );
   assert.match(
     packageJob[1],
     /workflow_dispatch packaging uses ad-hoc signing for build verification only/
   );
-  // Tag build step must not set ad-hoc identity; only the non-tag workflow_dispatch step may.
   assert.match(
     packageJob[1],
-    /Build packaged macOS app \(tag = Developer ID \+ notarize\)[\s\S]*?APPLE_SIGNING_IDENTITY:\s*\$\{\{\s*secrets\.APPLE_SIGNING_IDENTITY\s*\}\}[\s\S]*?Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)[\s\S]*?APPLE_SIGNING_IDENTITY: "-"/
+    /Verify ad-hoc app signature \(tag only\)[\s\S]*Signature=adhoc[\s\S]*Re-verify final ad-hoc app and DMG bytes/
   );
 });
 
@@ -2233,7 +2223,8 @@ test('release supply-chain pins, source completeness, and seal schemas are execu
   assert.match(requirements, /^aqtinstall==3\.3\.0/m);
   assert.match(requirements, /--hash=sha256:[a-f0-9]{64}/);
   assert.match(rustToolchain, /channel\s*=\s*"1\.97\.1"/);
-  assert.match(readText('SECURITY.md'), /Developer ID/);
+  assert.match(readText('SECURITY.md'), /ad-hoc signed and not notarized/);
+  assert.match(readText('SECURITY.md'), /Tauri Updater signature/);
   assert.match(readText('.github/CODEOWNERS'), /@singkia/);
   assert.doesNotMatch(readText('README.md'), /\/Users\/luo\//);
   assert.doesNotMatch(readText('LOCAL_BUILD_SOP.md'), /\/Users\/luo\//);
@@ -2293,7 +2284,7 @@ test('release acceptance seal cannot be minted from a manual confirmation flag',
   const schema = readJson('tools/schemas/release_acceptance_seal.schema.json');
   assert.match(source, /--confirm-live-pass is forbidden/);
   assert.match(source, /--evidence/);
-  assert.match(source, /--macos-notarized is required/);
-  assert.equal(schema.properties.schemaVersion.const, 5);
-  assert.equal(schema.properties.signing.properties.macosDeveloperIdNotarized.const, true);
+  assert.match(source, /--macos-signing must explicitly declare ad-hoc/);
+  assert.equal(schema.properties.schemaVersion.const, 6);
+  assert.equal(schema.properties.signing.properties.macos.const, 'ad-hoc');
 });

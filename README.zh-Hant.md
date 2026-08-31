@@ -55,7 +55,7 @@ macOS 要求這個權限，是因為修改另一個 `.app` bundle 屬於受保�
 
 ## 從 Release 安裝
 
-請從 GitHub Releases 下載對應平台的資產。macOS 請依 Apple Silicon 或 Intel 下載 DMG。新的加固 tag 流水線要求 Developer ID 簽名、公證，以及同次 Release 的 `SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、獨立簽名的 acceptance attestation 與最終 Ed25519 `ReleaseAcceptanceSeal.json`；**歷史 p1-p5 Release 早於該流水線，不具備這些保證**。在 `SECURITY.md` 透過獨立受保護管道發布 acceptance authority 與 release seal 兩枚不同 fingerprint 之前，不要把任一檔案的內嵌公鑰本身當作信任錨；加固驗證必須先驗 acceptance attestation，再驗最終 seal。
+請從 GitHub Releases 下載對應平台的資產。macOS 請依 Apple Silicon 或 Intel 下載 DMG。目前 macOS 資產使用 ad-hoc 簽名，尚未經過 Developer ID 公證；updater archive 另由 Tauri updater 金鑰簽名。Tag 流水線也會發布 `SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、獨立簽名的 acceptance attestation 與最終 Ed25519 `ReleaseAcceptanceSeal.json`。在 `SECURITY.md` 透過獨立受保護管道發布 acceptance authority 與 release seal 兩枚不同 fingerprint 之前，不要把任一檔案的內嵌公鑰本身當作信任錨；驗證必須先驗 acceptance attestation，再驗最終 seal。
 
 Windows 請下載並執行 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`。NSIS 安裝器只安裝語言切換器；最終使用者無需安裝 Python、Rust、Qt 或 PowerShell 7。安裝後選擇自動探索到的 Cavalry，或瀏覽到目前使用者可寫的安裝根。Windows Authenticode 簽名另開 issue 追蹤；務必核對 `SHA256SUMS`。
 

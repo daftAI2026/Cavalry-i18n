@@ -2,9 +2,9 @@
 
 ## Supported releases
 
-Only GitHub Releases published from `cavalry-2.7.2-p*` tags on commits already contained in `origin/main` **and** carrying all hardened-release verification sidecars are supported distribution channels. Historical p1-p5 assets predate this gate and must not be described as Developer ID/notarized or provenance-sealed.
+Only GitHub Releases published from `cavalry-2.7.2-p*` tags on commits already contained in `origin/main` and carrying the current verification sidecars are supported distribution channels.
 
-- **macOS tag releases** must be Developer ID signed, notarized, and stapled. Ad-hoc signed local builds are for developers only and are not a supported download path.
+- **macOS tag releases are currently ad-hoc signed and not notarized.** The Tauri Updater signature authenticates updater bytes against the public key embedded in the client; it does not create Apple platform trust. Users may need to repeat the documented Gatekeeper/ad-hoc steps after installing a new app bundle.
 - **Windows Authenticode** signing and RFC3161 timestamping are required for production distribution but are tracked as a separate maintainer issue; do not treat an unsigned Windows EXE as a fully hardened release.
 
 Neither production trust anchor has been published as of 2026-08-09, so no current release qualifies as a hardened release. A hardened tag requires **two different Ed25519 keys and two independently protected fingerprints**:
@@ -50,14 +50,14 @@ Include:
 3. Impact description and reproduction steps
 4. Whether the issue involves local Cavalry bundle patching, privilege elevation, or supply chain
 
-Do **not** attach Apple/Windows certificate material, notarization credentials, or any Actions secret values to issues or chat logs.
+Do **not** attach updater/release private keys, future Apple/Windows certificate material, notarization credentials, or any Actions secret values to issues or chat logs.
 
 ## Trust boundary (summary)
 
 - The Switcher patches a user-selected local Cavalry installation.
 - macOS expects App Management permission and re-signs the local `Cavalry.app`.
 - Windows elevation is restricted to OS-known Program Files roots; custom writable roots use direct copy only.
-- CI secrets (release-seal key, Developer ID certificate, Apple ID app-specific password, future Authenticode certs) exist only as protected GitHub Actions secrets and are never printed; the independent acceptance private key is deliberately not a CI secret.
+- CI secrets (Tauri updater key, release-seal key, and any future platform-signing credentials) exist only as protected GitHub Actions secrets and are never printed; the independent acceptance private key is deliberately not a CI secret.
 
 ## Supply chain controls
 

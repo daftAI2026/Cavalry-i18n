@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 schema v5 Ed25519 seal、committed acceptance evidence、人工安装/updater 完整分发闭包、supply-chain sidecars、release/source commit 与最终资产目录
- * [OUTPUT]: fail-closed 校验签名/trust anchor、evidence/supply-chain、九项分发字节、updater manifest 语义、两提交身份及 macOS Developer ID notarization=true
+ * [INPUT]: 依赖 schema v6 Ed25519 seal、committed acceptance evidence、人工安装/updater 完整分发闭包、supply-chain sidecars、release/source commit 与最终资产目录
+ * [OUTPUT]: fail-closed 校验签名/trust anchor、evidence/supply-chain、九项分发字节、updater manifest 语义、两提交身份及 macOS ad-hoc 签名声明
  * [POS]: GitHub Release 发布前与本地复验的最终 seal 守门器
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -55,10 +55,10 @@ function main() {
       path.join(rootDir, 'tools/schemas/release_acceptance_seal.schema.json'),
       'Seal schema'
     ).value;
-    if (schema.title !== 'ReleaseAcceptanceSeal' || schema.properties?.schemaVersion?.const !== 5) {
-      fail('ReleaseAcceptanceSeal schema v5 is required.');
+    if (schema.title !== 'ReleaseAcceptanceSeal' || schema.properties?.schemaVersion?.const !== 6) {
+      fail('ReleaseAcceptanceSeal schema v6 is required.');
     }
-    console.log('[verify-release-acceptance-seal] OK: schema v5 present');
+    console.log('[verify-release-acceptance-seal] OK: schema v6 present');
     return;
   }
   const sealPath = path.resolve(optionValue('--seal') || '');
@@ -83,7 +83,7 @@ function main() {
   if (JSON.stringify(Object.keys(seal).sort()) !== JSON.stringify(requiredTop)) {
     fail('Release seal contains missing or unexpected top-level fields.');
   }
-  if (seal.schemaVersion !== 5 || seal.kind !== 'ReleaseAcceptanceSeal') fail('Seal schema/kind mismatch.');
+  if (seal.schemaVersion !== 6 || seal.kind !== 'ReleaseAcceptanceSeal') fail('Seal schema/kind mismatch.');
   verifySealSignature(
     seal,
     optionValue('--trusted-public-key-sha256') || process.env.RELEASE_SEAL_PUBLIC_KEY_SHA256 || null
@@ -127,10 +127,10 @@ function main() {
     fail('Seal acceptanceEvidence binding does not match the committed evidence file.');
   }
   if (
-    seal.signing?.macosDeveloperIdNotarized !== true ||
+    seal.signing?.macos !== 'ad-hoc' ||
     seal.signing?.windowsAuthenticode !== 'required-but-tracked-as-issue'
   ) {
-    fail('Seal signing contract requires notarized Developer ID macOS assets and tracked Windows Authenticode debt.');
+    fail('Seal signing contract requires declared ad-hoc macOS assets and tracked Windows Authenticode debt.');
   }
   const assetsDir = optionValue('--assets-dir');
   const assetKeys = [

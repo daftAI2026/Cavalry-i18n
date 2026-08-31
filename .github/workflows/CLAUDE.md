@@ -2,10 +2,10 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label；PR/main 不接触 updater/Apple 私钥并维持普通构建，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签，不能进入 tag-only release job；tag 在 `release-production` 同时要求 runner allowlist、evidence-only commit、双 trust anchor、Developer ID/notarization 与独立 Tauri updater 私钥；平台 job 现场构建 Qt runtime，macOS 生成双架构 DMG 加 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；release job 以 package SemVer 生成三平台 `latest.json`，schema v5 seal、provenance 与 SHA256SUMS 精确绑定三项人工安装加六项 updater 资产，private draft 全量逐字节回读后才公开；依赖漏洞、source tar、toolchain、Actions full-SHA 与 badge PR 等既有门保持 fail-closed，Windows Authenticode 仍不在本 workflow 实现。
+build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label；PR/main 不接触 updater 私钥并维持普通构建，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签，不能进入 tag-only release job；tag 在 `release-production` 要求 runner allowlist、evidence-only commit、双 trust anchor 与独立 Tauri updater 私钥，macOS 明确生成未公证的 ad-hoc DMG 和 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；release job 以 package SemVer 生成三平台 `latest.json`，schema v6 seal、provenance 与 SHA256SUMS 精确绑定三项人工安装加六项 updater 资产并声明真实平台签名状态，private draft 全量逐字节回读后才公开；依赖漏洞、source tar、toolchain、Actions full-SHA 与 badge PR 等既有门保持 fail-closed，Developer ID/notarization 与 Windows Authenticode 均不在当前 workflow 实现。
 
 依赖边界:
-workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。release seal/Apple 等 CI 私钥只通过受保护 Actions secrets 引用且禁止打印；acceptance 私钥绝不进入 Actions，候选代码只消费 detached signature 与公开 fingerprint。
+workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。Updater/release seal 等 CI 私钥只通过受保护 Actions secrets 引用且禁止打印；acceptance 私钥绝不进入 Actions，候选代码只消费 detached signature 与公开 fingerprint。
 
 法则: 脚本唯一·产物可追踪·release 不漂移·tag fail-closed
 
@@ -45,6 +45,7 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-08-27: macOS package matrix 显式设置与根 pin 同步的 `RUSTUP_TOOLCHAIN`，直接复用 action 已安装的最小 toolchain，避免 `rust-toolchain.toml` 自动补装 rustfmt/clippy 时与 GitHub ARM runner 镜像中的残留组件文件冲突。
 2026-08-27: 所有 job 与三生态漏洞证据统一升级并精确固定 Node.js 24.20.0 / npm 11.19.0，消除旧 CI 与 Node 24 开发机的工具链分叉；版本仍由 strict pin 合同 fail-closed。
 2026-08-28: tag package 增加受保护 Tauri updater 私钥门与 tag-only artifact overlay，生成 macOS 双架构 archive/signature 和 Windows NSIS signature；release 以应用 SemVer 生成三平台 `latest.json`，并把九项分发资产纳入 schema v5 seal、provenance、SHA256SUMS 与 private-draft exact readback。共享配置已固定最终公钥/endpoint，tag 继续在受保护私钥 Secret 缺失或不匹配时失败关闭。
+2026-09-01: 纠正 2026-08-09 将未来 Apple 身份误设为当前 tag 前提的过度门禁：tag 恢复显式 ad-hoc macOS 签名，删除 Developer ID/notarization secrets、notary/staple/spctl 路径，保留独立 Tauri updater Ed25519、acceptance、双 trust anchor、九资产摘要与 private-draft 回读；seal 升为 schema v6、provenance 升为 v4 并如实声明 `macos: ad-hoc`，Release 同步给出首次安装与更新后 Gatekeeper 处理说明。
 2026-08-28: `workflow_dispatch` 增加显式 `updater_signing_smoke`；它复用受保护 updater Secret 和产物 overlay，但仅构建 macOS archive/`.sig` 并以共享配置的内嵌公钥流式验签，release job 仍保持 tag-only，因而可在首个 updater tag 前证明密钥对与口令匹配而不发布。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: release-asset-provenance.json、schema v5 signed ReleaseAcceptanceSeal、CycloneDX SBOM、toolchain evidence 与人工安装/updater 九项分发资产
+ * [INPUT]: release-asset-provenance.json、schema v6 signed ReleaseAcceptanceSeal、CycloneDX SBOM、toolchain evidence 与人工安装/updater 九项分发资产
  * [OUTPUT]: 校验公开 provenance 与 tag/source/release commit、signed supply-chain 及完整人工安装/updater 分发字节一致
  * [POS]: last local provenance gate before GitHub Release upload.
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -20,17 +20,17 @@ function exactKeys(value, keys, label) { if (!value || typeof value !== 'object'
 function main() {
  if (args.includes('--check-schema')) {
    const schema = JSON.parse(fs.readFileSync(path.join(process.cwd(), 'tools/schemas/release_asset_provenance.schema.json'), 'utf8'));
-   if (schema.title !== 'ReleaseAssetProvenance' || schema.properties?.schemaVersion?.const !== 3) fail('ReleaseAssetProvenance schema v3 is required.');
-   console.log('[verify-release-provenance] OK: schema v3 present'); return;
+   if (schema.title !== 'ReleaseAssetProvenance' || schema.properties?.schemaVersion?.const !== 4) fail('ReleaseAssetProvenance schema v4 is required.');
+   console.log('[verify-release-provenance] OK: schema v4 present'); return;
  }
  const dist = path.resolve(optionValue('--dist') || 'dist'); const provenanceFile = path.join(dist, 'release-asset-provenance.json'); const sealFile = path.join(dist, 'ReleaseAcceptanceSeal.json'); const sbomFile = path.join(dist, 'CycloneDX.json'); const toolchainFile = path.join(dist, 'toolchain-evidence.json');
  const provenance = JSON.parse(fs.readFileSync(provenanceFile, 'utf8')); const evidencePath = path.join(dist, `${provenance.tag || ''}.evidence.json`); const attestationPath = path.join(dist, `${provenance.tag || ''}.acceptance-attestation.json`); const seal = JSON.parse(fs.readFileSync(sealFile, 'utf8'));
  exactKeys(provenance, ['schemaVersion', 'kind', 'tag', 'releaseCommitSha', 'sourceCommitSha', 'createdAtUtc', 'assets', 'acceptanceAttestation', 'signedSeal', 'supplyChain', 'signing'], 'Provenance');
- if (provenance.schemaVersion !== 3 || provenance.kind !== 'ReleaseAssetProvenance' || !/^cavalry-2\.7\.2-p[0-9]+$/.test(provenance.tag) || !/^[a-f0-9]{40}$/.test(provenance.releaseCommitSha) || !/^[a-f0-9]{40}$/.test(provenance.sourceCommitSha) || !Number.isFinite(Date.parse(provenance.createdAtUtc))) fail('Provenance identity fields are invalid.');
+ if (provenance.schemaVersion !== 4 || provenance.kind !== 'ReleaseAssetProvenance' || !/^cavalry-2\.7\.2-p[0-9]+$/.test(provenance.tag) || !/^[a-f0-9]{40}$/.test(provenance.releaseCommitSha) || !/^[a-f0-9]{40}$/.test(provenance.sourceCommitSha) || !Number.isFinite(Date.parse(provenance.createdAtUtc))) fail('Provenance identity fields are invalid.');
  verifySealSignature(seal, optionValue('--trusted-public-key-sha256') || process.env.RELEASE_SEAL_PUBLIC_KEY_SHA256 || null);
  if (provenance.tag !== seal.tag || provenance.releaseCommitSha !== seal.releaseCommitSha || provenance.sourceCommitSha !== seal.sourceCommitSha) fail('Provenance tag/source/release identity does not match the signed seal.');
  exactKeys(provenance.signing, ['macos', 'windows'], 'Provenance signing');
- if (provenance.signing.macos !== 'developer-id-notarized' || provenance.signing.windows !== 'authenticode-required-but-tracked-as-issue') fail('Provenance signing declaration is invalid.');
+ if (provenance.signing.macos !== 'ad-hoc' || provenance.signing.windows !== 'authenticode-required-but-tracked-as-issue') fail('Provenance signing declaration is invalid.');
  if (!provenance.acceptanceAttestation || !same(provenance.acceptanceAttestation, info(attestationPath)) || !seal.acceptanceAttestation || !same(seal.acceptanceAttestation, info(attestationPath))) fail('Provenance acceptance attestation identity mismatch.');
  if (!seal.acceptanceEvidence || !same(seal.acceptanceEvidence, info(evidencePath))) fail('Signed seal acceptance evidence does not match the file selected for upload.');
  if (!provenance.signedSeal || !same(provenance.signedSeal, info(sealFile))) fail('Provenance signedSeal does not match ReleaseAcceptanceSeal.json.');

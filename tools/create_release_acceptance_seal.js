@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖已验证的 evidence-only release commit、三份人工安装资产、完整 updater manifest/artifact/signature 闭包、SBOM/toolchain 摘要、macOS 公证信号及受保护 Ed25519 密钥
+ * [INPUT]: 依赖已验证的 evidence-only release commit、三份人工安装资产、完整 updater manifest/artifact/signature 闭包、SBOM/toolchain 摘要、显式 macOS 签名模式及受保护 Ed25519 密钥
  * [OUTPUT]: 写出由 Ed25519 签名并同时绑定人工安装与自更新分发字节的 source/release/evidence/supply-chain 资产 seal
  * [POS]: CI 最终资产 seal 生成器；禁止以 confirm flag 代替真实 committed evidence
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -52,9 +52,8 @@ function main() {
   if (args.includes('--confirm-live-pass')) {
     fail('--confirm-live-pass is forbidden; pass the committed verified --evidence file.');
   }
-  if (!args.includes('--macos-notarized')) {
-    fail('--macos-notarized is required after the final DMGs pass notarization/staple verification.');
-  }
+  const macosSigning = optionValue('--macos-signing');
+  if (macosSigning !== 'ad-hoc') fail('--macos-signing must explicitly declare ad-hoc.');
   const tag = optionValue('--tag') || process.env.GITHUB_REF_NAME;
   const releaseCommitSha = (
     optionValue('--release-commit') || process.env.GITHUB_SHA || git(['rev-parse', 'HEAD'])
@@ -122,7 +121,7 @@ function main() {
     }
   }
   const seal = {
-    schemaVersion: 5,
+    schemaVersion: 6,
     kind: 'ReleaseAcceptanceSeal',
     tag,
     releaseCommitSha,
@@ -144,7 +143,7 @@ function main() {
     assets,
     supplyChain,
     signing: {
-      macosDeveloperIdNotarized: true,
+      macos: macosSigning,
       windowsAuthenticode: 'required-but-tracked-as-issue',
     },
     createdAtUtc: optionValue('--created-at') || git(['show', '-s', '--format=%cI', releaseCommitSha]),

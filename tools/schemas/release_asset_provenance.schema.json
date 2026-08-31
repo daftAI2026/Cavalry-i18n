@@ -20,7 +20,7 @@
   ],
   "properties": {
     "schemaVersion": {
-      "const": 3
+      "const": 4
     },
     "kind": {
       "const": "ReleaseAssetProvenance"
@@ -74,7 +74,7 @@
       ],
       "properties": {
         "macos": {
-          "const": "developer-id-notarized"
+          "const": "ad-hoc"
         },
         "windows": {
           "const": "authenticode-required-but-tracked-as-issue"

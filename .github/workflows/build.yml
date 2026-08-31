@@ -1,6 +1,6 @@
-# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater/Apple/release-seal 凭据、Qt runtime 构建入口、Windows provenance、committed acceptance evidence、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 Developer ID/notarization 与 Tauri updater 签名产物、确定性 latest.json、schema v5 九资产 seal/provenance/private-draft exact readback、幂等公开 Release 与 badge PR
-# [POS]: .github/workflows 的唯一 CI/CD 编排器；PR/main 保持无 updater 私钥构建，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须在 origin/main/evidence/双 trust anchor/Apple/updater 全部凭据与资产闭环后才能公开；Windows Authenticode 仍独立跟踪
+# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater/release-seal 凭据、Qt runtime 构建入口、Windows provenance、committed acceptance evidence、pinned Actions/toolchain 与 GitHub tag/artifact 环境
+# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、schema v6 九资产 seal/provenance/private-draft exact readback、幂等公开 Release 与 badge PR
+# [POS]: .github/workflows 的唯一 CI/CD 编排器；PR/main 保持无 updater 私钥构建，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须在 origin/main/evidence/双 trust anchor/updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -595,91 +595,24 @@ jobs:
             exit 1
           fi
 
-      - name: Require Developer ID secrets for tag release packaging
-        if: startsWith(github.ref, 'refs/tags/cavalry-')
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-        run: |
-          missing=()
-          for name in APPLE_CERTIFICATE APPLE_CERTIFICATE_PASSWORD APPLE_SIGNING_IDENTITY APPLE_ID APPLE_APP_SPECIFIC_PASSWORD APPLE_TEAM_ID; do
-            if [ -z "${!name}" ]; then
-              missing+=("$name")
-            fi
-          done
-          if [ "${#missing[@]}" -ne 0 ]; then
-            echo "Tag release packaging fails closed without Developer ID/notarization secrets: ${missing[*]}" >&2
-            echo "PR/main compile gates may still run without these secrets; they must not be treated as publishable releases." >&2
-            exit 1
-          fi
-          if [ "$APPLE_SIGNING_IDENTITY" = "-" ]; then
-            echo "APPLE_SIGNING_IDENTITY must be a Developer ID Application identity for tag releases, not ad-hoc '-'." >&2
-            exit 1
-          fi
-          echo "RELEASE_MACOS_SIGNING=developer-id" >> "$GITHUB_ENV"
-
-      - name: Import Apple Developer ID certificate
-        if: startsWith(github.ref, 'refs/tags/cavalry-')
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-        run: |
-          CERTIFICATE_PATH="$RUNNER_TEMP/build_certificate.p12"
-          KEYCHAIN_PATH="$RUNNER_TEMP/app-signing.keychain-db"
-          KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
-          echo -n "$APPLE_CERTIFICATE" | base64 --decode > "$CERTIFICATE_PATH"
-          security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
-          security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          security import "$CERTIFICATE_PATH" -P "$APPLE_CERTIFICATE_PASSWORD" -T /usr/bin/codesign -t cert -f pkcs12 -k "$KEYCHAIN_PATH"
-          security list-keychain -d user -s "$KEYCHAIN_PATH"
-          security set-key-partition-list -S apple-tool:,apple: -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          echo "KEYCHAIN_PATH=$KEYCHAIN_PATH" >> "$GITHUB_ENV"
-
       - name: Prepare target Qt SDK for injector build
         run: npm run prepare:qt-sdk
 
-      - name: Build packaged macOS app (tag = Developer ID + notarize)
+      - name: Build packaged macOS app (tag = ad-hoc + signed updater)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
         env:
-          CSC_IDENTITY_AUTO_DISCOVERY: true
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+          APPLE_SIGNING_IDENTITY: "-"
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         run: |
           unset CI
+          echo "Tag packaging uses an ad-hoc macOS app signature and the protected Tauri updater key."
           npm run tauri:build -- \
             --target ${{ matrix.rust_target }} \
             --config src-tauri/tauri.updater-artifacts.conf.json
           dmg_dir="src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg"
           bash tools/stamp_dmg_icon.sh "$dmg_dir"
-          dmg_path="$(find "$dmg_dir" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
-          if [ -z "$dmg_path" ]; then
-            echo "No final stamped DMG found for notarization." >&2
-            exit 1
-          fi
-          # stamp_dmg_icon rewrites the container, so notarize and staple the final bytes.
-          xcrun notarytool submit "$dmg_path" \
-            --apple-id "$APPLE_ID" \
-            --password "$APPLE_PASSWORD" \
-            --team-id "$APPLE_TEAM_ID" \
-            --wait \
-            --output-format json > "$RUNNER_TEMP/notary-${{ matrix.label }}.json"
-          node -e '
-            const fs = require("node:fs");
-            const result = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-            if (result.status !== "Accepted") {
-              throw new Error(`Final DMG notarization failed: ${result.status || "unknown"}`);
-            }
-          ' "$RUNNER_TEMP/notary-${{ matrix.label }}.json"
-          xcrun stapler staple "$dmg_path"
 
       - name: Build packaged macOS app (workflow_dispatch = ad-hoc verification only)
         if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') && !inputs.updater_signing_smoke }}
@@ -729,45 +662,17 @@ jobs:
               --test updater_signature_contract \
               verifies_external_updater_signature -- --ignored --exact --nocapture
 
-      - name: Verify Developer ID signature and notarization staple (tag only)
+      - name: Verify ad-hoc app signature (tag only)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
         run: |
           app_path="src-tauri/target/${{ matrix.rust_target }}/release/bundle/macos/Cavalry Language Switcher.app"
-          dmg_dir="src-tauri/target/${{ matrix.rust_target }}/release/bundle/dmg"
           codesign --verify --deep --strict --verbose=2 "$app_path"
           signing_info="$(codesign -dv --verbose=2 "$app_path" 2>&1 || true)"
           echo "$signing_info"
-          if echo "$signing_info" | grep -Eq 'Signature=adhoc|flags=.*adhoc'; then
-            echo "Tag release app is still ad-hoc signed; Developer ID signing failed closed." >&2
+          if ! echo "$signing_info" | grep -Eq 'Signature=adhoc|flags=.*adhoc'; then
+            echo "Tag release app must carry the declared ad-hoc signature." >&2
             exit 1
           fi
-          if ! echo "$signing_info" | grep -Eq 'Authority=Developer ID Application:'; then
-            echo "Tag release app must show Developer ID Application authority." >&2
-            exit 1
-          fi
-          found_nested_dylib=0
-          while IFS= read -r -d '' nested_dylib; do
-            found_nested_dylib=1
-            codesign --verify --strict --verbose=2 "$nested_dylib"
-            nested_info="$(codesign -dv --verbose=2 "$nested_dylib" 2>&1 || true)"
-            if echo "$nested_info" | grep -Eq 'Signature=adhoc|flags=.*adhoc' || ! echo "$nested_info" | grep -Eq 'Authority=Developer ID Application:'; then
-              echo "Nested runtime library is not Developer ID signed: $nested_dylib" >&2
-              exit 1
-            fi
-          done < <(find "$app_path" -type f -name '*.dylib' -print0)
-          if [ "$found_nested_dylib" -ne 1 ]; then
-            echo "Expected bundled runtime dylibs are missing from $app_path" >&2
-            exit 1
-          fi
-          dmg_path="$(find "$dmg_dir" -maxdepth 1 -type f -name '*.dmg' -print -quit)"
-          if [ -z "$dmg_path" ]; then
-            echo "No DMG found for notarization validation in $dmg_dir" >&2
-            exit 1
-          fi
-          xcrun stapler validate "$app_path"
-          xcrun stapler validate "$dmg_path"
-          spctl --assess --verbose=2 --type execute "$app_path"
-          spctl --assess --verbose=2 --type open --context context:primary-signature "$dmg_path"
 
       - name: Name release DMG asset
         if: startsWith(github.ref, 'refs/tags/cavalry-')
@@ -825,7 +730,7 @@ jobs:
           PACKAGED_APP_PATH="$app_path" PACKAGED_EXPECTED_ARCH="${{ matrix.expected_arch }}" npm run test:tauri:packaged
           bash tools/check_dmg_layout.sh "$bundle_root/dmg"
 
-      - name: Re-verify final notarized DMG bytes after all package gates (tag only)
+      - name: Re-verify final ad-hoc app and DMG bytes after all package gates (tag only)
         if: startsWith(github.ref, 'refs/tags/cavalry-')
         run: |
           bundle_root="src-tauri/target/${{ matrix.rust_target }}/release/bundle"
@@ -839,21 +744,11 @@ jobs:
           test -f "$dmg_path"
           codesign --verify --deep --strict --verbose=2 "$app_path"
           final_signing_info="$(codesign -dv --verbose=2 "$app_path" 2>&1 || true)"
-          if echo "$final_signing_info" | grep -Eq 'Signature=adhoc|flags=.*adhoc' || ! echo "$final_signing_info" | grep -Eq 'Authority=Developer ID Application:'; then
-            echo "Final app no longer has a valid Developer ID signature." >&2
+          if ! echo "$final_signing_info" | grep -Eq 'Signature=adhoc|flags=.*adhoc'; then
+            echo "Final app no longer has the declared ad-hoc signature." >&2
             exit 1
           fi
-          xcrun stapler validate "$app_path"
-          xcrun stapler validate "$dmg_path"
-          spctl --assess --verbose=2 --type execute "$app_path"
-          spctl --assess --verbose=2 --type open --context context:primary-signature "$dmg_path"
           (cd "$bundle_root/dmg" && shasum -a 256 "$asset" > "$asset.sha256")
-
-      - name: Remove Developer ID key material (always)
-        if: ${{ always() && startsWith(github.ref, 'refs/tags/cavalry-') }}
-        run: |
-          security delete-keychain "$RUNNER_TEMP/app-signing.keychain-db" || true
-          rm -f "$RUNNER_TEMP/build_certificate.p12" "$RUNNER_TEMP"/notary-*.json
 
       - name: Record macOS package producer toolchain evidence
         run: |
@@ -1077,7 +972,7 @@ jobs:
             --sbom dist/CycloneDX.json \
             --toolchain-evidence dist/toolchain-evidence.json \
             --output dist/ReleaseAcceptanceSeal.json \
-            --macos-notarized \
+            --macos-signing ad-hoc \
             --trusted-public-key-sha256 "$RELEASE_SEAL_PUBLIC_KEY_SHA256" \
             --created-by "github-actions"
           node tools/verify_release_acceptance_seal.js \
@@ -1119,11 +1014,22 @@ jobs:
 
           ### 校验与 provenance
           - \`SHA256SUMS\`、\`release-asset-provenance.json\` 与 \`ReleaseAcceptanceSeal.json\` 随本 Release 一并发布。
-          - macOS DMG 在 tag 流水线中要求 Developer ID 签名并完成 notarization staple；缺少证书/公证密钥时 release 会 fail-closed。
+          - macOS DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID 公证；Tauri Updater 下载仍由独立 Ed25519 签名验证。
           - Windows Authenticode 尚未纳入本流水线（单独 issue 跟踪），请结合 \`SHA256SUMS\` 校验下载完整性。
 
+          ### macOS 首次打开与更新后处理
+          将应用拖入 Applications 后，如果 macOS 阻止打开，请运行：
+
+          \`\`\`bash
+          xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
+          codesign --force --deep --sign - "/Applications/Cavalry Language Switcher.app"
+          open "/Applications/Cavalry Language Switcher.app"
+          \`\`\`
+
+          通过应用内更新安装的是新的 app bundle；在没有 Developer ID 公证的阶段，新包可能需要再次执行以上步骤。
+
           ### 从源码本地构建
-          开发者可按仓库内的 \`LOCAL_BUILD_SOP.md\` 从源码本地构建。本地 ad-hoc 构建仅供开发验证，不是 GitHub Release 分发路径。
+          开发者可按仓库内的 \`LOCAL_BUILD_SOP.md\` 从源码本地构建。
 
           可把这段话发给你的 AI agent：
 
@@ -1156,7 +1062,7 @@ jobs:
 
           ## English
 
-          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva. The protected tag workflow must complete its signing, notarization, and acceptance gates before publication; verify downloads with SHA256SUMS and ReleaseAcceptanceSeal.json.
+          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva. macOS assets are ad-hoc signed and not notarized; Tauri updater downloads use an independent Ed25519 signature. Verify downloads with SHA256SUMS and ReleaseAcceptanceSeal.json.
           EOF
           } > release-notes.md
 
