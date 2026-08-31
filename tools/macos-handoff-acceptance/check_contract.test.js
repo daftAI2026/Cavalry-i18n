@@ -39,6 +39,8 @@ test('session output stays outside repository and both app bundles', () => {
   assert.match(source, /resolveNewSession\(args\['session-dir'\], \[ROOT, switcher\.path, cavalry\.path\]\)/);
   assert.match(source, /rejectInside\(ROOT, session, 'Session directory'\)/);
   assert.match(source, /Cavalry 2\.7\.2 required/);
+  assert.match(source, /CAVALRY_RUNTIME_EXECUTABLE = 'Cavalry'/);
+  assert.match(source, /verifyIdentity\(manifest\.cavalry\.runtimeExecutable, 'Cavalry runtime executable'\)/);
   assert.match(source, /verifyIdentity\(sealRecord\.manifest, 'Sealed manifest'\)/);
   assert.match(source, /capture identity drifted/);
 });

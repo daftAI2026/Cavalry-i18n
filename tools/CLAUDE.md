@@ -47,7 +47,7 @@ capture_accessibility_inventory.js: live AX runtime 抓取器，写 `RUNTIME_DIR
 merge_runtime_inventory.js: runtime inventory 合并器，只接受 live-injector / live-accessibility 输入并产出 `live-merged` session 分母。
 run_live_full_ui_matrix.js: G-CAPTURE 编排器，启动真实 Cavalry、解析 launcher PID、拒绝弱抓取并写 session run record，支持无副作用 `--help`。
 macos-acceptance/: 可复用 macOS 定向 release-gate 工具；以 `source_contract.js` 为 producer/verifier 共用的完整源码与 fixture closure，结合 tracked Objective-C++ driver、exact CGWindow helper、冻结媒体、现场 `sw_vers` host product/build identity 与 target/stage 身份闭合的 Node matrix/v6 执行三语 21-run/48-point 验收，静态合同和无 vendor app 原生 compile 进入 CI，运行产物严格留在 repo/clone 外 session。
-macos-handoff-acceptance/: packaged App Management handoff 的只读人工证据工具；冻结精确 Switcher/Cavalry bundle 与宿主身份，按固定阶段记录 point/backing-scale、Reduce Motion 和仅 Switcher 自有窗口截图，System Settings 只留无标题几何，禁止自动改权限或把 drop 当授权事实。
+macos-handoff-acceptance/: packaged App Management handoff 的只读人工证据工具；冻结精确 Switcher、Cavalry launcher/runtime 与宿主身份，按固定阶段记录 point/backing-scale、Reduce Motion 和仅 Switcher 自有窗口截图，System Settings 只留无标题几何，禁止自动改权限或把 drop 当授权事实。
 freeze_extraction_inventory.js: G-X freeze 器，按 whitelist 噪声规则冻结 JSON/compiled/runtime 英文分母并写顶层 target identity。
 extract_compiled_ui_strings.js: 从 Cavalry 二进制和 framework 提取疑似用户可见 compiled UI 字符串。
 generate_embedded_translations.js: 从 `tools/*.ts` 与 `model_display_translations.json` 生成带 GEB L3 契约的 injector 编译期翻译表，拒绝任何位于 `<context>` 外、运行时不可达的孤儿 `<message>`，并仅对显式 `xml:space="preserve"` 的 source/translation 保留首尾空白。

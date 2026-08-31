@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-record_checkpoint.js: packaged App Management handoff 的只读证据记录器；冻结 Switcher/Cavalry bundle 身份，在仓库外 session 记录显式人工阶段的 WindowServer 几何与仅 Switcher 自有窗口截图，并以 seal/verify 闭合所有身份，不触碰 TCC 或代替人工拖放。
+record_checkpoint.js: packaged App Management handoff 的只读证据记录器；同时冻结 Switcher、Cavalry 当前 launcher 与真实 Mach-O runtime 身份，在仓库外 session 记录显式人工阶段的 WindowServer 几何与仅 Switcher 自有窗口截图，并以 seal/verify 闭合所有身份，不触碰 TCC 或代替人工拖放。
 window_probe.swift: AppKit/CoreGraphics 现场探针；输出单调时钟、Reduce Motion/Transparency、显示器 point/backing-scale、前台 bundle 与 Switcher/System Settings 可见窗口几何，不读取权限行内容或截取系统设置像素。
 check_contract.test.js: 记录器静态安全合同；锁定阶段枚举、仓库外 session、只截 Switcher PID、无 TCC/AX/输入合成及 GEB 契约。
 

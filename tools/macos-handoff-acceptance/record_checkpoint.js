@@ -25,6 +25,7 @@ const ROOT = path.resolve(__dirname, '..', '..');
 const PROBE = path.join(__dirname, 'window_probe.swift');
 const MANIFEST = 'manifest.json';
 const SEAL = 'seal.json';
+const CAVALRY_RUNTIME_EXECUTABLE = 'Cavalry';
 const PHASES = Object.freeze(new Set([
   'baseline',
   'permission-blocked',
@@ -68,7 +69,7 @@ function readJson(file) {
 function plistValue(appPath, key) {
   return exec('/usr/libexec/PlistBuddy', ['-c', `Print :${key}`, path.join(appPath, 'Contents', 'Info.plist')]);
 }
-function appIdentity(appPath, expectedKind) {
+function appIdentity(appPath, expectedKind, runtimeExecutableName = null) {
   const resolved = path.resolve(appPath);
   directory(resolved, expectedKind);
   if (path.extname(resolved) !== '.app' || fs.realpathSync(resolved) !== resolved) {
@@ -81,20 +82,27 @@ function appIdentity(appPath, expectedKind) {
     encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'],
   });
   if (verify.status !== 0) fail(`${expectedKind} strict codesign failed: ${verify.stderr.trim()}`);
-  return {
+  const result = {
     path: resolved,
     bundleIdentifier: plistValue(resolved, 'CFBundleIdentifier'),
     version: plistValue(resolved, 'CFBundleShortVersionString'),
     infoPlist: identity(path.join(resolved, 'Contents', 'Info.plist')),
     executable: binaryIdentity(executable),
   };
+  if (runtimeExecutableName) {
+    const runtimeExecutable = path.join(resolved, 'Contents', 'MacOS', runtimeExecutableName);
+    regular(runtimeExecutable);
+    strictChild(resolved, runtimeExecutable, `${expectedKind} runtime executable`);
+    result.runtimeExecutable = binaryIdentity(runtimeExecutable);
+  }
+  return result;
 }
 function initialize(args) {
   if (!args['session-dir'] || !args['switcher-app'] || !args['cavalry-app']) {
     fail('--initialize requires --session-dir, --switcher-app and --cavalry-app');
   }
   const switcher = appIdentity(args['switcher-app'], 'Switcher app');
-  const cavalry = appIdentity(args['cavalry-app'], 'Cavalry app');
+  const cavalry = appIdentity(args['cavalry-app'], 'Cavalry app', CAVALRY_RUNTIME_EXECUTABLE);
   if (cavalry.version !== '2.7.2') fail(`Cavalry 2.7.2 required, got ${cavalry.version}`);
   const session = resolveNewSession(args['session-dir'], [ROOT, switcher.path, cavalry.path]);
   fs.mkdirSync(session, { mode: 0o700 });
@@ -143,6 +151,7 @@ function checkpoint(args) {
   const manifest = readJson(path.join(session, MANIFEST));
   verifyIdentity(manifest.switcher.executable, 'Switcher executable');
   verifyIdentity(manifest.cavalry.executable, 'Cavalry executable');
+  verifyIdentity(manifest.cavalry.runtimeExecutable, 'Cavalry runtime executable');
   const pid = exactRunningPID(manifest.switcher.executable.path);
   const probe = JSON.parse(exec('/usr/bin/swift', [PROBE, String(pid)]));
   const staging = path.join(session, `.checkpoint-${phase}-${crypto.randomUUID()}`);
