@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 renderer/app.js 的任务状态机、src-tauri/src/commands/apply.rs 与 snapshot.rs 的恢复基线闸门、macOS 官方/受管旧版还原、Windows English/QPA 清理事务，以及 2026-08-29 至 2026-08-31 产品与 UX Writing 裁决
-[OUTPUT]: 对外提供“首次 Switch 自动建立恢复基线、显式选择目标语言、Switch 无确认直达、单一 Restore English、Managed Legacy 与版本兼容门禁、400×484 无窗口滚动布局”的详细产品/工程决策、平台映射、失败边界与验收合同
+[INPUT]: 依赖 renderer/app.js 的任务状态机、src-tauri/src/commands/apply.rs 与 snapshot/snapshot_legacy 的恢复基线闸门、macOS 官方/受管旧版还原、Windows English/QPA 清理事务，以及 2026-08-29 至 2026-09-01 产品与 UX Writing 裁决
+[OUTPUT]: 对外提供“首次 Switch 自动建立或严格复用恢复基线、已发布未关联 generation 的可重入收敛、显式选择目标语言、Switch 无确认直达、单一 Restore English、Managed Legacy 与版本兼容门禁、400×484 无窗口滚动布局”的详细产品/工程决策、状态拓扑、平台映射、失败边界与验收合同
 [POS]: docs/audits 的决策证据；事件簿只保留摘要并链接本文，代码与后续回归以本文解释为何删除手动 Refresh/双恢复入口，以及为何受管旧安装不得被误报为必须重装
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -61,13 +61,41 @@ Managed Legacy 可以继续四语切换，也可以恢复到受管英文；未�
 
 首次真实 Apply/Restore 不得只在 UI 上宣称可用：它会把已证明的旧 `state_dir/en` 提升为 immutable JSON-only generation，并将 generation + manifest 写入 provenance。macOS 提升前还要求 packaged English、旧快照与当前已安装 JSON 三方 Unix mode 完全一致；迁移字节只来自旧 English 快照，绝不从当前翻译安装反向提取。迁移后的后续启动继续用同一 generation、已发布 runtime postimage 与 marker 复证，`vendorBaselineId` 仍为空，因此 Restore 只能诚实地表示受管英文恢复。
 
-### 2.5 重复 Apply 的签名范围根因与修复证据
+generation 发布与语言写事务不是同一个原子动作：系统权限可能在 generation 已经持久发布、但最终语言事务尚未把其 identity 写回 `state.json` 时阻断。这个状态不是“无法备份”，也不能再次迁移。下一次 Apply 必须用当前安装根、immutable revision、manifest/hash、packaged English overlay、已发布 runtime postimage 与 marker 重新证明该 generation；全部成立后，把同一 identity 投影回本次事务继续执行。任一证据不成立才 fail closed。
+
+### 2.5 恢复基线状态拓扑与用户事件
+
+```mermaid
+flowchart TD
+  A[已验证 Cavalry 安装] --> B{当前安装是否已有可证明的恢复基线}
+  B -->|完整 provenance 与 generation 有效| C[严格复用]
+  B -->|generation 已发布但 provenance 尚未关联| D[复证并关联同一 generation]
+  B -->|clean vendor English| E[建立或复用 unified vendor generation]
+  B -->|Managed Legacy 且仅有可信旧快照| F[发布 JSON-only generation]
+  B -->|缺失、损坏、属于其他安装或证据漂移| X[写入前阻断并给恢复路径]
+  C --> G[恢复文件已就绪]
+  D --> G
+  E --> G
+  F --> G
+  G --> H[开始语言事务]
+```
+
+用户不需要区分创建、复用和关联修复。三条成功分支统一显示：
+
+```text
+正在准备恢复文件
+恢复文件已就绪
+```
+
+这里的“准备”表示为**本次任务验证恢复能力**，不是承诺每次重新复制文件；“已就绪”表示恢复基线此刻与所选 Cavalry 安装身份一致。显示“以前已经备份过”反而会掩盖安装升级、路径变化或文件漂移，因此不采用。只有 `X` 分支才显示错误；后端内部 generation、snapshot、provenance 不进入普通用户文案。
+
+### 2.6 重复 Apply 的签名范围根因与修复证据
 
 `src-tauri/src/detect.rs` 当前的 code identity 只把签名载荷、`LC_CODE_SIGNATURE` 字段，以及由签名末端明确证明的 `__LINKEDIT` extent 视为可归一化内容；无关的 `__LINKEDIT` extent 仍是身份材料。
 
 根因是允许的 re-sign 会改变签名载荷大小，并同步改变签名末端的 `__LINKEDIT` `vmsize/filesize`。若把这些签名相关范围按原始字节直接比较，第二次 Apply 会把同一份可执行代码误判为 drifted。当前 `detect::tests` 5/5 PASS，且 `/tmp` disposable Cavalry 副本的首次/重复 Apply 均成功。以上是 focused evidence：它证明身份归一化与重复 Apply 路径，不证明当前候选已完成正式 macOS manual smoke 或 packaged/native PASS。
 
-### 2.6 Renderer 与 command 边界
+### 2.7 Renderer 与 command 边界
 
 当前 Tauri renderer-facing command registry 与 Rust builder 均为 9 条：status、browse、apply、privacy、固定 project link、show About、restart、check update、install update。手动 English extraction 不是 bridge/API 能力；`extract_english_inner` 仅保留为 Rust 测试内部 seam，不能由 renderer 触发。
 
@@ -82,7 +110,7 @@ Switch to
 [ Activity Log ]
 ```
 
-删除 `Recovery` 标题、手动 `Refresh English`、旧 `Restore English` 与 `Restore Official` 双入口；只保留一个结果明确的 `Restore English` 动作。Select 初始不暗中预选语言，显示本地化占位文案；用户明确选择后才启用 Switch。两个动作等宽，Select 与两个按钮加间距后的总宽一致。
+删除 `Recovery` 标题、手动 `Refresh English`、旧 `Restore English` 与 `Restore Official` 双入口；只保留一个结果明确的 `Restore English` 动作。Select 初始不暗中预选语言，显示本地化占位文案；当前已生效语言仍在列表中可见但禁用，其他语言可选，用户明确选择后才启用 Switch。两个动作等宽，Select 与两个按钮加间距后的总宽一致。
 
 ### 3.2 平台映射
 
@@ -110,7 +138,7 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 ### 3.4 可见状态
 
 - clean official English：Select 可用；用户明确选择目标语言后 Switch 才启用，若尚无基线，首次 Switch 自动准备。Restore English 禁用，因为没有需要恢复的修改。
-- translated/managed：Select 可继续选择目标语言；Restore English 可用。
+- translated/managed：Select 保留显示当前语言并将其禁用，其他目标语言可选；Restore English 可用。
 - Windows residue/reconciliation required：Event 明确要求 Restore English；该动作映射为 English + vendor QPA/generic cleanup。
 - macOS Managed Legacy：Select、Switch 与 Restore English 均可用；不显示重装警告，不显示会暴露内部实现的“旧版受管”徽章。
 - macOS unknown modified 且没有可信受管/英文/官方基线：Apply 和 Restore 均 fail closed，Activity 说明无法安全修改；只有确实需要替换安装时才要求官方重装。
@@ -123,6 +151,7 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 ## 4. 文案合同
 
 - Select 初始使用 `Choose a language / 选择语言 / 選擇語言 / 言語を選択` 占位文案，不把列表第一项伪装成用户选择；Switch 在选择前禁用。
+- 当前已生效语言留在 Select 列表中并以 disabled 状态表达“这是有效语言，但无需重复切换”；不得删除该选项，也不得允许再次提交。
 - 按钮只写用户目标：`Switch / 切换 / 切換 / 切り替える` 与 `Restore English / 恢复英文 / 還原英文 / 英語に戻す`；恢复按钮必须写明对象，但不把 restart 或平台事务实现塞入按钮。
 - Switch 不弹确认框；任务引言先写 `Preparing to switch to {language}…`，正文阶段说明恢复文件与切换进度。
 - Restore 确认标题直接问 `Restore Cavalry?`；正文只承诺“恢复英文并重新打开 Cavalry”。仅完整官方基线路径可以补充“移除翻译 runtime/恢复官方状态”。

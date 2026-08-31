@@ -161,9 +161,11 @@ function runtime({
 async function flush() { await Promise.resolve(); await new Promise((resolve) => setImmediate(resolve)); await Promise.resolve(); }
 
 function dispatch(element, type, event = {}) { for (const listener of element.listeners.get(type) || []) listener(event); }
-function chooseLanguage(runtimeState, index = 0) {
+function chooseLanguage(runtimeState, index = null) {
   dispatch(runtimeState.elements['#languageSelectTrigger'], 'click');
-  dispatch(runtimeState.elements['#languageSelectList'].children[index], 'click');
+  const items = runtimeState.elements['#languageSelectList'].children;
+  const target = index ?? items.findIndex((item) => item.dataset.disabled !== 'true');
+  dispatch(items[target], 'click');
 }
 function boot(options) {
   const r = runtime(options);
@@ -243,9 +245,11 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
     { value: 'en', label: 'English' }, { value: 'zh-Hans', label: '简体中文' },
     { value: 'zh-Hant', label: '繁體中文' }, { value: 'ja_JP', label: '日本語' },
   ]);
-  assert.equal(r.elements['#languageSelect'].children.length, 2);
-  assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hant', 'ja_JP']);
-  assert.equal(r.elements['#languageSelect'].children[0].textContent, '繁體中文');
+  assert.equal(r.elements['#languageSelect'].children.length, 3);
+  assert.deepEqual(r.elements['#languageSelect'].children.map(({ value }) => value), ['zh-Hans', 'zh-Hant', 'ja_JP']);
+  assert.equal(r.elements['#languageSelect'].children[0].textContent, '简体中文');
+  assert.equal(r.elements['#languageSelect'].children[0].disabled, true);
+  assert.equal(r.elements['#languageSelectList'].children[0].attributes.get('aria-disabled'), 'true');
   assert.equal(r.elements['#statusLabel'].textContent, 'Task progress');
   assert.equal(activityRows(r).length, 0);
   assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle');
@@ -307,9 +311,15 @@ test('custom language select keeps Base UI open, active, selected, and keyboard 
   assert.equal(popupPlaceholder.hidden, false);
   assert.equal(popupPlaceholder.textContent, 'Choose a language');
   assert.equal(list.children[0].attributes.get('aria-selected'), 'false');
+  assert.equal(list.children[0].attributes.get('aria-disabled'), 'true');
+  assert.equal(trigger.attributes.get('aria-activedescendant'), 'languageSelectOption-1');
+
+  list.children[0].listeners.get('click')[0]();
+  assert.equal(nativeSelect.value, '', 'the visible current language cannot be committed again');
+  assert.equal(trigger.attributes.get('aria-expanded'), 'true');
 
   trigger.listeners.get('keydown')[0](key('ArrowDown'));
-  assert.equal(trigger.attributes.get('aria-activedescendant'), 'languageSelectOption-1');
+  assert.equal(trigger.attributes.get('aria-activedescendant'), 'languageSelectOption-2');
   trigger.listeners.get('keydown')[0](key('Enter'));
   assert.equal(nativeSelect.value, 'ja_JP');
   assert.equal(r.elements['#languageSelectValue'].textContent, '日本語');

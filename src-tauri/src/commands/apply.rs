@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS Managed Legacy/official baseline 分级、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
+ * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
  * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage；回滚说明不得抹掉原始权限类别，也不得用任意错误文本冒充 App Management。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -352,6 +352,14 @@ where
         &version,
         &immutable_revision,
     );
+    current_state = super::snapshot::migrate_legacy_snapshot_if_proven(
+        repo_root,
+        state_dir,
+        resource_dir,
+        current_state,
+        &app_path,
+        &immutable_revision,
+    )?;
     #[cfg(target_os = "macos")]
     let managed_legacy = app_platform == crate::install::InstallPlatform::Macos
         && super::snapshot::legacy_snapshot_is_proven(
@@ -362,14 +370,6 @@ where
             &app_path,
             &immutable_revision,
         );
-    current_state = super::snapshot::migrate_legacy_snapshot_if_proven(
-        repo_root,
-        state_dir,
-        resource_dir,
-        current_state,
-        &app_path,
-        &immutable_revision,
-    )?;
 
     verify_phase.completed();
     let mut baseline_phase = OperationPhaseGuard::start(&reporter, OperationPhase::EnsureBaseline);

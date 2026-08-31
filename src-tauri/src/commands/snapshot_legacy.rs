@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 snapshot 的 packaged English source 定位、patch 的 legacy/immutable snapshot gate、install identity、macOS p1-p5 已发布 wrapper/injector/Keychain postimage 与 Windows QPA 只读证据；Stock 旧状态通过只读 restore plan 同时证明 vendor qwindows 和 generic 所有权。
- * [OUTPUT]: 提供 legacy provenance 完整性判定、macOS Managed Legacy/Windows 旧快照的只读可信识别，以及 apply 阶段的 immutable English generation 迁移。
- * [POS]: commands 的兼容迁移子模块；status 只消费严格 postimage 证明，apply/restore 才接管 generation 发布与 provenance 落盘，绝不从未知修改或当前翻译安装反向生成英文备份。
+ * [OUTPUT]: 提供 legacy provenance 完整性判定、macOS Managed Legacy/Windows 旧快照的只读可信识别，以及 apply 阶段的 immutable English generation 迁移；若 generation 已发布而语言事务尚未提交 provenance，则严格复证后直接关联同一 generation。
+ * [POS]: commands 的兼容迁移子模块；status 只消费严格 postimage 证明，apply/restore 才接管 generation 发布与 provenance 关联，绝不从未知修改或当前翻译安装反向生成英文备份，也不因上次权限阻断留下的已验证 generation 重复迁移。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, path::Path};
@@ -252,17 +252,32 @@ mod macos_tests {
             immutable_revision,
         )
         .unwrap();
-        let migrated = State {
-            cavalry_revision: immutable_revision.to_string(),
-            english_snapshot_provenance: Some(EnglishSnapshotProvenance {
-                install_root: app.to_string_lossy().to_string(),
-                immutable_revision: immutable_revision.to_string(),
-                snapshot_generation: Some(capture.identity.generation),
-                snapshot_manifest_sha256: Some(capture.identity.manifest_sha256),
-                vendor_baseline_id: None,
-            }),
-            ..legacy
-        };
+        assert!(macos_managed_snapshot_is_proven_with_identities(
+            &repo.join("languages/en"),
+            &state_dir,
+            &legacy,
+            &app,
+            immutable_revision,
+            &[injector_identity.as_str()],
+        ));
+        let migrated = adopt_published_macos_snapshot_with_identities(
+            &repo.join("languages/en"),
+            &state_dir,
+            legacy,
+            &app,
+            immutable_revision,
+            &[injector_identity.as_str()],
+        )
+        .expect("a published generation must be adopted after an interrupted language write");
+        let provenance = migrated.english_snapshot_provenance.as_ref().unwrap();
+        assert_eq!(
+            provenance.snapshot_generation.as_deref(),
+            Some(capture.identity.generation.as_str())
+        );
+        assert_eq!(
+            provenance.snapshot_manifest_sha256.as_deref(),
+            Some(capture.identity.manifest_sha256.as_str())
+        );
         assert!(macos_managed_snapshot_is_proven_with_identities(
             &repo.join("languages/en"),
             &state_dir,
@@ -389,6 +404,74 @@ fn migrated_macos_snapshot_matches_install(
 }
 
 #[cfg(target_os = "macos")]
+fn published_macos_snapshot_matches_legacy_state(
+    english_source: &Path,
+    state_dir: &Path,
+    current: &State,
+    app_path: &Path,
+    immutable_revision: &str,
+) -> bool {
+    if !legacy_state_matches_install(current, app_path, immutable_revision) {
+        return false;
+    }
+    if patch::english_snapshot_identity(state_dir, app_path, immutable_revision).is_err() {
+        return false;
+    }
+    matches!(
+        patch::snapshot_matches_language_source(english_source, state_dir, app_path),
+        Ok(true)
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn adopt_published_macos_snapshot_with_identities(
+    english_source: &Path,
+    state_dir: &Path,
+    current: State,
+    app_path: &Path,
+    immutable_revision: &str,
+    released_injector_identities: &[&str],
+) -> Option<State> {
+    if current
+        .english_snapshot_provenance
+        .as_ref()
+        .is_some_and(has_complete_snapshot_identity)
+        || !published_macos_snapshot_matches_legacy_state(
+            english_source,
+            state_dir,
+            &current,
+            app_path,
+            immutable_revision,
+        )
+    {
+        return None;
+    }
+    let identity =
+        patch::english_snapshot_identity(state_dir, app_path, immutable_revision).ok()?;
+    let candidate = State {
+        app_path: app_path.to_string_lossy().to_string(),
+        cavalry_revision: immutable_revision.to_string(),
+        english_snapshot_provenance: Some(EnglishSnapshotProvenance {
+            install_root: app_path.to_string_lossy().to_string(),
+            immutable_revision: immutable_revision.to_string(),
+            snapshot_generation: Some(identity.generation),
+            snapshot_manifest_sha256: Some(identity.manifest_sha256),
+            vendor_baseline_id: None,
+        }),
+        ..current
+    };
+    macos_managed_snapshot_is_proven_with_identities(
+        english_source,
+        state_dir,
+        &candidate,
+        app_path,
+        immutable_revision,
+        released_injector_identities,
+    )
+    .then_some(candidate)
+}
+
+#[cfg(target_os = "macos")]
 #[allow(clippy::too_many_arguments)]
 fn macos_managed_snapshot_is_proven_with_identities(
     english_source: &Path,
@@ -404,6 +487,14 @@ fn macos_managed_snapshot_is_proven_with_identities(
         .is_some_and(has_complete_snapshot_identity)
     {
         migrated_macos_snapshot_matches_install(
+            english_source,
+            state_dir,
+            current,
+            app_path,
+            immutable_revision,
+        )
+    } else if patch::english_snapshot_identity(state_dir, app_path, immutable_revision).is_ok() {
+        published_macos_snapshot_matches_legacy_state(
             english_source,
             state_dir,
             current,
@@ -599,6 +690,20 @@ pub(crate) fn migrate_legacy_snapshot_if_proven(
     app_path: &Path,
     immutable_revision: &str,
 ) -> Result<State, String> {
+    let english_source = language_source_dir(repo_root, resource_dir, "en");
+    #[cfg(target_os = "macos")]
+    if InstallLayout::from_root(app_path).platform == InstallPlatform::Macos {
+        if let Some(adopted) = adopt_published_macos_snapshot_with_identities(
+            &english_source,
+            state_dir,
+            current.clone(),
+            app_path,
+            immutable_revision,
+            &RELEASED_MACOS_INJECTOR_CODE_IDENTITIES,
+        ) {
+            return Ok(adopted);
+        }
+    }
     if !legacy_snapshot_is_proven(
         repo_root,
         state_dir,
@@ -616,7 +721,6 @@ pub(crate) fn migrate_legacy_snapshot_if_proven(
     {
         return Ok(current);
     }
-    let english_source = language_source_dir(repo_root, resource_dir, "en");
     let capture = patch::migrate_legacy_english_generation_with_identity(
         &english_source,
         state_dir,

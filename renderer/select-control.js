@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 index.html 的原生 select 数据槽、combobox trigger、只读 popup placeholder、listbox popup 与 option 容器，依赖浏览器键盘/指针事件和 ARIA 属性。
- * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected 状态边界和只在开启瞬间定位的 item-aligned positioner 语义实现单选菜单；空值弹层仍投影占位行，方向键/Home/End/Enter/Space/Escape/typeahead、值变更通知与外部点击收口保持完整。
+ * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected/disabled 状态边界和只在开启瞬间定位的 item-aligned positioner 语义实现单选菜单；空值弹层仍投影占位行，禁用项保持可见但不会被指针、方向键、Home/End、Enter/Space 或 typeahead 选中。
  * [POS]: renderer 的无依赖选择器组件状态机；只管理显式选择交互和无障碍投影，不替业务预选默认值、不读取业务状态、不调用 Tauri，也不引入 React、组件库或 CDN。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,6 +17,23 @@
 
     function selectedIndex() {
       return options.findIndex((option) => option.value === select.value);
+    }
+
+    function firstEnabledIndex() {
+      return options.findIndex((option) => !option.disabled);
+    }
+
+    function lastEnabledIndex() {
+      return options.findLastIndex((option) => !option.disabled);
+    }
+
+    function nextEnabledIndex(fromIndex, direction) {
+      if (!options.length || firstEnabledIndex() < 0) return -1;
+      for (let offset = 1; offset <= options.length; offset += 1) {
+        const index = (fromIndex + direction * offset + options.length) % options.length;
+        if (!options[index].disabled) return index;
+      }
+      return -1;
     }
 
     function alignPopupItemToTrigger(item) {
@@ -64,7 +81,7 @@
       open = nextOpen;
       if (open) {
         const selected = selectedIndex();
-        activeIndex = selected >= 0 ? selected : 0;
+        activeIndex = selected >= 0 && !options[selected].disabled ? selected : firstEnabledIndex();
         renderState();
         // Base UI 的 item-aligned positioner 只在弹层开启时确定锚点。
         // 指针移动只改变 active item；若随 activeIndex 重算 top，菜单会在鼠标下跳动。
@@ -75,14 +92,14 @@
     }
 
     function setActive(nextIndex) {
-      if (!options.length) return;
-      activeIndex = (nextIndex + options.length) % options.length;
+      if (nextIndex < 0 || nextIndex >= options.length || options[nextIndex].disabled) return;
+      activeIndex = nextIndex;
       renderState();
       list.children[activeIndex]?.scrollIntoView?.({ block: 'nearest' });
     }
 
     function commit(index) {
-      if (index < 0 || index >= options.length) return;
+      if (index < 0 || index >= options.length || options[index].disabled) return;
       select.value = options[index].value;
       activeIndex = index;
       setOpen(false);
@@ -95,9 +112,11 @@
       item.id = `languageSelectOption-${index}`;
       item.className = 'select-item';
       item.dataset.value = option.value;
+      item.dataset.disabled = String(option.disabled);
       item.setAttribute('role', 'option');
+      item.setAttribute('aria-disabled', String(option.disabled));
       item.addEventListener('pointermove', () => {
-        if (activeIndex !== index) setActive(index);
+        if (!option.disabled && activeIndex !== index) setActive(index);
       });
       item.addEventListener('pointerdown', (event) => event.preventDefault());
       item.addEventListener('click', () => commit(index));
@@ -126,9 +145,10 @@
 
     function setOptions(nextOptions) {
       const previousValue = select.value;
-      options = nextOptions.map(({ value: optionValue, label }) => ({
+      options = nextOptions.map(({ value: optionValue, label, disabled = false }) => ({
         value: String(optionValue),
         label: String(label),
+        disabled: Boolean(disabled),
       }));
       select.replaceChildren();
       list.replaceChildren();
@@ -136,6 +156,7 @@
         const nativeOption = document.createElement('option');
         nativeOption.value = option.value;
         nativeOption.textContent = option.label;
+        nativeOption.disabled = option.disabled;
         select.append(nativeOption);
         list.append(createItem(option, index));
       }
@@ -166,7 +187,7 @@
       const start = activeIndex < 0 ? 0 : activeIndex + 1;
       for (let offset = 0; offset < options.length; offset += 1) {
         const index = (start + offset) % options.length;
-        if (options[index].label.toLocaleLowerCase().startsWith(typeahead)) {
+        if (!options[index].disabled && options[index].label.toLocaleLowerCase().startsWith(typeahead)) {
           setActive(index);
           break;
         }
@@ -188,13 +209,13 @@
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         event.preventDefault();
         if (!open) setOpen(true);
-        else setActive(activeIndex + (event.key === 'ArrowDown' ? 1 : -1));
+        else setActive(nextEnabledIndex(activeIndex, event.key === 'ArrowDown' ? 1 : -1));
         return;
       }
       if (event.key === 'Home' || event.key === 'End') {
         event.preventDefault();
         if (!open) setOpen(true);
-        setActive(event.key === 'Home' ? 0 : options.length - 1);
+        setActive(event.key === 'Home' ? firstEnabledIndex() : lastEnabledIndex());
         return;
       }
       if (event.key === 'Enter' || event.key === ' ') {

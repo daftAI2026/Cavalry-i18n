@@ -473,6 +473,15 @@ button {
   background: var(--surface-hover);
 }
 
+.select-item[data-disabled="true"] {
+  color: var(--text-secondary);
+  opacity: var(--opacity-control-disabled);
+}
+
+.select-item[data-disabled="true"][data-highlighted="true"] {
+  background: transparent;
+}
+
 .select-item-indicator {
   position: absolute;
   right: var(--select-indicator-inset);
