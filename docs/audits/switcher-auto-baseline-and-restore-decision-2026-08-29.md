@@ -140,9 +140,9 @@ Restore、Switcher Update 与系统权限仍保留 AlertDialog：它们分别涉
 ### 3.4 可见状态
 
 - clean official English：Select 可用；用户明确选择目标语言后 Switch 才启用，若尚无基线，首次 Switch 自动准备。Restore English 禁用，因为没有需要恢复的修改。
-- translated/managed：Select 保留显示当前语言并将其禁用，其他目标语言可选；Restore English 可用。
+- translated/managed：Select 保留显示当前语言并将其禁用，其他目标语言可选；当前语言不是 English 时 Restore English 可用，已经处于受管 English 时禁用，因为用户目标已经成立。
 - Windows residue/reconciliation required：Event 明确要求 Restore English；该动作映射为 English + vendor QPA/generic cleanup。
-- macOS Managed Legacy：Select、Switch 与 Restore English 均可用；不显示重装警告，不显示会暴露内部实现的“旧版受管”徽章。
+- macOS Managed Legacy：Select 与 Switch 可用；非英文时 Restore English 可用，已是英文时禁用；不显示重装警告，不显示会暴露内部实现的“旧版受管”徽章。
 - macOS unknown modified 且没有可信受管/英文/官方基线：Apply 和 Restore 均 fail closed，Activity 说明无法安全修改；只有确实需要替换安装时才要求官方重装。
 - 版本低于 2.7.2：保持只读，不修改安装；说明当前 Switcher 只支持 2.7.2，若要使用本工具需安装 2.7.2。
 - 版本高于 2.7.2：保持只读，不修改安装；明确“尚未支持”，不要求用户降级，允许用户继续正常使用当前 Cavalry，并等待兼容的 Switcher 更新。

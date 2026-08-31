@@ -745,6 +745,24 @@ test('managed legacy macOS remains actionable and Restore returns to managed Eng
   assert.equal(r.elements['#statusOutcome'].textContent, 'Restored English. Cavalry is now open.');
 });
 
+test('managed English disables Restore unless Windows still owns cleanup residue', async () => {
+  const macos = boot({
+    status: {
+      platform: 'macos', currentLang: 'en', installationMode: 'managedLegacy',
+      officialRecoveryAvailable: false, needsExtract: false,
+    },
+  });
+  const windows = boot({
+    status: {
+      platform: 'windows', currentLang: 'en', reconciliationRequired: true,
+    },
+  });
+  await flush();
+
+  assert.equal(macos.elements['#restoreButton'].disabled, true);
+  assert.equal(windows.elements['#restoreButton'].disabled, false);
+});
+
 test('unsupported Cavalry versions are read-only and preserve the user\'s upgrade direction', async () => {
   const older = boot({ status: { version: '2.7.1', versionCompatibility: 'olderUnsupported' } });
   const newer = boot({ status: { version: '2.7.3', versionCompatibility: 'newerUnsupported' } });

@@ -1044,6 +1044,10 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(restoreDisabledStatement, /restoreIsNeeded\(\)/);
   assert.match(restoreDisabledStatement, /restoreIsBlockedByMissingBaseline\(\)/);
   assert.match(restoreDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
+  const restoreNeededFunction = sourceFunction(app, 'function restoreIsNeeded() {', 'function isRestoreAction');
+  assert.match(restoreNeededFunction, /state\.currentLang !== 'en'/);
+  assert.match(restoreNeededFunction, /state\.platform === 'windows'[\s\S]*state\.englishRestoreNeeded/);
+  assert.doesNotMatch(restoreNeededFunction, /installationMode/, 'managed English must not expose a no-op Restore action');
   const retryCallback = sourceFunction(app, 'onRetry: () => {', 'onError:');
   assert.match(app, /permissionRetryAttempt: 0/);
   assert.match(retryCallback, /state\.permissionRetryAttempt \+= 1;/);

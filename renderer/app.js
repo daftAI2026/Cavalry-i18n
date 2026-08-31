@@ -198,8 +198,7 @@ function syncInstallationSelection() { browseButton.hidden = !installationSelect
 
 function restoreIsNeeded() {
   if (!state.appPath) return false;
-  if (state.platform === 'macos') return state.installationMode !== 'official';
-  return state.currentLang !== 'en' || state.englishRestoreNeeded;
+  return state.currentLang !== 'en' || (state.platform === 'windows' && state.englishRestoreNeeded);
 }
 
 function isRestoreAction(action) {
