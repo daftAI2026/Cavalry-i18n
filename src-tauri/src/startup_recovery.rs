@@ -101,7 +101,7 @@ fn recover_at_startup_with_timeout<R: CommandRunner>(
     }
 
     // The interrupted bundle may contain a partially rewritten Mach-O or plist. Recovery is
-    // authenticated and path-bound by the journal first; strict installation identity is a
+    // structurally validated and path-bound by the journal first; strict installation identity is a
     // postcondition, not a prerequisite that can strand the only usable preimages.
     crate::privilege::recover_macos_apply_transaction(state_dir, &pending_root, runner)?;
     if crate::privilege::pending_macos_apply_install_root(state_dir)?.is_some() {

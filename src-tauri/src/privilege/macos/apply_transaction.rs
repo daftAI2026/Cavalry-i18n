@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 staged CopyPair、调用方精确/observe-only preimage、transaction 内 exact-process guard、显式 signing verifier、macOS bundle/state 路径、quarantine xattr、serde/sha2、目录 fd 与 renameatx_np 原子交换。
- * [OUTPUT]: 提供 crash-recoverable MacApplyTransaction、首装 journal-aware launcher gate、fd-relative nofollow 备份/发布/恢复与 quarantine 遍历、hardlink 边界拒绝、保留 errno 权限类别的 compare-and-swap 写入、显式 payload→signing-proof→deferred-marker-gate→state-durability phase、drift 拒绝，以及 committed journal 原子退役后清理。
+ * [OUTPUT]: 提供 crash-recoverable MacApplyTransaction、首装 journal-aware launcher gate、无需 Keychain 的结构化 journal 校验、fd-relative nofollow 备份/发布/恢复与 quarantine 遍历、hardlink 边界拒绝、保留 errno 权限类别的 compare-and-swap 写入、显式 payload→signing-proof→deferred-marker-gate→state-durability phase、drift 拒绝，以及 committed journal 原子退役后清理。
  * [POS]: macOS apply 的 durable transaction owner；首个 mutation 前在 pinned root 核对调用方 sha256+mode preimage，首装最早发布 wrapper/Info gate 后第三次复核 exact Cavalry PID，journal 覆盖 CopyPair/observe-only 资产/延迟 marker/移除/有界签名副作用/quarantine/state；bundle create/rename 的 typed permission denial 在安全回滚补充上下文后仍可由 command 判定，Signing phase 本身是 codesign mutation authorization，state 目录耐久性确认后才进入 durable commit。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -35,13 +35,6 @@ const MANIFEST_NAME: &str = "manifest.json";
 const MANIFEST_SCHEMA: u32 = 6;
 const QUARANTINE_XATTR: &str = "com.apple.quarantine";
 const MAX_QUARANTINE_VALUE_BYTES: usize = 1024 * 1024;
-#[cfg(not(test))]
-const JOURNAL_KEY_SERVICE: &str = "com.daftai.cavalry-i18n.transaction-journal.v1";
-#[cfg(not(test))]
-const JOURNAL_KEY_ACCOUNT: &str = "manifest-hmac-sha256";
-#[cfg(not(test))]
-const JOURNAL_KEY_BYTES: usize = 32;
-
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 #[cfg(test)]
@@ -867,7 +860,7 @@ struct JournalEntry {
     verified_post_absent: bool,
 }
 
-/// Exact bundle inputs that this transaction intentionally does not mutate. They are authenticated
+/// Exact bundle inputs that this transaction intentionally does not mutate. They are validated
 /// with the journal and rechecked before the first mutation and before bundle verification, so an
 /// asset filtered as unchanged cannot drift into a successfully committed language generation.
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -913,7 +906,10 @@ struct JournalManifest {
     temporary_paths: Vec<String>,
     state_temporary_paths: Vec<String>,
     quarantine_preimages: Vec<QuarantinePreimage>,
-    authentication_tag: String,
+    // schema 6 的旧版 manifest 带有 Keychain HMAC。继续接受该字段，保证已中断事务
+    // 可以恢复；新写入不再序列化它，避免 ad-hoc 更新后触发系统密码框。
+    #[serde(default, rename = "authenticationTag", skip_serializing)]
+    _legacy_authentication_tag: String,
 }
 
 struct JournalPreparationGuard {
@@ -1074,7 +1070,7 @@ impl MacApplyTransaction {
     /// the exact executable is scanned before preparation and publication, then once more after a
     /// first-install wrapper/Info launch gate is live but before ordinary payload mutation.
     /// Official restore keeps the managed launcher and marker in place until the vendor Info.plist
-    /// deferred pair and deferred runtime removals cross the same authenticated commit gate.
+    /// deferred pair and deferred runtime removals cross the same structurally validated commit gate.
     /// Nothing in `deferred_removals` is deleted by begin.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn begin_with_deferred_pairs_and_removals_guarded(
@@ -1395,7 +1391,7 @@ impl MacApplyTransaction {
             .map(|path| path_string(path).map_err(CopyFailure::other))
             .collect::<Result<Vec<_>, _>>()?,
             quarantine_preimages,
-            authentication_tag: String::new(),
+            _legacy_authentication_tag: String::new(),
         };
         write_manifest(&preparation_dir, &manifest).map_err(CopyFailure::other)?;
         preparation_dir.sync().map_err(CopyFailure::other)?;
@@ -1661,7 +1657,7 @@ impl MacApplyTransaction {
 
     /// Runs caller-supplied signature verification against the current kernel-resolved path of
     /// the pinned bundle, then records exact fd-relative postimages for every bounded signing side
-    /// effect in the authenticated journal. An unrecorded bounded Signing-phase mutation is
+    /// effect in the durable journal. An unrecorded bounded Signing-phase mutation is
     /// authorized only as a CAS rollback input; it can never satisfy a verification/commit gate.
     pub(crate) fn verify_and_record_signing_postimages<F>(
         &mut self,
@@ -1857,7 +1853,7 @@ impl MacApplyTransaction {
             return Err("simulated uncertain state durability before StateCommitted".to_string());
         }
         // A state writer may report that rename succeeded while its directory fsync was
-        // uncertain. Re-fsync the pinned directory here; failure leaves the authenticated journal
+        // uncertain. Re-fsync the pinned directory here; failure leaves the durable journal
         // in StateCommitting, where exact CAS rollback remains permitted.
         self.state_root.sync().map_err(|error| {
             format!("State durability is still uncertain; refusing StateCommitted: {error}")
@@ -2121,7 +2117,7 @@ impl Drop for MacApplyTransaction {
 
 /// Returns true when an interrupted transaction was restored. A state-committed or committed
 /// journal only needs cleanup and returns false. Production recovery repeats the exact executable
-/// guard inside the authenticated restore, after all CAS inputs have been captured and immediately
+/// guard inside the validated restore, after all CAS inputs have been captured and immediately
 /// before the first recovery mutation.
 pub(crate) fn recover_pending_guarded(state_dir: &Path, app_path: &Path) -> Result<bool, String> {
     let mut guard =
@@ -2165,7 +2161,7 @@ fn recover_pending_internal(
         JournalPhase::StateCommitted | JournalPhase::Committed
     ) {
         verify_committed_postimages(&manifest, roots)?;
-        // Keep authenticated backups until the caller independently verifies the bundle's code
+        // Keep validated backups until the caller independently verifies the bundle's code
         // signature.  A valid hash checkpoint is not a substitute for a valid executable seal.
         return Ok(false);
     }
@@ -3194,7 +3190,7 @@ fn verify_recovery_current_state(
                     // failure can occur after codesign mutates bytes but before an exact postimage
                     // is journaled. `current_fingerprint_at` already rejects symlink/non-regular
                     // drift; accept the exact current file/absence as the CAS input solely in this
-                    // authenticated phase, then restore the backed-up preimage.
+                    // validated phase, then restore the backed-up preimage.
                     true
                 } else {
                     matches_preimage(entry, &current)?
@@ -4341,8 +4337,7 @@ fn write_manifest(root: &SecureDirectory, manifest: &JournalManifest) -> Result<
     if take_test_failpoint(&FAIL_NEXT_MANIFEST_WRITE) {
         return Err("simulated durable manifest write failure".to_string());
     }
-    let authenticated = authenticate_manifest_for_write(manifest)?;
-    let payload = serde_json::to_vec_pretty(&authenticated).map_err(|error| error.to_string())?;
+    let payload = serde_json::to_vec_pretty(manifest).map_err(|error| error.to_string())?;
     let path = root.path.join(MANIFEST_NAME);
     let temporary_name = format!(
         ".{MANIFEST_NAME}.{}-{}",
@@ -4422,121 +4417,12 @@ fn read_manifest(root: &SecureDirectory) -> Result<JournalManifest, String> {
             path.display()
         )
     })?;
-    let manifest = serde_json::from_slice(&bytes).map_err(|error| {
+    serde_json::from_slice(&bytes).map_err(|error| {
         format!(
             "Pending macOS journal is invalid at {}: {error}",
             path.display()
         )
-    })?;
-    verify_manifest_authentication(&manifest)?;
-    Ok(manifest)
-}
-
-fn authenticate_manifest_for_write(manifest: &JournalManifest) -> Result<JournalManifest, String> {
-    let mut authenticated = manifest.clone();
-    authenticated.authentication_tag.clear();
-    let payload = serde_json::to_vec(&authenticated).map_err(|error| error.to_string())?;
-    authenticated.authentication_tag = encode_hex(&hmac_sha256(&journal_auth_key()?, &payload));
-    Ok(authenticated)
-}
-
-fn verify_manifest_authentication(manifest: &JournalManifest) -> Result<(), String> {
-    let supplied = decode_fixed_hex(&manifest.authentication_tag, 32)
-        .map_err(|_| "Pending macOS journal authentication tag is invalid.".to_string())?;
-    let mut unsigned = manifest.clone();
-    unsigned.authentication_tag.clear();
-    let payload = serde_json::to_vec(&unsigned).map_err(|error| error.to_string())?;
-    let expected = hmac_sha256(&journal_auth_key()?, &payload);
-    if constant_time_equal(&supplied, &expected) {
-        Ok(())
-    } else {
-        Err("Pending macOS journal authentication failed; automatic recovery refused.".to_string())
-    }
-}
-
-#[cfg(test)]
-fn journal_auth_key() -> Result<Vec<u8>, String> {
-    Ok(b"cavalry-i18n-test-journal-key!".to_vec())
-}
-
-#[cfg(not(test))]
-fn journal_auth_key() -> Result<Vec<u8>, String> {
-    use security_framework::{
-        passwords::{get_generic_password, set_generic_password},
-        random::SecRandom,
-    };
-
-    match get_generic_password(JOURNAL_KEY_SERVICE, JOURNAL_KEY_ACCOUNT) {
-        Ok(key) if key.len() == JOURNAL_KEY_BYTES => return Ok(key),
-        Ok(_) => {
-            return Err(
-                "macOS transaction journal Keychain key has an invalid length.".to_string(),
-            );
-        }
-        Err(_) => {}
-    }
-
-    let mut generated = vec![0_u8; JOURNAL_KEY_BYTES];
-    SecRandom::default()
-        .copy_bytes(&mut generated)
-        .map_err(|error| format!("Could not generate journal authentication key: {error}"))?;
-    set_generic_password(JOURNAL_KEY_SERVICE, JOURNAL_KEY_ACCOUNT, &generated)
-        .map_err(|error| format!("Could not store journal authentication key: {error}"))?;
-    let stored = get_generic_password(JOURNAL_KEY_SERVICE, JOURNAL_KEY_ACCOUNT)
-        .map_err(|error| format!("Could not re-read journal authentication key: {error}"))?;
-    if stored.len() != JOURNAL_KEY_BYTES || !constant_time_equal(&stored, &generated) {
-        return Err(
-            "Journal authentication key did not round-trip through macOS Keychain.".to_string(),
-        );
-    }
-    Ok(stored)
-}
-
-fn hmac_sha256(key: &[u8], payload: &[u8]) -> [u8; 32] {
-    const BLOCK_BYTES: usize = 64;
-    let mut normalized = [0_u8; BLOCK_BYTES];
-    if key.len() > BLOCK_BYTES {
-        normalized[..32].copy_from_slice(&Sha256::digest(key));
-    } else {
-        normalized[..key.len()].copy_from_slice(key);
-    }
-    let mut inner_pad = [0x36_u8; BLOCK_BYTES];
-    let mut outer_pad = [0x5c_u8; BLOCK_BYTES];
-    for index in 0..BLOCK_BYTES {
-        inner_pad[index] ^= normalized[index];
-        outer_pad[index] ^= normalized[index];
-    }
-    let mut inner = Sha256::new();
-    inner.update(inner_pad);
-    inner.update(payload);
-    let inner_digest = inner.finalize();
-    let mut outer = Sha256::new();
-    outer.update(outer_pad);
-    outer.update(inner_digest);
-    outer.finalize().into()
-}
-
-fn decode_fixed_hex(value: &str, bytes: usize) -> Result<Vec<u8>, String> {
-    if value.len() != bytes * 2 {
-        return Err("hex length mismatch".to_string());
-    }
-    value
-        .as_bytes()
-        .chunks_exact(2)
-        .map(|pair| Ok((hex_nibble(pair[0])? << 4) | hex_nibble(pair[1])?))
-        .collect()
-}
-
-fn constant_time_equal(left: &[u8], right: &[u8]) -> bool {
-    if left.len() != right.len() {
-        return false;
-    }
-    left.iter()
-        .zip(right)
-        .fold(0_u8, |difference, (left, right)| {
-            difference | (left ^ right)
-        })
-        == 0
+    })
 }
 
 fn fingerprint_open_file(file: &mut File, mode: u32) -> Result<FileFingerprint, String> {
@@ -5301,7 +5187,7 @@ mod tests {
     }
 
     #[test]
-    fn authenticated_manifest_tampering_is_rejected_before_recovery() {
+    fn structurally_invalid_manifest_phase_is_rejected_before_recovery() {
         let temp = tempfile::tempdir().unwrap();
         let root = fs::canonicalize(temp.path()).unwrap();
         let app = root.join("Cavalry.app");
@@ -5327,13 +5213,47 @@ mod tests {
         std::mem::forget(transaction);
 
         let error = recover_pending(&state, &app).unwrap_err();
-        assert!(error.contains("authentication failed"), "{error}");
+        assert!(error.contains("incomplete verified postimages"), "{error}");
         assert_eq!(fs::read(destination).unwrap(), b"translated");
         assert!(journal_root(&state).exists());
     }
 
     #[test]
-    fn authenticated_manifest_rejects_non_regular_fingerprint_modes() {
+    fn legacy_schema_six_authentication_tag_is_accepted_but_not_rewritten() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = fs::canonicalize(temp.path()).unwrap();
+        let app = root.join("Cavalry.app");
+        let state = root.join("state");
+        let source = root.join("translated.json");
+        let destination = app.join("Contents/assets/appStrings.json");
+        write(&destination, b"official");
+        write(&source, b"translated");
+        let transaction = MacApplyTransaction::begin(
+            &state,
+            &app,
+            &[CopyPair {
+                src: source,
+                dst: destination.clone(),
+            }],
+        )
+        .unwrap();
+        let manifest_path = transaction.journal_root.join(MANIFEST_NAME);
+        let mut value: serde_json::Value =
+            serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
+        assert!(
+            value.get("authenticationTag").is_none(),
+            "new journals must not depend on Keychain authentication"
+        );
+        value["authenticationTag"] = serde_json::Value::String("legacy-tag".to_string());
+        fs::write(&manifest_path, serde_json::to_vec_pretty(&value).unwrap()).unwrap();
+        std::mem::forget(transaction);
+
+        assert!(recover_pending(&state, &app).unwrap());
+        assert_eq!(fs::read(destination).unwrap(), b"official");
+    }
+
+    #[test]
+    fn manifest_rejects_non_regular_fingerprint_modes() {
         let temp = tempfile::tempdir().unwrap();
         let root = fs::canonicalize(temp.path()).unwrap();
         let app = root.join("Cavalry.app");

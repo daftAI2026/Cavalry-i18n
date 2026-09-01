@@ -115,7 +115,7 @@ idle → preparing → presenting → presented → reversing → idle
 
 当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求一次同进程 oracle，renderer 将同一 session 在前次事务完成前重复到达的 Retry/drop 折叠为一次，真实写事务成功才 reverse，任何失败都 cleanup；再次 PermissionDenied 会在 Activity 链尾显示重开提示。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer oracle→success reverse / Later restart-required / fresh-session 投影。最终 ad-hoc `.app`/DMG 仍按项目 SOP 验证四语用途说明、签名与包结构，但这里不再建设独立账户、官方 DMG 封存或首次 TCC release 证明。
 
-2026-09-01 原生动画修正只收敛两个几何 owner 问题，没有改变权限状态机或 renderer 接线：此前 `CAVReplicantView` 让 source/target `NSImageView` 与三层 shadow/stroke 作为根 view 的兄弟对象，各自持有 frame；即使数值相同，在 per-screen panel 的局部裁切、rasterization 或下一帧布局中仍可能出现表层与阴影不同步。现在由单一 `motionSurfaceView` 持有两张图、三层 shadow 和 stroke，外层只移动这一层，所有效果使用其 `bounds`，因此表层与阴影共享同一几何生命周期。此前箭头 child panel 紧贴 `28×28` glyph，`y=1.6` spring stretch 与 `7pt` radius / `4pt` offset shadow 必然会越过 panel 上边界；现在 panel/canvas 的宽高由最大 stretch 和 shadow 推导，glyph 放在带水平/垂直 overscan 的 canvas 内并以底边为 anchor，继续使用已取证的 `0.5s → 0.25s → 4s`、`1/200/11` 与 `-10pt` 位移。该项是源码与静态合同修正；尚未把当前账户的单屏编译结果冒充新的 packaged 像素级 live 证据。
+2026-09-01 原生动画修正只收敛两个几何 owner 问题，没有改变权限状态机或 renderer 接线：此前 `CAVReplicantView` 让 source/target `NSImageView` 与三层 shadow/stroke 作为根 view 的兄弟对象，各自持有 frame；即使数值相同，在 per-screen panel 的局部裁切、rasterization 或下一帧布局中仍可能出现表层与阴影不同步。现在由单一 `motionSurfaceView` 持有两张图、三层 shadow 和 stroke，外层只移动这一层，所有效果使用其 `bounds`，因此表层与阴影共享同一几何生命周期。此前箭头 child panel 紧贴 `28×28` glyph，`y=1.6` spring stretch 与 `7pt` radius / `4pt` offset shadow 必然会越过 panel 上边界；panel/canvas 的宽高因此由最大 stretch 和 shadow 推导，glyph 以底边为 anchor。2026-09-02 真机截图证明 overscan 初版错误地把研究中的 `-10pt` 又叠加到项目已锁定的 screen-space 静止坐标；当前改为先冻结 overscan 前的 `glyphScreenX/Y`，再只向四周扩展透明 panel，继续使用已取证的 `0.5s → 0.25s → 4s` 与 `1/200/11`，但绝不让防裁切画布移动静止箭头。该项是源码与静态合同修正；尚未把当前账户的单屏编译结果冒充新的 packaged 像素级 live 证据。
 
 真实机权限交接与启动恢复另写入本机 state 目录下的 `diagnostics.jsonl`，超过 512 KiB 后只轮换为一份 `diagnostics.previous.jsonl`。日志记录启动恢复前后是否存在 pending journal、renderer status 最终裁决、macOS bundle/signature/vendor runtime/Managed Legacy snapshot/runtime 的无路径失败门、语言动作结果和 App Management 设置入口结果；错误文本会脱敏 state、用户目录与临时目录，不记录语言文件内容、密钥、哈希或 TCC 数据。它是复现支持证据，不是新的 renderer 状态源；写入失败不得改变语言事务、权限 handoff 或启动结果。
 
@@ -217,7 +217,7 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | 提示箭头节奏 | 出现 0.5s 后开始；stretch 0.25s、idle 4s 循环；hover 触发一次 0.25s stretch | 循环的是独立提示箭头，不是 app 卡片或假拖拽 |
 | Reduce Motion | 当前参考样本未找到可归因的直接分支 | 本项目仍必须自行正确实现静态降级 |
 
-提示箭头使用资源目录中的独立 raster，不是通用软件光标。其当前视觉为 `28×28`、底部锚点、stretch 时 `x=1.15 / y=1.6`、黑色 23% 阴影 `radius=7, x=0, y=4`、垂直偏移 `-10`；所有伸缩使用 `interpolatingSpring(mass:1, stiffness:200, damping:11, initialVelocity:0)`。这套 0.5/0.25/4 秒节奏只解释“请在这里拖”，不得被实现成自动移动 app 对象，更不得作为授权完成计时器。
+提示箭头使用资源目录中的独立 raster，不是通用软件光标。参考视觉为 `28×28`、底部锚点、stretch 时 `x=1.15 / y=1.6`、黑色 23% 阴影 `radius=7, x=0, y=4`，并记录到相对参考排版的 `-10` 视觉关系；所有伸缩使用 `interpolatingSpring(mass:1, stiffness:200, damping:11, initialVelocity:0)`。项目 helper 已用真机截图锁定静止 glyph 坐标，因此该视觉关系不得再作为第二个 screen-space offset 叠加。0.5/0.25/4 秒节奏只解释“请在这里拖”，不得被实现成自动移动 app 对象，更不得作为授权完成计时器。
 
 参考应用还包含另一套截图 presentation 动画。它服务于应用截图展示，不是权限行到 System Settings 的授权转场，禁止交叉套用参数。
 

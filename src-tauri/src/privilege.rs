@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖各平台权限复制、bundle/restart 适配器与 CommandRunner；接收 staged CopyPair、只读发现命令和受控启动请求。
- * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供 typed 写入前 graceful close、有界 macOS 签名/只读 seal 验证、Windows apply/recovery 提升 worker 早期分流，并让 Program Files 启动恢复先以不跟随 reparse 的保存根只读探针确认 journal，再经 same-EXE RunAs 边界执行。
+ * [OUTPUT]: 保持 privilege::{CommandRunner, RecordingRunner, RealCommandRunner, CopyOutcome,...} 兼容入口，提供普通写入前只读运行探针、显式 restart 的 graceful close、有界 macOS 签名/只读 seal 验证、Windows apply/recovery 提升 worker 早期分流，并让 Program Files 启动恢复先以不跟随 reparse 的保存根只读探针确认 journal，再经 same-EXE RunAs 边界执行。
  * [POS]: src-tauri/src 的跨平台系统命令 facade；平台安全、提升事务、journal 机制与辅助进程可见性下沉到职责模块，命令层不直接触碰 UAC/AppleScript，受保护安装根禁止回退为未提权写入。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -51,6 +51,8 @@ pub(crate) use macos::bundle::{
     inspect_bundle_signature, seal_patched_bundle, sign_modified_nested_code,
     verify_modified_nested_code, BundleSignatureEvidence,
 };
+#[cfg(target_os = "macos")]
+pub(crate) use macos::process::ensure_cavalry_not_running;
 #[cfg(target_os = "windows")]
 pub(crate) use runner::captured_command;
 #[cfg(target_os = "windows")]
@@ -154,8 +156,8 @@ pub(crate) fn recover_macos_apply_transaction<R: CommandRunner>(
         return Ok(());
     }
     if macos::apply_transaction::pending_requires_bundle_restore(state_dir, app_path)? {
-        close_cavalry_before_modification(app_path, runner).map_err(|error| {
-            format!("Could not close the selected Cavalry before transaction recovery: {error}")
+        ensure_cavalry_not_running(app_path).map_err(|error| {
+            format!("Close the selected Cavalry before transaction recovery: {error}")
         })?;
     }
     let restored_preimages =
@@ -167,7 +169,7 @@ pub(crate) fn recover_macos_apply_transaction<R: CommandRunner>(
             format!("Committed macOS postimages failed signature verification: {error}")
         }
     })?;
-    // Only delete the authenticated journal after both exact-byte verification and the
+    // Only delete the structurally validated journal after both exact-byte verification and the
     // independent code-signature gate have succeeded.
     macos::apply_transaction::finalize_recovered(state_dir, app_path)?;
     Ok(())

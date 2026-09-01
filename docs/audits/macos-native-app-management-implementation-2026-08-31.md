@@ -512,7 +512,7 @@ codesign --verify --deep --strict "$APP"
 
 参考研究已锁定箭头 `28×28` 视觉尺寸、`scaleX=1.15`、`scaleY=1.6`、`mass=1 / stiffness=200 / damping=11`、初始等待 `0.5s`、stretch `0.25s`、空闲 `4s`、视觉上移 `10pt`，以及黑色 `0.23 / radius 7 / y 4` 阴影。此前 native child panel 仍是紧贴 glyph 的 `28×28`，最大 stretch 和 shadow 会越出 panel 上边界，所以出现箭头上半部被裁切。
 
-当前实现保留上述行为参数，只改变承载几何：canvas 宽度为 `ArrowSize + 2 × shadowRadius`，高度为最大 `scaleY` 高度加上上下 shadow overscan；glyph 放在 canvas 内的实际位置，layer 以底边为 anchor，箭头 shadow 跟随同一 glyph layer。panel 不再用 `28×28` 紧框裁切，最大 stretch、横向 shadow 和上下 shadow 都有自己的透明余量。
+当前实现保留 spring/stretch/shadow 参数，只改变承载几何：canvas 宽度为 `ArrowSize + 2 × shadowRadius`，高度为最大 `scaleY` 高度加上上下 shadow overscan；glyph 放在 canvas 内，layer 以底边为 anchor，箭头 shadow 跟随同一 glyph layer。panel 不再用 `28×28` 紧框裁切，最大 stretch、横向 shadow和上下 shadow 都有自己的透明余量。2026-09-02 真机截图又证明：研究中的 `-10pt` 视觉关系不能作为第二次 screen-space 位移叠到项目已锁定 helper 坐标上。修正后先固定原始 `glyphScreenX/Y`，再仅向四周扩展透明 panel；静止 glyph 与 overscan 前完全同位，避免“为防裁切反而把初始箭头上移”的坐标 owner 错误。
 
 这仍是洁净室实现：只复用研究对象可观察的节奏、位移、曲线和公开 AppKit/Core Animation 行为，不复制仓库外的私有 raster。新增 `macos_permission_handoff_contract.rs` 静态合同锁定上述常量、bottom anchor、overscan 公式、shadow 同层和 `settlingDuration`；真实 macOS 首次授权、多屏/混合倍率与 packaged 像素 readback仍按 roadmap 的 R3/R5 边界执行。
 

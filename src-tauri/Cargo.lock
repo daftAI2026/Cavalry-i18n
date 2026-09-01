@@ -278,7 +278,6 @@ dependencies = [
  "objc2-app-kit",
  "plist",
  "rfd",
- "security-framework",
  "serde",
  "serde_json",
  "sha2",

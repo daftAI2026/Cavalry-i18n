@@ -19,7 +19,7 @@ static const CGFloat CAVArrowSize = 28.0; static const CGFloat CAVArrowTextGap =
 static const CGFloat CAVArrowDesignSize = 256.0; static const CGFloat CAVArrowDrawingInset = 2.0; static const CGFloat CAVInfoBlueGreen = 107.0 / 255.0;
 static const CGFloat CAVArrowScaleX = 1.15; static const CGFloat CAVArrowScaleY = 1.6; static const CGFloat CAVArrowMass = 1.0; static const CGFloat CAVArrowStiffness = 200.0; static const CGFloat CAVArrowDamping = 11.0; static const NSTimeInterval CAVArrowInitialDelay = 0.5; static const NSTimeInterval CAVArrowStretchDuration = 0.25;
 static const NSTimeInterval CAVArrowIdleDuration = 4.0; static const NSTimeInterval CAVSettingsProbeInterval = 0.10; static const NSUInteger CAVSettingsProbeLimit = 50; static const NSUInteger CAVSettingsMissingGrace = 10;
-static const CGFloat CAVArrowShadowOpacity = 0.23; static const CGFloat CAVArrowShadowRadius = 7.0; static const CGFloat CAVArrowShadowY = 4.0; static const CGFloat CAVArrowVerticalOffset = -10.0;
+static const CGFloat CAVArrowShadowOpacity = 0.23; static const CGFloat CAVArrowShadowRadius = 7.0; static const CGFloat CAVArrowShadowY = 4.0;
 static const CGFloat CAVArrowShadowBottomInset = CAVArrowShadowRadius + CAVArrowShadowY;
 static const CGFloat CAVArrowCanvasWidth = CAVArrowSize + CAVTwo * CAVArrowShadowRadius;
 static const CGFloat CAVArrowCanvasHeight = CAVArrowSize * CAVArrowScaleY + CAVArrowShadowRadius + CAVArrowShadowBottomInset;
@@ -612,19 +612,23 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   self.backButton = back;
   CGFloat arrowX = instructionGroupX;
   CGFloat arrowY = CAVHelperHeight - CAVInstructionTop - CAVArrowSize;
-  CGFloat arrowPanelLeft = NSMinX(frame) + arrowX - CAVArrowShadowRadius;
-  CGFloat arrowPanelBottom = NSMinY(frame) + arrowY - CAVArrowVerticalOffset - CAVArrowShadowBottomInset;
+  // Overscan 只扩大透明画布，绝不能移动已经对齐的 28pt 箭头。屏幕中的静止
+  // glyph 仍严格落在 helper 的 (arrowX, arrowY)，弹跳与阴影只消耗四周留白。
+  CGFloat arrowGlyphScreenX = NSMinX(frame) + arrowX;
+  CGFloat arrowGlyphScreenY = NSMinY(frame) + arrowY;
+  CGFloat arrowPanelLeft = arrowGlyphScreenX - CAVArrowShadowRadius;
+  CGFloat arrowPanelBottom = arrowGlyphScreenY - CAVArrowShadowBottomInset;
   NSRect arrowScreenFrame = NSMakeRect(arrowPanelLeft, arrowPanelBottom,
                                        CAVArrowCanvasWidth, CAVArrowCanvasHeight);
   CAVNonActivatingPanel *arrowPanel = [[CAVNonActivatingPanel alloc]
     initWithContentRect:arrowScreenFrame styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel backing:NSBackingStoreBuffered defer:NO];
   arrowPanel.releasedWhenClosed = NO; arrowPanel.opaque = NO; arrowPanel.backgroundColor = NSColor.clearColor;
   arrowPanel.hasShadow = NO; arrowPanel.ignoresMouseEvents = NO; arrowPanel.level = NSFloatingWindowLevel;
-  CAVFlippedView *arrowCanvas = [[CAVFlippedView alloc]
+  NSView *arrowCanvas = [[NSView alloc]
     initWithFrame:NSMakeRect(CAVZero, CAVZero, CAVArrowCanvasWidth, CAVArrowCanvasHeight)];
   arrowCanvas.wantsLayer = YES; arrowCanvas.layer.masksToBounds = NO;
   NSRect arrowGlyphFrame = NSMakeRect(CAVArrowShadowRadius,
-                                      CAVArrowCanvasHeight - CAVArrowSize - CAVArrowShadowBottomInset,
+                                      CAVArrowShadowBottomInset,
                                       CAVArrowSize, CAVArrowSize);
   CAVHandoffArrowView *arrow = [[CAVHandoffArrowView alloc]
     initWithFrame:arrowGlyphFrame];

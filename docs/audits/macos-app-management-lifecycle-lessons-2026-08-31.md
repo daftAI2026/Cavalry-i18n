@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖本机 macOS 27 SecurityPrivacyExtension 的只读本地化/符号复核、Apple SystemPolicyAppBundles 文档、公开 p5 tag、当前 renderer/Rust/AppKit 权限链与匿名参考的服务边界
-[OUTPUT]: 对外提供 App Management 首次授权生命周期、首次 handoff 必须早于 Cavalry mutation 的边界、脚本入口外置签名组件的真实语义与静默产品投影、系统/Updater/Cavalry restart 区分、fresh-session 决策及可复用调研方法
+[OUTPUT]: 对外提供 App Management 首次授权生命周期、首次 handoff 必须早于 Cavalry mutation 的边界、无需 Keychain 的 durable journal 决策、脚本入口外置签名组件的真实语义与静默产品投影、系统/Updater/Cavalry restart 区分、Switch/Restore 共同只读进程 admission、fresh-session 决策及可复用调研方法
 [POS]: docs/audits 的权限生命周期与签名副作用复盘；实施账本引用本文的通用结论，本文不驱动运行时，不把其他 TCC service 的行为类推为 App Management 事实，不把精确旧残留清理扩大为通用签名修复，也不把工具自己的兼容债务转嫁为用户状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -104,6 +104,25 @@ Switcher 是第三方本地翻译工具，本来就会修改 Cavalry 并在提�
 相反，Managed 安装当前 strict codesign 漂移、旧脚本入口留下已知外置组件、或签名目录存在与本工具无关的其他成员，都不再单独取得语言切换否决权。未知文件不会被本工具删除；只有无法证明目标结构、恢复 preimage 或本工具 runtime 所有权时才阻断。
 
 产品层也必须服从同一边界：已知外置组件只是 Switcher 自己的兼容清理细节，不是用户需要理解或裁决的安装状态。Status 可把结构完整的 stock runtime 统一投影为 `recoverableStock`，诊断日志保留具体组件事实，真正的语言事务再按 exact preimage 静默清理；renderer 不接收残留布尔值，不显示“旧版签名残留”，也不为了清理而额外启用 Restore。这样既不隐藏真实阻断，也不让工具自己的历史实现债务转嫁给用户。
+
+## 2.5 事务日志不应要求 Keychain 密码
+
+事务 journal 对断电、崩溃和中断恢复有真实价值，必须保留；但旧实现把 manifest HMAC 密钥保存在 `com.daftai.cavalry-i18n.transaction-journal.v1` Keychain 项中。开发/本地发布包使用 ad-hoc 签名，重建后 code requirement/CDHash 变化会让 macOS 再次询问登录钥匙串密码。该询问既不证明 App Management，也不参与翻译或 Cavalry 登录，却抢在权限 handoff 前打断用户。
+
+第一性原理裁决是删除错误的依赖，而不是换一种隐藏密钥：
+
+- 保留 0700 state root、0600 manifest/backups、schema/phase/operation id；
+- 保留 canonical install root、允许目的地、backup SHA-256、nofollow、fd-bound 操作、preimage/CAS 与最终签名 postcondition；
+- 不再创建或读取 journal Keychain 项，不再声称 manifest 具备密码学作者认证；
+- schema 6 旧 journal 的 `authenticationTag` 只作反序列化兼容，读取后忽略，新 journal 不再写该字段，确保现存中断事务无需再弹一次密码框即可恢复。
+
+这会放弃“抵御同一登录用户下另一恶意进程同时伪造 manifest 与 backups”的 HMAC 作者证明；但 state-dir 本地 secret 对同一用户进程也不能提供实质隔离。对于一个本地翻译注入工具，继续用高频系统密码框换取这层有限防线属于过度防御。
+
+## 2.6 Switch 与 Restore 共用最早运行态门
+
+用户是否已保存 Cavalry 工作，与目标是 Switch 还是 Restore 无关。两条动作必须复用同一个 exact executable/PID 只读探针：发现 Cavalry 正在运行时，立即在安装验证和恢复文件准备完成之前停止，要求用户自行保存并退出；工具不替用户关闭创作软件。用户重试后再次从头验证是可接受的，因为没有任何安装 mutation 已发生。
+
+为封闭竞态，真正事务仍在 staging 后、首个 mutation 前重复 exact-PID guard；这次复核也只拒绝，不发送 terminate。只有用户已经明确要求的“应用完成后启动 Cavalry”或独立 Restart 动作才拥有 graceful-close/reopen 语义。
 
 ## 3. 四种容易混淆的“重启”
 

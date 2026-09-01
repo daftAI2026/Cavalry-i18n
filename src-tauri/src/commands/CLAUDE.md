@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-apply.rs: 语言写入事务编排；保持 `apply_language_inner` 公开测试 seam；在真实验证、English 基线、跨平台事务提交边界使用 RAII phase guard；Windows 生产/测试共用 pair 构造；macOS stock runtime 中任一旧 Switcher 外置签名组件均按自有路径进入 durable cleanup，不再要求整个 `_CodeSignature` 目录满足取证式 exact set；已由 snapshot/runtime postimage 证明的 Managed 安装即使 strict codesign 漂移也可进入正常事务重签，签名只保留为最终可启动性 postcondition；App Management 只由事务层 typed PermissionDenied 进入 renderer。
+apply.rs: 语言写入事务编排；保持 `apply_language_inner` 公开测试 seam；macOS Switch/Restore 在安装验证完成与恢复文件准备前共用只读 exact-PID admission，不替用户关闭 Cavalry，并在首个 mutation 前复核；在真实验证、English 基线、跨平台事务提交边界使用 RAII phase guard；Windows 生产/测试共用 pair 构造；macOS stock runtime 中任一旧 Switcher 外置签名组件均按自有路径进入 durable cleanup，不再要求整个 `_CodeSignature` 目录满足取证式 exact set；已由 snapshot/runtime postimage 证明的 Managed 安装即使 strict codesign 漂移也可进入正常事务重签，签名只保留为最终可启动性 postcondition；App Management 只由事务层 typed PermissionDenied 进入 renderer。
 context.rs: Tauri 应用路径与资源候选解析；复用 root 级 runtime_paths，把 repo、state、Resources 以及 `_up_` 打包布局统一为 command 可消费的路径上下文，并只发布固定四语 manifest。
 contract.rs: renderer 兼容 DTO、九命令常量与操作事件合同；集中 camelCase JSON、稳定 error/warning codes，以及 Status 的 `managedLegacy`、`officialRecoveryAvailable`、`macosPermissionHandoffRequired`、四态版本兼容与 Windows residue/UAC 投影；旧 Switcher 签名副作用只属后端兼容事务，不进入 renderer DTO；Channel 失败不改变已提交事务，facade 返回前清空原文。
 restart.rs: 重启 command 编排；同步持久 state 后用安装真相只读投影 stale Windows marker，再委托 platform_runtime；`apply_language` 在同一 operation guard 内复用它，避免 renderer 竞态。

@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 install 布局、verified vendor Info.plist 或严格证明的 Managed Legacy runtime、mac_runtime/windows_runtime/windows_qpa、privilege typed graceful close 与 state。
- * [OUTPUT]: 提供 prepare_apply（macOS 新管理态从 trusted Info 生成；Managed Legacy 只更新 marker/JSON 而不改写无 vendor preimage 的 runtime）、typed preflight、签名/app seal、English 早退与 restart 编排入口。
+ * [INPUT]: 依赖 install 布局、verified vendor Info.plist 或严格证明的 Managed Legacy runtime、mac_runtime/windows_runtime/windows_qpa、privilege typed process guard/graceful close 与 state。
+ * [OUTPUT]: 提供 prepare_apply（macOS 新管理态从 trusted Info 生成；Managed Legacy 只更新 marker/JSON 而不改写无 vendor preimage 的 runtime）、typed preflight、签名/app seal、English 早退与 restart 编排入口；macOS Switch/Restore preflight 只读探测运行态，不替用户关闭 Cavalry。
  * [POS]: commands 与平台差异之间的私有 facade；Windows English/翻译态都解析同一可信双 DLL 源，自定义根与 Program Files 共享 QPA 所有权语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -217,14 +217,15 @@ pub(crate) fn preflight_apply<R: CommandRunner>(
     #[cfg(target_os = "macos")]
     {
         let _ = lang;
-        return match privilege::close_cavalry_before_modification(app_path, runner) {
+        let _ = runner;
+        return match privilege::ensure_cavalry_not_running(app_path) {
             Ok(()) => Ok(()),
             Err(privilege::CloseCavalryError::StillRunning) => {
                 Err(ApplyPreflightError::CavalryStillRunning)
             }
             Err(privilege::CloseCavalryError::Command(detail)) => {
                 Err(ApplyPreflightError::Other(format!(
-                    "Could not close the selected Cavalry before applying language files: {detail}"
+                    "Could not inspect the selected Cavalry process before applying language files: {detail}"
                 )))
             }
         };

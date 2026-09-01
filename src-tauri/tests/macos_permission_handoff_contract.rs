@@ -280,7 +280,6 @@ fn native_arrow_matches_reference_spring_and_has_unclipped_overscan_canvas() {
     let shadow_opacity = numeric_constant(&native, "CAVArrowShadowOpacity");
     let shadow_radius = numeric_constant(&native, "CAVArrowShadowRadius");
     let shadow_y = numeric_constant(&native, "CAVArrowShadowY");
-    let vertical_offset = numeric_constant(&native, "CAVArrowVerticalOffset");
     let mass = numeric_constant(&native, "CAVArrowMass");
     let stiffness = numeric_constant(&native, "CAVArrowStiffness");
     let damping = numeric_constant(&native, "CAVArrowDamping");
@@ -291,7 +290,6 @@ fn native_arrow_matches_reference_spring_and_has_unclipped_overscan_canvas() {
     assert_eq!(arrow_size, 28.0);
     assert_eq!((scale_x, scale_y), (1.15, 1.6));
     assert_eq!((shadow_opacity, shadow_radius, shadow_y), (0.23, 7.0, 4.0));
-    assert_eq!(vertical_offset, -10.0);
     assert_eq!((mass, stiffness, damping), (1.0, 200.0, 11.0));
     assert_eq!(
         (initial_delay, stretch_duration, idle_duration),
@@ -302,11 +300,13 @@ fn native_arrow_matches_reference_spring_and_has_unclipped_overscan_canvas() {
         "static const CGFloat CAVArrowShadowBottomInset = CAVArrowShadowRadius + CAVArrowShadowY;",
         "static const CGFloat CAVArrowCanvasWidth = CAVArrowSize + CAVTwo * CAVArrowShadowRadius;",
         "static const CGFloat CAVArrowCanvasHeight = CAVArrowSize * CAVArrowScaleY + CAVArrowShadowRadius + CAVArrowShadowBottomInset;",
-        "CGFloat arrowPanelLeft = NSMinX(frame) + arrowX - CAVArrowShadowRadius;",
-        "CGFloat arrowPanelBottom = NSMinY(frame) + arrowY - CAVArrowVerticalOffset - CAVArrowShadowBottomInset;",
+        "CGFloat arrowGlyphScreenX = NSMinX(frame) + arrowX;",
+        "CGFloat arrowGlyphScreenY = NSMinY(frame) + arrowY;",
+        "CGFloat arrowPanelLeft = arrowGlyphScreenX - CAVArrowShadowRadius;",
+        "CGFloat arrowPanelBottom = arrowGlyphScreenY - CAVArrowShadowBottomInset;",
         "CAVArrowCanvasWidth, CAVArrowCanvasHeight",
         "NSRect arrowGlyphFrame = NSMakeRect(CAVArrowShadowRadius,",
-        "CAVArrowCanvasHeight - CAVArrowSize - CAVArrowShadowBottomInset",
+        "CAVArrowShadowBottomInset,",
         "arrow.layer.anchorPoint = CGPointMake(CAVHalf, CAVOne); arrow.frame = arrowGlyphFrame;",
         "arrow.layer.geometryFlipped = YES",
         "arrow.layer.masksToBounds = NO",
@@ -329,6 +329,10 @@ fn native_arrow_matches_reference_spring_and_has_unclipped_overscan_canvas() {
     assert!(
         !native.contains("CAVArrowSize, CAVArrowSize);\n  CAVNonActivatingPanel"),
         "the arrow panel must not revert to a tight 28x28 clipping window"
+    );
+    assert!(
+        !native.contains("CAVArrowVerticalOffset"),
+        "overscan must not move the locked resting glyph coordinate"
     );
 }
 
