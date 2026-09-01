@@ -25,6 +25,10 @@
       },
       "dmg": {
         "background": "icons/background.png",
+        "windowPosition": {
+          "x": 200,
+          "y": 120
+        },
         "windowSize": {
           "width": 800,
           "height": 476

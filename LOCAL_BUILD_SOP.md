@@ -241,7 +241,7 @@ Windows **开发机**下限为 Windows 10 x64、Node.js 24+、PowerShell 5.1+、
 
 ## 6. DMG 增强修饰（卷标与卷宗图标）
 
-Tauri 原生 DMG 配置（`tauri.macos.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸与图标坐标，无需手动干预。
+Tauri 原生 DMG 配置（`tauri.macos.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸、窗口原点与图标坐标，无需手动干预。Finder 的 `.DS_Store` 只保存绝对像素坐标，不支持 `50% 50%` 或在挂载时读取用户屏幕；当前 800×476 安装窗采用成熟 DMG 工具示例中的跨屏安全原点 `(200, 120)`。该值只决定初次打开位置，不阻止用户随后拖动；它不能被描述为每台 Mac 动态居中。若未来必须实现真实逐屏居中，只能改成拥有运行时代码的安装器，而不是继续给纯 DMG 增加脚本副作用。
 
 `src-tauri/icons/icon.png` 是 Tauri 开发态 runtime 与图标生成器共享的源图 contract，必须保持 `512x512`、8-bit、RGBA 和透明圆角；正式 macOS `.app` 读取 `icon.icns`，开发态裸二进制读取 `icon.png`，两者的 512px 解码像素必须同构。此前 `icon.png` 被孤立替换成四角不透明的 1024px 图，导致开发态 Dock 图标显大，但已安装 `.app` 的 `icon.icns` 一直正确；禁止再根据开发态异常重缩放整套正式发布图标。
 

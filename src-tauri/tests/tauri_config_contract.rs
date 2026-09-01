@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供公共 400×484 可读窗口、主窗口/About 共享的 macOS 交通灯 Overlay、Windows 无系统 caption + DWM shadow、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
+ * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、主窗/About capability 与 Windows generic/QPA 资源映射
+ * [OUTPUT]: 提供公共 400×484 可读窗口、主窗口/About 共享的 macOS 交通灯 Overlay 与标题栏拖动权限、Windows 无系统 caption + DWM shadow、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -103,7 +103,7 @@ fn tauri_config_declares_capabilities() {
     assert_eq!(about["windows"], serde_json::json!(["about"]));
     assert_eq!(
         about["permissions"],
-        serde_json::json!(["core:app:allow-version"])
+        serde_json::json!(["core:app:allow-version", "core:window:allow-start-dragging"])
     );
     assert!(!about["permissions"]
         .as_array()
@@ -131,6 +131,7 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = read_json(&manifest_dir.join("tauri.macos.conf.json"));
     let resources = config["bundle"]["resources"].as_object().unwrap();
+    let dmg = &config["bundle"]["macOS"]["dmg"];
 
     assert_eq!(
         config["build"]["beforeBuildCommand"],
@@ -146,6 +147,10 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
         resources["../injector/libCavalryTranslatorInjector.dylib"],
         "injector/libCavalryTranslatorInjector.dylib"
     );
+    assert_eq!(dmg["windowPosition"]["x"], 200);
+    assert_eq!(dmg["windowPosition"]["y"], 120);
+    assert_eq!(dmg["windowSize"]["width"], 800);
+    assert_eq!(dmg["windowSize"]["height"], 476);
     assert!(config["bundle"]["macOS"]
         .as_object()
         .unwrap()
