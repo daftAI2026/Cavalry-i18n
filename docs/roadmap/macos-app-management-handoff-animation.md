@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖当前 macOS 写事务与权限错误路径、Apple App Management 文档、本机 System Settings 只读复核、仓库外跨应用授权动画取证和锁定版本 MIT 参考源码
-[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、自动 handoff/用户拖拽/同进程真实 oracle/Later 重开提示/Quit & Reopen fresh-session 投影的逐步状态机、受保护写事务 commit→reverse→打开 Cavalry 的因果边界、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、typed 权限处理、当前生产实现、洁净室架构与分阶段验收路线
+[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、自动 handoff/用户拖拽/同进程真实 oracle/Later 重开提示/Quit & Reopen fresh-session 投影的逐步状态机、受保护写事务 commit→reverse→打开 Cavalry 的因果边界、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、typed 权限处理、本机有界脱敏诊断、当前生产实现、洁净室架构与分阶段验收路线
 [POS]: docs/roadmap 的 App Management 实施账本；工作台复用生产 renderer，当前 macOS 包用于验证真实 AppKit 生命周期，不承担 release 级首次授权取证
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -114,6 +114,8 @@ idle → preparing → presenting → presented → reversing → idle
 2026-08-31 以 UI Review revision `mtgsrup7.mj` 开始逐分支审查。审查先暴露了一个真实原型竞态：点击“重置”后，旧 source document 仍可能在同一 URL 导航提交前短暂可见，导致下一次交接误走静态 fallback。现在重置会重载同一生产 renderer fixture，并在**新 document 的非零权限动作重新出现前**保持交接入口禁用，不再让上一轮成功态或旧 DOM 污染下一轮。该 revision 的动画采样仍提供有效历史证据：完整成功 reverse 捕获 66 个 RAF 样本、约 1084ms，目标 opacity 从 `1` 单调下降到 `0.001`，中点 `p=0.5089 / 1-p=0.4911`，双图 opacity 互补最大误差小于 `5.1e-7`，对向 blur 和为 12px 的最大误差小于 `5.1e-5`。生命周期修正后的最新实跑则确认：同进程 oracle 成功才 reverse；其他 typed error 直接 cleanup；再次拒绝会清除 helper、在生产 Activity 链尾显示 `restart-required`，并禁用 Retry；模拟系统 Quit & Reopen 后，真实 renderer fixture 进入普通新会话首屏，不续跑旧任务。HTML drop、fixture settled、fresh-session 投影和 review trace 都不冒充 macOS 授权或系统已成功重开。
 
 当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求一次同进程 oracle，renderer 将同一 session 在前次事务完成前重复到达的 Retry/drop 折叠为一次，真实写事务成功才 reverse，任何失败都 cleanup；再次 PermissionDenied 会在 Activity 链尾显示重开提示。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer oracle→success reverse / Later restart-required / fresh-session 投影。最终 ad-hoc `.app`/DMG 仍按项目 SOP 验证四语用途说明、签名与包结构，但这里不再建设独立账户、官方 DMG 封存或首次 TCC release 证明。
+
+真实机权限交接与启动恢复另写入本机 state 目录下的 `diagnostics.jsonl`，超过 512 KiB 后只轮换为一份 `diagnostics.previous.jsonl`。日志只记录启动恢复前后是否存在 pending journal、语言动作结果和 App Management 设置入口结果；错误文本会脱敏 state、用户目录与临时目录，不记录语言文件内容、密钥、哈希或 TCC 数据。它是复现支持证据，不是新的 renderer 状态源；写入失败不得改变语言事务、权限 handoff 或启动结果。
 
 生产链只保留两项必要的 fail-closed 约束：`openat`/`renameatx_np` 的原始 `PermissionDenied` 在回滚补充说明后仍保留 typed 类别，macOS command 不解析任意错误文案；原生 drag 只有在 copy operation 的释放点位于实时 System Settings 整窗内时才请求重试，Finder 或其他接受 Copy 的目标不会推进权限链。
 

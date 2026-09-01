@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；open_privacy_security 只接受固定 App Management 与有限 source rect；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段，受保护写事务提交即以真实 oracle 触发 macOS handoff reverse，再继续 restart 与最终业务结果，任何失败均回收 handoff；macOS 权限只消费 apply 层 typed payload，不再以错误字符串猜测；install_update 通过 camelCase onEvent Channel 投影 downloading、installing、restarting 三个真实更新边界；project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
+ * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；open_privacy_security 只接受固定 App Management 与有限 source rect；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段，受保护写事务提交即以真实 oracle 触发 macOS handoff reverse，再继续 restart 与最终业务结果，任何失败均回收 handoff；macOS 权限只消费 apply 层 typed payload，不再以错误字符串猜测；apply 与权限设置边界向本地有界 diagnostics JSONL 投影脱敏结果；install_update 通过 camelCase onEvent Channel 投影 downloading、installing、restarting 三个真实更新边界；project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -81,9 +81,26 @@ pub async fn apply_language(
         ));
     }
     let paths = context::AppPaths::for_app(&app);
+    let diagnostics_state_dir = paths.state_dir.clone();
+    let diagnostics_action = lang.clone();
+    crate::diagnostics::record(
+        &diagnostics_state_dir,
+        "languageActionStarted",
+        serde_json::json!({ "action": diagnostics_action }),
+    );
     let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
         Err(error) => {
+            crate::diagnostics::record(
+                &diagnostics_state_dir,
+                "languageActionFinished",
+                serde_json::json!({
+                    "action": diagnostics_action,
+                    "ok": false,
+                    "error": crate::diagnostics::sanitize_message(&error, &diagnostics_state_dir),
+                    "errorCode": "operationBusy",
+                }),
+            );
             return finalize_permission_handoff(ActionPayload::error(&error.to_string()));
         }
     };
@@ -145,6 +162,20 @@ pub async fn apply_language(
             Ok(Err(error)) => ActionPayload::error(&error),
             Err(error) => ActionPayload::error(&format!("Language apply task failed: {error}")),
         };
+    crate::diagnostics::record(
+        &diagnostics_state_dir,
+        "languageActionFinished",
+        serde_json::json!({
+            "action": diagnostics_action,
+            "ok": result.ok,
+            "permissionRequired": result.permission_required,
+            "errorCode": result.error_code,
+            "error": result
+                .error
+                .as_deref()
+                .map(|error| crate::diagnostics::sanitize_message(error, &diagnostics_state_dir)),
+        }),
+    );
     finalize_permission_handoff(result)
 }
 
@@ -167,7 +198,18 @@ pub fn open_privacy_security(
     request: PermissionHandoffRequest,
     on_event: tauri::ipc::Channel<PermissionHandoffEvent>,
 ) -> PermissionHandoffPayload {
+    let state_dir = context::state_dir_for_app(&app);
+    crate::diagnostics::record(
+        &state_dir,
+        "permissionSettingsRequested",
+        serde_json::json!({ "permission": "appManagement" }),
+    );
     if !request.is_valid() {
+        crate::diagnostics::record(
+            &state_dir,
+            "permissionSettingsFinished",
+            serde_json::json!({ "ok": false, "errorCode": "invalidPermissionHandoffRequest" }),
+        );
         return PermissionHandoffPayload::error("invalidPermissionHandoffRequest");
     }
     #[cfg(target_os = "macos")]
@@ -179,6 +221,11 @@ pub fn open_privacy_security(
     )
     .is_err()
     {
+        crate::diagnostics::record(
+            &state_dir,
+            "permissionSettingsFinished",
+            serde_json::json!({ "ok": false, "errorCode": "permissionHandoffStartFailed" }),
+        );
         return PermissionHandoffPayload::error("permissionHandoffStartFailed");
     }
     #[cfg(not(target_os = "macos"))]
@@ -187,8 +234,18 @@ pub fn open_privacy_security(
     if privilege::open_privacy_security(&mut runner).is_err() {
         #[cfg(target_os = "macos")]
         crate::macos_permission_handoff::finish_app_management_handoff(false);
+        crate::diagnostics::record(
+            &state_dir,
+            "permissionSettingsFinished",
+            serde_json::json!({ "ok": false, "errorCode": "permissionSettingsOpenFailed" }),
+        );
         return PermissionHandoffPayload::error("permissionSettingsOpenFailed");
     }
+    crate::diagnostics::record(
+        &state_dir,
+        "permissionSettingsFinished",
+        serde_json::json!({ "ok": true }),
+    );
     PermissionHandoffPayload::opened()
 }
 
