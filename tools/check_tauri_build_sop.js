@@ -2230,7 +2230,10 @@ test('tauri capability and SOP mention the bridge and packaged resource boundari
   assert.ok(capabilities.permissions.includes('core:window:allow-start-dragging'));
   assert.ok(capabilities.permissions.includes('core:webview:default'));
   assert.deepEqual(aboutCapabilities.windows, ['about']);
-  assert.deepEqual(aboutCapabilities.permissions, ['core:app:allow-version']);
+  assert.deepEqual(aboutCapabilities.permissions, [
+    'core:app:allow-version',
+    'core:window:allow-start-dragging',
+  ]);
   assert.equal(aboutCapabilities.permissions.includes('core:window:default'), false);
   assert.equal(aboutCapabilities.permissions.includes('core:webview:default'), false);
 
