@@ -163,7 +163,7 @@ fn repair_known_external_signature_residue<R: CommandRunner>(
             state::write_state_with_operation_outcome(state_dir, current_state, &operation_id)?;
         if let Some(warning) = state_outcome.warning() {
             return Err(format!(
-                "Legacy signature cleanup state durability is uncertain: {warning}"
+                "Known signing-component cleanup state durability is uncertain: {warning}"
             ));
         }
         transaction.checkpoint_state_commit()?;
@@ -172,13 +172,13 @@ fn repair_known_external_signature_residue<R: CommandRunner>(
 
     if let Err(error) = repair {
         return Err(transaction.rollback_with_cause(format!(
-            "Could not transactionally remove the known legacy Switcher signing residue: {error}"
+            "Could not transactionally remove known Switcher-owned signing components: {error}"
         )));
     }
     let _completion = transaction.commit()?;
     crate::diagnostics::record(
         state_dir,
-        "legacySignatureResidueRepaired",
+        "knownSigningComponentsRemoved",
         serde_json::json!({ "ok": true, "componentCount": components.len() }),
     );
     Ok(None)

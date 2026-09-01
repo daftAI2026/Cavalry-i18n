@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch、startup recovery 诊断、snapshot 安装真相/legacy postimage 与 provenance 迁移、本地 diagnostics 事实流。
- * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Official 展示/可恢复 stock/Managed Legacy 与 English 恢复能力、首次 handoff admission、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload。
+ * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Official 展示/可恢复 stock/Managed Legacy 与 English 恢复能力、首次 handoff admission、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload；已知旧版签名副作用仅留在内部诊断和事务清理，不形成用户状态。
  * [POS]: commands 的状态层；unsupported Cavalry 与 pending recovery 均保持安装只读，macOS 轮询不以探针文件破坏 bundle seal，Windows typed reconciliation 不依赖一次会话内存。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -128,12 +128,10 @@ fn installation_mode_with_runner<R: privilege::CommandRunner>(
         {
             return "official";
         }
-        if privilege::has_known_external_signature_residue(app_path) {
-            return "legacySignatureResidue";
-        }
         if signature
             .as_ref()
             .is_some_and(privilege::BundleSignatureEvidence::is_recoverable_identity)
+            || privilege::has_known_external_signature_residue(app_path)
         {
             return "recoverableStock";
         }
@@ -465,23 +463,12 @@ pub(crate) fn status_for_paths(
             false
         }
     };
-    let macos_signature_residue_repairable = {
-        #[cfg(target_os = "macos")]
-        {
-            installation_mode == "legacySignatureResidue"
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            false
-        }
-    };
     Ok(StatusPayload {
         app_management_granted: permission_granted,
         app_path: app_path.to_string_lossy().to_string(),
         current_lang: state.current_lang.clone(),
         installation_mode: installation_mode.to_string(),
         macos_permission_handoff_required,
-        macos_signature_residue_repairable,
         official_recovery_available,
         startup_recovery_error: None,
         default_app_candidates: candidates
@@ -560,13 +547,11 @@ fn record_status_diagnostics(paths: &AppPaths, result: &Result<StatusPayload, St
                 "currentLanguage": payload.current_lang,
                 "installationMode": payload.installation_mode,
                 "macosPermissionHandoffRequired": payload.macos_permission_handoff_required,
-                "macosSignatureResidueRepairable": payload.macos_signature_residue_repairable,
                 "needsEnglishSnapshot": payload.needs_extract,
                 "officialRecoveryAvailable": payload.official_recovery_available,
                 "reinstallRequired": payload.platform == "macos"
                     && payload.installation_mode == "modifiedOrUnverified"
-                    && payload.needs_extract
-                    && !payload.macos_signature_residue_repairable,
+                    && payload.needs_extract,
             });
             #[cfg(target_os = "macos")]
             if !payload.app_path.is_empty() && payload.version_compatibility == "supported" {
@@ -616,7 +601,7 @@ fn macos_status_proof_diagnostics(paths: &AppPaths) -> serde_json::Value {
     let known_signature_residue =
         vendor_runtime && privilege::has_known_external_signature_residue(&app_path);
     let decision_reason = if known_signature_residue {
-        "legacySignatureResidue"
+        "knownSigningResidue"
     } else if vendor_runtime && signature == "vendor" {
         "official"
     } else if vendor_runtime && signature == "unsupported" {
@@ -671,7 +656,6 @@ fn startup_recovery_blocked_status(
         current_lang,
         installation_mode: "recoveryRequired".to_string(),
         macos_permission_handoff_required: false,
-        macos_signature_residue_repairable: false,
         official_recovery_available: false,
         startup_recovery_error: Some(error),
         default_app_candidates: candidates
@@ -989,7 +973,7 @@ mod tests {
                 "revision",
                 &mut residue,
             ),
-            "legacySignatureResidue"
+            "recoverableStock"
         );
         fs::remove_file(&components[0]).unwrap();
         fs::remove_file(app.join("Contents/_CodeSignature/UnrelatedEvidence")).unwrap();

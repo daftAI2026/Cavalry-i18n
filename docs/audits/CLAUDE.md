@@ -8,7 +8,7 @@ audit_report.md: Runtime UI Tail Cleanup 深度代码审查，覆盖 TS 数据�
 codex-thread-handoff-runtime-i18n-2026-05-20.md: 本轮 Codex 长对话交接压缩，记录 Time Editor 英文保护、ExtensionLayer CJK 边界、runtime-generated 属性标签补译、Add Layers 空白卡片、噪声隔离、验证结果与安装态同步阻塞。
 composition-menu-lazy-action-flicker-2026-05-21.md: Composition 菜单 lazy QAction 闪烁审计报告，记录打开前 Qt 占位状态、英文 AX 打开后状态、误判修正、aboutToShow 同步 pre-paint 修复与后续 QAction::changed guard。
 macos-native-app-management-implementation-2026-08-31.md: macOS App Management handoff 原生实施边界审计，冻结 Rust/Objective-C++ 最短路径、九命令、CSS→AppKit 坐标、per-screen NSPanel、NSDraggingSession、真实 apply reverse/cleanup、Reduce Motion 与 Info.plist；未知私有行为不写成事实。
-macos-app-management-lifecycle-lessons-2026-08-31.md: macOS App Management 生命周期与签名副作用复盘；以具体 TCC service 和系统 Quit & Reopen 证据冻结 fresh-session，并证明首次 handoff 必须早于 Cavalry mutation、三个脚本入口外置签名组件必须纳入 journal/官方恢复且只能在精确旧残留证据下清理。
+macos-app-management-lifecycle-lessons-2026-08-31.md: macOS App Management 生命周期与签名副作用复盘；以具体 TCC service 和系统 Quit & Reopen 证据冻结 fresh-session，并证明首次 handoff 必须早于 Cavalry mutation、三个脚本入口外置签名组件必须纳入 journal/官方恢复且只能由后端按精确 preimage 静默清理，不能成为用户状态。
 runtime-refresh-performance-2026-05-21.md: Runtime 刷新性能审计报告，记录点击闪烁根因、交互全局刷新证据、dirty-object 算法方案、inventory gate 与后续 roadmap 入口。
 runtime-performance-implementation-2026-07-13.md: Runtime 性能实施闭环报告，记录 dirty-only/capture gate、哈希翻译、可搬移 Qt RPATH、异步增量签名、真实 Cavalry 三语 inventory 与 APFS 副本 apply/codesign 证据。
 runtime-translation-noise-triage-2026-05-19.md: 2026-05-19 运行时翻译噪声分诊审计报告，覆盖 20 个可疑 token（如 Rhu、Rfr）的排查结论与证据链。

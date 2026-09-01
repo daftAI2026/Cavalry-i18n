@@ -138,7 +138,6 @@ fn status_payload_exposes_app_management_probe_result() {
         current_lang: "en".into(),
         installation_mode: "official".into(),
         macos_permission_handoff_required: true,
-        macos_signature_residue_repairable: false,
         official_recovery_available: true,
         startup_recovery_error: None,
         default_app_candidates: Vec::new(),

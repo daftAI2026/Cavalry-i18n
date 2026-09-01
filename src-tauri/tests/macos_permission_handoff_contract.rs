@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands/contract/update、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、drop 后同进程 oracle、任何失败均 cleanup、受保护写事务 commit 后先 reverse 再打开 Cavalry、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、drop 后同进程 oracle、任何失败均 cleanup、受保护写事务 commit 后先 reverse 再打开 Cavalry、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、single motion surface 的内容与 shadow/stroke 共用边界、底部锚定且带 overscan 的箭头 spring、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -235,6 +235,101 @@ fn native_helper_matches_the_reference_instruction_back_and_app_row_geometry() {
     assert!(native.contains(
         "[self sendOutcome:CAVOutcomeDismissed terminal:YES];\n  [self finishWithReverse:YES];"
     ));
+}
+
+#[test]
+fn native_motion_surface_keeps_content_and_effect_layers_on_one_geometry_owner() {
+    let native = read("native/macos_permission_handoff.m");
+
+    for required in [
+        "@property(nonatomic, strong) NSView *motionSurfaceView;",
+        "_motionSurfaceView = [[NSView alloc] initWithFrame:NSZeroRect];",
+        "[self addSubview:_motionSurfaceView];",
+        "[_motionSurfaceView.layer addSublayer:shadow];",
+        "[_motionSurfaceView.layer addSublayer:_strokeLayer];",
+        "[_motionSurfaceView addSubview:imageView];",
+        "self.motionSurfaceView.frame = frame;",
+        "NSRect bounds = self.motionSurfaceView.bounds;",
+        "self.sourceImageView.frame = bounds;",
+        "self.targetImageView.frame = bounds;",
+        "self.strokeLayer.frame = bounds;",
+        "shadow.frame = bounds;",
+        "CGPathRef path = CAVRoundedPath(bounds);",
+    ] {
+        assert!(
+            native.contains(required),
+            "motion surface must own content and visual effects together: {required}"
+        );
+    }
+    assert!(
+        !native.contains("[self.layer addSublayer:shadow]"),
+        "shadow layers must not remain siblings of the animated surface"
+    );
+    assert!(
+        !native.contains("self.sourceImageView.frame = frame;"),
+        "content must be positioned in the animated surface's local bounds"
+    );
+}
+
+#[test]
+fn native_arrow_matches_reference_spring_and_has_unclipped_overscan_canvas() {
+    let native = read("native/macos_permission_handoff.m");
+    let arrow_size = numeric_constant(&native, "CAVArrowSize");
+    let scale_x = numeric_constant(&native, "CAVArrowScaleX");
+    let scale_y = numeric_constant(&native, "CAVArrowScaleY");
+    let shadow_opacity = numeric_constant(&native, "CAVArrowShadowOpacity");
+    let shadow_radius = numeric_constant(&native, "CAVArrowShadowRadius");
+    let shadow_y = numeric_constant(&native, "CAVArrowShadowY");
+    let vertical_offset = numeric_constant(&native, "CAVArrowVerticalOffset");
+    let mass = numeric_constant(&native, "CAVArrowMass");
+    let stiffness = numeric_constant(&native, "CAVArrowStiffness");
+    let damping = numeric_constant(&native, "CAVArrowDamping");
+    let initial_delay = numeric_constant(&native, "CAVArrowInitialDelay");
+    let stretch_duration = numeric_constant(&native, "CAVArrowStretchDuration");
+    let idle_duration = numeric_constant(&native, "CAVArrowIdleDuration");
+
+    assert_eq!(arrow_size, 28.0);
+    assert_eq!((scale_x, scale_y), (1.15, 1.6));
+    assert_eq!((shadow_opacity, shadow_radius, shadow_y), (0.23, 7.0, 4.0));
+    assert_eq!(vertical_offset, -10.0);
+    assert_eq!((mass, stiffness, damping), (1.0, 200.0, 11.0));
+    assert_eq!(
+        (initial_delay, stretch_duration, idle_duration),
+        (0.5, 0.25, 4.0)
+    );
+
+    for required in [
+        "static const CGFloat CAVArrowShadowBottomInset = CAVArrowShadowRadius + CAVArrowShadowY;",
+        "static const CGFloat CAVArrowCanvasWidth = CAVArrowSize + CAVTwo * CAVArrowShadowRadius;",
+        "static const CGFloat CAVArrowCanvasHeight = CAVArrowSize * CAVArrowScaleY + CAVArrowShadowRadius + CAVArrowShadowBottomInset;",
+        "CGFloat arrowPanelLeft = NSMinX(frame) + arrowX - CAVArrowShadowRadius;",
+        "CGFloat arrowPanelBottom = NSMinY(frame) + arrowY - CAVArrowVerticalOffset - CAVArrowShadowBottomInset;",
+        "CAVArrowCanvasWidth, CAVArrowCanvasHeight",
+        "NSRect arrowGlyphFrame = NSMakeRect(CAVArrowShadowRadius,",
+        "CAVArrowCanvasHeight - CAVArrowSize - CAVArrowShadowBottomInset",
+        "arrow.layer.anchorPoint = CGPointMake(CAVHalf, CAVOne); arrow.frame = arrowGlyphFrame;",
+        "arrow.layer.geometryFlipped = YES",
+        "arrow.layer.masksToBounds = NO",
+        "arrow.layer.shadowOpacity = CAVArrowShadowOpacity",
+        "arrow.layer.shadowRadius = CAVArrowShadowRadius",
+        "arrow.layer.shadowOffset = CGSizeMake(CAVZero, CAVArrowShadowY)",
+        "spring.initialVelocity = CAVZero",
+        "spring.duration = spring.settlingDuration",
+        "[self scheduleArrowCycleAfter:CAVArrowIdleDuration]",
+    ] {
+        assert!(
+            native.contains(required),
+            "arrow reference contract or clipping guard missing: {required}"
+        );
+    }
+    assert!(
+        native.contains("arrowPanel.contentView = arrowCanvas"),
+        "the overscan canvas must be the child panel content view"
+    );
+    assert!(
+        !native.contains("CAVArrowSize, CAVArrowSize);\n  CAVNonActivatingPanel"),
+        "the arrow panel must not revert to a tight 28x28 clipping window"
+    );
 }
 
 #[test]

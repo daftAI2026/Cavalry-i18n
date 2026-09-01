@@ -70,7 +70,7 @@ function runtime({
     appManagementGranted: true, appPath: '/Applications/Cavalry.app', currentLang: 'zh-Hans',
     defaultAppCandidates: ['/Applications/Cavalry.app'], languages: [{ value: 'attacker', label: '<img>' }],
     installationMode: 'modifiedOrUnverified', officialRecoveryAvailable: true,
-    macosSignatureResidueRepairable: false, macosPermissionHandoffRequired: false, needsExtract: false, permissionAction: 'none', platform: 'macos', supportedVersion: '2.7.2',
+    macosPermissionHandoffRequired: false, needsExtract: false, permissionAction: 'none', platform: 'macos', supportedVersion: '2.7.2',
     version: '2.7.2', versionCompatibility: 'supported', ...status,
   };
   const applyResults = Array.isArray(apply) ? [...apply] : [apply];
@@ -260,16 +260,14 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(r.elements['#installationBadge'].hidden, true);
   assert.equal(status.installationMode, 'modifiedOrUnverified');
   assert.equal(status.officialRecoveryAvailable, true);
-  assert.equal(status.macosSignatureResidueRepairable, false);
   assert.equal(status.macosPermissionHandoffRequired, false);
   assert.equal(status.supportedVersion, '2.7.2');
   assert.equal(status.versionCompatibility, 'supported');
   assert.equal(Object.hasOwn(status, 'repoRoot'), false);
 
-  const windows = boot({ status: { platform: 'windows', macosSignatureResidueRepairable: true, macosPermissionHandoffRequired: true } });
+  const windows = boot({ status: { platform: 'windows', macosPermissionHandoffRequired: true } });
   await flush();
   const windowsStatus = await windows.window.cavalryI18n.getStatus();
-  assert.equal(windowsStatus.macosSignatureResidueRepairable, false);
   assert.equal(windowsStatus.macosPermissionHandoffRequired, false);
 });
 
@@ -919,6 +917,8 @@ test('permission AlertDialog exposes the recovery action and preserves Apply/Res
   assert.equal(activityTitle(r, permissionRows.length - 1), 'System permission required');
   assert.match(activityText(r), /Allow the Switcher to modify Cavalry, then retry\./);
   assert.doesNotMatch(activityText(r), /desktop service|could not verify the Cavalry installation/i);
+  assert.equal(r.elements['#permissionButton'].hidden, false);
+  assert.equal(r.elements['#permissionButton'].textContent, 'Open permission settings');
 
   r.elements['#modalSecondaryButton'].listeners.get('click')[0]();
   await flush();
@@ -981,6 +981,8 @@ test('macOS permission preflight hands off Switch before apply and retries throu
   );
   assert.match(activityText(r), /First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language\./);
   assert.doesNotMatch(activityText(r), /permission verified|permission granted/i);
+  assert.equal(r.elements['#permissionButton'].hidden, false, 'preflight permission waits keep the inline recovery action visible');
+  assert.equal(r.elements['#permissionButton'].textContent, 'Open permission settings');
 
   dispatch(r.elements['#modalPrimaryButton'], 'click');
   await flush();
@@ -1147,69 +1149,17 @@ test('macOS incomplete provenance gives a direct reinstall route and blocks Rest
   assert.match(activityText(r), /can’t verify the integrity of the Cavalry installation/);
 });
 
-test('known macOS signing residue stays actionable through the ordinary transaction', async () => {
+test('known macOS signing residue remains an internal recoverable-stock detail', async () => {
   const r = boot({
     status: {
-      platform: 'macos', currentLang: 'zh-Hans', installationMode: 'modifiedOrUnverified',
-      needsExtract: true, macosSignatureResidueRepairable: true,
-    },
-    apply: { ok: true, currentLang: 'zh-Hant' },
-  });
-  await flush();
-
-  assert.equal(r.elements['#applyButton'].disabled, true, 'Switch still waits for a target language');
-  assert.equal(r.elements['#restoreButton'].disabled, false, 'known residue keeps Restore available');
-  assert.equal(activityTitle(r), 'Known legacy signing residue');
-  assert.match(activityText(r), /three external signing components/);
-  chooseLanguage(r);
-  dispatch(r.elements['#applyButton'], 'click');
-  await flush();
-  assert.equal(r.elements['#modalBackdrop'].open, false, 'known residue uses the ordinary transaction, not a reinstall dialog');
-  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
-    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hant' },
-  });
-
-  const restore = boot({
-    status: {
-      platform: 'macos', currentLang: 'en', installationMode: 'modifiedOrUnverified',
-      needsExtract: true, macosSignatureResidueRepairable: true,
-    },
-    apply: { ok: true, currentLang: 'en' },
-  });
-  await flush();
-  assert.equal(restore.elements['#restoreButton'].disabled, false, 'known residue makes English cleanup actionable');
-  dispatch(restore.elements['#restoreButton'], 'click');
-  assert.equal(restore.elements['#modalTitle'].textContent, 'Restore English?');
-});
-
-test('known macOS signing residue warning is localized in all four renderer locales', async () => {
-  for (const [locale, title, bodyFragment] of [
-    ['en-US', 'Known legacy signing residue', 'three external signing components'],
-    ['zh-CN', '发现已知旧版签名残留', '三个外置签名组件'],
-    ['zh-TW', '發現已知舊版簽名殘留', '三個外置簽名元件'],
-    ['ja-JP', '既知の旧版署名残留を検出', '外部署名コンポーネントを3つ'],
-  ]) {
-    const r = boot({
-      locale,
-      status: { platform: 'macos', macosSignatureResidueRepairable: true },
-    });
-    await flush();
-    assert.equal(activityTitle(r), title, locale);
-    assert.match(activityText(r), new RegExp(bodyFragment), locale);
-  }
-});
-
-test('macOS residue remains fail-closed when the repair proof is absent', async () => {
-  const r = boot({
-    status: {
-      platform: 'macos', installationMode: 'legacySignatureResidue', needsExtract: true,
-      macosSignatureResidueRepairable: false,
+      platform: 'macos', currentLang: 'en', installationMode: 'recoverableStock', needsExtract: true,
     },
   });
   await flush();
-  assert.equal(r.elements['#applyButton'].disabled, true);
-  assert.equal(r.elements['#restoreButton'].disabled, true);
-  assert.equal(activityTitle(r), 'Reinstall Cavalry');
+  assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle');
+  assert.equal(r.elements['#applyButton'].disabled, true, 'Switch still waits for an explicit language');
+  assert.equal(r.elements['#restoreButton'].disabled, true, 'clean English does not expose a cleanup action');
+  assert.doesNotMatch(activityText(r), /signing|signature|residue/i);
 });
 
 test('apply composes localized warning codes and never renders backend warning prose', async () => {

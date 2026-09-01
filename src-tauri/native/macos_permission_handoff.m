@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS source rect、viewport 尺寸与一次性 C callback。
- * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、独立非激活箭头 panel、参考同形的“单行指令 / Back + App row”helper 和不含 NSBox 背景的整条实时 App row 快照承载 file-URL NSDraggingSession，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
- * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 实现洁净室 handoff，外层半透明材质属于本进程 accessory 而非 System Settings，且不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
+ * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、单一 motion surface 及其 shadow/stroke、独立非激活箭头 panel、参考同形的“单行指令 / Back + App row”helper 和不含 NSBox 背景的整条实时 App row 快照承载 file-URL NSDraggingSession，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
+ * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 与底部锚定的箭头 spring 实现洁净室 handoff，外层半透明材质属于本进程 accessory 而非 System Settings，且不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -19,6 +19,10 @@ static const CGFloat CAVArrowSize = 28.0; static const CGFloat CAVArrowTextGap =
 static const CGFloat CAVArrowDesignSize = 256.0; static const CGFloat CAVArrowDrawingInset = 2.0; static const CGFloat CAVInfoBlueGreen = 107.0 / 255.0;
 static const CGFloat CAVArrowScaleX = 1.15; static const CGFloat CAVArrowScaleY = 1.6; static const CGFloat CAVArrowMass = 1.0; static const CGFloat CAVArrowStiffness = 200.0; static const CGFloat CAVArrowDamping = 11.0; static const NSTimeInterval CAVArrowInitialDelay = 0.5; static const NSTimeInterval CAVArrowStretchDuration = 0.25;
 static const NSTimeInterval CAVArrowIdleDuration = 4.0; static const NSTimeInterval CAVSettingsProbeInterval = 0.10; static const NSUInteger CAVSettingsProbeLimit = 50; static const NSUInteger CAVSettingsMissingGrace = 10;
+static const CGFloat CAVArrowShadowOpacity = 0.23; static const CGFloat CAVArrowShadowRadius = 7.0; static const CGFloat CAVArrowShadowY = 4.0; static const CGFloat CAVArrowVerticalOffset = -10.0;
+static const CGFloat CAVArrowShadowBottomInset = CAVArrowShadowRadius + CAVArrowShadowY;
+static const CGFloat CAVArrowCanvasWidth = CAVArrowSize + CAVTwo * CAVArrowShadowRadius;
+static const CGFloat CAVArrowCanvasHeight = CAVArrowSize * CAVArrowScaleY + CAVArrowShadowRadius + CAVArrowShadowBottomInset;
 static const NSUInteger CAVIndexStep = 1;
 static const CGFloat CAVAnimationFrameRate = 60.0; static const CGFloat CAVAnimationTolerance = 0.001;
 static const CGFloat CAVInstructionTop = 12.0; static const CGFloat CAVInstructionHeight = 28.0; static const CGFloat CAVRowTop = 52.0; static const CGFloat CAVHelperHorizontalInset = 16.0;
@@ -42,6 +46,7 @@ static NSString *const CAVTextInstruction = @"instruction"; static NSString *con
 @property(nonatomic, strong) NSTrackingArea *hoverArea; @property(nonatomic, copy) dispatch_block_t onHover;
 @end
 @interface CAVReplicantView : NSView
+@property(nonatomic, strong) NSView *motionSurfaceView;
 @property(nonatomic, strong) NSImageView *sourceImageView; @property(nonatomic, strong) NSImageView *targetImageView;
 @property(nonatomic, strong) CALayer *destinationShadowLayer; @property(nonatomic, strong) CALayer *keyShadowLayer;
 @property(nonatomic, strong) CALayer *ambientShadowLayer; @property(nonatomic, strong) CALayer *strokeLayer;
@@ -329,6 +334,12 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   self.layer.backgroundColor = NSColor.clearColor.CGColor;
   self.layer.contentsScale = scale;
   self.layer.masksToBounds = NO;
+  _motionSurfaceView = [[NSView alloc] initWithFrame:NSZeroRect];
+  _motionSurfaceView.wantsLayer = YES;
+  _motionSurfaceView.layer.backgroundColor = NSColor.clearColor.CGColor;
+  _motionSurfaceView.layer.contentsScale = scale;
+  _motionSurfaceView.layer.masksToBounds = NO;
+  [self addSubview:_motionSurfaceView];
   _ambientShadowLayer = [CALayer layer];
   _destinationShadowLayer = [CALayer layer];
   _keyShadowLayer = [CALayer layer];
@@ -345,12 +356,12 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
     shadow.shadowRadius = radii[index].floatValue;
     shadow.shadowOffset = CGSizeMake(CAVZero, offsets[index].floatValue);
     shadow.zPosition = zPositions[index].floatValue;
-    [self.layer addSublayer:shadow];
+    [_motionSurfaceView.layer addSublayer:shadow];
   }
   _strokeLayer.borderWidth = CAVProxyStrokeWidth;
   _strokeLayer.borderColor = [NSColor colorWithWhite:CAVZero alpha:CAVProxyStrokeOpacity].CGColor;
   _strokeLayer.zPosition = CAVStrokeZPosition;
-  [self.layer addSublayer:_strokeLayer];
+  [_motionSurfaceView.layer addSublayer:_strokeLayer];
   _sourceImageView = [[NSImageView alloc] initWithFrame:NSZeroRect];
   _targetImageView = [[NSImageView alloc] initWithFrame:NSZeroRect];
   for (NSImageView *imageView in @[_sourceImageView, _targetImageView]) {
@@ -358,7 +369,7 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
     imageView.wantsLayer = YES;
     imageView.layer.masksToBounds = NO;
     imageView.layer.contentsScale = scale;
-    [self addSubview:imageView];
+    [_motionSurfaceView addSubview:imageView];
   }
   _sourceImageView.image = sourceImage;
   _targetImageView.image = targetImage;
@@ -367,12 +378,14 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
 - (void)setMotionFrame:(NSRect)motionFrame progress:(CGFloat)progress {
   progress = MIN(CAVOne, MAX(CAVZero, progress));
   NSRect frame = CAVIntegralRectForScale(motionFrame, self.layer.contentsScale);
-  self.sourceImageView.frame = frame;
-  self.targetImageView.frame = frame;
-  self.strokeLayer.frame = frame;
+  self.motionSurfaceView.frame = frame;
+  NSRect bounds = self.motionSurfaceView.bounds;
+  self.sourceImageView.frame = bounds;
+  self.targetImageView.frame = bounds;
+  self.strokeLayer.frame = bounds;
   for (CALayer *shadow in @[_ambientShadowLayer, _destinationShadowLayer, _keyShadowLayer]) {
-    shadow.frame = frame;
-    CGPathRef path = CAVRoundedPath(NSMakeRect(CAVZero, CAVZero, NSWidth(frame), NSHeight(frame)));
+    shadow.frame = bounds;
+    CGPathRef path = CAVRoundedPath(bounds);
     shadow.shadowPath = path;
     CGPathRelease(path);
   }
@@ -599,16 +612,30 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   self.backButton = back;
   CGFloat arrowX = instructionGroupX;
   CGFloat arrowY = CAVHelperHeight - CAVInstructionTop - CAVArrowSize;
-  NSRect arrowScreenFrame = NSMakeRect(NSMinX(frame) + arrowX, NSMinY(frame) + arrowY,
-                                       CAVArrowSize, CAVArrowSize);
+  CGFloat arrowPanelLeft = NSMinX(frame) + arrowX - CAVArrowShadowRadius;
+  CGFloat arrowPanelBottom = NSMinY(frame) + arrowY - CAVArrowVerticalOffset - CAVArrowShadowBottomInset;
+  NSRect arrowScreenFrame = NSMakeRect(arrowPanelLeft, arrowPanelBottom,
+                                       CAVArrowCanvasWidth, CAVArrowCanvasHeight);
   CAVNonActivatingPanel *arrowPanel = [[CAVNonActivatingPanel alloc]
     initWithContentRect:arrowScreenFrame styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel backing:NSBackingStoreBuffered defer:NO];
   arrowPanel.releasedWhenClosed = NO; arrowPanel.opaque = NO; arrowPanel.backgroundColor = NSColor.clearColor;
   arrowPanel.hasShadow = NO; arrowPanel.ignoresMouseEvents = NO; arrowPanel.level = NSFloatingWindowLevel;
-  CAVHandoffArrowView *arrow = [[CAVHandoffArrowView alloc] initWithFrame:NSMakeRect(CAVZero, CAVZero, CAVArrowSize, CAVArrowSize)];
-  arrow.wantsLayer = YES; arrow.toolTip = instructionText;
+  CAVFlippedView *arrowCanvas = [[CAVFlippedView alloc]
+    initWithFrame:NSMakeRect(CAVZero, CAVZero, CAVArrowCanvasWidth, CAVArrowCanvasHeight)];
+  arrowCanvas.wantsLayer = YES; arrowCanvas.layer.masksToBounds = NO;
+  NSRect arrowGlyphFrame = NSMakeRect(CAVArrowShadowRadius,
+                                      CAVArrowCanvasHeight - CAVArrowSize - CAVArrowShadowBottomInset,
+                                      CAVArrowSize, CAVArrowSize);
+  CAVHandoffArrowView *arrow = [[CAVHandoffArrowView alloc]
+    initWithFrame:arrowGlyphFrame];
+  arrow.wantsLayer = YES; arrow.layer.geometryFlipped = YES;
+  arrow.layer.anchorPoint = CGPointMake(CAVHalf, CAVOne); arrow.frame = arrowGlyphFrame;
+  arrow.layer.masksToBounds = NO; arrow.layer.shadowColor = NSColor.blackColor.CGColor;
+  arrow.layer.shadowOpacity = CAVArrowShadowOpacity; arrow.layer.shadowRadius = CAVArrowShadowRadius;
+  arrow.layer.shadowOffset = CGSizeMake(CAVZero, CAVArrowShadowY); arrow.toolTip = instructionText;
   __weak CAVPermissionHandoffCoordinator *weakSelf = self; arrow.onHover = ^{ [weakSelf stretchArrow:nil]; };
-  arrowPanel.contentView = arrow; [panel addChildWindow:arrowPanel ordered:NSWindowAbove];
+  [arrowCanvas addSubview:arrow]; arrowPanel.contentView = arrowCanvas;
+  [panel addChildWindow:arrowPanel ordered:NSWindowAbove];
   self.arrowPanel = arrowPanel; self.arrowView = arrow;
   self.helperPanel = panel;
   [self updateTargetGeometry];
@@ -645,8 +672,10 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   }
   CAVAnimateArrow(self.arrowView.layer, CAVArrowScaleX, CAVArrowScaleY);
   dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(CAVArrowStretchDuration * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-    if (self.helperPanel.isVisible && !self.dragging) CAVAnimateArrow(self.arrowView.layer, CAVOne, CAVOne);
-    [self scheduleArrowCycleAfter:CAVArrowIdleDuration];
+    if (self.helperPanel.isVisible && !self.dragging) {
+      CAVAnimateArrow(self.arrowView.layer, CAVOne, CAVOne);
+      [self scheduleArrowCycleAfter:CAVArrowIdleDuration];
+    }
   });
 }
 - (void)rebuildReplicants {

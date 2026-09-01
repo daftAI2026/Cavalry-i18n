@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、验证失败的分级恢复路径、仅对应 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明的 macOS 残留提示、真实任务 Event、macOS 权限 handoff 前置与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、真正验证失败的分级恢复路径、真实任务 Event、macOS 权限 handoff 前置与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称；内部兼容清理不形成用户文案。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -90,7 +90,6 @@ const UI_TEXT = {
     recoveryFailedTitle: 'Couldn’t recover the interrupted operation',
     chooseAppTitle: 'Choose Cavalry',
     reinstallCavalryTitle: 'Reinstall Cavalry',
-    signatureResidueRepairableTitle: 'Known legacy signing residue',
     olderVersionUnsupportedTitle: 'Cavalry {version} isn’t supported',
     newerVersionUnsupportedTitle: 'Cavalry {version} isn’t supported yet',
     unknownVersionUnsupportedTitle: 'This Cavalry version isn’t supported',
@@ -129,7 +128,6 @@ const UI_TEXT = {
     readyToApply: 'Choose a language, then switch.',
     chooseAppToContinue: 'Choose a Cavalry installation to continue.',
     reinstallRequired: 'The Switcher can’t verify the integrity of the Cavalry installation. Reinstall Cavalry from the official installer, then reopen the Switcher.',
-    signatureResidueRepairable: 'An earlier Switcher left three external signing components in this Cavalry installation. Choose a language to remove this known residue, then continue.',
     olderVersionUnsupported: 'This Switcher currently supports Cavalry {supportedVersion}. Update Cavalry to {supportedVersion}, then reopen the Switcher. Your installation has not been changed.',
     newerVersionUnsupported: 'This Switcher currently supports Cavalry {supportedVersion} and won’t modify this installation. Keep using Cavalry, then try again after a compatible Switcher update is available.',
     unknownVersionUnsupported: 'This Switcher supports Cavalry {supportedVersion} and has not changed your installation.',
@@ -261,7 +259,6 @@ const UI_TEXT = {
     recoveryFailedTitle: '无法恢复中断的操作',
     chooseAppTitle: '选择 Cavalry 安装位置',
     reinstallCavalryTitle: '重新安装 Cavalry',
-    signatureResidueRepairableTitle: '发现已知旧版签名残留',
     olderVersionUnsupportedTitle: '暂不支持 Cavalry {version}',
     newerVersionUnsupportedTitle: '尚未支持 Cavalry {version}',
     unknownVersionUnsupportedTitle: '暂不支持此 Cavalry 版本',
@@ -300,7 +297,6 @@ const UI_TEXT = {
     readyToApply: '选择语言，然后切换。',
     chooseAppToContinue: '请选择 Cavalry 安装位置后继续。',
     reinstallRequired: '语言切换器无法验证 Cavalry 安装的完整性。请使用官方安装包重新安装 Cavalry，再重新打开语言切换器。',
-    signatureResidueRepairable: '旧版语言切换器在此 Cavalry 安装中留下了三个外置签名组件。选择语言后会先清理这些已知残留，再继续。',
     olderVersionUnsupported: '语言切换器目前支持 Cavalry {supportedVersion}。请先将 Cavalry 更新至 {supportedVersion}，再重新打开语言切换器。当前安装未被修改。',
     newerVersionUnsupported: '语言切换器目前支持 Cavalry {supportedVersion}，不会修改此安装。你可以继续使用 Cavalry；请在兼容更新发布后再试。',
     unknownVersionUnsupported: '此语言切换器支持 Cavalry {supportedVersion}，当前安装未被修改。',
@@ -427,7 +423,6 @@ const UI_TEXT = {
     recoveryFailedTitle: '無法復原中斷的操作',
     chooseAppTitle: '選擇 Cavalry 安裝位置',
     reinstallCavalryTitle: '重新安裝 Cavalry',
-    signatureResidueRepairableTitle: '發現已知舊版簽名殘留',
     olderVersionUnsupportedTitle: '暫不支援 Cavalry {version}',
     newerVersionUnsupportedTitle: '尚未支援 Cavalry {version}',
     unknownVersionUnsupportedTitle: '暫不支援此 Cavalry 版本',
@@ -466,7 +461,6 @@ const UI_TEXT = {
     readyToApply: '選擇語言，然後切換。',
     chooseAppToContinue: '請先選擇 Cavalry 安裝位置再繼續。',
     reinstallRequired: '語言切換器無法驗證 Cavalry 安裝的完整性。請使用官方安裝程式重新安裝 Cavalry，再重新開啟語言切換器。',
-    signatureResidueRepairable: '舊版語言切換器在此 Cavalry 安裝中留下了三個外置簽名元件。選擇語言後會先清理這些已知殘留，再繼續。',
     olderVersionUnsupported: '語言切換器目前支援 Cavalry {supportedVersion}。請先將 Cavalry 更新至 {supportedVersion}，再重新開啟語言切換器。目前的安裝未被修改。',
     newerVersionUnsupported: '語言切換器目前支援 Cavalry {supportedVersion}，不會修改此安裝。你可以繼續使用 Cavalry；請在相容更新推出後再試。',
     unknownVersionUnsupported: '此語言切換器支援 Cavalry {supportedVersion}，目前安裝未被修改。',
@@ -593,7 +587,6 @@ const UI_TEXT = {
     recoveryFailedTitle: '中断した操作を復旧できません',
     chooseAppTitle: 'Cavalry のインストール先を選択',
     reinstallCavalryTitle: 'Cavalry を再インストール',
-    signatureResidueRepairableTitle: '既知の旧版署名残留を検出',
     olderVersionUnsupportedTitle: 'Cavalry {version} はサポートされていません',
     newerVersionUnsupportedTitle: 'Cavalry {version} はまだサポートされていません',
     unknownVersionUnsupportedTitle: 'この Cavalry バージョンはサポートされていません',
@@ -632,7 +625,6 @@ const UI_TEXT = {
     readyToApply: '言語を選んで切り替えます。',
     chooseAppToContinue: '続行するには Cavalry のインストール先を選択してください。',
     reinstallRequired: '言語スイッチャーは Cavalry のインストールの完全性を確認できません。公式インストーラーから Cavalry を再インストールして、言語スイッチャーを開き直してください。',
-    signatureResidueRepairable: '以前の言語スイッチャーが、この Cavalry インストール先に外部署名コンポーネントを3つ残しました。言語を選ぶと、既知の残留物を先に削除してから続行します。',
     olderVersionUnsupported: 'この言語スイッチャーは現在 Cavalry {supportedVersion} に対応しています。Cavalry を {supportedVersion} に更新してから、言語スイッチャーを開き直してください。現在のインストールは変更されていません。',
     newerVersionUnsupported: 'この言語スイッチャーは現在 Cavalry {supportedVersion} に対応しており、このインストールは変更しません。Cavalry はそのまま使用し、対応版の更新後にもう一度お試しください。',
     unknownVersionUnsupported: 'この言語スイッチャーは Cavalry {supportedVersion} に対応しています。現在のインストールは変更されていません。',
@@ -702,7 +694,6 @@ const STATUS_TITLE_KEYS = Object.freeze({
   chooseAppToContinue: 'chooseAppTitle',
   chooseAppFirst: 'chooseAppTitle',
   reinstallRequired: 'reinstallCavalryTitle',
-  signatureResidueRepairable: 'signatureResidueRepairableTitle',
   olderVersionUnsupported: 'olderVersionUnsupportedTitle',
   newerVersionUnsupported: 'newerVersionUnsupportedTitle',
   unknownVersionUnsupported: 'unknownVersionUnsupportedTitle',

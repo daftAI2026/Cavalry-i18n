@@ -115,6 +115,8 @@ idle → preparing → presenting → presented → reversing → idle
 
 当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求一次同进程 oracle，renderer 将同一 session 在前次事务完成前重复到达的 Retry/drop 折叠为一次，真实写事务成功才 reverse，任何失败都 cleanup；再次 PermissionDenied 会在 Activity 链尾显示重开提示。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer oracle→success reverse / Later restart-required / fresh-session 投影。最终 ad-hoc `.app`/DMG 仍按项目 SOP 验证四语用途说明、签名与包结构，但这里不再建设独立账户、官方 DMG 封存或首次 TCC release 证明。
 
+2026-09-01 原生动画修正只收敛两个几何 owner 问题，没有改变权限状态机或 renderer 接线：此前 `CAVReplicantView` 让 source/target `NSImageView` 与三层 shadow/stroke 作为根 view 的兄弟对象，各自持有 frame；即使数值相同，在 per-screen panel 的局部裁切、rasterization 或下一帧布局中仍可能出现表层与阴影不同步。现在由单一 `motionSurfaceView` 持有两张图、三层 shadow 和 stroke，外层只移动这一层，所有效果使用其 `bounds`，因此表层与阴影共享同一几何生命周期。此前箭头 child panel 紧贴 `28×28` glyph，`y=1.6` spring stretch 与 `7pt` radius / `4pt` offset shadow 必然会越过 panel 上边界；现在 panel/canvas 的宽高由最大 stretch 和 shadow 推导，glyph 放在带水平/垂直 overscan 的 canvas 内并以底边为 anchor，继续使用已取证的 `0.5s → 0.25s → 4s`、`1/200/11` 与 `-10pt` 位移。该项是源码与静态合同修正；尚未把当前账户的单屏编译结果冒充新的 packaged 像素级 live 证据。
+
 真实机权限交接与启动恢复另写入本机 state 目录下的 `diagnostics.jsonl`，超过 512 KiB 后只轮换为一份 `diagnostics.previous.jsonl`。日志记录启动恢复前后是否存在 pending journal、renderer status 最终裁决、macOS bundle/signature/vendor runtime/Managed Legacy snapshot/runtime 的无路径失败门、语言动作结果和 App Management 设置入口结果；错误文本会脱敏 state、用户目录与临时目录，不记录语言文件内容、密钥、哈希或 TCC 数据。它是复现支持证据，不是新的 renderer 状态源；写入失败不得改变语言事务、权限 handoff 或启动结果。
 
 生产链只保留两项必要的 fail-closed 约束：`openat`/`renameatx_np` 的原始 `PermissionDenied` 在回滚补充说明后仍保留 typed 类别，macOS command 不解析任意错误文案；原生 drag 只有在 copy operation 的释放点位于实时 System Settings 整窗内时才请求重试，Finder 或其他接受 Copy 的目标不会推进权限链。
@@ -149,10 +151,10 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | spring `.72 / 1.0` 与 50pt 二次 Bézier apex | 已确认 | 已做 | response 不是固定 720ms；逐帧 settle 仍待隔离录屏 |
 | 尺寸、圆角线性插值与 integral frame | 已确认 | 已做近似 | CSS pixel 不能冒充 AppKit point/backing pixel |
 | source/target `1-p / p` 与 12pt 对向 blur | 已确认 | 已做 | 原生材质、色彩空间与 rasterization 待 R2/R3 |
-| destination/key/ambient shadow 与 0.5pt stroke | 已确认 | 已做单层浏览器投影 | R2 才能验证 CALayer mask/clipping |
+| destination/key/ambient shadow 与 0.5pt stroke | 已确认 | 原生三层 shadow/stroke 已统一挂在 `motionSurfaceView`，与两张 motion surface 共用 bounds；浏览器仍是投影 | R2/R3 仍需验证不同 backing scale 下的 CALayer mask/clipping |
 | 每屏 non-key/non-main replicant 与跨屏裁切 | 已确认每屏窗口覆盖各自 `screenFrame` | 浏览器缺失；原生已改为每屏完整透明窗口并在本地坐标绘制运动内容 | 工作台不得称跨屏证明；混合倍率/热插拔仍需原生 live 验证 |
 | forward completion 后 live accessory 接管 | 已确认；公开录屏直接显示“箭头 + 单行指令 / Back + 单行 App row” | 工作台固定 532×112 同形结构，已做 | 生产使用真实 nonactivating `NSPanel`；项目规格同构不等于第三方私有尺寸已知 |
-| 独立 HintArrow window/raster、0.5/0.25/4s 节奏 | 已确认 | 原生使用独立非激活 child panel + 项目自绘 glyph + 已确认节奏；浏览器仅作结构替身 | 私有 raster 不进入开源产品；窗口生命周期与行为语法对齐，像素轮廓不复制 |
+| 独立 HintArrow window/raster、0.5/0.25/4s 节奏 | 已确认 | 原生使用独立非激活 child panel、overscan canvas、底部 anchor、同层 shadow 与项目自绘 glyph；继续使用 `1/200/11` 与已确认节奏；浏览器仅作结构替身 | 私有 raster 不进入开源产品；窗口生命周期与行为语法对齐，像素轮廓不复制；新 canvas 尚待 packaged live readback |
 | app row 的真实 `NSDraggingSession` 与整行 drag snapshot | 已确认：`appRowView.bounds → bitmapImageRepForCachingDisplayInRect → cacheDisplayInRect → NSImage → setDraggingFrame:contents:`；公开录屏同时显示拖动时原位 row 内容隐藏、容器保留 | HTML DnD 克隆整行 App row 并清除背景/边框；原生对独立实时 `appRowView` 调用同类 AppKit snapshot | file URL pasteboard + drag source 已对齐；浏览器替身不冒充 native 证据 |
 | 系统 drag 接管与 cancel bounce | 目标样本确认 `mouseDown:` 直接建立 session，并启用系统回弹 | 原生同样从 `mouseDown:` 交给 AppKit；不再复制公开样本的自定义 4pt 门槛 | 目标样本已确认的 drag visual 是整行而非 56pt icon |
 | 整个设置目标接收 copy drop、且与权限授予分离 | 已确认 operation + 目标几何约束；私有精确命中条件未知 | 整窗 mock 接收并更新系统行，已做 | R2 由原生 drop operation/屏幕几何裁决；R4 仍以写事务为唯一 oracle |
@@ -166,7 +168,7 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | 关闭、取消、Space、预授权、热插拔显示器全部分支 | 部分结构可证，逐条件未知 | 缺失或仅 reset | R3/R5；隔离账户逐分支验收 |
 | 成功后的业务反馈 | 原样本更新 granted 状态；未发现独立烟花/打勾动画证据 | fixture 经真实 Cavalry Activity 组件投影阶段 + 结果句；success-settled 仅为审查控制消息 | 真实受保护写事务 commit 是 App Management oracle；不新增“权限已验证”产品事件，最终反馈仍由既有阶段与结果句承担 |
 
-结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏、参考同形 helper 与拖拽/授权分离的语义边界**；生产已具备原生窗口/拖拽和每屏 replicant 源码，仍欠混合倍率、真实首次 drop 与异常分支的 packaged live 证据。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；现在改为 fixture 在 `applyTransaction` commit 后、`restartCavalry` 前发送 review-only settled 控制消息，生产则由 Rust 的保护写事务 commit 边界启动 reverse。该边界不生成新的权限成功事件，失败保留既有 Activity 并继续阻断。
+结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏、参考同形 helper 与拖拽/授权分离的语义边界**；生产已具备原生窗口/拖拽和每屏 replicant 源码，仍欠混合倍率、真实首次 drop 与异常分支的 packaged live 证据。2026-09-01 的 native correction 让 motion surface 与 shadow/stroke 共享单一 frame，并让箭头的最大 stretch/shadow 落在独立 overscan canvas 内；它修复了已定位的错位与上边界裁切根因，不改变权限结果。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；现在改为 fixture 在 `applyTransaction` commit 后、`restartCavalry` 前发送 review-only settled 控制消息，生产则由 Rust 的保护写事务 commit 边界启动 reverse。该边界不生成新的权限成功事件，失败保留既有 Activity 并继续阻断。
 
 ### 4.1 仓库外参考应用：当前与历史样本的本机证据
 

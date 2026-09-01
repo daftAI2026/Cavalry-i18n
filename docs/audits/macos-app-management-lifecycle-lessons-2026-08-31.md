@@ -1,7 +1,7 @@
 <!--
 [INPUT]: 依赖本机 macOS 27 SecurityPrivacyExtension 的只读本地化/符号复核、Apple SystemPolicyAppBundles 文档、公开 p5 tag、当前 renderer/Rust/AppKit 权限链与匿名参考的服务边界
-[OUTPUT]: 对外提供 App Management 首次授权生命周期、首次 handoff 必须早于 Cavalry mutation 的边界、脚本入口外置签名组件的真实语义、系统/Updater/Cavalry restart 区分、fresh-session 决策及可复用调研方法
-[POS]: docs/audits 的权限生命周期与签名副作用复盘；实施账本引用本文的通用结论，本文不驱动运行时，不把其他 TCC service 的行为类推为 App Management 事实，也不把精确旧残留清理扩大为通用签名修复
+[OUTPUT]: 对外提供 App Management 首次授权生命周期、首次 handoff 必须早于 Cavalry mutation 的边界、脚本入口外置签名组件的真实语义与静默产品投影、系统/Updater/Cavalry restart 区分、fresh-session 决策及可复用调研方法
+[POS]: docs/audits 的权限生命周期与签名副作用复盘；实施账本引用本文的通用结论，本文不驱动运行时，不把其他 TCC service 的行为类推为 App Management 事实，不把精确旧残留清理扩大为通用签名修复，也不把工具自己的兼容债务转嫁为用户状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -102,6 +102,8 @@ Switcher 是第三方本地翻译工具，本来就会修改 Cavalry 并在提�
 4. 写入通过 durable transaction，最终 app seal 与启动后置条件成立。
 
 相反，Managed 安装当前 strict codesign 漂移、旧脚本入口留下已知外置组件、或签名目录存在与本工具无关的其他成员，都不再单独取得语言切换否决权。未知文件不会被本工具删除；只有无法证明目标结构、恢复 preimage 或本工具 runtime 所有权时才阻断。
+
+产品层也必须服从同一边界：已知外置组件只是 Switcher 自己的兼容清理细节，不是用户需要理解或裁决的安装状态。Status 可把结构完整的 stock runtime 统一投影为 `recoverableStock`，诊断日志保留具体组件事实，真正的语言事务再按 exact preimage 静默清理；renderer 不接收残留布尔值，不显示“旧版签名残留”，也不为了清理而额外启用 Restore。这样既不隐藏真实阻断，也不让工具自己的历史实现债务转嫁给用户。
 
 ## 3. 四种容易混淆的“重启”
 

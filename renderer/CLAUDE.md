@@ -24,9 +24,9 @@ about-control.js: 无依赖主窗口 About 入口状态机，仅在 Windows 展�
 about.html: 独立 About WebviewWindow 页面，复用主窗口 titlebar DOM 语义与 tokens/styles/about/toast，显示同源图标、真实版本、项目与许可证入口；标题栏只标识软件，About 语义由内容承担。
 about-window.js: About 页面控制器，固定 repository/license 枚举；默认浏览器失败只在本窗口显示 error Toast，不暴露 URL。
 window-controls.js: Windows caption 状态机，只在 `platform=windows` 展示右侧最小化/最大化或还原/关闭，消费图标注册表与 bridge 固定 main-window 操作并在 toggle/resize 后同步最大化状态、四语可访问名称；系统 API 继续拥有行为，失败不污染业务任务事件视窗或 AlertDialog，macOS 路径不执行窗口 mutation。
-app.js: 唯一业务交互源；文件夹动作只在后端未发现安装时显露，Select 保留但禁用当前语言，非支持版本进入只读门禁；已证明的 Managed Legacy 即使当前 strict codesign 漂移也继续四语切换；macOS stock runtime 中旧 Switcher 自有签名残留只消费后端 `macosSignatureResidueRepairable`，允许 Switch/Restore 进入真实事务清理；后端 `macosPermissionHandoffRequired` 为真时，Switch/Restore 在调用 `applyLanguage` 前先进入既有 handoff，设置打开与 drop 均不冒充已授权，file-URL drop 只触发一次真实 oracle；后续 typed PermissionDenied 保留 Activity 历史并要求重开；Updater、Cavalry 打开阶段、Toast 继续保持各自语义边界。
-tauri-bridge.js: 非视觉兼容桥，在业务脚本前定义最小冻结 API；归一化 camelCase payload、稳定 warning/updater codes、四态版本、官方恢复、后端证明的 `macosPermissionHandoffRequired`/`macosSignatureResidueRepairable`、Action/Status 与脱敏 Update DTO；App Management 入口只发送固定 permission、有限 source rect/CSS viewport 与独立 Channel，不接受任意设置 URL。
-ui-text.js: 稳定的 English/简体中文/繁体中文/日文 renderer 文案与 `STATUS_TITLE_KEYS` 状态标题路由；覆盖 Select、Badge、Switch/Restore、Updater、旧版自有签名残留与首次权限前导；只有版本/结构或恢复基线真正不可用时才给出重开后再官方重装的恢复路径，权限文案只陈述用户动作，不声称设置已授予权限；AlertDialog 遵循“结果/风险在标题，影响/恢复在正文”。
+app.js: 唯一业务交互源；文件夹动作只在后端未发现安装时显露，Select 保留但禁用当前语言，非支持版本进入只读门禁；已证明的 Managed Legacy 即使当前 strict codesign 漂移也继续四语切换，旧 Switcher 自有签名副作用由后端事务静默收敛而不成为产品状态；后端 `macosPermissionHandoffRequired` 为真时，Switch/Restore 在调用 `applyLanguage` 前先进入既有 handoff，Activity 下方始终保留可再次打开权限设置的小按钮，设置打开与 drop 均不冒充已授权，file-URL drop 只触发一次真实 oracle；后续 typed PermissionDenied 保留 Activity 历史并要求重开；Updater、Cavalry 打开阶段、Toast 继续保持各自语义边界。
+tauri-bridge.js: 非视觉兼容桥，在业务脚本前定义最小冻结 API；归一化 camelCase payload、稳定 warning/updater codes、四态版本、官方恢复、后端证明的 `macosPermissionHandoffRequired`、Action/Status 与脱敏 Update DTO；内部签名清理事实不进入 renderer 契约，App Management 入口只发送固定 permission、有限 source rect/CSS viewport 与独立 Channel，不接受任意设置 URL。
+ui-text.js: 稳定的 English/简体中文/繁体中文/日文 renderer 文案与 `STATUS_TITLE_KEYS` 状态标题路由；覆盖 Select、Badge、Switch/Restore、Updater 与首次权限前导；只有版本/结构或恢复基线真正不可用时才给出重开后再官方重装的恢复路径，内部兼容清理不生成文案，权限文案只陈述用户动作，不声称设置已授予权限；AlertDialog 遵循“结果/风险在标题，影响/恢复在正文”。
 
 依赖边界:
 

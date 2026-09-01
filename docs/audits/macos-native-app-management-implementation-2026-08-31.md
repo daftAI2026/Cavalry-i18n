@@ -1,7 +1,7 @@
 <!--
 [INPUT]: 依赖根 CLAUDE.md、src-tauri/CLAUDE.md、src-tauri/src/CLAUDE.md、docs/roadmap/macos-app-management-handoff-animation.md、src-tauri/Cargo.toml、src-tauri/src/lib.rs、commands.rs、commands/contract.rs、privilege/restart.rs、window_chrome.rs、Tauri 2.10.3 本地源码，以及 Apple AppKit/CoreGraphics 公开 API 文档
-[OUTPUT]: 对外提供 macOS App Management handoff 原生落地的最短实施路径、九命令边界、CSS→AppKit 坐标转换、per-screen NSPanel/live NSDraggingSession 生命周期、单次 apply oracle 后的 reverse 或 restart-required cleanup、Reduce Motion/Info.plist 与证据分级
-[POS]: docs/audits 的 dated 原生边界审计；只描述如何把已冻结的 handoff 状态机接入 Tauri，不修改 renderer、tools 或既有 roadmap，也不把未知的私有行为写成事实
+[OUTPUT]: 对外提供 macOS App Management handoff 原生落地的最短实施路径、九命令边界、CSS→AppKit 坐标转换、per-screen NSPanel/live NSDraggingSession 生命周期、单次 apply oracle 后的 reverse 或 restart-required cleanup、Reduce Motion/Info.plist、证据分级，以及后续 native motion surface 与箭头 overscan 修正的事实附录
+[POS]: docs/audits 的 dated 原生边界审计；主体保留 2026-08-31 设计快照，附录记录当前 native owner 的窄范围修正；不修改 renderer、tools 或既有状态机，也不把未知的私有行为写成事实
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -31,7 +31,7 @@ Objective-C++ AppKit shim
   └─ 其他 error：按错误语义 reverse/cleanup
 ```
 
-这份报告是**审计和实施设计，不是原生功能已落地的证明**。当前分支没有 native handoff 源文件；本轮只在隔离 worktree 新增本报告和文档地图项，不触碰主工作区正在修改的 `renderer/`、`tools/` 或既有 roadmap。
+这份报告的主体是 **2026-08-31 的审计和实施设计快照**，不是当日原生功能已落地的证明；截至该快照，当前分支没有 native handoff 源文件，本轮只在隔离 worktree 新增本报告和文档地图项，不触碰主工作区正在修改的 `renderer/`、`tools/` 或既有 roadmap。后续 native owner 已在当前分支落地；2026-09-01 的动画几何修正与当前证据边界见同目录的本附录末尾及 `docs/roadmap/macos-app-management-handoff-animation.md`，不回写成 8 月 31 日已经取得的实机证据。
 
 ## 1. 审计边界与证据等级
 
@@ -104,7 +104,7 @@ install_update
 
 ### 3.2 计划中的文件变更
 
-以下是未来真正落地时的文件清单；本审计分支不创建其中的源文件。
+以下是截至 2026-08-31 审计快照中规划的文件清单；该快照分支不创建其中的源文件。后续实际落地文件不改变本节对职责边界的分析。
 
 | 文件 | 动作 | 单一职责 |
 | --- | --- | --- |
@@ -436,7 +436,7 @@ codesign --verify --deep --strict "$APP"
 - 当前固定 URL 指向 App Management pane；正常写入不是通过新增通用 privileged-file entitlement 完成。
 - `NSPanel` borderless/nonactivating、`NSDraggingSession` file URL drag、`NSWindow` screen conversion、`CGWindowListCopyWindowInfo` metadata、`NSWorkspace` Reduce Motion 都有公开 API 支持。
 - 观察到的 handoff 语义是“程序自动把视觉代理交给 helper；用户再从 live app row 手动拖入 System Settings；真实 apply 成功后 reverse”，不是程序自动拨动系统开关。
-- 当前产品没有原生 handoff 实现，也没有 Swift 产品编译路径。
+- 截至本审计快照，当前产品没有原生 handoff 实现，也没有 Swift 产品编译路径；当前分支的后续落地使用 Objective-C++，没有引入 Swift 产品编译路径。
 
 ### 未知
 
@@ -491,6 +491,30 @@ codesign --verify --deep --strict "$APP"
 | `InfoPlist.strings` 放错目录 | 系统权限文案仍是默认语言 | 最终 `Contents/Resources` readback |
 | 直接引入 Swift | 额外 runtime、签名、deployment 复杂度 | 当前版本只用 ObjC++；Swift 留给独立后续重构 |
 | 只测当前主机 | 把单屏 2x 误写成全平台通过 | R2/R3/R5 分阶段，证据按能力分级 |
+
+## 13 2026-09-01 原生动画修正附录
+
+本附录只记录当前分支对 `src-tauri/native/macos_permission_handoff.m` 的窄范围修正；它不改变九命令、权限状态机、renderer 接线或真实写事务 oracle，也不把静态合同当成新的 packaged live 证据。
+
+### 13.1 表层与阴影的几何 owner
+
+此前 `CAVReplicantView` 把 source/target `NSImageView` 放在根 view 下，把 destination/key/ambient shadow 和 stroke 作为根 layer 的兄弟对象。它们虽然在同一方法里收到相同的 frame 数值，但分属不同的坐标/裁切 owner；当每屏 panel 在本地坐标裁切或 layer 发生 rasterization 时，表层与阴影可能出现不同步或错位。
+
+当前实现新增一个 `motionSurfaceView`：
+
+- 外层 replicant 只移动 `motionSurfaceView.frame`；
+- 两张 image view、三层 shadow 和 stroke 都挂在该 surface；
+- 所有子对象使用 `motionSurfaceView.bounds`，shadow path 也由同一 bounds 生成。
+
+因此表层、阴影和描边共享同一个运动 frame 与生命周期。该结论来自源码结构和新增 native contract test，不等于已完成所有显示器倍率的像素级 readback。
+
+### 13.2 箭头 overscan 与已锁定节奏
+
+参考研究已锁定箭头 `28×28` 视觉尺寸、`scaleX=1.15`、`scaleY=1.6`、`mass=1 / stiffness=200 / damping=11`、初始等待 `0.5s`、stretch `0.25s`、空闲 `4s`、视觉上移 `10pt`，以及黑色 `0.23 / radius 7 / y 4` 阴影。此前 native child panel 仍是紧贴 glyph 的 `28×28`，最大 stretch 和 shadow 会越出 panel 上边界，所以出现箭头上半部被裁切。
+
+当前实现保留上述行为参数，只改变承载几何：canvas 宽度为 `ArrowSize + 2 × shadowRadius`，高度为最大 `scaleY` 高度加上上下 shadow overscan；glyph 放在 canvas 内的实际位置，layer 以底边为 anchor，箭头 shadow 跟随同一 glyph layer。panel 不再用 `28×28` 紧框裁切，最大 stretch、横向 shadow 和上下 shadow 都有自己的透明余量。
+
+这仍是洁净室实现：只复用研究对象可观察的节奏、位移、曲线和公开 AppKit/Core Animation 行为，不复制仓库外的私有 raster。新增 `macos_permission_handoff_contract.rs` 静态合同锁定上述常量、bottom anchor、overscan 公式、shadow 同层和 `settlingDuration`；真实 macOS 首次授权、多屏/混合倍率与 packaged 像素 readback仍按 roadmap 的 R3/R5 边界执行。
 
 ## 参考资料
 

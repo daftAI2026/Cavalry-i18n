@@ -935,8 +935,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(uiText, /cavalryStillRunning: '保存工作并退出 Cavalry 后重试。安装内容未被修改。'/);
   assert.match(uiText, /newerVersionUnsupported: '语言切换器目前支持 Cavalry \{supportedVersion\}，不会修改此安装。你可以继续使用 Cavalry；请在兼容更新发布后再试。'/);
   assert.match(uiText, /permissionHandoffBody:/);
-  assert.match(uiText, /signatureResidueRepairableTitle:/);
-  assert.match(uiText, /signatureResidueRepairable:/);
+  assert.doesNotMatch(uiText, /signatureResidueRepairable|legacy signing residue|旧版签名残留|舊版簽名殘留|旧版署名残留/);
   assert.doesNotMatch(uiText, /原始英文文件|original English files|原始英文檔案|元の英語ファイル/);
   assert.equal((uiText.match(/^\s{4}restore:/gm) || []).length, 4, 'all four UI locales must localize the single Restore action');
   for (const copy of [
@@ -1004,8 +1003,6 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'warningFinderFallbackUsed',
     'warningNonFatalCleanup',
     'permissionHandoffBody',
-    'signatureResidueRepairableTitle',
-    'signatureResidueRepairable',
     'appliedWithWarnings',
     'runtimeResidueWarning',
     'preparingApply',
@@ -1043,14 +1040,11 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'function restoreIsNeeded'
   );
   assert.match(reinstallFunction, /state\.platform === 'macos'/);
-  assert.match(reinstallFunction, /\['modifiedOrUnverified', 'legacySignatureResidue'\]\.includes\(state\.installationMode\)/);
+  assert.match(reinstallFunction, /state\.installationMode === 'modifiedOrUnverified'/);
   assert.match(reinstallFunction, /state\.needsExtract/);
-  assert.match(reinstallFunction, /!hasRepairableMacosSignatureResidue\(\)/);
   assert.match(app, /setStatus\('reinstallRequired', 'error'\)/);
-  assert.match(app, /function hasRepairableMacosSignatureResidue\(\) \{ return state\.platform === 'macos' && state\.macosSignatureResidueRepairable === true; \}/);
-  assert.match(app, /state\.macosSignatureResidueRepairable = state\.platform === 'macos' && bootstrapState\.macosSignatureResidueRepairable === true/);
-  assert.match(app, /presentStatus\('signatureResidueRepairable', 'warning'\)/);
-  assert.match(bridge, /macosSignatureResidueRepairable: result\.platform === 'macos' && result\.macosSignatureResidueRepairable === true/);
+  assert.doesNotMatch(app, /macosSignatureResidueRepairable|signatureResidueRepairable|legacySignatureResidue/);
+  assert.doesNotMatch(bridge, /macosSignatureResidueRepairable|legacySignatureResidue/);
   assert.match(app, /state\.macosPermissionHandoffRequired =/);
   assert.match(app, /bootstrapState\.macosPermissionHandoffRequired === true/);
   assert.match(bridge, /macosPermissionHandoffRequired: result\.platform === 'macos' && result\.macosPermissionHandoffRequired === true/);
@@ -1077,7 +1071,6 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(restoreDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
   const restoreNeededFunction = sourceFunction(app, 'function restoreIsNeeded() {', 'function isRestoreAction');
   assert.match(restoreNeededFunction, /state\.currentLang !== 'en'/);
-  assert.match(restoreNeededFunction, /hasRepairableMacosSignatureResidue\(\)/);
   assert.match(restoreNeededFunction, /state\.platform === 'windows'[\s\S]*state\.englishRestoreNeeded/);
   assert.doesNotMatch(restoreNeededFunction, /installationMode/, 'managed English must not expose a no-op Restore action');
   const retryCallback = sourceFunction(app, 'onRetry: () => {', 'onError:');

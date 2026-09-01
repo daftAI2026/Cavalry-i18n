@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、后端已证明 stock runtime 中旧 Switcher 外置签名副作用的兼容清理、macOS 权限 handoff 前置门禁、保留阻断前历史且折叠同进程 oracle 重复前置成功阶段的 macOS 设置/Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
- * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 或未知签名失败误报为可清理状态，也不自行扫描或推断签名残留；只读权限未知不伪装为警告，已知 macOS 权限前置状态必须先进入既有 handoff，不伪称权限已验证，typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、macOS 权限 handoff 前置门禁及始终可见的设置恢复按钮、保留阻断前历史且折叠同进程 oracle 重复前置成功阶段的 macOS 设置/Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
+ * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部签名清理；只读权限未知不伪装为警告，已知 macOS 权限前置状态必须先进入既有 handoff，不伪称权限已验证，typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -69,7 +69,7 @@ const api = window.cavalryI18n;
 const state = {
   appPath: '', currentLang: 'en', installationMode: 'unknown', languages: [],
   versionCompatibility: 'supported', supportedVersion: '2.7.2',
-  officialRecoveryAvailable: false, macosSignatureResidueRepairable: false, macosPermissionHandoffRequired: false, needsExtract: false, appManagementGranted: null,
+  officialRecoveryAvailable: false, macosPermissionHandoffRequired: false, needsExtract: false, appManagementGranted: null,
   platform: '', permissionAction: 'none', pendingAction: '',
   ready: false, busy: false, controlsBlocked: false, startupRecoveryError: null,
   stateDurabilityPending: false, englishRestoreNeeded: false, updateInfo: null, permissionRetryAttempt: 0,
@@ -150,7 +150,7 @@ async function recoverOperationFailure() {
 }
 
 function setPermissionWait(isWaiting) {
-  permissionButton.hidden = !isWaiting || state.permissionAction === 'none';
+  permissionButton.hidden = !isWaiting;
   permissionButton.textContent =
     state.permissionAction === 'requestElevation'
       ? t('requestElevation')
@@ -183,12 +183,11 @@ function operationStateForTone(tone) {
   if (tone === 'warning' || tone === 'error') return tone;
   return 'neutral';
 }
-function hasRepairableMacosSignatureResidue() { return state.platform === 'macos' && state.macosSignatureResidueRepairable === true; }
-function requiresCavalryReinstall() { return state.platform === 'macos' && ['modifiedOrUnverified', 'legacySignatureResidue'].includes(state.installationMode) && state.needsExtract && !hasRepairableMacosSignatureResidue(); }
+function requiresCavalryReinstall() { return state.platform === 'macos' && state.installationMode === 'modifiedOrUnverified' && state.needsExtract; }
 function installationSelectionIsRequired() { return !state.appPath; }
 function syncInstallationSelection() { browseButton.hidden = !installationSelectionIsRequired(); }
 function restoreIsNeeded() {
-  return Boolean(state.appPath) && (state.currentLang !== 'en' || hasRepairableMacosSignatureResidue() || (state.platform === 'windows' && state.englishRestoreNeeded));
+  return Boolean(state.appPath) && (state.currentLang !== 'en' || (state.platform === 'windows' && state.englishRestoreNeeded));
 }
 function isRestoreAction(action) {
   return action === 'restore-official' || action === 'en';
@@ -201,8 +200,7 @@ function unsupportedVersionStatusKey() {
 }
 
 function restoreIsBlockedByMissingBaseline() {
-  return state.needsExtract && !hasRepairableMacosSignatureResidue() &&
-    !(state.platform === 'windows' && state.englishRestoreNeeded);
+  return state.needsExtract && !(state.platform === 'windows' && state.englishRestoreNeeded);
 }
 
 const WARNING_TEXT_KEYS = Object.freeze({
@@ -566,7 +564,6 @@ async function bootstrap({ renderActivity = true } = {}) {
       ? bootstrapState.appManagementGranted
       : null;
   state.platform = bootstrapState.platform || '';
-  state.macosSignatureResidueRepairable = state.platform === 'macos' && bootstrapState.macosSignatureResidueRepairable === true;
   state.macosPermissionHandoffRequired = state.platform === 'macos' && bootstrapState.macosPermissionHandoffRequired === true;
   const runtimeResidueDetected =
     state.platform === 'windows' && bootstrapState.reconciliationRequired === true;
@@ -650,7 +647,6 @@ async function bootstrap({ renderActivity = true } = {}) {
     return;
   }
 
-  if (hasRepairableMacosSignatureResidue()) { presentStatus('signatureResidueRepairable', 'warning'); return; }
   if (renderActivity) operationLog.idle();
 }
 
