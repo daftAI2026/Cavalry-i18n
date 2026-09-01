@@ -26,8 +26,8 @@
       "dmg": {
         "background": "icons/background.png",
         "windowPosition": {
-          "x": 200,
-          "y": 120
+          "x": 400,
+          "y": 655
         },
         "windowSize": {
           "width": 800,

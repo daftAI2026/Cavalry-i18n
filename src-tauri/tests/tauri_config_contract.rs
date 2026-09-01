@@ -147,8 +147,8 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
         resources["../injector/libCavalryTranslatorInjector.dylib"],
         "injector/libCavalryTranslatorInjector.dylib"
     );
-    assert_eq!(dmg["windowPosition"]["x"], 200);
-    assert_eq!(dmg["windowPosition"]["y"], 120);
+    assert_eq!(dmg["windowPosition"]["x"], 400);
+    assert_eq!(dmg["windowPosition"]["y"], 655);
     assert_eq!(dmg["windowSize"]["width"], 800);
     assert_eq!(dmg["windowSize"]["height"], 476);
     assert!(config["bundle"]["macOS"]

@@ -33,7 +33,7 @@ requirements-audit.in / requirements-audit.txt - `pip-audit==2.10.1` 自身的�
 src-tauri/Cargo.toml - Rust crate、Tauri v2 与后端依赖声明
 src-tauri/Cargo.lock - Rust 依赖锁定文件，保证本地与 CI 构建同构
 src-tauri/tauri.conf.json - Tauri 共享运行配置，固定本地 CSP/updater 信任根、`main`/`about` capability 与 400×484 无滚动 macOS Overlay 主窗口边界
-src-tauri/tauri.macos.conf.json - macOS 覆盖配置，声明 DMG/bundle、dylib 与四语 App Management 用途说明资源
+src-tauri/tauri.macos.conf.json - macOS 覆盖配置，声明 DMG/bundle、dylib 与四语 App Management 用途说明资源，并把 800×476 Finder 安装窗首次打开原点锁定为实测参考位置 400×655
 src-tauri/tauri.windows.conf.json - Windows 覆盖配置，以完整窗口 override 关闭系统 caption、保留 DWM shadow，并声明 NSIS/x64 与 generic translator/QPA delegate 资源
 src-tauri/tauri.updater-artifacts.conf.json - updater 产物覆盖，仅启用签名 archive/sidecar 生成；与共享配置中已固定的最终公钥/endpoint 合并，并只由 tag 或受保护的无发布签名 smoke 使用
 injector/generated_translations.inc - 编译期嵌入的翻译静态表

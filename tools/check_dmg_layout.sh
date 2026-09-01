@@ -2,8 +2,8 @@
 set -euo pipefail
 
 # [INPUT]: 依赖 Tauri 产出的架构后缀 DMG、dmg_volume_identity.js、hdiutil、diskutil、codesign 和 Finder 布局资源
-# [OUTPUT]: 校验版本/架构卷标、背景图、.DS_Store、卷宗图标、Applications 链接、app bundle、安装态 app 与 bundle seal
-# [POS]: tools/ 下的 DMG 身份、布局与签名守门器，阻止本地或 CI 发布身份模糊、未美化或被 Gatekeeper 判定 damaged 的安装镜像
+# [OUTPUT]: 校验版本/架构卷标、背景图、.DS_Store 的 400px 左锚与非正 bottom-origin、卷宗图标、Applications 链接、app bundle、安装态 app 与 bundle seal
+# [POS]: tools/ 下的 DMG 身份、布局与签名守门器，阻止本地或 CI 发布身份模糊、未美化、丢失参考安装盘贴底行为或被 Gatekeeper 判定 damaged 的安装镜像
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 
 DIST_DIR="${1:-src-tauri/target/release/bundle/dmg}"
@@ -44,6 +44,20 @@ for dmg in "$DIST_DIR"/*.dmg; do
   fi
 
   test -f "$current_mount/.DS_Store"
+  window_bounds=$(
+    strings -a "$current_mount/.DS_Store" |
+      grep -E '^\{\{400, -?[0-9]+\}, \{800, 476\}\}$' |
+      head -n 1 || true
+  )
+  if [ -z "$window_bounds" ]; then
+    echo "DMG Finder WindowBounds does not preserve the 400px left anchor and 800x476 frame: $dmg" >&2
+    exit 1
+  fi
+  window_bottom_origin=$(printf '%s\n' "$window_bounds" | sed -E 's/^\{\{400, (-?[0-9]+)\}.*/\1/')
+  if [ "$window_bottom_origin" -gt 0 ]; then
+    echo "DMG Finder window is not bottom-constrained: $window_bounds" >&2
+    exit 1
+  fi
   test -f "$current_mount/.background/background.png"
   test -f "$current_mount/.VolumeIcon.icns"
   test -L "$current_mount/Applications"
