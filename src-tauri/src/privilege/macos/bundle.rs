@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CommandRunner、macOS bundle 路径、直接 codesign 命令与不跟随 symlink 的 native xattr 清理。
- * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、vendor/ad-hoc requirement 证据解析、脚本入口外置签名组件清单与精确旧残留识别、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
- * [POS]: macOS apply 的 bundle 收口；外置签名组件属于受管 seal 副作用而非普遍异常，禁止 `--deep` 重签任意 vendor nested code，quarantine 不跟随 bundle 内 symlink，任一失败交由外层 exact-preimage 事务回滚。
+ * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、vendor/ad-hoc requirement 证据解析、脚本入口外置签名组件清单与旧版已知残留识别、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
+ * [POS]: macOS apply 的 bundle 收口；外置签名组件是旧 Switcher 脚本入口可能留下的已知副作用，只按自身路径识别并交由事务清理，不把整个 `_CodeSignature` 目录当作翻译准入证据；quarantine 不跟随 bundle 内 symlink。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -26,35 +26,20 @@ pub(crate) fn external_signature_component_paths(app_path: &Path) -> Vec<PathBuf
         .collect()
 }
 
-/// 只识别旧 Switcher 已知产物的精确全集；任意缺项、增项、符号链接或空文件均拒绝。
-pub(crate) fn has_exact_external_signature_residue(app_path: &Path) -> bool {
-    let signature_dir = app_path.join("Contents/_CodeSignature");
-    let expected = std::iter::once("CodeResources")
-        .chain(
-            EXTERNAL_SIGNATURE_COMPONENTS
-                .iter()
-                .filter_map(|relative| Path::new(relative).file_name())
-                .filter_map(|name| name.to_str()),
-        )
-        .collect::<HashSet<_>>();
-    let Ok(entries) = fs::read_dir(signature_dir) else {
-        return false;
-    };
-    let mut actual = HashSet::new();
-    for entry in entries {
-        let Ok(entry) = entry else { return false };
-        let Some(name) = entry.file_name().to_str().map(str::to_string) else {
-            return false;
-        };
-        let Ok(metadata) = fs::symlink_metadata(entry.path()) else {
-            return false;
-        };
-        if metadata.file_type().is_symlink() || !metadata.is_file() || metadata.len() == 0 {
-            return false;
-        }
-        actual.insert(name);
-    }
-    actual.len() == expected.len() && actual.iter().all(|name| expected.contains(name.as_str()))
+/// 识别旧 Switcher 可能留下的已知外置签名组件。
+///
+/// 这些路径是否存在与翻译兼容性无关；调用方只在已证明 stock runtime 时把它们交给
+/// exact-preimage 事务删除。目录里存在其他成员不应阻止清理我们自己拥有的路径。
+pub(crate) fn has_known_external_signature_residue(app_path: &Path) -> bool {
+    external_signature_component_paths(app_path)
+        .into_iter()
+        .any(|path| {
+            fs::symlink_metadata(path).is_ok_and(|metadata| {
+                metadata.file_type().is_file()
+                    && !metadata.file_type().is_symlink()
+                    && metadata.len() > 0
+            })
+        })
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -65,14 +50,23 @@ pub(crate) struct BundleSignatureEvidence {
 }
 
 impl BundleSignatureEvidence {
+    /// 当前 seal 可读且拥有稳定 requirement/CDHash 即足以作为可恢复 preimage。
+    /// Team ID 只决定是否展示“官方”，不决定第三方翻译工具能否工作。
+    pub(crate) fn is_recoverable_identity(&self) -> bool {
+        self.designated_requirement
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+            && self
+                .cdhash
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+    }
+
     pub(crate) fn is_complete_vendor_identity(&self) -> bool {
-        [
-            self.team_id.as_deref(),
-            self.designated_requirement.as_deref(),
-            self.cdhash.as_deref(),
-        ]
-        .into_iter()
-        .all(|value| value.is_some_and(|value| !value.trim().is_empty()))
+        self.team_id
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+            && self.is_recoverable_identity()
     }
 
     pub(crate) fn is_supported_cavalry_vendor_identity(&self) -> bool {
@@ -344,7 +338,7 @@ fn run_direct_bundle_command<R: CommandRunner>(
 #[cfg(test)]
 mod tests {
     use super::{
-        designated_requirement, has_exact_external_signature_residue, EXTERNAL_SIGNATURE_COMPONENTS,
+        designated_requirement, has_known_external_signature_residue, EXTERNAL_SIGNATURE_COMPONENTS,
     };
     use std::fs;
 
@@ -369,7 +363,7 @@ mod tests {
     }
 
     #[test]
-    fn legacy_external_signature_residue_requires_the_exact_regular_file_set() {
+    fn legacy_external_signature_residue_is_owned_path_based_not_directory_wide() {
         let temp = tempfile::tempdir().unwrap();
         let app = temp.path().join("Cavalry.app");
         write(
@@ -379,10 +373,15 @@ mod tests {
         for relative in EXTERNAL_SIGNATURE_COMPONENTS {
             write(&app.join(relative), b"external component");
         }
-        assert!(has_exact_external_signature_residue(&app));
+        assert!(has_known_external_signature_residue(&app));
 
         write(&app.join("Contents/_CodeSignature/Unexpected"), b"unknown");
-        assert!(!has_exact_external_signature_residue(&app));
+        assert!(has_known_external_signature_residue(&app));
+
+        for component in EXTERNAL_SIGNATURE_COMPONENTS {
+            fs::remove_file(app.join(component)).unwrap();
+        }
+        assert!(!has_known_external_signature_residue(&app));
     }
 }
 

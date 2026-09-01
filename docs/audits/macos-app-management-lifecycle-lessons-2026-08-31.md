@@ -88,7 +88,20 @@ runningApplicationsWithBundleIdentifier:
 当前修正遵循两个正交原则：
 
 1. 首次受支持安装在任何 Cavalry mutation 和业务 phase 前进入 handoff；只在 Switcher 自身 state 目录记录“已展示”，不写 Cavalry、不声称 Granted。用户从设置返回后，完整 durable transaction 仍是唯一权限 oracle。
-2. 三个外置组件进入 signing side-effect journal、回滚和官方恢复；兼容旧残留只在 clean vendor runtime 且 `_CodeSignature` 精确包含 `CodeResources + 三个非空 regular 文件`、不存在任何额外成员时执行。未知签名异常仍 fail closed，禁止演变为通用 codesign 修复器。
+2. 三个外置组件进入 signing side-effect journal、回滚和 English 恢复。后续真机证明“目录全集必须完全匹配”属于过度防御：它把无关目录成员错误提升成翻译准入权。当前边界改为：只要受支持 stock runtime 成立，任一已知外置组件都按本工具拥有的路径进入 exact-preimage 事务；其他成员既不删除，也不阻止清理。
+
+## 第一性原理修正：签名不是翻译许可证
+
+Switcher 是第三方本地翻译工具，本来就会修改 Cavalry 并在提交前重新签名。因而修改前的 Developer ID / strict seal 只能回答“当前包是谁签的、seal 是否完整”，不能回答“能否安全切换语言”。把前者当成后者会产生自相矛盾的状态机：工具一边声明要修改 bundle，一边要求 bundle 在每次操作前保持官方纯洁。
+
+现在只保留四类真实门禁：
+
+1. 目标确实是结构完整且版本/架构受支持的 Cavalry；
+2. 要覆盖的文件有可验证 preimage，或当前 runtime 能由本工具已发布 postimage 与 durable English generation 证明；
+3. Cavalry 未运行，且 App Management 允许受保护写入；
+4. 写入通过 durable transaction，最终 app seal 与启动后置条件成立。
+
+相反，Managed 安装当前 strict codesign 漂移、旧脚本入口留下已知外置组件、或签名目录存在与本工具无关的其他成员，都不再单独取得语言切换否决权。未知文件不会被本工具删除；只有无法证明目标结构、恢复 preimage 或本工具 runtime 所有权时才阻断。
 
 ## 3. 四种容易混淆的“重启”
 

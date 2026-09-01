@@ -45,23 +45,19 @@ fn verify_macos_prewrite_trust(
     app_path: &Path,
     immutable_revision: &str,
     previous_state: &State,
-    signature: &privilege::BundleSignatureEvidence,
+    signature: Option<&privilege::BundleSignatureEvidence>,
 ) -> Result<(), String> {
     if crate::mac_official::verify_clean_vendor_runtime(app_path).is_ok() {
         return signature
-            .is_supported_cavalry_vendor_identity()
+            .is_some_and(|signature| signature.is_recoverable_identity())
             .then_some(())
             .ok_or_else(|| {
-                "Selected Cavalry has a clean-looking runtime but its Team ID or designated requirement is not the supported vendor identity; no files were written."
+                "The clean English runtime could not be normalized for recovery before writing."
                     .to_string()
             });
     }
-    if !signature.is_managed_ad_hoc_identity() {
-        return Err(
-            "Modified Cavalry is not signed with the expected managed ad-hoc identity; no files were written. Reinstall Cavalry before retrying."
-                .to_string(),
-        );
-    }
+    // 对已由本工具拥有、且可由快照/runtime postimage 证明的安装，签名只是最终可启动性
+    // postcondition，不是再次切换语言的准入凭证。正常事务会重新签名并严格复核。
     if super::snapshot::legacy_snapshot_is_proven(
         repo_root,
         state_dir,
@@ -115,7 +111,7 @@ fn verify_macos_prewrite_trust(
 }
 
 #[cfg(target_os = "macos")]
-fn repair_legacy_external_signature_residue<R: CommandRunner>(
+fn repair_known_external_signature_residue<R: CommandRunner>(
     state_dir: &Path,
     app_path: &Path,
     current_state: &State,
@@ -176,7 +172,7 @@ fn repair_legacy_external_signature_residue<R: CommandRunner>(
 
     if let Err(error) = repair {
         return Err(transaction.rollback_with_cause(format!(
-            "Could not transactionally remove the exact legacy Switcher signature residue: {error}"
+            "Could not transactionally remove the known legacy Switcher signing residue: {error}"
         )));
     }
     let _completion = transaction.commit()?;
@@ -395,11 +391,13 @@ where
                 Ok(signature) => (Some(signature), false),
                 Err(_)
                     if crate::mac_official::verify_clean_vendor_runtime(&app_path).is_ok()
-                        && privilege::has_exact_external_signature_residue(&app_path) =>
+                        && privilege::has_known_external_signature_residue(&app_path) =>
                 {
                     (None, true)
                 }
-                Err(error) => return Err(error),
+                // 已有受管安装由自身 runtime + durable snapshot 证明；旧签名损坏不应
+                // 阻止普通语言切换，最终事务会重建并验证签名。
+                Err(_) => (None, false),
             }
         } else {
             (None, false)
@@ -410,14 +408,14 @@ where
     #[cfg(target_os = "macos")]
     if legacy_signature_residue {
         if let Some(payload) =
-            repair_legacy_external_signature_residue(state_dir, &app_path, &previous_state, runner)?
+            repair_known_external_signature_residue(state_dir, &app_path, &previous_state, runner)?
         {
             return Ok(payload);
         }
         prewrite_signature = Some(privilege::inspect_bundle_signature(&app_path, runner)?);
     }
     #[cfg(target_os = "macos")]
-    if let Some(prewrite_signature) = prewrite_signature.as_ref() {
+    if app_platform == crate::install::InstallPlatform::Macos {
         verify_macos_prewrite_trust(
             repo_root,
             state_dir,
@@ -425,7 +423,7 @@ where
             &app_path,
             &immutable_revision,
             &previous_state,
-            prewrite_signature,
+            prewrite_signature.as_ref(),
         )?;
     }
     let mut current_state = project_state_with_bundle(

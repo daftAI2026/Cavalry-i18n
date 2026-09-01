@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、Managed Legacy postimage、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
+ * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
  * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -218,6 +218,35 @@ impl CommandRunner for VerifyFailsOnceRunner {
         } else {
             Ok(())
         }
+    }
+
+    fn run_captured(&mut self, program: &str, args: &[String]) -> Result<CommandStatus, String> {
+        self.commands.push(RecordedCommand {
+            program: program.to_string(),
+            args: args.to_vec(),
+        });
+        if program == "codesign"
+            && args.iter().any(|arg| arg == "--verify")
+            && self.verify_failures > 0
+        {
+            self.verify_failures -= 1;
+            return Ok(CommandStatus {
+                exit_code: Some(1),
+                stdout: String::new(),
+                stderr: "bundle seal is damaged".to_string(),
+            });
+        }
+        let mut status = CommandStatus {
+            exit_code: Some(0),
+            stdout: String::new(),
+            stderr: String::new(),
+        };
+        if program == "codesign" && args.iter().any(|arg| arg == "-dv") {
+            status.stderr = "TeamIdentifier=TB4YVNQHVC\nCDHash=0123456789abcdef".to_string();
+        } else if program == "codesign" && args.iter().any(|arg| arg == "-dr") {
+            status.stderr = "designated => anchor apple generic and identifier \"com.scenegroup.cavalry\" and certificate leaf[subject.OU] = TB4YVNQHVC".to_string();
+        }
+        Ok(status)
     }
 }
 
@@ -1185,7 +1214,7 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn clean_looking_bundle_with_the_wrong_vendor_signature_is_rejected_before_mutation() {
+fn structurally_supported_clean_bundle_does_not_use_vendor_team_as_translation_license() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
@@ -1197,10 +1226,9 @@ fn clean_looking_bundle_with_the_wrong_vendor_signature_is_rejected_before_mutat
         b"injector",
     );
     let app_strings = app.join("Contents/assets/Definitions/appStrings.json");
-    let original = fs::read(&app_strings).unwrap();
     let mut runner = WrongVendorSignatureRunner::default();
 
-    let error = apply_language_inner(
+    let result = apply_language_inner(
         &repo,
         &state_dir,
         &resources,
@@ -1209,18 +1237,59 @@ fn clean_looking_bundle_with_the_wrong_vendor_signature_is_rejected_before_mutat
         &mut runner,
         "2026-04-23T00:00:00.000Z",
     )
-    .unwrap_err();
+    .unwrap();
 
-    assert!(
-        error.contains("not the supported vendor identity"),
-        "{error}"
+    assert!(result.ok);
+    assert_ne!(fs::read(app_strings).unwrap(), br#"{"value":"en"}"#);
+    assert!(app.join("Contents/MacOS/CavalryLauncher").exists());
+    assert!(state_dir.join("state.json").exists());
+    assert!(runner
+        .inner
+        .commands
+        .iter()
+        .any(|command| command.args.iter().any(|arg| arg == "--sign")));
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn stock_bundle_repairs_owned_signing_residue_without_policing_unrelated_members() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
     );
-    assert_eq!(fs::read(app_strings).unwrap(), original);
-    assert!(!app.join("Contents/MacOS/CavalryLauncher").exists());
-    assert!(!state_dir.join("state.json").exists());
-    assert!(!runner.inner.commands.iter().any(|command| {
-        command.program == "xattr" || command.args.iter().any(|arg| arg == "--sign")
-    }));
+    let owned = app.join("Contents/_CodeSignature/CodeDirectory");
+    let unrelated = app.join("Contents/_CodeSignature/UnrelatedEvidence");
+    write(&owned, b"legacy Switcher signing residue");
+    write(&unrelated, b"not owned by the Switcher");
+    let mut runner = VerifyFailsOnceRunner {
+        commands: Vec::new(),
+        verify_failures: 1,
+    };
+
+    let result = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut runner,
+        "2026-09-01T18:00:00.000Z",
+    )
+    .unwrap();
+
+    assert!(result.ok);
+    assert!(!owned.exists());
+    assert_eq!(fs::read(unrelated).unwrap(), b"not owned by the Switcher");
+    assert!(runner
+        .commands
+        .iter()
+        .any(|command| command.args.iter().any(|arg| arg == "--sign")));
 }
 
 #[test]
@@ -1629,7 +1698,7 @@ fn windows_apply_plan_stages_generic_and_defers_final_marker_for_qpa() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation() {
+fn repeated_identical_apply_repairs_a_broken_managed_signature() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state = temp.path().join("state");
@@ -1653,12 +1722,11 @@ fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation
     let injector_before =
         fs::read(app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")).unwrap();
     let marker_before = fs::read(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap();
-    let state_before = fs::read(state.join("state.json")).unwrap();
     let mut second_runner = VerifyFailsOnceRunner {
         commands: Vec::new(),
         verify_failures: 1,
     };
-    let error = apply_language_inner(
+    let result = apply_language_inner(
         &repo,
         &state,
         &resources,
@@ -1667,9 +1735,10 @@ fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation
         &mut second_runner,
         "2026-04-23T00:01:00.000Z",
     )
-    .unwrap_err();
+    .unwrap();
 
-    assert!(error.contains("bundle seal is damaged"), "{error}");
+    assert!(result.ok);
+    assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
     assert_eq!(
         fs::read(app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")).unwrap(),
         injector_before
@@ -1678,8 +1747,7 @@ fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation
         fs::read(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap(),
         marker_before
     );
-    assert_eq!(fs::read(state.join("state.json")).unwrap(), state_before);
-    assert!(!second_runner
+    assert!(second_runner
         .commands
         .iter()
         .any(|command| command.args.iter().any(|arg| arg == "--sign")));

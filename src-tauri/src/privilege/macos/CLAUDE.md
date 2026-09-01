@@ -4,7 +4,7 @@
 成员清单
 mod.rs: macOS privilege 子模块边界；仅向上暴露 bundle 系统操作与 exact-PID 进程控制。
 apply_transaction.rs: macOS apply 的 durable transaction owner；以单次打开并经 F_GETPATH 绑定的 root、已固定的目录/节点 fd 执行 nofollow 备份、原子发布、CAS 恢复与 quarantine xattr 遍历；strict begin 统一认证 preimage，准备/发布前扫描 exact PID，首次安装按 wrapper→Info 发布 journal-aware gate；bundle create/rename 的 errno 权限类别跨安全回滚保留；Signing phase 精确覆盖 `CodeDirectory`、`CodeSignature`、`CodeRequirements` 三个外置组件，使 codesign 中断和后续失败都能 CAS 回滚完整签名副作用；成功 postimage 仍必须显式 verifier 证明。
-bundle.rs: Cavalry.app 签名与 quarantine 操作；只执行当前用户已获授权的直接命令，拒绝管理员 shell fallback；集中定义三个外置签名组件，并仅在 `_CodeSignature` 恰含它们与非空 regular `CodeResources`、无任何额外成员时判为可兼容残留。
+bundle.rs: Cavalry.app 签名与 quarantine 操作；只执行当前用户已获授权的直接命令，拒绝管理员 shell fallback；集中定义三个旧 Switcher 外置签名组件，按自有 regular-file 路径识别兼容残留，目录内无关成员既不会被删除，也不会阻止清理自有副作用。
 process.rs: 通过 libproc 绑定 canonical executable/PID，并用固定 JXA 请求 NSRunningApplication graceful terminate 后有界等待退出。
 
 法则: macOS JXA/系统调用只能存在于此目录；调用方只依赖 typed command runner 与结果；禁止临时 shell 提权。

@@ -1,8 +1,8 @@
 /**
- * [INPUT]: 依赖严格 macOS bundle identity、受支持 vendor codesign 证据、packaged English、state generation root 与精确 runtime/JSON 文件。
- * [OUTPUT]: 提供 English JSON + official runtime 单一 immutable generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明、同步撤销脚本入口外置签名组件的官方还原计划及完整 postimage/签名复核。
- * [POS]: macOS vendor baseline 真相层；generation rename 只发布不可变候选，state.json provenance 是唯一 current commit bit，apply 从同一 verified handle 取得 English 与 runtime。
- * [FAIL-CLOSED]: capture 必须满足 before == staged == after；既有 generation 也重新比较当前 clean vendor；managed Mach-O 仅允许签名区变化；任一 manifest/hash/path/mode/signature/identity 漂移或 symlink 均拒绝。
+ * [INPUT]: 依赖受支持 macOS bundle 结构、当前可恢复 seal、packaged English、state generation root 与精确 runtime/JSON 文件。
+ * [OUTPUT]: 提供 English JSON + stock runtime 单一 immutable recovery generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明、同步撤销脚本入口外置签名组件的 English 恢复计划及完整 postimage/签名复核。
+ * [POS]: macOS recovery baseline 真相层；Team ID 只保留为 Official 展示证据，不充当翻译许可证；generation rename 只发布不可变候选，state.json provenance 是唯一 current commit bit。
+ * [FAIL-CLOSED]: capture 必须满足 before == staged == after；managed Mach-O 仅允许签名区变化；任一由本工具拥有的 manifest/hash/path/mode/recovery-seal 漂移或 symlink 均拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde::{Deserialize, Serialize};
@@ -66,7 +66,7 @@ struct SnapshotEntry {
 #[serde(rename_all = "camelCase")]
 #[serde(deny_unknown_fields)]
 struct SnapshotSignature {
-    team_id: String,
+    team_id: Option<String>,
     designated_requirement: String,
     cdhash: String,
 }
@@ -176,14 +176,14 @@ pub(crate) struct RestorePlan {
 
 impl SnapshotSignature {
     fn from_evidence(value: BundleSignatureEvidence) -> Result<Self, String> {
-        if !value.is_supported_cavalry_vendor_identity() {
+        if !value.is_recoverable_identity() {
             return Err(
-                "Cannot capture an official macOS baseline because Team ID, designated requirement, or CDHash is incomplete or not the supported Cavalry vendor identity."
+                "Cannot capture a macOS recovery baseline because the current seal has no stable designated requirement or CDHash."
                     .to_string(),
             );
         }
         Ok(Self {
-            team_id: value.team_id.expect("supported identity has Team ID"),
+            team_id: value.team_id,
             designated_requirement: value
                 .designated_requirement
                 .expect("supported identity has designated requirement"),
@@ -191,13 +191,8 @@ impl SnapshotSignature {
         })
     }
 
-    fn is_supported_vendor(&self) -> bool {
-        !self.cdhash.trim().is_empty()
-            && self.team_id == detect::SUPPORTED_CAVALRY_TEAM_ID
-            && self.designated_requirement.contains("anchor apple generic")
-            && self
-                .designated_requirement
-                .contains("identifier \"com.scenegroup.cavalry\"")
+    fn is_recoverable(&self) -> bool {
+        !self.cdhash.trim().is_empty() && !self.designated_requirement.trim().is_empty()
     }
 }
 
@@ -712,23 +707,23 @@ impl VerifiedVendorBaseline {
         for (field, expected, actual) in [
             (
                 "TeamIdentifier",
-                self.manifest.signature.team_id.as_str(),
+                self.manifest.signature.team_id.as_deref(),
                 actual.team_id.as_deref(),
             ),
             (
                 "designated requirement",
-                self.manifest.signature.designated_requirement.as_str(),
+                Some(self.manifest.signature.designated_requirement.as_str()),
                 actual.designated_requirement.as_deref(),
             ),
             (
                 "CDHash",
-                self.manifest.signature.cdhash.as_str(),
+                Some(self.manifest.signature.cdhash.as_str()),
                 actual.cdhash.as_deref(),
             ),
         ] {
-            if Some(expected) != actual {
+            if expected != actual {
                 return Err(format!(
-                    "Restored Cavalry signature {field} does not match the captured official preimage."
+                    "Restored Cavalry signature {field} does not match the captured recovery preimage."
                 ));
             }
         }
@@ -737,7 +732,7 @@ impl VerifiedVendorBaseline {
 
     /// Prove the complete official postimage, not merely a valid-looking signature.  The typed
     /// bundle identity, exact runtime bytes/modes, exact English asset manifest and captured
-    /// vendor signature must all agree with the same immutable generation.
+    /// captured recovery seal must all agree with the same immutable generation.
     pub(crate) fn verify_restored_bundle<R: CommandRunner>(
         &self,
         app_path: &Path,
@@ -986,11 +981,8 @@ fn validate_manifest_self_identity(manifest: &SnapshotManifest) -> Result<(), St
     validate_sha256(&manifest.generation, "official generation")?;
     validate_sha256(&manifest.vendor_baseline_id, "vendor baseline")?;
     validate_sha256(&manifest.english.manifest_sha256, "English manifest")?;
-    if !manifest.signature.is_supported_vendor() {
-        return Err(
-            "Official macOS baseline has incomplete or unsupported vendor signature provenance."
-                .to_string(),
-        );
+    if !manifest.signature.is_recoverable() {
+        return Err("macOS recovery baseline has incomplete signature provenance.".to_string());
     }
     validate_runtime_entries(&manifest.entries)?;
     validate_bundle_runtime_cross_links(&manifest.bundle, &manifest.entries)?;

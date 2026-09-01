@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、仅在后端证明 clean vendor runtime 且 _CodeSignature 恰含 CodeResources 与三个旧 Switcher 外置签名组件时的兼容清理、macOS 权限 handoff 前置门禁、保留阻断前历史且折叠同进程 oracle 重复前置成功阶段的 macOS 设置/Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、后端已证明 stock runtime 中旧 Switcher 外置签名副作用的兼容清理、macOS 权限 handoff 前置门禁、保留阻断前历史且折叠同进程 oracle 重复前置成功阶段的 macOS 设置/Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不把 Managed Legacy 或未知签名失败误报为可清理状态，也不自行扫描或推断签名残留；只读权限未知不伪装为警告，已知 macOS 权限前置状态必须先进入既有 handoff，不伪称权限已验证，typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
