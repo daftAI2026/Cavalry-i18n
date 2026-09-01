@@ -115,7 +115,7 @@ idle → preparing → presenting → presented → reversing → idle
 
 当前生产代码已在同一状态合同上完成 R2/R3/R4 的**源码落地**：renderer 在 AlertDialog 关闭前冻结 source rect 与 CSS viewport；既有第九条 `open_privacy_security` 以 per-session Channel 启动独立 Rust/AppKit owner；Objective-C 层按屏幕裁切 non-key/non-main panel、使用 source/target `NSImage`、项目自绘箭头和真实 app-bundle file URL `NSDraggingSession`；copy drop 只请求一次同进程 oracle，renderer 将同一 session 在前次事务完成前重复到达的 Retry/drop 折叠为一次，真实写事务成功才 reverse，任何失败都 cleanup；再次 PermissionDenied 会在 Activity 链尾显示重开提示。源码与 macOS linker 已通过本机编译，工作台也已用生产 controller + fixture bridge 跑通 forward→drag→真实 renderer oracle→success reverse / Later restart-required / fresh-session 投影。最终 ad-hoc `.app`/DMG 仍按项目 SOP 验证四语用途说明、签名与包结构，但这里不再建设独立账户、官方 DMG 封存或首次 TCC release 证明。
 
-真实机权限交接与启动恢复另写入本机 state 目录下的 `diagnostics.jsonl`，超过 512 KiB 后只轮换为一份 `diagnostics.previous.jsonl`。日志只记录启动恢复前后是否存在 pending journal、语言动作结果和 App Management 设置入口结果；错误文本会脱敏 state、用户目录与临时目录，不记录语言文件内容、密钥、哈希或 TCC 数据。它是复现支持证据，不是新的 renderer 状态源；写入失败不得改变语言事务、权限 handoff 或启动结果。
+真实机权限交接与启动恢复另写入本机 state 目录下的 `diagnostics.jsonl`，超过 512 KiB 后只轮换为一份 `diagnostics.previous.jsonl`。日志记录启动恢复前后是否存在 pending journal、renderer status 最终裁决、macOS bundle/signature/vendor runtime/Managed Legacy snapshot/runtime 的无路径失败门、语言动作结果和 App Management 设置入口结果；错误文本会脱敏 state、用户目录与临时目录，不记录语言文件内容、密钥、哈希或 TCC 数据。它是复现支持证据，不是新的 renderer 状态源；写入失败不得改变语言事务、权限 handoff 或启动结果。
 
 生产链只保留两项必要的 fail-closed 约束：`openat`/`renameatx_np` 的原始 `PermissionDenied` 在回滚补充说明后仍保留 typed 类别，macOS command 不解析任意错误文案；原生 drag 只有在 copy operation 的释放点位于实时 System Settings 整窗内时才请求重试，Finder 或其他接受 Copy 的目标不会推进权限链。
 

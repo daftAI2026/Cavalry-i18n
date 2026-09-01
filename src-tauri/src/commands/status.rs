@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch、startup recovery 诊断、snapshot 安装真相/legacy postimage 与 provenance 迁移。
- * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Managed Legacy/官方恢复能力、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload。
+ * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch、startup recovery 诊断、snapshot 安装真相/legacy postimage 与 provenance 迁移、本地 diagnostics 事实流。
+ * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Managed Legacy/官方恢复能力及其无路径裁决链、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload。
  * [POS]: commands 的状态层；unsupported Cavalry 与 pending recovery 均保持安装只读，macOS 轮询不以探针文件破坏 bundle seal，Windows typed reconciliation 不依赖一次会话内存。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -474,32 +474,129 @@ pub(crate) fn get_status_for_app(
 ) -> Result<StatusPayload, String> {
     let paths = AppPaths::for_app(app);
     let candidates = detect::default_app_candidates();
-    if let Some(error) = startup_recovery_error {
-        return Ok(startup_recovery_blocked_status(&paths, candidates, error));
-    }
-    #[cfg(target_os = "macos")]
-    match privilege::pending_macos_apply_install_root(&paths.state_dir) {
-        Ok(Some(root)) => {
-            return Ok(startup_recovery_blocked_status(
-                &paths,
-                candidates,
-                format!(
-                    "A pending macOS language transaction for {} must be recovered before continuing.",
-                    root.display()
-                ),
-            ));
-        }
-        Err(error) => {
+    let result = (|| {
+        if let Some(error) = startup_recovery_error {
             return Ok(startup_recovery_blocked_status(&paths, candidates, error));
         }
-        Ok(None) => {}
-    }
-    status_for_paths(
+        #[cfg(target_os = "macos")]
+        match privilege::pending_macos_apply_install_root(&paths.state_dir) {
+            Ok(Some(root)) => {
+                return Ok(startup_recovery_blocked_status(
+                    &paths,
+                    candidates,
+                    format!(
+                        "A pending macOS language transaction for {} must be recovered before continuing.",
+                        root.display()
+                    ),
+                ));
+            }
+            Err(error) => {
+                return Ok(startup_recovery_blocked_status(&paths, candidates, error));
+            }
+            Ok(None) => {}
+        }
+        status_for_paths(
+            &paths.repo_root,
+            &paths.state_dir,
+            &paths.resource_dir,
+            candidates,
+        )
+    })();
+    record_status_diagnostics(&paths, &result);
+    result
+}
+
+fn record_status_diagnostics(paths: &AppPaths, result: &Result<StatusPayload, String>) {
+    let details = match result {
+        Ok(payload) => {
+            let final_reason = if payload.startup_recovery_error.is_some() {
+                "startupRecoveryRequired"
+            } else if payload.app_path.is_empty() {
+                "installationMissing"
+            } else if payload.version_compatibility != "supported" {
+                payload.version_compatibility.as_str()
+            } else {
+                payload.installation_mode.as_str()
+            };
+            let mut details = serde_json::json!({
+                "ok": true,
+                "finalReason": final_reason,
+                "appFound": !payload.app_path.is_empty(),
+                "version": payload.version,
+                "versionCompatibility": payload.version_compatibility,
+                "currentLanguage": payload.current_lang,
+                "installationMode": payload.installation_mode,
+                "needsEnglishSnapshot": payload.needs_extract,
+                "officialRecoveryAvailable": payload.official_recovery_available,
+                "reinstallRequired": payload.platform == "macos"
+                    && payload.installation_mode == "modifiedOrUnverified"
+                    && payload.needs_extract,
+            });
+            #[cfg(target_os = "macos")]
+            if !payload.app_path.is_empty() && payload.version_compatibility == "supported" {
+                details["macosProof"] = macos_status_proof_diagnostics(paths);
+            }
+            details
+        }
+        Err(error) => serde_json::json!({
+            "ok": false,
+            "finalReason": "statusProjectionError",
+            "error": crate::diagnostics::sanitize_message(error, &paths.state_dir),
+        }),
+    };
+    crate::diagnostics::record(&paths.state_dir, "statusProjectionFinished", details);
+}
+
+#[cfg(target_os = "macos")]
+fn macos_status_proof_diagnostics(paths: &AppPaths) -> serde_json::Value {
+    let candidates = detect::default_app_candidates();
+    let Ok((app_path, state, _, immutable_revision, _)) = resolved_state(
         &paths.repo_root,
         &paths.state_dir,
         &paths.resource_dir,
         candidates,
-    )
+    ) else {
+        return serde_json::json!({ "decisionReason": "stateProjectionUnreadable" });
+    };
+    if detect::require_supported_mac_identity(&app_path).is_err() {
+        return serde_json::json!({ "decisionReason": "bundleIdentityUnproven" });
+    }
+    let vendor_runtime = crate::mac_official::verify_clean_vendor_runtime(&app_path).is_ok();
+    let mut runner = privilege::RealCommandRunner;
+    let signature = match privilege::inspect_bundle_signature(&app_path, &mut runner) {
+        Ok(signature) if signature.is_supported_cavalry_vendor_identity() => "vendor",
+        Ok(signature) if signature.is_managed_ad_hoc_identity() => "managedAdHoc",
+        Ok(_) => "unsupported",
+        Err(_) => "unreadable",
+    };
+    let managed = super::snapshot::macos_managed_legacy_proof_diagnostics(
+        &paths.repo_root,
+        &paths.state_dir,
+        &paths.resource_dir,
+        &state,
+        &app_path,
+        &immutable_revision,
+    );
+    let decision_reason = if vendor_runtime && signature == "vendor" {
+        "official"
+    } else if signature == "managedAdHoc" && managed.proven {
+        "managedLegacy"
+    } else if signature == "vendor" {
+        "vendorRuntimeUnproven"
+    } else if signature == "managedAdHoc" && !managed.snapshot_proven {
+        "managedSnapshotUnproven"
+    } else if signature == "managedAdHoc" && !managed.runtime_proven {
+        "managedRuntimeUnproven"
+    } else {
+        "signatureUnsupported"
+    };
+    serde_json::json!({
+        "decisionReason": decision_reason,
+        "signature": signature,
+        "vendorRuntime": if vendor_runtime { "proven" } else { "unproven" },
+        "managedSnapshot": managed.snapshot_reason,
+        "managedRuntime": managed.runtime_reason,
+    })
 }
 
 fn startup_recovery_blocked_status(

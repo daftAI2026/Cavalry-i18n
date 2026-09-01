@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot 的 packaged English source 定位、patch 的 legacy/immutable snapshot gate、install identity、macOS p1-p5 已发布 wrapper/injector/Keychain postimage 与 Windows QPA 只读证据；Stock 旧状态通过只读 restore plan 同时证明 vendor qwindows 和 generic 所有权。
- * [OUTPUT]: 提供 legacy provenance 完整性判定、macOS Managed Legacy/Windows 旧快照的只读可信识别，以及 apply 阶段的 immutable English generation 迁移；若 generation 已发布而语言事务尚未提交 provenance，则严格复证后直接关联同一 generation。
+ * [OUTPUT]: 提供 legacy provenance 完整性判定、macOS Managed Legacy/Windows 旧快照的只读可信识别、macOS 快照/runtime 首个失败门诊断，以及 apply 阶段的 immutable English generation 迁移；若 generation 已发布而语言事务尚未提交 provenance，则严格复证后直接关联同一 generation。
  * [POS]: commands 的兼容迁移子模块；status 只消费严格 postimage 证明，apply/restore 才接管 generation 发布与 provenance 关联，绝不从未知修改或当前翻译安装反向生成英文备份，也不因上次权限阻断留下的已验证 generation 重复迁移。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -49,63 +49,98 @@ fn is_regular_file(path: &Path) -> bool {
 }
 
 #[cfg(target_os = "macos")]
-fn macos_managed_legacy_runtime_is_proven_with_identities(
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) struct MacosManagedLegacyProofDiagnostics {
+    pub(crate) proven: bool,
+    pub(crate) snapshot_proven: bool,
+    pub(crate) runtime_proven: bool,
+    pub(crate) snapshot_reason: &'static str,
+    pub(crate) runtime_reason: &'static str,
+}
+
+#[cfg(target_os = "macos")]
+fn macos_managed_legacy_runtime_reason_with_identities(
     current: &State,
     app_path: &Path,
     released_injector_identities: &[&str],
-) -> bool {
+) -> &'static str {
     if current.current_lang == "pending"
         || !matches!(
             current.current_lang.as_str(),
             "en" | "zh-Hans" | "zh-Hant" | "ja_JP"
         )
     {
-        return false;
+        return "invalidCurrentLanguage";
     }
     let wrapper = app_path.join("Contents/MacOS/CavalryLauncher");
     let injector = app_path.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib");
     let extension = app_path.join("Contents/Frameworks/libExtensionLayer.dylib");
     let marker = app_path.join("Contents/Resources/cavalry-i18n-lang.txt");
-    if ![&wrapper, &injector, &extension, &marker]
-        .into_iter()
-        .all(|path| is_regular_file(path))
-    {
-        return false;
+    if !is_regular_file(&wrapper) {
+        return "wrapperMissingOrUnsafe";
+    }
+    if !is_regular_file(&injector) {
+        return "injectorMissingOrUnsafe";
+    }
+    if !is_regular_file(&extension) {
+        return "extensionMissingOrUnsafe";
+    }
+    if !is_regular_file(&marker) {
+        return "markerMissingOrUnsafe";
     }
     if !matches!(fs::read(&wrapper), Ok(bytes) if bytes == RELEASED_MACOS_WRAPPER_V1) {
-        return false;
+        return "wrapperMismatch";
     }
     let marker_value = match fs::read_to_string(&marker) {
         Ok(value) => value.trim().to_string(),
-        Err(_) => return false,
+        Err(_) => return "markerUnreadable",
     };
     if marker_value != current.current_lang {
-        return false;
+        return "markerStateMismatch";
     }
-    let injector_identity = fs::read(&injector)
-        .ok()
-        .and_then(|bytes| crate::detect::macho_code_identity_sha256(&bytes).ok());
-    if !injector_identity
-        .as_deref()
-        .is_some_and(|identity| released_injector_identities.contains(&identity))
-    {
-        return false;
+    let injector_identity = match fs::read(&injector) {
+        Ok(bytes) => match crate::detect::macho_code_identity_sha256(&bytes) {
+            Ok(identity) => identity,
+            Err(_) => return "injectorIdentityUnreadable",
+        },
+        Err(_) => return "injectorUnreadable",
+    };
+    if !released_injector_identities.contains(&injector_identity.as_str()) {
+        return "injectorIdentityUnknown";
     }
     let extension_bytes = match fs::read(&extension) {
         Ok(bytes) => bytes,
-        Err(_) => return false,
+        Err(_) => return "extensionUnreadable",
     };
     let Ok((_, report)) =
         crate::keychain_patch::patch_keychain_query_attributes_owned(extension_bytes)
     else {
-        return false;
+        return "extensionPatchUnrecognized";
     };
-    report.patched_callsites == 0
+    if report.patched_callsites == 0
         && report.already_patched_callsites > 0
         && report
             .details
             .iter()
             .all(|detail| detail.patched_callsites == 0 && detail.already_patched_callsites > 0)
+    {
+        "proven"
+    } else {
+        "extensionPatchUnrecognized"
+    }
+}
+
+#[cfg(all(test, target_os = "macos"))]
+fn macos_managed_legacy_runtime_is_proven_with_identities(
+    current: &State,
+    app_path: &Path,
+    released_injector_identities: &[&str],
+) -> bool {
+    macos_managed_legacy_runtime_reason_with_identities(
+        current,
+        app_path,
+        released_injector_identities,
+    ) == "proven"
 }
 
 #[cfg(all(test, target_os = "macos"))]
@@ -174,6 +209,14 @@ mod macos_tests {
             &app,
             &["unreleased-identity"],
         ));
+        assert_eq!(
+            macos_managed_legacy_runtime_reason_with_identities(
+                &state,
+                &app,
+                &["unreleased-identity"],
+            ),
+            "injectorIdentityUnknown"
+        );
 
         write(
             &app.join("Contents/Resources/cavalry-i18n-lang.txt"),
@@ -184,6 +227,14 @@ mod macos_tests {
             &app,
             &[injector_identity.as_str()],
         ));
+        assert_eq!(
+            macos_managed_legacy_runtime_reason_with_identities(
+                &state,
+                &app,
+                &[injector_identity.as_str()],
+            ),
+            "markerStateMismatch"
+        );
     }
 
     #[test]
@@ -473,6 +524,82 @@ fn adopt_published_macos_snapshot_with_identities(
 
 #[cfg(target_os = "macos")]
 #[allow(clippy::too_many_arguments)]
+fn macos_managed_snapshot_proof_diagnostics_with_identities(
+    english_source: &Path,
+    state_dir: &Path,
+    current: &State,
+    app_path: &Path,
+    immutable_revision: &str,
+    released_injector_identities: &[&str],
+) -> MacosManagedLegacyProofDiagnostics {
+    let (snapshot_is_proven, snapshot_reason) = if current
+        .english_snapshot_provenance
+        .as_ref()
+        .is_some_and(has_complete_snapshot_identity)
+    {
+        let proven = migrated_macos_snapshot_matches_install(
+            english_source,
+            state_dir,
+            current,
+            app_path,
+            immutable_revision,
+        );
+        (
+            proven,
+            if proven {
+                "provenGeneration"
+            } else {
+                "generationMismatch"
+            },
+        )
+    } else if patch::english_snapshot_identity(state_dir, app_path, immutable_revision).is_ok() {
+        let proven = published_macos_snapshot_matches_legacy_state(
+            english_source,
+            state_dir,
+            current,
+            app_path,
+            immutable_revision,
+        );
+        (
+            proven,
+            if proven {
+                "provenPublishedGeneration"
+            } else {
+                "publishedGenerationMismatch"
+            },
+        )
+    } else {
+        let state_matches = legacy_state_matches_install(current, app_path, immutable_revision);
+        let snapshot_matches = matches!(
+            patch::legacy_snapshot_matches_language_source(english_source, state_dir, app_path,),
+            Ok(true)
+        );
+        let reason = if !state_matches {
+            "legacyStateMismatch"
+        } else if !snapshot_matches {
+            "legacySnapshotMismatch"
+        } else {
+            "provenLegacySnapshot"
+        };
+        (state_matches && snapshot_matches, reason)
+    };
+    let runtime_reason = macos_managed_legacy_runtime_reason_with_identities(
+        current,
+        app_path,
+        released_injector_identities,
+    );
+    let runtime_proven = runtime_reason == "proven";
+    MacosManagedLegacyProofDiagnostics {
+        proven: snapshot_is_proven && runtime_proven,
+        snapshot_proven: snapshot_is_proven,
+        runtime_proven,
+        snapshot_reason,
+        runtime_reason,
+    }
+}
+
+#[cfg(target_os = "macos")]
+#[allow(clippy::too_many_arguments)]
 fn macos_managed_snapshot_is_proven_with_identities(
     english_source: &Path,
     state_dir: &Path,
@@ -481,39 +608,35 @@ fn macos_managed_snapshot_is_proven_with_identities(
     immutable_revision: &str,
     released_injector_identities: &[&str],
 ) -> bool {
-    let snapshot_is_proven = if current
-        .english_snapshot_provenance
-        .as_ref()
-        .is_some_and(has_complete_snapshot_identity)
-    {
-        migrated_macos_snapshot_matches_install(
-            english_source,
-            state_dir,
-            current,
-            app_path,
-            immutable_revision,
-        )
-    } else if patch::english_snapshot_identity(state_dir, app_path, immutable_revision).is_ok() {
-        published_macos_snapshot_matches_legacy_state(
-            english_source,
-            state_dir,
-            current,
-            app_path,
-            immutable_revision,
-        )
-    } else {
-        legacy_state_matches_install(current, app_path, immutable_revision)
-            && matches!(
-                patch::legacy_snapshot_matches_language_source(english_source, state_dir, app_path,),
-                Ok(true)
-            )
-    };
-    snapshot_is_proven
-        && macos_managed_legacy_runtime_is_proven_with_identities(
-            current,
-            app_path,
-            released_injector_identities,
-        )
+    macos_managed_snapshot_proof_diagnostics_with_identities(
+        english_source,
+        state_dir,
+        current,
+        app_path,
+        immutable_revision,
+        released_injector_identities,
+    )
+    .proven
+}
+
+#[cfg(target_os = "macos")]
+pub(crate) fn macos_managed_legacy_proof_diagnostics(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    current: &State,
+    app_path: &Path,
+    immutable_revision: &str,
+) -> MacosManagedLegacyProofDiagnostics {
+    let english_source = language_source_dir(repo_root, resource_dir, "en");
+    macos_managed_snapshot_proof_diagnostics_with_identities(
+        &english_source,
+        state_dir,
+        current,
+        app_path,
+        immutable_revision,
+        &RELEASED_MACOS_INJECTOR_CODE_IDENTITIES,
+    )
 }
 
 /// Read-only proof used by status projection. It accepts only a legacy state/snapshot that still
