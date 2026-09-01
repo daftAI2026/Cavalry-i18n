@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CommandRunner、macOS bundle 路径、直接 codesign 命令与不跟随 symlink 的 native xattr 清理。
- * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、vendor/ad-hoc requirement 证据解析、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
- * [POS]: macOS apply 的 bundle 收口；禁止 `--deep` 重签任意 vendor nested code，quarantine 不跟随 bundle 内 symlink，任一失败交由外层 exact-preimage 事务回滚。
+ * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、vendor/ad-hoc requirement 证据解析、脚本入口外置签名组件清单与精确旧残留识别、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
+ * [POS]: macOS apply 的 bundle 收口；外置签名组件属于受管 seal 副作用而非普遍异常，禁止 `--deep` 重签任意 vendor nested code，quarantine 不跟随 bundle 内 symlink，任一失败交由外层 exact-preimage 事务回滚。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -12,6 +12,50 @@ use std::{
 };
 
 use super::super::CommandRunner;
+
+pub(crate) const EXTERNAL_SIGNATURE_COMPONENTS: [&str; 3] = [
+    "Contents/_CodeSignature/CodeDirectory",
+    "Contents/_CodeSignature/CodeSignature",
+    "Contents/_CodeSignature/CodeRequirements",
+];
+
+pub(crate) fn external_signature_component_paths(app_path: &Path) -> Vec<PathBuf> {
+    EXTERNAL_SIGNATURE_COMPONENTS
+        .iter()
+        .map(|relative| app_path.join(relative))
+        .collect()
+}
+
+/// 只识别旧 Switcher 已知产物的精确全集；任意缺项、增项、符号链接或空文件均拒绝。
+pub(crate) fn has_exact_external_signature_residue(app_path: &Path) -> bool {
+    let signature_dir = app_path.join("Contents/_CodeSignature");
+    let expected = std::iter::once("CodeResources")
+        .chain(
+            EXTERNAL_SIGNATURE_COMPONENTS
+                .iter()
+                .filter_map(|relative| Path::new(relative).file_name())
+                .filter_map(|name| name.to_str()),
+        )
+        .collect::<HashSet<_>>();
+    let Ok(entries) = fs::read_dir(signature_dir) else {
+        return false;
+    };
+    let mut actual = HashSet::new();
+    for entry in entries {
+        let Ok(entry) = entry else { return false };
+        let Some(name) = entry.file_name().to_str().map(str::to_string) else {
+            return false;
+        };
+        let Ok(metadata) = fs::symlink_metadata(entry.path()) else {
+            return false;
+        };
+        if metadata.file_type().is_symlink() || !metadata.is_file() || metadata.len() == 0 {
+            return false;
+        }
+        actual.insert(name);
+    }
+    actual.len() == expected.len() && actual.iter().all(|name| expected.contains(name.as_str()))
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct BundleSignatureEvidence {
@@ -299,7 +343,15 @@ fn run_direct_bundle_command<R: CommandRunner>(
 
 #[cfg(test)]
 mod tests {
-    use super::designated_requirement;
+    use super::{
+        designated_requirement, has_exact_external_signature_residue, EXTERNAL_SIGNATURE_COMPONENTS,
+    };
+    use std::fs;
+
+    fn write(path: &std::path::Path, bytes: &[u8]) {
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, bytes).unwrap();
+    }
 
     #[test]
     fn designated_requirement_accepts_vendor_and_codesign_ad_hoc_output() {
@@ -314,6 +366,23 @@ mod tests {
             Some("cdhash H\"0123456789abcdef\"")
         );
         assert_eq!(designated_requirement("Executable=/tmp/Cavalry"), None);
+    }
+
+    #[test]
+    fn legacy_external_signature_residue_requires_the_exact_regular_file_set() {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Cavalry.app");
+        write(
+            &app.join("Contents/_CodeSignature/CodeResources"),
+            b"vendor resources",
+        );
+        for relative in EXTERNAL_SIGNATURE_COMPONENTS {
+            write(&app.join(relative), b"external component");
+        }
+        assert!(has_exact_external_signature_residue(&app));
+
+        write(&app.join("Contents/_CodeSignature/Unexpected"), b"unknown");
+        assert!(!has_exact_external_signature_residue(&app));
     }
 }
 

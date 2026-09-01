@@ -47,6 +47,7 @@ pub(crate) use macos::apply_transaction::{
 };
 #[cfg(target_os = "macos")]
 pub(crate) use macos::bundle::{
+    external_signature_component_paths, has_exact_external_signature_residue,
     inspect_bundle_signature, seal_patched_bundle, sign_modified_nested_code,
     verify_modified_nested_code, BundleSignatureEvidence,
 };

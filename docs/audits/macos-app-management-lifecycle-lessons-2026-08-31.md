@@ -1,7 +1,7 @@
 <!--
 [INPUT]: 依赖本机 macOS 27 SecurityPrivacyExtension 的只读本地化/符号复核、Apple SystemPolicyAppBundles 文档、公开 p5 tag、当前 renderer/Rust/AppKit 权限链与匿名参考的服务边界
-[OUTPUT]: 对外提供 App Management 首次授权生命周期、需要重开与无需重开的 TCC service 边界、系统/Updater/Cavalry 三类 restart 区分、被证伪路线、fresh-session 决策及可复用调研方法
-[POS]: docs/audits 的权限生命周期经验复盘；实施账本引用本文的通用结论，本文不驱动运行时，也不把其他 TCC service 的行为类推为 App Management 事实
+[OUTPUT]: 对外提供 App Management 首次授权生命周期、首次 handoff 必须早于 Cavalry mutation 的边界、脚本入口外置签名组件的真实语义、系统/Updater/Cavalry restart 区分、fresh-session 决策及可复用调研方法
+[POS]: docs/audits 的权限生命周期与签名副作用复盘；实施账本引用本文的通用结论，本文不驱动运行时，不把其他 TCC service 的行为类推为 App Management 事实，也不把精确旧残留清理扩大为通用签名修复
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -78,6 +78,17 @@ runningApplicationsWithBundleIdentifier:
 - `restart_cavalry` 只打开 Cavalry。
 
 所以首次重开是系统行为，不是项目主动 restart。
+
+### 2.4 首次拒绝必须早于 Cavalry mutation
+
+旧链路把 App Management 当作“写失败后才知道”的 oracle：用户点击 Switch 后，事务已经进入 Cavalry bundle，`codesign` 也可能先为脚本入口生成 `_CodeSignature/CodeDirectory`、`CodeSignature`、`CodeRequirements`，直到后续受保护文件操作返回 `PermissionDenied`，UI 才打开权限 handoff。于是用户视觉上仍处于“获取权限之前”，bundle 却可能已经承受了可回滚的中间签名副作用。
+
+这三个文件本身不是恶意内容，也不妨碍处于 Switcher managed runtime 的翻译注入；当 `Info.plist` 将 `CFBundleExecutable` 指向脚本 launcher 时，它们是 `codesign` 为外置脚本代码生成的合法组件。真正的缺陷是边界不完整：旧 rollback/official restore 恢复 vendor `Info.plist`、原生可执行文件与 `CodeResources` 后，没有同时删除这三个只属于 managed script entry 的组件，最终被 `codesign --verify --deep --strict` 判为 `unsealed contents present in the bundle root`。
+
+当前修正遵循两个正交原则：
+
+1. 首次受支持安装在任何 Cavalry mutation 和业务 phase 前进入 handoff；只在 Switcher 自身 state 目录记录“已展示”，不写 Cavalry、不声称 Granted。用户从设置返回后，完整 durable transaction 仍是唯一权限 oracle。
+2. 三个外置组件进入 signing side-effect journal、回滚和官方恢复；兼容旧残留只在 clean vendor runtime 且 `_CodeSignature` 精确包含 `CodeResources + 三个非空 regular 文件`、不存在任何额外成员时执行。未知签名异常仍 fail closed，禁止演变为通用 codesign 修复器。
 
 ## 3. 四种容易混淆的“重启”
 

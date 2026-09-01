@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、Managed Legacy 恢复语义、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、后端仅在 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明时的 macOS 残留可清理语义、Managed Legacy 恢复语义、macOS 权限 handoff 前置路由、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -70,7 +70,7 @@ function runtime({
     appManagementGranted: true, appPath: '/Applications/Cavalry.app', currentLang: 'zh-Hans',
     defaultAppCandidates: ['/Applications/Cavalry.app'], languages: [{ value: 'attacker', label: '<img>' }],
     installationMode: 'modifiedOrUnverified', officialRecoveryAvailable: true,
-    needsExtract: false, permissionAction: 'none', platform: 'macos', supportedVersion: '2.7.2',
+    macosSignatureResidueRepairable: false, macosPermissionHandoffRequired: false, needsExtract: false, permissionAction: 'none', platform: 'macos', supportedVersion: '2.7.2',
     version: '2.7.2', versionCompatibility: 'supported', ...status,
   };
   const applyResults = Array.isArray(apply) ? [...apply] : [apply];
@@ -260,9 +260,17 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(r.elements['#installationBadge'].hidden, true);
   assert.equal(status.installationMode, 'modifiedOrUnverified');
   assert.equal(status.officialRecoveryAvailable, true);
+  assert.equal(status.macosSignatureResidueRepairable, false);
+  assert.equal(status.macosPermissionHandoffRequired, false);
   assert.equal(status.supportedVersion, '2.7.2');
   assert.equal(status.versionCompatibility, 'supported');
   assert.equal(Object.hasOwn(status, 'repoRoot'), false);
+
+  const windows = boot({ status: { platform: 'windows', macosSignatureResidueRepairable: true, macosPermissionHandoffRequired: true } });
+  await flush();
+  const windowsStatus = await windows.window.cavalryI18n.getStatus();
+  assert.equal(windowsStatus.macosSignatureResidueRepairable, false);
+  assert.equal(windowsStatus.macosPermissionHandoffRequired, false);
 });
 
 test('permission capability does not fabricate a startup warning before an operation fails', async () => {
@@ -950,6 +958,93 @@ test('macOS handoff captures the real action and only its session Channel retrie
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 2);
 });
 
+test('macOS permission preflight hands off Switch before apply and retries through the native Channel', async () => {
+  const r = boot({
+    status: {
+      platform: 'macos', currentLang: 'zh-Hans', macosPermissionHandoffRequired: true,
+      permissionAction: 'none',
+    },
+    apply: { ok: true, currentLang: 'zh-Hant' },
+  });
+  await flush();
+  chooseLanguage(r);
+  dispatch(r.elements['#applyButton'], 'click');
+  await flush();
+
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+  assert.equal(r.calls.filter(({ command }) => command === 'open_privacy_security').length, 0);
+  assert.equal(r.elements['#modalBackdrop'].open, true);
+  assert.equal(r.elements['#modalTitle'].textContent, 'Allow changes to Cavalry');
+  assert.equal(
+    r.elements['#modalBody'].textContent,
+    'First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language.'
+  );
+  assert.match(activityText(r), /First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language\./);
+  assert.doesNotMatch(activityText(r), /permission verified|permission granted/i);
+
+  dispatch(r.elements['#modalPrimaryButton'], 'click');
+  await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'open_privacy_security').length, 1);
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+
+  const channel = r.handoffChannels[0];
+  r.callbacks.get(channel.id)({ index: 0, message: { outcome: 'retryRequested' } });
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hant' },
+  });
+});
+
+test('macOS permission preflight hands off Restore before the restore confirmation', async () => {
+  const r = boot({
+    status: {
+      platform: 'macos', currentLang: 'zh-Hans', macosPermissionHandoffRequired: true,
+      officialRecoveryAvailable: true, permissionAction: 'none',
+    },
+    apply: { ok: true, currentLang: 'en' },
+  });
+  await flush();
+  assert.equal(r.elements['#restoreButton'].disabled, false);
+  dispatch(r.elements['#restoreButton'], 'click');
+  await flush();
+
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+  assert.equal(r.elements['#modalBackdrop'].open, true);
+  assert.equal(
+    r.elements['#modalBody'].textContent,
+    'First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language.'
+  );
+
+  dispatch(r.elements['#modalPrimaryButton'], 'click');
+  await flush();
+  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
+  const channel = r.handoffChannels[0];
+  r.callbacks.get(channel.id)({ index: 0, message: { outcome: 'retryRequested' } });
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'restore-official' },
+  });
+});
+
+test('macOS permission preflight instruction is localized in all four renderer locales', async () => {
+  for (const [locale, expected] of [
+    ['en-US', 'First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language.'],
+    ['zh-CN', '请先在系统设置中允许语言切换器修改 Cavalry，然后再切换语言。'],
+    ['zh-TW', '請先在系統設定中允許語言切換器修改 Cavalry，然後再切換語言。'],
+    ['ja-JP', 'まずシステム設定で言語スイッチャーによる Cavalry の変更を許可してから、言語を切り替えてください。'],
+  ]) {
+    const r = boot({
+      locale,
+      status: { platform: 'macos', currentLang: 'zh-Hans', macosPermissionHandoffRequired: true },
+    });
+    await flush();
+    chooseLanguage(r);
+    dispatch(r.elements['#applyButton'], 'click');
+    await flush();
+    assert.equal(r.elements['#modalBody'].textContent, expected, locale);
+  }
+});
+
 test('macOS handoff keeps one prerequisite history when the in-process oracle is still denied', async () => {
   const r = boot({
     status: { platform: 'macos', currentLang: 'en', permissionAction: 'openPrivacy' },
@@ -1049,7 +1144,72 @@ test('macOS incomplete provenance gives a direct reinstall route and blocks Rest
   assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
   r.elements['#restoreButton'].listeners.get('click')[0]();
   assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false, 'a synthetic click cannot bypass the disabled restore route');
-  assert.match(activityText(r), /can’t verify the original English files needed for recovery/);
+  assert.match(activityText(r), /can’t verify the integrity of the Cavalry installation/);
+});
+
+test('known macOS signing residue stays actionable through the ordinary transaction', async () => {
+  const r = boot({
+    status: {
+      platform: 'macos', currentLang: 'zh-Hans', installationMode: 'modifiedOrUnverified',
+      needsExtract: true, macosSignatureResidueRepairable: true,
+    },
+    apply: { ok: true, currentLang: 'zh-Hant' },
+  });
+  await flush();
+
+  assert.equal(r.elements['#applyButton'].disabled, true, 'Switch still waits for a target language');
+  assert.equal(r.elements['#restoreButton'].disabled, false, 'known residue keeps Restore available');
+  assert.equal(activityTitle(r), 'Known legacy signing residue');
+  assert.match(activityText(r), /three external signing components/);
+  chooseLanguage(r);
+  dispatch(r.elements['#applyButton'], 'click');
+  await flush();
+  assert.equal(r.elements['#modalBackdrop'].open, false, 'known residue uses the ordinary transaction, not a reinstall dialog');
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hant' },
+  });
+
+  const restore = boot({
+    status: {
+      platform: 'macos', currentLang: 'en', installationMode: 'modifiedOrUnverified',
+      needsExtract: true, macosSignatureResidueRepairable: true,
+    },
+    apply: { ok: true, currentLang: 'en' },
+  });
+  await flush();
+  assert.equal(restore.elements['#restoreButton'].disabled, false, 'known residue makes English cleanup actionable');
+  dispatch(restore.elements['#restoreButton'], 'click');
+  assert.equal(restore.elements['#modalTitle'].textContent, 'Restore English?');
+});
+
+test('known macOS signing residue warning is localized in all four renderer locales', async () => {
+  for (const [locale, title, bodyFragment] of [
+    ['en-US', 'Known legacy signing residue', 'three external signing components'],
+    ['zh-CN', '发现已知旧版签名残留', '三个外置签名组件'],
+    ['zh-TW', '發現已知舊版簽名殘留', '三個外置簽名元件'],
+    ['ja-JP', '既知の旧版署名残留を検出', '外部署名コンポーネントを3つ'],
+  ]) {
+    const r = boot({
+      locale,
+      status: { platform: 'macos', macosSignatureResidueRepairable: true },
+    });
+    await flush();
+    assert.equal(activityTitle(r), title, locale);
+    assert.match(activityText(r), new RegExp(bodyFragment), locale);
+  }
+});
+
+test('macOS residue remains fail-closed when the repair proof is absent', async () => {
+  const r = boot({
+    status: {
+      platform: 'macos', installationMode: 'legacySignatureResidue', needsExtract: true,
+      macosSignatureResidueRepairable: false,
+    },
+  });
+  await flush();
+  assert.equal(r.elements['#applyButton'].disabled, true);
+  assert.equal(r.elements['#restoreButton'].disabled, true);
+  assert.equal(activityTitle(r), 'Reinstall Cavalry');
 });
 
 test('apply composes localized warning codes and never renders backend warning prose', async () => {

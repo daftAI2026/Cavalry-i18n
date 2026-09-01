@@ -137,6 +137,8 @@ fn status_payload_exposes_app_management_probe_result() {
         app_path: "/Applications/Cavalry.app".into(),
         current_lang: "en".into(),
         installation_mode: "official".into(),
+        macos_permission_handoff_required: true,
+        macos_signature_residue_repairable: false,
         official_recovery_available: true,
         startup_recovery_error: None,
         default_app_candidates: Vec::new(),
@@ -157,6 +159,7 @@ fn status_payload_exposes_app_management_probe_result() {
     assert_eq!(value["platform"], "macos");
     assert_eq!(value["reconciliationRequired"], true);
     assert_eq!(value["installationMode"], "official");
+    assert_eq!(value["macosPermissionHandoffRequired"], true);
     assert_eq!(value["officialRecoveryAvailable"], true);
     assert_eq!(value["supportedVersion"], "2.7.2");
     assert_eq!(value["versionCompatibility"], "olderUnsupported");

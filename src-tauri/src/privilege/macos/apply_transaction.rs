@@ -2567,15 +2567,17 @@ fn attach_intermediate_copy_plans(
 }
 
 fn is_allowed_signing_side_effect(canonical_app: &Path, destination: &Path) -> bool {
-    [
+    let fixed = [
         "Contents/_CodeSignature/CodeResources",
         "Contents/MacOS/Cavalry",
         "Contents/MacOS/CavalryLauncher",
         "Contents/Frameworks/libCavalryTranslatorInjector.dylib",
         "Contents/Frameworks/libExtensionLayer.dylib",
-    ]
-    .iter()
-    .any(|relative| destination == canonical_app.join(relative))
+    ];
+    fixed
+        .iter()
+        .chain(super::bundle::EXTERNAL_SIGNATURE_COMPONENTS.iter())
+        .any(|relative| destination == canonical_app.join(relative))
 }
 
 fn collect_quarantine_preimages(
@@ -5449,6 +5451,45 @@ mod tests {
         );
         assert_eq!(fs::read(code_resources).unwrap(), b"vendor-seal");
         assert!(!newly_created_signature.exists());
+    }
+
+    #[test]
+    fn external_script_signature_components_are_bounded_and_rolled_back() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = fs::canonicalize(temp.path()).unwrap();
+        let app = root.join("Cavalry.app");
+        let state = root.join("state");
+        let components = crate::privilege::macos::bundle::external_signature_component_paths(&app);
+        fs::create_dir_all(app.join("Contents/_CodeSignature")).unwrap();
+
+        let mut transaction = MacApplyTransaction::begin_with_removals_and_side_effects(
+            &state,
+            &app,
+            &[],
+            &[],
+            &components,
+        )
+        .unwrap();
+        transaction.begin_signing().unwrap();
+        for component in &components {
+            write(component, b"managed external signature component");
+        }
+        transaction
+            .verify_and_record_signing_postimages(|_| Ok(()))
+            .unwrap();
+        let message = transaction.rollback_with_cause("simulated interrupted app seal");
+
+        assert!(
+            message.contains("Exact bundle and state preimages were restored"),
+            "{message}"
+        );
+        for component in components {
+            assert!(
+                !component.exists(),
+                "{} survived rollback",
+                component.display()
+            );
+        }
     }
 
     #[test]

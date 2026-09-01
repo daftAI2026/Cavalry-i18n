@@ -64,10 +64,10 @@ unknown
 
 约束：
 
-1. 首次启动不主动写入 Cavalry 以“探测”权限；状态读取不能破坏已签名 bundle。
+1. 首次启动和状态读取都不写 Cavalry；首次 Switch/Restore 在任何受保护写入前先展示 App Management handoff，“已展示”只写 Switcher 自身 state 目录。
 2. 设置页返回后不自动展示 Granted；只有下一次真实事务成功才有权宣布可用。
 3. 动画是解释“去哪里完成操作”的视觉桥，不是授权证明，也不自动点击系统设置。
-4. 自定义可写安装根可能不触发 App Management；只有 typed error 出现时才进入该分支。
+4. 首次受支持 macOS 安装统一先完成一次 handoff，避免让 codesign 或事务准备成为隐式权限探针；以后仍只有 typed error/事务 commit 能证明真实结果。
 5. 系统 Quit & Reopen 后不续跑旧任务；禁止用 localStorage、state.json 或启动参数偷偷恢复用户意图。
 
 ### 3.1 事件链与两个正交状态机
@@ -316,7 +316,7 @@ macos_permission_handoff.rs
 4. **独立 owner 持有生命周期。** 新建 `macos_permission_handoff.rs`，由 `lib.rs` 装配并由 command facade 调用；`window_chrome.rs` 不扩职责，`privilege::open_privacy_security` 继续只负责固定系统 URL。owner 负责 panel、CGWindow 跟踪、drag session、generation token 与幂等 cleanup。
 5. **依赖必须直接、精确。** 当前锁中已有 `objc2-app-kit 0.3.2` 与 `core-graphics 0.25.0`，但前者只启用了标题栏所需最小 feature，后者只是传递依赖。R2 必须在 macOS target 下直接声明需要的 AppKit/Foundation/CoreGraphics API，不能依赖 Tauri 偶然带入。
 6. **本地化进入 bundle，而非 renderer JSON。** 默认 `Info.plist` 持有英文 `NSAppBundlesUsageDescription`；`en/zh-Hans/zh-Hant/ja.lproj/InfoPlist.strings` 提供系统权限文案投影，并在 dev/app/DMG 最终 `Info.plist` 和资源目录逐项 readback。它不是 Cavalry runtime translation，也不进入 `languages/`。
-7. **授权仍由原事务判定。** helper 的 copy drop、已有行开关、System Settings 关闭都只改变引导 session。copy drop 只触发一次 `retryRequested`，生成唯一 `attemptId` 并调用原始 `runApply` 作为同进程 oracle；若仍拒绝，Rust cleanup helper，renderer 在 Activity 链尾提示重新打开，Later 不再继续 Retry。用户选择系统 Quit & Reopen 时，macOS 尝试终止并重新打开 Switcher；若重开成功，新会话不恢复旧任务。受保护 apply commit 后 Rust 才触发同进程单次 reverse，再继续与授权无关的 `restartCavalry` 业务阶段与最终结果；native owner 绝不直接调用 apply transaction。
+7. **首次引导前置，授权仍由原事务判定。** status 只根据 Switcher 自身 state 投影一次性 handoff admission；helper 的 copy drop、已有行开关、System Settings 关闭都只改变引导 session。copy drop 只触发一次 `retryRequested`，生成唯一 `attemptId` 并调用原始 `runApply` 作为同进程 oracle；若仍拒绝，Rust cleanup helper，renderer 在 Activity 链尾提示重新打开，Later 不再继续 Retry。用户选择系统 Quit & Reopen 时，macOS 尝试终止并重新打开 Switcher；若重开成功，新会话不恢复旧任务。受保护 apply commit 后 Rust 才触发同进程单次 reverse，再继续与授权无关的 `restartCavalry` 业务阶段与最终结果；native owner 绝不直接调用 apply transaction。
 
 ### 5.3 第一版应做什么
 
@@ -346,7 +346,7 @@ macos_permission_handoff.rs
 | R1 UI Review 原型 | 复用真实权限 Dialog/card 的动画场景 | 自动 handoff 只落到 helper；用户可拖 app row 到列表；同进程 oracle 成功/仍拒绝/其他错误、已有行、fresh session 与 Reduce Motion 可独立审查；不冒充 native |
 | R2 native 单屏 MVP | 独立 AppKit owner + fixed bridge | 不抢焦点；打开准确 pane；真实 file URL drag 可被设置接收；失败回弹；设置窗口移动时 helper 跟随；取消幂等 |
 | R3 native 鲁棒性 | 多显示器、Space、窗口关闭/重开、目标丢失 | 无孤儿 panel、无焦点劫持、无额外权限、无崩溃 |
-| R4 生产接线 | typed `permissionRequired` → handoff → 单次 oracle / restart-required | 只有真实事务成功才显示成功；再次拒绝必须 cleanup 并要求重开；四语目的说明进入最终包 |
+| R4 生产接线 | first-use admission → handoff → 单次 oracle / restart-required | 只有真实事务成功才显示成功；再次拒绝必须 cleanup 并要求重开；四语目的说明进入最终包 |
 | R5 packaged visual check | 当前 ad-hoc/package 实机 | 从干净 bundle 目录构建，检查四语资源、签名、窗口、helper/drop/oracle/reverse；系统当前权限状态不允许出现的分支由共享工作台审查，不另造账户或证据系统 |
 
 当前状态：R0/R1 已闭合；R2/R3/R4 已完成源码、编译与单屏原生子门，helper/forward/reverse/cleanup、source 缺失、目标关闭、定位超时均有验证。共享工作台的成功、仍拒绝、typed error、Reduce Motion、fresh session 与整行 drag snapshot 分支已通过；当前 ad-hoc `.app`/DMG 的包结构、四语权限用途说明、签名、资源与窗口 shell 也已通过。当前账户尚未自然重现首次拒绝后的真实 System Settings 接收、单次写事务 oracle、Quit & Reopen 新进程或 Later 重开提示，因此这些 live 分支仍待用户后续实机检查；多屏/Space/热插拔属于后续鲁棒性验证，不阻塞本次 UI 落地。

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖严格 macOS bundle identity、受支持 vendor codesign 证据、packaged English、state generation root 与精确 runtime/JSON 文件。
- * [OUTPUT]: 提供 English JSON + official runtime 单一 immutable generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明、官方还原计划及完整 postimage/签名复核。
+ * [OUTPUT]: 提供 English JSON + official runtime 单一 immutable generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明、同步撤销脚本入口外置签名组件的官方还原计划及完整 postimage/签名复核。
  * [POS]: macOS vendor baseline 真相层；generation rename 只发布不可变候选，state.json provenance 是唯一 current commit bit，apply 从同一 verified handle 取得 English 与 runtime。
  * [FAIL-CLOSED]: capture 必须满足 before == staged == after；既有 generation 也重新比较当前 clean vendor；managed Mach-O 仅允许签名区变化；任一 manifest/hash/path/mode/signature/identity 漂移或 symlink 均拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -688,6 +688,11 @@ impl VerifiedVendorBaseline {
                 _ => return Err("Official snapshot entry metadata is incomplete.".to_string()),
             }
         }
+        // 外置组件是受管脚本入口的签名副作用，不属于 vendor baseline；显式撤销但不扩张
+        // TRACKED_PATHS，以免让既有可信 generation 因 schema 外兼容清理而失效。
+        removals.extend(privilege::external_signature_component_paths(
+            &canonical_app,
+        ));
         Ok(RestorePlan { pairs, removals })
     }
 
@@ -1765,7 +1770,10 @@ mod tests {
             .build_restore_plan(&app, &root.join("restore-stage"))
             .unwrap();
         assert_eq!(plan.pairs.len(), 4);
-        assert_eq!(plan.removals.len(), 3);
+        assert_eq!(plan.removals.len(), 6);
+        for component in privilege::external_signature_component_paths(&app) {
+            assert!(plan.removals.contains(&component));
+        }
         let main = plan
             .pairs
             .iter()

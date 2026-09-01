@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS Managed Legacy/official baseline 分级、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
+ * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、覆盖脚本入口外置签名组件的 durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
  * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage；回滚说明不得抹掉原始权限类别，也不得用任意错误文本冒充 App Management。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -112,6 +112,80 @@ fn verify_macos_prewrite_trust(
     )?;
     let injector = crate::mac_runtime::injector_source_path(repo_root, resource_dir)?;
     baseline.verify_managed_runtime(app_path, &injector)
+}
+
+#[cfg(target_os = "macos")]
+fn repair_legacy_external_signature_residue<R: CommandRunner>(
+    state_dir: &Path,
+    app_path: &Path,
+    current_state: &State,
+    runner: &mut R,
+) -> Result<Option<ActionPayload>, String> {
+    let components = privilege::external_signature_component_paths(app_path);
+    let preimages = privilege::MacApplyTransaction::capture_preimages(app_path, &components)?;
+    let mut transaction =
+        match privilege::MacApplyTransaction::begin_with_deferred_pairs_and_removals_guarded(
+            state_dir,
+            app_path,
+            &[],
+            &[],
+            &[],
+            &[],
+            &components,
+            &[],
+            &[],
+            &preimages,
+        ) {
+            Ok(transaction) => transaction,
+            Err(privilege::MacApplyBeginError::CavalryStillRunning { .. }) => {
+                return Ok(Some(cavalry_still_running_payload()));
+            }
+            Err(error) if error.is_permission_denied() => {
+                return Ok(Some(ActionPayload::permission_error(&error.display())));
+            }
+            Err(error) => return Err(error.display()),
+        };
+    let operation_id = transaction.operation_id().to_string();
+
+    let repair = (|| {
+        transaction.begin_signing()?;
+        transaction.verify_and_record_signing_postimages(|pinned_app| {
+            crate::mac_official::verify_clean_vendor_runtime(pinned_app)?;
+            let signature = privilege::inspect_bundle_signature(pinned_app, runner)?;
+            signature
+                .is_supported_cavalry_vendor_identity()
+                .then_some(())
+                .ok_or_else(|| {
+                    "Removing the known Switcher signature residue did not restore the supported Cavalry vendor identity."
+                        .to_string()
+                })
+        })?;
+        transaction.authorize_deferred_commit()?;
+        transaction.checkpoint_verified_bundle()?;
+        transaction.begin_state_commit()?;
+        let state_outcome =
+            state::write_state_with_operation_outcome(state_dir, current_state, &operation_id)?;
+        if let Some(warning) = state_outcome.warning() {
+            return Err(format!(
+                "Legacy signature cleanup state durability is uncertain: {warning}"
+            ));
+        }
+        transaction.checkpoint_state_commit()?;
+        Ok::<_, String>(())
+    })();
+
+    if let Err(error) = repair {
+        return Err(transaction.rollback_with_cause(format!(
+            "Could not transactionally remove the exact legacy Switcher signature residue: {error}"
+        )));
+    }
+    let _completion = transaction.commit()?;
+    crate::diagnostics::record(
+        state_dir,
+        "legacySignatureResidueRepaired",
+        serde_json::json!({ "ok": true, "componentCount": components.len() }),
+    );
+    Ok(None)
 }
 
 fn prepare_clean_english_fast_path<C, I>(
@@ -315,14 +389,33 @@ where
         .transpose()
         .map_err(|error| error.to_string())?;
     #[cfg(target_os = "macos")]
-    let prewrite_signature = if app_platform == crate::install::InstallPlatform::Macos {
-        Some(privilege::inspect_bundle_signature(&app_path, runner)?)
-    } else {
-        None
-    };
+    let (mut prewrite_signature, legacy_signature_residue) =
+        if app_platform == crate::install::InstallPlatform::Macos {
+            match privilege::inspect_bundle_signature(&app_path, runner) {
+                Ok(signature) => (Some(signature), false),
+                Err(_)
+                    if crate::mac_official::verify_clean_vendor_runtime(&app_path).is_ok()
+                        && privilege::has_exact_external_signature_residue(&app_path) =>
+                {
+                    (None, true)
+                }
+                Err(error) => return Err(error),
+            }
+        } else {
+            (None, false)
+        };
     let immutable_revision =
         detect::read_bundle_revision_for_write(&app_path).map_err(|error| error.to_string())?;
     let previous_state = read_state_for_mutation(state_dir)?;
+    #[cfg(target_os = "macos")]
+    if legacy_signature_residue {
+        if let Some(payload) =
+            repair_legacy_external_signature_residue(state_dir, &app_path, &previous_state, runner)?
+        {
+            return Ok(payload);
+        }
+        prewrite_signature = Some(privilege::inspect_bundle_signature(&app_path, runner)?);
+    }
     #[cfg(target_os = "macos")]
     if let Some(prewrite_signature) = prewrite_signature.as_ref() {
         verify_macos_prewrite_trust(
@@ -920,13 +1013,15 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
     let signing_side_effects = if action_lang == RESTORE_OFFICIAL_ACTION {
         Vec::new()
     } else {
-        vec![
+        let mut effects = vec![
             app_path.join("Contents/_CodeSignature/CodeResources"),
             app_path.join("Contents/MacOS/Cavalry"),
             app_path.join("Contents/MacOS/CavalryLauncher"),
             app_path.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
             app_path.join("Contents/Frameworks/libExtensionLayer.dylib"),
-        ]
+        ];
+        effects.extend(privilege::external_signature_component_paths(app_path));
+        effects
     };
     let deferred_pairs = [staged_final_marker, staged_official_info]
         .into_iter()

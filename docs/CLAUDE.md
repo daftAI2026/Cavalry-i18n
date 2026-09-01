@@ -11,7 +11,7 @@ translation-guidelines.md: 翻译规范，约束语言风格、保留词、快�
 user-story-status.xlsx: canonical 用户故事状态表，按代码反推 Cavalry-i18n 功能、预期行为、测试证据、错误与修复状态。
 audits/: 审计报告与实跑记录目录，保存阶段性人工/自动检查结果；新问题先沉淀 dated report，再决定是否升格为 workflow。
 audits/macos-native-app-management-implementation-2026-08-31.md: macOS App Management handoff 原生实施边界审计，冻结 Rust/Objective-C++ 最短路径、九命令、CSS→AppKit 坐标、per-screen NSPanel、NSDraggingSession、真实 apply reverse/cleanup、Reduce Motion 与 Info.plist；未知私有行为不写成事实。
-audits/macos-app-management-lifecycle-lessons-2026-08-31.md: macOS App Management 生命周期经验复盘，以 `SystemPolicyAppBundles` 的系统 Quit & Reopen 证据区分需要重开与可同进程验证的 TCC service，并冻结 Later 重开提示、fresh-session、不持久化旧任务和按 service 独立取证的方法。
+audits/macos-app-management-lifecycle-lessons-2026-08-31.md: macOS App Management 生命周期与签名副作用复盘；以具体 TCC service 和系统 Quit & Reopen 证据冻结 fresh-session，并证明首次 handoff 必须早于 Cavalry mutation、三个脚本入口外置签名组件必须纳入 journal/官方恢复且只能在精确旧残留证据下清理。
 audits/switcher-feedback-copy-catalog-2026-08-29.md: Switcher 反馈语义与四语目录，冻结持久 Event、必要 AlertDialog、外围失败 Toast 的生产边界；未选择安装/重装/运行中不叠 Toast，更新可用只用持久入口。
 component-source-adaptation-protocol.md: 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn Button/Marker/Select/Tooltip/AlertDialog/Toast commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit，并规定 Button/业务 variant 分层、Select combobox 隔离、平台外壳与 UI Review fixture 同步、视觉/静态/真机证据边界及 GEB 回环。
 roadmap/: 路线图目录，保存 proposed/active 的未来优化主题与本轮执行事件簿；当前含本地化搜索、Runtime 性能、Windows 移植与注入，以及已完成 R0 提示并进入 R1 真实 Updater Channel/任务事件视窗与可信分发实机验收阶段的路线；UI/Updater/实机/release/tag/清理事项均由事件簿证据化跟踪，每个主题链接对应事实依据并拆出阶段性验收标准。

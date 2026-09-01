@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；renderer 只通过 apply transaction 自动建立恢复基线并执行语言切换或平台 Restore，不暴露独立 snapshot mutation；open_privacy_security 只接受固定 App Management 与有限 source rect；get_status 从安装现实重算 Windows residue并显式投影启动恢复阻断，apply 在同一 operation guard 内通过强类型 Channel 发送 verifyInstallation、ensureBaseline、applyTransaction、restartCavalry 四个真实阶段，受保护写事务提交即以真实 oracle 触发 macOS handoff reverse，再继续 restart 与最终业务结果，任何失败均回收 handoff；macOS 权限只消费 apply 层 typed payload，不再以错误字符串猜测；apply 与权限设置边界向本地有界 diagnostics JSONL 投影脱敏结果；install_update 通过 camelCase onEvent Channel 投影 downloading、installing、restarting 三个真实更新边界；project link 只接受固定枚举，并在 facade 处把全部内部 warning prose 收敛为可组合 warningCodes；About 只转发到唯一原生窗口 owner；更新 command 只消费 Rust State 中的已检查 Update。
+ * [OUTPUT]: 保持九条稳定 Tauri command；首次 macOS App Management handoff 未呈现时在任何 Cavalry 写入前返回 typed permissionRequired，设置入口耐久记录“引导已呈现”而不伪称授权成功；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -83,6 +83,23 @@ pub async fn apply_language(
     let paths = context::AppPaths::for_app(&app);
     let diagnostics_state_dir = paths.state_dir.clone();
     let diagnostics_action = lang.clone();
+    #[cfg(target_os = "macos")]
+    if crate::macos_permission_handoff::preflight_required(&paths.state_dir) {
+        crate::diagnostics::record(
+            &diagnostics_state_dir,
+            "languageActionFinished",
+            serde_json::json!({
+                "action": diagnostics_action,
+                "ok": false,
+                "permissionRequired": true,
+                "errorCode": "permissionRequired",
+                "decisionReason": "appManagementHandoffRequiredBeforeMutation",
+            }),
+        );
+        return finalize_permission_handoff(ActionPayload::permission_error(
+            "App Management must be configured before the first Cavalry write.",
+        ));
+    }
     crate::diagnostics::record(
         &diagnostics_state_dir,
         "languageActionStarted",
@@ -240,6 +257,16 @@ pub fn open_privacy_security(
             serde_json::json!({ "ok": false, "errorCode": "permissionSettingsOpenFailed" }),
         );
         return PermissionHandoffPayload::error("permissionSettingsOpenFailed");
+    }
+    #[cfg(target_os = "macos")]
+    if crate::macos_permission_handoff::record_handoff_presented(&state_dir).is_err() {
+        crate::macos_permission_handoff::finish_app_management_handoff(false);
+        crate::diagnostics::record(
+            &state_dir,
+            "permissionSettingsFinished",
+            serde_json::json!({ "ok": false, "errorCode": "permissionHandoffStateFailed" }),
+        );
+        return PermissionHandoffPayload::error("permissionHandoffStateFailed");
     }
     crate::diagnostics::record(
         &state_dir,

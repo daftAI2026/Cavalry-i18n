@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch、startup recovery 诊断、snapshot 安装真相/legacy postimage 与 provenance 迁移、本地 diagnostics 事实流。
- * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Managed Legacy/官方恢复能力及其无路径裁决链、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload。
+ * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Managed Legacy/官方恢复能力及首次 handoff admission、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload。
  * [POS]: commands 的状态层；unsupported Cavalry 与 pending recovery 均保持安装只读，macOS 轮询不以探针文件破坏 bundle seal，Windows typed reconciliation 不依赖一次会话内存。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -121,6 +121,12 @@ fn installation_mode_with_runner<R: privilege::CommandRunner>(
     }
     let signature = match privilege::inspect_bundle_signature(app_path, runner) {
         Ok(signature) => signature,
+        Err(_)
+            if crate::mac_official::verify_clean_vendor_runtime(app_path).is_ok()
+                && privilege::has_exact_external_signature_residue(app_path) =>
+        {
+            return "legacySignatureResidue";
+        }
         Err(_) => return "modifiedOrUnverified",
     };
     if crate::mac_official::verify_clean_vendor_runtime(app_path).is_ok()
@@ -444,11 +450,35 @@ pub(crate) fn status_for_paths(
             false
         }
     };
+    let macos_permission_handoff_required = {
+        #[cfg(target_os = "macos")]
+        {
+            compatibility == "supported"
+                && !app_path.as_os_str().is_empty()
+                && crate::macos_permission_handoff::preflight_required(state_dir)
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            false
+        }
+    };
+    let macos_signature_residue_repairable = {
+        #[cfg(target_os = "macos")]
+        {
+            installation_mode == "legacySignatureResidue"
+        }
+        #[cfg(not(target_os = "macos"))]
+        {
+            false
+        }
+    };
     Ok(StatusPayload {
         app_management_granted: permission_granted,
         app_path: app_path.to_string_lossy().to_string(),
         current_lang: state.current_lang.clone(),
         installation_mode: installation_mode.to_string(),
+        macos_permission_handoff_required,
+        macos_signature_residue_repairable,
         official_recovery_available,
         startup_recovery_error: None,
         default_app_candidates: candidates
@@ -526,11 +556,14 @@ fn record_status_diagnostics(paths: &AppPaths, result: &Result<StatusPayload, St
                 "versionCompatibility": payload.version_compatibility,
                 "currentLanguage": payload.current_lang,
                 "installationMode": payload.installation_mode,
+                "macosPermissionHandoffRequired": payload.macos_permission_handoff_required,
+                "macosSignatureResidueRepairable": payload.macos_signature_residue_repairable,
                 "needsEnglishSnapshot": payload.needs_extract,
                 "officialRecoveryAvailable": payload.official_recovery_available,
                 "reinstallRequired": payload.platform == "macos"
                     && payload.installation_mode == "modifiedOrUnverified"
-                    && payload.needs_extract,
+                    && payload.needs_extract
+                    && !payload.macos_signature_residue_repairable,
             });
             #[cfg(target_os = "macos")]
             if !payload.app_path.is_empty() && payload.version_compatibility == "supported" {
@@ -577,7 +610,12 @@ fn macos_status_proof_diagnostics(paths: &AppPaths) -> serde_json::Value {
         &app_path,
         &immutable_revision,
     );
-    let decision_reason = if vendor_runtime && signature == "vendor" {
+    let exact_signature_residue = vendor_runtime
+        && signature == "unreadable"
+        && privilege::has_exact_external_signature_residue(&app_path);
+    let decision_reason = if exact_signature_residue {
+        "legacySignatureResidue"
+    } else if vendor_runtime && signature == "vendor" {
         "official"
     } else if signature == "managedAdHoc" && managed.proven {
         "managedLegacy"
@@ -628,6 +666,8 @@ fn startup_recovery_blocked_status(
         app_path: app_path.to_string_lossy().to_string(),
         current_lang,
         installation_mode: "recoveryRequired".to_string(),
+        macos_permission_handoff_required: false,
+        macos_signature_residue_repairable: false,
         official_recovery_available: false,
         startup_recovery_error: Some(error),
         default_app_candidates: candidates
@@ -901,6 +941,51 @@ mod tests {
             ),
             "modifiedOrUnverified"
         );
+
+        struct StrictVerificationFailureRunner;
+        impl privilege::CommandRunner for StrictVerificationFailureRunner {
+            fn run(&mut self, _program: &str, _args: &[String]) -> Result<(), String> {
+                Ok(())
+            }
+
+            fn run_captured(
+                &mut self,
+                program: &str,
+                args: &[String],
+            ) -> Result<privilege::CommandStatus, String> {
+                if program == "codesign" && args.iter().any(|arg| arg == "--verify") {
+                    return Ok(privilege::CommandStatus {
+                        exit_code: Some(1),
+                        stdout: String::new(),
+                        stderr: "unsealed contents present in the bundle root".to_string(),
+                    });
+                }
+                Ok(privilege::CommandStatus {
+                    exit_code: Some(0),
+                    stdout: String::new(),
+                    stderr: String::new(),
+                })
+            }
+        }
+        for component in privilege::external_signature_component_paths(&app) {
+            fs::write(component, b"external signature component").unwrap();
+        }
+        let mut residue = StrictVerificationFailureRunner;
+        assert_eq!(
+            installation_mode_with_runner(
+                &repo,
+                &state_dir,
+                &resources,
+                &state,
+                &app,
+                "revision",
+                &mut residue,
+            ),
+            "legacySignatureResidue"
+        );
+        for component in privilege::external_signature_component_paths(&app) {
+            fs::remove_file(component).unwrap();
+        }
 
         fs::write(app.join("Contents/MacOS/CavalryLauncher"), b"managed").unwrap();
         let mut supported = privilege::RecordingRunner::default();
