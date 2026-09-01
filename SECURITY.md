@@ -62,7 +62,7 @@ Do **not** attach updater/release private keys, future Apple/Windows certificate
 ## Trust boundary (summary)
 
 - The Switcher patches a user-selected local Cavalry installation.
-- macOS expects App Management permission and re-signs the local `Cavalry.app`.
+- macOS attempts the durable write transaction directly and re-signs the local `Cavalry.app`; App Management guidance appears only if the real transaction returns a typed permission denial.
 - Windows elevation is restricted to OS-known Program Files roots; custom writable roots use direct copy only.
 - CI secrets (Tauri updater key, release-seal key, and any future platform-signing credentials) exist only as protected GitHub Actions secrets and are never printed; the independent acceptance private key is deliberately not a CI secret.
 

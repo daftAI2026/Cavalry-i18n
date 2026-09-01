@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、后端仅在 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明时的 macOS 残留可清理语义、Managed Legacy 恢复语义、macOS 权限 handoff 前置路由、只读权限未知不产生启动警告、按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、后端仅在 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明时的 macOS 残留可清理语义、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -958,7 +958,7 @@ test('macOS handoff captures the real action and only its session Channel retrie
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 2);
 });
 
-test('macOS permission preflight hands off Switch before apply and retries through the native Channel', async () => {
+test('macOS ignores the legacy preflight hint and lets the real Switch transaction decide permission', async () => {
   const r = boot({
     status: {
       platform: 'macos', currentLang: 'zh-Hans', macosPermissionHandoffRequired: true,
@@ -971,33 +971,15 @@ test('macOS permission preflight hands off Switch before apply and retries throu
   dispatch(r.elements['#applyButton'], 'click');
   await flush();
 
-  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
-  assert.equal(r.calls.filter(({ command }) => command === 'open_privacy_security').length, 0);
-  assert.equal(r.elements['#modalBackdrop'].open, true);
-  assert.equal(r.elements['#modalTitle'].textContent, 'Allow changes to Cavalry');
-  assert.equal(
-    r.elements['#modalBody'].textContent,
-    'First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language.'
-  );
-  assert.match(activityText(r), /First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language\./);
-  assert.doesNotMatch(activityText(r), /permission verified|permission granted/i);
-  assert.equal(r.elements['#permissionButton'].hidden, false, 'preflight permission waits keep the inline recovery action visible');
-  assert.equal(r.elements['#permissionButton'].textContent, 'Open permission settings');
-
-  dispatch(r.elements['#modalPrimaryButton'], 'click');
-  await flush();
-  assert.equal(r.calls.filter(({ command }) => command === 'open_privacy_security').length, 1);
-  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
-
-  const channel = r.handoffChannels[0];
-  r.callbacks.get(channel.id)({ index: 0, message: { outcome: 'retryRequested' } });
-  await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'zh-Hant' },
   });
+  assert.equal(r.calls.filter(({ command }) => command === 'open_privacy_security').length, 0);
+  assert.equal(r.elements['#modalBackdrop'].open, false);
+  assert.equal(r.elements['#permissionButton'].hidden, true);
 });
 
-test('macOS permission preflight hands off Restore before the restore confirmation', async () => {
+test('macOS ignores the legacy preflight hint and keeps Restore confirmation before the transaction', async () => {
   const r = boot({
     status: {
       platform: 'macos', currentLang: 'zh-Hans', macosPermissionHandoffRequired: true,
@@ -1012,39 +994,14 @@ test('macOS permission preflight hands off Restore before the restore confirmati
 
   assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
   assert.equal(r.elements['#modalBackdrop'].open, true);
-  assert.equal(
-    r.elements['#modalBody'].textContent,
-    'First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language.'
-  );
+  assert.equal(r.elements['#modalBody'].textContent, 'Cavalry will return to English and reopen.');
+  assert.equal(r.calls.filter(({ command }) => command === 'open_privacy_security').length, 0);
 
   dispatch(r.elements['#modalPrimaryButton'], 'click');
-  await flush();
-  assert.equal(r.calls.filter(({ command }) => command === 'apply_language').length, 0);
-  const channel = r.handoffChannels[0];
-  r.callbacks.get(channel.id)({ index: 0, message: { outcome: 'retryRequested' } });
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'restore-official' },
   });
-});
-
-test('macOS permission preflight instruction is localized in all four renderer locales', async () => {
-  for (const [locale, expected] of [
-    ['en-US', 'First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language.'],
-    ['zh-CN', '请先在系统设置中允许语言切换器修改 Cavalry，然后再切换语言。'],
-    ['zh-TW', '請先在系統設定中允許語言切換器修改 Cavalry，然後再切換語言。'],
-    ['ja-JP', 'まずシステム設定で言語スイッチャーによる Cavalry の変更を許可してから、言語を切り替えてください。'],
-  ]) {
-    const r = boot({
-      locale,
-      status: { platform: 'macos', currentLang: 'zh-Hans', macosPermissionHandoffRequired: true },
-    });
-    await flush();
-    chooseLanguage(r);
-    dispatch(r.elements['#applyButton'], 'click');
-    await flush();
-    assert.equal(r.elements['#modalBody'].textContent, expected, locale);
-  }
 });
 
 test('macOS handoff keeps one prerequisite history when the in-process oracle is still denied', async () => {

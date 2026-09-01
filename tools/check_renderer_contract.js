@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
+ * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、typed 写入拒绝后的权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
  * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、仅消费后端对 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明的兼容清理、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -934,7 +934,6 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(uiText, /closeCavalryTitle: 'Cavalry 正在运行'/);
   assert.match(uiText, /cavalryStillRunning: '保存工作并退出 Cavalry 后重试。安装内容未被修改。'/);
   assert.match(uiText, /newerVersionUnsupported: '语言切换器目前支持 Cavalry \{supportedVersion\}，不会修改此安装。你可以继续使用 Cavalry；请在兼容更新发布后再试。'/);
-  assert.match(uiText, /permissionHandoffBody:/);
   assert.doesNotMatch(uiText, /signatureResidueRepairable|legacy signing residue|旧版签名残留|舊版簽名殘留|旧版署名残留/);
   assert.doesNotMatch(uiText, /原始英文文件|original English files|原始英文檔案|元の英語ファイル/);
   assert.equal((uiText.match(/^\s{4}restore:/gm) || []).length, 4, 'all four UI locales must localize the single Restore action');
@@ -1002,7 +1001,6 @@ test('renderer localizes reinstall and composable warning-code paths without raw
     'warningTemporaryCleanupPending',
     'warningFinderFallbackUsed',
     'warningNonFatalCleanup',
-    'permissionHandoffBody',
     'appliedWithWarnings',
     'runtimeResidueWarning',
     'preparingApply',
@@ -1045,13 +1043,9 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(app, /setStatus\('reinstallRequired', 'error'\)/);
   assert.doesNotMatch(app, /macosSignatureResidueRepairable|signatureResidueRepairable|legacySignatureResidue/);
   assert.doesNotMatch(bridge, /macosSignatureResidueRepairable|legacySignatureResidue/);
-  assert.match(app, /state\.macosPermissionHandoffRequired =/);
-  assert.match(app, /bootstrapState\.macosPermissionHandoffRequired === true/);
   assert.match(bridge, /macosPermissionHandoffRequired: result\.platform === 'macos' && result\.macosPermissionHandoffRequired === true/);
-  assert.match(app, /if \(startMacosPermissionHandoff\(languageSelect\.value\)\) return;/);
-  assert.match(app, /if \(startMacosPermissionHandoff\(state\.platform === 'macos' && state\.officialRecoveryAvailable \? 'restore-official' : 'en'\)\) return;/);
-  assert.match(app, /function macosPermissionHandoffIsRequired\(\) \{[\s\S]*state\.macosPermissionHandoffRequired/);
-  assert.match(app, /function startMacosPermissionHandoff\(nextLanguage\) \{[\s\S]*showPermissionWait\(nextLanguage, 'permissionRequired', 'permissionHandoffBody', 'permissionHandoffBody'\)/);
+  assert.doesNotMatch(app, /macosPermissionHandoffRequired|startMacosPermissionHandoff|macosPermissionHandoffIsRequired/);
+  assert.match(app, /if \(result\.permissionRequired\) \{[\s\S]*showPermissionWait\(nextLanguage/);
   assert.match(uiText, /const STATUS_TITLE_KEYS = Object\.freeze\(\{/);
   assert.match(uiText, /reinstallRequired: 'reinstallCavalryTitle'/);
   assert.match(app, /warningCodes\.includes\('stateDurabilityPending'\)/);

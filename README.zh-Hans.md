@@ -43,11 +43,7 @@ Cavalry-i18n 是独立的社区工具。它不是 Scene Group、Cavalry 或 Canv
 
 本项目支持 **macOS 与 Windows x64**。macOS 会补丁并重新签名 `Cavalry.app` bundle；Windows 会在用户选定的 Cavalry 安装根应用 JSON overlay、安装 hash-locked QPA 委托层，并持久备份原厂 `qwindows.dll`。桌面、开始菜单、任务栏和直接 EXE 启动入口都不会被改写。Linux 暂不支持。
 
-这个工具会修改你本机 `Cavalry.app` bundle 内的文件，让 Cavalry 能以翻译后的资源启动。在 macOS 上，这需要 **App Management** 权限：
-
-1. 打开 **System Settings → Privacy & Security → App Management**
-2. 启用 **Cavalry Language Switcher**
-3. 回到应用，再次点击“切换”
+这个工具会修改你本机 `Cavalry.app` bundle 内的文件，让 Cavalry 能以翻译后的资源启动。在 macOS 上，语言切换器会先直接执行安全事务。只有 macOS 真正拒绝写入时，应用才会引导你前往 **系统设置 → 隐私与安全性 → App Management**；允许 Cavalry 语言切换器按系统要求重新打开后，再次点击“切换”。
 
 macOS 要求这个权限，是因为修改另一个 `.app` bundle 属于受保护操作。只有在你信任此构建，并理解它会补丁、重新签名，并在事务完成后打开本机 Cavalry 时，才授予权限。请保留干净的 Cavalry 安装器或备份；重新安装 Cavalry 是恢复到未修改官方 bundle 的最安全方式。
 

@@ -3,7 +3,7 @@
 
 成员清单
 localized-search-index.md: 本地化搜索索引路线图，链接 Add Layer 中文搜索调研报告，并把 QuickAdd 现场抓取、反向翻译索引、scoped query bridge 与 live canary 拆成阶段验收。
-macos-app-management-handoff-animation.md: macOS App Management 单权限授权引导的实施账本；冻结 typed 拒绝→设置定位→每屏快照 handoff→532×112 的“箭头 + 单行 Drag 指令 / Back + 单行 App row”helper→不含容器背景的整条 App row snapshot 真实 file-URL 拖拽→同进程 oracle，并区分系统“退出并重新打开”的待实机新会话与“稍后”的明确重开阻断；记录 motion surface/箭头 overscan 不得改变静止 screen-space 坐标、九命令内 renderer/Rust/AppKit 生产实现、本机有界脱敏诊断流，以及共享工作台与当前 macOS 包的视觉、状态机和生命周期验证边界。
+macos-app-management-handoff-animation.md: macOS App Management 真实拒绝后授权引导的实施账本；冻结直接安全事务→typed 拒绝→设置定位→每屏快照 handoff→532×112 的“箭头 + 单行 Drag 指令 / Back + 单行 App row”helper→不含容器背景的整条 App row snapshot 真实 file-URL 拖拽→同进程 oracle，并区分系统“退出并重新打开”的待实机新会话与“稍后”的明确重开阻断；记录 motion surface/箭头 overscan 不得改变静止 screen-space 坐标、九命令内 renderer/Rust/AppKit 生产实现、本机有界脱敏诊断流，以及共享工作台与当前 macOS 包的视觉、状态机和生命周期验证边界。
 README.md: Roadmap 总索引，定义状态口径、当前路线入口与归档规则。
 runtime-refresh-performance.md: 已完成的 Runtime 刷新性能路线，连接 2026-05-21 根因与 2026-07-13 实施证据，闭环交互局部刷新、capture gate、重复写回规避、增量签名和真实 Cavalry 验证。
 switcher-update-and-trusted-distribution-roadmap.md: Switcher 更新提示、自更新与可信分发路线，记录已落地的 R0 UI、R1 Rust/bridge/renderer、最终公钥/endpoint、受保护 updater Secrets、deterministic manifest 与 schema v6/v4 九资产 ad-hoc tag 发布闭包；区分尚未完成的真实 tag、Apple Developer ID/notarization、Windows Authenticode、SemVer bootstrap 与跨版本实机验收；完整自动更新仍未验收。

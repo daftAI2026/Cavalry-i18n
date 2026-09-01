@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 无运行时依赖；承载 renderer 稳定的四语本地化 copy。
- * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、真正验证失败的分级恢复路径、真实任务 Event、macOS 权限 handoff 前置与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称；内部兼容清理不形成用户文案。
+ * [OUTPUT]: 对外提供四语 UI_TEXT 与状态标题路由，覆盖显式语言选择、单一 Restore English、旧/新/未知 Cavalry 版本只读提示、真正验证失败的分级恢复路径、真实任务 Event、typed 写入拒绝后的 macOS 权限 handoff 与重开、Windows UAC 分流、外围 Toast 及完整无障碍名称；内部兼容清理不形成用户文案。
  * [POS]: renderer 的视觉文案与状态语义数据层；将持久事实、即时决策和短时局部失败分别供 Activity、AlertDialog 与 Toast 消费。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -170,7 +170,6 @@ const UI_TEXT = {
     cancel: 'Cancel',
     permissionMacTitle: 'Allow changes to Cavalry',
     permissionMacBody: 'In System Settings, allow Cavalry Language Switcher to modify Cavalry, then retry.',
-    permissionHandoffBody: 'First allow Cavalry Language Switcher to modify Cavalry in System Settings, then switch the language.',
     permissionWindowsTitle: 'Administrator permission required',
     permissionWindowsBody: 'Retry as administrator, then allow the change when Windows asks.',
   },
@@ -334,7 +333,6 @@ const UI_TEXT = {
     cancel: '取消',
     permissionMacTitle: '允许修改 Cavalry',
     permissionMacBody: '请在系统设置中允许语言切换器修改 Cavalry，然后重试。',
-    permissionHandoffBody: '请先在系统设置中允许语言切换器修改 Cavalry，然后再切换语言。',
     permissionWindowsTitle: '需要管理员权限',
     permissionWindowsBody: '请以管理员身份重试，并在 Windows 提示时允许此次更改。',
   },
@@ -498,7 +496,6 @@ const UI_TEXT = {
     cancel: '取消',
     permissionMacTitle: '允許修改 Cavalry',
     permissionMacBody: '請在系統設定中允許語言切換器修改 Cavalry，然後重試。',
-    permissionHandoffBody: '請先在系統設定中允許語言切換器修改 Cavalry，然後再切換語言。',
     permissionWindowsTitle: '需要系統管理員權限',
     permissionWindowsBody: '請以系統管理員身分重試，並在 Windows 提示時允許這項變更。',
   },
@@ -667,7 +664,6 @@ const UI_TEXT = {
     cancel: 'キャンセル',
     permissionMacTitle: 'Cavalry の変更を許可',
     permissionMacBody: 'システム設定で、言語スイッチャーによる Cavalry の変更を許可してから再試行してください。',
-    permissionHandoffBody: 'まずシステム設定で言語スイッチャーによる Cavalry の変更を許可してから、言語を切り替えてください。',
     permissionWindowsTitle: '管理者権限が必要です',
     permissionWindowsBody: '管理者として再試行し、Windows の確認画面で変更を許可してください。',
   },

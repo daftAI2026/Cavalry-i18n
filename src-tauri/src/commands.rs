@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；首次 macOS App Management handoff 未呈现时在任何 Cavalry 写入前返回 typed permissionRequired，设置入口耐久记录“引导已呈现”而不伪称授权成功；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
+ * [OUTPUT]: 保持九条稳定 Tauri command；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -83,27 +83,13 @@ pub async fn apply_language(
     let paths = context::AppPaths::for_app(&app);
     let diagnostics_state_dir = paths.state_dir.clone();
     let diagnostics_action = lang.clone();
-    #[cfg(target_os = "macos")]
-    if crate::macos_permission_handoff::preflight_required(&paths.state_dir) {
-        crate::diagnostics::record(
-            &diagnostics_state_dir,
-            "languageActionFinished",
-            serde_json::json!({
-                "action": diagnostics_action,
-                "ok": false,
-                "permissionRequired": true,
-                "errorCode": "permissionRequired",
-                "decisionReason": "appManagementHandoffRequiredBeforeMutation",
-            }),
-        );
-        return finalize_permission_handoff(ActionPayload::permission_error(
-            "App Management must be configured before the first Cavalry write.",
-        ));
-    }
     crate::diagnostics::record(
         &diagnostics_state_dir,
         "languageActionStarted",
-        serde_json::json!({ "action": diagnostics_action }),
+        serde_json::json!({
+            "action": diagnostics_action,
+            "permissionAdmission": "realTransaction",
+        }),
     );
     let guard = match operation_lock::try_begin_bundle_operation(&paths.state_dir) {
         Ok(guard) => guard,
@@ -186,6 +172,13 @@ pub async fn apply_language(
             "action": diagnostics_action,
             "ok": result.ok,
             "permissionRequired": result.permission_required,
+            "permissionDecision": if result.permission_required {
+                "typedWriteDenied"
+            } else if result.ok {
+                "transactionCommitted"
+            } else {
+                "notPermissionRelated"
+            },
             "errorCode": result.error_code,
             "error": result
                 .error
@@ -257,16 +250,6 @@ pub fn open_privacy_security(
             serde_json::json!({ "ok": false, "errorCode": "permissionSettingsOpenFailed" }),
         );
         return PermissionHandoffPayload::error("permissionSettingsOpenFailed");
-    }
-    #[cfg(target_os = "macos")]
-    if crate::macos_permission_handoff::record_handoff_presented(&state_dir).is_err() {
-        crate::macos_permission_handoff::finish_app_management_handoff(false);
-        crate::diagnostics::record(
-            &state_dir,
-            "permissionSettingsFinished",
-            serde_json::json!({ "ok": false, "errorCode": "permissionHandoffStateFailed" }),
-        );
-        return PermissionHandoffPayload::error("permissionHandoffStateFailed");
     }
     crate::diagnostics::record(
         &state_dir,

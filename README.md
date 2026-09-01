@@ -43,11 +43,7 @@ Cavalry-i18n is an independent community tool. It is not made by, endorsed by, o
 
 This project supports **macOS and Windows x64**. macOS patches and re-signs a `Cavalry.app` bundle. Windows applies the JSON overlay at the selected Cavalry installation root, installs a hash-locked QPA delegate, and keeps the exact vendor `qwindows.dll` as a durable backup. Existing Desktop, Start Menu, taskbar, and direct-EXE launch paths are not rewritten. Linux is not supported.
 
-This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can launch with translated resources. On macOS, that requires **App Management** permission:
-
-1. Open **System Settings → Privacy & Security → App Management**
-2. Enable **Cavalry Language Switcher**
-3. Return to the app and select Switch again
+This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can launch with translated resources. On macOS, the Switcher tries the safe transaction directly. If macOS denies that write, the app guides you to **System Settings → Privacy & Security → App Management**; allow Cavalry Language Switcher, reopen it if macOS requests that, and select Switch again.
 
 macOS asks for this permission because changing another `.app` bundle is a protected operation. Only grant it if you trust this build and understand that the tool will patch and re-sign your local Cavalry installation, then open Cavalry when the transaction completes. Keep a clean Cavalry installer or backup available; reinstalling Cavalry is the safest way to return to an untouched official bundle.
 

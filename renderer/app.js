@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、macOS 权限 handoff 前置门禁及始终可见的设置恢复按钮、保留阻断前历史且折叠同进程 oracle 重复前置成功阶段的 macOS 设置/Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
- * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部签名清理；只读权限未知不伪装为警告，已知 macOS 权限前置状态必须先进入既有 handoff，不伪称权限已验证，typed 权限拒绝必须把失败阶段收敛为链尾阻塞项而非清空历史，业务阶段失败不得冒充桌面服务断线。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、仅由真实 typed PermissionDenied 触发且保留设置恢复按钮的 macOS handoff、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
+ * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部签名清理；只读状态不制造 macOS 权限门禁，Switch/Restore 总是先调用安全事务，typed 权限拒绝才把失败阶段收敛为链尾阻塞项，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -69,7 +69,7 @@ const api = window.cavalryI18n;
 const state = {
   appPath: '', currentLang: 'en', installationMode: 'unknown', languages: [],
   versionCompatibility: 'supported', supportedVersion: '2.7.2',
-  officialRecoveryAvailable: false, macosPermissionHandoffRequired: false, needsExtract: false, appManagementGranted: null,
+  officialRecoveryAvailable: false, needsExtract: false, appManagementGranted: null,
   platform: '', permissionAction: 'none', pendingAction: '',
   ready: false, busy: false, controlsBlocked: false, startupRecoveryError: null,
   stateDurabilityPending: false, englishRestoreNeeded: false, updateInfo: null, permissionRetryAttempt: 0,
@@ -528,13 +528,6 @@ async function showPermissionWait(nextLanguage, phaseId = 'permissionRequired', 
   });
 }
 
-function macosPermissionHandoffIsRequired() { return state.platform === 'macos' && state.macosPermissionHandoffRequired; }
-function startMacosPermissionHandoff(nextLanguage) {
-  if (!macosPermissionHandoffIsRequired()) return false;
-  void showPermissionWait(nextLanguage, 'permissionRequired', 'permissionHandoffBody', 'permissionHandoffBody').catch(recoverOperationFailure);
-  return true;
-}
-
 async function bootstrap({ renderActivity = true } = {}) {
   state.ready = false;
   setBusy(state.busy);
@@ -564,7 +557,6 @@ async function bootstrap({ renderActivity = true } = {}) {
       ? bootstrapState.appManagementGranted
       : null;
   state.platform = bootstrapState.platform || '';
-  state.macosPermissionHandoffRequired = state.platform === 'macos' && bootstrapState.macosPermissionHandoffRequired === true;
   const runtimeResidueDetected =
     state.platform === 'windows' && bootstrapState.reconciliationRequired === true;
   state.englishRestoreNeeded = runtimeResidueDetected;
@@ -680,7 +672,6 @@ function requestApply() {
     requireDurabilityRetry();
     return;
   }
-  if (startMacosPermissionHandoff(languageSelect.value)) return;
   void runApply(languageSelect.value).catch(recoverOperationFailure);
 }
 
@@ -702,7 +693,6 @@ function requestRestore() {
     setStatus('reinstallRequired', 'error');
     return;
   }
-  if (startMacosPermissionHandoff(state.platform === 'macos' && state.officialRecoveryAvailable ? 'restore-official' : 'en')) return;
   showRestoreConfirmation();
 }
 

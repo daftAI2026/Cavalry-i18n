@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖当前 macOS 写事务与权限错误路径、Apple App Management 文档、本机 System Settings 只读复核、仓库外跨应用授权动画取证和锁定版本 MIT 参考源码
-[OUTPUT]: 对外提供 Cavalry-i18n macOS 权限数量结论、自动 handoff/用户拖拽/同进程真实 oracle/Later 重开提示/Quit & Reopen fresh-session 投影的逐步状态机、受保护写事务 commit→reverse→打开 Cavalry 的因果边界、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、typed 权限处理、本机有界脱敏诊断、当前生产实现、洁净室架构与分阶段验收路线
+[OUTPUT]: 对外提供 Cavalry-i18n macOS 潜在权限边界、真实 typed denial 后的 handoff/用户拖拽/同进程真实 oracle/Later 重开提示/Quit & Reopen fresh-session 投影状态机、受保护写事务 commit→reverse→打开 Cavalry 的因果边界、point/backing-pixel 与跨屏窗口模型、跨应用授权动画证据边界、typed 权限处理、本机有界脱敏诊断、当前生产实现、洁净室架构与分阶段验收路线
 [POS]: docs/roadmap 的 App Management 实施账本；工作台复用生产 renderer，当前 macOS 包用于验证真实 AppKit 生命周期，不承担 release 级首次授权取证
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -13,14 +13,14 @@
 
 ## 1. 产品结论
 
-正常安装在 `/Applications` 的 Cavalry，Switcher 为写入 `Cavalry.app` 只需要 **一个真正的 macOS 隐私权限：App Management**。
+Switcher 写入 `Cavalry.app` 时只有 **一个可能涉及的 macOS 隐私权限：App Management**，但首次身份不等于必然需要它。2026-09-02 的新 bundle id、独立 state 与 disposable Cavalry A/B 已证明当前环境可在没有系统权限提示的情况下直接完成真实事务；因此产品不主动展示权限，只在真实 typed denial 后恢复。
 
 不要把以下三件事混成“两个权限”：
 
 | 边界 | 用户做什么 | 是否是本功能的 TCC 权限 |
 | --- | --- | --- |
 | Gatekeeper / quarantine | 首次打开未公证或 ad-hoc 包时确认信任，必要时按发布说明处理 | 否；这是分发信任 |
-| App Management | 允许 Switcher 修改另一个 app bundle | **是；当前唯一写事务权限** |
+| App Management | 当 macOS 实际拒绝 Switcher 修改另一个 app bundle 时提供恢复 | **可能；唯一相关 TCC 权限，但不得预判为必需** |
 | Cavalry 重签与清除 quarantine | Switcher 在事务内处理被修改后的本地 Cavalry | 否；这是写事务的内部步骤 |
 
 某些桌面控制工具需要 Accessibility 与 Screen Recording，是因为它们必须“看见并控制其他应用”；Switcher 的任务是修改一个选定的 Cavalry bundle，两者没有权限数量上的类比关系。
@@ -36,7 +36,7 @@
 | 用途说明 | `src-tauri/Info.plist` 与四个 `.lproj/InfoPlist.strings` 由 macOS bundle 配置映射 | 源码合同已闭合；最终 `.app` 仍必须 readback |
 | 原生 owner | `src-tauri/native/macos_permission_handoff.m` + `src-tauri/src/macos_permission_handoff.rs` | AppKit 只负责视觉/拖拽，真实 `apply_language` 仍是唯一授权 oracle |
 
-授权主体是 **Switcher 本身**，不是 Cavalry。2026-08-31 对本机 macOS 27 `SecurityPrivacyExtension` 的只读复核证明，`SystemPolicyAppBundles` 使用 `APPLICATION_BUNDLES_QUIT_ALLOW_TITLE` 明确说明 Switcher 在退出前不能更新或删除其他 App，并提供 `QUIT_APP = Quit & Reopen` 与 `QUIT_LATER = Later`。因此首次启用 App Management 后必须让当前 Switcher 退出，新权限才生效；系统提供退出重开动作，但静态证据不能证明该动作在当前环境每次都成功重开。这不是项目代码调用 updater 的 `app.restart()`，也不是 Cavalry 的业务重启。
+授权主体是 **Switcher 本身**，不是 Cavalry。2026-08-31 对本机 macOS 27 `SecurityPrivacyExtension` 的只读复核证明，若 App Management 确实被要求并首次启用，`SystemPolicyAppBundles` 会要求当前 Switcher 退出后让新权限生效，并提供 `QUIT_APP = Quit & Reopen` 与 `QUIT_LATER = Later`。这只描述被拒绝后的恢复生命周期，不证明每台机器首次写入都会触发该权限，也不是项目代码调用 updater 的 `app.restart()` 或 Cavalry 的业务重启。
 
 产品决策保持最短路径：若系统成功重开 Switcher，它是**新会话**并按普通首屏开始；不持久化旧 `pendingAction`，不自动修改 Cavalry，不恢复旧 Activity。用户重新选择后再点 Switch / Restore；下一次受保护写事务才是权限是否生效的真实 oracle。file-URL drop 后只运行一次同进程真实 oracle；若仍返回 typed `permissionRequired`，说明当前进程尚不能使用新权限，Activity 直接提示重新打开语言切换器并回收 helper，不再把“稍后”解释为可继续 Retry。Accessibility / Screen Recording 样本的同进程 `validateAuthorization` 不能跨服务套用到 App Management。
 
@@ -64,10 +64,10 @@ unknown
 
 约束：
 
-1. 首次启动和状态读取都不写 Cavalry；首次 Switch/Restore 在任何受保护写入前先展示 App Management handoff，“已展示”只写 Switcher 自身 state 目录。
+1. 首次启动和状态读取都不写 Cavalry；首次 Switch/Restore 直接进入可回滚事务，不以 marker 或只读状态制造 App Management handoff。
 2. 设置页返回后不自动展示 Granted；只有下一次真实事务成功才有权宣布可用。
 3. 动画是解释“去哪里完成操作”的视觉桥，不是授权证明，也不自动点击系统设置。
-4. 首次受支持 macOS 安装统一先完成一次 handoff，避免让 codesign 或事务准备成为隐式权限探针；以后仍只有 typed error/事务 commit 能证明真实结果。
+4. 事务 commit 证明无需权限；安全回滚后保留的 typed `PermissionDenied` 才能启动 handoff。禁止以首次身份、codesign 状态或 state marker 代替这个裁决。
 5. 系统 Quit & Reopen 后不续跑旧任务；禁止用 localStorage、state.json 或启动参数偷偷恢复用户意图。
 
 ### 3.1 事件链与两个正交状态机
@@ -318,7 +318,7 @@ macos_permission_handoff.rs
 4. **独立 owner 持有生命周期。** 新建 `macos_permission_handoff.rs`，由 `lib.rs` 装配并由 command facade 调用；`window_chrome.rs` 不扩职责，`privilege::open_privacy_security` 继续只负责固定系统 URL。owner 负责 panel、CGWindow 跟踪、drag session、generation token 与幂等 cleanup。
 5. **依赖必须直接、精确。** 当前锁中已有 `objc2-app-kit 0.3.2` 与 `core-graphics 0.25.0`，但前者只启用了标题栏所需最小 feature，后者只是传递依赖。R2 必须在 macOS target 下直接声明需要的 AppKit/Foundation/CoreGraphics API，不能依赖 Tauri 偶然带入。
 6. **本地化进入 bundle，而非 renderer JSON。** 默认 `Info.plist` 持有英文 `NSAppBundlesUsageDescription`；`en/zh-Hans/zh-Hant/ja.lproj/InfoPlist.strings` 提供系统权限文案投影，并在 dev/app/DMG 最终 `Info.plist` 和资源目录逐项 readback。它不是 Cavalry runtime translation，也不进入 `languages/`。
-7. **首次引导前置，授权仍由原事务判定。** status 只根据 Switcher 自身 state 投影一次性 handoff admission；helper 的 copy drop、已有行开关、System Settings 关闭都只改变引导 session。copy drop 只触发一次 `retryRequested`，生成唯一 `attemptId` 并调用原始 `runApply` 作为同进程 oracle；若仍拒绝，Rust cleanup helper，renderer 在 Activity 链尾提示重新打开，Later 不再继续 Retry。用户选择系统 Quit & Reopen 时，macOS 尝试终止并重新打开 Switcher；若重开成功，新会话不恢复旧任务。受保护 apply commit 后 Rust 才触发同进程单次 reverse，再继续与授权无关的 `restartCavalry` 业务阶段与最终结果；native owner 绝不直接调用 apply transaction。
+7. **真实拒绝后才引导，授权仍由原事务判定。** status 不根据 Switcher state 投影 handoff admission；只有原始 `runApply` 返回 typed `PermissionDenied` 才创建引导 session。helper 的 copy drop、已有行开关、System Settings 关闭都只改变该 session。copy drop 只触发一次 `retryRequested`，生成唯一 `attemptId` 并调用原始 `runApply` 作为同进程 oracle；若仍拒绝，Rust cleanup helper，renderer 在 Activity 链尾提示重新打开，Later 不再继续 Retry。用户选择系统 Quit & Reopen 时，macOS 尝试终止并重新打开 Switcher；若重开成功，新会话不恢复旧任务。受保护 apply commit 后 Rust 才触发同进程单次 reverse，再继续与授权无关的 `restartCavalry` 业务阶段与最终结果；native owner 绝不直接调用 apply transaction。
 
 ### 5.3 第一版应做什么
 

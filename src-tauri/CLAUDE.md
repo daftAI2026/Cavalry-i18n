@@ -18,7 +18,7 @@ nsis-hooks.nsh: Windows NSIS 生命周期 hook；交互卸载明确选择“仅�
 nsis-languages/: Tauri NSIS 四语消息表；保持上游消息键同构，并在原生确认页把应用数据明确限定为 Switcher 自身设置。
 capabilities/: Tauri v2 capability 配置，限定 main window 的 core 权限，并为独立 About window 只开放版本读取与共享标题栏拖动；About renderer 不获得任意窗口位置、尺寸、装饰或其他窗口管理权限。
 icons/: Tauri 图标集，`icon.png` 是开发态 runtime 与 `npx tauri icon` 的 512px RGBA 源，透明圆角必须与正式包 `icon.icns` 的同尺寸表示保持像素同构；icns/ico/各尺寸 PNG + iOS/Android 是平台投影，`background.png` 为不受图标生成器管理的 1600×856 DMG 背景。
-native/: macOS App Management 的 Objective-C AppKit owner；每屏 nonactivating visual replicant、真实 app file-URL drag 与 helper 生命周期都停在该边界，不读取或修改 TCC。
+native/: macOS App Management 的 Objective-C AppKit owner；只在真实写事务返回 typed PermissionDenied 后呈现每屏 nonactivating visual replicant、真实 app file-URL drag 与 helper 生命周期，不读取或修改 TCC，也不参与首次事务 admission。
 src/: Rust command、InstallLayout、Windows 自动发现/Qt runtime/QPA 与 uninstall restore；commands/ 按状态、安装真相、写入和重启拆分，windows_qpa/ 隔离 hash-locked manifest、含 generic 的 rollback 与显式 English 清理，privilege/ 管理单次 UAC 事务。
 tests/: Rust contract tests，守住展示版本/内容 revision 分离、九命令 DTO/固定项目外链、App Management handoff 的固定 permission/viewport/Channel 与无自动授权边界、`main`/`about` 能力、脱敏 Updater 状态、clean-English 采集、Windows restart，以及 macOS 真实冒烟和 Windows disposable clone 的现场门。
 

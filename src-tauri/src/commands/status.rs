@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 context 路径/语言源、detect/install/state/patch、startup recovery 诊断、snapshot 安装真相/legacy postimage 与 provenance 迁移、本地 diagnostics 事实流。
- * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Official 展示/可恢复 stock/Managed Legacy 与 English 恢复能力、首次 handoff admission、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload；已知旧版签名副作用仅留在内部诊断和事务清理，不形成用户状态。
+ * [OUTPUT]: 提供状态解析、四态版本兼容投影、macOS Official 展示/可恢复 stock/Managed Legacy 与 English 恢复能力、pending recovery 零写入阻断、Windows residue reconciliationRequired、目录耐久确认后的安装选择与权限 payload；macOS 不从只读状态制造权限前置门，已知旧版签名副作用仅留在内部诊断和事务清理。
  * [POS]: commands 的状态层；unsupported Cavalry 与 pending recovery 均保持安装只读，macOS 轮询不以探针文件破坏 bundle seal，Windows typed reconciliation 不依赖一次会话内存。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -451,24 +451,13 @@ pub(crate) fn status_for_paths(
             false
         }
     };
-    let macos_permission_handoff_required = {
-        #[cfg(target_os = "macos")]
-        {
-            compatibility == "supported"
-                && !app_path.as_os_str().is_empty()
-                && crate::macos_permission_handoff::preflight_required(state_dir)
-        }
-        #[cfg(not(target_os = "macos"))]
-        {
-            false
-        }
-    };
     Ok(StatusPayload {
         app_management_granted: permission_granted,
         app_path: app_path.to_string_lossy().to_string(),
         current_lang: state.current_lang.clone(),
         installation_mode: installation_mode.to_string(),
-        macos_permission_handoff_required,
+        // 保留 DTO 键用于旧 renderer 兼容，但真实权限只能由写事务裁决。
+        macos_permission_handoff_required: false,
         official_recovery_available,
         startup_recovery_error: None,
         default_app_candidates: candidates

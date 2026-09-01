@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力、共享 About Overlay Chrome、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint、共享 About Overlay Chrome、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
  * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、Managed Legacy/版本只读字段、固定项目外链、可本土化错误、Windows runtime residue 与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -131,13 +131,13 @@ fn command_payload_uses_renderer_compatible_camel_case() {
 }
 
 #[test]
-fn status_payload_exposes_app_management_probe_result() {
+fn status_payload_keeps_permission_probe_and_omits_inactive_legacy_handoff_hint() {
     let payload = StatusPayload {
         app_management_granted: Some(true),
         app_path: "/Applications/Cavalry.app".into(),
         current_lang: "en".into(),
         installation_mode: "official".into(),
-        macos_permission_handoff_required: true,
+        macos_permission_handoff_required: false,
         official_recovery_available: true,
         startup_recovery_error: None,
         default_app_candidates: Vec::new(),
@@ -158,7 +158,7 @@ fn status_payload_exposes_app_management_probe_result() {
     assert_eq!(value["platform"], "macos");
     assert_eq!(value["reconciliationRequired"], true);
     assert_eq!(value["installationMode"], "official");
-    assert_eq!(value["macosPermissionHandoffRequired"], true);
+    assert!(value.get("macosPermissionHandoffRequired").is_none());
     assert_eq!(value["officialRecoveryAvailable"], true);
     assert_eq!(value["supportedVersion"], "2.7.2");
     assert_eq!(value["versionCompatibility"], "olderUnsupported");

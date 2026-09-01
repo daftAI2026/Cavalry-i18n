@@ -43,11 +43,7 @@ Cavalry-i18n は独立したコミュニティツールです。Scene Group、Ca
 
 このプロジェクトは **macOS と Windows x64** をサポートします。macOS では `Cavalry.app` bundle をパッチして再署名します。Windows では選択した Cavalry インストールルートに JSON overlay と hash-locked QPA delegate を適用し、元の `qwindows.dll` を永続バックアップします。デスクトップ、スタートメニュー、タスクバー、直接 EXE の各起動経路は書き換えません。Linux は未対応です。
 
-このツールは、翻訳済みリソースで Cavalry を起動できるように、ローカルの `Cavalry.app` bundle 内のファイルを変更します。macOS では、この操作に **App Management** 権限が必要です。
-
-1. **System Settings → Privacy & Security → App Management** を開く
-2. **Cavalry Language Switcher** を有効にする
-3. アプリに戻り、もう一度「切り替える」をクリックする
+このツールは、翻訳済みリソースで Cavalry を起動できるように、ローカルの `Cavalry.app` bundle 内のファイルを変更します。macOS では、まず安全なトランザクションを直接実行します。macOS が実際に書き込みを拒否した場合のみ、**システム設定 → プライバシーとセキュリティ → App Management** を開く案内を表示します。Cavalry Language Switcher を許可し、macOS から求められた場合は開き直してから、もう一度「切り替える」をクリックしてください。
 
 macOS がこの権限を求めるのは、別の `.app` bundle を変更する操作が保護対象だからです。このビルドを信頼し、ローカルの Cavalry インストールにパッチと再署名が行われ、処理完了後に Cavalry が起動することを理解した場合にのみ許可してください。クリーンな Cavalry インストーラーまたはバックアップを保持してください。未変更の公式 bundle に戻す最も安全な方法は Cavalry を再インストールすることです。
 

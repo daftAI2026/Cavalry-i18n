@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖本机 macOS 27 SecurityPrivacyExtension 的只读本地化/符号复核、Apple SystemPolicyAppBundles 文档、公开 p5 tag、当前 renderer/Rust/AppKit 权限链与匿名参考的服务边界
-[OUTPUT]: 对外提供 App Management 首次授权生命周期、首次 handoff 必须早于 Cavalry mutation 的边界、无需 Keychain 的 durable journal 决策、脚本入口外置签名组件的真实语义与静默产品投影、系统/Updater/Cavalry restart 区分、Switch/Restore 共同只读进程 admission、fresh-session 决策及可复用调研方法
+[OUTPUT]: 对外提供 App Management 授权生命周期、真实写入拒绝才启动 handoff 的 2026-09-02 A/B 修正、无需 Keychain 的 durable journal 决策、脚本入口外置签名组件的真实语义与静默产品投影、系统/Updater/Cavalry restart 区分、Switch/Restore 共同只读进程 admission、fresh-session 决策及可复用调研方法
 [POS]: docs/audits 的权限生命周期与签名副作用复盘；实施账本引用本文的通用结论，本文不驱动运行时，不把其他 TCC service 的行为类推为 App Management 事实，不把精确旧残留清理扩大为通用签名修复，也不把工具自己的兼容债务转嫁为用户状态
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -19,7 +19,13 @@
 - `Quit & Reopen`：系统提供“退出并重新打开”动作；静态证据证明动作语义，是否在当前系统上成功重开仍需 packaged live 确认；
 - `Later`：当前 Switcher 继续运行，但新权限尚未对它生效。
 
-项目采用最短路径：若系统成功重开 Switcher，它就是新会话并显示普通首屏；不恢复旧 Activity，不持久化 `pendingAction`，不自动修改 Cavalry。用户重新选择后，再执行 Switch / Restore。
+项目采用最短路径：Switch / Restore 先直接执行可回滚的 durable transaction；只有真实写入返回 typed `PermissionDenied` 才进入 App Management handoff。若系统成功重开 Switcher，它就是新会话并显示普通首屏；不恢复旧 Activity，不持久化 `pendingAction`，不自动修改 Cavalry。用户重新选择后，再执行 Switch / Restore。
+
+### 2026-09-02 A/B 修正
+
+此前“首次受支持安装必须在 mutation 前统一 handoff”是从系统权限语义推导出的产品策略，不是真实写入证据。隔离 A/B 使用新的 Switcher bundle id、独立 state、保留 Developer ID seal 的 disposable Cavalry clone，并只写入旧版 `presented` marker 以绕过项目自己的合成前置门；真实 Tauri UI 随后完整提交简体中文事务，返回 `ok=true / permissionRequired=false`，目标完成重签并可启动，全程没有系统权限提示。
+
+这证明至少在当前 ad-hoc 分发与该系统环境中，**首次身份不等于必然需要 App Management**。因此主动 handoff 会把未知伪装成拒绝，是过度防御。当前事实边界改为：状态只读不裁决；事务成功就是无需权限；只有真实 typed denial 才启动既有 handoff。该 A/B 不证明所有 macOS、账户与安装位置都永远可直接写，所以 reactive fallback 与用途说明继续保留。
 
 ## 2. 证据链
 
@@ -79,7 +85,7 @@ runningApplicationsWithBundleIdentifier:
 
 所以首次重开是系统行为，不是项目主动 restart。
 
-### 2.4 首次拒绝必须早于 Cavalry mutation
+### 2.4 不得用合成前置门替代真实写入裁决
 
 旧链路把 App Management 当作“写失败后才知道”的 oracle：用户点击 Switch 后，事务已经进入 Cavalry bundle，`codesign` 也可能先为脚本入口生成 `_CodeSignature/CodeDirectory`、`CodeSignature`、`CodeRequirements`，直到后续受保护文件操作返回 `PermissionDenied`，UI 才打开权限 handoff。于是用户视觉上仍处于“获取权限之前”，bundle 却可能已经承受了可回滚的中间签名副作用。
 
@@ -87,7 +93,7 @@ runningApplicationsWithBundleIdentifier:
 
 当前修正遵循两个正交原则：
 
-1. 首次受支持安装在任何 Cavalry mutation 和业务 phase 前进入 handoff；只在 Switcher 自身 state 目录记录“已展示”，不写 Cavalry、不声称 Granted。用户从设置返回后，完整 durable transaction 仍是唯一权限 oracle。
+1. 首次受支持安装不预先进入 handoff，也不持久化“已展示”作为 admission。完整 durable transaction 直接执行；只有回滚后保留下来的 typed `PermissionDenied` 才启动权限恢复。用户从设置返回后，下一次完整事务仍是唯一权限 oracle。
 2. 三个外置组件进入 signing side-effect journal、回滚和 English 恢复。后续真机证明“目录全集必须完全匹配”属于过度防御：它把无关目录成员错误提升成翻译准入权。当前边界改为：只要受支持 stock runtime 成立，任一已知外置组件都按本工具拥有的路径进入 exact-preimage 事务；其他成员既不删除，也不阻止清理。
 
 ## 第一性原理修正：签名不是翻译许可证
@@ -98,7 +104,7 @@ Switcher 是第三方本地翻译工具，本来就会修改 Cavalry 并在提�
 
 1. 目标确实是结构完整且版本/架构受支持的 Cavalry；
 2. 要覆盖的文件有可验证 preimage，或当前 runtime 能由本工具已发布 postimage 与 durable English generation 证明；
-3. Cavalry 未运行，且 App Management 允许受保护写入；
+3. Cavalry 未运行，且实际写入没有被文件系统或 App Management 拒绝；
 4. 写入通过 durable transaction，最终 app seal 与启动后置条件成立。
 
 相反，Managed 安装当前 strict codesign 漂移、旧脚本入口留下已知外置组件、或签名目录存在与本工具无关的其他成员，都不再单独取得语言切换否决权。未知文件不会被本工具删除；只有无法证明目标结构、恢复 preimage 或本工具 runtime 所有权时才阻断。
