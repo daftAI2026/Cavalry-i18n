@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实 permissionMac renderer iframe，依赖 renderer 的 tokens/Button/语义图标/应用标识，并注入 ui_review_permission_handoff_runtime 的独立行为层。
- * [OUTPUT]: 对外提供 permissionHandoffHtml；以不压缩 400×484 source、484px 设置目标及 82px helper 的完整舞台组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、整条 App row 快照拖拽、整窗 copy-drop 审查、同进程 oracle、Later 重开提示、系统 Quit & Reopen 后 fresh-session 投影及不入库的本机 Raster/System Settings 对照区。
+ * [OUTPUT]: 对外提供 permissionHandoffHtml；以不压缩 400×484 source、484px 设置目标及 532×112px 参考同形 helper 的完整舞台组装 typed 写事务拒绝、设置定位、单次视觉 handoff、实时 App 控件接管、透明底整条 App row 快照拖拽、整窗 copy-drop 审查、同进程 oracle、Later 重开提示、系统 Quit & Reopen 后 fresh-session 投影及不入库的本机 Raster/System Settings 对照区。
  * [POS]: tools UI Review 的独立权限动画舞台结构/样式层；只用 DOM/HTML 替身审查系统设置目标、视觉连续性和后端结果，本机参考缺失时降级为说明文字，不伪造 NSImage/NSPanel/NSDraggingSession 或 native 授权，并与工作台导航壳及行为层保持单向依赖。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -29,8 +29,12 @@ function permissionHandoffHtml() {
       --handoff-source-viewport-height: 484px;
       --handoff-target-viewport-width: 360px;
       --handoff-target-viewport-height: 484px;
+      --handoff-accessory-width: 532px;
+      --handoff-accessory-height: 112px;
+      --handoff-accessory-row-height: 44px;
+      --handoff-accessory-icon-size: 28px;
+      --handoff-accessory-blur: 24px;
       --handoff-arrow-size: 28px;
-      --handoff-arrow-offset-y: -10px;
     }
     *, *::before, *::after { box-sizing: border-box; }
     html, body { min-width: 100%; min-height: 100%; margin: 0; }
@@ -74,19 +78,23 @@ function permissionHandoffHtml() {
     .handoff-target-switch::after { content: ''; position: absolute; inset-block-start: var(--stroke-hairline); inset-inline-start: var(--stroke-hairline); inline-size: calc(var(--badge-height) - var(--stroke-hairline) - var(--stroke-hairline)); block-size: calc(var(--badge-height) - var(--stroke-hairline) - var(--stroke-hairline)); border-radius: var(--radius-circle); background: var(--surface-raised); box-shadow: var(--shadow-control); transition: transform var(--duration-feedback) ease; }
     .handoff-target-switch[aria-checked="true"] { background: var(--tone-update); }
     .handoff-target-switch[aria-checked="true"]::after { transform: translateX(calc(var(--space-8) - var(--badge-height))); }
-    .handoff-accessory-wrap { position: relative; inline-size: min(100%, var(--handoff-target-viewport-width)); align-self: center; visibility: hidden; pointer-events: none; opacity: 0; }
+    .handoff-accessory-wrap { position: relative; inline-size: min(100%, var(--handoff-accessory-width)); min-block-size: var(--handoff-accessory-height); align-self: center; visibility: hidden; pointer-events: none; opacity: 0; }
     .handoff-accessory-wrap[data-visible="true"] { visibility: visible; pointer-events: auto; opacity: 1; }
-    .handoff-accessory { display: flex; align-items: center; gap: var(--gap-inline); padding: var(--padding-panel); border: var(--stroke-hairline) solid var(--border-strong); border-radius: var(--radius-lg); background: var(--surface-raised); box-shadow: var(--shadow-dialog); }
-    .handoff-draggable-app { min-width: 0; flex: 1 1 auto; display: flex; align-items: center; gap: var(--gap-inline); padding: 0; border: 0; background: transparent; color: inherit; text-align: left; cursor: grab; }
+    .handoff-accessory { min-block-size: var(--handoff-accessory-height); display: grid; grid-template-rows: var(--handoff-arrow-size) var(--handoff-accessory-row-height); gap: var(--space-3); padding: var(--space-3) var(--space-4) var(--space-4); border: 0; border-radius: var(--radius-lg); background: color-mix(in srgb, var(--surface-raised) 84%, transparent); box-shadow: inset 0 0 0 var(--stroke-hairline) var(--border-strong), var(--shadow-dialog); backdrop-filter: blur(var(--handoff-accessory-blur)) saturate(1.25); }
+    .handoff-accessory-instruction { min-width: 0; display: flex; align-items: center; justify-content: center; gap: var(--space-2); color: var(--text); font-size: var(--type-label); font-weight: var(--weight-medium); line-height: var(--line-height-label); white-space: nowrap; }
+    .handoff-accessory-actions { min-width: 0; display: grid; grid-template-columns: var(--space-8) minmax(0, 1fr); align-items: center; gap: var(--space-4); }
+    .handoff-accessory-back { inline-size: var(--space-8); block-size: var(--space-8); padding: 0; border: 0; border-radius: var(--radius-circle); display: grid; place-items: center; background: var(--surface-hover); color: var(--text-secondary); box-shadow: none; }
+    .handoff-accessory-back:hover { background: var(--surface-active); color: var(--text); }
+    .handoff-accessory-back:focus, .handoff-accessory-back:focus-visible { outline: none; box-shadow: none; }
+    .handoff-accessory-back svg { inline-size: var(--space-4); block-size: var(--space-4); }
+    .handoff-draggable-app { min-width: 0; block-size: var(--handoff-accessory-row-height); display: flex; align-items: center; gap: var(--space-2); padding: 0 var(--space-2); border: var(--stroke-hairline) solid var(--border); border-radius: var(--radius-md); background: color-mix(in srgb, var(--surface) 72%, transparent); color: inherit; text-align: left; cursor: grab; box-shadow: var(--shadow-control); }
     .handoff-draggable-app:active { cursor: grabbing; }
     .handoff-draggable-app[data-dragging="true"] { opacity: 0; }
     .handoff-drag-image-host { position: fixed; inset: -9999px auto auto -9999px; pointer-events: none; }
-    .handoff-drag-image { inline-size: max-content; block-size: auto; }
-    .handoff-accessory-icon { inline-size: var(--space-8); block-size: var(--space-8); flex: 0 0 auto; object-fit: contain; }
-    .handoff-accessory-copy { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: var(--gap-meta-stack); font-size: var(--type-compact); line-height: var(--line-height-compact); }
-    .handoff-accessory-copy strong { font-weight: var(--weight-medium); }
-    .handoff-accessory-copy span { color: var(--text-secondary); font-size: var(--type-label); line-height: var(--line-height-label); }
-    .handoff-hint-arrow { position: absolute; z-index: 2; inset: calc(-1 * var(--handoff-arrow-size)) auto auto 50%; inline-size: var(--handoff-arrow-size); block-size: var(--handoff-arrow-size); display: grid; place-items: center; color: var(--tone-info); filter: drop-shadow(0 4px 7px rgba(0, 0, 0, .23)); transform: translate(-50%, var(--handoff-arrow-offset-y)) scale(1); transform-origin: 50% 100%; pointer-events: none; will-change: transform; }
+    .handoff-drag-image { inline-size: max-content; block-size: auto; border-color: transparent; background: transparent; box-shadow: none; }
+    .handoff-accessory-icon { inline-size: var(--handoff-accessory-icon-size); block-size: var(--handoff-accessory-icon-size); flex: 0 0 auto; object-fit: contain; }
+    .handoff-accessory-copy { min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: var(--type-label); font-weight: var(--weight-medium); line-height: var(--line-height-label); white-space: nowrap; }
+    .handoff-hint-arrow { inline-size: var(--handoff-arrow-size); block-size: var(--handoff-arrow-size); flex: 0 0 auto; display: grid; place-items: center; color: var(--tone-info); filter: drop-shadow(0 4px 7px rgba(0, 0, 0, .23)); transform: scale(1); transform-origin: 50% 100%; pointer-events: none; will-change: transform; }
     .handoff-hint-arrow svg { inline-size: var(--handoff-arrow-size); block-size: var(--handoff-arrow-size); display: block; }
     .handoff-hint-arrow path, .handoff-reference-project-arrow path { stroke: var(--surface-raised); stroke-width: 18; stroke-linejoin: round; paint-order: stroke fill; }
     .handoff-proxy-layer { position: absolute; inset: 0; z-index: var(--z-toast); pointer-events: none; overflow: hidden; }
@@ -106,12 +114,13 @@ function permissionHandoffHtml() {
     .handoff-reference-heading { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-4); }
     .handoff-reference-heading h2 { margin: 0; font-size: var(--type-compact); font-weight: var(--weight-medium); line-height: var(--line-height-compact); }
     .handoff-reference-heading p { margin: 0; color: var(--text-secondary); font-size: var(--type-label); line-height: var(--line-height-label); }
-    .handoff-reference-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(2, minmax(132px, .5fr)); gap: var(--space-3); }
+    .handoff-reference-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(132px, .5fr)); gap: var(--space-3); }
     .handoff-reference-card { min-width: 0; min-height: 152px; display: grid; align-content: start; gap: var(--space-2); padding: var(--space-3); border-radius: var(--radius-md); background: var(--surface); }
     .handoff-reference-card strong { font-size: var(--type-label); font-weight: var(--weight-medium); line-height: var(--line-height-label); }
     .handoff-reference-card small { color: var(--text-secondary); font-size: var(--type-label); line-height: var(--line-height-label); }
     .handoff-reference-media { min-height: 96px; display: grid; place-items: center; overflow: hidden; border-radius: var(--radius-sm); background-image: linear-gradient(45deg, var(--surface-hover) 25%, transparent 25%), linear-gradient(-45deg, var(--surface-hover) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, var(--surface-hover) 75%), linear-gradient(-45deg, transparent 75%, var(--surface-hover) 75%); background-position: 0 0, 0 var(--space-2), var(--space-2) calc(-1 * var(--space-2)), calc(-1 * var(--space-2)) 0; background-size: calc(var(--space-2) * 2) calc(var(--space-2) * 2); }
     .handoff-reference-system { inline-size: 100%; block-size: 180px; object-fit: contain; }
+    .handoff-reference-accessory { inline-size: 100%; block-size: 96px; object-fit: contain; }
     .handoff-reference-raster { inline-size: 87px; block-size: 99px; object-fit: contain; }
     .handoff-reference-project-arrow { inline-size: 84px; block-size: 84px; display: grid; place-items: center; color: var(--tone-info); filter: drop-shadow(0 4px 7px rgba(0, 0, 0, .23)); }
     .handoff-reference-project-arrow svg { inline-size: 84px; block-size: 84px; display: block; }
@@ -183,13 +192,18 @@ function permissionHandoffHtml() {
           </div>
         </div>
         <div id="accessoryWrap" class="handoff-accessory-wrap" data-visible="false" aria-hidden="true" inert>
-          <span id="hintArrow" class="handoff-hint-arrow" aria-hidden="true"></span>
           <section id="accessory" class="handoff-accessory" aria-live="polite">
-            <button id="draggableAppRow" class="handoff-draggable-app" type="button" draggable="true">
-              <img class="handoff-accessory-icon" src="/renderer/app-icon.png" alt="" />
-              <span class="handoff-accessory-copy"><strong>Language Switcher</strong><span>列表中没有时，把 App 拖入上方列表。</span></span>
-            </button>
-            <button id="reverseFromAccessory" class="ui-button button button-outline handoff-control-button" type="button">重试原操作</button>
+            <div class="handoff-accessory-instruction">
+              <span id="hintArrow" class="handoff-hint-arrow" aria-hidden="true"></span>
+              <span>Drag Cavalry Language Switcher to the list above to allow App Management</span>
+            </div>
+            <div class="handoff-accessory-actions">
+              <button id="reverseFromAccessory" class="handoff-accessory-back" type="button" aria-label="Back"><span id="accessoryBackIcon" aria-hidden="true"></span></button>
+              <button id="draggableAppRow" class="handoff-draggable-app" type="button" draggable="true">
+                <img class="handoff-accessory-icon" src="/renderer/app-icon.png" alt="" />
+                <span class="handoff-accessory-copy">Cavalry Language Switcher</span>
+              </button>
+            </div>
           </section>
           <span id="appDragImageHost" class="handoff-drag-image-host" aria-hidden="true" inert></span>
         </div>
@@ -237,6 +251,14 @@ function permissionHandoffHtml() {
             <span class="handoff-reference-fallback">本机参考图尚未生成。</span>
           </div>
           <small>仅保留真实目标行；账户头像、侧栏与其他 App 已从截图源头排除。窗口几何以 point 表达。</small>
+        </article>
+        <article class="handoff-reference-card" data-local-reference-card data-available="pending">
+          <strong>公开落稳 helper</strong>
+          <div class="handoff-reference-media">
+            <img class="handoff-reference-accessory" data-local-reference src="/local-reference/accessory-helper.png?v=1" alt="公开演示中落稳后的权限 helper" />
+            <span class="handoff-reference-fallback">本机参考图尚未生成。</span>
+          </div>
+          <small>只核对“箭头 + 单行指令 / Back + 单行 App row”的结构、位置与半透明 accessory 材质。</small>
         </article>
         <article class="handoff-reference-card" data-local-reference-card data-available="pending">
           <strong>私有箭头 Raster（仅箭头）</strong>

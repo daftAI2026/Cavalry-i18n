@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS source rect、viewport 尺寸与一次性 C callback。
- * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、独立非激活箭头 panel 和不含 NSBox 背景的整条实时 App row 快照承载 file-URL NSDraggingSession，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
- * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 实现洁净室 handoff，不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
+ * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、独立非激活箭头 panel、参考同形的“单行指令 / Back + App row”helper 和不含 NSBox 背景的整条实时 App row 快照承载 file-URL NSDraggingSession，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
+ * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 实现洁净室 handoff，外层半透明材质属于本进程 accessory 而非 System Settings，且不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -13,27 +13,30 @@ typedef void (*CAVPermissionHandoffCallback)(void *context, int outcome, bool te
 static const NSInteger CAVOutcomeRetryRequested = 1; static const NSInteger CAVOutcomeDismissed = 2; static const NSInteger CAVOutcomeError = 3; static const CGFloat CAVZero = 0.0;
 static const CGFloat CAVOne = 1.0; static const CGFloat CAVTwo = 2.0; static const CGFloat CAVHalf = 0.5; static const CGFloat CAVPi = 3.141592653589793;
 static const NSTimeInterval CAVSpringResponse = 0.72; static const CGFloat CAVSpringDamping = 1.0; static const CGFloat CAVArcApex = 50.0; static const CGFloat CAVMaximumBlur = 12.0;
-static const CGFloat CAVHelperWidth = 320.0; static const CGFloat CAVHelperHeight = 200.0; static const CGFloat CAVPanelInset = 20.0; static const CGFloat CAVRowHeight = 56.0;
-static const CGFloat CAVCornerRadius = 12.0; static const CGFloat CAVProxyStrokeWidth = 0.5; static const CGFloat CAVProxyStrokeOpacity = 0.15;
-static const CGFloat CAVArrowSize = 28.0; static const CGFloat CAVArrowGap = 2.0; static const CGFloat CAVArrowStrokeWidth = 2.0;
+static const CGFloat CAVHelperWidth = 532.0; static const CGFloat CAVHelperHeight = 112.0; static const CGFloat CAVScreenInset = 20.0; static const CGFloat CAVRowHeight = 44.0;
+static const CGFloat CAVCornerRadius = 12.0; static const CGFloat CAVRowCornerRadius = 8.0; static const CGFloat CAVProxyStrokeWidth = 0.5; static const CGFloat CAVProxyStrokeOpacity = 0.15;
+static const CGFloat CAVArrowSize = 28.0; static const CGFloat CAVArrowTextGap = 8.0; static const CGFloat CAVArrowStrokeWidth = 2.0;
 static const CGFloat CAVArrowDesignSize = 256.0; static const CGFloat CAVArrowDrawingInset = 2.0; static const CGFloat CAVInfoBlueGreen = 107.0 / 255.0;
 static const CGFloat CAVArrowScaleX = 1.15; static const CGFloat CAVArrowScaleY = 1.6; static const CGFloat CAVArrowMass = 1.0; static const CGFloat CAVArrowStiffness = 200.0; static const CGFloat CAVArrowDamping = 11.0; static const NSTimeInterval CAVArrowInitialDelay = 0.5; static const NSTimeInterval CAVArrowStretchDuration = 0.25;
 static const NSTimeInterval CAVArrowIdleDuration = 4.0; static const NSTimeInterval CAVSettingsProbeInterval = 0.10; static const NSUInteger CAVSettingsProbeLimit = 50; static const NSUInteger CAVSettingsMissingGrace = 10;
 static const NSUInteger CAVIndexStep = 1;
 static const CGFloat CAVAnimationFrameRate = 60.0; static const CGFloat CAVAnimationTolerance = 0.001;
-static const CGFloat CAVInstructionY = 132.0; static const CGFloat CAVInstructionHeight = 18.0; static const CGFloat CAVRowY = 64.0; static const CGFloat CAVActionBottomInset = 16.0;
-static const CGFloat CAVActionHeight = 30.0; static const CGFloat CAVActionWidth = 88.0; static const CGFloat CAVActionGap = 8.0; static const CGFloat CAVShadowDestinationOpacity = 0.06;
+static const CGFloat CAVInstructionTop = 12.0; static const CGFloat CAVInstructionHeight = 28.0; static const CGFloat CAVRowTop = 52.0; static const CGFloat CAVHelperHorizontalInset = 16.0;
+static const CGFloat CAVBackButtonSize = 32.0; static const CGFloat CAVBackToRowGap = 16.0; static const CGFloat CAVShadowDestinationOpacity = 0.06;
 static const CGFloat CAVShadowDestinationRadius = 2.0; static const CGFloat CAVShadowDestinationY = -3.0; static const CGFloat CAVShadowKeyOpacity = 0.09; static const CGFloat CAVShadowKeyRadius = 15.0;
 static const CGFloat CAVShadowKeyY = -5.0; static const CGFloat CAVShadowAmbientOpacity = 0.20; static const CGFloat CAVShadowAmbientRadius = 3.0; static const CGFloat CAVShadowAmbientY = 0.0;
 static const CGFloat CAVStrokeZPosition = 3.0; static const CGFloat CAVShadowDestinationZPosition = -1.0; static const CGFloat CAVShadowKeyZPosition = -2.0; static const CGFloat CAVShadowAmbientZPosition = -3.0;
-static const CGFloat CAVInstructionFontSize = 13.0; static const CGFloat CAVDetailFontSize = 12.0; static const CGFloat CAVRowIconInset = 12.0; static const CGFloat CAVRowIconSize = 32.0;
-static const CGFloat CAVRowTextOriginX = 56.0; static const CGFloat CAVRowTextRightInset = 12.0; static const CGFloat CAVRowTitleY = 9.0; static const CGFloat CAVRowDetailY = 29.0; static const CGFloat CAVRowLabelHeight = 18.0;
+static const CGFloat CAVInstructionFontSize = 13.0; static const CGFloat CAVRowIconInset = 8.0; static const CGFloat CAVRowIconSize = 28.0;
+static const CGFloat CAVRowTextOriginX = 44.0; static const CGFloat CAVRowTextRightInset = 12.0; static const CGFloat CAVRowLabelHeight = 18.0;
 static NSString *const CAVSystemSettingsBundleIdentifier = @"com.apple.systempreferences";
 typedef NS_ENUM(NSInteger, CAVLocaleKind) { CAVLocaleEnglish, CAVLocaleSimplifiedChinese, CAVLocaleTraditionalChinese, CAVLocaleJapanese };
-static NSString *const CAVTextInstruction = @"instruction"; static NSString *const CAVTextDragDetail = @"dragDetail"; static NSString *const CAVTextRetry = @"retry"; static NSString *const CAVTextCancel = @"cancel";
-static NSString *const CAVTextArrowLabel = @"arrowLabel";
+static NSString *const CAVTextInstruction = @"instruction"; static NSString *const CAVTextBack = @"back";
 @class CAVPermissionHandoffCoordinator;
 @interface CAVNonActivatingPanel : NSPanel
+@end
+@interface CAVFlippedVisualEffectView : NSVisualEffectView
+@end
+@interface CAVFlippedView : NSView
 @end
 @interface CAVHandoffArrowView : NSView
 @property(nonatomic, strong) NSTrackingArea *hoverArea; @property(nonatomic, copy) dispatch_block_t onHover;
@@ -58,15 +61,14 @@ static NSString *const CAVTextArrowLabel = @"arrowLabel";
 @property(nonatomic, weak) CAVPermissionHandoffCoordinator *coordinator; @property(nonatomic, strong) NSURL *applicationBundleURL;
 @property(nonatomic, strong) NSBox *box; @property(nonatomic, strong) NSView *appRowView;
 @property(nonatomic, strong) NSImageView *iconView; @property(nonatomic, strong) NSTextField *titleField;
-@property(nonatomic, strong) NSTextField *detailField;
 @end
 @interface CAVPermissionHandoffCoordinator : NSObject
 @property(nonatomic, assign) CAVPermissionHandoffCallback callback; @property(nonatomic, assign) void *callbackContext;
 @property(nonatomic, weak) NSView *sourceView; @property(nonatomic, assign) NSRect sourceScreenRect;
 @property(nonatomic, strong) NSImage *sourceImage; @property(nonatomic, strong) NSImage *targetImage;
 @property(nonatomic, strong) CAVNonActivatingPanel *helperPanel; @property(nonatomic, strong) CAVNonActivatingPanel *arrowPanel; @property(nonatomic, strong) CAVDragSourceView *dragView;
-@property(nonatomic, strong) CAVHandoffArrowView *arrowView; @property(nonatomic, strong) NSButton *retryButton;
-@property(nonatomic, strong) NSButton *cancelButton; @property(nonatomic, strong) NSMutableArray<CAVScreenReplicant *> *replicants;
+@property(nonatomic, strong) CAVHandoffArrowView *arrowView; @property(nonatomic, strong) NSButton *backButton;
+@property(nonatomic, strong) NSMutableArray<CAVScreenReplicant *> *replicants;
 @property(nonatomic, strong) NSDraggingSession *dragSession; @property(nonatomic, strong) NSTimer *animationTimer;
 @property(nonatomic, strong) NSTimer *locateTimer; @property(nonatomic, strong) NSTimer *targetTrackingTimer;
 @property(nonatomic, strong) NSTimer *arrowTimer; @property(nonatomic, assign) CFTimeInterval animationStartedAt;
@@ -84,6 +86,11 @@ static NSString *const CAVTextArrowLabel = @"arrowLabel";
 - (void)dragDidEndWithOperation:(NSDragOperation)operation atScreenPoint:(NSPoint)screenPoint;
 @end
 static CAVPermissionHandoffCoordinator *CAVActiveCoordinator = nil;
+static NSString *CAVApplicationDisplayName(void) {
+  NSString *name = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleDisplayName"];
+  if (name.length == CAVZero) name = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleName"];
+  return name.length > CAVZero ? name : @"Cavalry Language Switcher";
+}
 static NSColor *CAVSeparatorColor(void) { if (@available(macOS 10.14, *)) return NSColor.separatorColor; return NSColor.gridColor; }
 static BOOL CAVFinitePositive(CGFloat value) { return isfinite(value) && value > CAVZero; }
 static BOOL CAVFiniteNonNegative(CGFloat value) { return isfinite(value) && value >= CAVZero; }
@@ -115,19 +122,10 @@ static CAVLocaleKind CAVPreferredLocaleKind(void) {
 static NSString *CAVHelperText(NSString *key) {
   CAVLocaleKind locale = CAVPreferredLocaleKind();
   NSArray<NSDictionary<NSString *, NSString *> *> *texts = @[
-    @{CAVTextInstruction: @"Enable the Switcher in App Management",
-      CAVTextDragDetail: @"Not listed? Drag this app in", CAVTextRetry: @"Retry",
-      CAVTextCancel: @"Cancel", CAVTextArrowLabel: @"Drag into App Management"},
-    @{CAVTextInstruction: @"在“App 管理”中启用语言切换器",
-      CAVTextDragDetail: @"列表中没有？将此应用拖入", CAVTextRetry: @"重试",
-      CAVTextCancel: @"取消", CAVTextArrowLabel: @"拖入 App 管理"},
-    @{CAVTextInstruction: @"在「App 管理」中啟用語言切換器",
-      CAVTextDragDetail: @"列表中沒有？將此 App 拖入", CAVTextRetry: @"重試",
-      CAVTextCancel: @"取消", CAVTextArrowLabel: @"拖入 App 管理"},
-    @{CAVTextInstruction: @"アプリケーション管理でスイッチャーを許可",
-      CAVTextDragDetail: @"一覧にない場合はここからドラッグ",
-      CAVTextRetry: @"再試行", CAVTextCancel: @"キャンセル",
-      CAVTextArrowLabel: @"アプリケーション管理へドラッグ"},
+    @{CAVTextInstruction: @"Drag %@ to the list above to allow App Management", CAVTextBack: @"Back"},
+    @{CAVTextInstruction: @"将“%@”拖入上方列表以允许 App 管理", CAVTextBack: @"返回"},
+    @{CAVTextInstruction: @"將「%@」拖入上方列表以允許 App 管理", CAVTextBack: @"返回"},
+    @{CAVTextInstruction: @"%@を上のリストにドラッグしてアプリケーション管理を許可", CAVTextBack: @"戻る"},
   ];
   return texts[locale][key] ?: texts[CAVLocaleEnglish][key];
 }
@@ -247,11 +245,11 @@ static NSRect CAVHelperFrame(NSRect settingsFrame) {
   NSScreen *screen = CAVScreenForAppKitRect(settingsFrame);
   NSRect visible = screen.visibleFrame;
   CGFloat x = NSMidX(settingsFrame) - CAVHelperWidth * CAVHalf;
-  CGFloat y = NSMinY(visible) + CAVPanelInset;
-  x = MAX(NSMinX(visible) + CAVPanelInset,
-          MIN(x, NSMaxX(visible) - CAVHelperWidth - CAVPanelInset));
-  y = MAX(NSMinY(visible) + CAVPanelInset,
-          MIN(y, NSMaxY(visible) - CAVHelperHeight - CAVPanelInset));
+  CGFloat y = NSMinY(visible) + CAVScreenInset;
+  x = MAX(NSMinX(visible) + CAVScreenInset,
+          MIN(x, NSMaxX(visible) - CAVHelperWidth - CAVScreenInset));
+  y = MAX(NSMinY(visible) + CAVScreenInset,
+          MIN(y, NSMaxY(visible) - CAVHelperHeight - CAVScreenInset));
   return CAVIntegralRectForScale(NSMakeRect(x, y, CAVHelperWidth, CAVHelperHeight), screen.backingScaleFactor);
 }
 static NSString *CAVScreenTopologyKey(void) {
@@ -289,6 +287,12 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
 @implementation CAVNonActivatingPanel
 - (BOOL)canBecomeKeyWindow { return NO; }
 - (BOOL)canBecomeMainWindow { return NO; }
+@end
+@implementation CAVFlippedVisualEffectView
+- (BOOL)isFlipped { return YES; }
+@end
+@implementation CAVFlippedView
+- (BOOL)isFlipped { return YES; }
 @end
 @implementation CAVHandoffArrowView
 - (BOOL)isFlipped { return YES; }
@@ -420,20 +424,17 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   if (!self) return nil;
   _box = [[NSBox alloc] initWithFrame:self.bounds]; _box.boxType = NSBoxCustom;
   _box.borderColor = CAVSeparatorColor(); _box.borderWidth = CAVProxyStrokeWidth;
-  _box.fillColor = NSColor.controlBackgroundColor; _box.cornerRadius = CAVCornerRadius;
+  _box.fillColor = NSColor.controlBackgroundColor; _box.cornerRadius = CAVRowCornerRadius;
   [self addSubview:_box];
-  _appRowView = [[NSView alloc] initWithFrame:self.bounds]; [self addSubview:_appRowView];
+  _appRowView = [[CAVFlippedView alloc] initWithFrame:self.bounds]; [self addSubview:_appRowView];
   _iconView = [[NSImageView alloc] initWithFrame:NSMakeRect(CAVRowIconInset, CAVRowIconInset, CAVRowIconSize, CAVRowIconSize)];
   _iconView.image = [NSWorkspace.sharedWorkspace iconForFile:NSBundle.mainBundle.bundlePath];
   _iconView.imageScaling = NSImageScaleProportionallyUpOrDown;
   [_appRowView addSubview:_iconView];
-  NSString *bundleName = [NSBundle.mainBundle objectForInfoDictionaryKey:@"CFBundleName"];
-  _titleField = CAVLabel(bundleName ?: @"Cavalry Language Switcher", CAVInstructionFontSize, NSFontWeightMedium, NSColor.labelColor);
-  _titleField.frame = NSMakeRect(CAVRowTextOriginX, CAVRowTitleY, NSWidth(frameRect) - CAVRowTextOriginX - CAVRowTextRightInset, CAVRowLabelHeight);
+  _titleField = CAVLabel(CAVApplicationDisplayName(), CAVInstructionFontSize, NSFontWeightMedium, NSColor.labelColor);
+  CGFloat titleY = (CAVRowHeight - CAVRowLabelHeight) * CAVHalf;
+  _titleField.frame = NSMakeRect(CAVRowTextOriginX, titleY, NSWidth(frameRect) - CAVRowTextOriginX - CAVRowTextRightInset, CAVRowLabelHeight);
   [_appRowView addSubview:_titleField];
-  _detailField = CAVLabel(CAVHelperText(CAVTextDragDetail), CAVDetailFontSize, NSFontWeightRegular, NSColor.secondaryLabelColor);
-  _detailField.frame = NSMakeRect(CAVRowTextOriginX, CAVRowDetailY, NSWidth(frameRect) - CAVRowTextOriginX - CAVRowTextRightInset, CAVRowLabelHeight);
-  [_appRowView addSubview:_detailField];
   return self;
 }
 - (void)mouseDown:(NSEvent *)event {
@@ -550,7 +551,7 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   panel.backgroundColor = self.reducedTransparency ? NSColor.windowBackgroundColor : NSColor.clearColor;
   panel.hasShadow = NO;
   panel.hidesOnDeactivate = NO;
-  NSVisualEffectView *surface = [[NSVisualEffectView alloc]
+  CAVFlippedVisualEffectView *surface = [[CAVFlippedVisualEffectView alloc]
     initWithFrame:NSMakeRect(CAVZero, CAVZero, CAVHelperWidth, CAVHelperHeight)];
   surface.material = NSVisualEffectMaterialPopover;
   surface.blendingMode = NSVisualEffectBlendingModeBehindWindow;
@@ -561,34 +562,51 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   surface.layer.borderColor = CAVSeparatorColor().CGColor;
   surface.layer.masksToBounds = YES;
   panel.contentView = surface;
-  NSTextField *instruction = CAVLabel(CAVHelperText(CAVTextInstruction), CAVInstructionFontSize, NSFontWeightMedium, NSColor.labelColor);
-  instruction.frame = NSMakeRect(CAVPanelInset, CAVInstructionY, CAVHelperWidth - CAVTwo * CAVPanelInset, CAVInstructionHeight);
+  NSString *instructionText = [NSString stringWithFormat:CAVHelperText(CAVTextInstruction), CAVApplicationDisplayName()];
+  NSTextField *instruction = CAVLabel(instructionText, CAVInstructionFontSize, NSFontWeightMedium, NSColor.labelColor);
+  [instruction sizeToFit];
+  CGFloat maximumInstructionWidth = CAVHelperWidth - CAVTwo * CAVHelperHorizontalInset - CAVArrowSize - CAVArrowTextGap;
+  CGFloat instructionWidth = MIN(NSWidth(instruction.frame), maximumInstructionWidth);
+  CGFloat instructionGroupWidth = CAVArrowSize + CAVArrowTextGap + instructionWidth;
+  CGFloat instructionGroupX = (CAVHelperWidth - instructionGroupWidth) * CAVHalf;
+  instruction.frame = NSMakeRect(instructionGroupX + CAVArrowSize + CAVArrowTextGap,
+                                 CAVInstructionTop + (CAVInstructionHeight - CAVRowLabelHeight) * CAVHalf,
+                                 instructionWidth, CAVRowLabelHeight);
   [surface addSubview:instruction];
+  CGFloat rowX = CAVHelperHorizontalInset + CAVBackButtonSize + CAVBackToRowGap;
+  CGFloat rowWidth = CAVHelperWidth - rowX - CAVHelperHorizontalInset;
   CAVDragSourceView *row = [[CAVDragSourceView alloc]
-    initWithFrame:NSMakeRect(CAVPanelInset, CAVRowY, CAVHelperWidth - CAVTwo * CAVPanelInset, CAVRowHeight)];
+    initWithFrame:NSMakeRect(rowX, CAVRowTop, rowWidth, CAVRowHeight)];
   row.coordinator = self;
   [surface addSubview:row];
   self.dragView = row;
-  CGFloat firstActionX = CAVHelperWidth - CAVPanelInset - CAVActionWidth * CAVTwo - CAVActionGap;
-  NSButton *retry = [NSButton buttonWithTitle:CAVHelperText(CAVTextRetry) target:self action:@selector(retry:)];
-  retry.bezelStyle = NSBezelStyleRounded;
-  retry.frame = NSMakeRect(firstActionX, CAVActionBottomInset, CAVActionWidth, CAVActionHeight);
-  [surface addSubview:retry];
-  self.retryButton = retry;
-  NSButton *cancel = [NSButton buttonWithTitle:CAVHelperText(CAVTextCancel) target:self action:@selector(cancel:)];
-  cancel.bezelStyle = NSBezelStyleRounded;
-  cancel.frame = NSMakeRect(firstActionX + CAVActionWidth + CAVActionGap, CAVActionBottomInset, CAVActionWidth, CAVActionHeight);
-  [surface addSubview:cancel];
-  self.cancelButton = cancel;
-  NSRect arrowLocalFrame = NSMakeRect(NSMidX(row.frame) - CAVArrowSize * CAVHalf,
-                                      CAVInstructionY + CAVInstructionHeight + CAVArrowGap, CAVArrowSize, CAVArrowSize);
-  NSRect arrowScreenFrame = NSOffsetRect(arrowLocalFrame, NSMinX(frame), NSMinY(frame));
+  NSImage *backImage = nil;
+  if (@available(macOS 11.0, *)) {
+    backImage = [NSImage imageWithSystemSymbolName:@"chevron.left"
+                          accessibilityDescription:CAVHelperText(CAVTextBack)];
+  } else {
+    backImage = [NSImage imageNamed:NSImageNameGoLeftTemplate];
+  }
+  NSButton *back = [NSButton buttonWithImage:backImage target:self action:@selector(back:)];
+  back.bezelStyle = NSBezelStyleCircular;
+  back.focusRingType = NSFocusRingTypeNone;
+  back.frame = NSMakeRect(CAVHelperHorizontalInset,
+                          CAVRowTop + (CAVRowHeight - CAVBackButtonSize) * CAVHalf,
+                          CAVBackButtonSize, CAVBackButtonSize);
+  back.toolTip = CAVHelperText(CAVTextBack);
+  [back setAccessibilityLabel:CAVHelperText(CAVTextBack)];
+  [surface addSubview:back];
+  self.backButton = back;
+  CGFloat arrowX = instructionGroupX;
+  CGFloat arrowY = CAVHelperHeight - CAVInstructionTop - CAVArrowSize;
+  NSRect arrowScreenFrame = NSMakeRect(NSMinX(frame) + arrowX, NSMinY(frame) + arrowY,
+                                       CAVArrowSize, CAVArrowSize);
   CAVNonActivatingPanel *arrowPanel = [[CAVNonActivatingPanel alloc]
     initWithContentRect:arrowScreenFrame styleMask:NSWindowStyleMaskBorderless | NSWindowStyleMaskNonactivatingPanel backing:NSBackingStoreBuffered defer:NO];
   arrowPanel.releasedWhenClosed = NO; arrowPanel.opaque = NO; arrowPanel.backgroundColor = NSColor.clearColor;
   arrowPanel.hasShadow = NO; arrowPanel.ignoresMouseEvents = NO; arrowPanel.level = NSFloatingWindowLevel;
   CAVHandoffArrowView *arrow = [[CAVHandoffArrowView alloc] initWithFrame:NSMakeRect(CAVZero, CAVZero, CAVArrowSize, CAVArrowSize)];
-  arrow.wantsLayer = YES; arrow.toolTip = CAVHelperText(CAVTextArrowLabel);
+  arrow.wantsLayer = YES; arrow.toolTip = instructionText;
   __weak CAVPermissionHandoffCoordinator *weakSelf = self; arrow.onHover = ^{ [weakSelf stretchArrow:nil]; };
   arrowPanel.contentView = arrow; [panel addChildWindow:arrowPanel ordered:NSWindowAbove];
   self.arrowPanel = arrowPanel; self.arrowView = arrow;
@@ -607,10 +625,9 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   self.targetScreenRect = [self.helperPanel convertRectToScreen:rowRect];
   if (!self.targetImage) self.targetImage = CAVSnapshot(self.dragView, self.dragView.bounds);
 }
-- (void)retry:(id)sender { [self sendOutcome:CAVOutcomeRetryRequested terminal:NO]; }
-- (void)cancel:(id)sender {
+- (void)back:(id)sender {
   [self sendOutcome:CAVOutcomeDismissed terminal:YES];
-  [self cleanup];
+  [self finishWithReverse:YES];
 }
 - (void)scheduleArrowCycleAfter:(NSTimeInterval)delay {
   [self.arrowTimer invalidate];

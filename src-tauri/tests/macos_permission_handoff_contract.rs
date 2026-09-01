@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands/contract/update、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、drop 后同进程 oracle、任何失败均 cleanup、受保护写事务 commit 后先 reverse 再打开 Cavalry、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、helper 非重叠垂直层级、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、drop 后同进程 oracle、任何失败均 cleanup、受保护写事务 commit 后先 reverse 再打开 Cavalry、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -135,9 +135,14 @@ fn native_owner_uses_public_dragging_and_never_edits_permission_state() {
         "self.appRowView.hidden = NO",
         "NSBox *box",
         "NSView *appRowView",
+        "CAVFlippedView",
         "[_appRowView addSubview:_iconView]",
         "[_appRowView addSubview:_titleField]",
-        "[_appRowView addSubview:_detailField]",
+        "Drag %@ to the list above to allow App Management",
+        "NSBezelStyleCircular",
+        "@available(macOS 11.0, *)",
+        "NSImageNameGoLeftTemplate",
+        "CAVTextBack",
     ] {
         assert!(
             native.contains(required),
@@ -174,6 +179,9 @@ fn native_owner_uses_public_dragging_and_never_edits_permission_state() {
     assert!(native.contains("[self addSubview:_box]"));
     assert!(native.contains("[self addSubview:_appRowView]"));
     assert!(native.find("[self addSubview:_box]") < native.find("[self addSubview:_appRowView]"));
+    assert!(!native.contains("detailField"));
+    assert!(!native.contains("buttonWithTitle:CAVHelperText(CAVTextRetry)"));
+    assert!(!native.contains("buttonWithTitle:CAVHelperText(CAVTextCancel)"));
     assert!(
         !native.contains("CAVSnapshot(self, dragFrame)"),
         "the drag image must exclude the sibling NSBox background"
@@ -195,37 +203,38 @@ fn native_drop_retry_requires_copy_inside_the_live_settings_window() {
 }
 
 #[test]
-fn native_helper_keeps_arrow_instruction_row_and_actions_disjoint() {
+fn native_helper_matches_the_reference_instruction_back_and_app_row_geometry() {
     let native = read("native/macos_permission_handoff.m");
+    let helper_width = numeric_constant(&native, "CAVHelperWidth");
     let helper_height = numeric_constant(&native, "CAVHelperHeight");
-    let panel_inset = numeric_constant(&native, "CAVPanelInset");
     let arrow_size = numeric_constant(&native, "CAVArrowSize");
-    let arrow_gap = numeric_constant(&native, "CAVArrowGap");
-    let instruction_y = numeric_constant(&native, "CAVInstructionY");
+    let instruction_top = numeric_constant(&native, "CAVInstructionTop");
     let instruction_height = numeric_constant(&native, "CAVInstructionHeight");
-    let row_y = numeric_constant(&native, "CAVRowY");
+    let row_top = numeric_constant(&native, "CAVRowTop");
     let row_height = numeric_constant(&native, "CAVRowHeight");
-    let action_y = numeric_constant(&native, "CAVActionBottomInset");
-    let action_height = numeric_constant(&native, "CAVActionHeight");
-    let action_width = numeric_constant(&native, "CAVActionWidth");
+    let horizontal_inset = numeric_constant(&native, "CAVHelperHorizontalInset");
+    let back_size = numeric_constant(&native, "CAVBackButtonSize");
+    let back_gap = numeric_constant(&native, "CAVBackToRowGap");
     let arrow_mass = numeric_constant(&native, "CAVArrowMass");
     let arrow_stiffness = numeric_constant(&native, "CAVArrowStiffness");
     let arrow_damping = numeric_constant(&native, "CAVArrowDamping");
 
-    assert!(action_y + action_height < row_y);
-    assert!(
-        action_width >= 88.0,
-        "four-locale action labels must not truncate"
-    );
+    assert_eq!((helper_width, helper_height), (532.0, 112.0));
+    assert_eq!((instruction_top, instruction_height), (12.0, 28.0));
+    assert_eq!((row_top, row_height), (52.0, 44.0));
+    assert_eq!((horizontal_inset, back_size, back_gap), (16.0, 32.0, 16.0));
+    assert_eq!(arrow_size, 28.0);
     assert_eq!(
         (arrow_mass, arrow_stiffness, arrow_damping),
         (1.0, 200.0, 11.0)
     );
-    assert!(row_y + row_height < instruction_y);
-    assert!(
-        instruction_y + instruction_height + arrow_gap + arrow_size <= helper_height - panel_inset
-    );
-    assert!(native.contains("CAVInstructionY + CAVInstructionHeight + CAVArrowGap"));
+    assert_eq!(instruction_top + instruction_height + 12.0, row_top);
+    assert_eq!(row_top + row_height + horizontal_inset, helper_height);
+    assert!(native.contains("instructionGroupX + CAVArrowSize + CAVArrowTextGap"));
+    assert!(native.contains("CAVHelperHorizontalInset + CAVBackButtonSize + CAVBackToRowGap"));
+    assert!(native.contains(
+        "[self sendOutcome:CAVOutcomeDismissed terminal:YES];\n  [self finishWithReverse:YES];"
+    ));
 }
 
 #[test]

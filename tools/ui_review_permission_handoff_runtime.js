@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop/Reduced Motion API，并以锁定研究证据约束转场数学、箭头提示节奏和用户操作语义边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、实时 App 行接管、整行 DOM snapshot drag image 与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动同进程 oracle、Later 阻断与系统 Quit & Reopen 后 fresh-session 投影。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、参考同形 Back 与实时 App 行接管、透明底整行 DOM snapshot drag image 与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动同进程 oracle、Later 阻断与系统 Quit & Reopen 后 fresh-session 投影。
  * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动 reverse 或重开提示，系统重开只投影为新 renderer 会话；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale、真实系统退出重开或原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -26,7 +26,6 @@ function permissionHandoffRuntimeScript() {
         arrowMass: 1,
         arrowStiffness: 200,
         arrowDamping: 11,
-        arrowOffsetYPx: -10,
         arrowCompletionEpsilon: 0.002,
         arrowMaximumSettleMs: 1400,
       });
@@ -64,6 +63,7 @@ function permissionHandoffRuntimeScript() {
       appDragImage.classList.add('handoff-drag-image');
       appDragImageHost.appendChild(appDragImage);
       const hintArrow = document.querySelector('#hintArrow');
+      const accessoryBackIcon = document.querySelector('#accessoryBackIcon');
       const referenceProjectArrow = document.querySelector('#referenceProjectArrow');
       const reverseFromAccessory = document.querySelector('#reverseFromAccessory');
       const workflowLabel = document.querySelector('#workflowLabel');
@@ -144,6 +144,7 @@ function permissionHandoffRuntimeScript() {
       let requestedSourceRect = null;
 
       hintArrow.replaceChildren(window.cavalryIcons.create('handoffArrow'));
+      accessoryBackIcon.replaceChildren(window.cavalryIcons.create('back'));
       referenceProjectArrow.replaceChildren(window.cavalryIcons.create('handoffArrow'));
       for (const image of document.querySelectorAll('[data-local-reference]')) {
         const card = image.closest('[data-local-reference-card]');
@@ -376,7 +377,7 @@ function permissionHandoffRuntimeScript() {
       function renderArrow() {
         const scaleX = lerp(1, MOTION.arrowScaleX, arrowStretch);
         const scaleY = lerp(1, MOTION.arrowScaleY, arrowStretch);
-        hintArrow.style.transform = 'translate(-50%, ' + MOTION.arrowOffsetYPx + 'px) scale(' + scaleX + ', ' + scaleY + ')';
+        hintArrow.style.transform = 'scale(' + scaleX + ', ' + scaleY + ')';
       }
 
       function prefersReducedMotion() {
@@ -623,6 +624,24 @@ function permissionHandoffRuntimeScript() {
         demonstrateRetryResult('denied');
       }
 
+      function dismissFromAccessory() {
+        if (workflowState !== 'awaitingUser' || transitionPhase !== 'presented') return;
+        settledWorkflowState = 'denied';
+        if (!captures) {
+          appendWorkflowEvent('handoffDismissed');
+          progress = 0;
+          setTransitionPhase('idle');
+          setWorkflowState('denied');
+          settledWorkflowState = null;
+          return;
+        }
+        const stageRect = stage.getBoundingClientRect();
+        captureTargetGeometry({ source: captures.source, stageRect });
+        setWorkflowState('returning');
+        setTransitionPhase('reversing');
+        animateTo(0);
+      }
+
       function reverseAfterSettled(nextState, eventName) {
         if (workflowState !== 'retrying' || transitionPhase !== 'presented') return;
         appendWorkflowEvent(eventName);
@@ -740,7 +759,7 @@ ${sessionScript}
       actionButtons.resultReopen.addEventListener('click', simulateSystemQuitAndReopen);
       actionButtons.resultError.addEventListener('click', () => demonstrateRetryResult('error'));
       actionButtons.reset.addEventListener('click', () => reset({ reloadSource: true }));
-      reverseFromAccessory.addEventListener('click', startRetry);
+      reverseFromAccessory.addEventListener('click', dismissFromAccessory);
       draggableAppRow.addEventListener('dragstart', handleDragStart);
       draggableAppRow.addEventListener('dragend', handleDragEnd);
       destinationDropZone.addEventListener('dragenter', (event) => {

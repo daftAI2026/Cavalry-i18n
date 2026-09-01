@@ -129,6 +129,8 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 
 工作台底部另有严格 local-only 的视觉对照区：localhost 只读系统临时目录中的真实 System Settings 截图与本机**提示箭头** Raster 参考，缺失即显示不可用；它们不进入 Git、Tauri resource、构建或发布包。这里的 Raster 只对应提示箭头，箭头下方的 App 权限项在原型中是独立实时可拖控件，不得用截图冒充交互对象。并排的项目箭头是仓库自有矢量候选，使用设计 token 与白色轮廓，目的在于人工裁决视觉语法，不复制第三方私有像素或路径。
 
+2026-09-01 又对公开 8.2 秒首次授权录屏逐帧复核了落稳 helper，而不是从类型名猜布局。可见结构固定为两层：上层是**项目箭头 + 单行 `Drag <app> to the list above to allow <permission>` 指令**；下层是左侧圆形 Back 与右侧**图标 + App 名称**的单行可拖 row。没有独立 helper 标题、第二行解释，也没有 Retry/Cancel 文本按钮。开始拖拽后，row 的图标和名称从原位隐藏，但 row 容器仍留在 accessory 内；系统 drag image 只携带透明底的图标与名称。外层半透明圆角底属于参考应用自己的 accessory window，不属于 System Settings；System Settings 仍只拥有上方真实权限列表。生产 AppKit 与工作台因此共同收敛到 532×112 的项目 point/CSS 规格；该规格保证二者同构，但公开录屏经过缩放，不能反过来伪称 532×112 是第三方私有常量。
+
 ## 4. 参考实现的证据分层
 
 ### 4.0 完整性审计：原样本、当前实现与证据债务
@@ -147,9 +149,9 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | source/target `1-p / p` 与 12pt 对向 blur | 已确认 | 已做 | 原生材质、色彩空间与 rasterization 待 R2/R3 |
 | destination/key/ambient shadow 与 0.5pt stroke | 已确认 | 已做单层浏览器投影 | R2 才能验证 CALayer mask/clipping |
 | 每屏 non-key/non-main replicant 与跨屏裁切 | 已确认每屏窗口覆盖各自 `screenFrame` | 浏览器缺失；原生已改为每屏完整透明窗口并在本地坐标绘制运动内容 | 工作台不得称跨屏证明；混合倍率/热插拔仍需原生 live 验证 |
-| forward completion 后 live accessory 接管 | 已确认 | 已做结构替身 | R2 需真实 nonactivating `NSPanel`/hosting view |
+| forward completion 后 live accessory 接管 | 已确认；公开录屏直接显示“箭头 + 单行指令 / Back + 单行 App row” | 工作台固定 532×112 同形结构，已做 | 生产使用真实 nonactivating `NSPanel`；项目规格同构不等于第三方私有尺寸已知 |
 | 独立 HintArrow window/raster、0.5/0.25/4s 节奏 | 已确认 | 原生使用独立非激活 child panel + 项目自绘 glyph + 已确认节奏；浏览器仅作结构替身 | 私有 raster 不进入开源产品；窗口生命周期与行为语法对齐，像素轮廓不复制 |
-| app row 的真实 `NSDraggingSession` 与整行 drag snapshot | 已确认：`appRowView.bounds → bitmapImageRepForCachingDisplayInRect → cacheDisplayInRect → NSImage → setDraggingFrame:contents:` | HTML DnD 克隆整行 App row；原生对整行实时 `NSView` 调用同类 AppKit snapshot | file URL pasteboard + drag source 已对齐；浏览器替身不冒充 native 证据 |
+| app row 的真实 `NSDraggingSession` 与整行 drag snapshot | 已确认：`appRowView.bounds → bitmapImageRepForCachingDisplayInRect → cacheDisplayInRect → NSImage → setDraggingFrame:contents:`；公开录屏同时显示拖动时原位 row 内容隐藏、容器保留 | HTML DnD 克隆整行 App row 并清除背景/边框；原生对独立实时 `appRowView` 调用同类 AppKit snapshot | file URL pasteboard + drag source 已对齐；浏览器替身不冒充 native 证据 |
 | 系统 drag 接管与 cancel bounce | 目标样本确认 `mouseDown:` 直接建立 session，并启用系统回弹 | 原生同样从 `mouseDown:` 交给 AppKit；不再复制公开样本的自定义 4pt 门槛 | 目标样本已确认的 drag visual 是整行而非 56pt icon |
 | 整个设置目标接收 copy drop、且与权限授予分离 | 已确认 operation + 目标几何约束；私有精确命中条件未知 | 整窗 mock 接收并更新系统行，已做 | R2 由原生 drop operation/屏幕几何裁决；R4 仍以写事务为唯一 oracle |
 | 已有列表行只需开启的分支 | 已确认产品必要；原样本逐条件未知 | 已做人工分支 | 无 AX 时不能自动声称已检测到系统行 |
@@ -162,7 +164,7 @@ Reduce Motion 的生产分支另以仓库外、进程内 `NSWorkspace.accessibil
 | 关闭、取消、Space、预授权、热插拔显示器全部分支 | 部分结构可证，逐条件未知 | 缺失或仅 reset | R3/R5；隔离账户逐分支验收 |
 | 成功后的业务反馈 | 原样本更新 granted 状态；未发现独立烟花/打勾动画证据 | fixture 经真实 Cavalry Activity 组件投影阶段 + 结果句；success-settled 仅为审查控制消息 | 真实受保护写事务 commit 是 App Management oracle；不新增“权限已验证”产品事件，最终反馈仍由既有阶段与结果句承担 |
 
-结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏与拖拽/授权分离的语义边界**；尚未恢复的是原生窗口/拖拽、多屏与所有异常分支。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；现在改为 fixture 在 `applyTransaction` commit 后、`restartCavalry` 前发送 review-only settled 控制消息，生产则由 Rust 的保护写事务 commit 边界启动 reverse。该边界不生成新的权限成功事件，失败保留既有 Activity 并继续阻断。
+结论：当前已经恢复的是**转场骨架、几何公式、双图材质、阴影、箭头节奏、参考同形 helper 与拖拽/授权分离的语义边界**；生产已具备原生窗口/拖拽和每屏 replicant 源码，仍欠混合倍率、真实首次 drop 与异常分支的 packaged live 证据。此前 R1 把 reverse 放在结果注入之前，导致“成功后动画”被吃掉；现在改为 fixture 在 `applyTransaction` commit 后、`restartCavalry` 前发送 review-only settled 控制消息，生产则由 Rust 的保护写事务 commit 边界启动 reverse。该边界不生成新的权限成功事件，失败保留既有 Activity 并继续阻断。
 
 ### 4.1 仓库外参考应用：当前与历史样本的本机证据
 

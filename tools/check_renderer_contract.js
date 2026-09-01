@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、整条 App row snapshot 的 HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -104,6 +104,7 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(reviewServerSource, /path\.join\(os\.tmpdir\(\), 'cavalry-i18n-ui-review'\)/);
   assert.match(reviewServerSource, /'\/local-reference\/hint-arrow\.png'/);
   assert.match(reviewServerSource, /'\/local-reference\/system-settings\.png'/);
+  assert.match(reviewServerSource, /'\/local-reference\/accessory-helper\.png'/);
   assert.match(reviewServerSource, /url\.pathname === '\/favicon\.ico'/);
   assert.match(reviewServerSource, /Local reference unavailable/);
   assert.doesNotMatch(reviewServerSource, /const \{ workspaceHtml, permissionHandoffHtml \} = require\('\.\/ui_review_workspace'\)/);
@@ -153,8 +154,17 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /\/renderer\/icons\.js/);
   assert.match(handoff, /\/renderer\/app-icon\.png/);
   assert.match(handoff, /window\.cavalryIcons\.create\('handoffArrow'\)/);
+  assert.match(handoff, /window\.cavalryIcons\.create\('back'\)/);
+  assert.match(handoff, /--handoff-accessory-width: 532px/);
+  assert.match(handoff, /--handoff-accessory-height: 112px/);
+  assert.match(handoff, /Drag Cavalry Language Switcher to the list above to allow App Management/);
+  assert.match(handoff, /id="reverseFromAccessory" class="handoff-accessory-back"[^>]*aria-label="Back"/);
+  assert.match(handoff, /id="draggableAppRow"[\s\S]*?<span class="handoff-accessory-copy">Cavalry Language Switcher<\/span>/);
+  assert.match(handoff, /\.handoff-drag-image \{[^}]*border-color: transparent;[^}]*background: transparent;[^}]*box-shadow: none;/);
+  assert.doesNotMatch(handoff, /Not listed\?|重试原操作|handoff-accessory-copy[^\n]*<span>/);
   assert.match(handoff, /id="handoffReferenceTitle">本机视觉参考/);
   assert.match(handoff, /src="\/local-reference\/hint-arrow\.png"/);
+  assert.match(handoff, /src="\/local-reference\/accessory-helper\.png\?v=1"/);
   assert.match(handoff, /私有箭头 Raster（仅箭头）/);
   assert.match(handoff, /App 权限项是实时可拖控件，不是截图/);
   assert.match(handoff, /src="\/local-reference\/system-settings\.png\?v=2"/);
@@ -230,6 +240,8 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /actionButtons\.resultError\.disabled = !resultCanBeInjected/);
   assert.match(handoff, /function demonstrateRetryResult\(result\)[\s\S]*?startRetry\(\)[\s\S]*?resolveRetry\(result\)/);
   assert.match(handoff, /function simulateLater\(\)[\s\S]*?laterChosen[\s\S]*?demonstrateRetryResult\('denied'\)/);
+  assert.match(handoff, /function dismissFromAccessory\(\)[\s\S]*?setWorkflowState\('returning'\)[\s\S]*?animateTo\(0\)/);
+  assert.match(handoff, /reverseFromAccessory\.addEventListener\('click', dismissFromAccessory\)/);
   assert.match(handoff, /actionButtons\.resultDenied\.addEventListener\('click', simulateLater\)/);
   assert.match(handoff, /demonstrateRetryResult\('error'\)/);
   assert.match(handoff, /演示：同进程已生效/);
@@ -414,7 +426,7 @@ test('renderer retains DOM anchors and uses only local resources', () => {
     'renderer scripts must load bridge, stable text, icons, component state machines, then app'
   );
   assert.match(icons, /window\.cavalryIcons = Object\.freeze\(\{ create: createIcon \}\)/);
-  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'infoCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'open', 'download', 'package', 'update', 'minimizeWindow', 'maximizeWindow', 'restoreWindow', 'close']) {
+  for (const iconName of ['spinner', 'checkCircle', 'warningCircle', 'infoCircle', 'errorCircle', 'verify', 'archive', 'translate', 'restore', 'open', 'download', 'package', 'update', 'back', 'minimizeWindow', 'maximizeWindow', 'restoreWindow', 'close']) {
     assert.match(icons, new RegExp(`\\b${iconName}: \\{`), `${iconName} must stay in the semantic icon registry`);
   }
   assert.doesNotMatch(operationLog, /const ICONS|createElementNS|<path/, 'operation log must consume icon names without owning SVG path data');
