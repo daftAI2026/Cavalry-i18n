@@ -65,6 +65,14 @@ function titleAt(elements, index) {
   return elements.list.children[index]?.children[1]?.children[0]?.textContent || '';
 }
 
+async function waitUntil(predicate, timeoutMs = 500) {
+  const deadline = Date.now() + timeoutMs;
+  while (!predicate()) {
+    assert.ok(Date.now() < deadline, 'timed out waiting for the operation log to settle');
+    await new Promise((resolve) => setTimeout(resolve, 5));
+  }
+}
+
 test('Marker swaps Spinner in place and follows only while the reader stays at the live edge', () => {
   const { elements, log } = fixture();
   elements.viewport.clientHeight = 20;
@@ -172,7 +180,7 @@ test('fast events stay sequential, outcome waits, and terminal error preempts de
   log.complete('Task complete.');
   assert.equal(elements.list.children.length, 1);
   assert.equal(elements.outcome.hidden, true);
-  await new Promise((resolve) => setTimeout(resolve, 60));
+  await waitUntil(() => elements.outcome.textContent === 'Task complete.');
   assert.equal(elements.list.children.length, 2);
   assert.equal(elements.outcome.textContent, 'Task complete.');
 

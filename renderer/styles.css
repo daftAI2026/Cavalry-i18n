@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 tokens.css、button.css 与 index.html 的标题区、安装 Item、无可见描边的彩色 Badge、路径、带只读 popup placeholder 的 Select、Tooltip、Button Group 和 AlertDialog；Activity/Toast 由独立视觉层实现
- * [OUTPUT]: 对外提供无窗口滚动的共享 Grid/Flex 布局、可选手动入口不留空轨的安装摘要、系统排印、原生标题中心线、路径截断、无描边 blue/green Badge、保持绿色语义的更新入口、稳定 item-aligned Select、Tooltip 与保留窗口 Chrome 的内容区 AlertDialog 视觉
- * [POS]: renderer 的跨平台共享视觉实现；上游只读 tokens.css，下游由 window-controls.css 追加 Windows caption 变体，不引入 CSS/JS 运行时或 CDN
+ * [OUTPUT]: 对外提供无窗口滚动的共享 Grid/Flex 布局、Windows 透明表面中的 10px 阴影留白/32px 共享外壳圆角与最大化归零状态、以当前 16px Close 可见右缘为基准的 15px 标题左边距且排除阴影坐标、可选手动入口不留空轨的安装摘要、系统排印、原生标题中心线、路径截断、无描边 blue/green Badge、保持绿色语义的更新入口、稳定 item-aligned Select、Tooltip 与保留窗口 Chrome 的内容区 AlertDialog 视觉
+ * [POS]: renderer 的跨平台共享视觉实现；上游只读 tokens.css，下游由 window-controls.css 追加 Windows caption 变体，和 Tauri transparent window 共同构成单一 compositor 外壳
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 * {
@@ -15,6 +15,19 @@ body {
   height: 100%;
   margin: 0;
   overflow: hidden;
+}
+
+html[data-platform="windows"],
+html[data-platform="windows"] body {
+  background: transparent;
+}
+
+html[data-platform="windows"] body {
+  padding: var(--window-shadow-inset);
+}
+
+html[data-platform="windows"] body[data-maximized="true"] {
+  padding: 0;
 }
 
 body {
@@ -94,6 +107,18 @@ button {
   background: var(--window);
 }
 
+html[data-platform="windows"] .window-surface {
+  overflow: hidden;
+  border-radius: var(--windows-shell-radius);
+  corner-shape: squircle;
+  box-shadow: var(--shadow-window);
+}
+
+html[data-platform="windows"] body[data-maximized="true"] .window-surface {
+  border-radius: 0;
+  box-shadow: none;
+}
+
 .titlebar {
   position: relative;
   z-index: var(--z-titlebar);
@@ -107,6 +132,11 @@ button {
   box-shadow: var(--shadow-titlebar-divider);
   user-select: none;
   -webkit-user-select: none;
+}
+
+html[data-platform="windows"] .titlebar {
+  padding-inline-start: var(--windows-title-optical-padding);
+  padding-inline-end: var(--windows-caption-edge-padding);
 }
 
 .native-controls-space {
@@ -598,6 +628,15 @@ button {
   border: 0;
   background: var(--dialog-backdrop);
   backdrop-filter: blur(var(--dialog-backdrop-blur));
+}
+
+html[data-platform="windows"] .modal-backdrop {
+  inset: calc(var(--titlebar-height) + var(--window-shadow-inset)) var(--window-shadow-inset) var(--window-shadow-inset);
+  width: auto;
+}
+
+html[data-platform="windows"] body[data-maximized="true"] .modal-backdrop {
+  inset: var(--titlebar-height) 0 0;
 }
 
 .modal-backdrop[open] {

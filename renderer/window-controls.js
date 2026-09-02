@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 index.html 的 Windows caption Button、冻结 cavalryI18n 窗口 API、Phosphor 图标注册表与 app.js 提供的本地化函数
- * [OUTPUT]: 对外提供 createWindowControls；仅在 Windows 显示右侧最小化、最大化/还原、关闭，装配共享语义图标并同步最大化状态与可访问名称
- * [POS]: renderer 的平台窗口状态机；只把标题栏动作映射到系统窗口 API，不自行实现窗口行为，macOS 保持 AppKit 原生交通灯路径
+ * [OUTPUT]: 对外提供 createWindowControls；仅在 Windows 显示右侧最小化、最大化/还原、关闭，装配共享语义图标，并把最大化状态同步给按钮语义与透明外壳几何
+ * [POS]: renderer 的平台窗口状态机；把标题栏动作映射到系统窗口 API，并驱动 normal/maximized 两态表面投影，macOS 保持 AppKit 原生交通灯路径
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (() => {
@@ -39,7 +39,9 @@
     async function syncMaximized() {
       if (!isWindows) return;
       try {
-        root.dataset.maximized = String(await api.isWindowMaximized());
+        const maximized = String(await api.isWindowMaximized());
+        root.dataset.maximized = maximized;
+        document.body.dataset.maximized = maximized;
         localize();
       } catch (_) {
         // 窗口仍可操作；查询失败时保留上次已知图标，不伪造状态。

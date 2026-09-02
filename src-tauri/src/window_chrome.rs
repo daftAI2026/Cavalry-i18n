@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Tauri WebviewWindow 与 macOS AppKit 原生窗口按钮；消费 renderer 共享 40px Overlay 标题栏所需的交通灯几何。
- * [OUTPUT]: 对外提供 install_macos_traffic_light_alignment；首次对齐并在窗口缩放或屏幕 scale 变化后重复应用同一原生交通灯位置。
- * [POS]: src-tauri 的共享窗口 Chrome 边界；主窗口与 About 共同消费，禁止各自维护 AppKit 偏移常量或交通灯事件监听。
+ * [INPUT]: 依赖 Tauri WebviewWindow 与 macOS AppKit 原生窗口按钮；消费 renderer 共享 40px Overlay 标题栏契约。
+ * [OUTPUT]: 对外提供 macOS 原生交通灯对齐；窗口缩放或 DPI 变化后重放 AppKit Chrome 几何。
+ * [POS]: src-tauri 的 macOS 窗口 Chrome 边界；主窗口与 About 共同消费，Windows compositor alpha 外壳由平台配置和 renderer 共同持有。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 

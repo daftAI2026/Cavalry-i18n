@@ -706,7 +706,7 @@ test('seal creator consumes evidence, declared macOS signing, and exact asset by
       },
       runner: {
         os: 'win32', arch: 'x64', runnerOs: 'Windows Server 2022', runnerArch: 'X64', imageOs: 'win22', imageVersion: '20260801.1',
-        node: 'v22.14.0', npm: '10.9.2', rustc: 'rustc 1.98.0', cargo: 'cargo 1.98.0', cmake: '4.2.0', powershell: '5.1.19041.6456',
+        node: 'v22.14.0', npm: '10.9.2', rustc: 'rustc 1.98.0', cargo: 'cargo 1.98.0', cmake: '4.4.3', powershell: '5.1.19041.6456',
       },
     };
     const evidence = evidenceFrom(summary);

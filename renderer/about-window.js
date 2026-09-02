@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 about.html 信息节点、四语文案、共享 Toast 状态机与冻结 bridge 的 getSwitcherVersion/openProjectLink 能力。
- * [OUTPUT]: 对外提供 About 本地化、真实版本、固定 repository/license 点击分发及默认浏览器失败 Toast；不暴露 URL。
- * [POS]: 独立 About WebviewWindow 页面控制器；外链失败留在本窗口的短时反馈，不污染主任务 Activity 或 AlertDialog。
+ * [INPUT]: 依赖 about.html 信息节点、四语文案、共享 Phosphor 图标/Toast 状态机与冻结 bridge 的 getSwitcherVersion/openProjectLink/closeAboutWindow 能力。
+ * [OUTPUT]: 对外提供 About 本地化、文档平台就绪事件驱动且幂等的 Windows caption Close 装配、真实版本、固定 repository/license 点击分发及默认浏览器失败 Toast；不暴露 URL。
+ * [POS]: 独立 About WebviewWindow 页面控制器；Windows 仅在本窗口接通固定 close label，外链失败留在局部 Toast，不污染主任务 Activity 或 AlertDialog。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (function attachAboutWindow(global) {
@@ -37,6 +37,7 @@
     const version = document.querySelector('#aboutVersion');
     const links = document.querySelector('#aboutLinks');
     const license = document.querySelector('#aboutLicenseLabel');
+    const closeButton = document.querySelector('#aboutWindowCloseButton');
 
     document.documentElement.lang = locale;
     document.title = text(locale, 'aboutButtonAria');
@@ -44,6 +45,22 @@
     version.textContent = '';
     links.setAttribute('aria-label', text(locale, 'aboutProjectLinks'));
     license.textContent = text(locale, 'aboutLicense');
+    closeButton.setAttribute('aria-label', text(locale, 'closeWindow'));
+    closeButton.title = text(locale, 'closeWindow');
+  }
+
+  let windowChromeWired = false;
+  function wireWindowChrome(platform = document.documentElement.dataset.platform || 'other') {
+    document.body.dataset.platform = platform;
+    if (platform !== 'windows' || windowChromeWired) return;
+    windowChromeWired = true;
+    const controls = document.querySelector('#aboutWindowControls');
+    const closeButton = document.querySelector('#aboutWindowCloseButton');
+    closeButton.append(global.cavalryIcons.create('close'));
+    closeButton.addEventListener('click', () => {
+      void global.cavalryI18n.closeAboutWindow().catch(() => {});
+    });
+    controls.hidden = false;
   }
 
   async function loadVersion(locale) {
@@ -71,6 +88,8 @@
   }
 
   const locale = detectLocale();
+  wireWindowChrome();
+  document.addEventListener('cavalry-platform-ready', (event) => wireWindowChrome(event.detail));
   localize(locale);
   const toast = global.createToastControl({
     label: text(locale, 'notifications'),

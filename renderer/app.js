@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、Windows 预注入平台标记驱动的首帧 caption/compositor 外壳、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部签名清理；只读状态不制造 macOS 权限门禁，Switch/Restore 总是先调用安全事务，typed 权限拒绝才把失败阶段收敛为链尾阻塞项，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -96,12 +96,23 @@ const toastControl = window.createToastControl({
 const aboutControl = window.createAboutControl({
   api,
   text: t,
+  icons: window.cavalryIcons,
   onError: () => toastControl.show({
     type: 'error',
     title: t('aboutOpenFailedTitle'),
     description: t('aboutOpenFailed'),
   }),
 });
+function applyShellPlatform(platform) {
+  if (!platform) return;
+  document.documentElement.dataset.platform = platform;
+  document.body.dataset.platform = platform;
+  aboutControl.setPlatform(platform);
+  windowControls.setPlatform(platform);
+}
+const initialPlatform = document.documentElement.dataset.platform || '';
+applyShellPlatform(initialPlatform);
+document.addEventListener('cavalry-platform-ready', (event) => applyShellPlatform(event.detail));
 
 function updatePreviewRequested() {
   const location = window.location;
@@ -561,10 +572,7 @@ async function bootstrap({ renderActivity = true } = {}) {
     state.platform === 'windows' && bootstrapState.reconciliationRequired === true;
   state.englishRestoreNeeded = runtimeResidueDetected;
   state.permissionAction = bootstrapState.permissionAction || 'none';
-  document.documentElement.dataset.platform = state.platform;
-  document.body.dataset.platform = state.platform;
-  aboutControl.setPlatform(state.platform);
-  windowControls.setPlatform(state.platform);
+  applyShellPlatform(state.platform);
 
   updateLanguageOptions(state.languages);
   languageSelectControl.setValue('');

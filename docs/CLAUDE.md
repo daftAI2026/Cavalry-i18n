@@ -6,7 +6,7 @@ cavalry-glossary.md: Cavalry 四语术语表（en/zh-Hans/zh-Hant/ja_JP），含
 runtime-ui-live-capture-workflow.md: Runtime UI live 抓取流程，区分调试/安装包启动路径、Cavalry 窗口截图证据、`widgetAt(cursor)` 坐标反查、Qt item model dump、JSON 数据层复用、ModalDialog 诊断、闪烁根因分类、注入后中文 session、英文 dump-only 基线与 ExtensionLayer 平台精确边界，并规定全量复抓、增量修复、coverage 对比路径。
 runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义短 token provenance 证据等级、quarantine 决策、live capture 对准步骤与 Time Editor niceName 保护线。
 translation-guidelines.md: 翻译规范，约束语言风格、保留词、快捷键身份原文/操作本地化例外、Forge Dynamics 显示层/模型层分流与界面一致性。
-component-source-adaptation-protocol.md: 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn Button/Marker/Select/Tooltip/AlertDialog/Toast commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit，并规定 Button/业务 variant 分层、Select combobox 隔离、平台外壳与 UI Review fixture 同步、视觉/静态/真机证据边界及 GEB 回环。
+component-source-adaptation-protocol.md: 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn Button/Marker/Select/Tooltip/AlertDialog/Toast commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit，并规定 Button/业务 variant 分层、Windows transparent-compositor 外壳、四枚 caption、平台 UI Review 同步、DPI 与视觉/静态/真机证据边界及 GEB 回环。
 img/: 静态资源库，存放 README 截图与文档示意图。
 badges/: README badge endpoint 数据源目录，保存发布 workflow 写回的 Shields JSON 投影。
 

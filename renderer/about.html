@@ -1,7 +1,7 @@
 <!--
-  [INPUT]: 依赖 tokens/button/styles/about/toast 视觉层、同源应用标识、冻结 bridge、四语文案、共享图标/Toast 状态机与 About 页面控制器。
-  [OUTPUT]: 提供复用主窗口标题栏的独立 About 页面、固定项目/许可证入口，以及默认浏览器调用失败时不打断页面的局部 Toast。
-  [POS]: renderer 的独立信息窗口页面，与主 index.html 的业务状态和 dialog 生命周期隔离；macOS 复用主窗口 Overlay 标题栏与原生交通灯，Windows 保留系统原生装饰。
+  [INPUT]: 依赖 tokens/button/styles/window-controls/about/toast 视觉层、同源应用标识、冻结 bridge、四语文案、共享图标/Toast 状态机与 About 页面控制器。
+  [OUTPUT]: 提供复用主窗口 40px 标题栏的独立 About 页面、Windows Phosphor Regular Close、固定项目/许可证入口，以及默认浏览器调用失败时不打断页面的局部 Toast。
+  [POS]: renderer 的独立信息窗口页面，与主 index.html 的业务状态和 dialog 生命周期隔离；macOS 复用 Overlay 与原生交通灯，Windows 复用无系统装饰的标题栏、caption Button 和 compositor alpha 外壳。
   [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 <!doctype html>
@@ -14,6 +14,7 @@
   <link rel="stylesheet" href="./tokens.css" />
   <link rel="stylesheet" href="./button.css" />
   <link rel="stylesheet" href="./styles.css" />
+  <link rel="stylesheet" href="./window-controls.css" />
   <link rel="stylesheet" href="./about.css" />
   <link rel="stylesheet" href="./toast.css" />
 </head>
@@ -24,6 +25,9 @@
       <div class="native-controls-space" aria-hidden="true" data-tauri-drag-region></div>
       <div class="titlebar-copy" data-tauri-drag-region>
         <span class="window-title" data-tauri-drag-region>Cavalry Language Switcher</span>
+      </div>
+      <div id="aboutWindowControls" class="windows-window-controls" hidden>
+        <button id="aboutWindowCloseButton" type="button" class="ui-button window-control-button window-control-close" data-slot="button" data-variant="ghost" data-size="icon-sm" aria-label="Close" title="Close"></button>
       </div>
     </header>
     <main class="about-window" aria-labelledby="aboutTitle" aria-describedby="aboutVersion">

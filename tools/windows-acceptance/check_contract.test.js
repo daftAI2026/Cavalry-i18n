@@ -156,7 +156,7 @@ function makeSession() {
       npm: '10.9.2',
       rustc: 'rustc 1.98.0 (fixture)',
       cargo: 'cargo 1.98.0 (fixture)',
-      cmake: '4.2.0',
+      cmake: '4.4.3',
       powershell: '5.1.19041.6456',
     },
     matrix: {

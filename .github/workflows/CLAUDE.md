@@ -46,6 +46,7 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-08-27: 所有 job 与三生态漏洞证据统一升级并精确固定 Node.js 24.20.0 / npm 11.19.0，消除旧 CI 与 Node 24 开发机的工具链分叉；版本仍由 strict pin 合同 fail-closed。
 2026-08-28: tag package 增加受保护 Tauri updater 私钥门与 tag-only artifact overlay，生成 macOS 双架构 archive/signature 和 Windows NSIS signature；当时把九项分发资产纳入 schema v5 seal、provenance、SHA256SUMS 与 private-draft exact readback。共享配置已固定最终公钥/endpoint，tag 继续在受保护私钥 Secret 缺失或不匹配时失败关闭；schema 与平台签名现状已由下方 2026-09-01 记录取代。
 2026-09-01: 纠正 2026-08-09 将未来 Apple 身份误设为当前 tag 前提的过度门禁：tag 恢复显式 ad-hoc macOS 签名，删除 Developer ID/notarization secrets、notary/staple/spctl 路径，保留独立 Tauri updater Ed25519、acceptance、双 trust anchor、九资产摘要与 private-draft 回读；seal 升为 schema v6、provenance 升为 v4 并如实声明 `macos: ad-hoc`，Release 同步给出首次安装与更新后 Gatekeeper 处理说明。
+2026-09-03: Windows producer 的官方 CMake archive pin 从 4.2.0 升级到最新稳定版 4.4.3；URL、SHA-256、resolver identity、构建入口、合同测试与工具链证据同步收口，继续拒绝 runner PATH 与 floating 下载。
 2026-08-28: `workflow_dispatch` 增加显式 `updater_signing_smoke`；它复用受保护 updater Secret 和产物 overlay，但仅构建 macOS archive/`.sig` 并以共享配置的内嵌公钥流式验签，release job 仍保持 tag-only，因而可在首个 updater tag 前证明密钥对与口令匹配而不发布。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

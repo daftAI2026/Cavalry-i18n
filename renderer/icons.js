@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖标准 DOM 的 SVG namespace 与元素创建能力，内嵌经 THIRD_PARTY_NOTICES.md 归因的精简 Phosphor Regular path
- * [OUTPUT]: 对外提供冻结 window.cavalryIcons.create(name)，按受控语义名创建 aria-hidden、不可聚焦且继承 currentColor 的独立 SVG 节点；Restore 使用 FloppyDiskBack，打开 Cavalry 使用 Play，Windows caption 复用 Minus/Square/Copy/X，权限交接使用 CaretLeft 与项目自有实心箭头候选
+ * [OUTPUT]: 对外提供冻结 window.cavalryIcons.create(name)，按受控语义名创建 aria-hidden、不可聚焦且继承 currentColor 的独立 SVG 节点；Restore 使用 FloppyDiskBack，打开 Cavalry 使用 Play，Windows caption 复用 Info/Minus/Square/Copy/X，权限交接使用 CaretLeft 与项目自有实心箭头候选
  * [POS]: renderer 的单一语义图标资产注册表；只拥有可复用 UI glyph，不包含应用 Logo 或 macOS 交通灯，业务组件只消费名称而不复制 path
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

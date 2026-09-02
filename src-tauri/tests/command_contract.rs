@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint、共享 About Overlay Chrome、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint、共享 About 跨平台 Chrome、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
  * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、Managed Legacy/版本只读字段、固定项目外链、可本土化错误、Windows runtime residue 与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -57,15 +57,25 @@ fn macos_and_windows_about_entries_share_one_native_window_owner() {
     assert!(
         about_rs.contains("crate::window_chrome::install_macos_traffic_light_alignment(&window)?")
     );
+    assert!(about_rs.contains(".transparent(true)"));
+    assert!(about_rs.contains(".shadow(false)"));
+    assert!(about_rs.contains("WINDOW_SHADOW_INSET: f64 = 10.0"));
     assert!(about_rs.contains("crate::window_chrome::TITLEBAR_HEIGHT"));
+    assert!(about_rs.contains("fn position_over_main("));
+    assert!(about_rs.contains(".outer_position()"));
+    assert!(about_rs.contains(".outer_size()"));
+    assert!(about_rs.contains(".current_monitor()"));
+    assert!(about_rs.contains(".set_position(tauri::PhysicalPosition::new("));
+    assert!(about_rs.contains(".visible(false)"));
     for option in [
         ".resizable(false)",
         ".maximizable(false)",
         ".minimizable(false)",
-        ".decorations(true)",
     ] {
         assert!(about_rs.contains(option), "About owner must set {option}");
     }
+    assert!(about_rs.contains("builder.decorations(true)"));
+    assert!(about_rs.contains(".decorations(false)"));
 }
 
 #[test]

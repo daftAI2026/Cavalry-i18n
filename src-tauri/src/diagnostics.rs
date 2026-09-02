@@ -27,12 +27,12 @@ pub(crate) fn log_path(state_dir: &Path) -> PathBuf {
 
 pub(crate) fn sanitize_message(message: &str, state_dir: &Path) -> String {
     let mut sanitized = message.replace(&state_dir.to_string_lossy().to_string(), "<stateDir>");
+    sanitized = sanitized.replace(&env::temp_dir().to_string_lossy().to_string(), "<temp>");
     for variable in ["HOME", "USERPROFILE"] {
         if let Some(home) = env::var_os(variable) {
             sanitized = sanitized.replace(&PathBuf::from(home).to_string_lossy().to_string(), "~");
         }
     }
-    sanitized = sanitized.replace(&env::temp_dir().to_string_lossy().to_string(), "<temp>");
     redact_hashes(&sanitized)
         .chars()
         .take(MAX_MESSAGE_CHARS)

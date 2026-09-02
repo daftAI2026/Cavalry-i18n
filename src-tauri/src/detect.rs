@@ -14,10 +14,11 @@ use std::{
 };
 
 #[cfg(not(windows))]
+use std::time::UNIX_EPOCH;
+#[cfg(any(not(windows), test))]
 use std::{
     collections::HashMap,
     sync::{Mutex, OnceLock},
-    time::UNIX_EPOCH,
 };
 
 use plist::Value as PlistValue;

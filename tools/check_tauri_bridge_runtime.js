@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、后端仅在 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明时的 macOS 残留可清理语义、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、后端仅在 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明时的 macOS 残留可清理语义、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge、固定 about-label close 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -46,8 +46,9 @@ function runtime({
   preview = false,
   statusRequest = null,
   styleValues = {},
+  aboutPlatform = 'other',
 } = {}) {
-  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
+  const ids = ['skipLink', 'windowTitle', 'appVersion', 'appPath', 'appPathPrefix', 'appPathLeaf', 'updateControl', 'updateButton', 'updateTooltip', 'updateTooltipText', 'updateAnnouncement', 'aboutControl', 'aboutButton', 'aboutTooltip', 'aboutTooltipText', 'aboutTitle', 'aboutVersion', 'aboutLinks', 'aboutLicenseLabel', 'aboutRepositoryLink', 'aboutLicenseLink', 'aboutWindowControls', 'aboutWindowCloseButton', 'windowsWindowControls', 'windowMinimizeButton', 'windowMaximizeButton', 'windowCloseButton', 'languageSectionLabel', 'currentLabel', 'currentLanguage', 'installationBadge', 'installationMode', 'switchToLabel', 'languageSelectRoot', 'languageSelect', 'languageSelectTrigger', 'languageSelectValue', 'languageSelectPopup', 'languageSelectPopupPlaceholder', 'languageSelectList', 'browseButton', 'applyButton', 'restoreButton', 'permissionButton', 'statusPanel', 'statusLabel', 'statusIdle', 'statusIntro', 'statusViewport', 'statusOutcome', 'modalBackdrop', 'modalTitle', 'modalBody', 'modalPrimaryButton', 'modalSecondaryButton', 'statusText'];
   const elements = Object.fromEntries(ids.map((id) => [`#${id}`, new Element()]));
   const calls = [];
   const channels = [];
@@ -66,6 +67,7 @@ function runtime({
   for (const element of [...Object.values(elements), document.documentElement, document.body]) {
     element.ownerDocument = document;
   }
+  document.documentElement.dataset.platform = aboutPlatform;
   const defaultStatus = {
     appManagementGranted: true, appPath: '/Applications/Cavalry.app', currentLang: 'zh-Hans',
     defaultAppCandidates: ['/Applications/Cavalry.app'], languages: [{ value: 'attacker', label: '<img>' }],
@@ -391,6 +393,22 @@ test('project links keep fixed bridge ids and report browser failure inside the 
   assert.equal(viewport.children.length, 1);
   assert.match(viewport.children[0].textContent, /Couldn’t open the project link/);
   assert.match(viewport.children[0].textContent, /default browser/);
+});
+
+test('Windows About chrome uses the shared X and closes only the fixed about label', async () => {
+  const r = bootAbout({ locale: 'zh-CN', aboutPlatform: 'windows' });
+  await flush();
+  const controls = r.elements['#aboutWindowControls'];
+  const close = r.elements['#aboutWindowCloseButton'];
+  assert.equal(controls.hidden, false);
+  assert.equal(close.children.length, 1);
+  assert.equal(close.attributes.get('aria-label'), '关闭');
+  dispatch(close, 'click');
+  await flush();
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'plugin:window|close'))),
+    [{ command: 'plugin:window|close', payload: { label: 'about' } }]
+  );
 });
 
 test('idle task viewport centers one localized prompt without creating event rows', async () => {

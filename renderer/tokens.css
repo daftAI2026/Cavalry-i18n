@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 Vercel design.md 发布的排印、字重、4px 间距及 vbg-blue-700 informational 颜色角色，依赖 macOS AppKit 与 Windows DWM 的原生窗口几何及平台系统字体策略
- * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 节奏、窗口 Chrome、共享 Button、68px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级、权限阻断可读停顿与动效真相源
+ * [INPUT]: 依赖 Vercel design.md 发布的排印、字重、4px 间距及 vbg-blue-700 informational 颜色角色，依赖 macOS AppKit 与 Windows compositor alpha 窗口表面的平台几何及系统字体策略
+ * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 节奏、Windows 10px 阴影留白/32px 外壳圆角、20px Updater 与 16px Windows caption 图标、以当前 X 可见右缘为基准的 15px 标题光学边距、68px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级、权限阻断可读停顿与动效真相源
  * [POS]: renderer 视觉系统的基础层；button/styles/window-controls 等组件层只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -83,6 +83,8 @@
   --radius-md: 8px;
   --radius-lg: 10px;
   --radius-dialog: 12px;
+  /* 仅供 Windows compositor 外壳；macOS 始终使用 AppKit 默认窗口圆角。 */
+  --windows-shell-radius: 32px;
   --radius-pill: 999px;
   --shadow-control: 0 1px 1px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-installation-inset: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
@@ -90,6 +92,7 @@
   --shadow-select-popup: 0 0 0 1px rgba(0, 0, 0, 0.10), 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
   --shadow-dialog: 0 1px 2px rgba(0, 0, 0, 0.08), 0 18px 50px rgba(0, 0, 0, 0.24);
   --shadow-toast: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
+  --shadow-window: 0 3px 10px rgba(0, 0, 0, 0.28);
 
   /* ---------- 窗口 Chrome ---------- */
   --titlebar-native-gap: var(--space-2);
@@ -103,7 +106,12 @@
   --titlebar-action-hit-size: 24px;
   --windows-caption-button-size: var(--space-8);
   --windows-caption-button-gap: var(--space-1);
+  --windows-caption-edge-padding: var(--space-1);
   --windows-caption-icon-size: var(--space-4);
+  --about-caption-icon-size: var(--windows-caption-icon-size);
+  /* 16px Phosphor X 在当前 4px Button 边距下的可见右缘约为 15px，据此对齐标题左缘。 */
+  --windows-title-optical-padding: 15px;
+  --window-shadow-inset: 10px;
   --surface-pressed-mix: 72%;
   --danger-pressed-mix: 84%;
 
@@ -145,7 +153,6 @@
   --operation-shimmer-highlight-alpha: 0.2;
 
   /* ---------- About 组件契约 ---------- */
-  --about-icon-size: 16px;
   --about-app-icon-size: calc(var(--space-16) + var(--space-1));
   --about-link-icon-size: 16px;
 

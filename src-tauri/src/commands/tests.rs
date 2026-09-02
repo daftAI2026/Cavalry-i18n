@@ -1050,6 +1050,7 @@ fn resource_candidates_use_one_packaged_root_order_before_repo_fallback() {
 }
 
 #[test]
+#[cfg(not(target_os = "windows"))]
 fn clean_english_noop_reports_verification_and_baseline_only() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");

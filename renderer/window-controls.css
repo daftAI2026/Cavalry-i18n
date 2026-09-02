@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 button.css/tokens.css 的 ghost icon-sm Button、styles.css 的共享标题栏布局与 index.html 的 Windows caption controls 语义
- * [OUTPUT]: 对外提供右侧 Windows 三枚 32px Button、4px 间距、Phosphor 16px 图标、最大化状态切换、危险关闭态与高对比度状态
- * [POS]: renderer 的平台专属窗口控件变体；只绘制 caption 动作，系统窗口 API 仍拥有行为，外框、阴影与外圆角继续由 HWND/DWM 所有
+ * [OUTPUT]: 对外提供右侧 Windows 32px caption Button、4px 间距和 Phosphor Regular 16px Info/Minus/Square/Copy/X、最大化状态切换、危险关闭态与高对比度状态；主窗口 About 与 About 窗口 Close 共同复用
+ * [POS]: renderer 的平台专属窗口控件变体；只绘制 caption 动作，系统窗口 API 仍拥有行为，外框、阴影与外圆角由 styles.css 的共享 compositor surface 所有
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 .windows-window-controls {
@@ -35,6 +35,11 @@
   width: var(--windows-caption-icon-size);
   height: var(--windows-caption-icon-size);
   fill: currentColor;
+}
+
+#aboutButton svg {
+  width: var(--about-caption-icon-size);
+  height: var(--about-caption-icon-size);
 }
 
 .window-control-close:hover:not(:disabled) {

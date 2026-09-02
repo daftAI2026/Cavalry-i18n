@@ -4,7 +4,7 @@
 成员清单
 
 CMakeLists.txt: CMake 4.2+ 与 Visual Studio 2022+ MSVC v143 的 shared Qt 6.6.3 x64 + Windows Psapi 构建边界；拒绝静态 Qt，编译产品 generic runtime、版本化私有 QPA 代理及独立 acceptance-only generic plugin，注册 display/hook/vendor/strict manifest 合同；build.ps1 只发布产品 `generic/cavalryi18n.dll` 与 `qpa/qwindows.dll`，验收 DLL 留在 build tree。
-build.ps1: 带 UTF-8 BOM 的 Windows 唯一可重复构建入口；先从当前 TS/模型词典重生成共享 C++ 翻译表，再通过 `tools/resolve_windows_cmake.js` 解包并验证 pin manifest 中官方 CMake 4.2.0 archive，验证生成/发布父链无重解析点，每次清空唯一受控 build 目录后解析 shared Qt SDK 与可选 vendor root，由 CMake 选择当前已安装的 Visual Studio 生成器并锁定 x64/v143，串联 configure/build/ctest 并发布两个不纳入 Git 的已验证 DLL。
+build.ps1: 带 UTF-8 BOM 的 Windows 唯一可重复构建入口；先从当前 TS/模型词典重生成共享 C++ 翻译表，再通过 `tools/resolve_windows_cmake.js` 解包并验证 pin manifest 中官方 CMake 4.4.3 archive，验证生成/发布父链无重解析点，每次清空唯一受控 build 目录后解析 shared Qt SDK 与可选 vendor root，由 CMake 选择当前已安装的 Visual Studio 生成器并锁定 x64/v143，串联 configure/build/ctest 并发布两个不纳入 Git 的已验证 DLL。
 cavalry_i18n_callback_snapshot.h: 固定数量 exact source/translation 的不可变值表，支持按 source 或已验证索引读取；有意不析构的 process-lifetime shared_ptr 槽在卸载后只保留不触碰 Qt/Skia 的 forward-only 墓碑。
 cavalry_i18n_plugin.h: `QGenericPlugin` metadata 与工厂接口，只暴露大小写不敏感的 `cavalryi18n` key，并声明严格非空 specification 边界。
 cavalry_i18n_plugin.cpp: Qt generic factory 路由；空 specification 与未知语言一律拒绝，只把 QPA 明确传值映射到 runtime，并将内部配置失败投影为 `nullptr`。

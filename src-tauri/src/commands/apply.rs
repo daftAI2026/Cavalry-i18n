@@ -475,6 +475,8 @@ where
                 &immutable_revision,
             ),
         );
+    #[cfg(not(target_os = "macos"))]
+    let managed_legacy = false;
 
     verify_phase.completed();
     let mut baseline_phase = OperationPhaseGuard::start(&reporter, OperationPhase::EnsureBaseline);

@@ -1,17 +1,18 @@
 /**
- * [INPUT]: 依赖主窗口 About 入口、共享 Tooltip、冻结 bridge 的 showAbout 调用、四语 text 函数与局部失败回调。
- * [OUTPUT]: 对外提供 createAboutControl 工厂；Windows 标题栏入口与 macOS 菜单统一交给 Rust owner，唤起失败只回调局部 Toast 层。
- * [POS]: renderer 的低频 About 入口状态机；Tooltip 行为委托共享状态机，自身不持有 About 内容、窗口 URL、版本或项目链接状态。
+ * [INPUT]: 依赖主窗口 About 入口、共享 Tooltip/Phosphor 图标注册表、冻结 bridge 的 showAbout 调用、四语 text 函数与局部失败回调。
+ * [OUTPUT]: 对外提供 createAboutControl 工厂；Windows caption 首位装配 16px Regular Info，macOS 菜单与 Windows 按钮统一交给 Rust owner，唤起失败只回调局部 Toast 层。
+ * [POS]: renderer 的低频 About 入口状态机；按钮几何归属共享 window-control primitive，Tooltip 行为委托共享状态机，自身不持有 About 内容、窗口 URL、版本或项目链接状态。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (function attachAboutControl(global) {
   'use strict';
 
-  function createAboutControl({ api, text, onError }) {
+  function createAboutControl({ api, text, icons, onError }) {
     const control = document.querySelector('#aboutControl');
     const button = document.querySelector('#aboutButton');
     const tooltip = document.querySelector('#aboutTooltip');
     const tooltipText = document.querySelector('#aboutTooltipText');
+    button.append(icons.create('infoCircle'));
     const tooltipControl = global.createTooltipControl({
       root: control,
       trigger: button,

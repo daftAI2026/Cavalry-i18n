@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖项目 Design token、renderer 现有无框架组件状态机、锁定版本的 shadcn/ui 与 Phosphor 上游源码及其许可证。
-[OUTPUT]: 对外提供从开源组件源码到本项目原生 HTML/CSS/JS 的统一调查、抽象、适配、验证和归因协议，并冻结 Button、平台窗口视觉适配、UI Review 与证据分层边界。
+[OUTPUT]: 对外提供从开源组件源码到本项目原生 HTML/CSS/JS 的统一调查、抽象、适配、验证和归因协议，并冻结 Button、Windows transparent-compositor 外壳、平台窗口视觉适配、UI Review 与证据分层边界。
 [POS]: docs 的 UI 工程知识基线；约束 Button、Select、Tooltip、AlertDialog、Marker、Spinner、shimmer、scroll-fade、Toast 及其平台外壳，避免凭截图仿制或引入第二套设计系统。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -112,7 +112,9 @@ UI Review 工作台遵守同一边界：允许替换 bridge 数据、事件顺�
 
 业务 variant 位于 primitive 之上：它可以组合 `primary`、`secondary`、`ghost`、`destructive` 等意图和产品 token，但不得重新实现对齐、disabled、SVG 插槽或焦点基础规则。新增动作应先判断是已有 variant 的新业务消费者，只有基础交互机制真的不同才引入新的 primitive；这样“按钮长得一样”与“按钮做的事不同”不会被错误耦合。
 
-Windows 标题栏只把三枚 renderer caption 动作切换为 `ghost + icon-sm` 变体：每枚 `32×32px`，相邻 `4px`，图形使用 Phosphor Regular 的 Minus、Square、Copy 与 X，只有关闭按钮在 hover/active 进入危险色。Button 只拥有视觉与原生按钮状态；最小化、最大化/还原和关闭仍由 `window-controls.js` 映射到冻结的 Tauri main-window API，绝不在 CSS 或图标层复制系统行为。其他按钮继续保持原有主次视觉，不被改造成 caption 外观。
+Windows 标题栏右侧四枚 renderer caption 动作统一使用 `32×32px` 点击区、`4px` 间距与 `16px` Phosphor Regular 图形：About 使用 Info，最小化使用 Minus，最大化/还原使用 Square/Copy，关闭使用 X；只有关闭按钮在 hover/active 进入危险色。About 打开独立窗口，另外三枚由 `window-controls.js` 映射到冻结的 Tauri main-window API；Button 只拥有视觉与原生按钮状态，绝不在 CSS 或图标层复制窗口行为。标题旁的绿色 Updater 是独立的 `20px` 业务入口，只在真实更新可用时出现，不属于这组 caption。
+
+Windows 主窗口以 `400×484px` 为产品本体，四边各留 `10px` transparent-compositor 阴影画布，所以 HWND/配置尺寸为 `420×504px`；阴影画布不参与最小产品尺寸、内容 padding 或标题光学对齐。产品本体圆角为 Windows 独占的 `32px`，macOS 继续使用 AppKit 默认窗口圆角与原生交通灯。关闭图标的可见 X 路径距本体右边约 `15px`，标题左缘使用同一个 `15px` 光学距离；这两个值都从本体边界计算，不从透明画布边界计算。CSS px 在 WebView2 中是逻辑像素，由系统缩放映射到物理像素，因此 Retina 上形成的 token 可以跨平台复用；真机验收仍需覆盖 Windows 100%/125%/150% 缩放，不能把截图物理像素当 token 回写。
 
 ### UI Review 平台外壳
 

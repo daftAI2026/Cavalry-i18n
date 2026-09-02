@@ -605,23 +605,28 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.doesNotMatch(html, /id="about(?:Dialog|Title|Version|CloseButton|RepositoryLink|RepositoryLabel|LicenseLink|LicenseLabel)"/, 'About content must not remain in the main window');
   assert.match(html, /id="aboutControl"[^>]*data-tooltip-state="closed"[^>]*hidden/);
   assert.match(aboutControl, /createAboutControl/);
+  assert.match(aboutControl, /button\.append\(icons\.create\('infoCircle'\)\)/);
   assert.match(aboutControl, /api\.showAbout\(\)/);
   assert.match(aboutControl, /control\.hidden = platform !== 'windows'/);
   assert.doesNotMatch(aboutControl, /https?:\/\//, 'About entry must not own an external URL');
   assert.match(aboutPage, /<link rel="stylesheet" href="\.\/toast\.css" \/>/);
   assert.match(
     aboutPage,
-    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/button\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>/,
+    /<link rel="stylesheet" href="\.\/tokens\.css" \/>\s*<link rel="stylesheet" href="\.\/button\.css" \/>\s*<link rel="stylesheet" href="\.\/styles\.css" \/>\s*<link rel="stylesheet" href="\.\/window-controls\.css" \/>\s*<link rel="stylesheet" href="\.\/about\.css" \/>\s*<link rel="stylesheet" href="\.\/toast\.css" \/>/,
     'About must consume the shared titlebar implementation before its page-specific layer',
   );
   assert.match(aboutPage, /class="window-surface about-surface"/);
   assert.match(aboutPage, /class="titlebar about-titlebar" data-tauri-drag-region/);
   assert.match(aboutPage, /class="native-controls-space"[^>]*data-tauri-drag-region/);
   assert.match(aboutPage, /class="window-title"[^>]*data-tauri-drag-region>Cavalry Language Switcher<\/span>/);
+  assert.match(aboutPage, /id="aboutWindowControls"[^>]*class="windows-window-controls"[^>]*hidden/);
+  assert.match(aboutPage, /id="aboutWindowCloseButton"[^>]*class="ui-button window-control-button window-control-close"[^>]*data-size="icon-sm"/);
   assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
   assert.match(aboutPage, /<img class="about-app-icon" src="\.\/app-icon\.png" alt="" aria-hidden="true" \/>/);
   assert.match(aboutPage, /id="aboutRepositoryLink"[\s\S]*?class="about-link-icon"[\s\S]*?id="aboutRepositoryLabel"/);
   assert.match(aboutWindow, /getSwitcherVersion\(\)/);
+  assert.match(aboutWindow, /cavalryIcons\.create\('close'\)/);
+  assert.match(aboutWindow, /cavalryI18n\.closeAboutWindow\(\)/);
   assert.match(aboutWindow, /openProjectLink\(link\)/);
   assert.match(aboutWindow, /wireProjectLink\('#aboutRepositoryLink', 'repository', showProjectLinkError\)/);
   assert.match(aboutWindow, /wireProjectLink\('#aboutLicenseLink', 'license', showProjectLinkError\)/);
@@ -632,13 +637,14 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(bridge, /PROJECT_LINK_MANIFEST = Object\.freeze\(\['repository', 'license'\]\)/);
   assert.match(bridge, /invoke\('open_project_link', \{ link \}\)/);
   assert.match(bridge, /showAbout:\s*\(\) => invoke\('show_about'\)\.then\(normalizeAction\)/);
+  assert.match(bridge, /closeAboutWindow:\s*\(\) => invokeWindow\('close', 'about'\)/);
   assert.match(bridge, /invoke\('plugin:app\|version'\)/);
   assert.doesNotMatch(bridge, /openProjectLink:\s*\(url\)/, 'bridge must expose a fixed link id, never a renderer URL');
   assert.match(tokens, /--about-app-icon-size:\s*calc\(var\(--space-16\) \+ var\(--space-1\)\)/);
   assert.match(tokens, /--about-link-icon-size:\s*16px/);
   assert.doesNotMatch(aboutStyles, /\.about-(?:dialog|close)\b/);
-  assert.match(aboutStyles, /html\[data-platform="macos"\] \.about-surface\s*\{[\s\S]*?grid-template-rows:\s*var\(--titlebar-height\) minmax\(0, 1fr\)/);
-  assert.match(aboutStyles, /html\[data-platform="macos"\] \.about-titlebar\s*\{[\s\S]*?display:\s*flex/);
+  assert.match(aboutStyles, /html:is\(\[data-platform="macos"\], \[data-platform="windows"\]\) \.about-surface\s*\{[\s\S]*?grid-template-rows:\s*var\(--titlebar-height\) minmax\(0, 1fr\)/);
+  assert.match(aboutStyles, /html:is\(\[data-platform="macos"\], \[data-platform="windows"\]\) \.about-titlebar\s*\{[\s\S]*?display:\s*flex/);
   assert.match(aboutStyles, /\.about-window\s*\{[\s\S]*?align-content:\s*center;[\s\S]*?padding:\s*var\(--padding-window\)[\s\S]*?overflow:\s*hidden/);
   assert.match(aboutStyles, /\.about-app-icon\s*\{[\s\S]*?width:\s*var\(--about-app-icon-size\)[\s\S]*?height:\s*var\(--about-app-icon-size\)/);
   assert.deepEqual(
@@ -680,6 +686,9 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--radius-lg:\s*10px/);
   assert.match(tokens, /--padding-control-inline:\s*var\(--space-3\)/);
   assert.match(styles, /\.titlebar\s*\{[\s\S]*?padding:\s*0 var\(--padding-panel\)/);
+  assert.match(tokens, /--windows-caption-edge-padding:\s*var\(--space-1\)/);
+  assert.match(tokens, /--windows-title-optical-padding:\s*15px/);
+  assert.match(styles, /html\[data-platform="windows"\] \.titlebar\s*\{[\s\S]*?padding-inline-start:\s*var\(--windows-title-optical-padding\);[\s\S]*?padding-inline-end:\s*var\(--windows-caption-edge-padding\)/);
   assert.match(styles, /\.window-title\s*\{[\s\S]*?font-size:\s*var\(--type-heading\)[\s\S]*?font-weight:\s*var\(--weight-heading\)[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
   assert.match(styles, /\.content\s*\{[\s\S]*?padding:\s*var\(--padding-window\)/);
   assert.match(styles, /\.content\s*\{[\s\S]*?display:\s*grid;[\s\S]*?grid-template-rows:\s*auto auto minmax\(0,\s*1fr\);[\s\S]*?align-content:\s*start/);
@@ -787,6 +796,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(html, /class="titlebar" data-tauri-drag-region/);
   assert.doesNotMatch(html, /traffic-light/, 'macOS traffic lights must remain native');
   assert.match(html, /id="windowsWindowControls"[^>]*data-maximized="false"[^>]*hidden/);
+  assert.match(html, /id="windowsWindowControls"[\s\S]*?id="aboutButton"[\s\S]*?id="windowMinimizeButton"/, 'About must be immediately before minimize in the Windows caption group');
+  assert.match(html, /id="aboutButton"[^>]*class="ui-button window-control-button"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
   assert.match(html, /id="windowMinimizeButton"[^>]*class="ui-button window-control-button"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
   assert.match(html, /id="windowMaximizeButton"[^>]*class="ui-button window-control-button"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
   assert.match(html, /id="windowCloseButton"[^>]*class="ui-button window-control-button window-control-close"[^>]*data-variant="ghost"[^>]*data-size="icon-sm"/);
@@ -806,7 +817,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(windowControlStyles, /background:\s*var\(--surface-hover\)/);
   assert.match(windowControlStyles, /background:\s*var\(--danger\)/);
   assert.doesNotMatch(windowControlStyles, /--windows-caption-(?:hover|active|close)/);
-  assert.equal((html.match(/class="ui-button window-control-button(?: window-control-close)?"/g) || []).length, 3, 'Windows caption must have exactly three shared Button consumers');
+  assert.equal((html.match(/class="ui-button window-control-button(?: window-control-close)?"/g) || []).length, 4, 'Windows main caption must have About plus three system Button consumers');
   assert.match(tokens, /--windows-caption-button-size:\s*var\(--space-8\)/);
   assert.match(tokens, /--windows-caption-button-gap:\s*var\(--space-1\)/);
   assert.match(tokens, /--windows-caption-icon-size:\s*var\(--space-4\)/);
@@ -827,7 +838,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(cssRule(styles, '.content'), /overflow:\s*hidden/);
   assert.match(cssRule(styles, '.select-list'), /overflow-y:\s*auto/);
   assert.match(operationStyles, /\.status-panel\[data-mode="running"\] \.status-task-shell/);
-  assert.match(app, /document\.body\.dataset\.platform = state\.platform/);
+  assert.match(app, /applyShellPlatform\(state\.platform\)/);
   assert.match(app, /window\.createTooltipControl/);
   assert.doesNotMatch(app, /updateControl\.addEventListener\('(?:mouseenter|focusin)'/);
   assert.match(app, /state\.ready = false;[\s\S]*?setBusy\(state\.busy\);[\s\S]*?await api\.getStatus\(\)/);
@@ -891,6 +902,10 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
 });
 
 test('Tauri configuration disables global injection and declares a local-only CSP', () => {
+  const tokens = read('renderer/tokens.css');
+  const styles = read('renderer/styles.css');
+  const windowControls = read('renderer/window-controls.js');
+  const windowControlStyles = read('renderer/window-controls.css');
   const config = JSON.parse(read('src-tauri/tauri.conf.json'));
   assert.equal(config.app.withGlobalTauri, false);
   assert.equal(typeof config.app.security.csp, 'string');
@@ -914,11 +929,30 @@ test('Tauri configuration disables global injection and declares a local-only CS
   ]) assert.ok(capabilities.permissions.includes(permission));
   const windowsConfig = JSON.parse(read('src-tauri/tauri.windows.conf.json'));
   const windowsWindow = windowsConfig.app.windows.find((candidate) => candidate.label === 'main');
-  for (const key of ['title', 'url', 'useHttpsScheme', 'width', 'height', 'minWidth', 'minHeight', 'resizable', 'center']) {
+  for (const key of ['title', 'url', 'useHttpsScheme', 'resizable', 'center']) {
     assert.equal(windowsWindow[key], window[key], `Windows ${key} must reuse the shared window contract`);
   }
   assert.equal(windowsWindow.decorations, false);
-  assert.equal(windowsWindow.shadow, true);
+  assert.equal(windowsWindow.width, 420);
+  assert.equal(windowsWindow.height, 504);
+  assert.equal(windowsWindow.minWidth, 420);
+  assert.equal(windowsWindow.minHeight, 504);
+  assert.equal(windowsWindow.transparent, true);
+  assert.equal(windowsWindow.shadow, false);
+  assert.equal(windowsWindow.visible, false);
+  assert.match(tokens, /--windows-shell-radius:\s*32px/);
+  assert.match(tokens, /--window-shadow-inset:\s*10px/);
+  assert.match(tokens, /--about-caption-icon-size:\s*var\(--windows-caption-icon-size\)/);
+  assert.match(styles, /html\[data-platform="windows"\] body\s*\{[\s\S]*padding: var\(--window-shadow-inset\)/);
+  assert.match(styles, /border-radius: var\(--windows-shell-radius\)/);
+  assert.match(styles, /corner-shape: squircle/);
+  assert.match(windowControlStyles, /#aboutButton svg\s*\{[\s\S]*?width:\s*var\(--about-caption-icon-size\);[\s\S]*?height:\s*var\(--about-caption-icon-size\)/);
+  assert.match(styles, /box-shadow: var\(--shadow-window\)/);
+  assert.match(styles, /body\[data-maximized="true"\][\s\S]*padding: 0/);
+  assert.match(windowControls, /document\.body\.dataset\.maximized = maximized/);
+  assert.match(read('renderer/app.js'), /const initialPlatform = document\.documentElement\.dataset\.platform \|\| ''/);
+  assert.match(read('renderer/app.js'), /document\.addEventListener\('cavalry-platform-ready'/);
+  assert.match(read('renderer/about-window.js'), /document\.addEventListener\('cavalry-platform-ready'/);
 });
 
 

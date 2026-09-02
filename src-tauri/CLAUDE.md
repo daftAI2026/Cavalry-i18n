@@ -12,7 +12,7 @@ en.lproj/InfoPlist.strings: macOS App Management 英文用途说明；通过 `bu
 zh-Hans.lproj/InfoPlist.strings: macOS App Management 简体中文用途说明；通过 `bundle.macOS.files` 进入最终 app bundle 的 `Contents/Resources/zh-Hans.lproj`。
 zh-Hant.lproj/InfoPlist.strings: macOS App Management 繁体中文用途说明；通过 `bundle.macOS.files` 进入最终 app bundle 的 `Contents/Resources/zh-Hant.lproj`。
 ja.lproj/InfoPlist.strings: macOS App Management 日文用途说明；通过 `bundle.macOS.files` 进入最终 app bundle 的 `Contents/Resources/ja.lproj`。
-tauri.windows.conf.json: Windows 合并配置，以完整 main-window override 将系统 caption 关闭、保留 DWM shadow，并维持共享 400×484 固定最小几何与 360px 内容宽度；在 dev/bundle 前构建 generic + QPA，绑定四语双语义卸载 hook 与 NSIS 消息表，独占 ico/languages/双 DLL，禁止携带 macOS dylib。
+tauri.windows.conf.json: Windows 合并配置，以完整 main-window override 关闭系统 caption/native shadow，启用 transparent compositor 表面并隐藏创建，Rust 文档脚本在 DOMContentLoaded 写入平台态且只在 PageLoad Finished reveal；产品最小本体保持共享 400×484/360px 内容几何，420×504 仅为其四侧各附加 10px alpha 阴影画布且不参与视觉对齐，最大化时由 renderer 状态机归零留白/圆角/阴影；在 dev/bundle 前构建 generic + QPA，绑定四语双语义卸载 hook 与 NSIS 消息表，独占 ico/languages/双 DLL，禁止携带 macOS dylib。
 tauri.updater-artifacts.conf.json: updater 产物覆盖；仅打开 Tauri v2 `createUpdaterArtifacts`，必须叠加已含最终 updater 公钥/endpoint 的共享配置并由受保护私钥环境执行，只允许 tag 发布或受保护的无发布 signing smoke 加载，普通本地/PR 构建不得加载。
 nsis-hooks.nsh: Windows NSIS 生命周期 hook；交互卸载明确选择“仅移除 Switcher 并保留翻译”或“先恢复 English 并移除自有运行时”，更新/静默/被动卸载默认保留，恢复失败则中止；收尾只清安装元数据。
 nsis-languages/: Tauri NSIS 四语消息表；保持上游消息键同构，并在原生确认页把应用数据明确限定为 Switcher 自身设置。

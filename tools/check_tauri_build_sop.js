@@ -1394,7 +1394,8 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.equal(window.height, 484);
   assert.equal(window.minWidth, 400);
   assert.equal(window.minHeight, 484);
-  assert.match(localSop, /main window 逻辑尺寸固定 `400x484`，最小 `400x484`/);
+  assert.match(localSop, /main window 逻辑本体固定 `400x484`，最小本体 `400x484`/);
+  assert.match(localSop, /Windows 配置中的 `420x504` 只是在本体四边各加 10px transparent compositor 阴影画布，产品最小尺寸和所有视觉对齐均排除这层阴影/);
   assert.doesNotMatch(localSop, /main window 外框固定 `480x528`/);
   assert.equal(window.decorations, true);
   assert.equal(window.titleBarStyle, 'Overlay');
@@ -1492,14 +1493,14 @@ test('Windows CMake bootstrap rejects low, floating, and unproven toolchains', (
   const pin = pins.cmake;
 
   assert.ok(pin, 'CMake must have an explicit CI pin');
-  assert.equal(pin.version, '4.2.0');
-  assert.match(pin.url, /^https:\/\/github\.com\/Kitware\/CMake\/releases\/download\/v4\.2\.0\/cmake-4\.2\.0-windows-x86_64\.zip$/);
+  assert.equal(pin.version, '4.4.3');
+  assert.match(pin.url, /^https:\/\/github\.com\/Kitware\/CMake\/releases\/download\/v4\.4\.3\/cmake-4\.4\.3-windows-x86_64\.zip$/);
   assert.match(pin.sha256, /^[a-f0-9]{64}$/);
-  assert.equal(cmake.parseCmakeVersion('cmake version 4.2.0'), '4.2.0');
-  assert.throws(() => cmake.validateCmakeVersion('cmake version 3.31.6'), /CMake 4\.2\.0 or newer is required/);
+  assert.equal(cmake.parseCmakeVersion('cmake version 4.4.3'), '4.4.3');
+  assert.throws(() => cmake.validateCmakeVersion('cmake version 3.31.6'), /CMake 4\.4\.3 or newer is required/);
   assert.throws(
-    () => cmake.validateCmakePin({ ...pin, url: pin.url.replace('v4.2.0', 'main') }),
-    /official CMake v4\.2\.0 archive URL/
+    () => cmake.validateCmakePin({ ...pin, url: pin.url.replace('v4.4.3', 'main') }),
+    /official CMake v4\.4\.3 archive URL/
   );
   assert.throws(
     () => cmake.validateCmakePin({ ...pin, sha256: '' }),
@@ -2233,6 +2234,7 @@ test('tauri capability and SOP mention the bridge and packaged resource boundari
   assert.deepEqual(aboutCapabilities.permissions, [
     'core:app:allow-version',
     'core:window:allow-start-dragging',
+    'core:window:allow-close',
   ]);
   assert.equal(aboutCapabilities.permissions.includes('core:window:default'), false);
   assert.equal(aboutCapabilities.permissions.includes('core:webview:default'), false);
