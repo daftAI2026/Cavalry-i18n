@@ -867,7 +867,7 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   );
   assert.match(
     restoreConfirmationFunction,
-    /const restoreAction = state\.platform === 'macos' && state\.officialRecoveryAvailable[\s\S]*?\? 'restore-official'[\s\S]*?: 'en';/
+    /const restoreAction = state\.platform === 'macos' \? 'restore-official' : 'en';/
   );
   assert.match(app, /restoreButton\.addEventListener\('click', requestRestore\)/);
   const requestApplyFunction = sourceFunction(app, 'function requestApply() {', 'function requestRestore');
@@ -1071,15 +1071,9 @@ test('renderer localizes reinstall and composable warning-code paths without raw
       assert.match(body, new RegExp(`^\\s{4}${key}:`, 'm'), `${key} missing from a locale`);
     }
   }
-  const reinstallFunction = sourceFunction(
-    app,
-    'function requiresCavalryReinstall() {',
-    'function restoreIsNeeded'
-  );
-  assert.match(reinstallFunction, /state\.platform === 'macos'/);
-  assert.match(reinstallFunction, /state\.installationMode === 'modifiedOrUnverified'/);
-  assert.match(reinstallFunction, /state\.needsExtract/);
-  assert.match(app, /setStatus\('reinstallRequired', 'error'\)/);
+  assert.doesNotMatch(app, /requiresCavalryReinstall|restoreIsBlockedByMissingBaseline/);
+  assert.doesNotMatch(app, /startupRecoveryError|setStatus\('reinstallRequired', 'error'\)/);
+  assert.match(app, /const restoreAction = state\.platform === 'macos' \? 'restore-official' : 'en';/);
   assert.doesNotMatch(app, /macosSignatureResidueRepairable|signatureResidueRepairable|legacySignatureResidue/);
   assert.doesNotMatch(bridge, /macosSignatureResidueRepairable|legacySignatureResidue/);
   assert.match(bridge, /macosPermissionHandoffRequired: result\.platform === 'macos' && result\.macosPermissionHandoffRequired === true/);
@@ -1092,7 +1086,8 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const setBusyFunction = sourceFunction(app, 'function setBusy(isBusy) {', 'function updateLanguageOptions');
   const applyDisabledStatement = sourceStatement(setBusyFunction, 'applyButton.disabled =');
   assert.match(applyDisabledStatement, /!languageSelect\.value/, 'Switch must require an explicit target-language choice');
-  assert.match(applyDisabledStatement, /reinstallRequired[\s\S]*state\.controlsBlocked[\s\S]*durabilityPending;/);
+  assert.match(applyDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
+  assert.doesNotMatch(applyDisabledStatement, /reinstallRequired/);
   assert.doesNotMatch(
     applyDisabledStatement,
     /state\.needsExtract/,
@@ -1100,7 +1095,7 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   );
   const restoreDisabledStatement = sourceStatement(setBusyFunction, 'restoreButton.disabled =');
   assert.match(restoreDisabledStatement, /restoreIsNeeded\(\)/);
-  assert.match(restoreDisabledStatement, /restoreIsBlockedByMissingBaseline\(\)/);
+  assert.doesNotMatch(restoreDisabledStatement, /restoreIsBlockedByMissingBaseline\(\)/);
   assert.match(restoreDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
   const restoreNeededFunction = sourceFunction(app, 'function restoreIsNeeded() {', 'function isRestoreAction');
   assert.match(restoreNeededFunction, /state\.currentLang !== 'en'/);

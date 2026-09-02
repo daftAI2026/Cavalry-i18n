@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 chrono/serde_json、运行时 state 目录与进程环境中的 HOME/临时目录。
- * [OUTPUT]: 提供 best-effort record/sanitize_message 与 diagnostics.jsonl 路径；以两代 512 KiB JSONL 记录启动恢复、状态裁决、语言事务和权限设置边界，自动脱敏用户目录且永不改变业务结果。
+ * [OUTPUT]: 提供 best-effort record/sanitize_message 与 diagnostics.jsonl 路径；以两代 512 KiB JSONL 记录轻量启动观察、用户触发的语言事务和权限设置边界，自动脱敏用户目录且永不改变业务结果。
  * [POS]: src-tauri/src 的本地诊断事实层；只记录阶段、无路径 reason code、结果和有限错误文本，不记录语言包内容、密钥、文件哈希或系统权限数据库，供真实机器复现后人工回读。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -141,13 +141,13 @@ mod tests {
 
         record(
             &state_dir,
-            "startupRecoveryFinished",
+            "languageTransactionFinished",
             json!({ "error": sanitize_message(&message, &state_dir) }),
         );
 
         let line = fs::read_to_string(log_path(&state_dir)).unwrap();
         let value: Value = serde_json::from_str(line.trim()).unwrap();
-        assert_eq!(value["event"], "startupRecoveryFinished");
+        assert_eq!(value["event"], "languageTransactionFinished");
         assert_eq!(value["version"], env!("CARGO_PKG_VERSION"));
         assert!(value["details"]["error"]
             .as_str()

@@ -78,7 +78,6 @@ const feedbackGroups = Object.freeze([
       'applyFailedTitle',
       'patchFailed',
       'recoveryFailedTitle',
-      'startupRecoveryFailed',
       'settingsFailedTitle',
       'openPrivacyFailed',
       'desktopServiceUnavailableTitle',

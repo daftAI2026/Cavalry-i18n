@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
+ * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel 与 privilege facade。
  * [OUTPUT]: 保持九条稳定 Tauri command；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff，保护写事务 commit 后只清理交接层而不反向飞回已失效动作；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -53,11 +53,8 @@ fn complete_permission_handoff_after_commit() {
 }
 
 #[tauri::command]
-pub fn get_status(
-    app: tauri::AppHandle,
-    startup_recovery: tauri::State<'_, crate::startup_recovery::StartupRecoveryStatus>,
-) -> Result<StatusPayload, String> {
-    status::get_status_for_app(&app, startup_recovery.error())
+pub fn get_status(app: tauri::AppHandle) -> Result<StatusPayload, String> {
+    status::get_status_for_app(&app)
 }
 
 #[tauri::command]
@@ -329,6 +326,6 @@ pub(crate) use restart::restart_cavalry_guarded;
 #[cfg(all(test, target_os = "windows"))]
 pub(crate) use restart::restart_cavalry_inner_with_qpa_inspector;
 #[cfg(all(test, target_os = "windows"))]
-pub(crate) use status::{is_app_management_error, permission_action};
+pub(crate) use status::is_app_management_error;
 #[cfg(test)]
 pub(crate) use status::{status_for_paths, sync_state_with_bundle};

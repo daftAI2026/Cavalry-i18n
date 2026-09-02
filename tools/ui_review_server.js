@@ -134,15 +134,12 @@ function fixtureSource() {
     currentLang,
     installationMode: windowsScenario
       ? 'unknown'
-      : scenario === 'startupRecovery'
-        ? 'recoveryRequired'
-        : scenario === 'reinstall'
+      : scenario === 'reinstall'
           ? 'modifiedOrUnverified'
           : scenario === 'managedLegacy'
             ? 'managedLegacy'
           : currentLang === 'en' ? 'official' : 'modifiedOrUnverified',
     officialRecoveryAvailable: scenario !== 'managedLegacy',
-    startupRecoveryError: scenario === 'startupRecovery' ? 'fixture-private-error' : null,
     defaultAppCandidates: ['/Applications/Cavalry.app'],
     languages,
     needsExtract: scenario === 'reinstall',

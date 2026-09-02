@@ -64,9 +64,19 @@ fn unchanged_snapshot_reconfirms_directory_durability_and_surfaces_failure() {
 }
 
 #[test]
-fn refresh_and_extract_do_not_own_macos_pending_recovery() {
+fn only_user_language_actions_own_pending_recovery() {
     let snapshot_source = include_str!("snapshot.rs");
     let apply_source = include_str!("apply.rs");
+    let status_source = include_str!("status.rs");
+    let restart_source = include_str!("restart.rs");
+    let lib_source = include_str!("../lib.rs");
+    let startup_status_source = status_source
+        .split("pub(crate) fn get_status_for_app")
+        .nth(1)
+        .expect("status must expose the Tauri startup projection")
+        .split("fn record_status_diagnostics")
+        .next()
+        .expect("startup status projection must precede diagnostics");
     let snapshot_production = snapshot_source
         .split("#[cfg(test)]")
         .next()
@@ -80,6 +90,21 @@ fn refresh_and_extract_do_not_own_macos_pending_recovery() {
         apply_source.contains("recover_macos_apply_for_selection"),
         "apply must retain pending macOS recovery before mutation"
     );
+    assert!(
+        apply_source.contains("recover_windows_language_transaction_for_selection"),
+        "apply must retain pending Windows recovery before mutation"
+    );
+    for (owner, source) in [
+        ("status", startup_status_source),
+        ("restart", restart_source),
+        ("startup", lib_source),
+    ] {
+        assert!(
+            !source.contains("pending_macos_apply_install_root")
+                && !source.contains("recover_macos_apply_for_selection"),
+            "{owner} must not inspect or recover pending language transactions"
+        );
+    }
 }
 
 #[cfg(target_os = "windows")]

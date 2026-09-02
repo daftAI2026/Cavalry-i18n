@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
+ * [INPUT]: 依赖冻结 bridge 的轻量安装观察/版本兼容、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
  * [OUTPUT]: 对外提供跨平台单任务流、Windows 预注入平台标记驱动的首帧 caption/compositor 外壳、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
- * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部签名清理；只读状态不制造 macOS 权限门禁，Switch/Restore 总是先调用安全事务，typed 权限拒绝才把失败阶段收敛为链尾阻塞项，业务阶段失败不得冒充桌面服务断线。
+ * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部 journal/签名清理；启动只消费安装、版本和当前语言，Switch/Restore 才进入完整证明与安全事务，typed 权限拒绝才把失败阶段收敛为链尾阻塞项，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const appVersion = document.querySelector('#appVersion');
@@ -69,9 +69,8 @@ const api = window.cavalryI18n;
 const state = {
   appPath: '', currentLang: 'en', installationMode: 'unknown', languages: [],
   versionCompatibility: 'supported', supportedVersion: '2.7.2',
-  officialRecoveryAvailable: false, needsExtract: false, appManagementGranted: null,
-  platform: '', permissionAction: 'none', pendingAction: '',
-  ready: false, busy: false, controlsBlocked: false, startupRecoveryError: null,
+  platform: '', pendingAction: '',
+  ready: false, busy: false, controlsBlocked: false,
   stateDurabilityPending: false, englishRestoreNeeded: false, updateInfo: null, permissionRetryAttempt: 0,
 };
 const permissionHandoff = window.createPermissionHandoffController({
@@ -163,7 +162,7 @@ async function recoverOperationFailure() {
 function setPermissionWait(isWaiting) {
   permissionButton.hidden = !isWaiting;
   permissionButton.textContent =
-    state.permissionAction === 'requestElevation'
+    state.platform === 'windows'
       ? t('requestElevation')
       : t('openPrivacySecurity');
   applyButton.textContent = t('apply');
@@ -194,7 +193,6 @@ function operationStateForTone(tone) {
   if (tone === 'warning' || tone === 'error') return tone;
   return 'neutral';
 }
-function requiresCavalryReinstall() { return state.platform === 'macos' && state.installationMode === 'modifiedOrUnverified' && state.needsExtract; }
 function installationSelectionIsRequired() { return !state.appPath; }
 function syncInstallationSelection() { browseButton.hidden = !installationSelectionIsRequired(); }
 function restoreIsNeeded() {
@@ -208,10 +206,6 @@ function unsupportedVersionStatusKey() {
   if (state.versionCompatibility === 'newerUnsupported') return 'newerVersionUnsupported';
   if (state.versionCompatibility === 'unknownUnsupported') return 'unknownVersionUnsupported';
   return null;
-}
-
-function restoreIsBlockedByMissingBaseline() {
-  return state.needsExtract && !(state.platform === 'windows' && state.englishRestoreNeeded);
 }
 
 const WARNING_TEXT_KEYS = Object.freeze({
@@ -289,25 +283,21 @@ function setBusy(isBusy) {
   const notReady = !state.ready;
   const durabilityPending = state.stateDurabilityPending;
   browseButton.disabled = notReady || isBusy || state.controlsBlocked || durabilityPending;
-  const reinstallRequired = requiresCavalryReinstall();
   applyButton.disabled =
     notReady ||
     isBusy ||
     !state.appPath ||
     !languageSelect.value ||
-    reinstallRequired ||
     state.controlsBlocked ||
     durabilityPending;
   restoreButton.disabled =
     notReady ||
     isBusy ||
     !restoreIsNeeded() ||
-    restoreIsBlockedByMissingBaseline() ||
-    reinstallRequired ||
     state.controlsBlocked ||
     durabilityPending;
   languageSelectControl.setDisabled(
-    notReady || isBusy || reinstallRequired || state.controlsBlocked || durabilityPending
+    notReady || isBusy || state.controlsBlocked || durabilityPending
   );
   updateButton.disabled = notReady || isBusy;
 }
@@ -500,9 +490,7 @@ function closeModal() {
 }
 
 function showRestoreConfirmation() {
-  const restoreAction = state.platform === 'macos' && state.officialRecoveryAvailable
-    ? 'restore-official'
-    : 'en';
+  const restoreAction = state.platform === 'macos' ? 'restore-official' : 'en';
   showModal({
     title: t('restoreConfirmTitle'),
     body: t('restoreConfirmBody'),
@@ -518,7 +506,7 @@ function showRestoreConfirmation() {
 
 async function showPermissionWait(nextLanguage, phaseId = 'permissionRequired', macBodyKey = 'permissionMacBody', activityBodyKey = 'waitingPermission') {
   state.pendingAction = nextLanguage;
-  const needsElevation = state.permissionAction === 'requestElevation';
+  const needsElevation = state.platform === 'windows';
   await operationLog.presentBlocking({ id: phaseId, title: t('permissionRequiredTitle'),
     description: t(needsElevation ? 'waitingPermission' : activityBodyKey), state: 'warning' });
   setPermissionWait(true);
@@ -558,20 +546,12 @@ async function bootstrap({ renderActivity = true } = {}) {
   state.installationMode = bootstrapState.installationMode || 'unknown';
   state.versionCompatibility = bootstrapState.versionCompatibility || 'supported';
   state.supportedVersion = bootstrapState.supportedVersion || '2.7.2';
-  state.officialRecoveryAvailable = bootstrapState.officialRecoveryAvailable === true;
-  state.startupRecoveryError = bootstrapState.startupRecoveryError || null;
-  state.controlsBlocked = Boolean(state.startupRecoveryError) || Boolean(unsupportedVersionStatusKey());
+  state.controlsBlocked = Boolean(unsupportedVersionStatusKey());
   state.languages = bootstrapState.languages || [];
-  state.needsExtract = Boolean(bootstrapState.needsExtract);
-  state.appManagementGranted =
-    typeof bootstrapState.appManagementGranted === 'boolean'
-      ? bootstrapState.appManagementGranted
-      : null;
   state.platform = bootstrapState.platform || '';
   const runtimeResidueDetected =
     state.platform === 'windows' && bootstrapState.reconciliationRequired === true;
   state.englishRestoreNeeded = runtimeResidueDetected;
-  state.permissionAction = bootstrapState.permissionAction || 'none';
   applyShellPlatform(state.platform);
 
   updateLanguageOptions(state.languages);
@@ -579,14 +559,10 @@ async function bootstrap({ renderActivity = true } = {}) {
   currentLanguage.textContent = languageLabel(state.currentLang);
   setPermissionWait(false);
 
-  const showMacInstallationMode = state.platform === 'macos' && Boolean(state.appPath);
+  const showMacInstallationMode =
+    state.platform === 'macos' && Boolean(state.appPath) && state.installationMode === 'official';
   installationModeText.hidden = !showMacInstallationMode;
-  installationModeText.textContent =
-    state.installationMode === 'official'
-      ? t('officialMode')
-      : state.installationMode === 'recoveryRequired'
-        ? t('recoveryMode')
-        : t('modifiedMode');
+  installationModeText.textContent = showMacInstallationMode ? t('officialMode') : '';
   syncInstallationBadges();
   syncInstallationSelection();
   state.ready = true;
@@ -604,11 +580,6 @@ async function bootstrap({ renderActivity = true } = {}) {
     }));
   }
 
-  if (state.startupRecoveryError) {
-    presentStatus('startupRecoveryFailed', 'error');
-    return;
-  }
-
   if (!state.appPath) {
     presentStatus('chooseAppToContinue', 'warning');
     return;
@@ -623,11 +594,6 @@ async function bootstrap({ renderActivity = true } = {}) {
     return;
   }
 
-  if (requiresCavalryReinstall()) {
-    presentStatus('reinstallRequired', 'error');
-    return;
-  }
-
   if (state.stateDurabilityPending) {
     presentStatus('warningStateDurabilityPending', 'warning');
     return;
@@ -635,15 +601,6 @@ async function bootstrap({ renderActivity = true } = {}) {
 
   if (runtimeResidueDetected) {
     presentStatus('runtimeResidueWarning', 'warning');
-    return;
-  }
-
-  if (
-    state.platform === 'windows' &&
-    state.appManagementGranted === false &&
-    state.permissionAction === 'none'
-  ) {
-    presentStatus('customRootNotWritable', 'error');
     return;
   }
 
@@ -672,10 +629,6 @@ function requestApply() {
     setStatus('noLanguage', 'warning');
     return;
   }
-  if (requiresCavalryReinstall()) {
-    setStatus('reinstallRequired', 'error');
-    return;
-  }
   if (state.stateDurabilityPending) {
     requireDurabilityRetry();
     return;
@@ -689,16 +642,8 @@ function requestRestore() {
     setStatus('chooseAppFirst', 'warning');
     return;
   }
-  if (requiresCavalryReinstall()) {
-    setStatus('reinstallRequired', 'error');
-    return;
-  }
   if (state.stateDurabilityPending) {
     requireDurabilityRetry();
-    return;
-  }
-  if (restoreIsBlockedByMissingBaseline()) {
-    setStatus('reinstallRequired', 'error');
     return;
   }
   showRestoreConfirmation();
@@ -768,7 +713,7 @@ async function runApply(nextLanguage, { attemptId = '' } = {}) {
 }
 
 function handlePermissionButton() {
-  if (state.permissionAction === 'requestElevation') {
+  if (state.platform === 'windows') {
     const pending = state.pendingAction || languageSelect.value;
     void runApply(pending).catch(recoverOperationFailure);
     return;

@@ -4972,7 +4972,7 @@ mod tests {
     }
 
     #[test]
-    fn prepared_phase_journal_is_rolled_back_on_startup() {
+    fn prepared_phase_journal_is_rolled_back_on_next_action() {
         let temp = tempfile::tempdir().unwrap();
         let root = fs::canonicalize(temp.path()).unwrap();
         let app = root.join("Cavalry.app");

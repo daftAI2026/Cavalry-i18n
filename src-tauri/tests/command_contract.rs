@@ -149,7 +149,6 @@ fn status_payload_keeps_permission_probe_and_omits_inactive_legacy_handoff_hint(
         installation_mode: "official".into(),
         macos_permission_handoff_required: false,
         official_recovery_available: true,
-        startup_recovery_error: None,
         default_app_candidates: Vec::new(),
         diagnostics: None,
         languages: Vec::new(),

@@ -89,7 +89,6 @@ function workspaceHtml() {
         <button class="scenario" data-scenario="newerVersion"><span>新版 Cavalry</span></button>
         <button class="scenario" data-scenario="windowsClean"><span>Windows clean</span></button>
         <button class="scenario" data-scenario="reinstall"><span>需要重装</span></button>
-        <button class="scenario" data-scenario="startupRecovery"><span>启动恢复失败</span></button>
         <button class="scenario" data-scenario="updateAvailable"><span>更新可用 · Tooltip</span></button>
         <div class="group-label">AlertDialog / Toast</div>
         <button class="scenario" data-scenario="restoreConfirm"><span>Restore English 确认</span></button>

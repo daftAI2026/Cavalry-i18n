@@ -80,18 +80,6 @@ impl BundleSignatureEvidence {
                         && requirement.contains("identifier \"com.scenegroup.cavalry\"")
                 })
     }
-
-    pub(crate) fn is_managed_ad_hoc_identity(&self) -> bool {
-        self.team_id.is_none()
-            && self
-                .designated_requirement
-                .as_deref()
-                .is_some_and(|value| !value.trim().is_empty())
-            && self
-                .cdhash
-                .as_deref()
-                .is_some_and(|value| !value.trim().is_empty())
-    }
 }
 
 pub(crate) fn inspect_bundle_signature<R: CommandRunner>(

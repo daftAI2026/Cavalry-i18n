@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 detect/state/status 同步、snapshot English 真相投影、platform_runtime.restart、共享 operation_lock 测试门与 CommandRunner。
  * [OUTPUT]: 提供 restart_cavalry_inner；重启前同步 revision 并按已证明现实覆盖 stale marker 状态，测试仍以显式 inspector seam 覆盖 QPA ACTIVE。
- * [POS]: commands 的重启编排层；Windows QPA/plugin/诊断 marker 与 macOS launcher 下沉 platform_runtime，状态投影不写安装根。
+ * [POS]: commands 的重启编排层；Windows QPA/plugin/诊断 marker 与 macOS launcher 下沉 platform_runtime，状态投影不写安装根，也不拥有 Switch/Restore 的 journal 收敛。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::Path;
@@ -20,8 +20,6 @@ pub fn restart_cavalry_inner<R: CommandRunner>(
     app_path: &Path,
     runner: &mut R,
 ) -> Result<(), String> {
-    #[cfg(target_os = "macos")]
-    crate::privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
     let app_path = detect::resolve_verified_install(app_path)
         .map_err(|error| error.to_string())?
         .root;

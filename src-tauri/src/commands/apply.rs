@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS Managed Legacy/official baseline 分级、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Switch/Restore 共用且早于验证完成的 macOS 只读运行态门、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、覆盖脚本入口外置签名组件的 durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
+ * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Switch/Restore 共用且早于验证完成的 macOS 只读运行态门、用户动作锁内跨平台 journal 静默收敛、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、覆盖脚本入口外置签名组件的 durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
  * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage；回滚说明不得抹掉原始权限类别，也不得用任意错误文本冒充 App Management。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -377,17 +377,19 @@ where
     }
     #[cfg(target_os = "macos")]
     privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
+    #[cfg(target_os = "windows")]
+    privilege::recover_windows_language_transaction_for_selection(app_path, runner)?;
     let verified_layout =
         detect::resolve_verified_install(app_path).map_err(|error| error.to_string())?;
     let app_platform = verified_layout.platform;
     let app_path = verified_layout.root;
-    let restore_official = lang == RESTORE_OFFICIAL_ACTION;
-    if restore_official && app_platform != crate::install::InstallPlatform::Macos {
+    let restore_requested = lang == RESTORE_OFFICIAL_ACTION;
+    if restore_requested && app_platform != crate::install::InstallPlatform::Macos {
         return Err(
             "Official Cavalry restore is currently available only for macOS bundles.".to_string(),
         );
     }
-    let effective_lang = if restore_official { "en" } else { lang };
+    let effective_lang = if restore_requested { "en" } else { lang };
 
     let version = detect::read_bundle_version(&app_path).unwrap_or_default();
     #[cfg(target_os = "macos")]
@@ -477,6 +479,19 @@ where
         );
     #[cfg(not(target_os = "macos"))]
     let managed_legacy = false;
+    #[cfg(target_os = "macos")]
+    let restore_official = restore_requested
+        && current_state
+            .english_snapshot_provenance
+            .as_ref()
+            .is_some_and(|provenance| provenance.vendor_baseline_id.is_some());
+    #[cfg(not(target_os = "macos"))]
+    let restore_official = false;
+    let transaction_action_lang = if restore_requested && !restore_official {
+        "en"
+    } else {
+        lang
+    };
 
     verify_phase.completed();
     let mut baseline_phase = OperationPhaseGuard::start(&reporter, OperationPhase::EnsureBaseline);
@@ -753,7 +768,7 @@ where
             repo_root,
             resource_dir,
             &app_path,
-            lang,
+            transaction_action_lang,
             &version,
             &staging_root,
             trusted_macos_info_plist.as_deref(),
@@ -762,7 +777,9 @@ where
         )?;
         #[cfg(not(target_os = "macos"))]
         if let Some(payload) = finish_direct_preflight_result(platform_runtime::preflight_apply(
-            &app_path, lang, runner,
+            &app_path,
+            transaction_action_lang,
+            runner,
         ))? {
             return Ok(payload);
         }
@@ -890,7 +907,7 @@ where
                 &app_path,
                 version,
                 immutable_revision,
-                lang,
+                transaction_action_lang,
                 effective_lang,
                 now,
                 &staging_root,

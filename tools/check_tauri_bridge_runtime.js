@@ -273,7 +273,7 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   assert.equal(windowsStatus.macosPermissionHandoffRequired, false);
 });
 
-test('permission capability does not fabricate a startup warning before an operation fails', async () => {
+test('legacy permission hints do not fabricate a startup warning before an operation fails', async () => {
   const macUnknown = boot({ status: {
     platform: 'macos', appManagementGranted: null, permissionAction: 'none',
   } });
@@ -285,12 +285,11 @@ test('permission capability does not fabricate a startup warning before an opera
   } });
   await flush();
 
-  for (const runtimeState of [macUnknown, windowsElevation]) {
+  for (const runtimeState of [macUnknown, windowsElevation, windowsUnwritable]) {
     assert.equal(activityRows(runtimeState).length, 0);
     assert.equal(runtimeState.elements['#statusPanel'].dataset.mode, 'idle');
     assert.equal(runtimeState.elements['#statusIdle'].textContent, 'What would you like to do?');
   }
-  assert.equal(activityTitle(windowsUnwritable), 'Cavalry folder isn’t writable');
 });
 
 test('custom language select keeps Base UI open, active, selected, and keyboard states coherent', async () => {
@@ -647,7 +646,6 @@ test('bootstrap keeps mutation controls disabled until status is ready', async (
     appPath: '/Applications/Cavalry.app',
     currentLang: 'zh-Hans',
     installationMode: 'official',
-    startupRecoveryError: null,
     defaultAppCandidates: ['/Applications/Cavalry.app'],
     needsExtract: false,
     permissionAction: 'none',
@@ -744,7 +742,7 @@ test('single Restore maps to the platform transaction and remains visible when n
   assert.equal(official.elements['#installationBadge'].dataset.state, 'official');
 });
 
-test('managed legacy macOS remains actionable and Restore returns to managed English', async () => {
+test('managed legacy macOS sends one Restore intent for backend baseline selection', async () => {
   const r = boot({
     status: {
       platform: 'macos', currentLang: 'zh-Hans', installationMode: 'managedLegacy',
@@ -764,7 +762,7 @@ test('managed legacy macOS remains actionable and Restore returns to managed Eng
   r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
-    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'restore-official' },
   });
   assert.equal(r.elements['#statusOutcome'].textContent, 'Restored English. Cavalry is now open.');
 });
@@ -1095,37 +1093,32 @@ test('transport rejection becomes a localized stable status and re-bootstrap att
   assert.equal(r.calls.filter(({ command }) => command === 'get_status').length, 2);
 });
 
-test('startup recovery failure blocks mutations without exposing raw backend diagnostics', async () => {
+test('legacy startup recovery fields cannot turn internal journals into a product blocker', async () => {
   const r = boot({ status: {
     installationMode: 'recoveryRequired',
     startupRecoveryError: 'Cavalry is still running',
   } });
   await flush();
-  for (const id of ['#browseButton', '#applyButton', '#restoreButton', '#languageSelect']) {
-    assert.equal(r.elements[id].disabled, true, `${id} must be blocked`);
-  }
-  assert.equal(activityTitle(r), 'Couldn’t recover the interrupted operation');
-  assert.match(activityText(r), /Close Cavalry, then restart the Switcher/i);
-  assert.match(activityText(r), /preserve the recovery data/i);
+  assert.equal(r.elements['#browseButton'].disabled, false);
+  assert.equal(r.elements['#restoreButton'].disabled, false);
+  chooseLanguage(r);
+  assert.equal(r.elements['#applyButton'].disabled, false);
+  assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle');
   assert.doesNotMatch(activityText(r), /Cavalry is still running/);
-  assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
-  assert.equal(r.elements['#installationBadge'].hidden, true, 'transaction recovery must stay in the actionable Alert instead of masquerading as installation classification');
+  assert.equal(r.elements['#installationBadge'].hidden, true);
 });
 
 
-test('macOS incomplete provenance gives a direct reinstall route and blocks Restore', async () => {
+test('macOS incomplete provenance is proven only after the user starts an action', async () => {
   const r = boot({ status: { installationMode: 'modifiedOrUnverified', needsExtract: true } }); await flush();
-  assert.equal(r.elements['#restoreButton'].hidden, false, 'the unavailable restore route remains visible');
-  assert.equal(r.elements['#restoreButton'].disabled, true, 'official restore must be unavailable with incomplete provenance');
-  assert.equal(r.elements['#applyButton'].disabled, true);
-  assert.equal(activityTitle(r), 'Reinstall Cavalry');
-  assert.match(activityText(r), /Reinstall Cavalry from the official installer/);
-  assert.match(activityText(r), /reopen the Switcher/);
-  assert.doesNotMatch(activityText(r), /choose the new installation/);
-  assert.equal(r.elements['#statusPanel'].dataset.state, 'error');
+  assert.equal(r.elements['#restoreButton'].disabled, false);
+  chooseLanguage(r);
+  assert.equal(r.elements['#applyButton'].disabled, false);
+  assert.equal(r.elements['#statusPanel'].dataset.mode, 'idle');
   r.elements['#restoreButton'].listeners.get('click')[0]();
-  assert.equal(r.calls.some(({ command }) => command === 'apply_language'), false, 'a synthetic click cannot bypass the disabled restore route');
-  assert.match(activityText(r), /can’t verify the integrity of the Cavalry installation/);
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.equal(r.calls.some(({ command, payload }) => command === 'apply_language' && payload.lang === 'restore-official'), true);
 });
 
 test('known macOS signing residue remains an internal recoverable-stock detail', async () => {

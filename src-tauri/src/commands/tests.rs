@@ -16,7 +16,7 @@ use super::{
     sync_state_with_bundle, try_begin_bundle_operation, BUSY_ERROR, COMMAND_NAMES,
 };
 #[cfg(target_os = "windows")]
-use super::{is_app_management_error, permission_action, ActionPayload};
+use super::{is_app_management_error, ActionPayload};
 use crate::privilege::{
     CommandRunner, CommandStatus, PostCommitWarning, PostCommitWarningCode, RecordedCommand,
     RecordingRunner,
@@ -427,7 +427,6 @@ fn unwritable_custom_windows_root_never_maps_to_a_uac_permission_retry() {
     let custom_root_error =
             "The selected Cavalry installation is not writable. Windows administrator retry is available only for installations under the OS-known Program Files folders; choose a writable Cavalry copy or update that folder's permissions.";
 
-    assert_eq!(permission_action(custom_root, Some(false)), "none");
     assert!(!is_app_management_error(custom_root_error));
     assert!(!is_app_management_error(
             "Refusing administrator elevation for a destination outside Windows known Program Files roots: D:\\Creative Tools\\Cavalry"
@@ -924,7 +923,7 @@ fn legacy_snapshot_proof_accepts_active_or_owned_stock_cleanup_evidence() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writing_state() {
+fn startup_status_observes_legacy_language_without_proving_snapshot() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
@@ -952,7 +951,8 @@ fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writi
     let durable = state::read_state(&state_dir).unwrap();
 
     assert_eq!(status.current_lang, "zh-Hans");
-    assert!(status.needs_extract);
+    assert!(!status.needs_extract);
+    assert_eq!(status.installation_mode, "unknown");
     assert!(durable.english_snapshot_provenance.is_none());
     assert_eq!(
         fs::read(state_dir.join("state.json")).unwrap(),
@@ -962,7 +962,7 @@ fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writi
 
 #[test]
 #[cfg(target_os = "macos")]
-fn unverified_legacy_snapshot_never_acquires_provenance_on_later_status_syncs() {
+fn repeated_startup_status_never_promotes_unverified_snapshot() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
@@ -991,11 +991,84 @@ fn unverified_legacy_snapshot_never_acquires_provenance_on_later_status_syncs() 
 
     for _ in 0..2 {
         let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
-        assert!(status.needs_extract);
+        assert!(!status.needs_extract);
+        assert_eq!(status.installation_mode, "unknown");
     }
     let state = state::read_state(&state_dir).unwrap();
     assert!(state.cavalry_revision.is_empty());
     assert!(state.english_snapshot_provenance.is_none());
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn startup_status_treats_a_missing_language_marker_as_english() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = crate::install::normalize_path(&make_bundle(temp.path()));
+    state::write_state(
+        &state_dir,
+        &State {
+            app_path: app.to_string_lossy().to_string(),
+            cavalry_version: "2.7.2".into(),
+            current_lang: "zh-Hans".into(),
+            ..State::default()
+        },
+    )
+    .unwrap();
+
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
+
+    assert_eq!(status.current_lang, "en");
+}
+
+#[test]
+fn startup_status_falls_back_to_discovery_when_internal_state_is_unreadable() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = if cfg!(target_os = "macos") {
+        make_bundle(temp.path())
+    } else {
+        make_windows_install(temp.path())
+    };
+    write(&state_dir.join("state.json"), b"not valid state");
+    write(&state_dir.join("state.json.prev"), b"also not valid state");
+
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
+
+    assert_eq!(
+        status.app_path,
+        crate::install::normalize_path(&app).to_string_lossy()
+    );
+    assert_eq!(status.current_lang, "en");
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn startup_status_does_not_probe_or_modify_an_internal_apply_journal() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = crate::install::normalize_path(&make_bundle(temp.path()));
+    make_language(&repo, "zh-Hans");
+    let journal = state_dir.join("macos-apply-transaction");
+    fs::create_dir_all(&journal).unwrap();
+    write(&journal.join("manifest.json"), b"not a valid journal");
+    let before = fs::read(&journal.join("manifest.json")).unwrap();
+
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
+
+    assert_eq!(status.version, "2.7.2");
+    assert_eq!(status.installation_mode, "unknown");
+    assert_eq!(
+        fs::read(&journal.join("manifest.json")).unwrap(),
+        before,
+        "startup observation must leave internal recovery evidence untouched"
+    );
 }
 
 #[test]

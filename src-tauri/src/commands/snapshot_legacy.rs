@@ -619,26 +619,6 @@ fn macos_managed_snapshot_is_proven_with_identities(
     .proven
 }
 
-#[cfg(target_os = "macos")]
-pub(crate) fn macos_managed_legacy_proof_diagnostics(
-    repo_root: &Path,
-    state_dir: &Path,
-    resource_dir: &Path,
-    current: &State,
-    app_path: &Path,
-    immutable_revision: &str,
-) -> MacosManagedLegacyProofDiagnostics {
-    let english_source = language_source_dir(repo_root, resource_dir, "en");
-    macos_managed_snapshot_proof_diagnostics_with_identities(
-        &english_source,
-        state_dir,
-        current,
-        app_path,
-        immutable_revision,
-        &RELEASED_MACOS_INJECTOR_CODE_IDENTITIES,
-    )
-}
-
 /// Read-only proof used by status projection. It accepts only a legacy state/snapshot that still
 /// names this exact install and revision, matches the packaged English keyed overlay, and has a
 /// hash-locked Windows runtime: Active/Recover retain the durable vendor backup, while Stock

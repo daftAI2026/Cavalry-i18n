@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke/transformCallback/unregisterCallback（或兼容 __TAURI__.core.invoke）能力。
- * [OUTPUT]: 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Status 保留安装/版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint，内部签名清理事实不进入 DTO；权限入口只接受固定 App Management、有限 CSS forward/return rect 与 viewport，Updater Channel 只转发安全阶段与计数；其余接口仅转发固定 project-link、About、main caption 与固定 about-label close，丢弃 raw warning、URL/签名/路径/原始响应。
+ * [OUTPUT]: 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Status 只归一化轻量安装观察、版本兼容与固定中性的旧证明字段，内部 journal/签名清理事实不进入 DTO；权限入口只接受固定 App Management、有限 CSS forward/return rect 与 viewport，Updater Channel 只转发安全阶段与计数；其余接口仅转发固定 project-link、About、main caption 与固定 about-label close，丢弃 raw warning、URL/签名/路径/原始响应。
  * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js/about-window.js 前加载；业务只消费稳定 DTO，About 创建仍归单一 Rust owner，窗口插件调用只允许源码固定的 main/about label。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -150,8 +150,7 @@
       macosPermissionHandoffRequired: result.platform === 'macos' && result.macosPermissionHandoffRequired === true,
       officialRecoveryAvailable: typeof result.officialRecoveryAvailable === 'boolean'
         ? result.officialRecoveryAvailable
-        : result.installationMode !== 'managedLegacy',
-      startupRecoveryError: pick(result.startupRecoveryError, null),
+        : false,
       defaultAppCandidates: Array.isArray(result.defaultAppCandidates)
         ? result.defaultAppCandidates.filter((candidate) => typeof candidate === 'string')
         : [],
