@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Vercel design.md 发布的排印、字重、4px 间距及 vbg-blue-700 informational 颜色角色，依赖 macOS AppKit 与 Windows compositor alpha 窗口表面的平台几何及系统字体策略
- * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 节奏、Windows 10px 阴影留白/32px 外壳圆角、20px Updater 与 16px Windows caption 图标、以当前 X 可见右缘为基准的 15px 标题光学边距、68px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级、权限阻断可读停顿与动效真相源
+ * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 主节奏、主窗口 20px padding 派生的 10px 同行动作间距、Windows 10px 阴影留白/32px 外壳圆角、20px Updater 与 16px Windows caption 图标、以当前 X 可见右缘为基准的 15px 标题光学边距、80px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级、权限阻断可读停顿与动效真相源
  * [POS]: renderer 视觉系统的基础层；button/styles/window-controls 等组件层只消费角色，不再持有可调设计常量
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -132,6 +132,8 @@
   --gap-control: var(--space-2);
   --gap-section: var(--space-4);
   --gap-flow: var(--space-5);
+  /* 同行动作属于页面容器内的紧密一组；其间距固定为 20px 页面 padding 的一半。 */
+  --gap-main-actions: 10px;
   --folder-icon-size: 18px;
   --operation-marker-size: var(--space-4);
   --operation-panel-min-height: 176px;
@@ -153,7 +155,7 @@
   --operation-shimmer-highlight-alpha: 0.2;
 
   /* ---------- About 组件契约 ---------- */
-  --about-app-icon-size: calc(var(--space-16) + var(--space-1));
+  --about-app-icon-size: calc(var(--space-16) + var(--space-4));
   --about-link-icon-size: 16px;
 
   /* ---------- Select 组件契约 ---------- */

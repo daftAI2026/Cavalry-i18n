@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tokens.css/button.css、styles.css 的共享 40px 标题栏与 window-controls.css 的 Windows caption primitive；about.html 只提供独立页面语义。
- * [OUTPUT]: 对外提供 macOS/Windows 共用标题栏和内容上下等距的独立 About 视觉层；Windows 关闭按钮与 10px 透明阴影外壳直接消费共享几何。
+ * [OUTPUT]: 对外提供覆盖在完整内容画布上的 macOS/Windows 共用可拖动 Chrome、无重复视觉标题/分隔线和内容上下等距的独立 About 视觉层；Windows 关闭按钮与 10px 透明阴影外壳直接消费共享几何。
  * [POS]: renderer 的 About 视觉层；与主窗口 Dialog 解耦，只选择平台 Chrome 显隐，不复制标题栏或按钮尺寸，不加载远程资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -36,12 +36,13 @@ body {
   display: none;
 }
 
-html:is([data-platform="macos"], [data-platform="windows"]) .about-surface {
-  grid-template-rows: var(--titlebar-height) minmax(0, 1fr);
-}
-
 html:is([data-platform="macos"], [data-platform="windows"]) .about-titlebar {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
   display: flex;
+  background: transparent;
+  box-shadow: none;
 }
 
 .about-window {

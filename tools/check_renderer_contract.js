@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、typed 写入拒绝后的权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、仅消费后端对 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明的兼容清理、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、仅消费后端对 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明的兼容清理、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -618,7 +618,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(aboutPage, /class="window-surface about-surface"/);
   assert.match(aboutPage, /class="titlebar about-titlebar" data-tauri-drag-region/);
   assert.match(aboutPage, /class="native-controls-space"[^>]*data-tauri-drag-region/);
-  assert.match(aboutPage, /class="window-title"[^>]*data-tauri-drag-region>Cavalry Language Switcher<\/span>/);
+  assert.match(aboutPage, /class="window-title"[^>]*data-tauri-drag-region[^>]*aria-hidden="true"><\/span>/);
   assert.match(aboutPage, /id="aboutWindowControls"[^>]*class="windows-window-controls"[^>]*hidden/);
   assert.match(aboutPage, /id="aboutWindowCloseButton"[^>]*class="ui-button window-control-button window-control-close"[^>]*data-size="icon-sm"/);
   assert.match(aboutPage, /<script src="\.\/icons\.js"><\/script>\s*<script src="\.\/toast-control\.js"><\/script>\s*<script src="\.\/about-window\.js"><\/script>/);
@@ -640,11 +640,11 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(bridge, /closeAboutWindow:\s*\(\) => invokeWindow\('close', 'about'\)/);
   assert.match(bridge, /invoke\('plugin:app\|version'\)/);
   assert.doesNotMatch(bridge, /openProjectLink:\s*\(url\)/, 'bridge must expose a fixed link id, never a renderer URL');
-  assert.match(tokens, /--about-app-icon-size:\s*calc\(var\(--space-16\) \+ var\(--space-1\)\)/);
+  assert.match(tokens, /--about-app-icon-size:\s*calc\(var\(--space-16\) \+ var\(--space-4\)\)/);
   assert.match(tokens, /--about-link-icon-size:\s*16px/);
   assert.doesNotMatch(aboutStyles, /\.about-(?:dialog|close)\b/);
-  assert.match(aboutStyles, /html:is\(\[data-platform="macos"\], \[data-platform="windows"\]\) \.about-surface\s*\{[\s\S]*?grid-template-rows:\s*var\(--titlebar-height\) minmax\(0, 1fr\)/);
-  assert.match(aboutStyles, /html:is\(\[data-platform="macos"\], \[data-platform="windows"\]\) \.about-titlebar\s*\{[\s\S]*?display:\s*flex/);
+  assert.match(aboutStyles, /\.about-surface\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\)/);
+  assert.match(aboutStyles, /html:is\(\[data-platform="macos"\], \[data-platform="windows"\]\) \.about-titlebar\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?inset:\s*0 0 auto;[\s\S]*?display:\s*flex/);
   assert.match(aboutStyles, /\.about-window\s*\{[\s\S]*?align-content:\s*center;[\s\S]*?padding:\s*var\(--padding-window\)[\s\S]*?overflow:\s*hidden/);
   assert.match(aboutStyles, /\.about-app-icon\s*\{[\s\S]*?width:\s*var\(--about-app-icon-size\)[\s\S]*?height:\s*var\(--about-app-icon-size\)/);
   assert.deepEqual(
@@ -703,7 +703,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.modal-title\s*\{[\s\S]*?font-size:\s*var\(--type-heading\)[\s\S]*?font-weight:\s*var\(--weight-medium\)[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
   assert.match(styles, /\.modal-body\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-compact\)[\s\S]*?text-wrap:\s*wrap;[\s\S]*?white-space:\s*pre-line/);
   assert.doesNotMatch(styles, /\.modal-body\s*\{[\s\S]*?text-wrap:\s*balance/, 'AlertDialog prose must preserve natural wrapping');
-  assert.match(styles, /\.language-control-row\s*\{[\s\S]*?gap:\s*var\(--gap-flow\)/);
+  assert.match(tokens, /--gap-main-actions:\s*10px/);
+  assert.match(styles, /\.language-control-row\s*\{[\s\S]*?row-gap:\s*var\(--gap-flow\);[\s\S]*?column-gap:\s*var\(--gap-main-actions\)/);
   assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?min-height:\s*var\(--operation-panel-min-height\);[\s\S]*?margin-top:\s*var\(--gap-flow\)/);
   assert.doesNotMatch(operationStyles, /\.status-label\s*\{/, 'the generic task heading must not be visible');
   assert.match(operationStyles, /\.operation-event-title\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?line-height:\s*var\(--line-height-compact\)/);

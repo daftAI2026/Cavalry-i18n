@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/成功/阻塞/警告/失败 fixture 矩阵、feedback/icons/badges 目录，以及 ui_review_permission_handoff 的独立权限审查页；依赖 localhost query 传递 locale/scenario。
- * [OUTPUT]: 对外提供 workspaceHtml，并兼容转发 permissionHandoffHtml；以单一侧栏切换生产界面、审查总览和占满可用 stage 的独立 macOS 权限交接原型，revision 变化时重载整个工作台而非只刷新 iframe。
+ * [OUTPUT]: 对外提供 workspaceHtml，并兼容转发 permissionHandoffHtml；以单一侧栏切换生产界面、320×308 且 Chrome 覆盖完整画布的无重复视觉标题 About、审查总览和占满可用 stage 的独立 macOS 权限交接原型，revision 变化时重载整个工作台而非只刷新 iframe。
  * [POS]: tools UI Review 的纯导航壳；只拥有页面选择、fixture/locale 路由与主/About 审查窗口外框，权限页不再套用会压缩原型的假窗口，动画状态机由兄弟模块独立承担。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -44,9 +44,9 @@ function workspaceHtml() {
     .lights { position: absolute; z-index: 5; top: 12px; left: 12px; display: flex; gap: 8px; pointer-events: none; }
     .lights i { width: 16px; height: 16px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0,0,0,.13); }
     .lights i:nth-child(1) { background: #ff5f57; } .lights i:nth-child(2) { background: #febc2e; } .lights i:nth-child(3) { background: #28c840; }
-    .window[data-surface="about"] { width: 320px; height: 328px; border-radius: 12px; }
-    .window[data-surface="about"] iframe { height: 300px; margin-top: 28px; }
-    .window[data-surface="about"]::before { content: "About Cavalry Language Switcher"; position: absolute; z-index: 4; inset: 0 0 auto; height: 28px; display: grid; place-items: center; border-bottom: 1px solid var(--line); background: #f7f7f7; font-size: 11px; line-height: 16px; }
+    .window[data-surface="about"] { width: 320px; height: 308px; border-radius: 12px; }
+    .window[data-surface="about"] iframe { height: 100%; margin-top: 0; }
+    .window[data-surface="about"]::before { content: ""; position: absolute; z-index: 4; inset: 0 0 auto; height: 40px; pointer-events: none; }
     .window[data-surface="about"] .lights { top: 8px; left: 8px; gap: 6px; }
     .window[data-surface="about"] .lights i { width: 12px; height: 12px; }
     .window[data-surface="handoff"] { width: 100%; height: 100%; border: 0; border-radius: 12px; box-shadow: none; }

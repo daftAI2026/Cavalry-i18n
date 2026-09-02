@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、主窗/About capability 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供 macOS 400×484 内容窗口、主窗口/About 共享的 macOS 交通灯 Overlay 与标题栏拖动权限、Windows 10px transparent-compositor 外壳、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
+ * [OUTPUT]: 提供 macOS 400×484 内容窗口、主窗口跨平台首帧后显露、主窗口/About 共享的 macOS 交通灯 Overlay 与标题栏拖动权限、Windows 10px transparent-compositor 外壳、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -120,6 +120,8 @@ fn tauri_config_declares_capabilities() {
 fn native_titlebar_alignment_and_windows_compositor_shell_are_frozen() {
     let lib_source = include_str!("../src/lib.rs");
     let chrome_source = include_str!("../src/window_chrome.rs");
+    let shared = read_json(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json"));
+    let shared_window = &shared["app"]["windows"][0];
     assert!(chrome_source.contains("pub(crate) const TITLEBAR_HEIGHT: f64 = 40.0;"));
     assert!(chrome_source.contains("const MACOS_TRAFFIC_LIGHT_X: f64 = 13.0;"));
     assert!(chrome_source.contains("const MACOS_TRAFFIC_LIGHT_Y: f64 = 22.0;"));
@@ -131,6 +133,7 @@ fn native_titlebar_alignment_and_windows_compositor_shell_are_frozen() {
     assert!(lib_source.contains("PageLoadEvent::Finished"));
     assert!(lib_source.contains(".show()"));
     assert!(lib_source.contains(".and_then(|_| window.set_focus())"));
+    assert_eq!(shared_window["visible"], false);
     assert!(!chrome_source.contains("SetWindowRgn"));
     assert!(!chrome_source.contains("DwmSetWindowAttribute"));
     assert!(chrome_source.contains("tauri::WindowEvent::Resized(_)"));

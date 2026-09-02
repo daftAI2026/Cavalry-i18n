@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 tauri Builder/默认菜单、稳定 commands facade、共享 window_chrome/统一 About 窗口 owner/macOS permission handoff/启动恢复、Windows 提升 worker/uninstall restore/headless launch/QPA、共享 operation_lock/runtime_paths/diagnostics 与 platform_runtime。
- * [OUTPUT]: 提供 run、macOS 系统应用菜单与 Windows renderer 共用的独立 About 窗口、macOS Overlay 对齐与 Windows 透明外壳预初始化、App Management 原生交接与 pending journal 恢复、启动恢复前后脱敏诊断事件、Windows 三类早期分流、Updater plugin、稳定九命令注册表及平台门控 runtime。
+ * [OUTPUT]: 提供 run、macOS 系统应用菜单与 Windows renderer 共用的独立 About 窗口、主窗口跨平台首帧后显露、macOS Overlay 对齐与 Windows 透明外壳预初始化、App Management 原生交接与 pending journal 恢复、启动恢复前后脱敏诊断事件、Windows 三类早期分流、Updater plugin、稳定九命令注册表及平台门控 runtime。
  * [POS]: src-tauri/src 的应用装配层；组合命令 facade、启动恢复、共享运行基础与进程入口边界，但不承载具体写入或系统命令业务。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -84,7 +84,6 @@ pub fn run() {
         "document.addEventListener('DOMContentLoaded', () => { document.documentElement.dataset.platform = 'windows'; document.body.dataset.platform = 'windows'; document.dispatchEvent(new CustomEvent('cavalry-platform-ready', { detail: 'windows' })); }, { once: true });",
     );
 
-    #[cfg(target_os = "windows")]
     let builder = builder.on_page_load(|webview, payload| {
         use tauri::{webview::PageLoadEvent, Manager};
 
@@ -93,7 +92,7 @@ pub fn run() {
                 window
                     .show()
                     .and_then(|_| window.set_focus())
-                    .expect("Main Windows window could not be revealed after page load");
+                    .expect("Main window could not be revealed after page load");
             }
         }
     });
