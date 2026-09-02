@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 macos_permission_handoff.m 的固定 C ABI、Tauri main WebviewWindow 原生 NSView、有限 CSS source rect/viewport 与单次 PermissionHandoffEvent Channel。
- * [OUTPUT]: 对外提供 start/finish App Management handoff；仅在真实语言事务返回 typed PermissionDenied 后呈现恢复路径，drag copy 只回报 retryRequested。
+ * [INPUT]: 依赖 macos_permission_handoff.m 的固定 C ABI、Tauri main WebviewWindow 原生 NSView、有限 CSS forward/return rect 与 viewport，以及单次 PermissionHandoffEvent Channel。
+ * [OUTPUT]: 对外提供 start/finish App Management handoff；仅在真实语言事务返回 typed PermissionDenied 后呈现恢复路径，drag copy 只回报 retryRequested，成功事务直接清理，只有显式 Back 才回到持久动作。
  * [POS]: src-tauri 的权限交接生命周期边界；不读取 TCC、不预判权限、不阻止首次 Cavalry 写事务，系统设置与视觉交接始终从真实写入拒绝派生。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -22,9 +22,14 @@ unsafe extern "C" {
         y: f64,
         width: f64,
         height: f64,
+        return_x: f64,
+        return_y: f64,
+        return_width: f64,
+        return_height: f64,
         viewport_width: f64,
         viewport_height: f64,
         has_source_rect: bool,
+        has_return_rect: bool,
         callback: NativeCallback,
         context: *mut c_void,
     );
@@ -60,6 +65,7 @@ unsafe extern "C" fn receive_native_outcome(context: *mut c_void, outcome: i32, 
 pub(crate) fn start_app_management_handoff(
     app: &tauri::AppHandle,
     source_rect: Option<PermissionSourceRect>,
+    return_rect: Option<PermissionSourceRect>,
     viewport_css: Option<PermissionViewportSize>,
     channel: tauri::ipc::Channel<PermissionHandoffEvent>,
 ) -> Result<(), String> {
@@ -79,6 +85,12 @@ pub(crate) fn start_app_management_handoff(
         width: 0.0,
         height: 0.0,
     });
+    let return_rect_value = return_rect.unwrap_or(PermissionSourceRect {
+        x: 0.0,
+        y: 0.0,
+        width: 0.0,
+        height: 0.0,
+    });
     let context = Box::into_raw(Box::new(CallbackContext { channel })).cast::<c_void>();
     // SAFETY: Tauri owns native_view for the main window lifetime; Objective-C copies all scalar
     // input synchronously and owns context until its single terminal callback.
@@ -89,9 +101,14 @@ pub(crate) fn start_app_management_handoff(
             rect.y,
             rect.width,
             rect.height,
+            return_rect_value.x,
+            return_rect_value.y,
+            return_rect_value.width,
+            return_rect_value.height,
             viewport.width,
             viewport.height,
             source_rect.is_some(),
+            return_rect.is_some(),
             receive_native_outcome,
             context,
         );

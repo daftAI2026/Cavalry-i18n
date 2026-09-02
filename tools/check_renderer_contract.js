@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、typed 写入拒绝后的权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、仅消费后端对 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明的兼容清理、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、保护写事务 commit→reverse 的重试合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据，工作台必须实时消费生产 renderer、在 applyTransaction commit 后于 restart 前发送 settled，且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、仅消费后端对 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明的兼容清理、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -199,8 +199,9 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /replaceClone\(proxySource, source\.element\)/);
   assert.match(handoff, /replaceClone\(proxyDestination, target\.element\)/);
   assert.match(handoff, /selector: '#draggableAppRow'/);
-  assert.match(handoff, /function startOpenSettings\(sourceRect = null\)[\s\S]*?captureSourceGeometry\(\)/);
+  assert.match(handoff, /function startOpenSettings\(sourceRect = null, returnRect = null\)[\s\S]*?captureSourceGeometry\(\)/);
   assert.match(handoff, /requestedSourceRect = sourceRect/);
+  assert.match(handoff, /requestedReturnRect = returnRect/);
   assert.match(handoff, /proxySource\.style\.opacity/);
   assert.match(handoff, /proxyDestination\.style\.opacity/);
   assert.match(handoff, /const visualProgress = clamp\(progress, 0, 1\)/);
@@ -226,12 +227,12 @@ test('UI Review renders the exact production shell and replaces only the data br
     assert.match(handoff, new RegExp(`${eventName}: Object\\.freeze|appendWorkflowEvent\\('${eventName}'\\)|occurredWorkflowEvents = \\['${eventName}'\\]`));
   }
   assert.match(handoff, /openMessage: 'cavalry-ui-review:permission-handoff-open'/);
-  assert.match(handoff, /function handleSourceMessage\(event\)[\s\S]*?startOpenSettings\(event\.data\.sourceRect \|\| null\)/);
+  assert.match(handoff, /function handleSourceMessage\(event\)[\s\S]*?startOpenSettings\(event\.data\.sourceRect \|\| null, event\.data\.returnRect \|\| null\)/);
   assert.match(handoff, /postMessage\(\{ type: REVIEW\.openedMessage \}/);
   assert.match(handoff, /postMessage\(\{ type: REVIEW\.eventMessage, outcome: 'retryRequested' \}/);
   assert.match(permissionHandoff, /function captureSourceRect\(element\)/);
   assert.match(permissionHandoff, /function captureViewport\(\)/);
-  assert.match(permissionHandoff, /api\.openPrivacySecurity\(\{ sourceRect, viewportCss \}, \(event\) =>/);
+  assert.match(permissionHandoff, /api\.openPrivacySecurity\(\{ sourceRect, returnRect, viewportCss \}, \(event\) =>/);
   assert.match(permissionHandoff, /event\.outcome === 'retryRequested'[\s\S]*?onRetry/);
   assert.match(handoff, /function resolveRetry\(result\)[\s\S]*?workflowState !== 'retrying'/);
   assert.match(handoff, /resultError: document\.querySelector\('\[data-action="result-error"\]'\)/);
@@ -241,6 +242,9 @@ test('UI Review renders the exact production shell and replaces only the data br
   assert.match(handoff, /function demonstrateRetryResult\(result\)[\s\S]*?startRetry\(\)[\s\S]*?resolveRetry\(result\)/);
   assert.match(handoff, /function simulateLater\(\)[\s\S]*?laterChosen[\s\S]*?demonstrateRetryResult\('denied'\)/);
   assert.match(handoff, /function dismissFromAccessory\(\)[\s\S]*?setWorkflowState\('returning'\)[\s\S]*?animateTo\(0\)/);
+  assert.match(handoff, /function returnCapture\(stageRect\)[\s\S]*?#permissionButton/);
+  assert.match(handoff, /function cleanupAfterSettled\(nextState, eventName\)[\s\S]*?setTransitionPhase\('idle'\)/);
+  assert.doesNotMatch(handoff, /reverseAfterSettled/);
   assert.match(handoff, /reverseFromAccessory\.addEventListener\('click', dismissFromAccessory\)/);
   assert.match(handoff, /actionButtons\.resultDenied\.addEventListener\('click', simulateLater\)/);
   assert.match(handoff, /demonstrateRetryResult\('error'\)/);

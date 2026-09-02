@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 子模块、共享 operation_lock、Tauri command runtime/IPC Channel/startup recovery state 与 privilege facade。
- * [OUTPUT]: 保持九条稳定 Tauri command；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
+ * [OUTPUT]: 保持九条稳定 Tauri command；macOS Switch/Restore 直接进入安全事务，仅将真实 typed PermissionDenied 投影为 App Management handoff，保护写事务 commit 后只清理交接层而不反向飞回已失效动作；其余 apply 四阶段、真实 commit oracle、Windows residue、Updater、固定项目链接与 About 保持既有 owner。
  * [POS]: renderer API facade；具体状态、快照、写入和平台运行时下沉至领域模块，GUI 与卸载恢复复用同一单飞/事务语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -49,7 +49,7 @@ fn finalize_permission_handoff(payload: ActionPayload) -> ActionPayload {
 
 fn complete_permission_handoff_after_commit() {
     #[cfg(target_os = "macos")]
-    crate::macos_permission_handoff::finish_app_management_handoff(true);
+    crate::macos_permission_handoff::finish_app_management_handoff(false);
 }
 
 #[tauri::command]
@@ -226,6 +226,7 @@ pub fn open_privacy_security(
     if crate::macos_permission_handoff::start_app_management_handoff(
         &app,
         request.source_rect,
+        request.return_rect,
         request.viewport_css,
         on_event,
     )

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands/contract/update、macos_permission_handoff Rust owner 与 native AppKit owner 的生产源码。
- * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 坐标合同、per-session Channel、drop 后同进程 oracle、任何失败均 cleanup、受保护写事务 commit 后先 reverse 再打开 Cavalry、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、single motion surface 的内容与 shadow/stroke 共用边界、底部锚定且带 overscan 的箭头 spring、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
+ * [OUTPUT]: 验证 App Management handoff 保持九命令内固定权限边界、CSS viewport 的 forward/return 坐标合同、per-session Channel、drop 后同进程 oracle、业务成功/错误 cleanup、仅显式 Back 重新捕获持久 Activity 动作并 reverse、透明底整条实时 App row 快照且只在 System Settings 整窗内接受的 file-URL Copy drag、参考同形 532×112 helper 的单行指令 / Back + App row 几何、single motion surface 的内容与 shadow/stroke 共用边界、底部锚定且带 overscan 的箭头 spring、Reduce Motion 与无 TCC/AX 自动化副作用；权限链不主动重启 Switcher，系统“退出并重新打开”只产生待实机确认的新会话语义，程序 self-restart 只允许 updater 安装完成后持有。
  * [POS]: src-tauri/tests 的只读 macOS 权限交接守门；证明源码边界与可编译合同，不冒充首次授权、多屏或真实 System Settings drop 证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -38,10 +38,11 @@ fn handoff_stays_inside_the_fixed_command_and_real_apply_oracle() {
     assert!(!commands.contains("!payload.permission_required"));
     assert!(!commands.contains("start_permission_handoff"));
     assert!(contract.contains("self.permission == \"appManagement\""));
+    assert!(contract.contains("return_rect"));
     assert!(contract.contains("viewport_css"));
-    assert!(contract.contains("match (self.source_rect, self.viewport_css)"));
-    assert!(contract.contains("(None, None) => true"));
-    assert!(commands.contains("finish_app_management_handoff(true)"));
+    assert!(contract.contains("match (self.source_rect, self.return_rect, self.viewport_css)"));
+    assert!(contract.contains("(None, None, None) => true"));
+    assert!(!commands.contains("finish_app_management_handoff(true)"));
     assert!(rust_owner.contains("PermissionHandoffEvent"));
     assert!(
         !commands.contains("app.restart()"),
@@ -55,7 +56,7 @@ fn handoff_stays_inside_the_fixed_command_and_real_apply_oracle() {
 }
 
 #[test]
-fn protected_commit_starts_reverse_before_restart_and_finalizer_cleans_every_failure() {
+fn protected_commit_cleans_handoff_before_restart_and_finalizer_cleans_every_failure() {
     let commands = read("src/commands.rs");
 
     let finalizer_start = commands
@@ -76,29 +77,29 @@ fn protected_commit_starts_reverse_before_restart_and_finalizer_cleans_every_fai
         .find("if !applied.ok")
         .map(|offset| apply_start + offset)
         .expect("protected apply result gate missing");
-    let reverse_start = commands
+    let cleanup_start = commands
         .find("complete_permission_handoff_after_commit();")
-        .expect("commit reverse trigger missing");
+        .expect("commit cleanup trigger missing");
     let restart_start = commands
         .find("let mut restart_phase = contract::OperationPhaseGuard::start")
         .expect("restart phase missing");
 
     assert!(apply_start < apply_gate);
     assert!(
-        apply_gate < reverse_start,
-        "reverse must follow the protected apply result"
+        apply_gate < cleanup_start,
+        "cleanup must follow the protected apply result"
     );
     assert!(
-        reverse_start < restart_start,
-        "reverse must begin before restart"
+        cleanup_start < restart_start,
+        "cleanup must begin before restart"
     );
-    assert!(commands[apply_gate..reverse_start].contains("return Ok(applied);"));
+    assert!(commands[apply_gate..cleanup_start].contains("return Ok(applied);"));
     assert_eq!(
         commands
             .matches("finish_app_management_handoff(true)")
             .count(),
-        1,
-        "successful reverse must have one commit-time call site"
+        0,
+        "business completion must not reverse into a resolved permission action"
     );
 }
 
@@ -232,9 +233,10 @@ fn native_helper_matches_the_reference_instruction_back_and_app_row_geometry() {
     assert_eq!(row_top + row_height + horizontal_inset, helper_height);
     assert!(native.contains("instructionGroupX + CAVArrowSize + CAVArrowTextGap"));
     assert!(native.contains("CAVHelperHorizontalInset + CAVBackButtonSize + CAVBackToRowGap"));
-    assert!(native.contains(
-        "[self sendOutcome:CAVOutcomeDismissed terminal:YES];\n  [self finishWithReverse:YES];"
-    ));
+    assert!(native.contains("BOOL canReverse = [self refreshReturnCapture];"));
+    assert!(native.contains("[self finishWithReverse:canReverse];"));
+    assert!(native.contains("CAVSourceScreenRect(self.sourceView, self.returnRectCSS"));
+    assert!(native.contains("self.sourceImage = image;"));
 }
 
 #[test]

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的安装/版本兼容/官方恢复能力、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、仅由真实 typed PermissionDenied 触发且保留设置恢复按钮的 macOS handoff、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、证据分级的单一 Restore English、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部签名清理；只读状态不制造 macOS 权限门禁，Switch/Restore 总是先调用安全事务，typed 权限拒绝才把失败阶段收敛为链尾阻塞项，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -521,7 +521,7 @@ async function showPermissionWait(nextLanguage, phaseId = 'permissionRequired', 
         closeModal();
         void runApply(nextLanguage).catch(recoverOperationFailure);
       } else {
-        void permissionHandoff.open(modalPrimaryButton, closeModal).catch(recoverOperationFailure);
+        void permissionHandoff.open(modalPrimaryButton, permissionButton, closeModal).catch(recoverOperationFailure);
       }
     },
     onSecondary: closeModal,
@@ -765,7 +765,7 @@ function handlePermissionButton() {
     void runApply(pending).catch(recoverOperationFailure);
     return;
   }
-  void permissionHandoff.open(permissionButton).catch(recoverOperationFailure);
+  void permissionHandoff.open(permissionButton, permissionButton).catch(recoverOperationFailure);
 }
 updateButton.addEventListener('click', showUpdateConfirmation);
 browseButton.addEventListener('click', () => void browseForApp().catch(recoverOperationFailure));

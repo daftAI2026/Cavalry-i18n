@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖权限 handoff 审查页的固定 DOM anchors、生产图标工厂、本机参考图节点与浏览器 RAF/Drag and Drop/Reduced Motion API，并以锁定研究证据约束转场数学、箭头提示节奏和用户操作语义边界。
- * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 source/可刷新 target 的 DOM 视觉状态机、source 缺失/减少动效静态 fallback、参考同形 Back 与实时 App 行接管、透明底整行 DOM snapshot drag image 与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动同进程 oracle、Later 阻断与系统 Quit & Reopen 后 fresh-session 投影。
- * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有 fixture 的业务结果才能驱动 reverse 或重开提示，系统重开只投影为新 renderer 会话；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale、真实系统退出重开或原生授权证据。
+ * [OUTPUT]: 对外提供 permissionHandoffRuntimeScript；返回只供 localhost UI Review 注入的权限工作流、冻结 forward source/按 Back 刷新的 Activity return target、source 缺失/减少动效静态 fallback、参考同形 Back 与实时 App 行接管、透明底整行 DOM snapshot drag image 与整窗 file URL copy-drop 审查，并用生产同形 open/result bridge 合同驱动同进程 oracle、成功/错误 cleanup、Later 阻断与系统 Quit & Reopen 后 fresh-session 投影。
+ * [POS]: tools UI Review 权限原型的行为层；生产 renderer 同时承担 source 与任务反馈真相，只有显式 Back 才 reverse 到仍有效的持久动作，fixture 业务结果只 cleanup 或进入重开提示，系统重开只投影为新 renderer 会话；本机参考、HTML drop、单屏 CSS 几何或动画完成都不冒充 NSDraggingSession、跨屏 backing-scale、真实系统退出重开或原生授权证据。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 
@@ -109,7 +109,7 @@ function permissionHandoffRuntimeScript() {
         appDropRejected: Object.freeze({ icon: 'warningCircle', tone: 'warning', text: '原型拒绝未知拖拽源' }),
         dragCancelled: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '拖入取消，恢复 App 行' }),
         existingRowEnabled: Object.freeze({ icon: 'verify', tone: 'neutral', text: '用户模拟开启已有 App 行，尚未验证权限' }),
-        handoffDismissed: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '反向转场完成并清理视觉层' }),
+        handoffDismissed: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '权限交接视觉层已清理' }),
         retryRequested: Object.freeze({ icon: 'spinner', tone: 'neutral', text: '运行一次当前进程写事务验证' }),
         laterChosen: Object.freeze({ icon: 'infoCircle', tone: 'neutral', text: '用户选择稍后；当前进程仍不能使用新权限' }),
         protectedApplyCommitted: Object.freeze({ icon: 'checkCircle', tone: 'success', text: 'fixture 受保护写事务已提交；原型开始回收视觉层' }),
@@ -142,6 +142,7 @@ function permissionHandoffRuntimeScript() {
       let dragOutcome = 'idle';
       let settledWorkflowState = null;
       let requestedSourceRect = null;
+      let requestedReturnRect = null;
 
       hintArrow.replaceChildren(window.cavalryIcons.create('handoffArrow'));
       accessoryBackIcon.replaceChildren(window.cavalryIcons.create('back'));
@@ -214,16 +215,7 @@ function permissionHandoffRuntimeScript() {
         slot.replaceChildren(copyComputedSubtree(sourceElement));
       }
 
-      function sourceCapture(stageRect) {
-        const found = findSourceElement();
-        if (!found) {
-          sourceState.textContent = '等待真实权限动作';
-          return null;
-        }
-        if (sourceReloadPending && sourceFrame.contentDocument === sourceReloadDocument) {
-          sourceReloadPending = false;
-          sourceReloadDocument = null;
-        }
+      function projectedSourceCapture(found, supplied, stageRect) {
         const iframeRect = sourceFrame.getBoundingClientRect();
         const iframeStyle = getComputedStyle(sourceFrame);
         const borderLeft = Number.parseFloat(iframeStyle.borderLeftWidth) || 0;
@@ -235,7 +227,6 @@ function permissionHandoffRuntimeScript() {
         const scaleX = (iframeRect.width - borderLeft - borderRight) / contentWidth;
         const scaleY = (iframeRect.height - borderTop - borderBottom) / contentHeight;
         const liveSourceRect = found.candidate.getBoundingClientRect();
-        const supplied = requestedSourceRect;
         const suppliedValues = supplied && [supplied.x, supplied.y, supplied.width, supplied.height];
         const sourceRect = suppliedValues?.every(Number.isFinite) ? {
           left: supplied.x, top: supplied.y, width: supplied.width, height: supplied.height,
@@ -247,13 +238,35 @@ function permissionHandoffRuntimeScript() {
           height: sourceRect.height * scaleY,
         };
         const style = found.candidate.ownerDocument.defaultView.getComputedStyle(found.candidate);
-        sourceState.textContent = '真实源：' + found.selector;
         return {
           rect: localRect(pageRect, stageRect),
           radius: Number.parseFloat(style.borderTopLeftRadius) || 0,
           selector: found.selector,
           element: found.candidate,
         };
+      }
+
+      function sourceCapture(stageRect) {
+        const found = findSourceElement();
+        if (!found) {
+          sourceState.textContent = '等待真实权限动作';
+          return null;
+        }
+        if (sourceReloadPending && sourceFrame.contentDocument === sourceReloadDocument) {
+          sourceReloadPending = false;
+          sourceReloadDocument = null;
+        }
+        sourceState.textContent = '真实源：' + found.selector;
+        return projectedSourceCapture(found, requestedSourceRect, stageRect);
+      }
+
+      function returnCapture(stageRect) {
+        const candidate = sourceFrame.contentDocument?.querySelector('#permissionButton');
+        if (!candidate || candidate.hidden) return null;
+        const style = sourceFrame.contentWindow?.getComputedStyle(candidate);
+        const rect = candidate.getBoundingClientRect();
+        if (!style || style.display === 'none' || style.visibility === 'hidden' || rect.width <= 0 || rect.height <= 0) return null;
+        return projectedSourceCapture({ candidate, selector: '#permissionButton' }, requestedReturnRect, stageRect);
       }
 
       function targetCapture(stageRect) {
@@ -570,9 +583,10 @@ function permissionHandoffRuntimeScript() {
         setWorkflowState('awaitingUser');
       }
 
-      function startOpenSettings(sourceRect = null) {
+      function startOpenSettings(sourceRect = null, returnRect = null) {
         if (workflowState !== 'denied' || transitionPhase !== 'idle') return;
         requestedSourceRect = sourceRect;
+        requestedReturnRect = returnRect;
         const sessionGeneration = ++handoffSessionGeneration;
         const sourceGeometry = captureSourceGeometry();
         sourceFrame.contentWindow?.postMessage({ type: REVIEW.openedMessage }, location.origin);
@@ -636,46 +650,56 @@ function permissionHandoffRuntimeScript() {
           return;
         }
         const stageRect = stage.getBoundingClientRect();
-        captureTargetGeometry({ source: captures.source, stageRect });
+        const returnTarget = returnCapture(stageRect);
+        if (!returnTarget) {
+          appendWorkflowEvent('handoffDismissed');
+          progress = 0;
+          proxy.hidden = true;
+          setTransitionPhase('idle');
+          setWorkflowState('denied');
+          settledWorkflowState = null;
+          return;
+        }
+        replaceClone(proxySource, returnTarget.element);
+        captures = { source: returnTarget, target: captures.target };
+        geometryText.textContent = '返回 ' + Math.round(returnTarget.rect.width) + '×' + Math.round(returnTarget.rect.height) + ' · #permissionButton';
         setWorkflowState('returning');
         setTransitionPhase('reversing');
         animateTo(0);
       }
 
-      function reverseAfterSettled(nextState, eventName) {
+      function cleanupAfterSettled(nextState, eventName) {
         if (workflowState !== 'retrying' || transitionPhase !== 'presented') return;
         appendWorkflowEvent(eventName);
-        if (!captures) {
-          appendWorkflowEvent('handoffDismissed');
-          progress = 0;
-          setTransitionPhase('idle');
-          setWorkflowState(nextState);
-          return;
-        }
-        settledWorkflowState = nextState;
-        const stageRect = stage.getBoundingClientRect();
-        captureTargetGeometry({ source: captures.source, stageRect });
-        setWorkflowState('returning');
-        setTransitionPhase('reversing');
-        animateTo(0);
+        appendWorkflowEvent('handoffDismissed');
+        ++animationGeneration;
+        progress = 0;
+        proxy.hidden = true;
+        setTransitionPhase('idle');
+        setWorkflowState(nextState);
       }
 
       function handleSourceMessage(event) {
         if (event.origin !== location.origin || event.source !== sourceFrame.contentWindow) return;
         if (event.data?.type === REVIEW.openMessage) {
-          startOpenSettings(event.data.sourceRect || null);
+          startOpenSettings(event.data.sourceRect || null, event.data.returnRect || null);
           return;
         }
         if (event.data?.type !== REVIEW.settledMessage || workflowState !== 'retrying') return;
         if (event.data.result === 'success') {
-          reverseAfterSettled('verified', 'protectedApplyCommitted');
+          cleanupAfterSettled('verified', 'protectedApplyCommitted');
           return;
         }
         if (event.data.result === 'error') {
-          reverseAfterSettled('typedError', 'typedError');
+          cleanupAfterSettled('typedError', 'typedError');
           return;
         }
         appendWorkflowEvent('permissionStillMissing');
+        appendWorkflowEvent('handoffDismissed');
+        ++animationGeneration;
+        progress = 0;
+        proxy.hidden = true;
+        setTransitionPhase('idle');
         setWorkflowState('stillDenied');
       }
 

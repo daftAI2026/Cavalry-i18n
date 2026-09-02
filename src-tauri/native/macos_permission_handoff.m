@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS source rect、viewport 尺寸与一次性 C callback。
- * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、单一 motion surface 及其 shadow/stroke、独立非激活箭头 panel、参考同形的“单行指令 / Back + App row”helper 和不含 NSBox 背景的整条实时 App row 快照承载 file-URL NSDraggingSession，并仅接受落在实时 System Settings 主窗口内的 Copy 结果。
- * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 与底部锚定的箭头 spring 实现洁净室 handoff，外层半透明材质属于本进程 accessory 而非 System Settings，且不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域。
+ * [INPUT]: 依赖 AppKit/CoreGraphics/QuartzCore，消费 Tauri WebView 原生 NSView、CSS forward/return rect、viewport 尺寸与一次性 C callback。
+ * [OUTPUT]: 对外提供 cavalry_permission_handoff_start/finish；以 AppKit point geometry、每屏非激活 replicant、单一 motion surface 及其 shadow/stroke、独立非激活箭头 panel、参考同形的“单行指令 / Back + App row”helper 和不含 NSBox 背景的整条实时 App row 快照承载 file-URL NSDraggingSession，并仅接受落在实时 System Settings 主窗口内的 Copy 结果；显式 Back 重新捕获持久 Activity 动作作为返回目标，业务成功与错误只清理视觉层。
+ * [POS]: src-tauri/native 的 macOS 权限交接 owner；按 0.72/1.0 spring、50pt apex、1-p/p opacity、12pt 对向 blur、三层 shadow/stroke 与底部锚定的箭头 spring 实现洁净室 handoff，外层半透明材质属于本进程 accessory 而非 System Settings，且不读写 TCC 或自动拨动系统开关；整个 System Settings 窗口是拖拽判定区域，forward 来源与 Back 返回锚点由同一 session 条件化。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #import <AppKit/AppKit.h>
@@ -70,6 +70,7 @@ static NSString *const CAVTextInstruction = @"instruction"; static NSString *con
 @interface CAVPermissionHandoffCoordinator : NSObject
 @property(nonatomic, assign) CAVPermissionHandoffCallback callback; @property(nonatomic, assign) void *callbackContext;
 @property(nonatomic, weak) NSView *sourceView; @property(nonatomic, assign) NSRect sourceScreenRect;
+@property(nonatomic, assign) NSRect returnRectCSS; @property(nonatomic, assign) CGFloat viewportWidth; @property(nonatomic, assign) CGFloat viewportHeight; @property(nonatomic, assign) BOOL hasReturnRect;
 @property(nonatomic, strong) NSImage *sourceImage; @property(nonatomic, strong) NSImage *targetImage;
 @property(nonatomic, strong) CAVNonActivatingPanel *helperPanel; @property(nonatomic, strong) CAVNonActivatingPanel *arrowPanel; @property(nonatomic, strong) CAVDragSourceView *dragView;
 @property(nonatomic, strong) CAVHandoffArrowView *arrowView; @property(nonatomic, strong) NSButton *backButton;
@@ -83,8 +84,9 @@ static NSString *const CAVTextInstruction = @"instruction"; static NSString *con
 @property(nonatomic, assign) BOOL reducedMotion; @property(nonatomic, assign) BOOL reducedTransparency;
 @property(nonatomic, assign) NSUInteger locateAttempts; @property(nonatomic, assign) NSUInteger missingSettingsAttempts;
 @property(nonatomic, copy) NSString *screenTopologyKey;
-- (instancetype)initWithView:(NSView *)view sourceRect:(NSRect)sourceRect viewportWidth:(CGFloat)viewportWidth viewportHeight:(CGFloat)viewportHeight hasSourceRect:(BOOL)hasSourceRect callback:(CAVPermissionHandoffCallback)callback context:(void *)context;
+- (instancetype)initWithView:(NSView *)view sourceRect:(NSRect)sourceRect returnRect:(NSRect)returnRect viewportWidth:(CGFloat)viewportWidth viewportHeight:(CGFloat)viewportHeight hasSourceRect:(BOOL)hasSourceRect hasReturnRect:(BOOL)hasReturnRect callback:(CAVPermissionHandoffCallback)callback context:(void *)context;
 - (void)begin;
+- (BOOL)refreshReturnCapture;
 - (void)finishWithReverse:(BOOL)reverse;
 - (void)retainDragSession:(NSDraggingSession *)session;
 - (void)dragDidBegin;
@@ -478,13 +480,17 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
 }
 @end
 @implementation CAVPermissionHandoffCoordinator
-- (instancetype)initWithView:(NSView *)view sourceRect:(NSRect)sourceRect viewportWidth:(CGFloat)viewportWidth viewportHeight:(CGFloat)viewportHeight hasSourceRect:(BOOL)hasSourceRect callback:(CAVPermissionHandoffCallback)callback context:(void *)context {
+- (instancetype)initWithView:(NSView *)view sourceRect:(NSRect)sourceRect returnRect:(NSRect)returnRect viewportWidth:(CGFloat)viewportWidth viewportHeight:(CGFloat)viewportHeight hasSourceRect:(BOOL)hasSourceRect hasReturnRect:(BOOL)hasReturnRect callback:(CAVPermissionHandoffCallback)callback context:(void *)context {
   self = [super init];
   if (!self) return nil;
   _sourceView = view;
   _callback = callback;
   _callbackContext = context;
   _replicants = [NSMutableArray array];
+  _returnRectCSS = returnRect;
+  _viewportWidth = viewportWidth;
+  _viewportHeight = viewportHeight;
+  _hasReturnRect = hasReturnRect;
   _reducedMotion = NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceMotion;
   _reducedTransparency = NSWorkspace.sharedWorkspace.accessibilityDisplayShouldReduceTransparency;
   if (hasSourceRect && view.window) {
@@ -657,8 +663,23 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   if (!self.targetImage) self.targetImage = CAVSnapshot(self.dragView, self.dragView.bounds);
 }
 - (void)back:(id)sender {
+  BOOL canReverse = [self refreshReturnCapture];
   [self sendOutcome:CAVOutcomeDismissed terminal:YES];
-  [self finishWithReverse:YES];
+  [self finishWithReverse:canReverse];
+}
+- (BOOL)refreshReturnCapture {
+  if (!self.hasReturnRect || !self.sourceView.window) return NO;
+  NSRect localRect = NSZeroRect;
+  BOOL valid = NO;
+  NSRect screenRect = CAVSourceScreenRect(self.sourceView, self.returnRectCSS,
+                                          self.viewportWidth, self.viewportHeight,
+                                          &localRect, &valid);
+  if (!valid || NSIsEmptyRect(screenRect)) return NO;
+  NSImage *image = CAVSnapshot(self.sourceView, localRect);
+  if (!image) return NO;
+  self.sourceScreenRect = screenRect;
+  self.sourceImage = image;
+  return YES;
 }
 - (void)scheduleArrowCycleAfter:(NSTimeInterval)delay {
   [self.arrowTimer invalidate];
@@ -823,7 +844,7 @@ static void CAVAnimateArrow(CALayer *layer, CGFloat scaleX, CGFloat scaleY) { if
   if (CAVActiveCoordinator == self) CAVActiveCoordinator = nil;
 }
 @end
-void cavalry_permission_handoff_start(void *nativeView, double x, double y, double width, double height, double viewportWidth, double viewportHeight, bool hasSourceRect, CAVPermissionHandoffCallback callback, void *context) {
+void cavalry_permission_handoff_start(void *nativeView, double x, double y, double width, double height, double returnX, double returnY, double returnWidth, double returnHeight, double viewportWidth, double viewportHeight, bool hasSourceRect, bool hasReturnRect, CAVPermissionHandoffCallback callback, void *context) {
   void (^start)(void) = ^{
     if (CAVActiveCoordinator) {
       [CAVActiveCoordinator sendOutcome:CAVOutcomeDismissed terminal:YES];
@@ -831,12 +852,15 @@ void cavalry_permission_handoff_start(void *nativeView, double x, double y, doub
     }
     NSView *view = (__bridge NSView *)nativeView;
     NSRect sourceRect = NSMakeRect(x, y, width, height);
+    NSRect returnRect = NSMakeRect(returnX, returnY, returnWidth, returnHeight);
     CAVActiveCoordinator = [[CAVPermissionHandoffCoordinator alloc]
       initWithView:view
         sourceRect:sourceRect
+        returnRect:returnRect
      viewportWidth:viewportWidth
     viewportHeight:viewportHeight
      hasSourceRect:hasSourceRect
+     hasReturnRect:hasReturnRect
           callback:callback
            context:context];
     [CAVActiveCoordinator begin];

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、后端仅在 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明时的 macOS 残留可清理语义、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 source-rect/session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、后端仅在 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明时的 macOS 残留可清理语义、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,7 +14,7 @@ const repoRoot = path.resolve(__dirname, '..');
 const read = (relative) => fs.readFileSync(path.join(repoRoot, relative), 'utf8');
 
 class Element {
-  constructor() { this.children = []; this._textContent = ''; this.dataset = {}; this.listeners = new Map(); this.attributes = new Map(); this.hidden = false; this.disabled = false; this.value = ''; this.open = false; this.focused = false; this.isConnected = true; this.ownerDocument = null; this.className = ''; this.scrollTop = 0; this.title = ''; this.style = { values: new Map(), setProperty: (key, value) => this.style.values.set(key, value) }; this.offsetHeight = 64; }
+  constructor() { this.children = []; this._textContent = ''; this.dataset = {}; this.listeners = new Map(); this.attributes = new Map(); this.hidden = false; this.disabled = false; this.value = ''; this.open = false; this.focused = false; this.isConnected = true; this.ownerDocument = null; this.className = ''; this.scrollTop = 0; this.title = ''; this.rect = { x: 10, y: 10, left: 10, top: 10, width: 100, height: 32, right: 110, bottom: 42 }; this.style = { values: new Map(), setProperty: (key, value) => this.style.values.set(key, value) }; this.offsetHeight = 64; }
   get textContent() { return this.children.length ? this.children.map((child) => child.textContent).join('') : this._textContent; }
   set textContent(value) { this._textContent = String(value ?? ''); }
   get scrollHeight() { return this.children.length; }
@@ -28,7 +28,7 @@ class Element {
   replaceChildren(...children) { this.children = children; this.options = this.children; }
   remove() { this.isConnected = false; this.hidden = true; }
   contains(target) { return target === this || this.children.some((child) => child.contains?.(target)); }
-  getBoundingClientRect() { return { x: 10, y: 10, left: 10, top: 10, width: 100, height: 32, right: 110, bottom: 42 }; }
+  getBoundingClientRect() { return this.rect; }
 }
 
 function runtime({
@@ -926,7 +926,7 @@ test('permission AlertDialog exposes the recovery action and preserves Apply/Res
   assert.equal(r.elements['#restoreButton'].textContent, labels.restore);
 });
 
-test('macOS handoff captures the real action and only its session Channel retries the original operation', async () => {
+test('macOS handoff captures the forward action plus persistent return target and only its session Channel retries', async () => {
   const r = boot({
     status: { platform: 'macos', currentLang: 'en', permissionAction: 'openPrivacy' },
     apply: [
@@ -939,6 +939,9 @@ test('macOS handoff captures the real action and only its session Channel retrie
   dispatch(r.elements['#applyButton'], 'click');
   await flush();
   assert.equal(r.elements['#modalBackdrop'].open, true);
+  r.elements['#permissionButton'].rect = {
+    x: 20, y: 430, left: 20, top: 430, width: 360, height: 36, right: 380, bottom: 466,
+  };
 
   dispatch(r.elements['#modalPrimaryButton'], 'click');
   await flush();
@@ -946,6 +949,7 @@ test('macOS handoff captures the real action and only its session Channel retrie
   assert.deepEqual(JSON.parse(JSON.stringify(call.payload.request)), {
     permission: 'appManagement',
     sourceRect: { x: 10, y: 10, width: 100, height: 32 },
+    returnRect: { x: 20, y: 430, width: 360, height: 36 },
     viewportCss: { width: 400, height: 484 },
   });
   assert.equal(call.payload.onEvent, true);

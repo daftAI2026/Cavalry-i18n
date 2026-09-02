@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde 序列化、Tauri IPC Channel 和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、固定 App Management handoff 请求/结果、四阶段有序进度事件、启动恢复显式阻断诊断、Status 的版本兼容/官方恢复能力/固定 false 的旧 macOS handoff hint 与 Windows residue 标记，以及可组合的稳定 errorCode/warningCodes 投影；内部签名清理事实不进入 renderer 契约。
+ * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、携带有限 CSS forward/return rect 的固定 App Management handoff 请求/结果、四阶段有序进度事件、启动恢复显式阻断诊断、Status 的版本兼容/官方恢复能力/固定 false 的旧 macOS handoff hint 与 Windows residue 标记，以及可组合的稳定 errorCode/warningCodes 投影；内部签名清理事实不进入 renderer 契约。
  * [POS]: commands 的外部契约层；OperationReporter 是 transport-neutral 进度抽象，Tauri Channel 只在本文件的适配器中出现；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -269,25 +269,31 @@ impl PermissionSourceRect {
 pub struct PermissionHandoffRequest {
     pub permission: String,
     pub source_rect: Option<PermissionSourceRect>,
+    pub return_rect: Option<PermissionSourceRect>,
     pub viewport_css: Option<PermissionViewportSize>,
 }
 
 impl PermissionHandoffRequest {
     pub(crate) fn is_valid(&self) -> bool {
-        let geometry_is_valid = match (self.source_rect, self.viewport_css) {
-            (None, None) => true,
-            (Some(rect), Some(viewport)) => {
-                rect.is_valid()
-                    && viewport.is_valid()
+        let geometry_is_valid = match (self.source_rect, self.return_rect, self.viewport_css) {
+            (None, None, None) => true,
+            (source, return_rect, Some(viewport)) if source.is_some() || return_rect.is_some() => {
+                let rect_fits = |rect: PermissionSourceRect| {
+                    rect.is_valid()
+                        && rect.x + rect.width <= viewport.width
+                        && rect.y + rect.height <= viewport.height
+                };
+                viewport.is_valid()
                     && viewport.width <= MAX_PERMISSION_VIEWPORT_CSS_PX
                     && viewport.height <= MAX_PERMISSION_VIEWPORT_CSS_PX
-                    && rect.x + rect.width <= viewport.width
-                    && rect.y + rect.height <= viewport.height
+                    && source.is_none_or(rect_fits)
+                    && return_rect.is_none_or(rect_fits)
             }
             _ => false,
         };
         self.permission == "appManagement"
             && self.source_rect.is_none_or(PermissionSourceRect::is_valid)
+            && self.return_rect.is_none_or(PermissionSourceRect::is_valid)
             && self
                 .viewport_css
                 .is_none_or(PermissionViewportSize::is_valid)
@@ -342,6 +348,12 @@ mod permission_handoff_tests {
                 width: 100.0,
                 height: 32.0,
             }),
+            return_rect: Some(PermissionSourceRect {
+                x: 20.0,
+                y: 420.0,
+                width: 360.0,
+                height: 36.0,
+            }),
             viewport_css: Some(PermissionViewportSize {
                 width: 400.0,
                 height: 484.0,
@@ -361,6 +373,14 @@ mod permission_handoff_tests {
         incomplete_geometry.viewport_css = None;
         assert!(!incomplete_geometry.is_valid());
 
+        let mut missing_forward_source = valid_request();
+        missing_forward_source.source_rect = None;
+        assert!(missing_forward_source.is_valid());
+
+        let mut missing_return_target = valid_request();
+        missing_return_target.return_rect = None;
+        assert!(missing_return_target.is_valid());
+
         let mut invalid_viewport = valid_request();
         invalid_viewport.viewport_css = Some(PermissionViewportSize {
             width: 0.0,
@@ -376,6 +396,15 @@ mod permission_handoff_tests {
             height: 32.0,
         });
         assert!(!offscreen_source.is_valid());
+
+        let mut offscreen_return = valid_request();
+        offscreen_return.return_rect = Some(PermissionSourceRect {
+            x: 20.0,
+            y: 470.0,
+            width: 360.0,
+            height: 36.0,
+        });
+        assert!(!offscreen_return.is_valid());
     }
 }
 

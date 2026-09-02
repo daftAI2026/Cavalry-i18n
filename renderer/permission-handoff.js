@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖固定 cavalryI18n.openPrivacySecurity bridge、真实触发元素的 CSS viewport rect，以及业务层提供的 retry/error 回调。
- * [OUTPUT]: 对外提供 createPermissionHandoffController；同步冻结有限非负 source rect 与 CSS viewport，等待 native 确认 source 已捕获后再关闭原控件，并把 session Channel 的 retryRequested/dismissed/error 投影回原操作；每个 session 同时只允许一个真实重试，且不把设置打开或 drop 接收误判为授权成功。
+ * [INPUT]: 依赖固定 cavalryI18n.openPrivacySecurity bridge、真实触发元素与持久返回动作的 CSS viewport rect，以及业务层提供的 retry/error 回调。
+ * [OUTPUT]: 对外提供 createPermissionHandoffController；同步冻结有限非负 forward/return rect 与 CSS viewport，等待 native 确认 forward source 已捕获后再关闭一次性控件，并把 session Channel 的 retryRequested/dismissed/error 投影回原操作；每个 session 同时只允许一个真实重试，且不把设置打开或 drop 接收误判为授权成功。
  * [POS]: renderer 的 macOS 权限交接边界；生产与 UI Review 共用同一请求/结果合同，工作台只能替换 bridge 结果，不能复制业务状态机。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -32,13 +32,14 @@
     if (!api || typeof api.openPrivacySecurity !== 'function') throw new TypeError('Permission handoff bridge is unavailable.');
     if (typeof onRetry !== 'function' || typeof onError !== 'function') throw new TypeError('Permission handoff callbacks are required.');
 
-    async function open(sourceElement, afterStart = () => {}) {
+    async function open(sourceElement, returnElement = sourceElement, afterStart = () => {}) {
       const sourceRect = captureSourceRect(sourceElement);
+      const returnRect = captureSourceRect(returnElement);
       const viewportCss = captureViewport();
       let retryInFlight = false;
       let result;
       try {
-        result = await api.openPrivacySecurity({ sourceRect, viewportCss }, (event) => {
+        result = await api.openPrivacySecurity({ sourceRect, returnRect, viewportCss }, (event) => {
           if (!OUTCOMES.has(event?.outcome)) return;
           if (event.outcome === 'retryRequested' && !retryInFlight) {
             retryInFlight = true;

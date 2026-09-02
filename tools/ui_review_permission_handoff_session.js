@@ -36,6 +36,7 @@ function permissionHandoffSessionScript() {
         dragOutcome = 'idle';
         settledWorkflowState = null;
         requestedSourceRect = null;
+        requestedReturnRect = null;
         arrowHovering = false;
         proxy.dataset.motion = prefersReducedMotion() ? 'reduced' : 'full';
         draggableAppRow.dataset.dragging = 'false';
