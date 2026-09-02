@@ -38,6 +38,34 @@ pub mod windows_runtime;
 const MACOS_ABOUT_MENU_ID: &str = "cavalry-i18n-about";
 
 #[cfg(target_os = "macos")]
+const MAIN_PLATFORM_INIT_SCRIPT: &str = r#"
+document.addEventListener('DOMContentLoaded', () => {
+  document.documentElement.dataset.platform = 'macos';
+  document.body.dataset.platform = 'macos';
+  document.dispatchEvent(new CustomEvent('cavalry-platform-ready', { detail: 'macos' }));
+  requestAnimationFrame(() => {
+    window.__TAURI_INTERNALS__.invoke('plugin:window|show', { label: 'main' })
+      .then(() => window.__TAURI_INTERNALS__.invoke('plugin:window|set_focus', { label: 'main' }))
+      .catch(() => {});
+  });
+}, { once: true });
+"#;
+
+#[cfg(target_os = "windows")]
+const MAIN_PLATFORM_INIT_SCRIPT: &str = r#"
+document.addEventListener('DOMContentLoaded', () => {
+  document.documentElement.dataset.platform = 'windows';
+  document.body.dataset.platform = 'windows';
+  document.dispatchEvent(new CustomEvent('cavalry-platform-ready', { detail: 'windows' }));
+  requestAnimationFrame(() => {
+    window.__TAURI_INTERNALS__.invoke('plugin:window|show', { label: 'main' })
+      .then(() => window.__TAURI_INTERNALS__.invoke('plugin:window|set_focus', { label: 'main' }))
+      .catch(() => {});
+  });
+}, { once: true });
+"#;
+
+#[cfg(target_os = "macos")]
 fn build_macos_menu(app: &tauri::AppHandle) -> tauri::Result<tauri::menu::Menu<tauri::Wry>> {
     use tauri::menu::{Menu, MenuItem, MenuItemKind};
 
@@ -79,20 +107,19 @@ pub fn run() {
         }
     });
 
-    #[cfg(target_os = "windows")]
-    let builder = builder.append_invoke_initialization_script(
-        "document.addEventListener('DOMContentLoaded', () => { document.documentElement.dataset.platform = 'windows'; document.body.dataset.platform = 'windows'; document.dispatchEvent(new CustomEvent('cavalry-platform-ready', { detail: 'windows' })); }, { once: true });",
-    );
+    let builder = builder.append_invoke_initialization_script(MAIN_PLATFORM_INIT_SCRIPT);
 
     let builder = builder.on_page_load(|webview, payload| {
         use tauri::{webview::PageLoadEvent, Manager};
 
         if webview.label() == "main" && matches!(payload.event(), PageLoadEvent::Finished) {
             if let Some(window) = webview.app_handle().get_webview_window("main") {
-                window
-                    .show()
-                    .and_then(|_| window.set_focus())
-                    .expect("Main window could not be revealed after page load");
+                if !window.is_visible().unwrap_or(false) {
+                    window
+                        .show()
+                        .and_then(|_| window.set_focus())
+                        .expect("Main window could not be revealed after page load");
+                }
             }
         }
     });

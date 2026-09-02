@@ -90,6 +90,8 @@ fn tauri_config_declares_capabilities() {
         .iter()
         .any(|value| value == "core:window:allow-start-dragging"));
     for permission in [
+        "core:window:allow-show",
+        "core:window:allow-set-focus",
         "core:window:allow-minimize",
         "core:window:allow-toggle-maximize",
         "core:window:allow-close",
@@ -131,6 +133,10 @@ fn native_titlebar_alignment_and_windows_compositor_shell_are_frozen() {
     assert!(lib_source.contains("builder.append_invoke_initialization_script("));
     assert!(lib_source.contains("DOMContentLoaded"));
     assert!(lib_source.contains("PageLoadEvent::Finished"));
+    assert!(lib_source.contains("plugin:window|show"));
+    assert!(lib_source.contains("plugin:window|set_focus"));
+    assert!(lib_source.contains("requestAnimationFrame"));
+    assert!(lib_source.contains("if !window.is_visible().unwrap_or(false)"));
     assert!(lib_source.contains(".show()"));
     assert!(lib_source.contains(".and_then(|_| window.set_focus())"));
     assert_eq!(shared_window["visible"], false);
