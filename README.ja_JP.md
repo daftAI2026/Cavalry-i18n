@@ -179,7 +179,7 @@ Cavalry-i18n/
 │       └── ...
 ├── languages/                    # JSON language packs（en、zh-Hans、zh-Hant、ja_JP）
 ├── tools/                        # build、test、coverage scripts、gate contracts
-├── docs/                          # architecture plans、translation rules、workflow evidence
+├── docs/                          # 公開翻訳規約、保守 SOP、画像とバッジデータ
 ├── output/                       # derived audit artifacts、JSON surface evidence
 └── .github/workflows/            # CI：contract → packaging → release
 ```

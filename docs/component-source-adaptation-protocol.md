@@ -13,7 +13,7 @@
 
 | 层级 | 真相源 | 决定什么 | 不决定什么 |
 | --- | --- | --- | --- |
-| 产品设计系统 | `renderer/tokens.css`、`docs/audits/switcher-ui-final-build-2026-08-28.md`、Vercel design.md | 字号角色、字重、颜色、4px 间距、窗口层级、平台差异 | 组件内部状态机与无障碍细节 |
+| 产品设计系统 | `renderer/tokens.css`、当前 renderer 实现与 Vercel design.md | 字号角色、字重、颜色、4px 间距、窗口层级、平台差异 | 组件内部状态机与无障碍细节 |
 | 组件行为 | 锁定提交的 shadcn/Base UI 源码、样式、示例、文档 | DOM 组成、状态、键盘、焦点、ARIA、动画公式、utility API | Cavalry 业务阶段和用户文案 |
 | 产品业务 | renderer 状态机与 Tauri bridge/Rust Channel | 何时出现、真实事件顺序、失败恢复、哪些状态可被用户观察 | 组件基础几何和开源实现细节 |
 
