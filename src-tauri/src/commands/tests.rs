@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖 command DTO、启动期 Windows English runtime 残留投影、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
+ * [OUTPUT]: 覆盖 command DTO、启动期 Windows pending marker/English runtime 残留投影、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
  * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1059,7 +1059,7 @@ fn startup_status_exposes_restore_for_english_generic_residue_without_mutation()
     write(&generic, b"managed generic fixture");
     let before = fs::read(&generic).unwrap();
 
-    let status = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
 
     assert_eq!(status.current_lang, "en");
     assert!(status.reconciliation_required);
@@ -1067,6 +1067,18 @@ fn startup_status_exposes_restore_for_english_generic_residue_without_mutation()
         fs::read(&generic).unwrap(),
         before,
         "startup residue projection must stay read-only"
+    );
+
+    fs::remove_file(&generic).unwrap();
+    let marker = app.join(crate::install::LANG_MARKER_NAME);
+    write(&marker, b"pending\n");
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
+    assert_eq!(status.current_lang, "en");
+    assert!(status.reconciliation_required);
+    assert_eq!(
+        fs::read(&marker).unwrap(),
+        b"pending\n",
+        "startup pending-marker projection must stay read-only"
     );
 }
 

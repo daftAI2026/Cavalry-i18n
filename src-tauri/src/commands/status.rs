@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 context 路径/语言源、detect/install/state、Windows QPA 只读检查与本地 diagnostics 事实流。
- * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、当前语言、Windows English runtime 残留提示与目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
- * [POS]: commands 的轻量状态层；启动回答安装、版本和当前语言，并仅把 English 下本工具拥有或无法证明已清理的 Windows runtime 投影为可执行 Restore，不把 crash-safety 或写入前证明投影成产品阻断。
+ * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、当前语言、Windows pending marker/runtime 残留提示与目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
+ * [POS]: commands 的轻量状态层；启动回答安装、版本和当前语言，并仅把 English 下未提交 marker、本工具拥有或无法证明已清理的 Windows runtime 投影为可执行 Restore，不把 crash-safety 或写入前证明投影成产品阻断。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::{Path, PathBuf};
@@ -212,6 +212,13 @@ where
     let Ok(layout) = InstallLayout::from_selection(app_path) else {
         return false;
     };
+    match std::fs::read_to_string(&layout.language_marker) {
+        Ok(marker) if marker.trim() != "en" => return true,
+        Ok(_) => {}
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        // 无法读取 final marker 时同样不能把安装声明为干净 English。
+        Err(_) => return true,
+    }
     let generic = layout
         .root
         .join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH);
@@ -473,6 +480,13 @@ mod tests {
                 crate::windows_qpa::QpaDeploymentState::Active,
                 Some(crate::windows_qpa::QpaManifestPhase::Active),
             ),
+        ));
+
+        std::fs::write(app.join(crate::install::LANG_MARKER_NAME), b"pending\n").unwrap();
+        assert!(windows_runtime_reconciliation_required_with_inspector(
+            &app,
+            "en",
+            |_| panic!("pending marker must be actionable before runtime inspection"),
         ));
     }
 
