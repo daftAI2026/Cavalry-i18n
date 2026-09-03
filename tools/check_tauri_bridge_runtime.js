@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、后端仅在 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明时的 macOS 残留可清理语义、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge、固定 about-label close 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、跨平台未提交 marker 与 Windows runtime 残留均保留 Restore、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge、固定 about-label close 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -876,6 +876,22 @@ test('Windows englishRestoreNeeded residue is actionable through Restore despite
   await flush();
   assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
     command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'en' },
+  });
+});
+
+test('macOS unfinished marker is actionable through the shared Restore transaction', async () => {
+  const r = boot({
+    status: { platform: 'macos', currentLang: 'en', reconciliationRequired: true },
+    apply: { ok: true, currentLang: 'en' },
+  });
+  await flush();
+  assert.equal(r.elements['#restoreButton'].disabled, false);
+  assert.equal(r.elements['#applyButton'].disabled, true);
+  r.elements['#restoreButton'].listeners.get('click')[0]();
+  r.elements['#modalPrimaryButton'].listeners.get('click')[0]();
+  await flush();
+  assert.deepEqual(JSON.parse(JSON.stringify(r.calls.filter(({ command }) => command === 'apply_language')[0])), {
+    command: 'apply_language', payload: { appPath: '/Applications/Cavalry.app', lang: 'restore-official' },
   });
 });
 

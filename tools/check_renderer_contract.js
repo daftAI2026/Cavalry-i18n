@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer 静态 DOM、语义 token/图标表、Select/Tooltip/Path/Activity/Updater/Toast/About/Windows caption 状态机、UI Review fake bridge/动态目录与热重载入口、typed 写入拒绝后的权限 handoff 结构、独立运行时与本机参考图安全边界、来源通知、窗口配置与冻结 bridge API。
- * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、Managed Legacy 证据分级 Restore、版本只读门禁、安装验证失败恢复路径、仅消费后端对 clean vendor runtime 与三个旧 Switcher 外置签名组件精确证明的兼容清理、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
+ * [OUTPUT]: 守住 UI 单向依赖、固定窗口/Activity、原生标题栏、主页面 20px padding 派生的 10px 同行动作关系、无重复视觉标题但保留 OS 标题的 About、Trigger/popup 双投影且开启后不漂移并保留但禁用当前语言的 Select 占位、跨平台 reconciliation Restore、版本只读门禁、安装验证失败恢复路径、仅消费后端只读清理投影、局部着色的 warning/error Marker、无描边彩色 Badge、局部失败 Toast、必要 AlertDialog 与单任务流；权限原型另冻结不受工作台假窗口压缩的完整 stage、当前 50pt 弧线/双图/项目自绘箭头节奏、532×112 的“单行指令 / Back + App row”参考同形 helper、透明底整条 App row snapshot 的 HTML drag 审查边界、瞬时 Alert/持久 Activity 两端点的一套 handoff 合同及不入库的本机视觉对照，并明确拒绝把 DOM 单屏替身冒充 NSImage/NSPanel/NSDraggingSession、多屏倍率或原生授权证据；工作台必须实时消费生产 renderer，显式 Back 才回到重新捕获的 Activity 动作，业务 settled 只清层，且不因 Node 模块缓存返回旧审查资源。
  * [POS]: renderer 的快速静态契约测试；只证明配置/source 形状，不虚称 packaged WebView CSP 执行。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1100,7 +1100,8 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   assert.match(restoreDisabledStatement, /state\.controlsBlocked[\s\S]*durabilityPending;/);
   const restoreNeededFunction = sourceFunction(app, 'function restoreIsNeeded() {', 'function isRestoreAction');
   assert.match(restoreNeededFunction, /state\.currentLang !== 'en'/);
-  assert.match(restoreNeededFunction, /state\.platform === 'windows'[\s\S]*state\.englishRestoreNeeded/);
+  assert.match(restoreNeededFunction, /state\.englishRestoreNeeded/);
+  assert.doesNotMatch(restoreNeededFunction, /state\.platform === 'windows'/);
   assert.doesNotMatch(restoreNeededFunction, /installationMode/, 'managed English must not expose a no-op Restore action');
   const retryCallback = sourceFunction(app, 'onRetry: () => {', 'onError:');
   assert.match(app, /permissionRetryAttempt: 0/);
@@ -1133,9 +1134,10 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   const bootstrapFunction = sourceFunction(app, 'async function bootstrap({ renderActivity = true } = {}) {', 'async function browseForApp');
   assert.match(
     bootstrapFunction,
-    /const runtimeResidueDetected =\s*state\.platform === 'windows' && bootstrapState\.reconciliationRequired === true;/
+    /const reconciliationRequired = bootstrapState\.reconciliationRequired === true;/
   );
-  assert.match(bootstrapFunction, /state\.englishRestoreNeeded = runtimeResidueDetected;/);
+  assert.match(bootstrapFunction, /state\.englishRestoreNeeded = reconciliationRequired;/);
+  assert.match(bootstrapFunction, /const runtimeResidueDetected =\s*state\.platform === 'windows' && reconciliationRequired;/);
   assert.match(bootstrapFunction, /languageSelectControl\.setValue\(''\)/, 'bootstrap must not silently preselect a target language');
   const permissionWaitFunction = sourceFunction(
     app,
