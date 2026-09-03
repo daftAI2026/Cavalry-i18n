@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint、共享 About 跨平台 Chrome、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint、共享 About 跨平台 Chrome 与 Windows main-owner 生命周期、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
  * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、Managed Legacy/版本只读字段、固定项目外链、可本土化错误、Windows runtime residue 与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -68,6 +68,10 @@ fn macos_and_windows_about_entries_share_one_native_window_owner() {
     assert!(about_rs.contains(".current_monitor()"));
     assert!(about_rs.contains(".set_position(tauri::PhysicalPosition::new("));
     assert!(about_rs.contains(".visible(false)"));
+    assert!(
+        about_rs.contains(".owner(&main)"),
+        "Windows About must be owned by main so closing main destroys it"
+    );
     for option in [
         ".resizable(false)",
         ".maximizable(false)",
