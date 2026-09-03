@@ -204,7 +204,7 @@ Windows packaging follows the same JSON source and generated translation table, 
 
 | Tool | Version / Source | Notes |
 | --- | --- | --- |
-| Node.js | 22 in CI | npm package root, no pnpm/yarn |
+| Node.js | 24.20.0 in CI | npm package root, no pnpm/yarn |
 | npm packages | `package-lock.json` | `@tauri-apps/cli` and `@tauri-apps/api` pinned to 2.10.1 |
 | Rust | stable, edition 2021 | Tauri backend crate `cavalry-i18n-tauri` |
 | Tauri | Rust `tauri` 2.10.3 | npm CLI/API minor aligned with Rust runtime |
