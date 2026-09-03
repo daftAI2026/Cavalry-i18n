@@ -645,7 +645,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.doesNotMatch(aboutStyles, /\.about-(?:dialog|close)\b/);
   assert.match(aboutStyles, /\.about-surface\s*\{[\s\S]*?grid-template-rows:\s*minmax\(0, 1fr\)/);
   assert.match(aboutStyles, /html:is\(\[data-platform="macos"\], \[data-platform="windows"\]\) \.about-titlebar\s*\{[\s\S]*?position:\s*absolute;[\s\S]*?inset:\s*0 0 auto;[\s\S]*?display:\s*flex/);
-  assert.match(aboutStyles, /\.about-window\s*\{[\s\S]*?align-content:\s*center;[\s\S]*?padding:\s*var\(--padding-window\)[\s\S]*?overflow:\s*hidden/);
+  assert.match(aboutStyles, /\.about-window\s*\{[\s\S]*?align-content:\s*end;[\s\S]*?padding:\s*var\(--padding-window\)[\s\S]*?overflow:\s*hidden/);
+  assert.match(aboutStyles, /\.about-links\s*\{[\s\S]*?gap:\s*var\(--gap-page-actions\)/);
   assert.match(aboutStyles, /\.about-app-icon\s*\{[\s\S]*?width:\s*var\(--about-app-icon-size\)[\s\S]*?height:\s*var\(--about-app-icon-size\)/);
   assert.deepEqual(
     fs.readFileSync(path.join(repoRoot, 'renderer/app-icon.png')),
@@ -703,8 +704,8 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(styles, /\.modal-title\s*\{[\s\S]*?font-size:\s*var\(--type-heading\)[\s\S]*?font-weight:\s*var\(--weight-medium\)[\s\S]*?line-height:\s*var\(--line-height-heading\)/);
   assert.match(styles, /\.modal-body\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?font-weight:\s*var\(--weight-regular\)[\s\S]*?line-height:\s*var\(--line-height-compact\)[\s\S]*?text-wrap:\s*wrap;[\s\S]*?white-space:\s*pre-line/);
   assert.doesNotMatch(styles, /\.modal-body\s*\{[\s\S]*?text-wrap:\s*balance/, 'AlertDialog prose must preserve natural wrapping');
-  assert.match(tokens, /--gap-main-actions:\s*10px/);
-  assert.match(styles, /\.language-control-row\s*\{[\s\S]*?row-gap:\s*var\(--gap-flow\);[\s\S]*?column-gap:\s*var\(--gap-main-actions\)/);
+  assert.match(tokens, /--gap-page-actions:\s*10px/);
+  assert.match(styles, /\.language-control-row\s*\{[\s\S]*?row-gap:\s*var\(--gap-flow\);[\s\S]*?column-gap:\s*var\(--gap-page-actions\)/);
   assert.match(operationStyles, /\.status-panel\s*\{[\s\S]*?min-height:\s*var\(--operation-panel-min-height\);[\s\S]*?margin-top:\s*var\(--gap-flow\)/);
   assert.doesNotMatch(operationStyles, /\.status-label\s*\{/, 'the generic task heading must not be visible');
   assert.match(operationStyles, /\.operation-event-title\s*\{[\s\S]*?font-size:\s*var\(--type-compact\)[\s\S]*?line-height:\s*var\(--line-height-compact\)/);

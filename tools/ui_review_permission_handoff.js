@@ -105,7 +105,7 @@ function permissionHandoffHtml() {
     .handoff-proxy-shadow[data-layer="destination"] { box-shadow: 0 3px 2px rgba(0, 0, 0, .06); }
     .handoff-proxy-stroke { border: .5px solid #000; }
     .handoff-proxy-slot { overflow: hidden; transform-origin: center; will-change: opacity, filter; }
-    .handoff-controls { display: flex; align-items: center; gap: var(--gap-control); }
+    .handoff-controls { display: flex; align-items: center; gap: var(--gap-inline); }
     .handoff-control-button { min-inline-size: max-content; }
     .handoff-motion-control { min-width: 0; margin-inline-start: auto; display: flex; align-items: center; justify-content: flex-end; gap: var(--gap-inline); color: var(--text-secondary); font-size: var(--type-label); }
     .handoff-motion-control label { display: inline-flex; align-items: center; gap: var(--space-1); white-space: nowrap; }

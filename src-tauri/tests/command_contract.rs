@@ -50,6 +50,7 @@ fn macos_and_windows_about_entries_share_one_native_window_owner() {
     assert!(lib_rs.contains("commands::show_about"));
     assert!(!lib_rs.contains("cavalryI18nShowAbout"));
     assert!(about_rs.contains("ABOUT_WINDOW_LABEL: &str = \"about\""));
+    assert!(about_rs.contains("ABOUT_BODY_WIDTH: f64 = 288.0"));
     assert!(about_rs.contains("WebviewUrl::App(\"about.html\".into())"));
     assert!(about_rs.contains(".initialization_script(ABOUT_PLATFORM_INIT_SCRIPT)"));
     assert!(about_rs.contains(".title_bar_style(tauri::TitleBarStyle::Overlay)"));
