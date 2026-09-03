@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 context 路径/语言源、detect/install/state、Windows QPA 只读检查与本地 diagnostics 事实流。
- * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、当前语言、Windows pending marker/runtime 残留提示与目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
- * [POS]: commands 的轻量状态层；启动回答安装、版本和当前语言，并仅把 English 下未提交 marker、本工具拥有或无法证明已清理的 Windows runtime 投影为可执行 Restore，不把 crash-safety 或写入前证明投影成产品阻断。
+ * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、当前语言、跨平台未提交 marker 与 Windows runtime 残留提示，以及目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
+ * [POS]: commands 的轻量状态层；启动回答安装、版本和当前语言，把 English 下未提交 marker 与本工具拥有或无法证明已清理的 Windows runtime 投影为可执行 Restore，不把 crash-safety 或写入前证明投影成产品阻断。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::{Path, PathBuf};
@@ -188,6 +188,21 @@ fn read_state_projection(state_dir: &Path) -> State {
     }
 }
 
+fn marker_reconciliation_required(app_path: &Path, current_lang: &str) -> bool {
+    if app_path.as_os_str().is_empty() || current_lang != "en" {
+        return false;
+    }
+    let Ok(layout) = InstallLayout::from_selection(app_path) else {
+        return false;
+    };
+    match std::fs::read_to_string(&layout.language_marker) {
+        Ok(marker) => marker.trim() != "en",
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => false,
+        // 无法读取 final marker 时不能把安装声明为干净 English。
+        Err(_) => true,
+    }
+}
+
 #[cfg(target_os = "windows")]
 fn windows_runtime_reconciliation_required(app_path: &Path, current_lang: &str) -> bool {
     windows_runtime_reconciliation_required_with_inspector(
@@ -212,13 +227,6 @@ where
     let Ok(layout) = InstallLayout::from_selection(app_path) else {
         return false;
     };
-    match std::fs::read_to_string(&layout.language_marker) {
-        Ok(marker) if marker.trim() != "en" => return true,
-        Ok(_) => {}
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
-        // 无法读取 final marker 时同样不能把安装声明为干净 English。
-        Err(_) => return true,
-    }
     let generic = layout
         .root
         .join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH);
@@ -249,11 +257,10 @@ pub(crate) fn status_for_paths(
     let language_roots = language_root_candidates(repo_root, resource_dir);
     let (app_path, state, version) = observed_state(state_dir, candidates.iter().cloned())?;
     let compatibility = version_compatibility(&version);
+    let reconciliation_required = marker_reconciliation_required(&app_path, &state.current_lang);
     #[cfg(target_os = "windows")]
-    let reconciliation_required =
-        windows_runtime_reconciliation_required(&app_path, &state.current_lang);
-    #[cfg(not(target_os = "windows"))]
-    let reconciliation_required = false;
+    let reconciliation_required = reconciliation_required
+        || windows_runtime_reconciliation_required(&app_path, &state.current_lang);
     Ok(StatusPayload {
         app_management_granted: None,
         app_path: app_path.to_string_lossy().to_string(),
@@ -448,6 +455,27 @@ mod tests {
     }
 
     #[test]
+    fn unfinished_marker_keeps_restore_available_on_every_platform() {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Cavalry.app");
+        let marker = InstallLayout::from_root(&app).language_marker;
+        std::fs::create_dir_all(marker.parent().unwrap()).unwrap();
+
+        assert!(!marker_reconciliation_required(&app, "en"));
+
+        std::fs::write(&marker, b"en\n").unwrap();
+        assert!(!marker_reconciliation_required(&app, "en"));
+
+        for unfinished in ["pending\n", "unsupported\n", "\n"] {
+            std::fs::write(&marker, unfinished).unwrap();
+            assert!(marker_reconciliation_required(&app, "en"));
+        }
+
+        std::fs::write(&marker, b"zh-Hans\n").unwrap();
+        assert!(!marker_reconciliation_required(&app, "zh-Hans"));
+    }
+
+    #[test]
     #[cfg(target_os = "windows")]
     fn english_status_keeps_restore_available_for_managed_runtime_residue() {
         let temp = tempfile::tempdir().unwrap();
@@ -480,13 +508,6 @@ mod tests {
                 crate::windows_qpa::QpaDeploymentState::Active,
                 Some(crate::windows_qpa::QpaManifestPhase::Active),
             ),
-        ));
-
-        std::fs::write(app.join(crate::install::LANG_MARKER_NAME), b"pending\n").unwrap();
-        assert!(windows_runtime_reconciliation_required_with_inspector(
-            &app,
-            "en",
-            |_| panic!("pending marker must be actionable before runtime inspection"),
         ));
     }
 
