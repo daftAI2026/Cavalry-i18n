@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Tauri AppHandle、About 本地页面、固定 `about` 窗口标签与共享 window_chrome；页面内部只消费冻结 bridge 的版本、关闭和项目链接能力。
- * [OUTPUT]: 对外提供唯一的 288px 内容宽 About WebviewWindow owner；macOS 复用主窗口 Overlay/hidden-title/交通灯，Windows 使用无系统标题栏的透明 compositor 外壳并为 10px 自绘阴影扩展窗口尺寸，同时以 main 为原生 owner 保证主窗口关闭时一并销毁；每次打开按主窗口实时物理外框居中并约束在同一显示器，几何不可用时回退屏幕居中。
+ * [OUTPUT]: 对外提供唯一的 288px 内容宽 About WebviewWindow owner；macOS 复用主窗口 Overlay/hidden-title/交通灯并在 main 关闭时同步关闭 About，Windows 使用无系统标题栏的透明 compositor 外壳并为 10px 自绘阴影扩展窗口尺寸，同时以 main 为原生 owner 保证主窗口关闭时一并销毁；每次打开按主窗口实时物理外框居中并约束在同一显示器，几何不可用时回退屏幕居中。
  * [POS]: src-tauri 的 About 窗口边界；被 macOS 应用菜单和 Windows renderer command 共同调用，主窗口与 About 的外壳几何保持同源，不承载页面内容、外部 URL 或业务状态。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -24,6 +24,18 @@ const ABOUT_WINDOW_HEIGHT: f64 = ABOUT_BODY_HEIGHT + crate::window_chrome::TITLE
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 const ABOUT_WINDOW_HEIGHT: f64 = ABOUT_BODY_HEIGHT;
 const ABOUT_WINDOW_TITLE: &str = "About Cavalry Language Switcher";
+
+#[cfg(target_os = "macos")]
+pub(crate) fn bind_to_main_window(main: &WebviewWindow) {
+    let app = main.app_handle().clone();
+    main.on_window_event(move |event| {
+        if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
+            if let Some(about) = app.get_webview_window(ABOUT_WINDOW_LABEL) {
+                let _ = about.close();
+            }
+        }
+    });
+}
 
 #[cfg(target_os = "macos")]
 const ABOUT_PLATFORM_INIT_SCRIPT: &str = "document.addEventListener('DOMContentLoaded', () => { document.documentElement.dataset.platform = 'macos'; document.body.dataset.platform = 'macos'; document.dispatchEvent(new CustomEvent('cavalry-platform-ready', { detail: 'macos' })); }, { once: true });";
