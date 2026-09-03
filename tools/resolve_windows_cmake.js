@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 tools/ci_action_pins.json 中官方 CMake Windows x64 archive 的固定版本、下载地址与 SHA-256，以及 Node.js 的 HTTPS/压缩包解包能力
- * [OUTPUT]: 对外提供经过摘要验证的 CMake 4.2.0/CTest 绝对路径与 Windows producer identity；拒绝低版本、floating URL、缺摘要或被篡改的 bootstrap
+ * [OUTPUT]: 对外提供经过摘要验证的 CMake 4.4.3/CTest 绝对路径与 Windows producer identity；拒绝低版本、floating URL、缺摘要或被篡改的 bootstrap
  * [POS]: tools 的 Windows 原生构建工具链解析器；被 injector/windows/build.ps1 与 Windows CI 消费，切断 runner 预装 CMake 与产品构建之间的隐式依赖
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,7 +17,7 @@ const { spawnSync } = require('node:child_process');
 const repoRoot = path.resolve(__dirname, '..');
 const pinPath = path.join(repoRoot, 'tools', 'ci_action_pins.json');
 const cacheRoot = path.join(repoRoot, 'build', '.toolchain', 'cmake');
-const MIN_CMAKE_VERSION = '4.2.0';
+const MIN_CMAKE_VERSION = '4.4.3';
 
 function fail(message) {
   throw new Error(message);
@@ -65,7 +65,7 @@ function validateCmakeVersion(output, minimumVersion = MIN_CMAKE_VERSION) {
 function validateCmakePin(pin) {
   if (!pin || typeof pin !== 'object' || Array.isArray(pin)) fail('CMake pin must be an object.');
   if (pin.platform !== 'windows-x86_64') fail('CMake pin must target windows-x86_64.');
-  if (pin.version !== '4.2.0' || pin.minimumVersion !== MIN_CMAKE_VERSION) {
+  if (pin.version !== '4.4.3' || pin.minimumVersion !== MIN_CMAKE_VERSION) {
     fail(`CMake pin must require the exact minimum version ${MIN_CMAKE_VERSION}.`);
   }
   if (pin.archive !== `cmake-${pin.version}-windows-x86_64.zip`) {

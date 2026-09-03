@@ -1,5 +1,5 @@
 # output/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/CLAUDE.md
+> L2 | 父级: ../CLAUDE.md
 
 成员清单
 playwright/: 前端截图输出目录，保存各语言 UI 回归截图。

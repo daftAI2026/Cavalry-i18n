@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 tools/macos-acceptance 的真实 final session 与 evidence-only tag commit 协议
-[OUTPUT]: 说明 source commit S、evidence commit T、外部 detached acceptance signer、独立双 trust anchor、tag 与 CI asset seal 的不可自引用绑定
+[INPUT]: 依赖 tools/macos-acceptance 的真实 final session、Windows 发布所需原始 acceptance session、完整人工安装/updater 分发闭包与 evidence-only tag commit 协议
+[OUTPUT]: 说明 source commit S、evidence commit T、外部 detached acceptance signer、独立双 trust anchor、ad-hoc macOS tag 与 schema v6 CI asset seal 的不可自引用绑定
 [POS]: release-seals 目录操作合同；这里只提交 pre-tag evidence，最终资产 seal 随 GitHub Release 发布
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -31,8 +31,8 @@ The split is intentional: evidence records S, while T carries that evidence. Req
 ## What CI does on the tag
 
 1. Verifies T has exactly one parent S, changes only the canonical evidence and independent attestation files, rejects missing/equal trust anchors, validates the attestation against the protected external acceptance fingerprint, and proves the evidence binds S / tag / Cavalry 2.7.2 / Qt 6.6.3 / the verified session digests.
-2. Builds macOS DMGs with Developer ID, then notarizes and staples the final post-stamp DMG bytes (secrets required; otherwise fail closed).
-3. Computes asset digests, consumes the committed evidence and attestation to mint the separately keyed `ReleaseAcceptanceSeal.json`, verifies both signatures again, and keeps the GitHub Release private until evidence, attestation, SBOM, toolchain evidence, provenance, seal, hashes, and all three product assets have been uploaded and read back exactly.
+2. Builds both macOS DMGs with an explicit ad-hoc app signature, builds the independently Ed25519-signed Tauri updater archives, and verifies the final app seal and updater signatures. Apple Developer ID and notarization credentials are not current tag prerequisites and are not claimed.
+3. Computes asset digests, consumes the committed evidence and attestation to mint the separately keyed schema v6 `ReleaseAcceptanceSeal.json` plus schema v4 provenance, records `macos: ad-hoc`, verifies both signatures again, and keeps the GitHub Release private until evidence, attestation, SBOM, toolchain evidence, provenance, seal, hashes, three manual installers, and six updater manifest/archive/signature assets have been uploaded and read back exactly.
 
 ## Windows
 

@@ -1,22 +1,44 @@
 /**
- * [INPUT]: 依赖本机 /Applications/Cavalry.app、repo injector/四语资源与真实 commands/codesign/runtime capture
- * [OUTPUT]: 对外提供显式触发的 macOS 冒烟测试：副本执行三语 apply/重复 apply/English 恢复，真实 Cavalry 进程外加载当前 injector，并逐一校验菜单哨兵、日志/session inventory provenance 与证据哈希
- * [POS]: src-tauri/tests 的 Phase 7 现场守门，把 bundle 写入隔离在 APFS 副本，同时用真实安装进程证明 injector 可加载且菜单完成三语翻译
+ * [INPUT]: 依赖显式 CAVALRY_I18N_MACOS_SMOKE_APP 或默认 /Applications/Cavalry.app、repo injector/四语资源与真实 commands/codesign/runtime capture
+ * [OUTPUT]: 对外提供显式触发的 macOS 冒烟测试：只写副本执行三语 apply/重复 apply/English 恢复，源 Cavalry 仅外加载当前 injector，并逐一校验菜单哨兵、日志/session inventory provenance 与证据哈希
+ * [POS]: src-tauri/tests 的 Phase 7 现场守门，优先消费只读挂载的官方 2.7.2 输入并把 bundle 写入隔离在 APFS 临时副本，同时证明真实 vendor 进程可加载 injector 且菜单完成三语翻译
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use cavalry_i18n_tauri::{
-    commands::{apply_language_inner, extract_english_inner},
-    detect::read_installed_language,
-    privilege::RealCommandRunner,
+    commands::apply_language_inner, detect::read_installed_language, privilege::RealCommandRunner,
 };
 use serde_json::Value;
 use std::{
+    env,
     fs::{self, File},
     path::{Path, PathBuf},
     process::{Child, Command, Stdio},
     thread,
     time::{Duration, Instant},
 };
+
+const SOURCE_APP_ENV: &str = "CAVALRY_I18N_MACOS_SMOKE_APP";
+
+fn source_app() -> PathBuf {
+    let requested = env::var_os(SOURCE_APP_ENV)
+        .map(PathBuf::from)
+        .unwrap_or_else(|| PathBuf::from("/Applications/Cavalry.app"));
+    assert!(
+        requested.is_absolute(),
+        "{SOURCE_APP_ENV} must be an absolute Cavalry.app path"
+    );
+    assert_eq!(
+        requested.file_name().and_then(|name| name.to_str()),
+        Some("Cavalry.app"),
+        "{SOURCE_APP_ENV} must name Cavalry.app"
+    );
+    fs::canonicalize(&requested).unwrap_or_else(|error| {
+        panic!(
+            "could not resolve macOS smoke source {}: {error}",
+            requested.display()
+        )
+    })
+}
 
 fn repo_root() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
@@ -41,27 +63,9 @@ fn clone_path(source: &Path, destination: &Path) {
     );
 }
 
-fn replace_english_snapshot(repo: &Path, state_dir: &Path) {
-    let destination = state_dir.join("en");
-    let _ = fs::remove_dir_all(&destination);
-    let status = Command::new("ditto")
-        .arg(repo.join("languages/en"))
-        .arg(&destination)
-        .status()
-        .unwrap();
-    assert!(
-        status.success(),
-        "failed to seed the canonical English snapshot"
-    );
-}
-
 fn cavalry_is_running() -> bool {
     Command::new("pgrep")
-        .args([
-            "-f",
-            "-x",
-            "/Applications/Cavalry.app/Contents/MacOS/Cavalry",
-        ])
+        .args(["-x", "Cavalry"])
         .status()
         .map(|status| status.success())
         .unwrap_or(false)
@@ -241,15 +245,14 @@ fn run_real_injector_capture(source_app: &Path, injector: &Path, root: &Path, la
 
 #[cfg(target_os = "macos")]
 #[test]
-#[ignore = "requires a local Cavalry.app install and opens the real binary with the candidate injector"]
+#[ignore = "requires an explicit official Cavalry.app source and opens the real binary with the candidate injector"]
 fn real_macos_clone_apply_and_live_injector_matrix() {
-    let source = Path::new("/Applications/Cavalry.app");
-    assert!(source.exists(), "missing /Applications/Cavalry.app");
+    let source = source_app();
     assert!(
         !cavalry_is_running(),
-        "close the real Cavalry process before running the isolated live smoke"
+        "close every Cavalry process before running the isolated live smoke"
     );
-    let source_before = critical_source_snapshot(source);
+    let source_before = critical_source_snapshot(&source);
 
     let temp = tempfile::tempdir().unwrap();
     let app = temp.path().join("Cavalry.app");
@@ -259,9 +262,7 @@ fn real_macos_clone_apply_and_live_injector_matrix() {
     let injector = repo.join("injector/libCavalryTranslatorInjector.dylib");
     let now = "2026-07-13T00:00:00.000Z";
 
-    clone_path(source, &app);
-    extract_english_inner(&repo, &state_dir, &repo, &app).unwrap();
-    replace_english_snapshot(&repo, &state_dir);
+    clone_path(&source, &app);
 
     for lang in ["zh-Hans", "zh-Hant", "ja_JP"] {
         let started = Instant::now();
@@ -291,7 +292,7 @@ fn real_macos_clone_apply_and_live_injector_matrix() {
     }
 
     for lang in ["zh-Hans", "zh-Hant", "ja_JP"] {
-        run_real_injector_capture(source, &injector, &live_dir, lang);
+        run_real_injector_capture(&source, &injector, &live_dir, lang);
     }
 
     let mut runner = RealCommandRunner;
@@ -302,8 +303,8 @@ fn real_macos_clone_apply_and_live_injector_matrix() {
     verify_bundle_signature(&app);
 
     assert_eq!(
-        critical_source_snapshot(source),
+        critical_source_snapshot(&source),
         source_before,
-        "live smoke modified the installed /Applications/Cavalry.app"
+        "live smoke modified its source Cavalry.app"
     );
 }

@@ -22,7 +22,7 @@
 
 ## Features
 
-- 🎯 **One-click switch**: Pick a language, click apply, relaunch — Cavalry opens translated
+- 🎯 **One-click switch**: Close Cavalry, pick a language, and select Switch — the language changes and Cavalry opens automatically
 - 🍎🪟 **macOS and Windows**: Supports the macOS `Cavalry.app` path and Windows Cavalry installation roots
 - 🔌 **Platform-native runtime translation**: macOS uses `DYLD_INSERT_LIBRARIES`; Windows deploys a Qt generic translator behind a tiny vendor-QPA delegate
 - 📦 **Two translation surfaces**: JSON asset files + compiled Qt/UI strings, both handled automatically
@@ -30,7 +30,12 @@
 - 🔑 **macOS Keychain-safe**: Binary-patches `libExtensionLayer.dylib` so login credentials survive language switching
 - 🔐 **macOS signing path**: Re-signs the patched bundle and clears Gatekeeper flags so macOS does not block it
 - 📍 **Windows discovery and selection**: Finds known installations when possible; otherwise choose `Cavalry.exe` or its installation folder
+- 🛡️ **Automatic recovery baseline**: Before the first non-English switch, the backend creates or reuses a trusted baseline; if that cannot be completed, it writes nothing. Use one **Restore** action to return to official English—macOS restores the complete bundle, runtime, and signature, while Windows restores the vendor QPA and removes only manifest-owned generic runtime files.
 - 🌐 **Four languages**: English, 简体中文, 繁體中文, 日本語
+
+## Switcher Window
+
+The Switcher uses a fixed 400×484 px window and does not scroll. Its compact flow is: choose a language, then select **Switch** or **Restore**; Switch starts directly, and result feedback appears below the actions.
 
 ## Safety & Permissions
 
@@ -38,19 +43,15 @@ Cavalry-i18n is an independent community tool. It is not made by, endorsed by, o
 
 This project supports **macOS and Windows x64**. macOS patches and re-signs a `Cavalry.app` bundle. Windows applies the JSON overlay at the selected Cavalry installation root, installs a hash-locked QPA delegate, and keeps the exact vendor `qwindows.dll` as a durable backup. Existing Desktop, Start Menu, taskbar, and direct-EXE launch paths are not rewritten. Linux is not supported.
 
-This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can launch with translated resources. On macOS, that requires **App Management** permission:
+This tool modifies files inside your local `Cavalry.app` bundle so Cavalry can launch with translated resources. On macOS, the Switcher tries the safe transaction directly. If macOS denies that write, the app guides you to **System Settings → Privacy & Security → App Management**; allow Cavalry Language Switcher, reopen it if macOS requests that, and select Switch again.
 
-1. Open **System Settings → Privacy & Security → App Management**
-2. Enable **Cavalry Language Switcher**
-3. Return to the app and apply the language pack again
+macOS asks for this permission because changing another `.app` bundle is a protected operation. Only grant it if you trust this build and understand that the tool will patch and re-sign your local Cavalry installation, then open Cavalry when the transaction completes. Keep a clean Cavalry installer or backup available; reinstalling Cavalry is the safest way to return to an untouched official bundle.
 
-macOS asks for this permission because changing another `.app` bundle is a protected operation. Only grant it if you trust this build and understand that the tool will patch, re-sign, and relaunch your local Cavalry installation. Keep a clean Cavalry installer or backup available; reinstalling Cavalry is the safest way to return to an untouched official bundle.
-
-On Windows, the app first tries to discover a local installation; if it cannot, select `Cavalry.exe` or its installation folder yourself. A custom location is supported only when the current user can write to it. Automatic UAC elevation is deliberately limited to an installation that is actually under Windows Program Files; it is not used for arbitrary custom paths. Closing Cavalry or the Switcher and same-version `/UPDATE` operations keep the selected language. Interactive uninstall asks whether to remove only the Switcher and keep the deployed translation, or first restore English and remove the hash-owned generic/QPA runtime; silent, passive, and update uninstalls preserve translation. If Cavalry was reinstalled over a translated copy, the Switcher reports English only after all managed JSON and the exact vendor QPA prove that reality, and **Refresh English** safely converges the stale marker and owned runtime residuals. Unknown DLLs are never deleted.
+On Windows, the app first tries to discover a local installation; if it cannot, select `Cavalry.exe` or its installation folder yourself. A custom location is supported only when the current user can write to it. Automatic UAC elevation is deliberately limited to an installation that is actually under Windows Program Files; it is not used for arbitrary custom paths. Closing Cavalry or the Switcher and same-version `/UPDATE` operations keep the selected language. Interactive uninstall asks whether to remove only the Switcher and keep the deployed translation, or first restore the official English state and remove the hash-owned generic/QPA runtime; silent, passive, and update uninstalls preserve translation. If Cavalry was reinstalled over a translated copy, the Switcher reports English only after all managed JSON and the exact vendor QPA prove that reality. Use **Restore** to return to the official English state; it removes only the manifest-owned generic/QPA runtime, and unknown DLLs are never deleted.
 
 ## Install From Release
 
-Download the matching release asset from GitHub Releases. On macOS, use the Apple Silicon or Intel DMG. The hardened tag pipeline requires Developer ID signing/notarization plus `SHA256SUMS`, `CycloneDX.json`, `release-asset-provenance.json`, an independently signed acceptance attestation, and the final Ed25519-signed `ReleaseAcceptanceSeal.json`; **historical p1-p5 releases predate that pipeline and do not carry those guarantees**. Until `SECURITY.md` publishes the two independent acceptance-authority and release-seal fingerprints, do not treat either embedded public key as authenticated; hardened verification must validate the acceptance attestation first and the final seal second.
+Download the matching release asset from GitHub Releases. On macOS, use the Apple Silicon or Intel DMG. Releases that predate the updater closure may contain only the three manual installers and do not gain automatic-update support retroactively. An updater-enabled release produced by the current tag workflow is identifiable by `latest.json`, the six updater archive/signature assets, and the verification sidecars: macOS DMGs are ad-hoc signed rather than Developer ID notarized, while updater archives are independently signed by the Tauri updater key. The workflow also publishes `SHA256SUMS`, `CycloneDX.json`, `release-asset-provenance.json`, an independently signed acceptance attestation, and the final Ed25519-signed `ReleaseAcceptanceSeal.json`. Until `SECURITY.md` publishes the two independent acceptance-authority and release-seal fingerprints, do not treat either embedded public key as authenticated; verification must validate the acceptance attestation first and the final seal second.
 
 On Windows, download and run `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`. The NSIS installer installs the switcher; it does not require end users to install Python, Rust, Qt, or PowerShell 7. After installation, choose the detected Cavalry copy or browse to a writable installation root. Windows Authenticode signing is tracked separately; always check `SHA256SUMS`.
 
@@ -89,12 +90,12 @@ Windows development requires Windows 10 x64 or newer, Node.js 24+, PowerShell 5.
 ## How It Works
 
 1. **Detect** a local `Cavalry.app` on macOS, or discover/select a Windows `Cavalry.exe` installation root
-2. **Extract** the current English JSON assets as a versioned snapshot
+2. Before the first non-English Switch, automatically **create or reuse** a trusted, versioned recovery baseline. If validation fails, the operation stops before any file is written.
 3. **Patch** translated JSON files from `languages/` into the app assets
 4. **Install** the macOS launcher wrapper and injector, or the Windows `generic/cavalryi18n.dll` translator plus root QPA delegate at the selected installation root
-5. **Relaunch** Cavalry with platform-specific runtime translation; macOS also re-signs the bundle and clears Gatekeeper quarantine
+5. **Open** Cavalry with platform-specific runtime translation; macOS also re-signs the bundle and clears Gatekeeper quarantine
 
-After patching, the original launch path continues to work. macOS uses a launcher wrapper with `DYLD_INSERT_LIBRARIES`; Windows loads the same translation runtime from Cavalry's native QPA path without global or shortcut-specific environment variables. The original `qwindows.dll` remains in a hash-locked recovery directory. Normal exit and same-version updates leave the deployed translation untouched. Explicit English selection—or the uninstaller's restore option—restores the extracted assets and verified vendor QPA, removes only the manifest-owned generic/recovery files, and never substitutes or deletes an unknown DLL.
+The baseline covers only the files required to reverse the managed transaction; it is not a full Cavalry backup, and users do not need to refresh it manually. After patching, the original launch path continues to work. macOS uses a launcher wrapper with `DYLD_INSERT_LIBRARIES`; Windows loads the same translation runtime from Cavalry's native QPA path without global or shortcut-specific environment variables. The original `qwindows.dll` remains in a hash-locked recovery directory. Normal exit and same-version updates leave the deployed translation untouched. **Restore** returns macOS to the complete official English bundle, runtime, and signature; on Windows it restores English assets and the verified vendor QPA, then removes only manifest-owned generic/QPA files. It never substitutes or deletes an unknown DLL.
 
 ## Supported Languages
 
@@ -178,7 +179,7 @@ Cavalry-i18n/
 │       └── ...
 ├── languages/                    # JSON language packs (en, zh-Hans, zh-Hant, ja_JP)
 ├── tools/                        # Build, test, coverage scripts and gate contracts
-├── docs/                          # Architecture plans, translation rules, workflow evidence
+├── docs/                          # Public translation rules, maintenance SOPs, images and badge data
 ├── output/                       # Derived audit artifacts and JSON surface evidence
 └── .github/workflows/            # CI: contract → packaging → release
 ```

@@ -187,9 +187,9 @@ function main() {
   verifyHashedRequirements(auditRequirements, 'requirements-audit.txt', 'pip-audit==2.10.1');
   if (
     pins.rust?.toolchainFile !== 'rust-toolchain.toml' ||
-    pins.rust?.channel !== '1.97.1'
+    pins.rust?.channel !== '1.98.0'
   ) {
-    fail('tools/ci_action_pins.json must exactly pin Rust 1.97.1 via rust-toolchain.toml.');
+    fail('tools/ci_action_pins.json must exactly pin Rust 1.98.0 via rust-toolchain.toml.');
   }
   const rustToolchainPath = path.join(rootDir, pins.rust.toolchainFile);
   if (!fs.existsSync(rustToolchainPath)) {

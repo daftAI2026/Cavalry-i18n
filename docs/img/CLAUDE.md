@@ -1,5 +1,5 @@
 # docs/img/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/CLAUDE.md
+> L2 | 父级: ../CLAUDE.md
 
 成员清单
 ui-ja_JP-cls.png: Switcher 主界面日文版截图，展示当前选择为 ja_JP 的应用状态。

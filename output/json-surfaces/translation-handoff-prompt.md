@@ -1,6 +1,11 @@
-# Translation Handoff Prompt
-
+<!--
+[INPUT]: 依赖 output/json-surfaces 的派生翻译分母、公开翻译规范、术语表与 whitelist 合同。
+[OUTPUT]: 对外提供可交给下一位翻译执行者的 JSON surface 接手话术。
+[POS]: output/json-surfaces 的派生交接材料，不参与运行时打包，也不依赖内部维护文档。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
+# Translation Handoff Prompt
 
 下面这段可以直接交给下一个接手翻译工作的人。
 
@@ -80,9 +85,9 @@
 
 如果需要语言风格/质量要求，请参考：
 
-- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/workflows/cavalry-full-ui-100/prompts/08-translate-zh-hans.md`
-- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/workflows/cavalry-full-ui-100/prompts/09-translate-zh-hant.md`
-- `/Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/workflows/cavalry-full-ui-100/prompts/10-translate-ja-jp.md`
+- `docs/translation-guidelines.md`
+- `docs/cavalry-glossary.md`
+- `tools/translation-whitelist.json`
 
 ## 任务目标
 

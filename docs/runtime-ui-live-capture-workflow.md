@@ -105,7 +105,7 @@ lang marker == 当前目标语言
 repo injector hash == app injector hash
 ```
 
-如果 hash 不一致，先通过 Language Switcher 重新 Apply & Restart。这个不一致会直接造成“抓取 session 已修好，但用户双击 Cavalry 仍看到旧行为”：例如 repo 当前 injector 已经能把属性编辑器里的 `RolloverLabel.text = Particle Shape` 显示为 `粒子形狀/粒子形状`，但 `/Applications/Cavalry.app` 仍加载旧 dylib 时，浮动标题会继续显示英文。
+如果 hash 不一致，先通过 Language Switcher 重新执行 Switch。这个不一致会直接造成“抓取 session 已修好，但用户双击 Cavalry 仍看到旧行为”：例如 repo 当前 injector 已经能把属性编辑器里的 `RolloverLabel.text = Particle Shape` 显示为 `粒子形狀/粒子形状`，但 `/Applications/Cavalry.app` 仍加载旧 dylib 时，浮动标题会继续显示英文。
 
 只有本机诊断时，才可以手动同步 app 内 injector：
 
@@ -252,7 +252,7 @@ jq '.itemModels[] | select((.parentChain // []) | tostring | contains("QuickAddW
 3. `DisplayRole` / `EditRole` 本身为空：这是空模型行，不是漏翻。
 4. `parentChain` 命中 `QuickAddWindow`：这是 Add Layers 面板，不要拿 Time Editor 规则解释它。
 
-2026-05-20 的 Add Layers 空白卡片就是第 3 类：`QuickAddWindow` 下 `QListWidget` 存在空标题 item。修复点是 injector 定点修剪空行，而不是删除 `nodeStrings` 或把 `niceName` 改中文。完整报告见 `docs/audits/add-layers-runtime-model-capture-2026-05-20.md`。
+Add Layers 空白卡片的已知实例属于第 3 类：`QuickAddWindow` 下 `QListWidget` 存在空标题 item。修复点是 injector 定点修剪空行，而不是删除 `nodeStrings` 或把 `niceName` 改中文。
 
 ## Time Editor 方框复盘
 
@@ -453,8 +453,7 @@ Enable Snapping
 - `tools/macos-acceptance/drivers/macos_supplemental_acceptance_driver.mm` 的
   `currentTransformTranslationOracle()` 只验证上述五条译文；`expectedTranslations` 长度为 5，
   诊断要求五位 mask、零 fallback 和零 renderer failure。
-- `docs/workflows/cavalry-full-ui-100/runs/2026-07-29-macos-eight-surface-investigation.md`
-  的 Transform 记录证明的是五条 approved action，不覆盖 `Viewport Quality: High`；本次 session
+- 历史 Transform 实跑记录证明的是五条 approved action，不覆盖 `Viewport Quality: High`；本次 session
   的对应截图位于 `runs/{lang}/transform/captures/01-transform-tool-help-window-os.png`，属于
   session-scoped 证据，不是仓库内的 allowlist 输入。
 - `tools/runtime_ui_allowlist.json` 没有声明该字符串；不得为了消除英文残留而把它加入已覆盖翻译

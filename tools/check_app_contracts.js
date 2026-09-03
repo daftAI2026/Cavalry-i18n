@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js、test_temp_dir.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG、发布供应链精确工具输入、Qt bootstrap stdout/stderr 隔离与 npm 版本命令宿主解析、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补及 Scene Statistics 同窗 Update 三语值、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、Guide 固定 loader slot、macOS Assets/Tag/Tracking owner 边界与 Transform 五 source ABI 防火墙、English refresh/extract 只读与 apply-owned macOS recovery boundary
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG、发布供应链精确工具输入、Qt bootstrap stdout/stderr 隔离与 npm 版本命令宿主解析、renderer typed warningCodes→Activity 投影、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补及 Scene Statistics 同窗 Update 三语值、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、Guide 固定 loader slot、macOS Assets/Tag/Tracking owner 边界与 Transform 五 source ABI 防火墙、English refresh/extract 只读与 apply-owned macOS recovery boundary
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -44,10 +44,13 @@ test('English refresh and extract stay read-only while apply owns macOS recovery
     /recover_macos_apply_for_selection/,
     'refresh/extract snapshot paths must not recover a pending macOS transaction'
   );
-  assert.match(
-    apply,
-    /apply_language_inner[\s\S]{0,500}recover_macos_apply_for_selection/,
-    'apply must retain pending macOS recovery before any snapshot-backed mutation'
+  const reportedApply = apply.slice(apply.indexOf('pub(crate) fn apply_language_inner_with_reporter'));
+  const recovery = reportedApply.indexOf('recover_macos_apply_for_selection');
+  const firstSnapshotMutation = reportedApply.indexOf('project_legacy_snapshot_provenance');
+  assert.ok(recovery >= 0, 'apply must retain pending macOS recovery');
+  assert.ok(
+    firstSnapshotMutation >= 0 && recovery < firstSnapshotMutation,
+    'apply must recover pending macOS work before any snapshot-backed mutation'
   );
 });
 
@@ -221,13 +224,8 @@ test('renderer localizes composable warning codes and never renders backend warn
 
   assert.match(
     rendererSource,
-    /localizedWarningMessages\(warningCodes\)\.join\(' '\)/,
-    'renderer should own localized presentation for every warning code'
-  );
-  assert.match(
-    rendererSource,
-    /warnings\s*\?\s*'warning'\s*:\s*'success'/,
-    'renderer should downgrade the status tone only when localized warnings are present'
+    /appendPostCommitWarnings\(warningCodes\)/,
+    'renderer should project every typed post-commit warning into localized Activity copy'
   );
   assert.match(
     rendererSource,

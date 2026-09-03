@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CommandRunner、macOS bundle 路径、直接 codesign 命令与不跟随 symlink 的 native xattr 清理。
- * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
- * [POS]: macOS apply 的 bundle 收口；禁止 `--deep` 重签任意 vendor nested code，quarantine 不跟随 bundle 内 symlink，任一失败交由外层 exact-preimage 事务回滚。
+ * [OUTPUT]: 提供仅限显式修改代码对象与 app seal 的有界签名、vendor/ad-hoc requirement 证据解析、脚本入口外置签名组件清单与旧版已知残留识别、nested/app 独立只读签名复核、Gatekeeper quarantine 清理。
+ * [POS]: macOS apply 的 bundle 收口；外置签名组件是旧 Switcher 脚本入口可能留下的已知副作用，只按自身路径识别并交由事务清理，不把整个 `_CodeSignature` 目录当作翻译准入证据；quarantine 不跟随 bundle 内 symlink。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -13,6 +13,35 @@ use std::{
 
 use super::super::CommandRunner;
 
+pub(crate) const EXTERNAL_SIGNATURE_COMPONENTS: [&str; 3] = [
+    "Contents/_CodeSignature/CodeDirectory",
+    "Contents/_CodeSignature/CodeSignature",
+    "Contents/_CodeSignature/CodeRequirements",
+];
+
+pub(crate) fn external_signature_component_paths(app_path: &Path) -> Vec<PathBuf> {
+    EXTERNAL_SIGNATURE_COMPONENTS
+        .iter()
+        .map(|relative| app_path.join(relative))
+        .collect()
+}
+
+/// 识别旧 Switcher 可能留下的已知外置签名组件。
+///
+/// 这些路径是否存在与翻译兼容性无关；调用方只在已证明 stock runtime 时把它们交给
+/// exact-preimage 事务删除。目录里存在其他成员不应阻止清理我们自己拥有的路径。
+pub(crate) fn has_known_external_signature_residue(app_path: &Path) -> bool {
+    external_signature_component_paths(app_path)
+        .into_iter()
+        .any(|path| {
+            fs::symlink_metadata(path).is_ok_and(|metadata| {
+                metadata.file_type().is_file()
+                    && !metadata.file_type().is_symlink()
+                    && metadata.len() > 0
+            })
+        })
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct BundleSignatureEvidence {
     pub(crate) team_id: Option<String>,
@@ -21,14 +50,23 @@ pub(crate) struct BundleSignatureEvidence {
 }
 
 impl BundleSignatureEvidence {
+    /// 当前 seal 可读且拥有稳定 requirement/CDHash 即足以作为可恢复 preimage。
+    /// Team ID 只决定是否展示“官方”，不决定第三方翻译工具能否工作。
+    pub(crate) fn is_recoverable_identity(&self) -> bool {
+        self.designated_requirement
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+            && self
+                .cdhash
+                .as_deref()
+                .is_some_and(|value| !value.trim().is_empty())
+    }
+
     pub(crate) fn is_complete_vendor_identity(&self) -> bool {
-        [
-            self.team_id.as_deref(),
-            self.designated_requirement.as_deref(),
-            self.cdhash.as_deref(),
-        ]
-        .into_iter()
-        .all(|value| value.is_some_and(|value| !value.trim().is_empty()))
+        self.team_id
+            .as_deref()
+            .is_some_and(|value| !value.trim().is_empty())
+            && self.is_recoverable_identity()
     }
 
     pub(crate) fn is_supported_cavalry_vendor_identity(&self) -> bool {
@@ -41,18 +79,6 @@ impl BundleSignatureEvidence {
                     requirement.contains("anchor apple generic")
                         && requirement.contains("identifier \"com.scenegroup.cavalry\"")
                 })
-    }
-
-    pub(crate) fn is_managed_ad_hoc_identity(&self) -> bool {
-        self.team_id.is_none()
-            && self
-                .designated_requirement
-                .as_deref()
-                .is_some_and(|value| !value.trim().is_empty())
-            && self
-                .cdhash
-                .as_deref()
-                .is_some_and(|value| !value.trim().is_empty())
     }
 }
 
@@ -107,11 +133,17 @@ pub(crate) fn inspect_bundle_signature<R: CommandRunner>(
         team_id: signature_field(&detail_text, "TeamIdentifier").filter(|value| value != "not set"),
         designated_requirement: requirement_text
             .lines()
-            .find_map(|line| line.trim().strip_prefix("designated => "))
+            .find_map(designated_requirement)
             .filter(|value| !value.trim().is_empty())
             .map(str::to_string),
         cdhash: signature_field(&detail_text, "CDHash"),
     })
+}
+
+fn designated_requirement(line: &str) -> Option<&str> {
+    let line = line.trim();
+    let line = line.strip_prefix("# ").unwrap_or(line);
+    line.strip_prefix("designated => ")
 }
 
 fn signature_field(contents: &str, field: &str) -> Option<String> {
@@ -289,6 +321,56 @@ fn run_direct_bundle_command<R: CommandRunner>(
     args: &[String],
 ) -> Result<(), String> {
     runner.run(program, args)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        designated_requirement, has_known_external_signature_residue, EXTERNAL_SIGNATURE_COMPONENTS,
+    };
+    use std::fs;
+
+    fn write(path: &std::path::Path, bytes: &[u8]) {
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, bytes).unwrap();
+    }
+
+    #[test]
+    fn designated_requirement_accepts_vendor_and_codesign_ad_hoc_output() {
+        assert_eq!(
+            designated_requirement(
+                "designated => anchor apple generic and identifier \"com.scenegroup.cavalry\""
+            ),
+            Some("anchor apple generic and identifier \"com.scenegroup.cavalry\"")
+        );
+        assert_eq!(
+            designated_requirement("# designated => cdhash H\"0123456789abcdef\""),
+            Some("cdhash H\"0123456789abcdef\"")
+        );
+        assert_eq!(designated_requirement("Executable=/tmp/Cavalry"), None);
+    }
+
+    #[test]
+    fn legacy_external_signature_residue_is_owned_path_based_not_directory_wide() {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Cavalry.app");
+        write(
+            &app.join("Contents/_CodeSignature/CodeResources"),
+            b"vendor resources",
+        );
+        for relative in EXTERNAL_SIGNATURE_COMPONENTS {
+            write(&app.join(relative), b"external component");
+        }
+        assert!(has_known_external_signature_residue(&app));
+
+        write(&app.join("Contents/_CodeSignature/Unexpected"), b"unknown");
+        assert!(has_known_external_signature_residue(&app));
+
+        for component in EXTERNAL_SIGNATURE_COMPONENTS {
+            fs::remove_file(app.join(component)).unwrap();
+        }
+        assert!(!has_known_external_signature_residue(&app));
+    }
 }
 
 pub(crate) fn clear_gatekeeper_quarantine<R: CommandRunner>(

@@ -1,25 +1,26 @@
 /**
  * [INPUT]: 依赖 detect/install/patch/state、Windows QPA 只读证据、CommandRunner 与 context 的 packaged language source 定位。
- * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、由单次采集快照 gate 返回分类的 typed reconciliationRequired 标记、显式 state-directory durability retry、apply 前快照门，并委托 snapshot_legacy 识别/迁移旧 provenance；用户触发的 refresh/extract 只验证并捕获备份，不恢复 pending 事务。
- * [POS]: commands 的 English 安装真相层；JSON 与原厂 QPA 共同证明现实，marker 仅可被判为待修元数据，任何未知/ACTIVE 运行时仍 fail closed；pending macOS transaction recovery 由 apply/startup recovery 所有，避免刷新路径关闭 Cavalry 或写安装包。
+ * [OUTPUT]: 提供 clean-English 证明、stale marker/runtime 分类、只读 English 状态投影、由单次采集快照 gate 返回分类的 typed reconciliationRequired 标记、内部 state-directory durability retry、apply 前自动快照门，并复用 snapshot_legacy 严格证明的 JSON-only Managed Legacy 恢复基线及其只读失败门诊断；renderer 不直接触发 refresh/extract mutation。
+ * [POS]: commands 的 English 安装真相层；JSON 与原厂 QPA 共同证明现实，marker 仅可被判为待修元数据，任何未知/ACTIVE 运行时仍 fail closed；pending transaction 只由用户触发的 apply 所有，避免启动与刷新路径关闭 Cavalry 或写安装包。
  * [FAIL-CLOSED]: Windows 仅接受 Stock，或带有有效 manifest phase 的 Recover；vendor hash 不能单独证明英文运行时，非法/缺失 manifest 必须在 snapshot 前拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{fs, io::ErrorKind, path::Path};
 
+#[cfg(any(target_os = "windows", test))]
+use crate::detect;
 use crate::{
-    detect,
     install::{InstallLayout, InstallPlatform},
     patch,
     privilege::CommandRunner,
     state::{self, EnglishSnapshotProvenance, State},
 };
 
-use super::{
-    context::language_source_dir,
-    contract::ActionPayload,
-    status::{project_state_with_bundle, read_state_for_mutation},
-};
+use super::context::language_source_dir;
+#[cfg(target_os = "windows")]
+use super::contract::ActionPayload;
+#[cfg(any(target_os = "windows", test))]
+use super::status::{project_state_with_bundle, read_state_for_mutation};
 
 #[path = "snapshot_legacy.rs"]
 mod snapshot_legacy;
@@ -29,9 +30,20 @@ pub(crate) use snapshot_legacy::{
     has_complete_snapshot_identity, legacy_snapshot_is_proven, migrate_legacy_snapshot_if_proven,
 };
 
+pub(crate) fn managed_legacy_baseline_is_usable(
+    provenance: Option<&EnglishSnapshotProvenance>,
+    legacy_snapshot_proven: bool,
+) -> bool {
+    legacy_snapshot_proven
+        && provenance.is_some_and(|provenance| {
+            has_complete_snapshot_identity(provenance) && provenance.vendor_baseline_id.is_none()
+        })
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum CleanEnglishDisposition {
     Clean,
+    #[cfg(target_os = "windows")]
     NeedsWindowsReconciliation,
 }
 
@@ -383,6 +395,7 @@ where
     Ok((outcome.into_state(), warning))
 }
 
+#[cfg(test)]
 pub fn extract_english_inner(
     repo_root: &Path,
     state_dir: &Path,
@@ -394,6 +407,7 @@ pub fn extract_english_inner(
         .map(|(count, _warning)| count)
 }
 
+#[cfg(test)]
 fn extract_english_inner_with_runner<R: CommandRunner>(
     repo_root: &Path,
     state_dir: &Path,
@@ -415,6 +429,7 @@ fn extract_english_inner_with_runner<R: CommandRunner>(
     .map(|(count, warning, _disposition)| (count, warning))
 }
 
+#[cfg(any(target_os = "windows", test))]
 fn extract_english_inner_with_runner_and_check<R, F>(
     repo_root: &Path,
     state_dir: &Path,
@@ -453,6 +468,7 @@ where
     Ok((count, warning, disposition))
 }
 
+#[cfg(target_os = "windows")]
 pub(crate) fn refresh_english_inner<R: CommandRunner>(
     repo_root: &Path,
     state_dir: &Path,
@@ -478,6 +494,7 @@ pub(crate) fn refresh_english_inner<R: CommandRunner>(
     )
 }
 
+#[cfg(target_os = "windows")]
 fn refresh_english_inner_with_clean_check<R, F>(
     repo_root: &Path,
     state_dir: &Path,
@@ -550,6 +567,25 @@ pub(crate) fn extract_english_snapshot_or_throw<R: CommandRunner>(
     immutable_revision: &str,
     runner: &mut R,
 ) -> Result<State, String> {
+    #[cfg(target_os = "macos")]
+    if InstallLayout::from_root(app_path).platform == InstallPlatform::Macos
+        && managed_legacy_baseline_is_usable(
+            state.english_snapshot_provenance.as_ref(),
+            legacy_snapshot_is_proven(
+                repo_root,
+                state_dir,
+                resource_dir,
+                &state,
+                app_path,
+                immutable_revision,
+            ),
+        )
+    {
+        // Managed Legacy owns a strictly proven immutable English JSON generation but no
+        // official vendor runtime preimage. Reusing that generation is the recovery contract;
+        // trying to recapture it from the currently translated app would reject valid installs.
+        return Ok(state);
+    }
     #[cfg(target_os = "macos")]
     if InstallLayout::from_root(app_path).platform == InstallPlatform::Macos
         && crate::mac_official::verify_clean_vendor_runtime(app_path).is_ok()

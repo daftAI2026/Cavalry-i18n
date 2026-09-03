@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde_json 与 state 目录，读取/写入 Tauri state.json；旧版本状态保持顶层 camelCase 兼容。
- * [OUTPUT]: 对外提供 State、严格 EnglishSnapshotProvenance、带 schema/generation/operationId 的 StateDocument、诊断读取、last-known-good 恢复、StateControlReport/StateControlError、typed commit outcome 与显式目录 durability reconfirm。
+ * [OUTPUT]: 对外提供 State、区分 legacy/JSON-only/official-macOS 三层身份的严格 EnglishSnapshotProvenance、带 schema/generation/operationId 的 StateDocument、诊断读取、last-known-good 恢复、StateControlReport/StateControlError、typed commit outcome 与显式目录 durability reconfirm。
  * [POS]: src-tauri/src 的状态模块；state.json 是控制面事实，任何新状态都先落盘、fsync、保留 prev 后再原子切换；Windows 以可写 handle 刷新普通文件，rename 后的耐久化问题只能投影为 committed warning，并由显式 retry 重新 fsync；控制 API 不丢 recovery_diagnostic 或 warning。
  * [FAIL-CLOSED]: 当前/last-known-good state 损坏、generation identity 未绑定 installRoot/immutableRevision、部分存在或非小写 SHA-256 时拒绝读写；调用方应消费 strict read、StateControlReport 与 StateCommitOutcome。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -325,7 +325,7 @@ fn validate_state_payload(state: &State) -> Result<(), String> {
     ) {
         // Historical snapshot provenance predates immutable generation identities.
         (None, None, None) => Ok(()),
-        // Windows binds the JSON generation and exact English manifest.
+        // Windows and macOS Managed Legacy bind a JSON-only generation and exact manifest.
         (Some(generation), Some(manifest), None) => {
             validate_sha256("snapshotGeneration", generation)?;
             validate_sha256("snapshotManifestSha256", manifest)
@@ -337,7 +337,7 @@ fn validate_state_payload(state: &State) -> Result<(), String> {
             validate_sha256("vendorBaselineId", vendor_baseline)
         }
         _ => Err(
-            "English snapshot provenance identity fields must be all absent (legacy), generation + manifest (Windows), or generation + manifest + vendor baseline (macOS)"
+            "English snapshot provenance identity fields must be all absent (legacy), generation + manifest (JSON-only), or generation + manifest + vendor baseline (official macOS)"
                 .to_string(),
         ),
     }
@@ -981,8 +981,10 @@ pub(crate) fn new_operation_id() -> String {
 
 #[cfg(test)]
 mod tests {
+    #[cfg(windows)]
+    use super::sync_file;
     use super::{
-        confirm_state_directory_durability_using, normalize, read_state_strict, sync_file,
+        confirm_state_directory_durability_using, normalize, read_state_strict,
         write_state_with_operation_using, DirectorySyncPoint, State, StateWriteOutcome,
         StateWriteWarning,
     };

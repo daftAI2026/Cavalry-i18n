@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer、languages、Windows Tauri/Rust/NSIS 输入、package manifests、共享 translation policy、已编译 generic/QPA 双 DLL 与显式 x64 NSIS 输出
- * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance；拒绝 bundle 父链重解析点，将 Windows native 源码、共享编译头与双 injector 纳入哈希，并以 canonical file identity 校验安装包路径
- * [POS]: tools 的 Windows 打包自证器；构建前只在真实工作区 bundle 根清本版本输出，构建后以源码+产物双证据拒绝额外或陈旧 EXE
+ * [INPUT]: 依赖 renderer/languages、Windows Tauri/Rust/NSIS/updater overlay、package manifests、共享 translation policy、已编译 generic/QPA 与显式 x64 NSIS 输出
+ * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance；普通构建拒绝任意 `.exe.sig`，tag 构建以 intent 要求并绑定 exact Tauri updater signature，同时保持 installer/native 输入与 canonical identity 校验
+ * [POS]: tools 的 Windows 打包自证器；构建前只清本版本受控 EXE/provenance/signature，拒绝外国或陈旧输出，构建后封闭人工安装与 updater 共用 NSIS 字节
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const crypto = require('node:crypto');
@@ -10,7 +10,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const TARGET_TRIPLE = 'x86_64-pc-windows-msvc';
-const SCHEMA_VERSION = 1;
+const SCHEMA_VERSION = 2;
 const INTENT_FILE_NAME = 'cavalry-i18n-windows-nsis-build-intent.json';
 
 function fail(message) {
@@ -137,6 +137,10 @@ function sidecarPath(installerPath) {
   return `${installerPath}.provenance.json`;
 }
 
+function updaterSignaturePath(installerPath) {
+  return `${installerPath}.sig`;
+}
+
 function intentPath(bundleRoot) {
   return path.join(bundleRoot, INTENT_FILE_NAME);
 }
@@ -158,6 +162,10 @@ function listInstallerEntries(bundleRoot) {
 
 function listProvenanceEntries(bundleRoot) {
   return listBundleEntriesWithSuffix(bundleRoot, '.exe.provenance.json', 'Windows NSIS provenance sidecar');
+}
+
+function listUpdaterSignatureEntries(bundleRoot) {
+  return listBundleEntriesWithSuffix(bundleRoot, '.exe.sig', 'Windows NSIS updater signature');
 }
 
 function collectRegularFiles(root, relativeRoot, predicate, results) {
@@ -280,6 +288,7 @@ function collectInputFingerprint(repoRoot) {
     path.join('src-tauri', 'build.rs'),
     path.join('src-tauri', 'tauri.conf.json'),
     path.join('src-tauri', 'tauri.windows.conf.json'),
+    path.join('src-tauri', 'tauri.updater-artifacts.conf.json'),
   ]) {
     collectExactInput(repoRoot, relativePath, files);
   }
@@ -316,6 +325,7 @@ function readIntent(bundleRoot, context) {
     intent.productName !== context.productName ||
     intent.version !== context.version ||
     intent.installerName !== context.installerName ||
+    typeof intent.updaterSignatureRequired !== 'boolean' ||
     !intent.inputFingerprint ||
     intent.inputFingerprint.algorithm !== 'sha256' ||
     typeof intent.inputFingerprint.value !== 'string'
@@ -345,7 +355,12 @@ function prepare(repoRoot) {
   assertDirectory(bundleRoot, 'Windows NSIS bundle directory');
 
   const expectedInstaller = path.join(bundleRoot, context.installerName);
-  for (const filePath of [expectedInstaller, sidecarPath(expectedInstaller), intentPath(bundleRoot)]) {
+  for (const filePath of [
+    expectedInstaller,
+    sidecarPath(expectedInstaller),
+    updaterSignaturePath(expectedInstaller),
+    intentPath(bundleRoot),
+  ]) {
     if (fs.existsSync(filePath)) {
       assertRegularFile(filePath, `stale controlled build output ${path.basename(filePath)}`);
       fs.unlinkSync(filePath);
@@ -353,10 +368,15 @@ function prepare(repoRoot) {
   }
   const remainingInstallers = listInstallerEntries(bundleRoot);
   const remainingProvenance = listProvenanceEntries(bundleRoot);
-  if (remainingInstallers.length !== 0 || remainingProvenance.length !== 0) {
+  const remainingUpdaterSignatures = listUpdaterSignatureEntries(bundleRoot);
+  if (remainingInstallers.length !== 0 || remainingProvenance.length !== 0 || remainingUpdaterSignatures.length !== 0) {
     fail(
-      `refusing to erase non-current Windows installer output in ${bundleRoot}: ${[...remainingInstallers, ...remainingProvenance].join(', ')}. Remove it explicitly before building.`
+      `refusing to erase non-current Windows installer output in ${bundleRoot}: ${[...remainingInstallers, ...remainingProvenance, ...remainingUpdaterSignatures].join(', ')}. Remove it explicitly before building.`
     );
+  }
+  const signatureExpectation = process.env.CAVALRY_I18N_EXPECT_UPDATER_SIGNATURE || '';
+  if (signatureExpectation && signatureExpectation !== '1') {
+    fail('CAVALRY_I18N_EXPECT_UPDATER_SIGNATURE must be exactly 1 when set.');
   }
   const fingerprint = collectInputFingerprint(repoRoot);
   const intent = {
@@ -365,6 +385,7 @@ function prepare(repoRoot) {
     productName: context.productName,
     version: context.version,
     installerName: context.installerName,
+    updaterSignatureRequired: signatureExpectation === '1',
     inputFingerprint: fingerprint,
   };
   atomicWriteJson(intentPath(bundleRoot), intent);
@@ -384,6 +405,28 @@ function record(repoRoot) {
     fail('packaging inputs changed after provenance preparation; rebuild from a new prepare phase.');
   }
   const { installerPath, stat } = assertExactlyExpectedInstaller(bundleRoot, context);
+  const updaterSignatures = listUpdaterSignatureEntries(bundleRoot);
+  const expectedSignatureName = path.basename(updaterSignaturePath(installerPath));
+  if (
+    (intent.updaterSignatureRequired && (updaterSignatures.length !== 1 || updaterSignatures[0] !== expectedSignatureName)) ||
+    (!intent.updaterSignatureRequired && updaterSignatures.length !== 0)
+  ) {
+    fail(`updater signature output does not match build intent; found: ${updaterSignatures.join(', ') || '(none)'}.`);
+  }
+  let updaterSignature = null;
+  if (intent.updaterSignatureRequired) {
+    const signatureFile = updaterSignaturePath(installerPath);
+    const signatureText = fs.readFileSync(signatureFile, 'utf8').trim();
+    if (signatureText.length < 16 || signatureText.length % 4 !== 0 || !/^[A-Za-z0-9+/]+={0,2}$/.test(signatureText)) {
+      fail('Tauri updater signature must contain one non-empty base64 value.');
+    }
+    const signatureStat = assertRegularFile(signatureFile, 'Windows NSIS updater signature');
+    updaterSignature = {
+      fileName: expectedSignatureName,
+      bytes: signatureStat.size,
+      sha256: sha256File(signatureFile),
+    };
+  }
   const provenance = {
     schemaVersion: SCHEMA_VERSION,
     target: TARGET_TRIPLE,
@@ -394,6 +437,7 @@ function record(repoRoot) {
       bytes: stat.size,
       sha256: sha256File(installerPath),
     },
+    updaterSignature,
     inputFingerprint: fingerprint,
   };
   const provenancePath = sidecarPath(installerPath);
@@ -425,6 +469,17 @@ function verify(repoRoot, requestedInstaller) {
   const provenance = readJson(provenancePath, 'Windows NSIS provenance sidecar');
   const expectedSha256 = sha256File(installerPath);
   const fingerprint = collectInputFingerprint(repoRoot);
+  const updaterSignatures = listUpdaterSignatureEntries(bundleRoot);
+  const expectedSignatureName = path.basename(updaterSignaturePath(installerPath));
+  let updaterSignatureMatches = provenance.updaterSignature === null && updaterSignatures.length === 0;
+  if (provenance.updaterSignature && updaterSignatures.length === 1 && updaterSignatures[0] === expectedSignatureName) {
+    const signatureFile = updaterSignaturePath(installerPath);
+    const signatureStat = assertRegularFile(signatureFile, 'Windows NSIS updater signature');
+    updaterSignatureMatches =
+      provenance.updaterSignature.fileName === expectedSignatureName &&
+      provenance.updaterSignature.bytes === signatureStat.size &&
+      provenance.updaterSignature.sha256 === sha256File(signatureFile);
+  }
   if (
     provenance.schemaVersion !== SCHEMA_VERSION ||
     provenance.target !== TARGET_TRIPLE ||
@@ -434,6 +489,7 @@ function verify(repoRoot, requestedInstaller) {
     provenance.installer.fileName !== context.installerName ||
     provenance.installer.bytes !== stat.size ||
     provenance.installer.sha256 !== expectedSha256 ||
+    !updaterSignatureMatches ||
     !provenance.inputFingerprint ||
     provenance.inputFingerprint.algorithm !== 'sha256' ||
     provenance.inputFingerprint.value !== fingerprint.value ||

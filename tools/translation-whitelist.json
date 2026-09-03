@@ -143,7 +143,7 @@
     }
   },
   "_extraction_filters": {
-    "glossary_source": "docs/workflows/cavalry-full-ui-100/Anti-Patterns.md §F",
+    "glossary_source": "tools/translation-whitelist.json#_forbidden_patterns",
     "exact_values": [
       "Abbey",
       "Acadia",

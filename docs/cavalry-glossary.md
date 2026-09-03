@@ -67,7 +67,7 @@
 | Preferences | 首选项 | 偏好設定 | 環境設定 | macOS-style UI wording |
 | Apply | 应用 | 套用 | 適用 | |
 | Restart | 重新启动 | 重新啟動 | 再起動 | |
-| Apply & Restart | 应用并重新启动 | 套用並重新啟動 | 適用して再起動 | Button label |
+| Switch | 切换 | 切換 | 切り替える | Switcher primary button; starts the language transaction directly |
 | Save | 保存 | 儲存 | 保存 | |
 | Save As | 另存为 | 另存新檔 | 名前を付けて保存 | |
 | Open | 打开 | 開啟 | 開く | |

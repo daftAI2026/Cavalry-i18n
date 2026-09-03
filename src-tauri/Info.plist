@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+----------------------------------------------------------------
+[INPUT]: Tauri macOS bundler 与本地化 Resources/*.lproj/InfoPlist.strings
+[OUTPUT]: 默认英文的 NSAppBundlesUsageDescription，说明 Switcher 为切换语言修改 Cavalry
+[POS]: macOS app bundle 的隐私用途说明覆盖层；由 Tauri 自动合并到 Contents/Info.plist
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+----------------------------------------------------------------
+-->
+<plist version="1.0">
+<dict>
+    <key>NSAppBundlesUsageDescription</key>
+    <string>Allow Cavalry Language Switcher to modify Cavalry's local app files to switch its interface language.</string>
+</dict>
+</plist>

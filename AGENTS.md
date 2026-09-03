@@ -1,6 +1,6 @@
 # CAVALRY-I18N KNOWLEDGE BASE
 
-Last verified: 2026-08-01 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
+Last verified: 2026-09-01 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
 
 ## OVERVIEW
 
@@ -20,12 +20,12 @@ Cavalry-i18n/
 ├── injector/                     # macOS injector + Windows generic translator/QPA delegate + shared generated table
 ├── languages/                    # Runtime JSON language packs: en, zh-Hans, zh-Hant, ja_JP
 ├── tools/                        # Build, extraction, translation, packaging, and tracked macOS/Windows gate producers
-├── docs/                         # Translation rules, runtime capture workflow, audits, gates
+├── docs/                         # Public translation rules, repeatable maintenance SOPs, images, badge data
 ├── output/                       # Derived JSON-surface audit artifacts; not runtime truth
 ├── desktop-patcher/              # Legacy injector artifact mirror; not current mainline
-├── .github/workflows/            # CI/CD, Windows NSIS / macOS package jobs, three-asset release publishing
+├── .github/workflows/            # CI/CD, manual installers plus signed three-platform updater release closure
 ├── LOCAL_BUILD_SOP.md            # Local Tauri packaging contract
-├── release.config.json           # Cavalry target release tag/title/DMG asset truth source
+├── release.config.json           # Tag/title/manual assets plus updater manifest/archive naming truth
 └── CLAUDE.md                     # L1 architecture map; update when this map changes
 ```
 
@@ -34,26 +34,26 @@ Cavalry-i18n/
 | Task | Location | Notes |
 | --- | --- | --- |
 | Project map | `CLAUDE.md` + module `CLAUDE.md` | Read before touching a directory. L2/L3 docs are part of the contract. |
-| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css` | Static DOM ids, stable localized shell copy, custom select, modal, status panel. |
-| Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Payloads are camelCase only. |
-| IPC commands | `src-tauri/src/commands.rs` | Exactly 6 commands: status, browse, extract English, apply, open Privacy, restart. |
+| Renderer UI | `renderer/index.html`, `renderer/ui-text.js`, `renderer/app.js`, `renderer/styles.css`, `renderer/window-controls.*` | Static DOM ids, platform typography, custom semantic select, badges/update/modal/Alert；macOS keeps native traffic lights, Windows draws only right-side native-semantic caption controls while DWM owns the frame. |
+| Tauri bridge | `renderer/tauri-bridge.js`, `src-tauri/src/bridge.rs` | `window.cavalryI18n` is the only renderer API. Business payloads are camelCase only; updater consumes Rust-held checked state, while Windows caption methods target only the fixed `main` window. |
+| IPC commands | `src-tauri/src/commands.rs` | Exactly 9 commands: status, browse, extract English, apply, open Privacy, open fixed project link, restart, check update, install update. |
 | JSON asset mapping | `src-tauri/src/patch.rs` | `CORE_MAP`, keyed overlay, packaged-English content proof, snapshot completeness/provenance. |
-| System boundary | `src-tauri/src/privilege.rs`, `src-tauri/src/privilege/windows/language_transaction/` | Copy, same-EXE Program Files transaction, legacy admin fallback, re-signing, quarantine, Privacy & Security, restart commands. |
+| System boundary | `src-tauri/src/privilege.rs`, `src-tauri/src/privilege/windows/language_transaction/` | Copy, same-EXE Program Files transaction, legacy admin fallback, re-signing, quarantine, Privacy & Security, fixed project links, restart commands. |
 | Keychain patch | `src-tauri/src/keychain_patch.rs` | Mach-O/fat slice parser and NOP patcher for Keychain query attributes. |
 | macOS runtime files | `src-tauri/src/mac_runtime.rs` | Launcher wrapper, Info.plist rewrite, language marker, injector copy pairs. |
 | Windows runtime files | `src-tauri/src/windows_install.rs`, `windows_runtime.rs`, `windows_qpa.rs`, `windows_qpa/` | Discover arbitrary install roots, deploy the generic translator, and own the durable/atomic QPA activation and explicit restoration state machine. |
 | Windows uninstall | `src-tauri/nsis-hooks.nsh`, `src-tauri/nsis-languages/`, `src-tauri/src/uninstall_restore.rs` | Keep translation by default, offer explicit transactional English restore, and keep translation/app-data choices on their owning wizard pages; app-data deletion is Switcher-only. |
-| Windows port handoff | `docs/audits/windows-port-session-handoff-2026-07-29.md` | Final architecture, rejected approaches, evidence levels, build/release lessons, and remaining live-verification debt. |
+| Windows runtime | `src-tauri/src/windows_install.rs`, `windows_runtime.rs`, `windows_qpa.rs`, `injector/windows/` | Current code is the public architecture truth; internal handoffs are not build inputs. |
 | Runtime injectors | `injector/CavalryTranslatorInjector.mm`, `injector/windows/` | macOS first-paint translator; Windows Qt generic translator plus a tiny vendor-QPA delegate with display whitelist and precise ExtensionLayer IAT boundary. |
 | Embedded compiled translations | `tools/zh-Hans.ts`, `tools/zh-Hant.ts`, `tools/ja_JP.ts` | Qt Linguist XML sources for compiled/runtime UI strings. |
 | Generated injector table | `injector/generated_translations.inc` | Generated by `tools/generate_embedded_translations.js`; never edit by hand. |
 | Display-only model names | `tools/model_display_translations.json` | UI display translations for model names; do not write these into model identity data. |
 | JSON language packs | `languages/en`, `languages/zh-Hans`, `languages/zh-Hant`, `languages/ja_JP` | `en` is baseline. Target languages must stay structurally isomorphic. |
 | Translation policy | `docs/translation-guidelines.md`, `docs/cavalry-glossary.md`, `tools/translation-whitelist.json` | Field-level translate/no-translate boundaries and terminology. |
-| Full UI gate | `docs/workflows/cavalry-full-ui-100/Acceptance.md`, `Runbook.md`, `tools/run_live_full_ui_matrix.js` | Current repository-wide live gate truth. CI does not run this gate. |
-| macOS scoped acceptance | `tools/macos-acceptance/`, `docs/workflows/cavalry-full-ui-100/runs/2026-07-29-macos-eight-surface-investigation.md` | Tracked producer for the 21-run/48-point matrix; generated tools and live evidence remain session-scoped. |
+| Full UI gate | `tools/run_live_full_ui_matrix.js`, `tools/check_full_ui_coverage.js`, `docs/runtime-ui-live-capture-workflow.md` | Tracked producers and the public capture SOP define the executable gate; CI does not create live Cavalry evidence. |
+| macOS scoped acceptance | `tools/macos-acceptance/` | Tracked producer for the 21-run/48-point matrix; generated tools and live evidence remain session-scoped. |
 | Runtime capture | `docs/runtime-ui-live-capture-workflow.md`, `tools/capture_accessibility_inventory.js`, `tools/merge_runtime_inventory.js` | Session-scoped provenance is mandatory. |
-| Release protocol | `release.config.json`, `tools/release_metadata.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` tags drive release title and three assets: two DMGs plus Windows x64 NSIS EXE. |
+| Release protocol | `release.config.json`, `tools/release_metadata.js`, `tools/create_updater_manifest.js`, `.github/workflows/build.yml`, `release-seals/README.md` | `cavalry-2.7.2-pN` drives title/manual assets; package SemVer drives three-platform `latest.json`; tag publishing seals and exact-readbacks nine distribution assets. Configuration alone never proves a published updater release. |
 | Local build | `LOCAL_BUILD_SOP.md`, `src-tauri/tauri.*.conf.json`, `tools/cavalry_qt_target.json` | Tauri-only package path, per-platform Qt build, DMG/NSIS validation. |
 
 ## CONVENTIONS
@@ -70,6 +70,7 @@ Cavalry-i18n/
 
 - `app.js` must not know Tauri internals. It talks only to `window.cavalryI18n`.
 - `tauri-bridge.js` normalizes camelCase payloads only. Do not reintroduce snake_case fallbacks or debug fields.
+- `window-controls.js` is the only platform-window consumer. Keep it limited to the fixed `main` label and the explicit minimize/toggle-maximize/is-maximized/close surface.
 - `index.html` ids are test anchors. Rename only with `tools/check_renderer_contract.js` and bridge/runtime tests updated.
 - Stable renderer shell copy is localized in `ui-text.js`; translated Cavalry runtime UI belongs to `languages/` and `tools/*.ts`, not renderer shell copy.
 
@@ -167,8 +168,11 @@ SESSION_DIR="$HOME/Library/Caches/Cavalry-i18n/sessions/<session-uuid>" npm run 
 Manual smoke is intentionally ignored by default:
 
 ```bash
+CAVALRY_I18N_MACOS_SMOKE_APP="/Volumes/Cavalry/Cavalry.app" \
 npm run test:tauri:manual-smoke
 ```
+
+Prefer a read-only mounted official Cavalry 2.7.2 DMG for that explicit path. The compatibility fallback is `/Applications/Cavalry.app`; never use a translated or ad-hoc source as English evidence.
 
 ## BUILD PIPELINE
 
@@ -200,7 +204,7 @@ Windows packaging follows the same JSON source and generated translation table, 
 
 | Tool | Version / Source | Notes |
 | --- | --- | --- |
-| Node.js | 22 in CI | npm package root, no pnpm/yarn |
+| Node.js | 24.20.0 in CI | npm package root, no pnpm/yarn |
 | npm packages | `package-lock.json` | `@tauri-apps/cli` and `@tauri-apps/api` pinned to 2.10.1 |
 | Rust | stable, edition 2021 | Tauri backend crate `cavalry-i18n-tauri` |
 | Tauri | Rust `tauri` 2.10.3 | npm CLI/API minor aligned with Rust runtime |
@@ -213,10 +217,10 @@ Windows packaging follows the same JSON source and generated translation table, 
 
 ## SECURITY
 
-- This app modifies a selected local Cavalry installation: macOS writes `Cavalry.app`; Windows writes keyed JSON assets, one generic translator, and a QPA delegate under the selected install root while retaining the exact vendor `qwindows.dll` in `cavalry-i18n-qpa/`. macOS expects App Management permission; Windows uses direct writable-root operations or the restricted Program Files UAC path below.
+- This app modifies a selected local Cavalry installation: macOS writes `Cavalry.app`; Windows writes keyed JSON assets, one generic translator, and a QPA delegate under the selected install root while retaining the exact vendor `qwindows.dll` in `cavalry-i18n-qpa/`. macOS attempts the durable transaction directly and opens App Management only after a real typed permission denial; Windows uses direct writable-root operations or the restricted Program Files UAC path below.
 - Windows direct copy may target an explicitly selected custom install root, but elevation is restricted to canonical `FOLDERID_ProgramFiles`/`FOLDERID_ProgramFilesX86` roots from `SHGetKnownFolderPath`; never derive an elevation allowlist from process environment variables, and fail closed on any destination-chain reparse point. A complete Program Files language switch must use the current Switcher EXE as one headless `ShellExecuteExW("runas")` worker and must never fall through to the legacy PowerShell copy fallback. The worker re-derives every target, commits the final marker last, and never writes app state or restarts Cavalry; the core trust boundary remains the OS-known Program Files ACL.
 - Windows QPA activation is locked to Cavalry 2.7.2, the selected `Cavalry.exe` digest, Qt 6.6.3, x64, the verified vendor `qwindows.dll` digest, and a strict install-root manifest. Publish the durable vendor backup before atomically replacing the root DLL; `prepared`/`restoring` states delegate to the vendor QPA without translation, and `active` translates only when Cavalry/proxy/vendor/generic hashes plus the final language marker agree. Normal exit and same-version update preserve translation. Interactive uninstall defaults to removing only the Switcher and keeping translation; explicit restore runs the trusted English transaction and owned runtime cleanup, while the following app-data option affects only Switcher settings. Silent/passive/update uninstall preserves translation. A saved install whose `Cavalry.exe` is already absent succeeds idempotently; missing state or failed proof/cleanup aborts uninstall. Unknown generic/QPA files and newer vendor DLLs are never deleted or overwritten.
-- Local/development DMGs are ad-hoc signed and are never notarized. A future public tag asset may be described as Developer ID signed/notarized only after the hardened tag workflow, public sidecars, and external trust anchor all verify; do not apply that claim to historical releases.
+- Current local and tag DMGs are ad-hoc signed and are never notarized; tag updater archives have a separate Tauri Ed25519 signature that does not create Apple platform trust. A future public tag asset may be described as Developer ID signed/notarized only after real credentials and corresponding verification exist; do not apply that claim to current or historical releases.
 - `DYLD_INSERT_LIBRARIES` injection is intentional and limited to the patched Cavalry launcher wrapper.
 - Keychain behavior is patched in `libExtensionLayer.dylib`; keep tests around per-function patch reports.
 - Never commit real secrets, user caches, live session artifacts, or real Cavalry app bundles.
@@ -224,7 +228,7 @@ Windows packaging follows the same JSON source and generated translation table, 
 
 ## NOTES
 
-- `docs/workflows/cavalry-full-ui-100/` is the current gate system. The early `cavalry-i18n` workflow lives under `docs/archive/workflows-cavalry-i18n/` as historical evidence.
+- Public `docs/` contains only stable project rules, repeatable SOPs and assets. If a maintainer checkout has `.internal-docs`, research, event ledgers, live run notes and historical workflows live there; no build, test or release may depend on that local link.
 - `desktop-patcher/` is a legacy artifact mirror; the root `injector/` and Tauri bundle resources are the active path.
 - `output/json-surfaces/` is audit/draft state. It can guide translation work, but runtime source truth is `languages/`.
 - Several files are intentionally large because they encode contract coverage or translation surfaces. Do not casually split them during unrelated work.

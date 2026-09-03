@@ -1,0 +1,122 @@
+/**
+ * [INPUT]: 依赖 tokens.css/button.css、styles.css 的共享 40px 标题栏与 window-controls.css 的 Windows caption primitive；about.html 只提供独立页面语义。
+ * [OUTPUT]: 对外提供覆盖在完整内容画布上的 macOS/Windows 共用可拖动 Chrome、无重复视觉标题/分隔线、10px 紧密动作组与真实 20px 底边距的独立 About 视觉层；Windows 关闭按钮与 10px 透明阴影外壳直接消费共享几何。
+ * [POS]: renderer 的 About 视觉层；与主窗口 Dialog 解耦，只选择平台 Chrome 显隐，不复制标题栏或按钮尺寸，不加载远程资源。
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+}
+
+body {
+  background: var(--window);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: var(--type-compact);
+  line-height: var(--line-height-compact);
+  -webkit-font-smoothing: antialiased;
+}
+
+.about-surface {
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.about-titlebar {
+  display: none;
+}
+
+html:is([data-platform="macos"], [data-platform="windows"]) .about-titlebar {
+  position: absolute;
+  inset: 0 0 auto;
+  width: 100%;
+  display: flex;
+  background: transparent;
+  box-shadow: none;
+}
+
+.about-window {
+  width: 100%;
+  min-height: 100%;
+  display: grid;
+  align-content: end;
+  justify-items: center;
+  align-items: center;
+  padding: var(--padding-window);
+  overflow: hidden;
+  text-align: center;
+}
+
+.about-app-icon {
+  width: var(--about-app-icon-size);
+  height: var(--about-app-icon-size);
+  display: block;
+}
+
+.about-title {
+  margin: var(--gap-section) 0 0;
+  font-size: var(--type-heading);
+  font-weight: var(--weight-heading);
+  letter-spacing: var(--tracking-heading);
+  line-height: var(--line-height-heading);
+}
+
+.about-version {
+  margin: var(--gap-meta-stack) 0 0;
+  color: var(--text-secondary);
+  font-size: var(--type-metadata);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-metadata);
+  font-synthesis: none;
+}
+
+.about-links {
+  width: 100%;
+  display: grid;
+  gap: var(--gap-page-actions);
+  margin: var(--gap-section) 0 0;
+}
+
+.about-link {
+  min-height: var(--control-height);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--gap-inline);
+  padding: 0 var(--padding-control-inline);
+  border: var(--stroke-hairline) solid var(--border);
+  border-radius: var(--radius-md);
+  color: var(--text);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-medium);
+  line-height: var(--line-height-compact);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  transition: border-color var(--duration-control) ease, background-color var(--duration-control) ease;
+}
+
+.about-link-icon {
+  width: var(--about-link-icon-size);
+  height: var(--about-link-icon-size);
+  flex: 0 0 auto;
+}
+
+.about-link:hover {
+  border-color: var(--border-outline-hover);
+  background: var(--surface-hover);
+}
+
+.about-link:focus-visible {
+  outline: var(--stroke-focus) solid var(--focus);
+  outline-offset: var(--focus-offset);
+}

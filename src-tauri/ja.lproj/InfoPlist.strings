@@ -1,0 +1,9 @@
+/*
+----------------------------------------------------------------
+[INPUT]: macOS App Management の権限コンテキストと Cavalry Language Switcher の言語切り替え責務
+[OUTPUT]: 日本語 NSAppBundlesUsageDescription ローカライズ文字列
+[POS]: Contents/Resources/ja.lproj のシステム権限文言；Cavalry の表示言語切り替えだけを説明
+[PROTOCOL]: 変更時にこのヘッダーを更新し、CLAUDE.md を確認する
+----------------------------------------------------------------
+*/
+"NSAppBundlesUsageDescription" = "Cavalry Language Switcher が Cavalry のローカルアプリファイルを変更し、表示言語を切り替えることを許可します。";

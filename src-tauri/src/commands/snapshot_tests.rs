@@ -1,10 +1,36 @@
 /**
  * [INPUT]: 依赖 snapshot.rs 的 English gate、state durability helper、refresh gate 与 Windows QPA 只读证据 seam。
- * [OUTPUT]: 提供 snapshot 状态耐久性、refresh 零写入、Windows residue/recovery fail-closed 的单元合同。
+ * [OUTPUT]: 提供 snapshot 状态耐久性、Managed Legacy 基线复用、refresh 零写入、Windows residue/recovery fail-closed 的单元合同。
  * [POS]: commands/snapshot.rs 的测试投影；与生产快照逻辑分离，保持领域文件低于 800 行且不扩大运行时 API。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use super::*;
+
+#[test]
+fn only_complete_json_only_managed_legacy_provenance_is_reusable() {
+    let managed = EnglishSnapshotProvenance {
+        install_root: "/Applications/Cavalry.app".to_string(),
+        immutable_revision: "macos-identity:fixture".to_string(),
+        snapshot_generation: Some("generation".to_string()),
+        snapshot_manifest_sha256: Some("manifest".to_string()),
+        vendor_baseline_id: None,
+    };
+    assert!(managed_legacy_baseline_is_usable(Some(&managed), true));
+    assert!(!managed_legacy_baseline_is_usable(Some(&managed), false));
+
+    let official = EnglishSnapshotProvenance {
+        vendor_baseline_id: Some("official-generation".to_string()),
+        ..managed.clone()
+    };
+    assert!(!managed_legacy_baseline_is_usable(Some(&official), true));
+
+    let incomplete = EnglishSnapshotProvenance {
+        snapshot_manifest_sha256: None,
+        ..managed
+    };
+    assert!(!managed_legacy_baseline_is_usable(Some(&incomplete), true));
+    assert!(!managed_legacy_baseline_is_usable(None, true));
+}
 
 #[test]
 fn unchanged_snapshot_reconfirms_directory_durability_and_surfaces_failure() {
@@ -38,9 +64,19 @@ fn unchanged_snapshot_reconfirms_directory_durability_and_surfaces_failure() {
 }
 
 #[test]
-fn refresh_and_extract_do_not_own_macos_pending_recovery() {
+fn only_user_language_actions_own_pending_recovery() {
     let snapshot_source = include_str!("snapshot.rs");
     let apply_source = include_str!("apply.rs");
+    let status_source = include_str!("status.rs");
+    let restart_source = include_str!("restart.rs");
+    let lib_source = include_str!("../lib.rs");
+    let startup_status_source = status_source
+        .split("pub(crate) fn get_status_for_app")
+        .nth(1)
+        .expect("status must expose the Tauri startup projection")
+        .split("fn record_status_diagnostics")
+        .next()
+        .expect("startup status projection must precede diagnostics");
     let snapshot_production = snapshot_source
         .split("#[cfg(test)]")
         .next()
@@ -54,6 +90,21 @@ fn refresh_and_extract_do_not_own_macos_pending_recovery() {
         apply_source.contains("recover_macos_apply_for_selection"),
         "apply must retain pending macOS recovery before mutation"
     );
+    assert!(
+        apply_source.contains("recover_windows_language_transaction_for_selection"),
+        "apply must retain pending Windows recovery before mutation"
+    );
+    for (owner, source) in [
+        ("status", startup_status_source),
+        ("restart", restart_source),
+        ("startup", lib_source),
+    ] {
+        assert!(
+            !source.contains("pending_macos_apply_install_root")
+                && !source.contains("recover_macos_apply_for_selection"),
+            "{owner} must not inspect or recover pending language transactions"
+        );
+    }
 }
 
 #[cfg(target_os = "windows")]

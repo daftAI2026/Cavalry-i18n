@@ -109,7 +109,7 @@ fn journal_state_persists_versioned_entry_provenance() {
 }
 
 #[test]
-fn incomplete_final_journal_prefix_must_block_startup_recovery() {
+fn incomplete_final_journal_prefix_must_block_next_action_recovery() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     fs::create_dir(&root).unwrap();
@@ -174,7 +174,7 @@ fn replacement_protocol_reserves_a_displaced_preimage_member() {
 }
 
 #[test]
-fn startup_recovery_rolls_back_a_prepared_journal_after_crash() {
+fn next_action_recovery_rolls_back_a_prepared_journal_after_crash() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -203,7 +203,7 @@ fn startup_recovery_rolls_back_a_prepared_journal_after_crash() {
 }
 
 #[test]
-fn startup_recovery_accepts_a_complete_temporary_manifest_after_publish_crash() {
+fn next_action_recovery_accepts_a_complete_temporary_manifest_after_publish_crash() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -233,7 +233,7 @@ fn startup_recovery_accepts_a_complete_temporary_manifest_after_publish_crash() 
 }
 
 #[test]
-fn startup_recovery_prefers_authoritative_state_when_temporary_generation_differs() {
+fn next_action_recovery_prefers_authoritative_state_when_temporary_generation_differs() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -260,7 +260,7 @@ fn startup_recovery_prefers_authoritative_state_when_temporary_generation_differ
 }
 
 #[test]
-fn startup_recovery_never_adopts_uncommitted_postimages_from_temporary_generation() {
+fn next_action_recovery_never_adopts_uncommitted_postimages_from_temporary_generation() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -291,7 +291,7 @@ fn startup_recovery_never_adopts_uncommitted_postimages_from_temporary_generatio
 }
 
 #[test]
-fn startup_recovery_retains_owned_target_when_displaced_publication_is_pending() {
+fn next_action_recovery_retains_owned_target_when_displaced_publication_is_pending() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let source = temp.0.join("asset.next");
@@ -317,7 +317,7 @@ fn startup_recovery_retains_owned_target_when_displaced_publication_is_pending()
 }
 
 #[test]
-fn startup_recovery_converges_pending_displaced_publication_at_original_target() {
+fn next_action_recovery_converges_pending_displaced_publication_at_original_target() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let source = temp.0.join("asset.next");
@@ -466,7 +466,7 @@ fn rolling_back_recovery_cleans_a_verified_postimage_displaced_residue() {
 }
 
 #[test]
-fn startup_recovery_rolls_back_after_an_interrupted_apply_n() {
+fn next_action_recovery_rolls_back_after_an_interrupted_apply_n() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -508,7 +508,7 @@ fn startup_recovery_rolls_back_after_an_interrupted_apply_n() {
 }
 
 #[test]
-fn startup_recovery_removes_directories_created_after_their_manifest_entry() {
+fn next_action_recovery_removes_directories_created_after_their_manifest_entry() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -543,7 +543,7 @@ fn startup_recovery_removes_directories_created_after_their_manifest_entry() {
 }
 
 #[test]
-fn startup_recovery_rolls_back_an_interrupted_marker_commit() {
+fn next_action_recovery_rolls_back_an_interrupted_marker_commit() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let pending_source = temp.0.join("marker.pending");
@@ -579,7 +579,7 @@ fn startup_recovery_rolls_back_an_interrupted_marker_commit() {
 }
 
 #[test]
-fn startup_recovery_replays_a_rolling_back_journal_after_crash() {
+fn next_action_recovery_replays_a_rolling_back_journal_after_crash() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -612,7 +612,7 @@ fn startup_recovery_replays_a_rolling_back_journal_after_crash() {
 }
 
 #[test]
-fn startup_recovery_finishes_committed_cleanup_after_backup_delete_crash() {
+fn next_action_recovery_finishes_committed_cleanup_after_backup_delete_crash() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let source = temp.0.join("asset.next");
@@ -640,7 +640,7 @@ fn startup_recovery_finishes_committed_cleanup_after_backup_delete_crash() {
 }
 
 #[test]
-fn startup_recovery_blocks_an_unknown_hash_and_retains_the_journal() {
+fn next_action_recovery_blocks_an_unknown_hash_and_retains_the_journal() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let marker_source = temp.0.join("marker.pending");
@@ -673,7 +673,7 @@ fn startup_recovery_blocks_an_unknown_hash_and_retains_the_journal() {
 }
 
 #[test]
-fn startup_recovery_blocks_a_tampered_manifest_path() {
+fn next_action_recovery_blocks_a_tampered_manifest_path() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let source = temp.0.join("asset.next");
@@ -742,7 +742,7 @@ fn interrupted_payload_copy_never_exposes_a_partial_destination() {
 }
 
 #[test]
-fn startup_recovery_removes_only_a_declared_staged_replacement() {
+fn next_action_recovery_removes_only_a_declared_staged_replacement() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let source = temp.0.join("translated.bin");
@@ -916,7 +916,7 @@ fn failed_apply_does_not_claim_observed_external_update_for_rollback() {
 }
 
 #[test]
-fn startup_recovery_preserves_unknown_target_and_staged_postimage_after_replace_race() {
+fn next_action_recovery_preserves_unknown_target_and_staged_postimage_after_replace_race() {
     let temp = TestDirectory::new();
     let root = temp.0.join("Cavalry");
     let destination = root.join("asset.bin");

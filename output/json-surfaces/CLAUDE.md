@@ -1,5 +1,5 @@
 # json-surfaces/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/output/CLAUDE.md
+> L2 | 父级: ../CLAUDE.md
 
 成员清单
 asset-map.json: 38 个 Cavalry JSON asset 到语言包路径的映射表，标记当前覆盖与缺口。

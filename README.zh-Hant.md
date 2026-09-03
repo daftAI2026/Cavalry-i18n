@@ -22,7 +22,7 @@
 
 ## 功能
 
-- 🎯 **一鍵切換**：選擇語言，點擊套用，重新啟動後 Cavalry 即以目標語言開啟
+- 🎯 **一鍵切換**：關閉 Cavalry，選擇語言並點擊「切換」；完成後 Cavalry 會以目標語言自動開啟
 - 🍎🪟 **macOS 與 Windows**：支援 macOS `Cavalry.app` 及 Windows Cavalry 安裝根
 - 🔌 **平台原生執行階段翻譯**：macOS 使用 `DYLD_INSERT_LIBRARIES`；Windows 在輕量原廠 QPA 委派層後部署 Qt generic translator
 - 📦 **雙翻譯面**：JSON 資源檔案 + 編譯進 Qt/UI 的字串，皆自動統一處理
@@ -30,7 +30,12 @@
 - 🔑 **macOS Keychain 安全**：對 `libExtensionLayer.dylib` 做二進位補丁，避免語言切換後登入憑證失效
 - 🔐 **macOS 簽名路徑**：重新簽名補丁後的 app bundle，並清除 Gatekeeper 標記，避免 macOS 阻止啟動
 - 📍 **Windows 自動探索與手動選址**：盡量探索現有安裝；失敗時可選擇 `Cavalry.exe` 或安裝目錄
+- 🛡️ **自動建立復原基線**：首次切換為非英文語言前，後端會自動建立或重用可信基線；無法完成時不會寫入任何檔案。使用唯一的 **「還原」** 操作返回官方 English 狀態：macOS 會完整還原 bundle、執行階段與簽名，Windows 會還原原廠 QPA，並只移除 manifest 證明屬於本專案的 generic 執行階段檔案。
 - 🌐 **四種語言**：English、簡體中文、繁體中文、日本語
+
+## Switcher 視窗
+
+Switcher 使用固定的 400×484 px 視窗，視窗本身不捲動。緊湊流程是：選擇語言，再點擊 **「切換」** 或 **「還原」**；切換會直接開始，結果提示顯示在操作按鈕下方。
 
 ## 安全與權限
 
@@ -38,19 +43,15 @@ Cavalry-i18n 是獨立的社群工具。它不是 Scene Group、Cavalry 或 Canv
 
 本專案支援 **macOS 與 Windows x64**。macOS 會補丁並重新簽名 `Cavalry.app` bundle；Windows 會在使用者選定的 Cavalry 安裝根套用 JSON overlay、安裝 hash-locked QPA 委派層，並持久備份原廠 `qwindows.dll`。桌面、開始功能表、工作列與直接 EXE 啟動入口都不會被改寫。Linux 暫不支援。
 
-這個工具會修改你本機 `Cavalry.app` bundle 內的檔案，讓 Cavalry 能以翻譯後的資源啟動。在 macOS 上，這需要 **App Management** 權限：
+這個工具會修改你本機 `Cavalry.app` bundle 內的檔案，讓 Cavalry 能以翻譯後的資源啟動。在 macOS 上，語言切換器會先直接執行安全交易。只有 macOS 真正拒絕寫入時，應用程式才會引導你前往 **系統設定 → 隱私權與安全性 → App Management**；允許 Cavalry 語言切換器依系統要求重新開啟後，再次點擊「切換」。
 
-1. 開啟 **System Settings → Privacy & Security → App Management**
-2. 啟用 **Cavalry Language Switcher**
-3. 回到應用程式，再次套用語言包
+macOS 要求這個權限，是因為修改另一個 `.app` bundle 屬於受保護操作。只有在你信任此構建，並理解它會補丁、重新簽名，並在交易完成後開啟本機 Cavalry 時，才授予權限。請保留乾淨的 Cavalry 安裝器或備份；重新安裝 Cavalry 是恢復到未修改官方 bundle 的最安全方式。
 
-macOS 要求這個權限，是因為修改另一個 `.app` bundle 屬於受保護操作。只有在你信任此構建，並理解它會補丁、重新簽名並重新啟動本機 Cavalry 安裝時，才授予權限。請保留乾淨的 Cavalry 安裝器或備份；重新安裝 Cavalry 是恢復到未修改官方 bundle 的最安全方式。
-
-在 Windows 上，應用程式會先嘗試探索本機安裝；失敗時請手動選擇 `Cavalry.exe` 或其安裝目錄。支援自訂目錄，但該目錄必須允許目前使用者寫入。自動 UAC 提權嚴格限於實際位於 Windows Program Files 下的安裝；任意自訂路徑不會因此提權。正常關閉 Cavalry/Switcher 與同版本 `/UPDATE` 都會保留目前語言。互動解除安裝時可明確選擇「僅移除 Switcher 並保留已部署翻譯」，或「先恢復 English，再移除經雜湊證明屬於本專案的 generic/QPA 執行階段」；靜默、被動與更新解除安裝預設保留翻譯。若 Cavalry 在翻譯狀態上被重新安裝，Switcher 只有在全部受管 JSON 與精確原廠 QPA 都證明現實為英文時才顯示 English；按下「重新整理英文」會安全收斂舊 marker 與自有執行階段殘留，未知 DLL 永不刪除。
+在 Windows 上，應用程式會先嘗試探索本機安裝；失敗時請手動選擇 `Cavalry.exe` 或其安裝目錄。支援自訂目錄，但該目錄必須允許目前使用者寫入。自動 UAC 提權嚴格限於實際位於 Windows Program Files 下的安裝；任意自訂路徑不會因此提權。正常關閉 Cavalry/Switcher 與同版本 `/UPDATE` 都會保留目前語言。互動解除安裝時可明確選擇「僅移除 Switcher 並保留已部署翻譯」，或「先還原官方 English 狀態，再移除經雜湊證明屬於本專案的 generic/QPA 執行階段」；靜默、被動與更新解除安裝預設保留翻譯。若 Cavalry 在翻譯狀態上被重新安裝，Switcher 只有在全部受管 JSON 與精確原廠 QPA 都證明現實為英文時才顯示 English。使用「還原」可返回官方 English 狀態；它只會移除 manifest 證明屬於本專案的 generic/QPA 執行階段，未知 DLL 永不刪除。
 
 ## 從 Release 安裝
 
-請從 GitHub Releases 下載對應平台的資產。macOS 請依 Apple Silicon 或 Intel 下載 DMG。新的加固 tag 流水線要求 Developer ID 簽名、公證，以及同次 Release 的 `SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、獨立簽名的 acceptance attestation 與最終 Ed25519 `ReleaseAcceptanceSeal.json`；**歷史 p1-p5 Release 早於該流水線，不具備這些保證**。在 `SECURITY.md` 透過獨立受保護管道發布 acceptance authority 與 release seal 兩枚不同 fingerprint 之前，不要把任一檔案的內嵌公鑰本身當作信任錨；加固驗證必須先驗 acceptance attestation，再驗最終 seal。
+請從 GitHub Releases 下載對應平台的資產。早於 updater 閉包的 Release 可能只有三項手動安裝資產，不會因此自動取得應用程式內更新能力。由目前 tag 流水線產生的 updater-enabled Release 必須同時具有 `latest.json`、六項 updater archive／簽名資產與 verification sidecar：macOS DMG 使用 ad-hoc 簽名而非 Developer ID 公證，updater archive 另由 Tauri updater 金鑰簽名；流水線也會發布 `SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、獨立簽名的 acceptance attestation 與最終 Ed25519 `ReleaseAcceptanceSeal.json`。在 `SECURITY.md` 透過獨立受保護管道發布 acceptance authority 與 release seal 兩枚不同 fingerprint 之前，不要把任一檔案的內嵌公鑰本身當作信任錨；驗證必須先驗 acceptance attestation，再驗最終 seal。
 
 Windows 請下載並執行 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`。NSIS 安裝器只安裝語言切換器；最終使用者無需安裝 Python、Rust、Qt 或 PowerShell 7。安裝後選擇自動探索到的 Cavalry，或瀏覽到目前使用者可寫的安裝根。Windows Authenticode 簽名另開 issue 追蹤；務必核對 `SHA256SUMS`。
 
@@ -89,12 +90,12 @@ Windows 開發要求 Windows 10 x64 或更高版本、Node.js 24+、PowerShell 5
 ## 工作原理
 
 1. **偵測** macOS 的 `Cavalry.app`，或探索/選擇 Windows 的 `Cavalry.exe` 安裝根
-2. **擷取** 目前英文 JSON 資源，作為帶版本的快照
+2. 首次切換為非英文語言前，自動**建立或重用**可信的版本化復原基線；驗證失敗時會在任何檔案寫入前停止
 3. **補丁** 將 `languages/` 中的翻譯 JSON 檔案寫入應用程式資源
 4. **安裝** macOS launcher wrapper 與 injector，或將 Windows `generic/cavalryi18n.dll` translator 與根 QPA 委派層部署到所選安裝根
-5. **重新啟動** Cavalry 並載入平台執行階段翻譯；macOS 還會重新簽名 bundle 並清除 Gatekeeper 隔離標記
+5. **開啟** Cavalry 並載入平台執行階段翻譯；macOS 還會重新簽名 bundle 並清除 Gatekeeper 隔離標記
 
-補丁完成後，原來的啟動路徑仍然可用。macOS 的 launcher wrapper 會設定 `DYLD_INSERT_LIBRARIES`；Windows 從 Cavalry 原生 QPA 必經路徑載入同一翻譯執行階段，不依賴全域環境或特定捷徑。原廠 `qwindows.dll` 會保存在 hash-locked 復原目錄中。正常結束與同版本更新保留已部署翻譯；明確選擇 English 或在解除安裝程式中選擇恢復，會還原資源與原廠 QPA，並只刪除 manifest 證明屬於本專案的 generic/recovery 檔案，絕不猜測或刪除未知 DLL。
+該基線只包含回滾受管事務所需的檔案，並不是完整的 Cavalry 備份，使用者也不需要手動重新整理。補丁完成後，原來的啟動路徑仍然可用。macOS 的 launcher wrapper 會設定 `DYLD_INSERT_LIBRARIES`；Windows 從 Cavalry 原生 QPA 必經路徑載入同一翻譯執行階段，不依賴全域環境或特定捷徑。原廠 `qwindows.dll` 會保存在 hash-locked 復原目錄中。正常結束與同版本更新保留已部署翻譯。使用「還原」可讓 macOS 完整回到官方 English bundle、執行階段與簽名；Windows 會還原 English 資源與已驗證的原廠 QPA，然後只移除 manifest 證明屬於本專案的 generic/QPA 檔案，絕不替換或刪除未知 DLL。
 
 ## 支援語言
 
@@ -178,7 +179,7 @@ Cavalry-i18n/
 │       └── ...
 ├── languages/                    # JSON 語言包（en、zh-Hans、zh-Hant、ja_JP）
 ├── tools/                        # 構建、測試、覆蓋率腳本與 gate contracts
-├── docs/                          # 架構計畫、翻譯規則、workflow evidence
+├── docs/                          # 公開翻譯規範、維護 SOP、圖片與徽章資料
 ├── output/                       # 衍生審計產物與 JSON surface evidence
 └── .github/workflows/            # CI：contract → packaging → release
 ```

@@ -1,0 +1,9 @@
+/*
+----------------------------------------------------------------
+[INPUT]: macOS App Management 权限上下文与 Cavalry 语言切换器的语言切换职责
+[OUTPUT]: 简体中文 NSAppBundlesUsageDescription 本地化字符串
+[POS]: Contents/Resources/zh-Hans.lproj 的系统权限文案；只说明修改 Cavalry 以切换界面语言
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+----------------------------------------------------------------
+*/
+"NSAppBundlesUsageDescription" = "允许 Cavalry 语言切换器修改 Cavalry 的本地应用文件，以切换界面语言。";

@@ -1,0 +1,261 @@
+/**
+ * [INPUT]: 依赖 tokens.css 的任务反馈/排印/状态/滚动角色，依赖 operation-log.js 投影的 idle、首尾 Message、中段 MarkerIcon/MarkerContent、溢出与起止边缘状态
+ * [OUTPUT]: 对外提供无泛化标题的中性三轨任务容器；默认外框 176px、12px panel padding，idle 双轴居中，running 固定首尾并让 94px 中段事件从顶部逐行落位、溢出后按 live edge 跟随，8px scroll-fade 只在尚有内容的边缘裁切中段；warning/error 只给语义图标着色而不把事件行改造成 Alert；权限按钮隐藏时不保留零高 Grid 轨道及伪间距
+ * [POS]: renderer 的任务反馈视觉层；从共享 styles.css 拆出以守住单文件职责，不拥有业务阶段、AlertDialog 或窗口外层滚动
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+.status-panel {
+  width: 100%;
+  min-height: var(--operation-panel-min-height);
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+  gap: 0;
+  margin-top: var(--gap-flow);
+  padding: var(--padding-panel);
+  border: var(--stroke-hairline) solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface-raised);
+}
+
+.status-panel:has(> .permission-button:not([hidden])) {
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: var(--operation-group-gap);
+}
+
+.status-task-shell {
+  min-width: 0;
+  min-height: 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr);
+}
+
+.status-panel[data-mode="running"] .status-task-shell {
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: var(--operation-group-gap);
+}
+
+.status-panel[data-mode="running"][data-has-outcome="true"] .status-task-shell {
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.status-idle-message {
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-compact);
+  text-align: center;
+}
+
+.status-message {
+  min-width: 0;
+  margin: 0;
+  color: var(--text);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-compact);
+  overflow-wrap: anywhere;
+}
+
+.status-viewport {
+  min-width: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-color: var(--operation-scrollbar-thumb) transparent;
+  scrollbar-width: thin;
+}
+
+.status-viewport[data-overflowing="true"] {
+  --operation-scroll-fade-top: var(--operation-scroll-fade-size);
+  --operation-scroll-fade-bottom: var(--operation-scroll-fade-size);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    var(--mask-opaque) var(--operation-scroll-fade-top),
+    var(--mask-opaque) calc(100% - var(--operation-scroll-fade-bottom)),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    var(--mask-opaque) var(--operation-scroll-fade-top),
+    var(--mask-opaque) calc(100% - var(--operation-scroll-fade-bottom)),
+    transparent 100%
+  );
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+}
+
+.status-viewport[data-overflowing="true"][data-at-start="true"] {
+  --operation-scroll-fade-top: var(--operation-scroll-fade-none);
+}
+
+.status-viewport[data-overflowing="true"][data-at-end="true"] {
+  --operation-scroll-fade-bottom: var(--operation-scroll-fade-none);
+}
+
+.status-viewport::-webkit-scrollbar {
+  width: var(--operation-scrollbar-size);
+}
+
+.status-viewport::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-pill);
+  background: var(--operation-scrollbar-thumb);
+}
+
+.status-text {
+  min-width: 0;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--operation-group-gap);
+  list-style: none;
+}
+
+.operation-event {
+  width: 100%;
+  min-height: var(--operation-marker-size);
+  display: flex;
+  align-items: center;
+  gap: var(--operation-marker-gap);
+  color: var(--text-secondary);
+  animation: operation-marker-enter var(--duration-feedback) ease-out both;
+}
+
+.operation-event[data-has-description="true"] {
+  align-items: flex-start;
+}
+
+.operation-event-marker {
+  width: var(--operation-marker-size);
+  height: var(--operation-marker-size);
+  flex: 0 0 var(--operation-marker-size);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-circle);
+  color: var(--text-secondary);
+}
+
+.operation-event-marker[hidden] {
+  display: none;
+}
+
+.operation-event-marker svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.operation-event[data-state="warning"] .operation-event-marker {
+  color: var(--warning);
+}
+
+.operation-event[data-state="error"] .operation-event-marker {
+  color: var(--danger);
+}
+
+.operation-event:is([data-state="warning"], [data-state="error"]) .operation-event-title {
+  color: var(--text);
+}
+
+.operation-event[data-has-description="true"] .operation-event-marker {
+  transform: translateY(var(--operation-marker-description-offset));
+}
+
+.operation-event[data-state="running"] .operation-event-marker[data-icon="spinner"] svg {
+  animation: operation-spin var(--duration-spinner) linear infinite;
+}
+
+.operation-event-copy {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--operation-group-gap);
+}
+
+.operation-event-title,
+.operation-event-description {
+  overflow-wrap: anywhere;
+  text-wrap: wrap;
+}
+
+.operation-event-title {
+  color: inherit;
+  font-size: var(--type-compact);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-compact);
+}
+
+.operation-event[data-state="running"] .operation-event-title {
+  --operation-shimmer-base: currentColor;
+  --operation-shimmer-highlight: oklch(
+    from currentColor l c h / calc(alpha * var(--operation-shimmer-highlight-alpha))
+  );
+  background-image: linear-gradient(
+    calc(var(--operation-shimmer-axis) + var(--operation-shimmer-angle)),
+    var(--operation-shimmer-base) calc(50% - var(--operation-shimmer-spread)),
+    color-mix(in oklch, var(--operation-shimmer-highlight), var(--operation-shimmer-base) 50%)
+      calc(50% - var(--operation-shimmer-spread) * 0.5),
+    var(--operation-shimmer-highlight) 50%,
+    color-mix(in oklch, var(--operation-shimmer-highlight), var(--operation-shimmer-base) 50%)
+      calc(50% + var(--operation-shimmer-spread) * 0.5),
+    var(--operation-shimmer-base) calc(50% + var(--operation-shimmer-spread))
+  );
+  background-repeat: no-repeat;
+  background-position: 0 0;
+  background-size: calc(200% + var(--operation-shimmer-spread) * 2) 100%;
+  background-clip: text;
+  animation: operation-shimmer var(--duration-shimmer) linear infinite;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.operation-event-description {
+  color: var(--text-secondary);
+  font-size: var(--type-compact);
+  font-weight: var(--weight-regular);
+  line-height: var(--line-height-compact);
+}
+
+.permission-button {
+  width: 100%;
+}
+
+@keyframes operation-spin {
+  to { transform: rotate(var(--spinner-turn)); }
+}
+
+@keyframes operation-shimmer {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+
+@keyframes operation-marker-enter {
+  from {
+    opacity: 0;
+    transform: translateY(var(--space-1));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .operation-event[data-state="running"] .operation-event-marker[data-icon="spinner"] svg,
+  .operation-event[data-state="running"] .operation-event-title,
+  .operation-event {
+    animation: none;
+  }
+
+  .operation-event[data-state="running"] .operation-event-title {
+    background: none;
+    color: inherit;
+    -webkit-text-fill-color: currentColor;
+  }
+}

@@ -1,9 +1,13 @@
 /**
  * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、事务 marker 与平台 runtime apply/restart。
- * [POS]: commands 的 owner unit tests；通过 facade 公开的 crate-private seam 验证跨模块编排。
+ * [OUTPUT]: 覆盖 command DTO、启动期 Windows pending marker/English runtime 残留投影、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
+ * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+use super::contract::{
+    OperationEvent, OperationPhase, OperationPhaseGuard, OperationReporter, OperationState,
+    TauriOperationReporter, OPERATION_PHASE_MANIFEST, RESTART_CAVALRY_PHASE,
+};
 #[cfg(target_os = "macos")]
 use super::{acquire_bundle_file_lock, injector_source_candidates};
 use super::{
@@ -12,7 +16,7 @@ use super::{
     sync_state_with_bundle, try_begin_bundle_operation, BUSY_ERROR, COMMAND_NAMES,
 };
 #[cfg(target_os = "windows")]
-use super::{is_app_management_error, permission_action, ActionPayload};
+use super::{is_app_management_error, ActionPayload};
 use crate::privilege::{
     CommandRunner, CommandStatus, PostCommitWarning, PostCommitWarningCode, RecordedCommand,
     RecordingRunner,
@@ -21,10 +25,121 @@ use crate::state::{self, EnglishSnapshotProvenance, State};
 use std::{
     fs,
     path::{Path, PathBuf},
+    sync::{Arc, Mutex},
 };
 
 #[cfg(target_os = "windows")]
 use std::ffi::OsString;
+
+#[derive(Clone, Default)]
+struct RecordingOperationReporter {
+    events: Arc<Mutex<Vec<(String, String)>>>,
+}
+
+impl OperationReporter for RecordingOperationReporter {
+    fn report(&self, phase: OperationPhase, state: OperationState) {
+        self.events
+            .lock()
+            .unwrap()
+            .push((phase.as_str().to_string(), state.as_str().to_string()));
+    }
+}
+
+#[test]
+fn operation_reporter_has_stable_manifest_and_never_owns_transaction_success() {
+    assert_eq!(
+        OPERATION_PHASE_MANIFEST,
+        [
+            "verifyInstallation",
+            "ensureBaseline",
+            "applyTransaction",
+            "restartCavalry",
+        ]
+    );
+
+    let received = Arc::new(Mutex::new(Vec::<(String, String)>::new()));
+    let received_for_channel = Arc::clone(&received);
+    let channel = tauri::ipc::Channel::<OperationEvent>::new(move |body| {
+        let tauri::ipc::InvokeResponseBody::Json(json) = body else {
+            return Err(tauri::Error::FailedToReceiveMessage);
+        };
+        let value: serde_json::Value = serde_json::from_str(&json)?;
+        received_for_channel.lock().unwrap().push((
+            value["phase"].as_str().unwrap().to_string(),
+            value["state"].as_str().unwrap().to_string(),
+        ));
+        Ok(())
+    });
+    let reporter = TauriOperationReporter::new(channel);
+
+    reporter.report(OperationPhase::VerifyInstallation, OperationState::Running);
+    reporter.report(
+        OperationPhase::VerifyInstallation,
+        OperationState::Completed,
+    );
+    reporter.report(OperationPhase::RestartCavalry, OperationState::Running);
+    reporter.report(OperationPhase::RestartCavalry, OperationState::Warning);
+
+    assert_eq!(
+        *received.lock().unwrap(),
+        [
+            ("verifyInstallation".to_string(), "running".to_string()),
+            ("verifyInstallation".to_string(), "completed".to_string()),
+            (RESTART_CAVALRY_PHASE.to_string(), "running".to_string()),
+            (RESTART_CAVALRY_PHASE.to_string(), "warning".to_string()),
+        ]
+    );
+
+    let rejecting_channel =
+        tauri::ipc::Channel::<OperationEvent>::new(|_| Err(tauri::Error::FailedToReceiveMessage));
+    TauriOperationReporter::new(rejecting_channel)
+        .report(OperationPhase::ApplyTransaction, OperationState::Error);
+}
+
+#[test]
+fn operation_phase_guard_closes_unfinished_phase_as_error_once() {
+    let reporter = RecordingOperationReporter::default();
+
+    {
+        let mut phase = OperationPhaseGuard::start(&reporter, OperationPhase::VerifyInstallation);
+        phase.completed();
+        phase.error();
+    }
+    {
+        let _phase = OperationPhaseGuard::start(&reporter, OperationPhase::EnsureBaseline);
+    }
+
+    assert_eq!(
+        *reporter.events.lock().unwrap(),
+        [
+            ("verifyInstallation".to_string(), "running".to_string()),
+            ("verifyInstallation".to_string(), "completed".to_string()),
+            ("ensureBaseline".to_string(), "running".to_string()),
+            ("ensureBaseline".to_string(), "error".to_string()),
+        ]
+    );
+}
+
+#[test]
+fn unsupported_language_is_rejected_before_any_phase_event() {
+    let temp = tempfile::tempdir().unwrap();
+    let progress = RecordingOperationReporter::default();
+
+    let error = super::apply::apply_language_inner_with_reporter(
+        &temp.path().join("repo"),
+        &temp.path().join("state"),
+        &temp.path().join("resources"),
+        &temp.path().join("Cavalry"),
+        "not-a-language",
+        &mut RecordingRunner::default(),
+        "now",
+        progress.clone(),
+    )
+    .unwrap_err();
+
+    assert!(error.contains("Unsupported language"), "{error}");
+    assert!(progress.events.lock().unwrap().is_empty());
+}
 
 #[cfg(target_os = "macos")]
 struct VerifyFailsOnceRunner {
@@ -103,6 +218,35 @@ impl CommandRunner for VerifyFailsOnceRunner {
         } else {
             Ok(())
         }
+    }
+
+    fn run_captured(&mut self, program: &str, args: &[String]) -> Result<CommandStatus, String> {
+        self.commands.push(RecordedCommand {
+            program: program.to_string(),
+            args: args.to_vec(),
+        });
+        if program == "codesign"
+            && args.iter().any(|arg| arg == "--verify")
+            && self.verify_failures > 0
+        {
+            self.verify_failures -= 1;
+            return Ok(CommandStatus {
+                exit_code: Some(1),
+                stdout: String::new(),
+                stderr: "bundle seal is damaged".to_string(),
+            });
+        }
+        let mut status = CommandStatus {
+            exit_code: Some(0),
+            stdout: String::new(),
+            stderr: String::new(),
+        };
+        if program == "codesign" && args.iter().any(|arg| arg == "-dv") {
+            status.stderr = "TeamIdentifier=TB4YVNQHVC\nCDHash=0123456789abcdef".to_string();
+        } else if program == "codesign" && args.iter().any(|arg| arg == "-dr") {
+            status.stderr = "designated => anchor apple generic and identifier \"com.scenegroup.cavalry\" and certificate leaf[subject.OU] = TB4YVNQHVC".to_string();
+        }
+        Ok(status)
     }
 }
 
@@ -214,19 +358,30 @@ impl CommandRunner for WindowsRuntimeRestartRunner {
 }
 
 #[test]
-fn registers_six_commands() {
+fn registers_nine_commands() {
     assert_eq!(
         registered_command_names(),
         &[
             "get_status",
             "browse_app",
-            "extract_english",
             "apply_language",
             "open_privacy_security",
-            "restart_cavalry"
+            "open_project_link",
+            "show_about",
+            "restart_cavalry",
+            "check_update",
+            "install_update"
         ]
     );
-    assert_eq!(COMMAND_NAMES.len(), 6);
+    assert_eq!(COMMAND_NAMES.len(), 9);
+}
+
+#[test]
+fn project_link_command_rejects_renderer_supplied_urls() {
+    let payload = super::open_project_link("https://attacker.invalid".to_string());
+
+    assert!(!payload.ok);
+    assert_eq!(payload.error.as_deref(), Some("Unsupported project link."));
 }
 
 #[test]
@@ -272,7 +427,6 @@ fn unwritable_custom_windows_root_never_maps_to_a_uac_permission_retry() {
     let custom_root_error =
             "The selected Cavalry installation is not writable. Windows administrator retry is available only for installations under the OS-known Program Files folders; choose a writable Cavalry copy or update that folder's permissions.";
 
-    assert_eq!(permission_action(custom_root, Some(false)), "none");
     assert!(!is_app_management_error(custom_root_error));
     assert!(!is_app_management_error(
             "Refusing administrator elevation for a destination outside Windows known Program Files roots: D:\\Creative Tools\\Cavalry"
@@ -601,43 +755,39 @@ fn automatic_snapshot_refresh_rejects_a_translated_install() {
 }
 
 #[test]
-fn status_uses_snapshot_provenance_and_binary_revision_not_display_version() {
+fn snapshot_provenance_uses_binary_revision_not_display_version() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
-    let resources = temp.path().join("resources");
     let app = make_windows_install(temp.path());
     let app = crate::install::normalize_path(&app);
     make_language(&repo, "en");
     make_english_snapshot(&state_dir, &app);
     let revision = crate::detect::read_bundle_revision(&app).unwrap();
     let identity = crate::patch::english_snapshot_identity(&state_dir, &app, &revision).unwrap();
-    state::write_state(
+    let provenance = EnglishSnapshotProvenance {
+        install_root: app.to_string_lossy().to_string(),
+        immutable_revision: revision.clone(),
+        snapshot_generation: Some(identity.generation),
+        snapshot_manifest_sha256: Some(identity.manifest_sha256),
+        vendor_baseline_id: None,
+    };
+    assert!(!super::snapshot::needs_english_snapshot(
         &state_dir,
-        &State {
-            app_path: app.to_string_lossy().to_string(),
-            cavalry_version: String::new(),
-            cavalry_revision: revision.clone(),
-            current_lang: "en".into(),
-            last_patched_at: String::new(),
-            english_snapshot_provenance: Some(EnglishSnapshotProvenance {
-                install_root: app.to_string_lossy().to_string(),
-                immutable_revision: revision,
-                snapshot_generation: Some(identity.generation),
-                snapshot_manifest_sha256: Some(identity.manifest_sha256),
-                vendor_baseline_id: None,
-            }),
-        },
-    )
-    .unwrap();
-
-    let current = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
-    assert_eq!(current.version, "");
-    assert!(!current.needs_extract);
+        Some(&provenance),
+        &app,
+        &revision,
+    ));
 
     write(&app.join("Cavalry.exe"), b"binary-mutated");
-    let changed = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
-    assert!(changed.needs_extract);
+    let changed_revision = crate::detect::read_bundle_revision_for_write(&app).unwrap();
+    assert_ne!(changed_revision, revision);
+    assert!(super::snapshot::needs_english_snapshot(
+        &state_dir,
+        Some(&provenance),
+        &app,
+        &changed_revision,
+    ));
 }
 
 #[test]
@@ -773,7 +923,7 @@ fn legacy_snapshot_proof_accepts_active_or_owned_stock_cleanup_evidence() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writing_state() {
+fn startup_status_observes_legacy_language_without_proving_snapshot() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
@@ -801,7 +951,8 @@ fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writi
     let durable = state::read_state(&state_dir).unwrap();
 
     assert_eq!(status.current_lang, "zh-Hans");
-    assert!(status.needs_extract);
+    assert!(!status.needs_extract);
+    assert_eq!(status.installation_mode, "unknown");
     assert!(durable.english_snapshot_provenance.is_none());
     assert_eq!(
         fs::read(state_dir.join("state.json")).unwrap(),
@@ -811,7 +962,7 @@ fn legacy_json_snapshot_without_vendor_baseline_stays_stale_without_status_writi
 
 #[test]
 #[cfg(target_os = "macos")]
-fn unverified_legacy_snapshot_never_acquires_provenance_on_later_status_syncs() {
+fn repeated_startup_status_never_promotes_unverified_snapshot() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
@@ -840,11 +991,120 @@ fn unverified_legacy_snapshot_never_acquires_provenance_on_later_status_syncs() 
 
     for _ in 0..2 {
         let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
-        assert!(status.needs_extract);
+        assert!(!status.needs_extract);
+        assert_eq!(status.installation_mode, "unknown");
     }
     let state = state::read_state(&state_dir).unwrap();
     assert!(state.cavalry_revision.is_empty());
     assert!(state.english_snapshot_provenance.is_none());
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn startup_status_treats_a_missing_language_marker_as_english() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = crate::install::normalize_path(&make_bundle(temp.path()));
+    state::write_state(
+        &state_dir,
+        &State {
+            app_path: app.to_string_lossy().to_string(),
+            cavalry_version: "2.7.2".into(),
+            current_lang: "zh-Hans".into(),
+            ..State::default()
+        },
+    )
+    .unwrap();
+
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
+
+    assert_eq!(status.current_lang, "en");
+}
+
+#[test]
+fn startup_status_falls_back_to_discovery_when_internal_state_is_unreadable() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = if cfg!(target_os = "macos") {
+        make_bundle(temp.path())
+    } else {
+        make_windows_install(temp.path())
+    };
+    write(&state_dir.join("state.json"), b"not valid state");
+    write(&state_dir.join("state.json.prev"), b"also not valid state");
+
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
+
+    assert_eq!(
+        status.app_path,
+        crate::install::normalize_path(&app).to_string_lossy()
+    );
+    assert_eq!(status.current_lang, "en");
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn startup_status_exposes_restore_for_english_generic_residue_without_mutation() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_windows_install(temp.path());
+    write(&app.join(crate::install::LANG_MARKER_NAME), b"en\n");
+    let generic = app.join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH);
+    write(&generic, b"managed generic fixture");
+    let before = fs::read(&generic).unwrap();
+
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
+
+    assert_eq!(status.current_lang, "en");
+    assert!(status.reconciliation_required);
+    assert_eq!(
+        fs::read(&generic).unwrap(),
+        before,
+        "startup residue projection must stay read-only"
+    );
+
+    fs::remove_file(&generic).unwrap();
+    let marker = app.join(crate::install::LANG_MARKER_NAME);
+    write(&marker, b"pending\n");
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
+    assert_eq!(status.current_lang, "en");
+    assert!(status.reconciliation_required);
+    assert_eq!(
+        fs::read(&marker).unwrap(),
+        b"pending\n",
+        "startup pending-marker projection must stay read-only"
+    );
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn startup_status_does_not_probe_or_modify_an_internal_apply_journal() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = crate::install::normalize_path(&make_bundle(temp.path()));
+    make_language(&repo, "zh-Hans");
+    let journal = state_dir.join("macos-apply-transaction");
+    fs::create_dir_all(&journal).unwrap();
+    write(&journal.join("manifest.json"), b"not a valid journal");
+    let before = fs::read(&journal.join("manifest.json")).unwrap();
+
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
+
+    assert_eq!(status.version, "2.7.2");
+    assert_eq!(status.installation_mode, "unknown");
+    assert_eq!(
+        fs::read(&journal.join("manifest.json")).unwrap(),
+        before,
+        "startup observation must leave internal recovery evidence untouched"
+    );
 }
 
 #[test]
@@ -899,6 +1159,98 @@ fn resource_candidates_use_one_packaged_root_order_before_repo_fallback() {
 }
 
 #[test]
+#[cfg(not(target_os = "windows"))]
+fn clean_english_noop_reports_verification_and_baseline_only() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state = temp.path().join("state");
+    let resources = temp.path().join("resources");
+
+    #[cfg(target_os = "macos")]
+    let app = {
+        let app = make_bundle(temp.path());
+        make_language(&repo, "zh-Hans");
+        write(
+            &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+            b"injector",
+        );
+        apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "zh-Hans",
+            &mut RecordingRunner::default(),
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap();
+        apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            super::context::RESTORE_OFFICIAL_ACTION,
+            &mut RecordingRunner::default(),
+            "2026-04-23T00:01:00.000Z",
+        )
+        .unwrap();
+        app
+    };
+
+    #[cfg(not(target_os = "macos"))]
+    let app = {
+        let app = make_windows_install(temp.path());
+        make_language(&repo, "zh-Hans");
+        apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "zh-Hans",
+            &mut RecordingRunner::default(),
+            "2026-04-23T00:00:00.000Z",
+        )
+        .unwrap();
+        apply_language_inner(
+            &repo,
+            &state,
+            &resources,
+            &app,
+            "en",
+            &mut RecordingRunner::default(),
+            "2026-04-23T00:01:00.000Z",
+        )
+        .unwrap();
+        app
+    };
+
+    let progress = RecordingOperationReporter::default();
+    let result = super::apply::apply_language_inner_with_reporter(
+        &repo,
+        &state,
+        &resources,
+        &app,
+        "en",
+        &mut RecordingRunner::default(),
+        "2026-04-23T00:02:00.000Z",
+        progress.clone(),
+    )
+    .unwrap();
+
+    assert!(result.ok);
+    assert_eq!(result.current_lang.as_deref(), Some("en"));
+    assert_eq!(
+        *progress.events.lock().unwrap(),
+        [
+            ("verifyInstallation".to_string(), "running".to_string()),
+            ("verifyInstallation".to_string(), "completed".to_string()),
+            ("ensureBaseline".to_string(), "running".to_string()),
+            ("ensureBaseline".to_string(), "completed".to_string()),
+        ]
+    );
+}
+
+#[test]
 fn apply_language_patches_fake_bundle_and_records_macos_commands() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
@@ -912,7 +1264,8 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
     );
 
     let mut runner = RecordingRunner::default();
-    let result = apply_language_inner(
+    let progress = RecordingOperationReporter::default();
+    let result = super::apply::apply_language_inner_with_reporter(
         &repo,
         &state,
         &resources,
@@ -920,6 +1273,7 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
         "zh-Hans",
         &mut runner,
         "2026-04-23T00:00:00.000Z",
+        progress.clone(),
     )
     .unwrap();
 
@@ -930,6 +1284,17 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
         .unwrap()
         .get("warning")
         .is_none());
+    assert_eq!(
+        *progress.events.lock().unwrap(),
+        [
+            ("verifyInstallation".to_string(), "running".to_string()),
+            ("verifyInstallation".to_string(), "completed".to_string()),
+            ("ensureBaseline".to_string(), "running".to_string()),
+            ("ensureBaseline".to_string(), "completed".to_string()),
+            ("applyTransaction".to_string(), "running".to_string()),
+            ("applyTransaction".to_string(), "completed".to_string()),
+        ]
+    );
     #[cfg(target_os = "macos")]
     {
         assert_eq!(
@@ -959,7 +1324,7 @@ fn apply_language_patches_fake_bundle_and_records_macos_commands() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn clean_looking_bundle_with_the_wrong_vendor_signature_is_rejected_before_mutation() {
+fn structurally_supported_clean_bundle_does_not_use_vendor_team_as_translation_license() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state_dir = temp.path().join("state");
@@ -971,10 +1336,9 @@ fn clean_looking_bundle_with_the_wrong_vendor_signature_is_rejected_before_mutat
         b"injector",
     );
     let app_strings = app.join("Contents/assets/Definitions/appStrings.json");
-    let original = fs::read(&app_strings).unwrap();
     let mut runner = WrongVendorSignatureRunner::default();
 
-    let error = apply_language_inner(
+    let result = apply_language_inner(
         &repo,
         &state_dir,
         &resources,
@@ -983,18 +1347,59 @@ fn clean_looking_bundle_with_the_wrong_vendor_signature_is_rejected_before_mutat
         &mut runner,
         "2026-04-23T00:00:00.000Z",
     )
-    .unwrap_err();
+    .unwrap();
 
-    assert!(
-        error.contains("not the supported vendor identity"),
-        "{error}"
+    assert!(result.ok);
+    assert_ne!(fs::read(app_strings).unwrap(), br#"{"value":"en"}"#);
+    assert!(app.join("Contents/MacOS/CavalryLauncher").exists());
+    assert!(state_dir.join("state.json").exists());
+    assert!(runner
+        .inner
+        .commands
+        .iter()
+        .any(|command| command.args.iter().any(|arg| arg == "--sign")));
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn stock_bundle_repairs_owned_signing_residue_without_policing_unrelated_members() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_bundle(temp.path());
+    make_language(&repo, "zh-Hans");
+    write(
+        &resources.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"injector",
     );
-    assert_eq!(fs::read(app_strings).unwrap(), original);
-    assert!(!app.join("Contents/MacOS/CavalryLauncher").exists());
-    assert!(!state_dir.join("state.json").exists());
-    assert!(!runner.inner.commands.iter().any(|command| {
-        command.program == "xattr" || command.args.iter().any(|arg| arg == "--sign")
-    }));
+    let owned = app.join("Contents/_CodeSignature/CodeDirectory");
+    let unrelated = app.join("Contents/_CodeSignature/UnrelatedEvidence");
+    write(&owned, b"legacy Switcher signing residue");
+    write(&unrelated, b"not owned by the Switcher");
+    let mut runner = VerifyFailsOnceRunner {
+        commands: Vec::new(),
+        verify_failures: 1,
+    };
+
+    let result = apply_language_inner(
+        &repo,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut runner,
+        "2026-09-01T18:00:00.000Z",
+    )
+    .unwrap();
+
+    assert!(result.ok);
+    assert!(!owned.exists());
+    assert_eq!(fs::read(unrelated).unwrap(), b"not owned by the Switcher");
+    assert!(runner
+        .commands
+        .iter()
+        .any(|command| command.args.iter().any(|arg| arg == "--sign")));
 }
 
 #[test]
@@ -1384,6 +1789,7 @@ fn windows_apply_plan_stages_generic_and_defers_final_marker_for_qpa() {
         &temp.path().join("staging"),
         None,
         None,
+        false,
     )
     .unwrap();
 
@@ -1402,7 +1808,7 @@ fn windows_apply_plan_stages_generic_and_defers_final_marker_for_qpa() {
 
 #[test]
 #[cfg(target_os = "macos")]
-fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation() {
+fn repeated_identical_apply_repairs_a_broken_managed_signature() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
     let state = temp.path().join("state");
@@ -1426,12 +1832,11 @@ fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation
     let injector_before =
         fs::read(app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")).unwrap();
     let marker_before = fs::read(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap();
-    let state_before = fs::read(state.join("state.json")).unwrap();
     let mut second_runner = VerifyFailsOnceRunner {
         commands: Vec::new(),
         verify_failures: 1,
     };
-    let error = apply_language_inner(
+    let result = apply_language_inner(
         &repo,
         &state,
         &resources,
@@ -1440,9 +1845,10 @@ fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation
         &mut second_runner,
         "2026-04-23T00:01:00.000Z",
     )
-    .unwrap_err();
+    .unwrap();
 
-    assert!(error.contains("bundle seal is damaged"), "{error}");
+    assert!(result.ok);
+    assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
     assert_eq!(
         fs::read(app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib")).unwrap(),
         injector_before
@@ -1451,8 +1857,7 @@ fn repeated_identical_apply_rejects_a_broken_prewrite_signature_without_mutation
         fs::read(app.join("Contents/Resources/cavalry-i18n-lang.txt")).unwrap(),
         marker_before
     );
-    assert_eq!(fs::read(state.join("state.json")).unwrap(), state_before);
-    assert!(!second_runner
+    assert!(second_runner
         .commands
         .iter()
         .any(|command| command.args.iter().any(|arg| arg == "--sign")));

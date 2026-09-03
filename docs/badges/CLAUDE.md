@@ -1,5 +1,5 @@
 # badges/
-> L2 | 父级: /Users/luo/Desktop/ClaudeCode/web/Cavalry-i18n/docs/CLAUDE.md
+> L2 | 父级: ../CLAUDE.md
 
 成员清单
 release.json: Shields endpoint badge 数据源，保存当前公开 GitHub Release tag，发布 workflow 成功创建 Release 后写回 main，README 只读取该 JSON 而不实时查询 GitHub Release API。

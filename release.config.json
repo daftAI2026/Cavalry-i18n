@@ -7,5 +7,13 @@
     "aarch64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.dmg",
     "x64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.dmg",
     "windowsX64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_windows-x64-setup.exe"
+  },
+  "updater": {
+    "manifestAssetName": "latest.json",
+    "downloadBaseUrl": "https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download",
+    "macOSAssetNameTemplates": {
+      "aarch64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.app.tar.gz",
+      "x64": "Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.app.tar.gz"
+    }
   }
 }

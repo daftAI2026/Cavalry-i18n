@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、Windows NSIS provenance/安装更新卸载态/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、tag 级 macOS Developer ID+公证 fail-closed、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台 dev/build 前生成原生库的源码/产物隔离，以及 Windows x64 generic+QPA 双资源 provenance（Authenticode 另跟踪）、PR 级 clean-macOS universal link gate、仅接受已包含于 origin/main 且带 live evidence 的 tag commit 所生成的 GitHub Release
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,11 +10,16 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
+const zlib = require('node:zlib');
 const { spawnSync } = require('node:child_process');
 const { installGitHooks } = require('./install_git_hooks.js');
 const { runPowerShellScript } = require('./powershell_command.js');
 const { resolvePythonCommand } = require('./python_command.js');
 const { cleanupTempDirs, makeTempDir } = require('./test_temp_dir.js');
+const {
+  createDmgVolumeName,
+  resolveDmgArchitecture,
+} = require('./dmg_volume_identity.js');
 
 test.after(cleanupTempDirs);
 
@@ -27,6 +32,233 @@ function readJson(relativePath) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(repoRoot, relativePath), 'utf8');
+}
+
+const MACOS_APP_MANAGEMENT_KEY = 'NSAppBundlesUsageDescription';
+const MACOS_APP_MANAGEMENT_LOCALES = [
+  {
+    directory: 'en.lproj',
+    value:
+      "Allow Cavalry Language Switcher to modify Cavalry's local app files to switch its interface language.",
+  },
+  {
+    directory: 'zh-Hans.lproj',
+    value: '允许 Cavalry 语言切换器修改 Cavalry 的本地应用文件，以切换界面语言。',
+  },
+  {
+    directory: 'zh-Hant.lproj',
+    value: '允許 Cavalry 語言切換器修改 Cavalry 的本機應用程式檔案，以切換介面語言。',
+  },
+  {
+    directory: 'ja.lproj',
+    value:
+      'Cavalry Language Switcher が Cavalry のローカルアプリファイルを変更し、表示言語を切り替えることを許可します。',
+  },
+];
+
+function decodeXmlText(value) {
+  return value
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'")
+    .replace(/&amp;/g, '&');
+}
+
+function readPlistString(plistText, key) {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const match = plistText.match(
+    new RegExp(`<key>${escapedKey}</key>\\s*<string>([\\s\\S]*?)</string>`)
+  );
+  return match ? decodeXmlText(match[1].trim()) : null;
+}
+
+function readStringsFileValue(stringsText, key) {
+  const entries = [];
+  const entryPattern = /^\s*"((?:\\.|[^"])*)"\s*=\s*"((?:\\.|[^"])*)"\s*;\s*$/gm;
+  for (const match of stringsText.matchAll(entryPattern)) {
+    entries.push({ key: match[1], value: match[2] });
+  }
+
+  const matches = entries.filter((entry) => entry.key === key);
+  assert.equal(matches.length, 1, `${key} must occur once in InfoPlist.strings`);
+  assert.equal(entries.length, 1, 'InfoPlist.strings must contain only the declared purpose key');
+  return matches[0].value.replace(/\\([\\"])/g, '$1');
+}
+
+function expectedMacOSInfoPlistFiles() {
+  return Object.fromEntries(
+    MACOS_APP_MANAGEMENT_LOCALES.map(({ directory }) => [
+      `Resources/${directory}/InfoPlist.strings`,
+      `${directory}/InfoPlist.strings`,
+    ])
+  );
+}
+
+function assertMacOSAppManagementSource() {
+  const sourcePlist = readText('src-tauri/Info.plist');
+  assert.deepEqual(
+    [...sourcePlist.matchAll(/<key>([^<]+)<\/key>/g)].map((match) => match[1]),
+    [MACOS_APP_MANAGEMENT_KEY],
+    'the custom plist must add only the App Management purpose key'
+  );
+  assert.equal(
+    readPlistString(sourcePlist, MACOS_APP_MANAGEMENT_KEY),
+    MACOS_APP_MANAGEMENT_LOCALES[0].value
+  );
+
+  for (const { directory, value } of MACOS_APP_MANAGEMENT_LOCALES) {
+    const relativePath = path.join('src-tauri', directory, 'InfoPlist.strings');
+    assert.equal(readStringsFileValue(readText(relativePath), MACOS_APP_MANAGEMENT_KEY), value);
+  }
+}
+
+function assertMacOSAppManagementBundle(bundlePath) {
+  const contents = path.join(bundlePath, 'Contents');
+  const bundlePlist = path.join(contents, 'Info.plist');
+  assert.equal(fs.existsSync(bundlePlist), true, `missing bundle Info.plist: ${bundlePlist}`);
+  assert.equal(
+    readPlistString(fs.readFileSync(bundlePlist, 'utf8'), MACOS_APP_MANAGEMENT_KEY),
+    MACOS_APP_MANAGEMENT_LOCALES[0].value
+  );
+
+  for (const { directory, value } of MACOS_APP_MANAGEMENT_LOCALES) {
+    const resourcePath = path.join(contents, 'Resources', directory, 'InfoPlist.strings');
+    const sourcePath = path.join(repoRoot, 'src-tauri', directory, 'InfoPlist.strings');
+    assert.equal(fs.existsSync(resourcePath), true, `missing localized resource: ${resourcePath}`);
+    assert.deepEqual(
+      fs.readFileSync(resourcePath),
+      fs.readFileSync(sourcePath),
+      `${directory}/InfoPlist.strings must be copied byte-for-byte`
+    );
+    assert.equal(
+      readStringsFileValue(fs.readFileSync(resourcePath, 'utf8'), MACOS_APP_MANAGEMENT_KEY),
+      value
+    );
+  }
+}
+
+test('macOS DMG mounted volume identity is product, Switcher SemVer, and architecture', () => {
+  const pkg = readJson('package.json');
+  const producer = readText('tools/stamp_dmg_icon.sh');
+  const verifier = readText('tools/check_dmg_layout.sh');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
+  const workflow = readText('.github/workflows/build.yml');
+
+  assert.equal(
+    createDmgVolumeName('Cavalry Language Switcher_0.7.0_aarch64.dmg', {
+      version: pkg.version,
+    }),
+    `Cavalry Switcher ${pkg.version} arm64`
+  );
+  assert.equal(
+    createDmgVolumeName('Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.dmg', {
+      version: pkg.version,
+    }),
+    `Cavalry Switcher ${pkg.version} x64`
+  );
+  assert.equal(resolveDmgArchitecture('local-arm64.dmg'), 'arm64');
+  assert.throws(
+    () => resolveDmgArchitecture('Cavalry Language Switcher.dmg'),
+    /supported macOS architecture/
+  );
+  assert.match(producer, /dmg_volume_identity\.js/);
+  assert.match(producer, /diskutil rename "\$device_name" "\$volume_name"/);
+  assert.match(verifier, /actual_volume_name/);
+  assert.match(verifier, /DMG volume title mismatch/);
+  assert.match(
+    localSop,
+    /挂载卷标固定为 `Cavalry Switcher <SemVer> <arch>`/
+  );
+  assert.match(
+    workflow,
+    /npm run tauri:build[\s\S]*bash tools\/stamp_dmg_icon\.sh[\s\S]*Name release DMG asset/
+  );
+});
+
+test('macOS App Management purpose resources are source-complete and bundle-readable', () => {
+  const macConfig = readJson('src-tauri/tauri.macos.conf.json');
+
+  assertMacOSAppManagementSource();
+  assert.deepEqual(macConfig.bundle.macOS.files, expectedMacOSInfoPlistFiles());
+
+  const bundlePath = process.env.CAVALRY_I18N_TAURI_APP_BUNDLE;
+  if (bundlePath) {
+    assertMacOSAppManagementBundle(path.resolve(bundlePath));
+  }
+});
+
+function rgbaPngAlphaContract(relativePath, threshold = 128) {
+  const png = fs.readFileSync(path.join(repoRoot, relativePath));
+  assert.equal(png.toString('hex', 0, 8), '89504e470d0a1a0a');
+  let offset = 8;
+  let width = 0;
+  let height = 0;
+  const idat = [];
+  while (offset < png.length) {
+    const length = png.readUInt32BE(offset);
+    const type = png.toString('ascii', offset + 4, offset + 8);
+    const data = png.subarray(offset + 8, offset + 8 + length);
+    if (type === 'IHDR') {
+      width = data.readUInt32BE(0);
+      height = data.readUInt32BE(4);
+      assert.equal(data.readUInt8(8), 8, `${relativePath} must be 8-bit`);
+      assert.equal(data.readUInt8(9), 6, `${relativePath} must be RGBA`);
+      assert.equal(data.readUInt8(12), 0, `${relativePath} must not be interlaced`);
+    } else if (type === 'IDAT') {
+      idat.push(data);
+    }
+    offset += length + 12;
+  }
+
+  const bytesPerPixel = 4;
+  const scanlineLength = width * bytesPerPixel;
+  const inflated = zlib.inflateSync(Buffer.concat(idat));
+  assert.equal(inflated.length, (scanlineLength + 1) * height);
+  let previous = Buffer.alloc(scanlineLength);
+  let firstDecoded = null;
+  let sourceOffset = 0;
+  let bounds = null;
+
+  function paeth(left, above, upperLeft) {
+    const estimate = left + above - upperLeft;
+    const leftDistance = Math.abs(estimate - left);
+    const aboveDistance = Math.abs(estimate - above);
+    const upperLeftDistance = Math.abs(estimate - upperLeft);
+    if (leftDistance <= aboveDistance && leftDistance <= upperLeftDistance) return left;
+    return aboveDistance <= upperLeftDistance ? above : upperLeft;
+  }
+
+  for (let y = 0; y < height; y += 1) {
+    const filter = inflated[sourceOffset];
+    sourceOffset += 1;
+    const current = Buffer.alloc(scanlineLength);
+    for (let x = 0; x < scanlineLength; x += 1) {
+      const raw = inflated[sourceOffset + x];
+      const left = x >= bytesPerPixel ? current[x - bytesPerPixel] : 0;
+      const above = previous[x];
+      const upperLeft = x >= bytesPerPixel ? previous[x - bytesPerPixel] : 0;
+      const predictor = [0, left, above, Math.floor((left + above) / 2), paeth(left, above, upperLeft)][filter];
+      assert.notEqual(predictor, undefined, `${relativePath} uses unsupported PNG filter ${filter}`);
+      current[x] = (raw + predictor) & 0xff;
+    }
+    sourceOffset += scanlineLength;
+    if (y === 0) firstDecoded = Buffer.from(current);
+    for (let x = 0; x < width; x += 1) {
+      if (current[(x * bytesPerPixel) + 3] > threshold) {
+        bounds = bounds
+          ? [Math.min(bounds[0], x), Math.min(bounds[1], y), Math.max(bounds[2], x + 1), Math.max(bounds[3], y + 1)]
+          : [x, y, x + 1, y + 1];
+      }
+    }
+    previous = current;
+  }
+  const cornerAlpha = [
+    3,
+    ((width - 1) * bytesPerPixel) + 3,
+  ].map((index) => previous[index]);
+  cornerAlpha.unshift(firstDecoded[3], firstDecoded[((width - 1) * bytesPerPixel) + 3]);
+  return { width, height, bounds, cornerAlpha };
 }
 
 function writeJson(filePath, value) {
@@ -143,6 +375,9 @@ function makeWindowsNsisProvenanceFixture() {
       },
     },
   });
+  writeJson(path.join(tempRoot, 'src-tauri', 'tauri.updater-artifacts.conf.json'), {
+    bundle: { createUpdaterArtifacts: true },
+  });
   writeJson(path.join(tempRoot, 'src-tauri', 'capabilities', 'default.json'), { permissions: [] });
   write('renderer/index.html', '<!doctype html><title>fixture</title>');
   write('languages/en/appStrings.json', '{"fixture":"English"}\n');
@@ -172,6 +407,7 @@ function makeWindowsNsisProvenanceFixture() {
 
 test('tauri local build SOP is the only release path', () => {
   const localSop = readText('LOCAL_BUILD_SOP.md');
+  const manualMacSmoke = readText('src-tauri/tests/manual_macos_smoke.rs');
 
   assert.match(localSop, /Tauri/i);
   assert.match(localSop, /npm run tauri:build/);
@@ -180,6 +416,14 @@ test('tauri local build SOP is the only release path', () => {
   assert.match(localSop, /APPLE_SIGNING_IDENTITY="-"/);
   assert.match(localSop, /tools\/cavalry_qt_target\.json/);
   assert.match(localSop, /6\.6\.3/);
+  assert.match(localSop, /renderer 视觉验收必须使用新进程/);
+  assert.match(localSop, /pkill -f 'target\/debug\/cavalry-i18n-tauri'/);
+  assert.match(localSop, /STALE-RESOURCE-UNVERIFIED/);
+  assert.match(localSop, /CAVALRY_I18N_MACOS_SMOKE_APP="\/Volumes\/Cavalry\/Cavalry\.app"/);
+  assert.match(localSop, /只读挂载的官方 Cavalry 2\.7\.2 DMG/);
+  assert.match(manualMacSmoke, /const SOURCE_APP_ENV: &str = "CAVALRY_I18N_MACOS_SMOKE_APP"/);
+  assert.match(manualMacSmoke, /requested\.is_absolute\(\)/);
+  assert.match(manualMacSmoke, /critical_source_snapshot\(&source\)/);
   assert.doesNotMatch(localSop, /Electron|electron-builder|test:desktop|check:desktop|desktop-patcher/);
 });
 
@@ -320,6 +564,7 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   assert.equal(provenance.version, '9.8.7');
   assert.equal(provenance.installer.fileName, installerName);
   assert.equal(provenance.installer.bytes, Buffer.byteLength('fresh-installer-bytes'));
+  assert.equal(provenance.updaterSignature, null);
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'renderer/index.html'));
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'languages/en/appStrings.json'));
   assert.ok(provenance.inputFingerprint.files.some((entry) => entry.path === 'src-tauri/src/lib.rs'));
@@ -333,6 +578,7 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
     'src-tauri/build.rs',
     'src-tauri/tauri.conf.json',
     'src-tauri/tauri.windows.conf.json',
+    'src-tauri/tauri.updater-artifacts.conf.json',
     'src-tauri/nsis-hooks.nsh',
     'src-tauri/capabilities/default.json',
     'src-tauri/icons/icon.ico',
@@ -397,6 +643,44 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   const staleInputs = run('--verify', installerPath);
   assert.notEqual(staleInputs.status, 0, 'a dirty packaging input must invalidate the old installer sidecar');
   assert.match(staleInputs.stderr, /sidecar does not match the current installer bytes and packaging input fingerprint/);
+});
+
+test('Windows NSIS provenance binds an updater signature only when tag intent requires it', () => {
+  const tempRoot = makeWindowsNsisProvenanceFixture();
+  const script = path.join(tempRoot, 'tools', 'windows_nsis_provenance.js');
+  const bundleRoot = path.join(
+    tempRoot,
+    'src-tauri',
+    'target',
+    'x86_64-pc-windows-msvc',
+    'release',
+    'bundle',
+    'nsis'
+  );
+  const installerPath = path.join(bundleRoot, 'Cavalry Language Switcher_9.8.7_x64-setup.exe');
+  const signaturePath = `${installerPath}.sig`;
+  const run = (...args) => spawnSync(process.execPath, [script, ...args], {
+    cwd: tempRoot,
+    encoding: 'utf8',
+    env: { ...process.env, CAVALRY_I18N_EXPECT_UPDATER_SIGNATURE: '1' },
+  });
+
+  fs.mkdirSync(bundleRoot, { recursive: true });
+  const prepared = run('--prepare');
+  assert.equal(prepared.status, 0, prepared.stderr || prepared.stdout);
+  fs.writeFileSync(installerPath, 'tag-installer');
+  fs.writeFileSync(signaturePath, `${Buffer.from('tag-updater-signature').toString('base64')}\n`);
+  const recorded = run('--record');
+  assert.equal(recorded.status, 0, recorded.stderr || recorded.stdout);
+  const provenance = JSON.parse(fs.readFileSync(`${installerPath}.provenance.json`, 'utf8'));
+  assert.equal(provenance.schemaVersion, 2);
+  assert.equal(provenance.updaterSignature.fileName, path.basename(signaturePath));
+  const verified = run('--verify', installerPath);
+  assert.equal(verified.status, 0, verified.stderr || verified.stdout);
+  fs.appendFileSync(signaturePath, 'tamper');
+  const tampered = run('--verify', installerPath);
+  assert.notEqual(tampered.status, 0);
+  assert.match(tampered.stderr, /sidecar does not match/);
 });
 
 test('Windows NSIS provenance refuses foreign stale installers instead of broad deletion', () => {
@@ -697,6 +981,14 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     windowsX64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_windows-x64-setup.exe',
   });
   assert.deepEqual(Object.keys(releaseConfig.assetNameTemplates).sort(), ['aarch64', 'windowsX64', 'x64']);
+  assert.deepEqual(releaseConfig.updater, {
+    manifestAssetName: 'latest.json',
+    downloadBaseUrl: 'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download',
+    macOSAssetNameTemplates: {
+      aarch64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_aarch64.app.tar.gz',
+      x64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p${patch}_x64.app.tar.gz',
+    },
+  });
   assert.match(windowsBuild, /'-A', 'x64'/);
   assert.match(windowsBuild, /function Assert-NoReparsePathChain/);
   assert.match(windowsBuild, /function Reset-GeneratedBuildDirectory/);
@@ -842,6 +1134,19 @@ test('release metadata script renders GitHub release fields from the patch tag',
     RELEASE_ASSET_NAME_X64: 'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.dmg',
     RELEASE_ASSET_NAME_WINDOWS_X64:
       'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_windows-x64-setup.exe',
+    RELEASE_UPDATER_MANIFEST_NAME: 'latest.json',
+    RELEASE_UPDATER_DOWNLOAD_BASE_URL:
+      'https://github.com/daftAI2026/Cavalry-i18n/releases/latest/download',
+    RELEASE_UPDATER_ASSET_NAME_AARCH64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.app.tar.gz',
+    RELEASE_UPDATER_ASSET_NAME_X64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.app.tar.gz',
+    RELEASE_UPDATER_SIGNATURE_NAME_AARCH64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_aarch64.app.tar.gz.sig',
+    RELEASE_UPDATER_SIGNATURE_NAME_X64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_x64.app.tar.gz.sig',
+    RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64:
+      'Cavalry.Language.Switcher_Cavalry-2.7.2-p12_windows-x64-setup.exe.sig',
   });
   assert.notEqual(invalid.status, 0, invalid.stderr || invalid.stdout);
   assert.match(invalid.stderr, /does not match/);
@@ -879,7 +1184,7 @@ test('release metadata refuses x86 and i686 asset templates', () => {
   }
 });
 
-test('tag release publishes both macOS DMGs and the stable Windows x64 NSIS asset', () => {
+test('tag release publishes manual installers plus the signed three-platform updater closure', () => {
   const workflow = readText('.github/workflows/build.yml');
   const releaseJob = workflow.match(
     /\r?\n  release:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
@@ -897,11 +1202,14 @@ test('tag release publishes both macOS DMGs and the stable Windows x64 NSIS asse
     /\[Windows x64\][\s\S]*RELEASE_ASSET_NAME_WINDOWS_X64/
   );
   assert.doesNotMatch(releaseJob[1], /\[Windows x64 安装器\]/);
-  assert.doesNotMatch(releaseJob[1], /windowsX86|windows-x86|i686|win32/i);
+  assert.doesNotMatch(releaseJob[1], /windowsX86|windows-x86(?!_64)|i686|win32/i);
   assert.match(releaseJob[1], /find dist -type f -name '\*\.dmg'/);
+  assert.match(releaseJob[1], /create_updater_manifest\.js/);
+  assert.match(releaseJob[1], /--darwin-aarch64[\s\S]*--darwin-x86_64[\s\S]*--windows-x86_64/);
+  assert.match(releaseJob[1], /--updater-manifest[\s\S]*--updater-windows-x64-signature/);
   assert.match(
     releaseJob[1],
-    /node tools\/create_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"[\s\S]*--macos-notarized[\s\S]*node tools\/verify_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"/
+    /node tools\/create_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"[\s\S]*--macos-signing ad-hoc[\s\S]*node tools\/verify_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"/
   );
   assert.doesNotMatch(releaseJob[1], /--confirm-live-pass/);
   assert.match(
@@ -1074,21 +1382,31 @@ test('project version check treats CRLF and LF metadata as the same content', ()
 
 test('tauri bundle config preserves the frozen Tauri window contract', () => {
   const config = readJson('src-tauri/tauri.conf.json');
+  const localSop = readText('LOCAL_BUILD_SOP.md');
   const macConfig = readJson('src-tauri/tauri.macos.conf.json');
   const windowsConfig = readJson('src-tauri/tauri.windows.conf.json');
+  const updaterArtifactsConfig = readJson('src-tauri/tauri.updater-artifacts.conf.json');
   const window = config.app.windows.find((candidate) => candidate.label === 'main');
 
   assert.ok(window, 'main window missing');
-  assert.equal(window.url, 'index.html');
-  assert.equal(window.width, 480);
-  assert.equal(window.height, 528);
-  assert.equal(window.minWidth, 420);
-  assert.equal(window.minHeight, 528);
+  assert.equal(window.url, './index.html');
+  assert.equal(window.width, 400);
+  assert.equal(window.height, 484);
+  assert.equal(window.minWidth, 400);
+  assert.equal(window.minHeight, 484);
+  assert.match(localSop, /main window 逻辑本体固定 `400x484`，最小本体 `400x484`/);
+  assert.match(localSop, /Windows 配置中的 `420x504` 只是在本体四边各加 10px transparent compositor 阴影画布，产品最小尺寸和所有视觉对齐均排除这层阴影/);
+  assert.doesNotMatch(localSop, /main window 外框固定 `480x528`/);
+  assert.equal(window.decorations, true);
+  assert.equal(window.titleBarStyle, 'Overlay');
+  assert.equal(window.hiddenTitle, true);
   assert.deepEqual(macConfig.bundle.targets, ['dmg', 'app']);
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
+  assert.equal(config.bundle.createUpdaterArtifacts, undefined);
+  assert.deepEqual(updaterArtifactsConfig.bundle, { createUpdaterArtifacts: true });
 });
 
-test('tauri macOS package defaults to ad-hoc locally while tag CI requires Developer ID', () => {
+test('tauri macOS package uses ad-hoc signing while tag updater artifacts require the independent Tauri key', () => {
   const config = readJson('src-tauri/tauri.macos.conf.json');
   const workflow = readText('.github/workflows/build.yml');
   const rustToolchain = readText('rust-toolchain.toml').match(/^channel\s*=\s*"([^"]+)"/m);
@@ -1107,30 +1425,57 @@ test('tauri macOS package defaults to ad-hoc locally while tag CI requires Devel
     'macOS packaging must bypass rust-toolchain component reconciliation with an explicit installed toolchain'
   );
   assert.equal(packageToolchain[1], rustToolchain[1]);
+  assert.doesNotMatch(packageJob[1], /APPLE_CERTIFICATE|APPLE_ID|APPLE_TEAM_ID|notarytool|stapler/);
+  assert.match(packageJob[1], /TAURI_SIGNING_PRIVATE_KEY:\s*\$\{\{\s*secrets\.TAURI_SIGNING_PRIVATE_KEY\s*\}\}/);
+  assert.match(packageJob[1], /--config src-tauri\/tauri\.updater-artifacts\.conf\.json/);
   assert.match(
     packageJob[1],
-    /Require Developer ID secrets for tag release packaging[\s\S]*APPLE_CERTIFICATE[\s\S]*exit 1/,
-    'tag packaging must fail closed without Developer ID secrets'
-  );
-  assert.match(
-    packageJob[1],
-    /APPLE_SIGNING_IDENTITY:\s*\$\{\{\s*secrets\.APPLE_SIGNING_IDENTITY\s*\}\}/,
-    'tag packaging must use the Developer ID secret identity'
-  );
-  assert.match(
-    packageJob[1],
-    /notarytool submit[\s\S]*stamp_dmg_icon|stamp_dmg_icon[\s\S]*notarytool submit[\s\S]*stapler staple[\s\S]*stapler validate/,
-    'tag packaging must notarize and staple the final post-stamp DMG bytes'
+    /Build packaged macOS app \(tag = ad-hoc \+ signed updater\)[\s\S]*CSC_IDENTITY_AUTO_DISCOVERY:\s*false[\s\S]*APPLE_SIGNING_IDENTITY:\s*"-"[\s\S]*TAURI_SIGNING_PRIVATE_KEY:/,
+    'tag packaging must pair an ad-hoc app signature with the independent updater key'
   );
   assert.match(
     packageJob[1],
     /workflow_dispatch packaging uses ad-hoc signing for build verification only/
   );
-  // Tag build step must not set ad-hoc identity; only the non-tag workflow_dispatch step may.
   assert.match(
     packageJob[1],
-    /Build packaged macOS app \(tag = Developer ID \+ notarize\)[\s\S]*?APPLE_SIGNING_IDENTITY:\s*\$\{\{\s*secrets\.APPLE_SIGNING_IDENTITY\s*\}\}[\s\S]*?Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)[\s\S]*?APPLE_SIGNING_IDENTITY: "-"/
+    /Verify ad-hoc app signature \(tag only\)[\s\S]*Signature=adhoc[\s\S]*Re-verify final ad-hoc app and DMG bytes/
   );
+});
+
+test('manual updater signing smoke uses protected secrets without creating a tag or Release', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const packageJob = workflow.match(
+    /\r?\n  package_macos:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  const releaseJob = workflow.match(
+    /\r?\n  release:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+
+  assert.match(
+    workflow,
+    /workflow_dispatch:\s*\r?\n\s+inputs:\s*\r?\n\s+updater_signing_smoke:[\s\S]*?default:\s*false[\s\S]*?type:\s*boolean/
+  );
+  assert.ok(packageJob, 'package_macos job missing');
+  assert.match(
+    packageJob[1],
+    /inputs\.updater_signing_smoke[\s\S]*release-production[\s\S]*Require updater signing secrets for tag or signing smoke/
+  );
+  assert.match(
+    packageJob[1],
+    /Build signed updater artifact \(workflow_dispatch smoke, no release\)[\s\S]*TAURI_SIGNING_PRIVATE_KEY:[\s\S]*TAURI_SIGNING_PRIVATE_KEY_PASSWORD:[\s\S]*--config src-tauri\/tauri\.updater-artifacts\.conf\.json/
+  );
+  assert.match(
+    packageJob[1],
+    /Verify signed updater artifact against embedded public key \(workflow_dispatch smoke\)[\s\S]*pwd -P[\s\S]*CAVALRY_I18N_UPDATER_ARTIFACT=[\s\S]*CAVALRY_I18N_UPDATER_SIGNATURE=[\s\S]*--test updater_signature_contract[\s\S]*verifies_external_updater_signature -- --ignored --exact/
+  );
+  assert.match(
+    packageJob[1],
+    /Build packaged macOS app \(workflow_dispatch = ad-hoc verification only\)[\s\S]*!inputs\.updater_signing_smoke[\s\S]*workflow_dispatch packaging uses ad-hoc signing for build verification only/
+  );
+  assert.ok(releaseJob, 'release job missing');
+  assert.match(releaseJob[1], /^    if:\s*startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)\s*$/m);
+  assert.doesNotMatch(releaseJob[1], /updater_signing_smoke/);
 });
 
 test('Windows injector selects the installed Visual Studio generator and locks the proven x64 v143 toolset', () => {
@@ -1148,14 +1493,14 @@ test('Windows CMake bootstrap rejects low, floating, and unproven toolchains', (
   const pin = pins.cmake;
 
   assert.ok(pin, 'CMake must have an explicit CI pin');
-  assert.equal(pin.version, '4.2.0');
-  assert.match(pin.url, /^https:\/\/github\.com\/Kitware\/CMake\/releases\/download\/v4\.2\.0\/cmake-4\.2\.0-windows-x86_64\.zip$/);
+  assert.equal(pin.version, '4.4.3');
+  assert.match(pin.url, /^https:\/\/github\.com\/Kitware\/CMake\/releases\/download\/v4\.4\.3\/cmake-4\.4\.3-windows-x86_64\.zip$/);
   assert.match(pin.sha256, /^[a-f0-9]{64}$/);
-  assert.equal(cmake.parseCmakeVersion('cmake version 4.2.0'), '4.2.0');
-  assert.throws(() => cmake.validateCmakeVersion('cmake version 3.31.6'), /CMake 4\.2\.0 or newer is required/);
+  assert.equal(cmake.parseCmakeVersion('cmake version 4.4.3'), '4.4.3');
+  assert.throws(() => cmake.validateCmakeVersion('cmake version 3.31.6'), /CMake 4\.4\.3 or newer is required/);
   assert.throws(
-    () => cmake.validateCmakePin({ ...pin, url: pin.url.replace('v4.2.0', 'main') }),
-    /official CMake v4\.2\.0 archive URL/
+    () => cmake.validateCmakePin({ ...pin, url: pin.url.replace('v4.4.3', 'main') }),
+    /official CMake v4\.4\.3 archive URL/
   );
   assert.throws(
     () => cmake.validateCmakePin({ ...pin, sha256: '' }),
@@ -1199,6 +1544,12 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     job[1],
     /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.provenance\.json/
   );
+  assert.match(
+    job[1],
+    /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.sig/
+  );
+  assert.match(job[1], /TAURI_SIGNING_PRIVATE_KEY_PASSWORD/);
+  assert.match(job[1], /--config src-tauri\/tauri\.updater-artifacts\.conf\.json/);
   assert.match(job[1], /if-no-files-found:\s*error/);
   // Windows Authenticode is intentionally not implemented here (external issue).
   assert.doesNotMatch(job[1], /signtool|Authenticode|osslsigncode/i);
@@ -1848,23 +2199,45 @@ test('Windows disposable live-clone smoke is PID-bound, reversible, and manual-r
   }
 });
 
-test('tauri window icon is an 8-bit PNG compatible with generate_context', () => {
-  const icon = fs.readFileSync(path.join(repoRoot, 'src-tauri/icons/icon.png'));
-  assert.equal(icon.toString('hex', 0, 8), '89504e470d0a1a0a');
-  assert.equal(icon.readUInt32BE(16), 1024);
-  assert.equal(icon.readUInt32BE(20), 1024);
-  assert.equal(icon.readUInt8(24), 8, 'Tauri rejects the original 16-bit PNG at runtime');
-  assert.equal(icon.readUInt8(25), 6, 'icon.png must be RGBA');
+test('tauri development icon keeps the packaged transparency contract and About projection aligned', () => {
+  const runtime = rgbaPngAlphaContract('src-tauri/icons/icon.png');
+  const about = rgbaPngAlphaContract('renderer/app-icon.png');
+  assert.deepEqual(runtime, {
+    width: 512,
+    height: 512,
+    bounds: [0, 0, 512, 512],
+    cornerAlpha: [0, 0, 0, 0],
+  });
+  assert.deepEqual(about, {
+    width: 128,
+    height: 128,
+    bounds: [0, 0, 128, 128],
+    cornerAlpha: [0, 0, 0, 0],
+  });
+  assert.deepEqual(
+    fs.readFileSync(path.join(repoRoot, 'renderer/app-icon.png')),
+    fs.readFileSync(path.join(repoRoot, 'src-tauri/icons/128x128.png'))
+  );
 });
 
 test('tauri capability and SOP mention the bridge and packaged resource boundaries', () => {
   const localSop = readText('LOCAL_BUILD_SOP.md');
   const capabilities = readJson('src-tauri/capabilities/default.json');
+  const aboutCapabilities = readJson('src-tauri/capabilities/about.json');
 
   assert.ok(capabilities.windows.includes('main'));
   assert.ok(capabilities.permissions.includes('core:default'));
   assert.ok(capabilities.permissions.includes('core:window:default'));
+  assert.ok(capabilities.permissions.includes('core:window:allow-start-dragging'));
   assert.ok(capabilities.permissions.includes('core:webview:default'));
+  assert.deepEqual(aboutCapabilities.windows, ['about']);
+  assert.deepEqual(aboutCapabilities.permissions, [
+    'core:app:allow-version',
+    'core:window:allow-start-dragging',
+    'core:window:allow-close',
+  ]);
+  assert.equal(aboutCapabilities.permissions.includes('core:window:default'), false);
+  assert.equal(aboutCapabilities.permissions.includes('core:webview:default'), false);
 
   for (const requiredText of [
     'tauri.conf.json',
@@ -1896,8 +2269,9 @@ test('release supply-chain pins, source completeness, and seal schemas are execu
   assert.match(requirementsInput, /^aqtinstall==3\.3\.0$/m);
   assert.match(requirements, /^aqtinstall==3\.3\.0/m);
   assert.match(requirements, /--hash=sha256:[a-f0-9]{64}/);
-  assert.match(rustToolchain, /channel\s*=\s*"1\.97\.1"/);
-  assert.match(readText('SECURITY.md'), /Developer ID/);
+  assert.match(rustToolchain, /channel\s*=\s*"1\.98\.0"/);
+  assert.match(readText('SECURITY.md'), /ad-hoc signed and not notarized/);
+  assert.match(readText('SECURITY.md'), /Tauri Updater signature/);
   assert.match(readText('.github/CODEOWNERS'), /@singkia/);
   assert.doesNotMatch(readText('README.md'), /\/Users\/luo\//);
   assert.doesNotMatch(readText('LOCAL_BUILD_SOP.md'), /\/Users\/luo\//);
@@ -1957,7 +2331,7 @@ test('release acceptance seal cannot be minted from a manual confirmation flag',
   const schema = readJson('tools/schemas/release_acceptance_seal.schema.json');
   assert.match(source, /--confirm-live-pass is forbidden/);
   assert.match(source, /--evidence/);
-  assert.match(source, /--macos-notarized is required/);
-  assert.equal(schema.properties.schemaVersion.const, 4);
-  assert.equal(schema.properties.signing.properties.macosDeveloperIdNotarized.const, true);
+  assert.match(source, /--macos-signing must explicitly declare ad-hoc/);
+  assert.equal(schema.properties.schemaVersion.const, 6);
+  assert.equal(schema.properties.signing.properties.macos.const, 'ad-hoc');
 });

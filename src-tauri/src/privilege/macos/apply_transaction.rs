@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 staged CopyPair、调用方精确/observe-only preimage、transaction 内 exact-process guard、显式 signing verifier、macOS bundle/state 路径、quarantine xattr、serde/sha2、目录 fd 与 renameatx_np 原子交换。
- * [OUTPUT]: 提供 crash-recoverable MacApplyTransaction、首装 journal-aware launcher gate、fd-relative nofollow 备份/发布/恢复与 quarantine 遍历、hardlink 边界拒绝、compare-and-swap 写入、显式 payload→signing-proof→deferred-marker-gate→state-durability phase、drift 拒绝，以及 committed journal 原子退役后清理。
- * [POS]: macOS apply 的 durable transaction owner；首个 mutation 前在 pinned root 核对调用方 sha256+mode preimage，首装最早发布 wrapper/Info gate 后第三次复核 exact Cavalry PID，journal 覆盖 CopyPair/observe-only 资产/延迟 marker/移除/有界签名副作用/quarantine/state；Signing phase 本身是 codesign mutation authorization，state 目录耐久性确认后才进入 durable commit。
+ * [OUTPUT]: 提供 crash-recoverable MacApplyTransaction、首装 journal-aware launcher gate、无需 Keychain 的结构化 journal 校验、fd-relative nofollow 备份/发布/恢复与 quarantine 遍历、hardlink 边界拒绝、保留 errno 权限类别的 compare-and-swap 写入、显式 payload→signing-proof→deferred-marker-gate→state-durability phase、drift 拒绝，以及 committed journal 原子退役后清理。
+ * [POS]: macOS apply 的 durable transaction owner；首个 mutation 前在 pinned root 核对调用方 sha256+mode preimage，首装最早发布 wrapper/Info gate 后第三次复核 exact Cavalry PID，journal 覆盖 CopyPair/observe-only 资产/延迟 marker/移除/有界签名副作用/quarantine/state；bundle create/rename 的 typed permission denial 在安全回滚补充上下文后仍可由 command 判定，Signing phase 本身是 codesign mutation authorization，state 目录耐久性确认后才进入 durable commit。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use serde::{Deserialize, Serialize};
@@ -35,13 +35,6 @@ const MANIFEST_NAME: &str = "manifest.json";
 const MANIFEST_SCHEMA: u32 = 6;
 const QUARANTINE_XATTR: &str = "com.apple.quarantine";
 const MAX_QUARANTINE_VALUE_BYTES: usize = 1024 * 1024;
-#[cfg(not(test))]
-const JOURNAL_KEY_SERVICE: &str = "com.daftai.cavalry-i18n.transaction-journal.v1";
-#[cfg(not(test))]
-const JOURNAL_KEY_ACCOUNT: &str = "manifest-hmac-sha256";
-#[cfg(not(test))]
-const JOURNAL_KEY_BYTES: usize = 32;
-
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
 #[cfg(test)]
@@ -393,7 +386,7 @@ impl SecureDirectory {
         leaf: &CString,
         display: &Path,
         mode: u32,
-    ) -> Result<File, String> {
+    ) -> Result<File, CopyFailure> {
         let raw = unsafe {
             libc::openat(
                 self.fd.as_raw_fd(),
@@ -403,15 +396,18 @@ impl SecureDirectory {
             )
         };
         if raw < 0 {
-            return Err(format!(
-                "Could not securely create regular file {}: {}",
-                display.display(),
-                std::io::Error::last_os_error()
+            let error = std::io::Error::last_os_error();
+            return Err(CopyFailure::from_io(
+                format!(
+                    "Could not securely create regular file {}",
+                    display.display()
+                ),
+                &error,
             ));
         }
         // SAFETY: `openat` returned a new owned descriptor, transferred to `File`.
         let file = unsafe { File::from_raw_fd(raw) };
-        require_regular_fd(file.as_raw_fd(), display)?;
+        require_regular_fd(file.as_raw_fd(), display).map_err(CopyFailure::other)?;
         Ok(file)
     }
 
@@ -816,6 +812,10 @@ impl MacApplyBeginError {
         }
     }
 
+    pub(crate) fn is_permission_denied(&self) -> bool {
+        matches!(self, Self::Transaction(error) if error.allows_administrator_retry())
+    }
+
     #[cfg(test)]
     fn into_copy_failure(self) -> CopyFailure {
         match self {
@@ -860,7 +860,7 @@ struct JournalEntry {
     verified_post_absent: bool,
 }
 
-/// Exact bundle inputs that this transaction intentionally does not mutate. They are authenticated
+/// Exact bundle inputs that this transaction intentionally does not mutate. They are validated
 /// with the journal and rechecked before the first mutation and before bundle verification, so an
 /// asset filtered as unchanged cannot drift into a successfully committed language generation.
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -906,7 +906,10 @@ struct JournalManifest {
     temporary_paths: Vec<String>,
     state_temporary_paths: Vec<String>,
     quarantine_preimages: Vec<QuarantinePreimage>,
-    authentication_tag: String,
+    // schema 6 的旧版 manifest 带有 Keychain HMAC。继续接受该字段，保证已中断事务
+    // 可以恢复；新写入不再序列化它，避免 ad-hoc 更新后触发系统密码框。
+    #[serde(default, rename = "authenticationTag", skip_serializing)]
+    _legacy_authentication_tag: String,
 }
 
 struct JournalPreparationGuard {
@@ -1067,7 +1070,7 @@ impl MacApplyTransaction {
     /// the exact executable is scanned before preparation and publication, then once more after a
     /// first-install wrapper/Info launch gate is live but before ordinary payload mutation.
     /// Official restore keeps the managed launcher and marker in place until the vendor Info.plist
-    /// deferred pair and deferred runtime removals cross the same authenticated commit gate.
+    /// deferred pair and deferred runtime removals cross the same structurally validated commit gate.
     /// Nothing in `deferred_removals` is deleted by begin.
     #[allow(clippy::too_many_arguments)]
     pub(crate) fn begin_with_deferred_pairs_and_removals_guarded(
@@ -1388,7 +1391,7 @@ impl MacApplyTransaction {
             .map(|path| path_string(path).map_err(CopyFailure::other))
             .collect::<Result<Vec<_>, _>>()?,
             quarantine_preimages,
-            authentication_tag: String::new(),
+            _legacy_authentication_tag: String::new(),
         };
         write_manifest(&preparation_dir, &manifest).map_err(CopyFailure::other)?;
         preparation_dir.sync().map_err(CopyFailure::other)?;
@@ -1466,7 +1469,7 @@ impl MacApplyTransaction {
                     pair.dst.display()
                 );
                 let rolled_back = transaction.rollback_with_cause(cause);
-                return Err(CopyFailure::other(rolled_back).into());
+                return Err(error.with_message(rolled_back).into());
             }
         }
         for pair in launch_gate_pairs {
@@ -1476,7 +1479,7 @@ impl MacApplyTransaction {
                     pair.dst.display()
                 );
                 let rolled_back = transaction.rollback_with_cause(cause);
-                return Err(CopyFailure::other(rolled_back).into());
+                return Err(error.with_message(rolled_back).into());
             }
         }
         // On the first managed install the original Info.plist launched Cavalry directly. The
@@ -1511,7 +1514,7 @@ impl MacApplyTransaction {
             if let Err(error) = transaction.apply_journaled_pair(pair, false) {
                 let cause = format!("Copy transaction failed at {}: {error}", pair.dst.display());
                 let rolled_back = transaction.rollback_with_cause(cause);
-                return Err(CopyFailure::other(rolled_back).into());
+                return Err(error.with_message(rolled_back).into());
             }
         }
         for destination in removals {
@@ -1547,28 +1550,27 @@ impl MacApplyTransaction {
         Ok(transaction)
     }
 
-    pub(crate) fn apply_deferred_pair(&mut self, pair: &CopyPair) -> Result<(), String> {
+    pub(crate) fn apply_deferred_pair(&mut self, pair: &CopyPair) -> Result<(), CopyFailure> {
         if self.manifest.phase != JournalPhase::Signing {
-            return Err(
-                "Final macOS language marker may only be published during the signing phase."
-                    .to_string(),
-            );
+            return Err(CopyFailure::other(
+                "Final macOS language marker may only be published during the signing phase.",
+            ));
         }
         if !self.manifest.deferred_publish_authorized {
-            return Err(
-                "Final macOS language marker is not authorized by the pre-marker bundle gate."
-                    .to_string(),
-            );
+            return Err(CopyFailure::other(
+                "Final macOS language marker is not authorized by the pre-marker bundle gate.",
+            ));
         }
         if !self.deferred_pair_destinations.contains(&pair.dst) {
-            return Err(format!(
+            return Err(CopyFailure::other(format!(
                 "Refusing unjournaled or repeated deferred destination {}",
                 pair.dst.display()
-            ));
+            )));
         }
         self.apply_journaled_pair(pair, true)?;
         self.deferred_pair_destinations.remove(&pair.dst);
         self.persist_deferred_publication_state()
+            .map_err(CopyFailure::other)
     }
 
     /// Applies commit-gated removals only after the non-deferred payload/signing proof gate. This
@@ -1655,7 +1657,7 @@ impl MacApplyTransaction {
 
     /// Runs caller-supplied signature verification against the current kernel-resolved path of
     /// the pinned bundle, then records exact fd-relative postimages for every bounded signing side
-    /// effect in the authenticated journal. An unrecorded bounded Signing-phase mutation is
+    /// effect in the durable journal. An unrecorded bounded Signing-phase mutation is
     /// authorized only as a CAS rollback input; it can never satisfy a verification/commit gate.
     pub(crate) fn verify_and_record_signing_postimages<F>(
         &mut self,
@@ -1851,7 +1853,7 @@ impl MacApplyTransaction {
             return Err("simulated uncertain state durability before StateCommitted".to_string());
         }
         // A state writer may report that rename succeeded while its directory fsync was
-        // uncertain. Re-fsync the pinned directory here; failure leaves the authenticated journal
+        // uncertain. Re-fsync the pinned directory here; failure leaves the durable journal
         // in StateCommitting, where exact CAS rollback remains permitted.
         self.state_root.sync().map_err(|error| {
             format!("State durability is still uncertain; refusing StateCommitted: {error}")
@@ -1872,38 +1874,42 @@ impl MacApplyTransaction {
         write_manifest(&self.journal_dir, &self.manifest)
     }
 
-    fn apply_intermediate_pair(&mut self, pair: &CopyPair) -> Result<(), String> {
+    fn apply_intermediate_pair(&mut self, pair: &CopyPair) -> Result<(), CopyFailure> {
         if self.manifest.phase != JournalPhase::Applying {
-            return Err("macOS transaction is not applying its pending marker.".to_string());
+            return Err(CopyFailure::other(
+                "macOS transaction is not applying its pending marker.",
+            ));
         }
         if !self.deferred_pair_destinations.contains(&pair.dst) {
-            return Err(format!(
+            return Err(CopyFailure::other(format!(
                 "Refusing intermediate copy without a deferred final destination: {}",
                 pair.dst.display()
-            ));
+            )));
         }
         let entry = self.entry_for_destination(&pair.dst).ok_or_else(|| {
-            "Intermediate transaction destination metadata is missing.".to_string()
+            CopyFailure::other("Intermediate transaction destination metadata is missing.")
         })?;
-        let fingerprint = fingerprint_regular_file(&pair.src)?;
+        let fingerprint = fingerprint_regular_file(&pair.src).map_err(CopyFailure::other)?;
         if !entry.intermediate_copies.contains(&fingerprint) {
-            return Err(format!(
+            return Err(CopyFailure::other(format!(
                 "Intermediate transaction source was not journaled for {}",
                 pair.dst.display()
-            ));
+            )));
         }
         let roots = TransactionRoots {
             bundle: &self.bundle_root,
             state: &self.state_root,
         };
-        verify_current_matches_preimage(entry, roots)?;
-        let accepted = [original_fingerprint(entry)?];
+        verify_current_matches_preimage(entry, roots).map_err(CopyFailure::other)?;
+        let accepted = [original_fingerprint(entry).map_err(CopyFailure::other)?];
         let pair_index = self
             .manifest
             .pair_destinations
             .iter()
             .position(|destination| Path::new(destination) == pair.dst)
-            .ok_or_else(|| "Deferred transaction destination index is missing.".to_string())?;
+            .ok_or_else(|| {
+                CopyFailure::other("Deferred transaction destination index is missing.")
+            })?;
         let temporary = PathBuf::from(&self.manifest.temporary_paths[pair_index]);
         write_pair_atomically(pair, &temporary, &self.bundle_root, &fingerprint, &accepted)
     }
@@ -1912,53 +1918,55 @@ impl MacApplyTransaction {
         &mut self,
         pair: &CopyPair,
         allow_intermediate_preimage: bool,
-    ) -> Result<(), String> {
+    ) -> Result<(), CopyFailure> {
         let pair_index = self
             .manifest
             .pair_destinations
             .iter()
             .position(|destination| Path::new(destination) == pair.dst)
             .ok_or_else(|| {
-                format!(
+                CopyFailure::other(format!(
                     "macOS transaction journal omitted copy destination {}",
                     pair.dst.display()
-                )
+                ))
             })?;
-        let entry = self
-            .entry_for_destination(&pair.dst)
-            .ok_or_else(|| "macOS transaction destination metadata is missing.".to_string())?;
+        let entry = self.entry_for_destination(&pair.dst).ok_or_else(|| {
+            CopyFailure::other("macOS transaction destination metadata is missing.")
+        })?;
         if allow_intermediate_preimage {
             let roots = TransactionRoots {
                 bundle: &self.bundle_root,
                 state: &self.state_root,
             };
-            let current = roots.current_fingerprint(entry)?;
-            if !matches_preimage(entry, &current)?
+            let current = roots
+                .current_fingerprint(entry)
+                .map_err(CopyFailure::other)?;
+            if !matches_preimage(entry, &current).map_err(CopyFailure::other)?
                 && !entry
                     .intermediate_copies
                     .iter()
                     .any(|expected| current.as_ref() == Some(expected))
             {
-                return Err(format!(
+                return Err(CopyFailure::other(format!(
                     "{} no longer matches its pending marker postimage",
                     entry.destination
-                ));
+                )));
             }
         } else {
             let roots = TransactionRoots {
                 bundle: &self.bundle_root,
                 state: &self.state_root,
             };
-            verify_current_matches_preimage(entry, roots)?;
+            verify_current_matches_preimage(entry, roots).map_err(CopyFailure::other)?;
         }
-        let mut accepted = vec![original_fingerprint(entry)?];
+        let mut accepted = vec![original_fingerprint(entry).map_err(CopyFailure::other)?];
         if allow_intermediate_preimage {
             accepted.extend(entry.intermediate_copies.iter().cloned().map(Some));
         }
         let expected_copy = entry
             .expected_copy
             .clone()
-            .ok_or_else(|| "Transaction copy postimage is missing.".to_string())?;
+            .ok_or_else(|| CopyFailure::other("Transaction copy postimage is missing."))?;
         let temporary = PathBuf::from(&self.manifest.temporary_paths[pair_index]);
         write_pair_atomically(
             pair,
@@ -1967,11 +1975,15 @@ impl MacApplyTransaction {
             &expected_copy,
             &accepted,
         )?;
-        if current_fingerprint_at(&self.bundle_root, &pair.dst)?.as_ref() != Some(&expected_copy) {
-            return Err(format!(
+        if current_fingerprint_at(&self.bundle_root, &pair.dst)
+            .map_err(CopyFailure::other)?
+            .as_ref()
+            != Some(&expected_copy)
+        {
+            return Err(CopyFailure::other(format!(
                 "Atomic copy postimage did not verify at {}",
                 pair.dst.display()
-            ));
+            )));
         }
         Ok(())
     }
@@ -2105,7 +2117,7 @@ impl Drop for MacApplyTransaction {
 
 /// Returns true when an interrupted transaction was restored. A state-committed or committed
 /// journal only needs cleanup and returns false. Production recovery repeats the exact executable
-/// guard inside the authenticated restore, after all CAS inputs have been captured and immediately
+/// guard inside the validated restore, after all CAS inputs have been captured and immediately
 /// before the first recovery mutation.
 pub(crate) fn recover_pending_guarded(state_dir: &Path, app_path: &Path) -> Result<bool, String> {
     let mut guard =
@@ -2149,7 +2161,7 @@ fn recover_pending_internal(
         JournalPhase::StateCommitted | JournalPhase::Committed
     ) {
         verify_committed_postimages(&manifest, roots)?;
-        // Keep authenticated backups until the caller independently verifies the bundle's code
+        // Keep validated backups until the caller independently verifies the bundle's code
         // signature.  A valid hash checkpoint is not a substitute for a valid executable seal.
         return Ok(false);
     }
@@ -2551,15 +2563,17 @@ fn attach_intermediate_copy_plans(
 }
 
 fn is_allowed_signing_side_effect(canonical_app: &Path, destination: &Path) -> bool {
-    [
+    let fixed = [
         "Contents/_CodeSignature/CodeResources",
         "Contents/MacOS/Cavalry",
         "Contents/MacOS/CavalryLauncher",
         "Contents/Frameworks/libCavalryTranslatorInjector.dylib",
         "Contents/Frameworks/libExtensionLayer.dylib",
-    ]
-    .iter()
-    .any(|relative| destination == canonical_app.join(relative))
+    ];
+    fixed
+        .iter()
+        .chain(super::bundle::EXTERNAL_SIGNATURE_COMPONENTS.iter())
+        .any(|relative| destination == canonical_app.join(relative))
 }
 
 fn collect_quarantine_preimages(
@@ -2932,9 +2946,7 @@ fn backup_entry(
             let backup = backups.path.join(&backup_name);
             let backup_name_c =
                 c_component(std::ffi::OsStr::new(&backup_name)).map_err(CopyFailure::other)?;
-            let mut backup_file = backups
-                .create_regular_leaf(&backup_name_c, &backup, 0o600)
-                .map_err(CopyFailure::other)?;
+            let mut backup_file = backups.create_regular_leaf(&backup_name_c, &backup, 0o600)?;
             let original_hash =
                 copy_and_hash(&mut source.file, &mut backup_file).map_err(CopyFailure::other)?;
             backup_file.sync_all().map_err(|error| {
@@ -3178,7 +3190,7 @@ fn verify_recovery_current_state(
                     // failure can occur after codesign mutates bytes but before an exact postimage
                     // is journaled. `current_fingerprint_at` already rejects symlink/non-regular
                     // drift; accept the exact current file/absence as the CAS input solely in this
-                    // authenticated phase, then restore the backed-up preimage.
+                    // validated phase, then restore the backed-up preimage.
                     true
                 } else {
                     matches_preimage(entry, &current)?
@@ -3874,58 +3886,74 @@ fn write_pair_atomically(
     bundle_root: &SecureDirectory,
     expected_copy: &FileFingerprint,
     accepted_current: &[Option<FileFingerprint>],
-) -> Result<(), String> {
+) -> Result<(), CopyFailure> {
     validate_destination(
         &pair.dst,
         EntryScope::Bundle,
         &bundle_root.path,
         Path::new(""),
-    )?;
-    let mut source = open_regular_nofollow(&pair.src)?
-        .ok_or_else(|| format!("Staged source does not exist: {}", pair.src.display()))?;
-    let parent = pair
-        .dst
-        .parent()
-        .ok_or_else(|| format!("Missing destination parent for {}", pair.dst.display()))?;
-    let parent_dir = bundle_root.open_dir_path(parent, true)?;
+    )
+    .map_err(CopyFailure::other)?;
+    let mut source = open_regular_nofollow(&pair.src)
+        .map_err(CopyFailure::other)?
+        .ok_or_else(|| {
+            CopyFailure::other(format!(
+                "Staged source does not exist: {}",
+                pair.src.display()
+            ))
+        })?;
+    let parent = pair.dst.parent().ok_or_else(|| {
+        CopyFailure::other(format!(
+            "Missing destination parent for {}",
+            pair.dst.display()
+        ))
+    })?;
+    let parent_dir = bundle_root
+        .open_dir_path(parent, true)
+        .map_err(CopyFailure::other)?;
 
-    validate_temporary_path(temporary, &bundle_root.path)?;
+    validate_temporary_path(temporary, &bundle_root.path).map_err(CopyFailure::other)?;
     if temporary.parent() != Some(parent) {
-        return Err(format!(
+        return Err(CopyFailure::other(format!(
             "Transaction temporary path does not share destination directory: {}",
             temporary.display()
-        ));
+        )));
     }
     let temporary_leaf = c_component(
         temporary
             .file_name()
-            .ok_or_else(|| "Transaction temporary path has no leaf.".to_string())?,
-    )?;
+            .ok_or_else(|| CopyFailure::other("Transaction temporary path has no leaf."))?,
+    )
+    .map_err(CopyFailure::other)?;
     let destination_leaf = c_component(
         pair.dst
             .file_name()
-            .ok_or_else(|| "Transaction destination has no leaf.".to_string())?,
-    )?;
+            .ok_or_else(|| CopyFailure::other("Transaction destination has no leaf."))?,
+    )
+    .map_err(CopyFailure::other)?;
     let result = (|| {
         let mut staged = parent_dir.create_regular_leaf(&temporary_leaf, temporary, 0o600)?;
-        let staged_hash = copy_and_hash(&mut source.file, &mut staged)?;
-        set_fd_mode(staged.as_raw_fd(), expected_copy.mode, temporary)?;
+        let staged_hash =
+            copy_and_hash(&mut source.file, &mut staged).map_err(CopyFailure::other)?;
+        set_fd_mode(staged.as_raw_fd(), expected_copy.mode, temporary)
+            .map_err(CopyFailure::other)?;
         staged.sync_all().map_err(|error| {
-            format!(
+            CopyFailure::other(format!(
                 "Could not sync staged destination {}: {error}",
                 temporary.display()
-            )
+            ))
         })?;
-        let staged_mode = require_regular_fd(staged.as_raw_fd(), temporary)?;
+        let staged_mode =
+            require_regular_fd(staged.as_raw_fd(), temporary).map_err(CopyFailure::other)?;
         let staged_fingerprint = FileFingerprint {
             sha256: staged_hash,
             mode: staged_mode,
         };
         if &staged_fingerprint != expected_copy {
-            return Err(format!(
+            return Err(CopyFailure::other(format!(
                 "Staged source changed or its mode drifted before publish: {}",
                 pair.src.display()
-            ));
+            )));
         }
         drop(staged);
 
@@ -3935,12 +3963,17 @@ fn write_pair_atomically(
         // Re-open the parent through the pinned bundle root. A path-chain swap is reported before
         // publication; even a swap in the final nanoseconds cannot redirect `renameatx_np`, which
         // remains anchored to `parent_dir`.
-        let revalidated_parent = bundle_root.open_dir_path(parent, false)?;
-        if !parent_dir.same_object_as(&revalidated_parent)? {
-            return Err(format!(
+        let revalidated_parent = bundle_root
+            .open_dir_path(parent, false)
+            .map_err(CopyFailure::other)?;
+        if !parent_dir
+            .same_object_as(&revalidated_parent)
+            .map_err(CopyFailure::other)?
+        {
+            return Err(CopyFailure::other(format!(
                 "Destination ancestor changed during atomic copy: {}",
                 parent.display()
-            ));
+            )));
         }
         publish_temp_with_compare_and_swap(
             &parent_dir,
@@ -3964,13 +3997,15 @@ fn publish_temp_with_compare_and_swap(
     destination_leaf: &CString,
     destination: &Path,
     accepted_current: &[Option<FileFingerprint>],
-) -> Result<(), String> {
-    let current = parent.inspect_regular_or_absent(destination_leaf, destination)?;
+) -> Result<(), CopyFailure> {
+    let current = parent
+        .inspect_regular_or_absent(destination_leaf, destination)
+        .map_err(CopyFailure::other)?;
     if !accepted_current.contains(&current) {
-        return Err(format!(
+        return Err(CopyFailure::other(format!(
             "Destination drifted before atomic replacement: {}",
             destination.display()
-        ));
+        )));
     }
 
     #[cfg(test)]
@@ -3987,13 +4022,16 @@ fn publish_temp_with_compare_and_swap(
             )
         } != 0
         {
-            return Err(format!(
-                "Could not atomically create {} without replacement: {}",
-                destination.display(),
-                std::io::Error::last_os_error()
+            let error = std::io::Error::last_os_error();
+            return Err(CopyFailure::from_io(
+                format!(
+                    "Could not atomically create {} without replacement",
+                    destination.display()
+                ),
+                &error,
             ));
         }
-        return parent.sync();
+        return parent.sync().map_err(CopyFailure::other);
     }
 
     if unsafe {
@@ -4006,10 +4044,10 @@ fn publish_temp_with_compare_and_swap(
         )
     } != 0
     {
-        return Err(format!(
-            "Could not atomically exchange {}: {}",
-            destination.display(),
-            std::io::Error::last_os_error()
+        let error = std::io::Error::last_os_error();
+        return Err(CopyFailure::from_io(
+            format!("Could not atomically exchange {}", destination.display()),
+            &error,
         ));
     }
 
@@ -4025,26 +4063,29 @@ fn publish_temp_with_compare_and_swap(
             )
         };
         return if swap_back == 0 {
-            Err(format!(
+            Err(CopyFailure::other(format!(
                 "Destination changed at the atomic replacement boundary; publication was reversed: {}",
                 destination.display()
-            ))
+            )))
         } else {
-            Err(format!(
-                "Destination changed at the atomic replacement boundary and the safety swap-back failed for {}: {}",
-                destination.display(),
-                std::io::Error::last_os_error()
+            let error = std::io::Error::last_os_error();
+            Err(CopyFailure::from_io(
+                format!("Destination changed at the atomic replacement boundary and the safety swap-back failed for {}", destination.display()),
+                &error,
             ))
         };
     }
     if unsafe { libc::unlinkat(parent.fd.as_raw_fd(), temporary_leaf.as_ptr(), 0) } != 0 {
-        return Err(format!(
-            "Could not remove displaced preimage temporary {}: {}",
-            temporary.display(),
-            std::io::Error::last_os_error()
+        let error = std::io::Error::last_os_error();
+        return Err(CopyFailure::from_io(
+            format!(
+                "Could not remove displaced preimage temporary {}",
+                temporary.display()
+            ),
+            &error,
         ));
     }
-    parent.sync()
+    parent.sync().map_err(CopyFailure::other)
 }
 
 #[cfg(test)]
@@ -4255,7 +4296,9 @@ fn restore_file_atomically(
             .ok_or_else(|| "Recovery destination has no leaf.".to_string())?,
     )?;
     let result = (|| {
-        let mut staged = parent_dir.create_regular_leaf(&temporary_leaf, &temporary, 0o600)?;
+        let mut staged = parent_dir
+            .create_regular_leaf(&temporary_leaf, &temporary, 0o600)
+            .map_err(|error| error.display())?;
         let actual_hash = copy_and_hash(&mut source.file, &mut staged)?;
         if actual_hash != expected_hash {
             return Err(format!(
@@ -4281,6 +4324,7 @@ fn restore_file_atomically(
             destination,
             accepted_current,
         )
+        .map_err(|error| error.display())
     })();
     if result.is_err() {
         let _ = unsafe { libc::unlinkat(parent_dir.fd.as_raw_fd(), temporary_leaf.as_ptr(), 0) };
@@ -4293,8 +4337,7 @@ fn write_manifest(root: &SecureDirectory, manifest: &JournalManifest) -> Result<
     if take_test_failpoint(&FAIL_NEXT_MANIFEST_WRITE) {
         return Err("simulated durable manifest write failure".to_string());
     }
-    let authenticated = authenticate_manifest_for_write(manifest)?;
-    let payload = serde_json::to_vec_pretty(&authenticated).map_err(|error| error.to_string())?;
+    let payload = serde_json::to_vec_pretty(manifest).map_err(|error| error.to_string())?;
     let path = root.path.join(MANIFEST_NAME);
     let temporary_name = format!(
         ".{MANIFEST_NAME}.{}-{}",
@@ -4306,7 +4349,9 @@ fn write_manifest(root: &SecureDirectory, manifest: &JournalManifest) -> Result<
     let manifest_leaf = CString::new(MANIFEST_NAME).expect("static manifest name");
     let result = (|| {
         let existing = root.inspect_regular_or_absent(&manifest_leaf, &path)?;
-        let mut file = root.create_regular_leaf(&temporary_leaf, &temporary, 0o600)?;
+        let mut file = root
+            .create_regular_leaf(&temporary_leaf, &temporary, 0o600)
+            .map_err(|error| error.display())?;
         file.write_all(&payload)
             .map_err(|error| error.to_string())?;
         file.write_all(b"\n").map_err(|error| error.to_string())?;
@@ -4372,121 +4417,12 @@ fn read_manifest(root: &SecureDirectory) -> Result<JournalManifest, String> {
             path.display()
         )
     })?;
-    let manifest = serde_json::from_slice(&bytes).map_err(|error| {
+    serde_json::from_slice(&bytes).map_err(|error| {
         format!(
             "Pending macOS journal is invalid at {}: {error}",
             path.display()
         )
-    })?;
-    verify_manifest_authentication(&manifest)?;
-    Ok(manifest)
-}
-
-fn authenticate_manifest_for_write(manifest: &JournalManifest) -> Result<JournalManifest, String> {
-    let mut authenticated = manifest.clone();
-    authenticated.authentication_tag.clear();
-    let payload = serde_json::to_vec(&authenticated).map_err(|error| error.to_string())?;
-    authenticated.authentication_tag = encode_hex(&hmac_sha256(&journal_auth_key()?, &payload));
-    Ok(authenticated)
-}
-
-fn verify_manifest_authentication(manifest: &JournalManifest) -> Result<(), String> {
-    let supplied = decode_fixed_hex(&manifest.authentication_tag, 32)
-        .map_err(|_| "Pending macOS journal authentication tag is invalid.".to_string())?;
-    let mut unsigned = manifest.clone();
-    unsigned.authentication_tag.clear();
-    let payload = serde_json::to_vec(&unsigned).map_err(|error| error.to_string())?;
-    let expected = hmac_sha256(&journal_auth_key()?, &payload);
-    if constant_time_equal(&supplied, &expected) {
-        Ok(())
-    } else {
-        Err("Pending macOS journal authentication failed; automatic recovery refused.".to_string())
-    }
-}
-
-#[cfg(test)]
-fn journal_auth_key() -> Result<Vec<u8>, String> {
-    Ok(b"cavalry-i18n-test-journal-key!".to_vec())
-}
-
-#[cfg(not(test))]
-fn journal_auth_key() -> Result<Vec<u8>, String> {
-    use security_framework::{
-        passwords::{get_generic_password, set_generic_password},
-        random::SecRandom,
-    };
-
-    match get_generic_password(JOURNAL_KEY_SERVICE, JOURNAL_KEY_ACCOUNT) {
-        Ok(key) if key.len() == JOURNAL_KEY_BYTES => return Ok(key),
-        Ok(_) => {
-            return Err(
-                "macOS transaction journal Keychain key has an invalid length.".to_string(),
-            );
-        }
-        Err(_) => {}
-    }
-
-    let mut generated = vec![0_u8; JOURNAL_KEY_BYTES];
-    SecRandom::default()
-        .copy_bytes(&mut generated)
-        .map_err(|error| format!("Could not generate journal authentication key: {error}"))?;
-    set_generic_password(JOURNAL_KEY_SERVICE, JOURNAL_KEY_ACCOUNT, &generated)
-        .map_err(|error| format!("Could not store journal authentication key: {error}"))?;
-    let stored = get_generic_password(JOURNAL_KEY_SERVICE, JOURNAL_KEY_ACCOUNT)
-        .map_err(|error| format!("Could not re-read journal authentication key: {error}"))?;
-    if stored.len() != JOURNAL_KEY_BYTES || !constant_time_equal(&stored, &generated) {
-        return Err(
-            "Journal authentication key did not round-trip through macOS Keychain.".to_string(),
-        );
-    }
-    Ok(stored)
-}
-
-fn hmac_sha256(key: &[u8], payload: &[u8]) -> [u8; 32] {
-    const BLOCK_BYTES: usize = 64;
-    let mut normalized = [0_u8; BLOCK_BYTES];
-    if key.len() > BLOCK_BYTES {
-        normalized[..32].copy_from_slice(&Sha256::digest(key));
-    } else {
-        normalized[..key.len()].copy_from_slice(key);
-    }
-    let mut inner_pad = [0x36_u8; BLOCK_BYTES];
-    let mut outer_pad = [0x5c_u8; BLOCK_BYTES];
-    for index in 0..BLOCK_BYTES {
-        inner_pad[index] ^= normalized[index];
-        outer_pad[index] ^= normalized[index];
-    }
-    let mut inner = Sha256::new();
-    inner.update(inner_pad);
-    inner.update(payload);
-    let inner_digest = inner.finalize();
-    let mut outer = Sha256::new();
-    outer.update(outer_pad);
-    outer.update(inner_digest);
-    outer.finalize().into()
-}
-
-fn decode_fixed_hex(value: &str, bytes: usize) -> Result<Vec<u8>, String> {
-    if value.len() != bytes * 2 {
-        return Err("hex length mismatch".to_string());
-    }
-    value
-        .as_bytes()
-        .chunks_exact(2)
-        .map(|pair| Ok((hex_nibble(pair[0])? << 4) | hex_nibble(pair[1])?))
-        .collect()
-}
-
-fn constant_time_equal(left: &[u8], right: &[u8]) -> bool {
-    if left.len() != right.len() {
-        return false;
-    }
-    left.iter()
-        .zip(right)
-        .fold(0_u8, |difference, (left, right)| {
-            difference | (left ^ right)
-        })
-        == 0
+    })
 }
 
 fn fingerprint_open_file(file: &mut File, mode: u32) -> Result<FileFingerprint, String> {
@@ -4609,6 +4545,42 @@ fn path_string(path: &Path) -> Result<String, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn protected_bundle_create_keeps_typed_permission_after_context_rewrite() {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Cavalry.app");
+        let assets = app.join("Contents/assets");
+        let source = temp.path().join("translated.json");
+        let destination = assets.join("appStrings.json");
+        let temporary = assets.join(".cavalry-i18n-next-test");
+        write(&source, b"translated");
+        write(&destination, b"official");
+        let root = SecureDirectory::open(&app).unwrap();
+        let expected = fingerprint_regular_file(&source).unwrap();
+        let accepted = [fingerprint_regular_file(&destination).ok()];
+        fs::set_permissions(&assets, fs::Permissions::from_mode(0o555)).unwrap();
+
+        let failure = write_pair_atomically(
+            &CopyPair {
+                src: source,
+                dst: destination,
+            },
+            &temporary,
+            &root,
+            &expected,
+            &accepted,
+        )
+        .unwrap_err()
+        .with_message("transaction rollback preserved the original denial");
+
+        fs::set_permissions(&assets, fs::Permissions::from_mode(0o755)).unwrap();
+        assert!(failure.allows_administrator_retry());
+        assert_eq!(
+            failure.display(),
+            "transaction rollback preserved the original denial"
+        );
+    }
 
     const PHASE_CHILD_ROOT_ENV: &str = "CAVALRY_I18N_PHASE_CHILD_ROOT";
     const PHASE_CHILD_CASE_ENV: &str = "CAVALRY_I18N_PHASE_CHILD_CASE";
@@ -5000,7 +4972,7 @@ mod tests {
     }
 
     #[test]
-    fn prepared_phase_journal_is_rolled_back_on_startup() {
+    fn prepared_phase_journal_is_rolled_back_on_next_action() {
         let temp = tempfile::tempdir().unwrap();
         let root = fs::canonicalize(temp.path()).unwrap();
         let app = root.join("Cavalry.app");
@@ -5215,7 +5187,7 @@ mod tests {
     }
 
     #[test]
-    fn authenticated_manifest_tampering_is_rejected_before_recovery() {
+    fn structurally_invalid_manifest_phase_is_rejected_before_recovery() {
         let temp = tempfile::tempdir().unwrap();
         let root = fs::canonicalize(temp.path()).unwrap();
         let app = root.join("Cavalry.app");
@@ -5241,13 +5213,47 @@ mod tests {
         std::mem::forget(transaction);
 
         let error = recover_pending(&state, &app).unwrap_err();
-        assert!(error.contains("authentication failed"), "{error}");
+        assert!(error.contains("incomplete verified postimages"), "{error}");
         assert_eq!(fs::read(destination).unwrap(), b"translated");
         assert!(journal_root(&state).exists());
     }
 
     #[test]
-    fn authenticated_manifest_rejects_non_regular_fingerprint_modes() {
+    fn legacy_schema_six_authentication_tag_is_accepted_but_not_rewritten() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = fs::canonicalize(temp.path()).unwrap();
+        let app = root.join("Cavalry.app");
+        let state = root.join("state");
+        let source = root.join("translated.json");
+        let destination = app.join("Contents/assets/appStrings.json");
+        write(&destination, b"official");
+        write(&source, b"translated");
+        let transaction = MacApplyTransaction::begin(
+            &state,
+            &app,
+            &[CopyPair {
+                src: source,
+                dst: destination.clone(),
+            }],
+        )
+        .unwrap();
+        let manifest_path = transaction.journal_root.join(MANIFEST_NAME);
+        let mut value: serde_json::Value =
+            serde_json::from_slice(&fs::read(&manifest_path).unwrap()).unwrap();
+        assert!(
+            value.get("authenticationTag").is_none(),
+            "new journals must not depend on Keychain authentication"
+        );
+        value["authenticationTag"] = serde_json::Value::String("legacy-tag".to_string());
+        fs::write(&manifest_path, serde_json::to_vec_pretty(&value).unwrap()).unwrap();
+        std::mem::forget(transaction);
+
+        assert!(recover_pending(&state, &app).unwrap());
+        assert_eq!(fs::read(destination).unwrap(), b"official");
+    }
+
+    #[test]
+    fn manifest_rejects_non_regular_fingerprint_modes() {
         let temp = tempfile::tempdir().unwrap();
         let root = fs::canonicalize(temp.path()).unwrap();
         let app = root.join("Cavalry.app");
@@ -5365,6 +5371,45 @@ mod tests {
         );
         assert_eq!(fs::read(code_resources).unwrap(), b"vendor-seal");
         assert!(!newly_created_signature.exists());
+    }
+
+    #[test]
+    fn external_script_signature_components_are_bounded_and_rolled_back() {
+        let temp = tempfile::tempdir().unwrap();
+        let root = fs::canonicalize(temp.path()).unwrap();
+        let app = root.join("Cavalry.app");
+        let state = root.join("state");
+        let components = crate::privilege::macos::bundle::external_signature_component_paths(&app);
+        fs::create_dir_all(app.join("Contents/_CodeSignature")).unwrap();
+
+        let mut transaction = MacApplyTransaction::begin_with_removals_and_side_effects(
+            &state,
+            &app,
+            &[],
+            &[],
+            &components,
+        )
+        .unwrap();
+        transaction.begin_signing().unwrap();
+        for component in &components {
+            write(component, b"managed external signature component");
+        }
+        transaction
+            .verify_and_record_signing_postimages(|_| Ok(()))
+            .unwrap();
+        let message = transaction.rollback_with_cause("simulated interrupted app seal");
+
+        assert!(
+            message.contains("Exact bundle and state preimages were restored"),
+            "{message}"
+        );
+        for component in components {
+            assert!(
+                !component.exists(),
+                "{} survived rollback",
+                component.display()
+            );
+        }
     }
 
     #[test]
@@ -5530,7 +5575,7 @@ mod tests {
         transaction.begin_signing().unwrap();
 
         let error = transaction.apply_deferred_pair(&final_pair).unwrap_err();
-        assert!(error.contains("not authorized"), "{error}");
+        assert!(error.display().contains("not authorized"), "{error}");
         assert_eq!(fs::read(&marker).unwrap(), b"pending\n");
 
         transaction.authorize_deferred_commit().unwrap();
@@ -6102,7 +6147,8 @@ mod tests {
             .unwrap_err();
 
         assert!(
-            error.contains("securely traverse") || error.contains("ancestor changed"),
+            error.display().contains("securely traverse")
+                || error.display().contains("ancestor changed"),
             "{error}"
         );
         assert_eq!(fs::read(outside_destination).unwrap(), b"outside");
@@ -6147,7 +6193,10 @@ mod tests {
         let error = write_pair_atomically(&pair, &temporary, &bundle_root, &expected, &accepted)
             .unwrap_err();
 
-        assert!(error.contains("atomic replacement boundary"), "{error}");
+        assert!(
+            error.display().contains("atomic replacement boundary"),
+            "{error}"
+        );
         assert_eq!(fs::read(outside).unwrap(), b"outside");
         assert!(fs::symlink_metadata(destination)
             .unwrap()

@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 tauri.conf.json、两份平台配置、capabilities/default.json 与 Windows generic/QPA 资源映射
- * [OUTPUT]: 提供公共窗口/本地 CSP/预注入 bridge、macOS injector 与外部签名身份、Windows NSIS 双 DLL/生成命令/四语卸载双语义 hook/系统语言与品牌图标合同
+ * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、主窗/About capability 与 Windows generic/QPA 资源映射
+ * [OUTPUT]: 提供 macOS 400×484 内容窗口、主窗口跨平台首帧后显露、主窗口/About 共享的 macOS 交通灯 Overlay 与标题栏拖动权限、Windows 10px transparent-compositor 外壳、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -28,17 +28,52 @@ fn tauri_window_size_matches_frozen_contract() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let window = &config["app"]["windows"][0];
-    assert_eq!(window["width"], 480);
-    assert_eq!(window["height"], 528);
-    assert_eq!(window["minWidth"], 420);
-    assert_eq!(window["minHeight"], 528);
-    assert_eq!(window["url"], "index.html");
+    assert_eq!(window["width"], 400);
+    assert_eq!(window["height"], 484);
+    assert_eq!(window["minWidth"], 400);
+    assert_eq!(window["minHeight"], 484);
+    assert_eq!(window["decorations"], true);
+    assert_eq!(window["titleBarStyle"], "Overlay");
+    assert_eq!(window["hiddenTitle"], true);
+    assert_eq!(window["url"], "./index.html");
+}
+
+#[test]
+fn tauri_updater_uses_the_final_public_key_and_release_manifest_endpoint() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let config = read_json(&manifest_dir.join("tauri.conf.json"));
+    let release_config = read_json(&manifest_dir.join("../release.config.json"));
+    let updater = &config["plugins"]["updater"];
+    let expected_endpoint = format!(
+        "{}/{}",
+        release_config["updater"]["downloadBaseUrl"]
+            .as_str()
+            .unwrap()
+            .trim_end_matches('/'),
+        release_config["updater"]["manifestAssetName"]
+            .as_str()
+            .unwrap()
+    );
+
+    assert_eq!(
+        updater["pubkey"],
+        "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEVDRDdFNUIyRTIzQjk1QzQKUldURWxUdmlzdVhYN05HcFozNDdLeE1mMlAyakdZRWtrRktLNFk1SmpqSmptNDN6U0JmNFJSQ0wK"
+    );
+    assert_eq!(updater["endpoints"].as_array().unwrap().len(), 1);
+    assert_eq!(updater["endpoints"][0], expected_endpoint);
+    assert!(expected_endpoint.starts_with("https://"));
 }
 
 #[test]
 fn tauri_config_declares_capabilities() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let config = read_json(&manifest_dir.join("tauri.conf.json"));
     let capabilities = read_json(&manifest_dir.join("capabilities/default.json"));
+    let about = read_json(&manifest_dir.join("capabilities/about.json"));
+    assert_eq!(
+        config["app"]["security"]["capabilities"],
+        serde_json::json!(["default", "about"])
+    );
     assert!(capabilities["windows"]
         .as_array()
         .unwrap()
@@ -49,6 +84,77 @@ fn tauri_config_declares_capabilities() {
         .unwrap()
         .iter()
         .any(|value| value == "core:default"));
+    assert!(capabilities["permissions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|value| value == "core:window:allow-start-dragging"));
+    for permission in [
+        "core:window:allow-show",
+        "core:window:allow-set-focus",
+        "core:window:allow-minimize",
+        "core:window:allow-toggle-maximize",
+        "core:window:allow-close",
+    ] {
+        assert!(capabilities["permissions"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|value| value == permission));
+    }
+    assert_eq!(about["windows"], serde_json::json!(["about"]));
+    assert_eq!(
+        about["permissions"],
+        serde_json::json!([
+            "core:app:allow-version",
+            "core:window:allow-start-dragging",
+            "core:window:allow-close"
+        ])
+    );
+    assert!(!about["permissions"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .any(|value| value == "core:window:default" || value == "core:webview:default"));
+}
+
+#[test]
+fn native_titlebar_alignment_and_windows_compositor_shell_are_frozen() {
+    let lib_source = include_str!("../src/lib.rs");
+    let chrome_source = include_str!("../src/window_chrome.rs");
+    let shared = read_json(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.conf.json"));
+    let shared_window = &shared["app"]["windows"][0];
+    assert!(chrome_source.contains("pub(crate) const TITLEBAR_HEIGHT: f64 = 40.0;"));
+    assert!(chrome_source.contains("const MACOS_TRAFFIC_LIGHT_X: f64 = 13.0;"));
+    assert!(chrome_source.contains("const MACOS_TRAFFIC_LIGHT_Y: f64 = 22.0;"));
+    assert!(
+        lib_source.contains("window_chrome::install_macos_traffic_light_alignment(&main_window)?;")
+    );
+    assert!(lib_source.contains("builder.append_invoke_initialization_script("));
+    assert!(lib_source.contains("DOMContentLoaded"));
+    assert!(lib_source.contains("PageLoadEvent::Finished"));
+    assert!(lib_source.contains("plugin:window|show"));
+    assert!(lib_source.contains("plugin:window|set_focus"));
+    assert!(lib_source.contains("requestAnimationFrame"));
+    assert!(lib_source.contains("if !window.is_visible().unwrap_or(false)"));
+    assert!(lib_source.contains(".show()"));
+    assert!(lib_source.contains(".and_then(|_| window.set_focus())"));
+    assert_eq!(shared_window["visible"], false);
+    assert!(!chrome_source.contains("SetWindowRgn"));
+    assert!(!chrome_source.contains("DwmSetWindowAttribute"));
+    assert!(chrome_source.contains("tauri::WindowEvent::Resized(_)"));
+    assert!(chrome_source.contains("tauri::WindowEvent::ScaleFactorChanged { .. }"));
+
+    let windows = read_json(&Path::new(env!("CARGO_MANIFEST_DIR")).join("tauri.windows.conf.json"));
+    let window = &windows["app"]["windows"][0];
+    assert_eq!(window["width"], 420);
+    assert_eq!(window["height"], 504);
+    assert_eq!(window["minWidth"], 420);
+    assert_eq!(window["minHeight"], 504);
+    assert_eq!(window["decorations"], false);
+    assert_eq!(window["transparent"], true);
+    assert_eq!(window["shadow"], false);
+    assert_eq!(window["visible"], false);
 }
 
 #[test]
@@ -56,6 +162,7 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
     let config = read_json(&manifest_dir.join("tauri.macos.conf.json"));
     let resources = config["bundle"]["resources"].as_object().unwrap();
+    let dmg = &config["bundle"]["macOS"]["dmg"];
 
     assert_eq!(
         config["build"]["beforeBuildCommand"],
@@ -71,6 +178,10 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
         resources["../injector/libCavalryTranslatorInjector.dylib"],
         "injector/libCavalryTranslatorInjector.dylib"
     );
+    assert_eq!(dmg["windowPosition"]["x"], 400);
+    assert_eq!(dmg["windowPosition"]["y"], 655);
+    assert_eq!(dmg["windowSize"]["width"], 800);
+    assert_eq!(dmg["windowSize"]["height"], 476);
     assert!(config["bundle"]["macOS"]
         .as_object()
         .unwrap()
@@ -81,14 +192,35 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
 #[test]
 fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
     let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let shared_config = read_json(&manifest_dir.join("tauri.conf.json"));
     let config = read_json(&manifest_dir.join("tauri.windows.conf.json"));
     let resources = config["bundle"]["resources"].as_object().unwrap();
     let nsis = &config["bundle"]["windows"]["nsis"];
+    let window = &config["app"]["windows"][0];
+    let shared_window = &shared_config["app"]["windows"][0];
 
     assert_eq!(
         config["build"]["beforeBuildCommand"],
         "npm run prepare:tauri:windows-bundle"
     );
+    for key in [
+        "label",
+        "title",
+        "url",
+        "useHttpsScheme",
+        "resizable",
+        "center",
+    ] {
+        assert_eq!(window[key], shared_window[key], "Windows {key} drifted");
+    }
+    assert_eq!(window["width"], 420);
+    assert_eq!(window["height"], 504);
+    assert_eq!(window["minWidth"], 420);
+    assert_eq!(window["minHeight"], 504);
+    assert_eq!(window["decorations"], false);
+    assert_eq!(window["transparent"], true);
+    assert_eq!(window["shadow"], false);
+    assert_eq!(window["visible"], false);
     assert!(config["bundle"]["targets"]
         .as_array()
         .unwrap()

@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke（或兼容 __TAURI__.core.invoke）能力。
- * [OUTPUT]: 冻结最小 window.cavalryI18n API；仅转发 camelCase payload（含 macOS 官方/受管安装态、Windows Action/Status reconciliationRequired 检测与可组合 warningCodes），丢弃 raw warning prose，并将 transport rejection 归一为 Error。
- * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js 前加载；语言 manifest 与 warning code manifest 都不由后端原文决定。
+ * [INPUT]: 依赖 Tauri 的预注入 __TAURI_INTERNALS__.invoke/transformCallback/unregisterCallback（或兼容 __TAURI__.core.invoke）能力。
+ * [OUTPUT]: 冻结最小 window.cavalryI18n API；Apply Channel 只转发 verify/baseline/apply/restart，Status 只归一化轻量安装观察、版本兼容与固定中性的旧证明字段，内部 journal/签名清理事实不进入 DTO；权限入口只接受固定 App Management、有限 CSS forward/return rect 与 viewport，Updater Channel 只转发安全阶段与计数；其余接口仅转发固定 project-link、About、main caption 与固定 about-label close，丢弃 raw warning、URL/签名/路径/原始响应。
+ * [POS]: renderer 的非视觉桥，关闭 withGlobalTauri 后仍在 app.js/about-window.js 前加载；业务只消费稳定 DTO，About 创建仍归单一 Rust owner，窗口插件调用只允许源码固定的 main/about label。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 (() => {
@@ -13,6 +13,9 @@
     Object.freeze({ value: 'zh-Hant', label: '繁體中文' }),
     Object.freeze({ value: 'ja_JP', label: '日本語' }),
   ]);
+  const VERSION_COMPATIBILITY = new Set([
+    'supported', 'olderUnsupported', 'newerUnsupported', 'unknownUnsupported',
+  ]);
   const WARNING_CODE_MANIFEST = Object.freeze([
     'restartFailed',
     'stateDurabilityPending',
@@ -22,6 +25,82 @@
     'finderFallbackUsed',
     'nonFatalCleanup',
   ]);
+  const UPDATE_ERROR_CODE_MANIFEST = Object.freeze([
+    'updaterNotConfigured',
+    'updaterUnsupportedPlatform',
+    'updateCheckFailed',
+    'updateInstallFailed',
+    'updateNotChecked',
+    'updateBusy',
+    'updateStateUnavailable',
+  ]);
+  const PROJECT_LINK_MANIFEST = Object.freeze(['repository', 'license']);
+  const OPERATION_PHASE_MANIFEST = Object.freeze([
+    'verifyInstallation',
+    'ensureBaseline',
+    'applyTransaction',
+    'restartCavalry',
+  ]);
+  const OPERATION_STATE_MANIFEST = Object.freeze(['running', 'completed', 'warning', 'error']);
+  const UPDATE_PHASE_MANIFEST = Object.freeze(['downloading', 'installing', 'restarting']);
+  const HANDOFF_OUTCOME_MANIFEST = Object.freeze(['opened', 'retryRequested', 'dismissed', 'error']);
+  const SERIALIZE_TO_IPC_FN = '__TAURI_TO_IPC_KEY__';
+
+  class OrderedChannel {
+    constructor(onmessage) {
+      const internals = window.__TAURI_INTERNALS__;
+      if (
+        !internals ||
+        typeof internals.transformCallback !== 'function' ||
+        typeof internals.unregisterCallback !== 'function'
+      ) {
+        throw new Error('Tauri channel bridge is not ready.');
+      }
+      this.nextMessageIndex = 0;
+      this.pendingMessages = new Map();
+      this.messageEndIndex = null;
+      this.onmessage = onmessage;
+      this.id = internals.transformCallback((rawMessage) => this.receive(rawMessage));
+    }
+
+    receive(rawMessage) {
+      if (!rawMessage || !Number.isInteger(rawMessage.index)) return;
+      const { index } = rawMessage;
+      if (Object.prototype.hasOwnProperty.call(rawMessage, 'end')) {
+        if (index === this.nextMessageIndex) this.cleanup();
+        else this.messageEndIndex = index;
+        return;
+      }
+      if (index !== this.nextMessageIndex) {
+        this.pendingMessages.set(index, rawMessage.message);
+        return;
+      }
+      this.deliver(rawMessage.message);
+      while (this.pendingMessages.has(this.nextMessageIndex)) {
+        const message = this.pendingMessages.get(this.nextMessageIndex);
+        this.pendingMessages.delete(this.nextMessageIndex);
+        this.deliver(message);
+      }
+      if (this.nextMessageIndex === this.messageEndIndex) this.cleanup();
+    }
+
+    deliver(message) {
+      this.onmessage(message);
+      this.nextMessageIndex += 1;
+    }
+
+    cleanup() {
+      window.__TAURI_INTERNALS__.unregisterCallback(this.id);
+    }
+
+    [SERIALIZE_TO_IPC_FN]() {
+      return `__CHANNEL__:${this.id}`;
+    }
+
+    toJSON() {
+      return this[SERIALIZE_TO_IPC_FN]();
+    }
+  }
 
   function resolveInvoke() {
     const internals = window.__TAURI_INTERNALS__;
@@ -31,11 +110,13 @@
     throw new Error('Tauri invoke bridge is not ready.');
   }
 
-  function invoke(command, payload) {
+  function invokeCommand(command, payload, requireResult) {
     return Promise.resolve()
       .then(() => resolveInvoke()(command, payload))
       .then((result) => {
-        if (typeof result === 'undefined') throw new Error(`${command} returned undefined`);
+        if (requireResult && typeof result === 'undefined') {
+          throw new Error(`${command} returned undefined`);
+        }
         return result;
       })
       .catch((error) => {
@@ -44,12 +125,21 @@
       });
   }
 
+  function invoke(command, payload) {
+    return invokeCommand(command, payload, true);
+  }
+
+  function invokeWindow(command, label = 'main') {
+    return invokeCommand(`plugin:window|${command}`, { label }, false);
+  }
+
   function pick(value, fallback) {
     return typeof value === 'undefined' ? fallback : value;
   }
 
   function normalizeStatus(result) {
     const granted = result.appManagementGranted;
+    const compatibility = pick(result.versionCompatibility, 'supported');
     return {
       appManagementGranted: typeof granted === 'boolean' ? granted : null,
       appPath: pick(result.appPath, ''),
@@ -57,7 +147,10 @@
         ? result.currentLang
         : 'en',
       installationMode: pick(result.installationMode, 'unknown'),
-      startupRecoveryError: pick(result.startupRecoveryError, null),
+      macosPermissionHandoffRequired: result.platform === 'macos' && result.macosPermissionHandoffRequired === true,
+      officialRecoveryAvailable: typeof result.officialRecoveryAvailable === 'boolean'
+        ? result.officialRecoveryAvailable
+        : false,
       defaultAppCandidates: Array.isArray(result.defaultAppCandidates)
         ? result.defaultAppCandidates.filter((candidate) => typeof candidate === 'string')
         : [],
@@ -66,7 +159,11 @@
       permissionAction: pick(result.permissionAction, 'none'),
       platform: pick(result.platform, ''),
       reconciliationRequired: result.reconciliationRequired === true,
+      supportedVersion: pick(result.supportedVersion, '2.7.2'),
       version: pick(result.version, ''),
+      versionCompatibility: VERSION_COMPATIBILITY.has(compatibility)
+        ? compatibility
+        : 'unknownUnsupported',
     };
   }
 
@@ -104,15 +201,112 @@
       reconciliationRequired: result.reconciliationRequired === true,
       error: pick(result.error, null),
       errorCode: pick(result.errorCode, null),
+      handoffOutcome: HANDOFF_OUTCOME_MANIFEST.includes(result.handoffOutcome)
+        ? result.handoffOutcome
+        : null,
     };
+  }
+
+  function normalizeSourceRect(sourceRect) {
+    if (sourceRect === null || typeof sourceRect === 'undefined') return null;
+    const values = ['x', 'y', 'width', 'height'].map((key) => Number(sourceRect[key]));
+    if (!values.every(Number.isFinite) || values[0] < 0 || values[1] < 0 || values[2] <= 0 || values[3] <= 0) return null;
+    return Object.freeze({ x: values[0], y: values[1], width: values[2], height: values[3] });
+  }
+
+  function normalizeViewport(viewport) {
+    if (viewport === null || typeof viewport === 'undefined') return null;
+    const values = ['width', 'height'].map((key) => Number(viewport[key]));
+    if (!values.every(Number.isFinite) || values[0] <= 0 || values[1] <= 0) return null;
+    return Object.freeze({ width: values[0], height: values[1] });
+  }
+
+  function normalizeHandoffEvent(result) {
+    if (!result || !HANDOFF_OUTCOME_MANIFEST.includes(result.outcome) || result.outcome === 'opened') return null;
+    return Object.freeze({ outcome: result.outcome });
+  }
+
+  function normalizeOperationEvent(result) {
+    if (!result || typeof result !== 'object') return null;
+    if (!OPERATION_PHASE_MANIFEST.includes(result.phase)) return null;
+    if (!OPERATION_STATE_MANIFEST.includes(result.state)) return null;
+    return Object.freeze({ phase: result.phase, state: result.state });
+  }
+
+  function normalizeUpdate(result, fallbackErrorCode) {
+    const errorCode = typeof result.errorCode === 'string'
+      ? UPDATE_ERROR_CODE_MANIFEST.includes(result.errorCode)
+        ? result.errorCode
+        : fallbackErrorCode
+      : null;
+    const available = result.available === true && typeof result.version === 'string';
+    return {
+      currentVersion: typeof result.currentVersion === 'string' ? result.currentVersion : '',
+      version: available ? result.version.slice(0, 64) : null,
+      notes: typeof result.notes === 'string' ? result.notes.slice(0, 4000) : null,
+      pubDate: typeof result.pubDate === 'string' ? result.pubDate.slice(0, 64) : null,
+      available,
+      errorCode,
+    };
+  }
+
+  function normalizeUpdateEvent(result) {
+    if (!result || typeof result !== 'object') return null;
+    if (!UPDATE_PHASE_MANIFEST.includes(result.phase)) return null;
+    const downloaded = Number.isSafeInteger(result.downloaded) && result.downloaded >= 0
+      ? result.downloaded
+      : null;
+    const contentLength = Number.isSafeInteger(result.contentLength) && result.contentLength > 0
+      ? result.contentLength
+      : null;
+    return Object.freeze({ phase: result.phase, downloaded, contentLength });
   }
 
   window.cavalryI18n = Object.freeze({
     getStatus: () => invoke('get_status').then(normalizeStatus),
     browseApp: () => invoke('browse_app').then(normalizeBrowse),
-    extractEnglish: (appPath) => invoke('extract_english', { appPath }).then(normalizeAction),
-    applyLanguage: (appPath, lang) =>
-      invoke('apply_language', { appPath, lang }).then(normalizeAction),
-    openPrivacySecurity: () => invoke('open_privacy_security').then(normalizeAction),
+    applyLanguage: (appPath, lang, onEvent = () => {}) => {
+      const channel = new OrderedChannel((result) => {
+        const event = normalizeOperationEvent(result);
+        if (event) onEvent(event);
+      });
+      return invoke('apply_language', { appPath, lang, onEvent: channel }).then(normalizeAction);
+    },
+    openPrivacySecurity: (geometry = {}, onEvent = () => {}) => {
+      const channel = new OrderedChannel((result) => {
+        const event = normalizeHandoffEvent(result);
+        if (event) onEvent(event);
+      });
+      return invoke('open_privacy_security', {
+        request: {
+          permission: 'appManagement',
+          sourceRect: normalizeSourceRect(geometry?.sourceRect),
+          returnRect: normalizeSourceRect(geometry?.returnRect),
+          viewportCss: normalizeViewport(geometry?.viewportCss),
+        },
+        onEvent: channel,
+      }).then(normalizeAction);
+    },
+    openProjectLink: (link) => {
+      if (!PROJECT_LINK_MANIFEST.includes(link)) return Promise.reject(new Error('Unsupported project link.'));
+      return invoke('open_project_link', { link }).then(normalizeAction);
+    },
+    showAbout: () => invoke('show_about').then(normalizeAction),
+    getSwitcherVersion: () => invoke('plugin:app|version').then((version) => String(version || '').slice(0, 64)),
+    checkUpdate: () =>
+      invoke('check_update').then((result) => normalizeUpdate(result, 'updateCheckFailed')),
+    installUpdate: (onEvent = () => {}) => {
+      const channel = new OrderedChannel((result) => {
+        const event = normalizeUpdateEvent(result);
+        if (event) onEvent(event);
+      });
+      return invoke('install_update', { onEvent: channel })
+        .then((result) => normalizeUpdate(result, 'updateInstallFailed'));
+    },
+    minimizeWindow: () => invokeWindow('minimize'),
+    toggleMaximizeWindow: () => invokeWindow('toggle_maximize'),
+    isWindowMaximized: () => invokeWindow('is_maximized').then((result) => result === true),
+    closeWindow: () => invokeWindow('close'),
+    closeAboutWindow: () => invokeWindow('close', 'about'),
   });
 })();

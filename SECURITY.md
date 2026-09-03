@@ -1,13 +1,20 @@
+<!--
+[INPUT]: 依赖当前 GitHub Release 资产、tag workflow、Tauri updater/acceptance/release-seal 信任边界与平台签名现状
+[OUTPUT]: 对外提供受支持分发渠道、漏洞上报方式、双 trust anchor 验证顺序与当前未具备的平台信任声明
+[POS]: 根目录安全政策；描述公开资产的真实信任能力，不替代 LOCAL_BUILD_SOP 的发布操作步骤
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+-->
+
 # Security Policy
 
 ## Supported releases
 
-Only GitHub Releases published from `cavalry-2.7.2-p*` tags on commits already contained in `origin/main` **and** carrying all hardened-release verification sidecars are supported distribution channels. Historical p1-p5 assets predate this gate and must not be described as Developer ID/notarized or provenance-sealed.
+GitHub Releases is the only supported binary distribution channel. A release is covered by the current updater/sidecar closure only when its `cavalry-2.7.2-p*` tag commit is already contained in `origin/main` and the protected workflow has produced and exactly read back the current verification sidecars and nine distribution assets. Older releases that contain only the three manual installers predate this closure and must not be interpreted as updater-enabled or hardened by the newer workflow.
 
-- **macOS tag releases** must be Developer ID signed, notarized, and stapled. Ad-hoc signed local builds are for developers only and are not a supported download path.
-- **Windows Authenticode** signing and RFC3161 timestamping are required for production distribution but are tracked as a separate maintainer issue; do not treat an unsigned Windows EXE as a fully hardened release.
+- **macOS tag releases are currently ad-hoc signed and not notarized.** The Tauri Updater signature authenticates updater bytes against the public key embedded in the client; it does not create Apple platform trust. Users may need to repeat the documented Gatekeeper/ad-hoc steps after installing a new app bundle.
+- **Windows tag installers are currently not Authenticode signed.** Authenticode and RFC3161 timestamping remain a separate future capability, not a current tag prerequisite; do not treat the unsigned EXE as Windows platform-trusted.
 
-Neither production trust anchor has been published as of 2026-08-09, so no current release qualifies as a hardened release. A hardened tag requires **two different Ed25519 keys and two independently protected fingerprints**:
+The repository does not currently publish the two independent production fingerprints below, so no current release qualifies as a hardened release under this policy. A hardened tag requires **two different Ed25519 keys and two independently protected fingerprints**:
 
 1. `RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256`: the offline acceptance authority signs only the repo-external canonical payload. Its private key never enters GitHub Actions and candidate repository code is never executed while that key is accessible.
 2. `RELEASE_SEAL_PUBLIC_KEY_SHA256`: the release system signs the final asset/provenance seal. Its private key is a protected Actions secret and must not be the acceptance key.
@@ -50,14 +57,14 @@ Include:
 3. Impact description and reproduction steps
 4. Whether the issue involves local Cavalry bundle patching, privilege elevation, or supply chain
 
-Do **not** attach Apple/Windows certificate material, notarization credentials, or any Actions secret values to issues or chat logs.
+Do **not** attach updater/release private keys, future Apple/Windows certificate material, notarization credentials, or any Actions secret values to issues or chat logs.
 
 ## Trust boundary (summary)
 
 - The Switcher patches a user-selected local Cavalry installation.
-- macOS expects App Management permission and re-signs the local `Cavalry.app`.
+- macOS attempts the durable write transaction directly and re-signs the local `Cavalry.app`; App Management guidance appears only if the real transaction returns a typed permission denial.
 - Windows elevation is restricted to OS-known Program Files roots; custom writable roots use direct copy only.
-- CI secrets (release-seal key, Developer ID certificate, Apple ID app-specific password, future Authenticode certs) exist only as protected GitHub Actions secrets and are never printed; the independent acceptance private key is deliberately not a CI secret.
+- CI secrets (Tauri updater key, release-seal key, and any future platform-signing credentials) exist only as protected GitHub Actions secrets and are never printed; the independent acceptance private key is deliberately not a CI secret.
 
 ## Supply chain controls
 

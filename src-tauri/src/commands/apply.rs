@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供 apply_language_inner、仅对无 pending journal 的精确 Clean English 允许的 no-op、长度/只读位/Unix mode/内容感知的增量 pair 筛选、生产与测试共用的 Windows English 原字节/三语 canonical overlay pair 构造、English manifest entry SHA 到 UAC parent staging 的连续 evidence、单次 UAC/typed cleanup warning、全安装根 Cavalry-still-running error code、自定义根 fallback，以及 macOS English UI/官方还原、首装 launcher gate、全量 JSON observe-only postcondition、durable transaction、签名和 Gatekeeper 提交门。
- * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage。
+ * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS Managed Legacy/official baseline 分级、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
+ * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Switch/Restore 共用且早于验证完成的 macOS 只读运行态门、用户动作锁内跨平台 journal 静默收敛、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、覆盖脚本入口外置签名组件的 durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
+ * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage；回滚说明不得抹掉原始权限类别，也不得用任意错误文本冒充 App Management。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use chrono::Utc;
@@ -24,7 +24,10 @@ use crate::{
 
 use super::{
     context::{language_source_dir, next_staging_nonce, RESTORE_OFFICIAL_ACTION},
-    contract::{renderer_warning_for_copy, ActionPayload, CAVALRY_STILL_RUNNING_ERROR_CODE},
+    contract::{
+        renderer_warning_for_copy, ActionPayload, NoopReporter, OperationPhase,
+        OperationPhaseGuard, OperationReporter, CAVALRY_STILL_RUNNING_ERROR_CODE,
+    },
     snapshot::{extract_english_snapshot_or_throw, CleanEnglishDisposition},
     status::{project_state_with_bundle, read_state_for_mutation},
 };
@@ -42,22 +45,28 @@ fn verify_macos_prewrite_trust(
     app_path: &Path,
     immutable_revision: &str,
     previous_state: &State,
-    signature: &privilege::BundleSignatureEvidence,
+    signature: Option<&privilege::BundleSignatureEvidence>,
 ) -> Result<(), String> {
     if crate::mac_official::verify_clean_vendor_runtime(app_path).is_ok() {
         return signature
-            .is_supported_cavalry_vendor_identity()
+            .is_some_and(|signature| signature.is_recoverable_identity())
             .then_some(())
             .ok_or_else(|| {
-                "Selected Cavalry has a clean-looking runtime but its Team ID or designated requirement is not the supported vendor identity; no files were written."
+                "The clean English runtime could not be normalized for recovery before writing."
                     .to_string()
             });
     }
-    if !signature.is_managed_ad_hoc_identity() {
-        return Err(
-            "Modified Cavalry is not signed with the expected managed ad-hoc identity; no files were written. Reinstall Cavalry before retrying."
-                .to_string(),
-        );
+    // 对已由本工具拥有、且可由快照/runtime postimage 证明的安装，签名只是最终可启动性
+    // postcondition，不是再次切换语言的准入凭证。正常事务会重新签名并严格复核。
+    if super::snapshot::legacy_snapshot_is_proven(
+        repo_root,
+        state_dir,
+        resource_dir,
+        previous_state,
+        app_path,
+        immutable_revision,
+    ) {
+        return Ok(());
     }
     let provenance = previous_state
         .english_snapshot_provenance
@@ -68,12 +77,18 @@ fn verify_macos_prewrite_trust(
         })?;
     if Path::new(&previous_state.app_path) != app_path
         || Path::new(&provenance.install_root) != app_path
-        || previous_state.cavalry_revision != immutable_revision
+    {
+        return Err(
+            "Modified Cavalry state/provenance belongs to a different installation path; no files were written. Reinstall Cavalry before retrying."
+                .to_string(),
+        );
+    }
+    if previous_state.cavalry_revision != immutable_revision
         || provenance.immutable_revision != immutable_revision
     {
         return Err(
-            "Modified Cavalry state/provenance does not match the selected immutable installation identity; no files were written. Reinstall Cavalry before retrying."
-            .to_string(),
+            "Modified Cavalry state/provenance does not match the selected immutable content revision; no files were written. Reinstall Cavalry before retrying."
+                .to_string(),
         );
     }
     if provenance.snapshot_generation.is_none()
@@ -93,6 +108,80 @@ fn verify_macos_prewrite_trust(
     )?;
     let injector = crate::mac_runtime::injector_source_path(repo_root, resource_dir)?;
     baseline.verify_managed_runtime(app_path, &injector)
+}
+
+#[cfg(target_os = "macos")]
+fn repair_known_external_signature_residue<R: CommandRunner>(
+    state_dir: &Path,
+    app_path: &Path,
+    current_state: &State,
+    runner: &mut R,
+) -> Result<Option<ActionPayload>, String> {
+    let components = privilege::external_signature_component_paths(app_path);
+    let preimages = privilege::MacApplyTransaction::capture_preimages(app_path, &components)?;
+    let mut transaction =
+        match privilege::MacApplyTransaction::begin_with_deferred_pairs_and_removals_guarded(
+            state_dir,
+            app_path,
+            &[],
+            &[],
+            &[],
+            &[],
+            &components,
+            &[],
+            &[],
+            &preimages,
+        ) {
+            Ok(transaction) => transaction,
+            Err(privilege::MacApplyBeginError::CavalryStillRunning { .. }) => {
+                return Ok(Some(cavalry_still_running_payload()));
+            }
+            Err(error) if error.is_permission_denied() => {
+                return Ok(Some(ActionPayload::permission_error(&error.display())));
+            }
+            Err(error) => return Err(error.display()),
+        };
+    let operation_id = transaction.operation_id().to_string();
+
+    let repair = (|| {
+        transaction.begin_signing()?;
+        transaction.verify_and_record_signing_postimages(|pinned_app| {
+            crate::mac_official::verify_clean_vendor_runtime(pinned_app)?;
+            let signature = privilege::inspect_bundle_signature(pinned_app, runner)?;
+            signature
+                .is_supported_cavalry_vendor_identity()
+                .then_some(())
+                .ok_or_else(|| {
+                    "Removing the known Switcher signature residue did not restore the supported Cavalry vendor identity."
+                        .to_string()
+                })
+        })?;
+        transaction.authorize_deferred_commit()?;
+        transaction.checkpoint_verified_bundle()?;
+        transaction.begin_state_commit()?;
+        let state_outcome =
+            state::write_state_with_operation_outcome(state_dir, current_state, &operation_id)?;
+        if let Some(warning) = state_outcome.warning() {
+            return Err(format!(
+                "Known signing-component cleanup state durability is uncertain: {warning}"
+            ));
+        }
+        transaction.checkpoint_state_commit()?;
+        Ok::<_, String>(())
+    })();
+
+    if let Err(error) = repair {
+        return Err(transaction.rollback_with_cause(format!(
+            "Could not transactionally remove known Switcher-owned signing components: {error}"
+        )));
+    }
+    let _completion = transaction.commit()?;
+    crate::diagnostics::record(
+        state_dir,
+        "knownSigningComponentsRemoved",
+        serde_json::json!({ "ok": true, "componentCount": components.len() }),
+    );
+    Ok(None)
 }
 
 fn prepare_clean_english_fast_path<C, I>(
@@ -240,25 +329,67 @@ pub fn apply_language_inner<R: CommandRunner>(
     runner: &mut R,
     now: &str,
 ) -> Result<ActionPayload, String> {
-    #[cfg(target_os = "macos")]
-    privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
-    let verified_layout =
-        detect::resolve_verified_install(app_path).map_err(|error| error.to_string())?;
-    let app_platform = verified_layout.platform;
-    let app_path = verified_layout.root;
+    apply_language_inner_with_reporter(
+        repo_root,
+        state_dir,
+        resource_dir,
+        app_path,
+        lang,
+        runner,
+        now,
+        NoopReporter,
+    )
+}
+
+pub(crate) fn apply_language_inner_with_reporter<R, P>(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    lang: &str,
+    runner: &mut R,
+    now: &str,
+    reporter: P,
+) -> Result<ActionPayload, String>
+where
+    R: CommandRunner,
+    P: OperationReporter,
+{
+    // 静态输入校验属于 admission；非法语言不得伪造成任何安装阶段失败。
     if !matches!(
         lang,
         "en" | "zh-Hans" | "zh-Hant" | "ja_JP" | RESTORE_OFFICIAL_ACTION
     ) {
         return Err(format!("Unsupported language: {lang}"));
     }
-    let restore_official = lang == RESTORE_OFFICIAL_ACTION;
-    if restore_official && app_platform != crate::install::InstallPlatform::Macos {
+    let mut verify_phase =
+        OperationPhaseGuard::start(&reporter, OperationPhase::VerifyInstallation);
+    // 创作软件运行态是 Switch 与 Restore 的共同 admission，不应在耗时验证、基线
+    // 准备之后才告诉用户，更不能替用户关闭可能仍有未保存工作的 Cavalry。无有效
+    // executable 的候选继续交给标准安装验证，避免用进程探针掩盖真正的路径错误。
+    #[cfg(target_os = "macos")]
+    if InstallLayout::from_root(app_path).executable.is_file() {
+        if let Some(payload) = finish_direct_preflight_result(platform_runtime::preflight_apply(
+            app_path, lang, runner,
+        ))? {
+            return Ok(payload);
+        }
+    }
+    #[cfg(target_os = "macos")]
+    privilege::recover_macos_apply_for_selection(state_dir, app_path, runner)?;
+    #[cfg(target_os = "windows")]
+    privilege::recover_windows_language_transaction_for_selection(app_path, runner)?;
+    let verified_layout =
+        detect::resolve_verified_install(app_path).map_err(|error| error.to_string())?;
+    let app_platform = verified_layout.platform;
+    let app_path = verified_layout.root;
+    let restore_requested = lang == RESTORE_OFFICIAL_ACTION;
+    if restore_requested && app_platform != crate::install::InstallPlatform::Macos {
         return Err(
             "Official Cavalry restore is currently available only for macOS bundles.".to_string(),
         );
     }
-    let effective_lang = if restore_official { "en" } else { lang };
+    let effective_lang = if restore_requested { "en" } else { lang };
 
     let version = detect::read_bundle_version(&app_path).unwrap_or_default();
     #[cfg(target_os = "macos")]
@@ -267,16 +398,37 @@ pub fn apply_language_inner<R: CommandRunner>(
         .transpose()
         .map_err(|error| error.to_string())?;
     #[cfg(target_os = "macos")]
-    let prewrite_signature = if app_platform == crate::install::InstallPlatform::Macos {
-        Some(privilege::inspect_bundle_signature(&app_path, runner)?)
-    } else {
-        None
-    };
+    let (mut prewrite_signature, legacy_signature_residue) =
+        if app_platform == crate::install::InstallPlatform::Macos {
+            match privilege::inspect_bundle_signature(&app_path, runner) {
+                Ok(signature) => (Some(signature), false),
+                Err(_)
+                    if crate::mac_official::verify_clean_vendor_runtime(&app_path).is_ok()
+                        && privilege::has_known_external_signature_residue(&app_path) =>
+                {
+                    (None, true)
+                }
+                // 已有受管安装由自身 runtime + durable snapshot 证明；旧签名损坏不应
+                // 阻止普通语言切换，最终事务会重建并验证签名。
+                Err(_) => (None, false),
+            }
+        } else {
+            (None, false)
+        };
     let immutable_revision =
         detect::read_bundle_revision_for_write(&app_path).map_err(|error| error.to_string())?;
     let previous_state = read_state_for_mutation(state_dir)?;
     #[cfg(target_os = "macos")]
-    if let Some(prewrite_signature) = prewrite_signature.as_ref() {
+    if legacy_signature_residue {
+        if let Some(payload) =
+            repair_known_external_signature_residue(state_dir, &app_path, &previous_state, runner)?
+        {
+            return Ok(payload);
+        }
+        prewrite_signature = Some(privilege::inspect_bundle_signature(&app_path, runner)?);
+    }
+    #[cfg(target_os = "macos")]
+    if app_platform == crate::install::InstallPlatform::Macos {
         verify_macos_prewrite_trust(
             repo_root,
             state_dir,
@@ -284,7 +436,7 @@ pub fn apply_language_inner<R: CommandRunner>(
             &app_path,
             &immutable_revision,
             &previous_state,
-            prewrite_signature,
+            prewrite_signature.as_ref(),
         )?;
     }
     let mut current_state = project_state_with_bundle(
@@ -312,6 +464,37 @@ pub fn apply_language_inner<R: CommandRunner>(
         &app_path,
         &immutable_revision,
     )?;
+    #[cfg(target_os = "macos")]
+    let managed_legacy = app_platform == crate::install::InstallPlatform::Macos
+        && super::snapshot::managed_legacy_baseline_is_usable(
+            current_state.english_snapshot_provenance.as_ref(),
+            super::snapshot::legacy_snapshot_is_proven(
+                repo_root,
+                state_dir,
+                resource_dir,
+                &current_state,
+                &app_path,
+                &immutable_revision,
+            ),
+        );
+    #[cfg(not(target_os = "macos"))]
+    let managed_legacy = false;
+    #[cfg(target_os = "macos")]
+    let restore_official = restore_requested
+        && current_state
+            .english_snapshot_provenance
+            .as_ref()
+            .is_some_and(|provenance| provenance.vendor_baseline_id.is_some());
+    #[cfg(not(target_os = "macos"))]
+    let restore_official = false;
+    let transaction_action_lang = if restore_requested && !restore_official {
+        "en"
+    } else {
+        lang
+    };
+
+    verify_phase.completed();
+    let mut baseline_phase = OperationPhaseGuard::start(&reporter, OperationPhase::EnsureBaseline);
 
     if lang == "en"
         && current_state.current_lang == "en"
@@ -346,6 +529,7 @@ pub fn apply_language_inner<R: CommandRunner>(
             || super::snapshot::ensure_clean_english_install(repo_root, resource_dir, &app_path),
         )? {
             CleanEnglishFastPath::Noop => {
+                baseline_phase.completed();
                 return Ok(ActionPayload::ok_lang("en", None));
             }
             CleanEnglishFastPath::Continue(state) => current_state = state,
@@ -367,409 +551,470 @@ pub fn apply_language_inner<R: CommandRunner>(
         current_state.english_snapshot_provenance.as_ref(),
         &app_path,
         &immutable_revision,
-    ) {
+    ) && !managed_legacy
+    {
         return Err(
-            "English snapshot is missing or stale for this Cavalry revision. Restore a clean English install and refresh English before applying it."
+            "English recovery baseline is missing or stale for this Cavalry revision. Restore a clean English installation before applying it."
                 .to_string(),
         );
     }
 
-    #[cfg(target_os = "macos")]
-    let mac_baseline = if app_platform == crate::install::InstallPlatform::Macos {
-        let provenance = current_state
-            .english_snapshot_provenance
-            .as_ref()
-            .ok_or_else(|| {
-                "macOS apply requires a unified vendor/English baseline provenance.".to_string()
-            })?;
-        Some(crate::mac_official::load_vendor_baseline(
+    baseline_phase.completed();
+
+    let mut transaction_phase =
+        OperationPhaseGuard::start(&reporter, OperationPhase::ApplyTransaction);
+    let transaction_result = (|| {
+        #[cfg(target_os = "macos")]
+        let mac_baseline = if app_platform == crate::install::InstallPlatform::Macos {
+            let provenance = current_state
+                .english_snapshot_provenance
+                .as_ref()
+                .ok_or_else(|| {
+                    "macOS apply requires a unified vendor/English baseline provenance.".to_string()
+                })?;
+            if provenance.vendor_baseline_id.is_some() {
+                Some(crate::mac_official::load_vendor_baseline(
+                    state_dir,
+                    &app_path,
+                    &immutable_revision,
+                    provenance,
+                )?)
+            } else if managed_legacy {
+                None
+            } else {
+                return Err(
+                    "macOS apply has neither a verified official baseline nor a proven Managed Legacy postimage."
+                        .to_string(),
+                );
+            }
+        } else {
+            None
+        };
+        #[cfg(target_os = "macos")]
+        let english_snapshot_dir = if let Some(baseline) = mac_baseline.as_ref() {
+            baseline.english_dir().to_path_buf()
+        } else {
+            patch::english_snapshot_dir(state_dir, &app_path, &immutable_revision)?
+        };
+        #[cfg(not(target_os = "macos"))]
+        let english_snapshot_dir =
+            patch::english_snapshot_dir(state_dir, &app_path, &immutable_revision)?;
+        let source_dir = if effective_lang == "en" {
+            english_snapshot_dir.clone()
+        } else {
+            language_source_dir(repo_root, resource_dir, effective_lang)
+        };
+        if !source_dir.exists() {
+            return if effective_lang == "en" {
+                Err("English snapshot not found. Point the app picker to a clean Cavalry.app and refresh English first.".to_string())
+            } else {
+                Err(format!("Language files not found for {effective_lang}."))
+            };
+        }
+
+        let current_language_source = (current_state.current_lang != "en").then(|| {
+            language_source_dir(repo_root, resource_dir, current_state.current_lang.as_str())
+        });
+        #[cfg(target_os = "macos")]
+        let mac_asset_preimages = {
+            let manifest_sha256 = mac_baseline
+                .as_ref()
+                .map(|baseline| baseline.english_manifest_sha256())
+                .or_else(|| {
+                    current_state
+                        .english_snapshot_provenance
+                        .as_ref()
+                        .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
+                })
+                .ok_or_else(|| {
+                    "macOS asset verification lost its immutable English manifest.".to_string()
+                })?;
+            patch::verify_installed_asset_preimages_at_exact(
+                &english_snapshot_dir,
+                &app_path,
+                current_language_source.as_deref(),
+                manifest_sha256,
+            )?
+        };
+        #[cfg(not(target_os = "macos"))]
+        patch::verify_installed_asset_preimages(
             state_dir,
             &app_path,
             &immutable_revision,
-            provenance,
-        )?)
-    } else {
-        None
-    };
-    #[cfg(target_os = "macos")]
-    let english_snapshot_dir = if let Some(baseline) = mac_baseline.as_ref() {
-        baseline.english_dir().to_path_buf()
-    } else {
-        patch::english_snapshot_dir(state_dir, &app_path, &immutable_revision)?
-    };
-    #[cfg(not(target_os = "macos"))]
-    let english_snapshot_dir =
-        patch::english_snapshot_dir(state_dir, &app_path, &immutable_revision)?;
-    let source_dir = if effective_lang == "en" {
-        english_snapshot_dir.clone()
-    } else {
-        language_source_dir(repo_root, resource_dir, effective_lang)
-    };
-    if !source_dir.exists() {
-        return if effective_lang == "en" {
-            Err("English snapshot not found. Point the app picker to a clean Cavalry.app and refresh English first.".to_string())
-        } else {
-            Err(format!("Language files not found for {effective_lang}."))
-        };
-    }
-
-    let current_language_source = (current_state.current_lang != "en")
-        .then(|| language_source_dir(repo_root, resource_dir, current_state.current_lang.as_str()));
-    #[cfg(target_os = "macos")]
-    let mac_asset_preimages = {
-        let baseline = mac_baseline.as_ref().ok_or_else(|| {
-            "macOS asset verification lost its verified unified vendor generation.".to_string()
-        })?;
-        patch::verify_installed_asset_preimages_at_exact(
-            baseline.english_dir(),
-            &app_path,
             current_language_source.as_deref(),
-            baseline.english_manifest_sha256(),
-        )?
-    };
-    #[cfg(not(target_os = "macos"))]
-    patch::verify_installed_asset_preimages(
-        state_dir,
-        &app_path,
-        &immutable_revision,
-        current_language_source.as_deref(),
-    )?;
+        )?;
 
-    #[cfg(target_os = "windows")]
-    let windows_english_manifest = if effective_lang == "en" {
-        let expected_manifest_sha256 = current_state
-            .english_snapshot_provenance
-            .as_ref()
-            .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
-            .ok_or_else(|| {
-                "Windows English restore requires a manifest-bound immutable snapshot.".to_string()
-            })?;
-        Some(
-            patch::validate_english_snapshot_at(
-                &english_snapshot_dir,
-                &app_path,
-                expected_manifest_sha256,
-            )?
-            .manifest,
-        )
-    } else {
-        None
-    };
-
-    let staging_root = unique_staging_root();
-    #[cfg(target_os = "macos")]
-    let pairs = {
-        let baseline = mac_baseline.as_ref().ok_or_else(|| {
-            "macOS JSON apply lost its verified unified vendor generation.".to_string()
-        })?;
-        if effective_lang == "en" {
-            patch::build_mac_english_restore_pairs(
-                &english_snapshot_dir,
-                &app_path,
-                &staging_root.join("english-restore"),
-                baseline.english_manifest_sha256(),
-            )?
+        #[cfg(target_os = "windows")]
+        let windows_english_manifest = if effective_lang == "en" {
+            let expected_manifest_sha256 = current_state
+                .english_snapshot_provenance
+                .as_ref()
+                .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
+                .ok_or_else(|| {
+                    "Windows English restore requires a manifest-bound immutable snapshot."
+                        .to_string()
+                })?;
+            Some(
+                patch::validate_english_snapshot_at(
+                    &english_snapshot_dir,
+                    &app_path,
+                    expected_manifest_sha256,
+                )?
+                .manifest,
+            )
         } else {
-            patch::build_mac_overlay_pairs_exact(
-                &source_dir,
-                &english_snapshot_dir,
-                &app_path,
-                &staging_root.join("overlay"),
-                baseline.english_manifest_sha256(),
-            )?
-        }
-    };
-    #[cfg(target_os = "windows")]
-    let pairs = build_windows_language_pairs(
-        effective_lang,
-        &source_dir,
-        &english_snapshot_dir,
-        &app_path,
-        &staging_root.join("overlay"),
-    )?;
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-    let pairs = if effective_lang == "en" {
-        patch::build_copy_pairs_checked(&source_dir, &app_path)?
-    } else {
-        patch::build_overlay_pairs(
+            None
+        };
+
+        let staging_root = unique_staging_root();
+        #[cfg(target_os = "macos")]
+        let pairs = {
+            let manifest_sha256 = mac_baseline
+                .as_ref()
+                .map(|baseline| baseline.english_manifest_sha256())
+                .or_else(|| {
+                    current_state
+                        .english_snapshot_provenance
+                        .as_ref()
+                        .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
+                })
+                .ok_or_else(|| {
+                    "macOS JSON apply lost its immutable English manifest.".to_string()
+                })?;
+            if effective_lang == "en" {
+                patch::build_mac_english_restore_pairs(
+                    &english_snapshot_dir,
+                    &app_path,
+                    &staging_root.join("english-restore"),
+                    manifest_sha256,
+                )?
+            } else {
+                patch::build_mac_overlay_pairs_exact(
+                    &source_dir,
+                    &english_snapshot_dir,
+                    &app_path,
+                    &staging_root.join("overlay"),
+                    manifest_sha256,
+                )?
+            }
+        };
+        #[cfg(target_os = "windows")]
+        let pairs = build_windows_language_pairs(
+            effective_lang,
             &source_dir,
             &english_snapshot_dir,
             &app_path,
             &staging_root.join("overlay"),
-        )?
-    };
-    if pairs.is_empty() {
-        return Err(format!("No JSON assets found for {effective_lang}."));
-    }
+        )?;
+        #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+        let pairs = if effective_lang == "en" {
+            patch::build_copy_pairs_checked(&source_dir, &app_path)?
+        } else {
+            patch::build_overlay_pairs(
+                &source_dir,
+                &english_snapshot_dir,
+                &app_path,
+                &staging_root.join("overlay"),
+            )?
+        };
+        if pairs.is_empty() {
+            return Err(format!("No JSON assets found for {effective_lang}."));
+        }
 
-    #[cfg(target_os = "windows")]
-    {
-        let layout = InstallLayout::from_root(&app_path);
-        let program_files_result =
-            privilege::apply_windows_program_files_language(privilege::ParentApplyRequest {
-                repo_root,
-                resource_dir,
+        #[cfg(target_os = "windows")]
+        {
+            let layout = InstallLayout::from_root(&app_path);
+            let program_files_result =
+                privilege::apply_windows_program_files_language(privilege::ParentApplyRequest {
+                    repo_root,
+                    resource_dir,
+                    state_dir,
+                    layout: &layout,
+                    language: effective_lang,
+                    cavalry_version: &version,
+                    staging_root: &staging_root,
+                    overlay_pairs: &pairs,
+                    english_snapshot_manifest: windows_english_manifest.as_ref(),
+                });
+            if let Some(payload) = finish_program_files_result(
+                program_files_result,
                 state_dir,
-                layout: &layout,
-                language: effective_lang,
-                cavalry_version: &version,
-                staging_root: &staging_root,
-                overlay_pairs: &pairs,
-                english_snapshot_manifest: windows_english_manifest.as_ref(),
-            });
-        if let Some(payload) = finish_program_files_result(
-            program_files_result,
-            state_dir,
-            &current_state,
+                &current_state,
+                &app_path,
+                &version,
+                &immutable_revision,
+                effective_lang,
+                now,
+            )? {
+                return Ok(payload);
+            }
+        }
+
+        #[cfg(target_os = "macos")]
+        let trusted_macos_info_plist = mac_baseline
+            .as_ref()
+            .map(|baseline| baseline.official_info_plist_path())
+            .transpose()?;
+        #[cfg(target_os = "macos")]
+        let trusted_macos_info_mode = mac_baseline
+            .as_ref()
+            .map(|baseline| baseline.official_info_plist_mode())
+            .transpose()?;
+        #[cfg(not(target_os = "macos"))]
+        let trusted_macos_info_plist: Option<PathBuf> = None;
+        #[cfg(not(target_os = "macos"))]
+        let trusted_macos_info_mode: Option<u32> = None;
+        let plan = platform_runtime::prepare_apply(
+            repo_root,
+            resource_dir,
             &app_path,
+            transaction_action_lang,
             &version,
-            &immutable_revision,
-            effective_lang,
-            now,
-        )? {
+            &staging_root,
+            trusted_macos_info_plist.as_deref(),
+            trusted_macos_info_mode,
+            managed_legacy,
+        )?;
+        #[cfg(not(target_os = "macos"))]
+        if let Some(payload) = finish_direct_preflight_result(platform_runtime::preflight_apply(
+            &app_path,
+            transaction_action_lang,
+            runner,
+        ))? {
             return Ok(payload);
         }
-    }
-
-    #[cfg(target_os = "macos")]
-    let trusted_macos_info_plist = mac_baseline
-        .as_ref()
-        .map(|baseline| baseline.official_info_plist_path())
-        .transpose()?;
-    #[cfg(target_os = "macos")]
-    let trusted_macos_info_mode = mac_baseline
-        .as_ref()
-        .map(|baseline| baseline.official_info_plist_mode())
-        .transpose()?;
-    #[cfg(not(target_os = "macos"))]
-    let trusted_macos_info_plist: Option<PathBuf> = None;
-    #[cfg(not(target_os = "macos"))]
-    let trusted_macos_info_mode: Option<u32> = None;
-    let plan = platform_runtime::prepare_apply(
-        repo_root,
-        resource_dir,
-        &app_path,
-        lang,
-        &version,
-        &staging_root,
-        trusted_macos_info_plist.as_deref(),
-        trusted_macos_info_mode,
-    )?;
-    if let Some(payload) =
-        finish_direct_preflight_result(platform_runtime::preflight_apply(&app_path, lang, runner))?
-    {
-        return Ok(payload);
-    }
-    let mut pairs = pairs;
-    pairs.extend(plan.runtime_pairs.iter().cloned());
-    #[cfg(target_os = "macos")]
-    let (macos_deferred_removals, macos_deferred_info) = if restore_official {
-        let baseline = mac_baseline
+        let mut pairs = pairs;
+        pairs.extend(plan.runtime_pairs.iter().cloned());
+        #[cfg(target_os = "macos")]
+        let (macos_deferred_removals, macos_deferred_info) = if restore_official {
+            let baseline = mac_baseline
             .as_ref()
             .ok_or_else(|| {
-                "Official restore requires a combined vendor runtime/English baseline. Refresh English from a clean vendor install first."
+                "Official restore requires a combined vendor runtime/English baseline from a verified clean vendor installation."
                     .to_string()
             })?;
-        let mut restore =
-            baseline.build_restore_plan(&app_path, &staging_root.join("official-restore"))?;
-        let official_info_destination = app_path.join("Contents/Info.plist");
-        let official_info_index = restore
-            .pairs
+            let mut restore =
+                baseline.build_restore_plan(&app_path, &staging_root.join("official-restore"))?;
+            let official_info_destination = app_path.join("Contents/Info.plist");
+            let official_info_index = restore
+                .pairs
+                .iter()
+                .position(|pair| pair.dst == official_info_destination)
+                .ok_or_else(|| {
+                    "Official restore plan has no commit-gated vendor Info.plist.".to_string()
+                })?;
+            let official_info = restore.pairs.remove(official_info_index);
+            pairs.extend(restore.pairs);
+            (restore.removals, Some(official_info))
+        } else {
+            (Vec::new(), None)
+        };
+        #[cfg(not(target_os = "macos"))]
+        let layout = InstallLayout::from_root(&app_path);
+        let changed_pairs = pairs
             .iter()
-            .position(|pair| pair.dst == official_info_destination)
-            .ok_or_else(|| {
-                "Official restore plan has no commit-gated vendor Info.plist.".to_string()
-            })?;
-        let official_info = restore.pairs.remove(official_info_index);
-        pairs.extend(restore.pairs);
-        (restore.removals, Some(official_info))
-    } else {
-        (Vec::new(), None)
-    };
-    #[cfg(not(target_os = "macos"))]
-    let layout = InstallLayout::from_root(&app_path);
-    let changed_pairs = pairs
-        .iter()
-        .filter(|pair| !files_match(&pair.src, &pair.dst))
-        .cloned()
-        .collect::<Vec<_>>();
-    #[cfg(target_os = "macos")]
-    let transaction_pairs = {
-        // The final marker is journaled below but intentionally excluded from the payload phase.
-        // It is atomically published only after nested code is signed and immediately before the
-        // final app seal; durable state remains the transaction commit bit.
-        changed_pairs
-    };
-    #[cfg(not(target_os = "macos"))]
-    let transaction_pairs = marker_guarded_transaction_pairs(
-        &layout,
-        &staging_root.join("pending-marker"),
-        changed_pairs,
-        plan.final_language_marker.as_ref(),
-        plan.defer_final_language_marker,
-    )?;
-    // final marker 必须强制写入，不能因开始前内容相同而被 files_match 过滤。
-    let staged_pairs = patch::stage_files(&transaction_pairs, &staging_root.join("staged"))
-        .map_err(|error| format!("Could not stage patch files: {error}"))?;
-    #[cfg(target_os = "macos")]
-    let staged_final_marker = plan
-        .final_language_marker
-        .as_ref()
-        .map(|marker| {
-            patch::stage_files(
-                std::slice::from_ref(marker),
-                &staging_root.join("staged-final-marker"),
-            )
-            .and_then(|mut pairs| {
-                pairs
-                    .pop()
-                    .ok_or_else(|| "Final macOS language marker did not stage.".to_string())
-            })
-        })
-        .transpose()
-        .map_err(|error| format!("Could not stage final macOS language marker: {error}"))?;
-    #[cfg(target_os = "macos")]
-    let staged_official_info = macos_deferred_info
-        .as_ref()
-        .map(|info| {
-            patch::stage_files(
-                std::slice::from_ref(info),
-                &staging_root.join("staged-official-info"),
-            )
-            .and_then(|mut pairs| {
-                pairs
-                    .pop()
-                    .ok_or_else(|| "Official Info.plist did not stage.".to_string())
-            })
-        })
-        .transpose()
-        .map_err(|error| format!("Could not stage official Info.plist: {error}"))?;
-    #[cfg(target_os = "macos")]
-    let staged_pending_marker = if staged_final_marker.is_some() {
-        let pending = build_pending_language_marker_pair(
-            &InstallLayout::from_root(&app_path),
+            .filter(|pair| !files_match(&pair.src, &pair.dst))
+            .cloned()
+            .collect::<Vec<_>>();
+        #[cfg(target_os = "macos")]
+        let transaction_pairs = {
+            // The final marker is journaled below but intentionally excluded from the payload phase.
+            // It is atomically published only after nested code is signed and immediately before the
+            // final app seal; durable state remains the transaction commit bit.
+            changed_pairs
+        };
+        #[cfg(not(target_os = "macos"))]
+        let transaction_pairs = marker_guarded_transaction_pairs(
+            &layout,
             &staging_root.join("pending-marker"),
+            changed_pairs,
+            plan.final_language_marker.as_ref(),
+            plan.defer_final_language_marker,
         )?;
-        Some(
-            patch::stage_files(
-                std::slice::from_ref(&pending),
-                &staging_root.join("staged-pending-marker"),
+        // final marker 必须强制写入，不能因开始前内容相同而被 files_match 过滤。
+        let staged_pairs = patch::stage_files(&transaction_pairs, &staging_root.join("staged"))
+            .map_err(|error| format!("Could not stage patch files: {error}"))?;
+        #[cfg(target_os = "macos")]
+        let staged_final_marker = plan
+            .final_language_marker
+            .as_ref()
+            .map(|marker| {
+                patch::stage_files(
+                    std::slice::from_ref(marker),
+                    &staging_root.join("staged-final-marker"),
+                )
+                .and_then(|mut pairs| {
+                    pairs
+                        .pop()
+                        .ok_or_else(|| "Final macOS language marker did not stage.".to_string())
+                })
+            })
+            .transpose()
+            .map_err(|error| format!("Could not stage final macOS language marker: {error}"))?;
+        #[cfg(target_os = "macos")]
+        let staged_official_info = macos_deferred_info
+            .as_ref()
+            .map(|info| {
+                patch::stage_files(
+                    std::slice::from_ref(info),
+                    &staging_root.join("staged-official-info"),
+                )
+                .and_then(|mut pairs| {
+                    pairs
+                        .pop()
+                        .ok_or_else(|| "Official Info.plist did not stage.".to_string())
+                })
+            })
+            .transpose()
+            .map_err(|error| format!("Could not stage official Info.plist: {error}"))?;
+        #[cfg(target_os = "macos")]
+        let staged_pending_marker = if staged_final_marker.is_some() {
+            let pending = build_pending_language_marker_pair(
+                &InstallLayout::from_root(&app_path),
+                &staging_root.join("pending-marker"),
+            )?;
+            Some(
+                patch::stage_files(
+                    std::slice::from_ref(&pending),
+                    &staging_root.join("staged-pending-marker"),
+                )
+                .map_err(|error| format!("Could not stage pending macOS marker: {error}"))?
+                .pop()
+                .ok_or_else(|| "Pending macOS language marker did not stage.".to_string())?,
             )
-            .map_err(|error| format!("Could not stage pending macOS marker: {error}"))?
-            .pop()
-            .ok_or_else(|| "Pending macOS language marker did not stage.".to_string())?,
-        )
-    } else {
-        None
-    };
+        } else {
+            None
+        };
 
-    #[cfg(target_os = "macos")]
-    {
-        if let Some(prewrite_identity) = prewrite_identity.as_ref() {
-            detect::verify_mac_bundle_identity(&app_path, prewrite_identity)
-                .map_err(|error| format!("Cavalry changed during apply preflight: {error}"))?;
-        }
-        if let Some(prewrite_signature) = prewrite_signature.as_ref() {
-            let current_signature = privilege::inspect_bundle_signature(&app_path, runner)?;
-            if &current_signature != prewrite_signature {
-                return Err(
+        #[cfg(target_os = "macos")]
+        {
+            if let Some(prewrite_identity) = prewrite_identity.as_ref() {
+                detect::verify_mac_bundle_identity(&app_path, prewrite_identity)
+                    .map_err(|error| format!("Cavalry changed during apply preflight: {error}"))?;
+            }
+            if let Some(prewrite_signature) = prewrite_signature.as_ref() {
+                let current_signature = privilege::inspect_bundle_signature(&app_path, runner)?;
+                if &current_signature != prewrite_signature {
+                    return Err(
                     "Cavalry signature identity changed during apply preflight; no files were written."
                         .to_string(),
                 );
+                }
             }
+            return finish_macos_apply_transaction(
+                state_dir,
+                current_state,
+                &app_path,
+                version,
+                immutable_revision,
+                transaction_action_lang,
+                effective_lang,
+                now,
+                &staging_root,
+                &plan,
+                &staged_pairs,
+                staged_pending_marker.as_ref(),
+                staged_final_marker.as_ref(),
+                staged_official_info.as_ref(),
+                &macos_deferred_removals,
+                &mac_asset_preimages,
+                mac_baseline.as_ref(),
+                runner,
+            );
         }
-        return finish_macos_apply_transaction(
+
+        #[cfg(not(target_os = "macos"))]
+        let copy_mode = (|| {
+            let mut completion = privilege::copy_with_privilege_detailed(&staged_pairs, runner)
+                .map_err(|error| {
+                    format!(
+                        "Could not copy patch files into Cavalry: {}",
+                        error.display()
+                    )
+                })?;
+            platform_runtime::after_copy(
+                &plan,
+                &app_path,
+                lang,
+                &staging_root,
+                &staged_pairs,
+                runner,
+            )?;
+            if plan.defer_final_language_marker {
+                if let Some(final_marker) = plan.final_language_marker.as_ref() {
+                    let staged_final = patch::stage_files(
+                        std::slice::from_ref(final_marker),
+                        &staging_root.join("staged-final-marker"),
+                    )
+                    .map_err(|error| format!("Could not stage final language marker: {error}"))?;
+                    let final_completion =
+                        privilege::copy_with_privilege_detailed(&staged_final, runner).map_err(
+                            |error| {
+                                format!(
+                        "Could not commit final language marker after Windows QPA transition: {}",
+                        error.display()
+                    )
+                            },
+                        )?;
+                    if completion.mode == "noop" {
+                        completion.mode = final_completion.mode;
+                    }
+                    completion.warnings.extend(final_completion.warnings);
+                }
+            }
+            Ok::<_, String>(completion)
+        })();
+
+        #[cfg(not(target_os = "macos"))]
+        let staging_cleanup = fs::remove_dir_all(&staging_root);
+        #[cfg(not(target_os = "macos"))]
+        let mut copy_completion = match copy_mode {
+            Ok(completion) => completion,
+            Err(error) => {
+                return match staging_cleanup {
+                    Ok(()) => Err(error),
+                    Err(cleanup_error) => Err(format!(
+                        "{error} Cleanup residual remains at {}: {cleanup_error}",
+                        staging_root.display()
+                    )),
+                };
+            }
+        };
+        #[cfg(not(target_os = "macos"))]
+        if let Err(error) = staging_cleanup {
+            copy_completion.warnings.push(PostCommitWarning::new(
+                PostCommitWarningCode::StagingCleanup,
+                [staging_root],
+                Some(error.to_string()),
+            ));
+        }
+
+        #[cfg(not(target_os = "macos"))]
+        finish_apply_state(
             state_dir,
             current_state,
             &app_path,
             version,
             immutable_revision,
-            lang,
             effective_lang,
             now,
-            &staging_root,
-            &plan,
-            &staged_pairs,
-            staged_pending_marker.as_ref(),
-            staged_final_marker.as_ref(),
-            staged_official_info.as_ref(),
-            &macos_deferred_removals,
-            &mac_asset_preimages,
-            mac_baseline.as_ref(),
-            runner,
-        );
-    }
-
-    #[cfg(not(target_os = "macos"))]
-    let copy_mode = (|| {
-        let mut completion = privilege::copy_with_privilege_detailed(&staged_pairs, runner)
-            .map_err(|error| {
-                format!(
-                    "Could not copy patch files into Cavalry: {}",
-                    error.display()
-                )
-            })?;
-        platform_runtime::after_copy(&plan, &app_path, lang, &staging_root, &staged_pairs, runner)?;
-        if plan.defer_final_language_marker {
-            if let Some(final_marker) = plan.final_language_marker.as_ref() {
-                let staged_final = patch::stage_files(
-                    std::slice::from_ref(final_marker),
-                    &staging_root.join("staged-final-marker"),
-                )
-                .map_err(|error| format!("Could not stage final language marker: {error}"))?;
-                let final_completion =
-                    privilege::copy_with_privilege_detailed(&staged_final, runner).map_err(
-                        |error| {
-                            format!(
-                        "Could not commit final language marker after Windows QPA transition: {}",
-                        error.display()
-                    )
-                        },
-                    )?;
-                if completion.mode == "noop" {
-                    completion.mode = final_completion.mode;
-                }
-                completion.warnings.extend(final_completion.warnings);
-            }
-        }
-        Ok::<_, String>(completion)
+            renderer_warning_for_copy(&copy_completion.warnings, &copy_completion.mode),
+        )
     })();
 
-    #[cfg(not(target_os = "macos"))]
-    let staging_cleanup = fs::remove_dir_all(&staging_root);
-    #[cfg(not(target_os = "macos"))]
-    let mut copy_completion = match copy_mode {
-        Ok(completion) => completion,
-        Err(error) => {
-            return match staging_cleanup {
-                Ok(()) => Err(error),
-                Err(cleanup_error) => Err(format!(
-                    "{error} Cleanup residual remains at {}: {cleanup_error}",
-                    staging_root.display()
-                )),
-            };
+    match &transaction_result {
+        Ok(payload) if !payload.ok => transaction_phase.error(),
+        Ok(payload)
+            if payload.warning.is_some()
+                || payload.warning_code.is_some()
+                || !payload.warning_codes.is_empty() =>
+        {
+            transaction_phase.warning()
         }
-    };
-    #[cfg(not(target_os = "macos"))]
-    if let Err(error) = staging_cleanup {
-        copy_completion.warnings.push(PostCommitWarning::new(
-            PostCommitWarningCode::StagingCleanup,
-            [staging_root],
-            Some(error.to_string()),
-        ));
+        Ok(_) => transaction_phase.completed(),
+        Err(_) => transaction_phase.error(),
     }
-
-    #[cfg(not(target_os = "macos"))]
-    finish_apply_state(
-        state_dir,
-        current_state,
-        &app_path,
-        version,
-        immutable_revision,
-        effective_lang,
-        now,
-        renderer_warning_for_copy(&copy_completion.warnings, &copy_completion.mode),
-    )
+    transaction_result
 }
 
 #[cfg(target_os = "macos")]
@@ -797,13 +1042,15 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
     let signing_side_effects = if action_lang == RESTORE_OFFICIAL_ACTION {
         Vec::new()
     } else {
-        vec![
+        let mut effects = vec![
             app_path.join("Contents/_CodeSignature/CodeResources"),
             app_path.join("Contents/MacOS/Cavalry"),
             app_path.join("Contents/MacOS/CavalryLauncher"),
             app_path.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
             app_path.join("Contents/Frameworks/libExtensionLayer.dylib"),
-        ]
+        ];
+        effects.extend(privilege::external_signature_component_paths(app_path));
+        effects
     };
     let deferred_pairs = [staged_final_marker, staged_official_info]
         .into_iter()
@@ -904,13 +1151,19 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
                 return Ok(payload);
             }
             Err(error) => {
-                return Err(with_staging_cleanup(
+                let permission_denied = error.is_permission_denied();
+                let message = with_staging_cleanup(
                     format!(
                         "Could not begin the protected Cavalry transaction: {}",
                         error.display()
                     ),
                     staging_root,
-                ));
+                );
+                return if permission_denied {
+                    Ok(ActionPayload::permission_error(&message))
+                } else {
+                    Err(message)
+                };
             }
         };
     let transaction_operation_id = transaction.operation_id().to_string();
@@ -976,6 +1229,7 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
             }
         };
         if let Err(error) = transaction.apply_deferred_pair(official_info) {
+            let permission_denied = error.allows_administrator_retry();
             let error = rollback_macos_apply(
                 transaction,
                 format!("Could not publish the commit-gated vendor Info.plist: {error}"),
@@ -983,7 +1237,12 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
                 app_path,
                 runner,
             );
-            return Err(with_staging_cleanup(error, staging_root));
+            let message = with_staging_cleanup(error, staging_root);
+            return if permission_denied {
+                Ok(ActionPayload::permission_error(&message))
+            } else {
+                Err(message)
+            };
         }
         if let Err(error) = transaction.apply_deferred_removals() {
             let error = rollback_macos_apply(
@@ -997,6 +1256,7 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
         }
     } else if let Some(final_marker) = staged_final_marker {
         if let Err(error) = transaction.apply_deferred_pair(final_marker) {
+            let permission_denied = error.allows_administrator_retry();
             let error = rollback_macos_apply(
                 transaction,
                 format!("Could not publish the final macOS language marker: {error}"),
@@ -1004,7 +1264,12 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
                 app_path,
                 runner,
             );
-            return Err(with_staging_cleanup(error, staging_root));
+            let message = with_staging_cleanup(error, staging_root);
+            return if permission_denied {
+                Ok(ActionPayload::permission_error(&message))
+            } else {
+                Err(message)
+            };
         }
     }
     if let Err(error) = platform_runtime::after_final_language_marker(app_path, action_lang, runner)

@@ -1,0 +1,243 @@
+/**
+ * [INPUT]: 依赖 Vercel design.md 发布的排印、字重、4px 间距及 vbg-blue-700 informational 颜色角色，依赖 macOS AppKit 与 Windows compositor alpha 窗口表面的平台几何及系统字体策略
+ * [OUTPUT]: 对外提供精确投影 vbg-blue-700 的 informational blue-subtle 语言类别与权限引导、green-subtle Official 徽章、warning/danger 任务标记语义色、13px 可读下限排印、4px 主节奏、20px 页面 padding 派生的 10px 页面动作组间距、Windows 10px 阴影留白/32px 外壳圆角、20px Updater 与 16px Windows caption 图标、以当前 X 可见右缘为基准的 15px 标题光学边距、80px About 标识、176px Activity，以及自然正文断行的 shadcn Base Nova Tooltip/Select/AlertDialog/Marker/Toast 几何、层级、权限阻断可读停顿与动效真相源
+ * [POS]: renderer 视觉系统的基础层；button/styles/window-controls 等组件层只消费角色，不再持有可调设计常量
+ * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+ */
+:root {
+  color-scheme: light;
+
+  /* ---------- 颜色角色 ---------- */
+  --window: #ffffff;
+  --surface: #fafafa;
+  --surface-raised: #ffffff;
+  --surface-hover: #f5f5f5;
+  --surface-interactive: #fdfdfd;
+  --surface-strong: #111111;
+  --surface-strong-hover: #2a2a2a;
+  --text: #1a1a1a;
+  --text-secondary: #666666;
+  --text-on-strong: #ffffff;
+  --border: rgba(0, 0, 0, 0.10);
+  --border-strong: rgba(0, 0, 0, 0.18);
+  --border-control-hover: rgba(0, 0, 0, 0.30);
+  --border-control-focus: rgba(0, 0, 0, 0.42);
+  --border-select: #e4e4e7;
+  --border-outline-hover: rgba(0, 0, 0, 0.28);
+  --focus: #2563eb;
+  --tone-info: oklch(57.61% 0.2508 258.23);
+  --warning: oklch(52.79% 0.1496 54.65);
+  --danger: #c52b2b;
+  --danger-pressed-target: #000000;
+  --tone-update: #20a34a;
+  --tone-update-hover: #167f38;
+  --tone-update-surface: rgba(32, 163, 74, 0.08);
+  --titlebar-surface: rgba(250, 250, 250, 0.96);
+  --dialog-backdrop: rgba(0, 0, 0, 0.10);
+  --operation-scrollbar-thumb: var(--border-strong);
+  --mask-opaque: #000000;
+
+  /* ---------- 徽章语义色 ---------- */
+  --badge-gray-bg: #f2f2f2;
+  --badge-gray-border: #dedede;
+  --badge-gray-text: #5f5f5f;
+  --badge-language-bg: #edf6ff;
+  --badge-language-text: var(--tone-info);
+  --badge-green-bg: #edf9f0;
+  --badge-green-text: #18794e;
+  /* ---------- 排印角色：Vercel 发布角色的紧凑桌面子集 ---------- */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", "Cascadia Mono", Consolas, monospace;
+  --type-heading: 16px;
+  --type-compact: 14px;
+  --type-label: 13px;
+  --type-metadata: 13px;
+  --weight-regular: 400;
+  --weight-heading: 450;
+  --weight-medium: 500;
+  --line-height-heading: 24px;
+  --line-height-compact: 20px;
+  --line-height-label: 16px;
+  --line-height-metadata: 18px;
+  --tracking-heading: -0.02em;
+
+  /* ---------- 4px 节奏 ---------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-16: 64px;
+
+  /* ---------- 边界、圆角与阴影 ---------- */
+  --stroke-hairline: 1px;
+  --stroke-focus: 2px;
+  --radius-circle: 50%;
+  --radius-select-trigger: 8px;
+  --radius-select-popup: 8px;
+  --radius-select-item: 6px;
+  --radius-skip-link: 6px;
+  --radius-tooltip: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-dialog: 12px;
+  /* 仅供 Windows compositor 外壳；macOS 始终使用 AppKit 默认窗口圆角。 */
+  --windows-shell-radius: 32px;
+  --radius-pill: 999px;
+  --shadow-control: 0 1px 1px rgba(0, 0, 0, 0.04), 0 1px 3px rgba(0, 0, 0, 0.05);
+  --shadow-installation-inset: 0 1px 0 rgba(255, 255, 255, 0.9) inset;
+  --shadow-titlebar-divider: inset 0 -1px var(--border);
+  --shadow-select-popup: 0 0 0 1px rgba(0, 0, 0, 0.10), 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
+  --shadow-dialog: 0 1px 2px rgba(0, 0, 0, 0.08), 0 18px 50px rgba(0, 0, 0, 0.24);
+  --shadow-toast: 0 4px 6px -1px rgba(0, 0, 0, 0.10), 0 2px 4px -2px rgba(0, 0, 0, 0.10);
+  --shadow-window: 0 3px 10px rgba(0, 0, 0, 0.28);
+
+  /* ---------- 窗口 Chrome ---------- */
+  --titlebar-native-gap: var(--space-2);
+  /* macOS Overlay 中用 64px 吸收原生绿灯与 DOM 占位边缘差，使两侧实体视觉间距均为 12px。 */
+  --titlebar-native-controls-width: var(--space-16);
+  --titlebar-native-control-size: 16px;
+  --titlebar-text-optical-offset: -1px;
+  --titlebar-block-padding: var(--space-3);
+  --titlebar-height: calc(var(--titlebar-native-control-size) + var(--titlebar-block-padding) + var(--titlebar-block-padding));
+  --update-icon-visual-size: 20px;
+  --titlebar-action-hit-size: 24px;
+  --windows-caption-button-size: var(--space-8);
+  --windows-caption-button-gap: var(--space-1);
+  --windows-caption-edge-padding: var(--space-1);
+  --windows-caption-icon-size: var(--space-4);
+  --about-caption-icon-size: var(--windows-caption-icon-size);
+  /* 16px Phosphor X 在当前 4px Button 边距下的可见右缘约为 15px，据此对齐标题左缘。 */
+  --windows-title-optical-padding: 15px;
+  --window-shadow-inset: 10px;
+  --surface-pressed-mix: 72%;
+  --danger-pressed-mix: 84%;
+
+  /* ---------- 布局与控件几何 ---------- */
+  --padding-window: var(--space-5);
+  --padding-panel: var(--space-3);
+  --padding-control-inline: var(--space-3);
+  --padding-menu: var(--space-1);
+  --padding-dialog: var(--space-4);
+  --padding-overlay: var(--space-6);
+  --control-height: 36px;
+  --installation-item-min-height: var(--space-16);
+  --badge-height: 20px;
+  --badge-padding-inline: var(--space-2);
+  --section-heading-control-gap: var(--space-2);
+  --gap-meta-stack: var(--space-1);
+  --gap-inline: var(--space-2);
+  --gap-section: var(--space-4);
+  --gap-flow: var(--space-5);
+  /* 页面内的紧密动作组统一取 20px 页面 padding 的一半；AlertDialog 仍由自身 16px padding 推导。 */
+  --gap-page-actions: 10px;
+  --folder-icon-size: 18px;
+  --operation-marker-size: var(--space-4);
+  --operation-panel-min-height: 176px;
+  --operation-group-gap: var(--space-2);
+  --operation-marker-gap: var(--space-2);
+  --operation-live-edge-tolerance: var(--space-1);
+  --operation-scroll-edge-tolerance: var(--stroke-hairline);
+  /* shadcn Base Nova ScrollArea 的 w-2.5；组件滚动轨宽，不属于通用间距。 */
+  --operation-scrollbar-size: 10px;
+  /* shadcn Item 有说明时 media translate-y-0.5。 */
+  --operation-marker-description-offset: 2px;
+  /* 紧凑任务视窗覆盖 shadcn fade 深度；边缘显隐由真实 scroll state 控制。 */
+  --operation-scroll-fade-none: 0px;
+  --operation-scroll-fade-size: var(--space-2);
+  /* shadcn 4.19.0 shimmer 默认 20deg、3ch + 40px spread 与 currentColor alpha × 0.2。 */
+  --operation-shimmer-angle: 20deg;
+  --operation-shimmer-axis: 90deg;
+  --operation-shimmer-spread: calc(3ch + var(--space-1) * 10);
+  --operation-shimmer-highlight-alpha: 0.2;
+
+  /* ---------- About 组件契约 ---------- */
+  --about-app-icon-size: calc(var(--space-16) + var(--space-4));
+  --about-link-icon-size: 16px;
+
+  /* ---------- Select 组件契约 ---------- */
+  --select-trigger-content-gap: var(--space-2);
+  --select-trigger-padding-leading: var(--space-3);
+  --select-trigger-padding-trailing: var(--space-3);
+  --select-chevron-size: 16px;
+  --select-popup-max-height: 160px;
+  --select-item-height: 28px;
+  --select-item-padding-block: var(--space-1);
+  --select-item-padding-leading: var(--space-2);
+  --select-item-padding-trailing: var(--space-8);
+  --select-indicator-size: 16px;
+  --select-indicator-inset: var(--space-2);
+
+  /* ---------- Tooltip / Dialog / 辅助交互 ---------- */
+  /* shadcn Base UI Tooltip Positioner 的 sideOffset=4。 */
+  --tooltip-side-offset: var(--space-1);
+  --tooltip-collision-padding: var(--space-2);
+  --tooltip-max-width: 320px;
+  /* shadcn Base Nova Tooltip 的 px-3/py-1.5。 */
+  --tooltip-padding-block: 6px;
+  --tooltip-padding-inline: var(--space-3);
+  /* shadcn Base Nova Tooltip Arrow 的 size-2.5、2px 角与连接偏移。 */
+  --tooltip-arrow-size: 10px;
+  --tooltip-arrow-radius: 2px;
+  --tooltip-arrow-bottom-inset: var(--space-1);
+  --tooltip-arrow-join-offset: 2px;
+  --tooltip-arrow-rotation: 45deg;
+  --tooltip-entry-distance: calc(-1 * var(--space-2));
+  --tooltip-entry-scale: 0.95;
+  /* shadcn Base Toast viewport 固定 inset-4；故意与 20px 主内容网格错层。 */
+  --toast-viewport-inset: var(--space-4);
+  --toast-max-width: 384px;
+  --toast-content-padding: var(--space-4);
+  --toast-content-gap: var(--space-3);
+  --toast-copy-gap: var(--space-1);
+  --toast-stack-gap: var(--space-3);
+  --toast-stack-peek: var(--space-3);
+  --toast-icon-size: var(--space-4);
+  --toast-close-size: var(--space-4);
+  --toast-close-hit-expansion: var(--space-2);
+  --toast-scale-step: 0.1;
+  --toast-entry-distance: 150%;
+  --ease-toast: cubic-bezier(0.22, 1, 0.36, 1);
+  --dialog-width: 320px;
+  --dialog-header-gap: var(--space-2);
+  --dialog-content-gap: var(--space-4);
+  --dialog-actions-gap: var(--space-2);
+  --dialog-backdrop-blur: var(--space-1);
+  --skip-link-top: var(--space-2);
+  --skip-link-left: 80px;
+  --skip-link-padding-block: var(--space-1);
+  --skip-link-padding-inline: var(--space-2);
+  --skip-link-hidden-offset: -150%;
+  --visually-hidden-size: 1px;
+  --visually-hidden-offset: -1px;
+  --focus-offset: 2px;
+
+  /* ---------- 状态与动效 ---------- */
+  --z-titlebar: 5;
+  --z-tooltip: 20;
+  --z-select-popup: 30;
+  --z-toast: 50;
+  --z-skip-link: 100;
+  --opacity-update-disabled: 0.45;
+  --opacity-control-disabled: 0.42;
+  --update-active-scale: 0.94;
+  --pressed-offset: 1px;
+  --duration-window-control: 90ms;
+  --duration-feedback: 120ms;
+  --duration-control: 140ms;
+  --duration-toast-transform: 500ms;
+  --duration-toast-content: 250ms;
+  --duration-toast-height: 150ms;
+  --duration-spinner: 1s;
+  --duration-shimmer: 2s;
+  --duration-message-delta: 40ms;
+  /* 后端不等待这些时序；仅保证人眼至少看见 running，并让相邻 Marker 分开落位。 */
+  --duration-operation-running-min: 360ms;
+  --duration-operation-step-gap: var(--duration-feedback);
+  /* 阻断先在 Activity 中完整落位，再让 AlertDialog 接管注意力；这不是装饰动画，Reduce Motion 不应移除。 */
+  --duration-operation-blocking-dwell: 1200ms;
+  --duration-reduced-motion: 0.01ms;
+  --spinner-turn: 1turn;
+}

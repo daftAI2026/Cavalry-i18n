@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 privilege facade、其按职责拆分的源码树，以及复制、重签、quarantine 与跨平台 restart 边界。
- * [OUTPUT]: 对外提供权限回退、owned Keychain、macOS 签名/不跟随 symlink 的 quarantine 清理与 launch-gate/observe-only/tombstone transaction source contract，及 Windows Known Folder UAC、same-EXE worker 早分流、无控制台 PowerShell、当前会话 SafeHandle 绑定且 exact-PID 可见窗口 oracle 守护的精确进程收尾、45 可重试关闭阻塞、hash-locked loader 与 typed recovery diagnostics contract tests。
+ * [OUTPUT]: 对外提供权限回退、Cavalry owned Keychain patch、无 Switcher journal Keychain HMAC、macOS 签名/不跟随 symlink 的 quarantine 清理与 launch-gate/observe-only/tombstone transaction source contract、Switch/Restore 早期只读 exact-PID admission，及 Windows Known Folder UAC、same-EXE worker 早分流、无控制台 PowerShell、当前会话 SafeHandle 绑定且 exact-PID 可见窗口 oracle 守护的精确进程收尾、45 可重试关闭阻塞、hash-locked loader 与 typed recovery diagnostics contract tests。
  * [POS]: src-tauri/tests 的系统边界守门；审计 facade 与子模块共同满足安全边界，避免文件拆分掩盖 Windows 提权约束。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -647,6 +647,53 @@ fn macos_privilege_has_no_administrator_shell_or_mutable_temp_execution_path() {
     assert!(transaction.contains("retire_and_cleanup_journal"));
     assert!(transaction.contains("observed_bundle_preimages"));
     assert!(transaction.contains("launch_gate_pairs"));
+    assert!(!transaction.contains("journal_auth_key"));
+    assert!(!transaction.contains("get_generic_password"));
+    assert!(transaction.contains("skip_serializing"));
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn macos_switch_and_restore_probe_running_cavalry_before_completed_install_phases() {
+    let manifest_dir = Path::new(env!("CARGO_MANIFEST_DIR"));
+    let apply = fs::read_to_string(manifest_dir.join("src/commands/apply.rs")).unwrap();
+    let runtime = fs::read_to_string(manifest_dir.join("src/platform_runtime.rs")).unwrap();
+    let process = fs::read_to_string(manifest_dir.join("src/privilege/macos/process.rs")).unwrap();
+
+    let early_probe = apply
+        .find("finish_direct_preflight_result(platform_runtime::preflight_apply(")
+        .expect("apply must run the shared process admission");
+    assert_eq!(
+        apply
+            .matches("finish_direct_preflight_result(platform_runtime::preflight_apply(")
+            .count(),
+        2,
+        "one source call is the macOS early admission and one is the non-macOS write preflight"
+    );
+    let pending_recovery = apply
+        .find("recover_macos_apply_for_selection")
+        .expect("apply must retain pending recovery");
+    let verified = apply
+        .find("verify_phase.completed()")
+        .expect("apply must retain the verified phase");
+    assert!(early_probe < pending_recovery && pending_recovery < verified);
+
+    let mac_preflight = runtime
+        .find("privilege::ensure_cavalry_not_running(app_path)")
+        .expect("macOS preflight must be read-only");
+    let windows_preflight = runtime
+        .find("fn preflight_windows_apply_with")
+        .expect("Windows preflight boundary");
+    assert!(mac_preflight < windows_preflight);
+
+    let read_only = process
+        .split("pub(crate) fn ensure_cavalry_not_running")
+        .nth(1)
+        .and_then(|tail| tail.split("pub(crate) fn close_exact_cavalry").next())
+        .expect("read-only and explicit-close process functions must stay separate");
+    assert!(read_only.contains("guard_exact_cavalry_not_running"));
+    assert!(!read_only.contains("termination_command"));
+    assert!(!read_only.contains("app.terminate"));
 }
 
 #[cfg(target_os = "windows")]

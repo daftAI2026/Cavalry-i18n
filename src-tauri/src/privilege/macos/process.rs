@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 InstallLayout、libproc、固定 JXA terminate 请求与 CommandRunner。
- * [OUTPUT]: 提供按 canonical executable/PID 精确关闭 Cavalry、transaction 内复核其已退出，并将 vanished PID 与不可检查错误显式区分。
- * [POS]: macOS 写前进程边界；proc_pidpath/路径解析错误 fail closed，仅 typed vanished PID 可忽略；不按应用名猜测，不强杀可见/未保存进程，不接受动态脚本。
+ * [OUTPUT]: 提供按 canonical executable/PID 的只读运行探针、显式重启场景下的 graceful close、transaction 内复核，并将 vanished PID 与不可检查错误显式区分。
+ * [POS]: macOS 进程边界；普通 Switch/Restore 只读探测并要求用户自行保存退出，只有显式 restart 路径可请求 graceful terminate；proc_pidpath/路径解析错误 fail closed，仅 typed vanished PID 可忽略，不按应用名猜测、不强杀可见/未保存进程、不接受动态脚本。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -102,6 +102,23 @@ pub(crate) fn guard_exact_cavalry_not_running(
         Ok(())
     } else {
         Err(ExactProcessGuardError::StillRunning { pids })
+    }
+}
+
+/// Switch/Restore 的共同 admission：只判断所选 Cavalry 是否仍在运行，不替用户关闭
+/// 创作软件。真正写事务还会在首个 mutation 前再次执行 exact-PID guard，封闭 TOCTOU。
+pub(crate) fn ensure_cavalry_not_running(app_path: &Path) -> Result<(), CloseCavalryError> {
+    let layout = InstallLayout::from_root(app_path);
+    let target = fs::canonicalize(&layout.executable).map_err(|error| {
+        CloseCavalryError::Command(format!(
+            "Could not resolve the selected Cavalry executable {} before the running-process check: {error}",
+            layout.executable.display()
+        ))
+    })?;
+    match guard_exact_cavalry_not_running(&target) {
+        Ok(()) => Ok(()),
+        Err(ExactProcessGuardError::StillRunning { .. }) => Err(CloseCavalryError::StillRunning),
+        Err(ExactProcessGuardError::Inspection(detail)) => Err(CloseCavalryError::Command(detail)),
     }
 }
 

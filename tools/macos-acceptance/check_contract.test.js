@@ -233,7 +233,9 @@ test('each language stage binds the launched executable and loaded Qt runtime th
   assert.match(harness, /verifyIdentity\(machine\.clone\.finalExecutable, 'Final clone executable'\)/);
 });
 
-test('review symlinks fail before an external target can be chmodded', () => {
+test('review symlinks fail before an external target can be chmodded', {
+  skip: process.platform === 'win32' && 'Windows symlink creation requires an optional host privilege',
+}, () => {
   const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-review-boundary-'));
   try {
     const session = path.join(temp, 'session');

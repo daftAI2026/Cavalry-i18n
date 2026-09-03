@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::patch 的 English 内容证明/immutable generation、snapshot provenance、overlay/staging 能力与仓库四语语言包
- * [OUTPUT]: 对外提供 clean-English 逐叶证明、无 manifest legacy English overlay 证明与 immutable generation 迁移、世代指针 crash recovery/revision 失效、无 symlink/component-boundary staging、原始 Unix mode 恢复、已安装版本增量保留与 smoother 四语同构 contract tests
+ * [OUTPUT]: 对外提供 clean-English 逐叶证明、无 manifest legacy English overlay 证明与 immutable generation 迁移、packaged 内容源与本机 Unix mode 权威分离、世代指针 crash recovery/revision 失效、无 symlink/component-boundary staging、原始 Unix mode 恢复、已安装版本增量保留与 smoother 四语同构 contract tests
  * [POS]: src-tauri/tests 的 patch 守门，确保未知安装内容、部分 generation、路径替换或 0600 snapshot store mode 不能污染/切换 English 快照
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -180,6 +180,91 @@ fn legacy_windows_snapshot_without_manifest_migrates_only_after_overlay_proof() 
     .unwrap_err();
     assert!(error.contains("overlay and path gate"));
     assert!(!tampered_state
+        .join("english-snapshots/current.json")
+        .exists());
+}
+
+#[test]
+#[cfg(unix)]
+fn legacy_macos_json_generation_binds_matching_snapshot_and_installed_modes() {
+    fn prepare(root: &Path) -> (std::path::PathBuf, std::path::PathBuf, std::path::PathBuf) {
+        let app = make_complete_asset_app(root);
+        let packaged = root.join("languages/en");
+        let state = root.join("state");
+        for (language_relative, _) in cavalry_i18n_tauri::patch::CORE_MAP {
+            write(&packaged.join(language_relative), br#"{"value":"English"}"#);
+            write(
+                &state.join("en").join(language_relative),
+                br#"{"value":"English"}"#,
+            );
+        }
+        (app, packaged, state)
+    }
+
+    let temp = tempfile::tempdir().unwrap();
+    let (app, packaged, state) = prepare(temp.path());
+    let theme_relative = "Style/theme.json";
+    fs::set_permissions(
+        state.join("en").join(theme_relative),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
+    fs::set_permissions(
+        app.join("Contents/assets").join(theme_relative),
+        fs::Permissions::from_mode(0o755),
+    )
+    .unwrap();
+    assert_eq!(
+        fs::metadata(packaged.join(theme_relative))
+            .unwrap()
+            .permissions()
+            .mode()
+            & 0o777,
+        0o644,
+        "packaged English is a content source, not the vendor mode authority"
+    );
+    let capture = migrate_legacy_english_generation_with_identity(
+        &packaged,
+        &state,
+        &app,
+        "managed-legacy-revision",
+    )
+    .unwrap();
+    assert_eq!(capture.count, cavalry_i18n_tauri::patch::CORE_MAP.len());
+    assert!(validate_english_snapshot_manifest(&state, &app).unwrap());
+    let generation_dir =
+        cavalry_i18n_tauri::patch::english_snapshot_dir(&state, &app, "managed-legacy-revision")
+            .unwrap();
+    let manifest: EnglishSnapshotManifest =
+        serde_json::from_slice(&fs::read(generation_dir.join("manifest.json")).unwrap()).unwrap();
+    assert_eq!(
+        manifest
+            .entries
+            .iter()
+            .find(|entry| entry.language_relative_path == theme_relative)
+            .and_then(|entry| entry.unix_mode),
+        Some(0o755),
+        "the generation must bind the proven local snapshot mode"
+    );
+    assert!(manifest.entries.iter().all(|entry| {
+        entry.language_relative_path == theme_relative || entry.unix_mode == Some(0o644)
+    }));
+
+    let drifted = tempfile::tempdir().unwrap();
+    let (drifted_app, drifted_packaged, drifted_state) = prepare(drifted.path());
+    let drifted_snapshot = drifted_state
+        .join("en")
+        .join(cavalry_i18n_tauri::patch::CORE_MAP[0].0);
+    fs::set_permissions(&drifted_snapshot, fs::Permissions::from_mode(0o600)).unwrap();
+    let error = migrate_legacy_english_generation_with_identity(
+        &drifted_packaged,
+        &drifted_state,
+        &drifted_app,
+        "managed-legacy-mode-drift",
+    )
+    .unwrap_err();
+    assert!(error.contains("mode does not match"), "{error}");
+    assert!(!drifted_state
         .join("english-snapshots/current.json")
         .exists());
 }

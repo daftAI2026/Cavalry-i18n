@@ -1,7 +1,7 @@
 <!--
-[INPUT]: 依赖 Tauri 平台配置、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.2.0 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供本地 ad-hoc 开发包、macOS tag 级 Developer ID+公证 fail-closed 发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Authenticode 另跟踪）
-[POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分开发机 ad-hoc 验证、CI PR 编译门与 tag 可发布产物
+[INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.4.3 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
+[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
+[POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分本地 ad-hoc 验证、CI PR 编译门与带 updater/证据闭包的 ad-hoc tag 产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
@@ -12,8 +12,8 @@
 ## 1. 核心依赖
 
 - Node 依赖：`@tauri-apps/cli`、`@tauri-apps/api` 固定在 `2.10.1`。
-- Rust 依赖：`tauri` 固定在 `2.10.3`，`tauri-build` 固定在 `2.5.6`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。Rust **channel** 由根目录 `rust-toolchain.toml` 固定（当前 `1.97.1`）。
-- Qt bootstrap：`requirements-ci.txt` 固定 `aqtinstall==3.3.0` 及其完整依赖摘要；`prepare:qt-sdk` 创建 ignored 的 repo-local venv 并以 `--require-hashes` 安装，绝不信任全局 aqt。Windows CMake bootstrap 由 `tools/resolve_windows_cmake.js` 消费 `tools/ci_action_pins.json` 中官方 Kitware/CMake v4.2.0 Windows x64 zip 的固定 URL/SHA-256，重新解包，执行 `cmake --version` 并验证 CTest 同包布局；不会消费 runner PATH 中的预装版本。GitHub Actions 全量 pin 见 `tools/ci_action_pins.json`。
+- Rust 依赖：`tauri` 固定在 `2.10.3`，`tauri-build` 固定在 `2.5.6`；`sha2` 同时用于运行时摘要与 build script 发布资源 trust anchor。Rust **channel** 由根目录 `rust-toolchain.toml` 固定（当前 `1.98.0`）。
+- Qt bootstrap：`requirements-ci.txt` 固定 `aqtinstall==3.3.0` 及其完整依赖摘要；`prepare:qt-sdk` 创建 ignored 的 repo-local venv 并以 `--require-hashes` 安装，绝不信任全局 aqt。Windows CMake bootstrap 由 `tools/resolve_windows_cmake.js` 消费 `tools/ci_action_pins.json` 中官方 Kitware/CMake v4.4.3 Windows x64 zip 的固定 URL/SHA-256，重新解包，执行 `cmake --version` 并验证 CTest 同包布局；不会消费 runner PATH 中的预装版本。GitHub Actions 全量 pin 见 `tools/ci_action_pins.json`。
 - Injector 依赖：当前发布目标与 macOS/Windows SDK 投影统一写在 `tools/cavalry_qt_target.json`；本机有 Cavalry.app 时校验其 Qt 版本，clean CI 按同一份配置分别准备 Qt `6.6.3` `clang_64` 或 `msvc2019_64` SDK。macOS 还会验证整个 SDK tree 的 canonical SHA-256（文件内容、目录和 symlink target）；任一下载或安装漂移都 fail-closed。
 
 准备 Qt SDK；原命令在 macOS 保持兼容，Windows 构建使用显式平台入口：
@@ -128,12 +128,8 @@ node tools/verify_release_acceptance_evidence.js \
    - `RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256` 仅作为 GitHub environment variable 保存并与公开 trust policy 一致；对应私钥必须始终留在离线/独立受保护 signer，**不得**保存为 Actions secret、不得暴露给任何候选仓库进程。
    - `RELEASE_SEAL_PUBLIC_KEY_SHA256` 作为另一项 GitHub environment variable 保存，并先通过 `SECURITY.md` 所述独立受保护渠道公开；`RELEASE_SEAL_PRIVATE_KEY` 才是 Actions secret。
    - 两个 fingerprint 必须来自不同 Ed25519 密钥、不同授权角色，并由 `node tools/verify_release_trust_anchors.js` 拒绝缺失或复用；任一密钥轮换/撤销都必须独立发布、复核和更新，不能静默联动。
-   - `APPLE_CERTIFICATE`（base64 PKCS#12）
-   - `APPLE_CERTIFICATE_PASSWORD`
-   - `APPLE_SIGNING_IDENTITY`（`Developer ID Application: ...`，禁止 `-`）
-   - `APPLE_ID`
-   - `APPLE_APP_SPECIFIC_PASSWORD`
-   - `APPLE_TEAM_ID`
+   - `TAURI_SIGNING_PRIVATE_KEY` 是 Tauri Updater 的 Ed25519 私钥；只用于 tag 与显式无 tag signing smoke。
+   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 是上述私钥口令。它与 Apple Developer ID 无关。
 4. 在 evidence-only 提交 T 上创建并推送 tag（T 必须已在 `origin/main`）：
 
 ```bash
@@ -141,12 +137,12 @@ git tag -a cavalry-2.7.2-p12 -m "Cavalry Language Switcher for Cavalry 2.7.2 pat
 git push origin cavalry-2.7.2-p12
 ```
 
-5. Tag 流水线会：复核 T 只有一个父提交 S 且只新增 canonical evidence+attestation 并验签 → 双架构 Developer ID 构建 → 卷宗图标写入后对**最终 DMG 字节**重新 notarize/staple/assess → 生成 `ReleaseAcceptanceSeal.json` / `SHA256SUMS` / provenance → 对 GitHub Release 元数据与全部 sidecar 做幂等摘要复验 → 以 PR 更新 README badge（不直接 push `main`）。
-6. **Windows Authenticode** 不在本 SOP 实现范围内，由维护者单独建 issue。
+5. Tag 流水线会：复核 T 只有一个父提交 S 且只新增 canonical evidence+attestation 并验签 → 双架构 ad-hoc app/DMG 与 Tauri updater archive/signature 构建 → 回读最终 app 的 ad-hoc seal 并验证 updater 闭包 → 生成 `ReleaseAcceptanceSeal.json` / `SHA256SUMS` / provenance，且在 sidecar 中如实声明 `macos: ad-hoc` → 对 GitHub Release 元数据与全部 sidecar 做幂等摘要复验 → 以 PR 更新 README badge（不直接 push `main`）。
+6. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。
 
 ## 4. macOS 标准打包流程
 
-### 4.1 本地 / 开发验证（ad-hoc only）
+### 4.1 macOS ad-hoc 构建
 
 ```bash
 export CSC_IDENTITY_AUTO_DISCOVERY=false
@@ -156,6 +152,47 @@ rm -rf src-tauri/target/release/bundle
 npm run tauri:build
 ```
 
+#### 4.1.1 macOS App Management 用途说明资源闭环（本地验证）
+
+Tauri CLI `2.10.1` 的 macOS schema 将 `bundle.macOS.infoPlist` 定义为可选覆盖路径，并且会自动发现与 `tauri.macos.conf.json` 同目录的 `Info.plist`。本项目采用后者：`src-tauri/Info.plist` 只提供默认英文 `NSAppBundlesUsageDescription`，不把权限逻辑或运行时状态写进 plist。
+
+`InfoPlist.strings` 不能只留在源码目录；Tauri 的 `bundle.macOS.files` 是相对于 `Contents` 的目标映射。因此 `tauri.macos.conf.json` 将四个源文件明确写入：
+
+```text
+src-tauri/en.lproj/InfoPlist.strings       -> Contents/Resources/en.lproj/InfoPlist.strings
+src-tauri/zh-Hans.lproj/InfoPlist.strings  -> Contents/Resources/zh-Hans.lproj/InfoPlist.strings
+src-tauri/zh-Hant.lproj/InfoPlist.strings  -> Contents/Resources/zh-Hant.lproj/InfoPlist.strings
+src-tauri/ja.lproj/InfoPlist.strings       -> Contents/Resources/ja.lproj/InfoPlist.strings
+```
+
+这是打包资源路径的构建合同，不代表任何公开发布或签名状态。完成本地 `.app` 构建后，用 Node 24 对**同一个最终 bundle**做 readback：
+
+```bash
+APP_BUNDLE="$PWD/src-tauri/target/release/bundle/macos/Cavalry Language Switcher.app"
+CAVALRY_I18N_TAURI_APP_BUNDLE="$APP_BUNDLE" \
+  node --test tools/check_tauri_build_sop.js
+
+/usr/libexec/PlistBuddy -c 'Print :NSAppBundlesUsageDescription' \
+  "$APP_BUNDLE/Contents/Info.plist"
+for locale in en zh-Hans zh-Hant ja; do
+  test -f "$APP_BUNDLE/Contents/Resources/$locale.lproj/InfoPlist.strings"
+done
+```
+
+readback 必须同时证明默认 plist 键存在，以及四个 `Contents/Resources/*.lproj/InfoPlist.strings` 都是本轮源码内容；缺任一文件即失败。该命令只读验证本地构建产物，不上传、不打 tag、不创建 GitHub Release。
+
+#### 4.1.2 renderer 视觉验收必须使用新进程
+
+本项目的 renderer 是本地静态 `frontendDist`，不把浏览器 HMR 当作 Tauri WebView 的新鲜度合同。修改 `renderer/*.html`、`renderer/*.css` 或 `renderer/*.js` 后，仅刷新、抢前台或继续观察已有窗口都可能看到旧资源；任何视觉结论和截图前都必须完整结束本项目的 Tauri CLI 与 app 进程，再重新启动：
+
+```bash
+pkill -f 'target/debug/cavalry-i18n-tauri' || true
+pkill -f '/Cavalry-i18n/node_modules/.bin/tauri dev' || true
+npm run tauri:dev
+```
+
+必须看到旧窗口关闭、新进程重新编译并重新打开。截图前用 `pgrep -fal 'cavalry-i18n-tauri|/Cavalry-i18n/node_modules/.bin/tauri dev'` 记录当前进程，并确认其启动发生在本轮 renderer 修改之后。无法证明该顺序时，截图只能标记为 `STALE-RESOURCE-UNVERIFIED`，不得用于 UI 裁决或 packaged/release 证据。
+
 Tauri 配置按“公共合同 + 平台覆盖”拆分：
 
 - `src-tauri/tauri.conf.json` 保存产品标识、版本、renderer、窗口与 capability 等跨平台公共合同。
@@ -163,18 +200,18 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 - `src-tauri/tauri.windows.conf.json` 先执行 `npm run build:injector:windows`，再声明 NSIS、`icon.ico`、`languages` 与 `injector/windows/generic/cavalryi18n.dll`；它不继承 macOS injector、签名或 DMG 行为。
 - macOS dylib 与 Windows generic/QPA DLL 都是对应平台现场生成的中间产物，不纳入 Git 或 source artifact；macOS build artifact 只交付已嵌入 dylib 的 `.app`/DMG，Windows 只交付已嵌入双 DLL 的 NSIS EXE。
 - `app.withGlobalTauri = false`；vanilla bridge 只暴露冻结后的 `window.cavalryI18n`，页面业务代码不能访问全局 Tauri API。
-- main window 外框固定 `480x528`，最小 `420x528`，对应 `480x500` 内容区。
-- `tauri.macos.conf.json` **不硬编码** signing identity；本地/`workflow_dispatch` 显式传入 `APPLE_SIGNING_IDENTITY="-"` 生成 ad-hoc 开发包。
-- **GitHub tag release** 显式传入 Developer ID Application secret，不能被配置文件里的 `-` 覆盖。DMG 卷宗图标脚本会重写容器，因此 tag job 必须在该步骤之后重新提交最终 DMG 给 notary service、staple 并用 `stapler`/`spctl` 双重验证；缺任一 secret、仍为 ad-hoc 或最终 ticket 无效都会 fail-closed。
+- main window 逻辑本体固定 `400x484`，最小本体 `400x484`；Windows 配置中的 `420x504` 只是在本体四边各加 10px transparent compositor 阴影画布，产品最小尺寸和所有视觉对齐均排除这层阴影。内容宽 360px、四边保留 20px；Windows 右侧 About/Minimize/Maximize/Close 统一使用 16px Phosphor Regular，Close 的 32px 点击区保持 4px 右边距，其可见 X 路径距本体右边约 15px，标题左缘据此使用 15px 光学边距。主任务流通常使用 20px 间距，`Switch to` 与其 Select 作为同一字段使用 8px 紧密关系间距，`Switch` / `Restore` 在 360px 内容轨道内以 `170 + 20 + 170` 等宽分配。Switch 不经确认直接进入 fail-before-mutation 事务；Restore、Updater、权限和危险操作使用独立 AlertDialog。主内容结果区是有界 Activity Log，由 `operation-log.css/js` 负责并在自身范围内滚动；主窗口禁止横向与纵向滚动；macOS Overlay 原生标题栏覆盖在同一内容坐标系中，不额外增加 WebView 内容高度，16px 交通灯在 40px 标题栏内上下各留 12px，内容左缘继续与红灯中心线对齐。排印只使用 16/14/13px、400/450/500 和系统字体，间距以 4px token 为默认节奏。AppKit/WindowServer 的 AX/CGWindow 外框可能比逻辑高度多报告 1pt，不能据此改写 Tauri 配置。
+- `tauri.macos.conf.json` **不硬编码** signing identity；本地、`workflow_dispatch` 与当前 tag 均显式传入 `APPLE_SIGNING_IDENTITY="-"`，避免误用 runner 钥匙串身份。
+- **GitHub tag release** 仍要求独立 Tauri updater 私钥，为 `.app.tar.gz`/NSIS 生成客户端可验证的 Ed25519 sidecar；该签名不等于 Apple Developer ID，也不提供 notarization。最终 seal/provenance 必须如实声明 macOS `ad-hoc`，禁止把 updater 签名冒充系统可信分发。
 
-### 4.2 Tag release 签名/公证边界
+### 4.2 Tag release 信任边界
 
 | 触发 | 签名 | 公证 | 可否作为 GitHub Release |
 | --- | --- | --- | --- |
 | 本地 `npm run tauri:build` | ad-hoc `-` | 否 | 否 |
 | PR / main CI | 不打包 DMG / 仅 injector compile | 否 | 否 |
 | `workflow_dispatch` package | ad-hoc 验证 | 否 | 否 |
-| `cavalry-*-p*` tag | Developer ID（secrets） | 是（staple 校验） | 是（另需 acceptance evidence） |
+| `cavalry-*-p*` tag | ad-hoc `-`；Updater 另用 Ed25519 | 否 | 是（另需 acceptance evidence，且 Release 明示未公证） |
 
 ## 5. Windows NSIS 安装包
 
@@ -186,7 +223,7 @@ npm run test:tauri:windows-nsis
 npm run test:acceptance:windows:contract
 ```
 
-第一条命令是唯一 Windows 用户入口：先解析/准备 Qt 6.6.3 `msvc2019_64`，再由 `tauri.windows.conf.json` 的 build hook 通过 `injector/windows/build.ps1` 从当前翻译源重生成共享 C++ 表；build 脚本经 `tools/resolve_windows_cmake.js` 使用官方 CMake 4.2.0 pin，不读取 runner PATH，并完成 plugin configure/build/ctest，随后在真正 bundle 前执行 provenance prepare。CI 还会在双 DLL 构建成功后由 `tools/record_windows_toolchain_evidence.js` 记录 CMake 版本、release URL、archive SHA-256 和实际版本输出。prepare 只删除当前 `package.json` 版本推导出的预期 EXE、同名 sidecar 和受控 intent；任意其他 EXE 或 `.exe.provenance.json` 残留都会失败，不会泛删。随后按固定 `x86_64-pc-windows-msvc` target 生成 `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe`，并立即写入同名 `.exe.provenance.json`：它绑定安装器 SHA-256/长度与当前 renderer、languages、Windows Tauri/Rust/config/Cargo/build 输入、package manifests、Windows native 源码、共享 `cavalry_i18n_translation_policy.h`、生成翻译表及已打包 generic/QPA 双 DLL 的内容 fingerprint，不取 Git HEAD 或 mtime 代替输入事实；安装包记录后单独修改共享 policy 也必须使 verify 失败。
+第一条命令是唯一 Windows 用户入口：先解析/准备 Qt 6.6.3 `msvc2019_64`，再由 `tauri.windows.conf.json` 的 build hook 通过 `injector/windows/build.ps1` 从当前翻译源重生成共享 C++ 表；build 脚本经 `tools/resolve_windows_cmake.js` 使用官方 CMake 4.4.3 pin，不读取 runner PATH，并完成 plugin configure/build/ctest，随后在真正 bundle 前执行 provenance prepare。CI 还会在双 DLL 构建成功后由 `tools/record_windows_toolchain_evidence.js` 记录 CMake 版本、release URL、archive SHA-256 和实际版本输出。prepare 只删除当前 `package.json` 版本推导出的预期 EXE、同名 sidecar 和受控 intent；任意其他 EXE 或 `.exe.provenance.json` 残留都会失败，不会泛删。随后按固定 `x86_64-pc-windows-msvc` target 生成 `src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe`，并立即写入同名 `.exe.provenance.json`：它绑定安装器 SHA-256/长度与当前 renderer、languages、Windows Tauri/Rust/config/Cargo/build 输入、package manifests、Windows native 源码、共享 `cavalry_i18n_translation_policy.h`、生成翻译表及已打包 generic/QPA 双 DLL 的内容 fingerprint，不取 Git HEAD 或 mtime 代替输入事实；安装包记录后单独修改共享 policy 也必须使 verify 失败。
 
 Windows Cargo build 还会由 `src-tauri/build.rs` 枚举四个 `languages/<lang>` 的全部 JSON，并读取已构建的 `cavalryi18n.dll` 与 QPA `qwindows.dll`，把 SHA-256 catalog 编译进 worker。release profile 缺任一 runtime DLL 立即失败；debug 可以编译，但缺失的 runtime 锚会让真实提权 worker fail closed。提权事务先验证近邻包内文件与编译期摘要，再从当前 Cavalry JSON 经 anchored English 和目标语言重建 exact pretty payload，不能信任 plan/staging 自报摘要。因此 CI 在任何 Windows Rust check/test 前必须先运行 `tools/resolve_windows_cmake.js --ensure --print-json`、`prepare:qt-sdk:windows` 与 `build:injector:windows`，并上传 `toolchain-evidence-windows-x64` 作为该 producer 的工具链来源记录。
 
@@ -200,21 +237,32 @@ Switcher 的同版本 `/UPDATE` 重入、Switcher 卸载、普通 Cavalry 退出
 
 该 gate 会真实安装、同版本更新并卸载 **Cavalry Language Switcher 自身**，但不会启动或写入真实 Cavalry；三文件哨兵只是一份独立的临时字节合同，不代表任意用户 Cavalry 安装根都已经实测。它适合 GitHub 临时 Windows 用户；本地运行必须先确保没有已安装的 Cavalry Language Switcher。静态 hooks 无 Cavalry/QPA 写入入口与这次真实 install → 同版本 `/UPDATE` → uninstall 哨兵不变证据共同守住安装器边界，但不能替代真实 Cavalry GUI、Program Files/UAC、任意安装路径或跨版本升级验收。macOS 对应的 `npm run tauri:build` 也显式加载 `tauri.macos.conf.json`，两个平台不会依赖调用机器的隐式配置选择。
 
-Windows **开发机**下限为 Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带 x64 MSVC v143 的 Visual Studio 2022+、由 `tools/resolve_windows_cmake.js` 下载/验证的固定 CMake 4.2.0 与精确 Qt 6.6.3 `msvc2019_64` SDK。CI 与漏洞证据精确固定 Node.js 24.20.0 / npm 11.19.0；本地开发机允许同一 Node 24 LTS 主线的新补丁版。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
+Windows **开发机**下限为 Windows 10 x64、Node.js 24+、PowerShell 5.1+、Python 3、stable MSVC Rust、带 x64 MSVC v143 的 Visual Studio 2022+、由 `tools/resolve_windows_cmake.js` 下载/验证的固定 CMake 4.4.3 与精确 Qt 6.6.3 `msvc2019_64` SDK。CI 与漏洞证据精确固定 Node.js 24.20.0 / npm 11.19.0；本地开发机允许同一 Node 24 LTS 主线的新补丁版。PowerShell 脚本由 `tools/powershell_command.js` 优先交给现有 `pwsh`，不存在时自动回退到系统自带的 Windows PowerShell；不会在脚本真实失败后换壳重跑。Python 命令由 `tools/python_command.js` 按 `PYTHON`、`py -3`、`python` 顺序解析，不要求额外创建 `python3` 别名。最终用户只运行 Windows x64 NSIS 安装器，无需这些开发依赖。
 
-## 6. DMG 增强修饰 (卷宗图标盖章)
+## 6. DMG 增强修饰（卷标与卷宗图标）
 
-Tauri 原生 DMG 配置（`tauri.macos.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸与图标坐标，无需手动干预。
+Tauri 原生 DMG 配置（`tauri.macos.conf.json > bundle > macOS > dmg`）已处理背景图、窗口尺寸、窗口原点与图标坐标，无需手动干预。Finder 的 `.DS_Store` 只保存绝对点坐标，不支持 `50% 50%` 或在挂载时读取用户屏幕；当前 800×476 安装窗采用 `(400, 655)`。这里的数值是 create-dmg 生成期传给 Finder AppleScript 的左上角输入，不是最终屏幕 bounds。成熟参考盘的 `.DS_Store` 将 AppKit `WindowBounds` 保存为 `{{400, -24}, {356, 552}}`；同一 Tauri/create-dmg 脚本在本机输入 `(400, 655)` 后，本项目 `.DS_Store` 同样得到 `{{400, -24}, {800, 476}}`，首次打开再由 Finder 约束为 `(400, 631, 1200, 1107)`。因此它复刻的是“左边界 400、底边贴住当前可见屏幕”的行为，不篡改既有安装窗尺寸与图标布局。它只决定首次打开位置，不阻止用户随后拖动，也不能被描述为每台 Mac 动态居中。若未来必须实现真实逐屏居中，只能改成拥有运行时代码的安装器，而不是继续给纯 DMG 增加脚本副作用。
 
-`src-tauri/icons/icon.png` 是 Tauri 图标源图 contract，必须保持 `1024x1024`、8-bit、RGBA；`32x32.png`、`128x128.png`、`icon.icns`、`icon.ico`、`ios/*` 与 `android/*` 是由 `npx tauri icon` 从源图生成的派生图标。若验证发现尺寸不一致，应恢复 `icon.png` 源图，不得把 `tools/check_tauri_build_sop.js` 改成迁就派生尺寸。
+`src-tauri/icons/icon.png` 是 Tauri 开发态 runtime 与图标生成器共享的源图 contract，必须保持 `512x512`、8-bit、RGBA 和透明圆角；正式 macOS `.app` 读取 `icon.icns`，开发态裸二进制读取 `icon.png`，两者的 512px 解码像素必须同构。此前 `icon.png` 被孤立替换成四角不透明的 1024px 图，导致开发态 Dock 图标显大，但已安装 `.app` 的 `icon.icns` 一直正确；禁止再根据开发态异常重缩放整套正式发布图标。
 
-盖章脚本补充 Tauri 不稳定覆盖的 **卷宗图标嵌入**：
+需要重生成全平台投影时使用：
+
+```bash
+npx tauri icon src-tauri/icons/icon.png --output src-tauri/icons
+cp src-tauri/icons/128x128.png renderer/app-icon.png
+```
+
+第二条命令让 About 精确复用打包图标而非维护另一张品牌资产。`tools/check_tauri_build_sop.js` 验证开发态 `icon.png` 的透明圆角，并要求 About 与 tracked `128x128.png` 字节同源；若失败，应恢复平台投影，不得修改 gate 迁就漂移。
+
+盖章脚本补充 Tauri 未提供的 **发布卷标身份** 与不稳定覆盖的 **卷宗图标嵌入**：
 
 ```bash
 bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg
 ```
 
-该脚本会把 DMG 转为临时可写镜像，挂载后复制 `src-tauri/icons/icon.icns` 为卷宗根目录 `.VolumeIcon.icns`，对挂载卷宗执行 `SetFile -a C`，再压回发布用 UDZO 镜像。这个图标写进 DMG 内部文件系统，裸 `.dmg` 经 GitHub Release 下载后仍可在挂载时生效。
+该脚本会先由 `tools/dmg_volume_identity.js` 从 `package.json` 读取 Switcher SemVer，并从 Tauri DMG 文件名的 `_aarch64` / `_x64` 后缀解析架构。挂载卷标固定为 `Cavalry Switcher <SemVer> <arch>`，例如 `Cavalry Switcher 0.7.0 arm64`；DMG 已经是 macOS 专属容器，因此卷标不重复写 `macOS`，Cavalry 兼容目标仍只属于 Release 标题和发布资产文件名。解析不到受支持架构时必须失败，不能发布身份模糊的镜像。
+
+随后脚本把 DMG 转为临时可写镜像，复制 `src-tauri/icons/icon.icns` 为卷宗根目录 `.VolumeIcon.icns`，对挂载卷宗执行 `SetFile -a C`，再压回发布用 UDZO 镜像。卷标和图标都写进 DMG 内部文件系统，裸 `.dmg` 经 GitHub Release 下载后仍可在挂载时生效。本地 `npm run build:tauri` 与 GitHub Actions macOS producer 调用同一脚本；这不是只写在 CI 中的发布特例。
 
 脚本最后仍会 best-effort 对本机 DMG 文件自身写入 Rez/SetFile resource fork。该外壳图标只对当前 macOS 文件系统可靠，GitHub 上传/下载链路会丢弃 `com.apple.ResourceFork`，不作为发布阻塞项。
 
@@ -230,6 +278,17 @@ npm run test:tauri:dmg-layout
 npm run test:tauri:ui
 npm run test:tauri:manual-smoke
 ```
+
+macOS ignored smoke 的优先输入是只读挂载的官方 Cavalry 2.7.2 DMG，而不是当前可能已经翻译或 ad-hoc 重签的 `/Applications/Cavalry.app`：
+
+```bash
+hdiutil attach /path/to/Cavalry.dmg -nobrowse -readonly -noverify -noautoopen
+CAVALRY_I18N_MACOS_SMOKE_APP="/Volumes/Cavalry/Cavalry.app" \
+  npm run test:tauri:manual-smoke
+hdiutil detach "/Volumes/Cavalry"
+```
+
+`CAVALRY_I18N_MACOS_SMOKE_APP` 必须是绝对 `Cavalry.app` 路径。harness 在任何 mutation 前重验官方版本、English 资产与 bundle identity，把全部写入限制在临时副本，并在三语 live injector capture 后逐字节复核源 bundle 的关键文件未变化；未设置该变量时才兼容回退 `/Applications/Cavalry.app`。任一 Cavalry 进程已存在时拒绝启动，避免把真实用户会话混入证据。
 
 Windows 基线验证：
 
@@ -279,6 +338,8 @@ Windows release acceptance producer：上述 ignored live gate 结束后，Windo
 
 full-surface 门必须把每次 Cavalry launch 的 `APPDATA`/`LOCALAPPDATA` 指向 run-root 下、由 harness 自己创建的 TEMP-owned profile，不继承当前用户登录 profile，也不读取、备份或恢复真实档案；启动前要求 disposable clone 的 `assets/Icons/sign-in-bg.png`、`cavByCanva.png`、`tool_search.png` 为非空普通文件，并把其字节哈希写入 evidence。这样完整 clone 的关键登录窗资源仍有哈希 preflight，GUI 运行时写入只会落在 disposable profile。Onboarding 与 Adjacent 则由 acceptance-only plugin 在任何 driver 创建前调用 `QStandardPaths::setTestModeEnabled(true)`，每语重建 `%LOCALAPPDATA%\qttest\Cavalry` 和 `%APPDATA%\qttest\Cavalry`。Rust 只创建、清理带 `.cavalry-i18n-acceptance-profile` 固定 magic sentinel 的目录，拒绝既有外来目录和任何 reparse 链。此路径不复制或伪造登录态；Onboarding 等真实 `MainDock` 稳定 15 秒后才触发，精确工作区重置框一旦出现即失败，绝不点 `OK`/`Cancel`，前四步 Next 也必须由下一页唯一标题/正文确认后才推进。生产 `--launch-cavalry` 验收仍使用正常启动链并继承当前用户登录 profile，不能与 acceptance test profile 混写。每轮 apply 前后都会重验 containment/reparse 链，但同一用户下的恶意并发换链仍不是被完整消除的 TOCTOU；这里保持 fail-closed 的重复校验，不为理论攻击引入复杂的 handle-relative NT 文件架构。
 
+历史事故约束：2026-07-31 的旧 Onboarding runner 只设置 acceptance 开关却继承真实用户 profile，留下过仅 507 字节、没有任何 `windowType` 树的折叠 `workspace.json`；该文件以 `workspace.cavalry-i18n-collapsed-20260801-213341.json` 保存后，又在 2026-08-27 被测试操作复制回真实 profile，最终表现为 Cavalry 菜单仍在而工作区纯黑。此状态不是当前 generic/QPA 注入器的渲染故障。禁止把任何 `workspace.cavalry-i18n-collapsed-*` 当作 known-good fixture 或写回真实 profile；若人工环境命中同一症状，只能通过 Cavalry 的 Window → Reset to Default Workspace 恢复，正常退出后再核验新 workspace 含完整窗口树。上述 profile 隔离和 sentinel 约束是对此事故的永久修复。
+
 当前环境没有可靠的 Cavalry UI OCR oracle，因此 harness 默认生成的三类 PNG，以及 opt-in 时追加的 Cog Pitch PNG，都只是基础证据，并会明确以 `MANUAL SCREENSHOT REVIEW REQUIRED` 结束，而不是返回虚假的 GUI 翻译绿灯。人工验收还必须逐类显式展开并追加截图：菜单、属性编辑器、合成/自动编号项、所有受控下拉显示项、四条 ExtensionLayer 空状态、Snippet 提示、Viewport Quality 与左下快捷提示（helper）；只有这些表面逐类可见后才能通过。`--no-run` 编译、marker PASS 或主窗截图都不能替代这一步。
 
 打包后检查：
@@ -286,10 +347,10 @@ full-surface 门必须把每次 Cavalry launch 的 `APPDATA`/`LOCALAPPDATA` 指�
 - `.app` 位于 `src-tauri/target/release/bundle/macos/`。
 - DMG 内 `.app` 与从 DMG 拷贝出的安装态 `.app` 都必须包含 `Contents/_CodeSignature/CodeResources`，并通过 `codesign --verify --deep --strict`。
 - DMG 位于 `src-tauri/target/release/bundle/dmg/`。
-- DMG 挂载后必须包含 `.DS_Store`、`.background/background.png`、`.VolumeIcon.icns`、卷宗 custom-icon 标记、`Applications` 链接与 `.app`。
+- DMG 挂载后卷标必须精确等于 `Cavalry Switcher <SemVer> <arch>`，并包含 `.DS_Store`、`.background/background.png`、`.VolumeIcon.icns`、卷宗 custom-icon 标记、`Applications` 链接与 `.app`。
 - `.app/Contents/Resources/` 内包含 `languages` 与 `libCavalryTranslatorInjector.dylib`。
 - 主窗口截图、字体加载状态、核心控件 bounding box、按钮顺序与状态文本必须满足冻结的 Tauri window contract。
 
 ## 8. 当前边界
 
-Tauri 是唯一默认壳与唯一发布路径；macOS 的 bridge、平台配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实三语冒烟都已具备可重跑守门。Windows 当前具备独立配置、Qt generic translator/QPA delegate、原子部署与显式 English 恢复状态机、Node/Rust 合同、NSIS 构建、随机 TEMP 安装/同版本更新/卸载及外部 QPA 哨兵 gate，以及只写显式 disposable clone/evidence 根的三语 PID 窗口截图门；原生入口五路径、Program Files/UAC、跨版本安装器升级与最终三语 GUI 仍需闭环后才能公开发布。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。
+Tauri 是唯一默认壳与唯一发布路径；macOS 的 bridge、平台配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实三语冒烟都已具备可重跑守门。Windows 当前具备独立配置、Qt generic translator/QPA delegate、原子部署与显式 English 恢复状态机、Node/Rust 合同、NSIS 构建、随机 TEMP 安装/同版本更新/卸载及外部 QPA 哨兵 gate、只写显式 disposable clone/evidence 根的三语 PID 窗口截图门，以及真实 Program Files/UAC 下由安装版完成的简中、繁中、日文和 English 恢复主工作区闭环。尚未闭环的是当前 source 的完整 Windows surface matrix 与两个不同公开版本之间的 updater/安装器跨版本升级；它们仍是公开发布前的独立证据债。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。

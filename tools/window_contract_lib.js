@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 macOS osascript/screencapture 与 packaged Tauri binary
- * [OUTPUT]: 对外提供 AX 窗口权限探测、窗口枚举、截图与内容区域尺寸校验辅助函数
+ * [OUTPUT]: 对外提供 AX 窗口权限探测、窗口枚举、400×484 内容截图与尺寸校验辅助函数
  * [POS]: tools 的 Tauri 窗口回归公共层
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,7 +11,7 @@ const path = require('node:path');
 const { spawn, spawnSync } = require('node:child_process');
 
 const repoRoot = path.resolve(__dirname, '..');
-const expectedContentSize = { width: 480, height: 500 };
+const expectedContentSize = { width: 400, height: 484 };
 
 function fail(message) {
   throw new Error(message);
