@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 context 路径/语言源、detect/install/state 与本地 diagnostics 事实流。
- * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、当前语言与目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、运行时、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
- * [POS]: commands 的轻量状态层；启动只回答“安装在哪里、版本是什么、当前语言是什么”，不把后端 crash-safety 或写入前证明投影成产品阻断。
+ * [INPUT]: 依赖 context 路径/语言源、detect/install/state、Windows QPA 只读检查与本地 diagnostics 事实流。
+ * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、当前语言、Windows English runtime 残留提示与目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
+ * [POS]: commands 的轻量状态层；启动回答安装、版本和当前语言，并仅把 English 下本工具拥有或无法证明已清理的 Windows runtime 投影为可执行 Restore，不把 crash-safety 或写入前证明投影成产品阻断。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::path::{Path, PathBuf};
@@ -9,9 +9,11 @@ use std::path::{Path, PathBuf};
 use crate::{
     detect,
     install::InstallLayout,
-    privilege,
     state::{self, State},
 };
+
+#[cfg(target_os = "macos")]
+use crate::privilege;
 
 use super::{
     context::{language_choices_from_roots, language_root_candidates, AppPaths},
@@ -186,6 +188,51 @@ fn read_state_projection(state_dir: &Path) -> State {
     }
 }
 
+#[cfg(target_os = "windows")]
+fn windows_runtime_reconciliation_required(app_path: &Path, current_lang: &str) -> bool {
+    windows_runtime_reconciliation_required_with_inspector(
+        app_path,
+        current_lang,
+        crate::windows_qpa::inspect,
+    )
+}
+
+#[cfg(target_os = "windows")]
+fn windows_runtime_reconciliation_required_with_inspector<F>(
+    app_path: &Path,
+    current_lang: &str,
+    inspect_qpa: F,
+) -> bool
+where
+    F: FnOnce(&InstallLayout) -> Result<crate::windows_qpa::QpaInspection, String>,
+{
+    if app_path.as_os_str().is_empty() || current_lang != "en" {
+        return false;
+    }
+    let Ok(layout) = InstallLayout::from_selection(app_path) else {
+        return false;
+    };
+    let generic = layout
+        .root
+        .join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH);
+    match std::fs::symlink_metadata(generic) {
+        Ok(_) => return true,
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => {}
+        // 无法证明自有 generic 已清理时保留 Restore 入口；真实事务仍会做 hash/ACL
+        // fail-closed 验证，状态投影本身不写安装目录。
+        Err(_) => return true,
+    }
+    match inspect_qpa(&layout) {
+        Ok(inspection) => {
+            inspection.state == crate::windows_qpa::QpaDeploymentState::Active
+                || (inspection.state == crate::windows_qpa::QpaDeploymentState::Recover
+                    && inspection.phase.is_some())
+        }
+        // 只读检查失败不能等价于“已清理”；开放 Restore 让后端事务给出真实裁决。
+        Err(_) => true,
+    }
+}
+
 pub(crate) fn status_for_paths(
     repo_root: &Path,
     state_dir: &Path,
@@ -195,6 +242,11 @@ pub(crate) fn status_for_paths(
     let language_roots = language_root_candidates(repo_root, resource_dir);
     let (app_path, state, version) = observed_state(state_dir, candidates.iter().cloned())?;
     let compatibility = version_compatibility(&version);
+    #[cfg(target_os = "windows")]
+    let reconciliation_required =
+        windows_runtime_reconciliation_required(&app_path, &state.current_lang);
+    #[cfg(not(target_os = "windows"))]
+    let reconciliation_required = false;
     Ok(StatusPayload {
         app_management_granted: None,
         app_path: app_path.to_string_lossy().to_string(),
@@ -213,7 +265,7 @@ pub(crate) fn status_for_paths(
         needs_extract: false,
         permission_action: "none".to_string(),
         platform: platform_name().to_string(),
-        reconciliation_required: false,
+        reconciliation_required,
         repo_root: repo_root.to_string_lossy().to_string(),
         supported_version: detect::SUPPORTED_CAVALRY_VERSION.to_string(),
         version,
@@ -251,6 +303,7 @@ fn record_status_diagnostics(paths: &AppPaths, result: &Result<StatusPayload, St
                 "version": payload.version,
                 "versionCompatibility": payload.version_compatibility,
                 "currentLanguage": payload.current_lang,
+                "reconciliationRequired": payload.reconciliation_required,
                 "proofBoundary": "deferredToLanguageAction",
             })
         }
@@ -372,5 +425,65 @@ mod tests {
         assert_eq!(version_compatibility("2.7.1"), "olderUnsupported");
         assert_eq!(version_compatibility("2.7.3"), "newerUnsupported");
         assert_eq!(version_compatibility("unknown"), "unknownUnsupported");
+    }
+
+    #[cfg(target_os = "windows")]
+    fn qpa_inspection(
+        state: crate::windows_qpa::QpaDeploymentState,
+        phase: Option<crate::windows_qpa::QpaManifestPhase>,
+    ) -> Result<crate::windows_qpa::QpaInspection, String> {
+        Ok(crate::windows_qpa::QpaInspection {
+            state,
+            phase,
+            current_qwindows_sha256: None,
+            detail: "fixture".to_string(),
+        })
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn english_status_keeps_restore_available_for_managed_runtime_residue() {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Cavalry");
+        let generic = app.join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH);
+        std::fs::create_dir_all(generic.parent().unwrap()).unwrap();
+        std::fs::write(&generic, b"managed generic fixture").unwrap();
+        let before = std::fs::read(&generic).unwrap();
+
+        assert!(windows_runtime_reconciliation_required_with_inspector(
+            &app,
+            "en",
+            |_| panic!("generic residue is sufficient; QPA inspection must stay bounded"),
+        ));
+        assert_eq!(std::fs::read(&generic).unwrap(), before);
+
+        std::fs::remove_file(&generic).unwrap();
+        assert!(windows_runtime_reconciliation_required_with_inspector(
+            &app,
+            "en",
+            |_| qpa_inspection(
+                crate::windows_qpa::QpaDeploymentState::Recover,
+                Some(crate::windows_qpa::QpaManifestPhase::Active),
+            ),
+        ));
+        assert!(windows_runtime_reconciliation_required_with_inspector(
+            &app,
+            "en",
+            |_| qpa_inspection(
+                crate::windows_qpa::QpaDeploymentState::Active,
+                Some(crate::windows_qpa::QpaManifestPhase::Active),
+            ),
+        ));
+    }
+
+    #[test]
+    #[cfg(target_os = "windows")]
+    fn status_does_not_probe_runtime_when_language_already_exposes_restore() {
+        let temp = tempfile::tempdir().unwrap();
+        assert!(!windows_runtime_reconciliation_required_with_inspector(
+            temp.path(),
+            "zh-Hans",
+            |_| panic!("translated marker already enables Restore"),
+        ));
     }
 }

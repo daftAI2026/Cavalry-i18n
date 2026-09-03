@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖 command DTO、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
+ * [OUTPUT]: 覆盖 command DTO、启动期 Windows English runtime 残留投影、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
  * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1044,6 +1044,30 @@ fn startup_status_falls_back_to_discovery_when_internal_state_is_unreadable() {
         crate::install::normalize_path(&app).to_string_lossy()
     );
     assert_eq!(status.current_lang, "en");
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn startup_status_exposes_restore_for_english_generic_residue_without_mutation() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let app = make_windows_install(temp.path());
+    write(&app.join(crate::install::LANG_MARKER_NAME), b"en\n");
+    let generic = app.join(crate::windows_qpa::GENERIC_PLUGIN_RELATIVE_PATH);
+    write(&generic, b"managed generic fixture");
+    let before = fs::read(&generic).unwrap();
+
+    let status = status_for_paths(&repo, &state_dir, &resources, vec![app]).unwrap();
+
+    assert_eq!(status.current_lang, "en");
+    assert!(status.reconciliation_required);
+    assert_eq!(
+        fs::read(&generic).unwrap(),
+        before,
+        "startup residue projection must stay read-only"
+    );
 }
 
 #[test]
