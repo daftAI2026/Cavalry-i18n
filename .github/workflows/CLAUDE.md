@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label 并记录实际 runner 身份；PR/main 不接触 updater 私钥，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签；tag 只要求提交已进入 `origin/main` 与既有 Tauri updater 私钥，macOS 生成未公证的 ad-hoc DMG 和 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；release job 以 package SemVer 生成三平台 `latest.json`，provenance 与 SHA256SUMS 精确绑定三项人工安装加六项 updater 资产，private draft 全量逐字节回读后才公开；依赖漏洞、source tar、toolchain、Actions full-SHA 与 badge PR 等既有门保持 fail-closed，Developer ID/notarization 与 Windows Authenticode 均不在当前 workflow 实现。
+build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label 并记录实际 runner 身份；PR/main 不接触 updater 私钥，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签；tag 只要求提交已进入 `origin/main` 与既有 Tauri updater 私钥，macOS 生成未公证的 ad-hoc DMG 和 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；release job 以 package SemVer 生成三平台 `latest.json`，provenance 与 SHA256SUMS 精确绑定三项人工安装加六项 updater 资产，private draft 全量逐字节回读后才公开；npm audit 只对固定 registry 的传输错误做三次有界重试，真实漏洞仍立即失败；source tar、toolchain、Actions full-SHA 与 badge PR 等既有门保持 fail-closed，Developer ID/notarization 与 Windows Authenticode 均不在当前 workflow 实现。
 
 依赖边界:
 workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。唯一当前发布私钥是 Tauri updater key，只通过受保护 Actions secrets 引用且禁止打印；平台身份签名未来独立接入。
@@ -49,5 +49,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-09-03: Windows producer 的官方 CMake archive pin 从 4.2.0 升级到最新稳定版 4.4.3；URL、SHA-256、resolver identity、构建入口、合同测试与工具链证据同步收口，继续拒绝 runner PATH 与 floating 下载。
 2026-08-28: `workflow_dispatch` 增加显式 `updater_signing_smoke`；它复用受保护 updater Secret 和产物 overlay，但仅构建 macOS archive/`.sig` 并以共享配置的内嵌公钥流式验签，release job 仍保持 tag-only，因而可在首个 updater tag 前证明密钥对与口令匹配而不发布。
 2026-09-04: 按最小可信闭环移除 tag 前置 evidence-only commit、acceptance attestation、第二套 release seal 与未配置 runner fingerprint allowlist；固定 runner label/身份记录、完整 CI、Tauri updater Ed25519、SBOM/toolchain、v5 provenance、SHA256SUMS 与 private-draft exact readback 保留。首个 updater-enabled 版本作为人工安装 bootstrap 发布，真实跨版本升级从下一公开 SemVer 验证。
+2026-09-04: npm 官方 advisory endpoint 连续两次五分钟超时后，将 audit 收敛为 60 秒、最多三次的传输错误重试；含漏洞的有效报告不重试且继续立即失败，避免外部短暂网络故障伪装成安全结论或永久卡住发布。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
