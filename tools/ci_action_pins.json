@@ -70,6 +70,6 @@
   },
   "dependencyVulnerabilityGate": {
     "policyFile": "tools/dependency_vulnerability_gate.json",
-    "note": "npm audit fails on any known vulnerable dependency against the fixed registry; cargo-audit uses the immutable RustSec DB commit. Fixed runner labels and recorded ImageOS/ImageVersion preserve traceability without a separately maintained release allowlist."
+    "note": "npm audit fails on any known vulnerable dependency returned by the fixed registry, but registry transport outages are warnings after bounded retry; cargo-audit uses the immutable RustSec DB commit. Fixed runner labels and recorded ImageOS/ImageVersion preserve traceability without a separately maintained release allowlist."
   }
 }

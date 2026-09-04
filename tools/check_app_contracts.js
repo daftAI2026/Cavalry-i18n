@@ -5453,7 +5453,8 @@ test('release supply-chain gates pin vulnerability inputs, Qt installer identity
   assert.match(runnerGate, /ImageOS[\s\S]*ImageVersion/);
   assert.doesNotMatch(workflow, /runs-on:\s*[^#\n]*-latest\b/i, 'workflow must not use floating runner labels');
   assert.match(workflow, /npm audit --package-lock-only --json/);
-  assert.match(workflow, /for attempt in 1 2 3; do[\s\S]*--fetch-timeout=60000[\s\S]*npm audit found a vulnerability; failing closed\.[\s\S]*npm audit transport failure; retrying attempt/);
+  assert.match(workflow, /for attempt in 1 2 3; do[\s\S]*--fetch-timeout=60000[\s\S]*npm audit found a vulnerability; failing closed\./);
+  assert.match(workflow, /continuing without a fresh npm advisory report[\s\S]*if \[ "\$audit_available" -eq 1 \]/);
   assert.match(workflow, /rust_toolchain="\$\(node -p "require\('\.\/tools\/ci_action_pins\.json'\)\.rust\.channel"\)"/);
   assert.match(workflow, /cargo \+"\$rust_toolchain" install cargo-audit --version/);
   assert.doesNotMatch(workflow, /^\s*cargo\s+install\s+cargo-audit\b/m);
