@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 gh CLI、release metadata 环境、三项人工安装资产、六项 updater manifest/archive/signature 资产及全部强制 sidecar
- * [OUTPUT]: 生成声明平台签名现状的 v5 provenance，先创建/恢复 private draft、上传并逐字节回读九项分发资产与四项可复验 sidecar 后才公开；既有 public release 只读复验，冲突/缺件/非 404 查询错误 fail-closed
+ * [INPUT]: 依赖 gh CLI、release metadata 环境、三项人工安装资产、updater manifest/archive/signature 输入及 CI 内部供应链证据
+ * [OUTPUT]: 生成并验证内部 v5 provenance，先创建/恢复 private draft、上传并逐字节回读三项安装包、两项 macOS updater archive、latest.json 与 SHA256SUMS 后才公开；签名 sidecar/SBOM/toolchain/provenance 仅在 CI 内验证
  * [POS]: GitHub Release 幂等发布边界；公开面绝不出现脚本制造的半成品，也不覆盖远端资产或把网络/鉴权失败误判为“不存在”
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -244,14 +244,17 @@ function main() {
     requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_X64'),
     requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64'),
   ];
-  const mandatorySidecars = [
-    'SHA256SUMS',
-    'release-asset-provenance.json',
-    'toolchain-evidence.json',
-    'CycloneDX.json',
-  ];
   const distribution = localAssets(distDir, distributionNames);
-  writeChecksums(distribution, path.join(distDir, 'SHA256SUMS'));
+  const publicDistributionNames = [
+    requireEnv('RELEASE_ASSET_NAME_AARCH64'),
+    requireEnv('RELEASE_ASSET_NAME_X64'),
+    requireEnv('RELEASE_ASSET_NAME_WINDOWS_X64'),
+    requireEnv('RELEASE_UPDATER_MANIFEST_NAME'),
+    requireEnv('RELEASE_UPDATER_ASSET_NAME_AARCH64'),
+    requireEnv('RELEASE_UPDATER_ASSET_NAME_X64'),
+  ];
+  const publicDistribution = localAssets(distDir, publicDistributionNames);
+  writeChecksums(publicDistribution, path.join(distDir, 'SHA256SUMS'));
   const createdAtUtc = git(['show', '-s', '--format=%cI', commitSha]);
   writeProvenance(distribution, path.join(distDir, 'release-asset-provenance.json'), {
     tag,
@@ -264,7 +267,7 @@ function main() {
     path.join(rootDir, 'tools/verify_release_provenance.js'), '--dist', distDir,
     ...distributionNames.flatMap((name) => ['--primary', name]),
   ]);
-  const local = localAssets(distDir, [...distributionNames, ...mandatorySidecars]);
+  const local = localAssets(distDir, [...publicDistributionNames, 'SHA256SUMS']);
   const meta = { tag, commitSha, title, notes };
   const remote = remoteRelease(tag);
   if (remote) {

@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.4.3 archive 与 SHA-256、NSIS provenance/安装态守门、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、九资产 SHA-256/provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
+[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、七项公开资产回读与 CI 内部 provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分本地 ad-hoc 验证、CI PR 编译门与带 updater/证据闭包的 ad-hoc tag 产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -75,7 +75,7 @@ git push origin "$TAG"
 ```
 
 3. Tag 流水线会验证 tag commit 已包含于 `origin/main`，随后在固定平台 label 上重新运行依赖漏洞、合同、Rust/native、Windows NSIS 生命周期与 macOS 打包检查。只有 `release-production` 中既有的 Tauri updater 私钥会进入 tag packaging；普通 build 和验收工具不接触它。
-4. 发布 job 生成两份 DMG、一份 Windows NSIS、三平台 updater archive/signature 与 `latest.json`，再生成 `CycloneDX.json`、`toolchain-evidence.json`、`SHA256SUMS` 和 `release-asset-provenance.json`。发布器先创建 private draft，上传后逐项下载并复算字节；缺件、额外资产、摘要漂移或远端冲突都会停止，全部一致后才公开 Release。
+4. 发布 job 生成两份 DMG、一份 Windows NSIS、两个 macOS updater archive、三平台签名输入与 `latest.json`，并在 CI 内生成 `CycloneDX.json`、`toolchain-evidence.json` 和 `release-asset-provenance.json`。公开 Release 只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 共七项资产；独立 `.sig` 和构建证据仅在 CI 内验证。发布器先创建 private draft，上传后逐项下载并复算这七项公开字节；缺件、额外资产、摘要漂移或远端冲突都会停止，全部一致后才公开。
 5. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。macOS updater 仍由独立 Tauri Ed25519 签名验证，但它不创造 Apple 平台身份。
 
 ## 4. macOS 标准打包流程

@@ -1,5 +1,5 @@
 # [INPUT]: 依赖仓库版本/CHANGELOG/release.config、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、九资产 provenance/SHA256/private-draft exact readback、幂等公开 Release 与非阻断 badge PR
+# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断 badge PR
 # [POS]: .github/workflows 的唯一 CI/CD 编排器；PR/main 保持无 updater 私钥构建，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
@@ -889,13 +889,11 @@ jobs:
             cat <<EOF
           ## Cavalry Language Switcher
 
-          Cavalry Language Switcher 是一个面向 Cavalry ${TARGET_CAVALRY_VERSION} 的 macOS 与 Windows 语言切换工具。它可以把本机已安装的 Cavalry 在 English、简体中文、繁體中文、日本語之间切换，并继续从原来的 Cavalry 应用启动。
-
-          它会处理两类翻译表面：Cavalry 的 JSON 资源文件，以及内置在 Qt/UI 二进制里的菜单、面板、按钮和控件文字。Windows 版动态发现或由用户选择 Cavalry 安装目录，不依赖固定盘符，并部署 Qt generic translator 与原厂 QPA 委托层，让原桌面、开始菜单、任务栏及直接 EXE 启动保持不变；macOS 版 patch 本地 app bundle、安装 runtime injector、重新签名并清理 Gatekeeper quarantine。
+          面向 Cavalry ${TARGET_CAVALRY_VERSION} 的 macOS 与 Windows 语言切换工具，支持 English、简体中文、繁體中文和日本語。
 
           Cavalry Language Switcher 是独立社区工具，不隶属于 Scene Group、Cavalry 或 Canva。
 
-          ## p${RELEASE_PATCH} 更新内容 / Changes
+          ## p${RELEASE_PATCH} 更新内容
           EOF
             cat release-changes.md
             cat <<EOF
@@ -903,18 +901,15 @@ jobs:
           ## 下载
 
           ### macOS
-          - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_AARCH64}) | [Intel 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_X64})
+          - [Apple M 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_AARCH64})
+          - [Intel 芯片](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_X64})
 
           ### Windows
           - [Windows x64](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_WINDOWS_X64})
 
-          ### 校验与 provenance
-          - \`SHA256SUMS\`、\`release-asset-provenance.json\`、\`CycloneDX.json\` 与 \`toolchain-evidence.json\` 随本 Release 一并发布。
-          - macOS DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID 公证；Tauri Updater 下载仍由独立 Ed25519 签名验证。
-          - Windows Authenticode 尚未纳入本流水线（单独 issue 跟踪），请结合 \`SHA256SUMS\` 校验下载完整性。
+          ## macOS 安装说明
 
-          ### macOS 首次打开与更新后处理
-          将应用拖入 Applications 后，如果 macOS 阻止打开，请运行：
+          macOS 版本尚未经过 Apple 公证。将应用拖入 Applications 后，如果系统阻止打开，请运行：
 
           \`\`\`bash
           xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
@@ -922,43 +917,17 @@ jobs:
           open "/Applications/Cavalry Language Switcher.app"
           \`\`\`
 
-          通过应用内更新安装的是新的 app bundle；在没有 Developer ID 公证的阶段，新包可能需要再次执行以上步骤。
+          应用内更新会安装新的 app bundle；在尚未公证的阶段，新包也可能需要再次执行以上步骤。
 
-          ### 从源码本地构建
-          开发者可按仓库内的 \`LOCAL_BUILD_SOP.md\` 从源码本地构建。
+          ## Windows 安装说明
 
-          可把这段话发给你的 AI agent：
+          Windows 可能显示“未知发布者”提示。请确认安装包来自本项目的 GitHub Release。
 
-          \`\`\`text
-          请从源码本地构建 Cavalry Language Switcher：
+          ## 使用说明
 
-          1. 打开仓库 <repository-path>。
-          2. 严格按照 LOCAL_BUILD_SOP.md 执行。
-          3. 运行标准 Tauri build、执行 DMG 卷宗图标盖章，并运行 SOP 里的 packaged checks。
-          4. 完成后告诉我最终 DMG 路径。
-          \`\`\`
-
-          ## 支持语言
-          - English
-          - 简体中文
-          - 繁體中文
-          - 日本語
-
-          ## 使用前须知
-          - 首次应用语言包时，macOS 可能要求授予 App Management 权限。
-          - Windows 版不要求 Cavalry 位于固定盘符；自动检测失败时可在应用内选择安装目录，写入受保护目录时可能请求 UAC 提权。
-          - 建议保留一份干净的 Cavalry 安装包或备份；恢复到完全原始状态时，重新安装 Cavalry 是最稳妥的方式。
-          - 当前 release 同时发布 Windows x64 安装器与 macOS Apple Silicon/Intel 两个 DMG，请按平台和芯片类型下载。
-
-          ## 日本語
-
-          Cavalry Language Switcher は、Cavalry ${TARGET_CAVALRY_VERSION} 向けの macOS / Windows 用言語切り替えツールです。インストール済みの Cavalry を English、簡体字中国語、繁体字中国語、日本語の間で切り替えられます。
-
-          初回適用時に macOS の App Management 権限が求められる場合があります。完全に元の状態へ戻すには、Cavalry を再インストールするのが最も安全です。
-
-          ## English
-
-          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva. macOS assets are ad-hoc signed and not notarized; Tauri updater downloads use an independent Ed25519 signature. Verify downloads with SHA256SUMS and release-asset-provenance.json.
+          - 首次切换语言时，macOS 可能要求授予 App Management 权限。
+          - Windows 会自动查找 Cavalry；没有找到时可以手动选择安装目录。
+          - 恢复到完全原始状态时，可以使用官方安装包重新安装 Cavalry。
           EOF
           } > release-notes.md
 

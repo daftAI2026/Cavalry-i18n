@@ -51,9 +51,9 @@ Windows では、まずローカルのインストールを検出します。見
 
 ## Release からインストール
 
-GitHub Releases からプラットフォームに合うアセットをダウンロードしてください。updater 閉包より前の Release には 3 つの手動インストーラーしかない場合があり、自動更新機能が遡って追加されることはありません。現在の tag pipeline が生成する updater-enabled Release は、`latest.json` と 6 つの updater archive／署名アセットを提供します。macOS DMG は Developer ID 公証ではなく ad-hoc 署名で、updater archive はクライアントに埋め込まれた公開鍵に対応する Tauri updater key で署名されます。`SHA256SUMS`、`CycloneDX.json`、`toolchain-evidence.json`、`release-asset-provenance.json` も公開され、すべての予定アセットをバイト単位で再取得・照合した後に private draft が公開されます。
+GitHub Releases からプラットフォームに合うインストーラーをダウンロードしてください。アプリ内更新対応の Release には `latest.json` と 2 つの macOS updater archive も含まれ、Windows updater は同じインストーラーを再利用します。署名とビルド証拠は CI 内で検証し、ユーザー向けダウンロードには表示しません。
 
-Windows では `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe` をダウンロードして実行します。NSIS インストーラーは language switcher のみをインストールします。エンドユーザーが Python、Rust、Qt、PowerShell 7 を入れる必要はありません。インストール後は検出された Cavalry を選ぶか、現在のユーザーが書き込めるインストールルートを指定してください。Windows Authenticode は別 issue で追跡中です。必ず `SHA256SUMS` を確認してください。
+Windows では `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe` をダウンロードして実行します。NSIS インストーラーは language switcher のみをインストールします。エンドユーザーが Python、Rust、Qt、PowerShell 7 を入れる必要はありません。インストール後は検出された Cavalry を選ぶか、現在のユーザーが書き込めるインストールルートを指定してください。インストーラーはコード署名されていないため、Windows が「不明な発行元」を表示する場合があります。本プロジェクトの GitHub Release から取得したファイルであることを確認してください。
 
 開発者はソースからローカルビルドすることもできます。ローカルビルドは [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) に従い、開発検証用の ad-hoc 署名のみを使い、GitHub Release の代替にはなりません。
 

@@ -51,9 +51,9 @@ On Windows, the app first tries to discover a local installation; if it cannot, 
 
 ## Install From Release
 
-Download the matching release asset from GitHub Releases. On macOS, use the Apple Silicon or Intel DMG. Releases that predate the updater closure may contain only the three manual installers and do not gain automatic-update support retroactively. An updater-enabled release produced by the current tag workflow is identifiable by `latest.json` and the six updater archive/signature assets: macOS DMGs are ad-hoc signed rather than Developer ID notarized, while updater archives are independently signed by the Tauri updater key embedded in the client. The workflow also publishes `SHA256SUMS`, `CycloneDX.json`, `toolchain-evidence.json`, and `release-asset-provenance.json`; publication stays private until every expected asset has been downloaded and compared byte-for-byte.
+Download the matching release asset from GitHub Releases. On macOS, use the Apple Silicon or Intel DMG. Updater-enabled releases also include `latest.json` and two macOS updater archives; the Windows installer is reused by the updater. Signatures and build evidence are verified in CI instead of being exposed as user downloads.
 
-On Windows, download and run `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`. The NSIS installer installs the switcher; it does not require end users to install Python, Rust, Qt, or PowerShell 7. After installation, choose the detected Cavalry copy or browse to a writable installation root. Windows Authenticode signing is tracked separately; always check `SHA256SUMS`.
+On Windows, download and run `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`. The NSIS installer installs the switcher; it does not require end users to install Python, Rust, Qt, or PowerShell 7. After installation, choose the detected Cavalry copy or browse to a writable installation root. Because the installer is not code-signed, Windows may show an unknown-publisher warning. Confirm that it came from this project’s GitHub Release.
 
 Developers can also build locally from source. Local builds follow [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md), use ad-hoc signing for development only, and are not a substitute for GitHub Release assets.
 

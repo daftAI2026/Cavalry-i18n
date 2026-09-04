@@ -51,9 +51,9 @@ macOS 要求这个权限，是因为修改另一个 `.app` bundle 属于受保�
 
 ## 从 Release 安装
 
-请从 GitHub Releases 下载对应平台的资产。早于 updater 闭包的 Release 可能只有三项人工安装包，不会因此自动获得应用内更新能力。由当前 tag 流水线生成的 updater-enabled Release 会同时提供 `latest.json` 与六项 updater archive/签名资产：macOS DMG 使用 ad-hoc 签名而非 Developer ID 公证，updater archive 由客户端内嵌公钥对应的 Tauri updater 密钥签名。流水线还会发布 `SHA256SUMS`、`CycloneDX.json`、`toolchain-evidence.json` 与 `release-asset-provenance.json`；所有预期资产逐字节回读一致后，Release 才会从私有草稿公开。
+请从 GitHub Releases 下载对应平台的安装包。支持应用内更新的 Release 还会包含 `latest.json` 和两个 macOS 更新包；Windows 更新复用同一个安装器。签名和构建证据由 CI 验证，不再作为用户下载项展示。
 
-Windows 请下载并运行 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`。NSIS 安装器只安装语言切换器；最终用户无需安装 Python、Rust、Qt 或 PowerShell 7。安装后选择自动发现到的 Cavalry，或浏览到当前用户可写的安装根。Windows Authenticode 签名另开 issue 跟踪；务必核对 `SHA256SUMS`。
+Windows 请下载并运行 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`。NSIS 安装器只安装语言切换器；最终用户无需安装 Python、Rust、Qt 或 PowerShell 7。安装后选择自动发现到的 Cavalry，或浏览到当前用户可写的安装根。安装器尚未进行代码签名，Windows 可能显示“未知发布者”提示；请确认文件来自本项目的 GitHub Release。
 
 开发者也可以从源码本地构建。本地构建遵循 [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md)，仅使用 ad-hoc 签名供开发验证，不能代替 GitHub Release 分发。
 

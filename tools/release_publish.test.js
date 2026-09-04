@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: release_publish.js、临时人工安装/updater dist/remote 资产与显式 test-only fake gh script
- * [OUTPUT]: 覆盖跨平台 fake、confirmed-404 private draft、上传中断恢复、公开前九项分发资产与四项 sidecar 回读、tag/commit/额外资产/鉴权错误 fail-closed
+ * [OUTPUT]: 覆盖跨平台 fake、confirmed-404 private draft、上传中断恢复、七项用户/updater 公开资产回读、内部 provenance 验证与 tag/commit/额外资产/鉴权错误 fail-closed
  * [POS]: 幂等 GitHub Release draft-to-public 边界的离线对抗测试；绝不解析 PATH 或触碰真实 gh
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -34,6 +34,13 @@ const distribution = [
   metadata.RELEASE_UPDATER_ASSET_NAME_X64,
   metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64,
   metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64,
+];
+const publicAssets = [
+  ...manualAssets,
+  metadata.RELEASE_UPDATER_MANIFEST_NAME,
+  metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64,
+  metadata.RELEASE_UPDATER_ASSET_NAME_X64,
+  'SHA256SUMS',
 ];
 
 function fixture() {
@@ -194,6 +201,7 @@ test('confirmed 404 uses a private draft, publishes only after exact readback, a
     assert.match(calls, /"create"[^\n]*"--draft"[^\n]*"--verify-tag"/);
     assert.match(calls, /"download"/);
     assert.match(calls, /"edit"[^\n]*"--draft=false"/);
+    assert.deepEqual(fs.readdirSync(f.remote).sort(), [...publicAssets].sort());
 
     const provenancePath = path.join(f.dist, 'release-asset-provenance.json');
     const originalProvenance = fs.readFileSync(provenancePath);
@@ -214,7 +222,7 @@ test('confirmed 404 uses a private draft, publishes only after exact readback, a
     assert.notEqual(primaryTamper.status, 0);
     assert.match(primaryTamper.stderr, /conflicts with local bytes/);
     fs.writeFileSync(primaryPath, primaryBytes);
-    fs.writeFileSync(path.join(f.remote, 'release-asset-provenance.json'), 'tampered\n');
+    fs.writeFileSync(path.join(f.remote, 'SHA256SUMS'), 'tampered\n');
     const tampered = run(f, 'existing');
     assert.notEqual(tampered.status, 0);
     assert.match(tampered.stderr, /conflicts with local bytes/);
@@ -255,7 +263,7 @@ test('remote auth failure, unexpected assets, public missing assets, and tag mis
   const incomplete = fixture();
   try {
     assert.equal(run(incomplete, 'missing').status, 0);
-    fs.unlinkSync(path.join(incomplete.remote, 'CycloneDX.json'));
+    fs.unlinkSync(path.join(incomplete.remote, metadata.RELEASE_UPDATER_MANIFEST_NAME));
     const result = run(incomplete, 'existing');
     assert.notEqual(result.status, 0);
     assert.match(result.stderr, /public release is incomplete/);
