@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/合同/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、非阻断 badge 同步、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、非阻断 badge 同步、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2286,9 +2286,14 @@ test('release supply-chain pins, source completeness, and provenance schema are 
   assert.match(readText('SECURITY.md'), /ad-hoc signed and not notarized/);
   assert.match(readText('SECURITY.md'), /Tauri Updater signature/);
   assert.match(readText('.github/CODEOWNERS'), /@singkia/);
-  assert.doesNotMatch(readText('README.md'), /\/Users\/luo\//);
+  for (const readme of ['README.md', 'README.zh-Hans.md', 'README.zh-Hant.md', 'README.ja_JP.md']) {
+    const source = readText(readme);
+    assert.doesNotMatch(source, /\/Users\/luo\//, `${readme} must not expose maintainer-local paths`);
+    assert.match(source, /LOCAL_BUILD_SOP\.md/, `${readme} must route maintainers to the canonical build SOP`);
+    assert.match(source, /releases\/latest/, `${readme} must route users to the current Release`);
+    assert.doesNotMatch(source, /<repository-path>/, `${readme} must not embed an agent prompt template`);
+  }
   assert.doesNotMatch(readText('LOCAL_BUILD_SOP.md'), /\/Users\/luo\//);
-  assert.match(readText('README.md'), /<repository-path>/);
   assert.match(
     workflow,
     /pip install[^\n]*--require-hashes[^\n]*--only-binary=:all:[^\n]*-r requirements-ci\.txt/

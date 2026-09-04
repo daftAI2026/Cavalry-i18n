@@ -3,7 +3,7 @@ HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows ge
 
 <directory>
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
-.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同/原生/漏洞门；tag 以 ad-hoc macOS 包配合独立 Tauri updater 签名，汇合三项人工安装与六项 updater manifest/archive/signature 资产，经 v5 provenance/SHA256/private-draft exact readback 后发布 (YAML)
+.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同/原生/漏洞门；tag 在 CI 内验证三平台 updater 签名与 provenance/SBOM/toolchain，只将三项安装包、两个 macOS updater archive、latest.json 与 SHA256SUMS 七项用户资产逐字节回读并公开 (YAML)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
 docs/ - 公开项目必须的翻译规范、可重复维护 SOP 与 README/Badge 资产；研究、事件簿、实跑记录和历史方案不进入公开仓 (Markdown, JSON, PNG)
 injector/ - macOS DYLD 注入器、Cavalry 2.7.2 TransformTool Mach-O/Skia ABI 防火墙与 Windows Qt generic translator/QPA delegate；共享 policy 区分 8 条跨平台 exact-only 表面和双平台 owner-scoped 邻接 key，Windows 另构建不发布的 acceptance-only generic plugin，以 Qt test profile 隔离登录/工作区并驱动 Onboarding/Tag/Assets 真机证据，各平台 Runner 现场生成不入库的原生库 (C++, Objective-C++)
@@ -18,10 +18,10 @@ output/ - 派生审计产物，保存截图、JSON surface 抓取与翻译草稿
 AGENTS.md - 根级 Agent 行动地图，按 Kumo knowledge base 结构固化查找入口、约定、反模式、命令、流水线、工具链与安全边界
 CHANGELOG.md - SemVer 发布历史与 Unreleased 用户可见变更真相源；tag 正文由 workflow 按版本抽取，不保留会漂移的根目录 release body 快照
 LOCAL_BUILD_SOP.md - 唯一桌面打包与发布操作合同，区分本地验证、ad-hoc tag、Tauri updater 签名和未具备的平台身份，并固定 macOS DMG 文件名与挂载卷标的不同职责
-README.md - 英文主入口，链接三语本地化 README 并描述当前构建、运行与验证路径
-README.zh-Hans.md - 简体中文 README，本地化主文档并保持命令、路径与版本不漂移
-README.zh-Hant.md - 繁体中文 README，本地化主文档并保持命令、路径与版本不漂移
-README.ja_JP.md - 日文 README，本地化主文档并保持命令、路径与版本不漂移
+README.md - 英文主入口，冻结头部/预览/支持/许可证节点，以用户任务为顺序压缩功能、安全、安装、运行与开发说明
+README.zh-Hans.md - 简体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构
+README.zh-Hant.md - 繁体中文 README，与英文入口保持标题结构、用户事实、命令和导航同构
+README.ja_JP.md - 日文 README，与英文入口保持标题结构、用户事实、命令和导航同构
 package.json - 项目元数据与核心构建/测试指令
 package-lock.json - npm 依赖锁定文件，冻结 Tauri CLI 与运行时 API 版本
 release.config.json - GitHub Release 协议真相源，声明 Cavalry 目标版本、tag/标题、三种人工安装资产及 updater manifest/download/archive 的唯一命名；线上更新仍由共享 Tauri 配置中的最终公钥/endpoint 独立启用

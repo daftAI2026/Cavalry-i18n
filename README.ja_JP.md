@@ -22,80 +22,65 @@
 
 ## 機能
 
-- 🎯 **ワンクリック切り替え**：Cavalry を終了し、言語を選んで「切り替える」をクリックすると、完了後に Cavalry が自動で起動します
-- 🍎🪟 **macOS と Windows**：macOS の `Cavalry.app` と Windows の Cavalry インストールルートに対応します
-- 🔌 **プラットフォーム固有のランタイム翻訳**：macOS は `DYLD_INSERT_LIBRARIES`、Windows は小さな vendor QPA delegate の背後で Qt generic translator を使います
-- 📦 **2 つの翻訳サーフェス**：JSON アセットファイルと compiled Qt/UI 文字列を自動で処理します
-- 🧩 **動的 UI 正規化**：shape 名、Attribute Editor フィールド、コロン付きラベル、`No ...` fallback text など、実行時に生成されるラベルを翻訳します
-- 🔑 **macOS の Keychain-safe**：`libExtensionLayer.dylib` にバイナリパッチを適用し、言語切り替え後もログイン認証情報を維持します
-- 🔐 **macOS の署名パス**：パッチ済み bundle を再署名し、Gatekeeper フラグを消して macOS にブロックされないようにします
-- 📍 **Windows の自動検出と手動選択**：既知のインストールを検出し、見つからない場合は `Cavalry.exe` またはインストールフォルダーを選択できます
-- 🛡️ **自動リカバリーベースライン**：最初に英語以外へ切り替える前に、バックエンドが信頼できるベースラインを自動作成または再利用します。作成できない場合はファイルを書き込みません。単一の **「復元」** 操作で公式 English 状態に戻せます。macOS は bundle、runtime、署名を完全に戻し、Windows は vendor QPA を復元して manifest が所有を証明する generic runtime ファイルだけを削除します。
-- 🌐 **4 言語対応**：English、简体中文、繁體中文、日本語
+- **1 ステップの言語切り替え**：Cavalry を終了し、言語を選んで **「切り替える」** を選択します。完了すると Cavalry が自動で開きます。
+- **4 つの UI 言語**：English、简体中文、繁體中文、日本語。
+- **2 つのプラットフォーム**：macOS と Windows x64 上の Cavalry 2.7.2。
+- **UI 全体を翻訳**：JSON アセットと Cavalry の Qt UI に組み込まれたテキストを処理します。
+- **自動検出と復旧**：一般的なインストール先を検出し、現在の言語を表示して、英語へ戻すためのファイルを準備します。
+- **アプリ内更新**：新しい Switcher バージョンを通知し、インストール前に検証します。
 
 ## Switcher ウィンドウ
 
-Switcher は固定の 400×484 px ウィンドウで、ウィンドウ自体はスクロールしません。言語を選び、**「切り替える」** または **「復元」** を選択します。切り替えはすぐに始まり、結果のフィードバックは操作の下に表示されます。
+切り替え先の言語を選び、**「切り替える」** または **「英語に戻す」** を選択します。現在の言語は表示されたままですが再選択はできません。進行状況と復旧案内はボタンの下に表示されます。
 
 ## 安全性と権限
 
-Cavalry-i18n は独立したコミュニティツールです。Scene Group、Cavalry、Canva が制作、承認、提携しているものではありません。
+Cavalry Language Switcher は独立したコミュニティツールであり、Scene Group、Cavalry、Canva とは提携していません。
 
-このプロジェクトは **macOS と Windows x64** をサポートします。macOS では `Cavalry.app` bundle をパッチして再署名します。Windows では選択した Cavalry インストールルートに JSON overlay と hash-locked QPA delegate を適用し、元の `qwindows.dll` を永続バックアップします。デスクトップ、スタートメニュー、タスクバー、直接 EXE の各起動経路は書き換えません。Linux は未対応です。
+Switcher はローカルの Cavalry インストールを変更します。バージョンが未対応、インストールを検証できない、または書き込みが拒否された場合、新しい言語は適用されません。
 
-このツールは、翻訳済みリソースで Cavalry を起動できるように、ローカルの `Cavalry.app` bundle 内のファイルを変更します。macOS では、まず安全なトランザクションを直接実行します。macOS が実際に書き込みを拒否した場合のみ、**システム設定 → プライバシーとセキュリティ → App Management** を開く案内を表示します。Cavalry Language Switcher を許可し、macOS から求められた場合は開き直してから、もう一度「切り替える」をクリックしてください。
+macOS では、まず切り替えを直接試します。macOS が実際に書き込みを拒否した場合にだけ、**システム設定 → プライバシーとセキュリティ → App Management** を開きます。このビルドを信頼できる場合にのみ許可してください。再試行前に Switcher を開き直すよう求められる場合があります。変更後の `Cavalry.app` は、起動できるようローカルで再署名されます。
 
-macOS がこの権限を求めるのは、別の `.app` bundle を変更する操作が保護対象だからです。このビルドを信頼し、ローカルの Cavalry インストールにパッチと再署名が行われ、処理完了後に Cavalry が起動することを理解した場合にのみ許可してください。クリーンな Cavalry インストーラーまたはバックアップを保持してください。未変更の公式 bundle に戻す最も安全な方法は Cavalry を再インストールすることです。
+Windows では、現在のユーザーが書き込めるカスタムインストール先を直接処理します。UAC 昇格はシステムの Program Files 配下にある Cavalry だけに限定されます。不明な DLL は削除も置換もしません。
 
-Windows では、まずローカルのインストールを検出します。見つからない場合は `Cavalry.exe` またはそのインストールフォルダーを手動で選択してください。カスタムパスも利用できますが、現在のユーザーが書き込める必要があります。自動 UAC 昇格は Windows Program Files 配下のインストールだけに限定されます。通常終了と同一バージョン `/UPDATE` は現在の言語を保持します。対話式アンインストールでは「Switcher だけを削除して配置済み翻訳を残す」か、「先に公式 English 状態へ戻し、ハッシュで本プロジェクト所有と証明された generic/QPA runtime を削除する」かを選べます。silent、passive、update uninstall は既定で翻訳を残します。翻訳済み Cavalry の上から vendor installer を再実行した場合、全管理 JSON と正確な vendor QPA が英語状態を証明したときだけ Switcher は English と表示します。**「復元」** で公式 English 状態へ戻せます。manifest が所有を証明する generic/QPA runtime だけを削除し、不明な DLL は削除しません。
+**「英語に戻す」** は Cavalry を英語に戻しますが、以前に変更されたすべてのインストールが新規の公式インストールとバイト単位で同一になるとは保証しません。完全に未変更の公式インストールへ戻すには、公式インストーラーから Cavalry 2.7.2 を再インストールしてください。
 
 ## Release からインストール
 
-GitHub Releases からプラットフォームに合うインストーラーをダウンロードしてください。アプリ内更新対応の Release には `latest.json` と 2 つの macOS updater archive も含まれ、Windows updater は同じインストーラーを再利用します。署名とビルド証拠は CI 内で検証し、ユーザー向けダウンロードには表示しません。
+[GitHub Releases](https://github.com/daftAI2026/Cavalry-i18n/releases/latest) から、Apple M DMG、Intel DMG、Windows x64 NSIS のいずれかをダウンロードします。
 
-Windows では `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe` をダウンロードして実行します。NSIS インストーラーは language switcher のみをインストールします。エンドユーザーが Python、Rust、Qt、PowerShell 7 を入れる必要はありません。インストール後は検出された Cavalry を選ぶか、現在のユーザーが書き込めるインストールルートを指定してください。インストーラーはコード署名されていないため、Windows が「不明な発行元」を表示する場合があります。本プロジェクトの GitHub Release から取得したファイルであることを確認してください。
+macOS 版は ad-hoc 署名で、Apple の公証は受けていません。アプリケーションへドラッグした後、macOS が初回起動をブロックした場合は次を実行します。
 
-開発者はソースからローカルビルドすることもできます。ローカルビルドは [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) に従い、開発検証用の ad-hoc 署名のみを使い、GitHub Release の代替にはなりません。
-
-AI agent にこのプロンプトを渡すこともできます。
-
-```text
-Build Cavalry Language Switcher locally from source:
-
-1. Open the repository at <repository-path>.
-2. Follow LOCAL_BUILD_SOP.md exactly.
-3. Run the standard Tauri build, stamp the DMG icon, and run the packaged checks described in the SOP.
-4. Confirm the final DMG path when done.
+```bash
+xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
+codesign --force --deep --sign - "/Applications/Cavalry Language Switcher.app"
+open "/Applications/Cavalry Language Switcher.app"
 ```
+
+アプリ内更新では新しい app bundle がインストールされるため、同じ手順が再度必要になる場合があります。Windows インストーラーは Authenticode 署名されておらず、「不明な発行元」と表示される場合があります。本プロジェクトの GitHub Release から取得したファイルであることを確認してください。
+
+ソースビルドは [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) に従います。
 
 ## クイックスタート
 
 ```bash
 npm install
-npm run tauri:dev        # 開発モード
-npm run build            # 本番ビルド
-npm run build:tauri      # 本番 DMG + packaged checks
+npm run tauri:dev              # ソースから実行
+npm run build:tauri            # macOS DMG をビルド
+npm run build:tauri:windows    # Windows 上で NSIS をビルド
 ```
 
-Windows 開発ビルド:
-
-```powershell
-npm run build:tauri:windows    # Windows NSIS インストーラー
-```
-
-Windows 開発には Windows 10 x64 以降、Node.js 24+、PowerShell 5.1+、x64 MSVC v143 を含む Visual Studio 2022+、CMake 4.2+ が必要です。ランチャーはインストール済みの `pwsh` を優先し、なければ標準搭載の Windows PowerShell を使用します。
-
-> **注意**：両プラットフォームの injector は、Cavalry 2.7.2 に同梱されている Qt ブランチと一致する Qt 6.6.3 に対してビルドする必要があります。`tools/cavalry_qt_target.json` を唯一のバージョン情報源とし、macOS `clang_64` と Windows `msvc2019_64` へ投影します。clean Windows ビルドでは `npm run prepare:qt-sdk:windows` を使用します。
+リポジトリで固定された Node、Rust、Qt、Python、Windows CMake ツールチェーンを使用してください。プラットフォーム要件とパッケージ検証は [LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) が正本です。
 
 ## 仕組み
 
-1. macOS の `Cavalry.app` を **検出**、または Windows の `Cavalry.exe` インストールルートを検出/選択
-2. 最初に英語以外へ切り替える前に、信頼できるバージョン付きリカバリーベースラインを自動で**作成または再利用**します。検証に失敗した場合は、ファイルを書き込む前に停止します
-3. `languages/` の翻訳 JSON ファイルをアプリの assets に **パッチ適用**
-4. macOS の launcher wrapper と injector、または選択ルートの Windows `generic/cavalryi18n.dll` translator と root QPA delegate を **インストール**
-5. Cavalry を **起動** してプラットフォーム固有の翻訳を読み込む。macOS では bundle の再署名と Gatekeeper quarantine の解除も行う
+1. Cavalry 2.7.2 を検出します。Windows で見つからない場合はユーザーが選択できます。
+2. インストールを検証し、英語へ戻すために必要なファイルを保存または再利用します。
+3. 選択した JSON アセットとプラットフォーム用ランタイム翻訳を適用します。
+4. 言語マーカーを最後に確定します。macOS では変更後の app bundle を再署名します。
+5. 選択した言語で Cavalry を開きます。
 
-このベースラインは管理対象トランザクションを戻すために必要なファイルだけを含み、Cavalry 全体のバックアップではありません。ユーザーが手動で更新する必要もありません。パッチ後も、元の起動パスはそのまま使えます。macOS の launcher wrapper は `DYLD_INSERT_LIBRARIES` を設定します。Windows は native QPA path から同じ翻訳 runtime を読み込み、グローバル環境変数や特定ショートカットには依存しません。通常終了と同一バージョン更新は配置済み翻訳を保持します。**「復元」** は macOS を公式 English bundle、runtime、署名へ完全に戻します。Windows では English アセットと検証済み vendor QPA を戻し、manifest が所有を証明する generic/QPA だけを削除します。不明な DLL は推測も削除もしません。
+Cavalry 本来の起動経路は変わりません。**「英語に戻す」** は同じ管理対象処理を逆向きに実行し、Switcher が所有を証明できるファイルだけを削除します。
 
 ## 対応言語
 
@@ -109,89 +94,49 @@ Windows 開発には Windows 10 x64 以降、Node.js 24+、PowerShell 5.1+、x64
 ## 開発
 
 ```bash
-# ビルド
-npm run build                  # Tauri 本番ビルド
-npm run build:tauri            # フルパイプライン：ビルド + DMG アイコン付与 + packaged check
-npm run build:injector         # libCavalryTranslatorInjector.dylib をコンパイル
-npm run prepare:qt-sdk         # Qt 6.6.3 SDK をダウンロード/解決
-npm run prepare:qt-sdk:windows # Qt 6.6.3 msvc2019_64 を取得/検証
-npm run build:injector:windows # Windows Qt generic translator + QPA delegate をビルド/テスト
-npm run build:tauri:windows    # Windows NSIS インストーラーをビルド
-npm run test:tauri:windows-nsis # provenance を再計算し、インストール、同一バージョン更新、アンインストールを検証
-
-# 開発
-npm run tauri:dev              # Tauri dev server
-npm run check:tauri            # Rust type-check
-
-# テスト
-npm run test:contracts         # Node：app、renderer、bridge、SOP contract tests
-npm run test:tauri             # cargo test（Rust unit + contract tests）
-npm run test:tauri:packaged    # ビルド済みリソース整合性
-npm run test:tauri:ui          # packaged window regression
-npm run check:app              # すべての JS を構文チェック
-npm run check:full-ui          # Full JSON + compiled + runtime UI gate（100%）
+npm run test:contracts         # Renderer、bridge、Release、パッケージの契約
+npm run test:tauri             # Rust テスト
+npm run check:app              # JavaScript 構文
+npm run build:injector         # macOS Qt injector
+npm run build:injector:windows # Windows translator と QPA delegate
 ```
 
-Windows パッケージング後には、同名の `.exe.provenance.json` sidecar が作られます。これはインストーラーのバイト列を、現在の renderer、言語パック、Windows Tauri/Rust 入力、package manifests、2 つの Windows injector DLL に結び付けます。NSIS smoke はインストール前に再計算し、両方が x64 で第 2 の Qt runtime を同梱していないことも検証します。ビルドが削除するのは現在のバージョン用の予期された旧出力だけで、target bundle ディレクトリ内の他の古いインストーラーまたは sidecar は fail-closed になります。
+Qt 6.6.3 は Cavalry 2.7.2 と一致させる必要があります。Release パッケージで可変のツールバージョンを使わず、[LOCAL_BUILD_SOP.md](LOCAL_BUILD_SOP.md) に従ってください。
 
 ## AI / Agent Guide
 
-このリポジトリには、AI agent 向けのナレッジベースがあります。
-
-- `AGENTS.md` — AI coding agent の運用ガイド：project map、conventions、anti-patterns、commands、build pipeline、safety boundaries
-- `CLAUDE.md` — リポジトリルートの architecture map。ルートまたはモジュール構造を変更した場合は更新してください
-- モジュール単位の `CLAUDE.md` — `renderer/`、`src-tauri/`、`tools/`、`docs/` などのローカルマップ
-
-AI agent を使う場合は、コード変更の前に `AGENTS.md`、`CLAUDE.md`、最寄りのモジュール単位 `CLAUDE.md` を読むよう依頼してください。
+コードを変更する前に、[AGENTS.md](AGENTS.md)、[CLAUDE.md](CLAUDE.md)、対象モジュールに最も近い `CLAUDE.md` を確認してください。これらはアーキテクチャ、責務境界、コマンド、ドキュメント規約を定義します。
 
 ## 翻訳サーフェス
 
-このプロジェクトには **2 つ** の翻訳サーフェスがあります。
+プロジェクトは 2 つの翻訳面を扱います。
 
-1. **JSON-backed assets** — `nodeStrings`、`appStrings`、`tips`、`onboarding`、definitions、metadata、guide、style、plugin files。app bundle に直接パッチされます。
-2. **Compiled Qt/UI text** — Cavalry バイナリ内に埋め込まれた menu labels、actions、panel titles、widget text、buttons、tabs。macOS injector または Windows generic translator によってランタイムで翻訳されます。
+1. `languages/` の **JSON アセット**。English ベースラインと同じ構造を保ちます。
+2. `tools/*.ts` と `tools/model_display_translations.json` の **Qt/UI テキスト**。プラットフォーム用ランタイム翻訳へ埋め込みます。
 
-injector は、Cavalry がランタイムで生成する UI text も正規化します。対象には、派生 shape layer names、Attribute Editor labels、colon-suffixed labels、status counts、mixed `No ...` fallback labels が含まれます。これにより、考えられるすべての phrase を静的翻訳テーブルへ詰め込まずに、生成 UI を読みやすく保てます。
-
-Surface 2 は 3 つの形式で追跡します。
-- `~/Library/Caches/Cavalry-i18n/compiled-ui-source-map.json` — 生成された ownership map（JSON vs compiled binary）
-- `tools/*.ts` — Qt Linguist XML translation sources
-- `$SESSION_DIR/runtime/<language>-merged-inventory.json` — injector と accessibility capture からマージされた live runtime UI inventory
-
-```bash
-export SESSION_DIR="$HOME/Library/Caches/Cavalry-i18n/sessions/<session-id>"
-npm run extract:compiled-ui                         # Cavalry.app から source map を更新
-# 各ターゲット言語で Cavalry を起動して capture    # runtime inventories を生成
-npm run check:full-ui                               # Gate：100% 必須
-```
+`injector/generated_translations.inc` は生成物であり、手動編集は禁止です。翻訳規則と実機検証は [docs/translation-guidelines.md](docs/translation-guidelines.md) と [docs/runtime-ui-live-capture-workflow.md](docs/runtime-ui-live-capture-workflow.md) を参照してください。
 
 ## リポジトリ
 
-```
+```text
 Cavalry-i18n/
-├── renderer/                     # UI（vanilla HTML/CSS/JS + Tauri bridge）
-├── injector/                     # Objective-C++ runtime translator + generated table
-├── src-tauri/                    # Tauri v2 shell（Rust）
-│   └── src/
-│       ├── commands.rs           # Tauri IPC commands（business core）
-│       ├── keychain_patch.rs     # Mach-O binary patching
-│       ├── privilege.rs          # system command boundary
-│       └── ...
-├── languages/                    # JSON language packs（en、zh-Hans、zh-Hant、ja_JP）
-├── tools/                        # build、test、coverage scripts、gate contracts
-├── docs/                          # 公開翻訳規約、保守 SOP、画像とバッジデータ
-├── output/                       # derived audit artifacts、JSON surface evidence
-└── .github/workflows/            # CI：contract → packaging → release
+├── renderer/          # Tauri WebView UI
+├── src-tauri/         # Rust コマンドとプラットフォーム処理
+├── injector/          # macOS / Windows Qt ランタイム翻訳
+├── languages/         # English ベースラインと 3 つの JSON 言語パック
+├── tools/             # ビルド、検証、Release ツール
+├── docs/              # 公開規則、再現可能な SOP、画像
+└── .github/workflows/ # CI、プラットフォーム別パッケージ、Release 公開
 ```
 
 ## CI/CD
 
-| Job | Runner | What |
-|-----|--------|------|
-| **build** | ubuntu | 構文チェック、contract tests、translation validation |
-| **windows_check** | windows | Qt generic/QPA の build/test、Rust check、Windows NSIS installer |
-| **package_macos** | macos | Qt SDK preparation、Tauri build、Rust contracts、packaged checks |
-| **release** | ubuntu | `cavalry-*-p*` tags で発火し、2 つの DMG と Windows x64 NSIS EXE を公開 |
+| Job | 役割 |
+| --- | --- |
+| `build` | 構文、契約、翻訳の検証 |
+| `windows_check` | Windows 翻訳、Rust、NSIS ライフサイクル、更新パッケージ |
+| `package_macos` | Apple Silicon / Intel Tauri パッケージと成果物検証 |
+| `release` | `cavalry-*-p*` tag に対する署名付き更新マニフェストと 7 個の公開成果物 |
 
 ## サポート
 

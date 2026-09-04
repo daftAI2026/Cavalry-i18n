@@ -1,6 +1,6 @@
 # CAVALRY-I18N KNOWLEDGE BASE
 
-Last verified: 2026-09-01 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
+Last verified: 2026-09-04 | Target: Cavalry 2.7.2 | Qt: 6.6.3 | Runtime: macOS + Windows x64
 
 ## OVERVIEW
 
@@ -53,7 +53,7 @@ Cavalry-i18n/
 | Full UI gate | `tools/run_live_full_ui_matrix.js`, `tools/check_full_ui_coverage.js`, `docs/runtime-ui-live-capture-workflow.md` | Tracked producers and the public capture SOP define the executable gate; CI does not create live Cavalry evidence. |
 | macOS scoped acceptance | `tools/macos-acceptance/` | Tracked producer for the 21-run/48-point matrix; generated tools and live evidence remain session-scoped. |
 | Runtime capture | `docs/runtime-ui-live-capture-workflow.md`, `tools/capture_accessibility_inventory.js`, `tools/merge_runtime_inventory.js` | Session-scoped provenance is mandatory. |
-| Release protocol | `release.config.json`, `tools/release_metadata.js`, `tools/create_updater_manifest.js`, `tools/release_publish.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` drives title/manual assets; package SemVer drives three-platform `latest.json`; tag publishing signs updater artifacts and exact-readbacks nine distribution assets plus SHA-256/provenance sidecars. Configuration alone never proves a published updater release. |
+| Release protocol | `release.config.json`, `tools/release_metadata.js`, `tools/create_updater_manifest.js`, `tools/release_publish.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` drives title/manual assets; package SemVer drives three-platform `latest.json`; CI verifies detached signatures/provenance/SBOM/toolchain internally, then exact-readbacks seven public installer/updater assets before publication. Configuration alone never proves a published updater release. |
 | Local build | `LOCAL_BUILD_SOP.md`, `src-tauri/tauri.*.conf.json`, `tools/cavalry_qt_target.json` | Tauri-only package path, per-platform Qt build, DMG/NSIS validation. |
 
 ## CONVENTIONS
@@ -213,7 +213,7 @@ Windows packaging follows the same JSON source and generated translation table, 
 | Cavalry target | 2.7.2 | Release tag prefix `cavalry-2.7.2-p` |
 | Python | python3 | Translation validator and `aqtinstall` setup |
 | macOS tools | `codesign`, `hdiutil`, `xattr`, `osascript` | Required for package/sign/quarantine/runtime capture |
-| Windows build tools | Windows 10 x64+, Node.js 24+, PowerShell 5.1+, Visual Studio 2022+ x64 Build Tools with MSVC v143, CMake 4.2+, Qt 6.6.3 `msvc2019_64` | Developer build only; released NSIS users need none of Python/Rust/Qt/PowerShell |
+| Windows build tools | Windows 10 x64+, Node.js 24+, PowerShell 5.1+, Visual Studio 2022+ x64 Build Tools with MSVC v143, pinned CMake 4.4.3, Qt 6.6.3 `msvc2019_64` | Developer build only; released NSIS users need none of Python/Rust/Qt/PowerShell |
 
 ## SECURITY
 
