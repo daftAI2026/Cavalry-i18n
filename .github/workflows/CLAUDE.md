@@ -51,5 +51,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-09-04: 按最小可信闭环移除 tag 前置 evidence-only commit、acceptance attestation、第二套 release seal 与未配置 runner fingerprint allowlist；固定 runner label/身份记录、完整 CI、Tauri updater Ed25519、SBOM/toolchain、v5 provenance、SHA256SUMS 与 private-draft exact readback 保留。首个 updater-enabled 版本作为人工安装 bootstrap 发布，真实跨版本升级从下一公开 SemVer 验证。
 2026-09-04: npm 官方 advisory endpoint 连续两次五分钟超时后，将 audit 收敛为 60 秒、最多三次的传输错误重试；含漏洞的有效报告不重试且继续立即失败，避免外部短暂网络故障伪装成安全结论或永久卡住发布。
 2026-09-04: npm 官方 advisory endpoint 在有界重试后仍持续 503/timeout；传输不可用改为 workflow warning，不再阻断构建与发布，只有服务返回的有效漏洞报告才具有失败权。Python 与固定 RustSec 数据库审计保持原门禁。
+2026-09-04: Windows tag 专用 Tauri build 改为单行 PowerShell 命令，禁止把 Bash `\` 续行符带入默认 `pwsh`，避免 updater 签名步骤在解析参数前失败。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

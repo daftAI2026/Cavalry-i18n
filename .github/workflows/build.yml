@@ -396,10 +396,7 @@ jobs:
           CAVALRY_I18N_EXPECT_UPDATER_SIGNATURE: '1'
         run: |
           npm run prepare:qt-sdk:windows
-          npm run tauri -- build \
-            --target x86_64-pc-windows-msvc \
-            --config src-tauri/tauri.windows.conf.json \
-            --config src-tauri/tauri.updater-artifacts.conf.json
+          npm run tauri -- build --target x86_64-pc-windows-msvc --config src-tauri/tauri.windows.conf.json --config src-tauri/tauri.updater-artifacts.conf.json
           node tools/windows_nsis_provenance.js --record
 
       - name: Install, update, and uninstall the Windows NSIS package

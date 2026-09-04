@@ -1543,7 +1543,11 @@ test('Windows CI runs deterministic dependencies, contracts, Rust tests, and an 
     /src-tauri\/target\/x86_64-pc-windows-msvc\/release\/bundle\/nsis\/\*\.exe\.sig/
   );
   assert.match(job[1], /TAURI_SIGNING_PRIVATE_KEY_PASSWORD/);
-  assert.match(job[1], /--config src-tauri\/tauri\.updater-artifacts\.conf\.json/);
+  assert.match(
+    job[1],
+    /npm run tauri -- build --target x86_64-pc-windows-msvc --config src-tauri\/tauri\.windows\.conf\.json --config src-tauri\/tauri\.updater-artifacts\.conf\.json/,
+    'Windows tag packaging must remain one PowerShell-safe command line'
+  );
   assert.match(job[1], /if-no-files-found:\s*error/);
   // Windows Authenticode is intentionally not implemented here (external issue).
   assert.doesNotMatch(job[1], /signtool|Authenticode|osslsigncode/i);
