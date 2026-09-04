@@ -1,10 +1,12 @@
-# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断 badge PR
-# [POS]: .github/workflows 的唯一 CI/CD 编排器；PR/main 保持无 updater 私钥构建，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
+# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、可测试 CI 变更分类器、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
+# [OUTPUT]: 对外提供始终可结算的必需检查、按文档/合同/依赖/平台风险选择的证据门、每周依赖漏洞复审、平台 Runner 原生构建、NSIS 生命周期、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断 badge PR
+# [POS]: .github/workflows 的唯一 CI/CD 编排器；普通 PR/main 由 classify_ci_changes.js 缩减无关原生 Runner，未知路径 fail-closed，tag/workflow_dispatch 无条件跑完整闭环；普通 CI 不接触 updater 私钥，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
 on:
+  schedule:
+    - cron: '23 3 * * 1'
   workflow_dispatch:
     inputs:
       updater_signing_smoke:
@@ -26,6 +28,60 @@ permissions:
   contents: read
 
 jobs:
+  change_scope:
+    runs-on: ubuntu-24.04
+    outputs:
+      documentation_only: ${{ steps.scope.outputs.documentation_only }}
+      source: ${{ steps.scope.outputs.source }}
+      vulnerability: ${{ steps.scope.outputs.vulnerability }}
+      windows: ${{ steps.scope.outputs.windows }}
+      macos_injector: ${{ steps.scope.outputs.macos_injector }}
+      reason: ${{ steps.scope.outputs.reason }}
+
+    steps:
+      - name: Checkout complete history for change classification
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up pinned Node.js for change classification
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 24.20.0
+
+      - name: Classify required CI evidence
+        id: scope
+        env:
+          CHANGE_EVENT: ${{ github.event_name }}
+          CHANGE_REF: ${{ github.ref }}
+          CHANGE_BASE: ${{ github.event.pull_request.base.sha || github.event.before || github.sha }}
+          CHANGE_HEAD: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          node tools/classify_ci_changes.js \
+            --event "$CHANGE_EVENT" \
+            --ref "$CHANGE_REF" \
+            --base "$CHANGE_BASE" \
+            --head "$CHANGE_HEAD" \
+            --github-output "$GITHUB_OUTPUT"
+
+      - name: Publish CI evidence scope
+        env:
+          SCOPE_REASON: ${{ steps.scope.outputs.reason }}
+          SCOPE_SOURCE: ${{ steps.scope.outputs.source }}
+          SCOPE_VULNERABILITY: ${{ steps.scope.outputs.vulnerability }}
+          SCOPE_WINDOWS: ${{ steps.scope.outputs.windows }}
+          SCOPE_MACOS_INJECTOR: ${{ steps.scope.outputs.macos_injector }}
+        run: |
+          {
+            echo "# CI evidence scope"
+            echo
+            echo "- Reason: $SCOPE_REASON"
+            echo "- Full source contracts: $SCOPE_SOURCE"
+            echo "- Dependency vulnerability gate: $SCOPE_VULNERABILITY"
+            echo "- Windows native gate: $SCOPE_WINDOWS"
+            echo "- macOS injector gate: $SCOPE_MACOS_INJECTOR"
+          } >> "$GITHUB_STEP_SUMMARY"
+
   release_tag_preflight:
     runs-on: ubuntu-24.04
 
@@ -47,7 +103,8 @@ jobs:
         run: echo "Not a Cavalry release tag; ancestry gate is not applicable."
 
   dependency_vulnerability_gate:
-    needs: release_tag_preflight
+    needs: [release_tag_preflight, change_scope]
+    if: needs.change_scope.outputs.vulnerability == 'true'
     runs-on: ubuntu-24.04
 
     steps:
@@ -156,10 +213,15 @@ jobs:
           test "$(git -C "$advisory_db" rev-parse HEAD)" = "$advisory_commit"
 
   build:
-    needs: [release_tag_preflight, dependency_vulnerability_gate]
+    needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
+    if: ${{ always() }}
     runs-on: ubuntu-24.04
 
     steps:
+      - name: Fail if CI scope or required upstream gates did not settle
+        if: ${{ needs.change_scope.result != 'success' || needs.release_tag_preflight.result != 'success' || (needs.dependency_vulnerability_gate.result != 'success' && needs.dependency_vulnerability_gate.result != 'skipped') || ((startsWith(github.ref, 'refs/tags/cavalry-') || github.event_name == 'workflow_dispatch') && (needs.change_scope.outputs.source != 'true' || needs.change_scope.outputs.vulnerability != 'true' || needs.change_scope.outputs.windows != 'true' || needs.change_scope.outputs.macos_injector != 'true')) }}
+        run: exit 1
+
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
@@ -170,23 +232,36 @@ jobs:
           cache: npm
 
       - name: Set up Python
+        if: needs.change_scope.outputs.source == 'true'
         uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065 # v5
         with:
           python-version: '3.12.6'
 
       - name: Record GitHub runner image identity
+        if: needs.change_scope.outputs.source == 'true'
         run: node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04
 
       - name: Install app dependencies
+        if: needs.change_scope.outputs.source == 'true'
         run: npm ci
 
+      - name: Validate public documentation contract
+        if: needs.change_scope.outputs.source != 'true'
+        run: >-
+          node --test
+          --test-name-pattern='README release badges use|public README navigation stays portable'
+          tools/check_tauri_build_sop.js
+
       - name: Validate project version metadata
+        if: needs.change_scope.outputs.source == 'true'
         run: npm run check:version
 
       - name: Validate release protocol
+        if: needs.change_scope.outputs.source == 'true'
         run: npm run check:release
 
       - name: Validate supply-chain pins and source completeness contracts
+        if: needs.change_scope.outputs.source == 'true'
         run: |
           node --check tools/verify_ci_action_pins.js
           node --check tools/verify_source_artifact.js
@@ -199,15 +274,19 @@ jobs:
           node tools/create_toolchain_evidence_bundle.js --check-schema
 
       - name: Validate app contracts
+        if: needs.change_scope.outputs.source == 'true'
         run: npm run test:contracts
 
       - name: Validate app syntax
+        if: needs.change_scope.outputs.source == 'true'
         run: npm run check:app
 
       - name: Prepare translation gate outputs
+        if: needs.change_scope.outputs.source == 'true'
         run: mkdir -p "$RUNNER_TEMP/translation-gates"
 
       - name: Validate translation quality
+        if: needs.change_scope.outputs.source == 'true'
         id: translation_gates
         run: |
           python3 tools/validate_translations.py \
@@ -216,7 +295,7 @@ jobs:
             --markdown-summary "$RUNNER_TEMP/translation-gates/runlog.md"
 
       - name: Publish translation gate summary
-        if: ${{ always() }}
+        if: ${{ always() && needs.change_scope.outputs.source == 'true' }}
         run: |
           if [ -f "$RUNNER_TEMP/translation-gates/runlog.md" ]; then
             cat "$RUNNER_TEMP/translation-gates/runlog.md" >> "$GITHUB_STEP_SUMMARY"
@@ -231,7 +310,7 @@ jobs:
           fi
 
       - name: Upload translation gate report
-        if: ${{ always() }}
+        if: ${{ always() && needs.change_scope.outputs.source == 'true' }}
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: translation-quality-report
@@ -241,7 +320,7 @@ jobs:
             ${{ runner.temp }}/translation-gates/runlog.md
 
       - name: Record full-ui gate status
-        if: ${{ always() }}
+        if: ${{ always() && needs.change_scope.outputs.source == 'true' }}
         run: |
           {
             echo "# Full UI gate"
@@ -251,6 +330,7 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record toolchain evidence
+        if: needs.change_scope.outputs.source == 'true'
         run: |
           created_at="$(git show -s --format=%cI "$GITHUB_SHA")"
           node tools/record_toolchain_evidence.js \
@@ -261,6 +341,7 @@ jobs:
             --output "$RUNNER_TEMP/toolchain-evidence-source-contracts.json"
 
       - name: Upload toolchain evidence
+        if: needs.change_scope.outputs.source == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: toolchain-evidence-source-contracts
@@ -268,6 +349,7 @@ jobs:
           if-no-files-found: error
 
       - name: Stage and verify deterministic source artifact
+        if: needs.change_scope.outputs.source == 'true'
         run: |
           rm -f "$RUNNER_TEMP/cavalry-i18n-source.tar"
           node tools/create_source_artifact.js \
@@ -275,6 +357,7 @@ jobs:
             --output "$RUNNER_TEMP/cavalry-i18n-source.tar"
 
       - name: Upload app source artifact
+        if: needs.change_scope.outputs.source == 'true'
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: cavalry-i18n-tauri-source
@@ -282,19 +365,22 @@ jobs:
           if-no-files-found: error
 
       - name: Download source artifact for round-trip verification
+        if: needs.change_scope.outputs.source == 'true'
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: cavalry-i18n-tauri-source
           path: ${{ runner.temp }}/cavalry-i18n-source-roundtrip
 
       - name: Re-verify downloaded source artifact
+        if: needs.change_scope.outputs.source == 'true'
         run: |
           node tools/verify_source_artifact.js \
             --archive "$RUNNER_TEMP/cavalry-i18n-source-roundtrip/cavalry-i18n-source.tar" \
             --commit "$GITHUB_SHA"
 
   windows_check:
-    needs: [release_tag_preflight, dependency_vulnerability_gate]
+    needs: [release_tag_preflight, change_scope, dependency_vulnerability_gate]
+    if: ${{ always() && needs.change_scope.result == 'success' && needs.release_tag_preflight.result == 'success' && needs.change_scope.outputs.windows == 'true' && (needs.dependency_vulnerability_gate.result == 'success' || needs.dependency_vulnerability_gate.result == 'skipped') }}
     runs-on: windows-2022
     environment:
       name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
@@ -413,8 +499,8 @@ jobs:
           if-no-files-found: error
 
   macos_injector_check:
-    needs: release_tag_preflight
-    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    needs: [release_tag_preflight, change_scope]
+    if: ${{ (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') && needs.change_scope.outputs.macos_injector == 'true' }}
     runs-on: macos-14
 
     steps:
@@ -467,6 +553,51 @@ jobs:
             codesign --verify --strict "$dylib"
             otool -L "$dylib" | grep -F '@rpath/QtCore.framework/Versions/A/QtCore'
           done
+
+  ci_gate:
+    needs: [change_scope, release_tag_preflight, dependency_vulnerability_gate, build, windows_check, macos_injector_check]
+    if: ${{ always() && (github.event_name == 'pull_request' || github.ref == 'refs/heads/main') }}
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Require every selected evidence gate to settle successfully
+        env:
+          SCOPE_RESULT: ${{ needs.change_scope.result }}
+          PREFLIGHT_RESULT: ${{ needs.release_tag_preflight.result }}
+          BUILD_RESULT: ${{ needs.build.result }}
+          EXPECT_VULNERABILITY: ${{ needs.change_scope.outputs.vulnerability }}
+          VULNERABILITY_RESULT: ${{ needs.dependency_vulnerability_gate.result }}
+          EXPECT_WINDOWS: ${{ needs.change_scope.outputs.windows }}
+          WINDOWS_RESULT: ${{ needs.windows_check.result }}
+          EXPECT_MACOS_INJECTOR: ${{ needs.change_scope.outputs.macos_injector }}
+          MACOS_INJECTOR_RESULT: ${{ needs.macos_injector_check.result }}
+        run: |
+          set -euo pipefail
+          require_exact() {
+            local name="$1"
+            local actual="$2"
+            local expected="$3"
+            if [ "$actual" != "$expected" ]; then
+              echo "$name result was $actual; expected $expected." >&2
+              exit 1
+            fi
+          }
+          require_selected() {
+            local name="$1"
+            local selected="$2"
+            local actual="$3"
+            if [ "$selected" = "true" ]; then
+              require_exact "$name" "$actual" success
+            else
+              require_exact "$name" "$actual" skipped
+            fi
+          }
+          require_exact change_scope "$SCOPE_RESULT" success
+          require_exact release_tag_preflight "$PREFLIGHT_RESULT" success
+          require_exact build "$BUILD_RESULT" success
+          require_selected dependency_vulnerability_gate "$EXPECT_VULNERABILITY" "$VULNERABILITY_RESULT"
+          require_selected windows_check "$EXPECT_WINDOWS" "$WINDOWS_RESULT"
+          require_selected macos_injector_check "$EXPECT_MACOS_INJECTOR" "$MACOS_INJECTOR_RESULT"
 
   package_macos:
     needs: [release_tag_preflight, dependency_vulnerability_gate]

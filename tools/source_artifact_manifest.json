@@ -19,6 +19,8 @@
     "requirements-ci.in",
     "requirements-ci.txt",
     "tools/ci_action_pins.json",
+    "tools/classify_ci_changes.js",
+    "tools/classify_ci_changes.test.js",
     "tools/verify_ci_action_pins.js",
     "tools/verify_ci_action_pins.test.js",
     "renderer/index.html",

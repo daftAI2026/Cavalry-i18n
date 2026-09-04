@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/合同/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、非阻断 badge 同步、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/合同/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、非阻断 badge 同步、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1342,6 +1342,16 @@ test('README release badges use a generated Shields endpoint instead of the GitH
   );
 });
 
+test('public README navigation stays portable and points to the supported paths', () => {
+  for (const readme of ['README.md', 'README.zh-Hans.md', 'README.zh-Hant.md', 'README.ja_JP.md']) {
+    const source = readText(readme);
+    assert.doesNotMatch(source, /\/Users\/luo\//, `${readme} must not expose maintainer-local paths`);
+    assert.match(source, /LOCAL_BUILD_SOP\.md/, `${readme} must route maintainers to the canonical build SOP`);
+    assert.match(source, /releases\/latest/, `${readme} must route users to the current Release`);
+    assert.doesNotMatch(source, /<repository-path>/, `${readme} must not embed an agent prompt template`);
+  }
+});
+
 test('project version synchronizer propagates changelog version across npm, Cargo, and Tauri metadata', () => {
   const tempRoot = makeVersionFixture();
   const result = spawnSync(process.execPath, ['tools/sync_project_version.js'], {
@@ -1413,6 +1423,69 @@ test('tauri bundle config preserves the frozen Tauri window contract', () => {
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
   assert.equal(config.bundle.createUpdaterArtifacts, undefined);
   assert.deepEqual(updaterArtifactsConfig.bundle, { createUpdaterArtifacts: true });
+});
+
+test('CI selects evidence by changed-path risk without skipping required workflow checks', () => {
+  const workflow = readText('.github/workflows/build.yml');
+  const scopeJob = workflow.match(
+    /\r?\n  change_scope:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  const dependencyJob = workflow.match(
+    /\r?\n  dependency_vulnerability_gate:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  const buildJob = workflow.match(
+    /\r?\n  build:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  const windowsJob = workflow.match(
+    /\r?\n  windows_check:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+  const aggregateJob = workflow.match(
+    /\r?\n  ci_gate:\r?\n([\s\S]*?)(?=\r?\n  [a-zA-Z_][a-zA-Z0-9_]*:|\s*$)/
+  );
+
+  assert.ok(scopeJob, 'change_scope job missing');
+  assert.ok(dependencyJob, 'dependency_vulnerability_gate job missing');
+  assert.ok(buildJob, 'build job missing');
+  assert.ok(windowsJob, 'windows_check job missing');
+  assert.ok(aggregateJob, 'ci_gate job missing');
+  assert.match(workflow, /schedule:\s*\r?\n\s+- cron: '23 3 \* \* 1'/);
+  assert.doesNotMatch(workflow, /paths-ignore:/, 'whole-workflow path skips can strand required checks');
+  assert.match(scopeJob[1], /fetch-depth:\s*0/);
+  assert.match(scopeJob[1], /node tools\/classify_ci_changes\.js/);
+  assert.match(scopeJob[1], /github\.event\.pull_request\.base\.sha \|\| github\.event\.before/);
+  assert.match(
+    dependencyJob[1],
+    /needs:\s*\[release_tag_preflight, change_scope\][\s\S]*if:\s*needs\.change_scope\.outputs\.vulnerability == 'true'/
+  );
+  assert.match(buildJob[1], /needs:\s*\[release_tag_preflight, change_scope, dependency_vulnerability_gate\]/);
+  assert.match(buildJob[1], /if:\s*\$\{\{ always\(\) \}\}/);
+  assert.match(buildJob[1], /Fail if CI scope or required upstream gates did not settle/);
+  assert.match(
+    buildJob[1],
+    /startsWith\(github\.ref, 'refs\/tags\/cavalry-'\)[\s\S]*needs\.change_scope\.outputs\.source != 'true'[\s\S]*needs\.change_scope\.outputs\.vulnerability != 'true'[\s\S]*needs\.change_scope\.outputs\.windows != 'true'[\s\S]*needs\.change_scope\.outputs\.macos_injector != 'true'/,
+    'tag/manual packaging must fail rather than silently degrade when full-scope classification drifts'
+  );
+  assert.match(
+    buildJob[1],
+    /Validate public documentation contract[\s\S]*if:\s*needs\.change_scope\.outputs\.source != 'true'[\s\S]*--test-name-pattern='README release badges use\|public README navigation stays portable'[\s\S]*tools\/check_tauri_build_sop\.js/
+  );
+  assert.match(
+    buildJob[1],
+    /Install app dependencies[\s\S]*if:\s*needs\.change_scope\.outputs\.source == 'true'[\s\S]*npm ci/
+  );
+  assert.match(
+    windowsJob[1],
+    /needs:\s*\[release_tag_preflight, change_scope, dependency_vulnerability_gate\][\s\S]*needs\.change_scope\.outputs\.windows == 'true'/
+  );
+  assert.match(
+    aggregateJob[1],
+    /needs:\s*\[change_scope, release_tag_preflight, dependency_vulnerability_gate, build, windows_check, macos_injector_check\]/
+  );
+  assert.match(aggregateJob[1], /if:\s*\$\{\{ always\(\)/);
+  assert.match(
+    aggregateJob[1],
+    /require_exact change_scope[\s\S]*require_exact build[\s\S]*require_selected dependency_vulnerability_gate[\s\S]*require_selected windows_check[\s\S]*require_selected macos_injector_check/
+  );
 });
 
 test('tauri macOS package uses ad-hoc signing while tag updater artifacts require the independent Tauri key', () => {
@@ -1592,10 +1665,10 @@ test('PR and main CI compile and link the universal macOS injector without a ven
   );
 
   assert.ok(job, 'macos_injector_check job missing');
-  assert.match(job[1], /needs:\s*release_tag_preflight/);
+  assert.match(job[1], /needs:\s*\[release_tag_preflight, change_scope\]/);
   assert.match(
     job[1],
-    /if:\s*github\.event_name == 'pull_request' \|\| github\.ref == 'refs\/heads\/main'/
+    /if:\s*\$\{\{ \(github\.event_name == 'pull_request' \|\| github\.ref == 'refs\/heads\/main'\) && needs\.change_scope\.outputs\.macos_injector == 'true' \}\}/
   );
   assert.match(job[1], /runs-on:\s*macos-14/);
   assert.match(
@@ -2286,13 +2359,6 @@ test('release supply-chain pins, source completeness, and provenance schema are 
   assert.match(readText('SECURITY.md'), /ad-hoc signed and not notarized/);
   assert.match(readText('SECURITY.md'), /Tauri Updater signature/);
   assert.match(readText('.github/CODEOWNERS'), /@singkia/);
-  for (const readme of ['README.md', 'README.zh-Hans.md', 'README.zh-Hant.md', 'README.ja_JP.md']) {
-    const source = readText(readme);
-    assert.doesNotMatch(source, /\/Users\/luo\//, `${readme} must not expose maintainer-local paths`);
-    assert.match(source, /LOCAL_BUILD_SOP\.md/, `${readme} must route maintainers to the canonical build SOP`);
-    assert.match(source, /releases\/latest/, `${readme} must route users to the current Release`);
-    assert.doesNotMatch(source, /<repository-path>/, `${readme} must not embed an agent prompt template`);
-  }
   assert.doesNotMatch(readText('LOCAL_BUILD_SOP.md'), /\/Users\/luo\//);
   assert.match(
     workflow,

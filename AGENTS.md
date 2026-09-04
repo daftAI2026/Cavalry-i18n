@@ -103,6 +103,7 @@ Cavalry-i18n/
 ### Build and release
 
 - Tauri is the only active desktop shell. Do not restore old Electron/fallback packaging paths.
+- PR/main CI classifies changed paths through `tools/classify_ci_changes.js`: documentation keeps a lightweight check, contract-only changes stay on Ubuntu, dependency/platform changes select their owning gates, unknown source paths fail closed to both native gates, and stable `ci_gate` aggregates every selected/skipped result for branch protection. Never add workflow-level `paths-ignore`; release tags and manual packaging always run the full closure.
 - Internal app version is SemVer in `CHANGELOG.md`, `package.json`, `src-tauri/Cargo.toml`, and `src-tauri/tauri.conf.json`; sync with `npm run sync:version`.
 - Public release tags are `cavalry-2.7.2-pN`, generated against `release.config.json`.
 - The platform injector must be built against Qt 6.6.3 via `npm run build:injector` (macOS) or `npm run build:injector:windows` (Windows) before its Tauri build.
