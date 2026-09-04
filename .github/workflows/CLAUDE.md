@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label 并记录实际 runner 身份；PR/main 不接触 updater 私钥，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签；tag 只要求提交已进入 `origin/main` 与既有 Tauri updater 私钥，macOS 生成未公证的 ad-hoc DMG 和 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；release job 以 package SemVer 生成三平台 `latest.json`，provenance 与 SHA256SUMS 精确绑定三项人工安装加六项 updater 资产，private draft 全量逐字节回读后才公开；npm audit 对固定 registry 的传输错误做三次有界重试，服务不可用只告警，拿到有效漏洞报告时仍立即失败；source tar、toolchain、Actions full-SHA 与 badge PR 等既有门保持 fail-closed，Developer ID/notarization 与 Windows Authenticode 均不在当前 workflow 实现。
+build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label 并记录实际 runner 身份；PR/main 不接触 updater 私钥，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签；tag 只要求提交已进入 `origin/main` 与既有 Tauri updater 私钥，macOS 生成未公证的 ad-hoc DMG 和 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；release job 以 package SemVer 生成三平台 `latest.json`，provenance 与 SHA256SUMS 精确绑定三项人工安装加六项 updater 资产，private draft 全量逐字节回读后才公开；npm audit 对固定 registry 的传输错误做三次有界重试，服务不可用只告警，拿到有效漏洞报告时仍立即失败；source tar、toolchain 与 Actions full-SHA 等发布门保持 fail-closed，公开后的 README badge PR 仅作非阻断同步，Developer ID/notarization 与 Windows Authenticode 均不在当前 workflow 实现。
 
 依赖边界:
 workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。唯一当前发布私钥是 Tauri updater key，只通过受保护 Actions secrets 引用且禁止打印；平台身份签名未来独立接入。
@@ -52,5 +52,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 2026-09-04: npm 官方 advisory endpoint 连续两次五分钟超时后，将 audit 收敛为 60 秒、最多三次的传输错误重试；含漏洞的有效报告不重试且继续立即失败，避免外部短暂网络故障伪装成安全结论或永久卡住发布。
 2026-09-04: npm 官方 advisory endpoint 在有界重试后仍持续 503/timeout；传输不可用改为 workflow warning，不再阻断构建与发布，只有服务返回的有效漏洞报告才具有失败权。Python 与固定 RustSec 数据库审计保持原门禁。
 2026-09-04: Windows tag 专用 Tauri build 改为单行 PowerShell 命令，禁止把 Bash `\` 续行符带入默认 `pwsh`，避免 updater 签名步骤在解析参数前失败。
+2026-09-04: README release badge PR 明确降为公开 Release 之后的非阻断同步；仓库未开放 Actions 创建 PR 权限时只允许该附属步骤告警，不能把已经完整发布并回读验证的 Release 标红。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

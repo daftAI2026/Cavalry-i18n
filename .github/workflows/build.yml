@@ -1,5 +1,5 @@
 # [INPUT]: 依赖仓库版本/CHANGELOG/release.config、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、九资产 provenance/SHA256/private-draft exact readback、幂等公开 Release 与 badge PR
+# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、九资产 provenance/SHA256/private-draft exact readback、幂等公开 Release 与非阻断 badge PR
 # [POS]: .github/workflows 的唯一 CI/CD 编排器；PR/main 保持无 updater 私钥构建，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
@@ -974,6 +974,7 @@ jobs:
             --title "$RELEASE_TITLE"
 
       - name: Open README release badge PR (no direct main push)
+        continue-on-error: true
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
