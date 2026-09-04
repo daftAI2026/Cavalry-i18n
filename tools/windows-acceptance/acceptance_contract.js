@@ -1,6 +1,6 @@
 /**
- * [INPUT]: Windows disposable TEMP session、最终 x64 NSIS/sidecar、安装后 generic/QPA DLL、Cavalry 2.7.2 clone 与三语 live matrix
- * [OUTPUT]: 对外提供 Windows release acceptance session 的 fail-closed 验证与可发布摘要，绑定截图、inventory、进程、安装器和 shipped DLL 字节身份
+ * [INPUT]: Windows disposable TEMP session、共享 windows_nsis_provenance_contract.js、最终 x64 NSIS/sidecar、安装后 generic/QPA DLL、Cavalry 2.7.2 clone 与三语 live matrix
+ * [OUTPUT]: 对外提供 Windows release acceptance session 的 fail-closed 验证与可发布摘要；共享 provenance 结构版本，同时独立复算 fingerprint、安装器与 shipped DLL 字节身份
  * [POS]: tools/windows-acceptance 的共享信任边界；live runner 只能写入 session，release producer 只能从已验证记录派生 PASS，不接受命令行手工 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,6 +11,10 @@ const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const {
+  TARGET_TRIPLE: NSIS_TARGET,
+  validateWindowsNsisProvenance,
+} = require('../windows_nsis_provenance_contract');
 
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
 const SCENARIOS = Object.freeze(['onboarding', 'adjacent']);
@@ -48,7 +52,6 @@ const MATRIX_PROFILES = Object.freeze({
 const SESSION_SENTINEL = '.cavalry-i18n-windows-release-acceptance';
 const SESSION_SENTINEL_MAGIC = 'cavalry-i18n.windows-release-acceptance/v1';
 const CLONE_SENTINEL = '.cavalry-i18n-disposable-smoke';
-const NSIS_TARGET = 'x86_64-pc-windows-msvc';
 const MACHINE_SCHEMA = 'cavalry-i18n.windows-release.machine/v1';
 const REVIEW_SCHEMA = 'cavalry-i18n.windows-release.manual-review/v1';
 const FINAL_SCHEMA = 'cavalry-i18n.windows-release.final/v1';
@@ -319,15 +322,28 @@ function verifyProvenance(provenance, installer, shipped) {
     fail('NSIS provenance sidecar must be adjacent to the final installer.');
   }
   const sidecar = readJson(artifact.path, 'Windows NSIS provenance sidecar');
-  assertExactKeys(sidecar, ['schemaVersion', 'target', 'productName', 'version', 'installer', 'inputFingerprint'], 'provenance');
-  if (sidecar.schemaVersion !== 1 || sidecar.target !== NSIS_TARGET) fail('NSIS provenance target/schema mismatch.');
-  assertString(sidecar.productName, 'provenance.productName');
-  assertString(sidecar.version, 'provenance.version');
-  assertExactKeys(sidecar.installer, ['fileName', 'bytes', 'sha256'], 'provenance.installer');
+  try {
+    validateWindowsNsisProvenance(sidecar);
+  } catch (error) {
+    fail(error.message);
+  }
   if (
     sidecar.installer.fileName !== installer.fileName || sidecar.installer.bytes !== installer.artifact.bytes ||
     sidecar.installer.sha256 !== installer.artifact.sha256
   ) fail('NSIS provenance installer identity does not match the final installer.');
+  const signaturePath = `${installer.artifact.path}.sig`;
+  if (sidecar.updaterSignature === null) {
+    if (fs.existsSync(signaturePath)) fail('NSIS updater signature exists but is not bound by provenance.');
+  } else {
+    const signature = verifyIdentity({
+      path: signaturePath,
+      bytes: sidecar.updaterSignature.bytes,
+      sha256: sidecar.updaterSignature.sha256,
+    }, 'provenance.updaterSignature');
+    if (path.basename(signature.path) !== sidecar.updaterSignature.fileName) {
+      fail('NSIS updater signature filename does not match provenance.');
+    }
+  }
   assertExactKeys(sidecar.inputFingerprint, ['algorithm', 'value', 'files'], 'provenance.inputFingerprint');
   if (sidecar.inputFingerprint.algorithm !== 'sha256' || !Array.isArray(sidecar.inputFingerprint.files) || sidecar.inputFingerprint.files.length < 1) {
     fail('NSIS provenance input fingerprint is incomplete.');

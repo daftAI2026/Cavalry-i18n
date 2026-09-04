@@ -1,6 +1,6 @@
 /**
- * [INPUT]: windows acceptance contract、TEMP disposable clone、合成的最终 NSIS/DLL 与三语矩阵 fixture
- * [OUTPUT]: 证明 Windows release producer 能复验完整现场，并拒绝安装器、DLL、inventory、session 与人工复核篡改
+ * [INPUT]: windows acceptance contract、生产级 Windows NSIS provenance 构造器、TEMP disposable clone、合成的最终 NSIS/DLL 与三语矩阵 fixture
+ * [OUTPUT]: 以 producer→verifier round-trip 证明 Windows release acceptance 接受唯一 provenance schema，并拒绝协议、安装器、DLL、inventory、session 与人工复核篡改
  * [POS]: tools/windows-acceptance 的纯合同回归；不启动 Cavalry、不访问真实 Program Files、不制造可发布现场
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -23,6 +23,10 @@ const {
   validateWindowsAcceptanceRecord,
   verifyWindowsAcceptanceSession,
 } = require('./acceptance_contract');
+const {
+  SCHEMA_VERSION: NSIS_PROVENANCE_SCHEMA_VERSION,
+  createWindowsNsisProvenance,
+} = require('../windows_nsis_provenance_contract');
 
 const SOURCE_COMMIT = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
@@ -60,7 +64,7 @@ function fingerprint(entries) {
     .digest('hex');
 }
 
-function makeSession() {
+function makeSession({ provenanceMutator = null, updaterSignature = false } = {}) {
   // Windows 的 os.tmpdir() 可能使用 8.3 短路径；fixture 必须把根目录固定为
   // verifier 使用的 native canonical 形式，否则测试会在真正的 mutation 断言前失败。
   const temp = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), 'cavalry-windows-release-')));
@@ -74,6 +78,9 @@ function makeSession() {
   const installerName = 'Cavalry Language Switcher_0.7.0_x64-setup.exe';
   const installerPath = path.join(temp, installerName);
   const installer = writeFile(installerPath, 'MZ final NSIS installer fixture\n');
+  const signature = updaterSignature
+    ? writeFile(`${installerPath}.sig`, `${Buffer.from('fixture updater signature').toString('base64')}\n`)
+    : null;
   const genericPath = path.join(temp, 'installed', GENERIC_RELATIVE_PATH);
   const qpaPath = path.join(temp, 'installed', QPA_RELATIVE_PATH);
   const generic = writeFile(genericPath, 'MZ generic shipped DLL fixture\n');
@@ -83,14 +90,16 @@ function makeSession() {
     { path: QPA_RELATIVE_PATH, bytes: qpa.bytes, sha256: qpa.sha256 },
     { path: 'languages/en/appStrings.json', bytes: 4, sha256: crypto.createHash('sha256').update('en\n').digest('hex') },
   ];
-  const provenanceValue = {
-    schemaVersion: 1,
-    target: 'x86_64-pc-windows-msvc',
+  const provenanceValue = createWindowsNsisProvenance({
     productName: 'Cavalry Language Switcher',
     version: '0.7.0',
     installer: { fileName: installerName, bytes: installer.bytes, sha256: installer.sha256 },
+    updaterSignature: signature
+      ? { fileName: `${installerName}.sig`, bytes: signature.bytes, sha256: signature.sha256 }
+      : null,
     inputFingerprint: { algorithm: 'sha256', value: fingerprint(fingerprintFiles), files: fingerprintFiles },
-  };
+  });
+  if (provenanceMutator) provenanceMutator(provenanceValue);
   const provenancePath = `${installerPath}.provenance.json`;
   const provenance = writeJson(provenancePath, provenanceValue);
   const points = EXPECTED_POINTS.map((expected, index) => {
@@ -211,6 +220,9 @@ test('Windows release producer verifies final NSIS, shipped DLLs, clone and 24-p
   const fixture = makeSession();
   try {
     const summary = verifyWindowsAcceptanceSession(fixture.session);
+    const sidecar = JSON.parse(fs.readFileSync(`${fixture.paths.installerPath}.provenance.json`, 'utf8'));
+    assert.equal(sidecar.schemaVersion, NSIS_PROVENANCE_SCHEMA_VERSION);
+    assert.equal(sidecar.updaterSignature, null);
     const record = toWindowsAcceptanceRecord(summary);
     assert.equal(summary.result, 'PASS-24-OF-24');
     assert.equal(summary.matrix, '24-screenshot/24-point');
@@ -221,6 +233,38 @@ test('Windows release producer verifies final NSIS, shipped DLLs, clone and 24-p
     assert.doesNotThrow(() => validateWindowsAcceptanceRecord(record));
   } finally {
     fs.rmSync(fixture.temp, { recursive: true, force: true });
+  }
+});
+
+test('Windows acceptance independently verifies an updater signature declared by provenance', () => {
+  const fixture = makeSession({ updaterSignature: true });
+  try {
+    assert.doesNotThrow(() => verifyWindowsAcceptanceSession(fixture.session));
+    fs.appendFileSync(`${fixture.paths.installerPath}.sig`, 'tamper');
+    assert.throws(
+      () => verifyWindowsAcceptanceSession(fixture.session),
+      /provenance\.updaterSignature\.bytes drifted|provenance\.updaterSignature\.sha256 drifted/
+    );
+  } finally {
+    fs.rmSync(fixture.temp, { recursive: true, force: true });
+  }
+});
+
+test('Windows acceptance rejects provenance that bypasses the shared producer contract', () => {
+  const cases = [
+    ['obsolete schema', (sidecar) => { sidecar.schemaVersion -= 1; }, /target\/schema mismatch/],
+    ['unknown field', (sidecar) => { sidecar.unreviewed = true; }, /keys mismatch/],
+    ['malformed updater signature', (sidecar) => {
+      sidecar.updaterSignature = { fileName: 'foreign.sig', bytes: 4, sha256: 'a'.repeat(64) };
+    }, /must be adjacent to the installer identity/],
+  ];
+  for (const [label, mutate, expected] of cases) {
+    const fixture = makeSession({ provenanceMutator: mutate });
+    try {
+      assert.throws(() => verifyWindowsAcceptanceSession(fixture.session), expected, label);
+    } finally {
+      fs.rmSync(fixture.temp, { recursive: true, force: true });
+    }
   }
 });
 

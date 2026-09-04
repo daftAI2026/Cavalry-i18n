@@ -7,6 +7,7 @@ release_acceptance_seal.schema.json: ReleaseAcceptanceSeal v6 的结构合同；
 release_asset_provenance.schema.json: 公开 ReleaseAssetProvenance v4 的资产与 sidecar 字节身份合同；数组必须由 verifier 与 schema v6 seal 对齐为三项人工安装加六项 updater 分发资产，并如实声明平台签名状态。
 release_toolchain_evidence.schema.json: ReleaseToolchainEvidence 的构建工具链身份合同，供 source/macOS/Windows producer evidence 聚合使用。
 windows_release_acceptance.schema.json: WindowsReleaseAcceptance 原始 session 派生摘要合同；供 Windows producer 与 release evidence/seal verifier 复验 tag/source/session、installer、generic/QPA 和现场矩阵绑定。
+windows_nsis_provenance.schema.json: WindowsNsisProvenance v2 跨 producer/verifier 结构合同；固定 x64 target、安装器、可空 updater signature 与 packaging-input fingerprint 的精确键集合，真实文件和摘要仍由双方代码独立复验。
 source_artifact_manifest.schema.json: source artifact manifest 的 entry、类型、模式与提交身份合同，供源码归档校验使用。
 
 依赖边界:

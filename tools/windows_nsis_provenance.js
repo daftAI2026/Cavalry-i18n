@@ -1,16 +1,20 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 renderer/languages、Windows Tauri/Rust/NSIS/updater overlay、package manifests、共享 translation policy、已编译 generic/QPA 与显式 x64 NSIS 输出
- * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance；普通构建拒绝任意 `.exe.sig`，tag 构建以 intent 要求并绑定 exact Tauri updater signature，同时保持 installer/native 输入与 canonical identity 校验
+ * [INPUT]: 依赖 windows_nsis_provenance_contract.js、renderer/languages、Windows Tauri/Rust/NSIS/updater overlay、package manifests、共享 translation policy、已编译 generic/QPA 与显式 x64 NSIS 输出
+ * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance 与生产文档构造器；普通构建拒绝任意 `.exe.sig`，tag 构建以 intent 要求并绑定 exact Tauri updater signature，同时保持 installer/native 输入与 canonical identity 校验
  * [POS]: tools 的 Windows 打包自证器；构建前只清本版本受控 EXE/provenance/signature，拒绝外国或陈旧输出，构建后封闭人工安装与 updater 共用 NSIS 字节
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const crypto = require('node:crypto');
 const fs = require('node:fs');
 const path = require('node:path');
+const {
+  SCHEMA_VERSION,
+  TARGET_TRIPLE,
+  createWindowsNsisProvenance,
+  validateWindowsNsisProvenance,
+} = require('./windows_nsis_provenance_contract');
 
-const TARGET_TRIPLE = 'x86_64-pc-windows-msvc';
-const SCHEMA_VERSION = 2;
 const INTENT_FILE_NAME = 'cavalry-i18n-windows-nsis-build-intent.json';
 
 function fail(message) {
@@ -427,9 +431,7 @@ function record(repoRoot) {
       sha256: sha256File(signatureFile),
     };
   }
-  const provenance = {
-    schemaVersion: SCHEMA_VERSION,
-    target: TARGET_TRIPLE,
+  const provenance = createWindowsNsisProvenance({
     productName: context.productName,
     version: context.version,
     installer: {
@@ -439,7 +441,7 @@ function record(repoRoot) {
     },
     updaterSignature,
     inputFingerprint: fingerprint,
-  };
+  });
   const provenancePath = sidecarPath(installerPath);
   atomicWriteJson(provenancePath, provenance);
   fs.unlinkSync(currentIntentPath);
@@ -467,6 +469,7 @@ function verify(repoRoot, requestedInstaller) {
     );
   }
   const provenance = readJson(provenancePath, 'Windows NSIS provenance sidecar');
+  validateWindowsNsisProvenance(provenance);
   const expectedSha256 = sha256File(installerPath);
   const fingerprint = collectInputFingerprint(repoRoot);
   const updaterSignatures = listUpdaterSignatureEntries(bundleRoot);
@@ -522,9 +525,11 @@ function main(argv) {
 }
 
 module.exports = {
+  SCHEMA_VERSION,
   TARGET_TRIPLE,
   assertNoReparsePathChain,
   collectInputFingerprint,
+  createWindowsNsisProvenance,
   prepare,
   record,
   verify,

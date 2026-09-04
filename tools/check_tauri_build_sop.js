@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、Windows NSIS provenance/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance 与 PR 级 clean-macOS link gate
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/合同/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -348,6 +348,15 @@ function makeWindowsNsisProvenanceFixture() {
     path.join(repoRoot, 'tools', 'windows_nsis_provenance.js'),
     path.join(tempRoot, 'tools', 'windows_nsis_provenance.js')
   );
+  fs.copyFileSync(
+    path.join(repoRoot, 'tools', 'windows_nsis_provenance_contract.js'),
+    path.join(tempRoot, 'tools', 'windows_nsis_provenance_contract.js')
+  );
+  fs.mkdirSync(path.join(tempRoot, 'tools', 'schemas'), { recursive: true });
+  fs.copyFileSync(
+    path.join(repoRoot, 'tools', 'schemas', 'windows_nsis_provenance.schema.json'),
+    path.join(tempRoot, 'tools', 'schemas', 'windows_nsis_provenance.schema.json')
+  );
   writeJson(path.join(tempRoot, 'package.json'), { name: 'cavalry-i18n', version: '9.8.7' });
   writeJson(path.join(tempRoot, 'package-lock.json'), {
     name: 'cavalry-i18n',
@@ -468,6 +477,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(pkg.scripts['build:dir'], undefined);
   assert.equal(pkg.build, undefined);
   assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance\.js/);
+  assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance_contract\.js/);
   assert.equal(pkg.devDependencies.electron, undefined);
   assert.equal(pkg.devDependencies['electron-builder'], undefined);
   assert.equal(pkg.scripts['prepare:qt-sdk'], 'node tools/resolve_cavalry_qt_sdk.js --ensure');
