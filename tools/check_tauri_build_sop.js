@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/合同/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、release-seals schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/合同/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
  * [OUTPUT]: 对外提供 Tauri-only 发布协议、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、commit 绑定 acceptance evidence/asset seal、source 完整性、Actions/toolchain pin、幂等 release、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry/acceptance、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -1066,16 +1066,7 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     /git fetch --no-tags origin \+refs\/heads\/main:refs\/remotes\/origin\/main[\s\S]*git merge-base --is-ancestor "\$GITHUB_SHA" refs\/remotes\/origin\/main/,
     'tag builds must fail closed unless the tag commit is already contained in origin/main'
   );
-  assert.match(
-    preflightJob[1],
-    /node tools\/verify_release_acceptance_evidence\.js[\s\S]*--tag "\$GITHUB_REF_NAME"[\s\S]*--release-commit "\$GITHUB_SHA"[\s\S]*--check-tag-topology/,
-    'tag preflight must fail closed unless an evidence-only tag commit binds its live-tested source parent'
-  );
-  assert.match(
-    preflightJob[1],
-    /--check-tag-topology[\s\S]*--require-windows/,
-    'tag preflight must require Windows acceptance when publishing a Windows artifact'
-  );
+  assert.doesNotMatch(preflightJob[1], /acceptance|attestation|release[_-]seal/i);
   for (const jobName of ['build', 'windows_check', 'package_macos']) {
     const job = workflow.match(
       new RegExp(`\\r?\\n  ${jobName}:\\r?\\n([\\s\\S]*?)(?=\\r?\\n  [a-zA-Z_][a-zA-Z0-9_]*:|\\s*$)`)
@@ -1088,11 +1079,7 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     );
   }
   assert.match(releaseJob[1], /needs:\s*\[release_tag_preflight,/);
-  assert.match(
-    releaseJob[1],
-    /node tools\/verify_release_acceptance_evidence\.js[\s\S]*--check-tag-topology[\s\S]*--require-windows/,
-    'release must re-verify the Windows acceptance binding before sealing assets'
-  );
+  assert.doesNotMatch(releaseJob[1], /RELEASE_SEAL|ACCEPTANCE_ATTESTATION|ReleaseAcceptanceSeal/);
   assert.doesNotMatch(
     releaseJob[1],
     /merge-base --is-ancestor/,
@@ -1216,11 +1203,8 @@ test('tag release publishes manual installers plus the signed three-platform upd
   assert.match(releaseJob[1], /find dist -type f -name '\*\.dmg'/);
   assert.match(releaseJob[1], /create_updater_manifest\.js/);
   assert.match(releaseJob[1], /--darwin-aarch64[\s\S]*--darwin-x86_64[\s\S]*--windows-x86_64/);
-  assert.match(releaseJob[1], /--updater-manifest[\s\S]*--updater-windows-x64-signature/);
-  assert.match(
-    releaseJob[1],
-    /node tools\/create_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"[\s\S]*--macos-signing ad-hoc[\s\S]*node tools\/verify_release_acceptance_seal\.js[\s\S]*--evidence "\$evidence"/
-  );
+  assert.match(releaseJob[1], /node tools\/create_updater_manifest\.js[\s\S]*node tools\/release_publish\.js/);
+  assert.doesNotMatch(releaseJob[1], /acceptance|attestation|ReleaseAcceptanceSeal/);
   assert.doesNotMatch(releaseJob[1], /--confirm-live-pass/);
   assert.match(
     releaseJob[1],
@@ -2260,15 +2244,15 @@ test('tauri capability and SOP mention the bridge and packaged resource boundari
     'src-tauri/target/release/bundle',
     'DMG',
     '.app',
-    'release-seals',
     'Developer ID',
-    'ReleaseAcceptanceSeal',
+    'SHA256SUMS',
+    'release-asset-provenance.json',
   ]) {
     assert.match(localSop, new RegExp(requiredText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   }
 });
 
-test('release supply-chain pins, source completeness, and seal schemas are executable', () => {
+test('release supply-chain pins, source completeness, and provenance schema are executable', () => {
   const pins = readJson('tools/ci_action_pins.json');
   const workflow = readText('.github/workflows/build.yml');
   const requirementsInput = readText('requirements-ci.in');
@@ -2307,41 +2291,10 @@ test('release supply-chain pins, source completeness, and seal schemas are execu
   );
   assert.equal(sourceCheck.status, 0, sourceCheck.stderr || sourceCheck.stdout);
 
-  const evidenceSchema = spawnSync(
+  const provenanceSchema = spawnSync(
     process.execPath,
-    ['tools/verify_release_acceptance_evidence.js', '--check-schema'],
+    ['tools/verify_release_provenance.js', '--check-schema'],
     { cwd: repoRoot, encoding: 'utf8' }
   );
-  assert.equal(evidenceSchema.status, 0, evidenceSchema.stderr || evidenceSchema.stdout);
-
-  const sealSchema = spawnSync(
-    process.execPath,
-    ['tools/verify_release_acceptance_seal.js', '--check-schema'],
-    { cwd: repoRoot, encoding: 'utf8' }
-  );
-  assert.equal(sealSchema.status, 0, sealSchema.stderr || sealSchema.stdout);
-
-  const missingSeal = spawnSync(
-    process.execPath,
-    [
-      'tools/verify_release_acceptance_evidence.js',
-      '--tag',
-      'cavalry-2.7.2-p999999',
-      '--release-commit',
-      '0123456789abcdef0123456789abcdef01234567',
-    ],
-    { cwd: repoRoot, encoding: 'utf8' }
-  );
-  assert.notEqual(missingSeal.status, 0, 'missing evidence must fail closed');
-  assert.match(missingSeal.stderr, /present canonical release evidence|fail closed/i);
-});
-
-test('release acceptance seal cannot be minted from a manual confirmation flag', () => {
-  const source = readText('tools/create_release_acceptance_seal.js');
-  const schema = readJson('tools/schemas/release_acceptance_seal.schema.json');
-  assert.match(source, /--confirm-live-pass is forbidden/);
-  assert.match(source, /--evidence/);
-  assert.match(source, /--macos-signing must explicitly declare ad-hoc/);
-  assert.equal(schema.properties.schemaVersion.const, 6);
-  assert.equal(schema.properties.signing.properties.macos.const, 'ad-hoc');
+  assert.equal(provenanceSchema.status, 0, provenanceSchema.stderr || provenanceSchema.stdout);
 });

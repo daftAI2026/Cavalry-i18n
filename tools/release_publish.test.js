@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: release_publish.js、临时人工安装/updater dist/remote 资产与显式 test-only fake gh script
- * [OUTPUT]: 覆盖跨平台 fake、confirmed-404 private draft、上传中断恢复、公开前九项分发资产与 sidecar 回读、tag/commit/额外资产/鉴权错误 fail-closed
+ * [OUTPUT]: 覆盖跨平台 fake、confirmed-404 private draft、上传中断恢复、公开前九项分发资产与四项 sidecar 回读、tag/commit/额外资产/鉴权错误 fail-closed
  * [POS]: 幂等 GitHub Release draft-to-public 边界的离线对抗测试；绝不解析 PATH 或触碰真实 gh
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,9 +12,7 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
-const crypto = require('node:crypto');
 const { spawnSync } = require('node:child_process');
-const { signSeal } = require('./release_seal_signature');
 const { loadConfig, metadataForTag } = require('./release_metadata');
 
 const repoRoot = path.resolve(__dirname, '..');
@@ -70,8 +68,6 @@ function fixture() {
     '--windows-x86_64-signature', path.join(dist, metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64),
   ], { cwd: repoRoot, encoding: 'utf8' });
   assert.equal(manifestResult.status, 0, manifestResult.stderr || manifestResult.stdout);
-  fs.writeFileSync(path.join(dist, `${tag}.evidence.json`), '{"evidence":true}\n');
-  fs.writeFileSync(path.join(dist, `${tag}.acceptance-attestation.json`), '{"attestation":true}\n');
   fs.writeFileSync(path.join(dist, 'toolchain-evidence.json'), `${JSON.stringify({
     schemaVersion: 1,
     kind: 'ReleaseToolchainEvidence',
@@ -86,39 +82,6 @@ function fixture() {
     metadata: { component: { properties: [{ name: 'cavalry-i18n:release-commit', value: commit }] } },
     components: [{ name: 'fixture', version: '1.0.0', purl: 'pkg:npm/fixture@1.0.0' }],
   })}\n`);
-  const identity = (name) => {
-    const file = path.join(dist, name);
-    const bytes = fs.statSync(file).size;
-    return { name, bytes, sha256: crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex') };
-  };
-  const unsignedSeal = {
-    tag,
-    releaseCommitSha: commit,
-    sourceCommitSha: 'a'.repeat(40),
-    acceptanceAttestation: identity(`${tag}.acceptance-attestation.json`),
-    acceptanceEvidence: identity(`${tag}.evidence.json`),
-    assets: {
-      aarch64: identity(manualAssets[0]),
-      x64: identity(manualAssets[1]),
-      windowsX64: identity(manualAssets[2]),
-      updaterManifest: identity(metadata.RELEASE_UPDATER_MANIFEST_NAME),
-      updaterAarch64: identity(metadata.RELEASE_UPDATER_ASSET_NAME_AARCH64),
-      updaterAarch64Signature: identity(metadata.RELEASE_UPDATER_SIGNATURE_NAME_AARCH64),
-      updaterX64: identity(metadata.RELEASE_UPDATER_ASSET_NAME_X64),
-      updaterX64Signature: identity(metadata.RELEASE_UPDATER_SIGNATURE_NAME_X64),
-      updaterWindowsX64Signature: identity(metadata.RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64),
-    },
-    supplyChain: {
-      sbom: identity('CycloneDX.json'),
-      toolchainEvidence: identity('toolchain-evidence.json'),
-    },
-  };
-  const keyPair = crypto.generateKeyPairSync('ed25519');
-  const privateKey = keyPair.privateKey.export({ type: 'pkcs8', format: 'pem' });
-  const publicDer = keyPair.publicKey.export({ type: 'spki', format: 'der' });
-  const trust = crypto.createHash('sha256').update(publicDer).digest('hex');
-  unsignedSeal.signature = signSeal(unsignedSeal, privateKey, trust);
-  fs.writeFileSync(path.join(dist, 'ReleaseAcceptanceSeal.json'), `${JSON.stringify(unsignedSeal)}\n`);
   const notes = path.join(root, 'notes.md');
   fs.writeFileSync(notes, 'release notes\n');
   const log = path.join(root, 'gh.log');
@@ -179,7 +142,7 @@ if (args[0] === 'release' && args[1] === 'edit') {
 process.stderr.write('unexpected fake gh invocation: ' + args.join(' '));
 process.exit(2);
 `);
-  return { root, dist, remote, notes, log, remoteState, fakeGh, trust };
+  return { root, dist, remote, notes, log, remoteState, fakeGh };
 }
 
 function run(f, mode, releaseCommit = commit) {
@@ -194,7 +157,6 @@ function run(f, mode, releaseCommit = commit) {
       NODE_ENV: 'test',
       CAVALRY_I18N_TEST_GH_SCRIPT: f.fakeGh,
       CAVALRY_I18N_TEST_TAG_COMMIT_SHA: commit,
-      RELEASE_SEAL_PUBLIC_KEY_SHA256: f.trust,
       RELEASE_ASSET_NAME_AARCH64: manualAssets[0],
       RELEASE_ASSET_NAME_X64: manualAssets[1],
       RELEASE_ASSET_NAME_WINDOWS_X64: manualAssets[2],
@@ -219,7 +181,7 @@ function verifyProvenance(f) {
   return spawnSync(process.execPath, [
     path.join(repoRoot, 'tools/verify_release_provenance.js'), '--dist', f.dist,
     ...distribution.flatMap((name) => ['--primary', name]),
-  ], { cwd: repoRoot, encoding: 'utf8', env: { ...process.env, RELEASE_SEAL_PUBLIC_KEY_SHA256: f.trust } });
+  ], { cwd: repoRoot, encoding: 'utf8' });
 }
 
 test('confirmed 404 uses a private draft, publishes only after exact readback, and reruns idempotently', () => {
@@ -240,7 +202,7 @@ test('confirmed 404 uses a private draft, publishes only after exact readback, a
     fs.writeFileSync(provenancePath, `${JSON.stringify(provenance)}\n`);
     const mismatchedCommit = verifyProvenance(f);
     assert.notEqual(mismatchedCommit.status, 0);
-    assert.match(mismatchedCommit.stderr, /tag\/source\/release identity/);
+    assert.match(mismatchedCommit.stderr, /SBOM does not semantically bind the release commit/);
     fs.writeFileSync(provenancePath, originalProvenance);
 
     const repeated = run(f, 'existing');
@@ -250,9 +212,9 @@ test('confirmed 404 uses a private draft, publishes only after exact readback, a
     fs.writeFileSync(primaryPath, 'post-seal tamper\n');
     const primaryTamper = run(f, 'existing');
     assert.notEqual(primaryTamper.status, 0);
-    assert.match(primaryTamper.stderr, /signed seal assets/);
+    assert.match(primaryTamper.stderr, /conflicts with local bytes/);
     fs.writeFileSync(primaryPath, primaryBytes);
-    fs.writeFileSync(path.join(f.remote, 'ReleaseAcceptanceSeal.json'), 'tampered\n');
+    fs.writeFileSync(path.join(f.remote, 'release-asset-provenance.json'), 'tampered\n');
     const tampered = run(f, 'existing');
     assert.notEqual(tampered.status, 0);
     assert.match(tampered.stderr, /conflicts with local bytes/);

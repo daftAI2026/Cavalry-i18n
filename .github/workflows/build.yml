@@ -1,6 +1,6 @@
-# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater/release-seal 凭据、Qt runtime 构建入口、Windows provenance、committed acceptance evidence、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、schema v6 九资产 seal/provenance/private-draft exact readback、幂等公开 Release 与 badge PR
-# [POS]: .github/workflows 的唯一 CI/CD 编排器；PR/main 保持无 updater 私钥构建，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须在 origin/main/evidence/双 trust anchor/updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
+# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
+# [OUTPUT]: 对外提供完整源码闭包与合同门、平台 Runner 原生构建、NSIS 生命周期、漏洞门、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、九资产 provenance/SHA256/private-draft exact readback、幂等公开 Release 与 badge PR
+# [POS]: .github/workflows 的唯一 CI/CD 编排器；PR/main 保持无 updater 私钥构建，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
 
@@ -28,8 +28,6 @@ permissions:
 jobs:
   release_tag_preflight:
     runs-on: ubuntu-24.04
-    environment:
-      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
 
     steps:
       - name: Checkout release tag history
@@ -38,50 +36,19 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up Node.js for release preflight
-        if: startsWith(github.ref, 'refs/tags/cavalry-')
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
-        with:
-          node-version: 24.20.0
-
-      - name: Enforce GitHub runner image identity (tag only)
-        if: startsWith(github.ref, 'refs/tags/cavalry-')
-        env:
-          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
-        run: |
-          node tools/verify_runner_image.js --mode enforce --runner-label ubuntu-24.04 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
-
       - name: Verify release tag commit is contained in main
         if: startsWith(github.ref, 'refs/tags/cavalry-')
         run: |
           git fetch --no-tags origin +refs/heads/main:refs/remotes/origin/main
           git merge-base --is-ancestor "$GITHUB_SHA" refs/remotes/origin/main
 
-      - name: Verify protected acceptance attestation (tag only)
-        if: startsWith(github.ref, 'refs/tags/cavalry-')
-        env:
-          RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256 }}
-          RELEASE_SEAL_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_SEAL_PUBLIC_KEY_SHA256 }}
-        run: |
-          node tools/verify_release_trust_anchors.js
-          node tools/verify_release_acceptance_evidence.js \
-            --tag "$GITHUB_REF_NAME" \
-            --release-commit "$GITHUB_SHA" \
-            --check-tag-topology \
-            --require-windows
-          node tools/verify_release_acceptance_attestation.js \
-            --tag "$GITHUB_REF_NAME" \
-            --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
-
       - name: Skip release ancestry gate for non-tag CI
         if: ${{ !startsWith(github.ref, 'refs/tags/cavalry-') }}
-        run: echo "Not a Cavalry release tag; ancestry/acceptance gates are not applicable."
+        run: echo "Not a Cavalry release tag; ancestry gate is not applicable."
 
   dependency_vulnerability_gate:
     needs: release_tag_preflight
     runs-on: ubuntu-24.04
-    environment:
-      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
 
     steps:
       - name: Checkout repository
@@ -103,15 +70,8 @@ jobs:
         with:
           python-version: '3.12.6'
 
-      - name: Record or enforce GitHub runner image identity
-        env:
-          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/cavalry-* ]]; then
-            node tools/verify_runner_image.js --mode enforce --runner-label ubuntu-24.04 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
-          else
-            node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04
-          fi
+      - name: Record GitHub runner image identity
+        run: node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04
 
       - name: Install app dependencies
         run: npm ci
@@ -172,8 +132,6 @@ jobs:
   build:
     needs: [release_tag_preflight, dependency_vulnerability_gate]
     runs-on: ubuntu-24.04
-    environment:
-      name: ${{ startsWith(github.ref, 'refs/tags/cavalry-') && 'release-production' || 'ci-readonly' }}
 
     steps:
       - name: Checkout repository
@@ -190,15 +148,8 @@ jobs:
         with:
           python-version: '3.12.6'
 
-      - name: Record or enforce GitHub runner image identity
-        env:
-          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/cavalry-* ]]; then
-            node tools/verify_runner_image.js --mode enforce --runner-label ubuntu-24.04 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
-          else
-            node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04
-          fi
+      - name: Record GitHub runner image identity
+        run: node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04
 
       - name: Install app dependencies
         run: npm ci
@@ -213,17 +164,11 @@ jobs:
         run: |
           node --check tools/verify_ci_action_pins.js
           node --check tools/verify_source_artifact.js
-          node --check tools/verify_release_acceptance_evidence.js
-          node --check tools/verify_release_acceptance_seal.js
           node --check tools/release_publish.js
           node --check tools/record_toolchain_evidence.js
           node --check tools/create_toolchain_evidence_bundle.js
-          node --check tools/create_release_acceptance_evidence.js
-          node --check tools/create_release_acceptance_seal.js
           node tools/verify_ci_action_pins.js
           node tools/verify_source_artifact.js --check-repo --check-workflow
-          node tools/verify_release_acceptance_evidence.js --check-schema
-          node tools/verify_release_acceptance_seal.js --check-schema
           node tools/verify_release_provenance.js --check-schema
           node tools/create_toolchain_evidence_bundle.js --check-schema
 
@@ -275,8 +220,8 @@ jobs:
           {
             echo "# Full UI gate"
             echo
-            echo "- BLOCKED-NO-LIVE-CAVALRY"
-            echo "- GitHub Actions does not run live Cavalry capture; tag releases require commit-bound release-seals/<tag>.evidence.json from a real local live PASS."
+            echo "- NOT-RUN-NO-LIVE-CAVALRY"
+            echo "- GitHub Actions does not run live Cavalry capture. Live UI review remains optional maintainer evidence and is not a tag prerequisite."
           } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Record toolchain evidence
@@ -351,16 +296,9 @@ jobs:
         with:
           toolchain: '1.98.0'
 
-      - name: Record or enforce GitHub runner image identity
+      - name: Record GitHub runner image identity
         shell: bash
-        env:
-          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/cavalry-* ]]; then
-            node tools/verify_runner_image.js --mode enforce --runner-label windows-2022 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
-          else
-            node tools/verify_runner_image.js --mode record --runner-label windows-2022
-          fi
+        run: node tools/verify_runner_image.js --mode record --runner-label windows-2022
 
       - name: Install app dependencies
         run: npm ci
@@ -478,8 +416,6 @@ jobs:
           echo "PYTHON=$RUNNER_TEMP/aqt-venv/bin/python" >> "$GITHUB_ENV"
 
       - name: Record GitHub runner image identity
-        env:
-          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
         run: |
           node tools/verify_runner_image.js --mode record --runner-label macos-14
 
@@ -557,15 +493,8 @@ jobs:
           "$RUNNER_TEMP/aqt-venv/bin/python" -m pip install --disable-pip-version-check --require-hashes --only-binary=:all: -r requirements-ci.txt
           echo "PYTHON=$RUNNER_TEMP/aqt-venv/bin/python" >> "$GITHUB_ENV"
 
-      - name: Record or enforce GitHub runner image identity
-        env:
-          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
-        run: |
-          if [[ "$GITHUB_REF" == refs/tags/cavalry-* ]]; then
-            node tools/verify_runner_image.js --mode enforce --runner-label macos-14 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
-          else
-            node tools/verify_runner_image.js --mode record --runner-label macos-14
-          fi
+      - name: Record GitHub runner image identity
+        run: node tools/verify_runner_image.js --mode record --runner-label macos-14
 
       - name: Install app dependencies
         run: npm ci
@@ -800,12 +729,8 @@ jobs:
         with:
           node-version: 24.20.0
 
-      - name: Enforce GitHub runner image identity (tag only)
-        if: startsWith(github.ref, 'refs/tags/cavalry-')
-        env:
-          RELEASE_RUNNER_IMAGE_FINGERPRINTS: ${{ vars.RELEASE_RUNNER_IMAGE_FINGERPRINTS }}
-        run: |
-          node tools/verify_runner_image.js --mode enforce --runner-label ubuntu-24.04 --allowed-fingerprints "$RELEASE_RUNNER_IMAGE_FINGERPRINTS"
+      - name: Record GitHub runner image identity
+        run: node tools/verify_runner_image.js --mode record --runner-label ubuntu-24.04
 
       - name: Download packaged macOS artifacts
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
@@ -935,58 +860,6 @@ jobs:
             --windows-x86_64 "dist/$RELEASE_ASSET_NAME_WINDOWS_X64" \
             --windows-x86_64-signature "dist/$RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64"
 
-      - name: Re-verify acceptance evidence and mint full asset seal
-        env:
-          RELEASE_SEAL_PRIVATE_KEY: ${{ secrets.RELEASE_SEAL_PRIVATE_KEY }}
-          RELEASE_SEAL_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_SEAL_PUBLIC_KEY_SHA256 }}
-          RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256 }}
-        run: |
-          evidence="release-seals/${GITHUB_REF_NAME}.evidence.json"
-          attestation="release-seals/${GITHUB_REF_NAME}.acceptance-attestation.json"
-          node tools/verify_release_trust_anchors.js
-          node tools/verify_release_acceptance_evidence.js \
-            --tag "$GITHUB_REF_NAME" \
-            --release-commit "$GITHUB_SHA" \
-            --check-tag-topology \
-            --require-windows
-          node tools/verify_release_acceptance_attestation.js \
-            --tag "$GITHUB_REF_NAME" \
-            --evidence "$evidence" \
-            --attestation "$attestation" \
-            --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
-          node tools/create_release_acceptance_seal.js \
-            --tag "$GITHUB_REF_NAME" \
-            --release-commit "$GITHUB_SHA" \
-            --evidence "$evidence" \
-            --acceptance-attestation "$attestation" \
-            --assets-dir dist \
-            --aarch64 "dist/$RELEASE_ASSET_NAME_AARCH64" \
-            --x64 "dist/$RELEASE_ASSET_NAME_X64" \
-            --windows-x64 "dist/$RELEASE_ASSET_NAME_WINDOWS_X64" \
-            --updater-manifest "dist/$RELEASE_UPDATER_MANIFEST_NAME" \
-            --updater-aarch64 "dist/$RELEASE_UPDATER_ASSET_NAME_AARCH64" \
-            --updater-aarch64-signature "dist/$RELEASE_UPDATER_SIGNATURE_NAME_AARCH64" \
-            --updater-x64 "dist/$RELEASE_UPDATER_ASSET_NAME_X64" \
-            --updater-x64-signature "dist/$RELEASE_UPDATER_SIGNATURE_NAME_X64" \
-            --updater-windows-x64-signature "dist/$RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64" \
-            --sbom dist/CycloneDX.json \
-            --toolchain-evidence dist/toolchain-evidence.json \
-            --output dist/ReleaseAcceptanceSeal.json \
-            --macos-signing ad-hoc \
-            --trusted-public-key-sha256 "$RELEASE_SEAL_PUBLIC_KEY_SHA256" \
-            --created-by "github-actions"
-          node tools/verify_release_acceptance_seal.js \
-            --seal dist/ReleaseAcceptanceSeal.json \
-            --evidence "$evidence" \
-            --attestation "$attestation" \
-            --tag "$GITHUB_REF_NAME" \
-            --release-commit "$GITHUB_SHA" \
-            --assets-dir dist \
-            --sidecars-dir dist \
-            --trusted-public-key-sha256 "$RELEASE_SEAL_PUBLIC_KEY_SHA256"
-          cp "$evidence" "dist/${GITHUB_REF_NAME}.evidence.json"
-          cp "$attestation" "dist/${GITHUB_REF_NAME}.acceptance-attestation.json"
-
       - name: Write GitHub Release notes
         run: |
           {
@@ -1013,7 +886,7 @@ jobs:
           - [Windows x64](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_WINDOWS_X64})
 
           ### 校验与 provenance
-          - \`SHA256SUMS\`、\`release-asset-provenance.json\` 与 \`ReleaseAcceptanceSeal.json\` 随本 Release 一并发布。
+          - \`SHA256SUMS\`、\`release-asset-provenance.json\`、\`CycloneDX.json\` 与 \`toolchain-evidence.json\` 随本 Release 一并发布。
           - macOS DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID 公证；Tauri Updater 下载仍由独立 Ed25519 签名验证。
           - Windows Authenticode 尚未纳入本流水线（单独 issue 跟踪），请结合 \`SHA256SUMS\` 校验下载完整性。
 
@@ -1062,33 +935,14 @@ jobs:
 
           ## English
 
-          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva. macOS assets are ad-hoc signed and not notarized; Tauri updater downloads use an independent Ed25519 signature. Verify downloads with SHA256SUMS and ReleaseAcceptanceSeal.json.
+          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It is not affiliated with Scene Group, Cavalry, or Canva. macOS assets are ad-hoc signed and not notarized; Tauri updater downloads use an independent Ed25519 signature. Verify downloads with SHA256SUMS and release-asset-provenance.json.
           EOF
           } > release-notes.md
 
       - name: Publish GitHub Release (idempotent, digest fail-closed)
         env:
           GH_TOKEN: ${{ github.token }}
-          RELEASE_SEAL_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_SEAL_PUBLIC_KEY_SHA256 }}
-          RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256: ${{ vars.RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256 }}
         run: |
-          evidence="dist/${GITHUB_REF_NAME}.evidence.json"
-          attestation="dist/${GITHUB_REF_NAME}.acceptance-attestation.json"
-          node tools/verify_release_trust_anchors.js
-          node tools/verify_release_acceptance_attestation.js \
-            --tag "$GITHUB_REF_NAME" \
-            --evidence "$evidence" \
-            --attestation "$attestation" \
-            --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
-          node tools/verify_release_acceptance_seal.js \
-            --seal dist/ReleaseAcceptanceSeal.json \
-            --evidence "$evidence" \
-            --attestation "$attestation" \
-            --tag "$GITHUB_REF_NAME" \
-            --release-commit "$GITHUB_SHA" \
-            --assets-dir dist \
-            --sidecars-dir dist \
-            --trusted-public-key-sha256 "$RELEASE_SEAL_PUBLIC_KEY_SHA256"
           node tools/release_publish.js \
             --tag "$GITHUB_REF_NAME" \
             --release-commit "$GITHUB_SHA" \

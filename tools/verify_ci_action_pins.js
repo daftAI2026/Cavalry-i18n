@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 tools/ci_action_pins.json、dependency_vulnerability_gate.json、两套 hash-locked Python requirements 与 .github/workflows/build.yml
- * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock、cargo-audit 显式消费精确 pinned Rust channel，且 npm/Python/Cargo 漏洞输入及 tag runner image allowlist 皆 fail-closed
+ * [OUTPUT]: 以 strict unique-key YAML AST 要求每个 Actions `uses:` 的 action name/SHA 精确命中 allowlist、运行时精确版本、无 floating runner label、aqt/pip-audit 完整闭包 hash-lock、cargo-audit 显式消费精确 pinned Rust channel，并记录 runner ImageOS/ImageVersion 供构建追踪
  * [POS]: tools 的 GitHub Actions 供应链 pin 守门器（P2.5 / P2.6 / P2.8）
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -273,8 +273,7 @@ function main() {
     '--python-report "$RUNNER_TEMP/python-audit.json"',
     '--rustsec-commit-timestamp "$advisory_timestamp"',
     'git -C "$advisory_db" fetch --depth=1 origin "$advisory_commit"',
-    'RELEASE_RUNNER_IMAGE_FINGERPRINTS',
-    'verify_runner_image.js --mode enforce',
+    'verify_runner_image.js --mode record',
   ]) {
     if (!workflow.includes(required)) fail(`build.yml missing fail-closed dependency/runner gate: ${required}`);
   }
@@ -284,8 +283,8 @@ function main() {
   for (const label of ['ubuntu-24.04', 'windows-2022', 'macos-14']) {
     if (!workflow.includes(`runs-on: ${label}`)) fail(`build.yml missing fixed runner label ${label}.`);
   }
-  if (!runnerGate.includes('ImageOS') || !runnerGate.includes('ImageVersion') || !runnerGate.includes('not in the protected allowlist')) {
-    fail('Runner image verifier must bind ImageOS/ImageVersion and fail closed against the protected allowlist.');
+  if (!runnerGate.includes('ImageOS') || !runnerGate.includes('ImageVersion')) {
+    fail('Runner image recorder must preserve ImageOS/ImageVersion in toolchain evidence.');
   }
 
   console.log(`[verify-ci-action-pins] OK: ${uses.length} uses entries pinned to full SHAs`);

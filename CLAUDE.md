@@ -3,8 +3,7 @@ HTML + Javascript + Rust (Tauri) + Objective-C++ / C++ (Qt Injector / Windows ge
 
 <directory>
 .baoyu-skills/ - 项目本地 Agent 技能扩展配置，约束翻译偏好与术语来源 (Markdown)
-.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同/原生/漏洞/acceptance 门；tag 以 ad-hoc macOS 包配合独立 Tauri updater 签名，汇合三项人工安装与六项 updater manifest/archive/signature 资产，经 schema v6 seal/private-draft exact readback 后发布 (YAML)
-release-seals/ - release tag 前置的真实 macOS acceptance evidence 与独立签名 attestation 约定；仅提交按 tag 命名、由受控 session 派生的两份 JSON，不保存私钥或现场缓存 (Markdown, JSON)
+.github/ - GitHub Actions 自动化入口，以 main-contained tag preflight 阻断旁支发布，运行合同/原生/漏洞门；tag 以 ad-hoc macOS 包配合独立 Tauri updater 签名，汇合三项人工安装与六项 updater manifest/archive/signature 资产，经 v5 provenance/SHA256/private-draft exact readback 后发布 (YAML)
 desktop-patcher/ - 旧桌面补丁器产物镜像，仅保留 injector 生成物与预编译 dylib (C++, dylib)
 docs/ - 公开项目必须的翻译规范、可重复维护 SOP 与 README/Badge 资产；研究、事件簿、实跑记录和历史方案不进入公开仓 (Markdown, JSON, PNG)
 injector/ - macOS DYLD 注入器、Cavalry 2.7.2 TransformTool Mach-O/Skia ABI 防火墙与 Windows Qt generic translator/QPA delegate；共享 policy 区分 8 条跨平台 exact-only 表面和双平台 owner-scoped 邻接 key，Windows 另构建不发布的 acceptance-only generic plugin，以 Qt test profile 隔离登录/工作区并驱动 Onboarding/Tag/Assets 真机证据，各平台 Runner 现场生成不入库的原生库 (C++, Objective-C++)

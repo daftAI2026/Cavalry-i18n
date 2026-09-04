@@ -2597,7 +2597,7 @@ test('live full UI matrix orchestrator exposes help without starting a capture',
   assert.equal(parseArgs(['-h']).help, true);
 });
 
-test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirrors LOCAL_BUILD_SOP gates', () => {
+test('measurement integrity workflow reports live UI as optional and mirrors LOCAL_BUILD_SOP gates', () => {
   const workflowSource = fs.readFileSync(path.join(repoRoot, '.github', 'workflows', 'build.yml'), 'utf8');
   const stampScript = fs.readFileSync(path.join(repoRoot, 'tools', 'stamp_dmg_icon.sh'), 'utf8');
   const dmgLayoutScript = fs.readFileSync(path.join(repoRoot, 'tools', 'check_dmg_layout.sh'), 'utf8');
@@ -2605,8 +2605,8 @@ test('measurement integrity workflow advertises BLOCKED-NO-LIVE-CAVALRY and mirr
 
   assert.match(
     workflowSource,
-    /BLOCKED-NO-LIVE-CAVALRY/,
-    'CI workflow should emit BLOCKED-NO-LIVE-CAVALRY when no live Cavalry session can run full-ui gates'
+    /NOT-RUN-NO-LIVE-CAVALRY/,
+    'CI workflow should report that live Cavalry capture was not run without turning optional maintainer evidence into a tag blocker'
   );
   assert.match(
     workflowSource,
@@ -5432,7 +5432,7 @@ test('Guide catalogs keep Cavalry fixed en loader slot and resolve all 98 keys',
   assert.deepEqual(whitelist.guideStrings.no_translate, ['type', 'language']);
 });
 
-test('release supply-chain gates pin vulnerability inputs, Qt installer identity, and runner image identity', () => {
+test('release supply-chain gates pin vulnerability inputs, Qt installer identity, and record runner identity', () => {
   const resolver = fs.readFileSync(path.join(repoRoot, 'tools', 'resolve_cavalry_qt_sdk.js'), 'utf8');
   const qtTarget = JSON.parse(fs.readFileSync(path.join(repoRoot, 'tools', 'cavalry_qt_target.json'), 'utf8'));
   const dependencyPolicy = JSON.parse(fs.readFileSync(path.join(repoRoot, 'tools', 'dependency_vulnerability_gate.json'), 'utf8'));
@@ -5451,7 +5451,6 @@ test('release supply-chain gates pin vulnerability inputs, Qt installer identity
   assert.match(dependencyPolicy.cargoAudit.rustsecAdvisoryDb.commit, /^[a-f0-9]{40}$/);
   assert.match(dependencyGate, /npm audit found known vulnerable dependencies/);
   assert.match(runnerGate, /ImageOS[\s\S]*ImageVersion/);
-  assert.match(runnerGate, /not in the protected allowlist/);
   assert.doesNotMatch(workflow, /runs-on:\s*[^#\n]*-latest\b/i, 'workflow must not use floating runner labels');
   assert.match(workflow, /npm audit --package-lock-only --json/);
   assert.match(workflow, /rust_toolchain="\$\(node -p "require\('\.\/tools\/ci_action_pins\.json'\)\.rust\.channel"\)"/);
@@ -5461,7 +5460,8 @@ test('release supply-chain gates pin vulnerability inputs, Qt installer identity
   assert.match(workflow, /toolchain-evidence-macos-aarch64/);
   assert.match(workflow, /toolchain-evidence-macos-x64/);
   assert.match(workflow, /create_toolchain_evidence_bundle\.js/);
-  assert.match(workflow, /RELEASE_RUNNER_IMAGE_FINGERPRINTS/);
+  assert.match(workflow, /verify_runner_image\.js --mode record/);
+  assert.doesNotMatch(workflow, /RELEASE_RUNNER_IMAGE_FINGERPRINTS|verify_runner_image\.js --mode enforce/);
 });
 
 test('npm version command prefers the npm CLI path and limits shell fallback to Windows', () => {

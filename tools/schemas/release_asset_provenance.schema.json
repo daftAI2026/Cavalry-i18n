@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/daftAI2026/Cavalry-i18n/tools/schemas/release_asset_provenance.schema.json",
   "title": "ReleaseAssetProvenance",
-  "description": "Public byte identities for the signed release seal, SBOM, toolchain evidence, and the complete manual-installer/updater distribution closure.",
+  "description": "Public byte identities for the SBOM, toolchain evidence, and the complete manual-installer/updater distribution closure.",
   "type": "object",
   "additionalProperties": false,
   "required": [
@@ -10,17 +10,14 @@
     "kind",
     "tag",
     "releaseCommitSha",
-    "sourceCommitSha",
     "createdAtUtc",
     "assets",
-    "signedSeal",
     "supplyChain",
-    "signing",
-    "acceptanceAttestation"
+    "signing"
   ],
   "properties": {
     "schemaVersion": {
-      "const": 4
+      "const": 5
     },
     "kind": {
       "const": "ReleaseAssetProvenance"
@@ -30,9 +27,6 @@
       "pattern": "^cavalry-2\\.7\\.2-p[0-9]+$"
     },
     "releaseCommitSha": {
-      "$ref": "#/$defs/sha"
-    },
-    "sourceCommitSha": {
       "$ref": "#/$defs/sha"
     },
     "createdAtUtc": {
@@ -45,9 +39,6 @@
       "items": {
         "$ref": "#/$defs/asset"
       }
-    },
-    "signedSeal": {
-      "$ref": "#/$defs/asset"
     },
     "supplyChain": {
       "type": "object",
@@ -70,19 +61,20 @@
       "additionalProperties": false,
       "required": [
         "macos",
-        "windows"
+        "windows",
+        "updater"
       ],
       "properties": {
         "macos": {
           "const": "ad-hoc"
         },
         "windows": {
-          "const": "authenticode-required-but-tracked-as-issue"
+          "const": "unsigned"
+        },
+        "updater": {
+          "const": "ed25519"
         }
       }
-    },
-    "acceptanceAttestation": {
-      "$ref": "#/$defs/asset"
     }
   },
   "$defs": {

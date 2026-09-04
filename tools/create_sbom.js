@@ -2,7 +2,7 @@
 /**
  * [INPUT]: package-lock.json、src-tauri/Cargo.lock、release commit/tag 与可选输出路径。
  * [OUTPUT]: deterministic CycloneDX 1.5 JSON SBOM；组件按 purl 排序，metadata 绑定发布 commit。
- * [POS]: release supply-chain sidecar producer；其 bytes are covered by ReleaseAcceptanceSeal.
+ * [POS]: release supply-chain sidecar producer；其 bytes 由 ReleaseAssetProvenance 与 private-draft 回读绑定
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';

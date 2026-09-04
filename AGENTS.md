@@ -53,7 +53,7 @@ Cavalry-i18n/
 | Full UI gate | `tools/run_live_full_ui_matrix.js`, `tools/check_full_ui_coverage.js`, `docs/runtime-ui-live-capture-workflow.md` | Tracked producers and the public capture SOP define the executable gate; CI does not create live Cavalry evidence. |
 | macOS scoped acceptance | `tools/macos-acceptance/` | Tracked producer for the 21-run/48-point matrix; generated tools and live evidence remain session-scoped. |
 | Runtime capture | `docs/runtime-ui-live-capture-workflow.md`, `tools/capture_accessibility_inventory.js`, `tools/merge_runtime_inventory.js` | Session-scoped provenance is mandatory. |
-| Release protocol | `release.config.json`, `tools/release_metadata.js`, `tools/create_updater_manifest.js`, `.github/workflows/build.yml`, `release-seals/README.md` | `cavalry-2.7.2-pN` drives title/manual assets; package SemVer drives three-platform `latest.json`; tag publishing seals and exact-readbacks nine distribution assets. Configuration alone never proves a published updater release. |
+| Release protocol | `release.config.json`, `tools/release_metadata.js`, `tools/create_updater_manifest.js`, `tools/release_publish.js`, `.github/workflows/build.yml` | `cavalry-2.7.2-pN` drives title/manual assets; package SemVer drives three-platform `latest.json`; tag publishing signs updater artifacts and exact-readbacks nine distribution assets plus SHA-256/provenance sidecars. Configuration alone never proves a published updater release. |
 | Local build | `LOCAL_BUILD_SOP.md`, `src-tauri/tauri.*.conf.json`, `tools/cavalry_qt_target.json` | Tauri-only package path, per-platform Qt build, DMG/NSIS validation. |
 
 ## CONVENTIONS
@@ -111,7 +111,7 @@ Cavalry-i18n/
 
 | Pattern | Why | Instead |
 | --- | --- | --- |
-| Treating CI green as full UI pass | CI records `BLOCKED-NO-LIVE-CAVALRY`; it cannot run Cavalry live capture | Run the local session-scoped full UI gate |
+| Treating CI green as full UI pass | CI records `NOT-RUN-NO-LIVE-CAVALRY`; it cannot run Cavalry live capture | Run the local session-scoped full UI gate when the change risk requires it |
 | Editing `generated_translations.inc` by hand | It is a generated C++ projection | Edit `tools/*.ts` or `model_display_translations.json`, then regenerate |
 | Weak runtime inventory from cache root | Gate inputs must be session-scoped with provenance | Use `$SESSION_DIR/runtime/*` and `verify_gate_inputs.js` |
 | Changing allowlists to pass coverage | Hides real translation debt | Fix source translations or add evidenced quarantine |

@@ -1,6 +1,6 @@
 <!--
-[INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.4.3 archive 与 SHA-256、NSIS provenance/安装态守门、release-seals acceptance evidence、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、commit 绑定 live acceptance evidence、候选代码不可接触私钥的 detached acceptance signer、独立双 trust anchor/asset seal、source artifact 完整性、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable release acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
+[INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.4.3 archive 与 SHA-256、NSIS provenance/安装态守门、pinned toolchain、disposable live-clone 截图门与打包检查脚本
+[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、九资产 SHA-256/provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分本地 ad-hoc 验证、CI PR 编译门与带 updater/证据闭包的 ad-hoc tag 产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -60,85 +60,23 @@ node tools/verify_ci_action_pins.js
 node tools/verify_source_artifact.js --check-repo --check-workflow
 ```
 
-### 3.1 Tag release runbook（fail-closed）
+### 3.1 Tag release runbook（最小可信闭环）
 
-1. 在干净的 **source commit S** 上完成 macOS live `21-run/48-point` acceptance，并执行人工 review seal，得到同一 session 下的 `matrix-final-record.json`。该 session 必须由 `tools/macos-acceptance` 产生；不得手写 PASS、session id 或摘要。
-2. 仍停留在 source commit S，用真实 session 生成 evidence：
-
-```bash
-SOURCE_COMMIT="$(git rev-parse HEAD)"
-# Windows evidence 只接受并重新验证本轮原始 session；summary 由 verifier 派生，不能作为输入。
-WINDOWS_SESSION_DIR='<outside-session Windows acceptance directory>'
-node tools/create_release_acceptance_evidence.js \
-  --tag cavalry-2.7.2-pN \
-  --session-dir "$SESSION_DIR" \
-  --windows-session-dir "$WINDOWS_SESSION_DIR"
-
-# 候选仓库进程只准备 repo 外的 canonical payload；它不得看见或读取私钥。
-unset RELEASE_ACCEPTANCE_ATTESTATION_PRIVATE_KEY
-ATTESTATION_WORKDIR="$(mktemp -d "${TMPDIR:-/tmp}/cavalry-acceptance-signing.XXXXXX")"
-ATTESTATION_PAYLOAD="$ATTESTATION_WORKDIR/payload.json"
-node tools/create_release_acceptance_attestation.js \
-  --tag cavalry-2.7.2-pN \
-  --evidence release-seals/cavalry-2.7.2-pN.evidence.json \
-  --prepare "$ATTESTATION_PAYLOAD"
-shasum -a 256 "$ATTESTATION_PAYLOAD"
-```
-
-把该只读 payload 的**精确字节**交给另一套离线 OpenSSL/HSM signer；签名机不 checkout、加载或执行候选仓库代码。以下命令只在独立 signer 上运行，`acceptance-private.pem` 永不返回候选环境：
+1. 确认候选提交已经进入 `origin/main`，工作区干净，并按本轮真实影响面完成人工验收。人工验收记录服务于维护者的发布决策，不再通过第二、第三套 Ed25519 密钥变成 tag 的机器前置条件。首个 updater-enabled 版本是人工安装的 bootstrap；两个公开 updater-enabled 版本之间的真实升级只能从下一版本开始验证，不阻塞 bootstrap 发布。
+2. 执行本节开头的版本、release、合同、Actions pin 与 source artifact 检查，然后从 `release.config.json` 复核 tag/title/资产名：
 
 ```bash
-openssl pkeyutl -sign -rawin \
-  -inkey acceptance-private.pem \
-  -in "$ATTESTATION_PAYLOAD" \
-  -out acceptance-signature.bin
-openssl pkey -in acceptance-private.pem -pubout -outform DER \
-  -out acceptance-public-key.spki.der
+TAG='cavalry-2.7.2-pN'
+node tools/release_metadata.js --tag "$TAG" --format json
+git fetch origin main --tags
+test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+git tag -a "$TAG" -m "Cavalry Language Switcher for Cavalry 2.7.2 patch N"
+git push origin "$TAG"
 ```
 
-只把 detached signature 与公开 SPKI DER 带回候选环境，再由无私钥的 assemble 模式验签并生成 canonical attestation：
-
-```bash
-node tools/create_release_acceptance_attestation.js \
-  --tag cavalry-2.7.2-pN \
-  --evidence release-seals/cavalry-2.7.2-pN.evidence.json \
-  --assemble \
-  --payload "$ATTESTATION_PAYLOAD" \
-  --signature ./acceptance-signature.bin \
-  --public-key-spki-der ./acceptance-public-key.spki.der \
-  --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
-node tools/verify_release_trust_anchors.js
-node tools/verify_release_acceptance_attestation.js \
-  --tag cavalry-2.7.2-pN \
-  --trusted-public-key-sha256 "$RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256"
-git add release-seals/cavalry-2.7.2-pN.evidence.json release-seals/cavalry-2.7.2-pN.acceptance-attestation.json
-test "$(git diff --cached --name-only | wc -l | tr -d ' ')" = 2
-git commit -m "release: seal cavalry-2.7.2-pN acceptance"
-RELEASE_COMMIT="$(git rev-parse HEAD)"
-test "$(git rev-parse HEAD^)" = "$SOURCE_COMMIT"
-node tools/verify_release_acceptance_evidence.js \
-  --tag cavalry-2.7.2-pN \
-  --release-commit "$RELEASE_COMMIT" \
-  --check-tag-topology
-```
-
-这形成刻意的两提交协议：S 是被 live-tested 的源码；其唯一子提交 T **只新增 evidence 与其独立的受保护 Ed25519 attestation**，tag 指向 T。这样 evidence 能记录 S，而不需要在文件内自引用尚未生成的 T。CI 会以外部固定 fingerprint 验证 attestation，并拒绝 merge commit、额外文件、无签名/错误签名或错误父提交。
-
-3. 将 evidence-only 提交 T 合入并推送 `main`，再配置受保护 GitHub environment 的变量与 secrets（**只存 secrets，永不打印值**）：
-   - `RELEASE_ACCEPTANCE_ATTESTATION_PUBLIC_KEY_SHA256` 仅作为 GitHub environment variable 保存并与公开 trust policy 一致；对应私钥必须始终留在离线/独立受保护 signer，**不得**保存为 Actions secret、不得暴露给任何候选仓库进程。
-   - `RELEASE_SEAL_PUBLIC_KEY_SHA256` 作为另一项 GitHub environment variable 保存，并先通过 `SECURITY.md` 所述独立受保护渠道公开；`RELEASE_SEAL_PRIVATE_KEY` 才是 Actions secret。
-   - 两个 fingerprint 必须来自不同 Ed25519 密钥、不同授权角色，并由 `node tools/verify_release_trust_anchors.js` 拒绝缺失或复用；任一密钥轮换/撤销都必须独立发布、复核和更新，不能静默联动。
-   - `TAURI_SIGNING_PRIVATE_KEY` 是 Tauri Updater 的 Ed25519 私钥；只用于 tag 与显式无 tag signing smoke。
-   - `TAURI_SIGNING_PRIVATE_KEY_PASSWORD` 是上述私钥口令。它与 Apple Developer ID 无关。
-4. 在 evidence-only 提交 T 上创建并推送 tag（T 必须已在 `origin/main`）：
-
-```bash
-git tag -a cavalry-2.7.2-p12 -m "Cavalry Language Switcher for Cavalry 2.7.2 patch 12"
-git push origin cavalry-2.7.2-p12
-```
-
-5. Tag 流水线会：复核 T 只有一个父提交 S 且只新增 canonical evidence+attestation 并验签 → 双架构 ad-hoc app/DMG 与 Tauri updater archive/signature 构建 → 回读最终 app 的 ad-hoc seal 并验证 updater 闭包 → 生成 `ReleaseAcceptanceSeal.json` / `SHA256SUMS` / provenance，且在 sidecar 中如实声明 `macos: ad-hoc` → 对 GitHub Release 元数据与全部 sidecar 做幂等摘要复验 → 以 PR 更新 README badge（不直接 push `main`）。
-6. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。
+3. Tag 流水线会验证 tag commit 已包含于 `origin/main`，随后在固定平台 label 上重新运行依赖漏洞、合同、Rust/native、Windows NSIS 生命周期与 macOS 打包检查。只有 `release-production` 中既有的 Tauri updater 私钥会进入 tag packaging；普通 build 和验收工具不接触它。
+4. 发布 job 生成两份 DMG、一份 Windows NSIS、三平台 updater archive/signature 与 `latest.json`，再生成 `CycloneDX.json`、`toolchain-evidence.json`、`SHA256SUMS` 和 `release-asset-provenance.json`。发布器先创建 private draft，上传后逐项下载并复算字节；缺件、额外资产、摘要漂移或远端冲突都会停止，全部一致后才公开 Release。
+5. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。macOS updater 仍由独立 Tauri Ed25519 签名验证，但它不创造 Apple 平台身份。
 
 ## 4. macOS 标准打包流程
 
@@ -202,7 +140,7 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 - `app.withGlobalTauri = false`；vanilla bridge 只暴露冻结后的 `window.cavalryI18n`，页面业务代码不能访问全局 Tauri API。
 - main window 逻辑本体固定 `400x484`，最小本体 `400x484`；Windows 配置中的 `420x504` 只是在本体四边各加 10px transparent compositor 阴影画布，产品最小尺寸和所有视觉对齐均排除这层阴影。内容宽 360px、四边保留 20px；Windows 右侧 About/Minimize/Maximize/Close 统一使用 16px Phosphor Regular，Close 的 32px 点击区保持 4px 右边距，其可见 X 路径距本体右边约 15px，标题左缘据此使用 15px 光学边距。主任务流通常使用 20px 间距，`Switch to` 与其 Select 作为同一字段使用 8px 紧密关系间距，`Switch` / `Restore` 在 360px 内容轨道内以 `170 + 20 + 170` 等宽分配。Switch 不经确认直接进入 fail-before-mutation 事务；Restore、Updater、权限和危险操作使用独立 AlertDialog。主内容结果区是有界 Activity Log，由 `operation-log.css/js` 负责并在自身范围内滚动；主窗口禁止横向与纵向滚动；macOS Overlay 原生标题栏覆盖在同一内容坐标系中，不额外增加 WebView 内容高度，16px 交通灯在 40px 标题栏内上下各留 12px，内容左缘继续与红灯中心线对齐。排印只使用 16/14/13px、400/450/500 和系统字体，间距以 4px token 为默认节奏。AppKit/WindowServer 的 AX/CGWindow 外框可能比逻辑高度多报告 1pt，不能据此改写 Tauri 配置。
 - `tauri.macos.conf.json` **不硬编码** signing identity；本地、`workflow_dispatch` 与当前 tag 均显式传入 `APPLE_SIGNING_IDENTITY="-"`，避免误用 runner 钥匙串身份。
-- **GitHub tag release** 仍要求独立 Tauri updater 私钥，为 `.app.tar.gz`/NSIS 生成客户端可验证的 Ed25519 sidecar；该签名不等于 Apple Developer ID，也不提供 notarization。最终 seal/provenance 必须如实声明 macOS `ad-hoc`，禁止把 updater 签名冒充系统可信分发。
+- **GitHub tag release** 仍要求独立 Tauri updater 私钥，为 `.app.tar.gz`/NSIS 生成客户端可验证的 Ed25519 sidecar；该签名不等于 Apple Developer ID，也不提供 notarization。最终 provenance 必须如实声明 macOS `ad-hoc`，禁止把 updater 签名冒充系统可信分发。
 
 ### 4.2 Tag release 信任边界
 
@@ -211,7 +149,7 @@ Tauri 配置按“公共合同 + 平台覆盖”拆分：
 | 本地 `npm run tauri:build` | ad-hoc `-` | 否 | 否 |
 | PR / main CI | 不打包 DMG / 仅 injector compile | 否 | 否 |
 | `workflow_dispatch` package | ad-hoc 验证 | 否 | 否 |
-| `cavalry-*-p*` tag | ad-hoc `-`；Updater 另用 Ed25519 | 否 | 是（另需 acceptance evidence，且 Release 明示未公证） |
+| `cavalry-*-p*` tag | ad-hoc `-`；Updater 另用 Ed25519 | 否 | 是（Release 明示未公证） |
 
 ## 5. Windows NSIS 安装包
 
@@ -328,9 +266,9 @@ node tools/windows-acceptance/review_windows_acceptance.js --tag cavalry-2.7.2-p
 node tools/windows-acceptance/record_windows_acceptance.js --tag cavalry-2.7.2-pN --session-dir '<TEMP live session>' --repo-root '<clean source checkout>' --output '<outside session summary.json>'
 ```
 
-reviewer 命令只确认已有截图，自动派生 `manual-review`/`final` 记录；producer 再复核 installer、provenance、generic/QPA digest、tag/source/session 和目标版本。live runner 通过 source Rust apply 路径启动同一份 Cavalry 2.7.2 disposable clone，但只在 source DLL 与最终 NSIS shipped DLL 完全一致时将 inventory 标为 `packaged-nsis`；这证明了最终包内 runtime 字节与现场运行时相同，不把人工或另一份构建的截图冒充发布证据。Windows summary 仅是 `record_windows_acceptance.js` 从原始 session 派生的产物；`create_release_acceptance_evidence.js` 只接受 `--windows-session-dir` 并从复验后的原始 session 派生 summary，`verify_release_acceptance_evidence.js` 在提供该参数时重新验证并比较 summary，tag/publish 阶段则由独立 Ed25519 acceptance attestation 绑定 evidence 精确字节，再由 release seal 绑定实际 Windows installer。两者均拒绝 summary 文件作为输入。带 Windows x64 artifact 的 release 必须同时通过 `--require-windows` 与 protected attestation/seal，否则 fail-closed。
+reviewer 命令只确认已有截图，自动派生 `manual-review`/`final` 记录；producer 再复核 installer、provenance、generic/QPA digest、tag/source/session 和目标版本。live runner 通过 source Rust apply 路径启动同一份 Cavalry 2.7.2 disposable clone，但只在 source DLL 与最终 NSIS shipped DLL 完全一致时将 inventory 标为 `packaged-nsis`；这证明了最终包内 runtime 字节与现场运行时相同，不把人工或另一份构建的截图冒充发布证据。Windows summary 仅是 `record_windows_acceptance.js` 从原始 session 派生的维护者验收产物，不能由手写 PASS 代替。它用于审查真实 Windows 行为，但不再被包装成第二套发布签名或 tag 拓扑；正式发布资产仍由同次 CI 的 NSIS provenance、Updater Ed25519 签名、SHA-256 与 private-draft 回读闭合。
 
-Windows release acceptance producer：上述 ignored live gate 结束后，Windows runner 必须把本轮输出整理为带 `SESSION_SENTINEL_MAGIC` 的 session，并由 `tools/windows-acceptance/review_windows_acceptance.js` 从已有截图派生 review/final，再由 `tools/windows-acceptance/record_windows_acceptance.js` 复验 `windows-machine-record.json`、`windows-manual-review.json`、`windows-final-record.json`。合同支持三语 Onboarding 五点、Adjacent 三点或两者合并；每个点都绑定 exact PID/HWND inventory、最终安装后 generic/QPA SHA-256；同时复验最终 x64 NSIS、相邻 provenance sidecar 与 Cavalry 2.7.2 disposable clone。命令只接受 Windows x64、干净 source worktree 和已存在的输出以外路径，不接受 `--confirm-live-pass`、手写结果或复用缺少 TEMP sentinel 的会话。summary 只能作为该 session verifier 的派生产物；普通 evidence 若携带 Windows 结果，必须在创建时通过 `--windows-session-dir` 重新验证原始 session，release 一旦声明 Windows artifact 就必须存在，并由 evidence/seal 绑定同一 tag、source commit、session、installer 和 DLL digest。
+Windows live acceptance 是高风险注入器改动后的可选维护者验收，不是常规 tag 前置条件。需要留档时，`review_windows_acceptance.js` 只确认既有截图，`record_windows_acceptance.js` 再从 TEMP session 派生可复验摘要；摘要不得手写，也不进入正式 Release 资产闭环。
 
 `CAVALRY_I18N_WINDOWS_LIVE_COG_PITCH=1` 是明确的人工交互开关：每种语言的 Cavalry 窗口获得前台焦点后，helper 先记录同一 PID 的诊断基线并要求 `translatedSourceMask` bit 28 尚未置位；验收者再从“工具”菜单选择“齿轮”，在视口拖拽一次。helper 不猜快捷键、不发送鼠标坐标，也不使用 UIA；它只在真实 vendor 路径令 bit 28 置位，且 `revision`、`canonicalCalls`、`whitelistCalls`、`cjkPathSuccess` 均相对基线严格增长、`fallbackSourceMask=0`、`rendererFailure=0` 后截取 Cog Pitch PNG，并把基线与最终诊断一同写入证据 JSON。未设置该开关时仍只跑三类自动场景，不能据此声称 Pitch 已通过真机验收。
 
@@ -353,4 +291,4 @@ full-surface 门必须把每次 Cavalry launch 的 `APPDATA`/`LOCALAPPDATA` 指�
 
 ## 8. 当前边界
 
-Tauri 是唯一默认壳与唯一发布路径；macOS 的 bridge、平台配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实三语冒烟都已具备可重跑守门。Windows 当前具备独立配置、Qt generic translator/QPA delegate、原子部署与显式 English 恢复状态机、Node/Rust 合同、NSIS 构建、随机 TEMP 安装/同版本更新/卸载及外部 QPA 哨兵 gate、只写显式 disposable clone/evidence 根的三语 PID 窗口截图门，以及真实 Program Files/UAC 下由安装版完成的简中、繁中、日文和 English 恢复主工作区闭环。尚未闭环的是当前 source 的完整 Windows surface matrix 与两个不同公开版本之间的 updater/安装器跨版本升级；它们仍是公开发布前的独立证据债。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。
+Tauri 是唯一默认壳与唯一发布路径；macOS 的 bridge、平台配置、资源声明、Rust contract tests、packaged 资源检查、窗口回归和真实三语冒烟都已具备可重跑守门。Windows 当前具备独立配置、Qt generic translator/QPA delegate、原子部署与显式 English 恢复状态机、Node/Rust 合同、NSIS 构建、随机 TEMP 安装/同版本更新/卸载及外部 QPA 哨兵 gate、只写显式 disposable clone/evidence 根的三语 PID 窗口截图门，以及真实 Program Files/UAC 下由安装版完成的简中、繁中、日文和 English 恢复主工作区闭环。尚未闭环的是两个不同公开 updater-enabled 版本之间的真实跨版本升级；首个 updater-enabled 版本必须先作为人工安装 bootstrap 发布，因此该证据从下一版本开始补齐，不阻塞本次 bootstrap。旧壳层脚本、handler、harness、builder 配置与 fallback 打包入口不得恢复。

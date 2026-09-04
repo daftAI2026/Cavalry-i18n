@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 gh CLI、release metadata 环境、三项人工安装资产、六项 updater manifest/archive/signature 资产及全部强制 sidecar
- * [OUTPUT]: 生成声明 macOS ad-hoc 状态的 v4 provenance，先创建/恢复 private draft、上传并逐字节回读九项分发资产与强制 sidecar 后才公开；既有 public release 只读复验，冲突/缺件/非 404 查询错误 fail-closed
+ * [OUTPUT]: 生成声明平台签名现状的 v5 provenance，先创建/恢复 private draft、上传并逐字节回读九项分发资产与四项可复验 sidecar 后才公开；既有 public release 只读复验，冲突/缺件/非 404 查询错误 fail-closed
  * [POS]: GitHub Release 幂等发布边界；公开面绝不出现脚本制造的半成品，也不覆盖远端资产或把网络/鉴权失败误判为“不存在”
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -97,19 +97,17 @@ function writeProvenance(distribution, output, meta) {
     return { name: path.basename(file), bytes: stat.size, sha256: sha256File(file) };
   };
   fs.writeFileSync(output, `${JSON.stringify({
-    schemaVersion: 4,
+    schemaVersion: 5,
     kind: 'ReleaseAssetProvenance',
     tag: meta.tag,
     releaseCommitSha: meta.commitSha,
-    sourceCommitSha: meta.sourceCommitSha,
     createdAtUtc: meta.createdAtUtc,
     assets: distribution.map(({ name, bytes, sha256 }) => ({ name, bytes, sha256 })),
-    signedSeal: identity(meta.sealPath),
-    acceptanceAttestation: identity(meta.attestationPath),
     supplyChain: { sbom: identity(meta.sbomPath), toolchainEvidence: identity(meta.toolchainPath) },
     signing: {
       macos: 'ad-hoc',
-      windows: 'authenticode-required-but-tracked-as-issue',
+      windows: 'unsigned',
+      updater: 'ed25519',
     },
   }, null, 2)}\n`);
 }
@@ -246,29 +244,19 @@ function main() {
     requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_X64'),
     requireEnv('RELEASE_UPDATER_SIGNATURE_NAME_WINDOWS_X64'),
   ];
-  const evidenceName = `${tag}.evidence.json`;
-  const attestationName = `${tag}.acceptance-attestation.json`;
   const mandatorySidecars = [
     'SHA256SUMS',
     'release-asset-provenance.json',
-    evidenceName,
-    attestationName,
-    'ReleaseAcceptanceSeal.json',
     'toolchain-evidence.json',
     'CycloneDX.json',
   ];
   const distribution = localAssets(distDir, distributionNames);
   writeChecksums(distribution, path.join(distDir, 'SHA256SUMS'));
-  const seal = JSON.parse(fs.readFileSync(path.join(distDir, 'ReleaseAcceptanceSeal.json'), 'utf8'));
-  if (seal.tag !== tag || seal.releaseCommitSha !== commitSha) fail('Release seal does not bind the requested tag/commit.');
   const createdAtUtc = git(['show', '-s', '--format=%cI', commitSha]);
   writeProvenance(distribution, path.join(distDir, 'release-asset-provenance.json'), {
     tag,
     commitSha,
-    sourceCommitSha: seal.sourceCommitSha,
     createdAtUtc,
-    sealPath: path.join(distDir, 'ReleaseAcceptanceSeal.json'),
-    attestationPath: path.join(distDir, attestationName),
     sbomPath: path.join(distDir, 'CycloneDX.json'),
     toolchainPath: path.join(distDir, 'toolchain-evidence.json'),
   });

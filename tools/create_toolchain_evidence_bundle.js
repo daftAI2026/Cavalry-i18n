@@ -2,7 +2,7 @@
 /**
  * [INPUT]: 三份 producer ToolchainEvidenceRecord（source-contracts、macOS aarch64/x64）、release commit、Windows x64 资产名与输出路径
  * [OUTPUT]: 确定性 ReleaseToolchainEvidence，逐项校验 capture/commit/target 并明确声明 Windows producer evidence 由 issue 跟踪而非伪装已覆盖
- * [POS]: release supply-chain 的 producer evidence 聚合门；输出字节由 ReleaseAcceptanceSeal 绑定
+ * [POS]: release supply-chain 的 producer evidence 聚合门；输出字节由 ReleaseAssetProvenance 与 private-draft 回读绑定
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';

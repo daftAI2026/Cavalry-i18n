@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: Windows TEMP acceptance session（machine/review/final）、当前 source worktree
- * [OUTPUT]: 写出仅由已复验现场派生的 WindowsReleaseAcceptance 摘要，供 release evidence/seal 绑定最终 NSIS 与 shipped DLL
- * [POS]: Windows release acceptance producer 的唯一命令入口；不启动 Cavalry、不接受手工 PASS、不覆盖已有输出
+ * [OUTPUT]: 写出仅由已复验现场派生的 WindowsReleaseAcceptance 摘要，绑定最终 NSIS 与 shipped DLL
+ * [POS]: 可选 Windows 维护者验收的唯一摘要入口；不启动 Cavalry、不接受手工 PASS、不覆盖已有输出，也不参与常规 tag 发布
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';

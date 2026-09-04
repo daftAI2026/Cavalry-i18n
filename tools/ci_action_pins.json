@@ -70,7 +70,6 @@
   },
   "dependencyVulnerabilityGate": {
     "policyFile": "tools/dependency_vulnerability_gate.json",
-    "runnerImageFingerprintEnvironment": "RELEASE_RUNNER_IMAGE_FINGERPRINTS",
-    "note": "npm audit fails on any known vulnerable dependency against the fixed registry; cargo-audit uses the immutable RustSec DB commit. Runner image allowlist is tag-only in the protected release-production environment."
+    "note": "npm audit fails on any known vulnerable dependency against the fixed registry; cargo-audit uses the immutable RustSec DB commit. Fixed runner labels and recorded ImageOS/ImageVersion preserve traceability without a separately maintained release allowlist."
   }
 }

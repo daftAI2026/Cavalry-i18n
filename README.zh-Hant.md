@@ -51,7 +51,7 @@ macOS 要求這個權限，是因為修改另一個 `.app` bundle 屬於受保�
 
 ## 從 Release 安裝
 
-請從 GitHub Releases 下載對應平台的資產。早於 updater 閉包的 Release 可能只有三項手動安裝資產，不會因此自動取得應用程式內更新能力。由目前 tag 流水線產生的 updater-enabled Release 必須同時具有 `latest.json`、六項 updater archive／簽名資產與 verification sidecar：macOS DMG 使用 ad-hoc 簽名而非 Developer ID 公證，updater archive 另由 Tauri updater 金鑰簽名；流水線也會發布 `SHA256SUMS`、`CycloneDX.json`、`release-asset-provenance.json`、獨立簽名的 acceptance attestation 與最終 Ed25519 `ReleaseAcceptanceSeal.json`。在 `SECURITY.md` 透過獨立受保護管道發布 acceptance authority 與 release seal 兩枚不同 fingerprint 之前，不要把任一檔案的內嵌公鑰本身當作信任錨；驗證必須先驗 acceptance attestation，再驗最終 seal。
+請從 GitHub Releases 下載對應平台的資產。早於 updater 閉包的 Release 可能只有三項手動安裝資產，不會因此自動取得應用程式內更新能力。由目前 tag 流水線產生的 updater-enabled Release 會同時提供 `latest.json` 與六項 updater archive／簽名資產：macOS DMG 使用 ad-hoc 簽名而非 Developer ID 公證，updater archive 由客戶端內嵌公鑰所對應的 Tauri updater 金鑰簽名。流水線也會發布 `SHA256SUMS`、`CycloneDX.json`、`toolchain-evidence.json` 與 `release-asset-provenance.json`；所有預期資產逐位元組回讀一致後，Release 才會從私人草稿公開。
 
 Windows 請下載並執行 `Cavalry.Language.Switcher_Cavalry-2.7.2-pN_windows-x64-setup.exe`。NSIS 安裝器只安裝語言切換器；最終使用者無需安裝 Python、Rust、Qt 或 PowerShell 7。安裝後選擇自動探索到的 Cavalry，或瀏覽到目前使用者可寫的安裝根。Windows Authenticode 簽名另開 issue 追蹤；務必核對 `SHA256SUMS`。
 
