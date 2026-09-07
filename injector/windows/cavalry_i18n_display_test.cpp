@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、树、QLineEdit、QPlainTextEdit 与 QMenu
- * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀与 DisplayRole 数据隔离
- * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性，且通用规则不会改写编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
+ * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、可编辑/字体 Combo、QTreeWidget popup、QLineEdit、QPlainTextEdit 与 QMenu
+ * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀、DisplayRole 数据隔离与字体/选择值保护
+ * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性，且通用规则不会改写可编辑/字体选择值、弹出树、编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -9,6 +9,7 @@
 #include "cavalry_i18n_translator.h"
 
 #include <QtCore/QList>
+#include <QtCore/QModelIndex>
 #include <QtCore/QSignalBlocker>
 #include <QtCore/QString>
 #include <QtCore/QStringList>
@@ -18,6 +19,7 @@
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
 #include <QtWidgets/QDialog>
+#include <QtWidgets/QFontComboBox>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
@@ -87,6 +89,16 @@ struct LocaleExpectation
     const char *singleIndexPlaceholder;
 };
 
+struct ComboValueState
+{
+    QStringList displayValues;
+    QList<QVariant> editValues;
+    QList<QVariant> userValues;
+    int currentIndex = -1;
+    QString currentText;
+    QModelIndex currentModelIndex;
+};
+
 bool fail(const QString &message)
 {
     const QByteArray utf8 = message.toUtf8();
@@ -112,6 +124,75 @@ bool expectTrue(const QString &surface, bool condition)
     return condition
         ? true
         : fail(QStringLiteral("%1 contract failed.").arg(surface));
+}
+
+ComboValueState captureComboValueState(const QComboBox &comboBox)
+{
+    ComboValueState state;
+    state.displayValues.reserve(comboBox.count());
+    state.editValues.reserve(comboBox.count());
+    state.userValues.reserve(comboBox.count());
+    for (int index = 0; index < comboBox.count(); ++index) {
+        state.displayValues.append(comboBox.itemText(index));
+        state.editValues.append(comboBox.itemData(index, Qt::EditRole));
+        state.userValues.append(comboBox.itemData(index, Qt::UserRole));
+    }
+    state.currentIndex = comboBox.currentIndex();
+    state.currentText = comboBox.currentText();
+    if (comboBox.model() != nullptr) {
+        state.currentModelIndex = comboBox.model()->index(
+            state.currentIndex,
+            comboBox.modelColumn(),
+            comboBox.rootModelIndex());
+    }
+    return state;
+}
+
+bool expectComboValueState(
+    const QString &surface,
+    const QComboBox &comboBox,
+    const ComboValueState &expected)
+{
+    if (!expectTrue(
+            surface + QStringLiteral(" item count"),
+            comboBox.count() == expected.displayValues.size())) {
+        return false;
+    }
+    for (int index = 0; index < comboBox.count(); ++index) {
+        if (!expectEqual(
+                surface + QStringLiteral(" itemText[")
+                    + QString::number(index) + QChar(']'),
+                comboBox.itemText(index),
+                expected.displayValues.at(index))
+            || !expectTrue(
+                surface + QStringLiteral(" EditRole[")
+                    + QString::number(index) + QChar(']'),
+                comboBox.itemData(index, Qt::EditRole)
+                    == expected.editValues.at(index))
+            || !expectTrue(
+                surface + QStringLiteral(" UserRole[")
+                    + QString::number(index) + QChar(']'),
+                comboBox.itemData(index, Qt::UserRole)
+                    == expected.userValues.at(index))) {
+            return false;
+        }
+    }
+
+    return expectEqual(
+               surface + QStringLiteral(" currentText"),
+               comboBox.currentText(),
+               expected.currentText)
+        && expectTrue(
+            surface + QStringLiteral(" currentIndex"),
+            comboBox.currentIndex() == expected.currentIndex)
+        && expectTrue(
+            surface + QStringLiteral(" selected model index"),
+            comboBox.model() != nullptr
+                && comboBox.model()->index(
+                       comboBox.currentIndex(),
+                       comboBox.modelColumn(),
+                       comboBox.rootModelIndex())
+                    == expected.currentModelIndex);
 }
 
 bool verifyTreeWidgetDisplay(const LocaleExpectation &expectation)
@@ -362,6 +443,351 @@ bool verifyLineEditDisplay(const LocaleExpectation &expectation)
             language + QStringLiteral(" plain-text dynamic document isolation"),
             plainTextEdit.toPlainText(),
             documentText);
+}
+
+bool verifySelectionValueProtection(const LocaleExpectation &expectation)
+{
+    const QString language = QString::fromLatin1(expectation.language);
+    CavalryEmbeddedTranslator translator(language);
+    CavalryDisplayTranslator displayTranslator(translator);
+
+    // Lato 是已核实的字体族命中；Impact、Custom font、Bold Italic 是用户值负例。
+    const QStringList selectionValues {
+        QStringLiteral("Regular"), QStringLiteral("Bold"),
+        QStringLiteral("Black"), QStringLiteral("Medium"),
+        QStringLiteral("Lato"), QStringLiteral("Impact"),
+        QStringLiteral("Custom font"), QStringLiteral("Bold Italic"),
+    };
+    for (const QString &source : {
+             QStringLiteral("Regular"), QStringLiteral("Bold"),
+             QStringLiteral("Black"), QStringLiteral("Medium"),
+             QStringLiteral("Lato")}) {
+        const QByteArray sourceUtf8 = source.toUtf8();
+        const QString translated = translator.translate(
+            nullptr, sourceUtf8.constData());
+        if (!expectTrue(
+                language + QStringLiteral(" confirmed font translation: ")
+                    + source,
+                !translated.isEmpty() && translated != source)) {
+            return false;
+        }
+    }
+
+    const auto identityFor = [](const QString &prefix, int index) {
+        return prefix + QChar('-') + QString::number(index);
+    };
+    const auto addSelectionValues =
+        [&identityFor, &selectionValues](QComboBox &comboBox,
+                                         const QString &prefix) {
+            for (int index = 0; index < selectionValues.size(); ++index) {
+                comboBox.addItem(selectionValues.at(index),
+                                 identityFor(prefix, index));
+            }
+        };
+    const auto expectProtectedCombo =
+        [](const QString &surface, QComboBox &comboBox,
+           RoleRecordingModel &model, const ComboValueState &expected) {
+            return expectComboValueState(surface, comboBox, expected)
+                && expectTrue(
+                    surface + QStringLiteral(" has no model writes"),
+                    model.writtenRoles.isEmpty());
+        };
+    const auto translateWidget = [&displayTranslator](QWidget *widget) {
+        displayTranslator.translateWidget(widget);
+    };
+    const auto translatePaintWidget =
+        [&displayTranslator](QWidget *widget) {
+            displayTranslator.translatePaintWidget(widget);
+        };
+    const auto checkProtectedCombo =
+        [&expectProtectedCombo](const QString &surface, const auto &translate,
+                                QComboBox &comboBox,
+                                RoleRecordingModel &model,
+                                const ComboValueState &expected) {
+            model.writtenRoles.clear();
+            translate(&comboBox);
+            return expectProtectedCombo(surface, comboBox, model, expected);
+        };
+
+    RoleRecordingModel editableModel;
+    QComboBox editableCombo;
+    editableCombo.setEditable(true);
+    editableCombo.setModel(&editableModel);
+    addSelectionValues(editableCombo, QStringLiteral("editable"));
+    editableCombo.setCurrentIndex(1);
+    QLineEdit *const editableEditor = editableCombo.lineEdit();
+    if (!expectTrue(
+            language + QStringLiteral(" editable combo editor exists"),
+            editableEditor != nullptr)) {
+        return false;
+    }
+
+    // Bold 是三语确定命中的词，用作 placeholder 正向对照。
+    const QString placeholderSource = QStringLiteral("Bold");
+    editableEditor->setPlaceholderText(placeholderSource);
+    const QString translatedPlaceholder = translator.translate(nullptr, "Bold");
+    if (!expectTrue(
+            language + QStringLiteral(" editable placeholder source hit"),
+            !translatedPlaceholder.isEmpty()
+                && translatedPlaceholder != placeholderSource)) {
+        return false;
+    }
+    QStringList editorSignals;
+    QObject::connect(
+        editableEditor, &QLineEdit::textChanged, editableEditor,
+        [&editorSignals](const QString &text) { editorSignals.append(text); });
+
+    // QComboBox 的自定义 QTreeWidget popup 与宿主共用 popup model。
+    auto *const popup = new QTreeWidget;
+    popup->setColumnCount(1);
+    QTreeWidgetItem *const popupHeader = popup->headerItem();
+    popupHeader->setData(0, Qt::DisplayRole, QStringLiteral("Lato"));
+    popupHeader->setData(0, Qt::UserRole, QStringLiteral("popup-header"));
+    auto *const popupTop = new QTreeWidgetItem(popup);
+    popupTop->setData(0, Qt::DisplayRole, QStringLiteral("Bold Italic"));
+    popupTop->setData(0, Qt::UserRole, QStringLiteral("popup-top"));
+    auto *const popupNested = new QTreeWidgetItem(popupTop);
+    popupNested->setData(0, Qt::DisplayRole, QStringLiteral("Regular"));
+    popupNested->setData(0, Qt::UserRole, QStringLiteral("popup-nested"));
+    QComboBox popupCombo;
+    popupCombo.setEditable(true);
+    popupCombo.setModel(popup->model());
+    popupCombo.setView(popup);
+    popup->setCurrentItem(popupNested);
+
+    const ComboValueState editableInitial = captureComboValueState(editableCombo);
+    const QList<QTreeWidgetItem *> popupItems {
+        popupHeader, popupTop, popupNested,
+    };
+    const QList<QVariant> popupUserValues {
+        popupHeader->data(0, Qt::UserRole), popupTop->data(0, Qt::UserRole),
+        popupNested->data(0, Qt::UserRole),
+    };
+    const QModelIndex popupCurrentIndex = popup->indexFromItem(popupNested, 0);
+    const QStringList popupInitialDisplay {
+        popupHeader->data(0, Qt::DisplayRole).toString(),
+        popupTop->data(0, Qt::DisplayRole).toString(),
+        popupNested->data(0, Qt::DisplayRole).toString(),
+    };
+    const auto expectPopup =
+        [&](const QString &surface, const QStringList &expectedDisplay) {
+            for (int index = 0; index < popupItems.size(); ++index) {
+                QTreeWidgetItem *const item = popupItems.at(index);
+                if (!expectEqual(
+                        surface + QStringLiteral(" DisplayRole[")
+                            + QString::number(index) + QChar(']'),
+                        item->data(0, Qt::DisplayRole).toString(),
+                        expectedDisplay.at(index))
+                    || !expectEqual(
+                        surface + QStringLiteral(" EditRole[")
+                            + QString::number(index) + QChar(']'),
+                        item->data(0, Qt::EditRole).toString(),
+                        expectedDisplay.at(index))
+                    || !expectTrue(
+                        surface + QStringLiteral(" UserRole[")
+                            + QString::number(index) + QChar(']'),
+                        item->data(0, Qt::UserRole)
+                            == popupUserValues.at(index))) {
+                    return false;
+                }
+            }
+            return expectTrue(
+                       surface + QStringLiteral(" current item"),
+                       popup->currentItem() == popupNested)
+                && expectTrue(
+                    surface + QStringLiteral(" current index"),
+                    popup->indexFromItem(popupNested, 0)
+                        == popupCurrentIndex);
+        };
+    const auto checkPopup =
+        [&expectPopup, popup](const QString &surface, const auto &translate,
+                              const QStringList &expectedDisplay) {
+            translate(popup);
+            return expectPopup(surface, expectedDisplay);
+        };
+
+    if (!checkProtectedCombo(
+            language + QStringLiteral(" editable combo initial widget"),
+            translateWidget, editableCombo, editableModel, editableInitial)) {
+        return false;
+    }
+    displayTranslator.translateWidgetTree(&editableCombo);
+    displayTranslator.translateWidgetTree(&popupCombo);
+    if (!expectProtectedCombo(
+            language + QStringLiteral(" editable combo initial tree"),
+            editableCombo, editableModel, editableInitial)
+        || !expectPopup(
+            language + QStringLiteral(" editable tree popup initial"),
+            popupInitialDisplay)
+        || !expectEqual(
+            language + QStringLiteral(" editable combo placeholder"),
+            editableEditor->placeholderText(), translatedPlaceholder)
+        || !expectTrue(
+            language + QStringLiteral(" editable combo initial signals"),
+            editorSignals.isEmpty())) {
+        return false;
+    }
+
+    editableModel.setData(
+        editableModel.index(0, editableCombo.modelColumn()),
+        QStringLiteral("Black"), Qt::DisplayRole);
+    const ComboValueState editableDynamic = captureComboValueState(editableCombo);
+    if (!checkProtectedCombo(
+            language + QStringLiteral(" editable combo dynamic widget"),
+            translateWidget, editableCombo, editableModel, editableDynamic)
+        || !checkProtectedCombo(
+            language + QStringLiteral(" editable combo dynamic paint"),
+            translatePaintWidget, editableCombo, editableModel, editableDynamic)) {
+        return false;
+    }
+
+    popupTop->setData(0, Qt::DisplayRole, QStringLiteral("Medium"));
+    QStringList popupDynamic = popupInitialDisplay;
+    popupDynamic[1] = QStringLiteral("Medium");
+    if (!checkPopup(
+            language + QStringLiteral(" editable tree popup dynamic widget"),
+            translateWidget, popupDynamic)) {
+        return false;
+    }
+    popupNested->setData(0, Qt::DisplayRole, QStringLiteral("Lato"));
+    popupDynamic[2] = QStringLiteral("Lato");
+    if (!checkPopup(
+            language + QStringLiteral(" editable tree popup dynamic paint"),
+            translatePaintWidget, popupDynamic)) {
+        return false;
+    }
+
+    const int signalCountBeforeLato = editorSignals.size();
+    editableEditor->setText(QStringLiteral("Lato"));
+    if (!expectEqual(
+            language + QStringLiteral(" editable editor dynamic Lato"),
+            editableEditor->text(), QStringLiteral("Lato"))
+        || !expectTrue(
+            language + QStringLiteral(" editable editor Lato signal"),
+            editorSignals.size() == signalCountBeforeLato + 1
+                && editorSignals.constLast() == QStringLiteral("Lato"))) {
+        return false;
+    }
+    translatePaintWidget(editableEditor);
+    const int signalCountBeforeCustom = editorSignals.size();
+    editableEditor->setText(QStringLiteral("Bold Italic"));
+    translateWidget(editableEditor);
+    if (!expectEqual(
+            language + QStringLiteral(" editable editor custom style"),
+            editableEditor->text(), QStringLiteral("Bold Italic"))
+        || !expectTrue(
+            language + QStringLiteral(" editable editor custom signal"),
+            editorSignals.size() == signalCountBeforeCustom + 1
+                && editorSignals.constLast() == QStringLiteral("Bold Italic"))) {
+        return false;
+    }
+    editableEditor->setPlaceholderText(placeholderSource);
+    translatePaintWidget(editableEditor);
+    if (!expectEqual(
+            language + QStringLiteral(" editable editor dynamic placeholder"),
+            editableEditor->placeholderText(), translatedPlaceholder)) {
+        return false;
+    }
+    {
+        QSignalBlocker blocker(editableEditor);
+        editableEditor->setText(editableInitial.currentText);
+    }
+    if (!expectEqual(
+            language + QStringLiteral(" editable combo selected text restore"),
+            editableCombo.currentText(), editableInitial.currentText)
+        || !expectTrue(
+            language + QStringLiteral(" editable combo selected index restore"),
+            editableCombo.currentIndex() == editableInitial.currentIndex)) {
+        return false;
+    }
+
+    // QFontComboBox 即使 non-editable 也属于字体身份边界。
+    RoleRecordingModel fontModel;
+    QFontComboBox fontCombo;
+    fontCombo.setModel(&fontModel);
+    addSelectionValues(fontCombo, QStringLiteral("font"));
+    fontCombo.setCurrentIndex(3);
+    fontCombo.setEditable(false);
+    const ComboValueState fontInitial = captureComboValueState(fontCombo);
+    if (!checkProtectedCombo(
+            language + QStringLiteral(" QFontComboBox initial"),
+            translateWidget, fontCombo, fontModel, fontInitial)) {
+        return false;
+    }
+    fontModel.setData(
+        fontModel.index(0, fontCombo.modelColumn()),
+        QStringLiteral("Lato"), Qt::DisplayRole);
+    const ComboValueState fontDynamic = captureComboValueState(fontCombo);
+    if (!checkProtectedCombo(
+            language + QStringLiteral(" QFontComboBox dynamic widget"),
+            translateWidget, fontCombo, fontModel, fontDynamic)
+        || !checkProtectedCombo(
+            language + QStringLiteral(" QFontComboBox dynamic paint"),
+            translatePaintWidget, fontCombo, fontModel, fontDynamic)) {
+        return false;
+    }
+
+    // 正对照：普通 non-editable Combo 仍翻译同一批词，且只写 DisplayRole。
+    RoleRecordingModel ordinaryModel;
+    QComboBox ordinaryCombo;
+    ordinaryCombo.setModel(&ordinaryModel);
+    const QStringList ordinaryValues {
+        QStringLiteral("Regular"), QStringLiteral("Bold"),
+        QStringLiteral("Lato"),
+    };
+    for (int index = 0; index < ordinaryValues.size(); ++index) {
+        ordinaryCombo.addItem(
+            ordinaryValues.at(index), identityFor(QStringLiteral("ordinary"), index));
+    }
+    ordinaryCombo.setCurrentIndex(0);
+    const ComboValueState ordinaryInitial = captureComboValueState(ordinaryCombo);
+    QStringList ordinaryTranslated;
+    for (const QString &source : ordinaryValues) {
+        const QByteArray sourceUtf8 = source.toUtf8();
+        ordinaryTranslated.append(
+            translator.translate(nullptr, sourceUtf8.constData()));
+    }
+    ordinaryModel.writtenRoles.clear();
+    translateWidget(&ordinaryCombo);
+    for (int index = 0; index < ordinaryValues.size(); ++index) {
+        if (!expectEqual(
+                language + QStringLiteral(" ordinary combo itemText[")
+                    + QString::number(index) + QChar(']'),
+                ordinaryCombo.itemText(index), ordinaryTranslated.at(index))) {
+            return false;
+        }
+    }
+    if (!expectTrue(
+            language + QStringLiteral(" ordinary combo currentIndex"),
+            ordinaryCombo.currentIndex() == ordinaryInitial.currentIndex)
+        || !expectTrue(
+            language + QStringLiteral(" ordinary combo UserRole"),
+            ordinaryCombo.itemData(0, Qt::UserRole)
+                == ordinaryInitial.userValues.at(0))
+        || !expectTrue(
+            language + QStringLiteral(" ordinary combo DisplayRole writes"),
+            !ordinaryModel.writtenRoles.isEmpty()
+                && std::all_of(
+                    ordinaryModel.writtenRoles.cbegin(),
+                    ordinaryModel.writtenRoles.cend(),
+                    [](int role) { return role == Qt::DisplayRole; }))) {
+        return false;
+    }
+    ordinaryModel.setData(
+        ordinaryModel.index(0, ordinaryCombo.modelColumn()),
+        QStringLiteral("Regular"), Qt::DisplayRole);
+    ordinaryModel.writtenRoles.clear();
+    translatePaintWidget(&ordinaryCombo);
+    return expectEqual(
+               language + QStringLiteral(" ordinary combo dynamic itemText"),
+               ordinaryCombo.itemText(0), ordinaryTranslated.at(0))
+        && expectTrue(
+            language + QStringLiteral(" ordinary combo dynamic index"),
+            ordinaryCombo.currentIndex() == ordinaryInitial.currentIndex)
+        && expectTrue(
+            language + QStringLiteral(" ordinary combo dynamic write"),
+            ordinaryModel.writtenRoles.size() == 1
+                && ordinaryModel.writtenRoles.constFirst() == Qt::DisplayRole);
 }
 
 bool verifyCompoundRuntimeTooltips(const LocaleExpectation &expectation)
@@ -1296,7 +1722,8 @@ bool verifyLocale(const LocaleExpectation &expectation)
         && verifyEvidencedResidualWidgets(language)
         && verifyDynamicLabelTranslations(expectation)
         && verifyTreeWidgetDisplay(expectation)
-        && verifyLineEditDisplay(expectation);
+        && verifyLineEditDisplay(expectation)
+        && verifySelectionValueProtection(expectation);
 }
 
 } // namespace

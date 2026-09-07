@@ -1,11 +1,30 @@
 <!--
 [INPUT]: 依赖 Cavalry 运行时 source、行业软件既有术语、cavalry-glossary.md 与各语言 UI 书写惯例
-[OUTPUT]: 对外提供简中/繁中/日语翻译、保留词、快捷键身份标记及零混语边界
+[OUTPUT]: 对外提供简中/繁中/日语翻译、保留词、字体选择值保护、快捷键身份标记及零混语边界
 [POS]: docs 的翻译政策入口，被 TS/JSON 资源、生成表、质量门与人工审校共同消费
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
 
 # 翻译原则
+
+## 字体选择：业务值不是界面文案
+
+字体族名称与字体样式名称是字体查找的业务值，必须保留字体系统提供的原文；即使 `Regular`、`Bold`、`Black`、`Medium` 或某个字体族名称命中翻译词典，也不能改写输入值或下拉选项。字段标签、说明和占位提示可以独立翻译。
+
+`QSignalBlocker` 只阻断信号，不能让 `setText()` 成为无副作用的显示投影；`DisplayRole` 也不天然独立于 `EditRole`、`currentText()` 或业务查找。不能仅凭“未改 UserRole / currentIndex”认定字体选择安全。
+
+当前选择保留原始字体名称，不增加字体译名展示机制。未来若显示“粗体”等译名，必须先建立独立显示层，保证底层查找与提交仍使用 `Bold` 等原始值，并验证选择、编辑、失焦和重绘均不污染原值；不得以通用文本替换模拟这种分离。
+
+### 选择输入值回归
+
+跨平台接线合同随 `npm run test:contracts` 执行；Windows Qt 行为测试随原生 CTest 执行。macOS 可显式运行：
+
+```bash
+npm run test:injector:selection:macos -- "$CAVALRY_QT_PREFIX" \
+  "/path/to/Cavalry.app/Contents/Frameworks"
+```
+
+该 fixture 直调生产翻译入口，只读链接 vendor `libskia.dylib`，使用同一套 Qt 6.6.3 SDK 与 offscreen plugin；不启动或修改 Cavalry，也不能替代真实字体选择/渲染验收。
 
 ## 1. 首要原则：跟行业内已有软件保持一致
 

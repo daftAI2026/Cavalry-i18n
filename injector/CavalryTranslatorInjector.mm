@@ -1,9 +1,11 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context 策略、macOS TransformTool text-path ABI 防火墙与显式 capture/session 环境
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context/选择输入值策略、macOS TransformTool text-path ABI 防火墙与显式 capture/session 环境
  * [OUTPUT]: 对外提供 first-match-wins QTranslator、既有菜单/控件/模型保护链，以及 8 条 ordinary-Qt、Tag 邻接标签、Assets 动态 Create 模板和 Tracking dialog 的精确 owner 回补；Qt runtime 版本确认后配置五条 TransformTool 自绘 action
- * [POS]: macOS injector 核心；普通文本只在已证 Qt owner 内补译，parentless Assets 菜单只承接一个事件循环的 owner，Transform 自绘交给独立 ABI 适配器，Time Editor 模型 identity、快捷键 prefix 与无关同文保持原值
+ * [POS]: macOS injector 核心；普通文本只在已证 Qt owner 内补译，parentless Assets 菜单只承接一个事件循环的 owner，Transform 自绘交给独立 ABI 适配器，可编辑/字体 Combo 的值及弹出列表、Time Editor 模型 identity、快捷键 prefix 与无关同文保持原值
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+#include "cavalry_i18n_input_policy.h"
+
 #import <AppKit/AppKit.h>
 #import <CommonCrypto/CommonDigest.h>
 #import <Foundation/Foundation.h>
@@ -2395,7 +2397,8 @@ QString translatedMixedNoPrefixText(const QString &lang, const QString &sourceTe
 
 void translateListWidgetItems(QListWidget *listWidget, const QString &lang)
 {
-    if (listWidget == nullptr || lang.isEmpty()) {
+    if (listWidget == nullptr || lang.isEmpty() ||
+        cavalry_i18n::preservesSelectionValue(listWidget)) {
         return;
     }
     pruneQuickAddEmptyItems(listWidget);
@@ -2421,7 +2424,8 @@ void translateListWidgetItems(QListWidget *listWidget, const QString &lang)
 
 void translateTreeWidgetItem(QTreeWidget *owner, QTreeWidgetItem *item, const QString &lang)
 {
-    if (item == nullptr || lang.isEmpty()) {
+    if (item == nullptr || lang.isEmpty() ||
+        cavalry_i18n::preservesSelectionValue(owner)) {
         return;
     }
     for (int column = 0; column < item->columnCount(); ++column) {
@@ -2445,7 +2449,8 @@ void translateTreeWidgetItem(QTreeWidget *owner, QTreeWidgetItem *item, const QS
 
 void translateTableWidgetItems(QTableWidget *tableWidget, const QString &lang)
 {
-    if (tableWidget == nullptr || lang.isEmpty()) {
+    if (tableWidget == nullptr || lang.isEmpty() ||
+        cavalry_i18n::preservesSelectionValue(tableWidget)) {
         return;
     }
     for (int row = 0; row < tableWidget->rowCount(); ++row) {
@@ -2489,7 +2494,7 @@ void translateLineEditDisplayText(QLineEdit *lineEdit, const QString &lang)
     }
 
     QString translated = translatedLineEditValue(lang, lineEdit->text());
-    if (!translated.isEmpty()) {
+    if (!translated.isEmpty() && !cavalry_i18n::preservesSelectionValue(lineEdit)) {
         QSignalBlocker blocker(lineEdit);
         lineEdit->setText(translated);
     }
@@ -2587,7 +2592,8 @@ void hookLineEditTextChanges(QLineEdit *lineEdit, const QString &lang)
         &QLineEdit::textChanged,
         lineEdit,
         [guardedLineEdit, lang](const QString &text) {
-            if (guardedLineEdit.isNull() || text.isEmpty()) {
+            if (guardedLineEdit.isNull() || text.isEmpty() ||
+                cavalry_i18n::preservesSelectionValue(guardedLineEdit.data())) {
                 return;
             }
             const QString translated = translatedLineEditValue(lang, text);
@@ -3073,7 +3079,8 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
         normalizeTimeEditorItemModel(itemView, lang);
     }
 
-    if (QComboBox *comboBox = qobject_cast<QComboBox *>(widget)) {
+    if (QComboBox *comboBox = qobject_cast<QComboBox *>(widget);
+        comboBox && !cavalry_i18n::preservesSelectionValue(comboBox)) {
         for (int index = 0; index < comboBox->count(); ++index) {
             translated = translatedWidgetText(lang, comboBox->itemText(index));
             if (!translated.isEmpty()) {
@@ -3175,7 +3182,8 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
         translateListWidgetItems(listWidget, lang);
     }
 
-    if (QTreeWidget *treeWidget = qobject_cast<QTreeWidget *>(widget)) {
+    if (QTreeWidget *treeWidget = qobject_cast<QTreeWidget *>(widget);
+        treeWidget && !cavalry_i18n::preservesSelectionValue(treeWidget)) {
         for (int column = 0; column < treeWidget->columnCount(); ++column) {
             QTreeWidgetItem *header = treeWidget->headerItem();
             if (header != nullptr) {
@@ -3190,7 +3198,8 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
         }
     }
 
-    if (QTableWidget *tableWidget = qobject_cast<QTableWidget *>(widget)) {
+    if (QTableWidget *tableWidget = qobject_cast<QTableWidget *>(widget);
+        tableWidget && !cavalry_i18n::preservesSelectionValue(tableWidget)) {
         translateTableWidgetItems(tableWidget, lang);
         for (int column = 0; column < tableWidget->columnCount(); ++column) {
             QTableWidgetItem *header = tableWidget->horizontalHeaderItem(column);

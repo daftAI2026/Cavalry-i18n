@@ -1,5 +1,5 @@
 /**
- * [INPUT]: canonical repository root 与 acceptance producer 根目录。
+ * [INPUT]: canonical repository root、acceptance producer 根目录与包含共享翻译/输入策略的生产源码。
  * [OUTPUT]: 返回 acceptance-v2 必须冻结的完整、确定性 source→snapshot 路径闭包及 Guide staging 文件表。
  * [POS]: live producer 与独立 release verifier 共用的 source-closure 真相源，防止任一侧省略受审源码。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -32,6 +32,7 @@ function sourceEntries(repo, acceptanceRoot = path.join(repo, 'tools', 'macos-ac
   const product = [
     'injector/CavalryTranslatorInjector.mm',
     'injector/cavalry_i18n_translation_policy.h',
+    'injector/cavalry_i18n_input_policy.h',
     'injector/cavalry_i18n_macos_tool_help_text_path.h',
     'injector/cavalry_i18n_macos_tool_help_text_path.cpp',
     'injector/generated_translations.inc',

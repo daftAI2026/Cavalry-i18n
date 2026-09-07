@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context 策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
+ * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context/选择输入值策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
  * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字和动态英文写回恢复
- * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系、producer 或 vendor 主窗口身份，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系、producer 或 vendor 主窗口身份，保护可编辑/字体 Combo 及其编辑器/弹出列表的业务值，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -10,6 +10,7 @@
 #include "cavalry_i18n_translator.h"
 
 #include "../cavalry_i18n_translation_policy.h"
+#include "../cavalry_i18n_input_policy.h"
 
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QPointer>
@@ -990,7 +991,8 @@ void CavalryDisplayTranslator::trackObject(QObject *object)
 
 void CavalryDisplayTranslator::translateComboBoxDisplay(QComboBox *comboBox)
 {
-    if (comboBox == nullptr || comboBox->model() == nullptr) {
+    if (comboBox == nullptr || comboBox->model() == nullptr ||
+        cavalry_i18n::preservesSelectionValue(comboBox)) {
         return;
     }
 
@@ -1058,17 +1060,19 @@ void CavalryDisplayTranslator::translateLineEditDisplay(QLineEdit *lineEdit)
     }
 
     const QPointer<QLineEdit> guardedLineEdit(lineEdit);
-    applyTranslation(
-        lineEdit,
-        QByteArrayLiteral("lineEditText"),
-        lineEdit->text(),
-        [guardedLineEdit](const QString &value) {
-            if (!guardedLineEdit.isNull()) {
-                // 已知词表值仅作显示投影，不能把回写信号送回 Cavalry 业务层。
-                QSignalBlocker blocker(guardedLineEdit.data());
-                guardedLineEdit->setText(value);
-            }
-        });
+    if (!cavalry_i18n::preservesSelectionValue(lineEdit)) {
+        applyTranslation(
+            lineEdit,
+            QByteArrayLiteral("lineEditText"),
+            lineEdit->text(),
+            [guardedLineEdit](const QString &value) {
+                if (!guardedLineEdit.isNull()) {
+                    // 选择输入已退出；其余历史路径只阻断信号，不承诺数据与显示隔离。
+                    QSignalBlocker blocker(guardedLineEdit.data());
+                    guardedLineEdit->setText(value);
+                }
+            });
+    }
     if (guardedLineEdit.isNull()) {
         return;
     }
@@ -1129,7 +1133,8 @@ void CavalryDisplayTranslator::translateTreeWidgetDisplay(
 void CavalryDisplayTranslator::translateTreeWidgetItemDisplay(
     QTreeWidgetItem *item)
 {
-    if (item == nullptr) {
+    if (item == nullptr ||
+        cavalry_i18n::preservesSelectionValue(item->treeWidget())) {
         return;
     }
 
