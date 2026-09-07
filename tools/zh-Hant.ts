@@ -2193,6 +2193,7 @@
     <message><source>Trails</source><translation>軌跡</translation></message>
     <message><source>Velocity Context</source><translation>速度方向上下文</translation></message>
     <message><source>Velocity Magnitude Context</source><translation>速度大小上下文</translation></message>
+    <message><source>Remap</source><translation>重映射</translation></message>
     <message><source>Remapping</source><translation>重映射</translation></message>
     <message><source>None...</source><translation>無...</translation></message>
     <message><source>Draw Extents</source><translation>繪製範圍</translation></message>

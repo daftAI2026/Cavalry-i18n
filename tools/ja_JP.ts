@@ -3183,6 +3183,7 @@
     <message><source>Trails</source><translation>トレイル</translation></message>
     <message><source>Velocity Context</source><translation>速度方向コンテキスト</translation></message>
     <message><source>Velocity Magnitude Context</source><translation>速度の大きさコンテキスト</translation></message>
+    <message><source>Remap</source><translation>リマッピング</translation></message>
     <message><source>Remapping</source><translation>リマッピング</translation></message>
     <message><source>None...</source><translation>なし...</translation></message>
     <message><source>Draw Extents</source><translation>範囲を描画</translation></message>

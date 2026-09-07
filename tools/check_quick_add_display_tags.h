@@ -67,6 +67,33 @@ bool verifyPaintCategoryTags()
     denied.setSourceModel(&model);
     expect(itemMatches(denied.index(0, 0).data(256), sourceItem),
         QStringLiteral("unverified vendor never projects categories"));
+    cavalry_i18n::QuickAddPaintModel unchanged(
+        [](const QString &text) { return text; }, true, nullptr);
+    unchanged.setSourceModel(&model);
+    expect(itemMatches(unchanged.index(0, 0).data(256), sourceItem),
+        QStringLiteral("identity provider preserves raw vendor aliases, not canonicalized keys"));
+    cavalry_i18n::QuickAddPaintModel combined([provider](const QString &text) {
+        return text == QStringLiteral("Untranslated Title") ? QString::fromUtf8("本地标题") : provider(text);
+    }, true, nullptr);
+    combined.setSourceModel(&model);
+    expected.title = QString::fromUtf8("本地标题");
+    expect(itemMatches(combined.index(0, 0).data(256), expected),
+        QStringLiteral("title and categories share one copy without overwriting each other"));
+    // ---- SSO 与大块堆存储边界：赋值、复制、销毁不污染源容器 --------
+    for (const int length : {15, 16, 22, 23, 4097}) {
+        sourceItem.tags = {std::string(size_t(length), 'x'), "Shape"};
+        model.setItem(sourceItem);
+        const QString replacement(length + 1, QChar(0x754c));
+        cavalry_i18n::QuickAddPaintModel storage(
+            [replacement](const QString &) { return replacement; }, true, nullptr);
+        storage.setSourceModel(&model);
+        const QVariant projected = storage.index(0, 0).data(256);
+        const auto *item = itemFromVariant(projected);
+        expect(item && item->tags == std::vector<std::string>(2, replacement.toUtf8().toStdString()),
+            QStringLiteral("category projection owns SSO/heap storage across boundary %1").arg(length));
+        expect(itemMatches(model.index(0, 0).data(256), sourceItem),
+            QStringLiteral("SSO/heap assignment never mutates the registered source"));
+    }
     sourceItem.tags.clear();
     model.setItem(sourceItem);
     expect(itemMatches(original->lastPaintIndex.data(256), sourceItem),

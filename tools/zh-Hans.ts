@@ -2122,6 +2122,7 @@
     <message><source>Trails</source><translation>轨迹</translation></message>
     <message><source>Velocity Context</source><translation>速度方向上下文</translation></message>
     <message><source>Velocity Magnitude Context</source><translation>速度大小上下文</translation></message>
+    <message><source>Remap</source><translation>重映射</translation></message>
     <message><source>Remapping</source><translation>重映射</translation></message>
     <message><source>None...</source><translation>无...</translation></message>
     <message><source>Draw Extents</source><translation>绘制范围</translation></message>

@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-cavalry_i18n_quick_add_display.h: 跨平台 FastQuickAdd 显示适配器；各平台独立验证 ExtensionLayer 映像与 exact FastQuickAdd source-model 链，Windows 另锁定完整绘制/复制析构函数摘要及唯一元类型来源，paint/sizeHint 仅使用 Qt registered copy 的标题投影，未知 model/payload 保持原始 index 与值透传；原 delegate 销毁回退 Qt 英文 delegate，vendor replacement 清理旧 wrapper，model 变更在首个绘制前同步。
+cavalry_i18n_quick_add_display.h: 跨平台 FastQuickAdd 显示适配器；各平台独立验证 ExtensionLayer 映像与 exact FastQuickAdd source-model 链，Windows 另锁定完整绘制/复制析构函数摘要及唯一元类型来源，paint/sizeHint 仅使用 Qt registered copy 的标题/类别标签投影，标签先遵循原厂 Atomic→Utility、Beta→Experimental 显示规则再复用译文，源分类与命令不变，未知 model/payload 保持原始 index 与值透传；原 delegate 销毁回退 Qt 英文 delegate，vendor replacement 清理旧 wrapper，model 变更在首个绘制前同步。
 
 CavalryTranslatorInjector.mm: Add Layer 两种 owner 的搜索输入保持原文，FastQuickAdd 在非 Paint 的挂接路径安装双语过滤索引，并在已验证 vendor 的 delegate 绘制副本翻译标题，Classic 使用名称/说明索引与标题适配器保留英文检索依据； macOS Objective-C++ runtime 翻译注入器；以 `(context, source)` 哈希复用生成表，在 Qt runtime minor 确认后把五条 `MenuBarManager` exact action 交给独立 TransformTool ABI 适配器，translator 安装后先启用轻量 ContextMenu owner 路径、启动回补后再开放完整 dirty 事件翻译；对 `assets::Window` 创建的 parentless QMenu/QAction，只在单事件循环内把嵌套 ContextMenu 规范到根菜单并以弱引用承接 owner，使 `Replace...` 与动态 `Create Composition based on %1` 共用同一可信 producer，同时保持既有菜单首帧、模型 identity、MessageBar 与 capture-only inventory 边界。
 cavalry_i18n_macos_tool_help_text_path.h: macOS TransformTool text-path 窄接口；只接受启动期五条 exact action 译文并返回带逐 source 成功/回退计数的原子诊断快照，另以版本化只读 C ABI 供同进程证据驱动计算动作前后增量，使 Objective-C++ 翻译表所有权与 vendor C++ ABI 防火墙保持单向依赖。

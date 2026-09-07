@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖平台各自验证的 Cavalry 2.7.2 payload ABI、Qt 6.6.3 注册复制语义、原厂 delegate 与显示译文 provider
- * [OUTPUT]: 提供只在 exact FastQuickAdd model 绘制副本投影标题的 delegate；未知 model/payload 原始 index 透传，真实 query、命令角色和编辑路径保持原样
+ * [OUTPUT]: 提供只在 exact FastQuickAdd model 绘制副本投影标题与类别标签的 delegate；未知 model/payload 原始 index 透传，真实 query、命令角色和编辑路径保持原样
  * [POS]: injector 的 FastQuickAdd 显示适配边界；平台必须先证明 vendor fingerprint 与 source model 链，原 delegate 失效时回退 Qt 英文 delegate，未知版本/类型/布局原样回退，不由类型名推断 Windows 兼容
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -19,6 +19,8 @@
 #include <QtWidgets/QStyledItemDelegate>
 
 #include <functional>
+#include <string>
+#include <vector>
 #include <utility>
 
 namespace cavalry_i18n {
@@ -98,32 +100,62 @@ inline bool isVerifiedQuickAddPaintPayload(
     return *title == expectedTitle;
 }
 
-// ---- 双平台独立已证 2.7.2 ABI：registered copy/dtor 与 paint 的同一 QString ----
-// +0x18 为命令，+0x30 为标题，+0x48 为 tags，+0x60 为说明。
-// 只有标题可投影；结构本身始终由 vendor 注册的 QMetaType 构造与析构。
+// ---- 原厂先规范化显示别名；内部分类 key 不随界面语言变化 ------------
+inline QString quickAddCategoryDisplayName(const QString &source)
+{
+    if (source == QStringLiteral("Atomic")) return QStringLiteral("Utility");
+    if (source == QStringLiteral("Beta")) return QStringLiteral("Experimental");
+    return source;
+}
+
+// +0x18 command、+0x30 title、+0x48 vector<string> tags、+0x60 description。
+// 仅已验证 vendor 的 registered copy 可承接投影；容器 ABI 由各平台独立证明。
 inline QVariant quickAddPaintValue(
     const QVariant &source, const QString &expectedTitle,
-    const QString &translatedTitle, bool vendorContractVerified)
+    const QString &translatedTitle, bool vendorContractVerified,
+    const QuickAddDisplayProvider &tagProvider = {})
 {
-    if (!isVerifiedQuickAddPaintPayload(
-            source,
-            expectedTitle,
-            vendorContractVerified)
-        || translatedTitle.isEmpty()
-        || translatedTitle == expectedTitle) {
+    if (!isVerifiedQuickAddPaintPayload(source, expectedTitle, vendorContractVerified)) {
         return source;
     }
     constexpr qsizetype kTitleOffset = 0x30;
+    constexpr qsizetype kTagsOffset = 0x48;
+    static_assert(sizeof(std::vector<std::string>) == 0x18);
+    static_assert(alignof(std::vector<std::string>) == 8);
+#ifdef Q_OS_WIN
+    static_assert(_ITERATOR_DEBUG_LEVEL == 0, "Vendor payload requires release MSVC STL");
+    static_assert(sizeof(std::string) == 0x20);
+#else
+    static_assert(sizeof(std::string) == 0x18);
+#endif
 
     QVariant copy = source;
-    // QVariant::data() 调用已审计的 registered copy；QString 赋值不改源共享存储。
-    void *copyData = copy.data();
-    if (copyData == nullptr) {
-        return source;
+    // 首次实际变化才触发 registered copy；不从裸字节构造/析构 vendor 对象。
+    void *copyData = nullptr;
+    const auto writable = [&]() -> char * {
+        if (copyData == nullptr) copyData = copy.data();
+        return static_cast<char *>(copyData);
+    };
+    if (!translatedTitle.isEmpty() && translatedTitle != expectedTitle) {
+        if (char *data = writable()) {
+            *reinterpret_cast<QString *>(data + kTitleOffset) = translatedTitle;
+        }
     }
-    auto *paintTitle = reinterpret_cast<QString *>(
-        static_cast<char *>(copyData) + kTitleOffset);
-    *paintTitle = translatedTitle;
+    if (tagProvider) {
+        const auto &tags = *reinterpret_cast<const std::vector<std::string> *>(
+            static_cast<const char *>(source.constData()) + kTagsOffset);
+        for (size_t i = 0; i < tags.size(); ++i) {
+            const QString raw = QString::fromUtf8(tags[i].data(), qsizetype(tags[i].size()));
+            const QString display = quickAddCategoryDisplayName(raw);
+            const QString translated = tagProvider(display);
+            // 没有译文时保留 raw，让原 delegate 自行执行 Atomic/Beta 显示规则。
+            if (translated.isEmpty() || translated == display) continue;
+            if (char *data = writable()) {
+                auto &paintTags = *reinterpret_cast<std::vector<std::string> *>(data + kTagsOffset);
+                paintTags[i] = translated.toUtf8().toStdString();
+            }
+        }
+    }
     return copy;
 }
 
@@ -141,7 +173,7 @@ public:
             return value;
         }
         const QString source = QIdentityProxyModel::data(index, Qt::DisplayRole).toString();
-        return quickAddPaintValue(value, source, provider_(source), verified_);
+        return quickAddPaintValue(value, source, provider_(source), verified_, provider_);
     }
 
 private:
