@@ -1,5 +1,5 @@
 /**
- * [INPUT]: canonical repository root、acceptance producer 根目录与包含共享翻译/输入策略的生产源码。
+ * [INPUT]: canonical repository root、acceptance producer 根目录与包含共享翻译/输入/Quick Add context/搜索/Classic/Quick Add 描述及 macOS-only 显示策略的生产源码。
  * [OUTPUT]: 返回 acceptance-v2 必须冻结的完整、确定性 source→snapshot 路径闭包及 Guide staging 文件表。
  * [POS]: live producer 与独立 release verifier 共用的 source-closure 真相源，防止任一侧省略受审源码。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -10,6 +10,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const LANGUAGES = Object.freeze(['zh-Hans', 'zh-Hant', 'ja_JP']);
+const DESCRIPTION_LANGUAGES = Object.freeze(['en', ...LANGUAGES]);
 const GUIDE_FILES = Object.freeze([
   ['onboarding.json', 'Learn/onboarding.json'],
   ['Learn/Guides/guides.json', 'Learn/Guides/guides.json'],
@@ -29,19 +30,34 @@ function sourceEntries(repo, acceptanceRoot = path.join(repo, 'tools', 'macos-ac
     source: path.join(acceptanceRoot, relative),
     destination: path.join('acceptance', relative),
   }));
+  const quickAddDescriptionInputs = DESCRIPTION_LANGUAGES.flatMap((language) => [
+    `languages/${language}/nodeStrings.json`,
+    ...fs.readdirSync(path.join(repo, 'languages', language, 'plugins'))
+      .filter((name) => name.endsWith('.json') && !name.endsWith('Definitions.json'))
+      .sort()
+      .map((name) => `languages/${language}/plugins/${name}`),
+  ]);
   const product = [
     'injector/CavalryTranslatorInjector.mm',
     'injector/cavalry_i18n_translation_policy.h',
     'injector/cavalry_i18n_input_policy.h',
+    'injector/cavalry_i18n_quick_add_context.h',
+    'injector/cavalry_i18n_search_policy.h',
+    'injector/cavalry_i18n_classic_search.h',
+    'injector/cavalry_i18n_search_descriptions.h',
+    'injector/cavalry_i18n_quick_add_display.h',
     'injector/cavalry_i18n_macos_tool_help_text_path.h',
     'injector/cavalry_i18n_macos_tool_help_text_path.cpp',
     'injector/generated_translations.inc',
+    'injector/generated_quick_add_descriptions.inc',
     'tools/build_translator_injector.sh',
     'tools/generate_embedded_translations.js',
+    'tools/generate_quick_add_descriptions.js',
     'tools/cavalry_qt_target.json',
     'tools/model_display_translations.json',
     'tools/runtime-noise-quarantine.json',
     'tools/zh-Hans.ts', 'tools/zh-Hant.ts', 'tools/ja_JP.ts',
+    ...quickAddDescriptionInputs,
   ].map((relative) => ({ source: path.join(repo, relative), destination: path.join('repo', relative) }));
   for (const language of LANGUAGES) {
     for (const [source] of GUIDE_FILES) {

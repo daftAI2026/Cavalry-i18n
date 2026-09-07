@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context/选择输入值策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字和动态英文写回恢复
+ * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context/选择输入值/搜索别名策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字、交互补全输入（含 parentless 构建阶段）保护、FastQuickAdd 双语过滤、Windows ABI 验证后的标题绘制副本及 Classic 名称与说明双语索引/标题分离，以及动态英文写回恢复
  * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系、producer 或 vendor 主窗口身份，保护可编辑/字体 Combo 及其编辑器/弹出列表的业务值，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -11,6 +11,11 @@
 
 #include "../cavalry_i18n_translation_policy.h"
 #include "../cavalry_i18n_input_policy.h"
+#include "../cavalry_i18n_search_policy.h"
+#include "../cavalry_i18n_classic_search.h"
+#include "../cavalry_i18n_search_descriptions.h"
+#include "../cavalry_i18n_quick_add_display.h"
+#include "cavalry_i18n_quick_add_display_contract.h"
 
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QPointer>
@@ -610,6 +615,35 @@ void CavalryDisplayTranslator::translateWidget(QWidget *widget)
         return;
     }
 
+    if (auto *view = qobject_cast<QAbstractItemView *>(guardedWidget.data())) {
+        const QPointer<CavalryDisplayTranslator> guardedTranslator(this);
+        cavalry_i18n::attachFastQuickAddAliases(view, [guardedTranslator](const QString &source) {
+            return guardedTranslator.isNull()
+                ? QStringList{}
+                : QStringList{guardedTranslator->translationFor(source)};
+        });
+        if (auto *list = qobject_cast<QListView *>(view);
+            list && cavalry_i18n::hasExactFastQuickAddDisplaySource(list->model())) {
+            // 元类型来源与 Windows 二进制布局先通过，再复用仅绘制副本的 adapter。
+            const bool verified = cavalry_i18n::verifiedWindowsQuickAddType(
+                QMetaType::fromName("cavalry::FastQuickAddItem"));
+            cavalry_i18n::attachQuickAddDisplay(list, [guardedTranslator](const QString &source) {
+                return guardedTranslator ? guardedTranslator->translationFor(source) : QString();
+            }, verified);
+        }
+    }
+    if (auto *list = qobject_cast<QListWidget *>(guardedWidget.data())) {
+        const QPointer<CavalryDisplayTranslator> translator(this);
+        const auto title = [translator](const QString &source) {
+            return translator ? translator->translationFor(source) : QString();
+        };
+        const QString language = translator_.language();
+        cavalry_i18n::attachClassicQuickAddAliases(list,
+            [title](const QString &source) { return QStringList{title(source)}; }, title,
+            [language](const QString &description) {
+                return cavalry_i18n::quickAddEnglishDescriptionAliases(language, description);
+            });
+    }
     translateWidgetText(guardedWidget.data());
     if (!guardedWidget.isNull()) {
         translateWidgetActions(guardedWidget.data());
@@ -1060,7 +1094,8 @@ void CavalryDisplayTranslator::translateLineEditDisplay(QLineEdit *lineEdit)
     }
 
     const QPointer<QLineEdit> guardedLineEdit(lineEdit);
-    if (!cavalry_i18n::preservesSelectionValue(lineEdit)) {
+    if (!cavalry_i18n::preservesSelectionValue(lineEdit) &&
+        !cavalry_i18n::preservesCompleterInputValue(lineEdit)) {
         applyTranslation(
             lineEdit,
             QByteArrayLiteral("lineEditText"),

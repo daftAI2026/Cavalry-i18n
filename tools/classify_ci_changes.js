@@ -2,7 +2,7 @@
 /**
  * [INPUT]: 依赖 Git 变更范围、GitHub event/ref/base/head 与仓库路径职责边界
  * [OUTPUT]: 对外提供 documentation/source/vulnerability/windows/macos-injector 五类 CI 风险投影及 GitHub Actions outputs
- * [POS]: tools 的 CI 调度分类器，共享翻译/输入策略必须经过双平台门；tag、手动运行、未知路径和不可解析 diff 均 fail-closed
+ * [POS]: tools 的 CI 调度分类器，共享翻译/输入/Quick Add context/display/搜索/Classic/Quick Add 描述策略必须经过双平台门，macOS-only 原生源码只进入 macOS 门；tag、手动运行、未知路径和不可解析 diff 均 fail-closed
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 'use strict';
@@ -48,7 +48,7 @@ const DEPENDENCY_PATHS = [
 
 const WINDOWS_PATHS = [
   /^injector\/windows\//,
-  /^injector\/(?:generated_translations\.inc|cavalry_i18n_(?:translation|input)_policy\.h)$/,
+  /^injector\/(?:generated_translations\.inc|generated_quick_add_descriptions\.inc|cavalry_i18n_(?:translation_policy|input_policy|quick_add_context|quick_add_display|search_policy|classic_search|search_descriptions)\.h)$/,
   /^renderer\//,
   /^languages\//,
   /^src-tauri\//,
@@ -56,7 +56,7 @@ const WINDOWS_PATHS = [
   /^requirements-ci\.(?:in|txt)$/,
   /^rust-toolchain\.toml$/,
   /^tools\/(?:check_windows|powershell_command|record_windows|resolve_windows|windows_|windows-acceptance\/)/,
-  /^tools\/(?:cavalry_qt_target\.json|generate_embedded_translations\.js|model_display_translations\.json|resolve_cavalry_qt_sdk\.js)$/,
+  /^tools\/(?:cavalry_qt_target\.json|generate_embedded_translations\.js|generate_quick_add_descriptions\.js|model_display_translations\.json|resolve_cavalry_qt_sdk\.js)$/,
   /^tools\/(?:zh-Hans|zh-Hant|ja_JP)\.ts$/,
   /^\.github\/workflows\//,
 ];
@@ -65,7 +65,8 @@ const MACOS_INJECTOR_PATHS = [
   /^injector\/(?!windows\/)/,
   /^package(?:-lock)?\.json$/,
   /^requirements-ci\.(?:in|txt)$/,
-  /^tools\/(?:build_translator_injector\.sh|cavalry_qt_target\.json|generate_embedded_translations\.js|model_display_translations\.json|resolve_cavalry_qt_sdk\.js)$/,
+  /^languages\/(?:en|zh-Hans|zh-Hant|ja_JP)\/(?:nodeStrings\.json|plugins\/(?![^/]*Definitions\.json$)[^/]+\.json)$/,
+  /^tools\/(?:build_translator_injector\.sh|cavalry_qt_target\.json|generate_embedded_translations\.js|generate_quick_add_descriptions\.js|model_display_translations\.json|resolve_cavalry_qt_sdk\.js)$/,
   /^tools\/(?:zh-Hans|zh-Hant|ja_JP)\.ts$/,
   /^tools\/macos-acceptance\//,
   /^\.github\/workflows\//,

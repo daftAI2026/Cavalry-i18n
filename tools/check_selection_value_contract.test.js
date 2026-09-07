@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖双平台生产翻译入口、共享选择输入策略与原生回归测试源码
- * [OUTPUT]: 对外提供字体选择值的跨平台接线合同，锁定 Combo/编辑器/弹出列表三条回写边界
+ * [INPUT]: 依赖双平台生产翻译入口、共享选择输入/Quick Add context 策略与原生回归测试源码
+ * [OUTPUT]: 对外提供字体选择值的跨平台接线合同，锁定 Combo/编辑器/弹出列表三条回写边界及共享 Quick Add context 的双平台源码闭包
  * [POS]: tools 的 CI-safe 静态回归门；与原生测试互补，不冒充真实 Cavalry 字体效果验收
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -61,11 +61,12 @@ test('Windows shares the same guard for combo, editor and custom tree popup', ()
   assert.match(body(source, 'void CavalryDisplayTranslator::translateLineEditDisplay('), /setPlaceholderText/);
 });
 
-test('shared input policy is included in both native provenance closures', () => {
+test('shared input and Quick Add context policies are included in both native provenance closures', () => {
   for (const file of [
     'tools/macos-acceptance/source_contract.js',
     'tools/windows_nsis_provenance.js',
   ]) {
     assert.match(read(file), /cavalry_i18n_input_policy\.h/, file);
+    assert.match(read(file), /cavalry_i18n_quick_add_context\.h/, file);
   }
 });

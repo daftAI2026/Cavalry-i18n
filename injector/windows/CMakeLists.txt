@@ -1,5 +1,5 @@
-# [INPUT]: 依赖 CMake 4.2+、Visual Studio 2022+ 的 MSVC v143、Qt 6.6.3 x64 SDK及版本化 QPA 头、Windows Psapi、本目录源码、../generated_translations.inc 与可选 vendor 根
-# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册显示/hook/vendor、QPA manifest、测试态 vendor 主窗口缝及环境/显式入口合同测试
+# [INPUT]: 依赖产品及搜索合同一致的 QT_NO_KEYWORDS 配置、CMake 4.2+、Visual Studio 2022+ 的 MSVC v143、Qt 6.6.3 x64 SDK及版本化 QPA 头、Windows Psapi、本目录源码、tools/check_quick_add_search.cpp 与 tools/check_classic_quick_add_search.cpp、../generated_translations.inc 与可选 vendor 根
+# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册显示/hook/vendor、QPA manifest、Classic 同一 Qt fixture 排序合同、测试态 vendor 主窗口缝及环境/显式入口合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构/manifest 前置检查约束通用翻译 runtime 与原生入口 QPA 代理，并隔离验收 driver
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 4.2)
@@ -339,6 +339,77 @@ if(BUILD_TESTING)
             "$<TARGET_FILE:cavalryi18n_display_test>"
     )
 
+    # 共享显示副本合同覆盖 Windows ABI 相同的布局及独立负例，产品另验真实 vendor。
+    foreach(display_variant normal bad_size bad_align)
+        set(display_target "cavalryi18n_quick_add_display_${display_variant}")
+        add_executable(${display_target} "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_quick_add_display.cpp")
+        target_link_libraries(${display_target} PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
+        target_compile_definitions(${display_target} PRIVATE QT_NO_KEYWORDS)
+        if(display_variant STREQUAL "bad_size")
+            target_compile_definitions(${display_target} PRIVATE CAVALRY_QUICK_ADD_DISPLAY_BAD_SIZE)
+        elseif(display_variant STREQUAL "bad_align")
+            target_compile_definitions(${display_target} PRIVATE CAVALRY_QUICK_ADD_DISPLAY_BAD_ALIGN)
+        endif()
+        add_test(NAME ${display_target} COMMAND "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "QT_QPA_PLATFORM=offscreen" "$<TARGET_FILE:${display_target}>")
+    endforeach()
+
+    # 共享搜索策略只使用 Qt 公共 model/view API。
+    add_executable(
+        cavalryi18n_quick_add_search_test
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_quick_add_search.cpp"
+    )
+
+    target_compile_definitions(cavalryi18n_quick_add_search_test PRIVATE QT_NO_KEYWORDS)
+
+    target_link_libraries(cavalryi18n_quick_add_search_test
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Widgets
+    )
+
+    target_include_directories(cavalryi18n_quick_add_search_test
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    add_test(
+        NAME cavalryi18n_quick_add_search
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "QT_QPA_PLATFORM=offscreen"
+            "$<TARGET_FILE:cavalryi18n_quick_add_search_test>"
+    )
+
+    add_executable(
+        cavalryi18n_classic_quick_add_search_test
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_classic_quick_add_search.cpp"
+    )
+
+    target_link_libraries(cavalryi18n_classic_quick_add_search_test
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Widgets
+    )
+
+    target_include_directories(cavalryi18n_classic_quick_add_search_test
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    add_test(
+        NAME cavalryi18n_classic_quick_add_search
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "QT_QPA_PLATFORM=offscreen"
+            "$<TARGET_FILE:cavalryi18n_classic_quick_add_search_test>"
+    )
+
     add_executable(cavalryi18n_embedded_translator_test
         cavalry_i18n_translator_test.cpp
         cavalry_i18n_translator.cpp
@@ -513,6 +584,12 @@ if(BUILD_TESTING)
                 "CAVALRY_VENDOR_ROOT must contain ExtensionLayer.dll, CavalryUI.dll, Core.dll, and skia.dll: ${CAVALRY_VENDOR_ROOT_ABSOLUTE}"
             )
         endif()
+
+        add_executable(cavalryi18n_quick_add_vendor_test cavalry_i18n_quick_add_vendor_test.cpp)
+        target_link_libraries(cavalryi18n_quick_add_vendor_test PRIVATE Qt6::Core Psapi)
+        add_test(NAME cavalryi18n_quick_add_vendor COMMAND "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "$<TARGET_FILE:cavalryi18n_quick_add_vendor_test>" "${CAVALRY_VENDOR_EXTENSION_LAYER}")
 
         add_executable(cavalryi18n_vendor_iat_contract_test
             cavalry_i18n_vendor_iat_contract_test.cpp

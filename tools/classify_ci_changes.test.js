@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 classify_ci_changes.js 的纯路径分类接口
- * [OUTPUT]: 证明文档轻门、合同门、共享翻译/输入策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
+ * [OUTPUT]: 证明文档轻门、合同门、共享翻译/输入/Quick Add context/display/搜索/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
  * [POS]: CI 风险调度器的单元测试，防止节省 Runner 时误跳产品或发布证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -69,10 +69,31 @@ test('macOS-only and shared injector paths select the correct native evidence', 
     'injector/generated_translations.inc',
     'injector/cavalry_i18n_translation_policy.h',
     'injector/cavalry_i18n_input_policy.h',
+    'injector/cavalry_i18n_quick_add_context.h',
+    'injector/cavalry_i18n_search_policy.h',
+    'injector/cavalry_i18n_classic_search.h',
+    'injector/cavalry_i18n_search_descriptions.h',
+    'injector/generated_quick_add_descriptions.inc',
+    'tools/generate_quick_add_descriptions.js',
   ]) {
     const shared = classifyPaths([relativePath]);
     assert.equal(shared.windows, true, relativePath);
     assert.equal(shared.macosInjector, true, relativePath);
+  }
+
+  const display = classifyPaths(['injector/cavalry_i18n_quick_add_display.h']);
+  assert.equal(display.windows, true);
+  assert.equal(display.macosInjector, true);
+
+  for (const relativePath of [
+    'languages/en/nodeStrings.json',
+    'languages/zh-Hans/plugins/boxBlurFilter.json',
+    'languages/zh-Hant/nodeStrings.json',
+    'languages/ja_JP/plugins/zoomBlurFilter.json',
+  ]) {
+    const descriptions = classifyPaths([relativePath]);
+    assert.equal(descriptions.windows, true, relativePath);
+    assert.equal(descriptions.macosInjector, true, relativePath);
   }
 });
 

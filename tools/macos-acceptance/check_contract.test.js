@@ -99,6 +99,10 @@ test('harness freezes the real source closure and exact-window evidence protocol
     sourceContract.includes("'fixtures/replace-source.png', 'fixtures/replace-source.mp4', 'fixtures/dynamic-proof-two.png'"),
     'shared source contract must freeze all three real media fixtures'
   );
+  assert.ok(
+    sourceContract.includes("'injector/cavalry_i18n_quick_add_context.h'"),
+    'shared Quick Add context must stay in the macOS source closure'
+  );
   assert.match(harness, /points\.length !== 48 \|\| new Set\(keys\)\.size !== 48/);
   assert.match(harness, /seen\.size !== 48/);
   assert.doesNotMatch(harness, /cgwindow_all|dynamic-proof-two\.mp4/);

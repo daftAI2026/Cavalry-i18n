@@ -1,10 +1,14 @@
 /**
- * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context/选择输入值策略、macOS TransformTool text-path ABI 防火墙与显式 capture/session 环境
- * [OUTPUT]: 对外提供 first-match-wins QTranslator、既有菜单/控件/模型保护链，以及 8 条 ordinary-Qt、Tag 邻接标签、Assets 动态 Create 模板和 Tracking dialog 的精确 owner 回补；Qt runtime 版本确认后配置五条 TransformTool 自绘 action
+ * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context/选择输入值/Fast 与 Classic 搜索策略及独立说明索引、macOS TransformTool text-path ABI 防火墙与显式 capture/session 环境
+ * [OUTPUT]: 对外提供 first-match-wins QTranslator、既有菜单/控件/模型保护链，以及 8 条 ordinary-Qt、Tag 邻接标签、Assets 动态 Create 模板和 Tracking dialog 的精确 owner 回补；交互补全输入（含 parentless 构建阶段）保留用户原文，FastQuickAdd 双语索引独立过滤且标题仅在已验证 vendor 的绘制副本投影；Qt runtime 版本确认后配置五条 TransformTool 自绘 action
  * [POS]: macOS injector 核心；普通文本只在已证 Qt owner 内补译，parentless Assets 菜单只承接一个事件循环的 owner，Transform 自绘交给独立 ABI 适配器，可编辑/字体 Combo 的值及弹出列表、Time Editor 模型 identity、快捷键 prefix 与无关同文保持原值
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_input_policy.h"
+#include "cavalry_i18n_search_policy.h"
+#include "cavalry_i18n_classic_search.h"
+#include "cavalry_i18n_search_descriptions.h"
+#include "cavalry_i18n_quick_add_display.h"
 
 #import <AppKit/AppKit.h>
 #import <CommonCrypto/CommonDigest.h>
@@ -2401,6 +2405,14 @@ void translateListWidgetItems(QListWidget *listWidget, const QString &lang)
         cavalry_i18n::preservesSelectionValue(listWidget)) {
         return;
     }
+    if (cavalry_i18n::attachClassicQuickAddAliases(listWidget,
+            [lang](const QString &source) { return QStringList{translatedWidgetText(lang, source)}; },
+            [lang](const QString &source) { return translatedWidgetText(lang, source); },
+            [lang](const QString &description) {
+                return cavalry_i18n::quickAddEnglishDescriptionAliases(lang, description);
+            })) {
+        return; // Classic 的搜索索引与可见标题由专用适配器分别维护。
+    }
     pruneQuickAddEmptyItems(listWidget);
     for (int row = 0; row < listWidget->count(); ++row) {
         QListWidgetItem *item = listWidget->item(row);
@@ -2494,7 +2506,8 @@ void translateLineEditDisplayText(QLineEdit *lineEdit, const QString &lang)
     }
 
     QString translated = translatedLineEditValue(lang, lineEdit->text());
-    if (!translated.isEmpty() && !cavalry_i18n::preservesSelectionValue(lineEdit)) {
+    if (!translated.isEmpty() && !cavalry_i18n::preservesSelectionValue(lineEdit) &&
+        !cavalry_i18n::preservesCompleterInputValue(lineEdit)) {
         QSignalBlocker blocker(lineEdit);
         lineEdit->setText(translated);
     }
@@ -2593,7 +2606,8 @@ void hookLineEditTextChanges(QLineEdit *lineEdit, const QString &lang)
         lineEdit,
         [guardedLineEdit, lang](const QString &text) {
             if (guardedLineEdit.isNull() || text.isEmpty() ||
-                cavalry_i18n::preservesSelectionValue(guardedLineEdit.data())) {
+                cavalry_i18n::preservesSelectionValue(guardedLineEdit.data()) ||
+                cavalry_i18n::preservesCompleterInputValue(guardedLineEdit.data())) {
                 return;
             }
             const QString translated = translatedLineEditValue(lang, text);
@@ -3076,6 +3090,15 @@ void translateQtWidgetTexts(QWidget *widget, const QString &lang, QSet<QAction *
 
     if (QAbstractItemView *itemView = qobject_cast<QAbstractItemView *>(widget)) {
         hookItemViewModelChanges(itemView, lang);
+        cavalry_i18n::attachFastQuickAddAliases(itemView, [lang](const QString &source) {
+            return QStringList{translatedWidgetText(lang, source)};
+        });
+        if (auto *listView = qobject_cast<QListView *>(itemView)) {
+            // 复用启动期已验证的同一 ExtensionLayer 映像合同；不以类型名推断 ABI。
+            cavalry_i18n::attachQuickAddDisplay(listView,
+                [lang](const QString &source) { return translatedWidgetText(lang, source); },
+                cavalry_i18n::macToolHelpTextPathDiagnostics().vendorContractVerified);
+        }
         normalizeTimeEditorItemModel(itemView, lang);
     }
 

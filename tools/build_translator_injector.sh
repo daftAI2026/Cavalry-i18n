@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖 Qt SDK、可选 Cavalry.app Frameworks、macOS injector 主源/TransformTool text-path ABI 适配器与 generated_translations.inc
+# [INPUT]: 依赖 Qt SDK、可选 Cavalry.app Frameworks、macOS injector 主源/TransformTool text-path ABI 适配器与 generated_translations.inc/JSON 说明反向索引
 # [OUTPUT]: 对外构建启用 -O2/-fno-omit-frame-pointer、以 @loader_path 绑定目标 app Qt/libskia 的 universal injector dylib；干净 CI 无 vendor app 时只生成同 install-name 的临时 Skia 链接桩
 # [POS]: tools 的 injector 发布构建入口，以 Qt minor、双 slice caller-frame 保留、可搬移运行时链接和稳定优化级别连接源码与 Tauri bundle resource，同时把 vendor 二进制依赖留在用户运行时
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -188,6 +188,7 @@ done
 
 mkdir -p "$(dirname "$OUTPUT")"
 node "$REPO_ROOT/tools/generate_embedded_translations.js" "$GENERATED"
+node "$REPO_ROOT/tools/generate_quick_add_descriptions.js" "$REPO_ROOT/injector/generated_quick_add_descriptions.inc"
 
 SKIA_LINK="$LINK_FRAMEWORKS/libskia.dylib"
 if [ ! -f "$SKIA_LINK" ]; then

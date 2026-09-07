@@ -544,6 +544,9 @@ jobs:
           test ! -e /Applications/Cavalry.app
           eval "$(node tools/resolve_cavalry_qt_sdk.js --print-env --ensure)"
           out="$RUNNER_TEMP/macos-acceptance"
+          npm run test:injector:quick-add-search:macos
+          npm run test:injector:classic-quick-add-search:macos
+          npm run test:injector:quick-add-display:macos
           npm run test:acceptance:macos:compile -- \
             --qt-prefix "$CAVALRY_QT_PREFIX" \
             --out "$out"
