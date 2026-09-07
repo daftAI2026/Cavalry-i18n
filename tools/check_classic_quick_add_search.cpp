@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 injector/cavalry_i18n_classic_search.h 及其 cavalry_i18n_quick_add_context.h、Qt 6.6.3 QListWidget/QLabel 公共 API 与可控的 QuickAddWindow/ListWidget fixture；标题/说明 provider 只提供 side data
- * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Classic Add Layer 双语搜索合同；验证 query 命中时仅投影清理 token、itemWidget 标题与说明显示层、三语视频词条、native filter/no-results、同 locale 原文/挂接后排序与比较器 source-only 探针、延后创建与动态生命周期、幂等与边界
+ * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Classic Add Layer 双语搜索合同；验证 query 命中时仅投影清理 token、itemWidget 标题与说明显示层、三语视频词条、native filter/no-results、同 locale 原文/挂接后排序、source-only 比较器与非嵌套 layout 探针、延后创建与动态生命周期、幂等与边界
  * [POS]: tools 的 vendor-free Classic 搜索回归；只证明共享 helper 的 Qt 数据行为和公共 MIME 结果，不冒充 vendor command/custom MIME 的真人证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -373,6 +373,12 @@ bool sameLocaleProjectionSortMatrix()
                     auto *selected = projected.item(4);
                     projected.setCurrentItem(selected);
                     QPersistentModelIndex selection(projected.indexFromItem(selected));
+                    int layoutDepth = 0;
+                    bool nestedLayout = false;
+                    QObject::connect(projected.model(), &QAbstractItemModel::layoutAboutToBeChanged,
+                        &projected, [&] { nestedLayout |= ++layoutDepth > 1; });
+                    QObject::connect(projected.model(), &QAbstractItemModel::layoutChanged,
+                        &projected, [&] { --layoutDepth; });
                     int syntheticItemChanges = 0;
                     QObject::connect(&projected, &QListWidget::itemChanged, &projected,
                         [&] { ++syntheticItemChanges; });
@@ -386,6 +392,7 @@ bool sameLocaleProjectionSortMatrix()
                     auto equalOrder = [&] {
                         if (orderedSources(&original) == orderedSources(&projected)
                             && projected.isSortingEnabled() == automatic
+                            && layoutDepth == 0 && !nestedLayout
                             && projected.currentItem() == selected
                             && projected.itemFromIndex(selection) == selected)
                             return true;

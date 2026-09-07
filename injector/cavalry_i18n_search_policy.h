@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_quick_add_context.h 的 exact owner/搜索框 guard、兼容 QT_NO_KEYWORDS 的 Qt 6 QIdentityProxyModel/QSortFilterProxyModel、FastQuickAddModel 的 role 0/256/257，以及注入方提供的当前语言别名查询函数
- * [OUTPUT]: 对外提供 FastQuickAdd role 257 别名投影、Unicode-safe 过滤代理、精确源模型身份证明与 vendor filter 整体替换时的幂等重挂接
+ * [OUTPUT]: 对外提供 FastQuickAdd role 257 别名投影、Unicode-safe 过滤代理、精确源模型身份证明与 vendor filter 整体替换时的幂等重挂接及 view 析构时的自有代理清理
  * [POS]: injector 的 Add Layer 双语搜索共享边界；过滤代理只作为已采证 vendor proxy 的 source，保留 vendor view/index/排序/回车链，不改查询字符串、DisplayRole 或 role 256 identity，也不参与字体控件策略
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -453,6 +453,14 @@ public:
     {
         setObjectName(QString::fromLatin1(kFastQuickAddAttachmentName));
         connectSourceModelChanged();
+    }
+
+    ~FastQuickAddAliasAttachment() override
+    {
+        QObject::disconnect(sourceModelChangedConnection_);
+        QObject::disconnect(searchTextChangedConnection_);
+        QObject::disconnect(searchBoxDestroyedConnection_);
+        detachOwnedProxies();
     }
 
     FastQuickAddFilterProxy *ensureAttached()

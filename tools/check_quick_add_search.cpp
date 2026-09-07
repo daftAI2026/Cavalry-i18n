@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 injector/cavalry_i18n_search_policy.h 及其 cavalry_i18n_quick_add_context.h、QT_NO_KEYWORDS 下的 Qt 6.6.3 model/view、FastQuickAddWindow/Model 的本地可控 fixture 与三语 alias 数据
- * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Quick Add 搜索合同；验证 owner/模型边界、Unicode-safe role 257 过滤、英文+当前语言匹配、role 0/256/其他角色透传、vendor source/index/排序/生命周期
+ * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Quick Add 搜索合同；验证 owner/模型边界、Unicode-safe role 257 过滤、英文+当前语言匹配、role 0/256/其他角色透传、vendor source/index/排序/生命周期与 view/filter 双向析构
  * [POS]: tools 的 vendor-free 共享搜索回归；只证明 helper 的数据行为和接线前提，不冒充 macOS/Windows 生产 UI 证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -151,7 +151,6 @@ public:
         }
         return Qt::ItemIsEnabled | Qt::ItemIsSelectable | Qt::ItemIsEditable;
     }
-
     bool setData(
         const QModelIndex &index,
         const QVariant &value,
@@ -160,7 +159,6 @@ public:
         if (!index.isValid() || index.row() < 0 || index.row() >= rows_.size()) {
             return false;
         }
-
         ModelRow &row = rows_[index.row()];
         if (role == Qt::DisplayRole || role == Qt::EditRole) {
             row.name = value.toString();
@@ -171,11 +169,9 @@ public:
         } else {
             return false;
         }
-
         Q_EMIT dataChanged(index, index, {role});
         return true;
     }
-
     void appendRow(
         const QString &name,
         int id,
@@ -187,7 +183,6 @@ public:
         rows_.append(ModelRow{name, search.isEmpty() ? name : search, opaque, id});
         endInsertRows();
     }
-
     void removeRow(int row)
     {
         if (row < 0 || row >= rows_.size()) {
@@ -197,11 +192,9 @@ public:
         rows_.removeAt(row);
         endRemoveRows();
     }
-
 private:
     QVector<ModelRow> rows_;
 };
-
 void appendNamedRow(
     ModelFixtureBase *model,
     const QString &name,
@@ -210,51 +203,40 @@ void appendNamedRow(
 {
     model->appendRow(name, id, name, QString::fromLatin1(opaque));
 }
-
 namespace cavalry {
-
 class FastQuickAddModel final : public ModelFixtureBase {
     Q_OBJECT
 public:
     using ModelFixtureBase::ModelFixtureBase;
 };
-
 } // namespace cavalry
-
 namespace cavalry {
-
 class FastQuickAddWindow final : public QWidget {
     Q_OBJECT
 public:
     using QWidget::QWidget;
 };
-
 } // namespace cavalry
-
 class QuickAddWindow final : public QWidget {
     Q_OBJECT
 public:
     using QWidget::QWidget;
 };
-
 class TabBar final : public QWidget {
     Q_OBJECT
 public:
     using QWidget::QWidget;
 };
-
 class SearchBar final : public QWidget {
     Q_OBJECT
 public:
     using QWidget::QWidget;
 };
-
 class Widget final : public QWidget {
     Q_OBJECT
 public:
     using QWidget::QWidget;
 };
-
 class CompleterLineEdit final : public QLineEdit {
     Q_OBJECT
 public:
@@ -743,6 +725,30 @@ int main(int argc, char **argv)
             && reboundAgain->parent() == replacementViewFilter
             && cavalry_i18n::attachFastQuickAddAliases(view, provider) == reboundAgain);
 
+    // view 先销毁而 window-owned filter 存活：不得把旧 query 与代理留给新 view。
+    lineEdit->setText(QStringLiteral("abcxyznonexistent"));
+    REQUIRE(reboundAgain->rowCount() == 0);
+    QPointer<cavalry_i18n::FastQuickAddFilterProxy> orphanSearch(reboundAgain);
+    QPointer<QAbstractItemModel> orphanAlias(reboundAgain->sourceModel());
+    delete view;
+    REQUIRE(replacementViewFilter->sourceModel() == replacement);
+    REQUIRE(orphanSearch.isNull() && orphanAlias.isNull());
+    lineEdit->clear();
+    view = new QListView(stack);
+    view->setModel(replacementViewFilter);
+    auto *recreatedSearch = cavalry_i18n::attachFastQuickAddAliases(view, provider);
+    REQUIRE(recreatedSearch != nullptr && recreatedSearch->rowCount() == replacement->rowCount());
+    application.processEvents(); // 已排队的旧 sourceModelChanged 不得重新包裹 vendor filter。
+    REQUIRE(replacementViewFilter->sourceModel() == recreatedSearch);
+    auto *shortLivedFilter = makeFastQuickAddFilter(&window, replacement);
+    auto *survivingView = new QListView(stack);
+    survivingView->setModel(shortLivedFilter);
+    QPointer<cavalry_i18n::FastQuickAddFilterProxy> shortLivedSearch(
+        cavalry_i18n::attachFastQuickAddAliases(survivingView, provider));
+    REQUIRE(shortLivedSearch != nullptr);
+    delete shortLivedFilter; // 反向析构顺序：filter 已清理代理，view 析构不得重复释放。
+    REQUIRE(shortLivedSearch.isNull());
+    delete survivingView;
     auto *untrusted = new QStandardItemModel(1, 1, &window);
     untrusted->setData(
         untrusted->index(0, 0),
