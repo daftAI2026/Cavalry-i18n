@@ -8,7 +8,7 @@ build_acceptance_v2.sh: 原生 driver/helper 的无污染构建边界；compile-
 check_contract.test.js: 跨平台静态合同；锁定 tracked source closure、GEB、800 行上限、host 缺失/篡改拒绝、真实媒体、exact-window 协议及 live 参数失败关闭，不冒充现场 PASS。
 host_identity.js: live-only host OS 身份边界；固定调用 `/usr/bin/sw_vers` 采集 `productVersion`/`buildVersion`，以 exact-key schema 校验并要求人工 seal 与 matrix 同机，compile-only 不调用。
 path_safety.js: 验收器的纯文件系统安全层；在写入/改权前统一拒绝 symlink 目标、真实路径越界及 repo/clone 内 session。
-source_contract.js: producer/verifier 共用的验收源码真相；冻结完整 tracked JS/Objective-C++/Swift/build 与共享翻译/输入策略源闭包、三份媒体 fixture 与 Guide 文件，避免各端维护不同 allowlist 后漏绑执行代码。
+source_contract.js: producer/verifier 共用的验收源码真相；冻结完整 tracked JS/Objective-C++/Swift/build、共享翻译/输入/Quick Add context/搜索/Classic/Quick Add 描述及 macOS-only 显示策略源闭包（含 English 与三语 nodeStrings/plugins JSON）、三份媒体 fixture 与 Guide 文件，避免各端维护不同 allowlist 后漏绑执行代码。
 drivers/: 产品进程内语义 producer；主 driver 按普通 Qt 场景分片，补充 driver 处理 Onboarding 与 Transform，自身地图见 `drivers/CLAUDE.md`。
 helpers/cgwindow_exact.swift: CoreGraphics 系统边界；只接受 driver 发布的 exact PID/native window number/owner，不用标题或 bounds 猜窗口。
 fixtures/replace-source.png: macOS/Windows Assets Replace/Create 共用的 64×48 蓝色 identity fixture；由保留的 ffmpeg 配方再生，SHA-256 与最终 session 冻结输入一致。

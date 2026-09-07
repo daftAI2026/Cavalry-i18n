@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/双策略输入合同/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/四策略输入合同/Quick Add context 与描述生成闭包/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
  * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、非阻断 badge 同步、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -390,6 +390,10 @@ function makeWindowsNsisProvenanceFixture() {
   writeJson(path.join(tempRoot, 'src-tauri', 'capabilities', 'default.json'), { permissions: [] });
   write('renderer/index.html', '<!doctype html><title>fixture</title>');
   write('languages/en/appStrings.json', '{"fixture":"English"}\n');
+  for (const language of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
+    write(`languages/${language}/nodeStrings.json`, '[]\n');
+    write(`languages/${language}/plugins/boxBlurFilter.json`, '[]\n');
+  }
   write('src-tauri/src/lib.rs', 'pub fn fixture() {}\n');
   write('src-tauri/Cargo.toml', '[package]\nname = "fixture"\nversion = "9.8.7"\n');
   write('src-tauri/Cargo.lock', 'version = 4\n');
@@ -401,7 +405,13 @@ function makeWindowsNsisProvenanceFixture() {
     '// shared Windows/macOS translation policy fixture\n'
   );
   write('injector/cavalry_i18n_input_policy.h', '// shared input policy fixture\n');
+  write('injector/cavalry_i18n_quick_add_context.h', '// shared Quick Add context fixture\n');
+  write('injector/cavalry_i18n_search_policy.h', '// shared search policy fixture\n');
+  write('injector/cavalry_i18n_classic_search.h', '// shared classic search policy fixture\n');
+  write('injector/cavalry_i18n_search_descriptions.h', '// shared Quick Add descriptions fixture\n');
   write('injector/generated_translations.inc', '// generated translation fixture\n');
+  write('injector/generated_quick_add_descriptions.inc', '// generated Quick Add descriptions fixture\n');
+  write('tools/generate_quick_add_descriptions.js', '// Quick Add descriptions generator fixture\n');
   write(
     'injector/windows/CMakeLists.txt',
     'cmake_minimum_required(VERSION 3.21)\nproject(cavalryi18n_fixture)\n'
@@ -479,6 +489,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(pkg.build, undefined);
   assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance\.js/);
   assert.match(pkg.scripts['check:app'], /node --check tools\/windows_nsis_provenance_contract\.js/);
+  assert.match(pkg.scripts['test:contracts'], /tools\/generate_quick_add_descriptions\.test\.js/);
   assert.equal(pkg.devDependencies.electron, undefined);
   assert.equal(pkg.devDependencies['electron-builder'], undefined);
   assert.equal(pkg.scripts['prepare:qt-sdk'], 'node tools/resolve_cavalry_qt_sdk.js --ensure');
@@ -488,6 +499,18 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   );
   assert.match(pkg.scripts['build:injector'], /resolve_cavalry_qt_sdk\.js --print-env --ensure/);
   assert.match(pkg.scripts['build:injector'], /build_translator_injector\.sh injector\/libCavalryTranslatorInjector\.dylib/);
+  assert.equal(
+    pkg.scripts['test:injector:quick-add-search:macos'],
+    'bash tools/check_quick_add_search.sh'
+  );
+  assert.equal(
+    pkg.scripts['test:injector:classic-quick-add-search:macos'],
+    'bash tools/check_classic_quick_add_search.sh'
+  );
+  assert.equal(
+    pkg.scripts['test:injector:quick-add-display:macos'],
+    'bash tools/check_quick_add_display.sh'
+  );
   assert.equal(qtTarget.qtVersion, '6.6.3');
   assert.equal(qtTarget.platforms.macos.sdkPath, 'qt_sdk/6.6.3/macos');
   assert.equal(qtTarget.platforms.macos.aqt.arch, 'clang_64');
@@ -595,7 +618,21 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
     'src-tauri/icons/icon.ico',
     'injector/cavalry_i18n_translation_policy.h',
     'injector/cavalry_i18n_input_policy.h',
+    'injector/cavalry_i18n_quick_add_context.h',
+    'injector/cavalry_i18n_search_policy.h',
+    'injector/cavalry_i18n_classic_search.h',
+    'injector/cavalry_i18n_search_descriptions.h',
     'injector/generated_translations.inc',
+    'injector/generated_quick_add_descriptions.inc',
+    'tools/generate_quick_add_descriptions.js',
+    'languages/en/nodeStrings.json',
+    'languages/en/plugins/boxBlurFilter.json',
+    'languages/zh-Hans/nodeStrings.json',
+    'languages/zh-Hans/plugins/boxBlurFilter.json',
+    'languages/zh-Hant/nodeStrings.json',
+    'languages/zh-Hant/plugins/boxBlurFilter.json',
+    'languages/ja_JP/nodeStrings.json',
+    'languages/ja_JP/plugins/boxBlurFilter.json',
     'injector/windows/CMakeLists.txt',
     'injector/windows/cavalry_i18n_qpa_proxy.cpp',
   ]) {
@@ -656,6 +693,41 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   assert.notEqual(staleInputPolicy.status, 0, 'input policy changes must invalidate old installer provenance');
   assert.match(staleInputPolicy.stderr, /packaging input fingerprint/);
   fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_input_policy.h'), '// shared input policy fixture\n');
+  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_context.h'), '// changed Quick Add context\n');
+  const staleQuickAddContext = run('--verify', installerPath);
+  assert.notEqual(staleQuickAddContext.status, 0, 'Quick Add context changes must invalidate old installer provenance');
+  assert.match(staleQuickAddContext.stderr, /packaging input fingerprint/);
+  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_quick_add_context.h'), '// shared Quick Add context fixture\n');
+  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_policy.h'), '// changed search policy\n');
+  const staleSearchPolicy = run('--verify', installerPath);
+  assert.notEqual(staleSearchPolicy.status, 0, 'search policy changes must invalidate old installer provenance');
+  assert.match(staleSearchPolicy.stderr, /packaging input fingerprint/);
+  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_policy.h'), '// shared search policy fixture\n');
+  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_search.h'), '// changed classic search policy\n');
+  const staleClassicSearchPolicy = run('--verify', installerPath);
+  assert.notEqual(staleClassicSearchPolicy.status, 0, 'classic search policy changes must invalidate old installer provenance');
+  assert.match(staleClassicSearchPolicy.stderr, /packaging input fingerprint/);
+  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_search.h'), '// shared classic search policy fixture\n');
+  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_descriptions.h'), '// changed descriptions policy\n');
+  const staleQuickAddDescriptionsPolicy = run('--verify', installerPath);
+  assert.notEqual(staleQuickAddDescriptionsPolicy.status, 0, 'Quick Add descriptions policy changes must invalidate old installer provenance');
+  assert.match(staleQuickAddDescriptionsPolicy.stderr, /packaging input fingerprint/);
+  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_descriptions.h'), '// shared Quick Add descriptions fixture\n');
+  fs.appendFileSync(path.join(tempRoot, 'injector', 'generated_quick_add_descriptions.inc'), '// changed descriptions table\n');
+  const staleQuickAddDescriptionsTable = run('--verify', installerPath);
+  assert.notEqual(staleQuickAddDescriptionsTable.status, 0, 'Quick Add descriptions table changes must invalidate old installer provenance');
+  assert.match(staleQuickAddDescriptionsTable.stderr, /packaging input fingerprint/);
+  fs.writeFileSync(path.join(tempRoot, 'injector', 'generated_quick_add_descriptions.inc'), '// generated Quick Add descriptions fixture\n');
+  fs.appendFileSync(path.join(tempRoot, 'tools', 'generate_quick_add_descriptions.js'), '// changed descriptions generator\n');
+  const staleQuickAddDescriptionsGenerator = run('--verify', installerPath);
+  assert.notEqual(staleQuickAddDescriptionsGenerator.status, 0, 'Quick Add descriptions generator changes must invalidate old installer provenance');
+  assert.match(staleQuickAddDescriptionsGenerator.stderr, /packaging input fingerprint/);
+  fs.writeFileSync(path.join(tempRoot, 'tools', 'generate_quick_add_descriptions.js'), '// Quick Add descriptions generator fixture\n');
+  fs.appendFileSync(path.join(tempRoot, 'languages', 'zh-Hans', 'plugins', 'boxBlurFilter.json'), '// changed localized description input\n');
+  const staleQuickAddDescriptionsJson = run('--verify', installerPath);
+  assert.notEqual(staleQuickAddDescriptionsJson.status, 0, 'localized Quick Add descriptions JSON changes must invalidate old installer provenance');
+  assert.match(staleQuickAddDescriptionsJson.stderr, /packaging input fingerprint/);
+  fs.writeFileSync(path.join(tempRoot, 'languages', 'zh-Hans', 'plugins', 'boxBlurFilter.json'), '[]\n');
   fs.appendFileSync(path.join(tempRoot, 'injector', 'windows', 'qpa', 'qwindows.dll'), '-dirty-after-package');
   const staleInputs = run('--verify', installerPath);
   assert.notEqual(staleInputs.status, 0, 'a dirty packaging input must invalidate the old installer sidecar');
@@ -1020,6 +1092,16 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
     generateTranslationsIndex < resetBuildIndex && resetBuildIndex < configureIndex,
     'translation generation must precede the clean CMake configure/build'
   );
+  const generateDescriptionsIndex = windowsBuild.indexOf(
+    '& $nodeCommand.Source $descriptionGenerator $generatedDescriptions'
+  );
+  assert.ok(generateDescriptionsIndex >= 0, 'Windows injector build must regenerate Quick Add descriptions');
+  assert.ok(
+    generateTranslationsIndex < generateDescriptionsIndex
+      && generateDescriptionsIndex < resetBuildIndex
+      && resetBuildIndex < configureIndex,
+    'Quick Add description generation must precede the clean CMake configure/build'
+  );
   const macGenerateTranslationsIndex = macBuild.indexOf(
     'node "$REPO_ROOT/tools/generate_embedded_translations.js" "$GENERATED"'
   );
@@ -1031,6 +1113,15 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   assert.ok(
     macGenerateTranslationsIndex < macCompileIndex,
     'macOS injector build must regenerate the shared table before the production compile'
+  );
+  const macGenerateDescriptionsIndex = macBuild.indexOf(
+    'node "$REPO_ROOT/tools/generate_quick_add_descriptions.js" "$REPO_ROOT/injector/generated_quick_add_descriptions.inc"'
+  );
+  assert.ok(macGenerateDescriptionsIndex >= 0, 'macOS injector build must regenerate Quick Add descriptions');
+  assert.ok(
+    macGenerateTranslationsIndex < macGenerateDescriptionsIndex
+      && macGenerateDescriptionsIndex < macCompileIndex,
+    'Quick Add description generation must precede the macOS production compile'
   );
   assert.match(gitignore, /^\/injector\/libCavalryTranslatorInjector\.dylib$/m);
   assert.match(gitignore, /^\/injector\/windows\/generic\/cavalryi18n\.dll$/m);
@@ -1045,10 +1136,16 @@ test('release protocol separates internal SemVer from target Cavalry tag naming'
   );
   assert.match(windowsCmake, /must be built for x64/);
   assert.match(windowsCmake, /must come from the shared Qt 6\.6\.3 SDK/);
+  assert.match(windowsCmake, /cavalryi18n_quick_add_search_test[\s\S]*check_quick_add_search\.cpp/);
+  assert.match(windowsCmake, /cavalryi18n_classic_quick_add_search_test[\s\S]*check_classic_quick_add_search\.cpp/);
   assert.match(windowsProvenance, /function assertNoReparsePathChain/);
   assert.match(
     windowsProvenance,
     /path\.join\('injector', 'windows'\)[\s\S]*\(\?:cpp\|h\|json\|ps1\)[\s\S]*injector', 'generated_translations\.inc'/
+  );
+  assert.match(
+    windowsProvenance,
+    /cavalry_i18n_search_descriptions\.h[\s\S]*generated_quick_add_descriptions\.inc[\s\S]*generate_quick_add_descriptions\.js/
   );
   assert.match(
     windowsProvenance,
@@ -1687,6 +1784,17 @@ test('PR and main CI compile and link the universal macOS injector without a ven
     /test ! -e \/Applications\/Cavalry\.app[\s\S]*npm run build:injector/,
     'the PR native gate must exercise the clean-runner Skia link-stub path'
   );
+  for (const fixtureScript of [
+    'test:injector:quick-add-search:macos',
+    'test:injector:classic-quick-add-search:macos',
+    'test:injector:quick-add-display:macos',
+  ]) {
+    assert.match(
+      job[1],
+      new RegExp(`npm run ${fixtureScript}`),
+      `macOS native gate must run ${fixtureScript}`
+    );
+  }
   assert.match(
     job[1],
     /lipo injector\/libCavalryTranslatorInjector\.dylib -verify_arch arm64 x86_64/

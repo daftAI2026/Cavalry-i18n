@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Preserve original font-family and font-style values in editable selectors instead of replacing them with UI translations.
+- Preserve Add Layer search input and restore English/current-language lookup while keeping translated result titles separate from layer identities.
 
 ## [1.0.0] - 2026-09-04
 

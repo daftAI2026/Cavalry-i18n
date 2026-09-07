@@ -1,12 +1,14 @@
 /**
- * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表与 Qt Widgets 的 action tooltip、标准 item model、可编辑/字体 Combo、QTreeWidget popup、QLineEdit、QPlainTextEdit 与 QMenu
- * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀、DisplayRole 数据隔离与字体/选择值保护
- * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性，且通用规则不会改写可编辑/字体选择值、弹出树、编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
+ * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表、共享 Quick Add owner/search 策略与 Qt Widgets 的 action tooltip、标准 item model、可编辑/字体 Combo、QTreeWidget popup、QLineEdit、QPlainTextEdit 与 QMenu
+ * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀、DisplayRole 数据隔离、字体/选择值保护，以及双 owner QuickAdd 输入的生产显示/回调保持 query 合同；任何 CompleterLineEdit 的值均保持原文
+ * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性；Quick Add fixture 以 moc 生成的 exact owner/中间父系直调生产 display 入口并触发 textChanged，覆盖 owner 前已填充 Box、owner 前 Shape 回调、parentless Paint Text 及 reparent 后回调/绘制，确保全量/部分/大小写/CJK/清空输入不被翻译且 placeholder 仍翻译，通用规则不会改写可编辑/字体选择值、弹出树、编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
 #include "cavalry_i18n_dynamic_label.h"
 #include "cavalry_i18n_translator.h"
+
+#include "../cavalry_i18n_search_policy.h"
 
 #include <QtCore/QList>
 #include <QtCore/QModelIndex>
@@ -32,6 +34,50 @@
 #include <algorithm>
 #include <array>
 #include <cstdio>
+
+namespace cavalry {
+
+class FastQuickAddWindow final : public QWidget
+{
+    Q_OBJECT
+
+public:
+    using QWidget::QWidget;
+};
+
+} // namespace cavalry
+
+class QuickAddWindow final : public QWidget
+{
+    Q_OBJECT
+
+public:
+    using QWidget::QWidget;
+};
+
+class Widget final : public QWidget
+{
+    Q_OBJECT
+
+public:
+    using QWidget::QWidget;
+};
+
+class SearchBar final : public QWidget
+{
+    Q_OBJECT
+
+public:
+    using QWidget::QWidget;
+};
+
+class CompleterLineEdit final : public QLineEdit
+{
+    Q_OBJECT
+
+public:
+    using QLineEdit::QLineEdit;
+};
 
 namespace {
 
@@ -1484,6 +1530,314 @@ bool verifyDynamicLabelTranslations(const LocaleExpectation &expectation)
             "Points: %1").arg(99));
 }
 
+struct QuickAddSearchCase
+{
+    const char *kind;
+    QString value;
+};
+
+QList<QuickAddSearchCase> quickAddSearchCases(const QString &language)
+{
+    QList<QuickAddSearchCase> cases {
+        { "full", QStringLiteral("Text") },
+        { "full", QStringLiteral("Box") },
+        { "full", QStringLiteral("Shape") },
+        { "full", QStringLiteral("Circle") },
+        { "full", QStringLiteral("Edit") },
+        { "partial", QStringLiteral("Tex") },
+        { "partial", QStringLiteral("Bo") },
+        { "partial", QStringLiteral("Shap") },
+        { "partial", QStringLiteral("Cir") },
+        { "partial", QStringLiteral("Edi") },
+        { "case", QStringLiteral("TEXT") },
+        { "case", QStringLiteral("bOx") },
+        { "case", QStringLiteral("sHape") },
+        { "case", QStringLiteral("CIRCLE") },
+        { "case", QStringLiteral("eDiT") },
+    };
+
+    std::array<const char *, 5> cjkAliases;
+    if (language == QStringLiteral("zh-Hans")) {
+        cjkAliases = { "文字", "盒形", "形状", "圆形", "编辑" };
+    } else if (language == QStringLiteral("zh-Hant")) {
+        cjkAliases = { "文字", "盒形", "形狀", "圓形", "編輯" };
+    } else {
+        cjkAliases = { "テキスト", "ボックス", "シェイプ", "円", "編集" };
+    }
+
+    for (const char *alias : cjkAliases) {
+        const QString value = QString::fromUtf8(alias);
+        cases.append({ "CJK full", value });
+        const QString partial = value.left(1);
+        if (partial != value) {
+            cases.append({ "CJK partial", partial });
+        }
+    }
+    cases.append({ "clear", QString() });
+    return cases;
+}
+
+template <typename Owner>
+bool verifyQuickAddSearchOwner(
+    CavalryEmbeddedTranslator &translator,
+    CavalryDisplayTranslator &displayTranslator,
+    const QString &language,
+    const QString &ownerName,
+    const QList<QuickAddSearchCase> &cases)
+{
+    // -----------------------------------------------------------------------
+    // 生产显示入口先按真实父系安装 textChanged hook；搜索框的 text 只属于用户。
+    // -----------------------------------------------------------------------
+    Owner owner;
+    Widget ownerWidget(&owner);
+    SearchBar searchBar(&ownerWidget);
+    CompleterLineEdit lineEdit(&searchBar);
+    const QString placeholderSource = QStringLiteral("Search");
+    const QString placeholderTranslation =
+        translator.translate(nullptr, "Search");
+    const QString expectedPlaceholder = placeholderTranslation.isEmpty()
+        ? placeholderSource
+        : placeholderTranslation;
+
+    lineEdit.setPlaceholderText(placeholderSource);
+    lineEdit.setText(QStringLiteral("Text"));
+    QStringList emittedTexts;
+    QObject::connect(
+        &lineEdit,
+        &QLineEdit::textChanged,
+        &lineEdit,
+        [&emittedTexts](const QString &text) { emittedTexts.append(text); });
+
+    if (!expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" moc owner"),
+            QString::fromLatin1(owner.metaObject()->className()),
+            ownerName)
+        || !expectTrue(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" exact SearchBar fixture"),
+            cavalry_i18n::isQuickAddSearchBox(&lineEdit))) {
+        return false;
+    }
+
+    // 真实运行时从 owner 树入口刷新；随后每个 direct/display 轮次仍复核动态 owner。
+    displayTranslator.translateWidgetTree(&owner);
+    if (!expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" initial query"),
+            lineEdit.text(),
+            QStringLiteral("Text"))
+        || !expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" placeholder"),
+            lineEdit.placeholderText(),
+            expectedPlaceholder)
+        || !expectTrue(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" initial signal count"),
+            emittedTexts.isEmpty())) {
+        return false;
+    }
+
+    for (int index = 0; index < cases.size(); ++index) {
+        const QuickAddSearchCase &testCase = cases.at(index);
+        const QString surfacePrefix =
+            language + QStringLiteral(" ") + ownerName + QStringLiteral(" ")
+            + QString::fromLatin1(testCase.kind) + QStringLiteral(" query");
+        const int signalCountBefore = emittedTexts.size();
+        const QString mode = index % 3 == 0
+            ? QStringLiteral("direct display")
+            : (index % 3 == 1
+                   ? QStringLiteral("textChanged")
+                   : QStringLiteral("direct Paint"));
+
+        if (index % 3 == 0) {
+            QSignalBlocker blocker(&lineEdit);
+            lineEdit.setText(testCase.value);
+            displayTranslator.translateWidget(&lineEdit);
+        } else if (index % 3 == 1) {
+            lineEdit.setText(testCase.value);
+        } else {
+            QSignalBlocker blocker(&lineEdit);
+            lineEdit.setText(testCase.value);
+            displayTranslator.translatePaintWidget(&lineEdit);
+        }
+
+        if (!expectEqual(
+                surfacePrefix + QStringLiteral(" ") + mode,
+                lineEdit.text(),
+                testCase.value)
+            || !expectEqual(
+                surfacePrefix + QStringLiteral(" placeholder after ") + mode,
+                lineEdit.placeholderText(),
+                expectedPlaceholder)) {
+            return false;
+        }
+
+        if (index % 3 == 1) {
+            if (!expectTrue(
+                    surfacePrefix + QStringLiteral(" callback signal"),
+                    emittedTexts.size() == signalCountBefore + 1
+                        && emittedTexts.constLast() == testCase.value)) {
+                return false;
+            }
+        } else if (!expectTrue(
+                       surfacePrefix + QStringLiteral(" blocked signal"),
+                       emittedTexts.size() == signalCountBefore)) {
+            return false;
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // CompleterLineEdit 的值始终是用户输入；owner 只决定搜索索引是否挂接。
+    // -----------------------------------------------------------------------
+    CompleterLineEdit parentlessLineEdit;
+    parentlessLineEdit.setPlaceholderText(placeholderSource);
+    parentlessLineEdit.setText(QStringLiteral("Box"));
+    QStringList parentlessSignals;
+    QObject::connect(
+        &parentlessLineEdit,
+        &QLineEdit::textChanged,
+        &parentlessLineEdit,
+        [&parentlessSignals](const QString &text) {
+            parentlessSignals.append(text);
+        });
+
+    displayTranslator.translateWidget(&parentlessLineEdit);
+    if (!expectTrue(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" parentless is not search"),
+            !cavalry_i18n::isQuickAddSearchBox(&parentlessLineEdit))
+        || !expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" parentless prefilled value"),
+            parentlessLineEdit.text(),
+            QStringLiteral("Box"))
+        || !expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" parentless placeholder"),
+            parentlessLineEdit.placeholderText(),
+            expectedPlaceholder)) {
+        return false;
+    }
+
+    parentlessLineEdit.setText(QStringLiteral("Default Keyframe Layer"));
+    displayTranslator.translateWidget(&parentlessLineEdit);
+    if (!expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" parentless known value"),
+            parentlessLineEdit.text(),
+            QStringLiteral("Default Keyframe Layer"))) {
+        return false;
+    }
+
+    const int parentlessSignalCount = parentlessSignals.size();
+    parentlessLineEdit.setText(QStringLiteral("Shape"));
+    if (!expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" owner-before-reparent callback query"),
+            parentlessLineEdit.text(),
+            QStringLiteral("Shape"))
+        || !expectTrue(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" owner-before-reparent callback signal"),
+            parentlessSignals.size() == parentlessSignalCount + 1
+                && parentlessSignals.constLast() == QStringLiteral("Shape"))) {
+        return false;
+    }
+
+    {
+        QSignalBlocker blocker(&parentlessLineEdit);
+        parentlessLineEdit.setText(QStringLiteral("Text"));
+        displayTranslator.translatePaintWidget(&parentlessLineEdit);
+    }
+    if (!expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" parentless direct Paint value"),
+            parentlessLineEdit.text(),
+            QStringLiteral("Text"))
+        || !expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" parentless direct Paint placeholder"),
+            parentlessLineEdit.placeholderText(),
+            expectedPlaceholder)) {
+        return false;
+    }
+
+    parentlessLineEdit.setParent(&searchBar);
+    if (!expectTrue(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" reparented exact SearchBar fixture"),
+            cavalry_i18n::isQuickAddSearchBox(&parentlessLineEdit))) {
+        return false;
+    }
+
+    const int reparentedSignalCount = parentlessSignals.size();
+    parentlessLineEdit.setText(QStringLiteral("Box"));
+    if (!expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" reparented callback query"),
+            parentlessLineEdit.text(),
+            QStringLiteral("Box"))
+        || !expectTrue(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" reparented callback signal"),
+            parentlessSignals.size() == reparentedSignalCount + 1
+                && parentlessSignals.constLast() == QStringLiteral("Box"))) {
+        return false;
+    }
+
+    {
+        QSignalBlocker blocker(&parentlessLineEdit);
+        parentlessLineEdit.setText(QStringLiteral("Text"));
+        displayTranslator.translatePaintWidget(&parentlessLineEdit);
+    }
+    if (!expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" reparented direct Paint query"),
+            parentlessLineEdit.text(),
+            QStringLiteral("Text"))
+        || !expectEqual(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" reparented direct Paint placeholder"),
+            parentlessLineEdit.placeholderText(),
+            expectedPlaceholder)) {
+        return false;
+    }
+
+    parentlessLineEdit.setText(QStringLiteral("Shape"));
+    return expectEqual(
+               language + QStringLiteral(" ") + ownerName
+                   + QStringLiteral(" reparented second callback query"),
+               parentlessLineEdit.text(),
+               QStringLiteral("Shape"))
+        && expectTrue(
+            language + QStringLiteral(" ") + ownerName
+                + QStringLiteral(" reparented second callback signal"),
+            parentlessSignals.constLast() == QStringLiteral("Shape"));
+}
+
+bool verifyQuickAddSearchLineEdit(const LocaleExpectation &expectation)
+{
+    const QString language = QString::fromLatin1(expectation.language);
+    CavalryEmbeddedTranslator translator(language);
+    CavalryDisplayTranslator displayTranslator(translator);
+    const QList<QuickAddSearchCase> cases = quickAddSearchCases(language);
+
+    return verifyQuickAddSearchOwner<cavalry::FastQuickAddWindow>(
+               translator,
+               displayTranslator,
+               language,
+               QStringLiteral("cavalry::FastQuickAddWindow"),
+               cases)
+        && verifyQuickAddSearchOwner<QuickAddWindow>(
+            translator,
+            displayTranslator,
+            language,
+            QStringLiteral("QuickAddWindow"),
+            cases);
+}
+
 bool verifyLocale(const LocaleExpectation &expectation)
 {
     const QString language = QString::fromLatin1(expectation.language);
@@ -1723,7 +2077,8 @@ bool verifyLocale(const LocaleExpectation &expectation)
         && verifyDynamicLabelTranslations(expectation)
         && verifyTreeWidgetDisplay(expectation)
         && verifyLineEditDisplay(expectation)
-        && verifySelectionValueProtection(expectation);
+        && verifySelectionValueProtection(expectation)
+        && verifyQuickAddSearchLineEdit(expectation);
 }
 
 } // namespace

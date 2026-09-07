@@ -1,5 +1,5 @@
-# [INPUT]: 依赖 CMake 4.2+、Visual Studio 2022+ 的 MSVC v143、Qt 6.6.3 x64 SDK及版本化 QPA 头、Windows Psapi、本目录源码、../generated_translations.inc 与可选 vendor 根
-# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册显示/hook/vendor、QPA manifest、测试态 vendor 主窗口缝及环境/显式入口合同测试
+# [INPUT]: 依赖 CMake 4.2+、Visual Studio 2022+ 的 MSVC v143、Qt 6.6.3 x64 SDK及版本化 QPA 头、Windows Psapi、本目录源码、tools/check_quick_add_search.cpp 与 tools/check_classic_quick_add_search.cpp、../generated_translations.inc 与可选 vendor 根
+# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册显示/hook/vendor、QPA manifest、Classic 同一 Qt fixture 排序合同、测试态 vendor 主窗口缝及环境/显式入口合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构/manifest 前置检查约束通用翻译 runtime 与原生入口 QPA 代理，并隔离验收 driver
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 4.2)
@@ -337,6 +337,60 @@ if(BUILD_TESTING)
             "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
             "QT_QPA_PLATFORM=offscreen"
             "$<TARGET_FILE:cavalryi18n_display_test>"
+    )
+
+    # 共享搜索策略只使用 Qt 公共 model/view API；它们在 Windows CTest 中复用，
+    # 不把 macOS-only shell runner 或未知的 Windows vendor ABI 带入产品目标。
+    add_executable(
+        cavalryi18n_quick_add_search_test
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_quick_add_search.cpp"
+    )
+
+    target_link_libraries(cavalryi18n_quick_add_search_test
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Widgets
+    )
+
+    target_include_directories(cavalryi18n_quick_add_search_test
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    add_test(
+        NAME cavalryi18n_quick_add_search
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "QT_QPA_PLATFORM=offscreen"
+            "$<TARGET_FILE:cavalryi18n_quick_add_search_test>"
+    )
+
+    add_executable(
+        cavalryi18n_classic_quick_add_search_test
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_classic_quick_add_search.cpp"
+    )
+
+    target_link_libraries(cavalryi18n_classic_quick_add_search_test
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Widgets
+    )
+
+    target_include_directories(cavalryi18n_classic_quick_add_search_test
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+    )
+
+    add_test(
+        NAME cavalryi18n_classic_quick_add_search
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "QT_QPA_PLATFORM=offscreen"
+            "$<TARGET_FILE:cavalryi18n_classic_quick_add_search_test>"
     )
 
     add_executable(cavalryi18n_embedded_translator_test

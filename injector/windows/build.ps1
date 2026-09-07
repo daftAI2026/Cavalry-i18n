@@ -1,6 +1,6 @@
 ﻿<#
 [INPUT]: 依赖 PowerShell 5.1+ 的 UTF-8 BOM 宿主边界、Node.js 翻译表生成器与 Windows CMake resolver、官方 CMake 4.4.3 archive 摘要、Visual Studio 2022+ 的 MSVC v143 x64 工具集、Qt 6.6.3 SDK 及版本化 QPA 头、共享翻译源与可选 vendor root
-[OUTPUT]: 对外先重生成共享翻译表，再使用 pin manifest 解包并验证官方 CMake/CTest，由 CMake 选择当前可用 Visual Studio 生成器并锁定 x64/v143，从经过边界验证的干净目录执行 Release configure/build/ctest，经无重解析点父链发布两个无 Qt runtime 产物
+[OUTPUT]: 对外先重生成共享翻译表与 JSON 说明反向索引，再使用 pin manifest 解包并验证官方 CMake/CTest，由 CMake 选择当前可用 Visual Studio 生成器并锁定 x64/v143，从经过边界验证的干净目录执行 Release configure/build/ctest，经无重解析点父链发布两个无 Qt runtime 产物
 [POS]: injector/windows 的可重复构建入口，以源码生成表和经过摘要证明的 CMake 为唯一编译输入，拒绝 runner PATH、陈旧增量产物与未经证明的工具链，并连接同一翻译 runtime/QPA 代理/只读 vendor 合同与受工作区约束的资源路径
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 #>
@@ -21,6 +21,8 @@ $publishedPlugin = Join-Path $genericPublishDirectory 'cavalryi18n.dll'
 $publishedQpaProxy = Join-Path $qpaPublishDirectory 'qwindows.dll'
 $translationGenerator = Join-Path $repositoryRoot 'tools\generate_embedded_translations.js'
 $generatedTranslations = Join-Path $repositoryRoot 'injector\generated_translations.inc'
+$descriptionGenerator = Join-Path $repositoryRoot 'tools\generate_quick_add_descriptions.js'
+$generatedDescriptions = Join-Path $repositoryRoot 'injector\generated_quick_add_descriptions.inc'
 $cmakeResolver = Join-Path $repositoryRoot 'tools\resolve_windows_cmake.js'
 
 function Assert-NoReparsePathChain {
@@ -150,6 +152,11 @@ if ($LASTEXITCODE -ne 0) {
 }
 if (-not (Test-Path -LiteralPath $generatedTranslations -PathType Leaf)) {
     throw "Generated translation table not found at '$generatedTranslations'."
+}
+
+& $nodeCommand.Source $descriptionGenerator $generatedDescriptions
+if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $generatedDescriptions -PathType Leaf)) {
+    throw "Quick Add description index generation failed with exit code $LASTEXITCODE."
 }
 
 Reset-GeneratedBuildDirectory
