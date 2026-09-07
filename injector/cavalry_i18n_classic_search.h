@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_quick_add_context.h 的共享 Quick Add 搜索框 guard、Qt 6 QListWidget/QListWidgetItem/QLabel/QLineEdit 公共 API、exact QuickAddWindow/ListWidget 父链和注入方提供的标题、别名、说明反查函数
- * [OUTPUT]: 对外提供 Classic QListWidget 的 DisplayRole 标题别名与按 query 命中的说明 token 投影、独立 itemWidget 标题显示投影、逐视图持久索引缓存与动态生命周期安全的幂等挂接入口；role0 使用 U+FFFE 合并分隔符保持 Qt localeAwareCompare 的原文前缀顺序
+ * [INPUT]: 依赖 cavalry_i18n_quick_add_context.h 的共享 Quick Add 搜索框 guard、Qt 6 QListWidget/QListWidgetItem/QLabel/QLineEdit/QSignalBlocker 公共 API、exact QuickAddWindow/ListWidget 父链和注入方提供的标题、别名、说明反查函数
+ * [OUTPUT]: 对外提供 Classic QListWidget 的 DisplayRole 标题别名与按 query 命中的说明 token 投影、独立 itemWidget 标题显示投影、逐视图持久索引缓存与动态生命周期安全的幂等挂接入口；原生排序期间恢复 source，投影写入期间暂停自动排序，分隔符不承担跨平台排序契约
  * [POS]: injector 的 Classic Add Layer 双语搜索边界；只在 exact QuickAddWindow 下的 vendor ListWidget 生效，说明只从公开 QLabel 反查为 side data，并在原生 strong-match 命中当前清理 query 时追加该 query token，不改说明标签、command/flags 或未知 UserRole，不依赖私有 Qt 偏移
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -10,6 +10,7 @@
 #include <QtCore/QByteArray>
 #include <QtCore/QPersistentModelIndex>
 #include <QtCore/QPointer>
+#include <QtCore/QSignalBlocker>
 #include <QtCore/QTimer>
 #include <QtCore/QStringList>
 #include <QtCore/QVector>
@@ -30,12 +31,7 @@ inline constexpr char kClassicQuickAddListWidgetClass[] = "ListWidget";
 inline constexpr char kClassicQuickAddAttachmentName[] =
     "cavalry_i18n_classic_quick_add_search_attachment";
 
-/*
- * +--------------------------------------------------------------------+
- * | U+FFFE 是 collation merge separator；它让 alias 投影仍按 source 的 |
- * | localeAwareCompare 排序，而普通控制符会在 source 前缀处丢失边界。 |
- * +--------------------------------------------------------------------+
- */
+// U+FFFE 仅标记 source/token 边界；不同平台的 collator 不保证它有相同权重。
 inline constexpr char16_t kClassicQuickAddAliasSeparator = 0xfffe;
 
 using ClassicQuickAddAliasProvider =
@@ -260,6 +256,22 @@ public:
             });
         QObject::connect(
             model,
+            &QAbstractItemModel::layoutAboutToBeChanged,
+            this,
+            [this] {
+                if (refreshing_ || listWidget_.isNull()) {
+                    return;
+                }
+                refreshing_ = true;
+                const QSignalBlocker itemSignals(listWidget_.data());
+                const bool sorting = listWidget_->isSortingEnabled();
+                listWidget_->setSortingEnabled(false);
+                restoreSourceData();
+                listWidget_->setSortingEnabled(sorting);
+                refreshing_ = false;
+            });
+        QObject::connect(
+            model,
             &QAbstractItemModel::layoutChanged,
             this,
             [this](const QList<QPersistentModelIndex> &,
@@ -302,7 +314,27 @@ public:
         refreshQueued_ = false;
         bindSearchBox();
         refreshing_ = true;
+        // 内部索引投影不是用户编辑；不触发 vendor itemChanged 的同步排序回调。
+        // model 信号保持畅通，使 Qt 自有视图、持久索引及排序链正常更新。
+        const QSignalBlocker itemSignals(listWidget_.data());
         pruneEntries();
+        for (int row = 0; row < listWidget_->count(); ++row) {
+            if (QListWidgetItem *item = listWidget_->item(row)) {
+                ensureEntry(item);
+            }
+        }
+        const bool sorting = listWidget_->isSortingEnabled();
+        listWidget_->setSortingEnabled(false);
+        const bool restored = sorting && restoreSourceData();
+        listWidget_->setSortingEnabled(sorting);
+        if (sorting && restored && listWidget_->count() > 0) {
+            // 原生 sorted insertion 可能曾与旧 token 比较；以完整 source 区间
+            // 通知 Qt ensureSorted，保留其私有 sortOrder 与 vendor 比较器。
+            QAbstractItemModel *model = listWidget_->model();
+            Q_EMIT model->dataChanged(model->index(0, 0),
+                model->index(listWidget_->count() - 1, 0), {Qt::DisplayRole});
+        }
+        listWidget_->setSortingEnabled(false);
         for (int row = 0; row < listWidget_->count(); ++row) {
             QListWidgetItem *item = listWidget_->item(row);
             if (item == nullptr) {
@@ -313,10 +345,24 @@ public:
                 applyEntry(*entry);
             }
         }
+        listWidget_->setSortingEnabled(sorting);
         refreshing_ = false;
     }
 
 private:
+    bool restoreSourceData()
+    {
+        bool changed = false;
+        for (const Entry &entry : entries_) {
+            QListWidgetItem *item = listWidget_->itemFromIndex(entry.index);
+            if (item != nullptr && item->text() != entry.source) {
+                item->setText(entry.source);
+                changed = true;
+            }
+        }
+        return changed;
+    }
+
     struct Entry {
         QPersistentModelIndex index;
         QString source;

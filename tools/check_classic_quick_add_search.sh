@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖 CAVALRY_QT_PREFIX 或仓库 qt_sdk/6.6.3/macos、其 qmake/moc 与 tools/check_classic_quick_add_search.cpp、injector/cavalry_i18n_classic_search.h、injector/cavalry_i18n_quick_add_context.h
 # [OUTPUT]: 在隔离临时目录生成并运行 vendor-free Classic Quick Add QListWidget 合同，不启动或修改真实 Cavalry.app
-# [POS]: tools 的 Classic 搜索 fixture runner；以 Qt 6.6.3 moc/clang++ 验证 header-only helper 的 U+FFFE role0 投影、显示层、native filter、同 locale 排序与生命周期边界，不构成 vendor command/custom MIME 证据
+# [POS]: tools 的 Classic 搜索 fixture runner；以 Qt 6.6.3 moc/clang++ 验证 header-only helper 的 U+FFFE role0 投影、显示层、native filter、同 locale 升降序/自动排序与 source-only 比较器与生命周期边界，不构成 vendor command/custom MIME 证据
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
 

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 injector/cavalry_i18n_classic_search.h 及其 cavalry_i18n_quick_add_context.h、Qt 6.6.3 QListWidget/QLabel 公共 API 与可控的 QuickAddWindow/ListWidget fixture；标题/说明 provider 只提供 side data
- * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Classic Add Layer 双语搜索合同；验证 query 命中时仅投影清理 token、itemWidget 标题与说明显示层、三语视频词条、native filter/no-results、同 locale 原文/投影排序、延后创建与动态生命周期、幂等与边界
+ * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Classic Add Layer 双语搜索合同；验证 query 命中时仅投影清理 token、itemWidget 标题与说明显示层、三语视频词条、native filter/no-results、同 locale 原文/挂接后排序与比较器 source-only 探针、延后创建与动态生命周期、幂等与边界
  * [POS]: tools 的 vendor-free Classic 搜索回归；只证明共享 helper 的 Qt 数据行为和公共 MIME 结果，不冒充 vendor command/custom MIME 的真人证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -330,104 +330,92 @@ QString sortAliasForLanguage(
     return {};
 }
 
-QStringList sortedSources(QListWidget *listWidget)
-{
-    listWidget->sortItems(Qt::AscendingOrder);
-    QStringList result;
-    for (int row = 0; row < listWidget->count(); ++row) {
-        result.append(sourcePart(listWidget->item(row)->text()));
+// 比较器探针在 macOS 也直接捕捉索引泄漏，避免某个 collator 恰好同序而漏报。
+class SortProbeItem final : public QListWidgetItem {
+public:
+    using QListWidgetItem::QListWidgetItem;
+    static inline int projectedComparisons = 0;
+    bool operator<(const QListWidgetItem &other) const override {
+        if (text().contains(cavalry_i18n::classicQuickAddAliasSeparator())
+            || other.text().contains(cavalry_i18n::classicQuickAddAliasSeparator()))
+            ++projectedComparisons;
+        return QListWidgetItem::operator<(other);
     }
+};
+QStringList orderedSources(QListWidget *listWidget)
+{
+    QStringList result;
+    for (int row = 0; row < listWidget->count(); ++row)
+        result.append(sourcePart(listWidget->item(row)->text()));
     return result;
 }
-
 bool sameLocaleProjectionSortMatrix()
 {
     const QLocale savedLocale = QLocale();
-    constexpr const char *kLocales[] = {
-        "en_US", "zh_CN", "zh_TW", "ja_JP"};
-    constexpr const char *kAliasLanguages[] = {
-        "zh-Hans", "zh-Hant", "ja_JP"};
-
-    for (const char *localeName : kLocales) {
+    for (const char *localeName : {"en_US", "zh_CN", "zh_TW", "ja_JP"}) {
         QLocale::setDefault(QLocale(QString::fromLatin1(localeName)));
-        for (const char *languageName : kAliasLanguages) {
-            ListWidget original;
-            ListWidget projected;
-            for (const ClassicSortCase &item : kClassicSortCases) {
-                const QString source = QString::fromLatin1(item.source);
-                const QString alias = sortAliasForLanguage(item, languageName);
-                original.addItem(new QListWidgetItem(source));
-                projected.addItem(
-                    new QListWidgetItem(
-                        cavalry_i18n::projectClassicQuickAddDisplayText(
-                            source,
-                            {alias})));
-            }
-
-            const QStringList originalOrder = sortedSources(&original);
-            const QStringList projectedOrder = sortedSources(&projected);
-            if (originalOrder != projectedOrder) {
-                std::fprintf(
-                    stderr,
-                    "Classic sort drift: locale=%s aliases=%s original=%s projected=%s\n",
-                    localeName,
-                    languageName,
-                    originalOrder.join('|').toUtf8().constData(),
-                    projectedOrder.join('|').toUtf8().constData());
-                QLocale::setDefault(savedLocale);
-                return false;
-            }
-
-            for (const ClassicSortCase &shorterCase : kClassicSortCases) {
-                const QString shorter =
-                    QString::fromLatin1(shorterCase.source);
-                for (const ClassicSortCase &longerCase : kClassicSortCases) {
-                    const QString longer =
-                        QString::fromLatin1(longerCase.source);
-                    if (shorter == longer || !longer.startsWith(shorter)) {
-                        continue;
+        for (const char *language : {"zh-Hans", "zh-Hant", "ja_JP"}) {
+            for (const auto order : {Qt::AscendingOrder, Qt::DescendingOrder}) {
+                for (const bool automatic : {false, true}) {
+                    QuickAddWindow owner;
+                    SearchBar bar(&owner);
+                    CompleterLineEdit search(&bar);
+                    ListWidget original;
+                    ListWidget projected(&owner);
+                    for (const ClassicSortCase &item : kClassicSortCases) {
+                        original.addItem(new QListWidgetItem(QString::fromLatin1(item.source)));
+                        projected.addItem(new SortProbeItem(QString::fromLatin1(item.source)));
                     }
-                    const QString shorterProjection =
-                        cavalry_i18n::projectClassicQuickAddDisplayText(
-                            shorter,
-                            {sortAliasForLanguage(
-                                shorterCase,
-                                languageName)});
-                    const QString longerProjection =
-                        cavalry_i18n::projectClassicQuickAddDisplayText(
-                            longer,
-                            {sortAliasForLanguage(
-                                longerCase,
-                                languageName)});
-                    QListWidgetItem originalShorter(shorter);
-                    QListWidgetItem originalLonger(longer);
-                    QListWidgetItem projectedShorter(shorterProjection);
-                    QListWidgetItem projectedLonger(longerProjection);
-                    const bool originalForward =
-                        originalShorter < originalLonger;
-                    const bool originalReverse =
-                        originalLonger < originalShorter;
-                    const bool projectedForward =
-                        projectedShorter < projectedLonger;
-                    const bool projectedReverse =
-                        projectedLonger < projectedShorter;
-                    if (originalForward != projectedForward
-                        || originalReverse != projectedReverse) {
-                        std::fprintf(
-                            stderr,
-                            "Classic prefix comparator drift: locale=%s aliases=%s shorter=%s longer=%s\n",
-                            localeName,
-                            languageName,
-                            shorter.toUtf8().constData(),
-                            longer.toUtf8().constData());
-                        QLocale::setDefault(savedLocale);
+                    original.sortItems(order);
+                    projected.sortItems(order);
+                    original.setSortingEnabled(automatic);
+                    projected.setSortingEnabled(automatic);
+                    auto *selected = projected.item(4);
+                    projected.setCurrentItem(selected);
+                    QPersistentModelIndex selection(projected.indexFromItem(selected));
+                    int syntheticItemChanges = 0;
+                    QObject::connect(&projected, &QListWidget::itemChanged, &projected,
+                        [&] { ++syntheticItemChanges; });
+                    cavalry_i18n::attachClassicQuickAddAliases(&projected,
+                        [language](const QString &source) {
+                            for (const auto &item : kClassicSortCases)
+                                if (source == QString::fromLatin1(item.source))
+                                    return QStringList{sortAliasForLanguage(item, language)};
+                            return QStringList{};
+                        });
+                    auto equalOrder = [&] {
+                        if (orderedSources(&original) == orderedSources(&projected)
+                            && projected.isSortingEnabled() == automatic
+                            && projected.currentItem() == selected
+                            && projected.itemFromIndex(selection) == selected)
+                            return true;
+                        std::fprintf(stderr, "Classic sort drift: locale=%s aliases=%s order=%d auto=%d\n",
+                                     localeName, language, int(order), automatic);
                         return false;
+                    };
+                    for (const auto &queryCase : kClassicSortCases) {
+                        SortProbeItem::projectedComparisons = 0;
+                        search.setText(sortAliasForLanguage(queryCase, language));
+                        if (!equalOrder()) { QLocale::setDefault(savedLocale); return false; }
+                        projected.sortItems(order);
+                        if (!equalOrder() || SortProbeItem::projectedComparisons != 0
+                            || syntheticItemChanges != 0) {
+                            std::fprintf(stderr, "Classic sort/notification boundary violation\n");
+                            QLocale::setDefault(savedLocale); return false;
+                        }
                     }
+                    // 活跃 query 下原生插入、新 item 与已有前缀均须收敛到未翻译顺序。
+                    original.addItem(new QListWidgetItem(QStringLiteral("Text Shape Z")));
+                    projected.addItem(new SortProbeItem(QStringLiteral("Text Shape Z")));
+                    if (!equalOrder()) { QLocale::setDefault(savedLocale); return false; }
+                    search.clear();
+                    original.sortItems(order);
+                    projected.sortItems(order);
+                    if (!equalOrder()) { QLocale::setDefault(savedLocale); return false; }
                 }
             }
         }
     }
-
     QLocale::setDefault(savedLocale);
     return true;
 }
@@ -758,7 +746,7 @@ int main(int argc, char **argv)
     REQUIRE(labelByName(list, fresh, "title")->text()
             == QStringLiteral("文字"));
 
-    // 原文/FFFE 投影必须在实际 QListWidgetItem 比较器上保持同序。
+    // 同一原生比较器只消费 source；升降序、自动排序和活跃查询均须同序。
     REQUIRE(sameLocaleProjectionSortMatrix());
 
     // itemWidget/search box 延后创建；销毁搜索框必须移除旧 token。

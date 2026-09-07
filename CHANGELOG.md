@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - Keep shared Add Layer search compatible with Windows Qt builds that disable keyword macros.
+- Preserve native Classic Add Layer ordering by excluding search tokens from sorting rather than relying on platform-specific collation weights.
 - Preserve original font-family and font-style values in editable selectors instead of replacing them with UI translations.
 - Preserve Add Layer search input and restore English/current-language lookup while keeping translated result titles separate from layer identities.
 
