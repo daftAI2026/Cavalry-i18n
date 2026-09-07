@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 injector/cavalry_i18n_search_policy.h 及其 cavalry_i18n_quick_add_context.h、Qt 6.6.3 model/view、FastQuickAddWindow/Model 的本地可控 fixture 与三语 alias 数据
+ * [INPUT]: 依赖 injector/cavalry_i18n_search_policy.h 及其 cavalry_i18n_quick_add_context.h、QT_NO_KEYWORDS 下的 Qt 6.6.3 model/view、FastQuickAddWindow/Model 的本地可控 fixture 与三语 alias 数据
  * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Quick Add 搜索合同；验证 owner/模型边界、Unicode-safe role 257 过滤、英文+当前语言匹配、role 0/256/其他角色透传、vendor source/index/排序/生命周期
  * [POS]: tools 的 vendor-free 共享搜索回归；只证明 helper 的数据行为和接线前提，不冒充 macOS/Windows 生产 UI 证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -172,7 +172,7 @@ public:
             return false;
         }
 
-        emit dataChanged(index, index, {role});
+        Q_EMIT dataChanged(index, index, {role});
         return true;
     }
 

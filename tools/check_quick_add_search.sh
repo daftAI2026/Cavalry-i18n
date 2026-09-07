@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖 `CAVALRY_QT_PREFIX` 或仓库 qt_sdk/6.6.3/macos、其 qmake/moc 与 tools/check_quick_add_search.cpp、injector/cavalry_i18n_search_policy.h、injector/cavalry_i18n_quick_add_context.h
 # [OUTPUT]: 在隔离临时目录生成并运行 vendor-free Quick Add model/view 合同，不启动或修改真实 Cavalry.app
-# [POS]: tools 的共享搜索 fixture runner；以 Qt moc/clang++ 验证 header-only helper 的 ABI 兼容、边界和生命周期，不构成生产 UI 证据
+# [POS]: tools 的共享搜索 fixture runner；以与 Windows 产品一致的 QT_NO_KEYWORDS 配置运行 Qt moc/clang++ 验证 header-only helper 的 ABI 兼容、边界和生命周期，不构成生产 UI 证据
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
 
@@ -38,7 +38,7 @@ cleanup() {
 }
 trap cleanup EXIT
 
-"$QT_MOC" \
+"$QT_MOC" -DQT_NO_KEYWORDS \
   -I"$QT_FRAMEWORKS" \
   -I"$QT_FRAMEWORKS/QtCore.framework/Headers" \
   -I"$QT_FRAMEWORKS/QtGui.framework/Headers" \
@@ -53,6 +53,7 @@ clang++ \
   -Wextra \
   -Werror \
   -DQT_NO_VERSION_TAGGING \
+  -DQT_NO_KEYWORDS \
   -DQT_CORE_LIB \
   -DQT_GUI_LIB \
   -DQT_WIDGETS_LIB \
