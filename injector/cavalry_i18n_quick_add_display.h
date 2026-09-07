@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖已验证的 Cavalry 2.7.2 macOS payload ABI、Qt 6.6.3 注册复制语义、原厂 delegate 与显示译文 provider
+ * [INPUT]: 依赖平台各自验证的 Cavalry 2.7.2 payload ABI、Qt 6.6.3 注册复制语义、原厂 delegate 与显示译文 provider
  * [OUTPUT]: 提供只在 exact FastQuickAdd model 绘制副本投影标题的 delegate；未知 model/payload 原始 index 透传，真实 query、命令角色和编辑路径保持原样
  * [POS]: injector 的 FastQuickAdd 显示适配边界；平台必须先证明 vendor fingerprint 与 source model 链，原 delegate 失效时回退 Qt 英文 delegate，未知版本/类型/布局原样回退，不由类型名推断 Windows 兼容
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -59,10 +59,16 @@ inline bool hasExactFastQuickAddDisplaySource(const QAbstractItemModel *model)
 // ---------------------------------------------------------------------------
 inline bool isVerifiedQuickAddDisplayEnvironment(bool vendorContractVerified)
 {
+    const QString version = QCoreApplication::applicationVersion();
+    bool versionMatches = version == QStringLiteral("2.7.2");
+#ifdef Q_OS_WIN
+    // Windows 原厂未填写此展示属性；版本证明由独立 PE/代码/元类型合同承担。
+    // 非空的错误版本仍拒绝，空值也不能绕过 vendorContractVerified。
+    versionMatches = versionMatches || version.isEmpty();
+#endif
     return vendorContractVerified
         && QByteArray(qVersion()) == "6.6.3"
-        && QCoreApplication::applicationVersion()
-            == QStringLiteral("2.7.2");
+        && versionMatches;
 }
 
 inline bool isVerifiedQuickAddPaintPayload(
@@ -92,7 +98,7 @@ inline bool isVerifiedQuickAddPaintPayload(
     return *title == expectedTitle;
 }
 
-// ---- 已证 macOS 2.7.2 ABI：registered copy/dtor 与 paint 的同一 QString ----
+// ---- 双平台独立已证 2.7.2 ABI：registered copy/dtor 与 paint 的同一 QString ----
 // +0x18 为命令，+0x30 为标题，+0x48 为 tags，+0x60 为说明。
 // 只有标题可投影；结构本身始终由 vendor 注册的 QMetaType 构造与析构。
 inline QVariant quickAddPaintValue(
@@ -157,7 +163,7 @@ public:
                 this, &QAbstractItemDelegate::closeEditor);
         connect(original, &QAbstractItemDelegate::sizeHintChanged, this,
                 [this](const QModelIndex &index) {
-                    emit sizeHintChanged(index.model() == &paintModel_
+                    Q_EMIT sizeHintChanged(index.model() == &paintModel_
                         ? paintModel_.mapToSource(index) : index);
                 });
         connect(

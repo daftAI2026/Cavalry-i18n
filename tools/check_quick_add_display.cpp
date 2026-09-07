@@ -351,6 +351,11 @@ bool verifyLayoutAndPositiveCopy()
     expect(
         itemMatches(disabled, originalItem),
         QStringLiteral("vendor gate false fails open"));
+#ifdef Q_OS_WIN
+    QCoreApplication::setApplicationVersion(QString());
+    expect(itemMatches(cavalry_i18n::quickAddPaintValue(source, originalItem.title, translatedTitle, true), expectedPainted), QStringLiteral("Windows empty Qt app version uses verified binary contract"));
+    expect(itemMatches(cavalry_i18n::quickAddPaintValue(source, originalItem.title, translatedTitle, false), originalItem), QStringLiteral("empty version never bypasses vendor gate"));
+#endif
     QCoreApplication::setApplicationVersion(QStringLiteral("2.7.1"));
     const QVariant wrongVersion = cavalry_i18n::quickAddPaintValue(
         source,
@@ -596,7 +601,7 @@ bool verifyDelegateAndModelLifecycle()
         SIGNAL(commitData(QWidget *)),
         &view,
         SLOT(commitData(QWidget *)));
-    emit original->commitData(&editor);
+    Q_EMIT original->commitData(&editor);
     expect(commitForwarded, QStringLiteral("commitData signal forwards"));
     QModelIndex sizeHintSignalIndex;
     QObject::connect(
@@ -606,7 +611,7 @@ bool verifyDelegateAndModelLifecycle()
         [&sizeHintSignalIndex](const QModelIndex &index) {
             sizeHintSignalIndex = index;
         });
-    emit original->sizeHintChanged(sourceIndex);
+    Q_EMIT original->sizeHintChanged(sourceIndex);
     expect(
         sizeHintSignalIndex == sourceIndex,
         QStringLiteral("sizeHintChanged exposes original index"));

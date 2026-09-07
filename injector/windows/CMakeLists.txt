@@ -339,8 +339,23 @@ if(BUILD_TESTING)
             "$<TARGET_FILE:cavalryi18n_display_test>"
     )
 
-    # 共享搜索策略只使用 Qt 公共 model/view API；它们在 Windows CTest 中复用，
-    # 不把 macOS-only shell runner 或未知的 Windows vendor ABI 带入产品目标。
+    # 共享显示副本合同覆盖 Windows ABI 相同的布局及独立负例，产品另验真实 vendor。
+    foreach(display_variant normal bad_size bad_align)
+        set(display_target "cavalryi18n_quick_add_display_${display_variant}")
+        add_executable(${display_target} "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_quick_add_display.cpp")
+        target_link_libraries(${display_target} PRIVATE Qt6::Core Qt6::Gui Qt6::Widgets)
+        target_compile_definitions(${display_target} PRIVATE QT_NO_KEYWORDS)
+        if(display_variant STREQUAL "bad_size")
+            target_compile_definitions(${display_target} PRIVATE CAVALRY_QUICK_ADD_DISPLAY_BAD_SIZE)
+        elseif(display_variant STREQUAL "bad_align")
+            target_compile_definitions(${display_target} PRIVATE CAVALRY_QUICK_ADD_DISPLAY_BAD_ALIGN)
+        endif()
+        add_test(NAME ${display_target} COMMAND "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "QT_QPA_PLATFORM=offscreen" "$<TARGET_FILE:${display_target}>")
+    endforeach()
+
+    # 共享搜索策略只使用 Qt 公共 model/view API。
     add_executable(
         cavalryi18n_quick_add_search_test
         "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/check_quick_add_search.cpp"
@@ -569,6 +584,12 @@ if(BUILD_TESTING)
                 "CAVALRY_VENDOR_ROOT must contain ExtensionLayer.dll, CavalryUI.dll, Core.dll, and skia.dll: ${CAVALRY_VENDOR_ROOT_ABSOLUTE}"
             )
         endif()
+
+        add_executable(cavalryi18n_quick_add_vendor_test cavalry_i18n_quick_add_vendor_test.cpp)
+        target_link_libraries(cavalryi18n_quick_add_vendor_test PRIVATE Qt6::Core Psapi)
+        add_test(NAME cavalryi18n_quick_add_vendor COMMAND "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "$<TARGET_FILE:cavalryi18n_quick_add_vendor_test>" "${CAVALRY_VENDOR_EXTENSION_LAYER}")
 
         add_executable(cavalryi18n_vendor_iat_contract_test
             cavalry_i18n_vendor_iat_contract_test.cpp
