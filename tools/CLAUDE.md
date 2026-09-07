@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+check_quick_add_display_tags.h: Fast 显示 fixture 的独立标签片段，验证原厂显示别名、paint/sizeHint 一致投影及源分类/创建身份保真。
 
 check_macos_selection_values.sh: 本地原生 fixture 构建入口，显式接收 Qt SDK/vendor Frameworks，只读链接 libskia 并强制 SDK 单套 Qt/offscreen plugin，保留测试退出码。
 check_macos_selection_values.mm: Qt 原生选择值 fixture，直调 macOS 生产翻译入口并验证三语 Combo/编辑器/自定义弹出列表与展示正对照；只读链接显式 vendor Frameworks，不启动或修改真实 Cavalry。
