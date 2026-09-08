@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖发布流程传入的内部 SemVer、CHANGELOG.md 与目标输出路径
- * [OUTPUT]: 对外提供精确版本 CHANGELOG 正文抽取，并在版本缺失、重复、未标日期或正文为空时失败关闭
+ * [OUTPUT]: 对外提供精确版本 CHANGELOG 正文抽取，并在版本缺失、重复、未标日期、正文为空或缺少中文在前/英文在后的更新条目时失败关闭
  * [POS]: tools 的 Release notes 内容边界，将内部版本真相源投影为 GitHub Release 的版本更新摘要，不负责产品介绍模板
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -96,6 +96,19 @@ function extractReleaseSection(source, version) {
   const body = source.slice(selected.bodyStart, bodyEnd).trim();
   if (!body) {
     throw new Error(`Release version ${version} has an empty CHANGELOG.md section`);
+  }
+
+  // ---- 双语内容合同：分类和条目由版本作者填写，不自动翻译或复制固定介绍 ----
+  const locales = [...body.matchAll(/^### ([^\r\n]+)[ \t]*$/gm)];
+  if (locales.length !== 2 || locales[0][1].trim() !== '中文'
+      || locales[1][1].trim() !== 'English'
+      || body.slice(0, locales[0]?.index).trim()) {
+    throw new Error('Release notes must be bilingual: ### 中文 first, then ### English');
+  }
+  const chinese = body.slice(locales[0].index + locales[0][0].length, locales[1].index);
+  const english = body.slice(locales[1].index + locales[1][0].length);
+  if (![chinese, english].every((section) => /^- [^\s].*$/m.test(section))) {
+    throw new Error('Each bilingual release section must contain non-empty change bullets');
   }
 
   return `${body}\n`;

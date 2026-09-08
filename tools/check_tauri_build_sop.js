@@ -1420,6 +1420,12 @@ test('release changelog extractor selects one exact released SemVer section and 
   const empty = runExtractor('9.8.7');
   assert.notEqual(empty.status, 0, empty.stdout);
   assert.match(empty.stderr, /9\.8\.7[\s\S]*empty/i);
+
+  fs.writeFileSync(changelogPath, readText('CHANGELOG.md'));
+  const currentVersion = JSON.parse(readText('package.json')).version;
+  const current = runExtractor(currentVersion);
+  assert.equal(current.status, 0, 'current release notes: ' + current.stderr);
+
 });
 
 test('README release badges use the latest stable GitHub Release directly', () => {
