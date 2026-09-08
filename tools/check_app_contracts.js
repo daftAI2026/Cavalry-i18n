@@ -1490,6 +1490,14 @@ test('Qt SDK contract preserves macOS builds and prepares the Windows x64 SDK fr
     /Extract version changelog[\s\S]*extract_release_changelog\.js[\s\S]*--version "\$INTERNAL_APP_VERSION"[\s\S]*--output release-changes\.md[\s\S]*Write GitHub Release notes[\s\S]*面向 Cavalry \$\{TARGET_CAVALRY_VERSION\} 的 macOS 与 Windows 语言切换工具[\s\S]*## p\$\{RELEASE_PATCH\} 更新内容[\s\S]*cat release-changes\.md[\s\S]*Apple M 芯片[\s\S]*Intel 芯片[\s\S]*macOS 安装说明[\s\S]*Windows 安装说明/,
     'tag releases should combine concise product guidance with the exact internal-version CHANGELOG section'
   );
+  const releaseNotesStep = workflowSource.split('- name: Write GitHub Release notes')[1]
+    .split('- name: Publish GitHub Release')[0];
+  for (const required of ['## 支持语言', '## 使用前须知', '## 日本語', '## English',
+    '## 从源码本地构建', 'LOCAL_BUILD_SOP.md', '<仓库路径>', 'UAC', 'ad-hoc']) {
+    assert.ok(releaseNotesStep.includes(required), `release guidance must retain ${required}`);
+  }
+  assert.doesNotMatch(releaseNotesStep, /\/Users\/|C:\\Users\\/,
+    'public build instructions must not contain a maintainer-specific checkout');
   assert.match(
     workflowSource,
     /node tools\/release_publish\.js[\s\S]*--tag "\$GITHUB_REF_NAME"[\s\S]*--notes release-notes\.md[\s\S]*--title "\$RELEASE_TITLE"/,
