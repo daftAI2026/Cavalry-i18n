@@ -92,7 +92,7 @@ git push origin "$TAG"
 - 本版本实际解决的问题及用户可感知的结果。
 ```
 
-分类映射为：Added → 新增、Changed → 变更、Deprecated → 弃用、Removed → 移除、Fixed → 修复、Security → 安全。只写本版需要的分类，不留空标题。门禁检查唯一受支持分类、非空条目及中文内容存在；文案准确性仍由 review 确认。
+分类映射为：Added → 新增、Changed → 变更、Deprecated → 弃用、Removed → 移除、Fixed → 修复、Security → 安全。只写本版需要的分类，不留空标题。每个条目使用单行 `- 中文说明`，分类内只允许条目及空行，不放代码围栏、HTML 注释或独立说明段。门禁检查唯一受支持分类、非空条目且逐条包含中文；文案准确性仍由 review 确认。
 
 ## 4. macOS 标准打包流程
 

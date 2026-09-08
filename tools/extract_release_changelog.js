@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖发布流程传入的内部 SemVer、CHANGELOG.md 与目标输出路径
- * [OUTPUT]: 对外提供精确版本 CHANGELOG 正文抽取，并在版本缺失、重复、未标日期、正文为空或缺少中文更新条目时失败关闭；保留 Added/Fixed 等源码分类语义，仅在发布投影为中文标题
+ * [OUTPUT]: 对外提供精确版本 CHANGELOG 正文抽取，并在版本缺失、重复、未标日期、正文为空或含非中文条目或列表之外内容时失败关闭；保留 Added/Fixed 等源码分类语义，仅在发布投影为中文标题
  * [POS]: tools 的 Release notes 内容边界，将内部版本真相源投影为 GitHub Release 的版本更新摘要，不负责产品介绍模板
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -116,8 +116,9 @@ function extractReleaseSection(source, version) {
       throw new Error('Release change category is unsupported or duplicated: ' + key);
     }
     seen.add(key);
-    if (!/^- [^\s].*$/m.test(content) || !/\p{Script=Han}/u.test(content)) {
-      throw new Error('Each release category must contain Chinese change bullets');
+    const bullets = content.split(/\r?\n/).filter((line) => line.trim());
+    if (!bullets.length || !bullets.every((line) => /^- [^\r\n]*\p{Script=Han}[^\r\n]*$/u.test(line))) {
+      throw new Error('Each release category must contain only plain Chinese change bullets');
     }
   }
   return body.replace(/^### ([^\r\n]+)[ \t]*$/gm,
