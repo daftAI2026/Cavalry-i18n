@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/四策略输入合同/Quick Add context/display 与描述生成闭包/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、直接读取最新正式 Release 的四语徽章、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、保留英文分类语义、发布只显示中文的版本更新说明、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、直接读取最新正式 Release 的四语徽章、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1355,10 +1355,10 @@ test('release changelog extractor selects one exact released SemVer section and 
       '## [9.8.7] - 2026-07-14',
       '',
       '### Added',
-      '- Exact release note.',
+      '- 本次新增功能。',
       '',
       '### Fixed',
-      '- Exact release fix.',
+      '- 本次修复问题。',
       '',
       '## [9.8.6] - 2026-07-13',
       '',
@@ -1372,9 +1372,38 @@ test('release changelog extractor selects one exact released SemVer section and 
   assert.equal(valid.status, 0, valid.stderr || valid.stdout);
   assert.equal(
     fs.readFileSync(outputPath, 'utf8'),
-    '### Added\n- Exact release note.\n\n### Fixed\n- Exact release fix.\n'
+    '### 新增\n- 本次新增功能。\n\n### 修复\n- 本次修复问题。\n'
   );
   assert.doesNotMatch(fs.readFileSync(outputPath, 'utf8'), /Not ready|Older release/);
+
+  for (const invalid of [
+    '### Fixed\n- English only.',
+    '### Fixed\n- 中文修复。\n- English-only note.',
+    '### Fixed\n```text\n- 中文示例。\n```',
+    '### Fixed\n<!--\n- 中文占位。\n-->',
+
+    '### 中文\n- 只有中文。',
+    '### Fixed',
+    '### Fixed\n- 中文更新。\n### Fixed\n- 重复分类。',
+    '### Unknown\n- 未知分类。',
+  ]) {
+    fs.writeFileSync(changelogPath, '## [9.8.7] - 2026-07-14\n\n' + invalid);
+    fs.writeFileSync(outputPath, 'stale output');
+    const rejected = runExtractor('9.8.7');
+    assert.notEqual(rejected.status, 0, invalid);
+    assert.match(rejected.stderr, /Chinese|category/i);
+    assert.equal(fs.existsSync(outputPath), false);
+  }
+
+  for (const [category, label] of [
+    ['Added', '新增'], ['Changed', '变更'], ['Deprecated', '弃用'],
+    ['Removed', '移除'], ['Fixed', '修复'], ['Security', '安全'],
+  ]) {
+    fs.writeFileSync(changelogPath, '## [9.8.7] - 2026-07-14\n\n### ' + category + '\n- 实际更新。');
+    const projected = runExtractor('9.8.7');
+    assert.equal(projected.status, 0, projected.stderr);
+    assert.equal(fs.readFileSync(outputPath, 'utf8'), '### ' + label + '\n- 实际更新。\n');
+  }
 
   const missing = runExtractor('9.8.5');
   assert.notEqual(missing.status, 0, missing.stdout);
@@ -1398,6 +1427,12 @@ test('release changelog extractor selects one exact released SemVer section and 
   const empty = runExtractor('9.8.7');
   assert.notEqual(empty.status, 0, empty.stdout);
   assert.match(empty.stderr, /9\.8\.7[\s\S]*empty/i);
+
+  fs.writeFileSync(changelogPath, readText('CHANGELOG.md'));
+  const currentVersion = JSON.parse(readText('package.json')).version;
+  const current = runExtractor(currentVersion);
+  assert.equal(current.status, 0, 'current release notes: ' + current.stderr);
+
 });
 
 test('README release badges use the latest stable GitHub Release directly', () => {

@@ -57,7 +57,7 @@ create_sbom.js / verify_release_provenance.js: 从 npm/Cargo lockfiles 生成确
 create_source_artifact.js / verify_source_artifact.js / source_artifact_manifest.json + schemas/: 用 mode-preserving tar 输出 repo 外 source artifact；verifier 独立生成同 commit 的 `git archive`，逐 entry 拒绝 link/special/traversal/duplicate/secret 并精确比对路径、bytes、type 与 mode，marker 不能替代 tree 校验。
 verify_ci_action_pins.js + ci_action_pins.json: 以 strict unique-key YAML AST 枚举 job/step 全部 `uses`（含 unnamed、`if`-first、flow mapping 与 quoted key），执行 GitHub Actions 全量 40 位 SHA allowlist、Node/Python/aqt/Rust 精确 pin，并拒绝 cargo-audit 绕过 channel qualifier 触发项目组件调和。
 record_toolchain_evidence.js / create_toolchain_evidence_bundle.js: 前者在 source-contract/macOS 真实 producer 上 fail-closed 捕获无 secret 的版本与 runner 证据；后者要求 source-contracts、macOS aarch64/x64 三 scope 与 release commit/target 精确一致，聚合为由公开 provenance 绑定的 `toolchain-evidence.json`；Windows producer evidence 由 `record_windows_toolchain_evidence.js` 单独上传，待 #16 纳入 release 聚合。
-extract_release_changelog.js: Release notes 内容守门器，按内部 SemVer 从 `CHANGELOG.md` 精确抽取单个已发布日期区块；缺失、重复、未标日期或空正文时失败关闭，防止固定产品模板吞掉版本更新。
+extract_release_changelog.js: 保留英文分类语义并投影中文标题、要求逐条中文且拒绝伪列表的 Release notes 内容守门器，按内部 SemVer 从 `CHANGELOG.md` 精确抽取单个已发布日期区块；缺失、重复、未标日期或空正文时失败关闭，防止固定产品模板吞掉版本更新。
 check_runtime_ui_coverage.js: runtime UI 覆盖率守门脚本，读取真实菜单 inventory 并按阈值阻塞未翻译文本。
 check_full_ui_coverage.js: 单语言全 UI 覆盖检查，组合 runtime、compiled、JSON-backed 校验，并通过共享 Python 命令边界启动验证器。
 check_full_ui_matrix.js: 多语言矩阵覆盖检查，写出稳定 runlog 便于连续追踪。
