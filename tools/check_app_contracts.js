@@ -1487,7 +1487,7 @@ test('Qt SDK contract preserves macOS builds and prepares the Windows x64 SDK fr
   );
   assert.match(
     workflowSource,
-    /Extract version changelog[\s\S]*extract_release_changelog\.js[\s\S]*--version "\$INTERNAL_APP_VERSION"[\s\S]*--output release-changes\.md[\s\S]*Write GitHub Release notes[\s\S]*面向 Cavalry \$\{TARGET_CAVALRY_VERSION\} 的 macOS 与 Windows 语言切换工具[\s\S]*## p\$\{RELEASE_PATCH\} 更新内容[\s\S]*cat release-changes\.md[\s\S]*Apple M 芯片[\s\S]*Intel 芯片[\s\S]*macOS 安装说明[\s\S]*Windows 安装说明/,
+    /Extract version changelog[\s\S]*extract_release_changelog\.js[\s\S]*--version "\$INTERNAL_APP_VERSION"[\s\S]*--output release-changes\.md[\s\S]*Write GitHub Release notes[\s\S]*面向 Cavalry \$\{TARGET_CAVALRY_VERSION\} 的 macOS 与 Windows 语言切换工具[\s\S]*## p\$\{RELEASE_PATCH\} 更新内容[\s\S]*cat release-changes\.md[\s\S]*Apple M 芯片[\s\S]*Intel 芯片[\s\S]*macOS 首次打开[\s\S]*Windows 首次安装/,
     'tag releases should combine concise product guidance with the exact internal-version CHANGELOG section'
   );
   const releaseNotesStep = workflowSource.split('- name: Write GitHub Release notes')[1]

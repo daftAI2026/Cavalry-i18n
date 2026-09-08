@@ -46,3 +46,17 @@ test('API failures and missing readback remain visible failures', () => {
   const f = fixture();
   assert.throws(() => postReleaseReactions({ tag, repo: 'owner/repo', api: (...args) => args[3] ? [] : f.api(...args) }), /readback/);
 });
+
+test('workflow posts reactions only after verified publication and keeps failures non-blocking', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const YAML = require('yaml');
+  const source = fs.readFileSync(path.join(__dirname, '../.github/workflows/build.yml'), 'utf8');
+  const steps = YAML.parse(source).jobs.release.steps;
+  const publish = steps.findIndex(s => s.name === 'Publish GitHub Release (idempotent, digest fail-closed)');
+  const reaction = steps.findIndex(s => s.name === 'Add positive Release reactions');
+  assert.ok(publish >= 0 && reaction > publish);
+  assert.equal(steps[reaction]['continue-on-error'], true);
+  assert.equal(steps[reaction].run, 'node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY"');
+  assert.equal(steps[reaction].if, undefined, 'normal success chaining must not become always()');
+});

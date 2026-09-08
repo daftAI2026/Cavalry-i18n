@@ -1,5 +1,5 @@
 # [INPUT]: 依赖仓库版本/CHANGELOG/release.config、可测试 CI 变更分类器、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供始终可结算的必需检查、按文档/合同/依赖/平台风险选择的证据门、每周依赖漏洞复审、平台 Runner 原生构建、NSIS 生命周期、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断 badge PR
+# [OUTPUT]: 对外提供始终可结算的必需检查、按文档/合同/依赖/平台风险选择的证据门、每周依赖漏洞复审、平台 Runner 原生构建、NSIS 生命周期、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断六种 Release reactions 回读与 badge PR
 # [POS]: .github/workflows 的唯一 CI/CD 编排器；普通 PR/main 由 classify_ci_changes.js 缩减无关原生 Runner，未知路径 fail-closed，tag/workflow_dispatch 无条件跑完整闭环；普通 CI 不接触 updater 私钥，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
@@ -1041,9 +1041,9 @@ jobs:
           ### Windows
           - [Windows x64](https://github.com/daftAI2026/Cavalry-i18n/releases/download/${GITHUB_REF_NAME}/${RELEASE_ASSET_NAME_WINDOWS_X64})
 
-          ## macOS 安装说明
+          ## macOS 首次打开
 
-          macOS 版本尚未经过 Apple 公证。将应用拖入 Applications 后，如果系统阻止打开，请运行：
+          当前 DMG 使用 ad-hoc 签名，尚未经过 Apple Developer ID 签名与 Apple 公证。从浏览器下载后，如果 macOS 提示无法验证应用是否包含恶意软件，请先确认文件来自本项目的 GitHub Release，将应用拖入 Applications，再运行：
 
           \`\`\`bash
           xattr -dr com.apple.quarantine "/Applications/Cavalry Language Switcher.app"
@@ -1051,17 +1051,52 @@ jobs:
           open "/Applications/Cavalry Language Switcher.app"
           \`\`\`
 
-          应用内更新会安装新的 app bundle；在尚未公证的阶段，新包也可能需要再次执行以上步骤。
+          应用内更新会安装新的应用包；在尚未公证的阶段，新包也可能需要再次执行上述步骤。Updater 更新签名不等于 Apple Developer ID 签名或公证。
 
-          ## Windows 安装说明
+          ## Windows 首次安装
 
-          Windows 可能显示“未知发布者”提示。请确认安装包来自本项目的 GitHub Release。
+          当前 Windows 安装器尚未经过 Authenticode 签名，系统可能显示“未知发布者”。请确认安装包来自本项目的 GitHub Release，再继续安装。
 
-          ## 使用说明
+          ## 从源码本地构建
 
-          - 首次切换语言时，macOS 可能要求授予 App Management 权限。
-          - Windows 会自动查找 Cavalry；没有找到时可以手动选择安装目录。
-          - 恢复到完全原始状态时，可以使用官方安装包重新安装 Cavalry。
+          开发者可以按照 [LOCAL_BUILD_SOP.md](https://github.com/daftAI2026/Cavalry-i18n/blob/${GITHUB_REF_NAME}/LOCAL_BUILD_SOP.md) 构建。本地构建产物不会带有浏览器下载写入的 quarantine 标记，但这不代表经过 Apple 公证。
+
+          可复制以下内容给你的 AI agent；将 \`<仓库路径>\` 替换为自己的本地路径：
+
+          \`\`\`text
+          请从源码本地构建 Cavalry Language Switcher 的 macOS 版本：
+
+          1. 打开仓库 <仓库路径>，使用 ${GITHUB_REF_NAME} 对应的源码。
+          2. 严格按照 LOCAL_BUILD_SOP.md 执行，包括匹配版本的 Qt SDK 和 injector 构建。
+          3. 运行标准 Tauri build、执行 DMG 卷宗图标盖章，并运行 SOP 中的 packaged checks。
+          4. 完成后告诉我验证结果和最终 DMG 路径。
+          \`\`\`
+
+          ## 支持语言
+
+          - English
+          - 简体中文
+          - 繁體中文
+          - 日本語
+
+          ## 使用前须知
+
+          - 适用于 Cavalry ${TARGET_CAVALRY_VERSION}。请按操作系统和芯片类型选择上方的安装包。
+          - 应用语言包时，macOS 可能要求授予 App Management 权限。
+          - Windows 版不要求 Cavalry 位于固定盘符；自动检测失败时可以手动选择安装目录，写入受保护目录时可能请求 UAC 提权。
+          - 建议保留一份干净的 Cavalry 安装包或备份。需要恢复到完全原始状态时，可使用官方安装包重新安装 Cavalry。
+
+          ## 日本語
+
+          Cavalry Language Switcher は、Cavalry ${TARGET_CAVALRY_VERSION} 向けの macOS / Windows 用言語切り替えツールです。インストール済みの Cavalry の表示言語を、English、簡体字中国語、繁体字中国語、日本語の間で切り替えられます。
+
+          macOS 版は Apple による公証を受けていません。初回起動時にブロックされた場合は、上記の手順を確認してください。言語を適用する際に、App Management 権限が求められる場合があります。Windows では、自動検出できなかった場合にインストール先を手動で選択できます。元の状態に戻す必要がある場合に備えて、Cavalry の公式インストーラーを保管してください。
+
+          ## English
+
+          Cavalry Language Switcher is an independent community tool for switching the UI language of Cavalry ${TARGET_CAVALRY_VERSION} on macOS and Windows. It supports English, Simplified Chinese, Traditional Chinese, and Japanese. It is not affiliated with Scene Group, Cavalry, or Canva.
+
+          The macOS build is ad-hoc signed and not notarized by Apple; see the first-launch instructions above if macOS blocks it. Applying a language may require App Management permission. On Windows, you can select the Cavalry installation folder manually if automatic detection fails; writing to a protected folder may prompt for UAC approval. Keep an official Cavalry installer or backup if you need to restore the original installation.
           EOF
           } > release-notes.md
 
@@ -1075,6 +1110,12 @@ jobs:
             --dist dist \
             --notes release-notes.md \
             --title "$RELEASE_TITLE"
+
+      - name: Add positive Release reactions
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY"
 
       - name: Open README release badge PR (no direct main push)
         continue-on-error: true
