@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 各职责模块、临时 bundle fixtures 与 fake CommandRunner。
- * [OUTPUT]: 覆盖 command DTO、启动期 Windows pending marker/English runtime 残留投影、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
+ * [OUTPUT]: 覆盖无补丁回执的旧安装保留重应用入口、command DTO、启动期 Windows pending marker/English runtime 残留投影、snapshot/provenance、Managed Legacy postimage、Team ID 非翻译许可证、旧签名残留路径级清理、版本/二进制 revision 分离、事务 marker、四阶段进度事件与平台 runtime apply/restart。
  * [POS]: commands 的 owner unit tests；通过公开兼容 seam 和 transport-neutral reporter 验证跨模块编排。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -950,6 +950,10 @@ fn startup_status_observes_legacy_language_without_proving_snapshot() {
     let status = status_for_paths(&repo, &state_dir, &resources, vec![app.clone()]).unwrap();
     let durable = state::read_state(&state_dir).unwrap();
 
+    assert_eq!(
+        serde_json::to_value(&status).unwrap()["patchStatus"],
+        "unknown"
+    );
     assert_eq!(status.current_lang, "zh-Hans");
     assert!(!status.needs_extract);
     assert_eq!(status.installation_mode, "unknown");

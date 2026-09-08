@@ -855,10 +855,16 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.doesNotMatch(app, /\.innerHTML\s*=/, 'renderer must not interpolate backend data as HTML');
   assert.match(selectControl, /document\.createElement\('option'\)/);
   assert.match(selectControl, /nativeOption\.textContent\s*=/);
+  assert.match(selectControl, /option\.badge/);
+  assert.match(selectControl, /className = 'badge select-item-badge'/);
   assert.match(selectControl, /createElementNS\('http:\/\/www\.w3\.org\/2000\/svg', 'svg'\)/);
   assert.match(selectControl, /path\.setAttribute\('d', 'm20 6-11 11-5-5'\)/);
   assert.match(app, /filter\(\(language\) => language\.value !== 'en'\)/);
-  assert.match(app, /disabled:\s*language\.value === state\.currentLang/);
+  assert.match(app, /disabled:\s*language\.value === state\.currentLang && state\.patchStatus === 'current'/);
+  assert.match(app, /patchStatus === 'updateAvailable' \|\| state\.patchStatus === 'unknown'/);
+  assert.match(app, /updateLanguagePatch/);
+  assert.match(read('renderer/styles.css'), /\.badge\[data-kind="green-subtle"\]/);
+  assert.match(read('renderer/styles.css'), /\.select-item-badge[\s\S]*?pointer-events:\s*none/);
   assert.match(selectControl, /nativeOption\.disabled = option\.disabled/);
   assert.match(selectControl, /aria-disabled/);
   const restoreConfirmationFunction = sourceFunction(
@@ -997,6 +1003,9 @@ test('renderer localizes reinstall and composable warning-code paths without raw
   );
   for (const key of [
     'officialBadge',
+    'patchUpdateBadge',
+    'languageOptionUpdateAria',
+    'updateLanguagePatch',
     'statusLabel',
     'taskProgressLabel',
     'idlePrompt',
