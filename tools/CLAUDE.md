@@ -2,6 +2,8 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+post_release_reactions.js: 已公开 Release 的六种正向反馈与分页回读；GitHub 按账号幂等，拒绝 draft/prerelease，不触碰资产。
+post_release_reactions.test.js: 注入式 GitHub API 离线合同，验证六种 reaction、重复调用、公开状态前置条件与回读失败。
 check_quick_add_display_tags.h: Fast 显示 fixture 的独立标签片段，验证原厂显示别名、paint/sizeHint 一致投影及源分类/创建身份保真，覆盖短字符串与大块堆存储边界。
 
 check_macos_selection_values.sh: 本地原生 fixture 构建入口，显式接收 Qt SDK/vendor Frameworks，只读链接 libskia 并强制 SDK 单套 Qt/offscreen plugin，保留测试退出码。

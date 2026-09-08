@@ -56,4 +56,6 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 
 2026-09-04: Release 公开附件从 13 项收敛为 7 项：保留三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS`；三份独立 `.sig` 已嵌入 manifest，provenance/SBOM/toolchain evidence 继续在 CI 内验证并保留为 workflow artifact，不再占据用户下载面。Release 正文同时移除内部审计术语与 issue 跟踪语句。
 
+发布正文保留首次安装、源码构建、四语列表与英日说明；六种 reactions 仅在七项资产回读并公开后执行，失败非阻断且不重发资产。
+
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

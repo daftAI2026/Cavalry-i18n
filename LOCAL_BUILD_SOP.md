@@ -78,6 +78,9 @@ git push origin "$TAG"
 4. 发布 job 生成两份 DMG、一份 Windows NSIS、两个 macOS updater archive、三平台签名输入与 `latest.json`，并在 CI 内生成 `CycloneDX.json`、`toolchain-evidence.json` 和 `release-asset-provenance.json`。公开 Release 只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 共七项资产；独立 `.sig` 和构建证据仅在 CI 内验证。发布器先创建 private draft，上传后逐项下载并复算这七项公开字节；缺件、额外资产、摘要漂移或远端冲突都会停止，全部一致后才公开。
 5. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。macOS updater 仍由独立 Tauri Ed25519 签名验证，但它不创造 Apple 平台身份。
 
+6. Release 正文由 workflow 中的版本更新记录与固定用户指引组成。固定部分保留 macOS 首次打开、Windows 首次安装、带版本链接的源码构建步骤、四语支持列表、权限/备份须知及简短英日说明；不要用维护者私有绝对路径替代通用 `<仓库路径>`。只修改已发布正文时使用 `gh release edit --notes-file`，不重打 tag、不替换资产，并回读正文及资产摘要。
+7. 七项资产完成回读且 Release 公开后，`tools/post_release_reactions.js <tag> <owner/repo>` 添加并分页回读 👍、😄、🎉、❤️、🚀、👀 六种 reactions。沿用 Incodex 的六种反馈，GitHub 按账号去重；CI 使用现有 job token，失败作为非阻断提示，不重新发布资产。可用同一命令为已公开版本补做，但拒绝 draft/prerelease。
+
 ## 4. macOS 标准打包流程
 
 ### 4.1 macOS ad-hoc 构建
