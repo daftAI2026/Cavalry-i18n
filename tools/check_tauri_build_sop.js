@@ -1378,6 +1378,10 @@ test('release changelog extractor selects one exact released SemVer section and 
 
   for (const invalid of [
     '### Fixed\n- English only.',
+    '### Fixed\n- 中文修复。\n- English-only note.',
+    '### Fixed\n```text\n- 中文示例。\n```',
+    '### Fixed\n<!--\n- 中文占位。\n-->',
+
     '### 中文\n- 只有中文。',
     '### Fixed',
     '### Fixed\n- 中文更新。\n### Fixed\n- 重复分类。',
