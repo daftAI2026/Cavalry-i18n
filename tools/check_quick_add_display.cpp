@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 injector/cavalry_i18n_quick_add_display.h、Qt 6.6.3 Widgets、已证明布局的 FastQuickAddItem fixture 与 exact FastQuickAddDelegate fake
- * [OUTPUT]: 对外提供 vendor-free Quick Add 显示副本回归，验证 FastQuickAddModel、版本/type/layout/title fail-open、copy 字段隔离、未知 index/role、model replacement、delegate 生命周期与英文回退
+ * [OUTPUT]: 对外提供 vendor-free Quick Add 显示副本回归，验证 FastQuickAddModel、版本/type/layout/title fail-open、copy 字段隔离、独立标签片段、未知 index/role、model replacement、delegate 生命周期与英文回退
  * [POS]: tools 的 Quick Add 显示 ABI 合同；fixture 只复现已读证的 Qt 类型尺寸与字段顺序，不把 fake 当作真实 vendor 证据，也不启动或修改真实 Cavalry
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -25,7 +25,6 @@
 #include <cstring>
 #include <string>
 #include <vector>
-
 namespace cavalry {
 // ---------------------------------------------------------------------------
 // 仅复现主已读证的 Qt 6.6.3 payload 形状；它不是 vendor 类型声明或运行时输入。
@@ -744,8 +743,10 @@ bool verifyHeapDelegateTeardown()
     expect(wrapperGuard.isNull(), QStringLiteral("wrapper delegate follows view lifetime"));
     return failures == 0;
 }
+#include "check_quick_add_display_tags.h"
 int runNormal()
 {
+    verifyPaintCategoryTags();
     verifyLayoutAndPositiveCopy();
     verifyPaintModel();
     verifyDelegateAndModelLifecycle();

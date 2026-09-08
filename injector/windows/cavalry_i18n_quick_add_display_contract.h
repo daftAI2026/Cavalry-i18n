@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Cavalry 2.7.2 ExtensionLayer PE64 映像、已读证 Fast delegate/registered copy/dtor 机器码与 Qt 6.6.3 元类型
- * [OUTPUT]: 提供 Windows Fast 标题显示的只读 ABI 准入；拒绝版本、绘制/所有权代码及元类型来源漂移
+ * [OUTPUT]: 提供 Windows Fast 标题与类别显示的只读 ABI 准入；拒绝版本、绘制/所有权代码及元类型来源漂移
  * [POS]: Windows 显示层与共享 paint-copy adapter 之间的厂商布局防火墙，不修改 IAT、模型或厂商代码
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -22,7 +22,8 @@
 namespace cavalry_i18n {
 
 // ---- 官方 2.7.2：role 256 copy 到栈，paint 读取 +0x30 QString ----------
-// payload 128/8；+0x18 command、+0x48 tags、+0x60 description 不投影。
+// payload 128/8；+0x48 是 Release MSVC vector<string>（元素 32 字节）。
+// paint 将 Atomic/Beta 显示为 Utility/Experimental；只在注册副本翻译标签，命令与描述不投影。
 // 哈希来自原厂 PE 的完整函数；RIP-relative 代码不受 ASLR 重定位影响。
 struct QuickAddCodeRange { size_t rva; size_t size; const char *sha256; };
 inline constexpr std::array<QuickAddCodeRange, 10> kQuickAddCodeRanges{{

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖显式 Qt 6.6.3 macOS SDK 与 tools/check_quick_add_display.cpp 及其隔离 payload/delegate fixture
+# [INPUT]: 依赖显式 Qt 6.6.3 macOS SDK 与 tools/check_quick_add_display.cpp 、check_quick_add_display_tags.h 及隔离 payload/delegate fixture
 # [OUTPUT]: 在临时目录编译并运行 Quick Add 显示副本合同，覆盖正向投影、所有 fail-open gate、非绘制路径转发、model reset 与 QObject 生命周期
 # [POS]: tools 的 Quick Add 显示 ABI 测试入口；只使用 vendor-free fake，不加载、读取或修改真实 Cavalry.app，也不把 fixture 当作 vendor 证明
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
