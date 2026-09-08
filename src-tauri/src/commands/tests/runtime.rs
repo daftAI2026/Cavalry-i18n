@@ -1,20 +1,24 @@
 /**
  * [INPUT]: 依赖 commands 测试 fixture、平台条件编译 runner 与 commands facade 的 apply/restart seam。
  * [OUTPUT]: 覆盖补丁回执只读状态、源更新与安装绑定、打包资源解析、macOS 注入器定位、Windows QPA ACTIVE/诊断环境启动边界与语言应用回归场景。
- * [POS]: commands/tests 的运行时集成测试；将资源、应用、重启行为从基础契约测试中隔离。
+ * [POS]: commands/tests 的运行时集成测试；macOS bundle apply 与 Windows DLL 资源解析使用各自平台 fixture，防止跨平台假安装掩盖生产准入约束。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
+#[cfg(not(target_os = "windows"))]
 use super::super::apply_language_inner;
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use super::super::restart_cavalry_inner;
 #[cfg(target_os = "windows")]
 use super::super::restart_cavalry_inner_with_qpa_inspector;
-#[cfg(not(target_os = "macos"))]
+#[cfg(not(target_os = "windows"))]
+use super::make_bundle;
+#[cfg(not(any(target_os = "macos", target_os = "windows")))]
 use super::make_english_snapshot;
-use super::{make_bundle, make_language, status_for_paths, write};
+use super::{make_language, status_for_paths, write};
 #[cfg(target_os = "windows")]
 use super::{make_windows_install, write_windows_runtime_state, WindowsRuntimeRestartRunner};
 use crate::privilege::RecordingRunner;
+#[cfg(not(target_os = "windows"))]
 use std::fs;
 #[cfg(target_os = "windows")]
 use std::path::Path;
@@ -73,6 +77,7 @@ fn status_finds_languages_when_tauri_stores_parent_resources_under_up_dir() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn apply_language_uses_packaged_resource_languages_when_repo_root_is_missing() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("missing-repo");
@@ -102,6 +107,7 @@ fn apply_language_uses_packaged_resource_languages_when_repo_root_is_missing() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn apply_language_finds_languages_when_tauri_stores_parent_resources_under_up_dir() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("missing-repo");
@@ -131,6 +137,7 @@ fn apply_language_finds_languages_when_tauri_stores_parent_resources_under_up_di
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn apply_language_finds_sibling_injector_when_resource_dir_points_at_up_dir() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("missing-repo");
@@ -158,6 +165,35 @@ fn apply_language_finds_sibling_injector_when_resource_dir_points_at_up_dir() {
 
     assert!(result.ok);
     assert_eq!(result.current_lang.as_deref(), Some("zh-Hans"));
+}
+
+#[test]
+#[cfg(target_os = "windows")]
+fn windows_packaged_resources_keep_language_and_runtime_source_resolution_separate() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("missing-repo");
+    let resources = temp.path().join("resources");
+    let resource_root = resources.join("_up_");
+    make_language(&resource_root, "zh-Hans");
+    let generic = resource_root.join("injector/windows/generic/cavalryi18n.dll");
+    let qpa = resource_root.join("injector/windows/qpa/qwindows.dll");
+    write(&generic, b"packaged generic translator");
+    write(&qpa, b"packaged qpa proxy");
+
+    // 语言目录和 Windows runtime DLL 是两个独立资源面；打包根在 `_up_` 时，
+    // 两者都必须从同一个资源候选链解析，而不能错误回退到开发仓库。
+    assert_eq!(
+        super::super::context::language_source_dir(&repo, &resources, "zh-Hans"),
+        resource_root.join("languages/zh-Hans")
+    );
+    assert_eq!(
+        crate::windows_runtime::resolve_plugin_source(&resources, &repo).unwrap(),
+        generic
+    );
+    assert_eq!(
+        crate::windows_runtime::resolve_qpa_proxy_source(&resources, &repo).unwrap(),
+        qpa
+    );
 }
 
 #[test]

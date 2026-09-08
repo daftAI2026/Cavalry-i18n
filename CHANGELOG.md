@@ -14,6 +14,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.2] - 2026-09-09
+
+### Fixed
+- Allow updating the current language patch after upgrading the Switcher, without switching to another language or restoring English first.
+- Show a localized update badge beside the current language when its patch can be reapplied.
+- Validate older installed patches against their recorded sources so newer translations and runtime files can be applied safely.
+- Update the owned translator and launcher on older managed macOS installations while preserving their existing English recovery boundary.
+
 ## [1.0.1] - 2026-09-08
 
 ### Fixed

@@ -58,7 +58,7 @@ pub(crate) struct MacosManagedLegacyProofDiagnostics {
     pub(crate) runtime_reason: &'static str,
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(all(test, target_os = "macos"))]
 fn macos_managed_legacy_runtime_reason_with_identities(
     current: &State,
     app_path: &Path,

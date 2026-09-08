@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 patch_receipt 的只读回执/源身份验证、context 路径/语言源、detect/install/state、Windows QPA 只读检查与本地 diagnostics 事实流。
- * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、独立于语言 marker 的补丁版本状态、当前语言、跨平台未提交 marker 与 Windows runtime 残留提示，以及目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
+ * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、独立于语言 marker 的补丁版本状态、当前语言、跨平台未提交 marker 与 Windows runtime 残留提示，以及目录耐久确认后的安装选择（安装根或 revision 改变即丢弃旧补丁回执）；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
  * [POS]: commands 的轻量状态层；启动回答安装、版本和当前语言，把 English 下未提交 marker 与本工具拥有或无法证明已清理的 Windows runtime 投影为可执行 Restore，不把 crash-safety 或写入前证明投影成产品阻断。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -148,7 +148,11 @@ pub(crate) fn project_state_with_bundle(
         },
         current_lang: detect::read_installed_language(&app_path, default_lang),
         last_patched_at: state.last_patched_at.clone(),
-        applied_patch: state.applied_patch.clone(),
+        applied_patch: if same_revision {
+            state.applied_patch.clone()
+        } else {
+            None
+        },
         english_snapshot_provenance: state.english_snapshot_provenance.clone(),
     });
     next
@@ -565,5 +569,41 @@ mod tests {
             "zh-Hans",
             |_| panic!("translated marker already enables Restore"),
         ));
+    }
+}
+
+#[cfg(test)]
+mod patch_receipt_selection_tests {
+    use super::*;
+
+    #[test]
+    fn selecting_a_different_installation_or_revision_drops_the_previous_receipt() {
+        let temp = tempfile::tempdir().unwrap();
+        let a = temp.path().join("A.app");
+        let b = temp.path().join("B.app");
+        for app in [&a, &b] {
+            std::fs::create_dir_all(app.join("Contents/Resources")).unwrap();
+        }
+        let a = std::fs::canonicalize(a).unwrap();
+        let b = std::fs::canonicalize(b).unwrap();
+        let original = State {
+            app_path: a.to_string_lossy().to_string(),
+            cavalry_revision: "revision-a".into(),
+            applied_patch: Some(state::AppliedPatchReceipt {
+                install_root: a.to_string_lossy().to_string(),
+                cavalry_revision: "revision-a".into(),
+                language: "zh-Hans".into(),
+                generation: "a".repeat(64),
+            }),
+            ..State::default()
+        };
+        let same =
+            project_state_with_bundle(temp.path(), original.clone(), &a, "2.7.2", "revision-a");
+        assert_eq!(same.applied_patch, original.applied_patch);
+        let other =
+            project_state_with_bundle(temp.path(), original.clone(), &b, "2.7.2", "revision-a");
+        assert!(other.applied_patch.is_none());
+        let replaced = project_state_with_bundle(temp.path(), original, &a, "2.7.2", "revision-b");
+        assert!(replaced.applied_patch.is_none());
     }
 }

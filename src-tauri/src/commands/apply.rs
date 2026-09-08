@@ -1836,6 +1836,15 @@ mod program_files_result_tests {
         )
     }
 
+    fn receipt(app_path: &Path, generation_byte: char) -> state::AppliedPatchReceipt {
+        state::AppliedPatchReceipt {
+            install_root: app_path.to_string_lossy().into_owned(),
+            cavalry_revision: "revision".to_string(),
+            language: "zh-Hans".to_string(),
+            generation: generation_byte.to_string().repeat(64),
+        }
+    }
+
     #[test]
     fn not_applicable_preserves_state_for_the_direct_path() {
         let (_temp, state_dir, app_path, state) = context();
@@ -1859,6 +1868,7 @@ mod program_files_result_tests {
     #[test]
     fn committed_result_is_the_only_path_that_writes_next_state() {
         let (_temp, state_dir, app_path, state) = context();
+        let next_receipt = receipt(&app_path, 'b');
         let payload = finish_program_files_result(
             Ok(privilege::ParentApplyOutcome::Applied {
                 worker_cleanup_residual: true,
@@ -1871,7 +1881,7 @@ mod program_files_result_tests {
             "revision",
             "zh-Hans",
             "now",
-            None,
+            Some(next_receipt.clone()),
         )
         .unwrap()
         .unwrap();
@@ -1889,6 +1899,10 @@ mod program_files_result_tests {
         assert_eq!(
             state::read_state(&state_dir).unwrap().current_lang,
             "zh-Hans"
+        );
+        assert_eq!(
+            state::read_state(&state_dir).unwrap().applied_patch,
+            Some(next_receipt)
         );
     }
 
@@ -2029,6 +2043,52 @@ mod program_files_result_tests {
             )
             .is_err());
             assert!(!state_dir.exists());
+        }
+    }
+
+    #[test]
+    fn failed_program_files_results_keep_the_previous_receipt() {
+        for error in [
+            privilege::ParentApplyError::PermissionRequired {
+                code: 1223,
+                staging_cleanup_warning: None,
+            },
+            privilege::ParentApplyError::WorkerRolledBack {
+                staging_cleanup_warning: None,
+            },
+            privilege::ParentApplyError::WorkerStateUncertain {
+                staging_cleanup_warning: None,
+            },
+        ] {
+            let (_temp, state_dir, app_path, _) = context();
+            let previous_receipt = receipt(&app_path, 'a');
+            let next_receipt = receipt(&app_path, 'b');
+            let previous_state = State {
+                current_lang: "zh-Hans".to_string(),
+                applied_patch: Some(previous_receipt.clone()),
+                ..State::default()
+            };
+            state::write_state(&state_dir, &previous_state).unwrap();
+
+            let result = finish_program_files_result(
+                Err(error),
+                &state_dir,
+                &previous_state,
+                &app_path,
+                "2.7.2",
+                "revision",
+                "zh-Hans",
+                "now",
+                Some(next_receipt),
+            );
+            if result.is_ok() {
+                let payload = result.unwrap().unwrap();
+                assert!(!payload.ok);
+            }
+            assert_eq!(
+                state::read_state(&state_dir).unwrap().applied_patch,
+                Some(previous_receipt)
+            );
         }
     }
 }

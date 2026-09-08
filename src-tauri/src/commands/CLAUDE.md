@@ -14,7 +14,7 @@ snapshot_legacy.rs: 新受管 runtime 仅从已验证回执取得旧 wrapper/inj
 snapshot_tests.rs: snapshot.rs 的隔离测试合同；覆盖 state durability、Managed Legacy 基线复用边界、refresh 零写入、Windows residue/recovery fail-closed 与 pending recovery 所有权，不进入生产 command surface。
 status.rs: 启动只读观察与安装选择 owner；非 English 安装按回执/root/revision/源摘要投影 current/updateAvailable/unknown，缺证据保留重应用入口且不制造成功状态；读取保存选择、发现安装、展示版本和当前语言 marker，并纯函数投影版本兼容性；English 状态以跨平台 raw marker 检查保留未提交事务的 Restore 入口，Windows 再叠加有界 QPA/generic 残留检查，pending/非法 marker 或无法证明清理时交给事务层 fail closed；不探测 journal、签名、English snapshot、Cavalry 进程或写权限，不制造 Reinstall/Official/Managed 分类，真实准入、恢复路径和权限仍由用户触发的语言事务裁决。
 tests.rs: commands 基础契约 owner tests；验证缺少补丁回执的旧安装不被误判最新，覆盖 DTO、锁、marker、启动期 Windows pending marker/English runtime residue 只读投影、snapshot、四阶段真实 apply/clean-English no-op 边界、稳定 manifest、RAII 未完成阶段收口与 Tauri Channel rejection 隔离，并挂载运行时领域子模块。
-tests/runtime.rs: 打包资源、语言 apply 与 macOS/Windows restart 边界回归；Windows 断言 QPA ACTIVE 且子进程环境只含诊断 marker，复用父级 fixture，不在磁盘写魔法 ACTIVE sentinel。
+tests/runtime.rs: macOS apply fixture 与 Windows DLL/语言资源解析分开验证，覆盖打包资源、语言 apply 与 macOS/Windows restart 边界回归；Windows 断言 QPA ACTIVE 且子进程环境只含诊断 marker，复用父级 fixture，不在磁盘写魔法 ACTIVE sentinel。
 update.rs: Switcher 自更新领域边界；通过官方 updater plugin 检查版本并把待验证的 `Update` 仅保存在 Rust State，renderer 只取得脱敏 camelCase DTO；安装命令拒绝外部 URL/签名/版本输入，与语言写入共用全局 operation lock，并以 camelCase Channel 只发送 downloading、verifying/installing、restarting 三个真实边界，其中下载结束回调先于签名验证，故绝不虚构独立 verified 事件，Channel 失效也不改变更新事务。
 
 法则: facade 只保留稳定命令与兼容 seam；领域逻辑按状态、快照、写入、平台运行时单向下沉。

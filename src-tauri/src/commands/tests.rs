@@ -1256,6 +1256,7 @@ fn clean_english_noop_reports_verification_and_baseline_only() {
 }
 
 #[test]
+#[cfg(target_os = "macos")]
 fn apply_language_patches_fake_bundle_and_records_macos_commands() {
     let temp = tempfile::tempdir().unwrap();
     let repo = temp.path().join("repo");
