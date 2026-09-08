@@ -14,12 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.1] - 2026-09-08
+
 ### Fixed
-- Detach Fast Quick Add search adapters when their view is destroyed so a surviving native filter cannot retain a stale query.
-- Keep shared Add Layer search compatible with Windows Qt builds that disable keyword macros.
-- Preserve native Classic Add Layer ordering by excluding search tokens from sorting rather than relying on platform-specific collation weights.
-- Preserve original font-family and font-style values in editable selectors instead of replacing them with UI translations.
-- Preserve Add Layer search input and restore English/current-language lookup while keeping translated result titles separate from layer identities.
+- Preserve font-family and font-style selections instead of replacing their values with UI translations.
+- Restore English and current-language search in both Add Layer interfaces without rewriting the search input or changing native result ordering.
+- Translate Fast Quick Add result titles and category labels while preserving the original layer identities used for creation.
+- Prevent stale queries from surviving after Fast Quick Add is closed.
 
 ## [1.0.0] - 2026-09-04
 
