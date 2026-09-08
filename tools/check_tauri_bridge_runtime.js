@@ -292,9 +292,10 @@ test('language patch status controls the current option, badge, and localized up
     assert.equal(current.dataset.value, 'zh-Hans');
     assert.equal(current.dataset.disabled, 'false');
     assert.equal(current.attributes.get('aria-disabled'), 'false');
-    assert.equal(current.children[1].className, 'badge select-item-badge');
-    assert.equal(current.children[1].textContent, badgeText);
-    assert.equal(current.children[1].attributes.get('aria-hidden'), 'true');
+    assert.equal(current.children[0].className, 'select-item-copy');
+    assert.equal(current.children[0].children[1].className, 'badge select-item-badge');
+    assert.equal(current.children[0].children[1].textContent, badgeText);
+    assert.equal(current.children[0].children[1].attributes.get('aria-hidden'), 'true');
     assert.match(current.attributes.get('aria-label'), new RegExp(`${badgeText}$`));
 
     chooseLanguage(r, 0);
@@ -328,7 +329,7 @@ test('language patch status controls the current option, badge, and localized up
   const legacyStatus = await legacy.window.cavalryI18n.getStatus();
   assert.equal(legacyStatus.patchStatus, 'unknown', 'legacy getStatus responses must fail closed to unknown');
   assert.equal(legacy.elements['#languageSelectList'].children[0].dataset.disabled, 'false');
-  assert.equal(legacy.elements['#languageSelectList'].children[0].children[1].textContent, 'Update available');
+  assert.equal(legacy.elements['#languageSelectList'].children[0].children[0].children[1].textContent, 'Update available');
 });
 
 test('legacy permission hints do not fabricate a startup warning before an operation fails', async () => {

@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖项目 Design token、renderer 现有无框架组件状态机、锁定版本的 shadcn/ui 与 Phosphor 上游源码及其许可证。
-[OUTPUT]: 对外提供从开源组件源码到本项目原生 HTML/CSS/JS 的统一调查、抽象、适配、验证和归因协议，并冻结 Button、Windows transparent-compositor 外壳、平台窗口视觉适配、UI Review 与证据分层边界。
+[OUTPUT]: 对外提供从开源组件源码到本项目原生 HTML/CSS/JS 的统一调查、抽象、适配、验证和归因协议，并冻结语言名旁的绿色可更新徽章、Button、Windows transparent-compositor 外壳、平台窗口视觉适配、UI Review 与证据分层边界。
 [POS]: docs 的 UI 工程知识基线；约束 Button、Select、Tooltip、AlertDialog、Marker、Spinner、shimmer、scroll-fade、Toast 及其平台外壳，避免凭截图仿制或引入第二套设计系统。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -143,3 +143,9 @@ Toast 只服务 About 窗口或固定项目链接等低频、局部、非主任�
 文档只改了知识而没有改变代码结构时，也要更新文档自身的 L3 头部并检查 L2/L1；不为了制造“对称修改”而改写无变化的地图。反过来，代码变更若没有完成这条回环，就不是完成的变更。
 
 核心判断只有一句：**复用成熟设计的知识，不复制造成运行时负担的框架。**
+
+## 语言补丁更新徽章
+
+当前语言是选择事实，补丁是否最新是成功应用回执与随包内容的比较结果，两者不合并。Select 只在后端返回 `current` 时禁用当前语言；缺少旧回执或已确认内容变化时保留显式重新应用入口，不自动修改 Cavalry。
+
+「可更新」是语言名称的附属元数据，紧随名称组成靠左的一组，使用已有 `green-subtle` 更新语义、Badge 尺寸与间距 token；选中勾独立留在行末。徽章不是按钮，也不以颜色替代文字；选项与 Trigger 的无障碍名称包含更新语义。

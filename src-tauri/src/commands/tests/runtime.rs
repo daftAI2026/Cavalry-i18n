@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 commands 测试 fixture、平台条件编译 runner 与 commands facade 的 apply/restart seam。
- * [OUTPUT]: 覆盖打包资源解析、macOS 注入器定位、Windows QPA ACTIVE/诊断环境启动边界与语言应用回归场景。
+ * [OUTPUT]: 覆盖补丁回执只读状态、源更新与安装绑定、打包资源解析、macOS 注入器定位、Windows QPA ACTIVE/诊断环境启动边界与语言应用回归场景。
  * [POS]: commands/tests 的运行时集成测试；将资源、应用、重启行为从基础契约测试中隔离。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -362,4 +362,76 @@ fn restart_cavalry_inner_uses_runner() {
         runner.commands[0].args,
         vec!["-n", fs::canonicalize(app).unwrap().to_str().unwrap()]
     );
+}
+
+#[test]
+#[cfg(target_os = "macos")]
+fn patch_receipt_status_tracks_sources_without_writing_or_crossing_installations() {
+    let temp = tempfile::tempdir().unwrap();
+    let repo = temp.path().join("repo");
+    let state_dir = temp.path().join("state");
+    let app = crate::install::normalize_path(&make_bundle(temp.path()));
+    make_language(&repo, "zh-Hans");
+    write(
+        &repo.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"old injector",
+    );
+    write(
+        &app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+        b"zh-Hans\n",
+    );
+    let revision = crate::detect::read_bundle_revision(&app).unwrap();
+    let receipt =
+        super::super::patch_receipt::prepare(&repo, &state_dir, &repo, &app, &revision, "zh-Hans")
+            .unwrap()
+            .unwrap();
+    let mut state = crate::state::State {
+        app_path: app.to_string_lossy().to_string(),
+        cavalry_revision: revision.clone(),
+        current_lang: "zh-Hans".into(),
+        applied_patch: Some(receipt.clone()),
+        ..crate::state::State::default()
+    };
+    crate::state::write_state(&state_dir, &state).unwrap();
+    let before = fs::read(state_dir.join("state.json")).unwrap();
+    let status = || status_for_paths(&repo, &state_dir, &repo, vec![app.clone()]).unwrap();
+    assert_eq!(status().patch_status, "current");
+    assert_eq!(fs::read(state_dir.join("state.json")).unwrap(), before);
+
+    write(
+        &repo.join("injector/libCavalryTranslatorInjector.dylib"),
+        b"new injector",
+    );
+    assert_eq!(status().patch_status, "updateAvailable");
+    // 状态读取不能把本次随包身份偷偷提交成已安装身份。
+    assert_eq!(fs::read(state_dir.join("state.json")).unwrap(), before);
+
+    let generations = state_dir.join("patch-generations");
+    let saved_generations = state_dir.join("saved-generations");
+    fs::rename(&generations, &saved_generations).unwrap();
+    assert_eq!(status().patch_status, "unknown");
+    assert!(
+        !generations.exists(),
+        "status must not recreate missing receipt storage"
+    );
+    assert_eq!(fs::read(state_dir.join("state.json")).unwrap(), before);
+    fs::rename(&saved_generations, &generations).unwrap();
+
+    state.applied_patch.as_mut().unwrap().install_root = temp
+        .path()
+        .join("another.app")
+        .to_string_lossy()
+        .to_string();
+    crate::state::write_state(&state_dir, &state).unwrap();
+    assert_eq!(status().patch_status, "unknown");
+    state.applied_patch = Some(receipt);
+    state.applied_patch.as_mut().unwrap().cavalry_revision = "other-revision".into();
+    crate::state::write_state(&state_dir, &state).unwrap();
+    assert_eq!(status().patch_status, "unknown");
+
+    write(
+        &app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+        b"en\n",
+    );
+    assert_eq!(status().patch_status, "notApplicable");
 }

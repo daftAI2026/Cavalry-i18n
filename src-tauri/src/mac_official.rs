@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖受支持 macOS bundle 结构、当前可恢复 seal、packaged English、state generation root 与精确 runtime/JSON 文件。
- * [OUTPUT]: 提供 English JSON + stock runtime 单一 immutable recovery generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明、同步撤销脚本入口外置签名组件的 English 恢复计划及完整 postimage/签名复核。
+ * [OUTPUT]: 提供 English JSON + stock runtime 单一 immutable recovery generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明（允许摘要验证后的历史 wrapper/injector 作为已安装版本证明）、同步撤销脚本入口外置签名组件的 English 恢复计划及完整 postimage/签名复核。
  * [POS]: macOS recovery baseline 真相层；Team ID 只保留为 Official 展示证据，不充当翻译许可证；generation rename 只发布不可变候选，state.json provenance 是唯一 current commit bit。
  * [FAIL-CLOSED]: capture 必须满足 before == staged == after；managed Mach-O 仅允许签名区变化；任一由本工具拥有的 manifest/hash/path/mode/recovery-seal 漂移或 symlink 均拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -755,6 +755,20 @@ impl VerifiedVendorBaseline {
         app_path: &Path,
         expected_injector: &Path,
     ) -> Result<(), String> {
+        self.verify_managed_runtime_with_wrapper(
+            app_path,
+            expected_injector,
+            crate::mac_runtime::build_launch_wrapper().as_bytes(),
+        )
+    }
+
+    /// 历史回执提供旧 wrapper/injector，避免用新版产物误判合法旧安装。
+    pub(crate) fn verify_managed_runtime_with_wrapper(
+        &self,
+        app_path: &Path,
+        expected_injector: &Path,
+        expected_wrapper: &[u8],
+    ) -> Result<(), String> {
         let canonical_app = fs::canonicalize(app_path).map_err(|error| error.to_string())?;
         if Path::new(&self.manifest.install_root) != canonical_app {
             return Err(
@@ -833,7 +847,7 @@ impl VerifiedVendorBaseline {
 
         require_exact_managed_file(
             &canonical_app.join(WRAPPER),
-            crate::mac_runtime::build_launch_wrapper().as_bytes(),
+            expected_wrapper,
             Some(0o755),
             "launcher wrapper",
         )?;

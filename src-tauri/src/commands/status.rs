@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 context 路径/语言源、detect/install/state、Windows QPA 只读检查与本地 diagnostics 事实流。
- * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、当前语言、跨平台未提交 marker 与 Windows runtime 残留提示，以及目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
+ * [INPUT]: 依赖 patch_receipt 的只读回执/源身份验证、context 路径/语言源、detect/install/state、Windows QPA 只读检查与本地 diagnostics 事实流。
+ * [OUTPUT]: 提供启动期只读安装观察、四态版本兼容投影、独立于语言 marker 的补丁版本状态、当前语言、跨平台未提交 marker 与 Windows runtime 残留提示，以及目录耐久确认后的安装选择；启动不探测 journal、签名、英文快照、进程或写权限，完整证明和内部事务收敛留给用户触发的 Switch/Restore。
  * [POS]: commands 的轻量状态层；启动回答安装、版本和当前语言，把 English 下未提交 marker 与本工具拥有或无法证明已清理的 Windows runtime 投影为可执行 Restore，不把 crash-safety 或写入前证明投影成产品阻断。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -148,6 +148,7 @@ pub(crate) fn project_state_with_bundle(
         },
         current_lang: detect::read_installed_language(&app_path, default_lang),
         last_patched_at: state.last_patched_at.clone(),
+        applied_patch: state.applied_patch.clone(),
         english_snapshot_provenance: state.english_snapshot_provenance.clone(),
     });
     next
@@ -248,6 +249,47 @@ where
     }
 }
 
+// ---------- 已应用版本不是语言 marker ----------
+// 回执只投影成功应用的版本，不替代用户操作内的安装完整性/权限准入。
+fn patch_status_for_paths(
+    repo_root: &Path,
+    state_dir: &Path,
+    resource_dir: &Path,
+    app_path: &Path,
+    state: &State,
+) -> &'static str {
+    if app_path.as_os_str().is_empty() || state.current_lang == "en" {
+        return "notApplicable";
+    }
+    let Some(receipt) = state.applied_patch.as_ref() else {
+        return "unknown";
+    };
+    let Ok(revision) = detect::read_bundle_revision(app_path) else {
+        return "unknown";
+    };
+    if super::patch_receipt::load_source(
+        state_dir,
+        receipt,
+        app_path,
+        &revision,
+        &state.current_lang,
+    )
+    .is_err()
+    {
+        return "unknown";
+    }
+    match super::patch_receipt::desired_generation(
+        repo_root,
+        resource_dir,
+        app_path,
+        &state.current_lang,
+    ) {
+        Ok(generation) if generation == receipt.generation => "current",
+        Ok(_) => "updateAvailable",
+        Err(_) => "unknown",
+    }
+}
+
 pub(crate) fn status_for_paths(
     repo_root: &Path,
     state_dir: &Path,
@@ -265,6 +307,8 @@ pub(crate) fn status_for_paths(
         app_management_granted: None,
         app_path: app_path.to_string_lossy().to_string(),
         current_lang: state.current_lang.clone(),
+        patch_status: patch_status_for_paths(repo_root, state_dir, resource_dir, &app_path, &state)
+            .to_string(),
         // 保留 DTO 键用于旧 renderer 兼容；启动观察不声称已证明 Official/Managed。
         installation_mode: "unknown".to_string(),
         macos_permission_handoff_required: false,
@@ -354,6 +398,7 @@ pub(crate) fn browse_for_app(app: &tauri::AppHandle) -> Result<BrowsePayload, St
             cavalry_revision: String::new(),
             current_lang: detect::read_installed_language(&path, "en"),
             last_patched_at: previous.last_patched_at,
+            applied_patch: None,
             english_snapshot_provenance: None,
         };
         persist_selected_state(&state_dir, &next)?;

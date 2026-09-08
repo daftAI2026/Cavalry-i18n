@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖显式 CAVALRY_I18N_MACOS_SMOKE_APP 或默认 /Applications/Cavalry.app、repo injector/四语资源与真实 commands/codesign/runtime capture
- * [OUTPUT]: 对外提供显式触发的 macOS 冒烟测试：只写副本执行三语 apply/重复 apply/English 恢复，源 Cavalry 仅外加载当前 injector，并逐一校验菜单哨兵、日志/session inventory provenance 与证据哈希
+ * [OUTPUT]: 对外提供显式触发的 macOS 冒烟测试：只写副本执行变更语言源的同语言更新/拒绝漂移且回执不变，以及三语 apply/重复 apply/English 恢复，源 Cavalry 仅外加载当前 injector，并逐一校验菜单哨兵、日志/session inventory provenance 与证据哈希
  * [POS]: src-tauri/tests 的 Phase 7 现场守门，优先消费只读挂载的官方 2.7.2 输入并把 bundle 写入隔离在 APFS 临时副本，同时证明真实 vendor 进程可加载 injector 且菜单完成三语翻译
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -307,4 +307,101 @@ fn real_macos_clone_apply_and_live_injector_matrix() {
         source_before,
         "live smoke modified its source Cavalry.app"
     );
+}
+
+#[cfg(target_os = "macos")]
+#[test]
+#[ignore = "requires an explicit official Cavalry.app; modifies only a disposable clone, never launches Cavalry"]
+fn real_macos_clone_reapplies_changed_language_and_rejects_drift() {
+    assert!(
+        env::var_os(SOURCE_APP_ENV).is_some(),
+        "set an explicit read-only official source"
+    );
+    let source = source_app();
+    let source_before = critical_source_snapshot(&source);
+    let temp = tempfile::tempdir().unwrap();
+    let app = temp.path().join("Cavalry.app");
+    let state_dir = temp.path().join("state");
+    let resources = temp.path().join("resources");
+    let repo = repo_root();
+    clone_path(&source, &app);
+    fs::create_dir_all(&resources).unwrap();
+    clone_path(&repo.join("languages"), &resources.join("languages"));
+    fs::create_dir_all(resources.join("injector")).unwrap();
+    fs::copy(
+        repo.join("injector/libCavalryTranslatorInjector.dylib"),
+        resources.join("injector/libCavalryTranslatorInjector.dylib"),
+    )
+    .unwrap();
+    let translated = resources.join("languages/zh-Hans/appStrings.json");
+    let mut pack: Value = serde_json::from_slice(&fs::read(&translated).unwrap()).unwrap();
+    let key = "auth.error.generic";
+    pack[0]["value"][key] = Value::String("旧补丁测试文案".into());
+    fs::write(&translated, serde_json::to_vec_pretty(&pack).unwrap()).unwrap();
+    let mut runner = RealCommandRunner;
+    let first = apply_language_inner(
+        &resources,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut runner,
+        "old-generation",
+    )
+    .unwrap();
+    assert!(first.ok, "first apply: {first:?}");
+    let old_state = cavalry_i18n_tauri::state::read_state(&state_dir).unwrap();
+    let old_generation = old_state.applied_patch.unwrap().generation;
+
+    pack[0]["value"][key] = Value::String("新补丁测试文案".into());
+    fs::write(&translated, serde_json::to_vec_pretty(&pack).unwrap()).unwrap();
+    let second = apply_language_inner(
+        &resources,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut runner,
+        "new-generation",
+    )
+    .unwrap();
+    assert!(second.ok, "same-language update: {second:?}");
+    let installed_path = app.join("Contents/assets/Definitions/appStrings.json");
+    let installed: Value = serde_json::from_slice(&fs::read(&installed_path).unwrap()).unwrap();
+    assert_eq!(installed[0]["value"][key], "新补丁测试文案");
+    verify_bundle_signature(&app);
+    let new_state = cavalry_i18n_tauri::state::read_state(&state_dir).unwrap();
+    let new_generation = &new_state.applied_patch.as_ref().unwrap().generation;
+    assert_ne!(&old_generation, new_generation);
+    println!("changed-language same-selection update: old={old_generation} new={new_generation}");
+
+    // ---------- 不把第三方改动当成正常升级 ----------
+    let state_before_failure = fs::read(state_dir.join("state.json")).unwrap();
+    let mut drifted = installed;
+    drifted[0]["value"][key] = Value::String("未知外部改动".into());
+    fs::write(
+        &installed_path,
+        serde_json::to_vec_pretty(&drifted).unwrap(),
+    )
+    .unwrap();
+    assert!(apply_language_inner(
+        &resources,
+        &state_dir,
+        &resources,
+        &app,
+        "zh-Hans",
+        &mut runner,
+        "must-not-commit"
+    )
+    .is_err());
+    assert_eq!(
+        fs::read(state_dir.join("state.json")).unwrap(),
+        state_before_failure
+    );
+    assert_eq!(
+        critical_source_snapshot(&source),
+        source_before,
+        "official source changed"
+    );
+    println!("drift rejected; successful receipt retained; official source unchanged");
 }

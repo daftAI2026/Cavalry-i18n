@@ -53,6 +53,7 @@ fn write_and_read_state_uses_tauri_schema() {
         cavalry_revision: "bundle-version:2.3.4".into(),
         current_lang: "zh-Hans".into(),
         last_patched_at: "2026-04-24T00:00:00.000Z".into(),
+        applied_patch: None,
         english_snapshot_provenance: Some(EnglishSnapshotProvenance {
             install_root: "/Applications/Cavalry.app".into(),
             immutable_revision: "bundle-version:2.3.4".into(),

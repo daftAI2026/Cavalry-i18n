@@ -484,6 +484,7 @@ fn write_windows_runtime_state(state_dir: &Path, install_root: &Path, language: 
             cavalry_revision: String::new(),
             current_lang: language.to_string(),
             last_patched_at: String::new(),
+            applied_patch: None,
             english_snapshot_provenance: None,
         },
     )

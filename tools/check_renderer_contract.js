@@ -739,7 +739,7 @@ test('update control preserves the supplied small icon and accessible tooltip co
   assert.match(tokens, /--badge-green-bg:\s*#edf9f0/);
   assert.doesNotMatch(tokens, /--badge-(?:language|green)-border:/, 'filled semantic badges must not own a visible outline token');
   assert.match(styles, /\.badge\[data-kind="language"\]\s*\{[\s\S]*?border-color:\s*transparent;[\s\S]*?background:\s*var\(--badge-language-bg\)[\s\S]*?color:\s*var\(--badge-language-text\)/);
-  assert.match(styles, /\.badge\[data-state="official"\]\s*\{[\s\S]*?border-color:\s*transparent;[\s\S]*?background:\s*var\(--badge-green-bg\)[\s\S]*?color:\s*var\(--badge-green-text\)/);
+  assert.match(styles, /\.badge\[data-state="official"\]\s*,\s*\.badge\[data-kind="green-subtle"\]\s*\{[\s\S]*?border-color:\s*transparent;[\s\S]*?background:\s*var\(--badge-green-bg\)[\s\S]*?color:\s*var\(--badge-green-text\)/);
   assert.doesNotMatch(styles, /\.badge\[data-state="(?:translated|modified)"\]/);
   assert.match(cssRule(styles, '.installation-item'), /display:\s*flex;[\s\S]*?padding:\s*var\(--padding-panel\)/);
   assert.doesNotMatch(cssRule(styles, '.installation-item'), /grid-template-columns:/, 'an optional folder action must not leave an empty grid track');
@@ -904,6 +904,8 @@ test('renderer builds language options safely and bridge API is frozen/minimal',
   assert.match(app, /state\.installationMode === 'official'/);
   assert.match(bridge, /Object\.freeze\(\{/);
   assert.match(bridge, /LANGUAGE_MANIFEST/);
+  assert.match(bridge, /PATCH_STATUS = new Set\(\['current', 'updateAvailable', 'unknown', 'notApplicable'\]\)/);
+  assert.match(bridge, /patchStatus: PATCH_STATUS\.has\(result\.patchStatus\) \? result\.patchStatus : 'unknown'/);
   for (const method of REQUIRED_API_METHODS) assert.match(bridge, new RegExp(`${method}:`));
   assert.doesNotMatch(bridge, /restartCavalry:/, 'restart is internal to apply, not a renderer API');
   assert.doesNotMatch(app, /api\.restartCavalry\(/, 'renderer must not split apply/restart operations');

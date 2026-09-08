@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::commands 的注册表与跨平台序列化 payload
- * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint、共享 About 跨平台 Chrome 与 Windows main-owner 生命周期、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
+ * [OUTPUT]: 对外提供 command 名称、权限动作、platform、Status 补丁回执状态/版本兼容/官方恢复能力与固定 false 的旧 macOS handoff hint、共享 About 跨平台 Chrome 与 Windows main-owner 生命周期、稳定 errorCode、可组合 warningCodes、Windows residue、Updater DTO 与 camelCase JSON shape contract tests
  * [POS]: src-tauri/tests 的 renderer API 守门，保持九命令和旧字段兼容，并显式暴露平台差异、Managed Legacy/版本只读字段、固定项目外链、可本土化错误、Windows runtime residue 与脱敏更新状态
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -151,6 +151,7 @@ fn status_payload_keeps_permission_probe_and_omits_inactive_legacy_handoff_hint(
         app_management_granted: Some(true),
         app_path: "/Applications/Cavalry.app".into(),
         current_lang: "en".into(),
+        patch_status: "notApplicable".into(),
         installation_mode: "official".into(),
         macos_permission_handoff_required: false,
         official_recovery_available: true,
@@ -170,6 +171,8 @@ fn status_payload_keeps_permission_probe_and_omits_inactive_legacy_handoff_hint(
     assert_eq!(value["appManagementGranted"], true);
     assert_eq!(value["permissionAction"], "openPrivacy");
     assert_eq!(value["platform"], "macos");
+    assert_eq!(value["patchStatus"], "notApplicable");
+    assert!(value.get("patch_status").is_none());
     assert_eq!(value["reconciliationRequired"], true);
     assert_eq!(value["installationMode"], "official");
     assert!(value.get("macosPermissionHandoffRequired").is_none());

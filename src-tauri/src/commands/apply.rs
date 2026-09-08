@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 snapshot/status、English 原字节快照与 keyed JSON overlay、macOS Managed Legacy/official baseline 分级、Program Files typed parent transaction、platform_runtime direct preflight、privilege copy completion 与 Unix PermissionsExt 模式比较。
- * [OUTPUT]: 提供保持原签名的 apply_language_inner、transport-neutral reporter、Switch/Restore 共用且早于验证完成的 macOS 只读运行态门、用户动作锁内跨平台 journal 静默收敛、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、覆盖脚本入口外置签名组件的 durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
+ * [OUTPUT]: 提供摘要验证历史补丁源的跨版本准入、成功事务独占的补丁回执提交及保持原签名的 apply_language_inner、transport-neutral reporter、Switch/Restore 共用且早于验证完成的 macOS 只读运行态门、用户动作锁内跨平台 journal 静默收敛、Clean English no-op、Windows 原字节/三语 canonical overlay、macOS 官方恢复或受管旧 runtime 复用、已发布未关联恢复 generation 的可重入收敛、全量 JSON observe-only postcondition、覆盖脚本入口外置签名组件的 durable transaction、签名和 Gatekeeper 提交门；四阶段 guard 覆盖真实验证、基线、事务提交与错误收口，macOS 只把事务层 typed PermissionDenied 投影为权限请求。
  * [POS]: commands 的语言写入编排；Windows 让 English 恢复保留已验证快照原字节并把验证证据传过 staging 边界、翻译 payload 保持规范化，macOS 把 files_match 未改资产仍绑定到同一认证 generation，并在 state/transaction 提交前完成 runtime、签名与 quarantine，任一失败均回滚精确 bundle/state preimage；回滚说明不得抹掉原始权限类别，也不得用任意错误文本冒充 App Management。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -106,6 +106,19 @@ fn verify_macos_prewrite_trust(
         immutable_revision,
         provenance,
     )?;
+    if let Some(receipt) = previous_state.applied_patch.as_ref() {
+        let old_resources = super::patch_receipt::load_source(
+            state_dir,
+            receipt,
+            app_path,
+            immutable_revision,
+            &receipt.language,
+        )?;
+        let injector = crate::mac_runtime::injector_source_path(&old_resources, &old_resources)?;
+        let wrapper = fs::read(old_resources.join("runtime/CavalryLauncher"))
+            .map_err(|error| format!("Could not read applied launcher receipt: {error}"))?;
+        return baseline.verify_managed_runtime_with_wrapper(app_path, &injector, &wrapper);
+    }
     let injector = crate::mac_runtime::injector_source_path(repo_root, resource_dir)?;
     baseline.verify_managed_runtime(app_path, &injector)
 }
@@ -561,6 +574,42 @@ where
 
     baseline_phase.completed();
 
+    // ---------- 成功回执候选 ----------
+    // generation 先发布为无权威孤立材料；只有事务成功才把引用原子写入 state。
+    // English 若仍保留受管 runtime，旧回执仅用于下次 runtime 准入；原厂恢复才清除。
+    let pending_receipt = if restore_official {
+        None
+    } else if effective_lang == "en" {
+        current_state.applied_patch.clone()
+    } else {
+        super::patch_receipt::prepare(
+            repo_root,
+            state_dir,
+            resource_dir,
+            &app_path,
+            &immutable_revision,
+            effective_lang,
+        )?
+    };
+    let prepared_resources = if effective_lang == "en" {
+        None
+    } else {
+        pending_receipt
+            .as_ref()
+            .map(|receipt| {
+                super::patch_receipt::load_source(
+                    state_dir,
+                    receipt,
+                    &app_path,
+                    &immutable_revision,
+                    effective_lang,
+                )
+            })
+            .transpose()?
+    };
+    let apply_resources = prepared_resources.as_deref().unwrap_or(resource_dir);
+    let apply_repo = prepared_resources.as_deref().unwrap_or(repo_root);
+
     let mut transaction_phase =
         OperationPhaseGuard::start(&reporter, OperationPhase::ApplyTransaction);
     let transaction_result = (|| {
@@ -602,7 +651,7 @@ where
         let source_dir = if effective_lang == "en" {
             english_snapshot_dir.clone()
         } else {
-            language_source_dir(repo_root, resource_dir, effective_lang)
+            language_source_dir(apply_repo, apply_resources, effective_lang)
         };
         if !source_dir.exists() {
             return if effective_lang == "en" {
@@ -612,9 +661,29 @@ where
             };
         }
 
-        let current_language_source = (current_state.current_lang != "en").then(|| {
-            language_source_dir(repo_root, resource_dir, current_state.current_lang.as_str())
-        });
+        let current_language_source = if current_state.current_lang == "en" {
+            None
+        } else if let Some(receipt) = current_state.applied_patch.as_ref() {
+            let old_resources = super::patch_receipt::load_source(
+                state_dir,
+                receipt,
+                &app_path,
+                &immutable_revision,
+                &current_state.current_lang,
+            )?;
+            Some(language_source_dir(
+                &old_resources,
+                &old_resources,
+                &current_state.current_lang,
+            ))
+        } else {
+            // 无回执的旧安装仍经过原有严格证明，不把任意修改当成旧翻译。
+            Some(language_source_dir(
+                repo_root,
+                resource_dir,
+                &current_state.current_lang,
+            ))
+        };
         #[cfg(target_os = "macos")]
         let mac_asset_preimages = {
             let manifest_sha256 = mac_baseline
@@ -726,8 +795,8 @@ where
             let layout = InstallLayout::from_root(&app_path);
             let program_files_result =
                 privilege::apply_windows_program_files_language(privilege::ParentApplyRequest {
-                    repo_root,
-                    resource_dir,
+                    repo_root: apply_repo,
+                    resource_dir: apply_resources,
                     state_dir,
                     layout: &layout,
                     language: effective_lang,
@@ -745,6 +814,7 @@ where
                 &immutable_revision,
                 effective_lang,
                 now,
+                pending_receipt.clone(),
             )? {
                 return Ok(payload);
             }
@@ -765,8 +835,8 @@ where
         #[cfg(not(target_os = "macos"))]
         let trusted_macos_info_mode: Option<u32> = None;
         let plan = platform_runtime::prepare_apply(
-            repo_root,
-            resource_dir,
+            apply_repo,
+            apply_resources,
             &app_path,
             transaction_action_lang,
             &version,
@@ -920,6 +990,7 @@ where
                 &mac_asset_preimages,
                 mac_baseline.as_ref(),
                 runner,
+                pending_receipt.clone(),
             );
         }
 
@@ -999,6 +1070,7 @@ where
             effective_lang,
             now,
             renderer_warning_for_copy(&copy_completion.warnings, &copy_completion.mode),
+            pending_receipt.clone(),
         )
     })();
 
@@ -1038,6 +1110,7 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
     asset_preimages: &[patch::AssetPreimageEvidence],
     mac_baseline: Option<&crate::mac_official::VerifiedVendorBaseline>,
     runner: &mut R,
+    applied_patch: Option<state::AppliedPatchReceipt>,
 ) -> Result<ActionPayload, String> {
     let signing_side_effects = if action_lang == RESTORE_OFFICIAL_ACTION {
         Vec::new()
@@ -1340,6 +1413,7 @@ fn finish_macos_apply_transaction<R: CommandRunner>(
         now,
         None,
         Some(&transaction_operation_id),
+        applied_patch,
     ) {
         Ok(payload) => payload,
         Err(error) => {
@@ -1431,6 +1505,7 @@ fn finish_apply_state(
     lang: &str,
     now: &str,
     warning: Option<String>,
+    applied_patch: Option<state::AppliedPatchReceipt>,
 ) -> Result<ActionPayload, String> {
     finish_apply_state_with_operation(
         state_dir,
@@ -1442,6 +1517,7 @@ fn finish_apply_state(
         now,
         warning,
         None,
+        applied_patch,
     )
 }
 
@@ -1456,8 +1532,10 @@ fn finish_apply_state_with_operation(
     now: &str,
     warning: Option<String>,
     operation_id: Option<&str>,
+    applied_patch: Option<state::AppliedPatchReceipt>,
 ) -> Result<ActionPayload, String> {
     let next = State {
+        applied_patch,
         app_path: app_path.to_string_lossy().to_string(),
         cavalry_version: version,
         cavalry_revision: immutable_revision,
@@ -1570,6 +1648,7 @@ fn finish_program_files_result(
     immutable_revision: &str,
     lang: &str,
     now: &str,
+    applied_patch: Option<state::AppliedPatchReceipt>,
 ) -> Result<Option<ActionPayload>, String> {
     match result {
         Ok(privilege::ParentApplyOutcome::NotApplicable) => Ok(None),
@@ -1605,6 +1684,7 @@ fn finish_program_files_result(
                 lang,
                 now,
                 warning,
+                applied_patch,
             )
             .map(Some)
         }
@@ -1768,6 +1848,7 @@ mod program_files_result_tests {
             "revision",
             "zh-Hans",
             "now",
+            None,
         )
         .unwrap();
 
@@ -1790,6 +1871,7 @@ mod program_files_result_tests {
             "revision",
             "zh-Hans",
             "now",
+            None,
         )
         .unwrap()
         .unwrap();
@@ -1825,6 +1907,7 @@ mod program_files_result_tests {
             "revision",
             "zh-Hans",
             "now",
+            None,
         )
         .unwrap()
         .unwrap();
@@ -1855,6 +1938,7 @@ mod program_files_result_tests {
             "revision",
             "zh-Hans",
             "now",
+            None,
         )
         .unwrap()
         .unwrap();
@@ -1879,6 +1963,7 @@ mod program_files_result_tests {
             "revision",
             "zh-Hans",
             "now",
+            None,
         )
         .unwrap()
         .unwrap();
@@ -1940,9 +2025,61 @@ mod program_files_result_tests {
                 "revision",
                 "zh-Hans",
                 "now",
+                None,
             )
             .is_err());
             assert!(!state_dir.exists());
         }
+    }
+}
+
+#[cfg(test)]
+mod patch_receipt_completion_tests {
+    use super::*;
+
+    #[test]
+    fn only_successful_finish_replaces_receipt_and_english_clears_it() {
+        let temp = tempfile::tempdir().unwrap();
+        let app = temp.path().join("Cavalry.app");
+        let receipt = state::AppliedPatchReceipt {
+            install_root: app.to_string_lossy().to_string(),
+            cavalry_revision: "revision".into(),
+            language: "zh-Hans".into(),
+            generation: "a".repeat(64),
+        };
+        let result = finish_apply_state_with_operation(
+            temp.path(),
+            State::default(),
+            &app,
+            "2.7.2".into(),
+            "revision".into(),
+            "zh-Hans",
+            "now",
+            None,
+            None,
+            Some(receipt.clone()),
+        )
+        .unwrap();
+        assert!(result.ok);
+        let previous = state::read_state(temp.path()).unwrap();
+        assert_eq!(previous.applied_patch, Some(receipt));
+        let result = finish_apply_state_with_operation(
+            temp.path(),
+            previous,
+            &app,
+            "2.7.2".into(),
+            "revision".into(),
+            "en",
+            "later",
+            None,
+            None,
+            None,
+        )
+        .unwrap();
+        assert!(result.ok);
+        assert!(state::read_state(temp.path())
+            .unwrap()
+            .applied_patch
+            .is_none());
     }
 }
