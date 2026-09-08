@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 install::InstallLayout、serde_json 与 std fs/path，读取 Cavalry 跨平台 assets
- * [OUTPUT]: 对外提供无路径碰撞的资源映射、逐组件 lstat 的 macOS asset 安全门、hash-manifest English immutable generations/原子指针、旧无 manifest 快照的 keyed overlay 证明与由本机 snapshot/install mode 互证的 JSON-only 安全提升、严格复制计划及只替换字符串且保留安装元数据/版本增量的覆盖合并计划
+ * [OUTPUT]: 对外提供受管旧译文的版本无关结构/身份证明与精确事务 preimage，无路径碰撞的资源映射、逐组件 lstat 的 macOS asset 安全门、hash-manifest English immutable generations/原子指针、旧无 manifest 快照的 keyed overlay 证明与由本机 snapshot/install mode 互证的 JSON-only 安全提升、严格复制计划及只替换字符串且保留安装元数据/版本增量的覆盖合并计划
  * [POS]: src-tauri/src 的 JSON patch 核心，以 exact asset identity、无 symlink regular-file 门、Windows 可写 durability handle、current/prev 缺失与损坏区分及 string-only keyed overlay 同时守住 clean-English 恢复材料及当前/未来 Cavalry 安装元数据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -147,6 +147,10 @@ pub struct AssetPreimageEvidence {
     pub sha256: String,
     pub unix_mode: Option<u32>,
 }
+
+#[path = "patch_reapply.rs"]
+mod reapply;
+pub(crate) use reapply::verify_managed_asset_preimages;
 
 /// A snapshot identity is deliberately expressed in terms of both sides of the mapping.  The
 /// language path remains the historical camel-case path for the four packaged languages, while

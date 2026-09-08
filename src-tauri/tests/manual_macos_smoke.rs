@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖显式 CAVALRY_I18N_MACOS_SMOKE_APP 或默认 /Applications/Cavalry.app、repo injector/四语资源与真实 commands/codesign/runtime capture
- * [OUTPUT]: 对外提供显式触发的 macOS 冒烟测试：只写副本执行 P7 JSON 无回执迁移、已有回执的同语言更新/拒绝漂移且回执不变，以及三语 apply/重复 apply/English 恢复，源 Cavalry 仅外加载当前 injector，并逐一校验菜单哨兵、日志/session inventory provenance 与证据哈希
+ * [OUTPUT]: 对外提供显式触发的 macOS 冒烟测试：只写副本执行任意旧译文无回执重应用、已有回执的同语言更新/拒绝漂移且回执不变，以及三语 apply/重复 apply/English 恢复，源 Cavalry 仅外加载当前 injector，并逐一校验菜单哨兵、日志/session inventory provenance 与证据哈希
  * [POS]: src-tauri/tests 的 Phase 7 现场守门，优先消费只读挂载的官方 2.7.2 输入并把 bundle 写入隔离在 APFS 临时副本，同时证明真实 vendor 进程可加载 injector 且菜单完成三语翻译
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -319,7 +319,7 @@ fn real_macos_clone_reapplies_changed_language_and_rejects_drift() {
 #[cfg(target_os = "macos")]
 #[test]
 #[ignore = "requires explicit official Cavalry.app; disposable clone only"]
-fn real_macos_clone_migrates_p7_json_without_receipt() {
+fn real_macos_clone_reapplies_arbitrary_old_translation_without_receipt() {
     run_patch_update_clone(true);
 }
 
@@ -348,23 +348,7 @@ fn run_patch_update_clone(without_receipt: bool) {
     let translated = resources.join("languages/zh-Hans/appStrings.json");
     let mut pack: Value = serde_json::from_slice(&fs::read(&translated).unwrap()).unwrap();
     let key = "auth.error.generic";
-    if without_receipt {
-        clone_path(
-            &repo.join("src-tauri/legacy-patches"),
-            &resources.join("legacy-patches"),
-        );
-        for language in ["zh-Hans", "zh-Hant", "ja_JP"] {
-            clone_path(
-                &repo
-                    .join("src-tauri/legacy-patches/cavalry-2.7.2-p7/languages")
-                    .join(language),
-                &resources.join("languages").join(language),
-            );
-        }
-        pack = serde_json::from_slice(&fs::read(&translated).unwrap()).unwrap();
-    } else {
-        pack[0]["value"][key] = Value::String("旧补丁测试文案".into());
-    }
+    pack[0]["value"][key] = Value::String("任意旧版本的译文：没有历史目录".into());
     fs::write(&translated, serde_json::to_vec_pretty(&pack).unwrap()).unwrap();
     let mut runner = RealCommandRunner;
     let first = apply_language_inner(
@@ -411,7 +395,7 @@ fn run_patch_update_clone(without_receipt: bool) {
     // ---------- 不把第三方改动当成正常升级 ----------
     let state_before_failure = fs::read(state_dir.join("state.json")).unwrap();
     let mut drifted = installed;
-    drifted[0]["value"][key] = Value::String("未知外部改动".into());
+    drifted[0]["unexpectedModelField"] = Value::Bool(true);
     fs::write(
         &installed_path,
         serde_json::to_vec_pretty(&drifted).unwrap(),

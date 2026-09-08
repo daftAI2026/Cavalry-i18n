@@ -7,7 +7,6 @@
 mod apply;
 mod context;
 mod contract;
-mod legacy_patch;
 mod patch_receipt;
 mod restart;
 mod snapshot;

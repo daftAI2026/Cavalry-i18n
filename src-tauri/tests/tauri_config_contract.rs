@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、主窗/About capability、历史 P7 catalog 与 Windows generic/QPA 资源映射
+ * [INPUT]: 依赖 tauri.conf.json、release.config.json、两份平台配置、主窗/About capability 与 Windows generic/QPA 资源映射
  * [OUTPUT]: 提供 macOS 400×484 内容窗口、主窗口跨平台首帧后显露、主窗口/About 共享的 macOS 交通灯 Overlay 与随 main 退出的生命周期、Windows 10px transparent-compositor 外壳及原生 About owner、显式 renderer 入口、本地 CSP/预注入 bridge、updater 信任根、平台资源与 NSIS 合同
  * [POS]: src-tauri/tests 的宿主无关配置守门，冻结 Windows generic runtime + QPA delegate 声明并阻止 DYLD/第二套 Qt 混入；派生 DLL 字节由平台构建与 provenance 测试证明
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -181,10 +181,6 @@ fn macos_config_owns_injector_resources_without_overriding_release_signing() {
         .any(|value| value == "dmg"));
     assert_eq!(resources["../languages"], "languages");
     assert_eq!(
-        resources["legacy-patches/cavalry-2.7.2-p7"],
-        "legacy-patches/cavalry-2.7.2-p7"
-    );
-    assert_eq!(
         resources["../injector/libCavalryTranslatorInjector.dylib"],
         "injector/libCavalryTranslatorInjector.dylib"
     );
@@ -242,10 +238,6 @@ fn windows_config_uses_nsis_icon_languages_and_windows_runtime_only() {
         .iter()
         .any(|value| value == "icons/icon.ico"));
     assert_eq!(resources["../languages"], "languages");
-    assert_eq!(
-        resources["legacy-patches/cavalry-2.7.2-p7"],
-        "legacy-patches/cavalry-2.7.2-p7"
-    );
     assert_eq!(
         resources["../injector/windows/generic/cavalryi18n.dll"],
         "injector/windows/generic/cavalryi18n.dll"
