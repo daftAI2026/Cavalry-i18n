@@ -33,7 +33,7 @@
 
 Choose a target language, then select **Switch** or **Restore English**. When the current language has an update badge, select it and choose **Update** to reapply the complete language patch—no language change or English restore is needed first. The current language is disabled only when its patch is up to date. Progress and recovery guidance appear below the actions.
 
-**Add Layer search:** You can search in English or the selected language. In the right-hand Add Layer panel, localized matches, including description matches, may not receive the same title priority as English names. If the expected layer appears lower in the results, try its full English name, such as `Text Shape`. This is a known ranking limitation; it does not mean your input or the layer's creation identity has changed.
+**Add Layer search:** You can search in English or the selected language. In the right-hand Add Layer panel, localized title matches may not receive the same title priority as English names. If the expected layer appears lower in the results, try its full English name, such as `Text Shape`. This is a known ranking limitation; it does not mean your input or the layer's creation identity has changed.
 
 ## Safety & Permissions
 
