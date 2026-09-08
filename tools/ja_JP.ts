@@ -2289,7 +2289,7 @@
     <message><source>Expand Render Items</source><translation>レンダリングアイテムを拡大</translation></message>
     <message><source>Expect</source><translation>ソリューション</translation></message>
     <message><source>Expectation Failed</source><translation>期待失敗</translation></message>
-    <message><source>Experimental</source><translation>実験装置</translation></message>
+    <message><source>Experimental</source><translation>実験的</translation></message>
     <message><source>Experimental Features have been enabled. You can disable them if needed via the Preferences Window</source><translation>実験的機能が有効になりました。必要なら環境設定ウィンドウで無効化できます</translation></message>
     <message><source>Experimental Features have been enabled. You can disable them if needed via the Preferences Window.</source><translation>実験的機能が有効になりました。必要なら環境設定ウィンドウで無効化できます。</translation></message>
     <message><source>Experimental features may not work as expected, and may be removed in future versions</source><translation>実験的な機能は期待どおりに機能しない可能性があり、将来のバージョンでは削除される可能性があります。</translation></message>

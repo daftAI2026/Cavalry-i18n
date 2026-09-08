@@ -9876,7 +9876,7 @@ const TranslationEntry kJaEntries[] = {
     {"MenuBarManager", "Expand Render Items", "レンダリングアイテムを拡大"},
     {"MenuBarManager", "Expect", "ソリューション"},
     {"MenuBarManager", "Expectation Failed", "期待失敗"},
-    {"MenuBarManager", "Experimental", "実験装置"},
+    {"MenuBarManager", "Experimental", "実験的"},
     {"MenuBarManager", "Experimental Features have been enabled. You can disable them if needed via the Preferences Window", "実験的機能が有効になりました。必要なら環境設定ウィンドウで無効化できます"},
     {"MenuBarManager", "Experimental Features have been enabled. You can disable them if needed via the Preferences Window.", "実験的機能が有効になりました。必要なら環境設定ウィンドウで無効化できます。"},
     {"MenuBarManager", "Experimental features may not work as expected, and may be removed in future versions", "実験的な機能は期待どおりに機能しない可能性があり、将来のバージョンでは削除される可能性があります。"},
