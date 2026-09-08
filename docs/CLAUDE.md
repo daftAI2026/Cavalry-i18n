@@ -8,13 +8,12 @@ runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义�
 translation-guidelines.md: Add Layer 查询/检索/显示/身份分离及 Unicode 验收契约； 翻译规范，约束语言风格、保留词、字体族/样式原值及未来独立显示层边界、快捷键身份原文/操作本地化例外、Forge Dynamics 显示层/模型层分流与界面一致性。
 component-source-adaptation-protocol.md: 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn Button/Marker/Select/Tooltip/AlertDialog/Toast commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit，并规定 Button/业务 variant 分层、Windows transparent-compositor 外壳、四枚 caption、平台 UI Review 同步、DPI 与视觉/静态/真机证据边界及 GEB 回环。
 img/: 静态资源库，存放 README 截图与文档示意图。
-badges/: README badge endpoint 数据源目录，保存发布 workflow 写回的 Shields JSON 投影。
 
 依赖边界:
 docs 只保存公开项目必须依赖的稳定规范、可重复 SOP 与发布资产，不承载内部事件簿、阶段审计、实跑记录或历史方案。任何架构变更必须先让代码成立，再让这里的地图同构。
 
 分类口径:
-规范与可重复 SOP 留在公开 `docs/`；README 图片进 `img/`，发布 Badge 数据进 `badges/`。研究、路线、事件簿、实跑证据、事故复盘和历史方案进入同级私有知识库，并按工作链组织；公开构建、测试和发布不得依赖私有内容。
+规范与可重复 SOP 留在公开 `docs/`；README 图片进 `img/`；发布徽章直接读取 GitHub 最新正式 Release，不保存本地版本副本。研究、路线、事件簿、实跑证据、事故复盘和历史方案进入同级私有知识库，并按工作链组织；公开构建、测试和发布不得依赖私有内容。
 
 UI 知识归属:
 可迁移的组件源码适配、所有权和证据规则归 `component-source-adaptation-protocol.md`；当前 UI 几何由 `renderer/tokens.css` 与组件实现自证。阶段审查和下一动作属于私有维护链，不在公开文档中复制。

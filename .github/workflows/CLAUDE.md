@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label 并记录实际 runner 身份；PR/main 不接触 updater 私钥，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签；tag 只要求提交已进入 `origin/main` 与既有 Tauri updater 私钥，macOS 生成未公证的 ad-hoc DMG 和 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；macOS 原生 Qt 门在无 vendor app 的现场运行共享 Quick Add、Classic 与显示副本 fixture，Windows CMake/CTest 则运行共享 Quick Add/Classic fixture，未知 Windows 显示 ABI 不接线；release job 以 package SemVer 生成三平台 `latest.json`，CI 内部 provenance 验证签名输入与供应链证据，公开面只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 并逐字节回读后才公开；npm audit 对固定 registry 的传输错误做三次有界重试，服务不可用只告警，拿到有效漏洞报告时仍立即失败；source tar、toolchain 与 Actions full-SHA 等发布门保持 fail-closed，公开后的 README badge PR 仅作非阻断同步，Developer ID/notarization 与 Windows Authenticode 均不在当前 workflow 实现。
+build.yml: 主 CI/CD 工作流，固定 `ubuntu-24.04`/`windows-2022`/`macos-14` label 并记录实际 runner 身份；PR/main 不接触 updater 私钥，显式 `updater_signing_smoke` 只在受保护 environment 生成 macOS updater 候选并以客户端内嵌公钥流式验签；tag 只要求提交已进入 `origin/main` 与既有 Tauri updater 私钥，macOS 生成未公证的 ad-hoc DMG 和 `.app.tar.gz/.sig`，Windows 生成 NSIS `.exe/.sig` 并继续跑安装/同版本更新/卸载门；macOS 原生 Qt 门在无 vendor app 的现场运行共享 Quick Add、Classic 与显示副本 fixture，Windows CMake/CTest 则运行共享 Quick Add/Classic fixture，未知 Windows 显示 ABI 不接线；release job 以 package SemVer 生成三平台 `latest.json`，CI 内部 provenance 验证签名输入与供应链证据，公开面只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 并逐字节回读后才公开；npm audit 对固定 registry 的传输错误做三次有界重试，服务不可用只告警，拿到有效漏洞报告时仍立即失败；source tar、toolchain 与 Actions full-SHA 等发布门保持 fail-closed，README 徽章直接读取 GitHub 最新正式 Release，workflow 不写回版本副本或创建徽章 PR，Developer ID/notarization 与 Windows Authenticode 均不在当前 workflow 实现。
 
 依赖边界:
 workflow 只调用仓库里已经存在的脚本与构建入口；默认 build 变更时这里必须同构更新。唯一当前发布私钥是 Tauri updater key，只通过受保护 Actions secrets 引用且禁止打印；平台身份签名未来独立接入。
@@ -59,3 +59,5 @@ workflow 只调用仓库里已经存在的脚本与构建入口；默认 build �
 发布正文保留首次安装、源码构建、四语列表与英日说明；六种 reactions 仅在七项资产回读并公开后执行，失败非阻断且不重发资产。
 
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
+
+2026-09-08: 移除发布后的 badge JSON/PR 同步与不再需要的 pull-requests 写权限；四语 README 直接读取最新正式 Release tag。

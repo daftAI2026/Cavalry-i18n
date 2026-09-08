@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/四策略输入合同/Quick Add context/display 与描述生成闭包/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
- * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、非阻断 badge 同步、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
+ * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、直接读取最新正式 Release 的四语徽章、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1326,21 +1326,8 @@ test('tag release publishes manual installers plus the signed three-platform upd
     releaseJob[1],
     /node tools\/release_publish\.js[\s\S]*--dist dist[\s\S]*--notes release-notes\.md/
   );
-  assert.match(
-    releaseJob[1],
-    /gh pr create[\s\S]*release badge/,
-    'badge updates must open a PR instead of pushing main directly'
-  );
-  assert.match(
-    releaseJob[1],
-    /name:\s*Open README release badge PR[^\n]*\n\s+continue-on-error:\s*true/,
-    'badge synchronization is peripheral and must not turn a published release red'
-  );
-  assert.doesNotMatch(
-    releaseJob[1],
-    /git push origin HEAD:main/,
-    'release must not push badge commits directly to main'
-  );
+  assert.doesNotMatch(releaseJob[1], /gh pr create|git push|pull-requests: write/,
+    'release publication must not maintain badge commits or request PR write access');
 });
 
 test('release changelog extractor selects one exact released SemVer section and fails closed', () => {
@@ -1413,44 +1400,17 @@ test('release changelog extractor selects one exact released SemVer section and 
   assert.match(empty.stderr, /9\.8\.7[\s\S]*empty/i);
 });
 
-test('README release badges use a generated Shields endpoint instead of the GitHub API token pool', () => {
+test('README release badges use the latest stable GitHub Release directly', () => {
   const workflow = readText('.github/workflows/build.yml');
-  const badge = readJson('docs/badges/release.json');
-  const badgeEndpoint =
-    'https://img.shields.io/endpoint?url=https%3A%2F%2Fraw.githubusercontent.com%2FdaftAI2026%2FCavalry-i18n%2Fmain%2Fdocs%2Fbadges%2Frelease.json&style=flat-square';
-
-  assert.deepEqual(Object.keys(badge).sort(), ['color', 'label', 'message', 'schemaVersion']);
-  assert.equal(badge.schemaVersion, 1);
-  assert.equal(badge.label, 'release');
-  assert.match(badge.message, /^cavalry-2\.7\.2-p[0-9]+$/);
-  assert.equal(badge.color, 'blue');
-
+  const endpoint = 'https://img.shields.io/github/v/release/daftAI2026/Cavalry-i18n?sort=date&display_name=tag&style=flat-square';
   for (const readme of ['README.md', 'README.zh-Hans.md', 'README.zh-Hant.md', 'README.ja_JP.md']) {
     const source = readText(readme);
-    assert.match(source, new RegExp(badgeEndpoint.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')), `${readme} should use the generated release endpoint badge`);
-    assert.doesNotMatch(source, /img\.shields\.io\/github\/v\/release/, `${readme} should not query Shields GitHub Release directly`);
+    assert.ok(source.includes('href="https://github.com/daftAI2026/Cavalry-i18n/releases/latest"><img src="' + endpoint + '" alt="Release"'),
+      readme + ' should display the latest stable release tag and link to the downloadable release');
+    assert.doesNotMatch(source, /img\.shields\.io\/endpoint|include_prereleases|docs%2Fbadges/);
   }
-
-  assert.match(
-    workflow,
-    /node tools\/release_publish\.js[\s\S]*docs\/badges\/release\.json[\s\S]*"message": "\$\{GITHUB_REF_NAME\}"/,
-    'tag release workflow should update the endpoint badge JSON only after release publish succeeds'
-  );
-  assert.match(
-    workflow,
-    /gh pr create[\s\S]*docs: update release badge/,
-    'tag release workflow should open a badge PR instead of pushing main directly'
-  );
-  assert.match(
-    workflow,
-    /name:\s*Open README release badge PR[^\n]*\n\s+continue-on-error:\s*true/,
-    'badge synchronization must remain best-effort after release publication'
-  );
-  assert.doesNotMatch(
-    workflow,
-    /git push origin HEAD:main/,
-    'tag release workflow must not push badge commits directly onto main'
-  );
+  assert.equal(fs.existsSync(path.join(repoRoot, 'docs/badges/release.json')), false);
+  assert.doesNotMatch(workflow, /docs\/badges|chore\/release-badge|gh pr create|pull-requests: write/);
 });
 
 test('public README navigation stays portable and points to the supported paths', () => {

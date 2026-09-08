@@ -1,5 +1,5 @@
 # [INPUT]: 依赖仓库版本/CHANGELOG/release.config、可测试 CI 变更分类器、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
-# [OUTPUT]: 对外提供始终可结算的必需检查、按文档/合同/依赖/平台风险选择的证据门、每周依赖漏洞复审、平台 Runner 原生构建、NSIS 生命周期、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断六种 Release reactions 回读与 badge PR
+# [OUTPUT]: 对外提供始终可结算的必需检查、按文档/合同/依赖/平台风险选择的证据门、每周依赖漏洞复审、平台 Runner 原生构建、NSIS 生命周期、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断六种 Release reactions 回读
 # [POS]: .github/workflows 的唯一 CI/CD 编排器；普通 PR/main 由 classify_ci_changes.js 缩减无关原生 Runner，未知路径 fail-closed，tag/workflow_dispatch 无条件跑完整闭环；普通 CI 不接触 updater 私钥，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 name: Build Tauri App
@@ -873,7 +873,6 @@ jobs:
       name: release-production
     permissions:
       contents: write
-      pull-requests: write
 
     steps:
       - name: Checkout repository
@@ -1116,49 +1115,3 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: node tools/post_release_reactions.js "$GITHUB_REF_NAME" "$GITHUB_REPOSITORY"
-
-      - name: Open README release badge PR (no direct main push)
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          branch="chore/release-badge-${GITHUB_REF_NAME}"
-          git fetch origin main:refs/remotes/origin/main
-          remote_sha=""
-          if git fetch origin "refs/heads/${branch}:refs/remotes/origin/${branch}"; then
-            remote_sha="$(git rev-parse "refs/remotes/origin/${branch}")"
-          fi
-          git checkout -B "$branch" origin/main
-          mkdir -p docs/badges
-          cat > docs/badges/release.json <<EOF
-          {
-            "schemaVersion": 1,
-            "label": "release",
-            "message": "${GITHUB_REF_NAME}",
-            "color": "blue"
-          }
-          EOF
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/badges/release.json
-          if git diff --cached --quiet; then
-            echo "Release badge endpoint already points at ${GITHUB_REF_NAME}."
-            exit 0
-          fi
-          git commit -m "docs: update release badge for ${GITHUB_REF_NAME}"
-          if [ -n "$remote_sha" ]; then
-            git push \
-              --force-with-lease="refs/heads/${branch}:${remote_sha}" \
-              origin "HEAD:refs/heads/${branch}"
-          else
-            git push -u origin "HEAD:refs/heads/${branch}"
-          fi
-          if gh pr list --state open --head "$branch" --base main --json number --jq 'length' | grep -qx '0'; then
-            gh pr create \
-              --base main \
-              --head "$branch" \
-              --title "docs: update release badge for ${GITHUB_REF_NAME}" \
-              --body "Automated badge endpoint update after publishing ${GITHUB_REF_NAME}. No direct push to main."
-          else
-            echo "Badge PR already open for ${GITHUB_REF_NAME}."
-          fi
