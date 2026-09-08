@@ -1,0 +1,127 @@
+# legacy-patches/
+> L2 | 父级: ../CLAUDE.md
+
+成员清单
+cavalry-2.7.2-p7/: 由已发布 P7 tag 冻结的旧语言 overlay；manifest 绑定 release tag、源 commit、三种目标语言及每个 sparse JSON 文件的 SHA-256，供无回执旧安装的只读 preimage 证明，不作为当前语言包的运行时源。
+
+cavalry-2.7.2-p7/languages/ja_JP/Definitions/nodeDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/Definitions/systemPresets.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/Learn/Guides/guides.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/Learn/Guides/strings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/MetaData/api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/MetaData/core_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/MetaData/gui_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/MetaData/widget_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/Style/layout.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/Style/theme.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/appStrings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/nodeStrings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/onboarding.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/bilateralBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/bilateralBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/boxBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/boxBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/bulgeFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/bulgeFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/chromaKeyFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/chromaKeyFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/directionalBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/directionalBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/erosionFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/erosionFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/gaussianBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/gaussianBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/grainFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/grainFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/lightSweepFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/lightSweepFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/polarCoordinatesFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/polarCoordinatesFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/spheriseFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/spheriseFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/zoomBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/plugins/zoomBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/ja_JP/tips.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/Definitions/nodeDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/Definitions/systemPresets.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/Learn/Guides/guides.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/Learn/Guides/strings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/MetaData/api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/MetaData/core_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/MetaData/gui_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/MetaData/widget_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/Style/layout.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/Style/theme.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/appStrings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/nodeStrings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/onboarding.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/bilateralBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/bilateralBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/boxBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/boxBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/bulgeFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/bulgeFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/chromaKeyFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/chromaKeyFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/directionalBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/directionalBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/erosionFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/erosionFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/gaussianBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/gaussianBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/grainFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/grainFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/lightSweepFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/lightSweepFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/polarCoordinatesFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/polarCoordinatesFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/spheriseFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/spheriseFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/zoomBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/plugins/zoomBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hans/tips.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/Definitions/nodeDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/Definitions/systemPresets.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/Learn/Guides/guides.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/Learn/Guides/strings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/MetaData/api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/MetaData/core_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/MetaData/gui_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/MetaData/widget_api_function_metadata.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/Style/layout.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/Style/theme.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/appStrings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/nodeStrings.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/onboarding.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/bilateralBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/bilateralBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/boxBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/boxBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/bulgeFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/bulgeFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/chromaKeyFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/chromaKeyFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/directionalBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/directionalBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/erosionFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/erosionFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/gaussianBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/gaussianBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/grainFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/grainFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/lightSweepFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/lightSweepFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/polarCoordinatesFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/polarCoordinatesFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/spheriseFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/spheriseFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/zoomBlurFilter.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/plugins/zoomBlurFilterDefinitions.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/languages/zh-Hant/tips.json: P7 冻结资源，仅供历史安装 preimage 核验。
+cavalry-2.7.2-p7/manifest.json: P7 冻结资源，仅供历史安装 preimage 核验。
+
+边界：目录只保存相对 P7 English 的 target-language JSON overlay，不复制 English baseline；apply 只有在 immutable English snapshot 与安装资产共同证明该 overlay 后才使用它，验证失败回到当前源并由最终 gate fail closed。资源必须同时进入 macOS/Windows Tauri bundle，禁止从网络、可变缓存或用户选择路径加载。
+
+法则: 历史源只增不改·摘要先于使用·不伪造当前版本·拒绝 symlink
+
+[PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

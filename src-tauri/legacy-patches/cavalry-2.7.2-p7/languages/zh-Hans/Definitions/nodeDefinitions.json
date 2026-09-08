@@ -1,0 +1,4166 @@
+[
+  {
+    "nodeType": "molecule"
+  },
+  {
+    "attributes": {
+      "color": {
+        "default": "蓝色"
+      }
+    },
+    "nodeType": "element"
+  },
+  {
+    "nodeType": "hiddenFolder"
+  },
+  {
+    "nodeType": "atomic"
+  },
+  {
+    "nodeType": "transform"
+  },
+  {
+    "nodeType": "drawable"
+  },
+  {
+    "attributes": {
+      "masks": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "mode"
+            }
+          ]
+        }
+      },
+      "trackMattes": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "fill"
+        },
+        {
+          "id": "stroke"
+        },
+        {
+          "id": "mask"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "shape"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        }
+      ]
+    },
+    "nodeType": "group"
+  },
+  {
+    "nodeType": "assetGroup"
+  },
+  {
+    "nodeType": "behaviourBase"
+  },
+  {
+    "attributes": {
+      "falloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "behaviour"
+        },
+        {
+          "id": "falloffs"
+        }
+      ]
+    },
+    "nodeType": "behaviour"
+  },
+  {
+    "attributes": {
+      "beatMarkers": {
+        "children": [
+          {
+            "id": "markerMode"
+          },
+          {
+            "id": "divisions"
+          },
+          {
+            "id": "enabled"
+          },
+          {
+            "id": "bpm"
+          },
+          {
+            "id": "offset"
+          },
+          {
+            "id": "bars"
+          }
+        ]
+      }
+    },
+    "nodeType": "compNode"
+  },
+  {
+    "UI": {
+      "buttons": [
+        {
+          "name": "适应视图...",
+          "script": "fitSelectionToView.js"
+        },
+        {
+          "name": "分布与缩放...",
+          "script": "cameraDistroAndScale.js"
+        }
+      ]
+    },
+    "nodeType": "planarCamera"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "cameraGuide"
+  },
+  {
+    "nodeType": "animationCurveBase"
+  },
+  {
+    "nodeType": "animationCurve"
+  },
+  {
+    "nodeType": "animationPath"
+  },
+  {
+    "nodeType": "animationControl"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "rigControl"
+  },
+  {
+    "nodeType": "colorSwatch"
+  },
+  {
+    "nodeType": "paletteContainer"
+  },
+  {
+    "nodeType": "palette"
+  },
+  {
+    "nodeType": "audioTrack"
+  },
+  {
+    "nodeType": "assetFromSmartFolder"
+  },
+  {
+    "nodeType": "indexableArray"
+  },
+  {
+    "nodeType": "asset"
+  },
+  {
+    "nodeType": "renderQueue"
+  },
+  {
+    "attributes": {
+      "targets": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "retimeRender"
+            },
+            {
+              "id": "remapToTimecode"
+            },
+            {
+              "id": "remapFPS"
+            },
+            {
+              "id": "remapToFPS"
+            }
+          ]
+        }
+      },
+      "metadata": {
+        "child": {
+          "children": [
+            {
+              "id": "name"
+            },
+            {
+              "id": "value"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "path"
+        },
+        {
+          "id": "format"
+        },
+        {
+          "id": "dynamicRendering"
+        },
+        {
+          "id": "targets"
+        },
+        {
+          "id": "scripts"
+        },
+        {
+          "id": "metadata"
+        }
+      ]
+    },
+    "nodeType": "renderQueueItem"
+  },
+  {
+    "nodeType": "keyframeLayerFolder"
+  },
+  {
+    "nodeType": "keyframeLayer"
+  },
+  {
+    "attributes": {
+      "overrides": {
+        "child": {
+          "children": [
+            {
+              "id": "attribute"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "placeholder": "自定义控件名称。",
+              "id": "name"
+            },
+            {
+              "placeholder": "添加备注以帮助描述该控件。",
+              "id": "notes"
+            },
+            {
+              "id": "double"
+            },
+            {
+              "id": "double2"
+            },
+            {
+              "id": "color"
+            },
+            {
+              "id": "string"
+            },
+            {
+              "id": "font"
+            },
+            {
+              "id": "richText"
+            },
+            {
+              "id": "double3"
+            },
+            {
+              "id": "int"
+            },
+            {
+              "id": "int2"
+            },
+            {
+              "id": "bool"
+            },
+            {
+              "id": "polyMesh"
+            },
+            {
+              "id": "double4"
+            },
+            {
+              "id": "assetId"
+            },
+            {
+              "id": "int4"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "overrides"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "compositionReference"
+  },
+  {
+    "nodeType": "material"
+  },
+  {
+    "nodeType": "remapper"
+  },
+  {
+    "nodeType": "colorArray"
+  },
+  {
+    "nodeType": "renderFormat"
+  },
+  {
+    "nodeType": "renderFormatWithAudio"
+  },
+  {
+    "nodeType": "renderPNG"
+  },
+  {
+    "nodeType": "renderQuicktime"
+  },
+  {
+    "nodeType": "renderAudioOnly"
+  },
+  {
+    "nodeType": "renderSpriteSheet"
+  },
+  {
+    "nodeType": "renderJPEG"
+  },
+  {
+    "nodeType": "renderWebP"
+  },
+  {
+    "nodeType": "renderGIF"
+  },
+  {
+    "nodeType": "renderAPNG"
+  },
+  {
+    "nodeType": "renderProRes"
+  },
+  {
+    "nodeType": "renderWebM"
+  },
+  {
+    "nodeType": "renderMP4"
+  },
+  {
+    "nodeType": "renderHVEC"
+  },
+  {
+    "nodeType": "renderLottie"
+  },
+  {
+    "nodeType": "renderSVG"
+  },
+  {
+    "nodeType": "dynamicIndexManager"
+  },
+  {
+    "attributes": {
+      "animation": {
+        "children": [
+          {
+            "id": "frame"
+          },
+          {
+            "id": "enabled"
+          }
+        ]
+      }
+    },
+    "nodeType": "editableShape"
+  },
+  {
+    "nodeType": "noise"
+  },
+  {
+    "nodeType": "noiseEngine"
+  },
+  {
+    "nodeType": "simplexNoise"
+  },
+  {
+    "nodeType": "flowFieldNoise"
+  },
+  {
+    "nodeType": "cubicNoise"
+  },
+  {
+    "nodeType": "valueNoise"
+  },
+  {
+    "nodeType": "cellularNoise"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "triggers": {
+      "out": [
+        "行程",
+        "inputShape",
+        "strength",
+        "graph",
+        "pathOffset",
+        "pathSpace",
+        "flip",
+        "loop",
+        "reversePath"
+      ]
+    },
+    "UI": {
+      "tabs": [
+        {
+          "attributeOrder": [
+            "strength",
+            "行程",
+            "loop",
+            "reversePath",
+            "inputShape"
+          ],
+          "id": "general"
+        },
+        {
+          "id": "deformer"
+        },
+        {
+          "id": "value"
+        }
+      ]
+    },
+    "nodeType": "pathfinder"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "random"
+  },
+  {
+    "nodeType": "oscillatorLegacy"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "behaviour"
+        },
+        {
+          "id": "deformer"
+        }
+      ]
+    },
+    "nodeType": "oscillator"
+  },
+  {
+    "nodeType": "mathBase"
+  },
+  {
+    "nodeType": "comparison"
+  },
+  {
+    "nodeType": "logic"
+  },
+  {
+    "nodeType": "math"
+  },
+  {
+    "nodeType": "math2"
+  },
+  {
+    "nodeType": "math3"
+  },
+  {
+    "nodeType": "jsmath"
+  },
+  {
+    "nodeType": "javaScript"
+  },
+  {
+    "nodeType": "thirdPartyJavaScript"
+  },
+  {
+    "nodeType": "thirdPartyJavaScriptShape"
+  },
+  {
+    "nodeType": "thirdPartyJavaScriptDeformer"
+  },
+  {
+    "nodeType": "valueArray"
+  },
+  {
+    "nodeType": "value2Array"
+  },
+  {
+    "nodeType": "value3Array"
+  },
+  {
+    "nodeType": "textArray"
+  },
+  {
+    "nodeType": "ifElse"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "rangeFalloff"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "falloff"
+  },
+  {
+    "nodeType": "motionStretch"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "stagger"
+  },
+  {
+    "nodeType": "spreadsheet"
+  },
+  {
+    "attributes": {
+      "key": {
+        "placeholder": "在此处输入行值。"
+      }
+    },
+    "nodeType": "spreadsheetLookup"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "utility"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "indexToColor"
+  },
+  {
+    "nodeType": "boundingBoxConstraint"
+  },
+  {
+    "nodeType": "measureText"
+  },
+  {
+    "attributes": {
+      "falloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "particleModifier"
+  },
+  {
+    "nodeType": "particlePhysicsModifier"
+  },
+  {
+    "attributes": {
+      "colorOverLifespan": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            }
+          ]
+        }
+      },
+      "rotationScalar": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      },
+      "scaleOverLifespan": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "visualModifier"
+  },
+  {
+    "nodeType": "imageModifier"
+  },
+  {
+    "nodeType": "collisionModifier"
+  },
+  {
+    "attributes": {
+      "massOverLifespan": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "forceModifier"
+  },
+  {
+    "nodeType": "magneticModifier"
+  },
+  {
+    "nodeType": "vortexModifier"
+  },
+  {
+    "nodeType": "javaScriptModifier"
+  },
+  {
+    "attributes": {
+      "captureGraph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      },
+      "flowGraph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "pathModifier"
+  },
+  {
+    "nodeType": "turbulenceModifier"
+  },
+  {
+    "nodeType": "flowFieldModifier"
+  },
+  {
+    "nodeType": "speedModifier"
+  },
+  {
+    "nodeType": "goalModifier"
+  },
+  {
+    "nodeType": "dataModifier"
+  },
+  {
+    "attributes": {
+      "modifiers": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      },
+      "colorOverLifespan": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            }
+          ]
+        }
+      },
+      "rotationScalar": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      },
+      "scaleOverLifespan": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "visual"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "particleShape"
+  },
+  {
+    "nodeType": "particleEmitterBase"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "emitter"
+        }
+      ]
+    },
+    "nodeType": "particleEmitter"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "emitter"
+        }
+      ]
+    },
+    "nodeType": "distributionEmitter"
+  },
+  {
+    "nodeType": "javaScriptEmitter"
+  },
+  {
+    "attributes": {
+      "weightingGraph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "sound"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "flare"
+  },
+  {
+    "attributes": {
+      "behaviour": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "strength"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "behaviourMixer"
+  },
+  {
+    "nodeType": "bend"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "squashAndStretch"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "squetch"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "frame"
+  },
+  {
+    "nodeType": "materialBehaviourBase"
+  },
+  {
+    "nodeType": "materialBehaviourColor"
+  },
+  {
+    "nodeType": "materialBehaviourAlpha"
+  },
+  {
+    "nodeType": "materialBehaviourSwapColor"
+  },
+  {
+    "nodeType": "materialBehaviourHSV"
+  },
+  {
+    "nodeType": "applyDistribution"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "behaviour"
+        },
+        {
+          "id": "fill"
+        },
+        {
+          "id": "stroke"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "subMesh"
+  },
+  {
+    "nodeType": "bevel"
+  },
+  {
+    "attributes": {
+      "clippingShapes": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "mode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "boolean"
+  },
+  {
+    "attributes": {
+      "colorShaders": {
+        "child": {
+          "children": [
+            {
+              "id": "shader"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "colorMaterial"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            }
+          ]
+        }
+      },
+      "colorShaders": {
+        "child": {
+          "children": [
+            {
+              "id": "shader"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "strokeMaterial"
+  },
+  {
+    "nodeType": "strokeDuplicator"
+  },
+  {
+    "nodeType": "extrude"
+  },
+  {
+    "nodeType": "voxelize"
+  },
+  {
+    "nodeType": "modulate"
+  },
+  {
+    "nodeType": "value"
+  },
+  {
+    "nodeType": "value2"
+  },
+  {
+    "nodeType": "value3"
+  },
+  {
+    "nodeType": "areaRange"
+  },
+  {
+    "nodeType": "areaRangeBase"
+  },
+  {
+    "nodeType": "align"
+  },
+  {
+    "nodeType": "autoCrop"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "animation"
+        },
+        {
+          "id": "timing"
+        }
+      ]
+    },
+    "nodeType": "autoAnimate"
+  },
+  {
+    "nodeType": "lookAt"
+  },
+  {
+    "nodeType": "round"
+  },
+  {
+    "nodeType": "addDivisions"
+  },
+  {
+    "nodeType": "distance"
+  },
+  {
+    "nodeType": "getVector"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "colorBlend"
+  },
+  {
+    "nodeType": "morph"
+  },
+  {
+    "nodeType": "valueBlend"
+  },
+  {
+    "nodeType": "value2Blend"
+  },
+  {
+    "nodeType": "value3Blend"
+  },
+  {
+    "nodeType": "positionBlend"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "rubberHoseLimb"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "materialSampler"
+  },
+  {
+    "nodeType": "imageSampler"
+  },
+  {
+    "nodeType": "skew"
+  },
+  {
+    "nodeType": "triangulate"
+  },
+  {
+    "nodeType": "pinch"
+  },
+  {
+    "nodeType": "curvesToLines"
+  },
+  {
+    "nodeType": "pushAlongVector"
+  },
+  {
+    "nodeType": "blendSubMeshPositionsLegacy"
+  },
+  {
+    "nodeType": "blendSubMeshPositions"
+  },
+  {
+    "nodeType": "manipulator"
+  },
+  {
+    "nodeType": "3dMatrix"
+  },
+  {
+    "nodeType": "spring"
+  },
+  {
+    "triggers": {
+      "out": [
+        "start",
+        "end",
+        "行程",
+        "invert",
+        "alwaysOn",
+        "alwaysOff"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "start",
+        "end",
+        "行程",
+        "alwaysOn",
+        "alwaysOff",
+        "invert"
+      ]
+    },
+    "nodeType": "visibility"
+  },
+  {
+    "nodeType": "extendOpenPaths"
+  },
+  {
+    "nodeType": "shader"
+  },
+  {
+    "nodeType": "thirdPartyShader"
+  },
+  {
+    "nodeType": "colorShader"
+  },
+  {
+    "nodeType": "slaShader"
+  },
+  {
+    "UI": {
+      "buttons": [
+        {
+          "name": "导出到插件...",
+          "script": "exportSkslToPlugin.js"
+        }
+      ]
+    },
+    "nodeType": "skslShader"
+  },
+  {
+    "attributes": {
+      "point": {
+        "child": {
+          "children": [
+            {
+              "id": "pointColor"
+            },
+            {
+              "id": "pointPosition"
+            },
+            {
+              "id": "influence"
+            },
+            {
+              "id": "jitter"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "multiPointGradientShader"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "basic"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "voronoiShader"
+  },
+  {
+    "nodeType": "checkerboardShader"
+  },
+  {
+    "nodeType": "gradientShader"
+  },
+  {
+    "nodeType": "gradientOperator"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            },
+            {
+              "id": "jitter"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "linearGradientShader"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            },
+            {
+              "id": "jitter"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "radialGradientShader"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            },
+            {
+              "id": "jitter"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "shapeGradientShader"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            },
+            {
+              "id": "jitter"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "sweepGradientShader"
+  },
+  {
+    "nodeType": "imageShader"
+  },
+  {
+    "attributes": {
+      "mattes": {
+        "child": {
+          "children": [
+            {
+              "id": "matteLayer"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "mode"
+            },
+            {
+              "id": "blendMode"
+            },
+            {
+              "id": "opacity"
+            },
+            {
+              "id": "feather"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "mattes"
+        }
+      ]
+    },
+    "nodeType": "filter"
+  },
+  {
+    "nodeType": "thirdPartyFilter"
+  },
+  {
+    "nodeType": "glowFilter"
+  },
+  {
+    "nodeType": "thresholdFilter"
+  },
+  {
+    "nodeType": "grainFilter"
+  },
+  {
+    "nodeType": "brightnessAndContrast"
+  },
+  {
+    "nodeType": "shiftChannels"
+  },
+  {
+    "nodeType": "blackAndWhite"
+  },
+  {
+    "nodeType": "blurFilter"
+  },
+  {
+    "nodeType": "gaussianBlurFilter"
+  },
+  {
+    "nodeType": "backgroundBlurFilter"
+  },
+  {
+    "nodeType": "maskBlurFilter"
+  },
+  {
+    "nodeType": "dropShadowFilter"
+  },
+  {
+    "nodeType": "gaussianDropShadowFilter"
+  },
+  {
+    "nodeType": "innerShadowFilter"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            },
+            {
+              "id": "jitter"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "conicalGradientShader"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "conicalGradientShaderLegacy"
+  },
+  {
+    "nodeType": "shapeToShader"
+  },
+  {
+    "nodeType": "venetianBlinds"
+  },
+  {
+    "nodeType": "scrapeFilter"
+  },
+  {
+    "nodeType": "triToneFilter"
+  },
+  {
+    "nodeType": "stripesFilter"
+  },
+  {
+    "nodeType": "pixelSortingFilter"
+  },
+  {
+    "nodeType": "levels"
+  },
+  {
+    "nodeType": "fill"
+  },
+  {
+    "nodeType": "linearWipe"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "crtScanLines"
+  },
+  {
+    "nodeType": "kitaokaFilter"
+  },
+  {
+    "nodeType": "radialWipe"
+  },
+  {
+    "nodeType": "hueSaturationLightness"
+  },
+  {
+    "nodeType": "invert"
+  },
+  {
+    "nodeType": "noiseShader"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        }
+      ]
+    },
+    "nodeType": "basicShape"
+  },
+  {
+    "nodeType": "svgShape"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "duplicator"
+  },
+  {
+    "nodeType": "distribution"
+  },
+  {
+    "nodeType": "randomDistribution"
+  },
+  {
+    "nodeType": "gridDistribution"
+  },
+  {
+    "triggers": {
+      "out": [
+        "count",
+        "radius",
+        "angle",
+        "calculateRotations",
+        "flip",
+        "useIndex",
+        "行程",
+        "startAngle",
+        "includeEnd"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "count",
+        "radius",
+        "startAngle",
+        "angle",
+        "includeEnd",
+        "calculateRotations",
+        "flip",
+        "行程"
+      ]
+    },
+    "nodeType": "circleDistribution"
+  },
+  {
+    "nodeType": "pointDistribution"
+  },
+  {
+    "nodeType": "mathDistribution"
+  },
+  {
+    "attributes": {
+      "masks": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "mode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "maskDistribution"
+  },
+  {
+    "nodeType": "shuffleDistribution"
+  },
+  {
+    "nodeType": "sortDistribution"
+  },
+  {
+    "nodeType": "arrayDistribution"
+  },
+  {
+    "triggers": {
+      "out": [
+        "count",
+        "inputShape",
+        "行程",
+        "length",
+        "flip",
+        "excludeEnd",
+        "calculateRotations",
+        "offset",
+        "mode"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "mode",
+        "count",
+        "inputShape",
+        "行程",
+        "length",
+        "calculateRotations",
+        "flip",
+        "excludeEnd",
+        "offset"
+      ]
+    },
+    "nodeType": "pathDistribution"
+  },
+  {
+    "nodeType": "shapePointDistribution"
+  },
+  {
+    "nodeType": "shapeEdgeDistribution"
+  },
+  {
+    "nodeType": "epicycloid"
+  },
+  {
+    "nodeType": "roseDistribution"
+  },
+  {
+    "nodeType": "epitrochoid"
+  },
+  {
+    "nodeType": "pointToVector"
+  },
+  {
+    "nodeType": "shortestPath"
+  },
+  {
+    "nodeType": "typeShape"
+  },
+  {
+    "nodeType": "textMaterialBehaviour"
+  },
+  {
+    "nodeType": "textStyleBehaviour"
+  },
+  {
+    "attributes": {
+      "falloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "applyFontSize"
+  },
+  {
+    "attributes": {
+      "font": {
+        "default": {
+          "font": "拉图",
+          "style": "粗体"
+        }
+      }
+    },
+    "nodeType": "applyTypeface"
+  },
+  {
+    "attributes": {
+      "pairs": {
+        "child": {
+          "children": [
+            {
+              "id": "matchString"
+            },
+            {
+              "id": "spacing"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "applyCharacterSpacing"
+  },
+  {
+    "attributes": {
+      "falloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "applyFontStyle"
+  },
+  {
+    "attributes": {
+      "features": {
+        "child": {
+          "children": [
+            {
+              "id": "feature"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      },
+      "falloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "applyOpenType"
+  },
+  {
+    "attributes": {
+      "shaders": {
+        "child": {
+          "children": [
+            {
+              "id": "shader"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "applyTextFill"
+  },
+  {
+    "attributes": {
+      "falloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "behaviour"
+        },
+        {
+          "id": "fill"
+        },
+        {
+          "id": "stroke"
+        }
+      ]
+    },
+    "nodeType": "applyTextMaterial"
+  },
+  {
+    "attributes": {
+      "font": {
+        "default": {
+          "font": "拉图",
+          "style": "经常"
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "background"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "textShape"
+  },
+  {
+    "nodeType": "customShape"
+  },
+  {
+    "nodeType": "isolinesShape"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        }
+      ]
+    },
+    "nodeType": "celAnimationShape"
+  },
+  {
+    "nodeType": "shapeOffset"
+  },
+  {
+    "nodeType": "textEngine"
+  },
+  {
+    "nodeType": "textHash"
+  },
+  {
+    "nodeType": "textDate"
+  },
+  {
+    "nodeType": "textBlockUnicode"
+  },
+  {
+    "nodeType": "textFormatted"
+  },
+  {
+    "nodeType": "textHex"
+  },
+  {
+    "nodeType": "textValue"
+  },
+  {
+    "nodeType": "textNumber"
+  },
+  {
+    "nodeType": "formattedDateAndTime"
+  },
+  {
+    "nodeType": "imageToShapes"
+  },
+  {
+    "nodeType": "basicLine"
+  },
+  {
+    "nodeType": "outline"
+  },
+  {
+    "nodeType": "linearDistribution"
+  },
+  {
+    "nodeType": "customDistribution"
+  },
+  {
+    "nodeType": "meshDistribution"
+  },
+  {
+    "nodeType": "particleDistribution"
+  },
+  {
+    "nodeType": "fibonacciDistribution"
+  },
+  {
+    "nodeType": "primitive"
+  },
+  {
+    "nodeType": "rectangleShape"
+  },
+  {
+    "nodeType": "polygonShape"
+  },
+  {
+    "nodeType": "ellipseShape"
+  },
+  {
+    "nodeType": "circleShape"
+  },
+  {
+    "nodeType": "starShape"
+  },
+  {
+    "nodeType": "superEllipseShape"
+  },
+  {
+    "UI": {
+      "buttons": [
+        {
+          "name": "随机化",
+          "script": "superShapeRandomise.js"
+        }
+      ]
+    },
+    "nodeType": "superShape"
+  },
+  {
+    "nodeType": "squircleShape"
+  },
+  {
+    "nodeType": "ringShape"
+  },
+  {
+    "nodeType": "arcShape"
+  },
+  {
+    "nodeType": "capsuleShape"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "source"
+        },
+        {
+          "id": "target"
+        }
+      ]
+    },
+    "nodeType": "connectShape"
+  },
+  {
+    "nodeType": "lineGenerator"
+  },
+  {
+    "nodeType": "simpleLine"
+  },
+  {
+    "nodeType": "spiralLine"
+  },
+  {
+    "nodeType": "bezierLine"
+  },
+  {
+    "nodeType": "rayLine"
+  },
+  {
+    "nodeType": "voxelizeDistribution"
+  },
+  {
+    "nodeType": "patternShape"
+  },
+  {
+    "nodeType": "boundingBoxShape"
+  },
+  {
+    "nodeType": "testFft"
+  },
+  {
+    "nodeType": "backgroundShape"
+  },
+  {
+    "nodeType": "footageShape"
+  },
+  {
+    "attributes": {
+      "meshVertex": {
+        "child": {
+          "children": [
+            {
+              "id": "bindPosition"
+            },
+            {
+              "id": "offset"
+            }
+          ]
+        }
+      },
+      "controlPaths": {
+        "child": {
+          "children": [
+            {
+              "id": "offsetPath"
+            },
+            {
+              "id": "bindPath"
+            }
+          ]
+        }
+      },
+      "meshControllerFalloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "mesh"
+        }
+      ]
+    },
+    "nodeType": "meshShape"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "advanced"
+        },
+        {
+          "id": "stroke"
+        }
+      ]
+    },
+    "nodeType": "trails"
+  },
+  {
+    "nodeType": "convexHull"
+  },
+  {
+    "UI": {
+      "buttons": [
+        {
+          "name": "绑定所选形状",
+          "script": "attachCornerPin.js"
+        }
+      ]
+    },
+    "nodeType": "cornerPinShape"
+  },
+  {
+    "nodeType": "pointsToCurve"
+  },
+  {
+    "nodeType": "connectDistribution"
+  },
+  {
+    "nodeType": "quadTreeShape"
+  },
+  {
+    "nodeType": "transformDistribution"
+  },
+  {
+    "attributes": {
+      "inputShapes": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "intersectionDistribution"
+  },
+  {
+    "nodeType": "cogwheelShape"
+  },
+  {
+    "nodeType": "cogwheelGearShape"
+  },
+  {
+    "nodeType": "arrowShape"
+  },
+  {
+    "nodeType": "arrowHead"
+  },
+  {
+    "nodeType": "basicArrowHead"
+  },
+  {
+    "nodeType": "chevronHead"
+  },
+  {
+    "nodeType": "barbedHead"
+  },
+  {
+    "nodeType": "circleHead"
+  },
+  {
+    "nodeType": "boxHead"
+  },
+  {
+    "nodeType": "textTimecode"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "numberRangeBase"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "numberRange"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "numberRangeToColorBase"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "numberRangeToColor"
+  },
+  {
+    "nodeType": "cleanUp"
+  },
+  {
+    "nodeType": "contoursToSubMeshes"
+  },
+  {
+    "nodeType": "resamplePath"
+  },
+  {
+    "nodeType": "meshBehaviour"
+  },
+  {
+    "nodeType": "measure"
+  },
+  {
+    "nodeType": "pathLength"
+  },
+  {
+    "nodeType": "stringManipulator"
+  },
+  {
+    "nodeType": "stringGenerator"
+  },
+  {
+    "nodeType": "stringOperator"
+  },
+  {
+    "nodeType": "contextIndex"
+  },
+  {
+    "nodeType": "layerSeed"
+  },
+  {
+    "nodeType": "secondsToFrames"
+  },
+  {
+    "nodeType": "shuffleString"
+  },
+  {
+    "nodeType": "resizeString"
+  },
+  {
+    "nodeType": "replaceString"
+  },
+  {
+    "nodeType": "changeStringCase"
+  },
+  {
+    "nodeType": "concatenateStringArray"
+  },
+  {
+    "nodeType": "subString"
+  },
+  {
+    "nodeType": "regexString"
+  },
+  {
+    "attributes": {
+      "falloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "unicodeManipulator"
+  },
+  {
+    "nodeType": "transitionString"
+  },
+  {
+    "nodeType": "string"
+  },
+  {
+    "nodeType": "localTime"
+  },
+  {
+    "attributes": {
+      "promotedAttributes": {
+        "child": {
+          "children": [
+            {
+              "id": "attribute"
+            },
+            {
+              "placeholder": "自定义控件名称。",
+              "id": "name"
+            },
+            {
+              "placeholder": "添加备注以帮助描述该控件。",
+              "id": "notes"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "controls"
+        }
+      ]
+    },
+    "nodeType": "component"
+  },
+  {
+    "UI": {
+      "buttons": [
+        {
+          "name": "创建并连接矩形",
+          "script": "rectForBBox.js"
+        }
+      ]
+    },
+    "nodeType": "boundingBox"
+  },
+  {
+    "nodeType": "radius"
+  },
+  {
+    "nodeType": "assetArray"
+  },
+  {
+    "nodeType": "arrayManipulator"
+  },
+  {
+    "nodeType": "arrayOperator"
+  },
+  {
+    "nodeType": "resizeArray"
+  },
+  {
+    "nodeType": "sortArray"
+  },
+  {
+    "nodeType": "shuffleArray"
+  },
+  {
+    "nodeType": "manipulateArray"
+  },
+  {
+    "nodeType": "fillRule"
+  },
+  {
+    "nodeType": "subdivide"
+  },
+  {
+    "nodeType": "compConstraint"
+  },
+  {
+    "nodeType": "stringArray"
+  },
+  {
+    "nodeType": "flattenShapeLayers"
+  },
+  {
+    "nodeType": "pathOffsetBehaviour"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "null"
+  },
+  {
+    "nodeType": "componentConstraint"
+  },
+  {
+    "nodeType": "constraintOperator"
+  },
+  {
+    "nodeType": "transformConstraint"
+  },
+  {
+    "nodeType": "latticeController"
+  },
+  {
+    "nodeType": "isWithin"
+  },
+  {
+    "nodeType": "envilopeDistort"
+  },
+  {
+    "nodeType": "mergeShape"
+  },
+  {
+    "nodeType": "getLayerName"
+  },
+  {
+    "nodeType": "pointConstraint"
+  },
+  {
+    "nodeType": "edgeConstraint"
+  },
+  {
+    "nodeType": "shaderArray"
+  },
+  {
+    "nodeType": "shapeArray"
+  },
+  {
+    "nodeType": "editablePathArray"
+  },
+  {
+    "nodeType": "gradientBuilder"
+  },
+  {
+    "attributes": {
+      "blendShapes": {
+        "child": {
+          "children": [
+            {
+              "id": "inputShape"
+            },
+            {
+              "id": "strength"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "blendShape"
+  },
+  {
+    "nodeType": "simpleMeshSolver"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "solver"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "simpleValue2Solver"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "solver"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "simpleValueSolver"
+  },
+  {
+    "nodeType": "accumulator"
+  },
+  {
+    "nodeType": "gradientStopArray"
+  },
+  {
+    "nodeType": "growthSolver"
+  },
+  {
+    "nodeType": "lengthContext"
+  },
+  {
+    "nodeType": "typeface"
+  },
+  {
+    "nodeType": "typefaceArray"
+  },
+  {
+    "nodeType": "velocityContext"
+  },
+  {
+    "nodeType": "velocityMagnitudeContext"
+  },
+  {
+    "triggers": {
+      "out": [
+        "sequence",
+        "seed",
+        "autoIndex",
+        "arrayIndex",
+        "skipIndices",
+        "randomize",
+        "reverse",
+        "hidden",
+        "offset",
+        "行程"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "autoIndex",
+        "arrayIndex",
+        "sequence",
+        "offset",
+        "行程",
+        "reverse",
+        "randomize",
+        "seed",
+        "skipIndices"
+      ]
+    },
+    "nodeType": "sequence"
+  },
+  {
+    "nodeType": "layoutItem"
+  },
+  {
+    "nodeType": "horizontalLayout"
+  },
+  {
+    "nodeType": "verticalLayout"
+  },
+  {
+    "nodeType": "gridLayout"
+  },
+  {
+    "attributes": {
+      "layoutItems": {
+        "child": {
+          "children": [
+            {
+              "id": "inputShape"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "contentType"
+            },
+            {
+              "id": "baseline"
+            },
+            {
+              "id": "verticalAlignment"
+            },
+            {
+              "id": "horizontalAlignment"
+            },
+            {
+              "id": "columnSpan"
+            },
+            {
+              "id": "rowSpan"
+            },
+            {
+              "id": "fixedPosition"
+            },
+            {
+              "id": "position"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "layoutShape"
+  },
+  {
+    "nodeType": "spacerItem"
+  },
+  {
+    "nodeType": "applyLayout"
+  },
+  {
+    "nodeType": "stringLength"
+  },
+  {
+    "nodeType": "rectPatternItem"
+  },
+  {
+    "nodeType": "lineRectPatternGenerator"
+  },
+  {
+    "nodeType": "ringRectPatternGenerator"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        }
+      ]
+    },
+    "nodeType": "bentoShape"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "rectPatternShape"
+  },
+  {
+    "nodeType": "colorInfo"
+  },
+  {
+    "nodeType": "contrastingColor"
+  },
+  {
+    "nodeType": "hsvColor"
+  },
+  {
+    "nodeType": "subBoundingBox"
+  },
+  {
+    "nodeType": "getSubMeshTransform"
+  },
+  {
+    "nodeType": "countSubMeshes"
+  },
+  {
+    "niceName": "波浪",
+    "triggers": {
+      "out": [
+        "mode",
+        "amplitude",
+        "行程",
+        "numberOfWaves",
+        "samplePoints",
+        "outputBeziers",
+        "adaptiveWaveCounts"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "mode",
+        "numberOfWaves",
+        "adaptiveWaveCounts",
+        "amplitude",
+        "行程",
+        "samplePoints",
+        "outputBeziers"
+      ]
+    },
+    "nodeType": "wave"
+  },
+  {
+    "nodeType": "stitches"
+  },
+  {
+    "nodeType": "knot"
+  },
+  {
+    "triggers": {
+      "out": [
+        "strokeCount",
+        "seed",
+        "stroke",
+        "minimumDistance",
+        "maximumDistance",
+        "overlap",
+        "行程",
+        "deformers"
+      ]
+    },
+    "UI": {
+      "tabs": [
+        {
+          "attributeOrder": [
+            "strokeCount",
+            "seed",
+            "minimumDistance",
+            "maximumDistance",
+            "overlap",
+            "行程",
+            "deformers"
+          ],
+          "id": "behaviour"
+        },
+        {
+          "id": "stroke"
+        }
+      ]
+    },
+    "nodeType": "toonOutlines"
+  },
+  {
+    "niceName": "分割路径",
+    "nodeType": "chopPath"
+  },
+  {
+    "triggers": {
+      "polyMesh": [
+        "extensionMode",
+        "mode",
+        "extend",
+        "count",
+        "relativeCounts",
+        "行程",
+        "reverse",
+        "inputShapes"
+      ]
+    },
+    "nodeType": "segmentPath"
+  },
+  {
+    "nodeType": "extractSubMeshes"
+  },
+  {
+    "attributes": {
+      "shapes": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "friction"
+            },
+            {
+              "id": "bounce"
+            },
+            {
+              "id": "density"
+            },
+            {
+              "id": "gravityScale"
+            },
+            {
+              "id": "bodyType"
+            },
+            {
+              "id": "constrainKinematicHybrids"
+            },
+            {
+              "id": "hybridFrequency"
+            },
+            {
+              "id": "hybridDamping"
+            },
+            {
+              "id": "sensor"
+            },
+            {
+              "id": "shapeType"
+            },
+            {
+              "id": "maxFixturesPerBody"
+            },
+            {
+              "id": "stiffness"
+            },
+            {
+              "id": "damping"
+            },
+            {
+              "id": "pressure"
+            },
+            {
+              "id": "shapeMatching"
+            },
+            {
+              "id": "particleRadius"
+            },
+            {
+              "id": "maxStretch"
+            },
+            {
+              "id": "liveForever"
+            },
+            {
+              "id": "lifeSpan"
+            },
+            {
+              "id": "allowsSleep"
+            },
+            {
+              "id": "startsAsleep"
+            },
+            {
+              "id": "initialPosVelocity"
+            },
+            {
+              "id": "initialRotVel"
+            },
+            {
+              "id": "posDamping"
+            },
+            {
+              "id": "rotDamping"
+            },
+            {
+              "id": "useMaxPosVel"
+            },
+            {
+              "id": "maxPosVel"
+            },
+            {
+              "id": "useMaxRotVel"
+            },
+            {
+              "id": "maxRotVel"
+            },
+            {
+              "id": "collisionGroups"
+            },
+            {
+              "id": "collidesWith"
+            },
+            {
+              "id": "levelMode"
+            },
+            {
+              "id": "level"
+            },
+            {
+              "id": "auxiliary"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        },
+        {
+          "id": "bodies"
+        },
+        {
+          "id": "initial"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "forgeDynamicsShape"
+  },
+  {
+    "nodeType": "forgeBodyAuxiliary"
+  },
+  {
+    "nodeType": "forgeConstraint"
+  },
+  {
+    "nodeType": "pinConstraint"
+  },
+  {
+    "nodeType": "distanceConstraint"
+  },
+  {
+    "attributes": {
+      "pins": {
+        "child": {
+          "children": [
+            {
+              "id": "mode"
+            },
+            {
+              "id": "pinnedIndex"
+            },
+            {
+              "id": "id"
+            },
+            {
+              "id": "enableLimit"
+            },
+            {
+              "id": "limits"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "bridgeConstraint"
+  },
+  {
+    "attributes": {
+      "falloffs": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "blendMode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "dynamicField"
+  },
+  {
+    "nodeType": "directionField"
+  },
+  {
+    "nodeType": "dragField"
+  },
+  {
+    "nodeType": "attractorField"
+  },
+  {
+    "nodeType": "vortexField"
+  },
+  {
+    "nodeType": "buoyancyField"
+  },
+  {
+    "attributes": {
+      "captureGraph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      },
+      "flowGraph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "pathField"
+  },
+  {
+    "nodeType": "collisionEvent"
+  },
+  {
+    "attributes": {
+      "shaders": {
+        "child": {
+          "children": [
+            {
+              "id": "shader"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      },
+      "thirdShaders": {
+        "child": {
+          "children": [
+            {
+              "id": "shader"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "colorCollisionEvent"
+  },
+  {
+    "nodeType": "impulseCollisionEvent"
+  },
+  {
+    "nodeType": "stickyCollisionEvent"
+  },
+  {
+    "nodeType": "bodySettingCollisionEvent"
+  },
+  {
+    "nodeType": "visibilityCollisionEvent"
+  },
+  {
+    "UI": {
+      "buttons": [
+        {
+          "name": "导出到插件...",
+          "script": "exportSkslToPlugin.js"
+        }
+      ]
+    },
+    "nodeType": "skslFilter"
+  },
+  {
+    "nodeType": "pixelateFilter"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "colours"
+        }
+      ]
+    },
+    "nodeType": "rgbSplitFilter"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        }
+      ]
+    },
+    "nodeType": "posterizeFilter"
+  },
+  {
+    "nodeType": "vignetteFilter"
+  },
+  {
+    "nodeType": "slitScanFilter"
+  },
+  {
+    "attributes": {
+      "gradient": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "color"
+            },
+            {
+              "id": "jitter"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "gradientMapFilter"
+  },
+  {
+    "nodeType": "gradientFilter"
+  },
+  {
+    "nodeType": "mirrorFilter"
+  },
+  {
+    "nodeType": "hsvAdjustmentFilter"
+  },
+  {
+    "nodeType": "gammaCorrectionFilter"
+  },
+  {
+    "nodeType": "sharpenFilter"
+  },
+  {
+    "nodeType": "motionBlurFilter"
+  },
+  {
+    "nodeType": "edgeDetection"
+  },
+  {
+    "nodeType": "frostedGlassFilter"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "basic"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "halftoneLegacyFilter"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "halftoneFilter"
+  },
+  {
+    "attributes": {
+      "shaders": {
+        "child": {
+          "children": [
+            {
+              "id": "shader"
+            },
+            {
+              "id": "enabled"
+            },
+            {
+              "id": "invert"
+            },
+            {
+              "id": "sampleMode"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "blendShader"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "advanced"
+        }
+      ]
+    },
+    "nodeType": "ditheringFilter"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "shader"
+        }
+      ]
+    },
+    "nodeType": "distortionFilter"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "shader"
+        }
+      ]
+    },
+    "nodeType": "distortEdges"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "red"
+        },
+        {
+          "id": "green"
+        },
+        {
+          "id": "blue"
+        },
+        {
+          "id": "shader"
+        }
+      ]
+    },
+    "nodeType": "chromaticDisplacement"
+  },
+  {
+    "nodeType": "displacementUtility"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "filter"
+        },
+        {
+          "id": "colours"
+        }
+      ]
+    },
+    "nodeType": "chromaticAberrationFilter"
+  },
+  {
+    "nodeType": "行程",
+    "niceName": "行程",
+    "superType": "behaviourBase",
+    "version": 1,
+    "attributes": {
+      "travel": {
+        "type": "double",
+        "default": 0,
+        "prefix": "%",
+        "step": 0.5
+      }
+    },
+    "triggers": {
+      "out": [
+        "行程"
+      ]
+    },
+    "defaultOutput": "out",
+    "UI": {
+      "attributeOrder": [
+        "行程"
+      ],
+      "publicUI": true
+    }
+  },
+  {
+    "niceName": "反转路径",
+    "nodeType": "reversePathUtility"
+  },
+  {
+    "niceName": "规范化路径方向",
+    "nodeType": "normalizePathUtility"
+  },
+  {
+    "niceName": "移除轮廓",
+    "nodeType": "removeContoursUtility"
+  },
+  {
+    "niceName": "JavaScript形状",
+    "UI": {
+      "tabs": [
+        {
+          "id": "javaScript"
+        }
+      ]
+    },
+    "nodeType": "javaScriptShape"
+  },
+  {
+    "niceName": "JavaScript变形器",
+    "nodeType": "javaScriptDeformer"
+  },
+  {
+    "nodeType": "stringFromAsset"
+  },
+  {
+    "nodeType": "timeMarkerFolder"
+  },
+  {
+    "attributes": {
+      "drawColor": {
+        "default": "蓝色"
+      }
+    },
+    "nodeType": "timeMarker"
+  },
+  {
+    "nodeType": "keyframe"
+  },
+  {
+    "nodeType": "schedulingGroup"
+  },
+  {
+    "nodeType": "layoutGroupBase"
+  },
+  {
+    "nodeType": "layoutGroup"
+  },
+  {
+    "nodeType": "gridLayoutGroup"
+  },
+  {
+    "nodeType": "gridLayoutRow"
+  },
+  {
+    "nodeType": "visibilityCurve"
+  },
+  {
+    "nodeType": "bone"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "basic"
+        },
+        {
+          "id": "solver"
+        }
+      ]
+    },
+    "nodeType": "inverseKinematicsControl"
+  },
+  {
+    "nodeType": "skeleton"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "skinning"
+  },
+  {
+    "attributes": {
+      "graph": {
+        "child": {
+          "children": [
+            {
+              "id": "interpolation"
+            },
+            {
+              "id": "position"
+            },
+            {
+              "id": "left"
+            },
+            {
+              "id": "right"
+            },
+            {
+              "id": "joined"
+            },
+            {
+              "id": "weightLocked"
+            }
+          ]
+        }
+      },
+      "markerColor": {
+        "default": "蓝色"
+      }
+    },
+    "nodeType": "timelineCounter"
+  },
+  {
+    "nodeType": "chartEngine"
+  },
+  {
+    "nodeType": "pieChart"
+  },
+  {
+    "attributes": {
+      "series": {
+        "child": {
+          "children": [
+            {
+              "id": "column"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "barChart"
+  },
+  {
+    "nodeType": "lineChart"
+  },
+  {
+    "UI": {
+      "tabs": [
+        {
+          "id": "shape"
+        }
+      ]
+    },
+    "nodeType": "chartShape"
+  },
+  {
+    "nodeType": "timeStepFilter"
+  },
+  {
+    "attributes": {
+      "debugMode": {
+        "enumValues": [
+          "关闭",
+          "Show Distance Field",
+          "Show Shadow Only"
+        ]
+      }
+    }
+  },
+  {
+    "author": "cavalry",
+    "type": "luminanceBlur",
+    "superType": "filter",
+    "version": "1.0",
+    "attributes": {
+      "filterInputCompositing": {
+        "default": 1
+      },
+      "maxBlurAmount": {
+        "type": "double",
+        "default": 20,
+        "min": 0,
+        "max": 200,
+        "step": 0.1
+      },
+      "minBlurAmount": {
+        "type": "double",
+        "default": 0,
+        "min": 0,
+        "max": 200,
+        "step": 0.1
+      },
+      "invertLuminance": {
+        "type": "bool",
+        "default": false
+      },
+      "tileMode": {
+        "type": "enum",
+        "default": 2,
+        "enumValues": [
+          0,
+          1,
+          2
+        ]
+      },
+      "controlShape": {
+        "type": "nodeId",
+        "supportedInputNodeTypes": [
+          "shape"
+        ]
+      },
+      "debugMode": {
+        "type": "enum",
+        "default": 0,
+        "enumValues": [
+          0,
+          1
+        ]
+      }
+    },
+    "triggers": {
+      "out": [
+        "maxBlurAmount",
+        "minBlurAmount",
+        "invertLuminance",
+        "tileMode",
+        "controlShape",
+        "debugMode"
+      ]
+    },
+    "UI": {
+      "attributeOrder": [
+        "controlShape",
+        "maxBlurAmount",
+        "minBlurAmount",
+        "invertLuminance",
+        "debugMode"
+      ]
+    }
+  },
+  {
+    "nodeType": "pathRelax"
+  },
+  {
+    "nodeType": "pathAverage"
+  },
+  {
+    "nodeType": "pointDisplace"
+  },
+  {
+    "nodeType": "pathSplit"
+  },
+  {
+    "attributes": {
+      "deformers": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "nodeType": "meshSolver"
+  },
+  {
+    "niceName": "晶格",
+    "attributes": {
+      "controllers": {
+        "child": {
+          "children": [
+            {
+              "id": "id"
+            },
+            {
+              "id": "enabled"
+            }
+          ]
+        }
+      }
+    },
+    "UI": {
+      "buttons": [
+        {
+          "name": "重置晶格",
+          "script": "latticeReset.js"
+        },
+        {
+          "name": "关键帧选择",
+          "script": "latticeKeyframeSelection.js"
+        },
+        {
+          "name": "将控制器添加到选择",
+          "script": "latticeConstrainSelection.js"
+        }
+      ]
+    },
+    "nodeType": "lattice"
+  },
+  {
+    "niceName": "四点变形",
+    "attributes": {
+      "corner0": {
+        "children": [
+          {
+            "id": "position"
+          },
+          {
+            "id": "tangentIn"
+          },
+          {
+            "id": "tangentOut"
+          }
+        ]
+      },
+      "corner1": {
+        "children": [
+          {
+            "id": "position"
+          },
+          {
+            "id": "tangentIn"
+          },
+          {
+            "id": "tangentOut"
+          }
+        ]
+      },
+      "corner2": {
+        "children": [
+          {
+            "id": "position"
+          },
+          {
+            "id": "tangentIn"
+          },
+          {
+            "id": "tangentOut"
+          }
+        ]
+      },
+      "corner3": {
+        "children": [
+          {
+            "id": "position"
+          },
+          {
+            "id": "tangentIn"
+          },
+          {
+            "id": "tangentOut"
+          }
+        ]
+      }
+    },
+    "nodeType": "fourPointWarp"
+  }
+]

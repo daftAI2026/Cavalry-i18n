@@ -1,0 +1,1526 @@
+[
+  {
+    "description": "傳回上游區域變換矩陣，如果不存在則傳回 null。",
+    "name": "transformationMatrix"
+  },
+  {
+    "description": "傳回上游全域變換矩陣，如果不存在則傳回 null。",
+    "name": "globalTransformationMatrix"
+  },
+  {
+    "description": "物件的索引（例如在複製器中的索引）。",
+    "name": "index"
+  },
+  {
+    "description": "正在計算的形狀數量（例如在複製器中）。",
+    "name": "count"
+  },
+  {
+    "description": "正在計算的屬性 ID。",
+    "name": "attributeId"
+  },
+  {
+    "description": "正在計算的圖層 ID。",
+    "name": "layerId"
+  },
+  {
+    "description": "正在計算的圖層的友好名稱。",
+    "name": "niceName"
+  },
+  {
+    "arguments": [
+      {
+        "name": "name"
+      }
+    ],
+    "description": "檢查是否存在指定名稱的物件並可將其載入。",
+    "name": "hasObject"
+  },
+  {
+    "arguments": [
+      {
+        "name": "name"
+      },
+      {
+        "name": "object"
+      }
+    ],
+    "description": "儲存一個物件，以便在後續計算中擷取。",
+    "name": "saveObject"
+  },
+  {
+    "arguments": [
+      {
+        "name": "name"
+      }
+    ],
+    "description": "載入先前儲存的物件。",
+    "name": "loadObject"
+  },
+  {
+    "description": "傳回一個表示正在變形形狀的邊界框物件。",
+    "name": "getBoundingBox"
+  },
+  {
+    "arguments": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "y"
+      }
+    ],
+    "description": "傳回給定區域位置處的衰減值（0-1），乘以強度。",
+    "name": "getFalloffAtPoint"
+  },
+  {
+    "description": "最大網格深度。",
+    "name": "meshDepth"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      }
+    ],
+    "description": "傳回給定深度處的網格數量。",
+    "name": "meshCountAtDepth"
+  },
+  {
+    "description": "傳回帶有路徑的最高深度。",
+    "name": "highestDepthWithPath"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      }
+    ],
+    "description": "傳回一個 Mesh 物件陣列。",
+    "name": "getMeshesAtDepth"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      },
+      {
+        "name": "meshes"
+      }
+    ],
+    "description": "在給定深度處設定一個網格陣列。",
+    "name": "setMeshesAtDepth"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      },
+      {
+        "name": "index"
+      }
+    ],
+    "description": "傳回給定深度和索引處的 Mesh。",
+    "name": "getMeshAtDepthAtIndex"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      },
+      {
+        "name": "index"
+      },
+      {
+        "name": "mesh"
+      }
+    ],
+    "description": "用提供的網格物件替換指定深度和索引處的網格。",
+    "name": "setMeshAtDepthAtIndex"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      },
+      {
+        "name": "index"
+      },
+      {
+        "name": "position"
+      },
+      {
+        "name": "rotation"
+      },
+      {
+        "name": "scale"
+      }
+    ],
+    "description": "對指定深度和索引處的網格套用變換。",
+    "name": "setTransformAtDepthAtIndex"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      },
+      {
+        "name": "index"
+      }
+    ],
+    "description": "清除指定深度和索引處網格的變換。",
+    "name": "clearTransformAtDepthAtIndex"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      },
+      {
+        "name": "index"
+      }
+    ],
+    "description": "將指定深度和索引處網格的軸心點置中。",
+    "name": "centrePivotAtDepthAtIndex"
+  },
+  {
+    "arguments": [
+      {
+        "name": "depth"
+      },
+      {
+        "name": "index"
+      },
+      {
+        "name": "material"
+      }
+    ],
+    "description": "設定指定深度和索引處網格的材質。",
+    "name": "setMaterialAtDepthAtIndex"
+  },
+  {
+    "description": "從所有網格中擷取點物件陣列。",
+    "name": "getPoints"
+  },
+  {
+    "arguments": [
+      {
+        "name": "points"
+      }
+    ],
+    "description": "使用點物件陣列設定所有網格中點的位置。",
+    "name": "setPoints"
+  },
+  {
+    "description": "傳回根 Mesh 及其完整的子網格階層結構，用於遞迴走訪。",
+    "name": "getRootMesh"
+  },
+  {
+    "arguments": [
+      {
+        "name": "mesh"
+      }
+    ],
+    "description": "設定根 Mesh，替換整個網格階層結構。",
+    "name": "setRootMesh"
+  },
+  {
+    "name": "Point"
+  },
+  {
+    "properties": [
+      {
+        "description": "取得目前的點陣列。",
+        "name": "points"
+      }
+    ],
+    "methods": [
+      {
+        "arguments": [
+          {
+            "name": "point"
+          }
+        ],
+        "description": "向點雲附加一個 Point。",
+        "name": "appendPoint"
+      },
+      {
+        "arguments": [
+          {
+            "name": "rotation"
+          }
+        ],
+        "description": "向點雲附加一個以度為單位的旋轉。確保存在對應的點。",
+        "name": "appendRotation"
+      },
+      {
+        "arguments": [
+          {
+            "name": "point"
+          }
+        ],
+        "description": "向點雲附加一個大小。確保存在對應的點。",
+        "name": "appendSize"
+      }
+    ],
+    "name": "PointCloud"
+  },
+  {
+    "properties": [
+      {
+        "description": "取得路徑的總長度。",
+        "name": "length"
+      },
+      {
+        "description": "指示路徑是否閉合。",
+        "name": "isClosed"
+      }
+    ],
+    "methods": [
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "將新輪廓的起點移動到 (x, y) 座標處。",
+        "name": "moveTo"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "加入一條直線。",
+        "name": "lineTo"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x1"
+          },
+          {
+            "name": "y1"
+          },
+          {
+            "name": "x2"
+          },
+          {
+            "name": "y2"
+          },
+          {
+            "name": "x3"
+          },
+          {
+            "name": "y3"
+          }
+        ],
+        "description": "向路徑加入一條三次貝茲曲線。",
+        "name": "cubicTo"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x1"
+          },
+          {
+            "name": "y1"
+          },
+          {
+            "name": "x2"
+          },
+          {
+            "name": "y2"
+          }
+        ],
+        "description": "向路徑加入一條二次貝茲曲線。",
+        "name": "quadTo"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x1"
+          },
+          {
+            "name": "y1"
+          },
+          {
+            "name": "x2"
+          },
+          {
+            "name": "y2"
+          },
+          {
+            "name": "radius"
+          }
+        ],
+        "description": "向路徑加入一段圓弧，該圓弧與從目前點到 (x1, y1) 的連線相切，終點為 (x2, y2)。",
+        "name": "arcTo"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x1"
+          },
+          {
+            "name": "y1"
+          },
+          {
+            "name": "x2"
+          },
+          {
+            "name": "y2"
+          },
+          {
+            "name": "weight"
+          }
+        ],
+        "description": "向路徑加入一條由 w 加權的圓錐曲線。",
+        "name": "conicTo"
+      },
+      {
+        "description": "透過繪製一條返回起點的直線來閉合目前輪廓。",
+        "name": "close"
+      },
+      {
+        "description": "清除整個路徑，移除所有點。",
+        "name": "clear"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          },
+          {
+            "name": "x2"
+          },
+          {
+            "name": "y2"
+          }
+        ],
+        "description": "向路徑加入一個矩形。",
+        "name": "addRect"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          },
+          {
+            "name": "rX"
+          },
+          {
+            "name": "rY"
+          }
+        ],
+        "description": "向路徑加入一個橢圓。",
+        "name": "addEllipse"
+      },
+      {
+        "arguments": [
+          {
+            "name": "text"
+          },
+          {
+            "name": "fontSize"
+          },
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "將文字字串加入路徑的指定位置，使用指定字型大小。",
+        "name": "addText"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "對路徑套用平移。",
+        "name": "translate"
+      },
+      {
+        "arguments": [
+          {
+            "name": "radians"
+          }
+        ],
+        "description": "按指定弧度旋轉路徑。",
+        "name": "rotate"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "按給定的 x 和 y 因子縮放路徑。",
+        "name": "scale"
+      },
+      {
+        "description": "將另一個 Path 物件附加到此路徑。",
+        "name": "append"
+      },
+      {
+        "description": "將此路徑設定為它與另一個路徑的交集。",
+        "name": "intersect"
+      },
+      {
+        "description": "將此路徑與另一個路徑合併。",
+        "name": "unite"
+      },
+      {
+        "description": "從此路徑中減去另一個路徑。",
+        "name": "difference"
+      },
+      {
+        "description": "將路徑中的所有直線轉換為貝茲曲線。",
+        "name": "convertToCurves"
+      },
+      {
+        "description": "將路徑轉換為一組不重疊的輪廓，這些輪廓描述與原始路徑相同的區域。",
+        "name": "mergeOverlaps"
+      },
+      {
+        "arguments": [
+          {
+            "name": "linesPerCurve"
+          }
+        ],
+        "description": "將路徑中的所有貝茲曲線轉換為直線。",
+        "name": "convertToLines"
+      },
+      {
+        "description": "傳回一個表示該路徑的序列化物件。",
+        "name": "toObject"
+      },
+      {
+        "description": "從物件反序列化並設定路徑。",
+        "name": "fromObject"
+      },
+      {
+        "description": "計算並傳回路徑的邊界框。",
+        "name": "boundingBox"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "尋找路徑上距離給定 (x, y) 座標最近的點。",
+        "name": "findClosestPoint"
+      },
+      {
+        "arguments": [
+          {
+            "name": "param"
+          }
+        ],
+        "description": "計算路徑上給定參數 t 處的切向量。",
+        "name": "tangentAtParam"
+      },
+      {
+        "arguments": [
+          {
+            "name": "param"
+          }
+        ],
+        "description": "計算路徑上給定參數 t 處的法向量。",
+        "name": "normalAtParam"
+      },
+      {
+        "arguments": [
+          {
+            "name": "param"
+          }
+        ],
+        "description": "計算路徑上給定參數 t 處切線的角度。",
+        "name": "angleAtParam"
+      },
+      {
+        "arguments": [
+          {
+            "name": "length"
+          }
+        ],
+        "description": "尋找路徑上對應給定長度的參數。",
+        "name": "paramAtLength"
+      },
+      {
+        "arguments": [
+          {
+            "name": "param"
+          }
+        ],
+        "description": "計算路徑上給定參數 t 處的點。",
+        "name": "pointAtParam"
+      },
+      {
+        "description": "傳回路徑中的點數。",
+        "name": "pointCount"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "判斷路徑是否包含給定的 (x, y) 點。",
+        "name": "contains"
+      },
+      {
+        "description": "檢查路徑是否為空。",
+        "name": "empty"
+      },
+      {
+        "description": "擷取表示該路徑的路徑資料。",
+        "name": "pathData"
+      },
+      {
+        "description": "根據提供的路徑資料設定路徑。",
+        "name": "setPathData"
+      },
+      {
+        "arguments": [
+          {
+            "name": "start"
+          },
+          {
+            "name": "end"
+          },
+          {
+            "name": "travel"
+          },
+          {
+            "name": "reverse"
+          }
+        ],
+        "description": "根據指定參數裁剪路徑。",
+        "name": "trim"
+      },
+      {
+        "arguments": [
+          {
+            "name": "distance"
+          },
+          {
+            "name": "rounded"
+          }
+        ],
+        "description": "將路徑偏移一定距離，可選擇圓角連接。",
+        "name": "offset"
+      },
+      {
+        "arguments": [
+          {
+            "name": "edgeLength"
+          }
+        ],
+        "description": "透過基於期望的 'edgeLength' 取樣點來重建路徑。",
+        "name": "resample"
+      },
+      {
+        "arguments": [
+          {
+            "name": "edgeLength"
+          }
+        ],
+        "description": "基於期望的 'edgeLength' 向目前路徑加入點。",
+        "name": "additiveResample"
+      },
+      {
+        "description": "傳回路徑與直線相交的點陣列。",
+        "name": "lineIntersections"
+      },
+      {
+        "description": "傳回此路徑與給定路徑相交的點陣列。",
+        "name": "pathIntersections"
+      },
+      {
+        "arguments": [
+          {
+            "name": "iterations"
+          },
+          {
+            "name": "radius"
+          },
+          {
+            "name": "relaxationStrength"
+          }
+        ],
+        "description": "鬆弛路徑中的點，使其相互遠離。",
+        "name": "relax"
+      },
+      {
+        "arguments": [
+          {
+            "name": "iterations"
+          },
+          {
+            "name": "smoothStrength"
+          }
+        ],
+        "description": "透過對點位置取平均值來平滑化路徑點。",
+        "name": "smooth"
+      },
+      {
+        "arguments": [
+          {
+            "name": "matrix"
+          }
+        ],
+        "description": "將路徑點位置乘以矩陣。",
+        "name": "applyMatrix"
+      },
+      {
+        "arguments": [
+          {
+            "name": "numberOfPoints"
+          },
+          {
+            "name": "seed"
+          },
+          {
+            "name": "sequence"
+          },
+          {
+            "name": "relaxIterations"
+          },
+          {
+            "name": "relaxDistance"
+          }
+        ],
+        "description": "透過擲鏢法在路徑內散佈點。預設情況下點會進行鬆弛處理。",
+        "name": "scatter"
+      },
+      {
+        "description": "將所有圓錐曲線動詞轉換為二次曲線動詞，因為 Cavalry 中並非所有功能都支援圓錐曲線動詞，這可能很有用。",
+        "name": "convertConicsToQuads"
+      },
+      {
+        "description": "傳回路徑的面積（以平方像素為單位）。此方法不支援孔洞。",
+        "name": "fastArea"
+      },
+      {
+        "description": "如果路徑為順時針方向則傳回 true。",
+        "name": "isClockwise"
+      },
+      {
+        "description": "反轉路徑方向。",
+        "name": "reverse"
+      }
+    ],
+    "name": "Path"
+  },
+  {
+    "properties": [
+      {
+        "description": "筆觸的色彩，以十六進位字串表示。",
+        "name": "strokeColor"
+      },
+      {
+        "description": "填色的色彩，以十六進位字串表示。",
+        "name": "fillColor"
+      },
+      {
+        "description": "指示材質是否應被填色。",
+        "name": "fill"
+      },
+      {
+        "description": "指示材質是否應有筆觸。",
+        "name": "stroke"
+      },
+      {
+        "description": "筆觸的寬度。",
+        "name": "strokeWidth"
+      },
+      {
+        "description": "指示筆觸是否應被裁剪。",
+        "name": "trim"
+      },
+      {
+        "description": "指示裁剪是否應以反向套用。",
+        "name": "trimReversed"
+      },
+      {
+        "description": "裁剪行程量。",
+        "name": "trimTravel"
+      },
+      {
+        "description": "裁剪的起始位置。",
+        "name": "trimStart"
+      },
+      {
+        "description": "裁剪的結束位置。",
+        "name": "trimEnd"
+      }
+    ],
+    "name": "Material"
+  },
+  {
+    "methods": [
+      {
+        "arguments": [
+          {
+            "name": "path"
+          },
+          {
+            "name": "material"
+          }
+        ],
+        "description": "向網格加入一條路徑。如果未提供材質，該路徑將從其父網格繼承材質。",
+        "name": "addPath"
+      },
+      {
+        "description": "傳回網格中的路徑數量。",
+        "name": "count"
+      },
+      {
+        "description": "檢查網格是否為空。",
+        "name": "empty"
+      },
+      {
+        "description": "清除網格中的所有路徑。",
+        "name": "clear"
+      },
+      {
+        "arguments": [
+          {
+            "name": "index"
+          }
+        ],
+        "description": "擷取指定索引處的路徑資料。用於編輯現有點。",
+        "name": "getPathDataAtIndex"
+      },
+      {
+        "arguments": [
+          {
+            "name": "index"
+          }
+        ],
+        "description": "擷取指定索引處的 Path 物件。用於向路徑加入內容。",
+        "name": "getPathAtIndex"
+      },
+      {
+        "arguments": [
+          {
+            "name": "index"
+          },
+          null
+        ],
+        "description": "設定指定索引處的路徑。",
+        "name": "setPathAtIndex"
+      },
+      {
+        "arguments": [
+          {
+            "name": "index"
+          },
+          null
+        ],
+        "description": "設定指定索引處的路徑資料。",
+        "name": "setPathDataAtIndex"
+      },
+      {
+        "arguments": [
+          {
+            "name": "index"
+          },
+          {
+            "name": "material"
+          }
+        ],
+        "description": "為指定索引處的路徑設定材質。傳入 null 可清除材質並從父級繼承。",
+        "name": "setMaterialAtIndex"
+      },
+      {
+        "description": "計算並傳回整個網格的邊界框。",
+        "name": "getBoundingBox"
+      },
+      {
+        "arguments": [
+          {
+            "name": "mesh"
+          }
+        ],
+        "description": "向此 Mesh 加入一個子網格。",
+        "name": "addChildMesh"
+      },
+      {
+        "description": "刪除此 Mesh 上的所有子網格。",
+        "name": "clearChildMeshes"
+      },
+      {
+        "description": "傳回子網格的數量。",
+        "name": "childMeshCount"
+      },
+      {
+        "arguments": [
+          {
+            "name": "index"
+          }
+        ],
+        "description": "傳回給定索引處的子 Mesh。",
+        "name": "getChildMeshAtIndex"
+      },
+      {
+        "arguments": [
+          {
+            "name": "index"
+          },
+          {
+            "name": "mesh"
+          }
+        ],
+        "description": "設定給定索引處的子 Mesh。",
+        "name": "setChildMeshAtIndex"
+      },
+      {
+        "description": "傳回一個表示此網格及所有子網格組合幾何體的路徑。",
+        "name": "getFlattenedPath"
+      }
+    ],
+    "name": "Mesh"
+  },
+  {
+    "constructors": {
+      "arguments": [
+        {
+          "name": "x1"
+        },
+        {
+          "name": "y1"
+        },
+        {
+          "name": "x2"
+        },
+        {
+          "name": "y2"
+        }
+      ]
+    },
+    "methods": [
+      {
+        "description": "取得直線的長度。",
+        "name": "length"
+      },
+      {
+        "description": "取得直線的角度（以弧度為單位）。",
+        "name": "angle"
+      },
+      {
+        "arguments": [
+          {
+            "name": "length"
+          }
+        ],
+        "description": "設定直線的長度。",
+        "name": "setLength"
+      },
+      {
+        "arguments": [
+          {
+            "name": "angle"
+          }
+        ],
+        "description": "設定直線的角度（以弧度為單位）。",
+        "name": "setAngle"
+      },
+      {
+        "description": "擷取直線的起點。",
+        "name": "start"
+      },
+      {
+        "description": "擷取直線的終點。",
+        "name": "end"
+      },
+      {
+        "description": "計算直線起點和終點之間的差值（座標差）。",
+        "name": "delta"
+      },
+      {
+        "arguments": [
+          {
+            "name": "param"
+          }
+        ],
+        "description": "計算直線上給定參數 t 處的點。",
+        "name": "pointAt"
+      },
+      {
+        "arguments": [
+          {
+            "name": "param"
+          }
+        ],
+        "description": "計算直線上給定參數 t 處的法向量。",
+        "name": "normalAt"
+      },
+      {
+        "arguments": [
+          {
+            "name": "{x"
+          }
+        ],
+        "description": "以給定的點向量平移直線。",
+        "name": "translate"
+      },
+      {
+        "arguments": [
+          {
+            "name": "{x"
+          }
+        ],
+        "description": "計算直線到給定點的最短距離。",
+        "name": "distance"
+      },
+      {
+        "arguments": [
+          {
+            "name": "{x"
+          }
+        ],
+        "description": "計算直線上距離給定點最近的點。",
+        "name": "closestPointTo"
+      },
+      {
+        "description": "傳回兩條直線的交點，如果沒有交點則傳回 null。",
+        "name": "lineIntersection"
+      }
+    ],
+    "name": "Line"
+  },
+  {
+    "methods": [
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "設定矩陣的位置（平移）。",
+        "name": "setPosition"
+      },
+      {
+        "arguments": [
+          {
+            "name": "angle"
+          }
+        ],
+        "description": "設定矩陣的旋轉（以度為單位）。",
+        "name": "setRotation"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "設定矩陣的縮放因子。",
+        "name": "setScale"
+      },
+      {
+        "arguments": [
+          {
+            "name": "x"
+          },
+          {
+            "name": "y"
+          }
+        ],
+        "description": "設定矩陣的傾斜因子。",
+        "name": "setSkew"
+      },
+      {
+        "description": "取得矩陣的縮放因子。",
+        "name": "scale"
+      },
+      {
+        "description": "取得矩陣的位置（平移）。",
+        "name": "position"
+      },
+      {
+        "description": "取得矩陣的傾斜。",
+        "name": "skew"
+      },
+      {
+        "description": "取得矩陣的旋轉（以度為單位）。",
+        "name": "rotation"
+      },
+      {
+        "arguments": [
+          {
+            "name": "other"
+          }
+        ],
+        "description": "傳回此矩陣與另一個矩陣相乘的結果（一個新矩陣）。",
+        "name": "multiply"
+      },
+      {
+        "description": "傳回此矩陣的逆矩陣（一個新矩陣）。",
+        "name": "inverted"
+      },
+      {
+        "description": "原地反轉此矩陣。",
+        "name": "invert"
+      },
+      {
+        "description": "檢查矩陣的所有元素是否都是有限值。",
+        "name": "isFinite"
+      },
+      {
+        "description": "檢查矩陣是否為單位矩陣。",
+        "name": "isIdentity"
+      },
+      {
+        "arguments": [
+          {
+            "name": "rect"
+          }
+        ],
+        "description": "使用此矩陣映射矩形 {x,y,width,height}，並傳回結果矩形。",
+        "name": "mapRect"
+      },
+      {
+        "arguments": [
+          {
+            "name": "point"
+          }
+        ],
+        "description": "使用此矩陣映射一個點，並傳回結果點。",
+        "name": "mapPoint"
+      },
+      {
+        "arguments": [
+          {
+            "name": "points"
+          }
+        ],
+        "description": "使用此矩陣映射點陣列，並傳回結果點陣列。",
+        "name": "mapPoints"
+      }
+    ],
+    "name": "Matrix"
+  },
+  {
+    "arguments": [
+      {
+        "name": "min"
+      },
+      {
+        "name": "max"
+      },
+      {
+        "name": "seed"
+      },
+      {
+        "name": "sequence"
+      }
+    ],
+    "description": "建立一個隨機數。",
+    "name": "random"
+  },
+  {
+    "arguments": [
+      {
+        "name": "min"
+      },
+      {
+        "name": "max"
+      },
+      {
+        "name": "seed"
+      },
+      {
+        "name": "sequence"
+      }
+    ],
+    "description": "建立一個均勻分佈的隨機數。",
+    "name": "uniform"
+  },
+  {
+    "arguments": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "seed"
+      },
+      {
+        "name": "frequency"
+      }
+    ],
+    "description": "在給定 X 座標處取樣一維 Simplex 雜訊。",
+    "name": "noise1d"
+  },
+  {
+    "arguments": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "y"
+      },
+      {
+        "name": "seed"
+      },
+      {
+        "name": "frequency"
+      }
+    ],
+    "description": "在給定 XY 座標處取樣二維 Simplex 雜訊。",
+    "name": "noise2d"
+  },
+  {
+    "arguments": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "y"
+      },
+      {
+        "name": "z"
+      },
+      {
+        "name": "seed"
+      },
+      {
+        "name": "frequency"
+      }
+    ],
+    "description": "在給定 XYZ 座標處取樣三維 Simplex 雜訊。",
+    "name": "noise3d"
+  },
+  {
+    "arguments": [
+      {
+        "name": "x1"
+      },
+      {
+        "name": "y1"
+      },
+      {
+        "name": "x2"
+      },
+      {
+        "name": "y2"
+      }
+    ],
+    "description": "計算兩點 (x1, y1) 和 (x2, y2) 之間的距離。",
+    "name": "dist"
+  },
+  {
+    "arguments": [
+      {
+        "name": "value"
+      },
+      {
+        "name": "inMin"
+      },
+      {
+        "name": "inMax"
+      },
+      {
+        "name": "outMin"
+      },
+      {
+        "name": "outMax"
+      }
+    ],
+    "description": "將一個數從一個範圍重新映射到另一個範圍。",
+    "name": "map"
+  },
+  {
+    "arguments": [
+      {
+        "name": "value"
+      },
+      {
+        "name": "min"
+      },
+      {
+        "name": "max"
+      }
+    ],
+    "description": "將一個數在範圍內標準化。",
+    "name": "norm"
+  },
+  {
+    "arguments": [
+      {
+        "name": "value"
+      },
+      {
+        "name": "min"
+      },
+      {
+        "name": "max"
+      }
+    ],
+    "description": "將一個值鉗制在最小值和最大值之間。",
+    "name": "clamp"
+  },
+  {
+    "arguments": [
+      {
+        "name": "min"
+      },
+      {
+        "name": "max"
+      },
+      {
+        "name": "t"
+      }
+    ],
+    "description": "在值 min 和 max 之間執行線性插值。",
+    "name": "lerp"
+  },
+  {
+    "arguments": [
+      {
+        "name": "degrees"
+      }
+    ],
+    "description": "將角度從度轉換為弧度。",
+    "name": "degreesToRadians"
+  },
+  {
+    "arguments": [
+      {
+        "name": "radians"
+      }
+    ],
+    "description": "將角度從弧度轉換為度。",
+    "name": "radiansToDegrees"
+  },
+  {
+    "arguments": [
+      {
+        "name": "x"
+      },
+      {
+        "name": "y"
+      }
+    ],
+    "description": "從向量 (x, y) 計算角度（以弧度為單位）。",
+    "name": "angleFromVector"
+  },
+  {
+    "arguments": [
+      {
+        "name": "angleRad"
+      }
+    ],
+    "description": "從以弧度為單位的角建立一個向量。",
+    "name": "vectorFromAngle"
+  },
+  {
+    "arguments": [
+      {
+        "name": "hex"
+      }
+    ],
+    "description": "將十六進位色彩值轉換為其 HSV 表示。",
+    "name": "hexToHsv"
+  },
+  {
+    "arguments": [
+      {
+        "name": "hex"
+      },
+      {
+        "name": "normalised"
+      }
+    ],
+    "description": "將十六進位色彩值轉換為其 RGBA 表示，可選擇縮放到 0-1 範圍。",
+    "name": "hexToRgba"
+  },
+  {
+    "arguments": [
+      {
+        "name": "r"
+      },
+      {
+        "name": "g"
+      },
+      {
+        "name": "b"
+      },
+      {
+        "name": "normalised"
+      }
+    ],
+    "description": "將 RGB 色彩值轉換為其 HSV 表示。",
+    "name": "rgbToHsv"
+  },
+  {
+    "arguments": [
+      {
+        "name": "r"
+      },
+      {
+        "name": "g"
+      },
+      {
+        "name": "b"
+      },
+      {
+        "name": "normalised"
+      }
+    ],
+    "description": "將 RGB 色彩值轉換為其十六進位色彩字串表示。",
+    "name": "rgbToHex"
+  },
+  {
+    "arguments": [
+      {
+        "name": "r"
+      },
+      {
+        "name": "g"
+      },
+      {
+        "name": "b"
+      },
+      {
+        "name": "a"
+      },
+      {
+        "name": "normalised"
+      }
+    ],
+    "description": "將 RGBA 色彩值轉換為其十六進位色彩字串表示。",
+    "name": "rgbaToHex"
+  },
+  {
+    "arguments": [
+      {
+        "name": "h"
+      },
+      {
+        "name": "s"
+      },
+      {
+        "name": "v"
+      }
+    ],
+    "description": "將 HSV 色彩值轉換為其十六進位色彩字串表示。",
+    "name": "hsvToHex"
+  },
+  {
+    "arguments": [
+      {
+        "name": "h"
+      },
+      {
+        "name": "s"
+      },
+      {
+        "name": "v"
+      },
+      {
+        "name": "scaledValues"
+      }
+    ],
+    "description": "將 HSV 色彩值轉換為其 RGBA 表示。",
+    "name": "hsvToRgba"
+  },
+  {
+    "arguments": [
+      {
+        "name": "hex"
+      }
+    ],
+    "description": "傳回與指定十六進位色彩最匹配的 W3C 色彩名稱。",
+    "name": "nameThatColor"
+  },
+  {
+    "arguments": [
+      {
+        "name": "version"
+      }
+    ],
+    "description": "將給定的版本字串與 Cavalry 版本進行比較。",
+    "name": "versionLessThan"
+  },
+  {
+    "arguments": [
+      {
+        "name": "fontFamily"
+      },
+      {
+        "name": "fontStyle"
+      }
+    ],
+    "description": "檢查是否存在具有給定系列名稱和樣式的字型。",
+    "name": "fontExists"
+  },
+  {
+    "description": "擷取可用字型系列列表。",
+    "name": "getFontFamilies"
+  },
+  {
+    "arguments": [
+      {
+        "name": "fontFamily"
+      }
+    ],
+    "description": "擷取給定字型系列的可用樣式列表。",
+    "name": "getFontStyles"
+  },
+  {
+    "arguments": [
+      {
+        "name": "text"
+      },
+      {
+        "name": "fontFamily"
+      },
+      {
+        "name": "fontStyle"
+      },
+      {
+        "name": "fontSize"
+      }
+    ],
+    "description": "使用指定的字型設定測量給定文字的尺寸。",
+    "name": "measureText"
+  }
+]

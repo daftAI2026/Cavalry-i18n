@@ -1,0 +1,656 @@
+[
+  {
+    "arguments": [
+      {
+        "name": "key"
+      },
+      {
+        "name": "value"
+      }
+    ],
+    "description": "設定 Cavalry 偏好設定。",
+    "name": "setCavalryPreference"
+  },
+  {
+    "arguments": [
+      {
+        "name": "key"
+      }
+    ],
+    "description": "取得 Cavalry 偏好。若指定鍵沒有對應的偏好，或偏好類型不受支援，則傳回 null。",
+    "name": "getCavalryPreference"
+  },
+  {
+    "arguments": [
+      {
+        "name": "content"
+      }
+    ],
+    "description": "設定剪貼簿文字。",
+    "name": "setClipboardText"
+  },
+  {
+    "description": "擷取剪貼簿上的目前文字。",
+    "name": "getClipboardText"
+  },
+  {
+    "description": "清除屬性編輯器 UI。",
+    "name": "clearAttributeEditor"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "在屬性編輯器中顯示指定圖層。",
+    "name": "showInAttributeEditor"
+  },
+  {
+    "description": "擷取使用者主目錄的路徑。",
+    "name": "getHomeFolder"
+  },
+  {
+    "description": "傳回 Cavalry 偏好設定目錄的路徑。",
+    "name": "getPreferencesFolder"
+  },
+  {
+    "description": "傳回 Cavalry 資料目錄的路徑。",
+    "name": "getAppDataFolder"
+  },
+  {
+    "description": "傳回使用者桌面目錄的路徑。",
+    "name": "getDesktopFolder"
+  },
+  {
+    "description": "傳回系統暫存檔案目錄的路徑。",
+    "name": "getTempFolder"
+  },
+  {
+    "description": "傳回使用者字型目錄的路徑。",
+    "name": "getFontsFolder"
+  },
+  {
+    "description": "傳回使用者下載目錄的路徑。",
+    "name": "getDownloadsFolder"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      }
+    ],
+    "description": "將檔案路徑轉換為原生檔案系統格式。",
+    "name": "toNativeFilePath"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerIds"
+      },
+      {
+        "name": "withConnections"
+      }
+    ],
+    "description": "將已選取的圖層（可選包含連接）序列化為字串。",
+    "name": "serialise"
+  },
+  {
+    "arguments": [
+      {
+        "name": "string"
+      }
+    ],
+    "description": "強制更新應用程式標題列。可用於在合成中加入 Pro 功能時為入門版使用者觸發受限模式。",
+    "name": "updateAppTitleBar"
+  },
+  {
+    "arguments": [
+      {
+        "name": "string"
+      }
+    ],
+    "description": "反序列化字串以重新建立圖層和連接。",
+    "name": "deserialise"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      },
+      {
+        "name": "fileId"
+      },
+      {
+        "name": "sheetId"
+      }
+    ],
+    "description": "使用指定的檔案和表格 ID 替換 Google 試算表素材。",
+    "name": "replaceGoogleSheet"
+  },
+  {
+    "arguments": [
+      {
+        "name": "url"
+      }
+    ],
+    "description": "在預設網頁瀏覽器中開啟 URL。",
+    "name": "openURL"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "擷取與指定圖層關聯的生成器屬性 ID 清單。",
+    "name": "getGenerators"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "generatorId"
+      }
+    ],
+    "description": "取得指定生成器的類型。",
+    "name": "getCurrentGeneratorType"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "擷取具有輸出連接的屬性清單。",
+    "name": "getOutConnectedAttributes"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "擷取具有輸入連接的屬性清單。",
+    "name": "getInConnectedAttributes"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "擷取指定圖層的所有屬性清單。",
+    "name": "getAttributes"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      }
+    ],
+    "description": "根據屬性 ID 擷取其顯示名稱。",
+    "name": "getAttributeNiceName"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      }
+    ],
+    "description": "檢查指定圖層是否具有指定的屬性。",
+    "name": "hasAttribute"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "擷取指定圖層的已設定動畫的屬性清單。",
+    "name": "getAnimatedAttributes"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      }
+    ],
+    "description": "檢查指定圖層上的指定屬性是否已設定動畫。",
+    "name": "isAnimatedAttribute"
+  },
+  {
+    "arguments": [
+      {
+        "name": "renderQueueItemId"
+      }
+    ],
+    "description": "算繪算繪佇列中的指定項目。",
+    "name": "render"
+  },
+  {
+    "description": "要求 Cavalry 取消目前算繪。",
+    "name": "cancelRender"
+  },
+  {
+    "description": "算繪算繪佇列中的所有項目。",
+    "name": "renderAll"
+  },
+  {
+    "description": "在背景開始算繪算繪佇列中的所有項目。",
+    "name": "backgroundRenderAll"
+  },
+  {
+    "arguments": [
+      {
+        "name": "renderQueueItemId"
+      }
+    ],
+    "description": "在背景開始算繪算繪佇列中的指定項目。",
+    "name": "backgroundRender"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      },
+      {
+        "name": "scalePercentage"
+      }
+    ],
+    "description": "以指定的縮放百分比將 PNG 影格算繪到指定的檔案路徑。",
+    "name": "renderPNGFrame"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      },
+      {
+        "name": "scalePercentage"
+      },
+      {
+        "name": "skipComps"
+      }
+    ],
+    "description": "以指定的縮放百分比將 SVG 影格算繪到指定的檔案路徑，並提供略過合成背景的選項。",
+    "name": "renderSVGFrame"
+  },
+  {
+    "description": "開始播放。",
+    "name": "play"
+  },
+  {
+    "description": "停止播放。",
+    "name": "stop"
+  },
+  {
+    "description": "擷取 Cavalry 的目前版本。",
+    "name": "getCavalryVersion"
+  },
+  {
+    "description": "提供 Cavalry 執行所在系統的資訊。",
+    "name": "getSystemInfo"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerIdArray"
+      }
+    ],
+    "description": "獨奏指定的圖層。",
+    "name": "soloLayers"
+  },
+  {
+    "arguments": [
+      {
+        "name": "cmd"
+      },
+      {
+        "name": "argArray"
+      }
+    ],
+    "description": "使用指定的指令和參數執行系統程序，傳回輸出和錯誤資訊。",
+    "name": "runProcess"
+  },
+  {
+    "arguments": [
+      {
+        "name": "cmd"
+      },
+      {
+        "name": "argArray"
+      }
+    ],
+    "description": "使用指定的指令和參數以分離模式執行系統程序。",
+    "name": "runDetachedProcess"
+  },
+  {
+    "arguments": [
+      {
+        "name": "name"
+      }
+    ],
+    "description": "建立素材群組並命名。",
+    "name": "createAssetGroup"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      },
+      {
+        "name": "newPath"
+      }
+    ],
+    "description": "用位於新檔案路徑的素材替換目前素材。",
+    "name": "replaceAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "傳回指定 Google 試算表素材的 URL。",
+    "name": "getGoogleSheetAssetURL"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "若素材是檔案素材（影像、影片、音訊、智慧型資料夾等）則傳回 true。Google 試算表、合成或群組將傳回 false。",
+    "name": "isFileAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "若素材是 Google 試算表則傳回 true。",
+    "name": "isGoogleSheetAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "擷取指定素材的檔案路徑。",
+    "name": "getAssetFilePath"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "擷取影像序列素材的所有檔案路徑。",
+    "name": "getImageSequenceFilePaths"
+  },
+  {
+    "description": "儲存目前場景。",
+    "name": "saveScene"
+  },
+  {
+    "description": "開啟新場景，捨棄變更。",
+    "name": "newScene"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "將指定素材的內容轉換為 JSON 格式。",
+    "name": "jsonFromAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "擷取指定素材的文字內容。",
+    "name": "textFromAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "scriptPath"
+      }
+    ],
+    "description": "從檔案路徑載入並執行腳本。",
+    "name": "load"
+  },
+  {
+    "arguments": [
+      {
+        "name": "scriptId"
+      },
+      {
+        "name": "script"
+      }
+    ],
+    "description": "使用腳本 ID 執行指定的腳本字串。",
+    "name": "exec"
+  },
+  {
+    "description": "擷取目前選取形狀的 JavaScript 繪製指令。",
+    "name": "getDrawInstructionsForSelection"
+  },
+  {
+    "arguments": [
+      {
+        "name": "compId"
+      },
+      {
+        "name": "isVertical"
+      },
+      {
+        "name": "position"
+      }
+    ],
+    "description": "向合成加入導引線並傳回其 ID。",
+    "name": "addGuide"
+  },
+  {
+    "arguments": [
+      {
+        "name": "compId"
+      },
+      {
+        "name": "rulerId"
+      }
+    ],
+    "description": "根據 ID 從合成中刪除導引線。",
+    "name": "deleteGuide"
+  },
+  {
+    "arguments": [
+      {
+        "name": "compId"
+      }
+    ],
+    "description": "清除合成中的所有導引線。",
+    "name": "clearGuides"
+  },
+  {
+    "arguments": [
+      {
+        "name": "compId"
+      }
+    ],
+    "description": "擷取合成中所有導引線的資訊。",
+    "name": "getGuideInfo"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      }
+    ],
+    "description": "將視埠內容儲存為 PNG。",
+    "name": "saveViewportContentsAsImage"
+  },
+  {
+    "description": "檢查 Shift 鍵目前是否被按住。",
+    "name": "isShiftHeld"
+  },
+  {
+    "description": "檢查 Option/Alt 鍵目前是否被按住。",
+    "name": "isAltHeld"
+  },
+  {
+    "description": "檢查 Control 鍵（Windows）或 Command 鍵（macOS）目前是否被按住。",
+    "name": "isControlHeld"
+  },
+  {
+    "description": "檢查 Meta 鍵（macOS 上是 Control 鍵，Windows 上是 Windows 鍵）目前是否被按住。",
+    "name": "isMetaHeld"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startPath"
+      },
+      {
+        "name": "title"
+      },
+      {
+        "name": "fileFilter"
+      }
+    ],
+    "description": "顯示開啟檔案對話方塊，起始目錄為指定目錄。",
+    "name": "presentOpenFile"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startPath"
+      },
+      {
+        "name": "title"
+      },
+      {
+        "name": "fileFilter"
+      },
+      {
+        "name": "defaultFileName"
+      }
+    ],
+    "description": "顯示儲存檔案對話方塊，起始目錄為指定目錄。",
+    "name": "presentSaveFile"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startPath"
+      },
+      {
+        "name": "title"
+      }
+    ],
+    "description": "顯示讓使用者選擇資料夾的對話方塊。",
+    "name": "presentChooseFolder"
+  },
+  {
+    "description": "處理所有待處理的 GUI 事件。",
+    "name": "processEvents"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filename"
+      }
+    ],
+    "description": "將 SVG 檔案轉換為圖層。",
+    "name": "convertSVGToLayers"
+  },
+  {
+    "description": "檢查目前場景是否有未儲存的變更。",
+    "name": "sceneHasUnsavedChanges"
+  },
+  {
+    "arguments": [
+      {
+        "name": "content"
+      }
+    ],
+    "description": "加密指定的內容並以字串形式傳回。",
+    "name": "encrypt"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      },
+      {
+        "name": "newFilePath"
+      }
+    ],
+    "description": "加密指定的檔案，並將其儲存到指定位置。",
+    "name": "encryptFile"
+  },
+  {
+    "description": "將已選取的圖層在圖層堆疊中上移一層。",
+    "name": "bringForward"
+  },
+  {
+    "description": "將已選取的圖層移到圖層堆疊頂部。",
+    "name": "bringToFront"
+  },
+  {
+    "description": "將已選取的圖層在圖層堆疊中下移一層。",
+    "name": "moveBackward"
+  },
+  {
+    "description": "將已選取的圖層移到圖層堆疊底部。",
+    "name": "moveToBack"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      }
+    ],
+    "description": "傳回包含屬性詳細資訊的物件。",
+    "name": "getAttributeDefinition"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      },
+      {
+        "name": "index"
+      }
+    ],
+    "description": "傳回下拉屬性中指定索引的名稱。",
+    "name": "getDropdownNiceName"
+  },
+  {
+    "description": "傳迴視埠目前使用中的工具。",
+    "name": "getActiveTool"
+  }
+]

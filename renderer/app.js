@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的轻量安装观察/版本兼容、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、Windows 预注入平台标记驱动的首帧 caption/compositor 外壳、渐进安装选择、版本只读门禁、带语言补丁状态徽章且仅在已是最新时禁用当前语言的目标 Select、四语 Switch/更新语言补丁主动作、三轨 Activity、语言/Official Badge、直接 Switch、跨平台未提交 marker 与 Windows runtime 残留共用的单一 Restore English、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、Windows 预注入平台标记驱动的首帧 caption/compositor 外壳、渐进安装选择、版本只读门禁、带语言补丁状态徽章且仅在已是最新时禁用当前语言的目标 Select、四语 Switch/Update 主动作（对象由语言选择框提供）、三轨 Activity、语言/Official Badge、直接 Switch、跨平台未提交 marker 与 Windows runtime 残留共用的单一 Restore English、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部 journal/签名清理；启动只消费后端只读投影的安装、版本、当前语言与 Restore 必要性，Switch/Restore 才进入完整证明与安全事务，typed 权限拒绝才把失败阶段收敛为链尾阻塞项，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

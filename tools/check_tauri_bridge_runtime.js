@@ -275,10 +275,10 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
 
 test('language patch status controls the current option, badge, and localized update action', async () => {
   const locales = [
-    ['en-US', 'Update available', 'Update language patch'],
-    ['zh-CN', '可更新', '更新语言补丁'],
-    ['zh-TW', '可更新', '更新語言補丁'],
-    ['ja-JP', '更新可能', '言語パッチを更新'],
+    ['en-US', 'Update available', 'Update'],
+    ['zh-CN', '可更新', '更新'],
+    ['zh-TW', '可更新', '更新'],
+    ['ja-JP', '更新可能', '更新'],
   ];
 
   for (const [locale, badgeText, updateAction] of locales) {

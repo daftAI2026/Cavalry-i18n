@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/四策略输入合同/Quick Add context/display 与描述生成闭包/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
+ * [INPUT]: 依赖固定 P7 历史 catalog 的随包配置，依赖 package/CHANGELOG、跨平台工具、CI 变更分类器、test_temp_dir.js、DMG 卷标身份解析器、人工安装/updater 发布元数据、共享 Windows NSIS provenance schema/四策略输入合同/Quick Add context/display 与描述生成闭包/生命周期/live-clone、C++ text-path 源表顺序、PowerShell 双宿主/编码/Onboarding/Adjacent exact-HWND 边界、Tauri 配置与 macOS Info.plist 本地化资源、SOP/README/workflow、发布 provenance schema、Actions full-SHA pins、source artifact manifest 与原生产物忽略策略
  * [OUTPUT]: 对外提供 Tauri-only 发布协议、四语 README 用户路径合同、按文档/合同/依赖/平台风险选择且未知路径 fail-closed 的 CI 调度合同、renderer 视觉验收新进程合同、人工安装/updater 资产命名、macOS DMG `产品 + SemVer + 架构` 卷标、显式 renderer 文档入口、SOP/配置同构窗口合同、`main`/`about` capability 边界、macOS App Management 用途说明及最终 app bundle readback 合同、tag 级 macOS ad-hoc 与独立 updater 签名边界、七项公开资产 readback 与 CI 内部 provenance、source 完整性、Actions/toolchain pin、幂等 release、直接读取最新正式 Release 的四语徽章、平台原生构建隔离、Windows x64 provenance producer-consumer 同构与 PR 级 clean-macOS link gate
  * [POS]: tools 的 Phase 6 打包守门，连接发布协议、构建前 tag ancestry、平台 Runner 原生构建、Windows NSIS 安装态与 npm/Tauri 配置
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -374,6 +374,7 @@ function makeWindowsNsisProvenanceFixture() {
       targets: ['nsis'],
       resources: {
         '../languages': 'languages',
+        'legacy-patches/cavalry-2.7.2-p7': 'legacy-patches/cavalry-2.7.2-p7',
         '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
         '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
       },
@@ -390,6 +391,10 @@ function makeWindowsNsisProvenanceFixture() {
   writeJson(path.join(tempRoot, 'src-tauri', 'capabilities', 'default.json'), { permissions: [] });
   write('renderer/index.html', '<!doctype html><title>fixture</title>');
   write('languages/en/appStrings.json', '{"fixture":"English"}\n');
+  write(
+    'src-tauri/legacy-patches/cavalry-2.7.2-p7/manifest.json',
+    '{"fixture":"P7 catalog"}\n'
+  );
   for (const language of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
     write(`languages/${language}/nodeStrings.json`, '[]\n');
     write(`languages/${language}/plugins/boxBlurFilter.json`, '[]\n');
@@ -528,6 +533,10 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
     macResources['../injector/libCavalryTranslatorInjector.dylib'],
     'injector/libCavalryTranslatorInjector.dylib'
   );
+  assert.equal(
+    macResources['legacy-patches/cavalry-2.7.2-p7'],
+    'legacy-patches/cavalry-2.7.2-p7'
+  );
   assert.deepEqual(windowsConfig.bundle.targets, ['nsis']);
   assert.deepEqual(windowsConfig.bundle.icon, ['icons/icon.ico']);
   assert.equal(windowsConfig.build.beforeDevCommand, 'npm run build:injector:windows');
@@ -549,6 +558,7 @@ test('tauri build scripts and configs isolate the macOS and Windows injectors', 
   assert.equal(windowsNsis.sidebarImage, undefined);
   assert.deepEqual(windowsResources, {
     '../languages': 'languages',
+    'legacy-patches/cavalry-2.7.2-p7': 'legacy-patches/cavalry-2.7.2-p7',
     '../injector/windows/generic/cavalryi18n.dll': 'injector/windows/generic/cavalryi18n.dll',
     '../injector/windows/qpa/qwindows.dll': 'injector/windows/qpa/qwindows.dll',
   });

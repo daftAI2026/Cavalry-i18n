@@ -1,0 +1,91 @@
+[
+  {
+    "title": "從調色盤建立顏色陣列",
+    "text": "透過顏色視窗的選項，快速從資料庫調色盤建立顏色陣列。",
+    "images": [
+      "arrayFromPalette1.png",
+      "arrayFromPalette2.png",
+      "arrayFromPalette3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "快速新增背景",
+    "text": "在檢視區中右鍵點擊任意形狀即可新增背景。然後可以對建立的矩形進行圓角處理和變更顏色。",
+    "images": [
+      "addBackground1.png",
+      "addBackground2.png",
+      "addBackground3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "拖曳閉合開放輪廓",
+    "text": "拖放端點即可在檢視區中互動式地閉合輪廓。",
+    "images": [
+      "closePath1.png",
+      "closePath2.png",
+      "closePath3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "按住修飾鍵拖曳屬性",
+    "text": "按住修飾鍵拖曳屬性時，將同時更新兩個值。",
+    "images": [
+      "altScrub1.png",
+      "altScrub2.png",
+      "altScrub3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "精確分佈漸層色標",
+    "text": "快速分佈漸層色標，沿漸層建立平滑的顏色過渡。",
+    "images": [
+      "distributeGradient1.png",
+      "distributeGradient2.png",
+      "distributeGradient3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "跳至下一個關鍵幀",
+    "text": "使用快速鍵將播放頭移動到下一個或上一個關鍵幀。",
+    "images": [
+      [
+        "nextKeyframe1.png",
+        "nextKeyframe1-win.png"
+      ],
+      [
+        "nextKeyframe2.png",
+        "nextKeyframe2-win.png"
+      ],
+      [
+        "nextKeyframe3.png",
+        "nextKeyframe3-win.png"
+      ]
+    ],
+    "beginner": true
+  },
+  {
+    "title": "移除貝茲手柄",
+    "text": "在圖形編輯器中按住 X 鍵可移除貝茲手柄。",
+    "images": [
+      "deleteBezierHandle1.png",
+      "deleteBezierHandle2.png",
+      "deleteBezierHandle3.png"
+    ],
+    "beginner": true
+  },
+  {
+    "title": "按住 S 在路徑上新增點",
+    "text": "在編輯形狀工具中按住 S 鍵，即可沿邊緣建立新點。",
+    "images": [
+      "splitPath1.png",
+      "splitPath2.png",
+      "splitPath3.png"
+    ],
+    "beginner": true
+  }
+]

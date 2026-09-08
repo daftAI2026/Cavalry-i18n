@@ -1,0 +1,656 @@
+[
+  {
+    "arguments": [
+      {
+        "name": "key"
+      },
+      {
+        "name": "value"
+      }
+    ],
+    "description": "Cavalry の環境設定を設定します。",
+    "name": "setCavalryPreference"
+  },
+  {
+    "arguments": [
+      {
+        "name": "key"
+      }
+    ],
+    "description": "Cavalry の設定を取得します。指定されたキーに設定がない場合、または設定タイプがサポートされていない場合は null を返します。",
+    "name": "getCavalryPreference"
+  },
+  {
+    "arguments": [
+      {
+        "name": "content"
+      }
+    ],
+    "description": "クリップボードのテキストを設定します。",
+    "name": "setClipboardText"
+  },
+  {
+    "description": "クリップボードから現在のテキストを取得します。",
+    "name": "getClipboardText"
+  },
+  {
+    "description": "属性エディター UI をクリアします。",
+    "name": "clearAttributeEditor"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "指定されたレイヤーを属性エディターに表示します。",
+    "name": "showInAttributeEditor"
+  },
+  {
+    "description": "ユーザーのホームディレクトリへのパスを取得します。",
+    "name": "getHomeFolder"
+  },
+  {
+    "description": "Cavalry の設定ディレクトリへのパスを返します。",
+    "name": "getPreferencesFolder"
+  },
+  {
+    "description": "Cavalry のデータディレクトリへのパスを返します。",
+    "name": "getAppDataFolder"
+  },
+  {
+    "description": "ユーザーのデスクトップディレクトリへのパスを返します。",
+    "name": "getDesktopFolder"
+  },
+  {
+    "description": "システムの一時ファイルディレクトリへのパスを返します。",
+    "name": "getTempFolder"
+  },
+  {
+    "description": "ユーザーのフォントディレクトリへのパスを返します。",
+    "name": "getFontsFolder"
+  },
+  {
+    "description": "ユーザーのダウンロードディレクトリへのパスを返します。",
+    "name": "getDownloadsFolder"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      }
+    ],
+    "description": "ファイルパスをネイティブファイルシステム形式に変換します。",
+    "name": "toNativeFilePath"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerIds"
+      },
+      {
+        "name": "withConnections"
+      }
+    ],
+    "description": "選択されたレイヤー（オプションで接続を含む）を文字列にシリアライズします。",
+    "name": "serialise"
+  },
+  {
+    "arguments": [
+      {
+        "name": "string"
+      }
+    ],
+    "description": "アプリケーションのタイトルバーを強制的に更新します。コンポジションに Pro 機能が追加された場合にスターターユーザー向けの制限モードをトリガーするためなどに使用できます。",
+    "name": "updateAppTitleBar"
+  },
+  {
+    "arguments": [
+      {
+        "name": "string"
+      }
+    ],
+    "description": "文字列をデシリアライズしてレイヤーと接続を再作成します。",
+    "name": "deserialise"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      },
+      {
+        "name": "fileId"
+      },
+      {
+        "name": "sheetId"
+      }
+    ],
+    "description": "指定されたファイル ID とシート ID を使用して Google スプレッドシートアセットを新しいアセットに置き換えます。",
+    "name": "replaceGoogleSheet"
+  },
+  {
+    "arguments": [
+      {
+        "name": "url"
+      }
+    ],
+    "description": "デフォルトの Web ブラウザで URL を開きます。",
+    "name": "openURL"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "指定されたレイヤーに関連付けられたジェネレーター属性 ID のリストを取得します。",
+    "name": "getGenerators"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "generatorId"
+      }
+    ],
+    "description": "指定されたジェネレーターのタイプを取得します。",
+    "name": "getCurrentGeneratorType"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "出力接続を持つ属性のリストを取得します。",
+    "name": "getOutConnectedAttributes"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "入力接続を持つ属性のリストを取得します。",
+    "name": "getInConnectedAttributes"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "指定されたレイヤーのすべての属性のリストを取得します。",
+    "name": "getAttributes"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      }
+    ],
+    "description": "属性 ID に基づいて属性の表示名を取得します。",
+    "name": "getAttributeNiceName"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      }
+    ],
+    "description": "指定されたレイヤーに指定された属性があるかどうかをチェックします。",
+    "name": "hasAttribute"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      }
+    ],
+    "description": "指定されたレイヤーのアニメーションが設定された属性のリストを取得します。",
+    "name": "getAnimatedAttributes"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      }
+    ],
+    "description": "指定されたレイヤー上の指定された属性がアニメーション設定されているかどうかをチェックします。",
+    "name": "isAnimatedAttribute"
+  },
+  {
+    "arguments": [
+      {
+        "name": "renderQueueItemId"
+      }
+    ],
+    "description": "レンダリングキュー内の指定されたアイテムをレンダリングします。",
+    "name": "render"
+  },
+  {
+    "description": "現在のレンダリングをキャンセルするよう Cavalry に要求します。",
+    "name": "cancelRender"
+  },
+  {
+    "description": "レンダリングキュー内のすべてのアイテムをレンダリングします。",
+    "name": "renderAll"
+  },
+  {
+    "description": "バックグラウンドでレンダリングキュー内のすべてのアイテムのレンダリングを開始します。",
+    "name": "backgroundRenderAll"
+  },
+  {
+    "arguments": [
+      {
+        "name": "renderQueueItemId"
+      }
+    ],
+    "description": "レンダリングキュー内の指定されたアイテムのバックグラウンドレンダリングを開始します。",
+    "name": "backgroundRender"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      },
+      {
+        "name": "scalePercentage"
+      }
+    ],
+    "description": "指定されたスケールパーセンテージで PNG フレームを指定されたファイルパスにレンダリングします。",
+    "name": "renderPNGFrame"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      },
+      {
+        "name": "scalePercentage"
+      },
+      {
+        "name": "skipComps"
+      }
+    ],
+    "description": "指定されたスケールパーセンテージで SVG フレームを指定されたファイルパスにレンダリングし、コンポジション背景をスキップするオプションを提供します。",
+    "name": "renderSVGFrame"
+  },
+  {
+    "description": "再生を開始します。",
+    "name": "play"
+  },
+  {
+    "description": "再生を停止します。",
+    "name": "stop"
+  },
+  {
+    "description": "Cavalry の現在のバージョンを取得します。",
+    "name": "getCavalryVersion"
+  },
+  {
+    "description": "Cavalry が実行されているシステムに関する情報を提供します。",
+    "name": "getSystemInfo"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerIdArray"
+      }
+    ],
+    "description": "指定されたレイヤーをソロにします。",
+    "name": "soloLayers"
+  },
+  {
+    "arguments": [
+      {
+        "name": "cmd"
+      },
+      {
+        "name": "argArray"
+      }
+    ],
+    "description": "指定されたコマンドと引数でシステムプロセスを実行し、出力とエラーを返します。",
+    "name": "runProcess"
+  },
+  {
+    "arguments": [
+      {
+        "name": "cmd"
+      },
+      {
+        "name": "argArray"
+      }
+    ],
+    "description": "指定されたコマンドと引数でシステムプロセスを分離モードで実行します。",
+    "name": "runDetachedProcess"
+  },
+  {
+    "arguments": [
+      {
+        "name": "name"
+      }
+    ],
+    "description": "アセットグループを作成し名前を付けます。",
+    "name": "createAssetGroup"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      },
+      {
+        "name": "newPath"
+      }
+    ],
+    "description": "新しいファイルパスにあるアセットで置き換えます。",
+    "name": "replaceAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "指定された Google スプレッドシートアセットの URL を返します。",
+    "name": "getGoogleSheetAssetURL"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "アセットがファイルアセット（画像、動画、オーディオ、スマートフォルダなど）の場合は true を返します。Google スプレッドシート、コンポジション、グループの場合は false を返します。",
+    "name": "isFileAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "アセットが Google スプレッドシートの場合は true を返します。",
+    "name": "isGoogleSheetAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "指定されたアセットのファイルパスを取得します。",
+    "name": "getAssetFilePath"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "画像シーケンスアセットからすべてのファイルパスを取得します。",
+    "name": "getImageSequenceFilePaths"
+  },
+  {
+    "description": "現在のシーンを保存します。",
+    "name": "saveScene"
+  },
+  {
+    "description": "変更を破棄して新しいシーンを開きます。",
+    "name": "newScene"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "指定されたアセットのコンテンツを JSON 形式に変換します。",
+    "name": "jsonFromAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "assetId"
+      }
+    ],
+    "description": "指定されたアセットのテキストコンテンツを取得します。",
+    "name": "textFromAsset"
+  },
+  {
+    "arguments": [
+      {
+        "name": "scriptPath"
+      }
+    ],
+    "description": "ファイルパスからスクリプトを読み込み実行します。",
+    "name": "load"
+  },
+  {
+    "arguments": [
+      {
+        "name": "scriptId"
+      },
+      {
+        "name": "script"
+      }
+    ],
+    "description": "指定されたスクリプト文字列をスクリプト ID で実行します。",
+    "name": "exec"
+  },
+  {
+    "description": "現在選択されているシェイプの JavaScript 描画命令を取得します。",
+    "name": "getDrawInstructionsForSelection"
+  },
+  {
+    "arguments": [
+      {
+        "name": "compId"
+      },
+      {
+        "name": "isVertical"
+      },
+      {
+        "name": "position"
+      }
+    ],
+    "description": "コンポジションにガイドラインを追加し、その ID を返します。",
+    "name": "addGuide"
+  },
+  {
+    "arguments": [
+      {
+        "name": "compId"
+      },
+      {
+        "name": "rulerId"
+      }
+    ],
+    "description": "ID に基づいてコンポジションからガイドラインを削除します。",
+    "name": "deleteGuide"
+  },
+  {
+    "arguments": [
+      {
+        "name": "compId"
+      }
+    ],
+    "description": "コンポジションからすべてのガイドラインをクリアします。",
+    "name": "clearGuides"
+  },
+  {
+    "arguments": [
+      {
+        "name": "compId"
+      }
+    ],
+    "description": "コンポジション内のすべてのガイドラインに関する情報を取得します。",
+    "name": "getGuideInfo"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      }
+    ],
+    "description": "ビューポートの内容を PNG として保存します。",
+    "name": "saveViewportContentsAsImage"
+  },
+  {
+    "description": "Shift キーが現在押されているかどうかをチェックします。",
+    "name": "isShiftHeld"
+  },
+  {
+    "description": "Option/Alt キーが現在押されているかどうかをチェックします。",
+    "name": "isAltHeld"
+  },
+  {
+    "description": "Control キー（Windows）または Command キー（macOS）が現在押されているかどうかをチェックします。",
+    "name": "isControlHeld"
+  },
+  {
+    "description": "Meta キー（macOS では Control、Windows では Windows キー）が現在押されているかどうかをチェックします。",
+    "name": "isMetaHeld"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startPath"
+      },
+      {
+        "name": "title"
+      },
+      {
+        "name": "fileFilter"
+      }
+    ],
+    "description": "指定されたディレクトリから開始してファイルを開くダイアログを表示します。",
+    "name": "presentOpenFile"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startPath"
+      },
+      {
+        "name": "title"
+      },
+      {
+        "name": "fileFilter"
+      },
+      {
+        "name": "defaultFileName"
+      }
+    ],
+    "description": "指定されたディレクトリから開始してファイルを保存するダイアログを表示します。",
+    "name": "presentSaveFile"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startPath"
+      },
+      {
+        "name": "title"
+      }
+    ],
+    "description": "ユーザーがフォルダを選択するためのダイアログを表示します。",
+    "name": "presentChooseFolder"
+  },
+  {
+    "description": "保留中のすべての GUI イベントを処理します。",
+    "name": "processEvents"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filename"
+      }
+    ],
+    "description": "SVG ファイルをレイヤーに変換します。",
+    "name": "convertSVGToLayers"
+  },
+  {
+    "description": "現在のシーンに保存されていない変更があるかどうかをチェックします。",
+    "name": "sceneHasUnsavedChanges"
+  },
+  {
+    "arguments": [
+      {
+        "name": "content"
+      }
+    ],
+    "description": "指定されたコンテンツを暗号化し、文字列として返します。",
+    "name": "encrypt"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      },
+      {
+        "name": "newFilePath"
+      }
+    ],
+    "description": "指定されたファイルを暗号化し、指定された場所に保存します。",
+    "name": "encryptFile"
+  },
+  {
+    "description": "選択されたレイヤーをレイヤースタックで 1 つ上に移動します。",
+    "name": "bringForward"
+  },
+  {
+    "description": "選択されたレイヤーをレイヤースタックの一番上に移動します。",
+    "name": "bringToFront"
+  },
+  {
+    "description": "選択されたレイヤーをレイヤースタックで 1 つ下に移動します。",
+    "name": "moveBackward"
+  },
+  {
+    "description": "選択されたレイヤーをレイヤースタックの一番下に移動します。",
+    "name": "moveToBack"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      }
+    ],
+    "description": "属性に関する詳細情報を含むオブジェクトを返します。",
+    "name": "getAttributeDefinition"
+  },
+  {
+    "arguments": [
+      {
+        "name": "layerId"
+      },
+      {
+        "name": "attrId"
+      },
+      {
+        "name": "index"
+      }
+    ],
+    "description": "ドロップダウン属性内の指定されたインデックスの名前を返します。",
+    "name": "getDropdownNiceName"
+  },
+  {
+    "description": "ビューポートのアクティブなツールを返します。",
+    "name": "getActiveTool"
+  }
+]

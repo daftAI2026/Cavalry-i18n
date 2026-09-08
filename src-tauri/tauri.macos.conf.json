@@ -14,6 +14,7 @@
     ],
     "resources": {
       "../languages": "languages",
+      "legacy-patches/cavalry-2.7.2-p7": "legacy-patches/cavalry-2.7.2-p7",
       "../injector/libCavalryTranslatorInjector.dylib": "injector/libCavalryTranslatorInjector.dylib"
     },
     "macOS": {

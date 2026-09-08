@@ -584,8 +584,9 @@ mod patch_receipt_selection_tests {
         for app in [&a, &b] {
             std::fs::create_dir_all(app.join("Contents/Resources")).unwrap();
         }
-        let a = std::fs::canonicalize(a).unwrap();
-        let b = std::fs::canonicalize(b).unwrap();
+        // 与生产安装选择使用同一规范路径，Windows 不保留 fs::canonicalize 的 verbatim 前缀。
+        let a = crate::install::canonical_root_for_selection(&a).unwrap();
+        let b = crate::install::canonical_root_for_selection(&b).unwrap();
         let original = State {
             app_path: a.to_string_lossy().to_string(),
             cavalry_revision: "revision-a".into(),

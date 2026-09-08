@@ -1,0 +1,70 @@
+[
+  {
+    "title": "シェイプを描く",
+    "images": [
+      "createShape1.png",
+      "createShape2.png"
+    ]
+  },
+  {
+    "title": "キーフレームを設定",
+    "images": [
+      "setKeyframes1.png",
+      "setKeyframes2.png",
+      "setKeyframes3.png",
+      "setKeyframes4.png"
+    ]
+  },
+  {
+    "title": "接続を作成",
+    "images": [
+      "connections1.png",
+      "connections2.png",
+      "connections3.png",
+      "connections4.png"
+    ]
+  },
+  {
+    "title": "カラーを設定",
+    "images": [
+      "setColor1.png",
+      "setColor2.png",
+      "setColor3.png"
+    ]
+  },
+  {
+    "title": "クイック接続",
+    "images": [
+      "quickConnect1.png",
+      "quickConnect2.png",
+      "quickConnect3.png",
+      "quickConnect4.png"
+    ]
+  },
+  {
+    "title": "解像度を設定",
+    "images": [
+      [
+        "resolution1-mac.png",
+        "resolution1-win.png"
+      ],
+      "resolution2.png",
+      "resolution3.png",
+      "resolution4.png"
+    ]
+  },
+  {
+    "title": "デモシーンから開始",
+    "images": [
+      [
+        "preset1-mac.png",
+        "preset1-win.png"
+      ],
+      [
+        "preset2-mac.png",
+        "preset2-win.png"
+      ],
+      "preset3.png"
+    ]
+  }
+]

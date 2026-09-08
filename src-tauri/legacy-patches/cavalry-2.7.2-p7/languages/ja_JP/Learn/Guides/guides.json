@@ -1,0 +1,36 @@
+{
+  "guides": [
+    {
+      "id": "firstLaunch"
+    },
+    {
+      "id": "uiDeepDive"
+    },
+    {
+      "id": "animationBasics"
+    },
+    {
+      "id": "connectionBasics"
+    },
+    {
+      "id": "behaviourBasics"
+    },
+    {
+      "id": "renderBasics"
+    },
+    {
+      "id": "contextual_demoNotes"
+    }
+  ],
+  "demos": [
+    {
+      "id": "overAndOver"
+    },
+    {
+      "id": "gradientAlongPath"
+    },
+    {
+      "id": "variableFont"
+    }
+  ]
+}

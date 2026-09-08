@@ -1,0 +1,275 @@
+[
+  {
+    "arguments": [
+      {
+        "name": "colorName"
+      }
+    ],
+    "description": "指定された key に対応するテーマカラーを返します。",
+    "name": "getThemeColor"
+  },
+  {
+    "arguments": [
+      {
+        "name": "setCallbacksActive"
+      }
+    ],
+    "description": "UI コールバックを一時的に無効にするために使用できます。",
+    "name": "setCallbacksActive"
+  },
+  {
+    "description": "数値フィールドのデフォルトの幅を取得します。",
+    "name": "fieldWidth"
+  },
+  {
+    "description": "数値フィールドのデフォルトの高さを取得します。",
+    "name": "fieldHeight"
+  },
+  {
+    "arguments": [
+      {
+        "name": "widget"
+      }
+    ],
+    "description": "ルートレイアウトにウィジェットを追加します。",
+    "name": "add"
+  },
+  {
+    "description": "ルートレイアウトに伸縮可能なスペースを追加します。",
+    "name": "addStretch"
+  },
+  {
+    "arguments": [
+      {
+        "name": "spacing"
+      }
+    ],
+    "description": "ルートレイアウトに固定量のスペースを追加します。",
+    "name": "addSpacing"
+  },
+  {
+    "arguments": [
+      {
+        "name": "spacing"
+      }
+    ],
+    "description": "レイアウト内の要素間の間隔を設定します。",
+    "name": "setSpaceBetween"
+  },
+  {
+    "arguments": [
+      {
+        "name": "color"
+      }
+    ],
+    "description": "レイアウト内の要素間の間隔を設定します。",
+    "name": "setBackgroundColor"
+  },
+  {
+    "arguments": [
+      {
+        "name": "left"
+      },
+      {
+        "name": "top"
+      },
+      {
+        "name": "right"
+      },
+      {
+        "name": "bottom"
+      }
+    ],
+    "description": "ルートレイアウトのマージンを設定します。",
+    "name": "setMargins"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startFilePath"
+      },
+      {
+        "name": "fileFilter"
+      }
+    ],
+    "description": "選択されたファイルパスを返します。ユーザーがダイアログボックスでキャンセルを押した場合は空になります。ファイルフィルター文字列は \"Palettes (*.pal *.ase *.theme)\" の形式に従う必要があります",
+    "name": "chooseFileToOpen"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startFilePath"
+      }
+    ],
+    "description": "選択されたフォルダパスを返します。ユーザーがダイアログボックスでキャンセルを押した場合は空になります。",
+    "name": "chooseFolderPath"
+  },
+  {
+    "arguments": [
+      {
+        "name": "startFilePath"
+      },
+      {
+        "name": "fileFilter"
+      }
+    ],
+    "description": "作成するファイルパスを返します。ユーザーがダイアログボックスでキャンセルを押した場合は空になります。ファイルフィルター文字列は \"Palettes (*.pal *.ase *.theme)\" の形式に従う必要があります",
+    "name": "chooseFileToSave"
+  },
+  {
+    "arguments": [
+      {
+        "name": "menuItem"
+      }
+    ],
+    "description": "コンテキストメニューにメニュー項目を追加します。",
+    "name": "addMenuItem"
+  },
+  {
+    "arguments": [
+      {
+        "name": "subMenu"
+      }
+    ],
+    "description": "コンテキストメニューにサブメニューを追加します。",
+    "name": "addSubMenu"
+  },
+  {
+    "description": "コンテキストメニューからすべての項目をクリアします。",
+    "name": "clearContextMenu"
+  },
+  {
+    "description": "右クリックイベントでコンテキストメニューを表示するように有効にします。",
+    "name": "showContextMenuOnRightClick"
+  },
+  {
+    "description": "現在のカーソル位置にコンテキストメニューを表示します。",
+    "name": "showContextMenu"
+  },
+  {
+    "arguments": [
+      {
+        "name": "filePath"
+      }
+    ],
+    "description": "ファイルから GUI スクリプトを実行し、成功時に true を返します。",
+    "name": "runFileScript"
+  },
+  {
+    "description": "現在のスクリプトのフォルダパスを取得します。",
+    "name": "scriptLocation"
+  },
+  {
+    "description": "ウィンドウを表示します。",
+    "name": "show"
+  },
+  {
+    "description": "ウィンドウのサイズを返します。",
+    "name": "size"
+  },
+  {
+    "arguments": [
+      {
+        "name": "width"
+      },
+      {
+        "name": "height"
+      }
+    ],
+    "description": "ウィンドウの固定サイズを設定します。",
+    "name": "setFixedSize"
+  },
+  {
+    "arguments": [
+      {
+        "name": "width"
+      }
+    ],
+    "description": "ウィンドウの最小幅を設定します。",
+    "name": "setMinimumWidth"
+  },
+  {
+    "arguments": [
+      {
+        "name": "height"
+      }
+    ],
+    "description": "ウィンドウの最小高さを設定します。",
+    "name": "setMinimumHeight"
+  },
+  {
+    "arguments": [
+      {
+        "name": "width"
+      }
+    ],
+    "description": "ウィンドウの最大幅を設定します。",
+    "name": "setMaximumWidth"
+  },
+  {
+    "arguments": [
+      {
+        "name": "height"
+      }
+    ],
+    "description": "ウィンドウの最大高さを設定します。",
+    "name": "setMaximumHeight"
+  },
+  {
+    "arguments": [
+      {
+        "name": "width"
+      }
+    ],
+    "description": "ウィンドウの固定幅を設定します。",
+    "name": "setFixedWidth"
+  },
+  {
+    "arguments": [
+      {
+        "name": "height"
+      }
+    ],
+    "description": "ウィンドウの固定高さを設定します。",
+    "name": "setFixedHeight"
+  },
+  {
+    "arguments": [
+      {
+        "name": "title"
+      }
+    ],
+    "description": "ウィンドウのタイトルを設定します。",
+    "name": "setTitle"
+  },
+  {
+    "description": "ウィジェットをツールバーとしてマークします。",
+    "name": "setToolbar"
+  },
+  {
+    "description": "ツールバーの向きを垂直に設定します。",
+    "name": "setVerticalToolbar"
+  },
+  {
+    "description": "Cavalry Scenes を開くためのファイルブラウザを開きます",
+    "name": "openSceneDialog"
+  },
+  {
+    "arguments": [
+      {
+        "name": "callbackObject"
+      }
+    ],
+    "description": "ウィンドウのコールバックオブジェクトを設定します。特定のアプリイベント発生時にメソッドをトリガーするために使用できます。",
+    "name": "addCallbackObject"
+  },
+  {
+    "arguments": [
+      {
+        "name": "type"
+      }
+    ],
+    "description": "ウィンドウにドロップ mime タイプ（例: layerIds、color、text）を登録します。",
+    "name": "registerDragDropMimeType"
+  }
+]

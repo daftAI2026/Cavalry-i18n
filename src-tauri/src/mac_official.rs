@@ -769,6 +769,62 @@ impl VerifiedVendorBaseline {
         expected_injector: &Path,
         expected_wrapper: &[u8],
     ) -> Result<(), String> {
+        self.verify_managed_runtime_common(app_path, expected_wrapper, |canonical_app| {
+            require_regular_file(expected_injector, "packaged managed injector")?;
+            let expected_injector_bytes = fs::read(expected_injector).map_err(|error| {
+                format!(
+                    "Could not read packaged managed injector {}: {error}",
+                    expected_injector.display()
+                )
+            })?;
+            let expected_injector_mode = fs::metadata(expected_injector)
+                .map_err(|error| error.to_string())?
+                .permissions()
+                .mode();
+            require_exact_managed_file(
+                &canonical_app.join(INJECTOR),
+                &expected_injector_bytes,
+                Some(expected_injector_mode),
+                "translator injector",
+            )
+        })
+    }
+
+    /// Verify a legacy released injector by its immutable code identity instead of requiring the
+    /// current package to carry a second copy of the historical dylib.  The surrounding baseline
+    /// still authenticates the vendor preimage, wrapper, ExtensionLayer postimage, modes and
+    /// marker; only known released injector code is accepted.
+    pub(crate) fn verify_managed_runtime_with_released_injector_identities(
+        &self,
+        app_path: &Path,
+        expected_wrapper: &[u8],
+        released_injector_identities: &[&str],
+    ) -> Result<(), String> {
+        // Managed injectors are owned files, therefore the vendor baseline records them as
+        // absent and cannot supply an original mode.  The released bundle contract installs the
+        // executable dylib with the same 0755 mode as the current managed runtime.
+        let expected_mode = 0o755;
+        self.verify_managed_runtime_common(app_path, expected_wrapper, |canonical_app| {
+            let injector = canonical_app.join(INJECTOR);
+            require_regular_file(&injector, "released managed injector")?;
+            let bytes = fs::read(&injector).map_err(|error| error.to_string())?;
+            let identity = detect::macho_code_identity_sha256(&bytes)?;
+            if !released_injector_identities.contains(&identity.as_str()) {
+                return Err(
+                    "Managed Cavalry translator injector is not a recognized released identity."
+                        .to_string(),
+                );
+            }
+            require_mode(&injector, expected_mode, "released translator injector")
+        })
+    }
+
+    fn verify_managed_runtime_common(
+        &self,
+        app_path: &Path,
+        expected_wrapper: &[u8],
+        verify_injector: impl FnOnce(&Path) -> Result<(), String>,
+    ) -> Result<(), String> {
         let canonical_app = fs::canonicalize(app_path).map_err(|error| error.to_string())?;
         if Path::new(&self.manifest.install_root) != canonical_app {
             return Err(
@@ -851,23 +907,7 @@ impl VerifiedVendorBaseline {
             Some(0o755),
             "launcher wrapper",
         )?;
-        require_regular_file(expected_injector, "packaged managed injector")?;
-        let expected_injector_bytes = fs::read(expected_injector).map_err(|error| {
-            format!(
-                "Could not read packaged managed injector {}: {error}",
-                expected_injector.display()
-            )
-        })?;
-        let expected_injector_mode = fs::metadata(expected_injector)
-            .map_err(|error| error.to_string())?
-            .permissions()
-            .mode();
-        require_exact_managed_file(
-            &canonical_app.join(INJECTOR),
-            &expected_injector_bytes,
-            Some(expected_injector_mode),
-            "translator injector",
-        )?;
+        verify_injector(&canonical_app)?;
 
         let marker = fs::read(canonical_app.join(MARKER)).map_err(|error| error.to_string())?;
         if ![b"en\n".as_slice(), b"zh-Hans\n", b"zh-Hant\n", b"ja_JP\n"]
@@ -1834,6 +1874,29 @@ mod tests {
         handle
             .verify_managed_runtime(&app, &packaged_injector)
             .unwrap();
+
+        // A released pre-receipt injector is trusted by code identity, not by the current
+        // package's raw bytes.  Its owned mode remains the executable 0755 contract.
+        let released_injector = macho_arm64();
+        fs::write(app.join(INJECTOR), &released_injector).unwrap();
+        fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o755)).unwrap();
+        let released_identity = detect::macho_code_identity_sha256(&released_injector).unwrap();
+        handle
+            .verify_managed_runtime_with_released_injector_identities(
+                &app,
+                crate::mac_runtime::build_launch_wrapper().as_bytes(),
+                &[released_identity.as_str()],
+            )
+            .unwrap();
+        fs::write(app.join(INJECTOR), b"unknown historical injector").unwrap();
+        fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o755)).unwrap();
+        assert!(handle
+            .verify_managed_runtime_with_released_injector_identities(
+                &app,
+                crate::mac_runtime::build_launch_wrapper().as_bytes(),
+                &[released_identity.as_str()],
+            )
+            .is_err());
 
         let mut drifted = patched_extension;
         drifted.push(0x7f);

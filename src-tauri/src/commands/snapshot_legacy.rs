@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 snapshot 的 packaged English source 定位、patch 的 legacy/immutable snapshot gate、install identity、macOS p1-p5 已发布 wrapper/injector/Keychain postimage 与历史补丁回执的内容寻址 runtime、Windows QPA 只读证据；Stock 旧状态通过只读 restore plan 同时证明 vendor qwindows 和 generic 所有权。
+ * [INPUT]: 依赖 snapshot 的 packaged English source 定位、patch 的 legacy/immutable snapshot gate、install identity、macOS p1-p7 已发布 wrapper/injector/Keychain postimage 与历史补丁回执的内容寻址 runtime、Windows QPA 只读证据；Stock 旧状态通过只读 restore plan 同时证明 vendor qwindows 和 generic 所有权。
  * [OUTPUT]: 提供 legacy provenance 完整性判定、macOS Managed Legacy/Windows 旧快照的只读可信识别、macOS 快照/runtime 首个失败门诊断，以及 apply 阶段的 immutable English generation 迁移；若 generation 已发布而语言事务尚未提交 provenance，则严格复证后直接关联同一 generation；已提交回执只允许其摘要证明过的历史 wrapper/injector 进入运行态准入。
  * [POS]: commands 的兼容迁移子模块；status 只消费严格 postimage 证明，apply/restore 才接管 generation 发布与 provenance 关联，绝不从未知修改或当前翻译安装反向生成英文备份，也不因上次权限阻断留下的已验证 generation 重复迁移。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -15,10 +15,11 @@ use crate::{
 use super::super::context::language_source_dir;
 
 #[cfg(target_os = "macos")]
-const RELEASED_MACOS_INJECTOR_CODE_IDENTITIES: [&str; 3] = [
+const RELEASED_MACOS_INJECTOR_CODE_IDENTITIES: [&str; 4] = [
     "cb2af0df05c7db23fbce3d80494c3c34b5f37372aab3fb1e04ea951499306d3e",
     "81d352b386275f1ec4b2f96d6de5eaad5fc701379d48ed3a30df1831d636b2d3",
     "a84ab7d7978015c14d7ba9bb6cdce2981a53ad5a6daaf68c3374d81ef2927b47",
+    "8d6891e2398c0330e16022204213bee8a5eaab0753dc9ebfb5cfd52c6128283",
 ];
 
 #[cfg(target_os = "macos")]
@@ -41,6 +42,21 @@ else
 fi
 exec "$SELF_DIR/Cavalry" "$@"
 "#;
+
+/// Verify a complete official baseline against a released historical managed runtime.  This is
+/// the bridge for pre-receipt installations whose vendor baseline is valid but whose current
+/// Switcher package no longer contains the exact historical injector bytes.
+#[cfg(target_os = "macos")]
+pub(crate) fn verify_macos_managed_runtime_with_released_identity(
+    baseline: &crate::mac_official::VerifiedVendorBaseline,
+    app_path: &Path,
+) -> Result<(), String> {
+    baseline.verify_managed_runtime_with_released_injector_identities(
+        app_path,
+        RELEASED_MACOS_WRAPPER_V1,
+        &RELEASED_MACOS_INJECTOR_CODE_IDENTITIES,
+    )
+}
 
 #[cfg(target_os = "macos")]
 fn is_regular_file(path: &Path) -> bool {

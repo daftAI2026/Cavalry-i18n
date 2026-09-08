@@ -33,6 +33,7 @@
     ],
     "resources": {
       "../languages": "languages",
+      "legacy-patches/cavalry-2.7.2-p7": "legacy-patches/cavalry-2.7.2-p7",
       "../injector/windows/generic/cavalryi18n.dll": "injector/windows/generic/cavalryi18n.dll",
       "../injector/windows/qpa/qwindows.dll": "injector/windows/qpa/qwindows.dll"
     },

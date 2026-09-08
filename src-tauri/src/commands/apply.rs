@@ -37,6 +37,24 @@ enum CleanEnglishFastPath {
     Continue(State),
 }
 
+/// Choose a recognized historical language source only after it reproduces the installed
+/// preimage.  A catalog mismatch is deliberately not an error here: the final verification with
+/// the current source remains authoritative and will fail closed if neither source explains the
+/// installed bytes.
+fn select_legacy_language_source<F>(
+    current_source: PathBuf,
+    historical_source: Option<PathBuf>,
+    mut proves_installed_preimage: F,
+) -> PathBuf
+where
+    F: FnMut(&Path) -> Result<(), String>,
+{
+    match historical_source {
+        Some(source) if proves_installed_preimage(&source).is_ok() => source,
+        _ => current_source,
+    }
+}
+
 #[cfg(target_os = "macos")]
 fn verify_macos_prewrite_trust(
     repo_root: &Path,
@@ -120,7 +138,20 @@ fn verify_macos_prewrite_trust(
         return baseline.verify_managed_runtime_with_wrapper(app_path, &injector, &wrapper);
     }
     let injector = crate::mac_runtime::injector_source_path(repo_root, resource_dir)?;
-    baseline.verify_managed_runtime(app_path, &injector)
+    match baseline.verify_managed_runtime(app_path, &injector) {
+        Ok(()) => Ok(()),
+        Err(current_runtime_error) => {
+            super::snapshot::verify_macos_managed_runtime_with_released_identity(
+                &baseline,
+                app_path,
+            )
+            .map_err(|legacy_runtime_error| {
+                format!(
+                    "Current managed runtime did not match the Switcher package ({current_runtime_error}); released legacy runtime proof also failed ({legacy_runtime_error})."
+                )
+            })
+        }
+    }
 }
 
 #[cfg(target_os = "macos")]
@@ -661,6 +692,20 @@ where
             };
         }
 
+        #[cfg(target_os = "macos")]
+        let mac_manifest_sha256 = mac_baseline
+            .as_ref()
+            .map(|baseline| baseline.english_manifest_sha256())
+            .or_else(|| {
+                current_state
+                    .english_snapshot_provenance
+                    .as_ref()
+                    .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
+            })
+            .ok_or_else(|| {
+                "macOS asset verification lost its immutable English manifest.".to_string()
+            })?;
+
         let current_language_source = if current_state.current_lang == "en" {
             None
         } else if let Some(receipt) = current_state.applied_patch.as_ref() {
@@ -677,32 +722,49 @@ where
                 &current_state.current_lang,
             ))
         } else {
-            // 无回执的旧安装仍经过原有严格证明，不把任意修改当成旧翻译。
-            Some(language_source_dir(
+            // 无回执的旧安装优先尝试已固定摘要的历史发布源；若它不能解释现状，
+            // 仍回到当前源并由最终 preimage gate fail closed，不把当前包伪装成旧翻译。
+            let current_source =
+                language_source_dir(repo_root, resource_dir, &current_state.current_lang);
+            let historical_source = super::legacy_patch::p7_language_source_dir(
                 repo_root,
                 resource_dir,
                 &current_state.current_lang,
+            )?;
+            Some(select_legacy_language_source(
+                current_source,
+                historical_source,
+                |candidate| {
+                    #[cfg(target_os = "macos")]
+                    {
+                        patch::verify_installed_asset_preimages_at_exact(
+                            &english_snapshot_dir,
+                            &app_path,
+                            Some(candidate),
+                            mac_manifest_sha256,
+                        )
+                        .map(|_| ())
+                    }
+                    #[cfg(not(target_os = "macos"))]
+                    {
+                        patch::verify_installed_asset_preimages(
+                            state_dir,
+                            &app_path,
+                            &immutable_revision,
+                            Some(candidate),
+                        )
+                        .map(|_| ())
+                    }
+                },
             ))
         };
         #[cfg(target_os = "macos")]
         let mac_asset_preimages = {
-            let manifest_sha256 = mac_baseline
-                .as_ref()
-                .map(|baseline| baseline.english_manifest_sha256())
-                .or_else(|| {
-                    current_state
-                        .english_snapshot_provenance
-                        .as_ref()
-                        .and_then(|provenance| provenance.snapshot_manifest_sha256.as_deref())
-                })
-                .ok_or_else(|| {
-                    "macOS asset verification lost its immutable English manifest.".to_string()
-                })?;
             patch::verify_installed_asset_preimages_at_exact(
                 &english_snapshot_dir,
                 &app_path,
                 current_language_source.as_deref(),
-                manifest_sha256,
+                mac_manifest_sha256,
             )?
         };
         #[cfg(not(target_os = "macos"))]
@@ -1604,6 +1666,162 @@ mod direct_preflight_result_tests {
             payload.error_code.as_deref(),
             Some(CAVALRY_STILL_RUNNING_ERROR_CODE)
         );
+    }
+}
+
+#[cfg(test)]
+mod legacy_language_source_tests {
+    use super::*;
+
+    #[test]
+    fn recognized_historical_source_wins_when_it_reproduces_installed_preimage() {
+        let selected = select_legacy_language_source(
+            PathBuf::from("current-package/languages/zh-Hans"),
+            Some(PathBuf::from(
+                "legacy-patches/cavalry-2.7.2-p7/languages/zh-Hans",
+            )),
+            |source| {
+                assert!(source.ends_with("cavalry-2.7.2-p7/languages/zh-Hans"));
+                Ok(())
+            },
+        );
+
+        assert!(selected.ends_with("cavalry-2.7.2-p7/languages/zh-Hans"));
+    }
+
+    #[test]
+    fn historical_source_mismatch_falls_back_to_current_source_for_final_gate() {
+        let current = PathBuf::from("current-package/languages/zh-Hans");
+        let selected = select_legacy_language_source(
+            current.clone(),
+            Some(PathBuf::from(
+                "legacy-patches/cavalry-2.7.2-p7/languages/zh-Hans",
+            )),
+            |_| Err("installed bytes do not match P7".to_string()),
+        );
+
+        assert_eq!(selected, current);
+    }
+
+    #[test]
+    fn p7_source_passes_the_real_preimage_gate_after_current_translation_changes() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo_root = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .parent()
+            .expect("src-tauri must remain below repository root");
+        let state_dir = temp.path().join("state");
+        let app_path = if cfg!(target_os = "macos") {
+            temp.path().join("Cavalry.app")
+        } else {
+            temp.path().join("Cavalry")
+        };
+        let assets_root = patch::assets_root(&app_path);
+        let historical =
+            crate::commands::legacy_patch::p7_language_source_dir(repo_root, repo_root, "zh-Hans")
+                .unwrap()
+                .expect("the source checkout must carry the released P7 catalog");
+        let current = temp.path().join("current/languages/zh-Hans");
+
+        #[cfg(not(target_os = "macos"))]
+        fs::write(app_path.join("Cavalry.exe"), b"test Cavalry executable").unwrap();
+        for (language_relative, asset_relative) in crate::patch::CORE_MAP {
+            let english: serde_json::Value = serde_json::from_slice(
+                &fs::read(repo_root.join("languages/en").join(language_relative)).unwrap(),
+            )
+            .unwrap();
+            let historical_overlay: serde_json::Value =
+                serde_json::from_slice(&fs::read(historical.join(language_relative)).unwrap())
+                    .unwrap();
+            let installed = patch::merge_translation_overlay(&english, &historical_overlay);
+            let installed_bytes = serde_json::to_vec_pretty(&installed).unwrap();
+            write_test_file(&assets_root.join(asset_relative), installed_bytes);
+
+            write_test_file(
+                &current.join(language_relative),
+                fs::read(repo_root.join("languages/zh-Hans").join(language_relative)).unwrap(),
+            );
+        }
+        let current_app_strings = current.join("appStrings.json");
+        let mut changed: serde_json::Value =
+            serde_json::from_slice(&fs::read(&current_app_strings).unwrap()).unwrap();
+        assert!(replace_first_string(&mut changed, "P8 changed translation"));
+        write_test_file(
+            &current_app_strings,
+            serde_json::to_vec_pretty(&changed).unwrap(),
+        );
+
+        let immutable_revision = "p7-preimage-revision";
+        patch::extract_english_generation(&app_path, &state_dir, immutable_revision).unwrap();
+        let snapshot =
+            patch::english_snapshot_dir(&state_dir, &app_path, immutable_revision).unwrap();
+        let manifest_sha256 =
+            patch::english_snapshot_identity(&state_dir, &app_path, immutable_revision)
+                .unwrap()
+                .manifest_sha256;
+
+        let selected =
+            select_legacy_language_source(current.clone(), Some(historical.clone()), |candidate| {
+                #[cfg(target_os = "macos")]
+                {
+                    patch::verify_installed_asset_preimages_at_exact(
+                        &snapshot,
+                        &app_path,
+                        Some(candidate),
+                        &manifest_sha256,
+                    )
+                    .map(|_| ())
+                }
+                #[cfg(not(target_os = "macos"))]
+                {
+                    patch::verify_installed_asset_preimages(
+                        &state_dir,
+                        &app_path,
+                        immutable_revision,
+                        Some(candidate),
+                    )
+                }
+            });
+
+        assert_eq!(selected, historical);
+        #[cfg(target_os = "macos")]
+        let current_result = patch::verify_installed_asset_preimages_at_exact(
+            &snapshot,
+            &app_path,
+            Some(&current),
+            &manifest_sha256,
+        );
+        #[cfg(not(target_os = "macos"))]
+        let current_result = patch::verify_installed_asset_preimages(
+            &state_dir,
+            &app_path,
+            immutable_revision,
+            Some(&current),
+        );
+        assert!(
+            current_result.is_err(),
+            "the changed current package must not explain the P7 installed overlay"
+        );
+    }
+
+    fn replace_first_string(value: &mut serde_json::Value, replacement: &str) -> bool {
+        match value {
+            serde_json::Value::String(string) => {
+                *string = replacement.to_string();
+                true
+            }
+            serde_json::Value::Array(values) => values
+                .iter_mut()
+                .any(|value| replace_first_string(value, replacement)),
+            serde_json::Value::Object(values) => values
+                .values_mut()
+                .any(|value| replace_first_string(value, replacement)),
+            _ => false,
+        }
+    }
+
+    fn write_test_file(path: &Path, bytes: impl AsRef<[u8]>) {
+        fs::create_dir_all(path.parent().unwrap()).unwrap();
+        fs::write(path, bytes).unwrap();
     }
 }
 
