@@ -26,6 +26,8 @@ use super::status::{project_state_with_bundle, read_state_for_mutation};
 mod snapshot_legacy;
 #[cfg(all(test, target_os = "windows"))]
 pub(crate) use snapshot_legacy::legacy_snapshot_is_proven_with_qpa_inspector;
+#[cfg(target_os = "macos")]
+pub(crate) use snapshot_legacy::verify_macos_managed_runtime_with_released_identity;
 pub(crate) use snapshot_legacy::{
     has_complete_snapshot_identity, legacy_snapshot_is_proven, migrate_legacy_snapshot_if_proven,
 };

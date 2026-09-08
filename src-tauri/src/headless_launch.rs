@@ -248,6 +248,7 @@ mod tests {
                 cavalry_revision: revision,
                 current_lang: lang.to_string(),
                 last_patched_at: String::new(),
+                applied_patch: None,
                 english_snapshot_provenance: None,
             },
         )

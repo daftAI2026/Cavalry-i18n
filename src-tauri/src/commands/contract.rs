@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 serde 序列化、Tauri IPC Channel 和 privilege 的 typed post-commit warning code。
- * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、携带有限 CSS forward/return rect 的固定 App Management handoff 请求/结果、四阶段有序进度事件、Status 的轻量启动观察与固定中性旧字段，以及可组合的稳定 errorCode/warningCodes 投影；journal 与内部签名清理事实不进入 renderer 契约。
+ * [OUTPUT]: 提供九命令名称、renderer 兼容 payload DTO、携带有限 CSS forward/return rect 的固定 App Management handoff 请求/结果、四阶段有序进度事件、Status 的补丁回执版本/轻量启动观察与固定中性旧字段，以及可组合的稳定 errorCode/warningCodes 投影；journal 与内部签名清理事实不进入 renderer 契约。
  * [POS]: commands 的外部契约层；OperationReporter 是 transport-neutral 进度抽象，Tauri Channel 只在本文件的适配器中出现；内部 warning prose 只用于领域测试，command facade 必须在序列化前转换为 codes 并清空原文。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -198,6 +198,7 @@ pub struct StatusPayload {
     pub app_management_granted: Option<bool>,
     pub app_path: String,
     pub current_lang: String,
+    pub patch_status: String,
     pub installation_mode: String,
     #[serde(skip_serializing_if = "is_false")]
     pub macos_permission_handoff_required: bool,

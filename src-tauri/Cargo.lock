@@ -268,7 +268,7 @@ dependencies = [
 
 [[package]]
 name = "cavalry-i18n-tauri"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "base64 0.22.1",
  "cc",

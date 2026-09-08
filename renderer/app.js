@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖冻结 bridge 的轻量安装观察/版本兼容、有序阶段事件、Permission handoff、Select/Tooltip/Path/Activity/Updater/Toast/About/窗口控件状态机、稳定四语文案与固定 DOM 锚点。
- * [OUTPUT]: 对外提供跨平台单任务流、Windows 预注入平台标记驱动的首帧 caption/compositor 外壳、渐进安装选择、版本只读门禁、保留但禁用当前语言的目标 Select、三轨 Activity、语言/Official Badge、直接 Switch、跨平台未提交 marker 与 Windows runtime 残留共用的单一 Restore English、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
+ * [OUTPUT]: 对外提供跨平台单任务流、Windows 预注入平台标记驱动的首帧 caption/compositor 外壳、渐进安装选择、版本只读门禁、带语言补丁状态徽章且仅在已是最新时禁用当前语言的目标 Select、四语 Switch/Update 主动作（对象由语言选择框提供）、三轨 Activity、语言/Official Badge、直接 Switch、跨平台未提交 marker 与 Windows runtime 残留共用的单一 Restore English、仅由真实 typed PermissionDenied 触发的 macOS handoff（瞬时 Alert 动作正向飞出、显式 Back 回到持久 Activity 动作、业务结论直接清层）、Windows UAC 分流、App Management 仍拒绝后的明确重开提示、只展示更新动作边界而不内嵌 changelog 的 Updater 确认，以及外围失败 Toast。
  * [POS]: renderer 唯一业务交互源；不替用户预选目标语言，不比较版本字符串，不扫描、推断或展示 Switcher 内部 journal/签名清理；启动只消费后端只读投影的安装、版本、当前语言与 Restore 必要性，Switch/Restore 才进入完整证明与安全事务，typed 权限拒绝才把失败阶段收敛为链尾阻塞项，业务阶段失败不得冒充桌面服务断线。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -68,7 +68,7 @@ const updateTooltipControl = window.createTooltipControl({
 const api = window.cavalryI18n;
 const state = {
   appPath: '', currentLang: 'en', installationMode: 'unknown', languages: [],
-  versionCompatibility: 'supported', supportedVersion: '2.7.2',
+  versionCompatibility: 'supported', supportedVersion: '2.7.2', patchStatus: 'unknown',
   platform: '', pendingAction: '',
   ready: false, busy: false, controlsBlocked: false,
   stateDurabilityPending: false, englishRestoreNeeded: false, updateInfo: null, permissionRetryAttempt: 0,
@@ -148,6 +148,10 @@ function t(key, params = {}) {
   const text = (UI_TEXT[uiLocale] && UI_TEXT[uiLocale][key]) || UI_TEXT.en[key] || key;
   return text.replace(/\{(\w+)\}/g, (_, name) => String(params[name] ?? ''));
 }
+function syncApplyButtonLabel() {
+  const updatingCurrentLanguage = Boolean(languageSelect.value) && languageSelect.value === state.currentLang;
+  applyButton.textContent = t(updatingCurrentLanguage ? 'updateLanguagePatch' : 'apply');
+}
 async function recoverOperationFailure() {
   operationLog.finishRunning('error');
   try {
@@ -165,7 +169,7 @@ function setPermissionWait(isWaiting) {
     state.platform === 'windows'
       ? t('requestElevation')
       : t('openPrivacySecurity');
-  applyButton.textContent = t('apply');
+  syncApplyButtonLabel();
   restoreButton.textContent = t('restore');
   operationLog.remeasure();
 }
@@ -280,6 +284,7 @@ function appendPostCommitWarnings(warningCodes) {
 
 function setBusy(isBusy) {
   state.busy = isBusy;
+  syncApplyButtonLabel();
   const notReady = !state.ready;
   const durabilityPending = state.stateDurabilityPending;
   browseButton.disabled = notReady || isBusy || state.controlsBlocked || durabilityPending;
@@ -303,8 +308,25 @@ function setBusy(isBusy) {
 }
 
 function updateLanguageOptions(languages) {
+  const currentLanguageCanUpdate = state.patchStatus === 'updateAvailable' || state.patchStatus === 'unknown';
   const options = languages.filter((language) => language.value !== 'en')
-    .map((language) => ({ ...language, disabled: language.value === state.currentLang }));
+    .map((language) => {
+      const isCurrentLanguage = language.value === state.currentLang;
+      return {
+        ...language,
+        disabled: language.value === state.currentLang && state.patchStatus === 'current',
+        badge: isCurrentLanguage && currentLanguageCanUpdate
+          ? {
+              label: t('patchUpdateBadge'),
+              kind: 'green-subtle',
+              ariaLabel: t('languageOptionUpdateAria', { language: language.label }),
+            }
+          : null,
+        ariaLabel: isCurrentLanguage && currentLanguageCanUpdate
+          ? t('languageOptionUpdateAria', { language: language.label })
+          : language.label,
+      };
+    });
   languageSelectControl.setOptions(options);
 }
 function languageLabel(code) {
@@ -546,6 +568,7 @@ async function bootstrap({ renderActivity = true } = {}) {
   state.installationMode = bootstrapState.installationMode || 'unknown';
   state.versionCompatibility = bootstrapState.versionCompatibility || 'supported';
   state.supportedVersion = bootstrapState.supportedVersion || '2.7.2';
+  state.patchStatus = bootstrapState.patchStatus || 'unknown';
   state.controlsBlocked = Boolean(unsupportedVersionStatusKey());
   state.languages = bootstrapState.languages || [];
   state.platform = bootstrapState.platform || '';

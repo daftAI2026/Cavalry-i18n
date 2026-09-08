@@ -43,6 +43,19 @@ pub struct EnglishSnapshotProvenance {
     pub vendor_baseline_id: Option<String>,
 }
 
+/// 一次成功提交的非 English 补丁 generation 回执。
+///
+/// 回执只保存不可变身份与安装根；payload 留在 state 目录，由 `commands::patch_receipt`
+/// 在作为历史 preimage source 使用前逐项验证。
+#[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct AppliedPatchReceipt {
+    pub install_root: String,
+    pub cavalry_revision: String,
+    pub language: String,
+    pub generation: String,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct State {
@@ -52,6 +65,8 @@ pub struct State {
     pub cavalry_revision: String,
     pub current_lang: String,
     pub last_patched_at: String,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub applied_patch: Option<AppliedPatchReceipt>,
     #[serde(default)]
     pub english_snapshot_provenance: Option<EnglishSnapshotProvenance>,
 }
@@ -119,6 +134,7 @@ impl Default for State {
             cavalry_revision: String::new(),
             current_lang: "en".to_string(),
             last_patched_at: String::new(),
+            applied_patch: None,
             english_snapshot_provenance: None,
         }
     }
@@ -300,6 +316,9 @@ pub fn normalize(mut state: State) -> State {
 }
 
 fn validate_state_payload(state: &State) -> Result<(), String> {
+    if let Some(receipt) = state.applied_patch.as_ref() {
+        validate_applied_patch_receipt(receipt)?;
+    }
     let Some(provenance) = state.english_snapshot_provenance.as_ref() else {
         return Ok(());
     };
@@ -341,6 +360,34 @@ fn validate_state_payload(state: &State) -> Result<(), String> {
                 .to_string(),
         ),
     }
+}
+
+fn validate_applied_patch_receipt(receipt: &AppliedPatchReceipt) -> Result<(), String> {
+    if receipt.install_root.trim().is_empty() {
+        return Err("applied patch receipt installRoot must be non-empty".to_string());
+    }
+    if receipt.cavalry_revision.trim().is_empty() {
+        return Err("applied patch receipt cavalryRevision must be non-empty".to_string());
+    }
+    if !matches!(receipt.language.as_str(), "zh-Hans" | "zh-Hant" | "ja_JP") {
+        return Err(format!(
+            "applied patch receipt language is unsupported: {}",
+            receipt.language
+        ));
+    }
+    if !is_lowercase_sha256(&receipt.generation) {
+        return Err(
+            "applied patch receipt generation must be a 64-character lowercase SHA-256".to_string(),
+        );
+    }
+    Ok(())
+}
+
+fn is_lowercase_sha256(value: &str) -> bool {
+    value.len() == 64
+        && value
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || matches!(byte, b'a'..=b'f'))
 }
 
 fn validate_sha256(field: &str, value: &str) -> Result<(), String> {

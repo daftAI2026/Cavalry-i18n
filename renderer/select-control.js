@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 index.html 的原生 select 数据槽、combobox trigger、只读 popup placeholder、listbox popup 与 option 容器，依赖浏览器键盘/指针事件和 ARIA 属性。
- * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected/disabled 状态边界和只在开启瞬间定位的 item-aligned positioner 语义实现单选菜单；空值弹层仍投影占位行，禁用项保持可见但不会被指针、方向键、Home/End、Enter/Space 或 typeahead 选中。
+ * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected/disabled 状态边界和只在开启瞬间定位的 item-aligned positioner 语义实现单选菜单；空值弹层仍投影占位行，禁用项保持可见但不会被指针、方向键、Home/End、Enter/Space 或 typeahead 选中，可选 badge 由业务传入并与语言名组成左侧紧凑组，选中 checkmark 独立贴右。
  * [POS]: renderer 的无依赖选择器组件状态机；只管理显式选择交互和无障碍投影，不替业务预选默认值、不读取业务状态、不调用 Tauri，也不引入 React、组件库或 CDN。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -14,6 +14,28 @@
     let placeholder = '';
     let typeahead = '';
     let typeaheadTimer = null;
+
+    function normalizeBadge(badge) {
+      if (typeof badge === 'string') return { label: badge, kind: '', ariaLabel: badge };
+      if (!badge || typeof badge !== 'object') return null;
+      const label = typeof badge.label === 'string'
+        ? badge.label
+        : typeof badge.text === 'string'
+          ? badge.text
+          : '';
+      if (!label) return null;
+      return {
+        label,
+        kind: typeof badge.kind === 'string'
+          ? badge.kind
+          : typeof badge.tone === 'string'
+            ? badge.tone
+            : typeof badge.variant === 'string'
+              ? badge.variant
+              : '',
+        ariaLabel: typeof badge.ariaLabel === 'string' ? badge.ariaLabel : label,
+      };
+    }
 
     function selectedIndex() {
       return options.findIndex((option) => option.value === select.value);
@@ -115,15 +137,30 @@
       item.dataset.disabled = String(option.disabled);
       item.setAttribute('role', 'option');
       item.setAttribute('aria-disabled', String(option.disabled));
+      const accessibleLabel = option.ariaLabel || [option.label, option.badge?.ariaLabel].filter(Boolean).join(', ');
+      if (accessibleLabel) item.setAttribute('aria-label', accessibleLabel);
       item.addEventListener('pointermove', () => {
         if (!option.disabled && activeIndex !== index) setActive(index);
       });
       item.addEventListener('pointerdown', (event) => event.preventDefault());
       item.addEventListener('click', () => commit(index));
 
+      const copy = document.createElement('span');
+      copy.className = 'select-item-copy';
       const label = document.createElement('span');
+      label.className = 'select-item-label';
       label.textContent = option.label;
-      item.append(label);
+      copy.append(label);
+
+      if (option.badge) {
+        const badge = document.createElement('span');
+        badge.className = 'badge select-item-badge';
+        if (option.badge.kind) badge.dataset.kind = option.badge.kind;
+        badge.textContent = option.badge.label;
+        badge.setAttribute('aria-hidden', 'true');
+        copy.append(badge);
+      }
+      item.append(copy);
 
       const indicator = document.createElement('span');
       indicator.className = 'select-item-indicator';
@@ -145,10 +182,12 @@
 
     function setOptions(nextOptions) {
       const previousValue = select.value;
-      options = nextOptions.map(({ value: optionValue, label, disabled = false }) => ({
+      options = nextOptions.map(({ value: optionValue, label, disabled = false, badge = null, ariaLabel = '' }) => ({
         value: String(optionValue),
         label: String(label),
         disabled: Boolean(disabled),
+        badge: normalizeBadge(badge),
+        ariaLabel: typeof ariaLabel === 'string' ? ariaLabel : '',
       }));
       select.replaceChildren();
       list.replaceChildren();

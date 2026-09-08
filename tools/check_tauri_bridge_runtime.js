@@ -73,7 +73,7 @@ function runtime({
     defaultAppCandidates: ['/Applications/Cavalry.app'], languages: [{ value: 'attacker', label: '<img>' }],
     installationMode: 'modifiedOrUnverified', officialRecoveryAvailable: true,
     macosPermissionHandoffRequired: false, needsExtract: false, permissionAction: 'none', platform: 'macos', supportedVersion: '2.7.2',
-    version: '2.7.2', versionCompatibility: 'supported', ...status,
+    version: '2.7.2', versionCompatibility: 'supported', patchStatus: 'current', ...status,
   };
   const applyResults = Array.isArray(apply) ? [...apply] : [apply];
   const nextResult = (results) => (results.length > 1 ? results.shift() : results[0]);
@@ -271,6 +271,65 @@ test('bridge exposes frozen camelCase-only manifest and ignores unknown backend 
   await flush();
   const windowsStatus = await windows.window.cavalryI18n.getStatus();
   assert.equal(windowsStatus.macosPermissionHandoffRequired, false);
+});
+
+test('language patch status controls the current option, badge, and localized update action', async () => {
+  const locales = [
+    ['en-US', 'Update available', 'Update'],
+    ['zh-CN', '可更新', '更新'],
+    ['zh-TW', '可更新', '更新'],
+    ['ja-JP', '更新可能', '更新'],
+  ];
+
+  for (const [locale, badgeText, updateAction] of locales) {
+    const r = boot({
+      locale,
+      status: { currentLang: 'zh-Hans', patchStatus: 'updateAvailable' },
+    });
+    await flush();
+    const current = r.elements['#languageSelectList'].children[0];
+    assert.equal(r.elements['#languageSelect'].value, '', `${locale}: bootstrap must not select a language`);
+    assert.equal(current.dataset.value, 'zh-Hans');
+    assert.equal(current.dataset.disabled, 'false');
+    assert.equal(current.attributes.get('aria-disabled'), 'false');
+    assert.equal(current.children[0].className, 'select-item-copy');
+    assert.equal(current.children[0].children[1].className, 'badge select-item-badge');
+    assert.equal(current.children[0].children[1].textContent, badgeText);
+    assert.equal(current.children[0].children[1].attributes.get('aria-hidden'), 'true');
+    assert.match(current.attributes.get('aria-label'), new RegExp(`${badgeText}$`));
+
+    chooseLanguage(r, 0);
+    assert.equal(r.elements['#languageSelect'].value, 'zh-Hans');
+    assert.equal(r.elements['#applyButton'].textContent, updateAction, locale);
+    assert.equal(r.elements['#applyButton'].disabled, false, `${locale}: update action must be available`);
+  }
+
+  const current = boot({ status: { currentLang: 'zh-Hans', patchStatus: 'current' } });
+  await flush();
+  const currentOption = current.elements['#languageSelectList'].children[0];
+  assert.equal(currentOption.dataset.disabled, 'true');
+  assert.equal(currentOption.children.length, 2, 'current patch must not render a badge');
+  chooseLanguage(current, 0);
+  assert.equal(current.elements['#languageSelect'].value, '');
+  assert.equal(current.elements['#applyButton'].disabled, true);
+
+  const notApplicable = boot({ status: { currentLang: 'zh-Hans', patchStatus: 'notApplicable' } });
+  await flush();
+  const notApplicableOption = notApplicable.elements['#languageSelectList'].children[0];
+  assert.equal(notApplicableOption.dataset.disabled, 'false', 'only current patch status disables the current language');
+  assert.equal(notApplicableOption.children.length, 2, 'notApplicable must not render an update badge');
+
+  const legacy = boot({
+    statusRequest: (status) => {
+      const { patchStatus, ...withoutPatchStatus } = status;
+      return withoutPatchStatus;
+    },
+  });
+  await flush();
+  const legacyStatus = await legacy.window.cavalryI18n.getStatus();
+  assert.equal(legacyStatus.patchStatus, 'unknown', 'legacy getStatus responses must fail closed to unknown');
+  assert.equal(legacy.elements['#languageSelectList'].children[0].dataset.disabled, 'false');
+  assert.equal(legacy.elements['#languageSelectList'].children[0].children[0].children[1].textContent, 'Update available');
 });
 
 test('legacy permission hints do not fabricate a startup warning before an operation fails', async () => {

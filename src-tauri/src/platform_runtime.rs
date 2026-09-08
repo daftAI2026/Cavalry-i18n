@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 install 布局、verified vendor Info.plist 或严格证明的 Managed Legacy runtime、mac_runtime/windows_runtime/windows_qpa、privilege typed process guard/graceful close 与 state。
- * [OUTPUT]: 提供 prepare_apply（macOS 新管理态从 trusted Info 生成；Managed Legacy 只更新 marker/JSON 而不改写无 vendor preimage 的 runtime）、typed preflight、签名/app seal、English 早退与 restart 编排入口；macOS Switch/Restore preflight 只读探测运行态，不替用户关闭 Cavalry。
+ * [OUTPUT]: 提供 prepare_apply（macOS 新管理态从 trusted Info 生成；Managed Legacy 只替换本工具拥有的 wrapper/injector 并更新 marker，不改写无 vendor preimage 的 Info/runtime 其它部分）、typed preflight、签名/app seal、English 早退与 restart 编排入口；macOS Switch/Restore preflight 只读探测运行态，不替用户关闭 Cavalry。
  * [POS]: commands 与平台差异之间的私有 facade；Windows English/翻译态都解析同一可信双 DLL 源，自定义根与 Program Files 共享 QPA 所有权语义。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -118,6 +118,37 @@ pub(crate) fn prepare_apply(
                 &staging_root.join("runtime-marker"),
             )?);
         } else if lang != crate::commands::RESTORE_OFFICIAL_ACTION && reuse_managed_macos_runtime {
+            // Managed Legacy 的 Info.plist 已经证明 CFBundleExecutable 指向本工具的
+            // launcher；它没有 vendor Info preimage，因而这里只更新本工具拥有的两个
+            // runtime 文件。绝不能把当前 Info.plist 或其它 vendor bytes 当作新的来源。
+            let injector_source =
+                crate::mac_runtime::injector_source_path(repo_root, resource_dir)?;
+            let wrapper_source = staging_root
+                .join("managed-legacy-runtime")
+                .join(crate::mac_runtime::WRAPPER_EXECUTABLE_NAME);
+            if let Some(parent) = wrapper_source.parent() {
+                std::fs::create_dir_all(parent).map_err(|error| {
+                    format!(
+                        "Could not create Managed Legacy runtime staging directory {}: {error}",
+                        parent.display()
+                    )
+                })?;
+            }
+            std::fs::write(&wrapper_source, crate::mac_runtime::build_launch_wrapper())
+                .map_err(|error| format!("Could not stage Managed Legacy launcher: {error}"))?;
+            std::fs::set_permissions(&wrapper_source, std::fs::Permissions::from_mode(0o755))
+                .map_err(|error| format!("Could not set Managed Legacy launcher mode: {error}"))?;
+            plan.runtime_pairs.push(CopyPair {
+                src: wrapper_source,
+                dst: app_path
+                    .join("Contents")
+                    .join("MacOS")
+                    .join(crate::mac_runtime::WRAPPER_EXECUTABLE_NAME),
+            });
+            plan.runtime_pairs.push(CopyPair {
+                src: injector_source,
+                dst: injector_target.clone(),
+            });
             plan.final_language_marker = Some(crate::mac_runtime::build_language_marker_pair(
                 app_path,
                 lang,

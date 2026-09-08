@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/成功/阻塞/警告/失败 fixture 矩阵、feedback/icons/badges 目录，以及 ui_review_permission_handoff 的独立权限审查页；依赖 localhost query 传递 locale/scenario。
+ * [INPUT]: 依赖 UI Review server 暴露的真实主窗口/About 页面、安装/版本兼容/补丁新旧与结构拒绝/成功/阻塞/警告/失败 fixture 矩阵、feedback/icons/badges 目录，以及 ui_review_permission_handoff 的独立权限审查页；依赖 localhost query 传递 locale/scenario。
  * [OUTPUT]: 对外提供 workspaceHtml，并兼容转发 permissionHandoffHtml；以单一侧栏切换生产界面、320×308 且 Chrome 覆盖完整画布的无重复视觉标题 About、审查总览和占满可用 stage 的独立 macOS 权限交接原型，revision 变化时重载整个工作台而非只刷新 iframe。
  * [POS]: tools UI Review 的纯导航壳；只拥有页面选择、fixture/locale 路由与主/About 审查窗口外框，权限页不再套用会压缩原型的假窗口，动画状态机由兄弟模块独立承担。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -82,7 +82,9 @@ function workspaceHtml() {
       <div class="group" id="scenarios">
         <div class="group-label">安装与入口</div>
         <button class="scenario" data-scenario="notFound"><span>未找到 Cavalry</span></button>
-        <button class="scenario" data-scenario="translated"><span>已翻译</span></button>
+        <button class="scenario" data-scenario="translated"><span>已翻译 · 补丁最新</span></button>
+        <button class="scenario" data-scenario="patchUpdate"><span>当前语言 · 可更新</span></button>
+        <button class="scenario" data-scenario="patchDrift"><span>补丁更新 · 结构校验失败</span></button>
         <button class="scenario" data-scenario="official"><span>官方英文</span></button>
         <button class="scenario" data-scenario="managedLegacy"><span>旧版受管安装</span></button>
         <button class="scenario" data-scenario="olderVersion"><span>旧版 Cavalry</span></button>

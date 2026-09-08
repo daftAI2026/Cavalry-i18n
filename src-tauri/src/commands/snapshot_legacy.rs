@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 snapshot 的 packaged English source 定位、patch 的 legacy/immutable snapshot gate、install identity、macOS p1-p5 已发布 wrapper/injector/Keychain postimage 与 Windows QPA 只读证据；Stock 旧状态通过只读 restore plan 同时证明 vendor qwindows 和 generic 所有权。
- * [OUTPUT]: 提供 legacy provenance 完整性判定、macOS Managed Legacy/Windows 旧快照的只读可信识别、macOS 快照/runtime 首个失败门诊断，以及 apply 阶段的 immutable English generation 迁移；若 generation 已发布而语言事务尚未提交 provenance，则严格复证后直接关联同一 generation。
+ * [INPUT]: 依赖 snapshot 的 packaged English source 定位、patch 的 legacy/immutable snapshot gate、install identity、macOS p1-p7 已发布 wrapper/injector/Keychain postimage 与历史补丁回执的内容寻址 runtime、Windows QPA 只读证据；Stock 旧状态通过只读 restore plan 同时证明 vendor qwindows 和 generic 所有权。
+ * [OUTPUT]: 提供 legacy provenance 完整性判定、macOS Managed Legacy/Windows 旧快照的只读可信识别、macOS 快照/runtime 首个失败门诊断，以及 apply 阶段的 immutable English generation 迁移；若 generation 已发布而语言事务尚未提交 provenance，则严格复证后直接关联同一 generation；已提交回执只允许其摘要证明过的历史 wrapper/injector 进入运行态准入。
  * [POS]: commands 的兼容迁移子模块；status 只消费严格 postimage 证明，apply/restore 才接管 generation 发布与 provenance 关联，绝不从未知修改或当前翻译安装反向生成英文备份，也不因上次权限阻断留下的已验证 generation 重复迁移。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -15,10 +15,11 @@ use crate::{
 use super::super::context::language_source_dir;
 
 #[cfg(target_os = "macos")]
-const RELEASED_MACOS_INJECTOR_CODE_IDENTITIES: [&str; 3] = [
+const RELEASED_MACOS_INJECTOR_CODE_IDENTITIES: [&str; 4] = [
     "cb2af0df05c7db23fbce3d80494c3c34b5f37372aab3fb1e04ea951499306d3e",
     "81d352b386275f1ec4b2f96d6de5eaad5fc701379d48ed3a30df1831d636b2d3",
     "a84ab7d7978015c14d7ba9bb6cdce2981a53ad5a6daaf68c3374d81ef2927b47",
+    "8d6891e2398c0330e16022204213bee8a5eaab0753dc9ebfb5cfd52c6128283",
 ];
 
 #[cfg(target_os = "macos")]
@@ -42,6 +43,21 @@ fi
 exec "$SELF_DIR/Cavalry" "$@"
 "#;
 
+/// Verify a complete official baseline against a released historical managed runtime.  This is
+/// the bridge for pre-receipt installations whose vendor baseline is valid but whose current
+/// Switcher package no longer contains the exact historical injector bytes.
+#[cfg(target_os = "macos")]
+pub(crate) fn verify_macos_managed_runtime_with_released_identity(
+    baseline: &crate::mac_official::VerifiedVendorBaseline,
+    app_path: &Path,
+) -> Result<(), String> {
+    baseline.verify_managed_runtime_with_released_injector_identities(
+        app_path,
+        RELEASED_MACOS_WRAPPER_V1,
+        &RELEASED_MACOS_INJECTOR_CODE_IDENTITIES,
+    )
+}
+
 #[cfg(target_os = "macos")]
 fn is_regular_file(path: &Path) -> bool {
     fs::symlink_metadata(path)
@@ -58,10 +74,27 @@ pub(crate) struct MacosManagedLegacyProofDiagnostics {
     pub(crate) runtime_reason: &'static str,
 }
 
-#[cfg(target_os = "macos")]
+#[cfg(all(test, target_os = "macos"))]
 fn macos_managed_legacy_runtime_reason_with_identities(
     current: &State,
     app_path: &Path,
+    released_injector_identities: &[&str],
+) -> &'static str {
+    macos_managed_legacy_runtime_reason_with_receipt_context(
+        current,
+        app_path,
+        None,
+        None,
+        released_injector_identities,
+    )
+}
+
+#[cfg(target_os = "macos")]
+fn macos_managed_legacy_runtime_reason_with_receipt_context(
+    current: &State,
+    app_path: &Path,
+    state_dir: Option<&Path>,
+    immutable_revision: Option<&str>,
     released_injector_identities: &[&str],
 ) -> &'static str {
     if current.current_lang == "pending"
@@ -88,9 +121,6 @@ fn macos_managed_legacy_runtime_reason_with_identities(
     if !is_regular_file(&marker) {
         return "markerMissingOrUnsafe";
     }
-    if !matches!(fs::read(&wrapper), Ok(bytes) if bytes == RELEASED_MACOS_WRAPPER_V1) {
-        return "wrapperMismatch";
-    }
     let marker_value = match fs::read_to_string(&marker) {
         Ok(value) => value.trim().to_string(),
         Err(_) => return "markerUnreadable",
@@ -98,6 +128,72 @@ fn macos_managed_legacy_runtime_reason_with_identities(
     if marker_value != current.current_lang {
         return "markerStateMismatch";
     }
+
+    // A committed receipt is stronger than the historical release allowlist, but only after
+    // load_source has revalidated its install/revision/language binding and every content hash.
+    // Do not fall back to released identities when a receipt exists: an invalid receipt is an
+    // incomplete control-plane fact, not permission to trust arbitrary bytes already in the app.
+    let receipt_runtime = if let Some(receipt) = current.applied_patch.as_ref() {
+        let (Some(state_dir), Some(immutable_revision)) = (state_dir, immutable_revision) else {
+            return "receiptInvalid";
+        };
+        if current.current_lang != "en" && receipt.language != current.current_lang {
+            return "receiptLanguageMismatch";
+        }
+        let source_root = match crate::commands::patch_receipt::load_source(
+            state_dir,
+            receipt,
+            app_path,
+            immutable_revision,
+            &receipt.language,
+        ) {
+            Ok(source_root) => source_root,
+            Err(_) => return "receiptInvalid",
+        };
+        let source_wrapper = source_root
+            .join("runtime")
+            .join(crate::mac_runtime::WRAPPER_EXECUTABLE_NAME);
+        if !is_regular_file(&source_wrapper) {
+            return "receiptInvalid";
+        }
+        let expected_wrapper = match fs::read(source_wrapper) {
+            Ok(bytes) => bytes,
+            Err(_) => return "receiptInvalid",
+        };
+        let source_injector = source_root
+            .join("injector")
+            .join(crate::mac_runtime::INJECTOR_DYLIB_NAME);
+        if !is_regular_file(&source_injector) {
+            return "receiptInvalid";
+        }
+        let expected_injector_identity = match fs::read(source_injector)
+            .ok()
+            .and_then(|bytes| crate::detect::macho_code_identity_sha256(&bytes).ok())
+        {
+            Some(identity) => identity,
+            None => return "receiptInvalid",
+        };
+        Some((expected_wrapper, expected_injector_identity))
+    } else {
+        None
+    };
+
+    let receipt_injector_identity =
+        if let Some((expected_wrapper, expected_injector_identity)) = receipt_runtime {
+            if !matches!(fs::read(&wrapper), Ok(bytes) if bytes == expected_wrapper) {
+                return "wrapperMismatch";
+            }
+            Some(expected_injector_identity)
+        } else {
+            if !matches!(
+                fs::read(&wrapper),
+                Ok(bytes) if bytes == RELEASED_MACOS_WRAPPER_V1
+            ) {
+                return "wrapperMismatch";
+            }
+            None
+        };
+
     let injector_identity = match fs::read(&injector) {
         Ok(bytes) => match crate::detect::macho_code_identity_sha256(&bytes) {
             Ok(identity) => identity,
@@ -105,7 +201,11 @@ fn macos_managed_legacy_runtime_reason_with_identities(
         },
         Err(_) => return "injectorUnreadable",
     };
-    if !released_injector_identities.contains(&injector_identity.as_str()) {
+    if let Some(expected_injector_identity) = receipt_injector_identity {
+        if injector_identity != expected_injector_identity {
+            return "injectorIdentityUnknown";
+        }
+    } else if !released_injector_identities.contains(&injector_identity.as_str()) {
         return "injectorIdentityUnknown";
     }
     let extension_bytes = match fs::read(&extension) {
@@ -184,7 +284,7 @@ mod macos_tests {
         );
         write(
             &app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
-            injector,
+            &injector,
         );
         write(
             &app.join("Contents/Frameworks/libExtensionLayer.dylib"),
@@ -238,6 +338,126 @@ mod macos_tests {
     }
 
     #[test]
+    fn managed_legacy_runtime_accepts_only_the_content_addressed_receipt_runtime() {
+        let temp = tempfile::tempdir().unwrap();
+        let repo = temp.path().join("repo");
+        let state_dir = temp.path().join("state");
+        let app = temp.path().join("Cavalry.app");
+        write(
+            &repo.join("languages/zh-Hans/app.json"),
+            r#"{"value":"中文"}"#.as_bytes(),
+        );
+        let injector = signed_macho_arm64(b"historical-receipt-injector");
+        write(
+            &repo.join("injector/libCavalryTranslatorInjector.dylib"),
+            &injector,
+        );
+        let extension = crate::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false);
+        let (patched_extension, _) =
+            crate::keychain_patch::patch_keychain_query_attributes_owned(extension).unwrap();
+        let app = fs::canonicalize({
+            write(
+                &app.join("Contents/MacOS/CavalryLauncher"),
+                crate::mac_runtime::build_launch_wrapper().as_bytes(),
+            );
+            write(
+                &app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
+                &injector,
+            );
+            write(
+                &app.join("Contents/Frameworks/libExtensionLayer.dylib"),
+                patched_extension,
+            );
+            write(
+                &app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+                b"zh-Hans\n",
+            );
+            &app
+        })
+        .unwrap();
+        let revision = "bundle-version:2.7.2";
+        let receipt = crate::commands::patch_receipt::prepare(
+            &repo, &state_dir, &repo, &app, revision, "zh-Hans",
+        )
+        .unwrap()
+        .unwrap();
+        let state = State {
+            app_path: app.to_string_lossy().to_string(),
+            cavalry_version: crate::detect::SUPPORTED_CAVALRY_VERSION.to_string(),
+            cavalry_revision: revision.to_string(),
+            current_lang: "zh-Hans".to_string(),
+            applied_patch: Some(receipt),
+            ..State::default()
+        };
+        assert_eq!(
+            macos_managed_legacy_runtime_reason_with_receipt_context(
+                &state,
+                &app,
+                Some(&state_dir),
+                Some(revision),
+                &["not-released"],
+            ),
+            "proven"
+        );
+        let mut english_state = state.clone();
+        english_state.current_lang = "en".to_string();
+        write(
+            &app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+            b"en\n",
+        );
+        assert_eq!(
+            macos_managed_legacy_runtime_reason_with_receipt_context(
+                &english_state,
+                &app,
+                Some(&state_dir),
+                Some(revision),
+                &["not-released"],
+            ),
+            "proven"
+        );
+        write(
+            &app.join("Contents/Resources/cavalry-i18n-lang.txt"),
+            b"zh-Hans\n",
+        );
+
+        // A receipt must not silently widen the old release allowlist when its runtime postimage
+        // is no longer installed.  The same injector is a released identity only in this test.
+        write(
+            &app.join("Contents/MacOS/CavalryLauncher"),
+            RELEASED_MACOS_WRAPPER_V1,
+        );
+        let injector_identity = crate::detect::macho_code_identity_sha256(&injector).unwrap();
+        assert_eq!(
+            macos_managed_legacy_runtime_reason_with_receipt_context(
+                &state,
+                &app,
+                Some(&state_dir),
+                Some(revision),
+                &[injector_identity.as_str()],
+            ),
+            "wrapperMismatch"
+        );
+
+        // Removing the immutable generation is fail-closed even though the installed bytes still
+        // match a known historical runtime shape.
+        let receipt = state.applied_patch.as_ref().unwrap();
+        let generation = state_dir
+            .join("patch-generations")
+            .join(&receipt.generation);
+        fs::remove_dir_all(generation).unwrap();
+        assert_eq!(
+            macos_managed_legacy_runtime_reason_with_receipt_context(
+                &state,
+                &app,
+                Some(&state_dir),
+                Some(revision),
+                &[injector_identity.as_str()],
+            ),
+            "receiptInvalid"
+        );
+    }
+
+    #[test]
     fn migrated_managed_legacy_generation_remains_proven_without_vendor_baseline() {
         let temp = tempfile::tempdir().unwrap();
         let repo = temp.path().join("repo");
@@ -259,6 +479,10 @@ mod macos_tests {
         }
         let injector = signed_macho_arm64(b"released-generation-fixture");
         let injector_identity = crate::detect::macho_code_identity_sha256(&injector).unwrap();
+        write(
+            &repo.join("injector/libCavalryTranslatorInjector.dylib"),
+            &injector,
+        );
         let extension = crate::keychain_patch::build_synthetic_keychain_dylib(Some("arm64"), false);
         let (patched_extension, _) =
             crate::keychain_patch::patch_keychain_query_attributes_owned(extension).unwrap();
@@ -268,7 +492,7 @@ mod macos_tests {
         );
         write(
             &app.join("Contents/Frameworks/libCavalryTranslatorInjector.dylib"),
-            injector,
+            &injector,
         );
         write(
             &app.join("Contents/Frameworks/libExtensionLayer.dylib"),
@@ -351,7 +575,33 @@ mod macos_tests {
                 true,
             )
             .unwrap();
-            assert!(plan.runtime_pairs.is_empty());
+            if target == "en" {
+                assert!(plan.runtime_pairs.is_empty());
+            } else {
+                assert_eq!(plan.runtime_pairs.len(), 2);
+                assert!(plan
+                    .runtime_pairs
+                    .iter()
+                    .all(|pair| !pair.dst.ends_with("Contents/Info.plist")));
+                let wrapper = plan
+                    .runtime_pairs
+                    .iter()
+                    .find(|pair| pair.dst.ends_with("Contents/MacOS/CavalryLauncher"))
+                    .expect("Managed Legacy apply must refresh the owned launcher");
+                assert_eq!(
+                    fs::read(&wrapper.src).unwrap(),
+                    crate::mac_runtime::build_launch_wrapper().into_bytes()
+                );
+                let injector_pair = plan
+                    .runtime_pairs
+                    .iter()
+                    .find(|pair| {
+                        pair.dst
+                            .ends_with("Contents/Frameworks/libCavalryTranslatorInjector.dylib")
+                    })
+                    .expect("Managed Legacy apply must refresh the owned injector");
+                assert_eq!(fs::read(&injector_pair.src).unwrap(), injector);
+            }
             let marker = plan.final_language_marker.unwrap();
             assert_eq!(
                 marker.dst,
@@ -583,9 +833,11 @@ fn macos_managed_snapshot_proof_diagnostics_with_identities(
         };
         (state_matches && snapshot_matches, reason)
     };
-    let runtime_reason = macos_managed_legacy_runtime_reason_with_identities(
+    let runtime_reason = macos_managed_legacy_runtime_reason_with_receipt_context(
         current,
         app_path,
+        Some(state_dir),
+        Some(immutable_revision),
         released_injector_identities,
     );
     let runtime_proven = runtime_reason == "proven";
