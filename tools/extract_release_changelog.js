@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖发布流程传入的内部 SemVer、CHANGELOG.md 与目标输出路径
- * [OUTPUT]: 对外提供精确版本 CHANGELOG 正文抽取，并在版本缺失、重复、未标日期、正文为空或缺少中文在前/英文在后的更新条目时失败关闭
+ * [OUTPUT]: 对外提供精确版本 CHANGELOG 正文抽取，并在版本缺失、重复、未标日期、正文为空或缺少中文更新条目时失败关闭；保留 Added/Fixed 等源码分类语义，仅在发布投影为中文标题
  * [POS]: tools 的 Release notes 内容边界，将内部版本真相源投影为 GitHub Release 的版本更新摘要，不负责产品介绍模板
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -98,20 +98,30 @@ function extractReleaseSection(source, version) {
     throw new Error(`Release version ${version} has an empty CHANGELOG.md section`);
   }
 
-  // ---- 双语内容合同：分类和条目由版本作者填写，不自动翻译或复制固定介绍 ----
-  const locales = [...body.matchAll(/^### ([^\r\n]+)[ \t]*$/gm)];
-  if (locales.length !== 2 || locales[0][1].trim() !== '中文'
-      || locales[1][1].trim() !== 'English'
-      || body.slice(0, locales[0]?.index).trim()) {
-    throw new Error('Release notes must be bilingual: ### 中文 first, then ### English');
+  // ---- 分类是源码语义，中文标题是发布显示；版本作者维护实际更新条目 ----
+  const labels = {
+    Added: '新增', Changed: '变更', Deprecated: '弃用',
+    Removed: '移除', Fixed: '修复', Security: '安全',
+  };
+  const categories = [...body.matchAll(/^### ([^\r\n]+)[ \t]*$/gm)];
+  const seen = new Set();
+  if (!categories.length || body.slice(0, categories[0].index).trim()) {
+    throw new Error('Release notes must start with a supported change category');
   }
-  const chinese = body.slice(locales[0].index + locales[0][0].length, locales[1].index);
-  const english = body.slice(locales[1].index + locales[1][0].length);
-  if (![chinese, english].every((section) => /^- [^\s].*$/m.test(section))) {
-    throw new Error('Each bilingual release section must contain non-empty change bullets');
+  for (const [index, category] of categories.entries()) {
+    const key = category[1].trim();
+    const content = body.slice(category.index + category[0].length,
+      categories[index + 1]?.index ?? body.length);
+    if (!Object.hasOwn(labels, key) || seen.has(key)) {
+      throw new Error('Release change category is unsupported or duplicated: ' + key);
+    }
+    seen.add(key);
+    if (!/^- [^\s].*$/m.test(content) || !/\p{Script=Han}/u.test(content)) {
+      throw new Error('Each release category must contain Chinese change bullets');
+    }
   }
-
-  return `${body}\n`;
+  return body.replace(/^### ([^\r\n]+)[ \t]*$/gm,
+    (_, category) => '### ' + labels[category.trim()]) + '\n';
 }
 
 function main() {

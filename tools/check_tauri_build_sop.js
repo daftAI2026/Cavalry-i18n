@@ -1391,6 +1391,16 @@ test('release changelog extractor selects one exact released SemVer section and 
     assert.equal(fs.existsSync(outputPath), false);
   }
 
+  for (const [category, label] of [
+    ['Added', '新增'], ['Changed', '变更'], ['Deprecated', '弃用'],
+    ['Removed', '移除'], ['Fixed', '修复'], ['Security', '安全'],
+  ]) {
+    fs.writeFileSync(changelogPath, '## [9.8.7] - 2026-07-14\n\n### ' + category + '\n- 实际更新。');
+    const projected = runExtractor('9.8.7');
+    assert.equal(projected.status, 0, projected.stderr);
+    assert.equal(fs.readFileSync(outputPath, 'utf8'), '### ' + label + '\n- 实际更新。\n');
+  }
+
   const missing = runExtractor('9.8.5');
   assert.notEqual(missing.status, 0, missing.stdout);
   assert.match(missing.stderr, /9\.8\.5[\s\S]*not found/i);

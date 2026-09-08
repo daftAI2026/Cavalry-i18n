@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.4.3 archive 与 SHA-256、NSIS provenance/安装态守门、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、中英双语版本说明、七项公开资产回读与 CI 内部 provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
+[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、中文发布说明与英文分类语义分离、七项公开资产回读与 CI 内部 provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分本地 ad-hoc 验证、CI PR 编译门与带 updater/证据闭包的 ad-hoc tag 产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -78,28 +78,21 @@ git push origin "$TAG"
 4. 发布 job 生成两份 DMG、一份 Windows NSIS、两个 macOS updater archive、三平台签名输入与 `latest.json`，并在 CI 内生成 `CycloneDX.json`、`toolchain-evidence.json` 和 `release-asset-provenance.json`。公开 Release 只上传三项安装包、两个 macOS updater archive、`latest.json` 与 `SHA256SUMS` 共七项资产；独立 `.sig` 和构建证据仅在 CI 内验证。发布器先创建 private draft，上传后逐项下载并复算这七项公开字节；缺件、额外资产、摘要漂移或远端冲突都会停止，全部一致后才公开。
 5. **Apple Developer ID/notarization** 与 **Windows Authenticode** 均不在当前 SOP 的发布前提内；获得相应身份后再单独升级，不得预先写成已完成。macOS updater 仍由独立 Tauri Ed25519 签名验证，但它不创造 Apple 平台身份。
 
-6. Release 正文由 workflow 中的版本更新记录与固定用户指引组成。**版本更新说明必须中文在前、英文在后**，两段描述同一批实际改动；按本版情况选择新增/变更/修复，不强制填空分类，不用产品介绍代替更新条目。CHANGELOG 的版本区块采用下方模板，抽取器检查两个语言段及非空条目，GitHub 正文和未来 updater notes 共用该投影。已发布正文修订不替换历史 updater manifest 或安装包。固定部分保留 macOS 首次打开、Windows 首次安装、带版本链接的源码构建步骤、四语支持列表、权限/备份须知及简短英日说明；不要用维护者私有绝对路径替代通用 `<仓库路径>`。只修改已发布正文时使用 `gh release edit --notes-file`，不重打 tag、不替换资产，并回读正文及资产摘要。
+6. Release 正文由 workflow 中的版本更新记录与固定用户指引组成。**从 p8 开始，版本更新说明只显示中文**，不额外显示“中文 / English”语言标题。CHANGELOG 使用 Added/Changed/Fixed 等稳定英文分类键，条目写本版实际中文变化；抽取器只把分类标题映射为新增/变更/修复，不自动翻译正文，不用产品介绍代替更新条目。未来 GitHub Release 与 updater notes 共用该中文投影。已发布正文修订不替换历史 updater manifest 或安装包。固定部分保留 macOS 首次打开、Windows 首次安装、带版本链接的源码构建步骤、四语支持列表、权限/备份须知及简短英日说明；不要用维护者私有绝对路径替代通用 `<仓库路径>`。只修改已发布正文时使用 `gh release edit --notes-file`，不重打 tag、不替换资产，并回读正文及资产摘要。
 7. 七项资产完成回读且 Release 公开后，`tools/post_release_reactions.js <tag> <owner/repo>` 添加并分页回读 👍、😄、🎉、❤️、🚀、👀 六种 reactions。沿用 Incodex 的六种反馈，GitHub 按账号去重；CI 使用现有 job token，失败作为非阻断提示，不重新发布资产。可用同一命令为已公开版本补做，但拒绝 draft/prerelease。
 
 ### 3.2 版本更新说明模板
 
-在对应 SemVer 的 CHANGELOG 区块填写真实条目，中文与英文逐项表达一致；保留历史版本原文，不为补正文而重发已有二进制。
+在对应 SemVer 的 CHANGELOG 区块填写实际中文条目。英文分类键只保存结构语义，发布抽取器将其转换为中文标题；不生成双语副本或“中文 / English”标题。历史版本原文不改，不为补正文重发二进制。
 
 ```markdown
 ## [x.y.z] - YYYY-MM-DD
 
-### 中文
-
-#### 修复
+### Fixed
 - 本版本实际解决的问题及用户可感知的结果。
-
-### English
-
-#### Fixed
-- The same version-specific fix and its user-visible result.
 ```
 
-有新增时使用 `#### 新增` / `#### Added`，有行为变更时使用 `#### 变更` / `#### Changed`；不需要的分类不写。门禁只检查结构和非空条目，翻译是否准确、两语事实是否一致仍需 review。
+分类映射为：Added → 新增、Changed → 变更、Deprecated → 弃用、Removed → 移除、Fixed → 修复、Security → 安全。只写本版需要的分类，不留空标题。门禁检查唯一受支持分类、非空条目及中文内容存在；文案准确性仍由 review 确认。
 
 ## 4. macOS 标准打包流程
 

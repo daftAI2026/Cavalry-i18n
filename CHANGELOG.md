@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖当前版本线、已验证代码/打包行为与公开发布协议
-[OUTPUT]: 对外提供按 SemVer 组织、中文在前英文在后的用户可见新增、变更与修复记录（旧版本保留历史原文）
+[OUTPUT]: 对外提供按 SemVer 组织的中文用户更新条目，英文分类保留机器语义（旧版本保留历史原文）
 [POS]: 根目录发布历史真相；Unreleased 只记录已落地且具备验证证据的行为
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -16,21 +16,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.2] - 2026-09-09
 
-### 中文
-
-#### 修复
+### Fixed
 - 升级语言切换器后，可以直接更新当前语言补丁，无需先切换其他语言或恢复英文。
 - 当前语言有可用更新时，在语言名称旁显示“可更新”徽章，点击“更新”即可重新应用。
 - 更新会完整应用当前语言包，并校验恢复数据、模型身份和受管运行时的归属，不依赖历史译文版本。
 - 旧版受管 macOS 安装也可以更新翻译运行时和启动器，同时保留原有英文恢复能力的边界。
-
-### English
-
-#### Fixed
-- Allow updating the current language patch after upgrading the Switcher, without switching to another language or restoring English first.
-- Show a localized update badge beside the current language when its patch can be reapplied.
-- Reapply the complete current language pack without requiring historical translation versions, while verifying recovery data, model identities and managed runtime ownership.
-- Update the owned translator and launcher on older managed macOS installations while preserving their existing English recovery boundary.
 
 ## [1.0.1] - 2026-09-08
 
