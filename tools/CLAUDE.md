@@ -2,6 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+check_macos_quick_add_category.test.js: 锁定 Mac 类别 getter 的双架构机器码、编译器 QString 返回 ABI、exact owner 与共享映像门，不冒充实机。
 quick_add_placeholder_fixture.cpp / check_quick_add_placeholder.sh: Qt vendor-free 空结果显示合同，锁定三语、exact Classic owner、viewport、重复 Paint 幂等与原厂英文重写恢复；不替代平台 ABI 或实机。
 classic_rank_contract_fixture.cpp: Qt 6.6.3 合成评分器与既有 Classic 搜索共同挂接，验证三语完整/前缀标题排序、UTF-8 长度与三语界面英文回退、分数归还、碰撞、独立 detach 与 1000 次生命周期；不冒充原厂 ABI 或实机证据。
 check_classic_rank_contract.sh: macOS 隔离编译运行共享评分 fixture，固定 Qt 6.6.3 与 QT_NO_KEYWORDS，可选 ASan/UBSan，不启动 Cavalry。
@@ -82,7 +83,7 @@ verify_runner_image.js: 规范化 GitHub `ImageOS`/`ImageVersion` 及 runner OS/
 dmg_volume_identity.js: DMG 挂载身份真相源，从 package SemVer 与 `_aarch64`/`_x64` 文件名后缀生成 `Cavalry Switcher <SemVer> <arch>`，由 producer/verifier 共同消费并拒绝未知架构。
 stamp_dmg_icon.sh: DMG 卷标与卷宗图标 producer；将共享身份写入可写镜像，再用 hdiutil 写入 `.VolumeIcon.icns`/custom-icon 标记，并以 Rez/SetFile best-effort 写本机 Finder 文件图标。
 cavalry_qt_target.json: 发布目标映射，唯一声明 Cavalry 2.7.2 与 Qt 6.6.3，并为 macOS `clang_64`、Windows `msvc2019_64` 提供 repo-local SDK 路径和 aqt 参数；macOS qtbase 安装身份是可复核的完整 SDK tree SHA-256，而非仅版本号。
-build_translator_injector.sh: 同步生成独立 Quick Add 说明索引， 重生成共享翻译表后，以 `-O2/-fno-omit-frame-pointer` 合编 macOS injector、Classic 评分与 TransformTool ABI 适配器；真实运行绑定 `@rpath/libskia.dylib`，无 vendor app 的 CI 只使用不入包的临时链接桩。
+build_translator_injector.sh: 同步生成独立 Quick Add 说明索引， 重生成共享翻译表后，以 `-O2/-fno-omit-frame-pointer` 合编 macOS injector、Classic 评分、空结果、完整分类 getter 与 TransformTool ABI 适配器；真实运行绑定 `@rpath/libskia.dylib`，无 vendor app 的 CI 只使用不入包的临时链接桩。
 launch_cavalry_with_injector.sh: 手动调试启动器，复用 embedded injector runtime flow。
 validate_translations.py: JSON/TS/injector 翻译质量检查脚本；Guide catalog 纳入真实分母并固定 `en` loader slot，可见文本先解码 HTML entity，再执行既有占位符与 FP-1..12 审查。
 forbidden_translation_patterns.py: Python 共享 forbidden-pattern detector，检测 FP-1/2/3/4/5/7/8/9/10/11 单条翻译反模式。

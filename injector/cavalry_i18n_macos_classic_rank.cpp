@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 macOS dyld/Mach-O 当前映像、CoreFoundation bundle 元数据、Qt 6.6.3 qVersion，以及 CavalryUI 导出评分函数
- * [OUTPUT]: 实现 macClassicQuickAddPriorityApi；回调只验证 ElementListItem primary vtable 后调用已锁定导出
+ * [OUTPUT]: 实现 macClassicQuickAddPriorityApi 与共享显示符号验证门；回调只验证 ElementListItem primary vtable 后调用已锁定导出
  * [POS]: macOS Classic 排序 ABI 防火墙实现；UUID/RVA/typeinfo 三重锁定阻断未知 Cavalry、架构或伪造 QListWidgetItem
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -68,6 +68,7 @@ struct AdapterState {
     std::uintptr_t elementTypeInfo = 0;
     std::uintptr_t elementVtableAddressPoint = 0;
     void *pinnedUiHandle = nullptr;
+    RuntimeImage uiImage;
 };
 
 // Itanium RTTI 的公共单继承布局；这里验证继承链，不读取 vendor 私有字段。
@@ -627,6 +628,7 @@ bool resolveAdapter(AdapterState *result) noexcept
     candidate.setPriority = reinterpret_cast<SetPriority>(set);
     candidate.sortsByPriority = reinterpret_cast<SortsByPriority>(sort);
     candidate.pinnedUiHandle = uiHandle.pin();
+    candidate.uiImage = ui;
     candidate.verified = true;
     *result = candidate;
     return true;
@@ -702,6 +704,15 @@ ClassicQuickAddPriorityApi macClassicQuickAddPriorityApi() noexcept
         &setPriority,
         &sortsByPriority,
     };
+}
+
+void *macVerifiedQuickAddUiFunction(const char *symbol, std::uintptr_t rva,
+    const std::uint8_t *code, std::size_t size) noexcept
+{
+    if (!macClassicQuickAddPriorityApi() || code == nullptr || size == 0) return nullptr;
+    void *address = nullptr;
+    return resolveFunction(gState.pinnedUiHandle, gState.uiImage, symbol,
+        rva, code, size, &address) ? address : nullptr;
 }
 
 } // namespace cavalry_i18n
