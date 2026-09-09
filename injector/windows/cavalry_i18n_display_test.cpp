@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表、共享 Quick Add owner/search 策略与 Qt Widgets 的 action tooltip、标准 item model、可编辑/字体 Combo、QTreeWidget popup、QLineEdit、QPlainTextEdit 与 QMenu
- * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀、DisplayRole 数据隔离、字体/选择值保护，以及双 owner QuickAdd 输入的生产显示/回调保持 query 合同；任何 CompleterLineEdit 的值均保持原文
- * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性；Quick Add fixture 以 moc 生成的 exact owner/中间父系直调生产 display 入口并触发 textChanged，覆盖 owner 前已填充 Box、owner 前 Shape 回调、parentless Paint Text 及 reparent 后回调/绘制，确保全量/部分/大小写/CJK/清空输入不被翻译且 placeholder 仍翻译，通用规则不会改写可编辑/字体选择值、弹出树、编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入
+ * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀、DisplayRole 数据隔离、字体/选择值保护，以及双 owner QuickAdd 输入的生产显示/回调保持 query 合同；Classic 空结果只接受 exact `ListWidget`/`QuickAddWindow` 及真实 viewport，测试 seam 观察受控 `No Results` setter；任何 CompleterLineEdit 的值均保持原文
+ * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性；Quick Add fixture 以 moc 生成的 exact owner/中间父系直调生产 display 入口并触发 textChanged，覆盖 owner 前已填充 Box、owner 前 Shape 回调、parentless Paint Text 及 reparent 后回调/绘制，确保全量/部分/大小写/CJK/清空输入不被翻译且 placeholder 仍翻译，通用规则不会改写可编辑/字体选择值、弹出树、编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入；Classic fixture 额外锁定 Fast owner、非真实 viewport child、空/未知文案、vendor 写回英文 source 后重译、query/model identity 保持及重复 Paint 幂等
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -25,6 +25,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QListWidget>
 #include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
@@ -77,6 +78,14 @@ class CompleterLineEdit final : public QLineEdit
 
 public:
     using QLineEdit::QLineEdit;
+};
+
+class ListWidget final : public QListWidget
+{
+    Q_OBJECT
+
+public:
+    using QListWidget::QListWidget;
 };
 
 namespace {
@@ -1838,6 +1847,185 @@ bool verifyQuickAddSearchLineEdit(const LocaleExpectation &expectation)
             cases);
 }
 
+bool verifyClassicQuickAddEmptyPlaceholder(
+    const LocaleExpectation &expectation)
+{
+    const QString language = QString::fromLatin1(expectation.language);
+    CavalryEmbeddedTranslator translator(language);
+    CavalryDisplayTranslator displayTranslator(translator);
+    const QString source = QStringLiteral("No Results");
+    const QString expected = translator.translate(
+        "MenuBarManager",
+        "No Results");
+    if (!expectTrue(
+            language + QStringLiteral(" Classic No Results translation exists"),
+            !expected.isEmpty() && expected != source)) {
+        return false;
+    }
+
+    QuickAddWindow owner;
+    Widget ownerWidget(&owner);
+    SearchBar searchBar(&ownerWidget);
+    CompleterLineEdit searchBox(&searchBar);
+    ListWidget list(&ownerWidget);
+    ListWidget emptyList(&ownerWidget);
+    ListWidget unknownList(&ownerWidget);
+    ListWidget wrongOwnerList;
+    QListWidget ordinaryList(&ownerWidget);
+    cavalry::FastQuickAddWindow fastOwner;
+    ListWidget fastOwnerList(&fastOwner);
+    QWidget nonViewportChild(&list);
+
+    searchBox.setText(QStringLiteral("zzzz-no-candidate"));
+    auto *const modelItem = new QListWidgetItem(
+        QStringLiteral("Model Layer"));
+    modelItem->setData(
+        Qt::UserRole,
+        QStringLiteral("model-identity"));
+    list.addItem(modelItem);
+    const QString queryBefore = searchBox.text();
+    const QVariant identityBefore = list.item(0)->data(Qt::UserRole);
+
+    QWidget *readTarget = &list;
+    QString placeholder = source;
+    int setterCalls = 0;
+    QWidget *lastSetterTarget = nullptr;
+    displayTranslator.setClassicQuickAddPlaceholderAccessForTesting(
+        [&readTarget, &placeholder](const QWidget *target) {
+            return target == readTarget ? placeholder : QString();
+        },
+        [&readTarget, &placeholder, &setterCalls, &lastSetterTarget](
+            QWidget *target,
+            const QString &value) {
+            if (target != readTarget) {
+                return;
+            }
+            placeholder = value;
+            ++setterCalls;
+            lastSetterTarget = target;
+        });
+
+    if (!expectTrue(
+            language + QStringLiteral(" Classic list surface"),
+            cavalry_i18n::isClassicQuickAddPlaceholderSurface(&list))
+        || !expectTrue(
+            language + QStringLiteral(" Classic viewport surface"),
+            cavalry_i18n::isClassicQuickAddPlaceholderSurface(list.viewport()))) {
+        return false;
+    }
+    if (!expectTrue(
+            language + QStringLiteral(" Fast owner rejected"),
+            !cavalry_i18n::isClassicQuickAddPlaceholderSurface(&fastOwnerList))
+        || !expectTrue(
+            language + QStringLiteral(" Fast owner viewport rejected"),
+            !cavalry_i18n::isClassicQuickAddPlaceholderSurface(
+                fastOwnerList.viewport()))
+        || !expectTrue(
+            language + QStringLiteral(" non-viewport child rejected"),
+            !cavalry_i18n::isClassicQuickAddPlaceholderSurface(
+                &nonViewportChild))) {
+        return false;
+    }
+
+    displayTranslator.translatePaintWidget(list.viewport());
+    if (!expectEqual(
+            language + QStringLiteral(" Classic No Results"),
+            placeholder,
+            expected)
+        || !expectTrue(
+            language + QStringLiteral(" Classic setter target"),
+            lastSetterTarget == &list)
+        || !expectTrue(
+            language + QStringLiteral(" Classic setter count"),
+            setterCalls == 1)
+        || !expectEqual(
+            language + QStringLiteral(" Classic query preserved"),
+            searchBox.text(),
+            queryBefore)
+        || !expectTrue(
+            language + QStringLiteral(" Classic model identity preserved"),
+            list.item(0)->data(Qt::UserRole) == identityBefore)) {
+        return false;
+    }
+
+    // vendor 每次空结果刷新都会重新写回英文 source；下一次 Paint 仍应重新投影。
+    placeholder = source;
+    displayTranslator.translatePaintWidget(list.viewport());
+    if (!expectEqual(
+            language + QStringLiteral(" Classic vendor source rewrite"),
+            placeholder,
+            expected)
+        || !expectTrue(
+            language + QStringLiteral(" Classic vendor rewrite setter count"),
+            setterCalls == 2)
+        || !expectEqual(
+            language + QStringLiteral(" Classic vendor rewrite query preserved"),
+            searchBox.text(),
+            queryBefore)
+        || !expectTrue(
+            language + QStringLiteral(
+                " Classic vendor rewrite model identity preserved"),
+            list.item(0)->data(Qt::UserRole) == identityBefore)) {
+        return false;
+    }
+
+    displayTranslator.translatePaintWidget(list.viewport());
+    if (!expectTrue(
+            language + QStringLiteral(" Classic repeated Paint is idempotent"),
+            setterCalls == 2)) {
+        return false;
+    }
+
+    readTarget = &wrongOwnerList;
+    placeholder = source;
+    displayTranslator.translatePaintWidget(wrongOwnerList.viewport());
+    if (!expectEqual(
+            language + QStringLiteral(" wrong-owner placeholder"),
+            placeholder,
+            source)
+        || !expectTrue(
+            language + QStringLiteral(" wrong-owner setter isolation"),
+            setterCalls == 2)) {
+        return false;
+    }
+
+    readTarget = &ordinaryList;
+    placeholder = source;
+    displayTranslator.translatePaintWidget(ordinaryList.viewport());
+    if (!expectEqual(
+            language + QStringLiteral(" ordinary viewport placeholder"),
+            placeholder,
+            source)
+        || !expectTrue(
+            language + QStringLiteral(" ordinary viewport setter isolation"),
+            setterCalls == 2)) {
+        return false;
+    }
+
+    readTarget = &emptyList;
+    placeholder.clear();
+    displayTranslator.translatePaintWidget(emptyList.viewport());
+    if (!expectTrue(
+            language + QStringLiteral(" empty placeholder stays empty"),
+            placeholder.isEmpty())
+        || !expectTrue(
+            language + QStringLiteral(" empty placeholder setter isolation"),
+            setterCalls == 2)) {
+        return false;
+    }
+
+    readTarget = &unknownList;
+    placeholder = QStringLiteral("Unknown empty state");
+    displayTranslator.translatePaintWidget(unknownList.viewport());
+    return expectEqual(
+               language + QStringLiteral(" unknown placeholder"),
+               placeholder,
+               QStringLiteral("Unknown empty state"))
+        && expectTrue(
+            language + QStringLiteral(" unknown placeholder setter isolation"),
+            setterCalls == 2);
+}
+
 bool verifyLocale(const LocaleExpectation &expectation)
 {
     const QString language = QString::fromLatin1(expectation.language);
@@ -2078,7 +2266,8 @@ bool verifyLocale(const LocaleExpectation &expectation)
         && verifyTreeWidgetDisplay(expectation)
         && verifyLineEditDisplay(expectation)
         && verifySelectionValueProtection(expectation)
-        && verifyQuickAddSearchLineEdit(expectation);
+        && verifyQuickAddSearchLineEdit(expectation)
+        && verifyClassicQuickAddEmptyPlaceholder(expectation);
 }
 
 } // namespace

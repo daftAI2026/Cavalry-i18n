@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖官方 Cavalry 2.7.2 MSI 的三份 Windows PE 文件与 Classic priority 静态证据
- * [OUTPUT]: 提供不执行厂商代码的完整哈希、PE、导出、RTTI/primary-base 及漂移反例回归
+ * [OUTPUT]: 提供不执行厂商代码的完整哈希、PE、导出、RTTI/primary-base、Classic 空结果 placeholder setter/paint/caller 及漂移反例回归
  * [POS]: injector/windows 的 Classic vendor 静态测试；raw PE 映射器只存在于测试，不进入产品 DLL
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -260,6 +260,29 @@ bool verifyElementRtti(const PeImage &image) noexcept
     return true;
 }
 
+bool verifyClassicPlaceholder(const PeImage &ui, const PeImage &extension)
+{
+    // 独立反汇编证据：setter 向 this+0x28 的 QString 赋值并 update，
+    // paintEvent 从同一字段读取；ExtensionLayer 的 Classic 过滤路径调用它。
+    const auto bytesEqual = [](const PeImage &image, std::size_t rva,
+                               const char *hex) {
+        const QByteArray bytes = QByteArray::fromHex(hex);
+        return hasRange(static_cast<std::size_t>(image.mapped.size()),
+                        rva, static_cast<std::size_t>(bytes.size()))
+            && std::memcmp(image.mapped.constData() + rva,
+                           bytes.constData(), bytes.size()) == 0;
+    };
+    return hasExport(ui, "?setPlaceholder@ListWidget@@QEAAXAEBVQString@@@Z", 0x3698)
+        && bytesEqual(ui, 0x3698, "e963100400")
+        && bytesEqual(ui, 0x44700,
+            "564883ec204889ce4883c128ff15a6d323004889f14883c4205e48ff258f032400")
+        && bytesEqual(ui, 0x445c0,
+            "555657534883ec78488d6c247048c74500feffffff4889d64889cfff1557ff230085c0750748837f38007506807f4001757a48c745b00b000000488d050b0e0f00488945b8488d4dc0488d55b0ff1545d423000f2845c00f2945e0488b45d0488945f0488d4dc0488d55e0e85bd5fbff488b4de04885c97414e8c2d3fbfff0ff08750a488b4de0ff155b0f2400488d5f284889f9ff153efc23004c8d45c04889c14889da4531c9e898d4fbff4889f94889f2ff1520f92300904883c4785b5f5e5dc3")
+        && bytesEqual(extension, 0xa4bfb3,
+            "8b95f800000089d0f6d02401884640488d05159aaf0031c9f6c201488d1546e9a700480f45c2ba0a000000480f45d14889557048894578488d8d00010000488d5570ff153d070e010f2885000100000f298590000000488b8510010000488985a0000000488d95900000004889f1ff15e9ba0d01")
+        && asciiEquals(extension, 0x15459de, "No Results");
+}
+
 bool verifyVendorFiles(
     const QString &cavalryUiPath,
     const QString &extensionLayerPath,
@@ -279,7 +302,8 @@ bool verifyVendorFiles(
         && hasExport(
                cavalryUi, kSetSortByPrioritySymbol, kSetSortByPriorityRva)
         && hasExport(qtWidgets, kQtSortItemsSymbol, kQtSortItemsRva)
-        && verifyElementRtti(extensionLayer);
+        && verifyElementRtti(extensionLayer)
+        && verifyClassicPlaceholder(cavalryUi, extensionLayer);
 }
 
 bool copyFile(const QString &path, const QByteArray &bytes)
@@ -325,6 +349,23 @@ int main(int argc, char **argv)
     if (verifyElementRtti(extensionImage)) {
         std::fputs("FAIL: changed ElementListItem primary-base accepted\n", stderr);
         return 1;
+    }
+
+    PeImage placeholderUi;
+    PeImage placeholderExtension;
+    if (!mapPeFile(readFile(cavalryUiPath), &placeholderUi)
+        || !mapPeFile(readFile(extensionLayerPath), &placeholderExtension)) return 1;
+    // 映射后的单字节漂移单独验证字段/调用证据，不能只依赖上游完整哈希拒绝。
+    for (const std::size_t offset : {std::size_t(0x3698), std::size_t(0x4470a),
+                                    std::size_t(0x4464e)}) {
+        PeImage drifted = placeholderUi;
+        drifted.mapped[static_cast<qsizetype>(offset)] ^= 1;
+        if (verifyClassicPlaceholder(drifted, placeholderExtension)) return 1;
+    }
+    for (const std::size_t offset : {std::size_t(0xa4c021), std::size_t(0x15459de)}) {
+        PeImage drifted = placeholderExtension;
+        drifted.mapped[static_cast<qsizetype>(offset)] ^= 1;
+        if (verifyClassicPlaceholder(placeholderUi, drifted)) return 1;
     }
 
     QTemporaryDir temp;
