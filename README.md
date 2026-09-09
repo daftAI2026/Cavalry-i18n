@@ -35,7 +35,7 @@ Choose a target language, then select **Switch** or **Restore English**. When th
 
 **Add Layer search in released p8:** You can search in English or the selected language. In the right-hand Add Layer panel, localized title matches may not receive the same title priority as English names. If the expected layer appears lower in the results, try its full English name, such as `Text Shape`. This is a known ranking limitation; it does not mean your input or the layer's creation identity has changed.
 
-**Development branch (not yet released):** Full selected-language title matches in the right-hand panel receive a title-priority supplement on verified runtimes. Native filtering and layer creation remain unchanged; unverified runtimes retain native ranking. Windows live acceptance is still required before release.
+**Development branch (not yet released):** Exact selected-language title matches and eligible title-prefix matches in the right-hand panel receive a title-priority supplement on verified runtimes. Matches elsewhere in a title can still appear in search results with native ranking. Native filtering and layer creation remain unchanged; unverified runtimes retain native ranking. Windows live acceptance is still required before release.
 
 ## Safety & Permissions
 

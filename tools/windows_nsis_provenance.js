@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * [INPUT]: 依赖 windows_nsis_provenance_contract.js、renderer/languages、Windows Tauri/Rust/NSIS/updater overlay、package manifests、共享 translation/input/Quick Add context/display/search/Classic/Quick Add 描述 policy 与生成输入、已编译 generic/QPA 与显式 x64 NSIS 输出
+ * [INPUT]: 依赖 windows_nsis_provenance_contract.js、renderer/languages、Windows Tauri/Rust/NSIS/updater overlay、package manifests、共享 translation/input/Quick Add context/display/顶部标签/search/Classic/Quick Add 描述 policy 与生成输入、已编译 generic/QPA 与显式 x64 NSIS 输出
  * [OUTPUT]: 对外提供 prepare/record/verify 三阶段 provenance 与生产文档构造器；普通构建拒绝任意 `.exe.sig`，tag 构建以 intent 要求并绑定 exact Tauri updater signature，同时保持 installer/native 输入与 canonical identity 校验
  * [POS]: tools 的 Windows 打包自证器；构建前只清本版本受控 EXE/provenance/signature，拒绝外国或陈旧输出，构建后封闭人工安装与 updater 共用 NSIS 字节
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -283,6 +283,7 @@ function collectInputFingerprint(repoRoot) {
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_input_policy.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_quick_add_context.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_quick_add_display.h'), files);
+  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_quick_add_tabs.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_search_policy.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_classic_search.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_classic_rank.h'), files);

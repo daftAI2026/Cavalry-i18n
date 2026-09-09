@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 install::InstallLayout、serde_json 与 std fs/path，读取 Cavalry 跨平台 assets
  * [OUTPUT]: 对外提供受管旧译文的版本无关结构/身份证明与精确事务 preimage，无路径碰撞的资源映射、逐组件 lstat 的 macOS asset 安全门、hash-manifest English immutable generations/原子指针、旧无 manifest 快照的 keyed overlay 证明与由本机 snapshot/install mode 互证的 JSON-only 安全提升、严格复制计划及只替换字符串且保留安装元数据/版本增量的覆盖合并计划
- * [POS]: src-tauri/src 的 JSON patch 核心，以 exact asset identity、无 symlink regular-file 门、Windows 可写 durability handle、current/prev 缺失与损坏区分及 string-only keyed overlay 同时守住 clean-English 恢复材料及当前/未来 Cavalry 安装元数据
+ * [POS]: src-tauri/src 的 JSON patch 核心，以 exact asset identity、重复身份的双侧唯一结构证明、无 symlink regular-file 门、Windows 可写 durability handle、current/prev 缺失与损坏区分及 string-only keyed overlay 同时守住 clean-English 恢复材料及当前/未来 Cavalry 安装元数据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
@@ -2222,7 +2222,7 @@ pub fn merge_translation_overlay(installed: &Value, translation: &Value) -> Valu
             Value::Object(merged)
         }
         (Value::Array(installed), Value::Array(translation)) => {
-            let identities = partial_identity_map(translation);
+            let identities = overlay_identity_matches(installed, translation);
             let positional_fallback_safe =
                 identity_positions(installed) == identity_positions(translation);
             Value::Array(
@@ -2230,9 +2230,9 @@ pub fn merge_translation_overlay(installed: &Value, translation: &Value) -> Valu
                     .iter()
                     .enumerate()
                     .map(|(index, installed_value)| {
-                        if let Some(identity) = item_identity(installed_value) {
+                        if item_identity(installed_value).is_some() {
                             return identities
-                                .get(&identity)
+                                .get(&index)
                                 .map(|translated| {
                                     merge_translation_overlay(installed_value, translated)
                                 })
@@ -2412,21 +2412,81 @@ fn read_json(path: &Path) -> Result<Value, String> {
         .map_err(|error| format!("Invalid JSON in {}: {error}", path.display()))
 }
 
-fn partial_identity_map(values: &[Value]) -> HashMap<String, &Value> {
-    let mut identities = HashMap::new();
-    let mut duplicates = std::collections::HashSet::new();
-    for value in values {
-        let Some(identity) = item_identity(value) else {
+fn overlay_identity_matches<'a>(
+    installed: &[Value],
+    translation: &'a [Value],
+) -> HashMap<usize, &'a Value> {
+    fn groups(values: &[Value]) -> HashMap<String, Vec<(usize, &Value)>> {
+        let mut result: HashMap<String, Vec<(usize, &Value)>> = HashMap::new();
+        for (index, value) in values.iter().enumerate() {
+            if let Some(identity) = item_identity(value) {
+                result.entry(identity).or_default().push((index, value));
+            }
+        }
+        result
+    }
+
+    let translated_groups = groups(translation);
+    let mut matches = HashMap::new();
+    for (identity, originals) in groups(installed) {
+        let Some(candidates) = translated_groups.get(&identity) else {
             continue;
         };
-        if identities.insert(identity.clone(), value).is_some() {
-            duplicates.insert(identity);
+        if originals.len() != candidates.len() {
+            continue;
+        }
+        if originals.len() == 1 {
+            matches.insert(originals[0].0, candidates[0].1);
+            continue;
+        }
+
+        // 重复身份必须整组一一对应；不借数组位置、译文字面值或最后一项猜测。
+        let mut resolved = Vec::new();
+        let mut used = HashSet::new();
+        for (index, original) in &originals {
+            let mut compatible = candidates
+                .iter()
+                .filter(|(_, candidate)| same_duplicate_identity_structure(original, candidate));
+            if let Some(&(candidate_index, candidate)) = compatible.next() {
+                if compatible.next().is_none() && used.insert(candidate_index) {
+                    resolved.push((*index, candidate));
+                }
+            }
+        }
+        if resolved.len() == originals.len() {
+            matches.extend(resolved);
         }
     }
-    for duplicate in duplicates {
-        identities.remove(&duplicate);
+    matches
+}
+
+fn same_duplicate_identity_structure(left: &Value, right: &Value) -> bool {
+    match (left, right) {
+        (Value::Object(left), Value::Object(right)) => {
+            left.len() == right.len()
+                && left.iter().all(|(key, value)| {
+                    right.get(key).is_some_and(|other| {
+                        if matches!(
+                            key.as_str(),
+                            "nodeType" | "id" | "identifier" | "name" | "key" | "type"
+                        ) {
+                            value == other
+                        } else {
+                            same_duplicate_identity_structure(value, other)
+                        }
+                    })
+                })
+        }
+        (Value::Array(left), Value::Array(right)) => {
+            left.len() == right.len()
+                && left
+                    .iter()
+                    .zip(right)
+                    .all(|(a, b)| same_duplicate_identity_structure(a, b))
+        }
+        (Value::String(_), Value::String(_)) => true,
+        _ => left == right,
     }
-    identities
 }
 
 fn identity_positions(values: &[Value]) -> Vec<(usize, String)> {

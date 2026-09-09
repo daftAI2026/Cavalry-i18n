@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Classic 搜索的 exact owner/唯一输入框、query 清理与当前语言标题别名，Qt 持久索引及平台已验证的 ListItem 评分接口
- * [OUTPUT]: 对外提供幂等 attachClassicQuickAddPriority；仅在原厂显式排序期间提升完整本地标题匹配，随后归还原分数，不触发额外排序
+ * [OUTPUT]: 对外提供幂等 attachClassicQuickAddPriority；仅在原厂显式排序期间按原厂 1000 exact / 900-UTF8-byte-length prefix 分级提升本地标题，随后归还原分数，不触发额外排序
  * [POS]: injector 的共享 Classic 排序补充；不改查询、model role、创建身份或 Fast 搜索，平台独自承担映像/类型/ABI 校验，未知环境保持原厂行为
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -24,6 +24,7 @@ struct ClassicQuickAddPriorityApi {
 };
 
 inline constexpr int kClassicQuickAddExactTitlePriority = 1000;
+inline constexpr int kClassicQuickAddPartialTitlePriority = 900;
 inline constexpr char kClassicQuickAddPriorityAttachmentName[] =
     "cavalry_i18n_classic_quick_add_priority_attachment";
 
@@ -63,6 +64,7 @@ private:
     struct BorrowedPriority {
         QPersistentModelIndex index;
         int original;
+        int applied;
     };
 
     bool ownsModel() const
@@ -88,20 +90,60 @@ private:
             if (!item || !api_.accepts(item) || !api_.sortsByPriority(item)) continue;
             const QString source = item->text().section(classicQuickAddAliasSeparator(), 0, 0);
             if (cleanClassicQuickAddQuery(source) == query) continue;
-            bool exact = false;
-            for (const QString &alias : aliases_(source)) {
-                if (!alias.contains(classicQuickAddAliasSeparator())
-                    && cleanClassicQuickAddQuery(alias) == query) {
-                    exact = true;
-                    break;
-                }
-            }
-            if (!exact) continue;
+            const int desired = localizedTitlePriority(source, aliases_(source), query);
+            if (desired <= 0) continue;
             const int original = api_.get(item);
-            if (original >= kClassicQuickAddExactTitlePriority) continue;
-            borrowed_.append({QPersistentModelIndex(list_->indexFromItem(item)), original});
-            api_.set(item, kClassicQuickAddExactTitlePriority);
+            if (original >= desired) continue;
+            borrowed_.append({QPersistentModelIndex(list_->indexFromItem(item)), original, desired});
+            api_.set(item, desired);
         }
+    }
+
+    static int localizedTitlePriority(
+        const QString &source,
+        const QStringList &aliases,
+        const QString &query)
+    {
+        const QByteArray normalizedQuery = cleanClassicQuickAddQueryUtf8(query);
+        if (normalizedQuery.isEmpty()) return 0;
+        const QByteArray normalizedSource = cleanClassicQuickAddQueryUtf8(source);
+        int best = 0;
+
+        // 保留 source 已经命中时的原厂 English prefix 分数；完整本地
+        // alias 仍可按既有合同升级为 exact 1000。
+        for (const QString &rawAlias : aliases) {
+            if (rawAlias.contains(classicQuickAddAliasSeparator())) continue;
+            const QByteArray normalizedAlias = cleanClassicQuickAddQueryUtf8(rawAlias);
+            if (normalizedAlias.isEmpty() || normalizedAlias == normalizedSource) {
+                continue;
+            }
+            if (normalizedAlias == normalizedQuery) {
+                return kClassicQuickAddExactTitlePriority;
+            }
+        }
+        // vendor 在 prefix 分支前拒绝小于 3 byte 的 query；exact 分支
+        // 已在上面保留，避免改变原厂短 query 的默认排序。
+        if (normalizedQuery.size() < 3) return 0;
+        if (normalizedSource.startsWith(normalizedQuery)) return 0;
+
+        for (const QString &rawAlias : aliases) {
+            if (rawAlias.contains(classicQuickAddAliasSeparator())) continue;
+            const QByteArray normalizedAlias = cleanClassicQuickAddQueryUtf8(rawAlias);
+            if (normalizedAlias.isEmpty() || normalizedAlias == normalizedSource) {
+                continue;
+            }
+            if (!normalizedAlias.startsWith(normalizedQuery)) continue;
+
+            // 原厂 prefix 分支写入 900 - normalized UTF-8 byte length；保留
+            // 该分级语义，避免把任意 alias subsequence 冒充标题前缀。
+            const qsizetype length = normalizedAlias.size();
+            if (length >= kClassicQuickAddPartialTitlePriority) continue;
+            best = qMax(
+                best,
+                kClassicQuickAddPartialTitlePriority
+                    - static_cast<int>(length));
+        }
+        return best;
     }
 
     void restore()
@@ -112,7 +154,7 @@ private:
                 QListWidgetItem *item = list_->itemFromIndex(entry.index);
                 // 其他原厂回调已接管分数时不覆盖；删除/reset 后失效的索引不解引用。
                 if (item && api_.accepts(item)
-                    && api_.get(item) == kClassicQuickAddExactTitlePriority) {
+                    && api_.get(item) == entry.applied) {
                     api_.set(item, entry.original);
                 }
             }

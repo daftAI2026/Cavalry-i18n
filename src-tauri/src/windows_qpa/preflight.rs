@@ -1,13 +1,14 @@
 /**
  * [INPUT]: 依赖 InstallLayout、Windows known-folder 提升判定、QPA 固定路径与 storage 重解析/普通文件守卫。
  * [OUTPUT]: 提供含 generic 的完整固定写入/rollback 表面、QPA durable 路径、Program Files 静态判定与无残留直接写 preflight。
- * [POS]: windows_qpa 的写前能力边界；只验证安装根、generic 与 recovery 权限，不激活、恢复或改变任何 Cavalry 资源。
+ * [POS]: windows_qpa 的写前能力边界；只验证安装根、generic 与 recovery 权限，对进程退出后的共享锁限时重试，不改变任何 Cavalry 资源。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 use std::{
     fs,
-    io::{ErrorKind, Write},
+    io::{self, ErrorKind, Write},
     path::{Path, PathBuf},
+    time::{Duration, Instant},
 };
 
 use crate::install::InstallLayout;
@@ -22,6 +23,10 @@ use super::{
     GENERIC_PLUGIN_RELATIVE_PATH, MANIFEST_FILE_NAME, QWINDOWS_FILE_NAME, RECOVERY_DIRECTORY_NAME,
     VENDOR_QWINDOWS_FILE_NAME,
 };
+
+const WINDOWS_SHARING_VIOLATION: i32 = 32;
+const WRITE_PREFLIGHT_RETRY_INTERVAL: Duration = Duration::from_millis(100);
+const WRITE_PREFLIGHT_RETRY_TIMEOUT: Duration = Duration::from_secs(2);
 
 pub fn recovery_directory(layout: &InstallLayout) -> PathBuf {
     layout.root.join(RECOVERY_DIRECTORY_NAME)
@@ -161,14 +166,50 @@ fn probe_transaction_directory(directory: &Path, role: &str) -> Result<(), Strin
 }
 
 fn verify_existing_file_writable(path: &Path, role: &str) -> Result<(), String> {
-    fs::OpenOptions::new()
-        .write(true)
-        .open(path)
-        .map(|_| ())
-        .map_err(|error| {
-            format!(
-                "{role} is not directly writable for the Windows QPA transaction: {} ({error}). No language files were changed.",
-                path.display()
-            )
-        })
+    verify_existing_file_writable_with(
+        path,
+        role,
+        |path| fs::OpenOptions::new().write(true).open(path).map(|_| ()),
+        std::thread::sleep,
+        Instant::now,
+        WRITE_PREFLIGHT_RETRY_TIMEOUT,
+    )
+}
+
+/// Cavalry 已退出后，Windows 仍可能短暂保留 qwindows.dll 的共享锁。
+/// 只重试精确的 ERROR_SHARING_VIOLATION，权限拒绝和其他错误保持立即失败。
+pub(super) fn verify_existing_file_writable_with<Open, Wait, Clock>(
+    path: &Path,
+    role: &str,
+    mut open: Open,
+    mut wait: Wait,
+    mut now: Clock,
+    timeout: Duration,
+) -> Result<(), String>
+where
+    Open: FnMut(&Path) -> io::Result<()>,
+    Wait: FnMut(Duration),
+    Clock: FnMut() -> Instant,
+{
+    let deadline = now() + timeout;
+    loop {
+        match open(path) {
+            Ok(()) => return Ok(()),
+            Err(error) if error.raw_os_error() == Some(WINDOWS_SHARING_VIOLATION) => {
+                let remaining = deadline.saturating_duration_since(now());
+                if remaining.is_zero() {
+                    return Err(existing_file_writable_error(path, role, &error));
+                }
+                wait(std::cmp::min(WRITE_PREFLIGHT_RETRY_INTERVAL, remaining));
+            }
+            Err(error) => return Err(existing_file_writable_error(path, role, &error)),
+        }
+    }
+}
+
+fn existing_file_writable_error(path: &Path, role: &str, error: &io::Error) -> String {
+    format!(
+        "{role} is not directly writable for the Windows QPA transaction: {} ({error}). No language files were changed.",
+        path.display()
+    )
 }

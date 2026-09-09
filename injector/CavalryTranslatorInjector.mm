@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context/选择输入值/Fast 与 Classic 搜索策略、Classic 评分 ABI 适配器及独立说明索引、macOS TransformTool text-path ABI 防火墙与显式 capture/session 环境
- * [OUTPUT]: 对外提供 first-match-wins QTranslator、既有菜单/控件/模型保护链，以及 8 条 ordinary-Qt、Tag 邻接标签、Assets 动态 Create 模板和 Tracking dialog 的精确 owner 回补；交互补全输入（含 parentless 构建阶段）保留用户原文，FastQuickAdd 双语索引独立过滤且标题仅在已验证 vendor 的绘制副本投影；Classic 完整本地标题仅在已验证 ABI 的原厂排序期间补分；Qt runtime 版本确认后配置五条 TransformTool 自绘 action
+ * [OUTPUT]: 对外提供 first-match-wins QTranslator、既有菜单/控件/模型保护链，以及 8 条 ordinary-Qt、Tag 邻接标签、Assets 动态 Create 模板和 Tracking dialog 的精确 owner 回补；交互补全输入（含 parentless 构建阶段）保留用户原文，FastQuickAdd 双语索引独立过滤且标题仅在已验证 vendor 的绘制副本投影；Classic 完整及前缀本地标题仅在已验证 ABI 的原厂排序期间补分；Qt runtime 版本确认后配置五条 TransformTool 自绘 action
  * [POS]: macOS injector 核心；普通文本只在已证 Qt owner 内补译，parentless Assets 菜单只承接一个事件循环的 owner，Transform 自绘交给独立 ABI 适配器，可编辑/字体 Combo 的值及弹出列表、Time Editor 模型 identity、快捷键 prefix 与无关同文保持原值
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
