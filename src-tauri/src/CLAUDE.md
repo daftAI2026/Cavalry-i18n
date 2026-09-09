@@ -13,7 +13,7 @@ headless_launch.rs: Windows `--launch-cavalry` 原生快速入口；持有共享
 uninstall_restore.rs: Windows `--uninstall-restore-english` 无 WebView 卸载入口；只消费保存的安装根，在共享 operation lock 内按 snapshot provenance 选择 refresh/apply English，刷新返回 typed reconciliationRequired 时必须继续完成显式 English 事务，并将 UAC 取消、未知运行时或未提交修复投影为非零退出码以阻止 NSIS 删除控制面。
 windows_install.rs: Windows 只读发现边界，按无控制台运行进程查询、MSI advertised shortcut 与有限常见目录收集候选；非 MSI 克隆以有界流式扫描证明 Cavalry.exe 中唯一 NUL 分隔 `2.7.2` token，不扫描磁盘、不写安装目录，也不调用任何 MSI repair API。
 windows_runtime.rs: 仅在 Windows target 编译的 Qt generic plugin/QPA 资源装配，优先解析 Tauri 打包 DLL、回退开发资源并生成受控 copy pair；非 English 重启先流式比较安装 plugin 与当前可信源 SHA-256，再要求 QPA ACTIVE 和安装根语言 marker 一致，随后只准备诊断 marker 环境并以 deadline 校验 plugin、语言、PID、Qt、`embedded-generated-table` 来源和嵌入翻译表就绪；原生入口不依赖 `QT_PLUGIN_PATH`、`QT_QPA_GENERIC_PLUGINS` 或 `CAVALRY_I18N_LANG`。
-window_chrome.rs: macOS 窗口 Chrome 的原生边界；集中持有共享 40px 标题栏高度与交通灯偏移并在 resize/scale 后重放；Windows 外壳由 tauri.windows.conf.json 的透明顶层表面和 renderer 视觉状态机共同持有。
+window_chrome.rs: macOS 窗口 Chrome 的原生边界；集中持有共享 40px 标题栏高度与交通灯偏移并在 resize/scale 后重放；Windows 外壳由 tauri.windows.conf.json 的透明顶层表面和 renderer 视觉状态机共同持有。 原生按钮 bounds 转换到实际容器后按中心对齐 40pt 标题栏，避免 SDK 兼容布局的默认按钮高度导致下偏。
 windows_qpa.rs: Windows 持久注入状态机；锁定 Cavalry/Qt/架构/原厂 qwindows，以 durable manifest 识别历史发行版所有权，并向外层 journal 投影写前精确 postimage；未知 generic/QPA 或厂商更新一律保留并 fail closed。
 windows_qpa/: QPA 数据合同、身份验证、Windows 文件适配器、普通/提升共用 transition 与 tempfile 合同测试；可写自定义根直接执行，Program Files same-EXE worker 消费同一 hash-locked plan；qwindows 禁止进入截断 CopyPair。
 operation_lock.rs: bundle operation 单飞边界；GUI extract/apply/restart、Windows uninstall restore 与 headless launch 共享进程内及跨进程即时锁，避免 English 恢复、卸载和启动交错；不提供启动等待或恢复入口。

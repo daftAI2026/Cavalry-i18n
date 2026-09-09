@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- 修复 macOS 窗口左上角关闭、最小化和缩放按钮在不同系统兼容布局下偏离标题中线的问题，主窗口和“关于”窗口保持一致。
+
 ## [1.0.2] - 2026-09-09
 
 ### Fixed
