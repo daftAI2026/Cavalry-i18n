@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 macos-acceptance 的 tracked 源码闭包、host 身份原语、冻结媒体 fixture、构建脚本与 Node harness
- * [OUTPUT]: 对外提供跨平台可运行的静态合同，阻断缺失/篡改 host 身份、临时 Cache 依赖、源码树内构建物、弱窗口绑定与 live 命令假通过
+ * [OUTPUT]: 对外提供跨平台可运行的静态合同，阻断冻结快照编译输入遗漏、缺失/篡改 host 身份、临时 Cache 依赖、源码树内构建物、弱窗口绑定与 live 命令假通过
  * [POS]: macos-acceptance 的 CI 边界；只验证可复现输入和 fail-closed 协议，不启动 Cavalry、不冒充真机 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -75,6 +75,28 @@ test('tracked macOS acceptance source closure is complete and GEB-aligned', () =
   }
   assert.match(read('CLAUDE.md'), new RegExp(PROTOCOL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
   assert.match(read('drivers/CLAUDE.md'), new RegExp(PROTOCOL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
+});
+
+
+test('frozen product closure covers build translation units and their local includes', () => {
+  const { sourceEntries } = require('./source_contract');
+  const entries = sourceEntries(REPO);
+  const frozenSources = new Set(entries.map(({ source }) => path.resolve(source)));
+  const build = fs.readFileSync(path.join(REPO, 'tools/build_translator_injector.sh'), 'utf8');
+  const units = [...build.matchAll(/\$REPO_ROOT\/(injector\/[^"\s]+\.(?:mm|cpp))/g)];
+  assert.ok(units.length > 0, 'must discover actual injector translation units');
+  const visited = new Set();
+  function checkSource(source) {
+    source = path.resolve(source);
+    assert.ok(frozenSources.has(source), `missing frozen compile input: ${path.relative(REPO, source)}`);
+    if (visited.has(source)) return;
+    visited.add(source);
+    const contents = fs.readFileSync(source, 'utf8');
+    for (const match of contents.matchAll(/^\s*#\s*include\s*"([^"\n]+)"/gm)) {
+      checkSource(path.resolve(path.dirname(source), match[1]));
+    }
+  }
+  for (const [, relative] of units) checkSource(path.join(REPO, relative));
 });
 
 test('harness freezes the real source closure and exact-window evidence protocol', () => {
