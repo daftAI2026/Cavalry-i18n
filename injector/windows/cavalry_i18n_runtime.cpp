@@ -1,7 +1,7 @@
 /**
- * [INPUT]: 产品分区依赖 QPA 显式语言、嵌入生成表、四条精确 hook 与受控 Qt 显示槽；acceptance-only 编译分区依赖 Onboarding driver 契约、显式受控语言/证据目录与产品已安装 translator
- * [OUTPUT]: 产品分区安装 translator/显示投影、传递真实 Assets producer 并写 text-path 诊断；acceptance-only 分区为不发布插件生成 firstLaunch 五步 driver，并以目标页标题/正文确认 Next 转场后才推进状态
- * [POS]: injector/windows 的双目标源码分区；产品 target 永不编译验收分区，acceptance wrapper 只编译验收分区，防止 UI 驱动语义进入发布 DLL
+ * [INPUT]: 产品分区依赖 QPA 显式语言、嵌入生成表、四条精确 hook、受控 Qt 显示槽与 exact Classic `ListWidget`/真实 viewport surface predicate；acceptance-only 编译分区依赖 Onboarding driver 契约、显式受控语言/证据目录与产品已安装 translator
+ * [OUTPUT]: 产品分区安装 translator/显示投影、在 Show/Paint 事件中接入受控显示属性与 Classic 空结果 surface、传递真实 Assets producer 并写 text-path 诊断；acceptance-only 分区为不发布插件生成 firstLaunch 五步 driver，并以目标页标题/正文确认 Next 转场后才推进状态
+ * [POS]: injector/windows 的双目标源码分区；产品 target 永不编译验收分区，Paint 只把 exact Classic 列表本体/真实 viewport 交给显示层，不遍历或拦截通用 item view，acceptance wrapper 只编译验收分区，防止 UI 驱动语义进入发布 DLL
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #ifdef CAVALRY_I18N_ONBOARDING_ACCEPTANCE_ONLY
@@ -530,7 +530,8 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
             || qobject_cast<QLineEdit *>(widget) != nullptr
             || qobject_cast<QPlainTextEdit *>(widget) != nullptr
             || qobject_cast<QComboBox *>(widget) != nullptr
-            || qobject_cast<QTabBar *>(widget) != nullptr) {
+            || qobject_cast<QTabBar *>(widget) != nullptr
+            || cavalry_i18n::isClassicQuickAddPlaceholderSurface(widget)) {
             displayTranslator_->translatePaintWidget(widget);
         }
         break;

@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表、共享 Quick Add owner/search 策略与 Qt Widgets 的 action tooltip、标准 item model、可编辑/字体 Combo、QTreeWidget popup、QLineEdit、QPlainTextEdit 与 QMenu
  * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀、DisplayRole 数据隔离、字体/选择值保护，以及双 owner QuickAdd 输入的生产显示/回调保持 query 合同；Classic 空结果只接受 exact `ListWidget`/`QuickAddWindow` 及真实 viewport，测试 seam 观察受控 `No Results` setter；任何 CompleterLineEdit 的值均保持原文
- * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性；Quick Add fixture 以 moc 生成的 exact owner/中间父系直调生产 display 入口并触发 textChanged，覆盖 owner 前已填充 Box、owner 前 Shape 回调、parentless Paint Text 及 reparent 后回调/绘制，确保全量/部分/大小写/CJK/清空输入不被翻译且 placeholder 仍翻译，通用规则不会改写可编辑/字体选择值、弹出树、编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入；Classic fixture 额外锁定 Fast owner、非真实 viewport child、空/未知文案、vendor 写回英文 source 后重译、query/model identity 保持及重复 Paint 幂等
+ * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性；Quick Add fixture 以 moc 生成的 exact owner/中间父系直调生产 display 入口并触发 textChanged，覆盖 owner 前已填充 Box、owner 前 Shape 回调、parentless Paint Text 及 reparent 后回调/绘制，确保全量/部分/大小写/CJK/清空输入不被翻译且 placeholder 仍翻译，通用规则不会改写可编辑/字体选择值、弹出树、编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入；Classic fixture 额外锁定无 vendor gate 时无私有内存读取、Fast owner、非真实 viewport child、空/未知文案、vendor 写回英文 source 后重译、query/model identity 保持及重复 Paint 幂等
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
@@ -1890,6 +1890,11 @@ bool verifyClassicQuickAddEmptyPlaceholder(
     QString placeholder = source;
     int setterCalls = 0;
     QWidget *lastSetterTarget = nullptr;
+
+    // 测试进程没有 vendor gate；真实入口必须在 gate 失败时直接返回，
+    // 不能把普通 Qt fixture 当成 Cavalry ListWidget 读取私有偏移。
+    displayTranslator.translatePaintWidget(list.viewport());
+
     displayTranslator.setClassicQuickAddPlaceholderAccessForTesting(
         [&readTarget, &placeholder](const QWidget *target) {
             return target == readTarget ? placeholder : QString();
