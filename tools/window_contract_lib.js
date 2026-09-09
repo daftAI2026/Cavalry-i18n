@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 macOS osascript/screencapture 与 packaged Tauri binary
- * [OUTPUT]: 对外提供 AX 窗口权限探测、窗口枚举、400×484 内容截图与尺寸校验辅助函数
+ * [OUTPUT]: 对外提供用直接 tell 保持精确 PID 绑定的 AX 窗口枚举/操作、交通灯几何读取、About 菜单回归与 400×484 内容截图辅助函数
  * [POS]: tools 的 Tauri 窗口回归公共层
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -37,81 +37,167 @@ function runAppleScript(source) {
   return run('osascript', ['-e', source]).trim();
 }
 
-function listVisibleWindows() {
+function appleScriptString(value) {
+  return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+function normalizePid(pid) {
+  if (pid === undefined || pid === null) {
+    return null;
+  }
+  const normalized = Number(pid);
+  if (!Number.isInteger(normalized) || normalized <= 0) {
+    fail(`Invalid process PID: ${pid}`);
+  }
+  return normalized;
+}
+
+function positiveInteger(value, label) {
+  const normalized = Number(value);
+  if (!Number.isInteger(normalized) || normalized <= 0) {
+    fail(`${label} must be a positive integer: ${value}`);
+  }
+  return normalized;
+}
+
+// System Events 会把对象变量按名称重新解析；同名 App 必须用 PID 的直接 tell，
+// 窗口/按钮也按索引直接读取，只把字符串、坐标等值传回 JavaScript。
+function listVisibleWindows({ pid } = {}) {
+  const expectedPid = normalizePid(pid);
+  const processIds = expectedPid === null
+    ? 'unix id of every process whose background only is false'
+    : `{${expectedPid}}`;
   const output = runAppleScript(`
 tell application "System Events"
   set outputLines to {}
-  try
-    set allProcs to (every process whose background only is false)
-    repeat with proc in allProcs
-      try
-        set procName to name of proc
-        repeat with win in windows of proc
-          try
-            set winPos to position of win
-            set winSize to size of win
-            set end of outputLines to procName & "|" & (name of win) & "|" & ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text)
-          end try
+  set processIds to ${processIds}
+  repeat with targetPid in processIds
+    try
+      tell (first process whose unix id is (targetPid as integer))
+        set procName to name
+        set procPid to unix id
+        repeat with windowIndex from 1 to count windows
+          set winTitle to name of window windowIndex
+          set winPos to position of window windowIndex
+          set winSize to size of window windowIndex
+          set end of outputLines to procName & "|" & (procPid as text) & "|" & winTitle & "|" & ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text)
         end repeat
-      end try
-    end repeat
-  end try
+      end tell
+    end try
+  end repeat
   set AppleScript's text item delimiters to linefeed
   return outputLines as text
 end tell
   `);
-  return output
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .map((line) => {
-      const [processName, title, x, y, width, height] = line.split('|');
-      return {
-        processName,
-        title,
-        x: Number(x),
-        y: Number(y),
-        width: Number(width),
-        height: Number(height),
-      };
-    });
+  return output.split('\n').filter(Boolean).map((line) => {
+    const [processName, pidText, title, x, y, width, height] = line.split('|');
+    return { processName, pid: Number(pidText), title, x: Number(x), y: Number(y),
+      width: Number(width), height: Number(height) };
+  });
 }
 
-async function waitForWindow({ title, processName = '', timeoutMs = 30000 }) {
+function windowMatches(candidate, { title, processName = '', pid, width, height }) {
+  const expectedPid = normalizePid(pid);
+  return candidate.title === title && (!processName || candidate.processName === processName) &&
+    (expectedPid === null || candidate.pid === expectedPid) &&
+    (width === undefined || Math.abs(candidate.width - Number(width)) <= 1) &&
+    (height === undefined || Math.abs(candidate.height - Number(height)) <= 1);
+}
+
+async function waitForWindow({ timeoutMs = 30000, ...selector }) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const match = listVisibleWindows().find((candidate) => {
-      return (
-        candidate.title === title &&
-        (!processName || candidate.processName === processName)
-      );
-    });
-    if (match) {
-      return match;
-    }
+    const match = listVisibleWindows({ pid: selector.pid }).find((candidate) => windowMatches(candidate, selector));
+    if (match) return match;
     await delay(250);
   }
-  fail(`Timed out waiting for window "${title}"${processName ? ` (${processName})` : ''}.`);
+  fail(`Timed out waiting for window "${selector.title}" [pid ${selector.pid}].`);
 }
 
-function focusWindow({ title, processName = '' }) {
-  const processFilter = processName ? `and procName is equal to "${processName}"` : '';
-  runAppleScript(`
-tell application "System Events"
-  repeat with proc in (every process whose background only is false)
-    set procName to name of proc
-    try
-      repeat with win in windows of proc
-        if (name of win) is equal to "${title}" ${processFilter} then
-          set frontmost of proc to true
-          perform action "AXRaise" of win
-          return "ok"
-        end if
-      end repeat
-    end try
-  end repeat
-end tell
-  `);
+function exactProcessScript({ pid, processName = '' }, body) {
+  const expectedPid = normalizePid(pid);
+  if (expectedPid === null) fail('Native window operations require an exact process PID.');
+  return `tell application "System Events"
+    tell (first process whose unix id is ${expectedPid})
+      ${processName ? `if name is not ${appleScriptString(processName)} then error "Process name mismatch"` : ''}
+      ${body}
+    end tell
+  end tell`;
+}
+
+function windowScript(selector, body, focus = false) {
+  return exactProcessScript(selector, `
+    ${focus ? 'set frontmost to true' : ''}
+    tell window ${appleScriptString(selector.title)}
+      ${body}
+    end tell`);
+}
+
+function focusWindow(selector) {
+  // 保持旧调用者的 name/title 入口；解析后所有操作仍绑定同一个 PID。
+  const bound = normalizePid(selector.pid) === null
+    ? listVisibleWindows().find((candidate) => windowMatches(candidate, selector))
+    : selector;
+  if (!bound) fail(`Could not find window "${selector.title}".`);
+  runAppleScript(windowScript(bound, 'perform action "AXRaise"', true));
+}
+
+function resizeWindow(selector) {
+  const width = positiveInteger(selector.width, 'Window width');
+  const height = positiveInteger(selector.height, 'Window height');
+  runAppleScript(windowScript(selector, `set size to {${width}, ${height}}`));
+}
+
+function openAboutMenu({ menuTitle, ...selector }) {
+  runAppleScript(exactProcessScript(selector, `
+    set frontmost to true
+    repeat with menuIndex from 1 to count menu bar items of menu bar 1
+      if exists menu item ${appleScriptString(menuTitle)} of menu 1 of menu bar item menuIndex of menu bar 1 then
+        click menu item ${appleScriptString(menuTitle)} of menu 1 of menu bar item menuIndex of menu bar 1
+        return "ok"
+      end if
+    end repeat
+    error "About menu item was not found"`));
+}
+
+function closeWindow(selector) {
+  runAppleScript(windowScript(selector, 'perform action "AXPress" of (first button whose subrole is "AXCloseButton")'));
+}
+
+async function waitForWindowGone({ timeoutMs = 10000, ...selector }) {
+  if (normalizePid(selector.pid) === null) fail('Waiting for window closure requires an exact PID.');
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (!listVisibleWindows({ pid: selector.pid }).some((candidate) => windowMatches(candidate, selector))) return;
+    await delay(250);
+  }
+  fail(`Timed out waiting for window "${selector.title}" to close [pid ${selector.pid}].`);
+}
+
+function readTrafficLightGeometry(selector) {
+  const output = runAppleScript(windowScript(selector, `
+    set winPos to position
+    set winSize to size
+    if (count buttons) is not 3 then error "Expected exactly three native window buttons"
+    set outputLines to {}
+    repeat with buttonIndex from 1 to count buttons
+      set buttonPos to position of button buttonIndex
+      set buttonSize to size of button buttonIndex
+      set end of outputLines to ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text) & "|" & ((item 1 of buttonPos) as text) & "|" & ((item 2 of buttonPos) as text) & "|" & ((item 1 of buttonSize) as text) & "|" & ((item 2 of buttonSize) as text)
+    end repeat
+    set AppleScript's text item delimiters to linefeed
+    return outputLines as text`));
+  const lines = output.split('\n').filter(Boolean);
+  if (lines.length !== 3) fail(`Expected three traffic-light geometry rows, received ${lines.length}.`);
+  const parsed = lines.map((line) => {
+    const values = line.split('|').map(Number);
+    if (values.length !== 8 || values.some((value) => !Number.isFinite(value))) fail(`Invalid traffic-light geometry row: ${line}`);
+    const [windowX, windowY, windowWidth, windowHeight, x, y, width, height] = values;
+    return { x, y, width, height, centerDistanceFromTop: y + height / 2 - windowY,
+      window: { x: windowX, y: windowY, width: windowWidth, height: windowHeight } };
+  });
+  return { pid: normalizePid(selector.pid), title: selector.title, processName: selector.processName,
+    window: parsed[0].window, buttons: parsed.map(({ window: _window, ...button }) => button) };
 }
 
 function captureRect(bounds, outputPath) {
@@ -156,18 +242,18 @@ function captureContentRegion(bounds, outputPath) {
 }
 
 function tauriBundleBinary() {
-  const appPath = path.join(
-    repoRoot,
-    'src-tauri',
-    'target',
-    'release',
-    'bundle',
-    'macos',
-    'Cavalry Language Switcher.app',
-    'Contents',
-    'MacOS',
-    'cavalry-i18n-tauri'
-  );
+  const bundlePath = process.env.CAVALRY_I18N_TAURI_APP_BUNDLE
+    ? path.resolve(process.env.CAVALRY_I18N_TAURI_APP_BUNDLE)
+    : path.join(
+        repoRoot,
+        'src-tauri',
+        'target',
+        'release',
+        'bundle',
+        'macos',
+        'Cavalry Language Switcher.app'
+      );
+  const appPath = path.join(bundlePath, 'Contents', 'MacOS', 'cavalry-i18n-tauri');
   if (!fs.existsSync(appPath)) {
     fail(`Packaged Tauri binary missing at ${appPath}. Run npm run tauri:build first.`);
   }
@@ -224,6 +310,7 @@ end tell
 
 module.exports = {
   captureContentRegion,
+  closeWindow,
   delay,
   expectedContentSize,
   focusWindow,
@@ -231,8 +318,12 @@ module.exports = {
   launchTauri,
   listVisibleWindows,
   makeTempDir,
+  openAboutMenu,
+  readTrafficLightGeometry,
+  resizeWindow,
   repoRoot,
   stopChild,
   tauriBundleBinary,
   waitForWindow,
+  waitForWindowGone,
 };
