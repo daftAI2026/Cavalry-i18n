@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_tauri::patch 的 English 内容证明/immutable generation、snapshot provenance、overlay/staging 能力与仓库四语语言包
- * [OUTPUT]: 对外提供 clean-English 逐叶证明、无 manifest legacy English overlay 证明与 immutable generation 迁移、packaged 内容源与本机 Unix mode 权威分离、世代指针 crash recovery/revision 失效、无 symlink/component-boundary staging、原始 Unix mode 恢复、已安装版本增量保留与 smoother 四语同构 contract tests
+ * [OUTPUT]: 对外提供 clean-English 逐叶证明、无 manifest legacy English overlay 证明与 immutable generation 迁移、packaged 内容源与本机 Unix mode 权威分离、世代指针 crash recovery/revision 失效、无 symlink/component-boundary staging、原始 Unix mode 恢复、已安装版本增量保留、重复身份的双侧唯一结构匹配与 smoother 四语同构 contract tests
  * [POS]: src-tauri/tests 的 patch 守门，确保未知安装内容、部分 generation、路径替换或 0600 snapshot store mode 不能污染/切换 English 快照
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1134,4 +1134,74 @@ fn overlay_translates_only_strings_and_preserves_vendor_scalar_metadata() {
         merged["nested"]["threshold"],
         installed["nested"]["threshold"]
     );
+}
+
+#[test]
+fn overlay_duplicate_identity_translates_real_transform_constraint_in_three_languages() {
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../languages");
+    let english: serde_json::Value =
+        serde_json::from_slice(&fs::read(root.join("en/nodeStrings.json")).unwrap()).unwrap();
+    for language in ["zh-Hans", "zh-Hant", "ja_JP"] {
+        let translation: serde_json::Value = serde_json::from_slice(
+            &fs::read(root.join(language).join("nodeStrings.json")).unwrap(),
+        )
+        .unwrap();
+        let merged = merge_translation_overlay(&english, &translation);
+        for index in [38, 43] {
+            assert_eq!(
+                english[41]["values"][index]["nodeType"],
+                "transformConstraint"
+            );
+            assert_eq!(
+                merged[41]["values"][index], translation[41]["values"][index],
+                "{language}: duplicate Transform Constraint entry {index}"
+            );
+        }
+        assert_ne!(
+            merged[41]["values"][38]["nodeInfo"],
+            english[41]["values"][38]["nodeInfo"]
+        );
+    }
+}
+
+#[test]
+fn overlay_duplicate_identity_matches_reordered_distinct_structures() {
+    let installed = serde_json::json!([
+        {"nodeType":"same", "nodeInfo":"Description", "attributes":{"amount":"Amount"}},
+        {"nodeType":"same", "niceName":"Title", "attributes":{"target":"Target"}}
+    ]);
+    let translation = serde_json::json!([
+        {"nodeType":"same", "niceName":"标题", "attributes":{"target":"目标"}},
+        {"nodeType":"same", "nodeInfo":"说明", "attributes":{"amount":"数量"}}
+    ]);
+    let merged = merge_translation_overlay(&installed, &translation);
+    assert_eq!(merged[0], translation[1]);
+    assert_eq!(merged[1], translation[0]);
+}
+
+#[test]
+fn overlay_duplicate_identity_rejects_ambiguous_or_incomplete_groups() {
+    let installed = serde_json::json!([
+        {"nodeType":"same", "label":"A"},
+        {"nodeType":"same", "label":"B"}
+    ]);
+    for translation in [
+        serde_json::json!([{"nodeType":"same", "label":"甲"}, {"nodeType":"same", "label":"乙"}]),
+        serde_json::json!([{"nodeType":"same", "label":"甲"}]),
+        serde_json::json!([{"nodeType":"same", "label":"甲"}, {"nodeType":"same", "other":"乙"}]),
+    ] {
+        assert_eq!(
+            merge_translation_overlay(&installed, &translation),
+            installed
+        );
+    }
+    let distinct = serde_json::json!([
+        {"nodeType":"same", "label":"A", "metadata":1},
+        {"nodeType":"same", "description":"B", "metadata":2}
+    ]);
+    let drifted = serde_json::json!([
+        {"nodeType":"same", "label":"甲", "metadata":99},
+        {"nodeType":"same", "description":"乙", "metadata":2}
+    ]);
+    assert_eq!(merge_translation_overlay(&distinct, &drifted), distinct);
 }

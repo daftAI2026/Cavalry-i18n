@@ -105,6 +105,7 @@ test('harness freezes the real source closure and exact-window evidence protocol
   );
   for (const relative of [
     'injector/cavalry_i18n_classic_rank.h',
+    'injector/cavalry_i18n_quick_add_tabs.h',
     'injector/cavalry_i18n_macos_classic_rank.h',
     'injector/cavalry_i18n_macos_classic_rank.cpp',
   ]) {

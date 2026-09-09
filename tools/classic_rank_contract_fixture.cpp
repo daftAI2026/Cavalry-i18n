@@ -1,7 +1,7 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_classic_rank.h 及其 Classic 搜索上下文、Qt 6.6.3 QListWidget/QLineEdit 公共 API 与可控 vendor item 评分回调
- * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Classic Quick Add 排序合同；验证本地化标题 exact 命中只在原厂 layout 排序期间借用 1000 分，随后经持久索引恢复原值，并锁定 source 变化、外部接管与千次生命周期
- * [POS]: tools 的 Classic 排序 vendor-free 回归；与已有 alias 投影同时挂接，覆盖中英/繁中/日语、碰撞、clear/English、自动排序、删除/reset、幂等、ABI fail-closed 及无按键缓存
+ * [OUTPUT]: 对外提供不触碰真实 Cavalry 的 Classic Quick Add 排序合同；验证本地化标题 exact 命中借用 1000、prefix 命中借用 900-UTF8-byte-length，随后经持久索引恢复原值，并锁定 source 变化、外部接管与千次生命周期
+ * [POS]: tools 的 Classic 排序 vendor-free 回归；与已有 alias 投影同时挂接，覆盖中英/繁中/日语、前缀/后缀、碰撞、clear/English、自动排序、删除/reset、幂等、ABI fail-closed 及无按键缓存
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_classic_rank.h"
@@ -76,6 +76,7 @@ namespace {
 struct CallbackCounters {
     int get = 0;
     int set = 0;
+    QVector<int> setValues;
 };
 
 CallbackCounters *gCounters = nullptr;
@@ -94,7 +95,10 @@ int getPriority(const QListWidgetItem *item)
 
 void setPriority(QListWidgetItem *item, int value)
 {
-    if (gCounters != nullptr) ++gCounters->set;
+    if (gCounters != nullptr) {
+        ++gCounters->set;
+        gCounters->setValues.append(value);
+    }
     auto *vendor = dynamic_cast<VendorItem *>(item);
     if (vendor != nullptr) {
         vendor->priority = value;
@@ -109,6 +113,7 @@ bool sortsByPriority(const QListWidgetItem *item)
 
 QStringList aliasesFor(const QString &language, const QString &source)
 {
+    if (language == QStringLiteral("en")) return {source};
     if (source == QStringLiteral("Text")) {
         if (language == QStringLiteral("zh-Hans")) return {QStringLiteral("文本")};
         if (language == QStringLiteral("zh-Hant")) return {QStringLiteral("文字")};
@@ -118,6 +123,35 @@ QStringList aliasesFor(const QString &language, const QString &source)
         if (language == QStringLiteral("zh-Hans")) return {QStringLiteral("盒")};
         if (language == QStringLiteral("zh-Hant")) return {QStringLiteral("盒")};
         if (language == QStringLiteral("ja_JP")) return {QStringLiteral("ボックス")};
+    }
+    if (source == QStringLiteral("Transform Constraint")) {
+        if (language == QStringLiteral("zh-Hans")) {
+            return {QStringLiteral("变换约束")};
+        }
+        if (language == QStringLiteral("zh-Hant")) {
+            return {QStringLiteral("變換約束")};
+        }
+        if (language == QStringLiteral("ja_JP")) {
+            return {QStringLiteral("変形コンストレイント")};
+        }
+    }
+    if (source == QStringLiteral("3D Matrix")) {
+        if (language == QStringLiteral("source-prefix-contract")) {
+            return {QStringLiteral("3DModel")};
+        }
+        if (language == QStringLiteral("zh-Hans")) {
+            return {QStringLiteral("3D行列")};
+        }
+        if (language == QStringLiteral("zh-Hant")) {
+            return {QStringLiteral("3D矩陣")};
+        }
+        if (language == QStringLiteral("ja_JP")) {
+            return {QStringLiteral("3D行列")};
+        }
+    }
+    if (source == QStringLiteral("Short Source")
+        && language == QStringLiteral("zh-Hans")) {
+        return {QStringLiteral("XY本地")};
     }
     if (source == QStringLiteral("Collision A")
         || source == QStringLiteral("Collision B")) {
@@ -207,6 +241,19 @@ int main(int argc, char **argv)
         QStringLiteral("already-exact"), 1000);
     auto *aboveExact = addItem(list, QStringLiteral("Above Exact"),
         QStringLiteral("above-exact"), 1200);
+    auto *transformConstraint = addItem(
+        list, QStringLiteral("Transform Constraint"),
+        QStringLiteral("transform-constraint"), 100);
+    // 模拟只因说明命中的候选：它没有本地标题 alias，保持原厂默认分数。
+    auto *descriptionOnly = addItem(
+        list, QStringLiteral("Add Divisions"),
+        QStringLiteral("description-only"), 100);
+    auto *sourcePrefix = addItem(
+        list, QStringLiteral("3D Matrix"),
+        QStringLiteral("source-prefix"), 892);
+    auto *shortPartial = addItem(
+        list, QStringLiteral("Short Source"),
+        QStringLiteral("short-partial"), 100);
 
     QString language = QStringLiteral("zh-Hans");
     CallbackCounters counters;
@@ -285,6 +332,91 @@ int main(int argc, char **argv)
         REQUIRE(text->data(Qt::UserRole) == textRole);
         REQUIRE(box->data(Qt::UserRole) == boxRole);
     }
+
+    // 不完整的当前语言标题仍沿用原厂 prefix 分级，排在只有说明命中的
+    // 默认分数之前；每个 locale 都必须临时写入 900 - UTF-8 字节长度并恢复。
+    for (const QString &locale : {QStringLiteral("zh-Hans"),
+                                  QStringLiteral("zh-Hant"),
+                                  QStringLiteral("ja_JP")}) {
+        language = locale;
+        const QString fullTitle =
+            aliasesFor(locale, QStringLiteral("Transform Constraint"))
+                .constFirst();
+        const QString query = fullTitle.left(2);
+        // 独立锁定四个汉字 / 十个日文字符的原厂 UTF-8 长度分数，
+        // 不调用被测评分公式来产生测试的期望值。
+        const int expected = locale == QStringLiteral("ja_JP") ? 870 : 888;
+        counters = {};
+        search->setText(query);
+        list->sortItems(Qt::AscendingOrder);
+        REQUIRE(list->row(transformConstraint) < list->row(descriptionOnly));
+        REQUIRE(transformConstraint->priority == 100);
+        REQUIRE(descriptionOnly->priority == 100);
+        REQUIRE(counters.get == 2);
+        REQUIRE(counters.set == 2);
+        REQUIRE(counters.setValues.size() == 2);
+        REQUIRE(counters.setValues.constFirst() == expected);
+        REQUIRE(counters.setValues.constLast() == 100);
+        REQUIRE(transformConstraint->data(Qt::UserRole)
+                == QStringLiteral("opaque:transform-constraint"));
+    }
+
+    // 后缀/中间片段仍可被既有 Classic alias subsequence 搜索找到，但不能
+    // 冒充原厂标题前缀；说明和标题都保持默认 priority 100。
+    language = QStringLiteral("ja_JP");
+    counters = {};
+    search->setText(QStringLiteral("コンスト"));
+    list->sortItems(Qt::AscendingOrder);
+    REQUIRE(transformConstraint->priority == 100);
+    REQUIRE(descriptionOnly->priority == 100);
+    REQUIRE(counters.get == 0);
+    REQUIRE(counters.set == 0);
+
+    // source 本身已命中 English prefix 时，localized alias 不得按更短的
+    // 本地文字重算 native score；UTF-8 长度也不能误当 QString 单元数。
+    for (const QString &locale : {QStringLiteral("zh-Hans"),
+                                  QStringLiteral("zh-Hant"),
+                                  QStringLiteral("ja_JP")}) {
+        language = locale;
+        counters = {};
+        search->setText(QStringLiteral("3D"));
+        list->sortItems(Qt::AscendingOrder);
+        REQUIRE(sourcePrefix->priority == 892);
+        REQUIRE(counters.get == 0);
+        REQUIRE(counters.set == 0);
+    }
+
+    // 三字节查询绕过短输入 guard；较低原分数也排除 original >= desired
+    // 的早退，独立证明 source prefix 不会被另一个 alias 重新评分。
+    language = QStringLiteral("source-prefix-contract");
+    sourcePrefix->priority = 100;
+    counters = {};
+    search->setText(QStringLiteral("3DM"));
+    list->sortItems(Qt::AscendingOrder);
+    REQUIRE(sourcePrefix->priority == 100);
+    REQUIRE(counters.get == 0);
+    REQUIRE(counters.set == 0);
+    sourcePrefix->priority = 892;
+
+    // vendor 的 prefix 分支要求 query 至少 3 个 UTF-8 bytes；两字母
+    // localized prefix 仍保持默认分数，exact alias 的 1000 合同不受影响。
+    language = QStringLiteral("zh-Hans");
+    counters = {};
+    search->setText(QStringLiteral("XY"));
+    list->sortItems(Qt::AscendingOrder);
+    REQUIRE(shortPartial->priority == 100);
+    REQUIRE(counters.get == 0);
+    REQUIRE(counters.set == 0);
+
+    // 英文 source/query 继续完全交给原厂；本地 alias provider 不得改变
+    // 原厂英文 partial ranking。
+    language = QStringLiteral("en");
+    counters = {};
+    search->setText(QStringLiteral("Transform"));
+    list->sortItems(Qt::AscendingOrder);
+    REQUIRE(transformConstraint->priority == 100);
+    REQUIRE(counters.get == 0);
+    REQUIRE(counters.set == 0);
 
     // Two items may share one localized alias; both are valid exact matches.
     language = QStringLiteral("zh-Hans");
