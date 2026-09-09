@@ -143,7 +143,7 @@ readback 必须同时证明默认 plist 键存在，以及四个 `Contents/Resou
 CAVALRY_I18N_TAURI_APP_BUNDLE="<最终候选.app的绝对路径>" npm run test:tauri:ui
 ```
 
-该门绑定自己启动的 PID，检查主窗口首屏、resize 后和 About 的原生交通灯中心距窗口顶部为 20pt（40pt 标题栏中线，容差 1pt），并保留既有窗口尺寸/内容截图检查。没有 AX 权限的 SKIP 不等于验收通过。它只操作 Switcher 的窗口装饰，不执行 Cavalry 语言动作。
+该门先临时启动同名对照进程，再绑定自己启动的验收 PID，避免 System Events 按同名重解析对象引用；退出时只关闭这两个自有进程。检查主窗口首屏、resize 后和 About 的原生交通灯中心距窗口顶部为 20pt（40pt 标题栏中线，容差 1pt），并保留既有窗口尺寸/内容截图检查。没有 AX 权限的 SKIP 不等于验收通过。它只操作 Switcher 的窗口装饰，不执行 Cavalry 语言动作。
 
 原生控件可能因可执行文件的链接 SDK 使用不同兼容布局；不能只检查本机 SDK 构建。发布前应在支持的 macOS 主机上对实际发布候选包运行同一门。CI 的编译/资源校验、浏览器预览和开发态截图均不能替代此项原生几何验收。
 
