@@ -2,7 +2,7 @@
 /**
  * [INPUT]: 依赖 packaged Tauri binary 与 macOS 截图/窗口探测能力
  * [OUTPUT]: 对外提供 Tauri 主窗口回归测试，验证精确子进程的原生交通灯几何、resize/restore、About 窗口、冻结尺寸、内容区截图与 backing scale
- * [POS]: tools 的 Phase 6 UI 回归守门；所有 AX 查询、截图和关闭动作绑定 launchTauri 子进程，拒绝同名已安装 App 污染证据
+ * [POS]: tools 的 Phase 6 UI 回归守门；通过同名对照进程验证所有 AX 查询、截图和关闭动作绑定 launchTauri 子进程，拒绝同名已安装 App 污染证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 const test = require('node:test');
@@ -69,17 +69,22 @@ test('tauri window regression stays within the frozen Tauri contract', async (t)
   const stateDir = makeTempDir('cavalry-i18n-tauri-window-state-');
   const outputDir = makeTempDir('cavalry-i18n-tauri-window-shot-');
   const actualPngPath = path.join(outputDir, 'tauri-window.png');
-  const child = launchTauri(stateDir);
-  const mainSelector = {
-    title: FROZEN_WINDOW.title,
-    processName: FROZEN_WINDOW.processName,
-    pid: child.pid,
-  };
-
+  // 先建立同名对照进程，确保 PID 绑定不是只在单实例时碰巧有效。
+  const sameNameChild = launchTauri(makeTempDir('cavalry-i18n-tauri-window-control-'));
+  let child;
   try {
+    assert.ok(Number.isInteger(sameNameChild.pid) && sameNameChild.pid > 0);
+    await waitForWindow({ title: FROZEN_WINDOW.title, pid: sameNameChild.pid });
+    child = launchTauri(stateDir);
+    const mainSelector = {
+      title: FROZEN_WINDOW.title,
+      processName: FROZEN_WINDOW.processName,
+      pid: child.pid,
+    };
     assert.ok(Number.isInteger(child.pid) && child.pid > 0, 'launched Tauri child has no usable PID');
     t.diagnostic(`launched child pid=${child.pid}; screenshots=${outputDir}`);
     const initialWindow = await waitForWindow(mainSelector);
+    assert.equal(initialWindow.pid, child.pid, 'candidate must not resolve to the same-name control');
     focusWindow(mainSelector);
     assertTrafficLightGeometry(mainSelector, 'first display', t);
 
@@ -164,5 +169,6 @@ test('tauri window regression stays within the frozen Tauri contract', async (t)
     );
   } finally {
     stopChild(child);
+    stopChild(sameNameChild);
   }
 });
