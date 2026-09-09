@@ -22,7 +22,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 修复三种语言中变换约束说明因重复节点标识而未应用翻译的问题；只有结构能唯一对应的重复条目才应用译文。
 - 修复 macOS 和 Windows Classic/Fast 顶部分类先被截短导致漏翻译的问题，保留完整英文分类身份，只更新显示文本。
 - Windows 自定义安装目录切换语言时，对 Cavalry 退出后短暂的 DLL 共享占用进行限定重试；权限拒绝和持续占用仍明确报错。
-- 修复 macOS 窗口左上角关闭、最小化和缩放按钮在不同系统兼容布局下偏离标题中线的问题，主窗口和“关于”窗口保持一致。
+- 修复 Cavalry Language Switcher 在 macOS 上的窗口交通灯按钮（关闭、最小化和缩放）偏离标题中线的问题，主窗口和“关于”窗口保持一致。
 
 ## [1.0.2] - 2026-09-09
 
