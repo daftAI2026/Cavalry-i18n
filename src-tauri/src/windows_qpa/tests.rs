@@ -4,7 +4,12 @@
  * [POS]: windows_qpa 的 Windows 单元合同；只写 tempfile 安装根，不读取或修改真实 Cavalry。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
-use std::{fs, path::Path};
+use std::{
+    cell::Cell,
+    fs, io,
+    path::Path,
+    time::{Duration, Instant},
+};
 
 use super::storage::{
     MANIFEST_REPLACE_BACKUP_FILE, MANIFEST_TEMP_FILE, REPLACE_BACKUP_FILE, ROOT_REPLACEMENT_TEMP,
@@ -608,6 +613,83 @@ fn direct_write_preflight_is_non_destructive_for_active_qpa_state() {
     assert!(!recovery_directory(&fixture.layout)
         .join(".cavalry-i18n-qpa-write-probe")
         .exists());
+}
+
+#[test]
+fn existing_file_write_preflight_retries_one_sharing_violation_then_succeeds() {
+    let start = Instant::now();
+    let elapsed = Cell::new(Duration::ZERO);
+    let mut attempts = 0;
+
+    let result = super::preflight::verify_existing_file_writable_with(
+        Path::new("qwindows.dll"),
+        "installed qwindows.dll",
+        |_path| {
+            attempts += 1;
+            if attempts == 1 {
+                Err(io::Error::from_raw_os_error(32))
+            } else {
+                Ok(())
+            }
+        },
+        |duration| elapsed.set(elapsed.get() + duration),
+        || start + elapsed.get(),
+        Duration::from_millis(250),
+    );
+
+    assert!(result.is_ok(), "{result:?}");
+    assert_eq!(attempts, 2);
+    assert_eq!(elapsed.get(), Duration::from_millis(100));
+}
+
+#[test]
+fn existing_file_write_preflight_stops_after_a_sharing_violation_deadline() {
+    let start = Instant::now();
+    let elapsed = Cell::new(Duration::ZERO);
+    let mut attempts = 0;
+
+    let result = super::preflight::verify_existing_file_writable_with(
+        Path::new("qwindows.dll"),
+        "installed qwindows.dll",
+        |_path| {
+            attempts += 1;
+            Err(io::Error::from_raw_os_error(32))
+        },
+        |duration| elapsed.set(elapsed.get() + duration),
+        || start + elapsed.get(),
+        Duration::from_millis(250),
+    );
+
+    let error = result.unwrap_err();
+    assert!(error.contains("installed qwindows.dll"), "{error}");
+    assert!(error.contains("os error 32"), "{error}");
+    assert_eq!(attempts, 4);
+    assert_eq!(elapsed.get(), Duration::from_millis(250));
+}
+
+#[test]
+fn existing_file_write_preflight_returns_other_errors_without_retrying() {
+    let start = Instant::now();
+    let elapsed = Cell::new(Duration::ZERO);
+    let mut attempts = 0;
+
+    let result = super::preflight::verify_existing_file_writable_with(
+        Path::new("qwindows.dll"),
+        "installed qwindows.dll",
+        |_path| {
+            attempts += 1;
+            Err(io::Error::from_raw_os_error(5))
+        },
+        |_duration| panic!("permission errors must not be retried"),
+        || start + elapsed.get(),
+        Duration::from_millis(250),
+    );
+
+    let error = result.unwrap_err();
+    assert!(error.contains("installed qwindows.dll"), "{error}");
+    assert!(error.contains("os error 5"), "{error}");
+    assert_eq!(attempts, 1);
+    assert_eq!(elapsed.get(), Duration::ZERO);
 }
 
 #[test]

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 macos-acceptance 的 tracked 源码闭包、host 身份原语、冻结媒体 fixture、构建脚本与 Node harness
- * [OUTPUT]: 对外提供跨平台可运行的静态合同，阻断缺失/篡改 host 身份、临时 Cache 依赖、源码树内构建物、弱窗口绑定与 live 命令假通过
+ * [OUTPUT]: 对外提供跨平台可运行的静态合同，阻断冻结快照编译输入遗漏、缺失/篡改 host 身份、临时 Cache 依赖、源码树内构建物、弱窗口绑定与 live 命令假通过
  * [POS]: macos-acceptance 的 CI 边界；只验证可复现输入和 fail-closed 协议，不启动 Cavalry、不冒充真机 PASS
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -77,6 +77,28 @@ test('tracked macOS acceptance source closure is complete and GEB-aligned', () =
   assert.match(read('drivers/CLAUDE.md'), new RegExp(PROTOCOL.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')));
 });
 
+
+test('frozen product closure covers build translation units and their local includes', () => {
+  const { sourceEntries } = require('./source_contract');
+  const entries = sourceEntries(REPO);
+  const frozenSources = new Set(entries.map(({ source }) => path.resolve(source)));
+  const build = fs.readFileSync(path.join(REPO, 'tools/build_translator_injector.sh'), 'utf8');
+  const units = [...build.matchAll(/\$REPO_ROOT\/(injector\/[^"\s]+\.(?:mm|cpp))/g)];
+  assert.ok(units.length > 0, 'must discover actual injector translation units');
+  const visited = new Set();
+  function checkSource(source) {
+    source = path.resolve(source);
+    assert.ok(frozenSources.has(source), `missing frozen compile input: ${path.relative(REPO, source)}`);
+    if (visited.has(source)) return;
+    visited.add(source);
+    const contents = fs.readFileSync(source, 'utf8');
+    for (const match of contents.matchAll(/^\s*#\s*include\s*"([^"\n]+)"/gm)) {
+      checkSource(path.resolve(path.dirname(source), match[1]));
+    }
+  }
+  for (const [, relative] of units) checkSource(path.join(REPO, relative));
+});
+
 test('harness freezes the real source closure and exact-window evidence protocol', () => {
   const harness = read('acceptance_harness.js');
   const sourceContract = read('source_contract.js');
@@ -103,12 +125,36 @@ test('harness freezes the real source closure and exact-window evidence protocol
     sourceContract.includes("'injector/cavalry_i18n_quick_add_context.h'"),
     'shared Quick Add context must stay in the macOS source closure'
   );
+  for (const relative of [
+    'injector/cavalry_i18n_classic_rank.h',
+    'injector/cavalry_i18n_quick_add_tabs.h',
+    'injector/cavalry_i18n_macos_classic_rank.h',
+    'injector/cavalry_i18n_macos_classic_rank.cpp',
+  ]) {
+    assert.ok(
+      sourceContract.includes(`'${relative}'`),
+      `macOS Classic rank source must stay in the source closure: ${relative}`
+    );
+  }
   assert.match(harness, /points\.length !== 48 \|\| new Set\(keys\)\.size !== 48/);
   assert.match(harness, /seen\.size !== 48/);
   assert.doesNotMatch(harness, /cgwindow_all|dynamic-proof-two\.mp4/);
   assert.match(harness, /host, repository, target/);
   assert.match(harness, /assertSameHostIdentity\(validateHostIdentity\(machine\.host\), collectMacHostIdentity\(\)\)/);
   assert.match(harness, /HOME: home, CFFIXED_USER_HOME: home, TMPDIR: temporary/);
+});
+
+test('macOS Classic adapter selects the MH_EXECUTE host, not dyld image zero', () => {
+  const adapter = fs.readFileSync(
+    path.join(REPO, 'injector', 'cavalry_i18n_macos_classic_rank.cpp'),
+    'utf8',
+  );
+  assert.match(adapter, /findMainExecutablePath\(\) noexcept/);
+  assert.match(adapter, /_dyld_image_count\(\)/);
+  assert.match(adapter, /_dyld_get_image_header\(index\)/);
+  assert.match(adapter, /rawHeader->filetype\s*!=\s*MH_EXECUTE/);
+  assert.match(adapter, /const char \*mainPath = findMainExecutablePath\(\)/);
+  assert.doesNotMatch(adapter, /mainPath\s*=\s*_dyld_get_image_name\(0\)/);
 });
 
 test('onboarding uses the exact manager and keeps polling inside Qt', () => {

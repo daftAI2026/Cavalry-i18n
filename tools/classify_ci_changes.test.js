@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 classify_ci_changes.js 的纯路径分类接口
- * [OUTPUT]: 证明文档轻门、合同门、共享翻译/输入/Quick Add context/display/搜索/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
+ * [OUTPUT]: 证明文档轻门、合同门、共享翻译/输入/Quick Add context/display/顶部标签/搜索/Classic 评分/Quick Add 描述策略双平台门、依赖门及未知路径 fail-closed 的离线回归测试
  * [POS]: CI 风险调度器的单元测试，防止节省 Runner 时误跳产品或发布证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -72,6 +72,8 @@ test('macOS-only and shared injector paths select the correct native evidence', 
     'injector/cavalry_i18n_quick_add_context.h',
     'injector/cavalry_i18n_search_policy.h',
     'injector/cavalry_i18n_classic_search.h',
+    'injector/cavalry_i18n_classic_rank.h',
+    'injector/cavalry_i18n_quick_add_tabs.h',
     'injector/cavalry_i18n_search_descriptions.h',
     'injector/generated_quick_add_descriptions.inc',
     'tools/generate_quick_add_descriptions.js',

@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 GitHub 最新正式 Release、当前发布配置、平台运行时边界与 LOCAL_BUILD_SOP
-[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、搜索排序限制、开发与安全说明
+[OUTPUT]: 对外提供 macOS / Windows 用户安装、当前补丁更新、已发布排序限制与开发分支行为、开发与安全说明
 [POS]: 仓库英文用户入口；与三份本地化 README 同步发布真相，不替代平台真机验收
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -33,7 +33,9 @@
 
 Choose a target language, then select **Switch** or **Restore English**. When the current language has an update badge, select it and choose **Update** to reapply the complete language patch—no language change or English restore is needed first. The current language is disabled only when its patch is up to date. Progress and recovery guidance appear below the actions.
 
-**Add Layer search:** You can search in English or the selected language. In the right-hand Add Layer panel, localized title matches may not receive the same title priority as English names. If the expected layer appears lower in the results, try its full English name, such as `Text Shape`. This is a known ranking limitation; it does not mean your input or the layer's creation identity has changed.
+**Add Layer search in released p8:** You can search in English or the selected language. In the right-hand Add Layer panel, localized title matches may not receive the same title priority as English names. If the expected layer appears lower in the results, try its full English name, such as `Text Shape`. This is a known ranking limitation; it does not mean your input or the layer's creation identity has changed.
+
+**Development branch (not yet released):** Exact selected-language title matches and eligible title-prefix matches in the right-hand panel receive a title-priority supplement on verified runtimes. Matches elsewhere in a title can still appear in search results with native ranking. Native filtering and layer creation remain unchanged; unverified runtimes retain native ranking. Windows live acceptance is still required before release.
 
 ## Safety & Permissions
 

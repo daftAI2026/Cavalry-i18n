@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖 Qt SDK、可选 Cavalry.app Frameworks、macOS injector 主源/TransformTool text-path ABI 适配器与 generated_translations.inc/JSON 说明反向索引
+# [INPUT]: 依赖 Qt SDK、可选 Cavalry.app Frameworks、macOS injector 主源/Quick Add 类别、Classic 空结果与排序与 TransformTool text-path ABI 适配器及 generated_translations.inc/JSON 说明反向索引
 # [OUTPUT]: 对外构建启用 -O2/-fno-omit-frame-pointer、以 @loader_path 绑定目标 app Qt/libskia 的 universal injector dylib；干净 CI 无 vendor app 时只生成同 install-name 的临时 Skia 链接桩
 # [POS]: tools 的 injector 发布构建入口，以 Qt minor、双 slice caller-frame 保留、可搬移运行时链接和稳定优化级别连接源码与 Tauri bundle resource，同时把 vendor 二进制依赖留在用户运行时
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -112,6 +112,9 @@ LINK_FRAMEWORKS="${2:-/Applications/Cavalry.app/Contents/Frameworks}"
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 SOURCE="$REPO_ROOT/injector/CavalryTranslatorInjector.mm"
 TOOL_HELP_SOURCE="$REPO_ROOT/injector/cavalry_i18n_macos_tool_help_text_path.cpp"
+CLASSIC_RANK_SOURCE="$REPO_ROOT/injector/cavalry_i18n_macos_classic_rank.cpp"
+PLACEHOLDER_SOURCE="$REPO_ROOT/injector/cavalry_i18n_macos_quick_add_placeholder.cpp"
+CATEGORY_SOURCE="$REPO_ROOT/injector/cavalry_i18n_macos_quick_add_category.cpp"
 GENERATED="$REPO_ROOT/injector/generated_translations.inc"
 QT_PREFIX="$(find_qt_prefix || true)"
 TARGET_QT_VERSION="${CAVALRY_QT_VERSION:-}"
@@ -123,6 +126,11 @@ fi
 
 if [ ! -f "$TOOL_HELP_SOURCE" ]; then
   echo "macOS tool-help text-path source not found: $TOOL_HELP_SOURCE" >&2
+  exit 1
+fi
+
+if [ ! -f "$CLASSIC_RANK_SOURCE" ]; then
+  echo "macOS Classic rank source not found: $CLASSIC_RANK_SOURCE" >&2
   exit 1
 fi
 
@@ -209,6 +217,9 @@ clang++ \
   -Wl,-rpath,@loader_path \
   -Wl,-rpath,"$LINK_FRAMEWORKS" \
   "$SOURCE" \
+  "$CLASSIC_RANK_SOURCE" \
+  "$PLACEHOLDER_SOURCE" \
+  "$CATEGORY_SOURCE" \
   "$TOOL_HELP_SOURCE" \
   "$SKIA_LINK" \
   -o "$OUTPUT" \

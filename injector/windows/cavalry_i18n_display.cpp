@@ -1,13 +1,14 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context/选择输入值/搜索别名策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字、交互补全输入（含 parentless 构建阶段）保护、FastQuickAdd 双语过滤、Windows ABI 验证后的标题绘制副本及 Classic 名称与说明双语索引/标题分离，以及动态英文写回恢复
- * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系、producer 或 vendor 主窗口身份，保护可编辑/字体 Combo 及其编辑器/弹出列表的业务值，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
+ * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context/选择输入值/搜索别名策略、Windows Classic priority ABI 防火墙、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API，以及 CavalryUI `ListWidget::setPlaceholder`/`this+0x28` 的静态 ABI 合同
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字、交互补全输入（含 parentless 构建阶段）保护、FastQuickAdd 双语过滤、Windows ABI 验证后的标题绘制副本、Quick Add 顶部 RolloverLabel 类别显示副本、Classic 名称/说明双语索引与原厂 priority 完整及前缀标题补充、exact Classic `No Results` placeholder 显示投影，以及动态英文写回恢复
+ * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系、producer 或 vendor 主窗口身份，Quick Add 顶部类别只在 CavalryUI getter ABI 与 exact owner 链同时通过时投影译文，Classic 空结果只在完整 vendor gate 后读取/写回 exact `ListWidget` 本体或真实 viewport 对应的 `this+0x28`，保护可编辑/字体 Combo 及其编辑器/弹出列表的业务值，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_display.h"
 
 #include "cavalry_i18n_dynamic_label.h"
 #include "cavalry_i18n_translator.h"
+#include "../cavalry_i18n_quick_add_tabs.h"
 
 #include "../cavalry_i18n_translation_policy.h"
 #include "../cavalry_i18n_input_policy.h"
@@ -16,6 +17,7 @@
 #include "../cavalry_i18n_search_descriptions.h"
 #include "../cavalry_i18n_quick_add_display.h"
 #include "cavalry_i18n_quick_add_display_contract.h"
+#include "cavalry_i18n_classic_rank_windows.h"
 
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QPointer>
@@ -29,6 +31,7 @@
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMenu>
+#include <QtWidgets/QListWidget>
 #include <QtWidgets/QPlainTextEdit>
 #include <QtWidgets/QProgressBar>
 #include <QtWidgets/QPushButton>
@@ -37,6 +40,7 @@
 #include <QtWidgets/QWidget>
 
 #include <array>
+#include <cstdint>
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -72,6 +76,146 @@ QWidget *cavalryMainWindow()
     void *const mainWindow =
         *reinterpret_cast<void *const *>(symbol);
     return static_cast<QWidget *>(mainWindow);
+}
+
+// ---------------------------------------------------------------------------
+// Quick Add 顶部类别标签：vendor RolloverLabel::text 的 Windows ABI 适配。
+// CavalryUI.dll 的 2.7.2 导出 thunk 固定在 RVA 0x3fd5；反汇编与存活进程
+// getter probe 确认入口
+// 为 RCX=this、RDX=QString 返回缓冲。映像 SHA/PE/目录/pin 由既有
+// windowsClassicQuickAddPriorityApi 合同统一验证；这里声明为显式双参数
+// void 函数，让 MSVC 保持寄存器顺序，不把非平凡 QString 返回值误当普通 free function。
+// ---------------------------------------------------------------------------
+using WindowsRolloverLabelTextFunction = void (*)(
+    const void *label,
+    QString *result);
+static_assert(sizeof(QString) == 0x18,
+              "Cavalry 2.7.2 RolloverLabel getter expects Qt QString layout");
+
+constexpr char kRolloverLabelTextSymbol[] =
+    "?text@RolloverLabel@@QEBA?AVQString@@XZ";
+constexpr std::uintptr_t kRolloverLabelTextRva = 0x3fd5;
+
+WindowsRolloverLabelTextFunction resolveWindowsRolloverLabelText() noexcept
+{
+    static const WindowsRolloverLabelTextFunction function = [] {
+        HMODULE cavalryUi = GetModuleHandleW(L"CavalryUI.dll");
+        if (cavalryUi == nullptr) {
+            return static_cast<WindowsRolloverLabelTextFunction>(nullptr);
+        }
+
+        FARPROC symbol = GetProcAddress(cavalryUi, kRolloverLabelTextSymbol);
+        if (symbol == nullptr) {
+            return static_cast<WindowsRolloverLabelTextFunction>(nullptr);
+        }
+
+        const std::uintptr_t moduleBase =
+            reinterpret_cast<std::uintptr_t>(cavalryUi);
+        const std::uintptr_t symbolAddress =
+            reinterpret_cast<std::uintptr_t>(symbol);
+        if (symbolAddress < moduleBase
+            || symbolAddress - moduleBase != kRolloverLabelTextRva) {
+            return static_cast<WindowsRolloverLabelTextFunction>(nullptr);
+        }
+
+        return reinterpret_cast<WindowsRolloverLabelTextFunction>(symbol);
+    }();
+    return function;
+}
+
+QString windowsQuickAddCategorySource(QWidget *widget)
+{
+    if (!cavalry_i18n::isQuickAddCategoryLabel(widget)) {
+        return QString();
+    }
+
+    // 复用既有 CavalryUI 2.7.2 映像合同，RVA 不能单独充当 ABI 证明。
+    if (!cavalry_i18n::windowsClassicQuickAddPriorityApi()) {
+        return QString();
+    }
+
+    const WindowsRolloverLabelTextFunction function =
+        resolveWindowsRolloverLabelText();
+    if (function == nullptr) {
+        return QString();
+    }
+
+    QString source;
+    function(widget, &source);
+    return cavalry_i18n::isQuickAddCategorySource(source)
+        ? source
+        : QString();
+}
+
+// ---------------------------------------------------------------------------
+// Classic 空结果：vendor ListWidget::paintEvent 从 this+0x28 读取 placeholder，
+// 并经 ui::textAtWidgetCentre 绘制；空结果 producer 在 ExtensionLayer RVA
+// 0xa4c021 通过 CavalryUI ListWidget::setPlaceholder thunk RVA 0x3698 写回。
+// 只有既有 Classic owner/映像 gate 通过后才能读取该 vendor 字段或调用 setter。
+// ---------------------------------------------------------------------------
+using WindowsClassicSetPlaceholderFunction =
+    void (*)(void *listWidget, const QString &placeholder);
+
+static_assert(sizeof(QString) == 0x18,
+              "Cavalry 2.7.2 ListWidget placeholder expects Qt QString layout");
+static_assert(sizeof(QListWidget) == 0x28,
+              "Cavalry 2.7.2 ListWidget placeholder starts after QListWidget");
+
+constexpr char kClassicSetPlaceholderSymbol[] =
+    "?setPlaceholder@ListWidget@@QEAAXAEBVQString@@@Z";
+constexpr std::uintptr_t kClassicSetPlaceholderRva = 0x3698;
+constexpr std::size_t kClassicPlaceholderOffset = 0x28;
+constexpr char kClassicNoResultsSource[] = "No Results";
+
+QListWidget *classicQuickAddPlaceholderListForSurface(
+    QWidget *surface) noexcept
+{
+    if (surface == nullptr) {
+        return nullptr;
+    }
+
+    if (auto *list = qobject_cast<QListWidget *>(surface);
+        list != nullptr && cavalry_i18n::isClassicQuickAddListWidget(list)) {
+        return list;
+    }
+
+    auto *list = qobject_cast<QListWidget *>(surface->parent());
+    if (list != nullptr
+        && cavalry_i18n::isClassicQuickAddListWidget(list)
+        && list->viewport() == surface) {
+        return list;
+    }
+    return nullptr;
+}
+
+WindowsClassicSetPlaceholderFunction resolveWindowsClassicSetPlaceholder()
+    noexcept
+{
+    static const WindowsClassicSetPlaceholderFunction function = [] {
+        HMODULE cavalryUi = GetModuleHandleW(L"CavalryUI.dll");
+        if (cavalryUi == nullptr) {
+            return static_cast<WindowsClassicSetPlaceholderFunction>(nullptr);
+        }
+
+        FARPROC symbol = GetProcAddress(
+            cavalryUi,
+            kClassicSetPlaceholderSymbol);
+        if (symbol == nullptr) {
+            return static_cast<WindowsClassicSetPlaceholderFunction>(nullptr);
+        }
+
+        const std::uintptr_t moduleBase =
+            reinterpret_cast<std::uintptr_t>(cavalryUi);
+        const std::uintptr_t symbolAddress =
+            reinterpret_cast<std::uintptr_t>(symbol);
+        if (symbolAddress < moduleBase
+            || symbolAddress - moduleBase != kClassicSetPlaceholderRva) {
+            return static_cast<WindowsClassicSetPlaceholderFunction>(nullptr);
+        }
+
+        return reinterpret_cast<WindowsClassicSetPlaceholderFunction>(symbol);
+    }();
+    return function;
 }
 
 class TranslationScope final
@@ -419,6 +563,17 @@ bool extractTemplateValue(
 
 } // namespace
 
+namespace cavalry_i18n {
+
+bool isClassicQuickAddPlaceholderSurface(
+    const QWidget *surface) noexcept
+{
+    return classicQuickAddPlaceholderListForSurface(
+        const_cast<QWidget *>(surface)) != nullptr;
+}
+
+} // namespace cavalry_i18n
+
 #ifdef CAVALRY_I18N_TESTING
 void cavalryI18nSetMainWindowForTesting(QWidget *mainWindow)
 {
@@ -433,6 +588,16 @@ CavalryDisplayTranslator::CavalryDisplayTranslator(
     , translator_(translator)
 {
 }
+
+#ifdef CAVALRY_I18N_TESTING
+void CavalryDisplayTranslator::setClassicQuickAddPlaceholderAccessForTesting(
+    ClassicQuickAddPlaceholderReaderForTesting reader,
+    ClassicQuickAddPlaceholderSetterForTesting setter)
+{
+    classicPlaceholderReaderForTesting_ = std::move(reader);
+    classicPlaceholderSetterForTesting_ = std::move(setter);
+}
+#endif
 
 void CavalryDisplayTranslator::translateAssetsContextMenu(QMenu *menu)
 {
@@ -638,11 +803,22 @@ void CavalryDisplayTranslator::translateWidget(QWidget *widget)
             return translator ? translator->translationFor(source) : QString();
         };
         const QString language = translator_.language();
+        const auto aliases = [title](const QString &source) {
+            return QStringList{title(source)};
+        };
         cavalry_i18n::attachClassicQuickAddAliases(list,
-            [title](const QString &source) { return QStringList{title(source)}; }, title,
+            aliases, title,
             [language](const QString &description) {
                 return cavalry_i18n::quickAddEnglishDescriptionAliases(language, description);
             });
+        // 先过 exact owner gate，避免普通 QListWidget 提前触发 vendor 哈希静态初始化。
+        if (cavalry_i18n::isClassicQuickAddListWidget(list)) {
+            // Windows vendor priority 只在一次性 ABI/映像/RTTI gate 通过后接入；未知环境保持原厂排序。
+            cavalry_i18n::attachClassicQuickAddPriority(
+                list,
+                aliases,
+                cavalry_i18n::windowsClassicQuickAddPriorityApi());
+        }
     }
     translateWidgetText(guardedWidget.data());
     if (!guardedWidget.isNull()) {
@@ -661,9 +837,101 @@ void CavalryDisplayTranslator::translatePaintWidget(QWidget *widget)
     translateWidgetText(widget);
 }
 
+void CavalryDisplayTranslator::translateClassicQuickAddPlaceholder(
+    QListWidget *list)
+{
+    if (list == nullptr) {
+        return;
+    }
+
+    const QPointer<QListWidget> guardedList(list);
+    QString current;
+    std::function<void(const QString &)> setter;
+
+#ifdef CAVALRY_I18N_TESTING
+    if (classicPlaceholderReaderForTesting_
+        && classicPlaceholderSetterForTesting_) {
+        current = classicPlaceholderReaderForTesting_(list);
+        const ClassicQuickAddPlaceholderSetterForTesting setterForTesting =
+            classicPlaceholderSetterForTesting_;
+        setter = [guardedList, setterForTesting](const QString &value) {
+            if (!guardedList.isNull()) {
+                setterForTesting(guardedList.data(), value);
+            }
+        };
+    } else
+#endif
+    {
+        // 先走既有完整 CavalryUI/ExtensionLayer/Qt6Widgets gate，再触碰
+        // vendor ListWidget 的私有 placeholder 字段；测试态没有该 gate 时
+        // 直接返回，避免在普通 Qt fixture 上读取偏移。
+        if (!cavalry_i18n::windowsClassicQuickAddPriorityApi()) {
+            return;
+        }
+
+        const WindowsClassicSetPlaceholderFunction setPlaceholder =
+            resolveWindowsClassicSetPlaceholder();
+        if (setPlaceholder == nullptr) {
+            return;
+        }
+
+        const auto *placeholder = reinterpret_cast<const QString *>(
+            reinterpret_cast<const std::uint8_t *>(list)
+            + kClassicPlaceholderOffset);
+        current = *placeholder;
+        setter = [guardedList, setPlaceholder](const QString &value) {
+            if (!guardedList.isNull()) {
+                setPlaceholder(
+                    static_cast<void *>(guardedList.data()),
+                    value);
+            }
+        };
+    }
+
+    const QString source = QString::fromLatin1(kClassicNoResultsSource);
+    if (current != source) {
+        return;
+    }
+
+    // 该 source 在 vendor Quick Add 中绑定 MenuBarManager；不把新词条
+    // 扩散到普通 QLabel 或其他 item view。
+    const QString translated = translator_.translate(
+        cavalry_i18n::kMenuBarManagerContext,
+        kClassicNoResultsSource);
+    if (translated.isEmpty() || translated == current) {
+        return;
+    }
+
+    // 当前字段只接受 exact 英文 source；setter 后字段变为译文，后续
+    // Paint 会在 current != source 处返回。vendor 再写回英文时自然允许
+    // 下一次投影，不需要额外缓存或重绘调度。
+    setter(translated);
+}
+
 void CavalryDisplayTranslator::translateWidgetText(QWidget *widget)
 {
     const QPointer<QWidget> guardedWidget(widget);
+    if (QListWidget *list = classicQuickAddPlaceholderListForSurface(
+            guardedWidget.data());
+        list != nullptr) {
+        translateClassicQuickAddPlaceholder(list);
+    }
+
+    if (cavalry_i18n::isQuickAddCategoryLabel(guardedWidget.data())) {
+        const QString source =
+            windowsQuickAddCategorySource(guardedWidget.data());
+        if (!source.isEmpty()) {
+            const QString translated = translationFor(source);
+            if (!translated.isEmpty() && translated != source
+                && cavalry_i18n::setQuickAddCategoryDisplayText(
+                    guardedWidget.data(),
+                    translated)) {
+                // 只更新 QLabel 显示副本；RolloverLabel 内部完整 source 不会被覆盖。
+                return;
+            }
+        }
+    }
+
     if (auto *label = qobject_cast<QLabel *>(guardedWidget.data())) {
         const QPointer<QLabel> guardedLabel(label);
         applyTranslation(
