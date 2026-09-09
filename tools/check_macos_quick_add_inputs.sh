@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖显式 Qt 6.6.3 SDK、只读 vendor Frameworks/libskia.dylib 与生产 macOS injector 源码
+# [INPUT]: 依赖显式 Qt 6.6.3 SDK、只读 vendor Frameworks/libskia.dylib、全部生产 ABI 适配器编译单元与生产 macOS injector 源码
 # [OUTPUT]: 编译并运行绿色 Quick Add 搜索输入合同，并在隔离临时副本移除两个 search guard 后验证红色回归
 # [POS]: tools 的 macOS 原生搜索输入测试入口；moc fixture 使用精确 Cavalry owner 名称，不启动/改写 Cavalry 或 vendor Frameworks
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -59,6 +59,8 @@ compile_fixture() {
     "$source" \
     "$ROOT/injector/cavalry_i18n_macos_tool_help_text_path.cpp" \
     "$ROOT/injector/cavalry_i18n_macos_classic_rank.cpp" \
+    "$ROOT/injector/cavalry_i18n_macos_quick_add_placeholder.cpp" \
+    "$ROOT/injector/cavalry_i18n_macos_quick_add_category.cpp" \
     "$VENDOR/libskia.dylib" \
     -I"$ROOT" -I"$ROOT/injector" -I"$BUILD_DIR" \
     -I"$QT" -I"$QT/QtCore.framework/Headers" \

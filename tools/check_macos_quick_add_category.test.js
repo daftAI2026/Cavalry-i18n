@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 macOS Quick Add 类别标签适配器源码与共享 tabs/Classic ABI 合同
+ * [INPUT]: 依赖 macOS Quick Add 类别标签适配器源码、完整 injector fixture 构建入口与共享 tabs/Classic ABI 合同
  * [OUTPUT]: 对外提供 macOS Fast/Classic Quick Add 类别 getter 适配器的静态安全合同
  * [POS]: tools 的 macOS Quick Add 类别回归门；只锁源码边界与双架构 ABI 证据，不冒充 vendor live UI 证据
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -60,4 +60,18 @@ test('macOS category adapter is read-only after one bounded initialization attem
   assert.doesNotMatch(source, /QFile|QSaveFile|fopen\s*\(|std::ofstream|std::ifstream|system\s*\(/);
   assert.match(source, /static\s+RuntimeState\s+gState/);
   assert.match(source, /return\s+QString\s*\(\)/);
+});
+
+
+test('whole-injector fixtures link every production adapter translation unit', () => {
+  const build = read('tools/build_translator_injector.sh');
+  const adapters = [...build.matchAll(/\$REPO_ROOT\/(injector\/[^"\s]+\.cpp)/g)]
+    .map((match) => match[1]);
+  assert.ok(adapters.length > 0, 'must discover production adapter inputs');
+  for (const fixture of ['tools/check_macos_selection_values.sh', 'tools/check_macos_quick_add_inputs.sh']) {
+    const source = read(fixture);
+    for (const adapter of adapters) {
+      assert.ok(source.includes(`"$ROOT/${adapter}"`), `${fixture} missing adapter: ${adapter}`);
+    }
+  }
 });

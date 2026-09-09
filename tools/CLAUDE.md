@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-check_macos_quick_add_category.test.js: 锁定 Mac 类别 getter 的双架构机器码、编译器 QString 返回 ABI、exact owner 与共享映像门，不冒充实机。
+check_macos_quick_add_category.test.js: 同时比对完整 injector fixture 与生产构建的适配器编译输入，防止链接遗漏； 锁定 Mac 类别 getter 的双架构机器码、编译器 QString 返回 ABI、exact owner 与共享映像门，不冒充实机。
 quick_add_placeholder_fixture.cpp / check_quick_add_placeholder.sh: Qt vendor-free 空结果显示合同，锁定三语、exact Classic owner、viewport、重复 Paint 幂等与原厂英文重写恢复；不替代平台 ABI 或实机。
 classic_rank_contract_fixture.cpp: Qt 6.6.3 合成评分器与既有 Classic 搜索共同挂接，验证三语完整/前缀标题排序、UTF-8 长度与三语界面英文回退、分数归还、碰撞、独立 detach 与 1000 次生命周期；不冒充原厂 ABI 或实机证据。
 check_classic_rank_contract.sh: macOS 隔离编译运行共享评分 fixture，固定 Qt 6.6.3 与 QT_NO_KEYWORDS，可选 ASan/UBSan，不启动 Cavalry。
