@@ -794,9 +794,12 @@ test('model-backed niceName text stays English for Time Editor and item-model re
     /translatedCompoundWidgetText[\s\S]{0,500}translatedGeneratedLayerName\(lang, sourceText\)/,
     'generated layer-name fallback should run before numeric suffix preservation so Super Ellipse Shape 2 can translate'
   );
+  const listTranslationFunction = injectorSource.match(
+    /void translateListWidgetItems\([^]*?\r?\n}/
+  )?.[0] || '';
   assert.match(
-    injectorSource,
-    /translateListWidgetItems[\s\S]{0,900}const QString source = item->text\(\);[\s\S]{0,140}shouldPreserveModelBackedItemText\(listWidget, source\)[\s\S]{0,220}timeEditorSafeItemText\(lang, source\)[\s\S]{0,220}continue;/,
+    listTranslationFunction,
+    /const QString source = item->text\(\);[\s\S]{0,140}shouldPreserveModelBackedItemText\(listWidget, source\)[\s\S]{0,220}timeEditorSafeItemText\(lang, source\)[\s\S]{0,220}continue;/,
     'QListWidgetItem text should be preserved only when the list belongs to the Time Editor context, with dynamic bracket names normalized back to English'
   );
   assert.match(

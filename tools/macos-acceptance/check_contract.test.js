@@ -103,12 +103,35 @@ test('harness freezes the real source closure and exact-window evidence protocol
     sourceContract.includes("'injector/cavalry_i18n_quick_add_context.h'"),
     'shared Quick Add context must stay in the macOS source closure'
   );
+  for (const relative of [
+    'injector/cavalry_i18n_classic_rank.h',
+    'injector/cavalry_i18n_macos_classic_rank.h',
+    'injector/cavalry_i18n_macos_classic_rank.cpp',
+  ]) {
+    assert.ok(
+      sourceContract.includes(`'${relative}'`),
+      `macOS Classic rank source must stay in the source closure: ${relative}`
+    );
+  }
   assert.match(harness, /points\.length !== 48 \|\| new Set\(keys\)\.size !== 48/);
   assert.match(harness, /seen\.size !== 48/);
   assert.doesNotMatch(harness, /cgwindow_all|dynamic-proof-two\.mp4/);
   assert.match(harness, /host, repository, target/);
   assert.match(harness, /assertSameHostIdentity\(validateHostIdentity\(machine\.host\), collectMacHostIdentity\(\)\)/);
   assert.match(harness, /HOME: home, CFFIXED_USER_HOME: home, TMPDIR: temporary/);
+});
+
+test('macOS Classic adapter selects the MH_EXECUTE host, not dyld image zero', () => {
+  const adapter = fs.readFileSync(
+    path.join(REPO, 'injector', 'cavalry_i18n_macos_classic_rank.cpp'),
+    'utf8',
+  );
+  assert.match(adapter, /findMainExecutablePath\(\) noexcept/);
+  assert.match(adapter, /_dyld_image_count\(\)/);
+  assert.match(adapter, /_dyld_get_image_header\(index\)/);
+  assert.match(adapter, /rawHeader->filetype\s*!=\s*MH_EXECUTE/);
+  assert.match(adapter, /const char \*mainPath = findMainExecutablePath\(\)/);
+  assert.doesNotMatch(adapter, /mainPath\s*=\s*_dyld_get_image_name\(0\)/);
 });
 
 test('onboarding uses the exact manager and keeps polling inside Qt', () => {

@@ -21,6 +21,7 @@ QT="$QT_PREFIX/lib"
 clang++ -std=c++17 -O2 -fno-omit-frame-pointer -fobjc-arc -DQT_NO_VERSION_TAGGING \
   "$ROOT/tools/check_macos_selection_values.mm" \
   "$ROOT/injector/cavalry_i18n_macos_tool_help_text_path.cpp" \
+  "$ROOT/injector/cavalry_i18n_macos_classic_rank.cpp" \
   "$VENDOR/libskia.dylib" \
   -I"$QT" -I"$QT/QtCore.framework/Versions/A/Headers" -F"$QT" \
   -Wl,-rpath,"$QT" -Wl,-rpath,"$VENDOR" \

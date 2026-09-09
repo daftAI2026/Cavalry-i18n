@@ -58,6 +58,7 @@ compile_fixture() {
   clang++ -std=c++17 -O2 -fno-omit-frame-pointer -fobjc-arc -DQT_NO_VERSION_TAGGING \
     "$source" \
     "$ROOT/injector/cavalry_i18n_macos_tool_help_text_path.cpp" \
+    "$ROOT/injector/cavalry_i18n_macos_classic_rank.cpp" \
     "$VENDOR/libskia.dylib" \
     -I"$ROOT" -I"$ROOT/injector" -I"$BUILD_DIR" \
     -I"$QT" -I"$QT/QtCore.framework/Headers" \

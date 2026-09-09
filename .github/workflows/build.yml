@@ -1,4 +1,4 @@
-# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、可测试 CI 变更分类器、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
+# [INPUT]: 依赖仓库版本/CHANGELOG/release.config、可测试 CI 变更分类器、跨平台 Tauri 与 tag-only updater artifact 配置、受保护 updater 凭据、Qt runtime 构建入口与共享 Classic 评分合同、Windows provenance、pinned Actions/toolchain 与 GitHub tag/artifact 环境
 # [OUTPUT]: 对外提供始终可结算的必需检查、按文档/合同/依赖/平台风险选择的证据门、每周依赖漏洞复审、平台 Runner 原生构建、NSIS 生命周期、无 tag updater 签名 smoke、tag 上 ad-hoc macOS 包与 Tauri updater 签名产物、确定性 latest.json、七项公开资产 exact readback、CI 内部 provenance/SBOM/toolchain 证据、幂等公开 Release 与非阻断六种 Release reactions 回读
 # [POS]: .github/workflows 的唯一 CI/CD 编排器；普通 PR/main 由 classify_ci_changes.js 缩减无关原生 Runner，未知路径 fail-closed，tag/workflow_dispatch 无条件跑完整闭环；普通 CI 不接触 updater 私钥，显式 workflow_dispatch smoke 只验证签名且不进入 release job，tag 必须来自 origin/main 并在唯一 updater 凭据与资产闭环后才能公开；macOS Developer ID/notarization 与 Windows Authenticode 均未作为当前发布前提
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -546,6 +546,7 @@ jobs:
           out="$RUNNER_TEMP/macos-acceptance"
           npm run test:injector:quick-add-search:macos
           npm run test:injector:classic-quick-add-search:macos
+          npm run test:injector:classic-rank:macos
           npm run test:injector:quick-add-display:macos
           npm run test:acceptance:macos:compile -- \
             --qt-prefix "$CAVALRY_QT_PREFIX" \

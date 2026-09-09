@@ -5,10 +5,13 @@
 
 cavalry_i18n_quick_add_display_contract.h: Windows Fast 标题/类别 ABI 防火墙；锁定 ExtensionLayer PE64、paint/sizeHint/注册复制析构代码摘要及唯一元类型 interface，模块 PIN 后允许共享绘制副本适配器只改标题和类别显示副本，Release MSVC 字符串 ABI 与原厂 Atomic/Beta 显示别名独立采证，命令、原始分类、搜索输入与源模型保持原样。
 cavalry_i18n_quick_add_vendor_test.cpp: 只读官方 PE 回归；静态映射厂商 DLL，验证真实 ABI 正例、十处关键代码逐项漂移和截断拒绝，不执行厂商代码。
+cavalry_i18n_classic_rank_windows.h: Windows Classic priority ABI 防火墙声明；只返回通过 CavalryUI/ExtensionLayer/Qt6Widgets 精确 MSI 哈希、加载路径、导出 RVA 与 ElementListItem RTTI/primary-base offset-0 gate 的公开 ListItem getter/setter API，不读取私有 priority 字段；构造器与 sort 开关仅留在静态测试证据。
+cavalry_i18n_classic_rank_windows.cpp: Windows Classic priority ABI 实现；首次挂接证明宿主为 Cavalry.exe 且三份加载 DLL 来自同一 canonical 目录，再一次性哈希/验证 PE64 身份、导出/RTTI 后 PIN 原厂映像，回调只复核 ElementListItem vptr/COL 并调用厂商导出，未知版本 fail-closed、callback 不做 IO。
+cavalry_i18n_classic_rank_windows_test.cpp: Windows Classic vendor 静态回归；读取官方三 DLL、验证精确哈希/PE/导出/ElementListItem 三基类 offset-0，并覆盖篡改哈希与错误路径拒绝，不执行厂商代码。
 
 搜索边界：非 Paint 挂接共享 FastQuickAdd 过滤器与 Classic QListWidget 索引/标题适配器；两个 owner 的查询值始终原文，Windows 不启用未经证明的 macOS payload 显示 ABI。
 
-CMakeLists.txt: CMake 4.2+ 与 Visual Studio 2022+ MSVC v143 的 shared Qt 6.6.3 x64 + Windows Psapi 构建边界；拒绝静态 Qt，编译产品 generic runtime、版本化私有 QPA 代理及独立 acceptance-only generic plugin，注册 display/hook/vendor/strict manifest 合同及 Fast 显示副本/真实 PE 漂移拒绝门，并在 BUILD_TESTING 下以 Qt 公共 API 接入共享 Quick Add/classic 搜索 fixture 的 CTest（Classic 含 U+FFFE、16 项多语言同 locale 排序矩阵，失败即阻断）；build.ps1 只发布产品 `generic/cavalryi18n.dll` 与 `qpa/qwindows.dll`，验收 DLL 留在 build tree。 共享 Fast 搜索合同与 Windows 产品统一使用 QT_NO_KEYWORDS，防止本地默认 Qt 宏掩盖编译兼容性问题。
+CMakeLists.txt: CMake 4.2+ 与 Visual Studio 2022+ MSVC v143 的 shared Qt 6.6.3 x64 + Windows Psapi 构建边界；拒绝静态 Qt，编译产品 generic runtime、版本化私有 QPA 代理及独立 acceptance-only generic plugin，注册 display/hook/vendor/strict manifest 合同、Fast 显示副本/真实 PE 漂移拒绝门与 Windows Classic priority 静态 ABI 门，并在 BUILD_TESTING 下以 Qt 公共 API 接入共享 Quick Add/classic 搜索 fixture 的 CTest（Classic 含 U+FFFE、16 项多语言同 locale 排序矩阵，失败即阻断）；build.ps1 只发布产品 `generic/cavalryi18n.dll` 与 `qpa/qwindows.dll`，验收 DLL 留在 build tree。 共享 Fast 搜索合同与 Windows 产品统一使用 QT_NO_KEYWORDS，防止本地默认 Qt 宏掩盖编译兼容性问题。
 build.ps1: 带 UTF-8 BOM 的 Windows 唯一可重复构建入口；先从当前 TS/模型词典重生成共享 C++ 翻译表，并按 JSON 身份对齐生成独立 Quick Add 说明索引，再通过 `tools/resolve_windows_cmake.js` 解包并验证 pin manifest 中官方 CMake 4.4.3 archive，验证生成/发布父链无重解析点，每次清空唯一受控 build 目录后解析 shared Qt SDK 与可选 vendor root，由 CMake 选择当前已安装的 Visual Studio 生成器并锁定 x64/v143，串联 configure/build/ctest 并发布两个不纳入 Git 的已验证 DLL。
 cavalry_i18n_callback_snapshot.h: 固定数量 exact source/translation 的不可变值表，支持按 source 或已验证索引读取；有意不析构的 process-lifetime shared_ptr 槽在卸载后只保留不触碰 Qt/Skia 的 forward-only 墓碑。
 cavalry_i18n_plugin.h: `QGenericPlugin` metadata 与工厂接口，只暴露大小写不敏感的 `cavalryi18n` key，并声明严格非空 specification 边界。

@@ -1,5 +1,5 @@
-# [INPUT]: 依赖产品及搜索合同一致的 QT_NO_KEYWORDS 配置、CMake 4.2+、Visual Studio 2022+ 的 MSVC v143、Qt 6.6.3 x64 SDK及版本化 QPA 头、Windows Psapi、本目录源码、tools/check_quick_add_search.cpp 与 tools/check_classic_quick_add_search.cpp、../generated_translations.inc 与可选 vendor 根
-# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册显示/hook/vendor、QPA manifest、Classic 同一 Qt fixture 排序合同、测试态 vendor 主窗口缝及环境/显式入口合同测试
+# [INPUT]: 依赖产品及搜索合同一致的 QT_NO_KEYWORDS 配置、CMake 4.2+、Visual Studio 2022+ 的 MSVC v143、Qt 6.6.3 x64 SDK及版本化 QPA 头、Windows Psapi、本目录源码、Classic rank/Quick Add 合同 fixture、../generated_translations.inc 与可选 vendor 根
+# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册显示/hook/vendor、QPA manifest、Classic 同一 Qt fixture 排序合同、Windows vendor priority 静态 ABI 门、测试态 vendor 主窗口缝及环境/显式入口合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构/manifest 前置检查约束通用翻译 runtime 与原生入口 QPA 代理，并隔离验收 driver
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 4.2)
@@ -73,6 +73,8 @@ target_sources(cavalryi18n
     PRIVATE
         cavalry_i18n_display.cpp
         cavalry_i18n_display.h
+        cavalry_i18n_classic_rank_windows.cpp
+        cavalry_i18n_classic_rank_windows.h
         cavalry_i18n_callback_snapshot.h
         cavalry_i18n_extension_layer_hook.cpp
         cavalry_i18n_extension_layer_hook.h
@@ -307,6 +309,8 @@ if(BUILD_TESTING)
         cavalry_i18n_display_test.cpp
         cavalry_i18n_display.cpp
         cavalry_i18n_display.h
+        cavalry_i18n_classic_rank_windows.cpp
+        cavalry_i18n_classic_rank_windows.h
         cavalry_i18n_translator.cpp
         cavalry_i18n_translator.h
     )
@@ -316,6 +320,7 @@ if(BUILD_TESTING)
             Qt6::Core
             Qt6::Gui
             Qt6::Widgets
+            Psapi
     )
 
     target_include_directories(cavalryi18n_display_test
@@ -408,6 +413,39 @@ if(BUILD_TESTING)
             "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
             "QT_QPA_PLATFORM=offscreen"
             "$<TARGET_FILE:cavalryi18n_classic_quick_add_search_test>"
+    )
+
+    add_executable(
+        cavalryi18n_classic_rank_contract_fixture
+        "${CMAKE_CURRENT_SOURCE_DIR}/../../tools/classic_rank_contract_fixture.cpp"
+    )
+
+    target_link_libraries(cavalryi18n_classic_rank_contract_fixture
+        PRIVATE
+            Qt6::Core
+            Qt6::Gui
+            Qt6::Widgets
+    )
+
+    target_include_directories(cavalryi18n_classic_rank_contract_fixture
+        PRIVATE
+            "${CMAKE_CURRENT_SOURCE_DIR}"
+            "${CMAKE_CURRENT_SOURCE_DIR}/.."
+    )
+
+    target_compile_definitions(
+        cavalryi18n_classic_rank_contract_fixture
+        PRIVATE
+            QT_NO_KEYWORDS
+    )
+
+    add_test(
+        NAME cavalryi18n_classic_rank_contract_fixture
+        COMMAND
+            "${CMAKE_COMMAND}" -E env
+            "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+            "QT_QPA_PLATFORM=offscreen"
+            "$<TARGET_FILE:cavalryi18n_classic_rank_contract_fixture>"
     )
 
     add_executable(cavalryi18n_embedded_translator_test
@@ -576,14 +614,48 @@ if(BUILD_TESTING)
             CAVALRY_VENDOR_SKIA
             "${CAVALRY_VENDOR_ROOT_ABSOLUTE}/skia.dll"
         )
+        set(
+            CAVALRY_VENDOR_QT_WIDGETS
+            "${CAVALRY_VENDOR_ROOT_ABSOLUTE}/Qt6Widgets.dll"
+        )
         if(NOT EXISTS "${CAVALRY_VENDOR_EXTENSION_LAYER}"
             OR NOT EXISTS "${CAVALRY_VENDOR_CAVALRY_UI}"
             OR NOT EXISTS "${CAVALRY_VENDOR_CORE}"
-            OR NOT EXISTS "${CAVALRY_VENDOR_SKIA}")
+            OR NOT EXISTS "${CAVALRY_VENDOR_SKIA}"
+            OR NOT EXISTS "${CAVALRY_VENDOR_QT_WIDGETS}")
             message(FATAL_ERROR
-                "CAVALRY_VENDOR_ROOT must contain ExtensionLayer.dll, CavalryUI.dll, Core.dll, and skia.dll: ${CAVALRY_VENDOR_ROOT_ABSOLUTE}"
+                "CAVALRY_VENDOR_ROOT must contain ExtensionLayer.dll, CavalryUI.dll, Core.dll, skia.dll, and Qt6Widgets.dll: ${CAVALRY_VENDOR_ROOT_ABSOLUTE}"
             )
         endif()
+
+        add_executable(
+            cavalryi18n_classic_rank_vendor_test
+            cavalry_i18n_classic_rank_windows_test.cpp
+        )
+        target_link_libraries(cavalryi18n_classic_rank_vendor_test
+            PRIVATE
+                Qt6::Core
+        )
+        target_include_directories(cavalryi18n_classic_rank_vendor_test
+            PRIVATE
+                "${CMAKE_CURRENT_SOURCE_DIR}"
+                "${CMAKE_CURRENT_SOURCE_DIR}/.."
+        )
+        target_compile_definitions(
+            cavalryi18n_classic_rank_vendor_test
+            PRIVATE
+                QT_NO_KEYWORDS
+        )
+        add_test(
+            NAME cavalryi18n_classic_rank_vendor
+            COMMAND
+                "${CMAKE_COMMAND}" -E env
+                "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+                "$<TARGET_FILE:cavalryi18n_classic_rank_vendor_test>"
+                "${CAVALRY_VENDOR_CAVALRY_UI}"
+                "${CAVALRY_VENDOR_EXTENSION_LAYER}"
+                "${CAVALRY_VENDOR_QT_WIDGETS}"
+        )
 
         add_executable(cavalryi18n_quick_add_vendor_test cavalry_i18n_quick_add_vendor_test.cpp)
         target_link_libraries(cavalryi18n_quick_add_vendor_test PRIVATE Qt6::Core Psapi)

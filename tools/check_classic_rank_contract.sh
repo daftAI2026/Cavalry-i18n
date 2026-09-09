@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖 CAVALRY_QT_PREFIX 或仓库 qt_sdk/6.6.3/macos、其 qmake/moc、classic_rank_contract_fixture.cpp 及 injector 共享头
-# [OUTPUT]: 在隔离临时目录生成并运行 vendor-free Classic Quick Add 排序合同，不启动或修改真实 Cavalry.app
-# [POS]: tools 的 Classic 排序 fixture runner；复用现有 Qt 6.6.3/moc/clang++ 本地门，Windows CTest 直接复用同一 C++ fixture
+# [OUTPUT]: 在隔离临时目录生成并运行 vendor-free Classic Quick Add 排序合同，不启动或修改真实 Cavalry.app；可选 CAVALRY_RANK_SANITIZER 启用 ASan/UBSan
+# [POS]: tools 的 Classic 排序 fixture runner；复用现有 Qt 6.6.3/moc/clang++ 本地门，Windows CTest 直接复用同一 C++ fixture，默认保持 O2 快速路径
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
 
@@ -38,6 +38,25 @@ cleanup() {
 }
 trap cleanup EXIT
 
+SANITIZER_FLAGS=""
+case "${CAVALRY_RANK_SANITIZER:-}" in
+  asan)
+    SANITIZER_FLAGS="-fsanitize=address -fno-omit-frame-pointer"
+    ;;
+  ubsan)
+    SANITIZER_FLAGS="-fsanitize=undefined -fno-omit-frame-pointer"
+    ;;
+  asan,ubsan|ubsan,asan)
+    SANITIZER_FLAGS="-fsanitize=address,undefined -fno-omit-frame-pointer"
+    ;;
+  "")
+    ;;
+  *)
+    echo "CAVALRY_RANK_SANITIZER must be empty, asan, ubsan, or asan,ubsan" >&2
+    exit 1
+    ;;
+esac
+
 "$QT_MOC" \
   -I"$QT_FRAMEWORKS" \
   -I"$QT_FRAMEWORKS/QtCore.framework/Headers" \
@@ -58,6 +77,7 @@ clang++ \
   -DQT_CORE_LIB \
   -DQT_GUI_LIB \
   -DQT_WIDGETS_LIB \
+  ${SANITIZER_FLAGS} \
   "$SOURCE" \
   -I"$REPO_ROOT/injector" \
   -I"$REPO_ROOT" \

@@ -182,7 +182,7 @@ $env:CAVALRY_VENDOR_ROOT = "E:\Apps\Cavalry"
 npm run build:injector:windows
 ```
 
-该测试只读映射四个 PE 文件到测试进程内存，验证 `ExtensionLayer.dll` 唯一正常导入的
+既有 vendor 合同只读映射四个 PE 文件到测试进程内存，验证 `ExtensionLayer.dll` 唯一正常导入的
 `ui::textAtWidgetCentre` decorated symbol、预期 IAT RVA 与 `CavalryUI.dll` 对应导出；
 还验证 `CustomListWidget::setPlaceholder` 的导出 thunk、canonical setter、尾跳解析出的
 QString 赋值槽 RVA、其初始 import-by-name RVA、二十个直接调用与 Snippet 的直接调用点。
@@ -197,6 +197,17 @@ return、viewport enum 表、EditShapeTool、TransformTool、Pencil、Pen、Cent
 并验证 Core 固定 Lato 路径、CJK renderer 所需的 Core/skia 导出、Path 几何步骤与 typeface
 引用计数析构约定。测试不会加载、执行、复制或修改厂商 DLL。未设置变量时，常规跨机器构建仍会编译
 MessageBar/text-path/Core-Skia 合同代码并运行其余九项测试，只是不执行 machine-specific 映像断言。
+
+Classic Add Layer 的 priority 适配器另有一条只读静态门：对官方 MSI 的
+`CavalryUI.dll`、`ExtensionLayer.dll` 与 `Qt6Widgets.dll` 逐文件核对精确 SHA-256、PE64
+timestamp/`SizeOfImage`、`ListItem` 构造器/priority/sort 开关导出、Qt `QListWidget::sortItems` 导出，以及
+`ElementListItem` RTTI 中 `ListItem`/`QListWidgetItem` 的 primary-base `mdisp=0`。
+产品运行时先证明宿主为 `Cavalry.exe` 且三 DLL 位于同一 canonical 安装目录，再对同一加载模块路径哈希通过后解析 `GetProcAddress`；回调只验证已加载
+`ElementListItem` vptr/COL，不读取私有 priority 字段，也不在 callback 做文件 IO。该门仍是
+静态兼容性证据，不替代 Windows 实机搜索、创建和生命周期验收；未知映像 fail-open 保持原厂排序。
+
+Classic priority 合同另外只读映射同一根目录中的 `CavalryUI.dll`、`ExtensionLayer.dll` 与
+`Qt6Widgets.dll`；因此设置 `CAVALRY_VENDOR_ROOT` 时该目录还必须包含 `Qt6Widgets.dll`。
 
 中间产物为：
 

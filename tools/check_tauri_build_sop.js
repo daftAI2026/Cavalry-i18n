@@ -409,6 +409,7 @@ function makeWindowsNsisProvenanceFixture() {
   write('injector/cavalry_i18n_quick_add_display.h', '// shared Quick Add display fixture\n');
   write('injector/cavalry_i18n_search_policy.h', '// shared search policy fixture\n');
   write('injector/cavalry_i18n_classic_search.h', '// shared classic search policy fixture\n');
+  write('injector/cavalry_i18n_classic_rank.h', '// shared classic rank policy fixture\n');
   write('injector/cavalry_i18n_search_descriptions.h', '// shared Quick Add descriptions fixture\n');
   write('injector/generated_translations.inc', '// generated translation fixture\n');
   write('injector/generated_quick_add_descriptions.inc', '// generated Quick Add descriptions fixture\n');
@@ -623,6 +624,7 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
     'injector/cavalry_i18n_quick_add_display.h',
     'injector/cavalry_i18n_search_policy.h',
     'injector/cavalry_i18n_classic_search.h',
+    'injector/cavalry_i18n_classic_rank.h',
     'injector/cavalry_i18n_search_descriptions.h',
     'injector/generated_translations.inc',
     'injector/generated_quick_add_descriptions.inc',
@@ -715,6 +717,11 @@ test('Windows NSIS provenance binds one new installer to current dirty packaging
   assert.notEqual(staleClassicSearchPolicy.status, 0, 'classic search policy changes must invalidate old installer provenance');
   assert.match(staleClassicSearchPolicy.stderr, /packaging input fingerprint/);
   fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_search.h'), '// shared classic search policy fixture\n');
+  fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_rank.h'), '// changed classic rank policy\n');
+  const staleClassicRankPolicy = run('--verify', installerPath);
+  assert.notEqual(staleClassicRankPolicy.status, 0, 'classic rank policy changes must invalidate old installer provenance');
+  assert.match(staleClassicRankPolicy.stderr, /packaging input fingerprint/);
+  fs.writeFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_classic_rank.h'), '// shared classic rank policy fixture\n');
   fs.appendFileSync(path.join(tempRoot, 'injector', 'cavalry_i18n_search_descriptions.h'), '// changed descriptions policy\n');
   const staleQuickAddDescriptionsPolicy = run('--verify', installerPath);
   assert.notEqual(staleQuickAddDescriptionsPolicy.status, 0, 'Quick Add descriptions policy changes must invalidate old installer provenance');

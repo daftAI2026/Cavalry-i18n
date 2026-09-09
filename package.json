@@ -36,6 +36,7 @@
     "build:injector": "eval \"$(node tools/resolve_cavalry_qt_sdk.js --print-env --ensure)\" && bash tools/build_translator_injector.sh injector/libCavalryTranslatorInjector.dylib",
     "test:injector:quick-add-search:macos": "bash tools/check_quick_add_search.sh",
     "test:injector:classic-quick-add-search:macos": "bash tools/check_classic_quick_add_search.sh",
+    "test:injector:classic-rank:macos": "bash tools/check_classic_rank_contract.sh",
     "test:injector:quick-add-display:macos": "bash tools/check_quick_add_display.sh",
     "build": "npm run tauri:build",
     "build:tauri": "npm run tauri:build && bash tools/stamp_dmg_icon.sh src-tauri/target/release/bundle/dmg && npm run test:tauri:packaged",

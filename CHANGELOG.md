@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- 右侧 Add Layer 面板搜索完整当前语言标题时，补充标题匹配优先级；保留原厂筛选、排序与创建身份，无法验证运行时兼容性时保持原厂行为。
+
 ## [1.0.2] - 2026-09-09
 
 ### Fixed

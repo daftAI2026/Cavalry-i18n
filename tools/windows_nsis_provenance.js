@@ -285,6 +285,7 @@ function collectInputFingerprint(repoRoot) {
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_quick_add_display.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_search_policy.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_classic_search.h'), files);
+  collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_classic_rank.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'cavalry_i18n_search_descriptions.h'), files);
   collectExactInput(repoRoot, path.join('injector', 'generated_translations.inc'), files);
   collectExactInput(repoRoot, path.join('injector', 'generated_quick_add_descriptions.inc'), files);

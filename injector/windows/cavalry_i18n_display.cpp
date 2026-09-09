@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context/选择输入值/搜索别名策略、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字、交互补全输入（含 parentless 构建阶段）保护、FastQuickAdd 双语过滤、Windows ABI 验证后的标题绘制副本及 Classic 名称与说明双语索引/标题分离，以及动态英文写回恢复
+ * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context/选择输入值/搜索别名策略、Windows Classic priority ABI 防火墙、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字、交互补全输入（含 parentless 构建阶段）保护、FastQuickAdd 双语过滤、Windows ABI 验证后的标题绘制副本、Classic 名称/说明双语索引与原厂 priority 精确标题补充，以及动态英文写回恢复
  * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系、producer 或 vendor 主窗口身份，保护可编辑/字体 Combo 及其编辑器/弹出列表的业务值，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -16,6 +16,7 @@
 #include "../cavalry_i18n_search_descriptions.h"
 #include "../cavalry_i18n_quick_add_display.h"
 #include "cavalry_i18n_quick_add_display_contract.h"
+#include "cavalry_i18n_classic_rank_windows.h"
 
 #include <QtCore/QAbstractItemModel>
 #include <QtCore/QPointer>
@@ -638,11 +639,22 @@ void CavalryDisplayTranslator::translateWidget(QWidget *widget)
             return translator ? translator->translationFor(source) : QString();
         };
         const QString language = translator_.language();
+        const auto aliases = [title](const QString &source) {
+            return QStringList{title(source)};
+        };
         cavalry_i18n::attachClassicQuickAddAliases(list,
-            [title](const QString &source) { return QStringList{title(source)}; }, title,
+            aliases, title,
             [language](const QString &description) {
                 return cavalry_i18n::quickAddEnglishDescriptionAliases(language, description);
             });
+        // 先过 exact owner gate，避免普通 QListWidget 提前触发 vendor 哈希静态初始化。
+        if (cavalry_i18n::isClassicQuickAddListWidget(list)) {
+            // Windows vendor priority 只在一次性 ABI/映像/RTTI gate 通过后接入；未知环境保持原厂排序。
+            cavalry_i18n::attachClassicQuickAddPriority(
+                list,
+                aliases,
+                cavalry_i18n::windowsClassicQuickAddPriorityApi());
+        }
     }
     translateWidgetText(guardedWidget.data());
     if (!guardedWidget.isNull()) {
