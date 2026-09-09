@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 Tauri 平台配置、renderer 静态资源装载方式、macOS Info.plist/InfoPlist.strings 资源、release.config、Qt injector/QPA 构建入口、共享 translation policy、编译期 Windows 资源 trust-anchor catalog、固定官方 CMake 4.4.3 archive 与 SHA-256、NSIS provenance/安装态守门、pinned toolchain、disposable live-clone 截图门与打包检查脚本
-[OUTPUT]: 对外提供 renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、中文发布说明与英文分类语义分离、七项公开资产回读与 CI 内部 provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
+[OUTPUT]: 对外提供原生交通灯 exact-PID 几何回归、renderer 新鲜度受控的本地视觉验证、macOS ad-hoc 包、App Management 用途说明的 bundle readback、本地化资源路径合同、tag 级 Tauri updater 签名与明确未公证的发布合同、source artifact 完整性、中文发布说明与英文分类语义分离、七项公开资产回读与 CI 内部 provenance、幂等 release、可追溯 Windows producer toolchain evidence、Windows disposable acceptance producer 与 Windows NSIS 构建/安装态边界说明（Developer ID/notarization 与 Authenticode 均另跟踪）
 [POS]: 仓库唯一桌面打包与 release runbook 操作合同；区分本地 ad-hoc 验证、CI PR 编译门与带 updater/证据闭包的 ad-hoc tag 产物
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -134,6 +134,18 @@ done
 ```
 
 readback 必须同时证明默认 plist 键存在，以及四个 `Contents/Resources/*.lproj/InfoPlist.strings` 都是本轮源码内容；缺任一文件即失败。该命令只读验证本地构建产物，不上传、不打 tag、不创建 GitHub Release。
+
+#### 原生窗口几何验收
+
+改动 macOS 窗口装饰、Tauri/AppKit 依赖或构建 SDK 后，必须对最终 `.app` 运行：
+
+```bash
+CAVALRY_I18N_TAURI_APP_BUNDLE="<最终候选.app的绝对路径>" npm run test:tauri:ui
+```
+
+该门先临时启动同名对照进程，再绑定自己启动的验收 PID，避免 System Events 按同名重解析对象引用；退出时只关闭这两个自有进程。检查主窗口首屏、resize 后和 About 的原生交通灯中心距窗口顶部为 20pt（40pt 标题栏中线，容差 1pt），并保留既有窗口尺寸/内容截图检查。没有 AX 权限的 SKIP 不等于验收通过。它只操作 Switcher 的窗口装饰，不执行 Cavalry 语言动作。
+
+原生控件可能因可执行文件的链接 SDK 使用不同兼容布局；不能只检查本机 SDK 构建。发布前应在支持的 macOS 主机上对实际发布候选包运行同一门。CI 的编译/资源校验、浏览器预览和开发态截图均不能替代此项原生几何验收。
 
 #### 4.1.2 renderer 视觉验收必须使用新进程
 
