@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.0.3] - 2026-09-10
+
 ### Fixed
 - 修复 macOS 和 Windows 右侧 Add Layer 空结果提示未翻译的问题，保留原厂筛选、用户输入与 Fast 空白状态。
 - 右侧 Add Layer 面板搜索完整或前缀当前语言标题时，补充标题匹配优先级；其他片段继续参与既有搜索，保留原厂筛选、排序与创建身份，无法验证运行时兼容性时保持原厂行为。
