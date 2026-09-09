@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 macOS osascript/screencapture 与 packaged Tauri binary
- * [OUTPUT]: 对外提供 AX 窗口权限探测、窗口枚举、400×484 内容截图与尺寸校验辅助函数
+ * [OUTPUT]: 对外提供带精确 PID 绑定的 AX 窗口枚举/操作、交通灯几何读取、About 菜单回归与 400×484 内容截图辅助函数
  * [POS]: tools 的 Tauri 窗口回归公共层
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -37,7 +37,32 @@ function runAppleScript(source) {
   return run('osascript', ['-e', source]).trim();
 }
 
-function listVisibleWindows() {
+function appleScriptString(value) {
+  return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+}
+
+function normalizePid(pid) {
+  if (pid === undefined || pid === null) {
+    return null;
+  }
+  const normalized = Number(pid);
+  if (!Number.isInteger(normalized) || normalized <= 0) {
+    fail(`Invalid process PID: ${pid}`);
+  }
+  return normalized;
+}
+
+function positiveInteger(value, label) {
+  const normalized = Number(value);
+  if (!Number.isInteger(normalized) || normalized <= 0) {
+    fail(`${label} must be a positive integer: ${value}`);
+  }
+  return normalized;
+}
+
+function listVisibleWindows({ pid } = {}) {
+  const expectedPid = normalizePid(pid);
+  const processGuard = expectedPid === null ? 'true' : `(unix id of proc) is ${expectedPid}`;
   const output = runAppleScript(`
 tell application "System Events"
   set outputLines to {}
@@ -45,14 +70,17 @@ tell application "System Events"
     set allProcs to (every process whose background only is false)
     repeat with proc in allProcs
       try
-        set procName to name of proc
-        repeat with win in windows of proc
-          try
-            set winPos to position of win
-            set winSize to size of win
-            set end of outputLines to procName & "|" & (name of win) & "|" & ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text)
-          end try
-        end repeat
+        if ${processGuard} then
+          set procName to name of proc
+          set procPid to unix id of proc
+          repeat with win in windows of proc
+            try
+              set winPos to position of win
+              set winSize to size of win
+              set end of outputLines to procName & "|" & (procPid as text) & "|" & (name of win) & "|" & ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text)
+            end try
+          end repeat
+        end if
       end try
     end repeat
   end try
@@ -65,53 +93,267 @@ end tell
     .map((line) => line.trim())
     .filter(Boolean)
     .map((line) => {
-      const [processName, title, x, y, width, height] = line.split('|');
+      const [processName, pidText, title, x, y, width, height] = line.split('|');
+      const numericPid = Number(pidText);
+      if (!Number.isInteger(numericPid) || numericPid <= 0) {
+        return null;
+      }
       return {
         processName,
+        pid: numericPid,
         title,
         x: Number(x),
         y: Number(y),
         width: Number(width),
         height: Number(height),
       };
-    });
+    })
+    .filter(Boolean);
 }
 
-async function waitForWindow({ title, processName = '', timeoutMs = 30000 }) {
+function windowMatches(candidate, { title, processName = '', pid, width, height }) {
+  const expectedPid = normalizePid(pid);
+  return (
+    candidate.title === title &&
+    (!processName || candidate.processName === processName) &&
+    (expectedPid === null || candidate.pid === expectedPid) &&
+    (width === undefined || Math.abs(candidate.width - Number(width)) <= 1) &&
+    (height === undefined || Math.abs(candidate.height - Number(height)) <= 1)
+  );
+}
+
+async function waitForWindow({ title, processName = '', pid, width, height, timeoutMs = 30000 }) {
+  const expectedPid = normalizePid(pid);
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
-    const match = listVisibleWindows().find((candidate) => {
-      return (
-        candidate.title === title &&
-        (!processName || candidate.processName === processName)
-      );
-    });
+    const match = listVisibleWindows({ pid: expectedPid }).find((candidate) =>
+      windowMatches(candidate, { title, processName, pid: expectedPid, width, height })
+    );
     if (match) {
       return match;
     }
     await delay(250);
   }
-  fail(`Timed out waiting for window "${title}"${processName ? ` (${processName})` : ''}.`);
+  fail(
+    `Timed out waiting for window "${title}"` +
+      `${processName ? ` (${processName})` : ''}` +
+      `${expectedPid === null ? '' : ` [pid ${expectedPid}]`}.`
+  );
 }
 
-function focusWindow({ title, processName = '' }) {
-  const processFilter = processName ? `and procName is equal to "${processName}"` : '';
-  runAppleScript(`
+function processConditions({ processName = '', pid }) {
+  const expectedPid = normalizePid(pid);
+  const conditions = [];
+  if (processName) {
+    conditions.push(`procName is equal to ${appleScriptString(processName)}`);
+  }
+  if (expectedPid !== null) {
+    conditions.push(`(unix id of proc) is ${expectedPid}`);
+  }
+  return {
+    expectedPid,
+    expression: conditions.length ? conditions.join(' and ') : 'true',
+  };
+}
+
+function focusWindow({ title, processName = '', pid }) {
+  const { expression: processFilter, expectedPid } = processConditions({ processName, pid });
+  const result = runAppleScript(`
 tell application "System Events"
   repeat with proc in (every process whose background only is false)
-    set procName to name of proc
     try
-      repeat with win in windows of proc
-        if (name of win) is equal to "${title}" ${processFilter} then
-          set frontmost of proc to true
-          perform action "AXRaise" of win
-          return "ok"
-        end if
-      end repeat
+      set procName to name of proc
+      if ${processFilter} then
+        repeat with win in windows of proc
+          if (name of win) is equal to ${appleScriptString(title)} then
+            set frontmost of proc to true
+            perform action "AXRaise" of win
+            return "ok"
+          end if
+        end repeat
+      end if
     end try
   end repeat
 end tell
+  return "not-found"
   `);
+  if (result !== 'ok') {
+    fail(`Could not focus window "${title}"${expectedPid === null ? '' : ` [pid ${expectedPid}]`}.`);
+  }
+}
+
+function resizeWindow({ title, processName = '', pid, width, height }) {
+  const normalizedWidth = positiveInteger(width, 'Window width');
+  const normalizedHeight = positiveInteger(height, 'Window height');
+  const { expression: processFilter, expectedPid } = processConditions({ processName, pid });
+  if (expectedPid === null) {
+    fail('Resizing a regression window requires an exact process PID.');
+  }
+  const result = runAppleScript(`
+tell application "System Events"
+  repeat with proc in (every process whose background only is false)
+    try
+      set procName to name of proc
+      if ${processFilter} then
+        repeat with win in windows of proc
+          if (name of win) is equal to ${appleScriptString(title)} then
+            set size of win to {${normalizedWidth}, ${normalizedHeight}}
+            return "ok"
+          end if
+        end repeat
+      end if
+    end try
+  end repeat
+end tell
+return "not-found"
+  `);
+  if (result !== 'ok') {
+    fail(`Could not resize window "${title}" [pid ${expectedPid}].`);
+  }
+}
+
+function openAboutMenu({ processName = '', pid, menuTitle }) {
+  const { expression: processFilter, expectedPid } = processConditions({ processName, pid });
+  if (expectedPid === null) {
+    fail('Opening About requires an exact process PID.');
+  }
+  const result = runAppleScript(`
+tell application "System Events"
+  repeat with proc in (every process whose background only is false)
+    try
+      set procName to name of proc
+      if ${processFilter} then
+        set frontmost of proc to true
+        repeat with menuBarItem in every menu bar item of menu bar 1 of proc
+          try
+            set targetMenu to menu 1 of menuBarItem
+            if exists menu item ${appleScriptString(menuTitle)} of targetMenu then
+              click menu item ${appleScriptString(menuTitle)} of targetMenu
+              return "ok"
+            end if
+          end try
+        end repeat
+      end if
+    end try
+  end repeat
+end tell
+return "not-found"
+  `);
+  if (result !== 'ok') {
+    fail(`Could not open About menu item "${menuTitle}" [pid ${expectedPid}].`);
+  }
+}
+
+function closeWindow({ title, processName = '', pid }) {
+  const { expression: processFilter, expectedPid } = processConditions({ processName, pid });
+  if (expectedPid === null) {
+    fail('Closing a regression window requires an exact process PID.');
+  }
+  const result = runAppleScript(`
+tell application "System Events"
+  repeat with proc in (every process whose background only is false)
+    try
+      set procName to name of proc
+      if ${processFilter} then
+        repeat with win in windows of proc
+          if (name of win) is equal to ${appleScriptString(title)} then
+            perform action "AXPress" of (first button of win whose subrole is "AXCloseButton")
+            return "ok"
+          end if
+        end repeat
+      end if
+    end try
+  end repeat
+end tell
+return "not-found"
+  `);
+  if (result !== 'ok') {
+    fail(`Could not close window "${title}" [pid ${expectedPid}].`);
+  }
+}
+
+async function waitForWindowGone({ title, processName = '', pid, timeoutMs = 10000 }) {
+  const expectedPid = normalizePid(pid);
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const match = listVisibleWindows({ pid: expectedPid }).find((candidate) =>
+      windowMatches(candidate, { title, processName, pid: expectedPid })
+    );
+    if (!match) {
+      return;
+    }
+    await delay(250);
+  }
+  fail(
+    `Timed out waiting for window "${title}" to close` +
+      `${expectedPid === null ? '' : ` [pid ${expectedPid}]`}.`
+  );
+}
+
+function readTrafficLightGeometry({ title, processName = '', pid }) {
+  const { expression: processFilter, expectedPid } = processConditions({ processName, pid });
+  if (expectedPid === null) {
+    fail('Reading traffic-light geometry requires an exact process PID.');
+  }
+  const output = runAppleScript(`
+tell application "System Events"
+  repeat with proc in (every process whose background only is false)
+    try
+      set procName to name of proc
+      if ${processFilter} then
+        repeat with win in windows of proc
+          if (name of win) is equal to ${appleScriptString(title)} then
+            set winPos to position of win
+            set winSize to size of win
+            set trafficButtons to buttons of win
+            if (count of trafficButtons) is not 3 then
+              error "Expected exactly three native window buttons"
+            end if
+            set outputLines to {}
+            repeat with buttonRef in trafficButtons
+              set buttonPos to position of buttonRef
+              set buttonSize to size of buttonRef
+              set end of outputLines to ((item 1 of winPos) as text) & "|" & ((item 2 of winPos) as text) & "|" & ((item 1 of winSize) as text) & "|" & ((item 2 of winSize) as text) & "|" & ((item 1 of buttonPos) as text) & "|" & ((item 2 of buttonPos) as text) & "|" & ((item 1 of buttonSize) as text) & "|" & ((item 2 of buttonSize) as text)
+            end repeat
+            set AppleScript's text item delimiters to linefeed
+            return outputLines as text
+          end if
+        end repeat
+      end if
+    end try
+  end repeat
+end tell
+error "Could not read traffic-light geometry"
+  `);
+  const lines = output
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (lines.length !== 3) {
+    fail(`Expected three traffic-light geometry rows, received ${lines.length}.`);
+  }
+  const parsed = lines.map((line) => {
+    const values = line.split('|').map(Number);
+    if (values.length !== 8 || values.some((value) => !Number.isFinite(value))) {
+      fail(`Invalid traffic-light geometry row: ${line}`);
+    }
+    const [windowX, windowY, windowWidth, windowHeight, x, y, width, height] = values;
+    return {
+      x,
+      y,
+      width,
+      height,
+      centerDistanceFromTop: y + height / 2 - windowY,
+      window: { x: windowX, y: windowY, width: windowWidth, height: windowHeight },
+    };
+  });
+  return {
+    pid: expectedPid,
+    title,
+    processName,
+    window: parsed[0].window,
+    buttons: parsed.map(({ window: _window, ...button }) => button),
+  };
 }
 
 function captureRect(bounds, outputPath) {
@@ -156,18 +398,18 @@ function captureContentRegion(bounds, outputPath) {
 }
 
 function tauriBundleBinary() {
-  const appPath = path.join(
-    repoRoot,
-    'src-tauri',
-    'target',
-    'release',
-    'bundle',
-    'macos',
-    'Cavalry Language Switcher.app',
-    'Contents',
-    'MacOS',
-    'cavalry-i18n-tauri'
-  );
+  const bundlePath = process.env.CAVALRY_I18N_TAURI_APP_BUNDLE
+    ? path.resolve(process.env.CAVALRY_I18N_TAURI_APP_BUNDLE)
+    : path.join(
+        repoRoot,
+        'src-tauri',
+        'target',
+        'release',
+        'bundle',
+        'macos',
+        'Cavalry Language Switcher.app'
+      );
+  const appPath = path.join(bundlePath, 'Contents', 'MacOS', 'cavalry-i18n-tauri');
   if (!fs.existsSync(appPath)) {
     fail(`Packaged Tauri binary missing at ${appPath}. Run npm run tauri:build first.`);
   }
@@ -224,6 +466,7 @@ end tell
 
 module.exports = {
   captureContentRegion,
+  closeWindow,
   delay,
   expectedContentSize,
   focusWindow,
@@ -231,8 +474,12 @@ module.exports = {
   launchTauri,
   listVisibleWindows,
   makeTempDir,
+  openAboutMenu,
+  readTrafficLightGeometry,
+  resizeWindow,
   repoRoot,
   stopChild,
   tauriBundleBinary,
   waitForWindow,
+  waitForWindowGone,
 };
