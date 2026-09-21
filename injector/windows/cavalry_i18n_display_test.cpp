@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 CavalryDisplayTranslator、嵌入式三语翻译表、共享 Quick Add owner/search 策略与 Qt Widgets 的 action tooltip、标准 item model、可编辑/字体 Combo、QTreeWidget popup、QLineEdit、QPlainTextEdit 与 QMenu
- * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀、DisplayRole 数据隔离、字体/选择值保护，以及双 owner QuickAdd 输入的生产显示/回调保持 query 合同；Classic 空结果只接受 exact `ListWidget`/`QuickAddWindow` 及真实 viewport，测试 seam 观察受控 `No Results` setter；任何 CompleterLineEdit 的值均保持原文
+ * [OUTPUT]: 对外锁定普通 Qt 残留、来源绑定的 Color Settings/Mesh Explorer/Project Statistics/Tracking/Assets/单索引动态模板、精确 Qt context 隔离、selected/认证 QLabel、逐行 tooltip、数字后缀、DisplayRole 合同、普通输入/名称确认与字体选择值保护，以及双 owner QuickAdd 输入的生产显示/回调保持 query 合同；Classic 空结果只接受 exact `ListWidget`/`QuickAddWindow` 及真实 viewport，测试 seam 观察受控 `No Results` setter；任何 CompleterLineEdit 的值均保持原文
  * [POS]: injector/windows 的显示层单元回归，证明动态文案必须同时命中厂商父系、producer 或对话框结构与显示属性；Quick Add fixture 以 moc 生成的 exact owner/中间父系直调生产 display 入口并触发 textChanged，覆盖 owner 前已填充 Box、owner 前 Shape 回调、parentless Paint Text 及 reparent 后回调/绘制，确保全量/部分/大小写/CJK/清空输入不被翻译且 placeholder 仍翻译，通用规则不会改写可编辑/字体选择值、弹出树、编辑器正文、同文无关控件、自定义名称、UserRole、currentIndex 或未知用户输入；Classic fixture 额外锁定无 vendor gate 时无私有内存读取、Fast owner、非真实 viewport child、空/未知文案、vendor 写回英文 source 后重译、query/model identity 保持及重复 Paint 幂等
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -17,6 +17,7 @@
 #include <QtCore/QStringList>
 #include <QtCore/QVariant>
 #include <QtGui/QAction>
+#include <QtGui/QKeyEvent>
 #include <QtGui/QStandardItemModel>
 #include <QtWidgets/QApplication>
 #include <QtWidgets/QComboBox>
@@ -357,83 +358,60 @@ bool verifyTreeWidgetDisplay(const LocaleExpectation &expectation)
 bool verifyLineEditDisplay(const LocaleExpectation &expectation)
 {
     const QString language = QString::fromLatin1(expectation.language);
-    const QString defaultKeyframeLayer =
-        QString::fromUtf8(expectation.defaultKeyframeLayer);
-    const QString placeholderSource = QStringLiteral("Search");
-
     CavalryEmbeddedTranslator translator(language);
     CavalryDisplayTranslator displayTranslator(translator);
-    QLineEdit lineEdit(QStringLiteral("Default Keyframe Layer"));
-    lineEdit.setPlaceholderText(placeholderSource);
-
-    QStringList emittedTexts;
-    QObject::connect(
-        &lineEdit,
-        &QLineEdit::textChanged,
-        &lineEdit,
-        [&emittedTexts](const QString &text) { emittedTexts.append(text); });
-
+    QLineEdit lineEdit(QStringLiteral("Text"));
+    lineEdit.setReadOnly(true);
+    lineEdit.setPlaceholderText(QStringLiteral("Bold"));
+    QString committedName = lineEdit.text();
+    QObject::connect(&lineEdit, &QLineEdit::editingFinished, &lineEdit,
+                     [&] { committedName = lineEdit.text(); });
     displayTranslator.translateWidget(&lineEdit);
-    const QString translatedPlaceholder =
-        translator.translate(nullptr, "Search");
-    const QString expectedPlaceholder = translatedPlaceholder.isEmpty()
-        ? placeholderSource
-        : translatedPlaceholder;
-    if (!expectEqual(
-            language + QStringLiteral(" line edit initial value"),
-            lineEdit.text(),
-            defaultKeyframeLayer)
-        || !expectEqual(
-            language + QStringLiteral(" line edit placeholder"),
-            lineEdit.placeholderText(),
-            expectedPlaceholder)
-        || !expectTrue(
-            language + QStringLiteral(" line edit initial signal isolation"),
-            emittedTexts.isEmpty())) {
+    const QString translatedPlaceholder = translator.translate(nullptr, "Bold");
+    if (!expectTrue(language + QStringLiteral(" placeholder positive control"),
+                    !translatedPlaceholder.isEmpty())
+        || !expectEqual(language + QStringLiteral(" read-only name initialization"),
+                        lineEdit.text(), QStringLiteral("Text"))
+        || !expectEqual(language + QStringLiteral(" placeholder still translated"),
+                        lineEdit.placeholderText(), translatedPlaceholder)) {
         return false;
     }
 
-    lineEdit.setText(QStringLiteral("Default Keyframe Layer"));
-    if (!expectEqual(
-            language + QStringLiteral(" line edit dynamic rewrite"),
-            lineEdit.text(),
-            defaultKeyframeLayer)
-        || !expectTrue(
-            language + QStringLiteral(" line edit dynamic signal isolation"),
-            emittedTexts.size() == 1
-                && emittedTexts.constFirst()
-                    == QStringLiteral("Default Keyframe Layer"))) {
+    // ---- 只读名称转编辑：不改字确认也不得提交显示译文 ------------------
+    lineEdit.setReadOnly(false);
+    QKeyEvent confirm(QEvent::KeyPress, Qt::Key_Return, Qt::NoModifier);
+    QApplication::sendEvent(&lineEdit, &confirm);
+    if (!expectEqual(language + QStringLiteral(" unchanged rename commit"),
+                     committedName, QStringLiteral("Text"))) {
         return false;
     }
 
-    const QString userText = QStringLiteral("Custom user layer");
-    const int signalCountBeforeUserInput = emittedTexts.size();
-    lineEdit.setText(userText);
-    if (!expectEqual(
-            language + QStringLiteral(" line edit unknown user input"),
-            lineEdit.text(),
-            userText)
-        || !expectTrue(
-            language + QStringLiteral(" line edit unknown signal isolation"),
-            emittedTexts.size() == signalCountBeforeUserInput + 1
-                && emittedTexts.constLast() == userText)) {
-        return false;
-    }
-
-    const int signalCountBeforePaintFallback = emittedTexts.size();
-    {
-        QSignalBlocker blocker(&lineEdit);
-        lineEdit.setText(QStringLiteral("Default Keyframe Layer"));
-    }
-    displayTranslator.translatePaintWidget(&lineEdit);
-    if (!expectEqual(
-            language + QStringLiteral(" line edit paint fallback"),
-            lineEdit.text(),
-            defaultKeyframeLayer)
-        || !expectTrue(
-            language + QStringLiteral(" line edit paint signal isolation"),
-            emittedTexts.size() == signalCountBeforePaintFallback)) {
-        return false;
+    // ---- 每个输入前缀都经过生产回调，覆盖 Control -> Control33 碰撞 ----
+    const QStringList names = {QStringLiteral("Text"), QStringLiteral("Bold"),
+        QStringLiteral("Control33"), QStringLiteral("Text 2"),
+        QStringLiteral("Default Keyframe Layer"), QStringLiteral("Text Box 自定义")};
+    for (const QString &name : names) {
+        lineEdit.clear();
+        for (const QChar character : name) {
+            lineEdit.insert(QString(character));
+        }
+        displayTranslator.translatePaintWidget(&lineEdit);
+        QApplication::sendEvent(&lineEdit, &confirm);
+        if (!expectEqual(language + QStringLiteral(" typed current name"), lineEdit.text(), name)
+            || !expectEqual(language + QStringLiteral(" committed current name"), committedName, name)) {
+            return false;
+        }
+        // 厂商阻断信号后更新与只读切换不能改变数据保护语义。
+        {
+            QSignalBlocker blocker(&lineEdit);
+            lineEdit.setText(name);
+        }
+        lineEdit.setReadOnly(true);
+        displayTranslator.translatePaintWidget(&lineEdit);
+        lineEdit.setReadOnly(false);
+        if (!expectEqual(language + QStringLiteral(" blocked signal repaint"), lineEdit.text(), name)) {
+            return false;
+        }
     }
 
     const QString singleIndexSource =

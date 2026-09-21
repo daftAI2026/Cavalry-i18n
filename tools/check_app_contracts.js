@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 node:test、python_command.js、test_temp_dir.js 与仓库源码文件，读取跨平台 Tauri app、语言资源、工具脚本、编译期 C++ 翻译表、运行时噪声隔离清单、package 脚本及版本化 Release notes 契约
- * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG、发布供应链精确工具输入、Qt bootstrap stdout/stderr 隔离与 npm 版本命令宿主解析、renderer typed warningCodes→Activity 投影、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补及 Scene Statistics 同窗 Update 三语值、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、受控动态显示属性专用 Paint 路径与 Quick Add 分类 getter 分流后的 QLabel fallback、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、Guide 固定 loader slot、macOS Assets/Tag/Tracking owner 边界与 Transform 五 source ABI 防火墙、English refresh/extract 只读与 apply-owned macOS recovery boundary
+ * [OUTPUT]: 对外提供 npm run test:contracts 的换行与平台无关 Node 测试集合，冻结 Tauri app、full-ui、精确版本 CHANGELOG、发布供应链精确工具输入、Qt bootstrap stdout/stderr 隔离与 npm 版本命令宿主解析、renderer typed warningCodes→Activity 投影、macOS ExtensionLayer 四处自绘提示的定点居中翻译与其余自绘文本英文边界、8 条跨平台 exact-only/owner 回补及 Scene Statistics 同窗 Update 三语值、Windows 普通 Qt 对话框/性能标签及 Tracking owner/receiver PE 包络、EditShapeTool/TransformTool 长操作前缀与 `Space`/`Shift` 纯键位保护、Pencil/Pen/Centre/Bone 静态 text-path、CogTool 动态节圆半径、selected-count 及来源绑定的 Mesh Explorer QLabel、Color Settings QComboBox 与单索引 QPlainTextEdit 占位文字、Time Editor niceName/复用图层名数据与 QAbstractItemView role 写回保护、Qt ABI-safe accessibility 源码边界、first-match (context, source) 哈希、capture-only inventory、dirty 子树与 item-model 局部补译、aboutToShow/ActionAdded/Show 菜单首次绘制前同步翻译、QLineEdit 实际值不回写与共享提示文字入口、受控动态显示属性专用 Paint 路径及 Quick Add 分类 getter 分流后的 QLabel fallback、ModalDialog 退出确认窗首次绘制前同步翻译、MessageBar 日志弹窗 meta-object、QTextEdit append/Copied/Undo 动态日志模板、禁止 QTextEdit 在 Paint/Show 或 inventory 路径读取整份日志、底部状态消息接入及 dyld 符号解析失败安全兜底、动态状态栏计数、冒号与 No-prefix 标签、运行时生成图层名与属性标签兜底、Canva 登录态品牌词、Forge 动力学术语与 Voronoi Shader 属性、TS message context 归属与三语 key 对称、裸 {} 占位符、ModelDisplay 中英间距、自动编号 Composition 标签分母、Guide 固定 loader slot、所有 JSON `type:font` 默认完整身份、macOS Assets/Tag/Tracking owner 边界与 Transform 五 source ABI 防火墙、English refresh/extract 只读与 apply-owned macOS recovery boundary
  * [POS]: tools 的 Tauri-only 应用合同测试，承接从旧壳层 baseline 迁出的非壳层断言，并阻止平台命令、换行、交互期全局刷新、普通运行 inventory 写盘与固定模板吞掉版本更新等回归
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -567,41 +567,18 @@ test('embedded injector normalizes mixed No-prefix widget labels', () => {
   );
 });
 
-test('embedded injector translates exact QLineEdit values as well as placeholders', () => {
+test('embedded injector keeps input values outside display translation', () => {
   const injectorSource = fs.readFileSync(
-    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'),
-    'utf8'
-  );
-
-  assert.match(
-    injectorSource,
-    /lineEdit->text\(\)/,
-    'line edit current values such as Default Keyframe Layer should be considered for exact embedded translation'
-  );
-  assert.match(
-    injectorSource,
-    /lineEdit->setText\(translated\)/,
-    'line edit current values should be rewritten when they exactly match an embedded UI source'
-  );
-  assert.match(
-    injectorSource,
-    /QLineEdit::textChanged/,
-    'line edit values can change after widget creation, so runtime translation must hook textChanged'
-  );
-  assert.match(
-    injectorSource,
-    /QSignalBlocker blocker\(.*lineEdit/,
-    'line edit display translation should block signals so model-backed names are not renamed while being localized for display'
-  );
-  assert.match(
-    injectorSource,
-    /translatedLineEditValue[\s\S]*\\s\+\[0-9\]\+[\s\S]*baseTranslation \+ match\.captured\(2\)/,
-    'line edit display translation should preserve Cavalry auto-numbered suffixes like Camera 3'
-  );
+    path.join(injectorRoot, 'CavalryTranslatorInjector.mm'), 'utf8');
+  assert.match(injectorSource, /cavalry_i18n::translateLineEditPlaceholder/);
+  assert.doesNotMatch(injectorSource, /(?:lineEdit|guardedLineEdit)->setText\(/,
+    'display translation must never write names, queries or replacement strings');
+  assert.doesNotMatch(injectorSource, /translatedLineEditValue/,
+    'input values must not be looked up in display dictionaries');
   assert.match(
     injectorSource,
     /translatedWidgetText[\s\S]*\\s\+\[0-9\]\+\)\$[\s\S]*baseTranslation \+ match\.captured\(2\)/,
-    'generic widget display translation should preserve Cavalry auto-numbered suffixes like Super Ellipse Shape 2 in QLabel headers and Scene View rows'
+    'generic display labels should still preserve auto-numbered suffixes'
   );
 });
 
@@ -863,6 +840,84 @@ test('model-backed niceName text stays English for Time Editor and item-model re
   }
 });
 
+test('type:font default selection identities stay complete and English across every localized definition', () => {
+  const collectFontDefaults = (value, jsonPath = '$', records = new Map()) => {
+    if (Array.isArray(value)) {
+      value.forEach((item, index) => collectFontDefaults(item, `${jsonPath}[${index}]`, records));
+      return records;
+    }
+    if (!value || typeof value !== 'object') return records;
+
+    if (value.type === 'font') {
+      records.set(jsonPath, {
+        hasDefault: Object.hasOwn(value, 'default'),
+        default: value.default,
+      });
+    }
+    for (const [key, child] of Object.entries(value)) {
+      collectFontDefaults(child, `${jsonPath}.${key}`, records);
+    }
+    return records;
+  };
+
+  const englishRoot = path.join(repoRoot, 'languages', 'en');
+  const englishFiles = listJsonRelativeFiles(englishRoot);
+  const englishRecordsByFile = new Map(
+    englishFiles.map((relativePath) => [
+      relativePath,
+      collectFontDefaults(readJson(path.join(englishRoot, relativePath))),
+    ])
+  );
+  assert.ok(
+    [...englishRecordsByFile.values()].some((records) => records.size > 0),
+    'English JSON surfaces should expose type:font records'
+  );
+
+  const issues = [];
+  for (const language of ['zh-Hans', 'zh-Hant', 'ja_JP']) {
+    const localizedRoot = path.join(repoRoot, 'languages', language);
+    for (const [relativePath, englishRecords] of englishRecordsByFile) {
+      const localizedPath = path.join(localizedRoot, relativePath);
+      const localizedRecords = fs.existsSync(localizedPath)
+        ? collectFontDefaults(readJson(localizedPath))
+        : new Map();
+      const allPaths = new Set([...englishRecords.keys(), ...localizedRecords.keys()]);
+
+      for (const jsonPath of [...allPaths].sort()) {
+        const englishIdentity = englishRecords.get(jsonPath);
+        const localizedIdentity = localizedRecords.get(jsonPath);
+        if (!englishIdentity || !localizedIdentity) {
+          issues.push({
+            language,
+            file: relativePath,
+            path: jsonPath,
+            english: englishIdentity || '<missing>',
+            localized: localizedIdentity || '<missing>',
+          });
+          continue;
+        }
+        try {
+          assert.deepEqual(localizedIdentity, englishIdentity);
+        } catch {
+          issues.push({
+            language,
+            file: relativePath,
+            path: jsonPath,
+            english: englishIdentity,
+            localized: localizedIdentity,
+          });
+        }
+      }
+    }
+  }
+
+  assert.deepEqual(
+    issues,
+    [],
+    'every type:font default must preserve presence and the complete English font selection object; do not localize family/style or add/remove defaults'
+  );
+});
+
 test('Apply Character Spacing pair labels translate in Qt display while Time Editor item names stay English', () => {
   const englishNodes = readJson(path.join(repoRoot, 'languages', 'en', 'nodeStrings.json'));
   const whitelist = readJson(path.join(repoRoot, 'tools', 'translation-whitelist.json'));
@@ -1061,11 +1116,6 @@ test('embedded injector caches source-text translation lookup for runtime widget
     injectorSource,
     /rebuildTranslationCache[\s\S]{0,900}if \(!source\.isEmpty\(\) && !translation\.isEmpty\(\)\) \{[\s\S]{0,180}gTranslationBySource\.insert\(source, translation\)/,
     'source-only display lookup must preserve its existing last-match-wins cache behavior independently of exact QTranslator keys'
-  );
-  assert.match(
-    injectorSource,
-    /translatedLineEditValue[\s\S]{0,520}static const QRegularExpression kNumericSuffixPattern[\s\S]{0,260}kNumericSuffixPattern\.match\(sourceText\)/,
-    'fixed hot-path patterns should compile once instead of reconstructing QRegularExpression on every Paint/text change'
   );
 });
 
@@ -1945,6 +1995,11 @@ test('full UI coverage checker composes runtime, compiled, and JSON-backed valid
     checkerSource,
     /validate_translations\.py|python3/,
     'full UI checker should incorporate the existing JSON translation validator so JSON-backed surfaces stay inside the blocker'
+  );
+  assert.match(
+    checkerSource,
+    /font_identity_issue_count[\s\S]*font_identity_issue_count/,
+    'full UI checker should carry type:font default identity blockers into the per-language pass gate'
   );
   assert.match(
     checkerSource,
@@ -4774,6 +4829,62 @@ test('translation validator preserves bare brace runtime placeholders', () => {
     JSON.parse(result.stdout),
     ['{}', '{0}', '%1', '{{name}}']
   );
+});
+
+test('translation validator rejects any type:font default identity drift without a name or path allowlist', () => {
+  const { tempRoot, extractionPath } = makeValidatorFixtureRepo();
+  const validatorPath = path.join(tempRoot, 'tools', 'validate_translations.py');
+  const reportPath = path.join(tempRoot, 'p5-report.json');
+  const summaryPath = path.join(tempRoot, 'p5-summary.md');
+  const definitions = [
+    {
+      attributes: {
+        primary: {
+          type: 'font',
+          default: { font: 'Fixture Sans', style: 'Heavy', weight: 850, axes: { wght: 850 } },
+        },
+        secondary: { type: 'font' },
+      },
+    },
+  ];
+  for (const language of ['en', 'zh-Hans', 'zh-Hant', 'ja_JP']) {
+    writeJson(
+      path.join(tempRoot, 'languages', language, 'Definitions', 'nodeDefinitions.json'),
+      JSON.parse(JSON.stringify(definitions))
+    );
+  }
+
+  const zhHansPath = path.join(tempRoot, 'languages', 'zh-Hans', 'Definitions', 'nodeDefinitions.json');
+  const zhHansDefinitions = readJson(zhHansPath);
+  zhHansDefinitions[0].attributes.primary.default.style = '粗体';
+  zhHansDefinitions[0].attributes.secondary.default = { font: 'Invented Sans', style: 'Regular' };
+  writeJson(zhHansPath, zhHansDefinitions);
+
+  const result = spawnPythonSync(
+    [
+      validatorPath,
+      '--root',
+      tempRoot,
+      '--extraction-inventory',
+      extractionPath,
+      '--json-report',
+      reportPath,
+      '--markdown-summary',
+      summaryPath,
+    ],
+    { encoding: 'utf8' }
+  );
+  const report = readJson(reportPath);
+
+  assert.equal(result.status, 1, 'validator should hard-fail translated font selection identities');
+  assert.equal(report.gates.B14.status, 'FAIL');
+  assert.equal(report.languages.zh_Hans.font_identity_issue_count, 2);
+  assert.deepEqual(
+    report.languages.zh_Hans.issues.font_identity.map((issue) => issue.path).sort(),
+    ['$[0].attributes.primary', '$[0].attributes.secondary']
+  );
+  assert.equal(report.languages.zh_Hant.font_identity_issue_count, 0);
+  assert.equal(report.languages.ja.font_identity_issue_count, 0);
 });
 
 test('translation validator rejects generic translation reuse across unrelated sources', () => {

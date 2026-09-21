@@ -1,6 +1,7 @@
 /**
  * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、QPA 等价显式 specification 与 diagnostic marker
  * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离，以及 text-path 与独立时间轴字体 hook 的诊断；缺少厂商模块不阻断已有翻译
+ * 对外验证环境空 specification 被拒、显式语言成功、普通输入原值与占位提示分离及含 64 位 source mask 的九项 text-path marker 结构
  * [POS]: injector/windows 的端到端回归 smoke；证明只有正式 QPA 显式入口能创建翻译运行时
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -357,11 +358,11 @@ bool verifyDisplayTranslation(QApplication &application)
         return false;
     }
 
-    // 词表命中的 QLineEdit 值可作显示投影；未知输入与通用 item model 保持业务原值。
+    // 输入值即使命中词典也保持原文；占位提示与静态标签单独验证翻译。
     if (!expectEqual(
             QStringLiteral("line edit value"),
             lineEdit->text(),
-            QStringLiteral("场景窗口"))
+            QStringLiteral("Scene Window"))
         || !expectEqual(
             QStringLiteral("item model value"),
             modelView->item(0)->text(),
