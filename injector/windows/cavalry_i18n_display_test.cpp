@@ -401,7 +401,7 @@ bool verifyLineEditDisplay(const LocaleExpectation &expectation)
             || !expectEqual(language + QStringLiteral(" committed current name"), committedName, name)) {
             return false;
         }
-        // 厂商阻断信号后更新、重挂接与只读切换不能改变数据保护语义。
+        // 厂商阻断信号后更新与只读切换不能改变数据保护语义。
         {
             QSignalBlocker blocker(&lineEdit);
             lineEdit.setText(name);

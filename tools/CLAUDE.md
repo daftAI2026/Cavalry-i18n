@@ -11,9 +11,9 @@ post_release_reactions.test.js: 注入式 GitHub API 离线合同，验证六种
 check_quick_add_display_tags.h: Fast 显示 fixture 的独立标签片段，验证原厂显示别名、paint/sizeHint 一致投影及源分类/创建身份保真，覆盖短字符串与大块堆存储边界。
 
 check_macos_selection_values.sh: 本地原生 fixture 构建入口，显式接收 Qt SDK/vendor Frameworks、链接 Classic 评分 ABI 适配器，只读链接 libskia 并强制 SDK 单套 Qt/offscreen plugin，保留测试退出码。
-check_macos_selection_values.mm: Qt 原生选择值 fixture，直调 macOS 生产翻译入口并验证三语 Combo/编辑器/自定义弹出列表与展示正对照；只读链接显式 vendor Frameworks，不启动或修改真实 Cavalry。
-check_selection_value_contract.test.js: 同时锁定共享 Quick Add context 的双平台源码闭包； CI-safe 选择值保护接线合同，冻结双平台共享输入策略的 Combo/编辑器/弹出列表覆盖，与原生 fixture 分层验收。
-check_macos_quick_add_inputs.sh: 本地 macOS Quick Add 搜索输入合同 runner；只读链接 Qt 6.6.3/vendor Frameworks，链接 Classic 评分 ABI 适配器，绿色运行生产搜索 guard，红色仅在临时生产源码副本移除 guard 后预期失败。
+check_macos_selection_values.mm: Qt 原生选择值 fixture，直调 macOS 生产翻译入口并验证三语普通 QLineEdit、只读切换、Combo/编辑器/自定义弹出列表；实际值、信号与 Paint 不污染业务值，placeholder 仍翻译；只读链接显式 vendor Frameworks，不启动或修改真实 Cavalry。
+check_selection_value_contract.test.js: 同时锁定共享 Quick Add context 的双平台源码闭包； CI-safe 选择值保护接线合同，冻结双平台共享输入策略的 Combo/编辑器/弹出列表覆盖与 QLineEdit placeholder-only/实际名称查询值原文边界（含只读、parentless/重挂接），与原生 fixture 分层验收。
+check_macos_quick_add_inputs.sh: 本地 macOS Quick Add 搜索输入合同 runner；只读链接 Qt 6.6.3/vendor Frameworks，链接 Classic 评分 ABI 适配器，绿色运行生产搜索 guard，红测仅在临时生产源码副本恢复 QLineEdit 实际值 `setText` 污染后预期失败。
 check_macos_quick_add_inputs.mm: 覆盖预填充 parentless 补全输入及 owner 建立前的回调； Qt 原生 Quick Add 搜索输入 fixture；以 moc 生成精确 `QuickAddWindow`/`cavalry::FastQuickAddWindow`、`CompleterLineEdit`/`SearchBar`/`Widget` 父系，直调生产显示、callback 与 Paint 路径并验证三语完整/部分/大小写/CJK/清空 query 与 placeholder 分层，不启动或修改真实 Cavalry。
 check_quick_add_search.cpp: Qt 6.6.3 vendor-free FastQuickAdd model/view 合同；以可控 owner/model fixture 证明精确 FastQuickAddModel 下三语 role 257 alias 投影与内侧 Unicode code-point subsequence filter 不污染 role 0/256 与其他角色，并保留 vendor role 0/257 fuzzy subsequence 命中（含 Behaviour Mixer），覆盖视频词条 Text/Shape/Box/Circle、任意新条目、多词别名、大小写/标点/组合字符/clear、分类多实例、动态插入删除、源替换、幂等挂接、原始搜索框接线、拒绝任意 Qt 列表及 view/filter 双向析构、旧 filter 复用与 QObject 生命周期，不冒充真实 Cavalry UI 证据；搜索上下文 guard 来自窄 `injector/cavalry_i18n_quick_add_context.h`。
 check_quick_add_search.sh: 本地 Quick Add 搜索合同 runner；从 `CAVALRY_QT_PREFIX` 或仓库 `qt_sdk/6.6.3/macos` 选择 SDK，先以 `qmake -query QT_VERSION` 验证 6.6.3，再在临时目录运行 moc/clang++ fixture，不读取或修改真实 Cavalry.app；编译闭包包含共享 Quick Add context。 共享 Fast 搜索合同与 Windows 产品统一使用 QT_NO_KEYWORDS，防止本地默认 Qt 宏掩盖编译兼容性问题。
@@ -189,4 +189,5 @@ tools 可以读取仓库与本地 Cavalry 安装，但测试型脚本不得修�
 2026-09-01: 发布资产合同撤销未具备凭据的 Developer ID/notarization 强制前提；seal v6 与 provenance v4 改为显式 `macos: ad-hoc`，生成器要求调用方明确传入签名模式，验证器与合同测试同步拒绝把 Tauri updater Ed25519 冒充 Apple 平台信任。
 2026-09-01: macOS DMG 挂载卷标由共享 resolver 固定为 `Cavalry Switcher <SemVer> <arch>`；本地与 CI 的既有盖章步骤同时写入，真实挂载 gate 精确回读，发布资产文件名仍独立表达 Cavalry 兼容目标与 patch tag。
 2026-09-04: Windows NSIS provenance schema v2 收敛为 producer/acceptance verifier 的单一 machine-readable 合同；验收 fixture 改由生产构造器生成，并以真实 producer→verifier round-trip 与协议突变反例阻止两套版本/键集合再次各自变绿。
+2026-09-22: Issue 33 现行输入边界收敛为双平台共享 `translateLineEditPlaceholder` 的 placeholder-only 路径：普通/只读名称以及 parentless/重挂接查询框的 QLineEdit 实际值保持原文，`text()` 仅供改名/查询或 Paint fingerprint 观察；上方 2026-05-18/21 条目保留为当时历史，不改写成现行行为。当前合同名为 `embedded injector keeps input values outside display translation` 与 `generic line edit paths on both platforms do not write business text`；其他 model DisplayRole 风险未由此条目宣称全部解决。
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md

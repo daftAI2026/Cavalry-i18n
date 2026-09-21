@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 cavalry_i18n_display.h、共享 exact-context/选择输入值/搜索别名策略、Windows Classic priority ABI 防火墙、CavalryEmbeddedTranslator 与 Qt 6.6.3 Widgets/DisplayRole 公共 API，以及 CavalryUI `ListWidget::setPlaceholder`/`this+0x28` 的静态 ABI 合同
- * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字、交互补全输入（含 parentless 构建阶段）保护、FastQuickAdd 双语过滤、Windows ABI 验证后的标题绘制副本、Quick Add 顶部 RolloverLabel 类别显示副本、Classic 名称/说明双语索引与原厂 priority 完整及前缀标题补充、exact Classic `No Results` placeholder 显示投影，以及动态英文写回恢复
+ * [OUTPUT]: 对外实现菜单/动作首帧翻译、逐行 tooltip、数字后缀、selected/认证及来源绑定的 Mesh Explorer/Project Statistics QLabel、gMainWindow 绑定 Tracking 标题、Color Settings QComboBox 模板、真实 Assets 菜单动态模板、单索引 QPlainTextEdit 占位文字、全部 QLineEdit 实际值保护（含只读名称与 parentless 构建阶段）、FastQuickAdd 双语过滤、Windows ABI 验证后的标题绘制副本、Quick Add 顶部 RolloverLabel 类别显示副本、Classic 名称/说明双语索引与原厂 priority 完整及前缀标题补充、exact Classic `No Results` placeholder 显示投影，以及动态英文写回恢复
  * [POS]: injector/windows 的主动显示翻译器，以事件驱动白名单补齐厂商控件与复合提示；动态模板同时校验显示属性、已采证父系、producer 或 vendor 主窗口身份，Quick Add 顶部类别只在 CavalryUI getter ABI 与 exact owner 链同时通过时投影译文，Classic 空结果只在完整 vendor gate 后读取/写回 exact `ListWidget` 本体或真实 viewport 对应的 `this+0x28`，保护可编辑/字体 Combo 及其编辑器/弹出列表的业务值，隔离编辑器正文、UserRole、currentIndex、QLineEdit 用户值与无关 QWidget
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -1357,38 +1357,9 @@ void CavalryDisplayTranslator::translateComboBoxDisplay(QComboBox *comboBox)
 
 void CavalryDisplayTranslator::translateLineEditDisplay(QLineEdit *lineEdit)
 {
-    if (lineEdit == nullptr) {
-        return;
-    }
-
-    const QPointer<QLineEdit> guardedLineEdit(lineEdit);
-    if (!cavalry_i18n::preservesSelectionValue(lineEdit) &&
-        !cavalry_i18n::preservesCompleterInputValue(lineEdit)) {
-        applyTranslation(
-            lineEdit,
-            QByteArrayLiteral("lineEditText"),
-            lineEdit->text(),
-            [guardedLineEdit](const QString &value) {
-                if (!guardedLineEdit.isNull()) {
-                    // 选择输入已退出；其余历史路径只阻断信号，不承诺数据与显示隔离。
-                    QSignalBlocker blocker(guardedLineEdit.data());
-                    guardedLineEdit->setText(value);
-                }
-            });
-    }
-    if (guardedLineEdit.isNull()) {
-        return;
-    }
-
-    applyTranslation(
-        lineEdit,
-        QByteArrayLiteral("placeholderText"),
-        guardedLineEdit->placeholderText(),
-        [guardedLineEdit](const QString &value) {
-            if (!guardedLineEdit.isNull()) {
-                guardedLineEdit->setPlaceholderText(value);
-            }
-        });
+    cavalry_i18n::translateLineEditPlaceholder(lineEdit, [this](const QString &source) {
+        return translationFor(source);
+    });
 }
 
 void CavalryDisplayTranslator::translatePlainTextEditDisplay(
