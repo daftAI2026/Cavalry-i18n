@@ -1467,6 +1467,21 @@ mod tests {
         bytes
     }
 
+    fn signed_macho_arm64(signature_len: usize, code_byte: u8) -> Vec<u8> {
+        let mut bytes = vec![0_u8; 64];
+        bytes[0..4].copy_from_slice(&0xfeedfacf_u32.to_le_bytes());
+        bytes[4..8].copy_from_slice(&0x0100_000c_u32.to_le_bytes());
+        bytes[16..20].copy_from_slice(&1_u32.to_le_bytes());
+        bytes[20..24].copy_from_slice(&16_u32.to_le_bytes());
+        bytes[32..36].copy_from_slice(&0x1d_u32.to_le_bytes());
+        bytes[36..40].copy_from_slice(&16_u32.to_le_bytes());
+        bytes[40..44].copy_from_slice(&64_u32.to_le_bytes());
+        bytes[44..48].copy_from_slice(&(signature_len as u32).to_le_bytes());
+        bytes[60] = code_byte;
+        bytes.extend((0..signature_len).map(|index| (index as u8).wrapping_add(0xa5)));
+        bytes
+    }
+
     fn clean_bundle(root: &Path) -> (PathBuf, PathBuf) {
         let app = root.join("Cavalry.app");
         let packaged = root.join("packaged-en");
@@ -1861,8 +1876,11 @@ mod tests {
         .unwrap();
         fs::set_permissions(app.join(WRAPPER), fs::Permissions::from_mode(0o755)).unwrap();
         let packaged_injector = root.join("packaged-injector.dylib");
-        fs::write(&packaged_injector, b"controlled injector").unwrap();
-        fs::write(app.join(INJECTOR), fs::read(&packaged_injector).unwrap()).unwrap();
+        let packaged_injector_bytes = signed_macho_arm64(32, 0x41);
+        fs::write(&packaged_injector, &packaged_injector_bytes).unwrap();
+        fs::set_permissions(&packaged_injector, fs::Permissions::from_mode(0o755)).unwrap();
+        fs::write(app.join(INJECTOR), &packaged_injector_bytes).unwrap();
+        fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o755)).unwrap();
         fs::create_dir_all(app.join("Contents/Resources")).unwrap();
         fs::write(app.join(MARKER), b"zh-Hans\n").unwrap();
         let original_extension =
@@ -1874,6 +1892,35 @@ mod tests {
         handle
             .verify_managed_runtime(&app, &packaged_injector)
             .unwrap();
+
+        // codesign 只替换签名材料时，injector 仍须通过同一 code identity；模式仍是受管边界。
+        let resigned_injector = signed_macho_arm64(8, 0x41);
+        fs::write(app.join(INJECTOR), &resigned_injector).unwrap();
+        fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o755)).unwrap();
+        handle
+            .verify_managed_runtime(&app, &packaged_injector)
+            .unwrap();
+        fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o644)).unwrap();
+        let mode_error = handle
+            .verify_managed_runtime(&app, &packaged_injector)
+            .unwrap_err();
+        assert!(
+            mode_error.contains("translator injector mode drifted"),
+            "{mode_error}"
+        );
+        fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o755)).unwrap();
+
+        let mut code_drifted = resigned_injector;
+        code_drifted[60] ^= 0x01;
+        fs::write(app.join(INJECTOR), &code_drifted).unwrap();
+        let identity_error = handle
+            .verify_managed_runtime(&app, &packaged_injector)
+            .unwrap_err();
+        assert!(
+            identity_error
+                .contains("translator injector changed outside its code-signature material"),
+            "{identity_error}"
+        );
 
         // A released pre-receipt injector is trusted by code identity, not by the current
         // package's raw bytes.  Its owned mode remains the executable 0755 contract.
@@ -1898,6 +1945,8 @@ mod tests {
             )
             .is_err());
 
+        fs::write(app.join(INJECTOR), &packaged_injector_bytes).unwrap();
+        fs::set_permissions(app.join(INJECTOR), fs::Permissions::from_mode(0o755)).unwrap();
         let mut drifted = patched_extension;
         drifted.push(0x7f);
         fs::write(app.join(KEYCHAIN_DYLIB), drifted).unwrap();
