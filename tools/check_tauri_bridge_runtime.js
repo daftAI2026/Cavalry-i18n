@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: renderer bridge/ui-text/icons/select/tooltip/path/operation-log/permission-handoff/update-progress/toast/about/window-controls/app.js 与最小 fake DOM、Tauri invoke/Channel fake。
- * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、跨平台未提交 marker 与 Windows runtime 残留均保留 Restore、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Badge、固定 about-label close 及 About/外链局部失败 Toast。
+ * [OUTPUT]: 验证 bridge、仅在未发现安装时显露的安装选择、保留但禁用当前语言的 Select Trigger/popup 显式占位与选择、版本只读门禁、跨平台未提交 marker 与 Windows runtime 残留均保留 Restore、Managed Legacy 恢复语义、旧 preflight hint 不再拦截真实事务、只读权限未知不产生启动警告、真实 typed PermissionDenied 按 macOS/Windows 分流且通过同一 forward/return rect 与 session Channel 合同恢复原操作、同进程 oracle 的重复成功前置阶段折叠、任务流、组件状态机、Updater Channel 与不内嵌 changelog 的确认边界、Select 选中更新徽章及状态刷新清理、Badge、固定 about-label close 及 About/外链局部失败 Toast。
  * [POS]: renderer 生产源的 Node VM 运行时契约；不虚称真实 WebView、packaged CSP 或 Tauri shell 验证。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -300,8 +300,16 @@ test('language patch status controls the current option, badge, and localized up
 
     chooseLanguage(r, 0);
     assert.equal(r.elements['#languageSelect'].value, 'zh-Hans');
+    const selectedCopy = r.elements['#languageSelectValue'];
+    assert.equal(selectedCopy.textContent, `简体中文${badgeText}`,
+      `${locale}: selecting an update must retain its status in the closed trigger`);
+    assert.equal(selectedCopy.attributes.get('aria-label'), current.attributes.get('aria-label'));
     assert.equal(r.elements['#applyButton'].textContent, updateAction, locale);
     assert.equal(r.elements['#applyButton'].disabled, false, `${locale}: update action must be available`);
+    chooseLanguage(r, 1);
+    assert.equal(selectedCopy.textContent, '繁體中文', `${locale}: another language must not inherit the badge`);
+    chooseLanguage(r, 0);
+    assert.equal(selectedCopy.textContent, `简体中文${badgeText}`);
   }
 
   const current = boot({ status: { currentLang: 'zh-Hans', patchStatus: 'current' } });
@@ -330,6 +338,31 @@ test('language patch status controls the current option, badge, and localized up
   assert.equal(legacyStatus.patchStatus, 'unknown', 'legacy getStatus responses must fail closed to unknown');
   assert.equal(legacy.elements['#languageSelectList'].children[0].dataset.disabled, 'false');
   assert.equal(legacy.elements['#languageSelectList'].children[0].children[0].children[1].textContent, 'Update available');
+});
+
+test('selected badge follows option refresh and clears stale content', () => {
+  const r = runtime({});
+  vm.runInNewContext(read('renderer/select-control.js'), r.context);
+  const e = r.elements;
+  const control = r.window.createSelectControl({
+    root: e['#languageSelectRoot'], select: e['#languageSelect'],
+    trigger: e['#languageSelectTrigger'], value: e['#languageSelectValue'],
+    popup: e['#languageSelectPopup'], popupPlaceholder: e['#languageSelectPopupPlaceholder'],
+    list: e['#languageSelectList'],
+  });
+  control.setPlaceholder('Choose');
+  const option = { value: 'zh-Hans', label: '简体中文', badge: { label: '可更新' } };
+  control.setOptions([option]);
+  control.setValue('zh-Hans');
+  assert.equal(e['#languageSelectValue'].textContent, '简体中文可更新');
+  control.setDisabled(true);
+  assert.equal(e['#languageSelectValue'].textContent, '简体中文可更新', 'busy state retains selected status');
+  control.setOptions([{ ...option, badge: null, disabled: true }]);
+  assert.equal(e['#languageSelectValue'].textContent, '简体中文', 'new backend status removes the old badge');
+  assert.equal(e['#languageSelectValue'].attributes.get('aria-label'), '简体中文');
+  control.setValue('');
+  assert.equal(e['#languageSelectValue'].textContent, 'Choose');
+  assert.equal(e['#languageSelectValue'].attributes.has('aria-label'), false);
 });
 
 test('legacy permission hints do not fabricate a startup warning before an operation fails', async () => {
