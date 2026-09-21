@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * [INPUT]: 依赖 runtime inventory、compiled source-map、extraction inventory、tools/check_runtime_ui_coverage.js、python_command.js 与 validate_translations.py
- * [OUTPUT]: 对外提供跨平台单语言 full-ui 覆盖率 gate，校验 JSON、compiled、runtime 与 §P5 翻译质量
+ * [OUTPUT]: 对外提供跨平台单语言 full-ui 覆盖率 gate，校验 JSON、compiled、runtime、type:font 默认身份与 §P5 翻译质量
  * [POS]: tools 的单语言矩阵单元，被 check_full_ui_matrix.js 和 npm check:full-ui:* 调用，Python 进程统一经过平台命令边界
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -252,6 +252,7 @@ function runJsonValidator(repoRoot, language, extractionInventoryPath = '') {
     localeSyncIssueCount: languageReport.locale_sync_issue_count || 0,
     purityIssueCount: languageReport.purity_issue_count || 0,
     forbiddenPatternIssueCount: languageReport.forbidden_pattern_issue_count || 0,
+    fontIdentityIssueCount: languageReport.font_identity_issue_count || 0,
     forbiddenPatterns: languageReport.forbidden_patterns || { total: 0, by_pattern: {}, samples: [] },
     denominatorSource: extractionInventoryPath ? 'extraction-inventory' : 'repo-english-files',
     pass:
@@ -263,7 +264,8 @@ function runJsonValidator(repoRoot, language, extractionInventoryPath = '') {
       (languageReport.english_residue_count || 0) === 0 &&
       (languageReport.locale_sync_issue_count || 0) === 0 &&
       (languageReport.purity_issue_count || 0) === 0 &&
-      (languageReport.forbidden_pattern_issue_count || 0) === 0,
+      (languageReport.forbidden_pattern_issue_count || 0) === 0 &&
+      (languageReport.font_identity_issue_count || 0) === 0,
   };
 }
 

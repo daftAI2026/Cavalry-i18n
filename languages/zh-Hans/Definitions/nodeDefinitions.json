@@ -22059,8 +22059,8 @@
         "type": "font",
         "connectable": false,
         "default": {
-          "font": "拉图",
-          "style": "粗体"
+          "font": "Lato",
+          "style": "Bold"
         }
       },
       "fontAxes": {
@@ -22954,8 +22954,8 @@
       "font": {
         "type": "font",
         "default": {
-          "font": "拉图",
-          "style": "经常"
+          "font": "Lato",
+          "style": "Regular"
         }
       },
       "fontAxes": {
