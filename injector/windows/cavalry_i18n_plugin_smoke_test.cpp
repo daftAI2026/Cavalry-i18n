@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、QPA 等价显式 specification 与 diagnostic marker
- * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离，以及 text-path 与独立时间轴字体 hook 的诊断；缺少厂商模块不阻断已有翻译
+ * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离，以及 text-path 与独立时间轴字体 hook 的诊断；缺少厂商模块不阻断已有翻译，并锁定低频诊断采样的写盘上界、安装状态即时性与最终 revision 收敛
  * 对外验证环境空 specification 被拒、显式语言成功、普通输入原值与占位提示分离及含 64 位 source mask 的九项 text-path marker 结构
  * [POS]: injector/windows 的端到端回归 smoke；证明只有正式 QPA 显式入口能创建翻译运行时
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -34,6 +34,8 @@
 
 #include <cstdio>
 #include <memory>
+
+#include "cavalry_i18n_runtime.h"
 
 namespace {
 
@@ -145,6 +147,84 @@ bool verifyMarker()
         return fail(QStringLiteral(
             "Timeline font hook must wait independently without blocking embedded translations."));
     }
+    return true;
+}
+
+bool verifyDiagnosticSampling()
+{
+    // 以可控单调时间模拟每帧 measure/draw；测试写入回调代表 QSaveFile 提交。
+    using Snapshot = CavalryRuntimeDiagnosticSnapshot;
+    CavalryRuntimeDiagnosticSampler sampler(1'000);
+    sampler.prime(Snapshot {}, 0);
+
+    int writeCount = 0;
+    Snapshot persisted {};
+    const auto sample =
+        [&](const Snapshot &observed,
+            std::int64_t nowMilliseconds,
+            bool installationStateChanged = false) {
+            const auto ready = sampler.sample(
+                observed,
+                nowMilliseconds,
+                installationStateChanged);
+            if (!ready.has_value()) {
+                return false;
+            }
+            ++writeCount;
+            persisted = ready.value();
+            return true;
+        };
+
+    Snapshot latest {};
+    for (std::int64_t now = 1; now < 1'000; ++now) {
+        latest = Snapshot {
+            static_cast<std::uint64_t>(now),
+            static_cast<std::uint64_t>(now),
+        };
+        if (sample(latest, now)) {
+            return fail(
+                QStringLiteral(
+                    "Diagnostic counters were persisted during the per-frame burst."));
+        }
+    }
+
+    if (!sample(latest, 1'000)
+        || writeCount != 1
+        || persisted.textPathRevision != latest.textPathRevision
+        || persisted.timelineFontRevision != latest.timelineFontRevision) {
+        return fail(
+            QStringLiteral(
+                "Diagnostic sampler did not emit the latest counters at the sampling boundary."));
+    }
+
+    // Hook installation/status transitions retain the immediate diagnostic path.
+    if (!sample(latest, 1'001, true) || writeCount != 2) {
+        return fail(
+            QStringLiteral(
+                "Diagnostic sampler delayed an installation-state change."));
+    }
+
+    for (std::int64_t now = 1'002; now < 2'001; ++now) {
+        latest = Snapshot {
+            static_cast<std::uint64_t>(now),
+            static_cast<std::uint64_t>(now + 10),
+        };
+        if (sample(latest, now)) {
+            return fail(
+                QStringLiteral(
+                    "Diagnostic sampler persisted a second per-frame burst before its deadline."));
+        }
+    }
+
+    if (!sample(latest, 2'001)
+        || writeCount != 3
+        || persisted.textPathRevision != latest.textPathRevision
+        || persisted.timelineFontRevision != latest.timelineFontRevision) {
+        return fail(
+            QStringLiteral(
+                "Diagnostic sampler lost the final counters observed before its deadline."));
+    }
+
     return true;
 }
 
@@ -483,7 +563,8 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    const bool passed = verifyEmbeddedTranslationSamples()
+    const bool passed = verifyDiagnosticSampling()
+            && verifyEmbeddedTranslationSamples()
             && verifyDisplayTranslation(application) && verifyMarker()
         ? true
         : false;
