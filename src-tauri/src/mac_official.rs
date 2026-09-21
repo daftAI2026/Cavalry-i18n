@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖受支持 macOS bundle 结构、当前可恢复 seal、packaged English、state generation root 与精确 runtime/JSON 文件。
- * [OUTPUT]: 提供 English JSON + stock runtime 单一 immutable recovery generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明（允许摘要验证后的历史 wrapper/injector 作为已安装版本证明）、同步撤销脚本入口外置签名组件的 English 恢复计划及完整 postimage/签名复核。
+ * [OUTPUT]: 提供 English JSON + stock runtime 单一 immutable recovery generation 的准备/验证、typed VerifiedVendorBaseline、baseline-derived managed runtime 证明（wrapper 字节精确、受管 Mach-O injector 以 code identity 允许重签）、同步撤销脚本入口外置签名组件的 English 恢复计划及完整 postimage/签名复核。
  * [POS]: macOS recovery baseline 真相层；Team ID 只保留为 Official 展示证据，不充当翻译许可证；generation rename 只发布不可变候选，state.json provenance 是唯一 current commit bit。
  * [FAIL-CLOSED]: capture 必须满足 before == staged == after；managed Mach-O 仅允许签名区变化；任一由本工具拥有的 manifest/hash/path/mode/recovery-seal 漂移或 symlink 均拒绝。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -762,7 +762,8 @@ impl VerifiedVendorBaseline {
         )
     }
 
-    /// 历史回执提供旧 wrapper/injector，避免用新版产物误判合法旧安装。
+    /// 历史回执提供旧 wrapper/injector，避免用新版产物误判合法旧安装；injector 只允许
+    /// `detect` 已证明的签名材料变化，不能把任意字节漂移当作同一受管运行时。
     pub(crate) fn verify_managed_runtime_with_wrapper(
         &self,
         app_path: &Path,
@@ -781,12 +782,23 @@ impl VerifiedVendorBaseline {
                 .map_err(|error| error.to_string())?
                 .permissions()
                 .mode();
-            require_exact_managed_file(
-                &canonical_app.join(INJECTOR),
-                &expected_injector_bytes,
-                Some(expected_injector_mode),
-                "translator injector",
-            )
+            let injector = canonical_app.join(INJECTOR);
+            require_regular_file(&injector, "translator injector")?;
+            let actual_injector_bytes =
+                fs::read(&injector).map_err(|error| error.to_string())?;
+            if actual_injector_bytes != expected_injector_bytes {
+                let expected_code_identity =
+                    detect::macho_code_identity_sha256(&expected_injector_bytes)?;
+                if detect::macho_code_identity_sha256(&actual_injector_bytes)?
+                    != expected_code_identity
+                {
+                    return Err(
+                        "Managed Cavalry translator injector changed outside its code-signature material."
+                            .to_string(),
+                    );
+                }
+            }
+            require_mode(&injector, expected_injector_mode, "translator injector")
         })
     }
 
