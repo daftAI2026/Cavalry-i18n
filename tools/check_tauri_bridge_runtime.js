@@ -300,8 +300,16 @@ test('language patch status controls the current option, badge, and localized up
 
     chooseLanguage(r, 0);
     assert.equal(r.elements['#languageSelect'].value, 'zh-Hans');
+    const selectedCopy = r.elements['#languageSelectValue'];
+    assert.equal(selectedCopy.textContent, `简体中文${badgeText}`,
+      `${locale}: selecting an update must retain its status in the closed trigger`);
+    assert.equal(selectedCopy.attributes.get('aria-label'), current.attributes.get('aria-label'));
     assert.equal(r.elements['#applyButton'].textContent, updateAction, locale);
     assert.equal(r.elements['#applyButton'].disabled, false, `${locale}: update action must be available`);
+    chooseLanguage(r, 1);
+    assert.equal(selectedCopy.textContent, '繁體中文', `${locale}: another language must not inherit the badge`);
+    chooseLanguage(r, 0);
+    assert.equal(selectedCopy.textContent, `简体中文${badgeText}`);
   }
 
   const current = boot({ status: { currentLang: 'zh-Hans', patchStatus: 'current' } });
