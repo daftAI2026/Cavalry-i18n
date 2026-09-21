@@ -2,7 +2,7 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
-cavalry_i18n_skia_typeface.h: 固定提示文字路径与时间轴名称共享系统字体候选及已验证的 typeface 引用管理，防止两条绘制路径维护不同的字体与释放规则。
+cavalry_i18n_skia_typeface.h: 固定提示文字路径与时间轴名称共享系统字体候选及 typeface 引用管理；界面语言仅决定候选优先级，其他语种候选补齐用户名称缺字，避免两套字体与释放规则。
 cavalry_i18n_timeline_font_fallback.h / .cpp: 使用已验证 Skia ABI 选择能完整覆盖名称的系统字体；只借用 24 字节字体副本，保留原文字节、字号与变换，供测量和绘制共享同一选择规则。
 cavalry_i18n_timeline_font_contract.h / .cpp: 时间轴字体独立兼容门，验证 ExtensionLayer helper、精确测量/绘制槽与 SkFont 布局；未验证调用不进入字体替换路径。
 cavalry_i18n_timeline_font_hook.h / .cpp: 独立管理时间轴双槽安装、激活及原函数转发；系统字体资源随不可变回调快照存活，失效不会关闭既有固定提示翻译。

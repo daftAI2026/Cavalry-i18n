@@ -100,6 +100,12 @@ TimelineCallbackStatePtr &callbackSlot()
         CavalryTimelineFontCallbackState>();
 }
 std::atomic<const void *> gLifecycleOwner { nullptr };
+const char kFailedLifecycleOwner = 0;
+
+void *readIatPointer(void **slot)
+{
+    return ReadPointerAcquire(reinterpret_cast<void *volatile *>(slot));
+}
 void bump(
     const std::shared_ptr<CavalryTimelineFontDiagnosticState> &state,
     std::atomic<std::uint64_t> CavalryTimelineFontDiagnosticState::*counter)
@@ -131,7 +137,6 @@ TimelineCallbackStatePtr makeTombstone(
     return state;
 }
 struct ModuleImage final {
-    HMODULE module = nullptr;
     const std::uint8_t *base = nullptr;
     std::size_t size = 0;
 };
@@ -163,10 +168,9 @@ bool inspectModule(HMODULE module, ModuleImage *image)
     MODULEINFO info {};
     if (!GetModuleInformation(
             GetCurrentProcess(), module, &info, sizeof(info))
-        || info.lpBaseOfDll == nullptr || info.SizeOfImage == 0) {
+        || info.lpBaseOfDll != module || info.SizeOfImage == 0) {
         return false;
     }
-    image->module = module;
     image->base = static_cast<const std::uint8_t *>(info.lpBaseOfDll);
     image->size = info.SizeOfImage;
     return true;
@@ -180,7 +184,7 @@ bool pinModule(HMODULE module, QString *failure)
                    | GET_MODULE_HANDLE_EX_FLAG_PIN,
                reinterpret_cast<LPCWSTR>(module),
                &pinned)
-        || pinned == nullptr) {
+        || pinned != module) {
         if (failure != nullptr) {
             *failure = QStringLiteral(
                 "Could not PIN the verified ExtensionLayer.dll image (Win32 error %1).")
@@ -201,12 +205,10 @@ bool approvedCaller(
     const void *returnAddress,
     const std::uint8_t *expected)
 {
-    return returnAddress != nullptr && expected != nullptr
-        && returnAddress == expected
-        && state.extensionLayerImage != nullptr
-        && expected >= state.extensionLayerImage
-        && static_cast<std::size_t>(expected - state.extensionLayerImage)
-            < state.extensionLayerImageSize;
+    const auto caller = reinterpret_cast<std::uintptr_t>(returnAddress);
+    const auto base = reinterpret_cast<std::uintptr_t>(state.extensionLayerImage);
+    return caller != 0 && base != 0 && returnAddress == expected
+        && caller >= base && caller - base < state.extensionLayerImageSize;
 }
 bool validUtf8Invocation(
     const std::shared_ptr<CavalryTimelineFontDiagnosticState> &diagnostics,
@@ -382,7 +384,11 @@ CavalryTimelineFontHook::~CavalryTimelineFontHook()
 {
     QString ignoredFailure;
     std::lock_guard<std::mutex> lock(lifecycleMutex_);
-    uninstallLocked(&ignoredFailure);
+    if (!uninstallLocked(&ignoredFailure) && ownsLifecycle_) {
+        // 残留 replacement 只转发；永久占位不保留已销毁对象的地址。
+        const void *expected = this;
+        gLifecycleOwner.compare_exchange_strong(expected, &kFailedLifecycleOwner);
+    }
 }
 bool CavalryTimelineFontHook::ensureInstalled()
 {
@@ -457,8 +463,8 @@ bool CavalryTimelineFontHook::ensureInstalled()
             &resolvedTargetError)) {
         return failTerminalLocked(contractFailure(resolvedTargetError));
     }
-    const void *measureOriginal = *measureSlot;
-    const void *drawOriginal = *drawSlot;
+    const void *measureOriginal = readIatPointer(measureSlot);
+    const void *drawOriginal = readIatPointer(drawSlot);
     if (expectedMeasure == nullptr || expectedDraw == nullptr
         || measureOriginal != expectedMeasure || drawOriginal != expectedDraw) {
         return failTerminalLocked(QStringLiteral(
@@ -610,7 +616,7 @@ bool CavalryTimelineFontHook::uninstallLocked(QString *failureDetail)
         if (measureRestored) {
             measureInstalled_ = false;
             measureIatSlot_ = nullptr;
-        } else if (*measureIatSlot_ != reinterpret_cast<void *>(timelineMeasureTextReplacement)) {
+        } else if (readIatPointer(measureIatSlot_) != reinterpret_cast<void *>(timelineMeasureTextReplacement)) {
             measureInstalled_ = false;
             measureIatSlot_ = nullptr;
         }
@@ -624,16 +630,16 @@ bool CavalryTimelineFontHook::uninstallLocked(QString *failureDetail)
         if (drawRestored) {
             drawInstalled_ = false;
             drawIatSlot_ = nullptr;
-        } else if (*drawIatSlot_ != reinterpret_cast<void *>(timelineDrawSimpleTextReplacement)) {
+        } else if (readIatPointer(drawIatSlot_) != reinterpret_cast<void *>(timelineDrawSimpleTextReplacement)) {
             drawInstalled_ = false;
             drawIatSlot_ = nullptr;
         }
     }
     const bool unresolvedOwnedSlot =
         (measureInstalled_ && measureIatSlot_ != nullptr
-            && *measureIatSlot_ == reinterpret_cast<void *>(timelineMeasureTextReplacement))
+            && readIatPointer(measureIatSlot_) == reinterpret_cast<void *>(timelineMeasureTextReplacement))
         || (drawInstalled_ && drawIatSlot_ != nullptr
-            && *drawIatSlot_ == reinterpret_cast<void *>(timelineDrawSimpleTextReplacement));
+            && readIatPointer(drawIatSlot_) == reinterpret_cast<void *>(timelineDrawSimpleTextReplacement));
     if (!measureRestored || !drawRestored || unresolvedOwnedSlot) {
         if (!unresolvedOwnedSlot) {
             ownsLifecycle_ = !releaseLifecycleOwner(this);
