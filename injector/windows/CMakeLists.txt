@@ -756,6 +756,41 @@ if(BUILD_TESTING)
             "$<TARGET_FILE:cavalryi18n_extension_layer_hook_test>"
     )
 
+    foreach(timeline_surface fallback hook contract)
+        add_executable(cavalryi18n_timeline_font_${timeline_surface}_test
+            cavalry_i18n_timeline_font_${timeline_surface}_test.cpp
+        )
+        target_link_libraries(cavalryi18n_timeline_font_${timeline_surface}_test
+            PRIVATE Qt6::Core Qt6::Gui Psapi
+        )
+        target_compile_definitions(cavalryi18n_timeline_font_${timeline_surface}_test
+            PRIVATE CAVALRY_I18N_TESTING QT_NO_KEYWORDS
+        )
+    endforeach()
+    target_sources(cavalryi18n_timeline_font_hook_test
+        PRIVATE cavalry_i18n_translator.cpp
+    )
+    target_compile_definitions(cavalryi18n_timeline_font_hook_test PRIVATE
+        CAVALRY_I18N_TIMELINE_FONT_HOOK_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/cavalry_i18n_timeline_font_hook.cpp"
+    )
+    foreach(timeline_surface fallback hook)
+        add_test(NAME cavalryi18n_timeline_font_${timeline_surface}
+            COMMAND "${CMAKE_COMMAND}" -E env
+                "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+                "$<TARGET_FILE:cavalryi18n_timeline_font_${timeline_surface}_test>"
+        )
+    endforeach()
+    if(CAVALRY_VENDOR_ROOT)
+        add_test(NAME cavalryi18n_timeline_font_contract
+            COMMAND "${CMAKE_COMMAND}" -E env
+                "PATH=$<TARGET_FILE_DIR:Qt6::Core>$<SEMICOLON>$ENV{PATH}"
+                "$<TARGET_FILE:cavalryi18n_timeline_font_contract_test>"
+                "${CAVALRY_VENDOR_ROOT}/ExtensionLayer.dll"
+                "${CAVALRY_VENDOR_ROOT}/Core.dll"
+                "${CAVALRY_VENDOR_ROOT}/skia.dll"
+        )
+    endif()
+
     add_executable(cavalryi18n_plugin_smoke_test
         cavalry_i18n_plugin_smoke_test.cpp
     )

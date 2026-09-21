@@ -2,6 +2,9 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+cavalry_i18n_timeline_font_fallback_test.cpp: 时间轴字体回退合同，覆盖三语字形完整覆盖、ASCII 原样透传、原文与字体副本边界、测量绘制一致及资源释放。
+cavalry_i18n_timeline_font_contract_test.cpp: 新版 SkTimeEditorView 的 vendor 映像只读正反例，锁定真实 helper、两处测量/绘制调用与 SkFont ABI 漂移拒绝。
+cavalry_i18n_timeline_font_hook_test.cpp: 独立字体 hook 的等待、转发与生命周期回归；与翻译 hook 分离，未知调用不得替换字体。
 
 cavalry_i18n_quick_add_display_contract.h: Windows Fast 标题/类别 ABI 防火墙；锁定 ExtensionLayer PE64、paint/sizeHint/注册复制析构代码摘要及唯一元类型 interface，模块 PIN 后允许共享绘制副本适配器只改标题和类别显示副本，Release MSVC 字符串 ABI 与原厂 Atomic/Beta 显示别名独立采证，命令、原始分类、搜索输入与源模型保持原样。
 cavalry_i18n_quick_add_vendor_test.cpp: 只读官方 PE 回归；静态映射厂商 DLL，验证真实 ABI 正例、十处关键代码逐项漂移和截断拒绝，不执行厂商代码。

@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖已构建 generic/cavalryi18n.dll、Qt Widgets 事件循环、QPA 等价显式 specification 与 diagnostic marker
- * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离及含 64 位 source mask 的九项 text-path marker 结构
+ * [OUTPUT]: 对外验证环境空 specification 被拒、显式语言成功、显示/数据隔离，以及 text-path 与独立时间轴字体 hook 的诊断；缺少厂商模块不阻断已有翻译
  * [POS]: injector/windows 的端到端回归 smoke；证明只有正式 QPA 显式入口能创建翻译运行时
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -129,6 +129,21 @@ bool verifyMarker()
         return fail(QStringLiteral("Plugin marker contract mismatch."));
     }
 
+    const QJsonObject timelineDiagnostics = marker.value(
+        QStringLiteral("timelineFontDiagnostics")).toObject();
+    if (!marker.value(QStringLiteral("timelineFontHookStatus"))
+             .toString().startsWith(QStringLiteral("waiting"))
+        || !marker.value(QStringLiteral("timelineFontHookDetail"))
+                .toString().contains(QStringLiteral("ExtensionLayer.dll"))
+        || !timelineDiagnostics.contains(QStringLiteral("revision"))
+        || timelineDiagnostics.value(QStringLiteral("revision")).toInteger() != 0
+        || !timelineDiagnostics.contains(QStringLiteral("measureFallback"))
+        || timelineDiagnostics.value(QStringLiteral("measureFallback")).toInteger() != 0
+        || !timelineDiagnostics.contains(QStringLiteral("drawFallback"))
+        || timelineDiagnostics.value(QStringLiteral("drawFallback")).toInteger() != 0) {
+        return fail(QStringLiteral(
+            "Timeline font hook must wait independently without blocking embedded translations."));
+    }
     return true;
 }
 
