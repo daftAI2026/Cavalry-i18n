@@ -148,4 +148,15 @@ Toast 只服务 About 窗口或固定项目链接等低频、局部、非主任�
 
 当前语言是选择事实，补丁是否最新是成功应用回执与随包内容的比较结果，两者不合并。Select 只在后端返回 `current` 时禁用当前语言；缺少旧回执或已确认内容变化时保留显式重新应用入口，不自动修改 Cavalry。
 
+Select 的已提交值与 active 高亮必须分离。依据 [shadcn 锁定 Select 源码](https://github.com/shadcn-ui/ui/blob/683a5a9b370acdb7785a0529434e6a3b8c7e0441/apps/v4/registry/bases/base/ui/select.tsx) 和 [Base UI 1.6.0 SelectValue](https://github.com/mui/base-ui/blob/v1.6.0/packages/react/src/select/value/SelectValue.tsx)，Value 消费当前选择及对应内容，不从鼠标高亮或菜单 DOM 复制选中状态。项目菜单项与 Trigger 使用同一个 option 内容投影；可更新徽章和无障碍名称随选中项一起显示。
+
+| 状态变化 | Trigger 的内容 |
+| --- | --- |
+| 无选择或清空 | 仅占位文字，移除旧徽章及其无障碍名称 |
+| 选中带更新徽章的语言 | 名称与徽章都保留，收起菜单不改变业务状态 |
+| 打开、悬停、方向键或 Escape | active/open 可改变，已提交选中内容不提前改变 |
+| 选中其他语言 | 使用新 option 的内容，不继承上一项徽章 |
+| 事务期间禁用 | 保留选中状态；禁用不等于更新完成 |
+| 后端刷新为 current | 使用新 option 清除徽章；由业务决定后续清空或禁用选择 |
+
 「可更新」是语言名称的附属元数据，紧随名称组成靠左的一组，使用已有 `green-subtle` 更新语义、Badge 尺寸与间距 token；选中勾独立留在行末。徽章不是按钮，也不以颜色替代文字；选项与 Trigger 的无障碍名称包含更新语义。

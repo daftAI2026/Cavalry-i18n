@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- 选择带有“可更新”徽章的语言后，收起下拉菜单仍显示该徽章，并随补丁状态刷新。
+
 ## [1.0.3] - 2026-09-10
 
 ### Fixed

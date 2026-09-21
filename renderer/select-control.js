@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 index.html 的原生 select 数据槽、combobox trigger、只读 popup placeholder、listbox popup 与 option 容器，依赖浏览器键盘/指针事件和 ARIA 属性。
- * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected/disabled 状态边界和只在开启瞬间定位的 item-aligned positioner 语义实现单选菜单；空值弹层仍投影占位行，禁用项保持可见但不会被指针、方向键、Home/End、Enter/Space 或 typeahead 选中，可选 badge 由业务传入并与语言名组成左侧紧凑组，选中 checkmark 独立贴右。
+ * [OUTPUT]: 对外提供 createSelectControl 工厂，以 Base UI 的 placeholder/open/active/selected/disabled 状态边界和只在开启瞬间定位的 item-aligned positioner 语义实现单选菜单；空值弹层仍投影占位行，禁用项保持可见但不会被指针、方向键、Home/End、Enter/Space 或 typeahead 选中，可选 badge 由业务传入，菜单项与已提交选中值共享名称/徽章及无障碍投影，不随 active 改变，选中 checkmark 独立贴右。
  * [POS]: renderer 的无依赖选择器组件状态机；只管理显式选择交互和无障碍投影，不替业务预选默认值、不读取业务状态、不调用 Tauri，也不引入 React、组件库或 CDN。
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -79,7 +79,14 @@
       const hasSelection = selected >= 0;
       root.dataset.placeholder = String(!hasSelection);
       value.dataset.placeholder = String(!hasSelection);
-      value.textContent = hasSelection ? options[selected].label : placeholder;
+      value.replaceChildren();
+      if (hasSelection) {
+        value.append(createOptionCopy(options[selected]));
+        value.setAttribute('aria-label', optionAccessibleLabel(options[selected]));
+      } else {
+        value.textContent = placeholder;
+        value.removeAttribute('aria-label');
+      }
       popupPlaceholder.hidden = !(open && !hasSelection);
       popupPlaceholder.textContent = placeholder;
 
@@ -137,7 +144,7 @@
       item.dataset.disabled = String(option.disabled);
       item.setAttribute('role', 'option');
       item.setAttribute('aria-disabled', String(option.disabled));
-      const accessibleLabel = option.ariaLabel || [option.label, option.badge?.ariaLabel].filter(Boolean).join(', ');
+      const accessibleLabel = optionAccessibleLabel(option);
       if (accessibleLabel) item.setAttribute('aria-label', accessibleLabel);
       item.addEventListener('pointermove', () => {
         if (!option.disabled && activeIndex !== index) setActive(index);
@@ -145,22 +152,7 @@
       item.addEventListener('pointerdown', (event) => event.preventDefault());
       item.addEventListener('click', () => commit(index));
 
-      const copy = document.createElement('span');
-      copy.className = 'select-item-copy';
-      const label = document.createElement('span');
-      label.className = 'select-item-label';
-      label.textContent = option.label;
-      copy.append(label);
-
-      if (option.badge) {
-        const badge = document.createElement('span');
-        badge.className = 'badge select-item-badge';
-        if (option.badge.kind) badge.dataset.kind = option.badge.kind;
-        badge.textContent = option.badge.label;
-        badge.setAttribute('aria-hidden', 'true');
-        copy.append(badge);
-      }
-      item.append(copy);
+      item.append(createOptionCopy(option));
 
       const indicator = document.createElement('span');
       indicator.className = 'select-item-indicator';
@@ -178,6 +170,30 @@
       indicator.append(check);
       item.append(indicator);
       return item;
+    }
+
+    // ---- 菜单项与选中值共享内容，状态由同一 option 提供 ------------------
+    function optionAccessibleLabel(option) {
+      return option.ariaLabel || [option.label, option.badge?.ariaLabel].filter(Boolean).join(', ');
+    }
+
+    function createOptionCopy(option) {
+      const copy = document.createElement('span');
+      copy.className = 'select-item-copy';
+      const label = document.createElement('span');
+      label.className = 'select-item-label';
+      label.textContent = option.label;
+      copy.append(label);
+
+      if (option.badge) {
+        const badge = document.createElement('span');
+        badge.className = 'badge select-item-badge';
+        if (option.badge.kind) badge.dataset.kind = option.badge.kind;
+        badge.textContent = option.badge.label;
+        badge.setAttribute('aria-hidden', 'true');
+        copy.append(badge);
+      }
+      return copy;
     }
 
     function setOptions(nextOptions) {
