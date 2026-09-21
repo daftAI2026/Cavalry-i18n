@@ -2,6 +2,11 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+cavalry_i18n_macos_abi.h: 共享 Mach-O 映像/UUID/符号与机器码读取、64 位 Skia borrowed 存储；TransformTool 和时间轴各自定义准入而不重复解析。
+cavalry_i18n_macos_timeline_font.h / .cpp: Mac 时间轴名称两个 exact caller 的字体适配；启动期固定三个系统候选，按完整名称覆盖选择，同一策略服务测量与绘制，原始文本和24字节字体除typeface外保持原值；无逐帧IO或名称缓存。
+cavalry_i18n_macos_timeline_font_policy.h: UTF-8 严格解码与完整字形覆盖纯策略，ASCII/未知输入保持原字体，borrowed副本不拥有字体引用。
+cavalry_i18n_macos_timeline_font_contract.h: Cavalry 2.7.2双架构时间轴名称caller包络、ExtensionLayer/Skia UUID与四个字体导出地址/前缀锁；漂移保持原厂绘制。
+
 cavalry_i18n_macos_quick_add_category.h / .cpp: Mac 完整分类源 getter 适配，复用已 pin 映像函数解析并验证双架构字节，截短显示不冒充完整源，写显示仍由共享 tabs 策略负责。
 cavalry_i18n_quick_add_placeholder.h: Classic 空结果无缓存显示策略，exact owner/viewport 与当前英文 source 同时成立才调用一次平台 setter。
 cavalry_i18n_macos_quick_add_placeholder.h / .cpp: 复用 Classic 锁定映像解析门，双架构函数字节与 Qt 类型大小证明 placeholder 只读边界，写入走 vendor setter。

@@ -417,6 +417,12 @@ Space + click + drag / Pan
 
 这些字符串来自 `/Applications/Cavalry.app/Contents/Frameworks/libExtensionLayer.dylib` 的 `__TEXT,__cstring`，Cavalry 在 panel/viewport 内部绘制它们，不暴露为 `QLabel::text()`、`QAction::text()` 或 AX 文本节点。翻译表里有不等于会生效；Qt translator 和 widget 遍历都碰不到。
 
+### 时间轴用户名称：字体覆盖，不是翻译
+
+Scene 列表显示正常而时间轴同名方框时，先核对 UTF-8 名称与原字体 glyph；不得把用户名称加入翻译表或更改模型身份。macOS 与 Windows 的时间轴名称适配分别锁定自己的 Cavalry 2.7.2 调用点/ABI，测量和绘制按同一完整名称覆盖规则借用字体，不能复制另一平台地址或系统字体名。
+
+macOS 启动时准备有限系统字体候选，纯 ASCII 与原字体完整覆盖的名称保持原字体；只为两个验证通过的名称 caller 借用同字号/缩放/倾斜/flags 的字体副本。没有逐帧字体创建、名称缓存或诊断文件写入。验收必须含三语界面下同一组英文、简中、繁中、日文、混排、长名称及缩放/滚动/裁切，并保留既有工具提示对照；计数增长不等于屏幕字形正确。
+
 ### `Viewport Quality: High`：已批准的 macOS 英文边界
 
 > **范围：macOS-only。** 以下结论仅来自 Cavalry `2.7.2` 在 macOS 上的 runtime/live

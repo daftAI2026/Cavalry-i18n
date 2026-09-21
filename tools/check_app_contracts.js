@@ -5496,7 +5496,7 @@ test('macOS Transform Tool adapter is a five-source fail-open ABI firewall', () 
   assert.match(source, /kAllSourceBits = 0x1f/);
   assert.match(source, /verifyVendorContract\(\)/);
   assert.match(source, /callerChainMatches\(return0, return1, return2\)/);
-  assert.match(source, /LC_SYMTAB/);
+  assert.match(fs.readFileSync(path.join(injectorRoot, 'cavalry_i18n_macos_abi.h'), 'utf8'), /LC_SYMTAB/);
   assert.match(source, /findMachOSymbol/);
   assert.match(source, /pathIsEmpty\(path\)/);
   assert.match(source, /recordFallback\(\*action\)[\s\S]{0,180}original\(text, size, encoding, x, y, font, path\)/);

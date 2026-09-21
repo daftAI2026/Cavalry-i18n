@@ -3,7 +3,7 @@
 
 成员清单
 cavalry-glossary.md: Cavalry 四语术语表（en/zh-Hans/zh-Hant/ja_JP），含注释列标注禁用词、Forge Dynamics 显示层例外、Cavalry 版本增量与行业对齐来源。
-runtime-ui-live-capture-workflow.md: Runtime UI live 抓取流程，Windows 启动状态 marker 与显式绘制计数采样分离，区分调试/安装包启动路径、Cavalry 窗口截图证据、`widgetAt(cursor)` 坐标反查、Qt item model dump、JSON 数据层复用、ModalDialog 诊断、闪烁根因分类、注入后中文 session、英文 dump-only 基线与 ExtensionLayer 平台精确边界（QLineEdit 只翻译 `placeholderText`；实际名称/查询值含只读、parentless/重挂接保持原文；未经采证的 model DisplayRole 风险仍独立处理），并规定全量复抓、增量修复、coverage 对比路径。
+runtime-ui-live-capture-workflow.md: 同时区分时间轴用户名称字体覆盖与界面翻译、两平台独立 ABI 和无逐帧诊断落盘； Runtime UI live 抓取流程，Windows 启动状态 marker 与显式绘制计数采样分离，区分调试/安装包启动路径、Cavalry 窗口截图证据、`widgetAt(cursor)` 坐标反查、Qt item model dump、JSON 数据层复用、ModalDialog 诊断、闪烁根因分类、注入后中文 session、英文 dump-only 基线与 ExtensionLayer 平台精确边界（QLineEdit 只翻译 `placeholderText`；实际名称/查询值含只读、parentless/重挂接保持原文；未经采证的 model DisplayRole 风险仍独立处理），并规定全量复抓、增量修复、coverage 对比路径。
 runtime-translation-noise-triage.md: Runtime 翻译噪声分诊协议，定义短 token provenance 证据等级、quarantine 决策、live capture 对准步骤与 Time Editor niceName 保护线。
 translation-guidelines.md: Add Layer 查询/检索/显示/身份分离及 Unicode 验收契约； 翻译规范，约束语言风格、保留词、字体族/样式原值、JSON font 默认身份及未来独立显示层边界、快捷键身份原文/操作本地化例外、Forge Dynamics 显示层/模型层分流与界面一致性。
 component-source-adaptation-protocol.md: 语言补丁更新徽章的绿色语义、菜单/选中值共享投影及 active/selected 状态边界； 开源组件源码适配知识基线，定义 Design token、组件行为与业务三层所有权；锁定 shadcn Button/Marker/Select/Tooltip/AlertDialog/Toast commit、Base UI 1.6.0 Toast、shadcn 4.19.0 utility 与 Phosphor commit，并规定 Button/业务 variant 分层、Windows transparent-compositor 外壳、四枚 caption、平台 UI Review 同步、DPI 与视觉/静态/真机证据边界及 GEB 回环。

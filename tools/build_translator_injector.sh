@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# [INPUT]: 依赖 Qt SDK、可选 Cavalry.app Frameworks、macOS injector 主源/Quick Add 类别、Classic 空结果与排序与 TransformTool text-path ABI 适配器及 generated_translations.inc/JSON 说明反向索引
+# [INPUT]: 依赖时间轴名称字体适配器； 依赖 Qt SDK、可选 Cavalry.app Frameworks、macOS injector 主源/Quick Add 类别、Classic 空结果与排序与 TransformTool text-path ABI 适配器及 generated_translations.inc/JSON 说明反向索引
 # [OUTPUT]: 对外构建启用 -O2/-fno-omit-frame-pointer、以 @loader_path 绑定目标 app Qt/libskia 的 universal injector dylib；干净 CI 无 vendor app 时只生成同 install-name 的临时 Skia 链接桩
 # [POS]: tools 的 injector 发布构建入口，以 Qt minor、双 slice caller-frame 保留、可搬移运行时链接和稳定优化级别连接源码与 Tauri bundle resource，同时把 vendor 二进制依赖留在用户运行时
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -93,6 +93,13 @@ extern "C" void cavalryI18nSkiaGetPathLinkStub(
     void *)
 {
 }
+extern "C" float timelineMeasureStub(const void *,const void *,std::size_t,int,void *,const void *)
+    __asm("__ZNK6SkFont11measureTextEPKvm14SkTextEncodingP6SkRectPK7SkPaint");
+extern "C" float timelineMeasureStub(const void *,const void *,std::size_t,int,void *,const void *) { return 0; }
+extern "C" void timelineDrawStub(void *,const void *,std::size_t,int,float,float,const void *,const void *)
+    __asm("__ZN8SkCanvas14drawSimpleTextEPKvm14SkTextEncodingffRK6SkFontRK7SkPaint");
+extern "C" void timelineDrawStub(void *,const void *,std::size_t,int,float,float,const void *,const void *) {}
+
 EOF
   clang++ \
     -std=c++17 \
@@ -221,6 +228,7 @@ clang++ \
   "$PLACEHOLDER_SOURCE" \
   "$CATEGORY_SOURCE" \
   "$TOOL_HELP_SOURCE" \
+  "$REPO_ROOT/injector/cavalry_i18n_macos_timeline_font.cpp" \
   "$SKIA_LINK" \
   -o "$OUTPUT" \
   -I"$QT_FRAMEWORKS" \
