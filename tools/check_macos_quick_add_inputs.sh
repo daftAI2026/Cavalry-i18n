@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # [INPUT]: 依赖显式 Qt 6.6.3 SDK、只读 vendor Frameworks/libskia.dylib、全部生产 ABI 适配器编译单元与生产 macOS injector 源码
-# [OUTPUT]: 编译并运行绿色 Quick Add 搜索输入合同，并在隔离临时副本移除两个 search guard 后验证红色回归
+# [OUTPUT]: 编译并运行绿色 Quick Add 搜索输入合同，并在隔离临时副本恢复实际值翻译后验证红色回归
 # [POS]: tools 的 macOS 原生搜索输入测试入口；moc fixture 使用精确 Cavalry owner 名称，不启动/改写 Cavalry 或 vendor Frameworks
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 set -euo pipefail
@@ -80,18 +80,16 @@ QT_QPA_PLATFORM_PLUGIN_PATH="$QT_PREFIX/plugins/platforms" \
   "$GREEN"
 printf 'GREEN: production search guards preserved all Quick Add queries\n'
 
-# ---- 红测：只改临时生产副本，证明删除 guard 会被 fixture 拦截 ----------------
+# ---- 红测：只改临时生产副本，证明实际值回写会被 fixture 拦截 ---------------
 RED_ROOT="$BUILD_DIR/red-source"
 mkdir -p "$RED_ROOT/tools" "$RED_ROOT/injector"
 cp "$SOURCE" "$RED_ROOT/tools/check_macos_quick_add_inputs.mm"
 cp "$ROOT/injector/CavalryTranslatorInjector.mm" \
   "$RED_ROOT/injector/CavalryTranslatorInjector.mm"
 RED_SOURCE="$RED_ROOT/injector/CavalryTranslatorInjector.mm"
-perl -0pi -e 's/ &&\n\s*!cavalry_i18n::preservesCompleterInputValue\(lineEdit\)//' "$RED_SOURCE"
-perl -0pi -e 's/ \|\|\n\s*cavalry_i18n::preservesCompleterInputValue\(guardedLineEdit\.data\(\)\)//' "$RED_SOURCE"
-if grep -Fq 'preservesCompleterInputValue(lineEdit)' "$RED_SOURCE" || \
-   grep -Fq 'preservesCompleterInputValue(guardedLineEdit.data())' "$RED_SOURCE"; then
-  echo "failed to remove search guards from temporary red source" >&2
+perl -0pi -e 's/cavalry_i18n::translateLineEditPlaceholder\(lineEdit,/lineEdit->setText(translatedWidgetText(lang, lineEdit->text()));\n    cavalry_i18n::translateLineEditPlaceholder(lineEdit,/' "$RED_SOURCE"
+if ! grep -Fq 'lineEdit->setText(translatedWidgetText(lang, lineEdit->text()));' "$RED_SOURCE"; then
+  echo "failed to restore input-value mutation in temporary red source" >&2
   exit 1
 fi
 
@@ -105,7 +103,7 @@ QT_QPA_PLATFORM_PLUGIN_PATH="$QT_PREFIX/plugins/platforms" \
 RED_STATUS=$?
 set -e
 if [ "$RED_STATUS" -eq 0 ]; then
-  echo "RED: removing temporary search guards unexpectedly passed" >&2
+  echo "RED: restoring temporary input-value mutation unexpectedly passed" >&2
   exit 1
 fi
-printf 'RED: expected failure after temporary search-guard removal (status=%d)\n' "$RED_STATUS"
+printf 'RED: expected failure after temporary input-value mutation (status=%d)\n' "$RED_STATUS"

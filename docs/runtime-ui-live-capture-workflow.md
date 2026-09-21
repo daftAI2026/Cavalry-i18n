@@ -1,6 +1,6 @@
 <!--
 [INPUT]: 依赖 tools/run_live_full_ui_matrix.js、injector/CavalryTranslatorInjector.mm 的 live inventory / cursorWidget / itemModels 诊断能力，以及 macOS Accessibility 窗口截图证据
-[OUTPUT]: 对外提供 Cavalry 运行中 UI 文本抓取、坐标反查、Qt item model / JSON 数据复用 / ModalDialog 诊断、ExtensionLayer 平台精确边界、覆盖率复抓与 canary 验证流程
+[OUTPUT]: 对外提供 Cavalry 运行中 UI 文本抓取、坐标反查、Qt item model / JSON 数据复用 / ModalDialog 诊断、ExtensionLayer 平台精确边界（QLineEdit 仅翻译 `placeholderText`，名称/查询实际值保持原文）、覆盖率复抓与 canary 验证流程
 [POS]: docs 的运行时抓取主流程文档，连接 injector 诊断能力、语言资源同步和 audits 实跑报告
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 -->
@@ -305,7 +305,7 @@ Time Editor 自绘层:
 | 现场 | 抓取证据 | 不是 | 修复入口 |
 | --- | --- | --- | --- |
 | Composition 菜单项闪 | 打开前 Qt QAction 与打开后 AX 文本/enable 状态不一致 | 不是缺少 `Set Playback Range...` 词条 | `QMenu::aboutToShow` 同步 `translateMenuBeforeFirstPaint(...)` |
-| Scene View 图层名闪 | `EditableNodeName.text -> RowWidget -> SceneTreeWidget` | 不是 `QTreeModel DisplayRole`，也不是菜单 | `QEvent::Paint` 前同步翻译 `QLineEdit` |
+| Scene View 图层名/改名语义（历史闪烁样本） | `EditableNodeName.text -> RowWidget -> SceneTreeWidget` | 历史抓取曾归因于 QLineEdit 显示时机；当前实际名称是业务值，不是 `QTreeModel DisplayRole` 或菜单 | `QEvent::Paint` 只经共享 input policy 翻译 `placeholderText`；名称保持原文，改名/提交继续走 Cavalry 原生路径 |
 | 退出确认窗闪 | `ModalDialog`、`QLabel#qt_msgbox_label`、`QDialogButtonBox#qt_msgbox_buttonbox` | 不是 AppKit-only `NSAlert`，也不是 SceneTree | `QEvent::Show` 中同步翻译 `QDialog` |
 
 退出确认窗的 live inventory 形态应类似：
@@ -388,7 +388,7 @@ node tools/check_runtime_ui_coverage.js \
 
 1. source 缺失：TS 没有 exact source，补 `tools/*.ts`
 2. 生成物缺失：TS 有但 `injector/generated_translations.inc` 或 dylib 没更新
-3. runtime 未命中：翻译已嵌入，但 widget/action/line edit 没被 injector 写回
+3. runtime 未命中：翻译已嵌入，但可翻译的 widget/action/placeholder 没被 injector 写回；`QLineEdit::text()` 保持原文不属于残留
 4. 组合字符串：多行 tooltip 或空格、斜杠、冒号等 exact 变体导致查表失败
 5. 自绘 overlay：OpenGL / viewport helper 不在 QWidget 或 AX inventory
 6. 假阳性：品牌、技术缩写、颜色、快捷键 token，进入 allowlist 或保留
@@ -531,7 +531,7 @@ npm run build:injector
 
 ```bash
 node --test tools/check_app_contracts.js \
-  --test-name-pattern "checked-in generated translation table matches|shortcut-token|compound multiline|QLineEdit values"
+  --test-name-pattern "checked-in generated translation table matches|shortcut-token|compound multiline|embedded injector keeps input values outside display translation"
 ```
 
 7. 复抓新 session

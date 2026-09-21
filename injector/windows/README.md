@@ -71,9 +71,11 @@ runtime 不执行写安装根操作。
 
 插件安装嵌入式 `QTranslator` 后，会主动翻译 Cavalry 已存在和动态创建的
 菜单/动作，以及窗口标题、标签、按钮、分组框、输入框 placeholder、标签页、
-tooltip 和 statusTip。刷新严格停留在显示层：`QLineEdit::text()` 仅在共享词表
-命中时以信号阻断方式投影译文，未知/用户输入保持原样；`QTreeWidget` 仅写递归
-可见 `DisplayRole`。`UserRole`、Time Editor 模型身份和其他厂商业务数据均不修改。
+tooltip 和 statusTip。`QLineEdit` 的实际 `text()` 从不进入显示词典，也不被写回；
+普通/只读名称以及 parentless/重挂接查询框的当前值保持原文，继续交给 Cavalry
+的改名/查询业务。共享输入策略只翻译 `placeholderText`；`text()` 仅供查询过滤、
+提交或 Paint fingerprint 观察。`QTreeWidget` 仅写递归可见 `DisplayRole`。
+`UserRole`、Time Editor 模型身份和其他厂商业务数据均不修改。
 
 Search Bar、Tag Header、Color Window 与 Assets Window 的四条普通 Qt 残留只按真实
 meta-object context 查询；Scene Statistics 的 Compute/Draw/Total 三条 QLabel 还要求

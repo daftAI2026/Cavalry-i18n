@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 [INPUT]: 依赖 languages/* JSON（含 Learn/Guides 固定 `en` 加载槽位）、tools/*.ts、generated_translations.inc、translation-whitelist.json 与 forbidden_translation_patterns.py
-[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 Guide catalog 槽位漂移、占位符（含裸 {}）漂移、FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率，并只对显式 source variant 集合豁免同义复用
+[OUTPUT]: 对外提供 JSON/TS/injector 翻译质量报告，硬拒绝 Guide catalog 槽位漂移、占位符（含裸 {}）漂移、type:font 默认字体选择身份漂移、FP-1/2/3/4/5/7/8/9/10/11/12 与弱覆盖率，并只对显式 source variant 集合豁免同义复用
 [POS]: tools 的 G1 / §P5 validator，被 full-ui gate 用来审判翻译资产与生成表
 [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 """
@@ -458,6 +458,98 @@ def plugin_paths(root: Path, lang_code: str) -> list[Path]:
     return sorted((root / LANGUAGE_PACK_ROOT / lang_code / "plugins").glob("*.json"))
 
 
+def json_surface_paths(root: Path) -> list[tuple[str, Path]]:
+    """枚举 English 下全部 JSON surface，避免身份合同被固定文件清单遮蔽。"""
+    english_root = root / LANGUAGE_PACK_ROOT / "en"
+    if not english_root.exists():
+        return []
+    return [
+        (path.relative_to(english_root).as_posix(), path)
+        for path in sorted(english_root.rglob("*.json"))
+    ]
+
+
+def collect_font_defaults(value: Any, path: str = "$") -> dict[str, dict[str, Any]]:
+    """递归收集所有 type:font 的完整 default 身份，不允许字体名或节点路径白名单。"""
+    records: dict[str, dict[str, Any]] = {}
+    if isinstance(value, dict):
+        if value.get("type") == "font":
+            records[path] = {
+                "has_default": "default" in value,
+                "default": value.get("default"),
+            }
+        for key, child in value.items():
+            records.update(collect_font_defaults(child, f"{path}.{key}"))
+        return records
+    if isinstance(value, list):
+        for index, child in enumerate(value):
+            records.update(collect_font_defaults(child, f"{path}[{index}]"))
+    return records
+
+
+def serialized_identity(value: Any) -> str:
+    """将任意 JSON 身份稳定序列化，供机器可读 blocker 样本使用。"""
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def collect_font_identity_issues(
+    root: Path,
+    language_alias: str,
+    repo_code: str,
+) -> list[dict[str, str]]:
+    """逐 surface 比较 localized 与 English 的 type:font default 完整对象。"""
+    issues: list[dict[str, str]] = []
+    for relative_path, source_path in json_surface_paths(root):
+        source_defaults = collect_font_defaults(load_json(source_path))
+        target_path = root / LANGUAGE_PACK_ROOT / repo_code / relative_path
+        if not target_path.exists():
+            if not source_defaults:
+                continue
+            issues.append(
+                sample_issue(
+                    language_alias,
+                    repo_code,
+                    target_path,
+                    "$",
+                    "<English JSON surface>",
+                    "<missing>",
+                    "Missing localized JSON surface required for type:font identity comparison.",
+                )
+            )
+            continue
+
+        target_defaults = collect_font_defaults(load_json(target_path))
+        for json_path in sorted(set(source_defaults) | set(target_defaults)):
+            source_identity = source_defaults.get(json_path)
+            target_identity = target_defaults.get(json_path)
+            if source_identity is None or target_identity is None:
+                issues.append(
+                    sample_issue(
+                        language_alias,
+                        repo_code,
+                        target_path,
+                        json_path,
+                        serialized_identity(source_identity) if source_identity is not None else "<missing>",
+                        serialized_identity(target_identity) if target_identity is not None else "<missing>",
+                        "type:font definition set or default presence diverged from English.",
+                    )
+                )
+                continue
+            if source_identity != target_identity:
+                issues.append(
+                    sample_issue(
+                        language_alias,
+                        repo_code,
+                        target_path,
+                        json_path,
+                        serialized_identity(source_identity),
+                        serialized_identity(target_identity),
+                        "type:font default selection identity must match English exactly.",
+                    )
+                )
+    return issues
+
+
 def file_paths(root: Path, lang_code: str) -> list[tuple[str, Path, Path]]:
     paths: list[tuple[str, Path, Path]] = []
     for group_name, filenames in FILE_GROUPS.items():
@@ -716,6 +808,7 @@ def evaluate_language(
         "locale_sync_issue_count": 0,
         "purity_issue_count": 0,
         "forbidden_pattern_issue_count": 0,
+        "font_identity_issue_count": 0,
         "forbidden_patterns": {
             "total": 0,
             "by_pattern": {},
@@ -729,9 +822,15 @@ def evaluate_language(
             "english_residue": [],
             "purity": [],
             "forbidden_patterns": [],
+            "font_identity": [],
         },
     }
     reuse_records: list[dict[str, str]] = []
+
+    font_identity_issues = collect_font_identity_issues(root, language_alias, repo_code)
+    result["font_identity_issue_count"] = len(font_identity_issues)
+    for issue in font_identity_issues:
+        limited_append(result["issues"]["font_identity"], issue)
 
     for group_name, source_path, target_path in file_paths(root, repo_code):
         if not source_path.exists():
@@ -1053,6 +1152,7 @@ def build_report(root: Path, extraction_inventory_path: Path | None = None) -> d
     b11_ok = all(language["locale_sync_issue_count"] == 0 for language in languages.values())
     b12_ok = all(language["purity_issue_count"] == 0 for language in languages.values())
     b13_ok = all(language["forbidden_pattern_issue_count"] == 0 for language in languages.values())
+    b14_ok = all(language["font_identity_issue_count"] == 0 for language in languages.values())
     gates = {
         "B2": {
             "name": "Structure parity",
@@ -1094,6 +1194,11 @@ def build_report(root: Path, extraction_inventory_path: Path | None = None) -> d
             "status": gate_status(b13_ok),
             "detail": "FP-1/2/3/4/5/7/8/9/10/11/12 must hard-fail across JSON, TS, and generated injector outputs.",
         },
+        "B14": {
+            "name": "Font identity parity",
+            "status": gate_status(b14_ok),
+            "detail": "Every type:font default object, including key presence and all fields, must match the English JSON source.",
+        },
     }
 
     overall_ok = all(gate["status"] == "PASS" for gate in gates.values())
@@ -1128,6 +1233,7 @@ def render_summary(report: dict[str, Any]) -> str:
         "English residue",
         "Purity issues",
         "Forbidden patterns",
+        "Font identity",
         "locale_sync",
     ]]
     for alias, language in report["languages"].items():
@@ -1141,6 +1247,7 @@ def render_summary(report: dict[str, Any]) -> str:
                 str(language["english_residue_count"]),
                 str(language["purity_issue_count"]),
                 str(language["forbidden_pattern_issue_count"]),
+                str(language["font_identity_issue_count"]),
                 str(language["locale_sync_issue_count"]),
             ]
         )
@@ -1169,6 +1276,7 @@ def render_summary(report: dict[str, Any]) -> str:
             "english_residue",
             "purity",
             "forbidden_patterns",
+            "font_identity",
             "locale_sync",
         ]:
             for issue in language["issues"][issue_type][:3]:

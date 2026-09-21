@@ -1,6 +1,6 @@
 /**
  * [INPUT]: 依赖 Qt 6.6.3 runtime ABI、AppKit、generated_translations.inc、共享 exact-context/选择输入值/Fast 与 Classic 搜索策略、Classic 评分 ABI 适配器及独立说明索引、macOS TransformTool text-path ABI 防火墙与显式 capture/session 环境
- * [OUTPUT]: Quick Add 分类从已验证 getter 读取完整源并只写 QLabel 显示副本；Classic 空结果在 exact 列表/viewport 首次绘制前幂等投影，不增加监听或轮询； 对外提供 first-match-wins QTranslator、既有菜单/控件/模型保护链，以及 8 条 ordinary-Qt、Tag 邻接标签、Assets 动态 Create 模板和 Tracking dialog 的精确 owner 回补；交互补全输入（含 parentless 构建阶段）保留用户原文，FastQuickAdd 双语索引独立过滤且标题仅在已验证 vendor 的绘制副本投影；Classic 完整及前缀本地标题仅在已验证 ABI 的原厂排序期间补分；Qt runtime 版本确认后配置五条 TransformTool 自绘 action
+ * [OUTPUT]: Quick Add 分类从已验证 getter 读取完整源并只写 QLabel 显示副本；Classic 空结果在 exact 列表/viewport 首次绘制前幂等投影，不增加监听或轮询； 对外提供 first-match-wins QTranslator、既有菜单/控件/模型保护链，以及 8 条 ordinary-Qt、Tag 邻接标签、Assets 动态 Create 模板和 Tracking dialog 的精确 owner 回补；全部 QLineEdit 实际值（含只读名称及 parentless 构建阶段）保持原文，统一只翻译占位提示，FastQuickAdd 双语索引独立过滤且标题仅在已验证 vendor 的绘制副本投影；Classic 完整及前缀本地标题仅在已验证 ABI 的原厂排序期间补分；Qt runtime 版本确认后配置五条 TransformTool 自绘 action
  * [POS]: macOS injector 核心；普通文本只在已证 Qt owner 内补译，parentless Assets 菜单只承接一个事件循环的 owner，Transform 自绘交给独立 ABI 适配器，可编辑/字体 Combo 的值及弹出列表、Time Editor 模型 identity、快捷键 prefix 与无关同文保持原值
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -2487,43 +2487,14 @@ void translateTableWidgetItems(QTableWidget *tableWidget, const QString &lang)
     }
 }
 
-QString translatedLineEditValue(const QString &lang, const QString &sourceText)
-{
-    QString translated = translatedWidgetText(lang, sourceText);
-    if (!translated.isEmpty()) {
-        return translated;
-    }
-
-    static const QRegularExpression kNumericSuffixPattern(QStringLiteral("^(.*?)(\\s+[0-9]+)$"));
-    QRegularExpressionMatch match = kNumericSuffixPattern.match(sourceText);
-    if (!match.hasMatch()) {
-        return QString();
-    }
-
-    const QString baseTranslation = translatedWidgetText(lang, match.captured(1).trimmed());
-    if (baseTranslation.isEmpty()) {
-        return QString();
-    }
-    return baseTranslation + match.captured(2);
-}
-
 void translateLineEditDisplayText(QLineEdit *lineEdit, const QString &lang)
 {
-    if (lineEdit == nullptr || lang.isEmpty()) {
+    if (lang.isEmpty()) {
         return;
     }
-
-    QString translated = translatedLineEditValue(lang, lineEdit->text());
-    if (!translated.isEmpty() && !cavalry_i18n::preservesSelectionValue(lineEdit) &&
-        !cavalry_i18n::preservesCompleterInputValue(lineEdit)) {
-        QSignalBlocker blocker(lineEdit);
-        lineEdit->setText(translated);
-    }
-
-    translated = translatedWidgetText(lang, lineEdit->placeholderText());
-    if (!translated.isEmpty()) {
-        lineEdit->setPlaceholderText(translated);
-    }
+    cavalry_i18n::translateLineEditPlaceholder(lineEdit, [&lang](const QString &source) {
+        return translatedWidgetText(lang, source);
+    });
 }
 
 void translateLabelDisplayText(QLabel *label, const QString &lang)
@@ -2622,19 +2593,10 @@ void hookLineEditTextChanges(QLineEdit *lineEdit, const QString &lang)
         lineEdit,
         &QLineEdit::textChanged,
         lineEdit,
-        [guardedLineEdit, lang](const QString &text) {
-            if (guardedLineEdit.isNull() || text.isEmpty() ||
-                cavalry_i18n::preservesSelectionValue(guardedLineEdit.data()) ||
-                cavalry_i18n::preservesCompleterInputValue(guardedLineEdit.data())) {
-                return;
+        [guardedLineEdit, lang](const QString &) {
+            if (!guardedLineEdit.isNull()) {
+                translateLineEditDisplayText(guardedLineEdit.data(), lang);
             }
-            const QString translated = translatedLineEditValue(lang, text);
-            if (translated.isEmpty() || guardedLineEdit->text() != text) {
-                return;
-            }
-
-            QSignalBlocker blocker(guardedLineEdit.data());
-            guardedLineEdit->setText(translated);
         }
     );
 
@@ -2651,7 +2613,7 @@ void translateLineEditBeforePaint(QLineEdit *lineEdit, const QString &lang)
     if (!gHookedLineEdits.contains(lineEdit)) {
         hookLineEditTextChanges(lineEdit, lang);
     } else {
-        // 某些 Cavalry 控件会阻断 textChanged 后直接改值；Paint 前仍做一次精确显示层兜底。
+        // 厂商可静默更新占位提示；重绘仅补译提示，不碰名称或查询值。
         translateLineEditDisplayText(lineEdit, lang);
     }
     rememberPaintTextFingerprint(lineEdit, lang, lineEdit->text(), lineEdit->placeholderText());

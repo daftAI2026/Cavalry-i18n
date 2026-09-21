@@ -22059,8 +22059,8 @@
         "type": "font",
         "connectable": false,
         "default": {
-          "font": "ラト",
-          "style": "ボールド"
+          "font": "Lato",
+          "style": "Bold"
         }
       },
       "fontAxes": {
@@ -22954,8 +22954,8 @@
       "font": {
         "type": "font",
         "default": {
-          "font": "ラト",
-          "style": "レギュラー"
+          "font": "Lato",
+          "style": "Regular"
         }
       },
       "fontAxes": {
