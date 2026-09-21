@@ -81,6 +81,7 @@ cavalry_i18n_translator.h: 嵌入式 translator 查询接口与统计边界，�
 cavalry_i18n_translator.cpp: 复用共享 `generated_translations.inc`，构建精确 `(context, source)` 首条优先哈希与遵循现有显示层语义的末条覆盖 source fallback；共享策略声明的 context-only、8 条 ordinary-Qt exact-only，以及双平台均已由真实 owner/producer 采证的 Tag/动态 Assets 邻接 key 均不进入 fallback。
 cavalry_i18n_translator_test.cpp: 三语言非空表、已证实 helper 与 ordinary-Qt 残留、编号书签、Color Settings/Mesh Explorer/单索引动态模板、LineTool 精确标签、具体 Add Layer 快捷键，以及双平台 owner/producer 已采证的 Tag/动态 Assets 共享 key 之 exact-context 正例与 Unknown/null fallback 负例；同时覆盖 context-only 拒绝、普通 source fallback、未知语言和未知文本。
 cavalry_i18n_plugin_smoke_test.cpp: 由最小 `QApplication` 加载真实 generic DLL，证明空 specification 即使存在遗留环境也被拒，并验证 QPA 等价显式语言、显示投影、数据隔离、翻译/字体诊断 marker 及诊断采样 gate 的直接 app-child `QTimer` 数量边界。
+runtime diagnostic gate: 计数采样 timer 只有在 `CAVALRY_I18N_DIAGNOSTIC_SAMPLING=1` 与绝对 `CAVALRY_I18N_DIAGNOSTIC_MARKER` 同时满足时创建；普通 marker、`true` 或缺 marker 均不创建 timer，安装状态即时写路径保持独立。
 cavalryi18n.json: Qt plugin metadata，声明唯一自动加载 key `cavalryi18n`。
 qwindows.json: Qt QPA metadata，声明唯一平台 key `windows`。
 README.md: Windows 插件依赖、构建目录、四条 ExtensionLayer 翻译边界与独立时间轴字体适配、MessageBar 精确排除规则、子进程环境契约、只读 vendor 静态合同与 live gate 判定。

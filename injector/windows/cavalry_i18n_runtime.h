@@ -1,6 +1,7 @@
 /**
  * [INPUT]: 依赖 QPA 显式语言、嵌入翻译器、显示层、ExtensionLayer 聚合 hook、独立时间轴字体 hook 与 Qt 事件过滤；诊断采样门使用 GUI 线程单调时钟
  * [OUTPUT]: 对外提供严格语言谓词、可查询配置结果、受控显示刷新、真实 Assets ContextMenu→QMenu producer 交接与低频 revision 诊断 marker；安装状态变化仍即时写出
+ *              低频 revision sampler 的运行时 timer 只由显式采样环境与绝对 marker 双门开启。
  * [POS]: injector/windows 的发布 Qt 运行时核心；正常路径拒绝环境语言旁路，以同步事件身份约束 Assets 动态模板，Paint 事件不再进入诊断写盘，所有 UI 验收 driver 均由不发布的独立插件承载
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */

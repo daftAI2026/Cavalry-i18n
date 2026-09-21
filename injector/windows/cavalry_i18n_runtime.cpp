@@ -1,6 +1,7 @@
 /**
  * [INPUT]: 产品分区依赖 QPA 显式语言、嵌入生成表、四条翻译 hook、独立时间轴系统字体 hook、受控 Qt 显示槽与 exact Classic `ListWidget`/真实 viewport surface predicate；acceptance-only 编译分区依赖 Onboarding driver 契约、显式受控语言/证据目录与产品已安装 translator
  * [OUTPUT]: 产品分区安装 translator/显示投影、在 Show/Paint 事件中接入受控显示属性与 Classic 空结果 surface、传递真实 Assets producer 并以单一低频采样门记录文字路径与时间轴字体诊断；安装状态变化立即落盘；acceptance-only 分区为不发布插件生成 firstLaunch 五步 driver，并以目标页标题/正文确认 Next 转场后才推进状态
+ *              诊断采样仅当 CAVALRY_I18N_DIAGNOSTIC_SAMPLING 精确为 "1" 且 marker 为绝对路径时创建低频 timer；安装状态写盘仍由 ensure 路径即时触发。
  * [POS]: injector/windows 的双目标源码分区；产品 target 永不编译验收分区，Paint 只把 exact Classic 列表本体/真实 viewport 交给显示层，不遍历或拦截通用 item view，也不进入诊断 marker 写盘，acceptance wrapper 只编译验收分区，防止 UI 驱动语义进入发布 DLL
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -59,6 +60,8 @@
 namespace {
 
 constexpr auto kMarkerEnvironment = "CAVALRY_I18N_DIAGNOSTIC_MARKER";
+constexpr auto kDiagnosticSamplingEnvironment =
+    "CAVALRY_I18N_DIAGNOSTIC_SAMPLING";
 #ifdef CAVALRY_I18N_ONBOARDING_ACCEPTANCE_ONLY
 constexpr auto kOnboardingAcceptanceEnvironment =
     "CAVALRY_I18N_WINDOWS_ONBOARDING_ACCEPTANCE_DIR";
@@ -430,7 +433,10 @@ bool CavalryI18nRuntime::configure()
     application->installEventFilter(this);
     const QString diagnosticMarker =
         qEnvironmentVariable(kMarkerEnvironment).trimmed();
-    if (QDir::isAbsolutePath(diagnosticMarker)) {
+    const QString diagnosticSampling =
+        qEnvironmentVariable(kDiagnosticSamplingEnvironment);
+    if (diagnosticSampling == QStringLiteral("1")
+        && QDir::isAbsolutePath(diagnosticMarker)) {
         // generic plugin 可能在 QApplication 的事件分发器启动前构造。
         // 诊断采样留在 GUI 线程，并与高频 QWidget 事件彻底解耦。
         const QPointer<CavalryI18nRuntime> guardedRuntime(this);
