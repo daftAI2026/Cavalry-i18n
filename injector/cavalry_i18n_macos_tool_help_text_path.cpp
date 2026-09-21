@@ -1,10 +1,11 @@
 /**
- * [INPUT]: 依赖 Cavalry 2.7.2 的 libExtensionLayer/libCore/libskia 双 slice UUID、机器码包络、Mach-O 符号表与 Skia 字体/Path ABI
+ * [INPUT]: 依赖共享 macos_abi 映像/字体解析与 Cavalry 2.7.2 的 libExtensionLayer/libCore/libskia 双 slice UUID、机器码包络、Mach-O 符号表与 Skia 字体/Path ABI
  * [OUTPUT]: 对外提供仅命中五条 TransformTool action 的 CJK Path 投影、逐 source 原子成功/回退计数及版本化只读 C ABI 快照；快捷键 prefix、未知 caller、ABI 漂移与渲染失败全部转发英文原路径
  * [POS]: injector 的 macOS 自绘文字适配器；以进程级 SkTextUtils::GetPath interpose 承接调用，但用三层 return-address 与逐 image 合同把有效范围收敛到唯一 action producer
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
 #include "cavalry_i18n_macos_tool_help_text_path.h"
+#include "cavalry_i18n_macos_abi.h"
 
 #include <mach-o/dyld.h>
 #include <mach-o/loader.h>
@@ -22,39 +23,10 @@
 
 namespace {
 
+using namespace cavalry_i18n::macos_abi;
+
 using GetPathFunction =
     void (*)(const void *, std::size_t, int, float, float, const void *, void *);
-
-struct SkSpTypefaceAbi {
-    void *pointer;
-
-    SkSpTypefaceAbi() noexcept : pointer(nullptr) {}
-    SkSpTypefaceAbi(SkSpTypefaceAbi &&other) noexcept : pointer(other.pointer)
-    {
-        other.pointer = nullptr;
-    }
-    SkSpTypefaceAbi(const SkSpTypefaceAbi &) = delete;
-    ~SkSpTypefaceAbi() {}
-};
-
-struct alignas(8) SkFontAbi {
-    std::array<std::byte, 0x18> storage;
-
-    SkFontAbi() noexcept
-    {
-        storage.fill(std::byte{0});
-    }
-    SkFontAbi(SkFontAbi &&other) noexcept
-    {
-        std::memcpy(storage.data(), other.storage.data(), storage.size());
-        other.storage.fill(std::byte{0});
-    }
-    SkFontAbi(const SkFontAbi &) = delete;
-    ~SkFontAbi() {}
-};
-
-static_assert(sizeof(SkSpTypefaceAbi) == 0x8);
-static_assert(sizeof(SkFontAbi) == 0x18);
 
 using MakeTypefaceFunction = SkSpTypefaceAbi (*)(const char *, std::uint32_t);
 using MakeScalableFontFunction = SkFontAbi (*)(SkSpTypefaceAbi, float);
@@ -86,17 +58,6 @@ struct ConfiguredAction {
     std::uint64_t sourceBit;
     std::size_t translationSize;
     char translation[kTranslationCapacity];
-};
-
-struct LoadedImage {
-    const mach_header_64 *header;
-    std::intptr_t slide;
-    const char *path;
-    const segment_command_64 *textSegment;
-    const segment_command_64 *linkeditSegment;
-    const symtab_command *symbolTable;
-    uuid_t uuid;
-    bool hasUuid;
 };
 
 struct RuntimeState {
@@ -135,156 +96,6 @@ thread_local bool recursionActive = false;
  * 已加载 libskia 的 __LINKEDIT 符号表恢复；这个入口即使 UUID 漂移也能转发原文，
  * 而翻译能力则继续要求完整 UUID、地址和机器码合同。
  * ----------------------------------------------------------------------- */
-bool loadImageMetadata(
-    const mach_header *rawHeader,
-    std::intptr_t slide,
-    const char *path,
-    LoadedImage *output) noexcept
-{
-    if (rawHeader == nullptr || output == nullptr || rawHeader->magic != MH_MAGIC_64) {
-        return false;
-    }
-
-    const auto *header = reinterpret_cast<const mach_header_64 *>(rawHeader);
-#if defined(__arm64__)
-    if (header->cputype != CPU_TYPE_ARM64) {
-        return false;
-    }
-#elif defined(__x86_64__)
-    if (header->cputype != CPU_TYPE_X86_64) {
-        return false;
-    }
-#else
-#error Unsupported macOS architecture
-#endif
-
-    LoadedImage candidate{};
-    candidate.header = header;
-    candidate.slide = slide;
-    candidate.path = path;
-
-    const auto *cursor = reinterpret_cast<const std::uint8_t *>(header) + sizeof(*header);
-    for (std::uint32_t index = 0; index < header->ncmds; ++index) {
-        const auto *command = reinterpret_cast<const load_command *>(cursor);
-        if (command->cmdsize < sizeof(load_command)) {
-            return false;
-        }
-        if (command->cmd == LC_SEGMENT_64) {
-            const auto *segment = reinterpret_cast<const segment_command_64 *>(command);
-            if (std::strncmp(segment->segname, SEG_TEXT, sizeof(segment->segname)) == 0) {
-                candidate.textSegment = segment;
-            } else if (
-                std::strncmp(segment->segname, SEG_LINKEDIT, sizeof(segment->segname)) == 0) {
-                candidate.linkeditSegment = segment;
-            }
-        } else if (command->cmd == LC_SYMTAB) {
-            candidate.symbolTable = reinterpret_cast<const symtab_command *>(command);
-        } else if (command->cmd == LC_UUID) {
-            const auto *uuidCommand = reinterpret_cast<const uuid_command *>(command);
-            std::memcpy(candidate.uuid, uuidCommand->uuid, sizeof(candidate.uuid));
-            candidate.hasUuid = true;
-        }
-        cursor += command->cmdsize;
-    }
-
-    if (candidate.textSegment == nullptr || candidate.linkeditSegment == nullptr ||
-        candidate.symbolTable == nullptr || candidate.textSegment->vmaddr != 0) {
-        return false;
-    }
-
-    *output = candidate;
-    return true;
-}
-
-bool findLoadedImage(const char *basename, LoadedImage *output) noexcept
-{
-    if (basename == nullptr || output == nullptr) {
-        return false;
-    }
-    for (std::uint32_t index = 0; index < _dyld_image_count(); ++index) {
-        const char *path = _dyld_get_image_name(index);
-        if (path == nullptr) {
-            continue;
-        }
-        const char *lastSlash = std::strrchr(path, '/');
-        const char *candidateName = lastSlash != nullptr ? lastSlash + 1 : path;
-        if (std::strcmp(candidateName, basename) != 0) {
-            continue;
-        }
-        return loadImageMetadata(
-            _dyld_get_image_header(index),
-            _dyld_get_image_vmaddr_slide(index),
-            path,
-            output);
-    }
-    return false;
-}
-
-void *findMachOSymbol(const LoadedImage &image, const char *machOSymbol) noexcept
-{
-    if (machOSymbol == nullptr || image.linkeditSegment == nullptr ||
-        image.symbolTable == nullptr) {
-        return nullptr;
-    }
-
-    const std::uintptr_t linkeditBase =
-        static_cast<std::uintptr_t>(image.slide) + image.linkeditSegment->vmaddr -
-        image.linkeditSegment->fileoff;
-    const auto *symbols = reinterpret_cast<const nlist_64 *>(
-        linkeditBase + image.symbolTable->symoff);
-    const auto *strings = reinterpret_cast<const char *>(
-        linkeditBase + image.symbolTable->stroff);
-
-    for (std::uint32_t index = 0; index < image.symbolTable->nsyms; ++index) {
-        const std::uint32_t stringOffset = symbols[index].n_un.n_strx;
-        if (stringOffset == 0 || stringOffset >= image.symbolTable->strsize) {
-            continue;
-        }
-        if (std::strcmp(strings + stringOffset, machOSymbol) != 0) {
-            continue;
-        }
-        const std::uintptr_t address =
-            static_cast<std::uintptr_t>(image.slide) + symbols[index].n_value;
-        const std::uintptr_t textStart =
-            static_cast<std::uintptr_t>(image.slide) + image.textSegment->vmaddr;
-        const std::uintptr_t textEnd = textStart + image.textSegment->vmsize;
-        return address >= textStart && address < textEnd
-            ? reinterpret_cast<void *>(address)
-            : nullptr;
-    }
-    return nullptr;
-}
-
-void *imageAddress(const LoadedImage &image, std::uintptr_t offset) noexcept
-{
-    return reinterpret_cast<void *>(
-        reinterpret_cast<std::uintptr_t>(image.header) + offset);
-}
-
-bool imageUuidEquals(const LoadedImage &image, const char *expected) noexcept
-{
-    if (!image.hasUuid || expected == nullptr) {
-        return false;
-    }
-    char actual[37]{};
-    uuid_unparse_upper(image.uuid, actual);
-    return std::strcmp(actual, expected) == 0;
-}
-
-template <std::size_t Size>
-bool matchesCode(
-    const LoadedImage &image,
-    std::uintptr_t offset,
-    const std::array<std::uint8_t, Size> &expected) noexcept
-{
-    const std::uintptr_t start = reinterpret_cast<std::uintptr_t>(image.header) + offset;
-    const std::uintptr_t textStart =
-        static_cast<std::uintptr_t>(image.slide) + image.textSegment->vmaddr;
-    const std::uintptr_t textEnd = textStart + image.textSegment->vmsize;
-    return start >= textStart && start + Size <= textEnd &&
-        std::memcmp(reinterpret_cast<const void *>(start), expected.data(), Size) == 0;
-}
-
 GetPathFunction resolveOriginalGetPath() noexcept
 {
     GetPathFunction original = gState.originalGetPath.load(std::memory_order_acquire);
