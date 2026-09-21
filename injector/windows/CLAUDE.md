@@ -2,6 +2,10 @@
 > L2 | 父级: ../CLAUDE.md
 
 成员清单
+cavalry_i18n_skia_typeface.h: 固定提示文字路径与时间轴名称共享系统字体候选及已验证的 typeface 引用管理，防止两条绘制路径维护不同的字体与释放规则。
+cavalry_i18n_timeline_font_fallback.h / .cpp: 使用已验证 Skia ABI 选择能完整覆盖名称的系统字体；只借用 24 字节字体副本，保留原文字节、字号与变换，供测量和绘制共享同一选择规则。
+cavalry_i18n_timeline_font_contract.h / .cpp: 时间轴字体独立兼容门，验证 ExtensionLayer helper、精确测量/绘制槽与 SkFont 布局；未验证调用不进入字体替换路径。
+cavalry_i18n_timeline_font_hook.h / .cpp: 独立管理时间轴双槽安装、激活及原函数转发；系统字体资源随不可变回调快照存活，失效不会关闭既有固定提示翻译。
 cavalry_i18n_timeline_font_fallback_test.cpp: 时间轴字体回退合同，覆盖三语字形完整覆盖、ASCII 原样透传、原文与字体副本边界、测量绘制一致及资源释放。
 cavalry_i18n_timeline_font_contract_test.cpp: 新版 SkTimeEditorView 的 vendor 映像只读正反例，锁定真实 helper、两处测量/绘制调用与 SkFont ABI 漂移拒绝。
 cavalry_i18n_timeline_font_hook_test.cpp: 独立字体 hook 的等待、转发与生命周期回归；与翻译 hook 分离，未知调用不得替换字体。
@@ -71,15 +75,15 @@ cavalry_i18n_vendor_text_path_contract.cpp: 锁定唯一 Core MakePath IAT、二
 cavalry_i18n_vendor_skia_text_path_contract.h: Core/skia 只读 CJK Path 兼容验证入口，隔离 renderer 依赖的导出、对象布局和所有权证据。
 cavalry_i18n_vendor_skia_text_path_contract.cpp: 独立锁定 Core 固定 Lato、SkFont move/null、SkPath copy prefix、CJK 导出与 refcount 析构；不与运行时常量共用证据。
 cavalry_i18n_extension_layer_hook_test.cpp: 无厂商模块主合同；覆盖三语、helper/placeholder 槽生命周期、runtime identity 正反例、renderer-free tombstone 与原子计数/source-mask，并调用独立 MessageBar 生命周期分片。
-cavalry_i18n_runtime.h: QPA 显式语言、可查询配置结果、主动显示刷新、聚合四边界延迟安装及 revision-driven marker 生命周期声明；产品接口不持有 Onboarding/Adjacent driver 或任何验收环境入口。
+cavalry_i18n_runtime.h: QPA 显式语言、可查询配置结果、主动显示刷新、聚合翻译与独立时间轴字体边界的延迟安装及 revision-driven marker 生命周期声明；产品接口不持有 Onboarding/Adjacent driver 或任何验收环境入口。
 cavalry_i18n_runtime.cpp: 产品分区语言只消费 QPA 非空 specification，Show/Paint 仅刷新受控显示属性，并只把 exact Classic `ListWidget` 本体/真实 viewport 交给空结果显示层，再把 `assets::Window` ContextMenu producer 通过单事件轮弱引用交给显示层。acceptance-only Onboarding 分区要求证据目录与 marker 同目录、MainDock 稳定 15 秒且工作区重置框从未出现，manager-first 触发 `firstLaunch`，按安装 catalog 独立验证唯一标题 QLabel/正文 QTextBrowser；前四步只点击唯一 localized Next，并在 `waiting-for-transition` 中等真实下一页唯一标题/正文出现后才推进，旧页 1.5 秒稳定时最多重试三次，第五步 ACK-only。
 cavalry_i18n_translator.h: 嵌入式 translator 查询接口与统计边界，隔离生成表表示和运行时生命周期。
 cavalry_i18n_translator.cpp: 复用共享 `generated_translations.inc`，构建精确 `(context, source)` 首条优先哈希与遵循现有显示层语义的末条覆盖 source fallback；共享策略声明的 context-only、8 条 ordinary-Qt exact-only，以及双平台均已由真实 owner/producer 采证的 Tag/动态 Assets 邻接 key 均不进入 fallback。
 cavalry_i18n_translator_test.cpp: 三语言非空表、已证实 helper 与 ordinary-Qt 残留、编号书签、Color Settings/Mesh Explorer/单索引动态模板、LineTool 精确标签、具体 Add Layer 快捷键，以及双平台 owner/producer 已采证的 Tag/动态 Assets 共享 key 之 exact-context 正例与 Unknown/null fallback 负例；同时覆盖 context-only 拒绝、普通 source fallback、未知语言和未知文本。
-cavalry_i18n_plugin_smoke_test.cpp: 由最小 `QApplication` 加载真实 generic DLL，证明空 specification 即使存在遗留环境也被拒，并验证 QPA 等价显式语言、显示投影、数据隔离与九字段 marker。
+cavalry_i18n_plugin_smoke_test.cpp: 由最小 `QApplication` 加载真实 generic DLL，证明空 specification 即使存在遗留环境也被拒，并验证 QPA 等价显式语言、显示投影、数据隔离及翻译/字体各自的诊断 marker。
 cavalryi18n.json: Qt plugin metadata，声明唯一自动加载 key `cavalryi18n`。
 qwindows.json: Qt QPA metadata，声明唯一平台 key `windows`。
-README.md: Windows 插件依赖、构建目录、四条 ExtensionLayer 边界、MessageBar 精确排除规则、子进程环境契约、只读 vendor 静态合同与 live gate 判定。
+README.md: Windows 插件依赖、构建目录、四条 ExtensionLayer 翻译边界与独立时间轴字体适配、MessageBar 精确排除规则、子进程环境契约、只读 vendor 静态合同与 live gate 判定。
 generic/: 由 build.ps1 生成的 Tauri resource 稳定目录，只允许 `cavalryi18n.dll`，禁止复制 Qt runtime。
 qpa/: 由 build.ps1 生成的 QPA 代理稳定资源目录，只允许 `qwindows.dll`，部署层负责原厂备份、manifest 与原子替换。
 

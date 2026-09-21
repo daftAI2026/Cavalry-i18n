@@ -254,19 +254,73 @@ bool expectAccepted(
     const char *scenario)
 {
     std::string failure;
-    if (verifyCavalryTimelineFontContract(
+    CavalryTimelineFontContractEvidence evidence;
+    const void *expectedMeasureExport = nullptr;
+    const void *expectedDrawExport = nullptr;
+    if (!verifyCavalryTimelineFontContract(
             extensionLayer,
             core,
             skia,
-            &failure)) {
-        return true;
+            &failure)
+        || !verifyCavalryTimelineFontContract(
+            extensionLayer.data(),
+            extensionLayer.size(),
+            core.data(),
+            core.size(),
+            skia.data(),
+            skia.size(),
+            &evidence,
+            &failure)
+        || evidence.extensionLayerBase != extensionLayer.data()
+        || evidence.extensionLayerImageSize != extensionLayer.size()
+        || evidence.skiaBase != skia.data()
+        || evidence.skiaImageSize != skia.size()
+        || evidence.measureTextIatRva != 0x01B32030U
+        || evidence.drawSimpleTextIatRva != 0x01B32018U
+        || evidence.measureTextExportRva != 0x000561C0U
+        || evidence.drawSimpleTextExportRva != 0x00035750U
+        || evidence.measureTextReturnRva != 0x0086F4A4U
+        || evidence.drawSimpleTextReturnRva != 0x0086F9ACU
+        || evidence.helperBeginRva != 0x0086F300U
+        || evidence.helperEndRva != 0x0086FA1BU
+        || evidence.measureTextExportRva >= evidence.skiaImageSize
+        || evidence.drawSimpleTextExportRva >= evidence.skiaImageSize) {
+        std::fprintf(
+            stderr,
+            "%s: no-copy runtime evidence rejected the vendor image: %s\n",
+            scenario,
+            failure.c_str());
+        return false;
     }
-    std::fprintf(
-        stderr,
-        "%s: expected acceptance, got: %s\n",
-        scenario,
-        failure.c_str());
-    return false;
+    expectedMeasureExport = evidence.skiaBase + evidence.measureTextExportRva;
+    expectedDrawExport = evidence.skiaBase + evidence.drawSimpleTextExportRva;
+    if (!verifyCavalryTimelineFontResolvedSkiaTargets(
+            evidence,
+            expectedMeasureExport,
+            expectedDrawExport,
+            &failure)) {
+        std::fprintf(
+            stderr,
+            "%s: resolved skia export pointers were rejected: %s\n",
+            scenario,
+            failure.c_str());
+        return false;
+    }
+    const void *wrongMeasureExport =
+        static_cast<const void *>(
+            static_cast<const std::uint8_t *>(expectedMeasureExport) + 1);
+    if (verifyCavalryTimelineFontResolvedSkiaTargets(
+            evidence,
+            wrongMeasureExport,
+            expectedDrawExport,
+            &failure)) {
+        std::fprintf(
+            stderr,
+            "%s: resolved skia export pointer drift was accepted\n",
+            scenario);
+        return false;
+    }
+    return true;
 }
 
 bool expectRejected(
@@ -422,6 +476,26 @@ bool runNegativeContracts(
                core,
                driftedSkia,
                "skia identity drift")) {
+        return false;
+    }
+
+    driftedSkia = skia;
+    driftedSkia[0x000561C0U] ^= 0x01U;
+    if (!expectRejected(
+            extensionLayer,
+            core,
+            driftedSkia,
+            "skia measureText body drift")) {
+        return false;
+    }
+
+    driftedSkia = skia;
+    driftedSkia[0x00035750U] ^= 0x01U;
+    if (!expectRejected(
+            extensionLayer,
+            core,
+            driftedSkia,
+            "skia drawSimpleText body drift")) {
         return false;
     }
     return true;

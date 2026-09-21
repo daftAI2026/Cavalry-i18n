@@ -1,5 +1,5 @@
 # [INPUT]: 依赖产品及搜索合同一致的 QT_NO_KEYWORDS 配置、CMake 4.2+、Visual Studio 2022+ 的 MSVC v143、Qt 6.6.3 x64 SDK及版本化 QPA 头、Windows Psapi、本目录源码、Classic rank/Quick Add 合同 fixture、../generated_translations.inc 与可选 vendor 根
-# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册显示/hook/vendor、Quick Add 顶部标签显示合同、QPA manifest、Classic 同一 Qt fixture 排序合同、Windows vendor priority 静态 ABI 门、测试态 vendor 主窗口缝及环境/显式入口合同测试
+# [OUTPUT]: 对外构建发布态 generic/cavalryi18n.dll、qpa/qwindows.dll 与不发布的 acceptance/generic/cavalryi18n_acceptance.dll，并注册时间轴系统字体选择/生命周期/二进制合同及显示/hook/vendor、Quick Add 顶部标签显示合同、QPA manifest、Classic 同一 Qt fixture 排序合同、Windows vendor priority 静态 ABI 门、测试态 vendor 主窗口缝及环境/显式入口合同测试
 # [POS]: injector/windows 的唯一构建入口，以严格 ABI/架构/manifest 前置检查约束通用翻译 runtime 与原生入口 QPA 代理，并隔离验收 driver
 # [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
 cmake_minimum_required(VERSION 4.2)
@@ -92,8 +92,15 @@ target_sources(cavalryi18n
         cavalry_i18n_pe_iat.h
         cavalry_i18n_skia_runtime_abi.cpp
         cavalry_i18n_skia_runtime_abi.h
+        cavalry_i18n_skia_typeface.h
         cavalry_i18n_skia_text_path_renderer.cpp
         cavalry_i18n_skia_text_path_renderer.h
+        cavalry_i18n_timeline_font_contract.cpp
+        cavalry_i18n_timeline_font_contract.h
+        cavalry_i18n_timeline_font_fallback.cpp
+        cavalry_i18n_timeline_font_fallback.h
+        cavalry_i18n_timeline_font_hook.cpp
+        cavalry_i18n_timeline_font_hook.h
         cavalry_i18n_plugin.cpp
         cavalry_i18n_plugin.h
         cavalry_i18n_runtime.cpp
@@ -769,9 +776,21 @@ if(BUILD_TESTING)
     endforeach()
     target_sources(cavalryi18n_timeline_font_hook_test
         PRIVATE cavalry_i18n_translator.cpp
+            cavalry_i18n_timeline_font_hook.cpp
+            cavalry_i18n_timeline_font_contract.cpp
+            cavalry_i18n_timeline_font_fallback.cpp
+            cavalry_i18n_skia_runtime_abi.cpp
+            cavalry_i18n_iat_patch.cpp
+            cavalry_i18n_pe_iat.cpp
     )
-    target_compile_definitions(cavalryi18n_timeline_font_hook_test PRIVATE
-        CAVALRY_I18N_TIMELINE_FONT_HOOK_SOURCE="${CMAKE_CURRENT_SOURCE_DIR}/cavalry_i18n_timeline_font_hook.cpp"
+    target_sources(cavalryi18n_timeline_font_fallback_test
+        PRIVATE cavalry_i18n_timeline_font_fallback.cpp
+            cavalry_i18n_skia_runtime_abi.cpp
+    )
+    target_sources(cavalryi18n_timeline_font_contract_test
+        PRIVATE cavalry_i18n_timeline_font_contract.cpp
+            cavalry_i18n_pe_iat.cpp
+            cavalry_i18n_skia_runtime_abi.cpp
     )
     foreach(timeline_surface fallback hook)
         add_test(NAME cavalryi18n_timeline_font_${timeline_surface}

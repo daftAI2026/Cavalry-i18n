@@ -1,5 +1,5 @@
 /**
- * [INPUT]: 依赖 cavalry_i18n_skia_text_path_renderer.h、已验证并 PIN 的 CavalrySkiaRuntimeAbi 函数表及系统 CJK 字体回退
+ * [INPUT]: 依赖 renderer 头文件、已验证并 PIN 的 CavalrySkiaRuntimeAbi 函数表，以及 skia_typeface 共享系统字体候选与引用管理
  * [OUTPUT]: 对外实现语言定向字体选择、逐码点 glyph 门、借用 UTF-8 string_view 的 Core 同构 Path 构造和侵入式 typeface 引用的有界所有权
  * [POS]: injector/windows 的 CJK 自绘实现；不自行发现或解析厂商 DLL，所有私有调用必须来自 runtime ABI 防火墙
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
@@ -7,6 +7,7 @@
 #include "cavalry_i18n_skia_text_path_renderer.h"
 
 #include "cavalry_i18n_skia_runtime_abi.h"
+#include "cavalry_i18n_skia_typeface.h"
 
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -29,85 +30,18 @@
 
 namespace {
 
-constexpr std::uint32_t kNormalSkFontStyle = 0x00050190;
-constexpr std::size_t kSkTypefaceRefCountOffset = 0x08;
-constexpr std::size_t kSkFontSize = 0x18;
+using cavalry_i18n::skia_typeface::addTypefaceReference;
+using cavalry_i18n::skia_typeface::candidateFamilies;
+using cavalry_i18n::skia_typeface::isIgnorableGlyphCheck;
+using cavalry_i18n::skia_typeface::kNormalSkFontStyle;
+using cavalry_i18n::skia_typeface::kSkFontSize;
+using cavalry_i18n::skia_typeface::releaseTypeface;
+
 constexpr std::size_t kSkPathSize = 0x38;
 constexpr std::size_t kCavalryPathFlagOffset = 0x38;
 constexpr std::size_t kSkMatrixSize = 0x24;
 constexpr int kSkTextEncodingUtf8 = 0;
 constexpr int kSkApplyPerspectiveClipYes = 1;
-
-using SkRefCntDeletingDestructor = void(__fastcall *)(void *);
-
-void addTypefaceReference(void *typeface)
-{
-    auto *refCount = reinterpret_cast<volatile LONG *>(
-        static_cast<std::byte *>(typeface)
-        + kSkTypefaceRefCountOffset);
-    InterlockedIncrement(refCount);
-}
-
-void releaseTypeface(void *typeface)
-{
-    if (typeface == nullptr) {
-        return;
-    }
-    auto *refCount = reinterpret_cast<volatile LONG *>(
-        static_cast<std::byte *>(typeface)
-        + kSkTypefaceRefCountOffset);
-    if (InterlockedDecrement(refCount) != 0) {
-        return;
-    }
-    auto **vtable = *reinterpret_cast<void ***>(typeface);
-    const auto deletingDestructor =
-        reinterpret_cast<SkRefCntDeletingDestructor>(vtable[1]);
-    deletingDestructor(typeface);
-}
-
-std::vector<QByteArray> candidateFamilies(const QString &language)
-{
-    if (language == QStringLiteral("zh-Hans")) {
-        return {
-            QByteArrayLiteral("Microsoft YaHei UI"),
-            QByteArrayLiteral("Microsoft YaHei"),
-            QByteArrayLiteral("Noto Sans CJK SC"),
-            QByteArrayLiteral("Noto Sans SC"),
-            QByteArrayLiteral("SimSun"),
-        };
-    }
-    if (language == QStringLiteral("zh-Hant")) {
-        return {
-            QByteArrayLiteral("Microsoft JhengHei UI"),
-            QByteArrayLiteral("Microsoft JhengHei"),
-            QByteArrayLiteral("Noto Sans CJK TC"),
-            QByteArrayLiteral("Noto Sans TC"),
-            QByteArrayLiteral("Microsoft YaHei UI"),
-        };
-    }
-    if (language == QStringLiteral("ja_JP")) {
-        return {
-            QByteArrayLiteral("Yu Gothic UI"),
-            QByteArrayLiteral("Yu Gothic"),
-            QByteArrayLiteral("Meiryo UI"),
-            QByteArrayLiteral("Meiryo"),
-            QByteArrayLiteral("Noto Sans CJK JP"),
-            QByteArrayLiteral("Noto Sans JP"),
-        };
-    }
-    return {};
-}
-
-bool isIgnorableGlyphCheck(std::uint32_t codePoint)
-{
-    if (codePoint <= 0x20) {
-        return true;
-    }
-    const QChar::Category category = QChar::category(codePoint);
-    return category == QChar::Separator_Space
-        || category == QChar::Separator_Line
-        || category == QChar::Separator_Paragraph;
-}
 
 bool coversAllRequiredText(
     const CavalrySkiaRuntimeApi &api,

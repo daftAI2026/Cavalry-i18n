@@ -1,6 +1,6 @@
 /**
- * [INPUT]: 产品分区依赖 QPA 显式语言、嵌入生成表、四条精确 hook、受控 Qt 显示槽与 exact Classic `ListWidget`/真实 viewport surface predicate；acceptance-only 编译分区依赖 Onboarding driver 契约、显式受控语言/证据目录与产品已安装 translator
- * [OUTPUT]: 产品分区安装 translator/显示投影、在 Show/Paint 事件中接入受控显示属性与 Classic 空结果 surface、传递真实 Assets producer 并写 text-path 诊断；acceptance-only 分区为不发布插件生成 firstLaunch 五步 driver，并以目标页标题/正文确认 Next 转场后才推进状态
+ * [INPUT]: 产品分区依赖 QPA 显式语言、嵌入生成表、四条翻译 hook、独立时间轴系统字体 hook、受控 Qt 显示槽与 exact Classic `ListWidget`/真实 viewport surface predicate；acceptance-only 编译分区依赖 Onboarding driver 契约、显式受控语言/证据目录与产品已安装 translator
+ * [OUTPUT]: 产品分区安装 translator/显示投影、在 Show/Paint 事件中接入受控显示属性与 Classic 空结果 surface、传递真实 Assets producer 并独立记录文字路径与时间轴字体诊断；acceptance-only 分区为不发布插件生成 firstLaunch 五步 driver，并以目标页标题/正文确认 Next 转场后才推进状态
  * [POS]: injector/windows 的双目标源码分区；产品 target 永不编译验收分区，Paint 只把 exact Classic 列表本体/真实 viewport 交给显示层，不遍历或拦截通用 item view，acceptance wrapper 只编译验收分区，防止 UI 驱动语义进入发布 DLL
  * [PROTOCOL]: 变更时更新此头部，然后检查 CLAUDE.md
  */
@@ -12,6 +12,7 @@
 #include "cavalry_i18n_runtime.h"
 #include "cavalry_i18n_display.h"
 #include "cavalry_i18n_extension_layer_hook.h"
+#include "cavalry_i18n_timeline_font_hook.h"
 #include "cavalry_i18n_translator.h"
 #endif
 
@@ -421,6 +422,8 @@ bool CavalryI18nRuntime::configure()
         std::make_unique<CavalryDisplayTranslator>(*translator_, this);
     extensionLayerHook_ =
         std::make_unique<CavalryExtensionLayerHook>(*translator_);
+    timelineFontHook_ =
+        std::make_unique<CavalryTimelineFontHook>(*translator_);
     ensureExtensionLayerHook();
     application->installEventFilter(this);
     const QString diagnosticMarker =
@@ -481,8 +484,10 @@ bool CavalryI18nRuntime::eventFilter(QObject *watched, QEvent *event)
     }
 
     if ((event->type() == QEvent::Show || event->type() == QEvent::Paint)
-        && extensionLayerHook_ != nullptr
-        && extensionLayerHook_->isWaitingForModule()) {
+        && ((extensionLayerHook_ != nullptr
+             && extensionLayerHook_->isWaitingForModule())
+            || (timelineFontHook_ != nullptr
+                && timelineFontHook_->isWaitingForModule()))) {
         // 先于目标 QWidget 的 Show/Paint 处理；若 ExtensionLayer 刚刚加载，首帧即可接住。
         ensureExtensionLayerHook();
     }
@@ -2033,14 +2038,23 @@ void CavalryI18nRuntime::ensureExtensionLayerHook()
     }
 
     const QString previousStatus = extensionLayerHook_->status();
+    const QString previousFontStatus = timelineFontHook_ != nullptr
+        ? timelineFontHook_->status() : QString();
     extensionLayerHook_->ensureInstalled();
-    if (extensionLayerHook_->status() != previousStatus) {
+    if (timelineFontHook_ != nullptr) {
+        timelineFontHook_->ensureInstalled();
+    }
+    if (extensionLayerHook_->status() != previousStatus
+        || (timelineFontHook_ != nullptr
+            && timelineFontHook_->status() != previousFontStatus)) {
         writeDiagnostic(
             QStringLiteral("ready"),
             QStringLiteral("Embedded translation table installed."),
             true);
         lastTextPathDiagnosticRevision_ =
             extensionLayerHook_->textPathDiagnostics().revision;
+        lastTimelineFontDiagnosticRevision_ = timelineFontHook_ != nullptr
+            ? timelineFontHook_->diagnostics().revision : 0;
     }
 }
 
@@ -2051,15 +2065,18 @@ void CavalryI18nRuntime::maybeWriteTextPathDiagnostic()
     }
     const CavalryTextPathHookDiagnostics diagnostics =
         extensionLayerHook_->textPathDiagnostics();
-    if (diagnostics.revision
-        == lastTextPathDiagnosticRevision_) {
+    const std::uint64_t fontRevision = timelineFontHook_ != nullptr
+        ? timelineFontHook_->diagnostics().revision : 0;
+    if (diagnostics.revision == lastTextPathDiagnosticRevision_
+        && fontRevision == lastTimelineFontDiagnosticRevision_) {
         return;
     }
     lastTextPathDiagnosticRevision_ = diagnostics.revision;
+    lastTimelineFontDiagnosticRevision_ = fontRevision;
     writeDiagnostic(
         QStringLiteral("ready"),
         QStringLiteral(
-            "Embedded translation table installed; text-path diagnostics advanced."),
+            "Embedded translation table installed; rendering diagnostics advanced."),
         true);
 }
 
@@ -2227,6 +2244,36 @@ void CavalryI18nRuntime::writeDiagnostic(
             textPathDiagnosticObject
         },
         { QStringLiteral("qtVersion"), QString::fromLatin1(qVersion()) },
+        {
+            QStringLiteral("timelineFontHookStatus"),
+            timelineFontHook_ != nullptr ? timelineFontHook_->status()
+                                         : QStringLiteral("not-requested")
+        },
+        {
+            QStringLiteral("timelineFontHookDetail"),
+            timelineFontHook_ != nullptr ? timelineFontHook_->detail()
+                : QStringLiteral("No non-English embedded translator is installed.")
+        },
+        {
+            QStringLiteral("timelineFontDiagnostics"),
+            [this]() {
+                const auto diagnostics = timelineFontHook_ != nullptr
+                    ? timelineFontHook_->diagnostics()
+                    : CavalryTimelineFontHookDiagnostics{};
+                return QJsonObject{
+                    {QStringLiteral("revision"), static_cast<qint64>(diagnostics.revision)},
+                    {QStringLiteral("measureFallback"), static_cast<qint64>(diagnostics.measureFallback)},
+                    {QStringLiteral("drawFallback"), static_cast<qint64>(diagnostics.drawFallback)},
+                    {QStringLiteral("measureCalls"), static_cast<qint64>(diagnostics.measureCalls)},
+                    {QStringLiteral("drawCalls"), static_cast<qint64>(diagnostics.drawCalls)},
+                    {QStringLiteral("rejectedCaller"), static_cast<qint64>(diagnostics.rejectedCaller)},
+                    {QStringLiteral("rejectedEncoding"), static_cast<qint64>(diagnostics.rejectedEncoding)},
+                    {QStringLiteral("rejectedAbi"), static_cast<qint64>(diagnostics.rejectedAbi)},
+                    {QStringLiteral("originalForward"), static_cast<qint64>(diagnostics.originalForward)},
+                    {QStringLiteral("retainedOriginal"), static_cast<qint64>(diagnostics.retainedOriginal)}
+                };
+            }()
+        },
         {
             QStringLiteral("processId"),
             QString::number(QCoreApplication::applicationPid())

@@ -85,6 +85,7 @@ struct FakeRuntimeState final {
     int created = 0;
     int destroyed = 0;
     int makeCalls = 0;
+    int glyphCalls = 0;
 };
 
 FakeRuntimeState *gFakeRuntime = nullptr;
@@ -143,6 +144,9 @@ std::uint16_t fakeGlyph(
     const auto *face = static_cast<const FakeTypeface *>(raw);
     if (face == nullptr) {
         return 0;
+    }
+    if (face->owner != nullptr) {
+        ++face->owner->glyphCalls;
     }
     if (codePoint >= 0x20 && codePoint <= 0x7E) {
         return (face->coverage & kAscii) != 0 ? 1 : 0;
@@ -345,6 +349,54 @@ bool verifyMixedCjkFallback()
             && text == textBefore
             && source.references == 701,
         "mixed CJK did not use a borrowed fallback font while preserving source");
+}
+
+bool verifyAsciiBypassesMissingSourceGlyph()
+{
+    FakeRuntimeState state;
+    FakeTypeface source = makeSource(&state);
+    source.coverage = 0;
+    const FontBytes sourceFont = makeSourceFont(&source);
+    auto fallback = makeFallback(&state, QStringLiteral("zh-Hans"));
+    if (!check(fallback != nullptr, "ASCII bypass fallback setup failed")) {
+        return false;
+    }
+
+    FontBytes borrowed {};
+    const auto selection = fallback->selectFont(
+        sourceFont.data(),
+        "ASCII despite a source face without glyphs",
+        &borrowed);
+    return check(
+        selection.font == sourceFont.data()
+            && !selection.usedFallback
+            && state.glyphCalls == 0,
+        "ASCII timeline text queried glyphs or selected fallback");
+}
+
+bool verifyCoveredSourceStaysOriginal()
+{
+    FakeRuntimeState state;
+    FakeTypeface source = makeSource(&state);
+    source.coverage = kAscii | kHanSimplified | kHanTraditional | kJapanese;
+    const FontBytes sourceFont = makeSourceFont(&source);
+    const FontBytes sourceBefore = sourceFont;
+    auto fallback = makeFallback(&state, QStringLiteral("zh-Hans"));
+    if (!check(fallback != nullptr, "covered-source fallback setup failed")) {
+        return false;
+    }
+
+    FontBytes borrowed {};
+    const auto selection = fallback->selectFont(
+        sourceFont.data(),
+        utf8Bytes({ 'A', 0xE4, 0xB8, 0xAD, 0xE6, 0x96, 0x87 }),
+        &borrowed);
+    return check(
+        selection.font == sourceFont.data()
+            && !selection.usedFallback
+            && sameBytes(sourceFont, sourceBefore)
+            && fontTypeface(sourceFont) == &source,
+        "source font was replaced even though it covered the full label");
 }
 
 bool verifyLanguages()
@@ -562,7 +614,9 @@ int main()
 {
     const bool ok = verifyOldNoFallbackFailure()
         && verifyAsciiUnchanged()
+        && verifyAsciiBypassesMissingSourceGlyph()
         && verifyMixedCjkFallback()
+        && verifyCoveredSourceStaysOriginal()
         && verifyLanguages()
         && verifyIncompleteCandidateForwards()
         && verifyInvalidEmptyAndSizeBoundary()

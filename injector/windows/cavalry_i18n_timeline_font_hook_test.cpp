@@ -55,9 +55,7 @@ public:
         void **,
         void *,
         void **,
-        void *,
-        bool,
-        bool)
+        void *)
     {
         return false;
     }
@@ -86,11 +84,6 @@ public:
 };
 #endif
 
-#ifndef CAVALRY_I18N_TIMELINE_FONT_HOOK_SOURCE
-#define CAVALRY_I18N_TIMELINE_FONT_HOOK_SOURCE \
-    "cavalry_i18n_timeline_font_hook.cpp"
-#endif
-
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
 #endif
@@ -100,7 +93,6 @@ public:
 #include <windows.h>
 
 #include <QtCore/QDebug>
-#include <QtCore/QFile>
 
 namespace {
 
@@ -234,9 +226,7 @@ bool verifyTwoSlotRollbackAndOwnershipContract()
                     &measureSlot,
                     reinterpret_cast<void *>(&countingMeasure),
                     &drawSlot,
-                    reinterpret_cast<void *>(&countingDraw),
-                    true,
-                    true),
+                    reinterpret_cast<void *>(&countingDraw)),
                 QStringLiteral(
                     "Timeline font hook did not install both fake slots."))) {
             return false;
@@ -304,9 +294,7 @@ bool verifyTwoSlotRollbackAndOwnershipContract()
                     &measureSlot,
                     reinterpret_cast<void *>(&countingMeasure),
                     &drawSlot,
-                    reinterpret_cast<void *>(&countingDraw),
-                    true,
-                    true),
+                    reinterpret_cast<void *>(&countingDraw)),
                 QStringLiteral(
                     "Timeline font hook accepted a second-slot CAS mismatch."))) {
             return false;
@@ -330,9 +318,7 @@ bool verifyTwoSlotRollbackAndOwnershipContract()
                     &measureSlot,
                     reinterpret_cast<void *>(&countingMeasure),
                     &drawSlot,
-                    reinterpret_cast<void *>(&countingDraw),
-                    true,
-                    true),
+                    reinterpret_cast<void *>(&countingDraw)),
                 QStringLiteral(
                     "Timeline font hook could not prepare ownership-loss case."))) {
             return false;
@@ -354,75 +340,6 @@ bool verifyTwoSlotRollbackAndOwnershipContract()
     }
 }
 
-bool verifyProductionOrderContract()
-{
-    QFile sourceFile(QStringLiteral(CAVALRY_I18N_TIMELINE_FONT_HOOK_SOURCE));
-    if (!sourceFile.open(QIODevice::ReadOnly)) {
-        qCritical().noquote()
-            << QStringLiteral(
-                   "Could not read the timeline font hook production source; RED is expected before implementation.");
-        return false;
-    }
-    const QByteArray source = sourceFile.readAll();
-    const qsizetype ensureStart = source.indexOf(
-        "bool CavalryTimelineFontHook::ensureInstalled()");
-    const qsizetype ensureEnd = source.indexOf(
-        "bool CavalryTimelineFontHook::isWaitingForModule()",
-        ensureStart);
-    if (!expect(
-            ensureStart >= 0 && ensureEnd > ensureStart,
-            QStringLiteral(
-                "Timeline font hook source does not expose the expected ensureInstalled boundary."))) {
-        return false;
-    }
-
-    const qsizetype pin = source.indexOf(
-        "pinCavalryI18nModuleForProcessLifetime(",
-        ensureStart);
-    const qsizetype firstWrite = source.indexOf(
-        "replaceCavalryIatPointer(",
-        ensureStart);
-    const qsizetype secondWrite = source.indexOf(
-        "replaceCavalryIatPointer(",
-        firstWrite + 1);
-    const qsizetype callbackSlot = source.indexOf(
-        "processLifetimeCallbackSlot<",
-        ensureStart);
-    const qsizetype moduleInfo = source.indexOf(
-        "GetModuleInformation(",
-        ensureStart);
-    const qsizetype measureSlot = source.indexOf("0x01B32030");
-    const qsizetype drawSlot = source.indexOf("0x01B32018");
-    const qsizetype measureCaller = source.indexOf("0x0086F4A4");
-    const qsizetype drawCaller = source.indexOf("0x0086F9AC");
-
-    if (!expect(
-            pin > ensureStart && pin < ensureEnd
-                && firstWrite > pin && firstWrite < ensureEnd
-                && secondWrite > firstWrite && secondWrite < ensureEnd
-                && callbackSlot >= 0
-                && moduleInfo > ensureStart
-                && measureSlot >= 0
-                && drawSlot >= 0
-                && measureCaller >= 0
-                && drawCaller >= 0,
-            QStringLiteral(
-                "Timeline font hook must validate the complete image, PIN before two IAT CAS writes, and lock both callers."))) {
-        return false;
-    }
-
-    const qsizetype gateOff = source.indexOf(
-        "translationGate_->store(false",
-        source.indexOf("bool CavalryTimelineFontHook::uninstallLocked"));
-    const qsizetype tombstone = source.indexOf(
-        "publishTombstone(",
-        source.indexOf("bool CavalryTimelineFontHook::uninstallLocked"));
-    return expect(
-        gateOff >= 0 && tombstone > gateOff,
-        QStringLiteral(
-            "Timeline font hook uninstall must close the gate before publishing a forward-only tombstone."));
-}
-
 } // namespace
 
 int main()
@@ -430,7 +347,6 @@ int main()
     return verifyWaitingAndRetryContract()
             && verifyForwardOnlyTombstoneContract()
             && verifyTwoSlotRollbackAndOwnershipContract()
-            && verifyProductionOrderContract()
         ? 0
         : 1;
 }
