@@ -80,12 +80,17 @@ static_assert(sizeof(void *) == 0x08);
 
 struct FakeRuntimeState final {
     bool failCandidates = false;
+    bool familyAwareCandidates = false;
     std::uint32_t candidateCoverage = kAscii | kHanSimplified
         | kHanTraditional | kJapanese;
+    std::uint32_t microsoftYaHeiCoverage = kAscii | kHanSimplified;
+    std::uint32_t yuGothicCoverage = kAscii | kJapanese;
     int created = 0;
     int destroyed = 0;
     int makeCalls = 0;
     int glyphCalls = 0;
+    int microsoftYaHeiCalls = 0;
+    int yuGothicCalls = 0;
 };
 
 FakeRuntimeState *gFakeRuntime = nullptr;
@@ -123,7 +128,20 @@ void **fakeTypefaceVtable()
 
 bool isHanSimplified(std::int32_t codePoint)
 {
-    return codePoint == 0x4E2D || codePoint == 0x6587;
+    switch (codePoint) {
+    case 0x4E2D: // 中
+    case 0x6587: // 文
+    case 0x63A7: // 控
+    case 0x5236: // 制
+    case 0x6D4B: // 测
+    case 0x8BD5: // 试
+    case 0x81EA: // 自
+    case 0x5B9A: // 定
+    case 0x4E49: // 义
+        return true;
+    default:
+        return false;
+    }
 }
 
 bool isHanTraditional(std::int32_t codePoint)
@@ -165,7 +183,7 @@ std::uint16_t fakeGlyph(
 
 void *fakeMakeTypeface(
     void **result,
-    const char *,
+    const char *family,
     std::uint32_t)
 {
     if (result == nullptr || gFakeRuntime == nullptr) {
@@ -180,6 +198,15 @@ void *fakeMakeTypeface(
     face->vtable = fakeTypefaceVtable();
     face->references = 1;
     face->coverage = gFakeRuntime->candidateCoverage;
+    if (gFakeRuntime->familyAwareCandidates && family != nullptr) {
+        if (std::strcmp(family, "Microsoft YaHei UI") == 0) {
+            face->coverage = gFakeRuntime->microsoftYaHeiCoverage;
+            ++gFakeRuntime->microsoftYaHeiCalls;
+        } else if (std::strcmp(family, "Yu Gothic UI") == 0) {
+            face->coverage = gFakeRuntime->yuGothicCoverage;
+            ++gFakeRuntime->yuGothicCalls;
+        }
+    }
     face->owner = gFakeRuntime;
     ++gFakeRuntime->created;
     *result = face;
@@ -445,6 +472,115 @@ bool verifyLanguages()
     return true;
 }
 
+bool verifyJapaneseUsesCrossLanguageSimplifiedFallback()
+{
+    FakeRuntimeState state;
+    state.familyAwareCandidates = true;
+    state.candidateCoverage = kAscii | kJapanese;
+    state.microsoftYaHeiCoverage = kAscii | kHanSimplified;
+    FakeTypeface source = makeSource(&state);
+    const FontBytes sourceFont = makeSourceFont(&source);
+    const FontBytes sourceBefore = sourceFont;
+    auto fallback = makeFallback(&state, QStringLiteral("ja_JP"));
+    if (!check(
+            fallback != nullptr,
+            "Japanese cross-language fallback failed to initialize")) {
+        return false;
+    }
+
+    const std::string names[] {
+        utf8Bytes({
+            0xE6, 0x8E, 0xA7, // 控
+            0xE5, 0x88, 0xB6, // 制
+            0xE6, 0xB5, 0x8B, // 测
+            0xE8, 0xAF, 0x95, // 试
+            '3', '3',
+        }),
+        utf8Bytes({
+            'T', 'e', 'x', 't', ' ', 'B', 'o', 'x', ' ',
+            0xE8, 0x87, 0xAA, // 自
+            0xE5, 0xAE, 0x9A, // 定
+            0xE4, 0xB9, 0x89, // 义
+            '3', '3',
+        }),
+    };
+    for (const std::string &text : names) {
+        const std::string textBefore = text;
+        FontBytes borrowed {};
+        const auto selection = fallback->selectFont(
+            sourceFont.data(),
+            text,
+            &borrowed);
+        const void *selectedTypeface = fontTypeface(borrowed);
+        if (!check(
+                selection.font == borrowed.data()
+                    && selection.usedFallback
+                    && selectedTypeface != &source
+                    && state.microsoftYaHeiCalls > 0
+                    && fakeGlyph(selectedTypeface, 0x63A7) != 0
+                    && fakeGlyph(selectedTypeface, 0x81EA) != 0
+                    && std::memcmp(
+                           borrowed.data() + sizeof(void *),
+                           sourceFont.data() + sizeof(void *),
+                           kSkFontSize - sizeof(void *))
+                        == 0
+                    && sameBytes(sourceFont, sourceBefore)
+                    && text == textBefore,
+                "ja_JP did not cross to Microsoft YaHei UI for Simplified CJK")) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool verifySimplifiedUsesCrossLanguageJapaneseFallback()
+{
+    FakeRuntimeState state;
+    state.familyAwareCandidates = true;
+    state.candidateCoverage = kAscii | kHanSimplified;
+    state.yuGothicCoverage = kAscii | kJapanese;
+    FakeTypeface source = makeSource(&state);
+    const FontBytes sourceFont = makeSourceFont(&source);
+    const FontBytes sourceBefore = sourceFont;
+    auto fallback = makeFallback(&state, QStringLiteral("zh-Hans"));
+    if (!check(
+            fallback != nullptr,
+            "Simplified cross-language fallback failed to initialize")) {
+        return false;
+    }
+
+    const std::string text = utf8Bytes({
+        'T', 'e', 'x', 't', ' ', 'B', 'o', 'x', ' ',
+        0xE6, 0x97, 0xA5, // 日
+        0xE6, 0x9C, 0xAC, // 本
+        0xE8, 0xAA, 0x9E, // 語
+        '3', '3',
+    });
+    const std::string textBefore = text;
+    FontBytes borrowed {};
+    const auto selection = fallback->selectFont(
+        sourceFont.data(),
+        text,
+        &borrowed);
+    const void *selectedTypeface = fontTypeface(borrowed);
+    return check(
+        selection.font == borrowed.data()
+            && selection.usedFallback
+            && selectedTypeface != &source
+            && state.yuGothicCalls > 0
+            && fakeGlyph(selectedTypeface, 0x65E5) != 0
+            && fakeGlyph(selectedTypeface, 0x672C) != 0
+            && fakeGlyph(selectedTypeface, 0x8A9E) != 0
+            && std::memcmp(
+                   borrowed.data() + sizeof(void *),
+                   sourceFont.data() + sizeof(void *),
+                   kSkFontSize - sizeof(void *))
+                == 0
+            && sameBytes(sourceFont, sourceBefore)
+            && text == textBefore,
+        "zh-Hans did not cross to Yu Gothic UI for Japanese mixed text");
+}
+
 bool verifyIncompleteCandidateForwards()
 {
     FakeRuntimeState state;
@@ -618,6 +754,8 @@ int main()
         && verifyMixedCjkFallback()
         && verifyCoveredSourceStaysOriginal()
         && verifyLanguages()
+        && verifyJapaneseUsesCrossLanguageSimplifiedFallback()
+        && verifySimplifiedUsesCrossLanguageJapaneseFallback()
         && verifyIncompleteCandidateForwards()
         && verifyInvalidEmptyAndSizeBoundary()
         && verifyMeasureAndDrawChooseSameFont()
